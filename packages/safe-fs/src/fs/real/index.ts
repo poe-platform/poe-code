@@ -1,3 +1,4 @@
+import { snapshotStagingCreation } from "../staging-cleanup.js";
 import { constants, type Stats, type BigIntStats } from "node:fs";
 import * as immediate from "node:fs";
 import * as native from "node:fs/promises";
@@ -317,10 +318,12 @@ export class RealFileSystem implements FileSystem {
   }
 
   async createStagedFile(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    options = snapshotStagingCreation(options, directoryPath);
     // Unlike operation(), this must return its receipt after commit even if the
     // signal is aborted before the promise settles.
     options.signal?.throwIfAborted();
     try {
+      if (options.retainCleanup === true) throw new FsError("ENOTSUP");
       if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\0")) throw new FsError("EINVAL");
       this.stagingMetadata(options);
       if (content.type === "file" && !(content.data instanceof Uint8Array)) throw new FsError("EINVAL");

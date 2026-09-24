@@ -1,4 +1,4 @@
-import type { FileStaging, FileStagingEntry, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError, toFsError } from "../contracts/errors.js";
 import { validatePath } from "../contracts/virtual-path.js";
@@ -6,6 +6,7 @@ import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
+import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry } from "./staging-ancestry.js";
 
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
@@ -192,12 +193,16 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         if (["publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
           const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
           const optionIndex = property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1;
+          if (property === "createStagedFile") args[optionIndex] = snapshotStagingCreation(args[optionIndex] as CreateStagedFileOptions, path);
           const supplied = args[optionIndex] as FsOptions | undefined;
           const options = property === "publishStagedFile" ? resizeOptions(supplied ?? {}) : supplied;
           const callerGuard = property === "publishStagedFile" ? (supplied as PublishStagedFileOptions | undefined)?.commitGuard : undefined;
           try {
             const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
             await requireOwnedMutation(original, path, property === "publishFileConditional" ? "atomicFilePublication" : property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
+            if (property === "createStagedFile" && options && "retainCleanup" in options && options.retainCleanup === true) {
+              await requireOwnedMutation(original, path, "retainedStagingCleanup", options, true);
+            }
             if (property === "publishStagedFile") {
               const publishOptions = (options ?? {}) as PublishStagedFileOptions;
               await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
@@ -228,7 +233,22 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
             }
             throw error;
           }
-          return Reflect.apply(method, original, args);
+          if (property !== "createStagedFile") return Reflect.apply(method, original, args);
+          const staging: FileStaging = await Reflect.apply(method, original, args);
+          if (!staging.cleanup) return staging;
+          const backendCleanup = staging.cleanup;
+          try {
+            const cleanup = createStagingCleanup(staging.directory.path, controls => {
+              controls.signal?.throwIfAborted();
+              cleanupCharge();
+              controls.signal?.throwIfAborted();
+              return backendCleanup.remove(controls);
+            }, () => backendCleanup.close());
+            return Object.freeze({ ...staging, cleanup });
+          } catch (error) {
+            await finishCleanup(() => backendCleanup.close(), true);
+            throw error;
+          }
         })();
         if (property === "compareEntry") {
           const peer = args[1] as FileSystem;

@@ -1246,6 +1246,41 @@ quota, permission, and unsupported-metadata failures must precede publication of
 any staging entry. Implementations retain their existing file and aggregate
 limits; this contract adds no larger byte allowance.
 
+`retainedStagingCleanup: true` permits `createStagedFile(..., { retainCleanup:
+true })`. Creation acquires and accounts for the cleanup ownership before
+returning a receipt with `cleanup: FileStagingCleanup`. Unsupported backends
+reject this request before creating entries; `trustedOwnedStaging` alone is
+insufficient. Ordinary receipts and `removeStagedFile` remain pathname-bound.
+
+The cleanup handle removes only the original private directory and its original
+unchanged child, if still present, even after a parent or ancestor is relocated.
+It refuses a substituted directory/child, changed private mode, unexpected child,
+unlinked parent, or revoked parent/directory permissions. Publication may leave
+the private directory empty; cleanup must not remove the published file. These
+checks and removal are one atomic operation on the retained backend entries.
+Cleanup does not traverse the original path or grant access to replacement trees.
+
+`cleanup.remove(options?)` admits one removal and returns its shared completion
+on repeated calls. It releases retained resources after success or failure.
+`cleanup.close()` abandons removal if none was admitted, otherwise waits for it,
+and releases without additional mutation. Close is idempotent; removal after
+abandonment rejects `EBADF`. Call close in a finally block even when a wrapper's
+admission can fail. An earlier removal failure takes precedence over a release
+failure; without an earlier failure, release errors propagate. Explicit close
+reports a failed release even when removal already reported its primary failure.
+
+Memory charges three retained-node references and their diagnostic paths against
+its metadata/retained-byte limits. Unlinked files and symlinks remain charged
+until the references are released. Mounts retain the original backend handle;
+cleanup does not query capabilities at vanished paths. Mount admission failure
+still releases the handle, and close drains an admitted removal. Scope charges
+cleanup exactly once without checking the ambient scope signal; a separately
+supplied cleanup signal is honored. Neither cancellation after completed
+creation nor cancellation after completed removal discards its acknowledgment.
+Device views support cleanup for admitted backing entries, not virtual devices.
+Quota, read-only, restricted extraction, and Real views do not advertise retained
+staging cleanup.
+
 Publication atomically verifies the original staging file, its private directory,
 both parents, and the destination's supplied snapshot or explicit absence before
 renaming. Parent and directory conditions compare stable identity and type;

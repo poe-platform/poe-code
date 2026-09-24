@@ -104,7 +104,7 @@ export function readOnlyCapabilities(capabilities: FileSystemCapabilities): File
     "symlinks", "streamingRead", "open", "retainedRead", "versionedDescriptors",
   ].filter(name => capabilities[name] !== undefined).map(name => [name, capabilities[name]]));
   return Object.freeze({
-    ...inspection, readOnly: true, write: false, append: false, exclusiveCreate: false,
+    ...inspection, retainedStagingCleanup: false, readOnly: true, write: false, append: false, exclusiveCreate: false,
     mkdir: false, recursiveMkdir: false, remove: false, removeDirectory: false, recursiveRemove: false,
     rename: false, copy: false, exclusiveCopy: false, truncate: false, streamingAppend: false,
     randomAccessWrite: false, hardlinks: false, permissions: false, timestamps: false,
@@ -117,7 +117,7 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, !capabilities.readOnly);
   const streamingAppend = requireCapabilities(capabilities.append, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
-  return Object.freeze({ ...rest, atomicStagingAncestry: false, synchronousDirectoryValidation: false, guardedStagingPublication: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+  return Object.freeze({ ...rest, retainedStagingCleanup: false, atomicStagingAncestry: false, synchronousDirectoryValidation: false, guardedStagingPublication: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),
     ...(streamingAppend === undefined ? {} : { streamingAppend }),
   });
@@ -131,6 +131,7 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
   if (capabilities.atomicFileMutation === true && (capabilities.readOnly === true || typeof filesystem.writeFileConditional !== "function" || typeof filesystem.removeFileConditional !== "function")) unavailable.atomicFileMutation = false;
   if (capabilities.atomicFileStaging === true && (capabilities.readOnly === true
     || typeof filesystem.createStagedFile !== "function" || typeof filesystem.publishStagedFile !== "function" || typeof filesystem.removeStagedFile !== "function")) unavailable.atomicFileStaging = false;
+  if (capabilities.retainedStagingCleanup === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.retainedStagingCleanup = false;
   if (capabilities.atomicStagingAncestry === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.atomicStagingAncestry = false;
   if (capabilities.synchronousDirectoryValidation === true && typeof filesystem.prepareDirectoryAncestry !== "function") unavailable.synchronousDirectoryValidation = false;
   if (capabilities.guardedStagingPublication === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.guardedStagingPublication = false;
@@ -141,7 +142,7 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
 }
 
 export async function requireOwnedMutation(filesystem: FileSystem, path: string,
-  capability: "atomicFilePublication" | "atomicEntryRemoval" | "atomicTreeRemoval" | "atomicFileMutation" | "atomicFileStaging" | "guardedStagingPublication" | "atomicStagingAncestry" | "atomicDirectoryMetadata", options: FsOptions, create = false): Promise<void> {
+  capability: "retainedStagingCleanup" | "atomicFilePublication" | "atomicEntryRemoval" | "atomicTreeRemoval" | "atomicFileMutation" | "atomicFileStaging" | "guardedStagingPublication" | "atomicStagingAncestry" | "atomicDirectoryMetadata", options: FsOptions, create = false): Promise<void> {
   try {
     options.signal?.throwIfAborted();
     const query = create ? { ...options, create: true } : options;

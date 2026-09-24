@@ -98,6 +98,13 @@ creation and updates without inode numbers, staging directories or permission
 APIs. Read the [conditional publication contract](src/contracts/conditional-publication.md)
 before implementing the host operation; ordinary writes do not provide it.
 
+For temporary staging that must be cleaned up after its parent moves, adapters
+advertising `retainedStagingCleanup` accept `createStagedFile(..., { parent,
+retainCleanup: true })`. Use the returned `staging.cleanup.remove()` and always
+call `staging.cleanup.close()` in `finally`. Memory and its supported wrappers
+retain only the owned staging entries; replacement entries remain protected.
+See the [staging contract](src/contracts/filesystem.md#atomic-owned-staging).
+
 | Backend or wrapper | Use it for |
 | --- | --- |
 | `createMemoryFileSystem()` | Isolated, nonpersistent storage with links, permissions, timestamps, and streams; each path resolution admits at most 65,536 cumulative UTF-16 code units across the input and followed symlink targets, rejecting excess with `ENAMETOOLONG` before component allocation |

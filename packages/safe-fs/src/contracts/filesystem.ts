@@ -78,6 +78,8 @@ export interface FileSystemCapabilities {
   /** Owned staging serialized within a trusted host; requires external tree isolation. */
   readonly trustedOwnedStaging?: boolean;
   readonly atomicFileStaging?: boolean;
+  /** Creates a cleanup handle bound to owned staging entries, independent of ancestor paths. */
+  readonly retainedStagingCleanup?: boolean;
   /** Atomically verifies every supplied root-to-parent directory identity at publication. */
   readonly atomicStagingAncestry?: boolean;
   /** Prepares directory guards that validate without yielding or mutating state. */
@@ -226,10 +228,21 @@ export interface FileStagingEntry {
   readonly stat: FileStat;
 }
 
+/** Ownership acquired with staging creation. remove is one-shot with shared
+ * completion; close drains admitted removal and releases without new mutation.
+ * Both release retained resources even after a failed removal. Call close when
+ * abandoning the staging receipt. An explicit cleanup signal is independent of
+ * the creation signal; scoped cleanup consumes the cleanup operation budget. */
+export interface FileStagingCleanup {
+  remove(options?: FsOptions): Promise<void>;
+  close(): Promise<void>;
+}
+
 export interface FileStaging {
   readonly parent: FileStagingEntry;
   readonly directory: FileStagingEntry;
   readonly file: FileStagingEntry;
+  readonly cleanup?: FileStagingCleanup;
 }
 
 export type StagedFileContent =
@@ -237,6 +250,8 @@ export type StagedFileContent =
   | { readonly type: "symlink"; readonly target: string };
 
 export interface CreateStagedFileOptions extends FsOptions {
+  /** Requires retainedStagingCleanup; unsupported backends reject before creation. */
+  readonly retainCleanup?: boolean;
   readonly parent: FileStat;
   readonly mode?: number;
   readonly atimeMs?: number;

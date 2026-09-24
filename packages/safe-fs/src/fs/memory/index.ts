@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
@@ -14,6 +14,7 @@ import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { openFileDescriptor } from "../descriptor.js";
 import { runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
+import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { resolveMissingTarget } from "./missing-target.js";
 import { registerMemoryAtomicView } from "./atomic-view.js";
 import { MemoryAllocation, MemoryLedger } from "./ledger.js";
@@ -129,7 +130,7 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
-      atomicFileStaging: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
+      atomicFileStaging: true, retainedStagingCleanup: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
       synchronousDirectoryValidation: true, guardedStagingPublication: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
@@ -220,6 +221,7 @@ export class MemoryFileSystem implements FileSystem {
       }
       retained.set("/", this.root);
     }
+    const capabilities = Object.freeze({ ...this.capabilities, retainedStagingCleanup: false });
     const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream", "writeFileConditional", "removeFileConditional"]);
     const reads = new Set(["access", "capabilitiesFor", "compareEntry", "lstat", "stat", "readFile", "readStream", "readdir", "readlink", "realpath"]);
     const check = (path: string, followFinal: boolean): void => {
@@ -238,6 +240,7 @@ export class MemoryFileSystem implements FileSystem {
     return new Proxy(this, {
       get: (target, property) => {
         if (property === "objects" || property === "confineExtraction") return undefined;
+        if (property === "capabilities") return capabilities;
         const value: unknown = Reflect.get(target, property);
         if (typeof value !== "function") return value;
         if (reads.has(String(property))) return value.bind(target);
@@ -304,7 +307,7 @@ export class MemoryFileSystem implements FileSystem {
     }
   }
 
-  private releaseReference(node: FileNode | DirectoryNode, path: string): void {
+  private releaseReference(node: MemoryNode, path: string): void {
     node.references--;
     this.ledger.release(path.length * 2, 1);
     this.releaseNode(node);
@@ -698,7 +701,9 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   async createStagedFile(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    options = snapshotStagingCreation(options, directoryPath);
     options.signal?.throwIfAborted();
+    if (options.retainCleanup === true && this.capabilities.retainedStagingCleanup !== true) this.fail("ENOTSUP", "createStagedFile", directoryPath);
     if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\0")) this.fail("EINVAL", "createStagedFile", directoryPath);
     const location = this.entry(directoryPath, "createStagedFile", true);
     if (location.node) this.fail("EEXIST", "createStagedFile", directoryPath);
@@ -710,7 +715,11 @@ export class MemoryFileSystem implements FileSystem {
     if (content.type === "file") this.admitSize(undefined, content.data.byteLength, "createStagedFile", directoryPath);
     if (content.type === "symlink") this.validatePath(content.target, "createStagedFile");
     const retained = (location.name.length + name.length) * 2 + (content.type === "symlink" ? content.target.length * 2 : 0);
-    this.ledger.reserve(retained, 4, "createStagedFile", directoryPath);
+    const parentPath = location.path.slice(0, location.path.lastIndexOf("/")) || "/";
+    const filePath = `${location.path}/${name}`;
+    const cleanupBytes = options.retainCleanup ? (parentPath.length + location.path.length + filePath.length) * 2 : 0;
+    const cleanupUnits = options.retainCleanup ? 3 : 0;
+    this.ledger.reserve(retained + cleanupBytes, 4 + cleanupUnits, "createStagedFile", directoryPath);
     let allocation: MemoryAllocation | undefined;
     let directory: DirectoryNode;
     let file: FileNode | SymlinkNode;
@@ -725,11 +734,40 @@ export class MemoryFileSystem implements FileSystem {
       directory.entries.set(name, file);
       location.parent.entries.set(location.name, directory);
       if (file.type === "file") this.totalBytes += file.data.byteLength;
-    } catch (error) { allocation?.release(); this.ledger.release(retained, 4); throw error; }
+    } catch (error) { allocation?.release(); this.ledger.release(retained + cleanupBytes, 4 + cleanupUnits); throw error; }
     this.changed(location.parent);
-    const parentPath = location.path.slice(0, location.path.lastIndexOf("/")) || "/";
     const receipt = (path: string, node: MemoryNode) => Object.freeze({ path, stat: Object.freeze(this.snapshot(node)) });
-    return Object.freeze({ parent: receipt(parentPath, location.parent), directory: receipt(location.path, directory), file: receipt(`${location.path}/${name}`, file) });
+    const staging = Object.freeze({ parent: receipt(parentPath, location.parent), directory: receipt(location.path, directory), file: receipt(filePath, file) });
+    if (!options.retainCleanup) return staging;
+    // Reservations above include these references before either entry is exposed.
+    location.parent.references++; directory.references++; file.references++;
+    return Object.freeze({ ...staging, cleanup: this.retainStagingCleanup(staging, location.parent, directory, file, location.name, name) });
+  }
+
+  private retainStagingCleanup(staging: FileStaging, parent: DirectoryNode, directory: DirectoryNode,
+    file: FileNode | SymlinkNode, directoryName: string, fileName: string): FileStagingCleanup {
+    // Clear this state on release, so keeping the closed handle does not keep
+    // detached nodes alive outside the Memory ledger.
+    let retained: { parent: DirectoryNode; directory: DirectoryNode; file: FileNode | SymlinkNode } | undefined = { parent, directory, file };
+    return createStagingCleanup(staging.directory.path, options => {
+      options.signal?.throwIfAborted();
+      const state = retained!;
+      if (state.parent.nlink === 0 || state.parent.entries.get(directoryName) !== state.directory) this.fail("EAGAIN", "removeStagedFile", staging.directory.path);
+      this.expectEntry(state.parent, staging.parent.stat, staging.parent.path, false);
+      this.expectEntry(state.directory, staging.directory.stat, staging.directory.path, false);
+      if ((state.directory.mode & 0o777) !== 0o700) this.fail("EAGAIN", "removeStagedFile", staging.directory.path);
+      const child = state.directory.entries.get(fileName);
+      if (child && child !== state.file) this.fail("EAGAIN", "removeStagedFile", staging.file.path);
+      this.removeStagingLocations(staging, {
+        node: state.directory, parent: state.parent, name: directoryName, path: staging.directory.path,
+      }, { node: child, parent: state.directory, name: fileName, path: staging.file.path });
+    }, () => {
+      const state = retained!;
+      retained = undefined;
+      this.releaseReference(state.file, staging.file.path);
+      this.releaseReference(state.directory, staging.directory.path);
+      this.releaseReference(state.parent, staging.parent.path);
+    });
   }
 
   async prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {
@@ -782,6 +820,10 @@ export class MemoryFileSystem implements FileSystem {
   async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     const { directory, file } = this.stagingLocations(staging);
+    this.removeStagingLocations(staging, directory, file);
+  }
+
+  private removeStagingLocations(staging: FileStaging, directory: Location, file: Location): void {
     if (file.node) this.expectEntry(file.node, staging.file.stat, staging.file.path);
     const node = directory.node as DirectoryNode;
     if (node.entries.size !== (file.node ? 1 : 0)) this.fail("ENOTEMPTY", "removeStagedFile", staging.directory.path);

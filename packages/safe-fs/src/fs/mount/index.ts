@@ -15,6 +15,7 @@ import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { pathNamespace } from "../path-namespace.js";
+import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { directoryAncestryPaths, inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
 import { compareIdentity } from "./identity.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
@@ -150,6 +151,7 @@ export class MountFileSystem implements FileSystem {
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
         open: ["open"],
+        retainedStagingCleanup: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         synchronousDirectoryValidation: ["prepareDirectoryAncestry"], guardedStagingPublication: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         trustedOwnedStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"],
         atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
@@ -159,7 +161,8 @@ export class MountFileSystem implements FileSystem {
       const values = mounts.map(({ backend }) => {
         if (backend.capabilities.readOnly === true
           && !["open", "versionedDescriptors", "read", "stat", "readdir", "realpath", "access", "readlink", "explicitDirectories", "implicitDirectories"].includes(capability)) return false;
-        const declared = backend.capabilities[capability];
+        const declared = capability === "retainedStagingCleanup"
+          ? ownedMutationCapabilities(backend).retainedStagingCleanup : backend.capabilities[capability];
         if (capability === "descriptorWriteStream" && backend.capabilities.streamingWrite === false) return false;
         return declared === true && optional[capability]?.some(method => typeof backend[method] !== "function") ? false : declared;
       });
@@ -167,7 +170,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "guardedStagingPublication",
+      "guardedStagingPublication", "retainedStagingCleanup",
       "trustedOwnedStaging", "atomicFilePublication", "atomicEntryRemoval", "atomicTreeRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open", "versionedDescriptors",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
@@ -814,20 +817,34 @@ export class MountFileSystem implements FileSystem {
     });
   }
 
-  createStagedFile(path: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+  async createStagedFile(path: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    options = snapshotStagingCreation(options, path);
     return this.operation("createStagedFile", path, options, async () => {
       const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true, missingDirectory: true });
       if (this.protected(location.path)) fail("EBUSY");
       this.mutable(location);
       const backend = location.mount.backend;
       await requireOwnedMutation(backend, location.local, "atomicFileStaging", options, true);
+      if (options.retainCleanup === true) await requireOwnedMutation(backend, location.local, "retainedStagingCleanup", options, true);
       if (!backend.createStagedFile) fail("ENOTSUP");
       const receipt = await backend.createStagedFile(location.local, name, content, options);
       const map = (entry: FileStagingEntry): FileStagingEntry => Object.freeze({
         path: location.mount.path === "/" ? entry.path : `${location.mount.path}${entry.path === "/" ? "" : entry.path}`,
         stat: Object.freeze(snapshotStat(entry.stat)),
       });
-      return Object.freeze({ parent: map(receipt.parent), directory: map(receipt.directory), file: map(receipt.file) });
+      try {
+        const staging = { parent: map(receipt.parent), directory: map(receipt.directory), file: map(receipt.file) };
+        if (!receipt.cleanup) return Object.freeze(staging);
+        const backendCleanup = receipt.cleanup;
+        const cleanup = createStagingCleanup(staging.directory.path,
+          controls => this.operation("removeStagedFile", staging.directory.path, controls,
+            () => backendCleanup.remove(controls), undefined, true),
+          () => backendCleanup.close());
+        return Object.freeze({ ...staging, cleanup });
+      } catch (error) {
+        await finishCleanup(() => receipt.cleanup?.close(), true);
+        throw error;
+      }
     }, undefined, true);
   }
 

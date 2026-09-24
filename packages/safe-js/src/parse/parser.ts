@@ -1,4 +1,5 @@
 import { CompactSourcePositions, compactSourceSpan, compactDerivedPosition } from "./compact-spans.js";
+import { compactTokenReader } from "./compact-tokens.js";
 import { CompactModuleAst, compilerElements, compilerField } from "./compact-module-ast.js";
 import { boundIdentifiers } from "./bindings.js";
 import { validatePrivateNames } from "./private-names.js";
@@ -901,6 +902,7 @@ const ordinaryFunctionContext: LexicalParseContext = {
 };
 
 class Parser {
+  private readonly readToken: (index: number) => Token | undefined;
   private index = 0;
   private readonly closingParentheses = new Map<number, number>();
   private allowIn = true;
@@ -929,6 +931,7 @@ class Parser {
     private readonly moduleSyntax?: SourceModuleSyntax,
     private readonly importSpecifiers?: ReadonlySet<string>
   ) {
+    this.readToken = compactTokenReader(tokens) ?? (index => tokens[index]);
     this.functionScopes.add(this.scopes[0]!);
     const openings: number[] = [];
     for (let index = 0; index < tokens.length; index++) {
@@ -949,7 +952,7 @@ class Parser {
     this.astStorage?.finish();
   }
 
-  get position(): Position { return (this.tokens[this.index] ?? this.tokens[this.tokens.length - 1]!).start; }
+  get position(): Position { return (this.readToken(this.index) ?? this.readToken(this.tokens.length - 1)!).start; }
 
   private withFunctionSource<T extends FunctionNode | ClassNode>(node: T): T {
     if ((node.type === "FunctionDeclaration" || node.type === "FunctionExpression") &&
@@ -1371,7 +1374,7 @@ class Parser {
       }
       if (params?.some(param => param.type !== "Identifier")) {
         for (const statement of body.body) {
-          const token = this.tokens[directiveTokenIndex];
+          const token = this.readToken(directiveTokenIndex);
           if (
             statement.type !== "ExpressionStatement" ||
             statement.expression.type !== "StringLiteral" ||
@@ -1383,7 +1386,7 @@ class Parser {
             throw new Error(
               "A function with non-simple parameters cannot contain a use strict directive."
             );
-          directiveTokenIndex += this.tokens[directiveTokenIndex + 1]?.value === ";" ? 2 : 1;
+          directiveTokenIndex += this.readToken(directiveTokenIndex + 1)?.value === ";" ? 2 : 1;
         }
       }
       if (params !== undefined && this.lexicalContext.grammar !== undefined)
@@ -2594,9 +2597,9 @@ class Parser {
     const key = computed
       ? this.parseExpression({ allowSequence: true }).node
       : this.currentToken().type === "string"
-        ? createStringLiteral(this.tokens[this.index++]!)
+        ? createStringLiteral(this.readToken(this.index++)!)
         : this.currentToken().type === "numeric"
-          ? createNumericLiteral(this.tokens[this.index++]!)
+          ? createNumericLiteral(this.readToken(this.index++)!)
           : this.currentToken().type === "private-identifier" ? this.parsePrivateIdentifier() : this.parseIdentifierName();
     if (computed) this.expectPunctuator("]");
     const name = computed ? undefined : key.type === "Identifier" ? key.name
@@ -4497,7 +4500,7 @@ class Parser {
   }
 
   private tokenAfterBalancedGroup(startIndex: number): Token | undefined {
-    const startToken = this.tokens[startIndex];
+    const startToken = this.readToken(startIndex);
     if (
       startToken?.type !== "punctuator" ||
       (startToken.value !== "[" && startToken.value !== "{")
@@ -4507,7 +4510,7 @@ class Parser {
 
     const stack: string[] = [];
     for (let index = startIndex; index < this.tokens.length; index += 1) {
-      const token = this.tokens[index];
+      const token = this.readToken(index)!;
       if (token.type !== "punctuator") {
         continue;
       }
@@ -4524,7 +4527,7 @@ class Parser {
         }
 
         if (stack.length === 0) {
-          return this.tokens[index + 1];
+          return this.readToken(index + 1);
         }
       }
     }
@@ -4600,14 +4603,14 @@ class Parser {
   }
 
   private findArrowFromParenthesizedParams(startIndex: number): number | undefined {
-    const startToken = this.tokens[startIndex];
+    const startToken = this.readToken(startIndex);
     if (startToken?.type !== "punctuator" || startToken.value !== "(") {
       return undefined;
     }
 
     let depth = 0;
     for (let index = startIndex; index < this.tokens.length; index += 1) {
-      const token = this.tokens[index];
+      const token = this.readToken(index)!;
       if (token.type !== "punctuator") {
         continue;
       }
@@ -4620,7 +4623,7 @@ class Parser {
       if (token.value === ")") {
         depth -= 1;
         if (depth === 0) {
-          const arrowToken = this.tokens[index + 1];
+          const arrowToken = this.readToken(index + 1);
           if (arrowToken?.value !== "=>") {
             return undefined;
           }
@@ -4646,7 +4649,7 @@ class Parser {
     let previousToken: Token | undefined;
 
     for (let index = startIndex; index < this.tokens.length; index += 1) {
-      const token = this.tokens[index];
+      const token = this.readToken(index)!;
       if (token.type === "punctuator") {
         if (token.value === "(" || token.value === "[" || token.value === "{") {
           depth += 1;
@@ -4933,7 +4936,7 @@ class Parser {
   }
 
   private currentToken(): Token {
-    const token = this.tokens[this.index] ?? this.tokens[this.tokens.length - 1];
+    const token = this.readToken(this.index) ?? this.readToken(this.tokens.length - 1)!;
     if (this.lexicalContext.grammar?.strict !== false && token.legacyEscape)
       throw new Error("Legacy escape sequences are not supported in strict mode.");
     if (this.lexicalContext.grammar?.strict !== false && token.type === "numeric" &&
@@ -4943,11 +4946,11 @@ class Parser {
   }
 
   private peekToken(offset: number): Token {
-    return this.tokens[this.index + offset] ?? this.tokens[this.tokens.length - 1];
+    return this.readToken(this.index + offset) ?? this.readToken(this.tokens.length - 1)!;
   }
 
   private previousToken(): Token {
-    return this.tokens[this.index - 1] ?? this.tokens[0];
+    return this.readToken(this.index - 1) ?? this.readToken(0)!;
   }
 
   private isExportToken(token: Token): boolean {

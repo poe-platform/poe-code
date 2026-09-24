@@ -17,6 +17,13 @@ const types: readonly TokenType[] = [
 const stride = 3;
 const legacyEscape = 256;
 const tokenCacheSize = 256;
+type TokenReader = (index: number) => Token | undefined;
+const readers = new WeakMap<Token[], TokenReader>();
+const registerReader: (tokens: Token[], reader: TokenReader) => unknown = WeakMap.prototype.set.bind(readers);
+
+// Only compiler-owned facades have a numeric reader. Ordinary arrays and foreign
+// proxies retain their indexed access semantics; no property lookup certifies them.
+export const compactTokenReader: (tokens: Token[]) => TokenReader | undefined = WeakMap.prototype.get.bind(readers);
 
 /** Private indexed compiler storage; the public tokenizer stays eager. */
 export class CompactTokens {
@@ -28,6 +35,7 @@ export class CompactTokens {
   private readonly parserToken?: (type: TokenType, value: string, start: number, end: number) => Token;
 
   constructor(private readonly sourcePositions: CompactSourcePositions, lazyPositions = false) {
+    registerReader(this.indexed, index => this.get(index));
     if (!lazyPositions) return;
     // Compiler lookahead usually reads only type/value. These private tokens
     // need no own enumerable coordinates; ordinary tokenizer output stays eager.
@@ -98,7 +106,7 @@ export class CompactTokens {
   };
 
   private get(index: number): Token | undefined {
-    if (index >= this.values.length) return undefined;
+    if (!Number.isSafeInteger(index) || index < 0 || index >= this.values.length) return undefined;
     if (index === this.values.length - 1) return this.last;
     const cached = this.tokens.get(index);
     if (cached !== undefined) return cached;

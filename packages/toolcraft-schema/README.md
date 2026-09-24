@@ -7,8 +7,9 @@ and JSON Schema generation.
 
 - Zero runtime dependencies
 - Typed schema descriptors
-- `Static<typeof schema>` type inference
-- Runtime validation with `validateValue()`
+- `Static<typeof schema>` for legacy inference; `Input` and `Output` for parsed defaults
+- Standard Schema v1 validation and Standard JSON Schema v1 conversion
+- Runtime validation with `validate()`
 - JSON Schema serialization via `toJsonSchema()`
 - JSON Schema document serialization via `toJsonSchemaDocument()`
 - Native JSON Schema compilation and property projection with reference support
@@ -16,7 +17,7 @@ and JSON Schema generation.
 ## Usage
 
 ```ts
-import { S, toJsonSchema, toJsonSchemaDocument, validateValue } from "toolcraft-schema";
+import { S, toJsonSchema, toJsonSchemaDocument, validate } from "toolcraft-schema";
 import type { Static } from "toolcraft-schema";
 
 const schema = S.Object({
@@ -39,7 +40,7 @@ const document = toJsonSchemaDocument(schema, {
   id: "https://example.test/schema.json",
   title: "Example schema"
 });
-const validation = validateValue(schema, {
+const validation = validate(schema, {
   name: "Ada",
   mode: "safe",
   tags: []
@@ -55,9 +56,9 @@ const validation = validateValue(schema, {
 - `S.Boolean({ description?, default?, short?, cliAliases? })`
 - `S.Enum(values, { description?, default?, short?, cliAliases? })`
 - `S.Array(itemSchema, { description?, default?, short?, cliAliases? })`
-- `S.Record(valueSchema, { description?, default? })`
-- `S.Union([schemaA, schemaB], { description?, default? })`
-- `S.OneOf([schemaA, schemaB], { description?, default? })`
+- `S.Record(valueSchema)`
+- `S.Union([objectSchemaA, objectSchemaB])`
+- `S.OneOf({ discriminator: "kind", branches: { text: objectSchemaA, count: objectSchemaB } })`
 - `S.Object({ [key]: schema })`
 - `S.Optional(schema)`
 
@@ -65,7 +66,8 @@ const validation = validateValue(schema, {
 
 - `Static<typeof schema>` infers the runtime TypeScript shape for a schema descriptor.
 - Object properties wrapped in `S.Optional(...)` become optional properties in `Static`.
-- Schemas declared with `nullable: true` infer `null` in `Static` and emit `nullable: true` in JSON Schema.
+- Schemas declared with `nullable: true` infer `null` and emit standard JSON Schema null unions.
+- `Input<typeof schema>` describes accepted inputs. `Output<typeof schema>` makes optional properties with defaults required after parsing, including nested objects and arrays. `Static` keeps its existing optional-property behavior.
 
 ### JSON Schema generation
 
@@ -80,9 +82,9 @@ const validation = validateValue(schema, {
 
 ### Runtime validation
 
-- `validateValue(schema, value)` returns `{ ok: true, value }` for valid input.
+- `validate(schema, value)` returns `{ ok: true, value }` for valid input.
 - Invalid input returns `{ ok: false, issues }` with path-aware diagnostics.
-- Validation applies defaults from schema descriptors.
+- Validation fills missing optional properties with their inner schema defaults. Required properties remain required. Use `{ defaults: "none" }` to disable defaults, or `{ defaults: "all" }` to also fill required properties. Each parsed default is an independent copy.
 
 `compileJsonSchema(document, options)` validates complete native JSON Schema
 documents. `projectJsonSchemaProperties(document, options)` supplies stable
@@ -100,6 +102,45 @@ non-JSON prototypes. Defaults bound the tree to 10,000 nodes and depth 64.
 Use `maxNodes` for larger bounded documents, or `maxDepth` (0–256) to choose a
 depth budget. Shared objects count once for each occurrence in the JSON tree;
 options never change other calls' budgets.
+
+## Use with Standard Schema consumers
+
+Pass a builder result directly to libraries that accept Standard Schema and
+Standard JSON Schema, including tiny MCP servers. No adapter is required.
+
+```ts
+import { S } from "toolcraft-schema";
+import { createServer } from "tiny-stdio-mcp-server";
+
+const input = S.Object({
+  query: S.String(),
+  limit: S.Optional(S.Number({ default: 10 }))
+});
+
+createServer({ name: "search", version: "1" })
+  .tool("search", "Search", input, ({ query, limit }) => {
+    // query: string; limit: number (the default has been applied)
+    return `${query}: ${limit}`;
+  });
+
+const parsed = await input["~standard"].validate({ query: "hello" });
+// { value: { query: "hello", limit: 10 } } or { issues: [...] }
+const document = input["~standard"].jsonSchema.input({ target: "draft-2020-12" });
+const outputDocument = input["~standard"].jsonSchema.output({ target: "draft-2020-12" });
+```
+
+Standard validation uses the default optional-property behavior of `validate`.
+Input conversion keeps defaulted optional properties optional; output conversion
+marks them required. Direct `toJsonSchema(schema, { io: "output" })` also exposes
+this output shape. Converters support `draft-07` and `draft-2020-12`, and reject
+unsupported targets. Native schemas attached with `withJsonSchema` remain the
+authoritative contract; projection defaults do not alter their values.
+
+The `~standard` methods are non-enumerable. JSON serialization and structured
+cloning keep the existing data descriptors. A spread or structured clone does
+not retain methods: call `withStandardSchema(copiedDescriptor)` to attach them
+when passing the copy to a standard consumer. Existing `validate` and
+`toJsonSchema` functions continue to accept these plain descriptors.
 
 ## Environment Variables
 

@@ -1267,7 +1267,7 @@ export function hasMcpProxyConfig(group: Group<any>): boolean {
   );
 }
 
-export { S, toJsonSchema } from "./schema.js";
+export { S, toJsonSchema, withStandardSchema } from "./schema.js";
 export {
   AuthenticationError,
   BadRequestError,
@@ -1315,6 +1315,14 @@ export type {
   JsonSchema,
   JsonSchemaDocument,
   JsonSchemaDocumentOptions,
+  JsonSchemaOptions,
+  Input,
+  Output,
+  StandardSchema,
+  Standardized,
+  StandardIssue,
+  StandardResult,
+  StandardJsonSchemaOptions,
   JsonValue,
   JsonValueSchema,
   NumberSchema,

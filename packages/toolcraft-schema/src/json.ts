@@ -1,3 +1,4 @@
+import { withStandardSchema, type Standardized } from "./standard.js";
 import type { SchemaBase } from "./index.js";
 
 type JsonPrimitive = string | number | boolean | null;
@@ -10,11 +11,17 @@ export interface JsonValueSchema extends SchemaBase<"json", JsonValue> {
   readonly enum?: readonly JsonValue[];
 }
 
-export function Json(options: Omit<JsonValueSchema, "kind"> = {}): JsonValueSchema {
-  return {
+type ConfiguredJson<TOptions> = JsonValueSchema & (TOptions extends { readonly default: infer Value }
+  ? undefined extends Value ? unknown : { readonly default: JsonValue }
+  : unknown);
+
+export function Json<const TOptions extends Omit<JsonValueSchema, "kind"> = Record<never, never>>(
+  options: TOptions = {} as TOptions
+): Standardized<ConfiguredJson<TOptions>> {
+  return withStandardSchema({
     kind: "json",
     ...options,
-  };
+  } as ConfiguredJson<TOptions>);
 }
 
 export interface JsonValueValidationOptions {

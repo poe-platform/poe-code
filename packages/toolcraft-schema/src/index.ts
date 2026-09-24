@@ -1,3 +1,4 @@
+import { withStandardSchema, type Standardized } from "./standard.js";
 import { Json } from "./json.js";
 import { nativeJsonSchema, type NativeSchema } from "./native-json-schema.js";
 import { cloneDefaultValue } from "./clone-default.js";
@@ -105,7 +106,10 @@ type SchemaOptions<TDefault> = {
 type WithNullable<
   TSchema extends AnySchema,
   TOptions extends { nullable?: boolean }
-> = TOptions extends { readonly nullable: true } ? TSchema & { readonly nullable: true } : TSchema;
+> = (TOptions extends { readonly nullable: true } ? TSchema & { readonly nullable: true } : TSchema)
+  & (TOptions extends { readonly default: infer Value }
+    ? undefined extends Value ? unknown : { readonly default: Exclude<TSchema["default"], undefined> }
+    : unknown);
 
 export interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
@@ -184,17 +188,19 @@ export interface OptionalSchema<TInner extends AnySchema> extends SchemaBase<
   readonly inner: TInner;
 }
 
+// Keep the recursive descriptor shape, but erase value inference at the generic
+// boundary. Concrete builder types retain their inferred inputs and outputs.
 export type AnySchema =
   | StringSchema
   | NumberSchema
   | BooleanSchema
   | EnumSchema<NonEmptyReadonlyArray<EnumValue>>
-  | ArraySchema<AnySchema>
-  | ObjectSchema<ObjectShape>
-  | OptionalSchema<AnySchema>
-  | OneOfSchema<Record<string, ObjectSchema<any>>, string>
-  | UnionSchema<readonly ObjectSchema<any>[]>
-  | RecordSchema<AnySchema>
+  | (SchemaBase<"array", any> & ArrayMetadata & { readonly item: AnySchema })
+  | (SchemaBase<"object", any> & ObjectMetadata & { readonly shape: ObjectShape })
+  | (SchemaBase<"optional", any> & { readonly inner: AnySchema })
+  | (SchemaBase<"oneOf", any> & { readonly discriminator: string; readonly branches: Record<string, ObjectSchema<any>> })
+  | (SchemaBase<"union", any> & { readonly branches: readonly ObjectSchema<any>[] })
+  | (SchemaBase<"record", any> & { readonly value: AnySchema })
   | JsonValueSchema;
 
 export type Static<TSchema extends AnySchema> = TSchema extends { readonly nullable: true }
@@ -376,9 +382,9 @@ function unwrapOptional(schema: AnySchema): Exclude<AnySchema, OptionalSchema<An
   return schema;
 }
 
-function toObjectBranchJsonSchema(schema: ObjectSchema<any>): JsonSchema {
+function toObjectBranchJsonSchema(schema: ObjectSchema<any>, options: JsonSchemaOptions): JsonSchema {
   const objectSchema: ObjectSchema<any> = { ...schema, nullable: false };
-  const branchJsonSchema = toJsonSchema(objectSchema);
+  const branchJsonSchema = toJsonSchema(objectSchema, options);
   if (branchJsonSchema.default === null) {
     delete branchJsonSchema.default;
   }
@@ -388,9 +394,10 @@ function toObjectBranchJsonSchema(schema: ObjectSchema<any>): JsonSchema {
 function withInjectedDiscriminator(
   schema: ObjectSchema<any>,
   discriminator: string,
-  branchName: string
+  branchName: string,
+  options: JsonSchemaOptions
 ): JsonSchema {
-  const branchJsonSchema = toObjectBranchJsonSchema(schema);
+  const branchJsonSchema = toObjectBranchJsonSchema(schema, options);
   if (branchJsonSchema.default !== undefined) {
     branchJsonSchema.default = {
       ...(branchJsonSchema.default as Record<string, unknown>),
@@ -417,7 +424,7 @@ function withInjectedDiscriminator(
 export const S = {
   String<const TOptions extends SchemaOptions<string> & StringMetadata = EmptyOptions>(
     options: TOptions = {} as TOptions
-  ): WithNullable<StringSchema, TOptions> {
+  ): Standardized<WithNullable<StringSchema, TOptions>> {
     assertNonNegativeInteger(options.minLength, "minLength");
     assertNonNegativeInteger(options.maxLength, "maxLength");
     assertMinMaxOrder(options.minLength, options.maxLength, "minLength", "maxLength");
@@ -427,13 +434,13 @@ export const S = {
       ...options
     };
     assertValidDefault(schema);
-    return schema as WithNullable<StringSchema, TOptions>;
+    return withStandardSchema(schema as WithNullable<StringSchema, TOptions>);
   },
 
   Number<
     const TOptions extends SchemaOptions<number> & NumberMetadata & { jsonType?: NumberJsonType } =
       EmptyOptions
-  >(options: TOptions = {} as TOptions): WithNullable<NumberSchema, TOptions> {
+  >(options: TOptions = {} as TOptions): Standardized<WithNullable<NumberSchema, TOptions>> {
     assertFiniteNumber(options.minimum, "minimum");
     assertFiniteNumber(options.maximum, "maximum");
     assertMinMaxOrder(options.minimum, options.maximum, "minimum", "maximum");
@@ -450,18 +457,18 @@ export const S = {
       ...options
     };
     assertValidDefault(schema);
-    return schema as WithNullable<NumberSchema, TOptions>;
+    return withStandardSchema(schema as WithNullable<NumberSchema, TOptions>);
   },
 
   Boolean<const TOptions extends SchemaOptions<boolean> = EmptyOptions>(
     options: TOptions = {} as TOptions
-  ): WithNullable<BooleanSchema, TOptions> {
+  ): Standardized<WithNullable<BooleanSchema, TOptions>> {
     const schema: BooleanSchema = {
       kind: "boolean",
       ...options
     };
     assertValidDefault(schema);
-    return schema as WithNullable<BooleanSchema, TOptions>;
+    return withStandardSchema(schema as WithNullable<BooleanSchema, TOptions>);
   },
 
   Enum<
@@ -476,7 +483,7 @@ export const S = {
   >(
     values: TValues,
     options: TOptions = {} as TOptions
-  ): WithNullable<EnumSchema<TValues>, TOptions> {
+  ): Standardized<WithNullable<EnumSchema<TValues>, TOptions>> {
     assertValidEnumValues(values);
     if (
       options.jsonType === "integer" &&
@@ -491,13 +498,13 @@ export const S = {
       ...options
     };
     assertValidDefault(schema);
-    return schema as WithNullable<EnumSchema<TValues>, TOptions>;
+    return withStandardSchema(schema as WithNullable<EnumSchema<TValues>, TOptions>);
   },
 
   Array<
     TItem extends AnySchema,
     const TOptions extends SchemaOptions<Array<Static<TItem>>> & ArrayMetadata = EmptyOptions
-  >(item: TItem, options: TOptions = {} as TOptions): WithNullable<ArraySchema<TItem>, TOptions> {
+  >(item: TItem, options: TOptions = {} as TOptions): Standardized<WithNullable<ArraySchema<TItem>, TOptions>> {
     assertNonNegativeInteger(options.minItems, "minItems");
     assertNonNegativeInteger(options.maxItems, "maxItems");
     assertMinMaxOrder(options.minItems, options.maxItems, "minItems", "maxItems");
@@ -507,7 +514,7 @@ export const S = {
       ...options
     };
     assertValidDefault(schema);
-    return schema as WithNullable<ArraySchema<TItem>, TOptions>;
+    return withStandardSchema(schema as WithNullable<ArraySchema<TItem>, TOptions>);
   },
 
   Object<
@@ -516,21 +523,21 @@ export const S = {
   >(
     shape: TShape,
     options: TOptions = {} as TOptions
-  ): WithNullable<ObjectSchema<TShape>, TOptions> {
+  ): Standardized<WithNullable<ObjectSchema<TShape>, TOptions>> {
     const schema: ObjectSchema<TShape> = {
       kind: "object",
       shape,
       ...options
     };
     assertValidDefault(schema);
-    return schema as WithNullable<ObjectSchema<TShape>, TOptions>;
+    return withStandardSchema(schema as WithNullable<ObjectSchema<TShape>, TOptions>);
   },
 
-  Optional<TInner extends AnySchema>(inner: TInner): OptionalSchema<TInner> {
-    return {
+  Optional<TInner extends AnySchema>(inner: TInner): Standardized<OptionalSchema<TInner>> {
+    return withStandardSchema<OptionalSchema<TInner>>({
       kind: "optional",
       inner
-    };
+    });
   },
 
   OneOf,
@@ -542,10 +549,23 @@ export const S = {
   Json
 } as const;
 
-export function toJsonSchema(schema: AnySchema): JsonSchema {
+export interface JsonSchemaOptions {
+  io?: "input" | "output";
+  target?: "draft-07" | "draft-2020-12";
+}
+
+export function toJsonSchema(schema: AnySchema, options: JsonSchemaOptions = {}): JsonSchema {
   const unwrappedSchema = unwrapOptional(schema);
   const native = (unwrappedSchema as NativeSchema)[nativeJsonSchema];
-  if (native !== undefined) return structuredClone(native.document);
+  if (native !== undefined) {
+    if (options.target !== undefined) {
+      const declared = (native.document as Record<string, unknown>).$schema;
+      const dialect = declared === "http://json-schema.org/draft-07/schema#" || declared === "http://json-schema.org/draft-07/schema"
+        ? "draft-07" : "draft-2020-12";
+      if (options.target !== dialect) throw new Error(`Native JSON Schema dialect does not match target: ${options.target}`);
+    }
+    return structuredClone(native.document);
+  }
 
   switch (unwrappedSchema.kind) {
     case "string":
@@ -576,7 +596,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
     case "array":
       return withArrayMetadata(unwrappedSchema, {
         type: "array",
-        items: toJsonSchema(unwrappedSchema.item)
+        items: toJsonSchema(unwrappedSchema.item, options)
       });
 
     case "object": {
@@ -588,10 +608,11 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
           enumerable: true,
           configurable: true,
           writable: true,
-          value: toJsonSchema(propertySchema)
+          value: toJsonSchema(propertySchema, options)
         });
 
-        if (!isOptionalSchema(propertySchema)) {
+        if (!isOptionalSchema(propertySchema) ||
+            (options.io === "output" && unwrapOptional(propertySchema).default !== undefined)) {
           required.push(key);
         }
       }
@@ -606,19 +627,27 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
     case "oneOf":
       return withMetadata(unwrappedSchema, {
         oneOf: Object.entries(unwrappedSchema.branches).map(([branchName, branchSchema]) =>
-          withInjectedDiscriminator(branchSchema, unwrappedSchema.discriminator, branchName)
+          withInjectedDiscriminator(branchSchema, unwrappedSchema.discriminator, branchName, options)
         )
       });
 
     case "union":
+      // Parsing defaults can make previously distinct branches produce the same
+      // object. Outputs need only satisfy one branch, not exactly one branch.
+      if (options.io === "output") return withMetadata(unwrappedSchema, {
+        anyOf: [
+          ...unwrappedSchema.branches.map((branchSchema) => toObjectBranchJsonSchema(branchSchema, options)),
+          ...(unwrappedSchema.nullable === true ? [{ type: "null" as const }] : [])
+        ]
+      });
       return withMetadata(unwrappedSchema, {
-        oneOf: unwrappedSchema.branches.map((branchSchema) => toObjectBranchJsonSchema(branchSchema))
+        oneOf: unwrappedSchema.branches.map((branchSchema) => toObjectBranchJsonSchema(branchSchema, options))
       });
 
     case "record":
       return withMetadata(unwrappedSchema, {
         type: "object",
-        additionalProperties: toJsonSchema(unwrappedSchema.value)
+        additionalProperties: toJsonSchema(unwrappedSchema.value, options)
       });
 
     case "json": {
@@ -665,3 +694,6 @@ export type {
   ValidationOptions,
   ValidationResult
 };
+
+export { withStandardSchema } from "./standard.js";
+export type { Input, Output, StandardSchema, Standardized, StandardIssue, StandardResult, StandardJsonSchemaOptions } from "./standard.js";

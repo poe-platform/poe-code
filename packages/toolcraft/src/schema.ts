@@ -6,7 +6,8 @@ export {
   Union,
   toJsonSchema,
   toJsonSchemaDocument,
-  validate
+  validate,
+  withStandardSchema
 } from "toolcraft-schema";
 export type {
   AnySchema,
@@ -21,6 +22,14 @@ export type {
   JsonSchema,
   JsonSchemaDocument,
   JsonSchemaDocumentOptions,
+  JsonSchemaOptions,
+  Input,
+  Output,
+  StandardSchema,
+  Standardized,
+  StandardIssue,
+  StandardResult,
+  StandardJsonSchemaOptions,
   JsonValue,
   JsonValueSchema,
   NumberSchema,

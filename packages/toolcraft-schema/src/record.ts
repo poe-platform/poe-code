@@ -1,3 +1,4 @@
+import { withStandardSchema, type Standardized } from "./standard.js";
 import type { AnySchema, SchemaBase, Static } from "./index.js";
 
 export interface RecordSchema<TValue extends AnySchema>
@@ -5,9 +6,9 @@ export interface RecordSchema<TValue extends AnySchema>
   readonly value: TValue;
 }
 
-export function Record<TValue extends AnySchema>(value: TValue): RecordSchema<TValue> {
-  return {
+export function Record<TValue extends AnySchema>(value: TValue): Standardized<RecordSchema<TValue>> {
+  return withStandardSchema<RecordSchema<TValue>>({
     kind: "record",
     value,
-  };
+  });
 }

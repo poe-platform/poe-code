@@ -1,3 +1,4 @@
+import { withStandardSchema, type Standardized } from "./standard.js";
 import type { AnySchema, ObjectSchema, OptionalSchema, SchemaBase, Static } from "./index.js";
 
 type UnionStatic<TBranches extends readonly ObjectSchema<any>[]> = Static<TBranches[number]>;
@@ -59,11 +60,11 @@ function assertValidBranches(branches: readonly ObjectSchema<any>[]): void {
 
 export function Union<const TBranches extends readonly ObjectSchema<any>[]>(
   branches: TBranches
-): UnionSchema<TBranches> {
+): Standardized<UnionSchema<TBranches>> {
   assertValidBranches(branches);
 
-  return {
+  return withStandardSchema<UnionSchema<TBranches>>({
     kind: "union",
     branches,
-  };
+  });
 }

@@ -1,3 +1,4 @@
+import { withStandardSchema, type Standardized } from "./standard.js";
 import type { AnySchema, JsonSchema } from "./index.js";
 import { isJsonValue } from "./json.js";
 import { compileJsonSchema } from "./json-schema/index.js";
@@ -9,11 +10,11 @@ export type NativeSchema = AnySchema & {
   [nativeJsonSchema]?: { document: JsonSchema; validator: CompiledJsonSchema };
 };
 
-export function withJsonSchema<T extends AnySchema>(projection: T, document: object): T {
+export function withJsonSchema<T extends AnySchema>(projection: T, document: object): Standardized<T & { [nativeJsonSchema]: NonNullable<NativeSchema[typeof nativeJsonSchema]> }> {
   if (!isJsonValue(document) || Array.isArray(document)) {
     throw new Error("Native JSON Schema must be a JSON object");
   }
   const snapshot = structuredClone(document) as JsonSchema;
   const validator = compileJsonSchema(snapshot);
-  return { ...projection, [nativeJsonSchema]: { document: snapshot, validator } };
+  return withStandardSchema({ ...projection, [nativeJsonSchema]: { document: snapshot, validator } }) as Standardized<T & { [nativeJsonSchema]: NonNullable<NativeSchema[typeof nativeJsonSchema]> }>;
 }

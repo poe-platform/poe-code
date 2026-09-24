@@ -1,3 +1,4 @@
+import { withStandardSchema, type Standardized } from "./standard.js";
 import type { ObjectSchema, SchemaBase, Static } from "./index.js";
 
 type OneOfStatic<
@@ -40,12 +41,12 @@ export function OneOf<
 >(config: {
   discriminator: TDiscriminator;
   branches: TBranches;
-}): OneOfSchema<TBranches, TDiscriminator> {
+}): Standardized<OneOfSchema<TBranches, TDiscriminator>> {
   assertValidBranches(config.branches, config.discriminator);
 
-  return {
+  return withStandardSchema<OneOfSchema<TBranches, TDiscriminator>>({
     kind: "oneOf",
     discriminator: config.discriminator,
     branches: config.branches,
-  };
+  });
 }

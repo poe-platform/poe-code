@@ -282,6 +282,7 @@ cross-version parity beyond its recorded tests.
 | `getpath(path)` | Read each array path of object keys, array indexes, or slice objects (`{start, end}`). An empty path returns the input; missing keys/indexes return null. |
 | `@text`, `@json`, `@html`, `@uri`, `@csv`, `@tsv`, `@sh`, `@base64`, `@base64d` | Format values; an attached string formats only its interpolations. |
 | `length`, `keys`, `keys_unsorted`, `type` | Array/object/string/numeric lengths and type information; sorted keys use codepoint ordering. |
+| `explode`, `utf8bytelength` | Convert a string to Unicode codepoints or count its UTF-8 bytes. |
 | `nan`, `infinite`, `isnan`, `isinfinite`, `isfinite` | Zero arguments only. `isfinite` means numeric and not infinite: NaN is true, both infinities and all nonnumbers are false. |
 | `values`, `strings`, `numbers`, `booleans`, `arrays`, `objects`, `nulls`, `scalars`, `iterables` | Type/value filters; `values` removes null only. |
 | `paths`, `paths(filter)` | Enumerate descendant paths in depth-first order, optionally selecting values with a filter; excludes the root path. |

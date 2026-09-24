@@ -602,6 +602,24 @@ export class Interpreter {
       }
       return;
     }
+    if (name === "explode" || name === "utf8bytelength") {
+      if (typeof input !== "string") throw new JqError(name === "explode" ? "explode input must be a string" : `${describe(input, budget)} only strings have UTF-8 byte length`);
+      const points: number[] = [];
+      let bytes = 0;
+      for (let offset = 0; offset < input.length;) {
+        await budget.tick();
+        const point = input.codePointAt(offset)!;
+        offset += point > 0xffff ? 2 : 1;
+        if (name === "explode") {
+          budget.collection(points.length + 1);
+          bytes += String(point).length + (points.length ? 1 : 2);
+          if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          points.push(point);
+        } else bytes += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
+      }
+      yield name === "explode" ? points : bytes;
+      return;
+    }
     if (name === "ascii_downcase" || name === "ascii_upcase") {
       if (typeof input !== "string") throw new JqError(`${name} requires a string`);
       await budget.tick(input.length);

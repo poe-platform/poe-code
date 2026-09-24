@@ -81,7 +81,7 @@ export interface PasswordCapability {
     encoding: "bytes" | "utf16le";
   } | {
     format: "odf";
-    algorithm: "aes-cbc" | "blowfish-cfb8" | "mixed";
+    algorithm: "aes-cbc" | "blowfish-cfb8" | "blowfish-cfb64" | "mixed";
     revision: "1.2";
     /** ODF passwords are UTF-8 strings or explicitly encoded UTF-8 bytes. */
     encoding: "utf8";

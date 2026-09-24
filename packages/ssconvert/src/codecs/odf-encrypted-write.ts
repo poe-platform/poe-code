@@ -10,14 +10,15 @@ import { odfNamespaces, type createOdfXml } from "./odf-write-support.js";
 // Explicit legacy ODF 1.2 interoperability profile, matching its 1024-round KDF.
 const iterations = 1024;
 export interface OdfEncryptionProfile {
-  readonly cipher: "aes-cbc" | "blowfish-cfb8";
+  readonly cipher: "aes-cbc" | "blowfish-cfb8" | "blowfish-cfb64";
   readonly keyBytes: number;
 }
 export const odfEncryptionProfiles: ReadonlyMap<string, OdfEncryptionProfile> = new Map([
   ["odf12-aes128-cbc", { cipher: "aes-cbc", keyBytes: 16 }],
   ["odf12-aes192-cbc", { cipher: "aes-cbc", keyBytes: 24 }],
   ["odf12-aes256-cbc", { cipher: "aes-cbc", keyBytes: 32 }],
-  ["odf12-blowfish-cfb8", { cipher: "blowfish-cfb8", keyBytes: 16 }]
+  ["odf12-blowfish-cfb8", { cipher: "blowfish-cfb8", keyBytes: 16 }],
+  ["odf12-blowfish-cfb64", { cipher: "blowfish-cfb64", keyBytes: 16 }]
 ]);
 function unsupported(message: string): never {
   throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: encrypted OpenDocument ${message}`);
@@ -34,7 +35,8 @@ function base64(bytes: Uint8Array): string {
 export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
   xml: ReturnType<typeof createOdfXml>, profile: OdfEncryptionProfile): Promise<Map<string, { bytes: Uint8Array; size: number; declaration: string }>> {
   if (!context.password || !context.entropy) unsupported("export requires password and cryptographic entropy capabilities");
-  const blowfish = profile.cipher === "blowfish-cfb8", hash = blowfish ? sha1 : sha256;
+  const blowfish = profile.cipher !== "aes-cbc", hash = blowfish ? sha1 : sha256;
+  const feedbackBytes = profile.cipher === "blowfish-cfb64" ? 8 : 1;
   const members = [...parts].filter(([name]) => name !== "mimetype" && name !== "META-INF/manifest.xml");
   let plaintextBytes = 0;
   for (const [, bytes] of members) {
@@ -75,8 +77,8 @@ export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, co
         }
         const padding = blowfish ? 0 : 16 - size % 16;
         if (size + padding > context.limits.outputBytes - total) limit();
-        // CFB8 encrypts a full Blowfish block per byte, plus the key schedule.
-        if (blowfish) xml.charge((size + 521) * 128);
+        // Each feedback segment encrypts a full block, plus the key schedule.
+        if (blowfish) xml.charge((Math.ceil(size / feedbackBytes) + 521) * 128);
         const entropyBytes = blowfish ? 24 : 48;
         let borrowed: Uint8Array | undefined;
         context.signal.throwIfAborted();
@@ -92,7 +94,7 @@ export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, co
         // XML Encryption CBC: random padding followed by its one-byte length.
         if (padding) { padded.set(entropy.subarray(32, 32 + padding), size); padded[padded.length - 1] = padding; }
         key = await deriveOdfKey(start, salt, iterations, profile.keyBytes, context);
-        const ciphertext = blowfish ? await transformOdfBlowfish(key, iv, padded, context.signal, "encrypt") : new Uint8Array(padded.length);
+        const ciphertext = blowfish ? await transformOdfBlowfish(key, iv, padded, context.signal, "encrypt", feedbackBytes) : new Uint8Array(padded.length);
         let previous = iv;
         for (let at = 0; !blowfish && at < padded.length; at += 16384) {
           context.signal.throwIfAborted();

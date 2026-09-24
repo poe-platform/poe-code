@@ -1,0 +1,791 @@
+{
+  "schemaVersion": 1,
+  "baseline": "df1f2d18ed4a2d75113692df581bbd9fb53fc870",
+  "scope": "Explicit LibreOffice-compatible ODF1.2 Blowfish-CFB64 writing, preserving original CFB8 output.",
+  "option": "encryption=odf12-blowfish-cfb64",
+  "profile": {
+    "keyBytes": 16,
+    "feedbackBytes": 8,
+    "saltBytes": 16,
+    "ivBytes": 8,
+    "entropyBytesPerMember": 24,
+    "startKey": "SHA1 of strict UTF8 password",
+    "kdf": "PBKDF2-HMAC-SHA1,1024 iterations",
+    "checksum": "SHA1 of first1024 raw-deflate bytes",
+    "padding": "none"
+  },
+  "reference": "docs/ssconvert/odf-libreoffice-interop-proof.json authenticates LibreOffice26.8.0.3 binary/source and the legacy feedback mismatch.",
+  "api": "Both ODF writers admit the new option through the shared provider map. Encrypt password requests identify blowfish-cfb64; import retains the shared manifest identifier blowfish-cfb8.",
+  "validation": {
+    "red": {
+      "failed": 11,
+      "passed": 11
+    },
+    "writer": {
+      "tests": 22,
+      "passed": true
+    },
+    "related": {
+      "command": "npx vitest run packages/ssconvert/src/codecs/odf --maxWorkers=1",
+      "files": 12,
+      "tests": 595,
+      "passed": true
+    },
+    "lint": "Maintained package lint/source/test/consumer types passed after extending the public consumer union for the new algorithm.",
+    "build": "Maintained selected ssconvert closure: four builds passed.",
+    "public": {
+      "before": {
+        "packages/ssconvert/src/codecs/odf.ts": "72d1f1e3bf6e09034f34236a64a57590fcbf26633b0ebdf73ee368495884a345",
+        "packages/ssconvert/src/codecs/odf-blowfish.ts": "76a6e2df1f12bd4f36245925606a432ee96f734a9f06eb5ad0f1ac0d9c86e068",
+        "packages/ssconvert/src/codecs/odf-encrypted-write.ts": "46fd83d68a38f672f119eaf5aeb09e2f68c0a6ce2f3dceb2f8773ea89818c77e",
+        "packages/ssconvert/src/codecs/providers/openoffice.ts": "0d347e65435f57cd15d84430447e8d2c7cdef6c90701d1f55b64e568e2515b5d",
+        "packages/ssconvert/dist/index.js": "57ceb37b6ee4d0c47a4e78413d9915435bd7ac13121bee1180d1ca4b3d6f1ec6",
+        "packages/safe-bash/dist/commands/ssconvert/index.js": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+      },
+      "after": {
+        "packages/ssconvert/src/codecs/odf.ts": "72d1f1e3bf6e09034f34236a64a57590fcbf26633b0ebdf73ee368495884a345",
+        "packages/ssconvert/src/codecs/odf-blowfish.ts": "76a6e2df1f12bd4f36245925606a432ee96f734a9f06eb5ad0f1ac0d9c86e068",
+        "packages/ssconvert/src/codecs/odf-encrypted-write.ts": "46fd83d68a38f672f119eaf5aeb09e2f68c0a6ce2f3dceb2f8773ea89818c77e",
+        "packages/ssconvert/src/codecs/providers/openoffice.ts": "0d347e65435f57cd15d84430447e8d2c7cdef6c90701d1f55b64e568e2515b5d",
+        "packages/ssconvert/dist/index.js": "57ceb37b6ee4d0c47a4e78413d9915435bd7ac13121bee1180d1ca4b3d6f1ec6",
+        "packages/safe-bash/dist/commands/ssconvert/index.js": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+      },
+      "rows": [
+        {
+          "id": "openoffice-aes128",
+          "bits": 128,
+          "exporter": "openoffice",
+          "option": "encryption=odf12-aes128-cbc",
+          "plaintextSha256": "36ac6e7bfb4abec51f83d1028fe6256007fc1241fc8fd46f5171486acaeaa96e",
+          "ciphertextSha256": "e193b2113454363827a5c1f7c369da16b3777e5d099531aa51cd9cb230cc77f3",
+          "outputBytes": 3775,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "odf-aes128",
+          "bits": 128,
+          "exporter": "odf",
+          "option": "encryption=odf12-aes128-cbc",
+          "plaintextSha256": "a8a06e4570c481f7cf1ccd9170eb36bb018d7bb7bad7823fb06af5df8251d2d4",
+          "ciphertextSha256": "8a5d470e654ae25d7f70975cf92e5497210dd371901c88ccac4c341eca69ebc9",
+          "outputBytes": 3809,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "openoffice-aes192",
+          "bits": 192,
+          "exporter": "openoffice",
+          "option": "encryption=odf12-aes192-cbc",
+          "plaintextSha256": "36ac6e7bfb4abec51f83d1028fe6256007fc1241fc8fd46f5171486acaeaa96e",
+          "ciphertextSha256": "479e3dcf9601a3f1a24c97a799e3e918a2a9e6b69522dc1a378791a412002042",
+          "outputBytes": 3773,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "odf-aes192",
+          "bits": 192,
+          "exporter": "odf",
+          "option": "encryption=odf12-aes192-cbc",
+          "plaintextSha256": "a8a06e4570c481f7cf1ccd9170eb36bb018d7bb7bad7823fb06af5df8251d2d4",
+          "ciphertextSha256": "a97813da36bf9d01caa0f443c64aa24add9a91b8419bfd5d50b47171213cf685",
+          "outputBytes": 3806,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "openoffice-aes256",
+          "bits": 256,
+          "exporter": "openoffice",
+          "option": "encryption=odf12-aes256-cbc",
+          "plaintextSha256": "36ac6e7bfb4abec51f83d1028fe6256007fc1241fc8fd46f5171486acaeaa96e",
+          "ciphertextSha256": "960bd1943bc42bb822573a79d11b6a4f3589c7ddfeea5c371e5ba42d1c190ae0",
+          "outputBytes": 3771,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "odf-aes256",
+          "bits": 256,
+          "exporter": "odf",
+          "option": "encryption=odf12-aes256-cbc",
+          "plaintextSha256": "a8a06e4570c481f7cf1ccd9170eb36bb018d7bb7bad7823fb06af5df8251d2d4",
+          "ciphertextSha256": "d058d352a473dd311f961958d99f7321e668f741c3eb75fbce08db4ff2b1bde3",
+          "outputBytes": 3805,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "openoffice-blowfish",
+          "bits": "blowfish",
+          "exporter": "openoffice",
+          "option": "encryption=odf12-blowfish-cfb8",
+          "plaintextSha256": "36ac6e7bfb4abec51f83d1028fe6256007fc1241fc8fd46f5171486acaeaa96e",
+          "ciphertextSha256": "c3cf6a1cac857c6b6e9c9a25bf1f24dad27d0e0c3d51b21ceb3d0f3e6ffc646c",
+          "outputBytes": 3625,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "blowfish-cfb8",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "blowfish-cfb8",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "odf-blowfish",
+          "bits": "blowfish",
+          "exporter": "odf",
+          "option": "encryption=odf12-blowfish-cfb8",
+          "plaintextSha256": "a8a06e4570c481f7cf1ccd9170eb36bb018d7bb7bad7823fb06af5df8251d2d4",
+          "ciphertextSha256": "23fde4eb0983bf578f7b2d1ac4cd2bdbfac0ec693168bd66d5b86d8334397fea",
+          "outputBytes": 3650,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "blowfish-cfb8",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "blowfish-cfb8",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "openoffice-blowfish64",
+          "bits": "blowfish64",
+          "exporter": "openoffice",
+          "option": "encryption=odf12-blowfish-cfb64",
+          "plaintextSha256": "36ac6e7bfb4abec51f83d1028fe6256007fc1241fc8fd46f5171486acaeaa96e",
+          "ciphertextSha256": "7eca61acc72314e7f4eee8677a3991847c3da147335dd503ee266e6fbd8a3e92",
+          "outputBytes": 3625,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "blowfish-cfb64",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "blowfish-cfb8",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "id": "odf-blowfish64",
+          "bits": "blowfish64",
+          "exporter": "odf",
+          "option": "encryption=odf12-blowfish-cfb64",
+          "plaintextSha256": "a8a06e4570c481f7cf1ccd9170eb36bb018d7bb7bad7823fb06af5df8251d2d4",
+          "ciphertextSha256": "49f6cd7f89902e10ae88658e55f3d372723884820d9fd525a9575d275ba52f67",
+          "outputBytes": 3650,
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "shellBytesExact": true,
+          "emptyDiagnostics": true,
+          "borrowedBytesUnchanged": true,
+          "inputAndSentinelUnchanged": true,
+          "entropyCalls": 4,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "blowfish-cfb64",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "blowfish-cfb8",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        }
+      ]
+    },
+    "independent": {
+      "node": "22.23.2",
+      "openssl": "3.5.7",
+      "oracle": "Explicit manual Node --openssl-legacy-provider; OpenSSL BF-ECB forms the CFB8 stream independently. Product does not enable/use host crypto.",
+      "binary": {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+        "bytes": 112937728,
+        "sha256": "18e387c90ab8a8400183e8bdd396376e1e875b91b4c874b894dcade7b35bf572"
+      },
+      "members": [
+        {
+          "id": "openoffice-aes128",
+          "member": "content.xml",
+          "plaintextBytes": 2713,
+          "plaintextSha256": "8117a2e2d6215522a68ef3954e4e9f9e10b84357664726f43794a3e4bf250799",
+          "ciphertextSha256": "2677085ee3716710ae3651043033b9e5d8d1087ca8ccf84cd6464f94380b94f5",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes128",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "db67416d1bf7fab397aaf781992af198f7b82cf202aca03de5384dc56ef717ee",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes128",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "71f85025d0ba813cd45a9a9e0d721251c6dec37b419d19f7669853ab6342fb69",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes128",
+          "member": "settings.xml",
+          "plaintextBytes": 1651,
+          "plaintextSha256": "601f69882bc9e2fb16c0d57bcdce129c36f1c00e7ba7ff3311437f8bb4f15bbc",
+          "ciphertextSha256": "46f28d5d9f0aab56ff2e5d3a1ab4653ea729d96ed77993acb7a497aad72af8f0",
+          "exact": true
+        },
+        {
+          "id": "odf-aes128",
+          "member": "content.xml",
+          "plaintextBytes": 2802,
+          "plaintextSha256": "22ad2da2094c479147b70c875ea69e4d66720a98948f50c8f4ee4afde692dba7",
+          "ciphertextSha256": "ff21b6204f7ef3e3d7ebd58bb431e01ab4f485f0649df86103276ceff63bd4b8",
+          "exact": true
+        },
+        {
+          "id": "odf-aes128",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "db67416d1bf7fab397aaf781992af198f7b82cf202aca03de5384dc56ef717ee",
+          "exact": true
+        },
+        {
+          "id": "odf-aes128",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "71f85025d0ba813cd45a9a9e0d721251c6dec37b419d19f7669853ab6342fb69",
+          "exact": true
+        },
+        {
+          "id": "odf-aes128",
+          "member": "settings.xml",
+          "plaintextBytes": 1650,
+          "plaintextSha256": "f0be73a513f67c010628d64043d4dfe158a62faf6c438565cab70a6e8e5c1826",
+          "ciphertextSha256": "b8806e6861b2a915117b4cb8cdec376b24a735362758961f8c25a7eed3ccd0be",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes192",
+          "member": "content.xml",
+          "plaintextBytes": 2713,
+          "plaintextSha256": "8117a2e2d6215522a68ef3954e4e9f9e10b84357664726f43794a3e4bf250799",
+          "ciphertextSha256": "4dcb0e0509c65f377c2d6e5ae6fabd558d0b95d7ee46a802d0ef8905af0cdc41",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes192",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "e34ad727633ddc27898b9778e618b39a3480ccc05838fd0ce5207a102161961d",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes192",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "db68fbe91f13f01f4559abc5f0f41b91b86874a7a83d21f9866673b7af905a57",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes192",
+          "member": "settings.xml",
+          "plaintextBytes": 1651,
+          "plaintextSha256": "601f69882bc9e2fb16c0d57bcdce129c36f1c00e7ba7ff3311437f8bb4f15bbc",
+          "ciphertextSha256": "d03521ebc6492907335e748306c8363b27029436e03c4fe37401ce7a44ff7b05",
+          "exact": true
+        },
+        {
+          "id": "odf-aes192",
+          "member": "content.xml",
+          "plaintextBytes": 2802,
+          "plaintextSha256": "22ad2da2094c479147b70c875ea69e4d66720a98948f50c8f4ee4afde692dba7",
+          "ciphertextSha256": "fe69bc47aee4fb69ebafa98ecba0a9315b2258e0601ebd823629d7c308731fd7",
+          "exact": true
+        },
+        {
+          "id": "odf-aes192",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "e34ad727633ddc27898b9778e618b39a3480ccc05838fd0ce5207a102161961d",
+          "exact": true
+        },
+        {
+          "id": "odf-aes192",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "db68fbe91f13f01f4559abc5f0f41b91b86874a7a83d21f9866673b7af905a57",
+          "exact": true
+        },
+        {
+          "id": "odf-aes192",
+          "member": "settings.xml",
+          "plaintextBytes": 1650,
+          "plaintextSha256": "f0be73a513f67c010628d64043d4dfe158a62faf6c438565cab70a6e8e5c1826",
+          "ciphertextSha256": "6e2fd8b61db3801f1d78e0300d239abf57b31c8808c83a7642184fafd3e26ecf",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes256",
+          "member": "content.xml",
+          "plaintextBytes": 2713,
+          "plaintextSha256": "8117a2e2d6215522a68ef3954e4e9f9e10b84357664726f43794a3e4bf250799",
+          "ciphertextSha256": "72625309e3fb9a778ac5a4d131a51fa24d9b39dd28ee8fabd6286671f8e2252c",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes256",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "0584bc34a9ee365a74f3129b9cd93e576e481c208136e46c443eb2083d5cd8d0",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes256",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "1d9b57dca0b92fb8dd80d3b10f7912ab9b6629052485b0eb8c11d1247c65597e",
+          "exact": true
+        },
+        {
+          "id": "openoffice-aes256",
+          "member": "settings.xml",
+          "plaintextBytes": 1651,
+          "plaintextSha256": "601f69882bc9e2fb16c0d57bcdce129c36f1c00e7ba7ff3311437f8bb4f15bbc",
+          "ciphertextSha256": "b65e19fa5793406942ff3d2203ae6cd80e4491fe0a0f5f2a0ca15b2829e9d2ae",
+          "exact": true
+        },
+        {
+          "id": "odf-aes256",
+          "member": "content.xml",
+          "plaintextBytes": 2802,
+          "plaintextSha256": "22ad2da2094c479147b70c875ea69e4d66720a98948f50c8f4ee4afde692dba7",
+          "ciphertextSha256": "efb19f8a1ea5dcf5bdeb9fd987e34fa93f1c236c37b977f836bdfb7872adae2a",
+          "exact": true
+        },
+        {
+          "id": "odf-aes256",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "0584bc34a9ee365a74f3129b9cd93e576e481c208136e46c443eb2083d5cd8d0",
+          "exact": true
+        },
+        {
+          "id": "odf-aes256",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "1d9b57dca0b92fb8dd80d3b10f7912ab9b6629052485b0eb8c11d1247c65597e",
+          "exact": true
+        },
+        {
+          "id": "odf-aes256",
+          "member": "settings.xml",
+          "plaintextBytes": 1650,
+          "plaintextSha256": "f0be73a513f67c010628d64043d4dfe158a62faf6c438565cab70a6e8e5c1826",
+          "ciphertextSha256": "376a4b19d1a52fafa0aeb6424d3ad177ff6df134b5f40d088547272d0f4cdefc",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish",
+          "member": "content.xml",
+          "plaintextBytes": 2713,
+          "plaintextSha256": "8117a2e2d6215522a68ef3954e4e9f9e10b84357664726f43794a3e4bf250799",
+          "ciphertextSha256": "6c0c214794a8eae45e71e05b6c84df76805be89492f6ce43695133bda21ee55e",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "111deea3e812d2ad80ba03ec310f40aeafb491afd3ecae9523c210c71d030e82",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "ea49ad622b7db24d6c3fbf8b8fe2ecaf7b03593266285e14c5000abf068fd265",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish",
+          "member": "settings.xml",
+          "plaintextBytes": 1651,
+          "plaintextSha256": "601f69882bc9e2fb16c0d57bcdce129c36f1c00e7ba7ff3311437f8bb4f15bbc",
+          "ciphertextSha256": "5669c950ff5618af32289c640a5bcaa89cbf8473f916a25b86a3cef887b5c407",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish",
+          "member": "content.xml",
+          "plaintextBytes": 2802,
+          "plaintextSha256": "22ad2da2094c479147b70c875ea69e4d66720a98948f50c8f4ee4afde692dba7",
+          "ciphertextSha256": "ca2d4243f7fca501299c69ff8139c55087ada402a5c32406955646ac2897a380",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "111deea3e812d2ad80ba03ec310f40aeafb491afd3ecae9523c210c71d030e82",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "ea49ad622b7db24d6c3fbf8b8fe2ecaf7b03593266285e14c5000abf068fd265",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish",
+          "member": "settings.xml",
+          "plaintextBytes": 1650,
+          "plaintextSha256": "f0be73a513f67c010628d64043d4dfe158a62faf6c438565cab70a6e8e5c1826",
+          "ciphertextSha256": "41bd064eb8c461cfcbc6c19defa9d3072f310520dd1cffc01330d4ab55c92298",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish64",
+          "member": "content.xml",
+          "plaintextBytes": 2713,
+          "plaintextSha256": "8117a2e2d6215522a68ef3954e4e9f9e10b84357664726f43794a3e4bf250799",
+          "ciphertextSha256": "9668cf17b9546a03b15fa61ccb698c9415482dd27e17c1c2406a0a5760ecd08e",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish64",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "0f44bc7324110cb400cd8d6dd434aabb71c36ad3e4e4d67c148091593c24cb9c",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish64",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "da0f60d71dc384e8cf1077418025c3817e467dce395f032b4ed02adf192d872e",
+          "exact": true
+        },
+        {
+          "id": "openoffice-blowfish64",
+          "member": "settings.xml",
+          "plaintextBytes": 1651,
+          "plaintextSha256": "601f69882bc9e2fb16c0d57bcdce129c36f1c00e7ba7ff3311437f8bb4f15bbc",
+          "ciphertextSha256": "2b3d55d62a4bc4f6ae45503319053ae55311873f9a55cc00a5466fa49571936a",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish64",
+          "member": "content.xml",
+          "plaintextBytes": 2802,
+          "plaintextSha256": "22ad2da2094c479147b70c875ea69e4d66720a98948f50c8f4ee4afde692dba7",
+          "ciphertextSha256": "8e7f6f7779181e0707ac5e1c1e1920ab20d25669464fbb2fb5b7f1de73b8c633",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish64",
+          "member": "styles.xml",
+          "plaintextBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "0f44bc7324110cb400cd8d6dd434aabb71c36ad3e4e4d67c148091593c24cb9c",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish64",
+          "member": "meta.xml",
+          "plaintextBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "da0f60d71dc384e8cf1077418025c3817e467dce395f032b4ed02adf192d872e",
+          "exact": true
+        },
+        {
+          "id": "odf-blowfish64",
+          "member": "settings.xml",
+          "plaintextBytes": 1650,
+          "plaintextSha256": "f0be73a513f67c010628d64043d4dfe158a62faf6c438565cab70a6e8e5c1826",
+          "ciphertextSha256": "9f2d82f0e059177f91f75f6fe38834cb553ebe709c9e04e4a6cf24a6c6e89f02",
+          "exact": true
+        }
+      ],
+      "allExact": true,
+      "allEightPreviousArchivesUnchanged": true
+    },
+    "nativeReadback": [
+      {
+        "filename": "odf-blowfish64-encrypted.ods",
+        "sha256": "49f6cd7f89902e10ae88658e55f3d372723884820d9fd525a9575d275ba52f67",
+        "originalCells": [
+          "private",
+          42
+        ],
+        "interactionRequests": [],
+        "exact": true
+      },
+      {
+        "filename": "openoffice-blowfish64-encrypted.ods",
+        "sha256": "7eca61acc72314e7f4eee8677a3991847c3da147335dd503ee266e6fbd8a3e92",
+        "originalCells": [
+          "private",
+          42
+        ],
+        "interactionRequests": [],
+        "exact": true
+      }
+    ],
+    "nativeTerminationReturnedTrue": true,
+    "nativeStderr": {
+      "bytes": 223,
+      "sha256": "7c5d560eaf39741da3698dc9e5da9fb2c8de56bc13e0d557af9b8814783ac41c",
+      "text": "Fontconfig warning: no <cachedir> elements found. Check configuration.\nFontconfig warning: adding <cachedir>/usr/local/var/cache/fontconfig</cachedir>\nFontconfig warning: adding <cachedir prefix=\"xdg\">fontconfig</cachedir>\n"
+    },
+    "browserWorker": {
+      "result": {
+        "browser": {
+          "bundleSha256": "57ceb37b6ee4d0c47a4e78413d9915435bd7ac13121bee1180d1ca4b3d6f1ec6",
+          "exports": [
+            {
+              "id": "openoffice-blowfish64",
+              "bytes": 3625,
+              "ciphertextSha256": "7eca61acc72314e7f4eee8677a3991847c3da147335dd503ee266e6fbd8a3e92",
+              "plaintextExact": true,
+              "csvExact": true,
+              "xmlReplay": true,
+              "borrowedBytesUnchanged": true
+            },
+            {
+              "id": "odf-blowfish64",
+              "bytes": 3650,
+              "ciphertextSha256": "49f6cd7f89902e10ae88658e55f3d372723884820d9fd525a9575d275ba52f67",
+              "plaintextExact": true,
+              "csvExact": true,
+              "xmlReplay": true,
+              "borrowedBytesUnchanged": true
+            }
+          ],
+          "imports": []
+        },
+        "worker": {
+          "bundleSha256": "57ceb37b6ee4d0c47a4e78413d9915435bd7ac13121bee1180d1ca4b3d6f1ec6",
+          "exports": [
+            {
+              "id": "openoffice-blowfish64",
+              "bytes": 3625,
+              "ciphertextSha256": "7eca61acc72314e7f4eee8677a3991847c3da147335dd503ee266e6fbd8a3e92",
+              "plaintextExact": true,
+              "csvExact": true,
+              "xmlReplay": true,
+              "borrowedBytesUnchanged": true
+            },
+            {
+              "id": "odf-blowfish64",
+              "bytes": 3650,
+              "ciphertextSha256": "49f6cd7f89902e10ae88658e55f3d372723884820d9fd525a9575d275ba52f67",
+              "plaintextExact": true,
+              "csvExact": true,
+              "xmlReplay": true,
+              "borrowedBytesUnchanged": true
+            }
+          ],
+          "imports": []
+        }
+      },
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36"
+    },
+    "browserPublicConversions": 20,
+    "browserConsoleMessages": 0,
+    "screenshot": {
+      "sha256": "ef5a35b7c7fe27c118a22455b45f2ac1e514a581dd4a578d67b837b62892b68e",
+      "inspected": true
+    },
+    "allEightPreviousArchivesByteIdentical": true
+  },
+  "candidate": {
+    "packages/ssconvert/src/codecs/odf-encrypted-write.ts": "46fd83d68a38f672f119eaf5aeb09e2f68c0a6ce2f3dceb2f8773ea89818c77e",
+    "packages/ssconvert/src/codecs/odf-blowfish-write.test.ts": "22efb7fbaa12603750a5eecc81b0a1f3693667d4f8ba5a69a9b5e733588c4b8d",
+    "packages/ssconvert/src/contracts.ts": "38d8901180004a6b4cc88b99a7f46e330ec146ebad9150cc0e6b7394334578c6",
+    "packages/ssconvert/tests/public-consumer.mts": "2eefd53cbfb07f23e0e48fcf09c575f7c775263983b55d94e1298035efe5df59"
+  },
+  "remaining": [
+    "Modern Argon2id/AES-GCM encrypted-package import retained as original native bytes in the reader proof.",
+    "Wider application/platform profiles,other original families and successful containing publication."
+  ],
+  "publication": "Not yet verified; local commit,remote main and successful publication tracked separately.",
+  "wholeGoalComplete": false
+}

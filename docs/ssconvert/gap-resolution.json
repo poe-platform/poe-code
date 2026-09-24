@@ -598,7 +598,7 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Explicit host-password ODF imports support AES128/192/256-CBC, Blowfish-CFB8 keys of 4\u201356 bytes, SHA1/SHA256 start keys and prefix/full checksums, and both standard PBKDF2 spellings. Both ODF writers export explicit legacy AES128/192/256-CBC and 16-byte-key Blowfish-CFB8 profiles with host cryptographic entropy and bounded work. Latest runtime validation passes 23101 package tests, lint/source/test/consumer types and the selected build. Eight export profiles match exact ciphertext and plaintext/CSV/XML replay across built SDK, actual Shell, browser and dedicated worker; 32 OpenSSL member decryptions are exact and six previous AES archives unchanged. All 36 PBKDF2-URI independent AES/Blowfish fixtures pass SDK/Shell/browser/worker imports and Node XML replay, preserving input/sentinel/secret bytes. Native Gnumeric does not implement this manifest encryption; these are explicit standards-based extensions. Other encryption/KDF/key profiles, wider application/platform qualification and containing publication remain open. LibreOffice26.8.0.3 Darwin arm64 independently accepts all six AES exports but refuses original CFB8 output because its Blowfish mode uses CFB64. Reader repair passes130original failures,584ODF tests,lint/types/build,12independent SDK/Shell/browser/worker models and both actual native Blowfish inputs. Six native AES models retain exact values and existing diagnostics. Forty native members decrypt independently; native default Argon2id/AES-GCM encrypted-package remains unsupported. CFB64 export and containing publication remain open.",
+      "currentFinding": "Explicit-password ODF imports support AES128/192/256-CBC and both Blowfish-CFB8 and LibreOffice-compatible CFB64 feedback, SHA1/SHA256 start keys and prefix/full checksums, and both PBKDF2 spellings. Both ODF writers export explicit legacy AES and CFB8/CFB64 profiles using host entropy and bounded work. Latest writer qualification:11red\u2192595ODF tests,lint/types/build,10SDK/Shell output profiles and40independent member decryptions; all8previous archives unchanged. LibreOffice26.8.0.3 Darwin arm64 opens all6AES exports andboth newCFB64 exports; originalCFB8 refusals remain recorded. Its8legacy exports import with exact values andretained warnings, and12independentCFB64 inputs match SDK/Shell/browser/worker. The newCFB64 writers pass20browser/worker conversions. Native defaultArgon2id/AES-GCM encrypted-package remains unsupported; originalbytes retained. Native Gnumeric has no manifest decryption/encrypted writer. Wider encryption/KDF/application/platform profiles andcontaining publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
@@ -656,6 +656,11 @@
           "kind": "libreoffice-native-interop-and-cfb64-import",
           "path": "docs/ssconvert/odf-libreoffice-interop-proof.json",
           "outcome": "14initial native opens/30refusals retained;9native exports/reopens;130red\u2192584related green;12portable CFB64 fixtures and8actual native legacy inputs match SDK/Shell,24browser/worker imports exact. Modern package refusal retained."
+        },
+        {
+          "kind": "libreoffice-compatible-cfb64-export",
+          "path": "docs/ssconvert/odf-blowfish-cfb64-export-proof.json",
+          "outcome": "11original writer failures repaired;595ODF checks,lint/types/build;10SDK/Shell profiles,40independent decryptions,2native opens and20browser/worker conversions pass;8prior archives byte-identical."
         }
       ],
       "delivery": {

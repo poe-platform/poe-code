@@ -294,6 +294,7 @@ export interface PlaywrightBrowserSource {
     readonly executeCode?: PlaywrightCodeExecutor;
     readonly generateActionCode?: PlaywrightActionCodeGenerator;
     readonly captureSnapshotJSON?: PlaywrightSnapshotJSONCapture;
+    readonly captureSnapshotReferences?: PlaywrightSnapshotReferenceCapture;
     /** Return an owned native-compatible byte buffer with identical contents. */
     readonly prepareFileBytes?: (bytes: Uint8Array) => Uint8Array;
     interrupt?(): Promise<void>;
@@ -359,6 +360,16 @@ export interface PlaywrightSnapshotJSONNode {
 /** maxBytes is Infinity when the caller omits the snapshot byte limit. */
 export type PlaywrightSnapshotJSONCapture = (page: PlaywrightPage, options: { readonly signal: AbortSignal; readonly timeoutMs: number; readonly maxBytes: number; readonly boxes?: boolean }) => Promise<readonly PlaywrightSnapshotJSONNode[]>;
 
+/** Host-owned immutable identity witnesses, in requested ref order. No browser resources
+ * may be retained by the batch. resolve returns an owned handle only if it still denotes
+ * the captured node; recycled native IDs must never resolve to a replacement node. */
+export interface PlaywrightSnapshotReferenceBatch {
+  readonly identities: readonly ({ readonly scope: object; readonly value: number } | undefined)[];
+  connected(): Promise<readonly boolean[]>;
+  resolve(index: number): Promise<PlaywrightElementHandle | null>;
+}
+export type PlaywrightSnapshotReferenceCapture = (page: PlaywrightPage, refs: readonly string[], options: { readonly signal: AbortSignal; readonly timeoutMs: number }) => Promise<PlaywrightSnapshotReferenceBatch>;
+
 export interface PlaywrightLease {
   readonly context: PlaywrightContext;
   replaceContext?(state: PlaywrightStorageState, options?: { signal?: AbortSignal }): Promise<PlaywrightContext>;
@@ -368,6 +379,7 @@ export interface PlaywrightLease {
   readonly executeCode?: PlaywrightCodeExecutor;
   readonly generateActionCode?: PlaywrightActionCodeGenerator;
   readonly captureSnapshotJSON?: PlaywrightSnapshotJSONCapture;
+  readonly captureSnapshotReferences?: PlaywrightSnapshotReferenceCapture;
   readonly prepareFileBytes?: (bytes: Uint8Array) => Uint8Array;
   // Context closure, transport loss or local release invalidates the lease;
   // notification is not evidence of remote termination. Listeners must not throw.
@@ -490,6 +502,32 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
         if (closed) throw new Error("Playwright browser closed during context acquisition");
         return {
           get context() { return context!; },
+          ...(resource.captureSnapshotReferences ? { captureSnapshotReferences: (page: PlaywrightPage, refs: readonly string[], options: { signal: AbortSignal; timeoutMs: number }) => {
+            const track = <T>(action: () => Promise<T>): Promise<T> => {
+              if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
+              const operation = Promise.resolve().then(action);
+              captures.add(operation);
+              void operation.finally(() => captures.delete(operation)).catch(() => {});
+              return operation;
+            };
+            options.signal.throwIfAborted();
+            const nativeRefs = Object.freeze([...refs]);
+            const ownedOptions = Object.freeze({ ...options });
+            return track(async () => {
+              ownedOptions.signal.throwIfAborted();
+              const batch = await resource.captureSnapshotReferences!(page, nativeRefs, ownedOptions);
+              ownedOptions.signal.throwIfAborted();
+              return {
+                identities: batch.identities,
+                connected: () => track(() => batch.connected()),
+                resolve: (index: number) => track(async () => {
+                  const handle = await batch.resolve(index);
+                  if (closed || releasing) { await handle?.dispose(); throw new Error('Playwright lease is closed'); }
+                  return handle;
+                }),
+              };
+            });
+          } } : {}),
           ...(resource.captureSnapshotJSON ? { captureSnapshotJSON: ((page, captureOptions) => {
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             captureOptions.signal.throwIfAborted();

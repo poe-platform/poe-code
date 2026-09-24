@@ -7,6 +7,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   prepareNextRef?: () => Promise<(native?: string) => string>;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture;
+  prepareRefs?(refs: readonly string[]): Promise<void>;
 }): Promise<{ tree: readonly PlaywrightSnapshotJSONNode[]; refs: Map<string, string> }> {
   const signal = options.signal ?? new AbortController().signal;
   signal.throwIfAborted();
@@ -56,6 +57,17 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
     return output;
   };
   const selected = options.root ? await select(tree, false) : tree;
+  if (options.prepareRefs) {
+    const candidates = new Set<string>();
+    const pending = selected.map(node => ({ node, depth: 0 }));
+    for (let index = 0; index < pending.length; index++) {
+      const { node, depth } = pending[index]!;
+      if (typeof node === 'string') continue;
+      if (node.ref) candidates.add(node.ref);
+      if (node.children && (!options.depth || depth < options.depth)) for (const child of node.children) pending.push({ node: child, depth: depth + 1 });
+    }
+    await options.prepareRefs([...candidates]);
+  }
   const refs = new Map<string, string>();
   const nextRef = await options.prepareNextRef?.() ?? options.nextRef;
   const issued = new Map<string, string>();

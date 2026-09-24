@@ -17,6 +17,7 @@ import {
 	createBrowserCodeExecutor,
 } from "./browser-code-executor.js";
 import { captureBrowserSnapshotJSON } from "./browser-snapshot-json.js";
+import { captureBrowserSnapshotReferences } from './browser-snapshot-references.js';
 import { captureBrowserTrace } from "./browser-trace.js";
 import { acquireCloudflareBrowser } from "./shell-browser-resource.js";
 import { browserProfileRuntime } from './browser-profile-runtime.js';
@@ -56,6 +57,7 @@ export function createCloudflarePlaywrightAdapter(
 					executeCode: createBrowserCodeExecutor(resource, runtime),
 					generateActionCode: generateBrowserActionCode,
 					captureSnapshotJSON: captureBrowserSnapshotJSON,
+          captureSnapshotReferences: captureBrowserSnapshotReferences,
 					browser: publicBrowser(resource.browser),
 					captureArtifact: captureBrowserArtifact,
 					captureTrace: captureBrowserTrace,

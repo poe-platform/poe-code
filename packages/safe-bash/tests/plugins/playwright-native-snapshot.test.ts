@@ -1,11 +1,138 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createSnapshotEngine } from '../../src/playwright/snapshot.js';
-import type { PlaywrightPage } from '../../src/playwright/adapter.js';
+import type { PlaywrightPage, PlaywrightElementHandle } from '../../src/playwright/adapter.js';
 import { captureNativePlaywrightSnapshot } from '../../src/playwright/native-snapshot.js';
 import { captureNativePlaywrightJSON } from '../../src/playwright/native-json-snapshot.js';
 
-for (const [width, maxRefs, scoped] of [[150001, Infinity, false], [4095, 1, false], [4095, 1, true]] as const) {
+for (const cached of [false, true]) test(`bulk ref reuse rejects an iframe document replacement with cached handle=${cached}`, async () => {
+  const f = fixture();
+  let scope = {}, current = 0;
+  const handles = [0, 1].map(value => ({ value, async evaluate() { return true; }, async dispose() {} })) as unknown as PlaywrightElementHandle[];
+  f.page.ariaSnapshotJSON = async () => {
+    if (current++) scope = {}; // The child navigates during capture, after old liveness probes.
+    return [{ role: 'button', ref: 'f1e1' }];
+  };
+  const options = { captureReferences: async () => {
+    const index = current - 1;
+    return { identities: [{ scope, value: 1 }], async connected() { return [true]; }, async resolve() { return handles[index]!; } };
+  } };
+  const first = await f.engine.captureJSON(f.page, undefined, options);
+  const old = first[0]!.ref!;
+  if (cached) assert.equal(await f.engine.resolve(old), handles[0]);
+  const second = await f.engine.captureJSON(f.page, undefined, options);
+  assert.notEqual(second[0]!.ref, old);
+  await assert.rejects(f.engine.resolve(old), /stale/);
+  assert.equal(await f.engine.resolve(second[0]!.ref!), handles[1]);
+  await f.engine.invalidate();
+});
+
+test('eager ref reuse checks the old document after native capture', async () => {
+  const f = fixture();
+  let document = 0;
+  const handles = [1, 2].map(value => ({ async evaluate() { return value === document; }, async dispose() {} })) as unknown as PlaywrightElementHandle[];
+  f.page.ariaSnapshotJSON = async () => { document++; return [{ role: 'button', ref: 'f1e1' }]; };
+  f.page.locator = () => ({ async elementHandles() { return [handles[document - 1]!]; } }) as ReturnType<PlaywrightPage['locator']>;
+  const first = await f.engine.captureJSON(f.page);
+  const second = await f.engine.captureJSON(f.page);
+  assert.notEqual(first[0]!.ref, second[0]!.ref);
+  assert.equal(await f.engine.resolve(second[0]!.ref!), handles[1]);
+  await f.engine.invalidate();
+});
+
+for (const replace of [false, true]) test(`concurrent lazy ref resolution drains handles across publication, replace=${replace}`, async () => {
+  const f = fixture();
+  let complete!: (handle: PlaywrightElementHandle) => void;
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  let calls = 0, disposed = 0;
+  const scope = {};
+  f.page.ariaSnapshotJSON = async () => [{ role: 'button', ref: 'e1' }];
+  const options = { captureReferences: async () => ({ identities: [{ scope, value: 1 }], async connected() { return [true]; }, async resolve() { calls++; entered(); return new Promise<PlaywrightElementHandle>(resolve => { complete = resolve; }); } }) };
+  const tree = await f.engine.captureJSON(f.page, undefined, options);
+  const ref = tree[0]!.ref!;
+  const first = f.engine.resolve(ref), second = f.engine.resolve(ref);
+  const results = Promise.allSettled([first, second]);
+  await started;
+  if (replace) { f.page.ariaSnapshotJSON = async () => []; await f.engine.captureJSON(f.page, undefined, options); }
+  const handle = { async evaluate() { return true; }, async dispose() { disposed++; } } as unknown as PlaywrightElementHandle;
+  complete(handle);
+  const outcomes = await results;
+  assert.equal(calls, 1);
+  assert.deepEqual(outcomes.map(outcome => outcome.status), replace ? ['rejected', 'rejected'] : ['fulfilled', 'fulfilled']);
+  await f.engine.invalidate();
+  assert.equal(disposed, 1);
+});
+
+test('a ref removed while native connectivity is pending cannot resolve', async () => {
+  const f = fixture();
+  let complete!: (value: boolean) => void;
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const handle = { async evaluate() { entered(); return new Promise<boolean>(resolve => { complete = resolve; }); }, async dispose() {} } as unknown as PlaywrightElementHandle;
+  const scope = {};
+  const options = { captureReferences: async () => ({ identities: [{ scope, value: 1 }], async connected() { return [true]; }, async resolve() { return handle; } }) };
+  f.page.ariaSnapshotJSON = async () => [{ role: 'button', ref: 'e1' }];
+  const tree = await f.engine.captureJSON(f.page, undefined, options);
+  const resolution = f.engine.resolve(tree[0]!.ref!);
+  const settled = Promise.allSettled([resolution]);
+  await started;
+  f.page.ariaSnapshotJSON = async () => [];
+  await f.engine.captureJSON(f.page, undefined, options);
+  complete(true);
+  assert.equal((await settled)[0]!.status, 'rejected');
+  await f.engine.invalidate();
+});
+
+test('a refresh of the same witness shares its pending handle acquisition', async () => {
+  const f = fixture();
+  const scope = {};
+  let calls = 0;
+  const completions: ((handle: PlaywrightElementHandle) => void)[] = [];
+  const handle = { async evaluate() { return true; }, async dispose() {} } as unknown as PlaywrightElementHandle;
+  const options = { captureReferences: async () => ({ identities: [{ scope, value: 1 }], async connected() { return [true]; }, async resolve() { calls++; return new Promise<PlaywrightElementHandle>(resolve => completions.push(resolve)); } }) };
+  f.page.ariaSnapshotJSON = async () => [{ role: 'button', ref: 'e1' }];
+  const tree = await f.engine.captureJSON(f.page, undefined, options);
+  const first = f.engine.resolve(tree[0]!.ref!);
+  await f.engine.captureJSON(f.page, undefined, options);
+  const second = f.engine.resolve(tree[0]!.ref!);
+  for (const complete of completions) complete(handle);
+  assert.deepEqual(await Promise.all([first, second]), [handle, handle]);
+  assert.equal(calls, 1);
+  await f.engine.invalidate();
+});
+
+for (const format of ['yaml', 'json'] as const) test(`${format} bulk witnesses defer native handles and preserve stale refs`, async () => {
+  const f = fixture();
+  let resolved = 0, connected = true, disposed = 0;
+  const scope = {};
+  const handle = { async evaluate(fn: (node: { isConnected: boolean }) => unknown) { return fn({ isConnected: connected }); }, async dispose() { disposed++; } } as unknown as PlaywrightElementHandle;
+  const captureReferences = async (_page: PlaywrightPage, refs: readonly string[]) => {
+    assert.deepEqual(refs, ['e1', 'e2', 'f1e3', 'f1e4']);
+    return {
+      identities: refs.map((_, index) => ({ scope, value: index })),
+      async connected() { return refs.map(() => connected); },
+      async resolve(index: number) { assert.equal(index, 1); resolved++; return connected ? handle : null; },
+    };
+  };
+  const capture = () => format === 'yaml'
+    ? f.engine.capture(f.page, undefined, { captureReferences })
+    : f.engine.captureJSON(f.page, undefined, { captureReferences, captureJSON: async () => ['e1', 'e2', 'f1e3', 'f1e4'].map(ref => ({ role: 'button', ref })) });
+  await capture();
+  assert.deepEqual(f.selected, []);
+  assert.equal(resolved, 0);
+  await capture();
+  await f.engine.resolve('e102');
+  assert.equal(resolved, 1);
+  await f.engine.resolve('e102');
+  assert.equal(resolved, 1);
+  connected = false;
+  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await f.engine.invalidate();
+  assert.equal(disposed, 1);
+});
+
+for (const [width, maxRefs, scoped] of [[150001, Infinity, false], [5001, 1, false], [150001, 1, true]] as const) {
   test(`native JSON accepts ${width} children with one unique ref (maxRefs=${maxRefs}, scoped=${scoped})`, async () => {
     const children = Array.from({ length: width }, (_, index) => ({ role: 'text', text: `child ${index}`, ...(scoped ? { ref: 'e1' } : {}) }));
     const page = {

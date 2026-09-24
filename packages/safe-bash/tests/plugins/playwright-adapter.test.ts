@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { test } from "node:test";
 import { createPlaywrightAdapter } from "../../src/playwright/adapter.js";
-import type { PlaywrightBrowser, PlaywrightContext, PlaywrightPage } from "../../src/playwright/adapter.js";
+import type { PlaywrightBrowser, PlaywrightContext, PlaywrightPage, PlaywrightElementHandle } from "../../src/playwright/adapter.js";
 import { createSnapshotEngine } from "../../src/playwright/snapshot.js";
 
 function fixture() {
@@ -30,6 +30,31 @@ function fixture() {
 }
 
 const request = () => ({ acquisitionId: "a1", session: "default", browser: "chromium" as const, headless: true, signal: new AbortController().signal });
+
+test('lease release drains a pending witness resolution and disposes its late handle', async () => {
+  const f = fixture();
+  let finish!: (handle: PlaywrightElementHandle) => void;
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
+    return { browser: f.browser, async release() { f.calls.push('resource.release'); }, async captureSnapshotReferences() {
+      return { identities: [], async connected() { return []; }, async resolve() { entered(); return new Promise<PlaywrightElementHandle>(resolve => { finish = resolve; }); } };
+    } };
+  } } });
+  const lease = await adapter.acquire(request());
+  const batch = await lease.captureSnapshotReferences!({} as PlaywrightPage, ['e1'], { signal: new AbortController().signal, timeoutMs: 5000 });
+  const resolution = batch.resolve(0);
+  const rejected = assert.rejects(resolution, /lease is closed/);
+  await started;
+  const released = lease.release();
+  await assert.rejects(batch.connected(), /lease is closed/);
+  await Promise.resolve();
+  assert.deepEqual(f.calls, ['newContext']);
+  finish({ async dispose() { f.calls.push('handle.dispose'); } } as PlaywrightElementHandle);
+  await rejected;
+  await released;
+  assert.deepEqual(f.calls, ['newContext', 'handle.dispose', 'context.close', 'resource.release']);
+});
 
 test("unsupported engines and headed mode fail before host acquisition", async () => {
   const f = fixture();

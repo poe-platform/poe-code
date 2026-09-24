@@ -7,6 +7,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
   maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   prepareNextRef?: () => Promise<(native?: string) => string>;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number;
+  prepareRefs?(refs: readonly string[]): Promise<void>;
 }): Promise<{ text: string; refs: Map<string, string> }> {
   options.signal?.throwIfAborted();
   let source: unknown;
@@ -66,24 +67,12 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
   const refs = new Map<string, string>();
   const nextRef = await options.prepareNextRef?.() ?? options.nextRef;
   const nativeRefs = new Map<string, string>();
-  let text = '', start = 0, quoted = false, escaped = false, inValue = false;
-  for (let index = 0; index < snapshot.length; index++) {
-    const character = snapshot[index];
-    if (character === '\n') { quoted = false; escaped = false; inValue = false; continue; }
-    if (inValue) continue;
-    if (quoted) {
-      if (escaped) escaped = false;
-      else if (character === '\\') escaped = true;
-      else if (character === '"') quoted = false;
-      continue;
-    }
-    if (character === '"') { quoted = true; continue; }
-    if (character === ':') { inValue = true; continue; }
-    if (!snapshot.startsWith('[ref=', index)) continue;
-    const end = snapshot.indexOf(']', index + 5);
-    if (end < 0) throw new Error('Invalid native snapshot reference');
-    const native = snapshot.slice(index + 5, end);
-    if (!isPlaywrightSnapshotRef(native)) throw new Error('Invalid native snapshot reference');
+  const spans = snapshotReferenceSpans(snapshot, options.maxRefs);
+  const unique = [...new Set(spans.map(span => span.native))];
+  if (unique.length > options.maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
+  await options.prepareRefs?.(unique);
+  let text = '', start = 0;
+  for (const { native, index, end } of spans) {
     let issued = nativeRefs.get(native);
     if (!issued) {
       if (refs.size >= options.maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
@@ -107,10 +96,38 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
         }
       } finally { await handle.dispose(); }
     }
-    index = end;
   }
   text += snapshot.slice(start);
   if (text.length > options.maxBytes || encoder.encode(text).length > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   return { text, refs };
+}
+
+function snapshotReferenceSpans(snapshot: string, maxRefs: number) {
+  const spans: { native: string; index: number; end: number }[] = [];
+  const refs = new Set<string>();
+  let quoted = false, escaped = false, inValue = false;
+  for (let index = 0; index < snapshot.length; index++) {
+    const character = snapshot[index];
+    if (character === '\n') { quoted = false; escaped = false; inValue = false; continue; }
+    if (inValue) continue;
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (character === '\\') escaped = true;
+      else if (character === '"') quoted = false;
+      continue;
+    }
+    if (character === '"') { quoted = true; continue; }
+    if (character === ':') { inValue = true; continue; }
+    if (!snapshot.startsWith('[ref=', index)) continue;
+    const end = snapshot.indexOf(']', index + 5);
+    if (end < 0) throw new Error('Invalid native snapshot reference');
+    const native = snapshot.slice(index + 5, end);
+    if (!isPlaywrightSnapshotRef(native)) throw new Error('Invalid native snapshot reference');
+    refs.add(native);
+    if (refs.size > maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
+    spans.push({ native, index, end });
+    index = end;
+  }
+  return spans;
 }
 import { PlaywrightSnapshotLimitError } from './resource-limit.js';

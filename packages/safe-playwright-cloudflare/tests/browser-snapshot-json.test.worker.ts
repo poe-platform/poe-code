@@ -67,7 +67,7 @@ export default {
 				assert.ok(lease);
 				const page = lease.context.pages()[0]!;
 				await page.setContent(["/recover-refs", "/unlimited-nodes"].includes(scenario)
-					? "<button>Probe</button>".repeat(20001)
+					? "<button onclick=\"this.dataset.clicked='yes'\">Probe</button>".repeat(20001)
 					: scenario === "/recover-frames"
 						? '<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128)
 						: `<p>${"x".repeat(2048)}</p>`);
@@ -75,6 +75,11 @@ export default {
 					output = "";
 					await run(["snapshot", "--json"]);
 					assert.equal((output.match(/"role"\s*:\s*"button"/g) ?? []).length, 20001);
+          const refs = [...output.matchAll(/"ref"\s*:\s*"(e\d+)"/g)].map(match => match[1]!);
+          assert.ok(refs.length >= 20001);
+          await run(['click', refs[0]!]);
+          await run(['click', refs.at(-1)!]);
+          assert.equal(await page.locator('button[data-clicked="yes"]').count(), 2);
 				} else {
 					await assert.rejects(run(["snapshot", "--json"]), scenario === "/recover-refs" ? /Snapshot ref limit exceeded/ : /snapshot.*limit exceeded/i);
 				}
@@ -90,7 +95,7 @@ export default {
 				await controller.dispose();
 			}
 		}
-		if (["/public-frames", "/public-unlimited"].includes(new URL(request.url).pathname)) {
+		if (["/public-frames", "/public-unlimited", "/public-identities"].includes(new URL(request.url).pathname)) {
 			const lease = await createCloudflarePlaywrightAdapter(
 				env.BROWSER,
 			).acquire({
@@ -102,6 +107,50 @@ export default {
 			});
 			try {
 				const page = await lease.context.newPage();
+        if (scenario === '/public-identities') {
+          const nativePage = page as unknown as Page;
+          await nativePage.setContent('<button onclick="this.dataset.clicked=\'yes\'">Original</button><div id="shadow"></div><iframe srcdoc="<button>Child</button>"></iframe>');
+          await nativePage.evaluate(() => { document.querySelector('#shadow')!.attachShadow({ mode: 'open' }).innerHTML = '<button>Shadow</button>'; });
+          await nativePage.frameLocator('iframe').getByRole('button').waitFor();
+          const tree = flatten(await lease.captureSnapshotJSON!(page, { signal: new AbortController().signal, timeoutMs: 5000, maxBytes: Infinity }));
+          const refs = ['Original', 'Shadow', 'Child'].map(name => { const ref = tree.find(node => node.name === name)?.ref; assert.ok(ref); return ref; });
+          const batch = await lease.captureSnapshotReferences!(page, refs, { signal: new AbortController().signal, timeoutMs: 5000 });
+          await nativePage.getByRole('button', { name: 'Original' }).evaluate(node => { node.textContent = 'Renamed'; });
+          await nativePage._snapshotForAI({ timeout: 5000 });
+          assert.deepEqual(await batch.connected(), [true, true, true]);
+          for (let index = 0; index < refs.length; index++) {
+            const handle = await batch.resolve(index);
+            assert.ok(handle);
+            try { await handle.click(); } finally { await handle.dispose(); }
+          }
+          assert.equal(await nativePage.getByRole('button', { name: 'Renamed' }).getAttribute('data-clicked'), 'yes');
+          await nativePage.getByRole('button', { name: 'Renamed' }).evaluate(node => { node.outerHTML = '<button>Replacement</button>'; });
+          await nativePage._snapshotForAI({ timeout: 5000 });
+          assert.deepEqual(await batch.connected(), [false, true, true]);
+          assert.equal(await batch.resolve(0), null);
+          const child = nativePage.frames().find(frame => frame !== nativePage.mainFrame())!;
+          const originalLocator = child.locator;
+          let raced = false;
+          child.locator = function (...args) {
+            const locator = originalLocator.apply(this, args);
+            if (!raced && args[0].startsWith('aria-ref=')) locator.elementHandles = async () => {
+              raced = true;
+              await child.goto('data:text/html,<button>New Child</button>');
+              return originalLocator.call(child, 'button').elementHandles();
+            };
+            return locator;
+          };
+          try { assert.equal(await batch.resolve(2), null); }
+          finally { child.locator = originalLocator; }
+          assert.equal(raced, true);
+          const changed = flatten(await lease.captureSnapshotJSON!(page, { signal: new AbortController().signal, timeoutMs: 5000, maxBytes: Infinity }));
+          const childRef = changed.find(node => node.name === 'New Child')?.ref;
+          assert.ok(childRef);
+          const replacement = await lease.captureSnapshotReferences!(page, [childRef], { signal: new AbortController().signal, timeoutMs: 5000 });
+          assert.notEqual(replacement.identities[0]!.scope, batch.identities[2]!.scope);
+          assert.deepEqual(await batch.connected(), [false, true, false]);
+          return Response.json({ ok: true });
+        }
 				if (new URL(request.url).pathname === "/public-unlimited") {
 					const text = "x".repeat(300 * 1024);
 					await page.setContent(`<p>${text}</p>`);

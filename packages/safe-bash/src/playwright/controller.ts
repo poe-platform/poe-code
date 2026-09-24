@@ -688,7 +688,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         sections.push({ title: 'Page', content: `- Page URL: ${page.url()}${title === undefined ? '' : `\n- Page Title: ${title}`}` });
       }
       if (snapshot !== 'none' && (page.frames || page.ariaSnapshot || page._snapshotForAI || page.ariaSnapshotJSON || session.lease?.captureSnapshotJSON)) {
-        const snapshotOptions: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = { timeout: sessionSnapshotTimeout(session), ...(session.configuration?.snapshot?.boxes === undefined ? {} : { boxes: session.configuration.snapshot.boxes }) };
+        const snapshotOptions: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureReferences?: import('./adapter.js').PlaywrightSnapshotReferenceCapture } = { timeout: sessionSnapshotTimeout(session), ...(session.configuration?.snapshot?.boxes === undefined ? {} : { boxes: session.configuration.snapshot.boxes }), ...(session.lease?.captureSnapshotReferences ? { captureReferences: session.lease.captureSnapshotReferences } : {}) };
         if (parsed.command === 'snapshot') {
           if (parsed.options.depth !== undefined) {
             const depth = Number(parsed.options.depth);
@@ -1245,7 +1245,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               await writeResult({ sections: [{ title: 'Result', content: result }] });
             } else if (parsed.command === 'find') {
               retained = false;
-              const text = await session.snapshot.capture(page!, local.signal, { timeout: sessionSnapshotTimeout(session) });
+              const text = await session.snapshot.capture(page!, local.signal, { timeout: sessionSnapshotTimeout(session), ...(session.lease?.captureSnapshotReferences ? { captureReferences: session.lease.captureSnapshotReferences } : {}) });
               checkSession(session);
               retained = true;
               const result = await findPlaywrightSnapshot(text, { page: page!, ...(parsed.args[0] === undefined ? {} : { text: parsed.args[0] }),

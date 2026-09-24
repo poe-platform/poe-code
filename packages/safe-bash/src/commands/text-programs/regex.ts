@@ -5,7 +5,7 @@ type Node = { type: "empty" | "begin" | "end" }
   | { type: "backreference"; index: number }
   | { type: "character"; accepts: (character: string) => boolean }
   | { type: "sequence" | "alternate"; nodes: Node[] }
-  | { type: "repeat"; node: Node; minimum: number; maximum: number }
+  | { type: "repeat"; node: Node; minimum: number; maximum: number; lazy?: boolean }
   | { type: "group"; node: Node; index: number };
 
 type Instruction = { kind: "character"; accepts: (character: string) => boolean }
@@ -68,14 +68,17 @@ class NfaStorage {
 
 export class Pattern {
   readonly groupCount: number;
+  readonly groupNames = new Map<string, number>();
   private readonly code: Instruction[] = [];
   private readonly anchored: boolean;
   private readonly linear: boolean;
 
-  constructor(source: string, extended = true, ignoreCase = false, dialect: "sed" | "awk" = "sed") {
+  constructor(source: string, extended = true, ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
     if (!extended) source = extendedSource(source);
     let offset = 0;
     let groups = 0;
+    let jqDepth = 0;
+    if (dialect === "jq" && source.length > 8192) throw new ProgramError("jq regular expression source limit exceeded");
     const closedGroups = new Set<number>();
     const characterNode = (character: string): Node => ({ type: "character", accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character });
     const escaped = (): string => {
@@ -126,24 +129,48 @@ export class Pattern {
     const atom = (atStart: boolean, afterBegin: boolean): Node => {
       const token = source[offset++];
       if (token === "(") {
-        const index = ++groups;
+        if (dialect === "jq" && ++jqDepth > 64) throw new ProgramError("jq regular expression depth limit exceeded");
+        let name: string | undefined;
+        let capturing = true;
+        if (dialect === "jq" && source[offset] === "?") {
+          offset++;
+          if (source[offset] === ":") { offset++; capturing = false; }
+          else if (source[offset] === "<" && !"=!".includes(source[offset + 1] ?? "")) {
+            const end = source.indexOf(">", ++offset);
+            if (end < 0) throw new ProgramError("invalid named capture");
+            name = source.slice(offset, end); offset = end + 1;
+          } else throw new ProgramError("unsupported jq regular expression group");
+        }
+        const index = capturing ? ++groups : 0;
+        if (name !== undefined) this.groupNames.set(name, index);
         const node = alternate();
         if (source[offset++] !== ")") throw new ProgramError("unmatched '(' in regular expression");
         closedGroups.add(index);
-        return { type: "group", index, node };
+        if (dialect === "jq") jqDepth--;
+        return capturing ? { type: "group", index, node } : node;
       }
       if (token === "[") return bracket();
       if (token === "\\") {
         const reference = source[offset];
-        if (dialect === "sed" && reference !== undefined && /^[1-9]$/u.test(reference)) {
+        if ((dialect === "sed" || dialect === "jq") && reference !== undefined && /^[1-9]$/u.test(reference)) {
           const index = Number(reference);
           if (!closedGroups.has(index)) throw new ProgramError("pattern references an undefined or open capture group");
           offset++;
           return { type: "backreference", index };
         }
+        if (dialect === "jq" && reference !== undefined && "dDsSwW".includes(reference)) {
+          offset++;
+          const alphabet = reference.toLowerCase();
+          return { type: "character", accepts: character => {
+            const accepted = alphabet === "d" ? character >= "0" && character <= "9"
+              : alphabet === "s" ? " \t\n\r\f\v".includes(character)
+              : character >= "a" && character <= "z" || character >= "A" && character <= "Z" || character >= "0" && character <= "9" || character === "_";
+            return reference === alphabet ? accepted : !accepted;
+          } };
+        }
         return characterNode(escaped());
       }
-      if (token === ".") return { type: "character", accepts: () => true };
+      if (token === ".") return { type: "character", accepts: character => dialect !== "jq" || modifiers.includes("m") || character !== "\n" };
       if (token === "^") return extended || atStart ? { type: "begin" } : characterNode(token);
       if (token === "$") return extended || offset === source.length || source[offset] === ")" || source[offset] === "|" ? { type: "end" } : characterNode(token);
       if (token === "*" && !extended && (atStart || afterBegin)) return characterNode(token);
@@ -166,6 +193,7 @@ export class Pattern {
         offset += match[0].length;
         node = { type: "repeat", node, minimum, maximum };
       }
+      if (dialect === "jq" && node.type === "repeat" && source[offset] === "?") { node.lazy = true; offset++; }
       if (source[offset] !== undefined && "*+?{".includes(source[offset]!)) throw new ProgramError("nested quantifier is not supported");
       return node;
     };
@@ -184,6 +212,7 @@ export class Pattern {
     this.groupCount = groups;
     this.anchored = root.type === "sequence" && root.nodes[0]?.type === "begin";
     const emit = (instruction: Instruction): number => {
+      if (dialect === "jq" && this.code.length >= 16384) throw new ProgramError("jq regular expression program limit exceeded");
       return this.code.push(instruction) - 1;
     };
     const compile = (node: Node): void => {
@@ -211,17 +240,75 @@ export class Pattern {
         const split = emit({ kind: "split", first: this.code.length + 1, second: 0 });
         compile(node.node); emit({ kind: "jump", target: split });
         (this.code[split] as Extract<Instruction, { kind: "split" }>).second = this.code.length;
+        if (node.lazy) { const instruction = this.code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
       } else for (let count = node.minimum; count < node.maximum; count++) {
         const split = emit({ kind: "split", first: this.code.length + 1, second: 0 });
         compile(node.node);
         (this.code[split] as Extract<Instruction, { kind: "split" }>).second = this.code.length;
+        if (node.lazy) { const instruction = this.code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
       }
     };
     compile(root); emit({ kind: "match" });
     this.linear = this.code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
   }
 
+  private async findJq(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from: number): Promise<Match | undefined> {
+    // Prioritized traversal gives jq's leftmost-first (rather than POSIX longest) match.
+    for (let start = from; start <= text.length; start += (text.codePointAt(start) ?? 0) > 0xffff ? 2 : 1) {
+      const pending = [{ pc: 0, position: start, captures: [] as number[] }];
+      const visited = new Set<string>();
+      let storage = 0;
+      let checkpoints = 0;
+      while (pending.length) {
+        if (++checkpoints % 64 === 1) await budget.checkpoint();
+        budget.step();
+        const state = pending.pop()!;
+        const key = `${state.pc}:${state.position}:${state.captures.join(",")}`;
+        if (visited.has(key)) continue;
+        storage += key.length * 2 + 64;
+        if (storage > budget.maxBufferBytes) throw new ProgramError("regular expression state buffer limit exceeded");
+        visited.add(key);
+        const instruction = this.code[state.pc]!;
+        const { position, captures } = state;
+        const push = (pc: number, next = position, saved = captures): void => {
+          if ((pending.length + 1) * (64 + (this.groupCount + 1) * 16) + storage > budget.maxBufferBytes) throw new ProgramError("regular expression state buffer limit exceeded");
+          pending.push({ pc, position: next, captures: saved });
+        };
+        if (instruction.kind === "match") {
+          if (this.modifiers.includes("n") && position === start) continue;
+          const groups: (string | undefined)[] = [text.slice(start, position)];
+          for (let index = 1; index <= this.groupCount; index++) {
+            budget.step();
+            groups.push(captures[index * 2] === undefined ? undefined : text.slice(captures[index * 2], captures[index * 2 + 1]));
+          }
+          return { start, end: position, groups };
+        }
+        if (instruction.kind === "jump") push(instruction.target);
+        else if (instruction.kind === "split") { push(instruction.second); push(instruction.first); }
+        else if (instruction.kind === "save") { const saved = [...captures]; saved[instruction.slot] = position; push(state.pc + 1, position, saved); }
+        else if (instruction.kind === "begin") { if (position === 0) push(state.pc + 1); }
+        else if (instruction.kind === "end") { if (position === text.length || position === text.length - 1 && text[position] === "\n") push(state.pc + 1); }
+        else if (instruction.kind === "character") {
+          const code = text.codePointAt(position);
+          if (code !== undefined) { const character = String.fromCodePoint(code); if (instruction.accepts(character)) push(state.pc + 1, position + character.length); }
+        } else if (instruction.kind === "backreference") {
+          const begin = captures[instruction.index * 2];
+          const end = captures[instruction.index * 2 + 1];
+          if (begin !== undefined && end !== undefined) {
+            const length = end - begin;
+            budget.step(length);
+            const expected = text.slice(begin, end);
+            const actual = text.slice(position, position + length);
+            if (instruction.ignoreCase ? expected.toLowerCase() === actual.toLowerCase() : expected === actual) push(state.pc + 1, position + length);
+          }
+        } else throw new ProgramError("unsupported jq regular expression instruction");
+      }
+    }
+    return undefined;
+  }
+
   async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from = 0): Promise<Match | undefined> {
+    if (this.dialect === "jq") return this.findJq(text, budget, from);
     await budget.checkpoint();
     let units = 0;
     const work = (count = 1): Promise<void> | undefined => {

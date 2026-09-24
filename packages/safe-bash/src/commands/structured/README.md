@@ -347,11 +347,24 @@ are observed. Synchronous builtins are bounded but not preemptible, and an
 uncooperative host operation cannot be forcibly terminated or undone. Callers
 should supply a deadline signal when they require a wall-clock deadline.
 
+`gsub(regex; replacement)` replaces every non-overlapping match in a string.
+The replacement filter receives an object of named captures, so
+`gsub("(?<number>[0-9]+)"; "<" + .number + ">")` wraps each number. Replacement
+strings are literal; `$&` does not expand. Empty matches advance by a Unicode
+code point. The optional third argument supports `i` (ignore case), `m` (dot
+matches newline), `n` (ignore empty matches), `s`, and `g`.
+
+Patterns support literals, classes, anchors, alternation, capturing and
+noncapturing groups, numeric backreferences, and greedy/lazy repetition.
+Lookaround, inline modifiers, and other Oniguruma extensions are unsupported.
+Regex matching shares jq's work, cancellation, collection and value limits;
+patterns additionally have bounded source, nesting and compiled-program size.
+
 ## Deliberate gaps
 
 - Not the entire jq language: no recursive definitions, destructuring `as` bindings,
   recursion, labels/break,
-  regex/date/math libraries or arbitrary jq builtins.
+  general regex/date/math libraries or arbitrary jq builtins.
 - Assignment paths do not include computed object/array constructions.
 - `limit` count and additional function overloads are restricted
   to the documented signatures.

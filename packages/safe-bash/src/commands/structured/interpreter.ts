@@ -3,6 +3,7 @@ import { isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
 import { formatValue } from "./formats.js";
+import { substituteRegex } from "./regex.js";
 import { splitString } from "./split.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
@@ -544,6 +545,14 @@ export class Interpreter {
         else if (isObject(input) && typeof argument === "string") yield Object.hasOwn(input, argument);
         else if (Array.isArray(input) && isNumber(argument)) yield Math.trunc(numberValue(argument)) >= 0 && Math.trunc(numberValue(argument)) < input.length;
         else throw new JqError("has requires object/string or array/number");
+      }
+      return;
+    }
+    if (name === "gsub") {
+      for await (const pattern of this.run(args[0]!, input)) {
+        for await (const flags of args[2] ? this.run(args[2], input) : [""]) {
+          yield* substituteRegex(input, pattern, flags, captures => this.run(args[1]!, captures), budget);
+        }
       }
       return;
     }

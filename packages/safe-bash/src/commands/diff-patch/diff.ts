@@ -135,6 +135,9 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     let right = pair.right;
     let leftStat = left === "-" ? { type: "file" } : await inspect(budget, left);
     let rightStat = right === "-" ? { type: "file" } : await inspect(budget, right);
+    if (options.format === "ifdef" && (leftStat?.type === "directory" || rightStat?.type === "directory")) {
+      throw new ToolError("-D option not supported with directories");
+    }
     if (!pair.nested && leftStat && rightStat && (leftStat.type === "directory") !== (rightStat.type === "directory")) {
       if (left === "-" || right === "-") throw new ToolError("cannot compare stdin with a directory");
       if (leftStat.type === "directory") { left = childPath(left, basename(right)); leftStat = await inspect(budget, left); }
@@ -201,12 +204,12 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     different ||= changed;
     const label = (name: string) => options.text ? Buffer.from(name).toString("latin1") : name;
     if (!changed && options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`);
+    if (changed && pair.nested && !options.brief) append(label(["diff", ...options.optionArgs, left, right].join(" ")) + "\n");
     if (options.brief) { if (changed) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`); }
     else if (options.format === "side") await sideBySide(changes, options, budget, append);
     else if (options.format === "ifdef") await ifdef(changes, options.symbol, budget, append);
     else if (changed) {
       if (options.format === "normal") {
-        if (pair.nested) append(label(["diff", ...options.optionArgs, left, right].join(" ")) + "\n");
         await normal(changes, budget, append, options);
       }
       else if (options.format === "ed" || options.format === "rcs") await script(changes, options.format, budget, append);
@@ -237,12 +240,27 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
 
 function globPattern(source: string): Pattern {
   let result = "^";
-  let bracket = false;
   for (let index = 0; index < source.length; index++) {
     const character = source[index]!;
     if (character === "\\" && index + 1 < source.length) result += `\\${source[++index]}`;
-    else if (character === "[") { bracket = source.indexOf("]", index + 1) >= 0; result += bracket ? "[" : "\\["; }
-    else if (bracket) { result += character === "!" && source[index - 1] === "[" ? "^" : character; if (character === "]") bracket = false; }
+    else if (character === "[") {
+      let end = index + 1;
+      const negated = source[end] === "!" || source[end] === "^";
+      if (negated) end++;
+      if (source[end] === "]") end++;
+      while (end < source.length && source[end] !== "]") {
+        if (source[end] === "\\" && end + 1 < source.length) end += 2;
+        else if (source[end] === "[" && source[end + 1] === ":") {
+          const classEnd = source.indexOf(":]", end + 2);
+          if (classEnd < 0) break;
+          end = classEnd + 2;
+        } else end++;
+      }
+      if (source[end] === "]") {
+        result += "[" + (negated ? "^" : "") + source.slice(index + 1 + Number(negated), end + 1);
+        index = end;
+      } else result += "\\[";
+    }
     else if (character === "*") result += ".*";
     else if (character === "?") result += ".";
     else result += ".^$+(){}|]".includes(character) ? `\\${character}` : character;

@@ -153,9 +153,10 @@ await convert([{bytes: new TextEncoder().encode("Hello")}], {
 The VM exposes basic Lua, string, table, math and UTF-8 libraries and `FORMAT`.
 It does not expose host filesystem/process libraries. Conversion work limits
 interrupt Lua instructions. Use trusted scripts: VM allocations and library
-calls are not isolated or individually metered. Only global `Str` callbacks
-returning a `Str` element or nil are supported; other callbacks, Pandoc
-constructors, filter tables and citeproc remain unsupported.
+calls are not isolated or individually metered. `Str` callbacks may be global
+or returned in a single table, such as `return {Str = function(el) return el end}`.
+Callbacks return a `Str` element or nil. Other callbacks, Pandoc constructors,
+filter lists and citeproc remain unsupported.
 
 `createLuaFilterCapability(loadScript)` executes genuine Lua 5.3 using Fengari.
 Supply an explicit `(path, signal) => Promise<Uint8Array>` loader and pass the

@@ -9,7 +9,8 @@ export interface LuaFilterOptions {
 }
 
 /** Execute genuine Lua Str callbacks without a host interpreter or ambient I/O.
- * Other Pandoc callbacks, constructors and returned filter tables are unsupported. */
+ * Str may be global or returned in a single filter table. Other callbacks and
+ * Pandoc constructors are unsupported. */
 function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapability {
   if (!options || typeof options.readFile !== "function") throw new TypeError("A local Lua filter reader is required");
   return {
@@ -55,8 +56,18 @@ function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapab
         if (source[0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
         checked(lauxlib.luaL_loadbuffer(state, source, source.length, to_luastring(request.path)));
         checked(lua.lua_pcall(state, 0, 1, 0));
-        if (!lua.lua_isnil(state, -1)) fail("E_UNSUPPORTED_FEATURE", "Returned Lua filter tables are unsupported");
-        lua.lua_pop(state, 1);
+        const returnedTable = !lua.lua_isnil(state, -1);
+        if (returnedTable && lua.lua_type(state, -1) !== lua.LUA_TTABLE)
+          fail("E_UNSUPPORTED_FEATURE", "Expected a Lua filter table");
+        if (returnedTable) {
+          lua.lua_pushnil(state);
+          while (lua.lua_next(state, -2)) {
+            const name = lua.lua_tolstring(state, -2);
+            if (!name || to_jsstring(name) !== "Str")
+              fail("E_UNSUPPORTED_FEATURE", "Returned Lua filter tables support only Str");
+            lua.lua_pop(state, 1);
+          }
+        }
         for (const name of [
           "Pandoc", "Meta", "Inline", "Inlines", "Block", "Blocks", "Space", "SoftBreak", "LineBreak",
           "Emph", "Underline", "Strong", "Strikeout", "Superscript", "Subscript", "SmallCaps", "Quoted",
@@ -64,10 +75,16 @@ function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapab
           "CodeBlock", "RawBlock", "BlockQuote", "OrderedList", "BulletList", "DefinitionList", "Header",
           "HorizontalRule", "Div", "Figure", "Table"
         ]) {
-          lua.lua_getglobal(state, to_luastring(name));
+          if (returnedTable) lua.lua_getfield(state, -1, to_luastring(name));
+          else lua.lua_getglobal(state, to_luastring(name));
           if (!lua.lua_isnil(state, -1)) fail("E_UNSUPPORTED_FEATURE", `Lua callback ${name} is unsupported`);
           lua.lua_pop(state, 1);
         }
+        if (returnedTable) {
+          lua.lua_getfield(state, -1, to_luastring("Str"));
+          lua.lua_setglobal(state, to_luastring("Str"));
+        }
+        lua.lua_pop(state, 1);
         lua.lua_getglobal(state, to_luastring("Str"));
         const hasStr = !lua.lua_isnil(state, -1);
         if (hasStr && !lua.lua_isfunction(state, -1)) fail("E_AST", "Lua Str callback must be a function");

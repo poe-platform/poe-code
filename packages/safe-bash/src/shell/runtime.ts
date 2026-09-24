@@ -7093,7 +7093,7 @@ export class Runtime {
       this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
       if (part.length) return this.valueLength(value ?? "", state, io);
       if (part.substring) return this.substring(part, value === undefined ? undefined : shellValueText(value), state, io);
-      if (part.transform) return this.transformValue(value ?? "", part.transform, state, io);
+      if (part.transform) return value === undefined ? "" : this.transformValue(value, part.transform, state, io);
       if (part.operator) return this.parameterPattern(part, value ?? "", state, io, hereString);
       return value ?? "";
     }

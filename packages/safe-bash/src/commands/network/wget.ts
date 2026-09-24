@@ -179,9 +179,15 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
       let text: string;
       try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
       catch { throw new CurlError(2, "URL input must be valid UTF-8"); }
-      for (const line of text.split("\n")) {
-        await yieldTurn(context.signal);
-        const url = line.trim();
+      let start = 0;
+      let lines = 0;
+      for (let index = 0; index <= text.length; index++) {
+        if (index % 1024 === 0) await yieldTurn(context.signal);
+        if (index !== text.length && text[index] !== "\n") continue;
+        if (index === text.length && start === index) break;
+        if (++lines > 4096) throw new CurlError(2, "URL input exceeds 4096-line limit");
+        const url = text.slice(start, index).trim();
+        start = index + 1;
         if (url) result.urls.push(url);
         if (result.urls.length > limits.maxUrls) throw new CurlError(2, "URL count exceeds host limit");
       }

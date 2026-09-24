@@ -1,7 +1,8 @@
+import { scheduleNetworkDeadline } from "./deadline.js";
 import { collectNetworkBytes as collectBytes } from "./shared.js";
 import { normalizePath, posixPath as posix } from "../../contracts/path.js";
 import { FsError } from "../../contracts/index.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { inheritYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
@@ -126,11 +127,20 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
     name: profile.name,
     async execute(context) {
       context.signal.throwIfAborted();
+      const scope = context.executionScope ?? {};
+      let started = executions.get(scope) ?? performance.now();
+      const parsing = new AbortController();
+      const parsingSignal = AbortSignal.any([context.signal, parsing.signal]);
+      inheritYieldCheckpoint(context.signal, parsingSignal);
+      const cancelParsingDeadline = scheduleNetworkDeadline(limits.maxTotalTimeMs - (performance.now() - started),
+        () => parsing.abort(new CurlError(28, "Operation timed out")));
       let args: CurlArguments;
       let expanded: (ExpandedUrl & { destination?: { output?: string; remoteName: boolean } })[];
       try {
         if (context.args.reduce((size, value) => size + Buffer.byteLength(value), 0) > limits.maxBufferBytes) throw new CurlError(2, "Arguments exceed host buffer limit");
-        args = await profile.parse(context, limits);
+        args = await withSignal(() => profile.parse({ ...context, signal: parsingSignal }, limits), parsingSignal);
+        parsingSignal.throwIfAborted();
+        if (performance.now() - started >= limits.maxTotalTimeMs) throw new CurlError(28, "Operation timed out");
         if (args.help || args.version) {
           await writeBytes(context.stdout, encode(args.version ? profile.version : profile.help), context.signal);
           return { exitCode: 0 };
@@ -156,12 +166,17 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
       } catch (error) {
         context.signal.throwIfAborted();
         const failure = error instanceof CurlError ? error : new CurlError(2, `Invalid ${profile.name} arguments`);
-        await diagnostic(context, new CurlError(profile.status(failure.exitCode), failure.message));
+        const reported = new CurlError(profile.status(failure.exitCode), failure.message);
+        if (failure.exitCode === 28) {
+          try { await deadlineDiagnostic(context, reported, 0); }
+          catch (error) { context.signal.throwIfAborted(); if (!(error instanceof CurlError)) throw error; }
+        } else await diagnostic(context, reported);
         return { exitCode: profile.status(failure.exitCode) };
+      } finally {
+        cancelParsingDeadline();
       }
-      const scope = context.executionScope ?? {};
-      let started = executions.get(scope);
-      if (started === undefined) { started = performance.now(); executions.set(scope, started); }
+      started = Math.min(started, executions.get(scope) ?? started);
+      executions.set(scope, started);
       let exitCode = 0;
       const headerState = { dumped: false };
       for (const item of expanded) {

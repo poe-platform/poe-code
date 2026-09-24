@@ -207,7 +207,10 @@ Wget supports `--spider` (HEAD without saving a file), `-c/--continue`
 `-nc/--no-clobber`, `-P/--directory-prefix`, and `--content-disposition`
 (safe basenames from the `filename` parameter). `-i/--input-file` reads a
 UTF-8 URL list from the VFS; `-` reads stdin. Lists and positional URLs share
-the host URL ceiling, and each transfer retains authorization and deadlines.
+the host URL ceiling. Lists accept at most 4,096 lines, including blank lines,
+and parsing yields in bounded batches without allocating a line array. The host
+`maxTotalTimeMs` budget covers input reads and parsing as well as transfers;
+each transfer retains authorization.
 `-T` and `-t` alias `--timeout` and `--tries`. Recursive and HTML input modes
 remain unsupported.
 

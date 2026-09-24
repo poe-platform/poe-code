@@ -20,12 +20,13 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   const fields = new Set(['role', 'name', 'text', 'children', 'checked', 'disabled', 'expanded', 'active', 'invalid', 'level', 'pressed', 'selected', 'ariaHidden', 'url', 'placeholder', 'ref', 'cursor', 'box']);
   const nativeRefs = new Set<string>();
   const pending = [...tree];
-  let count = 0;
   while (pending.length) {
     const node = pending.pop()!;
-    if (++count > Math.max(options.maxRefs * 4, 4096)) throw new PlaywrightResourceLimitError('Snapshot node limit exceeded');
     if (!node || typeof node !== 'object' || typeof node.role !== 'string' || Object.keys(node).some(key => !fields.has(key))) throw new Error('Invalid native JSON snapshot node');
-    if (node.children !== undefined) { if (!Array.isArray(node.children)) throw new Error('Invalid native JSON snapshot children'); pending.push(...node.children); }
+    if (node.children !== undefined) {
+      if (!Array.isArray(node.children)) throw new Error('Invalid native JSON snapshot children');
+      for (const child of node.children) pending.push(child);
+    }
     if (node.ref !== undefined) {
       if (!isPlaywrightSnapshotRef(node.ref)) throw new Error('Invalid native snapshot reference');
       nativeRefs.add(node.ref);
@@ -46,7 +47,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
       }
       const children = node.children ? await select(node.children, included) : undefined;
       if (included) output.push({ ...node, ...(children === undefined ? {} : { children }) });
-      else if (children) output.push(...children);
+      else if (children) for (const child of children) output.push(child);
     }
     return output;
   };

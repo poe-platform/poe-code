@@ -3,6 +3,35 @@ import { test } from 'node:test';
 import { createSnapshotEngine } from '../../src/playwright/snapshot.js';
 import type { PlaywrightPage } from '../../src/playwright/adapter.js';
 import { captureNativePlaywrightSnapshot } from '../../src/playwright/native-snapshot.js';
+import { captureNativePlaywrightJSON } from '../../src/playwright/native-json-snapshot.js';
+
+for (const [width, maxRefs, scoped] of [[150001, Infinity, false], [5001, 1, false], [150001, 1, true]] as const) {
+  test(`native JSON accepts ${width} children with one unique ref (maxRefs=${maxRefs}, scoped=${scoped})`, async () => {
+    const children = Array.from({ length: width }, (_, index) => ({ role: 'text', text: `child ${index}`, ...(scoped ? { ref: 'e1' } : {}) }));
+    const page = {
+      async ariaSnapshotJSON() { return [{ role: 'main', ...(scoped ? {} : { ref: 'e1' }), children }]; },
+      locator() { return { async elementHandle() { return { async evaluate() { return true; }, async dispose() {} }; } }; },
+    } as unknown as PlaywrightPage;
+    const result = await captureNativePlaywrightJSON(page, {
+      maxBytes: Infinity, maxRefs, nextRef: () => 'e101',
+      ...(scoped ? { root: {} as NonNullable<Parameters<typeof captureNativePlaywrightJSON>[1]['root']> } : {}),
+    });
+    assert.deepEqual(result.tree, scoped ? children.map(child => ({ ...child, ref: 'e101' })) : [{ role: 'main', ref: 'e101', children }]);
+    assert.deepEqual([...result.refs], [['e101', 'e1']]);
+  });
+}
+
+test('native JSON retains explicit byte/ref limits and validates the last child of a wide tree', async () => {
+  const children = Array.from({ length: 5001 }, () => ({ role: 'text' }));
+  let tree: unknown = [{ role: 'main', ref: 'e1', children }];
+  const page = { async ariaSnapshotJSON() { return tree; } } as unknown as PlaywrightPage;
+  const options = { maxBytes: Infinity, maxRefs: 1, nextRef: () => 'e101' };
+  await assert.rejects(captureNativePlaywrightJSON(page, { ...options, maxBytes: 32 }), /byte limit/);
+  tree = [{ role: 'main', ref: 'e1', children: [...children, { role: 'button', ref: 'e2' }] }];
+  await assert.rejects(captureNativePlaywrightJSON(page, options), /ref limit/);
+  tree = [{ role: 'main', ref: 'e1', children: [...children, { role: 42 }] }];
+  await assert.rejects(captureNativePlaywrightJSON(page, options), /Invalid native JSON snapshot node/);
+});
 
 function fixture(shape: 'public' | 'cloudflare' = 'cloudflare') {
   let snapshot: unknown = { full: '- main [ref=e1]:\n  - button "Save [ref=e99]" [ref=e2]\n  - iframe [ref=f1e3]:\n    - link "Next" [ref=f1e4]' };

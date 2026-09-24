@@ -7,7 +7,7 @@ import { encryptBiffXorStreams } from "./biff-xor-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext } from "./biff-formulas.js";
-import { biffArrayReader } from "./biff-arrays.js";
+import { biffFormulaExtras } from "./biff-formula-extras.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
 import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-metadata.js";
@@ -442,7 +442,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const formula = (tokens: Uint8Array, arrays: readonly Binary[] | undefined, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
     resolveName = nameBindings.resolve, globalNameDefinition = false) => translateBiffFormula(tokens, {
     revision, codepage: cp, row, column, accountWork: accountFormulaWork,
-    readArray: biffArrayReader(arrays ?? [], revision, cp, { ...context,
+    ...biffFormulaExtras(arrays ?? [], revision, cp, { ...context,
       limits: { ...context.limits, workbookTextBytes: (context.limits.workbookTextBytes ?? context.limits.inputBytes) - textBytes }
     }, accountFormulaWork), names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
     ...(owner ? { currentSheet: owner.name } : {}), shared, globalNameDefinition, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,

@@ -5,17 +5,17 @@ import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffErrors } from "./biff-formulas.js";
 import { BiffStrings } from "./biff-strings.js";
 
-/** Array payloads follow the token stream, in ptgArray encounter order.
- * Layout qualified against Gnumeric 1.12.61 plugins/excel/ms-formula-read.c. */
-export function biffArrayReader(parts: readonly Binary[], revision: number, codepage: number, context: CapabilityContext,
-  accountWork?: (amount: number) => void): () => string {
+/** Auxiliary payloads follow the token stream in token encounter order.
+ * Arrays: Gnumeric 1.12.61 plugins/excel/ms-formula-read.c; cached areas: MS-XLS 2.5.198.61. */
+export function biffFormulaExtras(parts: readonly Binary[], revision: number, codepage: number, context: CapabilityContext,
+  accountWork?: (amount: number) => void): { readArray(): string; readMemory(): void } {
   const cursor = new BiffStrings(parts, context, codepage);
   const number = new Uint8Array(8), view = new DataView(number.buffer);
   const encoder = new TextEncoder();
   const workLimit = context.limits.workbookWork ?? context.limits.inputBytes * 8;
   const textLimit = context.limits.workbookTextBytes ?? context.limits.inputBytes;
   let work = 0, textBytes = 0;
-  return () => {
+  const readArray = () => {
     context.signal.throwIfAborted();
     const width = cursor.byte(), height = cursor.word();
     const columns = revision >= 8 ? width + 1 : width || 256;
@@ -54,4 +54,18 @@ export function biffArrayReader(parts: readonly Binary[], revision: number, code
     append("}");
     return chunks.join("");
   };
+  const readMemory = () => {
+    context.signal.throwIfAborted();
+    const count = cursor.word();
+    work += count * 8;
+    if (work > workLimit) throw new SsconvertError("resource-limit", "ssconvert BIFF cached area work limit exceeded");
+    accountWork?.(count * 8);
+    // These absolute ranges are an evaluation cache, not formula operands.
+    // Consume them without allocating a second reference model.
+    for (let area = 0; area < count; area++) {
+      context.signal.throwIfAborted();
+      for (let byte = 0; byte < 8; byte++) cursor.byte();
+    }
+  };
+  return { readArray, readMemory };
 }

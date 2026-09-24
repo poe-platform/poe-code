@@ -4,7 +4,7 @@ import type { Workbook } from "../workbook.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
 import { createBiffWriter, readBiff } from "./biff.js";
 import { Binary } from "./biff-binary.js";
-import { biffArrayReader } from "./biff-arrays.js";
+import { biffFormulaExtras } from "./biff-formula-extras.js";
 import { parseExpression } from "../formulas/parser.js";
 import { renameWorkbookSheet, rewriteWorkbook } from "../formulas/workbook.js";
 import { serializeExpression } from "../formulas/serialization.js";
@@ -163,7 +163,7 @@ for (const revision of [7, 8] as const) for (const [formula, expected] of [
 });
 
 it("reads array strings across CONTINUE width changes", () => {
-  const read = biffArrayReader([
+  const { readArray: read } = biffFormulaExtras([
     new Binary(Uint8Array.from([0, 0, 0, 2, 2, 0, 0, 65])),
     new Binary(Uint8Array.from([1, 233, 0]))
   ], 8, 1252, context);
@@ -175,17 +175,17 @@ it.each([
   { bytes: [0, 0, 0, 8, ...Array<number>(8).fill(0)] }, { bytes: [0, 0, 0, 2, 1, 0, 1, 65] },
   { bytes: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 240, 127] }
 ])("refuses malformed or nonfinite array payload $bytes", ({ bytes }) => {
-  const read = biffArrayReader([new Binary(Uint8Array.from(bytes))], 8, 1252, context);
+  const { readArray: read } = biffFormulaExtras([new Binary(Uint8Array.from(bytes))], 8, 1252, context);
   expect(read).toThrow("Invalid Excel BIFF");
 });
 
 it("bounds array dimensions before allocating entries and charges text across arrays", () => {
-  const huge = biffArrayReader([new Binary(Uint8Array.from([255, 255, 255]))], 8, 1252, {
+  const { readArray: huge } = biffFormulaExtras([new Binary(Uint8Array.from([255, 255, 255]))], 8, 1252, {
     ...context, limits: { ...context.limits, workbookWork: 100 }
   });
   expect(huge).toThrow("array work limit");
   const empty = [0, 0, 0, 0, ...Array<number>(8).fill(0)];
-  const read = biffArrayReader([new Binary(Uint8Array.from([...empty, ...empty]))], 8, 1252, {
+  const { readArray: read } = biffFormulaExtras([new Binary(Uint8Array.from([...empty, ...empty]))], 8, 1252, {
     ...context, limits: { ...context.limits, workbookTextBytes: 3 }
   });
   expect(read()).toBe("{}"); expect(read).toThrow("array text limit");
@@ -193,7 +193,7 @@ it("bounds array dimensions before allocating entries and charges text across ar
 
 it("preserves cancellation and bounds blank array syntax without accepting ragged rows", () => {
   const controller = new AbortController(), reason = new Error("array cancelled"); controller.abort(reason);
-  const read = biffArrayReader([], 8, 1252, { ...context, signal: controller.signal });
+  const { readArray: read } = biffFormulaExtras([], 8, 1252, { ...context, signal: controller.signal });
   expect(read).toThrow(reason);
   const position = { sheet: "s", row: 0, column: 0 };
   expect(parseExpression("={,1;2}", { position }).ok).toBe(false);

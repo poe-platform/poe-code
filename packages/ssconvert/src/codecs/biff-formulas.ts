@@ -36,6 +36,7 @@ export interface BiffFormulaContext {
   readonly localSheets?: readonly string[];
   readonly shared?: boolean;
   readonly readArray?: () => string;
+  readonly readMemory?: () => void;
   readonly accountWork?: (amount: number) => void;
   readonly limit: number;
 }
@@ -230,7 +231,10 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const endpoints = sheet === null ? [] : typeof sheet === "string" ? [sheet] : sheet;
       const qualifier = endpoints.map(name => "'" + name.split("'").join("''") + "'").join(":");
       push((qualifier ? qualifier + "!" : "") + ref);
-    } else if (token === 0x26 || token === 0x27 || token === 0x28) { data.check(offset, 6); offset += 6; }
+    } else if (token === 0x26 || token === 0x27 || token === 0x28) {
+      data.check(offset, 6); offset += 6;
+      if (token === 0x26) context.readMemory?.();
+    }
     else if (token === 0x29) { data.check(offset, 2); offset += 2; }
     else throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF formula token 0x${raw.toString(16)}`);
   }

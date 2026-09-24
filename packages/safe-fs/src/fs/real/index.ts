@@ -272,17 +272,18 @@ export class RealFileSystem implements FileSystem {
 
   private async operation<Result>(
     syscall: string, path: string, options: FsOptions,
-    action: () => Promise<Result>, dest?: string,
+    action: () => Promise<Result>, dest?: string, preserveReceipt = false,
   ): Promise<Result> {
     options.signal?.throwIfAborted();
     try {
       validatePath(path);
       if (dest !== undefined) validatePath(dest);
       const result = await action();
-      options.signal?.throwIfAborted();
+      if (!preserveReceipt) options.signal?.throwIfAborted();
       return result;
     } catch (error) {
-      options.signal?.throwIfAborted();
+      if (!preserveReceipt) options.signal?.throwIfAborted();
+      else if (options.signal?.aborted && Object.is(error, options.signal.reason)) throw error;
       const converted = nativeError(error);
       throw new FsError(converted.code, {
         syscall, path, ...(dest === undefined ? {} : { dest }),
@@ -389,7 +390,7 @@ export class RealFileSystem implements FileSystem {
       if (existing && (existing.type !== "file" || existing.nlink !== 1)) throw new FsError("EAGAIN");
       if (target === paths.file || target === paths.directory || dirname(target) === paths.directory) throw new FsError("EINVAL");
       immediate.renameSync(paths.file, target);
-    }, destination);
+    }, destination, true);
   }
 
   async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {

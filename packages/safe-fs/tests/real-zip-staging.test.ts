@@ -185,3 +185,39 @@ it("withholds directory validation when a mounted memory path has real outer anc
   expect(capabilities.synchronousDirectoryValidation).toBe(false);
   expect(capabilities.guardedStagingPublication).toBe(true);
 });
+
+for (const conflict of [false, true]) it(`Real publication preserves ${conflict ? "a backend conflict" : "a committed replacement"} across queued cancellation`, async () => {
+  const { fs, parent, receipt } = await staged();
+  await fs.writeFile("/work/output", Buffer.from("old"));
+  const destination = await fs.lstat("/work/output");
+  const controller = new AbortController();
+  const observed = {
+    ...receipt,
+    file: { path: receipt.file.path, get stat() {
+      queueMicrotask(() => controller.abort(false));
+      return receipt.file.stat;
+    } },
+  };
+  try {
+    const publication = fs.publishStagedFile(observed, "/work/output", {
+      parent, destination: conflict ? null : destination, signal: controller.signal,
+    });
+    if (conflict) await expect(publication).rejects.toMatchObject({ code: "EAGAIN" });
+    else await publication;
+    expect(controller.signal.aborted).toBe(true);
+    expect(Buffer.from(await fs.readFile("/work/output")).toString()).toBe(conflict ? "old" : "original");
+  } finally { await fs.removeStagedFile(receipt); }
+});
+
+for (const reason of [false, null, new Error("publication cancelled")]) it(`Real publication retains an actual cancellation reason: ${String(reason)}`, async () => {
+  const { fs, parent, receipt } = await staged();
+  const controller = new AbortController();
+  const observed = { ...receipt, get directory() { controller.abort(reason); return receipt.directory; } };
+  try {
+    await expect(fs.publishStagedFile(observed, "/work/output", {
+      parent, destination: null, signal: controller.signal,
+    })).rejects.toBe(reason);
+    expect(Buffer.from(await fs.readFile(receipt.file.path)).toString()).toBe("original");
+    await expect(fs.lstat("/work/output")).rejects.toMatchObject({ code: "ENOENT" });
+  } finally { await fs.removeStagedFile(receipt); }
+});

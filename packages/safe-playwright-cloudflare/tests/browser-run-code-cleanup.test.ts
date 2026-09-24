@@ -16,11 +16,13 @@ import { createRunCodeRelay } from "../src/browser-run-code-relay";
 import { createBrowserRunCode } from "../src/browser-run-code";
 
 test.each([
+  { rejected: true, retirementFails: false, invalidState: true },
+  { rejected: true, retirementFails: true, invalidState: true },
   { rejected: true, retirementFails: false },
   { rejected: false, retirementFails: false },
   { rejected: true, retirementFails: true },
   { rejected: false, retirementFails: true }
-])("cleanup retains failures (guest rejected: $rejected, retirement fails: $retirementFails)", async ({ rejected, retirementFails }) => {
+])("cleanup retains failures (guest rejected: $rejected, retirement fails: $retirementFails)", async ({ rejected, retirementFails, invalidState }) => {
   const receiverError = new Error("receiver close lost connection");
   const cleanupError = new AggregateError([receiverError], "Run-code transport cleanup failed");
   const closing = Promise.reject(cleanupError);
@@ -56,7 +58,7 @@ test.each([
       ok: !rejected,
       message: "Run-code result is not JSON-serializable",
       json: "1",
-      stateJson: JSON.stringify({
+      stateJson: invalidState ? "{}" : JSON.stringify({
         context: { headers: [], offline: false, geolocation: null },
         pages: [], contextInitScripts: [], contextTimeouts: { action: null, navigation: null }
       })
@@ -77,7 +79,14 @@ test.each([
     expect(String(executionError)).toContain("Run-code result is not JSON-serializable");
     expect(executionError).toBeInstanceOf(AggregateError);
     const combined = executionError as AggregateError;
-    expect(combined.errors[0].message).toBe("Run-code result is not JSON-serializable");
+    if (invalidState) {
+      const stateFailure = combined.errors[0] as AggregateError;
+      expect(stateFailure.errors[0].message).toBe("Run-code result is not JSON-serializable");
+      expect(stateFailure.cause).toBe(stateFailure.errors[0]);
+      expect(String(stateFailure.errors[1])).toContain("state");
+    } else {
+      expect(combined.errors[0].message).toBe("Run-code result is not JSON-serializable");
+    }
     expect(combined.cause).toBe(combined.errors[0]);
     expect(combined.errors[1]).toBe(cleanupError);
   } else {

@@ -325,14 +325,19 @@ async function runGuest(
 	try {
 		const response = await result;
 		signal.throwIfAborted();
-		const state = parseRunCodeState(response.stateJson);
-		if (state.pages.length > input.maxPages)
-			throw new PlaywrightResourceLimitError(
-				"Run-code page state limit exceeded",
-			);
-		metadata.state = state;
-		if (!response.ok)
-			throw new RunCodeUserError(response.message.slice(0, 4096));
+		const userError = response.ok ? undefined : new RunCodeUserError(response.message.slice(0, 4096));
+		try {
+			const state = parseRunCodeState(response.stateJson);
+			if (state.pages.length > input.maxPages)
+				throw new PlaywrightResourceLimitError("Run-code page state limit exceeded");
+			metadata.state = state;
+		} catch (stateError) {
+			if (!userError) throw stateError;
+			throw new AggregateError([userError, stateError], `${userError}; ${stateError}`, {
+				cause: userError,
+			});
+		}
+		if (userError) throw userError;
 		const json = response.json;
 		if (
 			typeof json !== "string" ||

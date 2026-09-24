@@ -1,3 +1,4 @@
+import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
 import { Volume } from "memfs";
 import { Document, DocumentBudget, createDocxInspectionCommandEngine, editDocumentLists, executeDocumentBatch, readDocumentArchive, writeArchive } from "../../src/index.js";
@@ -7,26 +8,27 @@ import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { nativeMathNumberingVariantFixture, nativeMathVariantArchiveLimits } from "./deep-native-math-numbering-variants.js";
 import { readPackage } from "../assertions.js";
 
-const strict = process.argv[2] === "strict", radicals = Number(process.argv[3] ?? 1280);
+export async function run(args: readonly string[]) {
+const strict = args[0] === "strict", radicals = Number(args[1] ?? 1280);
 const mathNamespace = strict ? "http://purl.oclc.org/ooxml/officeDocument/math" : "http://schemas.openxmlformats.org/officeDocument/2006/math";
 const text = "Native 日本 עברית ẹ́ 🌊 𠀀";
 const equation = `<w:p xmlns:m="${mathNamespace}"><m:oMath>${"<m:rad><m:deg/><m:e>".repeat(radicals)}<m:r><m:t>x</m:t></m:r>${"</m:e></m:rad>".repeat(radicals)}</m:oMath></w:p>`;
 let input = await textFixture(`<w:p><w:r><w:t>${text}</w:t></w:r></w:p>` + equation, {}, strict);
-const kind = process.argv[6] ?? "docx";
-if (kind === "dotx" && !process.argv[7]) {
+const kind = args[4] ?? "docx";
+if (kind === "dotx" && !args[5]) {
   const archive = await readDocumentArchive(input, { ...textContext, budget: new DocumentBudget({ xmlDepth: radicals * 2 + 16, work: 4294967296, retainedBytes: 4294967296 }, textContext.signal) });
   const staging = Volume.fromJSON({ "/template": "" });
   await writeArchive({ comment: archive.comment, members: archive.members.map(member => ({ ...member, bytes: member.name === "[Content_Types].xml" ? new TextEncoder().encode(new TextDecoder().decode(member.bytes).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")) : member.bytes })) }, { async write(bytes) { staging.appendFileSync("/template", bytes); } }, { order: "input", compression: "store" }, textContext);
   input = new Uint8Array(staging.readFileSync("/template") as Buffer);
 }
-const variant = process.argv[7] ? await nativeMathNumberingVariantFixture(strict, radicals, process.argv[7]!, process.argv[8]!, process.argv[9]!, kind) : undefined;
+const variant = args[5] ? await nativeMathNumberingVariantFixture(strict, radicals, args[5]!, args[6]!, args[7]!, kind) : undefined;
 if (variant) input = variant.input;
 const archiveLimits = variant ? nativeMathVariantArchiveLimits : textContext.limits;
 const decode = (bytes: Uint8Array): string => new TextDecoder(bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8").decode(bytes);
 const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "", "/destination": "Retain destination" });
 const host = radicals > 100 ? { xmlDepth: radicals * 2 + 16, work: 4294967296, retainedBytes: 4294967296 } : {};
 const context = () => ({ ...textContext, limits: archiveLimits, budget: new DocumentBudget(host, textContext.signal) });
-const route = process.argv[4] ?? "sdk", dryRun = process.argv[5] === "dry";
+const route = args[2] ?? "sdk", dryRun = args[3] === "dry";
 const stdout = { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } };
 const operations = [{ operation: "lists.add" as const, arguments: { kind: "decimal" as const, text: "Added" } }];
 if (route === "sdk") {
@@ -60,9 +62,14 @@ if (variant) {
   for (const name of ["word/document.xml", "word/numbering.xml"]) {
     const framing = name === "word/document.xml" ? "story" : "numbering", source = decode(after.get(name)!);
     assert.ok(source.startsWith(`<!--${framing}-before-->`)); assert.ok(source.endsWith(`<!--${framing}-after-->`));
-    if (process.argv[9] !== "utf8") assert.deepEqual(after.get(name)!.slice(0, process.argv[9] === "bom" ? 3 : 2), before.get(name)!.slice(0, process.argv[9] === "bom" ? 3 : 2));
+    if (args[7] !== "utf8") assert.deepEqual(after.get(name)!.slice(0, args[7] === "bom" ? 3 : 2), before.get(name)!.slice(0, args[7] === "bom" ? 3 : 2));
   }
 }
 }
 assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input); assert.equal(memory.readFileSync("/destination", "utf8"), "Retain destination");
-console.log(JSON.stringify({ strict, radicals, exactNativeMathAndNumberingPreservation: true, ...(process.argv[4] ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}), ...(process.argv[6] ? { kind } : {}), ...(variant ? { prefix: process.argv[7], carrier: process.argv[8], codec: process.argv[9], exactDirtyFramingCodecRTLAndOpaqueSignatureInteraction: true } : {}) }));
+return { strict, radicals, exactNativeMathAndNumberingPreservation: true, ...(args[2] ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}), ...(args[4] ? { kind } : {}), ...(variant ? { prefix: args[5], carrier: args[6], codec: args[7], exactDirtyFramingCodecRTLAndOpaqueSignatureInteraction: true } : {}) };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  console.log(JSON.stringify(await run(process.argv.slice(2))));
+}

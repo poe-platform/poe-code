@@ -1,9 +1,11 @@
-import { spawn } from "node:child_process";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
+import { mainThreadFixture } from "../tests/main-thread.js";
 import { DocumentBudget } from "./budget.js";
 import { NumberingGraph } from "./numbering.js";
 import { DocumentXmlEditor } from "./xml-write.js";
+
+const run = mainThreadFixture(new URL("../tests/fixtures/deep-numbering-graph-main.ts", import.meta.url));
 
 for (const strict of [false, true]) for (const depth of [32, 4096])
 for (const host of ["worker", "main"] as const)
@@ -48,21 +50,11 @@ it(`restarts a shallow instance after an inert deep sibling; strict=${strict}; d
     expect(graph.restart(graph.resolve(7), 0, 1)).toBe(1);
     check(graph.flush(), Buffer.from(editor.serialize()).equals(Buffer.from(input)));
   } else {
-    const script = `import {Volume} from 'memfs';import {DocumentBudget} from ${JSON.stringify(new URL("./budget.ts", import.meta.url).href)};import {DocumentXmlEditor} from ${JSON.stringify(new URL("./xml-write.ts", import.meta.url).href)};import {NumberingGraph} from ${JSON.stringify(new URL("./numbering.ts", import.meta.url).href)};
-let data='';for await(const fragment of process.stdin)data+=fragment;const request=JSON.parse(data),memory=Volume.fromJSON({'/numbering.xml':request.source}),input=new Uint8Array(memory.readFileSync('/numbering.xml')),budget=new DocumentBudget({xmlDepth:request.depth+8,retainedBytes:2**31,work:2**31}),editor=new DocumentXmlEditor(input,{},undefined,budget),graph=new NumberingGraph(editor,undefined,budget);try{const id=graph.restart(graph.resolve(7),0,1),output=graph.flush();console.log(JSON.stringify({ok:true,id,bytes:Buffer.from(output).toString('base64'),keptInput:Buffer.from(editor.serialize()).equals(Buffer.from(input))}));}catch(error){console.log(JSON.stringify({ok:false,error:String(error),code:error.code??null}));}`;
-    const result = await new Promise<string>((resolve, reject) => {
-      const child = spawn(process.execPath, ["--import", "tsx", "--input-type=module", "-e", script], { stdio: ["pipe", "pipe", "pipe"] });
-      let stdout = "", stderr = "";
-      child.stdout.on("data", bytes => { stdout += String(bytes); });
-      child.stderr.on("data", bytes => { stderr += String(bytes); });
-      child.on("error", reject);
-      child.on("close", code => { if (code !== 0) reject(new Error(stderr)); else resolve(stdout); });
-      child.stdin.end(JSON.stringify({ source, depth }));
-    });
+    const result = await run({ kind: "restart", source, depth });
     const response = JSON.parse(result);
     expect(response.ok, response.error).toBe(true);
     expect(response.id).toBe(1);
     check(new Uint8Array(Buffer.from(response.bytes, "base64")), response.keptInput);
   }
-  expect(new Uint8Array(memory.readFileSync("/numbering.xml") as Buffer)).toEqual(input);
+  expect((memory.readFileSync("/numbering.xml") as Buffer).equals(input)).toBe(true);
 });

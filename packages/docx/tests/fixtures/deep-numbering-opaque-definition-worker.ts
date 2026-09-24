@@ -1,3 +1,4 @@
+import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
 import { Volume } from "memfs";
 import { Document, DocumentBudget, createDocxInspectionCommandEngine, editDocumentLists, executeDocumentBatch, extractDocumentText } from "../../src/index.js";
@@ -7,18 +8,19 @@ import { textFixture, textContext, w } from "./text.js";
 import { readPackage } from "../assertions.js";
 import { signatureArchiveLimits, signatureVariantFixture } from "./deep-numbering-signature-variants.js";
 
-const strict = process.argv[2] === "strict", depth = Number(process.argv[3] ?? 4096);
+export async function run(args: readonly string[]) {
+const strict = args[0] === "strict", depth = Number(args[1] ?? 4096);
 const text = "Preserve 日本 עברית ẹ́ 🌊 𠀀";
 const opaque = `<w:abstractNum w:abstractNumId="0">${"<f:p>".repeat(depth)}<f:unknown/>${"</f:p>".repeat(depth)}</w:abstractNum>`;
 let input = await textFixture(`<w:p><w:r><w:t>${text}</w:t></w:r></w:p>`, { numbering: { kind: "numbering", xml: `<w:numbering xmlns:w="${w}" xmlns:f="urn:original:deep-opaque-definition" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f">${opaque}</w:numbering>` } }, strict);
-const variant = process.argv[7] ? await signatureVariantFixture(strict, depth, process.argv[7]!, process.argv[8]!, process.argv[9]!, process.argv[6] ?? "docx") : undefined;
+const variant = args[5] ? await signatureVariantFixture(strict, depth, args[5]!, args[6]!, args[7]!, args[4] ?? "docx") : undefined;
 if (variant) input = variant.input;
 const archiveLimits = variant ? signatureArchiveLimits : textContext.limits;
 const decode = (bytes: Uint8Array): string => new TextDecoder(bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8").decode(bytes);
 const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "", "/destination": "Retain destination" });
 const host = depth > 256 ? { xmlDepth: depth + 8, work: 4294967296, retainedBytes: 4294967296 } : {};
 const context = () => ({ ...textContext, limits: archiveLimits, budget: new DocumentBudget(host, textContext.signal) });
-const route = process.argv[4] ?? "sdk", dryRun = process.argv[5] === "dry";
+const route = args[2] ?? "sdk", dryRun = args[3] === "dry";
 const stdout = { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } };
 const operations = [{ operation: "lists.add" as const, arguments: { kind: "decimal" as const, text: "Added" } }];
 if (route === "sdk") {
@@ -53,10 +55,15 @@ if (variant) {
   for (const name of ["word/document.xml", "word/numbering.xml"]) {
     const framing = name === "word/document.xml" ? "story" : "numbering", source = decode(after.get(name)!);
     assert.ok(source.startsWith(`<!--${framing}-before-->`)); assert.ok(source.endsWith(`<!--${framing}-after-->`));
-    if (process.argv[9] !== "utf8") assert.deepEqual(after.get(name)!.slice(0, process.argv[9] === "bom" ? 3 : 2), before.get(name)!.slice(0, process.argv[9] === "bom" ? 3 : 2));
+    if (args[7] !== "utf8") assert.deepEqual(after.get(name)!.slice(0, args[7] === "bom" ? 3 : 2), before.get(name)!.slice(0, args[7] === "bom" ? 3 : 2));
   }
 }
 }
 assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input);
 assert.equal(memory.readFileSync("/destination", "utf8"), "Retain destination");
-console.log(JSON.stringify({ strict, depth, exactOpaqueDefinitionPreservation: true, ...(process.argv[4] ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}), ...(variant ? { kind: process.argv[6] ?? "docx", prefix: process.argv[7], carrier: process.argv[8], codec: process.argv[9], exactDirtyFramingCodecAndRTL: true } : {}) }));
+return { strict, depth, exactOpaqueDefinitionPreservation: true, ...(args[2] ? { route, dryRun, actualPublicDispatchAndRetention: true } : {}), ...(variant ? { kind: args[4] ?? "docx", prefix: args[5], carrier: args[6], codec: args[7], exactDirtyFramingCodecAndRTL: true } : {}) };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  console.log(JSON.stringify(await run(process.argv.slice(2))));
+}

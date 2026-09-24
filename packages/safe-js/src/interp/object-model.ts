@@ -66,6 +66,7 @@ type TrackedPropertyData = {
   symbols?: readonly symbol[];
   descriptors?: readonly (readonly [string, Readonly<PropertyDescriptor>])[];
   strings?: { readonly all: TrackedStringData; readonly enumerable: TrackedStringData };
+  elements?: TrackedStringData;
 };
 // Do not attach cache/backing data to revision records used by intrinsic captures.
 const trackedPropertyData = new WeakMap<object, TrackedPropertyData>();
@@ -170,6 +171,29 @@ function adjustScalarProperty(state: TrackedPropertyData, key: string, descripto
 }
 
 const emptyPropertyReferences: readonly unknown[] = nativePropertyFreeze([]);
+
+// Unmanaged arrays retain their indexed data, including hidden indices, but not
+// named fields. Accessor descriptors keep the general path and its native reads.
+// Capture before any prototype/symbol callback runs.
+export function trackedArrayElementData(value: object): TrackedStringData | undefined {
+  const state = nativePropertyDataGet(value);
+  if (state === undefined || !state.array) return undefined;
+  if (state.elements !== undefined) return state.elements;
+  const descriptors = trackedPropertyDataDescriptors(value)!;
+  let units = 0;
+  const references: unknown[] = [];
+  for (let index = 0; index < descriptors.length; index++) {
+    const entry = descriptors[index]!;
+    if (entry[0] === "length") break;
+    const descriptor = entry[1];
+    if (!nativePropertyHasOwn(descriptor, "value")) return undefined;
+    const item = descriptor.value;
+    if (typeof item === "string") units += item.length;
+    else if (typeof item === "bigint" || typeof item === "symbol" || (typeof item === "object" && item !== null))
+      nativePropertyWrite(references, references.length, { value: item, writable: true, enumerable: true, configurable: true });
+  }
+  return state.elements = nativePropertyFreeze({ units, references: nativePropertyFreeze(references) });
+}
 
 // String/inert leaves have no volatile observations. Bigints, symbols and object
 // descendants still enter the fresh walk. Private descriptor snapshots and adapter
@@ -296,7 +320,7 @@ function trackPropertyTable(properties: SandboxObject, array = false): SandboxOb
   const state: TrackedPropertyState = { revision: 0 };
   const data: TrackedPropertyData = {
     backing: properties, array, allScalarUnits: 0, enumerableScalarUnits: 0,
-    nonScalarProperties: 0, symbols: undefined, descriptors: undefined, strings: undefined
+    nonScalarProperties: 0, symbols: undefined, descriptors: undefined, strings: undefined, elements: undefined
   };
   const keys = nativePropertyNames(properties);
   for (let index = 0; index < keys.length; index++) {
@@ -319,6 +343,7 @@ function trackPropertyTable(properties: SandboxObject, array = false): SandboxOb
         state.revision++;
         data.descriptors = undefined;
         data.strings = undefined;
+        data.elements = undefined;
         state.measuredDescriptors = undefined;
         if (intrinsicRetentionTables.has(tracked)) intrinsicMutationToken = {};
       }
@@ -337,6 +362,7 @@ function trackPropertyTable(properties: SandboxObject, array = false): SandboxOb
         state.revision++;
         data.descriptors = undefined;
         data.strings = undefined;
+        data.elements = undefined;
         state.measuredDescriptors = undefined;
         if (intrinsicRetentionTables.has(tracked)) intrinsicMutationToken = {};
       }

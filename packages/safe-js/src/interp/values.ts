@@ -88,7 +88,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype, trackedPropertyDataDescriptors, trackedPropertyStringData, trackedPropertySymbols } from "./object-model.js";
+import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype, trackedPropertyDataDescriptors, trackedPropertyStringData, trackedPropertySymbols, trackedArrayElementData } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
 import { dynamicSourceRecords, dynamicValueSources, type DynamicSource } from "../parse/function-source.js";
 import {
@@ -1146,7 +1146,8 @@ function measureSandboxDataWithSeen(
         const managedArray = arrayLength !== undefined && hasManagedDescriptors(value);
         let arrayDescriptors: Array<readonly [string, PropertyDescriptor]> | undefined;
         let arrayElements: CaptureBuffer | undefined;
-        if (arrayLength !== undefined) {
+        const arrayData = arrayLength !== undefined && !managedArray ? trackedArrayElementData(value) : undefined;
+        if (arrayLength !== undefined && arrayData === undefined) {
           if (managedArray) arrayDescriptors = nativeDataArraySetPrototype([], null);
           const trackedDescriptors = trackedPropertyDataDescriptors(value);
           if (trackedDescriptors !== undefined) {
@@ -1425,6 +1426,15 @@ function measureSandboxDataWithSeen(
         }
         if (arrayLength !== undefined) {
           usage += arrayLength;
+          if (arrayData !== undefined) {
+            usage += arrayData.units;
+            const references = arrayData.references;
+            if (references.length === 0) break entry;
+            if (references.length > 1) appendContinuation(references, depth + 1);
+            value = references[0];
+            depth++;
+            continue walk;
+          }
           let retained = arrayElements;
           if (arrayDescriptors !== undefined) {
             for (let index = 0; index < arrayDescriptors.length; index++) {

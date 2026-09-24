@@ -504,6 +504,37 @@ export class Interpreter {
       }
       return;
     }
+    if (name === "combinations") {
+      for await (const length of this.run({ kind: "call", name: "length", args: [] }, input)) {
+        const width = Math.ceil(numberValue(length as Numeric));
+        budget.collection(width);
+        if (width === 0) { yield []; return; }
+        const values: Json[] = [];
+        const iterators: AsyncGenerator<[string | number, Json]>[] = [];
+        let depth = 0;
+        try {
+          while (depth >= 0) {
+            await budget.tick();
+            if (!iterators[depth]) iterators[depth] = entries(indexValue(input, depth), budget);
+            const next = await iterators[depth]!.next();
+            if (next.done) {
+              iterators.pop();
+              values.pop();
+              depth--;
+            } else {
+              values[depth] = next.value[1];
+              if (depth + 1 === width) {
+                budget.value(values);
+                yield [...values];
+              } else depth++;
+            }
+          }
+        } finally {
+          for (const iterator of iterators) await iterator.return(undefined);
+        }
+      }
+      return;
+    }
     if (name === "transpose") {
       let width = 0;
       for await (const [, row] of entries(input, budget)) {

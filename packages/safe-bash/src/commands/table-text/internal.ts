@@ -29,7 +29,7 @@ export function settings(options: TableTextCommandsOptions): TableTextLimits {
   const limits: TableTextLimits = {
     maxInputBytes: Infinity, maxOutputBytes: Infinity,
     maxRecordBytes: Infinity, maxChunkBytes: Infinity,
-    maxGroupBytes: Infinity, maxGroupRecords: Infinity,
+    maxGroupBytes: 8 * 1024 * 1024, maxGroupRecords: 4096,
     maxFields: Infinity, maxFiles: Infinity, maxSteps: Infinity, maxArgumentBytes: Infinity,
     ...options.limits,
   };
@@ -74,7 +74,7 @@ export class Budget {
   constructor(readonly context: CommandContext, readonly limits: TableTextLimits) {
     this.check(context.args.reduce((size, value) => size + Buffer.byteLength(value), 0), limits.maxArgumentBytes, "argument");
   }
-  check(value: number, maximum: number, label: string): void {
+  check(value: number | bigint, maximum: number, label: string): void {
     if (value > maximum) throw new FsError("EFBIG", { message: `table-text ${label} limit exceeded` });
   }
   async step(): Promise<void> {
@@ -87,6 +87,9 @@ export class Budget {
     this.check(size, this.limits.maxChunkBytes, "chunk");
     this.inputBytes += size;
     this.check(this.inputBytes, this.limits.maxInputBytes, "input");
+  }
+  admitOutput(size: bigint): void {
+    this.check(BigInt(this.outputBytes) + size, this.limits.maxOutputBytes, "output");
   }
   async output(parts: readonly Uint8Array[]): Promise<void> {
     await this.step();

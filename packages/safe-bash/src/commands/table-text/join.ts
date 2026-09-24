@@ -132,7 +132,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
       };
       const rows = [await next(0), await next(1)];
       const counts = rows.map(row => row?.fields.length ?? 0);
-      const emit = async (left: Row | undefined, right: Row | undefined): Promise<void> => {
+      const outputParts = async (left: Row | undefined, right: Row | undefined): Promise<Uint8Array[]> => {
         const pair = [left, right], fields: Uint8Array[] = [];
         const key = (left ?? right)?.key ?? empty;
         if (Array.isArray(options.format)) {
@@ -156,7 +156,10 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
           if (index) parts.push(delimiter);
           parts.push(fields[index]!.length ? fields[index]! : options.replacement);
         }
-        parts.push(terminator); await budget.output(parts);
+        parts.push(terminator); return parts;
+      };
+      const emit = async (left: Row | undefined, right: Row | undefined): Promise<void> => {
+        await budget.output(await outputParts(left, right));
       };
       if (options.header && (rows[0] || rows[1])) {
         await emit(rows[0], rows[1]);
@@ -182,7 +185,22 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
             groups[file]!.push(row); rows[file] = await next(file);
           }
         }
-        if (options.paired) for (const left of groups[0]!) for (const right of groups[1]!) await emit(left, right);
+        if (options.paired) {
+          if (Number.isFinite(limits.maxOutputBytes)) {
+            // Output size is separable by operand, including explicit formats,
+            // replacement fields and the left operand's case-preserved key.
+            // BigInt keeps admission exact even for a huge Cartesian product.
+            const size = async (left: Row, right: Row): Promise<bigint> =>
+              BigInt((await outputParts(left, right)).reduce((total, part) => total + part.length, 0));
+            const firstLeft = groups[0]![0]!, firstRight = groups[1]![0]!;
+            const baseline = await size(firstLeft, firstRight);
+            let leftBytes = 0n, rightDifference = 0n;
+            for (const left of groups[0]!) leftBytes += await size(left, firstRight);
+            for (const right of groups[1]!) rightDifference += await size(firstLeft, right) - baseline;
+            budget.admitOutput(leftBytes * BigInt(groups[1]!.length) + rightDifference * BigInt(groups[0]!.length));
+          }
+          for (const left of groups[0]!) for (const right of groups[1]!) await emit(left, right);
+        }
       }
       for (let file = 0; file < 2; file++) {
         if (!options.unpaired.has(file) && options.order === "none") continue;

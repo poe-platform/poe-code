@@ -34,17 +34,21 @@ is rejected, even if it contains short records; tune the explicit limit or chunk
 upstream. readFile fallback receives maxBytes. Already emitted stdout is not
 rolled back on errors. Arbitrary noncooperative host promises cannot be stopped.
 
-Optional limits (each command invocation owns its budget; setting one leaves the others unlimited):
+Optional limits (each command invocation owns its budget):
 
 | Option | Default |
 | --- | ---: |
 | maxInputBytes / maxOutputBytes | Unlimited |
 | maxRecordBytes / maxChunkBytes | Unlimited |
-| maxGroupBytes / maxGroupRecords | Unlimited |
+| maxGroupBytes / maxGroupRecords | 8 MiB / 4,096 |
 | maxFields / maxFiles | Unlimited |
 | maxSteps / maxArgumentBytes | Unlimited |
 
-Every override must be a positive safe integer. A limit failure is explicit and
+Join checks the combined duplicate groups before retaining each row. With a finite
+`maxOutputBytes`, it admits the complete matched group before writing its
+Cartesian product; earlier groups remain written if a later group fails.
+
+Every override must be a positive safe integer or `Infinity`. A limit failure is explicit and
 does not reset the invocation budget. Native differential checks assert exact
 stdout bytes, exit status and unchanged input bytes; ordinary diagnostics are
 checked for presence, not byte-for-byte GNU wording. The preserved duplicate

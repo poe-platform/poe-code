@@ -177,3 +177,64 @@ test("suppressed comm output still enforces bounded work", async () => {
   const result = await runTable(fixture("comm", ["-123", "left", "right"], { left: "a\n".repeat(40), right: "a\n".repeat(40) }), { limits: { maxSteps: 20 } });
   assert.equal(result.exitCode, 1); assert.match(result.stderr, /step limit/u); assert.equal(result.stdoutHex, "");
 });
+
+
+test("join rejects tiny duplicate records before consuming an unbounded group", async () => {
+  let reads = 0, closed = false;
+  const stdin = (async function* () {
+    try { for (; reads < 10000; reads++) yield Buffer.from("a\n"); }
+    finally { closed = true; }
+  })();
+  const result = await runTable(fixture("join", ["-", "right"], { right: "a\n" }), {}, { stdin });
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /join group record limit/u);
+  assert.ok(reads < 10000);
+  assert.equal(closed, true);
+  assert.equal(result.stdoutHex, "");
+});
+
+test("join defaults bound retained duplicate bytes", async () => {
+  const result = await runTable(fixture("join", ["left", "right"], {
+    left: (`a ${"x".repeat(1024 * 1024)}\n`).repeat(9), right: "a y\n",
+  }));
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /join group byte limit/u);
+  assert.equal(result.stdoutHex, "");
+});
+
+for (const args of [[], ["-o", "0,1.2,2.2"], ["-o", "auto"], ["-e", "missing", "-o", "1.3,2.3"], ["-i"]]) {
+  test(`join admits the complete matched output before writes: ${args.join(" ")}`, async () => {
+    const specimen = fixture("join", [...args, "left", "right"], {
+      left: "a one\na two\n", right: "a x\na yyyy\n",
+    });
+    const complete = await runTable(specimen);
+    assert.equal(complete.exitCode, 0, complete.stderr);
+    const size = complete.stdoutHex.length / 2;
+    const rejected = await runTable(specimen, { limits: { maxOutputBytes: size - 1 } });
+    assert.equal(rejected.exitCode, 1);
+    assert.match(rejected.stderr, /output limit/u);
+    assert.equal(rejected.stdoutHex, "");
+    const admitted = await runTable(specimen, { limits: { maxOutputBytes: size } });
+    assert.equal(admitted.exitCode, 0, admitted.stderr);
+    assert.equal(admitted.stdoutHex, complete.stdoutHex);
+  });
+}
+
+
+test("join projection handles varying fields, folded keys and already emitted output", async () => {
+  const specimen = fixture("join", ["--header", "-i", "left", "right"], {
+    left: "key left\na one two\nA three\nb four\n",
+    right: "key right\nA x y\na z\nb five\n",
+  });
+  const complete = await runTable(specimen);
+  assert.equal(complete.exitCode, 0, complete.stderr);
+  const expected = "key left right\na one two x y\na one two z\nA three x y\nA three z\nb four five\n";
+  assert.equal(complete.stdoutHex, Buffer.from(expected).toString("hex"));
+  const admitted = await runTable(specimen, { limits: { maxOutputBytes: Buffer.byteLength(expected) } });
+  assert.equal(admitted.exitCode, 0, admitted.stderr);
+  assert.equal(admitted.stdoutHex, complete.stdoutHex);
+  const rejected = await runTable(specimen, { limits: { maxOutputBytes: Buffer.byteLength(expected) - 1 } });
+  assert.equal(rejected.exitCode, 1);
+  assert.match(rejected.stderr, /output limit/u);
+  assert.equal(rejected.stdoutHex, Buffer.from(expected.slice(0, expected.lastIndexOf("b four"))).toString("hex"));
+});

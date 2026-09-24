@@ -756,7 +756,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       requireOperands(parsed.operands);
       await preflightOperands(context, parsed.operands, async operand => {
         let path = pathOf(context, operand);
-        const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
+        const stop = operand.startsWith("/") ? "/" : dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
           try { await admitEmptyDirectory(context, path, readDirectory); }
           catch (error) {
@@ -770,7 +770,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, parsed.operands, async operand => {
         let path = pathOf(context, operand);
         let displayPath = operand;
-        const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
+        const stop = operand.startsWith("/") ? "/" : dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
           if (path === "/") throw new FsError("EBUSY", { path });
           try { await removeEmptyDirectory(context, path, readDirectory); }
@@ -856,10 +856,10 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             if (!symbolic) {
               if (logical) await context.fs.stat(source, { signal: context.signal });
               else await context.fs.lstat(source, { signal: context.signal });
-              const sourceEntry = joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source));
-              const targetEntry = joinPath(await context.fs.realpath(dirname(destination), { signal: context.signal }), basename(destination));
-              if (sourceEntry === targetEntry) throw new FsError("EEXIST", { path: destination, message: "source and destination are the same file" });
             }
+            const sourceEntry = joinPath(await canonicalizeReadlinkMissing(context, dirname(source)), basename(source));
+            const targetEntry = joinPath(await context.fs.realpath(dirname(destination), { signal: context.signal }), basename(destination));
+            if (sourceEntry === targetEntry) throw new FsError("EEXIST", { path: destination, message: "source and destination are the same file" });
             if (interactive) {
               const displayTarget = directory ? childOperand(operands.at(-1)!, basename(operand)) : operands.at(-1)!;
               await writeBytes(context.stderr, new TextEncoder().encode(`ln: replace '${escapeText(displayTarget, "display")}'? `), context.signal);

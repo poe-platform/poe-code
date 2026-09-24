@@ -3485,6 +3485,10 @@ export class Runtime {
   }
 
   async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
+    io.descriptors ??= new Map<number, Descriptor>([
+      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
+      [1, { output: io.stdout }], [2, { output: io.stderr }],
+    ]);
     io[invocationScope].assertOpen();
     if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
       io = { ...io, diagnosticLine: io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
@@ -3524,15 +3528,11 @@ export class Runtime {
   }
 
   async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
-    originalIO.descriptors ??= new Map<number, Descriptor>([
-      [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],
-      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],
-    ]);
     const terminal = originalIO.terminal?.target === command ? originalIO.terminal : undefined;
     originalIO = { ...originalIO, terminal: undefined };
     state = trackState(state, this.budget, originalIO[invocationScope]);
     if (originalIO.asyncDefaultInput) {
-      if (!command.redirects.some(redirect => redirect.descriptor === 0)) {
+      if (!originalIO.descriptors?.get(0)?.closed && !command.redirects.some(redirect => redirect.descriptor === 0)) {
         const descriptors = new Map(originalIO.descriptors);
         descriptors.set(0, { input: originalIO.asyncDefaultInput, stdinIsDefault: true });
         originalIO = { ...originalIO, descriptors, stdin: originalIO.asyncDefaultInput, stdinIsDefault: true, asyncDefaultInput: undefined };

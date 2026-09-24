@@ -162,6 +162,11 @@ export default defineConfig({
       "packages/safe-bash-csv-engine/src/*.test.ts",
       "packages/safe-bash-command-diff3/src/*.test.ts",
       "packages/safe-bash-command-unrtf/src/*.test.ts",
+      "packages/safe-bash-command-mmdc/src/*.test.ts",
+      "packages/safe-bash-command-pdfinfo/src/*.test.ts",
+      "packages/safe-bash-command-pdftotext/src/*.test.ts",
+      "packages/safe-bash-command-qpdf/src/*.test.ts",
+      "packages/safe-bash-command-soffice/src/*.test.ts",
       "packages/safe-bash-contracts/src/*.test.ts",
       "scripts/**/*.lifecycle.test.ts",
       "**/*.e2e.test.ts" // E2E tests run separately

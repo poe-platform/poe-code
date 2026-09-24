@@ -4,7 +4,16 @@
   "status": "active",
   "reference": {
     "target": "Gnumeric 1.12.61",
-    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "nativeFormatProfile": {
+      "platform": "macOS 26.4.1 arm64",
+      "dependencies": "GLib 2.90.0; goffice 0.10.62; GTK 3.24.52; libgsf 1.14.59",
+      "configuration": "GTK enabled; Perl, Python, component and introspection disabled. Source-derived GSettings schemas supplied explicitly after the configure libgio lookup failed; clean native readback has no configuration warnings.",
+      "ssconvertSha256": "71b44469d8202a9a21c9cfd2a6a57a6fd8091cbf8eb9b80fc317ae2fc707493c",
+      "libspreadsheetSha256": "8bde28e087b35ec9fafa1b0ecd60c3e169864d899f449977d20c73b82a05e6e2",
+      "passwordDriverSourceSha256": "01cfb3e60fda1d044608f6fe47100e3aa46c82590cd696be6e76758a0efb0d02",
+      "biffInputAggregateSha256": "b48d765052dee1e2807d5c41900f0387ba24712b3e4b9b30d7de49064fc237ab"
+    }
   },
   "cases": [
     {
@@ -25,7 +34,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Explicit host passwords support XOR, standard RC4 and CryptoAPI imports and exports. XOR supports BIFF7/8 and both DSF streams, using 1\u201315 byte passwords without entropy. Independent decryption matches all 152 streams from 114 SDK exports; xlrd reads 114 streams and truncates continued BIFF7 LABELs in 38, identically on plaintext. Gnumeric source handles those continuations. msoffcrypto independently reads all 76 BIFF8/DSF primary streams. CryptoAPI 40\u2013128-bit qualification remains as recorded in the plan. Native application profiles, ancillary streams/properties, other applicable encryption profiles and containing publication remain open."
+      "currentFinding": "Explicit host passwords support XOR, standard RC4 and CryptoAPI imports and exports. Independent XOR decryption matches 152 streams from 114 SDK exports; msoffcrypto reads all 76 BIFF8/DSF primary streams. Native Gnumeric now reads 12 XOR and four standard-RC4 exports exactly, including continued strings and formula recalculation, and rejects 13 wrong-password controls without output. Its tested 16+ UTF-16-unit RC4 passwords and all 12 CryptoAPI profiles are refused; these are native limits, not product support restrictions. Other applications, ancillary streams/properties, additional applicable profiles and containing publication remain open."
     },
     {
       "id": "encrypted-odf",

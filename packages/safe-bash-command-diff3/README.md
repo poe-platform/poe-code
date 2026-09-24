@@ -10,8 +10,8 @@ workspace is not an installation dependency.
 | `diff3(context, { files, merge?, selector?, labels?, ... })` | Run the same VFS invocation from the SDK                                           |
 | `compareDiff3(inputs, invocation, limits?, signal?)`         | Produce report, merge or ed bytes without I/O                                      |
 | `parseDiff3Arguments(args, limits?)`                         | Parse the fixed GNU 3.12 option inventory and unique long prefixes                 |
-| `analyzeDiff3(files, limits, options?, signal?)`             | Pure analysis of explicit `base`, `left`, `right` byte inputs                      |
-| `createDiff3Engine(limits, options?, signal?)`               | Feed byte-stream chunks using `push(file, bytes)`, then `end(file)` and `finish()` |
+| `analyzeDiff3(files, limits?, options?, signal?)`             | Pure analysis of explicit `base`, `left`, `right` byte inputs                      |
+| `createDiff3Engine(limits?, options?, signal?)`               | Feed byte-stream chunks using `push(file, bytes)`, then `end(file)` and `finish()` |
 | `Diff3Error`                                                 | Structured cancellation, quota, binary-admission, lifecycle and alignment errors   |
 
 ```ts
@@ -109,23 +109,12 @@ Shell redirects open and truncate their destination before operand reads, includ
 same-file symlink aliases, and neither cancellation nor quota failure restores
 the previous destination. Use a separate destination when preserving inputs.
 
-Defaults (`diff3DefaultLimits`):
-
-| Limit           | Default                                |
-| --------------- | -------------------------------------- |
-| `inputBytes`    | 16 MiB, cumulative across all operands |
-| `retainedBytes` | 64 MiB of live retained storage        |
-| `tokens`        | 200,000 line tokens                    |
-| `graphCells`    | 8,000,000 live graph/spool slots       |
-| `work`          | 268,435,456 work units                 |
-| `outputBytes`   | 32 MiB, stdout and stderr combined     |
-| `argumentBytes` | 64 KiB                                 |
-| `decodedBytes`  | 256 KiB of decoded metadata            |
-| `labelBytes`    | 64 KiB                                 |
-
-Override limits through `diff3Commands({ limits })` or
-`diff3(context, { files, limits })`; pure analysis requires all five engine
-limits explicitly. Exhaustion returns command/SDK status 2; byte-only APIs throw
+All quotas in `diff3DefaultLimits` are unlimited unless explicitly configured.
+Set independent input, retained-storage, token, graph-cell, work, output, argument,
+decoded-metadata and label-byte quotas through `diff3Commands({ limits })` or
+`diff3(context, { files, limits })`. Pure analysis and streaming engines accept
+omitted or partial limits as well. Setting one quota leaves the others unlimited.
+Exhaustion returns command/SDK status 2; byte-only APIs throw
 `Diff3Error`. No approximate merge is returned.
 
 Analysis uses explicit `base`, `left`, `right` inputs. Default reports select

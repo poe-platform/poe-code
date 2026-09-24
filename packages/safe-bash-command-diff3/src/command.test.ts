@@ -116,7 +116,7 @@ test('late VFS resolution is drained by invocation cleanup after cancellation', 
   const f = fixture(); let resolve!: (bytes: Uint8Array) => void, started!: () => void;
   const admitted = new Promise<void>(done => { started = done; });
   const context = { ...f.context, fs: { async readFile(_path: string, options: { signal: AbortSignal; maxBytes: number }) {
-    assert.ok(options.signal); assert.ok(options.maxBytes > 0); started();
+    assert.ok(options.signal); assert.equal(options.maxBytes, undefined); started();
     return new Promise<Uint8Array>(done => { resolve = done; });
   } } } as unknown as CommandContext;
   const pending = Promise.resolve(createDiff3Command().execute(context));

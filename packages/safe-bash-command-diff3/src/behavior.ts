@@ -21,7 +21,7 @@ export interface Diff3Invocation {
   readonly stripTrailingCR?: boolean;
   readonly information?: 'help' | 'version';
 }
-export const diff3DefaultLimits: Diff3BehaviorLimits = Object.freeze({ inputBytes: 16777216, retainedBytes: 67108864, tokens: 200000, graphCells: 8000000, work: 268435456, outputBytes: 33554432, argumentBytes: 65536, decodedBytes: 262144, labelBytes: 65536 });
+export const diff3DefaultLimits: Diff3BehaviorLimits = Object.freeze({ inputBytes: Infinity, retainedBytes: Infinity, tokens: Infinity, graphCells: Infinity, work: Infinity, outputBytes: Infinity, argumentBytes: Infinity, decodedBytes: Infinity, labelBytes: Infinity });
 export interface Diff3BehaviorResult {
   readonly stdout: Uint8Array;
   readonly stderr: Uint8Array;
@@ -30,7 +30,7 @@ export interface Diff3BehaviorResult {
 }
 function optionError(message: string): never { throw new Diff3Error('STATE', message); }
 function checkedLimits(limits: Diff3BehaviorLimits): void {
-  for (const key of Object.keys(diff3DefaultLimits) as (keyof Diff3BehaviorLimits)[]) if (!Number.isSafeInteger(limits[key]) || limits[key] < 0) throw new Diff3Error('LIMIT', `Invalid ${key} limit: expected a nonnegative safe integer`);
+  for (const key of Object.keys(diff3DefaultLimits) as (keyof Diff3BehaviorLimits)[]) if (limits[key] !== Infinity && (!Number.isSafeInteger(limits[key]) || limits[key] < 0)) throw new Diff3Error('LIMIT', `Invalid ${key} limit: expected a nonnegative safe integer`);
 }
 /** Validate and snapshot SDK options too; paths and labels are Unicode VFS metadata. */
 export function validateDiff3Invocation(options: Diff3Invocation, limits: Diff3BehaviorLimits): Diff3Invocation {

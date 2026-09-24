@@ -3,10 +3,10 @@ export class Budget {
   readonly limits: Diff3Limits;
   inputBytes = 0; retainedBytes = 0; peakRetainedBytes = 0;
   tokens = 0; graphCells = 0; peakGraphCells = 0; work = 0;
-  constructor(limits: Diff3Limits, readonly signal?: AbortSignal) {
-    this.limits = { ...limits };
+  constructor(limits: Partial<Diff3Limits>, readonly signal?: AbortSignal) {
+    this.limits = { inputBytes: Infinity, retainedBytes: Infinity, tokens: Infinity, graphCells: Infinity, work: Infinity, ...limits };
     for (const resource of ['inputBytes', 'retainedBytes', 'tokens', 'graphCells', 'work'] as const) {
-      if (!Number.isSafeInteger(limits[resource]) || limits[resource] < 0) throw new Diff3Error('LIMIT', 'Limits must be nonnegative safe integers', resource);
+      if (this.limits[resource] !== Infinity && (!Number.isSafeInteger(this.limits[resource]) || this.limits[resource] < 0)) throw new Diff3Error('LIMIT', 'Limits must be nonnegative safe integers', resource);
     }
   }
   admit(resource: keyof Diff3Limits, amount: number): void {

@@ -98,7 +98,7 @@ async function executeDiff3(context: CommandContext, configuration: Diff3Command
           if (context.fs.readStream) source = context.fs.readStream(path, { signal });
           else {
             const maxBytes = Math.min(limits.inputBytes - inputBytes, limits.retainedBytes - retained);
-            const resource = await stdout!.acquire(async readSignal => ({ bytes: await context.fs.readFile(path, { signal: readSignal, maxBytes }) as Uint8Array | undefined }), resource => { resource.bytes = undefined; });
+            const resource = await stdout!.acquire(async readSignal => ({ bytes: await context.fs.readFile(path, { signal: readSignal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) }) as Uint8Array | undefined }), resource => { resource.bytes = undefined; });
             acquiredInput = resource;
             signal.throwIfAborted();
             const bytes = byteView(resource.bytes!); borrowed = bytes.length; hold(borrowed);

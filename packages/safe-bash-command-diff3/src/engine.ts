@@ -6,7 +6,7 @@ import { byteView } from './bytes.js';
 
 const fileNames: readonly Diff3File[] = ['base', 'left', 'right'];
 interface FileState { chunks: Uint8Array[]; size: number; lines: Diff3Line[]; ended: boolean }
-export function createDiff3Engine(limits: Diff3Limits, options: Diff3Options = {}, signal?: AbortSignal): Diff3Engine {
+export function createDiff3Engine(limits: Partial<Diff3Limits> = {}, options: Diff3Options = {}, signal?: AbortSignal): Diff3Engine {
   const budget = new Budget(limits, signal);
   const comparison = { stripTrailingCR: options.stripTrailingCR === true, text: options.text === true };
   const files: Record<Diff3File, FileState> = {
@@ -81,7 +81,7 @@ export function createDiff3Engine(limits: Diff3Limits, options: Diff3Options = {
   };
 }
 /** Pure byte API; base is explicit, never inferred from GNU operand ordering. */
-export function analyzeDiff3(files: Readonly<Record<Diff3File, Uint8Array>>, limits: Diff3Limits, options: Diff3Options = {}, signal?: AbortSignal): Diff3Analysis {
+export function analyzeDiff3(files: Readonly<Record<Diff3File, Uint8Array>>, limits: Partial<Diff3Limits> = {}, options: Diff3Options = {}, signal?: AbortSignal): Diff3Analysis {
   const engine = createDiff3Engine(limits, options, signal);
   try {
     for (const file of fileNames) { engine.push(file, files[file]); engine.end(file); }

@@ -295,6 +295,19 @@ test("frozen historical evidence and retained non-native canonical seals remain 
     let current = path === resourceDepthMigration.path ? archivedHazardStartupSource()
       : path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource()
       : path === "tests/commands/structured/streaming.test.ts" ? archivedStreamingSource() : readFileSync(path);
+    if (path === "tests/commands/structured-stress/safety.test.ts") {
+      // 66fbeb9c304 corrected assignment preflight cases and added named-input
+      // coverage. Authenticate that exact update and reconstruct the old seal.
+      assert.equal(digest(current), "3234ceaa951b928d373e7420ef538cefd74420143f601e79def05680482e0e45");
+      let original = current.toString("utf8");
+      original = original.replace("[['-c', '.[0:1]='], 3]", "[['-c', '.[0:1]=0'], 3]")
+        .replace("[['-c', '.[]? |='], 3]", "[['-c', '.[]? |= 0'], 3]");
+      const start = original.indexOf("for (const [source, input, status, stdout] of [");
+      const end = original.indexOf("test('null input ignores invalid stdin", start);
+      assert.ok(start >= 0 && end > start, "exact named-input coverage block");
+      current = Buffer.from(original.slice(0, start) + original.slice(end));
+      assert.equal(digest(current), expected, "unchanged original assignment preflight seal");
+    }
     if (path === "tests/commands/structured/hazard-worker.ts") {
       // fe7a41a945 made these four former default limits explicit. Reconstruct
       // and authenticate the sealed source without altering historical evidence.

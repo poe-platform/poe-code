@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CommandRegistry, FsError, toByteSource, type ByteSink, type CommandContext, type FileStat, type FileSystem } from "../../src/contracts/index.js";
+import { CommandRegistry, FsError, collectBytes, toByteSource, type ByteSink, type CommandContext, type FileStat, type FileSystem } from "../../src/contracts/index.js";
 import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";

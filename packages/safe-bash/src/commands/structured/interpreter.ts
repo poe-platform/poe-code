@@ -648,6 +648,13 @@ export class Interpreter {
       }
       budget.value(result); yield result; return;
     }
+    if (name === "inside") {
+      for await (const container of this.run(args[0]!, input)) {
+        if (type(container) !== type(input) || (typeof input === "boolean" && container !== input)) throw new JqError(`${describe(container, budget)} and ${describe(input, budget)} cannot have their containment checked`);
+        yield contains(container, input, budget);
+      }
+      return;
+    }
     if (name === "has" || name === "contains") {
       for await (const argument of this.run(args[0]!, input)) {
         if (name === "contains") {

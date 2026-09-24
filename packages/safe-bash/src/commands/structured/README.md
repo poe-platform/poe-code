@@ -268,7 +268,7 @@ cross-version parity beyond its recorded tests.
 | `nan`, `infinite`, `isnan`, `isinfinite`, `isfinite` | Zero arguments only. `isfinite` means numeric and not infinite: NaN is true, both infinities and all nonnumbers are false. |
 | `values`, `strings`, `numbers`, `booleans`, `arrays`, `objects`, `nulls`, `scalars`, `iterables` | Type/value filters; `values` removes null only. |
 | `paths`, `paths(filter)` | Enumerate descendant paths in depth-first order, optionally selecting values with a filter; excludes the root path. |
-| `has(key)`, `contains(value)` | Own-key/index existence and recursive containment; array `has` truncates fractional indexes but does not wrap negative indexes. |
+| `has(key)`, `contains(value)`, `inside(container)` | Own-key/index existence and recursive containment; `inside` tests whether the input is contained in its argument. Array `has` truncates fractional indexes but does not wrap negative indexes. |
 | `sort`, `sort_by(f)`, `unique`, `unique_by(f)`, `group_by(f)` | Stable sorting/grouping with recursive jq-style type ordering; key filters may produce multiple values. |
 | `add`, `reverse`, `min`, `max`, `min_by(f)`, `max_by(f)` | Array operations; empty `add`, min, and max return null. |
 | `transpose` | Swap matrix rows and columns, padding short rows with null; empty matrices return `[]`. |

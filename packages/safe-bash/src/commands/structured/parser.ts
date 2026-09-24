@@ -32,7 +32,7 @@ export const functions: Readonly<Record<string, readonly number[]>> = Object.fre
   fromdateiso8601: [0], todateiso8601: [0],
   scan: [1], paths: [0, 1], getpath: [1], flatten: [0, 1], del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
   halt: [0], halt_error: [0, 1], setpath: [2], empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],
-  type: [0], has: [1], contains: [1], bsearch: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],
+  type: [0], has: [1], contains: [1], inside: [1], bsearch: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],
   not: [0], reverse: [0], transpose: [0], combinations: [0], first: [0, 1], last: [0, 1], limit: [2], range: [1, 2, 3], join: [1], split: [1], splits: [1], gsub: [2, 3],
   tostring: [0], tonumber: [0], tojson: [0], fromjson: [0], to_entries: [0], from_entries: [0], with_entries: [1],
   min: [0], max: [0], min_by: [1], max_by: [1], any: [0, 1, 2], all: [0, 1, 2],

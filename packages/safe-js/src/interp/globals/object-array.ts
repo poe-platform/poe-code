@@ -21,7 +21,7 @@ import { suspendJob } from "../jobs.js";
 import { restoreSandboxArrayIterator } from "../array-iterator.js";
 import { nextArrayIterator } from "../methods/array-iterator.js";
 import { registerBuiltinIdentities } from "../intrinsics.js";
-import { retainValues } from "../resources.js";
+import { retainValues, runResources } from "../resources.js";
 import { isCapturedException } from "../exceptions.js";
 import { isSandboxDate } from "../date.js";
 import { createSandboxBox } from "../boxed.js";
@@ -831,9 +831,7 @@ export function objectProperties(value: SandboxValue, _mutable = false): Sandbox
 }
 
 export function exposePropertyDescriptor(descriptor: PropertyDescriptor, budget: Budget): SandboxObject {
-  // Reflection results own their storage; native edits must still invalidate
-  // accounting snapshots without retaining aliases to the input descriptor.
-  const result = createIntrinsicObject((
+  const properties = (
     "value" in descriptor
       ? descriptor
       : {
@@ -842,7 +840,11 @@ export function exposePropertyDescriptor(descriptor: PropertyDescriptor, budget:
           enumerable: descriptor.enumerable,
           configurable: descriptor.configurable
         }
-  ) as SandboxObject);
+  ) as SandboxObject;
+  // Internal results own tracked storage. Public run() data stays natively
+  // cloneable; a tracking proxy must not escape through that result boundary.
+  const result = runResources.getStore()?.nativeDataResults === true
+    ? properties : createIntrinsicObject(properties);
   const prototype = getSandboxPrototype(result, budget);
   if (prototype !== null) setSandboxPrototype(result, prototype, budget);
   return result;

@@ -1,5 +1,8 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { run } from "../../run.js";
+import { parseModule } from "../../parse/parser.js";
+import { createBuiltinBindings } from "../globals.js";
+import { interpret } from "../interpreter.js";
 import { accessorAdapter } from "../accessors.js";
 import { Budget } from "../budget.js";
 import { setSandboxPrototype } from "../object-model.js";
@@ -13,11 +16,35 @@ it.each([
   "Reflect.getOwnPropertyDescriptor({ item: 1 }, 'item')",
   "Object.getOwnPropertyDescriptors({ item: 1 }).item"
 ])("reuses unchanged descriptor result storage: %s", async (expression) => {
-  const result = (await run(`return ${expression}`)).returnValue;
+  const budget = new Budget();
+  const parsed = parseModule(`return ${expression}`);
+  const evaluated = await interpret(
+    { type: "BlockStatement", body: parsed.body, span: parsed.span },
+    {
+      budget,
+      bindings: createBuiltinBindings({ budget })
+    }
+  );
+  if (!evaluated.ok) throw new Error("Expected an internal descriptor result");
+  const result = evaluated.returnValue;
   const expected = measureSandboxData([result]);
   const inspect = vi.spyOn(Object, "getOwnPropertyDescriptor");
   for (let index = 0; index < 5; index++) expect(measureSandboxData([result])).toBe(expected);
   expect(inspect.mock.calls.filter(([target]) => target === result)).toHaveLength(0);
+});
+
+it.each([
+  "Object.getOwnPropertyDescriptor({ item: 1 }, 'item')",
+  "Reflect.getOwnPropertyDescriptor({ item: 1 }, 'item')",
+  "Object.getOwnPropertyDescriptors({ item: 1 }).item"
+])("keeps public runner descriptor results natively cloneable: %s", async (expression) => {
+  const result = (await run(`return ${expression}`)).returnValue;
+  expect(structuredClone(result)).toEqual({
+    value: 1,
+    writable: true,
+    enumerable: true,
+    configurable: true
+  });
 });
 
 it("copies descriptor storage while preserving its mutable value identity", () => {

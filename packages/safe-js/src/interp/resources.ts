@@ -5,6 +5,8 @@ export type RunResources = {
   signal: AbortSignal;
   functionSourceText?: boolean;
   hostDataMetadata?: boolean;
+  // Ordinary run() data must remain directly cloneable by native structuredClone.
+  nativeDataResults?: boolean;
   sourceLocation?: (position: { line: number; column: number }) => { filename: string; line: number; column: number } | undefined;
   // Explicit host authority for suspending a guest agent, never the host event loop.
   canBlock?: boolean;
@@ -41,6 +43,7 @@ export async function withRunResources<Result>(
   let failure: { reason: unknown } | undefined;
   const resources: RunResources = {
     signal: controller.signal,
+    nativeDataResults: true,
     referenceReleases: new Set(),
     reportError(reason) {
       failure ??= { reason };

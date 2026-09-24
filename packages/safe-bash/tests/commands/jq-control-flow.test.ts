@@ -90,7 +90,7 @@ for (const source of [
   "reduce (1,2) as $item ($item; .)", "foreach $item as $item (0; .)",
   "(reduce 1 as $item (0; .)), $item", "foreach 1 as $item (0; .; $missing)",
   "try (1 +) catch 0", "try missing catch 0", "try . catch missing",
-  ".. = 1", "try error(1) catch .",
+  ".. = 1", "try error(1;2) catch .",
   "reduce 1,2 as $item (0; .+$item)", "reduce .[] | . as $item (0; .+$item)",
   'try 1/0 catch "caught"', 'try 1 | .a catch "caught"',
 ]) test(`control-flow compilation stays closed: ${source}`, async () => {

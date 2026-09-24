@@ -115,9 +115,16 @@ There are no default or ambient host library directories. Module paths must be
 relative and cannot contain empty, `.` or `..` components. Reads use the supplied
 filesystem and signal; filter and all loaded modules share `maxSourceBytes`,
 and dependency depth and compiler work retain the AST and step budgets.
-Definitions are lexical, nonrecursive and zero-argument; parameterized functions,
-module metadata, data imports and import search metadata remain unsupported.
+Definitions are lexical and nonrecursive. Filter parameters (`def f(x): x + 1;`)
+run against the current input each time they are used; value parameters
+(`def f($x): $x + 1;`) bind each argument result once. Module metadata,
+data imports and import search metadata remain unsupported.
 Modules contain imports followed by definitions, with no executable filter body.
+
+`del(path)` removes selected object fields or array elements. `error` and
+`error(value)` raise values that `try ... catch` can handle. String filters include
+`startswith`, `endswith`, `ltrimstr`, `rtrimstr`, `ascii_downcase`, and
+`ascii_upcase`; ASCII case conversion preserves non-ASCII characters.
 
 Every output value ends in LF unless `-j` or `--raw-output0` is set. Embedded
 newlines in raw strings are preserved. `--raw-output0` takes precedence over `-j`

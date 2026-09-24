@@ -2,6 +2,8 @@ import { JqError, JqLimitError, wellFormed, type Budget, type Json } from "./lim
 import { decimalNumber } from "./numbers.js";
 
 export type Ast =
+  | { kind: "parameter"; name: string }
+  | { kind: "invoke"; parameters: Ast[]; args: Ast[]; body: Ast }
   | { kind: "identity" }
   | { kind: "literal"; value: Json }
   | { kind: "variable"; name: string }
@@ -26,6 +28,7 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
   "+": 8, "-": 8, "*": 9, "/": 9, "%": 9,
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
+  del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
   empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],
   type: [0], has: [1], contains: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],
   not: [0], reverse: [0], first: [0, 1], last: [0, 1], limit: [2], range: [1, 2, 3], join: [1], split: [1],
@@ -114,7 +117,7 @@ function isPath(ast: Ast): boolean {
   const pending = [ast];
   while (pending.length) {
     const node = pending.pop()!;
-    if (node.kind === "identity") continue;
+    if (node.kind === "identity" || node.kind === "parameter" || node.kind === "invoke") continue;
     if (node.kind === "index" || node.kind === "iterate") pending.push(node.base);
     else if (node.kind === "binary" && node.operator === ",") pending.push(node.left, node.right);
     else return false;
@@ -154,6 +157,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   let defining = false;
   const unresolved = new Map<Ast, Token>();
   const bindings = new Map<string, number>();
+  const parameters = new Map<string, Ast>();
   const peek = (): Token => tokens[Math.min(position, tokens.length - 1)]!;
   const take = (): Token => { const token = peek(); if (token.kind !== "end") position++; return token; };
   const accept = (text: string): boolean => { if (peek().text !== text) return false; take(); return true; };
@@ -298,7 +302,10 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       if (accept("(")) { if (peek().text !== ")") do { args.push(expression()); } while (accept(";")); expect(")"); }
       if (token.text === "split" && args.length === 2) fail("unsupported function split/2");
       const definition = definitions?.get(name);
-      if (definition && !args.length) result = definition;
+      const parameter = parameters.get(name);
+      if (parameter && !args.length) result = parameter;
+      else if (definition?.kind === "invoke" && definition.parameters.length === args.length) result = { ...definition, args };
+      else if (definition && definition.kind !== "invoke" && !args.length) result = definition;
       else {
         result = { kind: "call", name, args };
         if (!Object.hasOwn(functions, name) || !functions[name]!.includes(args.length)) unresolved.set(result, token);
@@ -327,12 +334,33 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     budget.step();
     const name = take();
     if (name.kind !== "name") fail("expected function name");
+    const formal: Ast[] = [];
+    const values: string[] = [];
+    if (accept("(")) {
+      do {
+        const value = accept("$");
+        const parameter = take();
+        if (parameter.kind !== "name" || parameters.has(parameter.text) || parameters.has(`$${parameter.text}`)) fail("expected unique parameter name");
+        const node: Ast = { kind: "parameter", name: parameter.text };
+        parameters.set(value ? `$${parameter.text}` : parameter.text, node);
+        formal.push(node);
+        values.push(value ? parameter.text : "");
+        if (value) bindings.set(parameter.text, 1);
+        budget.collection(formal.length);
+      } while (accept(";"));
+      expect(")");
+    }
     expect(":");
     defining = true;
     let body: Ast;
     try { body = expression(); } finally { defining = false; }
     expect(";");
-    definitions.set(name.text, body);
+    for (let index = formal.length - 1; index >= 0; index--) {
+      if (values[index]) body = { kind: "bind", name: values[index]!, source: formal[index]!, body };
+    }
+    parameters.clear();
+    for (const value of values) if (value) bindings.delete(value);
+    definitions.set(name.text, formal.length ? { kind: "invoke", parameters: formal, args: [], body } : body);
     budget.collection(definitions.size);
     bodies.push(body);
   }
@@ -355,7 +383,8 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       continue;
     }
     const children: Ast[] = [];
-    if (node.kind === "binary") children.push(node.left, node.right);
+    if (node.kind === "invoke") children.push(node.body, ...node.args);
+    else if (node.kind === "binary") children.push(node.left, node.right);
     else if (node.kind === "bind") children.push(node.source, node.body);
     else if (node.kind === "unary" || node.kind === "optional") children.push(node.operand);
     else if (node.kind === "index") children.push(node.base, node.index);

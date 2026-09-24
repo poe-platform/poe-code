@@ -8,7 +8,11 @@ import { binary, compare, contains, describe, entries, equal, indexValue, sliceV
 type Path = (string | number)[];
 interface Frame { readonly name: string; readonly value: Json; readonly parent: Frame | undefined; readonly depth: number }
 const deleted = Symbol("deleted");
+class UserError extends JqError {
+  constructor(readonly value: Json, message: string) { super(message); }
+}
 export class Interpreter {
+  private filters = new Map<Ast, { ast: Ast; scope: Interpreter }>();
   constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
   async collect(ast: Ast, input: Json): Promise<Json[]> {
     const result: Json[] = [];
@@ -25,6 +29,11 @@ export class Interpreter {
   async *run(ast: Ast, input: Json): AsyncGenerator<Json> {
     await this.budget.tick();
     switch (ast.kind) {
+      case "parameter": {
+        const filter = this.filters.get(ast)!;
+        yield* filter.scope.run(filter.ast, input); return;
+      }
+      case "invoke": yield* this.invocation(ast).run(ast.body, input); return;
       case "identity": yield input; return;
       case "literal": yield ast.value; return;
       case "variable": {
@@ -50,7 +59,7 @@ export class Interpreter {
         try { yield* this.run(ast.body, input); }
         catch (error) {
           if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted) throw error;
-          if (ast.handler) yield* this.run(ast.handler, error.message);
+          if (ast.handler) yield* this.run(ast.handler, error instanceof UserError ? error.value : error.message);
         }
         return;
       case "reduce":
@@ -62,7 +71,8 @@ export class Interpreter {
           let accumulator = initial;
           for await (const value of this.run(ast.source, sourceInput)) {
             await this.budget.tick();
-            const scope = new Interpreter(this.budget, this.variables, { name: ast.name, value, parent: this.frame, depth });
+            const scope = Object.create(Interpreter.prototype) as Interpreter;
+            Object.assign(scope, this, { frame: { name: ast.name, value, parent: this.frame, depth } });
             const previous = accumulator;
             accumulator = null;
             for await (const updated of scope.run(ast.update, previous)) {
@@ -170,8 +180,23 @@ export class Interpreter {
       }
     }
   }
+  invocation(ast: Extract<Ast, { kind: "invoke" }>): Interpreter {
+    const scope = Object.create(Interpreter.prototype) as Interpreter;
+    const filters = new Map(this.filters);
+    for (let index = 0; index < ast.parameters.length; index++) {
+      this.budget.step();
+      filters.set(ast.parameters[index]!, { ast: ast.args[index]!, scope: this });
+    }
+    Object.assign(scope, this, { filters });
+    return scope;
+  }
   async *paths(ast: Ast, input: Json): AsyncGenerator<Path> {
     await this.budget.tick();
+    if (ast.kind === "parameter") {
+      const filter = this.filters.get(ast)!;
+      yield* filter.scope.paths(filter.ast, input); return;
+    }
+    if (ast.kind === "invoke") { yield* this.invocation(ast).paths(ast.body, input); return; }
     if (ast.kind === "identity") { yield []; return; }
     if (ast.kind === "binary" && ast.operator === ",") { yield* this.paths(ast.left, input); yield* this.paths(ast.right, input); return; }
     if (ast.kind !== "index" && ast.kind !== "iterate") throw new JqError("unsupported assignment path");
@@ -256,6 +281,33 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "del") { yield* this.assign(args[0]!, { kind: "call", name: "empty", args: [] }, "|=", input); return; }
+    if (name === "error") {
+      for await (const value of args.length ? this.run(args[0]!, input) : [input]) {
+        throw new UserError(value, typeof value === "string" ? value : await stringify(value, budget));
+      }
+      return;
+    }
+    if (["startswith", "endswith", "ltrimstr", "rtrimstr"].includes(name)) {
+      for await (const value of this.run(args[0]!, input)) {
+        if (typeof input !== "string" || typeof value !== "string") throw new JqError(`${name} requires strings`);
+        await budget.tick(input.length + value.length);
+        const matches = name === "startswith" || name === "ltrimstr" ? input.startsWith(value) : input.endsWith(value);
+        yield name === "startswith" || name === "endswith" ? matches : !matches || !value.length ? input : name === "ltrimstr" ? input.slice(value.length) : input.slice(0, -value.length);
+      }
+      return;
+    }
+    if (name === "ascii_downcase" || name === "ascii_upcase") {
+      if (typeof input !== "string") throw new JqError(`${name} requires a string`);
+      await budget.tick(input.length);
+      let result = "";
+      const lower = name === "ascii_downcase";
+      for (let index = 0; index < input.length; index++) {
+        const code = input.charCodeAt(index);
+        result += String.fromCharCode(code >= (lower ? 65 : 97) && code <= (lower ? 90 : 122) ? code + (lower ? 32 : -32) : code);
+      }
+      budget.value(result); yield result; return;
+    }
     if (name === "empty") return;
     if (name === "select") { for await (const value of this.run(args[0]!, input)) if (truth(value)) yield input; return; }
     if (name === "values") { if (input !== null) yield input; return; }

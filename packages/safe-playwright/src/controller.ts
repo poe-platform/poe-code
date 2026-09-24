@@ -203,11 +203,19 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
             // Preflight failures do not retire an otherwise healthy session.
             retained = true;
             const pages = [...session.lease!.context.pages()];
-            if (!session.pages || pages.length !== session.pages.length || pages.some((page, index) => page !== session.pages![index])) await session.snapshot.invalidate();
+            if (!session.pages || pages.length !== session.pages.length || pages.some((page, index) => page !== session.pages![index])) {
+              retained = false;
+              await session.snapshot.invalidate();
+              checkSession(session);
+              retained = true;
+            }
             session.pages = pages;
             const page = session.page;
             if ((!page || !pages.includes(page)) && !['tab-list', 'tab-new', 'tab-select'].includes(parsed.command) && !(parsed.command === 'tab-close' && parsed.tab !== undefined)) {
+              retained = false;
               await session.snapshot.invalidate();
+              checkSession(session);
+              retained = true;
               throw new Error('Selected tab closed; select a tab explicitly');
             }
             checkSession(session);

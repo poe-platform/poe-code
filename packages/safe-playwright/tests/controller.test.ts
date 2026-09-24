@@ -93,6 +93,26 @@ for (const artifact of [false, true]) {
   });
 }
 
+test('failed handle disposal during snapshot preflight retires the session', async () => {
+  const f = fixture();
+  await f.run(['open']);
+  const lease = f.leases[0]!.lease;
+  const page = lease.context.pages()[0]!;
+  page.on = () => {};
+  page.off = () => {};
+  page.frames = () => [{ locator: () => ({ elementHandles: async () => [{
+    async evaluate<T>(fn: (node: SnapshotNode) => T): Promise<T> { return fn({ tagName: 'BUTTON', textContent: 'Name', isConnected: true, getAttribute: () => null }); },
+    async click() {}, async fill() {},
+    async dispose() { throw new Error('deferred disposal failed'); },
+  }] }) }];
+  await f.run(['snapshot']);
+  lease.context.pages = () => [];
+  await assert.rejects(f.run(['snapshot']));
+  assert.equal(f.leases[0]!.releases, 1);
+  await assert.rejects(f.run(['snapshot']), /Session closed/);
+  await assert.rejects(f.controller.dispose(), /disposal failed/);
+});
+
 test('completed snapshot output refusal preserves the session', async () => {
   const f = fixture();
   await f.run(['open']);
@@ -103,6 +123,36 @@ test('completed snapshot output refusal preserves the session', async () => {
   await assert.rejects(f.run(['snapshot'], { write: async () => { throw new Error('output refused'); } }), /output refused/);
   assert.equal(f.leases[0]!.releases, 0);
   await f.run(['snapshot']);
+  await f.controller.dispose();
+});
+
+test('completed snapshot artifact budget refusal preserves the session', async () => {
+  const f = fixture();
+  const controller = createPlaywrightController({ adapter: f.adapter, limits: { maxArtifactBytes: 1 } });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, write: async () => {}, writeArtifact: async () => { assert.fail('over-budget artifact published'); } });
+  await run(['open']);
+  const page = f.leases[0]!.lease.context.pages()[0]!;
+  page.on = () => {};
+  page.off = () => {};
+  page.frames = () => [{ locator: () => ({ elementHandles: async () => [{
+    async evaluate<T>(fn: (node: SnapshotNode) => T): Promise<T> { return fn({ tagName: 'BUTTON', textContent: 'Name', isConnected: true, getAttribute: () => null }); },
+    async click() {}, async fill() {}, async dispose() {},
+  }] }) }];
+  await assert.rejects(run(['snapshot', '--filename=page.yml']), /Artifact byte limit/);
+  assert.equal(f.leases[0]!.releases, 0);
+  await run(['snapshot']);
+  await controller.dispose();
+  await f.controller.dispose();
+});
+
+test('unsupported JSON and find requests refuse before session work', async () => {
+  const f = fixture();
+  await f.run(['open']);
+  for (const args of [['snapshot', '--json'], ['find', 'button']]) {
+    await assert.rejects(f.run(args), /Unsupported/);
+    assert.equal(f.leases[0]!.releases, 0);
+  }
+  await f.run(['goto', 'https://example.com']);
   await f.controller.dispose();
 });
 

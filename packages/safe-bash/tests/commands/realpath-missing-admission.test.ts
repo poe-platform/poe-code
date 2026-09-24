@@ -297,15 +297,15 @@ test("realpath -m does not yield away an immediate fatal fallback error", async 
   } finally { if (handle !== undefined) clearImmediate(handle); }
 });
 
-test("realpath -m owned and fallback paths preserve legacy dot-dot, links and slash folds", async () => {
+test("realpath -m owned and fallback paths resolve dot-dot, links and slash folds", async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/existing/child", { recursive: true });
   await fs.symlink("/existing/child", "/link");
   await fs.symlink("/absent", "/dangling");
   const cases = [
     ["/existing/child", "/existing/child"], ["/missing/deeper", "/missing/deeper"],
-    ["/link/../new", "/existing/new"], ["/missing/../link/new", "/link/new"],
-    ["/existing/child/", "/existing/child"], ["/dangling/", "/dangling"],
+    ["/link/../new", "/existing/new"], ["/missing/../link/new", "/existing/child/new"],
+    ["/existing/child/", "/existing/child"], ["/dangling/", "/absent"],
     ["//missing//../new/.", "/new"], ["/missing/../../new", "/new"],
   ];
   for (const [path, expected] of cases) {
@@ -316,9 +316,7 @@ test("realpath -m owned and fallback paths preserve legacy dot-dot, links and sl
   }
   for (const view of [fs, observe(fs, true).view]) {
     const result = await execute(view, ["-m", "/dangling", "/dangling/child", "/"]);
-    assert.equal(result.exitCode, 1);
-    assert.equal(result.stdout, "/\n");
-    assert.equal(result.stderr, "realpath: ENOENT: no such file or directory, realpath '/dangling'\n".repeat(2));
+    assert.deepEqual(result, { exitCode: 0, stdout: "/absent\n/absent/child\n/\n", stderr: "" });
   }
 });
 
@@ -345,3 +343,31 @@ test("realpath -e and readlink -e/-m do not admit the realpath missing hook", as
   });
   assert.equal(observed.calls.some(call => call.method === "canonicalizeMissingTarget"), false);
 });
+
+for (const flags of ["-m", "--canonicalize-missing"]) {
+  test(`realpath ${flags} resolves dangling chains and cycles like readlink -m`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/work/deep/inside", { recursive: true });
+    await fs.symlink("deep/inside", "/work/link");
+    await fs.symlink("absent/target", "/work/dangling");
+    await fs.symlink("dangling", "/work/chain");
+    await fs.symlink("cycle", "/work/cycle");
+    await fs.symlink("second", "/work/first");
+    await fs.symlink("first", "/work/second");
+    for (const [path, expected] of [
+      ["/work/dangling/child", "/work/absent/target/child"],
+      ["/work/chain/child", "/work/absent/target/child"],
+      ["/work/cycle/child", "/work/cycle/child"],
+      ["/work/first/child", "/work/first/child"],
+      ["/work/absent/../link/file", "/work/deep/inside/file"],
+    ]) {
+      for (const view of [fs, observe(fs, true).view]) {
+        for (const command of ["realpath", "readlink"]) {
+          assert.deepEqual(await execute(view, [flags, path!], undefined, undefined, command), {
+            exitCode: 0, stdout: `${expected}\n`, stderr: "",
+          });
+        }
+      }
+    }
+  });
+}

@@ -60,6 +60,11 @@ async function admitNoReplaceRename(context: CommandContext, target: string): Pr
 async function canonicalMissing(
   context: CommandContext, path: string, mode: "copy" | "preflight" | "realpath" = "copy",
 ): Promise<string> {
+  // Copy-target resolution folds missing suffixes lexically. Missing-mode
+  // canonicalization must instead resume symlink traversal after each '..'.
+  if (mode === "realpath" && (path.split("/").includes("..") || path !== "/" && path.endsWith("/"))) {
+    return canonicalizeReadlinkMissing(context, path);
+  }
   if (mode !== "copy") {
     context.signal.throwIfAborted();
     try {
@@ -68,10 +73,14 @@ async function canonicalMissing(
       if (canonical !== undefined) return canonical;
     } catch (error) {
       context.signal.throwIfAborted();
+      if (mode === "realpath" && (codeOf(error) === "ENOENT" || codeOf(error) === "ELOOP")) {
+        return canonicalizeReadlinkMissing(context, path);
+      }
       // Copy-target hooks require directories; realpath -m does not.
       if (mode !== "realpath" || codeOf(error) !== "ENOTDIR") throw error;
     }
   }
+  const originalPath = path;
   const suffix: string[] = [];
   let canonical: string;
   while (true) {
@@ -82,9 +91,13 @@ async function canonicalMissing(
     try { canonical = await context.fs.realpath(path, { signal: context.signal }); break; }
     catch (error) {
       context.signal.throwIfAborted();
+      if (mode === "realpath" && codeOf(error) === "ELOOP") return canonicalizeReadlinkMissing(context, originalPath);
       if (codeOf(error) !== "ENOENT" && !(mode === "realpath" && codeOf(error) === "ENOTDIR") || path === "/") throw error;
       const link = await maybeStat(context, path, false, mode === "realpath");
-      if (link?.type === "symlink") throw error;
+      if (link?.type === "symlink") {
+        if (mode === "realpath") return canonicalizeReadlinkMissing(context, originalPath);
+        throw error;
+      }
       suffix.push(basename(path));
       path = dirname(path);
     }
@@ -963,7 +976,14 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           path = lexical;
         }
         await admitFilesystemModes(context, "realpath", ["canonical"], [path], mode === "m");
-        if (mode === "m") await maybeStat(context, path, false, true);
+        if (mode === "m") {
+          try { await maybeStat(context, path, false, true); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (codeOf(error) !== "ELOOP") throw error;
+            return canonicalizeReadlinkMissing(context, path);
+          }
+        }
         return mode === "m" ? await canonicalMissing(context, path, "realpath")
           : mode === "e" ? await context.fs.realpath(path, { signal: context.signal })
           : await canonicalizeExistingParent(context, path);

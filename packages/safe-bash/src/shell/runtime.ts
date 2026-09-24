@@ -6943,7 +6943,12 @@ export class Runtime {
     } finally { allocation.close(); holding?.release(); }
   }
 
-  private async resolveArrayElement<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
+  private async resolveParameter<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
+    if (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
+      const resolved = { ...part, name: this.referenceName(state, part.name) };
+      copyArraySelector(part, resolved);
+      part = resolved;
+    }
     const selector = getArraySelector(part);
     if (part.kind !== "variable" || selector?.kind !== "element" || selector.index.source === undefined) return part;
     const store = requireArrays(state);
@@ -6973,7 +6978,7 @@ export class Runtime {
       if (!valid) throw new ExpansionFailure(`${name || part.name}: invalid variable name`, io.diagnosticLine ?? part.line);
       return this.valuePart({ ...part, name, indirect: false }, state, io, hereString, split, hereDocument);
     }
-    part = await this.resolveArrayElement(part, state, io);
+    part = await this.resolveParameter(part, state, io);
     if (part.kind === "variable" && (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? ""))) {
       const selector = getArraySelector(part);
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
@@ -7060,9 +7065,6 @@ export class Runtime {
   }
 
   private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean, split: boolean, hereDocument: boolean): Promise<ShellValue> {
-    if (part.kind === "variable" && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
-      part = { ...part, name: this.referenceName(state, part.name) };
-    }
     this.signal.throwIfAborted();
     if (part.kind === "compound-substitution-eof") {
       await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: command substitution: line ${io.diagnosticLine ?? part.line}: syntax error: unexpected end of file\n`);
@@ -7587,7 +7589,7 @@ export class Runtime {
     for (let index = 0; index < parts.length; index++) {
       let { part } = parts[index]!;
       const { splitText, io: partIO } = parts[index]!;
-      part = await this.resolveArrayElement(part, state, partIO);
+      part = await this.resolveParameter(part, state, partIO);
       quoteGroup = prefixNameQuoteGroups.get(part);
       const quotedPresence = part.quoted && !((arrayOwned || prefixOwned || positionalOwned) && isQuoteMarker(part));
       const selector = getArraySelector(part);

@@ -104,7 +104,8 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     if (keyBytes === undefined) unsupported("encryption algorithm");
     if (blowfish && (keyBytes < 4 || keyBytes > 56)) unsupported("encryption key size");
     if (member.method !== 0 || member.size === 0 || !blowfish && member.size % 16) invalid("invalid encrypted member framing");
-    if (attribute(derivation, "key-derivation-name") !== "PBKDF2") unsupported("key derivation");
+    const derivationName = attribute(derivation, "key-derivation-name");
+    if (derivationName !== "PBKDF2" && derivationName !== manifestNamespace + "#pbkdf2") unsupported("key derivation");
     if (integer(attribute(derivation, "key-size") ?? "16") !== keyBytes) invalid("inconsistent encryption key size");
     const iterations = integer(attribute(derivation, "iteration-count"));
     if (!iterations) invalid("invalid encryption iteration count");

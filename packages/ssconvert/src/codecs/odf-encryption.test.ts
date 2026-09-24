@@ -42,6 +42,38 @@ it.each(odfCipherVectors)("imports independent OpenSSL vector $name", async (vec
   ]);
   expect(read).toHaveBeenCalledTimes(1);
 });
+it.each([...odfCipherVectors, ...odfBlowfishVectors])("imports the standard PBKDF2 IRI with independent vector $name", async vector => {
+  const declaration = vector.manifest.replace('manifest:key-derivation-name="PBKDF2"',
+    'manifest:key-derivation-name="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0#pbkdf2"');
+  expect(declaration).not.toBe(vector.manifest);
+  const payload = Uint8Array.from(Buffer.from(vector.ciphertextHex, "hex"));
+  const input = await fixture(declaration, payload), before = new Uint8Array(input);
+  const secret = new TextEncoder().encode(vector.password), originalSecret = new Uint8Array(secret);
+  const read = vi.fn(async () => secret);
+  const book = await readOdf(input, { ...context, password: { read } });
+  expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
+    { kind: "number", value: 42 }, { kind: "string", value: expectedText }
+  ]);
+  expect(read).toHaveBeenCalledTimes(1); expect(secret).toEqual(originalSecret); expect(input).toEqual(before);
+});
+it.each(["work", "corrupt"])("preserves publication and password admission with the PBKDF2 IRI on %s failure", async mode => {
+  const declaration = manifest.replace('manifest:key-derivation-name="PBKDF2"',
+    'manifest:key-derivation-name="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0#pbkdf2"');
+  const payload = new Uint8Array(ciphertext); if (mode === "corrupt") payload[0] = payload[0]! ^ 1;
+  const input = await fixture(declaration, payload), before = new Uint8Array(input);
+  const volume = Volume.fromJSON({ "/target.csv": "untouched\n" });
+  const read = vi.fn(async () => "owned-odf-reference"), write = vi.fn(async (uri: string, bytes: Uint8Array) => { volume.writeFileSync(uri, bytes); });
+  const engine = createEngine({ codecs: [], environment: context.environment,
+    limits: mode === "work" ? { ...context.limits, workbookWork: 1 } : context.limits,
+    password: { read }, filesystem: { async read() { return [input]; }, write } });
+  try {
+    await expect(engine.convert({ input: { kind: "stream", filename: "encrypted.ods", source: [input] },
+      destination: { kind: "resource", uri: "/target.csv" }, exportType: "Gnumeric_stf:stf_csv" }, context))
+      .rejects.toMatchObject({ code: mode === "work" ? "resource-limit" : "io" });
+    expect(read).toHaveBeenCalledTimes(mode === "work" ? 0 : 1); expect(write).not.toHaveBeenCalled();
+    expect(volume.readFileSync("/target.csv", "utf8")).toBe("untouched\n"); expect(input).toEqual(before);
+  } finally { await engine.dispose(); }
+});
 it("passes a frozen explicit ODF request and accepts raw UTF8 without changing host bytes", async () => {
   const secret = new TextEncoder().encode("owned-odf-reference"), before = new Uint8Array(secret);
   const read = vi.fn(async (request: Parameters<NonNullable<CapabilityContext["password"]>["read"]>[0]) => {
@@ -63,6 +95,8 @@ it("sanitizes password callback failure", async () => {
 it.each([
   ["unsupported cipher", manifest.replace("aes256-cbc", "unknown-cipher"), "unsupported-feature"],
   ["unsupported derivation", manifest.replace('name="PBKDF2"', 'name="unknown-kdf"'), "unsupported-feature"],
+  ["foreign derivation IRI", manifest.replace('name="PBKDF2"', 'name="urn:foreign#pbkdf2"'), "unsupported-feature"],
+  ["case-mismatched derivation IRI", manifest.replace('name="PBKDF2"', 'name="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0#PBKDF2"'), "unsupported-feature"],
   ["excessive KDF", manifest.replace('count="1024"', 'count="1000000000"'), "resource-limit"],
   ["missing KDF count", manifest.replace(' manifest:iteration-count="1024"', ''), "io"],
   ["zero KDF count", manifest.replace('count="1024"', 'count="0"'), "io"],

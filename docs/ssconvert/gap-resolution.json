@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-24T14:16:34.066197+00:00",
+  "recordedAt": "2026-09-24T14:24:16.444252+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -598,7 +598,7 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4\u201356byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open. Explicit legacy ODF1.2 AES256-CBC export now implemented behind encryption=odf12-aes256-cbc, host password and cryptographic entropy capabilities. All4 ordinary parts and embedded resources are protected. 15 original failing controls,22 final focused controls,22584 package tests,lint/types and selected4-build closure qualify the change; SDK/Shell/browser/worker ciphertext and CSV/XML replay agree. OpenSSL independently recovers8 actual SDK members exactly. Other encryption profiles,full family closure and publication remain open. Explicit AES128-CBC and AES192-CBC export profiles now join AES256. All 78 encryption writer controls, 222 related tests and 22985 package tests pass with lint/types and the selected build. Six built SDK/Shell models and 24 independent OpenSSL member decryptions preserve exact plaintext, input/sentinel state and CSV/XML replay. Other profiles and publication remain open.",
+      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4\u201356byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open. Explicit legacy ODF1.2 AES256-CBC export now implemented behind encryption=odf12-aes256-cbc, host password and cryptographic entropy capabilities. All4 ordinary parts and embedded resources are protected. 15 original failing controls,22 final focused controls,22584 package tests,lint/types and selected4-build closure qualify the change; SDK/Shell/browser/worker ciphertext and CSV/XML replay agree. OpenSSL independently recovers8 actual SDK members exactly. Other encryption profiles,full family closure and publication remain open. Explicit AES128-CBC and AES192-CBC export profiles now join AES256. All 78 encryption writer controls, 222 related tests and 22985 package tests pass with lint/types and the selected build. Six built SDK/Shell models and 24 independent OpenSSL member decryptions preserve exact plaintext, input/sentinel state and CSV/XML replay. Other profiles and publication remain open. ODF standard PBKDF2 URI alias now imports all 36 independently encoded AES/Blowfish vectors. All 302 related and 23025 package tests, lint/types/build, built SDK/Shell conversions and XML replay pass, with unchanged input/sentinel/secret bytes. Full family and publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
@@ -636,6 +636,11 @@
           "kind": "aes128-aes192-export-profiles",
           "path": "docs/ssconvert/odf-aes-export-profiles-gap-proof.json",
           "outcome": "44 reproduced failures repaired; 78 encryption writer / 222 related / 22985 maintained package tests pass. All six built SDK/Shell models and 24 independently decrypted output members pass."
+        },
+        {
+          "kind": "standard-pbkdf2-uri-import",
+          "path": "docs/ssconvert/odf-pbkdf2-uri-gap-proof.json",
+          "outcome": "36 original failures repaired; 302 related and 23025 maintained tests pass. All 36 built SDK/Shell/XML replay models match parsed original plaintext."
         }
       ],
       "delivery": {

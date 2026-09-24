@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "baseline": "1eed552f4a9d2196b38b0a5c90f61f1ecea97e94",
+  "scope": "Same-scope duplicate BIFF names and replacement of existing #NAME? placeholders with indexed references before and after the second declaration.",
+  "source": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "files": {
+      "expr-name.c": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353",
+      "ms-excel-read.c": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216",
+      "ms-formula-read.c": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5"
+    },
+    "finding": "expr_name_add_unlinked rejects an existing nonpermanent nonplaceholder in the same namespace; existing placeholders are reused. excel_read_NAME replaces only the current indexed slot with the returned binding. Native execution remains requested."
+  },
+  "public": {
+    "executions": 24,
+    "rows": [
+      {
+        "id": "biff-duplicate-global-constant-7",
+        "local": false,
+        "placeholder": false,
+        "profile": 7,
+        "inputSha256": "9001353518a0d9979a8f256205b55eb26af4b91f1d40919dfd98a78edcd9ba82",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 1,
+          "code": "invalid-request",
+          "message": "Conflicting named expression"
+        },
+        "command": {
+          "exitCode": 1,
+          "stderr": "Conflicting named expression\n"
+        },
+        "csv": ""
+      },
+      {
+        "id": "biff-duplicate-global-constant-8",
+        "local": false,
+        "placeholder": false,
+        "profile": 8,
+        "inputSha256": "59744ada620e737453ec96d9e948fc92278543112738d019c5e9fb7080e9c627",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 1,
+          "code": "invalid-request",
+          "message": "Conflicting named expression"
+        },
+        "command": {
+          "exitCode": 1,
+          "stderr": "Conflicting named expression\n"
+        },
+        "csv": ""
+      },
+      {
+        "id": "biff-duplicate-global-constant-dsf",
+        "local": false,
+        "placeholder": false,
+        "profile": "dsf",
+        "inputSha256": "4552e5d2891befd0c0abde0a1c1dac9de9b051727379f5a317c5f9254dda2826",
+        "bytes": 9728,
+        "sdk": {
+          "exitCode": 1,
+          "code": "invalid-request",
+          "message": "Conflicting named expression"
+        },
+        "command": {
+          "exitCode": 1,
+          "stderr": "Conflicting named expression\n"
+        },
+        "csv": ""
+      },
+      {
+        "id": "biff-duplicate-global-placeholder-7",
+        "local": false,
+        "placeholder": true,
+        "profile": 7,
+        "inputSha256": "7dc0f79090cb7dac7591145871152ab920d1ba622b2fb476c7a3363afccbaefd",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 18
+            }
+          ],
+          "usage": {
+            "inputBytes": 5632,
+            "outputBytes": 18
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "#REF!\n17\n#REF!\n17\n"
+      },
+      {
+        "id": "biff-duplicate-global-placeholder-8",
+        "local": false,
+        "placeholder": true,
+        "profile": 8,
+        "inputSha256": "52161db727f838d15f967f40cd43bafb9c25244bc2207ade80bf168e215b7b25",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 18
+            }
+          ],
+          "usage": {
+            "inputBytes": 5632,
+            "outputBytes": 18
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "#REF!\n17\n#REF!\n17\n"
+      },
+      {
+        "id": "biff-duplicate-global-placeholder-dsf",
+        "local": false,
+        "placeholder": true,
+        "profile": "dsf",
+        "inputSha256": "577d3f807addcb8d0cf8879407ee50b42a42ae6f8866d12b01512bba21caf0c7",
+        "bytes": 9728,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 18
+            }
+          ],
+          "usage": {
+            "inputBytes": 9728,
+            "outputBytes": 18
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "#REF!\n17\n#REF!\n17\n"
+      },
+      {
+        "id": "biff-duplicate-local-constant-7",
+        "local": true,
+        "placeholder": false,
+        "profile": 7,
+        "inputSha256": "ba6c5b89ecded9cf357693b5f7432c9bd21a9ef52984fbcfdf4864df3db771f8",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 1,
+          "code": "invalid-request",
+          "message": "Conflicting named expression"
+        },
+        "command": {
+          "exitCode": 1,
+          "stderr": "Conflicting named expression\n"
+        },
+        "csv": ""
+      },
+      {
+        "id": "biff-duplicate-local-constant-8",
+        "local": true,
+        "placeholder": false,
+        "profile": 8,
+        "inputSha256": "97367a4e2e07ca6294c1fe4bc3ee65867946ed711e684545113cf30166686be5",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 1,
+          "code": "invalid-request",
+          "message": "Conflicting named expression"
+        },
+        "command": {
+          "exitCode": 1,
+          "stderr": "Conflicting named expression\n"
+        },
+        "csv": ""
+      },
+      {
+        "id": "biff-duplicate-local-constant-dsf",
+        "local": true,
+        "placeholder": false,
+        "profile": "dsf",
+        "inputSha256": "068c71312883fdb633ae0c8bca2a9067f642afcb134b2fc398798cbbfa83d020",
+        "bytes": 9728,
+        "sdk": {
+          "exitCode": 1,
+          "code": "invalid-request",
+          "message": "Conflicting named expression"
+        },
+        "command": {
+          "exitCode": 1,
+          "stderr": "Conflicting named expression\n"
+        },
+        "csv": ""
+      },
+      {
+        "id": "biff-duplicate-local-placeholder-7",
+        "local": true,
+        "placeholder": true,
+        "profile": 7,
+        "inputSha256": "b0ed7595963278aff6f84fed31cb42c362edf65d62116a2aa52969ed940610c3",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 18
+            }
+          ],
+          "usage": {
+            "inputBytes": 5632,
+            "outputBytes": 18
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "#REF!\n17\n#REF!\n17\n"
+      },
+      {
+        "id": "biff-duplicate-local-placeholder-8",
+        "local": true,
+        "placeholder": true,
+        "profile": 8,
+        "inputSha256": "c6cd9bb033a42ba241c6c1e65ad80333f9ab24748c0932702a2f4c1debf6b8d2",
+        "bytes": 5632,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 18
+            }
+          ],
+          "usage": {
+            "inputBytes": 5632,
+            "outputBytes": 18
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "#REF!\n17\n#REF!\n17\n"
+      },
+      {
+        "id": "biff-duplicate-local-placeholder-dsf",
+        "local": true,
+        "placeholder": true,
+        "profile": "dsf",
+        "inputSha256": "556ac963e2d7aefa181e49325372624189b0030ab27d5c1928a43e2cbc5f4455",
+        "bytes": 9728,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 18
+            }
+          ],
+          "usage": {
+            "inputBytes": 9728,
+            "outputBytes": 18
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "#REF!\n17\n#REF!\n17\n"
+      }
+    ],
+    "inputsUnchanged": true,
+    "note": "Six constant-duplicate inputs fail with Conflicting named expression; six placeholder replacements yield #REF!/17/#REF!/17. SDK and Shell outcomes agree.",
+    "bindings": {
+      "packages/ssconvert/dist/index.js": "7358b42460cda3f84803c13aa73af0300053f857a8067b26871f445f7161b89b",
+      "packages/safe-bash/dist/commands/ssconvert/index.js": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+    }
+  },
+  "tests": {
+    "correctedRed": 12,
+    "logs": {
+      "red.log": "ed3f3ba43252d0615a7442591f9501bbc456a934f7c0e71b8e1248b259ac36dc",
+      "red-corrected.log": "5d4f9ea7f9057b12f2c85841b8efa953ce18faf0d9855e8eabca745dc349b3d6",
+      "public-corrected.log": "1759d749ee6ed66f0dc2c00685c44508cb8b433831758088db2daae0fa86b9a8",
+      "public-final.log": "7d633bdeefec27d9b89cfe21e89bd3eb098ec6e4990d0181340defeb28c4b456",
+      "public.log": "bdec10031154aeefd5ea2b6f3315541ee376d22b3c93392457e94c98e6e357e1",
+      "download.log": "63b871d39aed8a33f7a1a962b12ef417a54575c6a75876bdf49630c9dfdde922"
+    },
+    "draftCorrections": [
+      "Initial fixture assumed compressed BIFF8 names; corrected to inspect the wide-character flag and replace exact equal-length UTF16LE bytes.",
+      "Initial public driver omitted SDK exception capture and used incorrect recalc/export-range option names; final driver uses maintained typed interface fields."
+    ]
+  },
+  "native": {
+    "priorInputsPreserved": 151,
+    "addedInputs": 12,
+    "commands": 36,
+    "totalInputs": 163,
+    "manifest": "docs/ssconvert/linux-optional-service-native-probes.json",
+    "status": "Requested; native outcome is not yet qualified."
+  },
+  "remaining": "Native validation, importer repair, broader named-expression profiles, all 19 families and containing publication remain open."
+}

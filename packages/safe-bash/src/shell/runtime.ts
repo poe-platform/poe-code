@@ -5265,22 +5265,7 @@ export class Runtime {
       return (await this.shebangTarget(context, state, io, interpreterCommand.name, argumentValues.args, { argumentValues }, target, scriptSource)).exitCode;
     }
     source = scriptSource.source;
-    const units: Script[] = [];
     const lineIndex = new SourceLineIndex(source, this.budget.parsing);
-    try {
-      let position = 0;
-      do {
-        this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(context.env), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax);
-        units.push(unit.script);
-        position = unit.next;
-      } while (position < source.length);
-    } catch (error) {
-      if (!(error instanceof ShellSyntaxError)) throw error;
-      const line = source.slice(0, error.offset).split("\n").length;
-      await writeDiagnostic(context.stderr, `${target}: line ${line}: syntax error: ${error.reason}\n`);
-      return error.exitCode;
-    }
     const child = this.processState(context, state, io, target, args);
     child.errexit = errexit;
     child.braceexpand = braceexpand;
@@ -5291,13 +5276,26 @@ export class Runtime {
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: target }, references);
     try {
     let status = 0;
-    for (const unit of units) {
-      for (const warning of unit.warnings ?? []) await writeDiagnostic(context.stderr, `${target}: warning: ${warning}\n`);
-      if (!unit.lists.length) continue;
-      const result = await this.runUnit(unit, child, childIO);
-      status = result.exitCode;
-      if (result.terminated) break;
-    }
+    let position = 0;
+    do {
+      this.signal.throwIfAborted();
+      let unit;
+      try {
+        unit = parseShellUnit(source, position, byteLocale(child.variables), this.budget.parsing, lineIndex, undefined, false, child.extensions?.syntax);
+      } catch (error) {
+        if (!(error instanceof ShellSyntaxError)) throw error;
+        await writeDiagnostic(context.stderr, `${target}: line ${lineIndex.lineAt(error.offset)}: syntax error: ${error.reason}\n`);
+        status = error.exitCode;
+        break;
+      }
+      for (const warning of unit.script.warnings ?? []) await writeDiagnostic(context.stderr, `${target}: warning: ${warning}\n`);
+      if (unit.script.lists.length) {
+        const result = await this.runUnit(unit.script, child, childIO);
+        status = result.exitCode;
+        if (result.terminated) break;
+      }
+      position = unit.next;
+    } while (position < source.length);
     return await this.finishShell(child, childIO, status);
     } finally { await references.close(); }
   }

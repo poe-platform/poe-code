@@ -60,6 +60,42 @@ test("#614 successive units retain locale changes and earlier effects", async co
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["before"]);
 });
 
+for (const invocation of ["bash /program", "sh /program", "./program"]) {
+  test(`#835 ${invocation} stops parsing after exit`, async context => {
+    const { shell, fs } = setup();
+    context.after(() => shell.dispose());
+    await fs.writeFile("/program", new TextEncoder().encode("#!/bin/bash\nsay done\nexit 7\n(((\n"));
+    await fs.chmod("/program", 0o755);
+    const result = await shell.exec(invocation);
+    assert.equal(result.stdout, "done\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 7);
+  });
+
+  test(`#835 ${invocation} preserves effects before a syntax error`, async context => {
+    const { shell, fs } = setup();
+    context.after(() => shell.dispose());
+    await fs.writeFile("/program", new TextEncoder().encode("#!/bin/bash\nsay before; : >before\n)\n: >after\n"));
+    await fs.chmod("/program", 0o755);
+    const result = await shell.exec(invocation);
+    assert.equal(result.stdout, "before\n");
+    assert.equal(result.exitCode, 2);
+    assert.ok(result.stderr.startsWith(`${invocation === "./program" ? "./program" : "/program"}: line 3: syntax error:`), result.stderr);
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["before", "program"]);
+  });
+
+  test(`#835 ${invocation} parses each unit with the current child locale`, async context => {
+    const { shell, fs } = setup({ env: { LC_ALL: "C.UTF-8" } });
+    context.after(() => shell.dispose());
+    await fs.writeFile("/program", new TextEncoder().encode("#!/bin/bash\nLC_ALL=C\nargs $'\\u00e9'\nLC_ALL=C.UTF-8\nargs $'\\u00e9'\n"));
+    await fs.chmod("/program", 0o755);
+    const result = await shell.exec(invocation);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '["\\\\u00E9"]["é"]');
+    assert.equal((await shell.exec('args "$LC_ALL"')).stdout, '["C.UTF-8"]');
+  });
+}
+
 for (const invocation of ['eval "$program"', 'sh -c "$program"', ". /program", "sh /program"]) {
   test(`#614 ${invocation} reuses the source index across units`, async context => {
     const program = "say first\nsay second\n";

@@ -417,13 +417,13 @@ test("new interpreter modes are valid while binary bytes remain rejected", async
   }
 });
 
-test("whole script is parsed before body effects while parent continues", async () => {
+test("script effects before incomplete syntax persist while parent continues", async () => {
   const { shell, fs } = setup();
   await script(fs, "/program", "#!/bin/bash\nsay bad >touched\nif true; then\n");
   const result = await shell.exec('./program 2>errors; args "$?"; say parent');
   assert.equal(result.stdout, '["2"]parent\n');
   assert.equal(result.stderr, "");
-  await assert.rejects(fs.stat("/touched"), { code: "ENOENT" });
+  assert.equal(new TextDecoder().decode(await fs.readFile("/touched")), "bad\n");
   assert.match(new TextDecoder().decode(await fs.readFile("/errors")), /\.\/program: line .*syntax/u);
 });
 

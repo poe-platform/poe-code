@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "baseline": "d7247f49f505d98b7ecc2475f108e114b3889550",
+  "release": 35959406764,
+  "issue": "Root Vitest discovery incorrectly includes 15 Node test files in five workspaces, yielding No test suite found failures despite executing Node assertions.",
+  "validation": {
+    "baseline": "Current root Vitest invocation reproduces pdfinfo No test suite found failure.",
+    "discovery": {
+      "before": 1213,
+      "after": 1198,
+      "removed": [
+        "packages/safe-bash-command-mmdc/src/class.test.ts",
+        "packages/safe-bash-command-mmdc/src/command.test.ts",
+        "packages/safe-bash-command-mmdc/src/corpus-100.test.ts",
+        "packages/safe-bash-command-mmdc/src/er.test.ts",
+        "packages/safe-bash-command-mmdc/src/font.test.ts",
+        "packages/safe-bash-command-mmdc/src/geometry.test.ts",
+        "packages/safe-bash-command-mmdc/src/parser.test.ts",
+        "packages/safe-bash-command-mmdc/src/render.test.ts",
+        "packages/safe-bash-command-mmdc/src/sequence.test.ts",
+        "packages/safe-bash-command-mmdc/src/state.test.ts",
+        "packages/safe-bash-command-mmdc/src/theme.test.ts",
+        "packages/safe-bash-command-pdfinfo/src/pdfinfo.test.ts",
+        "packages/safe-bash-command-pdftotext/src/pdftotext.test.ts",
+        "packages/safe-bash-command-qpdf/src/qpdf.test.ts",
+        "packages/safe-bash-command-soffice/src/soffice.test.ts"
+      ],
+      "allOtherFilesPreserved": true,
+      "packageNativeRoutesPreserved": true
+    },
+    "nativePackageTests": {
+      "mmdc": 38,
+      "pdfinfo": 6,
+      "pdftotext": 6,
+      "qpdf": 6,
+      "soffice": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    "runnerTests": {
+      "files": 3,
+      "tests": 102
+    },
+    "commands": [
+      "npm test -- --workspace=safe-bash-command-mmdc --workspace=safe-bash-command-pdfinfo --workspace=safe-bash-command-pdftotext --workspace=safe-bash-command-qpdf --workspace=safe-bash-command-soffice",
+      "npm test -- --workspace=. --test-file=scripts/workspace-test-ownership.test.ts --test-file=scripts/ci-unit-groups.test.ts --test-file=scripts/test-vitest-workspaces.test.ts",
+      "npx eslint vitest.config.ts"
+    ],
+    "nativeNpmPosttest": "Both maintained invocations completed their declared lint stress posttest successfully."
+  },
+  "repair": "Add these Node-only src test patterns to the existing Vitest exclusions. Maintain all package unit declarations and normal npm lifecycle execution.",
+  "sourceSha256": "d56ab2a3515233732ab3cb9675b96f59d5a57219ad4116689b17b4ff9e27c459",
+  "remaining": "Containing root publication, other concrete release failures and all 19 original ssconvert families remain open."
+}

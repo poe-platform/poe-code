@@ -11,10 +11,16 @@ for (const [name, bytes, mode, status] of [
   try { const result = await shell.exec("/script"); assert.equal(result.exitCode, status); assert.equal(result.stdout, ""); }
   finally { await shell.dispose(); }
 });
-test("fallback prevalidates syntax before file effects", async () => {
+test("fallback preserves completed file effects before later syntax errors", async () => {
   const fs = createMemoryFileSystem(); await fs.writeFile("/script", Buffer.from("printf bad > /effect\nif"), { mode: 0o755 });
   const shell = new Shell({ fs }).use(agentCommands());
-  try { assert.equal((await shell.exec("/script")).exitCode, 2); await assert.rejects(fs.stat("/effect"), { code: "ENOENT" }); }
+  try {
+    const result = await shell.exec("/script");
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /syntax error/u);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/effect")), "bad");
+  }
   finally { await shell.dispose(); }
 });
 test("fallback symlinks preserve argv and parent cursor", async () => {

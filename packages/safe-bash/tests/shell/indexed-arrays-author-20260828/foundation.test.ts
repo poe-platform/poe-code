@@ -76,7 +76,7 @@ test("foundation: read, getopts and for update indexed zero only", { timeout: 50
   await output('a=([2]=tail); read a <<< first; printf "%s/" "$a"; getopts x a -x; printf "%s/" "$a"; for a in loop; do :; done; printf "<%s>" "${a[@]}"', "first/x/<loop><tail>");
 });
 
-test("foundation: script-file syntax preflight precedes all command effects", { timeout: 5000 }, async () => {
+test("foundation: script-file preserves completed command effects before malformed indexed syntax", { timeout: 5000 }, async () => {
   const fs = new MemoryFileSystem();
   const instance = new AuthorShell({ fs });
   let effects = 0;
@@ -85,8 +85,9 @@ test("foundation: script-file syntax preflight precedes all command effects", { 
   try {
     const result = await instance.exec("a=(outer); bash /invalid");
     assert.equal(result.exitCode, 2);
-    assert.equal(effects, 0);
+    assert.equal(effects, 1);
     assert.equal(result.stdout, "");
+    assert.match(result.stderr, /syntax error/u);
   } finally { await instance.dispose(); }
 });
 

@@ -77,18 +77,25 @@ There is no native-process fallback for these flags.
 ## Bounded streaming
 
 `SplitCommandsOptions` has `replace?: boolean` and
-`limits?: Partial<SplitLimits>`. Resource quotas are unlimited unless explicitly supplied. Each supplied quota is independent and must be a positive safe integer:
+`limits?: Partial<SplitLimits>`. The buffer cap defaults to 8 MiB, including in
+Workers; other resource quotas are unlimited unless explicitly supplied. Each
+supplied quota is independent and must be a positive safe integer:
 
 | Limit | Default | Meaning |
 | --- | ---: | --- |
 | `maxInputBytes` | Unlimited | Total yielded input bytes |
 | `maxOutputBytes` | Unlimited | Total offered VFS output payload |
 | `maxFiles` | Unlimited | Number of output files attempted |
-| `maxBufferBytes` | Unlimited | `-C` window, `-n` input and each fallback collection |
+| `maxBufferBytes` | 8 MiB | `-C` window, `-n` input and each fallback collection |
 | `maxChunkBytes` | 64 KiB | Output slice size / requested VFS read chunk |
 | `maxArgumentBytes` | Unlimited | Total UTF-8 bytes of argv |
 | `maxSuffixLength` | Unlimited (255 with `cloudflareWorkerLimits`) | Counter plus auto-extension characters; checked before allocating the counter, including on empty input |
 | `maxSteps` | Unlimited | Work/input-iteration budget |
+
+Line-byte windows above the buffer cap fail before reading input. Admitted
+windows grow as bytes arrive, rather than allocating the requested size up
+front; empty stdin allocates no window storage. Hosts can raise the finite
+buffer cap through `limits.maxBufferBytes` when larger windows are needed.
 
 These are per invocation, not a replacement for shared Shell budgets. Shell
 pipe/stdout/stderr budgets still apply. Direct VFS payloads do not magically

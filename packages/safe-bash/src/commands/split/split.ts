@@ -25,15 +25,21 @@ async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Ui
 }
 
 class LineBytes {
-  private readonly buffer: Uint8Array;
+  private buffer = new Uint8Array(0);
   private used = 0;
-  constructor(private readonly cursor: Cursor, private readonly size: number, private readonly separator: number) { this.buffer = new Uint8Array(size); }
+  constructor(private readonly cursor: Cursor, private readonly size: number, private readonly separator: number) {}
   async next(): Promise<Uint8Array> {
     while (this.used < this.size) {
       const bytes = await this.cursor.peek();
       if (!bytes.length) break;
       const count = Math.min(bytes.length, this.size - this.used);
       await this.cursor.budget.step(count);
+      const needed = this.used + count;
+      if (needed > this.buffer.length) {
+        const buffer = new Uint8Array(Math.min(this.size, Math.max(needed, this.buffer.length * 2)));
+        buffer.set(this.buffer.subarray(0, this.used));
+        this.buffer = buffer;
+      }
       this.buffer.set(this.cursor.take(count), this.used);
       this.used += count;
     }

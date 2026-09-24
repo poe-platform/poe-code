@@ -171,7 +171,7 @@ for (const { input, filter, expected } of cases) {
 }
 
 test("setpath checks array extension before allocation and cannot suppress limits", async () => {
-  const result = await run(["-c", 'setpath([100001];5)?'], "null\n");
+  const result = await run(["-c", 'setpath([3];5)?'], "null\n", { limits: { maxCollectionSize: 3 } });
   assert.equal(result.exitCode, 5);
   assert.equal(result.stderr, "jq: maxCollectionSize limit exceeded\n");
 });

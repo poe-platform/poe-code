@@ -70,6 +70,48 @@ const listing = "  Length      Date    Time    Name\n---------  ---------- -----
 const footer = "---------                     -------\n";
 const prompt = (name: string) => `replace ${name}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `;
 
+for (const mode of ["-o", "-t", "-l", "-Z1", "-p", "-c"]) test(`unzip stops at the first matching inclusion in ${mode}`, async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }]);
+  const result = await run(fs, [mode, "sample.zip", "*.txt", "a.txt"]);
+  assert.equal(result.exitCode, 11);
+  assert.equal(result.stderr, "caution: filename not matched:  a.txt\n");
+});
+
+for (const quiet of ["", "-q", "-qq"]) test(`unzip -c streams binary payloads with headers at quiet level ${quiet}`, async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }, { name: "b.txt", body: "secret" }]);
+  const result = await run(fs, ["-c", ...(quiet ? [quiet] : []), "sample.zip", "-x", "b.txt"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: quiet ? "hello" : heading + " extracting: a.txt                   \nhello\n" });
+  await assert.rejects(fs.stat("/work/a.txt"));
+  await assert.rejects(fs.stat("/work/b.txt"));
+});
+
+for (const mode of ["-cqp", "-pc", "-cp"]) test(`unzip ${mode} preserves raw stdout bytes without headers`, async () => {
+  const body = Uint8Array.of(0, 255, 10);
+  const fs = await fixture([{ name: "binary", body, method: 8 }]);
+  const chunks: Uint8Array[] = [];
+  const result = await run(fs, [mode, "sample.zip"], "", {}, { stdout: { async write(bytes) { chunks.push(Uint8Array.from(bytes)); } } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(Buffer.concat(chunks), Buffer.from(body));
+  await assert.rejects(fs.stat("/work/binary"));
+});
+
+test("unzip -c includes deflate headers and the archive comment", async () => {
+  const fs = await fixture([]);
+  await fs.writeFile("/work/sample.zip", zip([{ name: "binary", body: "hello", method: 8 }], "comment"));
+  const result = await run(fs, ["-c", "sample.zip"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: heading + "comment\n  inflating: binary                  \nhello\n" });
+});
+
+for (const patterns of [["a.txt", "missing.txt"], ["missing.txt"]]) test(`unzip -t reports an error summary for unmatched patterns ${patterns}`, async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }]);
+  const result = await run(fs, ["-t", "sample.zip", ...patterns]);
+  assert.equal(result.exitCode, 11);
+  assert.ok(result.stdout.endsWith("At least one error was detected in sample.zip.\n"));
+  const quiet = await run(fs, ["-tqq", "sample.zip", ...patterns]);
+  assert.equal(quiet.exitCode, 11);
+  assert.equal(quiet.stdout, "");
+});
+
 test("unzip Shell excludes multiple patterns and preserves case-sensitive defaults", async () => {
   const fs = await fixture([{ name: "a.txt", body: "a" }, { name: "b.log", body: "b" }, { name: "c.tmp", body: "c" }]);
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());

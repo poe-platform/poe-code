@@ -90,11 +90,11 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
       if (!Number.isSafeInteger(archiveStat.size) || archiveStat.size < 0 || archiveStat.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
       const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), ...(Number.isFinite(limits.maxInputMemoryBytes) ? { maxMemoryBytes: limits.maxInputMemoryBytes } : {}) });
-      if (!parsed.pipe && !parsed.names && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
+      if ((!parsed.pipe || parsed.pipeHeaders) && !parsed.names && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
       const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
       extraction.inputVolumes = resolved.volumes ?? [];
       const zip = await readZipArchive(resolved.bytes, limits, context.signal, resolved.disks ? { disks: resolved.disks } : { prefix: true });
-      if (parsed.archiveComment || !parsed.pipe && !parsed.names && !parsed.quiet) await comment(zip.comment, budget);
+      if (parsed.archiveComment || (!parsed.pipe || parsed.pipeHeaders) && !parsed.names && !parsed.quiet) await comment(zip.comment, budget);
       if (parsed.archiveComment) return { exitCode: 0 };
       if (!zip.entries.length) {
         await budget.output(`warning [${filtered(archive)}]:  zipfile is empty\n`, true);
@@ -105,7 +105,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         for (const entry of zip.entries) {
           await budget.member(entry.size);
           checkPath(entry.name, limits);
-          if (!await selection.matches(entry.name)) continue;
+          if (!await selection.matches(entry.name, true)) continue;
           if (parsed.exclusions.length && await exclusions.matches(entry.name, true)) continue;
           await budget.output(`${filtered(entry.name)}\n`);
           selected++;
@@ -163,7 +163,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       for (const entry of zip.entries) {
         await budget.member(entry.size);
         checkPath(entry.name, limits);
-        if (!await selection.matches(entry.name, parsed.pipe)) continue;
+        if (!await selection.matches(entry.name, true)) continue;
         if (parsed.exclusions.length && await exclusions.matches(entry.name, true)) continue;
         selected++; total += entry.size;
         try {
@@ -173,7 +173,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             continue;
           }
           if (parsed.pipe) {
+            if (parsed.pipeHeaders && !parsed.quiet) await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(entry.name))}  \n`);
             for await (const chunk of payload(entry)) await output!.output.write(chunk);
+            if (parsed.pipeHeaders && !parsed.quiet) await budget.output("\n");
             continue;
           }
           if (parsed.list) {
@@ -296,8 +298,11 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
         exitCode = 11;
       }
-      if (parsed.test && parsed.quiet < 2 && selected && !badPasswords && !exitCode) await budget.output(`No errors detected in compressed data of ${filtered(archive)}.\n`);
-      return { exitCode: badPasswords ? badPasswords === selected ? 82 : 1 : selected ? exitCode : 11 };
+      const resultCode = badPasswords ? badPasswords === selected ? 82 : 1 : selected ? exitCode : 11;
+      if (parsed.test && parsed.quiet < 2) await budget.output(resultCode
+        ? `At least one error was detected in ${filtered(archive)}.\n`
+        : `No errors detected in compressed data of ${filtered(archive)}.\n`);
+      return { exitCode: resultCode };
     } catch (error) {
       original.signal.throwIfAborted();
       const message = display(publicDiagnosticMessage(error, original.onInternalError).slice(0, limits.maxDiagnosticBytes));

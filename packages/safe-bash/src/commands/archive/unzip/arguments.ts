@@ -36,6 +36,7 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
   let quiet = 0;
   let password: Uint8Array | undefined;
   let pipe = false;
+  let pipeHeaders = false;
   let overwrite = false;
   let neverOverwrite = false;
   let junkPaths = false;
@@ -73,6 +74,7 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
           break;
         }
         else if (flag === "p") pipe = true;
+        else if (flag === "c") pipeHeaders = true;
         else if (flag === "o") overwrite = true;
         else if (flag === "n") neverOverwrite = true;
         else if (flag === "j") junkPaths = true;
@@ -90,12 +92,14 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
   if (rawArguments) for (const [index, value] of rawArguments.values.entries()) {
     if (!passwordArguments.has(index)) text(shellValueBytes(value));
   }
-  if (archive === undefined) fail("usage: unzip [-l|-v] [-C] [-u|-f] [-p] [-t] [-z] [-Z -1] [-q[q]] [-o] [-n] [-j] [-d DIR] ARCHIVE [FILES...] [-x PATTERNS...]");
+  pipeHeaders = pipeHeaders && !pipe;
+  pipe = pipe || pipeHeaders;
+  if (archive === undefined) fail("usage: unzip [-l|-v] [-C] [-u|-f] [-p|-c] [-t] [-z] [-Z -1] [-q[q]] [-o] [-n] [-j] [-d DIR] ARCHIVE [FILES...] [-x PATTERNS...]");
   checkPath(archive, limits);
   if (zipinfo && (!names || list || test || pipe || archiveComment || overwrite || destination !== undefined || password !== undefined)) fail("supported zipinfo mode is unzip -Z -1 ARCHIVE [FILES...]");
   if (archiveComment && (list || test || pipe || overwrite || destination !== undefined)) fail("archive comment mode cannot be combined with extraction, listing or test options");
   if (test && (list || pipe || destination !== undefined)) fail("unzip test mode cannot be combined with listing, pipe or destination");
-  return { test, quiet, password, names, archiveComment, list: list && !pipe, verbose, caseInsensitive, update, freshen, exclusions, pipe, overwrite, neverOverwrite, junkPaths, destination, archive, patterns };
+  return { test, quiet, password, names, archiveComment, list: list && !pipe, verbose, caseInsensitive, update, freshen, exclusions, pipe, pipeHeaders, overwrite, neverOverwrite, junkPaths, destination, archive, patterns };
 }
 
 type Token = { kind: "star"; crossDirectories: boolean } | { kind: "any" | "never" } | { kind: "literal"; value: string }

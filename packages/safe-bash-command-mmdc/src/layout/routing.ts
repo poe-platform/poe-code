@@ -591,7 +591,10 @@ export function routeGraphEdges(
             angleRadians: Math.atan2(p0.y - p1.y, p0.x - p1.x),
             stroke: theme.edge,
             fill:
-              edge.startMarker === "umlHollowTriangle" || edge.startMarker === "umlAggregation"
+              edge.startMarker === "umlHollowTriangle" ||
+              edge.startMarker === "umlAggregation" ||
+              edge.startMarker === "erZeroOrOne" ||
+              edge.startMarker === "erZeroOrMore"
                 ? theme.canvas
                 : theme.edge
           }
@@ -605,7 +608,10 @@ export function routeGraphEdges(
             angleRadians: Math.atan2(pn.y - pnPrev.y, pn.x - pnPrev.x),
             stroke: theme.edge,
             fill:
-              edge.endMarker === "umlHollowTriangle" || edge.endMarker === "umlAggregation"
+              edge.endMarker === "umlHollowTriangle" ||
+              edge.endMarker === "umlAggregation" ||
+              edge.endMarker === "erZeroOrOne" ||
+              edge.endMarker === "erZeroOrMore"
                 ? theme.canvas
                 : theme.edge
           }

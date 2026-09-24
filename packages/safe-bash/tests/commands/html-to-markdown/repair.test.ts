@@ -6,8 +6,33 @@ import { settings } from "../../../src/commands/html-to-markdown/options.js";
 import { createHtmlToMarkdownCommand } from "../../../src/commands/html-to-markdown/index.js";
 import { normalizeText, trimText } from "../../../src/commands/html-to-markdown/text.js";
 import { byteChunks, convert } from "./helpers.js";
+import { Parser } from "../../../src/commands/html-to-markdown/parser.js";
+
+test("nested table rows preserve the enclosing row and sibling cells", async () => {
+  const input = "<table><tr><td>Outer 1</td><td><table><tr><td>Inner</td></tr></table></td><td>Outer 3</td></tr></table>";
+  for (const size of [1, 7, 4096]) {
+    const parser = new Parser(new Budget((await convert("")).context, settings({})));
+    for (let offset = 0; offset < input.length; offset += size) await parser.feed(input.slice(offset, offset + size));
+    const root = await parser.finish();
+    const table = root.children[0]!;
+    assert.equal(root.children.length, 1);
+    assert.equal(table.tag, "table");
+    const row = table.children[0]!;
+    assert.equal(row.tag, "tr");
+    assert.deepEqual(row.children.map(node => node.tag), ["td", "td", "td"]);
+    assert.equal(row.children[1]!.children[0]!.tag, "table");
+    assert.equal(row.children[1]!.children[0]!.children[0]!.tag, "tr");
+  }
+});
 
 const literals: readonly [string, string][] = [
+  ["<p>Since 1 < 2, don't panic.</p><p>Second paragraph</p>", "Since 1 \\< 2, don't panic.\n\nSecond paragraph\n"],
+  ["<div data-msg=don't><p>Visible text</p></div>", "Visible text\n"],
+  ['<div data-msg=say"hello><p>Visible text</p></div>', "Visible text\n"],
+  ['<div data-msg="don\'t > panic"><p>Visible text</p></div>', "Visible text\n"],
+  ["<table><tr><th>A</th><th>B</th></tr><tr><td><b>Bold cell<td>Second cell</tr></table>", "| A | B |\n| --- | --- |\n| **Bold cell** | Second cell |\n"],
+  ["<table><tr><th><b>A<th>B</tr><tr><td><i>C<th>D</tr></table>", "| **A** | B |\n| --- | --- |\n| *C* | D |\n"],
+  ['<p>1 < 2, "still text".</p><p>Next</p>', '1 \\< 2, "still text".\n\nNext\n'],
   ["<p>1. ordinary sentence</p>", "1\\. ordinary sentence\n"],
   ["<p>1) ordinary sentence</p>", "1\\) ordinary sentence\n"],
   ["<p>~~ordinary~~</p>", "\\~\\~ordinary\\~\\~\n"],

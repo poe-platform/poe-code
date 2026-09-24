@@ -18,6 +18,7 @@ export class Parser {
   private buffer = "";
   private bufferBytes = 0;
   private quote = "";
+  private attributeMode: "name" | "before-value" | "unquoted" = "name";
   private rawName = "";
   private rawCandidate = "";
   private rawCandidateBytes = 0;
@@ -124,9 +125,15 @@ export class Parser {
         if (this.stack[index]!.tag === "li") { this.stack.length = index; break; }
       }
     }
-    if (name === "tr") this.pop("tr");
-    if (name === "td" || name === "th") {
-      if (this.stack.at(-1)?.tag === "td" || this.stack.at(-1)?.tag === "th") this.stack.pop();
+    if (name === "tr" || name === "td" || name === "th") {
+      for (let index = this.stack.length - 1; index > 0; index--) {
+        const tag = this.stack[index]!.tag;
+        if (["table", "thead", "tbody", "tfoot"].includes(tag)) break;
+        if (name !== "tr" && tag === "tr") break;
+        if (name === "tr" ? tag === "tr" : tag === "td" || tag === "th") {
+          this.stack.length = index; break;
+        }
+      }
     }
     this.budget.add("nodes");
     if (!voidTags.has(name) && !selfClosing) this.budget.check(this.stack.length, this.budget.limits.maxDepth, "depth");
@@ -146,8 +153,10 @@ export class Parser {
         await this.rawCharacter(character);
         continue;
       }
+      if (this.mode === "tag" && (this.buffer === "<" && !/[A-Za-z/?!]/u.test(character)
+        || this.buffer === "</" && !/[A-Za-z]/u.test(character))) this.mode = "text";
       if (this.mode === "text" && character === "<") {
-        await this.flushText(true); this.mode = "tag"; this.buffer = "<"; this.bufferBytes = 1; continue;
+        await this.flushText(true); this.mode = "tag"; this.attributeMode = "name"; this.buffer = "<"; this.bufferBytes = 1; continue;
       }
       const bytes = Buffer.byteLength(character);
       if (this.mode === "text" && bytes > this.budget.limits.maxTokenBytes - this.bufferBytes) await this.flushText(false);
@@ -162,11 +171,17 @@ export class Parser {
       if (this.mode === "text") { if (this.bufferBytes >= 4096) await this.flushText(false); continue; }
       if (this.buffer === "<!--") { this.mode = "comment"; this.buffer = ""; continue; }
       if (this.quote) { if (character === this.quote) this.quote = ""; continue; }
-      if (character === '"' || character === "'") { this.quote = character; continue; }
+      if (this.attributeMode === "before-value") {
+        if (/\s/u.test(character)) continue;
+        this.attributeMode = "unquoted";
+        if (character === '"' || character === "'") { this.quote = character; this.attributeMode = "name"; continue; }
+      } else if (this.attributeMode === "unquoted") {
+        if (/\s/u.test(character)) this.attributeMode = "name";
+      } else if (character === "=") this.attributeMode = "before-value";
       if (character === ">") {
         const raw = this.buffer; this.buffer = ""; this.bufferBytes = 0; this.mode = "text"; await this.tag(raw);
       } else if (character === "<") {
-        await this.appendText(this.buffer.slice(0, -1)); this.buffer = "<"; this.bufferBytes = 1;
+        await this.appendText(this.buffer.slice(0, -1)); this.attributeMode = "name"; this.buffer = "<"; this.bufferBytes = 1;
       }
     }
   }

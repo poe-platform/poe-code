@@ -39,9 +39,9 @@ without normalizing the original capture. The 60 independent charset cohorts mat
 native statuses and output bytes in every case, with 58/60 exact stderr matches.
 Three native empty/range measurements have corresponding passing canonical cases.
 
-The [original differential captures](configurable-text-export-differential.json)
-preserve rejected oracle fixtures, initial failures, corrections, final comparisons
-and verification logs. The [coverage record](configurable-text-export-coverage.json) enumerates every
+The [historical differential summary](configurable-text-export-differential.json)
+links to the original captures in Git history, including rejected fixtures, failures
+and corrections. The [coverage record](configurable-text-export-coverage.json) enumerates every
 captured accepted charset name still unsupported. The 1,180-name classification
 audit found 1,025 explicitly unsupported names and 155 names reaching existing
 encoding routes. This certifies classification, not all alias bytes or repertoires.

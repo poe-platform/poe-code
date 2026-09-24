@@ -1100,7 +1100,8 @@
     "focusedIntegrationTypecheck": "passed strict NodeNext check; does not certify maintained guarded route",
     "concurrentUnitAttempt": "one existing 5000ms R.QTUKEY calculation timeout with concurrent lint; original failure retained; unchanged complete suite rerun without competing lint passes 3506/3506",
     "durableDifferentialArtifact": "docs/ssconvert/configurable-text-export-differential.json",
-    "durableDifferentialSha256": "d7bd5a7c6926f4c69e3660aa9f09582aa848414ecc67abe1d6a4ab4c77f301d4"
+    "durableDifferentialSha256": "d7bd5a7c6926f4c69e3660aa9f09582aa848414ecc67abe1d6a4ab4c77f301d4",
+    "durableDifferentialCommit": "ede2c0645a22f35ecbf80dc68d5e6d79c53d6e11"
   },
   "sourceHashes": {
     "packages/ssconvert/src/codecs/text-export.ts": "18020c5bbdf6904fe77f3c78be9e379b5336b6be71db88773b05265586900733",

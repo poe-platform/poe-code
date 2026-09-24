@@ -277,9 +277,9 @@ Current implementation: LibreOffice Argon2id v19/AES256-GCM package import and e
 Current priorities:
 
 1. Continue encrypted-format qualification, including broader ODF application profiles and remaining BIFF/Paradox profiles; keep the encryption families open until their full requirements pass.
-2. Resolve the validated DOCX depth-2048 timeout affecting release CI. The uncommitted readback-cache experiment was discarded because five filtered cases still timed out. Preserve the matrix's routes and assertions.
+2. Monitor containing release CI. The historical DOCX depth-2048 timeout predates the supervised-fixture fix; the current rebuilt 96-case cohort passes locally. Preserve the matrix's routes and assertions; this focused result does not qualify the full CI run.
 3. Continue the remaining ledger families and qualify the resulting packed SDK/Shell artifacts.
 
-Recent delivered commits: CFB64 import df1f2d18e, CFB64 export 584fc2e34, and bounded GitHub release notes 27b9a96cb. They are verified on remote main. Published poe-code@17.0.35 points to a8a8a7ef and predates these changes; their containing release remains pending.
+Verified remote main through ede2c0645 includes cleanup and modern ODF import/export. Published poe-code@17.0.35 points to a8a8a7ef and predates these changes; containing publication remains pending.
 
 Historical run journals and disposable evidence were removed at the user's request. Required test fixtures, canonical inputs and source provenance remain. Prior captures can be inspected in Git history when needed; they are not current-candidate proof. Do not recreate bulky progress journals or commit raw command output.

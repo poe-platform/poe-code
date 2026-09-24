@@ -105,9 +105,7 @@
   ],
   "delivery": {
     "verifiedRemoteMain": [
-      "df1f2d18ed4a2d75113692df581bbd9fb53fc870",
-      "584fc2e3492d088c58a3019c57bbd5c318499c11",
-      "27b9a96cbea652668a98d9af6502717c86cbfa1d"
+      "ede2c0645a22f35ecbf80dc68d5e6d79c53d6e11"
     ],
     "verifiedPublication": {
       "version": "17.0.35",

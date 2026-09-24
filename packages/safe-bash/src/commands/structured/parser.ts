@@ -1,6 +1,10 @@
 import { JqError, JqLimitError, wellFormed, type Budget, type Json } from "./limits.js";
 import { decimalNumber } from "./numbers.js";
 
+export type BindingPattern =
+  | { kind: "variable"; name: string; pattern?: BindingPattern }
+  | { kind: "fields"; fields: { key: Ast; pattern: BindingPattern }[] };
+
 export type Ast =
   | { kind: "parameter"; name: string }
   | { kind: "invoke"; parameters: Ast[]; args: Ast[]; body: Ast }
@@ -11,6 +15,7 @@ export type Ast =
   | { kind: "bind"; source: Ast; name: string; body: Ast }
   | { kind: "label"; target: symbol; body: Ast }
   | { kind: "break"; target: symbol }
+  | { kind: "destructure"; source: Ast; patterns: BindingPattern[]; names: string[]; body: Ast }
   | { kind: "binary"; operator: string; left: Ast; right: Ast }
   | { kind: "unary"; operand: Ast }
   | { kind: "optional"; operand: Ast }
@@ -107,6 +112,9 @@ function tokenize(source: string, budget: Budget): Token[] {
     const name = /^[A-Za-z_][A-Za-z_0-9]*/u.exec(source.slice(offset));
     if (name) { tokens.push({ text: name[0], offset, kind: "name" }); offset += name[0].length; continue; }
     if (character === "@") { tokens.push({ text: "@", offset, kind: "symbol" }); offset++; continue; }
+    if (source.startsWith("?//", offset)) {
+      tokens.push({ text: "?//", offset, kind: "symbol" }); offset += 3; continue;
+    }
     if (source.startsWith("..", offset)) {
       tokens.push({ text: "..", offset, kind: "symbol" }); offset += 2; continue;
     }
@@ -204,6 +212,43 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     if (++nesting > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
     try { return conditional(); } finally { nesting--; }
   };
+  const pattern = (names: Set<string>): BindingPattern => {
+    if (++nesting > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+    try {
+      if (accept("$")) {
+        const name = take(); if (name.kind !== "name") fail("expected variable name");
+        names.add(name.text);
+        return { kind: "variable", name: name.text };
+      }
+      const array = accept("[");
+      if (!array) expect("{");
+      const fields: { key: Ast; pattern: BindingPattern }[] = [];
+      do {
+        let key: Ast;
+        let value: BindingPattern;
+        if (array) {
+          key = literal(fields.length);
+          value = pattern(names);
+        } else if (peek().text === "$") {
+          value = pattern(names);
+          if (value.kind !== "variable") return fail("expected variable name");
+          key = literal(value.name);
+          if (accept(":")) value = { ...value, pattern: pattern(names) };
+        } else {
+          if (accept("(")) { key = expression(); expect(")"); }
+          else {
+            const token = take();
+            if (token.kind !== "name" && token.kind !== "string") fail("expected object key");
+            key = literal(token.kind === "string" ? JSON.parse(token.text) as string : token.text);
+          }
+          expect(":"); value = pattern(names);
+        }
+        fields.push({ key, pattern: value });
+      } while (accept(","));
+      expect(array ? "]" : "}");
+      return { kind: "fields", fields };
+    } finally { nesting--; }
+  };
   const expression = (minimum = 0, stopComma = false): Ast => {
     if (++nesting > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
     try {
@@ -211,13 +256,20 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       while (true) {
         const operator = peek().text;
         if (operator === "as" && minimum <= 3) {
-          take(); expect("$");
-          const name = take(); if (name.kind !== "name") fail("expected variable name");
+          take();
+          const names = new Set<string>();
+          const patterns = [pattern(names)];
+          while (accept("?//")) patterns.push(pattern(names));
           expect("|");
-          const previous = bindings.get(name.text) ?? 0;
-          bindings.set(name.text, previous + 1);
-          try { left = { kind: "bind", source: left, name: name.text, body: expression(0, stopComma) }; }
-          finally { if (previous) bindings.set(name.text, previous); else bindings.delete(name.text); }
+          const previous = new Map([...names].map(name => [name, bindings.get(name) ?? 0]));
+          for (const [name, count] of previous) bindings.set(name, count + 1);
+          try {
+            const body = expression(0, stopComma);
+            const single = patterns[0]!;
+            left = patterns.length === 1 && single.kind === "variable"
+              ? { kind: "bind", source: left, name: single.name, body }
+              : { kind: "destructure", source: left, patterns, names: [...names], body };
+          } finally { for (const [name, count] of previous) { if (count) bindings.set(name, count); else bindings.delete(name); } }
           continue;
         }
         const priority = Object.hasOwn(precedence, operator) ? precedence[operator]! : -1;
@@ -417,6 +469,16 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     else if (node.kind === "label") children.push(node.body);
     else if (node.kind === "binary") children.push(node.left, node.right);
     else if (node.kind === "bind") children.push(node.source, node.body);
+    else if (node.kind === "destructure") {
+      children.push(node.source, node.body);
+      const patterns = [...node.patterns];
+      while (patterns.length) {
+        budget.step();
+        const entry = patterns.pop()!;
+        if (entry.kind === "fields") for (const field of entry.fields) { children.push(field.key); patterns.push(field.pattern); }
+        else if (entry.pattern) patterns.push(entry.pattern);
+      }
+    }
     else if (node.kind === "unary" || node.kind === "optional") children.push(node.operand);
     else if (node.kind === "index") children.push(node.base, node.index);
     else if (node.kind === "iterate") children.push(node.base);

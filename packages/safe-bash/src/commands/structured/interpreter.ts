@@ -1,7 +1,7 @@
 import { Budget, copyObject, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
-import type { Ast } from "./parser.js";
+import type { Ast, BindingPattern } from "./parser.js";
 import { formatValue } from "./formats.js";
 import { scanRegex, substituteRegex } from "./regex.js";
 import { splitString } from "./split.js";
@@ -23,6 +23,33 @@ export class Interpreter {
   private labels = new Map<symbol, number>();
   private labelSequence = { next: 0 };
   constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
+  private binding(name: string, value: Json): Interpreter {
+    const depth = (this.frame?.depth ?? 0) + 1;
+    if (depth > this.budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+    const scope = Object.create(Interpreter.prototype) as Interpreter;
+    Object.assign(scope, this, { frame: { name, value, parent: this.frame, depth } });
+    return scope;
+  }
+  private async *matchPattern(pattern: BindingPattern, value: Json, keyScope: Interpreter): AsyncGenerator<Interpreter> {
+    await this.budget.tick();
+    if (pattern.kind === "variable") {
+      const scope = this.binding(pattern.name, value);
+      if (pattern.pattern) yield* scope.matchPattern(pattern.pattern, value, keyScope);
+      else yield scope;
+      return;
+    }
+    const fields = pattern.fields;
+    const matchFields = async function* (scope: Interpreter, index: number): AsyncGenerator<Interpreter> {
+      if (index === fields.length) { yield scope; return; }
+      const field = fields[index]!;
+      for await (const key of keyScope.run(field.key, value)) {
+        for await (const matched of scope.matchPattern(field.pattern, indexValue(value, key), keyScope)) {
+          yield* matchFields(matched, index + 1);
+        }
+      }
+    };
+    yield* matchFields(this, 0);
+  }
   async collect(ast: Ast, input: Json): Promise<Json[]> {
     const result: Json[] = [];
     let bytes = 2;
@@ -75,6 +102,22 @@ export class Interpreter {
           const scope = Object.create(Interpreter.prototype) as Interpreter;
           Object.assign(scope, this, { frame: { name: ast.name, value, parent: this.frame, depth } });
           yield* scope.run(ast.body, input);
+        }
+        return;
+      }
+      case "destructure": {
+        for await (const value of this.run(ast.source, input)) {
+          for (let index = 0; index < ast.patterns.length; index++) {
+            try {
+              const scope = ast.names.reduce<Interpreter>((parent, name) => parent.binding(name, null), this);
+              for await (const matched of scope.matchPattern(ast.patterns[index]!, value, this)) {
+                yield* matched.run(ast.body, input);
+              }
+              break;
+            } catch (error) {
+              if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted || index === ast.patterns.length - 1) throw error;
+            }
+          }
         }
         return;
       }

@@ -215,6 +215,9 @@ necessarily earlier. Shell redirection effects are outside this command's scope.
 
 - Identity `.`, JSON scalar literals, `#` line comments, and `$name` variables.
 - Lexical `FILTER as $name | BODY` bindings keep the original input for `BODY`.
+  Array and object patterns can nest, for example `as [$a, {x: $b}]`.
+  Destructuring alternatives (`as {$a} ?// [$b]`) retry the next pattern after
+  a matching or body error; variables absent from the chosen pattern are null.
   Strings support `"\(FILTER)"` interpolation, including multiple results.
 - `label $name | BODY` scopes `break $name` to the nearest matching lexical
   label. A break stops that label's remaining results; values already emitted
@@ -400,7 +403,7 @@ patterns additionally have bounded source, nesting and compiled-program size.
 
 ## Deliberate gaps
 
-- Not the entire jq language: no recursive definitions, destructuring `as` bindings,
+- Not the entire jq language: no recursive definitions, destructuring reduce/foreach bindings,
   recursion, labels/break,
   complete regex/date/math libraries or arbitrary jq builtins.
   `scan` streams nonoverlapping matches, or capture arrays when the pattern has

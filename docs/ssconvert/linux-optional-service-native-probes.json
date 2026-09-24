@@ -28799,7 +28799,7 @@
       "filename": "xml-name-cycles-globals-last.gnumeric",
       "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4f757465723c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d4461746121496e6e65723c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e496e6e65723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e5b5d4f757465723c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e4f757465723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c4461746121496e6e65722c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c2f676e6d3a576f726b626f6f6b3e",
       "inputSha256": "a7b780e9c2c652747afee1761d561658b3fa5efeef42947c565bb8fe6a5f9eba",
-      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings. Native Gnumeric crashes with SIGSEGV after producing CSV in runs 35945383586 and 35945701510. Crash observation only; XML export/replay remains unqualified.",
       "captures": [
         {
           "label": "xml-name-cycles-globals-last",
@@ -28812,34 +28812,7 @@
             "fd://1"
           ],
           "expectedExitCodes": [
-            0
-          ]
-        },
-        {
-          "label": "xml-name-cycles-globals-last-xml",
-          "argv": [
-            "--recalc",
-            "-T",
-            "Gnumeric_XmlIO:sax:0",
-            "{input}",
-            "{root}/xml-name-cycles-globals-last-replay.gnumeric"
-          ],
-          "expectedExitCodes": [
-            0
-          ]
-        },
-        {
-          "label": "xml-name-cycles-globals-last-replay",
-          "argv": [
-            "--recalc",
-            "--export-range=Here!A1:A2",
-            "-T",
-            "Gnumeric_stf:stf_csv",
-            "{root}/xml-name-cycles-globals-last-replay.gnumeric",
-            "fd://1"
-          ],
-          "expectedExitCodes": [
-            0
+            -11
           ]
         }
       ]

@@ -1,0 +1,1118 @@
+{
+  "schemaVersion": 1,
+  "run": {
+    "id": 35945383586,
+    "name": "Provision Linux ssconvert reference",
+    "node_id": "WFR_kwLOQEh8ps8AAAAIXoMGog",
+    "head_branch": "main",
+    "head_sha": "232a4c045c599e0f7e6a6c9b2463603df48a44ea",
+    "path": ".github/workflows/provision-ssconvert-reference.yml",
+    "display_title": "Provision Linux ssconvert reference",
+    "run_number": 65,
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "failure",
+    "workflow_id": 364940192,
+    "check_suite_id": 97335342648,
+    "check_suite_node_id": "CS_kwDOQEh8ps8AAAAWqaN2OA",
+    "url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35945383586",
+    "html_url": "https://github.com/poe-platform/poe-code/actions/runs/35945383586",
+    "pull_requests": [],
+    "created_at": "2026-09-24T02:00:28Z",
+    "updated_at": "2026-09-24T02:05:30Z",
+    "actor": {
+      "login": "kamilio",
+      "id": 1078185,
+      "node_id": "MDQ6VXNlcjEwNzgxODU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1078185?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kamilio",
+      "html_url": "https://github.com/kamilio",
+      "followers_url": "https://api.github.com/users/kamilio/followers",
+      "following_url": "https://api.github.com/users/kamilio/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kamilio/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kamilio/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kamilio/subscriptions",
+      "organizations_url": "https://api.github.com/users/kamilio/orgs",
+      "repos_url": "https://api.github.com/users/kamilio/repos",
+      "events_url": "https://api.github.com/users/kamilio/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kamilio/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "run_attempt": 1,
+    "referenced_workflows": [],
+    "run_started_at": "2026-09-24T02:00:28Z",
+    "triggering_actor": {
+      "login": "kamilio",
+      "id": 1078185,
+      "node_id": "MDQ6VXNlcjEwNzgxODU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1078185?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kamilio",
+      "html_url": "https://github.com/kamilio",
+      "followers_url": "https://api.github.com/users/kamilio/followers",
+      "following_url": "https://api.github.com/users/kamilio/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kamilio/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kamilio/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kamilio/subscriptions",
+      "organizations_url": "https://api.github.com/users/kamilio/orgs",
+      "repos_url": "https://api.github.com/users/kamilio/repos",
+      "events_url": "https://api.github.com/users/kamilio/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kamilio/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "jobs_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35945383586/jobs",
+    "logs_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35945383586/logs",
+    "check_suite_url": "https://api.github.com/repos/poe-platform/poe-code/check-suites/97335342648",
+    "artifacts_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35945383586/artifacts",
+    "cancel_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35945383586/cancel",
+    "rerun_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35945383586/rerun",
+    "previous_attempt_url": null,
+    "workflow_url": "https://api.github.com/repos/poe-platform/poe-code/actions/workflows/364940192",
+    "head_commit": {
+      "id": "232a4c045c599e0f7e6a6c9b2463603df48a44ea",
+      "tree_id": "5196a33d49281d69513f6875d19883aacef90e40",
+      "message": "fix(ssconvert): reject cyclic XML name definitions",
+      "timestamp": "2026-09-24T02:00:07Z",
+      "author": {
+        "name": "Kamil Jopek",
+        "email": "kjopek@quora.com"
+      },
+      "committer": {
+        "name": "Kamil Jopek",
+        "email": "kjopek@quora.com"
+      }
+    },
+    "repository": {
+      "id": 1078492326,
+      "node_id": "R_kgDOQEh8pg",
+      "name": "poe-code",
+      "full_name": "poe-platform/poe-code",
+      "private": false,
+      "owner": {
+        "login": "poe-platform",
+        "id": 129537891,
+        "node_id": "O_kgDOB7iXYw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/129537891?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/poe-platform",
+        "html_url": "https://github.com/poe-platform",
+        "followers_url": "https://api.github.com/users/poe-platform/followers",
+        "following_url": "https://api.github.com/users/poe-platform/following{/other_user}",
+        "gists_url": "https://api.github.com/users/poe-platform/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/poe-platform/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/poe-platform/subscriptions",
+        "organizations_url": "https://api.github.com/users/poe-platform/orgs",
+        "repos_url": "https://api.github.com/users/poe-platform/repos",
+        "events_url": "https://api.github.com/users/poe-platform/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/poe-platform/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/poe-platform/poe-code",
+      "description": "Use Poe to power your favorite coding agents (Claude Code, Codex, OpenCode, etc). No need for multiple subscriptions.",
+      "fork": false,
+      "url": "https://api.github.com/repos/poe-platform/poe-code",
+      "forks_url": "https://api.github.com/repos/poe-platform/poe-code/forks",
+      "keys_url": "https://api.github.com/repos/poe-platform/poe-code/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/poe-platform/poe-code/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/poe-platform/poe-code/teams",
+      "hooks_url": "https://api.github.com/repos/poe-platform/poe-code/hooks",
+      "issue_events_url": "https://api.github.com/repos/poe-platform/poe-code/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/poe-platform/poe-code/events",
+      "assignees_url": "https://api.github.com/repos/poe-platform/poe-code/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/poe-platform/poe-code/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/poe-platform/poe-code/tags",
+      "blobs_url": "https://api.github.com/repos/poe-platform/poe-code/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/poe-platform/poe-code/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/poe-platform/poe-code/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/poe-platform/poe-code/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/poe-platform/poe-code/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/poe-platform/poe-code/languages",
+      "stargazers_url": "https://api.github.com/repos/poe-platform/poe-code/stargazers",
+      "contributors_url": "https://api.github.com/repos/poe-platform/poe-code/contributors",
+      "subscribers_url": "https://api.github.com/repos/poe-platform/poe-code/subscribers",
+      "subscription_url": "https://api.github.com/repos/poe-platform/poe-code/subscription",
+      "commits_url": "https://api.github.com/repos/poe-platform/poe-code/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/poe-platform/poe-code/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/poe-platform/poe-code/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/poe-platform/poe-code/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/poe-platform/poe-code/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/poe-platform/poe-code/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/poe-platform/poe-code/merges",
+      "archive_url": "https://api.github.com/repos/poe-platform/poe-code/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/poe-platform/poe-code/downloads",
+      "issues_url": "https://api.github.com/repos/poe-platform/poe-code/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/poe-platform/poe-code/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/poe-platform/poe-code/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/poe-platform/poe-code/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/poe-platform/poe-code/labels{/name}",
+      "releases_url": "https://api.github.com/repos/poe-platform/poe-code/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/poe-platform/poe-code/deployments"
+    },
+    "head_repository": {
+      "id": 1078492326,
+      "node_id": "R_kgDOQEh8pg",
+      "name": "poe-code",
+      "full_name": "poe-platform/poe-code",
+      "private": false,
+      "owner": {
+        "login": "poe-platform",
+        "id": 129537891,
+        "node_id": "O_kgDOB7iXYw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/129537891?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/poe-platform",
+        "html_url": "https://github.com/poe-platform",
+        "followers_url": "https://api.github.com/users/poe-platform/followers",
+        "following_url": "https://api.github.com/users/poe-platform/following{/other_user}",
+        "gists_url": "https://api.github.com/users/poe-platform/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/poe-platform/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/poe-platform/subscriptions",
+        "organizations_url": "https://api.github.com/users/poe-platform/orgs",
+        "repos_url": "https://api.github.com/users/poe-platform/repos",
+        "events_url": "https://api.github.com/users/poe-platform/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/poe-platform/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/poe-platform/poe-code",
+      "description": "Use Poe to power your favorite coding agents (Claude Code, Codex, OpenCode, etc). No need for multiple subscriptions.",
+      "fork": false,
+      "url": "https://api.github.com/repos/poe-platform/poe-code",
+      "forks_url": "https://api.github.com/repos/poe-platform/poe-code/forks",
+      "keys_url": "https://api.github.com/repos/poe-platform/poe-code/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/poe-platform/poe-code/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/poe-platform/poe-code/teams",
+      "hooks_url": "https://api.github.com/repos/poe-platform/poe-code/hooks",
+      "issue_events_url": "https://api.github.com/repos/poe-platform/poe-code/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/poe-platform/poe-code/events",
+      "assignees_url": "https://api.github.com/repos/poe-platform/poe-code/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/poe-platform/poe-code/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/poe-platform/poe-code/tags",
+      "blobs_url": "https://api.github.com/repos/poe-platform/poe-code/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/poe-platform/poe-code/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/poe-platform/poe-code/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/poe-platform/poe-code/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/poe-platform/poe-code/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/poe-platform/poe-code/languages",
+      "stargazers_url": "https://api.github.com/repos/poe-platform/poe-code/stargazers",
+      "contributors_url": "https://api.github.com/repos/poe-platform/poe-code/contributors",
+      "subscribers_url": "https://api.github.com/repos/poe-platform/poe-code/subscribers",
+      "subscription_url": "https://api.github.com/repos/poe-platform/poe-code/subscription",
+      "commits_url": "https://api.github.com/repos/poe-platform/poe-code/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/poe-platform/poe-code/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/poe-platform/poe-code/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/poe-platform/poe-code/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/poe-platform/poe-code/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/poe-platform/poe-code/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/poe-platform/poe-code/merges",
+      "archive_url": "https://api.github.com/repos/poe-platform/poe-code/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/poe-platform/poe-code/downloads",
+      "issues_url": "https://api.github.com/repos/poe-platform/poe-code/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/poe-platform/poe-code/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/poe-platform/poe-code/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/poe-platform/poe-code/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/poe-platform/poe-code/labels{/name}",
+      "releases_url": "https://api.github.com/repos/poe-platform/poe-code/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/poe-platform/poe-code/deployments"
+    }
+  },
+  "artifact": {
+    "id": 10787115355,
+    "node_id": "MDg6QXJ0aWZhY3QxMDc4NzExNTM1NQ==",
+    "name": "ssconvert-linux-232a4c045c599e0f7e6a6c9b2463603df48a44ea-35945383586",
+    "size_in_bytes": 56151451,
+    "url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10787115355",
+    "archive_download_url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10787115355/zip",
+    "expired": false,
+    "digest": "sha256:7699274a0792215dae1fcdbaef36d89db16149b575edd1fb628944f5e986be18",
+    "created_at": "2026-09-24T02:05:22Z",
+    "updated_at": "2026-09-24T02:05:22Z",
+    "expires_at": "2026-10-01T02:05:19Z",
+    "workflow_run": {
+      "id": 35945383586,
+      "repository_id": 1078492326,
+      "head_repository_id": 1078492326,
+      "head_branch": "main",
+      "head_sha": "232a4c045c599e0f7e6a6c9b2463603df48a44ea"
+    }
+  },
+  "artifactSha256": "7699274a0792215dae1fcdbaef36d89db16149b575edd1fb628944f5e986be18",
+  "captureProgressSha256": "f8144964a73dcb1ed1b29dea917a5d14c6aec6b9f924cdef5f9f48b6ee0539d5",
+  "manifestSha256": "d9b50cc2f924cc65ed9fdab0ab40e609d5aed37797b45de7224cd5aa1d433c5c",
+  "workflowSha256": "f5dcd9974fbbcc09c502acaf9e670da882ecd2811b1d4aeb5becee41d7c53d6a",
+  "prefixArchiveSha256": "922828f3ba386998a4ebef638a6b0e3b657eec72bef89fafcb06eeb9812edb6c",
+  "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+  "binaryMode": "0755",
+  "binaryArchitecture": "ELF64 little-endian AArch64",
+  "activePluginIds": [
+    "GOffice_smoothing",
+    "GOffice_reg_logfit",
+    "GOffice_plot_surface",
+    "GOffice_reg_linear",
+    "GOffice_plot_barcol",
+    "GOffice_plot_pie",
+    "GOffice_plot_distrib",
+    "GOffice_plot_xy",
+    "GOffice_plot_radar",
+    "Gnumeric_fndate",
+    "Gnumeric_fnTimeSeriesAnalysis",
+    "Gnumeric_plan_perfect",
+    "Gnumeric_fnlogical",
+    "Gnumeric_numtheory",
+    "Gnumeric_fnfinancial",
+    "Gnumeric_dif",
+    "Gnumeric_mps",
+    "Gnumeric_xbase",
+    "Gnumeric_fninfo",
+    "Gnumeric_fnhebdate",
+    "Gnumeric_fnstat",
+    "Gnumeric_lpsolve",
+    "Gnumeric_oleo",
+    "Gnumeric_derivatives",
+    "Gnumeric_fndatabase",
+    "Gnumeric_fnerlang",
+    "Gnumeric_fnlookup",
+    "Gnumeric_OpenCalc",
+    "Gnumeric_Excel",
+    "Gnumeric_fnflt",
+    "Gnumeric_r",
+    "Gnumeric_html",
+    "Gnumeric_glpk",
+    "Gnumeric_QPro",
+    "Gnumeric_lotus",
+    "Gnumeric_fnchristiandate",
+    "Gnumeric_fnrandom",
+    "Gnumeric_fnstring",
+    "Gnumeric_sylk",
+    "Gnumeric_fncomplex",
+    "Gnumeric_applix",
+    "Gnumeric_nlsolve",
+    "Gnumeric_sc",
+    "Gnumeric_paradox",
+    "Gnumeric_fnmath",
+    "Gnumeric_fneng"
+  ],
+  "dependencyBuilds": {
+    "manifestSha256": "a3126d1f67fb59c60c04a588e16c8917fcc64e698d2475ab7d6f427da8f97841",
+    "selected": []
+  },
+  "rows": [
+    {
+      "id": "xml-name-cycles-global-self",
+      "inputSha256": "19959280f1134bd1def2e73a3742199514f031940215defdce748d7abc70fe3d",
+      "captures": [
+        {
+          "label": "xml-name-cycles-global-self",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-global-self.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a31330a",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620477561726465640a",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n13\n",
+          "stderrText": "Ignoring would-be circular definition of Guarded\n"
+        },
+        {
+          "label": "xml-name-cycles-global-self-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/xml-name-cycles-global-self.gnumeric",
+            "out/ssconvert-linux/xml-name-cycles-global-self-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620477561726465640a",
+          "supplementalEnvironment": {},
+          "stdoutText": "",
+          "stderrText": "Ignoring would-be circular definition of Guarded\n"
+        },
+        {
+          "label": "xml-name-cycles-global-self-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-global-self-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a31330a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n13\n",
+          "stderrText": ""
+        }
+      ],
+      "nativeReplayFilename": "xml-name-cycles-global-self-replay.gnumeric",
+      "nativeReplaySha256": "476fc7f17d397ef64ec3159856d47ae4443ed2e9301a07f861a5fc61c1e3023e"
+    },
+    {
+      "id": "xml-name-cycles-local-self",
+      "inputSha256": "cbb9f81ca31c67b49bd5fe224499d97eb85d167ba2d096bcbc60e8f3850a664c",
+      "captures": [
+        {
+          "label": "xml-name-cycles-local-self",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-local-self.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a31330a",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620477561726465640a",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n13\n",
+          "stderrText": "Ignoring would-be circular definition of Guarded\n"
+        },
+        {
+          "label": "xml-name-cycles-local-self-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/xml-name-cycles-local-self.gnumeric",
+            "out/ssconvert-linux/xml-name-cycles-local-self-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620477561726465640a",
+          "supplementalEnvironment": {},
+          "stdoutText": "",
+          "stderrText": "Ignoring would-be circular definition of Guarded\n"
+        },
+        {
+          "label": "xml-name-cycles-local-self-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-local-self-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a31330a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n13\n",
+          "stderrText": ""
+        }
+      ],
+      "nativeReplayFilename": "xml-name-cycles-local-self-replay.gnumeric",
+      "nativeReplaySha256": "16c0ad3f649e87d0dc4d524d8a3ecd9c6e97f27ed9f658084f8f6267c7013d42"
+    },
+    {
+      "id": "xml-name-cycles-forward-pair",
+      "inputSha256": "d0854ac22e3bdaa66952766b5cfba6da9c98fb7f4959ae346892f56b630c5010",
+      "captures": [
+        {
+          "label": "xml-name-cycles-forward-pair",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-forward-pair.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a300a",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620416c7068610a",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n0\n",
+          "stderrText": "Ignoring would-be circular definition of Alpha\n"
+        },
+        {
+          "label": "xml-name-cycles-forward-pair-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/xml-name-cycles-forward-pair.gnumeric",
+            "out/ssconvert-linux/xml-name-cycles-forward-pair-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620416c7068610a",
+          "supplementalEnvironment": {},
+          "stdoutText": "",
+          "stderrText": "Ignoring would-be circular definition of Alpha\n"
+        },
+        {
+          "label": "xml-name-cycles-forward-pair-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-forward-pair-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a300a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n0\n",
+          "stderrText": ""
+        }
+      ],
+      "nativeReplayFilename": "xml-name-cycles-forward-pair-replay.gnumeric",
+      "nativeReplaySha256": "9f48b4e53fbcfeb0c99081b5329270eba12d2cba01250e89d181a223f297ef7c"
+    },
+    {
+      "id": "xml-name-cycles-reverse-pair",
+      "inputSha256": "c2e881430aac50b9bb8ecae4287fe0d912b94634bf4fa21277b37ca941a1e9f3",
+      "captures": [
+        {
+          "label": "xml-name-cycles-reverse-pair",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-reverse-pair.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "370a300a",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620426574610a",
+          "supplementalEnvironment": {},
+          "stdoutText": "7\n0\n",
+          "stderrText": "Ignoring would-be circular definition of Beta\n"
+        },
+        {
+          "label": "xml-name-cycles-reverse-pair-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/xml-name-cycles-reverse-pair.gnumeric",
+            "out/ssconvert-linux/xml-name-cycles-reverse-pair-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620426574610a",
+          "supplementalEnvironment": {},
+          "stdoutText": "",
+          "stderrText": "Ignoring would-be circular definition of Beta\n"
+        },
+        {
+          "label": "xml-name-cycles-reverse-pair-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-reverse-pair-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "370a300a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutText": "7\n0\n",
+          "stderrText": ""
+        }
+      ],
+      "nativeReplayFilename": "xml-name-cycles-reverse-pair-replay.gnumeric",
+      "nativeReplaySha256": "75afdb982589671c4e78620c94dca51e61e18cfe8b3fbea64302acd27b7e0df6"
+    },
+    {
+      "id": "xml-name-cycles-globals-first",
+      "inputSha256": "dc973643489873f691b720c46b7768ac88e1c580b70053dc0cd4730504f914a3",
+      "captures": [
+        {
+          "label": "xml-name-cycles-globals-first",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-globals-first.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a300a",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f66204f757465720a",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n0\n",
+          "stderrText": "Ignoring would-be circular definition of Outer\n"
+        },
+        {
+          "label": "xml-name-cycles-globals-first-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/xml-name-cycles-globals-first.gnumeric",
+            "out/ssconvert-linux/xml-name-cycles-globals-first-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f66204f757465720a",
+          "supplementalEnvironment": {},
+          "stdoutText": "",
+          "stderrText": "Ignoring would-be circular definition of Outer\n"
+        },
+        {
+          "label": "xml-name-cycles-globals-first-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-globals-first-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a300a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutText": "0\n0\n",
+          "stderrText": ""
+        }
+      ],
+      "nativeReplayFilename": "xml-name-cycles-globals-first-replay.gnumeric",
+      "nativeReplaySha256": "3587a32853a28ae941963cf58cd1f2fffeb8134b7a97844d0997f653768c8c92"
+    },
+    {
+      "id": "xml-name-cycles-globals-last",
+      "inputSha256": "a7b780e9c2c652747afee1761d561658b3fa5efeef42947c565bb8fe6a5f9eba",
+      "captures": [
+        {
+          "label": "xml-name-cycles-globals-last",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/xml-name-cycles-globals-last.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": -11,
+          "stdoutHex": "370a300a",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620496e6e65720a",
+          "supplementalEnvironment": {},
+          "stdoutText": "7\n0\n",
+          "stderrText": "Ignoring would-be circular definition of Inner\n"
+        }
+      ],
+      "nativeReplayFilename": "xml-name-cycles-globals-last-replay.gnumeric",
+      "nativeReplaySha256": null
+    }
+  ],
+  "qualification": "Partial capture only: five inputs complete, sixth crashes after producing CSV. No final identity.json was emitted; no full-profile or successful-run claim. The archived binary and raw streams are bound through the API artifact digest and exact-head workflow, not a synthesized identity receipt.",
+  "remaining": [
+    "Native XML export/replay for globals-last was never attempted.",
+    "BIFF cycle-index follow-ups were blocked by this capture failure.",
+    "No product crash emulation required."
+  ],
+  "repeatFailure": {
+    "artifact": {
+      "id": 10787290136,
+      "node_id": "MDg6QXJ0aWZhY3QxMDc4NzI5MDEzNg==",
+      "name": "ssconvert-linux-3438705768121dd20ae5d27a719fc1d5d13a1de2-35945701510",
+      "size_in_bytes": 56146643,
+      "url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10787290136",
+      "archive_download_url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10787290136/zip",
+      "expired": false,
+      "digest": "sha256:e0d47ad0706ebabf4f7f8f180568f305207cffa7b09eed97d7e35712075d3a3b",
+      "created_at": "2026-09-24T02:09:39Z",
+      "updated_at": "2026-09-24T02:09:39Z",
+      "expires_at": "2026-10-01T02:09:36Z",
+      "workflow_run": {
+        "id": 35945701510,
+        "repository_id": 1078492326,
+        "head_repository_id": 1078492326,
+        "head_branch": "main",
+        "head_sha": "3438705768121dd20ae5d27a719fc1d5d13a1de2"
+      }
+    },
+    "lastCapture": {
+      "label": "xml-name-cycles-globals-last",
+      "expectedExitCodes": [
+        0
+      ],
+      "argv": [
+        "/opt/ssconvert-reference/bin/ssconvert",
+        "--recalc",
+        "--export-range=Here!A1:A2",
+        "-T",
+        "Gnumeric_stf:stf_csv",
+        "out/ssconvert-linux/xml-name-cycles-globals-last.gnumeric",
+        "fd://1"
+      ],
+      "exitCode": -11,
+      "stdoutHex": "370a300a",
+      "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620496e6e65720a",
+      "supplementalEnvironment": {}
+    },
+    "nativeBiffCycleIndexCommandsAttempted": 0
+  },
+  "publicReplay": {
+    "nativeRun": 35945383586,
+    "results": [
+      {
+        "id": "xml-name-cycles-global-self",
+        "inputSha256": "476fc7f17d397ef64ec3159856d47ae4443ed2e9301a07f861a5fc61c1e3023e",
+        "native": "0\n13\n",
+        "sdkAndShell": "0\n13\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "xml-name-cycles-local-self",
+        "inputSha256": "16c0ad3f649e87d0dc4d524d8a3ecd9c6e97f27ed9f658084f8f6267c7013d42",
+        "native": "0\n13\n",
+        "sdkAndShell": "0\n13\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "xml-name-cycles-forward-pair",
+        "inputSha256": "9f48b4e53fbcfeb0c99081b5329270eba12d2cba01250e89d181a223f297ef7c",
+        "native": "0\n0\n",
+        "sdkAndShell": "0\n0\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "xml-name-cycles-reverse-pair",
+        "inputSha256": "75afdb982589671c4e78620c94dca51e61e18cfe8b3fbea64302acd27b7e0df6",
+        "native": "7\n0\n",
+        "sdkAndShell": "7\n0\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "xml-name-cycles-globals-first",
+        "inputSha256": "3587a32853a28ae941963cf58cd1f2fffeb8134b7a97844d0997f653768c8c92",
+        "native": "0\n0\n",
+        "sdkAndShell": "0\n0\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      }
+    ],
+    "executions": 10,
+    "externalCalls": 0,
+    "bindings": [
+      {
+        "path": "packages/ssconvert/dist/index.js",
+        "sha256": "5511003db6dd69d8e3e0381e420e2f3d1575094ceb42061a5ad50ca6330c8f6d"
+      },
+      {
+        "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+        "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+      }
+    ]
+  },
+  "originalRequestedInputs": [
+    {
+      "id": "xml-name-cycles-global-self",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-global-self.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e477561726465643c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c477561726465642c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d477561726465643c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d31333c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "19959280f1134bd1def2e73a3742199514f031940215defdce748d7abc70fe3d",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-global-self",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-global-self-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-global-self-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-global-self-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-global-self-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-local-self",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-local-self.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4461746121477561726465643c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d31333c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e477561726465643c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c477561726465642c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "cbb9f81ca31c67b49bd5fe224499d97eb85d167ba2d096bcbc60e8f3850a664c",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-local-self",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-local-self-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-local-self-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-local-self-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-local-self-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-forward-pair",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-forward-pair.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e416c7068613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c426574612c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c676e6d3a4e616d653e3c676e6d3a6e616d653e426574613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e416c7068613c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d416c7068613c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d426574613c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "d0854ac22e3bdaa66952766b5cfba6da9c98fb7f4959ae346892f56b630c5010",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-forward-pair",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-forward-pair-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-forward-pair-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-forward-pair-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-forward-pair-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-reverse-pair",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-reverse-pair.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e426574613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e416c7068613c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c676e6d3a4e616d653e3c676e6d3a6e616d653e416c7068613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c426574612c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d416c7068613c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d426574613c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "c2e881430aac50b9bb8ecae4287fe0d912b94634bf4fa21277b37ca941a1e9f3",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-reverse-pair",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-reverse-pair-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-reverse-pair-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-reverse-pair-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-reverse-pair-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-globals-first",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-globals-first.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e4f757465723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c4461746121496e6e65722c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4f757465723c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d4461746121496e6e65723c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e496e6e65723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e5b5d4f757465723c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "dc973643489873f691b720c46b7768ac88e1c580b70053dc0cd4730504f914a3",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-globals-first",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-first-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-globals-first-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-first-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-globals-first-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-globals-last",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-globals-last.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4f757465723c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d4461746121496e6e65723c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e496e6e65723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e5b5d4f757465723c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e4f757465723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c4461746121496e6e65722c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "a7b780e9c2c652747afee1761d561658b3fa5efeef42947c565bb8fe6a5f9eba",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-globals-last",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-last-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-globals-last-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-last-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-globals-last-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "collectionChange": "Retain identical globals-last input and direct argv as an explicit expected SIGSEGV (-11) observation. Remove unattempted XML export/replay from this crash-only probe; preserve their original requests here as unqualified work. Every other input and capture stays unchanged. Native crash is not product behavior to emulate.",
+  "manifestAfterSha256": "dbc011d8124720d4cf23eef8b210ad24a135c14de1629d47ce29f1640a55d5d5",
+  "manifestValidation": {
+    "inputCount": 145,
+    "allInputHashesValid": true,
+    "otherInputsAndMetadataUnchanged": true
+  }
+}

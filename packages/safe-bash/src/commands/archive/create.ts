@@ -98,7 +98,9 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     if (options.format === "ustar" && headers.length > 1) fail(`metadata requires PAX format: ${display(name)}`);
     entries.push({ path, stat, entry });
     if (stat.type === "directory") {
-      const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal }));
+      const maxEntries = budget.limits.maxMembers - budget.members;
+      const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal,
+        ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
       if (children.length > budget.limits.maxMembers - budget.members) fail("member/header limit exceeded");
       if (options.sort === "name") children.sort((a, b) => Buffer.compare(Buffer.from(a.name), Buffer.from(b.name)));
       let cache = false;

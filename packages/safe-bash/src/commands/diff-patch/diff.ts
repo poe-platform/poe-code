@@ -150,14 +150,17 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       }
       if (pair.nested && !options.recursive) { append(`Common subdirectories: ${left} and ${right}\n`); continue; }
       const names = new Set<string>();
+      // Each side may contain all the same names; only their union consumes pairs.
+      const maxEntries = budget.remainingFiles - pending.length;
       for (const path of [leftStat ? left : undefined, rightStat ? right : undefined]) {
         if (path === undefined) continue;
-        const entries = await host(context, () => context.fs.readdir(pathOf(context, path), { signal: context.signal }));
+        const entries = await host(context, () => context.fs.readdir(pathOf(context, path), { signal: context.signal, maxEntries }));
+        if (entries.length > maxEntries) throw new ToolError("file/entry limit exceeded");
         for (const entry of entries) {
           budget.step();
           if (!entry.name || entry.name === "." || entry.name === ".." || /[\/\\\0\r\n\t]/u.test(entry.name)) throw new ToolError("unsafe directory entry name");
           names.add(entry.name);
-          if (names.size + pending.length > budget.limits.maxFiles) throw new ToolError("file/entry limit exceeded");
+          if (names.size > maxEntries) throw new ToolError("file/entry limit exceeded");
         }
       }
       for (const name of [...names].sort().reverse()) {

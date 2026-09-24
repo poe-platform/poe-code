@@ -88,8 +88,8 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
       const deferred = stat.type === "directory" && parsed.flags.has("R") && (stat.mode & 0o777 & ~mode) !== 0;
       if (!deferred) await apply();
       if (stat.type === "directory" && parsed.flags.has("R")) {
-        const entries = await context.fs.readdir(target, { signal: context.signal });
-        if (entries.length > configured.limits.maxEntries) throw new FsError("EFBIG", { message: "metadata traversal limit exceeded" });
+        const entries = await context.fs.readdir(target, { signal: context.signal, maxEntries: budget.remainingEntries });
+        if (entries.length > budget.remainingEntries) throw new FsError("EFBIG", { message: "metadata traversal limit exceeded" });
         for (const entry of entries) {
           if (!entry.name || entry.name === "." || entry.name === ".." || entry.name.includes("/") || entry.name.includes("\0")) throw new FsError("EIO", { message: "invalid directory entry" });
           try { await visit(`${target.replace(/\/$/u, "")}/${entry.name}`, `${display.replace(/\/$/u, "")}/${entry.name}`, depth + 1, false); }

@@ -50,6 +50,8 @@ export class WalkBudget {
   private nameCharset: Charset | undefined;
   constructor(readonly context: CommandContext, readonly limits: TreeLimits) {}
 
+  get remainingEntries(): number { return this.limits.maxEntries - this.entries; }
+
   filenameCharset(): Charset { return this.nameCharset ??= environmentCharset(this, false); }
 
   check(value: number, maximum: number, label: string): void {

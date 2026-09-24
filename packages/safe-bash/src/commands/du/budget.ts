@@ -66,6 +66,8 @@ export class Budget {
 
   entry(): void { this.check(++this.entries, this.limits.maxEntries, "entry"); }
 
+  get remainingEntries(): number { return this.limits.maxEntries - this.entries; }
+
   text(value: string): void {
     this.check(value.length, this.limits.maxPathBytes, "path/name");
     this.step(value.length + 1);

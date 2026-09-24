@@ -117,7 +117,12 @@ export class Walker {
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return; }
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
     const local = await this.load(path, rules, repository);
-    const entries = (await this.context.fs.readdir(path, { signal: this.context.signal })).sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name)));
+    const maxEntries = this.limits.maxFiles - this.limits.files;
+    const entries = await this.context.fs.readdir(path, { signal: this.context.signal,
+      ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) });
+    this.context.signal.throwIfAborted();
+    if (entries.length > maxEntries) throw new SearchError("filesystem entry limit exceeded");
+    entries.sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name)));
     for (const entry of entries) {
       await this.limits.tick();
       if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");

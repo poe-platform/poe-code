@@ -84,6 +84,7 @@ class Walker {
     const { context, limits } = this.budget;
     if (entry.error || !directory(entry) || (entry.stat?.type === "symlink" && !this.args.follow)) return [];
     let listing;
+    const maxEntries = Math.min(limits.maxDirectoryEntries, this.budget.remainingEntries);
     try {
       const observed = entry.stat?.type === "symlink" ? this.observedDirectories : ancestors;
       for (const ancestor of observed) {
@@ -94,10 +95,12 @@ class Walker {
       if (this.args.follow) this.observedDirectories.push(entry);
       if (depth === this.args.level) return [];
       this.budget.check(depth + 1, limits.maxDepth, "depth");
-      listing = await this.budget.fs(() => context.fs.readdir(entry.path, { signal: context.signal }));
+      listing = await this.budget.fs(() => context.fs.readdir(entry.path, { signal: context.signal,
+        ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
     } catch (error) {
       context.signal.throwIfAborted();
       if (error instanceof TreeLimitError) throw error;
+      if (error instanceof FsError && error.code === "EFBIG") throw new TreeLimitError(maxEntries === limits.maxDirectoryEntries ? "directory entry" : "entry", maxEntries);
       entry.error = message(error, this.budget); return [];
     }
     this.budget.check(listing.length, limits.maxDirectoryEntries, "directory entry");

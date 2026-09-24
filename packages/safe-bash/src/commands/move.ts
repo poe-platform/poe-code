@@ -89,7 +89,7 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
     const parent = await context.fs.stat(dirname(origin), { signal: context.signal });
     plan.push({ source: origin, target: destination, stat, parent, targetStat: existing, link });
     if (stat.type === "directory") {
-      const entries = await context.fs.readdir(origin, { signal: context.signal });
+      const entries = await context.fs.readdir(origin, { signal: context.signal, maxEntries: budget.remaining });
       if (entries.length > budget.remaining) throw new FsError("EFBIG", { message: "cross-device move entry limit exceeded" });
       for (const entry of entries.sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0)) {
         const child = joinPath(origin, entry.name), childTarget = joinPath(destination, entry.name);

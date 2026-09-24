@@ -36,6 +36,7 @@ export class Budget {
 
   get maxBufferBytes(): number { return this.limits.maxInputBytes; }
   get remainingWork(): number { return this.limits.maxWork - this.work; }
+  get remainingFiles(): number { return this.limits.maxFiles - this.files; }
 
   constructor(readonly context: CommandContext, options: DiffPatchOptions) {
     this.limits = {

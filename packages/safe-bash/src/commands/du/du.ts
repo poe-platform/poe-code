@@ -1,4 +1,4 @@
-import { createOutputOperation, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "../../contracts/index.js";
+import { FsError, createOutputOperation, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 import { parse, helpText, type Arguments } from "./arguments.js";
@@ -61,10 +61,18 @@ class Walker {
   private async children(path: string, display: string): Promise<DirectoryEntry[] | undefined> {
     const { context, limits } = this.budget;
     let entries: DirectoryEntry[];
-    try { entries = await this.budget.fs(() => context.fs.readdir(path, { signal: context.signal })); }
-    catch (error) { await this.failure(error, display); return undefined; }
+    const maxEntries = Math.min(limits.maxDirectoryEntries, this.budget.remainingEntries);
+    try { entries = await this.budget.fs(() => context.fs.readdir(path, { signal: context.signal,
+      ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) })); }
+    catch (error) {
+      if (error instanceof FsError && error.code === "EFBIG") {
+        await this.failure(new DuLimitError(maxEntries === limits.maxDirectoryEntries ? "directory entry" : "entry"), display);
+      }
+      await this.failure(error, display); return undefined;
+    }
     if (!Array.isArray(entries)) { await this.failure(new PublicDiagnostic("invalid directory listing"), display); return undefined; }
     this.budget.check(entries.length, limits.maxDirectoryEntries, "directory entry");
+    this.budget.check(entries.length, this.budget.remainingEntries, "entry");
     const names = new Set<string>();
     for (const entry of entries) {
       this.budget.step();

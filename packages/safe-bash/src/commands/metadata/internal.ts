@@ -30,6 +30,7 @@ export function settings(options: MetadataCommandsOptions = {}) {
 export class MetadataBudget {
   private entries = 0;
   private outputBytes = 0;
+  get remainingEntries(): number { return this.limits.maxEntries - this.entries; }
   constructor(readonly context: CommandContext, readonly limits: MetadataLimits) {
     if (context.args.reduce((size, argument) => size + Buffer.byteLength(argument), 0) > limits.maxArgumentBytes) throw new FsError("EFBIG", { message: "metadata argument limit exceeded" });
   }

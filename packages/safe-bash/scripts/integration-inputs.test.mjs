@@ -980,6 +980,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/yq-author-20260828/input-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/allocation-admission.test.ts"));
   assert.ok(files.includes("tests/commands/directory-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/recursive-directory-admission.test.ts"));
   assert.ok(files.includes("tests/commands/recursive-filesystem-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-retention.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-reader-retention.test.ts"));

@@ -152,3 +152,63 @@ test("built scope accounting records retain fast fields without inherited metada
   const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
+
+test("built visited accounting coalesces repeated private registry lookups", () => {
+  const url = JSON.stringify(new URL("../dist/interp/measurement-seen.js", import.meta.url).href);
+  const source = `
+    import assert from "node:assert/strict";
+    const objects = [{}, {}, {}];
+    const get = WeakMap.prototype.get;
+    let reads = 0;
+    // Instrument before initialization to count private backend work. Later
+    // native hooks must still be unable to intercept the pinned operations.
+    WeakMap.prototype.get = function (key) {
+      if (objects.includes(key)) reads++;
+      return get.call(this, key);
+    };
+    let withMeasurementSeen;
+    try { ({ withMeasurementSeen } = await import(${url})); }
+    finally { WeakMap.prototype.get = get; }
+    withMeasurementSeen(seen => {
+      for (const object of objects) seen.add(object);
+      for (let pass = 0; pass < 10; pass++)
+        for (const object of objects) assert.equal(seen.has(object), true);
+    });
+    assert.ok(reads <= 6, "Repeated visits performed " + reads + " registry reads");
+  `;
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  assert.equal(result.status, 0, result.stderr || String(result.error));
+});
+
+test("built visited accounting releases cached objects even when callers retain walk handles", () => {
+  const url = JSON.stringify(new URL("../dist/interp/measurement-seen.js", import.meta.url).href);
+  const source = `
+    import assert from "node:assert/strict";
+    import { withMeasurementSeen } from ${url};
+    const saved = [], references = [];
+    for (const fail of [false, true]) {
+      const error = new Error("measurement failed");
+      let object = { payload: "retained only during the walk" };
+      try {
+        withMeasurementSeen(seen => {
+          saved.push(seen);
+          seen.add(object);
+          assert.equal(seen.has(object), true);
+          assert.equal(seen.has(object), true);
+          references.push(new WeakRef(object));
+          if (fail) throw error;
+        });
+      } catch (failure) { assert.equal(failure, error); }
+      assert.equal(saved.at(-1).has(object), true);
+      object = undefined;
+    }
+    for (let pass = 0; pass < 8; pass++) {
+      await new Promise(resolve => setImmediate(resolve));
+      globalThis.gc();
+    }
+    assert.equal(saved.length, 2);
+    for (const reference of references) assert.equal(reference.deref(), undefined);
+  `;
+  const result = spawnSync(process.execPath, ["--expose-gc", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  assert.equal(result.status, 0, result.stderr || String(result.error));
+});

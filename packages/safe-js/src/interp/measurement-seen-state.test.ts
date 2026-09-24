@@ -1,5 +1,64 @@
 import { expect, it } from "vitest";
 import { createSandboxClosure, measureSandboxData, type SandboxObject } from "./values.js";
+import { withMeasurementSeen } from "./measurement-seen.js";
+
+it("keeps invalid keys and misses false before and after repeated positive lookups", () => {
+  withMeasurementSeen(seen => {
+    const value = {};
+    const misses = [undefined, null, false, 0, "", Symbol("missing"), value];
+    for (const miss of misses) expect(seen.has(miss as object)).toBe(false);
+    seen.add(value);
+    for (let index = 0; index < 10; index++) expect(seen.has(value)).toBe(true);
+    for (const miss of misses.slice(0, -1)) expect(seen.has(miss as object)).toBe(false);
+    const later = {};
+    expect(seen.has(later)).toBe(false);
+    seen.add(later);
+    expect(seen.has(later)).toBe(true);
+  });
+});
+
+it("does not reuse completed-walk hits when a later walk changes generation marks", () => {
+  const value = {};
+  const previous = withMeasurementSeen(seen => {
+    seen.add(value);
+    expect(seen.has(value)).toBe(true);
+    return seen;
+  });
+  expect(previous.has(value)).toBe(true);
+  withMeasurementSeen(seen => {
+    expect(seen.has(value)).toBe(false);
+    seen.add(value);
+    expect(seen.has(value)).toBe(true);
+    expect(previous.has(value)).toBe(false);
+  });
+});
+
+it("observes writes through an old walk handle during a later active walk", () => {
+  const value = {};
+  const previous = withMeasurementSeen(seen => seen);
+  withMeasurementSeen(seen => {
+    seen.add(value);
+    expect(seen.has(value)).toBe(true);
+    withMeasurementSeen(() => previous.add(value));
+    expect(seen.has(value)).toBe(false);
+    seen.add(value);
+    expect(seen.has(value)).toBe(true);
+  });
+});
+
+it("keeps positive lookups independent across nested walks and wide working sets", () => {
+  const values = Array.from({ length: 20 }, () => ({}));
+  withMeasurementSeen(outer => {
+    for (const value of values) outer.add(value);
+    for (const value of values) expect(outer.has(value)).toBe(true);
+    withMeasurementSeen(inner => {
+      for (const value of values) expect(inner.has(value)).toBe(false);
+      for (const value of values) inner.add(value);
+      for (const value of values) expect(inner.has(value)).toBe(true);
+    });
+    for (const value of values) expect(outer.has(value)).toBe(true);
+  });
+});
 
 it("does not expose private visited state to later native WeakSet hooks", () => {
   const child = { text: "x".repeat(1000) };

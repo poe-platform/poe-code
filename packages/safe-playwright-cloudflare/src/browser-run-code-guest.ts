@@ -106,19 +106,21 @@ function serializeResult(result: unknown): string {
 export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 	async run(relay: BrowserRunCodeRelay, metadata: BrowserRunCodeMetadata) {
 		const binding = {
-			fetch: (url: string | URL) => bindingResponse(relay, String(url)),
+			fetch: (url: string | URL) => bindingResponse(relay, String(url))
 		};
 		const connectOptions = { sessionId: "owned", persistent: true };
 		const browser = await connect(binding as never, connectOptions);
-		try {
+		const failures: unknown[] = [];
+		let userFailure: { error: unknown } | undefined;
+		const response = await (async () => {
 			adoptRunCodeContext(browser, metadata);
 			await restoreRunCodeContextState(
 				browser.contexts()[0]!,
-				metadata.state.context,
+				metadata.state.context
 			);
 			const page = await selectedPage(browser, metadata);
 			prepareBrowserScreenshots(page);
-			page.context().on('page', prepareBrowserScreenshots);
+			page.context().on("page", prepareBrowserScreenshots);
 			let json: string;
 			try {
 				const { default: userCode } = await import("browser-user-code.js");
@@ -126,12 +128,13 @@ export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 					throw new Error("Run-code source must be a function");
 				json = serializeResult(await userCode(page));
 			} catch (error) {
+				userFailure = { error };
 				return {
 					ok: false as const,
 					message: String(error).slice(0, 4096),
 					stateJson: serializeRunCodeState(
-						captureRunCodeState(browser, page.context()),
-					),
+						captureRunCodeState(browser, page.context())
+					)
 				};
 			}
 			if (new TextEncoder().encode(json).byteLength > metadata.maxOutputBytes)
@@ -140,11 +143,24 @@ export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 				ok: true as const,
 				json,
 				stateJson: serializeRunCodeState(
-					captureRunCodeState(browser, page.context()),
-				),
+					captureRunCodeState(browser, page.context())
+				)
 			};
-		} finally {
+		})().catch((error: unknown) => {
+			failures.push(error);
+		});
+		// A rejected close must not replace a user-error response prepared above.
+		try {
 			await browser.close();
+		} catch (error) {
+			if (!failures.length && userFailure) failures.push(userFailure.error);
+			failures.push(error);
 		}
+		if (failures.length > 1)
+			throw new AggregateError(failures, failures.map(String).join("; "), {
+				cause: failures[0]
+			});
+		if (failures.length) throw failures[0];
+		return response!;
 	}
 }

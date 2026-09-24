@@ -317,8 +317,17 @@ async function runGuest(
 			Partial<Disposable>;
 	const result = entry.run(relay.capability, metadata);
 	const dispose = () => {
-		(result as Promise<unknown> & Partial<Disposable>)[Symbol.dispose]?.();
-		entry[Symbol.dispose]?.();
+		const failures: unknown[] = [];
+		for (const handle of [result as Promise<unknown> & Partial<Disposable>, entry]) {
+			try {
+				handle[Symbol.dispose]?.();
+			} catch (error) {
+				failures.push(error);
+			}
+		}
+		if (failures.length > 1)
+			throw new AggregateError(failures, "Run-code guest disposal failed", { cause: failures[0] });
+		if (failures.length) throw failures[0];
 	};
 	retainGuest(dispose);
 	signal.addEventListener("abort", dispose, { once: true });

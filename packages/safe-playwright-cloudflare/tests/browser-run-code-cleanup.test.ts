@@ -16,18 +16,22 @@ import { createRunCodeRelay } from "../src/browser-run-code-relay";
 import { createBrowserRunCode } from "../src/browser-run-code";
 
 test.each([
+  { rejected: true, retirementFails: false, resultDisposalFails: true },
+  { rejected: true, retirementFails: false, resultDisposalFails: true, entryDisposalFails: true },
   { rejected: true, retirementFails: false, invalidState: true },
   { rejected: true, retirementFails: true, invalidState: true },
   { rejected: true, retirementFails: false },
   { rejected: false, retirementFails: false },
   { rejected: true, retirementFails: true },
   { rejected: false, retirementFails: true }
-])("cleanup retains failures (guest rejected: $rejected, retirement fails: $retirementFails)", async ({ rejected, retirementFails, invalidState }) => {
+])("cleanup retains failures (guest rejected: $rejected, retirement fails: $retirementFails)", async ({ rejected, retirementFails, invalidState, resultDisposalFails, entryDisposalFails }) => {
   const receiverError = new Error("receiver close lost connection");
   const cleanupError = new AggregateError([receiverError], "Run-code transport cleanup failed");
   const closing = Promise.reject(cleanupError);
   void closing.catch(() => {});
   const operations: string[] = [];
+  const resultDisposalError = new Error("result disposal failed");
+  const entryDisposalError = new Error("entry disposal failed");
   let closingTask: Promise<void> | undefined;
   vi.mocked(createRunCodeRelay).mockReturnValue({
     capability: {}, close: () => {
@@ -54,7 +58,10 @@ test.each([
   const run = createBrowserRunCode({
     ownerId: "cleanup-test",
     browser: { newBrowserCDPSession: async () => ({ send, detach, on() {} }) },
-    loader: { load: () => ({ getEntrypoint: () => ({ [Symbol.dispose]: () => operations.push("dispose"), run: async () => ({
+    loader: { load: () => ({ getEntrypoint: () => ({ [Symbol.dispose]: () => {
+      operations.push("dispose");
+      if (entryDisposalFails) throw entryDisposalError;
+    }, run: () => Object.assign(Promise.resolve({
       ok: !rejected,
       message: "Run-code result is not JSON-serializable",
       json: "1",
@@ -62,7 +69,10 @@ test.each([
         context: { headers: [], offline: false, geolocation: null },
         pages: [], contextInitScripts: [], contextTimeouts: { action: null, navigation: null }
       })
-    }) }) }) },
+    }), { [Symbol.dispose]: () => {
+      operations.push("dispose-result");
+      if (resultDisposalFails) throw resultDisposalError;
+    } }) }) }) },
     guestSource: "", connectSocket: vi.fn(), retire
   } as never);
   const error = await run({
@@ -92,9 +102,19 @@ test.each([
   } else {
     expect(executionError).toBe(cleanupError);
   }
+  if (resultDisposalFails) {
+    const disposal = (executionError as AggregateError).errors[2];
+    if (entryDisposalFails) {
+      expect(disposal).toBeInstanceOf(AggregateError);
+      expect(disposal.errors).toEqual([resultDisposalError, entryDisposalError]);
+      expect(disposal.cause).toBe(resultDisposalError);
+    } else {
+      expect(disposal).toBe(resultDisposalError);
+    }
+  }
   expect(retire).toHaveBeenCalledOnce();
   expect(detach).toHaveBeenCalledOnce();
-  expect(operations.slice(0, 3)).toEqual(["close", "closed", "dispose"]);
+  expect(operations.slice(0, 4)).toEqual(["close", "closed", "dispose-result", "dispose"]);
   expect(operations.filter((operation) => operation === "dispose")).toHaveLength(1);
   // No state restoration is safe after unconfirmed transport cleanup.
   expect(send.mock.calls.filter(([method]) => method === "Target.getBrowserContexts")).toHaveLength(1);

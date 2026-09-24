@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "baseline": "54ac0c647c3f3b0006d81d1f3ed2a86d5980eaca",
+  "issue": "BIFF imports omitted implicit sheet-local permanent names and rejected replacement of their ordinary definitions. Indexed global and linked external names must remain distinct from those local defaults.",
+  "native": "docs/ssconvert/biff-name-lifecycle-native-capture.json",
+  "repair": "Seed Sheet_Title and Print_Area bindings per sheet, retain their identity across replacement, materialize untouched defaults and preserve explicit placeholder removal. Include defaults when rendering indexed scope and explicitly qualify global linked external names.",
+  "sources": {
+    "packages/ssconvert/src/codecs/biff-name-bindings.ts": "ae8eb3e4e4f58af3537b023bf6db87439a21c397b9b50e362ab1c3ffcc7dd73a",
+    "packages/ssconvert/src/codecs/biff.ts": "19b10ef03310f27324f45418b695998ea2c15a01739ab8b398e47d7ef313213a",
+    "packages/ssconvert/src/codecs/biff-name-lifecycle.test.ts": "36fe34334c427dd61408c06f121aac8a23a0e46abf594212b8cea6a1c99e6397",
+    "packages/ssconvert/src/codecs/biff-external-names.test.ts": "528545b95b3634ff78e06d821cd36422c767608fe8ac6b6bae5e02b9d286deb4"
+  },
+  "nativeSource": {
+    "sheet.c": "dd06712b10126b59b2c42601878abc12fe29f08003bcfc0c7ec36b09bcc8059b",
+    "expr-name.c": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353",
+    "ms-excel-read.c": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216",
+    "ms-formula-read.c": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5"
+  },
+  "validation": {
+    "nativeInputs": 3,
+    "nativeCommands": 9,
+    "nativeValuesPerInput": 44,
+    "validatedBaselineValueMismatchesPerInput": 8,
+    "provisionalExpectationCorrection": {
+      "row": 43,
+      "original": "Blank",
+      "native": "#REF!",
+      "reason": "INDIRECT requires a reference; scalar Sheet_Title is retained in the model, but cannot be used as a reference."
+    },
+    "regressions": {
+      "originalLifecycle": 3,
+      "globalScope": 3,
+      "externalGlobalScope": 2,
+      "escapedTitleAndRemoval": 3
+    },
+    "packageBeforeExternalScopeCorrection": {
+      "files": 394,
+      "tests": 22924
+    },
+    "finalBiff": {
+      "files": 35,
+      "tests": 754
+    },
+    "lint": "Maintained workspace ESLint and source/test/consumer TypeScript checks passed after the final external-name correction.",
+    "build": "Selected maintained @poe-code/ssconvert closure: four builds, eleven layers; passed.",
+    "publicExecutions": 12,
+    "publicRows": [
+      {
+        "id": "biff-name-lifecycle-7",
+        "replay": false,
+        "inputSha256": "add52736fc174eb2ad78a225ca9f1ca1bebc5f3bfacf459238fe9b8ee7ee15b5",
+        "bytes": 6656,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 174
+            }
+          ],
+          "usage": {
+            "inputBytes": 6656,
+            "outputBytes": 174
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n23\n23\n23\n23\n23\n23\n23\n23\n23\n23\n11\n#REF!\n11\n#REF!\n11\n#REF!\n11\n#REF!\n17\n17\n17\n17\n17\n17\n17\n17\n#REF!\n#REF!\n"
+      },
+      {
+        "id": "biff-name-lifecycle-7",
+        "replay": true,
+        "inputSha256": "59e8eab91fd1c75498cd636db3117a3c5216e842c7b8fd73ed9a1b352a235a91",
+        "bytes": 17381,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 174
+            }
+          ],
+          "usage": {
+            "inputBytes": 17381,
+            "outputBytes": 174
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n23\n23\n23\n23\n23\n23\n23\n23\n23\n23\n11\n#REF!\n11\n#REF!\n11\n#REF!\n11\n#REF!\n17\n17\n17\n17\n17\n17\n17\n17\n#REF!\n#REF!\n"
+      },
+      {
+        "id": "biff-name-lifecycle-8",
+        "replay": false,
+        "inputSha256": "84778046477fbecda6aa29e21e525b2cdddaecca0b5f2bbc6ad25167c9c71394",
+        "bytes": 6656,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 174
+            }
+          ],
+          "usage": {
+            "inputBytes": 6656,
+            "outputBytes": 174
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n23\n23\n23\n23\n23\n23\n23\n23\n23\n23\n11\n#REF!\n11\n#REF!\n11\n#REF!\n11\n#REF!\n17\n17\n17\n17\n17\n17\n17\n17\n#REF!\n#REF!\n"
+      },
+      {
+        "id": "biff-name-lifecycle-8",
+        "replay": true,
+        "inputSha256": "0a29a7a2ad36bce13ed8194c8f208a2bb7759b4f8c924937778c6e5179ca1878",
+        "bytes": 17381,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 174
+            }
+          ],
+          "usage": {
+            "inputBytes": 17381,
+            "outputBytes": 174
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n23\n23\n23\n23\n23\n23\n23\n23\n23\n23\n11\n#REF!\n11\n#REF!\n11\n#REF!\n11\n#REF!\n17\n17\n17\n17\n17\n17\n17\n17\n#REF!\n#REF!\n"
+      },
+      {
+        "id": "biff-name-lifecycle-dsf",
+        "replay": false,
+        "inputSha256": "1640ce85f5072d1f42a358ee8dc21a342f02488417ea3666c21e252cb1b94329",
+        "bytes": 11776,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 174
+            }
+          ],
+          "usage": {
+            "inputBytes": 11776,
+            "outputBytes": 174
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n23\n23\n23\n23\n23\n23\n23\n23\n23\n23\n11\n#REF!\n11\n#REF!\n11\n#REF!\n11\n#REF!\n17\n17\n17\n17\n17\n17\n17\n17\n#REF!\n#REF!\n"
+      },
+      {
+        "id": "biff-name-lifecycle-dsf",
+        "replay": true,
+        "inputSha256": "0a29a7a2ad36bce13ed8194c8f208a2bb7759b4f8c924937778c6e5179ca1878",
+        "bytes": 17381,
+        "sdk": {
+          "exitCode": 0,
+          "diagnostics": [],
+          "artifacts": [
+            {
+              "bytes": 174
+            }
+          ],
+          "usage": {
+            "inputBytes": 17381,
+            "outputBytes": 174
+          },
+          "profile": "gnumeric-1.12.61"
+        },
+        "command": {
+          "exitCode": 0,
+          "stderr": ""
+        },
+        "csv": "11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n11\n#REF!\n#REF!\n#REF!\n17\n17\n#REF!\n17\n23\n23\n23\n23\n23\n23\n23\n23\n23\n23\n11\n#REF!\n11\n#REF!\n11\n#REF!\n11\n#REF!\n17\n17\n17\n17\n17\n17\n17\n17\n#REF!\n#REF!\n"
+      }
+    ],
+    "fixtureIntegrity": "All 166 committed native inputs authenticate; the three lifecycle original byte sequences are unchanged.",
+    "draftFailures": [
+      "The provisional INDIRECT scalar expectation was disproved by native execution, not fixed in production.",
+      "Two draft expected-name inventories used Worksheet rather than their actual Here sheet name; corrected.",
+      "Three global and two external indexed scope regressions were reproduced and repaired before delivery."
+    ],
+    "visual": {
+      "inspected": true,
+      "sha256": "5d4991ea86cb99a8c3745d2a3221130612faade5362c6e74340a5adbbbfe3fc6",
+      "description": "Readable six-row terminal report of all original BIFF and native XML SDK/Shell comparisons."
+    }
+  },
+  "limitations": [
+    "Native UNKNOWN-name diagnostics contain process IDs, timestamps and addresses and do not match portable streams.",
+    "Escaped title/removal and supplemental scope cases have memory/source-contract checks, not additional native execution in this capture.",
+    "All 19 original goal families remain open; wider BIFF profiles and successful containing publication remain required."
+  ],
+  "delivery": {
+    "localCommit": null,
+    "remoteMain": null,
+    "publication": "pending"
+  }
+}

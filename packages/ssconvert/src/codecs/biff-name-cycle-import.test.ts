@@ -45,7 +45,7 @@ it.each([7, 8, "dsf"] as const)("removes BIFF %s unknown-name placeholders while
   ], sheets: [{ id: "here", name: "Here", cells: ["=Unknown", "=Alias", "=Guard"].map((formula, row) =>
     ({ row, column: 0, formula, value: { kind: "number", value: 999 } })) }] };
   const reopened = await readBiff(await createBiffWriter(profile)(book, [], context), context);
-  expect(reopened.names?.map(name => name.name)).toEqual(["Alias", "Guard"]);
+  expect(reopened.names?.map(name => name.name)).toEqual(["Alias", "Guard", "Sheet_Title", "Print_Area"]);
   expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual([
     { kind: "error", value: "#REF!" }, { kind: "error", value: "#REF!" }, { kind: "number", value: 17 }
   ]);

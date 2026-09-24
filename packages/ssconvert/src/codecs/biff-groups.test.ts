@@ -30,7 +30,9 @@ it.each([2, 3, 4])("reads original revision-%i defined names with revision-speci
   const name = revision === 2 ? [0, 0, 0, 1, 3, 88, 0x1e, 7, 0] : [0, 0, 0, 1, 3, 0, 88, 0x1e, 7, 0];
   const book = await readBiff(new Uint8Array([...r(revision === 2 ? 9 : revision === 3 ? 0x209 : 0x409, [0, revision, 16, 0]),
     ...r(0x18, name), ...r(10)]), context);
-  expect(book.names).toMatchObject([{ name: "X", expression: "=7" }]);
+  expect(book.names).toMatchObject([{ name: "X", expression: "=7" },
+    { name: "Sheet_Title", expression: '="Worksheet"', sheet: "Worksheet" },
+    { name: "Print_Area", expression: "=#REF!", sheet: "Worksheet" }]);
 });
 it("interprets legacy self-reference declarations without loss diagnostics", async () => {
   const diagnostics: string[] = [];

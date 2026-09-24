@@ -83,7 +83,9 @@ it.each([7, 8].flatMap(revision => ["inactive-expression", "inactive-placeholder
   const local = revision === 7 ? [record(0x17, new Uint8Array([1, 0x3a])), declared] : [];
   const imported = await readBiff(join(bof(revision, 5), ...globalName, ...globals, record(10), bof(revision, 16), ...local, formula(token(revision)), record(10)), context);
   expect(recalculateWorkbook(imported, context, true).sheets[0]!.cells[0]!.value).toEqual(active ? { kind: "number", value: 5 } : { kind: "error", value: "#REF!" });
-  if (active) expect(imported.names).toEqual([{ name: "Rate", expression: "=2+3" }]);
+  if (active) expect(imported.names).toEqual([{ name: "Rate", expression: "=2+3" },
+    { name: "Sheet_Title", expression: '="Worksheet"', sheet: "Worksheet" },
+    { name: "Print_Area", expression: "=#REF!", sheet: "Worksheet" }]);
   const diagnostics: string[] = [];
   const reopened = await readBiff(await createBiffWriter(revision as 7 | 8)(imported, [], { ...context, async diagnostic(value) { diagnostics.push(value.message); } }), context);
   expect(diagnostics).toEqual([]);

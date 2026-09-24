@@ -84,8 +84,12 @@ it.each([7, 8].flatMap(revision => ["local", "global-namex", "global-name"].map(
     ...(revision === 7 ? [link("Worksheet2")] : []), record(6, formula), record(10),
     record(0x809, [0, revision === 8 ? 6 : 5, 16, 0]), record(10)),
   { ...context, async diagnostic(value) { diagnostics.push(value.message); } });
-  expect(book.names).toEqual(global ? [{ name: "Rate", expression: "=99" }, { name: "Rate", expression: "=20", sheet: "Worksheet" }] :
-    [{ name: "Rate", expression: "=20", sheet: "Worksheet" }, { name: "Rate", expression: "=30", sheet: "Worksheet2" }]);
+  expect(book.names).toEqual([...(global ? [{ name: "Rate", expression: "=99" }, { name: "Rate", expression: "=20", sheet: "Worksheet" }] :
+    [{ name: "Rate", expression: "=20", sheet: "Worksheet" }, { name: "Rate", expression: "=30", sheet: "Worksheet2" }]),
+  { name: "Sheet_Title", expression: '="Worksheet"', sheet: "Worksheet" },
+  { name: "Print_Area", expression: "=#REF!", sheet: "Worksheet" },
+  { name: "Sheet_Title", expression: '="Worksheet2"', sheet: "Worksheet2" },
+  { name: "Print_Area", expression: "=#REF!", sheet: "Worksheet2" }]);
   expect(book.sheets[0]!.cells[0]!.formula).toBe(global ? "=[]Rate" : "='Worksheet2'!Rate");
   expect(diagnostics).toEqual([]);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: expected });

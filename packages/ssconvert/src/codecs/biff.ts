@@ -404,7 +404,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   });
   const externalNameTables = new Map<PendingExternalName[], readonly ({ name: string; expression?: string } | undefined)[]>();
   const formulaNames = names.map(name => name.name);
-  const nameBindings = new BiffNameBindings(context);
+  const nameBindings = new BiffNameBindings(context, sheets);
   const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
     resolveName = nameBindings.resolve) => translateBiffFormula(tokens, {
     revision, codepage: cp, row, column, names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
@@ -417,7 +417,6 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     ...sheets.filter(sheet => sheet.legacyAddinSheets.size > 0).map(sheet => sheet.legacyExternalNames)
   ];
   const globals = new Map(names.filter(name => name.sheetIndex === 0).map(name => [name.name, name]));
-  const locals = new Set(names.filter(name => name.sheetIndex !== 0).map(name => name.name));
   for (const table of externalTables) {
     const entries: ({ name: string; expression?: string } | undefined)[] = [];
     for (const name of table) {
@@ -429,7 +428,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         // Native EXTERNNAME reuses an existing linked #NAME placeholder. Its
         // expression changes, while all indexed references keep the same object.
         global.tokens = name.tokens; global.revision = name.revision; global.codepage = name.codepage;
-        entries.push({ name: name.name, expression: "=" + (locals.has(name.name) ? "[]" : "") + name.name });
+        entries.push({ name: name.name, expression: "=[]" + name.name });
       } else {
         // An unlinked expression is inactive (expr_name_is_active). The symbol
         // is still valid for custom-function255, but value lookup yields #REF!.
@@ -462,12 +461,19 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message });
     }
   }
-  for (const index of nameBindings.finish()) {
+  const finalizedNames = nameBindings.finish();
+  // Implicit sheet names also shadow global names when rendering indexed references.
+  for (const name of finalizedNames.defaults) {
+    formulaNames.push(name.name);
+    nameSheets.push(name.sheet);
+  }
+  for (const index of finalizedNames.indices) {
     const at = index - 1;
     const name = names[at]!;
     materializedNames.push({ name: name.name, expression: nameBindings.expression(at + 1),
       ...(name.sheetIndex ? { sheet: nameSheets[at] ?? invalidBiff("invalid name sheet scope") } : {}) });
   }
+  materializedNames.push(...finalizedNames.defaults);
   const color = (index: number): string => {
     const rgb = index === 0x7fff || index === 64 ? "000000" : index === 65 ? "FFFFFF" :
       index < 8 ? defaultPalette[index] ?? "000000" : palette[index - 8] ?? "000000";

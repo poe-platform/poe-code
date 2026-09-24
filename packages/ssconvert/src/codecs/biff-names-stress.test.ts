@@ -22,12 +22,15 @@ function workbook(name: readonly number[], expression: readonly number[], scope 
 
 it("removes zero-token NAME placeholders during native importer teardown", async () => {
   expect((await readBiff(workbook([78], []), context)).names)
-    .toBeUndefined();
+    .toEqual([{ name: "Sheet_Title", expression: '="Worksheet"', sheet: "Worksheet" },
+      { name: "Print_Area", expression: "=#REF!", sheet: "Worksheet" }]);
 });
 
 it("resolves worksheet NAME scope after the global stream closes", async () => {
   expect((await readBiff(workbook([78], [0x1e, 7, 0], 1), context)).names)
-    .toEqual([{ name: "N", expression: "=7", sheet: "Worksheet" }]);
+    .toEqual([{ name: "N", expression: "=7", sheet: "Worksheet" },
+      { name: "Sheet_Title", expression: '="Worksheet"', sheet: "Worksheet" },
+      { name: "Print_Area", expression: "=#REF!", sheet: "Worksheet" }]);
 });
 
 it.each([{ tokens: [0x1e, 7, 0] }, { tokens: [] }])("rejects invalid scope even when the definition will be discarded ($tokens)", async ({ tokens }) => {

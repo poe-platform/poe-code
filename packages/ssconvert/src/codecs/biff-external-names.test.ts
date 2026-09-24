@@ -19,13 +19,15 @@ function bof(type: number): Uint8Array {
   view.setUint16(0, 0x600, true); view.setUint16(2, type, true);
   view.setUint16(4, 0xdbb, true); view.setUint16(6, 1997, true); return record(0x809, payload);
 }
-function workbook(raw: number, mode: "missing" | "inactive" | "active", namespace = 0, index = 1, flags = 0): Uint8Array {
+function workbook(raw: number, mode: "missing" | "inactive" | "active", namespace = 0, index = 1, flags = 0, name = "Rate"): Uint8Array {
   const token = new Uint8Array([raw, namespace, 0, index, 0, 0, 0, 0x1e, 1, 0, 3]);
   const cell = new Uint8Array(22 + token.length), cellView = new DataView(cell.buffer);
   cellView.setFloat64(6, 999, true); cellView.setUint16(20, token.length, true); cell.set(token, 22);
-  const nameHeader = new Uint8Array(14); nameHeader[3] = 4; nameHeader[4] = 2;
-  const globalName = record(0x18, join(nameHeader, new Uint8Array([0, 82, 97, 116, 101, 0x1c, 29])));
-  const externalName = record(0x23, new Uint8Array([flags, 0, 0, 0, 0, 0, 4, 0, 82, 97, 116, 101, 7, 0, 0x1e, 2, 0, 0x1e, 3, 0, 3]));
+  const spelling = new TextEncoder().encode(name);
+  const nameHeader = new Uint8Array(14); nameHeader[3] = spelling.length; nameHeader[4] = 2;
+  const globalName = record(0x18, join(nameHeader, new Uint8Array([0]), spelling, new Uint8Array([0x1c, 29])));
+  const externalName = record(0x23, join(new Uint8Array([flags, 0, 0, 0, 0, 0, spelling.length, 0]), spelling,
+    new Uint8Array([7, 0, 0x1e, 2, 0, 0x1e, 3, 0, 3])));
   const externalBook = record(0x1ae, new Uint8Array([1, 0, 9, 0, 0, 1, 98, 111, 111, 107, 46, 120, 108, 115, 5, 0, 0, 79, 116, 104, 101, 114]));
   const bound = new Uint8Array([0, 0, 0, 0, 0, 0, 4, 0, 72, 101, 114, 101]);
   const globals = [bof(5), record(0x85, bound), ...(mode === "active" ? [globalName] : []), externalBook,
@@ -44,7 +46,7 @@ it.each(["missing", "inactive", "active"] as const)("recalculates BIFF8 %s exter
     const book = await readBiff(input, { ...context,
       externalReferences: { resolve() { resolutions++; throw new Error("implicit external access"); } },
       async diagnostic(d) { diagnostics.push(d.message); } });
-    expect(book.sheets[0]!.cells[0]!.formula).toBe(mode === "active" ? "=(Rate)+1" : mode === "inactive" ? "=(#REF!)+1" : "=#REF!+1");
+    expect(book.sheets[0]!.cells[0]!.formula).toBe(mode === "active" ? "=([]Rate)+1" : mode === "inactive" ? "=(#REF!)+1" : "=#REF!+1");
     expect(book.sheets[0]!.cells[0]!.cachedResult).toEqual({ kind: "number", value: 999 });
     expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual(mode === "active" ? { kind: "number", value: 6 } : { kind: "error", value: "#REF!" });
     expect(resolutions).toBe(0);
@@ -60,7 +62,14 @@ it("keeps external name tables separate from neighboring declarations and workbo
   const book = await readBiff(workbook(0x39, "active", 1), context);
   expect(book.sheets[0]!.cells[0]!.formula).toBe("=#REF!+1");
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#REF!" });
-  expect(book.names).toEqual([{ name: "Rate", expression: "=2+3" }]);
+  expect(book.names).toEqual([{ name: "Rate", expression: "=2+3" },
+    { name: "Sheet_Title", expression: '="Here"', sheet: "Here" },
+    { name: "Print_Area", expression: "=#REF!", sheet: "Here" }]);
+});
+
+it.each(["Sheet_Title", "Print_Area"])("keeps linked global %s external names distinct from implicit sheet names", async name => {
+  const book = await readBiff(workbook(0x39, "active", 0, 1, 0, name), context);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 6 });
 });
 
 it.each([0, 2])("refuses missing external name index %i without using the cached value", async index => {
@@ -75,7 +84,8 @@ it("retains unsupported external declaration flags without interpreting their bo
   expect(diagnostics.some(message => message.includes("external BIFF name expression"))).toBe(true);
   // Native teardown removes the untouched NAME placeholder. The unsupported
   // EXTERNNAME is still retained without evaluating its body.
-  expect(book.names).toBeUndefined();
+  expect(book.names).toEqual([{ name: "Sheet_Title", expression: '="Here"', sheet: "Here" },
+    { name: "Print_Area", expression: "=#REF!", sheet: "Here" }]);
   expect(book.unsupportedRecords?.find(record => record.kind === "EXTERNNAME_v0")?.data)
     .toMatchObject({ opcode: 0x23, bytes: "02000000000004005261746507001e02001e030003" });
 });

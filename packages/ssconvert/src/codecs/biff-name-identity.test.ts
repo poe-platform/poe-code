@@ -29,7 +29,9 @@ for (const collision of [false, true]) it.each([7, 8, "dsf"] as const)(
     for (const stream of readCfb(bytes, context).values()) {
       const reopened = await readBiff(stream, context);
       expect(reopened.names?.map(name => [name.name, name.sheet])).toEqual([
-        ["Rate", undefined], ["rate", undefined], ["Rate", "Data"], ["rate", "Data"], ["Bridge", "Data"]
+        ["Rate", undefined], ["rate", undefined], ["Rate", "Data"], ["rate", "Data"], ["Bridge", "Data"],
+        ["Sheet_Title", collision ? "target" : "Decoy"], ["Print_Area", collision ? "target" : "Decoy"],
+        ["Sheet_Title", "Data"], ["Print_Area", "Data"]
       ]);
       expect(recalculateWorkbook(reopened, context, true).sheets[1]!.cells.map(cell => cell.value)).toEqual(expected);
     }

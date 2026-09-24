@@ -3,6 +3,11 @@ import { readBiff } from "./biff.js";
 import { readGnumeric, writeGnumeric } from "./gnumeric.js";
 import { biffContext, concat, record } from "./biff.test.js";
 
+const permanentNames = [
+  { name: "Sheet_Title", expression: '="Worksheet"', sheet: "Worksheet" },
+  { name: "Print_Area", expression: "=#REF!", sheet: "Worksheet" }
+];
+
 function namedWorkbook(revision: number, characters: readonly number[], wide = false, builtin = true): Uint8Array {
   const header = new Uint8Array(14), view = new DataView(header.buffer);
   view.setUint16(0, builtin ? 0x20 : 0, true); header[3] = characters.length;
@@ -17,18 +22,18 @@ it.each([7, 8])("imports every stable built-in NAME identifier in BIFF%i", async
   const expected = ["Consolidate_Area", "Auto_Open", "Auto_Close", "Extract", "Database", "Criteria",
     "Print_Area", "Print_Titles", "Recorder", "Data_Form", "Auto_Activate", "Auto_Deactivate", "Sheet_Title", "_FilterDatabase"];
   for (let id = 0; id < expected.length; id++) {
-    expect((await readBiff(namedWorkbook(revision, [id]), biffContext)).names).toEqual([{ name: expected[id], expression: "=42" }]);
+    expect((await readBiff(namedWorkbook(revision, [id]), biffContext)).names).toEqual([{ name: expected[id], expression: "=42" }, ...permanentNames]);
   }
 });
 
 it.each([false, true])("consumes the complete BIFF8 built-in character and suffix (wide=%s)", async wide => {
   expect((await readBiff(namedWorkbook(8, [12, 95, 65], wide), biffContext)).names)
-    .toEqual([{ name: "Sheet_Title_A", expression: "=42" }]);
+    .toEqual([{ name: "Sheet_Title_A", expression: "=42" }, ...permanentNames]);
 });
 
 it("keeps ordinary wide names independent of built-in identifiers", async () => {
   expect((await readBiff(namedWorkbook(8, [0x3a9, 65], true, false), biffContext)).names)
-    .toEqual([{ name: "ΩA", expression: "=42" }]);
+    .toEqual([{ name: "ΩA", expression: "=42" }, ...permanentNames]);
 });
 
 it("exports BIFF names using native Gnumeric expression syntax for replay", async () => {

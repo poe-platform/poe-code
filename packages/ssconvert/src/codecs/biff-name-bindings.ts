@@ -1,9 +1,13 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { BiffFormulaContext } from "./biff-formulas.js";
 import { parseExpression } from "../formulas/parser.js";
+import { gnumericGrammar } from "../formulas/conventions.js";
+import { quoteFormulaString } from "../formulas/serialization.js";
+import type { NamedExpression } from "../workbook.js";
 
 type Resolver = NonNullable<BiffFormulaContext["resolveName"]>;
-interface Binding { name: string; index?: number; dependencies: readonly Reference[]; placeholder?: boolean; }
+interface Binding { name: string; index?: number; dependencies: readonly Reference[]; placeholder?: boolean;
+  permanent?: boolean; defaultExpression?: string; }
 type Reference = Binding | "#REF!" | "#NAME?";
 interface CapturedReference { target: Reference; functionName: string | undefined; }
 
@@ -15,7 +19,16 @@ export class BiffNameBindings {
     references: readonly CapturedReference[]; placeholder: boolean }>();
   private work = 0;
 
-  constructor(private readonly context: CapabilityContext) {}
+  constructor(private readonly context: CapabilityContext, sheets: readonly { name: string }[]) {
+    for (const sheet of sheets) {
+      this.tick();
+      this.scopes.set(sheet.name, new Map([
+        ["Sheet_Title", { name: "Sheet_Title", dependencies: [], permanent: true,
+          defaultExpression: "=" + quoteFormulaString(sheet.name, '"', gnumericGrammar) }],
+        ["Print_Area", { name: "Print_Area", dependencies: [], permanent: true, defaultExpression: "=#REF!" }]
+      ]));
+    }
+  }
 
   private tick(): void {
     this.context.signal.throwIfAborted();
@@ -68,7 +81,7 @@ export class BiffNameBindings {
     }
     const scope = this.scopes.get(sheet) ?? new Map<string, Binding>();
     const existing = scope.get(name);
-    if (existing && !existing.placeholder) {
+    if (existing && !existing.placeholder && !existing.permanent) {
       this.slots.delete(index);
       return;
     }
@@ -86,13 +99,14 @@ export class BiffNameBindings {
     binding.index = index;
     binding.dependencies = dependencies;
     binding.placeholder = placeholder;
+    delete binding.defaultExpression;
     this.slots.set(index, binding);
     scope.set(name, binding);
     this.scopes.set(sheet, scope);
     this.definitions.set(index, { translate, references, placeholder });
   }
 
-  finish(): readonly number[] {
+  finish(): { indices: readonly number[]; defaults: readonly NamedExpression[] } {
     // Native importer teardown unlinks top-level #NAME? definitions. Existing
     // references keep their now-inactive objects and evaluate to #REF!.
     for (const [index, definition] of Array.from(this.definitions).reverse()) {
@@ -102,7 +116,13 @@ export class BiffNameBindings {
         this.definitions.delete(index);
       }
     }
-    return Array.from(this.definitions.keys());
+    const defaults: NamedExpression[] = [];
+    for (const [sheet, scope] of this.scopes) for (const binding of scope.values()) {
+      this.tick();
+      if (binding.defaultExpression !== undefined) defaults.push({ name: binding.name, expression: binding.defaultExpression,
+        ...(sheet === undefined ? {} : { sheet }) });
+    }
+    return { indices: Array.from(this.definitions.keys()), defaults };
   }
 
   expression(index: number): string {

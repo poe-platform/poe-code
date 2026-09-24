@@ -14,6 +14,31 @@ async function run(args: readonly string[] = [], input = "", options: LineEnding
   return { ...result, stdout: Buffer.concat(stdout).toString("latin1"), stderr: Buffer.concat(stderr).toString("utf8") };
 }
 function deferred() { let resolve!: () => void; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
+
+for (const chunkSize of [1, 32768]) {
+  for (const args of [[], ["-l"], ["--newline"]]) test(`unix2dos preserves CR runs and doubles every newline: ${args} chunk ${chunkSize}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(lineEndingCommands({ limits: { chunkSize } }));
+    try {
+      const result = await shell.exec(`unix2dos ${args.join(" ")}`, { stdin: "a\r\r\nb\nc\r\nd\r" });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, args.length ? "a\r\r\n\r\nb\r\n\r\nc\r\n\r\nd\r" : "a\r\r\nb\r\nc\r\nd\r");
+    } finally { await shell.dispose(); }
+  });
+  test(`unix2dos detects binary controls after CR without modifying files: chunk ${chunkSize}`, async () => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(lineEndingCommands({ limits: { chunkSize } }));
+    try {
+      for (const control of [0, 1, 8, 11, 31]) {
+        const input = Buffer.from(`a\r${String.fromCharCode(control)}b\n`);
+        await fs.writeFile("/binary", input);
+        const result = await shell.exec("unix2dos -v /binary");
+        assert.match(result.stderr, /Binary symbol .* found at line 1/);
+        assert.match(result.stderr, /Skipping binary file/);
+        assert.deepEqual(Buffer.from(await fs.readFile("/binary")), input);
+      }
+    } finally { await shell.dispose(); }
+  });
+}
 function wrapped(fs: FileSystem, selected: (key: PropertyKey, receiver: FileSystem) => unknown): FileSystem {
   return new Proxy(fs, { get(target, key, receiver) {
     const value = selected(key, receiver as FileSystem);

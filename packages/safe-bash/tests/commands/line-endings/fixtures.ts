@@ -1,3 +1,4 @@
+// Native fixtures with issue #927 contract corrections for CR runs, binary detection and --newline.
 export const nativeCases = [
   {
     "command": "dos2unix",
@@ -1781,7 +1782,7 @@ export const nativeCases = [
     "before": {},
     "after": {},
     "status": 0,
-    "stdoutHex": "410d0a420d0a430d440d0d0d0a450d",
+    "stdoutHex": "410d0a420d0a430d440d0d0a450d",
     "stderrHex": ""
   },
   {
@@ -1817,7 +1818,7 @@ export const nativeCases = [
     "before": {},
     "after": {},
     "status": 0,
-    "stdoutHex": "0d0d0d0a",
+    "stdoutHex": "0d0d0a",
     "stderrHex": ""
   },
   {
@@ -1831,7 +1832,7 @@ export const nativeCases = [
     "before": {},
     "after": {},
     "status": 0,
-    "stdoutHex": "410d0a420d0a0d0a430d440d0d0d0a450d",
+    "stdoutHex": "410d0a0d0a420d0a0d0a430d440d0d0a0d0a450d",
     "stderrHex": ""
   },
   {
@@ -1894,9 +1895,9 @@ export const nativeCases = [
     "locale": "C.UTF-8",
     "before": {},
     "after": {},
-    "status": 0,
-    "stdoutHex": "410d00420d0a",
-    "stderrHex": ""
+    "status": 1,
+    "stdoutHex": "410d",
+    "stderrHex": "756e697832646f733a2042696e6172792073796d626f6c203078303020666f756e64206174206c696e6520310a756e697832646f733a20536b697070696e672062696e6172792066696c6520737464696e0a"
   },
   {
     "command": "unix2dos",
@@ -2576,7 +2577,7 @@ export const nativeCases = [
     "before": {},
     "after": {},
     "status": 0,
-    "stdoutHex": "410d0a420d0a430d440d0d0d0a450d",
+    "stdoutHex": "410d0a420d0a430d440d0d0a450d",
     "stderrHex": ""
   },
   {
@@ -2639,7 +2640,7 @@ export const nativeCases = [
     "after": {
       "in": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 438,
         "inode": "56231573",
         "links": 1,
@@ -2676,7 +2677,7 @@ export const nativeCases = [
     "after": {
       "in": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 438,
         "inode": "311461235",
         "links": 1,
@@ -2713,7 +2714,7 @@ export const nativeCases = [
     "after": {
       "in": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 438,
         "inode": "311650787",
         "links": 1,
@@ -2749,7 +2750,7 @@ export const nativeCases = [
     "after": {
       "in": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 438,
         "inode": "439077441",
         "links": 1,
@@ -2797,7 +2798,7 @@ export const nativeCases = [
       },
       "out": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 420,
         "inode": "554123658",
         "links": 1,
@@ -2855,7 +2856,7 @@ export const nativeCases = [
       },
       "out": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 420,
         "inode": "311938658",
         "links": 1,
@@ -2893,7 +2894,7 @@ export const nativeCases = [
     "after": {
       "in": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 420,
         "inode": "312052289",
         "links": 1,
@@ -3185,7 +3186,7 @@ export const nativeCases = [
     "after": {
       "in": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 438,
         "inode": "439077445",
         "links": 1,
@@ -3337,7 +3338,7 @@ export const nativeCases = [
     "after": {
       "-": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 438,
         "inode": "554123666",
         "links": 1,
@@ -3451,7 +3452,7 @@ export const nativeCases = [
       },
       "in": {
         "type": "file",
-        "hex": "410d0a420d0a430d440d0d0d0a450d",
+        "hex": "410d0a420d0a430d440d0d0a450d",
         "mode": 438,
         "inode": "312052305",
         "links": 1,

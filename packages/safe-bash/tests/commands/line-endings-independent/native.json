@@ -693,9 +693,10 @@
         "input": "410d000d0d0a80ff"
       },
       "status": 0,
-      "stdout": "410d000d0d0d0a80ff",
+      "stdout": "410d000d0d0a80ff",
       "stderr": "",
-      "after": {}
+      "after": {},
+      "contractCorrection": "Issue #927: preserve consecutive CR before LF."
     },
     {
       "command": "unix2dos",
@@ -707,9 +708,10 @@
         "input": "410d0d0a420a"
       },
       "status": 0,
-      "stdout": "410d0d0d0a420d0a0d0a",
+      "stdout": "410d0d0a0d0a420d0a0d0a",
       "stderr": "",
-      "after": {}
+      "after": {},
+      "contractCorrection": "Issue #927: double LF and CRLF endings."
     },
     {
       "command": "unix2dos",

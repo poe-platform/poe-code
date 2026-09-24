@@ -70,7 +70,7 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
   let previous = 0;
   let last = -1, converted = 0;
   for (;;) {
-    let current = await unit();
+    const current = await unit();
     if (current === -1) break;
     last = current;
     if (!options.force && current < 32 && current !== 9 && current !== 10 && current !== 12 && current !== 13) {
@@ -88,16 +88,10 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
         if (!await put(current)) break;
       }
     } else {
-      if (current === 10) { converted++; if (!await put(13)) break; }
-      else if (current === 13) {
-        current = await unit();
-        if (current === -1) current = 13;
-        else { if (!await put(13)) break; previous = 13; }
-        last = current;
-      }
+      if (current === 10 && previous !== 13) { converted++; if (!await put(13)) break; }
       if (current === 10) line++;
       if (!await put(current)) break;
-      if (options.newline && current === 10 && previous !== 13) {
+      if (options.newline && current === 10) {
         if (!await put(13) || !await put(10)) break;
       }
       previous = current;

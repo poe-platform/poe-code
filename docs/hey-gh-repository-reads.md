@@ -17,7 +17,7 @@ hey-gh --help
 lsof -nP -iTCP:8787 -sTCP:LISTEN
 # Inspect the PID reported by lsof:
 ps -p <PID> -o pid,ppid,command
-curl -i http://127.0.0.1:8787/health
+curl --connect-timeout 2 --max-time 5 -i http://127.0.0.1:8787/health
 ```
 
 On Mac.lan on September 24, 2026, the failing default read returned exit 1
@@ -25,6 +25,14 @@ without an envelope. Port 8787 belonged to PID 49680 (parent PID 1), running
 `/Users/kjopek/enhance-api/server.py`. Its health response identified Uvicorn
 and audio enhancement/transcription capabilities. This is a local port
 collision; the 404 is not evidence that the GitHub repository is missing.
+
+A restricted execution sandbox can instead report `GitHub transport error:
+error sending request`, even when the listener exists. That result does not
+identify the service or establish an upstream GitHub failure. Repeat the same
+read from a terminal permitted to access the local daemon, then inspect the
+listener and its health response. On September 24, this comparison reproduced
+the transport error inside the sandbox and the local API 404 outside it.
+Neither response supplied a PR envelope, so neither can advance a saved cursor.
 
 ## Use a separate loopback port
 

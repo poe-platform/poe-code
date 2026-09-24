@@ -119,9 +119,9 @@ for (const defect of ["none", "pin", "name", "version", "export", "closure", "li
     "src/index.ts": 'import type { Page } from "@poe-code/pandoc"; export const page: Page = { width: 12 };',
     "../pandoc/package.json": JSON.stringify(pandoc),
     "../pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
-    "../pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf";',
+    "../pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf"; export type { PdfNode } from "@poe-code/pdf-ast";',
     "../pdf-ast/package.json": JSON.stringify({name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports, dependencies: {pako: "3.0.1"}}),
-    "../pdf-ast/dist/index.d.ts": "export {};",
+    "../pdf-ast/dist/index.d.ts": 'export interface PdfNode { text: string; }',
     "../pdf/package.json": JSON.stringify(pdf),
     "../pdf/dist/index.d.ts": 'export type { Page } from "./model.js";',
     "../pdf/dist/model.d.ts": 'export interface Page { width: number; }',
@@ -149,6 +149,7 @@ for (const defect of ["none", "pin", "name", "version", "export", "closure", "li
   } else if (defect === "none") {
     assert.equal((await owned.run()).status, 0, owned.output.join(""));
     assert.ok(owned.reads.includes("/owned/pdf/dist/model.d.ts"));
+    assert.ok(owned.reads.includes("/owned/pdf-ast/dist/index.d.ts"));
   } else await assert.rejects(owned.run(), defect === "link" ? /symlink/ : /Pandoc SDK/);
   assert.equal(owned.descriptors.size, 0);
 });

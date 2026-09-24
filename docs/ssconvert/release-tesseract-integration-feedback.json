@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "upstream": "13a7529cc",
+  "issue": "New PDF integration left a root Tesseract lock declaration without its manifest dependency, routed its Node test through root Vitest, and expanded Pandoc build admission beyond its synthetic fixture metadata.",
+  "baseline": {
+    "rootDependency": "Missing root manifest entry with existing lock entry.",
+    "discovery": "Root Vitest discovers packages/safe-bash-command-tesseract/src/index.test.ts, which imports node:test.",
+    "runnerFailures": 5,
+    "runnerFailure": "Pandoc SDK dependency closure; after matching the manifest, missing pdf-ast fixture metadata also prevents admission."
+  },
+  "repair": "Declare the root workspace dependency, exclude its Node suite from Vitest, and supply the new pdf-ast fixture dependency with actual declaration traversal. Preserve all negative admission checks.",
+  "validation": {
+    "tesseractTests": 4,
+    "npmPosttestStress": 2,
+    "buildFixtureTests": 404,
+    "packageRunnerTests": 607,
+    "selectedWorkspaceBuilds": 35,
+    "lint": "Focused ESLint passed.",
+    "discovery": "Tesseract is absent from root Vitest; native package unit command remains declared.",
+    "rootDependencies": "Root manifest devDependencies exactly equal the lock entry.",
+    "archiveAdmission": {
+      "commit": "f7f4986fe",
+      "command": "node --import tsx --test --test-name-pattern=^committed\\ Pandoc\\ build\\ metadata packages/safe-bash/tests/integration/s3-http-exports/archive-controls.test.mjs",
+      "tests": 1,
+      "passed": 1,
+      "scope": "Actual committed archive metadata admission, selected by name; not a repeat of all 221 controls."
+    }
+  },
+  "sources": {
+    "package.json": "cbab283f47ce16aaa48617ae44c66e32ac0857501fec2b17c4a3f84ca89eb7d1",
+    "vitest.config.ts": "f46d685ac9aa7535d60b4a3c7700a24b378a1f8d0735b879704eb6fd6ca4b5f6",
+    "packages/safe-bash/scripts/build.test.mjs": "1e8a4d98808b605ddddf24b06952b1396f179e511cf756eceb3afc3f112923bf"
+  },
+  "remaining": "Full containing CI and publication remain pending; all 19 original ssconvert families remain open.",
+  "reconciliation": {
+    "upstream": "2ab3fb4086ebf0b1fd7927b3b9f35c994f29fa7e",
+    "result": "Upstream independently added Pandoc/pdf-ast fixture metadata. Preserve that change; this delivery adds declaration traversal coverage and the Tesseract root dependency/discovery repair."
+  }
+}

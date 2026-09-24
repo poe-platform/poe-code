@@ -81,7 +81,7 @@ export const cases: Record<string, () => Promise<void>> = {
     assert.deepEqual(origins, [false, false, false]);
   },
 
-  async "parse-before-effects-with-caller-redirections"() {
+  async "completed-units-before-later-parse-errors-with-caller-redirections"() {
     const fixture = setup();
     await fixture.fs.writeFile("/caller", encoder.encode("old"));
     await script(fixture, "/bad", '#!/bin/bash\nsay bad >body\nfor item in one; do\n');
@@ -89,7 +89,7 @@ export const cases: Record<string, () => Promise<void>> = {
     assert.equal(result.stdout, '["2"]');
     assert.equal(result.stderr, "");
     assert.equal((await fixture.fs.readFile("/caller")).byteLength, 0);
-    await assert.rejects(fixture.fs.stat("/body"), error => error instanceof FsError && error.code === "ENOENT");
+    assert.equal(new TextDecoder().decode(await fixture.fs.readFile("/body")), "bad\n");
     assert.match(new TextDecoder().decode(await fixture.fs.readFile("/diagnostic")), /bad: line \d+: syntax error:/u);
   },
 

@@ -330,13 +330,14 @@ test("shopt remains an ordinary rather than special builtin", async () => {
   assert.equal(result.stderr, "");
 });
 
-test("scriptFile retains whole-input preflight before executing shopt", async () => {
+test("scriptFile executes completed units before a later syntax error", async () => {
   const { shell, fs } = await fixture();
   try {
     await fs.writeFile("/scripts/broken", new TextEncoder().encode("shopt -s dotglob; argv *\nif\n"));
     const result = await shell.exec("bash /scripts/broken");
     assert.equal(result.exitCode, 2);
-    assert.equal(result.stdout, "");
+    assert.equal(result.stdout, encode(all));
     assert.match(result.stderr, /syntax error/);
+    assert.equal((await shell.exec("argv *")).stdout, encode(visible));
   } finally { await shell.dispose(); }
 });

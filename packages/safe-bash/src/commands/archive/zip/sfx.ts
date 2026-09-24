@@ -11,7 +11,6 @@ export async function readZipSfx(bytes: Uint8Array, limits: ArchiveLimits, signa
   catch { signal.throwIfAborted(); }
   if (!archive) {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    let attempts = 0;
     // Unadjusted SFX offsets are relative to the embedded ZIP. Signature
     // recognition only nominates a candidate; the strict reader proves all spans.
     for (let offset = 1; offset + 22 <= bytes.length; offset++) {
@@ -19,7 +18,6 @@ export async function readZipSfx(bytes: Uint8Array, limits: ArchiveLimits, signa
       if (offset % 4096 === 0) await yieldTurn(signal);
       const signature = view.getUint32(offset, true);
       if (signature !== 0x04034b50 && signature !== 0x06054b50) continue;
-      if (++attempts > Math.min(64, limits.maxMembers)) fail("ZIP SFX candidate limit exceeded");
       let candidate: ZipArchive;
       try { candidate = await readZipArchive(bytes.subarray(offset), limits, signal); }
       catch { signal.throwIfAborted(); continue; }

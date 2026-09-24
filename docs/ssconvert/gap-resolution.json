@@ -250,7 +250,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Sequential BIFF name binding and placeholder teardown now match six native cycle/index profiles; all22895package tests and36public conversions pass. XML cycle declaration-order captures qualify five complete cases; globals-last crashes natively after expected output. Native BIFF re-export readback, dynamic diagnostics, duplicate/malformed/custom-function behavior, broader references and publication remain open.",
+      "currentFinding": "Sequential BIFF binding, placeholder teardown and parse-time custom-function identity match the original native cycle/index and forward-macro values. Final22903package tests and publicSDK/Shell conversions pass. XML declaration-order qualification retains a native globals-last SIGSEGV. Re-export qualification documentation, dynamic diagnostics, duplicate/malformed/wider custom-function behavior, broader references and publication remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -492,6 +492,11 @@
           "evidence": "docs/ssconvert/biff-name-binding-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/biff-cycle-indices-native-capture.json",
           "outcome": "Six original inputs/18nativecommands match expected#REF! and guarded controls;36builtpublicconversions pass. Runtime delivery and containing publication tracked separately."
+        },
+        {
+          "kind": "biff-custom-function-parse-time-identity",
+          "evidence": "docs/ssconvert/biff-forward-macro-binding-gap-proof.json",
+          "outcome": "Six original forward-macro inputs now match native#NAME?/#Unknown! values through12builtSDK/Shell conversions. Fullstreamdiagnostics and widerprofiles remain open."
         }
       ],
       "delivery": {

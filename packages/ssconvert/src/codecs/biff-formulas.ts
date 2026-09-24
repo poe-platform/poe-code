@@ -7,6 +7,10 @@ import { functionDescriptors } from "../formulas/function-descriptors.js";
 import { excelGrammar } from "../formulas/conventions.js";
 
 interface Expression { text: string; precedence: number; functionName?: string; }
+export interface BiffNameReference {
+  readonly value: number | "#REF!" | "#NAME?";
+  readonly functionName: string | undefined;
+}
 export interface BiffFormulaContext {
   readonly revision: number;
   readonly codepage: number;
@@ -14,7 +18,7 @@ export interface BiffFormulaContext {
   readonly column: number;
   readonly names: readonly string[];
   /** Import-time indexed identity, including unlinked forward declarations. */
-  readonly resolveName?: (index: number, qualified: boolean) => number | "#REF!" | "#NAME?";
+  readonly resolveName?: (index: number, qualified: boolean) => BiffNameReference;
   readonly nameSheets?: readonly (string | undefined)[];
   /** null is the legacy self-reference placeholder; undefined is an unbound link. */
   readonly externalSheets: readonly (string | readonly [string, string] | null | undefined)[];
@@ -159,19 +163,19 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const binding = context.revision >= 8 ? (context.externalNameSheets ?? context.externalSheets)[rawSheet] : context.externalSheets[-signedSheet - 1];
       if (binding === undefined)
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
-      const resolved = context.resolveName?.(index, true) ?? index;
-      if (typeof resolved === "string") { push(resolved, 99, context.names[index - 1]); continue; }
+      const resolution = context.resolveName?.(index, true), resolved = resolution?.value ?? index;
+      if (typeof resolved === "string") { push(resolved, 99, resolution?.functionName); continue; }
       const name = context.names[resolved - 1];
       if (!name) { push("#REF!"); continue; }
       const sheet = binding === null ? context.nameSheets?.[resolved - 1] ?? context.currentSheet : typeof binding === "string" ? binding : binding[0];
-      push(nameText(resolved, sheet), 99, name);
+      push(nameText(resolved, sheet), 99, resolution === undefined ? name : resolution.functionName);
     } else if (token === 0x23) {
       const index = data.u16(offset), width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : 10;
       data.check(offset, width); offset += width;
-      const resolved = context.resolveName?.(index, false) ?? index;
-      if (typeof resolved === "string") { push(resolved, 99, context.names[index - 1]); continue; }
+      const resolution = context.resolveName?.(index, false), resolved = resolution?.value ?? index;
+      if (typeof resolved === "string") { push(resolved, 99, resolution?.functionName); continue; }
       const name = context.names[resolved - 1]; if (!name) invalidBiff("invalid formula name index");
-      push(nameText(resolved), 99, name);
+      push(nameText(resolved), 99, resolution === undefined ? name : resolution.functionName);
     } else if (token === 0x24 || token === 0x2c) { push(reference(offset, token === 0x2c)); offset += context.revision >= 8 ? 4 : 3; }
     else if (token === 0x25 || token === 0x2d) { push(area(offset, token === 0x2d)); offset += context.revision >= 8 ? 8 : 6; }
     else if (token === 0x2a || token === 0x2b) { const size = context.revision >= 8 ? token === 0x2a ? 4 : 8 : token === 0x2a ? 3 : 6; data.check(offset, size); offset += size; push("#REF!"); }

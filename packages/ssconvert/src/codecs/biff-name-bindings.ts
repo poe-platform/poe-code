@@ -5,12 +5,13 @@ import { parseExpression } from "../formulas/parser.js";
 type Resolver = NonNullable<BiffFormulaContext["resolveName"]>;
 interface Binding { name: string; index?: number; dependencies: readonly Reference[]; }
 type Reference = Binding | "#REF!" | "#NAME?";
+interface CapturedReference { target: Reference; functionName: string | undefined; }
 
 /** NAME records bind sequentially; references retain objects even after an index is replaced. */
 export class BiffNameBindings {
   private readonly slots = new Map<number, Binding>();
   private readonly definitions = new Map<number, { translate: (resolve: Resolver) => string;
-    references: readonly Reference[]; placeholder: boolean }>();
+    references: readonly CapturedReference[]; placeholder: boolean }>();
   private work = 0;
 
   constructor(private readonly context: CapabilityContext) {}
@@ -34,20 +35,25 @@ export class BiffNameBindings {
 
   readonly resolve: Resolver = (index, qualified) => {
     const reference = this.reference(index, qualified);
-    return typeof reference === "string" ? reference : reference.index ?? "#REF!";
+    return typeof reference === "string" ? { value: reference, functionName: undefined } :
+      { value: reference.index ?? "#REF!", functionName: reference.name };
   };
 
   define(index: number, name: string, translate: (resolve: Resolver) => string): boolean {
     this.tick();
     // Native captures the old stub before parsing. A self reference created
     // during parsing therefore remains unlinked when this slot is replaced.
-    const stub = this.slots.get(index), references: Reference[] = [];
+    const stub = this.slots.get(index), references: CapturedReference[] = [];
     const expression = translate((target, qualified) => {
       const reference = this.reference(target, qualified);
-      references.push(reference);
-      return typeof reference === "string" ? reference : target;
+      // A custom function is selected immediately, before a forward stub may
+      // acquire its eventual declared name. Preserve that original spelling.
+      const functionName = typeof reference === "string" ? undefined : reference.name;
+      references.push({ target: reference, functionName });
+      return { value: typeof reference === "string" ? reference : target, functionName };
     });
-    const pending = [...references], seen = new Set<Binding>();
+    const dependencies = references.map(reference => reference.target);
+    const pending = [...dependencies], seen = new Set<Binding>();
     while (pending.length) {
       this.tick();
       const dependency = pending.pop()!;
@@ -62,7 +68,7 @@ export class BiffNameBindings {
     const binding = stub ?? { name, dependencies: [] };
     binding.name = name;
     binding.index = index;
-    binding.dependencies = references;
+    binding.dependencies = dependencies;
     this.slots.set(index, binding);
     const parsed = parseExpression(expression, { position: { sheet: "", row: 0, column: 0 },
       signal: this.context.signal, maximumLength: this.context.limits.inputBytes,
@@ -93,8 +99,8 @@ export class BiffNameBindings {
     let at = 0;
     return definition.translate(() => {
       this.tick();
-      const reference = definition.references[at++]!;
-      return typeof reference === "string" ? reference : reference.index ?? "#REF!";
+      const { target, functionName } = definition.references[at++]!;
+      return { value: typeof target === "string" ? target : target.index ?? "#REF!", functionName };
     });
   }
 }

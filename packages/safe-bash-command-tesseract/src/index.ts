@@ -1124,7 +1124,7 @@ export async function runTesseract(
 
     for (const fmt of formats) {
       let payload: Uint8Array;
-      let ext = fmt;
+      const ext = fmt;
       if (fmt === "txt") {
         payload = encoder.encode(formatTxt(pages, pageSeparator));
       } else if (fmt === "tsv") {

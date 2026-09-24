@@ -96,7 +96,7 @@ for (const mode of ["disabled", "absent"] as const) {
         assert.equal(refused.exitCode, 2);
         assert.ok(refused.stderr.includes("openReadFile"), refused.stderr);
         assert.equal(new TextDecoder().decode(await state.memory.readFile("/input.txt")), "first\nsecond\n");
-        assert.deepEqual(state.reads, []);
+        assert.equal(state.reads.length, 0);
         const producer = new Shell({ fs: state.memory }).use(archiveCommands());
         try {
           const created = await producer.exec("tar -cf /bundle.tar /input.txt");
@@ -186,7 +186,7 @@ for (const [name, command] of [...ordinaryCases, ["tar", "tar -cf /bundle.tar /i
       await rejected;
       assert.equal(active, 0);
       assert.deepEqual(state.traps, []);
-      assert.deepEqual(state.reads, []);
+      assert.equal(state.reads.length, 0);
       assert.deepEqual(state.writes, []);
     } finally { release(); await state.shell.dispose(); }
   });

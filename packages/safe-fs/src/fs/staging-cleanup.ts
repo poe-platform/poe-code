@@ -4,7 +4,11 @@ import { finishCleanup } from "../contracts/cleanup.js";
 
 /** Capture creation controls before awaits or allocation can split their meaning. */
 export function snapshotStagingCreation(options: CreateStagedFileOptions, path: string): CreateStagedFileOptions {
-  const { signal, retainCleanup, parent, mode, atimeMs, mtimeMs, ...extra } = options;
+  const captured = { ...options };
+  for (const key of ["signal", "retainCleanup", "parent", "mode", "atimeMs", "mtimeMs"] as const) {
+    if (!Object.hasOwn(captured, key)) Object.defineProperty(captured, key, { value: options[key], enumerable: true });
+  }
+  const { signal, retainCleanup, parent, mode, atimeMs, mtimeMs, ...extra } = captured;
   signal?.throwIfAborted();
   if (retainCleanup !== undefined && typeof retainCleanup !== "boolean") throw new FsError("EINVAL", { syscall: "createStagedFile", path });
   return {

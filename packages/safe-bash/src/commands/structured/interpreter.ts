@@ -1,4 +1,4 @@
-import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
+import { Budget, copyObject, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
@@ -442,6 +442,19 @@ export class Interpreter {
       return;
     }
     if (name === "del") { yield* this.assign(args[0]!, { kind: "call", name: "empty", args: [] }, "|=", input); return; }
+    if (name === "halt") throw new JqHalt(0, "");
+    if (name === "halt_error") {
+      for await (const code of args.length ? this.run(args[0]!, input) : [5]) {
+        if (!isNumber(code)) throw new JqError(`${describe(input, budget)} halt_error/1: number required`);
+        const stderr = input === null ? "" : typeof input === "string" ? input
+          : `${await stringify(input, budget, { indent: "", ascii: false, color: false }, budget.limits.maxOutputBytes, "maxOutputBytes")}\n`;
+        if (budget.outputBytes + Buffer.byteLength(stderr) > budget.limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
+        // jq clamps negative statuses and the process exposes the low byte.
+        const status = Math.max(0, Math.trunc(numberValue(code))) % 256;
+        throw new JqHalt(status, stderr);
+      }
+      return;
+    }
     if (name === "error") {
       for await (const value of args.length ? this.run(args[0]!, input) : [input]) {
         throw new UserError(value, typeof value === "string" ? value : await stringify(value, budget));

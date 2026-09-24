@@ -136,7 +136,11 @@ data imports and import search metadata remain unsupported.
 Modules contain imports followed by definitions, with no executable filter body.
 
 `del(path)` removes selected object fields or array elements. `error` and
-`error(value)` raise values that `try ... catch` can handle. String filters include
+`error(value)` raise values that `try ... catch` can handle. `halt` stops jq with
+status 0. `halt_error(code)` (default code 5) stops all input processing and writes
+the current input to stderr: strings as raw text, null as nothing, and other
+values as compact JSON with a newline. Halts bypass `try/catch` and `?`.
+String filters include
 `startswith`, `endswith`, `ltrimstr`, `rtrimstr`, `ascii_downcase`, and
 `ascii_upcase`; ASCII case conversion preserves non-ASCII characters.
 

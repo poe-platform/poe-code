@@ -2,7 +2,7 @@ import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type Com
 import { pathOf } from "../internal.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
-import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
+import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
 import { jsonValues, parseJson, rawValues, stringify, type JsonFormat } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { moduleProgram, parse, type Ast } from "./parser.js";
@@ -362,6 +362,11 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     if (diagnosticWriteFailed) throw error;
     context.signal.throwIfAborted();
     if (stdoutWriteFailed) throw error;
+    if (error instanceof JqHalt) {
+      await flush(true);
+      await writeBytes(context.stderr, Buffer.from(error.stderr), context.signal);
+      return { exitCode: error.exitCode };
+    }
     if (!(error instanceof JqError) && !(error instanceof FsError)) throw error;
     if (error instanceof FsError && error.code === "EPIPE") throw error;
     await flush(true);

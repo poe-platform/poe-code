@@ -23,6 +23,9 @@ export const defaultJqLimits: Readonly<JqLimits> = Object.freeze({
   maxDepth: Infinity, maxAstDepth: Infinity, maxSteps: Infinity,
   maxResults: Infinity, maxCollectionSize: Infinity,
 });
+export class JqHalt extends Error {
+  constructor(readonly exitCode: number, readonly stderr: string) { super("jq halted"); }
+}
 export class JqError extends Error {
   constructor(message: string, readonly exitCode = 5) { super(message); }
 }

@@ -4,6 +4,7 @@ import { SsconvertError } from "../contracts.js";
 import type { FormulaResult } from "../formulas.js";
 import type { Cell, CellValue, Workbook } from "../workbook.js";
 import { recalculateWorkbook } from "./evaluator.js";
+import { renameWorkbookSheet } from "./workbook.js";
 
 const context: CapabilityContext = {
   signal: new AbortController().signal,
@@ -135,6 +136,23 @@ it("resolves external references only through the explicit authorized capability
   expect(recalculateWorkbook(input, { ...context, externalReferences: { resolve(request, signal) {
     requests++; expect(request.kind).toBe("reference"); expect(signal).toBe(context.signal); expect(Object.isFrozen(request)).toBe(true); return n(7);
   } } }).sheets[0]!.cells[0]!.value).toEqual(n(10));
+  expect(requests).toBe(1);
+});
+
+it.each(["book file.xlsx", "book]file.xlsx"])("retains external authority during a local sheet rename: %s", workbook => {
+  const input = book([{ row: 0, column: 0, value: n(3) },
+    { row: 0, column: 1, formula: `=['${workbook}']Sheet1!A1+A1`, value: n(99) }]);
+  const renamed = renameWorkbookSheet(input, "s", "Renamed", context);
+  expect(input.sheets[0]!.name).toBe("Sheet1");
+  expect(recalculateWorkbook(renamed, context, true).sheets[0]!.cells[1]!.value).toEqual({ kind: "error", value: "#REF!" });
+  let requests = 0;
+  const calculated = recalculateWorkbook(renamed, { ...context, externalReferences: { resolve(request, signal) {
+    requests++;
+    expect(request).toMatchObject({ kind: "reference", first: { workbook, sheet: "Sheet1" } });
+    expect(signal).toBe(context.signal);
+    return n(7);
+  } } }, true);
+  expect(calculated.sheets[0]!.cells[1]!.value).toEqual(n(10));
   expect(requests).toBe(1);
 });
 

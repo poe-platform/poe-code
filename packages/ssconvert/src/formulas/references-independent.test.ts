@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { parseExpression } from "./parser.js";
-import { excelGrammar, gnumericGrammar, odfGrammar, sylkGrammar } from "./conventions.js";
+import { excelGrammar, gnumericGrammar, odfGrammar, sylkGrammar, sylkWriterGrammar } from "./conventions.js";
 import { serializeExpression } from "./serialization.js";
 import { rewriteReferences } from "./rewriting.js";
 import type { FormulaGrammar, FormulaNode } from "./ast.js";
@@ -59,6 +59,33 @@ it("keeps external targets fixed when moving their formula", () => {
   expect(parseExpression(moved, { grammar: excelGrammar, position: { ...position, row: 5, column: 3 } })).toMatchObject({
     ok: true, document: { root: { left: { first: { row: { value: -5 }, column: { value: -3 }, workbook: "other.xlsx" } } } }
   });
+});
+
+it.each([
+  ["book file", "'book file'"], ["book]suffix", "'book]suffix'"],
+  ["'leading", "'\\'leading'"], ['"leading', "'\"leading'"],
+  ["book\tfile", "'book\tfile'"], ["book\nfile", "'book\nfile'"],
+  ["book\\file", "'book\\\\file'"], ["plain.xlsx", "plain.xlsx"]
+])("preserves external workbook identity through grammar conversion and relocation: %s", (workbook, spelling) => {
+  let document = parse(`=[${spelling}]Remote!A1:B2`, gnumericGrammar);
+  const original = document.root;
+  if (original.kind !== "reference") throw new Error("Expected external reference");
+  expect(original.first.workbook).toBe(workbook);
+  for (const grammar of [excelGrammar, odfGrammar, gnumericGrammar]) {
+    document = parse(serializeExpression(document, grammar, false), grammar);
+    expect(document.root).toMatchObject({ kind: "reference", first: original.first, last: original.last });
+  }
+  const relocated = rewriteReferences(document, { translation: "move", position: { ...position, row: 5, column: 3 } });
+  expect(parseExpression(relocated, { grammar: gnumericGrammar, position: { ...position, row: 5, column: 3 } }))
+    .toMatchObject({ ok: true, document: { root: { kind: "reference", first: { workbook, sheet: "Remote" } } } });
+});
+
+it("uses an available quote in raw workbook references and refuses unrepresentable names", () => {
+  const document = parse("=['\\'leading']Remote!A1", gnumericGrammar);
+  const serialized = serializeExpression(document, sylkWriterGrammar, false);
+  expect(parse(serialized, sylkWriterGrammar).root).toMatchObject({ kind: "reference", first: { workbook: "'leading" } });
+  const unrepresentable = parse("=['\\'\"leading']Remote!A1", gnumericGrammar);
+  expect(() => serializeExpression(unrepresentable, sylkWriterGrammar, false)).toThrow("workbook reference quotes");
 });
 
 it("retains an explicitly qualified last endpoint in a range", () => {

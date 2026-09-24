@@ -280,6 +280,8 @@ XOR export supports BIFF7, BIFF8 and both DSF streams with one explicit 1–15-b
 
 Logical PWD aliases now resolve through the public `resolveVfsCwd` helper before SDK/Shell resource binding. POSIX GLib/GIO 2.90.0 confirms matching-directory aliases and distinct/missing/empty fallbacks. Scoped numeric or opaque identity is required; metadata snapshots preserve getter-backed fields and zero identities. Focused tests, independent stress probes and compiled public consumers cover alias diagnostics, relative-parent publication, unchanged environment, cancellation and fallback. The real POSIX adapter also passes missing-input, inference and relative-parent publication checks in an isolated owned tree. Split and graph outputs use the same logical parent; visible diagnostics were screenshot-inspected. Native Windows, broader real-adapter and installed-package qualification remain open. Identity observations do not provide namespace leases.
 
+External-reference serialization now quotes workbook names containing whitespace, closing brackets or leading quotes. These identities survive Excel/ODF/Gnumeric conversion, relocation and local sheet renaming; recalculation still requires the explicit external-reference capability. Raw quote syntax uses an available delimiter or refuses an unrepresentable name. Lotus external-variable parsing and remaining BIFF external-workbook records remain open.
+
 Current priorities:
 
 1. Continue encrypted-format qualification, including broader ODF application profiles and remaining BIFF/Paradox profiles; keep the encryption families open until their full requirements pass.

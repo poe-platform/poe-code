@@ -15,6 +15,16 @@ export function quoteFormulaString(value: string, quote: string, grammar: Formul
   return text + quote;
 }
 
+function workbookReference(name: string, grammar: FormulaGrammar): string {
+  if (name.startsWith("'") || name.startsWith('"') || Array.from(name).some(c => "] \t\r\n".includes(c))) {
+    const quote = grammar.stringEscape === "raw" && name.includes("'") ? '"' : "'";
+    if (grammar.stringEscape === "raw" && name.includes(quote))
+      throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: workbook reference quotes in target grammar");
+    return "[" + quoteFormulaString(name, quote, grammar) + "]";
+  }
+  return "[" + name + "]";
+}
+
 // parse-util.c:std_sheet_name_quote, including Excel's leading-zero row quirk.
 export function quoteNativeSheet(name: string): string {
   const chars = [...name];
@@ -61,7 +71,7 @@ export function serializeReference(first: ReferenceEndpoint, last: ReferenceEndp
       throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: unquoted formula sheet name");
     return name;
   };
-  const external = first.workbook === undefined ? "" : grammar.bracketReferences ? sheet(first.workbook) + "#" : "[" + first.workbook + "]";
+  const external = first.workbook === undefined ? "" : grammar.bracketReferences ? sheet(first.workbook) + "#" : workbookReference(first.workbook, grammar);
   if (grammar.bracketReferences) {
     const endpoint = (ref: ReferenceEndpoint) => (ref.sheet ? sheet(ref.sheet) : "") + "." + address(ref);
     return "[" + external + endpoint(first) + (last ? ":" + endpoint(last) : "") + "]";

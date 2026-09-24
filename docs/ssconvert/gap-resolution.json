@@ -418,6 +418,11 @@
           "kind": "BIFF-named-definition-scope",
           "path": "docs/ssconvert/biff-name-definition-scope-gap-proof.json",
           "outcome": "3red/3green;87focused/22834package tests,lint/types/build pass.56SDK/Shell CSV executions/20exports repair all3nested-name replays;7relative-offset/anchor discrepancies remain. Three generated BIFF inputs await native readback."
+        },
+        {
+          "kind": "native-relative-reference-wrapping",
+          "path": "docs/ssconvert/relative-reference-wrap-gap-proof.json",
+          "outcome": "11red/11green;86focused/22845package tests,lint/types/build pass.70SDK/Shell CSV executions/20exports repair6localBIFF replays;1XLSXanchor discrepancy remains. Native scope capture separately exposes BIFF8/dual link-table ordering."
         }
       ],
       "delivery": {

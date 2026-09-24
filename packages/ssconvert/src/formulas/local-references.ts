@@ -17,8 +17,16 @@ export function localReferenceRange(book: Workbook, node: Extract<FormulaNode, {
     if (x < 0 || y < 0) return undefined;
     sheets = book.sheets.slice(Math.min(x, y), Math.max(x, y) + 1);
   }
-  const axis = (ref: typeof first, key: "row" | "column", end: boolean, sheet: Sheet) => ref[key] ? ref[key]!.value + (ref[key]!.relative ? position[key] : 0) : end ?
-    (sheet.size ?? DEFAULT_SHEET_SIZE)[key === "row" ? "rows" : "columns"] - 1 : 0;
+  const axis = (ref: typeof first, key: "row" | "column", end: boolean, sheet: Sheet) => {
+    const maximum = (sheet.size ?? DEFAULT_SHEET_SIZE)[key === "row" ? "rows" : "columns"];
+    const value = ref[key];
+    if (!value) return end ? maximum - 1 : 0;
+    if (!value.relative) return value.value;
+    // Native gnm_cellpos_init_cellref_ss wraps each relative axis in the
+    // referenced sheet, including negative offsets imported from BIFF names.
+    const coordinate = (value.value + position[key]) % maximum;
+    return coordinate < 0 ? coordinate + maximum : coordinate;
+  };
   const r1 = axis(first, "row", false, a), r2 = axis(last, "row", true, b), c1 = axis(first, "column", false, a), c2 = axis(last, "column", true, b);
   for (const sheet of sheets) {
     const size = sheet.size ?? DEFAULT_SHEET_SIZE;

@@ -29,3 +29,12 @@ for (const [filter, value, expected] of cases) test(`jq scan pinned native parit
       expected);
   } finally { await shell.dispose(); }
 });
+
+test("jq scan accounts regex work against maxSteps", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({ structured: { limits: { maxSteps: 1000 } } }));
+  try {
+    const result = await shell.exec(`jq -c '[scan("(a+)+$")]'`, { stdin: `${JSON.stringify("a".repeat(20) + "!")}\n` });
+    assert.equal(result.exitCode, 5);
+    assert.match(result.stderr, /maxSteps limit exceeded/u);
+  } finally { await shell.dispose(); }
+});

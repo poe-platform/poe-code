@@ -50,10 +50,40 @@ export async function* substituteRegex(input: Json, source: Json, flags: Json,
       yield result;
     }
   } catch (error) {
-    if (!(error instanceof ProgramError)) throw error;
-    if (error.message.includes("buffer limit exceeded")) throw new JqLimitError("maxValueBytes");
-    const message = error.message === "unterminated bracket expression" ? "premature end of char-class"
-      : error.message === "unmatched '(' in regular expression" ? "end pattern with unmatched parenthesis" : error.message;
-    throw new JqError(`Regex failure: ${message}`);
+    throw regexError(error);
   }
+}
+
+
+function regexError(error: unknown): JqError {
+  if (!(error instanceof ProgramError)) throw error;
+  if (error.message.includes("buffer limit exceeded")) return new JqLimitError("maxValueBytes");
+  const message = error.message === "unterminated bracket expression" ? "premature end of char-class"
+    : error.message === "unmatched '(' in regular expression" ? "end pattern with unmatched parenthesis" : error.message;
+  return new JqError(`Regex failure: ${message}`);
+}
+
+export async function* scanRegex(input: Json, source: Json, budget: Budget): AsyncGenerator<Json> {
+  if (typeof source !== "string") throw new JqError(`${describe(source, budget)} is not a string`);
+  if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
+  if (source === "") {
+    const boundaries = Buffer.byteLength(input) + 1;
+    for (let index = 0; index < boundaries; index++) { await budget.tick(); yield ""; }
+    return;
+  }
+  const work = { step: (count = 1) => budget.step(count), checkpoint: () => budget.tick(0), maxBufferBytes: budget.limits.maxValueBytes };
+  try {
+    budget.step(source.length);
+    const pattern = new Pattern(source, true, false, "jq");
+    let search = 0;
+    while (search <= input.length) {
+      const match = await pattern.find(input, work, search);
+      if (!match) break;
+      budget.collection(pattern.groupCount);
+      const value: Json = pattern.groupCount ? match.groups.slice(1).map(group => group ?? null) : match.groups[0]!;
+      budget.value(value);
+      yield value;
+      search = match.end > match.start ? match.end : match.end + ((input.codePointAt(match.end) ?? 0) > 0xffff ? 2 : 1);
+    }
+  } catch (error) { throw regexError(error); }
 }

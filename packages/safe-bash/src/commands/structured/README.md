@@ -367,8 +367,8 @@ patterns additionally have bounded source, nesting and compiled-program size.
   recursion, labels/break,
   regex/date/math libraries beyond `scan(pattern)` or arbitrary jq builtins.
   `scan` streams nonoverlapping matches, or capture arrays when the pattern has
-  groups; unmatched groups yield null. Patterns use JavaScript Unicode regex
-  syntax; Oniguruma extensions and the flags overload are not supported.
+  groups; unmatched groups yield null. It shares the cooperative regex engine
+  described above; the flags overload is not supported.
 - Assignment paths do not include computed object/array constructions.
 - `limit` count and additional function overloads are restricted
   to the documented signatures.

@@ -8,7 +8,7 @@ export interface Format {
   readonly human?: 1000 | 1024;
 }
 
-export function blockSize(value: string): Format {
+export function blockSize(value: string, allowZero = false): Format {
   if (value === "human-readable") return { unit: 1n, suffix: "", human: 1024 };
   if (value === "si") return { unit: 1n, suffix: "", human: 1000 };
   const match = /^(\d*)([kKmMGTPEZYRQ]?)(iB|B)?$/u.exec(value);
@@ -18,7 +18,7 @@ export function blockSize(value: string): Format {
   const multiplier = match[1] ? BigInt(digits || "0") : 1n;
   const power = match[2] ? "KMGTPEZYRQ".indexOf(match[2].toUpperCase()) + 1 : 0;
   const unit = multiplier * BigInt(match[3] === "B" ? 1000 : 1024) ** BigInt(power);
-  if (unit < 1n || unit > BigInt(Number.MAX_SAFE_INTEGER)) throw new UsageError(`invalid or unsafe block size '${value}'`);
+  if (unit < (allowZero ? 0n : 1n) || unit > BigInt(Number.MAX_SAFE_INTEGER)) throw new UsageError(`invalid or unsafe block size '${value}'`);
   let suffix = "";
   if (!match[1]) {
     suffix = match[2]!.toUpperCase();

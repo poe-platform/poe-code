@@ -5,6 +5,39 @@ import { CommandRegistry, FsError, type FileStat } from "../../../src/contracts/
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { metadata, run, seed, shellRun, trace, wrapped } from "./helpers.js";
 
+test("SI output uses decimal units and respects option order", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new Uint8Array(1000));
+  for (const [args, expected] of [
+    [["--apparent-size", "--si"], "1.0k"],
+    [["-h", "--si", "--apparent-size"], "1.0k"],
+    [["--si", "-h", "--apparent-size"], "1000"],
+    [["--si", "-b"], "1000"],
+  ] as const) {
+    const result = await shellRun(fs, [...args, "file"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `${expected}\tfile\n`);
+  }
+});
+
+test("threshold accepts zero with units but rejects negative zero", async () => {
+  const fs = createMemoryFileSystem(); await seed(fs);
+  for (const value of ["0", "00", "0K", "00KiB", "0MB", "0Q"]) {
+    for (const option of [["-t", value], [`--threshold=${value}`]]) {
+      const result = await shellRun(fs, ["-ba", ...option, "tree"]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "3\ttree/a\n5\ttree/sub/b\n5\ttree/sub\n8\ttree\n");
+    }
+    const result = await shellRun(fs, ["-ba", "-t", `-${value}`, "tree"]);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.ok(result.stderr.includes(`invalid --threshold argument '-${value}'`));
+  }
+  for (const value of ["human-readable", "si", "0wat", "-0wat"]) {
+    assert.equal((await shellRun(fs, ["-t", value, "tree"])).exitCode, 1);
+  }
+});
+
 test("exclusions match every component suffix, including patterns from files", async () => {
   const fs = createMemoryFileSystem(); await seed(fs);
   await fs.writeFile("/exclude", new TextEncoder().encode("tree/sub\n"));

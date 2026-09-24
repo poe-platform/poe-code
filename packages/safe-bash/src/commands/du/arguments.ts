@@ -46,7 +46,9 @@ export function parse(budget: Budget): Arguments {
     if (flag === "t" || flag === "threshold") {
       const negative = value.startsWith("-");
       const size = negative ? value.slice(1) : value;
-      threshold = size === "0" ? 0 : Number(blockSize(size).unit) * (negative ? -1 : 1);
+      const parsed = blockSize(size, true);
+      if (parsed.human || negative && parsed.unit === 0n) throw new UsageError(`invalid --threshold argument '${value}'`);
+      threshold = Number(parsed.unit) * (negative ? -1 : 1);
       return;
     }
     if (flag === "B" || flag === "block-size") { format = blockSize(value); return; }
@@ -59,6 +61,7 @@ export function parse(budget: Budget): Arguments {
       case "s": case "summarize": summarize = true; break;
       case "c": case "total": total = true; break;
       case "h": case "human-readable": format = blockSize("human-readable"); break;
+      case "si": format = blockSize("si"); break;
       case "k": format = blockSize("1024"); break;
       case "m": format = blockSize("1048576"); break;
       case "b": case "bytes": apparent = true; format = blockSize("1"); break;
@@ -132,6 +135,7 @@ Report provider allocation; unknown allocation is an error, never logical size.
   -s, --summarize           report each operand only
   -c, --total               report a complete grand total
   -h, --human-readable      upward-rounded base-1024 units
+      --si                 upward-rounded base-1000 units
   -k / -m                  report 1024 / 1048576 byte units
   -B, --block-size=SIZE     positive integer with optional K/M/G/T/P suffix
   -b, --bytes               apparent size in bytes

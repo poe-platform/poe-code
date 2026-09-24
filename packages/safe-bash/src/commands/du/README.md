@@ -83,7 +83,7 @@ provider messages over 4096 UTF-16 code units are explicitly marked truncated.
 
 Supported short/long pairs: `-a/--all`, `-s/--summarize`, `-c/--total`,
 `-h/--human-readable`, `-B/--block-size`, `-b/--bytes`, `-d/--max-depth`,
-`-l/--count-links`, `-0/--null`; also `-k`, `-m`, `--apparent-size`, `--help`.
+`-l/--count-links`, `-0/--null`; also `-k`, `-m`, `--si`, `--apparent-size`, `--help`.
 Also supported: `--inodes`, `--exclude=PATTERN`, `-X/--exclude-from`,
 `-D/-H/--dereference-args`, `-L/--dereference`, `-P/--no-dereference`,
 `-S/--separate-dirs`, `-t/--threshold`, and `-x/--one-file-system`.
@@ -111,8 +111,11 @@ scoped device identity is unavailable. `-S` excludes descendant directory usage
 from directory rows while the grand total still includes it. Thresholds filter
 rows without pruning accounting: positive sizes select at least that amount,
 negative sizes select at most their absolute amount; suffixes use SIZE units.
+Zero thresholds accept leading zeros and units (`00`, `0K`); negative zero is
+invalid. Thresholds require numeric sizes, not human formatting keywords.
 
-Selected formatting is last-option-wins: `-h` uses human base 1024, `-k` uses 1024
+Selected formatting is last-option-wins: `-h` uses human base 1024, `--si` uses
+human base 1000, `-k` uses 1024
 byte blocks, `-m` uses 1048576, `-b` uses one byte, and `-B` selects SIZE.
 Apparent-size selection persists after later formatting flags.
 Without explicit formatting, read only own properties of `context.env`, in order:

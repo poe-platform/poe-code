@@ -119,65 +119,46 @@ test("actual codec instances run concurrently with independent bytes and cleanup
   }));
 });
 
-test("host workspace ceiling rejects tiny XZ and Zstandard frames before large allocation", async () => {
-  // Python lzma FORMAT_XZ, LZMA2 dict_size=128 MiB, payload 'hello'; native checksum retained.
-  const hugeDictionary = Buffer.from("/Td6WFoAAATm1rRGAgAhAR4AAACbB1FmAQAEaGVsbG8AAAAAsTe52+XaHpsAAR0FuC2Arx+2830BAAAAAARZWg==", "base64");
-  // RFC 8878: 128 MiB window, one-byte raw final block.
-  const hugeWindow = Uint8Array.of(0x28, 0xb5, 0x2f, 0xfd, 0, 0x88, 9, 0, 0, 65);
-  for (const [format, bytes] of [["xz", hugeDictionary], ["zstd", hugeWindow]] as const) {
-    const state = tracked(), signal = new AbortController().signal;
-    await assert.rejects(collect(boundedCodec(reader(bytes, signal), { format, level: 1, decompress: true }, signal, state.create)), /memory limit/u);
-    assert.ok(state.modules.every(module => module.bridge_peak() < 1024 * 1024));
-    state.released();
-  }
+test("XZ dictionary admission honors an explicit individual memory quota", async () => {
+  const bytes = Buffer.from("/Td6WFoAAATm1rRGAgAhAR4AAACbB1FmAQAEaGVsbG8AAAAAsTe52+XaHpsAAR0FuC2Arx+2830BAAAAAARZWg==", "base64");
+  const state = tracked(), signal = new AbortController().signal;
+  await assert.rejects(collect(boundedCodec(reader(bytes, signal), { format: "xz", level: 1, decompress: true, xzDecompressMemory: 64 * 1024 ** 2 }, signal, state.create)), /memory limit/u);
+  assert.ok(state.modules.every(module => module.bridge_peak() < 1024 * 1024));
+  state.released();
 });
 
-test("XZ encoder and ZIP LZMA dictionary admission precede workspace allocation", async () => {
-  for (const options of [
-    { format: "xz", level: 6, decompress: false },
-    { format: "xz", level: 1, decompress: true, lzma: { dictionary: 128 * 1024 * 1024, properties: 93, eos: true, size: 1 } },
-  ] satisfies BoundedCodecOptions[]) {
-    const state = tracked();
-    await assert.rejects(async () => state.create(options, new AbortController().signal), /memory limit/u);
-    assert.ok(state.modules.every(module => module.bridge_peak() < 1024 * 1024));
-    state.released();
-  }
-});
-
-test("zero and oversized caller limits cannot lift the host XZ workspace ceiling", async () => {
+test("zero and larger XZ caller limits admit dictionaries above the former ceiling", async () => {
   const bytes = Buffer.from("/Td6WFoAAATm1rRGAgAhAR4AAACbB1FmAQAEaGVsbG8AAAAAsTe52+XaHpsAAR0FuC2Arx+2830BAAAAAARZWg==", "base64");
   for (const xzDecompressMemory of [0, 8 * 1024 ** 3]) {
     const state = tracked(), signal = new AbortController().signal;
-    await assert.rejects(collect(boundedCodec(reader(bytes, signal), { format: "xz", level: 1, decompress: true, xzDecompressMemory }, signal, state.create)), /memory limit/u);
-    assert.ok(state.modules.every(module => module.bridge_peak() < 1024 * 1024));
+    assert.deepEqual(await collect(boundedCodec(reader(bytes, signal), { format: "xz", level: 1, decompress: true, xzDecompressMemory }, signal, state.create)), Buffer.from("hello"));
     state.released();
   }
 });
 
-test("ZIP LZMA rejects a nine-byte header requesting a 128 MiB dictionary", async () => {
+test("ZIP LZMA with a large dictionary still reports truncated payloads", async () => {
   const signal = new AbortController().signal;
   const bytes = Uint8Array.of(9, 4, 5, 0, 93, 0, 0, 0, 8);
-  await assert.rejects(collect(zipLzma(reader(bytes, signal), signal, { decode: true, level: 1, eos: true, size: 1 })), /memory limit/u);
+  await assert.rejects(collect(zipLzma(reader(bytes, signal), signal, { decode: true, level: 1, eos: true, size: 1 })), /unexpected end|compressed data/u);
 });
 
-test("Zstandard long-distance encoding cannot raise the host window ceiling", async () => {
-  await assert.rejects(createCodec({
+test("Zstandard long-distance encoding admits representable windows", async () => {
+  const codec = await createCodec({
     format: "zstd", decompress: false, level: 1,
     zstd: { check: true, literals: 0, row: 0, window: 27, sizeHint: 0 },
-  }, new AbortController().signal), /unsupported Zstandard codec parameters/u);
+  }, new AbortController().signal);
+  codec.close();
 });
 
-test("native entry points enforce the host ceiling even without the JS loader", () => {
-  for (const [low, high] of [[0, 0], [0, 2]]) {
-    const module = xz({ fd_prestat_get: () => 8 });
-    module._initialize?.();
-    assert.equal(module.bridge_create(0, 6, low!, 30, 4, 0, 0, high), -2);
-    assert.equal(module.bridge_peak(), 0);
-    assert.equal(module.bridge_create_lzma!(1, 1, low!, 128 * 1024 * 1024, 93, 1, 1, 0, high), -2);
-    assert.equal(module.bridge_peak(), 0);
-    module.bridge_destroy();
-    assert.equal(module.bridge_used(), 0);
-  }
+test("native entry points enforce explicit memory quotas without the JS loader", () => {
+  const module = xz({ fd_prestat_get: () => 8 });
+  module._initialize?.();
+  assert.equal(module.bridge_create(0, 6, 1024, 30, 4, 0, 0, 0), -2);
+  assert.equal(module.bridge_peak(), 0);
+  assert.equal(module.bridge_create_lzma!(1, 1, 1024, 128 * 1024 * 1024, 93, 1, 1, 0, 0), -2);
+  assert.equal(module.bridge_peak(), 0);
+  module.bridge_destroy();
+  assert.equal(module.bridge_used(), 0);
 });
 
 test("XZ and Zstandard verify checksums within the first frame", async () => {

@@ -6,9 +6,6 @@ import { CompressedDataError } from "./errors.js";
 
 function unavailable(): never { throw new Error("codec attempted an unavailable host operation"); }
 
-// Host policy: command flags may tighten this budget, never remove or raise it.
-const workspaceLimit = 64 * 1024 * 1024;
-
 const wasi = Object.freeze({
   fd_prestat_get: () => 8,
   fd_prestat_dir_name: unavailable,
@@ -45,8 +42,8 @@ export async function createCodec(
   }
   const requestedMemory = options.format === "xz" && options.decompress ? options.xzDecompressMemory ?? 0 : 0;
   if (!Number.isSafeInteger(requestedMemory) || requestedMemory < 0) throw new RangeError("invalid XZ decompression memory limit");
-  const memoryLimit = requestedMemory === 0 ? workspaceLimit : Math.min(requestedMemory, workspaceLimit);
-  if (memoryLimit < 1024) throw new PublicDiagnostic("codec memory limit exceeded");
+  const memoryLimit = requestedMemory;
+  if (memoryLimit !== 0 && memoryLimit < 1024) throw new PublicDiagnostic("codec memory limit exceeded");
   if (options.xzCheck !== undefined && (options.format !== "xz" || ![0, 1, 4, 10].includes(options.xzCheck))) throw new RangeError("invalid XZ integrity check");
   if (options.xzIgnoreCheck !== undefined && (options.format !== "xz" || typeof options.xzIgnoreCheck !== "boolean")) throw new RangeError("invalid XZ checksum policy");
   const lzma = options.lzma;
@@ -70,7 +67,7 @@ export async function createCodec(
     module._initialize?.();
     const initialized = lzma
       ? module.bridge_create_lzma?.(Number(options.decompress), options.level, memoryLimit >>> 0, lzma!.dictionary, lzma!.properties, Number(lzma!.eos), lzma!.size >>> 0, Math.floor(lzma!.size / 0x100000000), Math.floor(memoryLimit / 0x100000000))
-      : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, memoryLimit >>> 0, 25, options.format === "xz" ? options.xzCheck ?? 4 : Number(options.small === true), Number(options.xzIgnoreCheck === true), Number(options.xzFormat === "lzma"), Math.floor(memoryLimit / 0x100000000));
+      : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, memoryLimit >>> 0, 30, options.format === "xz" ? options.xzCheck ?? 4 : Number(options.small === true), Number(options.xzIgnoreCheck === true), Number(options.xzFormat === "lzma"), Math.floor(memoryLimit / 0x100000000));
     signal.throwIfAborted();
     if (initialized !== 0) throw new PublicDiagnostic("codec initialization failed or memory limit exceeded");
     if (options.zstd) {

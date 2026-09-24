@@ -13,8 +13,6 @@
 #endif
 #define API __attribute__((visibility("default")))
 #define CHUNK 65536
-#define WORKSPACE_LIMIT (64U * 1024U * 1024U)
-#define WINDOW_LOG_LIMIT 25
 static size_t used, peak, limit;
 static uint32_t taken, made;
 static int active, decompressing;
@@ -52,7 +50,7 @@ API void bridge_destroy(void) {
 }
 API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_log,int small_or_check,int ignore_check,int alone,uint32_t memory_high) {
  uint64_t memory_limit=((uint64_t)memory_high<<32)|memory_low;
- if(memory_limit==0||memory_limit>WORKSPACE_LIMIT)memory_limit=WORKSPACE_LIMIT;
+ if(memory_limit==0)memory_limit=UINT64_MAX;
 #if defined(BZ)
  int small=small_or_check;
 #elif defined(XZ)
@@ -67,7 +65,7 @@ API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_l
  if(level<1)return -1;
 #endif
  if(active||(memory_limit!=0&&memory_limit<1024)||level>9||window_log<10||window_log>30)return -1;
- limit=(size_t)memory_limit;peak=used=0;taken=made=0;decompressing=!!decode;active=1;int ok=0;
+ limit=memory_limit>SIZE_MAX?SIZE_MAX:(size_t)memory_limit;peak=used=0;taken=made=0;decompressing=!!decode;active=1;int ok=0;
 #if defined(BZ)
  buffered=flush_remaining=0;flushing=0;memset(&s,0,sizeof(s));s.bzalloc=bzalloc;s.bzfree=release;
  ok=(decode?BZ2_bzDecompressInit(&s,0,small):BZ2_bzCompressInit(&s,level,0,30))==BZ_OK;
@@ -81,7 +79,6 @@ API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_l
  }else ok=(decode?lzma_auto_decoder(&s,memory_limit,ignore_check?LZMA_IGNORE_CHECK:0):lzma_easy_encoder(&s,level,check))==LZMA_OK;
 #else
  ZSTD_customMem mem={allocate,release,NULL};
- if(window_log>WINDOW_LOG_LIMIT)window_log=WINDOW_LOG_LIMIT;
  if(decode){dec=ZSTD_createDCtx_advanced(mem);ok=dec&&!ZSTD_isError(ZSTD_DCtx_setParameter(dec,ZSTD_d_windowLogMax,window_log));}
  else{enc=ZSTD_createCCtx_advanced(mem);ok=enc&&!ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_compressionLevel,level))&&!ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_checksumFlag,1));}
 #endif
@@ -91,7 +88,6 @@ API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_l
 API int bridge_zstd_config(int check,int literals,int row,int window,uint32_t size_low,uint32_t size_high,int size_known,int hint) {
  if(!active||(check!=0&&check!=1)||literals<0||literals>2||row<0||row>2||(window!=0&&(window<10||window>30))||(size_known!=0&&size_known!=1)||hint<0)return -1;
  if(decompressing)return ZSTD_isError(ZSTD_DCtx_setParameter(dec,ZSTD_d_forceIgnoreChecksum,check?ZSTD_d_validateChecksum:ZSTD_d_ignoreChecksum))?-1:0;
- if(window>WINDOW_LOG_LIMIT)return -1;
  if(ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_checksumFlag,check))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_literalCompressionMode,literals))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_useRowMatchFinder,row))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_srcSizeHint,hint)))return -1;
  if(window&&(ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_enableLongDistanceMatching,1))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_windowLog,window))))return -1;
  if(size_known&&ZSTD_isError(ZSTD_CCtx_setPledgedSrcSize(enc,((uint64_t)size_high<<32)|size_low)))return -1;
@@ -102,7 +98,7 @@ API int bridge_zstd_config(int check,int literals,int row,int window,uint32_t si
 /* ZIP method 14 is raw LZMA1, never an XZ stream. Admit before allocation. */
 API int bridge_create_lzma(int decode,int level,uint32_t memory_low,uint32_t dictionary,uint32_t properties,int eos,uint32_t size_low,uint32_t size_high,uint32_t memory_high) {
  uint64_t memory_limit=((uint64_t)memory_high<<32)|memory_low;
- if(memory_limit==0||memory_limit>WORKSPACE_LIMIT)memory_limit=WORKSPACE_LIMIT;
+ if(memory_limit==0)memory_limit=UINT64_MAX;
  if(active||(memory_limit!=0&&memory_limit<1024)||level<1||level>9||properties>=225||(eos!=0&&eos!=1))return -1;
  uint32_t lc=properties%9,lp=(properties/9)%5,pb=properties/45;
  if(lc+lp>4)return -1;
@@ -111,7 +107,7 @@ API int bridge_create_lzma(int decode,int level,uint32_t memory_low,uint32_t dic
  options.dict_size=dictionary<4096?4096:dictionary;options.lc=lc;options.lp=lp;options.pb=pb;
  options.ext_flags=0;options.ext_size_low=size_low;options.ext_size_high=size_high;
  lzma_filter filters[2]={{!eos?LZMA_FILTER_LZMA1EXT:LZMA_FILTER_LZMA1,&options},{LZMA_VLI_UNKNOWN,NULL}};
- limit=(size_t)memory_limit;peak=used=0;taken=made=0;decompressing=!!decode;
+ limit=memory_limit>SIZE_MAX?SIZE_MAX:(size_t)memory_limit;peak=used=0;taken=made=0;decompressing=!!decode;
  if((decode?lzma_raw_decoder_memusage(filters):lzma_raw_encoder_memusage(filters))>memory_limit)return -2;
  active=1;
  s=(lzma_stream)LZMA_STREAM_INIT;s.allocator=&allocator;

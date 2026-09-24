@@ -112,3 +112,82 @@ export async function* lines(source: ByteSource, limits: Limits, state: ReadStat
   }
   if (pending.length) { state.bytesSearched = offset + pending.length; yield { bytes: pending, content: pending, number: ++number, offset }; }
 }
+export async function* lineBatches(
+  source: ByteSource,
+  limits: Limits,
+  state: ReadState,
+  binary: "skip" | "binary" | "text",
+  nullData: boolean,
+  maxRecords: () => number,
+): AsyncGenerator<Line[]> {
+  let pending: Buffer = emptyBuffer;
+  let offset = 0;
+  let number = 0;
+  let batch: Line[] = [];
+  let batchBytes = 0;
+  const delimiter = nullData ? 0 : 10;
+  const extraDelimiter = binary === "binary" ? 0 : -1;
+  const delimiterBuffer = Buffer.from([delimiter]);
+  for await (const data of readBytes(source, limits.signal)) {
+    const tickPending = limits.tick();
+    if (tickPending) await tickPending;
+    const chunk = Buffer.isBuffer(data) ? data : Buffer.from(data.buffer, data.byteOffset, data.byteLength);
+    if (state.bytesRead + chunk.length > limits.maxFileBytes) throw new SearchError("input file byte limit exceeded");
+    const nul = nullData || binary === "text" ? -1 : chunk.indexOf(0);
+    if (nul >= 0 && state.binaryOffset === null) state.binaryOffset = state.bytesRead + nul;
+    state.bytesRead += chunk.length;
+    if (nul >= 0 && binary === "skip") {
+      state.skipped = true;
+      if (batch.length) yield batch;
+      return;
+    }
+    let start = 0;
+    for (let end = 0; end < chunk.length; end++) {
+      if (chunk[end] !== delimiter && chunk[end] !== extraDelimiter) continue;
+      if (pending.length + end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
+      let content: Buffer;
+      let bytes: Buffer;
+      if (pending.length === 0 && chunk[end] === delimiter) {
+        content = chunk.subarray(start, end);
+        bytes = chunk.subarray(start, end + 1);
+      } else {
+        content = pending.length === 0 ? chunk.subarray(start, end) : Buffer.concat([pending, chunk.subarray(start, end)]);
+        bytes = Buffer.concat([content, delimiterBuffer]);
+      }
+      state.bytesSearched = offset + bytes.length;
+      batch.push({ content, bytes, number: ++number, offset });
+      batchBytes += content.length;
+      offset += bytes.length;
+      pending = emptyBuffer;
+      start = end + 1;
+      let next = -1;
+      for (let scan = start; scan < chunk.length; scan++) {
+        if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) {
+          next = scan;
+          break;
+        }
+      }
+      if (
+        batch.length >= maxRecords() ||
+        batchBytes >= 64 * 1024 ||
+        next < 0 ||
+        batchBytes + next - start > 64 * 1024 ||
+        next - start > limits.maxLineBytes
+      ) {
+        yield batch;
+        batch = [];
+        batchBytes = 0;
+      }
+    }
+    if (pending.length + chunk.length - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
+    if (start < chunk.length) {
+      const tail = chunk.subarray(start);
+      pending = pending.length === 0 ? Buffer.from(tail) : Buffer.concat([pending, tail]);
+    }
+  }
+  if (pending.length) {
+    state.bytesSearched = offset + pending.length;
+    batch.push({ bytes: pending, content: pending, number: ++number, offset });
+  }
+  if (batch.length) yield batch;
+}

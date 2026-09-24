@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { inputBytes, policy, RegexExecutionError, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inputBytes, policy, RegexExecutionError, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -171,13 +171,13 @@ export class RegexExecutor {
     const available = this.queue.length === 0 && ([...this.slots].some(slot => !slot.busy && !slot.retired) || this.slots.size < this.options.maxWorkers);
     if (!available && (this.queue.length >= this.options.maxQueuedRequests || bytes > this.options.maxQueuedBytes - this.queuedBytes)) return Promise.reject(new RegexExecutionError("QUEUE_EXHAUSTED", "queued request count or input byte limit exceeded"));
     const ownedDescriptor: Descriptor | ExprMatchDescriptor | BreSearchDescriptor = (descriptor.kind === "expr-match" || descriptor.kind === "bre-search")
-      ? { ...descriptor, pattern: Uint8Array.from(descriptor.pattern), limits: { ...descriptor.limits } }
+      ? { ...descriptor, pattern: new Uint8Array(descriptor.pattern), limits: { ...descriptor.limits } }
       : { ...descriptor, patterns: descriptor.patterns.map(pattern => { signal.throwIfAborted(); return pattern; }) };
     if (ownedDescriptor.kind === "glob") {
       const globOptions = ownedDescriptor.globOptions.map(options => { signal.throwIfAborted(); return { ...options }; });
       Object.assign(ownedDescriptor, { globOptions });
     }
-    const ownedRows = rows.map(row => { signal.throwIfAborted(); return { ...row, bytes: Uint8Array.from(row.bytes) }; });
+    const ownedRows = rows.map(row => { signal.throwIfAborted(); return { ...row, bytes: new Uint8Array(row.bytes) }; });
     return new Promise((resolve, reject) => {
       const pending: Pending = {
         descriptor: ownedDescriptor, rows: ownedRows, signal, bytes, resolve, reject, retirements,
@@ -233,7 +233,9 @@ export class RegexExecutor {
       pending.signal.throwIfAborted();
       const id = ++this.sequence;
       const started = performance.now();
-      const reply = await slot.exchange(this.options.requestTimeoutMs, false, pending.signal, () => slot.worker.postMessage({ id, descriptor: pending.descriptor, rows: pending.rows }));
+      const message = { id, descriptor: pending.descriptor, rows: pending.rows };
+      trustedWorkerRequests.add(message);
+      const reply = await slot.exchange(this.options.requestTimeoutMs, false, pending.signal, () => slot.worker.postMessage(message));
       result = pending.descriptor.kind === "expr-match"
         ? validateExprReply(reply, id, pending.descriptor, pending.rows[0]!.bytes, pending.signal)
         : pending.descriptor.kind === "bre-search"

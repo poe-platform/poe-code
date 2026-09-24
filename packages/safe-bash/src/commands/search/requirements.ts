@@ -52,8 +52,11 @@ export async function* requiredFileInput(
 ): ByteSource {
   assertCommandRequirements(context, requirements, [mode]);
   const path = pathOf(context, file);
-  const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
-  assertCommandRequirements(context, requirements, [mode], capabilities);
+  let capabilities = context.fs.capabilities;
+  if (context.fs.capabilitiesFor) {
+    capabilities = await context.fs.capabilitiesFor(path, { signal: context.signal });
+    assertCommandRequirements(context, requirements, [mode], capabilities);
+  }
   if (context.fs.readStream && capabilities.streamingRead !== false && context.fs.capabilities.streamingRead !== false) {
     let emitted = false;
     let reading = true;

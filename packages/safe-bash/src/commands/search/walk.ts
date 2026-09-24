@@ -63,12 +63,12 @@ export class Walker {
     }
     catch (error) { this.context.signal.throwIfAborted(); if ((error as { code?: string }).code === "ENOENT") return false; throw error; }
   }
-  private async load(directory: string, inherited: readonly IgnoreRule[], repository: boolean): Promise<{ rules: IgnoreRule[]; repository: boolean }> {
+  private async load(directory: string, inherited: readonly IgnoreRule[], repository: boolean, entries?: readonly DirectoryEntry[]): Promise<{ rules: IgnoreRule[]; repository: boolean }> {
     const base = resolvePath("/", directory);
     const key = `${base}:${repository}`;
     const cached = this.cache.get(key);
     if (cached) return { repository: cached.repository, rules: [...(cached.root ? inherited.filter(rule => rule.priority !== 1) : inherited), ...cached.rules] };
-    const root = await this.exists(`${directory}/.git`);
+    const root = entries ? entries.some(entry => entry.name === ".git") : await this.exists(`${directory}/.git`);
     repository ||= root;
     if (root) inherited = inherited.filter(rule => rule.priority !== 1);
     const local: IgnoreRule[] = [];
@@ -78,6 +78,7 @@ export class Walker {
       if (this.args.ignoreDot) names.push([".ignore", 2], [".rgignore", 3]);
       for (const [name, priority] of names) {
         await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [`${directory}/${name}`]);
+        if (entries && !entries.some(entry => entry.name === name)) continue;
         try {
           const data = await this.context.fs.readFile(`${directory}/${name}`, { signal: this.context.signal });
           local.push(...await ignoreRules(Buffer.from(data).toString("utf8"), base, priority, this.session));
@@ -133,7 +134,6 @@ export class Walker {
     const canonical = await this.context.fs.realpath(path, { signal: this.context.signal });
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return; }
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
-    const local = await this.load(path, rules, repository);
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[];
     try {
@@ -147,6 +147,7 @@ export class Walker {
     }
     this.context.signal.throwIfAborted();
     if (entries.length > maxEntries) throw new SearchError("filesystem entry limit exceeded");
+    const local = await this.load(path, rules, repository, entries);
     entries.sort((left, right) => compareEntryNames(left.name, right.name));
     for (const entry of entries) {
       const tickPending = this.limits.tick();
@@ -193,7 +194,7 @@ export class Walker {
         if (this.args.ignoreParent) {
           while (true) { parents.unshift(parent); if (parent === "/") break; parent = dirname(parent); }
           for (const directory of parents) inherited = await this.load(directory, inherited.rules, inherited.repository);
-        } else {
+        } else if (this.args.ignore && this.args.ignoreVcs && this.args.requireGit) {
           while (true) {
             inherited.repository ||= await this.exists(`${parent}/.git`);
             if (parent === "/") break;

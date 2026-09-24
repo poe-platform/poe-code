@@ -2,7 +2,7 @@ import { collectBytes, readBytes, type ByteSource, type CommandContext, type Com
 import { Matcher, type Match } from "./matcher.js";
 import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
-import { diagnostic, Limits, lines, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
+import { diagnostic, Limits, lineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
 import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "./requirements.js";
@@ -59,10 +59,19 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   };
   const selectedOutput = !args.quiet && (args.mode === "lines" || args.mode === "json");
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
-  const available = new AvailableRecords(args.nullData ? 0 : 10, limits.maxLineBytes, binary === "binary" ? 0 : -1);
+  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches";
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
-  records: for await (const batch of available.batches(lines(available.source(source), limits, state, binary, args.nullData), line => line.content.length, batchSize)) {
-    const rows = batch.map(line => ({ bytes: args.crlf && line.content.at(-1) === 13 ? line.content.subarray(0, -1) : line.content, all: args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches", terminated: line.bytes.length !== line.content.length }));
+  records: for await (const batch of lineBatches(source, limits, state, binary, args.nullData, batchSize)) {
+    const rows: { bytes: Uint8Array; all: boolean; terminated: boolean }[] = new Array(batch.length);
+    for (let i = 0; i < batch.length; i++) {
+      const line = batch[i]!;
+      const content = line.content;
+      rows[i] = {
+        bytes: args.crlf && content.length > 0 && content[content.length - 1] === 13 ? content.subarray(0, content.length - 1) : content,
+        all: needAll,
+        terminated: line.bytes.length !== content.length,
+      };
+    }
     const results = await matcher.batch(rows);
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;

@@ -10,7 +10,7 @@ import { validateUtf8 } from "./utf8.js";
 import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -53,6 +53,8 @@ const typedArrayPrototype = Object.getPrototypeOf(Uint8Array.prototype) as objec
 const byteLength = Object.getOwnPropertyDescriptor(typedArrayPrototype, "byteLength")!.get!;
 const byteOffset = Object.getOwnPropertyDescriptor(typedArrayPrototype, "byteOffset")!.get!;
 const byteBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, "buffer")!.get!;
+
+const emptyFloat64 = new Float64Array(0);
 
 function fail(kind: "protocol" | "unsupported" | "limit", message: string): never {
   throw new PublicDiagnostic(`bounded regex ${kind}: ${message}`);
@@ -133,14 +135,27 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
 }
 
 function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedRequest | OwnedGlobRequest {
-  record(input, ["id", "descriptor", "rows"]);
+  const trusted = trustedWorkerRequests.has(input);
+  if (!trusted) record(input, ["id", "descriptor", "rows"]);
   const selected = descriptor(input.descriptor, limits);
-  array(input.rows, limits.maxRows, "row");
+  if (trusted && Array.isArray(input.rows)) {
+    if (input.rows.length > limits.maxRows) fail("limit", "row count limit exceeded");
+  } else {
+    array(input.rows, limits.maxRows, "row");
+  }
   if (selected.kind === "glob" && input.rows.length !== 0 && input.rows.length !== selected.patterns.length) fail("protocol", "invalid glob row count");
   if (input.rows.length > Math.floor(limits.maxResultBytes / 16)) fail("limit", "result byte limit exceeded");
   let bytes = 0;
+  let allTrustedRows = trusted && selected.kind !== "glob";
   for (let index = 0; index < input.rows.length; index++) {
     const row = input.rows[index]!;
+    if (allTrustedRows && row && row.bytes instanceof Uint8Array && typeof row.all === "boolean" && typeof row.terminated === "boolean" && !Object.hasOwn(row, "directory") && !Object.hasOwn(row, "ancestors")) {
+      const length = row.bytes.byteLength;
+      if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
+      bytes += length;
+      continue;
+    }
+    allTrustedRows = false;
     record(row, ["bytes", "all", "terminated"], ["directory", "ancestors"]);
     if (!(row.bytes instanceof Uint8Array) || typeof row.all !== "boolean" || typeof row.terminated !== "boolean"
       || Object.hasOwn(row, "directory") && typeof row.directory !== "boolean"
@@ -174,6 +189,9 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     : selected.kind === "grep"
     ? { kind: "grep", patterns, fixed: selected.fixed, extended: selected.extended, insensitive: selected.insensitive, whole: selected.whole, word: selected.word }
     : { kind: "rg", patterns, fixed: selected.fixed, case: selected.case, whole: selected.whole, word: selected.word, nullData: selected.nullData };
+  if (allTrustedRows) {
+    return { id: input.id, descriptor: ownedDescriptor, rows: input.rows, ledger, limits } as OwnedRequest;
+  }
   const rows: Row[] = [];
   for (let index = 0; index < input.rows.length; index++) {
     const row = input.rows[index]!;
@@ -365,7 +383,25 @@ async function literalStart(program: LiteralProgram, subject: Uint8Array, whole:
     return -1;
   }
   for (let index = from, prefix = 0; index < subject.length;) {
-    ledger.charge("work", 1, signal);
+    if (prefix === 0 && !program.insensitive) {
+      const allowance = ledger.workAllowanceUntilCheckpoint();
+      if (allowance > 1) {
+        const firstByte = bytes[0]!;
+        const maxRun = Math.min(subject.length, index + allowance);
+        let scan = index;
+        while (scan < maxRun && subject[scan] !== firstByte) {
+          scan++;
+        }
+        if (scan > index) {
+          ledger.chargeWork(scan - index, signal);
+          index = scan;
+          const pending = ledger.checkpoint(signal);
+          if (pending) await pending;
+          if (index >= subject.length) break;
+        }
+      }
+    }
+    ledger.chargeWork(1, signal);
     if ((program.insensitive ? foldAscii(subject[index]!) : subject[index]) === bytes[prefix]) {
       index++;
       if (++prefix === bytes.length) {
@@ -477,7 +513,7 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
       if (usage.count >= input.limits.maxTotalMatches || usage.count >= Math.floor(input.limits.maxResultBytes / 16)) fail("limit", "total match or result byte limit exceeded");
       usage.count++;
     }
-    results.push(start < 0 ? new Float64Array() : new Float64Array([start, end]));
+    results.push(start < 0 ? emptyFloat64 : new Float64Array([start, end]));
   }
   return { id: input.id, results };
 }
@@ -550,7 +586,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
       if (usage.count >= input.limits.maxTotalMatches || usage.count >= Math.floor(input.limits.maxResultBytes / 16)) fail("limit", "total match or result byte limit exceeded");
       usage.count++;
     }
-    results.push(span ? new Float64Array([span.start, span.end]) : new Float64Array());
+    results.push(span ? new Float64Array([span.start, span.end]) : emptyFloat64);
   }
   return { id: input.id, results };
 }

@@ -57,6 +57,22 @@ export class EreLedger {
     this.#usage[resource] += amount;
   }
 
+  chargeWork(amount: number, signal?: AbortSignal): void {
+    if (signal?.aborted) throw signal.reason;
+    if (this.#poison) throw this.#poison;
+    if (amount > this.limits.work - this.#usage.work) {
+      throw new EreProfileLimitError("work", this.limits.work);
+    }
+    this.#usage.work += amount;
+  }
+
+  workAllowanceUntilCheckpoint(): number {
+    const untilLimit = this.limits.work - this.#usage.work;
+    const untilYield = 256 - (this.#usage.work - this.#lastYield);
+    const min = untilLimit < untilYield ? untilLimit : untilYield;
+    return min > 0 ? min : 0;
+  }
+
   admitInput(resource: "patternBytes" | "subjectBytes", length: number, signal?: AbortSignal): void {
     this.check(signal);
     integer(length);

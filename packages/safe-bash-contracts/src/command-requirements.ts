@@ -55,6 +55,33 @@ export function evaluateCommandSupport(
   };
 }
 
+function isModeUnsupported(requirement: CommandFileSystemRequirement, capabilities: FileSystemCapabilities): boolean {
+  if (requirement.mutates && capabilities.readOnly === true) return true;
+  for (let i = 0; i < requirement.capabilities.length; i++) {
+    if (capabilities[requirement.capabilities[i]!] === false) return true;
+  }
+  const alternatives = requirement.anyOf;
+  if (alternatives) {
+    let anyGroupPossible = false;
+    for (let g = 0; g < alternatives.length; g++) {
+      const group = alternatives[g]!;
+      let groupFailed = false;
+      for (let i = 0; i < group.length; i++) {
+        if (capabilities[group[i]!] === false) {
+          groupFailed = true;
+          break;
+        }
+      }
+      if (!groupFailed) {
+        anyGroupPossible = true;
+        break;
+      }
+    }
+    if (!anyGroupPossible) return true;
+  }
+  return false;
+}
+
 export function assertCommandRequirements(
   context: Pick<CommandContext, "fs" | "command" | "signal">,
   requirements: readonly CommandFileSystemRequirement[],
@@ -62,11 +89,18 @@ export function assertCommandRequirements(
   capabilities: FileSystemCapabilities = context.fs.capabilities,
 ): void {
   context.signal.throwIfAborted();
-  for (const id of new Set(selected)) {
-    const requirement = requirements.find(mode => mode.id === id);
+  for (let i = 0; i < selected.length; i++) {
+    const id = selected[i]!;
+    let requirement: CommandFileSystemRequirement | undefined;
+    for (let r = 0; r < requirements.length; r++) {
+      if (requirements[r]!.id === id) {
+        requirement = requirements[r]!;
+        break;
+      }
+    }
     if (!requirement) throw new TypeError(`Unknown filesystem requirement mode: ${id}`);
-    const support = evaluateMode(requirement, capabilities);
-    if (support.status === "unsupported") {
+    if (isModeUnsupported(requirement, capabilities)) {
+      const support = evaluateMode(requirement, capabilities);
       throw new FsError(support.missing.includes("readOnly") ? "EROFS" : "ENOTSUP", {
         syscall: context.command,
         message: `${requirement.description} requires unavailable filesystem capabilities: ${support.missing.join(", ")}`,

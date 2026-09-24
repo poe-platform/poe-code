@@ -55,6 +55,7 @@ export type Descriptor = GrepDescriptor | SearchDescriptor | GlobDescriptor;
 export interface Row { readonly bytes: Uint8Array; readonly all: boolean; readonly terminated: boolean; readonly directory?: boolean; readonly ancestors?: boolean }
 export interface Match { readonly start: number; readonly end: number }
 export const matchRangeLimits = Object.freeze({ perRow: Infinity, perReply: Infinity });
+export const trustedWorkerRequests = new WeakSet<object>();
 export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
 export type Reply = { readonly id: number; readonly results: readonly Float64Array[] } | { readonly id: number; readonly error: string };
 
@@ -273,6 +274,8 @@ export function inputBytes(descriptor: Descriptor, rows: readonly Row[], signal:
   return total;
 }
 
+const emptyMatches: Match[] = [];
+
 export function validateReply(value: unknown, id: number, rows: readonly Row[], signal: AbortSignal): Match[][] {
   signal.throwIfAborted();
   const reply = value as Partial<Reply> | undefined;
@@ -283,8 +286,9 @@ export function validateReply(value: unknown, id: number, rows: readonly Row[], 
   }
   if (!("results" in reply) || !Array.isArray(reply.results) || reply.results.length !== rows.length) throw new RegexExecutionError("PROTOCOL", "invalid reply rows");
   let total = 0;
-  const lengths: number[] = [];
-  for (let index = 0; index < reply.results.length; index++) {
+  const resultCount = reply.results.length;
+  const lengths: number[] = new Array(resultCount);
+  for (let index = 0; index < resultCount; index++) {
     signal.throwIfAborted();
     const ranges: unknown = reply.results[index];
     const row = rows[index]!;
@@ -295,12 +299,18 @@ export function validateReply(value: unknown, id: number, rows: readonly Row[], 
     const count = length / 2;
     if (count > matchRangeLimits.perRow || count > matchRangeLimits.perReply - total) throw new RegexExecutionError("PROTOCOL", "match range limit exceeded");
     total += count;
-    lengths.push(length);
+    lengths[index] = length;
   }
-  const results = reply.results.map((ranges: Float64Array, index: number) => {
+  const results: Match[][] = new Array(resultCount);
+  for (let index = 0; index < resultCount; index++) {
     signal.throwIfAborted();
+    const ranges = reply.results[index]!;
     const length = lengths[index]!;
     if (ranges.length !== length) throw new RegexExecutionError("PROTOCOL", "match ranges changed after admission");
+    if (length === 0) {
+      results[index] = emptyMatches;
+      continue;
+    }
     const result: Match[] = [];
     const row = rows[index]!;
     for (let offset = 0; offset < length; offset += 2) {
@@ -310,9 +320,9 @@ export function validateReply(value: unknown, id: number, rows: readonly Row[], 
       if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || end > row.bytes.length || start < (result.at(-1)?.start ?? 0)) throw new RegexExecutionError("PROTOCOL", "invalid match bounds");
       result.push({ start, end });
     }
-    return result;
-  });
-  for (let index = 0; index < reply.results.length; index++) {
+    results[index] = result;
+  }
+  for (let index = 0; index < resultCount; index++) {
     signal.throwIfAborted();
     if (reply.results[index]!.length !== lengths[index]) throw new RegexExecutionError("PROTOCOL", "match ranges changed after admission");
   }

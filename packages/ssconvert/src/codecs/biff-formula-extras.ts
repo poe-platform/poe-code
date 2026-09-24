@@ -57,14 +57,15 @@ export function biffFormulaExtras(parts: readonly Binary[], revision: number, co
   const readMemory = () => {
     context.signal.throwIfAborted();
     const count = cursor.word();
-    work += count * 8;
+    const rangeBytes = revision >= 8 ? 8 : 6;
+    work += count * rangeBytes;
     if (work > workLimit) throw new SsconvertError("resource-limit", "ssconvert BIFF cached area work limit exceeded");
-    accountWork?.(count * 8);
+    accountWork?.(count * rangeBytes);
     // These absolute ranges are an evaluation cache, not formula operands.
     // Consume them without allocating a second reference model.
     for (let area = 0; area < count; area++) {
       context.signal.throwIfAborted();
-      for (let byte = 0; byte < 8; byte++) cursor.byte();
+      for (let byte = 0; byte < rangeBytes; byte++) cursor.byte();
     }
   };
   return { readArray, readMemory };

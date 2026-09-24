@@ -15,14 +15,14 @@ const array = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 240, 63]; // {1}.
 const sumMemory = [0x26, 0, 0, 0, 0, 11, 0, 0x24, 1, 0, 0, 0, 0x24, 2, 0, 0, 0, 0x10, 0x22, 1, 4, 0];
 const sumArray = [0x40, 0, 0, 0, 0, 0, 0, 0, 0x22, 1, 4, 0];
 
-function workbook(tokens: readonly number[], parts: readonly (readonly number[])[]): Uint8Array {
+function workbook(tokens: readonly number[], parts: readonly (readonly number[])[], revision = 8): Uint8Array {
   const record = (id: number, bytes: readonly number[]) => [id & 255, id >> 8, bytes.length & 255, bytes.length >> 8, ...bytes];
   const header = new Uint8Array(22); new DataView(header.buffer).setFloat64(6, 999, true); header[20] = tokens.length;
   const numbers = [20, 22].flatMap((value, index) => {
     const data = new Uint8Array(14); data[0] = index + 1; new DataView(data.buffer).setFloat64(6, value, true);
     return record(0x203, [...data]);
   });
-  return new Uint8Array([...record(0x809, [0, 6, 16, 0]), ...record(6, [...header, ...tokens, ...(parts[0] ?? [])]),
+  return new Uint8Array([...record(0x809, [0, revision === 8 ? 6 : 5, 16, 0]), ...record(6, [...header, ...tokens, ...(parts[0] ?? [])]),
     ...parts.slice(1).flatMap(part => record(0x3c, part)), ...numbers, ...record(10, [])]);
 }
 
@@ -33,6 +33,31 @@ it(`consumes ${first} auxiliary data first across ${continued ? "continued" : "s
   const book = await readBiff(workbook(tokens, continued ? [extra.slice(0, 5), extra.slice(5)] : [extra]), context);
   expect(book.sheets[0]!.cells[0]!.formula).toBe(first === "memory" ? "=SUM($A$2,$A$3)+SUM({1})" : "=SUM({1})+SUM($A$2,$A$3)");
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 43 });
+});
+
+// LibreOffice ExcelToSc::ReadExtensionMemArea uses six-byte ranges before BIFF8:
+// two uint16 rows followed by two uint8 columns, preceded by the uint16 count.
+// https://github.com/LibreOffice/core/blob/eb239f1a15f3bd8481ee5c5cf72bdb52c347efae/sc/source/filter/excel/excform.cxx#L1894
+const legacyMemory = [1, 0, 1, 0, 2, 0, 0, 0];
+const legacySumMemory = [0x26, 0, 0, 0, 0, 9, 0, 0x24, 1, 0, 0, 0x24, 2, 0, 0, 0x10, 0x22, 1, 4, 0];
+const legacyArray = [1, 1, 0, ...array.slice(3)];
+for (const first of ["memory", "array"]) for (const continued of [false, true])
+it(`consumes six-byte BIFF7 cached ranges with ${first} first across ${continued ? "continued" : "single"} records`, async () => {
+  const tokens = first === "memory" ? [...legacySumMemory, ...sumArray, 3] : [...sumArray, ...legacySumMemory, 3];
+  const extra = first === "memory" ? [...legacyMemory, ...legacyArray] : [...legacyArray, ...legacyMemory];
+  const book = await readBiff(workbook(tokens, continued ? [extra.slice(0, 5), extra.slice(5)] : [extra], 7), context);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe(first === "memory" ? "=SUM($A$2,$A$3)+SUM({1})" : "=SUM({1})+SUM($A$2,$A$3)");
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 43 });
+});
+
+it("charges six bytes of work per legacy cached range and rejects truncation", () => {
+  const charged: number[] = [];
+  const reader = biffFormulaExtras([new Binary(Uint8Array.from(legacyMemory))], 7, 1252,
+    { ...context, limits: { ...context.limits, workbookWork: 6 } }, amount => charged.push(amount));
+  reader.readMemory();
+  expect(charged).toEqual([6]);
+  expect(biffFormulaExtras([new Binary(Uint8Array.from(legacyMemory.slice(0, -1)))], 7, 1252, context).readMemory)
+    .toThrow("Invalid Excel BIFF");
 });
 
 it.each([[], [1], memory.slice(0, -1)].map(extra => ({ extra })))("refuses truncated memory-area extras $extra", async ({ extra }) => {

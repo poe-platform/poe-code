@@ -104,6 +104,8 @@ async function execute(
 	void failed.promise.catch(() => {});
 	let relay: ReturnType<typeof createRunCodeRelay> | undefined;
 	let retired: Promise<void> | undefined;
+	let executionFailure: { error: unknown } | undefined;
+	let result: unknown;
 	const fail = (error: unknown) => {
 		if (abort.signal.aborted) return;
 		abort.abort(error);
@@ -120,7 +122,7 @@ async function execute(
 	deadline.addEventListener("abort", onDeadline, { once: true });
 	try {
 		input.signal.throwIfAborted();
-		return await Promise.race([
+		result = await Promise.race([
 			prepareAndRun(
 				options,
 				input,
@@ -133,14 +135,24 @@ async function execute(
 			failed.promise,
 		]);
 	} catch (error) {
+		executionFailure = { error };
 		if (!(error instanceof RunCodeUserError)) fail(error);
-		throw error;
 	} finally {
 		deadline.removeEventListener("abort", onDeadline);
 		input.signal.removeEventListener("abort", onAbort);
 		void relay?.close();
-		await retired;
 	}
+	try {
+		await retired;
+	} catch (retirementError) {
+		if (!executionFailure) throw retirementError;
+		const errors = [executionFailure.error, retirementError];
+		throw new AggregateError(errors, errors.map(String).join("; "), {
+			cause: executionFailure.error,
+		});
+	}
+	if (executionFailure) throw executionFailure.error;
+	return result;
 }
 
 async function prepareAndRun(

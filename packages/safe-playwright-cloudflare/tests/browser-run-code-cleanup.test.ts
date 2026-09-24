@@ -15,7 +15,12 @@ vi.mock("../src/browser-run-code-relay", () => ({ createRunCodeRelay: vi.fn() })
 import { createRunCodeRelay } from "../src/browser-run-code-relay";
 import { createBrowserRunCode } from "../src/browser-run-code";
 
-test.each([true, false])("cleanup failure retains guest error and retires (guest rejected: %s)", async (rejected) => {
+test.each([
+  { rejected: true, retirementFails: false },
+  { rejected: false, retirementFails: false },
+  { rejected: true, retirementFails: true },
+  { rejected: false, retirementFails: true }
+])("cleanup retains failures (guest rejected: $rejected, retirement fails: $retirementFails)", async ({ rejected, retirementFails }) => {
   const receiverError = new Error("receiver close lost connection");
   const cleanupError = new AggregateError([receiverError], "Run-code transport cleanup failed");
   const closing = Promise.reject(cleanupError);
@@ -40,7 +45,10 @@ test.each([true, false])("cleanup failure retains guest error and retires (guest
   });
   const context = { pages: () => [page] };
   const page = { context: () => context };
-  const retire = vi.fn(async () => {});
+  const retirementError = new Error("browser retirement failed");
+  const retire = vi.fn(async () => {
+    if (retirementFails) throw retirementError;
+  });
   const run = createBrowserRunCode({
     ownerId: "cleanup-test",
     browser: { newBrowserCDPSession: async () => ({ send, detach, on() {} }) },
@@ -59,15 +67,21 @@ test.each([true, false])("cleanup failure retains guest error and retires (guest
     page, source: "async page => 1n", signal: new AbortController().signal,
     timeoutMs: 1000, maxOutputBytes: 1024, maxPages: 4
   } as never).catch((error: unknown) => error);
+  if (retirementFails) expect(error).toBeInstanceOf(AggregateError);
+  const executionError = retirementFails ? (error as AggregateError).errors[0] : error;
+  if (retirementFails) {
+    expect((error as AggregateError).errors[1]).toBe(retirementError);
+    expect((error as AggregateError).cause).toBe(executionError);
+  }
   if (rejected) {
-    expect(String(error)).toContain("Run-code result is not JSON-serializable");
-    expect(error).toBeInstanceOf(AggregateError);
-    const combined = error as AggregateError;
+    expect(String(executionError)).toContain("Run-code result is not JSON-serializable");
+    expect(executionError).toBeInstanceOf(AggregateError);
+    const combined = executionError as AggregateError;
     expect(combined.errors[0].message).toBe("Run-code result is not JSON-serializable");
     expect(combined.cause).toBe(combined.errors[0]);
     expect(combined.errors[1]).toBe(cleanupError);
   } else {
-    expect(error).toBe(cleanupError);
+    expect(executionError).toBe(cleanupError);
   }
   expect(retire).toHaveBeenCalledOnce();
   expect(detach).toHaveBeenCalledOnce();

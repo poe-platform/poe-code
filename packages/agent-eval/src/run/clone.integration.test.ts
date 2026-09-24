@@ -11,9 +11,10 @@ import { cloneTarget } from "./clone.js";
 const execFileAsync = promisify(execFile);
 
 interface FixtureRepo {
-  sourceRepo: string;
   bareRepo: string;
+  updatedRepo: string;
   headSha: string;
+  updatedSha: string;
 }
 
 let roots: string[] = [];
@@ -27,52 +28,40 @@ async function tempRoot(): Promise<string> {
 }
 
 async function createFixtureRepo(root: string): Promise<FixtureRepo> {
-  const sourceRepo = path.join(root, "source");
   const bareRepo = path.join(root, "fixture.git");
-  await mkdir(sourceRepo);
-
-  const git = simpleGit(sourceRepo);
-  await git.init();
-  await git.addConfig("user.name", "Agent Eval Test");
-  await git.addConfig("user.email", "agent-eval@example.com");
-  await git.branch(["-M", "main"]);
-
-  await writeFile(path.join(sourceRepo, "README.md"), "first\n");
-  await git.add("README.md");
-  await git.commit("first");
-
-  await writeFile(path.join(sourceRepo, "README.md"), "second\n");
-  await git.add("README.md");
-  await git.commit("second");
-
+  const updatedRepo = path.join(root, "updated.git");
+  await mkdir(bareRepo);
+  const git = simpleGit(bareRepo);
+  await git.raw(["init", "--bare", "--initial-branch=main"]);
+  const commit = (message: string, mark: number, parent?: string) => [
+    "commit refs/heads/main",
+    `mark :${mark}`,
+    "committer Agent Eval Test <agent-eval@example.com> 0 +0000",
+    `data ${message.length}`,
+    message,
+    ...(parent ? [`from ${parent}`] : []),
+    "M 100644 inline README.md",
+    `data ${message.length + 1}`,
+    message,
+    ""
+  ].join("\n");
+  const initial = execFileAsync("git", ["fast-import", "--quiet"], { cwd: bareRepo });
+  initial.child.stdin!.end(commit("first", 1) + commit("second", 2, ":1"));
+  await initial;
   const headSha = (await git.revparse(["HEAD"])).trim();
-  await simpleGit(root).clone(sourceRepo, bareRepo, ["--bare"]);
-
-  return { sourceRepo, bareRepo, headSha };
+  // Keep the later commit outside the original remote so fetching must transfer it.
+  await cp(bareRepo, updatedRepo, { recursive: true });
+  const updated = execFileAsync("git", ["fast-import", "--quiet"], { cwd: updatedRepo });
+  updated.child.stdin!.end(commit("third", 3, headSha));
+  await updated;
+  const updatedSha = (await simpleGit(updatedRepo).revparse(["HEAD"])).trim();
+  return { bareRepo, updatedRepo, headSha, updatedSha };
 }
 
 async function copyFixtureRepo(root: string): Promise<FixtureRepo> {
-  const sourceRepo = path.join(root, "source");
   const bareRepo = path.join(root, "fixture.git");
-  await Promise.all([
-    cp(fixtureTemplate.sourceRepo, sourceRepo, { recursive: true }),
-    cp(fixtureTemplate.bareRepo, bareRepo, { recursive: true })
-  ]);
-  return { sourceRepo, bareRepo, headSha: fixtureTemplate.headSha };
-}
-
-async function commitFixtureChange(
-  sourceRepo: string,
-  fileName: string,
-  contents: string,
-  message: string
-): Promise<string> {
-  const git = simpleGit(sourceRepo);
-  await writeFile(path.join(sourceRepo, fileName), contents);
-  await git.add(fileName);
-  await git.commit(message);
-
-  return (await git.revparse(["HEAD"])).trim();
+  await cp(fixtureTemplate.bareRepo, bareRepo, { recursive: true });
+  return { ...fixtureTemplate, bareRepo };
 }
 
 async function expectMissing(target: string): Promise<void> {
@@ -114,16 +103,18 @@ describe("cloneTarget", () => {
   describe("cached repository reuse", () => {
     let root: string;
     let cacheDir: string;
+    let firstDest: string;
     let secondDest: string;
 
     beforeAll(async () => {
       root = await mkdtemp(path.join(tmpdir(), "agent-eval-clone-reuse-"));
       cacheDir = path.join(root, "cache");
+      firstDest = path.join(root, "first");
       secondDest = path.join(root, "second");
       await expect(cloneTarget({
         repo: fixtureTemplate.bareRepo,
         ref: "main",
-        dest: path.join(root, "first"),
+        dest: firstDest,
         cacheDir
       })).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
     }, 5000);
@@ -132,7 +123,7 @@ describe("cloneTarget", () => {
       if (root) await rm(root, { recursive: true, force: true });
     });
 
-    it("reuses a cached bare repo across new and previously deleted worktree destinations", async () => {
+    it("reuses a cached bare repo for a new worktree destination", async () => {
       await expect(cloneTarget({
         repo: fixtureTemplate.bareRepo,
         ref: "main",
@@ -140,12 +131,18 @@ describe("cloneTarget", () => {
         cacheDir
       })).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
 
-      await rm(secondDest, { recursive: true, force: true });
+      const cachedRepos = await readdir(cacheDir);
+      expect(cachedRepos).toHaveLength(1);
+      expect(cachedRepos[0]?.endsWith(".git")).toBe(true);
+    }, 5000);
+
+    it("reuses a cached bare repo after its worktree destination is deleted", async () => {
+      await rm(firstDest, { recursive: true, force: true });
 
       await expect(cloneTarget({
         repo: fixtureTemplate.bareRepo,
         ref: "main",
-        dest: secondDest,
+        dest: firstDest,
         cacheDir
       })).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
 
@@ -172,13 +169,8 @@ describe("cloneTarget", () => {
         cacheDir
       })).resolves.toEqual({ resolvedSha: fixture.headSha });
 
-      updatedSha = await commitFixtureChange(
-        fixture.sourceRepo,
-        "README.md",
-        "third\n",
-        "third"
-      );
-      await simpleGit(fixture.sourceRepo).push(fixture.bareRepo, "main");
+      updatedSha = fixture.updatedSha;
+      await simpleGit(fixture.updatedRepo).push(fixture.bareRepo, "main");
     }, 5000);
 
     afterAll(async () => {

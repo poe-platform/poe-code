@@ -9,6 +9,3 @@ export class PlaywrightSnapshotLimitError extends PlaywrightResourceLimitError {
 export function isPlaywrightResourceLimitError(error: unknown): boolean {
   return error instanceof PlaywrightResourceLimitError || error instanceof AggregateError && error.errors.some(isPlaywrightResourceLimitError);
 }
-
-/** A completed snapshot read refused by its explicit byte/ref budget. */
-export class PlaywrightSnapshotLimitError extends PlaywrightResourceLimitError {}

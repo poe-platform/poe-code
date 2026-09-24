@@ -698,8 +698,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           if (parsed.options.boxes) snapshotOptions.boxes = true;
           if (parsed.args[0]) snapshotOptions.root = await resolveTarget(session, parsed.args[0]);
         }
+        retained = false;
         if (parsed.command === 'snapshot' && parsed.json && filename === undefined) {
-          retained = false;
           const tree = await session.snapshot.captureJSON(page, local.signal, { ...snapshotOptions, ...(session.lease?.captureSnapshotJSON ? { captureJSON: session.lease.captureSnapshotJSON } : {}) });
           check();
           retained = true;

@@ -244,7 +244,7 @@ for (const actionTimeout of [0, 1500]) test(`init-page and run-code keep action 
   } finally { await controller.dispose(); await f.controller.dispose(); }
 });
 
-test('failed native JSON capture retires its session before another open', async () => {
+for (const args of [['snapshot', '--json'], ['snapshot'], ['snapshot', '--filename=page.yml'], ['find']] as const) test(`failed native capture retires its session before another open: ${args.join(' ')}`, async () => {
   const f = fixture();
   try {
     await f.run(['open']);
@@ -252,13 +252,51 @@ test('failed native JSON capture retires its session before another open', async
     const page = owned.lease.context.pages()[0]!;
     Object.assign(page, { on() {}, off() {} });
     const failure = new Error('native JSON snapshot timed out');
+    page.ariaSnapshot = async () => { throw failure; };
     Object.defineProperty(owned.lease, 'captureSnapshotJSON', { value: async () => { throw failure; } });
-    await assert.rejects(f.run(['snapshot', '--json']), error => error === failure);
+    await assert.rejects(f.run([...args], { async writeArtifact() {} }), error => error === failure);
     assert.equal(owned.releases, 1);
     assert.deepEqual(f.controller.inspectSessions(), []);
     await f.run(['open']);
     assert.equal(f.leases.length, 2);
   } finally { await f.controller.dispose(); }
+});
+
+test('completed snapshots preserve a healthy session when the artifact budget refuses output', async () => {
+  const f = fixture();
+  const controller = createPlaywrightController({ adapter: f.adapter, limits: { maxArtifactBytes: 1024 } });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {}, async writeArtifact() {} });
+  try {
+    await run(['open']);
+    const owned = f.leases[0]!;
+    Object.assign(owned.lease.context.pages()[0]!, { on() {}, off() {}, async ariaSnapshot() { return '- text "' + 'x'.repeat(2048) + '"'; } });
+    await assert.rejects(run(['snapshot', '--filename=page.yml']), /Artifact byte limit exceeded/);
+    assert.equal(owned.releases, 0);
+    await run(['tab-list']);
+  } finally { await controller.dispose(); await f.controller.dispose(); }
+});
+
+test('deferred handle disposal failure retires a session after successful YAML capture', async () => {
+  const f = fixture();
+  const failure = new Error('old snapshot handle disposal failed');
+  const containsFailure = (error: unknown): boolean => error === failure || error instanceof AggregateError && error.errors.some(containsFailure);
+  try {
+    await f.run(['open']);
+    const owned = f.leases[0]!;
+    let ref = 'e1';
+    Object.assign(owned.lease.context.pages()[0]!, {
+      on() {}, off() {}, async ariaSnapshot() { return `- button "Item" [ref=${ref}]`; },
+      locator(selector: string) { return { async elementHandle() { return {
+        async evaluate() { return true; },
+        async dispose() { if (selector === 'aria-ref=e1') throw failure; },
+      }; } }; },
+    });
+    await f.run(['snapshot']);
+    ref = 'e2';
+    await assert.rejects(f.run(['snapshot']), containsFailure);
+    assert.equal(owned.releases, 1);
+    assert.deepEqual(f.controller.inspectSessions(), []);
+  } finally { await assert.rejects(f.controller.dispose(), containsFailure); }
 });
 
 for (const command of ['close', 'goto'] as const) test(`failed live trace capture still retires resources during ${command}`, async () => {

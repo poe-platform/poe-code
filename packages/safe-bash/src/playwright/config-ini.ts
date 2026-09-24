@@ -20,7 +20,7 @@ fields('browser.contextOptions.', 'string[]', 'permissions');
 fields('browser.contextOptions.', 'size', 'screen viewport');
 fields('', 'string', 'outputDir imageResponses codegen testIdAttribute server.host console.level snapshot.mode');
 fields('', 'boolean', 'extension saveSession sharedBrowserContext allowUnrestrictedFileAccess snapshot.boxes');
-fields('', 'number', 'outputMaxSize server.port timeouts.action timeouts.idle timeouts.navigation timeouts.settle');
+fields('', 'number', 'outputMaxSize server.port timeouts.action timeouts.snapshot timeouts.idle timeouts.navigation timeouts.settle');
 fields('', 'string[]', 'capabilities server.allowedHosts network.allowedOrigins network.blockedOrigins');
 fields('', 'size', 'saveVideo');
 

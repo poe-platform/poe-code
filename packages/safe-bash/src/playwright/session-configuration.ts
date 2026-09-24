@@ -3,7 +3,7 @@ import { PlaywrightResourceLimitError } from './resource-limit.js';
 export interface PlaywrightSessionConfiguration {
   readonly browserName?: 'chromium' | 'firefox' | 'webkit';
   readonly headless?: boolean;
-  readonly timeouts?: { readonly action?: number; readonly navigation?: number; readonly settle?: number; readonly expect?: number };
+  readonly timeouts?: { readonly action?: number; readonly snapshot?: number; readonly navigation?: number; readonly settle?: number; readonly expect?: number };
   readonly initScripts?: readonly string[];
   readonly initScriptFiles?: readonly string[];
   readonly initPages?: readonly { readonly filename: string; readonly source: string }[];
@@ -25,7 +25,7 @@ export function parsePlaywrightSessionConfiguration(value: unknown, maxBytes = 8
   if (candidate.headless !== undefined && typeof candidate.headless !== 'boolean') throw new Error('Invalid configured headless mode');
   if (candidate.timeouts !== undefined) {
     if (!candidate.timeouts || typeof candidate.timeouts !== 'object' || Array.isArray(candidate.timeouts)) throw new Error('Invalid Playwright timeouts');
-    for (const [key, timeout] of Object.entries(candidate.timeouts)) if (!['action', 'navigation', 'settle', 'expect'].includes(key) || typeof timeout !== 'number' || !Number.isSafeInteger(timeout) || timeout < 0) throw new Error(`Invalid Playwright timeout: ${key}`);
+    for (const [key, timeout] of Object.entries(candidate.timeouts)) if (!['action', 'snapshot', 'navigation', 'settle', 'expect'].includes(key) || typeof timeout !== 'number' || !Number.isSafeInteger(timeout) || timeout < 0) throw new Error(`Invalid Playwright timeout: ${key}`);
   }
   if (candidate.initScripts !== undefined && (!Array.isArray(candidate.initScripts) || candidate.initScripts.some(script => typeof script !== 'string'))) throw new Error('Invalid Playwright init scripts');
   if (candidate.initScriptFiles !== undefined && (!Array.isArray(candidate.initScriptFiles) || candidate.initScriptFiles.some(path => typeof path !== 'string' || path.includes('\0')))) throw new Error('Invalid Playwright init script files');

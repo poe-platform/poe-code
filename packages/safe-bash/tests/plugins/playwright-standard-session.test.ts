@@ -122,7 +122,7 @@ test('configured output directory and retention preserve current artifacts and e
     const config = JSON.parse(await f.run('config-print', '--json')).result;
     assert.equal(config.outputDir, 'artifacts');
     assert.equal(config.codegen, 'typescript');
-    assert.deepEqual(config.timeouts, { action: 5000, navigation: 60000, expect: 5000, settle: 500, idle: 3600000 });
+    assert.deepEqual(config.timeouts, { action: 5000, snapshot: 30000, navigation: 60000, expect: 5000, settle: 500, idle: 3600000 });
     assert.deepEqual(config.snapshot, { mode: 'full' });
     assert.equal(config.testIdAttribute, 'data-qa');
     assert.equal(config.skillMode, true);

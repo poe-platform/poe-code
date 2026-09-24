@@ -155,7 +155,7 @@ export async function resolvePlaywrightOpenOptions(options: Readonly<Record<stri
     context.storageState = parsePlaywrightStorageState(value, { maxBytes });
   }
   const timeouts = config.timeouts === undefined ? {} : object(config.timeouts, 'Playwright timeouts');
-  keys(timeouts, new Set(['idle', 'action', 'navigation', 'settle', 'expect']), 'Playwright timeout');
+  keys(timeouts, new Set(['idle', 'action', 'snapshot', 'navigation', 'settle', 'expect']), 'Playwright timeout');
   for (const [name, key] of [['PLAYWRIGHT_MCP_TIMEOUT_ACTION', 'action'], ['PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION', 'navigation'], ['PLAYWRIGHT_MCP_TIMEOUT_SETTLE', 'settle']] as const) if (stringEnv(name) !== undefined) timeouts[key] = Number(stringEnv(name));
   const idle = options['idle-timeout'] ?? stringEnv('PLAYWRIGHT_MCP_IDLE_TIMEOUT') ?? timeouts.idle ?? (headless ? 3_600_000 : 0);
   const idleTimeoutMs = typeof idle === 'string' && idle.trim() !== '' ? Number(idle) : idle;

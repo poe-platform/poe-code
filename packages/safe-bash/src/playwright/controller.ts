@@ -177,6 +177,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   let generation = 0;
   let disposal: Promise<void> | undefined;
   const sessionActionTimeout = (session?: Session) => session?.configuration?.timeouts?.action ?? actionTimeoutMs;
+  const sessionSnapshotTimeout = (session?: Session) => session?.configuration?.timeouts?.snapshot ?? session?.configuration?.timeouts?.action ?? options.limits?.actionTimeoutMs ?? 30_000;
   const sessionNavigationTimeout = (session?: Session) => session?.configuration?.timeouts?.navigation ?? options.limits?.actionTimeoutMs ?? 60_000;
   const initializeContext = async (session: Session) => {
     if (session.configuration?.codegen && !['typescript', 'none'].includes(session.configuration.codegen) && !session.lease?.generateActionCode) throw new Error('Configured codegen language requires native action generation');
@@ -686,7 +687,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         sections.push({ title: 'Page', content: `- Page URL: ${page.url()}${title === undefined ? '' : `\n- Page Title: ${title}`}` });
       }
       if (snapshot !== 'none' && (page.frames || page.ariaSnapshot || page._snapshotForAI || page.ariaSnapshotJSON || session.lease?.captureSnapshotJSON)) {
-        const snapshotOptions: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = { timeout: sessionActionTimeout(session), ...(session.configuration?.snapshot?.boxes === undefined ? {} : { boxes: session.configuration.snapshot.boxes }) };
+        const snapshotOptions: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = { timeout: sessionSnapshotTimeout(session), ...(session.configuration?.snapshot?.boxes === undefined ? {} : { boxes: session.configuration.snapshot.boxes }) };
         if (parsed.command === 'snapshot') {
           if (parsed.options.depth !== undefined) {
             const depth = Number(parsed.options.depth);
@@ -1168,7 +1169,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 ...(session.configuration?.initScriptFiles ? { initScript: session.configuration.initScriptFiles } : {}),
                 ...(session.configuration?.initPages ? { initPage: session.configuration.initPages.map(page => page.filename) } : {}),
               }, codegen: session.configuration?.codegen ?? 'typescript',
-                timeouts: { action: sessionActionTimeout(session), navigation: sessionNavigationTimeout(session), expect: session.configuration?.timeouts?.expect ?? 5000, settle: session.configuration?.timeouts?.settle ?? 500, idle: session.idleTimeoutMs ?? 0 },
+                timeouts: { action: sessionActionTimeout(session), snapshot: sessionSnapshotTimeout(session), navigation: sessionNavigationTimeout(session), expect: session.configuration?.timeouts?.expect ?? 5000, settle: session.configuration?.timeouts?.settle ?? 500, idle: session.idleTimeoutMs ?? 0 },
                 snapshot: { mode: 'full', ...session.configuration?.snapshot }, skillMode: true,
                 ...Object.fromEntries(['network', 'console', 'outputDir', 'outputMaxSize', 'testIdAttribute', 'configFile'].flatMap(key => {
                   const value = session.configuration?.[key as keyof PlaywrightSessionConfiguration]; return value === undefined ? [] : [[key, value]];
@@ -1238,7 +1239,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               checkSession(session);
               await writeResult({ sections: [{ title: 'Result', content: result }] });
             } else if (parsed.command === 'find') {
-              const text = await session.snapshot.capture(page!, local.signal);
+              const text = await session.snapshot.capture(page!, local.signal, { timeout: sessionSnapshotTimeout(session) });
               const result = await findPlaywrightSnapshot(text, { page: page!, ...(parsed.args[0] === undefined ? {} : { text: parsed.args[0] }),
                 ...(parsed.options.regex === undefined ? {} : { regex: parsed.options.regex as string }),
               });

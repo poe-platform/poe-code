@@ -270,9 +270,9 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
     const parent = stack.at(-1);
     if (parent) {
       parent.element.text += text;
-      if (retainContent && (text.length || kind === "cdata")) {
+      if (text.length || kind === "cdata") {
         admitContent();
-        parent.content!.push({ kind, text });
+        if (retainContent) parent.content!.push({ kind, text });
       }
     }
     else {
@@ -281,7 +281,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         if ((index + 1) % 512 === 0) yield 512;
       }
       if (text.length % 512) yield text.length % 512;
-      if (retainContent && text.length) { admitContent(); (root ? epilog : prolog).push({ kind, text }); }
+      if (text.length) {
+        admitContent();
+        if (retainContent) (root ? epilog : prolog).push({ kind, text });
+      }
     }
   };
   while (offset < source.length) {
@@ -300,7 +303,8 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       const parent = stack.at(-1);
       const text = source.slice(offset + 4, end);
       admitText(text);
-      if (retainContent) { admitContent(); (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
+      admitContent();
+      if (retainContent) { (parent?.content ?? (root ? epilog : prolog)).push({ kind: "comment", text }); }
       offset = end + 3;
     } else if (source.startsWith("<![CDATA[", offset)) {
       if (!stack.length) invalid("CDATA outside root");
@@ -332,8 +336,8 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         if (start % 512) yield start % 512;
         const text = content.slice(start);
         admitText(text);
+        admitContent();
         if (retainContent) {
-          admitContent();
           (parent?.content ?? (root ? epilog : prolog)).push({ kind: "processing-instruction", target, text });
         }
       }

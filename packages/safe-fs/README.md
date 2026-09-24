@@ -339,6 +339,8 @@ Each batch lists from the beginning because previous keys have been deleted; it 
 
 Known identity Content-Length responses use one result buffer; other responses grow storage up to the configured ceiling and return a view without a final copy. Growth can temporarily retain the old and new buffers (up to three times the response size), plus transport chunks. These per-response defaults leave headroom in Workers; hosts must still budget for metadata parsing, text decoding, transport buffers, and concurrent reads, especially when raising the limits. Use streaming reads for large files.
 
+WebDAV metadata parsing limits the document to 100,000 elements, 100,000 content nodes, 100,000 attributes, and 256 levels of nesting, independently of `maxEntries`. Text is bounded by `maxXmlBytes`. Exceeding a structural budget reports `EFBIG`; parsing yields cooperatively so caller cancellation and `timeoutMs` remain active.
+
 See the [binding types](src/fs/webdav/webdav.ts) before implementing atomic directory removal. A recursive WebDAV DELETE does not satisfy that contract.
 
 </details>

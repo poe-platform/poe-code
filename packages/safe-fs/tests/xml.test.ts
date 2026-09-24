@@ -84,7 +84,7 @@ it("preserves the XML declaration without treating it as element content", () =>
 
 it("omits rich retained objects in legacy mode while preserving validation and scalar text", () => {
   const source = '<r xmlns:p="urn:p" p:a="v">one<b/>two<!--comment--><?pi data?><![CDATA[three]]></r>';
-  const root = parseXml(source, { retainContent: false, maxNodes: 2, maxContentNodes: 2 });
+  const root = parseXml(source, { retainContent: false, maxNodes: 2, maxContentNodes: 7 });
   expect(root.text).toBe("onetwothree");
   expect(root.children).toHaveLength(1);
   for (const node of [root, root.children[0]!]) {
@@ -95,6 +95,7 @@ it("omits rich retained objects in legacy mode while preserving validation and s
   expect(() => parseXml('<r p:a="v"/>', { retainContent: false })).toThrow("unbound attribute prefix");
   expect(() => parseXml('<r a="&unknown;"/>', { retainContent: false })).toThrow("undeclared entity");
   expect(() => parseXml(source, { retainContent: false, maxContentNodes: 1 })).toThrow("content node limit");
+  expect(() => parseXml(source, { retainContent: false, maxContentNodes: 6 })).toThrow("content node limit");
 });
 
 it("charges retained attributes independently against both node and attribute limits", () => {

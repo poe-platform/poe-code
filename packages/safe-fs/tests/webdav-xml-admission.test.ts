@@ -11,11 +11,16 @@ function remote(xml: string, maxEntries = 10_000, maxXmlBytes = 2 * 1024 * 1024)
 }
 
 describe("WebDAV XML allocation admission", () => {
-  // The multistatus root and directory resource contain exactly eleven elements.
-  it.each([99_989, 99_990])("does not impose an implicit node boundary with %s ignored elements", async count => {
+  it("admits ignored elements below the XML structure budgets", async () => {
+    const count = 99_970;
     const xml = multistatus(resource("/dav/", true), "<x/>".repeat(count));
     const result = remote(xml).stat("/");
     await expect(result).resolves.toMatchObject({ type: "directory" });
+  });
+
+  it("rejects ignored elements beyond the XML node budget", async () => {
+    await expect(remote(multistatus(resource("/dav/", true), "<x/>".repeat(99_990))).stat("/"))
+      .rejects.toMatchObject({ code: "EFBIG" });
   });
 
   // The root namespace declaration consumes one attribute; sibling scopes do not accumulate.

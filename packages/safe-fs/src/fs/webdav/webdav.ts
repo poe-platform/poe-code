@@ -9,7 +9,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
-import { davChild, davChildren, parseXml, scalar, XmlResponseLimitError } from "./xml.js";
+import { davChild, davChildren, parseXmlSteps, scalar, XmlResponseLimitError, XmlResourceLimitError } from "./xml.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type { XmlElement } from "./xml.js";
@@ -565,7 +565,30 @@ export class WebDavFileSystem implements FileSystem {
     const data = await this.bytes(response, this.maxXmlBytes, signal);
     const encoding = (data[0] === 0xff && data[1] === 0xfe) || (data[0] === 0x3c && data[1] === 0)
       ? "utf-16le" : (data[0] === 0xfe && data[1] === 0xff) || (data[0] === 0 && data[1] === 0x3c) ? "utf-16be" : "utf-8";
-    return parseXml(new TextDecoder(encoding, { fatal: true }).decode(data), maxResponses === undefined ? undefined : { maxResponses });
+    const parser = parseXmlSteps(new TextDecoder(encoding, { fatal: true }).decode(data), {
+      ...(maxResponses === undefined ? {} : { maxResponses }),
+      maxNodes: 100_000, maxContentNodes: 100_000, maxDepth: 256,
+      maxAttributes: 100_000, maxTextLength: this.maxXmlBytes,
+    });
+    let work = 0;
+    try {
+      while (true) {
+        signal.throwIfAborted();
+        const step = parser.next();
+        if (step.done) return step.value;
+        work += step.value;
+        if (work >= 4096) {
+          work = 0;
+          // Yield to the host task queue so request deadlines and caller aborts can fire.
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+        }
+      }
+    } catch (error) {
+      if (error instanceof XmlResourceLimitError) fail("EFBIG", "webdav", "", error.message);
+      throw error;
+    } finally {
+      parser.return(undefined as never);
+    }
   }
 
   private async multistatus(response: Response, signal: AbortSignal, method = "PROPFIND", path = ""): Promise<XmlElement[]> {

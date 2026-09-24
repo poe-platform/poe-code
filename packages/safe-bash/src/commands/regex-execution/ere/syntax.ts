@@ -71,7 +71,7 @@ async function flatten(input: string | readonly EreFragment[], ledger: EreLedger
 class Parser {
   offset = 0;
   groups = 0;
-  constructor(readonly pattern: string, readonly quoted: readonly boolean[] | null, readonly ledger: EreLedger, readonly signal: AbortSignal | undefined, readonly insensitive: boolean) {}
+  constructor(readonly pattern: string, readonly quoted: readonly boolean[] | null, readonly ledger: EreLedger, readonly signal: AbortSignal | undefined, readonly insensitive: boolean, readonly localeProfile: { ranges: boolean; classes: boolean }) {}
 
   at(character: string, offset = this.offset): boolean { return !this.quoted?.[offset] && this.pattern[offset] === character; }
 
@@ -202,6 +202,7 @@ class Parser {
         throw new EreUnsupportedError("collating or equivalence element", this.offset);
       }
       if (this.at("[") && this.at(":", this.offset + 1)) {
+        if (!this.localeProfile.classes) throw new EreUnsupportedError("locale character class", this.offset);
         const classBegin = this.offset;
         this.offset += 2;
         let name = "";
@@ -222,6 +223,7 @@ class Parser {
       } else {
         const lower = this.pattern.charCodeAt(this.offset++);
         if (this.at("-") && !this.at("]", this.offset + 1) && this.pattern[this.offset + 1] !== undefined) {
+          if (!this.localeProfile.ranges) throw new EreUnsupportedError("collation locale range", this.offset);
           this.offset++;
           if (this.at("[")) throw new EreSyntaxError("nonliteral range endpoint", this.offset);
           const upper = this.pattern.charCodeAt(this.offset++);
@@ -238,11 +240,11 @@ class Parser {
   }
 }
 
-export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal, asciiInsensitive = false): Promise<EreProgram> {
+export async function compileEre(input: string | readonly EreFragment[], ledger: EreLedger, signal?: AbortSignal, asciiInsensitive = false, localeProfile = { ranges: true, classes: true }): Promise<EreProgram> {
   ledger.check(signal);
   if (typeof asciiInsensitive !== "boolean") throw new TypeError("ASCII case mode must be boolean");
   const { pattern, quoted } = await flatten(input, ledger, signal);
-  const parser = new Parser(pattern, quoted, ledger, signal, asciiInsensitive);
+  const parser = new Parser(pattern, quoted, ledger, signal, asciiInsensitive, localeProfile);
   const root = await parser.expression();
   if (parser.offset !== pattern.length) throw new EreSyntaxError("unmatched closing group", parser.offset);
   ledger.charge("allocationUnits", 3, signal);

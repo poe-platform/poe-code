@@ -32,7 +32,7 @@ import { compilePattern, compilePatternBoundaries, matchesPattern } from "./patt
 import { nextCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
 import { selectMenu } from "./select-menu.js";
 import type { StringWork } from "./string-operations.js";
-import { byteLocale } from "./locale.js";
+import { byteLocale, cCollation, utf8Locale } from "./locale.js";
 import { diagnosticCommandName } from "./diagnostic-name.js";
 import { trimParameter } from "./parameter-trim.js";
 import { ownedShellSource, type OwnedShellSource } from "./source-value.js";
@@ -1630,8 +1630,8 @@ export class Runtime {
       });
       const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C";
       const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
-      if (![collation, characters].every(locale => locale === "C" || locale === "POSIX")) {
-        await this.ereDiagnostic(io, "[[ unsupported ERE profile: locale must be C or POSIX");
+      if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) {
+        await this.ereDiagnostic(io, "[[ unsupported ERE profile: locale must be C, POSIX or UTF-8");
         return 2;
       }
       await textToken(operation, subject, this.signal);
@@ -1643,7 +1643,9 @@ export class Runtime {
       });
       let result: Awaited<ReturnType<typeof matchEre>>;
       try {
-        const program = await compileEre(fragments, ledger, this.signal, !!state.nocasematch);
+        const program = await compileEre(fragments, ledger, this.signal, !!state.nocasematch, {
+          ranges: cCollation(collation), classes: !utf8Locale(characters),
+        });
         result = await matchEre(program, subject, ledger, this.signal);
       }
       catch (error) {
@@ -3583,6 +3585,7 @@ export class Runtime {
             predicateIdentity: io.capabilities?.predicateIdentity,
             reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
             locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
+            characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C",
             ignoreCase: !!state.nocasematch,
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
             expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),

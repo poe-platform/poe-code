@@ -4,6 +4,7 @@ import { isFsError } from "../contracts/index.js";
 import { pathOf } from "../commands/internal.js";
 import type { Word } from "./parser.js";
 import { matchesPattern } from "./pattern.js";
+import { cCollation, utf8Locale } from "./locale.js";
 import type { StringWork } from "./string-operations.js";
 import { evaluateFilePredicate, type PredicateIdentity } from "../commands/file-predicates.js";
 
@@ -25,6 +26,7 @@ interface ConditionalContext {
   readonly cwd: string;
   readonly signal: AbortSignal;
   readonly locale: string;
+  readonly characterLocale?: string;
   readonly work: StringWork;
   readonly ignoreCase?: boolean;
   readonly predicateIdentity?: PredicateIdentity | undefined;
@@ -50,17 +52,18 @@ async function charge(context: ConditionalContext, amount = 1): Promise<void> {
 }
 
 function cLocale(context: ConditionalContext): void {
-  if (context.locale !== "C" && context.locale !== "POSIX") unsupported("collation locale");
+  if (!cCollation(context.locale)) unsupported("collation locale");
 }
 
 async function patternAdmission(pattern: string, context: ConditionalContext): Promise<void> {
-  cLocale(context);
+  if (!cCollation(context.locale) && !utf8Locale(context.locale)) unsupported("collation locale");
   let bracket = false;
   let bracketStart = 0;
   for (let index = 0; index < pattern.length; index++) {
     await charge(context);
     const character = pattern[index]!;
     if (character === "\\") { if (++index < pattern.length) await charge(context); continue; }
+    if (bracket && character === "-" && index > bracketStart + 1 && pattern[index + 1] !== "]") cLocale(context);
     if (!bracket && "?*+@!".includes(character) && pattern[index + 1] === "(") unsupported("extglob");
     if (character === "[" && !bracket) {
       bracket = true;
@@ -69,6 +72,8 @@ async function patternAdmission(pattern: string, context: ConditionalContext): P
       const marker = pattern[index + 1];
       if (marker === "." || marker === "=") unsupported("bracket collation");
       if (marker === ":") {
+        const characters = context.characterLocale ?? context.locale;
+        if (characters !== "C" && characters !== "POSIX") unsupported("locale character class");
         while (index + 1 < pattern.length && !(pattern[index] === ":" && pattern[index + 1] === "]")) {
           index++;
           await charge(context);

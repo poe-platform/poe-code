@@ -11,6 +11,12 @@ runtime maps an ERE limit failure to status 3; this is distinct from invalid
 syntax and does not assert that an ordinary expression exhausts default limits.
 Captures and quoted pattern segments retain the existing shell behavior.
 
+ASCII ERE patterns and subjects also work under UTF-8 locales. Ranges require
+C/POSIX collation (including C.UTF-8 and C.utf8); character classes require
+C/POSIX character classification. Locale-dependent classes and collation
+remain unsupported. UTF-8 locale admission does not expand the shell matcher's
+existing ASCII character profile.
+
 The matcher uses ERE state/work admission and cancellation checkpoints. These
 are not a total JavaScript heap bound, an independent thread, or a guarantee of
 preempting arbitrary synchronous host work. Caller cancellation remains

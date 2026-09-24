@@ -124,7 +124,9 @@ export type RealmBridge = {
   wrapCallback(closure: SandboxClosure): (...args: readonly unknown[]) => Promise<unknown>;
   invoke(operation: CallerInjectedFunction, call: () => unknown): unknown;
   awaitResult(operation: CallerInjectedFunction): boolean;
-  captureArguments(operation: CallerInjectedFunction, args: readonly SandboxValue[], copy: (values: readonly SandboxValue[]) => unknown[]): { args: unknown[]; rollback(): void };
+  captureArguments(operation: CallerInjectedFunction, args: readonly SandboxValue[], copy: (
+    values: readonly SandboxValue[], wrapClosure?: RealmBridge["wrapCallback"]
+  ) => unknown[]): { args: unknown[]; rollback(): void };
 };
 
 export type HostBridgeOptions = {
@@ -245,18 +247,18 @@ function wrapCallerInjectedFunction(
           restored: []
         };
         const exportedSharedArguments: SharedArrayBuffer[] = [];
-        const copyArguments = (values: readonly SandboxValue[]) => deepCopyFromSandbox([...values], {
+        const copyArguments = (values: readonly SandboxValue[], wrapClosure?: RealmBridge["wrapCallback"]) => deepCopyFromSandbox([...values], {
           compilation,
           onSharedBuffer: value => { exportedSharedArguments.push(value); },
           unwrapHostObject: options.realm === undefined ? undefined : object => exportHostCapability(object, options.realm!.owner),
-          wrapClosure: (closure) =>
+          wrapClosure: wrapClosure ?? ((closure) =>
             options.realm?.wrapCallback(closure) ?? wrapSandboxClosureForHost(
               closure,
               stackFrames,
               options.budget,
               operationLease.owner,
               callbacks
-            )
+            ))
         }) as unknown[];
         const captured = options.realm?.captureArguments(callable, args, copyArguments);
         const hostArgs = captured?.args ?? copyArguments(args);

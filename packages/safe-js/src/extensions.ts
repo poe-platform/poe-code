@@ -30,6 +30,8 @@ export type ExtensionContext = {
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
+  /** Give each call independent callback wrappers, released by the receiving host. */
+  retainCallbackArguments<Operation extends HostOperation>(operation: Operation): Operation;
   retainGuestArguments<Operation extends HostOperation>(
     operation: Operation,
     from: number

@@ -168,6 +168,7 @@ class RealmState {
     { from: number; extension: SafeJSExtension }
   >();
   readonly nestedOperations = new WeakMap<HostOperation, SafeJSExtension>();
+  readonly callbackOperations = new WeakMap<HostOperation, SafeJSExtension>();
   readonly convertedModules = new Map<string, Record<string, SandboxValue>>();
   readonly nativeConversions = { seen: new WeakMap<object, SandboxValue>() };
   readonly modules: Record<string, Record<string, CallerInjectedBinding>>;
@@ -333,15 +334,29 @@ class RealmState {
 
   captureArguments: RealmBridge["captureArguments"] = (operation, args, copy) => {
     const from = this.retainedOperations.get(operation)?.from ?? args.length;
-    const values = copy(args.slice(0, from));
+    const owned = this.callbackOperations.has(operation) ? new Map<SandboxClosure, Callback>() : undefined;
     const captured: GuestReference[] = [];
     const rollback = () => {
       for (const reference of captured) {
         revokeGuestReference(reference, this);
         this.guestReferences.delete(reference);
       }
+      for (const callback of owned?.values() ?? []) {
+        revokeGuestCallback(callback, this);
+        this.callbacks.delete(callback);
+      }
     };
     try {
+      // One copy preserves aliases within this call. Separate calls receive
+      // separate revocation handles, even when they capture the same closure.
+      const values = copy(args.slice(0, from), owned === undefined ? undefined : closure => {
+        let callback = owned.get(closure);
+        if (callback === undefined) {
+          callback = this.wrapCallback(closure, true);
+          owned.set(closure, callback);
+        }
+        return callback;
+      });
       for (const value of args.slice(from)) {
         this.checkCollection(
           this.guestReferences.size + 1,
@@ -619,9 +634,9 @@ class RealmState {
     return object;
   };
 
-  wrapCallback = (closure: SandboxClosure): Callback => {
+  wrapCallback = (closure: SandboxClosure, owned = false): Callback => {
     this.assertOpen();
-    const existing = this.callbackCache.get(closure);
+    const existing = owned ? undefined : this.callbackCache.get(closure);
     if (existing !== undefined && this.callbacks.has(existing)) return existing;
     this.checkCollection(this.callbacks.size + 1, this.limits.callbacks, "callback");
     const invokeCallback = this.invokeCallback;
@@ -629,7 +644,7 @@ class RealmState {
       return invokeCallback(callback, { args, thisValue: this });
     };
     this.callbacks.set(callback, closure);
-    this.callbackCache.set(closure, callback);
+    if (!owned) this.callbackCache.set(closure, callback);
     registerGuestCallback(callback, {
       owner: this,
       closure,
@@ -793,6 +808,20 @@ class RealmState {
         invokeCallback: this.invokeCallback,
         releaseCallback: this.releaseCallback,
         releaseGuestReference: this.releaseGuestReference,
+        retainCallbackArguments: <Operation extends HostOperation>(operation: Operation): Operation => {
+          this.assertOpen();
+          if (!extension.manifest.capabilities?.includes("guest:retain"))
+            throw new TypeError("Retaining callbacks requires the guest:retain grant.");
+          if (typeof operation !== "function")
+            throw new TypeError("Retained callback operation must be a function.");
+          if (this.scope !== undefined)
+            throw new TypeError("Retained callback operations must be registered during setup.");
+          const owner = this.callbackOperations.get(operation);
+          if (owner !== undefined && owner !== extension)
+            throw new TypeError("Retained callback operation already belongs to another extension.");
+          this.callbackOperations.set(operation, extension);
+          return operation;
+        },
         retainGuestArguments: <Operation extends HostOperation>(
           operation: Operation,
           from: number

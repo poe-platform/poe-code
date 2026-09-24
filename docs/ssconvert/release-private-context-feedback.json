@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "baseline": "5c97cd279a6882b2f129199650244371233d0815",
+  "release": 35951828999,
+  "issue": "The variable-presence resolver was exposed as an own symbol on middleware and command contexts, violating invocation privacy and causing five cleanup lifecycle failures.",
+  "repair": "Keep the resolver in a module-private weak map keyed by shared predicate identity, preserving copied invocation and shebang contexts without adding public properties or changing SDK types.",
+  "sources": {
+    "packages/safe-bash/src/commands/variable-presence.ts": "73356562bb1da968211ab2f194e41fa0bb9c7e54e8b2d838b036ca9b12e63e4d",
+    "packages/safe-bash/src/commands/predicates.ts": "ca865e6e1ba7a691336927e0e2fa7489eda07cff6f004446554c255fd1ccb60b",
+    "packages/safe-bash/src/shell/runtime.ts": "33579155bd450a6b2c0b0ed0b0581550242a433fa57634edcffdfcd3cbe10c37",
+    "packages/safe-bash/tests/shell/variable-presence.test.ts": "6e6c08e24c0738620bd65615bec0f56ec598302568ac4ea45ae9e7a15f816c71"
+  },
+  "validation": {
+    "red": {
+      "tests": 25,
+      "passed": 20,
+      "failed": 5
+    },
+    "focusedPrivateTests": 108,
+    "combinedWithPlaywrightFixtureTests": 161,
+    "lint": "Focused ESLint passed for all four changed source/test files and the separate Playwright mock correction.",
+    "build": {
+      "route": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash",
+      "declaredBuilds": 29,
+      "layers": 11,
+      "passed": true
+    },
+    "typecheck": {
+      "status": "typecheck-passed-not-runtime-acceptance",
+      "phases": 37,
+      "consumerGroups": 26,
+      "sourceConsumersPassed": true,
+      "consumersPassed": true,
+      "reportSha256": "d971cae65fa063a588824e33d228ee8742ab9d6036743890446bebf64def03a1",
+      "runtimeExecutions": 0
+    },
+    "prerequisiteCorrections": [
+      "Rebuilt two newly declared mmdc exports before consumer checks.",
+      "Restored missing fengari and workspace links with npm install --ignore-scripts --no-save; tracked lockfile unchanged.",
+      "Corrected the separate Playwright selectOption mock from Promise<void> to Promise<string[]> in its own commit."
+    ],
+    "public": {
+      "rows": [
+        {
+          "source": "arr=(a b); test -v 'arr[1]'",
+          "expected": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBytes": {},
+          "stderrBytes": {},
+          "exitCode": 0
+        },
+        {
+          "source": "arr=(a b); [ -v 'arr[3]' ]",
+          "expected": 1,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBytes": {},
+          "stderrBytes": {},
+          "exitCode": 1
+        },
+        {
+          "source": "arr=(a b); probe",
+          "expected": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBytes": {},
+          "stderrBytes": {},
+          "exitCode": 0
+        },
+        {
+          "source": "arr=(a b); /probe-script",
+          "expected": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdoutBytes": {},
+          "stderrBytes": {},
+          "exitCode": 0
+        }
+      ],
+      "observed": [
+        "test",
+        "[",
+        "probe",
+        "test",
+        "/probe-script",
+        "env",
+        "probe",
+        "test"
+      ]
+    },
+    "visual": {
+      "inspected": true,
+      "sha256": "985b9e21df457192ed58ac0915d023042bf99a60e011e466dd25be695ae6724d"
+    }
+  },
+  "limitations": [
+    "Full containing root CI and publication remain pending.",
+    "Other captured filesystem/patch failures are separate and remain to be validated."
+  ]
+}

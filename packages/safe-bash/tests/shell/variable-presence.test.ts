@@ -45,3 +45,20 @@ for (const form of ["conditional", "test", "bracket"] as const) {
     });
   }
 }
+
+for (const source of ["probe", "/probe-script"]) {
+  test(`private variable presence survives invocation context copies: ${source}`, async context => {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs });
+    context.after(() => shell.dispose());
+    for (const command of predicateCommands()) shell.commands.register(command);
+    shell.commands.register({ name: "probe", async execute(command) {
+      assert.deepEqual(Object.getOwnPropertySymbols(command), []);
+      return command.invoke!("test", ["-v", "arr[1]"]);
+    } });
+    await fs.writeFile("/probe-script", new TextEncoder().encode("#!/usr/bin/env probe\n"), { mode: 0o755 });
+    const result = await shell.exec(`arr=(a b); ${source}`);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  });
+}

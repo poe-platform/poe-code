@@ -4368,7 +4368,6 @@ export class Runtime {
     const initialEnv = { ...env };
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
-      ...{ [variablePresence]: (name: string) => this.variablePresent(state, name, io) },
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
       shellPredicates: {
         variable: name => this.variable(state, name) !== undefined,
@@ -4406,6 +4405,7 @@ export class Runtime {
       configurable: true, enumerable: true, get: readName,
       set(replacement: string) { currentName = replacement; },
     });
+    variablePresence.set(context.shellPredicates!, name => this.variablePresent(state, name, io));
     bindCommandIO(context, io);
     bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal), (chunk, write) => this.budget.writeCounted(chunk, write, this.signal));
     if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");

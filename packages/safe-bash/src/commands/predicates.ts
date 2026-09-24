@@ -4,7 +4,7 @@ import { assertCommandRequirements } from "../contracts/command-requirements.js"
 import { predicateRequirements } from "./portable-requirements.js";
 import { evaluateFilePredicate, type PredicateIdentity } from "./file-predicates.js";
 
-import { variablePresence, type VariablePresenceContext } from "./variable-presence.js";
+import { variablePresence } from "./variable-presence.js";
 
 type Predicate = () => Promise<boolean>;
 
@@ -104,7 +104,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
           if (token === "-n") return operand !== "";
           if (token === "-z") return operand === "";
           if (token === "-v") {
-            const present = (context as VariablePresenceContext)[variablePresence];
+            const present = context.shellPredicates && variablePresence.get(context.shellPredicates);
             if (!present) throw new UsageError("variable predicate requires shell state");
             return present(operand);
           }

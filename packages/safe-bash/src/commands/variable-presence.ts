@@ -1,6 +1,4 @@
-/** Runtime state access carried through command middleware without exposing mutable bindings. */
-export const variablePresence = Symbol("variablePresence");
+import type { CommandContext } from "../contracts/index.js";
 
-export interface VariablePresenceContext {
-  readonly [variablePresence]?: (name: string) => Promise<boolean>;
-}
+/** Context copies share predicate identity without exposing the private resolver. */
+export const variablePresence = new WeakMap<NonNullable<CommandContext["shellPredicates"]>, (name: string) => Promise<boolean>>();

@@ -112,13 +112,14 @@ for (const defect of ["none", "public", "closure", "source", "link", "mixed-nati
 
 for (const defect of ["none", "pin", "name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "fengari-version", "link", "source-import", "runtime-import", "unapproved-import", "fengari-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
-  const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" } }, dependencies: {"@poe-code/office-package": "*", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*"}};
+  const pandoc = {name: "@poe-code/pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } }, dependencies: {"@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*"}};
   const pdf = {name: "@poe-code/pdf", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
   const owned = fixture({
     "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"@poe-code/pandoc": defect === "pin" ? "unapproved" : "*"}}),
     "src/index.ts": 'import type { Page } from "@poe-code/pandoc"; export const page: Page = { width: 12 };',
     "../pandoc/package.json": JSON.stringify(pandoc),
     "../pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
+    "../pandoc/dist/citeproc-filters.d.ts": "export declare function citeprocFilter(): void;",
     "../pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf"; export type { PdfNode } from "@poe-code/pdf-ast";',
     "../pdf-ast/package.json": JSON.stringify({name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports, dependencies: {pako: "3.0.1"}}),
     "../pdf-ast/dist/index.d.ts": 'export interface PdfNode { text: string; }',

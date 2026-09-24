@@ -192,7 +192,7 @@ necessarily earlier. Shell redirection effects are outside this command's scope.
   raise an error. Object membership checks own properties only. Index generators
   run before base generators, including assignment paths.
 - Array/string slices `.[START:END]`, omitted/null endpoints, and negative
-  endpoints. Slice bounds currently require safe integers. Strings slice by
+  endpoints. Numeric slice starts round down and ends round up. Strings slice by
   Unicode codepoint, not UTF-16 code unit. Start, end, and base generators are
   consumed lazily in that order; early consumers do not evaluate unused bounds.
 - Iteration `.[]` over arrays or object values, preserving object insertion
@@ -204,13 +204,13 @@ necessarily earlier. Shell redirection effects are outside this command's scope.
   `and`, `or`, `not`, and alternative `//`. Arithmetic/comparison Cartesian
   products evaluate RHS outermost; object fields expand left-to-right.
 - Conditional `if CONDITION then FILTER elif CONDITION then FILTER else FILTER
-  end`. An `else` is required. Attached `.then`, `.else`, and `.end` still work
+  end`. Omitting `else` defaults to the identity filter. Attached `.then`, `.else`, and `.end` still work
   as properties.
 - Postfix `?` suppresses jq evaluation errors, but cannot suppress resource-limit
   errors, aborts, or host I/O failures.
 - Assignment `=`, update `|=`, and arithmetic updates `+= -= *= /= %= //=` on
-  identity, chained property/index paths, iteration, and parenthesized comma
-  paths. Array extension inserts nulls and is checked before allocation.
+  identity, chained property/index paths, iteration, slices, pipes with selections,
+  optional paths, recursive descent, and parenthesized comma paths. Array extension inserts nulls and is checked before allocation.
 
 Filters are generators. A pipe invokes its right side for every left result;
 `select` can repeat its input if its predicate emits multiple true values;
@@ -239,6 +239,8 @@ cross-version parity beyond its recorded tests.
 | Functions | Accepted arity and behavior |
 | --- | --- |
 | `empty`, `select(f)`, `map(f)`, `map_values(f)` | Generator filtering/mapping; `map_values` keeps only the first result per entry and drops empty updates. |
+| `flatten`, `flatten(depth)` | Flatten nested arrays fully or to a nonnegative depth. |
+| `@text`, `@json`, `@html`, `@uri`, `@csv`, `@tsv`, `@sh`, `@base64`, `@base64d` | Format values; an attached string formats only its interpolations. |
 | `length`, `keys`, `keys_unsorted`, `type` | Array/object/string/numeric lengths and type information; sorted keys use codepoint ordering. |
 | `nan`, `infinite`, `isnan`, `isinfinite`, `isfinite` | Zero arguments only. `isfinite` means numeric and not infinite: NaN is true, both infinities and all nonnumbers are false. |
 | `values`, `strings`, `numbers`, `booleans`, `arrays`, `objects`, `nulls`, `scalars`, `iterables` | Type/value filters; `values` removes null only. |
@@ -347,12 +349,9 @@ should supply a deadline signal when they require a wall-clock deadline.
 
 - Not the entire jq language: no recursive definitions, destructuring `as` bindings,
   recursion, labels/break,
-  regex/date/math libraries, formats such as `@csv`, or arbitrary jq builtins.
-- Assignment paths do not include slices, piped selections, optional paths, or
-  computed object/array constructions. These are compilation errors, not silent
-  approximations. Ordinary reads can still use pipes and slices.
-- Slice endpoints are integer-only even though native jq accepts some fractional
-  bounds. `limit` count and additional function overloads are likewise restricted
+  regex/date/math libraries or arbitrary jq builtins.
+- Assignment paths do not include computed object/array constructions.
+- `limit` count and additional function overloads are restricted
   to the documented signatures.
 - Numeric literals retain decimal precision and scale, with normalized decimal
   exponent spelling. Arithmetic, numeric `length`, and unary minus convert to
@@ -444,7 +443,7 @@ error wording is project-specific and is not native-byte-matched. See
 
 At that historical checkpoint object overloads of `any`/`all` and decimal
 rendering remained deferred; the later fixes below address them. Fractional
-slice endpoints and other listed grammar gaps remain. Strict malformed JSON/UTF-8 rejection is intentional even
+slice endpoints are now supported; other listed grammar gaps remain. Strict malformed JSON/UTF-8 rejection is intentional even
 where this native build accepts nonstandard input. These tests establish neither
 full jq parity nor superiority to jq or just-bash.
 

@@ -159,11 +159,11 @@ export function indexValue(value: Json, index: Json): Json {
   throw new JqError(`Cannot index ${type(value)} with ${type(index)}${typeof index === "string" && Buffer.byteLength(index) < 30 ? ` ${JSON.stringify(index)}` : ""}`);
 }
 export async function sliceValue(value: Json, start: Json, end: Json, budget: Budget): Promise<Json> {
-  if (start !== null && (!isNumber(start) || !Number.isSafeInteger(numberValue(start)))) throw new JqError("slice start must be an integer or null");
-  if (end !== null && (!isNumber(end) || !Number.isSafeInteger(numberValue(end)))) throw new JqError("slice end must be an integer or null");
+  if (start !== null && (!isNumber(start) || !Number.isFinite(numberValue(start)))) throw new JqError("slice start must be a finite number or null");
+  if (end !== null && (!isNumber(end) || !Number.isFinite(numberValue(end)))) throw new JqError("slice end must be a finite number or null");
   budget.signal.throwIfAborted();
-  let first = start === null ? 0 : numberValue(start);
-  let last = end === null ? undefined : numberValue(end);
+  let first = start === null ? 0 : Math.floor(numberValue(start));
+  let last = end === null ? undefined : Math.ceil(numberValue(end));
   if (value === null) return null;
   if (Array.isArray(value)) return value.slice(first, last);
   if (typeof value !== "string") throw new JqError(`cannot slice ${type(value)}`);

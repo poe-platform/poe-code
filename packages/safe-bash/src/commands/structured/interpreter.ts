@@ -2,10 +2,11 @@ import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeyI
 import { isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast } from "./parser.js";
+import { formatValue } from "./formats.js";
 import { splitString } from "./split.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
-type Path = (string | number)[];
+type Path = (string | number | { start: number; end: number })[];
 interface Frame { readonly name: string; readonly value: Json; readonly parent: Frame | undefined; readonly depth: number }
 const deleted = Symbol("deleted");
 class UserError extends JqError {
@@ -34,6 +35,7 @@ export class Interpreter {
         yield* filter.scope.run(filter.ast, input); return;
       }
       case "invoke": yield* this.invocation(ast).run(ast.body, input); return;
+      case "format": yield await formatValue(ast.name, input, this.budget); return;
       case "identity": yield input; return;
       case "literal": yield ast.value; return;
       case "variable": {
@@ -190,8 +192,16 @@ export class Interpreter {
     Object.assign(scope, this, { filters });
     return scope;
   }
-  async *paths(ast: Ast, input: Json): AsyncGenerator<Path> {
+  async read(input: Json, path: Path): Promise<Json> {
+    for (const key of path) {
+      await this.budget.tick();
+      input = typeof key === "object" ? await sliceValue(input, key.start, key.end, this.budget) : indexValue(input, key);
+    }
+    return input;
+  }
+  async *paths(ast: Ast, input: Json, depth = 0): AsyncGenerator<Path> {
     await this.budget.tick();
+    if (depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
     if (ast.kind === "parameter") {
       const filter = this.filters.get(ast)!;
       yield* filter.scope.paths(filter.ast, input); return;
@@ -199,11 +209,47 @@ export class Interpreter {
     if (ast.kind === "invoke") { yield* this.invocation(ast).paths(ast.body, input); return; }
     if (ast.kind === "identity") { yield []; return; }
     if (ast.kind === "binary" && ast.operator === ",") { yield* this.paths(ast.left, input); yield* this.paths(ast.right, input); return; }
+    if (ast.kind === "optional") {
+      try { yield* this.paths(ast.operand, input); }
+      catch (error) { if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted) throw error; }
+      return;
+    }
+    if (ast.kind === "binary" && ast.operator === "|") {
+      for await (const prefix of this.paths(ast.left, input))
+        for await (const suffix of this.paths(ast.right, await this.read(input, prefix))) yield [...prefix, ...suffix];
+      return;
+    }
+    if (ast.kind === "call" && ["select", "values", "strings", "numbers", "booleans", "arrays", "objects", "nulls", "scalars", "iterables", "empty"].includes(ast.name)) { for await (const value of this.run(ast, input)) { void value; yield []; } return; }
+    if (ast.kind === "descend") {
+      yield [];
+      if (Array.isArray(input) || isObject(input)) for await (const [key, value] of entries(input, this.budget))
+        for await (const suffix of this.paths(ast, value, depth + 1)) {
+          this.budget.collection(suffix.length + 1);
+          if (suffix.length + 1 > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+          yield [key, ...suffix];
+        }
+      return;
+    }
+    if (ast.kind === "slice") {
+      for await (const start of ast.start ? this.run(ast.start, input) : [null])
+        for await (const end of ast.end ? this.run(ast.end, input) : [null])
+          for await (const path of this.paths(ast.base, input)) {
+            const base = await this.read(input, path);
+            await sliceValue(base, start, end, this.budget);
+            if (base !== null && !Array.isArray(base)) throw new JqError("slice assignment requires an array");
+            const length = base === null ? 0 : base.length;
+            let first = start === null ? 0 : Math.floor(numberValue(start as Numeric));
+            let last = end === null ? length : Math.ceil(numberValue(end as Numeric));
+            first = Math.max(0, Math.min(length, first < 0 ? length + first : first));
+            last = Math.max(first, Math.min(length, last < 0 ? length + last : last));
+            yield [...path, { start: first, end: last }];
+          }
+      return;
+    }
     if (ast.kind !== "index" && ast.kind !== "iterate") throw new JqError("unsupported assignment path");
     if (ast.kind === "index") {
       for await (const key of this.run(ast.index, input)) for await (const path of this.paths(ast.base, input)) {
-        let base = input;
-        for (const component of path) base = indexValue(base, component);
+        const base = await this.read(input, path);
         if (typeof key !== "string" && (!isNumber(key) || !Number.isFinite(numberValue(key)))) throw new JqError("assignment index must be a string or finite number");
         indexValue(base, key);
         const integer = isNumber(key) ? Math.trunc(numberValue(key)) : key;
@@ -212,8 +258,7 @@ export class Interpreter {
       return;
     }
     for await (const path of this.paths(ast.base, input)) {
-      let base = input;
-      for (const component of path) base = indexValue(base, component);
+      const base = await this.read(input, path);
       for await (const [key] of entries(base, this.budget)) { await this.budget.tick(); yield [...path, key]; }
     }
   }
@@ -225,6 +270,15 @@ export class Interpreter {
     if (value === deleted && (input === null
       || (typeof key === "string" && isObject(input) && !Object.hasOwn(input, key))
       || (typeof key === "number" && Array.isArray(input) && (key < 0 || key >= input.length)))) return input;
+    if (typeof key === "object") {
+      if (input !== null && !Array.isArray(input)) throw new JqError("slice assignment requires an array");
+      const array = input === null ? [] : input;
+      const replacement = this.set(array.slice(key.start, key.end), path, value, depth + 1);
+      if (!(value === deleted && depth === path.length - 1) && !Array.isArray(replacement)) throw new JqError("slice assignment requires an array value");
+      const items = value === deleted && depth === path.length - 1 ? [] : replacement as Json[];
+      this.budget.collection(array.length - (key.end - key.start) + items.length);
+      return [...array.slice(0, key.start), ...items, ...array.slice(key.end)];
+    }
     const previous = indexValue(input, key);
     const remove = value === deleted && depth === path.length - 1;
     if (typeof key === "string") {
@@ -250,8 +304,7 @@ export class Interpreter {
       for await (const value of this.run(right, input)) {
         let result = input;
         for await (const path of this.paths(left, input)) {
-          let previous = result;
-          for (const key of path) previous = indexValue(previous, key);
+          const previous = await this.read(result, path);
           const assigned = operator === "=" ? value : operator === "//=" ? truth(previous) ? previous : value : await binary(operator.slice(0, -1), previous, value, this.budget);
           result = this.set(result, path, assigned); this.budget.value(result);
         }
@@ -264,8 +317,7 @@ export class Interpreter {
     let result = input;
     const deletions: Path[] = [];
     for (const path of paths) {
-      let previous = result;
-      for (const key of path) previous = indexValue(previous, key);
+      const previous = await this.read(result, path);
       let value: Json | typeof deleted = deleted;
       for await (const output of this.run(right, previous)) { value = output; break; }
       if (value === deleted) deletions.push(path);
@@ -281,6 +333,24 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "flatten") {
+      for await (const depth of args.length ? this.run(args[0]!, input) : [Infinity]) {
+        if (!isNumber(depth) || numberValue(depth) < 0 || Number.isNaN(numberValue(depth))) throw new JqError("flatten depth must be nonnegative");
+        const result: Json[] = [];
+        const stack = [{ iterator: entries(input, budget), depth: numberValue(depth) }];
+        while (stack.length) {
+          await budget.tick();
+          const frame = stack.at(-1)!;
+          const next = await frame.iterator.next();
+          if (next.done) { stack.pop(); continue; }
+          const value = next.value[1];
+          if (Array.isArray(value) && frame.depth !== 0) stack.push({ iterator: entries(value, budget), depth: frame.depth - 1 });
+          else { budget.collection(result.length + 1); result.push(value); }
+        }
+        budget.value(result); yield result;
+      }
+      return;
+    }
     if (name === "del") { yield* this.assign(args[0]!, { kind: "call", name: "empty", args: [] }, "|=", input); return; }
     if (name === "error") {
       for await (const value of args.length ? this.run(args[0]!, input) : [input]) {

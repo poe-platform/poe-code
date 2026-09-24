@@ -4,6 +4,7 @@ import { decimalNumber } from "./numbers.js";
 export type Ast =
   | { kind: "parameter"; name: string }
   | { kind: "invoke"; parameters: Ast[]; args: Ast[]; body: Ast }
+  | { kind: "format"; name: string }
   | { kind: "identity" }
   | { kind: "literal"; value: Json }
   | { kind: "variable"; name: string }
@@ -28,7 +29,7 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
   "+": 8, "-": 8, "*": 9, "/": 9, "%": 9,
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
-  del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
+  flatten: [0, 1], del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
   empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],
   type: [0], has: [1], contains: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],
   not: [0], reverse: [0], first: [0, 1], last: [0, 1], limit: [2], range: [1, 2, 3], join: [1], split: [1],
@@ -99,6 +100,7 @@ function tokenize(source: string, budget: Budget): Token[] {
     }
     const name = /^[A-Za-z_][A-Za-z_0-9]*/u.exec(source.slice(offset));
     if (name) { tokens.push({ text: name[0], offset, kind: "name" }); offset += name[0].length; continue; }
+    if (character === "@") { tokens.push({ text: "@", offset, kind: "symbol" }); offset++; continue; }
     if (source.startsWith("..", offset)) {
       tokens.push({ text: "..", offset, kind: "symbol" }); offset += 2; continue;
     }
@@ -117,9 +119,11 @@ function isPath(ast: Ast): boolean {
   const pending = [ast];
   while (pending.length) {
     const node = pending.pop()!;
-    if (node.kind === "identity" || node.kind === "parameter" || node.kind === "invoke") continue;
-    if (node.kind === "index" || node.kind === "iterate") pending.push(node.base);
-    else if (node.kind === "binary" && node.operator === ",") pending.push(node.left, node.right);
+    if (node.kind === "identity" || node.kind === "parameter" || node.kind === "invoke" || node.kind === "descend") continue;
+    if (node.kind === "index" || node.kind === "iterate" || node.kind === "slice") pending.push(node.base);
+    else if (node.kind === "optional") pending.push(node.operand);
+    else if (node.kind === "call" && ["select", "values", "strings", "numbers", "booleans", "arrays", "objects", "nulls", "scalars", "iterables", "empty"].includes(node.name)) continue;
+    else if (node.kind === "binary" && (node.operator === "," || node.operator === "|")) pending.push(node.left, node.right);
     else return false;
   }
   return true;
@@ -186,7 +190,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     const condition = expression(); expect("then");
     const yes = expression();
     if (accept("elif")) return { kind: "if", condition, yes, no: guardedConditional() };
-    expect("else"); const no = expression(); expect("end");
+    const no: Ast = accept("else") ? expression() : { kind: "identity" }; expect("end");
     return { kind: "if", condition, yes, no };
   };
   const guardedConditional = (): Ast => {
@@ -220,11 +224,11 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       return left;
     } finally { nesting--; }
   };
-  const stringExpression = (token: Token): Ast => {
+  const stringExpression = (token: Token, format = "text"): Ast => {
     if (token.kind === "string") return literal(JSON.parse(token.text) as string);
-    let result = stringExpression(take());
+    let result = stringExpression(take(), format);
     while (accept("interpolation-start")) {
-      const value: Ast = { kind: "call", name: "tostring", args: [] };
+      const value: Ast = { kind: "format", name: format };
       const interpolated: Ast = { kind: "binary", operator: "|", left: expression(), right: value };
       expect("interpolation-end");
       result = { kind: "binary", operator: "+", left: result, right: interpolated };
@@ -236,7 +240,11 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   const primary = (): Ast => {
     const token = take();
     let result: Ast;
-    if (token.text === "..") result = { kind: "descend" };
+    if (token.text === "@") {
+      const name = take();
+      if (name.kind !== "name") fail("expected format name");
+      result = peek().kind === "string" || peek().text === "string-start" ? stringExpression(take(), name.text) : { kind: "format", name: name.text };
+    } else if (token.text === "..") result = { kind: "descend" };
     else if (token.text === "try") {
       const body = expression(10);
       result = { kind: "try", body, handler: accept("catch") ? expression(10) : undefined };

@@ -332,11 +332,11 @@ test("slice endpoint matrix preserves code points, clamping, arrays and lone sur
 test("slice validates both endpoints before null handling and empty shortcuts", async () => {
   const budget = new Budget(defaultJqLimits, new AbortController().signal);
   for (const value of [null, "", "abc", []]) {
-    for (const bound of [1.5, "1", false, {}, [], Number.MAX_SAFE_INTEGER + 1]) {
+    for (const bound of ["1", false, {}, [], Infinity, NaN]) {
       await assert.rejects(async () => sliceValue(value, bound, 0, budget),
-        error => error instanceof JqError && error.message === "slice start must be an integer or null");
+        error => error instanceof JqError && error.message === "slice start must be a finite number or null");
       await assert.rejects(async () => sliceValue(value, 99, bound, budget),
-        error => error instanceof JqError && error.message === "slice end must be an integer or null");
+        error => error instanceof JqError && error.message === "slice end must be a finite number or null");
     }
   }
   assert.equal(await sliceValue(null, 3, 1, budget), null);
@@ -356,7 +356,7 @@ test("slice generators preserve endpoint/base order, duplicates, lazy errors and
     { filter: ".[range(3;0;-1):1]", input: "abc", values: ["", "", ""] },
     { filter: ".[range(0;3;0):1]", input: "abc", values: [] },
     { filter: ".[1e0:2e0]", input: "A😀éZ", values: ["😀"] },
-    { filter: ".[1.5:2]?", input: "abc", values: [] },
+    { filter: ".[1.5:2]?", input: "abc", values: ["b"] },
     { filter: ".[range(4):]", input: "abcd", values: ["abcd", "bcd", "cd", "d"] },
   ];
   for (const fixture of cases) {

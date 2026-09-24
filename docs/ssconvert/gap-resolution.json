@@ -413,6 +413,11 @@
           "path": "docs/ssconvert/gnumeric-name-evaluation-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/gnumeric-name-evaluation-native-capture.json",
           "outcome": "17red/17green;130focused/22831package tests,lint/types/build pass.56SDK/Shell CSV executions/20exports retain10BIFF/XLSX codec discrepancies; original/native XML values match. Codec offsets/binding and wider names remain open."
+        },
+        {
+          "kind": "BIFF-named-definition-scope",
+          "path": "docs/ssconvert/biff-name-definition-scope-gap-proof.json",
+          "outcome": "3red/3green;87focused/22834package tests,lint/types/build pass.56SDK/Shell CSV executions/20exports repair all3nested-name replays;7relative-offset/anchor discrepancies remain. Three generated BIFF inputs await native readback."
         }
       ],
       "delivery": {

@@ -1,0 +1,2754 @@
+{
+  "schemaVersion": 1,
+  "scope": "BIFF writer binds nested names in the declaration namespace independently of the relative-reference parse anchor.",
+  "baseline": "611b65f7bbc545179775071a02b18f166111dda7",
+  "validation": {
+    "red": 3,
+    "focused": {
+      "tests": 87,
+      "files": 4
+    },
+    "package": {
+      "tests": 22834,
+      "files": 385
+    },
+    "lint": "Maintained package lint and source/test/consumer types pass.",
+    "build": "Selected maintained ssconvert build closure passes.",
+    "streams": "All three profile tests inspect every CFB stream, including both streams in dual output.",
+    "controls": [
+      "Global nested name at default A1",
+      "Global nested name with Data parse anchor",
+      "Data-local nested name with Here parse anchor",
+      "Explicit sheet qualification",
+      "Explicit global namespace",
+      "Ordinary caller-local lookup",
+      "Input immutability"
+    ],
+    "public": {
+      "bindings": [
+        {
+          "path": "packages/ssconvert/src/codecs/biff-write.ts",
+          "sha256": "79b086bab1787e37ba175e96913efb74a5bb58f1d73b3ff0158c37a98a3d48a6"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/biff-write-formulas.ts",
+          "sha256": "dbf086c1b16d973920bafa1f90a762930a261396fb3e9e8dc6bb5f146fa317c0"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/named-expressions.ts",
+          "sha256": "d09c83217bd3569344889c708a64a1d206c60a7546ca46b42e287bb174b0374f"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/evaluator.ts",
+          "sha256": "183b818f8077bd3de9b0df59a3b81a7af54c2186a8ead58fd9467ee132d5e59d"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/dependencies.ts",
+          "sha256": "c44e5a1b4afe92e85ff1e1ef1882db6aaa3bb15c44c4bed647c33ebb1af769c4"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "78308d33b13e2c08542e942105f8da23ef4736b737631a2bf63d2c193c3ee828"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ],
+      "results": [
+        {
+          "id": "absolute-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "4e4626cf489a331e2b4621623cd0305ac688b7df18ba716b239b9af60bc7b3bd",
+          "expected": "1002\n1002\n2002\n",
+          "sdk": "1002\n1002\n2002\n",
+          "shell": "1002\n1002\n2002\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "absolute-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "1ea15560eedc234720875174f800d24ba68a5a8f49c2630bb610b74419c10ad1",
+          "expected": "1002\n1002\n2002\n",
+          "sdk": "1002\n1002\n2002\n",
+          "shell": "1002\n1002\n2002\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "absolute-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "c2fef5f185e11017cca44cdd0474a860464f1bf54ab79694c8db635f6cdbcb9a",
+          "expected": "1002\n1002\n2002\n",
+          "sdk": "1002\n1002\n2002\n",
+          "shell": "1002\n1002\n2002\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "absolute-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "f81c9980e4183d6e32406bd0503462cfee0e8f40d82f79867c6a138eb9f47784",
+          "expected": "1002\n1002\n2002\n",
+          "sdk": "1002\n1002\n2002\n",
+          "shell": "1002\n1002\n2002\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "absolute-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "f4d0238c75b2d6d57b14740fad993a9bc1860209a839a8e20fd65c729bb67be3",
+          "expected": "1002\n1002\n2002\n",
+          "sdk": "1002\n1002\n2002\n",
+          "shell": "1002\n1002\n2002\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "absolute-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "80fb0f3120a285649ef0ca5634e90419e640b1d2104e2a85019c5123fe6bf1b3",
+          "expected": "1002\n1002\n2002\n",
+          "sdk": "1002\n1002\n2002\n",
+          "shell": "1002\n1002\n2002\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "absolute-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "9c0b2212e2006d2b72f8559e7cd9456a4d88a7c61c76e814fdd16d229bdc6551",
+          "expected": "1002\n1002\n2002\n",
+          "sdk": "1002\n1002\n2002\n",
+          "shell": "1002\n1002\n2002\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "relative-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "7d431b936f478fa91a513b83cffb2b2113b5df3be9ccc65454b6ca5cb52b69b6",
+          "expected": "1023\n1032\n1013\n2053\n0\n",
+          "sdk": "1023\n1032\n1013\n2053\n0\n",
+          "shell": "1023\n1032\n1013\n2053\n0\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "relative-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "2954931206bc0a33cc0e3389a36b87c15aeb6ebe54989217b8cc3ba6fdec4911",
+          "expected": "1023\n1032\n1013\n2053\n0\n",
+          "sdk": "1023\n1032\n1013\n2053\n0\n",
+          "shell": "1023\n1032\n1013\n2053\n0\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "relative-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "5a044fa2689d00b207462e53b943572fb8257cdb6e1e143c28da8cead98949e6",
+          "expected": "1023\n1032\n1013\n2053\n0\n",
+          "sdk": "1023\n1032\n1013\n2053\n0\n",
+          "shell": "1023\n1032\n1013\n2053\n0\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "relative-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "f7208635cdcb286d7b56a7e44b66f3784cbeaea6302c6eacbb19c8ac9521813b",
+          "expected": "1023\n1032\n1013\n2053\n0\n",
+          "sdk": "#REF!\n#REF!\n#REF!\n#REF!\n0\n",
+          "shell": "#REF!\n#REF!\n#REF!\n#REF!\n0\n",
+          "matchesNative": false,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "relative-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "55655c6f24b2fccf15229e77305fbc3b7fa0c32c36e76bcfe09aacfb6e40a7d7",
+          "expected": "1023\n1032\n1013\n2053\n0\n",
+          "sdk": "#REF!\n#REF!\n#REF!\n#REF!\n0\n",
+          "shell": "#REF!\n#REF!\n#REF!\n#REF!\n0\n",
+          "matchesNative": false,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "relative-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "49e48599573758f374361376c223008d871099f6b6daf751a7c1808e6b106c39",
+          "expected": "1023\n1032\n1013\n2053\n0\n",
+          "sdk": "#REF!\n#REF!\n#REF!\n#REF!\n0\n",
+          "shell": "#REF!\n#REF!\n#REF!\n#REF!\n0\n",
+          "matchesNative": false,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "relative-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "ab7e8830cce5550384fa4863b13e9ad40e27aace87e69bec7c698835a4987555",
+          "expected": "1023\n1032\n1013\n2053\n0\n",
+          "sdk": "1023\n1052\n0\n0\n0\n",
+          "shell": "1023\n1052\n0\n0\n0\n",
+          "matchesNative": false,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "nested-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "483ec47c6a7635dab9e172b066c5570966161f1a109f895b4da1bf3345276eec",
+          "expected": "1005\n1007\n1004\n1007\n",
+          "sdk": "1005\n1007\n1004\n1007\n",
+          "shell": "1005\n1007\n1004\n1007\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "nested-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "3d10e11647f7bbe78eedbb6561e9f0611ae43c97e2b67bc70acb98cc118034b2",
+          "expected": "1005\n1007\n1004\n1007\n",
+          "sdk": "1005\n1007\n1004\n1007\n",
+          "shell": "1005\n1007\n1004\n1007\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "nested-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "2c9a50e694bc98c23916ac93bc38947e3247cfc693aa670abcb8d9026eda054c",
+          "expected": "1005\n1007\n1004\n1007\n",
+          "sdk": "1005\n1007\n1004\n1007\n",
+          "shell": "1005\n1007\n1004\n1007\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "nested-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "05d349acf3c6b0063d1cf99551f08abba3fbdd1caee85a727e0469970128e771",
+          "expected": "1005\n1007\n1004\n1007\n",
+          "sdk": "1005\n1007\n1004\n1007\n",
+          "shell": "1005\n1007\n1004\n1007\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "nested-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "26f523c3bf215106256b1ab3420f5adae8d5357b65428841ee71977a728db6d8",
+          "expected": "1005\n1007\n1004\n1007\n",
+          "sdk": "1005\n1007\n1004\n1007\n",
+          "shell": "1005\n1007\n1004\n1007\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "nested-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "75e0a2b18e8b1f254dd743e6f61de9505f1b82cdfabcd203fc439573b32eaad7",
+          "expected": "1005\n1007\n1004\n1007\n",
+          "sdk": "1005\n1007\n1004\n1007\n",
+          "shell": "1005\n1007\n1004\n1007\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "nested-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "99a408cf4005eee3e2951fc96989efd3b4b83ad161f91ce4f312d2e80297fcb2",
+          "expected": "1005\n1007\n1004\n1007\n",
+          "sdk": "1005\n1007\n1004\n1007\n",
+          "shell": "1005\n1007\n1004\n1007\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "indirect-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "9fce11e8c94b887e9a6dce464000b31f174c46e56fb4e101bfe76e5d1fd1817e",
+          "expected": "1023\n1002\n7\n5\n",
+          "sdk": "1023\n1002\n7\n5\n",
+          "shell": "1023\n1002\n7\n5\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "indirect-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "46c71f7fc6ea01e3e252eb557cefda71a189006d22ac5cb05a5ab14d194508fe",
+          "expected": "1023\n1002\n7\n5\n",
+          "sdk": "1023\n1002\n7\n5\n",
+          "shell": "1023\n1002\n7\n5\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "indirect-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "fbedc9974318357396e5fd9d1cfbedf1b20fe35769fa3c29e1166e922efb5760",
+          "expected": "1023\n1002\n7\n5\n",
+          "sdk": "1023\n1002\n7\n5\n",
+          "shell": "1023\n1002\n7\n5\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "indirect-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "63ea2a187a55c547e0a7da25f42b4095912014b6747b2826549e2be1062f9da0",
+          "expected": "1023\n1002\n7\n5\n",
+          "sdk": "#REF!\n1002\n7\n5\n",
+          "shell": "#REF!\n1002\n7\n5\n",
+          "matchesNative": false,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "indirect-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "a581dca5898c166aeabd040bf326284134ae03d6bd76252438d527a4649b0ee7",
+          "expected": "1023\n1002\n7\n5\n",
+          "sdk": "#REF!\n1002\n7\n5\n",
+          "shell": "#REF!\n1002\n7\n5\n",
+          "matchesNative": false,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "indirect-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "fb325d1ed8a3ee6b3619f50506e151df98aba0123294c8a8bceaf1b9f6c0aa1a",
+          "expected": "1023\n1002\n7\n5\n",
+          "sdk": "#REF!\n1002\n7\n5\n",
+          "shell": "#REF!\n1002\n7\n5\n",
+          "matchesNative": false,
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "indirect-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "077ccbeabe3e24716dd7c2ba20a7ba217eb7ef0960a4620bf3d4f7d245873c0c",
+          "expected": "1023\n1002\n7\n5\n",
+          "sdk": "1023\n1002\n7\n5\n",
+          "shell": "1023\n1002\n7\n5\n",
+          "matchesNative": true,
+          "inputAndNamespacePreserved": true
+        }
+      ],
+      "outputs": [
+        {
+          "id": "absolute",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "c2fef5f185e11017cca44cdd0474a860464f1bf54ab79694c8db635f6cdbcb9a",
+          "bytes": 7798,
+          "names": [
+            [
+              "Explicit",
+              "s2",
+              "Data!$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "GlobalImplicit",
+              null,
+              "$B$1",
+              "s1",
+              2,
+              2
+            ],
+            [
+              "Implicit",
+              "s2",
+              "$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "absolute",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "f81c9980e4183d6e32406bd0503462cfee0e8f40d82f79867c6a138eb9f47784",
+          "bytes": 5632,
+          "names": [
+            [
+              "Explicit",
+              "Data",
+              "='Data'!$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalImplicit",
+              null,
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "Data",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "absolute",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "f4d0238c75b2d6d57b14740fad993a9bc1860209a839a8e20fd65c729bb67be3",
+          "bytes": 5632,
+          "names": [
+            [
+              "Explicit",
+              "Data",
+              "='Data'!$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalImplicit",
+              null,
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "Data",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "absolute",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "80fb0f3120a285649ef0ca5634e90419e640b1d2104e2a85019c5123fe6bf1b3",
+          "bytes": 9728,
+          "names": [
+            [
+              "Explicit",
+              "Data",
+              "='Data'!$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalImplicit",
+              null,
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "Data",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "absolute",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "9c0b2212e2006d2b72f8559e7cd9456a4d88a7c61c76e814fdd16d229bdc6551",
+          "bytes": 5376,
+          "names": [
+            [
+              "Explicit",
+              "sheet-2",
+              "=Data!$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalImplicit",
+              null,
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "sheet-2",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "sheet-1",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-1",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-2",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-1",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-2",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "relative",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "5a044fa2689d00b207462e53b943572fb8257cdb6e1e143c28da8cead98949e6",
+          "bytes": 8214,
+          "names": [
+            [
+              "Default",
+              null,
+              "C3",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Explicit",
+              "s2",
+              "Data!A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "FixedCol",
+              "s2",
+              "$B1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "FixedRow",
+              "s2",
+              "A$2",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Relative",
+              "s2",
+              "A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "relative",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "f7208635cdcb286d7b56a7e44b66f3784cbeaea6302c6eacbb19c8ac9521813b",
+          "bytes": 5632,
+          "names": [
+            [
+              "Default",
+              null,
+              "=C3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Explicit",
+              "Data",
+              "='Data'!IU16383",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedCol",
+              "Data",
+              "=$B65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedRow",
+              "Data",
+              "=IU$2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "Data",
+              "=IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "relative",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "55655c6f24b2fccf15229e77305fbc3b7fa0c32c36e76bcfe09aacfb6e40a7d7",
+          "bytes": 5632,
+          "names": [
+            [
+              "Default",
+              null,
+              "=C3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Explicit",
+              "Data",
+              "='Data'!IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedCol",
+              "Data",
+              "=$B65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedRow",
+              "Data",
+              "=IU$2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "Data",
+              "=IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "relative",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "49e48599573758f374361376c223008d871099f6b6daf751a7c1808e6b106c39",
+          "bytes": 9728,
+          "names": [
+            [
+              "Default",
+              null,
+              "=C3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Explicit",
+              "Data",
+              "='Data'!IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedCol",
+              "Data",
+              "=$B65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedRow",
+              "Data",
+              "=IU$2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "Data",
+              "=IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "relative",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "ab7e8830cce5550384fa4863b13e9ad40e27aace87e69bec7c698835a4987555",
+          "bytes": 5427,
+          "names": [
+            [
+              "Default",
+              null,
+              "=C3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Explicit",
+              "sheet-2",
+              "=Data!A1",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedCol",
+              "sheet-2",
+              "=$B1",
+              null,
+              null,
+              null
+            ],
+            [
+              "FixedRow",
+              "sheet-2",
+              "=A$2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "sheet-1",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-1",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-2",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "sheet-2",
+              "=A1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-1",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-2",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "nested",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "2c9a50e694bc98c23916ac93bc38947e3247cfc693aa670abcb8d9026eda054c",
+          "bytes": 8315,
+          "names": [
+            [
+              "Global",
+              "s2",
+              "[]Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "GlobalOuter",
+              null,
+              "Inner+$B$1",
+              "s1",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Inner",
+              "s2",
+              "3",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Inner",
+              null,
+              "5",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Outer",
+              "s2",
+              "Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Qualified",
+              "s2",
+              "Here!Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "nested",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "05d349acf3c6b0063d1cf99551f08abba3fbdd1caee85a727e0469970128e771",
+          "bytes": 5632,
+          "names": [
+            [
+              "Global",
+              "Data",
+              "=[]Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalOuter",
+              null,
+              "=[]Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Data",
+              "=3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              null,
+              "=5",
+              null,
+              null,
+              null
+            ],
+            [
+              "Outer",
+              "Data",
+              "='Data'!Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Qualified",
+              "Data",
+              "='Here'!Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "nested",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "26f523c3bf215106256b1ab3420f5adae8d5357b65428841ee71977a728db6d8",
+          "bytes": 5632,
+          "names": [
+            [
+              "Global",
+              "Data",
+              "=[]Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalOuter",
+              null,
+              "=[]Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Data",
+              "=3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              null,
+              "=5",
+              null,
+              null,
+              null
+            ],
+            [
+              "Outer",
+              "Data",
+              "='Data'!Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Qualified",
+              "Data",
+              "='Here'!Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "nested",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "75e0a2b18e8b1f254dd743e6f61de9505f1b82cdfabcd203fc439573b32eaad7",
+          "bytes": 9728,
+          "names": [
+            [
+              "Global",
+              "Data",
+              "=[]Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalOuter",
+              null,
+              "=[]Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Data",
+              "=3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              null,
+              "=5",
+              null,
+              null,
+              null
+            ],
+            [
+              "Outer",
+              "Data",
+              "='Data'!Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Qualified",
+              "Data",
+              "='Here'!Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "nested",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "99a408cf4005eee3e2951fc96989efd3b4b83ad161f91ce4f312d2e80297fcb2",
+          "bytes": 5418,
+          "names": [
+            [
+              "Global",
+              "sheet-2",
+              "=[]Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "GlobalOuter",
+              null,
+              "=Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "sheet-1",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "sheet-2",
+              "=3",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              null,
+              "=5",
+              null,
+              null,
+              null
+            ],
+            [
+              "Outer",
+              "sheet-2",
+              "=Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-1",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-2",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Qualified",
+              "sheet-2",
+              "='Here'!Inner+$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-1",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-2",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "indirect",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "fbedc9974318357396e5fd9d1cfbedf1b20fe35769fa3c29e1166e922efb5760",
+          "bytes": 8050,
+          "names": [
+            [
+              "ColNumber",
+              "s2",
+              "COLUMN()",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Implicit",
+              "s2",
+              "$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Relative",
+              "s2",
+              "A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "RowNumber",
+              "s2",
+              "ROW()",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "indirect",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "63ea2a187a55c547e0a7da25f42b4095912014b6747b2826549e2be1062f9da0",
+          "bytes": 5632,
+          "names": [
+            [
+              "ColNumber",
+              "Data",
+              "=COLUMN()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "Data",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "Data",
+              "=IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "RowNumber",
+              "Data",
+              "=ROW()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "indirect",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "a581dca5898c166aeabd040bf326284134ae03d6bd76252438d527a4649b0ee7",
+          "bytes": 5632,
+          "names": [
+            [
+              "ColNumber",
+              "Data",
+              "=COLUMN()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "Data",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "Data",
+              "=IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "RowNumber",
+              "Data",
+              "=ROW()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "indirect",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "fb325d1ed8a3ee6b3619f50506e151df98aba0123294c8a8bceaf1b9f6c0aa1a",
+          "bytes": 9728,
+          "names": [
+            [
+              "ColNumber",
+              "Data",
+              "=COLUMN()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "Data",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "Here",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Data",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "Here",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "Data",
+              "=IU65535",
+              null,
+              null,
+              null
+            ],
+            [
+              "RowNumber",
+              "Data",
+              "=ROW()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Data",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "Here",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        },
+        {
+          "id": "indirect",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "077ccbeabe3e24716dd7c2ba20a7ba217eb7ef0960a4620bf3d4f7d245873c0c",
+          "bytes": 5436,
+          "names": [
+            [
+              "ColNumber",
+              "sheet-2",
+              "=COLUMN()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Implicit",
+              "sheet-2",
+              "=$B$1",
+              null,
+              null,
+              null
+            ],
+            [
+              "Inner",
+              "sheet-1",
+              "=2",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-1",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Print_Area",
+              "sheet-2",
+              "=#REF!",
+              null,
+              null,
+              null
+            ],
+            [
+              "Relative",
+              "sheet-2",
+              "=A1",
+              null,
+              null,
+              null
+            ],
+            [
+              "RowNumber",
+              "sheet-2",
+              "=ROW()",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-1",
+              "=\"Here\"",
+              null,
+              null,
+              null
+            ],
+            [
+              "Sheet_Title",
+              "sheet-2",
+              "=\"Data\"",
+              null,
+              null,
+              null
+            ]
+          ]
+        }
+      ],
+      "names": [
+        {
+          "id": "absolute",
+          "source": [
+            [
+              "Explicit",
+              "s2",
+              "Data!$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "GlobalImplicit",
+              null,
+              "$B$1",
+              "s1",
+              2,
+              2
+            ],
+            [
+              "Implicit",
+              "s2",
+              "$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "Explicit",
+              "s2",
+              "Data!$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "GlobalImplicit",
+              null,
+              "$B$1",
+              "s1",
+              2,
+              2
+            ],
+            [
+              "Implicit",
+              "s2",
+              "$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "relative",
+          "source": [
+            [
+              "Default",
+              null,
+              "C3",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Explicit",
+              "s2",
+              "Data!A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "FixedCol",
+              "s2",
+              "$B1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "FixedRow",
+              "s2",
+              "A$2",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Relative",
+              "s2",
+              "A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "Default",
+              null,
+              "C3",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Explicit",
+              "s2",
+              "Data!A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "FixedCol",
+              "s2",
+              "$B1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "FixedRow",
+              "s2",
+              "A$2",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Relative",
+              "s2",
+              "A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "nested",
+          "source": [
+            [
+              "Global",
+              "s2",
+              "[]Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "GlobalOuter",
+              null,
+              "Inner+$B$1",
+              "s1",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Inner",
+              "s2",
+              "3",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Inner",
+              null,
+              "5",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Outer",
+              "s2",
+              "Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Qualified",
+              "s2",
+              "Here!Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "Global",
+              "s2",
+              "[]Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "GlobalOuter",
+              null,
+              "Inner+$B$1",
+              "s1",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Inner",
+              "s2",
+              "3",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Inner",
+              null,
+              "5",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Outer",
+              "s2",
+              "Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Qualified",
+              "s2",
+              "Here!Inner+$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "indirect",
+          "source": [
+            [
+              "ColNumber",
+              "s2",
+              "COLUMN()",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Implicit",
+              "s2",
+              "$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Relative",
+              "s2",
+              "A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "RowNumber",
+              "s2",
+              "ROW()",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "ColNumber",
+              "s2",
+              "column()",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Implicit",
+              "s2",
+              "$B$1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Inner",
+              "s1",
+              "2",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Print_Area",
+              "s2",
+              "#REF!",
+              "s2",
+              0,
+              0
+            ],
+            [
+              "Relative",
+              "s2",
+              "A1",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "RowNumber",
+              "s2",
+              "row()",
+              "s2",
+              2,
+              2
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s2",
+              "\"Data\"",
+              "s2",
+              0,
+              0
+            ]
+          ]
+        }
+      ],
+      "csvExecutions": 56,
+      "exports": 20,
+      "resolutions": 0,
+      "nativeRun": 35935808556,
+      "mismatches": [
+        "relative-replay7.xls",
+        "relative-replay8.xls",
+        "relative-replay-dsf.xls",
+        "relative-replay.xlsx",
+        "indirect-replay7.xls",
+        "indirect-replay8.xls",
+        "indirect-replay-dsf.xls"
+      ]
+    },
+    "screenshot": {
+      "inspected": true,
+      "sha256": "3f8375736328e3c0d76f0724fd3a9a280afe71b78c0b476203e93962be81871c"
+    },
+    "logs": [
+      {
+        "name": "red.log",
+        "sha256": "6628ad48da56ac7be552dd392f8ad40c7e90d7eb7b0bd1d0ef24760f2b4b3148"
+      },
+      {
+        "name": "focused.log",
+        "sha256": "36931feceed8d0841867b2d10cbe456562003ccfe25c578b10a64605dd0b1376"
+      },
+      {
+        "name": "package-tests.log",
+        "sha256": "654f3523940fdcb700605426439f34eb94b054a9f8ba670d9b45299141acced3"
+      },
+      {
+        "name": "lint.log",
+        "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+      },
+      {
+        "name": "build.log",
+        "sha256": "97a095eb5a0c18d9950e04d38fa3ab54a08d7813d0fab8940ca215a87a9f646d"
+      },
+      {
+        "name": "public.log",
+        "sha256": "d964d4b5717818b7a9db54a35258132b9dc35d18611f9fea28e24af8585ebe91"
+      }
+    ]
+  },
+  "native": {
+    "semanticReference": "docs/ssconvert/gnumeric-name-evaluation-native-capture.json",
+    "run": 35935808556,
+    "candidateReadback": "Pending native execution of three exact generated BIFF files in linux-optional-service-native-probes.json",
+    "inputs": [
+      {
+        "id": "biff-name-definition-scope-7",
+        "inputSha256": "05d349acf3c6b0063d1cf99551f08abba3fbdd1caee85a727e0469970128e771",
+        "bytes": 5632
+      },
+      {
+        "id": "biff-name-definition-scope-8",
+        "inputSha256": "26f523c3bf215106256b1ab3420f5adae8d5357b65428841ee71977a728db6d8",
+        "bytes": 5632
+      },
+      {
+        "id": "biff-name-definition-scope-dsf",
+        "inputSha256": "75e0a2b18e8b1f254dd743e6f61de9505f1b82cdfabcd203fc439573b32eaad7",
+        "bytes": 9728
+      }
+    ],
+    "priorManifestPreserved": 84
+  },
+  "remaining": [
+    "Six BIFF relative/INDIRECT replays still fail because relative offsets are lost.",
+    "One XLSX relative-name replay still loses its parse anchor.",
+    "Native candidate BIFF readback remains pending; no full codec parity claim.",
+    "All 19 original families and containing npm publication remain open."
+  ]
+}

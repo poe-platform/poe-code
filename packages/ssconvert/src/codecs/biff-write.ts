@@ -83,7 +83,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   const formulaWriter = new BiffFormulaWriter(book, revision, context), formulas = new Map<Cell, CompiledBiffFormula>();
   const arrayFormulas = new Map<FormulaGroup, CompiledBiffFormula>();
   const named = (book.names ?? []).map(name => ({ name, formula: formulaWriter.compile(name.expression,
-    name.position?.sheet ?? name.sheet ?? book.sheets[0]!.id, name.position?.row ?? 0, name.position?.column ?? 0, true) }));
+    name.position?.sheet ?? name.sheet ?? book.sheets[0]!.id, name.position?.row ?? 0, name.position?.column ?? 0, name) }));
   for (const { formula } of named) for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic);
   let extentWarningReported = false;
   for (const sheet of book.sheets) {

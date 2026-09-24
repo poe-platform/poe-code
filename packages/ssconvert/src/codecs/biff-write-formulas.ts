@@ -1,7 +1,8 @@
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "../contracts.js";
-import type { Workbook, CellValue } from "../workbook.js";
-import type { FormulaNode, ReferenceEndpoint } from "../formulas/ast.js";
+import type { Workbook, CellValue, NamedExpression } from "../workbook.js";
+import type { FormulaNode, ParsePosition, ReferenceEndpoint } from "../formulas/ast.js";
 import { parseExpression } from "../formulas/parser.js";
+import { parseNamedExpression } from "../formulas/named-expressions.js";
 import { biffFunctions } from "./biff-source.js";
 import { biffString, biffError } from "./biff-write.js";
 import { words } from "./biff-write-binary.js";
@@ -32,11 +33,17 @@ export class BiffFormulaWriter {
       new DataView(relocation.tokens.buffer, relocation.tokens.byteOffset).setUint16(relocation.offset, index, true);
     }
   }
-  compile(source: string, sheet: string, row: number, column: number, relative = false): CompiledBiffFormula {
-    const parsed = parseExpression(source, { workbook: this.book, position: { sheet, row, column }, signal: this.context.signal,
-      maximumNodes: this.context.limits.workbookNodes ?? this.context.limits.cells,
-      maximumLength: this.context.limits.workbookTextBytes ?? this.context.limits.outputBytes });
-    if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Cannot export Excel formula: ${source}`);
+  compile(source: string, sheet: string, row: number, column: number, definition?: NamedExpression): CompiledBiffFormula {
+    const parse = (expression: string, position: ParsePosition): FormulaNode => {
+      const parsed = parseExpression(expression, { workbook: this.book, position, signal: this.context.signal,
+        maximumNodes: this.context.limits.workbookNodes ?? this.context.limits.cells,
+        maximumLength: this.context.limits.workbookTextBytes ?? this.context.limits.outputBytes });
+      if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Cannot export Excel formula: ${expression}`);
+      return parsed.document.root;
+    };
+    const relative = definition !== undefined;
+    const root = definition ? parseNamedExpression(definition, this.book, parse, () => this.context.signal.throwIfAborted()) :
+      parse(source, { sheet, row, column });
     const bytes: number[] = [], arrays: number[] = [], diagnostics: Diagnostic[] = [];
     const relocations: { offset: number; index: number; kind: "sheet" | "macro" }[] = [];
     const push = (part: Uint8Array | readonly number[], target = bytes): void => {
@@ -178,7 +185,7 @@ export class BiffFormulaWriter {
         }
       }
     };
-    visit(parsed.document.root);
+    visit(root);
     const tokens = new Uint8Array(bytes);
     for (const relocation of relocations) this.relocations.push({ ...relocation, tokens });
     return { tokens, arrays: new Uint8Array(arrays), diagnostics };

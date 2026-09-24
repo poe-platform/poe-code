@@ -71,8 +71,8 @@ for (const [prefix, json] of [
       assert.equal(result.stderr, '');
       assert.equal(JSON.parse(result.stdout).isError, true);
     } else {
-      assert.equal(result.stdout, '');
-      assert.match(result.stderr, /playwright-cli:/);
+      assert.ok(result.stdout.startsWith('### Error\nError: '));
+      assert.equal(result.stderr, '');
     }
   });
 }

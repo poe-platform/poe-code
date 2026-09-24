@@ -244,7 +244,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   });
   const resolve = async (ref: string, _timeout = 5000): Promise<PlaywrightElementHandle> => {
     const reference = refs.get(ref);
-    if (!reference) throw new Error(`Unknown or stale snapshot ref: ${ref}; snapshot again`);
+    if (!reference) throw new Error(`Ref ${ref} not found in the current page snapshot. Try capturing new snapshot.`);
     const capturedEpoch = epoch;
     if (reference.kind === 'native') {
       if (!reference.native || !await nativeConnected(reference.native) || capturedEpoch !== epoch) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);

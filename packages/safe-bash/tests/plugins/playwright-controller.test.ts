@@ -77,7 +77,7 @@ for (const command of ['click', 'check', 'select'] as const) for (const change o
     const ref = output.match(/ref=(e\d+)/)![1]!;
     await run(command === 'select' ? ['select', ref, 'blue'] : [command, ref]);
     if (change === 'retained') { await run(['click', ref]); assert.equal(clicks, 2); }
-    else { await assert.rejects(run(['click', ref]), /stale/i); assert.equal(clicks, 1); }
+    else { await assert.rejects(run(['click', ref]), /not found|stale/i); assert.equal(clicks, 1); }
   } finally { await controller.dispose(); }
 });
 

@@ -523,7 +523,7 @@ test('same-name restoration after loss rejects old refs and ignores the old leas
     await controller.restoreSession({ name: 'owned', async acquire() { return { lease: next.lease, selectedPage: next.page }; } });
     await run(controller, ['-s=owned', 'snapshot']);
     old.closedHistory[0]!();
-    await assert.rejects(run(controller, ['-s=owned', 'click', reference]), /stale snapshot ref/);
+    await assert.rejects(run(controller, ['-s=owned', 'click', reference]), /not found in the current page snapshot/);
     assert.equal(next.calls.clicks, 0);
     assert.equal(next.calls.releases, 0);
     assert.equal(controller.inspectSessions()[0]!.context, next.context);

@@ -61,7 +61,7 @@ test('bounded browser rejection disposes capsules without exporting nodes or par
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 3 });
   await assert.rejects(engine.capture(current.page), /Snapshot byte limit exceeded/);
   assert.deepEqual(current.events, ['capsule-dispose']);
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
 test('host validates capsule counts and rendered UTF-8 budget independently', async () => {
@@ -87,7 +87,7 @@ test('late native handles are disposed if navigation invalidates their capsule d
     await engine.invalidate();
     return result;
   };
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
   assert.deepEqual(current.events, ['unwrap', 'capsule-dispose', 'native-dispose']);
 });
 

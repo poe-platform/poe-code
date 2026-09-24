@@ -3,7 +3,7 @@ import type { VirtualShellPlugin } from '../../contracts/plugin.js';
 import { dirname, resolvePath } from '../../contracts/path.js';
 import { writeBytes } from '../../contracts/io.js';
 import { isPlaywrightResourceLimitError } from '../../playwright/resource-limit.js';
-import { PlaywrightReportedError } from '../../playwright/response.js';
+import { PlaywrightReportedError, serializePlaywrightResult } from '../../playwright/response.js';
 
 export type PlaywrightCliOptions = PlaywrightControllerOptions & { readonly replace?: boolean };
 
@@ -99,13 +99,20 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}) {
             }
             if (error instanceof PlaywrightReportedError) return { exitCode: 1 };
             let json = false;
+            let raw = false;
             for (const arg of context.args) {
               if (arg === '--') break;
               if (arg === '--json') json = true;
               else if (arg === '--no-json') json = false;
+              else if (arg === '--raw') raw = true;
+              else if (arg === '--no-raw') raw = false;
             }
-            if (!isPlaywrightResourceLimitError(error) && json) {
-              await writeBytes(context.stdout, new TextEncoder().encode(JSON.stringify({ isError: true, error: errorMessage(error) }, null, 2) + '\n'), context.signal);
+            if (!isPlaywrightResourceLimitError(error)) {
+              const message = errorMessage(error);
+              await writeBytes(context.stdout, new TextEncoder().encode(serializePlaywrightResult({
+                isError: true,
+                sections: [{ title: 'Error', content: json ? message : `Error: ${message}` }],
+              }, { json, raw })), context.signal);
               return { exitCode: 1 };
             }
             await writeBytes(context.stderr, new TextEncoder().encode(`playwright-cli: ${errorMessage(error)}\n`), context.signal);

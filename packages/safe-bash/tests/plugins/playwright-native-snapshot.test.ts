@@ -24,12 +24,12 @@ for (const shape of ['public', 'cloudflare'] as const) test(`${shape} native hie
   const f = fixture(shape);
   const text = await f.engine.capture(f.page);
   assert.equal(text, '- main [ref=e101]:\n  - button "Save [ref=e99]" [ref=e102]\n  - iframe [ref=e103]:\n    - link "Next" [ref=e104]');
-  await assert.rejects(f.engine.resolve('e2'), /stale/);
+  await assert.rejects(f.engine.resolve('e2'), /not found|stale/);
   await f.engine.resolve('e102');
   assert.deepEqual(f.selected, ['aria-ref=e1', 'aria-ref=e2', 'aria-ref=f1e3', 'aria-ref=f1e4']);
   await f.engine.invalidate();
   assert.equal(f.disposed, 4);
-  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
 });
 
 test('the pinned Cloudflare native snapshot contract rejects incompatible protocol result shapes', async () => {
@@ -51,7 +51,7 @@ test('native JSON snapshots retain complete names, state and hierarchy with scop
   await engine.resolve('e102');
   assert.deepEqual(f.selected, ['aria-ref=e1', 'aria-ref=e2']);
   await engine.invalidate();
-  await assert.rejects(engine.resolve('e102'), /stale/);
+  await assert.rejects(engine.resolve('e102'), /not found|stale/);
 });
 
 test('native JSON fallback uses the provider tree with depth and bounded atomic ref publication', async () => {
@@ -61,7 +61,7 @@ test('native JSON fallback uses the provider tree with depth and bounded atomic 
   assert.deepEqual(await f.engine.captureJSON(f.page, undefined, { captureJSON, depth: 1 }), [{ role: 'main', ref: 'e101', children: [{ role: 'region', ref: 'e102' }] }]);
   assert.equal(calls, 1);
   await assert.rejects(f.engine.captureJSON(f.page, undefined, { captureJSON: async () => [{ role: 'button', name: 'x'.repeat(1024), ref: 'e4' }] }), /byte limit/);
-  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
 });
 
 for (const format of ['yaml', 'json'] as const) test(`${format} retries one navigation-invalidated capture without publishing its stale refs`, async () => {
@@ -79,7 +79,7 @@ for (const format of ['yaml', 'json'] as const) test(`${format} retries one navi
   assert.match(JSON.stringify(result), /Current/);
   assert.equal(captures, 2);
   assert.ok(timeouts[1]! > 0 && timeouts[1]! <= timeouts[0]!);
-  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
   await f.engine.resolve('e102');
   assert.deepEqual(f.selected, ['aria-ref=e1']);
 });
@@ -90,8 +90,8 @@ test('continuously navigating snapshots stop after one retry and publish no refs
   f.page.ariaSnapshot = async () => { captures++; await f.engine.invalidate(); return '- button [ref=e1]'; };
   await assert.rejects(f.engine.capture(f.page), /Snapshot stale during capture/);
   assert.equal(captures, 2);
-  await assert.rejects(f.engine.resolve('e101'), /stale/);
-  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
+  await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
 });
 
 for (const boundary of ['root', 'deadline', 'native-error', 'abort'] as const) test(`snapshot retry preserves the ${boundary} boundary`, async t => {
@@ -117,7 +117,7 @@ test('unquoted YAML text values never become native references or affect followi
   const f = fixture();
   f.setSnapshot({ full: '- text: Page says "use [ref=e99]\n- button "Real" [ref=e2]\n- paragraph [ref=e3]: use [ref=e100]' });
   assert.equal(await f.engine.capture(f.page), '- text: Page says "use [ref=e99]\n- button "Real" [ref=e101]\n- paragraph [ref=e102]: use [ref=e100]');
-  await assert.rejects(f.engine.resolve('e99'), /stale/);
+  await assert.rejects(f.engine.resolve('e99'), /not found|stale/);
   await f.engine.resolve('e101');
   assert.deepEqual(f.selected, ['aria-ref=e2', 'aria-ref=e3']);
 });
@@ -128,7 +128,7 @@ test('native snapshot byte and reference budgets fail before publishing any refe
   await assert.rejects(f.engine.capture(f.page), /byte limit/);
   f.setSnapshot({ full: Array.from({ length: 9 }, (_, i) => `- button [ref=e${i}]`).join('\n') });
   await assert.rejects(f.engine.capture(f.page), /ref limit/);
-  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
 });
 
 test('Cloudflare snapshots honor depth and read real native element bounding boxes', async () => {
@@ -174,11 +174,11 @@ test('legacy native capture uses the capture timeout and checks absence without 
     async elementHandle(options: { timeout?: number }) { timeout = options.timeout; return null; },
   })) as unknown as PlaywrightPage['locator'];
   await f.engine.capture(f.page, undefined, { timeout: 250 });
-  await assert.rejects(f.engine.resolve('e102', 250), /stale/);
+  await assert.rejects(f.engine.resolve('e102', 250), /not found|stale/);
   assert.equal(timeout, 250);
   count = 0; timeout = undefined;
   await f.engine.capture(f.page, undefined, { timeout: 250 });
-  await assert.rejects(f.engine.resolve('e102', 250), /stale/);
+  await assert.rejects(f.engine.resolve('e102', 250), /not found|stale/);
   assert.equal(timeout, undefined);
 });
 
@@ -187,7 +187,7 @@ test('ambiguous native references retire every acquired handle without selecting
   let disposed = 0;
   f.page.locator = (() => ({ async elementHandles() { return [1, 2].map(() => ({ async dispose() { disposed++; } })); } })) as unknown as PlaywrightPage['locator'];
   await f.engine.capture(f.page);
-  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
   assert.equal(disposed, 8);
 });
 
@@ -201,7 +201,7 @@ test('native refs survive repeated text and JSON snapshots until navigation inva
   assert.deepEqual(await f.engine.captureJSON(f.page), [{ role: 'button', ref: 'e102', name: 'Save' }]);
   await f.engine.resolve('e102');
   await f.engine.invalidate();
-  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
   assert.equal(f.disposed, 4);
 });
 
@@ -224,7 +224,7 @@ for (const format of ['yaml', 'json'] as const) test(`${format} does not rebind 
   child = { isConnected: true };
   await capture();
   await f.engine.resolve('e101');
-  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
   await f.engine.resolve('e103');
   await f.engine.invalidate();
 });
@@ -241,7 +241,7 @@ test('an unvisited native ref cannot first bind to a replacement after capture',
   await f.engine.capture(f.page);
   old.isConnected = false;
   node = { isConnected: true };
-  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
   await f.engine.invalidate();
 });
 
@@ -254,10 +254,10 @@ test('missing targets remain stale until a fresh snapshot issues a new ref', asy
   f.page.locator = (() => ({ async elementHandles() { lookups++; return present ? [handle] : []; } })) as unknown as PlaywrightPage['locator'];
   await f.engine.capture(f.page);
   present = true;
-  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
   assert.equal(lookups, 1);
   await f.engine.capture(f.page);
-  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
   assert.equal(await f.engine.resolve('e102'), handle);
   await f.engine.invalidate();
 });
@@ -273,7 +273,7 @@ test('navigation during native binding drains acquired handles before retrying',
   await f.engine.capture(f.page);
   assert.equal(acquisitions, 2);
   assert.equal(disposals, 1);
-  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
   await f.engine.resolve('e102');
   await f.engine.invalidate();
   assert.equal(disposals, 2);

@@ -26,7 +26,7 @@ test('snapshot includes readable headings and noninteractive page text without a
   const text = await engine.capture(page);
   assert.ok(text.includes('- text "Ready"'));
   assert.ok(text.includes('Here is the information the agent needs to read.'));
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
 test('snapshot names native wrapping/for labels and aria-labelledby before fallbacks', async () => {
@@ -73,7 +73,7 @@ test('readable content shares the byte limit and retires previously issued refs'
   assert.deepEqual(fixture.snapshot.acquiredElements, []);
   assert.deepEqual(fixture.snapshot.disposedCapsules, fixture.snapshot.capsules);
   assert.equal(fixture.snapshot.disposedCapsules.length, 1);
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
 function fixture() {
@@ -99,7 +99,7 @@ test('invalidation rejects refs immediately but defers disposal through action s
     const handle = await engine.resolve('e1');
     await engine.invalidate();
     await engine.invalidate();
-    await assert.rejects(engine.resolve('e1'), /stale/);
+    await assert.rejects(engine.resolve('e1'), /not found|stale/);
     assert.deepEqual(current.actions, []);
     assert.ok(current.snapshots.every(snapshot => snapshot.disposedCapsules.length === 0));
     await handle.click();
@@ -137,9 +137,9 @@ test('shared snapshot binds identical elements and frames to distinct handles, w
   await (await engine.resolve('e3')).fill('quoted value');
   assert.deepEqual(f.actions, ['click:1', 'fill:2:quoted value']);
   f.nodes[1]!.node.connected = false;
-  await assert.rejects(engine.resolve('e2'), /stale/);
+  await assert.rejects(engine.resolve('e2'), /not found|stale/);
   await engine.invalidate();
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
 test('snapshot limits fail closed, retire all acquired handles, and never reuse old refs', async () => {
@@ -149,17 +149,17 @@ test('snapshot limits fail closed, retire all acquired handles, and never reuse 
   assert.deepEqual(f.actions, []);
   assert.equal(f.snapshots[0]!.disposedCapsules.length, 1);
   assert.ok(f.snapshots.every(snapshot => snapshot.acquiredElements.length === 0));
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
   const refs = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 1 });
   await assert.rejects(refs.capture(f.page), /limit/);
-  await assert.rejects(refs.resolve('e1'), /stale/);
+  await assert.rejects(refs.resolve('e1'), /not found|stale/);
 });
 
 test('plain ARIA snapshots cannot establish actionable refs', async () => {
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
   const page = { locator: () => ({ ariaSnapshot: async () => '- button "Same" [ref=e15]' }) } as unknown as PlaywrightPage;
   await assert.rejects(engine.capture(page), /unsupported/i);
-  await assert.rejects(engine.resolve('e15'), /stale/);
+  await assert.rejects(engine.resolve('e15'), /not found|stale/);
 });
 
 test('invalid limits and overlapping navigation during capture fail closed', async () => {
@@ -173,8 +173,8 @@ test('invalid limits and overlapping navigation during capture fail closed', asy
     await engine.invalidate();
     return capsule;
   };
-  await assert.rejects(engine.capture(f.page), /stale/);
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.capture(f.page), /not found|stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
   assert.deepEqual(f.actions, []);
   assert.equal(f.snapshots[0]!.disposedCapsules.length, 2);
   for (const snapshot of f.snapshots) assert.deepEqual(snapshot.disposedCapsules, snapshot.capsules);
@@ -189,7 +189,7 @@ test('invalidation drains asynchronous disposal and preserves disposal failures 
   f.nodes[0]!.dispose = async () => { throw error; };
   await assert.rejects(engine.invalidate(), /disposal failed/);
   await assert.rejects(engine.invalidate(), /disposal failed/);
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
 test('failed snapshot capture preserves both its limit error and capsule cleanup errors', async () => {
@@ -230,7 +230,7 @@ test('capsule refs survive repeated snapshots and actions without retaining old 
   assert.equal(f.snapshot.disposedCapsules.length, 1);
   await engine.invalidate();
   assert.equal(f.snapshot.disposedCapsules.length, 2);
-  await assert.rejects(engine.resolve('e1'), /stale/);
+  await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
 test('same-frame document replacement cannot reuse capsule identities after refresh', async () => {
@@ -246,7 +246,7 @@ test('same-frame document replacement cannot reuse capsule identities after refr
   f.snapshots[1]!.frame.evaluateHandle = replacement.frame.evaluateHandle;
   await engine.capture(f.page);
   await engine.resolve('e1');
-  await assert.rejects(engine.resolve('e3'), /stale/);
+  await assert.rejects(engine.resolve('e3'), /not found|stale/);
   await engine.resolve('e4');
   await engine.invalidate();
 });

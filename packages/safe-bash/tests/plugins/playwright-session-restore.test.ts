@@ -178,7 +178,7 @@ test('restored snapshot refs cannot collide with refs from the previous controll
   const after = runner(second);
   try {
     await after.run(['snapshot']);
-    await assert.rejects(after.run(['click', 'e1']), /stale snapshot ref/);
+    await assert.rejects(after.run(['click', 'e1']), /not found in the current page snapshot/);
     assert.equal(second.inspectSessions().length, 1);
   } finally { await second.dispose(); }
 });

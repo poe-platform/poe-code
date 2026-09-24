@@ -47,7 +47,8 @@ test('standard help works through the shell with and without a configured adapte
       for (const args of ['click e1 right', 'snapshot e1', 'screenshot e1', 'cookie-list', 'requests', 'webmcp-list']) {
         const result = await shell.exec(`playwright-cli ${args}`);
         assert.equal(result.exitCode, 1, args);
-        assert.equal(result.stdout, '', args);
+        assert.ok(result.stdout.startsWith('### Error\nError: '), args);
+        assert.equal(result.stderr, '', args);
       }
       for (const args of ['--json list', '--raw list', '--version']) assert.equal((await shell.exec(`playwright-cli ${args}`)).exitCode, 0, args);
       const failure = await shell.exec('playwright-cli --json click e1');
@@ -69,7 +70,7 @@ test('CLI errors preserve original execution and cleanup causes in plain and JSO
     for (const args of ['', '--json']) {
       const result = await shell.exec(`playwright-cli ${args} requests`);
       assert.equal(result.exitCode, 1);
-      const message = args ? JSON.parse(result.stdout).error : result.stderr;
+      const message = args ? JSON.parse(result.stdout).error : result.stdout;
       assert.match(message, /native trace resource name/);
       assert.match(message, /tracing cleanup closed/);
     }
@@ -95,7 +96,7 @@ test('command help accepts standard prefix and suffix forms without arguments or
     }
     const open = await shell.exec('playwright-cli open');
     assert.equal(open.exitCode, 1);
-    assert.match(open.stderr, /not enabled/i);
+    assert.match(open.stdout, /not enabled/i);
   } finally { await shell.dispose(); }
 });
 
@@ -118,7 +119,7 @@ test('opt-in plugin uses exported session values, shell pipelines and canonical 
   assert.equal(f.releases, 0);
   const closing = await shell.exec('playwright-cli close-all; playwright-cli -s=flag goto https://example.com');
   assert.equal(closing.exitCode, 1);
-  assert.match(closing.stderr, /closed.*reopen/);
+  assert.match(closing.stdout, /closed.*reopen/);
   assert.equal(f.releases, 3);
   await controller.dispose();
   await shell.dispose();
@@ -134,7 +135,7 @@ test('registration collision fails without replacement; unsupported flags are di
   assert.throws(() => createPlaywrightCli({ adapter: f.adapter }).plugin.setup(shell), /registered/);
   const result = await shell.exec('playwright-cli open --browser=webkit');
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /Unsupported browser/);
+  assert.match(result.stdout, /Unsupported browser/);
   assert.deepEqual(f.output, []);
   await shell.dispose();
 });
@@ -241,9 +242,9 @@ test('actual shell invokes snapshot, quoted ref actions, streams, statuses, and 
   assert.ok(f.events.includes('press:Control+Enter'));
   assert.equal(f.pages.length, 1);
   assert.equal(middleware.length, 9);
-  const stale = await f.shell.exec('playwright-cli click e1 2> errors; echo $?');
+  const stale = await f.shell.exec('playwright-cli click e1 > errors; echo $?');
   assert.equal(stale.stdout, '1\n');
-  assert.match(new TextDecoder().decode(await f.fs.readFile('/work/errors')), /stale/);
+  assert.match(new TextDecoder().decode(await f.fs.readFile('/work/errors')), /not found|stale/);
   await f.shell.dispose();
 });
 
@@ -304,7 +305,7 @@ test('navigation, dynamic DOM, external tabs and session generations invalidate 
   await run('playwright-cli open; playwright-cli snapshot');
   f.dom[0]!.connected = false;
   const detached = await f.shell.exec('playwright-cli click e1');
-  assert.equal(detached.exitCode, 1); assert.match(detached.stderr, /stale/);
+  assert.equal(detached.exitCode, 1); assert.match(detached.stdout, /not found|stale/);
   f.dom[0]!.connected = true; f.dom[0]!.name = 'Changed';
   const next = await run('playwright-cli snapshot'); assert.match(next.stdout, /Changed.*e1/);
   await f.pages[0]!.goto('https://external.example');
@@ -340,7 +341,7 @@ test('borrowed mutable tab arrays cannot hide external tab changes from snapshot
   f.newPage();
   const stale = await f.shell.exec('playwright-cli click e1');
   assert.equal(stale.exitCode, 1);
-  assert.match(stale.stderr, /stale/);
+  assert.match(stale.stdout, /not found|stale/);
   assert.equal(f.events.some(event => event.startsWith('click:')), false);
   f.pages.pop();
   const refreshed = await f.shell.exec('playwright-cli snapshot; playwright-cli click e3');
@@ -355,7 +356,7 @@ test('screenshot file bytes stream through pipelines and propagate awaited desti
   assert.deepEqual([...await f.fs.readFile('/work/shot.png')], [0, 255, 128, 10]);
   f.fs.writeFile = async () => { throw new Error('artifact destination failed'); };
   const failed = await f.shell.exec('playwright-cli screenshot --filename=x.png');
-  assert.equal(failed.exitCode, 1); assert.match(failed.stderr, /artifact destination failed/);
+  assert.equal(failed.exitCode, 1); assert.match(failed.stdout, /artifact destination failed/);
   await f.shell.dispose();
 });
 
@@ -404,5 +405,22 @@ test('separate shell calls retain refs across snapshot, find, actions and screen
     assert.equal(raw.exitCode, 0, raw.stderr);
     assert.deepEqual(JSON.parse(raw.stdout), { snapshot: { file: 'current.yml' } });
     assert.match(new TextDecoder().decode(await f.fs.readFile('/work/current.yml')), /ref=e1/);
+  } finally { await f.shell.dispose(); }
+});
+
+test('native negative click envelope matches stdout and the session recovers', async () => {
+  const f = interactiveFixture();
+  try {
+    assert.equal((await f.shell.exec('playwright-cli open')).exitCode, 0);
+    assert.equal((await f.shell.exec('playwright-cli snapshot')).exitCode, 0);
+    const result = await f.shell.exec('playwright-cli click e999999');
+    // Recorded native playwright-cli 0.1.19 result from issue 877.
+    assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
+      exitCode: 1,
+      stdout: '### Error\nError: Ref e999999 not found in the current page snapshot. Try capturing new snapshot.\n',
+      stderr: '',
+    });
+    assert.equal((await f.shell.exec('playwright-cli snapshot')).exitCode, 0);
+    assert.equal(f.pages.length, 1);
   } finally { await f.shell.dispose(); }
 });

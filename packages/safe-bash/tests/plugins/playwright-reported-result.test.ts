@@ -128,6 +128,25 @@ test('a similarly named ordinary error is not suppressed by the public wrapper',
   context.after(() => shell.dispose());
   const result = await shell.exec('playwright-cli list');
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stdout, '');
-  assert.match(result.stderr, /unreported failure/);
+  assert.equal(result.stdout, '### Error\nError: unreported failure\n');
+  assert.equal(result.stderr, '');
 });
+
+for (const [flags, expected] of [
+  ['', '### Error\nError: command failed\n'],
+  ['--raw', 'Error: command failed\n'],
+  ['--raw --no-raw', '### Error\nError: command failed\n'],
+  ['--json', '{\n  "isError": true,\n  "error": "command failed"\n}\n'],
+] as const) {
+  test(`thrown command errors honor output mode ${flags || 'plain'}`, async context => {
+    const cli = createPlaywrightCli({ abilities: { list: { scope: 'client', async execute() {
+      throw new Error('command failed');
+    } } } });
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(cli.plugin);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`playwright-cli ${flags} list`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, '');
+  });
+}

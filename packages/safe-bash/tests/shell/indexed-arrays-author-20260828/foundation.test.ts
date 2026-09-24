@@ -113,12 +113,12 @@ test("foundation: static overflow suppresses RHS, dynamic zero arity does not co
   await output('a=([2147483647]=max); a+=($missing); printf "%s/%s" "${#a[@]}" "${a[2147483647]}"', "1/max");
 });
 
-test("foundation: syntax refusal includes inactive branches and ordinary argv remains literal", { timeout: 5000 }, async () => {
+test("foundation: syntax refusal preserves literal argv and supported indexed defaults", { timeout: 5000 }, async () => {
   await output('false && a[0=bad', "", 2);
   await output('a=(x) echo nope', "", 2);
   await output('printf "%s" "a[1]=x"', "a[1]=x");
   await output('printf "%s" a[01]=x', "a[01]=x");
-  await output('printf "%s" "${a[0]:-x}"', "", 2);
+  await output('printf "%s" "${a[0]:-x}"', "x");
 });
 
 test("foundation: element/aggregate unset retains kind; whole unset removes it", { timeout: 5000 }, async () => {
@@ -178,7 +178,9 @@ test("foundation: typed middleware shadows and scalar restoration remain distinc
     });
     try {
       const result = await instance.exec(`a=([3]=outer); f() { printf "%s/" "$a"; ${write ? "a=overlay;" : ""} }; f; printf "%s/%s" "$a" "${'${a[3]-missing}'}"`);
-      assert.equal(result.exitCode, 2);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, write ? "overlay/overlay/missing" : "overlay//outer");
       const valid = await instance.exec(`a=([3]=outer); f() { printf "%s/" "$a"; ${write ? "a=overlay;" : ""} }; f; printf "%s/%s" "$a" "${'${a[3]}'}"`);
       assert.equal(valid.stderr, "");
       assert.equal(valid.stdout, write ? "overlay/overlay/" : "overlay//outer");

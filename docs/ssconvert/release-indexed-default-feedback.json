@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "issue": "Two historical foundation tests still reject now-supported indexed default parameter expansion.",
+  "baseline": "Two current foundation tests failed expecting exit 2; runtime already produces supported Bash-compatible defaults.",
+  "native": {
+    "binarySha256": "69b86c3bf774c0d3e3213cd6ebce56170e15f447dfcf9792bbb65ddf4e472a85",
+    "version": "GNU bash, version 5.2.37(1)-release (aarch64-apple-darwin25.4.0)",
+    "sourceUrl": "https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz",
+    "archiveSha256": "9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff",
+    "configure": [
+      "--without-bash-malloc",
+      "--disable-nls",
+      "--disable-readline"
+    ],
+    "rows": [
+      {
+        "source": "args \"${a[0]:-x}\"",
+        "status": 0,
+        "stdout": "1\n<x>",
+        "stderr": ""
+      },
+      {
+        "source": "a=([3]=outer); args \"${a[0]:-x}\" \"${a[3]-missing}\" \"${a[2]-missing}\"",
+        "status": 0,
+        "stdout": "3\n<x><outer><missing>",
+        "stderr": ""
+      }
+    ]
+  },
+  "middleware": [
+    {
+      "write": false,
+      "stdout": "overlay//outer",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "write": true,
+      "stdout": "overlay/overlay/missing",
+      "stderr": "",
+      "status": 0
+    }
+  ],
+  "validation": {
+    "packageRunnerTests": 607,
+    "focusedTests": 104,
+    "postRebaseFocusedTests": 104,
+    "lint": "Focused ESLint passed."
+  },
+  "repair": "Update successful-default expectations and assert exact middleware restoration with and without writes, retaining existing plain-element comparisons and actual syntax-refusal cases.",
+  "remaining": "Missing-element @Q runtime bug remains separate; containing publication and all 19 original ssconvert families remain open."
+}

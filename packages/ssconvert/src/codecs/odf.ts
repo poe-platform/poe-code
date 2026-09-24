@@ -13,7 +13,7 @@ import { converterLocale } from "../locale/runtime.js";
 import { odfReaderStates } from "./odf-schema.js";
 import { odfCellStyle, odfSheetMetadata, odfDatabaseRanges } from "./odf-metadata.js";
 import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, type OdfAttributes } from "./odf-write-support.js";
-import { encryptOdfParts } from "./odf-encrypted-write.js";
+import { encryptOdfParts, odfEncryptionKeyBytes } from "./odf-encrypted-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { renderCellText } from "../formatting/cell-text.js";
 import { createOdfStyles, odfPrintStyles } from "./odf-write-styles.js";
@@ -576,10 +576,10 @@ function numberFormat(node: XmlElement, charge: (n?: number) => void): string {
 export function createOdfWriter(profile: "strict" | "extended") {
   return async (book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> => {
     context.signal.throwIfAborted();
-    let encrypted = false;
+    let encryptionKeyBytes: number | undefined;
     for (const text of options) for (const [key, value] of exportOptionPairs(text)) if (key === "encryption") {
-      if (value !== "odf12-aes256-cbc") throw new SsconvertError("invalid-request", "Invalid OpenDocument encryption profile");
-      encrypted = true;
+      encryptionKeyBytes = odfEncryptionKeyBytes.get(value);
+      if (encryptionKeyBytes === undefined) throw new SsconvertError("invalid-request", "Invalid OpenDocument encryption profile");
     }
     const extended = profile === "extended", xml = createOdfXml(context, extended), e = xml.element;
     const cellStyles = createOdfStyles(xml, extended, book, context);
@@ -881,7 +881,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
         part(record.kind === "document-meta" ? "meta.xml" : "settings.xml", xml.document("office:" + record.kind, odfChildren(v.xml).map(n => xml.retained(n)).join("")));
       }
     }
-    const protectedParts = encrypted ? await encryptOdfParts(parts, context, xml) : undefined;
+    const protectedParts = encryptionKeyBytes === undefined ? undefined : await encryptOdfParts(parts, context, xml, encryptionKeyBytes);
     part("META-INF/manifest.xml", '<?xml version="1.0" encoding="UTF-8"?>' + e("manifest:manifest", {
       "xmlns:manifest": "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0", "manifest:version": "1.2" },
     e("manifest:file-entry", { "manifest:full-path": "/", "manifest:media-type": "application/vnd.oasis.opendocument.spreadsheet", "manifest:version": "1.2" }) +

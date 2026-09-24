@@ -7,6 +7,11 @@ import { odfNamespaces, type createOdfXml } from "./odf-write-support.js";
 
 // Explicit legacy ODF 1.2 interoperability profile, matching its 1024-round KDF.
 const iterations = 1024;
+export const odfEncryptionKeyBytes: ReadonlyMap<string, number> = new Map([
+  ["odf12-aes128-cbc", 16],
+  ["odf12-aes192-cbc", 24],
+  ["odf12-aes256-cbc", 32]
+]);
 function unsupported(message: string): never {
   throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: encrypted OpenDocument ${message}`);
 }
@@ -20,7 +25,7 @@ function base64(bytes: Uint8Array): string {
 /** All parts are invocation-owned. Return ciphertext plus manifest declarations;
  * nothing reaches the destination before the complete package is admitted. */
 export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
-  xml: ReturnType<typeof createOdfXml>): Promise<Map<string, { bytes: Uint8Array; size: number; declaration: string }>> {
+  xml: ReturnType<typeof createOdfXml>, keyBytes: number): Promise<Map<string, { bytes: Uint8Array; size: number; declaration: string }>> {
   if (!context.password || !context.entropy) unsupported("export requires password and cryptographic entropy capabilities");
   const members = [...parts].filter(([name]) => name !== "mimetype" && name !== "META-INF/manifest.xml");
   let plaintextBytes = 0;
@@ -28,7 +33,7 @@ export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, co
     plaintextBytes += bytes.length;
     if (plaintextBytes > context.limits.outputBytes) limit();
     // Admit all PBKDF2 rounds, input compression work and AES block work together.
-    xml.charge(iterations * 2 * 128 + bytes.length * 8 + 128);
+    xml.charge(iterations * Math.ceil(keyBytes / 20) * 128 + bytes.length * 8 + 128);
   }
   const maxBytes = Math.min(4096, context.limits.inputBytes);
   let secret: string | Uint8Array | undefined;
@@ -75,7 +80,7 @@ export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, co
         const checksum = sha256(padded.subarray(0, Math.min(size, 1024)));
         // XML Encryption CBC: random padding followed by its one-byte length.
         padded.set(entropy.subarray(32, 32 + padding), size); padded[padded.length - 1] = padding;
-        key = await deriveOdfKey(start, salt, iterations, 32, context);
+        key = await deriveOdfKey(start, salt, iterations, keyBytes, context);
         const ciphertext = new Uint8Array(padded.length); let previous = iv;
         for (let at = 0; at < padded.length; at += 16384) {
           context.signal.throwIfAborted();
@@ -86,8 +91,8 @@ export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, co
         context.signal.throwIfAborted(); total += ciphertext.length;
         const e = xml.element;
         const declaration = e("manifest:encryption-data", { "manifest:checksum-type": odfNamespaces.manifest + "#sha256-1k", "manifest:checksum": base64(checksum) },
-          e("manifest:algorithm", { "manifest:algorithm-name": "http://www.w3.org/2001/04/xmlenc#aes256-cbc", "manifest:initialisation-vector": base64(iv) }) +
-          e("manifest:key-derivation", { "manifest:key-derivation-name": "PBKDF2", "manifest:iteration-count": iterations, "manifest:key-size": 32, "manifest:salt": base64(salt) }) +
+          e("manifest:algorithm", { "manifest:algorithm-name": `http://www.w3.org/2001/04/xmlenc#aes${keyBytes * 8}-cbc`, "manifest:initialisation-vector": base64(iv) }) +
+          e("manifest:key-derivation", { "manifest:key-derivation-name": "PBKDF2", "manifest:iteration-count": iterations, "manifest:key-size": keyBytes, "manifest:salt": base64(salt) }) +
           e("manifest:start-key-generation", { "manifest:start-key-generation-name": "http://www.w3.org/2000/09/xmldsig#sha256", "manifest:key-size": 32 }));
         result.set(name, { bytes: ciphertext, size: bytes.length, declaration });
       } finally {

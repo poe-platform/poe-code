@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "baseline": "b5d1715da3b91155798a939f242f3ed182370559",
+  "issue": "13 safety fixture failures: obsolete direct-write faults and inode expectations, obsolete diff readFile/readStream fault boundaries, and zero-call bounds assertions that rejected cwd ancestry admission.",
+  "repair": "Inject publication faults at publishStagedFile, assert null destination for atomic absence checks, preserve partial effects and completed-prefix counts. Observe retained input opening and payload read failures and require close after failure. Admit exactly the three cwd ancestry lstat calls while refusing all target calls and mutations. Preserve the known same-byte replacement during preparation; explicitly require the injection to occur.",
+  "sources": {
+    "packages/safe-bash/tests/commands/diff-patch-stress/safety/bounds.test.ts": "451a3fa16d0dd00ed3581e442287dae22c697d2d3b666dccd5005229df83e229",
+    "packages/safe-bash/tests/commands/diff-patch-stress/safety/failures.test.ts": "ed337e9ea88b31297c2552f03238d6a74bdb82c5e87dfd4cad681a4890cb9e49"
+  },
+  "validation": {
+    "original": {
+      "tests": 60,
+      "passed": 47,
+      "failed": 13
+    },
+    "focused": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0
+    },
+    "finalCombinedDiffPatch": {
+      "tests": 3147,
+      "passed": 3147,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node --import tsx --test tests/commands/diff-patch/*.test.ts 'tests/commands/diff-patch-stress/**/*.test.ts'",
+      "cwd": "packages/safe-bash"
+    },
+    "lint": "Final focused ESLint passes both files.",
+    "types": {
+      "command": "node scripts/historical-type-models.mjs --noEmit",
+      "exitCode": 0,
+      "scope": "Maintained source-and-tests phase before the final one-line injection assertion. Full combined tests and focused lint reran after that assertion; no new build or consumer qualification."
+    },
+    "independentReview": {
+      "before": {
+        "tests/commands/diff-patch-stress/safety/bounds.test.ts": "451a3fa16d0dd00ed3581e442287dae22c697d2d3b666dccd5005229df83e229",
+        "tests/commands/diff-patch-stress/safety/failures.test.ts": "ed337e9ea88b31297c2552f03238d6a74bdb82c5e87dfd4cad681a4890cb9e49",
+        "src/commands/diff-patch/patch-publication.ts": "57998bf6e183db6ddae7c43ae73d4e632fd0df319845d2403a5427c64e54929d",
+        "src/commands/diff-patch/patch.ts": "59f75077567f38ab16d7b3dd43898558ddd50f8604c18b75551e46fa9ff8b061"
+      },
+      "after": {
+        "tests/commands/diff-patch-stress/safety/bounds.test.ts": "451a3fa16d0dd00ed3581e442287dae22c697d2d3b666dccd5005229df83e229",
+        "tests/commands/diff-patch-stress/safety/failures.test.ts": "ed337e9ea88b31297c2552f03238d6a74bdb82c5e87dfd4cad681a4890cb9e49",
+        "src/commands/diff-patch/patch-publication.ts": "57998bf6e183db6ddae7c43ae73d4e632fd0df319845d2403a5427c64e54929d",
+        "src/commands/diff-patch/patch.ts": "59f75077567f38ab16d7b3dd43898558ddd50f8604c18b75551e46fa9ff8b061"
+      },
+      "unchanged": true,
+      "cases": [
+        {
+          "name": "publishStagedFile commit 1: exact prefix identities and staging cleanup",
+          "passed": true
+        },
+        {
+          "name": "publishStagedFile commit 2: exact prefix identities and staging cleanup",
+          "passed": true
+        },
+        {
+          "name": "publishStagedFile commit 3: exact prefix identities and staging cleanup",
+          "passed": true
+        },
+        {
+          "name": "rm commit 1: exact prefix identities and staging cleanup",
+          "passed": true
+        },
+        {
+          "name": "rm commit 2: exact prefix identities and staging cleanup",
+          "passed": true
+        },
+        {
+          "name": "rm commit 3: exact prefix identities and staging cleanup",
+          "passed": true
+        },
+        {
+          "name": "host partial-bytes preserves truthful partial effects atomic=false",
+          "passed": true
+        },
+        {
+          "name": "host committed-then-throw preserves truthful partial effects atomic=false",
+          "passed": true
+        },
+        {
+          "name": "host partial-bytes preserves truthful partial effects atomic=true",
+          "passed": true
+        },
+        {
+          "name": "host committed-then-throw preserves truthful partial effects atomic=true",
+          "passed": true
+        },
+        {
+          "name": "exclusive destination null rejects competitor and cleans only staging atomic=false",
+          "passed": true
+        },
+        {
+          "name": "exclusive destination null rejects competitor and cleans only staging atomic=true",
+          "passed": true
+        },
+        {
+          "name": "recursive diff open failure closes every acquired retained handle once",
+          "passed": true
+        },
+        {
+          "name": "recursive diff read failure closes every acquired retained handle once",
+          "passed": true
+        },
+        {
+          "name": "section-bound: only cwd ancestry queried, namespace unchanged",
+          "passed": true
+        },
+        {
+          "name": "segment-bound: only cwd ancestry queried, namespace unchanged",
+          "passed": true
+        },
+        {
+          "name": "length-bound: only cwd ancestry queried, namespace unchanged",
+          "passed": true
+        }
+      ],
+      "unhandled": [],
+      "profile": "Current source MemoryFS tests; actual staged receipts, full namespace snapshots and retained-handle close counters. No compiled or provider-wide qualification."
+    },
+    "sameByteInjectionControl": {
+      "passed": true,
+      "injections": 1,
+      "initial": 4,
+      "replacementIdentity": 5,
+      "stagingIdentity": 7,
+      "receiptDestinationMatchedInjectedIdentity": true,
+      "fullNamespaceMatched": true,
+      "missingHookWouldPassInequalityOnly": true,
+      "missingHookRejectedByDefinedAssertion": true
+    },
+    "logHashes": {
+      "red.log": "cbb35faa1a557fb5983abec5f725bfc9fef2e843c08e037057be25819ccf3264",
+      "green.log": "754bf8cbc400e26c007325b1d7f9b1a7d2be25e5debcc29456197fb91e2ba1ff",
+      "all-diff-patch.log": "5698dd4c804532ad568ebf292f1fc3b190731f74a90d291188795e9bb1be33b3",
+      "final-all-diff-patch.log": "1aaf5a077ce49d244e324dddbb42d8b3a014ae97fcf8c6c3eedcff5a28645e50",
+      "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "final-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "types.log": "7e6d6ee5cc199525fdb2d3a638bf39ae4b0d70b5aa6b8ade4e07593b1f6911ed",
+      "independent/results.json": "c7eae379df2e5c718af22e62f18c35b9eafd67d4b3bea5d03c7e71d77f71cf2f",
+      "independent/final-results.json": "c099093504bf90d6c2c5c9e0c0893058fdf66413f60f0f53f0ad36631e08559e",
+      "independent/samebyte-results.json": "d34e7fee0eb9b9b0d25af7deedf77d577a533a6c1b2b996bad351a22a6e11c4b"
+    }
+  },
+  "previousDelivery": {
+    "commit": "b5d1715da3b91155798a939f242f3ed182370559",
+    "verifiedRemoteMain": true,
+    "publication": "pending"
+  },
+  "limitations": [
+    "All current combined diff/patch tests pass; this does not establish native parity, every filesystem adapter or a full release gate.",
+    "Same-byte replacement during patch preparation remains a documented race, and missing-parent creation outside cwd remains separately unresolved.",
+    "Root publication and all 19 original ssconvert families remain open."
+  ]
+}

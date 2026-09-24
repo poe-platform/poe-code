@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError } from "../../../../src/contracts/index.js";
+import { FsError, type FileSystem } from "../../../../src/contracts/index.js";
 import { assertBytes, bytes, creation, cwd, deletion, instrument, invoke, memory, replacement, snapshot } from "./helpers.js";
 
 for (const method of ["lstat", "readFile", "readStream"] as const) {
@@ -32,7 +32,7 @@ for (const method of ["lstat", "readFile", "readStream"] as const) {
 }
 
 for (const failedIndex of [0, 1, 2]) {
-  for (const operation of ["writeFile", "rm"] as const) {
+  for (const operation of ["publishStagedFile", "rm"] as const) {
     test(`atomic extension ${operation} failure at commit ${failedIndex + 1} preserves precisely the completed prefix`, async () => {
       const names = ["first", "second", "third"];
       const backing = await memory(Object.fromEntries(names.map(name => [name, "old\n"])));
@@ -54,30 +54,32 @@ for (const failedIndex of [0, 1, 2]) {
         if (operation === "rm" && index < failedIndex) await assert.rejects(backing.lstat(`${cwd}/${name}`), { code: "ENOENT" });
         else {
           await assertBytes(backing, name, index < failedIndex ? "new\n" : "old\n");
-          assert.equal((await backing.lstat(`${cwd}/${name}`)).ino, identities[index]!.ino);
+          const inode = (await backing.lstat(`${cwd}/${name}`)).ino;
+          if (index < failedIndex) assert.notEqual(inode, identities[index]!.ino, "completed publication installs its staged inode");
+          else assert.equal(inode, identities[index]!.ino, "failed and unattempted targets retain their original inodes");
         }
       }
     });
   }
 }
 
-for (const operation of ["writeFile", "rm"] as const) {
+for (const operation of ["publishStagedFile", "rm"] as const) {
   test(`atomic extension: a ${operation} that mutates then throws is not falsely rolled back or counted successful`, async () => {
     const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
     const observed = instrument(backing, {
       async before(call) {
         if (call.method !== operation || call.path !== `${cwd}/second`) return;
-        if (operation === "writeFile") await backing.writeFile(call.path, bytes("partially accepted host bytes"));
+        if (operation === "publishStagedFile") await backing.writeFile(call.path, bytes("partially accepted host bytes"));
         else await backing.rm(call.path);
         throw new FsError("EIO", { path: call.path });
       },
     });
-    const input = replacement("first") + (operation === "writeFile" ? replacement("second") : deletion("second")) + replacement("third");
+    const input = replacement("first") + (operation === "publishStagedFile" ? replacement("second") : deletion("second")) + replacement("third");
     const result = await invoke(observed.fs, "patch", { input });
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /1\/3 files committed; failing operation may have side effects/u);
     await assertBytes(backing, "first", "new\n");
-    if (operation === "writeFile") await assertBytes(backing, "second", "partially accepted host bytes");
+    if (operation === "publishStagedFile") await assertBytes(backing, "second", "partially accepted host bytes");
     else await assert.rejects(backing.lstat(`${cwd}/second`), { code: "ENOENT" });
     await assertBytes(backing, "third", "old\n");
     assert.deepEqual(observed.mutations().map(call => call.path), [`${cwd}/first`, `${cwd}/second`]);
@@ -89,21 +91,24 @@ test("exclusive creation refuses a competing new file without cleanup unlink", a
   let competingIdentity: number | undefined;
   const observed = instrument(backing, {
     async before(call) {
-      if (call.method === "writeFile" && call.path === `${cwd}/created`) {
-        assert.equal(call.flag, "wx");
+      if (call.method === "publishStagedFile" && call.path === `${cwd}/created`) {
         await backing.writeFile(call.path, bytes("competitor\n"));
         competingIdentity = (await backing.lstat(call.path)).ino;
       }
     },
   });
-  const result = await invoke(observed.fs, "patch", { input: replacement("first") + creation("created") + replacement("third") });
+  const fs: FileSystem = { ...observed.fs, async publishStagedFile(staging, path, options) {
+    if (path === `${cwd}/created`) assert.equal(options.destination, null, "new destinations require atomic absence checking");
+    return observed.fs.publishStagedFile!(staging, path, options);
+  } };
+  const result = await invoke(fs, "patch", { input: replacement("first") + creation("created") + replacement("third") });
   assert.equal(result.exitCode, 2, result.stderr);
   assert.match(result.stderr, /1\/3 files committed/u);
   await assertBytes(backing, "first", "new\n");
   await assertBytes(backing, "created", "competitor\n");
   await assertBytes(backing, "third", "old\n");
   assert.equal((await backing.lstat(`${cwd}/created`)).ino, competingIdentity);
-  assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["writeFile", `${cwd}/first`], ["writeFile", `${cwd}/created`]]);
+  assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/first`], ["publishStagedFile", `${cwd}/created`]]);
 });
 
 for (const change of ["content", "symlink", "hardlink", "removed", "parent"] as const) {
@@ -139,7 +144,7 @@ test("rename capability and rename failures are not used as an atomicity fallbac
   const result = await invoke(fs, "patch", { input: replacement() });
   assert.equal(result.exitCode, 0, result.stderr);
   await assertBytes(backing, "target", "new\n");
-  assert.deepEqual(observed.mutations().map(call => call.method), ["writeFile"]);
+  assert.deepEqual(observed.mutations().map(call => call.method), ["publishStagedFile"]);
 });
 
 test("atomic extension status sink failure after publication preserves all committed files", async () => {
@@ -153,7 +158,7 @@ test("atomic extension status sink failure after publication preserves all commi
   assert.match(result.stderr, /EPIPE/u);
   await assertBytes(backing, "first", "new\n");
   await assertBytes(backing, "second", "new\n");
-  assert.deepEqual(observed.mutations().map(call => call.method), ["writeFile", "writeFile"]);
+  assert.deepEqual(observed.mutations().map(call => call.method), ["publishStagedFile", "publishStagedFile"]);
 });
 
 test("failed diagnostic sink rejects rather than reporting successful handling", async () => {
@@ -164,7 +169,7 @@ test("failed diagnostic sink rejects rather than reporting successful handling",
   assert.deepEqual(await snapshot(backing), before);
 });
 
-test("documented race limit: same-byte inode replacement is not an identity check", async () => {
+test("documented race limit: same-byte replacement during preparation is accepted and then staged", async () => {
   const backing = await memory();
   const initial = (await backing.lstat(`${cwd}/target`)).ino;
   let replacementIdentity: number | undefined;
@@ -179,18 +184,21 @@ test("documented race limit: same-byte inode replacement is not an identity chec
   });
   const result = await invoke(observed.fs, "patch", { input: replacement() });
   assert.equal(result.exitCode, 0, result.stderr);
+  assert.notEqual(replacementIdentity, undefined, "the same-byte replacement hook must run");
   assert.notEqual(replacementIdentity, initial);
-  assert.equal((await backing.lstat(`${cwd}/target`)).ino, replacementIdentity);
+  const publishedIdentity = (await backing.lstat(`${cwd}/target`)).ino;
+  assert.notEqual(publishedIdentity, replacementIdentity, "the accepted replacement is itself replaced by the staged publication");
+  assert.notEqual(publishedIdentity, initial);
   await assertBytes(backing, "target", "new\n");
 });
 
-for (const method of ["lstat", "readFile", "readStream", "readdir"] as const) {
+for (const method of ["lstat", "openReadFile", "retained read", "readdir"] as const) {
   test(`recursive diff later ${method} failure emits no buffered partial patch`, async () => {
     const backing = await memory({ "left/first": "old\n", "right/first": "new\n", "left/later/target": "old\n", "right/later/target": "new\n" });
     const before = await snapshot(backing);
     let injected = false;
+    let failedReadClosed = false;
     const observed = instrument(backing, {
-      streaming: method === "readStream",
       before(call) {
         const target = method === "readdir" ? `${cwd}/right/later` : `${cwd}/right/later/target`;
         if (call.method === method && call.path === target) {
@@ -199,8 +207,19 @@ for (const method of ["lstat", "readFile", "readStream", "readdir"] as const) {
         }
       },
     });
-    const result = await invoke(observed.fs, "diff", { args: ["-r", "left", "right"] });
+    const fs: FileSystem = { ...observed.fs, async openReadFile(path, options) {
+      const handle = await observed.fs.openReadFile!(path, options);
+      if (method !== "retained read" || path !== `${cwd}/right/later/target`) return handle;
+      return new Proxy(handle, { get(target, property) {
+        if (property === "read") return () => { injected = true; throw new FsError("EACCES", { path }); };
+        if (property === "close") return async () => { await target.close(); failedReadClosed = true; };
+        const value: unknown = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      } });
+    } };
+    const result = await invoke(fs, "diff", { args: ["-r", "left", "right"] });
     assert(injected);
+    if (method === "retained read") assert.equal(failedReadClosed, true, "the retained input closes after its payload read fails");
     assert.equal(result.exitCode, 2, result.stderr);
     assert.equal(result.stdout, "");
     assert.match(result.stderr, /EACCES/u);
@@ -214,7 +233,7 @@ test("commit-stage lstat failure reports the existing prefix without attempting 
   let published = false;
   const observed = instrument(backing, {
     before(call) { if (published && call.method === "lstat" && call.path === `${cwd}/second`) throw new FsError("EIO"); },
-    after(call) { if (call.method === "writeFile") published = true; },
+    after(call) { if (call.method === "publishStagedFile") published = true; },
   });
   const result = await invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") + replacement("third") });
   assert.equal(result.exitCode, 2, result.stderr);

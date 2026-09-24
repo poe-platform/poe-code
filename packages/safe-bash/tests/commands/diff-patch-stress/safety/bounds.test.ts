@@ -53,11 +53,14 @@ test("atomic extension recheck input bytes are charged before any commit", async
 
 test("repeated headers hit the section budget before any target read", async () => {
   const backing = await memory();
+  const before = await snapshot(backing);
   const observed = instrument(backing);
   const result = await invoke(observed.fs, "patch", { input: replacement().repeat(128), options: { maxFiles: 16 } });
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /file\/entry limit/u);
-  assert.deepEqual(observed.calls, []);
+  assert.deepEqual(observed.calls.map(call => [call.method, call.path]), [["lstat", "/"], ["lstat", "/sandbox"], ["lstat", cwd]], "only cwd ancestry is admitted; no target is inspected or read");
+  assert.deepEqual(observed.mutations(), []);
+  assert.deepEqual(await snapshot(backing), before);
   await assertBytes(backing, "target", "old\n");
 });
 
@@ -110,11 +113,14 @@ for (const input of [bytes("bad\0text\n"), new Uint8Array([0xff, 0xfe, 0x0a])]) 
 
 test("overlong paths fail before any stat, read or write of their target", async () => {
   const backing = await memory();
+  const before = await snapshot(backing);
   for (const name of ["segment/".repeat(257) + "target", "x".repeat(4097)]) {
     const observed = instrument(backing);
     const result = await invoke(observed.fs, "patch", { input: replacement(name) });
     assert.equal(result.exitCode, 2);
-    assert.deepEqual(observed.calls, []);
+    assert.deepEqual(observed.calls.map(call => [call.method, call.path]), [["lstat", "/"], ["lstat", "/sandbox"], ["lstat", cwd]], "only cwd ancestry is admitted; overlong targets receive no filesystem calls");
+    assert.deepEqual(observed.mutations(), []);
+    assert.deepEqual(await snapshot(backing), before);
     assert(Buffer.byteLength(result.stderr) < 4096);
   }
 });

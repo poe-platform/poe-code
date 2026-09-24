@@ -13,6 +13,7 @@ import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { touchTimes } from "./touch-times.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
+import { canonicalizeExistingParent } from "./canonicalize-existing-parent.js";
 import { backupCopyTarget, copyOptions } from "./copy-backup.js";
 import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from "./copy-preserve.js";
 
@@ -902,10 +903,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         let result: string;
         if (mode === "m") result = await canonicalizeReadlinkMissing(context, path);
         else if (mode === "e") result = await context.fs.realpath(path, { signal: context.signal });
-        else if (mode === "f") {
-          const existing = await maybeStat(context, path, false);
-          result = existing ? await context.fs.realpath(path, { signal: context.signal }) : joinPath(await context.fs.realpath(dirname(path), { signal: context.signal }), basename(path));
-        } else {
+        else if (mode === "f") result = await canonicalizeExistingParent(context, path);
+        else {
           needCapability(context, "readlink");
           result = await context.fs.readlink!(path, { signal: context.signal });
         }
@@ -938,9 +937,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
       requireOperands(parsed.operands);
       const canonical = async (operand: string): Promise<string> => {
-        const original = pathOf(context, operand);
-        const path = traversal === "L" ? normalizePath(original) : original;
-        if (parsed.flags.has("s")) {
+        let path = pathOf(context, operand);
+        if (parsed.flags.has("s") || traversal === "L") {
           context.signal.throwIfAborted();
           const lexical = normalizePath(path);
           if (mode !== "m") {
@@ -961,13 +959,14 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             }
             if (mode === "e") await context.fs.stat(lexical, { signal: context.signal });
           }
-          return lexical;
+          if (parsed.flags.has("s")) return lexical;
+          path = lexical;
         }
         await admitFilesystemModes(context, "realpath", ["canonical"], [path], mode === "m");
-        const existing = await maybeStat(context, path, false, mode === "m");
+        if (mode === "m") await maybeStat(context, path, false, true);
         return mode === "m" ? await canonicalMissing(context, path, "realpath")
-          : mode === "e" || existing ? await context.fs.realpath(path, { signal: context.signal })
-          : joinPath(await context.fs.realpath(dirname(path), { signal: context.signal }), basename(path));
+          : mode === "e" ? await context.fs.realpath(path, { signal: context.signal })
+          : await canonicalizeExistingParent(context, path);
       };
       const baseOperand = relative.get("--relative-base");
       const toOperand = relative.get("--relative-to") ?? baseOperand;

@@ -970,6 +970,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/sort-key-positions.test.ts"));
   assert.ok(files.includes("tests/commands/sort-blank-endpoints.test.ts"));
   assert.ok(files.includes("tests/commands/realpath-missing-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/canonicalize-existing-parent.test.ts"));
   assert.ok(files.includes("tests/commands/ls-option-precedence.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-nested.test.ts"));
   assert.ok(files.includes("tests/shell/arithmetic-admission.test.ts"));

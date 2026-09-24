@@ -504,6 +504,11 @@ for (const [format, operands, expected] of [
   ["%a|%A", ["3.25", "-2.5"], "0xdp-2|-0XAP-2"],
   ["%ld|%lld|%llu|%Lf", ["17", "17", "17", "3.25"], "17|17|17|3.250000"],
   ["%*s", ["9", "Changed"], "  Changed"],
+  ["%*s|", ["010", "hi"], "      hi|"],
+  ["%*s|", ["-010", "hi"], "hi      |"],
+  ["%.*s|", ["010", "1234567890"], "12345678|"],
+  ["%*.*s|", ["0xa", "+010", "1234567890"], "  12345678|"],
+  ["%*s|", ["  +010", "hi"], "      hi|"],
   ["%.*s", ["3", "Changed"], "Cha"],
   ["%*.*f", ["9", "2", "3.25"], "     3.25"],
   ["<%*.*s>", ["-5", "2", "abcd", "4", "1", "xyz"], "<ab   ><   x>"],
@@ -522,6 +527,17 @@ test("printf dynamic string precision counts bytes", async () => {
   const result = await run("printf", ["%*.*s", "3", "1", "é"]);
   assert.equal(result.exitCode, 0);
   assert.deepEqual(result.stdoutBytes, Buffer.from([32, 32, 195]));
+});
+
+for (const [operand, expected, diagnostic] of [
+  ["08", "hi|", "value not completely converted"],
+  ["03tail", " hi|", "value not completely converted"],
+  ["", "hi|", "invalid number"],
+] as const) test(`printf dynamic integer conversion diagnoses ${JSON.stringify(operand)}`, async () => {
+  const result = await run("printf", ["%*s|", operand, "hi"]);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, `printf: '${operand}': ${diagnostic}\n`);
 });
 
 test("printf dynamic directives preserve opaque format and operand bytes", async () => {

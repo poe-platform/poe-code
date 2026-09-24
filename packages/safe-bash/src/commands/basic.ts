@@ -112,17 +112,23 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
       if (!match) throw new UsageError(`invalid format near '${fragment}'`);
       offset += match[0].length;
       let flags = match[1]!;
-      const dynamic = (): number => {
+      const dynamic = async (): Promise<number> => {
         const index = argument++;
         const token = args[index] ?? "0";
-        const parsed = token.startsWith("'") || token.startsWith('"') ? quotedNumber(index) : Number(token);
-        if (!Number.isSafeInteger(parsed)) throw new UsageError(`invalid width or precision '${token}'`);
-        return parsed;
+        const numericOperand = token.startsWith("'") || token.startsWith('"') ? String(quotedNumber(index)) : token;
+        const parsed = printfInteger(numericOperand, false);
+        if (parsed.error) {
+          await writeDiagnostic(context.stderr, `printf: '${token}': ${parsed.error}\n`, context.signal);
+          exitCode = 1;
+        }
+        const number = Number(parsed.value);
+        if (!Number.isSafeInteger(number)) throw new UsageError(`invalid width or precision '${token}'`);
+        return number;
       };
-      const suppliedWidth = match[2] === "*" ? dynamic() : Number(match[2] ?? 0);
+      const suppliedWidth = match[2] === "*" ? await dynamic() : Number(match[2] ?? 0);
       if (suppliedWidth < 0) flags += "-";
       const width = Math.abs(suppliedWidth);
-      const suppliedPrecision = match[3] === "*" ? dynamic() : match[3] === undefined ? undefined : Number(match[3]);
+      const suppliedPrecision = match[3] === "*" ? await dynamic() : match[3] === undefined ? undefined : Number(match[3]);
       const precision = suppliedPrecision !== undefined && suppliedPrecision < 0 ? undefined : suppliedPrecision;
       if (width > 1_000_000 || (precision ?? 0) > 1000) throw new UsageError("format width or precision is too large");
       const specifier = match[4]!;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PdfDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, cosArray, cosDict, cosName, cosString } from "@poe-code/pdf-ast";
 import { convert, pdfReader, readDocument } from "./index.js";
 
 describe("pdfReader (@poe-code/pdf-ast integration)", () => {
@@ -75,5 +75,48 @@ describe("pdfReader (@poe-code/pdf-ast integration)", () => {
       expect(mdResult.text).toContain("# Unified PDF Architecture");
       expect(mdResult.text).toContain("This document tests semantic PDF-to-Pandoc conversion.");
     }
+  });
+
+  it("strips trailing sentence punctuation from inline URLs and extracts AcroForm field values", async () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage([612, 792]);
+    page.drawText("Visit https://poe.com/docs. Or check (https://poe.com/api).", {
+      x: 72,
+      y: 700,
+      size: 11,
+      font: "Helvetica",
+    });
+    const root = doc.cos.resolveDict(doc.cos.rootRef)!;
+    root.entries.push({
+      key: cosName("AcroForm"),
+      value: cosDict({
+        Fields: cosArray([
+          cosDict({
+            FT: cosName("Tx"),
+            T: cosString("ReviewerName"),
+            V: cosString("Ada Lovelace"),
+          }),
+        ]),
+      }),
+    });
+    const pdfBytes = doc.save();
+
+    const parsedDoc = await readDocument(
+      { bytes: pdfBytes },
+      { from: "pdf" },
+      { reader: pdfReader }
+    );
+    const mdResult = await convert(
+      [{ bytes: pdfBytes }],
+      { from: "pdf", to: "commonmark" },
+      { reader: pdfReader }
+    );
+    expect(mdResult.kind).toBe("text");
+    if (mdResult.kind === "text") {
+      expect(mdResult.text).toContain("(<https://poe.com/docs>).");
+      expect(mdResult.text).toContain("(<https://poe.com/api>)).");
+      expect(mdResult.text).toContain("Ada Lovelace");
+    }
+    expect(parsedDoc.blocks.length).toBeGreaterThanOrEqual(2);
   });
 });

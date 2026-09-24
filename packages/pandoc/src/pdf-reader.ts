@@ -27,13 +27,19 @@ function textToInlines(text: string): Inline[] {
       if (inlines.length > 0 && inlines[inlines.length - 1]?.t !== "Space") {
         inlines.push({ t: "Space" });
       }
-    } else if (/^https?:\/\/\S+$/.test(token)) {
-      inlines.push({
-        t: "Link",
-        c: [EMPTY_ATTR, [{ t: "Str", c: token }], [token, ""]],
-      });
     } else {
-      inlines.push({ t: "Str", c: token });
+      const urlMatch = /^([([<]*)(https?:\/\/\S+?)([.,;:!?)>\]]*)$/.exec(token);
+      if (urlMatch) {
+        const [, lead, url, trail] = urlMatch;
+        if (lead) inlines.push({ t: "Str", c: lead });
+        inlines.push({
+          t: "Link",
+          c: [EMPTY_ATTR, [{ t: "Str", c: url! }], [url!, ""]],
+        });
+        if (trail) inlines.push({ t: "Str", c: trail });
+      } else {
+        inlines.push({ t: "Str", c: token });
+      }
     }
   }
   return inlines;
@@ -189,6 +195,18 @@ export const pdfReader: ReaderCapability = Object.freeze({
             },
           ],
         });
+      }
+    }
+
+    for (const field of doc.getFormFields()) {
+      if (field.value !== "" && field.value !== false) {
+        const fieldInlines = textToInlines(`${field.name}: ${String(field.value)}`);
+        if (fieldInlines.length > 0) {
+          blocks.push({
+            t: "Para",
+            c: fieldInlines,
+          });
+        }
       }
     }
 

@@ -245,4 +245,37 @@ describe("safe-bash-command-soffice", () => {
     const rtPng = files.get("/roundtrip/report.png");
     assert.ok(rtPng && rtPng[0] === 137 && rtPng[1] === 80);
   });
+
+  it("handles sparse XLSX cell references (r='C1'), DOCX <w:tab/>/<w:br/> separators, and numeric XML entities (&#x2014; / &#8212;)", async () => {
+    const sparseSheetXml = [
+      `<?xml version="1.0" encoding="UTF-8"?>`,
+      `<worksheet><sheetData>`,
+      `<row r="1"><c r="A1" t="inlineStr"><is><t>Region</t></is></c><c r="C1" t="inlineStr"><is><t>Total &#x2014; USD</t></is></c></row>`,
+      `</sheetData></worksheet>`
+    ].join("");
+    const sparseXlsx = createStoredZipArchive({
+      "xl/worksheets/sheet1.xml": new TextEncoder().encode(sparseSheetXml)
+    });
+
+    const docxWithTabsAndEntities = createStoredZipArchive({
+      "word/document.xml": new TextEncoder().encode(
+        `<w:document><w:body><w:p><w:r><w:t>Alpha</w:t><w:tab/><w:t>Beta</w:t><w:br/><w:t>Gamma &#8212; Delta</w:t></w:r></w:p></w:body></w:document>`
+      )
+    });
+
+    const files = new Map<string, Uint8Array>([
+      ["/sparse.xlsx", sparseXlsx],
+      ["/tabs.docx", docxWithTabsAndEntities]
+    ]);
+
+    const csvRes = await runSofficeCli(["--headless", "--convert-to", "csv", "/sparse.xlsx"], files);
+    assert.equal(csvRes.exitCode, 0);
+    const csvText = new TextDecoder().decode(files.get("/sparse.csv")!).trim();
+    // Column B is omitted in XML so it must be padded as an empty column between A1 and C1
+    assert.equal(csvText, "Region,,Total — USD");
+
+    const docxCat = await runSofficeCli(["--cat", "/tabs.docx"], files);
+    assert.equal(docxCat.exitCode, 0);
+    assert.match(docxCat.stdout, /Alpha\s+Beta\s+Gamma — Delta/);
+  });
 });

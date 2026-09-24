@@ -131,6 +131,8 @@ export function readZipArchiveEntries(zipBytes: Uint8Array): Map<string, Uint8Ar
 
 function unescapeXml(str: string): string {
   return str
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex: string) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec: string) => String.fromCodePoint(Number.parseInt(dec, 10)))
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
@@ -148,7 +150,10 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
   const entries = readZipArchiveEntries(zipBytes);
   const docXmlBytes = entries.get("word/document.xml");
   if (!docXmlBytes) return [];
-  const xml = new TextDecoder().decode(docXmlBytes);
+  const xml = new TextDecoder()
+    .decode(docXmlBytes)
+    .replace(/<w:tab\b[^/>]*\/>/g, "<w:t>\t</w:t>")
+    .replace(/<w:(?:br|cr)\b[^/>]*\/>/g, "<w:t> </w:t>");
 
   const blocks: DocBlock[] = [];
   const tokenRe = /<w:tbl\b[\s\S]*?<\/w:tbl>|<w:p\b[\s\S]*?<\/w:p>/g;
@@ -212,6 +217,17 @@ function parseXlsxRows(zipBytes: Uint8Array): string[][] {
     for (const cellMatch of rowMatch[0].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)) {
       const attrs = cellMatch[1] ?? "";
       const body = cellMatch[2] ?? "";
+      const refMatch = /\br="([A-Z]+)\d+"/i.exec(attrs);
+      if (refMatch?.[1]) {
+        let targetCol = 0;
+        for (const ch of refMatch[1].toUpperCase()) {
+          targetCol = targetCol * 26 + (ch.charCodeAt(0) - 64);
+        }
+        targetCol -= 1;
+        while (rowCells.length < targetCol) {
+          rowCells.push("");
+        }
+      }
       const typeMatch = /\bt="([^"]+)"/.exec(attrs);
       const cellType = typeMatch?.[1] ?? "n";
       if (cellType === "inlineStr") {

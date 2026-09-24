@@ -24,7 +24,7 @@ import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields } from "./t
 import { createSandboxTemporalPlainMonthDay, hostTemporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
 import { createSandboxTemporalPlainYearMonth, hostTemporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
 import { createSandboxTemporalZonedDateTime, hostTemporalZonedDateTimeFields } from "./temporal-zoned-date-time.js";
-import { hasExplicitSandboxPrototype, hasNullObjectPrototype, setSandboxPrototype } from "./object-model.js";
+import { createIntrinsicObject, hasExplicitSandboxPrototype, hasNullObjectPrototype, setSandboxPrototype } from "./object-model.js";
 import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { exportHostCapability, importHostCapability, isLiveCapability } from "./host-capabilities.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
@@ -1599,7 +1599,7 @@ function copyFunctionProperties(
   },
   path: string
 ): SandboxObject | undefined {
-  const properties: SandboxObject = {};
+  const properties = createIntrinsicObject({});
   const metadata = new Map<string, PropertyDescriptor>();
 
   for (const key of Object.getOwnPropertyNames(callable)) {

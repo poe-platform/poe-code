@@ -86,10 +86,13 @@ for (const publication of ["success", "partial-failure", "unknown"] as const) {
       rm: async () => { assert.fail("move must remove the bound source conditionally"); },
     });
     const result = await run("mv", ["/source", "/target"], publication === "unknown" ? opaque(filesystem) : filesystem);
+    assert.equal(result.stdout, "");
     if (existing || publication === "unknown") {
       assert.equal(result.exitCode, 1);
-      assert.match(result.stderr, publication === "unknown"
-        ? /ENOTSUP/u : /ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding/u);
+      assert.equal(result.stderr, publication === "unknown"
+        ? existing ? "mv: ENOTSUP: existing move destination lacks authoritative distinctness '/source' -> '/target'\n"
+          : "mv: ENOTSUP: copy reader is not bound to the inspected source identity '/source'\n"
+        : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/source' -> '/target'\n");
       assert.deepEqual(events, ["EXDEV"]);
       assert.deepEqual(await base.readFile("/source"), bytes("source sentinel"));
       if (existing) assert.deepEqual(await base.readFile("/target"), bytes("target sentinel"));
@@ -107,5 +110,7 @@ for (const publication of ["success", "partial-failure", "unknown"] as const) {
       assert.deepEqual(await base.readFile("/target"), bytes("partial"));
     }
     assert.deepEqual(await base.readFile("/keep"), bytes("keep sentinel"));
+    assert.deepEqual((await base.readdir("/")).map(entry => entry.name), existing || publication === "partial-failure"
+      ? ["keep", "source", "target"] : publication === "success" ? ["keep", "target"] : ["keep", "source"]);
   });
 }

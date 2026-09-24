@@ -21,7 +21,7 @@ test("root agentCommands supports S3 reads, stdin gzip, same-view move and touch
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, `hello\n${createHash("sha256").update("hello\n").digest("hex")}  /input\nhello\n`);
     assert.deepEqual(gunzipSync(await fs.readFile("/input.gz")), Buffer.from("hello\n"));
-    const moved = await shell.exec("mv /input /moved");
+    const moved = await shell.exec("mv /input /moved && touch /moved");
     assert.equal(moved.exitCode, 0, moved.stderr);
     assert.equal(moved.stderr, "");
     assert.equal(moved.stdout, "");

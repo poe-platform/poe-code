@@ -85,6 +85,7 @@ test("01 faithful opaque S3 readonly source preserves Shell admission and direct
   let result;
   try { result = await shell.exec("cp /left/source /right/target"); }
   finally { await shell.dispose(); }
+  assert.ok(store.requests.length > offset);
   assert.ok(store.requests.slice(offset).every(request => ["headObject", "listObjectsV2"].includes(request.operation)));
   observe("01", { result, files: await contents(fs) });
   assert.equal(result.exitCode, 1);
@@ -106,6 +107,7 @@ test("02 faithful opaque DAV instances preserve Shell admission and direct-copy 
   let result;
   try { result = await shell.exec("cp /left/source /right/target"); }
   finally { await shell.dispose(); }
+  assert.ok(store.requests.length > offset);
   assert.ok(store.requests.slice(offset).every(request => ["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")));
   observe("02", { result, files: await contents(fs) });
   assert.equal(result.exitCode, 1);

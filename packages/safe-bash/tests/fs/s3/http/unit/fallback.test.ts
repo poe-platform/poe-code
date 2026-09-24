@@ -124,6 +124,7 @@ test("Shell cp refuses missing retained reads while direct HTTP fallback remains
   const shell = new Shell({ fs: filesystem }).use(standardCommands());
   try {
     for (const target of ["target", "new"]) {
+      const before = new Map([...fixture.objects].map(([name, data]) => [name, [...data]]));
       const offset = fixture.trace.length;
       const result = await shell.exec(`cp /source /${target}`);
       assert.equal(result.exitCode, 1);
@@ -133,8 +134,18 @@ test("Shell cp refuses missing retained reads while direct HTTP fallback remains
       assert.deepEqual(fixture.objects.get("target"), previous);
       assert.equal(fixture.objects.has("new"), false);
       assert.deepEqual([...fixture.objects.keys()].sort(), ["source", "target"]);
+      assert.deepEqual(new Map([...fixture.objects].map(([name, data]) => [name, [...data]])), before);
     }
   } finally { await shell.dispose(); }
+  for (const target of ["target", "new"]) {
+    const copyRequestCount = fixture.trace.length;
+    await filesystem.copyFile("/source", `/${target}`, { exclusive: target === "new" });
+    assert.deepEqual([...fixture.objects.get(target)!], [...payload]);
+    const writes = fixture.trace.slice(copyRequestCount).filter(entry => entry.method === "PUT");
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0]!.path, target);
+    assert.equal(writes[0]!.condition, target === "target" ? etag(previous) : "*");
+  }
   assert.deepEqual(fixture.objects.get("source"), payload);
   const before = fixture.trace.length;
   await assert.rejects(filesystem.rename("/source", "/target"), { code: "ENOTSUP" });
@@ -144,6 +155,7 @@ test("Shell cp refuses missing retained reads while direct HTTP fallback remains
   const writes = fixture.trace.filter(entry => entry.method === "PUT").length;
   await assert.rejects(filesystem.copyFile("/source", "/other", { exclusive: true }), { code: "EEXIST" });
   assert.equal(fixture.trace.filter(entry => entry.method === "PUT").length, writes);
+  assert.equal(fixture.trace.some(entry => entry.method === "DELETE"), false);
 });
 
 test("mounted cp preserves retained-read refusal while direct exclusive HTTP fallback succeeds", async context => {
@@ -151,6 +163,7 @@ test("mounted cp preserves retained-read refusal while direct exclusive HTTP fal
   const filesystem = new S3FileSystem({ transport: fixture.client, bucket: key.Bucket, allowNonAtomicRename: true });
   const mounted = new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/remote": filesystem } });
   const shell = new Shell({ fs: mounted }).use(standardCommands());
+  const before = new Map([...fixture.objects].map(([name, data]) => [name, [...data]]));
   try {
     const result = await shell.exec("cp /remote/source /remote/mounted-new");
     assert.equal(result.exitCode, 1);
@@ -161,6 +174,7 @@ test("mounted cp preserves retained-read refusal while direct exclusive HTTP fal
   assert.deepEqual(fixture.objects.get("source"), payload);
   assert.deepEqual(fixture.objects.get("target"), previous);
   assert.deepEqual([...fixture.objects.keys()].sort(), ["source", "target"]);
+  assert.deepEqual(new Map([...fixture.objects].map(([name, data]) => [name, [...data]])), before);
   await mounted.copyFile("/remote/source", "/remote/mounted-new", { exclusive: true });
   assert.deepEqual([...fixture.objects.get("mounted-new")!], [...payload]);
   assert.deepEqual(fixture.objects.get("source"), payload);

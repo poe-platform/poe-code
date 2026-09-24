@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { gunzipSync } from "node:zlib";
-import { ShellLimitError, type ByteSource } from "../../../src/index.js";
+import { ShellLimitError, type ByteSource, type ShellResult } from "../../../src/index.js";
 import {
   allFamiliesDispatched, change, fsError, original, payload, revised, snapshotTree, success,
   withFixture, writableAdapters,
@@ -12,12 +12,31 @@ import { withRmdirFixture } from "./profiles/rmdir-fixtures.js";
 const digest = createHash("sha256").update(payload).digest("hex");
 const options = { timeout: 20_000 };
 const todoPipeline = "find src -type f -name '*.txt' | xargs rg --no-heading --no-filename '^TODO' | sed 's/^TODO //' | awk '{ print $1 \":\" $2 }' | jq -R '.' | jq -s '.'";
+// These are independently declared provider guarantees, not runtime capability
+// probes that could silently turn a regression into a passing unsupported case.
+const profiles = {
+  memory: { retainedReads: true, patchPublication: true },
+  real: { retainedReads: true, patchPublication: false },
+  s3: { retainedReads: false, patchPublication: false },
+  webdav: { retainedReads: false, patchPublication: false },
+  mount: { retainedReads: true, patchPublication: false },
+  overlay: { retainedReads: true, patchPublication: false },
+};
+const patchPublicationError = "patch: filesystem does not support race-safe patch publication\n";
+const diffReadError = "diff: diff input requires identity-checked retained reads\n";
+
+function refusal(result: ShellResult, stderr: string, exitCode = 2): void {
+  assert.equal(result.exitCode, exitCode);
+  assert.equal(result.stdout, "");
+  assert.deepEqual(result.stdoutBytes, new Uint8Array());
+  assert.equal(result.stderr, stderr);
+}
 
 for (const backend of writableAdapters) {
-  const retained = backend !== "s3" && backend !== "webdav";
-  const patchPublication = backend === "memory";
-  test(`${backend}: independent six-family named-file capability probes`, options, async context => {
+  const profile = profiles[backend];
+  test(`${backend}: independent six-family named-file probes enforce provider guarantees`, options, async context => {
     await withFixture(backend, async ({ exec, fs, dispatched }) => {
+      const before = await snapshotTree(fs);
       const failures: string[] = [];
       const probes = [
         ["find src -type f -name '*.txt'", "src/tasks.txt\n"],
@@ -27,36 +46,41 @@ for (const backend of writableAdapters) {
         ["awk '{ print $1 }' old.txt", original],
         ["jq -c '.names' config.json", '["alpha","beta"]\n'],
         ["sha256sum payload.bin", `${digest}  payload.bin\n`],
-        ["set -o pipefail; gzip -c payload.bin | gzip -dc", retained ? payload : "", retained ? 0 : 1,
-          retained ? "" : "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/work/payload.bin'\ngzip: unexpected end of file\n"],
-        ["diff -q old.txt target.txt", "", retained ? 0 : 2,
-          retained ? "" : "diff: diff input requires identity-checked retained reads\n"],
+        ["set -o pipefail; gzip -c payload.bin | gzip -dc", profile.retainedReads ? payload : "", profile.retainedReads ? 0 : 1,
+          profile.retainedReads ? "" : "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/work/payload.bin'\ngzip: unexpected end of file\n"],
+        ["diff -q old.txt target.txt", "", profile.retainedReads ? 0 : 2,
+          profile.retainedReads ? "" : diffReadError],
         ["patch --dry-run -i change.diff", undefined],
       ] as const;
       for (const [source, expected, status = 0, stderr = ""] of probes) {
         try {
           const before = status === 0 ? undefined : await snapshotTree(fs);
           const result = await exec(source);
-          if (status === 0) success(result, typeof expected === "string" ? expected : undefined);
-          else {
-            assert.equal(result.exitCode, status, result.stderr);
-            assert.equal(result.stdout, expected);
-            assert.equal(result.stderr, stderr);
+          if (status === 0) {
+            success(result, typeof expected === "string" ? expected : undefined);
+            if (expected instanceof Uint8Array) assert.deepEqual(result.stdoutBytes, expected);
+          } else {
+            refusal(result, stderr, status);
             assert.deepEqual(await snapshotTree(fs), before);
           }
-          if (expected instanceof Uint8Array) assert.deepEqual(result.stdoutBytes, expected);
         } catch (error) {
           const message = `${source}: ${String(error)}`;
           context.diagnostic(message);
           failures.push(message);
         }
       }
+      assert.deepEqual(await snapshotTree(fs), before, "all inspection and refusal probes preserve namespace and bytes");
+      if (!profile.retainedReads) {
+        const streamed = await exec("set -o pipefail; gzip -c < payload.bin | gzip -dc");
+        success(streamed);
+        assert.deepEqual(streamed.stdoutBytes, payload, "explicit stdin compression remains supported");
+      }
       allFamiliesDispatched(dispatched);
-      assert.deepEqual(failures, [], "every named-file capability expectation must pass; no skipped probes");
+      assert.deepEqual(failures, [], "every named-file probe must meet its declared success or refusal contract");
     });
   });
 
-  test(`${backend}: aggregate six-family coding-agent flow`, options, async () => {
+  test(`${backend}: aggregate six-family flow with ${profile.patchPublication ? "patch publication" : "explicit publication refusal"}`, options, async () => {
     await withFixture(backend, async fixture => {
       const { exec, fs, dispatched } = fixture;
       success(await exec(`set -o pipefail; ${todoPipeline} > report.json; status=$?; cat report.json; exit "$status"`));
@@ -64,19 +88,25 @@ for (const backend of writableAdapters) {
       success(await exec("jq -r '.[]' < report.json"), "alpha:2\nbeta:3\n");
       success(await exec("set -o pipefail; cat < payload.bin | gzip -c > payload.gz"), "");
       success(await exec("set -o pipefail; gzip -dc < payload.gz | sha256sum"), `${digest}  -\n`);
+      const beforeDiff = await snapshotTree(fs);
       const diff = await exec("diff -u --label target.txt --label target.txt old.txt new.txt > generated.diff");
-      assert.equal(diff.exitCode, retained ? 1 : 2, diff.stderr);
-      assert.equal(diff.stderr, retained ? "" : "diff: diff input requires identity-checked retained reads\n");
-      assert.equal(Buffer.from(await fs.readFile("/work/generated.diff")).toString(), retained ? change : "");
-      if (patchPublication) success(await exec("patch -i generated.diff > patch.log && diff -q target.txt new.txt && cat target.txt"), revised);
+      if (profile.retainedReads) {
+        assert.equal(diff.exitCode, 1, diff.stderr);
+        assert.equal(diff.stderr, "");
+      } else {
+        refusal(diff, diffReadError);
+        assert.deepEqual(await snapshotTree(fs), { ...beforeDiff, "/work/generated.diff": new Uint8Array() }, "only the explicit shell redirection creates an empty file");
+        success(await exec("cat change.diff > generated.diff"), "");
+      }
+      assert.equal(Buffer.from(await fs.readFile("/work/generated.diff")).toString(), change);
+      success(await exec("patch --dry-run -i generated.diff"), "checking file target.txt\n");
+      const beforePatch = await snapshotTree(fs);
+      const patched = await exec("patch -i generated.diff > patch.log && diff -q target.txt new.txt && cat target.txt");
+      if (profile.patchPublication) success(patched, revised);
       else {
-        success(await exec("patch --dry-run -i change.diff"));
-        const before = await snapshotTree(fs);
-        const patch = await exec("patch -i change.diff");
-        assert.equal(patch.exitCode, 2);
-        assert.equal(patch.stdout, "");
-        assert.equal(patch.stderr, "patch: filesystem does not support race-safe patch publication\n");
-        assert.deepEqual(await snapshotTree(fs), before);
+        refusal(patched, patchPublicationError);
+        assert.deepEqual(await snapshotTree(fs), { ...beforePatch, "/work/patch.log": new Uint8Array() }, "unsupported patch publication leaves targets and namespace unchanged apart from shell redirection");
+        success(await exec("cat target.txt"), original);
       }
       allFamiliesDispatched(dispatched);
       if (fixture.s3 && backend !== "mount") {
@@ -118,20 +148,17 @@ for (const backend of writableAdapters) {
     });
   });
 
-  test(`${backend === "webdav" ? "webdav configured atomic-empty" : backend}: copy admission, direct copy, append and removal`, options, async () => {
+  test(`${backend === "webdav" ? "webdav configured atomic-empty" : backend}: create, transfer, append, inspect and remove files with explicit copy admission`, options, async () => {
     await withRmdirFixture(backend, async ({ exec, fs }) => {
-      success(await exec("mkdir -p scratch/nested"), "");
       const before = await snapshotTree(fs);
-      const copy = await exec("cp old.txt scratch/nested/copy.txt");
-      if (retained) success(copy, "");
+      const copied = await exec("mkdir -p scratch/nested && cp old.txt scratch/nested/copy.txt && printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt");
+      if (profile.retainedReads) success(copied, `${original}gamma\n`);
       else {
-        assert.equal(copy.exitCode, 1);
-        assert.equal(copy.stdout, "");
-        assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/old.txt'\n");
-        assert.deepEqual(await snapshotTree(fs), before);
+        refusal(copied, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/old.txt'\n", 1);
+        assert.deepEqual(await snapshotTree(fs), { ...before, "/work/scratch": null, "/work/scratch/nested": null }, "refused copy publishes no file");
         await fs.copyFile("/work/old.txt", "/work/scratch/nested/copy.txt", { exclusive: true });
+        success(await exec("printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt"), `${original}gamma\n`);
       }
-      success(await exec("printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt"), `${original}gamma\n`);
       assert.equal(Buffer.from(await fs.readFile("/work/old.txt")).toString(), original);
       success(await exec("find scratch -type f | sort"), "scratch/nested/copy.txt\n");
       success(await exec("rm scratch/nested/copy.txt && rmdir scratch/nested && rmdir scratch && test ! -e scratch"), "");
@@ -141,19 +168,19 @@ for (const backend of writableAdapters) {
   test(`${backend}: copy admission and same-view move preserve bytes`, options, async () => {
     await withFixture(backend, async ({ exec, fs }) => {
       const before = await snapshotTree(fs);
-      const copy = await exec("cp payload.bin move-source.bin");
-      if (retained) success(copy, "");
+      const copied = await exec("cp payload.bin move-source.bin");
+      if (profile.retainedReads) success(copied, "");
       else {
-        assert.equal(copy.exitCode, 1);
-        assert.equal(copy.stdout, "");
-        assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/payload.bin'\n");
-        assert.deepEqual(await snapshotTree(fs), before);
+        refusal(copied, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/payload.bin'\n", 1);
+        assert.deepEqual(await snapshotTree(fs), before, "refused setup copy preserves namespace and bytes");
         await fs.copyFile("/work/payload.bin", "/work/move-source.bin", { exclusive: true });
       }
+      assert.deepEqual(await fs.readFile("/work/move-source.bin"), payload);
       success(await exec("mv move-source.bin moved.bin"), "");
       assert.deepEqual(await fs.readFile("/work/moved.bin"), payload);
       assert.deepEqual(await fs.readFile("/work/payload.bin"), payload);
       success(await exec("test ! -e move-source.bin"), "");
+      assert.deepEqual(await snapshotTree(fs), { ...before, "/work/moved.bin": payload });
     });
   });
 
@@ -165,36 +192,39 @@ for (const backend of writableAdapters) {
     });
   });
 
-  test(`${backend}: in-place edit, diff-to-patch stdin and reverse`, options, async () => {
+  test(`${backend}: in-place edit, diff-to-patch stdin and ${profile.patchPublication ? "reverse publication" : "mutation refusal"}`, options, async () => {
     await withFixture(backend, async ({ exec, fs }) => {
-      success(await exec("sed -i 's/beta/BETA/' old.txt"), "");
-      assert.equal(Buffer.from(await fs.readFile("/work/old.txt")).toString(), revised);
-      const comparison = await exec("diff -q old.txt new.txt");
-      if (retained) success(comparison, "");
+      const before = await snapshotTree(fs);
+      const edited = await exec("sed -i 's/beta/BETA/' old.txt && diff -q old.txt new.txt");
+      if (profile.retainedReads) success(edited, "");
+      else refusal(edited, diffReadError);
+      assert.deepEqual(await snapshotTree(fs), { ...before, "/work/old.txt": new TextEncoder().encode(revised) }, "in-place sed changes only its target, even when named diff is unsupported");
+      const beforePatch = await snapshotTree(fs);
+      const patched = await exec("cat change.diff | patch > patch.log && diff -q target.txt new.txt && patch -R -i change.diff > reverse.log && cat target.txt");
+      if (profile.patchPublication) success(patched, original);
       else {
-        assert.equal(comparison.exitCode, 2);
-        assert.equal(comparison.stdout, "");
-        assert.equal(comparison.stderr, "diff: diff input requires identity-checked retained reads\n");
+        refusal(patched, patchPublicationError);
+        assert.deepEqual(await snapshotTree(fs), { ...beforePatch, "/work/patch.log": new Uint8Array() });
+        refusal(await exec("patch -R -i change.diff > reverse.log"), patchPublicationError);
+        assert.deepEqual(await snapshotTree(fs), { ...beforePatch, "/work/patch.log": new Uint8Array(), "/work/reverse.log": new Uint8Array() });
+        success(await exec("cat target.txt"), original);
       }
-      if (!patchPublication) {
-        const before = await snapshotTree(fs);
-        for (const source of ["cat change.diff | patch", "patch -R -i change.diff"]) {
-          const patch = await exec(source);
-          assert.equal(patch.exitCode, 2);
-          assert.equal(patch.stdout, "");
-          assert.equal(patch.stderr, "patch: filesystem does not support race-safe patch publication\n");
-          assert.deepEqual(await snapshotTree(fs), before);
-        }
-        success(await exec("patch --dry-run -i change.diff"));
-        assert.deepEqual(await snapshotTree(fs), before);
-        return;
-      }
-      success(await exec("cat change.diff | patch > patch.log && diff -q target.txt new.txt && patch -R -i change.diff > reverse.log && cat target.txt"), original);
       assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), original);
-      const diff = await exec("diff -u --label target.txt --label target.txt target.txt new.txt | tee streamed.diff | patch > patch.log");
+      // A refused consumer need not drain its producer. Use supported dry-run
+      // consumption to check complete streamed bytes; refusal effects are above.
+      const source = profile.retainedReads
+        ? "diff -u --label target.txt --label target.txt target.txt new.txt"
+        : "cat change.diff";
+      const diff = await exec(`${source} | tee streamed.diff | patch${profile.patchPublication ? "" : " --dry-run"} > patch.log`);
       success(diff, "");
       assert.equal(Buffer.from(await fs.readFile("/work/streamed.diff")).toString(), change);
-      assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), revised);
+      assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), profile.patchPublication ? revised : original);
+      if (!profile.patchPublication) {
+        assert.deepEqual(await snapshotTree(fs), {
+          ...beforePatch, "/work/patch.log": new TextEncoder().encode("checking file target.txt\n"),
+          "/work/reverse.log": new Uint8Array(), "/work/streamed.diff": new TextEncoder().encode(change),
+        }, "dry-run consumes the complete stream without patch publication");
+      }
     });
   });
 
@@ -375,32 +405,32 @@ for (const backend of writableAdapters) {
   });
 }
 
-test("mount: cross-backend pipelines and copies retain directional admission", options, async context => {
+test("mount: cross-backend pipelines, supported copy and explicit S3 source refusal", options, async context => {
   await withFixture("mount", async ({ exec, fs, s3 }) => {
     const sources = [
       "set -o pipefail; cat payload.bin | gzip -c > /objects/archive.gz",
       "cp payload.bin /objects/copied.bin",
+      "cp /objects/seed.bin returned.bin",
     ];
     const failures: string[] = [];
     for (const source of sources) {
-      try { success(await exec(source), ""); }
+      try {
+        const before = { ...await snapshotTree(fs), ...await snapshotTree(fs, "/objects") };
+        const result = await exec(source);
+        if (source === "cp /objects/seed.bin returned.bin") {
+          refusal(result, "cp: ENOTSUP: copy requires retained reads and streaming writes '/objects/seed.bin'\n", 1);
+          assert.deepEqual({ ...await snapshotTree(fs), ...await snapshotTree(fs, "/objects") }, before);
+        } else success(result, "");
+      }
       catch (error) {
         const message = `${source}: ${String(error)}`;
         context.diagnostic(message);
         failures.push(message);
       }
     }
-    assert.deepEqual(failures, [], "pipeline and copy from a retained local source must succeed");
+    assert.deepEqual(failures, [], "each cross-backend operation must meet its explicit success or refusal contract");
     const before = await snapshotTree(fs);
-    const copy = await exec("cp /objects/seed.bin returned.bin");
-    assert.equal(copy.exitCode, 1);
-    assert.equal(copy.stdout, "");
-    assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/objects/seed.bin'\n");
-    assert.deepEqual(await snapshotTree(fs), before);
-    const named = await exec("gzip -dc /objects/archive.gz");
-    assert.equal(named.exitCode, 1);
-    assert.equal(named.stdout, "");
-    assert.equal(named.stderr, "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/objects/archive.gz'\n");
+    refusal(await exec("gzip -dc /objects/archive.gz"), "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/objects/archive.gz'\n", 1);
     assert.deepEqual(await snapshotTree(fs), before);
     success(await exec("set -o pipefail; gzip -dc < /objects/archive.gz | sha256sum"), `${digest}  -\n`);
     await fs.copyFile("/objects/seed.bin", "/work/returned.bin", { exclusive: true });
@@ -477,9 +507,7 @@ for (const source of [
         await assert.rejects(mutation, fsError("EROFS", path));
         assert.deepEqual(await snapshotTree(fs), before, "direct readonly rejection preserves namespace and bytes");
       } else if (source === "patch -i change.diff") {
-        assert.equal(result.exitCode, 2);
-        assert.equal(result.stdout, "");
-        assert.equal(result.stderr, "patch: filesystem does not support race-safe patch publication\n");
+        refusal(result, patchPublicationError);
         await assert.rejects(fs.writeFile("/work/target.txt", Buffer.from("changed")), fsError("EROFS", "/work/target.txt"));
         assert.deepEqual(await snapshotTree(fs), before);
       } else {

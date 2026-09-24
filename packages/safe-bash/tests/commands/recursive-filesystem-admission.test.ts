@@ -25,18 +25,22 @@ async function execute(
 }
 
 // The synthetic host has one generated child per directory, no materialized tree,
-// and existing target parents. It isolates traversal from canonicalMissing work.
+// and existing target parents. Its retained file handles share the exact metadata
+// identities returned by stat, isolating traversal from canonicalMissing work.
 function chainHost(lastDirectory: number) {
   const fs = createMemoryFileSystem();
-  const counts = { reads: 0, deepestRead: -1, copies: 0, mkdirs: 0, deepestHeader: -1, outputBytes: 0 };
+  const counts = { reads: 0, deepestRead: -1, copies: 0, opens: 0, closes: 0, mkdirs: 0, deepestHeader: -1, outputBytes: 0 };
   const stat: FileStat = { type: "directory", size: 0, mode: 0o755, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 };
   const identityScope = {};
+  const files = new Map<string, FileStat>();
   const depth = (path: string) => (path.length - "/source".length) / 2;
-  fs.stat = fs.lstat = async path => {
+  fs.stat = fs.lstat = async (path, options) => {
+    options?.signal?.throwIfAborted();
     if (path.startsWith("/target/source") && !path.endsWith("/file")
       && (path.length - "/target/source".length) / 2 === 1025) throw new FsError("ENOENT", { path });
-    return path.endsWith("/file") ? { ...stat, type: "file", size: 1, identityScope, dev: 0,
-      ino: path.length * 2 + (path.startsWith("/source") ? 0 : 1) } : stat;
+    if (!path.endsWith("/file")) return stat;
+    if (!files.has(path)) files.set(path, { ...stat, type: "file", size: 1, identityScope, dev: 0, ino: files.size });
+    return files.get(path)!;
   };
   fs.realpath = async path => {
     await fs.stat(path);
@@ -53,29 +57,37 @@ function chainHost(lastDirectory: number) {
     return current < lastDirectory ? [{ name: "n", type: "directory" }] : [{ name: "file", type: "file" }];
   };
   fs.mkdir = async () => { counts.mkdirs++; };
+  fs.copyFile = async () => { assert.fail("recursive file copies must use retained reads and streaming writes"); };
   fs.openReadFile = async (path, options) => {
-    options?.signal?.throwIfAborted();
-    const retained = await fs.stat(path);
+    const retained = await fs.stat(path, options);
     assert.equal(retained.type, "file");
+    counts.opens++;
     let closed = false;
-    const check = () => { if (closed) throw new FsError("EBADF", { path }); };
     return {
-      async stat(controls) { controls?.signal?.throwIfAborted(); check(); return retained; },
-      async read(position, maxBytes, controls) {
-        controls?.signal?.throwIfAborted(); check();
-        return new Uint8Array([120]).slice(position, position + maxBytes);
+      async stat(controls) {
+        controls?.signal?.throwIfAborted();
+        if (closed) throw new FsError("EBADF", { path });
+        return retained;
       },
-      async close() { closed = true; },
+      async read(position, maxBytes, controls) {
+        controls?.signal?.throwIfAborted();
+        if (closed) throw new FsError("EBADF", { path });
+        return encoder.encode("x").slice(position, position + maxBytes);
+      },
+      async close() {
+        if (!closed) counts.closes++;
+        closed = true;
+      },
     };
   };
   fs.writeStream = async (_path, source, options) => {
-    let size = 0;
+    options?.signal?.throwIfAborted();
+    const bytes: number[] = [];
     for await (const chunk of source) {
       options?.signal?.throwIfAborted();
-      assert.deepEqual(chunk, new Uint8Array([120]));
-      size += chunk.byteLength;
+      bytes.push(...chunk);
     }
-    assert.equal(size, 1, "the retained file must be consumed before publication");
+    assert.deepEqual(bytes, [120], "the complete retained file reaches the stream writer");
     counts.copies++;
   };
   const stdout: ByteSink = {
@@ -122,6 +134,8 @@ for (const command of ["ls", "cp"] as const) {
       assert.equal(counts.deepestRead, Math.min(lastDirectory, 1024));
       assert.equal(counts.reads, (Math.min(lastDirectory, 1024) + 1) * (command === "cp" ? 2 : 1));
       assert.equal(counts.copies, command === "cp" && accepted ? 1 : 0, "files directly inside the deepest admitted directory remain allowed");
+      assert.equal(counts.opens, counts.copies);
+      assert.equal(counts.closes, counts.opens, "every retained file reader is closed");
       assert.equal(counts.mkdirs, 0, "the over-depth target must not be created");
       if (command === "ls") assert.equal(counts.deepestHeader, Math.min(lastDirectory, 1024));
     });
@@ -144,6 +158,8 @@ test("cp depth refusal retains an earlier copied file and verbose output after p
   assert.match(result.stderr, /cp.*depth limit.*1024/u);
   assert.equal(result.stdout, "'/source/file' -> '/target/source/file'\n");
   assert.equal(counts.copies, 1);
+  assert.equal(counts.opens, 1);
+  assert.equal(counts.closes, 1);
   assert.equal(counts.reads, 2050);
   assert.equal(counts.mkdirs, 0);
 });
@@ -225,10 +241,10 @@ for (const command of ["ls", "cp"] as const) {
     await fs.mkdir("/source");
     await fs.writeFile("/source/a", encoder.encode("a"));
     await fs.writeFile("/source/b", encoder.encode("b"));
-    const read = fs.readdir.bind(fs), write = fs.writeStream!.bind(fs);
+    const read = fs.readdir.bind(fs), write = fs.writeStream.bind(fs);
     let reads = 0, copies = 0, writes = 0;
     fs.readdir = async (path, options) => { reads++; return read(path, options); };
-    fs.writeStream = async (target, source, options) => { copies++; return write(target, source, options); };
+    fs.writeStream = async (target, source, options) => { await write(target, source, options); copies++; };
     let markEntered!: () => void, release!: () => void;
     const entered = new Promise<void>(resolve => { markEntered = resolve; });
     const blocked = new Promise<void>(resolve => { release = resolve; });
@@ -242,17 +258,12 @@ for (const command of ["ls", "cp"] as const) {
       assert.equal(reads, command === "cp" ? 2 : 0);
       assert.equal(copies, command === "cp" ? 1 : 0);
       assert.equal(writes, 1);
-      if (command === "cp") {
-        assert.deepEqual(await fs.readFile("/target/a"), encoder.encode("a"));
-        await assert.rejects(fs.stat("/target/b"), { code: "ENOENT" });
-      }
     } finally { release(); }
     const result = await work;
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(copies, command === "cp" ? 2 : 0);
-    if (command === "cp") {
-      assert.deepEqual(await fs.readFile("/target/a"), encoder.encode("a"));
-      assert.deepEqual(await fs.readFile("/target/b"), encoder.encode("b"));
+    if (command === "cp") for (const name of ["a", "b"]) {
+      assert.deepEqual(await fs.readFile(`/target/${name}`), encoder.encode(name));
     }
   });
 

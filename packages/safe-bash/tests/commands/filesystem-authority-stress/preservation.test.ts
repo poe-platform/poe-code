@@ -7,21 +7,25 @@ import { bytes, command, effects, payload, previous, provider, unchanged, unscop
 
 for (const partial of [false, true]) test(`mv: failed publication preserves source; partial=${partial}`, async () => {
   const { base, fs, events } = await provider({ scoped: true, target: false });
-  let writes = 0;
+  let publications = 0;
   const observed = view(fs, {
     compareEntry: async () => "distinct",
-    writeStream: async (target, _source, controls) => {
-      writes++;
+    writeStream: async (target, source, controls) => {
+      publications++;
       assert.equal(controls?.flag, "wx");
       assert.deepEqual(await bytes(base, "/source"), payload);
-      if (partial) await base.writeFile(target, payload.subarray(0, 3));
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of source) chunks.push(chunk.slice());
+      const content = Buffer.concat(chunks);
+      assert.deepEqual(content, payload);
+      if (partial) await base.writeFile(target, content.subarray(0, 3), controls);
       throw new FsError("EIO", { message: "publication failed" });
     },
   });
   const result = await command("mv", ["/source", "/target"], observed);
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /EIO.*publication failed/u);
-  assert.equal(writes, 1);
+  assert.equal(publications, 1);
   assert.deepEqual(effects(events), []);
   assert.deepEqual(await bytes(base, "/source"), payload);
   assert.deepEqual(await bytes(base, "/target"), partial ? payload.subarray(0, 3) : null);
@@ -30,29 +34,29 @@ for (const partial of [false, true]) test(`mv: failed publication preserves sour
 for (const phase of ["copy", "metadata", "remove"] as const) test(`mv: cancellation at ${phase} never deletes source`, async () => {
   const { base, fs, events } = await provider({ scoped: true, target: false });
   const controller = new AbortController(), reason = new FsError("EACCES", { message: "caller canceled" });
-  let writes = 0, removals = 0;
+  const reached: string[] = [];
   const observed = view(fs, {
     writeStream: async (target, source, controls) => {
-      writes++;
       assert.equal(controls?.flag, "wx");
-      await base.writeStream(target, source, controls);
+      await base.writeStream!(target, source, controls);
+      reached.push("copy");
       if (phase === "copy") controller.abort(reason);
     },
     chmod: async (path, mode, controls) => {
       await base.chmod(path, mode, controls);
+      reached.push("metadata");
       if (phase === "metadata") controller.abort(reason);
     },
     removeEntryConditional: async (_path, controls) => {
-      removals++;
       assert.equal(phase, "remove");
+      reached.push("remove");
       controller.abort(reason);
       controls?.signal?.throwIfAborted();
       throw new Error("unreachable mutation");
     },
   });
   await assert.rejects(command("mv", ["/source", "/target"], observed, controller.signal), error => error === reason);
-  assert.equal(writes, 1);
-  assert.equal(removals, phase === "remove" ? 1 : 0);
+  assert.deepEqual(reached, phase === "copy" ? ["copy"] : phase === "metadata" ? ["copy", "metadata"] : ["copy", "metadata", "remove"]);
   assert.deepEqual(effects(events), []);
   assert.deepEqual(await bytes(base, "/source"), payload);
   assert.deepEqual(await bytes(base, "/target"), payload);
@@ -60,17 +64,17 @@ for (const phase of ["copy", "metadata", "remove"] as const) test(`mv: cancellat
 
 test("mv: raced destination requires exclusive creation", async () => {
   const { base, fs, events } = await provider({ scoped: true, target: false });
-  let writes = 0;
+  let publications = 0;
   const observed = view(fs, { writeStream: async (target, source, controls) => {
-    writes++;
+    publications++;
     assert.equal(controls?.flag, "wx");
     await base.writeFile(target, previous);
-    await base.writeStream(target, source, controls);
+    await base.writeStream!(target, source, controls);
   } });
   const result = await command("mv", ["/source", "/target"], observed);
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /EEXIST/u);
-  assert.equal(writes, 1);
+  assert.equal(publications, 1);
   assert.deepEqual(effects(events), []);
   await unchanged(base);
 });
@@ -80,7 +84,7 @@ test("mv -n: cross-device refusal preserves source without publishing a destinat
   const observed = view(fs, { writeStream: async (target, source, controls) => {
     events.push("unexpected copy");
     await base.writeFile(target, previous);
-    await base.writeStream(target, source, controls);
+    await base.writeStream!(target, source, controls);
   } });
   const result = await command("mv", ["-n", "/source", "/target"], observed);
   assert.equal(result.exitCode, 1);
@@ -103,8 +107,9 @@ test("mv: all directory publications precede cleanup; a later copy failure keeps
       publications.push(target);
       assert.equal(controls?.flag, "wx");
       assert.deepEqual(await bytes(base, "/source/first"), payload);
-      if (target.endsWith("second")) throw new FsError("ENOSPC");
-      await base.writeStream(target, source, controls);
+      assert.deepEqual(await bytes(base, "/source/second"), previous);
+      if (target === "/target/second") throw new FsError("ENOSPC");
+      await base.writeStream!(target, source, controls);
     },
     rm: async path => { removals.push(path); },
     rmdir: async path => { removals.push(path); },
@@ -218,7 +223,9 @@ test("mv: entry budget rejects before content acquisition or publication", async
   const fs = view(base, {
     rename: async () => { throw new FsError("EXDEV"); },
     readdir: async () => Array.from({ length: 100_001 }, (_, index) => ({ name: `entry-${index}`, type: "file" as const })),
+    openReadFile: async (path, controls) => { reads++; return base.openReadFile!(path, controls); },
     readFile: async () => { reads++; return payload; },
+    writeStream: async () => { writes++; },
     copyFile: async () => { writes++; },
     mkdir: async () => { writes++; },
     rm: async () => { writes++; },

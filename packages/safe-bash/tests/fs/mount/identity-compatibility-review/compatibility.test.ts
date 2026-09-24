@@ -110,6 +110,7 @@ async function exercise(context: TestContext, settings: {
         const result = await shell.exec(`mv ${source} ${target}`);
         assert.equal(result.stdout, "");
         if (result.exitCode !== 0) outcome = { status: "command-error", exitCode: result.exitCode, stderr: result.stderr };
+        else assert.equal(result.stderr, "");
       } finally { await shell.dispose(); }
     }
   } catch (error) {
@@ -124,6 +125,7 @@ async function exercise(context: TestContext, settings: {
     assert.deepEqual(after, before, "this failed operation must not change bytes or namespace");
   }
   if (settings.expectedError !== undefined) {
+    assert.equal(action, "mv");
     assert.deepEqual(outcome, { status: "command-error", exitCode: 1, stderr: settings.expectedError });
     assert.deepEqual(after, before);
     assert.ok(operations.every(request => ["headObject", "listObjectsV2", "PROPFIND", "HEAD", "OPTIONS"].includes(request.operation)));
@@ -190,11 +192,11 @@ for (const view of ["opaque", "real-shared-root"] as const) {
   });
 }
 
-test("positive same-mount memory rename replaces a distinct file", async context => {
+for (const action of ["rename", "mv"] as const) test(`positive same-mount memory ${action} replaces a distinct file`, async context => {
   const backing = createMemoryFileSystem();
   await seed(backing, backing, true);
   await exercise(context, { filesystem: createMountFileSystem({ root: backing }), left: backing, right: backing,
-    source: "/source", target: "/target", action: "rename" });
+    source: "/source", target: "/target", action });
 });
 
 test("shared memory mounted twice refuses cross-mount mv overwrite without atomic binding", async context => {
@@ -233,12 +235,12 @@ for (const kind of ["s3", "webdav"] as const) {
     }
   }
 
-  for (const route of ["direct", "one-mount"] as const) {
-    test(`positive ${kind} ${route} existing-target rename${kind === "s3" ? " (non-atomic opt-in)" : " (default lock policy)"}`, async context => {
+  for (const route of ["direct", "one-mount"] as const) for (const action of ["rename", "mv"] as const) {
+    test(`positive ${kind} ${route} existing-target ${action}${kind === "s3" ? " (non-atomic opt-in)" : " (default lock policy)"}`, async context => {
       const pair = remote(kind, true);
       await seed(pair.left, pair.right, true);
       await exercise(context, { filesystem: route === "direct" ? pair.left : createMountFileSystem({ root: pair.left }),
-        ...pair, source: "/source", target: "/target", action: "rename" });
+        ...pair, source: "/source", target: "/target", action });
     });
   }
 

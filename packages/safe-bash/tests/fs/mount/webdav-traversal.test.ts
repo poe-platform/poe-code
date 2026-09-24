@@ -74,8 +74,11 @@ test("WebDAV loopback preserves Shell copy admission, direct copy and same-mount
     assert.deepEqual(mock.files, new Map([
       ["/", null], ["/dir", null], ["/dir/source", bytes], ["/dir/existing", bytes], ["/sentinel", prior],
     ]));
-    assert.ok(mock.requests.some(request => request.init.method === "COPY"));
+    const copies = mock.requests.filter(request => request.init.method === "COPY");
+    assert.equal(copies.length, 1);
+    assert.equal(copies[0]!.headers.get("Overwrite"), "F");
     assert.ok(mock.requests.some(request => request.init.method === "MOVE"));
+    assert.equal(mock.locks.size, 0);
     assert.equal(remote.capabilities.permissions, false);
     assert.equal((await remote.stat("/dir/source")).identityScope, undefined);
   });
@@ -151,9 +154,10 @@ test("WebDAV mounted cp refuses before COPY while direct copy propagates server 
     assert.equal(denied, 0);
     assert.deepEqual(mock.files, before);
     assert.ok(mock.requests.every(request => ["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")));
-    await assert.rejects(fs.copyFile("/dav/dir/source", "/dav/dir/new"), rejected("EACCES", "/dav/dir/source"));
+    await assert.rejects(fs.copyFile("/dav/dir/source", "/dav/dir/new", { exclusive: true }), rejected("EACCES", "/dav/dir/source"));
     assert.equal(denied, 1);
     assert.deepEqual(mock.files, before);
+    assert.equal(mock.locks.size, 0);
   });
 });
 

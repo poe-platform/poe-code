@@ -95,6 +95,7 @@ for (const command of ["cp", "mv"] as const) test(`constructor authority does no
   assert.deepEqual(await example.bytes("target"), sourceBytes);
   assert.deepEqual(await example.bytes("source"), sourceBytes);
   assert.deepEqual(await example.bytes("keep"), oldBytes);
+  assert.deepEqual(await second.readdir("/"), ["keep", "source", "target"].map(name => ({ name, type: "file" })));
 });
 
 for (const authority of ["present", "absent", "unknown"] as const) test(`serialized SDK alias and existing target with ${authority} authority`, async () => {

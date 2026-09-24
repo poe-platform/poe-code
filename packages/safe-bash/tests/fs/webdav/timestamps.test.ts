@@ -104,7 +104,17 @@ test("loopback touch and streamed gzip preserve bytes; unsupported named reads a
       assert.equal(created.exitCode, 0, created.stderr);
       assert.ok((await fs.stat("/new")).mtimeMs > 0);
       await fs.utimes("/file", 12345, 67890);
-      const result = await shell.exec("gzip -c < /file > /file.gz && gzip -dc < /file.gz | sha256sum");
+      const beforeNamedInput = new Map([...mock.base.files].map(([path, data]) => [path, data?.slice() ?? null]));
+      const beforeProperties = new Map(mock.properties);
+      const namedRequestCount = mock.base.requests.length;
+      const namedInput = await shell.exec("gzip -c /file");
+      assert.equal(namedInput.exitCode, 1);
+      assert.equal(namedInput.stdout, "");
+      assert.equal(namedInput.stderr, "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/file'\n");
+      assert.deepEqual(mock.base.requests.slice(namedRequestCount).filter(request => !["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")), []);
+      assert.deepEqual(mock.base.files, beforeNamedInput);
+      assert.deepEqual(mock.properties, beforeProperties);
+      const result = await shell.exec("set -o pipefail; gzip -c < /file > /file.gz && gzip -dc < /file.gz | sha256sum");
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stderr, "");
       assert.equal(result.stdout, createHash("sha256").update(payload).digest("hex") + "  -\n");
@@ -116,6 +126,8 @@ test("loopback touch and streamed gzip preserve bytes; unsupported named reads a
       assert.equal((await fs.stat("/new")).mtimeMs, 67890);
       await fs.rm("/file.gz");
       const entriesBefore = [...mock.base.files.keys()].sort();
+      const beforeNamedOutput = new Map([...mock.base.files].map(([path, data]) => [path, data?.slice() ?? null]));
+      const beforeOutputProperties = new Map(mock.properties);
       for (const command of ["gzip -c /file", "gzip -t /file", "gzip -k /file"]) {
         const requestCount = mock.base.requests.length;
         const refused = await shell.exec(command);
@@ -126,6 +138,8 @@ test("loopback touch and streamed gzip preserve bytes; unsupported named reads a
         assert.ok(commandRequests.length > 0);
         assert.deepEqual(commandRequests.filter(request => !["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")), []);
         assert.deepEqual([...mock.base.files.keys()].sort(), entriesBefore);
+        assert.deepEqual(mock.base.files, beforeNamedOutput);
+        assert.deepEqual(mock.properties, beforeOutputProperties);
         assert.equal(mock.base.files.has("/file.gz"), false);
         assert.deepEqual(await fs.readFile("/file"), payload);
       }

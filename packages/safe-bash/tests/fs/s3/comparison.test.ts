@@ -145,9 +145,10 @@ for (const action of ["copy", "mv"] as const) test(`qualified shared-service exi
   await right.writeFile("/target", oldBytes);
   await left.writeFile("/keep", oldBytes);
   const fs = mounted(left, right);
+  const before = await left.readdir("/");
+  const start = service.requests.length;
   if (action === "copy") await fs.copyFile("/left/source", "/right/target");
   else {
-    const offset = service.requests.length;
     const shell = new Shell({ fs }).use(standardCommands());
     try {
       const result = await shell.exec("mv /left/source /right/target");
@@ -155,12 +156,13 @@ for (const action of ["copy", "mv"] as const) test(`qualified shared-service exi
       assert.equal(result.stdout, "");
       assert.equal(result.stderr, "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n");
     } finally { await shell.dispose(); }
-    metadataOnly(service, offset);
+    metadataOnly(service, start);
   }
   assert.deepEqual(await right.readFile("/target", { maxBytes: 64 }), action === "copy" ? bytes : oldBytes);
   assert.deepEqual(await left.readFile("/keep", { maxBytes: 64 }), oldBytes);
   assert.deepEqual(await left.readFile("/source", { maxBytes: 64 }), bytes);
   assert.deepEqual(await left.readdir("/"), ["keep", "source", "target"].map(name => ({ name, type: "file" })));
+  assert.deepEqual(await left.readdir("/"), before);
 });
 
 test("recognized aliases reject before GET/mutation; readonly destination remains readonly", async () => {

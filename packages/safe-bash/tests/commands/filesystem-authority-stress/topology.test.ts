@@ -9,16 +9,10 @@ import { bytes, command, payload, previous, unscoped, view } from "./helpers.js"
 function peers(scopedSource = false) {
   const providers = new WeakMap<FileSystem, FileSystem>();
   const queries: string[] = [];
-  function client(base: FileSystem, label: string, answer?: EntryComparison): FileSystem {
+  function client(base: FileSystem, label: string, answer?: EntryComparison, scoped = false): FileSystem {
     const fs = view(base, {
-      stat: async (path, controls) => {
-        const stat = await base.stat(path, controls);
-        return scopedSource && path === "/source" ? stat : unscoped(stat);
-      },
-      lstat: async (path, controls) => {
-        const stat = await base.lstat(path, controls);
-        return scopedSource && path === "/source" ? stat : unscoped(stat);
-      },
+      stat: async (path, controls) => { const stat = await base.stat(path, controls); return scoped || scopedSource && path === "/source" ? stat : unscoped(stat); },
+      lstat: async (path, controls) => { const stat = await base.lstat(path, controls); return scoped || scopedSource && path === "/source" ? stat : unscoped(stat); },
       compareEntry: async (path, peer, peerPath, controls) => {
         controls?.signal?.throwIfAborted();
         queries.push(label);
@@ -38,39 +32,70 @@ function peers(scopedSource = false) {
 }
 
 for (const name of ["cp", "mv"] as const) for (const shared of [false, true]) for (const existing of [false, true]) {
-  test(`${name}: cross-mount distinct entries, same backend=${shared}, overwrite=${existing}`, async () => {
+  test(`${name}: cross-mount distinct entries ${name === "mv" && existing ? "refuse unbound overwrite" : "succeed"}, same backend=${shared}, overwrite=${existing}`, async () => {
     const left = createMemoryFileSystem(), right = shared ? left : createMemoryFileSystem();
     await left.writeFile("/source", payload);
     if (existing) await right.writeFile("/target", previous);
     const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": left, "/right": right } });
+    const before = { left: await left.readdir("/"), right: await right.readdir("/") };
     const result = await command(name, ["/left/source", "/right/target"], fs);
-    const refused = name === "mv" && existing;
-    assert.equal(result.exitCode, refused ? 1 : 0, result.stderr);
-    if (refused) assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
-    else assert.equal(result.stderr, "");
-    assert.deepEqual(await bytes(right, "/target"), refused ? previous : payload);
-    assert.deepEqual(await bytes(left, "/source"), name === "mv" && !refused ? null : payload);
+    assert.equal(result.stdout, "");
+    if (name === "mv" && existing) {
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n");
+      assert.deepEqual(await bytes(left, "/source"), payload);
+      assert.deepEqual(await bytes(right, "/target"), previous);
+      assert.deepEqual({ left: await left.readdir("/"), right: await right.readdir("/") }, before);
+      return;
+    }
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await bytes(right, "/target"), payload);
+    assert.deepEqual(await bytes(left, "/source"), name === "mv" ? null : payload);
   });
 }
 
 for (const name of ["cp", "mv"] as const) for (const alias of [false, true]) for (const scopedSource of [false, true]) {
-  test(`${name}: different recognized clients of one backend, alias=${alias}, scoped source=${scopedSource}`, async () => {
+  test(`${name}: recognized clients preserve transfer admission, alias=${alias}, scoped source=${scopedSource}`, async () => {
     const base = createMemoryFileSystem();
     await base.writeFile("/source", payload);
     if (alias) await base.link("/source", "/target");
     else await base.writeFile("/target", previous);
     const { client, queries } = peers(scopedSource);
     const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": client(base, "left"), "/right": client(base, "right") } });
+    const before = await base.readdir("/");
     const result = await command(name, ["/left/source", "/right/target"], fs);
     const allowed = name === "cp" && scopedSource && !alias;
     assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
-    if (alias) assert.match(result.stderr, /same file/u);
-    else if (name === "mv") assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
-    else if (!scopedSource) assert.match(result.stderr, /ENOTSUP.*reader is not bound/u);
-    else assert.equal(result.stderr, "");
-    assert.deepEqual(queries, ["left", "right"]);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, allowed ? "" : alias
+      ? `${name}: EINVAL: source and destination are the same file '/left/source' -> '/right/target'\n`
+      : name === "cp" ? "cp: ENOTSUP: copy reader is not bound to the inspected source identity '/left/source'\n"
+      : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n");
+    assert.deepEqual(queries, ["left", "right"], "transfer admission uses the first authoritative comparison");
     assert.deepEqual(await bytes(base, "/target"), allowed || alias ? payload : previous);
     assert.deepEqual(await bytes(base, "/source"), payload);
+    assert.deepEqual(await base.readdir("/"), before);
+  });
+}
+
+for (const [name, existing] of [["cp", false], ["cp", true], ["mv", false]] as const) {
+  test(`${name}: clients preserving complete backing identity transfer successfully, overwrite=${existing}`, async () => {
+    const base = createMemoryFileSystem();
+    await base.writeFile("/source", payload);
+    if (existing) await base.writeFile("/target", previous);
+    const { client, queries } = peers();
+    const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: {
+      "/left": client(base, "left", undefined, true), "/right": client(base, "right", undefined, true),
+    } });
+    const result = await command(name, ["/left/source", "/right/target"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(queries, [], "complete scoped identity does not require fallback authority queries");
+    assert.deepEqual(await bytes(base, "/target"), payload);
+    assert.deepEqual(await bytes(base, "/source"), name === "mv" ? null : payload);
+    assert.deepEqual((await base.readdir("/")).map(entry => entry.name), name === "mv" ? ["target"] : ["source", "target"]);
   });
 }
 

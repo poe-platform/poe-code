@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PdfDocument } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { exiftoolCommand } from "./command.js";
 
@@ -29,19 +28,38 @@ async function invoke(args: string[], fs = createMemoryFileSystem()) {
   return { exitCode: res.exitCode, stdout: join(stdout), stderr: join(stderr), fs };
 }
 
-test("exiftool reads and writes PDF metadata, PageCount, and JSON via @poe-code/pdf-ast", async () => {
-  const doc = PdfDocument.create();
-  doc.setTitle("Original Financial Report");
-  doc.setAuthor("Risk Team");
-  doc.setSubject("Q3 Audit");
-  doc.setKeywords(["finance", "audit"]);
-  const p1 = doc.addPage({ width: 612, height: 792 });
-  p1.drawText("Page 1 Content", { x: 72, y: 700, size: 14 });
-  const p2 = doc.addPage({ width: 612, height: 792 });
-  p2.drawText("Page 2 Content", { x: 72, y: 700, size: 14 });
+function createTwoPagePdfBytes(): Uint8Array {
+  const pdf = `%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>
+endobj
+5 0 obj
+<< /Title (Original Financial Report) /Author (Risk Team) /Subject (Q3 Audit) /Keywords (finance, audit) /Producer (@poe-code/pdf-ast) >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+trailer
+<< /Size 6 /Root 1 0 R /Info 5 0 R >>
+startxref
+380
+%%EOF
+`;
+  return new TextEncoder().encode(pdf);
+}
 
+test("exiftool reads and writes PDF metadata, PageCount, and JSON", async () => {
   const fs = createMemoryFileSystem();
-  await fs.writeFile("/report.pdf", doc.save());
+  await fs.writeFile("/report.pdf", createTwoPagePdfBytes());
 
   const g1Res = await invoke(["-G1", "report.pdf"], fs);
   assert.equal(g1Res.exitCode, 0, g1Res.stderr);

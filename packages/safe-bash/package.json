@@ -658,8 +658,7 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "@poe-code/pdf-ast": "*"
+            "@poe-code/safe-fs": "*"
           }
         },
         "safe-bash-command-fmt": {

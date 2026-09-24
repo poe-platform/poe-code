@@ -16,7 +16,9 @@ const cases: readonly [string, string][] = [
   ["[paths(true)]", '{"2":2,"1":1,"0":0}\n'],
   ['try [paths(error("stop"))] catch .', '{"a":1}\n'],
   ["[paths(scalars)]", '{"a":}\n'],
-  ["paths(true;false)", 'null\n'],
+  // Compilation rejects the arity before reading input; avoid racing its exit
+  // with a parent-side stdin write in the native oracle.
+  ["paths(true;false)", ""],
 ];
 
 for (const [filter, stdin] of cases) test(`jq paths matches native: ${filter} ${stdin.trim()}`, async () => {

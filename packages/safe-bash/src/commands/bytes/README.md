@@ -154,7 +154,10 @@ decode, verification, or decompression failure.
   Unknown suffixes require stdout instead. Multi-link inputs require `-k` or
   `-f` before file replacement; stdout/test mode does not remove the source.
 - File output requires `fs.writeStream` and must not declare
-  `streamingWrite: false`; named reads likewise reject `streamingRead: false`.
+  `streamingWrite: false`. Named inputs require `fs.openReadFile`,
+  `retainedRead: true`, and stable scoped identities; pathname-only streaming
+  backends are refused. Reads stay bound to the inspected object across ancestor
+  swaps.
   Existing destinations are rejected unless `-f`; forced replacement requires
   a distinct regular file and `capabilities.atomicRename === true`. `-f` does
   not bypass these capability or identity checks. Stdout/test paths do not

@@ -31,6 +31,33 @@ export async function run(
 }
 
 export function wrap(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
+  // Existing producer fault injections also run through a retained, abort-aware
+  // test handle. Metadata comes from the object opened before producer admission.
+  if (overrides.readStream && !overrides.openReadFile) {
+    const source = overrides.readStream;
+    overrides = { ...overrides, async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      let iterator: AsyncIterator<Uint8Array> | undefined;
+      try {
+        iterator = source(path, options)[Symbol.asyncIterator]();
+        return { stat: handle.stat.bind(handle),
+          async read(_offset, _length, readOptions) {
+            const signal = readOptions?.signal;
+            const next = iterator!.next();
+            const result = await new Promise<IteratorResult<Uint8Array>>((resolve, reject) => {
+              const abort = (): void => { signal?.removeEventListener("abort", abort); reject(signal?.reason); };
+              signal?.addEventListener("abort", abort, { once: true });
+              next.then(value => { signal?.removeEventListener("abort", abort); resolve(value); }, error => { signal?.removeEventListener("abort", abort); reject(error); });
+              if (signal?.aborted) abort();
+            });
+            signal?.throwIfAborted();
+            return result.done ? new Uint8Array() : result.value;
+          },
+          async close() { try { await iterator?.return?.(); } finally { await handle.close(); } },
+        };
+      } catch (error) { try { await iterator?.return?.(); } finally { await handle.close(); } throw error; }
+    } };
+  }
   return new Proxy(fs, {
     get(target, property) {
       if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);

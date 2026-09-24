@@ -45,7 +45,7 @@ test("actual Shell exec/dispose drains an admitted planning stat", { timeout: 30
   } finally { release.resolve(); await executing; await (disposing ?? shell.dispose()).catch(() => {}); }
 });
 
-for (const phase of ["capabilitiesFor", "readStream"] as const) test(`${phase} getter cancellation blocks method admission`, async context => {
+for (const phase of ["capabilitiesFor", "openReadFile"] as const) test(`${phase} getter cancellation blocks method admission`, async context => {
   const memory = createMemoryFileSystem();
   await memory.writeFile("/input", Buffer.from("hello\n"));
   const controller = new AbortController();
@@ -55,7 +55,7 @@ for (const phase of ["capabilitiesFor", "readStream"] as const) test(`${phase} g
       if (key === phase) {
         controller.abort(false);
         if (phase === "capabilitiesFor") return async () => { calls++; return memory.capabilities; };
-        return () => { calls++; return memory.readStream("/input"); };
+        return () => { calls++; return memory.openReadFile("/input"); };
       }
       const value = Reflect.get(target, key, target);
       return typeof value === "function" ? value.bind(target) : value;

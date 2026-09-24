@@ -15,7 +15,11 @@ tests, unlike the commands themselves, spawn installed gzip executables.
 stdin and stdout, never a file named `-`. Operands run in order. Each compressed
 operand produces a separate gzip member; decompression concatenates decoded
 members. Repeated `-` operands reuse the supplied stdin source without rewinding
-it. Named files resolve relative to the injected virtual cwd.
+it. Named files resolve relative to the injected virtual cwd. Named inputs require
+VFS retained-read handles and stable scoped file identities. Compression checks
+the opened object's identity before reading and uses that handle throughout the
+transform, so ancestor path swaps cannot redirect the input stream. Backends
+without this guarantee are rejected; pathname checks are not a read lease.
 
 | Short | Long | Behavior |
 | --- | --- | --- |
@@ -182,14 +186,15 @@ the original input path before publication/removal.
 
 ## Streaming, cancellation, and limits
 
-Input/output are `Uint8Array` streams. Named inputs require `readStream` and
-`streamingRead !== false`; there is deliberately no `readFile` fallback.
+Input/output are `Uint8Array` streams. Named inputs require `openReadFile`,
+`retainedRead === true`, and stable scoped identities; there is deliberately no
+pathname-stream or `readFile` fallback.
 File output additionally requires `writeStream` and `streamingWrite !== false`.
 An explicit `readOnly: true` capability rejects named-file output with `EROFS`
 before the streaming-write capability check or staging. Missing streaming writes
 on a writable/unspecified backend still report `ENOTSUP`. Readonly policy does
 not prohibit stdout compression, stdout decompression, or validation-only mode.
-Those capability flags may be absent if the methods are present. Inputs must
+The streaming-write flag may be absent if the method is present. Inputs must
 be regular, non-symlink entries, including for stdout/test modes.
 
 The codec uses 64 KiB chunks/high-water marks and awaited sinks for backpressure.

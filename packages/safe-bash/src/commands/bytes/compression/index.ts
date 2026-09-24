@@ -1,10 +1,11 @@
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { readBytes, writeBytes, type CommandDefinition } from "../../../contracts/index.js";
 import { define, diagnostic, output } from "../../internal.js";
-import { planOperands, unchangedSource, writeFileOperand } from "./files.js";
+import { planOperands, sourceBytes, unchangedSource, writeFileOperand } from "./files.js";
 import { parseOptions, profiles } from "./options.js";
-import { chunkBytes, DecodedBudget, transform, type CompressionCommandOptions } from "./stream.js";
+import { DecodedBudget, transform, type CompressionCommandOptions } from "./stream.js";
 import { CompressedDataError } from "./errors.js";
+import { FileOperation } from "./file-operation.js";
 
 export function createCompressionCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
   const maxDecodedBytes = config.maxDecodedBytes;
@@ -31,14 +32,17 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
         let warned: boolean;
         if (plan.destination) warned = await writeFileOperand(context, plan, options, decodedBudget);
         else {
-          await unchangedSource(context, plan);
-          const source = plan.source === "-" ? context.stdin
-            : (signal: AbortSignal) => context.fs.readStream!(plan.source, { signal, chunkSize: chunkBytes });
-          warned = await transform(source, async (bytes, signal) => {
-            for await (const chunk of readBytes(bytes, signal)) {
-              if (!options.test) await writeBytes(context.stdout, chunk, signal);
-            }
-          }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, context.signal, Infinity, decodedBudget);
+          const operation = new FileOperation(context);
+          try {
+            await operation.run(() => unchangedSource({ ...context, fs: operation.fs, signal: operation.signal }, plan));
+            const source = plan.source === "-" ? context.stdin
+              : (signal: AbortSignal) => operation.ownSource(sourceBytes(context, plan, signal));
+            warned = await operation.run(() => transform(source, async (bytes, signal) => {
+              for await (const chunk of readBytes(bytes, signal)) {
+                if (!options.test) await writeBytes(context.stdout, chunk, signal);
+              }
+            }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, operation.signal, Infinity, decodedBudget));
+          } finally { await operation.close(); context.signal.throwIfAborted(); }
         }
         if (warned) {
           if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));

@@ -1,12 +1,77 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gunzipSync, gzipSync } from "node:zlib";
-import { run } from "./helpers.js";
+import { memory, run, wrap } from "./helpers.js";
 
 const fixture = {
   files: { file: "WRONG root source must remain", "target/file": "RIGHT selected source" },
   directories: ["target/inner"], links: { jump: "target/inner" },
 };
+
+for (const mode of ["-c", "-k"]) test(`gzip ${mode} pins source across a transient ancestor swap`, async () => {
+  const fs = await memory({ files: { "sub/a": "ordinary", "private/a": "topsecret" } });
+  const swap = async <T>(read: () => Promise<T>): Promise<T> => {
+    await fs.rename("/work/sub", "/work/held");
+    await fs.symlink("/work/private", "/work/sub");
+    try { return await read(); }
+    finally { await fs.rm("/work/sub"); await fs.rename("/work/held", "/work/sub"); }
+  };
+  let closed = 0;
+  const wrapped = wrap(fs, {
+    readStream: (path, options) => (async function* () {
+      const chunks = await swap(async () => {
+        const data: Uint8Array[] = [];
+        for await (const chunk of fs.readStream(path, options)) data.push(chunk);
+        return data;
+      });
+      yield* chunks;
+    })(),
+    async openReadFile(path, options) {
+      const handle = await fs.openReadFile(path, options);
+      return { stat: handle.stat.bind(handle),
+        read: (offset, length, readOptions) => swap(() => handle.read(offset, length, readOptions)),
+        async close() { closed++; await handle.close(); } };
+    },
+  });
+  const actual = await run("gzip", [mode, "sub/a"], "", {}, { fs: wrapped });
+  assert.equal(actual.exitCode, 0, actual.stderr.toString());
+  const compressed = mode === "-c" ? actual.stdout : await fs.readFile("/work/sub/a.gz");
+  assert.equal(gunzipSync(compressed).toString(), "ordinary");
+  assert.equal(closed, 1);
+  assert.equal(Buffer.from(await fs.readFile("/work/sub/a")).toString(), "ordinary");
+});
+
+for (const mode of ["-c", "-k"]) test(`gzip ${mode} rejects a different file opened after preflight`, async () => {
+  const fs = await memory({ files: { "sub/a": "ordinary", "private/a": "topsecret" } });
+  let reads = 0;
+  let closes = 0;
+  const wrapped = wrap(fs, { async openReadFile(_path, options) {
+    const handle = await fs.openReadFile("/work/private/a", options);
+    return { stat: handle.stat.bind(handle),
+      async read(offset, length, readOptions) { reads++; return handle.read(offset, length, readOptions); },
+      async close() { closes++; await handle.close(); } };
+  } });
+  const actual = await run("gzip", [mode, "sub/a"], "", {}, { fs: wrapped });
+  assert.equal(actual.exitCode, 1);
+  assert.equal(reads, 0);
+  assert.equal(closes, 1);
+  assert.equal(actual.stdout.length, 0);
+  await assert.rejects(fs.lstat("/work/sub/a.gz"), { code: "ENOENT" });
+  assert.deepEqual((await fs.readdir("/work/sub")).map(entry => entry.name), ["a"]);
+});
+
+test("gzip refuses a backend without retained reads before acquiring source or output", async () => {
+  const fs = await memory({ files: { a: "ordinary" } });
+  const capabilities = { ...fs.capabilities, retainedRead: false };
+  const wrapped = wrap(fs, { capabilities, async capabilitiesFor() { return capabilities; },
+    async openReadFile() { assert.fail("unsupported source acquired"); },
+    async mkdir() { assert.fail("output stage acquired"); } });
+  for (const mode of ["-c", "-k"]) {
+    const actual = await run("gzip", [mode, "a"], "", {}, { fs: wrapped });
+    assert.equal(actual.exitCode, 1);
+    assert.equal(actual.stdout.length, 0);
+  }
+});
 
 test("gzip stdin-output path follows symlink before dot-dot with canonical traversal", async () => {
   const actual = await run("gzip", ["-cn", "jump/../file"], "", fixture);

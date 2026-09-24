@@ -127,12 +127,12 @@ test("stream capability failure never falls back to readFile", async () => {
   const memory = createMemoryFileSystem();
   await memory.writeFile("/input", binary);
   const fs = wrap(memory, {
-    capabilities: { ...memory.capabilities, streamingRead: false },
+    capabilities: { ...memory.capabilities, retainedRead: false },
     async readFile() { assert.fail("unbounded fallback"); },
   });
   const result = await run("gzip", ["input"], undefined, { fs });
   assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /stream/i);
+  assert.match(result.stderr, /retained/i);
   assert.equal((await memory.readdir("/")).length, 1);
 });
 

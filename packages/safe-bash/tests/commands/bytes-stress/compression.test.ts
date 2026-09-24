@@ -171,10 +171,16 @@ test("publication follows keep/force suffix flags without appending old destinat
 
 test("source append during streaming is detected before file publication", async () => {
   const fs = await memory({ files: { input: "original" } });
-  const wrapped = wrap(fs, { readStream: (_path, options) => (async function* () {
-    yield Buffer.from("original");
-    await fs.appendFile("/work/input", Buffer.from("changed"), options);
-  })() });
+  const wrapped = wrap(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile(path, options);
+    let appended = false;
+    return { stat: handle.stat.bind(handle), close: handle.close.bind(handle),
+      async read(offset, length, readOptions) {
+        const chunk = await handle.read(offset, length, readOptions);
+        if (!appended) { appended = true; await fs.appendFile("/work/input", Buffer.from("changed"), readOptions); }
+        return chunk;
+      } };
+  } });
   const result = await run("gzip", ["input"], "", {}, { fs: wrapped });
   assert.notEqual(result.exitCode, 0); assert.match(result.stderr.toString(), /changed/u);
   assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "originalchanged");

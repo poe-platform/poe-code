@@ -1,6 +1,6 @@
 import {
   dirname, FsError, joinPath,
-  type CommandContext, type FileStat,
+  type ByteSource, type CommandContext, type FileReadHandle, type FileStat,
 } from "../../../contracts/index.js";
 import { codeOf, pathOf } from "../../internal.js";
 import { PublicDiagnostic } from "../../../diagnostics.js";
@@ -104,8 +104,8 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     }
     if (options.recursive && sourceStat.type === "symlink") continue;
     const sourceCapabilities = await context.fs.capabilitiesFor?.(source, { signal: context.signal }) ?? context.fs.capabilities;
-    if (!context.fs.readStream || sourceCapabilities.streamingRead === false) {
-      throw new FsError("ENOTSUP", { message: "named input requires VFS streaming reads; no readFile fallback" });
+    if (!context.fs.openReadFile || sourceCapabilities.retainedRead !== true || !identified(sourceStat)) {
+      throw new FsError("ENOTSUP", { path: source, message: "named input requires retained VFS reads with stable scoped identities" });
     }
     if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
     const realSource = await context.fs.realpath(source, { signal: context.signal });
@@ -164,6 +164,40 @@ export async function unchangedSource(context: CommandContext, plan: Operand): P
     || await context.fs.realpath(plan.source, { signal: context.signal }) !== plan.realSource) {
     throw new FsError("EBUSY", { path: plan.source, message: "input identity or metadata changed; input retained" });
   }
+}
+
+export async function* sourceBytes(context: CommandContext, plan: Operand, signal: AbortSignal): ByteSource {
+  let handle: FileReadHandle | undefined;
+  const operation = new FileOperation({ ...context, signal }, async () => { await handle?.close(); });
+  try {
+    await operation.run(async () => {
+      const capabilities = await operation.fs.capabilitiesFor?.(plan.source, { signal: operation.signal }) ?? operation.fs.capabilities;
+      operation.check();
+      if (capabilities.retainedRead !== true || !operation.fs.openReadFile) throw new FsError("ENOTSUP", { path: plan.source });
+      operation.check();
+      handle = await operation.fs.openReadFile(plan.source, { signal: operation.signal });
+    });
+    const check = async (): Promise<void> => {
+      const current = await operation.run(() => handle!.stat({ signal: operation.signal }));
+      if (!plan.sourceStat || !sameIdentity(plan.sourceStat, current) || !sameSnapshot(plan.sourceStat, current)) {
+        throw new FsError("EBUSY", { path: plan.source, message: "input identity or metadata changed; input retained" });
+      }
+    };
+    await check();
+    let offset = 0;
+    while (true) {
+      const chunk = await operation.run(() => handle!.read(offset, chunkBytes, { signal: operation.signal }));
+      operation.check();
+      if (!chunk.length) break;
+      if (chunk.length > plan.sourceStat!.size - offset) {
+        throw new FsError("EBUSY", { path: plan.source, message: "input size changed; input retained" });
+      }
+      offset += chunk.length;
+      yield new Uint8Array(chunk);
+    }
+    await check();
+    if (offset !== plan.sourceStat!.size) throw new FsError("EBUSY", { path: plan.source, message: "input size changed; input retained" });
+  } finally { await operation.close(); signal.throwIfAborted(); }
 }
 
 export async function writeFileOperand(context: CommandContext, plan: Operand, options: CompressionOptions, decodedBudget?: import("./stream.js").DecodedBudget): Promise<boolean> {
@@ -233,7 +267,7 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     await operation.run(async () => { await fs.writeFile(staged!, new Uint8Array(), { flag: "wx", mode: 0o600, signal }); stageOwned = true; });
     stageStat = snapshot(await operation.run(() => fs.lstat(staged!, { signal })));
     if (stageStat.type !== "file" || stageStat.size !== 0 || !identified(stageStat)) throw new FsError("EBUSY", { path: staged });
-    warned = await operation.run(() => transform((signal) => fs.readStream!(plan.source, { signal, chunkSize: chunkBytes }), async (output, signal) => {
+    warned = await operation.run(() => transform((signal) => operation.ownSource(sourceBytes(active, plan, signal)), async (output, signal) => {
       await fs.writeStream!(staged!, output, { flag: "w", mode: 0o600, signal });
     }, { ...options, force: false }, signal, stagingLimit, decodedBudget));
     await operation.run(() => unchangedSource(active, plan));

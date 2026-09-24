@@ -3,6 +3,7 @@ import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, I
 import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord } from "./biff-binary.js";
 import { decryptBiffRecords } from "./biff-encryption.js";
 import { encryptBiffStream, createBiffEncryptionHeader, biffEncryptionProfiles, type BiffEncryptionProfile } from "./biff-encrypted-write.js";
+import { encryptBiffXorStreams } from "./biff-xor-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext } from "./biff-formulas.js";
@@ -19,16 +20,18 @@ export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["wri
     let encrypted: BiffEncryptionProfile | undefined;
     for (const text of options) for (const [key, value] of exportOptionPairs(text)) if (key === "encryption") {
       encrypted = biffEncryptionProfiles.get(value);
-      if (profile !== 8 || !encrypted) throw new SsconvertError("invalid-request", "Invalid Excel BIFF encryption profile");
+      if (!encrypted || profile !== 8 && encrypted.algorithm !== "xor") throw new SsconvertError("invalid-request", "Invalid Excel BIFF encryption profile");
     }
     const streams = new Map<string, Uint8Array>();
     try {
-      if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(book, 7, profile === "dsf", context));
+      if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(book, 7, profile === "dsf", context,
+        encrypted ? createBiffEncryptionHeader(encrypted, 7) : undefined));
       if (profile === 8 || profile === "dsf") {
         const stream = await writeBiffStream(book, 8, profile === "dsf", context, encrypted ? createBiffEncryptionHeader(encrypted) : undefined);
         streams.set("Workbook", stream);
-        if (encrypted) await encryptBiffStream(stream, context, encrypted);
+        if (encrypted && encrypted.algorithm !== "xor") await encryptBiffStream(stream, context, encrypted);
       }
+      if (encrypted?.algorithm === "xor") await encryptBiffXorStreams([...streams.values()], profile === 7 ? 7 : 8, context);
       return writeCfb(streams, context);
     } finally { if (encrypted) for (const stream of streams.values()) stream.fill(0); }
   };

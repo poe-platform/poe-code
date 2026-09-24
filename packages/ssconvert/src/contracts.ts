@@ -79,7 +79,9 @@ export interface PasswordCapability {
     format: "biff";
     algorithm: "xor" | "rc4" | "rc4-cryptoapi";
     revision: number;
-    /** XOR requires explicitly encoded bytes; RC4 accepts a string or UTF-16LE bytes. */
+    /** XOR requires explicitly encoded bytes (import 0–15, export 1–15).
+     * A dual-stream XOR export asks once with revision 8 for both streams.
+     * RC4 accepts a string or UTF-16LE bytes. */
     encoding: "bytes" | "utf16le";
   } | {
     format: "odf";

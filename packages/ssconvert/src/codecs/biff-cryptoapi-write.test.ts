@@ -41,7 +41,7 @@ it.each(keySizes)("exports the specified CryptoAPI header and multi-block BIFF d
 
 it("exposes exactly the specified CryptoAPI key sizes through the provider", () => {
   const codec = createRegistry([]).select("write", "Gnumeric_Excel:excel_biff8")!;
-  expect(codec.exportOptionRules?.encryption).toEqual({ kind: "enum", values: ["rc4", ...keySizes.map(bits => `rc4-cryptoapi-${bits}`)] });
+  expect(codec.exportOptionRules?.encryption).toEqual({ kind: "enum", values: ["xor", "rc4", ...keySizes.map(bits => `rc4-cryptoapi-${bits}`)] });
 });
 
 it.each([

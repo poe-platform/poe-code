@@ -2,17 +2,21 @@ import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { rc4Stream } from "./biff-encryption.js";
 
-export type BiffEncryptionProfile = { readonly algorithm: "rc4" } |
+export type BiffEncryptionProfile = { readonly algorithm: "xor" } | { readonly algorithm: "rc4" } |
   { readonly algorithm: "rc4-cryptoapi"; readonly keyBits: number };
 export const biffEncryptionProfiles: ReadonlyMap<string, BiffEncryptionProfile> = new Map<string, BiffEncryptionProfile>([
+  ["xor", { algorithm: "xor" }],
   ["rc4", { algorithm: "rc4" }],
   ...[40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128].map(bits =>
     [`rc4-cryptoapi-${bits}`, { algorithm: "rc4-cryptoapi", keyBits: bits }] as const)
 ]);
+export const biffLegacyEncryptionOptions = [...biffEncryptionProfiles]
+  .filter(([, profile]) => profile.algorithm === "xor").map(([name]) => name);
 
 /** MS-OFFCRYPTO 2.3.5.1. This CSP supports RC4/SHA-1 and the full key range;
  * it is an on-file identifier, never a request to load a host provider. */
-export function createBiffEncryptionHeader(profile: BiffEncryptionProfile): Uint8Array {
+export function createBiffEncryptionHeader(profile: BiffEncryptionProfile, revision: 7 | 8 = 8): Uint8Array {
+  if (profile.algorithm === "xor") return new Uint8Array(revision === 8 ? 6 : 4);
   if (profile.algorithm === "rc4") return new Uint8Array(54);
   const provider = "Microsoft Enhanced Cryptographic Provider v1.0";
   const headerSize = 32 + (provider.length + 1) * 2, bytes = new Uint8Array(14 + headerSize + 60);
@@ -34,7 +38,7 @@ function unsupported(message: string): never {
 /** Encrypt an owned BIFF8 stream with its FILEPASS slot already included in all
  * offsets. MS-OFFCRYPTO 2.3.5/2.3.6 and MS-XLS 2.2.10: unauthenticated RC4. */
 export async function encryptBiffStream(bytes: Uint8Array, context: CapabilityContext,
-  profile: BiffEncryptionProfile = { algorithm: "rc4" }): Promise<void> {
+  profile: Exclude<BiffEncryptionProfile, { readonly algorithm: "xor" }> = { algorithm: "rc4" }): Promise<void> {
   context.signal.throwIfAborted();
   if (!context.password || !context.entropy) unsupported("export requires password and cryptographic entropy capabilities");
   // Admit the maximum password/KDF, verifier and every absolute-position block

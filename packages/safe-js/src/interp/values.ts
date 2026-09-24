@@ -1659,7 +1659,10 @@ function measureSandboxDataWithSeen(
         try {
           for (let index = 0; index < (trackedDescriptors?.length ?? keys!.length); index++) {
             const key = trackedDescriptors === undefined ? keys![index]! : trackedDescriptors[index]![0];
-            const descriptor = trackedDescriptors === undefined ? (proxyDescriptors === undefined
+            // Metadata providers may edit later fields. Keep the captured key order,
+            // but refresh descriptors when a provider invalidates the owned table.
+            const descriptor = trackedDescriptors === undefined ||
+              (metadata !== undefined && trackedPropertyDataDescriptors(value) !== trackedDescriptors) ? (proxyDescriptors === undefined
               ? Object.getOwnPropertyDescriptor(value,key) : proxyDescriptors[index]) : trackedDescriptors[index]![1];
             if (descriptor === undefined) continue;
             if (!descriptor.enumerable && !includeNonEnumerable) continue;

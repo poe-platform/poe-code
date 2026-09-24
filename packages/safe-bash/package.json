@@ -451,6 +451,10 @@
     "./commands/soffice": {
       "types": "./dist/commands/soffice/index.d.ts",
       "import": "./dist/commands/soffice/index.js"
+    },
+    "./commands/sips": {
+      "types": "./dist/commands/sips/index.d.ts",
+      "import": "./dist/commands/sips/index.js"
     }
   },
   "files": [
@@ -566,7 +570,8 @@
     "safe-bash-command-pdfinfo": "*",
     "safe-bash-command-pdftotext": "*",
     "safe-bash-command-qpdf": "*",
-    "safe-bash-command-soffice": "*"
+    "safe-bash-command-soffice": "*",
+    "safe-bash-command-sips": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -756,6 +761,14 @@
           "dependencies": {},
           "devDependencies": {
             "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-sips": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/image-ast": "*",
             "safe-bash-contracts": "*"
           }
         }

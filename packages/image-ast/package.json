@@ -1,0 +1,30 @@
+{
+  "name": "@poe-code/image-ast",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "cd ../.. && vitest run packages/image-ast",
+    "test:unit": "cd ../.. && vitest run packages/image-ast"
+  },
+  "dependencies": {
+    "@poe-code/pdf-ast": "*",
+    "pako": "3.0.1"
+  }
+}

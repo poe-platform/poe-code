@@ -23,8 +23,10 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
   return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
     try {
       const contextLengths = new Map<string, number>();
+      let fileSelection: "l" | "L" | undefined;
+      let filenameOption: "h" | "H" | undefined;
       const filters: { key: string; pattern: string }[] = [];
-      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:I:X:Y:T:", { color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false, label: "label:", "initial-tab": false, "group-separator": "group-separator:", help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "I", exclude: "X", "exclude-from": "Y", "exclude-dir": "T" }, false, undefined, (key, index, offset) => {
+      const parsed = parseOptions(context.args, "GEFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:I:X:Y:T:", { color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false, label: "label:", "initial-tab": false, "group-separator": "group-separator:", help: false, "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "I", exclude: "X", "exclude-from": "Y", "exclude-dir": "T" }, false, undefined, (key, index, offset) => {
         const text = context.args[index]!.slice(offset);
         if (["I", "X", "Y"].includes(key)) filters.push({ key, pattern: text });
         if (!["A", "B", "C"].includes(key)) return;
@@ -33,11 +35,17 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
           for (const side of key === "C" ? ["A", "B"] : [key]) contextLengths.set(side, length);
         }
         catch { throw new UsageError(`${text}: invalid context length argument`); }
+      }, key => {
+        if (key === "l" || key === "L") fileSelection = key;
+        if (key === "h" || key === "H") filenameOption = key;
       });
+      if (fileSelection) parsed.flags.delete(fileSelection === "l" ? "L" : "l");
+      if (filenameOption) parsed.flags.delete(filenameOption === "h" ? "H" : "h");
       if (parsed.flags.has("help")) {
         await output(context, `Usage: grep [OPTION]... PATTERN [FILE]...
 Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
 
+  -G, --basic-regexp       Use basic regular expressions (default)
   -E, --extended-regexp    Use extended regular expressions
   -F, --fixed-strings      Use fixed strings
   -e, --regexp=PATTERN     Add a pattern (repeatable)

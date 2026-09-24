@@ -53,15 +53,14 @@ test("native Python generation owns modifier formatting and string escaping", ()
 	).toBe('page.locator("textarea").fill("say \\"hello\\"\\nworld")');
 });
 
-test("oversized action data is refused before native generation", () => {
-	expect(() =>
-		generateBrowserActionCode({
-			language: "python",
-			action: {
-				name: "fill",
-				selector: "textarea",
-				text: "a".repeat(1024 * 1024),
-			},
-		}),
-	).toThrow("input limit exceeded");
+test.each([
+	["large input", "a".repeat(1024 * 1024)],
+	["large generated output", "\u0000".repeat(2 * 1024 * 1024)],
+])("native generation accepts %s without an implicit byte cap", (_, text) => {
+	const code = generateBrowserActionCode({
+		language: "python",
+		action: { name: "fill", selector: "textarea", text },
+	});
+	expect(code).toContain('page.locator("textarea").fill(');
+	expect(code.length).toBeGreaterThan(text.length);
 });

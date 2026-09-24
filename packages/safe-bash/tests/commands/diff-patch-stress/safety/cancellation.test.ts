@@ -76,7 +76,11 @@ test("blocked stdin next and cleanup return cannot replace the abort reason", { 
     controller.abort(reason);
     await rejected;
     await cleanupEntered.promise;
-    assert.deepEqual(observed.calls.map(call => [call.method, call.path]), [["lstat", "/"], ["lstat", "/sandbox"], ["lstat", cwd]]);
+    assert.deepEqual(observed.calls.map(call => [call.method, call.path]), [
+      ["lstat", "/"], ["lstat", "/sandbox"], ["lstat", cwd],
+    ]);
+    for (const call of observed.calls) assert.equal(call.signal, controller.signal);
+    assert.deepEqual(observed.mutations(), []);
     assert.deepEqual(await snapshot(backing), before);
   } finally {
     controller.abort(reason);
@@ -87,7 +91,7 @@ test("blocked stdin next and cleanup return cannot replace the abort reason", { 
 });
 
 for (const method of ["publishStagedFile", "rm"] as const) {
-  test(`abort blocked ${method} preserves the successful prefix and drains owned staging`, { timeout: 4000 }, async () => {
+  test(`abort blocked ${method} leaves only successful prefix and no cleanup writes`, { timeout: 4000 }, async () => {
     const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
     const entered = deferred<void>();
     const blocked = deferred<void>();
@@ -104,21 +108,20 @@ for (const method of ["publishStagedFile", "rm"] as const) {
     });
     const input = replacement("first") + (method === "rm" ? deletion("second") : replacement("second")) + replacement("third");
     let settled = false;
-    const rejected = assert.rejects(invoke(observed.fs, "patch", { input, signal: controller.signal }), error => error === reason)
-      .finally(() => { settled = true; });
+    const running = invoke(observed.fs, "patch", { input, signal: controller.signal }).finally(() => { settled = true; });
+    const rejected = assert.rejects(running, error => error === reason);
     try {
       await entered.promise;
       controller.abort(reason);
-      if (method === "publishStagedFile") {
-        await drain();
-        assert.equal(settled, false, "staging cleanup drains the admitted publication");
-        blocked.reject(new Error("late commit failure"));
-      }
-      await rejected;
+      await drain();
+      if (method === "publishStagedFile") assert.equal(settled, false, "publication must settle before its staging is removed");
       await assertBytes(backing, "first", "new\n");
       await assertBytes(backing, "second", "old\n");
       await assertBytes(backing, "third", "old\n");
+      blocked.reject(new Error("late commit failure"));
+      await rejected;
       assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/first`], [method, `${cwd}/second`]]);
+      assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name).sort(), ["first", "second", "third"]);
     } finally {
       controller.abort(reason);
       blocked.reject(new Error("late commit failure"));
@@ -127,7 +130,7 @@ for (const method of ["publishStagedFile", "rm"] as const) {
   });
 }
 
-test("admitted publication finishes before cancellation settles, and later files never start", { timeout: 4000 }, async () => {
+test("uncooperative publication can finish after cancellation; cleanup waits and later files never start", { timeout: 4000 }, async () => {
   const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
   const entered = deferred<void>();
   const blocked = deferred<void>();
@@ -144,22 +147,23 @@ test("admitted publication finishes before cancellation settles, and later files
     },
   });
   let settled = false;
-  const rejected = assert.rejects(invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal }), error => error === reason)
+  const running = invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal })
     .finally(() => { settled = true; });
+  const rejected = assert.rejects(running, error => error === reason);
   try {
     await entered.promise;
     controller.abort(reason);
     await drain();
-    assert.equal(settled, false);
+    assert.equal(settled, false, "staging remains owned until the opaque host operation settles");
     await assertBytes(backing, "first", "new\n");
     await assertBytes(backing, "second", "old\n");
     blocked.resolve();
     await finished.promise;
     await rejected;
-    await drain();
     await assertBytes(backing, "second", "late host side effect\n");
     await assertBytes(backing, "third", "old\n");
     assert.deepEqual(observed.mutations().map(call => call.path), [`${cwd}/first`, `${cwd}/second`]);
+    assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name).sort(), ["first", "second", "third"]);
   } finally {
     controller.abort(reason);
     blocked.resolve();

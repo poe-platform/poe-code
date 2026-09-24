@@ -143,6 +143,39 @@ for (const probe of missingParentProbes) test(`GNU default creation and complete
   await assertDefaultParity(probe);
 });
 
+for (const replaceParent of [false, true]) test(`explicit deletion prunes admitted ancestors outside cwd; parent replacement=${replaceParent}`, async () => {
+  const backing = await memory({ sentinel: "untouched\n" });
+  await backing.mkdir("/authorized/nested", { recursive: true });
+  await backing.writeFile("/authorized/nested/target", bytes("old\n"));
+  const original = await backing.lstat("/authorized/nested");
+  const observed = instrument(backing, {
+    async before(call) {
+      if (!replaceParent || call.method !== "rmdir" || call.path !== "/authorized/nested") return;
+      await backing.rename("/authorized/nested", "/authorized/retained");
+      await backing.mkdir("/authorized/nested");
+    },
+  });
+  const result = await invoke(observed.fs, "patch", { args: ["-E", "/authorized/nested/target"], input: deletion("label") });
+  await assertBytes(backing, "sentinel", "untouched\n");
+  if (replaceParent) {
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.match(result.stderr, /EAGAIN/u);
+    assert.equal((await backing.lstat("/authorized/retained")).ino, original.ino);
+    assert.notEqual((await backing.lstat("/authorized/nested")).ino, original.ino);
+    assert.deepEqual(await backing.readdir("/authorized/nested"), []);
+    assert.deepEqual(await backing.readdir("/authorized/retained"), []);
+    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [
+      ["rm", "/authorized/nested/target"], ["rmdir", "/authorized/nested"],
+    ]);
+  } else {
+    assert.equal(result.exitCode, 0, result.stderr);
+    await assert.rejects(backing.lstat("/authorized"), { code: "ENOENT" });
+    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [
+      ["rm", "/authorized/nested/target"], ["rmdir", "/authorized/nested"], ["rmdir", "/authorized"],
+    ]);
+  }
+});
+
 test("dry-run mixed create/update/delete validates every result without mutation", async () => {
   const backing = await memory({ target: "old\n", remove: "old\n", sentinel: bytes("\ufeffcafé\r\n") });
   const before = await snapshot(backing);

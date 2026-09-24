@@ -59,6 +59,7 @@ for (const failedIndex of [0, 1, 2]) {
           else assert.equal(inode, identities[index]!.ino, "failed and unattempted targets retain their original inodes");
         }
       }
+      assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name).sort(), operation === "rm" ? names.slice(failedIndex) : names);
     });
   }
 }
@@ -83,6 +84,29 @@ for (const operation of ["publishStagedFile", "rm"] as const) {
     else await assert.rejects(backing.lstat(`${cwd}/second`), { code: "ENOENT" });
     await assertBytes(backing, "third", "old\n");
     assert.deepEqual(observed.mutations().map(call => call.path), [`${cwd}/first`, `${cwd}/second`]);
+    assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name).sort(), operation === "rm" ? ["first", "third"] : ["first", "second", "third"]);
+  });
+}
+
+for (const operation of ["publishStagedFile", "rm"] as const) {
+  test(`a ${operation} whose acknowledgement fails is not falsely rolled back or counted successful`, async () => {
+    const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
+    const observed = instrument(backing, {
+      after(call) {
+        if (call.method !== operation || call.path !== `${cwd}/second`) return;
+        throw new FsError("EIO", { path: call.path });
+      },
+    });
+    const input = replacement("first") + (operation === "publishStagedFile" ? replacement("second") : deletion("second")) + replacement("third");
+    const result = await invoke(observed.fs, "patch", { input });
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.match(result.stderr, /1\/3 files committed; failing operation may have side effects/u);
+    await assertBytes(backing, "first", "new\n");
+    if (operation === "publishStagedFile") await assertBytes(backing, "second", "new\n");
+    else await assert.rejects(backing.lstat(`${cwd}/second`), { code: "ENOENT" });
+    await assertBytes(backing, "third", "old\n");
+    assert.deepEqual(observed.mutations().map(call => call.path), [`${cwd}/first`, `${cwd}/second`]);
+    assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name).sort(), operation === "rm" ? ["first", "third"] : ["first", "second", "third"]);
   });
 }
 
@@ -104,11 +128,13 @@ test("exclusive creation refuses a competing new file without cleanup unlink", a
   const result = await invoke(fs, "patch", { input: replacement("first") + creation("created") + replacement("third") });
   assert.equal(result.exitCode, 2, result.stderr);
   assert.match(result.stderr, /1\/3 files committed/u);
+  assert.match(result.stderr, /EAGAIN/u);
   await assertBytes(backing, "first", "new\n");
   await assertBytes(backing, "created", "competitor\n");
   await assertBytes(backing, "third", "old\n");
   assert.equal((await backing.lstat(`${cwd}/created`)).ino, competingIdentity);
   assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/first`], ["publishStagedFile", `${cwd}/created`]]);
+  assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name).sort(), ["created", "first", "third"]);
 });
 
 for (const change of ["content", "symlink", "hardlink", "removed", "parent"] as const) {
@@ -169,27 +195,40 @@ test("failed diagnostic sink rejects rather than reporting successful handling",
   assert.deepEqual(await snapshot(backing), before);
 });
 
-test("documented race limit: same-byte replacement during preparation is accepted and then staged", async () => {
+for (const phase of ["preflight", "publication"] as const) test(`same-byte replacement during ${phase} preserves the publication identity boundary`, async () => {
   const backing = await memory();
   const initial = (await backing.lstat(`${cwd}/target`)).ino;
   let replacementIdentity: number | undefined;
   let targetReads = 0;
+  const replaceTarget = async (path: string) => {
+    await backing.rm(path);
+    await backing.writeFile(path, bytes("old\n"));
+    replacementIdentity = (await backing.lstat(path)).ino;
+  };
   const observed = instrument(backing, {
+    async before(call) {
+      if (phase === "publication" && call.method === "publishStagedFile" && call.path === `${cwd}/target`) await replaceTarget(call.path);
+    },
     async after(call) {
-      if (call.method !== "readFile" || call.path !== `${cwd}/target` || ++targetReads !== 1) return;
-      await backing.rm(call.path);
-      await backing.writeFile(call.path, bytes("old\n"));
-      replacementIdentity = (await backing.lstat(call.path)).ino;
+      if (phase !== "preflight" || call.method !== "readFile" || call.path !== `${cwd}/target` || ++targetReads !== 1) return;
+      await replaceTarget(call.path);
     },
   });
   const result = await invoke(observed.fs, "patch", { input: replacement() });
-  assert.equal(result.exitCode, 0, result.stderr);
-  assert.notEqual(replacementIdentity, undefined, "the same-byte replacement hook must run");
+  assert.equal(result.exitCode, phase === "publication" ? 2 : 0, result.stderr);
+  if (phase === "publication") assert.match(result.stderr, /EAGAIN/u);
+  else assert.equal(result.stderr, "");
+  assert.notEqual(replacementIdentity, undefined);
   assert.notEqual(replacementIdentity, initial);
-  const publishedIdentity = (await backing.lstat(`${cwd}/target`)).ino;
-  assert.notEqual(publishedIdentity, replacementIdentity, "the accepted replacement is itself replaced by the staged publication");
-  assert.notEqual(publishedIdentity, initial);
-  await assertBytes(backing, "target", "new\n");
+  const finalIdentity = (await backing.lstat(`${cwd}/target`)).ino;
+  if (phase === "publication") assert.equal(finalIdentity, replacementIdentity);
+  else {
+    assert.notEqual(finalIdentity, replacementIdentity);
+    assert.notEqual(finalIdentity, initial);
+  }
+  await assertBytes(backing, "target", phase === "publication" ? "old\n" : "new\n");
+  assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/target`]]);
+  assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name), ["target"]);
 });
 
 for (const method of ["lstat", "openReadFile", "retained read", "readdir"] as const) {

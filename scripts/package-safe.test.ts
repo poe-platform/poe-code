@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 import path from "node:path";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
@@ -10,6 +10,15 @@ import { build, transformSync, type BuildOptions } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
+const dtsTranspileCache = new Map<string, string>();
+function getCachedDeclaration(distPath: string, source: string, compilerOptions: ts.CompilerOptions): string {
+  if (existsSync(distPath)) return readFileSync(distPath, "utf8");
+  const cached = dtsTranspileCache.get(source);
+  if (cached !== undefined) return cached;
+  const emitted = ts.transpileDeclaration(source, { compilerOptions }).outputText;
+  dtsTranspileCache.set(source, emitted);
+  return emitted;
+}
 
 it("embeds the declared ssconvert SDK behind its legacy CLI subpath without a CLI dependency", async () => {
   const { volume, options } = optionalLeftovers();
@@ -330,7 +339,9 @@ it("admits Shell byte argv through an isolated packed private command graph", as
       const source = readFileSync(path.join(directory, "src", filename), "utf8");
       const compilerOptions = { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 };
       volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, transformSync(source, { loader: "ts", format: "esm", target: "es2022" }).code);
-      volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, ts.transpileDeclaration(source, { compilerOptions }).outputText);
+      const distDts = path.join(directory, "dist", `${filename.slice(0, -3)}.d.ts`);
+      const dtsText = getCachedDeclaration(distDts, source, compilerOptions);
+      volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);
     }
   }
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
@@ -359,7 +370,9 @@ it("admits Shell byte argv through an isolated packed private command graph", as
     const source = readFileSync(path.join(repository, "packages/safe-fs/src", relative), "utf8");
     const destination = `/repo/packages/safe-fs/dist/${relative.slice(0, -3)}.d.ts`;
     volume.mkdirSync(path.dirname(destination), { recursive: true });
-    volume.writeFileSync(destination, ts.transpileDeclaration(source, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText);
+    const builtFsDts = path.join(repository, "packages/safe-fs/dist", `${relative.slice(0, -3)}.d.ts`);
+    const fsDtsText = getCachedDeclaration(builtFsDts, source, { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 });
+    volume.writeFileSync(destination, fsDtsText);
     for (const entry of ts.preProcessFile(source).importedFiles) {
       if (entry.fileName.startsWith(".")) {
         const filename = path.posix.normalize(path.posix.join(path.posix.dirname(relative), entry.fileName));

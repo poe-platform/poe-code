@@ -2,9 +2,62 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import * as commands from '../dist/commands.js';
+import {createTerminalPilotGroup as createReferenceGroup} from '../../terminal-pilot/dist/commands/index.js';
 import {createTerminalPilotMCPGroup} from '../../terminal-pilot-mcp/dist/index.js';
 import {createMCPServer} from '../../toolcraft/dist/mcp.js';
 const native=createRequire(import.meta.url)('../dist/terminal-pilot-rust.node');
+test('command schemas implement Standard Schema for root and nested descriptors',async()=>{
+ const reference=new Map(createReferenceGroup().children.map(command=>[command.name,command]));
+ for(const command of commands.createTerminalPilotGroup().children){
+  const expected=reference.get(command.name);
+  assert.ok(expected);
+  const pending=[[command.params,expected.params]];
+  while(pending.length){
+   const [actual,wanted]=pending.pop();
+   assert.equal(actual['~standard']?.version,1);
+   assert.equal(actual['~standard'].vendor,'terminal-pilot-rust');
+   assert.equal(Object.getOwnPropertyDescriptor(actual,'~standard').enumerable,false);
+   assert.deepEqual(structuredClone(actual),structuredClone(wanted));
+   for(const target of ['draft-07','draft-2020-12'])for(const io of ['input','output']){
+    const document=actual['~standard'].jsonSchema[io]({target});
+    assert.deepEqual(document,wanted['~standard'].jsonSchema[io]({target}));
+    document.type='null';
+    assert.deepEqual(actual['~standard'].jsonSchema[io]({target}),wanted['~standard'].jsonSchema[io]({target}));
+   }
+   assert.throws(()=>actual['~standard'].jsonSchema.input({target:'unsupported'}),/Unsupported JSON Schema target/);
+   if(wanted.shape)for(const key of Object.keys(wanted.shape))pending.push([actual.shape[key],wanted.shape[key]]);
+   for(const key of ['inner','item'])if(wanted[key])pending.push([actual[key],wanted[key]]);
+  }
+ }
+ const cases=[
+  ['create-session',[],{command:'tool',args:['one'],cols:80,observe:true}],
+  ['create-session',[],{command:'tool',args:undefined,cwd:undefined}],
+  ['create-session',[],{}], ['create-session',[],{command:' '}],
+  ['create-session',['shape','command'],'tool'], ['create-session',['shape','command'],false],
+  ['create-session',['shape','args'],undefined], ['create-session',['shape','args'],['one','two']],
+  ['create-session',['shape','args'],['one',false]], ['create-session',['shape','args','inner','item'],'one'],
+  ['create-session',['shape','cols'],1.5], ['create-session',['shape','observe'],false],
+  ['wait-for',['shape','scope'],undefined], ['wait-for',['shape','scope'],'history'],
+  ['wait-for',['shape','scope','inner'],'screen'], ['wait-for',['shape','scope'],'invalid'],
+  ['resize',[],{cols:80,rows:24}], ['resize',[],{cols:0,rows:24}], ['list-sessions',[],{}],
+ ];
+ const own=new Map(commands.terminalPilotGroup.children.map(command=>[command.name,command]));
+ for(const [name,path,value] of cases){
+  const actual=path.reduce((schema,key)=>schema[key],own.get(name).params);
+  const wanted=path.reduce((schema,key)=>schema[key],reference.get(name).params);
+  const result=await actual['~standard'].validate(value),expected=await wanted['~standard'].validate(value);
+  if(expected.issues){
+   assert.ok(result.issues?.length,`${name} ${path.join('.')} must reject invalid input`);
+   assert.deepEqual(result.issues.map(issue=>issue.path),expected.issues.map(issue=>issue.path));
+   for(const issue of result.issues)assert.equal(typeof issue.message,'string');
+   assert.equal(Object.hasOwn(result,'value'),false);
+  }else assert.deepEqual(result,expected);
+ }
+ let reads=0;
+ const accessor=Object.defineProperty({},'command',{enumerable:true,get(){reads++;return 'tool';}});
+ assert.ok((await commands.createSession.params['~standard'].validate(accessor)).issues?.length);
+ assert.equal(reads,0,'schema validation must not execute accessors');
+});
 test('own Rust wire metadata exactly matches the current original MCP command surface',async()=>{
  const server=createMCPServer(createTerminalPilotMCPGroup(),{name:'terminal-pilot',version:'0.0.1',omitRootToolNamePrefix:true}),session=server.createMessageSession();
  try{

@@ -96,9 +96,37 @@ async function executeCommand(name,{params,env,terminalPilotRuntime}){
  const result=admission(native.terminalCommandFinish(name,payload,false));
  return native.terminalCommandReturnsValue(name)?result:undefined;
 }
+function attachStandardSchema(name,schema,path=[]){
+ if(schema.shape)for(const[key,field]of Object.entries(schema.shape))attachStandardSchema(name,field,[...path,'shape',key]);
+ for(const key of ['inner','item'])if(schema[key])attachStandardSchema(name,schema[key],[...path,key]);
+ let compiled;
+ Object.defineProperty(schema,'~standard',{configurable:true,get(){
+  compiled??=new native.NativeTerminalCommandSchema(name,path);
+  const jsonSchema=({target})=>{
+   const uri=target==='draft-2020-12'?'https://json-schema.org/draft/2020-12/schema':target==='draft-07'?'http://json-schema.org/draft-07/schema#':undefined;
+   if(uri===undefined)throw new Error(`Unsupported JSON Schema target: ${target}`);
+   return{$schema:uri,...compiled.document()};
+  };
+  return{version:1,vendor:'terminal-pilot-rust',validate(value){
+   try{
+    let input=value;
+    if(schema.kind==='object'&&value!==null&&typeof value==='object'&&!Array.isArray(value)){
+     input=Object.create(Object.getPrototypeOf(value));
+     for(const[key,descriptor]of Object.entries(Object.getOwnPropertyDescriptors(value))){
+      if(!descriptor.enumerable||(Object.hasOwn(descriptor,'value')&&descriptor.value===undefined))continue;
+      Object.defineProperty(input,key,descriptor);
+     }
+    }
+    const result=compiled.validate(input);
+    return result.issues?result:{value:result.value};
+   }catch(error){return{issues:[{path:[],message:error instanceof Error?error.message:String(error)}]};}
+  },jsonSchema:{input:jsonSchema,output:jsonSchema}};
+ }});
+}
 export function createTerminalPilotGroup(){
  const children=native.terminalCommandDefinitions().map(metadata=>{
   delete metadata.mcpResultSchema;
+  attachStandardSchema(metadata.name,metadata.params);
   return{...metadata,handler:context=>executeCommand(metadata.name,context)};
  });
  return{kind:'group',name:'terminal-pilot',aliases:[],scope:['cli','mcp','sdk'],secrets:{},children};

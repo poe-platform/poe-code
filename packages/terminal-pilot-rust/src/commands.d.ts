@@ -12,8 +12,17 @@ export interface TerminalPilotRuntime{
 }
 export declare function createTerminalPilotRuntime(options?:{launchPilot?:()=>Promise<TerminalPilotLike>}):TerminalPilotRuntime;
 export interface TerminalPilotCommandServices{terminalPilotRuntime?:TerminalPilotRuntime;}
-type ValueSchema<T>=T extends string?{kind:'string'}:T extends number?{kind:'number'}:T extends boolean?{kind:'boolean'}:T extends Array<infer I>?{kind:'array';item:ValueSchema<I>}:{kind:'object';shape:Record<string,any>};
-type ParamsSchema<T extends object>={kind:'object';shape:{[K in keyof T]-?:undefined extends T[K]?{kind:'optional';inner:ValueSchema<Exclude<T[K],undefined>>}:ValueSchema<T[K]>}};
+type StandardResult<T>={readonly value:T;readonly issues?:undefined}|{readonly issues:readonly {readonly message:string;readonly path?:ReadonlyArray<PropertyKey|{readonly key:PropertyKey}>}[];readonly value?:undefined};
+type StandardOptions={readonly target:string;readonly libraryOptions?:Record<string,unknown>};
+interface StandardSchema<T>{
+ readonly '~standard':{
+  readonly version:1;readonly vendor:string;readonly types?:{readonly input:T;readonly output:T};
+  readonly validate:(value:unknown,options?:{readonly libraryOptions?:Record<string,unknown>})=>StandardResult<T>|Promise<StandardResult<T>>;
+  readonly jsonSchema:{readonly input:(options:StandardOptions)=>Record<string,unknown>;readonly output:(options:StandardOptions)=>Record<string,unknown>};
+ };
+}
+type ValueSchema<T>=(T extends string?{kind:'string'}:T extends number?{kind:'number'}:T extends boolean?{kind:'boolean'}:T extends Array<infer I>?{kind:'array';item:ValueSchema<I>}:{kind:'object';shape:Record<string,any>})&StandardSchema<T>;
+type ParamsSchema<T extends object>={kind:'object';shape:{[K in keyof T]-?:undefined extends T[K]?{kind:'optional';inner:ValueSchema<Exclude<T[K],undefined>>}&StandardSchema<T[K]>:ValueSchema<T[K]>}}&StandardSchema<T>;
 type Secrets=Record<string,{env:string;description?:string;optional?:boolean}>;
 export interface TerminalCommand<TParams extends object=Record<string,unknown>,TResult=unknown,TName extends string=string,TSchema extends {kind:'object';shape:Record<string,any>}=ParamsSchema<TParams>> {
  kind:'command';name:string;description?:string;title?:string;annotations?:{readOnlyHint?:boolean;destructiveHint?:boolean;idempotentHint?:boolean;openWorldHint?:boolean};
@@ -32,7 +41,7 @@ export declare const fill:TerminalCommand<{text:string}&SelectSession,undefined,
 export declare const pressKey:TerminalCommand<{key:string}&SelectSession,undefined,'press-key'>;
 export declare const sendSignal:TerminalCommand<{signal:string}&SelectSession,undefined,'send-signal'>;
 type WaitParams={pattern:string;timeout?:number;scope?:'history'|'screen';literal?:boolean}&SelectSession;
-type WaitSchema={kind:'object';shape:Omit<ParamsSchema<WaitParams>['shape'],'scope'>&{scope:{kind:'optional';inner:{kind:'enum';values:readonly ['history','screen']}}}};
+type WaitSchema={kind:'object';shape:Omit<ParamsSchema<WaitParams>['shape'],'scope'>&{scope:{kind:'optional';inner:{kind:'enum';values:readonly ['history','screen']}&StandardSchema<'history'|'screen'>}&StandardSchema<WaitParams['scope']>}}&StandardSchema<WaitParams>;
 export declare const waitFor:TerminalCommand<WaitParams,{matched:true;line:string},'wait-for',WaitSchema>;
 export declare const waitForExit:TerminalCommand<{timeout?:number}&SelectSession,ExitResult,'wait-for-exit'>,closeSession:TerminalCommand<SelectSession,ExitResult,'close-session'>;
 export declare const readScreen:TerminalCommand<SelectSession,{lines:string[];cursor:{row:number;col:number};size:{rows:number;cols:number};exitCode:number|null},'read-screen'>;

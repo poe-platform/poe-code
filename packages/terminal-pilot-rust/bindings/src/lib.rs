@@ -467,6 +467,32 @@ pub fn terminal_command_finish(
 pub fn terminal_command_returns_value(name: String) -> bool {
     terminal_pilot_rust::command::returns_value(&name)
 }
+#[napi]
+pub struct NativeTerminalCommandSchema {
+    inner: terminal_pilot_rust::command::ParameterSchema,
+}
+#[napi]
+impl NativeTerminalCommandSchema {
+    #[napi(constructor)]
+    pub fn new(name: String, path: Vec<String>) -> Result<Self> {
+        Ok(Self {
+            inner: terminal_pilot_rust::command::ParameterSchema::new(&name, &path)
+                .map_err(|fault| Error::from_reason(fault.message))?,
+        })
+    }
+    #[napi]
+    pub fn document(&self) -> NativeJson {
+        NativeJson(self.inner.document())
+    }
+    #[napi]
+    pub fn validate(&self, env: Env, value: Unknown<'_>) -> Result<NativeJson> {
+        use mcp_protocol_rust_napi_core::json_input::{self, Mode};
+        self.inner
+            .validate(json_input::read(&env, value, Mode::Json)?)
+            .map(NativeJson)
+            .map_err(Error::from_reason)
+    }
+}
 #[napi(custom_finalize)]
 pub struct NativeTerminalNames {
     inner: terminal_pilot_rust::names::Names,

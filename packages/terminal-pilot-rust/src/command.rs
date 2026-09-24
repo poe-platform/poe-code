@@ -216,6 +216,82 @@ fn spec(name: &str) -> Result<&'static Spec, Fault> {
         .find(|s| s.metadata.get("name") == Some(&self::s(name)))
         .ok_or_else(|| fault(-32602, format!("Unknown terminal command: {name}")))
 }
+
+/// Standard Schema views retain the same static declarations as command admission.
+pub struct ParameterSchema {
+    document: Value,
+    compiled: CompiledSchema,
+    optional: bool,
+}
+
+impl ParameterSchema {
+    pub fn new(name: &str, path: &[String]) -> Result<Self, Fault> {
+        let mut field = spec(name)?.metadata.get("params").unwrap();
+        for component in path {
+            field = field
+                .get(component)
+                .ok_or_else(|| fault(-32602, "Unknown command parameter schema"))?;
+        }
+        if !matches!(
+            field.get("kind").map(text).as_deref(),
+            Some("object" | "array" | "optional" | "enum" | "string" | "number" | "boolean")
+        ) {
+            return Err(fault(-32602, "Not a command parameter schema"));
+        }
+        let document = schema(field, false);
+        let compiled = CompiledSchema::compile(document.clone(), Default::default())
+            .map_err(|error| fault(-32603, error))?;
+        Ok(Self {
+            document,
+            compiled,
+            optional: field.get("kind") == Some(&s("optional")),
+        })
+    }
+
+    pub fn document(&self) -> Value {
+        self.document.clone()
+    }
+
+    pub fn validate(&self, value: Option<Value>) -> Result<Value, String> {
+        let Some(value) = value else {
+            return Ok(if self.optional {
+                o(vec![])
+            } else {
+                o(vec![(
+                    "issues",
+                    Value::Array(vec![o(vec![
+                        ("path", Value::Array(vec![])),
+                        ("message", s("Expected a required value")),
+                    ])]),
+                )])
+            });
+        };
+        let issues = self
+            .compiled
+            .validate(&value, ValidationOptions::default())?;
+        if issues.is_empty() {
+            return Ok(o(vec![("value", value)]));
+        }
+        Ok(o(vec![(
+            "issues",
+            Value::Array(
+                issues
+                    .into_iter()
+                    .map(|issue| {
+                        o(vec![
+                            (
+                                "path",
+                                Value::Array(issue.path.into_iter().map(Value::String).collect()),
+                            ),
+                            ("message", Value::String(issue.message)),
+                        ])
+                    })
+                    .collect(),
+            ),
+        )]))
+    }
+}
+
 fn validate(compiled: &CompiledSchema, value: &Value, code: i32) -> Result<(), Fault> {
     let issues = compiled
         .validate(value, ValidationOptions::default())

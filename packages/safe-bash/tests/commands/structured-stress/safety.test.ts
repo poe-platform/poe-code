@@ -53,8 +53,8 @@ test('invalid UTF-8 JSON tokens preserve prefix and native diagnostics', async (
 
 const preflight: readonly [readonly string[], number][] = [
   [['-c', '1,('], 3], [['-c', 'if true then 1 else $missing end'], 3], [['-c', 'false and nope'], 3],
-  [['-c', '"\\q"'], 3], [['-c', '.foo='], 3], [['-c', 'sort_by()'], 3], [['-c', '.[0:1]=0'], 3],
-  [['-c', '.[]? |= 0'], 3], [['-c', 'join(",";":")'], 3], [['-RZ', '.'], 2], [['--raw-input=lines', '.'], 2],
+  [['-c', '"\\q"'], 3], [['-c', '.foo='], 3], [['-c', 'sort_by()'], 3], [['-c', '.[0:1]='], 3],
+  [['-c', '.[]? |='], 3], [['-c', 'join(",";":")'], 3], [['-RZ', '.'], 2], [['--raw-input=lines', '.'], 2],
   [['--argjson', 'x', '{"bad":}', '$x'], 2], [['--argjson', 'x', '1 2', '$x'], 2],
 ];
 for (const [index, [argv, status]] of preflight.entries()) test(`preflight ${index} acquires no input or data files`, async () => {
@@ -71,6 +71,34 @@ for (const [index, [argv, status]] of preflight.entries()) test(`preflight ${ind
   assert.equal(result.stdout, '');
   assert.equal(acquired, 0);
   assert.equal(opened, 0);
+});
+
+for (const [source, input, status, stdout] of [
+  ['.[0:1]=0', '[1,2]\n', 5, ''],
+  ['.[0:1]=[0]', '[1,2]\n', 0, '[0,2]\n'],
+  ['.[]? |= 0', '[1,2]\n', 0, '[0,0]\n'],
+  ['.[]? |= 0', '42\n', 0, '42\n'],
+] as const) test(`valid assignment acquires its named input: ${source} on ${input.trim()}`, async () => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile('/input', Buffer.from(input));
+  let opened = 0;
+  const stdin: ByteSource = { [Symbol.asyncIterator]() { throw new Error('named input must not acquire stdin'); } };
+  const fs = new Proxy(backing, { get(target, property) {
+    if (property === 'readStream') return (...args: Parameters<MemoryFileSystem['readStream']>) => {
+      opened++;
+      assert.equal(args[0], '/input');
+      return target.readStream(...args);
+    };
+    const member: unknown = Reflect.get(target, property);
+    return typeof member === 'function' ? member.bind(target) : member;
+  } });
+  const result = await execute(['-c', source, '/input'], stdin, {}, { fs });
+  assert.equal(result.status, status, result.stderr);
+  assert.equal(result.stdout, stdout);
+  if (status === 0) assert.equal(result.stderr, '');
+  else assert.equal(result.stderr, 'jq: error (at /input:1): slice assignment requires an array value\n');
+  assert.equal(opened, 1);
+  assert.equal(Buffer.from(await backing.readFile('/input')).toString(), input);
 });
 
 test('null input ignores invalid stdin and missing data files', async () => {

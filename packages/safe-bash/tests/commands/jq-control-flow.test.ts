@@ -90,13 +90,21 @@ for (const source of [
   "reduce (1,2) as $item ($item; .)", "foreach $item as $item (0; .)",
   "(reduce 1 as $item (0; .)), $item", "foreach 1 as $item (0; .; $missing)",
   "try (1 +) catch 0", "try missing catch 0", "try . catch missing",
-  ".. = 1", "try error(1;2) catch .",
+  ".. =", "try error(1;2) catch .",
   "reduce 1,2 as $item (0; .+$item)", "reduce .[] | . as $item (0; .+$item)",
   'try 1/0 catch "caught"', 'try 1 | .a catch "caught"',
 ]) test(`control-flow compilation stays closed: ${source}`, async () => {
   const result = await run(source);
   assert.equal(result.status, 3);
   assert.equal(result.stdout, "");
+});
+
+test("recursive assignment compiles and retains input-dependent runtime errors", async () => {
+  assert.deepEqual(await run(".. = 1"), { status: 0, stdout: "1\n", stderr: "" });
+  const result = await run(".. = 1", '{"a":[2,3]}\n');
+  assert.equal(result.status, 5);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, 'jq: error (at <stdin>:1): Cannot index number with string "a"\n');
 });
 
 test("try does not catch input parse failures", async () => {

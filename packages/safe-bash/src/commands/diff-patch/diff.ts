@@ -113,6 +113,12 @@ async function exclusionPatterns(options: DiffFlags, budget: Budget): Promise<Pa
   return exclusions;
 }
 
+function childPath(directory: string, name: string): string {
+  let end = directory.length;
+  while (end > 0 && directory[end - 1] === "/") end--;
+  return `${directory.slice(0, end)}/${name}`;
+}
+
 async function run(context: CommandContext, budget: Budget): Promise<number> {
   const options = flags(context.args);
   const exclusions = await exclusionPatterns(options, budget);
@@ -131,14 +137,14 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     let rightStat = right === "-" ? { type: "file" } : await inspect(budget, right);
     if (!pair.nested && leftStat && rightStat && (leftStat.type === "directory") !== (rightStat.type === "directory")) {
       if (left === "-" || right === "-") throw new ToolError("cannot compare stdin with a directory");
-      if (leftStat.type === "directory") { left = `${left}/${basename(right)}`; leftStat = await inspect(budget, left); }
-      else { right = `${right}/${basename(left)}`; rightStat = await inspect(budget, right); }
+      if (leftStat.type === "directory") { left = childPath(left, basename(right)); leftStat = await inspect(budget, left); }
+      else { right = childPath(right, basename(left)); rightStat = await inspect(budget, right); }
     }
     if (!leftStat && !rightStat) throw new ToolError(`both paths are missing: ${left}, ${right}`);
     if ((!leftStat || !rightStat) && !options.newFile) {
       if (!pair.nested) throw new ToolError(`file not found: ${leftStat ? right : left}`);
       const present = leftStat ? left : right;
-      append(`Only in ${present.slice(0, present.lastIndexOf("/"))}: ${basename(present)}\n`);
+      append(`Only in ${present.slice(0, present.lastIndexOf("/")) || "/"}: ${basename(present)}\n`);
       different = true;
       continue;
     }
@@ -167,7 +173,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         if (!pair.nested && options.startingFile !== undefined && name < options.startingFile) continue;
         let excluded = false;
         for (const pattern of exclusions) if (await pattern.find(name, budget)) { excluded = true; break; }
-        if (!excluded) pending.push({ left: `${left}/${name}`, right: `${right}/${name}`, nested: true });
+        if (!excluded) pending.push({ left: childPath(left, name), right: childPath(right, name), nested: true });
       }
       continue;
     }

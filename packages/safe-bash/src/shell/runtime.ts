@@ -185,6 +185,13 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedS
 }
 
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
+const syncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
+
+function isSyncResolved(promise: unknown): promise is Promise<never> {
+  return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
 
 async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
   const compare = async (left: string, right: string): Promise<number> => {
@@ -388,6 +395,16 @@ export class Budget {
   sink(sink: ByteSink, signal = this.signal): ByteSink {
     const ownership = budgetedSinks.get(sink);
     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
+    const syncWrite = syncSinks.get(sink);
+    const countedSyncWrite = syncWrite
+      ? (chunk: Uint8Array): void => {
+          signal.throwIfAborted();
+          if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+          if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+          this.bytes += chunk.byteLength;
+          syncWrite(chunk);
+        }
+      : undefined;
     const output: ByteSink = {
       ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
       ...(sink.ownedOutput ? { ownedOutput: {
@@ -409,24 +426,48 @@ export class Budget {
           // while draining; the next admission still checks the signal.
         },
       } } : {}),
-      write: async (chunk) => {
-        signal.throwIfAborted();
-        if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
-        if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
-        this.bytes += chunk.byteLength;
-        await interruptible(sink.write(chunk), signal);
-      },
+      write: countedSyncWrite
+        ? (chunk) => {
+            try {
+              countedSyncWrite(chunk);
+              return resolvedVoid;
+            } catch (error) {
+              return Promise.reject(error);
+            }
+          }
+        : (chunk) => {
+            try {
+              signal.throwIfAborted();
+              if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+              if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+              this.bytes += chunk.byteLength;
+              const pending = sink.write(chunk);
+              if (isSyncResolved(pending)) {
+                signal.throwIfAborted();
+                return resolvedVoid;
+              }
+              return interruptible(pending, signal);
+            } catch (error) {
+              return Promise.reject(error);
+            }
+          },
     };
     budgetedSinks.set(output, { budget: this, write: output.write, ...(ownership?.write === sink.write && ownership.file ? { file: ownership.file } : {}) });
+    if (countedSyncWrite) syncSinks.set(output, countedSyncWrite);
     return output;
   }
 }
 
-export async function interruptible<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
+export function interruptible<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
   if (signal.aborted) {
     void promise.catch(() => undefined);
-    throw signal.reason;
+    return Promise.reject(signal.reason);
   }
+  if (isSyncResolved(promise)) return promise;
+  return interruptibleSlow(promise, signal);
+}
+
+async function interruptibleSlow<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
   let abort: (() => void) | undefined;
   const aborted = new Promise<never>((_resolve, reject) => {
     abort = () => reject(signal.reason);
@@ -442,7 +483,11 @@ export class Capture implements ByteSink {
   #tail: Uint8Array | undefined;
   #tailLength = 0;
 
-  async write(chunk: Uint8Array): Promise<void> {
+  constructor() {
+    syncSinks.set(this, chunk => this.writeSync(chunk));
+  }
+
+  writeSync(chunk: Uint8Array): void {
     if (!chunk.byteLength) return;
     let offset = 0;
     while (offset < chunk.byteLength) {
@@ -458,6 +503,11 @@ export class Capture implements ByteSink {
       this.chunks[this.chunks.length - 1] = this.#tail.subarray(0, this.#tailLength);
     }
     this.length += chunk.byteLength;
+  }
+
+  write(chunk: Uint8Array): Promise<void> {
+    this.writeSync(chunk);
+    return resolvedVoid;
   }
 
   bytes(): Uint8Array {
@@ -793,6 +843,13 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   const ownership = budgetedSinks.get(sink);
   const owned = ownership?.write === sink.write ? ownership : undefined;
   const write = owned ? owned.write.bind(sink) : (chunk: Uint8Array) => sink.write(chunk);
+  const syncWrite = syncSinks.get(sink);
+  const signaledSyncWrite = syncWrite
+    ? (chunk: Uint8Array): void => {
+        signal.throwIfAborted();
+        syncWrite(chunk);
+      }
+    : undefined;
   const output: ByteSink = {
     ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
     ...(sink.ownedOutput ? { ownedOutput: {
@@ -809,9 +866,31 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
         // Preserve accepted effects so the caller can acknowledge their bytes.
       },
     } } : {}),
-    async write(chunk) { signal.throwIfAborted(); await interruptible(write(chunk), signal); },
+    write: signaledSyncWrite
+      ? (chunk) => {
+          try {
+            signaledSyncWrite(chunk);
+            return resolvedVoid;
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+      : (chunk) => {
+          try {
+            signal.throwIfAborted();
+            const pending = write(chunk);
+            if (isSyncResolved(pending)) {
+              signal.throwIfAborted();
+              return resolvedVoid;
+            }
+            return interruptible(pending, signal);
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        },
   };
   if (owned) budgetedSinks.set(output, { ...owned, write: output.write });
+  if (signaledSyncWrite) syncSinks.set(output, signaledSyncWrite);
   return output;
 }
 
@@ -820,23 +899,19 @@ const descriptorByteLength = Object.getOwnPropertyDescriptor(Object.getPrototype
 
 function bindCommandIO(context: CommandContext, io?: IO): void {
   if (io?.descriptors && (!context.admittedHandles || shellDescriptorAdmissions.has(context.admittedHandles))) {
-    const leases = new Set<() => Promise<void>>();
+    let leases: Set<() => Promise<void>> | undefined;
     let closed = false;
     let closing: Promise<void> | undefined;
-    context.registerCleanup?.(() => {
+    let cleanupRegistered = false;
+    io[invocationScope].registerFinalizer(() => {
       closed = true;
-      closing ??= Promise.allSettled([...leases].map(close => close())).then(results => {
-        const failures = results.filter(result => result.status === "rejected");
-        if (failures.length) throw new AggregateError(failures.map(result => result.reason), "Descriptor lease cleanup failed");
-      });
-      return closing;
     });
     Object.defineProperty(context, "admittedHandles", { enumerable: true, value: {
       async acquire(fd: number, requestedRights: readonly import("../contracts/command.js").DescriptorRight[], signal: AbortSignal) {
         signal.throwIfAborted(); context.signal.throwIfAborted();
         if (closed || !Number.isSafeInteger(fd) || fd < 0) throw new FsError("EBADF");
         io[invocationScope].assertOpen();
-        if (leases.size >= 64) throw new FsError("EMFILE");
+        if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
         if (!Array.isArray(requestedRights) || !requestedRights.length || requestedRights.length > 4) throw new FsError("EINVAL");
         const rights = Array.from({ length: requestedRights.length }, (_, index) => requestedRights[index]!);
         if (new Set(rights).size !== rights.length || rights.some(right => !["read", "write", "seek", "stat"].includes(right))) throw new FsError("EINVAL");
@@ -844,7 +919,7 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
         signal.throwIfAborted(); context.signal.throwIfAborted();
         if (closed) throw new FsError("EBADF");
         io[invocationScope].assertOpen();
-        if (leases.size >= 64) throw new FsError("EMFILE");
+        if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
         const descriptor = io.descriptors!.get(fd);
         if (!descriptor || descriptor.closed) throw new FsError("EBADF");
         const input = descriptor.input instanceof ShellInput ? descriptor.input : undefined;
@@ -856,10 +931,22 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
         let ended = false;
         let completion: Promise<void> | undefined;
         const pending = new Set<Promise<unknown>>();
+        leases ??= new Set();
+        if (!cleanupRegistered) {
+          cleanupRegistered = true;
+          context.registerCleanup?.(() => {
+            closed = true;
+            closing ??= Promise.allSettled([...leases!].map(close => close())).then(results => {
+              const failures = results.filter(result => result.status === "rejected");
+              if (failures.length) throw new AggregateError(failures.map(result => result.reason), "Descriptor lease cleanup failed");
+            });
+            return closing;
+          });
+        }
         const close = () => {
           ended = true;
           lifetime.abort(new FsError("EBADF"));
-          completion ??= Promise.allSettled([...pending]).then(() => { leases.delete(close); });
+          completion ??= Promise.allSettled([...pending]).then(() => { leases!.delete(close); });
           return completion;
         };
         leases.add(close);

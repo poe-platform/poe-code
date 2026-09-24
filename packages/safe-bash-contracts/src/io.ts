@@ -5,6 +5,14 @@ export type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
 import { FsError } from "./errors.js";
 
 export const outputFailure = Symbol("output failure");
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
+const sharedTextEncoder = new TextEncoder();
+const sharedTextDecoder = new TextDecoder();
+
+function isSyncResolved(promise: unknown): promise is Promise<never> {
+  return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
 
 export interface ByteSink {
   write(chunk: Uint8Array): Promise<void>;
@@ -112,7 +120,9 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   const changed = (): void => {
     revision++;
-    for (const observer of [...observers]) observer.changed();
+    if (observers.size > 0) {
+      for (const observer of [...observers]) observer.changed();
+    }
   };
   const removeRead = (request: ReadRequest): void => {
     reads.delete(request);
@@ -289,6 +299,20 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
         if (lease.done) return Promise.resolve({ done: true, value: undefined });
         try { checkEndpoint(endpoint); }
         catch (reason) { lease.done = true; return Promise.reject(reason); }
+        if (reads.size === 0) {
+          const chunk = buffered.values().next().value as Uint8Array | undefined;
+          if (chunk) {
+            buffered.delete(chunk);
+            availableBytes -= chunk.byteLength;
+            changed();
+            if (writes.size > 0) pump();
+            return Promise.resolve({ done: false, value: chunk });
+          }
+          if (!writerReferences) {
+            lease.done = true;
+            return Promise.resolve({ done: true, value: undefined });
+          }
+        }
         return new Promise((resolve, reject) => {
           const request: ReadRequest = { lease, resolve, reject };
           reads.add(request);
@@ -307,8 +331,17 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       if (!endpoint.open) throw new FsError(legacy ? "EPIPE" : "EBADF", { syscall: "write" });
       if (!readerReferences) throw brokenPipe();
       if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sinks require Uint8Array chunks");
-      if (!chunk.byteLength) return Promise.resolve();
+      if (!chunk.byteLength) return resolvedVoid;
       const owned = new Uint8Array(chunk);
+      if (writes.size === 0) {
+        const reading = reads.values().next().value as ReadRequest | undefined;
+        if (reading && buffered.size === 0) {
+          removeRead(reading);
+          reading.resolve({ done: false, value: owned });
+          changed();
+          return resolvedVoid;
+        }
+      }
       let resolve!: () => void;
       let reject!: (reason: unknown) => void;
       const completion = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
@@ -409,13 +442,13 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
 }
 
-export async function writeText(sink: ByteSink, text: string): Promise<void> {
-  await sink.write(new TextEncoder().encode(text));
+export function writeText(sink: ByteSink, text: string): Promise<void> {
+  return sink.write(sharedTextEncoder.encode(text));
 }
 
-export async function writeBytes(sink: ByteSink, chunk: Uint8Array, signal?: AbortSignal): Promise<void> {
-  if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sinks require Uint8Array chunks");
-  await abortable(() => sink.write(chunk), signal);
+export function writeBytes(sink: ByteSink, chunk: Uint8Array, signal?: AbortSignal): Promise<void> {
+  if (!(chunk instanceof Uint8Array)) return Promise.reject(new TypeError("Byte sinks require Uint8Array chunks"));
+  return abortable(() => sink.write(chunk), signal);
 }
 
 export async function pipeBytes(source: ByteSource, sink: ByteSink, signal?: AbortSignal): Promise<void> {
@@ -427,20 +460,21 @@ export async function pipeBytes(source: ByteSource, sink: ByteSink, signal?: Abo
 }
 
 export async function collectText(source: ByteSource, options: CollectOptions): Promise<string> {
-  return new TextDecoder().decode(await collectBytes(source, options));
+  return sharedTextDecoder.decode(await collectBytes(source, options));
 }
 
-async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortSignal): Promise<Result> {
-  signal?.throwIfAborted();
-  if (!signal) return operation();
-  return new Promise<Result>((resolve, reject) => {
-    const onAbort = (): void => {
-      signal.removeEventListener("abort", onAbort);
-      reject(signal.reason);
-    };
-    signal.addEventListener("abort", onAbort, { once: true });
-    try {
-      Promise.resolve(operation()).then(
+function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortSignal): Promise<Result> {
+  try {
+    signal?.throwIfAborted();
+    const pending = operation();
+    if (!signal || isSyncResolved(pending)) return Promise.resolve(pending);
+    return new Promise<Result>((resolve, reject) => {
+      const onAbort = (): void => {
+        signal.removeEventListener("abort", onAbort);
+        reject(signal.reason);
+      };
+      signal.addEventListener("abort", onAbort, { once: true });
+      Promise.resolve(pending).then(
         (result) => {
           signal.removeEventListener("abort", onAbort);
           resolve(result);
@@ -450,9 +484,8 @@ async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: 
           reject(error);
         },
       );
-    } catch (error) {
-      signal.removeEventListener("abort", onAbort);
-      reject(error);
-    }
-  });
+    });
+  } catch (error) {
+    return Promise.reject(error);
+  }
 }

@@ -333,6 +333,35 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "setpath") {
+      for await (const value of this.run(args[1]!, input)) {
+        for await (const candidate of this.run(args[0]!, input)) {
+          if (!Array.isArray(candidate)) throw new JqError("Path must be specified as an array");
+          const path: Path = [];
+          let base = input;
+          for (const component of candidate) {
+            await budget.tick();
+            budget.collection(path.length + 1);
+            // Read each old value before normalizing relative array indexes.
+            const previous = indexValue(base, component);
+            let key: string | number;
+            if (typeof component === "string") key = component;
+            else {
+              if (!isNumber(component)) throw new JqError(`Cannot index ${type(base)} with ${type(component)}`);
+              key = Math.trunc(numberValue(component));
+              if (key < 0) key += Array.isArray(base) ? base.length : 0;
+              if (key < 0) throw new JqError("Out of bounds negative array index");
+            }
+            path.push(key);
+            base = previous;
+          }
+          const result = this.set(input, path, value);
+          budget.value(result);
+          yield result;
+        }
+      }
+      return;
+    }
     if (name === "flatten") {
       for await (const depth of args.length ? this.run(args[0]!, input) : [Infinity]) {
         if (!isNumber(depth) || numberValue(depth) < 0 || Number.isNaN(numberValue(depth))) throw new JqError("flatten depth must be nonnegative");

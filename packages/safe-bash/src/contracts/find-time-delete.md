@@ -67,8 +67,8 @@ GNU releases that attempted rmdir on a followed directory link. Dangling links
 remain removable; ancestor cycles retain the existing ELOOP behavior. Cached
 metadata is not a namespace lease, race-proof identity check, or transaction.
 
-The default `.` starting entry is retained; its descendants remain eligible.
-Other backend root, terminal-dot, permission, missing-path, and nonempty errors
+Starting entries with basename `.`, including `./`, are retained; their descendants remain eligible.
+Other backend root, permission, missing-path, and nonempty errors
 remain failures. In particular, empty-only removal cannot delete a newly
 arriving child even if enumeration previously observed an empty directory.
 

@@ -2,6 +2,28 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { fixture, run } from "./helpers.js";
 
+for (const predicate of ["-name", "-iname"]) test(`find ${predicate} treats all-slash roots as /`, async () => {
+  const result = await run("find", ["///", "-maxdepth", "0", predicate, "/"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "///\n");
+});
+
+for (const [size, expected] of [["0G", "empty\n"], ["1G", "odd\neven\n"], ["1w", "even\n"], ["+1w", "odd\n"], ["-1w", "empty\n"]] as const) {
+  test(`find -size ${size} rounds sizes in the requested unit`, async () => {
+    const fs = await fixture({ empty: "", odd: "abc", even: "ab" });
+    const result = await run("find", ["empty", "odd", "even", "-size", size], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  });
+}
+
+for (const root of ["./", ".///", "././"]) test(`find ${root} -delete preserves the current directory`, async () => {
+  const fs = await fixture({ "sub/file": "" });
+  const result = await run("find", [root, "-delete"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(await fs.readdir("/work"), []);
+});
+
 for (const [args, expected] of [
   [["--", "dir", "-name", "file.txt"], "dir/sub/file.txt\n"],
   [["-L", "--", "dir", "-name", "sub"], "dir/sub\n"],

@@ -131,11 +131,14 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           };
         }
         if (token === "-size") {
-          const match = /^([+-]?)([0-9]+)([cbkM]?)$/u.exec(operand);
-          if (!match) throw new UsageError(`invalid size '${operand}'`);
-          const size = integer(match[2]!);
-          const unit = match[3] === "c" ? 1 : match[3] === "k" ? 1024 : match[3] === "M" ? 1048576 : 512;
-          return async entry => match[1] === "+" ? Math.ceil(entry.stat.size / unit) > size : match[1] === "-" ? Math.ceil(entry.stat.size / unit) < size : Math.ceil(entry.stat.size / unit) === size;
+          const comparison = operand[0] === "+" || operand[0] === "-" ? operand[0] : "";
+          const units: Record<string, number> = { c: 1, w: 2, b: 512, k: 1024, M: 1048576, G: 1073741824 };
+          const suffix = operand.at(-1)!;
+          const unit = units[suffix] ?? 512;
+          const digits = operand.slice(comparison ? 1 : 0, units[suffix] === undefined ? undefined : -1);
+          if (!digits || [...digits].some(digit => digit < "0" || digit > "9")) throw new UsageError(`invalid size '${operand}'`);
+          const size = integer(digits);
+          return async entry => comparison === "+" ? Math.ceil(entry.stat.size / unit) > size : comparison === "-" ? Math.ceil(entry.stat.size / unit) < size : Math.ceil(entry.stat.size / unit) === size;
         }
         const ignoreCase = token === "-iname" || token === "-ipath" || token === "-iwholename";
         const work = {
@@ -145,7 +148,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         };
         const matcher = compilePattern(operand, work, ignoreCase);
         return async entry => {
-          const value = token === "-name" || token === "-iname" ? basename(entry.display) || entry.display : entry.display;
+          const value = token === "-name" || token === "-iname" ? basename(entry.display) || "/" : entry.display;
           return (await matcher)(value);
         };
       }
@@ -158,7 +161,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         deletes = true;
         return async entry => {
           context.signal.throwIfAborted();
-          if (entry.display === ".") return true;
+          if (basename(entry.display) === ".") return true;
           try {
             const directory = entry.stat.type === "directory" && !entry.symlink;
             const capabilities = await context.fs.capabilitiesFor?.(entry.path, { signal: context.signal }) ?? context.fs.capabilities;

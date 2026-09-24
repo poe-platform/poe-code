@@ -30,11 +30,13 @@ function chainHost(lastDirectory: number) {
   const fs = createMemoryFileSystem();
   const counts = { reads: 0, deepestRead: -1, copies: 0, mkdirs: 0, deepestHeader: -1, outputBytes: 0 };
   const stat: FileStat = { type: "directory", size: 0, mode: 0o755, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 };
+  const identityScope = {};
   const depth = (path: string) => (path.length - "/source".length) / 2;
   fs.stat = fs.lstat = async path => {
     if (path.startsWith("/target/source") && !path.endsWith("/file")
       && (path.length - "/target/source".length) / 2 === 1025) throw new FsError("ENOENT", { path });
-    return path.endsWith("/file") ? { ...stat, type: "file", size: 1 } : stat;
+    return path.endsWith("/file") ? { ...stat, type: "file", size: 1, identityScope, dev: 0,
+      ino: path.length * 2 + (path.startsWith("/source") ? 0 : 1) } : stat;
   };
   fs.realpath = async path => {
     await fs.stat(path);
@@ -51,7 +53,31 @@ function chainHost(lastDirectory: number) {
     return current < lastDirectory ? [{ name: "n", type: "directory" }] : [{ name: "file", type: "file" }];
   };
   fs.mkdir = async () => { counts.mkdirs++; };
-  fs.copyFile = async () => { counts.copies++; };
+  fs.openReadFile = async (path, options) => {
+    options?.signal?.throwIfAborted();
+    const retained = await fs.stat(path);
+    assert.equal(retained.type, "file");
+    let closed = false;
+    const check = () => { if (closed) throw new FsError("EBADF", { path }); };
+    return {
+      async stat(controls) { controls?.signal?.throwIfAborted(); check(); return retained; },
+      async read(position, maxBytes, controls) {
+        controls?.signal?.throwIfAborted(); check();
+        return new Uint8Array([120]).slice(position, position + maxBytes);
+      },
+      async close() { closed = true; },
+    };
+  };
+  fs.writeStream = async (_path, source, options) => {
+    let size = 0;
+    for await (const chunk of source) {
+      options?.signal?.throwIfAborted();
+      assert.deepEqual(chunk, new Uint8Array([120]));
+      size += chunk.byteLength;
+    }
+    assert.equal(size, 1, "the retained file must be consumed before publication");
+    counts.copies++;
+  };
   const stdout: ByteSink = {
     async write(chunk) {
       counts.outputBytes += chunk.byteLength;
@@ -199,10 +225,10 @@ for (const command of ["ls", "cp"] as const) {
     await fs.mkdir("/source");
     await fs.writeFile("/source/a", encoder.encode("a"));
     await fs.writeFile("/source/b", encoder.encode("b"));
-    const read = fs.readdir.bind(fs), copy = fs.copyFile.bind(fs);
+    const read = fs.readdir.bind(fs), write = fs.writeStream!.bind(fs);
     let reads = 0, copies = 0, writes = 0;
     fs.readdir = async (path, options) => { reads++; return read(path, options); };
-    fs.copyFile = async (source, target, options) => { copies++; return copy(source, target, options); };
+    fs.writeStream = async (target, source, options) => { copies++; return write(target, source, options); };
     let markEntered!: () => void, release!: () => void;
     const entered = new Promise<void>(resolve => { markEntered = resolve; });
     const blocked = new Promise<void>(resolve => { release = resolve; });
@@ -216,10 +242,18 @@ for (const command of ["ls", "cp"] as const) {
       assert.equal(reads, command === "cp" ? 2 : 0);
       assert.equal(copies, command === "cp" ? 1 : 0);
       assert.equal(writes, 1);
+      if (command === "cp") {
+        assert.deepEqual(await fs.readFile("/target/a"), encoder.encode("a"));
+        await assert.rejects(fs.stat("/target/b"), { code: "ENOENT" });
+      }
     } finally { release(); }
     const result = await work;
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(copies, command === "cp" ? 2 : 0);
+    if (command === "cp") {
+      assert.deepEqual(await fs.readFile("/target/a"), encoder.encode("a"));
+      assert.deepEqual(await fs.readFile("/target/b"), encoder.encode("b"));
+    }
   });
 
   for (const failure of ["read", "cancel"] as const) {

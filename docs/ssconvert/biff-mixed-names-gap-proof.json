@@ -223,7 +223,7 @@
     }
   },
   "nativeReadback": {
-    "status": "Corrected files prepared; native capture pending.",
+    "status": "Authenticated native run 35943520068 at e900866bc confirms all nine corrected files and XML replays return 11/12/3/19. Global/no-cycle stderr is empty; local-cycle warnings are preserved separately.",
     "priorInputsPreserved": 120,
     "totalInputs": 129,
     "inputs": [
@@ -263,10 +263,21 @@
         "id": "biff-mixed-names-fixed-local-excel_dsf",
         "sha256": "3c8a027f8a0f3ff92ec22f96d062a39696fa4cc590768319f9f1f441c2a57666"
       }
-    ]
+    ],
+    "capture": "docs/ssconvert/biff-mixed-names-fixed-native-capture.json",
+    "publicReplayExecutions": 18,
+    "screenshot": {
+      "inspected": true,
+      "sha256": "73c1a9b379536fee52ab09261b4de4d01d8d6429fd2767f8f99e545c53db2e12"
+    }
   },
   "remaining": [
     "Native handling of referenced cycles and associated warnings remains separate from independent-name ordering.",
     "Broader references, all 19 original families and containing npm publication remain open."
-  ]
+  ],
+  "delivery": {
+    "runtimeCommit": "e900866bc9166992e8eaefadb31f836aed8434f2",
+    "exactRemoteMainVerified": true,
+    "publication": "pending"
+  }
 }

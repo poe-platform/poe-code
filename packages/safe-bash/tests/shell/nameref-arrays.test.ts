@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
+import { predicateCommands } from "../../src/commands/predicates.js";
 
 const cases = [
   ['a=(a b c); declare -n r=a; read -a r <<< "x y z"; args "${a[*]}" "${r[*]}"', ["x y z", "x y z"]],
@@ -37,12 +38,28 @@ const cases = [
   ['f(){ local -n r="a[1]"; r=Z; }; a=(a b c); f; args "${a[*]}"', ["a Z c"]],
   ['a=(10 20 30); declare -n r="a[1]"; args "$((r+5))"; ((r=99)); args "${a[*]}"', '["25"]["10 99 30"]'],
   ['a=(a b c); declare -n r="a[1]"; [[ -v r ]] || exit 9; unset r; args "${!a[@]}" "${a[*]}"; [[ ! -v r ]]', ["0", "2", "a c"]],
+  ['a=(a b c); i=1; declare -n r="a[i]"; unset r; args "${!a[@]}" "${a[*]}"; [[ ! -v r ]]', ["0", "2", "a c"]],
+  ['a=(a b c); declare -n r="a[-1]"; unset r; args "${!a[@]}" "${a[*]}" "$r"', ["0", "1", "a b", "b"]],
+  ['a=(a b c); declare -n r="a[1]"; args "$r" "${r^^}" "${r@Q}" "${r:-default}"; unset r; args "${r:-default}"', '["b","B","\'b\'","b"]["default"]'],
+  ['declare -A a; a[foo]=20; declare -n r="a[foo]"; args "$r" "${r@Q}" "$((r+5))"; r=30; ((r=99)); args "${a[foo]}"; unset r; [[ ! -v r ]]', '["20","\'20\'","25"]["99"]'],
   ['a=(zero one two); declare -n r=a; args "${r[0]}" "${r[1]}" "${#r[@]}" "${#r[*]}" "${r[*]}"', ["zero", "one", "3", "3", "zero one two"]],
   ['a=("two words" "" tail); declare -n r=a; args "${r[@]}"', ["two words", "", "tail"]],
   ['f(){ local -n r=$1; args "${r[1]}" "${#r[@]}" "${r[@]}"; }; a=(10 20 30); f a', ["20", "3", "10", "20", "30"]],
   ['declare -A a; a[foo]=bar; declare -n r=a; args "${r[foo]}" "${#r[@]}" "${#r[*]}" "${r[@]}" "${r[*]}"', ["bar", "1", "1", "bar", "bar"]],
   ['a=([2]=two [5]="five words"); declare -n r=a; declare -n s=r; args "${s[-1]}" "${!s[@]}"', ["five words", "2", "5"]],
 ] as const;
+
+for (const command of ["test -v r", "[ -v r ]", "[[ -v r ]]"]) {
+  test(`element nameref presence: ${command}`, async context => {
+    const { shell, commands } = setup();
+    for (const definition of predicateCommands()) commands.register(definition);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`a=(a ''); declare -n r='a[1]'; ${command} || exit 9; unset r; ${command}; args "$?"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), ["1"]);
+  });
+}
 
 for (const [source, expected] of cases) {
   test(`nameref array expansion: ${source}`, async context => {

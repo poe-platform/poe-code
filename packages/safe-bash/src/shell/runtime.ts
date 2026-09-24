@@ -6858,7 +6858,7 @@ export class Runtime {
           } else if (selector === "@" || selector === "*") await this.unsetIndexed(state, base, "members");
           else {
             let index: number | undefined;
-            try { index = numericIndex(literalIndex(selector, 0, this.budget.parsing)); }
+            try { index = await this.arrayIndex(binding, { decimal: selector, source: selector }, state, context, requireArrays(state).owner, false, binding?.maximum ?? (state.variables[base] === undefined ? -1 : 0)); }
             catch (error) {
               this.signal.throwIfAborted();
               if (error instanceof ShellLimitError) throw error;

@@ -18,7 +18,7 @@ import {
   stripQuotes,
   trimWhitespace
 } from "../parser-utils.js";
-import { checkSafeLabelText, type ScannedStatement } from "../scanner.js";
+import { checkSafeLabelText, isAsciiWhitespace, type ScannedStatement } from "../scanner.js";
 
 interface MutableClassState {
   readonly id: string;
@@ -194,7 +194,11 @@ function findClassRelation(text: string): {
       quote = ch;
       continue;
     }
+    // A member declaration starts here; its contents are not relationship syntax.
+    if (ch === ":") return null;
     for (const op of CLASS_OPERATORS) {
+      // The letter marker must be separate from an unquoted class identifier.
+      if (op.token === "o--" && i > 0 && !isAsciiWhitespace(text[i - 1]!) && text[i - 1] !== '"' && text[i - 1] !== "'") continue;
       if (text.startsWith(op.token, i)) {
         const leftRaw = trimWhitespace(text.slice(0, i));
         const afterOp = trimWhitespace(text.slice(i + op.token.length));
@@ -336,6 +340,12 @@ export function parseClassDiagram(
     if (lowerKw === "class") {
       let classRest = trimWhitespace(text.slice(afterKw));
       let opensBlock = false;
+      if (classRest.endsWith("}")) {
+        const beforeClose = trimWhitespace(classRest.slice(0, -1));
+        if (beforeClose.endsWith("{")) {
+          classRest = trimWhitespace(beforeClose.slice(0, -1));
+        }
+      }
       if (classRest.endsWith("{")) {
         opensBlock = true;
         classRest = trimWhitespace(classRest.slice(0, -1));

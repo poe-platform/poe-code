@@ -71,6 +71,45 @@ export const CLASS_FIXTURES: Record<string, string> = {
 };
 
 describe("classDiagram parser, layout, and geometry invariants", () => {
+  for (const [source, startMarker, endMarker] of [
+    ["Foo-->Bar", "none", "arrow"],
+    ["Foo--Bar", "none", "none"],
+    ["Repo-->Service", "none", "arrow"],
+    ["Foo o--Bar", "umlAggregation", "none"],
+    ['"Foo"o--Bar', "umlAggregation", "none"]
+  ] as const) {
+    it(`preserves endpoint identifiers and markers for ${source}`, () => {
+      const doc = parseMermaid(`classDiagram\n${source}`);
+      assert.deepEqual(doc.nodes.map(node => node.id), source.startsWith("Repo") ? ["Repo", "Service"] : ["Foo", "Bar"]);
+      assert.equal(doc.edges.length, 1);
+      assert.equal(doc.edges[0]!.startMarker, startMarker);
+      assert.equal(doc.edges[0]!.endMarker, endMarker);
+    });
+  }
+
+  for (const member of ["+parse(...args)", "+parse(a--b)", "+range: 0..10", "+flag: a--b"]) {
+    it(`keeps relation tokens inside member ${member}`, () => {
+      const doc = parseMermaid(`classDiagram\nParser : ${member}`);
+      assert.deepEqual(doc.nodes.map(node => node.id), ["Parser"]);
+      assert.equal(doc.edges.length, 0);
+      const node = doc.nodes[0]!;
+      assert.equal((member.includes("(") ? node.methods : node.attributes)!.length, 1);
+      assert.equal(node.methods?.[0]?.name ?? node.attributes?.[0]?.typeOrReturn, member.includes("(") ? member.slice(1) : member.slice(member.indexOf(":") + 2));
+    });
+  }
+
+  for (const declaration of ["class Foo { }", "class Foo{}", 'class Foo["Display { }"] { }', "class Foo <<interface>> { }"]) {
+    it(`parses empty block ${declaration} without retaining block state`, () => {
+      const doc = parseMermaid(`classDiagram\nnamespace Example {\n${declaration}\nclass Bar\n}\nFoo-->Bar : uses.. -- labels`);
+      assert.deepEqual(doc.nodes.map(node => node.id), ["Foo", "Bar"]);
+      assert.deepEqual(doc.nodes[0]!.methods, []);
+      assert.equal(doc.nodes[0]!.groupId, "Example");
+      assert.equal(doc.nodes[0]!.label, declaration.includes("Display") ? "Display { }" : "Foo");
+      assert.equal(doc.nodes[0]!.stereotype, declaration.includes("interface") ? "interface" : undefined);
+      assert.equal(doc.edges[0]!.label, "uses.. -- labels");
+    });
+  }
+
   for (const [name, source] of Object.entries(CLASS_FIXTURES)) {
     it(`parses, lays out, and satisfies all geometric invariants for ${name}`, () => {
       const doc = parseMermaid(source);

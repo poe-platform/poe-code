@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { build } from "esbuild";
-import { resolveBrowserShellBuild } from "../../../../../scripts/bundle-safe-bash.mjs";
+import { build, type BuildOptions } from "esbuild";
 import { expandUrls } from "../../../src/commands/network/glob.js";
 import { limitsFor } from "../../../src/commands/network/shared.js";
 import { run } from "./helpers.js";
+
+const { resolveBrowserShellBuild }: {
+  resolveBrowserShellBuild(rootDir: string): BuildOptions & { entryPoints: { "commands/network/index.browser": string } };
+} = await import(new URL("../../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
 
 test("portable network registration requires both finite expansion quotas", async () => {
   const recipe = resolveBrowserShellBuild(process.cwd().endsWith("safe-bash") ? process.cwd() + "/../.." : process.cwd());

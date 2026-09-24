@@ -53,6 +53,18 @@ console.log(result.returnValue);
 
 Scripts have no ambient `process`, `require`, `fetch`, or filesystem access. Host functions still execute with the host's privileges. Register only the capabilities the script needs; this is not OS or process isolation.
 
+`new Promise(executor)` is supported, as are the Promise static helpers and
+`then`, `catch`, and `finally`. The executor runs synchronously with `resolve`
+and `reject`; its return value is ignored, thrown errors reject the promise,
+and the first resolve or reject call wins. Resolving adopts promises and
+thenables; resolving a promise with itself rejects with a `TypeError`.
+Executor work uses the interpreter's existing budgets, and budget exhaustion
+remains fatal even after settlement. For example,
+`await run("return await new Promise(resolve => resolve(42));")` returns a
+successful result with `returnValue: 42`. Browser event and timer adapters
+require the host to grant those capabilities; Promise construction does not
+provide ambient browser APIs.
+
 ```js
 const result = await run(`
   function Counter(value) { this.value = value; }

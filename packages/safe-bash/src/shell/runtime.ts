@@ -1853,6 +1853,13 @@ export class Runtime {
 
   async writeVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): Promise<void> {
     name = this.referenceName(state, name);
+    const target = this.variableTarget(name);
+    if (target?.subscript !== undefined) {
+      await this.arrayAssignment({ kind: "element", name: target.name, append: false,
+        index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
+        value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, io);
+      return;
+    }
     if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
@@ -1943,7 +1950,9 @@ export class Runtime {
     const references: ArithmeticReferences = {
       resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
-        const name = this.referenceName(state, variable);
+        const target = this.variableTarget(this.referenceName(state, variable))!;
+        const name = target.name;
+        subscript ??= target.subscript;
         const binding = arrayStore(state)?.get(name);
         if (subscript === undefined && !binding) return name;
         return (async () => {
@@ -2038,13 +2047,23 @@ export class Runtime {
 
   private referenceName(state: State, name: string): string {
     const seen = new Set<string>();
-    while (state.variableAttributes?.get(name)?.includes("n") && state.variables[name]) {
+    let target = this.variableTarget(name);
+    while (target && state.variableAttributes?.get(target.name)?.includes("n") && state.variables[target.name]) {
       this.signal.throwIfAborted();
-      if (seen.has(name)) throw new ExpansionFailure(`${name}: circular name reference`);
-      seen.add(name);
-      name = state.variables[name]!;
+      if (seen.has(target.name)) throw new ExpansionFailure(`${target.name}: circular name reference`);
+      seen.add(target.name);
+      name = state.variables[target.name]! + (target.subscript === undefined ? "" : `[${target.subscript}]`);
+      target = this.variableTarget(name);
+      if (!target) throw new ExpansionFailure(`${name}: invalid name reference`);
     }
     return name;
+  }
+
+  private variableTarget(name: string): { name: string; subscript?: string } | undefined {
+    const bracket = name.indexOf("[");
+    const base = bracket < 0 ? name : name.slice(0, bracket);
+    if (!isShellIdentifier(base) || bracket >= 0 && (!name.endsWith("]") || bracket === name.length - 2)) return undefined;
+    return bracket < 0 ? { name: base } : { name: base, subscript: name.slice(bracket + 1, -1) };
   }
 
   variable(state: State, name: string): string | undefined {
@@ -2054,6 +2073,7 @@ export class Runtime {
   }
 
   private async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
+    name = this.referenceName(state, name);
     const bracket = name.indexOf("[");
     const base = bracket < 0 ? name : name.slice(0, bracket);
     const validName = base.length > 0 && [...base].every((character, index) =>
@@ -4246,6 +4266,13 @@ export class Runtime {
     const assign = async () => {
       for (const original of assignments) {
         const assignment = { ...original, name: this.referenceName(state, original.name) };
+        const target = this.variableTarget(assignment.name)!;
+        if (!assignment.kind && target.subscript !== undefined) {
+          await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append,
+            index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
+            value: assignment.value }, state, io);
+          continue;
+        }
         if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
         if (!words.length && arrayStore(state)?.get(assignment.name)) {
           await this.arrayZero(state, assignment.name, io, async () => {
@@ -6177,6 +6204,7 @@ export class Runtime {
     let releaseHolding: (() => void) | undefined;
     try {
       const options = await mapfileOptions(context, work, allocation);
+      options.name = this.referenceName(state, options.name);
       if (arrayStore(state)?.get(options.name)?.associative) throw new MapfileUsageError(`${options.name}: not an indexed array`, 1);
       if (state.readonlyVariables?.has(options.name)) throw new MapfileUsageError(`${options.name}: readonly variable`, 1);
       if (controlNames.has(options.name) || state.exported.has(options.name)) throw new ArrayFailure("control or exported binding cannot be indexed");
@@ -6334,7 +6362,7 @@ export class Runtime {
       const disabled = new Set<string>();
       const declarationArgs = [...args];
       let indexedLocal = false;
-      let namerefLocal = false;
+      let namerefDeclaration = false;
       const readonlySyntax = state.extensions?.syntax.indexedDeclarations?.includes("readonly") === true
         || command === "readonly" && args.some(arg => arg.startsWith("-") && arg.includes("a"));
       let indexedReadonly = false;
@@ -6383,7 +6411,7 @@ export class Runtime {
         }
         associativeDeclaration = enabled.has("A");
         indexedLocal = associativeDeclaration || enabled.has("a");
-        namerefLocal = command === "local" && enabled.has("n");
+        namerefDeclaration = enabled.has("n");
         if (enabled.has("f") || enabled.has("F")) {
           let status = 0;
           const names = declarationArgs.length ? declarationArgs : [...state.functions.keys()].sort();
@@ -6401,7 +6429,6 @@ export class Runtime {
           await this.diagnostic(context, "local: combined nameref attributes are unsupported");
           return 2;
         }
-        namerefLocal = enabled.has("n");
         if (indexedLocal && declarationArgs.length === 0 && !enabled.has("p")) {
           await writeDiagnostic(stderr, "local: -a requires a variable name\n");
           return 2;
@@ -6547,8 +6574,9 @@ export class Runtime {
         const name = match[1]!;
         const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
         const compound = syntax?.name === name ? syntax : undefined;
-        if (namerefLocal && match[2] !== undefined && (match[2] === name || !isShellIdentifier(match[2]))) {
-          await this.diagnostic(context, `local: ${match[2]}: invalid name reference`); status = 1; continue;
+        const reference = match[2] ?? state.variables[name];
+        if (namerefDeclaration && reference !== undefined && (reference === name || !this.variableTarget(reference))) {
+          await this.diagnostic(context, `${command}: ${reference}: invalid name reference`); status = 1; continue;
         }
         const append = arg[name.length] === "+";
         const assignedValue = (): ShellValue => {
@@ -6737,7 +6765,8 @@ export class Runtime {
             state.getopts.integer = false;
           }
         }
-        if (command === "declare" || command === "local") this.declareAttributes(state, name, enabled, disabled);
+        const attributeName = enabled.has("n") || disabled.has("n") ? name : this.variableTarget(this.referenceName(state, name))!.name;
+        if (command === "declare" || command === "local") this.declareAttributes(state, attributeName, enabled, disabled);
         if (match[2] !== undefined && arrayStore(state)?.get(name)) {
           await this.arrayZero(state, name, context, async () => assignedValue(), append, command === "readonly");
           assignments.delete(name);
@@ -6748,17 +6777,24 @@ export class Runtime {
           else {
             let value = assignedValue();
             const target = this.referenceName(state, name);
-            if (append) value = state.variableAttributes?.get(target)?.includes("i")
-              ? concatShellValues([`(${state.variables[target] || "0"})+(`, value, ")"], context[valueScope])
-              : concatShellValues([stateMonitor(state)?.values.get(target, state.variables[target] ?? "") ?? state.variables[target] ?? "", value], context[valueScope]);
-            await this.writeVariable(state, name, value, context);
+            const element = this.variableTarget(target)!;
+            if (element.subscript !== undefined && append) {
+              await this.arrayAssignment({ kind: "element", name: element.name, append: true,
+                index: stringIndex(element.subscript, this.budget.parsing, parseArraySubscript(element.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
+                value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
+            } else {
+              if (append) value = state.variableAttributes?.get(target)?.includes("i")
+                ? concatShellValues([`(${state.variables[target] || "0"})+(`, value, ")"], context[valueScope])
+                : concatShellValues([stateMonitor(state)?.values.get(target, state.variables[target] ?? "") ?? state.variables[target] ?? "", value], context[valueScope]);
+              await this.assignVariable(state, name, value, context);
+            }
           }
         }
         else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
-        if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(name);
-        if (command === "export" && enabled.has("n")) state.exported.delete(name);
-        if (disabled.has("x")) state.exported.delete(name);
-        if (command === "readonly" || enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+        if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(attributeName);
+        if (command === "export" && enabled.has("n")) state.exported.delete(attributeName);
+        if (disabled.has("x")) state.exported.delete(attributeName);
+        if (command === "readonly" || enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(attributeName); }
         const previous = assignments.get(name);
         if (previous && locals?.get(name) !== previous) previous.heldValue?.release();
         assignments.delete(name);
@@ -6790,7 +6826,7 @@ export class Runtime {
       let status = 0;
       for (let argument = offset; argument < args.length; argument++) {
         if ((argument - offset) % 128 === 0) { this.budget.cpuCheckpoint(); await yieldTurn(this.signal); }
-        const name = args[argument]!;
+        let name = args[argument]!;
         if (functions) {
           if (state.readonlyFunctions?.has(name)) {
             await this.diagnostic(context, `unset: ${name}: cannot unset: readonly function`);
@@ -6801,6 +6837,7 @@ export class Runtime {
           }
           continue;
         }
+        if (dereference) name = this.referenceName(state, name);
         const selected = /^([a-zA-Z_][a-zA-Z_0-9]*)\[(.*)\]$/su.exec(name);
         if (selected) {
           if (!dereference) continue;
@@ -6816,7 +6853,7 @@ export class Runtime {
             const original = getCommandArguments(context).values[argument]!;
             const index = typeof original === "string"
               ? await this.arrayIndex(binding, { decimal: selector, source: selector }, state, context, binding.owner)
-              : await binding.keyIndex(shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(selected[1]!.length + 1, shellValueByteLength(original) - 1), context[valueScope]), binding.owner, this.signal);
+              : await binding.keyIndex(shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(args[argument]!.indexOf("[") + 1, shellValueByteLength(original) - 1), context[valueScope]), binding.owner, this.signal);
             if (index !== undefined) await this.unsetIndexed(state, base, index);
           } else if (selector === "@" || selector === "*") await this.unsetIndexed(state, base, "members");
           else {
@@ -6898,13 +6935,13 @@ export class Runtime {
       }
       if (names[0] === "--") names.shift();
       if (array !== undefined) names.splice(0, names.length, array);
-      const invalidName = names.find(name => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name));
+      const invalidName = names.find(name => !this.variableTarget(name));
       if (exact && !invalid && invalidName !== undefined) {
         const diagnosticIO: IO = context;
         await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: \`${invalidName}': not a valid identifier\n`);
         return 1;
       }
-      if (invalid || names.some((name) => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name))) {
+      if (invalid || invalidName !== undefined) {
         await writeDiagnostic(stderr, "read: invalid variable name or unsupported option\n");
         return 2;
       }
@@ -6915,6 +6952,7 @@ export class Runtime {
         });
       try {
       if (array !== undefined) {
+        array = this.referenceName(state, array);
         if (state.readonlyVariables?.has(array)) { await this.diagnostic(context, `${array}: readonly variable`); return 1; }
         const writer = await this.incrementalIndexed(state, context, array, true);
         try {
@@ -7048,8 +7086,10 @@ export class Runtime {
 
   private async resolveParameter<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
     if (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
-      const resolved = { ...part, name: this.referenceName(state, part.name) };
+      const target = this.variableTarget(this.referenceName(state, part.name))!;
+      const resolved = { ...part, name: target.name };
       copyArraySelector(part, resolved);
+      if (target.subscript !== undefined) setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)) });
       part = resolved;
     }
     if (part.kind === "variable" && part.name === "DIRSTACK") {

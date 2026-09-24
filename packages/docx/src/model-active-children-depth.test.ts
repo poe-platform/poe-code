@@ -19,5 +19,5 @@ it(`model compatibility projection honors admitted native depth without recursiv
   expect(children!(editor.root)).toEqual([editor.root.children[0]!]);
   expect(children!(editor.root.children[0]!)).toEqual([editor.root.children[0]!.children[0]!]);
   expect(activeModelChildren(store, "/word/document.xml")).toBe(children!);
-  expect(new Uint8Array(memory.readFileSync("/story.xml") as Buffer)).toEqual(original);
+  expect(Buffer.compare(memory.readFileSync("/story.xml") as Buffer, original), "source remains byte-exact").toBe(0);
 });

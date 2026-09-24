@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "scope": "Native validation of referenced cycles and guarded self references in BIFF7, BIFF8, dual-stream and Gnumeric XML.",
+  "sourceEvidence": {
+    "path": "src/expr-name.c",
+    "sha256": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353",
+    "lines": "618-707",
+    "finding": "Native name insertion rejects circular definitions even if the recursive reference is in an unselected branch."
+  },
+  "public": {
+    "checks": [
+      {
+        "id": "biff-referenced-cycles-excel_biff7",
+        "bytes": 5632,
+        "inputSha256": "4b6901477f5a7226936d2916acfa3b08afde0c6e5e83c3b8d78ec2baaef0133d",
+        "csv": "#NAME?\n#NAME?\n7\n11\n13\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-referenced-cycles-excel_biff8",
+        "bytes": 5632,
+        "inputSha256": "1cc38a7def9e2925872036821d12cf56904db466dcce43b754c2d791662f7655",
+        "csv": "#NAME?\n#NAME?\n7\n11\n13\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-referenced-cycles-excel_dsf",
+        "bytes": 9728,
+        "inputSha256": "7ebae9412f4e9ef83cc0e08d7b8796685cb2d2670fea824ff865c91c1fb241ec",
+        "csv": "#NAME?\n#NAME?\n7\n11\n13\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-referenced-cycles-xml",
+        "bytes": 2999,
+        "inputSha256": "3d6c7a281a46a09ca1c3ca93f6244d2ad2b66d48784fc4055175aef41fd83cd4",
+        "csv": "#NAME?\n#NAME?\n7\n11\n13\n19\n",
+        "sdkAndShellMatch": true
+      }
+    ],
+    "externalCalls": 0,
+    "executions": 8,
+    "bindings": [
+      {
+        "path": "packages/ssconvert/dist/index.js",
+        "sha256": "b84c535ff9cf7ff7d6cc77c62bb6189486fd0cbb8458e44709a752dc17568118"
+      },
+      {
+        "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+        "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+      }
+    ]
+  },
+  "screenshot": {
+    "inspected": true,
+    "sha256": "d002692d249bc40360b9f88247b2c34ca24eb2c58efc149b4ea872c16c25635b"
+  },
+  "native": {
+    "status": "Requested capture, not yet qualified.",
+    "manifest": "docs/ssconvert/linux-optional-service-native-probes.json",
+    "inputs": 4,
+    "commands": 12,
+    "priorInputsPreserved": 129,
+    "totalInputs": 133
+  },
+  "remaining": "Native actual values and warnings, importer handling, broader name semantics, all 19 families and publication remain open."
+}

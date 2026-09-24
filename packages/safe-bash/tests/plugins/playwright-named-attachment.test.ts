@@ -51,6 +51,54 @@ test('closed and expired metadata cannot allocate a browser during attachment', 
   } finally { await f.shell.dispose(); }
 });
 
+test('saved metadata listing is independent of snapshot refs and live capacity', async () => {
+  const f = fixture({ limits: { maxSnapshotRefs: 1, maxSessions: 1 }, persistence: {
+    async list() { return [{ name: 'saved' }, { name: 'other' }]; },
+    async restore() { return { lease: f.lease, selectedPage: f.pages[1] }; },
+    async checkpoint() {}, async delete() {},
+  } });
+  try {
+    const listed = await f.run('list');
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.ok(listed.stdout.includes('saved'));
+    assert.ok(listed.stdout.includes('other'));
+    assert.equal((await f.run('attach saved')).exitCode, 0);
+    assert.equal((await f.run('attach other')).exitCode, 1);
+    assert.equal((await f.run('close-all')).exitCode, 0);
+    assert.equal(f.releases, 1);
+  } finally { await f.shell.dispose(); }
+});
+
+test('saved metadata still validates every entry beyond the snapshot ref budget', async () => {
+  for (const entry of [{ name: '../invalid' }, { name: 'other', expiresAt: -1 }]) {
+    const f = fixture({ limits: { maxSnapshotRefs: 1 }, persistence: {
+      async list() { return [{ name: 'saved' }, entry]; },
+      async restore() { throw new Error('must not allocate'); }, async checkpoint() {}, async delete() {},
+    } });
+    try {
+      const result = await f.run('list');
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stdout + result.stderr, /Invalid (session name|persisted session expiry)/);
+      assert.ok(!result.stdout.includes('### Browsers'));
+      assert.equal(f.allocations, 0);
+    } finally { await f.shell.dispose(); }
+  }
+});
+
+test('saved metadata listing still obeys the command output budget', async () => {
+  const f = fixture({ limits: { maxSnapshotRefs: 1, maxCommandBytes: 32 }, persistence: {
+    async list() { return [{ name: 'saved' }, { name: 'other' }]; },
+    async restore() { throw new Error('must not allocate'); }, async checkpoint() {}, async delete() {},
+  } });
+  try {
+    const result = await f.run('list');
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /limit/i);
+    assert.equal(result.stdout, '');
+    assert.equal(f.allocations, 0);
+  } finally { await f.shell.dispose(); }
+});
+
 test('capacity includes pending restoration and prevents a second host allocation', async () => {
   const admitted = deferred<void>();
   const gate = deferred<Awaited<ReturnType<PlaywrightSessionPersistence['restore']>>>();

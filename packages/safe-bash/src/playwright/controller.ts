@@ -195,7 +195,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const savedSessions = async (signal: AbortSignal): Promise<readonly { name: string; expiresAt?: number }[]> => {
     const entries = await options.persistence?.list?.(signal) ?? [];
     signal.throwIfAborted();
-    if (!Array.isArray(entries) || entries.length > maxSnapshotRefs) throw new PlaywrightResourceLimitError('Playwright session list limit exceeded');
+    if (!Array.isArray(entries)) throw new Error('Invalid persisted session list');
     for (const entry of entries) {
       if (!entry || typeof entry !== 'object') throw new Error('Invalid persisted session');
       validatePlaywrightSessionName(entry.name);

@@ -97,7 +97,8 @@ entities, malformed namespaces, and malformed XML are rejected.
 
 ## Limits and outcomes
 
-All `limits` values are positive safe integers. Configuration is copied when
+All `limits` values are positive safe integers or `Infinity` for an explicit
+unbounded override. Configuration is copied when
 creating the commands. The default limits are independent:
 
 | Option | Default | Bounds |
@@ -105,16 +106,19 @@ creating the commands. The default limits are independent:
 | `maxInputBytes` | 8,388,608 | XML input bytes across files; also argument byte admission |
 | `maxOutputBytes` | 8,388,608 | Emitted result bytes |
 | `maxSourceBytes` | 65,536 | XPath or jq filter bytes |
-| `maxDepth` | 64 | Element depth; configurable maximum 256 |
-| `maxNodes` | 100,000 | Retained elements, attributes, and content nodes |
+| `maxDepth` | 64 | Element depth |
+| `maxNodes` | 10,000 | Elements; also independently bounds all retained elements, attributes, and content nodes |
 | `maxAttributes` | 10,000 | Total attributes |
 | `maxAttributesPerElement` | 128 | Attributes on one element |
 | `maxNamespaces` | 256 | Namespace bindings in one scope |
 | `maxSteps` | 1,000,000 | XML work; xq also bounds jq conversion and filtering independently |
 | `maxResults` | 100,000 | XPath selected results or emitted jq results |
 
-A document below the byte cap may exceed another cap. In particular, scanning
-and repeated traversal consume work; the input cap does not promise that an
+A document below the byte cap may exceed another cap. Tree retention is
+bounded even with `xmllint --noout`; output suppression
+does not disable node, depth, attribute, or content admission. These defaults
+apply in both Node and Worker environments. Scanning and repeated traversal
+consume work; the input cap does not promise that an
 8 MiB document fits the default work budget. Parsing is iterative and yields
 cooperatively during scanning and evaluation. Cancellation preserves the supplied
 abort reason, but cannot force an uncooperative filesystem operation to stop.

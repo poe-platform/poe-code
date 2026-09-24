@@ -6,6 +6,21 @@ import { createXmlCommands, xmlCommands, type XmlQueryLimits } from "../../src/c
 import { createCommandArguments, toByteSource } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 
+for (const [name, xml, diagnostic] of [
+  ["empty children", "<r>" + "<a/>".repeat(10_000) + "</r>", "resource limit"],
+  ["depth", "<a>".repeat(65) + "</a>".repeat(65), "resource limit"],
+  ["content", "<r>" + "<!--x-->".repeat(10_000) + "</r>", "content node limit"],
+] as const) test(`xmllint --noout bounds default parsed ${name} independently of output`, async () => {
+  const shell = new api.Shell({ fs: api.createMemoryFileSystem(), limits: api.cloudflareWorkerLimits })
+    .use(xmlCommands({ limits: { maxOutputBytes: 1024 } }));
+  try {
+    const result = await shell.exec("xmllint --noout", { stdin: Buffer.from(xml) });
+    assert.equal(result.exitCode, 5, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.ok(result.stderr.includes(diagnostic), result.stderr);
+  } finally { await shell.dispose(); }
+});
+
 for (const [command, xml, expected] of [
   ["xq . /input", "<a>text</a>", '{\n  "a": "text"\n}\n'],
   ["xq -r '.root.item[]' /input", "<root><item>one</item><item>two</item></root>", "one\ntwo\n"],

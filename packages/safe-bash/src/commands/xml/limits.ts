@@ -17,10 +17,10 @@ export interface XmlCommandsOptions {
   readonly limits?: Partial<XmlQueryLimits>;
 }
 export const defaultXmlQueryLimits: Readonly<XmlQueryLimits> = Object.freeze({
-  maxInputBytes: Infinity, maxOutputBytes: Infinity,
-  maxSourceBytes: Infinity, maxDepth: Infinity, maxNodes: Infinity,
-  maxAttributes: Infinity, maxAttributesPerElement: Infinity,
-  maxNamespaces: Infinity, maxSteps: Infinity, maxResults: Infinity,
+  maxInputBytes: 8_388_608, maxOutputBytes: 8_388_608,
+  maxSourceBytes: 65_536, maxDepth: 64, maxNodes: 10_000,
+  maxAttributes: 10_000, maxAttributesPerElement: 128,
+  maxNamespaces: 256, maxSteps: 1_000_000, maxResults: 100_000,
 });
 export class XmlQueryError extends Error {
   constructor(message: string, readonly status: number) { super(message); }

@@ -123,9 +123,9 @@ test("find printf retains each starting argument for root and relative path dire
 
 test("find printf dirname handles filesystem root, relative names and trailing slashes", async () => {
   const fs = await fixture({ "a/file": "x" });
-  const result = await run("find", ["/", "/work", "a/", "a/file", ".", "-maxdepth", "0", "-printf", "[%h][%f]\\n"], { fs });
+  const result = await run("find", ["/", "/work", "/work/", "a/", "a/file", ".", "-maxdepth", "0", "-printf", "[%h][%f]\\n"], { fs });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "[][/]\n[][work]\n[.][a]\n[a][file]\n[.][.]\n");
+  assert.equal(result.stdout, "[/][/]\n[/][work]\n[/][work]\n[.][a]\n[a][file]\n[.][.]\n");
 });
 
 test("find printf operand is not interpreted as a global depth option", async () => {

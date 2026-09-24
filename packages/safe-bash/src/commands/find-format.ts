@@ -86,7 +86,7 @@ async function field(entry: FindFormatEntry, code: string, budget: FindFormatBud
   let slash = end - 1;
   while (slash >= 0 && entry.display[slash] !== "/") { await budget.step(); slash--; }
   const start = code === "f" ? slash + 1 : 0;
-  const finish = code === "f" ? end : slash;
+  const finish = code === "f" ? end : slash === 0 ? 1 : slash;
   if (code === "f" && end === 1 && entry.display[0] === "/") return "/";
   if (code === "h" && slash < 0) return ".";
   budget.admitOutput(finish - start);

@@ -348,7 +348,11 @@ async function copy(
     if (backup && targetStat) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
     else if (removeDestination && targetStat && !preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
     if ((!targetStat || backup || removeDestination) && !preflight) {
-      await context.fs.writeFile(target, new Uint8Array(), { flag: "wx", mode: sourceStat.mode & 0o777, signal: context.signal });
+      const capabilities = await context.fs.capabilitiesFor?.(target, { creation: "exclusive", signal: context.signal }) ?? context.fs.capabilities;
+      context.signal.throwIfAborted();
+      await context.fs.writeFile(target, new Uint8Array(), {
+        flag: "wx", ...(capabilities.permissions === false ? {} : { mode: sourceStat.mode & 0o777 }), signal: context.signal,
+      });
     }
   } else {
     await admitCopySource(context, physicalSource);

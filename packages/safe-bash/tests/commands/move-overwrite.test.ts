@@ -5,7 +5,7 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createMountFileSystem } from "../../src/fs/mount/index.js";
 import { run } from "./helpers.js";
 
-test("cross-device mv refuses an unbound overwrite before an ancestor swap can redirect it", async () => {
+for (const publication of ["copyFile", "writeStream"] as const) test(`cross-device mv refuses an unbound ${publication} overwrite before an ancestor swap can redirect it`, async () => {
   const root = createMemoryFileSystem(), destination = createMemoryFileSystem();
   await root.mkdir("/work");
   await root.writeFile("/work/a", Buffer.from("source"));
@@ -16,11 +16,14 @@ test("cross-device mv refuses an unbound overwrite before an ancestor swap can r
   const base = createMountFileSystem({ root, mounts: { "/dest": destination } });
   let copies = 0;
   const fs: FileSystem = new Proxy(base, { get(target, key) {
-    if (key === "copyFile") return async (...args: Parameters<FileSystem["copyFile"]>) => {
+    if (key === publication) return async (...args: unknown[]) => {
       copies++;
       await destination.rename("/sub", "/held");
       await destination.symlink("/private", "/sub");
-      try { await base.copyFile(...args); }
+      try {
+        const publish = base[publication] as (...args: unknown[]) => Promise<void>;
+        await publish.apply(base, args);
+      }
       finally {
         await destination.rm("/sub");
         await destination.rename("/held", "/sub");
@@ -31,7 +34,7 @@ test("cross-device mv refuses an unbound overwrite before an ancestor swap can r
   } });
   const result = await run("mv", ["/work/a", "/dest/sub/a"], { fs });
   assert.equal(result.exitCode, 1, result.stderr);
-  assert.match(result.stderr, /ENOTSUP/u);
+  assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
   assert.equal(copies, 0);
   assert.equal(Buffer.from(await root.readFile("/work/a")).toString(), "source");
   assert.equal(Buffer.from(await destination.readFile("/sub/a")).toString(), "intended");

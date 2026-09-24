@@ -81,6 +81,7 @@ async function uncertain(relation: EntryComparison, symlink = false) {
   if (symlink) await base.symlink("source", "/work/link");
   let copies = 0, removals = 0, comparisons = 0;
   const unscoped = async (path: string, follow: boolean): Promise<FileStat> => {
+    if (path === "/work/source") return base[follow ? "stat" : "lstat"](path);
     const { identityScope: ignored, ...stat } = await base[follow ? "stat" : "lstat"](path); void ignored; return stat;
   };
   const fs = proxy(base, {
@@ -88,6 +89,7 @@ async function uncertain(relation: EntryComparison, symlink = false) {
     rename: async () => { throw new FsError("EXDEV"); },
     compareEntry: async () => { comparisons++; return relation; },
     copyFile: async (...args) => { copies++; await base.copyFile(...args); },
+    writeStream: async (...args) => { copies++; await base.writeStream(...args); },
     rm: async (...args) => { removals++; await base.rm(...args); },
   });
   return { fs, base, effects: () => ({ copies, removals, comparisons }) };
@@ -124,9 +126,9 @@ test("cp rejects an authority-proven alias before native content work", async ()
 
 test("cp -f accepts qualified distinct entries, then retries exclusively", async () => {
   const { fs, base } = await uncertain("distinct"); let copies = 0;
-  const guarded = proxy(fs, { copyFile: async (...args) => {
+  const guarded = proxy(fs, { writeStream: async (...args) => {
     if (++copies === 1) throw new FsError("EACCES");
-    assert.equal(args[2]?.exclusive, true); await base.copyFile(...args);
+    assert.equal(args[2]?.flag, "wx"); await base.writeStream(...args);
   } });
   const result = await run("cp", ["-f", "source", "target"], { fs: guarded });
   assert.equal(result.exitCode, 0, result.stderr); assert.equal(copies, 2);

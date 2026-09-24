@@ -831,7 +831,9 @@ export function objectProperties(value: SandboxValue, _mutable = false): Sandbox
 }
 
 export function exposePropertyDescriptor(descriptor: PropertyDescriptor, budget: Budget): SandboxObject {
-  const result = (
+  // Reflection results own their storage; native edits must still invalidate
+  // accounting snapshots without retaining aliases to the input descriptor.
+  const result = createIntrinsicObject((
     "value" in descriptor
       ? descriptor
       : {
@@ -840,7 +842,7 @@ export function exposePropertyDescriptor(descriptor: PropertyDescriptor, budget:
           enumerable: descriptor.enumerable,
           configurable: descriptor.configurable
         }
-  ) as SandboxObject;
+  ) as SandboxObject);
   const prototype = getSandboxPrototype(result, budget);
   if (prototype !== null) setSandboxPrototype(result, prototype, budget);
   return result;

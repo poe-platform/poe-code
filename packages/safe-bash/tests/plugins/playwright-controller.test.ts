@@ -450,7 +450,10 @@ test('remote loss requires explicit reopen and never replays navigation', async 
   const f = fixture();
   await f.run(['open']);
   f.leases[0]!.lost();
-  await assert.rejects(f.run(['goto', 'https://example.com']), /closed/);
+  await assert.rejects(f.run(['goto', 'https://example.com']), /Session closed: default; browser lease closed; reopen explicitly/);
+  await assert.rejects(f.run(['snapshot']), /browser lease closed/);
+  await assert.rejects(f.run(['screenshot'], { writeArtifact: async () => {} }), /browser lease closed/);
+  await assert.rejects(f.run(['check', 'e1']), /browser lease closed/);
   assert.equal(f.events.some(e => e.startsWith('goto')), false);
   await f.run(['open']);
   await f.controller.dispose();

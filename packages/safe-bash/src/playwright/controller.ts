@@ -345,6 +345,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const observeSession = (session: Session): void => {
     const unsubscribe = session.lease!.onClosed(() => {
       if (sessions.get(session.name) !== session || session.state === 'closed') return;
+      if (!session.releasing) session.failure ??= new Error(`Session closed: ${session.name}; browser lease closed; reopen explicitly`);
       delete session.page;
       session.state = 'closed';
       void release(session).catch(() => {});
@@ -851,7 +852,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         await enqueue(name, async () => {
           check();
           await retireExpired();
-          if (explicitlyClosed.has(name)) throw new Error(`Session closed: ${name}; reopen explicitly`);
+          if (explicitlyClosed.has(name)) throw sessions.get(name)?.failure ?? new Error(`Session closed: ${name}; reopen explicitly`);
           const wasLive = sessions.get(name)?.state === 'open';
           if (!wasLive && options.persistence?.list && !(await savedSessions(local.signal)).some(saved => saved.name === name)) throw new Error(`No resumable owned session: ${name}`);
           await restorePersistedSession(name, local.signal);
@@ -972,7 +973,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             let browserSession: PlaywrightAbilityRequest['browserSession'];
             if (ability.scope === 'session') {
               const session = sessions.get(parsed.session);
-              if (!session || session.state !== 'open') throw new Error(`Session closed: ${parsed.session}; reopen explicitly`);
+              if (!session || session.state !== 'open') throw session?.failure ?? new Error(`Session closed: ${parsed.session}; reopen explicitly`);
               active = session;
               checkSession(session);
               const pages = [...session.lease!.context.pages()];
@@ -1133,7 +1134,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             retained = true;
           } else {
             const session = sessions.get(parsed.session);
-            if (!session || session.state !== 'open') throw new Error(`Session closed: ${parsed.session}; reopen explicitly`);
+            if (!session || session.state !== 'open') throw session?.failure ?? new Error(`Session closed: ${parsed.session}; reopen explicitly`);
             active = session;
             if (parsed.command === 'goto') {
               if (!session.page) { retained = true; throw new Error('Selected tab closed; select a tab explicitly'); }

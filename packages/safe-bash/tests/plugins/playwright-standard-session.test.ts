@@ -168,7 +168,8 @@ test('standard idle timeout refreshes on commands and prevents expired implicit 
     await f.run('snapshot');
     assert.equal(f.controller.inspectSessions()[0]?.expiresAt, 1190);
     t.mock.timers.setTime(1200);
-    await assert.rejects(f.run('snapshot'), /closed|expired/);
+    await assert.rejects(f.run('snapshot'), /Session expired: default; reopen explicitly/);
+    await assert.rejects(f.run('screenshot'), /Session expired: default; reopen explicitly/);
     assert.equal(restores, 0);
     assert.ok(f.events.includes('release'));
     await f.run('open', '--idle-timeout=0');

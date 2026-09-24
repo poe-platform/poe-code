@@ -28,7 +28,7 @@ class SortWork {
   }
 }
 
-async function sortRecords<Record>(records: Record[], compare: (left: Record, right: Record) => Promise<number>, work: SortWork): Promise<Record[]> {
+async function sortRecords<Record>(records: Record[], compare: (left: Record, right: Record) => number | Promise<number>, work: SortWork): Promise<Record[]> {
   if (records.length < 2) return records;
   let source = records;
   let target = new Array<Record>(records.length);
@@ -41,8 +41,19 @@ async function sortRecords<Record>(records: Record[], compare: (left: Record, ri
       for (let index = begin; index < end; index++) {
         const checkpoint = work.charge();
         if (checkpoint) await checkpoint;
-        if (left < middle && (right === end || await compare(source[left]!, source[right]!) <= 0)) target[index] = source[left++]!;
-        else target[index] = source[right++]!;
+        if (left < middle) {
+          if (right === end) {
+            target[index] = source[left++]!;
+            continue;
+          }
+          const compared = compare(source[left]!, source[right]!);
+          const order = typeof compared === "number" ? compared : await compared;
+          if (order <= 0) {
+            target[index] = source[left++]!;
+            continue;
+          }
+        }
+        target[index] = source[right++]!;
       }
     }
     [source, target] = [target, source];
@@ -154,15 +165,23 @@ async function cutFieldBoundary(record: Buffer, separator: Uint8Array, start: nu
   return -1;
 }
 
-async function compareSortBytes(left: Uint8Array, right: Uint8Array, work: SortWork): Promise<number> {
+function compareSortBytes(left: Uint8Array, right: Uint8Array, work: SortWork): number | Promise<number> {
   const length = Math.min(left.length, right.length);
-  for (let offset = 0; offset < length; offset += 1024) {
-    const end = Math.min(offset + 1024, length);
-    await work.charge(2 * (end - offset));
-    const compared = Buffer.compare(left.subarray(offset, end), right.subarray(offset, end));
-    if (compared) return compared;
+  if (length <= 1024) {
+    const checkpoint = work.charge(2 * length);
+    const order = Buffer.compare(left.subarray(0, length), right.subarray(0, length)) || (left.length - right.length);
+    return checkpoint ? checkpoint.then(() => order) : order;
   }
-  return left.length - right.length;
+  return (async () => {
+    for (let offset = 0; offset < length; offset += 1024) {
+      const end = Math.min(offset + 1024, length);
+      const checkpoint = work.charge(2 * (end - offset));
+      if (checkpoint) await checkpoint;
+      const compared = Buffer.compare(left.subarray(offset, end), right.subarray(offset, end));
+      if (compared) return compared;
+    }
+    return left.length - right.length;
+  })();
 }
 
 async function foldSortBytes(bytes: Uint8Array, work: SortWork): Promise<Uint8Array> {
@@ -190,9 +209,8 @@ function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 
 
 interface NumericValue { whole: string; fraction: string; negative: boolean; suffixRank: number }
 
-async function parseNumeric(bytes: Uint8Array, work: SortWork, human = false): Promise<NumericValue> {
-  await work.charge(bytes.length);
-  const match = /^[ \t]*(-?)([0-9]*)(?:\.([0-9]*))?/u.exec(Buffer.from(bytes).toString("latin1"))!;
+function parseNumericSync(bytes: Uint8Array, human = false): NumericValue {
+  const match = /^[ \t]*(-?)([0-9]*)(?:\.([0-9]*))?/u.exec(Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1"))!;
   const whole = (match[2] ?? "").replace(/^0+/u, "") || "0";
   const fraction = (match[3] ?? "").replace(/0+$/u, "");
   const nonzero = whole !== "0" || fraction !== "";
@@ -201,30 +219,55 @@ async function parseNumeric(bytes: Uint8Array, work: SortWork, human = false): P
   return { whole, fraction, negative: match[1] === "-" && nonzero, suffixRank };
 }
 
-async function compareNumericValues(first: NumericValue, second: NumericValue, work: SortWork): Promise<number> {
+function parseNumeric(bytes: Uint8Array, work: SortWork, human = false): NumericValue | Promise<NumericValue> {
+  const checkpoint = work.charge(bytes.length);
+  return checkpoint ? checkpoint.then(() => parseNumericSync(bytes, human)) : parseNumericSync(bytes, human);
+}
+
+function compareNumericValues(first: NumericValue, second: NumericValue, work: SortWork): number | Promise<number> {
   if (first.negative !== second.negative) return first.negative ? -1 : 1;
   let compared = first.suffixRank - second.suffixRank;
   if (!compared) compared = first.whole.length - second.whole.length;
-  if (!compared) {
-    for (let offset = 0; offset < first.whole.length && !compared; offset += 1024) {
-      const end = Math.min(offset + 1024, first.whole.length);
-      await work.charge(2 * (end - offset));
-      const firstWhole = first.whole.slice(offset, end);
-      const secondWhole = second.whole.slice(offset, end);
-      compared = firstWhole < secondWhole ? -1 : firstWhole > secondWhole ? 1 : 0;
+  if (!compared && first.whole.length <= 1024 && Math.max(first.fraction.length, second.fraction.length) <= 1024) {
+    let charge = 2 * first.whole.length;
+    compared = first.whole < second.whole ? -1 : first.whole > second.whole ? 1 : 0;
+    if (!compared) {
+      const width = Math.max(first.fraction.length, second.fraction.length);
+      if (width > 0) {
+        charge += 2 * width;
+        const firstFraction = first.fraction.padEnd(width, "0");
+        const secondFraction = second.fraction.padEnd(width, "0");
+        compared = firstFraction < secondFraction ? -1 : firstFraction > secondFraction ? 1 : 0;
+      }
     }
+    const result = first.negative ? -compared : compared;
+    const checkpoint = charge > 0 ? work.charge(charge) : undefined;
+    return checkpoint ? checkpoint.then(() => result) : result;
   }
-  if (!compared) {
-    const width = Math.max(first.fraction.length, second.fraction.length);
-    for (let offset = 0; offset < width && !compared; offset += 1024) {
-      const end = Math.min(offset + 1024, width);
-      await work.charge(2 * (end - offset));
-      const firstFraction = first.fraction.slice(offset, end).padEnd(end - offset, "0");
-      const secondFraction = second.fraction.slice(offset, end).padEnd(end - offset, "0");
-      compared = firstFraction < secondFraction ? -1 : firstFraction > secondFraction ? 1 : 0;
+  return (async () => {
+    if (!compared) {
+      for (let offset = 0; offset < first.whole.length && !compared; offset += 1024) {
+        const end = Math.min(offset + 1024, first.whole.length);
+        const checkpoint = work.charge(2 * (end - offset));
+        if (checkpoint) await checkpoint;
+        const firstWhole = first.whole.slice(offset, end);
+        const secondWhole = second.whole.slice(offset, end);
+        compared = firstWhole < secondWhole ? -1 : firstWhole > secondWhole ? 1 : 0;
+      }
     }
-  }
-  return first.negative ? -compared : compared;
+    if (!compared) {
+      const width = Math.max(first.fraction.length, second.fraction.length);
+      for (let offset = 0; offset < width && !compared; offset += 1024) {
+        const end = Math.min(offset + 1024, width);
+        const checkpoint = work.charge(2 * (end - offset));
+        if (checkpoint) await checkpoint;
+        const firstFraction = first.fraction.slice(offset, end).padEnd(end - offset, "0");
+        const secondFraction = second.fraction.slice(offset, end).padEnd(end - offset, "0");
+        compared = firstFraction < secondFraction ? -1 : firstFraction > secondFraction ? 1 : 0;
+      }
+    }
+    return first.negative ? -compared : compared;
+  })();
 }
 
 interface SortKey { start: number; startCharacter: number; startBlanks: boolean; endBlanks: boolean; end?: number; endCharacter?: number; flags: Set<string> }
@@ -382,7 +425,7 @@ async function compareVersions(left: Uint8Array, right: Uint8Array, work: SortWo
   return await compareVersionParts(await versionPrefix(left, work), await versionPrefix(right, work), work) || await compareVersionParts(left, right, work);
 }
 
-async function mergeSortRuns(runs: Uint8Array[][], compare: (left: Uint8Array, right: Uint8Array) => Promise<number>, work: SortWork): Promise<Uint8Array[]> {
+async function mergeSortRuns(runs: Uint8Array[][], compare: (left: Uint8Array, right: Uint8Array) => number | Promise<number>, work: SortWork): Promise<Uint8Array[]> {
   while (runs.length > 1) {
     const next: Uint8Array[][] = [];
     for (let index = 0; index < runs.length; index += 2) {
@@ -392,8 +435,19 @@ async function mergeSortRuns(runs: Uint8Array[][], compare: (left: Uint8Array, r
       while (first < left.length || second < right.length) {
         const checkpoint = work.charge();
         if (checkpoint) await checkpoint;
-        if (first < left.length && (second === right.length || await compare(left[first]!, right[second]!) <= 0)) merged.push(left[first++]!);
-        else merged.push(right[second++]!);
+        if (first < left.length) {
+          if (second === right.length) {
+            merged.push(left[first++]!);
+            continue;
+          }
+          const compared = compare(left[first]!, right[second]!);
+          const order = typeof compared === "number" ? compared : await compared;
+          if (order <= 0) {
+            merged.push(left[first++]!);
+            continue;
+          }
+        }
+        merged.push(right[second++]!);
       }
       next.push(merged);
     }
@@ -532,10 +586,18 @@ export function textCommands(): CommandDefinition[] {
         };
         compareNumeric = async (left, right) => compareNumericValues(await numericValue(left), await numericValue(right), work);
       }
-      let keyCompare = async (left: Uint8Array, right: Uint8Array) => {
+      let keyCompare: (left: Uint8Array, right: Uint8Array) => number | Promise<number> = (left: Uint8Array, right: Uint8Array) => {
         const checkpoint = work.charge();
-        if (checkpoint) await checkpoint;
-        if (simple) return await compareSortBytes(left, right, work) * direction;
+        if (simple) {
+          const cmp = compareSortBytes(left, right, work);
+          if (!checkpoint && typeof cmp === "number") return cmp * direction;
+          return (async () => {
+            if (checkpoint) await checkpoint;
+            return (await cmp) * direction;
+          })();
+        }
+        return (async () => {
+          if (checkpoint) await checkpoint;
         for (const key of keys.length ? keys : [undefined]) {
           await work.charge();
           const flags = key?.flags.size ? key.flags : parsed.flags;
@@ -565,34 +627,54 @@ export function textCommands(): CommandDefinition[] {
           if (result) return result;
         }
         return 0;
+        })();
       };
       const numericKey = keys.length === 1 ? keys[0] : undefined;
       const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
       if (numericKey && (numericKeyFlags.has("n") || numericKeyFlags.has("h")) && !["b", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
         const keyedNumericValues = new Map<Uint8Array, NumericValue>();
         let retainedKeyBytes = 0;
-        const keyedNumericValue = async (record: Uint8Array): Promise<NumericValue> => {
+        const keyedNumericValue = (record: Uint8Array): NumericValue | Promise<NumericValue> => {
           const cached = keyedNumericValues.get(record);
           if (cached !== undefined) return cached;
           context.signal.throwIfAborted();
-          const bytes = await keyBytes(record, numericKey, separator, false, work);
-          const charge = 6 * bytes.length + 10;
-          if (keyedNumericValues.size >= 16_384 || charge > 1_048_576 - retainedKeyBytes) return parseNumeric(bytes, work, numericKeyFlags.has("h"));
-          const parsedValue = await parseNumeric(bytes, work, numericKeyFlags.has("h"));
-          keyedNumericValues.set(record, parsedValue);
-          retainedKeyBytes += charge;
-          return parsedValue;
+          return (async () => {
+            const bytes = await keyBytes(record, numericKey, separator, false, work);
+            const charge = 6 * bytes.length + 10;
+            if (keyedNumericValues.size >= 16_384 || charge > 1_048_576 - retainedKeyBytes) return await parseNumeric(bytes, work, numericKeyFlags.has("h"));
+            const parsedValue = await parseNumeric(bytes, work, numericKeyFlags.has("h"));
+            keyedNumericValues.set(record, parsedValue);
+            retainedKeyBytes += charge;
+            return parsedValue;
+          })();
         };
-        keyCompare = async (left, right) => {
+        keyCompare = (left, right) => {
           const checkpoint = work.charge();
-          if (checkpoint) await checkpoint;
-          const result = await compareNumericValues(await keyedNumericValue(left), await keyedNumericValue(right), work);
-          return numericKeyFlags.has("r") ? -result : result;
+          const leftVal = keyedNumericValue(left);
+          const rightVal = keyedNumericValue(right);
+          if (!checkpoint && !(leftVal instanceof Promise) && !(rightVal instanceof Promise)) {
+            const cmp = compareNumericValues(leftVal, rightVal, work);
+            if (typeof cmp === "number") return numericKeyFlags.has("r") ? -cmp : cmp;
+            return cmp.then(r => numericKeyFlags.has("r") ? -r : r);
+          }
+          return (async () => {
+            if (checkpoint) await checkpoint;
+            const result = await compareNumericValues(await leftVal, await rightVal, work);
+            return numericKeyFlags.has("r") ? -result : result;
+          })();
         };
       }
-      const compare = async (left: Uint8Array, right: Uint8Array) => {
-        const result = await keyCompare(left, right);
-        return result || (simple || parsed.flags.has("s") || parsed.flags.has("u") ? 0 : await compareSortBytes(left, right, work) * direction);
+      const compare = (left: Uint8Array, right: Uint8Array): number | Promise<number> => {
+        const result = keyCompare(left, right);
+        if (typeof result === "number") {
+          if (result !== 0 || simple || parsed.flags.has("s") || parsed.flags.has("u")) return result;
+          const fallback = compareSortBytes(left, right, work);
+          return typeof fallback === "number" ? fallback * direction : fallback.then(r => r * direction);
+        }
+        return result.then(async resolved => {
+          if (resolved !== 0 || simple || parsed.flags.has("s") || parsed.flags.has("u")) return resolved;
+          return (await compareSortBytes(left, right, work)) * direction;
+        });
       };
       const records: Uint8Array[] = [];
       const runs: Uint8Array[][] = [];
@@ -753,91 +835,96 @@ export function textCommands(): CommandDefinition[] {
       if (delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");
       const outputDelimiter = value(parsed, "output-delimiter");
       const recordDelimiter = parsed.flags.has("z") ? 0 : 10;
+      const recordDelimiterBytes = Uint8Array.of(recordDelimiter);
+      const outputDelimiterBytes = encoder.encode(outputDelimiter ?? delimiter);
       const separator = Buffer.from(encoder.encode(delimiter));
       const writer = new CutOutput(context, work);
       let exitCode = 0;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
-          for await (const line of lines(input(context, name), recordDelimiter)) {
-            context.signal.throwIfAborted();
-            let cursor = 0;
-            const selected = (position: number) => {
-              while (cursor < ranges.length && position > ranges[cursor]!.end) cursor++;
-              const included = cursor < ranges.length && position >= ranges[cursor]!.start;
-              return included !== complement ? cursor : -1;
-            };
-            if (mode === "f") {
-              const record = Buffer.from(line.bytes.buffer, line.bytes.byteOffset, line.bytes.byteLength);
-              let boundary = await cutFieldBoundary(record, separator, 0, work);
-              if (boundary < 0) {
-                if (parsed.flags.has("s")) continue;
-                await writer.write(line.bytes);
-              } else {
-                let field = 1;
-                let start = 0;
+          try {
+            for await (const line of lines(input(context, name), recordDelimiter)) {
+              context.signal.throwIfAborted();
+              let cursor = 0;
+              const selected = (position: number) => {
+                while (cursor < ranges.length && position > ranges[cursor]!.end) cursor++;
+                const included = cursor < ranges.length && position >= ranges[cursor]!.start;
+                return included !== complement ? cursor : -1;
+              };
+              if (mode === "f") {
+                const record = Buffer.from(line.bytes.buffer, line.bytes.byteOffset, line.bytes.byteLength);
+                let boundary = await cutFieldBoundary(record, separator, 0, work);
+                if (boundary < 0) {
+                  if (parsed.flags.has("s")) continue;
+                  await writer.write(line.bytes);
+                } else {
+                  let field = 1;
+                  let start = 0;
+                  let emitted = false;
+                  while (true) {
+                    const checkpoint = work.charge();
+                    if (checkpoint) await checkpoint;
+                    if (selected(field++) >= 0) {
+                      if (emitted) await writer.write(outputDelimiterBytes);
+                      await writer.write(record.subarray(start, boundary < 0 ? record.length : boundary));
+                      emitted = true;
+                    }
+                    if (boundary < 0) break;
+                    start = boundary + separator.length;
+                    boundary = await cutFieldBoundary(record, separator, start, work);
+                  }
+                }
+              } else if (byteSelection) {
                 let emitted = false;
-                while (true) {
-                  const checkpoint = work.charge();
+                let previousRange = -1;
+                for (let offset = 0; offset < line.bytes.length; offset += 4096) {
+                  const end = Math.min(line.bytes.length, offset + 4096);
+                  const checkpoint = work.charge(end - offset);
                   if (checkpoint) await checkpoint;
-                  if (selected(field++) >= 0) {
-                    if (emitted) await writer.text(outputDelimiter ?? delimiter);
-                    await writer.write(record.subarray(start, boundary < 0 ? record.length : boundary));
-                    emitted = true;
+                  let start = -1;
+                  for (let index = offset; index < end; index++) {
+                    const range = selected(index + 1);
+                    if (range !== previousRange && start >= 0) { await writer.write(line.bytes.subarray(start, index)); start = -1; }
+                    if (range >= 0 && start < 0) {
+                      if (range !== previousRange && emitted && outputDelimiter !== undefined) await writer.write(outputDelimiterBytes);
+                      start = index;
+                      emitted = true;
+                    }
+                    previousRange = range;
                   }
-                  if (boundary < 0) break;
-                  start = boundary + separator.length;
-                  boundary = await cutFieldBoundary(record, separator, start, work);
+                  if (start >= 0) await writer.write(line.bytes.subarray(start, end));
                 }
-              }
-            } else if (byteSelection) {
-              let emitted = false;
-              let previousRange = -1;
-              for (let offset = 0; offset < line.bytes.length; offset += 4096) {
-                const end = Math.min(line.bytes.length, offset + 4096);
-                const checkpoint = work.charge(end - offset);
-                if (checkpoint) await checkpoint;
-                let start = -1;
-                for (let index = offset; index < end; index++) {
-                  const range = selected(index + 1);
-                  if (range !== previousRange && start >= 0) { await writer.write(line.bytes.subarray(start, index)); start = -1; }
-                  if (range >= 0 && start < 0) {
-                    if (range !== previousRange && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
-                    start = index;
-                    emitted = true;
-                  }
-                  previousRange = range;
-                }
-                if (start >= 0) await writer.write(line.bytes.subarray(start, end));
-              }
-            } else {
-              const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
-              let index = 0;
-              let emitted = false;
-              let previousRange = -1;
-              for (let offset = 0; offset < line.bytes.length; offset += 4096) {
-                const end = Math.min(line.bytes.length, offset + 4096);
-                const checkpoint = work.charge(end - offset);
-                if (checkpoint) await checkpoint;
-                const text = decoder.decode(line.bytes.subarray(offset, end), { stream: end < line.bytes.length });
-                let start = -1;
-                let position = 0;
-                for (const character of text) {
-                  const checkpoint = work.charge();
+              } else {
+                const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+                let index = 0;
+                let emitted = false;
+                let previousRange = -1;
+                for (let offset = 0; offset < line.bytes.length; offset += 4096) {
+                  const end = Math.min(line.bytes.length, offset + 4096);
+                  const checkpoint = work.charge(end - offset);
                   if (checkpoint) await checkpoint;
-                  const range = selected(++index);
-                  if (range !== previousRange && start >= 0) { await writer.text(text.slice(start, position)); start = -1; }
-                  if (range >= 0 && start < 0) {
-                    if (range !== previousRange && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
-                    start = position;
-                    emitted = true;
+                  const text = decoder.decode(line.bytes.subarray(offset, end), { stream: end < line.bytes.length });
+                  let start = -1;
+                  let position = 0;
+                  for (const character of text) {
+                    const checkpoint = work.charge();
+                    if (checkpoint) await checkpoint;
+                    const range = selected(++index);
+                    if (range !== previousRange && start >= 0) { await writer.text(text.slice(start, position)); start = -1; }
+                    if (range >= 0 && start < 0) {
+                      if (range !== previousRange && emitted && outputDelimiter !== undefined) await writer.write(outputDelimiterBytes);
+                      start = position;
+                      emitted = true;
+                    }
+                    position += character.length;
+                    previousRange = range;
                   }
-                  position += character.length;
-                  previousRange = range;
+                  if (start >= 0) await writer.text(text.slice(start));
                 }
-                if (start >= 0) await writer.text(text.slice(start));
               }
+              await writer.write(recordDelimiterBytes);
             }
-            await writer.write(Uint8Array.of(recordDelimiter));
+          } finally {
             await writer.flush();
           }
         } catch (error) { await diagnostic(context, error); exitCode = 1; }

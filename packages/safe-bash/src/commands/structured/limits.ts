@@ -71,7 +71,7 @@ export class Budget {
     if (size > this.limits.maxCollectionSize) throw new JqLimitError("maxCollectionSize");
   }
   text(text: string): void {
-    if (text.length > this.limits.maxValueBytes || Buffer.byteLength(text) > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    if (text.length > this.limits.maxValueBytes || (text.length * 3 > this.limits.maxValueBytes && Buffer.byteLength(text) > this.limits.maxValueBytes)) throw new JqLimitError("maxValueBytes");
   }
   value(value: Json): number {
     let bytes = 0;
@@ -80,20 +80,28 @@ export class Budget {
       if (depth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
       if (current !== null && typeof current === "object" && !(current instanceof Decimal)) {
         if (depth + 1 > this.limits.maxDepth) throw new JqLimitError("maxDepth");
-        const keys = Array.isArray(current) ? Object.keys(current) : objectKeys(current);
-        this.collection(keys.length);
-        bytes += 2 + Math.max(0, keys.length - 1);
-        for (const key of keys) {
-          if (!Array.isArray(current)) {
-            this.text(key);
-            bytes += Buffer.byteLength(JSON.stringify(key)) + 1;
+        if (Array.isArray(current)) {
+          this.collection(current.length);
+          bytes += 2 + Math.max(0, current.length - 1);
+          for (let index = 0; index < current.length; index++) {
+            if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+            visit(current[index]!, depth + 1);
           }
-          if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-          visit((current as Record<string, Json>)[key]!, depth + 1);
+        } else {
+          const keys = keyOrders.get(current) ?? Object.keys(current);
+          this.collection(keys.length);
+          bytes += 2 + Math.max(0, keys.length - 1);
+          for (let index = 0; index < keys.length; index++) {
+            const key = keys[index]!;
+            this.text(key);
+            bytes += scalarJsonByteLength(key, this) + 1;
+            if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+            visit(current[key]!, depth + 1);
+          }
         }
       } else {
         if (typeof current === "string") { this.step(current.length); this.text(current); }
-        bytes += Buffer.byteLength(scalarJson(current, this));
+        bytes += scalarJsonByteLength(current, this);
       }
       if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     };
@@ -143,6 +151,25 @@ export function truth(value: Json): boolean { return value !== null && value !==
 export function scalarJson(value: null | boolean | number | Decimal | string, budget: Budget): string {
   if (value instanceof Decimal) budget.step(Math.ceil(value.text.length / 32));
   return isNumber(value) ? numberText(value) : JSON.stringify(value);
+}
+function scalarJsonByteLength(value: null | boolean | number | Decimal | string, budget: Budget): number {
+  if (value === null || value === true) return 4;
+  if (value === false) return 5;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? (Object.is(value, -0) ? 2 : String(value).length) : Buffer.byteLength(scalarJson(value, budget));
+  }
+  if (value instanceof Decimal) {
+    budget.step(Math.ceil(value.text.length / 32));
+    return Buffer.byteLength(numberText(value));
+  }
+  let extra = 2;
+  for (let index = 0; index < value.length; index++) {
+    const code = value.charCodeAt(index);
+    if (code >= 0x80) return Buffer.byteLength(JSON.stringify(value));
+    if (code === 34 || code === 92 || code === 8 || code === 9 || code === 10 || code === 12 || code === 13) extra++;
+    else if (code < 32) extra += 5;
+  }
+  return value.length + extra;
 }
 export async function interruptible<Result>(operation: () => PromiseLike<Result>, signal: AbortSignal): Promise<Result> {
   signal.throwIfAborted();

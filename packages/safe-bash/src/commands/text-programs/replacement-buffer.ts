@@ -5,6 +5,7 @@ export class ReplacementBuffer {
   #size = 0;
   #allocated = 0;
   #tailUsed = 0;
+  #unboundedText = "";
 
   constructor(readonly budget: Budget) {}
 
@@ -17,6 +18,19 @@ export class ReplacementBuffer {
 
   async append(source: string, start = 0, end = source.length): Promise<void> {
     this.admit(end - start);
+    if (this.budget.maxBufferBytes === Infinity) {
+      let offset = start;
+      while (offset < end) {
+        await this.budget.checkpoint();
+        const length = Math.min(end - offset, 1024);
+        this.budget.step(length);
+        this.budget.step();
+        this.#unboundedText += offset === 0 && length === source.length ? source : source.slice(offset, offset + length);
+        this.#size += length;
+        offset += length;
+      }
+      return;
+    }
     let offset = start;
     while (offset < end) {
       await this.budget.checkpoint();
@@ -45,6 +59,11 @@ export class ReplacementBuffer {
     this.budget.step(this.#size);
     await this.budget.checkpoint();
     this.budget.step(0);
+    if (this.budget.maxBufferBytes === Infinity) {
+      const text = this.#unboundedText;
+      this.clear();
+      return text;
+    }
     if (this.#segments.length === 1) {
       const text = this.#segments[0]!.toString("latin1", 0, this.#size);
       this.clear();
@@ -72,5 +91,6 @@ export class ReplacementBuffer {
     this.#size = 0;
     this.#allocated = 0;
     this.#tailUsed = 0;
+    this.#unboundedText = "";
   }
 }

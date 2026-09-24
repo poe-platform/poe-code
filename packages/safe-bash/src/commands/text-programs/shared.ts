@@ -43,7 +43,7 @@ export class Budget {
   }
   async checkpoint(): Promise<void> {
     this.context.signal.throwIfAborted();
-    if (++this.checkpoints % 256 === 0 || monotonicNow() - this.lastYield >= 25) {
+    if ((++this.checkpoints & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
       await yieldTurn(this.context.signal);
       this.lastYield = monotonicNow();
     }

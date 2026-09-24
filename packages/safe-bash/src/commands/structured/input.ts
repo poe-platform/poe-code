@@ -7,8 +7,17 @@ export class JqParseError extends JqError {
   diagnostic(): string { return this.located ? `${this.detail} at line ${this.line}, column ${this.column}` : this.detail; }
 }
 export function decodeUtf8(bytes: string, budget: Budget): string {
-  const points: string[] = [];
   budget.step(Math.ceil(bytes.length / 1024));
+  let ascii = true;
+  for (let index = 0; index < bytes.length; index++) {
+    if ((index & 1023) === 0) budget.signal.throwIfAborted();
+    if (bytes.charCodeAt(index) >= 0x80) {
+      ascii = false;
+      break;
+    }
+  }
+  if (ascii) return bytes;
+  const points: string[] = [];
   let block = "";
   for (let offset = 0; offset < bytes.length;) {
     if (offset % 1024 === 0) { budget.signal.throwIfAborted(); points.push(block); block = ""; }
@@ -89,6 +98,21 @@ class JsonParser {
     this.token = "";
   }
   private string(): string {
+    let fastAscii = true;
+    for (let index = 0; index < this.token.length; index++) {
+      const code = this.token.charCodeAt(index);
+      if (code === 92 || code < 0x20 || code >= 0x80) {
+        fastAscii = false;
+        break;
+      }
+    }
+    if (fastAscii) {
+      const steps = Math.ceil(this.token.length / 1024);
+      if (steps > 0) this.budget.step(steps * 2);
+      else this.budget.signal.throwIfAborted();
+      this.budget.text(this.token);
+      return this.token;
+    }
     let result = "";
     let start = 0;
     for (let index = 0; index < this.token.length; index++) {
@@ -346,7 +370,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
     }
   }
   try {
-    for await (const chunk of readChunks(source, budget)) yield* scan(Buffer.from(chunk).toString("latin1"));
+    for await (const chunk of readChunks(source, budget)) yield* scan(Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1"));
     if (active && !failed) {
       try { yield* values(parser.finish(options.sequence ? { line, column, eof: true } : undefined)); } catch (error) { yield* failure(error, true); }
     }

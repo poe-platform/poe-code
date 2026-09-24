@@ -53,6 +53,32 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
 }
 
 async function suffix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, omit: boolean, delimiter: number): Promise<void> {
+  if (!bytes) {
+    const delimiterByte = Uint8Array.of(delimiter);
+    let pendingLines: { bytes: Uint8Array; terminated: boolean }[] = [];
+    let start = 0;
+    let size = 0;
+    for await (const line of lines(source, delimiter)) {
+      context.signal.throwIfAborted();
+      const lineLength = line.bytes.length + (line.terminated ? 1 : 0);
+      pendingLines.push(line);
+      size += lineLength;
+      while (pendingLines.length - start > count) {
+        const first = pendingLines[start++]!;
+        size -= first.bytes.length + (first.terminated ? 1 : 0);
+        if (omit) await output(context, first.terminated ? concatenate([first.bytes, delimiterByte]) : first.bytes);
+      }
+      if (size > bufferLimit) throw new FsError("EFBIG", { message: "tail buffer limit exceeded" });
+      if (start > 1024) { pendingLines = pendingLines.slice(start); start = 0; }
+    }
+    if (!omit) {
+      for (let index = start; index < pendingLines.length; index++) {
+        const line = pendingLines[index]!;
+        await output(context, line.terminated ? concatenate([line.bytes, delimiterByte]) : line.bytes);
+      }
+    }
+    return;
+  }
   let pending: Uint8Array[] = [];
   let start = 0;
   let size = 0;

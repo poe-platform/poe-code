@@ -198,4 +198,18 @@ describe("safe-bash-command-tesseract", () => {
     assert.match(hocrText, /LeftColRow1/);
     assert.match(hocrText, /RightColRow1/);
   });
+
+  it("recognizes exact text from a pure PNG rasterized by @poe-code/pdf-ast (PDF -> PNG -> Tesseract OCR)", async () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage({ width: 500, height: 120 });
+    page.drawText("HELLO WORLD 2026", { x: 20, y: 60, size: 24 });
+    const purePng = page.renderToPng({ dpi: 150 });
+
+    const vfs = createMemoryFileSystem();
+    await vfs.writeFile("/rasterized_page.png", purePng);
+
+    const res = await invokeTesseract(["/rasterized_page.png", "stdout", "txt"], vfs);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout.trim(), "HELLO WORLD 2026");
+  });
 });

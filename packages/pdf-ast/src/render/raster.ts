@@ -477,16 +477,19 @@ export function renderDisplayListToPng(
     }
   }
 
-  // 3. Render placed glyphs with clean vector strokes
+  // 3. Render placed glyphs with clean vector strokes and crisp inter-character separation
   for (const g of displayList.glyphs) {
-    const ch = g.unicode.trim().toUpperCase();
-    if (!ch) continue;
-    const gx0 = g.bbox[0] * scale;
+    const raw = g.unicode.trim();
+    if (!raw) continue;
+    const isLower = raw >= "a" && raw <= "z";
+    const ch = raw.toUpperCase();
+    const advW = Math.max(4, (g.bbox[2] - g.bbox[0]) * scale);
+    const gx0 = g.bbox[0] * scale + advW * 0.08;
     const gyBase = (displayList.height - g.baselineY) * scale;
-    const gw = Math.max(3, (g.bbox[2] - g.bbox[0]) * scale);
-    const gh = Math.max(5, g.fontSize * scale);
+    const gw = Math.max(3, advW * 0.72);
+    const gh = Math.max(5, g.fontSize * scale * (isLower ? 0.76 : 1.0));
     const strokes = VECTOR_GLYPH_STROKES[ch] ?? [[0.2, 0.1, 0.8, 0.1], [0.8, 0.1, 0.8, 0.6], [0.8, 0.6, 0.2, 0.6], [0.2, 0.6, 0.2, 0.1]];
-    const sw = Math.max(1.1, gh * 0.1);
+    const sw = Math.max(1.1, g.fontSize * scale * 0.085);
     for (const [sx0, sy0, sx1, sy1] of strokes) {
       drawAntiAliasedSegment(
         rgba,

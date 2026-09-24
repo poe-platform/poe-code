@@ -144,32 +144,118 @@ interface GlyphTemplate {
   readonly inkCount: number;
 }
 
+const RASTER_GLYPH_STROKES: Record<string, ReadonlyArray<readonly [number, number, number, number]>> = {
+  A: [[0.1, 0, 0.5, 0.75], [0.5, 0.75, 0.9, 0], [0.24, 0.28, 0.76, 0.28]],
+  B: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.75, 0.75], [0.75, 0.75, 0.75, 0.4], [0.15, 0.4, 0.8, 0.4], [0.8, 0.4, 0.8, 0], [0.15, 0, 0.8, 0]],
+  C: [[0.85, 0.65, 0.2, 0.75], [0.2, 0.75, 0.15, 0.1], [0.15, 0.1, 0.85, 0.1]],
+  D: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.75, 0.6], [0.75, 0.6, 0.75, 0.15], [0.75, 0.15, 0.15, 0]],
+  E: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.85, 0.75], [0.15, 0.38, 0.72, 0.38], [0.15, 0, 0.85, 0]],
+  F: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.85, 0.75], [0.15, 0.38, 0.72, 0.38]],
+  G: [[0.85, 0.65, 0.2, 0.75], [0.2, 0.75, 0.15, 0.05], [0.15, 0.05, 0.85, 0.05], [0.85, 0.05, 0.85, 0.38], [0.5, 0.38, 0.85, 0.38]],
+  H: [[0.15, 0, 0.15, 0.75], [0.85, 0, 0.85, 0.75], [0.15, 0.38, 0.85, 0.38]],
+  I: [[0.5, 0, 0.5, 0.75], [0.25, 0.75, 0.75, 0.75], [0.25, 0, 0.75, 0]],
+  J: [[0.75, 0.75, 0.75, 0.15], [0.75, 0.15, 0.4, 0], [0.4, 0, 0.15, 0.2]],
+  K: [[0.15, 0, 0.15, 0.75], [0.85, 0.75, 0.15, 0.35], [0.35, 0.45, 0.85, 0]],
+  L: [[0.15, 0.75, 0.15, 0], [0.15, 0, 0.85, 0]],
+  M: [[0.1, 0, 0.1, 0.75], [0.1, 0.75, 0.5, 0.2], [0.5, 0.2, 0.9, 0.75], [0.9, 0.75, 0.9, 0]],
+  N: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.85, 0], [0.85, 0, 0.85, 0.75]],
+  O: [[0.15, 0.1, 0.15, 0.65], [0.15, 0.65, 0.85, 0.65], [0.85, 0.65, 0.85, 0.1], [0.85, 0.1, 0.15, 0.1]],
+  P: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.8, 0.75], [0.8, 0.75, 0.8, 0.38], [0.8, 0.38, 0.15, 0.38]],
+  Q: [[0.15, 0.1, 0.15, 0.65], [0.15, 0.65, 0.85, 0.65], [0.85, 0.65, 0.85, 0.1], [0.85, 0.1, 0.15, 0.1], [0.55, 0.25, 0.9, -0.05]],
+  R: [[0.15, 0, 0.15, 0.75], [0.15, 0.75, 0.8, 0.75], [0.8, 0.75, 0.8, 0.38], [0.8, 0.38, 0.15, 0.38], [0.45, 0.38, 0.85, 0]],
+  S: [[0.85, 0.68, 0.2, 0.72], [0.2, 0.72, 0.2, 0.4], [0.2, 0.4, 0.8, 0.35], [0.8, 0.35, 0.8, 0.05], [0.8, 0.05, 0.15, 0.05]],
+  T: [[0.5, 0, 0.5, 0.75], [0.1, 0.75, 0.9, 0.75]],
+  U: [[0.15, 0.75, 0.15, 0.1], [0.15, 0.1, 0.85, 0.1], [0.85, 0.1, 0.85, 0.75]],
+  V: [[0.1, 0.75, 0.5, 0], [0.5, 0, 0.9, 0.75]],
+  W: [[0.08, 0.75, 0.28, 0], [0.28, 0, 0.5, 0.5], [0.5, 0.5, 0.72, 0], [0.72, 0, 0.92, 0.75]],
+  X: [[0.15, 0.75, 0.85, 0], [0.85, 0.75, 0.15, 0]],
+  Y: [[0.15, 0.75, 0.5, 0.38], [0.85, 0.75, 0.5, 0.38], [0.5, 0.38, 0.5, 0]],
+  Z: [[0.15, 0.75, 0.85, 0.75], [0.85, 0.75, 0.15, 0], [0.15, 0, 0.85, 0]],
+  "0": [[0.18, 0.05, 0.18, 0.7], [0.18, 0.7, 0.82, 0.7], [0.82, 0.7, 0.82, 0.05], [0.82, 0.05, 0.18, 0.05], [0.22, 0.1, 0.78, 0.65]],
+  "1": [[0.25, 0.58, 0.5, 0.75], [0.5, 0.75, 0.5, 0], [0.22, 0, 0.78, 0]],
+  "2": [[0.18, 0.6, 0.5, 0.75], [0.5, 0.75, 0.82, 0.55], [0.82, 0.55, 0.15, 0], [0.15, 0, 0.85, 0]],
+  "3": [[0.18, 0.72, 0.8, 0.72], [0.8, 0.72, 0.45, 0.4], [0.45, 0.4, 0.82, 0.15], [0.82, 0.15, 0.18, 0.02]],
+  "4": [[0.7, 0, 0.7, 0.75], [0.7, 0.75, 0.15, 0.25], [0.15, 0.25, 0.88, 0.25]],
+  "5": [[0.82, 0.75, 0.2, 0.75], [0.2, 0.75, 0.2, 0.42], [0.2, 0.42, 0.8, 0.35], [0.8, 0.35, 0.75, 0.03], [0.75, 0.03, 0.18, 0.03]],
+  "6": [[0.78, 0.72, 0.2, 0.4], [0.2, 0.4, 0.2, 0.05], [0.2, 0.05, 0.8, 0.05], [0.8, 0.05, 0.8, 0.38], [0.8, 0.38, 0.2, 0.38]],
+  "7": [[0.15, 0.75, 0.85, 0.75], [0.85, 0.75, 0.35, 0]],
+  "8": [[0.2, 0.05, 0.8, 0.05], [0.8, 0.05, 0.8, 0.7], [0.8, 0.7, 0.2, 0.7], [0.2, 0.7, 0.2, 0.05], [0.2, 0.38, 0.8, 0.38]],
+  "9": [[0.8, 0.38, 0.2, 0.38], [0.2, 0.38, 0.2, 0.72], [0.2, 0.72, 0.8, 0.72], [0.8, 0.72, 0.8, 0.05], [0.8, 0.05, 0.25, 0.02]],
+};
+
+function rasterizeNormalizedTemplate(
+  strokes: ReadonlyArray<readonly [number, number, number, number]>,
+  W: number,
+  H: number,
+  tightCrop: boolean
+): Uint8Array {
+  const CW = 48;
+  const CH = 64;
+  const canvas = new Uint8Array(CW * CH);
+  for (const [x0, y0, x1, y1] of strokes) {
+    const px0 = x0 * (CW - 8) + 4;
+    const py0 = (1 - y0) * (CH - 8) + 4;
+    const px1 = x1 * (CW - 8) + 4;
+    const py1 = (1 - y1) * (CH - 8) + 4;
+    const steps = Math.max(1, Math.ceil(Math.hypot(px1 - px0, py1 - py0) * 2));
+    for (let s = 0; s <= steps; s++) {
+      const cx = Math.round(px0 + ((px1 - px0) * s) / steps);
+      const cy = Math.round(py0 + ((py1 - py0) * s) / steps);
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -2; dx <= 2; dx++) {
+          const gx = cx + dx;
+          const gy = cy + dy;
+          if (gx >= 0 && gx < CW && gy >= 0 && gy < CH) {
+            canvas[gy * CW + gx] = 1;
+          }
+        }
+      }
+    }
+  }
+  let minX = CW, maxX = 0, minY = CH, maxY = 0;
+  if (tightCrop) {
+    for (let y = 0; y < CH; y++) {
+      for (let x = 0; x < CW; x++) {
+        if (canvas[y * CW + x]) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+  }
+  if (!tightCrop || minX > maxX) {
+    minX = 4; maxX = CW - 5; minY = 4; maxY = CH - 5;
+  }
+  const boxW = Math.max(1, maxX - minX + 1);
+  const boxH = Math.max(1, maxY - minY + 1);
+  const grid = new Uint8Array(W * H);
+  for (let ty = 0; ty < H; ty++) {
+    const sy = minY + Math.min(boxH - 1, Math.floor((ty * boxH) / H));
+    for (let tx = 0; tx < W; tx++) {
+      const sx = minX + Math.min(boxW - 1, Math.floor((tx * boxW) / W));
+      grid[ty * W + tx] = canvas[sy * CW + sx]!;
+    }
+  }
+  return grid;
+}
+
 function buildGlyphTemplates(): readonly GlyphTemplate[] {
   const templates: GlyphTemplate[] = [];
   const W = 16;
   const H = 24;
   for (const [ch, strokes] of Object.entries(GLYPH_STROKES)) {
-    const grid = new Uint8Array(W * H);
-    for (const [x0, y0, x1, y1] of strokes) {
-      const px0 = x0 * (W - 3) + 1.5;
-      const py0 = (1 - y0) * (H - 3) + 1.5;
-      const px1 = x1 * (W - 3) + 1.5;
-      const py1 = (1 - y1) * (H - 3) + 1.5;
-      const steps = Math.max(1, Math.ceil(Math.hypot(px1 - px0, py1 - py0) * 2));
-      for (let s = 0; s <= steps; s++) {
-        const cx = Math.round(px0 + ((px1 - px0) * s) / steps);
-        const cy = Math.round(py0 + ((py1 - py0) * s) / steps);
-        for (let dy = -1; dy <= 1; dy++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const gx = cx + dx;
-            const gy = cy + dy;
-            if (gx >= 0 && gx < W && gy >= 0 && gy < H) {
-              grid[gy * W + gx] = 1;
-            }
-          }
-        }
-      }
+    const canTightCrop = /^[A-Z0-9$%/]$/.test(ch);
+    for (const tight of canTightCrop ? [false, true] : [false]) {
+      const grid = rasterizeNormalizedTemplate(strokes, W, H, tight);
+      let inkCount = 0;
+      for (let i = 0; i < grid.length; i++) inkCount += grid[i]!;
+      templates.push({ char: ch, grid, inkCount });
     }
+  }
+  for (const [ch, strokes] of Object.entries(RASTER_GLYPH_STROKES)) {
+    const grid = rasterizeNormalizedTemplate(strokes, W, H, true);
     let inkCount = 0;
     for (let i = 0; i < grid.length; i++) inkCount += grid[i]!;
     templates.push({ char: ch, grid, inkCount });
@@ -215,6 +301,7 @@ function matchGlyphBox(
   for (const tpl of GLYPH_TEMPLATES) {
     if (whitelist && !whitelist.has(tpl.char) && !whitelist.has(tpl.char.toLowerCase())) continue;
     if (blacklist && (blacklist.has(tpl.char) || blacklist.has(tpl.char.toLowerCase()))) continue;
+    if ((tpl.char === "-" || tpl.char === ".") && boxH > 5) continue;
     let intersection = 0;
     let union = 0;
     for (let i = 0; i < W * H; i++) {

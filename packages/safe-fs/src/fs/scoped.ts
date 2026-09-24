@@ -201,6 +201,10 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const options = property === "publishStagedFile" || property === "createStagedFile" && supplied?.signal !== signal
             ? resizeOptions(supplied ?? {}) : supplied;
           if (property === "createStagedFile") args[optionIndex] = options;
+          const assertReady = (): void => {
+            if (property === "createStagedFile" || property === "publishStagedFile") options?.signal?.throwIfAborted();
+            assertOpen(options);
+          };
           const callerGuard = property === "publishStagedFile" ? (supplied as PublishStagedFileOptions | undefined)?.commitGuard : undefined;
           try {
             const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
@@ -212,26 +216,26 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
               const publishOptions = (options ?? {}) as PublishStagedFileOptions;
               await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
               const declared = ownedMutationCapabilities(original, await original.capabilitiesFor?.(args[1] as string, options) ?? original.capabilities);
-              assertOpen(options);
+              assertReady();
               if (callerGuard !== undefined && declared.guardedStagingPublication !== true) throw new FsError("ENOTSUP", { path: args[1] as string, syscall: "guardedStagingPublication" });
               if (declared.guardedStagingPublication === true) args[optionIndex] = {
                 ...supplied,
                 commitGuard: () => {
-                  assertOpen(supplied);
+                  assertReady();
                   if (callerGuard !== undefined) runStagingGuard(callerGuard);
-                  assertOpen(supplied);
+                  assertReady();
                   return true as const;
                 },
               };
             }
             if (property === "publishStagedFile" && options && "ancestors" in options && options.ancestors !== undefined) await requireOwnedMutation(original, args[1] as string, "atomicStagingAncestry", options, (options as PublishStagedFileOptions).destination === null);
-            assertOpen(options);
+            assertReady();
             if (property === "publishFileConditional") {
               args[1] = wrapStream(args[1] as ByteSource, options);
               args[2] = resizeOptions(options ?? {});
             }
           } catch (error) {
-            assertOpen(options);
+            assertReady();
             if (property === "publishStagedFile" && supplied && "ancestors" in supplied && supplied.ancestors !== undefined
               && ["ENOTSUP", "ENOENT", "ENOTDIR", "ELOOP"].includes(toFsError(error).code)) {
               await inspectStagingBindings(path => original.lstat(path, options), args[1] as string, options as PublishStagedFileOptions);

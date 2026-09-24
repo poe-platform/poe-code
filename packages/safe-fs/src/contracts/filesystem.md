@@ -1286,7 +1286,9 @@ change them, after checking that the ambient scope is still open. It forwards
 the ambient scope signal when no caller signal was supplied. If the caller supplied that same signal, its identity is preserved;
 a distinct caller signal is combined with the scope signal so either can stop
 cooperative resolution before commit. Cancellation after successful creation
-still returns the receipt, and an actual backend failure after dispatch remains
+still returns the receipt. Once signals are combined, staging admission and
+publication guards preserve the first abort reason, including false or null.
+An actual backend failure after dispatch remains
 the reported failure rather than being replaced by ambient cancellation.
 
 Publication atomically verifies the original staging file, its private directory,

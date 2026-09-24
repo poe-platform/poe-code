@@ -30,11 +30,6 @@ export async function copyCheckedSource(context: CommandContext, source: string,
   try {
     context.signal.throwIfAborted();
     if (!accepting) throw new FsError("EBADF", { path: source });
-    const destinationCapabilities = await context.fs.capabilitiesFor?.(target, {
-      signal: context.signal, creation: exclusive ? "exclusive" : "ifMissing",
-    }) ?? context.fs.capabilities;
-    context.signal.throwIfAborted();
-    if (!accepting) throw new FsError("EBADF", { path: source });
     acquisition = context.fs.openReadFile!(source, { signal: context.signal });
     const reader = await acquisition;
     acquired();
@@ -49,6 +44,13 @@ export async function copyCheckedSource(context: CommandContext, source: string,
     if (identity !== "same") throw new FsError(identity === "distinct" ? "EBUSY" : "ENOTSUP", {
       path: source, message: "copy reader is not bound to the inspected source identity",
     });
+    const capabilityQuery = Promise.resolve(context.fs.capabilitiesFor?.(target, {
+      signal: context.signal, ...(exclusive ? { creation: "exclusive" as const } : {}),
+    }) ?? context.fs.capabilities);
+    work = capabilityQuery.then(() => {}, () => {});
+    const capabilities = await capabilityQuery;
+    context.signal.throwIfAborted();
+    if (!accepting) throw new FsError("EBADF", { path: source });
     let consumed = false;
     const bytes = async function* () {
       let position = 0;
@@ -62,7 +64,7 @@ export async function copyCheckedSource(context: CommandContext, source: string,
     };
     work = context.fs.writeStream!(target, bytes(), {
       flag: exclusive ? "wx" : "w", signal: context.signal,
-      ...(destinationCapabilities.permissions === true ? { mode: expected.mode & 0o7777 } : {}),
+      ...(capabilities.permissions === false ? {} : { mode: expected.mode & 0o7777 }),
     });
     await work;
     context.signal.throwIfAborted();

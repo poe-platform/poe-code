@@ -92,6 +92,50 @@ function metadataOnly(operations: readonly string[]) {
   assert.ok(operations.every(operation => ["headObject", "listObjectsV2", "PROPFIND"].includes(operation)), JSON.stringify(operations));
 }
 
+for (const existing of [false, true]) for (const option of ["", "--remove-destination", "--preserve=mode"]) {
+  test(`Memory-to-WebDAV cp respects destination modes: existing=${existing}, option=${option || "ordinary"}`, async () => {
+    const memory = new MemoryFileSystem();
+    const service = new MockDav();
+    const remote = new WebDavFileSystem({ baseUrl, fetch: service.createFetch(), requestStreamSupport: true,
+      compareEntry: service.compareDisjointMemory(memory) });
+    await memory.writeFile("/source", payload);
+    await memory.chmod("/source", 0o640);
+    if (existing) await remote.writeFile("/target", previous);
+    const start = service.requests.length;
+    const shell = new Shell({ fs: mounted(memory, remote) }).use(standardCommands());
+    try {
+      const result = await shell.exec(`cp ${option} /memory/source /remote/target`);
+      if (option === "--preserve=mode") {
+        assert.equal(result.exitCode, 1, result.stderr);
+        assert.match(result.stderr, /ENOTSUP/);
+        assert.ok(service.requests.slice(start).every(request => request.init.method === "PROPFIND"));
+        if (existing) assert.deepEqual(await remote.readFile("/target"), previous);
+        else await assert.rejects(remote.stat("/target"), { code: "ENOENT" });
+      } else {
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(await remote.readFile("/target"), payload);
+      }
+      assert.deepEqual(await memory.readFile("/source"), payload);
+      assert.equal((await memory.stat("/source")).mode & 0o777, 0o640);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("mixed Memory/WebDAV mounts preserve supported Memory destination modes", async () => {
+  const memory = new MemoryFileSystem();
+  const { filesystem: remote } = qualified("webdav", memory);
+  await memory.writeFile("/source", payload);
+  await memory.chmod("/source", 0o640);
+  const shell = new Shell({ fs: mounted(memory, remote) }).use(standardCommands());
+  try {
+    const result = await shell.exec("cp /memory/source /memory/copy");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await memory.readFile("/copy"), payload);
+    assert.equal((await memory.stat("/copy")).mode & 0o777, 0o640);
+  } finally { await shell.dispose(); }
+});
+
 for (const kind of ["s3", "webdav"] as const) {
   for (const direction of ["to-remote", "from-remote"] as const) {
     for (const action of ["copyFile", "cp", "mv"] as const) {

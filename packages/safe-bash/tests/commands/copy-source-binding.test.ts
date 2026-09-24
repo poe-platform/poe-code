@@ -5,6 +5,66 @@ import { FsError } from "../../src/contracts/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { copyCheckedSource } from "../../src/commands/copy-source.js";
+import { createMountFileSystem } from "../../src/fs/mount/index.js";
+
+test("copy retains source bytes before resolving destination capabilities", async () => {
+  const fs = await fixture({ source: "ordinary", target: "old" });
+  const expected = await fs.stat("/work/source");
+  const { context } = await run("true", [], { fs });
+  const view = new Proxy(fs, { get(target, property) {
+    if (property === "capabilitiesFor") return async () => {
+      await fs.rename("/work/source", "/work/held");
+      await fs.writeFile("/work/source", new TextEncoder().encode("private"));
+      return fs.capabilities;
+    };
+    const member = Reflect.get(target, property);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  await copyCheckedSource({ ...context, fs: view }, "/work/source", "/work/target", expected, false);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/target")), "ordinary");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/source")), "private");
+});
+
+test("copy cleanup drains destination admission and closes its retained source before publication", async () => {
+  const fs = await fixture({ source: "ordinary", target: "old" });
+  const { context } = await run("true", [], { fs });
+  const expected = await fs.stat("/work/source");
+  let cleanup!: () => Promise<void>;
+  let ready!: () => void, release!: () => void;
+  const started = new Promise<void>(resolve => { ready = resolve; });
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let opened = 0, closed = 0, writes = 0;
+  const view = new Proxy(fs, { get(target, property) {
+    if (property === "capabilitiesFor") return async () => { ready(); await pending; return fs.capabilities; };
+    if (property === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+      opened++;
+      const reader = await fs.openReadFile(...args);
+      return { ...reader, async close() { closed++; await reader.close(); } };
+    };
+    if (property === "writeStream") return async () => { writes++; assert.fail("closed admission must not publish"); };
+    const member = Reflect.get(target, property);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const copying = copyCheckedSource({ ...context, fs: view, registerCleanup(close) { cleanup = async () => { await close(); }; } },
+    "/work/source", "/work/target", expected, false);
+  await started;
+  const closing = cleanup();
+  release();
+  await assert.rejects(copying, { code: "EBADF" });
+  await closing;
+  assert.deepEqual({ opened, closed, writes }, { opened: 1, closed: 1, writes: 0 });
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/target")), "old");
+});
+
+test("exclusive copy reports an existing looping symlink without following it for capabilities", async () => {
+  const backing = await fixture({ source: "ordinary" });
+  await backing.symlink("target", "/work/target");
+  const fs = createMountFileSystem({ root: backing });
+  const { context } = await run("true", [], { fs });
+  await assert.rejects(copyCheckedSource(context, "/work/source", "/work/target", await fs.stat("/work/source"), true), { code: "EEXIST" });
+  assert.equal(await backing.readlink("/work/target"), "target");
+  assert.equal(new TextDecoder().decode(await backing.readFile("/work/source")), "ordinary");
+});
 
 for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
   const refused = command === "mv" && existing;

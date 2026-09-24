@@ -449,19 +449,11 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     legacyNameBindings.set(owner, (owner?.legacyExternalSheets ?? legacyExternalSheets).map((_, at) => namespaces.has(at) ? table : undefined));
   }
   const materializedNames: NamedExpression[] = [];
-  const globalPlaceholders = new Set<string>();
   for (const [at, name] of names.entries()) {
-    // A synthetic VBA function declaration may follow its imported global
-    // #NAME placeholder. Keep both indexed symbols, but one lexical placeholder.
-    if ((name.flags & 0xe) === 0xe && name.sheetIndex === 0 && name.tokens.length === 0 &&
-      globalPlaceholders.has(name.name)) continue;
     if (name.sheetIndex && nameSheets[at] === undefined) invalidBiff("invalid name sheet scope");
     try {
-      const accepted = nameBindings.define(at + 1, name.name, resolve => name.tokens.length ?
+      nameBindings.define(at + 1, name.name, nameSheets[at], resolve => name.tokens.length ?
         formula(name.tokens, name.revision, name.codepage, 0, 0, name.owner, false, resolve) : "=#NAME?");
-      if (accepted) {
-        if (!name.sheetIndex && nameBindings.expression(at + 1) === "=#NAME?") globalPlaceholders.add(name.name);
-      }
     }
     catch (error) {
       if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;

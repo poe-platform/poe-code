@@ -49,7 +49,6 @@
     "src/commands/yq/native-encoder.ts",
     "src/commands/yq/native-work.ts",
     "src/commands/yq/nodes.ts",
-    "src/commands/yq/properties.ts",
     "src/commands/yes/index.ts",
     "src/fs/devices/index.ts",
     "src/optional.ts",

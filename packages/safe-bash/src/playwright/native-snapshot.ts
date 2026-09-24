@@ -5,6 +5,7 @@ import { isPlaywrightSnapshotRef } from './targets.js';
  * scoped to the controller even when native engines reuse short e1-style IDs. */
 export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, options: {
   maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
+  prepareNextRef?: () => Promise<(native?: string) => string>;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number;
 }): Promise<{ text: string; refs: Map<string, string> }> {
   options.signal?.throwIfAborted();
@@ -63,6 +64,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     }).join('\n');
   }
   const refs = new Map<string, string>();
+  const nextRef = await options.prepareNextRef?.() ?? options.nextRef;
   const nativeRefs = new Map<string, string>();
   let text = '', start = 0, quoted = false, escaped = false, inValue = false;
   for (let index = 0; index < snapshot.length; index++) {
@@ -85,7 +87,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     let issued = nativeRefs.get(native);
     if (!issued) {
       if (refs.size >= options.maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
-      issued = options.nextRef(native);
+      issued = nextRef(native);
       nativeRefs.set(native, issued); refs.set(issued, native);
     }
     text += snapshot.slice(start, index + 5) + issued;

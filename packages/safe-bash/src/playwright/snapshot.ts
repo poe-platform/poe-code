@@ -107,6 +107,8 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     }
   };
   const nativeRefIssuer = async (page: PlaywrightPage) => {
+    // Check after native capture: child navigation can recycle an ID while
+    // leaving the main document and its public references intact.
     const existing = new Map<string, string>();
     await visitReferences([...refs], async ([issued, entry]) => {
       if (entry.kind === 'native' && entry.page === page && entry.native && await nativeConnected(entry.native)) existing.set(entry.ref, issued);
@@ -171,7 +173,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     if (page.ariaSnapshot || page._snapshotForAI) {
       const capturedEpoch = epoch;
       const captured = await captureNativePlaywrightSnapshot(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
-        nextRef: await nativeRefIssuer(page), ...(signal ? { signal } : {}),
+        nextRef: () => nextRef?.() ?? `e${++sequence}`, prepareNextRef: () => nativeRefIssuer(page), ...(signal ? { signal } : {}),
         ...options,
       });
       signal?.throwIfAborted();
@@ -275,7 +277,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture } = {}) => captureStable(async options => {
     const capturedEpoch = epoch;
     const captured = await captureNativePlaywrightJSON(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
-      nextRef: await nativeRefIssuer(page), ...(signal ? { signal } : {}), ...options });
+      nextRef: () => nextRef?.() ?? `e${++sequence}`, prepareNextRef: () => nativeRefIssuer(page), ...(signal ? { signal } : {}), ...options });
     signal?.throwIfAborted();
     if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
     await publishNative(page, captured.refs, capturedEpoch, options.timeout ?? 5000, signal);

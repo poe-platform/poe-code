@@ -258,6 +258,34 @@ for (const format of ['yaml', 'json'] as const) test(`${format} does not rebind 
   await f.engine.invalidate();
 });
 
+for (const format of ['yaml', 'json'] as const) for (const cached of [false, true]) test(`${format} child navigation during capture preserves parent refs and replaces ${cached ? 'cached' : 'unvisited'} child refs`, async () => {
+  const f = fixture();
+  const parent = { isConnected: true };
+  const old = { isConnected: true };
+  let child = old;
+  let navigate = false;
+  const full = '- textbox "Parent" [ref=e1]\n- textbox "Child" [ref=f1e1]';
+  f.page._snapshotForAI = async () => { if (navigate) child = { isConnected: true }; return { full }; };
+  f.page.ariaSnapshotJSON = async () => { if (navigate) child = { isConnected: true }; return [{ role: 'textbox', ref: 'e1' }, { role: 'textbox', ref: 'f1e1' }]; };
+  f.page.locator = ((selector: string) => ({ async elementHandles() {
+    const node = selector === 'aria-ref=e1' ? parent : child;
+    return [{ async evaluate(callback: (node: typeof parent) => unknown) {
+      if (node === old && child !== old) throw new Error('Execution context destroyed');
+      return callback(node);
+    }, async dispose() {} }];
+  } })) as unknown as PlaywrightPage['locator'];
+  const capture = () => format === 'yaml' ? f.engine.capture(f.page) : f.engine.captureJSON(f.page);
+  await capture();
+  if (cached) await f.engine.resolve('e102');
+  navigate = true;
+  const result = await capture();
+  assert.ok(JSON.stringify(result).includes('e103'));
+  await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
+  await f.engine.resolve('e101');
+  await f.engine.resolve('e103');
+  await f.engine.invalidate();
+});
+
 test('an unvisited native ref cannot first bind to a replacement after capture', async () => {
   const f = fixture();
   f.setSnapshot({ full: '- textbox "Child" [ref=f1e1]' });

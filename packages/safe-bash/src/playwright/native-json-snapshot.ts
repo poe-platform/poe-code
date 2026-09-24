@@ -5,6 +5,7 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 /** Serialize the native accessibility tree, keeping controller-issued refs. */
 export async function captureNativePlaywrightJSON(page: PlaywrightPage, options: {
   maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
+  prepareNextRef?: () => Promise<(native?: string) => string>;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture;
 }): Promise<{ tree: readonly PlaywrightSnapshotJSONNode[]; refs: Map<string, string> }> {
   const signal = options.signal ?? new AbortController().signal;
@@ -55,6 +56,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   };
   const selected = options.root ? await select(tree, false) : tree;
   const refs = new Map<string, string>();
+  const nextRef = await options.prepareNextRef?.() ?? options.nextRef;
   const issued = new Map<string, string>();
   const rewrite = (nodes: readonly (PlaywrightSnapshotJSONNode | string)[], depth: number): (PlaywrightSnapshotJSONNode | string)[] => {
     if (depth > 1024) throw new PlaywrightSnapshotLimitError('Snapshot depth limit exceeded');
@@ -62,7 +64,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
       if (typeof node === 'string') return node;
       const { children, ref, ...fields } = node;
       let scoped = ref === undefined ? undefined : issued.get(ref);
-      if (ref !== undefined && scoped === undefined) { scoped = options.nextRef(ref); issued.set(ref, scoped); refs.set(scoped, ref); }
+      if (ref !== undefined && scoped === undefined) { scoped = nextRef(ref); issued.set(ref, scoped); refs.set(scoped, ref); }
       return { ...fields, ...(scoped === undefined ? {} : { ref: scoped }),
         ...(children?.length && (!options.depth || depth < options.depth) ? { children: rewrite(children, depth + 1) } : {}),
       };

@@ -6,7 +6,7 @@ for (const [name, encoded] of [
   ["café.txt", "caf\\303\\251.txt"],
   ['quote"name.txt', 'quote\\"name.txt'],
 ] as const) {
-  test(`COMMON-FLOW GAP: safely decoded Git-quoted filename ${JSON.stringify(name)} updates exactly that inode`, async () => {
+  test(`safely decoded Git-quoted filename ${JSON.stringify(name)} publishes only the selected path`, async () => {
     const backing = await memory({ [name]: "old\n", sentinel: "untouched\n" });
     const before = await snapshot(backing);
     const identity = (await backing.lstat(`${cwd}/${name}`)).ino;
@@ -20,8 +20,13 @@ for (const [name, encoded] of [
     await assertBytes(backing, "sentinel", "untouched\n");
     assert.equal(result.exitCode, 0, `Common safe input must apply, not merely reject safely: ${result.stderr}`);
     await assertBytes(backing, name, "new\n");
-    assert.equal((await backing.lstat(`${cwd}/${name}`)).ino, identity);
-    assert.deepEqual(observed.mutations().map(call => call.path), [`${cwd}/${name}`]);
+    const published = (await backing.lstat(`${cwd}/${name}`)).ino;
+    assert.notEqual(published, identity, "publication replaces the selected target with its staged file");
+    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/${name}`]]);
+    assert.deepEqual(await snapshot(backing), before.map(entry => {
+      assert(typeof entry === "object" && entry !== null && "path" in entry);
+      return entry.path === `${cwd}/${name}` ? { ...entry, ino: published, data: Buffer.from("new\n").toString("hex") } : entry;
+    }), "all unselected entries retain their original identities and bytes");
   });
 }
 
@@ -38,7 +43,7 @@ for (const encoded of ["a/\\056\\056/target", "\\057sandbox/work/target", "a/tar
   });
 }
 
-test("COMMON-FLOW GAP: adjacent slash strip handles a safe relative target", async () => {
+test("adjacent slash strip publishes only a safe relative target", async () => {
   const backing = await memory({ target: "old\n", sentinel: "untouched\n" });
   const before = await snapshot(backing);
   const identity = (await backing.lstat(`${cwd}/target`)).ino;
@@ -52,6 +57,11 @@ test("COMMON-FLOW GAP: adjacent slash strip handles a safe relative target", asy
   await assertBytes(backing, "sentinel", "untouched\n");
   assert.equal(result.exitCode, 0, `Safe adjacent slash strip must apply: ${result.stderr}`);
   await assertBytes(backing, "target", "new\n");
-  assert.equal((await backing.lstat(`${cwd}/target`)).ino, identity);
-  assert.deepEqual(observed.mutations().map(call => call.path), [`${cwd}/target`]);
+  const published = (await backing.lstat(`${cwd}/target`)).ino;
+  assert.notEqual(published, identity, "publication replaces the selected target with its staged file");
+  assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/target`]]);
+  assert.deepEqual(await snapshot(backing), before.map(entry => {
+    assert(typeof entry === "object" && entry !== null && "path" in entry);
+    return entry.path === `${cwd}/target` ? { ...entry, ino: published, data: Buffer.from("new\n").toString("hex") } : entry;
+  }), "all unselected entries retain their original identities and bytes");
 });

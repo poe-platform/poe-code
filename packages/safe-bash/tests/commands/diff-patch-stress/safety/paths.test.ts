@@ -16,21 +16,24 @@ for (const [name, path] of [
     for (const args of [[], ["-p1"], ["target"], ["--dry-run"]]) {
       const backing = await memory({ first: "old\n", target: "old\n", decoy: "old\n", sentinel: "untouched\n" });
       const before = await snapshot(backing);
+      const original = await backing.lstat(`${cwd}/target`);
       const observed = instrument(backing);
       const input = args.includes("target") ? replacement("first").replace("+++ first", `+++ ${path}`)
         : replacement("first") + replacement().replace("+++ target", `+++ ${path}`);
       const result = await invoke(observed.fs, "patch", { args, input });
       if (name === "absolute" && args.includes("target")) {
+        const published = await backing.lstat(`${cwd}/target`);
+        assert.notEqual(published.ino, original.ino, "publication replaces the selected target with its staged file");
         const expected = before.map(entry => {
           assert(typeof entry === "object" && entry !== null && "path" in entry);
-          return entry.path === `${cwd}/target` ? { ...entry, data: Buffer.from("new\n").toString("hex") } : entry;
+          return entry.path === `${cwd}/target` ? { ...entry, ino: published.ino, data: Buffer.from("new\n").toString("hex") } : entry;
         });
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stderr, "");
         assert.equal(result.stdout, "patching file target\n");
         await assertBytes(backing, "target", "new\n");
-        assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["writeFile", `${cwd}/target`]]);
-        assert.deepEqual(await snapshot(backing), expected, "Only explicit target bytes change; all identities and decoy header targets remain intact");
+        assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/target`]]);
+        assert.deepEqual(await snapshot(backing), expected, "Only the explicit target changes; all other identities and decoy header targets remain intact");
         continue;
       }
       assert.equal(result.exitCode, 2, result.stderr);
@@ -44,6 +47,7 @@ for (const [name, path] of [
 for (const name of ["café.txt", "cafe\u0301.txt", "file with spaces", "leading space ", "-flag", "%2e%2e%2ftarget", "$(touch sentinel)", "semi;colon", "name#comment", "name'quote"]) {
   test(`safe filename is literal, not decoded or evaluated: ${JSON.stringify(name)}`, async () => {
     const backing = await memory({ [name]: "old\n", sentinel: "untouched\n", target: "old\n" });
+    const before = await snapshot(backing);
     const original = await backing.lstat(`${cwd}/${name}`);
     const observed = instrument(backing);
     const result = await invoke(observed.fs, "patch", { input: replacement(name) });
@@ -51,8 +55,13 @@ for (const name of ["café.txt", "cafe\u0301.txt", "file with spaces", "leading 
     await assertBytes(backing, name, "new\n");
     await assertBytes(backing, "sentinel", "untouched\n");
     if (name !== "target") await assertBytes(backing, "target", "old\n");
-    assert.equal((await backing.lstat(`${cwd}/${name}`)).ino, original.ino);
-    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["writeFile", `${cwd}/${name}`]]);
+    const published = await backing.lstat(`${cwd}/${name}`);
+    assert.notEqual(published.ino, original.ino, "publication replaces the literal target with its staged file");
+    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/${name}`]]);
+    assert.deepEqual(await snapshot(backing), before.map(entry => {
+      assert(typeof entry === "object" && entry !== null && "path" in entry);
+      return entry.path === `${cwd}/${name}` ? { ...entry, ino: published.ino, data: Buffer.from("new\n").toString("hex") } : entry;
+    }), "all unselected entries retain their original identities and bytes");
   });
 }
 
@@ -74,9 +83,14 @@ for (const [first, second, args] of normalizedTargets) for (const reverse of [fa
     assert.equal(result.exitCode, 0, result.stderr);
     await assertBytes(backing, target, dryRun ? initial : reverse ? "old\n" : "final\n");
     await assertBytes(backing, "sentinel", "untouched\n");
-    assert.equal((await backing.lstat(`${cwd}/${target}`)).ino, identity.ino);
-    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), dryRun ? [] : [["writeFile", `${cwd}/${target}`]]);
-    if (dryRun) assert.deepEqual(await snapshot(backing), before);
+    const published = await backing.lstat(`${cwd}/${target}`);
+    if (dryRun) assert.equal(published.ino, identity.ino);
+    else assert.notEqual(published.ino, identity.ino, "the final staged file replaces the target once");
+    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), dryRun ? [] : [["publishStagedFile", `${cwd}/${target}`]]);
+    assert.deepEqual(await snapshot(backing), dryRun ? before : before.map(entry => {
+      assert(typeof entry === "object" && entry !== null && "path" in entry);
+      return entry.path === `${cwd}/${target}` ? { ...entry, ino: published.ino, data: Buffer.from(reverse ? "old\n" : "final\n").toString("hex") } : entry;
+    }), "only the final selected target is published, with no staging residue");
   });
 }
 

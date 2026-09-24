@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "baseline": "dd4a349054da75c3e84274dab95153df76fce286",
+  "issue": "22 selected-path controls expected patch publication to retain the old inode, despite staged replacement.",
+  "repair": "Require fresh selected inodes and exact staged publication methods/counts. Compare full snapshots after replacing only selected inode/data expectations; dry-run preserves every entry. Preserve literal Unicode/metacharacter, quoted path, normalized/reverse, explicit override and unsafe-input behavior.",
+  "sources": {
+    "packages/safe-bash/tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts": "a666a26a987109c4e4985b820708924be2ab52a26e7f46d5cbd55b7f15bafd44",
+    "packages/safe-bash/tests/commands/diff-patch-stress/safety/paths.test.ts": "008679ae013f47e4e2a3ced3654f06b0661f7ff7eb2f1b1bf93249ceede37a1c"
+  },
+  "validation": {
+    "original": {
+      "tests": 63,
+      "passed": 41,
+      "failed": 22
+    },
+    "final": {
+      "tests": 63,
+      "passed": 63,
+      "failed": 0
+    },
+    "related": {
+      "tests": 687,
+      "passed": 687,
+      "failed": 0,
+      "skipped": 0
+    },
+    "lint": "Focused ESLint passes both changed files.",
+    "types": {
+      "command": "node scripts/historical-type-models.mjs --noEmit",
+      "exitCode": 0,
+      "scope": "Maintained source-and-tests phase; no new build or full consumer qualification."
+    },
+    "independentReview": {
+      "before": {
+        "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts": "a666a26a987109c4e4985b820708924be2ab52a26e7f46d5cbd55b7f15bafd44",
+        "tests/commands/diff-patch-stress/safety/paths.test.ts": "008679ae013f47e4e2a3ced3654f06b0661f7ff7eb2f1b1bf93249ceede37a1c",
+        "src/commands/diff-patch/patch-publication.ts": "57998bf6e183db6ddae7c43ae73d4e632fd0df319845d2403a5427c64e54929d",
+        "src/commands/diff-patch/patch.ts": "59f75077567f38ab16d7b3dd43898558ddd50f8604c18b75551e46fa9ff8b061"
+      },
+      "after": {
+        "tests/commands/diff-patch-stress/safety/encoding-gaps.test.ts": "a666a26a987109c4e4985b820708924be2ab52a26e7f46d5cbd55b7f15bafd44",
+        "tests/commands/diff-patch-stress/safety/paths.test.ts": "008679ae013f47e4e2a3ced3654f06b0661f7ff7eb2f1b1bf93249ceede37a1c",
+        "src/commands/diff-patch/patch-publication.ts": "57998bf6e183db6ddae7c43ae73d4e632fd0df319845d2403a5427c64e54929d",
+        "src/commands/diff-patch/patch.ts": "59f75077567f38ab16d7b3dd43898558ddd50f8604c18b75551e46fa9ff8b061"
+      },
+      "unchanged": true,
+      "cases": [
+        {
+          "name": "literal \"caf\u00e9.txt\" reverse=false dry=false",
+          "passed": true
+        },
+        {
+          "name": "literal \"caf\u00e9.txt\" reverse=false dry=true",
+          "passed": true
+        },
+        {
+          "name": "literal \"caf\u00e9.txt\" reverse=true dry=false",
+          "passed": true
+        },
+        {
+          "name": "literal \"caf\u00e9.txt\" reverse=true dry=true",
+          "passed": true
+        },
+        {
+          "name": "literal \"cafe\u0301.txt\" reverse=false dry=false",
+          "passed": true
+        },
+        {
+          "name": "literal \"cafe\u0301.txt\" reverse=false dry=true",
+          "passed": true
+        },
+        {
+          "name": "literal \"cafe\u0301.txt\" reverse=true dry=false",
+          "passed": true
+        },
+        {
+          "name": "literal \"cafe\u0301.txt\" reverse=true dry=true",
+          "passed": true
+        },
+        {
+          "name": "literal \"$(touch sentinel)\" reverse=false dry=false",
+          "passed": true
+        },
+        {
+          "name": "literal \"$(touch sentinel)\" reverse=false dry=true",
+          "passed": true
+        },
+        {
+          "name": "literal \"$(touch sentinel)\" reverse=true dry=false",
+          "passed": true
+        },
+        {
+          "name": "literal \"$(touch sentinel)\" reverse=true dry=true",
+          "passed": true
+        },
+        {
+          "name": "quoted \"caf\u00e9.txt\" reverse=false dry=false",
+          "passed": true
+        },
+        {
+          "name": "quoted \"caf\u00e9.txt\" reverse=false dry=true",
+          "passed": true
+        },
+        {
+          "name": "quoted \"caf\u00e9.txt\" reverse=true dry=false",
+          "passed": true
+        },
+        {
+          "name": "quoted \"caf\u00e9.txt\" reverse=true dry=true",
+          "passed": true
+        },
+        {
+          "name": "quoted \"quote\\\"name.txt\" reverse=false dry=false",
+          "passed": true
+        },
+        {
+          "name": "quoted \"quote\\\"name.txt\" reverse=false dry=true",
+          "passed": true
+        },
+        {
+          "name": "quoted \"quote\\\"name.txt\" reverse=true dry=false",
+          "passed": true
+        },
+        {
+          "name": "quoted \"quote\\\"name.txt\" reverse=true dry=true",
+          "passed": true
+        },
+        {
+          "name": "normalized a//target + b/./target reverse=false dry=false",
+          "passed": true
+        },
+        {
+          "name": "normalized a//target + b/./target reverse=false dry=true",
+          "passed": true
+        },
+        {
+          "name": "normalized a//target + b/./target reverse=true dry=false",
+          "passed": true
+        },
+        {
+          "name": "normalized a//target + b/./target reverse=true dry=true",
+          "passed": true
+        },
+        {
+          "name": "normalized dir/target + dir/./target reverse=false dry=false",
+          "passed": true
+        },
+        {
+          "name": "normalized dir/target + dir/./target reverse=false dry=true",
+          "passed": true
+        },
+        {
+          "name": "normalized dir/target + dir/./target reverse=true dry=false",
+          "passed": true
+        },
+        {
+          "name": "normalized dir/target + dir/./target reverse=true dry=true",
+          "passed": true
+        },
+        {
+          "name": "explicit target ignores absolute decoy header dry=false",
+          "passed": true
+        },
+        {
+          "name": "explicit target ignores absolute decoy header dry=true",
+          "passed": true
+        },
+        {
+          "name": "unsafe encoding stays fully unchanged: a/\\056\\056/target",
+          "passed": true
+        },
+        {
+          "name": "unsafe encoding stays fully unchanged: a/target\\000suffix",
+          "passed": true
+        },
+        {
+          "name": "mixed create/update/delete dry-run has no staging or namespace effects",
+          "passed": true
+        }
+      ],
+      "unhandled": [],
+      "profile": "Current source MemoryFS checks with actual staged receipt identities. Full snapshot fields are path,type,mode,ino,dev,nlink and file bytes or symlink target; timestamps not covered."
+    },
+    "logHashes": {
+      "red.log": "1852c175085ac1ed6cc1f0d6fb29e84ddc13f9fef3cb4a5ddf7478ae0cd7b25a",
+      "green.log": "f43285af34e1576be23d8bdf5b20bb6f47a79326adf4a45e79a51eb97d27959c",
+      "related.log": "33021a1af6d5c5434dfb5f1e31175ee101a19abe4e10c83c734824386a6c19dc",
+      "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "types.log": "7e6d6ee5cc199525fdb2d3a638bf39ae4b0d70b5aa6b8ade4e07593b1f6911ed",
+      "independent/results.json": "316f51d7b05fc8f43385de1fbca78322482bf44c2bd907bc8f2d19d547f5898d"
+    }
+  },
+  "previousDelivery": {
+    "commit": "dd4a349054da75c3e84274dab95153df76fce286",
+    "verifiedRemoteMain": true,
+    "postRebaseRelated": {
+      "tests": 158,
+      "passed": 158
+    },
+    "upstreamExactFileChecks": {
+      "tests": 107,
+      "passed": 107
+    },
+    "publication": "pending"
+  },
+  "limitations": [
+    "Snapshot assertions cover path, kind, mode, inode, device, link count, bytes and symlink target; they do not assert timestamps.",
+    "13 failures reproduced in the remaining bounds/fault cohort (60 tests, 47 passing); combined suite not rerun for this isolated change.",
+    "Root publication and all 19 original ssconvert families remain open."
+  ]
+}

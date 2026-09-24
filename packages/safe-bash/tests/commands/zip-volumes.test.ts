@@ -41,6 +41,35 @@ test("zip -s 64k emits split signature and relative offsets instead of rejecting
 const resolver: ArchiveCommandsOptions = { zipHost: { volume: ({ archive, disk, disks }) => volumeName(archive, disk, disks) } };
 const limits = settings({});
 
+test("split input memory admission includes the retained final disk and producer slabs", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new Uint8Array(70000).fill(42));
+  assert.equal((await run(fs, "zip", ["-q", "-0", "-s64k", "archive.zip", "file"])).exitCode, 0);
+  const result = await run(fs, "unzip", ["-t", "archive.zip"], {
+    ...resolver, limits: { maxInputMemoryBytes: 100000 },
+  });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /memory budget/);
+});
+
+test("split metadata admission includes the final disk before reading earlier disks", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new Uint8Array(70000).fill(42));
+  assert.equal((await run(fs, "zip", ["-q", "-0", "-s64k", "archive.zip", "file"])).exitCode, 0);
+  const original = fs.readStream!.bind(fs);
+  let earlierDiskReads = 0;
+  fs.readStream = (path, options) => {
+    if (path === "/archive.z01") earlierDiskReads++;
+    return original(path, options);
+  };
+  const result = await run(fs, "unzip", ["-t", "archive.zip"], {
+    ...resolver, limits: { maxArchiveBytes: 68000 },
+  });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /volume byte limit exceeded/);
+  assert.equal(earlierDiskReads, 0);
+});
+
 for (const size of [0, 1, 65490, 65491, 65500, 65536, 70000, 131000, 150000]) {
   for (const wide of [false, true]) {
     test(`split copy/recombine and unzip preserves ${size} bytes, ZIP64=${wide}`, async () => {

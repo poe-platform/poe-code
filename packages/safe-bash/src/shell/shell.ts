@@ -113,8 +113,8 @@ export class Shell implements PluginHost {
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
-    resolveLimits(options.limits);
-    this.#options = { ...options, extensions: options.extensions?.some(extension => extension.name === "trap") ? [...options.extensions] : [portableTrapExtension(), ...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
+    const { commandLimits } = resolveLimits(options.limits);
+    this.#options = { ...options, extensions: options.extensions?.some(extension => extension.name === "trap") ? [...options.extensions] : [portableTrapExtension(), ...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
     this.commands = commands;
   }
 
@@ -247,7 +247,7 @@ export class Shell implements PluginHost {
       catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
     });
     const io = {
-      capabilities: Object.freeze({ ...this.#options.capabilities, ...options.capabilities }),
+      capabilities: Object.freeze({ ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }),
       [invocationScope]: scope,
       ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
       ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
@@ -275,7 +275,7 @@ export class Shell implements PluginHost {
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
-        io.capabilities = Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities });
+        io.capabilities = Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
         const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
         const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
         for (const [name, value] of Object.entries(variables)) {

@@ -4,6 +4,9 @@ import type { InternalErrorHandler, CommandArguments, InvocationCapabilities } f
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { PredicateIdentity } from "../commands/file-predicates.js";
+import type { CommandFamilyLimits } from "../commands/limits.js";
+
+export type { CommandFamilyLimits } from "../commands/limits.js";
 
 export interface ShellCapabilities extends InvocationCapabilities {
   /** Explicit caller identity for conditional ownership predicates; never inferred from the host. */
@@ -36,6 +39,8 @@ export interface ShellCommandContext extends CommandContext {
 
 /** Resource quotas are unlimited when omitted; each supplied quota is independent. */
 export interface ShellLimits {
+  /** Per-invocation command-family ceilings, also applied to nested commands. */
+  readonly commandLimits?: CommandFamilyLimits;
   readonly maxParseUnits?: number;
   readonly maxInputBytes?: number;
   readonly maxOutputBytes?: number;

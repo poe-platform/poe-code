@@ -325,6 +325,7 @@ Defaults, configurable under `options.limits`:
 | Limit | Default | Accounting |
 | --- | ---: | --- |
 | `maxArchiveBytes` | Unlimited | Each compressed and uncompressed archive stream, including headers/padding/trailers. |
+| `maxInputMemoryBytes` | Unlimited | ZIP input collection peak, including provider backing slabs and overlapping allocations; split disks stream into one admitted buffer. Excludes decoding, codec workspace and filesystem storage. |
 | `maxEntryBytes` | Unlimited | One regular-file payload. |
 | `maxTotalBytes` | Unlimited | Sum of regular-file payload sizes, including excluded/unselected entries when reading. |
 | `maxMembers` | Unlimited | Source traversal/operands and emitted/read headers; PAX/GNU extension headers count. |
@@ -341,7 +342,13 @@ Defaults, configurable under `options.limits`:
 
 The source manifest and identity/name maps are bounded metadata, not payload
 buffers: their worst case scales with `maxMembers * maxPathBytes`. File-list
-and PAX buffers have separate bounds. Shell budgets remain separate.
+and PAX buffers have separate bounds. Shell counters remain separate. Selecting
+`cloudflareWorkerLimits` also supplies archive-family ceilings through
+`limits.commandLimits.archive`, including a 4 MiB archive limit and an 8 MiB
+input-memory limit. Registration options can tighten these ceilings. ZIP file
+size is checked before reading; combined split-volume sizes are admitted before
+reading additional disks. Actual bytes are checked again while reading. The host must still bound
+concurrent requests and budget parsed entries, codecs and filesystem storage.
 
 ## Native profile, evidence, and deliberate differences
 

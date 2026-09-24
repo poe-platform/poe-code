@@ -60,7 +60,7 @@ export class PathLookup {
   }
 }
 
-export function* pathTargets(name: string, path: string | undefined, limits: Required<ShellLimits>, signal: AbortSignal, fail: (limit: keyof ShellLimits) => never): Generator<string> {
+export function* pathTargets(name: string, path: string | undefined, limits: Required<Pick<ShellLimits, "maxExpansionBytes" | "maxExpansionFields" | "maxPathComponents">>, signal: AbortSignal, fail: (limit: keyof ShellLimits) => never): Generator<string> {
   signal.throwIfAborted();
   if (path !== undefined && Buffer.byteLength(path) > limits.maxExpansionBytes) fail("maxExpansionBytes");
   if (name.includes("/") || path === undefined) {

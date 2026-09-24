@@ -18,6 +18,7 @@ import type { AndOr, Command, HereDocument, Pipeline, Redirect, Script, Word, Wo
 import { parseArithmeticExpansion, parseArraySubscript, compoundEntryWords, HereDocumentSyntaxError, functionReprintedLines, hereDocumentWords, parseCompoundArrayValue, parseShellInputUnit, parseShellUnit } from "./parser.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+import { resolveCommandLimits } from "../commands/limits.js";
 import { forkExtensions } from "./extensions.js";
 import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, ShellChildPreparation, ShellExecutionCheckpoint, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
@@ -111,7 +112,9 @@ async function signedLong(argument: string, budget: Budget, signal: AbortSignal)
   return negative ? -value : value;
 }
 
-export const defaultLimits: Required<ShellLimits> = {
+type ResolvedShellLimits = Required<Omit<ShellLimits, "commandLimits">> & Pick<ShellLimits, "commandLimits">;
+
+export const defaultLimits: ResolvedShellLimits = {
   maxParseUnits: Infinity,
   maxInputBytes: Infinity,
   maxOutputBytes: Infinity,
@@ -159,14 +162,16 @@ function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmeti
   return [...command.words.map(word => word.spelling ?? word.plain ?? ""), ...redirects].join(" ");
 }
 
-export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
-  const result = Object.assign({}, defaultLimits, ...limits) as Required<ShellLimits>;
+export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedShellLimits {
+  const result = Object.assign({}, defaultLimits, ...limits) as ResolvedShellLimits;
+  const commandLimits = resolveCommandLimits(...limits.map(value => value?.commandLimits));
   for (const [key, value] of Object.entries(Object.assign({}, ...limits) as ShellLimits)) {
+    if (key === "commandLimits") continue;
     if (!Number.isSafeInteger(value) || value < (key === "pipeHighWaterMark" ? 1 : 0)) {
       throw new RangeError(`${key} must be a ${key === "pipeHighWaterMark" ? "positive" : "nonnegative"} safe integer`);
     }
   }
-  return result;
+  return { ...result, ...(commandLimits === undefined ? {} : { commandLimits }) };
 }
 
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
@@ -278,7 +283,7 @@ export class Budget {
   #fileSystemOperations = 0;
   readonly #cpuStarted = monotonicNow();
 
-  constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal, readonly onInternalError?: InternalErrorHandler) {
+  constructor(readonly limits: ResolvedShellLimits, signal?: AbortSignal, readonly onInternalError?: InternalErrorHandler) {
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
     this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, error => this.controller.abort(error));
     this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, () => this.signal.throwIfAborted(), limit => this.fail(limit));

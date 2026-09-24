@@ -537,8 +537,15 @@ including an authenticated agent ID different from the target name. Explicit
 `-s=NAME` overrides selection; `detach` retains the browser, while `close` retires it. See the
 [host capability contract](src/contracts/playwright-sessions.md#persistence).
 
-For Cloudflare Workers, start with the exported `cloudflareWorkerLimits` profile
-and configure command-family buffers at no more than 8 MiB. Create a separate
+For Cloudflare Workers, the exported `cloudflareWorkerLimits` profile also sets
+`commandLimits.archive`: 4 MiB archive inputs, an 8 MiB ZIP input collection peak,
+4 MiB entries, 8 MiB total payload and 1,000 members. These ceilings apply to
+`tar`, `zip` and `unzip`, including nested calls and `agentCommands()`; tighter
+registration limits still win. Oversized ZIP file metadata is rejected before
+reading, and growing streams remain byte-bounded. ZIP decoding retains a bounded
+archive in memory; codec workspace, parsed entries, filesystem storage and other
+requests need additional headroom. Configure other command-family buffers at no
+more than 8 MiB and bound concurrent requests at the host. Create a separate
 `Shell`, environment object, and quota-wrapped filesystem view for each tenant or
 request. Never reuse tenant state across requests; import `withFileSystemQuota`
 from `poe-code/safe-fs` to bound cumulative writes, including command-initiated
@@ -554,7 +561,10 @@ nested command dispatch, and `regex` worker limits. Per-family options are
 `htmlToMarkdown`, `du`, `expr`, `which`, `timeout`, and `applyPatch`.
 Use the [typed options and linked family interfaces](src/plugins/index.ts) for
 their individual limits and hooks, including clocks and schedulers. Family budgets
-are separate from shell limits; `replace` applies across the entire bundle.
+are separate from shell counters; `limits.commandLimits.archive` supplies
+invocation ceilings. Per-execution family overrides merge with the shell's
+profile, and non-Worker hosts can configure larger limits. `replace` applies
+across the entire bundle.
 Text, search, structured queries, directory inspection, and table/stream tools
 have unlimited resource budgets by default. Set individual family limits to opt
 in; setting one limit leaves the others unlimited, without an implicit ceiling.

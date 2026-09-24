@@ -1,9 +1,12 @@
 import { PublicDiagnostic } from "../../diagnostics.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, readBytes, writeBytes, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
+import type { CommandFamilyLimits } from "../limits.js";
 
 export interface ArchiveLimits {
   readonly maxArchiveBytes: number;
+  /** ZIP input collection peak, including backing slabs and replacement buffers. */
+  readonly maxInputMemoryBytes: number;
   readonly maxEntryBytes: number;
   readonly maxTotalBytes: number;
   readonly maxMembers: number;
@@ -43,6 +46,7 @@ export interface ZipHost {
 
 export const DEFAULT_ARCHIVE_LIMITS: Readonly<ArchiveLimits> = Object.freeze({
   maxArchiveBytes: Infinity,
+  maxInputMemoryBytes: Infinity,
   maxEntryBytes: Infinity,
   maxTotalBytes: Infinity,
   maxMembers: Infinity,
@@ -64,6 +68,15 @@ export function settings(options: ArchiveCommandsOptions): ArchiveLimits {
     if (!Object.hasOwn(DEFAULT_ARCHIVE_LIMITS, key) || !Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid archive limit: ${key}`);
   }
   if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024) throw new RangeError("Archive chunkSize must be between 512 and 1048576");
+  return Object.freeze(limits);
+}
+
+export function invocationLimits(configured: ArchiveLimits, context: CommandContext): ArchiveLimits {
+  const profile = (context.capabilities?.commandLimits as CommandFamilyLimits | undefined)?.archive;
+  if (!profile) return configured;
+  settings({ limits: profile });
+  const limits = { ...configured };
+  for (const key of Object.keys(profile) as (keyof ArchiveLimits)[]) limits[key] = Math.min(limits[key], profile[key]!);
   return Object.freeze(limits);
 }
 
@@ -157,6 +170,9 @@ export async function* bounded(source: ByteSource, maximum: number, signal: Abor
   for await (const chunk of readBytes(source, signal)) {
     if (chunk.length > maximum - size) fail("archive byte limit exceeded");
     size += chunk.length;
+    // Empty views can still retain a large backing slab; downstream memory
+    // admission must see them before the producer advances.
+    if (!chunk.length) yield chunk;
     for (let offset = 0; offset < chunk.length; offset += chunkSize) {
       signal.throwIfAborted();
       yield chunk.subarray(offset, Math.min(chunk.length, offset + chunkSize));

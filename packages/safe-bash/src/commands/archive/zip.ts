@@ -18,7 +18,7 @@ import { createOutputOperation } from "../../contracts/output.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
-import { Budget, checkPath, display, fail, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
+import { Budget, checkPath, display, fail, invocationLimits, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { zipHelp, zipExtendedHelp, zipVersion, zipLicense } from "./zip/help.js";
 import { publishZip, stageZip, ZipScope, hasZipIdentity as hasIdentity, sameZipIdentity as sameIdentity, unchangedZipSource as unchanged, safeZipFile, type ZipPublication } from "./zip/safety.js";
@@ -600,7 +600,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   let inputSplit: number | undefined;
   if (existing && input) {
     if (!Number.isSafeInteger(existing.size) || existing.size < 0 || existing.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
-    const bytes = await collectBytes(scope.input(input), { ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), signal: context.signal });
+    const bytes = await collectBytes(scope.input(input), { ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), ...(Number.isFinite(limits.maxInputMemoryBytes) ? { maxMemoryBytes: limits.maxInputMemoryBytes } : {}), signal: context.signal });
     if (bytes.length !== existing.size) fail("archive changed while reading");
     const resolved = parsed.repair || parsed.adjust ? { bytes, paths: [input] } : await resolveZipVolumes(scope, input, bytes, host);
     inputPaths = resolved.paths;
@@ -1057,8 +1057,9 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
 }
 
 export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
-  const limits = settings(options);
+  const configured = settings(options);
   return { name: "zip", description: "Create or update bounded ZIP archives in the virtual filesystem", async execute(original) {
+    const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const scope = new ZipScope(original, limits);
     const context = scope.context;

@@ -2,7 +2,7 @@ import { dirname, collectBytes, readBytes, resolvePath, writeBytes, type Command
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { createOutputOperation, type OutputOperation } from "../../contracts/output.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
-import { Budget, bounded, checkPath, display, fail, settings, text, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
+import { Budget, bounded, checkPath, display, fail, invocationLimits, settings, text, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { decodeZipEntry, readZipArchive, type ZipEntry } from "./zip-format.js";
 import { Answers, parseArguments, Selection } from "./unzip/arguments.js";
 import { Extraction } from "./unzip/safety.js";
@@ -51,8 +51,9 @@ async function comment(bytes: Uint8Array, budget: Budget): Promise<void> {
 }
 
 export function createUnzipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
-  const limits = settings(options);
+  const configured = settings(options);
   return { name: "unzip", description: "List, stream or safely extract ZIP archives in the virtual filesystem", async execute(original) {
+    const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const controller = new AbortController();
     const context: CommandContext = { ...original, signal: AbortSignal.any([original.signal, controller.signal]) };
@@ -87,7 +88,8 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       const archivePath = await extraction.operation(() => context.fs.realpath(vfsPath(context.cwd, archive), { signal: context.signal }));
       archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
-      const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {})});
+      if (!Number.isSafeInteger(archiveStat.size) || archiveStat.size < 0 || archiveStat.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
+      const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), ...(Number.isFinite(limits.maxInputMemoryBytes) ? { maxMemoryBytes: limits.maxInputMemoryBytes } : {}) });
       if (!parsed.pipe && !parsed.names && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
       const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
       extraction.inputVolumes = resolved.volumes ?? [];

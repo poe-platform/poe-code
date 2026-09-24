@@ -2581,6 +2581,7 @@ test("default normal runner passes every discovered active file to serial Node e
     assert.ok(files.includes("tests/commands/zip-standard-flags-native.test.ts"));
     assert.ok(files.includes("tests/commands/rpc-atomic-host.test.ts"));
   assert.ok(files.includes("tests/commands/unzip.test.ts"));
+  assert.ok(files.includes("tests/commands/archive-worker-limits.test.ts"));
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-controller.test.ts"));

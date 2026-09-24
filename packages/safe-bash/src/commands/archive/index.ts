@@ -3,7 +3,7 @@ import { readBytes, writeBytes, type ByteSource, type CommandContext, type Comma
 import { escapeText } from "../../escaping.js";
 import { createArchive, manifest } from "./create.js";
 import { readArchive } from "./extract.js";
-import { Budget, bounded, display, fail, fileSource, maybeStat, operation, publish, sameIdentity, settings, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
+import { Budget, bounded, display, fail, fileSource, invocationLimits, maybeStat, operation, publish, sameIdentity, settings, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { parseOptions } from "./options.js";
 import { compareArchive, mutateArchive } from "./modes.js";
 import { autodetected, compressed, recorded } from "./stream.js";
@@ -16,8 +16,9 @@ export { createUnzipCommand } from "./unzip.js";
 export type { ArchiveCommandsOptions, ArchiveLimits, ZipHost, ZipEncryptionProfile } from "./internal.js";
 
 export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
-  const limits = settings(options);
+  const configured = settings(options);
   return { name: "tar", description: "Stream USTAR/PAX archives through the virtual filesystem", async execute(original) {
+    const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const controller = new AbortController();
     const signal = AbortSignal.any([original.signal, controller.signal]);

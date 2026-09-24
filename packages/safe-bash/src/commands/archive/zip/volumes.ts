@@ -1,4 +1,4 @@
-import { collectBytes, type FileStat, type FileStaging } from "../../../contracts/index.js";
+import { readBytes, type FileStat, type FileStaging } from "../../../contracts/index.js";
 import { yieldTurn } from "../../../contracts/yield.js";
 import { writeFileOutput } from "../../../contracts/filesystem-output.js";
 import { checkPath, fail, hasIdentity, sameIdentity, vfsPath, type ArchiveLimits, type ZipHost } from "../internal.js";
@@ -47,7 +47,7 @@ export async function resolveZipVolumes(scope: Pick<ZipScope, "context" | "limit
   if (count === 1 && !disk && !view.getUint16(end + 6, true)) return { bytes: final, paths: [archive], ...(view.getUint32(0, true) === 0x08074b50 ? { disks: { starts: [0], lengths: [final.length] } } : {}) };
   if (!host?.volume) fail("ZIP multi-disk archive requires an explicit VFS volume resolver");
   if (count < 2 || count > scope.limits.maxMembers || disk !== count - 1) fail("ZIP invalid volume count");
-  const parts: Uint8Array[] = [], starts: number[] = [], lengths: number[] = [], paths: string[] = [];
+  const starts: number[] = [], lengths: number[] = [], paths: string[] = [];
   const stats: FileStat[] = [];
   const finalPath = await scope.operation(() => fs.realpath(archive, { signal }));
   const finalStat = await scope.stat(finalPath);
@@ -61,25 +61,36 @@ export async function resolveZipVolumes(scope: Pick<ZipScope, "context" | "limit
     if (!stat || stat.type !== "file" || !hasIdentity(stat) || stat.nlink !== 1) fail("ZIP volume requires a regular single-link file with known identity");
     if (index !== count - 1 && path === finalPath || paths.includes(path) || stats.some(other => sameIdentity(stat, other))) fail("ZIP repeated or aliased input volume");
     if (!Number.isSafeInteger(stat.size) || stat.size < 1 || stat.size > scope.limits.maxArchiveBytes - total) fail("ZIP volume byte limit exceeded");
-    const bytes = index === count - 1 ? final : await collectBytes(scope.input(path), { signal, ...(Number.isFinite(stat.size) ? { maxBytes: stat.size } : {})});
-    const after = await scope.stat(path);
-    if (bytes.length !== stat.size || !after || !sameIdentity(stat, after) || after.size !== stat.size || after.mtimeMs !== stat.mtimeMs || after.ctimeMs !== stat.ctimeMs) fail("ZIP input volume changed while reading");
-    starts.push(total); lengths.push(bytes.length); paths.push(path); stats.push(stat);
-    total += bytes.length;
-    parts.push(bytes);
+    if (index === count - 1 && final.length !== stat.size) fail("ZIP input volume changed while reading");
+    starts.push(total); lengths.push(stat.size); paths.push(path); stats.push(stat);
+    total += stat.size;
   }
-  // Later resolver callbacks and reads may change an earlier, already-read disk.
+  // Admit every disk before retaining additional payload, then copy each stream directly
+  // into one owned allocation instead of keeping all disks plus their assembly.
+  if (total > scope.limits.maxInputMemoryBytes - final.buffer.byteLength) fail("ZIP input memory budget exceeded");
+  signal.throwIfAborted();
+  const bytes = new Uint8Array(total);
   for (let index = 0; index < paths.length; index++) {
+    if (index === count - 1) {
+      bytes.set(final, starts[index]!);
+    } else {
+      let size = 0;
+      for await (const chunk of readBytes(scope.input(paths[index]!), signal)) {
+        if (chunk.length > lengths[index]! - size) fail("ZIP input volume changed while reading");
+        if (chunk.buffer.byteLength > scope.limits.maxInputMemoryBytes - bytes.byteLength - final.buffer.byteLength) fail("ZIP input memory budget exceeded");
+        bytes.set(chunk, starts[index]! + size);
+        size += chunk.length;
+        await yieldTurn(signal);
+      }
+      if (size !== lengths[index]) fail("ZIP input volume changed while reading");
+    }
     const before = stats[index]!, after = await scope.stat(paths[index]!);
     if (!after || !sameIdentity(before, after) || after.size !== before.size || after.mtimeMs !== before.mtimeMs || after.ctimeMs !== before.ctimeMs) fail("ZIP input volume changed while reading");
   }
-  const bytes = new Uint8Array(total);
-  for (let index = 0; index < parts.length; index++) {
-    for (let offset = 0; offset < parts[index]!.length; offset += scope.limits.chunkSize) {
-      signal.throwIfAborted();
-      bytes.set(parts[index]!.subarray(offset, offset + scope.limits.chunkSize), starts[index]! + offset);
-      await yieldTurn(signal);
-    }
+  // Resolver callbacks and reads may change an earlier disk or the final disk.
+  for (let index = 0; index < paths.length; index++) {
+    const before = stats[index]!, after = await scope.stat(paths[index]!);
+    if (!after || !sameIdentity(before, after) || after.size !== before.size || after.mtimeMs !== before.mtimeMs || after.ctimeMs !== before.ctimeMs) fail("ZIP input volume changed while reading");
   }
   return { bytes, disks: { starts, lengths }, paths, volumes: paths.map((path, index) => ({ path, stat: stats[index]! })) };
 }

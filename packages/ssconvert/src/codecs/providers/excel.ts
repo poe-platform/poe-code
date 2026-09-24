@@ -1,6 +1,7 @@
 import type { FormatProvider } from "../types.js";
 import { probeXlsx, readXlsx, createXlsxWriter } from "../xlsx.js";
 import { probeBiff, readBiff, createBiffWriter } from "../biff.js";
+import { biffEncryptionProfiles } from "../biff-encrypted-write.js";
 import { probeSpreadsheetML, readSpreadsheetML } from "../spreadsheetml.js";
 
 export default {
@@ -35,7 +36,7 @@ export default {
     {
       "id": "excel_biff8",
       write: createBiffWriter(8),
-      exportOptionRules: { encryption: { kind: "enum", values: ["rc4"] } },
+      exportOptionRules: { encryption: { kind: "enum", values: [...biffEncryptionProfiles.keys()] } },
       "direction": "write",
       "description": "MS Excel™ 97/2000/XP",
       "extensions": [

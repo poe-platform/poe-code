@@ -21,10 +21,11 @@ format, version, record, formula, numerical or rendering fidelity.
 
 BIFF7/8 XOR-obfuscated and BIFF8 RC4/CryptoAPI Excel workbooks using the
 native reader's built-in `VelvetSweatshop` password open automatically.
-BIFF8 export accepts `-T Gnumeric_Excel:excel_biff8 -O encryption=rc4` with explicit
-host password and cryptographic entropy callbacks. This legacy 40-bit profile has
-no data authentication; plaintext remains the default, and BIFF7/dual-stream
-encrypted output remains unsupported.
+BIFF8 export accepts `-T Gnumeric_Excel:excel_biff8 -O encryption=rc4` for standard
+40-bit RC4, or `-O encryption=rc4-cryptoapi-128` for CryptoAPI. The CryptoAPI suffix
+selects 40–128 bits in 8-bit steps. Both require explicit host password and
+cryptographic entropy callbacks and provide no data authentication. Plaintext
+remains the default; BIFF7/dual-stream encrypted output remains unsupported.
 Other BIFF passwords and encrypted OpenDocument imports use an explicit
 host `password.read` callback. ODF accepts UTF-8 strings or bytes, AES128/192/256,
 Blowfish-CFB8/CFB64 and LibreOffice Argon2id/AES256-GCM packages. Encryption work is

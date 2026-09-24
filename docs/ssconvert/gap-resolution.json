@@ -25,7 +25,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Explicit host passwords support qualified XOR, standard RC4 and CryptoAPI imports. BIFF8 standard RC4 export uses explicit password/entropy capabilities; ten small/multi-block samples pass independent msoffcrypto and xlrd readback. Other encrypted writers, ancillary streams/properties, native application profiles and containing publication remain open."
+      "currentFinding": "Explicit host passwords support qualified XOR, standard RC4 and CryptoAPI imports. BIFF8 standard RC4 and CryptoAPI 40\u2013128-bit exports use explicit password/entropy capabilities. Independent crypto and xlrd read 120 CryptoAPI samples; msoffcrypto reads its 50 supported-key-size cases and rejects seven other key sizes as unavailable. Other encrypted writers, ancillary streams/properties, native application profiles and containing publication remain open."
     },
     {
       "id": "encrypted-odf",
@@ -105,7 +105,7 @@
   ],
   "delivery": {
     "verifiedRemoteMain": [
-      "80c47835301302df03d24e730ea11923b91d711c"
+      "0da3a4731863746b5e47563c57602026ae92b480"
     ],
     "verifiedPublication": {
       "version": "17.0.35",

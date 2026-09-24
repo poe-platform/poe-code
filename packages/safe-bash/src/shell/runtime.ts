@@ -3211,7 +3211,7 @@ export class Runtime {
         if (state.extensions && !state.extensions.eventDepth) {
           for (const command of pipeline.commands) {
             if (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional") {
-              this.writeVariable(state, "BASH_COMMAND", commandSpelling(command));
+              state.variables.BASH_COMMAND = commandSpelling(command);
             }
           }
         }
@@ -3475,7 +3475,9 @@ export class Runtime {
     if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
       io = { ...io, diagnosticLine: io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
       const description = commandSpelling(command);
-      if (!state.extensions.eventDepth) this.writeVariable(state, "BASH_COMMAND", description);
+      // Automatic command text is bounded by source admission. Charge its use
+      // during expansion, rather than retaining it as a guest assignment.
+      if (!state.extensions.eventDepth) state.variables.BASH_COMMAND = description;
       if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
     }
     const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
@@ -3657,7 +3659,7 @@ export class Runtime {
       if (command.kind === "case") {
         if (state.extensions) {
           const description = `case ${command.subject.spelling ?? command.subject.plain ?? ""} in `;
-          if (!state.extensions.eventDepth) this.writeVariable(state, "BASH_COMMAND", description);
+          if (!state.extensions.eventDepth) state.variables.BASH_COMMAND = description;
           if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
         }
         const subject = (await this.word(command.subject, state, io, false)).join("");
@@ -3691,7 +3693,7 @@ export class Runtime {
             await this.assignVariable(state, command.name, value);
             if (state.extensions) {
               const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
-              if (!state.extensions.eventDepth) this.writeVariable(state, "BASH_COMMAND", description);
+              if (!state.extensions.eventDepth) state.variables.BASH_COMMAND = description;
               if (await this.extensionEvent("command", state, io, state.status, description)) continue;
             }
             const result = await this.loopBody(command.body, state, io);

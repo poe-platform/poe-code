@@ -5,6 +5,18 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { trapExtension } from "../../src/shell/extensions/trap/index.js";
 
 for (const extensions of [undefined, [trapExtension()]]) {
+  test(`automatic command spelling preserves expansion budgets ${extensions ? "configured" : "default"}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), ...(extensions ? { extensions } : {}) });
+    context.after(() => shell.dispose());
+    for (const command of basicCommands()) shell.register(command);
+    const empty = await shell.exec("scalar=", { limits: { maxExpansionBytes: 0, maxExpansionFields: 1 } });
+    assert.equal(empty.exitCode, 0);
+    assert.equal(empty.stderr, "");
+    const result = await shell.exec('BASH_COMMAND=stale; printf "%s" "$BASH_COMMAND"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, 'printf "%s" "$BASH_COMMAND"');
+  });
   for (const [source, status] of [
     ["trap 'true; exit' EXIT; exit 7", 7],
     ["trap 'false; exit' EXIT; exit 0", 0],

@@ -69,6 +69,17 @@ export async function* extractRtf(source: AsyncIterable<Uint8Array>, options: Un
     finally { delete decl.decoder; delete decl.activePage; }
     appendName(decl,text,offset);
   };
+  const finishFont = (decl:FontDeclaration, offset:number): Extract<RtfEvent, {kind:'font'}> => {
+    flushName(decl,offset);
+    const name = decl.name.trim();
+    const mapped = decl.charset === undefined ? 0 : charsetCodePages[decl.charset] ?? 1252;
+    const page = name === 'Symbol' || decl.page === undefined && decl.charset === undefined && name.toLowerCase().includes('symbol') ? 42 : decl.page ?? mapped;
+    const font: RtfFont = {id:decl.id,name,codePage:page,charset:decl.charset};
+    budget.charge('retainedBytes',128 + name.length * 2,offset);
+    retainedDeclarations += 128 + name.length * 2;
+    fonts.set(font.id,font); decl.ended = true;
+    return {kind:'font',font,offset};
+  };
   const flush = (offset:number): string => {
     if (!decoder) return '';
     try { return decoder.decode(); }
@@ -101,20 +112,12 @@ export async function* extractRtf(source: AsyncIterable<Uint8Array>, options: Un
         throw new UnrtfError('E_PARSE', 'Ignorable destination requires a control word', token.offset);
       if (token.kind === 'open' || token.kind === 'close') {
         const event = output(flush(token.offset), token.offset); if (event) yield event;
-        fallback = 0;
+        fallback = 0; lastSpace = false;
         if (token.kind === 'open') {
           stack.push(state); state = {...state, starred:false, declaration:undefined};
         } else {
-          if (state.declaration) {
-            const decl = state.declaration;
-            flushName(decl,token.offset);
-            const name = decl.name.trim();
-            const mapped = decl.charset === undefined ? 0 : charsetCodePages[decl.charset] ?? 1252;
-            const page = name === 'Symbol' || decl.page === undefined && decl.charset === undefined && name.toLowerCase().includes('symbol') ? 42 : decl.page ?? mapped;
-            const font: RtfFont = {id:decl.id,name,codePage:page,charset:decl.charset};
-            budget.charge('retainedBytes',128 + name.length * 2,token.offset);
-            retainedDeclarations += 128 + name.length * 2;
-            fonts.set(font.id,font); yield {kind:'font',font,offset:token.offset};
+          if (state.declaration && !state.declaration.ended) {
+            yield finishFont(state.declaration,token.offset);
           }
           state = stack.pop()!;
         }
@@ -212,7 +215,7 @@ export async function* extractRtf(source: AsyncIterable<Uint8Array>, options: Un
           const prior = output(flush(offset),offset); if (prior) yield prior;
           if (chars[name]) {
             const event = output(chars[name]!,offset); if (event) { if (name === 'par' || name === 'line') event.boundary = name; yield event; }
-          } else yield {kind:'control',name,parameter,offset};
+          } else { lastSpace = false; yield {kind:'control',name,parameter,offset}; }
         } else yield {kind:'control',name,parameter,offset};
         continue;
       }
@@ -264,7 +267,7 @@ export async function* extractRtf(source: AsyncIterable<Uint8Array>, options: Un
         const decl = state.declaration;
         if (decl && !decl.ended) {
           if (decl.fallback) { decl.fallback--; continue; }
-          if (byte === 59) { flushName(decl,token.offset); decl.ended = true; continue; }
+          if (byte === 59) { yield finishFont(decl,token.offset); continue; }
           if (decl.high !== undefined) throw new UnrtfError('E_ENCODING','Unpaired surrogate in font name',token.offset);
           const page = decl.page ?? (decl.charset === undefined ? state.page : (charsetCodePages[decl.charset] ?? 1252) || state.page);
           // Symbol is a glyph encoding, not an encoding for its ASCII declaration name.

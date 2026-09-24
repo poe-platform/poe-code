@@ -111,3 +111,19 @@ test('additional admitted realm codecs have concrete Unicode byte fixtures', asy
   for (const [page,hex,expected] of [[874,'a1','ก'],[1250,'a5','Ą'],[1253,'c1','Α'],[1254,'d0','Ğ'],[1255,'e0','א'],[1256,'c7','ا'],[1257,'c0','Ą'],[1258,'d0','Đ'],[10000,'80','Ä']] as const)
     assert.equal(await render(`{\\rtf1\\ansicpg${page}\\'${hex}}`,'text'),expected);
 });
+
+test('flat font declarations retain every font and its encoding', async () => {
+  assert.equal(await render('{\\rtf1{\\fonttbl\\f0 Arial;\\f1 Courier;}\\f0 Hello}', 'text'), 'Hello');
+  assert.equal(await render("{\\rtf1{\\fonttbl\\f0\\cpg1252 Arial;\\f1\\cpg1251 Cyrillic;}\\f0\\'80\\f1\\'c0}", 'text'), '€А');
+});
+test('consecutive HTML rows share a table until body text resumes', async () => {
+  const table = '<table><tbody><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></tbody></table>';
+  const rows = '\\trowd A\\cell B\\cell\\row{\\trowd C\\cell D\\cell\\row}';
+  assert.equal(await render('{\\rtf1'+rows+'}', 'html'), '<!DOCTYPE html><html><body>'+table+'</body></html>');
+  assert.equal(await render('{\\rtf1'+rows+' Z\\trowd E\\cell\\row}', 'html'), '<!DOCTYPE html><html><body>'+table+'<p> Z</p><table><tbody><tr><td>E</td></tr></tbody></table></body></html>');
+});
+test('spaces collapse within text but reset at table and group boundaries', async () => {
+  assert.equal(await render('{\\rtf1\\trowd A \\cell  B\\cell\\row}', 'text'), 'A \t B\t\n');
+  assert.equal(await render('{\\rtf1 A \\trowd  B \\row  C}', 'text'), 'A  B \n C');
+  assert.equal(await render('{\\rtf1 A { B } C  D}', 'text'), 'A  B  C D');
+});

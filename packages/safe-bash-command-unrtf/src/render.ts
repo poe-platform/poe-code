@@ -75,6 +75,7 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
       } else if (event.kind === 'text') {
         if (!html) { yield emit(event.text,event.offset); continue; }
         let fragment = '';
+        if (table && !row) { fragment = '</tbody></table>'; table = false; }
         for (const char of event.text) {
           if (char === '\n') {
             if (table || event.boundary === 'line') fragment += beginText() + '<br>';
@@ -112,14 +113,14 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
           else yield emit('\t',offset);
         } else if (name === 'row') {
           if (!row) throw new UnrtfError('E_PARSE','Row end outside table',offset);
-          if (html) { yield emit((cell ? '</td>' : '') + '</tr></tbody></table>',offset); cell = false; table = false; }
+          if (html) { yield emit((cell ? '</td>' : '') + '</tr>',offset); cell = false; }
           else yield emit('\n',offset);
           row = false;
         }
       }
     }
     if (row) throw new UnrtfError('E_PARSE','Unterminated table row',0);
-    if (html) yield emit(endParagraph() + '</body></html>',0);
+    if (html) yield emit(endParagraph() + (table ? '</tbody></table>' : '') + '</body></html>',0);
   } finally {
     if (preamble) budget.release('retainedBytes',preamble.length);
     budget.release('retainedBytes',stack.length * 32);

@@ -28,10 +28,25 @@ export function basicCommands(): CommandDefinition[] {
       const text = typeof joined === "string" ? joined : arguments_.withValues([joined]).bytes(0)!;
       if (escapes) {
         const escaped = escapeBytes(text, true);
-        await output(context, escaped.bytes);
         if (escaped.stop) newline = false;
-      } else await output(context, text);
-      if (newline) await output(context, "\n");
+        if (newline) {
+          const withNewline = new Uint8Array(escaped.bytes.byteLength + 1);
+          withNewline.set(escaped.bytes);
+          withNewline[escaped.bytes.byteLength] = 10;
+          await output(context, withNewline);
+        } else {
+          await output(context, escaped.bytes);
+        }
+      } else if (typeof text === "string") {
+        await output(context, newline ? `${text}\n` : text);
+      } else if (newline) {
+        const withNewline = new Uint8Array(text.byteLength + 1);
+        withNewline.set(text);
+        withNewline[text.byteLength] = 10;
+        await output(context, withNewline);
+      } else {
+        await output(context, text);
+      }
       return { exitCode: 0 };
     }),
     define("pwd", async (context) => {

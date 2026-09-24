@@ -9,6 +9,40 @@ import { variablePresence } from "./variable-presence.js";
 type Predicate = () => Promise<boolean>;
 
 const maxExpressionDepth = 256;
+const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R", "-N"]);
+const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
+const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
+
+function parseSafeIntegerFast(text: string): number | undefined {
+  const len = text.length;
+  if (len === 0 || len > 15) return undefined;
+  let i = 0;
+  while (i < len && (text.charCodeAt(i) === 32 || text.charCodeAt(i) === 9)) i++;
+  if (i === len) return undefined;
+  let negative = false;
+  const first = text.charCodeAt(i);
+  if (first === 45 || first === 43) {
+    negative = first === 45;
+    i++;
+  }
+  let digits = 0;
+  let value = 0;
+  while (i < len) {
+    const code = text.charCodeAt(i);
+    if (code >= 48 && code <= 57) {
+      value = value * 10 + (code - 48);
+      digits++;
+      i++;
+    } else if (code === 32 || code === 9) {
+      while (i < len && (text.charCodeAt(i) === 32 || text.charCodeAt(i) === 9)) i++;
+      break;
+    } else {
+      return undefined;
+    }
+  }
+  if (digits === 0 || i < len) return undefined;
+  return negative ? -value : value;
+}
 
 async function metadata(context: CommandContext, path: string, link = false): Promise<FileStat | undefined> {
   assertCommandRequirements(context, predicateRequirements, ["metadata"]);
@@ -31,13 +65,45 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
   }
   identity = { ...identity };
   return ["test", "["].map(name => define(name, async context => {
+    const rawArgs = context.args;
+    const rawLen = name === "[" ? rawArgs.length - 1 : rawArgs.length;
+    if (name === "[") {
+      if (rawLen < 0 || rawArgs[rawLen] !== "]") throw new UsageError("missing ']'");
+    }
+    if (rawLen === 0) return { exitCode: 1 };
+    if (rawLen === 1) return { exitCode: rawArgs[0] !== "" ? 0 : 1 };
+    if (rawLen === 2) {
+      const a0 = rawArgs[0]!;
+      const a1 = rawArgs[1]!;
+      if (a0 === "!") return { exitCode: a1 === "" ? 0 : 1 };
+      if (a0 === "-n") return { exitCode: a1 !== "" ? 0 : 1 };
+      if (a0 === "-z") return { exitCode: a1 === "" ? 0 : 1 };
+    }
+    if (rawLen === 3) {
+      const a0 = rawArgs[0]!;
+      const op = rawArgs[1]!;
+      const a2 = rawArgs[2]!;
+      if (op === "=" || op === "==") return { exitCode: a0 === a2 ? 0 : 1 };
+      if (op === "!=") return { exitCode: a0 !== a2 ? 0 : 1 };
+      if (numeric.has(op)) {
+        const leftNum = parseSafeIntegerFast(a0);
+        const rightNum = parseSafeIntegerFast(a2);
+        if (leftNum !== undefined && rightNum !== undefined) {
+          const matched =
+            op === "-eq" ? leftNum === rightNum :
+            op === "-ne" ? leftNum !== rightNum :
+            op === "-lt" ? leftNum < rightNum :
+            op === "-le" ? leftNum <= rightNum :
+            op === "-gt" ? leftNum > rightNum :
+            leftNum >= rightNum;
+          return { exitCode: matched ? 0 : 1 };
+        }
+      }
+    }
     const args = [...context.args];
     if (name === "[") {
       if (args.pop() !== "]") throw new UsageError("missing ']'");
     }
-    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R", "-N"]);
-    const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
-    const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
     // Small expressions use argc rules before recursive operator precedence.
     let negate = false;
     if (args.length === 4) {

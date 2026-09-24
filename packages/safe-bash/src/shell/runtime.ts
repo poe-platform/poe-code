@@ -294,6 +294,7 @@ export class Budget {
   globstarStates = 0;
   readonly controller = new AbortController();
   readonly signal: AbortSignal;
+  readonly yieldCheckpoint = (): void => { this.cpuCheckpoint(); };
   #wallClockTimer: ReturnType<typeof setTimeout> | undefined;
   #wallClockDeadline = 0;
   #pipelineStages = 0;
@@ -1675,8 +1676,10 @@ const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
 
 export class Runtime {
   private readonly sourceFs: FileSystem;
+  readonly #rawFs: FileSystem;
+  #fs: FileSystem | undefined;
   constructor(
-    readonly fs: FileSystem,
+    fs: FileSystem,
     readonly commands: CommandRegistry,
     readonly middleware: readonly Middleware[],
     readonly budget: Budget,
@@ -1692,12 +1695,18 @@ export class Runtime {
     readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
     private readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs,
   ) {
+    this.#rawFs = fs;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
-    this.fs = scopeFileSystem(fs, () => budget.fileSystemOperation(), signal, () => budget.fileSystemCleanupOperation());
-    runtimeFileSystems.set(this.fs, this.sourceFs);
-    const checkpoint = () => budget.cpuCheckpoint();
-    registerYieldCheckpoint(signal, checkpoint);
-    registerYieldCheckpoint(commandSignal, checkpoint);
+    registerYieldCheckpoint(signal, budget.yieldCheckpoint);
+    if (commandSignal !== signal) registerYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
+  }
+
+  get fs(): FileSystem {
+    if (!this.#fs) {
+      this.#fs = scopeFileSystem(this.#rawFs, () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation());
+      runtimeFileSystems.set(this.#fs, this.sourceFs);
+    }
+    return this.#fs;
   }
 
   private async ereDiagnostic(io: IO, detail: string): Promise<void> {
@@ -4527,12 +4536,21 @@ export class Runtime {
 
   async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
     const scope = io[invocationScope].child();
-    const runtime = new Runtime(
-      this.fs, this.commands, this.middleware, this.budget,
-      AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal,
-      this.cancellation, this.cancellationState, this.cancellationOwner,
-      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
-    );
+    const fastInline =
+      this.middleware.length === 0 &&
+      typeof name === "string" &&
+      !(!bypassFunctions && state.functions.has(name)) &&
+      !state.extensions?.builtins.has(name) &&
+      (name === "[" || name === "test" || name === "echo" || name === "true" || name === "false" || name === "printf" ||
+        (implementedBuiltins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray"));
+    const runtime = fastInline
+      ? this
+      : new Runtime(
+          this.sourceFs, this.commands, this.middleware, this.budget,
+          AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal,
+          this.cancellation, this.cancellationState, this.cancellationOwner,
+          this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
+        );
     try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath); }
     finally { await scope.close(); }
   }
@@ -4561,6 +4579,8 @@ export class Runtime {
     }
     const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
+    let contextFs: FileSystem | undefined;
+    const getContextFs = (): FileSystem => contextFs ??= scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation());
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
       shellPredicates: {
@@ -4577,7 +4597,9 @@ export class Runtime {
         // Shell byte streams and virtual descriptors have no terminal capability.
         terminal: () => false,
       },
-      fs: scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation()), signal: this.commandSignal,
+      get fs() { return getContextFs(); },
+      set fs(replacement: FileSystem) { contextFs = replacement; },
+      signal: this.commandSignal,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
       inputBudget: {

@@ -5,57 +5,74 @@ import { writeDiagnostic } from "../escaping.js";
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
 import { registerEntryView, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/core";
 
+const creationFileSystems = new WeakMap<FileSystem, Map<number, FileSystem>>();
+const creationKeys = new Set(["writeFile", "appendFile", "writeStream", "mkdir", "open", "createStagedFile"]);
+
 /** Supply creation modes through the adapter; never change the process mask or chmod existing entries. */
 export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
+  let byMask = creationFileSystems.get(fs);
+  if (!byMask) {
+    byMask = new Map();
+    creationFileSystems.set(fs, byMask);
+  }
+  const cached = byMask.get(mask);
+  if (cached) return cached;
+  const methods = new Map<PropertyKey, { raw: unknown; wrapped: unknown }>();
   const view = new Proxy(fs, {
     get(target, key) {
       const method: unknown = Reflect.get(target, key, target);
       if (typeof method !== "function") return method;
-      const creation = ["writeFile", "appendFile", "writeStream", "mkdir", "open", "createStagedFile"].includes(String(key));
-      if (!creation) return method.bind(target);
-      return async (...args: unknown[]) => {
-        const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-        const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
-        options.signal?.throwIfAborted();
-        if (key === "createStagedFile" && (args[2] as StagedFileContent).type === "symlink") return Reflect.apply(method, target, args);
-        if (key === "open" && options.creation !== "ifMissing" && options.creation !== "exclusive") return Reflect.apply(method, target, args);
-        if (options.mode === undefined) {
-          let path = args[0] as string;
-          if (key === "mkdir" && options.recursive === true) {
-            let existing;
-            try { existing = await target.stat(path, options.signal === undefined ? {} : { signal: options.signal }); }
-            catch (error) {
-              options.signal?.throwIfAborted();
-              if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
-            }
+      const existing = methods.get(key);
+      if (existing?.raw === method) return existing.wrapped;
+      const creation = typeof key === "string" && creationKeys.has(key);
+      const wrapped = !creation
+        ? method.bind(target)
+        : async (...args: unknown[]) => {
+            const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
+            const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
             options.signal?.throwIfAborted();
-            if (existing?.type === "directory") return Reflect.apply(method, target, args);
-          }
-          let capabilities = target.capabilities;
-          // Atomic final-symlink admission must precede any following path query.
-          while (target.capabilitiesFor && !(key === "open" && options.noFollow)) {
-            try {
-              capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true }
-                : (key === "writeFile" || key === "writeStream") && (options.flag === "wx" || options.flag === "ax") ? { ...options, creation: "exclusive" } : options);
-              break;
-            } catch (error) {
+            if (key === "createStagedFile" && (args[2] as StagedFileContent).type === "symlink") return Reflect.apply(method, target, args);
+            if (key === "open" && options.creation !== "ifMissing" && options.creation !== "exclusive") return Reflect.apply(method, target, args);
+            if (options.mode === undefined) {
+              let path = args[0] as string;
+              if (key === "mkdir" && options.recursive === true) {
+                let statExisting;
+                try { statExisting = await target.stat(path, options.signal === undefined ? {} : { signal: options.signal }); }
+                catch (error) {
+                  options.signal?.throwIfAborted();
+                  if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+                }
+                options.signal?.throwIfAborted();
+                if (statExisting?.type === "directory") return Reflect.apply(method, target, args);
+              }
+              let capabilities = target.capabilities;
+              // Atomic final-symlink admission must precede any following path query.
+              while (target.capabilitiesFor && !(key === "open" && options.noFollow)) {
+                try {
+                  capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true }
+                    : (key === "writeFile" || key === "writeStream") && (options.flag === "wx" || options.flag === "ax") ? { ...options, creation: "exclusive" } : options);
+                  break;
+                } catch (error) {
+                  options.signal?.throwIfAborted();
+                  const parent = dirname(path);
+                  if (key !== "mkdir" || options.recursive !== true || !(error instanceof FsError) || error.code !== "ENOENT" || parent === path) throw error;
+                  path = parent;
+                }
+              }
               options.signal?.throwIfAborted();
-              const parent = dirname(path);
-              if (key !== "mkdir" || options.recursive !== true || !(error instanceof FsError) || error.code !== "ENOENT" || parent === path) throw error;
-              path = parent;
+              if (capabilities.permissions !== false) args[index] = { ...options, mode: (key === "mkdir" ? 0o777 : 0o666) & ~mask };
             }
-          }
-          options.signal?.throwIfAborted();
-          if (capabilities.permissions !== false) args[index] = { ...options, mode: (key === "mkdir" ? 0o777 : 0o666) & ~mask };
-        }
-        return Reflect.apply(method, target, args);
-      };
+            return Reflect.apply(method, target, args);
+          };
+      methods.set(key, { raw: method, wrapped });
+      return wrapped;
     },
   });
   registerEntryView(view, async (path, options) => {
     options.signal?.throwIfAborted();
     return { filesystem: fs, path };
   });
+  byMask.set(mask, view);
   return view;
 }
 

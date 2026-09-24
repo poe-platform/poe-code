@@ -90,6 +90,37 @@ describe("native browser trace transport", () => {
 		}
 	});
 
+	test.each([2048, Infinity])("captures more than 1024 owned resources with byte budget %s", async (maxBytes) => {
+		const f = await fixture();
+		try {
+			for (let index = 0; index < 1025; index++) {
+				const name = `resource-${index}`;
+				vol.writeFileSync(`${f.directory}/resources/${name}`, "x");
+				f.native._state!.traceSha1s.add(name);
+			}
+			const result = await captureBrowserTrace(f.context, {
+				signal: new AbortController().signal, maxBytes,
+			});
+			expect(result.files).toHaveLength(1028);
+			await expect(captureBrowserTrace(f.context, {
+				signal: new AbortController().signal, maxBytes: 1024,
+			})).rejects.toThrow("byte limit");
+		} finally { await f.cleanup(); }
+	});
+
+	test("accepts owned resource names beyond the former path ceiling", async () => {
+		const f = await fixture();
+		try {
+			const name = "a".repeat(257);
+			vol.writeFileSync(`${f.directory}/resources/${name}`, "x");
+			f.native._state!.traceSha1s.add(name);
+			const result = await captureBrowserTrace(f.context, {
+				signal: new AbortController().signal, maxBytes: 1024,
+			});
+			expect(result.files.map(file => file.path)).toContain(`resources/${name}`);
+		} finally { await f.cleanup(); }
+	});
+
 	test("rejects aggregate overflow, symlink resources and cancellation", async () => {
 		const f = await fixture();
 		try {
@@ -111,11 +142,6 @@ describe("native browser trace transport", () => {
 					signal: AbortSignal.abort(new Error("cancelled")),
 				}),
 			).rejects.toThrow("cancelled");
-			for (let index = 0; index < 1025; index++)
-				f.native._state!.traceSha1s.add(`resource-${index}`);
-			await expect(
-				captureBrowserTrace(f.context, { ...options, maxBytes: 1024 }),
-			).rejects.toThrow("file count limit");
 			f.native._state!.tracesDir = "/etc";
 			await expect(captureBrowserTrace(f.context, options)).rejects.toThrow(
 				"Invalid native browser trace directory",

@@ -4,8 +4,6 @@ import {
 	type PlaywrightTraceCapture,
 } from "@poe-platform/safe-bash/playwright";
 
-const MAX_TRACE_FILES = 1024;
-const MAX_TRACE_PATH = 256;
 interface NativeTracePaths {
 	tracesDir: string;
 	traceFile: string;
@@ -23,7 +21,6 @@ const pathsByTracing = new WeakMap<object, NativeTracePaths>();
 function safeName(name: string): boolean {
 	return (
 		name.length > 0 &&
-		name.length <= MAX_TRACE_PATH &&
 		name !== "." &&
 		name !== ".." &&
 		[...name].every((character) =>
@@ -133,13 +130,6 @@ function traceResources(paths: NativeTracePaths): string[] {
 		!(paths.networkSha1s instanceof Set)
 	)
 		throw new Error("Native trace resource ownership unavailable");
-	if (
-		paths.traceSha1s.size > MAX_TRACE_FILES ||
-		paths.networkSha1s.size > MAX_TRACE_FILES
-	)
-		throw new PlaywrightResourceLimitError(
-			"Browser trace file count limit exceeded",
-		);
 	return [...paths.traceSha1s, ...paths.networkSha1s];
 }
 
@@ -158,10 +148,6 @@ async function traceFiles(
 	for (const name of traceResources(paths)) {
 		signal.throwIfAborted();
 		if (seen.has(name)) continue;
-		if (candidates.length >= MAX_TRACE_FILES)
-			throw new PlaywrightResourceLimitError(
-				"Browser trace file count limit exceeded",
-			);
 		if (!safeName(name))
 			throw new Error("Invalid native browser trace resource name");
 		seen.add(name);
@@ -170,7 +156,7 @@ async function traceFiles(
 	return candidates;
 }
 
-/** O(files + bytes), capped at 1024 files and the caller's aggregate byte limit.
+/** O(files + bytes), subject to the caller's aggregate byte limit.
  * Native tracing can append after its flush; each read captures the admitted
  * prefix, preserving future appends for the next command's flush. */
 export const captureBrowserTrace: PlaywrightTraceCapture = async (
@@ -178,7 +164,7 @@ export const captureBrowserTrace: PlaywrightTraceCapture = async (
 	options,
 ) => {
 	options.signal.throwIfAborted();
-	if (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 1)
+	if (options.maxBytes !== Infinity && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 1))
 		throw new Error("Invalid browser trace byte limit");
 	const native = nativeTracing(context);
 	const paths = tracePaths(native);

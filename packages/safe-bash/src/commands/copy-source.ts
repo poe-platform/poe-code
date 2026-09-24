@@ -1,11 +1,36 @@
-import { FsError, type CommandContext, type FileReadHandle, type FileStat } from "../contracts/index.js";
+import { collectBytes, dirname, FsError, type CommandContext, type FileReadHandle, type FileStat, type FileSystemCapabilities } from "../contracts/index.js";
 import { compareCopyIdentity } from "./copy-identity.js";
+import { codeOf } from "./internal.js";
 
 export async function admitCopySource(context: CommandContext, source: string): Promise<void> {
   const capabilities = await context.fs.capabilitiesFor?.(source, { signal: context.signal }) ?? context.fs.capabilities;
   context.signal.throwIfAborted();
-  if (!context.fs.openReadFile || capabilities.retainedRead !== true || !context.fs.writeStream) {
-    throw new FsError("ENOTSUP", { path: source, message: "copy requires retained reads and streaming writes" });
+  if (!context.fs.openReadFile || capabilities.retainedRead !== true) {
+    throw new FsError("ENOTSUP", { path: source, message: "copy requires retained reads" });
+  }
+}
+
+function selectCopyDestination(context: CommandContext, target: string, capabilities: FileSystemCapabilities, exclusive: boolean): "stream" | "buffer" {
+  if (capabilities.readOnly === true) throw new FsError("EROFS", { path: target });
+  if (context.fs.writeStream && capabilities.streamingWrite !== false) return "stream";
+  if (exclusive && capabilities.exclusiveCreate === true) return "buffer";
+  throw new FsError("ENOTSUP", { path: target, message: "copy requires streaming writes or exclusive creation" });
+}
+
+export async function admitCopyDestination(context: CommandContext, target: string, exclusive: boolean): Promise<"stream" | "buffer"> {
+  let candidate = target;
+  while (true) {
+    try {
+      const capabilities = await context.fs.capabilitiesFor?.(candidate, {
+        signal: context.signal, ...(exclusive ? { creation: "exclusive" as const } : {}),
+      }) ?? context.fs.capabilities;
+      context.signal.throwIfAborted();
+      return selectCopyDestination(context, target, capabilities, exclusive);
+    } catch (error) {
+      context.signal.throwIfAborted();
+      if (codeOf(error) !== "ENOENT" || candidate === "/") throw error;
+      candidate = dirname(candidate);
+    }
   }
 }
 
@@ -62,10 +87,28 @@ export async function copyCheckedSource(context: CommandContext, source: string,
         yield chunk;
       }
     };
-    work = context.fs.writeStream!(target, bytes(), {
-      flag: exclusive ? "wx" : "w", signal: context.signal,
-      ...(capabilities.permissions === false ? {} : { mode: expected.mode & 0o7777 }),
-    });
+    const options = {
+      flag: exclusive ? "wx" as const : "w" as const, signal: context.signal,
+      ...(capabilities.permissions === true ? { mode: expected.mode & 0o7777 } : {}),
+    };
+    if (selectCopyDestination(context, target, capabilities, exclusive) === "buffer") {
+      const size = retained.size;
+      const maxMemoryBytes = size * 3 + 64 * 1024;
+      if (!Number.isSafeInteger(size) || size < 0 || !Number.isSafeInteger(maxMemoryBytes)) {
+        throw new FsError("EFBIG", { path: source, message: "copy source exceeds bounded collection capacity" });
+      }
+      context.inputBudget?.check(size);
+      if (size > (context.inputBudget?.maxBytes ?? Infinity)) throw new FsError("EFBIG", {
+        path: source, message: "copy source exceeds input budget",
+      });
+      work = (async () => {
+        const data = await collectBytes(bytes(), { maxBytes: size, maxMemoryBytes, signal: context.signal });
+        context.signal.throwIfAborted();
+        if (!accepting) throw new FsError("EBADF", { path: source });
+        if (data.byteLength !== size) throw new FsError("EBUSY", { path: source, message: "copy source size changed" });
+        await context.fs.writeFile(target, data, { ...options, flag: "wx" });
+      })();
+    } else work = context.fs.writeStream!(target, bytes(), options);
     await work;
     context.signal.throwIfAborted();
     if (!consumed) throw new FsError("EIO", { path: target, message: "copy writer did not consume source" });

@@ -73,7 +73,7 @@ test("cross-mount streaming transfers preserve overwrite refusal without native 
   }
 });
 
-test("direct exclusive copy remains available while commands refuse destinations without streaming writes", async () => {
+test("direct and command copies use bounded exclusive creation without streaming writes", async () => {
   for (const command of ["cp", "mv"]) {
     const source = await fixture({ source: "payload" });
     const target = await fixture();
@@ -95,13 +95,14 @@ test("direct exclusive copy remains available while commands refuse destinations
     await fs.copyFile("/source/work/source", "/target/work/proof", { exclusive: true });
     assert.equal(new TextDecoder().decode(await target.readFile("/work/proof")), "payload");
     const result = await run(command, ["/source/work/source", "/target/work/new"], { fs });
-    assert.equal(result.exitCode, 1, `${command}: ${result.stderr}`);
-    assert.equal(result.stderr, `${command}: ENOTSUP: operation not supported, ${command} '/target/work/new'\n`);
-    await assert.rejects(target.stat("/work/new"), { code: "ENOENT" });
-    assert.deepEqual(flags, ["wx"]);
+    assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
+    assert.equal(result.stderr, "");
+    assert.equal(new TextDecoder().decode(await target.readFile("/work/new")), "payload");
+    assert.deepEqual(flags, ["wx", "wx"]);
     assert.equal(streamWrites, 0);
-    assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
-    assert.deepEqual((await target.readdir("/work")).map(entry => entry.name), ["proof"]);
+    if (command === "mv") await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
+    else assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
+    assert.deepEqual((await target.readdir("/work")).map(entry => entry.name), ["new", "proof"]);
   }
 });
 

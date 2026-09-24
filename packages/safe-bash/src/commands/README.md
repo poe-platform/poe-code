@@ -25,6 +25,15 @@ the returned definitions in a `CommandRegistry`. `standardCommands` checks
 all collisions before registering anything; replacement must be explicit.
 No root export or package subpath export is added by this family.
 
+`cp` and cross-device `mv` retain the inspected source while reading it. A
+destination without streaming writes can accept a missing or explicitly removed
+file when it declares exclusive creation. That path collects at most the retained
+source's inspected size, honors the host input budget, and admits collection
+memory before allocation (three times that size plus one 64 KiB read buffer).
+It publishes with an exclusive `writeFile`; growth, shrinkage, cancellation and
+a destination created during the copy reject without overwriting that entry.
+Ordinary streaming copies do not use this buffered path.
+
 `env COMMAND`, `xargs`, and `find -exec` dispatch literal command names and argv.
 `env COMMAND` requests `replaceEnv: true` with its computed exported environment;
 runtime support must honor this without resurrecting removed exports or PWD.

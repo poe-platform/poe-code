@@ -21,7 +21,8 @@ export const filesystemCommandRequirements = {
     { id: "timestamps", description: "Preserve access and modification times", capabilities: ["timestamps"], mutates: true },
     { id: "hardlink", description: "Preserve links between copied entries", capabilities: ["hardlinks"], mutates: true },
     { id: "file", description: "Copy file contents", capabilities: ["stat", "realpath", "streamingWrite"], mutates: true },
-    { id: "recursive", description: "Copy directory trees (-r/-R)", capabilities: ["stat", "realpath", "readdir", "explicitDirectories", "mkdir", "streamingWrite"], mutates: true },
+    { id: "file-create", description: "Create a file exclusively from bounded retained contents", capabilities: ["stat", "realpath", "exclusiveCreate"], mutates: true },
+    { id: "recursive", description: "Copy directory trees (-r/-R)", capabilities: ["stat", "realpath", "readdir", "explicitDirectories", "mkdir"], mutates: true },
     { id: "symlink", description: "Copy symbolic links without dereferencing", capabilities: ["stat", "realpath", "readlink", "symlinks"], mutates: true },
     { id: "replace", description: "Remove a destination before replacing it", capabilities: ["remove"], mutates: true },
     { id: "exclusive", description: "Exclusively copy after forced removal", capabilities: ["exclusiveCreate"], mutates: true },
@@ -33,6 +34,7 @@ export const filesystemCommandRequirements = {
     { id: "cross-directory-source", description: "Traverse and remove cross-device source directories", capabilities: ["stat", "readdir", "atomicEntryRemoval"], mutates: true },
     { id: "cross-link-source", description: "Inspect and remove cross-device source links", capabilities: ["stat", "readlink", "atomicEntryRemoval"], mutates: true },
     { id: "cross-file", description: "Publish file contents through the existing cross-device copy route", capabilities: ["stat", "streamingWrite"], mutates: true },
+    { id: "cross-buffer", description: "Create a file exclusively from bounded retained contents", capabilities: ["stat", "exclusiveCreate"], mutates: true },
     { id: "cross-exclusive", description: "Publish a missing cross-device destination exclusively", capabilities: ["exclusiveCreate"], mutates: true },
     { id: "cross-directory", description: "Create missing cross-device destination directories", capabilities: ["mkdir"], mutates: true },
     { id: "cross-link", description: "Publish cross-device destination links", capabilities: ["symlinks"], mutates: true },
@@ -68,6 +70,7 @@ export const filesystemCommandRequirements = {
 
 export async function admitFilesystemModes(
   context: CommandContext, command: keyof typeof filesystemCommandRequirements, modes: readonly string[], paths: readonly string[], allowNonDirectory = false,
+  creation?: "exclusive",
 ): Promise<void> {
   const requirements = filesystemCommandRequirements[command];
   for (const path of paths) {
@@ -75,7 +78,9 @@ export async function admitFilesystemModes(
     while (true) {
       try {
         assertCommandRequirements(context, requirements, modes, context.fs.capabilities.readOnly === true ? { readOnly: true } : {});
-        const capabilities = await context.fs.capabilitiesFor?.(candidate, { signal: context.signal }) ?? context.fs.capabilities;
+        const capabilities = await context.fs.capabilitiesFor?.(candidate, {
+          signal: context.signal, ...(creation && candidate === path ? { creation } : {}),
+        }) ?? context.fs.capabilities;
         assertCommandRequirements(context, requirements, modes, capabilities);
         break;
       } catch (error) {

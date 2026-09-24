@@ -5,7 +5,7 @@ import {
 import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { escapeText, quoteShellOperand } from "../escaping.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
-import { copyCheckedSource, admitCopySource } from "./copy-source.js";
+import { copyCheckedSource, admitCopySource, admitCopyDestination } from "./copy-source.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
 import { createDirectoryReader, type DirectoryReader } from "./directory-admission.js";
@@ -148,7 +148,14 @@ async function destinations(context: CommandContext, operands: readonly string[]
   requireOperands(operands, targetDirectory === undefined ? 2 : 1, noTargetDirectory ? 2 : Infinity);
   const targetOperand = targetDirectory ?? operands.at(-1)!;
   const target = pathOf(context, targetOperand);
-  const stat = await maybeStat(context, target);
+  let stat: FileStat | undefined;
+  try { stat = await maybeStat(context, target); }
+  catch (error) {
+    context.signal.throwIfAborted();
+    if (codeOf(error) !== "ELOOP" && codeOf(error) !== "ENOTDIR") throw error;
+    stat = await context.fs.lstat(target, { signal: context.signal });
+    if (stat.type !== "symlink") throw error;
+  }
   if (targetDirectory !== undefined && stat?.type !== "directory") throw new FsError(stat ? "ENOTDIR" : "ENOENT", { path: target });
   const directory = !noTargetDirectory && stat?.type === "directory";
   if (operands.length > 2 && !directory) throw new FsError("ENOTDIR", { path: target });
@@ -332,8 +339,11 @@ async function copy(
     }
   } else {
     await admitCopySource(context, physicalSource);
+    const exclusive = removeDestination || backup !== undefined;
+    const publication = await admitCopyDestination(context, target, exclusive || !targetStat);
     const replace = removeDestination || flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
-    await admitFilesystemModes(context, "cp", ["file", ...replace ? ["replace", "exclusive"] : []], [target]);
+    await admitFilesystemModes(context, "cp", [publication === "buffer" ? "file-create" : "file", ...replace ? ["replace", "exclusive"] : exclusive ? ["exclusive"] : []], [target], false,
+      exclusive || publication === "buffer" ? "exclusive" : undefined);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
     if (removeDestination && targetStat) {
       const identity = targetStat.type === "symlink" ? compareCopyIdentity(sourceStat, targetStat)
@@ -351,7 +361,7 @@ async function copy(
     }
     try {
       if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
-      await copyCheckedSource(context, physicalSource, target, sourceStat, removeDestination);
+      await copyCheckedSource(context, physicalSource, target, sourceStat, exclusive || publication === "buffer");
     }
     catch (error) {
       context.signal.throwIfAborted();

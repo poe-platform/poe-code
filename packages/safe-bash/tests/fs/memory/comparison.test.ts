@@ -169,7 +169,7 @@ for (const kind of ["s3", "webdav"] as const) {
           assert.equal(result.exitCode, refused ? 1 : 0, result.stderr);
           if (action === "mv") assert.equal(result.stderr,
             `mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '${sourcePath}' -> '${targetPath}'\n`);
-          else if (refused) assert.equal(result.stderr, `cp: ENOTSUP: copy requires retained reads and streaming writes '${sourcePath}'\n`);
+          else if (refused) assert.equal(result.stderr, `cp: ENOTSUP: copy requires retained reads '${sourcePath}'\n`);
           else assert.equal(result.stderr, "");
         }
         if (refused) metadataOnly(operations().slice(transferStart));

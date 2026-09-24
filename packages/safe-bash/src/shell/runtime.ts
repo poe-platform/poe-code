@@ -1998,12 +1998,12 @@ export class Runtime {
     return evaluateArithmeticReferences(program, references, this.budget.parsing);
   }
 
-  private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO, command = false): Promise<bigint> {
+  private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
     const allocation = this.budget.values.scope();
     try {
       if (program.error) {
         const word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables),
-          state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax, command);
+          state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
         const operandIO = this.parameterOperandIO(word, state, { ...io, [valueScope]: allocation });
         const fields = await this.valueWord(word, state, operandIO, false, false, true);
         const source = shellValueText(concatShellValues(fields, allocation));
@@ -3642,7 +3642,7 @@ export class Runtime {
       if (command.kind === "arithmetic") {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
         try {
-          return Number(await this.expandedArithmeticValue(command.expression, state, io, true) === 0n);
+          return Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
         }
         catch (error) { this.rethrowArithmeticControl(error); throw new PublicDiagnostic(`((: ${message(error, this.budget.onInternalError)}`); }
       }
@@ -3717,7 +3717,7 @@ export class Runtime {
         } else if (command.kind === "arithmetic-for") {
           const evaluate = async (program: ArithmeticProgram | undefined): Promise<bigint | undefined> => {
             if (!program) return 1n;
-            try { return await this.expandedArithmeticValue(program, state, io, true); }
+            try { return await this.expandedArithmeticValue(program, state, io); }
             catch (error) {
               this.rethrowArithmeticControl(error);
               await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);

@@ -80,7 +80,12 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       continue;
     }
     const value = /^(?:\d+#[\da-zA-Z@_]+|0[xX][\da-fA-F]+|\d+|[a-zA-Z_][a-zA-Z_0-9]*|<<=|>>=|\*\*|\+\+|--|&&|\|\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\-])/u.exec(source.slice(position))?.[0];
-    if (!value) throw new ShellSyntaxError("Unsupported arithmetic token", offset + position);
+    if (!value) {
+      const previous = tokens.at(-1)?.value;
+      const quoted = source[position] === "'" || source[position] === "\\";
+      const operand = previous === undefined || previous === "(" || previous === ":" || previous === "!" || previous === "~" || precedence[previous] !== undefined;
+      throw new ShellSyntaxError(quoted ? operand ? "Quoted arithmetic operand expected" : "Invalid quoted arithmetic operator" : "Unsupported arithmetic token", offset + position);
+    }
     budget.admit();
     tokens.push({ value, offset: offset + position });
     position += value.length;
@@ -339,7 +344,9 @@ function* arithmeticEvaluation(program: ArithmeticProgram, references: Arithmeti
     if (error instanceof ArithmeticFailure) throw new PublicDiagnostic(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
     if (error instanceof ShellSyntaxError) {
       const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
-      const reason = error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
+      const reason = error.reason === "Quoted arithmetic operand expected" ? "syntax error: operand expected"
+        : error.reason === "Invalid quoted arithmetic operator" ? "syntax error: invalid arithmetic operator"
+        : error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
       throw new PublicDiagnostic(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
     }
     throw error;

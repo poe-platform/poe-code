@@ -84,7 +84,7 @@ for (const [name, source] of [
     const result = await shell.exec(source);
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.ok(result.stderr.includes("arithmetic syntax error"), result.stderr);
+    assert.ok(result.stderr.includes("syntax error"), result.stderr);
   } finally { await shell.dispose(); }
 });
 

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
+import { nativeOptions, runNative } from "./extensions/trap/oracle.js";
 
 for (const source of [
   'a=(10 20); declare -i z; z=a[1]+5; echo "z=$z"',
@@ -18,17 +18,18 @@ for (const source of [
   "for (( i='0'; i<'2'; i++ )); do echo \"i=$i\"; done",
   String.raw`for (( i=\0; i<\2; i++ )); do echo "i=$i"; done`,
   "n=5; (( 'n' == 5 )); echo $?",
+  "(( 1 '2' )); echo $?",
+  String.raw`(( 1 \2 )); echo $?`,
+  String.raw`(( !\2 )); echo $?`,
   'n=5; (( "$n" == 5 )); echo $?',
   '(( $(echo 5) == 5 )); echo $?',
-]) test(`integer array and arithmetic quotes: ${source}`, async t => {
-  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", timeout: 2000 });
-  assert.ifError(native.error);
-  assert.equal(native.signal, null);
+]) test(`integer array and arithmetic quotes: ${source}`, nativeOptions(), async t => {
+  const native = runNative(source);
   const { shell, commands } = setup();
   for (const command of basicCommands()) commands.register(command);
   t.after(() => shell.dispose());
   const result = await shell.exec(source);
-  assert.equal(result.stdout, native.stdout);
-  assert.equal(result.stderr, native.stderr);
+  assert.equal(result.stdout, native.stdout.toString());
+  assert.equal(result.stderr, native.stderr.toString());
   assert.equal(result.exitCode, native.status);
 });

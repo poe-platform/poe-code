@@ -111,3 +111,44 @@ test("built data accounting releases first-call roots and preserves native obser
   const result = spawnSync(process.execPath, ["--expose-gc", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 10000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
+
+test("built scope accounting records retain fast fields without inherited metadata", () => {
+  const url = JSON.stringify(new URL("../dist/interp/scope-data-roots.js", import.meta.url).href);
+  const source = `
+    import assert from "node:assert/strict";
+    import { scopeDataRoots } from ${url};
+    const child = { text: "old" };
+    const cases = [
+      { value: child },
+      { values: [child] },
+      { arguments: { read: () => undefined, capture: () => undefined } },
+      { deferred: { chargeIdentity: {}, read: () => undefined, collect: () => {} } }
+    ];
+    const setPrototypeOf = Object.setPrototypeOf;
+    const keys = ["value", "values", "arguments", "deferred"];
+    try {
+      // Native hooks installed after SDK initialization must never receive a
+      // private record, even briefly during construction.
+      Object.setPrototypeOf = () => { throw new Error("Private record escaped"); };
+      for (const key of keys)
+        Object.defineProperty(Object.prototype, key, { __proto__: null, configurable: true, get() { throw new Error("Inherited metadata read"); } });
+      for (const data of cases) {
+        const root = {};
+        scopeDataRoots.set(root, data);
+        const record = scopeDataRoots.get(root);
+        assert.equal(Object.getPrototypeOf(record), null);
+        assert.equal(Object.isFrozen(record), true);
+        assert.deepEqual(Reflect.ownKeys(record), Reflect.ownKeys(data));
+        assert.ok(%HasFastProperties(record), "Scope accounting record uses dictionary fields");
+      }
+    } finally {
+      Object.setPrototypeOf = setPrototypeOf;
+      for (const key of keys) Reflect.deleteProperty(Object.prototype, key);
+    }
+    assert.equal(Object.isFrozen(child), false);
+    child.text = "changed";
+    assert.equal(child.text, "changed");
+  `;
+  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  assert.equal(result.status, 0, result.stderr || String(result.error));
+});

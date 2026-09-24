@@ -55,13 +55,15 @@ export const scopeDataRoots = Object.freeze({
   set(root: object, data: ScopeDataRoot): void {
     // Records are immutable and have no inherited discriminant fields. The
     // caller supplies a private dense vector, never a guest descendant object.
+    // Clear the prototype after creating own fields: null-prototype literals
+    // use dictionary storage in V8, slowing every accounting discriminant read.
     const snapshot = hasOwn(data, "value")
-      ? freeze({ __proto__: null, value: (data as { value: InterpreterValue }).value })
+      ? freeze(setPrototypeOf({ value: (data as { value: InterpreterValue }).value }, null))
       : hasOwn(data, "arguments")
-        ? freeze({ __proto__: null, arguments: freeze((data as Extract<ScopeDataRoot, {arguments: unknown}>).arguments) })
+        ? freeze(setPrototypeOf({ arguments: freeze((data as Extract<ScopeDataRoot, {arguments: unknown}>).arguments) }, null))
       : hasOwn(data, "deferred")
-        ? freeze({ __proto__: null, deferred: freeze((data as Extract<ScopeDataRoot, {deferred: unknown}>).deferred) })
-      : freeze({ __proto__: null, values: freeze((data as { values: readonly InterpreterValue[] }).values) });
+        ? freeze(setPrototypeOf({ deferred: freeze((data as Extract<ScopeDataRoot, {deferred: unknown}>).deferred) }, null))
+      : freeze(setPrototypeOf({ values: freeze((data as { values: readonly InterpreterValue[] }).values) }, null));
     nativeSet(root, snapshot);
   }
 });

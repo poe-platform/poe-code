@@ -69,7 +69,8 @@ test("foundation: exact thirteen controls refuse conversion before RHS effects",
       assert.equal(result.stderr, "shell: line 1: indexed array: control binding cannot be indexed\n", name);
     }
   } finally { await instance.dispose(); }
-  await output('DIRSTACK=(ordinary); printf "%s" "$DIRSTACK"', "ordinary");
+  // Native Bash keeps the current working directory as DIRSTACK's first entry.
+  await output('DIRSTACK=(ordinary); printf "%s" "$DIRSTACK"', "/");
 });
 
 test("foundation: read, getopts and for update indexed zero only", { timeout: 5000 }, async () => {

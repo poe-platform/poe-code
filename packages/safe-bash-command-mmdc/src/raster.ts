@@ -902,24 +902,60 @@ function drawNode4x4(
     );
   }
 
-  drawRoundedShape(
-    rgba,
-    frameW,
-    frameH,
-    node.x,
-    node.y,
-    node.width,
-    node.height,
-    node.rx,
-    isDiamond,
-    fill,
-    node.headerFill ? parseCssColor(node.headerFill) : undefined,
-    node.headerHeight,
-    stroke,
-    node.strokeWidth,
-    false,
-    scale
-  );
+  if (node.shape === "hexagon") {
+    const inset = 13 * scale;
+    const x = node.x * scale;
+    const y = node.y * scale;
+    const w = node.width * scale;
+    const h = node.height * scale;
+    const cy = y + h / 2;
+    const hexPts: Point[] = [
+      { x: x + inset, y },
+      { x: x + w - inset, y },
+      { x: x + w, y: cy },
+      { x: x + w - inset, y: y + h },
+      { x: x + inset, y: y + h },
+      { x, y: cy }
+    ];
+    drawPolygon4x4(rgba, frameW, frameH, hexPts, fill, stroke, node.strokeWidth * scale);
+  } else {
+    drawRoundedShape(
+      rgba,
+      frameW,
+      frameH,
+      node.x,
+      node.y,
+      node.width,
+      node.height,
+      node.rx,
+      isDiamond,
+      fill,
+      node.headerFill ? parseCssColor(node.headerFill) : undefined,
+      node.headerHeight,
+      stroke,
+      node.strokeWidth,
+      false,
+      scale
+    );
+  }
+
+  if (node.shape === "cylinder") {
+    // Draw unmistakable elliptical top disk cap curves
+    const arcPts1: Point[] = [];
+    const arcPts2: Point[] = [];
+    const steps = 20;
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const angle = Math.PI * t;
+      const lx = node.x + 2 + (node.width - 4) * t;
+      const ly1 = node.y + 8 + Math.sin(angle) * 6.5;
+      const ly2 = node.y + 8 - Math.sin(angle) * 5.5;
+      arcPts1.push({ x: lx * scale, y: ly1 * scale });
+      arcPts2.push({ x: lx * scale, y: ly2 * scale });
+    }
+    drawPolyline4x4(rgba, frameW, frameH, arcPts1, stroke, 1.45 * scale, false, scale);
+    drawPolyline4x4(rgba, frameW, frameH, arcPts2, stroke, 1.2 * scale, false, scale);
+  }
 
   for (const div of node.dividers) {
     drawPolyline4x4(
@@ -931,7 +967,7 @@ function drawNode4x4(
         { x: div.x2 * scale, y: div.y2 * scale }
       ],
       parseCssColor(div.stroke),
-      1 * scale,
+      (node.shape === "subroutine" ? 1.5 : 1) * scale,
       false,
       scale
     );
@@ -1114,6 +1150,31 @@ export function rasterizeScene(
       false,
       effectiveScale
     );
+  }
+
+  // 3b. Re-paint sequenceBlock header strips over lifelines and activations so LOOP/ALT/OPT headers stay crisp
+  for (const g of scene.groups) {
+    if (g.kind === "sequenceBlock" && g.headerFill && g.headerHeight) {
+      drawRoundedShape(
+        rgba,
+        width,
+        height,
+        g.x + 1,
+        g.y + 1,
+        g.width - 2,
+        g.headerHeight,
+        Math.max(0, g.rx - 1),
+        false,
+        parseCssColor(g.headerFill),
+        undefined,
+        undefined,
+        parseCssColor(g.stroke),
+        1,
+        false,
+        effectiveScale
+      );
+      drawTextLine4x4(rgba, width, height, g.label, effectiveScale);
+    }
   }
 
   // 4. Edges & markers

@@ -588,8 +588,14 @@ export function layoutSequenceDocument(
 
     const headerTitle = `${(g.blockKeyword ?? "loop").toUpperCase()}  [${g.label}]`;
     const titleMetric = { width: measureLineWidth(headerTitle, 12, "ui", 600) };
-    const gx = Math.floor(gxMin - 20);
-    const gw = Math.max(snap4(gxMax - gxMin + 40), snap4(titleMetric.width + 32));
+    const gx = Math.floor(gxMin - 24);
+    const firstLifelineX = xCenters.find((cx) => cx >= gx) ?? gx;
+    const labelStartX =
+      gx + 12 <= firstLifelineX + 10 && gx + 12 + titleMetric.width >= firstLifelineX - 8
+        ? firstLifelineX + 14
+        : gx + 12;
+    const neededRight = Math.max(gxMax + 20, labelStartX + titleMetric.width + 16);
+    const gw = snap4(neededRight - gx);
     const gy = Math.floor(gyMin);
     const gh = Math.ceil(gyMax - gyMin);
 
@@ -601,7 +607,7 @@ export function layoutSequenceDocument(
         label: {
           text: divTitle,
           width: dm.width,
-          x: gx + 12,
+          x: labelStartX,
           y: div.y + 15,
           fontSize: 11,
           fontWeight: 600 as const,
@@ -630,7 +636,7 @@ export function layoutSequenceDocument(
       label: {
         text: headerTitle,
         width: titleMetric.width,
-        x: gx + 12,
+        x: labelStartX,
         y: gy + 18,
         fontSize: 12,
         fontWeight: 600,

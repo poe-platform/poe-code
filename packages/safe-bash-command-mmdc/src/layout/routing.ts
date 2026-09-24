@@ -253,8 +253,10 @@ function buildLabelPill(
     fontFamily: "ui",
     fontWeight: 500
   });
-  const padX = 14;
-  const padY = 6;
+  const isShortCard = rawText.length <= 4 && /^[0-9.*nN]+$/.test(rawText);
+  const padX = isShortCard ? 6 : 9;
+  const padY = isShortCard ? 2 : 3.5;
+  const fSize = isShortCard ? 11 : theme.secondaryFontSize;
   const width = Math.ceil(measured.width + padX * 2);
   const height = Math.ceil(measured.height + padY * 2);
   const x = Math.round(center.x - width / 2);
@@ -264,11 +266,11 @@ function buildLabelPill(
     text: line.text,
     width: line.width,
     x: Math.round(x + width / 2),
-    y: Math.round(y + padY + idx * 16 + 11.5),
-    fontSize: theme.secondaryFontSize,
+    y: Math.round(y + padY + idx * 16 + (isShortCard ? 10.5 : 11.5)),
+    fontSize: fSize,
     fontWeight: 500,
-    fontFamily: "ui",
-    color: theme.text,
+    fontFamily: isShortCard ? "mono" : "ui",
+    color: isShortCard ? theme.mutedText : theme.text,
     align: "center"
   }));
 
@@ -277,7 +279,7 @@ function buildLabelPill(
     y,
     width,
     height,
-    rx: 6,
+    rx: isShortCard ? 4 : 5,
     fill: theme.edgeLabelBackground,
     stroke: theme.edgeLabelBorder,
     lines
@@ -718,6 +720,7 @@ export function routeGraphEdges(
   }
 
   const placedPills: Rect[] = [];
+  const sideLaneCounts = new Map<PortFace, number>();
   const routedDrafts: {
     readonly edge: DocumentEdge;
     readonly built: ReturnType<typeof buildRoundedOrthogonalPath>;
@@ -761,7 +764,9 @@ export function routeGraphEdges(
         ];
       }
     } else if (meta.isBackEdge || meta.isBypass || meta.srcFace === meta.dstFace) {
-      const laneNum = Math.floor(meta.bypassIndex / 2) + 1;
+      const prevLane = sideLaneCounts.get(meta.srcFace) ?? 0;
+      const laneNum = prevLane + 1;
+      sideLaneCounts.set(meta.srcFace, laneNum);
       const spanMinY = Math.min(src.y, dst.y) - 12;
       const spanMaxY = Math.max(src.y + src.height, dst.y + dst.height) + 12;
       const spanMinX = Math.min(src.x, dst.x) - 12;
@@ -773,9 +778,12 @@ export function routeGraphEdges(
           dstAttach.stubPoint.y,
           ...nodes
             .filter((n) => n.x + n.width >= spanMinX && n.x <= spanMaxX)
-            .map((n) => n.y)
+            .map((n) => n.y),
+          ...groups
+            .filter((g) => g.x + g.width >= spanMinX && g.x <= spanMaxX)
+            .map((g) => g.y)
         );
-        const corridorY = Math.min(localTop, meta.isBackEdge ? minTop : localTop) - 32 * laneNum;
+        const corridorY = Math.min(localTop, meta.isBackEdge ? minTop : localTop) - 26 - 42 * (laneNum - 1);
         waypoints = [
           srcAttach.port,
           { x: srcAttach.port.x, y: corridorY },
@@ -788,9 +796,12 @@ export function routeGraphEdges(
           dstAttach.stubPoint.y,
           ...nodes
             .filter((n) => n.x + n.width >= spanMinX && n.x <= spanMaxX)
-            .map((n) => n.y + n.height)
+            .map((n) => n.y + n.height),
+          ...groups
+            .filter((g) => g.x + g.width >= spanMinX && g.x <= spanMaxX)
+            .map((g) => g.y + g.height)
         );
-        const corridorY = Math.max(localBottom, meta.isBackEdge ? maxBottom : localBottom) + 32 * laneNum;
+        const corridorY = Math.max(localBottom, meta.isBackEdge ? maxBottom : localBottom) + 26 + 42 * (laneNum - 1);
         waypoints = [
           srcAttach.port,
           { x: srcAttach.port.x, y: corridorY },
@@ -803,9 +814,12 @@ export function routeGraphEdges(
           dstAttach.stubPoint.x,
           ...nodes
             .filter((n) => n.y + n.height >= spanMinY && n.y <= spanMaxY)
-            .map((n) => n.x + n.width)
+            .map((n) => n.x + n.width),
+          ...groups
+            .filter((g) => g.y + g.height >= spanMinY && g.y <= spanMaxY)
+            .map((g) => g.x + g.width)
         );
-        const corridorX = Math.max(localRight, meta.isBackEdge ? maxRight : localRight) + 36 * laneNum;
+        const corridorX = Math.max(localRight, meta.isBackEdge ? maxRight : localRight) + 28 + 48 * (laneNum - 1);
         waypoints = [
           srcAttach.port,
           { x: corridorX, y: srcAttach.port.y },
@@ -818,9 +832,12 @@ export function routeGraphEdges(
           dstAttach.stubPoint.x,
           ...nodes
             .filter((n) => n.y + n.height >= spanMinY && n.y <= spanMaxY)
-            .map((n) => n.x)
+            .map((n) => n.x),
+          ...groups
+            .filter((g) => g.y + g.height >= spanMinY && g.y <= spanMaxY)
+            .map((g) => g.x)
         );
-        const corridorX = Math.min(localLeft, meta.isBackEdge ? minLeft : localLeft) - 36 * laneNum;
+        const corridorX = Math.min(localLeft, meta.isBackEdge ? minLeft : localLeft) - 28 - 48 * (laneNum - 1);
         waypoints = [
           srcAttach.port,
           { x: corridorX, y: srcAttach.port.y },

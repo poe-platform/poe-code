@@ -148,7 +148,7 @@ function renderNode(
     const cx = node.x + node.width / 2;
     shapeSvg =
       `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="10" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"${filterAttr}/>` +
-      `<path d="M ${node.x + 2} ${node.y + 10} Q ${cx} ${node.y + 18} ${node.x + node.width - 2} ${node.y + 10}" fill="none" stroke="${escapeXml(node.stroke)}" stroke-width="1.2" opacity="0.85"/>`;
+      `<ellipse cx="${cx}" cy="${node.y + 8}" rx="${Math.max(8, node.width / 2 - 2)}" ry="5.5" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="1.3"/>`;
   } else if (node.shape === "hexagon") {
     const inset = 12;
     const x = node.x;

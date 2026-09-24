@@ -377,8 +377,8 @@ function buildSceneNode(
     dividers:
       doc.shape === "subroutine"
         ? [
-            { x1: x + 9, y1: y, x2: x + 9, y2: y + height, stroke },
-            { x1: x + width - 9, y1: y, x2: x + width - 9, y2: y + height, stroke }
+            { x1: x + 11, y1: y, x2: x + 11, y2: y + height, stroke: theme.accentBorder },
+            { x1: x + width - 11, y1: y, x2: x + width - 11, y2: y + height, stroke: theme.accentBorder }
           ]
         : [],
     badges: []
@@ -822,6 +822,9 @@ export function layoutGraphDocument(
         minGaps.push(prevHalf + currHalf + baseNodeGap + crossings * 32);
       }
 
+      const meanBefore =
+        desiredCenters.reduce((acc, v) => acc + v, 0) / desiredCenters.length;
+
       // Forward constraint pass
       for (let i = 1; i < layer.length; i++) {
         const minAllowed = desiredCenters[i - 1]! + minGaps[i - 1]!;
@@ -829,12 +832,12 @@ export function layoutGraphDocument(
           desiredCenters[i] = minAllowed;
         }
       }
-      // Backward constraint pass
-      for (let i = layer.length - 2; i >= 0; i--) {
-        const maxAllowed = desiredCenters[i + 1]! - minGaps[i]!;
-        if (desiredCenters[i]! > maxAllowed) {
-          desiredCenters[i] = maxAllowed;
-        }
+      // Re-center layer around meanBefore so sibling expansion is symmetric (zero rightward drift)
+      const meanAfter =
+        desiredCenters.reduce((acc, v) => acc + v, 0) / desiredCenters.length;
+      const centerShift = Math.round(meanBefore - meanAfter);
+      for (let i = 0; i < desiredCenters.length; i++) {
+        desiredCenters[i] = desiredCenters[i]! + centerShift;
       }
 
       for (let i = 0; i < layer.length; i++) {
@@ -843,12 +846,18 @@ export function layoutGraphDocument(
     }
   }
 
-  // Spine alignment pass: keep all single-node ranks on a shared spine axis, and snap any multi-node rank child that continues the spine onto the spine axis
+  // Spine alignment pass: keep consecutive single-node ranks on a shared spine axis, while letting single-node ranks connected to a specific branch node align directly under/over that branch node
   const spineAxis = Math.round(maxTransverseBreadth / 2) + 80;
   for (let r = 0; r <= maxRank; r++) {
     const layer = rankLayers[r]!;
     if (layer.length === 1) {
-      setTransverseCenter(layer[0]!.doc.id, layer[0]!, spineAxis);
+      const onlyNode = layer[0]!;
+      const currentCenter = getTransverseCenter(onlyNode.doc.id, onlyNode);
+      const prevIsSingle = r > 0 && rankLayers[r - 1]!.length === 1;
+      const nextIsSingle = r < maxRank && rankLayers[r + 1]!.length === 1;
+      if (prevIsSingle || nextIsSingle || Math.abs(currentCenter - spineAxis) <= 48) {
+        setTransverseCenter(onlyNode.doc.id, onlyNode, spineAxis);
+      }
     } else if (layer.length > 1) {
       // Check if one node in this layer connects both to a single-node previous rank and a single-node next rank (spine continuation)
       const prevSingleId = r > 0 && rankLayers[r - 1]!.length === 1 ? rankLayers[r - 1]![0]!.doc.id : undefined;

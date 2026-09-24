@@ -25,6 +25,7 @@ The jq interpreter remains bounded; Python yq's XML output, in-place editing,
 force-list and streaming-depth options are unsupported and fail explicitly.
 
 `xmllint --xpath` implements a bounded XPath subset.
+`xmllint FILE` (or `xmllint -`) serializes the parsed document without indentation.
 `xmllint --noout` checks well-formedness without emitting the document.
 `--format` emits an XML declaration and indents element-only content with two
 spaces, preserving mixed content and `xml:space` text. `--c14n` emits inclusive
@@ -70,13 +71,14 @@ configure this family.
 
 The expressions below apply to `xmllint --xpath`. Use jq filters with `xq`.
 
-- Absolute child paths (`/catalog/book`) and descendant paths (`//book`).
+- Relative child paths, self (`.`) and parent (`..`) steps, unions (`|`), absolute child paths (`/catalog/book`) and descendant paths (`//book`).
 - ASCII unprefixed names and `*`. Names match the empty namespace; wildcards
   also match namespaced elements, including Unicode names.
 - Terminal attributes (`/@id`, `/@*`) and text (`/text()`). Namespace declarations
   are excluded from `@*`.
-- Positive positional predicates (`[1]`) and attribute equality
-  (`[@id='first']`). Predicates apply in written order, with positions per parent.
+- Positive positional predicates (`[1]`, `[position()=2]`, `[last()]`), attribute
+  existence/equality (`[@id]`, `[@id='first']`), child equality (`[name='first']`),
+  and text equality (`[text()='first']`, `[.='first']`). Predicates apply in written order, with positions per parent.
 - Outer `string(PATH)`, `count(PATH)`, and `boolean(PATH)`.
 
 Results are deduplicated in document order. Element results serialize XML;
@@ -84,7 +86,7 @@ node results each end with a newline. Scalars also end with a newline.
 `string()` uses the first selected node, including descendant text for elements.
 
 Unsupported expressions fail before reading input. These include `/` alone,
-namespace prefixes, explicit axes, union, arithmetic, variables, relative paths,
+namespace prefixes, explicit axes, arithmetic, variables,
 and other functions. Multiple xmllint input files and other xmllint flags are
 unsupported, including DTD/schema validation, output files, and other
 canonicalization variants. Validation here means XML well-formedness, not schema

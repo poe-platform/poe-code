@@ -9,34 +9,36 @@ interface ContentNode { kind: Exclude<XmlContent["kind"], "element">; value: Exc
 export type Node = Container | AttributeNode | ContentNode;
 const xmlns = "http://www.w3.org/2000/xmlns/";
 
-async function indexTree(root: XmlElement, budget: XmlBudget): Promise<{ document: Container; order: Node[] }> {
+async function indexTree(root: XmlElement, budget: XmlBudget): Promise<{ document: Container; order: Node[]; parentOf: Map<Node, Container> }> {
   const document: Container = { kind: "document", children: [] };
   const order: Node[] = [document];
+  const parentOf = new Map<Node, Container>();
   const pending: { parent: Container; content: XmlContent }[] = [{ parent: document, content: root }];
   while (pending.length) {
     await budget.tick();
     const { parent, content } = pending.pop()!;
     if (content.kind === "element") {
       const node: ElementNode = { kind: "element", value: content, children: [], attributes: [] };
-      parent.children.push(node); order.push(node);
+      parent.children.push(node); parentOf.set(node, parent); order.push(node);
       for (const attribute of content.attributes) {
         await budget.tick();
         if (attribute.namespace === xmlns) continue;
         const selected: AttributeNode = { kind: "attribute", value: attribute };
-        node.attributes.push(selected); order.push(selected);
+        node.attributes.push(selected); parentOf.set(selected, node); order.push(selected);
       }
       for (let index = content.content.length - 1; index >= 0; index--) {
         await budget.tick(); pending.push({ parent: node, content: content.content[index]! });
       }
     } else {
       const node: ContentNode = { kind: content.kind, value: content };
-      parent.children.push(node); order.push(node);
+      parent.children.push(node); parentOf.set(node, parent); order.push(node);
     }
   }
-  return { document, order };
+  return { document, order, parentOf };
 }
 
 function matches(node: Node, step: QueryStep): boolean {
+  if (step.kind === "self" || step.kind === "parent") return true;
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
   if (node.kind === "element" || node.kind === "attribute") {
@@ -46,55 +48,82 @@ function matches(node: Node, step: QueryStep): boolean {
 }
 
 export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget): Promise<Node[]> {
-  const { document, order } = await indexTree(root, budget);
-  let contexts: Node[] = [document];
-  for (const step of query.steps) {
-    const parents = new Set<Node>();
-    const pending = [...contexts];
-    while (pending.length) {
-      await budget.tick();
-      const node = pending.pop()!;
-      if (parents.has(node)) continue;
-      parents.add(node);
-      if (step.descendant && (node.kind === "document" || node.kind === "element")) {
-        for (const child of node.children) { await budget.tick(); pending.push(child); }
-      }
-    }
-    const selected = new Set<Node>();
-    for (const parent of parents) {
-      await budget.tick();
-      const candidates = step.kind === "attribute"
-        ? parent.kind === "element" ? parent.attributes : []
-        : parent.kind === "element" || parent.kind === "document" ? parent.children : [];
-      let matched: Node[] = [];
-      for (const candidate of candidates) {
+  const { document, order, parentOf } = await indexTree(root, budget);
+  const union = new Set<Node>();
+  for (const path of query.paths) {
+    let contexts: Node[] = [document];
+    for (const step of path) {
+      const parents = new Set<Node>();
+      const pending = [...contexts];
+      while (pending.length) {
         await budget.tick();
-        if (matches(candidate, step)) matched.push(candidate);
-      }
-      for (const predicate of step.predicates) {
-        await budget.tick();
-        if (predicate.kind === "position") matched = matched[predicate.value - 1] ? [matched[predicate.value - 1]!] : [];
-        else {
-          const filtered: Node[] = [];
-          for (const candidate of matched) {
-            await budget.tick();
-            if (candidate.kind !== "element") continue;
-            for (const attribute of candidate.attributes) {
-              await budget.tick(attribute.value.value.length + 1);
-              if (attribute.value.namespace === "" && attribute.value.localName === predicate.name && attribute.value.value === predicate.value) {
-                filtered.push(candidate); break;
-              }
-            }
-          }
-          matched = filtered;
+        const node = pending.pop()!;
+        if (parents.has(node)) continue;
+        parents.add(node);
+        if (step.descendant && (node.kind === "document" || node.kind === "element")) {
+          for (const child of node.children) { await budget.tick(); pending.push(child); }
         }
       }
-      for (const node of matched) { await budget.tick(); if (!selected.has(node)) { budget.results(selected.size + 1); selected.add(node); } }
+      const selected = new Set<Node>();
+      for (const parent of parents) {
+        await budget.tick();
+        const candidates = step.kind === "self" ? [parent]
+          : step.kind === "parent" ? parentOf.has(parent) ? [parentOf.get(parent)!] : []
+          : step.kind === "attribute"
+          ? parent.kind === "element" ? parent.attributes : []
+          : parent.kind === "element" || parent.kind === "document" ? parent.children : [];
+        let matched: Node[] = [];
+        for (const candidate of candidates) {
+          await budget.tick();
+          if (matches(candidate, step)) matched.push(candidate);
+        }
+        for (const predicate of step.predicates) {
+          await budget.tick();
+          if (predicate.kind === "position") matched = matched[predicate.value - 1] ? [matched[predicate.value - 1]!] : [];
+          else if (predicate.kind === "last") matched = matched.length ? [matched[matched.length - 1]!] : [];
+          else {
+            const filtered: Node[] = [];
+            for (const candidate of matched) {
+              await budget.tick();
+              if (predicate.kind !== "attribute") {
+                const values: Node[] = [];
+                if (predicate.kind === "self") values.push(candidate);
+                else if (candidate.kind === "element" || candidate.kind === "document") {
+                  for (const child of candidate.children) {
+                    await budget.tick();
+                    if (predicate.kind === "text" ? child.kind === "text" || child.kind === "cdata"
+                      : child.kind === "element" && child.value.namespace === "" && child.value.localName === predicate.name) values.push(child);
+                  }
+                }
+                for (const value of values) {
+                  await budget.tick();
+                  let text = "";
+                  for await (const part of stringValue(value, budget)) { await budget.tick(part.length); text += part; }
+                  if (text === predicate.value) { filtered.push(candidate); break; }
+                }
+                continue;
+              }
+              if (candidate.kind !== "element") continue;
+              for (const attribute of candidate.attributes) {
+                await budget.tick(attribute.value.value.length + 1);
+                if (attribute.value.namespace === "" && attribute.value.localName === predicate.name && (predicate.value === undefined || attribute.value.value === predicate.value)) {
+                  filtered.push(candidate); break;
+                }
+              }
+            }
+            matched = filtered;
+          }
+        }
+        for (const node of matched) { await budget.tick(); if (!selected.has(node)) { budget.results(selected.size + 1); selected.add(node); } }
+      }
+      contexts = [];
+      for (const node of order) { await budget.tick(); if (selected.has(node)) contexts.push(node); }
     }
-    contexts = [];
-    for (const node of order) { await budget.tick(); if (selected.has(node)) contexts.push(node); }
+    for (const node of contexts) { await budget.tick(); budget.results(union.size + (union.has(node) ? 0 : 1)); union.add(node); }
   }
-  return contexts;
+  const result: Node[] = [];
+  for (const node of order) { await budget.tick(); if (union.has(node)) result.push(node); }
+  return result;
 }
 
 export async function* stringValue(node: Node | undefined, budget: XmlBudget): AsyncGenerator<string> {

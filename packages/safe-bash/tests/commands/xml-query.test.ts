@@ -273,9 +273,8 @@ for (const [command, input, status] of [
   ["xmllint --xpath '/root'", "<!DOCTYPE root><root/>", 1],
   ["xmllint --xpath '/root'", "<root><broken></root>", 1],
   ["xmllint --xpath '/root'", '<root a="&unknown;"/>', 1],
-  ["xmllint --xpath '/root | /other'", "<root/>", 10],
   ["xmllint --xpath '/'", "<root/>", 10],
-  ["xmllint '/root'", "<root/>", 2],
+  ["xmllint '/root'", "<root/>", 1],
   ["xmllint --xpath '/root' /one /two", "<root/>", 2],
 ] as const) {
   test(`XML refuses unsupported input: ${command}: ${input}`, async () => {

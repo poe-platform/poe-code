@@ -45,7 +45,7 @@ async function argumentsFor(context: CommandContext, budget: XmlBudget): Promise
       else break;
       index++;
     }
-    if (mode === undefined && !noout) throw new XmlQueryError("expected --xpath QUERY, --noout, --format or --c14n [FILE|-]", 2);
+    mode ??= "format";
     if (args[index] === "--") index++;
     const fileIndex = index++;
     const file = args[fileIndex];

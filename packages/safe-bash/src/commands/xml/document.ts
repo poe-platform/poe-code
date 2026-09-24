@@ -144,7 +144,7 @@ export async function* serializeDocument(root: XmlElement, mode: DocumentMode, b
       }
       if (!content.length && !canonical) { yield "/>"; continue; }
       yield ">";
-      const indent = !canonical && !mixed && content.length > 0;
+      const indent = !canonical && format && !mixed && content.length > 0;
       const childNamespaces = canonical ? current.namespaces : frame.namespaces;
       const childFrame = { depth: frame.depth + 1, namespaces: childNamespaces, preserveSpace };
       pending.push({ ...frame, content: `${indent ? "\n" + "  ".repeat(frame.depth) : ""}</${current.name}>` });

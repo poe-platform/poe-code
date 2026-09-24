@@ -598,7 +598,7 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Explicit host-password ODF imports support AES128/192/256-CBC, Blowfish-CFB8 keys of 4\u201356 bytes, SHA1/SHA256 start keys and prefix/full checksums, and both standard PBKDF2 spellings. Both ODF writers export explicit legacy AES128/192/256-CBC and 16-byte-key Blowfish-CFB8 profiles with host cryptographic entropy and bounded work. Latest runtime validation passes 23101 package tests, lint/source/test/consumer types and the selected build. Eight export profiles match exact ciphertext and plaintext/CSV/XML replay across built SDK, actual Shell, browser and dedicated worker; 32 OpenSSL member decryptions are exact and six previous AES archives unchanged. All 36 PBKDF2-URI independent AES/Blowfish fixtures pass SDK/Shell/browser/worker imports and Node XML replay, preserving input/sentinel/secret bytes. Native Gnumeric does not implement this manifest encryption; these are explicit standards-based extensions. Other encryption/KDF/key profiles, wider application/platform qualification and containing publication remain open.",
+      "currentFinding": "Explicit host-password ODF imports support AES128/192/256-CBC, Blowfish-CFB8 keys of 4\u201356 bytes, SHA1/SHA256 start keys and prefix/full checksums, and both standard PBKDF2 spellings. Both ODF writers export explicit legacy AES128/192/256-CBC and 16-byte-key Blowfish-CFB8 profiles with host cryptographic entropy and bounded work. Latest runtime validation passes 23101 package tests, lint/source/test/consumer types and the selected build. Eight export profiles match exact ciphertext and plaintext/CSV/XML replay across built SDK, actual Shell, browser and dedicated worker; 32 OpenSSL member decryptions are exact and six previous AES archives unchanged. All 36 PBKDF2-URI independent AES/Blowfish fixtures pass SDK/Shell/browser/worker imports and Node XML replay, preserving input/sentinel/secret bytes. Native Gnumeric does not implement this manifest encryption; these are explicit standards-based extensions. Other encryption/KDF/key profiles, wider application/platform qualification and containing publication remain open. LibreOffice26.8.0.3 Darwin arm64 independently accepts all six AES exports but refuses original CFB8 output because its Blowfish mode uses CFB64. Reader repair passes130original failures,584ODF tests,lint/types/build,12independent SDK/Shell/browser/worker models and both actual native Blowfish inputs. Six native AES models retain exact values and existing diagnostics. Forty native members decrypt independently; native default Argon2id/AES-GCM encrypted-package remains unsupported. CFB64 export and containing publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
@@ -651,6 +651,11 @@
           "kind": "browser-dedicated-worker-encryption-qualification",
           "path": "docs/ssconvert/odf-encryption-browser-worker-proof.json",
           "outcome": "Unchanged built module passes eight encrypted export profiles and 36 PBKDF2-URI imports per browser/worker surface; 152 public conversions, exact Node output hashes, zero console messages."
+        },
+        {
+          "kind": "libreoffice-native-interop-and-cfb64-import",
+          "path": "docs/ssconvert/odf-libreoffice-interop-proof.json",
+          "outcome": "14initial native opens/30refusals retained;9native exports/reopens;130red\u2192584related green;12portable CFB64 fixtures and8actual native legacy inputs match SDK/Shell,24browser/worker imports exact. Modern package refusal retained."
         }
       ],
       "delivery": {

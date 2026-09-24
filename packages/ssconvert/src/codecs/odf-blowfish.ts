@@ -1,10 +1,11 @@
 import { blowfishWords } from "./odf-blowfish-profile.js";
 
-/** Blowfish-CFB8 for ODF. The pinned MIT primitive is adapted for owned
+/** Blowfish CFB for ODF, including LibreOffice's eight-byte feedback variant.
+ * The pinned MIT primitive is adapted for owned
  * schedule cleanup and cooperative cancellation, without temporary key copies.
  * Work and input sizes must be admitted by the package reader/writer first. */
 export async function transformOdfBlowfish(key: Uint8Array, iv: Uint8Array, input: Uint8Array,
-  signal: AbortSignal, direction: "encrypt" | "decrypt"): Promise<Uint8Array> {
+  signal: AbortSignal, direction: "encrypt" | "decrypt", feedbackBytes: 1 | 8 = 1): Promise<Uint8Array> {
   signal.throwIfAborted();
   if (key.length < 4 || key.length > 56 || iv.length !== 8) throw new TypeError("Invalid ODF Blowfish profile");
   const words = new Uint32Array(1042), output = new Uint8Array(input.length);
@@ -32,10 +33,13 @@ export async function transformOdfBlowfish(key: Uint8Array, iv: Uint8Array, inpu
     }
     const view = new DataView(iv.buffer, iv.byteOffset, iv.byteLength);
     left = view.getUint32(0); right = view.getUint32(4);
+    let streamLeft = 0, streamRight = 0;
     for (let i = 0; i < input.length; i++) {
       signal.throwIfAborted();
-      const [stream] = encrypt(left, right), byte = input[i]!;
-      output[i] = byte ^ (stream >>> 24);
+      if (i % feedbackBytes === 0) [streamLeft, streamRight] = encrypt(left, right);
+      const byte = input[i]!;
+      output[i] = byte ^ (streamLeft >>> 24);
+      streamLeft = ((streamLeft << 8) | (streamRight >>> 24)) >>> 0; streamRight = (streamRight << 8) >>> 0;
       const feedback = direction === "encrypt" ? output[i]! : byte;
       left = ((left << 8) | (right >>> 24)) >>> 0; right = ((right << 8) | feedback) >>> 0;
       if ((i & 4095) === 4095) await new Promise<void>(resolve => setTimeout(resolve, 0));

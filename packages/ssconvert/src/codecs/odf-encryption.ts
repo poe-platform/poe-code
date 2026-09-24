@@ -125,8 +125,9 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     if (!checksumHash) unsupported("checksum algorithm");
     const checksum = binary(attribute(encryption, "checksum"), checksumHash.outputLen), iv = binary(attribute(algorithm, "initialisation-vector"), blowfish ? 8 : 16), salt = binary(attribute(derivation, "salt"));
     if (!salt.length) invalid("empty encryption salt");
-    // Bound all PRF rounds, cipher blocks/setup, inflated bytes and salt copying together.
-    charge(iterations * Math.ceil(keyBytes / 20) * 128 + (blowfish ? (member.size + 521) * 128 : member.size * 4) + size + salt.length * Math.ceil(keyBytes / 20));
+    // The same Blowfish manifest identifier is used for CFB8 and LibreOffice's
+    // CFB64. Admit both feedback attempts and key schedules before asking for a secret.
+    charge(iterations * Math.ceil(keyBytes / 20) * 128 + (blowfish ? (member.size + Math.ceil(member.size / 8) + 1042) * 128 : member.size * 4) + size + salt.length * Math.ceil(keyBytes / 20));
     profiles.push({ path, cipher, keyBytes, iterations, size, startHash, checksumHash, checksum, iv, salt,
       prefixChecksum: checksumType === "SHA1/1K" || checksumType === manifestNamespace + "#sha1-1k" || checksumType === manifestNamespace + "#sha256-1k" });
   }
@@ -175,8 +176,16 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
           padding = compressed[compressed.length - 1]!;
           if (padding < 1 || padding > 16) invalid("encrypted content could not be verified");
         }
-        const payload = compressed.subarray(0, compressed.length - padding), digest = profile.checksumHash(profile.prefixChecksum ? payload.subarray(0, 1024) : payload);
+        let payload = compressed.subarray(0, compressed.length - padding);
+        let digest = profile.checksumHash(profile.prefixChecksum ? payload.subarray(0, 1024) : payload);
         let mismatch = 0; for (let i = 0; i < digest.length; i++) mismatch |= digest[i]! ^ profile.checksum[i]!;
+        if (mismatch && profile.cipher === "blowfish-cfb8") {
+          compressed.fill(0);
+          compressed = await transformOdfBlowfish(key, profile.iv, ciphertext, context.signal, "decrypt", 8);
+          payload = compressed;
+          digest = profile.checksumHash(profile.prefixChecksum ? payload.subarray(0, 1024) : payload);
+          mismatch = 0; for (let i = 0; i < digest.length; i++) mismatch |= digest[i]! ^ profile.checksum[i]!;
+        }
         if (mismatch) invalid("encrypted content could not be verified");
         const codec = createCompressionCodec(), input = new codec.CodecReader((async function* () { yield payload; })(), context.signal), plaintext = new Uint8Array(profile.size);
         let length = 0;

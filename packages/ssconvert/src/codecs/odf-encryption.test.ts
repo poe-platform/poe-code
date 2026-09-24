@@ -4,6 +4,7 @@ import { createEngine } from "../engine.js";
 import { runCommand } from "../cli.js";
 import { createZipCodec } from "@poe-code/office-package";
 import { odfBlowfishVectors } from "./odf-blowfish-fixtures.js";
+import { odfBlowfishCfb64Vectors } from "./odf-blowfish-cfb64-fixtures.js";
 import { odfCipherVectors, expectedText } from "./odf-encryption-fixtures.js";
 import { readOdf } from "./odf.js";
 import type { CapabilityContext } from "../contracts.js";
@@ -37,6 +38,49 @@ it.each(odfCipherVectors)("imports independent OpenSSL vector $name", async (vec
   const payload = Uint8Array.from(vector.ciphertextHex.match(/../g)!, value => parseInt(value, 16));
   const read = vi.fn(async () => vector.password);
   const book = await readOdf(await fixture(vector.manifest, payload), { ...context, password: { read } });
+  expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
+    { kind: "number", value: 42 }, { kind: "string", value: expectedText }
+  ]);
+  expect(read).toHaveBeenCalledTimes(1);
+});
+it.each(odfBlowfishCfb64Vectors)("imports LibreOffice-compatible CFB64 with independent vector $name", async vector => {
+  const original = odfBlowfishVectors.find(row => row.name === vector.name)!;
+  const input = await fixture(original.manifest, Uint8Array.from(Buffer.from(vector.ciphertextHex, "hex")));
+  const before = new Uint8Array(input), secret = new TextEncoder().encode(original.password), secretBefore = new Uint8Array(secret);
+  const read = vi.fn(async () => secret);
+  const book = await readOdf(input, { ...context, password: { read } });
+  expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
+    { kind: "number", value: 42 }, { kind: "string", value: expectedText }
+  ]);
+  expect(read).toHaveBeenCalledTimes(1); expect(input).toEqual(before); expect(secret).toEqual(secretBefore);
+});
+it.each(["wrong password", "corrupt", "work"] as const)("preserves destinations on CFB64 %s refusal", async mode => {
+  const original = odfBlowfishVectors[0]!, vector = odfBlowfishCfb64Vectors[0]!;
+  const payload = Uint8Array.from(Buffer.from(vector.ciphertextHex, "hex"));
+  if (mode === "corrupt") payload[1] = payload[1]! ^ 1;
+  const input = await fixture(original.manifest, payload), before = new Uint8Array(input);
+  const volume = Volume.fromJSON({ "/target.csv": "untouched\n" }), read = vi.fn(async () => mode === "wrong password" ? "wrong" : original.password);
+  const write = vi.fn(async (uri: string, data: Uint8Array) => { volume.writeFileSync(uri, data); });
+  const engine = createEngine({ codecs: [], environment: context.environment,
+    limits: mode === "work" ? { ...context.limits, workbookWork: 1 } : context.limits,
+    password: { read }, filesystem: { async read() { return [input]; }, write } });
+  try {
+    await expect(engine.convert({ input: { kind: "stream", filename: "encrypted.ods", source: [input] },
+      destination: { kind: "resource", uri: "/target.csv" }, exportType: "Gnumeric_stf:stf_csv" }, context))
+      .rejects.toMatchObject({ code: mode === "work" ? "resource-limit" : "io" });
+    expect(read).toHaveBeenCalledTimes(mode === "work" ? 0 : 1); expect(write).not.toHaveBeenCalled();
+    expect(volume.readFileSync("/target.csv", "utf8")).toBe("untouched\n"); expect(input).toEqual(before);
+  } finally { await engine.dispose(); }
+});
+it.each([false, true])("verifies mixed CFB8/CFB64 members with one password (CFB64 content=%s)", async content64 => {
+  const original = odfBlowfishVectors[0]!, vector = odfBlowfishCfb64Vectors[0]!;
+  const declaration = original.manifest.slice(original.manifest.indexOf('<manifest:file-entry manifest:full-path="content.xml"'), original.manifest.indexOf('</manifest:manifest>'))
+    .replace('full-path="content.xml"', 'full-path="Objects/data.bin"');
+  const first = Uint8Array.from(Buffer.from(content64 ? vector.ciphertextHex : original.ciphertextHex, "hex"));
+  const second = Uint8Array.from(Buffer.from(content64 ? original.ciphertextHex : vector.ciphertextHex, "hex"));
+  const read = vi.fn(async () => original.password);
+  const book = await readOdf(await fixture(original.manifest.replace('</manifest:manifest>', declaration + '</manifest:manifest>'),
+    first, [["Objects/data.bin", second]]), { ...context, password: { read } });
   expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
     { kind: "number", value: 42 }, { kind: "string", value: expectedText }
   ]);
@@ -215,10 +259,10 @@ it("acquires one mixed-profile password after admitting every encrypted member",
   expect((await readOdf(await fixture(manifest.replace('</manifest:manifest>', declaration + '</manifest:manifest>'), ciphertext, [["Objects/data.bin", payload]]), { ...context, password: { read } })).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
   expect(read).toHaveBeenCalledTimes(1);
 });
-it("admits aggregate feedback work before acquiring a password", async () => {
+it.each([400000, 550000])("admits both feedback attempts before a password with work budget %s", async workbookWork => {
   const vector = odfBlowfishVectors[0]!, read = vi.fn(async () => vector.password);
   const payload = Uint8Array.from(vector.ciphertextHex.match(/../g)!, value => parseInt(value, 16));
-  await expect(readOdf(await fixture(vector.manifest, payload), { ...context, limits: { ...context.limits, workbookWork: 400000 }, password: { read } })).rejects.toMatchObject({ code: "resource-limit" });
+  await expect(readOdf(await fixture(vector.manifest, payload), { ...context, limits: { ...context.limits, workbookWork }, password: { read } })).rejects.toMatchObject({ code: "resource-limit" });
   expect(read).not.toHaveBeenCalled();
 });
 it("accepts legacy default start generation and derived key size", async () => {

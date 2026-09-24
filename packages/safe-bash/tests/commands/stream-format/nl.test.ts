@@ -28,7 +28,7 @@ export const nlCases: readonly NativeCase[] = [
 
 test("nl bounded matcher consumes the invocation's shared step budget", async () => {
   const instance = shell({ limits: { maxSteps: 1000 } });
-  const result = await instance.exec("nl -bp'a*a*a*a*b'", { stdin: "a".repeat(200) + "\n" });
+  const result = await instance.exec("nl -bp'a*a*a*a*[bc]'", { stdin: "a".repeat(200) + "\n" });
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /step limit/);
   await instance.dispose();
@@ -110,7 +110,7 @@ for (const reason of [false, Object.freeze({ cancelled: "nl match" })]) test(`nl
     return find.apply(this, args);
   });
   try {
-    await assert.rejects(instance.exec("nl -bp'a*a*a*b'", {
+    await assert.rejects(instance.exec("nl -bp'a*a*a*[bc]'", {
       stdin: "aaaaaaaa\n", signal: controller.signal,
       stdout: { async write(bytes) { written += bytes.length; } },
     }), error => error === reason);

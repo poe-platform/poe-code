@@ -47,12 +47,29 @@ test("pwd uses the last logical/physical flag and rejects invalid options", asyn
   await fs.symlink("/target", "/link");
   const shell = new Shell({ fs, cwd: "/link" });
   context.after(() => shell.dispose());
-  for (const [args, path] of [["-LP", "/target"], ["-PL", "/link"], ["-P -L --", "/link"]]) {
+  for (const [args, path] of [
+    ["", "/link"], ["-L", "/link"], ["-P", "/target"],
+    ["-LP", "/target"], ["-PL", "/link"],
+    ["-LL", "/link"], ["-PP", "/target"],
+    ["-L -P", "/target"], ["-P -L --", "/link"],
+    ["--", "/link"], ["-P --", "/target"],
+    ["-- -P", "/link"], ["-P -- -L", "/target"],
+    ["-P extra", "/target"], ["extra -P", "/link"],
+    ["-P extra -L", "/target"], ["- -P", "/link"],
+    ["-P - -L", "/target"], ["-- -Q", "/link"],
+    ["extra -Q", "/link"],
+  ]) {
     const result = await shell.exec(`pwd ${args}`);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, `${path}\n`);
+    assert.equal(result.stderr, "");
   }
-  assert.equal((await shell.exec("pwd -Q")).exitCode, 2);
+  for (const args of ["-Q", "-LPQ", "-Q --", "-P -Q extra"]) {
+    const result = await shell.exec(`pwd ${args}`);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "pwd: invalid option\n");
+  }
 });
 
 for (const args of ["--", "-P --", "-LP", "-PL", "/extra", "-- -Q", "/extra -Q"]) {

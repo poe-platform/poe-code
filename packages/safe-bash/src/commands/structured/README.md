@@ -240,6 +240,7 @@ cross-version parity beyond its recorded tests.
 | --- | --- |
 | `empty`, `select(f)`, `map(f)`, `map_values(f)` | Generator filtering/mapping; `map_values` keeps only the first result per entry and drops empty updates. |
 | `flatten`, `flatten(depth)` | Flatten nested arrays fully or to a nonnegative depth. |
+| `getpath(path)` | Read each array path of object keys, array indexes, or slice objects (`{start, end}`). An empty path returns the input; missing keys/indexes return null. |
 | `@text`, `@json`, `@html`, `@uri`, `@csv`, `@tsv`, `@sh`, `@base64`, `@base64d` | Format values; an attached string formats only its interpolations. |
 | `length`, `keys`, `keys_unsorted`, `type` | Array/object/string/numeric lengths and type information; sorted keys use codepoint ordering. |
 | `nan`, `infinite`, `isnan`, `isinfinite`, `isfinite` | Zero arguments only. `isfinite` means numeric and not infinite: NaN is true, both infinities and all nonnumbers are false. |

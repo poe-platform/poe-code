@@ -362,6 +362,27 @@ export class Interpreter {
       }
       return;
     }
+    if (name === "getpath") {
+      for await (const path of this.run(args[0]!, input)) {
+        if (!Array.isArray(path)) throw new JqError("Path must be specified as an array");
+        let value = input;
+        for (const key of path) {
+          await budget.tick();
+          if (isObject(key) && (value === null || Array.isArray(value) || typeof value === "string")) {
+            if (value === null) continue;
+            const start = Object.hasOwn(key, "start") ? key.start! : undefined;
+            const end = Object.hasOwn(key, "end") ? key.end! : undefined;
+            if ((start !== null && (!isNumber(start) || !Number.isFinite(numberValue(start))))
+              || (end !== null && (!isNumber(end) || !Number.isFinite(numberValue(end))))) {
+              throw new JqError("Array/string slice indices must be integers");
+            }
+            value = await sliceValue(value, start, end, budget);
+          } else value = indexValue(value, key);
+        }
+        yield value;
+      }
+      return;
+    }
     if (name === "flatten") {
       for await (const depth of args.length ? this.run(args[0]!, input) : [Infinity]) {
         if (!isNumber(depth) || numberValue(depth) < 0 || Number.isNaN(numberValue(depth))) throw new JqError("flatten depth must be nonnegative");

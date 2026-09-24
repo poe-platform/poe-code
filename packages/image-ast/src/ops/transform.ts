@@ -1082,6 +1082,234 @@ export function extractChannelImage(img: RgbaImage, channel: 0 | 1 | 2 | 3): Rgb
   return { ...img, data: out, space: "b-w", channels: 1, hasAlpha: false };
 }
 
+function clamp(n: number): number {
+  return Math.max(0, Math.min(255, Math.round(n)));
+}
+
+export function recombImage(
+  img: RgbaImage,
+  matrix: readonly (readonly number[])[]
+): RgbaImage {
+  const out = new Uint8Array(img.data.length);
+  const is4x4 = matrix.length >= 4 && (matrix[0]?.length ?? 0) >= 4;
+  for (let i = 0; i < img.width * img.height; i++) {
+    const idx = i * 4;
+    const r = img.data[idx]!;
+    const g = img.data[idx + 1]!;
+    const b = img.data[idx + 2]!;
+    const a = img.data[idx + 3]!;
+    const rRow = matrix[0] ?? [1, 0, 0, 0];
+    const gRow = matrix[1] ?? [0, 1, 0, 0];
+    const bRow = matrix[2] ?? [0, 0, 1, 0];
+    out[idx] = clamp(
+      r * (rRow[0] ?? 0) + g * (rRow[1] ?? 0) + b * (rRow[2] ?? 0) + (is4x4 ? a * (rRow[3] ?? 0) : 0)
+    );
+    out[idx + 1] = clamp(
+      r * (gRow[0] ?? 0) + g * (gRow[1] ?? 0) + b * (gRow[2] ?? 0) + (is4x4 ? a * (gRow[3] ?? 0) : 0)
+    );
+    out[idx + 2] = clamp(
+      r * (bRow[0] ?? 0) + g * (bRow[1] ?? 0) + b * (bRow[2] ?? 0) + (is4x4 ? a * (bRow[3] ?? 0) : 0)
+    );
+    if (is4x4 && matrix[3]) {
+      const aRow = matrix[3]!;
+      out[idx + 3] = clamp(
+        r * (aRow[0] ?? 0) + g * (aRow[1] ?? 0) + b * (aRow[2] ?? 0) + a * (aRow[3] ?? 1)
+      );
+    } else {
+      out[idx + 3] = a;
+    }
+  }
+  return { ...img, data: out };
+}
+
+export function toColorspaceImage(img: RgbaImage, space: "srgb" | "b-w" | "cmyk"): RgbaImage {
+  if (space === "b-w") {
+    return grayscaleImage(img);
+  }
+  return {
+    ...img,
+    space,
+    channels: img.hasAlpha ? 4 : 3
+  };
+}
+
+export function bandboolImage(img: RgbaImage, op: "and" | "or" | "eor"): RgbaImage {
+  const out = new Uint8Array(img.data.length);
+  const chCount = img.channels;
+  for (let i = 0; i < img.width * img.height; i++) {
+    const idx = i * 4;
+    let acc = img.data[idx]!;
+    for (let c = 1; c < chCount; c++) {
+      const v = img.data[idx + c]!;
+      if (op === "and") acc &= v;
+      else if (op === "or") acc |= v;
+      else acc ^= v;
+    }
+    out[idx] = acc;
+    out[idx + 1] = acc;
+    out[idx + 2] = acc;
+    out[idx + 3] = 255;
+  }
+  return { ...img, data: out, space: "b-w", channels: 1, hasAlpha: false };
+}
+
+export function joinChannelImage(img: RgbaImage, extraImages: readonly RgbaImage[]): RgbaImage {
+  const out = new Uint8Array(img.data);
+  const firstExtra = extraImages[0];
+  if (!firstExtra) return img;
+  if (img.channels === 1 && extraImages.length >= 2) {
+    const gImg = extraImages[0]!;
+    const bImg = extraImages[1]!;
+    const aImg = extraImages[2];
+    for (let i = 0; i < img.width * img.height; i++) {
+      out[i * 4 + 1] = gImg.data[i * 4] ?? 0;
+      out[i * 4 + 2] = bImg.data[i * 4] ?? 0;
+      out[i * 4 + 3] = aImg ? (aImg.data[i * 4] ?? 255) : 255;
+    }
+    return {
+      ...img,
+      data: out,
+      space: "srgb",
+      channels: aImg ? 4 : 3,
+      hasAlpha: Boolean(aImg)
+    };
+  }
+  for (let i = 0; i < img.width * img.height; i++) {
+    out[i * 4 + 3] = firstExtra.data[i * 4] ?? 255;
+  }
+  return {
+    ...img,
+    data: out,
+    channels: img.channels === 1 ? 2 : 4,
+    hasAlpha: true
+  };
+}
+
+export function claheImage(
+  img: RgbaImage,
+  options: { readonly width: number; readonly height: number; readonly maxSlope: number }
+): RgbaImage {
+  const out = new Uint8Array(img.data.length);
+  const tileW = Math.max(1, options.width || 8);
+  const tileH = Math.max(1, options.height || 8);
+  const maxSlope = options.maxSlope > 0 ? options.maxSlope : 3;
+
+  for (let ty = 0; ty < img.height; ty += tileH) {
+    for (let tx = 0; tx < img.width; tx += tileW) {
+      const xEnd = Math.min(img.width, tx + tileW);
+      const yEnd = Math.min(img.height, ty + tileH);
+      const count = (xEnd - tx) * (yEnd - ty);
+      if (count <= 0) continue;
+      const hist = new Float64Array(256);
+      for (let y = ty; y < yEnd; y++) {
+        for (let x = tx; x < xEnd; x++) {
+          const idx = (y * img.width + x) * 4;
+          const luma = Math.round(
+            0.299 * img.data[idx]! + 0.587 * img.data[idx + 1]! + 0.114 * img.data[idx + 2]!
+          );
+          hist[luma]!++;
+        }
+      }
+      const clipLimit = Math.max(1, (maxSlope * count) / 256);
+      let excess = 0;
+      for (let i = 0; i < 256; i++) {
+        if (hist[i]! > clipLimit) {
+          excess += hist[i]! - clipLimit;
+          hist[i] = clipLimit;
+        }
+      }
+      const addPerBin = excess / 256;
+      const cdf = new Uint8Array(256);
+      let cum = 0;
+      for (let i = 0; i < 256; i++) {
+        cum += hist[i]! + addPerBin;
+        cdf[i] = clamp((cum * 255) / count);
+      }
+      for (let y = ty; y < yEnd; y++) {
+        for (let x = tx; x < xEnd; x++) {
+          const idx = (y * img.width + x) * 4;
+          const r = img.data[idx]!;
+          const g = img.data[idx + 1]!;
+          const b = img.data[idx + 2]!;
+          const luma = Math.max(1, Math.round(0.299 * r + 0.587 * g + 0.114 * b));
+          const scale = cdf[luma]! / luma;
+          out[idx] = clamp(r * scale);
+          out[idx + 1] = clamp(g * scale);
+          out[idx + 2] = clamp(b * scale);
+          out[idx + 3] = img.data[idx + 3]!;
+        }
+      }
+    }
+  }
+  return { ...img, data: out };
+}
+
+export function affineImage(
+  img: RgbaImage,
+  spec: {
+    readonly matrix: readonly [number, number, number, number];
+    readonly background: RgbaColor;
+    readonly idx: number;
+    readonly idy: number;
+    readonly odx: number;
+    readonly ody: number;
+  }
+): RgbaImage {
+  const [a, b, c, d] = spec.matrix;
+  const det = a * d - b * c;
+  if (Math.abs(det) < 1e-8) return img;
+  const corners: Array<[number, number]> = [
+    [0, 0],
+    [img.width, 0],
+    [0, img.height],
+    [img.width, img.height]
+  ];
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const [cx, cy] of corners) {
+    const x = a * (cx - spec.idx) + b * (cy - spec.idy) + spec.odx;
+    const y = c * (cx - spec.idx) + d * (cy - spec.idy) + spec.ody;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const dstW = Math.max(1, Math.round(maxX - minX));
+  const dstH = Math.max(1, Math.round(maxY - minY));
+  const out = new Uint8Array(dstW * dstH * 4);
+  for (let y = 0; y < dstH; y++) {
+    for (let x = 0; x < dstW; x++) {
+      const ox = x + minX - spec.odx;
+      const oy = y + minY - spec.ody;
+      const sx = (d * ox - b * oy) / det + spec.idx;
+      const sy = (-c * ox + a * oy) / det + spec.idy;
+      const dIdx = (y * dstW + x) * 4;
+      const ix = Math.round(sx);
+      const iy = Math.round(sy);
+      if (ix >= 0 && ix < img.width && iy >= 0 && iy < img.height) {
+        const sIdx = (iy * img.width + ix) * 4;
+        out[dIdx] = img.data[sIdx]!;
+        out[dIdx + 1] = img.data[sIdx + 1]!;
+        out[dIdx + 2] = img.data[sIdx + 2]!;
+        out[dIdx + 3] = img.data[sIdx + 3]!;
+      } else {
+        out[dIdx] = spec.background.r;
+        out[dIdx + 1] = spec.background.g;
+        out[dIdx + 2] = spec.background.b;
+        out[dIdx + 3] = spec.background.a;
+      }
+    }
+  }
+  return {
+    ...img,
+    width: dstW,
+    height: dstH,
+    data: out
+  };
+}
+
 export function computeImageStats(img: RgbaImage): ImageStats {
   const { width, height, data } = img;
   const totalPixels = Math.max(1, width * height);

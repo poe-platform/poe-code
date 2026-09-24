@@ -373,4 +373,52 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(tiffMeta.density).toBe(240);
     expect(tiffMeta.orientation).toBe(3);
   });
+
+  it("supports extend(n) numeric shorthand, recomb(), toColorspace(), joinChannel(), bandbool(), clahe(), and affine() (#40, #41)", async () => {
+    const ext = await sharp({ create: { width: 2, height: 2, channels: 3, background: "#ff0000" } })
+      .extend(1)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(ext.info.width).toBe(4);
+    expect(ext.info.height).toBe(4);
+
+    const sepia = await sharp({ create: { width: 2, height: 2, channels: 3, background: { r: 200, g: 60, b: 140 } } })
+      .recomb([
+        [0.393, 0.769, 0.189],
+        [0.349, 0.686, 0.168],
+        [0.272, 0.534, 0.131]
+      ])
+      .raw()
+      .toBuffer();
+    expect(sepia[0]).toBe(151);
+    expect(sepia[1]).toBe(134);
+    expect(sepia[2]).toBe(105);
+
+    const bw = await sharp({ create: { width: 2, height: 2, channels: 3, background: { r: 200, g: 100, b: 50 } } })
+      .toColorspace("b-w")
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(bw.info.channels).toBe(1);
+
+    const bb = await sharp(new Uint8Array([0b1100, 0b1010, 0b1110]), { raw: { width: 1, height: 1, channels: 3 } })
+      .bandbool("and")
+      .raw()
+      .toBuffer();
+    expect(bb[0]).toBe(0b1000);
+
+    const joined = await sharp(new Uint8Array([100]), { raw: { width: 1, height: 1, channels: 1 } })
+      .joinChannel(new Uint8Array([200]), { raw: { width: 1, height: 1, channels: 1 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(joined.info.channels).toBe(2);
+    expect(joined.data[0]).toBe(100);
+    expect(joined.data[1]).toBe(200);
+
+    const aff = await sharp({ create: { width: 2, height: 2, channels: 3, background: "#00ff00" } })
+      .affine([2, 0, 0, 2])
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(aff.info.width).toBe(4);
+    expect(aff.info.height).toBe(4);
+  });
 });

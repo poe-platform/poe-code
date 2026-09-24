@@ -462,13 +462,13 @@ export async function runSipsCli(
           for (const k of expandedKeys) {
             const val = formatSipsPropertyValue(meta, k);
             if (val !== undefined) {
-              propLines.push(`  ${k}: ${val}`);
+              propLines.push(singleLine ? `${k}: ${val}` : `  ${k}: ${val}`);
             } else {
-              propLines.push(`  ${k}: <nil>`);
+              propLines.push(singleLine ? `${k}: <nil>` : `  ${k}: <nil>`);
             }
           }
           if (singleLine) {
-            outLines.push(propLines.join("|"));
+            outLines.push(propLines.join("|") + "|");
           } else {
             outLines.push(...propLines);
           }
@@ -661,20 +661,23 @@ export async function runIdentifyCli(
   let exitCode = 0;
 
   for (const inPath of inputPaths) {
-    const bytes = files.get(inPath);
+    const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
+    const baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
+    const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
+    const bytes = files.get(inPath) ?? files.get(baseInPath);
     if (!bytes) {
       errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
       exitCode = 1;
       continue;
     }
     try {
-      const inst = sharp(bytes);
+      const inst = sharp(bytes, pageIdx !== undefined ? { page: pageIdx } : undefined);
       const meta = await inst.metadata();
       const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
       const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
 
       if (customFormat !== undefined) {
-        outParts.push(formatIdentifyCustom(customFormat, inPath, meta, bytes.byteLength));
+        outParts.push(formatIdentifyCustom(customFormat, baseInPath, meta, bytes.byteLength));
       } else if (verbose) {
         const stats = await inst.stats();
         outParts.push(
@@ -737,11 +740,13 @@ async function executeVfsImageTool(
         continue;
       }
       if (token.startsWith("-")) continue;
+      const bracketMatch = /^(.*)\[(\d+)\]$/.exec(token);
+      const fileToken = bracketMatch ? bracketMatch[1]! : token;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(token), {
+        const bytes = await context.fs.readFile(resolveVfsPath(fileToken), {
           signal: invocation.signal
         });
-        vfsFiles.set(token, bytes);
+        vfsFiles.set(fileToken, bytes);
       } catch {
         // Output path or non-existent file
       }

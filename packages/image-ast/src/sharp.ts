@@ -1,6 +1,7 @@
 import {
   parseColor,
   type ColorInput,
+  type ColorSpace,
   type CompositeLayer,
   type ImageAstNode,
   type ImageFormat,
@@ -15,8 +16,11 @@ import {
 import { decodeImage, encodeImage, readImageMetadata } from "./codecs/index.js";
 import { resizeImage } from "./ops/resize.js";
 import {
+  affineImage,
   applyExifOrientation,
+  bandboolImage,
   blurImage,
+  claheImage,
   compositeImage,
   computeImageStats,
   convolveImage,
@@ -29,16 +33,19 @@ import {
   flopImage,
   gammaImage,
   grayscaleImage,
+  joinChannelImage,
   linearImage,
   medianImage,
   modulateImage,
   negateImage,
   normalizeImage,
+  recombImage,
   removeAlphaImage,
   rotateImage,
   sharpenImage,
   thresholdImage,
   tintImage,
+  toColorspaceImage,
   trimImage,
   unflattenImage
 } from "./ops/transform.js";
@@ -171,6 +178,26 @@ export class SharpInstance {
         case "extractChannel":
           img = extractChannelImage(img, node.channel);
           break;
+        case "recomb":
+          img = recombImage(img, node.matrix);
+          break;
+        case "toColorspace":
+          img = toColorspaceImage(img, node.space);
+          break;
+        case "bandbool":
+          img = bandboolImage(img, node.op);
+          break;
+        case "joinChannel": {
+          const extras = node.inputs.map(item => decodeImage(item.data, item.options));
+          img = joinChannelImage(img, extras);
+          break;
+        }
+        case "clahe":
+          img = claheImage(img, node);
+          break;
+        case "affine":
+          img = affineImage(img, node);
+          break;
         case "withMetadata":
           img = {
             ...img,
@@ -299,14 +326,30 @@ export class SharpInstance {
     return this;
   }
 
-  extend(edges: {
-    readonly top?: number;
-    readonly bottom?: number;
-    readonly left?: number;
-    readonly right?: number;
-    readonly background?: ColorInput;
-    readonly extendWith?: "background" | "copy" | "repeat" | "mirror";
-  }): this {
+  extend(
+    edges:
+      | number
+      | {
+          readonly top?: number;
+          readonly bottom?: number;
+          readonly left?: number;
+          readonly right?: number;
+          readonly background?: ColorInput;
+          readonly extendWith?: "background" | "copy" | "repeat" | "mirror";
+        }
+  ): this {
+    if (typeof edges === "number") {
+      this.nodes.push({
+        kind: "extend",
+        top: edges,
+        bottom: edges,
+        left: edges,
+        right: edges,
+        background: { r: 0, g: 0, b: 0, a: 255 },
+        extendWith: "background"
+      });
+      return this;
+    }
     this.nodes.push({
       kind: "extend",
       top: edges.top ?? 0,
@@ -477,6 +520,107 @@ export class SharpInstance {
               ? 3
               : channel;
     this.nodes.push({ kind: "extractChannel", channel: ch });
+    return this;
+  }
+
+  recomb(matrix: readonly (readonly number[])[]): this {
+    this.nodes.push({
+      kind: "recomb",
+      matrix: matrix.map(row => [...row])
+    });
+    return this;
+  }
+
+  toColorspace(colorspace: string): this {
+    const norm = colorspace.toLowerCase();
+    const space: ColorSpace =
+      norm === "b-w" || norm === "grey16" || norm === "gray"
+        ? "b-w"
+        : norm === "cmyk"
+          ? "cmyk"
+          : "srgb";
+    this.nodes.push({ kind: "toColorspace", space });
+    return this;
+  }
+
+  toColourspace(colourspace: string): this {
+    return this.toColorspace(colourspace);
+  }
+
+  pipelineColorspace(colorspace: string): this {
+    return this.toColorspace(colorspace);
+  }
+
+  pipelineColourspace(colourspace: string): this {
+    return this.toColorspace(colourspace);
+  }
+
+  bandbool(boolOp: "and" | "or" | "eor"): this {
+    this.nodes.push({ kind: "bandbool", op: boolOp });
+    return this;
+  }
+
+  joinChannel(
+    images: Uint8Array | ArrayBuffer | readonly (Uint8Array | ArrayBuffer)[],
+    options?: SharpInputOptions
+  ): this {
+    const list = Array.isArray(images) ? images : [images];
+    this.nodes.push({
+      kind: "joinChannel",
+      inputs: list.map(buf => ({
+        data: buf instanceof Uint8Array ? buf : new Uint8Array(buf),
+        ...(options !== undefined ? { options } : {})
+      }))
+    });
+    return this;
+  }
+
+  clahe(options: {
+    readonly width: number;
+    readonly height: number;
+    readonly maxSlope?: number;
+  }): this {
+    this.nodes.push({
+      kind: "clahe",
+      width: options.width,
+      height: options.height,
+      maxSlope: options.maxSlope ?? 3
+    });
+    return this;
+  }
+
+  affine(
+    matrix: readonly [number, number, number, number] | readonly (readonly number[])[],
+    options?: {
+      readonly background?: ColorInput;
+      readonly idx?: number;
+      readonly idy?: number;
+      readonly odx?: number;
+      readonly ody?: number;
+    }
+  ): this {
+    const flat: [number, number, number, number] = Array.isArray(matrix[0])
+      ? [
+          (matrix as readonly (readonly number[])[])[0]?.[0] ?? 1,
+          (matrix as readonly (readonly number[])[])[0]?.[1] ?? 0,
+          (matrix as readonly (readonly number[])[])[1]?.[0] ?? 0,
+          (matrix as readonly (readonly number[])[])[1]?.[1] ?? 1
+        ]
+      : [
+          (matrix as readonly number[])[0] ?? 1,
+          (matrix as readonly number[])[1] ?? 0,
+          (matrix as readonly number[])[2] ?? 0,
+          (matrix as readonly number[])[3] ?? 1
+        ];
+    this.nodes.push({
+      kind: "affine",
+      matrix: flat,
+      background: parseColor(options?.background ?? "#000000", 255),
+      idx: options?.idx ?? 0,
+      idy: options?.idy ?? 0,
+      odx: options?.odx ?? 0,
+      ody: options?.ody ?? 0
+    });
     return this;
   }
 

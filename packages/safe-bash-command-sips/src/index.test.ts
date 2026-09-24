@@ -35,7 +35,7 @@ describe("safe-bash-command-sips (sips & identify)", () => {
 
     const oneLine = await runSipsCli(["-1", "-g", "pixelWidth", "-g", "pixelHeight", "test.png"], files);
     expect(oneLine.exitCode).toBe(0);
-    expect(oneLine.stdout.trim()).toBe("test.png|  pixelWidth: 320|  pixelHeight: 240");
+    expect(oneLine.stdout.trim()).toBe("test.png|pixelWidth: 320|pixelHeight: 240|");
 
     const allRes = await runSipsCli(["-g", "all", "test.png"], files);
     expect(allRes.exitCode).toBe(0);
@@ -135,5 +135,15 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     );
     expect(extFmt.exitCode).toBe(0);
     expect(extFmt.stdout).toBe("dir/sub|dir/sub/small.png|1|0|40x20|4|sRGB\n");
+
+    // #43: sips -1 (--oneLine) formatting matches /usr/bin/sips
+    const oneLineRes = await runSipsCli(["-1", "-g", "pixelWidth", "-g", "pixelHeight", "dir/sub/small.png"], files);
+    expect(oneLineRes.exitCode).toBe(0);
+    expect(oneLineRes.stdout).toBe("dir/sub/small.png|pixelWidth: 40|pixelHeight: 20|\n");
+
+    // #42: identify [frame] bracket selector syntax
+    const subFrameRes = await runIdentifyCli(["-format", "%wx%h", "dir/sub/small.png[0]"], files);
+    expect(subFrameRes.exitCode).toBe(0);
+    expect(subFrameRes.stdout).toBe("40x20");
   });
 });

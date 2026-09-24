@@ -327,6 +327,14 @@ export function encodeImage(
         }
         return { data: rgb, format: "raw", channels: 3 };
       }
+      if (img.channels === 2) {
+        const ga = new Uint8Array(img.width * img.height * 2);
+        for (let i = 0; i < img.width * img.height; i++) {
+          ga[i * 2] = img.data[i * 4]!;
+          ga[i * 2 + 1] = img.data[i * 4 + 3]!;
+        }
+        return { data: ga, format: "raw", channels: 2 };
+      }
       const gray = new Uint8Array(img.width * img.height);
       for (let i = 0; i < img.width * img.height; i++) {
         gray[i] = img.data[i * 4]!;

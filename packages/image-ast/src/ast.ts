@@ -271,6 +271,31 @@ export type ImageAstNode =
   | { readonly kind: "ensureAlpha"; readonly alpha: number }
   | { readonly kind: "removeAlpha" }
   | { readonly kind: "extractChannel"; readonly channel: 0 | 1 | 2 | 3 }
+  | { readonly kind: "recomb"; readonly matrix: readonly (readonly number[])[] }
+  | { readonly kind: "toColorspace"; readonly space: ColorSpace }
+  | { readonly kind: "bandbool"; readonly op: "and" | "or" | "eor" }
+  | {
+      readonly kind: "joinChannel";
+      readonly inputs: ReadonlyArray<{
+        readonly data: Uint8Array;
+        readonly options?: SharpInputOptions;
+      }>;
+    }
+  | {
+      readonly kind: "clahe";
+      readonly width: number;
+      readonly height: number;
+      readonly maxSlope: number;
+    }
+  | {
+      readonly kind: "affine";
+      readonly matrix: readonly [number, number, number, number];
+      readonly background: RgbaColor;
+      readonly idx: number;
+      readonly idy: number;
+      readonly odx: number;
+      readonly ody: number;
+    }
   | {
       readonly kind: "withMetadata";
       readonly density?: number;

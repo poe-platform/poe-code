@@ -208,7 +208,7 @@ it("matches native default print margins and Normal Sans column-width encoding",
 
 it("does not publish on cancellation, budget failure or sink failure and preserves memfs bytes", async () => {
   const volume = Volume.fromJSON({ "/in.csv": "hello\n", "/out.xls": "keep" }); let writes = 0;
-  const engine = createEngine({ codecs: [], environment: context.environment, limits: { ...context.limits, outputBytes: 4000 },
+  const engine = createEngine({ codecs: [], environment: context.environment, limits: { ...context.limits, outputBytes: 2048 },
     filesystem: { async read(uri) { return [new Uint8Array(volume.readFileSync(uri) as Uint8Array)]; },
       async write(uri, bytes) { writes++; volume.writeFileSync(uri, bytes); } } });
   try {

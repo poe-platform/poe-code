@@ -68,9 +68,9 @@ it("CFB FAT/DIFAT independently enumerates every sector for both large DSF strea
   expect(streams.get("Book")!.subarray(book.length).every(byte => byte === 0)).toBe(true);
 });
 
-it("CFB padding and records enforce budgets and preserve cancellation reason identity", () => {
+it("CFB allocation and records enforce budgets and preserve cancellation reason identity", () => {
   expect(() => writeCfb(new Map([["Book", new Uint8Array(1)]]),
-    { ...context, limits: { ...context.limits, outputBytes: 4096 } })).toThrow("CFB output bytes limit");
+    { ...context, limits: { ...context.limits, outputBytes: 2048 } })).toThrow("CFB output bytes limit");
   const output = new BiffOutput({ ...context, limits: { ...context.limits, outputBytes: 7 } }, 2080);
   output.record(10); expect(() => output.record(10)).toThrow("output bytes limit");
   const controller = new AbortController(), reason = new Error("owned cancellation"); controller.abort(reason);
@@ -133,9 +133,9 @@ const commentBook = (anchor: string, text = "comment"): Workbook => ({ sheets: [
   unsupportedRecords: [{ source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained",
     data: biffNode("Objects", {}, "", [biffNode("CellComment", { ObjectBound: anchor, Text: text })]) }] }] });
 
-it.each([7, 8, "dsf"] as const)("%s factory admits padded-container bytes and observes cancellation during diagnostic callbacks", async profile => {
+it.each([7, 8, "dsf"] as const)("%s factory admits container bytes and observes cancellation during diagnostic callbacks", async profile => {
   const writer = createBiffWriter(profile), empty: Workbook = { sheets: [{ id: "s", name: "S", cells: [] }] };
-  await expect(writer(empty, [], { ...context, limits: { ...context.limits, outputBytes: 4096 } }))
+  await expect(writer(empty, [], { ...context, limits: { ...context.limits, outputBytes: 2048 } }))
     .rejects.toMatchObject({ code: "resource-limit", exitCode: 1 });
   await expect(writer(empty, [], { ...context, limits: { ...context.limits, workbookNodes: 1 } }))
     .rejects.toMatchObject({ code: "resource-limit", exitCode: 1 });

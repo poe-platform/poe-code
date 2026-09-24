@@ -28,14 +28,18 @@ export function words(...values: number[]): Uint8Array {
   values.forEach((value, index) => view.setUint16(index * 2, value, true)); return bytes;
 }
 
-/** BIFF streams are padded to the regular-stream cutoff, avoiding a second allocator.
- * The padding is part of each directory stream length and follows the final EOF. */
+/** MS-CFB 2.4: small streams share 64-byte mini sectors; directory sizes exclude
+ * allocation padding so consumers see exactly the BIFF record stream. */
 export function writeCfb(streams: ReadonlyMap<string, Uint8Array>, context: CapabilityContext): Uint8Array {
   context.signal.throwIfAborted();
   const entries = [...streams].sort(([a], [b]) => a.length - b.length || (a.toUpperCase() < b.toUpperCase() ? -1 : 1));
   if (entries.length > 2) throw new TypeError("BIFF container supports at most two workbook streams");
-  const sizes = entries.map(([, bytes]) => Math.max(4096, Math.ceil(bytes.length / 512) * 512));
-  const dataCount = sizes.reduce((sum, size) => sum + size / 512, 0), directoryCount = 1;
+  const largeCounts = entries.map(([, bytes]) => bytes.length >= 4096 ? Math.ceil(bytes.length / 512) : 0);
+  const miniCounts = entries.map(([, bytes]) => bytes.length < 4096 ? Math.ceil(bytes.length / 64) : 0);
+  const miniCount = miniCounts.reduce((sum, size) => sum + size, 0), miniBytes = miniCount * 64;
+  const miniDataCount = Math.ceil(miniBytes / 512), miniFatCount = Math.ceil(miniCount / 128);
+  const miniStart = largeCounts.reduce((sum, size) => sum + size, 0), miniFatStart = miniStart + miniDataCount;
+  const dataCount = miniFatStart + miniFatCount, directoryCount = 1;
   let fatCount = 0, difatCount = 0;
   for (;;) {
     const nextFat = Math.ceil((dataCount + directoryCount + fatCount + difatCount) / 128);
@@ -52,7 +56,8 @@ export function writeCfb(streams: ReadonlyMap<string, Uint8Array>, context: Capa
   const directory = dataCount, fatStart = directory + 1, difatStart = fatStart + fatCount;
   bytes.set([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
   put16(24, 0x3e); put16(26, 3); put16(28, 0xfffe); put16(30, 9); put16(32, 6);
-  put32(44, fatCount); put32(48, directory); put32(56, 4096); put32(60, 0xfffffffe);
+  put32(44, fatCount); put32(48, directory); put32(56, 4096);
+  put32(60, miniFatCount ? miniFatStart : 0xfffffffe); put32(64, miniFatCount);
   put32(68, difatCount ? difatStart : 0xfffffffe); put32(72, difatCount);
   for (let i = 0; i < 109; i++) put32(76 + i * 4, i < fatCount ? fatStart + i : 0xffffffff);
   for (let i = 0; i < difatCount; i++) {
@@ -63,6 +68,7 @@ export function writeCfb(streams: ReadonlyMap<string, Uint8Array>, context: Capa
   }
   for (let i = 0; i < fatCount * 128; i++) put32(sector(fatStart) + i * 4, 0xffffffff);
   const fat = (id: number, next: number) => put32(sector(fatStart) + id * 4, next);
+  for (let i = 0; i < miniFatCount * 128; i++) put32(sector(miniFatStart) + i * 4, 0xffffffff);
   const entry = (index: number, name: string, type: number, start: number, size: number, right = 0xffffffff) => {
     const at = sector(directory) + index * 128;
     for (let i = 0; i < name.length; i++) put16(at + i * 2, name.charCodeAt(i));
@@ -70,15 +76,23 @@ export function writeCfb(streams: ReadonlyMap<string, Uint8Array>, context: Capa
     put32(at + 68, 0xffffffff); put32(at + 72, right); put32(at + 76, type === 5 && entries.length ? 1 : 0xffffffff);
     put32(at + 116, start); put32(at + 120, size);
   };
-  entry(0, "Root Entry", 5, 0xfffffffe, 0);
-  let start = 0;
+  entry(0, "Root Entry", 5, miniBytes ? miniStart : 0xfffffffe, miniBytes);
+  let start = 0, miniOffset = 0;
   entries.forEach(([name, data], index) => {
-    context.signal.throwIfAborted(); const count = sizes[index]! / 512;
-    bytes.set(data, sector(start));
-    entry(index + 1, name, 2, start, sizes[index]!, index + 1 < entries.length ? index + 2 : 0xffffffff);
-    for (let id = start; id < start + count; id++) fat(id, id + 1 < start + count ? id + 1 : 0xfffffffe);
-    start += count;
+    context.signal.throwIfAborted();
+    const mini = data.length < 4096, count = mini ? miniCounts[index]! : largeCounts[index]!;
+    const first = mini ? miniOffset : start;
+    if (data.length) bytes.set(data, mini ? sector(miniStart) + miniOffset * 64 : sector(start));
+    entry(index + 1, name, 2, count ? first : 0xfffffffe, data.length, index + 1 < entries.length ? index + 2 : 0xffffffff);
+    for (let id = first; id < first + count; id++) {
+      if ((id & 1023) === 0) context.signal.throwIfAborted();
+      const next = id + 1 < first + count ? id + 1 : 0xfffffffe;
+      if (mini) put32(sector(miniFatStart) + id * 4, next); else fat(id, next);
+    }
+    if (mini) miniOffset += count; else start += count;
   });
+  for (let i = 0; i < miniDataCount; i++) fat(miniStart + i, i + 1 < miniDataCount ? miniStart + i + 1 : 0xfffffffe);
+  for (let i = 0; i < miniFatCount; i++) fat(miniFatStart + i, i + 1 < miniFatCount ? miniFatStart + i + 1 : 0xfffffffe);
   fat(directory, 0xfffffffe);
   for (let i = 0; i < fatCount; i++) fat(fatStart + i, 0xfffffffd);
   for (let i = 0; i < difatCount; i++) fat(difatStart + i, 0xfffffffc);

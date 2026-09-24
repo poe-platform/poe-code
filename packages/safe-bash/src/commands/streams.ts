@@ -174,7 +174,7 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
   });
 }
 
-function characterSet(specification: string): number[] {
+function characterSet(specification: string, repeatLength?: number): number[] {
   const classes: Record<string, number[]> = {
     lower: Array.from({ length: 26 }, (_, offset) => 97 + offset),
     upper: Array.from({ length: 26 }, (_, offset) => 65 + offset),
@@ -188,34 +188,68 @@ function characterSet(specification: string): number[] {
   classes.alnum = [...classes.digit!, ...classes.alpha];
   classes.xdigit = [...classes.digit!, ...classes.upper!.slice(0, 6), ...classes.lower!.slice(0, 6)];
   classes.punct = classes.graph!.filter(byte => !classes.alnum!.includes(byte));
-  const tokens: { bytes: number[]; literal: boolean }[] = [];
-  for (let offset = 0; offset < specification.length;) {
-    const classMatch = /^\[:([a-z]+):\]/u.exec(specification.slice(offset));
-    if (classMatch) {
-      const bytes = classes[classMatch[1]!];
-      if (!bytes) throw new UsageError(`unknown character class '${classMatch[1]}'`);
-      tokens.push({ bytes, literal: false }); offset += classMatch[0].length; continue;
-    }
-    if (specification.startsWith("[:", offset)) throw new UsageError("unterminated character class");
+  const tokens: { bytes: number[]; literal: boolean; repeat?: number }[] = [];
+  const readCharacter = (offset: number) => {
     if (specification[offset] === "\\") {
       const escape = /^\\(?:[0-7]{1,3}|x[0-9a-fA-F]{1,2}|.)/su.exec(specification.slice(offset));
       if (!escape) throw new UsageError("trailing backslash in character set");
-      const decoded = escapeBytes(escape[0]);
-      tokens.push({ bytes: [...decoded.bytes], literal: false }); offset += escape[0].length; continue;
+      return { bytes: [...escapeBytes(escape[0]).bytes], end: offset + escape[0].length, literal: false };
     }
     const character = String.fromCodePoint(specification.codePointAt(offset)!);
-    tokens.push({ bytes: [...encoder.encode(character)], literal: character === "-" }); offset += character.length;
+    return { bytes: [...encoder.encode(character)], end: offset + character.length, literal: character === "-" };
+  };
+  for (let offset = 0; offset < specification.length;) {
+    const classEnd = specification.startsWith("[:", offset) ? specification.indexOf(":]", offset + 2) : -1;
+    if (classEnd !== -1) {
+      const name = specification.slice(offset + 2, classEnd);
+      const bytes = Object.hasOwn(classes, name) ? classes[name] : undefined;
+      if (!bytes) throw new UsageError(`unknown character class '${name}'`);
+      tokens.push({ bytes, literal: false }); offset = classEnd + 2; continue;
+    }
+    if (specification[offset] === "[" && offset + 1 < specification.length) {
+      const equivalent = specification[offset + 1] === "=";
+      const characterOffset = offset + (equivalent ? 2 : 1);
+      if (characterOffset < specification.length) {
+        const character = readCharacter(characterOffset);
+        if (equivalent && specification.startsWith("=]", character.end)) {
+          if (character.bytes.length !== 1) throw new UsageError("equivalence expression requires one byte");
+          tokens.push({ bytes: character.bytes, literal: false }); offset = character.end + 2; continue;
+        }
+        if (!equivalent && specification[character.end] === "*") {
+          const end = specification.indexOf("]", character.end + 1);
+          if (end !== -1) {
+            if (repeatLength === undefined) throw new UsageError("repeat expressions are only allowed in the second character set");
+            const count = specification.slice(character.end + 1, end);
+            const digits = count.startsWith("0") ? "01234567" : "0123456789";
+            if (character.bytes.length !== 1 || ![...count].every(digit => digits.includes(digit))) throw new UsageError("invalid repeat expression");
+            // Only positions used by translation matter; retain the byte for squeezing.
+            const repeat = count ? Math.min(Number.parseInt(count, count.startsWith("0") ? 8 : 10), Math.max(1, repeatLength)) : 0;
+            tokens.push({ bytes: character.bytes, literal: false, repeat }); offset = end + 1; continue;
+          }
+        }
+      }
+    }
+    const character = readCharacter(offset);
+    tokens.push(character); offset = character.end;
   }
-  const result: number[] = [];
+  const expanded: { bytes: number[]; repeat?: number }[] = [];
   for (let index = 0; index < tokens.length; index++) {
     const current = tokens[index]!;
-    if (current.bytes.length === 1 && tokens[index + 1]?.literal && tokens[index + 2]?.bytes.length === 1) {
+    if (current.repeat === undefined && current.bytes.length === 1 && tokens[index + 1]?.literal && tokens[index + 2]?.repeat === undefined && tokens[index + 2]?.bytes.length === 1) {
       const first = current.bytes[0]!;
       const last = tokens[index + 2]!.bytes[0]!;
       if (last < first) throw new UsageError("range endpoints are in reverse order");
-      for (let byte = first; byte <= last; byte++) result.push(byte);
+      expanded.push({ bytes: Array.from({ length: last - first + 1 }, (_, offset) => first + offset) });
       index += 2;
-    } else result.push(...current.bytes);
+    } else expanded.push(current);
+  }
+  const fills = expanded.filter(token => token.repeat === 0);
+  if (fills.length > 1) throw new UsageError("only one indefinite repeat expression is allowed");
+  const length = expanded.reduce((length, token) => length + (token.repeat ?? token.bytes.length), 0);
+  const result: number[] = [];
+  for (const token of expanded) {
+    if (token.repeat === undefined) result.push(...token.bytes);
+    else for (let index = 0; index < (token.repeat || Math.max(0, (repeatLength ?? 0) - length)); index++) result.push(token.bytes[0]!);
   }
   return result;
 }
@@ -456,7 +490,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         const selected = new Set(first);
         first = Array.from({ length: 256 }, (_, offset) => offset).filter(byte => !selected.has(byte));
       }
-      const second = parsed.operands[1] === undefined ? [] : characterSet(parsed.operands[1]);
+      const second = parsed.operands[1] === undefined ? [] : characterSet(parsed.operands[1], translating ? first.length : 0);
       if (translating && parsed.flags.has("t")) first = first.slice(0, second.length);
       if (translating && !second.length && !parsed.flags.has("t")) throw new UsageError("second character set must not be empty");
       const mapping = Array.from({ length: 256 }, (_, offset) => offset);

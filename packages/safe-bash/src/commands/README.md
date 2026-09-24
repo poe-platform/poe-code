@@ -78,7 +78,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `sort` | Byte ordering, exact decimal numeric comparison `-n`, `-r`, `-f`, `-b`, `-s`, `-u`, `-t`, repeated `-k` with field/character ranges and `bfnr` modifiers, `-o`, `-c`, `-z`. |
 | `uniq` | Adjacent groups, `-c`, `-d`, `-u`, `-i`, field/byte skips `-f`/`-s`, comparison width `-w`, `-z`, optional input/output paths. |
 | `cut` | Byte `-b`, UTF-8 codepoint `-c`, field `-f` ranges including open/overlapping ranges; `-d`, `-s`, `-z`, `--complement`, `--output-delimiter`. |
-| `tr` | Byte ranges/classes/escapes, translation, `-d`, `-s`, `-c`/`-C`; squeeze state persists across chunks. |
+| `tr` | Byte ranges/classes/escapes, single-byte equivalence expressions (`[=c=]`), SET2 repeats (`[c*n]`, `[c*]`), translation, `-d`, `-s`, `-c`/`-C`; squeeze state persists across chunks. Repeat counts are decimal, or octal with a leading zero; omitted/zero counts fill SET2 to SET1's length. |
 | `tee` | Incremental stdout and multiple file writes; append `-a`; continues remaining outputs after a file error. |
 | `grep` | Common basic/extended/fixed patterns `-E`/`-F`; `-i`, `-v`, `-n`, `-c`, `-l`, `-L`, `-q`, `-h`, `-H`, `-o`, `-w`, `-x`, repeated `-e`/`-f`, `-m`, `-s`, `-a`, `-z`; 0/1/2 statuses. |
 | `find` | Sorted traversal, `-P`/`-L`/`-H` (argument symlinks only), `-D tree` (virtual expression evaluation order, without GNU optimizer diagnostics; other debug modes unsupported), depth bounds and `-depth`, name/path patterns, file/directory/link types, `-size`, `-empty`, boolean expressions, `-prune`, `-print`/`-print0`, literal `-exec ... ;` and batched `-exec ... {} +`. |

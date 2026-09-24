@@ -1,4 +1,11 @@
-import { createCipheriv, createDecipheriv, createHash } from "node:crypto";
+import {
+  aesCbcDecrypt,
+  aesCbcEncrypt,
+  md5Bytes,
+  sha256Bytes,
+  sha384Bytes,
+  sha512Bytes,
+} from "./crypto-primitives.js";
 import {
   cosArray,
   cosBool,
@@ -50,15 +57,11 @@ export function rc4Transform(key: Uint8Array, data: Uint8Array): Uint8Array {
 }
 
 function md5(chunks: readonly Uint8Array[]): Uint8Array {
-  const h = createHash("md5");
-  for (const c of chunks) h.update(c);
-  return new Uint8Array(h.digest());
+  return md5Bytes(chunks);
 }
 
 function sha256(chunks: readonly Uint8Array[]): Uint8Array {
-  const h = createHash("sha256");
-  for (const c of chunks) h.update(c);
-  return new Uint8Array(h.digest());
+  return sha256Bytes(chunks);
 }
 
 function padPassword32(password: string): Uint8Array {
@@ -123,15 +126,12 @@ export function computeR5R6Hash(
       k1.set(k, base + pwd.length);
       k1.set(userKey, base + pwd.length + k.length);
     }
-    const cipher = createCipheriv("aes-128-cbc", k.subarray(0, 16), k.subarray(16, 32));
-    cipher.setAutoPadding(false);
-    const e = new Uint8Array(Buffer.concat([cipher.update(k1), cipher.final()]));
+    const e = aesCbcEncrypt(k.subarray(0, 16), k.subarray(16, 32), k1, false);
     let sumMod3 = 0;
     for (let i = 0; i < 16; i++) {
       sumMod3 = (sumMod3 + e[i]!) % 3;
     }
-    const algo = sumMod3 === 0 ? "sha256" : sumMod3 === 1 ? "sha384" : "sha512";
-    k = new Uint8Array(createHash(algo).update(e).digest());
+    k = sumMod3 === 0 ? sha256Bytes([e]) : sumMod3 === 1 ? sha384Bytes(e) : sha512Bytes(e);
     round++;
     if (round >= 64 && e[e.length - 1]! <= round - 32) {
       break;
@@ -180,9 +180,7 @@ export function derivePdfEncryptionKey(
     const isUserMatch = uValHash.every((b, idx) => b === uBytes[idx]);
     if (isUserMatch) {
       const uKeyHash = computeR5R6Hash(pwdBytes, uBytes.subarray(40, 48), new Uint8Array(0), rev);
-      const decipher = createDecipheriv("aes-256-cbc", uKeyHash, new Uint8Array(16));
-      decipher.setAutoPadding(false);
-      const fileKey = new Uint8Array(Buffer.concat([decipher.update(ueNode.bytes.subarray(0, 32)), decipher.final()]));
+      const fileKey = aesCbcDecrypt(uKeyHash, new Uint8Array(16), ueNode.bytes.subarray(0, 32), false);
       return {
         filter,
         version,
@@ -199,9 +197,7 @@ export function derivePdfEncryptionKey(
     const isOwnerMatch = oValHash.every((b, idx) => b === oBytes[idx]);
     if (isOwnerMatch) {
       const oKeyHash = computeR5R6Hash(pwdBytes, oBytes.subarray(40, 48), uBytes.subarray(0, 48), rev);
-      const decipher = createDecipheriv("aes-256-cbc", oKeyHash, new Uint8Array(16));
-      decipher.setAutoPadding(false);
-      const fileKey = new Uint8Array(Buffer.concat([decipher.update(oeNode.bytes.subarray(0, 32)), decipher.final()]));
+      const fileKey = aesCbcDecrypt(oKeyHash, new Uint8Array(16), oeNode.bytes.subarray(0, 32), false);
       return {
         filter,
         version,
@@ -281,8 +277,7 @@ export function decryptPdfBuffer(
     const iv = data.subarray(0, 16);
     const ciphertext = data.subarray(16);
     if (ciphertext.length === 0) return new Uint8Array(0);
-    const decipher = createDecipheriv("aes-256-cbc", state.fileKey, iv);
-    return new Uint8Array(Buffer.concat([decipher.update(ciphertext), decipher.final()]));
+    return aesCbcDecrypt(state.fileKey, iv, ciphertext, true);
   }
 
   // Object key for R2–R4
@@ -305,8 +300,7 @@ export function decryptPdfBuffer(
     if (data.length < 16 || data.length % 16 !== 0) return data;
     const iv = data.subarray(0, 16);
     const ciphertext = data.subarray(16);
-    const decipher = createDecipheriv("aes-128-cbc", objKey.subarray(0, 16), iv);
-    return new Uint8Array(Buffer.concat([decipher.update(ciphertext), decipher.final()]));
+    return aesCbcDecrypt(objKey.subarray(0, 16), iv, ciphertext, true);
   }
   return rc4Transform(objKey, data);
 }
@@ -327,8 +321,7 @@ export function encryptPdfBuffer(
         generationNumber & 0xff,
       ]),
     ]).subarray(0, 16);
-    const cipher = createCipheriv("aes-256-cbc", state.fileKey, iv);
-    const enc = new Uint8Array(Buffer.concat([cipher.update(plaintext), cipher.final()]));
+    const enc = aesCbcEncrypt(state.fileKey, iv, plaintext, true);
     const out = new Uint8Array(16 + enc.length);
     out.set(iv, 0);
     out.set(enc, 16);
@@ -426,9 +419,7 @@ export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOp
   uFull.set(uKeySalt, 40);
 
   const uKeyHash = computeR5R6Hash(userBytes, uKeySalt, new Uint8Array(0), 6);
-  const ueCipher = createCipheriv("aes-256-cbc", uKeyHash, new Uint8Array(16));
-  ueCipher.setAutoPadding(false);
-  const ueBytes = new Uint8Array(Buffer.concat([ueCipher.update(fileKey), ueCipher.final()]));
+  const ueBytes = aesCbcEncrypt(uKeyHash, new Uint8Array(16), fileKey, false);
 
   const oHash = computeR5R6Hash(ownerBytes, oValSalt, uFull, 6);
   const oFull = new Uint8Array(48);
@@ -437,9 +428,7 @@ export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOp
   oFull.set(oKeySalt, 40);
 
   const oKeyHash = computeR5R6Hash(ownerBytes, oKeySalt, uFull, 6);
-  const oeCipher = createCipheriv("aes-256-cbc", oKeyHash, new Uint8Array(16));
-  oeCipher.setAutoPadding(false);
-  const oeBytes = new Uint8Array(Buffer.concat([oeCipher.update(fileKey), oeCipher.final()]));
+  const oeBytes = aesCbcEncrypt(oKeyHash, new Uint8Array(16), fileKey, false);
 
   const state: PdfEncryptionState = {
     filter: "Standard",

@@ -13,8 +13,9 @@ const maxExpressionDepth = 256;
 async function metadata(context: CommandContext, path: string, link = false): Promise<FileStat | undefined> {
   assertCommandRequirements(context, predicateRequirements, ["metadata"]);
   try {
+    // The non-mutating exclusive query preserves the final link, matching lstat.
     if (context.fs.capabilitiesFor) assertCommandRequirements(context, predicateRequirements, ["metadata"],
-      await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal }));
+      await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal, ...(link ? { creation: "exclusive" as const } : {}) }));
     return await context.fs[link ? "lstat" : "stat"](pathOf(context, path), { signal: context.signal });
   }
   catch (error) {
@@ -137,7 +138,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
               await context.fs.access(pathOf(context, operand), token === "-r" ? 4 : token === "-w" ? 2 : 1, { signal: context.signal });
               return true;
             }
-            catch (error) { context.signal.throwIfAborted(); if (["ENOENT", "ENOTDIR", "EACCES", "EROFS"].includes(codeOf(error) ?? "")) return false; throw error; }
+            catch (error) { context.signal.throwIfAborted(); if (["ENOENT", "ENOTDIR", "EACCES", "EPERM", "ELOOP", "EROFS"].includes(codeOf(error) ?? "")) return false; throw error; }
           }
           if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-N"].includes(token)) {
             return evaluateFilePredicate(context, token, operand, undefined, context.capabilities?.predicateIdentity as PredicateIdentity | undefined ?? identity);

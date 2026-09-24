@@ -69,6 +69,9 @@ physical permissions, and the host process mask remains unchanged.
   Ownership predicates `-O` and `-G` in `[[ … ]]`, `test` and `[` use explicit
   `capabilities: { predicateIdentity: { effectiveUid, effectiveGid } }` on the
   shell or execution options; missing caller or filesystem identity is refused.
+  File predicates in `[[ … ]]`, `test` and `[` evaluate symlink traversal loops
+  as false; `-L`/`-h` still recognize the link itself. Access checks `-r`/`-w`/`-x`
+  evaluate denied access as false, and `-N` compares modification and access times.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `bash -n script.sh` (also `sh -n`) checks
   syntax without executing commands; `set -n` / `set -o noexec` parses the

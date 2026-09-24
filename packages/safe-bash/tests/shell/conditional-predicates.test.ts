@@ -109,3 +109,81 @@ test("conditional file predicates preserve short circuiting", async () => {
   assert.equal(result.stdout, "done\n");
   assert.equal(result.stderr, "");
 });
+
+for (const [command, closing] of [["[[", " ]]"], ["test", ""], ["[", " ]"]] as const) {
+  const expression = (operand: string) => `${command} ${operand}${closing}`;
+
+  test(`${command} evaluates file predicates on symlink cycles without diagnostics`, async t => {
+    const { fs, shell } = setup();
+    t.after(() => shell.dispose());
+    for (const definition of predicateCommands()) shell.commands.register(definition);
+    await fs.symlink("loop", "/loop");
+    await fs.symlink("cycle-b", "/cycle-a");
+    await fs.symlink("cycle-a", "/cycle-b");
+    await fs.symlink("missing", "/dangling");
+    for (const path of ["loop", "cycle-a", "loop/child", "dangling"]) {
+      for (const operator of ["-e", "-a", "-f", "-d", "-c", "-s", "-L", "-h", "-r", "-w", "-x", "-N"]) {
+        const isLink = (operator === "-L" || operator === "-h") && path !== "loop/child";
+        const source = expression(`${operator} ${path}`);
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, isLink ? 0 : 1, source);
+        assert.equal(result.stdout, "", source);
+        assert.equal(result.stderr, "", source);
+        const negatedSource = expression(`! ${operator} ${path}`);
+        const negated = await shell.exec(`${negatedSource} && say OK`);
+        assert.equal(negated.exitCode, isLink ? 1 : 0, negatedSource);
+        assert.equal(negated.stdout, isLink ? "" : "OK\n", negatedSource);
+        assert.equal(negated.stderr, "", negatedSource);
+      }
+    }
+  });
+
+  test(`${command} treats EPERM access failures as false`, async t => {
+    const { fs, shell } = setup();
+    t.after(() => shell.dispose());
+    for (const definition of predicateCommands()) shell.commands.register(definition);
+    fs.access = async () => { throw new FsError("EPERM"); };
+    for (const operator of ["-r", "-w", "-x"]) {
+      const source = expression(`${operator} file`);
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 1, source);
+      assert.equal(result.stderr, "", source);
+      const negated = await shell.exec(`${expression(`! ${operator} file`)} && say OK`);
+      assert.equal(negated.exitCode, 0, source);
+      assert.equal(negated.stdout, "OK\n", source);
+      assert.equal(negated.stderr, "", source);
+    }
+  });
+
+  for (const code of ["ELOOP", "EPERM"] as const) {
+    for (const [operator, method] of [["-e", "stat"], ["-L", "lstat"], ["-r", "access"]] as const) {
+      test(`${command} ${operator} preserves cancellation with ${code}`, async t => {
+        const { fs, shell } = setup();
+        t.after(() => shell.dispose());
+        for (const definition of predicateCommands()) shell.commands.register(definition);
+        const controller = new AbortController();
+        const reason = new FsError(code);
+        fs[method] = async () => { controller.abort(reason); throw reason; };
+        await assert.rejects(shell.exec(expression(`${operator} file`), { signal: controller.signal }), error => error === reason);
+      });
+    }
+  }
+
+  test(`${command} -N uses filesystem modification and access times`, async t => {
+    const { fs, shell } = setup();
+    t.after(() => shell.dispose());
+    for (const definition of predicateCommands()) shell.commands.register(definition);
+    await fs.writeFile("/file", new Uint8Array([1]));
+    await fs.symlink("file", "/link");
+    for (const [access, modified, expected] of [[1000, 2000, 0], [2000, 2000, 1], [3000, 2000, 1]] as const) {
+      await fs.utimes("/file", access, modified);
+      for (const path of ["file", "link"]) {
+        const source = expression(`-N ${path}`);
+        const result = await shell.exec(source);
+        assert.equal(result.exitCode, expected, source);
+        assert.equal(result.stdout, "", source);
+        assert.equal(result.stderr, "", source);
+      }
+    }
+  });
+}

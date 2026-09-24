@@ -124,7 +124,7 @@ async function unary(operator: string, value: string, context: ConditionalContex
     context.signal.throwIfAborted();
     if (!isFsError(error)) throw error;
     const errno = error.code;
-    if (errno === "ENOENT" || errno === "ENOTDIR" || errno === "EACCES" || errno === "EPERM") return false;
+    if (errno === "ENOENT" || errno === "ENOTDIR" || errno === "EACCES" || errno === "EPERM" || errno === "ELOOP") return false;
     if (access && errno === "EROFS") return false;
     if (errno === "ENOTSUP" || errno === "EOPNOTSUPP" || errno === "ENOSYS") unsupported("filesystem capability");
     throw error;

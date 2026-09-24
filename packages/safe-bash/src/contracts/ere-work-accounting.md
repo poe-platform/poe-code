@@ -4,6 +4,23 @@ The ERE matcher uses the existing invocation-local `EreLedger`. Work is an
 abstract operation budget, not calibrated CPU time, a subsecond guarantee or
 a total JavaScript heap bound. Limits and status meanings are unchanged.
 
+## Search admission
+
+Non-nullable patterns retain a conservative initial-character table with their
+ledger-bound program. The table covers ASCII and the normalized non-ASCII
+subject value. Alternatives combine their possible starts; sequences include
+nullable prefixes through their first required child. Anchors and capture
+preference remain the matcher's responsibility. Nullable patterns still visit
+every cursor, including the end of input.
+
+Table initialization, node traversal, and retained storage are charged before
+allocation and checkpointed. Repeated rows and cursors reuse the admitted table.
+Each candidate character costs one checkpointed work unit; an impossible start
+allocates no matcher tasks or states. Long lines without a possible starting
+character therefore take linear scan work without allocating alternative task
+chains at every position. Explicit work, allocation, input, and state limits
+remain enforced; no default allowance is increased.
+
 ## Copy admission
 
 Before capture storage is allocated or copied, the matcher admits work for

@@ -882,6 +882,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/brace-reservations.test.ts"));
   assert.ok(files.includes("tests/shell/value-scope-reservations.test.ts"));
   assert.ok(files.includes("tests/commands/predicate-depth.test.ts"));
+  assert.ok(files.includes("tests/commands/grep-long-lines.test.ts"));
   assert.ok(files.includes("tests/commands/predicate-unary.test.ts"));
   assert.ok(files.includes("tests/commands/predicate-unicode-order.test.ts"));
   assert.ok(files.includes("tests/commands/move-no-replace.test.ts"));

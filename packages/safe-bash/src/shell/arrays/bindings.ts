@@ -10,7 +10,7 @@ export const controlNames: ReadonlySet<string> = new Set([
 export class OwnedText {
   references = 1;
 
-  constructor(readonly shellValue: ShellValue, readonly bytes: number, readonly admission: Admission) {}
+  constructor(public shellValue: ShellValue, readonly bytes: number, readonly admission: Admission) {}
 
   get value(): string { return shellValueText(this.shellValue); }
 

@@ -1,4 +1,4 @@
-import { FsError, type CommandContext, type CommandDefinition, type FileStat } from "../contracts/index.js";
+import { FsError, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { predicateRequirements } from "./portable-requirements.js";
@@ -12,6 +12,7 @@ const maxExpressionDepth = 256;
 const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R", "-N"]);
 const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
 const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
+export const defaultPredicateExecutors = new WeakSet<CommandHandler>();
 
 function parseSafeIntegerFast(text: string): number | undefined {
   const len = text.length;
@@ -42,6 +43,46 @@ function parseSafeIntegerFast(text: string): number | undefined {
   }
   if (digits === 0 || i < len) return undefined;
   return negative ? -value : value;
+}
+
+export function tryFastPredicate(name: string, rawArgs: readonly string[], offset = 0): number | undefined {
+  const totalLen = rawArgs.length - offset;
+  const rawLen = name === "[" ? totalLen - 1 : totalLen;
+  if (name === "[") {
+    if (rawLen < 0 || rawArgs[offset + rawLen] !== "]") return undefined;
+  }
+  if (rawLen === 0) return 1;
+  if (rawLen === 1) return rawArgs[offset] !== "" ? 0 : 1;
+  if (rawLen === 2) {
+    const a0 = rawArgs[offset]!;
+    const a1 = rawArgs[offset + 1]!;
+    if (a0 === "!") return a1 === "" ? 0 : 1;
+    if (a0 === "-n") return a1 !== "" ? 0 : 1;
+    if (a0 === "-z") return a1 === "" ? 0 : 1;
+    return undefined;
+  }
+  if (rawLen === 3) {
+    const a0 = rawArgs[offset]!;
+    const op = rawArgs[offset + 1]!;
+    const a2 = rawArgs[offset + 2]!;
+    if (op === "=" || op === "==") return a0 === a2 ? 0 : 1;
+    if (op === "!=") return a0 !== a2 ? 0 : 1;
+    if (numeric.has(op)) {
+      const leftNum = parseSafeIntegerFast(a0);
+      const rightNum = parseSafeIntegerFast(a2);
+      if (leftNum !== undefined && rightNum !== undefined) {
+        const matched =
+          op === "-eq" ? leftNum === rightNum :
+          op === "-ne" ? leftNum !== rightNum :
+          op === "-lt" ? leftNum < rightNum :
+          op === "-le" ? leftNum <= rightNum :
+          op === "-gt" ? leftNum > rightNum :
+          leftNum >= rightNum;
+        return matched ? 0 : 1;
+      }
+    }
+  }
+  return undefined;
 }
 
 async function metadata(context: CommandContext, path: string, link = false): Promise<FileStat | undefined> {
@@ -244,5 +285,8 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
     const evaluate = disjunction(0);
     if (offset !== args.length) throw new UsageError(`unexpected argument '${args[offset]}'`);
     return { exitCode: await evaluate() !== negate ? 0 : 1 };
-  })).map(command => ({ ...command, filesystemRequirements: predicateRequirements }));
+  })).map(command => {
+    defaultPredicateExecutors.add(command.execute);
+    return { ...command, filesystemRequirements: predicateRequirements };
+  });
 }

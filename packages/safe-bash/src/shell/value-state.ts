@@ -5,10 +5,10 @@ import { ShellLimitError } from "./types.js";
 interface AllocationRecord {
   readonly arena: ValueArena;
   bytes: number;
-  readonly slots: number;
+  slots: number;
   references: number;
   epoch: number;
-  object?: object;
+  object?: object | undefined;
 }
 
 export interface HeldValue {
@@ -18,6 +18,8 @@ export interface HeldValue {
 
 export class ValueArena {
   #objects = new WeakMap<object, AllocationRecord>();
+  #freeScopes: ValueScope[] = [];
+  #freeRecords: AllocationRecord[] = [];
   #epoch = 1;
   #bytes = 0;
   #slots = 0;
@@ -36,14 +38,35 @@ export class ValueArena {
     if (this.#closed) throw new Error("Shell value arena is closed");
   }
 
-  scope(): ValueScope { this.assertOpen(); return new ValueScope(this); }
+  scope(): ValueScope {
+    this.assertOpen();
+    const pooled = this.#freeScopes.pop();
+    if (pooled) {
+      pooled._reopen();
+      return pooled;
+    }
+    return new ValueScope(this);
+  }
+
+  recycleScope(scope: ValueScope): void {
+    if (!this.#closed && this.#freeScopes.length < 64) this.#freeScopes.push(scope);
+  }
 
   allocate(bytes: number, slots: number): AllocationRecord {
     this.assertOpen();
     if (!Number.isSafeInteger(bytes) || bytes < 0 || !Number.isSafeInteger(slots) || slots < 0) throw new RangeError("Invalid shell value allocation");
     if (bytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
     if (slots > this.maximumSlots - this.#slots) this.fail("maxExpansionFields");
-    const record: AllocationRecord = { arena: this, bytes, slots, references: 1, epoch: this.#epoch };
+    let record = this.#freeRecords.pop();
+    if (record) {
+      record.bytes = bytes;
+      record.slots = slots;
+      record.references = 1;
+      record.epoch = this.#epoch;
+      record.object = undefined;
+    } else {
+      record = { arena: this, bytes, slots, references: 1, epoch: this.#epoch };
+    }
     this.#bytes += bytes;
     this.#slots += slots;
     return record;
@@ -86,6 +109,7 @@ export class ValueArena {
     if (--record.references) return;
     record.epoch = 0;
     if (record.object) this.#objects.delete(record.object);
+    else if (this.#freeRecords.length < 128) this.#freeRecords.push(record);
     this.#bytes -= record.bytes;
     this.#slots -= record.slots;
   }
@@ -126,6 +150,8 @@ export class ValueArena {
     this.#closed = true;
     this.#epoch++;
     this.#objects = new WeakMap();
+    this.#freeScopes.length = 0;
+    this.#freeRecords.length = 0;
     this.#bytes = 0;
     this.#slots = 0;
   }
@@ -139,6 +165,10 @@ export class ValueScope implements ValueAllocation {
   #bytesReservation: AllocationRecord | undefined;
 
   constructor(readonly arena: ValueArena) {}
+
+  _reopen(): void {
+    this.#closed = false;
+  }
 
   assertOpen(): void {
     this.arena.assertOpen();
@@ -213,6 +243,11 @@ export class ValueScope implements ValueAllocation {
     }
     if (this.#bytesReservation) this.arena.release(this.#bytesReservation);
     if (this.#enrollment) this.arena.release(this.#enrollment);
+    if (!this.#releases && !this.#holds) {
+      this.#bytesReservation = undefined;
+      this.#enrollment = undefined;
+      this.arena.recycleScope(this);
+    }
   }
 }
 
@@ -227,6 +262,27 @@ export class ValueStore {
   constructor(readonly arena: ValueArena) { this.scope = arena.scope(); }
 
   get(name: string, text: string): ShellValue { return this.#values.get(name)?.value ?? this.#strings.get(name) ?? text; }
+
+  publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
+    const newBytes = value.length * 2;
+    const held = this.#values.get(name);
+    if (held) {
+      held.release();
+      this.#values.delete(name);
+    }
+    const oldStr = this.#strings.get(name);
+    const oldBytes = oldStr !== undefined ? oldStr.length * 2 : 0;
+    const delta = newBytes - oldBytes;
+    if (this.#stringRecord) {
+      if (delta !== 0) this.arena.resizeStringRecord(this.#stringRecord, this.#stringRecord.bytes + delta);
+      else this.arena.assertOpen();
+    } else {
+      this.#stringRecord = this.arena.allocate(newBytes, 0);
+    }
+    rawVariables[name] = value;
+    this.#strings.set(name, value);
+    this.#stringBytes += delta;
+  }
 
   publish(name: string, value: ShellValue, action: () => boolean): boolean {
     if (typeof value === "string") {

@@ -65,6 +65,7 @@ export class StateMonitor {
   #enrollment: Admission | undefined;
   #internalEnrollment: Admission | undefined;
   #restorations: Restoration | undefined;
+  #freeRestorations: Restoration | undefined;
   #overlays: OverlayMap | undefined;
   #retireCleanup: (() => void) | undefined;
   #positionalRevision: object = {};
@@ -150,7 +151,13 @@ export class StateMonitor {
     const owner = this.store?.owner ?? this.session.guestOwner;
     const admission = owner?.reserve({ epoch: true, metadata: 64, work: 8 });
     if (admission) admission.restorationReferences = 1;
-    const permit = new Restoration(this, admission, resource);
+    let permit = this.#freeRestorations;
+    if (permit) {
+      this.#freeRestorations = permit.next;
+      permit._reset(admission, resource);
+    } else {
+      permit = new Restoration(this, admission, resource);
+    }
     try {
       if (resource && owner) permit.holding = owner.hold();
     } catch (error) { admission?.release(); throw error; }
@@ -205,6 +212,9 @@ export class StateMonitor {
     if (permit.previous) permit.previous.next = permit.next;
     else this.#restorations = permit.next;
     if (permit.next) permit.next.previous = permit.previous;
+    permit.previous = undefined;
+    permit.next = this.#freeRestorations;
+    this.#freeRestorations = permit;
   }
 
   restore(permit: Restoration, action: () => void): void {
@@ -230,6 +240,12 @@ export class StateMonitor {
     if (!tickets) return;
     this.epoch = tickets.epoch;
     this.store?.changed(tickets, name);
+  }
+
+  publishStringVariable(name: string, value: string): void {
+    const tickets = this.mutation(name);
+    this.values.publishString(name, value, this.raw.variables);
+    this.finish(tickets, name);
   }
 
   publish(tickets: Tickets, name: string | undefined, action: () => void): void {
@@ -345,7 +361,43 @@ export class Restoration {
   #closed = false;
   holding: Admission | undefined;
 
-  constructor(readonly monitor: StateMonitor, public admission: Admission | undefined, readonly resource: boolean) { this.epoch = admission?.epoch ?? 0; }
+  constructor(readonly monitor: StateMonitor, public admission: Admission | undefined, public resource: boolean) { this.epoch = admission?.epoch ?? 0; }
+
+  _reset(admission: Admission | undefined, resource: boolean): void {
+    this.admission = admission;
+    this.resource = resource;
+    this.epoch = admission?.epoch ?? 0;
+    this.#closed = false;
+    this.holding = undefined;
+    this.next = undefined;
+    this.previous = undefined;
+  }
+
+  completeStatus(status: number): void {
+    if (this.#closed) throw new Error("Indexed-array restoration already consumed");
+    try {
+      this.monitor.raw.status = status;
+      if (this.epoch) {
+        this.monitor.epoch = this.epoch;
+        if (this.monitor.store) this.monitor.store.epoch = this.epoch;
+      }
+    } finally {
+      this.close();
+    }
+  }
+
+  decrementLoopDepth(): void {
+    if (this.#closed) throw new Error("Indexed-array restoration already consumed");
+    try {
+      this.monitor.raw.loopDepth--;
+      if (this.epoch) {
+        this.monitor.epoch = this.epoch;
+        if (this.monitor.store) this.monitor.store.epoch = this.epoch;
+      }
+    } finally {
+      this.close();
+    }
+  }
 
   apply(action: () => void, close = true): void {
     if (this.#closed) throw new Error("Indexed-array restoration already consumed");
@@ -359,6 +411,8 @@ export class Restoration {
     this.monitor.retire(this);
     if (this.admission && --this.admission.restorationReferences === 0) this.admission.release();
     this.holding?.release();
+    this.admission = undefined;
+    this.holding = undefined;
   }
 }
 

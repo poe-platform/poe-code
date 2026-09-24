@@ -34,16 +34,16 @@ function treeHasSubscript(node: Arithmetic | undefined): boolean {
   }
 }
 
-function fastDecimalLiteral(text: string | undefined): { value: bigint; units: number } | undefined {
-  if (text === undefined || text === "0") return { value: 0n, units: 2 };
-  if (text === "") return { value: 0n, units: 1 };
+function fastDecimalLiteral(text: string | undefined, budget: ParseBudget): bigint | undefined {
+  if (text === undefined || text === "0") { budget.admit(2); return 0n; }
+  if (text === "") { budget.admit(1); return 0n; }
   const len = text.length;
   if (len > 16) return undefined;
   let start = 0;
   let negative = false;
   if (text.charCodeAt(0) === 45) {
     if (len === 1) return undefined;
-    if (text === "-0") return { value: 0n, units: 4 };
+    if (text === "-0") { budget.admit(4); return 0n; }
     negative = true;
     start = 1;
   }
@@ -55,7 +55,8 @@ function fastDecimalLiteral(text: string | undefined): { value: bigint; units: n
     if (code < 48 || code > 57) return undefined;
     num = num * 10 + (code - 48);
   }
-  return { value: BigInt(negative ? -num : num), units: negative ? 4 : 2 };
+  budget.admit(negative ? 4 : 2);
+  return BigInt(negative ? -num : num);
 }
 
 export function prepareArithmetic(source: string, budget = new ParseBudget()): ArithmeticProgram {
@@ -325,19 +326,30 @@ function formatArithmeticError(program: ArithmeticProgram, error: unknown): neve
   throw error;
 }
 
-function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
+export function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
   try {
     if (program.error) throw program.error;
     let visiting: Set<string> | undefined;
+    const evalNameValue = (node: Extract<Arithmetic, { kind: "name" }>): bigint => {
+      const reference = references.resolve(node.name, node.subscript) as string;
+      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
+      const text = references.read(reference) as string | undefined;
+      const fast = fastDecimalLiteral(text, budget);
+      if (fast !== undefined) return fast;
+      visiting ??= new Set();
+      visiting.add(reference);
+      try {
+        return evalNode(parseArithmetic(text ?? "0", 0, budget));
+      } finally {
+        visiting.delete(reference);
+      }
+    };
     const evalName = (node: Extract<Arithmetic, { kind: "name" }>): { reference: string; value: bigint } => {
       const reference = references.resolve(node.name, node.subscript) as string;
       if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
       const text = references.read(reference) as string | undefined;
-      const fast = fastDecimalLiteral(text);
-      if (fast !== undefined) {
-        budget.admit(fast.units);
-        return { reference, value: fast.value };
-      }
+      const fast = fastDecimalLiteral(text, budget);
+      if (fast !== undefined) return { reference, value: fast };
       visiting ??= new Set();
       visiting.add(reference);
       try {
@@ -352,7 +364,7 @@ function evaluateArithmeticSync(program: ArithmeticProgram, references: Arithmet
         case "literal":
           return node.value;
         case "name":
-          return evalName(node).value;
+          return evalNameValue(node);
         case "conditional": {
           const cond = evalNode(node.condition);
           return evalNode(cond ? node.yes : node.no);
@@ -468,10 +480,9 @@ function* arithmeticEvaluation(program: ArithmeticProgram, references: Arithmeti
           resolved.set(node, reference);
           if (visiting.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
           const text = yield references.read(reference);
-          const fast = fastDecimalLiteral(text);
+          const fast = fastDecimalLiteral(text, budget);
           if (fast !== undefined) {
-            budget.admit(fast.units);
-            value = fast.value;
+            value = fast;
           } else {
             visiting.add(reference);
             pending.push({ kind: "variable", name: reference }, { kind: "evaluate", node: parseArithmetic(text ?? "0", 0, budget) });

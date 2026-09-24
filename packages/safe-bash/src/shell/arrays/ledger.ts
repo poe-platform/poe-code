@@ -34,14 +34,38 @@ export class Admission implements Tickets {
 
   constructor(
     readonly ledger: ArrayLedger,
-    readonly wrappers: number,
-    readonly slots: number,
-    readonly payload: number,
-    readonly metadata: number,
-    readonly generation: number,
-    readonly version: number,
-    readonly epoch: number,
+    public wrappers: number,
+    public slots: number,
+    public payload: number,
+    public metadata: number,
+    public generation: number,
+    public version: number,
+    public epoch: number,
   ) {}
+
+  _reset(
+    wrappers: number,
+    slots: number,
+    payload: number,
+    metadata: number,
+    generation: number,
+    version: number,
+    epoch: number,
+  ): void {
+    this.wrappers = wrappers;
+    this.slots = slots;
+    this.payload = payload;
+    this.metadata = metadata;
+    this.generation = generation;
+    this.version = version;
+    this.epoch = epoch;
+    this.previous = undefined;
+    this.next = undefined;
+    this.owner = undefined;
+    this.released = false;
+    this.cleanup = undefined;
+    this.restorationReferences = 0;
+  }
 
   release(): void {
     if (this.released) return;
@@ -57,6 +81,7 @@ export class ArrayLedger {
   #used: Counters = [0, 0, 0, 0, 0, 0, 0];
   #sequence = { lastIssued: 0 };
   #checkpoint = 0;
+  #freeAdmissions: Admission[] = [];
 
   constructor(readonly bytes: number, readonly fields: number, initialTicket = 0) {
     if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError("Invalid private initial ticket");
@@ -217,6 +242,11 @@ export class ArrayLedger {
         used[4]! += allocBytes;
         used[5]! += allocatedSlots;
         used[6]! += workNum;
+        const pooled = this.#freeAdmissions.pop();
+        if (pooled) {
+          pooled._reset(wrappers, slots, payload, metadataNum, generation, version, epoch);
+          return pooled;
+        }
         return new Admission(this, wrappers, slots, payload, metadataNum, generation, version, epoch);
       }
     }
@@ -256,6 +286,9 @@ export class ArrayLedger {
     this.#used[1] -= admission.slots;
     this.#used[2] -= admission.payload;
     this.#used[3] -= admission.metadata;
+    admission.cleanup = undefined;
+    admission.restorationReferences = 0;
+    if (this.#freeAdmissions.length < 128) this.#freeAdmissions.push(admission);
   }
 
   checkpoint(signal?: AbortSignal, units = 1): Promise<void> | undefined {

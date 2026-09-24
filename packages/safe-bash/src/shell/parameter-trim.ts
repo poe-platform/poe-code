@@ -9,7 +9,7 @@ interface Projection {
   invalid: Uint32Array;
 }
 
-function isWellFormedString(text: string, byteMode: boolean): boolean {
+export function isWellFormedString(text: string, byteMode: boolean): boolean {
   for (let i = 0; i < text.length; i++) {
     const code = text.charCodeAt(i);
     if (byteMode) {

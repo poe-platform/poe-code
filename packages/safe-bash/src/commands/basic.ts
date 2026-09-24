@@ -1,5 +1,5 @@
 import { writeDiagnostic } from "../escaping.js";
-import { basename, dirname, getCommandArguments, type CommandContext, type CommandDefinition, type CommandResult } from "../contracts/index.js";
+import { basename, dirname, getCommandArguments, type CommandContext, type CommandDefinition, type CommandHandler, type CommandResult } from "../contracts/index.js";
 import { define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
@@ -8,6 +8,8 @@ import { printfHex } from "./printf-hex.js";
 import { parsePrintfFloat } from "./printf-float.js";
 import { printfDecimal } from "./printf-decimal.js";
 import { parsePrintfDirective } from "./printf-format.js";
+
+export const defaultEchoExecutors = new WeakSet<CommandHandler>();
 
 export function basicCommands(): CommandDefinition[] {
   return [
@@ -89,7 +91,10 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     printfCommand,
-  ].map(command => ({ ...command, filesystemRequirements: command.name === "pwd" ? pwdRequirements : [] }));
+  ].map(command => {
+    if (command.name === "echo") defaultEchoExecutors.add(command.execute);
+    return { ...command, filesystemRequirements: command.name === "pwd" ? pwdRequirements : [] };
+  });
 }
 
 export async function formatPrintf(context: CommandContext): Promise<CommandResult> {

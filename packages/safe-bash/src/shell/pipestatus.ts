@@ -5,6 +5,8 @@ import { IndexedBinding, textToken } from "./arrays/bindings.js";
 import { arrayStore, stateMonitor } from "./arrays/state.js";
 
 const name = "PIPESTATUS";
+const pipeStatusFastCharge = { generation: true, version: true, epoch: true, work: 8 } as const;
+const pipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
 
 export type PipelineStatusTarget = "indexed" | "scalar" | "readonly-absent" | "local-tombstone" | "exported-absent" | "absent";
 
@@ -43,15 +45,18 @@ export function publishPipelineStatus(
       existing.values.size === 1 &&
       existing.maximum === 0 &&
       !store.watches.has(name) &&
-      !monitor.hasOverlay(name) &&
-      existing.get(0) === (status === 0 ? "0" : String(status))
+      !monitor.hasOverlay(name)
     ) {
-      const owner = monitor.internalOwner();
-      const tickets = owner.charge({ generation: true, version: true, epoch: true, work: 8 });
-      monitor.publish(tickets, name, () => {
-        store.revise(name, existing, tickets);
-      });
-      return;
+      const statusStr = status === 0 ? "0" : status === 1 ? "1" : String(status);
+      const elem0 = existing.values.get(0);
+      if (elem0 && elem0.text.references === 1 && elem0.text.bytes === statusStr.length) {
+        elem0.text.shellValue = statusStr;
+        const owner = monitor.internalOwner();
+        const tickets = owner.charge(pipeStatusFastCharge, pipeStatusTickets);
+        monitor.epoch = tickets.epoch;
+        store.changed(tickets, name);
+        return;
+      }
     }
   }
   return publishPipelineStatusSlow(state, target, monitor, statuses, signal, scope);

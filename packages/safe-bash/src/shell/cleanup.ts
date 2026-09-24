@@ -9,6 +9,8 @@ export class InvocationScope {
   #callbacks: Map<symbol, InvocationCleanup> | undefined;
   #finalizers: (() => void)[] | undefined;
   #work: Set<Promise<void>> | undefined;
+  #activeWork = 0;
+  #workWaiters: (() => void)[] | undefined;
   #controller: AbortController | undefined;
   #closed = false;
   #drain: Promise<void> | undefined;
@@ -54,6 +56,18 @@ export class InvocationScope {
     return () => { callbacks.delete(registration); };
   }
 
+  enterWork(): void {
+    this.assertOpen();
+    this.#activeWork++;
+  }
+
+  leaveWork(): void {
+    if (--this.#activeWork === 0 && this.#workWaiters) {
+      const waiters = this.#workWaiters.splice(0);
+      for (const resolve of waiters) resolve();
+    }
+  }
+
   run<Value>(operation: () => Promise<Value>): Promise<Value> {
     this.assertOpen();
     const pending = operation();
@@ -70,9 +84,10 @@ export class InvocationScope {
   }
 
   async drainWork(): Promise<void> {
-    if (!this.#work?.size && !this.#children?.size) return;
+    if (!this.#work?.size && this.#activeWork === 0 && !this.#children?.size) return;
     await Promise.all([
       ...(this.#work ?? []),
+      ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
       ...(this.#children ? [...this.#children].map(child => child.drainWork()) : []),
     ]);
   }
@@ -89,7 +104,7 @@ export class InvocationScope {
   close(): Promise<void> {
     if (!this.#drain) {
       this.#seal();
-      if (!this.#callbacks?.size && !this.#children?.size && !this.#work?.size) {
+      if (!this.#callbacks?.size && !this.#children?.size && !this.#work?.size && this.#activeWork === 0) {
         if (this.#finalizers) {
           for (const finalize of this.#finalizers.splice(0)) {
             try { finalize(); }
@@ -108,6 +123,7 @@ export class InvocationScope {
             ...callbacks.map((cleanup) => this.cleanup(cleanup)),
             ...(this.#children ? [...this.#children].map((child) => child.close()) : []),
             ...(this.#work ?? []),
+            ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
           ]);
         } finally {
           if (this.#finalizers) {

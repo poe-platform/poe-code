@@ -1,12 +1,13 @@
 import { writeDiagnostic } from "../escaping.js";
 import { basename, dirname, getCommandArguments, type CommandContext, type CommandDefinition, type CommandResult } from "../contracts/index.js";
-import { decoder, define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
+import { define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
 import { printfInteger } from "./printf-integer.js";
 import { printfHex } from "./printf-hex.js";
 import { parsePrintfFloat } from "./printf-float.js";
 import { printfDecimal } from "./printf-decimal.js";
+import { parsePrintfDirective } from "./printf-format.js";
 
 export function basicCommands(): CommandDefinition[] {
   return [
@@ -130,13 +131,9 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         continue;
       }
       if (rawFormat ? rawFormat[offset + 1] === 37 : format[offset + 1] === "%") { await output(context, "%"); offset += 2; continue; }
-      let tokenEnd = offset + 1;
-      if (rawFormat) while (tokenEnd < rawFormat.length && (rawFormat[tokenEnd]! >= 48 && rawFormat[tokenEnd]! <= 57 || [32, 35, 42, 43, 45, 46, 104, 108, 76, 106, 122, 116].includes(rawFormat[tokenEnd]!))) tokenEnd++;
-      const fragment = rawFormat ? decoder.decode(rawFormat.subarray(offset, tokenEnd + 1)) : format.slice(offset);
-      const match = /^%([-+ #0]*)(\d+|\*)?(?:\.(\d*|\*))?(?:hh|ll|[hlLjzt])?([sbqcdiouxXfFeEgGaA])/u.exec(fragment);
-      if (!match) throw new UsageError(`invalid format near '${fragment}'`);
-      offset += match[0].length;
-      let flags = match[1]!;
+      const directive = await parsePrintfDirective(rawFormat ?? format, offset, context.signal);
+      offset = directive.end;
+      let flags = directive.flags;
       const dynamic = async (): Promise<number> => {
         const index = argument++;
         const token = args[index] ?? "0";
@@ -150,13 +147,13 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         if (!Number.isSafeInteger(number)) throw new UsageError(`invalid width or precision '${token}'`);
         return number;
       };
-      const suppliedWidth = match[2] === "*" ? await dynamic() : Number(match[2] ?? 0);
+      const suppliedWidth = directive.width === "*" ? await dynamic() : directive.width;
       if (suppliedWidth < 0) flags += "-";
       const width = Math.abs(suppliedWidth);
-      const suppliedPrecision = match[3] === "*" ? await dynamic() : match[3] === undefined ? undefined : Number(match[3]);
+      const suppliedPrecision = directive.precision === "*" ? await dynamic() : directive.precision;
       const precision = suppliedPrecision !== undefined && suppliedPrecision < 0 ? undefined : suppliedPrecision;
       if (width > 1_000_000 || (precision ?? 0) > 1000) throw new UsageError("format width or precision is too large");
-      const specifier = match[4]!;
+      const specifier = directive.specifier;
       if (/[fFeEgGaA]/u.test(specifier) && (precision ?? 0) > 100) throw new UsageError("floating-point precision is too large");
       const suppliedIndex = argument++;
       const supplied = args[suppliedIndex] ?? "";

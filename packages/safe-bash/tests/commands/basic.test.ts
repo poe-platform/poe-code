@@ -4,9 +4,109 @@ import { spawnSync } from "node:child_process";
 import { escapeBytes } from "../../src/commands/internal.js";
 import { CommandRegistry, createCommandArguments, toByteSource } from "../../src/contracts/index.js";
 import { shellValueFromBytes, type ShellValue } from "../../src/contracts/value.js";
-import { Shell } from "../../src/shell/index.js";
+import { Shell, ShellLimitError, cloudflareWorkerLimits } from "../../src/shell/index.js";
+import { formatPrintf, printfCommand } from "../../src/commands/basic.js";
+import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { fixture, run } from "./helpers.js";
+
+for (const raw of [false, true]) {
+  for (const [name, format] of [
+    ["flags", "%" + "0".repeat(8192) + "!"],
+    ["width", "%1" + "0".repeat(8192) + "!"],
+    ["precision", "%." + "0".repeat(8192) + "!"],
+  ] as const) test(`printf checks a low CPU allowance while scanning malformed ${raw ? "byte" : "text"} ${name}`, async () => {
+    const controller = new AbortController();
+    const expired = new ShellLimitError("maxCpuMs");
+    let checkpoints = 0, writes = 0;
+    registerYieldCheckpoint(controller.signal, () => {
+      // Deterministic CPU accounting: four 8 ms slices exhaust a 30 ms allowance.
+      if (++checkpoints * 8 <= 30) return;
+      controller.abort(expired);
+      throw expired;
+    });
+    const argumentValues = createCommandArguments([raw ? shellValueFromBytes(Buffer.from(format)) : format]);
+    await assert.rejects(formatPrintf({
+      command: "printf", args: argumentValues.args, argumentValues,
+      cwd: "/", env: {}, fs: await fixture(), signal: controller.signal,
+      stdin: toByteSource(""), stdout: { async write() { writes++; } }, stderr: { async write() { writes++; } },
+    }), error => error === expired);
+    assert.equal(checkpoints, 4);
+    assert.equal(writes, 0);
+  });
+}
+
+for (const assignment of [false, true]) test(`Worker printf${assignment ? " -v" : ""} yields during malformed formats under a 30 ms CPU limit`, async t => {
+  let now = 0, writes = 0;
+  t.mock.method(performance, "now", () => now);
+  const shell = new Shell({ fs: await fixture(), limits: { ...cloudflareWorkerLimits, maxCpuMs: 30 } });
+  shell.register(printfCommand);
+  let advance: ReturnType<typeof setImmediate> | undefined;
+  shell.use(async (_context, next) => {
+    advance = setImmediate(() => { now = 31; });
+    return next();
+  });
+  t.after(async () => { clearImmediate(advance); await shell.dispose(); });
+  const sink = { async write() { writes++; } };
+  await assert.rejects(shell.exec(`printf ${assignment ? "-v value " : ""}"$FORMAT"`, {
+    env: { FORMAT: "%" + "0".repeat(8192) + "!" }, stdout: sink, stderr: sink,
+  }), error => error instanceof ShellLimitError && error.limit === "maxCpuMs");
+  assert.equal(writes, 0);
+});
+
+test("printf bounds directive work and diagnostic size without limiting literal format length", async () => {
+  const maximum = 16 * 1024;
+  for (const raw of [false, true]) {
+    const admitted = "%" + "0".repeat(maximum - 2) + "s";
+    const rejected = "%" + "0".repeat(maximum - 1) + "s";
+    const execute = (format: string) => runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format, "x"]);
+    const valid = await execute(admitted);
+    assert.equal(valid.exitCode, 0);
+    assert.equal(valid.stdout.toString(), "x");
+    const oversized = await execute(rejected);
+    assert.equal(oversized.exitCode, 2);
+    assert.equal(oversized.stdout.length, 0);
+    assert.match(oversized.stderr.toString(), /format directive.*limit/);
+    const invalid = await execute("%" + "0".repeat(8192) + "!");
+    assert.equal(invalid.exitCode, 2);
+    assert.equal(invalid.stdout.length, 0);
+    assert.match(invalid.stderr.toString(), /invalid format/);
+    assert.ok(invalid.stderr.length < 256);
+    const literal = "x".repeat(maximum + 1);
+    const long = await execute(literal + "%s");
+    assert.equal(long.exitCode, 0);
+    assert.equal(long.stdout.toString(), literal + "x");
+  }
+});
+
+test("printf scans directive grammar consistently for text and opaque byte formats", async () => {
+  for (const [format, operands] of [
+    ["%0005d|%.d|%.s", ["7", "0", "text"]],
+    ["%#.*hx|%jd|%zu|%td|%hhd|%llX", ["4", "15", "17", "18", "-19", "20", "255"]],
+    ["[% +0-6.2Lf]|%000*.*s|%s", ["1.5", "-5", "2", "abc", "tail"]],
+  ] as const) {
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", 'printf -- "$@"', "printf", format, ...operands], {
+      env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+    });
+    assert.ifError(native.error);
+    assert.equal(native.signal, null);
+    assert.equal(native.status, 0);
+    for (const raw of [false, true]) {
+      const result = await runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format, ...operands]);
+      assert.equal(result.exitCode, native.status);
+      assert.deepEqual(result.stdout, native.stdout);
+      assert.deepEqual(result.stderr, native.stderr);
+    }
+  }
+  for (const format of ["%", "% ", "%8-2s", "%*3s", "%.**s", "%1.2.3s", "%hhhd", "%llld", "%jzd", "%Hs", "%.", "%..s", "%α"]) {
+    for (const raw of [false, true]) {
+      const result = await runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format]);
+      assert.equal(result.exitCode, 2, format);
+      assert.equal(result.stdout.length, 0, format);
+      assert.match(result.stderr.toString(), /invalid format/, format);
+    }
+  }
+});
 
 for (const [specifier, operand, expected, diagnostic] of [
   ["d", "9223372036854775810", "9223372036854775807", "Numerical result out of range"],

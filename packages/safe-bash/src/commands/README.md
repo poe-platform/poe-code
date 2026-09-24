@@ -57,7 +57,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | Command | Implemented common behavior and flags |
 | --- | --- |
 | `echo` | Joined operands; grouped `-n`, `-e`, `-E`; control/octal/hex escapes and `\c` stop. |
-| `printf` | Format reuse; `%%`, `%s`, `%b`, `%c`, `%q`, integer/base and common floating formats; numeric width, precision, `-+ #0` flags; binary escape output. |
+| `printf` | Format reuse; `%%`, `%s`, `%b`, `%c`, `%q`, integer/base and common floating formats including `%a`/`%A`; numeric or dynamic `*` width and precision, `-+ #0` flags; binary escape output; shell `-v` variable assignment. |
 | `cat` | Ordered files and repeated `-` sharing stdin; raw binary streaming; `-n`, `-b`, `-s`, `-E`, `-T`, `-v`, `-A`, `-e`, `-t`, `-u`. |
 | `pwd` | Logical cwd by default/`-L`; filesystem-resolved cwd with `-P`. A shell builtin may take precedence. |
 | `ls` | Sorted one-per-line names; `-1`, `-a`, `-A`, `-d`, `-F`, `-p`, `-r`, `-R`, `-L`, `-l`, `-h`; `-t`/`--sort=time`, `-S`/`--sort=size`. `-c`, `-u`, and `--time=mtime/modification/ctime/status/atime/access/use` select filesystem timestamps. Access/change time sorts names unless `-l` or size sorting is selected; `-lt` also sorts long records by the selected time. Long records use numeric metadata and UTC dates. |
@@ -117,9 +117,11 @@ options. Invalid options and malformed operands produce diagnostics and status
   `wc` prints plain space-separated fields rather than platform-specific padding.
   `ls -l` is a stable numeric/UTC presentation, not native locale formatting;
   terminal columns, block totals, and owner lookup are absent.
-- `printf` does not implement `-v`, dynamic `*` widths, `%a`, `%n`, time formats,
-  complete `%q` rendering compatibility, or native
-  overflow behavior. Width is capped at one million; precision at 1,000 (100
+- `printf` does not implement `%n`, time formats, complete `%q` rendering
+  compatibility, or native overflow behavior. Each directive is capped at 16 KiB,
+  including `%`, flags, fields, length modifier, and conversion; malformed
+  directives are scanned with cooperative CPU/cancellation checks and bounded
+  diagnostic previews. Width is capped at one million; precision at 1,000 (100
   for floating formats). `%s` precision is byte-based. Floating formatting uses
   JavaScript numbers rather than the platform C floating-point library. Unicode
   `\u`/`\U` escapes support C/POSIX and UTF-8 output, with `LC_ALL`, `LC_CTYPE`,

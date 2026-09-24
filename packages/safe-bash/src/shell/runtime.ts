@@ -2292,7 +2292,7 @@ export class Runtime {
     return binding.keyIndex(value, owner, this.signal, create);
   }
 
-  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" = "assignment"): Promise<void> {
+  async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO, declaration?: "readonly", origin: "assignment" | "declaration" = "assignment", associative?: boolean): Promise<void> {
     const name = assignment.name;
     this.signal.throwIfAborted();
     if (state.readonlyVariables?.has(name) && arrayStore(state)?.get(name)?.associative) { await this.diagnostic(io, `${name}: readonly variable`); throw completedExit(1); }
@@ -2306,7 +2306,8 @@ export class Runtime {
     try {
       const watch = await store.watch(name, operation, this.signal);
       const current = store.get(name);
-      if (current?.associative && assignment.kind === "compound" && assignment.entries.length) throw new ArrayFailure("nonempty associative compound assignment is unsupported");
+      if (associative !== undefined && current && current.associative !== associative) throw new ArrayFailure("cannot convert array kind");
+      const isAssociative = associative ?? current?.associative;
       const initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
       let selectedIndex: number | undefined;
       let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
@@ -2314,11 +2315,11 @@ export class Runtime {
         operation.reserve({ work: assignment.index.decimal.length + 1 }).release();
         if (!current?.associative) selectedIndex = await this.arrayIndex(current, assignment.index, state, io, operation, true, initialMaximum);
       } else for (const entry of assignment.entries) {
+        if (isAssociative && !entry.index) throw new ArrayFailure("associative compound entry requires a subscript");
         operation.reserve({ work: entry.value.parts.length + (entry.index?.decimal.length ?? 0) + 2 }).release();
         if (entry.index) {
           const index = numericIndex(entry.index);
-          if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
-          planned = index + 1;
+          planned = !isAssociative && index !== undefined ? index + 1 : null;
         } else {
           const quotedScalar = (part: WordPart): boolean => {
             const selector = getArraySelector(part);
@@ -2343,7 +2344,7 @@ export class Runtime {
       }
       const prepared = await store.prepareName(name, operation, this.signal);
       const preserve = assignment.kind === "element" || assignment.append;
-      staged = preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, current?.associative);
+      staged = preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, isAssociative);
       if (preserve && !current && state.variables[name] !== undefined) {
         const token = await textToken(staged.owner, stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, this.signal);
         try { staged.insert(0, token); } catch (error) { token.release(); throw error; }
@@ -2376,10 +2377,12 @@ export class Runtime {
           }
           if (expandedEntry) continue;
         }
+        const index = entry.index ? (await this.arrayIndex(staged, entry.index, state, io, operation, true))! : undefined;
         const fields = await this.valueWord(entry.value, state, io, entry.index === undefined);
-        if (entry.index) {
-          const index = numericIndex(entry.index)!;
-          await insert(index, await join(fields));
+        if (index !== undefined) {
+          let value = await join(fields);
+          if (entry.append) value = await join([staged.getValue(index) ?? "", value]);
+          await insert(index, value);
           cursor = index + 1;
         } else for (const value of fields) { await insert(cursor, value); cursor++; }
       }
@@ -6529,7 +6532,7 @@ export class Runtime {
               // Retain the visible outer binding while expanding the initializer.
               // The saved local participates in the shared publication observers.
               if (saved) locals!.set(name, saved);
-              await this.arrayAssignment(compound, state, context, enabled.has("r") ? "readonly" : undefined, "declaration");
+              await this.arrayAssignment(compound, state, context, enabled.has("r") ? "readonly" : undefined, "declaration", indexedLocal ? associativeDeclaration : undefined);
               published = true;
               assignments.delete(name);
             } else {

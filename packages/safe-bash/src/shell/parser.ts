@@ -1290,7 +1290,7 @@ class Parser {
             this.newlines();
             while (this.current.kind === "word") {
               const original = this.advance().word!;
-              const entry = compoundEntry(original, this.budget);
+              const entry = compoundEntry(original, this.budget, source => parseArraySubscript(source, this.budget, this.lexer.byteLocale, this.lexer.depth, this.lexer.byteSource, this.lexer.syntax), (source, start) => { const lexer = new Lexer(this.budget, source, this.lexer.depth, [], 0, this.lexer.byteLocale, undefined, false, undefined, 0, false, undefined, this.lexer.byteSource, this.lexer.syntax); lexer.position = start; lexer.word("]"); return lexer.source[lexer.position] === "]" ? lexer.position : -1; });
               if (entry.index) { this.budget.admit(); compoundEntryWords.set(entry, original); }
               entries.push(entry);
               this.newlines();
@@ -1347,7 +1347,7 @@ export function parseCompoundArrayValue(source: string, byteLocale: boolean, byt
   for (let token = lexer.next(); token.kind !== "end" && token.value !== ")"; token = lexer.next()) {
     if (token.value === "\n") continue;
     if (token.kind !== "word") throw new ShellSyntaxError("Unsupported indexed-array compound value", token.offset);
-    const entry = compoundEntry(token.word!, budget);
+    const entry = compoundEntry(token.word!, budget, source => parseArraySubscript(source, budget, byteLocale, 0, byteSource, syntax), (source, start) => { const scanner = new Lexer(budget, source, 0, [], 0, byteLocale, undefined, false, undefined, 0, false, undefined, byteSource, syntax); scanner.position = start; scanner.word("]"); return scanner.source[scanner.position] === "]" ? scanner.position : -1; });
     if (entry.index) { budget.admit(); compoundEntryWords.set(entry, token.word!); }
     entries.push(entry);
   }

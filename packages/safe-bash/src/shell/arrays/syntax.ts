@@ -16,6 +16,7 @@ export type ArraySelector =
 export interface ArrayEntry {
   readonly index?: LiteralIndex;
   readonly value: Word;
+  readonly append?: boolean;
 }
 
 export type ArrayAssignment =
@@ -140,18 +141,21 @@ export function compoundHead(word: Word, budget = new ParseBudget()): { readonly
   return { name: match[1]!, append: match[2] === "+" };
 }
 
-export function compoundEntry(word: Word, budget = new ParseBudget()): ArrayEntry {
+export function compoundEntry(word: Word, budget = new ParseBudget(), parseWord?: (source: string) => Word, subscriptEnd?: (source: string, start: number) => number): ArrayEntry {
   budget.admit();
   const source = word.spelling;
   const first = word.parts[0];
   if (source === undefined || source[0] !== "[" || first?.kind !== "text" || first.quoted) return { value: word };
-  const end = source.indexOf("]", 1);
-  if (end < 0 || source[end + 1] !== "=") {
+  const end = subscriptEnd ? subscriptEnd(source, 1) : source.indexOf("]", 1);
+  const append = source[end + 1] === "+";
+  if (end < 0 || source[end + (append ? 2 : 1)] !== "=") {
     if (source.includes("=")) throw new ShellSyntaxError("Invalid indexed-array entry", word.offset);
     return { value: word };
   }
-  const index = literalIndex(source.slice(1, end), word.offset + 1, budget);
-  return { index, value: removePrefix(word, index.decimal.length + 3, budget) };
+  const keySource = source.slice(1, end);
+  const index = parseWord ? stringIndex(keySource, budget, parseWord(keySource)) : literalIndex(keySource, word.offset + 1, budget);
+  const value = parseWord ? parseWord(source.slice(end + (append ? 3 : 2))) : removePrefix(word, index.decimal.length + (append ? 4 : 3), budget);
+  return { index, value, ...(append ? { append: true } : {}) };
 }
 
 export function scalarAssignmentName(word: Word): string | undefined {

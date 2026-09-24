@@ -11,6 +11,17 @@ for (const [label, source, expected] of [
   ["unset member", 'declare -A m; m[k]=v; unset "m[k]"; args "${#m[@]}" "${m[k]}"', '["0",""]'],
   ["prototype names", 'declare -A m; m[__proto__]=v; args "${m[__proto__]}"', '["v"]'],
   ["subshell copy", 'declare -A m; m[k]=old; (m[k]=new); args "${m[k]}"', '["old"]'],
+  ["compound declaration", 'declare -A m=([foo]=bar [baz]=qux); args "${m[foo]}" "${m[baz]}"', '["bar","qux"]'],
+  ["compound replacement and append", 'declare -A m; m[old]=gone; m=([foo]=bar); m+=([b]=2 [foo]+=more); args "${m[old]}" "${m[foo]}" "${m[b]}"', '["","barmore","2"]'],
+  ["compound quoted and expanded keys", 'declare -A m; k="two words"; m=(["a]b"]=yes [$k]=space [01]=zero [1]=one); args "${m["a]b"]}" "${m[$k]}" "${m[01]}" "${m[1]}"', '["yes","space","zero","one"]'],
+  ["compound arithmetic indices", 'i=2; a=([i]=first [i+1]=second); args "${!a[*]}" "${a[2]}" "${a[3]}"', '["2 3","first","second"]'],
+  ["compound arithmetic expression", 'a=([1+2]=three next); args "${a[3]}" "${a[4]}"', '["three","next"]'],
+  ["compound entry append", 'a=(x y); a+=([0]+=1 [1]+=2); args "${a[0]}" "${a[1]}"', '["x1","y2"]'],
+  ["compound subscript evaluated once", 'i=0; a=([i++]=first [i++]=second); args "$i" "${a[0]}" "${a[1]}"', '["2","first","second"]'],
+  ["compound repeated entry append", 'a=([0]=x [0]+=y); args "${a[0]}"', '["xy"]'],
+  ["compound expanded bracket key", 'declare -A m; k="a]b"; m=([$k]=yes); args "${m[$k]}"', '["yes"]'],
+  ["compound raw key identity", "declare -A m; x=$'\\377'; y=$'\\376'; m=([$x]=first [$y]=second); args \"${m[$x]}\" \"${m[$y]}\"", '["first","second"]'],
+  ["compound negative index", 'a=([2]=two [-1]+=more); args "${a[2]}"', '["twomore"]'],
 ] as const) test(`associative arrays: ${label}`, async () => {
   const { shell } = setup();
   try {
@@ -109,15 +120,6 @@ for (const [label, limits, count, prefix] of [
     assert.equal(effects, 0);
     assert.equal((await shell.exec('effect')).exitCode, 0);
     assert.equal(effects, 1);
-  } finally { await shell.dispose(); }
-});
-
-test('unsupported nonempty associative compound assignment is refused without changing the binding', async () => {
-  const { shell } = setup();
-  try {
-    const result = await shell.exec('declare -A m; m[k]=old; m=(one two); args "$?" "${m[k]}"');
-    assert.equal(result.stdout, '["1","old"]');
-    assert.match(result.stderr, /associative compound assignment/u);
   } finally { await shell.dispose(); }
 });
 

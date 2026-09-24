@@ -8,12 +8,16 @@ import { openFileDescriptor } from "../descriptor.js";
 
 export interface ObjectFileVersion {
   readonly revision: string;
+  /** Opaque lease/reservation token; independent of namespace revision. */
+  readonly publicationToken?: string;
   readonly stat: FileStat;
   read(position: number, maxBytes: number, options?: FsOptions): Promise<Uint8Array>;
   close(): Promise<void>;
 }
 
 export interface ObjectFilePublicationOptions extends FsOptions {
+  /** Token from this descriptor's current retained version, if supplied by its store. */
+  readonly previousToken?: string;
   readonly size: number;
   readonly mode: number;
 }
@@ -105,12 +109,13 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
 
   const version = (value: ObjectFileVersion): ObjectFileVersion => {
     if (!value || typeof value.revision !== "string" || value.revision.length === 0 || value.revision.length > 4096
+      || value.publicationToken !== undefined && (typeof value.publicationToken !== "string" || value.publicationToken.length === 0 || value.publicationToken.length > 4096)
       || !value.stat || value.stat.type !== "file" || !Number.isSafeInteger(value.stat.size) || value.stat.size < 0
       || !Number.isSafeInteger(value.stat.mode) || value.stat.mode < 0 || value.stat.mode > 0o177777
       || ![value.stat.mtimeMs, value.stat.atimeMs, value.stat.ctimeMs].every(Number.isFinite)
       || typeof value.read !== "function" || typeof value.close !== "function") throw new FsError("EIO", { message: "Invalid immutable object version" });
     if (value.stat.size > maxFileBytes) throw new FsError("EFBIG", { message: "Object descriptor file limit exceeded" });
-    return Object.freeze({ revision: value.revision, stat: Object.freeze({ ...value.stat }), read: value.read.bind(value), close: value.close.bind(value) });
+    return Object.freeze({ revision: value.revision, ...(value.publicationToken === undefined ? {} : { publicationToken: value.publicationToken }), stat: Object.freeze({ ...value.stat }), read: value.read.bind(value), close: value.close.bind(value) });
   };
   const clearPages = (state: ObjectFileState): void => {
     stagedBytes -= state.pages.size * chunkBytes;
@@ -211,7 +216,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
               yield bytes;
             }
           })();
-          received = await store.publish!(path, expected, source, { ...selected, size: state.size, mode: (state.head?.stat.mode ?? admitted.mode) & 0o7777 });
+          received = await store.publish!(path, expected, source, { ...selected, ...(state.head?.publicationToken === undefined ? {} : { previousToken: state.head.publicationToken }), size: state.size, mode: (state.head?.stat.mode ?? admitted.mode) & 0o7777 });
         });
         const published = version(received!);
         if (emitted !== state.size || published.stat.size !== state.size || published.revision === expected) throw new FsError("EIO", { path, message: "Invalid conditional publication acknowledgement" });

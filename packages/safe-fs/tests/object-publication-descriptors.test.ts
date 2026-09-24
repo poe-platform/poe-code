@@ -308,3 +308,47 @@ it("drains an admitted publication-body read before retiring its immutable lease
   }
   expect(events.released).toBe(events.acquired);
 });
+
+it("forwards the exact retained publication token without changing namespace revisions", async () => {
+  const storage = new MemoryFileSystem();
+  await storage.writeFile("/file", Uint8Array.of(0));
+  const { store, events } = publicationStore(storage);
+  const acquire = store.acquire;
+  const publish = store.publish!;
+  let nextToken = 0;
+  const forwarded: (string | undefined)[] = [];
+  const acquisitions: ObjectFileVersion[] = [];
+  const wrap = (value: ObjectFileVersion): ObjectFileVersion => ({
+    ...value, publicationToken: `lease-${++nextToken}`,
+  });
+  store.acquire = async (...args) => {
+    const value = await acquire(...args);
+    if (!value) return undefined;
+    const wrapped = wrap(value);
+    acquisitions.push(wrapped);
+    return wrapped;
+  };
+  store.publish = async (path, revision, source, options) => {
+    forwarded.push(options.previousToken);
+    return wrap(await publish(path, revision, source, options));
+  };
+  const fs = withObjectFileDescriptors(storage, store, { chunkBytes: 4 });
+  const first = await fs.open!("/file", { access: "write" });
+  const second = await fs.open!("/file", { access: "write" });
+  expect(acquisitions[0]!.revision).toBe(acquisitions[1]!.revision);
+  expect(acquisitions[0]!.publicationToken).not.toBe(acquisitions[1]!.publicationToken);
+  try {
+    await second.write(Uint8Array.of(2), 0);
+    await second.sync(false);
+    await second.write(Uint8Array.of(3), 0);
+    await second.sync(false);
+    await first.write(Uint8Array.of(1), 0);
+    await expect(first.sync(false)).rejects.toMatchObject({ code: "EAGAIN" });
+    expect(forwarded).toEqual(["lease-2", "lease-3", "lease-1"]);
+    expect(await storage.readFile("/file")).toEqual(Uint8Array.of(3));
+  } finally {
+    await second.close();
+    await expect(first.close()).rejects.toMatchObject({ code: "EAGAIN" });
+  }
+  expect(events.released).toBe(events.acquired);
+});

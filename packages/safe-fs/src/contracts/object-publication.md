@@ -10,13 +10,19 @@ download the workspace, create staging directories, or infer atomicity from flag
 - `acquire(path, { access, signal })` authorizes access and returns an immutable
   version, or `undefined` for a missing final entry. Other errors propagate.
   Its `stat` and opaque `revision` describe the same namespace binding as its
-  bytes. `read(position, maxBytes, options)` returns exactly the requested
+  bytes. An optional `publicationToken` (a nonempty string up to 4096 characters)
+  identifies the individual retained lease or reservation, independently of revision.
+  `read(position, maxBytes, options)` returns exactly the requested
   in-range bytes; the adapter bounds every request. `close()` releases its lease.
 - Optional `publish(path, expectedRevision, source, { size, mode, signal })`
   consumes the complete byte source with backpressure, then atomically creates
   an absent entry (`expectedRevision === null`) or replaces precisely the
   expected binding. It enforces authorization and backend quotas, rejects
   conflicts with `EAGAIN`/`EEXIST`, and returns a pinned acknowledged version.
+  The descriptor forwards its current version's optional token as `previousToken`
+  and adopts the returned token for subsequent publications. The host validates
+  this token within its own authority; it is not namespace identity or permission.
+  Stores that omit tokens retain the same behavior.
   Every publication changes the revision. A content hash without an ABA-safe
   namespace generation is insufficient.
 - Optional `createStaging(path, { chunkBytes, maxFileBytes, signal })` allocates a

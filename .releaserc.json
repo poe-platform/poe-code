@@ -52,7 +52,8 @@
       "@semantic-release/github",
       {
         "successComment": "Issue was resolved by [#${nextRelease.gitHead.slice(0, 7)}](https://github.com/poe-platform/poe-code/commit/${nextRelease.gitHead})\n\nUpdate poe-code via `npm install -g poe-code@${nextRelease.version}`",
-        "successCommentCondition": "<% return !issue.pull_request; %>"
+        "successCommentCondition": "<% return !issue.pull_request; %>",
+        "releaseBodyTemplate": "<% const notes = nextRelease.notes; if (notes.length <= 120000) { %><%= notes %><% } else { const end = Math.max(0, notes.lastIndexOf('\\n', 120000)); %><%= notes.slice(0, end) %>\n\nRelease notes shortened to fit GitHub's limit. [Full commit history](https://github.com/poe-platform/poe-code/<%= lastRelease.gitHead ? 'compare/' + lastRelease.gitHead + '...' + nextRelease.gitHead : 'commits/' + nextRelease.gitHead %>).<% } %>"
       }
     ]
   ]

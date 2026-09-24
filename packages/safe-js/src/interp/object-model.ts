@@ -335,11 +335,16 @@ function trackPropertyTable(properties: SandboxObject, array = false): SandboxOb
     const key = keys[index]!;
     adjustScalarProperty(data, key, nativePropertyDescriptor(properties, key), 1);
   }
-  const tracked = new NativePropertyProxy(properties, {
+  // Inherited traps could expose the private backing and bypass invalidation.
+  // Clear the handler prototype after defining its own traps to keep fast fields.
+  const tracked = new NativePropertyProxy(properties, nativePropertySetPrototype({
     defineProperty(target, key, descriptor) {
+      // Proxy supplies a fresh descriptor record. Forward only its own fields;
+      // inherited get/set fields would turn a data write into an invalid mix.
+      const ownDescriptor = { __proto__: null, ...descriptor };
       const previous = typeof key === "string" ? nativePropertyDescriptor(target, key) : undefined;
       const previousLength = array && key === "length" ? (target as unknown as SandboxArray).length : undefined;
-      const changed = nativePropertyWrite(target, key, descriptor);
+      const changed = nativePropertyWrite(target, key, ownDescriptor);
       // ArraySetLength can delete trailing elements before rejecting a shrink.
       // Array index writes also change length without a separate proxy trap.
       if (changed || array) {
@@ -387,7 +392,7 @@ function trackPropertyTable(properties: SandboxObject, array = false): SandboxOb
       }
       return changed;
     }
-  });
+  } satisfies ProxyHandler<SandboxObject>, null));
   nativePropertyStateSet(tracked, state);
   nativePropertyDataSet(tracked, data);
   return tracked;

@@ -989,6 +989,49 @@ function measureSandboxDataWithSeen(
   };
   const collector = createMeasurementCollector(appendNativeCapture);
 
+  // Keep this classification block small enough to optimize independently.
+  // Every membership/state read remains fresh and in its original visit order.
+  const visitTemporalIntl = (value: object, depth: number): void => {
+    if (isSandboxTemporalInstant(value)) visit(temporalInstantEpoch(value), depth + 1);
+    if (isSandboxTemporalDuration(value)) usage += temporalDurationFieldNames.length * 8;
+    if (isSandboxTemporalPlainTime(value)) usage += temporalPlainTimeFieldNames.length * 8;
+    if (isSandboxTemporalPlainDateTime(value)) usage += temporalPlainDateTimeNumericFields.length * 8 + temporalPlainDateTimeFields(value).calendar.length;
+    if (isSandboxTemporalPlainDate(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainDateFields(value).calendar.length;
+    if (isSandboxTemporalPlainMonthDay(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainMonthDayFields(value).calendar.length;
+    if (isSandboxTemporalPlainYearMonth(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainYearMonthFields(value).calendar.length;
+    if (isSandboxTemporalZonedDateTime(value)) {
+      const fields = temporalZonedDateTimeFields(value);
+      visit(fields.epochNanoseconds, depth + 1);
+      usage += fields.timeZone.length + fields.calendar.length;
+    }
+    if (isSandboxLocale(value)) usage += localeTag(value).length;
+    if (isSandboxListFormat(value)) visit(listFormatState(value).options, depth + 1);
+    if (isSandboxRelativeTimeFormat(value)) visit(relativeTimeFormatState(value).options, depth + 1);
+    if (isSandboxDisplayNames(value)) visit(displayNamesState(value).options, depth + 1);
+    if (isSandboxPluralRules(value)) visit(pluralRulesState(value).options, depth + 1);
+    if (isSandboxDurationFormat(value)) {
+      const state = durationFormatState(value);
+      visit(state.settings, depth + 1);
+      visit(state.options, depth + 1);
+    }
+    if (isSandboxNumberFormat(value)) {
+      const state = numberFormatState(value);
+      visit(state.options, depth + 1);
+      visit(state.format, depth + 1);
+    }
+    if (isSandboxDateTimeFormat(value)) {
+      const state = dateTimeFormatState(value);
+      visit(state.options, depth + 1);
+      visit(state.requestedOptions, depth + 1);
+      visit(state.format, depth + 1);
+    }
+    if (isSandboxCollator(value)) {
+      const state = collatorState(value);
+      visit(state.options, depth + 1);
+      visit(state.compare, depth + 1);
+    }
+  };
+
   const visit = (value: unknown, depth = 0): void => {
     // Keep ordered record/array descendants off the native call stack.
     const floor = pendingCount;
@@ -1386,44 +1429,7 @@ function measureSandboxDataWithSeen(
           visit(helperState.callback, depth + 1);
         }
         if (isSandboxDate(value)) usage += 8;
-        if (isSandboxTemporalInstant(value)) visit(temporalInstantEpoch(value), depth + 1);
-        if (isSandboxTemporalDuration(value)) usage += temporalDurationFieldNames.length * 8;
-        if (isSandboxTemporalPlainTime(value)) usage += temporalPlainTimeFieldNames.length * 8;
-        if (isSandboxTemporalPlainDateTime(value)) usage += temporalPlainDateTimeNumericFields.length * 8 + temporalPlainDateTimeFields(value).calendar.length;
-        if (isSandboxTemporalPlainDate(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainDateFields(value).calendar.length;
-        if (isSandboxTemporalPlainMonthDay(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainMonthDayFields(value).calendar.length;
-        if (isSandboxTemporalPlainYearMonth(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainYearMonthFields(value).calendar.length;
-        if (isSandboxTemporalZonedDateTime(value)) {
-          const fields = temporalZonedDateTimeFields(value);
-          visit(fields.epochNanoseconds, depth + 1);
-          usage += fields.timeZone.length + fields.calendar.length;
-        }
-        if (isSandboxLocale(value)) usage += localeTag(value).length;
-        if (isSandboxListFormat(value)) visit(listFormatState(value).options, depth + 1);
-        if (isSandboxRelativeTimeFormat(value)) visit(relativeTimeFormatState(value).options, depth + 1);
-        if (isSandboxDisplayNames(value)) visit(displayNamesState(value).options, depth + 1);
-        if (isSandboxPluralRules(value)) visit(pluralRulesState(value).options, depth + 1);
-        if (isSandboxDurationFormat(value)) {
-          const state = durationFormatState(value);
-          visit(state.settings, depth + 1);
-          visit(state.options, depth + 1);
-        }
-        if (isSandboxNumberFormat(value)) {
-          const state = numberFormatState(value);
-          visit(state.options, depth + 1);
-          visit(state.format, depth + 1);
-        }
-        if (isSandboxDateTimeFormat(value)) {
-          const state = dateTimeFormatState(value);
-          visit(state.options, depth + 1);
-          visit(state.requestedOptions, depth + 1);
-          visit(state.format, depth + 1);
-        }
-        if (isSandboxCollator(value)) {
-          const state = collatorState(value);
-          visit(state.options, depth + 1);
-          visit(state.compare, depth + 1);
-        }
+        visitTemporalIntl(value, depth);
         if (isGuestHostObject(value)) {
           usage += measureHostObjectData(value);
           const root = hostObjectGuestRoot(value);

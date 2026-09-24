@@ -872,6 +872,16 @@ const MAX_REUSABLE_CAPTURE_LENGTH = 64;
 const NativeMeasurementSet = Set;
 let retainedMeasurementCode: ((value: unknown, depth?: number) => void) | undefined;
 
+// A provider can keep its append callback. Give it a separate lexical scope so
+// detaching the target releases the entire completed walk, including deferred
+// argument/projection state and options. Late appends are intentionally inert.
+function createMeasurementCollector(target: ((value: SandboxValue) => void) | undefined) {
+  return {
+    append(value: SandboxValue): void { target?.(value); },
+    close(): void { target = undefined; }
+  };
+}
+
 export function measureSandboxData(
   values: Iterable<unknown>,
   options: {
@@ -977,6 +987,7 @@ function measureSandboxDataWithSeen(
     }
     captures = appendCapture(captures, value);
   };
+  const collector = createMeasurementCollector(appendNativeCapture);
 
   const visit = (value: unknown, depth = 0): void => {
     // Keep ordered record/array descendants off the native call stack.
@@ -1056,7 +1067,7 @@ function measureSandboxDataWithSeen(
             if (options.ignoreClosures || options.ignoreClosureCaptures) break entry;
             let roots: CaptureBuffer | undefined;
             try {
-              deferred.collect(appendNativeCapture);
+              deferred.collect(collector.append);
               roots = captures;
             } finally {
               if (roots === undefined && captures !== undefined) releaseCaptures(captures);
@@ -1298,7 +1309,7 @@ function measureSandboxDataWithSeen(
             if (collect !== undefined) {
               let roots: CaptureBuffer | undefined;
               try {
-                collect(appendNativeCapture);
+                collect(collector.append);
                 roots = captures;
               } finally {
                 if (roots === undefined && captures !== undefined) releaseCaptures(captures);
@@ -1748,6 +1759,7 @@ function measureSandboxDataWithSeen(
 
   if (retainCode) {
     retainedMeasurementCode = visit;
+    collector.close();
     return 0;
   }
   try {
@@ -1793,6 +1805,7 @@ function measureSandboxDataWithSeen(
     } while (pendingArguments !== undefined && (materialized || readyIndex < (ready?.length ?? 0)));
     return usage;
   } finally {
+    collector.close();
     firstSeenCapture = undefined;
     secondSeenCapture = undefined;
     thirdSeenCapture = undefined;

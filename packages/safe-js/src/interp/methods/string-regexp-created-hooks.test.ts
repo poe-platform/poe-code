@@ -23,13 +23,20 @@ describe.each(["match", "matchAll", "search"] as const)("String %s fallback hook
       .toMatchObject({ ok: true, returnValue: "TypeError" });
   });
 
+  it("allows short regex work inside the created-object callback with an explicit budget", async () => {
+    expect(await run(`RegExp.prototype[Symbol.${method}]=function(){
+      return /^(a+)+Z$/.test('a!');
+    };return 'a'.${method}();`, { budget: new Budget({ maxSteps: 2000 }) }))
+      .toMatchObject({ ok: true, returnValue: false });
+  });
+
   it("keeps budget failure inside the created-object callback fatal", async () => {
     await expect(run(`RegExp.prototype[Symbol.${method}]=function(){
       return /^(a+)+Z$/.test('aaaaaaaaaaaaaaaaaaaaaaaa!');
     };try { return 'a'.${method}(); } catch(e) { return 'caught'; }`, {
       budget: new Budget({ maxSteps: 2_000 })
     }))
-      .rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
+      .rejects.toMatchObject({ code: "budgetExceeded", budget: "steps", limit: 2_000 });
   });
 
   it("creates a new pattern after a deleted hook on a RegExp argument", async () => {

@@ -116,11 +116,16 @@ async function assertSandboxFailure(
 }
 
 function assertRegexBudgetFailure(): void {
+  const pattern = parseRegex("(a+)+b");
+  if (matchRegex(pattern, "aaab", 0, new Budget({ maxSteps: 2000 }))?.text !== "aaab") {
+    throw new Error("short regex control did not match within its budget");
+  }
   try {
-    matchRegex(parseRegex("(a+)+b"), `${"a".repeat(28)}X`, 0, new Budget({ maxSteps: 2_000 }));
+    matchRegex(pattern, `${"a".repeat(28)}X`, 0, new Budget({ maxSteps: 2_000 }));
     throw new Error("pathological regex completed without exhausting its budget");
   } catch (error) {
-    if (!(error instanceof SandboxError) || error.code !== "budgetExceeded" || error.budget !== "steps") {
+    if (!(error instanceof SandboxError) || error.code !== "budgetExceeded" ||
+        error.budget !== "steps" || error.limit !== 2_000) {
       throw adversarialFailure({
         cause: error,
         kind: "source",

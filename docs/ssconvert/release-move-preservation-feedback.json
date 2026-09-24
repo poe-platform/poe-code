@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "baseline": "f4688afa079f17f63378267b3ff189a71a276ecd",
+  "issue": "Five filesystem-authority preservation tests injected publication faults through obsolete copyFile hooks or omitted the source identity required by retained reads.",
+  "baselineTests": { "files": 4, "tests": 92, "passed": 74, "failed": 18, "preservationFailures": 5 },
+  "repair": "Inject faults through writeStream with complete source identity; assert exclusive flags, exact writer/removal calls, abort-reason identity, raced-target preservation, partial host effects, and publication order before recursive cleanup. Keep the original no-clobber refusal and all source-byte assertions.",
+  "runtimeChanged": false,
+  "validation": {
+    "preservation": { "tests": 20, "passed": 20, "failed": 0 },
+    "related": { "files": 6, "tests": 87, "passed": 87, "failed": 0, "skipped": 0 },
+    "broaderObservation": { "tests": 118, "passed": 114, "failed": 4, "remainingFile": "tests/commands/recursive-filesystem-admission.test.ts" },
+    "lint": "Focused ESLint passed.",
+    "types": "Maintained historical-type-models source/test compilation passed.",
+    "postRebase": { "onto": "f30f7976c", "files": 7, "tests": 125, "passed": 125, "failed": 0, "skipped": 0, "upstreamRepair": "f30f7976c independently repairs the four recursive-admission fixture failures." },
+    "selectionCorrection": "An initial related-test invocation named two nonexistent test files and was rejected by authenticated discovery before execution. The corrected six-file selection passed."
+  },
+  "remaining": "Authority, topology and other filesystem release failures; containing publication and all 19 original ssconvert families remain open."
+}

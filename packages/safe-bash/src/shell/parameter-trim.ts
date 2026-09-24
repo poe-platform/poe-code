@@ -9,6 +9,32 @@ interface Projection {
   invalid: Uint32Array;
 }
 
+function isWellFormedString(text: string, byteMode: boolean): boolean {
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (byteMode) {
+      if (code >= 128) return false;
+    } else if (code >= 0xd800 && code <= 0xdfff) {
+      if (code <= 0xdbff && i + 1 < text.length) {
+        const next = text.charCodeAt(i + 1);
+        if (next >= 0xdc00 && next <= 0xdfff) {
+          i++;
+          continue;
+        }
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+function reserveScopeBytes(allocation: ValueAllocation | undefined, bytes: number, slots: number): void {
+  if (!allocation) return;
+  const scoped = allocation as ValueAllocation & { reserveBytes?: (b: number) => void };
+  if (scoped.reserveBytes) scoped.reserveBytes(bytes);
+  else allocation.reserve(bytes, slots);
+}
+
 async function project(bytes: Uint8Array, work: StringWork): Promise<Projection> {
   work.allocation?.reserve(128 + (bytes.length + 1) * 16, 0);
   const offsets = new Int32Array(bytes.length + 1).fill(-1);
@@ -43,6 +69,85 @@ async function project(bytes: Uint8Array, work: StringWork): Promise<Projection>
 }
 
 export async function trimParameter(value: ShellValue, parts: readonly { value: ShellValue; literal: boolean }[], operator: string, byteMode: boolean, work: StringWork, allocation?: ValueAllocation, maximumBytes = Number.MAX_SAFE_INTEGER): Promise<ShellValue> {
+  if (typeof value === "string" && (operator === "#" || operator === "##" || operator === "%" || operator === "%%") && isWellFormedString(value, byteMode)) {
+    let fastOk = true;
+    let prefixStar = false;
+    let suffixStar = false;
+    let seenLiteral = false;
+    let literal = "";
+    for (let p = 0; p < parts.length; p++) {
+      const part = parts[p]!;
+      if (typeof part.value !== "string" || !isWellFormedString(part.value, byteMode)) {
+        fastOk = false;
+        break;
+      }
+      const text = part.value;
+      if (part.literal) {
+        if (text.length > 0) {
+          if (suffixStar) { fastOk = false; break; }
+          literal += text;
+          seenLiteral = true;
+        }
+      } else {
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i]!;
+          if (ch === "\\" || ch === "?" || ch === "[") { fastOk = false; break; }
+          if (ch === "*") {
+            if (!seenLiteral) prefixStar = true;
+            else suffixStar = true;
+          } else {
+            if (suffixStar) { fastOk = false; break; }
+            literal += ch;
+            seenLiteral = true;
+          }
+        }
+        if (!fastOk) break;
+      }
+    }
+    if (fastOk && !(prefixStar && suffixStar)) {
+      const pending = stringCheckpoint(work, value.length + literal.length + 1);
+      if (pending) await pending;
+      reserveScopeBytes(work.allocation, 128 + (value.length + literal.length) * 4, 0);
+      let result: string | undefined;
+      if (!prefixStar && !suffixStar) {
+        if (operator === "#" || operator === "##") {
+          if (value.startsWith(literal)) result = value.slice(literal.length);
+        } else {
+          if (value.endsWith(literal)) result = value.slice(0, value.length - literal.length);
+        }
+      } else if (prefixStar) {
+        if (literal.length === 0) {
+          result = operator.length === 2 ? "" : value;
+        } else if (operator === "#") {
+          const idx = value.indexOf(literal);
+          if (idx >= 0) result = value.slice(idx + literal.length);
+        } else if (operator === "##") {
+          const idx = value.lastIndexOf(literal);
+          if (idx >= 0) result = value.slice(idx + literal.length);
+        } else if (operator === "%") {
+          if (value.endsWith(literal)) result = value.slice(0, value.length - literal.length);
+        } else {
+          if (value.endsWith(literal)) result = "";
+        }
+      } else {
+        if (operator === "#") {
+          if (value.startsWith(literal)) result = value.slice(literal.length);
+        } else if (operator === "##") {
+          if (value.startsWith(literal)) result = "";
+        } else if (operator === "%") {
+          const idx = value.lastIndexOf(literal);
+          if (idx >= 0) result = value.slice(0, idx);
+        } else {
+          const idx = value.indexOf(literal);
+          if (idx >= 0) result = value.slice(0, idx);
+        }
+      }
+      work.signal.throwIfAborted();
+      if (result === undefined) return value;
+      reserveScopeBytes(allocation, result.length * 3 + 64, 1);
+      return result;
+    }
+  }
   const bytes = shellValueBytes(value, work.allocation);
   const subject = await project(bytes, work);
   let bytePattern = "";

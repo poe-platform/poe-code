@@ -14,19 +14,90 @@ export interface ArithmeticProgram {
   readonly source: string;
   readonly tree?: Arithmetic;
   readonly error?: ShellSyntaxError;
+  readonly hasSubscript?: boolean;
 }
 
 class ArithmeticFailure extends Error {
   constructor(message: string, readonly offset: number) { super(message); }
 }
 
+const preparedArithmeticCache = new Map<string, { program: ArithmeticProgram; units: number }>();
+
+function treeHasSubscript(node: Arithmetic | undefined): boolean {
+  if (!node) return false;
+  switch (node.kind) {
+    case "literal": return false;
+    case "name": return node.subscript !== undefined;
+    case "unary": return treeHasSubscript(node.operand);
+    case "binary": return treeHasSubscript(node.left) || treeHasSubscript(node.right);
+    case "conditional": return treeHasSubscript(node.condition) || treeHasSubscript(node.yes) || treeHasSubscript(node.no);
+  }
+}
+
+function fastDecimalLiteral(text: string | undefined): { value: bigint; units: number } | undefined {
+  if (text === undefined || text === "0") return { value: 0n, units: 2 };
+  if (text === "") return { value: 0n, units: 1 };
+  const len = text.length;
+  if (len > 16) return undefined;
+  let start = 0;
+  let negative = false;
+  if (text.charCodeAt(0) === 45) {
+    if (len === 1) return undefined;
+    if (text === "-0") return { value: 0n, units: 4 };
+    negative = true;
+    start = 1;
+  }
+  const first = text.charCodeAt(start);
+  if (first < 49 || first > 57) return undefined;
+  let num = first - 48;
+  for (let i = start + 1; i < len; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 48 || code > 57) return undefined;
+    num = num * 10 + (code - 48);
+  }
+  return { value: BigInt(negative ? -num : num), units: negative ? 4 : 2 };
+}
+
 export function prepareArithmetic(source: string, budget = new ParseBudget()): ArithmeticProgram {
-  budget.admit();
-  try { return { source, tree: parseArithmetic(source, 0, budget) }; }
+  if (source.length <= 256) {
+    const cached = preparedArithmeticCache.get(source);
+    if (cached) {
+      budget.admit(cached.units);
+      return cached.program;
+    }
+  }
+  let units = 0;
+  const tracking = {
+    admit(n = 1): void {
+      budget.admit(n);
+      units += n;
+    },
+  } as ParseBudget;
+  tracking.admit();
+  try {
+    const tree = parseArithmetic(source, 0, tracking);
+    const program: ArithmeticProgram = { source, tree, hasSubscript: treeHasSubscript(tree) };
+    if (source.length <= 256) {
+      if (preparedArithmeticCache.size >= 512) {
+        const oldest = preparedArithmeticCache.keys().next().value;
+        if (oldest !== undefined) preparedArithmeticCache.delete(oldest);
+      }
+      preparedArithmeticCache.set(source, { program, units });
+    }
+    return program;
+  }
   catch (error) {
     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;
-    budget.admit();
-    return { source, error };
+    tracking.admit();
+    const program: ArithmeticProgram = { source, error };
+    if (source.length <= 256) {
+      if (preparedArithmeticCache.size >= 512) {
+        const oldest = preparedArithmeticCache.keys().next().value;
+        if (oldest !== undefined) preparedArithmeticCache.delete(oldest);
+      }
+      preparedArithmeticCache.set(source, { program, units });
+    }
+    return program;
   }
 }
 
@@ -205,9 +276,143 @@ export interface ArithmeticReferences {
   resolve(name: string, subscript?: string): string | Promise<string>;
   read(reference: string): string | undefined | Promise<string | undefined>;
   write(reference: string, value: string): void | Promise<void>;
+  readonly isSync?: boolean;
+}
+
+function binaryArithmeticOp(operator: string, left: bigint, right: bigint, offset: number): bigint {
+  switch (operator) {
+    case "+": return left + right;
+    case "-": return left - right;
+    case "*": return left * right;
+    case "/": if (right === 0n) throw new ArithmeticFailure("division by 0", offset); return left / right;
+    case "%": if (right === 0n) throw new ArithmeticFailure("division by 0", offset); return left % right;
+    case "**": {
+      if (right < 0n) throw new ArithmeticFailure("exponent less than 0", offset);
+      let result = 1n;
+      let base = left;
+      let exponent = right;
+      while (exponent) {
+        if (exponent & 1n) result = BigInt.asIntN(64, result * base);
+        exponent >>= 1n;
+        base = BigInt.asIntN(64, base * base);
+      }
+      return result;
+    }
+    case "<<": return left << (right & 63n);
+    case ">>": return left >> (right & 63n);
+    case "&": return left & right;
+    case "|": return left | right;
+    case "^": return left ^ right;
+    case "==": return BigInt(left === right);
+    case "!=": return BigInt(left !== right);
+    case "<": return BigInt(left < right);
+    case "<=": return BigInt(left <= right);
+    case ">": return BigInt(left > right);
+    case ">=": return BigInt(left >= right);
+    default: throw new PublicDiagnostic(`Unsupported arithmetic operator ${operator}`);
+  }
+}
+
+function formatArithmeticError(program: ArithmeticProgram, error: unknown): never {
+  if (error instanceof ArithmeticFailure) throw new PublicDiagnostic(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
+  if (error instanceof ShellSyntaxError) {
+    const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
+    const reason = error.reason === "Quoted arithmetic operand expected" ? "syntax error: operand expected"
+      : error.reason === "Invalid quoted arithmetic operator" ? "syntax error: invalid arithmetic operator"
+      : error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
+    throw new PublicDiagnostic(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
+  }
+  throw error;
+}
+
+function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
+  try {
+    if (program.error) throw program.error;
+    let visiting: Set<string> | undefined;
+    const evalName = (node: Extract<Arithmetic, { kind: "name" }>): { reference: string; value: bigint } => {
+      const reference = references.resolve(node.name, node.subscript) as string;
+      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
+      const text = references.read(reference) as string | undefined;
+      const fast = fastDecimalLiteral(text);
+      if (fast !== undefined) {
+        budget.admit(fast.units);
+        return { reference, value: fast.value };
+      }
+      visiting ??= new Set();
+      visiting.add(reference);
+      try {
+        return { reference, value: evalNode(parseArithmetic(text ?? "0", 0, budget)) };
+      } finally {
+        visiting.delete(reference);
+      }
+    };
+    const evalNode = (node: Arithmetic): bigint => {
+      budget.admit(0);
+      switch (node.kind) {
+        case "literal":
+          return node.value;
+        case "name":
+          return evalName(node).value;
+        case "conditional": {
+          const cond = evalNode(node.condition);
+          return evalNode(cond ? node.yes : node.no);
+        }
+        case "unary": {
+          if (node.operator === "+") return BigInt.asIntN(64, evalNode(node.operand));
+          if (node.operator === "-") return BigInt.asIntN(64, -evalNode(node.operand));
+          if (node.operator === "!") return BigInt(!evalNode(node.operand));
+          if (node.operator === "~") return BigInt.asIntN(64, ~evalNode(node.operand));
+          const { reference, value: operand } = evalName(node.operand as Extract<Arithmetic, { kind: "name" }>);
+          const updated = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
+          references.write(reference, String(updated));
+          return node.postfix ? BigInt.asIntN(64, operand) : updated;
+        }
+        case "binary": {
+          if (node.operator === "&&" || node.operator === "||") {
+            const left = evalNode(node.left);
+            if (node.operator === "&&" ? left === 0n : left !== 0n) return BigInt(left !== 0n);
+            return BigInt(evalNode(node.right) !== 0n);
+          }
+          if (node.operator === ",") {
+            evalNode(node.left);
+            return BigInt.asIntN(64, evalNode(node.right));
+          }
+          if (node.operator === "=") {
+            const right = evalNode(node.right);
+            const operand = node.left as Extract<Arithmetic, { kind: "name" }>;
+            const reference = references.resolve(operand.name, operand.subscript) as string;
+            const updated = BigInt.asIntN(64, right);
+            references.write(reference, String(updated));
+            return updated;
+          }
+          if (precedence[node.operator] === 2) {
+            const { reference, value: left } = evalName(node.left as Extract<Arithmetic, { kind: "name" }>);
+            const right = evalNode(node.right);
+            const updated = BigInt.asIntN(64, binaryArithmeticOp(node.operator.slice(0, -1), left, right, node.right.start ?? 0));
+            references.write(reference, String(updated));
+            return updated;
+          }
+          const left = evalNode(node.left);
+          const right = evalNode(node.right);
+          return BigInt.asIntN(64, binaryArithmeticOp(node.operator, left, right, node.right.start ?? 0));
+        }
+      }
+    };
+    return evalNode(program.tree!);
+  } catch (error) {
+    formatArithmeticError(program, error);
+  }
 }
 
 export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>, budget = new ParseBudget()): bigint {
+  if (!program.hasSubscript) {
+    return evaluateArithmeticSync(program, {
+      isSync: true,
+      resolve: name => name,
+      read: name => variables[name],
+      write: (name, value) => { variables[name] = value; },
+    }, budget);
+  }
   const evaluation = arithmeticEvaluation(program, {
     resolve(name, subscript) {
       if (subscript !== undefined) throw new PublicDiagnostic("Array arithmetic requires shell references");
@@ -222,6 +427,9 @@ export function evaluateArithmetic(program: ArithmeticProgram, variables: Record
 }
 
 export async function evaluateArithmeticReferences(program: ArithmeticProgram, references: ArithmeticReferences, budget = new ParseBudget()): Promise<bigint> {
+  if (references.isSync && !program.hasSubscript) {
+    return evaluateArithmeticSync(program, references, budget);
+  }
   const evaluation = arithmeticEvaluation(program, references, budget);
   let step = evaluation.next();
   while (!step.done) {
@@ -237,39 +445,7 @@ export async function evaluateArithmeticReferences(program: ArithmeticProgram, r
 function* arithmeticEvaluation(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): Generator<string | undefined | void | Promise<string | undefined | void>, bigint, string | undefined> {
   const resolved = new WeakMap<Arithmetic, string>();
   const visiting = new Set<string>();
-  const binary = (operator: string, left: bigint, right: bigint, offset: number): bigint => {
-    switch (operator) {
-      case "+": return left + right;
-      case "-": return left - right;
-      case "*": return left * right;
-      case "/": if (right === 0n) throw new ArithmeticFailure("division by 0", offset); return left / right;
-      case "%": if (right === 0n) throw new ArithmeticFailure("division by 0", offset); return left % right;
-      case "**": {
-        if (right < 0n) throw new ArithmeticFailure("exponent less than 0", offset);
-        let result = 1n;
-        let base = left;
-        let exponent = right;
-        while (exponent) {
-          if (exponent & 1n) result = BigInt.asIntN(64, result * base);
-          exponent >>= 1n;
-          base = BigInt.asIntN(64, base * base);
-        }
-        return result;
-      }
-      case "<<": return left << (right & 63n);
-      case ">>": return left >> (right & 63n);
-      case "&": return left & right;
-      case "|": return left | right;
-      case "^": return left ^ right;
-      case "==": return BigInt(left === right);
-      case "!=": return BigInt(left !== right);
-      case "<": return BigInt(left < right);
-      case "<=": return BigInt(left <= right);
-      case ">": return BigInt(left > right);
-      case ">=": return BigInt(left >= right);
-      default: throw new PublicDiagnostic(`Unsupported arithmetic operator ${operator}`);
-    }
-  };
+  const binary = binaryArithmeticOp;
   type Frame = { kind: "evaluate"; node: Arithmetic }
     | { kind: "variable"; name: string }
     | { kind: "conditional"; node: Extract<Arithmetic, { kind: "conditional" }> }
@@ -291,9 +467,15 @@ function* arithmeticEvaluation(program: ArithmeticProgram, references: Arithmeti
           const reference = (yield references.resolve(node.name, node.subscript))!;
           resolved.set(node, reference);
           if (visiting.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
-          visiting.add(reference);
           const text = yield references.read(reference);
-          pending.push({ kind: "variable", name: reference }, { kind: "evaluate", node: parseArithmetic(text ?? "0", 0, budget) });
+          const fast = fastDecimalLiteral(text);
+          if (fast !== undefined) {
+            budget.admit(fast.units);
+            value = fast.value;
+          } else {
+            visiting.add(reference);
+            pending.push({ kind: "variable", name: reference }, { kind: "evaluate", node: parseArithmetic(text ?? "0", 0, budget) });
+          }
         } else if (node.kind === "conditional") {
           pending.push({ kind: "conditional", node }, { kind: "evaluate", node: node.condition });
         } else if (node.kind === "unary") {
@@ -341,14 +523,6 @@ function* arithmeticEvaluation(program: ArithmeticProgram, references: Arithmeti
     }
     return value;
   } catch (error) {
-    if (error instanceof ArithmeticFailure) throw new PublicDiagnostic(`${program.source.trimStart()}: ${error.message} (error token is "${program.source.slice(error.offset)}")`);
-    if (error instanceof ShellSyntaxError) {
-      const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;
-      const reason = error.reason === "Quoted arithmetic operand expected" ? "syntax error: operand expected"
-        : error.reason === "Invalid quoted arithmetic operator" ? "syntax error: invalid arithmetic operator"
-        : error.reason === "Invalid arithmetic operand" ? "arithmetic syntax error: operand expected" : "arithmetic syntax error in expression";
-      throw new PublicDiagnostic(`${program.source.trimStart()}: ${reason} (error token is "${program.source.slice(offset)}")`);
-    }
-    throw error;
+    formatArithmeticError(program, error);
   }
 }

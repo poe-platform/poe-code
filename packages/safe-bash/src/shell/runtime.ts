@@ -1673,6 +1673,10 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
+const emptyWords: readonly Word[] = [];
+const emptyShellValues: readonly ShellValue[] = [];
+const emptyStrings: readonly string[] = [];
+const assignmentCache = new WeakMap<Word, { name: string; value: Word; append: boolean } | null>();
 
 export class Runtime {
   private readonly sourceFs: FileSystem;
@@ -1958,7 +1962,7 @@ export class Runtime {
 
   async writeVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "arithmetic" | "getopts" = "assignment"): Promise<void> {
     name = this.referenceName(state, name);
-    const target = this.variableTarget(name);
+    const target = name.includes("[") ? this.variableTarget(name) : undefined;
     if (target?.subscript !== undefined) {
       await this.arrayAssignment({ kind: "element", name: target.name, append: false,
         index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
@@ -1967,8 +1971,9 @@ export class Runtime {
     }
     if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
-    if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-    value = await this.attributeValue(state, name, value, io, origin);
+    const maxBytes = this.budget.limits.maxExpansionBytes;
+    if ((typeof value !== "string" || value.length * 3 > maxBytes) && shellValueByteLength(value) > maxBytes) this.budget.fail("maxExpansionBytes");
+    if (state.variableAttributes?.size) value = await this.attributeValue(state, name, value, io, origin);
     if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
       try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
@@ -2040,6 +2045,7 @@ export class Runtime {
   }
 
   private arithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
+    if (!program.source.includes("$")) return this.shellArithmetic(program, state, io);
     return evaluatePositionalArithmetic(program, {
       parseBudget: this.budget.parsing,
       positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
@@ -2050,9 +2056,33 @@ export class Runtime {
     }, prepared => this.shellArithmetic(prepared, state, io));
   }
 
-  private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables = this.arithmeticVariables(state, io.diagnosticLine)): Promise<bigint> {
+  private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
+    if (!program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size && variables === undefined) {
+      const line = io.diagnosticLine;
+      return evaluateArithmeticReferences(program, {
+        isSync: true,
+        resolve: variable => {
+          this.signal.throwIfAborted();
+          return variable;
+        },
+        read: reference => {
+          this.signal.throwIfAborted();
+          const value = state.variables[reference];
+          if (state.nounset && value === undefined) throw new NounsetFailure(`${reference}: unbound variable`, line);
+          return value;
+        },
+        write: (reference, value) => {
+          if (state.readonlyVariables?.has(reference)) throw new PublicDiagnostic(`${reference}: readonly variable`);
+          publishVariable(state, reference, value);
+          if (state.allexport) state.exported.add(reference);
+          if (reference === "OPTIND") this.syncGetopts(state);
+        },
+      }, this.budget.parsing);
+    }
+    const resolvedVariables = variables ?? this.arithmeticVariables(state, io.diagnosticLine);
     let depth = 0;
     const references: ArithmeticReferences = {
+      isSync: !program.hasSubscript && !guestArrays(state),
       resolve: (variable, subscript) => {
         this.signal.throwIfAborted();
         const target = this.variableTarget(this.referenceName(state, variable))!;
@@ -2091,7 +2121,7 @@ export class Runtime {
       },
       read: reference => {
         this.signal.throwIfAborted();
-        if (!reference.startsWith("[")) return variables[reference];
+        if (!reference.startsWith("[")) return resolvedVariables[reference];
         const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
         const binding = arrayStore(state)?.get(name);
         const value = binding ? binding.get(index ?? -1) : index === 0 ? state.variables[name] : undefined;
@@ -2100,7 +2130,7 @@ export class Runtime {
         return value;
       },
       write: (reference, value) => {
-        if (!reference.startsWith("[")) { variables[reference] = value; return; }
+        if (!reference.startsWith("[")) { resolvedVariables[reference] = value; return; }
         const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
         return this.arrayAssignment({
           kind: "element", name, append: false,
@@ -2151,6 +2181,7 @@ export class Runtime {
   }
 
   private referenceName(state: State, name: string): string {
+    if (!state.variableAttributes?.size) return name;
     const seen = new Set<string>();
     let target = this.variableTarget(name);
     while (target && state.variableAttributes?.get(target.name)?.includes("n") && state.variables[target.name]) {
@@ -4354,11 +4385,21 @@ export class Runtime {
   }
 
   assignment(word: Word): { name: string; value: Word; append: boolean } | undefined {
+    const cached = assignmentCache.get(word);
+    if (cached !== undefined) return cached ?? undefined;
     const first = word.parts[0];
-    if (first?.kind !== "text" || first.quoted) return undefined;
+    if (first?.kind !== "text" || first.quoted) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
     const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(\+?)=/u.exec(first.value);
-    if (!match) return undefined;
-    return { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
+    if (!match) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
+    const result = { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
+    assignmentCache.set(word, result);
+    return result;
   }
 
   async simple(command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, createSnapshotScope: () => InvocationScope, fileShortcut = false, terminal?: IO["terminal"]): Promise<number> {
@@ -4370,30 +4411,33 @@ export class Runtime {
       if (!assignment) break;
       assignments.push(assignment);
     }
-    const commandWords = command.words.slice(wordIndex);
+    const commandWords = wordIndex === 0 ? command.words : wordIndex === command.words.length ? emptyWords : command.words.slice(wordIndex);
     let declarationIndex = 0;
-    while ((commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") && !state.extensions?.builtins.has(commandWords[declarationIndex]!.plain!)) {
-      declarationIndex++;
-      if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
+    if (commandWords.length > 0) {
+      while ((commandWords[declarationIndex]?.plain === "command" || commandWords[declarationIndex]?.plain === "builtin") && !state.extensions?.builtins.has(commandWords[declarationIndex]!.plain!)) {
+        declarationIndex++;
+        if (commandWords[declarationIndex]?.plain === "--") declarationIndex++;
+      }
     }
     const declarationName = commandWords[declarationIndex]?.plain ?? "";
-    const declarationBuiltin = state.extensions?.builtins.get(declarationName);
+    const declarationBuiltin = declarationName ? state.extensions?.builtins.get(declarationName) : undefined;
     const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
     const indexedDeclaration = declaration && ["declare", "typeset", "local", "readonly"].includes(declarationName);
-    const compounds = new Map<number, ArrayAssignment>();
-    const wordValues = await this.valueWords(commandWords, state, originalIO, declaration, indexedDeclaration, declarationName === "readonly" ? undefined : compounds, declarationIndex + 1);
-    const words = wordValues.map(shellValueText);
+    const compounds = commandWords.length > 0 && declarationName !== "readonly" ? new Map<number, ArrayAssignment>() : undefined;
+    const wordValues = commandWords.length > 0 ? await this.valueWords(commandWords, state, originalIO, declaration, indexedDeclaration, compounds, declarationIndex + 1) : emptyShellValues;
+    const words = wordValues.length > 0 ? wordValues.map(shellValueText) : emptyStrings;
     const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !state.extensions?.builtins.has(words[0]!) && !functionCommand;
     const snapshotScope = isolatedInlineInput ? createSnapshotScope() : undefined;
     let io = snapshotScope ? { ...originalIO, [invocationScope]: snapshotScope } : originalIO;
-    const previous = new Map<string, SavedVariable>();
+    const previous = words.length > 0 ? new Map<string, SavedVariable>() : undefined;
     const assign = async () => {
       for (const original of assignments) {
-        const assignment = { ...original, name: this.referenceName(state, original.name) };
-        const target = this.variableTarget(assignment.name)!;
+        const refName = this.referenceName(state, original.name);
+        const assignment = refName === original.name ? original : { ...original, name: refName };
+        const target = !assignment.kind && !assignment.name.includes("[") ? { name: assignment.name } : this.variableTarget(assignment.name)!;
         if (!assignment.kind && target.subscript !== undefined) {
           await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append,
             index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)),
@@ -4419,7 +4463,7 @@ export class Runtime {
           if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
           continue;
         }
-        if (!previous.has(assignment.name)) {
+        if (previous && !previous.has(assignment.name)) {
           const saved = saveVariable(state, assignment.name);
           previous.set(assignment.name, saved);
           if (words.length && guestArrays(state)) {
@@ -4440,11 +4484,11 @@ export class Runtime {
     try {
       if (snapshotScope) state = await cloneState(state, this.signal, snapshotScope);
       if (words.length && assignments.length > 0) {
-        stateMonitor(state)?.openOverlay(previous);
+        stateMonitor(state)?.openOverlay(previous!);
         overlayOpen = true;
       }
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
-      if (inlineInput && functionCommand && previous.size) {
+      if (inlineInput && functionCommand && previous?.size) {
         const redirectState = await cloneState(state, this.signal);
         const variables = redirectState.variables;
         const redirectAssignments = new Map<string, ShellValue>();
@@ -4510,7 +4554,7 @@ export class Runtime {
         await pipeBytes(input, io.stdout, this.signal);
         return 0;
       }
-      return words.length ? await this.dispatch(wordValues[0]!, words.slice(1), state, { ...io, [declarationArrays]: compounds }, previous, false, wordValues.slice(1), previous) : state.substitutionStatus;
+      return words.length ? await this.dispatch(wordValues[0]!, words.slice(1), state, { ...io, [declarationArrays]: compounds }, previous!, false, wordValues.slice(1), previous!) : state.substitutionStatus;
     } catch (error) {
       if (error instanceof Flow) {
         if ((error.kind === "break" || error.kind === "continue" || error.kind === "return") && io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
@@ -4525,12 +4569,14 @@ export class Runtime {
       throw new ExecutionFailure(error, io);
     } finally {
       if (overlayOpen) {
-        for (const [key, saved] of previous) await originalIO[invocationScope].cleanup(async () => {
+        for (const [key, saved] of previous!) await originalIO[invocationScope].cleanup(async () => {
           if (saved.superseded) await this.discardVariable(saved);
           else await restoreVariable(state, key, saved);
         });
-        await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous));
-      } else for (const saved of previous.values()) saved.heldValue?.release();
+        await originalIO[invocationScope].cleanup(() => stateMonitor(state)?.closeOverlay(previous!));
+      } else if (previous) {
+        for (const saved of previous.values()) saved.heldValue?.release();
+      }
     }
   }
 
@@ -7707,7 +7753,7 @@ export class Runtime {
     if (!part.operator!.startsWith("/")) {
       const parts: { value: ShellValue; literal: boolean }[] = [];
       await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString, false, (_text, literal, original) => {
-        scratch.reserve(64, 0);
+        scratch.reserveBytes(64);
         parts.push({ value: original, literal });
       });
       return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit);

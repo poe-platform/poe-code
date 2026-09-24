@@ -3,9 +3,11 @@ import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts
 import { ShellLimitError } from "./types.js";
 
 interface AllocationRecord {
+  readonly arena: ValueArena;
   bytes: number;
   readonly slots: number;
   references: number;
+  epoch: number;
   object?: object;
 }
 
@@ -15,8 +17,8 @@ export interface HeldValue {
 }
 
 export class ValueArena {
-  readonly #objects = new WeakMap<object, AllocationRecord>();
-  readonly #records = new Set<AllocationRecord>();
+  #objects = new WeakMap<object, AllocationRecord>();
+  #epoch = 1;
   #bytes = 0;
   #slots = 0;
   #closed = false;
@@ -41,16 +43,15 @@ export class ValueArena {
     if (!Number.isSafeInteger(bytes) || bytes < 0 || !Number.isSafeInteger(slots) || slots < 0) throw new RangeError("Invalid shell value allocation");
     if (bytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
     if (slots > this.maximumSlots - this.#slots) this.fail("maxExpansionFields");
-    const record = { bytes, slots, references: 1 };
+    const record: AllocationRecord = { arena: this, bytes, slots, references: 1, epoch: this.#epoch };
     this.#bytes += bytes;
     this.#slots += slots;
-    this.#records.add(record);
     return record;
   }
 
   grow(record: AllocationRecord, bytes: number): void {
     this.assertOpen();
-    if (!this.#records.has(record) || record.object) throw new Error("Shell value reservation cannot grow");
+    if (record.arena !== this || record.epoch !== this.#epoch || record.object) throw new Error("Shell value reservation cannot grow");
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new RangeError("Invalid shell value allocation");
     if (bytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
     record.bytes += bytes;
@@ -59,7 +60,7 @@ export class ValueArena {
 
   resizeStringRecord(record: AllocationRecord, newBytes: number): void {
     this.assertOpen();
-    if (!this.#records.has(record) || record.object || record.slots !== 0) throw new Error("Invalid string record resize");
+    if (record.arena !== this || record.epoch !== this.#epoch || record.object || record.slots !== 0) throw new Error("Invalid string record resize");
     if (!Number.isSafeInteger(newBytes) || newBytes < 0) throw new RangeError("Invalid shell value allocation");
     if (newBytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
     this.#bytes += newBytes - record.bytes;
@@ -68,15 +69,15 @@ export class ValueArena {
 
   commit(record: AllocationRecord, object: object): void {
     this.assertOpen();
-    if (!this.#records.has(record) || record.object || this.#objects.has(object)) throw new Error("Shell value reservation is not fresh");
+    if (record.arena !== this || record.epoch !== this.#epoch || record.object || this.#objects.has(object)) throw new Error("Shell value reservation is not fresh");
     record.object = object;
     this.#objects.set(object, record);
   }
 
   release(record: AllocationRecord): void {
-    if (!this.#records.has(record)) return;
+    if (record.arena !== this || record.epoch !== this.#epoch) return;
     if (--record.references) return;
-    this.#records.delete(record);
+    record.epoch = 0;
     if (record.object) this.#objects.delete(record.object);
     this.#bytes -= record.bytes;
     this.#slots -= record.slots;
@@ -116,8 +117,8 @@ export class ValueArena {
 
   close(): void {
     this.#closed = true;
-    for (const record of this.#records) if (record.object) this.#objects.delete(record.object);
-    this.#records.clear();
+    this.#epoch++;
+    this.#objects = new WeakMap();
     this.#bytes = 0;
     this.#slots = 0;
   }

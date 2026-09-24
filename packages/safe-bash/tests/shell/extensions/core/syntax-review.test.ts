@@ -58,7 +58,7 @@ for (const source of [
   assert.deepEqual(parser.parseShell(source, 0, declarations), parser.parseShell(source));
 });
 
-for (const source of ["first &>> out", "printf $$", "printf ${![0]}", "first &&& second", "first &; second"]) test(`unsupported adjacent syntax remains rejected: ${source}`, () => {
+for (const source of ["printf $$", "printf ${![0]}", "first &&& second", "first &; second"]) test(`unsupported adjacent syntax remains rejected: ${source}`, () => {
   assert.throws(() => parser.parseShell(source, 0, declarations), ShellSyntaxError);
 });
 

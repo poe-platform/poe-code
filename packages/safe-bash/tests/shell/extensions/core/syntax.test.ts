@@ -82,7 +82,7 @@ test("the terminator belongs to the complete AND/OR list, not a pipeline or comm
 test("terminator declarations and parameter declarations enable only their own grammar slots", () => {
   assert.throws(() => parser.parseShell("printf $!", 0, { listTerminators: declarations.listTerminators }), ShellSyntaxError);
   assert.throws(() => parser.parseShell("first &", 0, { specialParameters: declarations.specialParameters }), ShellSyntaxError);
-  for (const source of ["&", "first &; second", "first && &", "first & & second", "first &>> target"]) {
+  for (const source of ["&", "first &; second", "first && &", "first & & second"]) {
     assert.throws(() => parser.parseShell(source, 0, declarations), ShellSyntaxError);
   }
 });

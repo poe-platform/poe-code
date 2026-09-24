@@ -15,6 +15,7 @@ import { clipboardStyles } from "../conversion/clipboard-styles.js";
 import { clipboardObjectRecords } from "../conversion/clipboard-objects.js";
 import { clipboardMerges } from "../conversion/clipboard-merges.js";
 import { foldSheetName } from "../workbook/case-fold.js";
+import { rejectGnumericNameCycles } from "./gnumeric-name-cycles.js";
 
 const namespace = "http://www.gnumeric.org/v10.dtd";
 const namespaces = new Set(["http://www.gnome.org/gnumeric/",
@@ -512,10 +513,16 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(retained) });
   }
   const selected = number(child(root, "UIData"), "SelectedTab", 0);
-  const allNames = [...children(root, "Names").flatMap(group => names(group, sheets[0]?.id ?? "s1")),
+  const declarations = new Map<XmlElement, NamedExpression[]>();
+  const declaredNames = (group: XmlElement, sheet: string, local = false) => {
+    const entries = names(group, sheet, local);
+    declarations.set(group, entries);
+    return entries;
+  };
+  const allNames = [...children(root, "Names").flatMap(group => declaredNames(group, sheets[0]?.id ?? "s1")),
     ...sheetNodes.flatMap((node, i) => {
       const sheet = sheets[i]!;
-      const localNames = children(node, "Names").flatMap(group => names(group, sheet.id, true));
+      const localNames = children(node, "Names").flatMap(group => declaredNames(group, sheet.id, true));
       const present = new Set(localNames.map(entry => { tick(); return entry.name; }));
       // Native data sheets own these names before any XML declarations are read.
       // Retain them as model definitions so lookup, edits and exports share them.
@@ -533,7 +540,11 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
     allNames.push({ ...placeholder, ...(sheet === undefined ? {} : { sheet }),
       position: { ...placeholder.position!, sheet: sheet ?? sheets[0]!.id } });
   }
-  return { sheets, ...(sheets[selected] ? { activeSheet: sheets[selected]!.id } : {}), names: allNames, properties: metadata(root),
+  const declarationOrder = root.children.flatMap(section => declarations.get(section) ??
+    (section.localName === "Sheets" && namespaces.has(section.namespace) ? children(section, "Sheet").flatMap(sheet =>
+      children(sheet, "Names").flatMap(group => declarations.get(group) ?? [])) : []));
+  const resolvedNames = await rejectGnumericNameCycles({ sheets, names: allNames }, declarationOrder, context, tick);
+  return { sheets, ...(sheets[selected] ? { activeSheet: sheets[selected]!.id } : {}), names: resolvedNames, properties: metadata(root),
     dateSystem,
     calculationMode: manualRecalc ? "manual" : "automatic", iteration,
     unsupportedRecords: root.children.filter(n => namespaces.has(n.namespace) && ["Attributes", "Geometry"].includes(n.localName) ||

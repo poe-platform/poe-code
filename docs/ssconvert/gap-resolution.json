@@ -250,7 +250,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Name ordering, links, scopes and relative references are delivered and natively qualified. Empty named constants now replay correctly under local tests and authenticated native XML controls. Original XML cycle rejection, BIFF referenced-cycle error values, broader references and publication remain open.",
+      "currentFinding": "Name ordering, links, scopes, relative references and empty constants are delivered and qualified. XML cycle rejection now matches the original native capture; extra declaration-order qualification pending. BIFF referenced-cycle error values, duplicate/malformed declarations, broader references and publication remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -480,6 +480,12 @@
           "path": "docs/ssconvert/empty-named-expression-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/biff-referenced-cycles-native-capture.json",
           "outcome": "Eight red regressions repaired; 33 focused and 22873 package tests, lint/types/build and eight SDK/Shell native XML replays pass. Original XML circular-definition rejection and BIFF #REF! versus #NAME? remain unresolved."
+        },
+        {
+          "kind": "Gnumeric-XML-circular-name-rejection",
+          "path": "docs/ssconvert/gnumeric-name-cycle-gap-proof.json",
+          "nativeEvidence": "docs/ssconvert/biff-referenced-cycles-native-capture.json",
+          "outcome": "Original XML values and warnings now match SDK/Shell. Nine red regressions repaired; 46 final focused tests, 22883-test package run and final lint/types/build pass. Six additional declaration-order files await native qualification."
         }
       ],
       "delivery": {

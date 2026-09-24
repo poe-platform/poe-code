@@ -28537,6 +28537,312 @@
           ]
         }
       ]
+    },
+    {
+      "id": "xml-name-cycles-global-self",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-global-self.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e477561726465643c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c477561726465642c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d477561726465643c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d31333c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "19959280f1134bd1def2e73a3742199514f031940215defdce748d7abc70fe3d",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-global-self",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-global-self-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-global-self-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-global-self-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-global-self-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-local-self",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-local-self.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4461746121477561726465643c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d31333c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e477561726465643c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c477561726465642c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "cbb9f81ca31c67b49bd5fe224499d97eb85d167ba2d096bcbc60e8f3850a664c",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-local-self",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-local-self-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-local-self-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-local-self-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-local-self-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-forward-pair",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-forward-pair.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e416c7068613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c426574612c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c676e6d3a4e616d653e3c676e6d3a6e616d653e426574613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e416c7068613c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d416c7068613c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d426574613c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "d0854ac22e3bdaa66952766b5cfba6da9c98fb7f4959ae346892f56b630c5010",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-forward-pair",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-forward-pair-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-forward-pair-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-forward-pair-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-forward-pair-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-reverse-pair",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-reverse-pair.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e426574613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e416c7068613c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c676e6d3a4e616d653e3c676e6d3a6e616d653e416c7068613c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c426574612c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d416c7068613c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d426574613c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "c2e881430aac50b9bb8ecae4287fe0d912b94634bf4fa21277b37ca941a1e9f3",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-reverse-pair",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-reverse-pair-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-reverse-pair-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-reverse-pair-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-reverse-pair-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-globals-first",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-globals-first.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e4f757465723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c4461746121496e6e65722c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4f757465723c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d4461746121496e6e65723c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e496e6e65723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e5b5d4f757465723c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "dc973643489873f691b720c46b7768ac88e1c580b70053dc0cd4730504f914a3",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-globals-first",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-first-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-globals-first-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-first-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-globals-first-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xml-name-cycles-globals-last",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "xml-name-cycles-globals-last.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4f757465723c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d4461746121496e6e65723c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e496e6e65723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e5b5d4f757465723c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c732f3e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e4f757465723c2f676e6d3a6e616d653e3c676e6d3a76616c75653e49462846414c53452c4461746121496e6e65722c37293c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e43333c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "a7b780e9c2c652747afee1761d561658b3fa5efeef42947c565bb8fe6a5f9eba",
+      "scope": "Guarded self references, reverse declaration order and global/local declaration groups; retain blank constants, positions and exact warnings.",
+      "captures": [
+        {
+          "label": "xml-name-cycles-globals-last",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-last-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/xml-name-cycles-globals-last-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "xml-name-cycles-globals-last-replay",
+          "argv": [
+            "--recalc",
+            "--export-range=Here!A1:A2",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/xml-name-cycles-globals-last-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
     }
   ],
   "numericSourceBindings": [

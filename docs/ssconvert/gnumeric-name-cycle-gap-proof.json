@@ -1,0 +1,461 @@
+{
+  "schemaVersion": 1,
+  "scope": "Reject circular Gnumeric XML named definitions in native reverse declaration order, retaining empty constants and exact diagnostics.",
+  "baseline": "1977366944c54516b3953e297b24c456bc05917e",
+  "nativeEvidence": "docs/ssconvert/biff-referenced-cycles-native-capture.json",
+  "source": {
+    "path": "src/xml-sax-read.c",
+    "sha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+    "declarationLines": "2976-2986",
+    "definitionLines": "3157-3205",
+    "finding": "Name expressions are prepended to delayed_names at declaration and processed in reverse declaration order. Each is parsed after all cells; expr_name_check_for_loop rejects circular references and retains the previous placeholder expression. stderr is Ignoring would-be circular definition of NAME followed by newline.",
+    "scope": "Do not apply whole-graph rejection or evaluator changes: importer order and existing placeholders determine which declaration survives."
+  },
+  "repair": [
+    "Track actual XML declaration order independently of canonical sheet/name arrays.",
+    "Build dependency edges only for definitions accepted earlier in reverse source order. Reject an expression when its reachable name spelling matches its own, following native loop detection.",
+    "Retain empty constants at A1 for rejected declarations; preserve accepted expressions and programmatic workbook evaluation.",
+    "Observe work limits and exact cancellation reasons. Do not treat external or missing-sheet names as local cycles."
+  ],
+  "validation": {
+    "red": "Eight original controls fail; later one missing-sheet false-positive control fails before its guard.",
+    "focused": "46/46 final focused tests pass, including 11 cycle controls, existing namespace/order behavior and empty-name replays.",
+    "package": "22883/22883 tests in 390 files pass before the final missing-sheet guard; final focused tests cover that guard.",
+    "lint": "Final maintained ESLint and source/test/consumer TypeScript checks pass. Optional maximumNodes property and the test ES2022 array reversal were corrected after type diagnostics.",
+    "build": "Final maintained selected four-build closure passes, 11 layers and two shared-cache hits.",
+    "originalInputs": {
+      "nativeRun": 35943726208,
+      "results": [
+        {
+          "id": "biff-referenced-cycles-excel_biff7",
+          "inputSha256": "4b6901477f5a7226936d2916acfa3b08afde0c6e5e83c3b8d78ec2baaef0133d",
+          "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "sdkAndShell": "#NAME?\n#NAME?\n7\n11\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "nativeStderr": "\n(ssconvert:62748): gnumeric:read_expr-WARNING **: 01:41:49.062: EXCEL: 4 (of 2) UNKNOWN name 0xaace34478680.\n\n(ssconvert:62748): gnumeric:read_expr-WARNING **: 01:41:49.062: EXCEL: 6 (of 5) UNKNOWN name 0xaace34478680.\n",
+          "stderrMatchesNative": false,
+          "diagnostics": [],
+          "matchesNative": false
+        },
+        {
+          "id": "biff-referenced-cycles-excel_biff8",
+          "inputSha256": "1cc38a7def9e2925872036821d12cf56904db466dcce43b754c2d791662f7655",
+          "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "sdkAndShell": "#NAME?\n#NAME?\n7\n11\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "nativeStderr": "\n(ssconvert:62754): gnumeric:read_expr-WARNING **: 01:41:49.173: EXCEL: 4 (of 2) UNKNOWN name 0xab5fd2fe6680.\n\n(ssconvert:62754): gnumeric:read_expr-WARNING **: 01:41:49.173: EXCEL: 6 (of 5) UNKNOWN name 0xab5fd2fe6680.\n",
+          "stderrMatchesNative": false,
+          "diagnostics": [],
+          "matchesNative": false
+        },
+        {
+          "id": "biff-referenced-cycles-excel_dsf",
+          "inputSha256": "7ebae9412f4e9ef83cc0e08d7b8796685cb2d2670fea824ff865c91c1fb241ec",
+          "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "sdkAndShell": "#NAME?\n#NAME?\n7\n11\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "nativeStderr": "\n(ssconvert:62760): gnumeric:read_expr-WARNING **: 01:41:49.287: EXCEL: 4 (of 2) UNKNOWN name 0xab2a0d25f140.\n\n(ssconvert:62760): gnumeric:read_expr-WARNING **: 01:41:49.287: EXCEL: 6 (of 5) UNKNOWN name 0xab2a0d25f140.\n",
+          "stderrMatchesNative": false,
+          "diagnostics": [],
+          "matchesNative": false
+        },
+        {
+          "id": "biff-referenced-cycles-xml",
+          "inputSha256": "3d6c7a281a46a09ca1c3ca93f6244d2ad2b66d48784fc4055175aef41fd83cd4",
+          "native": "0\n0\n0\n0\n13\n19\n",
+          "sdkAndShell": "0\n0\n0\n0\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "Ignoring would-be circular definition of LocalGuarded\nIgnoring would-be circular definition of SheetLoopA\nIgnoring would-be circular definition of Guarded\nIgnoring would-be circular definition of LoopA\n",
+          "nativeStderr": "Ignoring would-be circular definition of LocalGuarded\nIgnoring would-be circular definition of SheetLoopA\nIgnoring would-be circular definition of Guarded\nIgnoring would-be circular definition of LoopA\n",
+          "stderrMatchesNative": true,
+          "diagnostics": [
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Ignoring would-be circular definition of LocalGuarded\n",
+              "bytes": {
+                "0": 73,
+                "1": 103,
+                "2": 110,
+                "3": 111,
+                "4": 114,
+                "5": 105,
+                "6": 110,
+                "7": 103,
+                "8": 32,
+                "9": 119,
+                "10": 111,
+                "11": 117,
+                "12": 108,
+                "13": 100,
+                "14": 45,
+                "15": 98,
+                "16": 101,
+                "17": 32,
+                "18": 99,
+                "19": 105,
+                "20": 114,
+                "21": 99,
+                "22": 117,
+                "23": 108,
+                "24": 97,
+                "25": 114,
+                "26": 32,
+                "27": 100,
+                "28": 101,
+                "29": 102,
+                "30": 105,
+                "31": 110,
+                "32": 105,
+                "33": 116,
+                "34": 105,
+                "35": 111,
+                "36": 110,
+                "37": 32,
+                "38": 111,
+                "39": 102,
+                "40": 32,
+                "41": 76,
+                "42": 111,
+                "43": 99,
+                "44": 97,
+                "45": 108,
+                "46": 71,
+                "47": 117,
+                "48": 97,
+                "49": 114,
+                "50": 100,
+                "51": 101,
+                "52": 100,
+                "53": 10
+              }
+            },
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Ignoring would-be circular definition of SheetLoopA\n",
+              "bytes": {
+                "0": 73,
+                "1": 103,
+                "2": 110,
+                "3": 111,
+                "4": 114,
+                "5": 105,
+                "6": 110,
+                "7": 103,
+                "8": 32,
+                "9": 119,
+                "10": 111,
+                "11": 117,
+                "12": 108,
+                "13": 100,
+                "14": 45,
+                "15": 98,
+                "16": 101,
+                "17": 32,
+                "18": 99,
+                "19": 105,
+                "20": 114,
+                "21": 99,
+                "22": 117,
+                "23": 108,
+                "24": 97,
+                "25": 114,
+                "26": 32,
+                "27": 100,
+                "28": 101,
+                "29": 102,
+                "30": 105,
+                "31": 110,
+                "32": 105,
+                "33": 116,
+                "34": 105,
+                "35": 111,
+                "36": 110,
+                "37": 32,
+                "38": 111,
+                "39": 102,
+                "40": 32,
+                "41": 83,
+                "42": 104,
+                "43": 101,
+                "44": 101,
+                "45": 116,
+                "46": 76,
+                "47": 111,
+                "48": 111,
+                "49": 112,
+                "50": 65,
+                "51": 10
+              }
+            },
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Ignoring would-be circular definition of Guarded\n",
+              "bytes": {
+                "0": 73,
+                "1": 103,
+                "2": 110,
+                "3": 111,
+                "4": 114,
+                "5": 105,
+                "6": 110,
+                "7": 103,
+                "8": 32,
+                "9": 119,
+                "10": 111,
+                "11": 117,
+                "12": 108,
+                "13": 100,
+                "14": 45,
+                "15": 98,
+                "16": 101,
+                "17": 32,
+                "18": 99,
+                "19": 105,
+                "20": 114,
+                "21": 99,
+                "22": 117,
+                "23": 108,
+                "24": 97,
+                "25": 114,
+                "26": 32,
+                "27": 100,
+                "28": 101,
+                "29": 102,
+                "30": 105,
+                "31": 110,
+                "32": 105,
+                "33": 116,
+                "34": 105,
+                "35": 111,
+                "36": 110,
+                "37": 32,
+                "38": 111,
+                "39": 102,
+                "40": 32,
+                "41": 71,
+                "42": 117,
+                "43": 97,
+                "44": 114,
+                "45": 100,
+                "46": 101,
+                "47": 100,
+                "48": 10
+              }
+            },
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Ignoring would-be circular definition of LoopA\n",
+              "bytes": {
+                "0": 73,
+                "1": 103,
+                "2": 110,
+                "3": 111,
+                "4": 114,
+                "5": 105,
+                "6": 110,
+                "7": 103,
+                "8": 32,
+                "9": 119,
+                "10": 111,
+                "11": 117,
+                "12": 108,
+                "13": 100,
+                "14": 45,
+                "15": 98,
+                "16": 101,
+                "17": 32,
+                "18": 99,
+                "19": 105,
+                "20": 114,
+                "21": 99,
+                "22": 117,
+                "23": 108,
+                "24": 97,
+                "25": 114,
+                "26": 32,
+                "27": 100,
+                "28": 101,
+                "29": 102,
+                "30": 105,
+                "31": 110,
+                "32": 105,
+                "33": 116,
+                "34": 105,
+                "35": 111,
+                "36": 110,
+                "37": 32,
+                "38": 111,
+                "39": 102,
+                "40": 32,
+                "41": 76,
+                "42": 111,
+                "43": 111,
+                "44": 112,
+                "45": 65,
+                "46": 10
+              }
+            }
+          ],
+          "matchesNative": true
+        }
+      ],
+      "executions": 8,
+      "externalCalls": 0,
+      "bindings": [
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "5511003db6dd69d8e3e0381e420e2f3d1575094ceb42061a5ad50ca6330c8f6d"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ]
+    },
+    "nativeXmlReplays": {
+      "nativeRun": 35943726208,
+      "results": [
+        {
+          "id": "biff-referenced-cycles-excel_biff7",
+          "inputSha256": "7cd7c516c71395146210fa6edff39d8e78786ff8bd03b8afec5a5189f5b27611",
+          "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-referenced-cycles-excel_biff8",
+          "inputSha256": "605185949955ed8fb7fb0050afa481fa364e8322c289134feb585dbd5e87d20d",
+          "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-referenced-cycles-excel_dsf",
+          "inputSha256": "605185949955ed8fb7fb0050afa481fa364e8322c289134feb585dbd5e87d20d",
+          "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-referenced-cycles-xml",
+          "inputSha256": "ba3e177e5fe84e4f9643b9400fbb0fe062de2f5a9599332138f4ceed16d447a0",
+          "native": "0\n0\n0\n0\n13\n19\n",
+          "sdkAndShell": "0\n0\n0\n0\n13\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        }
+      ],
+      "executions": 8,
+      "externalCalls": 0,
+      "bindings": [
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "5511003db6dd69d8e3e0381e420e2f3d1575094ceb42061a5ad50ca6330c8f6d"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ]
+    },
+    "newDeclarationOrderCases": {
+      "checks": [
+        {
+          "id": "xml-name-cycles-global-self",
+          "inputSha256": "19959280f1134bd1def2e73a3742199514f031940215defdce748d7abc70fe3d",
+          "csv": "0\n13\n",
+          "warning": "Ignoring would-be circular definition of Guarded\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "xml-name-cycles-local-self",
+          "inputSha256": "cbb9f81ca31c67b49bd5fe224499d97eb85d167ba2d096bcbc60e8f3850a664c",
+          "csv": "0\n13\n",
+          "warning": "Ignoring would-be circular definition of Guarded\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "xml-name-cycles-forward-pair",
+          "inputSha256": "d0854ac22e3bdaa66952766b5cfba6da9c98fb7f4959ae346892f56b630c5010",
+          "csv": "0\n0\n",
+          "warning": "Ignoring would-be circular definition of Alpha\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "xml-name-cycles-reverse-pair",
+          "inputSha256": "c2e881430aac50b9bb8ecae4287fe0d912b94634bf4fa21277b37ca941a1e9f3",
+          "csv": "7\n0\n",
+          "warning": "Ignoring would-be circular definition of Beta\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "xml-name-cycles-globals-first",
+          "inputSha256": "dc973643489873f691b720c46b7768ac88e1c580b70053dc0cd4730504f914a3",
+          "csv": "0\n0\n",
+          "warning": "Ignoring would-be circular definition of Outer\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "xml-name-cycles-globals-last",
+          "inputSha256": "a7b780e9c2c652747afee1761d561658b3fa5efeef42947c565bb8fe6a5f9eba",
+          "csv": "7\n0\n",
+          "warning": "Ignoring would-be circular definition of Inner\n",
+          "sdkAndShellMatch": true
+        }
+      ],
+      "externalCalls": 0,
+      "executions": 12,
+      "bindings": [
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "5511003db6dd69d8e3e0381e420e2f3d1575094ceb42061a5ad50ca6330c8f6d"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ]
+    },
+    "screenshot": {
+      "inspected": true,
+      "sha256": "85fa817e1646a6b1ee2d76a291fd4a8ebe329b0af0ee97510b7f8d2cba69dc36"
+    },
+    "logs": {
+      "cycles-red.log": "3d125f89b668528d5618397448adab364bca76605e0facf4533a21be9e8e669f",
+      "cycles-qualifier-red.log": "6eabd0204c1ad6dbe4ee9ff76f3c606e06da51e277b88c5198148b4f2dce0a43",
+      "cycles-green-verified.log": "149f15f56b9f9b61203d983101ba0adebefdfc63175620c691fe0933761e48a6",
+      "cycles-unit.log": "a080e6ca470117079e5de01abb3de88c27d444ddf674f888345e5882b838b994",
+      "cycles-lint-verified.log": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c",
+      "cycles-build.log": "42874766ca5dd0d417dce04257859844757155a6bcacc75373c186ca9dadc88b"
+    }
+  },
+  "nativeFollowup": {
+    "status": "Six new XML inputs prepared for native qualification.",
+    "manifest": "docs/ssconvert/linux-optional-service-native-probes.json",
+    "priorInputsPreserved": 133,
+    "totalInputs": 139,
+    "commands": 18
+  },
+  "remaining": [
+    "Referenced BIFF cycles still produce candidate #NAME? versus native #REF!, with native warnings retained separately.",
+    "Duplicate or malformed declarations, other name/link arrangements, all 19 original families and containing publication remain open."
+  ]
+}

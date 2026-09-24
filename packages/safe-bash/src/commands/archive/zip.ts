@@ -21,7 +21,7 @@ import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { zipHelp, zipExtendedHelp, zipVersion, zipLicense } from "./zip/help.js";
-import { publishZip, stageZip, ZipScope, hasZipIdentity as hasIdentity, sameZipIdentity as sameIdentity, safeZipFile, type ZipPublication } from "./zip/safety.js";
+import { publishZip, stageZip, ZipScope, hasZipIdentity as hasIdentity, sameZipIdentity as sameIdentity, unchangedZipSource as unchanged, safeZipFile, type ZipPublication } from "./zip/safety.js";
 import { splitSize, splitZipVolumes, resolveZipVolumes, publishZipVolumes, volumeName } from "./zip/volumes.js";
 import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, reservedZipShortOptions, ZipFailure, parseZipDotSize, zipLongOptions, zipNegatableOptions, zipDisplaySize, zipPublicText, zipPasswordArgument } from "./zip/options.js";
@@ -516,13 +516,6 @@ function memberName(path: string, limits: ArchiveLimits): string {
   return name === "." ? "" : name;
 }
 
-function unchanged(before: FileStat, after: FileStat): boolean {
-  return before.type === after.type && before.size === after.size && before.mode === after.mode
-    && before.mtimeMs === after.mtimeMs && before.ctimeMs === after.ctimeMs
-    && before.nlink === after.nlink && before.opaqueVersion === after.opaqueVersion && before.revision === after.revision
-    && (!hasIdentity(before) || sameIdentity(before, after));
-}
-
 async function inspectSource(scope: ZipScope, path: string, storeLinks: boolean): Promise<{ canonical: string; stat: FileStat }> {
   const { fs, signal } = scope.context;
   if (storeLinks) {
@@ -822,7 +815,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
           }
           if (liveProfile && !directory && !symlink && (parsed.archive === "-" || store || parsed.descriptors)) {
             const input = (async function* (): ByteSource {
-              yield* scope.input(path);
+              yield* scope.input(path, false, stat);
               const current = await inspectSource(scope, path, parsed.storeLinks);
               if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
             })();
@@ -837,7 +830,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
             if (Buffer.byteLength(target) > stat.size) fail(`source changed while reading: ${source}`);
             bytes = Buffer.from(target);
           } else {
-            try { bytes = await collectBytes(scope.input(path), { maxBytes: stat.size, signal: context.signal }); }
+            try { bytes = await collectBytes(scope.input(path, false, stat), { maxBytes: stat.size, signal: context.signal }); }
             catch (error) {
               context.signal.throwIfAborted();
               if (parsed.mustMatch && typeof error === "object" && error !== null && "code" in error && (error.code === "ENOENT" || error.code === "EACCES")) throw new ZipFailure(18, "File not found or no read permission", `was zipping ${source}`);

@@ -54,8 +54,23 @@ export function flatStore() {
   const fs: FileSystem = {
     capabilities: { read: true, stat: true, readdir: true, realpath: true, access: true,
       write: true, remove: true, implicitDirectories: true, hardlinks: false, symlinks: false,
-      permissions: false, atomicFilePublication: true, atomicFileStaging: false, streamingRead: true },
+      permissions: false, atomicFilePublication: true, atomicFileStaging: false, streamingRead: true, retainedRead: true },
     stat, lstat: stat, publishFileConditional: publish,
+    async openReadFile(input, options) {
+      check(options);
+      const row = rows.get(path(input)) ?? missing(input);
+      const metadata = await stat(input, options);
+      let closed = false;
+      const current = (options?: FsOptions) => {
+        check(options);
+        if (closed) throw new FsError("EBADF");
+      };
+      return {
+        async stat(options) { current(options); return { ...metadata }; },
+        async read(position, size, options) { current(options); return row.bytes.slice(position, position + size); },
+        async close() { closed = true; },
+      };
+    },
     async readFile(input, options) {
       check(options);
       const row = rows.get(path(input)) ?? missing(input);

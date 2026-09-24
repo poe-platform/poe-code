@@ -9,10 +9,105 @@ import { standardCommands } from "../../src/commands/index.js";
 import { bindFileOutputBudget } from "../../src/contracts/filesystem-output.js";
 import type { FileSystem, InvocationCleanup } from "../../src/contracts/index.js";
 import { archiveBytes, binary, compressed, execute, fixture, members, readOnlyArchive } from "./zip-standard-flags.helpers.js";
-import { readZipArchive } from "../../src/commands/archive/zip-format.js";
+import { decodeZipEntry, readZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
-import { toByteSource } from "../../src/contracts/index.js";
+import { collectBytes, toByteSource } from "../../src/contracts/index.js";
+
+test("zip refuses regular source reads without retained-read support", async () => {
+  const fs = await fixture();
+  let pathnameReads = 0;
+  const view = new Proxy(fs, { get(target, property) {
+    if (property === "capabilitiesFor") return async () => ({ ...fs.capabilities, retainedRead: false });
+    if (property === "readFile" || property === "readStream") return () => { pathnameReads++; throw new Error("unbound source read"); };
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await execute("zip", view, ["bundle", "binary"]);
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /ZIP source requires retained reads/);
+  assert.equal(pathnameReads, 0);
+  await assert.rejects(fs.stat("/work/bundle.zip"), { code: "ENOENT" });
+});
+
+for (const args of [["bundle", "sub/a"], ["-0", "bundle", "sub/a"], ["-", "sub/a"]]) {
+  test(`zip rejects a different opened source before reading: ${args.join(" ")}`, async () => {
+    const fs = await fixture();
+    await fs.mkdir("/work/sub");
+    await fs.mkdir("/private");
+    await fs.writeFile("/work/sub/a", Buffer.from("safe-safe-safe\n"));
+    await fs.writeFile("/private/a", Buffer.from("SECRET-SECRET!\n"));
+    let reads = 0;
+    let closed = 0;
+    const view = new Proxy(fs, { get(target, property) {
+      if (property === "openReadFile") return async (path: string, options: Parameters<NonNullable<FileSystem["openReadFile"]>>[1]) => {
+        await fs.rename("/work/sub", "/work/retired");
+        await fs.symlink!("/private", "/work/sub");
+        const handle = await fs.openReadFile!(path, options);
+        await fs.rm("/work/sub");
+        await fs.rename("/work/retired", "/work/sub");
+        return {
+          ...handle,
+          async read(position: number, size: number) { reads++; return handle.read(position, size); },
+          async close() { closed++; await handle.close(); },
+        };
+      };
+      const value: unknown = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const result = await execute("zip", view, args);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /source changed while opening/);
+    assert.equal(reads, 0);
+    assert.equal(closed, 1);
+    await assert.rejects(fs.stat("/work/bundle.zip"), { code: "ENOENT" });
+  });
+  test(`zip pins source bytes through a restored ancestry swap: ${args.join(" ")}`, async () => {
+    const fs = await fixture();
+    await fs.mkdir("/work/sub");
+    await fs.mkdir("/private");
+    const safe = Buffer.from("safe-safe-safe\n");
+    await fs.writeFile("/work/sub/a", safe);
+    await fs.writeFile("/private/a", Buffer.from("SECRET-SECRET!\n"));
+    let swapped = false;
+    let closed = 0;
+    const swap = async <T>(read: () => Promise<T>): Promise<T> => {
+      swapped = true;
+      await fs.rename("/work/sub", "/work/retired");
+      await fs.symlink!("/private", "/work/sub");
+      try { return await read(); }
+      finally {
+        await fs.rm("/work/sub");
+        await fs.rename("/work/retired", "/work/sub");
+      }
+    };
+    const view = new Proxy(fs, { get(target, property) {
+      if (property === "readStream") return async function* (path: string) {
+        yield path === "/work/sub/a" ? await swap(() => fs.readFile(path)) : await fs.readFile(path);
+      };
+      if (property === "openReadFile") return async (path: string, options: Parameters<NonNullable<FileSystem["openReadFile"]>>[1]) => {
+        const handle = await fs.openReadFile!(path, options);
+        return {
+          ...handle,
+          read: (position: number, size: number) => path === "/work/sub/a" && !swapped
+            ? swap(() => handle.read(position, size)) : handle.read(position, size),
+          async close() { closed++; await handle.close(); },
+        };
+      };
+      const value: unknown = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const result = await execute("zip", view, args);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(swapped, true);
+    const bytes = args[0] === "-" ? result.stdout : await fs.readFile("/work/bundle.zip");
+    const limits = settings({});
+    const signal = new AbortController().signal;
+    const archive = await readZipArchive(bytes, limits, signal);
+    assert.deepEqual(Buffer.from(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), { signal })), safe);
+    assert.equal(closed, 1);
+  });
+}
 
 test("zip stdout archive uses binary stdout and stderr progress with descriptors", async () => {
   const fs = await fixture();
@@ -675,15 +770,16 @@ test("zip filters preserve unselected existing members and avoid reading exclude
   const fs = await fixture();
   const original = await fs.readFile("/work/sample.zip");
   await fs.writeFile("/work/binary", Buffer.from("replacement"));
-  for (const property of ["readFile", "readStream"] as const) {
-    const originalRead = fs[property];
-    if (!originalRead) continue;
-    Object.defineProperty(fs, property, { value: (path: string, ...args: unknown[]) => {
+  const view = new Proxy(fs, { get(target, property) {
+    const value: unknown = Reflect.get(target, property);
+    if (typeof value !== "function") return value;
+    if (["readFile", "readStream", "openReadFile"].includes(String(property))) return (path: string, ...args: unknown[]) => {
       assert.notEqual(path, "/work/folder/data", "excluded payload read");
-      return Reflect.apply(originalRead, fs, [path, ...args]);
-    } });
-  }
-  const result = await execute("zip", fs, ["-qr", "sample.zip", "folder", "binary", "-x", "folder/*"]);
+      return Reflect.apply(value, target, [path, ...args]);
+    };
+    return value.bind(target);
+  } });
+  const result = await execute("zip", view, ["-qr", "sample.zip", "folder", "binary", "-x", "folder/*"]);
   assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
   const before = await readZipArchive(original, settings({}), new AbortController().signal);
   const after = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
@@ -1570,8 +1666,8 @@ for (const failure of ["inspect", "read"]) {
         if (path === "/work/binary") throw denied;
         return value.call(target, path, options);
       };
-      if (failure === "read" && property === "readStream") return (path: string, options: unknown) => {
-        if (path === "/work/binary") return (async function* () { yield await Promise.reject<Uint8Array>(denied); })();
+      if (failure === "read" && property === "openReadFile") return (path: string, options: unknown) => {
+        if (path === "/work/binary") throw denied;
         return value.call(target, path, options);
       };
       return typeof value === "function" ? value.bind(target) : value;

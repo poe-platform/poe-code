@@ -161,11 +161,15 @@ test("ZIP STORE file writes its owned staging before gated source EOF", async ()
   let writes = 0;
   let published = false;
   const stream = wrapped(fs, {
-    async *readStream(_path, _options) {
-      yield Buffer.alloc(512, 97);
-      assert.ok(writes >= 2, "header and payload must reach staging before next input");
-      assert.equal(published, false);
-      yield Buffer.alloc(512, 97);
+    async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      return { ...handle, async read(position, size, readOptions) {
+        if (position) {
+          assert.ok(writes >= 2, "header and payload must reach staging before next input");
+          assert.equal(published, false);
+        }
+        return handle.read(position, Math.min(size, 512), readOptions);
+      } };
     },
     async writeFileConditional(path, bytes, options) { writes++; return fs.writeFileConditional!(path, bytes, options); },
     async publishStagedFile(staging, path, options) { published = true; return fs.publishStagedFile!(staging, path, options); },
@@ -208,9 +212,15 @@ test("ZIP live source failure leaves no file or staging publication", async () =
   await fs.mkdir("/work");
   await fs.writeFile("/work/live", Buffer.alloc(1024));
   let closed = false;
-  const stream = wrapped(fs, { async *readStream() {
-    try { yield new Uint8Array(512); throw new Error("producer failed"); }
-    finally { closed = true; }
+  const stream = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    return { ...handle,
+      async read(position, size, readOptions) {
+        if (position) throw new Error("producer failed");
+        return handle.read(position, Math.min(size, 512), readOptions);
+      },
+      async close() { closed = true; await handle.close(); },
+    };
   } });
   const result = await run(stream, "zip", ["-q0", "created.zip", "live"]);
   assert.equal(result.exitCode, 2);
@@ -285,15 +295,21 @@ test("ZIP live sink rejection cancels a pending cooperative VFS read", async () 
   let closed = false;
   let rejected!: () => void;
   const rejection = new Promise<void>(resolve => { rejected = resolve; });
-  const stream = wrapped(fs, { async *readStream(path, options) {
-    try {
+  const stream = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    return { ...handle, async read(position, _size, readOptions) {
+      if (position) {
+        await new Promise<void>(resolve => {
+          if (readOptions?.signal?.aborted) resolve();
+          else readOptions?.signal?.addEventListener("abort", () => resolve(), { once: true });
+        });
+        readOptions?.signal?.throwIfAborted();
+      }
       let seed = 91626;
       const bytes = new Uint8Array(40000);
       for (let index = 0; index < bytes.length; index++) { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; bytes[index] = seed >>> 24; }
-      yield bytes;
-      await new Promise<void>(resolve => { options!.signal!.addEventListener("abort", () => resolve(), { once: true }); });
-      options!.signal!.throwIfAborted();
-    } finally { closed = true; }
+      return bytes;
+    }, async close() { closed = true; await handle.close(); } };
   } });
   let writes = 0;
   const pending = run(stream, "zip", ["-q", "-", "live"], { signal: controller.signal, stdout: { async write() {
@@ -549,7 +565,7 @@ test("zip review: actual Shell atomic allocation ENOSPC before publication prese
   } finally { await shell.dispose(); }
 });
 
-test("zip review: actual Shell cancellation drains a delayed source pull and late iterator return", async () => {
+test("zip review: actual Shell cancellation drains a delayed source read and late handle close", async () => {
   const original = archive();
   const fs = await fixture(original);
   const controller = new AbortController();
@@ -566,26 +582,27 @@ test("zip review: actual Shell cancellation drains a delayed source pull and lat
   let closed = false;
   let settled = false;
   let sourceSignal: AbortSignal | undefined;
-  const dynamic = wrapped(fs, { readStream(path, options) {
-    if (path !== "/work/file") return fs.readStream!(path, options);
+  const dynamic = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    if (path !== "/work/file") return handle;
     sourceSignal = options?.signal;
-    return { [Symbol.asyncIterator]() { return {
-      async next() {
+    return { ...handle,
+      async read(position, size, readOptions) {
         entered = true;
         try {
           await readGate;
           options?.signal?.throwIfAborted();
-          return { done: false, value: Buffer.from("original") };
+          return await handle.read(position, size, readOptions);
         } finally { finishRead(); }
       },
-      async return() {
+      async close() {
         closing = true;
         await closeGate;
         closed = true;
         finishClose();
-        return { done: true, value: undefined };
+        await handle.close();
       },
-    }; } };
+    };
   } });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });
   shell.commands.register(createZipCommand());
@@ -600,7 +617,7 @@ test("zip review: actual Shell cancellation drains a delayed source pull and lat
     assert.equal(sourceSignal?.aborted, true);
     releaseRead();
     for (let turn = 0; turn < 64 && !closing; turn++) await setImmediate();
-    assert.equal(closing, true, "the acquired iterator must receive return after cancellation");
+    assert.equal(closing, true, "the acquired handle must close after cancellation");
     assert.equal(closed, false);
     const settledBeforeReturn = settled;
     releaseClose();
@@ -643,12 +660,15 @@ for (const phase of ["metadata", "buffered input"]) test(`zip review: actual She
       try { await gate; return await fs.stat(path, options); }
       finally { completed = true; finishHost(); }
     },
-    async readFile(path, options) {
-      if (phase !== "buffered input" || path !== "/work/file") return fs.readFile(path, options);
-      entered = true;
-      hostSignal = options?.signal;
-      try { await gate; return await fs.readFile(path, options); }
-      finally { completed = true; finishHost(); }
+    async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      if (phase !== "buffered input" || path !== "/work/file") return handle;
+      return { ...handle, async read(position, size, readOptions) {
+        entered = true;
+        hostSignal = readOptions?.signal;
+        try { await gate; return await handle.read(position, size, readOptions); }
+        finally { completed = true; finishHost(); }
+      } };
     },
   });
   const shell = new Shell({ fs: dynamic, cwd: "/work" });

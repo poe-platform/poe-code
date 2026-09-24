@@ -108,13 +108,17 @@ test("cancellation after private upload preserves the destination", async () => 
 
 test("source generation changes are detected even when identity, size and times agree", async () => {
   const { host, shell, before } = await existingArchive();
-  const stream = host.fs.readStream!;
-  host.fs.readStream = async function* (path, options) {
-    yield* stream(path, options);
-    if (path.endsWith("cat.png")) {
-      const row = host.rows.get(path)!;
-      host.rows.set(path, { ...row, version: "recreated" });
-    }
+  const open = host.fs.openReadFile!;
+  host.fs.openReadFile = async (path, options) => {
+    const handle = await open(path, options);
+    return { ...handle, async read(position, size, readOptions) {
+      const bytes = await handle.read(position, size, readOptions);
+      if (path.endsWith("cat.png")) {
+        const row = host.rows.get(path)!;
+        host.rows.set(path, { ...row, version: "recreated" });
+      }
+      return bytes;
+    } };
   };
   try {
     const result = await shell.exec(`zip -j ${destination} /work/colored/cat.png`);
@@ -128,9 +132,13 @@ test("a failing streaming producer is retired without creating an archive", asyn
   const host = flatStore();
   host.write("/work/colored/cat.png", Uint8Array.of(0, 255, 42));
   let retired = 0;
-  host.fs.readStream = async function* () {
-    try { yield Uint8Array.of(0); throw new Error("producer failed"); }
-    finally { retired++; }
+  const open = host.fs.openReadFile!;
+  host.fs.openReadFile = async (path, options) => {
+    const handle = await open(path, options);
+    return { ...handle,
+      async read() { throw new Error("producer failed"); },
+      async close() { retired++; await handle.close(); },
+    };
   };
   const shell = new Shell({ fs: host.fs }).register(createZipCommand());
   try {

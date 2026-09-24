@@ -336,15 +336,18 @@ test("FIFO total payload boundary includes neighboring members", async () => {
   await assert.rejects(fs.stat("/work/short.zip"), { code: "ENOENT" });
 });
 
-test("DOS active source cancellation retires owned stream before settlement", async () => {
+test("DOS active source cancellation closes retained handle before settlement", async () => {
   const fs = await fixture();
   const controller = new AbortController();
   const reason = new Error("cancel DOS input");
   let closed = false;
   const view = new Proxy(fs, { get(target, property) {
-    if (property === "readStream") return async function* () {
-      try { yield Buffer.from("first"); controller.abort(reason); yield Buffer.from("next"); }
-      finally { closed = true; }
+    if (property === "openReadFile") return async (path: string) => {
+      const handle = await fs.openReadFile!(path);
+      return { ...handle,
+        async read() { controller.abort(reason); throw reason; },
+        async close() { closed = true; await handle.close(); },
+      };
     };
     const value: unknown = Reflect.get(target, property);
     return typeof value === "function" ? value.bind(target) : value;

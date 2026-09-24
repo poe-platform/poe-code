@@ -22,6 +22,13 @@ on stdin unless `-o` is supplied. EOF declines remaining replacements with warni
 status. Commands use only the supplied virtual filesystem: no native executable,
 implicit filesystem access or network fallback.
 
+Regular source files require retained-read filesystem support and known backing
+identity. ZIP verifies the opened handle against the inspected source before
+reading bytes, then reads that retained object for buffered and streamed entries,
+including deferred serialization. Pathname replacement cannot redirect those
+reads. Retained handles are closed on completion, failure and cancellation;
+metadata checks detect observed source changes but do not promise a content snapshot.
+
 ## Quiet creation and byte streaming
 
 `-0` stores files without compression; `-1` through `-9` select DEFLATE effort,

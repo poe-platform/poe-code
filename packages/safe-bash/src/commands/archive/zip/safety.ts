@@ -1,4 +1,4 @@
-import { readBytes, type ByteSource, type CommandContext, type FileStat, type FileStaging } from "../../../contracts/index.js";
+import { readBytes, type ByteSource, type CommandContext, type FileStat, type FileStaging, type FileReadHandle } from "../../../contracts/index.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { writeFileOutput } from "../../../contracts/filesystem-output.js";
 import { checkPath, fail, hasIdentity as hasPosixIdentity, sameIdentity as samePosixIdentity, type ArchiveLimits } from "../internal.js";
@@ -16,6 +16,13 @@ function hasZipVersion(stat: FileStat): boolean {
 export function sameZipIdentity(first: FileStat, second: FileStat): boolean {
   return samePosixIdentity(first, second) || hasZipIdentity(first) && hasZipIdentity(second)
     && first.opaqueIdentity !== undefined && first.identityScope === second.identityScope && first.opaqueIdentity === second.opaqueIdentity;
+}
+
+export function unchangedZipSource(before: FileStat, after: FileStat): boolean {
+  return before.type === after.type && before.size === after.size && before.mode === after.mode
+    && before.mtimeMs === after.mtimeMs && before.ctimeMs === after.ctimeMs
+    && before.nlink === after.nlink && before.opaqueVersion === after.opaqueVersion && before.revision === after.revision
+    && (!hasZipIdentity(before) || sameZipIdentity(before, after));
 }
 
 export async function safeZipFile(scope: ZipScope, path: string, stat: FileStat): Promise<boolean> {
@@ -97,8 +104,53 @@ export class ZipScope {
       async return() { await close(); return { done: true as const, value: undefined }; },
     }) };
   }
-  async *input(path: string, fifo = false): ByteSource {
+  async *input(path: string, fifo = false, expected?: FileStat): ByteSource {
     const { fs } = this.context;
+    if (expected) {
+      if (!hasZipIdentity(expected)) fail("ZIP source requires known backing identity");
+      const controller = new AbortController();
+      const signal = AbortSignal.any([this.context.signal, controller.signal]);
+      let handle: FileReadHandle | undefined;
+      let acquisition: Promise<void> | undefined;
+      let reading: Promise<unknown> | undefined;
+      let closing: Promise<void> | undefined;
+      const close = (): Promise<void> => closing ??= (async () => {
+        controller.abort(this.closedReason);
+        try {
+          await acquisition?.catch(() => {});
+          await reading?.catch(() => {});
+          await handle?.close();
+        }
+        finally { this.readers.delete(close); }
+      })();
+      if (this.inputDrain) fail("ZIP inputs are closed");
+      this.readers.add(close);
+      try {
+        await (acquisition = this.operation(async () => {
+          const capabilities = await (fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
+          signal.throwIfAborted();
+          if (capabilities.retainedRead !== true || !fs.openReadFile) fail("ZIP source requires retained reads");
+          handle = await fs.openReadFile(path, { signal });
+        }));
+        if (this.inputDrain) fail("ZIP inputs are closed");
+        const stat = await (reading = this.operation(() => handle!.stat({ signal })));
+        if (!unchangedZipSource(expected, stat)) fail(`source changed while opening: ${path}`);
+        let position = 0;
+        while (position < expected.size) {
+          const size = Math.min(this.limits.chunkSize, expected.size - position);
+          signal.throwIfAborted();
+          const bytes = await (reading = this.operation(() => handle!.read(position, size, { signal })));
+          signal.throwIfAborted();
+          if (!bytes.length || bytes.length > size) fail(`source changed while reading: ${path}`);
+          position += bytes.length;
+          yield bytes;
+        }
+        signal.throwIfAborted();
+        const current = await (reading = this.operation(() => handle!.stat({ signal })));
+        if (!unchangedZipSource(expected, current)) fail(`source changed while reading: ${path}`);
+      } finally { await close(); }
+      return;
+    }
     const controller = new AbortController();
     const signal = AbortSignal.any([this.context.signal, controller.signal]);
     const capabilities = await this.operation(() => fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);

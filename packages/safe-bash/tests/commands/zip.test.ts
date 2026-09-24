@@ -154,9 +154,10 @@ test("zip source failure, limits, and unsafe aliases never destroy an existing a
   const fs = await fixture();
   assert.equal((await run(fs, ["bundle", "file"])).exitCode, 0);
   const before = await fs.readFile("/work/bundle.zip");
-  const broken = wrapped(fs, { readStream: (path, options) => path === "/work/tree/child"
-    ? { [Symbol.asyncIterator]() { return { async next() { throw new Error("read failure"); } }; } }
-    : fs.readStream!(path, options) });
+  const broken = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    return path === "/work/tree/child" ? { ...handle, async read() { throw new Error("read failure"); } } : handle;
+  } });
   assert.notEqual((await run(broken, ["bundle", "tree/child"])).exitCode, 0);
   assert.deepEqual(await fs.readFile("/work/bundle.zip"), before);
   assert.notEqual((await run(fs, ["bundle", "tree/child"], { limits: { maxEntryBytes: 512 } })).exitCode, 0);
@@ -170,7 +171,10 @@ test("zip preserves falsey cancellation reasons during source reads", async () =
   for (const reason of [false, 0, "", null]) {
     const fs = await fixture();
     const controller = new AbortController();
-    const broken = wrapped(fs, { readStream: () => ({ [Symbol.asyncIterator]() { return { async next() { controller.abort(reason); throw reason; } }; } }) });
+    const broken = wrapped(fs, { async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      return { ...handle, async read() { controller.abort(reason); throw reason; } };
+    } });
     await assert.rejects(run(broken, ["bundle", "file"], {}, { signal: controller.signal }), error => Object.is(error, reason));
     await assert.rejects(fs.stat("/work/bundle.zip"));
   }
@@ -258,16 +262,17 @@ test("zip copies reusable read fragments and prepares all files before publicati
   let completed = false;
   let writes = 0;
   const observed = wrapped(fs, {
-    readStream(path, options) {
-      if (path !== "/work/file") return fs.readStream!(path, options);
-      return { async *[Symbol.asyncIterator]() {
-        const chunk = Buffer.from("abc");
-        yield chunk;
-        chunk.set(Buffer.from("def"));
-        yield chunk;
-        chunk.fill(0);
-        completed = true;
-      } };
+    async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      if (path !== "/work/file") return handle;
+      const chunk = Buffer.alloc(3);
+      return { ...handle,
+        async read(position) {
+          chunk.set(Buffer.from(position === 0 ? "abc" : "def"));
+          return chunk;
+        },
+        async close() { chunk.fill(0); completed = true; await handle.close(); },
+      };
     },
     async createStagedFile(path, name, content, options) {
       assert.equal(completed, true);
@@ -283,13 +288,14 @@ test("zip copies reusable read fragments and prepares all files before publicati
 test("zip refuses source growth, shrinkage and metadata changes without output", async () => {
   for (const behavior of ["grow", "shrink", "replace"]) {
     const fs = await fixture();
-    const changing = wrapped(fs, { readStream: () => ({ async *[Symbol.asyncIterator]() {
-      if (behavior === "replace") {
-        await fs.writeFile("/work/file", Buffer.from("same!!"));
-        await fs.utimes!("/work/file", 1, 1);
-      }
-      yield Buffer.from(behavior === "grow" ? "1234567" : behavior === "shrink" ? "123" : "hello\n");
-    } }) });
+    const changing = wrapped(fs, { async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      return { ...handle, async read(position, size, readOptions) {
+        await fs.writeFile(path, Buffer.from(behavior === "grow" ? "1234567" : behavior === "shrink" ? "123" : "same!!"));
+        await fs.utimes!(path, 1, 1);
+        return handle.read(position, size, readOptions);
+      } };
+    } });
     assert.notEqual((await run(changing, ["bundle", "file"])).exitCode, 0);
     await assert.rejects(fs.stat("/work/bundle.zip"));
   }
@@ -477,13 +483,14 @@ for (const stop of ["caller", "dispose"]) test(`zip drains an admitted source re
   let disposed = false;
   let readSignal: AbortSignal | undefined;
   let disposal: Promise<void> | undefined;
-  const observed = wrapped(fs, { readStream(path, options) {
-    return { async *[Symbol.asyncIterator]() {
+  const observed = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    return { ...handle, async read(position, size, readOptions) {
       entered = true;
-      readSignal = options?.signal;
+      readSignal = readOptions?.signal;
       try {
         await held;
-        yield await fs.readFile(path, options);
+        return await handle.read(position, size, readOptions);
       } finally { completed = true; finish(); }
     } };
   } });

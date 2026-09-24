@@ -9,6 +9,7 @@ import { indices } from "./indices.js";
 import { fromDateIso8601, toDateIso8601 } from "./dates.js";
 import { capture } from "./capture.js";
 import { recurse } from "./recurse.js";
+import { delpaths } from "./delpaths.js";
 import { splitRegex } from "./splits.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
@@ -468,6 +469,14 @@ export class Interpreter {
         } else if (typeof pattern === "string") yield* capture(input, pattern, null, budget);
         else if (Array.isArray(pattern) && pattern.length) yield* capture(input, pattern[0]!, pattern[1] ?? null, budget);
         else throw new JqError(`${type(pattern)} not a string or array`);
+      }
+      return;
+    }
+    if (name === "delpaths") {
+      for await (const paths of this.run(args[0]!, input)) {
+        const result = await delpaths(input, paths, budget);
+        budget.value(result);
+        yield result;
       }
       return;
     }

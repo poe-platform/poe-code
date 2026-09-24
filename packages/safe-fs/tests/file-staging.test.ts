@@ -25,6 +25,55 @@ test("owned staging publishes exact bytes and cleans only its private directory"
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["output"]);
 });
 
+for (const mode of [0o644, 0o444]) test(`owned staging replaces a hardlinked destination entry and preserves its sibling, mode=${mode}`, async () => {
+  const { fs, parent, staged } = await fixture();
+  await fs.writeFile("/work/output", new Uint8Array([7, 8, 9]), { mode });
+  await fs.link("/work/output", "/work/peer");
+  const destination = await fs.lstat("/work/output");
+  assert.equal(destination.nlink, 2);
+  const reader = await fs.openReadFile("/work/peer");
+  try {
+    await fs.publishStagedFile(staged, "/work/output", { parent, destination });
+    await fs.removeStagedFile(staged);
+    assert.deepEqual(await fs.readFile("/work/output"), new Uint8Array([1, 2, 3]));
+    assert.deepEqual(await fs.readFile("/work/peer"), new Uint8Array([7, 8, 9]));
+    assert.deepEqual(await reader.read(0, 3), new Uint8Array([7, 8, 9]));
+    const output = await fs.lstat("/work/output"), peer = await fs.lstat("/work/peer");
+    assert.equal(output.ino, staged.file.stat.ino);
+    assert.equal(output.nlink, 1);
+    assert.equal(peer.ino, destination.ino);
+    assert.equal(peer.nlink, 1);
+    assert.equal(peer.mode & 0o777, mode);
+    assert.ok(peer.revision! > destination.revision!);
+    assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["output", "peer"]);
+  } finally { await reader.close(); }
+});
+
+for (const change of ["contents", "link-count"] as const) test(`owned staging rejects stale hardlinked destination ${change}`, async () => {
+  vi.spyOn(Date, "now").mockReturnValue(1234);
+  const { fs, parent, staged } = await fixture();
+  await fs.writeFile("/work/output", new Uint8Array([7, 8, 9]));
+  await fs.link("/work/output", "/work/peer");
+  const destination = await fs.lstat("/work/output");
+  if (change === "contents") await fs.writeFile("/work/peer", new Uint8Array([9, 8, 7]));
+  else await fs.link("/work/peer", "/work/third");
+  await assert.rejects(fs.publishStagedFile(staged, "/work/output", { parent, destination }), { code: "EAGAIN" });
+  assert.deepEqual(await fs.readFile("/work/output"), new Uint8Array(change === "contents" ? [9, 8, 7] : [7, 8, 9]));
+  assert.equal((await fs.lstat("/work/output")).ino, destination.ino);
+  assert.equal((await fs.lstat("/work/peer")).nlink, change === "link-count" ? 3 : 2);
+  await fs.removeStagedFile(staged);
+});
+
+test("owned staging refuses a destination alias of the staged file even with fresh snapshots", async () => {
+  const { fs, parent, staged } = await fixture();
+  await fs.link(staged.file.path, "/work/output");
+  const current = { ...staged, file: { ...staged.file, stat: await fs.lstat(staged.file.path) } };
+  await assert.rejects(fs.publishStagedFile(current, "/work/output", { parent, destination: await fs.lstat("/work/output") }), { code: "EINVAL" });
+  assert.deepEqual(await fs.readFile(staged.file.path), new Uint8Array([1, 2, 3]));
+  assert.deepEqual(await fs.readFile("/work/output"), new Uint8Array([1, 2, 3]));
+  assert.equal((await fs.lstat("/work/output")).nlink, 2);
+});
+
 for (const target of ["file", "directory", "parent"] as const) {
   test(`owned staging refuses a replaced ${target} during publication and cleanup`, async () => {
     const { fs, parent, staged } = await fixture();

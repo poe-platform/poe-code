@@ -813,7 +813,7 @@ export class MemoryFileSystem implements FileSystem {
     this.expectEntry(target.parent, parent, destination, false);
     this.expectEntry(target.node, expected, destination);
     if (target.parent === directory.node || target.node === directory.node || target.node === file.node) this.fail("EINVAL", "publishStagedFile", destination);
-    if (target.node && (target.node.type !== "file" || target.node.nlink !== 1)) this.fail("EAGAIN", "publishStagedFile", destination);
+    if (target.node && target.node.type !== "file") this.fail("EAGAIN", "publishStagedFile", destination);
     return MemoryFileSystem.prototype.rename.call(this, staging.file.path, destination, { ...controls, noReplace: expected === null });
   }
 

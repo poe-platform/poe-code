@@ -184,8 +184,9 @@ Cross-device `mv` can replace an existing regular file using guarded staging
 with atomic destination and ancestry checks and retained staging cleanup. Memory
 mounts support this route. Source bytes are buffered under the input and
 collection limits; supported modes and timestamps are prepared before publication.
-Backends without these guarantees refuse the overwrite. Opaque destination
-identities, hardlinked targets, and symlinked destination parents remain unsupported.
+Backends without these guarantees refuse the overwrite. Hardlinked destinations
+are replaced without changing the contents of their sibling links. Opaque
+destination identities and symlinked destination parents remain unsupported.
 Same-device replacement and cross-device moves to missing destinations remain supported.
 `cp -i` / `--interactive` prompts on stderr before overwriting each existing file
 and reads one response from stdin. Responses beginning with `y` or `Y` allow

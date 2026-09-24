@@ -1302,6 +1302,10 @@ both parents, and the destination's supplied snapshot or explicit absence before
 renaming. Parent and directory conditions compare stable identity and type;
 child mutations may legitimately change their timestamps. File conditions also
 compare `revision`, size, mode, link count, modification time, and change time.
+A regular-file destination may have multiple hard links: publication replaces
+only the named entry, and sibling links retain the old contents. Its captured
+identity and link count must still match. A destination alias of the staged file
+is rejected.
 `FileStat.revision`, when present, is a nonnegative safe integer that changes for
 each content write or explicit metadata mutation, including same-tick same-size
 writes. Access-time updates caused solely by reads need not change it.

@@ -21,6 +21,35 @@ vi.mock("node:fs", async () => {
 
 beforeEach(() => { vi.restoreAllMocks(); vol.reset(); vol.fromJSON({ "/machine/work/input": "abc\n" }); });
 
+// Exact post-rename link counts are checked by test:staging-native: memfs
+// does not decrement the overwritten inode's link count during rename.
+
+for (const change of ["contents", "link-count"] as const) it(`rooted real staging rejects stale hardlinked destination ${change}`, async () => {
+  const fs = new RealFileSystem("/machine");
+  await fs.writeFile("/work/output", new Uint8Array([7, 8, 9]));
+  await fs.link("/work/output", "/work/peer");
+  const parent = await fs.lstat("/work"), destination = await fs.lstat("/work/output");
+  const staged = await fs.createStagedFile("/work/.stage", "entry", { type: "file", data: new Uint8Array([1, 2, 3]) }, { parent });
+  if (change === "contents") await fs.writeFile("/work/peer", new Uint8Array([9, 8, 7, 6]));
+  else await fs.link("/work/peer", "/work/third");
+  await expect(fs.publishStagedFile(staged, "/work/output", { parent, destination })).rejects.toMatchObject({ code: "EAGAIN" });
+  await fs.removeStagedFile(staged);
+  expect(await fs.readFile("/work/output")).toEqual(new Uint8Array(change === "contents" ? [9, 8, 7, 6] : [7, 8, 9]));
+  expect((await fs.lstat("/work/peer")).nlink).toBe(change === "link-count" ? 3 : 2);
+});
+
+it("rooted real staging refuses a destination alias of the staged file", async () => {
+  const fs = new RealFileSystem("/machine");
+  const parent = await fs.lstat("/work");
+  const staged = await fs.createStagedFile("/work/.stage", "entry", { type: "file", data: new Uint8Array([1, 2, 3]) }, { parent });
+  await fs.link(staged.file.path, "/work/output");
+  const current = { ...staged, file: { ...staged.file, stat: await fs.lstat(staged.file.path) } };
+  await expect(fs.publishStagedFile(current, "/work/output", { parent, destination: await fs.lstat("/work/output") })).rejects.toMatchObject({ code: "EINVAL" });
+  expect(await fs.readFile(staged.file.path)).toEqual(new Uint8Array([1, 2, 3]));
+  expect(await fs.readFile("/work/output")).toEqual(new Uint8Array([1, 2, 3]));
+  expect((await fs.lstat("/work/output")).nlink).toBe(2);
+});
+
 async function run(fs: FileSystem, command: CommandDefinition, args: string[]) {
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const result = await command.execute({ command: command.name, args, fs, cwd: "/work", env: {}, signal: new AbortController().signal,

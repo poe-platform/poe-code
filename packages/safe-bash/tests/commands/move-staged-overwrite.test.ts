@@ -41,6 +41,24 @@ for (const shared of [false, true]) for (const length of [0, 150_001]) {
   });
 }
 
+for (const shared of [false, true]) test(`cross-device mv replaces a distinct hardlinked target, shared=${shared}`, async () => {
+  const { source, destination } = await fixture(shared);
+  await destination.link("/output/a", "/output/peer");
+  const before = await destination.lstat("/output/peer");
+  const shell = new Shell({ fs: mounted(source, destination) }).use(agentCommands());
+  try {
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await destination.readFile("/output/a")), "source");
+    assert.equal(new TextDecoder().decode(await destination.readFile("/output/peer")), "previous");
+    assert.equal((await destination.lstat("/output/peer")).ino, before.ino);
+    assert.equal((await destination.lstat("/output/peer")).nlink, 1);
+    assert.equal((await destination.lstat("/output/a")).nlink, 1);
+    await assert.rejects(source.stat("/input/a"), { code: "ENOENT" });
+    assert.deepEqual((await destination.readdir("/output")).map(entry => entry.name), ["a", "peer"]);
+  } finally { await shell.dispose(); }
+});
+
 for (const race of ["destination", "ancestor"] as const) {
   test(`cross-device mv preserves replacements after ${race} changes at publication`, async () => {
     const { source, destination } = await fixture();

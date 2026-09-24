@@ -27,6 +27,7 @@ import { scopeFileSystem } from "@poe-code/safe-fs/core";
 import { evaluateArithmetic, evaluateArithmeticReferences, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
+import { expandTildes } from "./tilde-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, compilePatternBoundaries, matchesPattern } from "./pattern.js";
 import { nextCodePointOffset, scanString, stringCheckpoint } from "./string-operations.js";
@@ -2368,7 +2369,7 @@ export class Runtime {
         ? this.arrayJoin(operation, values as readonly string[], "") : concatShellValues(values, io[valueScope]);
       if (assignment.kind === "element") {
         const index = selectedIndex ?? (await this.arrayIndex(staged, assignment.index, state, io, operation, true))!;
-        const fields = await this.valueWord(assignment.value, state, io, false);
+        const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
         const value = await join(fields);
         await insert(index, value, assignment.append);
       } else for (const entry of assignment.entries) {
@@ -4226,12 +4227,12 @@ export class Runtime {
         if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
         if (!words.length && arrayStore(state)?.get(assignment.name)) {
           await this.arrayZero(state, assignment.name, async () => {
-            const fields = await this.valueWord(assignment.value, state, io, false);
+            const fields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
             return this.arrayJoin(requireArrays(state).owner, fields, "");
           }, assignment.append);
           continue;
         }
-        let value = concatShellValues(await this.valueWord(assignment.value, state, io, false), io[valueScope]);
+        let value = concatShellValues(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0), io[valueScope]);
         if (assignment.append) {
           value = state.variableAttributes?.get(assignment.name)?.includes("i")
             ? concatShellValues([`(${state.variables[assignment.name] || "0"})+(`, value, ")"], io[valueScope])
@@ -6964,7 +6965,8 @@ export class Runtime {
         else await this.arrayAssignment(assignment, state, io, undefined, "declaration");
         fields.push(assignment.name);
       } else {
-        const values = await this.valueWord(word, state, io, !(declaration && this.assignment(word)), false, false, false, undefined, false, true);
+        const scalarAssignment = declaration ? this.assignment(word) : undefined;
+        const values = await this.valueWord(word, state, io, !scalarAssignment, false, false, false, undefined, false, true, scalarAssignment ? scalarAssignment.name.length + (scalarAssignment.append ? 2 : 1) : undefined);
         if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
         for (const value of values) fields.push(value);
       }
@@ -7593,12 +7595,12 @@ export class Runtime {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
   }
 
-  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument): Promise<ShellValue[]> {
+  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number): Promise<ShellValue[]> {
     if (braces && state.braceexpand !== false && word.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
       const fields: ShellValue[] = [];
       let bytes = 0;
       for await (const expanded of expandBraces(word, this.budget, this.signal)) {
-        const values = await this.valueWord(expanded, state, io, split, pattern, hereString, conditionalPattern, regexAppend, hereDocument, false);
+        const values = await this.valueWord(expanded, state, io, split, pattern, hereString, conditionalPattern, regexAppend, hereDocument, false, assignmentStart);
         if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
         for (const value of values) {
           const size = shellValueByteLength(value);
@@ -7624,7 +7626,9 @@ export class Runtime {
     const fields: { fragments: ShellValue[]; bytes: boolean; patterns: string[] | undefined; present: boolean; independentPresence: boolean; quoteGroups?: object[] }[] = [];
     let emptyNameGroups: Set<object> | undefined;
     let quoteGroup: object | undefined;
+    let splitBoundary = false;
     const addField = (): void => {
+      splitBoundary = false;
       if (fields.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       scratch?.reserve(32, 0);
       owner?.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
@@ -7633,6 +7637,7 @@ export class Runtime {
     addField();
     let expansionBytes = 0;
     const append = (value: ShellValue, glob: boolean, present: boolean) => {
+      if (splitBoundary && shellValueByteLength(value) > 0) { addField(); splitBoundary = false; }
       const text = shellValueText(value);
       const size = shellValueByteLength(value);
       if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail("maxExpansionBytes");
@@ -7684,18 +7689,16 @@ export class Runtime {
         }
       }
       if (typeof value !== "string" || typeof retainedSeparators !== "string" || byteSeparators) {
-        let boundary = false;
         for await (const piece of this.splitRawValue(value, retainedSeparators, io, byteLocale(state.variables))) {
           if (piece.separator) {
-            if (!piece.whitespace) { fields.at(-1)!.present = true; addField(); }
-            else if (fields.at(-1)!.present) boundary = true;
+            if (!piece.whitespace) { splitBoundary = false; fields.at(-1)!.present = true; addField(); }
+            else if (fields.at(-1)!.present) splitBoundary = true;
           } else {
-            if (boundary) addField();
-            boundary = false;
+            if (splitBoundary) addField();
+            splitBoundary = false;
             append(piece.value, true, true);
           }
         }
-        if (boundary) addField();
         return;
       }
       const separatorScope = this.budget.values.scope();
@@ -7719,24 +7722,23 @@ export class Runtime {
           await yieldTurn(this.signal);
         }
       }
-      let boundary = false;
       for await (const piece of this.splitValue(value, points, asciiSeparators, io, scratch)) {
         const point = typeof piece === "string" ? piece.codePointAt(0) : undefined;
         if (typeof piece === "string" && point !== undefined && piece.length === (point > 0xffff ? 2 : 1) && points.has(point)) {
           if (!" \t\n".includes(piece)) {
+            splitBoundary = false;
             fields.at(-1)!.present = true;
             addField();
-          } else if (fields.at(-1)!.present) boundary = true;
+          } else if (fields.at(-1)!.present) splitBoundary = true;
         } else {
-          if (boundary) addField();
-          boundary = false;
+          if (splitBoundary) addField();
+          splitBoundary = false;
           append(piece, true, true);
         }
       }
-      if (boundary) addField();
       } finally { separatorScope.close(); }
     };
-    const parts = word.parts.map((part) => ({ part, splitText: false, io }));
+    const parts = (hereDocument ? word.parts : expandTildes(word.parts, state.variables, this.budget, assignmentStart)).map((part) => ({ part, splitText: false, io }));
     for (let index = 0; index < parts.length; index++) {
       let { part } = parts[index]!;
       const { splitText, io: partIO } = parts[index]!;
@@ -7763,7 +7765,7 @@ export class Runtime {
         if (part.operator!.endsWith("+") ? !missing : missing) {
           const operandIO = this.parameterOperandIO(part.alternate!, state, partIO);
           scratch?.reserve(part.alternate!.parts.length * 32, 0);
-          const alternate = part.alternate!.parts.map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
+          const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state.variables, this.budget, undefined, false)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
           if (!alternate.length && part.quoted) append("", false, true);
           parts.splice(index + 1, 0, ...alternate);
           continue;
@@ -7800,8 +7802,7 @@ export class Runtime {
           emptyNameGroups.add(quoteGroup);
         }
       } else if (part.kind === "text" && !splitText) {
-        let value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
-        if (typeof value === "string" && index === 0 && !part.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
+        const value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
       } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && !part.transform && split) {
         const members = part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);

@@ -10,6 +10,22 @@ export function parsePrintfFloat(operand: string): { value: number; special?: st
     return { value: nan ? NaN : negative ? -Infinity : Infinity, special: (negative ? "-" : "") + (nan ? "nan" : "inf") };
   }
   if (!magnitude.startsWith("0x")) {
+    let offset = 0;
+    let digits = 0;
+    while (offset < magnitude.length && "0123456789".includes(magnitude[offset]!)) { offset++; digits++; }
+    if (magnitude[offset] === ".") {
+      offset++;
+      while (offset < magnitude.length && "0123456789".includes(magnitude[offset]!)) { offset++; digits++; }
+    }
+    if (!digits) return undefined;
+    if (magnitude[offset] === "e") {
+      offset++;
+      if (magnitude[offset] === "+" || magnitude[offset] === "-") offset++;
+      const start = offset;
+      while (offset < magnitude.length && "0123456789".includes(magnitude[offset]!)) offset++;
+      if (offset === start) return undefined;
+    }
+    if (offset !== magnitude.length) return undefined;
     const value = Number(operand);
     return Number.isFinite(value) ? { value } : undefined;
   }

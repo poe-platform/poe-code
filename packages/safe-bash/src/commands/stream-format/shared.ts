@@ -25,7 +25,7 @@ export function settings(options: StreamFormatCommandsOptions): StreamFormatLimi
     maxInputBytes: Infinity, maxOutputBytes: Infinity,
     maxRecordBytes: 1024 * 1024, maxChunkBytes: Infinity,
     maxFiles: Infinity, maxSteps: Infinity, maxArgumentBytes: Infinity,
-    maxNumericDigits: Infinity, ...options.limits,
+    maxNumericDigits: 1024, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
     if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) throw new RangeError(`Invalid stream-format limit: ${name}`);

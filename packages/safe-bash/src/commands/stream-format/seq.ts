@@ -36,7 +36,9 @@ function decimal(text: string, session: Session): Decimal {
 }
 
 function rounded(coefficient: bigint, scale: number, precision: number): bigint {
+  if (coefficient === 0n) return 0n;
   if (precision >= scale) return coefficient * 10n ** BigInt(precision - scale);
+  if (scale - precision > (coefficient < 0n ? -coefficient : coefficient).toString().length) return 0n;
   const divisor = 10n ** BigInt(scale - precision);
   const quotient = coefficient / divisor;
   const remainder = coefficient % divisor;
@@ -224,8 +226,13 @@ export function createSeqCommand(limits: StreamFormatLimits): CommandDefinition 
     }
     const firstText = (first.negativeZero ? "-" : "") + fixed(current, scale, precision);
     // LAST bounds the sequence; discarded fractional digits must not widen it.
-    const widthFinish = finish / 10n ** BigInt(scale - precision);
-    const width = equalWidth ? Math.max(firstText.length, fixed(widthFinish, precision, precision).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0)) : 0;
+    let width = 0;
+    if (equalWidth) {
+      const discarded = scale - precision;
+      const finishDigits = (finish < 0n ? -finish : finish).toString().length;
+      const widthFinish = discarded >= finishDigits ? 0n : finish / 10n ** BigInt(discarded);
+      width = Math.max(firstText.length, fixed(widthFinish, precision, precision).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0));
+    }
     let written = false;
     while (step > 0n ? current <= finish : current >= finish) {
       await session.step();

@@ -16,6 +16,7 @@ async function invokeTesseract(
   const stderrChunks: Uint8Array[] = [];
   const controller = new AbortController();
   const ctx: CommandContext = {
+    command: "tesseract",
     args: [...args],
     cwd: "/",
     env: {},

@@ -142,8 +142,8 @@ export function rotateImage(
   const sin = Math.sin(rad);
   const absCos = Math.abs(cos);
   const absSin = Math.abs(sin);
-  const dstW = Math.max(1, Math.round(img.width * absCos + img.height * absSin));
-  const dstH = Math.max(1, Math.round(img.width * absSin + img.height * absCos));
+  const dstW = Math.max(1, Math.ceil(img.width * absCos + img.height * absSin - 1e-6));
+  const dstH = Math.max(1, Math.ceil(img.width * absSin + img.height * absCos - 1e-6));
   const out = new Uint8Array(dstW * dstH * 4);
 
   const cxSrc = (img.width - 1) / 2;

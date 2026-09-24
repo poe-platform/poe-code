@@ -61,7 +61,14 @@ function parseNetpbmHeader(bytes: Uint8Array): {
     if (!hasDigit) break;
     tokens.push(num);
   }
-  // Skip exactly one single whitespace character after header
+  // If there is horizontal whitespace followed by a # comment on the final header line, skip to newline
+  let look = pos;
+  while (look < bytes.length && (bytes[look] === 0x20 || bytes[look] === 0x09)) look++;
+  if (look < bytes.length && bytes[look] === 0x23) {
+    pos = look;
+    while (pos < bytes.length && bytes[pos] !== 0x0a && bytes[pos] !== 0x0d) pos++;
+  }
+  // Skip the single terminating whitespace/newline character after header
   if (
     pos < bytes.length &&
     (bytes[pos] === 0x20 || bytes[pos] === 0x09 || bytes[pos] === 0x0a || bytes[pos] === 0x0d)
@@ -259,23 +266,44 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const meta = readBmpMetadata(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const dataOffset = view.getUint32(10, true);
+  const dibHeaderSize = view.getUint32(14, true);
   const rawHeight = view.getInt32(22, true);
   const topDown = rawHeight < 0;
   const bpp = view.getUint16(28, true);
-  const bytesPerPixel = Math.max(3, bpp >>> 3);
-  const rowStride = Math.ceil((meta.width * bytesPerPixel) / 4) * 4;
+  const rowStride = Math.floor((meta.width * bpp + 31) / 32) * 4;
   const rgba = new Uint8Array(meta.width * meta.height * 4);
+  const paletteOffset = 14 + dibHeaderSize;
+  const paletteStep = dibHeaderSize === 12 ? 3 : 4;
 
   for (let y = 0; y < meta.height; y++) {
     const srcY = topDown ? y : meta.height - 1 - y;
     const rowStart = dataOffset + srcY * rowStride;
     for (let x = 0; x < meta.width; x++) {
-      const srcIdx = rowStart + x * bytesPerPixel;
       const dstIdx = (y * meta.width + x) * 4;
-      rgba[dstIdx] = bytes[srcIdx + 2] ?? 0;
-      rgba[dstIdx + 1] = bytes[srcIdx + 1] ?? 0;
-      rgba[dstIdx + 2] = bytes[srcIdx] ?? 0;
-      rgba[dstIdx + 3] = bytesPerPixel === 4 ? (bytes[srcIdx + 3] ?? 255) : 255;
+      if (bpp <= 8) {
+        let pIdx = 0;
+        if (bpp === 8) {
+          pIdx = bytes[rowStart + x] ?? 0;
+        } else if (bpp === 4) {
+          const b = bytes[rowStart + (x >>> 1)] ?? 0;
+          pIdx = (x & 1) === 0 ? (b >>> 4) & 0x0f : b & 0x0f;
+        } else if (bpp === 1) {
+          const b = bytes[rowStart + (x >>> 3)] ?? 0;
+          pIdx = (b >>> (7 - (x & 7))) & 1;
+        }
+        const pOff = paletteOffset + pIdx * paletteStep;
+        rgba[dstIdx] = bytes[pOff + 2] ?? 0;
+        rgba[dstIdx + 1] = bytes[pOff + 1] ?? 0;
+        rgba[dstIdx + 2] = bytes[pOff] ?? 0;
+        rgba[dstIdx + 3] = 255;
+      } else {
+        const bytesPerPixel = bpp >>> 3;
+        const srcIdx = rowStart + x * bytesPerPixel;
+        rgba[dstIdx] = bytes[srcIdx + 2] ?? 0;
+        rgba[dstIdx + 1] = bytes[srcIdx + 1] ?? 0;
+        rgba[dstIdx + 2] = bytes[srcIdx] ?? 0;
+        rgba[dstIdx + 3] = bytesPerPixel === 4 ? (bytes[srcIdx + 3] ?? 255) : 255;
+      }
     }
   }
   return {
@@ -366,6 +394,27 @@ export function encodeTiffImage(img: RgbaImage): Uint8Array {
   return out;
 }
 
+function readTiffTagValues(
+  view: DataView,
+  entryPos: number,
+  le: boolean
+): number[] {
+  const type = view.getUint16(entryPos + 2, le);
+  const count = view.getUint32(entryPos + 4, le);
+  const elemSize = type === 3 ? 2 : type === 4 ? 4 : 1;
+  const totalBytes = count * elemSize;
+  const valPos = totalBytes <= 4 ? entryPos + 8 : view.getUint32(entryPos + 8, le);
+  const values: number[] = [];
+  for (let i = 0; i < count; i++) {
+    const off = valPos + i * elemSize;
+    if (off + elemSize > view.byteLength) break;
+    if (type === 3) values.push(view.getUint16(off, le));
+    else if (type === 4) values.push(view.getUint32(off, le));
+    else values.push(view.getUint8(off));
+  }
+  return values;
+}
+
 export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   const le = bytes[0] === 0x49;
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -373,35 +422,64 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   const numEntries = view.getUint16(ifdOffset, le);
   let width = 0;
   let height = 0;
-  let stripOffset = 8;
+  let stripOffsets: number[] = [8];
+  let stripByteCounts: number[] = [];
   let samplesPerPixel = 4;
   for (let i = 0; i < numEntries; i++) {
     const p = ifdOffset + 2 + i * 12;
     const tag = view.getUint16(p, le);
-    const type = view.getUint16(p + 2, le);
-    const val = type === 3 ? view.getUint16(p + 8, le) : view.getUint32(p + 8, le);
-    if (tag === 256) width = val;
-    else if (tag === 257) height = val;
-    else if (tag === 273) stripOffset = val;
-    else if (tag === 277) samplesPerPixel = val;
+    const vals = readTiffTagValues(view, p, le);
+    const first = vals[0] ?? 0;
+    if (tag === 256) width = first;
+    else if (tag === 257) height = first;
+    else if (tag === 273 && vals.length > 0) stripOffsets = vals;
+    else if (tag === 277 && first > 0) samplesPerPixel = first;
+    else if (tag === 279 && vals.length > 0) stripByteCounts = vals;
   }
+
+  const totalExpectedBytes = width * height * samplesPerPixel;
+  const combined = new Uint8Array(totalExpectedBytes);
+  let dstOff = 0;
+  for (let s = 0; s < stripOffsets.length && dstOff < totalExpectedBytes; s++) {
+    const off = stripOffsets[s]!;
+    const byteCount =
+      stripByteCounts[s] ?? Math.min(bytes.length - off, totalExpectedBytes - dstOff);
+    const len = Math.max(0, Math.min(byteCount, bytes.length - off, totalExpectedBytes - dstOff));
+    combined.set(bytes.subarray(off, off + len), dstOff);
+    dstOff += len;
+  }
+
   const rgba = new Uint8Array(width * height * 4);
   for (let i = 0; i < width * height; i++) {
-    const src = stripOffset + i * samplesPerPixel;
-    rgba[i * 4] = bytes[src] ?? 0;
-    rgba[i * 4 + 1] = bytes[src + 1] ?? 0;
-    rgba[i * 4 + 2] = bytes[src + 2] ?? 0;
-    rgba[i * 4 + 3] = samplesPerPixel === 4 ? (bytes[src + 3] ?? 255) : 255;
+    const src = i * samplesPerPixel;
+    if (samplesPerPixel === 1) {
+      const g = combined[src] ?? 0;
+      rgba[i * 4] = g;
+      rgba[i * 4 + 1] = g;
+      rgba[i * 4 + 2] = g;
+      rgba[i * 4 + 3] = 255;
+    } else if (samplesPerPixel === 2) {
+      const g = combined[src] ?? 0;
+      rgba[i * 4] = g;
+      rgba[i * 4 + 1] = g;
+      rgba[i * 4 + 2] = g;
+      rgba[i * 4 + 3] = combined[src + 1] ?? 255;
+    } else {
+      rgba[i * 4] = combined[src] ?? 0;
+      rgba[i * 4 + 1] = combined[src + 1] ?? 0;
+      rgba[i * 4 + 2] = combined[src + 2] ?? 0;
+      rgba[i * 4 + 3] = samplesPerPixel >= 4 ? (combined[src + 3] ?? 255) : 255;
+    }
   }
   return {
     width,
     height,
     data: rgba,
     format: "tiff",
-    space: "srgb",
-    channels: samplesPerPixel === 4 ? 4 : 3,
+    space: samplesPerPixel < 3 ? "b-w" : "srgb",
+    channels: samplesPerPixel === 4 ? 4 : samplesPerPixel === 1 ? 1 : 3,
     depth: "uchar",
     density: 72,
-    hasAlpha: samplesPerPixel === 4
+    hasAlpha: samplesPerPixel === 2 || samplesPerPixel === 4
   };
 }

@@ -276,6 +276,10 @@ export function resizeImage(
       targetW = Math.min(targetW, srcW);
       targetH = Math.min(targetH, srcH);
     }
+    if (spec.withoutReduction && (targetW < srcW || targetH < srcH)) {
+      targetW = Math.max(targetW, srcW);
+      targetH = Math.max(targetH, srcH);
+    }
     const scale = Math.max(targetW / srcW, targetH / srcH);
     const scaledW = Math.max(targetW, Math.round(srcW * scale));
     const scaledH = Math.max(targetH, Math.round(srcH * scale));
@@ -290,6 +294,14 @@ export function resizeImage(
   }
 
   // fit === "contain"
+  if (spec.withoutEnlargement && (targetW > srcW || targetH > srcH)) {
+    targetW = Math.min(targetW, srcW);
+    targetH = Math.min(targetH, srcH);
+  }
+  if (spec.withoutReduction && (targetW < srcW || targetH < srcH)) {
+    targetW = Math.max(targetW, srcW);
+    targetH = Math.max(targetH, srcH);
+  }
   const scale = Math.min(targetW / srcW, targetH / srcH);
   const [innerW, innerH] = clampScale(
     Math.max(1, Math.round(srcW * scale)),

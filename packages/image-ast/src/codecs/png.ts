@@ -189,138 +189,173 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     colorType === 6 ? 4 : colorType === 4 ? 2 : colorType === 2 ? 3 : 1;
   const bitsPerPixel = samplesPerPixel * bitDepth;
   const bytesPerPixel = Math.max(1, Math.ceil(bitsPerPixel / 8));
-  const rowBytes = Math.ceil((width * bitsPerPixel) / 8);
-  const rawData = new Uint8Array(height * rowBytes);
-
-  for (let y = 0; y < height; y++) {
-    const srcRowOffset = y * (rowBytes + 1);
-    const filterType = inflated[srcRowOffset] ?? 0;
-    const dstRowOffset = y * rowBytes;
-    const prevRowOffset = (y - 1) * rowBytes;
-
-    for (let x = 0; x < rowBytes; x++) {
-      const raw = inflated[srcRowOffset + 1 + x] ?? 0;
-      const a = x >= bytesPerPixel ? rawData[dstRowOffset + x - bytesPerPixel]! : 0;
-      const b = y > 0 ? rawData[prevRowOffset + x]! : 0;
-      const c = y > 0 && x >= bytesPerPixel ? rawData[prevRowOffset + x - bytesPerPixel]! : 0;
-
-      let recon = raw;
-      if (filterType === 1) {
-        recon = (raw + a) & 0xff;
-      } else if (filterType === 2) {
-        recon = (raw + b) & 0xff;
-      } else if (filterType === 3) {
-        recon = (raw + ((a + b) >>> 1)) & 0xff;
-      } else if (filterType === 4) {
-        recon = (raw + paethPredictor(a, b, c)) & 0xff;
-      }
-      rawData[dstRowOffset + x] = recon;
-    }
-  }
-
   const rgba = new Uint8Array(width * height * 4);
-  for (let y = 0; y < height; y++) {
-    const rowStart = y * rowBytes;
-    for (let x = 0; x < width; x++) {
-      const outIdx = (y * width + x) * 4;
-      if (bitDepth === 8) {
-        if (colorType === 6) {
-          const idx = rowStart + x * 4;
-          rgba[outIdx] = rawData[idx]!;
-          rgba[outIdx + 1] = rawData[idx + 1]!;
-          rgba[outIdx + 2] = rawData[idx + 2]!;
-          rgba[outIdx + 3] = rawData[idx + 3]!;
-        } else if (colorType === 2) {
-          const idx = rowStart + x * 3;
-          const r = rawData[idx]!;
-          const g = rawData[idx + 1]!;
-          const b = rawData[idx + 2]!;
-          let a = 255;
-          if (trns && trns.length >= 6) {
-            if (r === trns[1] && g === trns[3] && b === trns[5]) a = 0;
+
+  const decodePass = (
+    subW: number,
+    subH: number,
+    inOffset: number,
+    x0: number,
+    y0: number,
+    dx: number,
+    dy: number
+  ): number => {
+    if (subW <= 0 || subH <= 0) return inOffset;
+    const rowBytes = Math.ceil((subW * bitsPerPixel) / 8);
+    const rawData = new Uint8Array(subH * rowBytes);
+    let curOffset = inOffset;
+
+    for (let y = 0; y < subH; y++) {
+      const filterType = inflated[curOffset++] ?? 0;
+      const dstRowOffset = y * rowBytes;
+      const prevRowOffset = (y - 1) * rowBytes;
+      for (let x = 0; x < rowBytes; x++) {
+        const raw = inflated[curOffset++] ?? 0;
+        const a = x >= bytesPerPixel ? rawData[dstRowOffset + x - bytesPerPixel]! : 0;
+        const b = y > 0 ? rawData[prevRowOffset + x]! : 0;
+        const c = y > 0 && x >= bytesPerPixel ? rawData[prevRowOffset + x - bytesPerPixel]! : 0;
+        let recon = raw;
+        if (filterType === 1) recon = (raw + a) & 0xff;
+        else if (filterType === 2) recon = (raw + b) & 0xff;
+        else if (filterType === 3) recon = (raw + ((a + b) >>> 1)) & 0xff;
+        else if (filterType === 4) recon = (raw + paethPredictor(a, b, c)) & 0xff;
+        rawData[dstRowOffset + x] = recon;
+      }
+    }
+
+    for (let y = 0; y < subH; y++) {
+      const rowStart = y * rowBytes;
+      const dstY = y0 + y * dy;
+      for (let x = 0; x < subW; x++) {
+        const dstX = x0 + x * dx;
+        const outIdx = (dstY * width + dstX) * 4;
+        if (bitDepth === 8) {
+          if (colorType === 6) {
+            const idx = rowStart + x * 4;
+            rgba[outIdx] = rawData[idx]!;
+            rgba[outIdx + 1] = rawData[idx + 1]!;
+            rgba[outIdx + 2] = rawData[idx + 2]!;
+            rgba[outIdx + 3] = rawData[idx + 3]!;
+          } else if (colorType === 2) {
+            const idx = rowStart + x * 3;
+            const r = rawData[idx]!;
+            const g = rawData[idx + 1]!;
+            const b = rawData[idx + 2]!;
+            let a = 255;
+            if (trns && trns.length >= 6 && r === trns[1] && g === trns[3] && b === trns[5]) a = 0;
+            rgba[outIdx] = r;
+            rgba[outIdx + 1] = g;
+            rgba[outIdx + 2] = b;
+            rgba[outIdx + 3] = a;
+          } else if (colorType === 4) {
+            const idx = rowStart + x * 2;
+            const g = rawData[idx]!;
+            rgba[outIdx] = g;
+            rgba[outIdx + 1] = g;
+            rgba[outIdx + 2] = g;
+            rgba[outIdx + 3] = rawData[idx + 1]!;
+          } else if (colorType === 0) {
+            const g = rawData[rowStart + x]!;
+            const a = trns && trns.length >= 2 && g === trns[1] ? 0 : 255;
+            rgba[outIdx] = g;
+            rgba[outIdx + 1] = g;
+            rgba[outIdx + 2] = g;
+            rgba[outIdx + 3] = a;
+          } else if (colorType === 3) {
+            const pIdx = rawData[rowStart + x]!;
+            rgba[outIdx] = palette ? (palette[pIdx * 3] ?? 0) : 0;
+            rgba[outIdx + 1] = palette ? (palette[pIdx * 3 + 1] ?? 0) : 0;
+            rgba[outIdx + 2] = palette ? (palette[pIdx * 3 + 2] ?? 0) : 0;
+            rgba[outIdx + 3] = trns && pIdx < trns.length ? trns[pIdx]! : 255;
           }
-          rgba[outIdx] = r;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = b;
-          rgba[outIdx + 3] = a;
-        } else if (colorType === 4) {
-          const idx = rowStart + x * 2;
-          const g = rawData[idx]!;
-          rgba[outIdx] = g;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = g;
-          rgba[outIdx + 3] = rawData[idx + 1]!;
-        } else if (colorType === 0) {
-          const g = rawData[rowStart + x]!;
-          let a = 255;
-          if (trns && trns.length >= 2 && g === trns[1]) a = 0;
-          rgba[outIdx] = g;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = g;
-          rgba[outIdx + 3] = a;
-        } else if (colorType === 3) {
-          const pIdx = rawData[rowStart + x]!;
-          const r = palette ? (palette[pIdx * 3] ?? 0) : 0;
-          const g = palette ? (palette[pIdx * 3 + 1] ?? 0) : 0;
-          const b = palette ? (palette[pIdx * 3 + 2] ?? 0) : 0;
-          const a = trns && pIdx < trns.length ? trns[pIdx]! : 255;
-          rgba[outIdx] = r;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = b;
-          rgba[outIdx + 3] = a;
-        }
-      } else if (bitDepth === 16) {
-        if (colorType === 6) {
-          const idx = rowStart + x * 8;
-          rgba[outIdx] = rawData[idx]!;
-          rgba[outIdx + 1] = rawData[idx + 2]!;
-          rgba[outIdx + 2] = rawData[idx + 4]!;
-          rgba[outIdx + 3] = rawData[idx + 6]!;
-        } else if (colorType === 2) {
-          const idx = rowStart + x * 6;
-          rgba[outIdx] = rawData[idx]!;
-          rgba[outIdx + 1] = rawData[idx + 2]!;
-          rgba[outIdx + 2] = rawData[idx + 4]!;
-          rgba[outIdx + 3] = 255;
-        } else if (colorType === 4) {
-          const idx = rowStart + x * 4;
-          const g = rawData[idx]!;
-          rgba[outIdx] = g;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = g;
-          rgba[outIdx + 3] = rawData[idx + 2]!;
+        } else if (bitDepth === 16) {
+          if (colorType === 6) {
+            const idx = rowStart + x * 8;
+            rgba[outIdx] = rawData[idx]!;
+            rgba[outIdx + 1] = rawData[idx + 2]!;
+            rgba[outIdx + 2] = rawData[idx + 4]!;
+            rgba[outIdx + 3] = rawData[idx + 6]!;
+          } else if (colorType === 2) {
+            const idx = rowStart + x * 6;
+            let a = 255;
+            if (
+              trns &&
+              trns.length >= 6 &&
+              rawData[idx] === trns[0] &&
+              rawData[idx + 1] === trns[1] &&
+              rawData[idx + 2] === trns[2] &&
+              rawData[idx + 3] === trns[3] &&
+              rawData[idx + 4] === trns[4] &&
+              rawData[idx + 5] === trns[5]
+            ) {
+              a = 0;
+            }
+            rgba[outIdx] = rawData[idx]!;
+            rgba[outIdx + 1] = rawData[idx + 2]!;
+            rgba[outIdx + 2] = rawData[idx + 4]!;
+            rgba[outIdx + 3] = a;
+          } else if (colorType === 4) {
+            const idx = rowStart + x * 4;
+            const g = rawData[idx]!;
+            rgba[outIdx] = g;
+            rgba[outIdx + 1] = g;
+            rgba[outIdx + 2] = g;
+            rgba[outIdx + 3] = rawData[idx + 2]!;
+          } else {
+            const idx = rowStart + x * 2;
+            const g = rawData[idx]!;
+            const a =
+              trns && trns.length >= 2 && rawData[idx] === trns[0] && rawData[idx + 1] === trns[1]
+                ? 0
+                : 255;
+            rgba[outIdx] = g;
+            rgba[outIdx + 1] = g;
+            rgba[outIdx + 2] = g;
+            rgba[outIdx + 3] = a;
+          }
         } else {
-          const g = rawData[rowStart + x * 2]!;
-          rgba[outIdx] = g;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = g;
-          rgba[outIdx + 3] = 255;
-        }
-      } else {
-        // 1, 2, or 4-bit depth
-        const pixelsPerByte = 8 / bitDepth;
-        const byteIndex = rowStart + Math.floor(x / pixelsPerByte);
-        const shift = (pixelsPerByte - 1 - (x % pixelsPerByte)) * bitDepth;
-        const mask = (1 << bitDepth) - 1;
-        const sample = (rawData[byteIndex]! >>> shift) & mask;
-        if (colorType === 3) {
-          const r = palette ? (palette[sample * 3] ?? 0) : 0;
-          const g = palette ? (palette[sample * 3 + 1] ?? 0) : 0;
-          const b = palette ? (palette[sample * 3 + 2] ?? 0) : 0;
-          const a = trns && sample < trns.length ? trns[sample]! : 255;
-          rgba[outIdx] = r;
-          rgba[outIdx + 1] = g;
-          rgba[outIdx + 2] = b;
-          rgba[outIdx + 3] = a;
-        } else {
-          const scaled = Math.round((sample * 255) / mask);
-          rgba[outIdx] = scaled;
-          rgba[outIdx + 1] = scaled;
-          rgba[outIdx + 2] = scaled;
-          rgba[outIdx + 3] = 255;
+          const pixelsPerByte = 8 / bitDepth;
+          const byteIndex = rowStart + Math.floor(x / pixelsPerByte);
+          const shift = (pixelsPerByte - 1 - (x % pixelsPerByte)) * bitDepth;
+          const mask = (1 << bitDepth) - 1;
+          const sample = (rawData[byteIndex]! >>> shift) & mask;
+          if (colorType === 3) {
+            rgba[outIdx] = palette ? (palette[sample * 3] ?? 0) : 0;
+            rgba[outIdx + 1] = palette ? (palette[sample * 3 + 1] ?? 0) : 0;
+            rgba[outIdx + 2] = palette ? (palette[sample * 3 + 2] ?? 0) : 0;
+            rgba[outIdx + 3] = trns && sample < trns.length ? trns[sample]! : 255;
+          } else {
+            const scaled = Math.round((sample * 255) / mask);
+            const a = trns && trns.length >= 2 && sample === trns[1] ? 0 : 255;
+            rgba[outIdx] = scaled;
+            rgba[outIdx + 1] = scaled;
+            rgba[outIdx + 2] = scaled;
+            rgba[outIdx + 3] = a;
+          }
         }
       }
     }
+    return curOffset;
+  };
+
+  if (meta.isProgressive) {
+    const passes = [
+      { x0: 0, y0: 0, dx: 8, dy: 8 },
+      { x0: 4, y0: 0, dx: 8, dy: 8 },
+      { x0: 0, y0: 4, dx: 4, dy: 8 },
+      { x0: 2, y0: 0, dx: 4, dy: 4 },
+      { x0: 0, y0: 2, dx: 2, dy: 4 },
+      { x0: 1, y0: 0, dx: 2, dy: 2 },
+      { x0: 0, y0: 1, dx: 1, dy: 2 }
+    ];
+    let inOff = 0;
+    for (const p of passes) {
+      const pw = Math.ceil((width - p.x0) / p.dx);
+      const ph = Math.ceil((height - p.y0) / p.dy);
+      inOff = decodePass(pw, ph, inOff, p.x0, p.y0, p.dx, p.dy);
+    }
+  } else {
+    decodePass(width, height, 0, 0, 0, 1, 1);
   }
 
   return {

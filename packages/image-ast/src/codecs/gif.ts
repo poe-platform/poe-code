@@ -12,6 +12,44 @@ export function isGifBytes(bytes: Uint8Array): boolean {
   );
 }
 
+function countGifFrames(bytes: Uint8Array): number {
+  const packed = bytes[10]!;
+  const hasGct = (packed & 0x80) !== 0;
+  const gctSize = 1 << ((packed & 0x07) + 1);
+  let pos = 13 + (hasGct ? gctSize * 3 : 0);
+  let frames = 0;
+  while (pos < bytes.length) {
+    const intro = bytes[pos++]!;
+    if (intro === 0x3b) break;
+    if (intro === 0x21) {
+      pos++; // label
+      while (pos < bytes.length) {
+        const subLen = bytes[pos++]!;
+        if (subLen === 0) break;
+        pos += subLen;
+      }
+    } else if (intro === 0x2c) {
+      if (pos + 9 > bytes.length) break;
+      frames++;
+      const imgFlags = bytes[pos + 8]!;
+      pos += 9;
+      if (imgFlags & 0x80) {
+        const lctSize = 1 << ((imgFlags & 0x07) + 1);
+        pos += lctSize * 3;
+      }
+      pos++; // minCodeSize
+      while (pos < bytes.length) {
+        const subLen = bytes[pos++]!;
+        if (subLen === 0) break;
+        pos += subLen;
+      }
+    } else {
+      break;
+    }
+  }
+  return Math.max(1, frames);
+}
+
 export function readGifMetadata(bytes: Uint8Array): ImageMetadata {
   if (!isGifBytes(bytes) || bytes.length < 13) {
     throw new Error("Invalid GIF header");
@@ -27,7 +65,7 @@ export function readGifMetadata(bytes: Uint8Array): ImageMetadata {
     depth: "uchar",
     density: 72,
     hasAlpha: true,
-    pages: 1,
+    pages: countGifFrames(bytes),
     size: bytes.byteLength
   };
 }
@@ -105,7 +143,7 @@ function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): U
   return out;
 }
 
-export function decodeGifImage(bytes: Uint8Array): RgbaImage {
+export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: number }): RgbaImage {
   const meta = readGifMetadata(bytes);
   const { width, height } = meta;
   const packed = bytes[10]!;
@@ -119,6 +157,8 @@ export function decodeGifImage(bytes: Uint8Array): RgbaImage {
   }
 
   let transparentIdx = -1;
+  const targetPage = Math.max(0, options?.page ?? 0);
+  let currentFrame = 0;
   const rgba = new Uint8Array(width * height * 4);
 
   while (pos < bytes.length) {
@@ -169,15 +209,29 @@ export function decodeGifImage(bytes: Uint8Array): RgbaImage {
         off += b.length;
       }
       const indices = lzwDecode(minCodeSize, lzwStream, imgW * imgH);
-      for (let y = 0; y < imgH; y++) {
+      const isInterlaced = (imgFlags & 0x40) !== 0;
+      const rowMap = new Int32Array(imgH);
+      if (isInterlaced) {
+        let srcRow = 0;
+        const passes: [number, number][] = [[0, 8], [4, 8], [2, 4], [1, 2]];
+        for (const [start, step] of passes) {
+          for (let r = start; r < imgH; r += step) {
+            rowMap[srcRow++] = r;
+          }
+        }
+      } else {
+        for (let r = 0; r < imgH; r++) rowMap[r] = r;
+      }
+      for (let sy = 0; sy < imgH; sy++) {
+        const y = rowMap[sy]!;
         for (let x = 0; x < imgW; x++) {
-          const idx = indices[y * imgW + x]!;
+          const idx = indices[sy * imgW + x]!;
           const dstX = left + x;
           const dstY = top + y;
           if (dstX < width && dstY < height) {
             const outIdx = (dstY * width + dstX) * 4;
             if (idx === transparentIdx) {
-              rgba[outIdx + 3] = 0;
+              if (currentFrame === 0) rgba[outIdx + 3] = 0;
             } else {
               rgba[outIdx] = palette[idx * 3] ?? 0;
               rgba[outIdx + 1] = palette[idx * 3 + 1] ?? 0;
@@ -187,7 +241,11 @@ export function decodeGifImage(bytes: Uint8Array): RgbaImage {
           }
         }
       }
-      break;
+      if (currentFrame >= targetPage) {
+        break;
+      }
+      currentFrame++;
+      transparentIdx = -1;
     } else {
       break;
     }
@@ -211,9 +269,9 @@ export function encodeGifImage(img: RgbaImage): Uint8Array {
   // Build 256-color RGB332 palette (indices 0..254, index 255 = transparent)
   const palette = new Uint8Array(256 * 3);
   for (let i = 0; i < 255; i++) {
-    const r = ((i >>> 5) & 0x07) * 36;
-    const g = ((i >>> 2) & 0x07) * 36;
-    const b = (i & 0x03) * 85;
+    const r = Math.round((((i >>> 5) & 0x07) * 255) / 7);
+    const g = Math.round((((i >>> 2) & 0x07) * 255) / 7);
+    const b = Math.round(((i & 0x03) * 255) / 3);
     palette[i * 3] = r;
     palette[i * 3 + 1] = g;
     palette[i * 3 + 2] = b;

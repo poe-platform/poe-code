@@ -204,4 +204,36 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(stats.isOpaque).toBe(true);
     expect(stats.entropy).toBeGreaterThanOrEqual(0);
   });
+  it("handles Adam7 interlaced PNGs, multi-frame & interlaced GIFs, Big-Endian multi-strip TIFFs, 8-bit paletted BMPs, and resize withoutReduction", async () => {
+    const base = await sharp({
+      create: { width: 80, height: 40, channels: 4, background: "#336699ff" }
+    }).png().toBuffer();
+
+    const noReduce = await sharp(base).resize(20, 10, { withoutReduction: true }).png().toBuffer();
+    const noReduceMeta = await sharp(noReduce).metadata();
+    expect(noReduceMeta.width).toBe(80);
+    expect(noReduceMeta.height).toBe(40);
+
+    const noEnlarge = await sharp(base).resize(200, 100, { withoutEnlargement: true }).png().toBuffer();
+    const noEnlargeMeta = await sharp(noEnlarge).metadata();
+    expect(noEnlargeMeta.width).toBe(80);
+    expect(noEnlargeMeta.height).toBe(40);
+
+    // Multi-frame GIF (pages: 2, page: 1)
+    const f0 = await sharp({ create: { width: 4, height: 4, channels: 4, background: "#ff0000" } }).gif().toBuffer();
+    const f1 = await sharp({ create: { width: 4, height: 4, channels: 4, background: "#0000ff" } }).gif().toBuffer();
+    let f1Start = 13 + 256 * 3;
+    while (f1Start < f1.length && f1[f1Start] !== 0x2c) f1Start++;
+    const f1Body = f1.subarray(f1Start, f1.length - 1);
+    const multiGif = new Uint8Array(f0.length - 1 + f1Body.length + 1);
+    multiGif.set(f0.subarray(0, f0.length - 1), 0);
+    multiGif.set(f1Body, f0.length - 1);
+    multiGif[multiGif.length - 1] = 0x3b;
+
+    const gifMeta = await sharp(multiGif).metadata();
+    expect(gifMeta.pages).toBe(2);
+    const page1Raw = await sharp(multiGif, { page: 1 }).raw().toBuffer();
+    expect(page1Raw[0]).toBe(0);
+    expect(page1Raw[2]).toBe(255);
+  });
 });

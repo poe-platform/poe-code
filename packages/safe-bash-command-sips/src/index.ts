@@ -648,7 +648,23 @@ async function executeVfsImageTool(
     const resolveVfsPath = (p: string) =>
       p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
 
-    for (const token of argv) {
+    const normalizedArgv = [...argv];
+    for (let i = 0; i < normalizedArgv.length; i++) {
+      const token = normalizedArgv[i]!;
+      if (token === "-o" || token === "--out") {
+        const next = normalizedArgv[i + 1];
+        if (next && !next.endsWith("/")) {
+          try {
+            const st = await context.fs.stat(resolveVfsPath(next), { signal: invocation.signal });
+            if (st.type === "directory") {
+              normalizedArgv[i + 1] = next + "/";
+            }
+          } catch {
+            // Target does not exist yet
+          }
+        }
+        continue;
+      }
       if (token.startsWith("-")) continue;
       try {
         const bytes = await context.fs.readFile(resolveVfsPath(token), {
@@ -661,7 +677,7 @@ async function executeVfsImageTool(
     }
 
     const existingSnap = new Map(vfsFiles);
-    const res = await runner(argv, vfsFiles);
+    const res = await runner(normalizedArgv, vfsFiles);
 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);

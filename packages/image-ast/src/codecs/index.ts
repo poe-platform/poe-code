@@ -227,7 +227,7 @@ export function decodeImage(
     case "webp":
       return decodeWebpImage(bytes);
     case "gif":
-      return decodeGifImage(bytes);
+      return decodeGifImage(bytes, options);
     case "ppm":
     case "pgm":
     case "pbm":

@@ -273,6 +273,10 @@ export class Interpreter {
       yield* filter.scope.paths(filter.ast, input); return;
     }
     if (ast.kind === "invoke") { yield* this.invocation(ast).paths(ast.body, input); return; }
+    if (ast.kind === "bind") {
+      for await (const value of this.run(ast.source, input)) yield* this.binding(ast.name, value).paths(ast.body, input, depth);
+      return;
+    }
     if (ast.kind === "identity") { yield []; return; }
     if (ast.kind === "binary" && ast.operator === ",") { yield* this.paths(ast.left, input); yield* this.paths(ast.right, input); return; }
     if (ast.kind === "optional") {
@@ -595,7 +599,10 @@ export class Interpreter {
     }
     if (["startswith", "endswith", "ltrimstr", "rtrimstr"].includes(name)) {
       for await (const value of this.run(args[0]!, input)) {
-        if (typeof input !== "string" || typeof value !== "string") throw new JqError(`${name} requires strings`);
+        if (typeof input !== "string" || typeof value !== "string") {
+          if (name === "ltrimstr" || name === "rtrimstr") { yield input; continue; }
+          throw new JqError(`${name} requires strings`);
+        }
         await budget.tick(input.length + value.length);
         const matches = name === "startswith" || name === "ltrimstr" ? input.startsWith(value) : input.endsWith(value);
         yield name === "startswith" || name === "endswith" ? matches : !matches || !value.length ? input : name === "ltrimstr" ? input.slice(value.length) : input.slice(0, -value.length);

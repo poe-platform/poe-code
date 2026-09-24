@@ -137,6 +137,7 @@ function isPath(ast: Ast): boolean {
     if (node.kind === "identity" || node.kind === "parameter" || node.kind === "invoke" || node.kind === "descend") continue;
     if (node.kind === "index" || node.kind === "iterate" || node.kind === "slice") pending.push(node.base);
     else if (node.kind === "optional") pending.push(node.operand);
+    else if (node.kind === "bind") pending.push(node.body);
     else if (node.kind === "call" && ["select", "values", "strings", "numbers", "booleans", "arrays", "objects", "nulls", "scalars", "iterables", "empty"].includes(node.name)) continue;
     else if (node.kind === "binary" && (node.operator === "," || node.operator === "|")) pending.push(node.left, node.right);
     else return false;
@@ -340,8 +341,8 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       }
     } else if (token.text === ".") {
       result = { kind: "identity" };
-      if ((peek().kind === "name" && peek().offset === token.offset + 1) || peek().kind === "string") {
-        const key = take(); result = { kind: "index", base: result, index: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) };
+      if ((peek().kind === "name" && peek().offset === token.offset + 1) || peek().kind === "string" || peek().text === "string-start") {
+        const key = take(); result = { kind: "index", base: result, index: key.kind === "name" ? literal(key.text) : stringExpression(key) };
       }
     } else if (token.text === "(") { result = expression(); expect(")"); }
     else if (token.text === "[") {
@@ -384,11 +385,10 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       const args: Ast[] = [];
       if (accept("(")) { if (peek().text !== ")") do { args.push(expression()); } while (accept(";")); expect(")"); }
       if (token.text === "split" && args.length === 2) fail("unsupported function split/2");
-      const definition = definitions?.get(name);
+      const definition = definitions.get(`${name}/${args.length}`);
       const parameter = parameters.get(name);
       if (parameter && !args.length) result = parameter;
-      else if (definition?.kind === "invoke" && definition.parameters.length === args.length) result = { ...definition, args };
-      else if (definition && definition.kind !== "invoke" && !args.length) result = definition;
+      else if (definition?.kind === "invoke") result = { ...definition, args };
       else {
         result = { kind: "call", name, args };
         if (!Object.hasOwn(functions, name) || !functions[name]!.includes(args.length)) unresolved.set(result, token);
@@ -397,8 +397,8 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     while (true) {
       if (accept("?")) result = { kind: "optional", operand: result! };
       else if (accept(".")) {
-        const key = take(); if (key.kind !== "name" && key.kind !== "string") fail("expected property name");
-        result = { kind: "index", base: result!, index: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) };
+        const key = take(); if (key.kind !== "name" && key.kind !== "string" && key.text !== "string-start") fail("expected property name");
+        result = { kind: "index", base: result!, index: key.kind === "name" ? literal(key.text) : stringExpression(key) };
       } else if (accept("[")) {
         if (accept("]")) result = { kind: "iterate", base: result! };
         else {
@@ -443,7 +443,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     }
     parameters.clear();
     for (const value of values) if (value) bindings.delete(value);
-    definitions.set(name.text, formal.length ? { kind: "invoke", parameters: formal, args: [], body } : body);
+    definitions.set(`${name.text}/${formal.length}`, { kind: "invoke", parameters: formal, args: [], body });
     budget.collection(definitions.size);
     bodies.push(body);
   }

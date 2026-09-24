@@ -5,6 +5,51 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { ReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
 import { createSplitCommands } from "../../../src/commands/split/index.js";
 import { chunks, files, run, wrapped } from "./helpers.js";
+import { Shell } from "../../../src/shell/shell.js";
+import { cloudflareWorkerLimits } from "../../../src/shell/worker-limits.js";
+import { splitCommands } from "../../../src/commands/split/index.js";
+
+test("Worker split rejects oversized suffixes on empty stdin before reading input", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided", limits: cloudflareWorkerLimits })
+    .use(splitCommands());
+  try {
+    for (const option of ["-a 2000000", "--suffix-length=2000000"]) {
+      let read = false;
+      const stdin = (async function* () { read = true; yield* []; })();
+      const result = await shell.exec(`split ${option}`, { stdin });
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "split: split suffix length limit exceeded\n");
+      assert.equal(read, false);
+      assert.deepEqual(await files(fs), {});
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("split invocation suffix ceilings preserve boundaries and tighter registration limits", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, deviceView: "provided", limits: cloudflareWorkerLimits })
+    .use(splitCommands({ limits: { maxSuffixLength: 3 } }));
+  try {
+    const capped = await shell.exec("split -a4", { stdin: "x" });
+    assert.equal(capped.exitCode, 1);
+    assert.equal(capped.stderr, "split: split suffix length limit exceeded\n");
+    const tighter = await shell.exec("split -a3", { stdin: "x", limits: { commandLimits: { split: { maxSuffixLength: 2 } } } });
+    assert.equal(tighter.exitCode, 1);
+    const boundary = await shell.exec("split -a3", { stdin: "x" });
+    assert.equal(boundary.exitCode, 0, boundary.stderr);
+    assert.deepEqual(await files(fs), { xaaa: "78" });
+  } finally { await shell.dispose(); }
+  const workerFs = createMemoryFileSystem();
+  const worker = new Shell({ fs: workerFs, deviceView: "provided", limits: cloudflareWorkerLimits }).use(splitCommands());
+  try {
+    const accepted = await worker.exec('split -a255 - ""', { stdin: "x" });
+    assert.equal(accepted.exitCode, 0, accepted.stderr);
+    assert.deepEqual(await files(workerFs), { ["a".repeat(255)]: "78" });
+    const rejected = await worker.exec("split -a256");
+    assert.equal(rejected.exitCode, 1);
+  } finally { await worker.dispose(); }
+});
 
 test("hex suffix starts are hexadecimal and counters roll over in base sixteen", async () => {
   const result = await run(["--hex-suffixes=f", "-a2", "-b1"], "abc");

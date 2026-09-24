@@ -87,7 +87,7 @@ There is no native-process fallback for these flags.
 | `maxBufferBytes` | Unlimited | `-C` window, `-n` input and each fallback collection |
 | `maxChunkBytes` | 64 KiB | Output slice size / requested VFS read chunk |
 | `maxArgumentBytes` | Unlimited | Total UTF-8 bytes of argv |
-| `maxSuffixLength` | Unlimited | Counter plus auto-extension characters |
+| `maxSuffixLength` | Unlimited (255 with `cloudflareWorkerLimits`) | Counter plus auto-extension characters; checked before allocating the counter, including on empty input |
 | `maxSteps` | Unlimited | Work/input-iteration budget |
 
 These are per invocation, not a replacement for shared Shell budgets. Shell

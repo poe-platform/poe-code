@@ -4,7 +4,8 @@ import { FsError, isFsError, collectBytes, type ByteSource, type CommandContext,
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
-import { parseArguments, type SplitArguments, type SplitLimits } from "./options.js";
+import { parseArguments, settings, type SplitArguments, type SplitLimits } from "./options.js";
+import type { CommandFamilyLimits } from "../limits.js";
 import { gnuInformation } from "../gnu-information.js";
 
 async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Uint8Array> {
@@ -177,7 +178,13 @@ export function createSplitCommand(limits: SplitLimits): CommandDefinition {
     try {
       const info = await gnuInformation("split", context);
       if (info) return info;
-      await run(context, limits);
+      const profile = (context.capabilities?.commandLimits as CommandFamilyLimits | undefined)?.split;
+      const effective = { ...limits };
+      if (profile) {
+        settings({ limits: profile });
+        for (const key of Object.keys(profile) as (keyof SplitLimits)[]) effective[key] = Math.min(effective[key], profile[key]!);
+      }
+      await run(context, effective);
       context.signal.throwIfAborted();
       return { exitCode: 0 };
     } catch (error) {

@@ -40,3 +40,24 @@ it.each([["  -1.2E+2\t", -120], [".25", .25], ["+2.", 2]])("matches decimal arra
   expect(result).toMatchObject({ ok: true, document: { root: { rows: [[{ value: { kind: "number", value } }]] } } });
   if (result.ok) expect(parseExpression(serializeExpression(result.document, gnumericGrammar, false), { position, grammar: gnumericGrammar })).toMatchObject({ ok: true });
 });
+
+it.each([
+  { source: "={}", values: [[{ kind: "blank" }]] },
+  { source: "={ ,1}", values: [[{ kind: "blank" }, { kind: "number", value: 1 }]] },
+  { source: "={,;1,}", values: [[{ kind: "blank" }, { kind: "blank" }], [{ kind: "number", value: 1 }, { kind: "blank" }]] }
+])("preserves imported blank array entries in $source", ({ source, values }) => {
+  const parsed = parseExpression(source, { position });
+  expect(parsed).toMatchObject({ ok: true, document: { root: { kind: "array", rows:
+    values.map(row => row.map(value => ({ kind: "literal", value }))) } } });
+  if (!parsed.ok) throw new Error(parsed.diagnostic.message);
+  const reopened = parseExpression(serializeExpression(parsed.document, gnumericGrammar, false), { position });
+  expect(reopened).toMatchObject({ ok: true, document: { root: { kind: "array", rows:
+    values.map(row => row.map(value => ({ kind: "literal", value }))) } } });
+});
+
+it("charges blank array nodes and rejects unequal rows", () => {
+  expect(() => parseExpression("={,}", { position, maximumNodes: 2 })).toThrow("formula node limit");
+  expect(parseExpression("={,}", { position, maximumNodes: 3 }).ok).toBe(true);
+  expect(parseExpression("={,1;2}", { position }).ok).toBe(false);
+  expect(parseExpression("={,;}", { position }).ok).toBe(false);
+});

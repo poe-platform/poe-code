@@ -230,7 +230,9 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       if (c === "{") {
         offset++; const rows: FormulaNode[][] = []; let row: FormulaNode[] = [];
         while (true) {
-          let value = expression(0, true);
+          space();
+          let value = [grammar.arrayColumn, grammar.arrayRow, "}"].includes(source[offset] ?? "")
+            ? node({ kind: "literal", start: offset, end: offset, value: { kind: "blank" } }) : expression(0, true);
           if (value.kind === "literal" && value.value.kind === "string") {
             const text = value.value.value, upper = text.toUpperCase();
             if (upper === "TRUE" || upper === "FALSE") value = node({ ...value, value: { kind: "boolean", value: upper === "TRUE" } });

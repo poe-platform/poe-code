@@ -46,6 +46,7 @@ for (const scenario of [
 	"context-mutations",
 	"context-reuse",
 	"serialization",
+	"serialization-trailing-frame",
 	"serialization-after-context-close",
 	"foreign-context",
 	"default-target",

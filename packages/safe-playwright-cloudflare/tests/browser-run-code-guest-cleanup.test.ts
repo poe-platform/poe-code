@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 
-const fixture = vi.hoisted(() => ({ close: vi.fn(), userCode: vi.fn(), serializeState: vi.fn(() => "{}") }));
+const fixture = vi.hoisted(() => ({ connect: vi.fn(), close: vi.fn(), userCode: vi.fn(), serializeState: vi.fn(() => "{}") }));
 vi.mock("cloudflare:workers", () => ({ RpcTarget: class {}, WorkerEntrypoint: class {} }));
 vi.mock("browser-user-code.js", () => ({ default: fixture.userCode }));
 vi.mock("../src/browser-run-code-context-state.js", () => ({
@@ -18,14 +18,18 @@ vi.mock("@cloudflare/playwright", () => {
   const context = { pages: () => [page], on() {} };
   const page = { context: () => context };
   return {
-    connect: async () => ({
+    connect: async (binding: unknown) => {
+      await fixture.connect(binding);
+      return {
       contexts: () => [context],
+      isConnected: () => true,
       close: fixture.close,
       newBrowserCDPSession: async () => ({
         send: async () => ({ targetInfos: [{ targetId: "page", browserContextId: "context" }] }),
         detach: async () => {}
       })
-    })
+      };
+    }
   };
 });
 import Guest from "../src/browser-run-code-guest.js";
@@ -88,4 +92,74 @@ test.each([false, true])("guest retains serialization error when state capture f
   expect(error).toBeInstanceOf(AggregateError);
   expect(error.cause.message).toContain("Run-code result is not JSON-serializable");
   expect(error.errors).toEqual(closeFails ? [error.cause, stateError, cleanup] : [error.cause, stateError]);
+});
+
+test.each([
+  { rejected: false, cleanupFails: false },
+  { rejected: true, cleanupFails: false },
+  { rejected: false, cleanupFails: true },
+  { rejected: true, cleanupFails: true }
+])("guest joins transport shutdown (user rejected: $rejected, cleanup fails: $cleanupFails)", async ({ rejected, cleanupFails }) => {
+  const closing = Promise.withResolvers<void>();
+  const started = Promise.withResolvers<void>();
+  let receiver: { frame(message: string): void };
+  let socketClosed = false;
+  const socket = Object.assign(new EventTarget(), {
+    accept() {},
+    close() { socketClosed = true; },
+    send: vi.fn(() => {
+      if (socketClosed) throw new TypeError("Can't call WebSocket send() after close().");
+    })
+  });
+  vi.stubGlobal("WebSocketPair", class { 0 = socket; 1 = socket; });
+  vi.stubGlobal("Response", class {});
+  const session = { send: vi.fn(), close: vi.fn(() => { started.resolve(); return closing.promise; }) };
+  fixture.connect.mockImplementationOnce(async (binding) => {
+    await binding.fetch("http://fake.host/v1/devtools/browser/owned?persistent=true");
+    receiver.frame("active reply");
+    socket.dispatchEvent(new MessageEvent("message", { data: "active command" }));
+    await Promise.resolve();
+  });
+  const browserClose = vi.fn(async () => {
+    socket.close();
+    socket.dispatchEvent(new Event("close"));
+    receiver.frame("trailing reply");
+    socket.dispatchEvent(new MessageEvent("message", { data: "trailing command" }));
+  });
+  fixture.close.mockImplementationOnce(browserClose);
+  fixture.userCode.mockResolvedValueOnce(rejected ? 1n : 1);
+  const cleanupError = new Error("Run-code transport cleanup failed");
+  let settled = false;
+  const result = new Guest().run({ open: async (_url: string, callback: typeof receiver) => {
+    receiver = callback;
+    return session;
+  } } as never, metadata as never);
+  const outcome = result.then(value => { settled = true; return value; }, error => { settled = true; return error; });
+  try {
+    await started.promise;
+    await new Promise<void>(resolve => setImmediate(resolve));
+    expect(settled).toBe(false);
+    expect(browserClose).toHaveBeenCalledOnce();
+  } finally {
+    if (cleanupFails) closing.reject(cleanupError);
+    else closing.resolve();
+    await outcome;
+    vi.unstubAllGlobals();
+  }
+  expect(session.close).toHaveBeenCalledOnce();
+  expect(browserClose).toHaveBeenCalledOnce();
+  expect(socket.send).toHaveBeenCalledExactlyOnceWith("active reply");
+  expect(session.send).toHaveBeenCalledExactlyOnceWith("active command");
+  if (cleanupFails) {
+    const error = await outcome;
+    if (rejected) {
+      expect(error).toBeInstanceOf(AggregateError);
+      expect(error.cause.message).toBe("Run-code result is not JSON-serializable");
+      expect(error.errors).toEqual([error.cause, cleanupError]);
+    } else expect(error).toBe(cleanupError);
+  } else {
+    await expect(result).resolves.toMatchObject(rejected
+      ? { ok: false, message: "Error: Run-code result is not JSON-serializable" }
+      : { ok: true, json: "1" });
+  }
 });

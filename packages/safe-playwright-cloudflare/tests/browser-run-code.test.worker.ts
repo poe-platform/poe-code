@@ -1,4 +1,5 @@
 import { failureText } from "./browser-native-failure";
+import { RpcTarget } from "cloudflare:workers";
 import assert from "node:assert/strict";
 import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
 import { createPlaywrightCli } from "@poe-platform/safe-bash/playwright";
@@ -10,6 +11,8 @@ import {
 } from "@cloudflare/playwright";
 import { browserPageCDP } from "../src/browser-page-cdp";
 import { createBrowserRunCode } from "../src/browser-run-code";
+import type { BrowserRunCodeMetadata, BrowserRunCodeReceiver, BrowserRunCodeRelay } from "../src/browser-run-code-contract";
+import type BrowserRunCodeGuest from "../src/browser-run-code-guest";
 import { browserRunCodeGuestSource } from "../src/browser-run-code-guest.generated.js";
 import { captureRunCodeState } from "../src/browser-run-code-native";
 import type { RunCodeState } from "../src/browser-run-code-state";
@@ -24,6 +27,42 @@ interface Env {
 	BROWSER: BrowserWorker;
 	BROWSER_RUN_CODE_LOADER: WorkerLoader;
 }
+
+function trailingFrameLoader(loader: WorkerLoader): WorkerLoader {
+	return {
+		load(options: Parameters<WorkerLoader["load"]>[0]) {
+			const worker = loader.load(options);
+			return {
+				getEntrypoint() {
+					const entry = worker.getEntrypoint<BrowserRunCodeGuest>();
+					return {
+						run(relay: BrowserRunCodeRelay, metadata: BrowserRunCodeMetadata) {
+							class Relay extends RpcTarget {
+								open(url: string, callback: BrowserRunCodeReceiver) {
+									const retained = callback.dup();
+									const receiver: BrowserRunCodeReceiver = {
+										frame: retained.frame,
+										async close() {
+											// Deterministically deliver one trailing CDP reply during draining.
+											// Playwright ignores replies for sessions already detached (-32001).
+											await retained.frame('{"id":2147483647,"error":{"code":-32001,"message":"Session with given id not found."}}');
+											await retained.close();
+										},
+										dup: () => receiver,
+										[Symbol.dispose]: retained[Symbol.dispose].bind(retained),
+									};
+									return relay.open(url, receiver);
+								}
+							}
+							return entry.run(new Relay(), metadata);
+						},
+					};
+				},
+			};
+		},
+	} as unknown as WorkerLoader;
+}
+
 async function fixture(env: Env, mobile: boolean, loader = env.BROWSER_RUN_CODE_LOADER) {
 	const { sessionId } = await acquire(env.BROWSER, {});
 	const browser = await connect(env.BROWSER, sessionId);
@@ -118,7 +157,9 @@ export default {
 				new URL(request.url).pathname.startsWith("/mobile"),
 				new URL(request.url).pathname === '/loader-error'
 					? { load() { throw new Error('Worker transport unavailable'); } } as unknown as WorkerLoader
-					: env.BROWSER_RUN_CODE_LOADER,
+					: new URL(request.url).pathname === '/serialization-trailing-frame'
+						? trailingFrameLoader(env.BROWSER_RUN_CODE_LOADER)
+						: env.BROWSER_RUN_CODE_LOADER,
 			);
 			cleanup = f.cleanup;
 			switch (new URL(request.url).pathname) {
@@ -162,6 +203,7 @@ export default {
 					break;
 				}
 				case "/serialization":
+				case "/serialization-trailing-frame":
 					await assertRunCodeSerialization(f);
 					break;
 				case "/context-reuse": {

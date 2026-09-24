@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import type { Page } from "@cloudflare/playwright";
 import { captureRunCodeTimeouts } from "../src/browser-run-code-native";
+import { failureText } from "./browser-native-failure";
 
 export async function assertRunCodeSerialization(f: {
 	page: Page;
@@ -19,6 +20,7 @@ export async function assertRunCodeSerialization(f: {
 		const width = 650 + index;
 		const action = 4000 + index;
 		const navigation = 5000 + index;
+		let serializationError: unknown;
 		// biome-ignore lint/performance/noAwaitInLoops: Each failure and recovery must finish on the same owned browser before the next mutation tests retained state.
 		await assert.rejects(
 			f.run(`async page => {
@@ -30,9 +32,13 @@ export async function assertRunCodeSerialization(f: {
         await page.evaluate(() => { document.title = 'Attempt ${registrations}'; });
         ${statement}
       }`),
-			/result is not JSON-serializable/,
+			(error) => {
+				serializationError = error;
+				assert.match(String(error), /result is not JSON-serializable/);
+				return true;
+			},
 		);
-		assert.equal(f.retired(), false);
+		assert.equal(f.retired(), false, failureText(serializationError));
 		assert.equal(await f.page.title(), `Attempt ${registrations}`);
 		assert.deepEqual(f.page.viewportSize(), { width, height: 480 });
 		assert.deepEqual(captureRunCodeTimeouts(f.page), { action, navigation });

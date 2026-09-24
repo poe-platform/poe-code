@@ -5,6 +5,7 @@ import { failureText } from "./browser-native-failure";
 import worker from "./browser-run-code.test.worker";
 
 vi.mock("@cloudflare/playwright", () => ({ acquire: vi.fn(), connect: vi.fn() }));
+vi.mock("cloudflare:workers", () => ({ RpcTarget: class {} }));
 vi.mock("../src/browser-run-code", () => ({ createBrowserRunCode: vi.fn() }));
 vi.mock("./browser-storage-route.test.worker-cases", () => ({ handleBrowserStorageScenario: vi.fn() }));
 

@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+vi.mock("cloudflare:workers", () => ({ RpcTarget: class {} }));
 
 const provider = vi.hoisted(() => ({
 	acquire: vi.fn(),

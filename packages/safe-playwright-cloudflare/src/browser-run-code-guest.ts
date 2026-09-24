@@ -1,8 +1,8 @@
-import { RpcTarget, WorkerEntrypoint } from "cloudflare:workers";
+import { WorkerEntrypoint } from "cloudflare:workers";
 import { type Browser, connect, type Page } from "@cloudflare/playwright";
+import { createRunCodeBinding } from "./browser-run-code-binding.js";
 import { restoreRunCodeContextState } from "./browser-run-code-context-state.js";
 import {
-	BROWSER_RUN_CODE_URL,
 	type BrowserRunCodeMetadata,
 	type BrowserRunCodeRelay,
 } from "./browser-run-code-contract.js";
@@ -14,47 +14,6 @@ import {
 } from "./browser-run-code-native.js";
 import { serializeRunCodeState } from "./browser-run-code-state.js";
 import { prepareBrowserScreenshots } from './browser-screenshot.js';
-
-class Receiver extends RpcTarget {
-	#socket: WebSocket;
-	constructor(socket: WebSocket) {
-		super();
-		this.#socket = socket;
-	}
-	frame(message: string) {
-		this.#socket.send(message);
-	}
-	close() {
-		try {
-			this.#socket.close();
-		} catch {
-			/* Already closed. */
-		}
-	}
-}
-
-async function bindingResponse(relay: BrowserRunCodeRelay, url: string) {
-	if (url !== BROWSER_RUN_CODE_URL)
-		throw new Error("Unexpected browser endpoint");
-	const pair = new WebSocketPair();
-	pair[1].accept();
-	const session = await relay.open(url, new Receiver(pair[1]) as never);
-	let outgoing = Promise.resolve();
-	pair[1].addEventListener("message", (event) => {
-		outgoing = outgoing.then(() => session.send(event.data as string));
-		void outgoing.catch(() => {
-			try {
-				pair[1].close();
-			} catch {
-				/* Closed. */
-			}
-		});
-	});
-	pair[1].addEventListener("close", () => {
-		void session.close();
-	});
-	return new Response(null, { status: 101, webSocket: pair[0] });
-}
 
 async function selectedPage(
 	browser: Browser,
@@ -105,9 +64,7 @@ function serializeResult(result: unknown): string {
 
 export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 	async run(relay: BrowserRunCodeRelay, metadata: BrowserRunCodeMetadata) {
-		const binding = {
-			fetch: (url: string | URL) => bindingResponse(relay, String(url))
-		};
+		const binding = createRunCodeBinding(relay);
 		const connectOptions = { sessionId: "owned", persistent: true };
 		const browser = await connect(binding as never, connectOptions);
 		const failures: unknown[] = [];
@@ -150,12 +107,17 @@ export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 			if (userFailure) failures.push(userFailure.error);
 			failures.push(error);
 		});
-		// A rejected close must not replace a user-error response prepared above.
-		try {
-			await browser.close();
-		} catch (error) {
-			if (!failures.length && userFailure) failures.push(userFailure.error);
-			failures.push(error);
+		// Stop forwarding frames before Playwright closes its local socket, then join
+		// relay shutdown before releasing the guest that owns the callback capability.
+		binding.revoke();
+		for (const connection of [browser, binding]) {
+			try {
+				if (connection === browser && !browser.isConnected()) continue;
+				await connection.close();
+			} catch (error) {
+				if (!failures.length && userFailure) failures.push(userFailure.error);
+				failures.push(error);
+			}
 		}
 		if (failures.length > 1)
 			throw new AggregateError(failures, failures.map(String).join("; "), {

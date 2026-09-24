@@ -292,9 +292,11 @@ ancestors, final targets, and patch-input paths. Patch also rejects hard-linked
 targets and actual auxiliary outputs when `nlink` reports more than one link.
 Unused headers and stripped prefixes are not inspected for authorization;
 lexically unsafe automatic headers are still rejected. Directory targets are never
-overwritten. These checks are not a replacement for adapter sandboxing:
-`FileSystem` has no no-follow file handles or compare-and-swap operation, so
-concurrent path replacement cannot be made race-free here. Host-root confinement
+overwritten. Diff reads operands and exclusion files through retained handles,
+checking the inspected file identity and ancestors before reading content.
+Backends without retained reads or authoritative file identity fail closed; stdin
+remains supported. These checks are not a replacement for adapter sandboxing.
+Host-root confinement
 remains the adapter's responsibility; these commands never address host paths
 outside the supplied virtual filesystem API.
 

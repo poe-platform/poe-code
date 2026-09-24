@@ -100,7 +100,7 @@ async function exclusionPatterns(options: DiffFlags, budget: Budget): Promise<Pa
   for (const pattern of options.excludes) await append(pattern);
   for (const path of options.excludeFiles) {
     if (path !== "-") await inspect(budget, path);
-    const contents = await budget.read(path === "-" ? "-" : pathOf(budget.context, path));
+    const contents = await (path === "-" ? budget.read("-") : budget.readDiff(pathOf(budget.context, path)));
     let start = 0;
     while (start < contents.length) {
       const newline = contents.indexOf("\n", start);
@@ -174,7 +174,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const read = async (path: string, exists: boolean) => {
       if (!exists) return "";
       if (path === "-") return stdin ??= await budget.read("-", "latin1");
-      return budget.read(pathOf(context, path), "latin1");
+      return budget.readDiff(pathOf(context, path), "latin1");
     };
     const oldBytes = await read(left, !!leftStat);
     const newBytes = await read(right, !!rightStat);

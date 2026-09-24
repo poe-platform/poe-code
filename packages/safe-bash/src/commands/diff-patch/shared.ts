@@ -26,6 +26,7 @@ export class ToolError extends PublicDiagnostic {
 
 export class Budget {
   readonly limits: Required<Omit<DiffPatchOptions, "replace">>;
+  readonly inspected = new Map<string, FileStat>();
   private inputBytes = 0;
   private outputBytes = 0;
   private lines = 0;
@@ -113,6 +114,56 @@ export class Budget {
     return encoding === "latin1" ? Buffer.from(bytes).toString("latin1") : this.text(bytes);
   }
 
+  async readDiff(path: string, encoding: "utf8" | "latin1" = "utf8"): Promise<string> {
+    const { fs, signal } = this.context;
+    const expected = this.inspected.get(path);
+    const identity = (actual: FileStat, wanted: FileStat): boolean =>
+      wanted.identityScope !== undefined && wanted.dev !== undefined && wanted.ino !== undefined
+      && actual.identityScope === wanted.identityScope && actual.dev === wanted.dev && actual.ino === wanted.ino
+      && actual.type === wanted.type;
+    const verifyAncestors = async () => {
+      const parts = path.split("/").filter(Boolean);
+      let current = "";
+      for (let index = -1; index < parts.length - 1; index++) {
+        if (index >= 0) current += `/${parts[index]!}`;
+        const ancestor = current || "/";
+        const wanted = this.inspected.get(ancestor);
+        const actual = await fs.lstat(ancestor, { signal });
+        if (!wanted || !identity(actual, wanted)) throw new ToolError("diff input ancestry changed");
+      }
+    };
+    const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
+    if (!expected || !identity(expected, expected) || capabilities.retainedRead !== true || !fs.openReadFile)
+      throw new ToolError("diff input requires identity-checked retained reads");
+    await verifyAncestors();
+    const handle = await fs.openReadFile(path, { signal });
+    try {
+      const stat = await handle.stat({ signal });
+      if (!identity(stat, expected) || stat.size !== expected.size || stat.revision !== expected.revision)
+        throw new ToolError("diff input changed while opening");
+      await verifyAncestors();
+      const remaining = this.limits.maxInputBytes - this.inputBytes;
+      if (stat.size > remaining) throw new ToolError("input byte limit exceeded");
+      const chunks: Uint8Array[] = [];
+      let position = 0;
+      while (position < stat.size) {
+        this.step();
+        await this.checkpoint();
+        const size = Math.min(65536, stat.size - position);
+        const chunk = await handle.read(position, size, { signal });
+        if (!chunk.length || chunk.length > size) throw new ToolError("diff input changed while reading");
+        chunks.push(chunk);
+        position += chunk.length;
+      }
+      const after = await handle.stat({ signal });
+      if (!identity(after, stat) || after.size !== stat.size || after.revision !== stat.revision)
+        throw new ToolError("diff input changed while reading");
+      const bytes = Buffer.concat(chunks, position);
+      this.inputBytes += position;
+      return encoding === "latin1" ? bytes.toString("latin1") : this.text(bytes);
+    } finally { await handle.close(); }
+  }
+
   private async *chunks(source: ByteSource): ByteSource {
     for await (const chunk of readBytes(source, this.context.signal)) {
       this.step();
@@ -158,6 +209,7 @@ export async function inspect(budget: Budget, path: string): Promise<FileStat | 
     let stat: FileStat;
     try { stat = await host(context, () => context.fs.lstat(current || "/", { signal: context.signal })); }
     catch (error) { if (isFsError(error, "ENOENT")) return undefined; throw error; }
+    budget.inspected.set(current || "/", stat);
     if (stat.type === "symlink") throw new ToolError(`symlink paths are unsupported: ${current}`);
     if (index < parts.length - 1 && stat.type !== "directory") throw new ToolError(`not a directory: ${current}`);
     if (index === parts.length - 1) return stat;

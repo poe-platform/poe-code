@@ -1,13 +1,67 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { setup } from "./helpers.js";
 
-for (const key of ['k', '10', '01', 'two words']) {
+for (const explicitExtension of [false, true]) {
+  for (const nounset of ['', 'set -u; ']) {
+    test(`associative scalar operators read key zero: extension=${explicitExtension}, ${nounset || 'normal'}`, async () => {
+      const { shell } = setup(explicitExtension ? { extensions: [arraysExtension()] } : {});
+      try {
+        const result = await shell.exec(`${nounset}declare -A m; m[a]=WRONG_SLOT0; m[0]=correct_key0; args "$m" "\${m:-fb}" "\${m-fb}" "\${m:=fb}" "\${m=fb}" "\${m:?err}" "\${m?err}" "\${m/correct/OK}" "\${#m}" "\${m[0]}" "\${m[a]}"`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, '');
+        assert.deepEqual(JSON.parse(result.stdout), [
+          'correct_key0', 'correct_key0', 'correct_key0', 'correct_key0',
+          'correct_key0', 'correct_key0', 'correct_key0', 'OK_key0', '12',
+          'correct_key0', 'WRONG_SLOT0',
+        ]);
+      } finally { await shell.dispose(); }
+    });
+
+    test(`associative missing key zero ignores occupied slots: extension=${explicitExtension}, ${nounset || 'normal'}`, async () => {
+      const { shell } = setup(explicitExtension ? { extensions: [arraysExtension()] } : {});
+      try {
+        const result = await shell.exec(`${nounset}declare -A m; m[a]=first; args "\${m:-fallback}" "\${m-fallback}" "\${m:+present}" "\${m+present}" "\${m[0]:-fallback}" "\${m[0]-fallback}" "\${m[0]:+present}" "\${m[0]+present}"; args "\${m:=assigned}" "\${m[0]}" "\${m[a]}"`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '["fallback","fallback","","","fallback","fallback","",""]["assigned","assigned","first"]');
+      } finally { await shell.dispose(); }
+    });
+
+    test(`associative empty key zero preserves null operator semantics: extension=${explicitExtension}, ${nounset || 'normal'}`, async () => {
+      const { shell } = setup(explicitExtension ? { extensions: [arraysExtension()] } : {});
+      try {
+        const result = await shell.exec(`${nounset}declare -A m; m[a]=first; m[0]=''; args "\${m:-fallback}" "\${m-fallback}" "\${m:+present}" "\${m+present}" "\${m=assigned}" "\${m?err}" "\${#m}"; args "\${m:=assigned}" "\${m[0]}" "\${m[a]}"`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '["fallback","","","present","","","0"]["assigned","assigned","first"]');
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test('associative scalar operators retain raw key-zero bytes', async () => {
+  const { getCommandArguments } = await import('../../src/contracts/index.js');
+  const { shell } = setup();
+  shell.register({ name: 'raw', async execute(context) {
+    for (let index = 0; index < context.args.length; index++) await context.stdout.write(getCommandArguments(context).bytes(index)!);
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await shell.exec('LC_ALL=C; declare -A m; m[a]=WRONG_SLOT0; m[0]=$\'\\377x\'; raw "${m:-fb}" "${m-fb}" "${m:=fb}" "${m:?err}" "${m%x}" "${#m}"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, '');
+    assert.deepEqual([...result.stdoutBytes], [255, 120, 255, 120, 255, 120, 255, 120, 255, 50]);
+  } finally { await shell.dispose(); }
+});
+
+for (const key of ['k', '0', '5', '10', '01', 'two words']) {
   for (const nounset of ['', 'set -u; ']) {
     test(`associative default and alternate operators: ${key}, ${nounset || 'normal'}`, async () => {
       const { shell } = setup();
       try {
-        const result = await shell.exec(`${nounset}declare -A m; key='${key}'; m[$key]=value; m[empty]=''; args "\${m[missing]-fallback}" "\${m[missing]:-fallback}" "\${m[missing]+alt}" "\${m[missing]:+alt}" "\${m[$key]-fallback}" "\${m[$key]:-fallback}" "\${m[$key]+alt}" "\${m[$key]:+alt}" "\${m[empty]-fallback}" "\${m[empty]:-fallback}" "\${m[empty]+alt}" "\${m[empty]:+alt}"; x=\${m[missing]:-fallback}; args "$x"`);
+        const result = await shell.exec(`${nounset}declare -A m; m[first]=WRONG_SLOT0; key='${key}'; m[$key]=value; m[empty]=''; args "\${m[missing]-fallback}" "\${m[missing]:-fallback}" "\${m[missing]+alt}" "\${m[missing]:+alt}" "\${m[$key]-fallback}" "\${m[$key]:-fallback}" "\${m[$key]+alt}" "\${m[$key]:+alt}" "\${m[empty]-fallback}" "\${m[empty]:-fallback}" "\${m[empty]+alt}" "\${m[empty]:+alt}"; x=\${m[missing]:-fallback}; args "$x"`);
         assert.equal(result.exitCode, 0);
         assert.equal(result.stderr, '');
         assert.equal(result.stdout, '["fallback","fallback","","","value","value","alt","alt","","fallback","alt",""]["fallback"]');

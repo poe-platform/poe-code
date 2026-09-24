@@ -7401,7 +7401,12 @@ export class Runtime {
       : part.name === "LINENO" && state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : this.variable(state, part.name);
     let retained: ShellValue | undefined = part.specialParameter ? specialValue : value;
     if (value !== undefined) {
-      if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) { const name = this.referenceName(state, part.name); retained = arrayStore(state)?.get(name)?.getValue(0) ?? stateMonitor(state)?.values.get(name, value) ?? value; }
+      if (/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
+        const name = this.referenceName(state, part.name);
+        const binding = arrayStore(state)?.get(name);
+        const index = binding?.associative ? binding.keys.get("30")?.index ?? -1 : 0;
+        retained = binding?.getValue(index) ?? stateMonitor(state)?.values.get(name, value) ?? value;
+      }
       else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
       else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {

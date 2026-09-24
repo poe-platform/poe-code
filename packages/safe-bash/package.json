@@ -435,6 +435,22 @@
     "./commands/mmdc": {
       "types": "./dist/commands/mmdc/index.d.ts",
       "import": "./dist/commands/mmdc/index.js"
+    },
+    "./commands/pdfinfo": {
+      "types": "./dist/commands/pdfinfo/index.d.ts",
+      "import": "./dist/commands/pdfinfo/index.js"
+    },
+    "./commands/pdftotext": {
+      "types": "./dist/commands/pdftotext/index.d.ts",
+      "import": "./dist/commands/pdftotext/index.js"
+    },
+    "./commands/qpdf": {
+      "types": "./dist/commands/qpdf/index.d.ts",
+      "import": "./dist/commands/qpdf/index.js"
+    },
+    "./commands/soffice": {
+      "types": "./dist/commands/soffice/index.d.ts",
+      "import": "./dist/commands/soffice/index.js"
     }
   },
   "files": [
@@ -546,7 +562,11 @@
     "safe-bash-command-htmlq": "*",
     "safe-bash-csv-engine": "*",
     "docx": "*",
-    "safe-bash-command-mmdc": "*"
+    "safe-bash-command-mmdc": "*",
+    "safe-bash-command-pdfinfo": "*",
+    "safe-bash-command-pdftotext": "*",
+    "safe-bash-command-qpdf": "*",
+    "safe-bash-command-soffice": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -703,6 +723,38 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-pdfinfo": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-pdftotext": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-qpdf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-soffice": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
           }
         }
       }

@@ -403,7 +403,7 @@ export interface EncryptPdfOptions {
 export function encryptCosDocument(doc: ParsedCosDocument, options: EncryptPdfOptions = {}): Uint8Array {
   const userPassword = options.userPassword ?? "";
   const ownerPassword = options.ownerPassword ?? userPassword;
-  const revision = options.revision ?? 6;
+  const revision = 6;
   const pMask = encodePermissionsMask(options.permissions ?? {});
   const permissions = decodePermissionsMask(pMask);
 

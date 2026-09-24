@@ -486,9 +486,15 @@ export class PdfPage {
   }
 
   redact(
-    regions: readonly (readonly [number, number, number, number])[],
+    regionsOrSingle:
+      | readonly [number, number, number, number]
+      | readonly (readonly [number, number, number, number])[],
     options?: RedactOptions
   ): void {
+    const regions: readonly (readonly [number, number, number, number])[] =
+      typeof regionsOrSingle[0] === "number"
+        ? [regionsOrSingle as readonly [number, number, number, number]]
+        : (regionsOrSingle as readonly (readonly [number, number, number, number])[]);
     const fontName = this.ensureStandardFontResource("Helvetica");
     const { width, height } = this.getSize();
     const redactedNodes = redactPageContentAst({

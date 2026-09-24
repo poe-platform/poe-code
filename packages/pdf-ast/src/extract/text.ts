@@ -80,7 +80,7 @@ export function extractPageFromDisplayList(
       const prev = cur[cur.length - 1]!;
       const gap = g.bbox[0] - prev.bbox[2];
       const colSplitThreshold = Math.max(prev.fontSize, g.fontSize) * 4.0;
-      if (options.mode === "logical" && gap > colSplitThreshold) {
+      if ((options.mode === "logical" || options.mode === "layout" || options.mode === undefined) && gap > colSplitThreshold) {
         subLines.push([g]);
       } else {
         cur.push(g);
@@ -139,7 +139,7 @@ export function extractPageFromDisplayList(
     const midX = displayList.width * 0.5;
     const leftCol = lines.filter(l => l.bbox[2] <= midX + 18);
     const rightCol = lines.filter(l => l.bbox[0] >= midX - 18 && !leftCol.includes(l));
-    if (leftCol.length >= 2 && rightCol.length >= 2 && leftCol.length + rightCol.length === lines.length) {
+    if (leftCol.length >= 1 && rightCol.length >= 1 && leftCol.length + rightCol.length === lines.length) {
       leftCol.sort((a, b) => b.baselineY - a.baselineY);
       rightCol.sort((a, b) => b.baselineY - a.baselineY);
       lines.splice(0, lines.length, ...leftCol, ...rightCol);
@@ -245,7 +245,7 @@ export function formatExtractedPageText(
         } else if (rejoinHyphens && out.endsWith("-") && /^[a-z]/.test(lineText)) {
           out = out.slice(0, -1) + lineText;
         } else {
-          out += " " + lineText;
+          out += "\n" + lineText;
         }
       }
       return out;

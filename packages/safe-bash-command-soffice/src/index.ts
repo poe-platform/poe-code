@@ -1,0 +1,660 @@
+import {
+  commandRuntimeIdentity,
+  getCommandArguments,
+  type CommandContext,
+  type CommandDefinition
+} from "safe-bash-contracts/command";
+import { writeBytes } from "safe-bash-contracts/io";
+import { createOutputOperation } from "safe-bash-contracts/output";
+import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
+import { PdfDocument, decodeFlate, rgb } from "@poe-code/pdf-ast";
+
+export interface SofficeCommandOptions {
+  readonly replace?: boolean;
+}
+
+export interface SofficeCliResult {
+  readonly exitCode: number;
+  readonly stdout: string;
+  readonly stderr: string;
+}
+
+// Lightweight ZIP reader/writer using stored (0) and deflate (8 via @poe-code/pdf-ast decodeFlate)
+function crc32Bytes(data: Uint8Array): number {
+  let c = 0xffffffff;
+  for (let i = 0; i < data.length; i++) {
+    c ^= data[i]!;
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+export function createStoredZipArchive(entries: Readonly<Record<string, Uint8Array>>): Uint8Array {
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
+  let offset = 0;
+  let count = 0;
+
+  for (const [name, content] of Object.entries(entries)) {
+    const nameBytes = new TextEncoder().encode(name);
+    const crc = crc32Bytes(content);
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(localHeader.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0, true);
+    lv.setUint16(8, 0, true); // stored
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, content.length, true);
+    lv.setUint32(22, content.length, true);
+    lv.setUint16(26, nameBytes.length, true);
+    localHeader.set(nameBytes, 30);
+
+    const centralHeader = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(centralHeader.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, content.length, true);
+    cv.setUint32(24, content.length, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint32(42, offset, true);
+    centralHeader.set(nameBytes, 46);
+
+    localParts.push(localHeader, content);
+    centralParts.push(centralHeader);
+    offset += localHeader.length + content.length;
+    count++;
+  }
+
+  const centralSize = centralParts.reduce((s, p) => s + p.length, 0);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, count, true);
+  ev.setUint16(10, count, true);
+  ev.setUint32(12, centralSize, true);
+  ev.setUint32(16, offset, true);
+
+  const total = offset + centralSize + 22;
+  const out = new Uint8Array(total);
+  let pos = 0;
+  for (const p of [...localParts, ...centralParts, eocd]) {
+    out.set(p, pos);
+    pos += p.length;
+  }
+  return out;
+}
+
+export function readZipArchiveEntries(zipBytes: Uint8Array): Map<string, Uint8Array> {
+  const map = new Map<string, Uint8Array>();
+  const view = new DataView(zipBytes.buffer, zipBytes.byteOffset, zipBytes.byteLength);
+  let eocdPos = -1;
+  for (let i = zipBytes.length - 22; i >= Math.max(0, zipBytes.length - 65557); i--) {
+    if (view.getUint32(i, true) === 0x06054b50) {
+      eocdPos = i;
+      break;
+    }
+  }
+  if (eocdPos < 0) return map;
+  const count = view.getUint16(eocdPos + 10, true);
+  let cdPos = view.getUint32(eocdPos + 16, true);
+
+  for (let i = 0; i < count && cdPos + 46 <= zipBytes.length; i++) {
+    if (view.getUint32(cdPos, true) !== 0x02014b50) break;
+    const method = view.getUint16(cdPos + 10, true);
+    const compSize = view.getUint32(cdPos + 20, true);
+    const nameLen = view.getUint16(cdPos + 28, true);
+    const extraLen = view.getUint16(cdPos + 30, true);
+    const commentLen = view.getUint16(cdPos + 32, true);
+    const localOffset = view.getUint32(cdPos + 42, true);
+    const name = new TextDecoder().decode(zipBytes.subarray(cdPos + 46, cdPos + 46 + nameLen));
+
+    const localNameLen = view.getUint16(localOffset + 26, true);
+    const localExtraLen = view.getUint16(localOffset + 28, true);
+    const dataStart = localOffset + 30 + localNameLen + localExtraLen;
+    const rawData = zipBytes.subarray(dataStart, dataStart + compSize);
+
+    if (method === 0) {
+      map.set(name, new Uint8Array(rawData));
+    } else if (method === 8) {
+      map.set(name, decodeFlate(rawData));
+    }
+    cdPos += 46 + nameLen + extraLen + commentLen;
+  }
+  return map;
+}
+
+function unescapeXml(str: string): string {
+  return str
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+interface DocBlock {
+  kind: "heading" | "paragraph" | "table";
+  text?: string;
+  rows?: string[][];
+}
+
+function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
+  const entries = readZipArchiveEntries(zipBytes);
+  const docXmlBytes = entries.get("word/document.xml");
+  if (!docXmlBytes) return [];
+  const xml = new TextDecoder().decode(docXmlBytes);
+
+  const blocks: DocBlock[] = [];
+  const tokenRe = /<w:tbl\b[\s\S]*?<\/w:tbl>|<w:p\b[\s\S]*?<\/w:p>/g;
+  let m: RegExpExecArray | null;
+  while ((m = tokenRe.exec(xml)) !== null) {
+    const chunk = m[0];
+    if (chunk.startsWith("<w:tbl")) {
+      const rows: string[][] = [];
+      const rowRe = /<w:tr\b[\s\S]*?<\/w:tr>/g;
+      let rm: RegExpExecArray | null;
+      while ((rm = rowRe.exec(chunk)) !== null) {
+        const cells: string[] = [];
+        const cellRe = /<w:tc\b[\s\S]*?<\/w:tc>/g;
+        let cm: RegExpExecArray | null;
+        while ((cm = cellRe.exec(rm[0])) !== null) {
+          const texts = [...cm[0].matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map((t) =>
+            unescapeXml(t[1] ?? "")
+          );
+          cells.push(texts.join("").trim());
+        }
+        if (cells.length > 0) rows.push(cells);
+      }
+      if (rows.length > 0) blocks.push({ kind: "table", rows });
+    } else {
+      const isHeading = /w:pStyle\s+w:val="Heading/i.test(chunk);
+      const texts = [...chunk.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map((t) =>
+        unescapeXml(t[1] ?? "")
+      );
+      const line = texts.join("").trim();
+      if (line.length > 0) {
+        blocks.push({ kind: isHeading ? "heading" : "paragraph", text: line });
+      }
+    }
+  }
+  return blocks;
+}
+
+function parseXlsxRows(zipBytes: Uint8Array): string[][] {
+  const entries = readZipArchiveEntries(zipBytes);
+  const sharedStrings: string[] = [];
+  const sstBytes = entries.get("xl/sharedStrings.xml");
+  if (sstBytes) {
+    const sstXml = new TextDecoder().decode(sstBytes);
+    for (const si of sstXml.matchAll(/<si\b[\s\S]*?<\/si>/g)) {
+      const parts = [...si[0].matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map((t) =>
+        unescapeXml(t[1] ?? "")
+      );
+      sharedStrings.push(parts.join(""));
+    }
+  }
+
+  const sheetBytes =
+    entries.get("xl/worksheets/sheet1.xml") ??
+    [...entries.entries()].find(([k]) => k.startsWith("xl/worksheets/sheet"))?.[1];
+  if (!sheetBytes) return [];
+  const sheetXml = new TextDecoder().decode(sheetBytes);
+
+  const rows: string[][] = [];
+  for (const rowMatch of sheetXml.matchAll(/<row\b[\s\S]*?<\/row>/g)) {
+    const rowCells: string[] = [];
+    for (const cellMatch of rowMatch[0].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)) {
+      const attrs = cellMatch[1] ?? "";
+      const body = cellMatch[2] ?? "";
+      const typeMatch = /\bt="([^"]+)"/.exec(attrs);
+      const cellType = typeMatch?.[1] ?? "n";
+      if (cellType === "inlineStr") {
+        const tVal = /<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/.exec(body);
+        rowCells.push(unescapeXml(tVal?.[1] ?? ""));
+      } else {
+        const vVal = /<v>([\s\S]*?)<\/v>/.exec(body);
+        const raw = unescapeXml(vVal?.[1] ?? "");
+        if (cellType === "s") {
+          const idx = Number.parseInt(raw, 10);
+          rowCells.push(sharedStrings[idx] ?? "");
+        } else {
+          rowCells.push(raw);
+        }
+      }
+    }
+    if (rowCells.length > 0) rows.push(rowCells);
+  }
+  return rows;
+}
+
+function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[] }> {
+  const entries = readZipArchiveEntries(zipBytes);
+  const slideKeys = [...entries.keys()]
+    .filter((k) => /^ppt\/slides\/slide\d+\.xml$/.test(k))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+  const slides: Array<{ title: string; bullets: string[] }> = [];
+  for (const key of slideKeys) {
+    const xml = new TextDecoder().decode(entries.get(key)!);
+    const shapes: string[][] = [];
+    for (const sp of xml.matchAll(/<p:sp\b[\s\S]*?<\/p:sp>/g)) {
+      const paras: string[] = [];
+      for (const p of sp[0].matchAll(/<a:p\b[\s\S]*?<\/a:p>/g)) {
+        const runs = [...p[0].matchAll(/<a:t(?:\s[^>]*)?>([\s\S]*?)<\/a:t>/g)].map((t) =>
+          unescapeXml(t[1] ?? "")
+        );
+        const line = runs.join("").trim();
+        if (line) paras.push(line);
+      }
+      if (paras.length > 0) shapes.push(paras);
+    }
+    const title = shapes[0]?.[0] ?? `Slide ${slides.length + 1}`;
+    const bullets = [...(shapes[0]?.slice(1) ?? []), ...shapes.slice(1).flat()];
+    slides.push({ title, bullets });
+  }
+  return slides;
+}
+
+function renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Uint8Array {
+  const doc = PdfDocument.create();
+  doc.setTitle(title);
+  doc.setCreator("LibreOffice 24.8 (@poe-code/pdf-ast)");
+
+  let page = doc.addPage([612, 792]);
+  let y = 720;
+
+  const ensureSpace = (needed: number) => {
+    if (y - needed < 54) {
+      page = doc.addPage([612, 792]);
+      y = 720;
+    }
+  };
+
+  for (const block of blocks) {
+    if (block.kind === "heading") {
+      ensureSpace(32);
+      page.drawText(block.text ?? "", {
+        x: 54,
+        y,
+        size: 18,
+        font: "Helvetica-Bold",
+        color: rgb(0.1, 0.15, 0.28)
+      });
+      y -= 28;
+    } else if (block.kind === "paragraph") {
+      ensureSpace(22);
+      page.drawText(block.text ?? "", {
+        x: 54,
+        y,
+        size: 11,
+        font: "Helvetica",
+        color: rgb(0.15, 0.15, 0.15)
+      });
+      y -= 18;
+    } else if (block.kind === "table" && block.rows) {
+      const colCount = Math.max(1, ...block.rows.map((r) => r.length));
+      const tableWidth = 504;
+      const colWidth = tableWidth / colCount;
+      const rowHeight = 22;
+
+      block.rows.forEach((row, rIdx) => {
+        ensureSpace(rowHeight + 6);
+        const rowTop = y;
+        const rowBottom = y - rowHeight;
+        if (rIdx === 0) {
+          page.drawRect({
+            x: 54,
+            y: rowBottom,
+            width: tableWidth,
+            height: rowHeight,
+            fill: rgb(0.92, 0.94, 0.97),
+            stroke: rgb(0.5, 0.55, 0.62),
+            strokeWidth: 0.75
+          });
+        } else {
+          page.drawRect({
+            x: 54,
+            y: rowBottom,
+            width: tableWidth,
+            height: rowHeight,
+            stroke: rgb(0.7, 0.72, 0.75),
+            strokeWidth: 0.5
+          });
+        }
+        row.forEach((cellText, cIdx) => {
+          const cellX = 54 + cIdx * colWidth;
+          if (cIdx > 0) {
+            page.drawLine({
+              x1: cellX,
+              y1: rowBottom,
+              x2: cellX,
+              y2: rowTop,
+              stroke: rgb(0.7, 0.72, 0.75),
+              strokeWidth: 0.5
+            });
+          }
+          page.drawText(cellText, {
+            x: cellX + 6,
+            y: rowBottom + 6,
+            size: 10,
+            font: rIdx === 0 ? "Helvetica-Bold" : "Helvetica"
+          });
+        });
+        y -= rowHeight;
+      });
+      y -= 14;
+    }
+  }
+
+  return doc.save();
+}
+
+function renderSlidesToPdf(slides: readonly { title: string; bullets: string[] }[]): Uint8Array {
+  const doc = PdfDocument.create();
+  doc.setCreator("LibreOffice Impress (@poe-code/pdf-ast)");
+
+  for (const slide of slides) {
+    const page = doc.addPage([720, 405]);
+    page.drawRect({
+      x: 0,
+      y: 345,
+      width: 720,
+      height: 60,
+      fill: rgb(0.12, 0.22, 0.38)
+    });
+    page.drawText(slide.title, {
+      x: 40,
+      y: 365,
+      size: 22,
+      font: "Helvetica-Bold",
+      color: rgb(1, 1, 1)
+    });
+    let y = 300;
+    for (const bullet of slide.bullets) {
+      page.drawText(`- ${bullet}`, {
+        x: 52,
+        y,
+        size: 14,
+        font: "Helvetica",
+        color: rgb(0.18, 0.2, 0.24)
+      });
+      y -= 26;
+    }
+  }
+
+  return doc.save();
+}
+
+function formatStarCalcCsv(rows: readonly string[][], filterOptions?: string): Uint8Array {
+  let sep = ",";
+  let quote = '"';
+  let quoteAll = false;
+  if (filterOptions) {
+    const parts = filterOptions.split(",");
+    const sepCode = Number.parseInt(parts[0] ?? "44", 10);
+    if (Number.isFinite(sepCode) && sepCode > 0) sep = String.fromCharCode(sepCode);
+    const quoteCode = Number.parseInt(parts[1] ?? "34", 10);
+    if (Number.isFinite(quoteCode) && quoteCode > 0) quote = String.fromCharCode(quoteCode);
+    if (parts[6] === "true") quoteAll = true;
+  }
+
+  const lines = rows.map((row) =>
+    row
+      .map((cell) => {
+        const mustQuote =
+          quoteAll ||
+          cell.includes(sep) ||
+          cell.includes(quote) ||
+          cell.includes("\n") ||
+          cell.includes("\r");
+        if (!mustQuote) return cell;
+        const escaped = cell.split(quote).join(quote + quote);
+        return `${quote}${escaped}${quote}`;
+      })
+      .join(sep)
+  );
+  return new TextEncoder().encode(lines.join("\n") + "\n");
+}
+
+function renderBlocksToHtml(blocks: readonly DocBlock[], title = "Document"): Uint8Array {
+  let html = `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${title}</title></head><body>\n`;
+  for (const b of blocks) {
+    if (b.kind === "heading") {
+      html += `<h1>${b.text ?? ""}</h1>\n`;
+    } else if (b.kind === "paragraph") {
+      html += `<p>${b.text ?? ""}</p>\n`;
+    } else if (b.kind === "table" && b.rows) {
+      html += "<table>\n";
+      for (const r of b.rows) {
+        html += `  <tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>\n`;
+      }
+      html += "</table>\n";
+    }
+  }
+  html += "</body></html>\n";
+  return new TextEncoder().encode(html);
+}
+
+export async function runSofficeCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  cwd = "/"
+): Promise<SofficeCliResult> {
+  let convertSpec: string | undefined;
+  let outdir = cwd;
+  const inputs: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "--help" || arg === "-h") {
+      return {
+        exitCode: 0,
+        stdout: "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
+        stderr: ""
+      };
+    }
+    if (arg === "--version") {
+      return {
+        exitCode: 0,
+        stdout: "LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n",
+        stderr: ""
+      };
+    }
+    if (arg === "--convert-to") {
+      convertSpec = argv[++i];
+    } else if (arg.startsWith("--convert-to=")) {
+      convertSpec = arg.slice("--convert-to=".length);
+    } else if (arg === "--outdir") {
+      outdir = argv[++i] ?? cwd;
+    } else if (arg.startsWith("--outdir=")) {
+      outdir = arg.slice("--outdir=".length);
+    } else if (arg.startsWith("-")) {
+      continue;
+    } else {
+      inputs.push(arg);
+    }
+  }
+
+  if (!convertSpec || inputs.length === 0) {
+    return {
+      exitCode: 1,
+      stdout: "",
+      stderr: "Error: --convert-to and at least one input file are required\n"
+    };
+  }
+
+  const [targetExtRaw, filterNameRaw, filterOpts] = convertSpec.split(":", 3);
+  const targetExt = (targetExtRaw ?? "pdf").toLowerCase();
+  let stdout = "";
+
+  for (const inputPath of inputs) {
+    const inputBytes = files.get(inputPath);
+    if (!inputBytes) {
+      return {
+        exitCode: 1,
+        stdout,
+        stderr: `Error: source file could not be loaded: ${inputPath}\n`
+      };
+    }
+
+    const baseName = inputPath.split("/").pop() ?? "document";
+    const stem = baseName.replace(/\.[^.]+$/, "");
+    const lowerIn = baseName.toLowerCase();
+    const outPath = `${outdir === "/" ? "" : outdir.replace(/\/$/, "")}/${stem}.${targetExt}`;
+
+    const defaultFilter =
+      targetExt === "pdf"
+        ? lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")
+          ? "calc_pdf_Export"
+          : lowerIn.endsWith(".pptx")
+            ? "impress_pdf_Export"
+            : "writer_pdf_Export"
+        : targetExt === "csv"
+          ? "Text - txt - csv (StarCalc)"
+          : `${targetExt}_Export`;
+    const filterName = filterNameRaw || defaultFilter;
+
+    let outBytes: Uint8Array;
+
+    if (lowerIn.endsWith(".docx")) {
+      const blocks = parseDocxBlocks(inputBytes);
+      if (targetExt === "pdf") {
+        outBytes = renderBlocksToPdf(blocks, stem);
+      } else if (targetExt === "html") {
+        outBytes = renderBlocksToHtml(blocks, stem);
+      } else {
+        const textLines = blocks.map((b) =>
+          b.kind === "table" && b.rows
+            ? b.rows.map((r) => r.join("\t")).join("\n")
+            : (b.text ?? "")
+        );
+        outBytes = new TextEncoder().encode(textLines.join("\n\n") + "\n");
+      }
+    } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
+      const rows = lowerIn.endsWith(".xlsx")
+        ? parseXlsxRows(inputBytes)
+        : new TextDecoder()
+            .decode(inputBytes)
+            .trim()
+            .split(/\r?\n/)
+            .map((l) => l.split(","));
+      if (targetExt === "csv") {
+        outBytes = formatStarCalcCsv(rows, filterOpts);
+      } else {
+        outBytes = renderBlocksToPdf([{ kind: "table", rows }], stem);
+      }
+    } else if (lowerIn.endsWith(".pptx")) {
+      const slides = parsePptxSlides(inputBytes);
+      if (targetExt === "pdf") {
+        outBytes = renderSlidesToPdf(slides);
+      } else {
+        const txt = slides.map((s) => `${s.title}\n${s.bullets.join("\n")}`).join("\n\n");
+        outBytes = new TextEncoder().encode(txt + "\n");
+      }
+    } else if (lowerIn.endsWith(".pdf")) {
+      const doc = PdfDocument.load(inputBytes);
+      const extracted = doc.extractText();
+      if (targetExt === "html") {
+        outBytes = renderBlocksToHtml([{ kind: "paragraph", text: extracted }], stem);
+      } else {
+        outBytes = new TextEncoder().encode(extracted + "\n");
+      }
+    } else {
+      // Plain text / Markdown / HTML input -> PDF or TXT
+      const rawText = new TextDecoder().decode(inputBytes);
+      const lines = rawText.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      const blocks: DocBlock[] = lines.map((l) =>
+        l.startsWith("# ")
+          ? { kind: "heading", text: l.slice(2).trim() }
+          : { kind: "paragraph", text: l }
+      );
+      outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : inputBytes;
+    }
+
+    files.set(outPath, outBytes);
+    stdout += `convert ${inputPath} -> ${outPath} using filter : ${filterName}\n`;
+  }
+
+  return { exitCode: 0, stdout, stderr: "" };
+}
+
+export async function soffice(context: CommandContext): Promise<{ exitCode: number }> {
+  const invocation = createOutputOperation(context, { write: async () => {} });
+  try {
+    const carrier = getCommandArguments(context);
+    const argv = [...carrier.args];
+
+    const vfsFiles = new Map<string, Uint8Array>();
+    const resolveVfsPath = (p: string) =>
+      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
+
+    for (const token of argv) {
+      if (token.startsWith("-")) continue;
+      const abs = resolveVfsPath(token);
+      try {
+        const bytes = await context.fs.readFile(abs, { signal: invocation.signal });
+        vfsFiles.set(token, bytes);
+      } catch {
+        // Output dir or non-file arg
+      }
+    }
+
+    const existingSnap = new Map(vfsFiles);
+    const res = await runSofficeCli(argv, vfsFiles, context.cwd);
+
+    if (res.stderr) {
+      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
+    }
+    if (res.stdout) {
+      const stdout = invocation.child(context.stdout);
+      await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
+    }
+
+    for (const [fileKey, fileBytes] of vfsFiles.entries()) {
+      if (existingSnap.get(fileKey) !== fileBytes) {
+        const abs = resolveVfsPath(fileKey);
+        const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
+        try {
+          await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });
+        } catch {
+          // Directory may already exist
+        }
+        await context.fs.writeFile(abs, fileBytes, { signal: invocation.signal });
+      }
+    }
+
+    return { exitCode: res.exitCode };
+  } finally {
+    await invocation.close();
+  }
+}
+
+export function createSofficeCommand(_options: SofficeCommandOptions = {}): CommandDefinition {
+  return Object.freeze({
+    name: "soffice",
+    runtimeIdentity: commandRuntimeIdentity,
+    description: "Headless document/spreadsheet/presentation to PDF and CSV converter via @poe-code/pdf-ast",
+    execute(context: CommandContext) {
+      return soffice(context);
+    }
+  });
+}
+
+export const sofficeCommand: CommandDefinition = createSofficeCommand();
+
+export function sofficeCommands(options: SofficeCommandOptions = {}): VirtualShellPlugin {
+  const command = createSofficeCommand(options);
+  const replace = options.replace ?? false;
+  return {
+    name: "soffice",
+    setup(host) {
+      host.commands.register(command, { replace });
+    }
+  };
+}

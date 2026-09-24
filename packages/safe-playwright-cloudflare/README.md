@@ -111,6 +111,13 @@ private-context IDs, and foreign page IDs with private-context flags and URL
 states (`empty`, `about:blank`, or `other`);
 it omits URLs and titles. These observations come from successive CDP calls,
 so they describe admission evidence rather than an atomic lifecycle snapshot.
+
+Large handle enumerations wait for private CDP transport capacity instead of
+closing the browser at 1,024 concurrent commands. The transport admits up to
+16,384 waiting commands within a shared 4 MiB command budget. Waiting time counts
+toward command deadlines; queue exhaustion, timeouts, and native cleanup errors
+remain visible failures.
+
 Browser traffic, redirects, fetch/request APIs, WebSockets, and workers
 remain enabled. Remote downloads report unsupported artifact retrieval through
 the existing command result; CLI help is unchanged.

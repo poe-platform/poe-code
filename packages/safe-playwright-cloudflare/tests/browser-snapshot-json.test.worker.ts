@@ -21,6 +21,30 @@ function flatten(nodes: readonly PlaywrightSnapshotJSONNode[]) {
 
 export default {
 	async fetch(request: Request, env: { BROWSER: BrowserWorker }) {
+		if (new URL(request.url).pathname === "/handle-burst") {
+			const lease = await createCloudflarePlaywrightAdapter(env.BROWSER).acquire({
+				acquisitionId: "handle-burst",
+				session: "handle-burst",
+				browser: "chromium",
+				headless: true,
+				signal: new AbortController().signal,
+			});
+			try {
+				const page = await lease.context.newPage();
+				await page.setContent('<button onclick="this.dataset.clicked=\'yes\'">Button</button>'.repeat(1001));
+				const handles = await page.locator("button").elementHandles();
+				assert.equal(handles.length, 1001);
+				await handles[1000]!.click();
+				assert.equal(await handles[1000]!.getAttribute("data-clicked"), "yes");
+				await Promise.all(handles.map(handle => handle.dispose()));
+				assert.equal(page.isClosed(), false);
+				await lease.release();
+				assert.equal(page.isClosed(), true);
+				return Response.json({ ok: true });
+			} finally {
+				await lease.release();
+			}
+		}
 		if (new URL(request.url).pathname === "/public-frames") {
 			const lease = await createCloudflarePlaywrightAdapter(
 				env.BROWSER,

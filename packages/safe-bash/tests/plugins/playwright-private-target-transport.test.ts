@@ -260,10 +260,100 @@ for (const [name, limits, messages] of [
   });
 }
 
-for (const limits of [{ maxPendingCommands: 1 }, { maxPendingBytes: 100 }]) {
+test('handle enumeration bursts wait for native capacity without closing the browser', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const timers = context.mock.method(globalThis, 'setTimeout');
+  const state = fixture();
+  try {
+    for (let id = 1; id <= 2001; id++) state.transport.send({ id, method: 'Runtime.getProperties', sessionId: 'public' });
+    assert.equal(state.sent.length, 1024);
+    assert.equal(timers.mock.callCount(), 1);
+    for (let index = 0; index < 2001; index++) {
+      state.receive({ id: state.sent[index]!.id, sessionId: 'public', result: {} });
+      assert.ok(state.sent.length - state.received.length <= 1024);
+    }
+    assert.equal(state.received.length, 2001);
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
+});
+
+test('queued commands retain session identities and are denied if target ownership changes', async () => {
+  const state = fixture({ maxPendingCommands: 1 });
+  try {
+    state.transport.send({ id: 1, method: 'Runtime.enable', sessionId: 'public' });
+    state.transport.send({ id: 1, method: 'Target.getTargetInfo', params: { targetId: 'scratch' } });
+    state.beginCreation().commit('scratch');
+    state.receive({ id: state.sent[0]!.id, sessionId: 'public', result: {} });
+    await Promise.resolve();
+    assert.equal(state.sent.length, 1);
+    assert.equal(state.closes(), 0);
+    assert.deepEqual(state.received, [
+      { id: 1, sessionId: 'public', result: {} },
+      { id: 1, error: { code: -32000, message: 'Policy-owned target is unavailable to this client' } },
+    ]);
+  } finally { state.transport.close(); }
+});
+
+test('queued native detach keeps private events hidden and reports cleanup rejection', () => {
+  const state = fixture({ maxPendingCommands: 1 });
+  state.beginCreation().commit('scratch');
+  state.transport.send({ id: 1, method: 'Runtime.enable' });
+  state.receive(attached('scratch', 'private'));
+  assert.equal(state.sent.length, 1);
+  state.receive({ id: state.sent[0]!.id, result: {} });
+  assert.equal(state.sent[1]!.method, 'Target.detachFromTarget');
+  state.receive({ id: state.sent[1]!.id, error: { code: -32000, message: 'cleanup refused' } });
+  assert.deepEqual(state.received, [{ id: 1, result: {} }]);
+  assert.deepEqual(state.reasons, ['Native private target detach failed']);
+});
+
+test('queued commands cannot receive native replies before being sent', () => {
+  const state = fixture({ maxPendingCommands: 1 });
+  state.transport.send({ id: 1, method: 'Runtime.enable' });
+  state.transport.send({ id: 2, method: 'Runtime.enable' });
+  state.receive({ id: 2, result: {} });
+  assert.deepEqual(state.received, []);
+  assert.deepEqual(state.reasons, ['Never-issued native CDP reply']);
+});
+
+test('waiting commands retain their original deadline and stop dispatching on timeout', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  let now = 0;
+  context.mock.method(performance, 'now', () => now);
+  const state = fixture({ maxPendingCommands: 1, commandTimeoutMs: 10 });
+  state.transport.send({ id: 1, method: 'Runtime.enable' });
+  state.transport.send({ id: 2, method: 'Runtime.getProperties' });
+  state.transport.send({ id: 3, method: 'Runtime.enable' });
+  now = 9;
+  context.mock.timers.tick(9);
+  state.receive({ id: state.sent[0]!.id, result: {} });
+  now = 11;
+  context.mock.timers.tick(2);
+  assert.equal(state.sent.length, 2);
+  assert.equal(state.closes(), 1);
+  assert.match(state.reasons[0]!, /Runtime.getProperties timed out/);
+});
+
+test('synchronous native replies drain queued commands without recursive dispatch', () => {
+  const state = fixture({ maxPendingCommands: 1 });
+  try {
+    state.transport.send({ id: 1, method: 'Runtime.enable' });
+    for (let id = 2; id <= 2001; id++) state.transport.send({ id, method: 'Runtime.enable' });
+    state.upstream.send = message => {
+      state.sent.push(message);
+      state.receive({ id: (message as Message).id, result: {} });
+    };
+    state.receive({ id: state.sent[0]!.id, result: {} });
+    assert.equal(state.received.length, 2001);
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
+});
+
+for (const limits of [{ maxPendingCommands: 1, maxQueuedCommands: 1 }, { maxPendingBytes: 100, maxPendingCommands: 1 }]) {
   test(`pending commands are bounded by ${Object.keys(limits)[0]}`, () => {
     const state = fixture(limits);
     state.transport.send({ id: 1, method: 'Runtime.evaluate', params: { expression: 'hello' } });
+    if ('maxQueuedCommands' in limits) state.transport.send({ id: 3, method: 'Runtime.enable' });
     assert.throws(() => state.transport.send({ id: 2, method: 'Runtime.evaluate', params: { expression: 'world' } }), /pending/i);
     assert.equal(state.closes(), 1);
   });

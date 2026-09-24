@@ -8,7 +8,11 @@ export interface PlaywrightCDPTransport {
 
 export interface PlaywrightPrivateTargetTransportLimits {
   maxMessageBytes?: number;
+  /** Maximum commands sent upstream concurrently. Excess commands wait for replies. */
   maxPendingCommands?: number;
+  /** Maximum commands waiting for upstream capacity. */
+  maxQueuedCommands?: number;
+  /** Combined byte budget for in-flight and queued commands. */
   maxPendingBytes?: number;
   maxBufferedMessages?: number;
   maxBufferedBytes?: number;
@@ -43,6 +47,7 @@ interface Command {
   detachedSessionId: string | undefined;
   retirementConfirmed: boolean;
   replied: boolean;
+  sent: boolean;
   bytes: number;
   started: number;
 }
@@ -68,6 +73,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   const limits = {
     maxMessageBytes: 16 * 1024 * 1024,
     maxPendingCommands: 1024,
+    maxQueuedCommands: 16384,
     maxPendingBytes: 4 * 1024 * 1024,
     maxBufferedMessages: 512,
     maxBufferedBytes: 16 * 1024 * 1024,
@@ -88,9 +94,12 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   const retiredTargets = new Set<string>();
   const retiredSessions = new Set<string>();
   const pending = new Map<number, Command>();
+  const queued = new Map<number, { message: Message; denied: boolean }>();
   const clientKeys = new Set<string>();
   const buffered: { message: Message; bytes: number }[] = [];
   let pendingBytes = 0;
+  let inFlight = 0;
+  let dispatching = false;
   let bufferedBytes = 0;
   let sequence = 0;
   let creation: Creation | undefined;
@@ -129,6 +138,8 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     commandTimer = undefined;
     timedCommandId = undefined;
     pending.clear();
+    queued.clear();
+    inFlight = 0;
     clientKeys.clear();
     targets.clear();
     sessions.clear();
@@ -189,7 +200,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       if (!message.method) throw new Error('Expected CDP command method');
       const clientKey = internal ? undefined : JSON.stringify([input.sessionId, input.id]);
       if (clientKey && clientKeys.has(clientKey)) throw new Error('Duplicate pending client CDP identity');
-      if (pending.size >= limits.maxPendingCommands || bytes > limits.maxPendingBytes - pendingBytes) throw new Error('CDP pending command limit exceeded');
+      if ((queued.size >= limits.maxQueuedCommands && (dispatching || inFlight >= limits.maxPendingCommands)) || bytes > limits.maxPendingBytes - pendingBytes) throw new Error('CDP pending command limit exceeded');
       const started = performance.now();
       pending.set(id, { clientId: input.id, clientKey, method: message.method, sessionId: message.sessionId,
         targetId: internal && identity(message.params?.sessionId) ? sessions.get(message.params.sessionId)
@@ -197,14 +208,34 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
         detachedSessionId: internal && identity(message.params?.sessionId) ? message.params.sessionId : undefined,
         retirementConfirmed: internal && identity(message.params?.sessionId) &&
           (retiredSessions.has(message.params.sessionId) || retiredTargets.has(sessions.get(message.params.sessionId)!)),
-        internal, replied: false, bytes, started });
+        internal, replied: false, sent: false, bytes, started });
       if (clientKey) clientKeys.add(clientKey);
       pendingBytes += bytes;
       scheduleCommandDeadline();
-      if (denied) queueMicrotask(() => receive({ id, ...(message.sessionId ? { sessionId: message.sessionId } : {}),
-        error: { code: -32000, message: 'Policy-owned target is unavailable to this client' } }));
-      else upstream.send(message);
+      queued.set(id, { message, denied });
+      dispatch();
     } catch (error) { retire(error); throw error; }
+  }
+
+  function dispatch(): void {
+    if (dispatching || failure) return;
+    dispatching = true;
+    try {
+      while (!failure && inFlight < limits.maxPendingCommands && queued.size) {
+        const [id, entry] = queued.entries().next().value!;
+        queued.delete(id);
+        const command = pending.get(id)!;
+        command.sent = true;
+        inFlight++;
+        const { message } = entry;
+        // Ownership may have changed while this command waited for capacity.
+        if (entry.denied || (!command.internal &&
+          (privateTarget(message.params?.targetId) || privateSession(message.sessionId)))) {
+          queueMicrotask(() => receive({ id, ...(message.sessionId ? { sessionId: message.sessionId } : {}),
+            error: { code: -32000, message: 'Policy-owned target is unavailable to this client' } }));
+        } else upstream.send(message);
+      }
+    } finally { dispatching = false; }
   }
 
   function deliver(message: Message): void {
@@ -213,6 +244,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       const command = pending.get(message.id);
       if (!command) return;
       pending.delete(message.id);
+      inFlight--;
       pendingBytes -= command.bytes;
       scheduleCommandDeadline();
       if (command.clientKey) clientKeys.delete(command.clientKey);
@@ -288,6 +320,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
           if (message.id > 0 && message.id <= sequence) return;
           throw new Error('Never-issued native CDP reply');
         }
+        if (!command.sent) throw new Error('Never-issued native CDP reply');
         if (message.sessionId !== command.sessionId) {
           const sessionNotFound = command.sessionId !== undefined && message.sessionId === undefined &&
             Object.keys(message).length === 2 && message.error?.code === -32001 &&
@@ -302,6 +335,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
         buffered.push(entry);
         bufferedBytes += entry.bytes;
       } else deliver(message);
+      dispatch();
     } catch (error) { retire(error); }
   }
 
@@ -327,6 +361,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       }
     } catch (error) { retire(error); }
     finally { flushing = false; }
+    try { dispatch(); } catch (error) { retire(error); }
     if (failure) throw failure;
   }
 

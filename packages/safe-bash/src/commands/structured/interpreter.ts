@@ -383,6 +383,36 @@ export class Interpreter {
     }
     if (name === "fromdateiso8601") { yield fromDateIso8601(input); return; }
     if (name === "todateiso8601") { yield toDateIso8601(input); return; }
+    if (name === "while" || name === "until") {
+      // Keep filter continuations explicitly: branching updates use depth-first
+      // order, and consumers can stop before evaluating later branches.
+      const step = async function* (this: Interpreter, value: Json): AsyncGenerator<{ value: Json; emit: boolean }> {
+        for await (const condition of this.run(args[0]!, value)) {
+          const satisfied = truth(condition);
+          if (name === "until" && satisfied) yield { value, emit: true };
+          else if (name === "until" || satisfied) {
+            if (name === "while") yield { value, emit: true };
+            for await (const next of this.run(args[1]!, value)) yield { value: next, emit: false };
+          }
+        }
+      }.bind(this);
+      const stack = [step(input)];
+      try {
+        while (stack.length) {
+          await budget.tick();
+          const next = await stack.at(-1)!.next();
+          if (next.done) { stack.pop(); continue; }
+          if (next.value.emit) yield next.value.value;
+          else {
+            budget.collection(stack.length + 1);
+            stack.push(step(next.value.value));
+          }
+        }
+      } finally {
+        while (stack.length) await stack.pop()!.return(undefined);
+      }
+      return;
+    }
     if (name === "scan") {
       for await (const source of this.run(args[0]!, input)) yield* scanRegex(input, source, budget);
       return;

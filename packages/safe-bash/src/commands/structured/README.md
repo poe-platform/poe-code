@@ -139,6 +139,12 @@ run against the current input each time they are used; value parameters
 data imports and import search metadata remain unsupported.
 Modules contain imports followed by definitions, with no executable filter body.
 
+`while(condition; update)` emits each current value while the condition is true.
+`until(condition; update)` applies updates until the condition is true and emits
+the final value. Both preserve branching filter order and evaluate lazily, so
+`limit(3; while(true; . + 1))` can consume a finite prefix. Work and result
+budgets still apply.
+
 `walk(filter)` transforms values from the leaves upward, then applies the filter
 to each rebuilt array or object. Array children preserve all filter results;
 object children keep the first result and delete fields with no result.

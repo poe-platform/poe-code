@@ -32,7 +32,7 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
   walk: [1],
-  fromdateiso8601: [0], todateiso8601: [0],
+  while: [2], until: [2], fromdateiso8601: [0], todateiso8601: [0],
   scan: [1], paths: [0, 1], getpath: [1], flatten: [0, 1], del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
   halt: [0], halt_error: [0, 1], setpath: [2], empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],
   type: [0], has: [1], contains: [1], inside: [1], bsearch: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],

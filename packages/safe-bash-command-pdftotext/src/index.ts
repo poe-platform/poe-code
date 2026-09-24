@@ -235,7 +235,9 @@ function filterExtractedPageByCrop(
     words.filter((w) => {
       const topY = extracted.height - w.bbox[3];
       const bottomY = extracted.height - w.bbox[1];
-      return w.bbox[2] >= minX && w.bbox[0] <= maxX && bottomY >= minTopY && topY <= maxTopY;
+      const cx = (w.bbox[0] + w.bbox[2]) / 2;
+      const cy = (topY + bottomY) / 2;
+      return cx >= minX && cx <= maxX && cy >= minTopY && cy <= maxTopY;
     });
 
   const blocks: PdfTextBlock[] = [];
@@ -244,16 +246,30 @@ function filterExtractedPageByCrop(
     for (const l of b.lines) {
       const words = filterWords(l.words);
       if (words.length > 0) {
+        const lineBbox: readonly [number, number, number, number] = [
+          Math.min(...words.map((w) => w.bbox[0])),
+          Math.min(...words.map((w) => w.bbox[1])),
+          Math.max(...words.map((w) => w.bbox[2])),
+          Math.max(...words.map((w) => w.bbox[3]))
+        ];
         lines.push({
           ...l,
+          bbox: lineBbox,
           words,
           text: words.map((w) => w.text).join(" ")
         });
       }
     }
     if (lines.length > 0) {
+      const blockBbox: readonly [number, number, number, number] = [
+        Math.min(...lines.map((l) => l.bbox[0])),
+        Math.min(...lines.map((l) => l.bbox[1])),
+        Math.max(...lines.map((l) => l.bbox[2])),
+        Math.max(...lines.map((l) => l.bbox[3]))
+      ];
       blocks.push({
         ...b,
+        bbox: blockBbox,
         lines,
         text: lines.map((l) => l.text).join("\n")
       });

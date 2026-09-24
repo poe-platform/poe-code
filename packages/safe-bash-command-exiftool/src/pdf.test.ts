@@ -130,3 +130,47 @@ trailer
   assert.equal(meta.Keywords, "xmp-key, cosmos");
   assert.equal(meta.Creator, "Illustrator Pro");
 });
+
+test("exiftool handles UTF-16BE Unicode metadata writes (pdf-lib #1291), ASN.1 PDF dates (pypdf #3892), and FlateDecode XMP streams (pypdf #3940)", async () => {
+  const { deflateSync } = await import("node:zlib");
+  const fs = createMemoryFileSystem();
+
+  const xmpXml = `<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:description><rdf:Alt><rdf:li xml:lang="x-default">Compressed XMP Summary</rdf:li></rdf:Alt></dc:description></rdf:Description></rdf:RDF></x:xmpmeta>`;
+  const compressedXmp = deflateSync(new TextEncoder().encode(xmpXml));
+
+  const header = new TextEncoder().encode(
+    `%PDF-1.7\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R /Metadata 6 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\n5 0 obj\n<< /CreationDate (D:20250315143000+02'00') /ModDate (D:20250316091500Z) >>\nendobj\n6 0 obj\n<< /Type /Metadata /Subtype /XML /Filter /FlateDecode /Length ${compressedXmp.length} >>\nstream\n`
+  );
+  const footer = new TextEncoder().encode(
+    `\nendstream\nendobj\ntrailer\n<< /Size 7 /Root 1 0 R /Info 5 0 R >>\n%%EOF\n`
+  );
+  const pdfBytes = new Uint8Array(header.length + compressedXmp.length + footer.length);
+  pdfBytes.set(header, 0);
+  pdfBytes.set(compressedXmp, header.length);
+  pdfBytes.set(footer, header.length + compressedXmp.length);
+
+  await fs.writeFile("/unicode-xmp.pdf", pdfBytes);
+
+  const readRes = await invoke(["-j", "unicode-xmp.pdf"], fs);
+  assert.equal(readRes.exitCode, 0, readRes.stderr);
+  const meta = JSON.parse(readRes.stdout)[0];
+  assert.equal(meta.Description, "Compressed XMP Summary");
+  assert.equal(meta.CreateDate, "2025:03:15 14:30:00+02:00");
+  assert.equal(meta.ModifyDate, "2025:03:16 09:15:00Z");
+
+  // Write non-ASCII UTF-16BE Title & Author and verify roundtrip + <FEFF...> hex encoding
+  const writeRes = await invoke(
+    ["-overwrite_original", "-Title=Café — Étude №1", "-Author=Łukasz Żółć", "unicode-xmp.pdf"],
+    fs
+  );
+  assert.equal(writeRes.exitCode, 0, writeRes.stderr);
+
+  const verifyRes = await invoke(["-j", "unicode-xmp.pdf"], fs);
+  assert.equal(verifyRes.exitCode, 0, verifyRes.stderr);
+  const updatedMeta = JSON.parse(verifyRes.stdout)[0];
+  assert.equal(updatedMeta.Title, "Café — Étude №1");
+  assert.equal(updatedMeta.Author, "Łukasz Żółć");
+
+  const rawUpdated = new TextDecoder("latin1").decode(await fs.readFile("/unicode-xmp.pdf"));
+  assert.match(rawUpdated, /\/Title <FEFF/i);
+});

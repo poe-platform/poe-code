@@ -169,4 +169,34 @@ describe("safe-bash-command-pdftotext", () => {
     assert.match(htmlText, /<!DOCTYPE html>/i);
     assert.match(htmlText, /Hello world/);
   });
+
+  it("filters words by crop-box center and recomputes line/block bboxes on -x/-y/-W/-H crop (poppler #1094)", () => {
+    const pdf = buildThreePageTestPdf();
+    // Crop x=[0..60] on page 1 so only "Hello" (x=20..48) remains from "Hello world" (world is x=51..82, center=66.7)
+    // and verify line and block xMax are recomputed to Hello's xMax (< 55)
+    const croppedBbox = extractPdfToTextBytes(pdf, [
+      "-bbox",
+      "-f",
+      "1",
+      "-l",
+      "1",
+      "-x",
+      "0",
+      "-y",
+      "0",
+      "-W",
+      "60",
+      "-H",
+      "40"
+    ]);
+    assert.equal(croppedBbox.exitCode, 0);
+    assert.match(croppedBbox.output, /<word[^>]*>Hello<\/word>/);
+    assert.equal(croppedBbox.output.includes(">world<"), false);
+    const lineMatch = /<line xMin="([^"]+)" yMin="([^"]+)" xMax="([^"]+)" yMax="([^"]+)">/.exec(
+      croppedBbox.output
+    );
+    assert.ok(lineMatch);
+    const lineXMax = Number(lineMatch[3]);
+    assert.ok(lineXMax < 55, `expected cropped line xMax < 55, got ${lineXMax}`);
+  });
 });

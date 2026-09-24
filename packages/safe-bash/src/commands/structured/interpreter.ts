@@ -474,6 +474,25 @@ export class Interpreter {
       return;
     }
     if (name === "not") { yield !truth(input); return; }
+    if (name === "bsearch") {
+      for await (const target of this.run(args[0]!, input)) {
+        for await (const length of this.run({ kind: "call", name: "length", args: [] }, input)) {
+          let low = 0;
+          let high = numberValue(length as Numeric);
+          let found: number | undefined;
+          while (low < high) {
+            await budget.tick();
+            const middle = Math.floor((low + high - 1) / 2);
+            const order = await compare(indexValue(input, middle), target, budget);
+            if (order === 0) { found = middle; break; }
+            if (order < 0) low = middle + 1;
+            else high = middle;
+          }
+          yield found ?? -low - 1;
+        }
+      }
+      return;
+    }
     if (name === "transpose") {
       let width = 0;
       for await (const [, row] of entries(input, budget)) {

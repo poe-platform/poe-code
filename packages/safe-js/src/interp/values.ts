@@ -1279,7 +1279,11 @@ function measureSandboxDataWithSeen(
                 depth++;
                 continue walk;
               }
-            } else for (const root of closure[sandboxRetainedValues]?.() ?? []) visit(root, depth + 1);
+            } else {
+              const roots = closure[sandboxRetainedValues]?.();
+              if (roots !== undefined && roots !== null)
+                for (const root of roots) visit(root, depth + 1);
+            }
           }
           break entry;
         }

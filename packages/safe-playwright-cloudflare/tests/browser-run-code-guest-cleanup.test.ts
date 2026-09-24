@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 
-const fixture = vi.hoisted(() => ({ close: vi.fn(), userCode: vi.fn() }));
+const fixture = vi.hoisted(() => ({ close: vi.fn(), userCode: vi.fn(), serializeState: vi.fn(() => "{}") }));
 vi.mock("cloudflare:workers", () => ({ RpcTarget: class {}, WorkerEntrypoint: class {} }));
 vi.mock("browser-user-code.js", () => ({ default: fixture.userCode }));
 vi.mock("../src/browser-run-code-context-state.js", () => ({
@@ -12,7 +12,7 @@ vi.mock("../src/browser-run-code-native.js", () => ({
   restoreRunCodePageState: async () => {},
   runCodePageTarget: () => "page"
 }));
-vi.mock("../src/browser-run-code-state.js", () => ({ serializeRunCodeState: () => "{}" }));
+vi.mock("../src/browser-run-code-state.js", () => ({ serializeRunCodeState: fixture.serializeState }));
 vi.mock("../src/browser-screenshot.js", () => ({ prepareBrowserScreenshots() {} }));
 vi.mock("@cloudflare/playwright", () => {
   const context = { pages: () => [page], on() {} };
@@ -75,4 +75,17 @@ test("guest retains output limit failure when cleanup also fails", async () => {
   expect(error).toBeInstanceOf(AggregateError);
   expect(error.cause.message).toBe("Run-code output limit exceeded");
   expect(error.errors[1]).toBe(cleanup);
+});
+
+test.each([false, true])("guest retains serialization error when state capture fails (close fails: %s)", async (closeFails) => {
+  fixture.userCode.mockResolvedValueOnce(1n);
+  const stateError = new Error("Run-code state limit exceeded");
+  fixture.serializeState.mockImplementationOnce(() => { throw stateError; });
+  const cleanup = new Error("Network connection lost");
+  if (closeFails) fixture.close.mockRejectedValueOnce(cleanup);
+  else fixture.close.mockResolvedValueOnce(undefined);
+  const error = await new Guest().run({} as never, metadata as never).catch((error) => error);
+  expect(error).toBeInstanceOf(AggregateError);
+  expect(error.cause.message).toContain("Run-code result is not JSON-serializable");
+  expect(error.errors).toEqual(closeFails ? [error.cause, stateError, cleanup] : [error.cause, stateError]);
 });

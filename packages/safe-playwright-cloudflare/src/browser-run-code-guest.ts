@@ -147,6 +147,7 @@ export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 				)
 			};
 		})().catch((error: unknown) => {
+			if (userFailure) failures.push(userFailure.error);
 			failures.push(error);
 		});
 		// A rejected close must not replace a user-error response prepared above.

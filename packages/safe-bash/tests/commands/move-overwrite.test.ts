@@ -16,6 +16,9 @@ for (const publication of ["copyFile", "writeStream"] as const) test(`cross-devi
   const base = createMountFileSystem({ root, mounts: { "/dest": destination } });
   let copies = 0;
   const fs: FileSystem = new Proxy(base, { get(target, key) {
+    if (key === "capabilitiesFor") return async (...args: Parameters<NonNullable<typeof base.capabilitiesFor>>) => ({
+      ...await base.capabilitiesFor(...args), atomicFileStaging: false,
+    });
     if (key === publication) return async (...args: unknown[]) => {
       copies++;
       await destination.rename("/sub", "/held");

@@ -678,7 +678,9 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
                 throw error;
               }
               if (codeOf(error) !== "EXDEV") throw error;
-              if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) {
+              const moved = await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget, parsed.flags.has("u"));
+              if (moved === "skipped") return;
+              if (!moved) {
                 if (!parsed.flags.has("n")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
                 return;
               }

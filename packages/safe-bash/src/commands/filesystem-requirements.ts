@@ -35,6 +35,7 @@ export const filesystemCommandRequirements = {
     { id: "cross-link-source", description: "Inspect and remove cross-device source links", capabilities: ["stat", "readlink", "atomicEntryRemoval"], mutates: true },
     { id: "cross-file", description: "Publish file contents through the existing cross-device copy route", capabilities: ["stat", "streamingWrite"], mutates: true },
     { id: "cross-buffer", description: "Create a file exclusively from bounded retained contents", capabilities: ["stat", "exclusiveCreate"], mutates: true },
+    { id: "cross-staged", description: "Replace an existing file with retained reads and guarded staging", capabilities: ["stat", "atomicFileStaging", "retainedStagingCleanup", "atomicStagingAncestry", "guardedStagingPublication"], mutates: true },
     { id: "cross-exclusive", description: "Publish a missing cross-device destination exclusively", capabilities: ["exclusiveCreate"], mutates: true },
     { id: "cross-directory", description: "Create missing cross-device destination directories", capabilities: ["mkdir"], mutates: true },
     { id: "cross-link", description: "Publish cross-device destination links", capabilities: ["symlinks"], mutates: true },

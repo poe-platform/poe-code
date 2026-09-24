@@ -35,7 +35,7 @@ test("cross-mount move admits source removal and destination publication before 
     const fs = new root.MountFileSystem({ root: await fixture(), mounts: {
       "/source": restricted(source, denied === "remove" ? { remove: false, atomicEntryRemoval: false } : {}),
       "/target": restricted(target, denied === "copy" ? { copy: false, exclusiveCopy: false,
-        write: false, streamingWrite: false, exclusiveCreate: false } : {}),
+        write: false, streamingWrite: false, exclusiveCreate: false, atomicFileStaging: false } : {}),
     } });
     const result = await run("mv", ["/source/work/source", "/target/work/target"], { fs });
     assert.equal(result.exitCode, 1, denied);

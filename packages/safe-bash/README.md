@@ -165,8 +165,9 @@ Use `cat --help`, `base64 --help`, `cp --help`, `sort --help`, `grep --help`, `r
 `cp -u` / `--update` copies missing files and replaces files only when the source
 has a newer modification time. Recursive copies compare each file separately.
 File-content copies (`cp` and cross-device `mv`) require a retained reader with
-authoritative file identity. Destinations require streaming writes, or exclusive
-creation for missing or explicitly removed files. Exclusive creation buffers the
+authoritative file identity. Destinations require streaming writes, exclusive
+creation for missing or explicitly removed files, or guarded staging for an
+existing-file move. Exclusive creation buffers the
 inspected source size within the host input and memory budgets. The reader identity
 is verified before bytes are read; backends without this guarantee refuse the
 transfer. Ordinary same-device `mv` still uses rename.
@@ -179,10 +180,13 @@ Cross-device `mv` requires atomic conditional source removal. Backends without
 this capability refuse the fallback before copying. If a source entry or its
 parent changes during transfer, cleanup fails and retains the copied data;
 the command never deletes a replacement source entry.
-Cross-device `mv` refuses to overwrite an existing regular file with `ENOTSUP`:
-the copy fallback cannot atomically bind replacement to the destination and its
-ancestors. Both files are retained. Same-device replacement and cross-device
-moves to missing destinations remain supported.
+Cross-device `mv` can replace an existing regular file using guarded staging
+with atomic destination and ancestry checks and retained staging cleanup. Memory
+mounts support this route. Source bytes are buffered under the input and
+collection limits; supported modes and timestamps are prepared before publication.
+Backends without these guarantees refuse the overwrite. Opaque destination
+identities, hardlinked targets, and symlinked destination parents remain unsupported.
+Same-device replacement and cross-device moves to missing destinations remain supported.
 `cp -i` / `--interactive` prompts on stderr before overwriting each existing file
 and reads one response from stdin. Responses beginning with `y` or `Y` allow
 replacement; refusal or EOF preserves the destination and returns status 1.

@@ -5,6 +5,7 @@ import { dirname, FsError, isPathWithin, joinPath, type CommandContext, type Fil
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { codeOf, diagnostic } from "./internal.js";
 import { admitFilesystemModes } from "./filesystem-requirements.js";
+import { prepareMoveStaging, stageMoveReplacement, type MoveStagingPlan } from "./move-staging.js";
 
 interface MoveEntry {
   readonly source: string;
@@ -13,6 +14,7 @@ interface MoveEntry {
   readonly parent: FileStat;
   readonly targetStat: FileStat | undefined;
   readonly link: string | undefined;
+  readonly staging: MoveStagingPlan | undefined;
 }
 
 export class MoveBudget {
@@ -51,11 +53,14 @@ async function recheck(context: CommandContext, entry: MoveEntry, content = true
   return current;
 }
 
-export async function moveAcrossDevices(context: CommandContext, source: string, target: string, noClobber: boolean, budget: MoveBudget): Promise<boolean> {
+export async function moveAcrossDevices(context: CommandContext, source: string, target: string, noClobber: boolean,
+  budget: MoveBudget, update = false): Promise<boolean | "skipped"> {
   const plan: MoveEntry[] = [];
   const sourceStat = await context.fs.lstat(source, { signal: context.signal });
   const targetStat = await optionalStat(context, target);
   if (noClobber && targetStat) return false;
+  if (update && targetStat && sourceStat.type !== "directory" && targetStat.type !== "directory"
+    && sourceStat.mtimeMs <= targetStat.mtimeMs) return "skipped";
   if (source === target || compareCopyIdentity(sourceStat, targetStat) === "same") return false;
   const compare = (origin: string, destination: string, stat: FileStat, existing: FileStat) =>
     stat.type === "symlink" || existing.type === "symlink" ? Promise.resolve(compareCopyIdentity(stat, existing))
@@ -108,11 +113,6 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: origin, dest: destination, message: "existing move destination lacks authoritative distinctness" });
       if ((stat.type === "directory") !== (existing.type === "directory")) throw new FsError(existing.type === "directory" ? "EISDIR" : "ENOTDIR", { path: destination });
       if (stat.type === "directory" && (await context.fs.readdir(destination, { signal: context.signal })).length) throw new FsError("ENOTEMPTY", { path: destination });
-      // copyFile cannot atomically bind an overwrite to this entry and its
-      // ancestors. Refuse before publication rather than recheck a pathname.
-      if (stat.type === "file" && existing.type === "file") throw new FsError("ENOTSUP", {
-        path: origin, dest: destination, message: "cross-device overwrite requires atomic destination and ancestry binding",
-      });
     }
     if (stat.type === "directory" && compareCopyIdentity(stat, stat) !== "same") {
       throw new FsError("ENOTSUP", { path: origin, message: "move source directory lacks authoritative identity" });
@@ -123,7 +123,9 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
       link = await context.fs.readlink(origin, { signal: context.signal });
     }
     const parent = await context.fs.stat(dirname(origin), { signal: context.signal });
-    plan.push({ source: origin, target: destination, stat, parent, targetStat: existing, link });
+    const staging = stat.type === "file" && existing?.type === "file"
+      ? await prepareMoveStaging(context, origin, stat, destination, existing, budget) : undefined;
+    plan.push({ source: origin, target: destination, stat, parent, targetStat: existing, link, staging });
     if (stat.type === "directory") {
       const entries = await context.fs.readdir(origin, { signal: context.signal, maxEntries: budget.remaining });
       if (entries.length > budget.remaining) throw new FsError("EFBIG", { message: "cross-device move entry limit exceeded" });
@@ -147,7 +149,7 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
     } else if (entry.stat.type === "symlink") {
       await admitFilesystemModes(context, "mv", ["cross-link"], [entry.target]);
       if (entry.targetStat) await admitFilesystemModes(context, "mv", ["cross-replace"], [entry.target]);
-    } else {
+    } else if (!entry.staging) {
       const publication = await admitCopyDestination(context, entry.target, !entry.targetStat || entry.targetStat.type === "symlink");
       await admitFilesystemModes(context, "mv", [publication === "buffer" ? "cross-buffer" : "cross-file",
         ...!entry.targetStat || entry.targetStat.type === "symlink" ? ["cross-exclusive"] : [],
@@ -168,6 +170,8 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
       } else if (entry.stat.type === "symlink") {
         if (entry.targetStat) await context.fs.rm(entry.target, { recursive: false, signal: context.signal });
         await context.fs.symlink!(entry.link!, entry.target, { signal: context.signal });
+      } else if (entry.staging) {
+        await stageMoveReplacement(context, entry.source, entry.target, entry.stat, entry.targetStat!, entry.staging, budget);
       } else {
         if (entry.targetStat?.type === "symlink") await context.fs.rm(entry.target, { recursive: false, signal: context.signal });
         await copyCheckedSource(context, entry.source, entry.target, entry.stat, !entry.targetStat || entry.targetStat.type === "symlink");
@@ -180,7 +184,7 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   }
   for (const entry of [...plan].reverse()) {
     context.signal.throwIfAborted();
-    if (entry.stat.type !== "symlink") {
+    if (entry.stat.type !== "symlink" && !entry.staging) {
       const capabilities = await context.fs.capabilitiesFor?.(entry.target, { signal: context.signal }) ?? context.fs.capabilities;
       if (capabilities.permissions === true && context.fs.chmod) await context.fs.chmod(entry.target, entry.stat.mode & 0o7777, { signal: context.signal });
       if (capabilities.timestamps === true && context.fs.utimes) {

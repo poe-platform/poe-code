@@ -2426,6 +2426,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
   assert.ok(files.includes("tests/commands/cut-portable.test.ts"));
   assert.ok(files.includes("tests/commands/capability-requirements.test.ts"));
+  assert.ok(files.includes("tests/commands/move-staged-overwrite.test.ts"));
   assert.ok(files.includes("tests/commands/filesystem-output.test.ts"));
   assert.ok(files.includes("tests/commands/filesystem.test.ts"));
   assert.ok(files.includes("tests/commands/mv-interactive.test.ts"));

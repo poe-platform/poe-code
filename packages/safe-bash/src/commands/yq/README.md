@@ -4,14 +4,22 @@ This optional module implements the frozen restricted YAML 1.2.2 Core-profile
 reader and deterministic formatter over the existing bounded jq interpreter.
 It is not Mike Farah yq syntax or a full YAML implementation. It has no runtime
 dependency, native fallback, host-process execution, implicit registration,
-public limit configuration, write mode, slurp, or eval-all mode.
+write mode, slurp, or eval-all mode.
 
 The module exports `createYqCommand()`, `createYqCommands()`, and
-`yqCommands({ replace? })` from `src/commands/yq/index.ts`. Root/package exports
+`yqCommands({ replace?, limits? })` from `src/commands/yq/index.ts`. Root/package exports
 and default aggregate registration are deliberately outside this module's
 ownership. The private query adapter is `src/commands/structured/query-core.ts`.
 
-Input and output documents are wholly retained within fixed logical byte,
+Hosts can set finite nonnegative integer `limits`: `maxAliasReferences` (default
+1,024 per invocation), `maxDocumentNodes` (16,384 expanded nodes per document),
+`maxValueBytes` (8 MiB per document), and `maxSteps` (1,000,000 shared work units
+per invocation). These budgets apply before query selection, including values
+that the filter never selects. Alias projections and clone work are admitted
+before cloning; limit failures return status 5. Limits are captured when the
+command is created and cannot be changed by shell arguments.
+
+Input and output documents are wholly retained within logical byte,
 node, depth, collection, result, and output admissions. YAML source scanning
 retains at most 65,536 physical lines per parser input, including blank lines,
 comments, directives and document markers; exceeding this quota returns status

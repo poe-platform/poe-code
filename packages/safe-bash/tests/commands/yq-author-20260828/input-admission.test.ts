@@ -28,14 +28,14 @@ async function run(overrides: Partial<CommandContext> = {}) {
   return { status: result.exitCode, stdout, stderr };
 }
 
-test("yq and jq omit resource ceilings by default", () => {
+test("yq bounds expansion and work while jq defaults remain unchanged", () => {
   assert.deepEqual(yqCaps, {
     maxArgvEntries: Infinity, maxArgvUtf8Bytes: Infinity, maxVfsOperandPathBytes: Infinity,
-    maxInputBytes: Infinity, maxDocumentBytes: Infinity, maxValueBytes: Infinity,
+    maxInputBytes: Infinity, maxDocumentBytes: Infinity, maxValueBytes: 8 * 1024 * 1024,
     maxScalarBytes: Infinity, maxQuerySourceBytes: Infinity, maxDepth: Infinity, maxAstDepth: Infinity,
-    maxSteps: Infinity, maxResults: Infinity, maxCollectionSize: Infinity,
-    maxDocuments: Infinity, maxAnchorsPerDocument: Infinity, maxAliasReferences: Infinity,
-    maxDocumentNodes: Infinity, maxOutputBytes: Infinity, diagnosticReserveBytes: Infinity,
+    maxSteps: 1_000_000, maxResults: Infinity, maxCollectionSize: Infinity,
+    maxDocuments: Infinity, maxAnchorsPerDocument: Infinity, maxAliasReferences: 1024,
+    maxDocumentNodes: 16_384, maxOutputBytes: Infinity, diagnosticReserveBytes: Infinity,
     stdoutCapBytes: Infinity, maxDisplayedFilenameBytes: Infinity,
   });
   assert.deepEqual(defaultJqLimits, {

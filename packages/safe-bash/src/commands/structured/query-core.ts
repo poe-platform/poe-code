@@ -499,10 +499,10 @@ class QuerySession implements YqQuerySession {
   #activeReturn: Promise<unknown> | undefined;
   #closePromise: Promise<void> | undefined;
 
-  constructor(signal: AbortSignal) {
+  constructor(signal: AbortSignal, limits: Partial<Pick<JqLimits, "maxSteps" | "maxValueBytes">> = {}) {
     if (!(signal instanceof AbortSignal)) throw new TypeError("signal must be an AbortSignal");
     this.#signal = signal;
-    this.#budget = new Budget(yqQueryLimits, signal);
+    this.#budget = new Budget(Object.freeze({ ...yqQueryLimits, ...limits }), signal);
     this.#interpreter = new Interpreter(this.#budget, this.#variables);
     this.ownedWork = new OwnedWork(this.#budget, signal);
   }
@@ -580,7 +580,7 @@ class QuerySession implements YqQuerySession {
   }
 }
 
-export function createYqQuerySession(options: { readonly signal: AbortSignal }): YqQuerySession {
+export function createYqQuerySession(options: { readonly signal: AbortSignal; readonly limits?: Partial<Pick<JqLimits, "maxSteps" | "maxValueBytes">> }): YqQuerySession {
   if (typeof options !== "object" || options === null) throw new TypeError("options must be an object");
-  return new QuerySession(options.signal);
+  return new QuerySession(options.signal, options.limits);
 }

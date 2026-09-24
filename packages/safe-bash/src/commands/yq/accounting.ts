@@ -9,23 +9,47 @@ export const yqCaps = Object.freeze({
   maxVfsOperandPathBytes: Infinity,
   maxInputBytes: Infinity,
   maxDocumentBytes: Infinity,
-  maxValueBytes: Infinity,
+  maxValueBytes: 8 * 1024 * 1024,
   maxScalarBytes: Infinity,
   maxQuerySourceBytes: Infinity,
   maxDepth: Infinity,
   maxAstDepth: Infinity,
-  maxSteps: Infinity,
+  maxSteps: 1_000_000,
   maxResults: Infinity,
   maxCollectionSize: Infinity,
   maxDocuments: Infinity,
   maxAnchorsPerDocument: Infinity,
-  maxAliasReferences: Infinity,
-  maxDocumentNodes: Infinity,
+  maxAliasReferences: 1024,
+  maxDocumentNodes: 16_384,
   maxOutputBytes: Infinity,
   diagnosticReserveBytes: Infinity,
   stdoutCapBytes: Infinity,
   maxDisplayedFilenameBytes: Infinity,
 });
+
+export interface YqLimits {
+  readonly maxAliasReferences: number;
+  readonly maxDocumentNodes: number;
+  readonly maxValueBytes: number;
+  readonly maxSteps: number;
+}
+
+export function resolveYqLimits(overrides: Partial<YqLimits> = {}): Readonly<YqLimits> {
+  if (typeof overrides !== "object" || overrides === null) throw new TypeError("limits must be an object");
+  const limits: YqLimits = {
+    maxAliasReferences: yqCaps.maxAliasReferences,
+    maxDocumentNodes: yqCaps.maxDocumentNodes,
+    maxValueBytes: yqCaps.maxValueBytes,
+    maxSteps: yqCaps.maxSteps,
+  };
+  for (const [key, value] of Object.entries(overrides)) {
+    if (!Object.hasOwn(limits, key) || !Number.isSafeInteger(value) || value < 0) {
+      throw new TypeError("yq limits must be nonnegative safe integers with supported names");
+    }
+    Object.assign(limits, { [key]: value });
+  }
+  return Object.freeze(limits);
+}
 
 function checked(current: number, incoming: number, limitValue: number, code: Parameters<typeof limit>[0]): number {
   if (!Number.isSafeInteger(incoming) || incoming < 0) throw new RangeError("invalid yq accounting projection");
@@ -34,6 +58,7 @@ function checked(current: number, incoming: number, limitValue: number, code: Pa
 }
 
 export class YqLedger {
+  constructor(readonly limits: Readonly<YqLimits> = resolveYqLimits()) {}
   documents = 0;
   aliases = 0;
   documentNodes = 0;
@@ -56,7 +81,7 @@ export class YqLedger {
   }
 
   admitNode(): void {
-    this.documentNodes = checked(this.documentNodes, 1, yqCaps.maxDocumentNodes, "LIMIT_MAX_DOCUMENT_NODES");
+    this.documentNodes = checked(this.documentNodes, 1, this.limits.maxDocumentNodes, "LIMIT_MAX_DOCUMENT_NODES");
   }
 
   admitAnchor(): void {
@@ -68,13 +93,13 @@ export class YqLedger {
   }
 
   admitValueBytes(bytes: number): void {
-    this.documentValueBytes = checked(this.documentValueBytes, bytes, yqCaps.maxValueBytes, "LIMIT_MAX_VALUE_BYTES");
+    this.documentValueBytes = checked(this.documentValueBytes, bytes, this.limits.maxValueBytes, "LIMIT_MAX_VALUE_BYTES");
   }
 
   preflightAlias(descriptor: AliasDescriptor): { readonly aliases: number; readonly nodes: number; readonly valueBytes: number } {
-    const aliases = checked(this.aliases, 1, yqCaps.maxAliasReferences, "LIMIT_MAX_ALIAS_REFERENCES");
-    const nodes = checked(this.documentNodes, descriptor.nodes, yqCaps.maxDocumentNodes, "LIMIT_MAX_DOCUMENT_NODES");
-    const valueBytes = checked(this.documentValueBytes, descriptor.compactBytes, yqCaps.maxValueBytes, "LIMIT_MAX_VALUE_BYTES");
+    const aliases = checked(this.aliases, 1, this.limits.maxAliasReferences, "LIMIT_MAX_ALIAS_REFERENCES");
+    const nodes = checked(this.documentNodes, descriptor.nodes, this.limits.maxDocumentNodes, "LIMIT_MAX_DOCUMENT_NODES");
+    const valueBytes = checked(this.documentValueBytes, descriptor.compactBytes, this.limits.maxValueBytes, "LIMIT_MAX_VALUE_BYTES");
     if (descriptor.maxDepth > yqCaps.maxDepth) throw limit("LIMIT_MAX_DEPTH");
     return { aliases, nodes, valueBytes };
   }
@@ -152,7 +177,7 @@ function jsonStringBytes(text: string): number {
   return bytes;
 }
 
-export async function estimateAlias(value: Json, work: YqOwnedWork): Promise<AliasDescriptor> {
+export async function estimateAlias(value: Json, work: YqOwnedWork, limits: Readonly<YqLimits> = resolveYqLimits()): Promise<AliasDescriptor> {
   let nodes = 0;
   let compactBytes = 0;
   let maxDepth = 0;
@@ -162,7 +187,7 @@ export async function estimateAlias(value: Json, work: YqOwnedWork): Promise<Ali
     const item = stack.pop()!;
     await work.charge(1);
     work.assertOpen();
-    nodes = addProjection(nodes, 1);
+    nodes = checked(nodes, 1, limits.maxDocumentNodes, "LIMIT_MAX_DOCUMENT_NODES");
     ordinaryUnits = addProjection(ordinaryUnits, 1);
     maxDepth = Math.max(maxDepth, item.depth);
     if (maxDepth > yqCaps.maxDepth) throw limit("LIMIT_MAX_DEPTH");
@@ -195,7 +220,7 @@ export async function estimateAlias(value: Json, work: YqOwnedWork): Promise<Ali
         stack.push({ value: (current as Record<string, Json>)[key]!, depth: item.depth + 1 });
       }
     }
-    if (compactBytes > yqCaps.maxValueBytes) throw limit("LIMIT_MAX_VALUE_BYTES");
+    if (compactBytes > limits.maxValueBytes) throw limit("LIMIT_MAX_VALUE_BYTES");
   }
   return Object.freeze({ nodes, compactBytes, maxDepth, ordinaryUnits });
 }
@@ -210,7 +235,7 @@ async function consumePayload(work: YqOwnedWork, reservation: ReturnType<YqOwned
 }
 
 export async function copyAlias(value: Json, ledger: YqLedger, work: YqOwnedWork): Promise<Json> {
-  const descriptor = await estimateAlias(value, work);
+  const descriptor = await estimateAlias(value, work, ledger.limits);
   work.assertOpen();
   const projection = ledger.preflightAlias(descriptor);
   const reservation = work.reserve(descriptor.ordinaryUnits);

@@ -17,7 +17,7 @@ import {
 import { shellValueByteLength } from "../../contracts/value.js";
 import { createYqQuerySession, YqValueFailure, type YqQuerySession } from "../structured/query-core.js";
 import { interruptible, JqError, JqLimitError, wellFormed, type Json } from "../structured/limits.js";
-import { YqLedger, yqCaps } from "./accounting.js";
+import { YqLedger, yqCaps, resolveYqLimits, type YqLimits } from "./accounting.js";
 import { encodeJson, encodeRaw, encodeYaml } from "./encoder.js";
 import { fromJqLimit, YqError, type YqCode } from "./errors.js";
 import { parseYamlDocuments } from "./parser.js";
@@ -478,8 +478,8 @@ async function writeOperation(
   owner.assertOpen(callerSignal);
 }
 
-async function runCommand(context: CommandContext, owner: InvocationOwner, inputFormat: "yaml" | "toml"): Promise<{ exitCode: number }> {
-  const ledger = new YqLedger();
+async function runCommand(context: CommandContext, owner: InvocationOwner, inputFormat: "yaml" | "toml", limits: Readonly<YqLimits>): Promise<{ exitCode: number }> {
+  const ledger = new YqLedger(limits);
   let session: YqQuerySession | undefined;
   let stdout: OutputOperation | undefined;
   let stderr: OutputOperation | undefined;
@@ -515,7 +515,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
     const options = parseArguments(context.args, inputFormat);
     if (Buffer.byteLength(options.filter) > yqCaps.maxQuerySourceBytes) throw new YqError("limit", "LIMIT_MAX_QUERY_SOURCE_BYTES", 5);
     owner.register(async () => session?.close());
-    session = createYqQuerySession({ signal: context.signal });
+    session = createYqQuerySession({ signal: context.signal, limits });
     try { session.compileOnce(options.filter); }
     catch (failure) {
       if (failure instanceof JqLimitError) throw fromJqLimit(failure);
@@ -625,14 +625,14 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
   }
 }
 
-async function execute(context: CommandContext, inputFormat: "yaml" | "toml"): Promise<{ exitCode: number }> {
+async function execute(context: CommandContext, inputFormat: "yaml" | "toml", limits: Readonly<YqLimits>): Promise<{ exitCode: number }> {
   const owner = new InvocationOwner();
   context.registerCleanup?.(() => owner.close());
   let result: { exitCode: number } | undefined;
   let primary: unknown;
   let hasPrimary = false;
   try {
-    result = await runCommand(context, owner, inputFormat);
+    result = await runCommand(context, owner, inputFormat, limits);
   } catch (failure) {
     primary = failure;
     hasPrimary = true;
@@ -650,27 +650,30 @@ async function execute(context: CommandContext, inputFormat: "yaml" | "toml"): P
   return result!;
 }
 
+export type { YqLimits } from "./accounting.js";
+
 export interface YqCommandsOptions {
+  readonly limits?: Partial<YqLimits>;
   readonly replace?: boolean;
   readonly inputFormat?: "yaml" | "toml";
 }
 
-function admittedOptions(options: YqCommandsOptions): { replace: boolean; inputFormat: "yaml" | "toml" } {
+function admittedOptions(options: YqCommandsOptions): { replace: boolean; inputFormat: "yaml" | "toml"; limits: Readonly<YqLimits> } {
   if (typeof options !== "object" || options === null) throw new TypeError("options must be an object");
-  if (Object.keys(options).some(key => key !== "replace" && key !== "inputFormat")) throw new TypeError("unsupported yq option");
+  if (Object.keys(options).some(key => key !== "replace" && key !== "inputFormat" && key !== "limits")) throw new TypeError("unsupported yq option");
   const { replace = false, inputFormat = "yaml" } = options;
   if (typeof replace !== "boolean") throw new TypeError("replace must be a boolean");
   if (inputFormat !== "yaml" && inputFormat !== "toml") throw new TypeError("inputFormat must be yaml or toml");
-  return { replace, inputFormat };
+  return { replace, inputFormat, limits: resolveYqLimits(options.limits) };
 }
 
 export function createYqCommand(options: YqCommandsOptions = {}): CommandDefinition {
-  const { inputFormat } = admittedOptions(options);
+  const { inputFormat, limits } = admittedOptions(options);
   return Object.freeze({
     name: "yq",
     runtimeIdentity: commandRuntimeIdentity,
     description: "Bounded restricted YAML/TOML query and formatter",
-    execute: (context: CommandContext) => execute(context, inputFormat),
+    execute: (context: CommandContext) => execute(context, inputFormat, limits),
   });
 }
 

@@ -2724,7 +2724,7 @@
     ]
   },
   "native": {
-    "candidateReadback": "Pending four generated BIFF8/dual outputs, plus native XLSX export/reimport of the original relative XML input.",
+    "candidateReadback": "Authenticated run35938296611 confirms all four corrected BIFF8/dual inputs with empty stderr, including native XML replay.",
     "inputs": [
       {
         "id": "biff-name-link-order-nested-8",
@@ -2747,17 +2747,15 @@
         "inputSha256": "7d431b936f478fa91a513b83cffb2b2113b5df3be9ccc65454b6ca5cb52b69b6"
       }
     ],
-    "priorInputsPreserved": 94
+    "priorInputsPreserved": 94,
+    "capture": "docs/ssconvert/biff-name-link-order-native-capture.json"
   },
   "xlsxInvestigation": {
     "source": "plugins/excel/xlsx-write.c:3043-3072 calls expr_name_as_string with NULL, which uses the stored name position.",
     "sourceSha256": "004060bcb15f769aa760d3120b81afd3c36dd3d1c9198515de4cc322eac6550a",
-    "status": "Do not assume the remaining local XLSX roundtrip loss is a native-parity defect; actual native export/reimport requested before any repair."
+    "status": "Native export/reimport yields 1023,1052,0,0,0, exactly the candidate anchor loss. Shared native behavior; no candidate parity repair needed."
   },
   "remaining": [
-    "Native record-order repair qualification pending.",
-    "Native relative-wrap qualification pending.",
-    "XLSX anchor behavior must be compared against native, not assumed lossless.",
     "Forward name dependencies, other link arrangements, broader names/references, all 19 families and root publication remain open."
   ]
 }

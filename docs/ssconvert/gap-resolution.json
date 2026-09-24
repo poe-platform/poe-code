@@ -250,7 +250,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Actual Linux BIFF8 external cell/area imports recalculate to #REF!,not stale17. Reader mismatch repaired with six failing memory controls; six logical fields/27CSVbytes now exact across SDK/Shell/XML replay/browser/worker,with raw SUPBOOK/cache retention and no implicit link I/O. Warning text differs. Full external identity/host binding/writer,NameX and broader version roundtrips remain open. BIFF8 external NameX now resolves supported on-file declaration tables:9 original stale999 cases recalculate to six #REF! and three6 values. Seven red unit groups precede repair;43focused/22713package tests,lint/types and selected4-build closure pass. All54SDK/Shell/XML/XLSX/browser/worker checks agree with unchanged inputs and zero external I/O; screenshots inspected. Native run35918106503 now independently qualifies all9original NameX inputs:27commands exit0,import and XML replay give six#REF!/three6;18publicSDK/compiledShell nativeXML replays agree with zero diagnostics/link access. Native external-reference,UNKNOWN-name and missing-XF warnings remain explicitly different;49module entries resolve to48files. Wider identity/writer/legacy/flagged declarations and publication remain open. BIFF7/8 and dual-stream exports now resolve explicit sheet names with the existing Unicode case fold, preserving local-name scope and avoiding internal-ID collisions. Twenty-one original failures are repaired; 119 focused, 22740 package and 60 independent controls pass, with compiled SDK/Shell roundtrips. A neighboring six-case regression now preserves case-distinct defined names and internal scope IDs: 118 focused, 22746 package and 57 independent controls pass; all three public export profiles retain exact values. Authenticated native35925225030 confirms direct BIFF7/8/dual-stream values with empty stderr. Its own XML replay changes first two scoped-name results to global11/13; compiled SDK/Shell retain2/3 on the same XML. Preserve six replay mismatches. Original missing-sheet XML importer mismatch is now repaired: ordinary cells recover native string formulas and warning messages instead of resolving global11. Final22765package tests,19focused cases,lint/types,selectedbuild and10compiledSDK/Shell/XML/BIFFreplays pass; remote delivery63f4fb8d2 is verified. The six captured XML name load-order mismatches are now repaired: declaration-order binding and placeholders preserve native replay11/13 while direct BIFF remains2/3. Four original failures,85focused/22772package tests,maintained lint/types,selected4-build closure and14compiledSDK/Shell conversions qualify the fix; remote deliveryf973d6615 is verified. Historical mismatch receipts remain unchanged. Broader malformed/array/shared-copy/name-mutation behavior, programmatic model binding and family closure remain open. XML-created global/local placeholders are now retained as scoped #NAME? definitions with first parse positions and later-declaration reuse. Five local and two subsequent global red controls precede the repair;42focused/22790package tests,lint/types and selected4-build closure pass. Authenticated native35931353812 confirms4inputs/12commands and actual stored placeholders, with empty stderr. All56compiledSDK/Shell CSV conversions and20exports pass, including all4nativeXML replays; native forward-binding replay changes remain explicit. Broader XML expression/array/name semantics and publication remain open. Permanent XML names and Sheet_Title rename/remap now follow native construction/setter semantics; remote commits01c32d052/7c6b45eae are verified. Undefined explicitly global XML names now recover as native string formulas with warning messages. Ten failing controls,52focused/22814package tests,lint/types/build and64compiledSDK/Shell conversions/20exports qualify this repair; native35934615386 confirms four new inputs, pre-error placeholders and error order. Previously captured explicit-global permanent-name mismatches now match. Caller-position evaluation, relative axes and parse-time nested-name binding remain open, as do broader name/importer semantics and containing publication.",
+      "currentFinding": "Actual Linux BIFF8 external cell/area imports recalculate to #REF!,not stale17. Reader mismatch repaired with six failing memory controls; six logical fields/27CSVbytes now exact across SDK/Shell/XML replay/browser/worker,with raw SUPBOOK/cache retention and no implicit link I/O. Warning text differs. Full external identity/host binding/writer,NameX and broader version roundtrips remain open. BIFF8 external NameX now resolves supported on-file declaration tables:9 original stale999 cases recalculate to six #REF! and three6 values. Seven red unit groups precede repair;43focused/22713package tests,lint/types and selected4-build closure pass. All54SDK/Shell/XML/XLSX/browser/worker checks agree with unchanged inputs and zero external I/O; screenshots inspected. Native run35918106503 now independently qualifies all9original NameX inputs:27commands exit0,import and XML replay give six#REF!/three6;18publicSDK/compiledShell nativeXML replays agree with zero diagnostics/link access. Native external-reference,UNKNOWN-name and missing-XF warnings remain explicitly different;49module entries resolve to48files. Wider identity/writer/legacy/flagged declarations and publication remain open. BIFF7/8 and dual-stream exports now resolve explicit sheet names with the existing Unicode case fold, preserving local-name scope and avoiding internal-ID collisions. Twenty-one original failures are repaired; 119 focused, 22740 package and 60 independent controls pass, with compiled SDK/Shell roundtrips. A neighboring six-case regression now preserves case-distinct defined names and internal scope IDs: 118 focused, 22746 package and 57 independent controls pass; all three public export profiles retain exact values. Authenticated native35925225030 confirms direct BIFF7/8/dual-stream values with empty stderr. Its own XML replay changes first two scoped-name results to global11/13; compiled SDK/Shell retain2/3 on the same XML. Preserve six replay mismatches. Original missing-sheet XML importer mismatch is now repaired: ordinary cells recover native string formulas and warning messages instead of resolving global11. Final22765package tests,19focused cases,lint/types,selectedbuild and10compiledSDK/Shell/XML/BIFFreplays pass; remote delivery63f4fb8d2 is verified. The six captured XML name load-order mismatches are now repaired: declaration-order binding and placeholders preserve native replay11/13 while direct BIFF remains2/3. Four original failures,85focused/22772package tests,maintained lint/types,selected4-build closure and14compiledSDK/Shell conversions qualify the fix; remote deliveryf973d6615 is verified. Historical mismatch receipts remain unchanged. Broader malformed/array/shared-copy/name-mutation behavior, programmatic model binding and family closure remain open. XML-created global/local placeholders are now retained as scoped #NAME? definitions with first parse positions and later-declaration reuse. Five local and two subsequent global red controls precede the repair;42focused/22790package tests,lint/types and selected4-build closure pass. Authenticated native35931353812 confirms4inputs/12commands and actual stored placeholders, with empty stderr. All56compiledSDK/Shell CSV conversions and20exports pass, including all4nativeXML replays; native forward-binding replay changes remain explicit. Broader XML expression/array/name semantics and publication remain open. Permanent XML names and Sheet_Title rename/remap now follow native construction/setter semantics; remote commits01c32d052/7c6b45eae are verified. Undefined explicitly global XML names now recover as native string formulas with warning messages. Ten failing controls,52focused/22814package tests,lint/types/build and64compiledSDK/Shell conversions/20exports qualify this repair; native35934615386 confirms four new inputs, pre-error placeholders and error order. Previously captured explicit-global permanent-name mismatches now match. Caller-position evaluation, relative axes and parse-time nested-name binding remain open, as do broader name/importer semantics and containing publication. Native runs35937888249/35938296611 now qualify four sheet-edge wrap cases, BIFF7 and all four corrected BIFF8/dual name exports. All corrected native imports/replays are warning-free.48public conversions preserve native outputs; two historical pre-fix BIFF inputs retain documented native differences. Native XLSX export/reimport loses the same anchor as the candidate, so that discrepancy is shared behavior. Forward dependencies, other link arrangements, broader names and publication remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -428,6 +428,20 @@
           "kind": "BIFF8-name-link-declaration-order",
           "path": "docs/ssconvert/biff-name-link-order-gap-proof.json",
           "outcome": "2red/2green;83focused/22847package tests,lint/types/build pass. Link tables now precede dependent NAME records;4generatedBIFF native readbacks and1nativeXLSX anchor roundtrip requested."
+        },
+        {
+          "kind": "native-relative-wrapping-and-BIFF-link-order-qualification",
+          "paths": [
+            "docs/ssconvert/relative-reference-wrap-native-capture.json",
+            "docs/ssconvert/biff-name-link-order-native-capture.json"
+          ],
+          "outcome": "12inputs/36native commands authenticated;48SDK/Shell conversions with zero external calls. Corrected values and empty native warnings verified; historical failures and shared XLSX anchor loss preserved.",
+          "runtimeCommits": [
+            "23c56c46ad801e16f23209d737198450c4cd426a",
+            "9de7c7c4800a87c2959f05524d0f680e823931da"
+          ],
+          "remoteMainVerified": true,
+          "publication": "pending"
         }
       ],
       "delivery": {
@@ -506,12 +520,12 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4–56byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open. Explicit legacy ODF1.2 AES256-CBC export now implemented behind encryption=odf12-aes256-cbc, host password and cryptographic entropy capabilities. All4 ordinary parts and embedded resources are protected. 15 original failing controls,22 final focused controls,22584 package tests,lint/types and selected4-build closure qualify the change; SDK/Shell/browser/worker ciphertext and CSV/XML replay agree. OpenSSL independently recovers8 actual SDK members exactly. Other encryption profiles,full family closure and publication remain open.",
+      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4\u201356byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open. Explicit legacy ODF1.2 AES256-CBC export now implemented behind encryption=odf12-aes256-cbc, host password and cryptographic entropy capabilities. All4 ordinary parts and embedded resources are protected. 15 original failing controls,22 final focused controls,22584 package tests,lint/types and selected4-build closure qualify the change; SDK/Shell/browser/worker ciphertext and CSV/XML replay agree. OpenSSL independently recovers8 actual SDK members exactly. Other encryption profiles,full family closure and publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
           "path": "docs/ssconvert/encrypted-odf-applicability.json",
-          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0→42, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
+          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0\u219242, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
         },
         {
           "kind": "red-public-sdk",
@@ -785,7 +799,7 @@
         },
         {
           "kind": "public-shell-visible-qa",
-          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Straße Sseta Ος, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
         },
         {
           "path": "docs/ssconvert/capwords-native-loader-gap-proof.json",
@@ -871,7 +885,7 @@
         {
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
-          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         },
         "docs/ssconvert/linux-private-scalar-native-capture.json",
         "docs/ssconvert/linux-numeric-native-capture.json",
@@ -910,7 +924,7 @@
         {
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
-          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         },
         "docs/ssconvert/linux-private-scalar-native-capture.json",
         "docs/ssconvert/linux-numeric-native-capture.json",
@@ -1031,12 +1045,12 @@
       "proof": [
         {
           "kind": "release-safe-artifact-vs-private-fixture",
-          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV→XLSX→CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
         },
         {
           "kind": "independent-isolated-installed-safe-bash-ssconvert",
           "path": "docs/ssconvert/packed-safe-bash-gap-qualification.json",
-          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV→XLSX→CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
+          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV\u2192XLSX\u2192CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
         }
       ],
       "delivery": {
@@ -1833,7 +1847,7 @@
     "originalActualTextValues": 180,
     "nativeMatchingOutlineRows": 102,
     "maximumMatchingOutlineDx": 0.004702086000037298,
-    "maximumMatchingOutlineDy": 0.00007464062480266875,
+    "maximumMatchingOutlineDy": 7.464062480266875e-05,
     "status": "offset rounding qualified locally; delivery pending; exact rendering and all19families remain open"
   }
 }

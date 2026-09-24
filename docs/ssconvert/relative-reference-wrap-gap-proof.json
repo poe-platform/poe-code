@@ -2793,7 +2793,7 @@
     ]
   },
   "native": {
-    "semanticReference": "Authenticated position.c source plus prior XML/BIFF semantic captures; current wrap-specific native execution pending.",
+    "semanticReference": "Authenticated run35937888249 verifies four sheet-edge cases and BIFF7. Historical BIFF8/dual link-order failures are retained; corrected exports qualify in run35938296611.",
     "inputs": [
       {
         "id": "relative-reference-wrap-implicit",
@@ -2824,12 +2824,13 @@
         "inputSha256": "49e48599573758f374361376c223008d871099f6b6daf751a7c1808e6b106c39"
       }
     ],
-    "priorInputsPreserved": 87
+    "priorInputsPreserved": 87,
+    "capture": "docs/ssconvert/relative-reference-wrap-native-capture.json"
   },
   "diagnosis": "The six local BIFF replay failures stemmed from omitted native modulo semantics; the serialized offsets can already evaluate correctly in the captured sheet dimensions. No BIFF token rewrite was needed for those cases.",
   "remaining": [
-    "One XLSX relative-name replay loses its parse anchor.",
-    "Native35937222629 additionally exposes BIFF8/dual link records emitted after named definitions. Local two-pass import masked this; preserve exact native warnings and repair separately.",
-    "Wrap-specific native capture, cross-format size changes, broader reference/name semantics, all 19 families and root publication remain open."
+    "Cross-format size changes and broader reference/name semantics remain open.",
+    "XLSX anchor loss is shared native behavior; see biff-name-link-order-native-capture.json.",
+    "All 19 families and root publication remain open."
   ]
 }

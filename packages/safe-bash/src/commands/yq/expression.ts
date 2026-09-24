@@ -58,7 +58,7 @@ export function compileExpression(source: string, security: { readonly disableEn
     let result: Expression;
     if (token.text === ".") {
       result = { kind: "identity" };
-      if (peek().kind === "name" || peek().kind === "string") { const key = take(); result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; }
+      if (peek().offset === token.offset + 1 && (peek().kind === "name" || peek().kind === "string")) { const key = take(); result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; }
     } else if (token.text === ".." || token.text === "...") result = { kind: "recursive", includeKeys: token.text === "..." };
     else if (token.text === "(") { result = { kind: "group", body: parse() }; expect(")"); }
     else if (token.text === "[") { result = peek().text === "]" ? { kind: "array" } : { kind: "array", body: parse() }; expect("]"); }

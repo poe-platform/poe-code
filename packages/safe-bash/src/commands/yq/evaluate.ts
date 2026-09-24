@@ -344,6 +344,7 @@ export class Evaluator {
       if (index < 0) index += node.items.length;
       if (index < 0) throw new MikeError(`index [${String(key)}] out of range, array size is ${node.items.length}`);
       if (index >= node.items.length) {
+        if (!create) return [this.child(scalar(this.yaml, this.work, null), base)];
         if (index >= this.work.limits.maxNodes) throw new MikeError("yq limit exceeded: maxNodes");
         if (!node.items.length) node.flow = false;
         while (node.items.length <= index) { node.items.push(scalar(this.yaml, this.work, null)); await this.work.tick(); }
@@ -703,7 +704,18 @@ export class Evaluator {
         output.push(this.child(node, input)); continue;
       }
       if (name === "del") {
-        for (const candidate of (await next(expression.args[0]!, [input], false)).reverse()) if (candidate.parent && candidate.slot !== undefined) candidate.parent.items.splice(candidate.slot, 1);
+        const slots = new Map<YAMLMap | YAMLSeq, Set<number>>();
+        for (const candidate of await next(expression.args[0]!, [input], false)) {
+          await this.work.tick();
+          if (!candidate.parent || candidate.slot === undefined) continue;
+          let selected = slots.get(candidate.parent);
+          if (!selected) { selected = new Set(); slots.set(candidate.parent, selected); }
+          selected.add(candidate.slot);
+        }
+        for (const [parent, selected] of slots) for (const slot of [...selected].sort((left, right) => right - left)) {
+          await this.work.tick();
+          parent.items.splice(slot, 1);
+        }
         output.push(input); continue;
       }
       if (name === "env" || name === "strenv") {

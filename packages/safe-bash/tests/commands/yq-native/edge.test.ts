@@ -220,7 +220,6 @@ const nextPhaseCases: readonly {
   { name: "JSON exponent and negative-zero control", args: ["-p=json", "-o=json", "."], input: '{"value":1e3,"negative":-0}', expected: { status: 0, stdout: '{\n  "value": 1000,\n  "negative": 0\n}\n', stderr: "" } },
   { name: "duplicate JSON object members", args: ["-p=json", "-o=json", "."], input: '{"a":1,"a":2}', expected: { status: 0, stdout: '{\n  "a": 1,\n  "a": 2\n}\n', stderr: "" } },
   { name: "star wildcard equality", args: ['.a == "foo*"'], input: "a: foobar\n", expected: { status: 0, stdout: "true\n", stderr: "" } },
-  { name: "read-only array traversal still extends the array", args: [".a = .items[2]"], input: "a: 1\nitems: []\n", expected: { status: 0, stdout: "a: null\nitems:\n  - null\n  - null\n  - null\n", stderr: "" } },
   { name: "unsupported alternative-assignment diagnostic", args: [".a //= 2"], input: "a: null\n", expected: { status: 1, stdout: "", stderr: "Error: '//' expects 2 args but there is 1\n" } },
   { name: "numeric plus string assignment", args: ['.a += "!"'], input: "a: 1\n", expected: { status: 0, stdout: "a: 1!\n", stderr: "" } },
   { name: "custom-tagged integer addition", args: [".a + 1"], input: "a: !thing 1\n", expected: { status: 0, stdout: "2\n", stderr: "" } },
@@ -237,7 +236,13 @@ const nextPhaseCases: readonly {
 for (const entry of nextPhaseCases) test(`next-phase regression: ${entry.name}`, async () => {
   assert.deepEqual(await run(entry.args, entry.input), entry.expected);
 });
-test("live oracle confirms all seventeen next-phase observations", nativeOptions, async () => {
+test("read-only array assignment leaves the source array unchanged (issue 841)", async () => {
+  assert.deepEqual(await run([".a = .items[2]"], "a: 1\nitems: []\n"), { status: 0, stdout: "a: null\nitems: []\n", stderr: "" });
+});
+test("live oracle records the upstream read-only padding defect", nativeOptions, async () => {
+  assert.deepEqual(await native([".a = .items[2]"], "a: 1\nitems: []\n"), { status: 0, stdout: "a: null\nitems:\n  - null\n  - null\n  - null\n", stderr: "" });
+});
+test("live oracle confirms next-phase observations", nativeOptions, async () => {
   for (const entry of nextPhaseCases) assert.deepEqual(await native(entry.args, entry.input), entry.expected, entry.name);
 });
 

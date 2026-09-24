@@ -10,6 +10,30 @@ import { createMikeYqCommand, createMikeYqCommands, mikeYqCommands } from "../..
 import type { MikeYqOptions } from "../../../src/commands/yq/mike.js";
 import { native, nativeOptions, run } from "./helpers.js";
 
+test("Mike yq expressions require double-quoted string literals", async () => {
+  assert.deepEqual(await run([".a == 'foo'"], "a: foo\n"), {
+    status: 1, stdout: "", stderr: `Error: 1:7: lexer: invalid input text "'foo'"\n`,
+  });
+  assert.deepEqual(await run(['.a == "foo"'], "a: foo\n"), { status: 0, stdout: "true\n", stderr: "" });
+});
+
+test("native Mike yq also rejects single-quoted expression literals", nativeOptions, async () => {
+  assert.deepEqual(await native([".a == 'foo'"], "a: foo\n"), {
+    status: 1, stdout: "", stderr: `Error: 1:7: lexer: invalid input text "'foo'"\n`,
+  });
+});
+
+for (const [expression, input, stdout] of [
+  [". or false", "true\n", "true\n"],
+  [". and true", "false\n", "false\n"],
+  [". tag", "123\n", "!!int\n"],
+  [". style", "[1, 2]\n", "flow\n"],
+  [".or", "{or: value}\n", "value\n"],
+  ['."tag"', "{tag: value}\n", "value\n"],
+] as const) test(`Mike yq distinguishes identity operators from fields: ${expression}`, async () => {
+  assert.deepEqual(await run([expression], input), { status: 0, stdout, stderr: "" });
+});
+
 test("Mike yq issue 459 accepts snake-case document and file index aliases", async () => {
   for (const expression of ["document_index", "file_index"]) {
     assert.deepEqual(await run([expression], "changed: Independent\n"), {

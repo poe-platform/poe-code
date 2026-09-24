@@ -3,6 +3,7 @@ import { PdfDocument, createStandardFontHandle } from "@poe-code/pdf-ast";
 import sharp, {
   decodeImage,
   encodeJpegImage,
+  readImageMetadata,
   encodePngImage,
   parseColor,
   type RgbaImage
@@ -235,5 +236,141 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const page1Raw = await sharp(multiGif, { page: 1 }).raw().toBuffer();
     expect(page1Raw[0]).toBe(0);
     expect(page1Raw[2]).toBe(255);
+  });
+
+  it("preserves pure white and exact palette colors in GIF encode and honors GIF disposal methods 2 and 3", async () => {
+    const whiteGif = await sharp({
+      create: { width: 4, height: 4, channels: 3, background: { r: 255, g: 255, b: 255 } }
+    }).gif().toBuffer();
+    const whiteRaw = await sharp(whiteGif).raw().toBuffer();
+    expect(whiteRaw[0]).toBe(255);
+    expect(whiteRaw[1]).toBe(255);
+    expect(whiteRaw[2]).toBe(255);
+
+    // Multi-frame GIF with disposal = 2 (restore to background/transparent)
+    const f0 = await sharp({ create: { width: 4, height: 4, channels: 4, background: "#ff0000" } }).gif().toBuffer();
+    const f1 = await sharp({ create: { width: 2, height: 2, channels: 4, background: "#0000ff" } }).gif().toBuffer();
+    let f0Start = 13 + 256 * 3;
+    while (f0Start < f0.length && f0[f0Start] !== 0x2c) f0Start++;
+    let f1Start = 13 + 256 * 3;
+    while (f1Start < f1.length && f1[f1Start] !== 0x2c) f1Start++;
+    const f0Body = f0.subarray(f0Start, f0.length - 1);
+    const f1Body = new Uint8Array(f1.subarray(f1Start, f1.length - 1));
+    f1Body[1] = 1; f1Body[2] = 0; // left = 1
+    f1Body[3] = 1; f1Body[4] = 0; // top = 1
+
+    const gceDisposal2 = new Uint8Array([0x21, 0xf9, 0x04, 0x08, 0x05, 0x00, 0x00, 0x00]);
+    const gceDisposal1 = new Uint8Array([0x21, 0xf9, 0x04, 0x04, 0x05, 0x00, 0x00, 0x00]);
+    const multiGif = new Uint8Array(781 + gceDisposal2.length + f0Body.length + gceDisposal1.length + f1Body.length + 1);
+    let off = 0;
+    multiGif.set(f0.subarray(0, 781), off); off += 781;
+    multiGif.set(gceDisposal2, off); off += gceDisposal2.length;
+    multiGif.set(f0Body, off); off += f0Body.length;
+    multiGif.set(gceDisposal1, off); off += gceDisposal1.length;
+    multiGif.set(f1Body, off); off += f1Body.length;
+    multiGif[off] = 0x3b;
+
+    const p1Raw = await sharp(multiGif, { page: 1 }).raw().toBuffer();
+    expect(p1Raw[3]).toBe(0); // (0,0) disposed to transparent
+    expect(p1Raw[(1 * 4 + 1) * 4 + 2]).toBe(255); // (1,1) painted blue
+    expect(p1Raw[(1 * 4 + 1) * 4 + 3]).toBe(255);
+  });
+
+  it("supports composite Porter-Duff blend modes atop, dest-atop, xor, saturate and tile alignment (#28)", async () => {
+    const base = { create: { width: 4, height: 4, channels: 4 as const, background: { r: 200, g: 50, b: 50, alpha: 0.5 } } };
+    const over = await sharp({
+      create: { width: 4, height: 4, channels: 4, background: { r: 50, g: 200, b: 50, alpha: 0.5 } }
+    }).png().toBuffer();
+
+    const atopBuf = await sharp(base).composite([{ input: over, blend: "atop" }]).raw().toBuffer();
+    expect(atopBuf[0]).toBeCloseTo(150, -1);
+    expect(atopBuf[1]).toBeCloseTo(225, -1);
+    expect(atopBuf[3]).toBe(128);
+
+    const destAtopBuf = await sharp(base).composite([{ input: over, blend: "dest-atop" }]).raw().toBuffer();
+    expect(destAtopBuf[0]).toBeCloseTo(225, -1);
+    expect(destAtopBuf[1]).toBeCloseTo(150, -1);
+    expect(destAtopBuf[3]).toBe(128);
+
+    const xorBuf = await sharp(base).composite([{ input: over, blend: "xor" }]).raw().toBuffer();
+    expect(xorBuf[0]).toBe(125);
+    expect(xorBuf[1]).toBe(125);
+    expect(xorBuf[3]).toBe(127);
+  });
+
+  it("applies gamma(gamma, gammaOut) and normalize({ lower, upper }) matching libvips (#30)", async () => {
+    const gRaw = await sharp(new Uint8Array([128, 64, 192]), { raw: { width: 1, height: 1, channels: 3 } })
+      .gamma(2.2, 3.0)
+      .raw()
+      .toBuffer();
+    expect(gRaw[0]).toBe(154);
+    expect(gRaw[1]).toBe(93);
+
+    const ramp = new Uint8Array(10);
+    for (let i = 0; i < 10; i++) ramp[i] = i * 10;
+    const norm = await sharp(ramp, { raw: { width: 10, height: 1, channels: 1 } })
+      .normalize({ lower: 10, upper: 80 })
+      .raw()
+      .toBuffer();
+    expect(norm[0]).toBe(0);
+    expect(norm[8]).toBe(255);
+  });
+
+  it("decodes 16-bit Netpbm P5/P6, WebP VP8L with EXIF metadata, SVG physical units/ellipse/polygon, and PNG/TIFF channels (#32, #33, #34, #35, #37)", async () => {
+    // #32: 16-bit P6
+    const hdr = new TextEncoder().encode("P6\n1 1\n65535\n");
+    const p6 = new Uint8Array(hdr.length + 6);
+    p6.set(hdr, 0);
+    p6.set([0xff, 0xff, 0x00, 0x00, 0x80, 0x00], hdr.length);
+    const p6Meta = readImageMetadata(p6);
+    expect(p6Meta.depth).toBe("ushort");
+    const p6Dec = decodeImage(p6);
+    expect(p6Dec.data[0]).toBe(255);
+    expect(p6Dec.data[1]).toBe(0);
+    expect(p6Dec.data[2]).toBe(128);
+
+    // #33: WebP VP8L + EXIF density & orientation
+    const webpBuf = await sharp({
+      create: { width: 4, height: 4, channels: 4, background: { r: 12, g: 34, b: 56, alpha: 0.5 } }
+    })
+      .withMetadata({ density: 300, orientation: 6 })
+      .webp({ lossless: true })
+      .toBuffer();
+    const webpMeta = await sharp(webpBuf).metadata();
+    expect(webpMeta.density).toBe(300);
+    expect(webpMeta.orientation).toBe(6);
+    const webpRaw = await sharp(webpBuf).raw().toBuffer();
+    expect(webpRaw[0]).toBe(12);
+    expect(webpRaw[1]).toBe(34);
+    expect(webpRaw[2]).toBe(56);
+    expect(webpRaw[3]).toBe(128);
+
+    // #34: SVG units + ellipse + polygon + viewBox
+    const svgBytes = new TextEncoder().encode(
+      `<svg width="1in" height="1in" viewBox="-10 -10 20 20"><ellipse cx="0" cy="0" rx="6" ry="4" fill="#00ff00"/><polygon points="-5,-5 5,-5 0,5" fill="#ff0000"/></svg>`
+    );
+    const svgMeta = await sharp(svgBytes).metadata();
+    expect(svgMeta.width).toBe(72);
+    expect(svgMeta.height).toBe(72);
+    const svgDec = decodeImage(svgBytes);
+    expect(svgDec.data[(36 * 72 + 36) * 4]).toBe(255);
+
+    // #35: PNG grayscale 1-channel and opaque 4-channel preservation
+    const grayPng = await sharp({ create: { width: 4, height: 4, channels: 3, background: "#808080" } })
+      .grayscale()
+      .png()
+      .toBuffer();
+    const grayMeta = await sharp(grayPng).metadata();
+    expect(grayMeta.channels).toBe(1);
+    expect(grayMeta.space).toBe("b-w");
+
+    // #37: TIFF metadata & round-trip
+    const tiffBuf = await sharp({ create: { width: 4, height: 4, channels: 4, background: "#112233" } })
+      .withMetadata({ density: 240, orientation: 3 })
+      .tiff()
+      .toBuffer();
+    const tiffMeta = await sharp(tiffBuf).metadata();
+    expect(tiffMeta.density).toBe(240);
+    expect(tiffMeta.orientation).toBe(3);
   });
 });

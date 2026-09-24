@@ -118,11 +118,12 @@ export function readImageMetadata(
         format: "tiff",
         width: decoded.width,
         height: decoded.height,
-        space: "srgb",
+        space: decoded.space,
         channels: decoded.channels,
-        depth: "uchar",
-        density: 72,
+        depth: decoded.depth,
+        density: decoded.density,
         hasAlpha: decoded.hasAlpha,
+        ...(decoded.orientation !== undefined ? { orientation: decoded.orientation } : {}),
         size: bytes.byteLength
       };
       break;
@@ -172,7 +173,7 @@ export function decodeImage(
       channels,
       depth: "uchar",
       density: options.density ?? 72,
-      hasAlpha: channels === 4 && bg.a < 255
+      hasAlpha: channels === 4
     };
   }
   if (options?.raw && bytes) {
@@ -263,7 +264,9 @@ export function encodeImage(
         density: options.density ?? img.density,
         ...(options.orientation !== undefined ? { orientation: options.orientation } : img.orientation !== undefined ? { orientation: img.orientation } : {})
       });
-      return { data, format: "png", channels: img.hasAlpha ? 4 : 3 };
+      const isBw = img.space === "b-w" || img.channels === 1 || img.channels === 2;
+      const outChannels = isBw ? (img.hasAlpha ? 2 : 1) : (img.hasAlpha ? 4 : 3);
+      return { data, format: "png", channels: outChannels };
     }
     case "jpeg": {
       const data = encodeJpegImage(img, {
@@ -274,10 +277,12 @@ export function encodeImage(
       return { data, format: "jpeg", channels: 3 };
     }
     case "webp": {
+      const orientation = options.orientation ?? img.orientation;
       const data = encodeWebpImage(img, {
         quality: options.quality ?? 80,
         ...(options.lossless !== undefined ? { lossless: options.lossless } : {}),
-        density: options.density ?? img.density
+        density: options.density ?? img.density,
+        ...(orientation !== undefined ? { orientation } : {})
       });
       return { data, format: "webp", channels: img.hasAlpha ? 4 : 3 };
     }
@@ -302,7 +307,11 @@ export function encodeImage(
       return { data, format: "bmp", channels: 3 };
     }
     case "tiff": {
-      const data = encodeTiffImage(img);
+      const orientation = options.orientation ?? img.orientation;
+      const data = encodeTiffImage(img, {
+        density: options.density ?? img.density,
+        ...(orientation !== undefined ? { orientation } : {})
+      });
       return { data, format: "tiff", channels: 4 };
     }
     case "raw": {

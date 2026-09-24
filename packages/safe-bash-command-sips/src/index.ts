@@ -369,6 +369,23 @@ export async function runSipsCli(
             inst = inst.extract({ left, top, width: cw, height: ch });
             curW = cw;
             curH = ch;
+            if (act.width > curW || act.height > curH) {
+              const padX = Math.max(0, act.width - curW);
+              const padY = Math.max(0, act.height - curH);
+              const padLeft = Math.floor(padX / 2);
+              const padRight = padX - padLeft;
+              const padTop = Math.floor(padY / 2);
+              const padBottom = padY - padTop;
+              inst = inst.extend({
+                top: padTop,
+                bottom: padBottom,
+                left: padLeft,
+                right: padRight,
+                background: padColor
+              });
+              curW = act.width;
+              curH = act.height;
+            }
           } else if (act.kind === "pad") {
             if (act.width < curW || act.height < curH) {
               const cw = Math.min(curW, act.width);
@@ -471,7 +488,9 @@ export async function runSipsCli(
 }
 
 function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata, byteSize: number): string {
-  const fileName = filePath.split("/").pop() ?? filePath;
+  const lastSlash = filePath.lastIndexOf("/");
+  const dirName = lastSlash > 0 ? filePath.slice(0, lastSlash) : lastSlash === 0 ? "/" : ".";
+  const fileName = lastSlash >= 0 ? filePath.slice(lastSlash + 1) : filePath;
   const dotIdx = fileName.lastIndexOf(".");
   const basename = dotIdx > 0 ? fileName.slice(0, dotIdx) : fileName;
   const ext = dotIdx > 0 ? fileName.slice(dotIdx + 1) : "";
@@ -488,6 +507,46 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
       else if (next === "r") out += "\r";
       else out += next;
     } else if (c === "%" && i + 1 < fmt.length) {
+      if (fmt[i + 1] === "[") {
+        const closeIdx = fmt.indexOf("]", i + 2);
+        if (closeIdx !== -1) {
+          const expr = fmt.slice(i + 2, closeIdx).toLowerCase();
+          i = closeIdx;
+          switch (expr) {
+            case "width":
+            case "fx:w":
+              out += String(meta.width);
+              break;
+            case "height":
+            case "fx:h":
+              out += String(meta.height);
+              break;
+            case "channels":
+              out += String(meta.channels);
+              break;
+            case "colorspace":
+              out += spaceLabel;
+              break;
+            case "bit-depth":
+            case "depth":
+              out += bitDepth;
+              break;
+            case "orientation":
+              out += String(meta.orientation ?? 1);
+              break;
+            case "size":
+              out += `${byteSize}B`;
+              break;
+            case "format":
+              out += meta.format.toUpperCase();
+              break;
+            default:
+              out += "";
+              break;
+          }
+          continue;
+        }
+      }
       const spec = fmt[++i]!;
       switch (spec) {
         case "%":
@@ -515,8 +574,20 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
         case "B":
           out += `${byteSize}B`;
           break;
+        case "d":
+          out += dirName;
+          break;
         case "f":
           out += fileName;
+          break;
+        case "i":
+          out += filePath;
+          break;
+        case "n":
+          out += String(meta.pages ?? 1);
+          break;
+        case "p":
+          out += String(meta.pagePrimary ?? 0);
           break;
         case "t":
           out += basename;

@@ -1,3 +1,4 @@
+import { inflate } from "pako";
 import type { ImageFormat, ImageMetadata, RgbaImage } from "../ast.js";
 
 export function isNetpbmBytes(bytes: Uint8Array): boolean {
@@ -95,7 +96,7 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
     height: hdr.height,
     space: hdr.format === "ppm" ? "srgb" : "b-w",
     channels: hdr.format === "ppm" ? 3 : 1,
-    depth: hdr.format === "pbm" ? "bit" : "uchar",
+    depth: hdr.format === "pbm" ? "bit" : hdr.maxval > 255 ? "ushort" : "uchar",
     density: 72,
     hasAlpha: false,
     size: bytes.byteLength
@@ -128,15 +129,31 @@ export function decodeNetpbmImage(bytes: Uint8Array): RgbaImage {
   };
 
   if (magic === "P6") {
+    const readSample =
+      maxval > 255
+        ? () => {
+            const hi = bytes[pos++] ?? 0;
+            const lo = bytes[pos++] ?? 0;
+            return (hi << 8) | lo;
+          }
+        : () => bytes[pos++] ?? 0;
     for (let i = 0; i < width * height; i++) {
-      rgba[i * 4] = Math.round(((bytes[pos++] ?? 0) * 255) / maxval);
-      rgba[i * 4 + 1] = Math.round(((bytes[pos++] ?? 0) * 255) / maxval);
-      rgba[i * 4 + 2] = Math.round(((bytes[pos++] ?? 0) * 255) / maxval);
+      rgba[i * 4] = Math.round((readSample() * 255) / maxval);
+      rgba[i * 4 + 1] = Math.round((readSample() * 255) / maxval);
+      rgba[i * 4 + 2] = Math.round((readSample() * 255) / maxval);
       rgba[i * 4 + 3] = 255;
     }
   } else if (magic === "P5") {
+    const readSample =
+      maxval > 255
+        ? () => {
+            const hi = bytes[pos++] ?? 0;
+            const lo = bytes[pos++] ?? 0;
+            return (hi << 8) | lo;
+          }
+        : () => bytes[pos++] ?? 0;
     for (let i = 0; i < width * height; i++) {
-      const g = Math.round(((bytes[pos++] ?? 0) * 255) / maxval);
+      const g = Math.round((readSample() * 255) / maxval);
       rgba[i * 4] = g;
       rgba[i * 4 + 1] = g;
       rgba[i * 4 + 2] = g;
@@ -189,7 +206,7 @@ export function decodeNetpbmImage(bytes: Uint8Array): RgbaImage {
     format,
     space: format === "ppm" ? "srgb" : "b-w",
     channels: format === "ppm" ? 3 : 1,
-    depth: format === "pbm" ? "bit" : "uchar",
+    depth: format === "pbm" ? "bit" : maxval > 255 ? "ushort" : "uchar",
     density: 72,
     hasAlpha: false
   };
@@ -351,14 +368,21 @@ export function encodeBmpImage(img: RgbaImage): Uint8Array {
   return out;
 }
 
-export function encodeTiffImage(img: RgbaImage): Uint8Array {
+export function encodeTiffImage(
+  img: RgbaImage,
+  options?: { readonly density?: number; readonly orientation?: number }
+): Uint8Array {
   const { width, height, data } = img;
   const pixelBytes = width * height * 4;
-  // Little-endian baseline RGBA TIFF: 8-byte header + pixel data + IFD (8 entries)
+  const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
+  const orientation = options?.orientation ?? img.orientation ?? 1;
+  // Little-endian baseline RGBA TIFF: 8-byte header + pixel data + IFD (12 entries) + extras
   const ifdOffset = 8 + pixelBytes;
-  const numEntries = 8;
+  const numEntries = 12;
   const bpsOffset = ifdOffset + 2 + numEntries * 12 + 4;
-  const out = new Uint8Array(bpsOffset + 8);
+  const xResOffset = bpsOffset + 8;
+  const yResOffset = xResOffset + 8;
+  const out = new Uint8Array(yResOffset + 8);
   const view = new DataView(out.buffer);
   out[0] = 0x49;
   out[1] = 0x49;
@@ -384,13 +408,21 @@ export function encodeTiffImage(img: RgbaImage): Uint8Array {
   writeEntry(3, 259, 3, 1, 1); // Compression = None
   writeEntry(4, 262, 3, 1, 2); // PhotometricInterpretation = RGB
   writeEntry(5, 273, 4, 1, 8); // StripOffsets
-  writeEntry(6, 277, 3, 1, 4); // SamplesPerPixel = 4
-  writeEntry(7, 279, 4, 1, pixelBytes); // StripByteCounts
+  writeEntry(6, 274, 3, 1, orientation); // Orientation
+  writeEntry(7, 277, 3, 1, 4); // SamplesPerPixel = 4
+  writeEntry(8, 279, 4, 1, pixelBytes); // StripByteCounts
+  writeEntry(9, 282, 5, 1, xResOffset); // XResolution
+  writeEntry(10, 283, 5, 1, yResOffset); // YResolution
+  writeEntry(11, 296, 3, 1, 2); // ResolutionUnit = Inch
   view.setUint32(ifdOffset + 2 + numEntries * 12, 0, true);
   view.setUint16(bpsOffset, 8, true);
   view.setUint16(bpsOffset + 2, 8, true);
   view.setUint16(bpsOffset + 4, 8, true);
   view.setUint16(bpsOffset + 6, 8, true);
+  view.setUint32(xResOffset, density, true);
+  view.setUint32(xResOffset + 4, 1, true);
+  view.setUint32(yResOffset, density, true);
+  view.setUint32(yResOffset + 4, 1, true);
   return out;
 }
 
@@ -401,7 +433,7 @@ function readTiffTagValues(
 ): number[] {
   const type = view.getUint16(entryPos + 2, le);
   const count = view.getUint32(entryPos + 4, le);
-  const elemSize = type === 3 ? 2 : type === 4 ? 4 : 1;
+  const elemSize = type === 3 ? 2 : type === 4 ? 4 : type === 5 ? 8 : 1;
   const totalBytes = count * elemSize;
   const valPos = totalBytes <= 4 ? entryPos + 8 : view.getUint32(entryPos + 8, le);
   const values: number[] = [];
@@ -410,9 +442,104 @@ function readTiffTagValues(
     if (off + elemSize > view.byteLength) break;
     if (type === 3) values.push(view.getUint16(off, le));
     else if (type === 4) values.push(view.getUint32(off, le));
+    else if (type === 5) {
+      const num = view.getUint32(off, le);
+      const den = view.getUint32(off + 4, le);
+      values.push(den > 0 ? num / den : num);
+    }
     else values.push(view.getUint8(off));
   }
   return values;
+}
+
+function decodePackBits(src: Uint8Array, expectedLen: number): Uint8Array {
+  const out = new Uint8Array(expectedLen);
+  let sp = 0;
+  let dp = 0;
+  while (sp < src.length && dp < expectedLen) {
+    const n = (src[sp++]! << 24) >> 24;
+    if (n >= 0) {
+      const count = n + 1;
+      for (let i = 0; i < count && sp < src.length && dp < expectedLen; i++) {
+        out[dp++] = src[sp++]!;
+      }
+    } else if (n !== -128) {
+      const count = 1 - n;
+      const val = src[sp++] ?? 0;
+      for (let i = 0; i < count && dp < expectedLen; i++) {
+        out[dp++] = val;
+      }
+    }
+  }
+  return out;
+}
+
+function decodeTiffLzw(src: Uint8Array, expectedLen: number): Uint8Array {
+  const out = new Uint8Array(expectedLen);
+  let dp = 0;
+  let bitPos = 0;
+  let codeSize = 9;
+  const CLEAR_CODE = 256;
+  const EOI_CODE = 257;
+  let dict: Uint8Array[] = [];
+
+  const resetDict = () => {
+    dict = [];
+    for (let i = 0; i < 256; i++) dict[i] = new Uint8Array([i]);
+    dict[CLEAR_CODE] = new Uint8Array(0);
+    dict[EOI_CODE] = new Uint8Array(0);
+    codeSize = 9;
+  };
+  resetDict();
+
+  const readCode = (): number => {
+    if (bitPos + codeSize > src.length * 8) return EOI_CODE;
+    let code = 0;
+    for (let i = 0; i < codeSize; i++) {
+      const byteIdx = (bitPos + i) >>> 3;
+      const bitIdx = 7 - ((bitPos + i) & 7);
+      code = (code << 1) | ((src[byteIdx]! >>> bitIdx) & 1);
+    }
+    bitPos += codeSize;
+    return code;
+  };
+
+  let prevEntry: Uint8Array | undefined;
+  while (dp < expectedLen) {
+    const code = readCode();
+    if (code === EOI_CODE) break;
+    if (code === CLEAR_CODE) {
+      resetDict();
+      const first = readCode();
+      if (first === EOI_CODE) break;
+      const entry = dict[first] ?? new Uint8Array([first & 0xff]);
+      for (let i = 0; i < entry.length && dp < expectedLen; i++) out[dp++] = entry[i]!;
+      prevEntry = entry;
+      continue;
+    }
+    let entry: Uint8Array;
+    if (code < dict.length && dict[code]) {
+      entry = dict[code]!;
+    } else if (prevEntry && code === dict.length) {
+      entry = new Uint8Array(prevEntry.length + 1);
+      entry.set(prevEntry, 0);
+      entry[prevEntry.length] = prevEntry[0]!;
+    } else {
+      break;
+    }
+    for (let i = 0; i < entry.length && dp < expectedLen; i++) out[dp++] = entry[i]!;
+    if (prevEntry && dict.length < 4096) {
+      const next = new Uint8Array(prevEntry.length + 1);
+      next.set(prevEntry, 0);
+      next[prevEntry.length] = entry[0]!;
+      dict.push(next);
+      if (dict.length === 511 && codeSize === 9) codeSize = 10;
+      else if (dict.length === 1023 && codeSize === 10) codeSize = 11;
+      else if (dict.length === 2047 && codeSize === 11) codeSize = 12;
+    }
+    prevEntry = entry;
+  }
+  return out;
 }
 
 export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
@@ -422,9 +549,17 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   const numEntries = view.getUint16(ifdOffset, le);
   let width = 0;
   let height = 0;
+  let bitsPerSample = 8;
+  let compression = 1;
+  let photometric = 2;
   let stripOffsets: number[] = [8];
   let stripByteCounts: number[] = [];
   let samplesPerPixel = 4;
+  let rowsPerStrip = 0;
+  let predictor = 1;
+  let xRes = 72;
+  let resUnit = 2;
+  let orientation: number | undefined;
   for (let i = 0; i < numEntries; i++) {
     const p = ifdOffset + 2 + i * 12;
     const tag = view.getUint16(p, le);
@@ -432,45 +567,95 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     const first = vals[0] ?? 0;
     if (tag === 256) width = first;
     else if (tag === 257) height = first;
+    else if (tag === 258 && first > 0) bitsPerSample = first;
+    else if (tag === 259 && first > 0) compression = first;
+    else if (tag === 262) photometric = first;
     else if (tag === 273 && vals.length > 0) stripOffsets = vals;
+    else if (tag === 274 && first >= 1 && first <= 8) orientation = first;
     else if (tag === 277 && first > 0) samplesPerPixel = first;
+    else if (tag === 278 && first > 0) rowsPerStrip = first;
     else if (tag === 279 && vals.length > 0) stripByteCounts = vals;
+    else if (tag === 282 && first > 0) xRes = first;
+    else if (tag === 296 && (first === 2 || first === 3)) resUnit = first;
+    else if (tag === 317 && first > 0) predictor = first;
   }
 
-  const totalExpectedBytes = width * height * samplesPerPixel;
+  const bytesPerSample = Math.max(1, bitsPerSample >>> 3);
+  const rowByteWidth = width * samplesPerPixel * bytesPerSample;
+  const totalExpectedBytes = height * rowByteWidth;
   const combined = new Uint8Array(totalExpectedBytes);
+  const effectiveRowsPerStrip = rowsPerStrip > 0 ? rowsPerStrip : height;
   let dstOff = 0;
   for (let s = 0; s < stripOffsets.length && dstOff < totalExpectedBytes; s++) {
     const off = stripOffsets[s]!;
-    const byteCount =
-      stripByteCounts[s] ?? Math.min(bytes.length - off, totalExpectedBytes - dstOff);
-    const len = Math.max(0, Math.min(byteCount, bytes.length - off, totalExpectedBytes - dstOff));
-    combined.set(bytes.subarray(off, off + len), dstOff);
-    dstOff += len;
+    const remainingBytes = totalExpectedBytes - dstOff;
+    const expectedStripBytes = Math.min(remainingBytes, effectiveRowsPerStrip * rowByteWidth);
+    const rawLen = stripByteCounts[s] ?? Math.max(0, bytes.length - off);
+    const rawSlice = bytes.subarray(off, Math.min(bytes.length, off + rawLen));
+    let decodedStrip: Uint8Array;
+    if (compression === 8 || compression === 32946) {
+      try {
+        decodedStrip = inflate(rawSlice);
+      } catch {
+        decodedStrip = rawSlice;
+      }
+    } else if (compression === 5) {
+      decodedStrip = decodeTiffLzw(rawSlice, expectedStripBytes);
+    } else if (compression === 32773) {
+      decodedStrip = decodePackBits(rawSlice, expectedStripBytes);
+    } else {
+      decodedStrip = rawSlice;
+    }
+    const copyLen = Math.min(decodedStrip.length, remainingBytes);
+    combined.set(decodedStrip.subarray(0, copyLen), dstOff);
+    dstOff += copyLen;
   }
+
+  if (predictor === 2 && bytesPerSample === 1) {
+    for (let y = 0; y < height; y++) {
+      const rowStart = y * rowByteWidth;
+      for (let x = samplesPerPixel; x < rowByteWidth; x++) {
+        combined[rowStart + x] =
+          ((combined[rowStart + x] ?? 0) + (combined[rowStart + x - samplesPerPixel] ?? 0)) & 0xff;
+      }
+    }
+  }
+
+  const readSample8 = (pixelIdx: number, ch: number): number => {
+    const base = (pixelIdx * samplesPerPixel + ch) * bytesPerSample;
+    if (bytesPerSample === 2) {
+      const val16 = le
+        ? (combined[base] ?? 0) | ((combined[base + 1] ?? 0) << 8)
+        : ((combined[base] ?? 0) << 8) | (combined[base + 1] ?? 0);
+      return Math.round((val16 * 255) / 65535);
+    }
+    return combined[base] ?? 0;
+  };
 
   const rgba = new Uint8Array(width * height * 4);
   for (let i = 0; i < width * height; i++) {
-    const src = i * samplesPerPixel;
     if (samplesPerPixel === 1) {
-      const g = combined[src] ?? 0;
+      let g = readSample8(i, 0);
+      if (photometric === 0) g = 255 - g;
       rgba[i * 4] = g;
       rgba[i * 4 + 1] = g;
       rgba[i * 4 + 2] = g;
       rgba[i * 4 + 3] = 255;
     } else if (samplesPerPixel === 2) {
-      const g = combined[src] ?? 0;
+      let g = readSample8(i, 0);
+      if (photometric === 0) g = 255 - g;
       rgba[i * 4] = g;
       rgba[i * 4 + 1] = g;
       rgba[i * 4 + 2] = g;
-      rgba[i * 4 + 3] = combined[src + 1] ?? 255;
+      rgba[i * 4 + 3] = readSample8(i, 1);
     } else {
-      rgba[i * 4] = combined[src] ?? 0;
-      rgba[i * 4 + 1] = combined[src + 1] ?? 0;
-      rgba[i * 4 + 2] = combined[src + 2] ?? 0;
-      rgba[i * 4 + 3] = samplesPerPixel >= 4 ? (combined[src + 3] ?? 255) : 255;
+      rgba[i * 4] = readSample8(i, 0);
+      rgba[i * 4 + 1] = readSample8(i, 1);
+      rgba[i * 4 + 2] = readSample8(i, 2);
+      rgba[i * 4 + 3] = samplesPerPixel >= 4 ? readSample8(i, 3) : 255;
     }
   }
+  const density = resUnit === 3 ? Math.max(1, Math.round(xRes * 2.54)) : Math.max(1, Math.round(xRes));
   return {
     width,
     height,
@@ -478,8 +663,9 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     format: "tiff",
     space: samplesPerPixel < 3 ? "b-w" : "srgb",
     channels: samplesPerPixel === 4 ? 4 : samplesPerPixel === 1 ? 1 : 3,
-    depth: "uchar",
-    density: 72,
-    hasAlpha: samplesPerPixel === 2 || samplesPerPixel === 4
+    depth: bitsPerSample === 16 ? "ushort" : "uchar",
+    density,
+    hasAlpha: samplesPerPixel === 2 || samplesPerPixel === 4,
+    ...(orientation !== undefined ? { orientation } : {})
   };
 }

@@ -447,21 +447,20 @@ export function compositeImage(
     const startX = layer.left !== undefined ? Math.round(layer.left) : grav.x;
     const startY = layer.top !== undefined ? Math.round(layer.top) : grav.y;
 
-    const tilesX = layer.tile ? Math.ceil(baseW / overlay.width) + 1 : 1;
-    const tilesY = layer.tile ? Math.ceil(baseH / overlay.height) + 1 : 1;
+    const iterW = layer.tile ? baseW : overlay.width;
+    const iterH = layer.tile ? baseH : overlay.height;
 
-    for (let ty = 0; ty < tilesY; ty++) {
-      for (let tx = 0; tx < tilesX; tx++) {
-        const offX = layer.tile ? tx * overlay.width : startX;
-        const offY = layer.tile ? ty * overlay.height : startY;
-
-        for (let y = 0; y < overlay.height; y++) {
-          const dy = offY + y;
+    for (let ty = 0; ty < 1; ty++) {
+      for (let tx = 0; tx < 1; tx++) {
+        for (let y = 0; y < iterH; y++) {
+          const dy = layer.tile ? y : startY + y;
           if (dy < 0 || dy >= baseH) continue;
-          for (let x = 0; x < overlay.width; x++) {
-            const dx = offX + x;
+          const sy = layer.tile ? dy % overlay.height : y;
+          for (let x = 0; x < iterW; x++) {
+            const dx = layer.tile ? x : startX + x;
             if (dx < 0 || dx >= baseW) continue;
-            const sIdx = (y * overlay.width + x) * 4;
+            const sx = layer.tile ? dx % overlay.width : x;
+            const sIdx = (sy * overlay.width + sx) * 4;
             const dIdx = (dy * baseW + dx) * 4;
 
             const sr = overlay.data[sIdx]! / 255;
@@ -521,6 +520,63 @@ export function compositeImage(
             }
             if (blend === "dest-out") {
               out[dIdx + 3] = Math.round(da * (1 - sa) * 255);
+              continue;
+            }
+            if (blend === "atop") {
+              const outA = da;
+              if (outA > 0) {
+                const cr = (sr * sa + dr * da * (1 - sa)) / outA;
+                const cg = (sg * sa + dg * da * (1 - sa)) / outA;
+                const cb = (sb * sa + db * da * (1 - sa)) / outA;
+                out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
+              }
+              out[dIdx + 3] = Math.round(outA * 255);
+              continue;
+            }
+            if (blend === "dest-atop") {
+              const outA = sa;
+              if (outA > 0) {
+                const cr = (dr * da + sr * sa * (1 - da)) / outA;
+                const cg = (dg * da + sg * sa * (1 - da)) / outA;
+                const cb = (db * da + sb * sa * (1 - da)) / outA;
+                out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
+              }
+              out[dIdx + 3] = Math.round(outA * 255);
+              continue;
+            }
+            if (blend === "xor") {
+              const outA = sa * (1 - da) + da * (1 - sa);
+              if (outA > 0) {
+                const cr = (sr * sa * (1 - da) + dr * da * (1 - sa)) / outA;
+                const cg = (sg * sa * (1 - da) + dg * da * (1 - sa)) / outA;
+                const cb = (sb * sa * (1 - da) + db * da * (1 - sa)) / outA;
+                out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+              }
+              out[dIdx + 3] = Math.round(outA * 255);
+              continue;
+            }
+            if (blend === "saturate") {
+              const outA = Math.min(1, sa + da);
+              if (outA > 0) {
+                const f = Math.min(sa, 1 - da);
+                const cr = (sr * sa * f + dr * da) / outA;
+                const cg = (sg * sa * f + dg * da) / outA;
+                const cb = (sb * sa * f + db * da) / outA;
+                out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
+              }
+              out[dIdx + 3] = Math.round(outA * 255);
               continue;
             }
 
@@ -705,7 +761,7 @@ export function tintImage(img: RgbaImage, color: RgbaColor): RgbaImage {
 
 export function gammaImage(img: RgbaImage, gamma = 2.2, gammaOut = gamma): RgbaImage {
   const out = new Uint8Array(img.data.length);
-  const exp = (1 / gamma) * (gammaOut / gamma);
+  const exp = gamma / gammaOut;
   const lut = new Uint8Array(256);
   for (let i = 0; i < 256; i++) {
     lut[i] = Math.max(0, Math.min(255, Math.round(Math.pow(i / 255, exp) * 255)));
@@ -739,25 +795,60 @@ export function linearImage(
   return { ...img, data: out };
 }
 
-export function normalizeImage(img: RgbaImage): RgbaImage {
+export function normalizeImage(
+  img: RgbaImage,
+  options?: { readonly lower?: number; readonly upper?: number }
+): RgbaImage {
+  const lowerPct = Math.max(0, Math.min(100, options?.lower ?? 1));
+  const upperPct = Math.max(lowerPct, Math.min(100, options?.upper ?? 99));
+  const totalSamples = img.width * img.height * 3;
+  if (totalSamples === 0) return img;
+
+  const hist = new Uint32Array(256);
   let min = 255;
   let max = 0;
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
     for (let c = 0; c < 3; c++) {
       const v = img.data[idx + c]!;
+      hist[v]!++;
       if (v < min) min = v;
       if (v > max) max = v;
     }
   }
-  const range = max - min;
+
+  let lowBound = min;
+  let highBound = max;
+  if (lowerPct > 1 || upperPct < 99) {
+    const lowTarget = Math.floor((totalSamples * lowerPct) / 100);
+    const highTarget = Math.ceil((totalSamples * upperPct) / 100);
+    let cum = 0;
+    for (let v = 0; v < 256; v++) {
+      cum += hist[v]!;
+      if (cum > lowTarget) {
+        lowBound = v;
+        break;
+      }
+    }
+    cum = 0;
+    for (let v = 0; v < 256; v++) {
+      cum += hist[v]!;
+      if (cum >= highTarget) {
+        highBound = v;
+        break;
+      }
+    }
+  }
+
+  const range = highBound - lowBound;
   if (range <= 0) return img;
   const out = new Uint8Array(img.data.length);
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
-    out[idx] = Math.round(((img.data[idx]! - min) * 255) / range);
-    out[idx + 1] = Math.round(((img.data[idx + 1]! - min) * 255) / range);
-    out[idx + 2] = Math.round(((img.data[idx + 2]! - min) * 255) / range);
+    for (let c = 0; c < 3; c++) {
+      const scaled = Math.round(((img.data[idx + c]! - lowBound) * 255) / range);
+      out[idx + c] = scaled < 0 ? 0 : scaled > 255 ? 255 : scaled;
+    }
     out[idx + 3] = img.data[idx + 3]!;
   }
   return { ...img, data: out };

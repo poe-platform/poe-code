@@ -400,8 +400,10 @@ export function encodePngImage(
 ): Uint8Array {
   const { width, height, data } = img;
   const density = options?.density ?? img.density ?? 72;
-  let hasAlpha = false;
-  if (!options?.forceOpaque) {
+  let hasAlpha = Boolean(img.hasAlpha || img.channels === 4 || img.channels === 2);
+  if (options?.forceOpaque) {
+    hasAlpha = false;
+  } else if (!hasAlpha) {
     for (let i = 3; i < data.length; i += 4) {
       if (data[i]! < 255) {
         hasAlpha = true;
@@ -410,32 +412,43 @@ export function encodePngImage(
     }
   }
 
-  const colorType = hasAlpha ? 6 : 2;
-  const bpp = hasAlpha ? 4 : 3;
+  const isBw = img.space === "b-w" || img.channels === 1 || img.channels === 2;
+  const colorType = isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
+  const bpp = isBw ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
   const rowBytes = width * bpp;
   const raw = new Uint8Array(height * (rowBytes + 1));
 
   for (let y = 0; y < height; y++) {
     const dstRow = y * (rowBytes + 1);
-    // Use Sub filter (1) for crisp compression
     raw[dstRow] = 1;
     for (let x = 0; x < width; x++) {
       const srcIdx = (y * width + x) * 4;
       const prevIdx = x > 0 ? (y * width + (x - 1)) * 4 : -1;
-      const r = data[srcIdx]!;
-      const g = data[srcIdx + 1]!;
-      const b = data[srcIdx + 2]!;
-      const pr = prevIdx >= 0 ? data[prevIdx]! : 0;
-      const pg = prevIdx >= 0 ? data[prevIdx + 1]! : 0;
-      const pb = prevIdx >= 0 ? data[prevIdx + 2]! : 0;
       const outCol = dstRow + 1 + x * bpp;
-      raw[outCol] = (r - pr) & 0xff;
-      raw[outCol + 1] = (g - pg) & 0xff;
-      raw[outCol + 2] = (b - pb) & 0xff;
-      if (hasAlpha) {
-        const a = data[srcIdx + 3]!;
-        const pa = prevIdx >= 0 ? data[prevIdx + 3]! : 0;
-        raw[outCol + 3] = (a - pa) & 0xff;
+      if (isBw) {
+        const g = data[srcIdx]!;
+        const pg = prevIdx >= 0 ? data[prevIdx]! : 0;
+        raw[outCol] = (g - pg) & 0xff;
+        if (hasAlpha) {
+          const a = data[srcIdx + 3]!;
+          const pa = prevIdx >= 0 ? data[prevIdx + 3]! : 0;
+          raw[outCol + 1] = (a - pa) & 0xff;
+        }
+      } else {
+        const r = data[srcIdx]!;
+        const g = data[srcIdx + 1]!;
+        const b = data[srcIdx + 2]!;
+        const pr = prevIdx >= 0 ? data[prevIdx]! : 0;
+        const pg = prevIdx >= 0 ? data[prevIdx + 1]! : 0;
+        const pb = prevIdx >= 0 ? data[prevIdx + 2]! : 0;
+        raw[outCol] = (r - pr) & 0xff;
+        raw[outCol + 1] = (g - pg) & 0xff;
+        raw[outCol + 2] = (b - pb) & 0xff;
+        if (hasAlpha) {
+          const a = data[srcIdx + 3]!;
+          const pa = prevIdx >= 0 ? data[prevIdx + 3]! : 0;
+          raw[outCol + 3] = (a - pa) & 0xff;
+        }
       }
     }
   }

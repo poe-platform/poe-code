@@ -145,7 +145,7 @@ export class SharpInstance {
           img = linearImage(img, node.a, node.b);
           break;
         case "normalize":
-          img = normalizeImage(img);
+          img = normalizeImage(img, { lower: node.lower, upper: node.upper });
           break;
         case "threshold":
           img = thresholdImage(img, node.value, node.grayscale);

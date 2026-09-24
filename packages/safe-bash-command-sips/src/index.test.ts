@@ -119,5 +119,21 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(verb.exitCode).toBe(0);
     expect(verb.stdout).toContain("Geometry: 640x480+0+0");
     expect(verb.stdout).toContain("Resolution: 144x144");
+
+    // #36: sips -c pads when crop dimensions exceed source dimensions, and identify -format supports %d, %i, %n, %p, %[width], %[height]
+    const smallPng = await makeSamplePng(40, 20);
+    files.set("dir/sub/small.png", smallPng);
+    const cropRes = await runSipsCli(["-c", "30", "30", "dir/sub/small.png", "--out", "dir/sub/cropped.png"], files);
+    expect(cropRes.exitCode).toBe(0);
+    const croppedMeta = await sharp(files.get("dir/sub/cropped.png")!).metadata();
+    expect(croppedMeta.width).toBe(30);
+    expect(croppedMeta.height).toBe(30);
+
+    const extFmt = await runIdentifyCli(
+      ["-format", "%d|%i|%n|%p|%[width]x%[height]|%[channels]|%[colorspace]\\n", "dir/sub/small.png"],
+      files
+    );
+    expect(extFmt.exitCode).toBe(0);
+    expect(extFmt.stdout).toBe("dir/sub|dir/sub/small.png|1|0|40x20|4|sRGB\n");
   });
 });

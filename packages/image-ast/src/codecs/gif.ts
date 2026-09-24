@@ -157,6 +157,7 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
   }
 
   let transparentIdx = -1;
+  let disposalMethod = 0;
   const targetPage = Math.max(0, options?.page ?? 0);
   let currentFrame = 0;
   const rgba = new Uint8Array(width * height * 4);
@@ -169,8 +170,11 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
       if (label === 0xf9) {
         const blockSize = bytes[pos++]!;
         const gceFlags = bytes[pos]!;
+        disposalMethod = (gceFlags >>> 2) & 0x07;
         if (gceFlags & 0x01) {
           transparentIdx = bytes[pos + 3]!;
+        } else {
+          transparentIdx = -1;
         }
         pos += blockSize + 1;
       } else {
@@ -222,6 +226,7 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
       } else {
         for (let r = 0; r < imgH; r++) rowMap[r] = r;
       }
+      const prevCanvas = disposalMethod === 3 ? new Uint8Array(rgba) : undefined;
       for (let sy = 0; sy < imgH; sy++) {
         const y = rowMap[sy]!;
         for (let x = 0; x < imgW; x++) {
@@ -244,10 +249,38 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
       if (currentFrame >= targetPage) {
         break;
       }
+      if (disposalMethod === 2) {
+        for (let sy = 0; sy < imgH; sy++) {
+          const dstY = top + sy;
+          if (dstY >= height) continue;
+          for (let sx = 0; sx < imgW; sx++) {
+            const dstX = left + sx;
+            if (dstX >= width) continue;
+            const outIdx = (dstY * width + dstX) * 4;
+            rgba[outIdx] = 0;
+            rgba[outIdx + 1] = 0;
+            rgba[outIdx + 2] = 0;
+            rgba[outIdx + 3] = 0;
+          }
+        }
+      } else if (disposalMethod === 3 && prevCanvas) {
+        rgba.set(prevCanvas);
+      }
       currentFrame++;
       transparentIdx = -1;
+      disposalMethod = 0;
     } else {
       break;
+    }
+  }
+
+  let hasAlpha = transparentIdx !== -1;
+  if (!hasAlpha) {
+    for (let i = 3; i < rgba.length; i += 4) {
+      if (rgba[i]! < 255) {
+        hasAlpha = true;
+        break;
+      }
     }
   }
 
@@ -260,21 +293,54 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
     channels: 4,
     depth: "uchar",
     density: 72,
-    hasAlpha: transparentIdx !== -1
+    hasAlpha
   };
 }
 
 export function encodeGifImage(img: RgbaImage): Uint8Array {
   const { width, height, data } = img;
-  // Build 256-color RGB332 palette (indices 0..254, index 255 = transparent)
+  // Build 256-color RGB332 base palette (0..253), pure white at 254, 255 = transparent,
+  // and place any non-exact colors (when <= 254 unique colors) into unused palette slots.
   const palette = new Uint8Array(256 * 3);
-  for (let i = 0; i < 255; i++) {
+  const colorToIndex = new Map<number, number>();
+  for (let i = 0; i < 254; i++) {
     const r = Math.round((((i >>> 5) & 0x07) * 255) / 7);
     const g = Math.round((((i >>> 2) & 0x07) * 255) / 7);
     const b = Math.round(((i & 0x03) * 255) / 3);
     palette[i * 3] = r;
     palette[i * 3 + 1] = g;
     palette[i * 3 + 2] = b;
+    colorToIndex.set((r << 16) | (g << 8) | b, i);
+  }
+  palette[254 * 3] = 255;
+  palette[254 * 3 + 1] = 255;
+  palette[254 * 3 + 2] = 255;
+  colorToIndex.set((255 << 16) | (255 << 8) | 255, 254);
+
+  const usedSlots = new Set<number>();
+  const missingColors: number[] = [];
+  for (let i = 0; i < width * height; i++) {
+    if (data[i * 4 + 3]! < 128) continue;
+    const key = (data[i * 4]! << 16) | (data[i * 4 + 1]! << 8) | data[i * 4 + 2]!;
+    const existing = colorToIndex.get(key);
+    if (existing !== undefined) {
+      usedSlots.add(existing);
+    } else if (missingColors.length < 255 && !missingColors.includes(key)) {
+      missingColors.push(key);
+    }
+  }
+
+  if (usedSlots.size + missingColors.length <= 254) {
+    let probe = 1;
+    for (const key of missingColors) {
+      while (probe < 254 && usedSlots.has(probe)) probe++;
+      if (probe >= 254) break;
+      usedSlots.add(probe);
+      colorToIndex.set(key, probe);
+      palette[probe * 3] = (key >>> 16) & 0xff;
+      palette[probe * 3 + 1] = (key >>> 8) & 0xff;
+      palette[probe * 3 + 2] = key & 0xff;
+    }
   }
 
   const indices = new Uint8Array(width * height);
@@ -285,11 +351,17 @@ export function encodeGifImage(img: RgbaImage): Uint8Array {
       indices[i] = 255;
       hasTransparency = true;
     } else {
-      const r = data[i * 4]! >>> 5;
-      const g = data[i * 4 + 1]! >>> 5;
-      const b = data[i * 4 + 2]! >>> 6;
-      const idx = (r << 5) | (g << 2) | b;
-      indices[i] = idx === 255 ? 254 : idx;
+      const key = (data[i * 4]! << 16) | (data[i * 4 + 1]! << 8) | data[i * 4 + 2]!;
+      const exact = colorToIndex.get(key);
+      if (exact !== undefined) {
+        indices[i] = exact;
+      } else {
+        const r = data[i * 4]! >>> 5;
+        const g = data[i * 4 + 1]! >>> 5;
+        const b = data[i * 4 + 2]! >>> 6;
+        const idx = (r << 5) | (g << 2) | b;
+        indices[i] = idx === 255 ? 254 : idx;
+      }
     }
   }
 

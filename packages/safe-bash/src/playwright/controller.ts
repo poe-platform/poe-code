@@ -1039,7 +1039,6 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             check();
             if (active) {
               if (!active.page || !getPlaywrightModal(active.page)) await Promise.all([...active.pendingActions ?? []]);
-              await active.snapshot.invalidate();
               checkSession(active);
               active.pages = [...active.lease!.context.pages()];
               if (active.pages.length > maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');

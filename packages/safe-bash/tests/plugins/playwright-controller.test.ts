@@ -39,6 +39,48 @@ function fixture(maxSessions = 2) {
   return { controller, adapter, events, leases, run };
 }
 
+for (const command of ['click', 'check', 'select'] as const) for (const change of ['retained', 'detached', 'navigated'] as const) test(`${command} ability preserves only live snapshot refs: ${change}`, async () => {
+  const listeners = new Set<() => void>();
+  const node = { isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
+  let clicks = 0;
+  const action = async () => {
+    clicks++;
+    if (change === 'detached') node.isConnected = false;
+    if (change === 'navigated') for (const listener of listeners) listener();
+  };
+  const handle = {
+    async evaluate<T, Argument = undefined>(callback: (node: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(node, argument!); },
+    click: action, check: action, selectOption: action, async fill() {}, async dispose() {},
+  };
+  const snapshot = createSnapshotFrame([{ node, native: handle }]);
+  const page = {
+    async goto() {}, url: () => 'https://example.test/form', frames: () => [snapshot.frame],
+    on(event: string, listener: () => void) { if (event === 'framenavigated') listeners.add(listener); },
+    off(_event: string, listener: () => void) { listeners.delete(listener); },
+  } as unknown as PlaywrightPage;
+  const controller = createPlaywrightController({
+    adapter: { browsers: { chromium: { headed: false } }, async acquire() {
+      return { context: { async newPage() { return page; }, pages: () => [page], async close() {}, on() {}, off() {} }, onClosed: () => () => {}, async release() {} };
+    } },
+    abilities: { open: true, snapshot: true, check: true, select: true, click: {
+      scope: 'session', async execute(request) {
+        const target = await request.browserSession!.resolveTarget(request.args[0]!);
+        await target.click();
+      },
+    } },
+  });
+  let output = '';
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write(text) { output += text; } });
+  try {
+    await run(['open']);
+    await run(['snapshot']);
+    const ref = output.match(/ref=(e\d+)/)![1]!;
+    await run(command === 'select' ? ['select', ref, 'blue'] : [command, ref]);
+    if (change === 'retained') { await run(['click', ref]); assert.equal(clicks, 2); }
+    else { await assert.rejects(run(['click', ref]), /stale/i); assert.equal(clicks, 1); }
+  } finally { await controller.dispose(); }
+});
+
 for (const retirement of ['close', 'dispose', 'cancel'] as const) test(`route removal finishes before context release during ${retirement}`, async () => {
   const f = fixture();
   await f.run(['open']);

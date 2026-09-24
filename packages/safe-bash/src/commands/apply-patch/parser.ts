@@ -108,7 +108,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
         current.eof = true;
         finished = true;
       } else {
-        const prefix = line[0];
+        const prefix = line === "" ? " " : line[0];
         if (prefix !== " " && prefix !== "+" && prefix !== "-") throw new PatchError(`invalid hunk line ${index + 1}`, 2);
         if (!current) {
           work.count("maxHunks", 1);

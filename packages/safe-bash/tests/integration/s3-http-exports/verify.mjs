@@ -3,18 +3,33 @@ import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isBuiltin } from "node:module";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, posix, relative, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import typescript from "typescript";
+import { canonicalFs, canonicalFsRoutes } from "../../../../package-lint/dist/bundle-policy.js";
+import { rewriteModuleSpecifiers } from "../../../../../scripts/package-safe.mjs";
+import { resolveBrowserShellBuild } from "../../../../../scripts/bundle-safe-bash.mjs";
 import { capturePeerRuntimeFacts } from "../../plugins/qualified-current-release/peer.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readRegularInput } from "../../../scripts/typecheck-integration-inputs.mjs";
-import { assertArchiveDependencies, assertArchiveDependencyArtifacts, assertCanonicalRoot, assertDistContinuity, assertTypeOrigins, authority, captureDistBaseline, contained, copyRegularTree, digest, inspectCommittedCandidate, packagePrefix, prepareArchiveDependencies, readArchive, readDistInventory, resolveTools, stageArchiveDependencies } from "./committed-archive.mjs";
+import { assertArchiveDependencies, assertArchiveDependencyArtifacts, assertCanonicalRoot, assertDistContinuity, assertTypeOrigins, assertWorkspacePrerequisites, authority, bindWorkspacePrerequisites, captureDistBaseline, contained, copyRegularTree, digest, inspectCommittedCandidate, packagePrefix, prepareArchiveDependencies, readArchive, readDistInventory, resolveTools, stageArchiveDependencies, stageWorkspacePrerequisites } from "./committed-archive.mjs";
 
 const fixtureRoot = dirname(fileURLToPath(import.meta.url));
 const actualRepository = resolve(authority, "../..");
+const canonicalAliases = new Map([
+  ...canonicalFs.routes.map(route => [route.workspace, route.specifier]),
+  ...Object.entries(resolveBrowserShellBuild(actualRepository).alias).filter(([, target]) => canonicalFsRoutes.some(route => route.specifier === target)),
+]);
 
-export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, generated = [], dependencies = [], fileSystem = { readdirSync, lstatSync, readFileSync } } = {}) {
+export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, generated = [], dependencies = [], prerequisites, fileSystem = { readdirSync, lstatSync, readFileSync } } = {}) {
   const expected = new Map([...committedFiles].map(([path, bytes]) => [path, digest(bytes)]));
+  if (prerequisites) {
+    assertWorkspacePrerequisites(prerequisites, snapshotRoot, fileSystem);
+    for (const workspace of prerequisites.workspaces) for (const { path, sha256 } of workspace.files) {
+      const destination = `${workspace.directory}/${path}`;
+      if (expected.has(destination)) assert.equal(expected.get(destination), sha256, `workspace prerequisite authority conflict: ${destination}`);
+      expected.set(destination, sha256);
+    }
+  }
   assertArchiveDependencyArtifacts(dependencies, fileSystem);
   for (const dependency of dependencies) if (dependency.name === "@poe-code/office-package") {
     for (const { path, sha256 } of dependency.files) if (path.startsWith("dist/") && path.endsWith(".d.ts")) {
@@ -78,11 +93,14 @@ export function assertOpBuildDependency(root, expected, fileSystem = { readdirSy
   for (const { path, sha256 } of expected) assert.equal(digest(readRegularInput(root, path, 32 * 1024 * 1024, fileSystem)), sha256, `op build dependency bytes changed: ${path}`);
 }
 
-export function committedPeerImports(committedFiles, compiler) {
+export function committedPeerImports(committedFiles, compiler, prerequisites) {
   const imports = new Set();
-  for (const [path, bytes] of committedFiles) {
-    if (!path.startsWith(`${packagePrefix}/src/`)) continue;
-    for (const { fileName } of compiler.preProcessFile(bytes.toString(), true).importedFiles) {
+  const inputs = [...committedFiles].filter(([path]) => path.startsWith(`${packagePrefix}/src/`)).map(([, bytes]) => bytes);
+  for (const workspace of prerequisites?.workspaces ?? []) for (const file of workspace.files)
+    if (file.path.endsWith(".js") || file.path.endsWith(".mjs")) inputs.push(file.bytes);
+  for (const bytes of inputs) {
+    for (let { fileName } of compiler.preProcessFile(bytes.toString(), true).importedFiles) {
+      fileName = canonicalAliases.get(fileName) ?? fileName;
       if (fileName === "poe-code" || fileName.startsWith("poe-code/")) imports.add(fileName);
     }
   }
@@ -97,6 +115,89 @@ function nodeImportTarget(value) {
     const selected = nodeImportTarget(target);
     if (selected !== undefined) return selected;
   }
+}
+
+export function prepareWorkspaceDistribution(distFiles, prerequisites, peer) {
+  assertWorkspacePrerequisites(prerequisites);
+  const records = new Map([...distFiles].map(([path, bytes]) => [`${packagePrefix}/${path}`, { bytes, sha256: digest(bytes) }]));
+  for (const workspace of prerequisites.workspaces) for (const file of workspace.files)
+    records.set(`${workspace.directory}/${file.path}`, { ...file, workspace });
+  const files = new Map(), inputs = [], pending = [], queued = new Set(), outputs = new Map();
+  const enqueue = source => {
+    const record = records.get(source);
+    assert.ok(record, `workspace distribution input is outside authenticated closure: ${source}`);
+    const path = record.workspace
+      ? `dist/internal/workspaces/${record.workspace.directory.slice("packages/".length)}/${source.slice(record.workspace.directory.length + "/dist/".length)}`
+      : source.slice(packagePrefix.length + 1);
+    assertLiteralInputPath(path);
+    assert.ok(source.startsWith((record.workspace?.directory ?? packagePrefix) + "/dist/"), `workspace distribution input must be built: ${source}`);
+    assert.ok(!outputs.has(path) || outputs.get(path) === source, `workspace distribution output collision: ${path}`);
+    outputs.set(path, source);
+    if (!queued.has(source)) {
+      queued.add(source);
+      assert.ok(queued.size <= 10000, "workspace distribution member budget");
+      pending.push({ source, path, record });
+    }
+    return path;
+  };
+  for (const path of distFiles.keys()) enqueue(`${packagePrefix}/${path}`);
+  const declarationPath = path => path.endsWith(".js") ? path.slice(0, -3) + ".d.ts" : path.endsWith(".mjs") ? path.slice(0, -4) + ".d.mts" : path.endsWith(".cjs") ? path.slice(0, -4) + ".d.cts" : path;
+  let totalBytes = 0;
+  for (let index = 0; index < pending.length; index++) {
+    const { source, path, record } = pending[index];
+    assert.equal(digest(record.bytes), record.sha256, `workspace distribution captured input changed: ${source}`);
+    const declaration = [".d.ts", ".d.mts", ".d.cts"].some(suffix => path.endsWith(suffix));
+    let bytes = Buffer.from(record.bytes);
+    if (declaration || [".js", ".mjs", ".cjs"].some(suffix => path.endsWith(suffix))) {
+      bytes = Buffer.from(rewriteModuleSpecifiers(source, bytes.toString(), specifier => {
+        const canonical = canonicalFsRoutes.find(route => route.specifier === canonicalAliases.get(specifier));
+        if (canonical) {
+          assert.equal(peer?.entries?.[canonical.specifier], canonical.runtime.node, `workspace distribution canonical peer route: ${specifier}`);
+          return canonical.specifier;
+        }
+        let target;
+        if (specifier.startsWith(".")) target = posix.relative("/", posix.resolve("/", posix.dirname(source), specifier));
+        else {
+          const workspace = specifier.startsWith("#") ? record.workspace : prerequisites.workspaces.find(workspace => specifier === workspace.name || specifier.startsWith(workspace.name + "/"));
+          if (!workspace) return specifier;
+          const route = specifier.startsWith("#") ? specifier : specifier === workspace.name ? "." : "." + specifier.slice(workspace.name.length);
+          const exports = specifier.startsWith("#") ? workspace.metadata.imports ?? {} : workspace.metadata.exports ?? {};
+          let entry = exports[route], substitution;
+          if (entry === undefined) for (const [pattern, value] of Object.entries(exports)) {
+            const parts = pattern.split("*");
+            if (parts.length === 2 && route.startsWith(parts[0]) && route.endsWith(parts[1])) {
+              entry = value;
+              substitution = route.slice(parts[0].length, route.length - parts[1].length);
+              break;
+            }
+          }
+          let selected = nodeImportTarget(declaration && entry?.types !== undefined ? entry.types : entry);
+          if (selected === undefined && route === "." && workspace.metadata.exports === undefined)
+            selected = declaration ? workspace.metadata.types : workspace.metadata.module ?? workspace.metadata.main;
+          assert.ok(typeof selected === "string" && selected.startsWith("./dist/"), `workspace distribution missing built export: ${specifier}`);
+          if (substitution !== undefined) selected = selected.replace("*", substitution);
+          assertLiteralInputPath(selected.slice(2));
+          target = `${workspace.directory}/${selected.slice(2)}`;
+        }
+        if (declaration) target = declarationPath(target);
+        if (target.startsWith("packages/safe-fs/dist/")) {
+          assert.ok(declaration && peer?.files?.some(file => file.path === target), `workspace distribution requires a canonical filesystem route: ${specifier}`);
+          let relative = posix.relative(posix.dirname(`node_modules/@poe-platform/safe-bash/${path}`), `node_modules/poe-code/${target}`);
+          if (relative.endsWith(".d.ts")) relative = relative.slice(0, -5) + ".js";
+          return relative.startsWith(".") ? relative : "./" + relative;
+        }
+        const destination = enqueue(target);
+        let relative = posix.relative(posix.dirname(path), destination);
+        if (declaration) relative = relative.endsWith(".d.ts") ? relative.slice(0, -5) + ".js" : relative.endsWith(".d.mts") ? relative.slice(0, -6) + ".mjs" : relative;
+        return relative.startsWith(".") ? relative : "./" + relative;
+      }));
+    }
+    totalBytes += bytes.length;
+    assert.ok(totalBytes <= 128 * 1024 * 1024, "workspace distribution byte budget");
+    files.set(path, bytes);
+    inputs.push({ source, sha256: record.sha256, path, outputSha256: digest(bytes) });
+  }
+  return { files, inputs };
 }
 
 export function bindPackedConsumer(consumer, packedFiles, peer, declarations, ts, fileSystem, dependencies = []) {
@@ -192,6 +293,9 @@ export async function verifyCommittedExports({ repository = actualRepository, re
   try {
     const candidate = inspectCommittedCandidate(repository, revision, tempRoot);
     const { environment, manifest } = candidate;
+    const prerequisites = bindWorkspacePrerequisites(repository, candidate);
+    report.workspacePrerequisites = { sourceCommit: prerequisites.sourceCommit,
+      workspaces: prerequisites.workspaces.map(({ name, directory, files }) => ({ name, directory, files: files.map(({ path, sha256 }) => ({ path, sha256 })) })) };
     const localTypeEntries = candidate.files.has(`${packagePrefix}/src/fs/s3/http/types.ts`) ? ["dist/fs/s3/http/types.d.ts"] : [];
     let peer, peerDeclarations, peerApi;
     if (manifest.peerDependencies?.["poe-code"]) {
@@ -204,7 +308,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       assert.deepEqual(candidate.files.get("package-lock.json"), readRegularInput(repository, "package-lock.json", 16 * 1024 * 1024), "Peer binding requires the selected committed workspace lock");
       if (manifest.poeCode?.integration?.peerProfile === "checkout-root") assert.deepEqual(candidate.files.get("package.json"), readRegularInput(repository, "package.json", 300000), "Peer binding requires the selected committed root metadata");
       report.peerPrerequisite = checkout ? "Existing matching root npm run build outputs, including the canonical shared SafeJS bundle; no implicit build, registry fallback or published-version qualification" : "Explicit matching peer artifact and built declaration/runtime tooling";
-      peerDeclarations = createPeerBinding(peerAuthority, manifest, new Map(), committedPeerImports(candidate.files, typescript));
+      peerDeclarations = createPeerBinding(peerAuthority, manifest, new Map(), committedPeerImports(candidate.files, typescript, prerequisites));
       peer = peerApi.bindPeerArtifact({ root: peerAuthority, artifact: peerArtifact, declarations: { peer: peerDeclarations }, checkout });
       if (peer.profile === "packed-root" || peer.profile === "checkout-root") assert.equal(peer.metadataSha256, digest(candidate.files.get("package.json")), "Peer root metadata differs from the committed root");
       report.peer = peer;
@@ -256,6 +360,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       writeFileSync(join(snapshotRoot, path), bytes);
     }
     stageArchiveDependencies(dependencies, snapshotRoot);
+    stageWorkspacePrerequisites(prerequisites, snapshotRoot);
     for (const dependency of dependencies) if (dependency.name === "@poe-code/office-package") {
       for (const { path, bytes } of dependency.files) if (path.startsWith("dist/") && path.endsWith(".d.ts")) {
         const destination = join(snapshotRoot, "packages/office-package", path);
@@ -267,7 +372,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     const opTools = new Map();
     const opToolTrees = [];
     const assertSnapshot = stagedPeer => {
-      assertSnapshotInputs(snapshotRoot, candidate.files, { peer: stagedPeer, generated: opGenerated, dependencies });
+      assertSnapshotInputs(snapshotRoot, candidate.files, { peer: stagedPeer, generated: opGenerated, dependencies, prerequisites });
       for (const { root, files } of opToolTrees) assertOpBuildDependency(root, files);
       assertArchiveDependencies(dependencies, snapshotRoot);
       assert.equal(digest(readRegularInput(tempRoot, "committed-source.tar", 128 * 1024 * 1024)), report.archive.sha256);
@@ -282,6 +387,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
         const bytes = readRegularInput(join(snapshot, "node_modules/poe-code"), path, 16 * 1024 * 1024);
         assert.equal(digest(bytes), sha256);
         if (candidate.files.has(path)) assert.deepEqual(bytes, candidate.files.get(path));
+        else if (existsSync(join(snapshotRoot, path))) assert.equal(digest(readRegularInput(snapshotRoot, path, 16 * 1024 * 1024)), sha256, `peer prerequisite authority conflict: ${path}`);
         else { mkdirSync(dirname(join(snapshotRoot, path)), { recursive: true }); writeFileSync(join(snapshotRoot, path), bytes, { flag: "wx" }); }
       }
     }
@@ -321,12 +427,15 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       chmodSync(binary, 0o755);
       const metafile = join(tempRoot, "op-bundle.json");
       run("isolated committed op runtime bundle", binary, [join(snapshot, "src/commands/op/index.ts"), "--bundle", "--platform=node", "--target=es2022", "--format=esm", "--sourcemap", "--external:poe-code/*",
+        ...[...canonicalAliases].map(([workspace, specifier]) => `--alias:${workspace}=${specifier}`),
+        ...Object.keys(manifest.poeCode?.integration?.privateWorkspaces ?? {}).map(name => `--external:${name}`),
         `--alias:@poe-platform/op=${join(snapshotRoot, "packages/op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`, `--metafile=${metafile}`], snapshot);
       const metadata = JSON.parse(readRegularInput(tempRoot, "op-bundle.json", 1024 * 1024));
+      const generated = new Map(opGenerated.map(({ path, sha256 }) => [path, sha256]));
       for (const input of Object.keys(metadata.inputs)) {
         const path = relative(snapshotRoot, resolve(snapshot, input));
         assertLiteralInputPath(path);
-        const expected = candidate.files.has(path) ? digest(candidate.files.get(path)) : opTools.get(path);
+        const expected = candidate.files.has(path) ? digest(candidate.files.get(path)) : opTools.get(path) ?? generated.get(path);
         assert.ok(expected, `unbound op bundle input: ${path}`);
         assert.equal(digest(readRegularInput(snapshotRoot, path, 32 * 1024 * 1024)), expected);
       }
@@ -334,6 +443,16 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     }
     assertSnapshot(peer);
     run("isolated committed codec asset copy", process.execPath, ["scripts/copy-compression-assets.mjs"], snapshot);
+    const distribution = prepareWorkspaceDistribution(new Map(readDistInventory(snapshot).map(({ path, sha256 }) => {
+      const bytes = readRegularInput(snapshot, path, 32 * 1024 * 1024);
+      assert.equal(digest(bytes), sha256, `workspace distribution compiled input changed: ${path}`);
+      return [path, bytes];
+    })), prerequisites, peer);
+    for (const [path, bytes] of distribution.files) {
+      mkdirSync(dirname(join(snapshot, path)), { recursive: true });
+      writeFileSync(join(snapshot, path), bytes);
+    }
+    report.workspaceDistribution = { inputs: distribution.inputs, files: distribution.files.size };
     const distIdentity = Object.freeze({ sourceCommit: candidate.sourceCommit, archiveSha256: report.archive.sha256 });
     const baseline = captureDistBaseline(snapshot, distIdentity);
     report.distBaseline = baseline;

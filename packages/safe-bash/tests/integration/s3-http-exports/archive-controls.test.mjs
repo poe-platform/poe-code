@@ -19,7 +19,7 @@ import * as verifier from "./verify.mjs";
 const authority = fileURLToPath(new URL("../../../", import.meta.url));
 const boundaries = loadBoundaries(authority);
 
-test("committed Pandoc build metadata is authenticated with the source archive", (context) => {
+test("committed workspace build metadata is authenticated with the source archive", (context) => {
   let candidate;
   try {
     candidate = inspectCommittedCandidate(resolve(authority, "../.."), process.env.S3_HTTP_EXPORTS_REVISION ?? "HEAD", resolve(authority, "../../out"));
@@ -31,12 +31,183 @@ test("committed Pandoc build metadata is authenticated with the source archive",
     }
     throw error;
   }
-  for (const name of ["pandoc", "pdf"]) {
-    const path = `packages/${name}/package.json`;
+  const names = new Set(["@poe-code/pandoc", "@poe-code/pdf", ...Object.keys(candidate.manifest.poeCode.integration.privateWorkspaces)]);
+  for (const name of names) {
+    const path = `${candidate.lock.packages[`node_modules/${name}`].resolved}/package.json`;
     assert.ok(candidate.blobReads.includes(path), `missing committed build metadata: ${path}`);
-    assert.equal(JSON.parse(candidate.files.get(path)).name, `@poe-code/${name}`);
+    assert.equal(JSON.parse(candidate.files.get(path)).name, name);
   }
 });
+
+function workspacePrerequisiteFixture() {
+  const implementation = { name: "safe-bash-command-fmt", version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies: { "safe-bash-contracts": "*" }, exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+  const contracts = { name: "safe-bash-contracts", version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies: {}, exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+  const manifest = { devDependencies: { [implementation.name]: "*" }, poeCode: { integration: { privateWorkspaces: {
+    [implementation.name]: { version: implementation.version, dependencies: implementation.dependencies, devDependencies: implementation.devDependencies },
+  } } } };
+  const lock = { packages: {} }, files = new Map();
+  for (const metadata of [implementation, contracts]) {
+    const directory = `packages/${metadata.name}`;
+    files.set(`${directory}/package.json`, Buffer.from(JSON.stringify(metadata)));
+    lock.packages[`node_modules/${metadata.name}`] = { link: true, resolved: directory };
+    lock.packages[directory] = { version: metadata.version, dependencies: structuredClone(metadata.dependencies), devDependencies: structuredClone(metadata.devDependencies) };
+  }
+  const reads = [];
+  const read = paths => { reads.push(...paths); return new Map(paths.map(path => [path, files.get(path)])); };
+  return { manifest, lock, files, read, reads };
+}
+
+test("workspace prerequisites capture the declared transitive metadata graph as owned bytes", () => {
+  const fixture = workspacePrerequisiteFixture();
+  fixture.lock.packages["node_modules/unrelated"] = { link: true, resolved: "packages/unrelated" };
+  const captured = distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read);
+  assert.deepEqual([...captured.keys()], [...fixture.files.keys()]);
+  assert.deepEqual(fixture.reads, [...fixture.files.keys()]);
+  fixture.files.values().next().value.fill(0);
+  assert.equal(JSON.parse(captured.values().next().value).name, "safe-bash-command-fmt");
+});
+
+for (const defect of ["missing-link", "traversal-link", "identity", "public-package", "version", "runtime-closure", "build-closure", "lock-drift"]) test(`workspace prerequisites reject ${defect}`, () => {
+  const fixture = workspacePrerequisiteFixture();
+  const name = "safe-bash-command-fmt", path = `packages/${name}/package.json`;
+  const metadata = JSON.parse(fixture.files.get(path));
+  if (defect === "missing-link") delete fixture.lock.packages[`node_modules/${name}`];
+  if (defect === "traversal-link") fixture.lock.packages[`node_modules/${name}`].resolved = "packages/../outside";
+  if (defect === "identity") metadata.name = "unrelated";
+  if (defect === "public-package") metadata.private = false;
+  if (defect === "version") metadata.version = "1.0.0";
+  if (defect === "runtime-closure") metadata.dependencies.unbound = "*";
+  if (defect === "build-closure") metadata.devDependencies.unbound = "*";
+  if (defect === "lock-drift") fixture.lock.packages[`packages/${name}`].version = "1.0.0";
+  fixture.files.set(path, Buffer.from(JSON.stringify(metadata)));
+  assert.throws(() => distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read), /workspace|literal/);
+});
+
+function builtWorkspacePrerequisiteFixture() {
+  const fixture = workspacePrerequisiteFixture();
+  const workspaceMetadata = distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read);
+  const source = Object.fromEntries([...workspaceMetadata].map(([path, bytes]) => [`/repository/${path}`, bytes]));
+  for (const path of workspaceMetadata.keys()) {
+    const directory = path.slice(0, -"package.json".length);
+    source[`/repository/${directory}dist/index.js`] = "export const marker = 73;\n";
+    source[`/repository/${directory}dist/index.d.ts`] = "export declare const marker = 73;\n";
+  }
+  const io = createFsFromVolume(Volume.fromJSON(source));
+  io.mkdirSync("/snapshot");
+  return { workspaceMetadata, source, io };
+}
+
+test("workspace prerequisites bind built files and reject staged byte or inventory drift", () => {
+  const { workspaceMetadata, source, io } = builtWorkspacePrerequisiteFixture();
+  const binding = distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io);
+  distChecks.stageWorkspacePrerequisites(binding, "/snapshot", io);
+  const check = () => assertSnapshotInputs("/snapshot", workspaceMetadata, { prerequisites: binding, fileSystem: io });
+  check();
+  const path = "/snapshot/packages/safe-bash-contracts/dist/index.d.ts";
+  io.writeFileSync(path, "changed");
+  assert.throws(check, /prerequisite.*changed|snapshot input changed/);
+  io.writeFileSync(path, source["/repository/packages/safe-bash-contracts/dist/index.d.ts"]);
+  io.writeFileSync("/snapshot/node_modules/safe-bash-contracts/dist/extra.js", "unbound");
+  assert.throws(check, /prerequisite.*inventory/);
+});
+
+test("workspace prerequisites reject metadata mutation after capture", () => {
+  const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+  const binding = distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io);
+  binding.workspaces[0].metadata.exports["."].import = "./dist/unapproved.js";
+  assert.throws(() => distChecks.assertWorkspacePrerequisites(binding), /prerequisite metadata changed/);
+  assert.throws(() => distChecks.stageWorkspacePrerequisites(binding, "/snapshot", io), /prerequisite metadata changed/);
+  assert.deepEqual(io.readdirSync("/snapshot"), []);
+});
+
+test("workspace prerequisites reject a same-size replacement during capture", () => {
+  const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+  const fileSystem = Object.create(io);
+  const target = "/repository/packages/safe-bash-command-fmt/dist/index.js";
+  fileSystem.readFileSync = path => {
+    const bytes = io.readFileSync(path);
+    if (path === target) {
+      io.writeFileSync(path + ".replacement", bytes);
+      io.renameSync(path + ".replacement", path);
+    }
+    return bytes;
+  };
+  assert.throws(() => distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, fileSystem), /prerequisite.*identity changed/);
+});
+
+test("workspace prerequisites reject a package name that escapes its staging root", () => {
+  const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+  const path = "packages/safe-bash-command-fmt/package.json";
+  const metadata = JSON.parse(workspaceMetadata.get(path));
+  metadata.name = "../outside";
+  const bytes = Buffer.from(JSON.stringify(metadata));
+  workspaceMetadata.set(path, bytes);
+  io.writeFileSync("/repository/" + path, bytes);
+  assert.throws(() => distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io), /literal|prerequisite.*name/);
+});
+
+test("workspace prerequisites reject output links before reading built payloads", () => {
+  const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+  const target = "/repository/packages/safe-bash-command-fmt/dist/index.js";
+  io.unlinkSync(target);
+  io.symlinkSync("index.d.ts", target);
+  const fileSystem = Object.create(io);
+  let payloadReads = 0;
+  fileSystem.readFileSync = path => { if (path.includes("/dist/")) payloadReads++; return io.readFileSync(path); };
+  assert.throws(() => distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, fileSystem), /prerequisite symlink/);
+  assert.equal(payloadReads, 0);
+});
+
+test("workspace prerequisites contribute canonical peer routes without duplicating filesystem runtimes", () => {
+  const sources = new Map([[`${packagePrefix}/src/index.ts`, Buffer.from('export * from "@poe-code/safe-fs/contracts/object";\nexport * from "@poe-code/safe-fs/xml";\n')]]);
+  const prerequisites = { workspaces: [{ files: [{ path: "dist/index.js", bytes: Buffer.from('export * from "@poe-code/safe-fs/node";\n') }] }] };
+  assert.deepEqual(verifier.committedPeerImports(sources, ts, prerequisites), ["poe-code/safe-fs/core", "poe-code/safe-fs/node"]);
+});
+
+test("workspace distribution retains one private runtime and canonical filesystem identity", () => {
+  const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+  for (const suffix of ["js", "d.ts"]) {
+    io.writeFileSync(`/repository/packages/safe-bash-command-fmt/dist/index.${suffix}`, 'export { marker } from "safe-bash-contracts";\n');
+    io.writeFileSync(`/repository/packages/safe-bash-contracts/dist/index.${suffix}`, 'export { FsError as marker } from "@poe-code/safe-fs/core";\n');
+    io.writeFileSync(`/repository/packages/safe-bash-contracts/dist/unrelated.${suffix}`, "export const unused = 0;\n");
+  }
+  const binding = distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io);
+  const files = new Map(["js", "d.ts"].map(suffix => [`dist/index.${suffix}`, Buffer.from('export { marker } from "safe-bash-command-fmt";\nexport { marker as shared } from "safe-bash-contracts";\n')]));
+  const peer = { entries: { "poe-code/safe-fs/core": "packages/safe-js/dist/safe-fs-core.js" }, files: [] };
+  const prepared = verifier.prepareWorkspaceDistribution(files, binding, peer);
+  assert.equal(prepared.files.size, 6);
+  for (const suffix of ["js", "d.ts"]) {
+    const root = prepared.files.get(`dist/index.${suffix}`).toString();
+    assert.ok(root.includes('"./internal/workspaces/safe-bash-command-fmt/index.js"'));
+    assert.ok(root.includes('"./internal/workspaces/safe-bash-contracts/index.js"'));
+    assert.ok(prepared.files.get(`dist/internal/workspaces/safe-bash-command-fmt/index.${suffix}`).toString().includes('"../safe-bash-contracts/index.js"'));
+    assert.ok(prepared.files.get(`dist/internal/workspaces/safe-bash-contracts/index.${suffix}`).toString().includes('"poe-code/safe-fs/core"'));
+  }
+  assert.ok([...prepared.files.keys()].every(path => !path.includes("unrelated")));
+  assert.equal(prepared.inputs.length, prepared.files.size);
+});
+
+test("workspace distribution rejects collisions with existing compiled outputs", () => {
+  const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+  const binding = distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io);
+  const files = new Map([
+    ["dist/index.js", Buffer.from('export * from "safe-bash-contracts";\n')],
+    ["dist/internal/workspaces/safe-bash-contracts/index.js", Buffer.from("export const original = 1;\n")],
+  ]);
+  assert.throws(() => verifier.prepareWorkspaceDistribution(files, binding), /workspace distribution output collision/);
+});
+
+for (const alias of ["@poe-code/safe-fs/contracts/object", "@poe-code/safe-fs/contracts/errors", "@poe-code/safe-fs/xml"])
+  test(`workspace distribution uses the maintained canonical alias: ${alias}`, () => {
+    const { workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+    const binding = distChecks.bindWorkspacePrerequisites("/repository", { workspaceMetadata }, io);
+    const files = new Map(["js", "d.ts"].map(suffix => [`dist/index.${suffix}`, Buffer.from(`export * from ${JSON.stringify(alias)};\n`)]));
+    const peer = { entries: { "poe-code/safe-fs/core": "packages/safe-js/dist/safe-fs-core.js" }, files: [] };
+    const prepared = verifier.prepareWorkspaceDistribution(files, binding, peer);
+    assert.equal(prepared.files.size, 2);
+    for (const bytes of prepared.files.values()) assert.equal(bytes.toString(), 'export * from "poe-code/safe-fs/core";\n');
+    assert.throws(() => verifier.prepareWorkspaceDistribution(files, binding, { ...peer, entries: {} }), /canonical peer route/);
+  });
 
 function batchFixture(contents = [Buffer.from("first"), Buffer.from("later")], algorithm = "sha1") {
   const entries = contents.map((bytes, index) => ({ path: `src/tab\tλ-${index}.ts`, oid: createHash(algorithm).update(`blob ${bytes.length}\0`).update(bytes).digest("hex"), maximum: 16 * 1024 * 1024 }));

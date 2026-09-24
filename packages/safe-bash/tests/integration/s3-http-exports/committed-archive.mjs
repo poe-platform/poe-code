@@ -20,11 +20,168 @@ const sharedExports = Object.freeze({
   "./compression": { types: "./dist/compression.d.ts", import: "./dist/compression.js" },
 });
 const sharedArtifactBindings = new WeakSet();
+const workspacePrerequisiteBindings = new WeakSet();
 export const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 export const contained = (root, filename) => {
   const local = relative(root, filename);
   return !isAbsolute(local) && local !== ".." && !local.startsWith("../");
 };
+
+export function captureWorkspaceMetadata(manifest, lock, read) {
+  const captured = new Map();
+  const profiles = manifest.poeCode?.integration?.privateWorkspaces ?? {};
+  const pending = new Set(Object.keys({ ...manifest.dependencies, ...manifest.devDependencies, ...profiles }));
+  const visited = new Set();
+  while (pending.size) {
+    const requests = new Map();
+    for (const name of pending) {
+      if (visited.has(name)) continue;
+      visited.add(name);
+      assertLiteralInputPath(name);
+      const link = lock.packages?.[`node_modules/${name}`];
+      if (Object.hasOwn(profiles, name)) assert.equal(link?.link, true, `private workspace lock link: ${name}`);
+      if (!link?.link || name === "poe-code") continue;
+      assert.deepEqual(Object.keys(link).sort(), ["link", "resolved"], `workspace lock link fields: ${name}`);
+      assert.equal(typeof link.resolved, "string", `workspace lock path: ${name}`);
+      assertLiteralInputPath(link.resolved);
+      assert.ok(link.resolved.startsWith("packages/") && link.resolved.split("/").length === 2, `workspace lock path: ${name}`);
+      const path = `${link.resolved}/package.json`;
+      assert.ok(!requests.has(path), `workspace prerequisite path alias: ${name}`);
+      requests.set(path, name);
+    }
+    pending.clear();
+    assert.ok(visited.size <= 128, "workspace prerequisite count budget");
+    if (!requests.size) continue;
+    const files = read([...requests.keys()]);
+    assert.deepEqual([...files.keys()].sort(), [...requests.keys()].sort(), "workspace prerequisite metadata inventory");
+    for (const [path, name] of requests) {
+      const bytes = files.get(path);
+      assert.ok(Buffer.isBuffer(bytes) && bytes.length <= 65536, `workspace prerequisite metadata budget: ${name}`);
+      const metadata = JSON.parse(bytes);
+      assert.equal(metadata.name, name, `workspace prerequisite identity: ${name}`);
+      const locked = lock.packages[path.slice(0, -"/package.json".length)];
+      assert.ok(locked, `workspace prerequisite lock metadata: ${name}`);
+      for (const field of ["version", "dependencies", "devDependencies", "peerDependencies", "optionalDependencies"])
+        assert.deepEqual(locked[field] ?? (field === "version" ? undefined : {}), metadata[field] ?? (field === "version" ? undefined : {}), `workspace prerequisite lock drift: ${name} ${field}`);
+      if (Object.hasOwn(profiles, name)) {
+        const profile = profiles[name];
+        assert.equal(metadata.private, true, `workspace prerequisite must remain private: ${name}`);
+        assert.equal(manifest.devDependencies?.[name], "*", `private workspace build dependency: ${name}`);
+        assert.equal(metadata.type, "module", `private workspace module type: ${name}`);
+        assert.equal(metadata.version, profile.version, `private workspace version: ${name}`);
+        for (const field of ["dependencies", "devDependencies"]) assert.deepEqual(metadata[field] ?? {}, profile[field], `private workspace closure: ${name} ${field}`);
+        for (const field of ["peerDependencies", "optionalDependencies"]) assert.deepEqual(metadata[field] ?? {}, {}, `private workspace implicit closure: ${name}`);
+      }
+      captured.set(path, Buffer.from(bytes));
+      for (const dependency of Object.keys({ ...metadata.dependencies, ...metadata.devDependencies })) if (!visited.has(dependency)) pending.add(dependency);
+    }
+  }
+  return captured;
+}
+
+export function bindWorkspacePrerequisites(repository, candidate, fileSystem = { lstatSync, readdirSync, readFileSync }) {
+  assertCanonicalRoot(repository, fileSystem);
+  const workspaces = [];
+  const identity = stat => [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
+  for (const [path, expected] of candidate.workspaceMetadata ?? []) {
+    assertLiteralInputPath(path);
+    assert.ok(path.startsWith("packages/") && path.endsWith("/package.json") && path.split("/").length === 3, `workspace prerequisite metadata path: ${path}`);
+    const bytes = readRegularInput(repository, path, 65536, fileSystem);
+    assert.deepEqual(bytes, expected, `workspace prerequisite metadata changed: ${path}`);
+    const metadata = JSON.parse(bytes);
+    assertLiteralInputPath(metadata.name);
+    assert.ok(metadata.name.startsWith("@") ? metadata.name.split("/").length === 2 : !metadata.name.includes("/"), "workspace prerequisite package name");
+    if (["@poe-platform/safe-bash", "@poe-platform/op", sharedName].includes(metadata.name)) continue;
+    workspaces.push({ name: metadata.name, directory: path.slice(0, -"/package.json".length), metadata,
+      files: [{ path: "package.json", bytes: Buffer.from(bytes), sha256: digest(bytes) }] });
+  }
+  let totalBytes = 0, entries = 0;
+  const pending = [];
+  for (const workspace of workspaces) {
+    const folded = new Set();
+    const visit = path => {
+      assertLiteralInputPath(path);
+      assert.ok(!folded.has(path.toLowerCase()), `workspace prerequisite case alias: ${path}`);
+      folded.add(path.toLowerCase());
+      assert.ok(++entries <= 20000 && path.split("/").length <= 64, "workspace prerequisite inventory budget");
+      const absolute = join(repository, workspace.directory, path);
+      const stat = fileSystem.lstatSync(absolute);
+      assert.ok(!stat.isSymbolicLink(), `workspace prerequisite symlink: ${absolute}`);
+      if (stat.isDirectory()) {
+        const names = fileSystem.readdirSync(absolute);
+        assert.ok(names.length <= 20000 - entries, "workspace prerequisite inventory budget");
+        for (const name of names.sort()) visit(`${path}/${name}`);
+      } else {
+        assert.ok(stat.isFile() && stat.nlink === 1, `workspace prerequisite must be regular single-link: ${absolute}`);
+        const declaration = [".d.ts", ".d.mts", ".d.cts"].some(suffix => path.endsWith(suffix));
+        const runtime = workspace.name !== "@poe-code/safe-fs" && [".js", ".mjs", ".cjs", ".json"].some(suffix => path.endsWith(suffix));
+        if (!declaration && !runtime) return;
+        assert.ok(Number.isSafeInteger(stat.size) && stat.size >= 0 && stat.size <= 16 * 1024 * 1024, `workspace prerequisite file budget: ${absolute}`);
+        totalBytes += stat.size;
+        assert.ok(totalBytes <= 128 * 1024 * 1024, "workspace prerequisite aggregate budget");
+        pending.push({ workspace, path, size: stat.size, identity: identity(stat) });
+      }
+    };
+    visit("dist");
+  }
+  for (const { workspace, path, size, identity: expected } of pending) {
+    const absolute = join(repository, workspace.directory, path);
+    assert.deepEqual(identity(fileSystem.lstatSync(absolute)), expected, `workspace prerequisite identity changed: ${absolute}`);
+    const bytes = Buffer.from(readRegularInput(join(repository, workspace.directory), path, size, fileSystem));
+    assert.deepEqual(identity(fileSystem.lstatSync(absolute)), expected, `workspace prerequisite identity changed: ${absolute}`);
+    assert.equal(bytes.length, size, `workspace prerequisite size changed: ${workspace.name}/${path}`);
+    workspace.files.push({ path, bytes, sha256: digest(bytes) });
+  }
+  const binding = Object.freeze({ sourceCommit: candidate.sourceCommit ?? null, workspaces: Object.freeze(workspaces.map(workspace => Object.freeze({
+    ...workspace, files: Object.freeze(workspace.files.map(Object.freeze)),
+  }))) });
+  workspacePrerequisiteBindings.add(binding);
+  return binding;
+}
+
+export function assertWorkspacePrerequisites(binding, directory, fileSystem = { lstatSync, readdirSync, readFileSync }) {
+  assert.ok(workspacePrerequisiteBindings.has(binding), "workspace prerequisite binding must originate from authenticated capture");
+  for (const workspace of binding.workspaces) {
+    for (const { path, bytes, sha256 } of workspace.files)
+      assert.equal(digest(bytes), sha256, `workspace prerequisite captured bytes changed: ${workspace.name}/${path}`);
+    assert.deepEqual(workspace.metadata, JSON.parse(workspace.files[0].bytes), `workspace prerequisite metadata changed: ${workspace.name}`);
+    if (directory === undefined) continue;
+    const root = join(directory, "node_modules", workspace.name);
+    assertCanonicalRoot(root, fileSystem);
+    const paths = [];
+    let entries = 0;
+    const visit = path => {
+      assert.ok(++entries <= 20000 && path.split("/").length <= 64, "workspace prerequisite staged inventory budget");
+      for (const entry of fileSystem.readdirSync(join(root, path), { withFileTypes: true })) {
+        const child = path ? `${path}/${entry.name}` : entry.name;
+        assertLiteralInputPath(child);
+        assert.ok(!entry.isSymbolicLink(), `workspace prerequisite staged symlink: ${child}`);
+        if (entry.isDirectory()) visit(child);
+        else paths.push(child);
+      }
+    };
+    visit("");
+    assert.deepEqual(paths.sort(), workspace.files.map(file => file.path).sort(), `workspace prerequisite staged inventory changed: ${workspace.name}`);
+    for (const { path, sha256 } of workspace.files)
+      assert.equal(digest(readRegularInput(root, path, 16 * 1024 * 1024, fileSystem)), sha256, `workspace prerequisite staged bytes changed: ${workspace.name}/${path}`);
+  }
+}
+
+export function stageWorkspacePrerequisites(binding, directory, fileSystem = { existsSync, lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }) {
+  assertWorkspacePrerequisites(binding);
+  assertCanonicalRoot(directory, fileSystem);
+  for (const workspace of binding.workspaces) for (const file of workspace.files) {
+    for (const base of [workspace.directory, `node_modules/${workspace.name}`]) {
+      const path = `${base}/${file.path}`;
+      if (fileSystem.existsSync(join(directory, path))) {
+        assert.equal(digest(readRegularInput(directory, path, 16 * 1024 * 1024, fileSystem)), file.sha256, `workspace prerequisite authority conflict: ${path}`);
+      } else {
+        fileSystem.mkdirSync(dirname(join(directory, path)), { recursive: true });
+        fileSystem.writeFileSync(join(directory, path), file.bytes, { flag: "wx" });
+      }
+    }
+  }
+}
 
 const approvedDependencies = Object.freeze({
   "@noble/hashes": Object.freeze({ version: "2.4.0", resolved: "https://registry.npmjs.org/@noble/hashes/-/hashes-2.4.0.tgz", integrity: "sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==" }),
@@ -454,10 +611,11 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   }
   assert.ok(tree.has(`${packagePrefix}/package.json`), "actual commit lacks integrated package prefix packages/safe-bash; staging or source-parent commits do not qualify");
   const admitted = new Map();
+  const workspaceMetadataPaths = new Set();
   const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
-    else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/op/package.json", "packages/op/tsconfig.json", "packages/pandoc/package.json", "packages/pdf/package.json"].includes(path) || path.startsWith("packages/op/src/"), `unadmitted root archive path: ${path}`);
+    else assert.ok(workspaceMetadataPaths.has(path) || ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/op/package.json", "packages/op/tsconfig.json", "packages/pandoc/package.json", "packages/pdf/package.json"].includes(path) || path.startsWith("packages/op/src/"), `unadmitted root archive path: ${path}`);
     const entry = tree.get(path);
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
@@ -517,7 +675,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   }
   assert.ok(admitted.has(`${packagePrefix}/src/index.ts`), "missing committed source entrypoint");
   assert.deepEqual(heldCode.sort(), boundaries.heldSourceFiles.filter(path => path.endsWith(".ts")).sort(), "committed held source metadata inventory changed");
-  let manifest, rootManifest, lock, opManifest;
+  let manifest, rootManifest, lock, opManifest, workspaceMetadata;
   const files = readCommittedBlobs([...admitted.values()], hashAlgorithm, git, {
     bootstrapCount,
     validateBootstrap(bootstrap) {
@@ -610,10 +768,20 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         assert.ok(bootstrap.get("packages/op/tsconfig.json").equals(readRegularInput(resolve(authority, "../op"), "tsconfig.json", 300000)), "committed op compiler config differs from reviewed authority");
         assert.ok(admitted.has("packages/op/src/index.ts"), "missing committed op source entrypoint");
       } else assert.equal(hasOp, false, "unrequested op workspace archive");
+      workspaceMetadata = captureWorkspaceMetadata(manifest, lock, paths => {
+        const missing = paths.filter(path => !bootstrap.has(path));
+        for (const path of missing) { workspaceMetadataPaths.add(path); admit(path, 65536); }
+        const extra = missing.length ? readCommittedBlobs(missing.map(path => admitted.get(path)), hashAlgorithm, git) : new Map();
+        return new Map(paths.map(path => [path, bootstrap.get(path) ?? extra.get(path)]));
+      });
     },
   });
+  for (const [path, bytes] of workspaceMetadata) {
+    if (files.has(path)) assert.deepEqual(files.get(path), bytes, `committed workspace metadata conflict: ${path}`);
+    else files.set(path, bytes);
+  }
   const blobReads = [...files.keys()];
-  return { sourceCommit, files, blobReads, withheldPaths, manifest, rootManifest, lock, opManifest, boundaries, environment };
+  return { sourceCommit, files, blobReads, withheldPaths, manifest, rootManifest, lock, opManifest, workspaceMetadata, boundaries, environment };
 }
 
 export function resolveTools() {

@@ -1,0 +1,344 @@
+{
+  "schemaVersion": 1,
+  "baseline": "5b5fd012aa08a42fb13b7c491a1938422c79d305",
+  "issue": "Array element transforms coalesced missing values to empty strings before @Q, producing quoted empty text and extra unquoted arguments.",
+  "native": {
+    "binarySha256": "69b86c3bf774c0d3e3213cd6ebce56170e15f447dfcf9792bbb65ddf4e472a85",
+    "version": "GNU bash, version 5.2.37(1)-release (aarch64-apple-darwin25.4.0)",
+    "sourceUrl": "https://ftp.gnu.org/gnu/bash/bash-5.2.37.tar.gz",
+    "archiveSha256": "9599b22ecd1d5787ad7d3b7bf0c59f312b3396d1e281175dd1f8a4014da621ff",
+    "configure": [
+      "--without-bash-malloc",
+      "--disable-nls",
+      "--disable-readline"
+    ],
+    "rows": [
+      {
+        "source": "args \"${a[0]:-x}\"",
+        "status": 0,
+        "stdout": "1\n<x>",
+        "stderr": ""
+      },
+      {
+        "source": "a=([3]=outer); args \"${a[0]:-x}\" \"${a[3]-missing}\" \"${a[2]-missing}\"",
+        "status": 0,
+        "stdout": "3\n<x><outer><missing>",
+        "stderr": ""
+      },
+      {
+        "source": "declare -A map; map[first]=hello; args \"${map[0]@Q}\" \"${map[0]@E}\" \"${map[0]^^}\"",
+        "status": 0,
+        "stdout": "3\n<><><>",
+        "stderr": ""
+      },
+      {
+        "source": "declare -A map; map[empty]=; args \"${map[empty]@Q}\" \"${map[empty]@E}\" \"${map[empty],,}\"",
+        "status": 0,
+        "stdout": "3\n<''><><>",
+        "stderr": ""
+      },
+      {
+        "source": "a=([3]=present [4]=\"\"); args \"${a[0]@Q}\" \"${a[4]@Q}\" \"${a[3]@Q}\" \"${missing[0]@Q}\"",
+        "status": 0,
+        "stdout": "4\n<><''><'present'><>",
+        "stderr": ""
+      },
+      {
+        "source": "a=([3]=present [4]=\"\"); args ${a[0]@Q} ${a[4]@Q} ${a[3]@Q} ${missing[0]@Q}",
+        "status": 0,
+        "stdout": "2\n<''><'present'>",
+        "stderr": ""
+      },
+      {
+        "source": "declare -A map; map[first]=hello; args ${map[0]@Q} \"${map[first]@Q}\"",
+        "status": 0,
+        "stdout": "1\n<'hello'>",
+        "stderr": ""
+      },
+      {
+        "source": "value=hello; args \"${value[0]@Q}\" \"${value[1]@Q}\"",
+        "status": 0,
+        "stdout": "2\n<'hello'><>",
+        "stderr": ""
+      }
+    ]
+  },
+  "repair": "Return an empty expansion for a missing element before applying its transform. Preserve transformation of present empty values, nounset checks, subscript evaluation and byte-valued arguments.",
+  "sources": {
+    "packages/safe-bash/src/shell/runtime.ts": "c78cf2fabd96ec8e825e8793074493b92f2567e27eb1b374286c2022cef6b66f",
+    "packages/safe-bash/tests/shell/parameter-transforms.test.ts": "b9cf3c686149b9ff4f7ab5a1fb2281e883fc8e148d427f5d8605e72190ce34a4"
+  },
+  "validation": {
+    "baselineTests": {
+      "tests": 71,
+      "passed": 66,
+      "failed": 5
+    },
+    "maintainedPackageRunner": {
+      "tests": 607,
+      "passed": 607
+    },
+    "focused": {
+      "files": 5,
+      "tests": 227,
+      "passed": 227,
+      "skipped": 0
+    },
+    "build": "Selected maintained Safe Bash closure: 35 workspace builds, passed.",
+    "types": "Maintained historical-type-models source/test compilation passed.",
+    "lint": "Focused ESLint passed.",
+    "publicBefore": {
+      "surface": "src",
+      "runtimeSha256": "5cd792b7bef28b9161be412e5bc54397cd2acef61dec9b5b516abbc5e165cc68",
+      "matches": 3,
+      "total": 8,
+      "rows": [
+        {
+          "source": "args \"${a[0]:-x}\"",
+          "status": 0,
+          "stdout": "1\n<x>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "a=([3]=outer); args \"${a[0]:-x}\" \"${a[3]-missing}\" \"${a[2]-missing}\"",
+          "status": 0,
+          "stdout": "3\n<x><outer><missing>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "declare -A map; map[first]=hello; args \"${map[0]@Q}\" \"${map[0]@E}\" \"${map[0]^^}\"",
+          "status": 0,
+          "stdout": "3\n<''><><>",
+          "stderr": "",
+          "match": false
+        },
+        {
+          "source": "declare -A map; map[empty]=; args \"${map[empty]@Q}\" \"${map[empty]@E}\" \"${map[empty],,}\"",
+          "status": 0,
+          "stdout": "3\n<''><><>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "a=([3]=present [4]=\"\"); args \"${a[0]@Q}\" \"${a[4]@Q}\" \"${a[3]@Q}\" \"${missing[0]@Q}\"",
+          "status": 0,
+          "stdout": "4\n<''><''><'present'><''>",
+          "stderr": "",
+          "match": false
+        },
+        {
+          "source": "a=([3]=present [4]=\"\"); args ${a[0]@Q} ${a[4]@Q} ${a[3]@Q} ${missing[0]@Q}",
+          "status": 0,
+          "stdout": "4\n<''><''><'present'><''>",
+          "stderr": "",
+          "match": false
+        },
+        {
+          "source": "declare -A map; map[first]=hello; args ${map[0]@Q} \"${map[first]@Q}\"",
+          "status": 0,
+          "stdout": "2\n<''><'hello'>",
+          "stderr": "",
+          "match": false
+        },
+        {
+          "source": "value=hello; args \"${value[0]@Q}\" \"${value[1]@Q}\"",
+          "status": 0,
+          "stdout": "2\n<'hello'><''>",
+          "stderr": "",
+          "match": false
+        }
+      ],
+      "middleware": [
+        {
+          "write": false,
+          "stdout": "overlay//outer",
+          "stderr": "",
+          "status": 0
+        },
+        {
+          "write": true,
+          "stdout": "overlay/overlay/missing",
+          "stderr": "",
+          "status": 0
+        }
+      ]
+    },
+    "publicAfter": {
+      "surface": "dist",
+      "runtimeSha256": "682df07f9d7cd70f0a5af5661bcd5b56cddf4a8d554a93f348509edae466029e",
+      "matches": 8,
+      "total": 8,
+      "rows": [
+        {
+          "source": "args \"${a[0]:-x}\"",
+          "status": 0,
+          "stdout": "1\n<x>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "a=([3]=outer); args \"${a[0]:-x}\" \"${a[3]-missing}\" \"${a[2]-missing}\"",
+          "status": 0,
+          "stdout": "3\n<x><outer><missing>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "declare -A map; map[first]=hello; args \"${map[0]@Q}\" \"${map[0]@E}\" \"${map[0]^^}\"",
+          "status": 0,
+          "stdout": "3\n<><><>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "declare -A map; map[empty]=; args \"${map[empty]@Q}\" \"${map[empty]@E}\" \"${map[empty],,}\"",
+          "status": 0,
+          "stdout": "3\n<''><><>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "a=([3]=present [4]=\"\"); args \"${a[0]@Q}\" \"${a[4]@Q}\" \"${a[3]@Q}\" \"${missing[0]@Q}\"",
+          "status": 0,
+          "stdout": "4\n<><''><'present'><>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "a=([3]=present [4]=\"\"); args ${a[0]@Q} ${a[4]@Q} ${a[3]@Q} ${missing[0]@Q}",
+          "status": 0,
+          "stdout": "2\n<''><'present'>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "declare -A map; map[first]=hello; args ${map[0]@Q} \"${map[first]@Q}\"",
+          "status": 0,
+          "stdout": "1\n<'hello'>",
+          "stderr": "",
+          "match": true
+        },
+        {
+          "source": "value=hello; args \"${value[0]@Q}\" \"${value[1]@Q}\"",
+          "status": 0,
+          "stdout": "2\n<'hello'><>",
+          "stderr": "",
+          "match": true
+        }
+      ],
+      "middleware": [
+        {
+          "write": false,
+          "stdout": "overlay//outer",
+          "stderr": "",
+          "status": 0
+        },
+        {
+          "write": true,
+          "stdout": "overlay/overlay/missing",
+          "stderr": "",
+          "status": 0
+        }
+      ]
+    },
+    "screenshot": "Rebuilt public Shell/native comparison rendered and inspected: readable, eight matches, two middleware controls, unchanged sentinels."
+  },
+  "qualification": "Native Bash 5.2.37 built from the GNU HTTPS release archive; source and executable hashes retained. Public comparison uses the built checkout, not a packed installation.",
+  "remaining": "Other filesystem/release blockers, containing publication and all 19 original ssconvert families remain open.",
+  "reconciliation": {
+    "upstreamRuntimeFix": "cd869acc1fabd2c0ee1ea0847707cb6fb20f29ef",
+    "result": "Upstream independently delivered the identical runtime repair before our push. Preserve its runtime and deliver four additional regressions plus the native comparison evidence.",
+    "postRebase": {
+      "focusedFiles": 6,
+      "focusedTests": 238,
+      "failures": 0,
+      "skips": 0,
+      "builds": 35,
+      "lint": "Passed",
+      "public": {
+        "surface": "dist",
+        "runtimeSha256": "743615b837f59115d47e9009f3c9c401d50cde916b53f58484762a711ed42b4c",
+        "matches": 8,
+        "total": 8,
+        "rows": [
+          {
+            "source": "args \"${a[0]:-x}\"",
+            "status": 0,
+            "stdout": "1\n<x>",
+            "stderr": "",
+            "match": true
+          },
+          {
+            "source": "a=([3]=outer); args \"${a[0]:-x}\" \"${a[3]-missing}\" \"${a[2]-missing}\"",
+            "status": 0,
+            "stdout": "3\n<x><outer><missing>",
+            "stderr": "",
+            "match": true
+          },
+          {
+            "source": "declare -A map; map[first]=hello; args \"${map[0]@Q}\" \"${map[0]@E}\" \"${map[0]^^}\"",
+            "status": 0,
+            "stdout": "3\n<><><>",
+            "stderr": "",
+            "match": true
+          },
+          {
+            "source": "declare -A map; map[empty]=; args \"${map[empty]@Q}\" \"${map[empty]@E}\" \"${map[empty],,}\"",
+            "status": 0,
+            "stdout": "3\n<''><><>",
+            "stderr": "",
+            "match": true
+          },
+          {
+            "source": "a=([3]=present [4]=\"\"); args \"${a[0]@Q}\" \"${a[4]@Q}\" \"${a[3]@Q}\" \"${missing[0]@Q}\"",
+            "status": 0,
+            "stdout": "4\n<><''><'present'><>",
+            "stderr": "",
+            "match": true
+          },
+          {
+            "source": "a=([3]=present [4]=\"\"); args ${a[0]@Q} ${a[4]@Q} ${a[3]@Q} ${missing[0]@Q}",
+            "status": 0,
+            "stdout": "2\n<''><'present'>",
+            "stderr": "",
+            "match": true
+          },
+          {
+            "source": "declare -A map; map[first]=hello; args ${map[0]@Q} \"${map[first]@Q}\"",
+            "status": 0,
+            "stdout": "1\n<'hello'>",
+            "stderr": "",
+            "match": true
+          },
+          {
+            "source": "value=hello; args \"${value[0]@Q}\" \"${value[1]@Q}\"",
+            "status": 0,
+            "stdout": "2\n<'hello'><>",
+            "stderr": "",
+            "match": true
+          }
+        ],
+        "middleware": [
+          {
+            "write": false,
+            "stdout": "overlay//outer",
+            "stderr": "",
+            "status": 0
+          },
+          {
+            "write": true,
+            "stdout": "overlay/overlay/missing",
+            "stderr": "",
+            "status": 0
+          }
+        ]
+      },
+      "screenshot": "Post-rebase public output is byte-identical to the inspected screenshot text.",
+      "runtimeSha256": "278180694f51f96cda490bad2f5c1e5bab5af1831ff5decc5778f5f43394919e",
+      "integrationBuildFixtureTests": 404,
+      "committedArchiveAdmissionTests": 1
+    }
+  }
+}

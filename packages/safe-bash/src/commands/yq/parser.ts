@@ -1105,6 +1105,7 @@ async function* rawLines(text: string, work: YqOwnedWork, lineOffset = 0): Async
   for (let index = 0; index < text.length; index++) {
     if (++scanned === 256) {
       await work.charge(scanned);
+      work.assertOpen();
       scanned = 0;
     }
     const character = text[index];

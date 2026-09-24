@@ -84,7 +84,8 @@ test("inline balancing gates negative depth on closed quotes and remembers earli
       await assert.rejects(async () => {
         for await (const unused of parseYamlDocuments(fragments.join("\n"), session.ownedWork, new YqLedger())) void unused;
       }, error => error instanceof YqError && error.code === "INPUT_YAML_SYNTAX");
-      assert.deepEqual(charges.slice(fragments.length), fragments.slice(0, consumed).map((fragment, index) => fragment.length + (index > 0 ? 1 : 0)));
+      const sourceScanCharges = Math.ceil(fragments.join("\n").length / 256);
+      assert.deepEqual(charges.slice(fragments.length + sourceScanCharges), fragments.slice(0, consumed).map((fragment, index) => fragment.length + (index > 0 ? 1 : 0)));
     } finally { await session.close(); }
   }
 });
@@ -104,7 +105,7 @@ for (const lines of [64, 128, 256, 512]) test(`inline balancing charges linear c
       for await (const unused of parseYamlDocuments(input, session.ownedWork, ledger)) void unused;
     }, error => error instanceof YqError && error.code === "INPUT_YAML_SYNTAX");
     assert.equal(ledger.documentNodes, 0);
-    const balancing = charges.slice(lines + 1);
+    const balancing = charges.slice(lines + 1 + Math.ceil(input.length / 256));
     assert.equal(balancing.reduce((total, units) => total + units, 0), input.length);
     assert.ok(balancing.length >= lines + 1);
     assert.ok(balancing.every(units => units > 0 && units <= 256));
@@ -650,7 +651,7 @@ for (const quote of ["", "'", '"']) test(`supplementary Unicode charges code poi
     const values = [];
     for await (const value of parseYamlDocuments(input, session.ownedWork, new YqLedger())) values.push(value);
     assert.deepEqual(values, [scalar]);
-    assert.deepEqual(charges, [256, 1 + quote.length * 2, 256, 256, 2 + quote.length * 2, 1, 256, 1, 2]);
+    assert.deepEqual(charges, [256, 256, 2 + quote.length * 2, 256, 1 + quote.length * 2, 256, 256, 2 + quote.length * 2, 1, 256, 1, 2]);
   } finally { await session.close(); }
 });
 

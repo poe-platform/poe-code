@@ -96,11 +96,12 @@ async function uncertain(relation: EntryComparison, symlink = false) {
 for (const relation of relations) test(`cross-device move uses comparison ${relation} before copy/delete`, async () => {
   const { fs, base, effects } = await uncertain(relation);
   const result = await run("mv", ["source", "target"], { fs });
-  assert.equal(result.exitCode, relation === "distinct" ? 0 : 1, result.stderr);
+  assert.equal(result.exitCode, 1, result.stderr);
   assert.equal(effects().comparisons, 1);
   if (relation === "distinct") {
-    assert.equal(effects().copies, 1); assert.equal(effects().removals, 1);
-    await assert.rejects(base.stat("/work/source"), { code: "ENOENT" });
+    assert.equal(effects().copies, 1); assert.equal(effects().removals, 0);
+    assert.match(result.stderr, /ENOTSUP/u);
+    assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source bytes");
     assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "source bytes");
   } else {
     assert.equal(effects().copies, 0); assert.equal(effects().removals, 0);

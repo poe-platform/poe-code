@@ -101,7 +101,7 @@ test("one caller signal propagates through copy, metadata and removal", async ()
   const seen: string[] = [];
   const wrapped = proxy(fs, {
     copyFile: async (source, target, options) => { assert.equal(options?.signal, controller.signal); seen.push("copy"); await fs.copyFile(source, target, options); },
-    rm: async (path, options) => { assert.equal(options?.signal, controller.signal); assert.equal(options.recursive, false); seen.push("remove"); await fs.rm(path, options); },
+    removeEntryConditional: async (path, options) => { assert.equal(options.signal, controller.signal); assert.ok(options.parent); assert.ok(options.expected); seen.push("remove"); await fs.removeEntryConditional!(path, options); },
   });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/", signal: controller.signal });
   assert.equal(result.exitCode, 0, result.stderr); assert.deepEqual(seen, ["copy", "remove"]); await assert.rejects(left.stat("/source"), { code: "ENOENT" });
@@ -132,8 +132,7 @@ test("directory move publishes all copied children before any nonrecursive sourc
   const { fs, left, right } = await directoryPair(); const sequence: string[] = [];
   const wrapped = proxy(fs, {
     copyFile: async (source, target, options) => { sequence.push("copy"); await fs.copyFile(source, target, options); },
-    rm: async (path, options) => { sequence.push("remove"); assert.equal(options?.recursive, false); assert.equal(await contents(right, "/tree/first"), "first"); assert.equal(await contents(right, "/tree/deep/last"), "last"); await fs.rm(path, options); },
-    rmdir: async (path, options) => { sequence.push("rmdir"); await fs.rmdir(path, options); },
+    removeEntryConditional: async (path, options) => { sequence.push("remove"); assert.equal(await contents(right, "/tree/first"), "first"); assert.equal(await contents(right, "/tree/deep/last"), "last"); await fs.removeEntryConditional!(path, options); },
   });
   const result = await run("mv", ["/left/tree", "/right/tree"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 0, result.stderr); assert.deepEqual(sequence.slice(0, 2), ["copy", "copy"]); await assert.rejects(left.lstat("/tree"), { code: "ENOENT" });
@@ -148,8 +147,8 @@ test("copy failure in a directory leaves every original entry present", async ()
 
 test("new source child during cleanup is never swept by recursive deletion", async () => {
   const { fs, left, right } = await directoryPair(); let inserted = false;
-  const wrapped = proxy(fs, { rm: async (path, options) => {
-    assert.equal(options?.recursive, false); await fs.rm(path, options);
+  const wrapped = proxy(fs, { removeEntryConditional: async (path, options) => {
+    await fs.removeEntryConditional!(path, options);
     if (!inserted) { inserted = true; await left.writeFile("/tree/new-child", Buffer.from("must survive")); }
   } });
   const result = await run("mv", ["/left/tree", "/right/tree"], { fs: wrapped, cwd: "/" });
@@ -163,9 +162,9 @@ test("directory self-traversal through repeated mounts is rejected before writes
   assert.equal(result.exitCode, 1); assert.match(result.stderr, /into itself/u); await assert.rejects(left.stat("/tree/inside"), { code: "ENOENT" });
 });
 
-test("missing nonrecursive directory removal capability fails before copies", async () => {
+test("missing atomic entry removal method fails before copies", async () => {
   const { fs, right } = await directoryPair();
-  const wrapped = new Proxy(fs, { get(target, key) { const value = Reflect.get(target, key); return key === "rmdir" ? undefined : typeof value === "function" ? value.bind(target) : value; } });
+  const wrapped = new Proxy(fs, { get(target, key) { const value = Reflect.get(target, key); return key === "removeEntryConditional" ? undefined : typeof value === "function" ? value.bind(target) : value; } });
   const result = await run("mv", ["/left/tree", "/right/tree"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 1); assert.match(result.stderr, /ENOTSUP/u); assert.deepEqual(await right.readdir("/"), []);
 });

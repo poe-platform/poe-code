@@ -155,6 +155,10 @@ and reads one response from stdin. A response beginning with `y` or `Y` allows
 the move; refusal or EOF keeps both paths and returns status 1. The last of
 `-i`, `-f`, and `-n` wins. Skipped updates and missing destinations do not prompt,
 and backups are created only after confirmation.
+Cross-device `mv` requires atomic conditional source removal. Backends without
+this capability refuse the fallback before copying. If a source entry or its
+parent changes during transfer, cleanup fails and retains the copied data;
+the command never deletes a replacement source entry.
 `cp -i` / `--interactive` prompts on stderr before overwriting each existing file
 and reads one response from stdin. Responses beginning with `y` or `Y` allow
 replacement; refusal or EOF preserves the destination and returns status 1.

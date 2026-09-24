@@ -9,6 +9,7 @@ interface MoveEntry {
   readonly source: string;
   readonly target: string;
   readonly stat: FileStat;
+  readonly parent: FileStat;
   readonly targetStat: FileStat | undefined;
   readonly link: string | undefined;
 }
@@ -37,10 +38,11 @@ function unchanged(before: FileStat, after: FileStat, content: boolean): boolean
     && (!content || (before.size === after.size && before.mtimeMs === after.mtimeMs && before.mode === after.mode));
 }
 
-async function recheck(context: CommandContext, entry: MoveEntry, content = true): Promise<void> {
+async function recheck(context: CommandContext, entry: MoveEntry, content = true): Promise<FileStat> {
   context.signal.throwIfAborted();
   const current = await context.fs.lstat(entry.source, { signal: context.signal });
   if (!unchanged(entry.stat, current, content)) throw new FsError("EBUSY", { path: entry.source, message: "move source changed before removal" });
+  return current;
 }
 
 export async function moveAcrossDevices(context: CommandContext, source: string, target: string, noClobber: boolean, budget: MoveBudget): Promise<boolean> {
@@ -56,7 +58,6 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   if (rootIdentity === "same") return false;
   if (source === "/") throw new FsError("EBUSY", { path: source });
   if (sourceStat.type === "directory") {
-    if (!context.fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path: source });
     if (isPathWithin(source, target)) throw new FsError("EINVAL", { path: target, message: "cannot move a directory into itself" });
     let parent = dirname(target);
     while (true) {
@@ -77,12 +78,16 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
       if ((stat.type === "directory") !== (existing.type === "directory")) throw new FsError(existing.type === "directory" ? "EISDIR" : "ENOTDIR", { path: destination });
       if (stat.type === "directory" && (await context.fs.readdir(destination, { signal: context.signal })).length) throw new FsError("ENOTEMPTY", { path: destination });
     }
+    if (stat.type === "directory" && compareCopyIdentity(stat, stat) !== "same") {
+      throw new FsError("ENOTSUP", { path: origin, message: "move source directory lacks authoritative identity" });
+    }
     let link: string | undefined;
     if (stat.type === "symlink") {
       if (!context.fs.readlink || !context.fs.symlink) throw new FsError("ENOTSUP", { syscall: "symlink", path: origin });
       link = await context.fs.readlink(origin, { signal: context.signal });
     }
-    plan.push({ source: origin, target: destination, stat, targetStat: existing, link });
+    const parent = await context.fs.stat(dirname(origin), { signal: context.signal });
+    plan.push({ source: origin, target: destination, stat, parent, targetStat: existing, link });
     if (stat.type === "directory") {
       const entries = await context.fs.readdir(origin, { signal: context.signal });
       if (entries.length > budget.remaining) throw new FsError("EFBIG", { message: "cross-device move entry limit exceeded" });
@@ -93,10 +98,14 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
     }
   };
   await visit(source, target, sourceStat, targetStat, 0);
+  if (!context.fs.removeEntryConditional) throw new FsError("ENOTSUP", { syscall: "removeEntryConditional", path: source });
   for (const entry of plan) {
     const sourceMode = entry.stat.type === "directory" ? "cross-directory-source"
       : entry.stat.type === "symlink" ? "cross-link-source" : "cross-source";
     await admitFilesystemModes(context, "mv", [sourceMode], [entry.source]);
+    const capabilities = await context.fs.capabilitiesFor?.(entry.source, { signal: context.signal }) ?? context.fs.capabilities;
+    context.signal.throwIfAborted();
+    if (capabilities.atomicEntryRemoval !== true) throw new FsError("ENOTSUP", { syscall: "removeEntryConditional", path: entry.source });
     if (entry.stat.type === "directory") {
       if (!entry.targetStat) await admitFilesystemModes(context, "mv", ["cross-directory"], [entry.target]);
     } else if (entry.stat.type === "symlink") {
@@ -144,9 +153,12 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   }
   for (const entry of plan) await recheck(context, entry);
   for (const entry of [...plan].reverse()) {
-    await recheck(context, entry, entry.stat.type !== "directory");
-    if (entry.stat.type === "directory") await context.fs.rmdir!(entry.source, { signal: context.signal });
-    else await context.fs.rm(entry.source, { recursive: false, signal: context.signal });
+    // Child cleanup changes directory metadata; retain the planned identity and
+    // parent while comparing the directory snapshot atomically at removal.
+    const current = await recheck(context, entry, entry.stat.type !== "directory");
+    await context.fs.removeEntryConditional(entry.source, {
+      parent: entry.parent, expected: entry.stat.type === "directory" ? current : entry.stat, signal: context.signal,
+    });
   }
   return true;
 }

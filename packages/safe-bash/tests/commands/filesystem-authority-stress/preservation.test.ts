@@ -35,7 +35,7 @@ for (const phase of ["copy", "metadata", "remove"] as const) test(`mv: cancellat
       await base.chmod(path, mode, controls);
       if (phase === "metadata") controller.abort(reason);
     },
-    rm: async (_path, controls) => {
+    removeEntryConditional: async (_path, controls) => {
       assert.equal(phase, "remove");
       controller.abort(reason);
       controls?.signal?.throwIfAborted();

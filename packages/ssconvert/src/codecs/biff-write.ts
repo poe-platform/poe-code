@@ -132,6 +132,19 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     bounds.push(output.record(0x85, data));
   }
   if (revision === 7) legacyLinks(output, book, formulaWriter.externNames, context);
+  if (revision === 8) {
+    output.record(0x8c, words(1, 1));
+    const addins = formulaWriter.externNames.length > 0;
+    if (addins) {
+      output.record(0x1ae, new Uint8Array([1, 0, 1, 0x3a]));
+      for (const name of formulaWriter.externNames) output.record(0x23, join(join(new Uint8Array(6), biffString(name, revision, context, 1)), new Uint8Array([2, 0, 28, 23])));
+    }
+    output.record(0x1ae, words(book.sheets.length, 0x401));
+    output.record(0x17, words(formulaWriter.externalSheets.length + Number(addins),
+      ...(addins ? [0, 0xfffe, 0xfffe] : []), ...formulaWriter.externalSheets.flatMap(s => [Number(addins), s.first, s.last])));
+  }
+  // Native imports NAME expressions immediately, so their NameX/3D links
+  // must already be declared even though our reader resolves them afterward.
   for (const { name, formula } of named) {
     const text = biffString(name.name, revision, context, 1), header = new Uint8Array(14), view = new DataView(header.buffer);
     header[3] = text[0]!; view.setUint16(4, formula.tokens.length, true);
@@ -144,15 +157,6 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     output.record(0x18, join(header, text.subarray(1)));
   }
   if (revision === 8) {
-    output.record(0x8c, words(1, 1));
-    const addins = formulaWriter.externNames.length > 0;
-    if (addins) {
-      output.record(0x1ae, new Uint8Array([1, 0, 1, 0x3a]));
-      for (const name of formulaWriter.externNames) output.record(0x23, join(join(new Uint8Array(6), biffString(name, revision, context, 1)), new Uint8Array([2, 0, 28, 23])));
-    }
-    output.record(0x1ae, words(book.sheets.length, 0x401));
-    output.record(0x17, words(formulaWriter.externalSheets.length + Number(addins),
-      ...(addins ? [0, 0xfffe, 0xfffe] : []), ...formulaWriter.externalSheets.flatMap(s => [Number(addins), s.first, s.last])));
     metadata.global(output); sst(output, strings, context);
   }
   output.record(10);

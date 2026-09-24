@@ -423,6 +423,11 @@
           "kind": "native-relative-reference-wrapping",
           "path": "docs/ssconvert/relative-reference-wrap-gap-proof.json",
           "outcome": "11red/11green;86focused/22845package tests,lint/types/build pass.70SDK/Shell CSV executions/20exports repair6localBIFF replays;1XLSXanchor discrepancy remains. Native scope capture separately exposes BIFF8/dual link-table ordering."
+        },
+        {
+          "kind": "BIFF8-name-link-declaration-order",
+          "path": "docs/ssconvert/biff-name-link-order-gap-proof.json",
+          "outcome": "2red/2green;83focused/22847package tests,lint/types/build pass. Link tables now precede dependent NAME records;4generatedBIFF native readbacks and1nativeXLSX anchor roundtrip requested."
         }
       ],
       "delivery": {

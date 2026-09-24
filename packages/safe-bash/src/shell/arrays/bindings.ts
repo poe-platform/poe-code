@@ -41,7 +41,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
   for (let offset = 0; offset < value.length;) {
     const end = Math.min(value.length, offset + 64);
     const step = end - offset;
-    owner.reserve({ work: step }).release();
+    owner.chargeWork(step);
     while (offset < end) {
       const code = value.codePointAt(offset)!;
       bytes = exactSum(bytes, code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4);
@@ -64,7 +64,7 @@ export async function valueToken(owner: ArrayOwner, value: ShellValue, signal: A
     let text: string | undefined = "";
     for (let offset = 0; offset < bytes; offset += 1024) {
       const end = Math.min(bytes, offset + 1024);
-      owner.reserve({ work: end - offset }).release();
+      owner.chargeWork(end - offset);
       await owner.ledger.checkpoint(signal, end - offset);
       if (text !== undefined) try { text += decoder.decode(input.subarray(offset, end), { stream: end < bytes }); }
       catch (error) {
@@ -205,7 +205,7 @@ export class IndexedBinding {
         await copy.owner.ledger.checkpoint(signal, identity.length + 8);
       }
       for (const [index, element] of this.values) {
-        copy.owner.reserve({ work: 2 }).release();
+        copy.owner.chargeWork(2);
         const text = element.text.retain();
         try { copy.insert(index, text); }
         catch (error) { text.release(); throw error; }
@@ -233,7 +233,7 @@ export class IndexedBinding {
         const leftEnd = right;
         const rightEnd = Math.min(size, start + width * 2);
         for (let destination = start; destination < rightEnd; destination++) {
-          owner.reserve({ work: 2 }).release();
+          owner.chargeWork(2);
           scratch[destination] = left < leftEnd && (right >= rightEnd || indices[left]! <= indices[right]!) ? indices[left++]! : indices[right++]!;
           await owner.ledger.checkpoint(signal, 2);
         }
@@ -364,7 +364,7 @@ export class BindingStore {
     const observer = operation.reserve({ metadata: 64, work: 5 });
     if (!watch) {
       signal.throwIfAborted();
-      owner.reserve({ work: name.length }).release();
+      owner.chargeWork(name.length);
       const bytes = Buffer.byteLength(name);
       const token = new OwnedText(name, bytes, owner.reserve({ metadata: 32, payload: bytes, work: 4 }));
       try {

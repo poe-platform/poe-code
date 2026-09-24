@@ -2,6 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { shell, type NativeCase } from "./helpers.js";
 
+test("unexpand rejects the undocumented -F option", async context => {
+  const instance = shell();
+  context.after(() => instance.dispose());
+  const result = await instance.exec("unexpand -F", { stdin: "        a       b\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+});
+
 const blanks = "        a        b\n1234567  X\n1234567 X\n1234567 \tX\n\t  \t\n";
 export const unexpandCases: readonly NativeCase[] = [
   { args: [], input: blanks }, { args: ["-a"], input: blanks },

@@ -11,6 +11,43 @@ const cases = [
   [0o644, "+x", 0o755], [0o666, "-w", 0o466], [0o644, "u=rw+x", 0o744],
 ] as const;
 
+test("chmod treats leading minus permissions as a mode for every operand", async () => {
+  for (const [mode, expected] of [["-r", [0o333, 0o200]], ["-rx", [0o222, 0o200]], ["-r,u+x", [0o333, 0o300]]] as const) {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/first", new Uint8Array(), { mode: 0o777 });
+    await fs.writeFile("/work/second", new Uint8Array(), { mode: 0o600 });
+    const result = await runMetadata("chmod", ["-v", mode, "first", "second"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await Promise.all(["first", "second"].map(async path => (await fs.stat(`/work/${path}`)).mode & 0o777)), expected);
+  }
+});
+
+test("chmod recognizes minus modes after operands and preserves later options", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/600", new Uint8Array(), { mode: 0o777 });
+  await fs.writeFile("/work/-r", new Uint8Array(), { mode: 0o777 });
+  const result = await runMetadata("chmod", ["600", "-r", "-v"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/work/600")).mode & 0o777, 0o333);
+  assert.equal((await fs.stat("/work/-r")).mode & 0o777, 0o777);
+  assert.ok(result.stdout.includes("'600'"));
+});
+
+test("chmod rejects minus modes with reference and preserves literal reference arguments", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/reference", new Uint8Array(), { mode: 0o777 });
+  await fs.writeFile("/work/-r", new Uint8Array(), { mode: 0o600 });
+  const result = await runMetadata("chmod", ["--reference=reference", "-r"], fs);
+  assert.equal(result.exitCode, 1);
+  assert.equal((await fs.stat("/work/-r")).mode & 0o777, 0o600);
+  assert.equal((await runMetadata("chmod", ["--reference", "-r", "reference"], fs)).exitCode, 0);
+  assert.equal((await fs.stat("/work/reference")).mode & 0o777, 0o600);
+  assert.equal((await runMetadata("chmod", ["--reference=reference", "--", "-r"], fs)).exitCode, 0);
+});
+
 for (const [initial, mode, expected] of cases) {
   test(`chmod mode ${initial.toString(8)} ${mode}`, async () => {
     const fs = new MemoryFileSystem();

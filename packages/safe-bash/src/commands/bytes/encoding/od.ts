@@ -120,12 +120,12 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
         } else rewritten.push(`-${flag}`);
       }
     }
-    const parsed = options(rewritten, "vA:j:N:t:w:e:S:", { "address-radix": "A", "skip-bytes": "j", "read-bytes": "N", format: "t", type: "t", width: "w", endian: "e", "output-duplicates": "v", strings: "S" });
+    const parsed = options(rewritten, "vA:j:N:t:w:S:", { "address-radix": "A", "skip-bytes": "j", "read-bytes": "N", format: "t", type: "t", width: "w", endian: "endian:", "output-duplicates": "v", strings: "S" });
     const radix = validatedOption(parsed, "A", text => {
       if (!["d", "o", "x", "n"].includes(text)) throw new UsageError("address radix must be d, o, x, or n");
       return text;
     }, "o");
-    const endian = validatedOption(parsed, "e", text => {
+    const endian = validatedOption(parsed, "endian", text => {
       if (text !== "little" && text !== "big") throw new UsageError("endian must be little or big");
       return text;
     }, "little");

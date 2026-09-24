@@ -59,11 +59,26 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
   const configured = settings(configuration);
   return metadataCommand("chmod", async context => {
     const budget = new MetadataBudget(context, configured.limits);
-    const parsed = options(context.args, "Rvcfr:", { recursive: "R", verbose: "v", changes: "c", silent: "f", quiet: "f", reference: "r" });
-    const reference = value(parsed, "r");
-    requireOperands(parsed.operands, reference === undefined ? 2 : 1);
-    const change = reference === undefined ? modeChange(parsed.operands[0]!, configured.umask) : undefined;
-    const paths = reference === undefined ? parsed.operands.slice(1) : parsed.operands;
+    const modeOptions: string[] = [];
+    let ended = false, referenceValue = false;
+    const args = context.args.flatMap(argument => {
+      if (referenceValue) { referenceValue = false; return [argument]; }
+      if (argument === "--") ended = true;
+      if (ended) return [argument];
+      if (argument === "--reference") referenceValue = true;
+      if (argument.startsWith("-") && argument.length > 1 && "rwxXstugo".includes(argument[1]!)) {
+        modeOptions.push(argument);
+        return [];
+      }
+      return [argument];
+    });
+    const parsed = options(args, "Rvcf", { recursive: "R", verbose: "v", changes: "c", silent: "f", quiet: "f", reference: "reference:" });
+    const reference = value(parsed, "reference");
+    if (reference !== undefined && modeOptions.length) throw new UsageError("cannot combine mode and --reference options");
+    requireOperands(parsed.operands, reference === undefined && !modeOptions.length ? 2 : 1);
+    const mode = modeOptions.length ? modeOptions.join(",") : reference === undefined ? parsed.operands.shift()! : undefined;
+    const change = mode === undefined ? undefined : modeChange(mode, configured.umask);
+    const paths = parsed.operands;
     if (context.fs.capabilities.readOnly) throw new FsError("EROFS", { syscall: "chmod" });
     if (!context.fs.chmod || context.fs.capabilities.permissions === false) throw new FsError("ENOTSUP", { syscall: "chmod" });
     const referenceMode = reference === undefined ? undefined : (await context.fs.stat(pathOf(context, reference), { signal: context.signal })).mode & 0o7777;

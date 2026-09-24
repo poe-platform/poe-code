@@ -515,7 +515,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         else if (argument.startsWith("-") && !argument.startsWith("--")) {
           for (let offset = 1; offset < argument.length; offset++) {
             const flag = argument[offset];
-            if (flag === "S" || flag === "t" || flag === "B") {
+            if (flag === "S" || flag === "t") {
               optionValue = offset === argument.length - 1;
               break;
             }
@@ -525,12 +525,12 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (argument === "--suffix" || argument === "--target-directory") optionValue = true;
         return argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "finuvbB:S:Tt:", {
-        force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", backup: "B", suffix: "S",
+      const parsed = options(args, "finuvbS:Tt:", {
+        force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", backup: "backup:", suffix: "S",
         "no-target-directory": "T", "target-directory": "t",
       });
       for (const flag of ["f", "i", "n"]) if (flag !== overwrite) parsed.flags.delete(flag);
-      const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
+      const control = value(parsed, "backup") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
       const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
       const backupMode = modes[control];
       if (!backupMode) throw new UsageError(`invalid argument '${control}' for backup type`);
@@ -782,7 +782,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
               const flag = argument[offset]!;
               if (flag === "L" || flag === "P") logical = flag === "L";
               if (flag === "i" || flag === "f") interactive = flag === "i";
-              if (flag === "S" || flag === "t" || flag === "B") {
+              if (flag === "S" || flag === "t") {
                 optionValue = offset === argument.length - 1;
                 break;
               }
@@ -791,11 +791,11 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "srifnTvbLPB:S:t:", { symbolic: "s", relative: "r", interactive: "i", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", logical: "L", physical: "P", backup: "B", suffix: "S", "target-directory": "t" });
+      const parsed = options(args, "srifnTvbLPS:t:", { symbolic: "s", relative: "r", interactive: "i", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", logical: "L", physical: "P", backup: "backup:", suffix: "S", "target-directory": "t" });
       if (parsed.flags.has("r") && !parsed.flags.has("s")) throw new UsageError("cannot do --relative without --symbolic");
       const targetDirectory = value(parsed, "t");
       if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
-      const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
+      const control = value(parsed, "backup") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
       const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
       const backupMode = Object.hasOwn(modes, control) ? modes[control]! : undefined;
       if (!backupMode) throw new UsageError(`invalid argument '${control}' for backup type`);

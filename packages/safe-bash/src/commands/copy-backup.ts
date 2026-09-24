@@ -29,7 +29,7 @@ export function copyOptions(context: CommandContext) {
     } else args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}` : argument);
     if (argument === "--") ended = true;
     const valueOffset = argument.startsWith("-") && !argument.startsWith("--")
-      ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t" || character === "B")) : -1;
+      ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t")) : -1;
     if (!ended) {
       if (argument === "--interactive") overwrite = "i";
       else if (argument === "--no-clobber") overwrite = "n";
@@ -43,10 +43,10 @@ export function copyOptions(context: CommandContext) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
-  const parsed = options(args, "arRfinuvPHLpdbB:S:t:Tlsx", {
+  const parsed = options(args, "arRfinuvPHLpdbS:t:Tlsx", {
     archive: "a", preserve: "p", "attributes-only": false, link: "l", "symbolic-link": "s",
     recursive: "R", "one-file-system": "x", force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", dereference: "L", "no-dereference": "P",
-    backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
+    backup: "backup:", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
   }, false, undefined, undefined, flag => {
     if (flag === "a" || flag === "d") dereference = "P";
     else if (flag === "H" || flag === "L" || flag === "P") dereference = flag;
@@ -63,8 +63,8 @@ export function copyOptions(context: CommandContext) {
   for (const flag of ["H", "L", "P"]) parsed.flags.delete(flag);
   parsed.flags.add(dereference ?? (parsed.flags.has("R") || parsed.flags.has("r") ? "P" : "H"));
   let backup: CopyBackup | undefined;
-  if (parsed.flags.has("b") || parsed.flags.has("B")) {
-    const control = value(parsed, "B") ?? context.env.VERSION_CONTROL ?? "existing";
+  if (parsed.flags.has("b") || parsed.flags.has("backup")) {
+    const control = value(parsed, "backup") ?? context.env.VERSION_CONTROL ?? "existing";
     const modes: Record<string, CopyBackup["mode"] | "none"> = {
       none: "none", off: "none", numbered: "numbered", t: "numbered",
       existing: "existing", nil: "existing", simple: "simple", never: "simple",

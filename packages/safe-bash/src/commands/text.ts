@@ -1,11 +1,12 @@
 import { PublicDiagnostic } from "../diagnostics.js";
 import { FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { RecordBuffer } from "./record-buffer.js";
 import { SortRecordBudget } from "./sort-admission.js";
+import { compareObservedEntries } from "./copy-identity.js";
 
 class SortWork {
   #pending = 0;
@@ -58,13 +59,15 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
   let start = 0;
   let end = 0;
   let invalid = false;
+  let needsRange = true;
   for (let index = 0; index <= list.length; index++) {
     const checkpoint = work.charge();
     if (checkpoint) await checkpoint;
     const character = list[index];
-    if (character === "," || character === " " || index === list.length) {
+    if (character === "," || character === " " || character === "\t" || index === list.length) {
       if (index === tokenStart) {
-        if (index === 0 || index === list.length) throw new UsageError("invalid range ''");
+        if (needsRange && (character === "," || index === list.length)) throw new UsageError("invalid range ''");
+        if (character === ",") needsRange = true;
         tokenStart = index + 1;
         continue;
       }
@@ -77,6 +80,7 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
       if (!openEnd && (!Number.isSafeInteger(end) || end < 1)) throw new UsageError(`invalid number '${list.slice(dash < 0 ? tokenStart : dash + 1, index)}'`);
       if (end < start) throw new UsageError(`decreasing range '${list.slice(tokenStart, index)}'`);
       ranges.push({ start, end });
+      needsRange = character === ",";
       tokenStart = index + 1;
       dash = -1;
       start = 0;
@@ -97,7 +101,7 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
     const checkpoint = work.charge();
     if (checkpoint) await checkpoint;
     const previous = normalized.at(-1);
-    if (previous && range.start <= previous.end + 1) previous.end = Math.max(previous.end, range.end);
+    if (previous && range.start <= previous.end) previous.end = Math.max(previous.end, range.end);
     else normalized.push(range);
   }
   return normalized;
@@ -646,25 +650,40 @@ export function textCommands(): CommandDefinition[] {
       const args = context.args.map(argument => {
         if (ended) return argument;
         if (argument === "--") ended = true;
-        if (argument === "--all-repeated" || argument.startsWith("--all-repeated=")) {
-          repeatedMethod = argument === "--all-repeated" ? "none" : argument.slice("--all-repeated=".length);
-          if (!["none", "prepend", "separate"].includes(repeatedMethod)) throw new UsageError(`invalid argument '${repeatedMethod}' for 'all-repeated'`);
-          return "--all-repeated";
-        }
-        if (argument === "--group" || argument.startsWith("--group=")) {
-          groupMethod = argument === "--group" ? "separate" : argument.slice("--group=".length);
-          if (!["separate", "prepend", "append", "both"].includes(groupMethod)) throw new UsageError(`invalid argument '${groupMethod}' for 'group'`);
-          return "--group";
-        }
+        if (argument === "--all-repeated") return "--all-repeated=none";
+        if (argument === "--group") return "--group=separate";
         return argument;
       });
-      const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "D", group: false, "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" });
-      const allRepeated = parsed.flags.has("D");
+      const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" }, false, undefined, undefined, (option, method) => {
+        if (option === "D") repeatedMethod = "none";
+        else if (option === "all-repeated") {
+          if (!["none", "prepend", "separate"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'all-repeated'`);
+          repeatedMethod = method!;
+        } else if (option === "group") {
+          if (!["separate", "prepend", "append", "both"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'group'`);
+          groupMethod = method;
+        }
+      });
+      const allRepeated = parsed.flags.has("D") || parsed.flags.has("all-repeated");
       if (allRepeated && parsed.flags.has("c")) throw new UsageError("printing all duplicated lines and repeat counts is meaningless");
       if (groupMethod !== undefined && (allRepeated || ["c", "d", "u"].some(flag => parsed.flags.has(flag)))) throw new UsageError("--group is mutually exclusive with -c/-d/-D/-u");
       requireOperands(parsed.operands, 0, 2);
       await assertInputRequirements(context, parsed.operands.slice(0, 1));
       await admitTextOutput(context, parsed.operands[1]);
+      if (parsed.operands[1] !== undefined && parsed.operands[0] !== "-") {
+        const source = pathOf(context, parsed.operands[0]!);
+        const destination = pathOf(context, parsed.operands[1]);
+        const sourceStat = await context.fs.stat(source, { signal: context.signal });
+        let destinationStat;
+        try { destinationStat = await context.fs.stat(destination, { signal: context.signal }); }
+        catch (error) { context.signal.throwIfAborted(); if (codeOf(error) !== "ENOENT") throw error; }
+        if (destinationStat) {
+          const samePath = await context.fs.realpath(source, { signal: context.signal }) === await context.fs.realpath(destination, { signal: context.signal });
+          const identity = samePath ? "same" : await compareObservedEntries(context.fs, source, sourceStat, context.fs, destination, destinationStat, { signal: context.signal });
+          if (identity === "same") throw new UsageError("input and output must be different files");
+          if (identity === "unknown") throw new FsError("ENOTSUP", { syscall: "uniq", path: source, dest: destination, message: "cannot determine whether input and output are distinct files" });
+        }
+      }
       const skipFields = integer(value(parsed, "f") ?? "0");
       const skipCharacters = integer(value(parsed, "s") ?? "0");
       const width = value(parsed, "w") === undefined ? Infinity : integer(value(parsed, "w")!);
@@ -715,13 +734,11 @@ export function textCommands(): CommandDefinition[] {
         if (!expanded && previous !== undefined && selected()) yield record();
         if (emittedGroup && (method === "append" || method === "both")) yield Uint8Array.of(delimiter);
       })();
-      if (parsed.operands[1] !== undefined && parsed.operands[0] !== "-"
-        && pathOf(context, parsed.operands[0]!) === pathOf(context, parsed.operands[1])) throw new UsageError("input and output must be different files");
       await emitRecords(context, records, parsed.operands[1]);
       return { exitCode: 0 };
     }),
     define("cut", async context => {
-      const parsed = options(context.args, "b:c:f:d:nszo:C", { bytes: "b", characters: "c", fields: "f", delimiter: "d", "only-delimited": "s", "zero-terminated": "z", "output-delimiter": "o", complement: "C" });
+      const parsed = options(context.args, "b:c:f:d:nsz", { bytes: "b", characters: "c", fields: "f", delimiter: "d", "only-delimited": "s", "zero-terminated": "z", "output-delimiter": "output-delimiter:", complement: false });
       await assertInputRequirements(context, parsed.operands);
       const modes = ["b", "c", "f"].filter(mode => parsed.flags.has(mode));
       if (modes.length !== 1) throw new UsageError("exactly one byte, character, or field list is required");
@@ -731,10 +748,10 @@ export function textCommands(): CommandDefinition[] {
       if (mode !== "f" && (parsed.flags.has("d") || parsed.flags.has("s"))) throw new UsageError("delimiter options require field mode");
       const work = new SortWork(context.signal);
       const ranges = await cutRanges(value(parsed, mode)!, work);
-      const complement = parsed.flags.has("C");
+      const complement = parsed.flags.has("complement");
       const delimiter = value(parsed, "d") ?? "\t";
       if (delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");
-      const outputDelimiter = value(parsed, "o");
+      const outputDelimiter = value(parsed, "output-delimiter");
       const recordDelimiter = parsed.flags.has("z") ? 0 : 10;
       const separator = Buffer.from(encoder.encode(delimiter));
       const writer = new CutOutput(context, work);
@@ -746,7 +763,8 @@ export function textCommands(): CommandDefinition[] {
             let cursor = 0;
             const selected = (position: number) => {
               while (cursor < ranges.length && position > ranges[cursor]!.end) cursor++;
-              return (cursor < ranges.length && position >= ranges[cursor]!.start) !== complement;
+              const included = cursor < ranges.length && position >= ranges[cursor]!.start;
+              return included !== complement ? cursor : -1;
             };
             if (mode === "f") {
               const record = Buffer.from(line.bytes.buffer, line.bytes.byteOffset, line.bytes.byteLength);
@@ -761,7 +779,7 @@ export function textCommands(): CommandDefinition[] {
                 while (true) {
                   const checkpoint = work.charge();
                   if (checkpoint) await checkpoint;
-                  if (selected(field++)) {
+                  if (selected(field++) >= 0) {
                     if (emitted) await writer.text(outputDelimiter ?? delimiter);
                     await writer.write(record.subarray(start, boundary < 0 ? record.length : boundary));
                     emitted = true;
@@ -773,21 +791,21 @@ export function textCommands(): CommandDefinition[] {
               }
             } else if (byteSelection) {
               let emitted = false;
-              let previousIncluded = false;
+              let previousRange = -1;
               for (let offset = 0; offset < line.bytes.length; offset += 4096) {
                 const end = Math.min(line.bytes.length, offset + 4096);
                 const checkpoint = work.charge(end - offset);
                 if (checkpoint) await checkpoint;
                 let start = -1;
                 for (let index = offset; index < end; index++) {
-                  const included = selected(index + 1);
-                  if (included && start < 0) {
-                    if (!previousIncluded && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
+                  const range = selected(index + 1);
+                  if (range !== previousRange && start >= 0) { await writer.write(line.bytes.subarray(start, index)); start = -1; }
+                  if (range >= 0 && start < 0) {
+                    if (range !== previousRange && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
                     start = index;
                     emitted = true;
                   }
-                  if (!included && start >= 0) { await writer.write(line.bytes.subarray(start, index)); start = -1; }
-                  previousIncluded = included;
+                  previousRange = range;
                 }
                 if (start >= 0) await writer.write(line.bytes.subarray(start, end));
               }
@@ -795,7 +813,7 @@ export function textCommands(): CommandDefinition[] {
               const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
               let index = 0;
               let emitted = false;
-              let previousIncluded = false;
+              let previousRange = -1;
               for (let offset = 0; offset < line.bytes.length; offset += 4096) {
                 const end = Math.min(line.bytes.length, offset + 4096);
                 const checkpoint = work.charge(end - offset);
@@ -806,15 +824,15 @@ export function textCommands(): CommandDefinition[] {
                 for (const character of text) {
                   const checkpoint = work.charge();
                   if (checkpoint) await checkpoint;
-                  const included = selected(++index);
-                  if (included && start < 0) {
-                    if (!previousIncluded && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
+                  const range = selected(++index);
+                  if (range !== previousRange && start >= 0) { await writer.text(text.slice(start, position)); start = -1; }
+                  if (range >= 0 && start < 0) {
+                    if (range !== previousRange && emitted && outputDelimiter !== undefined) await writer.text(outputDelimiter);
                     start = position;
                     emitted = true;
                   }
-                  if (!included && start >= 0) { await writer.text(text.slice(start, position)); start = -1; }
                   position += character.length;
-                  previousIncluded = included;
+                  previousRange = range;
                 }
                 if (start >= 0) await writer.text(text.slice(start));
               }

@@ -49,7 +49,7 @@ before(async () => {
 
 const cases = [
   { name: "overlapping reordered byte ranges", args: "-b 5-,2-3,1-2,2 --output-delimiter='|'", input: "abcdef\n", output: "abc|ef\n" },
-  { name: "adjacent byte ranges retain current join behavior", args: "-b 1,2,3-4 --output-delimiter='|'", input: "abcdef\n", output: "abcd\n" },
+  { name: "adjacent byte ranges retain their output delimiters", args: "-b 1,2,3-4 --output-delimiter='|'", input: "abcdef\n", output: "a|b|cd\n" },
   { name: "Unicode character ranges", args: "-c 2-3", input: "a😀éz\n", output: "😀é\n" },
   { name: "Unicode decoder chunk boundary", args: "-c 4096-4097", input: "a".repeat(4095) + "😀éz\n", output: "😀é\n" },
   { name: "multibyte field separator chunk boundary", args: "-d 😀 -f 2,3", input: "a".repeat(4095) + "😀é😀z\n", output: "é😀z\n" },

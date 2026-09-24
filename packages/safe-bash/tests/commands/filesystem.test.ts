@@ -6,6 +6,18 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+for (const command of ["cp", "mv", "ln"]) {
+  test(`${command} rejects the undocumented -B option before changing files`, async () => {
+    const fs = await fixture({ source: "new", target: "old" });
+    const result = await run(command, ["-B", "simple", "source", "target"], { fs });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.equal(Buffer.from(await fs.readFile("/work/source")).toString(), "new");
+    assert.equal(Buffer.from(await fs.readFile("/work/target")).toString(), "old");
+    await assert.rejects(fs.stat("/work/target~"), { code: "ENOENT" });
+  });
+}
+
 for (const flags of ["-v", "--verbose", ""]) {
   for (const operand of ["empty", "./empty", "empty/", "/work/empty"]) {
     test(`rmdir ${flags} preserves operand spelling ${operand}`, async context => {

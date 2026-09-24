@@ -187,6 +187,79 @@ test("uniq rejects invalid group methods and incompatible selections", async () 
   }
 });
 
+test("uniq refuses aliased output before opening a writer", async () => {
+  for (const [source, destination] of [
+    ["input", "input"], ["./input", "input"], ["/work/input", "/work//input"],
+    ["sub/../input", "input"], ["input", "symbolic"], ["symbolic", "input"],
+    ["input", "hard"], ["hard", "input"], ["alias/input", "input"],
+  ]) {
+    const contents = "x\nx\ny\n";
+    const fs = await fixture({ input: contents });
+    await fs.mkdir("/work/sub");
+    await fs.symlink("input", "/work/symbolic");
+    await fs.symlink(".", "/work/alias");
+    await fs.link("/work/input", "/work/hard");
+    let writes = 0;
+    const writeStream = fs.writeStream.bind(fs);
+    fs.writeStream = async (...args) => { writes++; return writeStream(...args); };
+    const result = await run("uniq", [source!, destination!], { fs });
+    assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), contents, `${source} -> ${destination}`);
+    assert.equal(writes, 0);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr, "uniq: input and output must be different files\n");
+  }
+});
+
+test("uniq uses the last all-repeated option including bundled short flags", async () => {
+  for (const args of [["--all-repeated=separate", "-D"], ["--all-repeated=prepend", "-iD"], ["--all-repeated=separate", "--all-repeated"]]) {
+    const result = await run("uniq", args, { stdin: "x\nx\ny\ny\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "x\nx\ny\ny\n");
+  }
+  assert.equal((await run("uniq", ["-D", "--all-repeated=separate"], { stdin: "x\nx\ny\ny\n" })).stdout, "x\nx\n\ny\ny\n");
+});
+
+test("uniq refuses uncertain existing output identity without destroying a hidden hard link", async () => {
+  const contents = "x\nx\ny\n";
+  const fs = await fixture({ input: contents });
+  await fs.link("/work/input", "/work/alias");
+  const stat = fs.stat.bind(fs);
+  fs.stat = async (...args) => {
+    const result = { ...await stat(...args) };
+    delete result.identityScope;
+    return result;
+  };
+  fs.compareEntry = async () => "unknown";
+  const result = await run("uniq", ["input", "alias"], { fs });
+  assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), contents);
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("cannot determine whether input and output are distinct files"));
+});
+
+test("uniq uses provider entry comparison when stat identity is unavailable", async () => {
+  for (const comparison of ["same", "distinct"] as const) {
+    const fs = await fixture({ input: "x\nx\ny\n", output: "old\n" });
+    const stat = fs.stat.bind(fs);
+    fs.stat = async (...args) => {
+      const result = { ...await stat(...args) };
+      delete result.identityScope;
+      return result;
+    };
+    let compared = false;
+    fs.compareEntry = async (path, peer, peerPath) => {
+      assert.equal(path, "/work/input");
+      assert.equal(peer, fs);
+      assert.equal(peerPath, "/work/output");
+      compared = true;
+      return comparison;
+    };
+    const result = await run("uniq", ["input", "output"], { fs });
+    assert.equal(compared, true);
+    assert.equal(result.exitCode, comparison === "same" ? 2 : 0, result.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), comparison === "same" ? "old\n" : "x\ny\n");
+  }
+});
+
 test("cut supports overlapping/open ranges, complement, literal fields and UTF-8 characters", async () => {
   assert.equal((await run("cut", ["-b", "1-2,2-3,5-"], { stdin: chunks("abcdef\n") })).stdout, "abcef\n");
   assert.equal((await run("cut", ["--complement", "-b", "2-4"], { stdin: "abcdef" })).stdout, "aef\n");
@@ -383,7 +456,7 @@ test("cut preserves range union record and Unicode behavior across chunk boundar
     for (const ranges of ["5-,2-3,1-2,2", "1-3,5-", "-3,5-"]) {
       assert.equal((await run("cut", [`-${mode}`, ranges, "--output-delimiter=|"], { stdin: "abcdef\nabcdef" })).stdout, "abc|ef\nabc|ef\n");
     }
-    assert.equal((await run("cut", [`-${mode}`, "1,2,3-4", "--output-delimiter=|"], { stdin: "abcdef\n" })).stdout, "abcd\n");
+    assert.equal((await run("cut", [`-${mode}`, "1,2,3-4", "--output-delimiter=|"], { stdin: "abcdef\n" })).stdout, "a|b|cd\n");
     assert.equal((await run("cut", [`-${mode}`, "2-4,3", "--complement"], { stdin: "abcdef\n" })).stdout, "aef\n");
     assert.equal((await run("cut", ["-z", `-${mode}`, "2"], { stdin: "abc\0def" })).stdout, "b\0e\0");
   }
@@ -402,7 +475,47 @@ test("cut preserves range union record and Unicode behavior across chunk boundar
   for (const ranges of ["", "0", "3-1", "-", "1--2", "1,", ",1", "9007199254740992"]) {
     assert.equal((await run("cut", ["-b", ranges])).exitCode, 2, ranges);
   }
-  assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).stdout, "ab\n");
+  assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).exitCode, 2);
+});
+
+test("cut keeps adjacent range boundaries and merges only overlaps", async () => {
+  for (const mode of ["-b", "-c"]) {
+    for (const [list, expected] of [["1-2,3-4", "ab:cd\n"], ["3-4,1,2", "a:b:cd\n"], ["1-3,2-4", "abcd\n"], ["1,1,2-", "a:bcd\n"]]) {
+      const result = await run("cut", [mode, list!, "--output-delimiter=:"], { stdin: "abcd\n" });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    }
+    assert.equal((await run("cut", [mode, "1-2,3-4"], { stdin: "abcd\n" })).stdout, "abcd\n");
+    assert.equal((await run("cut", [mode, "2,3", "--complement", "--output-delimiter=:"], { stdin: "abcdef\n" })).stdout, "a:def\n");
+    const input = "a".repeat(4096) + "bc\n";
+    assert.equal((await run("cut", [mode, "1-4096,4097-", "--output-delimiter=:"], { stdin: chunks(input, 137) })).stdout, "a".repeat(4096) + ":bc\n");
+  }
+  assert.equal((await run("cut", ["-c", "1,2-3", "--output-delimiter=:"], { stdin: "é😀z\n" })).stdout, "é:😀z\n");
+});
+
+test("cut accepts blank separators and padding while rejecting empty comma items", async () => {
+  for (const mode of ["-b", "-c", "-f"]) {
+    const args = mode === "-f" ? ["-d", ":"] : [];
+    const stdin = mode === "-f" ? "a:b:c\n" : "abc\n";
+    for (const list of [" 1,2", "1,2 ", "1\t2", "\t1 , \t2\t ", "1  2", "1,\t2", "1 2,3"]) {
+      const result = await run("cut", [mode, list, ...args, "--output-delimiter=|"], { stdin });
+      assert.equal(result.exitCode, 0, `${JSON.stringify(list)}: ${result.stderr}`);
+      assert.equal(result.stdout, list === "1 2,3" ? "a|b|c\n" : "a|b\n");
+    }
+    for (const list of ["1,,2", "1, ,2", "1,\t,2", ",1", "1,", "1, ", " \t", "1\n2"]) {
+      const result = await run("cut", [mode, list, ...args], { stdin });
+      assert.equal(result.exitCode, 2, JSON.stringify(list));
+      assert.equal(result.stdout, "");
+    }
+  }
+});
+
+test("cut rejects undocumented short options", async () => {
+  for (const args of [["-b", "1,2", "-o", ":"], ["-b", "1", "-C"]]) {
+    const result = await run("cut", args, { stdin: "ab\n" });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+  }
 });
 
 test("cut field mode works with portable Buffer indexOf contracts", async () => {

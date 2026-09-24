@@ -48,9 +48,9 @@ export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefini
         if (!ended && (argument === "-t" || argument === "--tabs") && index + 1 < session.context.args.length) normalized.push(session.context.args[++index]!);
       }
     }
-    const parsed = options(normalized, "at:F", { all: "a", tabs: "t", "first-only": "F" });
+    const parsed = options(normalized, "at:", { all: "a", tabs: "t", "first-only": false });
     const nextTab = tabStops([...obsolete, ...parsed.values.get("t") ?? []], session);
-    const all = !parsed.flags.has("F") && (parsed.flags.has("a") || parsed.flags.has("t"));
+    const all = !parsed.flags.has("first-only") && (parsed.flags.has("a") || parsed.flags.has("t"));
     const output = new ByteOutput(session);
     let column = 0, initial = true, active = true;
     let pendingStart = 0, pendingCount = 0, pendingTab = false;

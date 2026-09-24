@@ -61,6 +61,35 @@ test('standard help works through the shell with and without a configured adapte
   assert.equal(configured.releases, 0);
 });
 
+for (const dashboard of [false, true]) test(`plain and JSON help disclose dashboard support (${dashboard}) without host I/O`, async () => {
+  const configured = fixture();
+  let shows = 0;
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  shell.use(createPlaywrightCli({ adapter: configured.adapter, ...(dashboard ? {
+    abilities: { show: { async execute() { shows++; } } },
+  } : {}) }).plugin);
+  try {
+    for (const args of ['--help', '-h', 'help', '--help show', 'show --help', 'help show', '-s=login show --help']) {
+      for (const json of [false, true]) {
+        const result = await shell.exec(`playwright-cli ${json ? '--json ' : ''}${args}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, '');
+        const help = json ? JSON.parse(result.stdout).help : result.stdout;
+        assert.ok(help.includes(`show: ${dashboard ? 'supported' : 'unsupported'}`), args);
+        assert.equal(help.includes('interactive local browser login are unavailable'), !dashboard, args);
+      }
+    }
+    assert.equal(shows, 0);
+    const result = await shell.exec('playwright-cli -s=login show');
+    assert.equal(result.exitCode, dashboard ? 0 : 1, result.stderr);
+    assert.equal(shows, dashboard ? 1 : 0);
+    assert.equal(result.stderr, '');
+    if (!dashboard) assert.equal(result.stdout, '### Error\nError: Playwright ability not enabled: show\n');
+    assert.deepEqual(configured.output, []);
+    assert.equal(configured.releases, 0);
+  } finally { await shell.dispose(); }
+});
+
 test('CLI errors preserve original execution and cleanup causes in plain and JSON output', async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   shell.use(createPlaywrightCli({ abilities: { requests: { async execute() {

@@ -13,6 +13,11 @@ test('a fully enabled client preserves upstream help and reports its authenticat
   const help = formatPlaywrightHelp(undefined, registerPlaywrightAbilities(abilities, false));
   assert.ok(help.startsWith(reference));
   assert.ok(help.includes('attach: supported through the configured authenticated attachment broker'));
+  assert.ok(help.includes('show: supported through the configured host dashboard ability'));
+  const show = formatPlaywrightHelp('show', registerPlaywrightAbilities(abilities, false));
+  assert.ok(show.startsWith(formatPlaywrightHelp('show')));
+  assert.ok(show.includes('show: supported'));
+  assert.ok(!show.includes('interactive local browser login are unavailable'));
 });
 
 test('a restricted client keeps the vocabulary and discloses unavailable attachment before action', () => {
@@ -29,6 +34,21 @@ test('a restricted client keeps the vocabulary and discloses unavailable attachm
   assert.ok(topic.includes('--secure'));
   assert.ok(!topic.includes('Only the approved domain'));
   assert.equal(formatPlaywrightHelp('open', abilities), formatPlaywrightHelp('open'));
+});
+
+test('dashboard help discloses unavailable local login independently of attachment support', () => {
+  for (const abilities of [registerPlaywrightAbilities(undefined, true), registerPlaywrightAbilities({ attach: { execute: async () => {} } }, false)]) {
+    for (const namedSessionAttachment of [false, true]) {
+      for (const topic of [undefined, 'show'] as const) {
+        const help = formatPlaywrightHelp(topic, abilities, namedSessionAttachment);
+        assert.ok(help.startsWith(formatPlaywrightHelp(topic)));
+        assert.ok(help.includes('show: unsupported'));
+        assert.ok(help.includes('Playwright dashboard and interactive local browser login are unavailable in this host'));
+        assert.ok(help.includes('Do not use show for a login handoff'));
+      }
+      assert.ok(!formatPlaywrightHelp('attach', abilities, namedSessionAttachment).includes('Host dashboard capability'));
+    }
+  }
 });
 
 test('built-in and custom command help use the same official target forms without implementation prose', () => {

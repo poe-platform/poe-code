@@ -538,6 +538,9 @@ for subsequent invocations with the same `PLAYWRIGHT_CLI_SESSION` default,
 including an authenticated agent ID different from the target name. Explicit
 `-s=NAME` overrides selection; `detach` retains the browser, while `close` retires it. See the
 [host capability contract](src/contracts/playwright-sessions.md#persistence).
+`playwright-cli --help` and `playwright-cli show --help` report dashboard
+availability. Without a host dashboard ability, interactive local browser login is unavailable;
+use the authentication flow supplied by the host application.
 
 For Cloudflare Workers, the exported `cloudflareWorkerLimits` profile also sets
 `commandLimits.archive`: 4 MiB archive inputs, an 8 MiB ZIP input collection peak,

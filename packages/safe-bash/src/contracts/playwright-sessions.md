@@ -14,6 +14,15 @@ Listing saved profiles does not verify live connectivity; an explicitly selected
 command may still fail while the provider is unavailable. Hosts supplying an
 authenticated `attach` ability retain their attachment command.
 
+General help and `playwright-cli show --help`, including JSON output, also
+report whether the host supplies a dashboard `show` ability. Without it, the
+Playwright dashboard and interactive local browser login are unavailable;
+agents must use only an authentication flow explicitly provided by the host
+application. The Cloudflare adapter does not supply a dashboard. An attachment
+broker or named-session attachment alone does not enable `show`. The standard
+command vocabulary remains available in help, and capability discovery does
+not acquire a browser or invoke a host ability.
+
 WebMCP discovery for `webmcp-list` and `webmcp-call` treats page tool metadata as
 untrusted. Across all visited frames, metadata is capped at 128 KiB (or the
 smaller command byte limit), 32 container levels, and 4096 structural markers

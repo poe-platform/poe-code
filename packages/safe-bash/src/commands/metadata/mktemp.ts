@@ -50,12 +50,14 @@ function parse(args: readonly string[]) {
   validatePath(suffix ?? "");
   if (suffix?.includes("/") || suffix !== undefined && !template.endsWith("X")) throw new UsageError("suffix requires a template ending in X and cannot contain '/'");
   const name = template.slice(template.lastIndexOf("/") + 1);
-  const match = /^(.*?)(X{3,})([^X]*)$/u.exec(name);
-  if (!match) throw new UsageError("template must contain at least three consecutive X characters in its last component");
+  if (name.length + (suffix?.length ?? 0) > 255 || Buffer.byteLength(name) + Buffer.byteLength(suffix ?? "") > 255) throw new FsError("ENAMETOOLONG", { path: template });
+  const end = name.lastIndexOf("X") + 1;
+  let start = end;
+  while (start > 0 && name[start - 1] === "X") start--;
+  if (end - start < 3) throw new UsageError("template must contain at least three consecutive X characters in its last component");
   if (useTmpdir && template.startsWith("/")) throw new UsageError("template must be relative with --tmpdir/-p");
-  const tail = suffix ?? match[3]!;
-  if (Buffer.byteLength(name + (suffix ?? "")) > 255) throw new FsError("ENAMETOOLONG", { path: template });
-  return { directory, dryRun, quiet, useTmpdir, deprecatedTmpdir, tmpdir, template, prefix: template.slice(0, template.length - name.length) + match[1]!, count: match[2]!.length, tail };
+  const tail = suffix ?? name.slice(end);
+  return { directory, dryRun, quiet, useTmpdir, deprecatedTmpdir, tmpdir, template, prefix: template.slice(0, template.length - name.length + start), count: end - start, tail };
 }
 
 export function createMktempCommand(configuration: MetadataCommandsOptions = {}) {

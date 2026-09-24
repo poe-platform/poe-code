@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { threadCpuUsage } from "node:process";
 import { FsError, type FileSystem, type WriteFileOptions } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell, metadataCommands, standardCommands } from "../../../src/index.js";
@@ -11,6 +12,42 @@ async function fixture() {
   await fs.mkdir("/tmp");
   return fs;
 }
+
+test("mktemp rejects overlong malformed names within a small CPU budget", async () => {
+  const fs = await fixture();
+  // Initialize command dispatch before measuring guest template handling.
+  await runMetadata("mktemp", ["XX"], fs);
+  for (const name of ["X".repeat(16384) + "aX", "a".repeat(8192), "é".repeat(127) + "XXX"]) {
+    const started = threadCpuUsage();
+    const result = await runMetadata("mktemp", [name], fs);
+    const elapsed = threadCpuUsage(started);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /ENAMETOOLONG/u);
+    assert.ok(elapsed.user + elapsed.system < 30000, "template rejection exceeds 30 ms CPU budget");
+    assert.equal(result.stdout, "");
+  }
+  assert.deepEqual(await fs.readdir("/work"), []);
+});
+
+test("mktemp counts UTF-8 suffix bytes and replaces only the final X run", async context => {
+  const fs = await fixture();
+  context.mock.method(globalThis.crypto, "getRandomValues", (bytes: Uint32Array) => {
+    bytes.fill(0);
+    return bytes;
+  });
+  for (const [args, expected] of [
+    [["é".repeat(126) + "XXX"], "é".repeat(126) + "aaa\n"],
+    [["--suffix=" + "é".repeat(126), "XXX"], "aaa" + "é".repeat(126) + "\n"],
+    [["old.XXX.new.XXXX.txt"], "old.XXX.new.aaaa.txt\n"],
+  ] as const) {
+    const result = await runMetadata("mktemp", args, fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+  const tooLong = await runMetadata("mktemp", ["--suffix=" + "é".repeat(127), "XXX"], fs);
+  assert.equal(tooLong.exitCode, 1);
+  assert.match(tooLong.stderr, /ENAMETOOLONG/u);
+});
 
 test("mktemp uses unbiased Web Crypto while preserving collisions and private modes", async context => {
   const fs = await fixture();

@@ -19,7 +19,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
   if (typeof source !== 'string') throw new Error('Invalid native snapshot result');
   let snapshot = source;
   const encoder = new TextEncoder();
-  if (source.length > options.maxBytes || encoder.encode(source).length > options.maxBytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
+  if (source.length > options.maxBytes || encoder.encode(source).length > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   if (options.root) {
     const included: { line: string; indent: number }[] = [];
     const ancestors: { indent: number; included: boolean }[] = [];
@@ -37,7 +37,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
         else if (line.startsWith('[ref=', index)) { native = line.slice(index + 5, line.indexOf(']', index)); break; }
       }
       if (native) {
-        if (++measured > options.maxRefs) throw new PlaywrightResourceLimitError('Snapshot ref limit exceeded');
+        if (++measured > options.maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
         if (!isPlaywrightSnapshotRef(native)) throw new Error('Invalid native snapshot reference');
         const handle = await page.locator(`aria-ref=${native}`).elementHandle?.({ timeout: options.timeout ?? 5000 });
         if (!handle) throw new Error('Snapshot stale while selecting root');
@@ -84,7 +84,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     if (!isPlaywrightSnapshotRef(native)) throw new Error('Invalid native snapshot reference');
     let issued = nativeRefs.get(native);
     if (!issued) {
-      if (refs.size >= options.maxRefs) throw new PlaywrightResourceLimitError('Snapshot ref limit exceeded');
+      if (refs.size >= options.maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
       issued = options.nextRef(native);
       nativeRefs.set(native, issued); refs.set(issued, native);
     }
@@ -108,7 +108,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     index = end;
   }
   text += snapshot.slice(start);
-  if (text.length > options.maxBytes || encoder.encode(text).length > options.maxBytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
+  if (text.length > options.maxBytes || encoder.encode(text).length > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   return { text, refs };
 }
-import { PlaywrightResourceLimitError } from './resource-limit.js';
+import { PlaywrightSnapshotLimitError } from './resource-limit.js';

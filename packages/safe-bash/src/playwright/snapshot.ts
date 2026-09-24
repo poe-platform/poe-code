@@ -3,6 +3,8 @@ import { createFrameSnapshot } from './frame-snapshot.js';
 import { captureNativePlaywrightSnapshot } from './native-snapshot.js';
 import { captureNativePlaywrightJSON } from './native-json-snapshot.js';
 
+export class SnapshotCleanupError extends AggregateError {}
+
 export interface SnapshotLimits { readonly maxSnapshotBytes: number; readonly maxSnapshotRefs: number }
 
 interface SnapshotResource { dispose(): Promise<void> }
@@ -88,7 +90,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     for (const task of tasks) { retirements.add(task); void task.then(() => retirements.delete(task), () => {}); }
     const results = await Promise.allSettled([...retirements]);
     const errors = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
-    if (errors.length) throw new AggregateError(errors, 'Snapshot handle disposal failed');
+    if (errors.length) throw new SnapshotCleanupError(errors, 'Snapshot handle disposal failed');
   };
   const invalidate = async (drainActions = false) => {
     epoch++;
@@ -159,7 +161,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       await publish(pending, acquired);
     } catch (error) {
       try { await retire([...acquired]); }
-      catch (cleanup) { throw new AggregateError([error, cleanup], 'Snapshot capture and cleanup failed'); }
+      catch (cleanup) { throw new SnapshotCleanupError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
       throw error;
     }
   };
@@ -196,7 +198,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         acquired.add(capsule);
         signal?.throwIfAborted();
         const admission = await capsule.evaluate(value => ({ status: value.status, count: value.count, identities: value.identities }), undefined);
-        if (admission.status === 'ref-limit' || admission.count > maxSnapshotRefs - pending.size) throw new PlaywrightResourceLimitError('Snapshot ref limit exceeded');
+        if (admission.status === 'ref-limit' || admission.count > maxSnapshotRefs - pending.size) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
         if (admission.status !== 'ok' || !Number.isSafeInteger(admission.count) || admission.count < 0) throw new Error('Snapshot capture failed');
         const existing = new Map<number, string>();
         const liveCapsules = new Map<PlaywrightSnapshotHandle, readonly boolean[]>();
@@ -219,11 +221,11 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         }
         signal?.throwIfAborted();
         const rendered = await capsule.evaluate((value, frameRefs) => value.render(frameRefs), frameRefs);
-        if (rendered.status === 'byte-limit') throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
+        if (rendered.status === 'byte-limit') throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
         if (rendered.status !== 'ok' || typeof rendered.text !== 'string') throw new Error('Snapshot capture failed');
-        if (rendered.text.length > maxSnapshotBytes - bytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
+        if (rendered.text.length > maxSnapshotBytes - bytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
         bytes += new TextEncoder().encode(rendered.text).byteLength;
-        if (bytes > maxSnapshotBytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
+        if (bytes > maxSnapshotBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
         text += rendered.text;
       }
       signal?.throwIfAborted();
@@ -234,12 +236,12 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     } catch (error) {
       try { await retire([...acquired]); }
       catch (cleanup) {
-        throw new AggregateError([error, ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed');
+        throw new SnapshotCleanupError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed');
       }
       throw error;
     }
   }, options, signal).catch(async error => {
-    try { await invalidate(); } catch (cleanup) { throw new AggregateError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
+    try { await invalidate(); } catch (cleanup) { throw new SnapshotCleanupError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
     throw error;
   });
   const resolve = async (ref: string, _timeout = 5000): Promise<PlaywrightElementHandle> => {
@@ -280,7 +282,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
     return captured.tree;
   }, options, signal).catch(async error => {
-    try { await invalidate(); } catch (cleanup) { throw new AggregateError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
+    try { await invalidate(); } catch (cleanup) { throw new SnapshotCleanupError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
     throw error;
   });
   return { capture, captureJSON, resolve, invalidate, withReferences, nativeSelector(ref: string): string | undefined {
@@ -288,4 +290,4 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     return reference?.kind === 'native' ? `aria-ref=${reference.ref}` : undefined;
   } };
 }
-import { PlaywrightResourceLimitError } from './resource-limit.js';
+import { PlaywrightSnapshotLimitError } from './resource-limit.js';

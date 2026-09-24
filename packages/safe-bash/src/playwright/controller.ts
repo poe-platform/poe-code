@@ -1,5 +1,5 @@
 import type { PlaywrightAdapter, PlaywrightCodegenAction, PlaywrightContext, PlaywrightContextOptions, PlaywrightLease, PlaywrightPage } from './adapter.js';
-import { createSnapshotEngine } from './snapshot.js';
+import { createSnapshotEngine, SnapshotCleanupError } from './snapshot.js';
 import { capturePlaywrightScreenshot } from './screenshot.js';
 import { parseInvocation, validatePlaywrightSessionName, type PlaywrightInvocation } from './invocation.js';
 import { formatPlaywrightHelp } from './help.js';
@@ -701,11 +701,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           retained = false;
           const tree = await session.snapshot.captureJSON(page, local.signal, { ...snapshotOptions, ...(session.lease?.captureSnapshotJSON ? { captureJSON: session.lease.captureSnapshotJSON } : {}) });
           check();
+          retained = true;
           sections.push({ title: 'Snapshot', content: { json: tree as unknown as import('./response.js').PlaywrightJsonValue }, codeframe: 'json' });
           return { sections };
         }
+        retained = false;
         const text = await session.snapshot.capture(page, local.signal, snapshotOptions);
         check();
+        retained = true;
         if (filename !== undefined || snapshot === 'file' && invocation.writeArtifact) {
           const target = filename ?? capabilityArtifactName('page', 'yml', session.configuration);
           const bytes = new TextEncoder().encode(text);
@@ -746,7 +749,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     };
     const canRetainAfterError = (session: Session | undefined, error: unknown): boolean => {
       if (!session || session.state !== 'open' || !session.lease || session.failure || session.releasing || local.signal.aborted
-        || isPlaywrightResourceLimitError(error) || session.pendingActions?.size) return false;
+        || isPlaywrightResourceLimitError(error) && !(error instanceof PlaywrightSnapshotLimitError) || session.pendingActions?.size) return false;
       try {
         const pages = session.lease.context.pages();
         return pages.length <= maxTabs && (!session.page || pages.includes(session.page));
@@ -1239,7 +1242,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               checkSession(session);
               await writeResult({ sections: [{ title: 'Result', content: result }] });
             } else if (parsed.command === 'find') {
+              retained = false;
               const text = await session.snapshot.capture(page!, local.signal, { timeout: sessionSnapshotTimeout(session) });
+              checkSession(session);
+              retained = true;
               const result = await findPlaywrightSnapshot(text, { page: page!, ...(parsed.args[0] === undefined ? {} : { text: parsed.args[0] }),
                 ...(parsed.options.regex === undefined ? {} : { regex: parsed.options.regex as string }),
               });
@@ -1306,6 +1312,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             retained = true;
           }
         })().catch(error => {
+          const cleanupFailed = (cause: unknown): boolean => cause instanceof SnapshotCleanupError
+            || cause instanceof AggregateError && cause.errors.some(cleanupFailed);
+          if (cleanupFailed(error)) retained = false;
+          else if (error instanceof PlaywrightSnapshotLimitError && canRetainAfterError(active, error)) retained = true;
           commandFailure = { error };
         });
         let traceFailure: { error: unknown } | undefined;
@@ -1365,4 +1375,4 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   };
   return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), inspectSessions, inspectRecovery };
 }
-import { PlaywrightResourceLimitError, isPlaywrightResourceLimitError } from './resource-limit.js';
+import { PlaywrightResourceLimitError, PlaywrightSnapshotLimitError, isPlaywrightResourceLimitError } from './resource-limit.js';

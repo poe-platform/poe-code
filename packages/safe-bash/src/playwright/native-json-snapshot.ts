@@ -1,5 +1,5 @@
 import type { PlaywrightElementHandle, PlaywrightPage, PlaywrightSnapshotJSONCapture, PlaywrightSnapshotJSONNode, SnapshotNode } from './adapter.js';
-import { PlaywrightResourceLimitError } from './resource-limit.js';
+import { PlaywrightSnapshotLimitError } from './resource-limit.js';
 import { isPlaywrightSnapshotRef } from './targets.js';
 
 /** Serialize the native accessibility tree, keeping controller-issued refs. */
@@ -15,13 +15,14 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
     : await options.captureJSON!(page, { signal, timeoutMs: options.timeout ?? 5000, maxBytes: options.maxBytes, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
   signal.throwIfAborted();
   const encoded = JSON.stringify(tree);
-  if (typeof encoded !== 'string' || new TextEncoder().encode(encoded).byteLength > options.maxBytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
-  if (!Array.isArray(tree)) throw new Error('Invalid native JSON snapshot');
+  if (typeof encoded !== 'string' || new TextEncoder().encode(encoded).byteLength > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
+  if (!Array.isArray(tree) || tree.some(node => typeof node === 'string')) throw new Error('Invalid native JSON snapshot');
   const fields = new Set(['role', 'name', 'text', 'children', 'checked', 'disabled', 'expanded', 'active', 'invalid', 'level', 'pressed', 'selected', 'ariaHidden', 'url', 'placeholder', 'ref', 'cursor', 'box']);
   const nativeRefs = new Set<string>();
   const pending = [...tree];
   while (pending.length) {
     const node = pending.pop()!;
+    if (typeof node === 'string') continue;
     if (!node || typeof node !== 'object' || typeof node.role !== 'string' || Object.keys(node).some(key => !fields.has(key))) throw new Error('Invalid native JSON snapshot node');
     if (node.children !== undefined) {
       if (!Array.isArray(node.children)) throw new Error('Invalid native JSON snapshot children');
@@ -30,13 +31,14 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
     if (node.ref !== undefined) {
       if (!isPlaywrightSnapshotRef(node.ref)) throw new Error('Invalid native snapshot reference');
       nativeRefs.add(node.ref);
-      if (nativeRefs.size > options.maxRefs) throw new PlaywrightResourceLimitError('Snapshot ref limit exceeded');
+      if (nativeRefs.size > options.maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
     }
   }
-  const select = async (nodes: readonly PlaywrightSnapshotJSONNode[], inherited: boolean): Promise<PlaywrightSnapshotJSONNode[]> => {
-    const output: PlaywrightSnapshotJSONNode[] = [];
+  const select = async (nodes: readonly (PlaywrightSnapshotJSONNode | string)[], inherited: boolean): Promise<(PlaywrightSnapshotJSONNode | string)[]> => {
+    const output: (PlaywrightSnapshotJSONNode | string)[] = [];
     for (const node of nodes) {
       signal.throwIfAborted();
+      if (typeof node === 'string') { if (inherited) output.push(node); continue; }
       let included = inherited;
       if (node.ref) {
         const handle = await page.locator(`aria-ref=${node.ref}`).elementHandle?.({ timeout: options.timeout ?? 5000 });
@@ -54,9 +56,10 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   const selected = options.root ? await select(tree, false) : tree;
   const refs = new Map<string, string>();
   const issued = new Map<string, string>();
-  const rewrite = (nodes: readonly PlaywrightSnapshotJSONNode[], depth: number): PlaywrightSnapshotJSONNode[] => {
-    if (depth > 1024) throw new PlaywrightResourceLimitError('Snapshot depth limit exceeded');
+  const rewrite = (nodes: readonly (PlaywrightSnapshotJSONNode | string)[], depth: number): (PlaywrightSnapshotJSONNode | string)[] => {
+    if (depth > 1024) throw new PlaywrightSnapshotLimitError('Snapshot depth limit exceeded');
     return nodes.map(node => {
+      if (typeof node === 'string') return node;
       const { children, ref, ...fields } = node;
       let scoped = ref === undefined ? undefined : issued.get(ref);
       if (ref !== undefined && scoped === undefined) { scoped = options.nextRef(ref); issued.set(ref, scoped); refs.set(scoped, ref); }
@@ -65,8 +68,8 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
       };
     });
   };
-  const result = rewrite(selected, 0);
+  const result = rewrite(selected, 0).filter((node): node is PlaywrightSnapshotJSONNode => typeof node !== 'string');
   signal.throwIfAborted();
-  if (new TextEncoder().encode(JSON.stringify(result)).byteLength > options.maxBytes) throw new PlaywrightResourceLimitError('Snapshot byte limit exceeded');
+  if (new TextEncoder().encode(JSON.stringify(result)).byteLength > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   return { tree: result, refs };
 }

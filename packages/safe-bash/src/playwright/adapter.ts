@@ -339,7 +339,7 @@ export interface PlaywrightSnapshotJSONNode {
   readonly role: string;
   readonly name?: string;
   readonly text?: string;
-  readonly children?: readonly PlaywrightSnapshotJSONNode[];
+  readonly children?: readonly (PlaywrightSnapshotJSONNode | string)[];
   readonly checked?: boolean | 'mixed';
   readonly disabled?: boolean;
   readonly expanded?: boolean;

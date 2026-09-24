@@ -170,6 +170,13 @@ export class StateMonitor {
     delete frame[overlayNext];
   }
 
+  hasOverlay(name: string): boolean {
+    for (let frame = this.#overlays; frame; frame = frame[overlayNext]) {
+      if (frame.has(name)) return true;
+    }
+    return false;
+  }
+
   *overlayFrames(): Iterable<OverlayMap> {
     for (let frame = this.#overlays; frame; frame = frame[overlayNext]) yield frame;
   }

@@ -1,13 +1,15 @@
 import type { InvocationCleanup } from "../contracts/command.js";
 
 export const invocationScope = Symbol("invocation cleanup scope");
+const invocationClosedError = new Error("Invocation is closed");
+const resolvedVoid = Promise.resolve();
 
 export class InvocationScope {
-  readonly #children = new Set<InvocationScope>();
-  readonly #callbacks = new Map<symbol, InvocationCleanup>();
-  readonly #finalizers: (() => void)[] = [];
-  readonly #work = new Set<Promise<void>>();
-  readonly #controller = new AbortController();
+  #children: Set<InvocationScope> | undefined;
+  #callbacks: Map<symbol, InvocationCleanup> | undefined;
+  #finalizers: (() => void)[] | undefined;
+  #work: Set<Promise<void>> | undefined;
+  #controller: AbortController | undefined;
   #closed = false;
   #drain: Promise<void> | undefined;
 
@@ -17,23 +19,29 @@ export class InvocationScope {
     readonly parent?: InvocationScope,
   ) {}
 
-  get signal(): AbortSignal { return this.#controller.signal; }
+  get signal(): AbortSignal {
+    if (!this.#controller) {
+      this.#controller = new AbortController();
+      if (this.#closed) this.#controller.abort(invocationClosedError);
+    }
+    return this.#controller.signal;
+  }
 
   registerFinalizer(finalize: () => void): void {
     this.assertOpen();
-    this.#finalizers.push(finalize);
+    (this.#finalizers ??= []).push(finalize);
   }
 
   assertOpen(): void {
     this.callerSignal?.throwIfAborted();
-    if (this.#closed) throw this.signal.reason;
+    if (this.#closed) throw this.#controller ? this.#controller.signal.reason : invocationClosedError;
     this.parent?.assertOpen();
   }
 
   child(): InvocationScope {
     this.assertOpen();
     const child = new InvocationScope(this.callerSignal, this.failures, this);
-    this.#children.add(child);
+    (this.#children ??= new Set()).add(child);
     return child;
   }
 
@@ -41,16 +49,18 @@ export class InvocationScope {
     this.assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
     const registration = Symbol();
-    this.#callbacks.set(registration, cleanup);
-    return () => { this.#callbacks.delete(registration); };
+    const callbacks = this.#callbacks ??= new Map();
+    callbacks.set(registration, cleanup);
+    return () => { callbacks.delete(registration); };
   }
 
   run<Value>(operation: () => Promise<Value>): Promise<Value> {
     this.assertOpen();
     const pending = operation();
-    const settled = pending.then(() => {}, () => {});
-    this.#work.add(settled);
-    void settled.then(() => { this.#work.delete(settled); });
+    const work = this.#work ??= new Set();
+    const onSettled = (): void => { work.delete(settled); };
+    const settled = pending.then(onSettled, onSettled);
+    work.add(settled);
     return pending;
   }
 
@@ -60,36 +70,55 @@ export class InvocationScope {
   }
 
   async drainWork(): Promise<void> {
-    await Promise.all([...this.#work, ...[...this.#children].map(child => child.drainWork())]);
+    if (!this.#work?.size && !this.#children?.size) return;
+    await Promise.all([
+      ...(this.#work ?? []),
+      ...(this.#children ? [...this.#children].map(child => child.drainWork()) : []),
+    ]);
   }
 
   #seal(): void {
     if (this.#closed) return;
     this.#closed = true;
-    for (const child of this.#children) child.#seal();
-    this.#controller.abort(new Error("Invocation is closed"));
+    if (this.#children) {
+      for (const child of this.#children) child.#seal();
+    }
+    this.#controller?.abort(invocationClosedError);
   }
 
   close(): Promise<void> {
     if (!this.#drain) {
-      this.#drain = Promise.resolve().then(async () => {
-        const callbacks = [...this.#callbacks.values()];
-        this.#callbacks.clear();
-        try {
-          await Promise.all([
-            ...callbacks.map((cleanup) => this.cleanup(cleanup)),
-            ...[...this.#children].map((child) => child.close()),
-            ...this.#work,
-          ]);
-        } finally {
+      this.#seal();
+      if (!this.#callbacks?.size && !this.#children?.size && !this.#work?.size) {
+        if (this.#finalizers) {
           for (const finalize of this.#finalizers.splice(0)) {
             try { finalize(); }
             catch (error) { this.failures.push(error); }
           }
-          if (this.parent) this.parent.#children.delete(this);
+        }
+        if (this.parent) this.parent.#children?.delete(this);
+        this.#drain = resolvedVoid;
+        return resolvedVoid;
+      }
+      this.#drain = Promise.resolve().then(async () => {
+        const callbacks = this.#callbacks ? [...this.#callbacks.values()] : [];
+        this.#callbacks?.clear();
+        try {
+          await Promise.all([
+            ...callbacks.map((cleanup) => this.cleanup(cleanup)),
+            ...(this.#children ? [...this.#children].map((child) => child.close()) : []),
+            ...(this.#work ?? []),
+          ]);
+        } finally {
+          if (this.#finalizers) {
+            for (const finalize of this.#finalizers.splice(0)) {
+              try { finalize(); }
+              catch (error) { this.failures.push(error); }
+            }
+          }
+          if (this.parent) this.parent.#children?.delete(this);
         }
       });
-      this.#seal();
     }
     return this.#drain;
   }

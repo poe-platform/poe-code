@@ -3506,11 +3506,11 @@ export class Runtime {
     }
   }
 
-  private async publishStatus(state: State, statuses: readonly number[], io: IO): Promise<void> {
+  private publishStatus(state: State, statuses: readonly number[], io: IO): Promise<void> | void {
     this.signal.throwIfAborted();
     try { throwCleanupFailures(io[invocationScope].failures); }
     catch (error) { throw new NounsetDiagnosticFailure(error); }
-    await publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);
+    return publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);
   }
 
   async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {
@@ -3550,8 +3550,11 @@ export class Runtime {
     if (terminal && state.extensions?.exitStatus !== undefined && !state.extensions.exiting) state.extensions.exitStatus = status;
     if (publishes) {
       const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
-      if (terminal?.published !== status) await this.publishStatus(state, [reported], io);
-      if (!terminal?.completed) await this.errexit(status, state, io);
+      if (terminal?.published !== status) {
+        const publishing = this.publishStatus(state, [reported], io);
+        if (publishing) await publishing;
+      }
+      if (!terminal?.completed && status !== 0) await this.errexit(status, state, io);
     }
     return status;
   }
@@ -3570,8 +3573,8 @@ export class Runtime {
     originalIO = activeIO(originalIO);
     const diagnosticLine = originalIO.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);
     originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };
-    const references = new PipeDescriptorFrame(originalIO[invocationScope]);
-    if (command.kind === "subshell") originalIO = isolateIO(originalIO, references);
+    const references = command.kind === "subshell" ? new PipeDescriptorFrame(originalIO[invocationScope]) : undefined;
+    if (command.kind === "subshell") originalIO = isolateIO(originalIO, references!);
     this.budget.tick();
     if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
@@ -3894,15 +3897,19 @@ export class Runtime {
       return status;
     } finally {
       try {
-        await Promise.allSettled([
-          references.close(),
-          ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
-          ...[...inputs].map(async input => input.close()),
-        ]).then(results => {
-          const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
-          if (diagnosticFailure) io[invocationScope].failures.push(...failures);
-          else throwCleanupFailures(failures);
-        }).finally(() => allocation.close());
+        if (!references && outputs.size === 0 && inputs.size === 0) {
+          allocation.close();
+        } else {
+          await Promise.allSettled([
+            ...(references ? [references.close()] : []),
+            ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
+            ...[...inputs].map(async input => input.close()),
+          ]).then(results => {
+            const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
+            if (diagnosticFailure) io[invocationScope].failures.push(...failures);
+            else throwCleanupFailures(failures);
+          }).finally(() => allocation.close());
+        }
       } finally {
         finishSnapshot?.();
         await snapshotScope?.close();
@@ -3961,13 +3968,28 @@ export class Runtime {
   }
 
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
-    const resourceFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true });
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
       [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
       [1, { output: io.stdout }], [2, { output: io.stderr }],
     ]);
+    if (redirects.length === 0 && !fileShortcut) {
+      const d0 = io.descriptors.get(0);
+      const d1 = io.descriptors.get(1);
+      const d2 = io.descriptors.get(2);
+      if (
+        io.stdin !== closedSource &&
+        io.stdout !== closedSink &&
+        io.stderr !== closedSink &&
+        d0 && !d0.closed && d0.input === io.stdin && d0.stdinIsDefault === io.stdinIsDefault &&
+        d1 && !d1.closed && d1.output === io.stdout &&
+        d2 && !d2.closed && d2.output === io.stderr
+      ) {
+        return io;
+      }
+    }
+    const resourceFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true });
     const inputDescriptor = io.descriptors.get(0);
     const outputDescriptor = io.descriptors.get(1);
     const errorDescriptor = io.descriptors.get(2);
@@ -4321,7 +4343,7 @@ export class Runtime {
     let overlayOpen = false;
     try {
       if (snapshotScope) state = await cloneState(state, this.signal, snapshotScope);
-      if (words.length) {
+      if (words.length && assignments.length > 0) {
         stateMonitor(state)?.openOverlay(previous);
         overlayOpen = true;
       }
@@ -4385,7 +4407,7 @@ export class Runtime {
         terminal.io = io;
         await terminal.frame.reconcile(io.descriptors!);
       }
-      if (!inlineInput) await assign();
+      if (!inlineInput && assignments.length > 0) await assign();
       if (fileShortcut) {
         const input = io.descriptors?.get(command.redirects[0]!.descriptor)?.input;
         if (!input) throw new PublicDiagnostic("Bad file descriptor");
@@ -4433,13 +4455,14 @@ export class Runtime {
     Reflect.deleteProperty(publicIO, valueScope);
     Reflect.deleteProperty(publicIO, declarationArrays);
     const allocation = this.budget.values.scope();
-    scope.register(() => allocation.close());
+    scope.registerFinalizer(() => allocation.close());
     if (typeof nameValue !== "string") allocation.hold(nameValue);
     const name = shellValueText(nameValue);
     let currentName = nameValue;
     const readName = (): string => shellValueText(currentName);
     const argumentValues = this.admitArguments(values, allocation);
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
+    const hasMiddleware = this.middleware.length > 0;
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
       const value = state.variables[key];
@@ -4449,7 +4472,7 @@ export class Runtime {
       const body = state.functions.get(key);
       if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
     }
-    const initialEnv = { ...env };
+    const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
@@ -4506,16 +4529,18 @@ export class Runtime {
     const execute = composeMiddleware(middleware, (forwarded) => scope.run(async () => {
       scope.assertOpen();
       const commandName = Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command;
-      const forwardedValues = getCommandArguments(forwarded);
+      const forwardedValues = hasMiddleware ? getCommandArguments(forwarded) : argumentValues;
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
       const context = { ...forwarded, args: admitted.args, argumentValues: admitted, [invocationScope]: scope,
         ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }) };
       const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
       const cwd = state.cwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
+      let cwdRestoration: Restoration | undefined;
+      if (hasMiddleware) {
       const environmentKeys = new Set([...Object.keys(initialEnv), ...Object.keys(context.env)]);
       const typedEnvironment = [...environmentKeys].some(key => arrayStore(state)?.get(key) && initialEnv[key] !== context.env[key]);
-      const cwdRestoration = stateMonitor(state)?.restoration(true);
+      cwdRestoration = stateMonitor(state)?.restoration(true);
       if (typedEnvironment) {
         const store = requireArrays(state);
         store.owner.reserve({ metadata: 64 + environmentKeys.size * 64, allocatedSlots: environmentKeys.size * 2, work: environmentKeys.size * 4 + 4 });
@@ -4575,6 +4600,7 @@ export class Runtime {
       }
       }
       stateMonitor(state)?.openOverlay(previous);
+      }
       try {
         const selected = this.internalDiscovery(context.command, state, bypassFunctions)[0];
         const body = selected?.kind === "function" ? state.functions.get(context.command) : undefined;
@@ -4734,6 +4760,7 @@ export class Runtime {
         const observed = this.observeRuntimeReturn(raw, runtimeFrame);
         return await interruptible(observed, this.signal);
       } finally {
+        if (hasMiddleware) {
         const restoreCwd = () => {
           if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
         };
@@ -4754,6 +4781,7 @@ export class Runtime {
         });
         await scope.cleanup(() => stateMonitor(state)?.closeOverlay(previous));
         await scope.cleanup(() => cwdRestoration?.close());
+        }
       }
     }));
     try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }

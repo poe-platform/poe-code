@@ -19,17 +19,56 @@ export function pipelineStatusTarget(state: State): PipelineStatusTarget {
   return "absent";
 }
 
-export async function publishPipelineStatus(
+export function publishPipelineStatus(
   state: State,
   statuses: readonly number[],
   signal: AbortSignal,
   scope: InvocationScope,
-): Promise<void> {
+): Promise<void> | void {
   signal.throwIfAborted();
   scope.assertOpen();
   const target = pipelineStatusTarget(state);
   if (target !== "absent" && target !== "indexed") return;
   const monitor = stateMonitor(state)!;
+  if (target === "indexed" && statuses.length === 1) {
+    const status = statuses[0]!;
+    if (!Number.isSafeInteger(status) || status < 0 || status > 255) throw new TypeError("Invalid PIPESTATUS completion");
+    const store = monitor.store;
+    const existing = store?.get(name);
+    if (
+      store &&
+      existing &&
+      !existing.associative &&
+      existing.references === 1 &&
+      existing.values.size === 1 &&
+      existing.maximum === 0 &&
+      !store.watches.has(name) &&
+      !monitor.hasOverlay(name) &&
+      existing.get(0) === (status === 0 ? "0" : String(status))
+    ) {
+      const owner = monitor.internalOwner();
+      const tickets = owner.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      try {
+        monitor.publish(tickets, name, () => {
+          store.revise(name, existing, tickets);
+        });
+      } finally {
+        tickets.release();
+      }
+      return;
+    }
+  }
+  return publishPipelineStatusSlow(state, target, monitor, statuses, signal, scope);
+}
+
+async function publishPipelineStatusSlow(
+  state: State,
+  target: PipelineStatusTarget,
+  monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+  statuses: readonly number[],
+  signal: AbortSignal,
+  scope: InvocationScope,
+): Promise<void> {
   const store = monitor.activate(true);
   const owner = monitor.internalOwner();
   const epoch = monitor.epoch;

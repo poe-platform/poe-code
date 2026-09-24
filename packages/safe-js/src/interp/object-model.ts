@@ -284,7 +284,9 @@ export function materializeFunctionProperties(closure: SandboxClosure, initialPr
     name: { value: closure.name ?? "", configurable: true }
   });
   if (isGuestClosure(closure) && closure.construct !== undefined && closure.boundTarget === undefined) {
-    const prototype = nativePropertyCreate(null) as SandboxObject;
+    // This newly owned table has no external backing alias. Track writes just
+    // like ordinary guest objects so repeated accounting can reuse snapshots.
+    const prototype = createIntrinsicObject();
     nativePropertyDefineOne(prototype, "constructor", {
       value: closure,
       writable: true,

@@ -10,7 +10,7 @@ import {
   setSandboxPrototype,
   trackedPropertyDataDescriptors
 } from "./object-model.js";
-import { createSandboxClosure, measureSandboxData, reconcileCompiledValues } from "./values.js";
+import { createSandboxClosure, measureSandboxData, reconcileCompiledValues, type SandboxObject } from "./values.js";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -103,6 +103,40 @@ it("does not recapture tracked string descriptors across measurements", () => {
   expect(
     descriptors.mock.calls.filter(([owner, key]) => owner === table && typeof key === "string")
   ).toHaveLength(0);
+});
+
+it("does not recapture owned constructor prototype descriptors across measurements", () => {
+  const closure = createSandboxClosure({ guest: true, call: () => undefined, construct: () => ({}) });
+  const prototype = materializeFunctionProperties(closure).prototype as SandboxObject;
+  prototype.payload = { text: "small" };
+  expect(prototype.constructor).toBe(closure);
+  const before = measureSandboxData([closure]);
+  const names = vi.spyOn(Object, "getOwnPropertyNames");
+  const descriptors = vi.spyOn(Object, "getOwnPropertyDescriptor");
+  expect(measureSandboxData([closure])).toBe(before);
+  expect(names.mock.calls.filter(([owner]) => owner === prototype)).toHaveLength(0);
+  expect(descriptors.mock.calls.filter(([owner, key]) => owner === prototype && typeof key === "string"))
+    .toHaveLength(0);
+});
+
+it.each([false, true])("keeps constructor prototype mutations and descendants under quota (held=%s)", held => {
+  const closure = createSandboxClosure({ guest: true, call: () => undefined, construct: () => ({}) });
+  const prototype = materializeFunctionProperties(closure).prototype as SandboxObject;
+  const child = { text: "small" };
+  Object.defineProperty(prototype, "hidden", { value: child, configurable: true });
+  const before = measureSandboxData([closure]);
+  child.text = "x".repeat(1005);
+  expect(measureSandboxData([closure])).toBe(before + 1000);
+  const budget = new Budget({ dataSize: before + 500 });
+  const release = held ? budget.deferReconciliation() : () => {};
+  try {
+    expect(() => reconcileCompiledValues(budget, [closure])).toThrow(SandboxError);
+  } finally { release(); }
+  Reflect.deleteProperty(prototype, "hidden");
+  expect(measureSandboxData([closure])).toBeLessThan(before);
+  Object.defineProperty(prototype, "constructor", { value: "changed" });
+  expect(prototype.constructor).toBe("changed");
+  expect(materializeFunctionProperties(closure).prototype).toBe(prototype);
 });
 
 it("keeps mutable descendants, writes, hidden fields and deletion live", () => {

@@ -343,4 +343,56 @@ describe("safe-bash-command-pdfinfo", () => {
     const ext0 = files.get("/extracted-000.png");
     assert.ok(ext0 && ext0[0] === 137 && ext0[1] === 80);
   });
+
+  it("handles upstream pdfinfo/poppler issues: /Names -> /Dests Name Trees & << /D >> destination dicts (pypdf #4028/#4076, qpdf #1238) and pdfunite/pdfseparate metadata & %% patterns", async () => {
+    const doc = PdfDocument.create();
+    doc.setTitle("Architecture Handbook");
+    doc.setAuthor("Poe Core Team");
+    const p1 = doc.addPage([612, 792]);
+    const p2 = doc.addPage([612, 792]);
+    p1.drawText("Page One Intro", { x: 50, y: 700, size: 12 });
+    p2.drawText("Page Two Deep Dive", { x: 50, y: 700, size: 12 });
+
+    // Add PDF 1.2+ /Root -> /Names -> /Dests with both direct array and << /D [...] >> pointing to p2.ref
+    const root = doc.cos.resolveDict(doc.cos.rootRef)!;
+    root.entries.push({
+      key: cosName("Names"),
+      value: cosDict({
+        Dests: cosDict({
+          Names: cosArray([
+            cosString("sec.intro"),
+            cosArray([p1.ref, cosName("XYZ"), cosNumber(0), cosNumber(792), cosNumber(0)]),
+            cosString("sec.deepdive"),
+            cosDict({
+              D: cosArray([p2.ref, cosName("Fit")]),
+            }),
+          ]),
+        }),
+      }),
+    });
+    const pdfBytes = doc.save();
+
+    const destsRes = inspectPdfBytes(pdfBytes, ["-dests"]);
+    assert.equal(destsRes.exitCode, 0);
+    assert.match(destsRes.stdout, /1\s+\[XYZ\s*\]\s+"sec\.intro"/);
+    assert.match(destsRes.stdout, /2\s+\[Fit\s*\]\s+"sec\.deepdive"/);
+
+    // Verify pdfunite and pdfseparate preserve metadata and handle %% escape in pattern
+    const files = new Map<string, Uint8Array>([["/handbook.pdf", pdfBytes]]);
+    const uniteRes = await runPdfuniteCli(["/handbook.pdf", "/handbook.pdf", "/united.pdf"], files);
+    assert.equal(uniteRes.exitCode, 0);
+    const unitedInfo = inspectPdfBytes(files.get("/united.pdf")!);
+    assert.match(unitedInfo.stdout, /Title:\s+Architecture Handbook/);
+    assert.match(unitedInfo.stdout, /Author:\s+Poe Core Team/);
+
+    const sepRes = await runPdfseparateCli(
+      ["-f", "2", "-l", "2", "/handbook.pdf", "/out-100%%-p%02d.pdf"],
+      files
+    );
+    assert.equal(sepRes.exitCode, 0);
+    const sepBytes = files.get("/out-100%-p02.pdf");
+    assert.ok(sepBytes);
+    const sepInfo = inspectPdfBytes(sepBytes);
+    assert.match(sepInfo.stdout, /Title:\s+Architecture Handbook/);
+  });
 });

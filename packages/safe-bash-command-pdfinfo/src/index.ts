@@ -379,19 +379,83 @@ function dumpStructTree(
   return out;
 }
 
-function dumpDests(cos: ParsedCosDocument): string {
+function dumpDests(doc: PdfDocument, cos: ParsedCosDocument): string {
   const root = cos.resolveDict(cos.rootRef);
   if (!root) return "";
+
+  const collected: Array<{ name: string; value: PdfCosNode }> = [];
   const dests = cos.resolveDict(dictGet(root, "Dests"));
-  if (!dests) return "";
+  if (dests) {
+    for (const entry of dests.entries) {
+      collected.push({ name: entry.key.decoded, value: entry.value });
+    }
+  }
+
+  const namesDict = cos.resolveDict(dictGet(root, "Names"));
+  const destsTree = namesDict ? dictGet(namesDict, "Dests") : undefined;
+  const visitedTreeNodes = new Set<string>();
+  const walkNameTree = (nodeRef: PdfCosNode | undefined) => {
+    if (!nodeRef) return;
+    if (nodeRef.kind === "ref") {
+      const key = `${nodeRef.objectNumber}:${nodeRef.generationNumber}`;
+      if (visitedTreeNodes.has(key)) return;
+      visitedTreeNodes.add(key);
+    }
+    const dict = cos.resolveDict(nodeRef);
+    if (!dict) return;
+    const namesArr = cos.resolveArray(dictGet(dict, "Names"));
+    if (namesArr) {
+      for (let i = 0; i + 1 < namesArr.items.length; i += 2) {
+        const keyNode = cos.resolve(namesArr.items[i]);
+        const valNode = namesArr.items[i + 1]!;
+        const keyStr =
+          keyNode?.kind === "string"
+            ? decodePdfString(keyNode)
+            : keyNode?.kind === "name"
+              ? keyNode.decoded
+              : undefined;
+        if (keyStr !== undefined) {
+          collected.push({ name: keyStr, value: valNode });
+        }
+      }
+    }
+    const kidsArr = cos.resolveArray(dictGet(dict, "Kids"));
+    if (kidsArr) {
+      for (const kid of kidsArr.items) {
+        walkNameTree(kid);
+      }
+    }
+  };
+  walkNameTree(destsTree);
+
+  if (collected.length === 0) return "";
+  const pages = doc.getPages();
   let out = "Page  Destination                 Name\n";
-  for (const entry of dests.entries) {
-    const name = entry.key.decoded;
-    const arr = cos.resolveArray(entry.value);
+  for (const { name, value } of collected) {
+    const resolvedVal = cos.resolve(value);
+    const arr =
+      resolvedVal?.kind === "dict"
+        ? cos.resolveArray(dictGet(resolvedVal, "D"))
+        : cos.resolveArray(value);
     if (arr) {
+      const targetPage = arr.items[0];
+      let pageNum = 1;
+      if (targetPage?.kind === "ref") {
+        const idx = pages.findIndex(
+          (p) =>
+            p.ref.objectNumber === targetPage.objectNumber &&
+            p.ref.generationNumber === targetPage.generationNumber
+        );
+        if (idx >= 0) pageNum = idx + 1;
+      } else {
+        const resolvedTarget = cos.resolve(targetPage);
+        if (resolvedTarget?.kind === "number") {
+          pageNum = Math.max(1, Math.floor(resolvedTarget.value) + 1);
+        }
+      }
       const kindObj = cos.resolve(arr.items[1]);
       const kindName = kindObj?.kind === "name" ? kindObj.decoded : "XYZ";
-      out += `   1  [${kindName.padEnd(24, " ")}] "${name}"\n`;
+      out += `${String(pageNum).padStart(4, " ")}  [${kindName.padEnd(24, " ")}] "${name}"\n`;
     }
   }
   return out;
@@ -521,7 +585,7 @@ export function inspectPdfBytes(
   }
 
   if (args.dests) {
-    return { exitCode: 0, stdout: dumpDests(cos), stderr: "" };
+    return { exitCode: 0, stdout: dumpDests(doc, cos), stderr: "" };
   }
 
   if (args.url) {
@@ -1003,6 +1067,16 @@ export async function runPdfimagesCli(
   return { exitCode: 0, stdout: "", stderr: "" };
 }
 
+function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
+  const meta = srcDoc.getMetadata();
+  if (meta.title) dstDoc.setTitle(meta.title);
+  if (meta.author) dstDoc.setAuthor(meta.author);
+  if (meta.subject) dstDoc.setSubject(meta.subject);
+  if (meta.keywords) dstDoc.setKeywords(meta.keywords);
+  if (meta.creator) dstDoc.setCreator(meta.creator);
+  if (meta.producer) dstDoc.setProducer(meta.producer);
+}
+
 export async function runPdfuniteCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>
@@ -1031,6 +1105,7 @@ export async function runPdfuniteCli(
   const destPath = positionals[positionals.length - 1]!;
   const sourcePaths = positionals.slice(0, -1);
   const merged = PdfDocument.create();
+  let copiedMeta = false;
 
   for (const srcPath of sourcePaths) {
     const srcBytes = files.get(srcPath);
@@ -1038,6 +1113,10 @@ export async function runPdfuniteCli(
       return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
     }
     const srcDoc = PdfDocument.load(srcBytes);
+    if (!copiedMeta) {
+      copyDocumentMetadata(srcDoc, merged);
+      copiedMeta = true;
+    }
     const indices = Array.from({ length: srcDoc.pageCount }, (_, idx) => idx);
     merged.copyPagesFrom(srcDoc, indices);
   }
@@ -1084,7 +1163,9 @@ export async function runPdfseparateCli(
   }
   const srcDoc = PdfDocument.load(srcBytes);
   const endPage = lastPage > 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
-  if (endPage > firstPage && !/%0?\d*d/.test(pattern)) {
+  const unescapedPattern = pattern.replace(/%%/g, "");
+  const hasPageSpec = /%0?\d*d/.test(unescapedPattern);
+  if (endPage > firstPage && !hasPageSpec) {
     return {
       exitCode: 99,
       stdout: "",
@@ -1094,10 +1175,13 @@ export async function runPdfseparateCli(
 
   for (let p = firstPage; p <= endPage; p++) {
     const singleDoc = PdfDocument.create();
+    copyDocumentMetadata(srcDoc, singleDoc);
     singleDoc.copyPagesFrom(srcDoc, [p - 1]);
-    const outPath = /%0?\d*d/.test(pattern)
-      ? pattern.replace(/%0?(\d*)d/, (_, pad) => String(p).padStart(Number(pad || 0), "0"))
-      : pattern;
+    const tokenized = pattern.replace(/%%/g, "\0");
+    const formatted = hasPageSpec
+      ? tokenized.replace(/%0?(\d*)d/, (_, pad) => String(p).padStart(Number(pad || 0), "0"))
+      : tokenized;
+    const outPath = formatted.replace(/\0/g, "%");
     files.set(outPath, singleDoc.save());
   }
   return { exitCode: 0, stdout: "", stderr: "" };

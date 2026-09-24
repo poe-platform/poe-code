@@ -140,3 +140,57 @@ it("replays engine-created module namespaces while rejecting caller Proxy replac
     .toMatchObject({ ok: true, returnValue: 1 });
   expect(hostCalls).toBe(1);
 });
+
+it.each(["wrapper Proxy", "nested Proxy", "prototype Proxy", "getter", "hidden getter"])(
+  "rejects a caller %s on a constructed snapshot object without effects",
+  async kind => {
+    const source = "effect(); function Counter(value) { this.value = value; } const counter = new Counter(7); return counter.value;";
+    let hostCalls = 0;
+    const effect = () => ++hostCalls;
+    const first = await run(source, { bindings: { effect } });
+    expect(first).toMatchObject({ ok: true, returnValue: 7 });
+    expect(hostCalls).toBe(1);
+    const bindings = first.snapshot.bindings as Record<string, unknown>;
+    const counter = bindings.counter as object;
+    const prototype = Object.getPrototypeOf(counter);
+    let invocations = 0;
+    const get = () => ++invocations;
+    const proxy = new Proxy(kind === "prototype Proxy" ? {} : counter, {
+      get,
+      ownKeys: () => { get(); return []; },
+      getOwnPropertyDescriptor: () => { get(); return undefined; },
+      getPrototypeOf: () => { get(); return null; }
+    });
+    if (kind === "wrapper Proxy") bindings.counter = proxy;
+    else if (kind === "prototype Proxy") Object.setPrototypeOf(counter, proxy);
+    else Object.defineProperty(counter, "caller", {
+      configurable: true,
+      enumerable: kind !== "hidden getter",
+      ...(kind === "nested Proxy" ? { value: proxy } : { get })
+    });
+
+    for (const boundary of [
+      () => restore(first.snapshot, { source }),
+      () => run(source, { snapshot: first.snapshot, bindings: { effect } })
+    ]) {
+      let rejected: unknown;
+      try { await boundary(); } catch (error) { rejected = error; }
+      expect(invocations).toBe(0);
+      expect(hostCalls).toBe(1);
+      expect(rejected).toMatchObject({
+        name: "SnapshotValidationError",
+        code: "invalidType",
+        path: kind === "wrapper Proxy" || kind === "prototype Proxy" ? "$.bindings.counter" : "$.bindings.counter.caller"
+      });
+    }
+
+    bindings.counter = counter;
+    Object.setPrototypeOf(counter, prototype);
+    Reflect.deleteProperty(counter, "caller");
+    expect(() => restore(first.snapshot, { source })).not.toThrow();
+    expect(await run(source, { snapshot: first.snapshot, bindings: { effect } }))
+      .toMatchObject({ ok: true, returnValue: 7 });
+    expect(invocations).toBe(0);
+    expect(hostCalls).toBe(1);
+  }
+);

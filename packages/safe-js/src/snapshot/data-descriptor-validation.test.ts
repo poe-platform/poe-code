@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { createIntrinsicArray, createIntrinsicObject } from "../interp/object-model.js";
 import { SnapshotValidationError, validateSnapshotData } from "./validation.js";
 
 it("accepts non-enumerable data properties without dropping their values", () => {
@@ -23,6 +24,15 @@ it("rejects proxies before invoking structural traps", () => {
     getOwnPropertyDescriptor() {reads++; return undefined;},
     getPrototypeOf() {reads++; return Object.prototype;}
   });
+  expect(() => validateSnapshotData(value)).toThrow(SnapshotValidationError);
+  expect(reads).toBe(0);
+});
+
+it.each([createIntrinsicObject, createIntrinsicArray])("rejects tracked runtime proxies as snapshot data %#", create => {
+  const value = create();
+  expect(() => validateSnapshotData(value)).toThrow(SnapshotValidationError);
+  let reads = 0;
+  Object.defineProperty(value, "caller", { get() { reads++; return 1; } });
   expect(() => validateSnapshotData(value)).toThrow(SnapshotValidationError);
   expect(reads).toBe(0);
 });

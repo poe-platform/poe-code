@@ -16,7 +16,7 @@ import { validateSharedArrayBufferStorage } from "./shared-array-buffer.js";
 import { validateDataViewStorage } from "./data-view.js";
 import { restoreDateTime } from "../interp/date.js";
 import { validateBoxedProperties } from "./boxed.js";
-import { hasGuestObjectState, isGuestClosure } from "../interp/object-model.js";
+import { hasGuestObjectState, isGuestClosure, isTrackedIntrinsicObject } from "../interp/object-model.js";
 import { getIntrinsicIdentity } from "../interp/intrinsics.js";
 import { isSandboxModuleNamespace } from "../interp/module-namespace.js";
 import { isSandboxClosure, snapshotRuntimeGetters } from "../interp/values.js";
@@ -1009,16 +1009,28 @@ function validateGenerator(
   }
 }
 
+function validateSnapshotProxy(value: unknown, path: string, dataPropertiesOnly = false): void {
+  if (!types.isProxy(value)) return;
+  if (!dataPropertiesOnly && isTrackedIntrinsicObject(value as object)) {
+    // Owned wrappers expose inert native tables. Guest prototype links live in
+    // private runtime state; a caller-installed native prototype is not that state.
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== null && prototype !== (Array.isArray(value) ? Array.prototype : Object.prototype))
+      fail("invalidType", path, "runtime snapshot objects must not have a custom native prototype");
+    return;
+  }
+  if (dataPropertiesOnly || (getIntrinsicIdentity(value as object) === undefined && !isSandboxModuleNamespace(value))) {
+    fail("invalidType", path, "proxy objects are not snapshot data");
+  }
+}
+
 function validateGenericValue(
   value: unknown,
   path: string,
   depth: number,
   state: ValidationState
 ): void {
-  if (types.isProxy(value) && (state.dataPropertiesOnly ||
-      (getIntrinsicIdentity(value as object) === undefined && !isSandboxModuleNamespace(value)))) {
-    fail("invalidType", path, "proxy objects are not snapshot data");
-  }
+  validateSnapshotProxy(value, path, state.dataPropertiesOnly);
   if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
       !(state.allowHostFunctionState && (isSandboxModuleNamespace(value) ||
         (isSandboxClosure(value) && !isGuestClosure(value))))) {
@@ -1106,8 +1118,7 @@ export function validateRuntimeSnapshotDescriptors(snapshot: object): void {
   let entries = 0;
   while (pending.length > 0) {
     const { value, path, depth } = pending.pop()!;
-    if (types.isProxy(value) && getIntrinsicIdentity(value) === undefined && !isSandboxModuleNamespace(value))
-      fail("invalidType", path, "proxy objects are not snapshot data");
+    validateSnapshotProxy(value, path);
     if (seen.has(value)) continue;
     seen.add(value);
     if (depth > MAX_DATA_DEPTH)

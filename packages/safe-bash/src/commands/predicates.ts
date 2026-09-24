@@ -4,6 +4,8 @@ import { assertCommandRequirements } from "../contracts/command-requirements.js"
 import { predicateRequirements } from "./portable-requirements.js";
 import { evaluateFilePredicate, type PredicateIdentity } from "./file-predicates.js";
 
+import { variablePresence, type VariablePresenceContext } from "./variable-presence.js";
+
 type Predicate = () => Promise<boolean>;
 
 const maxExpressionDepth = 256;
@@ -101,10 +103,14 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
         return async () => {
           if (token === "-n") return operand !== "";
           if (token === "-z") return operand === "";
-          if (["-v", "-R", "-o", "-t"].includes(token)) {
+          if (token === "-v") {
+            const present = (context as VariablePresenceContext)[variablePresence];
+            if (!present) throw new UsageError("variable predicate requires shell state");
+            return present(operand);
+          }
+          if (["-R", "-o", "-t"].includes(token)) {
             const state = context.shellPredicates;
             if (!state) throw new FsError("ENOTSUP", { message: "caller shell predicate state is unavailable" });
-            if (token === "-v") return state.variable(operand);
             if (token === "-R") return state.reference(operand);
             if (token === "-o") return state.option(operand);
             const descriptor = Number(operand);

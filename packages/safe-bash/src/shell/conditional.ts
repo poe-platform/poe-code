@@ -31,7 +31,7 @@ interface ConditionalContext {
   expand(word: Word, pattern?: boolean): Promise<string>;
   arithmetic(value: string): bigint | Promise<bigint>;
   regex?(subject: string, pattern: Word): Promise<number>;
-  present(name: string): boolean;
+  present(name: string): Promise<boolean>;
   option(name: string): boolean;
   reference(name: string): boolean;
 }
@@ -83,10 +83,7 @@ async function patternAdmission(pattern: string, context: ConditionalContext): P
 async function unary(operator: string, value: string, context: ConditionalContext): Promise<boolean> {
   if (operator === "-n") return value.length > 0;
   if (operator === "-z") return value.length === 0;
-  if (operator === "-v") {
-    if (value.endsWith("[@]") || value.endsWith("[*]")) unsupported("aggregate variable selector");
-    return context.present(value);
-  }
+  if (operator === "-v") return context.present(value);
   if (operator === "-o") return context.option(value);
   if (operator === "-R") return context.reference(value);
   // Virtual shell descriptors do not expose terminal capabilities.

@@ -54,6 +54,7 @@ import type {
   CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
   CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
 } from "./cancellation.js";
+import { variablePresence } from "../commands/variable-presence.js";
 import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, isQuoteMarker, prefixNameQuoteGroups, setArraySelector } from "./arrays/syntax.js";
 import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
@@ -2030,6 +2031,27 @@ export class Runtime {
     return binding ? binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0) : state.variables[name];
   }
 
+  private async variablePresent(state: State, name: string, io: IO): Promise<boolean> {
+    const bracket = name.indexOf("[");
+    const base = bracket < 0 ? name : name.slice(0, bracket);
+    const validName = base.length > 0 && [...base].every((character, index) =>
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_".includes(character)
+      || index > 0 && "0123456789".includes(character));
+    if (!validName || bracket >= 0 && !name.endsWith("]")) return false;
+    const resolved = this.referenceName(state, base);
+    const binding = arrayStore(state)?.get(resolved);
+    if (bracket < 0) return this.variable(state, base) !== undefined;
+    const selector = name.slice(bracket + 1, -1);
+    if (!binding?.associative && (selector === "@" || selector === "*")) {
+      return binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
+    }
+    const store = arrayStore(state);
+    if (!store) return selector === "0" && this.variable(state, base) !== undefined;
+    const index = await this.arrayIndex(binding, { decimal: selector, source: selector }, state, io, store.owner);
+    return index !== undefined && (binding ? binding.getValue(index) !== undefined
+      : index === 0 && this.variable(state, base) !== undefined);
+  }
+
   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
     if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
   }
@@ -3561,16 +3583,7 @@ export class Runtime {
             arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io),
             regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
             option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
-            present: name => {
-              const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
-              if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
-              const binding = arrayStore(state)?.get(match[1]!);
-              const selector = match[2];
-              if (selector === "@" || selector === "*") return binding ? binding.values.size > 0 : this.variable(state, match[1]!) !== undefined;
-              const index = selector === undefined ? 0 : numericIndex({ decimal: selector }, 4294967295);
-              if (index === undefined) throw new ConditionalUnsupported("[[ variable index: unsupported conditional profile");
-              return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;
-            },
+            present: name => this.variablePresent(state, name, io),
           });
         } catch (error) {
           this.signal.throwIfAborted();
@@ -4355,6 +4368,7 @@ export class Runtime {
     const initialEnv = { ...env };
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
+      ...{ [variablePresence]: (name: string) => this.variablePresent(state, name, io) },
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
       shellPredicates: {
         variable: name => this.variable(state, name) !== undefined,

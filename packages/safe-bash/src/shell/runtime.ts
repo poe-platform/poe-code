@@ -1899,8 +1899,8 @@ export class Runtime {
     if (state.variables.OPTIND !== previous) this.syncGetopts(state);
   }
 
-  private unsetVariable(state: State, name: string, internal = false): void {
-    name = this.referenceName(state, name);
+  private unsetVariable(state: State, name: string, internal = false, dereference = true): void {
+    if (dereference) name = this.referenceName(state, name);
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     delete state.variables[name];
     state.exported.delete(name);
@@ -6685,6 +6685,7 @@ export class Runtime {
     if (command === "unset") {
       let variables = false;
       let functions = false;
+      let dereference = true;
       let offset = 0;
       let scanned = 0;
       while (args[offset]?.startsWith("-") && args[offset] !== "-") {
@@ -6695,6 +6696,7 @@ export class Runtime {
           const flag = option[index]!;
           if (flag === "v") variables = true;
           else if (flag === "f") functions = true;
+          else if (flag === "n") dereference = false;
           else { await writeDiagnostic(stderr, `unset: -${flag}: invalid option\n`); return 2; }
         }
       }
@@ -6718,7 +6720,8 @@ export class Runtime {
         }
         const selected = /^([a-zA-Z_][a-zA-Z_0-9]*)\[(.*)\]$/su.exec(name);
         if (selected) {
-          const base = selected[1]!;
+          if (!dereference) continue;
+          const base = this.referenceName(state, selected[1]!);
           const selector = selected[2]!;
           if (state.readonlyVariables?.has(base)) {
             await this.diagnostic(context, state.extensions?.syntax.indexedDeclarations?.includes("readonly") ? `unset: ${base}: cannot unset: readonly variable` : "indexed array: readonly binding");
@@ -6730,7 +6733,7 @@ export class Runtime {
             const original = getCommandArguments(context).values[argument]!;
             const index = typeof original === "string"
               ? await this.arrayIndex(binding, { decimal: selector, source: selector }, state, context, binding.owner)
-              : await binding.keyIndex(shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(base.length + 1, shellValueByteLength(original) - 1), context[valueScope]), binding.owner, this.signal);
+              : await binding.keyIndex(shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(selected[1]!.length + 1, shellValueByteLength(original) - 1), context[valueScope]), binding.owner, this.signal);
             if (index !== undefined) await this.unsetIndexed(state, base, index);
           } else if (selector === "@" || selector === "*") await this.unsetIndexed(state, base, "members");
           else {
@@ -6747,11 +6750,13 @@ export class Runtime {
           continue;
         }
         if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) { await writeDiagnostic(stderr, `unset: ${name}: not a valid identifier\n`); status = 1; continue; }
-        if (state.readonlyVariables?.has(name)) { await this.diagnostic(context, `unset: ${name}: cannot unset: readonly variable`); status = 1; continue; }
-        if (name === "PATH") state.pathUnset = true;
-        if (arrayStore(state)?.get(name)) await this.unsetIndexed(state, name);
-        else this.unsetVariable(state, name);
-        if (state.profile === "sh") assignments.delete(name);
+        const resolved = dereference ? this.referenceName(state, name) : name;
+        if (!dereference && !state.variableAttributes?.get(name)?.includes("n")) continue;
+        if (state.readonlyVariables?.has(resolved)) { await this.diagnostic(context, `unset: ${resolved}: cannot unset: readonly variable`); status = 1; continue; }
+        if (resolved === "PATH") state.pathUnset = true;
+        if (arrayStore(state)?.get(resolved)) await this.unsetIndexed(state, resolved);
+        else this.unsetVariable(state, resolved, false, dereference);
+        if (state.profile === "sh") assignments.delete(resolved);
       }
       return status;
     }

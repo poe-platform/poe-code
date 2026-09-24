@@ -1368,9 +1368,9 @@ export function parseArraySubscript(source: string, budget: ParseBudget, byteLoc
   return lexer.word("\0");
 }
 
-export function parseArithmeticExpansion(source: string, budget: ParseBudget, byteLocale = false, depth = 0, line = 1, syntax?: ShellSyntaxDeclarations): Word {
+export function parseArithmeticExpansion(source: string, budget: ParseBudget, byteLocale = false, depth = 0, line = 1, syntax?: ShellSyntaxDeclarations, command = false): Word {
   const lexer = new Lexer(budget, source, depth, [], line - 1, byteLocale, undefined, false, undefined, 0, false, undefined, false, captureShellSyntax(syntax));
-  return lexer.word("\0", true, false, false, true);
+  return lexer.word("\0", !command, false, false, !command);
 }
 
 export function parseBraceWord(source: string, opaque: ReadonlyMap<number, ShellValue>, budget: ParseBudget): Word {

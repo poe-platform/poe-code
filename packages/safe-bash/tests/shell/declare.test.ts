@@ -29,7 +29,7 @@ for (const [source, expected] of [
   ['x=outer; f(){ local -urx x=inner; }; f; x=next; printf %s "$x"; envget x', 'next<unset>'],
   ['f(){ local -A x=([key]=value); local -p x; }; f', 'declare -A x=(["key"]="value")\n'],
   ['f(){ local -a x; local -p; }; f', 'declare -a x=()\n'],
-  ['declare -i ZZ=2; declare -p', 'declare -- OPTERR="1"\ndeclare -- OPTIND="1"\ndeclare -a PIPESTATUS=([0]="0")\ndeclare -x PWD="/"\ndeclare -i ZZ="2"\n'],
+  ['declare -i ZZ=2; declare -p', 'declare -- BASH_COMMAND="declare -p"\n' + 'declare -- OPTERR="1"\ndeclare -- OPTIND="1"\ndeclare -a PIPESTATUS=([0]="0")\ndeclare -x PWD="/"\ndeclare -i ZZ="2"\n'],
   ['declare x; declare -p x', 'declare -- x\n'],
 ] as const) test(`declaration compatibility: ${source}`, async t => {
   const { shell, commands } = setup();

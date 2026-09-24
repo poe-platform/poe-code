@@ -65,16 +65,16 @@ Caller-owned pages must expose navigation/close events and public frame element
 handles for snapshots. Trusted host work must settle; no opaque host preemption
 or guest-code isolation guarantee is implied.
 
-All `limits` values must be positive safe integers and are captured on creation:
+Omitted limits are unlimited, including when other limits are configured. Explicit `limits` values must be positive safe integers and are captured on creation:
 
 | Option | Default | Enforcement |
 | --- | ---: | --- |
-| `maxSessions` | 4 | Before context acquisition |
-| `actionTimeoutMs` | 30000 | Passed to navigation, ref actions and screenshots; keyboard press has no public timeout option |
-| `maxTabs` | 16 | Before commanded tab creation |
-| `maxSnapshotBytes` | 262144 | UTF-8 summary bytes before publication |
-| `maxSnapshotRefs` | 1000 | Acquired handles before publication |
-| `maxArtifactBytes` | 16777216 | Screenshot / snapshot artifact bytes before copy or write |
+| `maxSessions` | Unlimited | Before context acquisition |
+| `actionTimeoutMs` | Unlimited | Uses Playwright timeout `0` when omitted; explicit values are passed to navigation, ref actions and screenshots; keyboard press has no public timeout option |
+| `maxTabs` | Unlimited | Before commanded tab creation |
+| `maxSnapshotBytes` | Unlimited | UTF-8 summary bytes before publication |
+| `maxSnapshotRefs` | Unlimited | Acquired handles before publication |
+| `maxArtifactBytes` | Unlimited | Screenshot / snapshot artifact bytes before copy or write |
 
 The library materializes screenshot bytes and each frame's handle array before
 these limits can inspect them; these are output/retention limits, not browser

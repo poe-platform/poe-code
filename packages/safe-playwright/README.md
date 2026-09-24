@@ -11,16 +11,16 @@ See [CONTRACT.md](CONTRACT.md) for commands, lifecycle guarantees and qualificat
 `webkit` sources. Each source supplies `acquireBrowser(options)` and optional
 `headed` support; acquired resources supply a browser and `release()`.
 
-Optional controller limits are positive safe integers, retained on creation:
+Browser resources and action duration are unlimited by default. Each optional controller limit must be a positive safe integer and is retained on creation:
 
 | Option                    |  Default |
 | ------------------------- | -------: |
-| `limits.maxSessions`      |        4 |
-| `limits.actionTimeoutMs`  |    30000 |
-| `limits.maxTabs`          |       16 |
-| `limits.maxSnapshotBytes` |   262144 |
-| `limits.maxSnapshotRefs`  |     1000 |
-| `limits.maxArtifactBytes` | 16777216 |
+| `limits.maxSessions`      | Unlimited |
+| `limits.actionTimeoutMs`  | Unlimited |
+| `limits.maxTabs`          | Unlimited |
+| `limits.maxSnapshotBytes` | Unlimited |
+| `limits.maxSnapshotRefs`  | Unlimited |
+| `limits.maxArtifactBytes` | Unlimited |
 
 `billing` is unsupported and rejected. Invocations provide `args`, `env`, `signal`,
 `write(text)` and optional `writeArtifact(bytes, filename)` and `registerCleanup`.

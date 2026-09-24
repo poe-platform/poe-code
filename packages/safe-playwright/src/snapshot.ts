@@ -1,6 +1,6 @@
 import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightFrame } from './adapter.js';
 
-export interface SnapshotLimits { readonly maxSnapshotBytes: number; readonly maxSnapshotRefs: number }
+export interface SnapshotLimits { readonly maxSnapshotBytes?: number | undefined; readonly maxSnapshotRefs?: number | undefined }
 
 export class SnapshotLimitError extends Error {}
 
@@ -9,8 +9,8 @@ export class SnapshotLimitError extends Error {}
  * Guest text is never compiled or evaluated as a locator or browser program.
  */
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
-  for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid snapshot limit');
-  const { maxSnapshotBytes, maxSnapshotRefs } = limits;
+  for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
+  const { maxSnapshotBytes = Infinity, maxSnapshotRefs = Infinity } = limits;
   let sequence = 0;
   let epoch = 0;
   const retirements = new Set<Promise<void>>();

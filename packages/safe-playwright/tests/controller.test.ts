@@ -545,3 +545,152 @@ test('cancellation drains retained-session screenshots without publishing late a
   assert.equal(writes, 0);
   await f.controller.dispose();
 });
+
+for (const limits of [undefined, { maxSessions: 1 }, { maxTabs: 2 }]) test(`tab admission respects only explicit limits ${JSON.stringify(limits)}`, async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  const controller = createPlaywrightController({ adapter: { ...f.adapter, async acquire(request) {
+    const lease = await acquire(request);
+    const pages: PlaywrightPage[] = [];
+    Object.assign(lease.context, { pages: () => pages, async newPage() {
+      const page = { goto: async (url: string) => { f.events.push(`goto:${url}`); }, url: () => `https://example.test/tab-${pages.length}` } as PlaywrightPage;
+      pages.push(page);
+      return page;
+    } });
+    return lease;
+  } }, ...(limits ? { limits } : {}) });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    await run(['open']);
+    const count = limits?.maxTabs ?? 18;
+    for (let index = 1; index < count; index++) await run(['tab-new']);
+    if (limits?.maxTabs !== undefined) await assert.rejects(run(['tab-new']), /tab limit exceeded/);
+    await run(['tab-list']);
+    assert.equal(f.leases[0]!.lease.context.pages().length, count);
+    assert.equal(f.leases[0]!.releases, 0);
+  } finally { await controller.dispose(); }
+});
+
+for (const limits of [undefined, { maxArtifactBytes: 1024 }]) test(`omitted session count permits more than four sessions with partial limits ${limits !== undefined}`, async () => {
+  const f = fixture();
+  const controller = createPlaywrightController({ adapter: f.adapter, ...(limits ? { limits } : {}) });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    for (let index = 0; index < 6; index++) await run([`--session=capacity-${index}`, 'open']);
+    for (let index = 0; index < 6; index++) await run([`--session=capacity-${index}`, 'tab-list']);
+    assert.equal(f.leases.length, 6);
+    assert.ok(f.leases.every(lease => lease.releases === 0));
+  } finally { await controller.dispose(); }
+  assert.ok(f.leases.every(lease => lease.releases === 1));
+});
+
+for (const kind of ['bytes', 'refs'] as const) {
+  for (const profile of ['omitted', 'partial', 'explicit']) test(`snapshot ${kind} admission requires an explicit limit: ${profile}`, async () => {
+    const limited = profile === 'explicit';
+    const f = fixture();
+    let visible = kind === 'refs' ? 1001 : 1;
+    let name = kind === 'bytes' ? 'x'.repeat(300 * 1024) : 'Item';
+    const clicks: number[] = [];
+    const disposed: number[] = [];
+    const handles = Array.from({ length: visible }, (_, index) => ({
+      async evaluate<T>(fn: (node: SnapshotNode) => T): Promise<T> {
+        return fn({ tagName: 'BUTTON', textContent: name + index, isConnected: true, getAttribute: () => null });
+      },
+      async click() { clicks.push(index); }, async fill() {}, async dispose() { disposed.push(index); },
+    }));
+    const acquire = f.adapter.acquire.bind(f.adapter);
+    const controller = createPlaywrightController({
+      adapter: { ...f.adapter, async acquire(request) {
+        const lease = await acquire(request);
+        const page = lease.context.pages()[0]!;
+        page.frames = () => [{ locator: () => ({ elementHandles: async () => handles.slice(0, visible) }) } as PlaywrightFrame];
+        page.on = () => {};
+        page.off = () => {};
+        return lease;
+      } },
+      ...(profile === 'omitted' ? {} : { limits: { maxSessions: 1, ...(limited ? kind === 'refs' ? { maxSnapshotRefs: 1000 } : { maxSnapshotBytes: 262144 } : {}) } }),
+    });
+    let output = '';
+    const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write(text) { output += text; } });
+    try {
+      await run(['open']);
+      output = '';
+      if (limited) {
+        await assert.rejects(run(['snapshot']), new RegExp(`Snapshot ${kind === 'refs' ? 'ref' : 'byte'} limit exceeded`));
+        assert.equal(output, '');
+        assert.equal(disposed.length, handles.length);
+        name = 'Recovered'; visible = 1;
+        await run(['snapshot']);
+        assert.match(output, /Recovered0/);
+      } else {
+        await run(['snapshot']);
+        assert.equal(output.split('\n').filter(Boolean).length, visible);
+        assert.ok(output.includes(name + (visible - 1)));
+        await run(['click', `e${visible}`]);
+        assert.deepEqual(clicks, [visible - 1]);
+      }
+      await run(['tab-list']);
+      assert.equal(f.leases[0]!.releases, 0);
+    } finally { await controller.dispose(); }
+    assert.equal(f.leases[0]!.releases, 1);
+  });
+}
+
+for (const limits of [undefined, { maxSessions: 1 }, { maxArtifactBytes: 17 }]) test(`artifact bytes have no omitted ceiling ${JSON.stringify(limits)}`, async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  const bytes = new Uint8Array(limits?.maxArtifactBytes === undefined ? 16 * 1024 * 1024 + 1 : 18);
+  const timeouts: (number | undefined)[] = [];
+  const controller = createPlaywrightController({ adapter: { ...f.adapter, async acquire(request) {
+    const lease = await acquire(request);
+    const page = lease.context.pages()[0]!;
+    page.screenshot = async options => { timeouts.push(options?.timeout); return bytes; };
+    return lease;
+  } }, ...(limits ? { limits } : {}) });
+  let written = 0;
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {}, async writeArtifact(value) { written += value.byteLength; } });
+  try {
+    await run(['open']);
+    if (limits?.maxArtifactBytes !== undefined) {
+      await assert.rejects(run(['screenshot']), /Artifact byte limit exceeded/);
+      assert.equal(written, 0);
+    } else {
+      await run(['screenshot']);
+      assert.equal(written, bytes.byteLength);
+    }
+    await run(['tab-list']);
+    assert.equal(f.leases[0]!.releases, 0);
+    assert.deepEqual(timeouts, [0]);
+  } finally { await controller.dispose(); }
+});
+
+for (const key of ['maxSessions', 'maxTabs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'actionTimeoutMs'] as const) test(`only positive safe explicit ${key} values are valid`, () => {
+  const f = fixture();
+  for (const value of [0, -1, 1.5, Infinity, NaN]) {
+    assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }), /Invalid Playwright limit/);
+  }
+});
+
+test('explicit action timeout and artifact boundary are forwarded and honored exactly', async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  let size = 17;
+  const timeouts: (number | undefined)[] = [];
+  const controller = createPlaywrightController({ adapter: { ...f.adapter, async acquire(request) {
+    const lease = await acquire(request);
+    lease.context.pages()[0]!.screenshot = async options => { timeouts.push(options?.timeout); return new Uint8Array(size); };
+    return lease;
+  } }, limits: { actionTimeoutMs: 1234, maxArtifactBytes: 17 } });
+  const artifacts: number[] = [];
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {}, async writeArtifact(bytes) { artifacts.push(bytes.byteLength); } });
+  try {
+    await run(['open']);
+    await run(['screenshot']);
+    size = 18;
+    await assert.rejects(run(['screenshot']), /Artifact byte limit exceeded/);
+    await run(['tab-list']);
+    assert.deepEqual(artifacts, [17]);
+    assert.deepEqual(timeouts, [1234, 1234]);
+    assert.equal(f.leases[0]!.releases, 0);
+  } finally { await controller.dispose(); }
+});

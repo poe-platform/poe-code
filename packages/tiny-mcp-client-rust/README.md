@@ -72,6 +72,9 @@ sessions and modern request headers. It mirrors schema-annotated tool arguments,
 supports OAuth providers and isolates cancellation to each modern request. Closing
 the transport aborts active fetches, cancels readers and bounds legacy session
 termination to one second. Response and SSE event limits default to 16 MiB.
+Before parsing, HTTP JSON is limited to 64 nesting levels, 100,000 tokens,
+4 MiB of decoded UTF-16 strings and an 8 MiB allocation estimate, including
+duplicate object keys.
 Set `mode: "sse"` for legacy servers that announce a same-origin POST endpoint
 on their initial GET stream. HTTP failures expose `status` and `method` through
 `HttpTransportError`. OAuth retries retain the headers and token snapshot used by

@@ -1,6 +1,7 @@
 //! HTTP transport policy and ownership identities. The host executes HTTP/stream I/O.
 use crate::{
     http::HttpResponseMessages,
+    http_json_budget::{JsonBudgetError, assert_http_json_budget},
     messages::{ParsedMessage, parse_message},
 };
 use mcp_protocol_rust::{
@@ -60,26 +61,36 @@ impl Post {
                     .expect("parsed originating request")
             })
     }
-    pub fn error_line(&self, status: u16, body: &[u16]) -> Option<Vec<u16>> {
+    pub fn error_line(
+        &self,
+        status: u16,
+        body: &[u16],
+    ) -> Result<Option<Vec<u16>>, JsonBudgetError> {
         if !self.modern || status < 400 {
-            return None;
+            return Ok(None);
         }
-        let request = self
+        let Some(request) = self
             .message
             .as_ref()
-            .filter(|message| message.get("id").is_some())?;
+            .filter(|message| message.get("id").is_some())
+        else {
+            return Ok(None);
+        };
         if !body.is_empty() {
-            let mut context = self.response_context()?;
+            assert_http_json_budget(body)?;
+            let mut context = self
+                .response_context()
+                .expect("validated originating request");
             if let Ok(line) = context.validate(body, false)
                 && let ParsedMessage::Response(mut response) = parse_message(&line)
                 && response.get("error").is_some()
             {
                 super::http::order_properties(&mut response);
-                return Some(text(&json::stringify(&response)));
+                return Ok(Some(text(&json::stringify(&response))));
             }
         }
         if status < 500 && is_text(request.get("method"), "server/discover") {
-            return Some(text(&json::stringify(&Value::Object(vec![
+            return Ok(Some(text(&json::stringify(&Value::Object(vec![
                 (text("jsonrpc"), Value::String(text("2.0"))),
                 (text("id"), request.get("id").expect("request ID").clone()),
                 (
@@ -92,9 +103,9 @@ impl Post {
                         ),
                     ]),
                 ),
-            ]))));
+            ])))));
         }
-        None
+        Ok(None)
     }
 }
 #[derive(Debug, PartialEq)]

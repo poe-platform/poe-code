@@ -5,7 +5,7 @@ import { OAuthMetadataDiscovery, parseBearerWwwAuthenticateHeader } from "./oaut
 import { createOAuthClientProvider } from "./oauth/provider.js";
 import { OAuthError } from "./oauth/tokens.js";
 import { fetchMcpResponse, readBoundedResponseText } from "./oauth/http.js";
-const { NativeHttpTransport, NativeSseParser, httpResponseKind, validateRequestTimeout } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
+const { NativeHttpTransport, NativeSseParser, httpResponseKind, assertHttpJsonBudget, validateRequestTimeout } = createRequire(import.meta.url)("./tiny-mcp-client-rust.node");
 
 export class HttpTransportError extends Error {
   constructor(message, status, method, rpcMethod) {
@@ -336,6 +336,7 @@ export class HttpTransport {
       case "json": {
         const payload = await readBoundedResponseText(response, this.#state.maxResponseBytes, this.#readers, signal);
         if (payload.length === 0) { if (context !== undefined) throw new Error("MCP HTTP response body is empty"); return; }
+        assertHttpJsonBudget(payload);
         this.#emit(context === undefined ? JSON.stringify(JSON.parse(payload)) : context.validate(payload, false));
         return;
       }
@@ -384,6 +385,7 @@ export class HttpTransport {
         this.#rejectEndpoint = undefined;
         continue;
       }
+      assertHttpJsonBudget(message.data);
       this.#emit(context === undefined ? message.data : context.validate(message.data, true));
       if (context?.completed) return;
     }

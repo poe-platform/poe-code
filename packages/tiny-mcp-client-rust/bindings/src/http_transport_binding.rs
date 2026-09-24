@@ -5,7 +5,26 @@ use mcp_protocol_rust::json::Value;
 use napi::{Env, ValueType, bindgen_prelude::*};
 use napi_derive::napi;
 use std::cell::RefCell;
+use tiny_mcp_client_rust::http_json_budget::JsonBudgetError;
 use tiny_mcp_client_rust::http_transport::{HttpState, Post, ResponseKind, response_kind};
+
+fn json_budget_error(env: Env, error: JsonBudgetError) -> napi::Error {
+    match error {
+        JsonBudgetError::BudgetExceeded => napi::Error::from_reason(error.to_string()),
+        JsonBudgetError::Syntax(message) => {
+            let exception = env
+                .get_global()
+                .and_then(|global| {
+                    global.get_named_property::<Function<&str, Unknown>>("SyntaxError")
+                })
+                .and_then(|constructor| constructor.new_instance(message));
+            match exception {
+                Ok(value) => napi::Error::from_unknown_without_coercion(value),
+                Err(error) => error,
+            }
+        }
+    }
+}
 
 fn changes(values: Vec<(String, Option<Vec<u16>>)>) -> NativeJson {
     NativeJson(Value::Array(
@@ -68,8 +87,16 @@ impl NativeHttpPost {
             })
     }
     #[napi]
-    pub fn error_line(&self, status: u16, body: Utf16String) -> Option<Utf16String> {
-        self.post.error_line(status, &body).map(Utf16String::from)
+    pub fn error_line(
+        &self,
+        env: Env,
+        status: u16,
+        body: Utf16String,
+    ) -> Result<Option<Utf16String>> {
+        self.post
+            .error_line(status, &body)
+            .map(|line| line.map(Utf16String::from))
+            .map_err(|error| json_budget_error(env, error))
     }
 }
 #[napi]
@@ -233,4 +260,10 @@ pub fn http_response_kind(status: u16, content_type: Option<String>) -> &'static
         ResponseKind::Sse => "sse",
         ResponseKind::Unsupported => "unsupported",
     }
+}
+
+#[napi]
+pub fn assert_http_json_budget(env: Env, text: Utf16String) -> Result<()> {
+    tiny_mcp_client_rust::http_json_budget::assert_http_json_budget(&text)
+        .map_err(|error| json_budget_error(env, error))
 }

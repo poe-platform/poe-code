@@ -4899,33 +4899,28 @@ export class Runtime {
     const args = [...context.args];
     let commandString = false;
     let standardInput = false;
-    let errexit = false;
-    let braceexpand = true;
-    let noexec = false;
-    let nounset = false;
+    const options = { allexport: false, braceexpand: true, errexit: false, noclobber: false, noexec: false, noglob: false, nounset: false, pipefail: false };
+    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", C: "noclobber", n: "noexec", f: "noglob", u: "nounset" } as const;
     while (args.length && (args[0]!.startsWith("-") || args[0]!.startsWith("+"))) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
-      if ((option === "-o" || option === "+o") && (args[0] === "braceexpand" || args[0] === "noexec" || args[0] === "nounset")) {
-        if (args[0] === "noexec") noexec = option === "-o";
-        else if (args[0] === "nounset") nounset = option === "-o";
-        else braceexpand = option === "-o";
-        args.shift();
+      const enabled = option[0] === "-";
+      if ((option === "-o" || option === "+o") && Object.hasOwn(options, args[0] ?? "")) {
+        options[args.shift()! as keyof typeof options] = enabled;
         continue;
       }
       const flags = option.slice(1);
-      if (!flags.length || [...flags].some(flag => !(option[0] === "-" ? "csenuB" : "enuB").includes(flag))) {
-        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-e, +/-u, +/-n, +/-B and +/-o braceexpand, noexec or nounset\n`);
+      if (!flags.length || [...flags].some(flag => !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s")))) {
+        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C and +/-o ${Object.keys(options).join(", ")}\n`);
         return 2;
       }
-      commandString ||= option.includes("c");
-      standardInput ||= option.includes("s");
-      if (option.includes("e")) errexit = option.startsWith("-");
-      if (option.includes("B")) braceexpand = option.startsWith("-");
-      if (option.includes("n")) noexec = option.startsWith("-");
-      if (option.includes("u")) nounset = option.startsWith("-");
+      for (const flag of flags) {
+        if (flag === "c") commandString = true;
+        else if (flag === "s") standardInput = true;
+        else options[flagsByName[flag as keyof typeof flagsByName]] = enabled;
+      }
     }
-    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource, braceexpand, noexec, nounset);
+    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, options.errexit, loadedSource, options.braceexpand, options.noexec, options.nounset, options);
     const source = commandString ? args.shift() : undefined;
     if (commandString && source === undefined) {
       await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
@@ -4934,10 +4929,7 @@ export class Runtime {
     const arg0 = commandString && args.length ? getCommandArguments(context).values[context.args.length - args.length]! : (context.argv0 ?? context.command);
     if (commandString) args.shift();
     const child = this.processState(context, state, io, arg0, args);
-    child.errexit = errexit;
-    child.braceexpand = braceexpand;
-    child.noexec = noexec;
-    child.nounset = nounset;
+    Object.assign(child, options);
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, argv0: undefined, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
     try {
@@ -5236,7 +5228,7 @@ export class Runtime {
       runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
   }
 
-  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false, nounset = false): Promise<number> {
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false, nounset = false, options?: Pick<State, "allexport" | "noclobber" | "noglob" | "pipefail">): Promise<number> {
     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = pathOf(state, target);
@@ -5311,6 +5303,7 @@ export class Runtime {
     child.braceexpand = braceexpand;
     child.noexec = noexec;
     child.nounset = nounset;
+    if (options) Object.assign(child, options);
     if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: target }, references);
@@ -6011,7 +6004,7 @@ export class Runtime {
       return 1;
     }
     const options = new Map<string, { enabled: boolean }>();
-    for (const name of setNamespace ? ["braceexpand", "errexit", "noclobber", "noglob", "nounset", "pipefail"] as const : ["dotglob", "extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"] as const) {
+    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"] as const) {
       options.set(name, {
         get enabled() { return name === "extglob" ? false : name === "braceexpand" ? state.braceexpand !== false : !!state[name]; },
         set enabled(value) { if (name !== "extglob") state[name] = value; },

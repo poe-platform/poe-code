@@ -5,13 +5,21 @@ import { Budget } from "./budget.js";
 import { Inputs } from "./input.js";
 import { argumentsFor, HtmlUsageError, settings, type HtmlToMarkdownCommandsOptions } from "./options.js";
 import { Renderer } from "./render.js";
+import type { CommandFamilyLimits } from "../limits.js";
+import type { HtmlToMarkdownLimits } from "./options.js";
 
 export type { HtmlToMarkdownCommandsOptions, HtmlToMarkdownLimits } from "./options.js";
 
 export function createHtmlToMarkdownCommand(options: HtmlToMarkdownCommandsOptions = {}): CommandDefinition {
-  const limits = settings(options);
+  const configured = settings(options);
   return { name: "html-to-markdown", description: "Convert bounded VFS/stdin HTML to Markdown without fetching or executing", async execute(context) {
     context.signal.throwIfAborted();
+    const profile = (context.capabilities?.commandLimits as CommandFamilyLimits | undefined)?.htmlToMarkdown;
+    const limits = { ...configured };
+    if (profile) {
+      settings({ limits: profile });
+      for (const key of Object.keys(profile) as (keyof HtmlToMarkdownLimits)[]) limits[key] = Math.min(limits[key], profile[key]!);
+    }
     let operation: OutputOperation | undefined;
     let inputs: Inputs | undefined, failed = false;
     let rejected = false, failure: unknown;

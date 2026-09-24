@@ -23,6 +23,15 @@ uses `htmlToMarkdown: { limits: ... }`; it omits family `replace`, because the
 aggregate's top-level replacement policy is authoritative. Curl and SafeJS remain
 separate opt-in plugins.
 
+`cloudflareWorkerLimits` supplies invocation ceilings through
+`limits.commandLimits.htmlToMarkdown` for both standalone and agent registrations.
+It caps input and output at 4 MiB, retained nodes at 10,000, tokens at 30,000,
+depth at 64, and individual tokens at 64 KiB. Nodes are accounted before
+construction; input, node and attribute ceilings bound retained tree storage
+even when the document produces no Markdown. Registration may tighten these
+ceilings but cannot raise them. Hosts without this profile retain the existing
+configurable limits.
+
 `html-to-markdown [--] [FILE|-] ...` reads ordered VFS operands; no operands means
 stdin. Repeated `-` shares one cursor, including EOF; it does not replay input.
 `--` permits literal leading-dash filenames. `--help` and `--version` do not

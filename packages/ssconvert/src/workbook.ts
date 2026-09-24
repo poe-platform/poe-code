@@ -60,6 +60,7 @@ export interface NamedExpression {
   readonly expression: string;
   /** Missing sheet means workbook scope; references can include detached sheets. */
   readonly sheet?: string;
+  /** Relative-reference parse anchor (default A1); evaluation uses the caller cell. */
   readonly position?: { readonly sheet: string; readonly row: number; readonly column: number };
 }
 export interface FormulaGroup {

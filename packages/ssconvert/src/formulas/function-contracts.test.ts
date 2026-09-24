@@ -128,7 +128,7 @@ it("materializes missing-field database count cells before testing their criteri
   expect(recalculateWorkbook(calculated, context)).toEqual(calculated);
 });
 it.each(['=SUM(INDIRECT("(A1:C1)"))', '=SUM(INDIRECT("target"))'])("extracts parenthesized and named INDIRECT ranges for %s", formula => {
-  const book: Workbook = { names: [{ name: "target", expression: "=A1:C1", position: { sheet: "s", row: 0, column: 0 } }], sheets: [{ id: "s", name: "Sheet", cells: [
+  const book: Workbook = { names: [{ name: "target", expression: "=$A$1:$C$1", position: { sheet: "s", row: 0, column: 0 } }], sheets: [{ id: "s", name: "Sheet", cells: [
     { row: 2, column: 4, formula, formulaDirty: true, value: n(9) },
     { row: 0, column: 0, value: n(1) }, { row: 0, column: 1, value: n(8) }, { row: 0, column: 2, value: n(3) }
   ] }] };

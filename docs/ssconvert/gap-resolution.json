@@ -407,6 +407,12 @@
           "path": "docs/ssconvert/gnumeric-global-name-recovery-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/gnumeric-global-name-recovery-native-capture.json",
           "outcome": "10red/12new controls;52focused/22814package tests,lint/types/build and64compiledSDK/Shell CSV conversions/20exports pass. Native values, warning messages and name records match; caller-position evaluation remains open."
+        },
+        {
+          "kind": "named-expression-caller-position",
+          "path": "docs/ssconvert/gnumeric-name-evaluation-gap-proof.json",
+          "nativeEvidence": "docs/ssconvert/gnumeric-name-evaluation-native-capture.json",
+          "outcome": "17red/17green;130focused/22831package tests,lint/types/build pass.56SDK/Shell CSV executions/20exports retain10BIFF/XLSX codec discrepancies; original/native XML values match. Codec offsets/binding and wider names remain open."
         }
       ],
       "delivery": {

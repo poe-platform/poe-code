@@ -106,7 +106,7 @@ it("rolls TABLE substitutions back after resolver cancellation and admits a fres
 it("keeps qualified scoped-name changes separate from unrelated sheet coordinates", () => {
   const input: Workbook = { names: [
     { name: "source", expression: "=First!$A$1", position: { sheet: "first", row: 0, column: 0 } },
-    { name: "source", sheet: "second", expression: "=A1", position: { sheet: "second", row: 3, column: 2 } }
+    { name: "source", sheet: "second", expression: "=Second!$A$1", position: { sheet: "second", row: 3, column: 2 } }
   ], sheets: [
     { id: "first", name: "First", cells: [{ row: 0, column: 0, value: { kind: "number", value: 2 } },
       { row: 2, column: 2, formula: "=Second!source+1", value: { kind: "number", value: 4 }, cachedResult: { kind: "number", value: 4 }, formulaDirty: false }] },

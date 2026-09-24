@@ -33,8 +33,8 @@ describe("native ordered cell updates and calculation", () => {
   it.each(["automatic", "manual"] as const)("shares scoped-name dependent updates through CLI and SDK in %s mode", async mode => {
     const f = fixture(mode);
     const original: Workbook = { calculationMode: mode, activeSheet: "second", names: [
-      { name: "Rate", expression: "=Rate", position: { sheet: "second", row: 0, column: 0 } },
-      { name: "Rate", sheet: "second", expression: "=A1" }
+      { name: "Rate", expression: "=Second!Rate", position: { sheet: "second", row: 0, column: 0 } },
+      { name: "Rate", sheet: "second", expression: "=Second!$A$1" }
     ], sheets: [
       { id: "first", name: "First", cells: [{ row: 0, column: 0, formula: "=Rate+1", value: number(3), cachedResult: number(3) }] },
       { id: "second", name: "Second", cells: [{ row: 0, column: 0, value: number(2) }] }

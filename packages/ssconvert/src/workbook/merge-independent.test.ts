@@ -148,12 +148,12 @@ describe("independent merge stress", () => {
     const numeric = (value: number) => ({ kind: "number" as const, value });
     const merged = mergeWorkbookSheets({ sheets: [{ ...sheet("first", "Data"), cells: [
       { row: 0, column: 0, value: numeric(10) }, { row: 0, column: 1, value: numeric(0), formula: "=Clash" }
-    ] }], names: [{ name: "Clash", expression: "=Data!A1" }] },
+    ] }], names: [{ name: "Clash", expression: "=Data!$A$1" }] },
     { sheets: [{ ...sheet("second", "Data"), cells: [
       { row: 0, column: 0, value: numeric(20) }, { row: 0, column: 1, value: numeric(30) },
       ...["=clash", "=Clash", '=INDIRECT("clash")', '=INDIRECT("Clash")', "=CLASH"].map((formula, index) =>
         ({ row: 0, column: index + 2, value: numeric(0), formula }))
-    ] }], names: [{ name: "clash", expression: "=Data!A1" }, { name: "Clash", sheet: "second", expression: "=Data!B1" }] }, limits, context);
+    ] }], names: [{ name: "clash", expression: "=Data!$A$1" }, { name: "Clash", sheet: "second", expression: "=Data!$B$1" }] }, limits, context);
     expect(merged.names?.map(name => [name.name, name.sheet])).toEqual([["Clash", undefined], ["clash", undefined], ["Clash", "second"]]);
     const calculated = recalculateWorkbook(merged, context, true);
     expect(calculated.sheets[0]?.cells[1]?.value).toEqual(numeric(10));

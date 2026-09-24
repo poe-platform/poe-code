@@ -6,6 +6,7 @@ import { foldSheetName } from "../workbook/case-fold.js";
 import type { FormulaNode, ParsePosition } from "./ast.js";
 import { parseExpression } from "./parser.js";
 import { buildDependencyGraph, type CalculationRange } from "./dependencies.js";
+import { parseNamedExpression } from "./named-expressions.js";
 import { localReferenceRange } from "./local-references.js";
 import { translateFormulaGroup } from "./workbook.js";
 import { binary, blank, difference, error, numeric, numericResult, product, sum } from "./values.js";
@@ -128,8 +129,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
     const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
     if (!name || names.has(name)) return error("#REF!");
-    const next = name.position ?? { ...position, sheet: name.sheet ?? position.sheet };
-    return indirectRange(parse(name.expression, next), next, new Set([...names, name]), depth + 1);
+    return indirectRange(parseNamedExpression(name, book, parse, tick), position, new Set([...names, name]), depth + 1);
   }
   function scalar(value: Value, position: ParsePosition): CellValue {
     if (value.kind === "matrix") return value.rows[0]?.[0] ?? error("#VALUE!");
@@ -185,8 +185,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
         const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
         const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
         if (!name || names.has(name)) return error("#NAME?");
-        const next = name.position ?? { ...position, sheet: name.sheet ?? position.sheet };
-        return evaluate(parse(name.expression, next), next, array, new Set([...names, name]), wantReference);
+        return evaluate(parseNamedExpression(name, book, parse, tick), position, array, new Set([...names, name]), wantReference);
       }
       if (node.kind === "unary") {
         const apply = (value: CellValue) => {

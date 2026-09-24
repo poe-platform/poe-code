@@ -3,6 +3,7 @@ import type { FormulaNode, ParsePosition } from "./ast.js";
 import { SsconvertError } from "../contracts.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { parseExpression } from "./parser.js";
+import { parseNamedExpression } from "./named-expressions.js";
 import { gnumericGrammar, sylkGrammar } from "./conventions.js";
 import { binary, numeric, numericResult } from "./values.js";
 import type { CellValue } from "../workbook.js";
@@ -77,8 +78,7 @@ export function buildDependencyGraph(
     if (node.kind === "name") {
       const name = named(node, position);
       if (!name || names.has(name)) return [];
-      const next = name.position ?? { ...position, sheet: name.sheet ?? position.sheet };
-      return staticRanges(parse(name.expression, next), next, new Set([...names, name]), depth + 1);
+      return staticRanges(parseNamedExpression(name, book, parse, tick), position, new Set([...names, name]), depth + 1);
     }
     if (node.kind === "call" && (node.name === "IF" || node.name === "CHOOSE")) {
       const ranges: CalculationRange[] = [];
@@ -129,8 +129,7 @@ export function buildDependencyGraph(
       if (node.kind === "name" && (node.workbook === undefined || node.workbook === "")) {
         const name = named(node, position);
         if (name && !names.has(name)) {
-          const next = name.position ?? { ...position, sheet: name.sheet ?? position.sheet };
-          pending.push({ node: parse(name.expression, next), position: next, names: new Set([...names, name]), depth: depth + 1 });
+          pending.push({ node: parseNamedExpression(name, book, parse, tick), position, names: new Set([...names, name]), depth: depth + 1 });
         }
       }
       const children = node.kind === "unary" || node.kind === "parentheses" ? [node.child] : node.kind === "binary" ? [node.left, node.right] : node.kind === "call" ? node.args : node.kind === "array" ? node.rows.flat() : [];

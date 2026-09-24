@@ -12,8 +12,8 @@ function context(): CapabilityContext {
 }
 function scopedBook(): Workbook {
   return { names: [
-    { name: "Rate", expression: "=Rate", position: { sheet: "other", row: 0, column: 0 } },
-    { name: "Rate", sheet: "other", expression: "=A1" }
+    { name: "Rate", expression: "=Other!Rate", position: { sheet: "other", row: 0, column: 0 } },
+    { name: "Rate", sheet: "other", expression: "=Other!$A$1" }
   ], sheets: [
     { id: "main", name: "Main", cells: [{ row: 0, column: 0, formula: "=Rate+1", value: n(3), cachedResult: n(3) }] },
     { id: "other", name: "Other", cells: [{ row: 0, column: 0, value: n(2) }] }

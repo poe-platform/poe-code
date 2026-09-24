@@ -5,6 +5,7 @@ import type { Ast } from "./parser.js";
 import { formatValue } from "./formats.js";
 import { scanRegex, substituteRegex } from "./regex.js";
 import { splitString } from "./split.js";
+import { indices } from "./indices.js";
 import { fromDateIso8601, toDateIso8601 } from "./dates.js";
 import { capture } from "./capture.js";
 import { splitRegex } from "./splits.js";
@@ -460,6 +461,10 @@ export class Interpreter {
       for await (const value of args.length ? this.run(args[0]!, input) : [input]) {
         throw new UserError(value, typeof value === "string" ? value : await stringify(value, budget));
       }
+      return;
+    }
+    if (name === "indices") {
+      for await (const value of this.run(args[0]!, input)) yield await indices(input, value, budget);
       return;
     }
     if (["startswith", "endswith", "ltrimstr", "rtrimstr"].includes(name)) {

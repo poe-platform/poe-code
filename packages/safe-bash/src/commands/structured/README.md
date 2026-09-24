@@ -10,6 +10,10 @@ subset, not complete jq, and is not evidence of superiority to jq or just-bash.
 formats Unix timestamps as UTC ISO 8601 strings. Fractional timestamps truncate
 toward zero; fractional date strings and timezone offsets are rejected.
 
+`indices(s)` finds every overlapping string or array subsequence match. String
+positions are UTF-8 byte offsets; array positions are element indices. An empty
+search string or array produces `[]`.
+
 ## Public API
 
 The public entry point is this subtree's `index.ts`. Root/package integration is

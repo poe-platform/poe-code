@@ -37,30 +37,36 @@ export function execute(fs: FileSystem, args: readonly string[], input: string, 
     .exec(["patch", ...args].map(quote).join(" "), { stdin: input, ...(signal ? { signal } : {}) });
 }
 
-export interface Mutation { method: "writeFile" | "rm" | "rmdir"; path: string; signal: AbortSignal | undefined }
+export interface Mutation { method: "writeFile" | "publishStagedFile" | "rm" | "rmdir"; path: string; signal: AbortSignal | undefined }
 
-export function observe(fs: MemoryFileSystem, fault?: { method: Mutation["method"]; path: string; after: boolean }) {
+export function observe(fs: MemoryFileSystem, fault?: { method: Mutation["method"]; path: string; after: boolean; error: Error }) {
   const calls: string[] = [];
   const mutations: Mutation[] = [];
-  const proxy = new Proxy(fs, {
+  const wrap = (view: FileSystem): FileSystem => new Proxy(view, {
     get(backing, property) {
+      if (property === "confineExtraction" && backing.confineExtraction) {
+        return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => {
+          calls.push("confineExtraction");
+          return wrap(await backing.confineExtraction!(...args));
+        };
+      }
       const value: unknown = Reflect.get(backing, property, backing);
       if (typeof value !== "function") return value;
       return (...args: unknown[]) => {
         calls.push(String(property));
-        const mutation = property === "writeFile" || property === "rm" || property === "rmdir";
-        const path = String(args[0]);
-        const options = args[property === "writeFile" ? 2 : 1] as { signal?: AbortSignal } | undefined;
+        const mutation = property === "writeFile" || property === "publishStagedFile" || property === "rm" || property === "rmdir";
+        const path = String(args[property === "publishStagedFile" ? 1 : 0]);
+        const options = args[property === "writeFile" || property === "publishStagedFile" ? 2 : 1] as { signal?: AbortSignal } | undefined;
         if (mutation) mutations.push({ method: property, path, signal: options?.signal });
         const fail = fault?.method === property && fault.path === path;
         if (!fail) return Reflect.apply(value, backing, args) as unknown;
         return (async () => {
-          if (!fault.after) throw new Error("injected-before-effect");
+          if (!fault.after) throw fault.error;
           await Reflect.apply(value, backing, args);
-          throw new Error("injected-after-effect");
+          throw fault.error;
         })();
       };
     },
   });
-  return { fs: proxy, calls, mutations };
+  return { fs: wrap(fs), calls, mutations };
 }

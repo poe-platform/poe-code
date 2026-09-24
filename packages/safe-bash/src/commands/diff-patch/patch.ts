@@ -252,7 +252,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const confined = await host(context, () => fs.confineExtraction!([context.cwd], { signal: context.signal }));
     context = { ...context, fs: new Proxy(fs, {
       get(target, property) {
-        const selected = ["mkdir", "rm", "rmdir"].includes(String(property)) ? confined : target;
+        if (property === "rmdir") return (path: string) => publication.prune(path);
+        const selected = ["mkdir", "rm"].includes(String(property)) ? confined : target;
         const value: unknown = Reflect.get(selected, property, selected);
         return typeof value === "function" ? value.bind(selected) : value;
       },
@@ -326,7 +327,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       ? !staged.get(path)!.remove : (options.atomic && stagedParents.has(path)) || await candidateStat(path, budget) !== undefined, budget);
     const path = resolvePath(context.cwd, name);
     activePath = path;
-    if (!options.dryRun) await publication.capture(path);
+    const pruning = pruneParents(name, context.cwd).filter(parent => parent !== context.cwd);
+    if (!options.dryRun) await publication.capture(path, pruning);
     if (path === paths.input || backupPaths.has(path) || rejectPaths.has(path)) throw new ToolError(`patch target aliases input or an earlier output: ${path}`);
     targets.add(path);
     const prior = options.atomic ? staged.get(path) : undefined;
@@ -421,7 +423,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       ...(backupPath === undefined ? {} : { backupPath }),
       ...(prior?.backupMode !== undefined ? { backupMode: prior.backupMode } : backup !== undefined && stat ? { backupMode: stat.mode & 0o7777 } : {}),
       ...(mtimeMs === undefined ? {} : { mtimeMs }),
-      ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruneParents(name, context.cwd).filter(parent => parent !== context.cwd) : [] };
+      ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruning : [] };
     const displayName = quotePatchName(name, options.quotingStyle);
     let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${output === undefined ? displayName : `${quotePatchName(output, options.quotingStyle)} (read from ${displayName})`}\n`;
     if (options.verbose) {

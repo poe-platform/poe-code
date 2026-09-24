@@ -1,15 +1,16 @@
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { dirname, isFsError, type CommandContext, type FileStat, type FileSystem, type FileStaging, type FileStagingEntry } from "../../contracts/index.js";
+import { dirname, FsError, isFsError, type CommandContext, type FileStat, type FileSystem, type FileStaging, type FileStagingEntry } from "../../contracts/index.js";
 import { host, ToolError } from "./shared.js";
 
 /** Keeps admission receipts until the backend atomically publishes each file. */
 export class PatchPublication {
   private readonly directories = new Map<string, FileStat>();
   private readonly removals = new Map<string, FileSystem>();
+  private readonly pruning = new Map<string, FileSystem>();
 
   constructor(private readonly context: CommandContext) {}
 
-  async capture(path: string): Promise<void> {
+  async capture(path: string, prune: readonly string[] = []): Promise<void> {
     const paths: string[] = [];
     for (let parent = dirname(path);; parent = dirname(parent)) {
       paths.unshift(parent);
@@ -25,6 +26,11 @@ export class PatchPublication {
     }
     if (this.directories.has(dirname(path)) && !this.removals.has(path)) {
       this.removals.set(path, await host(this.context, () => this.context.fs.confineExtraction!([dirname(path)], { signal: this.context.signal })));
+    }
+    const parents = prune.filter(parent => this.directories.has(parent) && !this.pruning.has(parent));
+    if (this.directories.has(dirname(path)) && parents.length) {
+      const view = await host(this.context, () => this.context.fs.confineExtraction!([dirname(path), parents.at(-1)!], { signal: this.context.signal }));
+      for (const parent of parents) this.pruning.set(parent, view);
     }
   }
 
@@ -71,5 +77,12 @@ export class PatchPublication {
     const fs = this.removals.get(path);
     if (!fs) throw new ToolError(`patch removal was not admitted: ${path}`);
     await host(this.context, () => fs.rm(path, { signal: this.context.signal }));
+  }
+
+  async prune(path: string): Promise<void> {
+    const fs = this.pruning.get(path);
+    if (!fs) throw new ToolError(`patch directory pruning was not admitted: ${path}`);
+    if (!fs.rmdir) throw new FsError("ENOTSUP", { syscall: "rmdir", path });
+    await host(this.context, () => fs.rmdir!(path, { signal: this.context.signal }));
   }
 }

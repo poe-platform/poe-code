@@ -25,7 +25,7 @@ for (const vector of vectors) test(`${vector.status === 0 ? "GNU default" : "ato
   assert.deepEqual(after, before, "no decoys, reject files, backup files, or unrelated paths changed");
   if (vector.args.includes("--dry-run") || vector.status !== 0) assert.deepEqual(observed.mutations, []);
   else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),
-    [{ method: vector.expected === null ? "rm" : "writeFile", path: target(vector) }, ...(prunedParent ? [{ method: "rmdir", path: "/authorized" }] : [])]);
+    [{ method: vector.expected === null ? "rm" : "publishStagedFile", path: target(vector) }, ...(prunedParent ? [{ method: "rmdir", path: "/authorized" }] : [])]);
 });
 
 for (const format of formats) for (const reverse of [false, true]) {
@@ -37,7 +37,7 @@ for (const format of formats) for (const reverse of [false, true]) {
     const result = await execute(observed.fs, ["--atomic", reverse ? "-RE" : "-E", "/authorized/target"], input);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(await contents(fs, "/authorized/target"), reverse ? payload : created);
-    assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })), [{ method: "writeFile", path: "/authorized/target" }]);
+    assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })), [{ method: "publishStagedFile", path: "/authorized/target" }]);
   });
 }
 
@@ -87,24 +87,16 @@ for (const operation of ["create", "remove"]) test(`pre-cancelled ${operation} p
   assert.deepEqual(await snapshot(fs), before);
 });
 
-for (const method of ["writeFile", "rm"] as const) for (const after of [false, true]) {
+for (const method of ["publishStagedFile", "rm"] as const) for (const after of [false, true]) {
   test(`atomic extension ${method} failure ${after ? "after" : "before"} effect reports partial commit, not rollback`, async () => {
     const fs = await setup();
     for (const name of ["first", "second", "third"]) await fs.writeFile(`/work/${name}`, Buffer.from(method === "rm" ? payload : ""));
-    const observed = observe(fs, { method, path: "/work/second", after });
-    const failures: unknown[] = [], reported: unknown[] = [];
-    const source = new Proxy(observed.fs, { get(backing, property) {
-      const value: unknown = Reflect.get(backing, property, backing);
-      if (typeof value !== "function") return value;
-      if (property !== method) return value.bind(backing);
-      return async (...args: unknown[]) => {
-        try { return await Reflect.apply(value, backing, args); }
-        catch (error) { failures.push(error); throw error; }
-      };
-    } });
+    const failure = new Error(`injected-${after ? "after" : "before"}-effect`);
+    const observed = observe(fs, { method, path: "/work/second", after, error: failure });
+    const reported: unknown[] = [];
     const controller = new AbortController();
     const input = ["first", "second", "third"].map(name => method === "rm" ? deletion("context", name) : creation("unified", name)).join("");
-    const shell = new Shell({ fs: source, cwd: "/work", limits: { maxOutputBytes: 65_536 }, onInternalError(error) { reported.push(error); } }).use(diffPatchCommands());
+    const shell = new Shell({ fs: observed.fs, cwd: "/work", limits: { maxOutputBytes: 65_536 }, onInternalError(error) { reported.push(error); } }).use(diffPatchCommands());
     let result;
     try { result = await shell.exec(["patch", "--atomic", "--remove-empty-files"].map(quote).join(" "), { stdin: input, signal: controller.signal }); }
     finally { await shell.dispose(); }
@@ -112,11 +104,8 @@ for (const method of ["writeFile", "rm"] as const) for (const after of [false, t
     assert.match(result.stderr, /commit stopped; 1\/3 files committed; failing operation may have side effects/u);
     assert.match(result.stderr, /internal error/u);
     assert.doesNotMatch(result.stderr, /injected-(?:before|after)-effect/u);
-    assert.equal(failures.length, 1);
     assert.equal(reported.length, 1);
-    assert.equal(reported[0], failures[0]);
-    assert.ok(failures[0] instanceof Error);
-    assert.equal(failures[0].message, `injected-${after ? "after" : "before"}-effect`);
+    assert.equal(reported[0], failure);
     assert.equal(result.stdout, "");
     const original = method === "rm" ? payload : "";
     const changed = method === "rm" ? null : created;

@@ -43,6 +43,60 @@ for (const atomic of [false, true]) {
   });
 }
 
+for (const atomic of [false, true]) for (const parent of ["/authorized", "/authorized/deep"]) {
+  test(`patch prunes an explicit target outside cwd: ${parent}, atomic=${atomic}`, async () => {
+    const fs = await filesystem({ sentinel: "untouched\n", decoy: "old\n" });
+    const before = await snapshot(fs);
+    await fs.mkdir(parent, { recursive: true });
+    await fs.writeFile(`${parent}/target`, Buffer.from("old\n"));
+    const result = await run("patch", ["-E", ...(atomic ? ["--atomic"] : []), `${parent}/target`], {
+      fs, input: "--- decoy\n+++ decoy\n@@ -1 +0,0 @@\n-old\n",
+    });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await snapshot(fs), before, "only the explicit target and its empty parents are removed");
+  });
+}
+
+for (const parent of ["/authorized", "/authorized/deep"]) {
+  test(`patch pruning rejects an external parent replacement: ${parent}`, async () => {
+    const backing = await filesystem({ sentinel: "untouched\n" });
+    await backing.mkdir(parent, { recursive: true });
+    await backing.writeFile(`${parent}/target`, Buffer.from("old\n"));
+    let swapped = false;
+    const fs = new Proxy(backing, {
+      get(target, property) {
+        if (property === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => {
+          const confined = await target.confineExtraction(...args);
+          return new Proxy(confined, {
+            get(view, key) {
+              if (key === "rmdir") return async (...remove: Parameters<NonNullable<FileSystem["rmdir"]>>) => {
+                assert.equal(remove[0], parent);
+                swapped = true;
+                await backing.rename("/authorized", "/retired");
+                await backing.mkdir(parent, { recursive: true });
+                return view.rmdir!(...remove);
+              };
+              const value: unknown = Reflect.get(view, key, view);
+              return typeof value === "function" ? value.bind(view) : value;
+            },
+          });
+        };
+        const value: unknown = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const result = await run("patch", ["-E", `${parent}/target`], {
+      fs, input: "--- label\n+++ label\n@@ -1 +0,0 @@\n-old\n",
+    });
+    assert.equal(swapped, true);
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr, /EAGAIN/u);
+    assert.equal((await backing.lstat(parent)).type, "directory", "the replacement directory survives");
+    assert.equal(Buffer.from(await backing.readFile("/work/sentinel")).toString(), "untouched\n");
+  });
+}
+
 test("patch refuses mutation without atomic ancestry support but permits dry-run", async () => {
   const backing = await filesystem({ target: "old\n" });
   const fs = new Proxy(backing, {

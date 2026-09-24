@@ -254,7 +254,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         format = Buffer.from(bytes).toString("utf8");
       } catch { signal.throwIfAborted(); throw new CurlError(26, "Failed reading write-out format"); }
     }
-    if (format !== undefined) { writeOutFormat(format, values); formatReady = true; }
+    if (format !== undefined) { writeOutFormat(format, values, limits.maxBufferBytes); formatReady = true; }
     const parsed = parseUrl(input);
     const initial = parsed.url;
     const rawTarget = curlRequestTarget(input);
@@ -526,7 +526,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
   values.exitcode = String(failure?.exitCode ?? 0);
   values.errormsg = failure?.message ?? "";
   if (format !== undefined && formatReady) {
-    try { await publish(writeOutFormat(format, values)); }
+    try { await publish(writeOutFormat(format, values, limits.maxBufferBytes)); }
     catch (error) { context.signal.throwIfAborted(); failure = error instanceof CurlError ? error : new CurlError(23, "Failed writing write-out result"); }
   }
   if (failure && (!args.silent || args.showError)) {

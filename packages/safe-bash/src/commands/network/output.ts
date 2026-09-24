@@ -64,21 +64,34 @@ export async function dumpHeaders(context: CommandContext, path: string, bytes: 
   }
 }
 
-export function writeOutFormat(format: string, values: Readonly<Record<string, string>>): Uint8Array {
+export function writeOutFormat(format: string, values: Readonly<Record<string, string>>, maxBytes: number): Uint8Array {
   let result = "";
+  let bytes = 0;
+  const sizes = new Map<string, number>();
+  const append = (text: string): void => {
+    let size = sizes.get(text);
+    if (size === undefined) { size = Buffer.byteLength(text); sizes.set(text, size); }
+    if (size > maxBytes - bytes) throw new CurlError(63, "Write-out exceeds host buffer limit");
+    bytes += size;
+    result += text;
+  };
   for (let index = 0; index < format.length; index++) {
     const character = format[index]!;
     if (character === "\\") {
       const next = format[++index];
-      result += next === "n" ? "\n" : next === "r" ? "\r" : next === "t" ? "\t" : next === undefined ? "\\" : `\\${next}`;
-    } else if (character === "%" && format[index + 1] === "%") { result += "%"; index++; }
+      append(next === "n" ? "\n" : next === "r" ? "\r" : next === "t" ? "\t" : next === undefined ? "\\" : `\\${next}`);
+    } else if (character === "%" && format[index + 1] === "%") { append("%"); index++; }
     else if (character === "%" && format[index + 1] === "{") {
       const end = format.indexOf("}", index + 2);
       if (end < 0) throw new CurlError(2, "Invalid write-out format");
       const name = format.slice(index + 2, end);
       if (!Object.hasOwn(values, name)) throw new CurlError(2, "Unsupported write-out variable");
-      result += values[name]; index = end;
-    } else result += character;
+      append(values[name]!); index = end;
+    } else {
+      const start = index;
+      while (index + 1 < format.length && format[index + 1] !== "%" && format[index + 1] !== "\\") index++;
+      append(format.slice(start, index + 1));
+    }
   }
   return encode(result);
 }

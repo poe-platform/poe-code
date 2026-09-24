@@ -49,12 +49,12 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"])
     "/fast": fast, "/slow": slow, "/locked": createReadOnlyFileSystem(buffered(lockedBacking))
   } });
   assert.equal(fs.capabilities.streamingWrite, undefined);
-  const shell = new Shell({ fs }).use(commands()).use(networkCommands({ limits: { maxUrls: 8, maxBufferBytes: 1024 },
+  const shell = new Shell({ fs }).use(commands()).use(networkCommands({
     authorize: () => true,
     transport: async () => ({ status: 200, statusText: "OK", headers: [], body: (async function* () {
       for (let index = 0; index < 300; index++) yield new Uint8Array([index % 256]);
     })(), async dispose() {} }),
-    limits: { maxBufferBytes: 128, maxDownloadBytes: 300 }
+    limits: { maxUrls: 8, maxBufferBytes: 128, maxDownloadBytes: 300 }
   }));
   try {
     for (const target of ["/slow/out", "/fast/out"]) {

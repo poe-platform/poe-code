@@ -57,6 +57,15 @@ export class ValueArena {
     this.#bytes += bytes;
   }
 
+  resizeStringRecord(record: AllocationRecord, newBytes: number): void {
+    this.assertOpen();
+    if (!this.#records.has(record) || record.object || record.slots !== 0) throw new Error("Invalid string record resize");
+    if (!Number.isSafeInteger(newBytes) || newBytes < 0) throw new RangeError("Invalid shell value allocation");
+    if (newBytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
+    this.#bytes += newBytes - record.bytes;
+    record.bytes = newBytes;
+  }
+
   commit(record: AllocationRecord, object: object): void {
     this.assertOpen();
     if (!this.#records.has(record) || record.object || this.#objects.has(object)) throw new Error("Shell value reservation is not fresh");
@@ -78,11 +87,12 @@ export class ValueArena {
     if (typeof value === "string") {
       const payload = this.allocate(value.length * 2, 0);
       let released = false;
-      return { value, release: () => {
+      const held: HeldValue & { __stringRecord?: AllocationRecord; value: ShellValue } = { value, __stringRecord: payload, release: () => {
         if (released) return;
         released = true;
         this.release(payload);
       } };
+      return held;
     }
     const reference = this.allocate(32, 1);
     let payload: AllocationRecord;
@@ -114,8 +124,8 @@ export class ValueArena {
 }
 
 export class ValueScope implements ValueAllocation {
-  readonly #releases = new Set<() => void>();
-  readonly #holds = new Map<HeldValue, { scope: ValueScope }>();
+  #releases: Set<() => void> | undefined;
+  #holds: Map<HeldValue, { scope: ValueScope }> | undefined;
   #closed = false;
   #enrollment: AllocationRecord | undefined;
   #bytesReservation: AllocationRecord | undefined;
@@ -139,54 +149,60 @@ export class ValueScope implements ValueAllocation {
     this.#enrollment ??= this.arena.allocate(64, 1);
     const record = this.arena.allocate(bytes, slots);
     let released = false;
+    const releases = this.#releases ??= new Set();
     const release = (): void => {
       if (released) return;
       released = true;
-      this.#releases.delete(release);
+      releases.delete(release);
       this.arena.release(record);
     };
-    this.#releases.add(release);
+    releases.add(release);
     return { commit: value => { this.assertOpen(); if (released) throw new Error("Shell value reservation is released"); this.arena.commit(record, value); }, release };
   }
 
   hold(value: ShellValue): HeldValue {
     this.assertOpen();
     if (typeof value !== "string") this.#enrollment ??= this.arena.allocate(64, 1);
-    const held = this.arena.hold(value);
+    const held = this.arena.hold(value) as HeldValue & { __stringRecord?: AllocationRecord };
     const owner = { scope: this as ValueScope };
-    const result = { value, release: (): void => {
-      owner.scope.#holds.delete(result);
-      owner.scope.#releases.delete(result.release);
+    const result: HeldValue & { __stringRecord?: AllocationRecord; value: ShellValue } = {
+      value,
+      ...(held.__stringRecord ? { __stringRecord: held.__stringRecord } : {}),
+      release: (): void => {
+      owner.scope.#holds?.delete(result);
+      owner.scope.#releases?.delete(result.release);
       held.release();
     } };
     const release = result.release;
-    this.#releases.add(release);
-    this.#holds.set(result, owner);
+    (this.#releases ??= new Set()).add(release);
+    (this.#holds ??= new Map()).set(result, owner);
     return result;
   }
 
   prepareTransfer(held: HeldValue, destination: ValueScope): () => void {
     const validate = (): { scope: ValueScope } => {
       this.arena.assertRetained();
-      const owner = this.#holds.get(held);
+      const owner = this.#holds?.get(held);
       if (!owner || this.#closed || destination.#closed || this.arena !== destination.arena || typeof held.value !== "string" && !destination.#enrollment) throw new Error("Shell value restoration ownership is not prepared");
       return owner;
     };
     validate();
     return () => {
       const owner = validate();
-      this.#holds.delete(held);
-      this.#releases.delete(held.release);
+      this.#holds?.delete(held);
+      this.#releases?.delete(held.release);
       owner.scope = destination;
-      destination.#holds.set(held, owner);
-      destination.#releases.add(held.release);
+      (destination.#holds ??= new Map()).set(held, owner);
+      (destination.#releases ??= new Set()).add(held.release);
     };
   }
 
   close(): void {
     if (this.#closed) return;
     this.#closed = true;
-    for (const release of this.#releases) release();
+    if (this.#releases) {
+      for (const release of this.#releases) release();
+    }
     if (this.#bytesReservation) this.arena.release(this.#bytesReservation);
     if (this.#enrollment) this.arena.release(this.#enrollment);
   }
@@ -195,12 +211,35 @@ export class ValueScope implements ValueAllocation {
 export class ValueStore {
   readonly #values = new Map<string, HeldValue>();
   readonly scope: ValueScope;
+  #publishingName: string | undefined;
 
   constructor(readonly arena: ValueArena) { this.scope = arena.scope(); }
 
   get(name: string, text: string): ShellValue { return this.#values.get(name)?.value ?? text; }
 
   publish(name: string, value: ShellValue, action: () => boolean): boolean {
+    if (typeof value === "string") {
+      const existing = this.#values.get(name) as (HeldValue & { __stringRecord?: AllocationRecord; value: ShellValue }) | undefined;
+      if (existing && typeof existing.value === "string" && existing.__stringRecord) {
+        const oldBytes = existing.__stringRecord.bytes;
+        this.arena.resizeStringRecord(existing.__stringRecord, value.length * 2);
+        const prevPublishing = this.#publishingName;
+        this.#publishingName = name;
+        try {
+          if (!action()) {
+            this.arena.resizeStringRecord(existing.__stringRecord, oldBytes);
+            return false;
+          }
+        } catch (error) {
+          this.arena.resizeStringRecord(existing.__stringRecord, oldBytes);
+          throw error;
+        } finally {
+          this.#publishingName = prevPublishing;
+        }
+        existing.value = value;
+        return true;
+      }
+    }
     const held = this.scope.hold(value);
     try {
       if (!action()) { held.release(); return false; }
@@ -211,6 +250,7 @@ export class ValueStore {
   }
 
   invalidate(name?: string): void {
+    if (name !== undefined && name === this.#publishingName) return;
     if (name === undefined) {
       for (const value of this.#values.values()) value.release();
       this.#values.clear();

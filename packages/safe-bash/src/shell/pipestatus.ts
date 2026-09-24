@@ -47,14 +47,10 @@ export function publishPipelineStatus(
       existing.get(0) === (status === 0 ? "0" : String(status))
     ) {
       const owner = monitor.internalOwner();
-      const tickets = owner.reserve({ generation: true, version: true, epoch: true, work: 8 });
-      try {
-        monitor.publish(tickets, name, () => {
-          store.revise(name, existing, tickets);
-        });
-      } finally {
-        tickets.release();
-      }
+      const tickets = owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+      monitor.publish(tickets, name, () => {
+        store.revise(name, existing, tickets);
+      });
       return;
     }
   }

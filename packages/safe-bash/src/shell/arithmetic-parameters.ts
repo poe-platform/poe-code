@@ -83,7 +83,7 @@ export function evaluatePositionalArithmetic<T>(
       else size += 3;
       if (size > maximum) options.limit();
     }
-    options.owner?.reserve({ work: end - start }).release();
+    options.owner?.chargeWork(end - start);
     return size;
   };
   const literal = (start: number, end: number): void => {

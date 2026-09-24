@@ -69,6 +69,7 @@ export class StateMonitor {
   #retireCleanup: (() => void) | undefined;
   #positionalRevision: object = {};
   #getoptsInput: { input: GetoptsInput; allocation: ValueScope } | undefined;
+  readonly #mutationTickets = { generation: 0, version: 0, epoch: 0 };
 
   constructor(readonly raw: State, readonly session: Session, source?: StateMonitor) {
     this.values = source ? source.values.clone() : new ValueStore(session.values);
@@ -189,7 +190,7 @@ export class StateMonitor {
     owner.reserve({ metadata: 128, work: 7 });
     const saved: { superseded?: boolean }[] = [];
     for (let frame = this.#overlays; frame; frame = frame[overlayNext]) {
-      owner.reserve({ work: 2 }).release();
+      owner.chargeWork(2);
       const entry = frame.get(name);
       if (entry) {
         owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
@@ -216,16 +217,19 @@ export class StateMonitor {
     }
   }
 
-  mutation(name?: string): Admission | undefined {
+  mutation(name?: string): Tickets | undefined {
     if (this.#publication) return undefined;
-    return this.store ? this.store.tickets(name) : this.session.guestOwner?.reserve({ epoch: true, work: 5 });
+    if (this.store) {
+      const guarded = name !== undefined && (this.store.bindings.has(name) || this.store.watches.has(name));
+      return this.store.owner.charge({ generation: guarded, version: guarded, epoch: true, work: 5 }, this.#mutationTickets);
+    }
+    return this.session.guestOwner?.charge({ epoch: true, work: 5 }, this.#mutationTickets);
   }
 
-  finish(tickets: Admission | undefined, name?: string): void {
+  finish(tickets: Tickets | undefined, name?: string): void {
     if (!tickets) return;
     this.epoch = tickets.epoch;
     this.store?.changed(tickets, name);
-    tickets.release();
   }
 
   publish(tickets: Tickets, name: string | undefined, action: () => void): void {

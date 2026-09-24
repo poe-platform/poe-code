@@ -83,6 +83,81 @@ export class ArrayLedger {
     return { caps: this.#caps?.slice(), used: this.#used.slice(), lastIssued: this.#sequence.lastIssued };
   }
 
+  charge(charge: Charge = {}, out?: { generation: number; version: number; epoch: number }): Tickets {
+    const caps = this.#caps ?? this.derive();
+    let cursor = this.#sequence.lastIssued;
+    let generation = 0;
+    if (charge.generation) {
+      const count = charge.generation === true ? 1 : charge.generation;
+      if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure("private generation capacity exhausted");
+      cursor += count;
+      generation = cursor;
+    }
+    let version = 0;
+    if (charge.version) {
+      const count = charge.version === true ? 1 : charge.version;
+      if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure("private version capacity exhausted");
+      cursor += count;
+      version = cursor;
+    }
+    let epoch = 0;
+    if (charge.epoch) {
+      const count = charge.epoch === true ? 1 : charge.epoch;
+      if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure("private epoch capacity exhausted");
+      cursor += count;
+      epoch = cursor;
+    }
+    const wrappers = charge.wrappers ?? 0;
+    const slots = charge.slots ?? 0;
+    const payload = charge.payload ?? 0;
+    const rawMeta = charge.metadata ?? 0;
+    const allocatedSlots = charge.allocatedSlots ?? slots;
+    const rawWork = charge.work ?? 0;
+    if (
+      Number.isSafeInteger(wrappers) && wrappers >= 0 &&
+      Number.isSafeInteger(slots) && slots >= 0 &&
+      Number.isSafeInteger(payload) && payload >= 0 &&
+      Number.isSafeInteger(rawMeta) && rawMeta >= 0 && rawMeta <= Number.MAX_SAFE_INTEGER - 64 &&
+      Number.isSafeInteger(allocatedSlots) && allocatedSlots >= 0 &&
+      Number.isSafeInteger(rawWork) && rawWork >= 0 && rawWork <= Number.MAX_SAFE_INTEGER - 15
+    ) {
+      const metadataNum = rawMeta + 64;
+      const allocBytes = payload + metadataNum;
+      const workNum = rawWork + 15;
+      if (Number.isSafeInteger(allocBytes)) {
+        const used = this.#used;
+        if (caps[0]! !== Infinity && wrappers > caps[0]! - used[0]!) throw new ArrayFailure(`private ${labels[0]} limit exceeded`);
+        if (caps[1]! !== Infinity && slots > caps[1]! - used[1]!) throw new ArrayFailure(`private ${labels[1]} limit exceeded`);
+        if (caps[2]! !== Infinity && payload > caps[2]! - used[2]!) throw new ArrayFailure(`private ${labels[2]} limit exceeded`);
+        if (caps[3]! !== Infinity && metadataNum > caps[3]! - used[3]!) throw new ArrayFailure(`private ${labels[3]} limit exceeded`);
+        if (caps[4]! !== Infinity && allocBytes > caps[4]! - used[4]!) throw new ArrayFailure(`private ${labels[4]} limit exceeded`);
+        if (caps[5]! !== Infinity && allocatedSlots > caps[5]! - used[5]!) throw new ArrayFailure(`private ${labels[5]} limit exceeded`);
+        if (caps[6]! !== Infinity && workNum > caps[6]! - used[6]!) throw new ArrayFailure(`private ${labels[6]} limit exceeded`);
+        this.#caps = caps;
+        this.#sequence.lastIssued = cursor;
+        used[4]! += allocBytes;
+        used[5]! += allocatedSlots;
+        used[6]! += workNum;
+        if (out) {
+          out.generation = generation;
+          out.version = version;
+          out.epoch = epoch;
+          return out;
+        }
+        return { generation, version, epoch };
+      }
+    }
+    const admission = this.reserve(charge);
+    admission.release();
+    if (out) {
+      out.generation = admission.generation;
+      out.version = admission.version;
+      out.epoch = admission.epoch;
+      return out;
+    }
+    return { generation: admission.generation, version: admission.version, epoch: admission.epoch };
+  }
+
   reserve(charge: Charge = {}): Admission {
     const caps = this.#caps ?? this.derive();
     let cursor = this.#sequence.lastIssued;
@@ -201,6 +276,7 @@ export function exactSum(left: number, right: number): number {
 }
 
 const resolvedPromise = Promise.resolve();
+const sharedDiscardTickets = { generation: 0, version: 0, epoch: 0 };
 
 export class ArrayOwner {
   #head: Admission | undefined;
@@ -247,6 +323,16 @@ export class ArrayOwner {
   reserve(charge: Charge): Admission {
     this.assertOpen();
     return this.adopt(this.ledger.reserve(charge));
+  }
+
+  charge(charge: Charge, out?: { generation: number; version: number; epoch: number }): Tickets {
+    this.assertOpen();
+    return this.ledger.charge(charge, out);
+  }
+
+  chargeWork(work: number): void {
+    this.assertOpen();
+    this.ledger.charge({ work }, sharedDiscardTickets);
   }
 
   adopt(admission: Admission, prepaid = false): Admission {

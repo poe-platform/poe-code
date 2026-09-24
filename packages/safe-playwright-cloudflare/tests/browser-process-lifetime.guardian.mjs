@@ -1,6 +1,7 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { execFileSync } from 'node:child_process';
 import { rmSync } from 'node:fs';
+import { browserProcessInventory } from './browser-process-inventory.mjs';
 
 const groups = new Map();
 const retiring = new Map();
@@ -24,7 +25,7 @@ async function cleanup(pid) {
   // Crashpad double-forks into another process group. Its inherited private
   // cwd remains an ownership witness after reparenting; other Chrome is excluded.
   for (let attempt = 0; attempt < 50; attempt++) {
-    const candidates = execFileSync('ps', ['-axo', 'pid=,args='], { encoding: 'utf8', timeout: 1000 })
+    const candidates = (await browserProcessInventory())
       .split('\n').filter(line => line.includes('chrome_crashpad_handler'))
       .map(line => line.trim().split(' ')[0]);
     if (!candidates.length) break;

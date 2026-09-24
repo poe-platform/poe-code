@@ -65,17 +65,23 @@ test('unsupported provider settings fail restoration before navigation', async (
 
 test('interrupted profile recovery creates one inert page without replaying URLs or provider scripts', async () => {
   const f = fixture();
-  const restore = vi.fn(async () => {});
-  Object.assign(f.lease.context, { browserProfile: { restore } });
   const signal = new AbortController().signal;
+  const configuration = { initPages: [{ filename: 'init.js', source: 'sideEffect()' }] };
+  const restore = vi.fn(async () => {});
+  const addInitScript = vi.fn(async () => {});
+  const executeCode = vi.fn(async () => {});
+  Object.assign(f.lease.context, { browserProfile: { restore }, addInitScript });
+  Object.assign(f.lease, { executeCode });
   const restored = await restoreBrowserProfile({ adapter: f.adapter,
-    profile: { ...profile, runtimeState: { scripts: ['sideEffect()'] }, configuration: { initPages: [{ filename: 'init.js', source: 'sideEffect()' }] } },
+    profile: { ...profile, runtimeState: { scripts: ['sideEffect()'] }, configuration },
     limits, name: 'host-owned', signal, recovery: true });
   expect(restored.recovery).toBe('saved-storage');
   expect(f.lease.context.newPage).toHaveBeenCalledOnce();
   expect(restored.selectedPage).toBe(f.pages[0]);
   expect(restored.initialize).toBeUndefined();
-  expect(restored.configuration).toEqual({ initPages: [{ filename: 'init.js', source: 'sideEffect()' }] });
+  expect(restored.configuration).toEqual(configuration);
   expect(restore).not.toHaveBeenCalled();
+  expect(addInitScript).not.toHaveBeenCalled();
+  expect(executeCode).not.toHaveBeenCalled();
   expect(f.navigations).toEqual([]);
 });

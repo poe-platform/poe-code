@@ -148,7 +148,7 @@ function decimalEpoch(text: string): bigint | undefined {
 
 function parsedZone(text: string | undefined, fallback: TimeZone): TimeZone {
   if (text === undefined) return fallback;
-  return /^[+-]/.test(text) ? new TimeZone(text, true) : new TimeZone(text);
+  return /^[+-]/.test(text) ? new TimeZone(text, true) : new TimeZone(text.toUpperCase());
 }
 
 export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigint {
@@ -163,25 +163,44 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
     const changed = utcFields(utcMilliseconds(fields) + (value === "yesterday" ? -86400000 : 86400000));
     return zone.instant(changed, current - floorDivide(current, nanosecondsPerSecond) * nanosecondsPerSecond);
   }
-  const relative = /^(?:now\s+)?([+-]?\d+)\s+(seconds?|minutes?|hours?)(?:\s+(ago))?$/.exec(value);
+  const relative = /^(?:(.*?)\s+)?([+-]?\d+)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)(?:\s+(ago))?$/.exec(value);
   if (relative) {
-    if (relative[1]!.replace(/^[+-]?0*/, "").length > 13) throw new CommandFailure("relative date is outside the supported range");
-    const scale = relative[2]!.startsWith("hour") ? 3600n : relative[2]!.startsWith("minute") ? 60n : 1n;
-    const adjustment = BigInt(relative[1]!) * scale * nanosecondsPerSecond * (relative[3] ? -1n : 1n);
-    return boundedInstant(now() + adjustment);
+    if (relative[2]!.replace(/^[+-]?0*/, "").length > 13) throw new CommandFailure("relative date is outside the supported range");
+    const base = relative[1] === undefined || relative[1] === "now"
+      ? { instant: now(), zone } : parseAbsoluteDate(relative[1], zone);
+    const amount = BigInt(relative[2]!) * (relative[4] ? -1n : 1n);
+    const unit = relative[3]!;
+    if (["second", "minute", "hour"].some(name => unit.startsWith(name))) {
+      const scale = unit.startsWith("hour") ? 3600n : unit.startsWith("minute") ? 60n : 1n;
+      return boundedInstant(base.instant + amount * scale * nanosecondsPerSecond);
+    }
+    const fields = base.zone.fields(base.instant);
+    const changed = unit.startsWith("year") ? { ...fields, year: fields.year + Number(amount) }
+      : unit.startsWith("month") ? { ...fields, month: fields.month + Number(amount) }
+      : { ...fields, day: fields.day + Number(amount) * (unit.startsWith("week") ? 7 : 1) };
+    const normalized = utcFields(utcMilliseconds(changed));
+    return base.zone.instant(normalized, base.instant - floorDivide(base.instant, nanosecondsPerSecond) * nanosecondsPerSecond);
   }
-  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d{1,9}))?)?)?(?:\s*(Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/.exec(value);
+  return parseAbsoluteDate(value, zone).instant;
+}
+
+function parseAbsoluteDate(value: string, zone: TimeZone): { instant: bigint; zone: TimeZone } {
+  const epoch = decimalEpoch(value);
+  if (epoch !== undefined) return { instant: epoch, zone };
+  const iso = /^(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{4})(\d{2})(\d{2}))(?:[Tt ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d{1,9}))?)?)?(?:\s*(Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
   if (iso) {
-    const fields: CalendarFields = { year: Number(iso[1]), month: Number(iso[2]), day: Number(iso[3]), hour: Number(iso[4] ?? 0),
-      minute: Number(iso[5] ?? 0), second: Number(iso[6] ?? 0) };
-    return parsedZone(iso[8], zone).instant(fields, BigInt((iso[7] ?? "").padEnd(9, "0")));
+    const fields: CalendarFields = { year: Number(iso[1] ?? iso[4]), month: Number(iso[2] ?? iso[5]), day: Number(iso[3] ?? iso[6]), hour: Number(iso[7] ?? 0),
+      minute: Number(iso[8] ?? 0), second: Number(iso[9] ?? 0) };
+    const sourceZone = parsedZone(iso[11], zone);
+    return { instant: sourceZone.instant(fields, BigInt((iso[10] ?? "").padEnd(9, "0"))), zone: sourceZone };
   }
   const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+(GMT|UTC|[+-]\d{4})$/.exec(value);
   if (rfc) {
     const fields: CalendarFields = { year: Number(rfc[4]), month: monthNames.findIndex(name => name.startsWith(rfc[3]!)) + 1,
       day: Number(rfc[2]), hour: Number(rfc[5]), minute: Number(rfc[6]), second: Number(rfc[7]) };
     if (rfc[1] && !weekdayNames[new Date(utcMilliseconds(fields)).getUTCDay()]!.startsWith(rfc[1])) throw new CommandFailure("weekday does not match calendar date");
-    return parsedZone(rfc[8], zone).instant(fields);
+    const sourceZone = parsedZone(rfc[8], zone);
+    return { instant: sourceZone.instant(fields), zone: sourceZone };
   }
-  throw new CommandFailure(`unsupported or invalid date: ${text}`);
+  throw new CommandFailure(`unsupported or invalid date: ${value}`);
 }

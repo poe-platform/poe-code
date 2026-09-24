@@ -118,20 +118,24 @@ Numeric offsets and instants are tested separately from those label differences.
 Explicit, case-sensitive input grammar (trimmed surrounding whitespace):
 
 - `@[-+]SECONDS[.FRACTION]`, or comma decimal,1..9 fractional digits.
-- `YYYY-MM-DD`, optionally `T`/space `HH:MM[:SS[.FRACTION]]`, optionally
-  `Z`, `UTC`, `GMT` or numeric `±HH[:MM[:SS]]` / `±HHMM` offset.
+- `YYYY-MM-DD` (also single-digit month/day or compact `YYYYMMDD`), optionally
+  `T`/`t`/space `HH:MM[:SS[.FRACTION]]`, optionally `Z`/`z`, `UTC`, `GMT`
+  or numeric `±HH[:MM[:SS]]` / `±HHMM` offset.
 - C-English RFC date `[Wdy, ]D Mon YYYY HH:MM:SS GMT|UTC|±HHMM`;
   a supplied weekday must agree with the calendar date.
 - `now`, `today`, `yesterday`, `tomorrow`. Today preserves the instant;
   yesterday/tomorrow preserve local wall time across calendar-day changes.
-- `[now ]SIGNED_INTEGER second[s]|minute[s]|hour[s][ ago]`, elapsed arithmetic.
+- `[now |ABSOLUTE_DATE ]SIGNED_INTEGER second[s]|minute[s]|hour[s][ ago]`, elapsed arithmetic.
+- The same relative syntax supports `day[s]`, `week[s]`, `month[s]`, `year[s]`,
+  preserving wall time in the source date's timezone. Month/year offsets normalize
+  overflow days (January31 plus one month becomes March2 in a leap year).
 
 No arbitrary Date.parse, host eval, subprocess, natural-language parser or
 ambient locale parsing. Calendar years0000..9999, leap-year/day validity and
 offset ranges are checked; invalid dates and leap seconds are rejected rather
 than rolled over. IANA nonexistent wall times reject. Ambiguous DST folds also
 reject and require an explicit numeric offset; GNU libc's selected occurrence
-is **not** claimed. Month/year-relative expressions, arbitrary GNU grammar,
+is **not** claimed. Arbitrary GNU grammar,
 debugging/resolution flags and OS clock setting are excluded.
 `-s`, `--set`, and legacy clock-setting operands always fail without mutation.
 

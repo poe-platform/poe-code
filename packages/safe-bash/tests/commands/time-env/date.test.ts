@@ -4,6 +4,50 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { dateCases } from "./date-cases.js";
 import { run } from "./helpers.js";
 
+for (const [input, expected] of [
+  ["2024-02-29t12:34:56z", "2024-02-29 12:34:56"],
+  ["2024-02-29 12:34:56z", "2024-02-29 12:34:56"],
+  ["2024-2-9", "2024-02-09 00:00:00"],
+  ["20240229", "2024-02-29 00:00:00"],
+  ["2024-01-05 1 day ago", "2024-01-04 00:00:00"],
+  ["2024-01-05 +2 weeks", "2024-01-19 00:00:00"],
+  ["2024-01-31 1 month", "2024-03-02 00:00:00"],
+  ["2024-02-29 1 year", "2025-03-01 00:00:00"],
+  ["2024-01-05 2 months ago", "2023-11-05 00:00:00"],
+  ["2024-01-05 -2 years", "2022-01-05 00:00:00"],
+]) {
+  test(`date additional absolute and anchored relative grammar: ${input}`, async () => {
+    const result = await run("date", ["-u", "-d", input!, "+%F %T"], { clock: () => { throw new Error("absolute input must not read clock"); } });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, expected + "\n");
+  });
+}
+
+for (const [input, expected] of [
+  ["1 day ago", "2024-02-28"], ["+2 days", "2024-03-02"], ["1 week ago", "2024-02-22"],
+  ["now +2 weeks", "2024-03-14"], ["1 month", "2024-03-29"], ["1 year ago", "2023-03-01"],
+]) {
+  test(`date calendar offsets from injected clock: ${input}`, async () => {
+    let calls = 0;
+    const result = await run("date", ["-u", "-d", input!, "+%F %T %N"], { clock: () => { calls++; return 1709210096123; } });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected + " 12:34:56 123000000\n"); assert.equal(calls, 1);
+  });
+}
+
+test("date calendar offsets preserve wall time across DST and explicit source offsets", async () => {
+  const result = await run("date", ["-d", "2024-03-09 12:00:00 1 day", "+%F %T %z"], {}, { env: { TZ: "America/New_York" } });
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, "2024-03-10 12:00:00 -0400\n");
+  const explicit = await run("date", ["-u", "-d", "2024-03-09t23:30:00.123456789-05:00 1 day", "+%F %T %N"]);
+  assert.equal(explicit.exitCode, 0); assert.equal(explicit.stdout, "2024-03-11 04:30:00 123456789\n");
+});
+
+for (const input of ["20230229", "2024-2-30", "2024-13-9", "2024-01-31 999999999999999 days", "9999-12-31 1 year", "invalid 1 day"]) {
+  test(`date rejects invalid extended grammar: ${input}`, async () => {
+    const result = await run("date", ["-d", input]);
+    assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.notEqual(result.stderr, "");
+  });
+}
+
 test("date default current time falls within the surrounding wall-clock samples", async () => {
   const before = Math.floor(Date.now() / 1000);
   const result = await run("date", ["-u", "+%s"]);

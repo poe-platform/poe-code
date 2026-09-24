@@ -80,8 +80,9 @@ function chainHost(lastDirectory: number) {
       },
     };
   };
-  fs.writeStream = async (_path, source, options) => {
+  fs.writeStream = async (path, source, options) => {
     options?.signal?.throwIfAborted();
+    assert.ok(path.startsWith("/target/source") && path.endsWith("/file"));
     const bytes: number[] = [];
     for await (const chunk of source) {
       options?.signal?.throwIfAborted();

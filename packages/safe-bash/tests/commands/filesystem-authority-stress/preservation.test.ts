@@ -227,6 +227,7 @@ test("mv: entry budget rejects before content acquisition or publication", async
     readFile: async () => { reads++; return payload; },
     writeStream: async () => { writes++; },
     copyFile: async () => { writes++; },
+    removeEntryConditional: async () => { writes++; },
     mkdir: async () => { writes++; },
     rm: async () => { writes++; },
     rmdir: async () => { writes++; },

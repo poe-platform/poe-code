@@ -81,6 +81,7 @@ const nativePropertyHasOwn = Object.hasOwn;
 const nativePropertyDescriptor = Object.getOwnPropertyDescriptor;
 const nativePropertyDescriptors = Object.getOwnPropertyDescriptors;
 const nativePropertyPrototype = Object.getPrototypeOf;
+const nativePropertySetPrototype = Object.setPrototypeOf;
 const nativePropertyFreeze = Object.freeze;
 const nativePropertyWrite = Reflect.defineProperty;
 const nativePropertyDelete = Reflect.deleteProperty;
@@ -274,8 +275,14 @@ export function createIntrinsicObject(initial: SandboxObject = Object.create(nul
   return tracked;
 }
 
-export function createIntrinsicArray(): SandboxArray {
-  const tracked = trackPropertyTable([] as unknown as SandboxObject, true) as unknown as SandboxArray;
+export function createIntrinsicArray(initial?: SandboxArray): SandboxArray {
+  const properties: SandboxArray = [];
+  if (initial !== undefined) {
+    // Copy before tracking so callers cannot retain an alias to the backing array.
+    nativePropertySetPrototype(properties, nativePropertyPrototype(initial));
+    nativePropertyDefine(properties, nativePropertyDescriptors(initial as object));
+  }
+  const tracked = trackPropertyTable(properties as unknown as SandboxObject, true) as unknown as SandboxArray;
   nativeIntrinsicObjectAdd(tracked);
   return tracked;
 }

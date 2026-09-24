@@ -5,8 +5,8 @@ import { invokeBuiltinClosure } from "../builtin-call.js";
 import { CompileScope } from "../regex/compile-guard.js";
 import { advanceStringIndex, normalizeLastIndex } from "../regex/engine.js";
 import { sandboxNumber, sandboxString } from "../string-coercion.js";
-import { retainValues } from "../resources.js";
-import { getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasRegexPropertyOverride, setSandboxPrototype } from "../object-model.js";
+import { retainValues, runResources } from "../resources.js";
+import { createIntrinsicArray, getSandboxDataProperty, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasRegexPropertyOverride, setSandboxPrototype } from "../object-model.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { createSandboxBox } from "../boxed.js";
 import { setSandboxProperty } from "../interpreter.js";
@@ -29,6 +29,14 @@ import { createStringHtml, stringHtmlMethods } from "./string-html.js";
 import { callStringSearch } from "./string-search.js";
 import { callStringRange } from "./string-range.js";
 import { callStringPadding } from "./string-padding.js";
+
+const nativeStringPrototype = String.prototype;
+const nativeObjectPrototype = Object.prototype;
+const nativeStringSplit = nativeStringPrototype.split;
+const nativeSplitSymbol = Symbol.split;
+const nativeSplitDescriptor = Object.getOwnPropertyDescriptor;
+const nativeSplitPrototype = Object.getPrototypeOf;
+const nativeSplitApply = Reflect.apply;
 
 const stringMethodLengths = {
   ...Object.fromEntries(Object.entries(stringHtmlMethods).map(([name, [, attribute]]) => [name, attribute === "" ? 0 : 1])) as Record<keyof typeof stringHtmlMethods, number>,
@@ -794,10 +802,22 @@ function splitNormalized(
     // If checks are suspended, admission succeeds even beyond arrayLimit;
     // the native call must still honor the original guest limit.
   }
-  const result = value.split(separator as string, limit);
+  const split = value.split;
+  // Select the method before checking its dispatch path: a native getter may
+  // install a Symbol.split hook. Hook results can have foreign aliases.
+  const owned = runResources.getStore()?.nativeDataResults !== true &&
+    split === nativeStringSplit && (separator === undefined || (
+      nativeSplitPrototype(nativeStringPrototype) === nativeObjectPrototype &&
+      nativeSplitPrototype(nativeObjectPrototype) === null &&
+      nativeSplitDescriptor(nativeStringPrototype, nativeSplitSymbol) === undefined &&
+      nativeSplitDescriptor(nativeObjectPrototype, nativeSplitSymbol) === undefined
+    ));
+  const nativeResult = nativeSplitApply(split, value, [separator, limit]) as string[];
+  // Establish private storage before budget or iterator callbacks can expose it.
+  const result = owned ? createIntrinsicArray(nativeResult) as string[] : nativeResult;
   budget.allocateArrayLength(result.length);
-  // Admit the container before checking each string; keep the native output
-  // rather than allocating a second array solely for validation.
+  // Admit the container before checking each string. Foreign hook outputs keep
+  // their original identity and fresh observations.
   for (const part of result) budget.allocateString(part);
   return result;
 }

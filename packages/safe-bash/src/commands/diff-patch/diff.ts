@@ -2,7 +2,7 @@ import { basename, createCommandArguments, toByteSource, writeBytes, type Comman
 import { pathOf } from "../internal.js";
 import { Budget, ToolError, definition, host, inspect, type DiffPatchOptions } from "./shared.js";
 import { contextual, normal, type Edit } from "./diff-format.js";
-import { sideBySide, script, ifdef, expandTabs } from "./diff-output.js";
+import { sideBySide, script, ifdef, expandTabs, quoteDiffName, quoteDiffArgument } from "./diff-output.js";
 import { flags, type DiffFlags } from "./diff-options.js";
 import { Pattern } from "../text-programs/regex.js";
 import { createPrCommand } from "../pr/index.js";
@@ -204,7 +204,9 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const changed = changes.some(edit => edit.kind !== " " && !edit.ignored);
     different ||= changed;
     if (!changed && pair.nested && options.suppressCommon) { reportSame(); continue; }
-    if (pair.nested && !options.brief && (changed || options.format === "side")) append(label(["diff", ...options.optionArgs, left, right].join(" ")) + "\n");
+    if (pair.nested && !options.brief && (changed || options.format === "side")) {
+      append(label(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ")) + "\n");
+    }
     if (options.brief) { if (changed) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`); }
     else if (options.format === "side") await sideBySide(changes, options, budget, append);
     else if (options.format === "ifdef") await ifdef(changes, options.symbol, budget, append);
@@ -213,7 +215,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         await normal(changes, budget, append, options);
       }
       else if (options.format === "ed" || options.format === "rcs") await script(changes, options.format, budget, append);
-      else await contextual(changes, options.format, label(options.labels[0] ?? (leftStat ? left : "/dev/null")), label(options.labels[1] ?? (rightStat ? right : "/dev/null")), options.context, budget, append, options, options.functions.length ? async position => {
+      else await contextual(changes, options.format, label(options.labels[0] ?? quoteDiffName(leftStat ? left : "/dev/null")), label(options.labels[1] ?? quoteDiffName(rightStat ? right : "/dev/null")), options.context, budget, append, options, options.functions.length ? async position => {
         for (let index = position - 1; index >= 0; index--) {
           for (const pattern of options.functions) if (await pattern.find(oldLines[index]!, budget)) return oldLines[index]!.replace(/\n$/u, "").slice(0, 40);
           budget.step();

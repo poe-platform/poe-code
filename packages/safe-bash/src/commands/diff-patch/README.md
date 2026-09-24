@@ -56,8 +56,10 @@ and the source entry point was exercised directly through `Shell.use`.
   tab expansion, `-Z` ignores trailing whitespace, and `-B` ignores blank-only
   change groups. `-I PATTERN` ignores groups whose changed lines all match one
   of the supplied basic regular expressions; matching shares the work budget.
-  Unified/context hunks can retain ignored groups inside their context. A
-  following ignored group outside the trailing context does not extend a hunk.
+  Unified/context hunks can retain ignored groups. A leading ignored group can
+  join a real change within the normal merge distance (twice the context width),
+  as in GNU diff. A following ignored group outside the trailing context does
+  not extend a hunk.
 - `-y` / `--side-by-side`, `-W N` / `--width=N` (default 130),
   `--left-column`, and `--suppress-common-lines` provide aligned columns,
   including for identical input. Directory comparisons include command headers
@@ -82,6 +84,10 @@ and the source entry point was exercised directly through `Shell.use`.
 - Up to two `--label NAME`, `--label=NAME`, or `-L NAME` labels.
   Headers omit timestamps. Missing sides under `-N` use `/dev/null` unless
   overridden by a label, allowing explicit creation/deletion patches.
+  Directory sections start with a `diff` command header in every supported
+  format. These headers use shell quoting for options, C-locale quoting for
+  filenames, and explicit labels in place of operand paths. Unified/context
+  file headers quote filenames the same way but print explicit labels verbatim.
 - Exit 0 means equal, 1 means different, and 2 means invalid input, unsupported
   features, filesystem failures, or a resource limit. All comparisons finish
   before the buffered stdout is written, so preprocessing failures emit no

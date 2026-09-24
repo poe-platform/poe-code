@@ -10,6 +10,35 @@ export interface DisplayOptions {
   symbol: string;
 }
 
+/** GNU C-locale filename quoting, also used for labels in directory sections. */
+export function quoteDiffName(name: string): string {
+  let needsQuotes = !name;
+  for (const character of name) {
+    if (character <= " " || character > "\u007f" || character === '"' || character === "\\") { needsQuotes = true; break; }
+  }
+  if (!needsQuotes) return name;
+  const escapes: Readonly<Record<number, string>> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 34: '\\"', 92: "\\\\" };
+  let quoted = '"';
+  for (const byte of Buffer.from(name)) {
+    quoted += escapes[byte] ?? (byte >= 32 && byte <= 127 ? String.fromCharCode(byte) : `\\${byte.toString(8).padStart(3, "0")}`);
+  }
+  return quoted + '"';
+}
+
+/** GNU shell-style quoting for the original option arguments in a header. */
+export function quoteDiffArgument(argument: string): string {
+  let needsQuotes = !argument || argument === "{" || argument === "}"
+    || argument.startsWith("#") || argument.startsWith("~");
+  let doubleQuotes = argument.includes("'");
+  for (const character of argument) {
+    needsQuotes ||= " \t\n\r!\"$&'()*;<=>?[\\^`|".includes(character);
+    doubleQuotes &&= " %'+,-./0123456789:@ABCDEFGHIJKLMNOPQRSTUVWXYZ]_abcdefghijklmnopqrstuvwxyz".includes(character);
+  }
+  if (!needsQuotes) return argument;
+  if (doubleQuotes) return `"${argument}"`;
+  return `'${argument.replaceAll("'", "'\\''")}'`;
+}
+
 export function expandTabs(line: string): string {
   let column = 0;
   let result = "";

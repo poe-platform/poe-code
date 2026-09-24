@@ -1,10 +1,19 @@
 const NativeWeakMap = WeakMap;
-// Pin direct calls once; fresh argument arrays would otherwise be allocated
-// for both registry operations on every visited object.
-const get = Function.prototype.call.bind(WeakMap.prototype.get) as
-  (store: WeakMap<object, number>, value: object) => number | undefined;
-const set = Function.prototype.call.bind(WeakMap.prototype.set) as
-  (store: WeakMap<object, number>, value: object, generation: number) => unknown;
+const nativeGet = WeakMap.prototype.get;
+const nativeSet = WeakMap.prototype.set;
+const bind = Function.prototype.call.bind(Function.prototype.bind);
+const freeze = Object.freeze;
+
+// Bind once per private table, rather than routing every lookup through a
+// generic call adapter. Pin binding too: reentry and rollover can create tables
+// after native hooks have changed, and must not expose their receivers.
+function createMarkerRegistry(): {
+  get(value: object): number | undefined;
+  set(value: object, generation: number): unknown;
+} {
+  const store = new NativeWeakMap<object, number>();
+  return { get: bind(nativeGet, store), set: bind(nativeSet, store) };
+}
 
 export interface MeasurementSeen {
   has(value: object): boolean;
@@ -13,42 +22,34 @@ export interface MeasurementSeen {
 
 // Weak keys retain no guest objects. Numeric generations reuse the backing
 // table without carrying visited identities into the next fresh measurement.
-let shared = new NativeWeakMap<object, number>();
+let shared = createMarkerRegistry();
 let generation = 0;
 let activeWalks = 0;
 
-class VisitedObjects implements MeasurementSeen {
-  readonly #store: WeakMap<object, number>;
-  readonly #generation: number;
-
-  constructor(store: WeakMap<object, number>, generation: number) {
-    this.#store = store;
-    this.#generation = generation;
-  }
-
-  has(value: object): boolean {
-    return get(this.#store, value) === this.#generation;
-  }
-
-  add(value: object): void {
-    // Discard the native set return value; never reveal the private registry.
-    set(this.#store, value, this.#generation);
-  }
-}
-Object.freeze(VisitedObjects.prototype);
-
 export function withMeasurementSeen<T>(measure: (seen: MeasurementSeen) => T): T {
-  let seen: MeasurementSeen;
+  let registry: ReturnType<typeof createMarkerRegistry>;
+  let walk: number;
   if (activeWalks === 0) {
     if (generation === Number.MAX_SAFE_INTEGER) {
-      shared = new NativeWeakMap<object, number>();
+      shared = createMarkerRegistry();
       generation = 0;
     }
-    seen = new VisitedObjects(shared, ++generation);
+    registry = shared;
+    walk = ++generation;
   } else {
     // A reentrant walk must not overwrite the outer walk's generation marks.
-    seen = new VisitedObjects(new NativeWeakMap<object, number>(), 1);
+    registry = createMarkerRegistry();
+    walk = 1;
   }
+  const get = registry.get;
+  const set = registry.set;
+  const seen: MeasurementSeen = freeze({
+    has(value: object): boolean { return get(value) === walk; },
+    add(value: object): void {
+      // Discard the native set return value; never reveal the private registry.
+      set(value, walk);
+    }
+  });
   activeWalks++;
   try {
     return measure(seen);

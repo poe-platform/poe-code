@@ -35,13 +35,19 @@ test("Shell with mmdcCommands renders SVG and binary PNG across VFS files and pi
     assert.equal(svgRes.exitCode, 0, svgRes.stderr);
     const svgText = decoder.decode(await fs.readFile("/out.svg"));
     assert.ok(svgText.startsWith("<svg"));
-    assert.ok(svgText.includes("#f8fafc"));
+    assert.ok(svgText.includes('fill="white"'));
 
     const darkRes = await shell.exec("mmdc -i /diagram.mmd -o /dark.svg -t dark");
     assert.equal(darkRes.exitCode, 0, darkRes.stderr);
     const darkText = decoder.decode(await fs.readFile("/dark.svg"));
-    assert.ok(darkText.includes("#0b1120"));
+    assert.ok(darkText.includes("#1e293b"));
     assert.notEqual(svgText, darkText);
+
+    const defaultOutput = await shell.exec("mmdc -i /diagram.mmd -t forest -I architecture");
+    assert.equal(defaultOutput.exitCode, 0, defaultOutput.stderr);
+    const defaultSvg = decoder.decode(await fs.readFile("/diagram.mmd.svg"));
+    assert.ok(defaultSvg.includes('id="architecture"'));
+    assert.ok(defaultSvg.includes("#166534"));
 
     const pipePng = await shell.exec(
       "printf 'flowchart LR\\n  A --> B\\n' | mmdc -i - -o - -e png -t dark -s 2 | cat > /pipe.png"

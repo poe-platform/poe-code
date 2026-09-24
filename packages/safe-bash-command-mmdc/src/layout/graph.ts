@@ -1,7 +1,6 @@
 import {
   admitMermaidLimits,
   MermaidBudget,
-  MermaidError,
   type DocumentGroup,
   type DocumentNode,
   type MermaidDocument,
@@ -39,6 +38,7 @@ function measureNodeBox(node: DocumentNode, theme: MermaidThemeTokens): SizedNod
 
   if (node.shape === "classCard" || node.shape === "erEntity") {
     const titleMeasure = measureTextBlock(node.label, {
+      maxWidth: theme.wrappingWidth,
       fontSize: theme.fontSize,
       lineHeight: theme.lineHeight,
       fontFamily: "ui",
@@ -48,7 +48,7 @@ function measureNodeBox(node: DocumentNode, theme: MermaidThemeTokens): SizedNod
       ? measureLineWidth(`«${node.stereotype}»`, theme.secondaryFontSize, "ui", 500)
       : 0;
     const headerHeight = node.stereotype
-      ? Math.max(46, titleMeasure.height + 24)
+      ? Math.max(46, titleMeasure.height + 30)
       : Math.max(36, titleMeasure.height + 16);
 
     let maxRowWidth = Math.max(titleMeasure.width, stereoWidth) + 36;
@@ -85,6 +85,7 @@ function measureNodeBox(node: DocumentNode, theme: MermaidThemeTokens): SizedNod
   }
 
   const measured = measureTextBlock(node.label, {
+    maxWidth: theme.wrappingWidth,
     fontSize: theme.fontSize,
     lineHeight: theme.lineHeight,
     fontFamily: "ui",
@@ -175,7 +176,6 @@ function buildSceneNode(
     const dividers: SceneDivider[] = [];
     const badges: SceneBadge[] = [];
 
-    let titleY = y + hHeight / 2 + 4.5;
     if (doc.stereotype) {
       const stText = `«${doc.stereotype}»`;
       lines.push({
@@ -189,20 +189,21 @@ function buildSceneNode(
         color: theme.mutedText,
         align: "center"
       });
-      titleY = y + 33;
     }
 
-    lines.push({
-      text: doc.label,
-      width: measureLineWidth(doc.label, theme.fontSize, "ui", 600),
-      x: Math.round(x + width / 2),
-      y: Math.round(titleY),
-      fontSize: theme.fontSize,
-      fontWeight: 600,
-      fontFamily: "ui",
-      color: theme.text,
-      align: "center"
+    const title = measureTextBlock(doc.label, {
+      maxWidth: theme.wrappingWidth, fontSize: theme.fontSize, lineHeight: theme.lineHeight,
+      fontFamily: "ui", fontWeight: 600
     });
+    const stereoHeight = doc.stereotype ? 22 : 0;
+    const titleTop = y + stereoHeight + (hHeight - stereoHeight - title.height) / 2;
+    for (const [index, line] of title.lines.entries()) {
+      lines.push({
+        text: line.text, width: line.width, x: Math.round(x + width / 2),
+        y: Math.round(titleTop + theme.fontSize + 1 + index * theme.lineHeight),
+        fontSize: theme.fontSize, fontWeight: 600, fontFamily: "ui", color: theme.text, align: "center"
+      });
+    }
 
     let cursorY = y + hHeight;
     const attrs = doc.attributes ?? [];
@@ -344,6 +345,7 @@ function buildSceneNode(
   }
 
   const measured = measureTextBlock(doc.label, {
+    maxWidth: theme.wrappingWidth,
     fontSize: theme.fontSize,
     lineHeight: theme.lineHeight,
     fontFamily: "ui",
@@ -467,9 +469,13 @@ export function layoutGraphDocument(
   const { tokens: theme, backgroundColor } = resolveMermaidTheme(options);
 
   const parallelDegree = new Map<string, number>();
+  const incomingDegree = new Map<string, number>();
+  const outgoingDegree = new Map<string, number>();
   const pairSeen = new Map<string, number>();
   for (const e of document.edges) {
     if (e.from === e.to) continue;
+    incomingDegree.set(e.to, (incomingDegree.get(e.to) ?? 0) + 1);
+    outgoingDegree.set(e.from, (outgoingDegree.get(e.from) ?? 0) + 1);
     const pk = e.from < e.to ? e.from + "::" + e.to : e.to + "::" + e.from;
     const c = (pairSeen.get(pk) ?? 0) + 1;
     pairSeen.set(pk, c);
@@ -479,7 +485,14 @@ export function layoutGraphDocument(
     }
   }
   const sizedNodes = document.nodes.map((n) => {
-    const base = measureNodeBox(n, theme);
+    let base = measureNodeBox(n, theme);
+    const degree = Math.max(incomingDegree.get(n.id) ?? 0, outgoingDegree.get(n.id) ?? 0);
+    if (degree > 4 && n.shape !== "stateStart" && n.shape !== "stateEnd") {
+      const portBreadth = snapTo8((degree - 1) * 12 + 36);
+      base = document.direction === "LR" || document.direction === "RL"
+        ? { ...base, height: Math.max(base.height, portBreadth) }
+        : { ...base, width: Math.max(base.width, portBreadth) };
+    }
     const pDeg = parallelDegree.get(n.id) ?? 1;
     if (pDeg > 1) {
       return { ...base, height: Math.max(base.height, 64), width: Math.max(base.width, 128) };
@@ -744,6 +757,7 @@ export function layoutGraphDocument(
           if (edge.label || edge.sourceLabel || edge.targetLabel) {
             const text = edge.label ?? edge.sourceLabel ?? edge.targetLabel ?? "";
             const m = measureTextBlock(text, {
+              maxWidth: theme.wrappingWidth,
               fontSize: theme.secondaryFontSize,
               lineHeight: 16,
               fontFamily: "ui",
@@ -756,7 +770,12 @@ export function layoutGraphDocument(
       }
 
       const groupExtra = closingNext * 28 + openingNext * 58;
-      primaryCursor += span.maxPrimarySize + baseRankGap + groupExtra + maxLabelAllowance;
+      const branchingDegree = Math.max(1, ...span.items.map(({ node }) => Math.max(
+        incomingDegree.get(node.doc.id) ?? 0, outgoingDegree.get(node.doc.id) ?? 0
+      )), ...layerSpans[r + 1]!.items.map(({ node }) => Math.max(
+        incomingDegree.get(node.doc.id) ?? 0, outgoingDegree.get(node.doc.id) ?? 0
+      )));
+      primaryCursor += span.maxPrimarySize + Math.max(baseRankGap, branchingDegree > 4 ? (branchingDegree + 1) * 16 + 32 : baseRankGap) + groupExtra + maxLabelAllowance;
     } else {
       primaryCursor += span.maxPrimarySize;
     }
@@ -861,10 +880,11 @@ export function layoutGraphDocument(
       const nextSingleId = r < maxRank && rankLayers[r + 1]!.length === 1 ? rankLayers[r + 1]![0]!.doc.id : undefined;
       let anchorIdx = -1;
       if (prevSingleId && nextSingleId) {
-        anchorIdx = layer.findIndex((s) =>
+        const anchors = layer.filter((s) =>
           document.edges.some((e) => (e.from === prevSingleId && e.to === s.doc.id) || (e.to === prevSingleId && e.from === s.doc.id)) &&
           document.edges.some((e) => (e.from === s.doc.id && e.to === nextSingleId) || (e.to === s.doc.id && e.from === nextSingleId))
         );
+        if (anchors.length === 1) anchorIdx = layer.indexOf(anchors[0]!);
       }
       if (anchorIdx >= 0) {
         const currentAnchorCenter = getTransverseCenter(layer[anchorIdx]!.doc.id, layer[anchorIdx]!);
@@ -1095,6 +1115,7 @@ export function layoutGraphDocument(
   const rawNotes: SceneNote[] = [];
   for (const note of document.notes) {
     const measured = measureTextBlock(note.text, {
+      maxWidth: theme.wrappingWidth,
       fontSize: theme.secondaryFontSize,
       lineHeight: 16,
       fontFamily: "ui",
@@ -1247,33 +1268,12 @@ export function layoutGraphDocument(
   const naturalWidth = Math.ceil(maxSceneX - minSceneX + pad * 2);
   const naturalHeight = Math.ceil(maxSceneY - minSceneY + pad * 2);
 
-  let viewportWidth = naturalWidth;
-  let viewportHeight = naturalHeight;
-  if (options?.width !== undefined && options?.height !== undefined) {
-    if (!Number.isFinite(options.width) || options.width <= 0 || !Number.isFinite(options.height) || options.height <= 0) {
-      throw new MermaidError("E_ARGUMENT", "Viewport width and height must be positive finite numbers");
-    }
-    viewportWidth = Math.round(options.width);
-    viewportHeight = Math.round(options.height);
-  } else if (options?.width !== undefined) {
-    if (!Number.isFinite(options.width) || options.width <= 0) {
-      throw new MermaidError("E_ARGUMENT", "Viewport width must be a positive finite number");
-    }
-    viewportWidth = Math.round(options.width);
-    viewportHeight = Math.max(1, Math.round((viewportWidth / naturalWidth) * naturalHeight));
-  } else if (options?.height !== undefined) {
-    if (!Number.isFinite(options.height) || options.height <= 0) {
-      throw new MermaidError("E_ARGUMENT", "Viewport height must be a positive finite number");
-    }
-    viewportHeight = Math.round(options.height);
-    viewportWidth = Math.max(1, Math.round((viewportHeight / naturalHeight) * naturalWidth));
-  }
 
   return {
     family: document.family,
     direction: document.direction,
-    width: viewportWidth,
-    height: viewportHeight,
+    width: naturalWidth,
+    height: naturalHeight,
     viewBox: { x: 0, y: 0, width: naturalWidth, height: naturalHeight },
     naturalBounds: { width: naturalWidth, height: naturalHeight },
     padding: pad,

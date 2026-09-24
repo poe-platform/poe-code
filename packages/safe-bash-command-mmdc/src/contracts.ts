@@ -2,7 +2,7 @@ export type DiagramFamily = "flowchart" | "sequence" | "state" | "class" | "er";
 
 export type FlowDirection = "TB" | "TD" | "BT" | "LR" | "RL";
 
-export type MermaidThemeMode = "light" | "dark";
+export type MermaidThemeMode = "light" | "dark" | "default" | "neutral" | "forest" | "base";
 
 export type MermaidErrorCode =
   | "E_SYNTAX"
@@ -78,6 +78,7 @@ export interface MermaidThemeTokens {
   readonly elbowRadius: number;
   readonly rankGap: number;
   readonly nodeGap: number;
+  readonly wrappingWidth: number;
   readonly padding: number;
 }
 
@@ -573,9 +574,12 @@ export interface MermaidLayoutOptions extends MermaidParseOptions {
   readonly rankGap?: number | undefined;
   readonly nodeGap?: number | undefined;
   readonly padding?: number | undefined;
+  readonly wrappingWidth?: number | undefined;
 }
 
 export interface MermaidRenderOptions extends MermaidLayoutOptions {
+  readonly mermaidConfig?: Readonly<Record<string, unknown>> | undefined;
+  readonly svgId?: string | undefined;
   readonly title?: string | undefined;
   readonly description?: string | undefined;
 }

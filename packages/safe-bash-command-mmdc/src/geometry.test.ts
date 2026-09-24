@@ -90,6 +90,74 @@ export const FLOWCHART_FIXTURES: Readonly<Record<string, string>> = Object.freez
 });
 
 describe("geometry invariants and flowchart layout/routing", () => {
+  it("wraps long prose without losing text or making excessively wide nodes", () => {
+    const label = "A long sentence with multiple words ".repeat(12).trim();
+    const scene = layoutMermaid(parseMermaid(`flowchart TD\n A["${label}"] --> B[Done]`));
+    const node = scene.nodes.find((entry) => entry.id === "A")!;
+    assert.ok(node.width <= 288, `node width ${node.width}`);
+    assert.ok(node.lines.length > 1);
+    assert.equal(node.lines.map((line) => line.text).join(" "), label);
+    assert.deepEqual(verifySceneGeometry(scene).violations, []);
+  });
+
+  it("renders wrapped class titles inside the measured header", () => {
+    const label = "ExtremelyLongClassName".repeat(12);
+    const scene = layoutMermaid(parseMermaid(`classDiagram\n class ${label}`));
+    const node = scene.nodes[0]!;
+    assert.ok(node.lines.length > 1);
+    assert.equal(node.lines.map((line) => line.text).join(""), label);
+    for (const line of node.lines) assert.ok(line.width <= node.width - 36);
+  });
+
+  it("centers fan-out and fan-in and gives every connector a distinct perimeter port", () => {
+    for (const direction of ["TD", "BT", "LR", "RL"]) {
+      const source = `flowchart ${direction}\n` + Array.from({ length: 12 }, (_, i) =>
+        `Root -->|Route ${i}| N${i}[Worker ${i}]\nN${i} --> Sink`).join("\n");
+      const scene = layoutMermaid(parseMermaid(source));
+      const horizontal = direction === "LR" || direction === "RL";
+      const center = (node: typeof scene.nodes[number]): number => horizontal ? node.y + node.height / 2 : node.x + node.width / 2;
+      const workers = scene.nodes.filter((node) => node.id.startsWith("N"));
+      const mean = workers.reduce((sum, node) => sum + center(node), 0) / workers.length;
+      for (const id of ["Root", "Sink"]) {
+        assert.ok(Math.abs(center(scene.nodes.find((node) => node.id === id)!) - mean) <= 1, `${direction} ${id} is off-center`);
+      }
+      const incoming = scene.edges.filter((edge) => edge.to === "Sink");
+      assert.equal(new Set(incoming.map((edge) => JSON.stringify(edge.points.at(-1)))).size, 12, `${direction} reused sink ports`);
+      for (const edge of scene.edges) {
+        if (!edge.labelPill) continue;
+        const center = { x: edge.labelPill.x + edge.labelPill.width / 2, y: edge.labelPill.y + edge.labelPill.height / 2 };
+        let distance = Infinity;
+        for (let i = 0; i + 1 < edge.points.length; i++) {
+          const a = edge.points[i]!;
+          const b = edge.points[i + 1]!;
+          const x = Math.max(Math.min(a.x, b.x), Math.min(Math.max(a.x, b.x), center.x));
+          const y = Math.max(Math.min(a.y, b.y), Math.min(Math.max(a.y, b.y), center.y));
+          distance = Math.min(distance, Math.hypot(center.x - x, center.y - y));
+        }
+        assert.ok(distance <= 1, `${direction} detached edge label ${edge.id}: ${distance}px`);
+      }
+      for (let i = 0; i < scene.edges.length; i++) {
+        for (const other of scene.edges.slice(i + 1)) {
+          const edge = scene.edges[i]!;
+          for (let a = 0; a + 1 < edge.points.length; a++) {
+            for (let b = 0; b + 1 < other.points.length; b++) {
+              const p = edge.points[a]!;
+              const q = edge.points[a + 1]!;
+              const u = other.points[b]!;
+              const v = other.points[b + 1]!;
+              const horizontalOverlap = p.y === q.y && u.y === v.y && p.y === u.y
+                ? Math.min(Math.max(p.x, q.x), Math.max(u.x, v.x)) - Math.max(Math.min(p.x, q.x), Math.min(u.x, v.x)) : 0;
+              const verticalOverlap = p.x === q.x && u.x === v.x && p.x === u.x
+                ? Math.min(Math.max(p.y, q.y), Math.max(u.y, v.y)) - Math.max(Math.min(p.y, q.y), Math.min(u.y, v.y)) : 0;
+              assert.ok(Math.max(horizontalOverlap, verticalOverlap) <= 8, `${direction} shared tracks on ${edge.id} and ${other.id}`);
+            }
+          }
+        }
+      }
+      assert.deepEqual(verifySceneGeometry(scene).violations, []);
+    }
+  });
+
   for (const [name, source] of Object.entries(FLOWCHART_FIXTURES)) {
     it(`satisfies all 5 geometric invariants for ${name}`, () => {
       const doc = parseMermaid(source);

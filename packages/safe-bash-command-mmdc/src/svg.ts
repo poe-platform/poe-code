@@ -111,9 +111,10 @@ function renderNode(
   node: SceneNode,
   fontFamily: string,
   monoFontFamily: string,
-  index: number
+  index: number,
+  idPrefix: string
 ): string {
-  const filterAttr = node.shadow ? ` filter="url(#mmdc-shadow)"` : "";
+  const filterAttr = node.shadow ? ` filter="url(#${idPrefix}mmdc-shadow)"` : "";
   if (node.shape === "stateStart") {
     const cx = node.x + node.width / 2;
     const cy = node.y + node.height / 2;
@@ -138,7 +139,7 @@ function renderNode(
     const r = Math.min(node.width, node.height) / 2;
     shapeSvg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"${filterAttr}/>`;
   } else if (node.headerFill && node.headerHeight) {
-    const clipId = `mmdc-node-clip-${index}`;
+    const clipId = `${idPrefix}mmdc-node-clip-${index}`;
     shapeSvg =
       `<defs><clipPath id="${clipId}"><rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="${node.rx}"/></clipPath></defs>` +
       `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="${node.rx}" fill="${escapeXml(node.fill)}"${filterAttr}/>` +
@@ -192,13 +193,15 @@ function renderNode(
 
 export function serializeSceneToSvg(
   scene: MermaidScene,
-  budget?: MermaidBudget
+  budget?: MermaidBudget,
+  svgId?: string
 ): string {
   const { theme } = scene;
+  const idPrefix = svgId === undefined ? "" : `svg-${Array.from(svgId, ch => ch.codePointAt(0)!.toString(16)).join("-")}-`;
   const parts: string[] = [];
 
   parts.push(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${scene.width}" height="${scene.height}" viewBox="${scene.viewBox.x} ${scene.viewBox.y} ${scene.viewBox.width} ${scene.viewBox.height}" role="img">`
+    `<svg xmlns="http://www.w3.org/2000/svg"${svgId === undefined ? "" : ` id="${escapeXml(svgId)}"`} width="${scene.width}" height="${scene.height}" viewBox="${scene.viewBox.x} ${scene.viewBox.y} ${scene.viewBox.width} ${scene.viewBox.height}" role="img">`
   );
 
   if (scene.title) {
@@ -210,10 +213,10 @@ export function serializeSceneToSvg(
 
   parts.push(
     `<defs>` +
-      `<filter id="mmdc-shadow" x="-12%" y="-12%" width="124%" height="132%">` +
+      `<filter id="${idPrefix}mmdc-shadow" x="-12%" y="-12%" width="124%" height="132%">` +
       `<feDropShadow dx="0" dy="1.5" stdDeviation="2.5" flood-color="${escapeXml(theme.shadowColor)}"/>` +
       `</filter>` +
-      `<marker id="mmdc-dart" viewBox="0 0 9 7" refX="9" refY="3.5" markerWidth="9" markerHeight="7" orient="auto-start-reverse">` +
+      `<marker id="${idPrefix}mmdc-dart" viewBox="0 0 9 7" refX="9" refY="3.5" markerWidth="9" markerHeight="7" orient="auto-start-reverse">` +
       `<path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" fill="${escapeXml(theme.edge)}" stroke-linejoin="round"/>` +
       `</marker>` +
       `</defs>`
@@ -234,7 +237,7 @@ export function serializeSceneToSvg(
 
   // Groups
   scene.groups.forEach((group, idx) => {
-    const clipId = `mmdc-group-clip-${idx}`;
+    const clipId = `${idPrefix}mmdc-group-clip-${idx}`;
     const dashAttr = group.dashed ? ` stroke-dasharray="6 4"` : "";
     parts.push(
       `<g class="mmdc-group" data-id="${escapeXml(group.id)}">` +
@@ -282,7 +285,7 @@ export function serializeSceneToSvg(
 
   // Nodes
   scene.nodes.forEach((node, idx) => {
-    parts.push(renderNode(node, theme.fontFamily, theme.monospaceFontFamily, idx));
+    parts.push(renderNode(node, theme.fontFamily, theme.monospaceFontFamily, idx, idPrefix));
   });
 
   // Edge label pills on top of edges & nodes
@@ -300,7 +303,7 @@ export function serializeSceneToSvg(
 
   // Notes
   for (const note of scene.notes) {
-    const filterAttr = note.shadow ? ` filter="url(#mmdc-shadow)"` : "";
+    const filterAttr = note.shadow ? ` filter="url(#${idPrefix}mmdc-shadow)"` : "";
     const linesSvg = note.lines
       .map((l) => renderTextLine(l, theme.fontFamily, theme.monospaceFontFamily))
       .join("");

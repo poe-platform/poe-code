@@ -43,6 +43,8 @@ const encoder = new TextEncoder();
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: false });
 
 export interface MmdcRunOptions extends MmdcSettings {
+  readonly mermaidConfig?: Readonly<Record<string, unknown>> | undefined;
+  readonly svgId?: string | undefined;
   readonly argv?: readonly string[] | undefined;
   readonly input?: string | undefined;
   readonly output?: string | undefined;
@@ -104,24 +106,19 @@ function normalizeVfsPath(cwd: string, target: string): string {
   return "/" + stack.join("/");
 }
 
-function parseJsonConfigFile(rawJson: string): {
+function parseMermaidConfig(parsed: unknown): {
   readonly themeMode?: MermaidThemeMode | undefined;
   readonly lightOverrides?: Partial<MermaidThemeTokens> | undefined;
   readonly darkOverrides?: Partial<MermaidThemeTokens> | undefined;
   readonly rankGap?: number | undefined;
   readonly nodeGap?: number | undefined;
+  readonly wrappingWidth?: number | undefined;
   readonly padding?: number | undefined;
   readonly width?: number | undefined;
   readonly height?: number | undefined;
   readonly scale?: number | undefined;
   readonly backgroundColor?: string | undefined;
 } {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawJson);
-  } catch {
-    throw new MermaidError("E_CONFIG", "Invalid JSON in configuration file");
-  }
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     throw new MermaidError("E_CONFIG", "Configuration file must contain a JSON object");
   }
@@ -134,7 +131,9 @@ function parseJsonConfigFile(rawJson: string): {
     "width",
     "height",
     "scale",
-    "backgroundColor"
+    "backgroundColor",
+    "flowchart",
+    "themeVariables"
   ]);
   for (const key of Object.keys(obj)) {
     if (!allowed.has(key)) {
@@ -148,10 +147,10 @@ function parseJsonConfigFile(rawJson: string): {
 
   if (obj.theme !== undefined) {
     if (typeof obj.theme === "string") {
-      if (obj.theme !== "light" && obj.theme !== "dark") {
+      if (!["light", "dark", "default", "neutral", "forest", "base"].includes(obj.theme)) {
         throw new MermaidError("E_CONFIG", `Unsupported theme '${obj.theme}' in config file`);
       }
-      themeMode = obj.theme;
+      themeMode = obj.theme as MermaidThemeMode;
     } else if (obj.theme && typeof obj.theme === "object" && !Array.isArray(obj.theme)) {
       const tObj = obj.theme as Record<string, unknown>;
       for (const k of Object.keys(tObj)) {
@@ -160,10 +159,15 @@ function parseJsonConfigFile(rawJson: string): {
         }
       }
       if (tObj.mode !== undefined) {
-        if (tObj.mode !== "light" && tObj.mode !== "dark") {
+        if (typeof tObj.mode !== "string" || !["light", "dark", "default", "neutral", "forest", "base"].includes(tObj.mode)) {
           throw new MermaidError("E_CONFIG", `Unsupported theme mode '${String(tObj.mode)}'`);
         }
-        themeMode = tObj.mode;
+        themeMode = tObj.mode as MermaidThemeMode;
+      }
+      for (const key of ["light", "dark"]) {
+        if (tObj[key] !== undefined && (!tObj[key] || typeof tObj[key] !== "object" || Array.isArray(tObj[key]))) {
+          throw new MermaidError("E_CONFIG", `Theme configuration '${key}' must be an object`);
+        }
       }
       if (tObj.light && typeof tObj.light === "object") {
         lightOverrides = tObj.light as Partial<MermaidThemeTokens>;
@@ -194,12 +198,49 @@ function parseJsonConfigFile(rawJson: string): {
           })()
       : undefined;
 
+  const flowchart = obj.flowchart ?? {};
+  if (!flowchart || typeof flowchart !== "object" || Array.isArray(flowchart)) {
+    throw new MermaidError("E_CONFIG", "Configuration 'flowchart' must be an object");
+  }
+  const flow = flowchart as Record<string, unknown>;
+  for (const key of Object.keys(flow)) {
+    if (!["rankSpacing", "nodeSpacing", "wrappingWidth"].includes(key)) {
+      throw new MermaidError("E_CONFIG", `Unsupported flowchart configuration '${key}'`);
+    }
+    if (typeof flow[key] !== "number" || !Number.isFinite(flow[key]) || (flow[key] as number) <= 0) {
+      throw new MermaidError("E_CONFIG", `Configuration 'flowchart.${key}' must be a positive number`);
+    }
+  }
+  const variables = obj.themeVariables ?? {};
+  if (!variables || typeof variables !== "object" || Array.isArray(variables)) {
+    throw new MermaidError("E_CONFIG", "Configuration 'themeVariables' must be an object");
+  }
+  const variableTokens: Readonly<Record<string, readonly (keyof MermaidThemeTokens)[]>> = {
+    primaryColor: ["surface", "surfaceAccent", "accentSurface"],
+    primaryTextColor: ["text", "accentText"],
+    primaryBorderColor: ["border", "accentBorder"],
+    lineColor: ["edge"],
+    textColor: ["text"],
+    background: ["canvas"],
+    noteBkgColor: ["noteSurface"],
+    noteTextColor: ["noteText"],
+    noteBorderColor: ["noteBorder"]
+  };
+  const palette: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(variables)) {
+    const tokens = variableTokens[key];
+    if (!tokens) throw new MermaidError("E_CONFIG", `Unsupported theme variable '${key}'`);
+    if (typeof value !== "string") throw new MermaidError("E_CONFIG", `Theme variable '${key}' must be a color string`);
+    for (const token of tokens) palette[token] = value;
+  }
+
   return {
     themeMode,
-    lightOverrides,
-    darkOverrides,
-    rankGap: numField("rankGap"),
-    nodeGap: numField("nodeGap"),
+    lightOverrides: { ...lightOverrides, ...palette },
+    darkOverrides: { ...darkOverrides, ...palette },
+    rankGap: numField("rankGap") ?? flow.rankSpacing as number | undefined,
+    nodeGap: numField("nodeGap") ?? flow.nodeSpacing as number | undefined,
+    wrappingWidth: flow.wrappingWidth as number | undefined,
     padding: numField("padding"),
     width: numField("width"),
     height: numField("height"),
@@ -208,10 +249,33 @@ function parseJsonConfigFile(rawJson: string): {
   };
 }
 
+function resolveRenderOptions(options?: MermaidPngRenderOptions): MermaidPngRenderOptions | undefined {
+  if (!options || options.mermaidConfig === undefined) return options;
+  const config = parseMermaidConfig(options.mermaidConfig);
+  return {
+    ...options,
+    theme: config.themeMode ?? options.theme,
+    rankGap: options.rankGap ?? config.rankGap,
+    nodeGap: options.nodeGap ?? config.nodeGap,
+    wrappingWidth: options.wrappingWidth ?? config.wrappingWidth,
+    width: options.width ?? config.width,
+    height: options.height ?? config.height,
+    padding: options.padding ?? config.padding,
+    scale: options.scale ?? config.scale,
+    backgroundColor: options.backgroundColor ?? config.backgroundColor,
+    settings: { ...options.settings, theme: {
+      ...options.settings?.theme,
+      light: { ...config.lightOverrides, ...options.settings?.theme?.light },
+      dark: { ...config.darkOverrides, ...options.settings?.theme?.dark }
+    } }
+  };
+}
+
 export function renderMermaidSvg(
   source: string,
   options?: MermaidRenderOptions
 ): MermaidSvgResult {
+  options = resolveRenderOptions(options);
   const hostCeiling = options?.settings?.limits
     ? admitMermaidLimits(options.settings.limits, defaultMermaidLimits)
     : defaultMermaidLimits;
@@ -228,7 +292,7 @@ export function renderMermaidSvg(
         }
       : doc;
 
-  const scene = layoutMermaid(mergedDoc, { ...options, budget, limits });
+  const scene = layoutMermaid(mergedDoc, { ...options, backgroundColor: options?.backgroundColor ?? "white", budget, limits });
   const check = verifySceneGeometry(scene);
   if (!check.ok) {
     throw new MermaidError(
@@ -236,7 +300,7 @@ export function renderMermaidSvg(
       `Scene geometry verification failed: ${check.violations[0] ?? "invalid geometry"}`
     );
   }
-  const svg = serializeSceneToSvg(scene, budget);
+  const svg = serializeSceneToSvg(scene, budget, options?.svgId);
 
   return {
     svg,
@@ -252,6 +316,7 @@ export function renderMermaidPng(
   source: string,
   options?: MermaidPngRenderOptions
 ): MermaidPngResult {
+  options = resolveRenderOptions(options);
   const hostCeiling = options?.settings?.limits
     ? admitMermaidLimits(options.settings.limits, defaultMermaidLimits)
     : defaultMermaidLimits;
@@ -268,7 +333,7 @@ export function renderMermaidPng(
         }
       : doc;
 
-  const scene = layoutMermaid(mergedDoc, { ...options, budget, limits });
+  const scene = layoutMermaid(mergedDoc, { ...options, backgroundColor: options?.backgroundColor ?? "white", budget, limits });
   const check = verifySceneGeometry(scene);
   if (!check.ok) {
     throw new MermaidError(
@@ -277,7 +342,7 @@ export function renderMermaidPng(
     );
   }
 
-  const scale = options?.scale ?? 2;
+  const scale = options?.scale ?? 1;
   const raster = rasterizeScene(scene, { scale, budget });
   const png = encodeRgbaToPng(raster.rgba, raster.width, raster.height, budget);
 
@@ -398,7 +463,9 @@ export async function runMmdc(
       "configFile",
       "quiet",
       "help",
-      "version"
+      "version",
+      "svgId",
+      "mermaidConfig"
     ] as const;
     const hasTypedOptions = typedOptionKeys.some((k) => options[k] !== undefined);
     if (hasTypedOptions && options.argv !== undefined) {
@@ -423,6 +490,7 @@ export async function runMmdc(
       if (options.scale !== undefined) argv.push("-s", String(options.scale));
       if (options.backgroundColor !== undefined) argv.push("-b", options.backgroundColor);
       if (options.configFile !== undefined) argv.push("-c", options.configFile);
+      if (options.svgId !== undefined) argv.push("-I", options.svgId);
     } else if (options.argv !== undefined) {
       argv = [...options.argv];
     } else {
@@ -460,16 +528,21 @@ export async function runMmdc(
     }
 
     // Load optional JSON config file from VFS
-    let cfgThemeMode: MermaidThemeMode | undefined;
-    let cfgLight: Partial<MermaidThemeTokens> | undefined;
-    let cfgDark: Partial<MermaidThemeTokens> | undefined;
-    let cfgRankGap: number | undefined;
-    let cfgNodeGap: number | undefined;
-    let cfgPadding: number | undefined;
-    let cfgWidth: number | undefined;
-    let cfgHeight: number | undefined;
-    let cfgScale: number | undefined;
-    let cfgBg: string | undefined;
+    if (options.mermaidConfig !== undefined && parsedArgs.configFile !== undefined) {
+      throw new MermaidError("E_ARGUMENT", "Specify either mermaidConfig or configFile, not both");
+    }
+    const inlineConfig = options.mermaidConfig === undefined ? undefined : parseMermaidConfig(options.mermaidConfig);
+    let cfgThemeMode = inlineConfig?.themeMode;
+    let cfgLight = inlineConfig?.lightOverrides;
+    let cfgDark = inlineConfig?.darkOverrides;
+    let cfgRankGap = inlineConfig?.rankGap;
+    let cfgNodeGap = inlineConfig?.nodeGap;
+    let cfgWrappingWidth = inlineConfig?.wrappingWidth;
+    let cfgPadding = inlineConfig?.padding;
+    let cfgWidth = inlineConfig?.width;
+    let cfgHeight = inlineConfig?.height;
+    let cfgScale = inlineConfig?.scale;
+    let cfgBg = inlineConfig?.backgroundColor;
 
     if (parsedArgs.configFile !== undefined) {
       const cfgPath = normalizeVfsPath(context.cwd, parsedArgs.configFile);
@@ -480,12 +553,17 @@ export async function runMmdc(
       } catch {
         throw new MermaidError("E_CONFIG", "Configuration file must be valid UTF-8");
       }
-      const cfg = parseJsonConfigFile(cfgText);
+      let config: unknown;
+      try { config = JSON.parse(cfgText); } catch {
+        throw new MermaidError("E_CONFIG", "Invalid JSON in configuration file");
+      }
+      const cfg = parseMermaidConfig(config);
       cfgThemeMode = cfg.themeMode;
       cfgLight = cfg.lightOverrides;
       cfgDark = cfg.darkOverrides;
       cfgRankGap = cfg.rankGap;
       cfgNodeGap = cfg.nodeGap;
+      cfgWrappingWidth = cfg.wrappingWidth;
       cfgPadding = cfg.padding;
       cfgWidth = cfg.width;
       cfgHeight = cfg.height;
@@ -555,9 +633,9 @@ export async function runMmdc(
     await Promise.resolve();
     budget.check();
 
-    // Priority: CLI flag > JSON config file > tool host settings > default 'light'
+    // Mermaid config overrides the CLI theme, matching the standard command.
     const resolvedMode: MermaidThemeMode =
-      parsedArgs.theme ?? cfgThemeMode ?? snapSettings.theme?.mode ?? "light";
+      cfgThemeMode ?? parsedArgs.theme ?? snapSettings.theme?.mode ?? "light";
 
     const mergedSettings: MmdcSettings = {
       theme: {
@@ -576,10 +654,12 @@ export async function runMmdc(
       budget,
       width: parsedArgs.width ?? cfgWidth,
       height: parsedArgs.height ?? cfgHeight,
-      scale: parsedArgs.scale ?? cfgScale ?? 2,
+      scale: parsedArgs.scale ?? cfgScale ?? 1,
+      svgId: parsedArgs.svgId,
       backgroundColor: parsedArgs.backgroundColor ?? cfgBg,
       rankGap: cfgRankGap,
       nodeGap: cfgNodeGap,
+      wrappingWidth: cfgWrappingWidth,
       padding: cfgPadding
     };
 

@@ -13,7 +13,8 @@ export interface MmdcParsedArguments {
   readonly theme: MermaidThemeMode | undefined;
   readonly width: number | undefined;
   readonly height: number | undefined;
-  readonly scale: number;
+  readonly scale: number | undefined;
+  readonly svgId: string | undefined;
   readonly backgroundColor: string | undefined;
   readonly configFile: string | undefined;
   readonly quiet: boolean;
@@ -27,7 +28,7 @@ const FORBIDDEN_FLAGS = new Set([
   "-f",
   "--pdfFit",
   "--iconPacks",
-  "--svgId"
+  "--iconPacksNamesAndUrls"
 ]);
 
 function inferFormatFromPath(outputPath: string, explicitFormat?: string): MmdcOutputFormat {
@@ -52,13 +53,7 @@ function inferFormatFromPath(outputPath: string, explicitFormat?: string): MmdcO
   if (lastDot > lastSlash && lastDot < outputPath.length - 1) {
     const ext = outputPath.slice(lastDot + 1).toLowerCase();
     if (ext === "svg" || ext === "png") {
-      if (normalizedExplicit && normalizedExplicit !== ext) {
-        throw new MermaidError(
-          "E_ARGUMENT",
-          `Output format '-e ${normalizedExplicit}' conflicts with output file extension '.${ext}'`
-        );
-      }
-      return ext;
+      return normalizedExplicit ?? ext;
     }
     throw new MermaidError(
       "E_ARGUMENT",
@@ -91,7 +86,8 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
   let theme: MermaidThemeMode | undefined;
   let width: number | undefined;
   let height: number | undefined;
-  let scale = 2;
+  let scale: number | undefined;
+  let svgId: string | undefined;
   let backgroundColor: string | undefined;
   let configFile: string | undefined;
   let quiet = false;
@@ -158,13 +154,13 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
       case "-t":
       case "--theme": {
         const val = consumeValue();
-        if (val !== "light" && val !== "dark") {
+        if (!["light", "dark", "default", "neutral", "forest", "base"].includes(val)) {
           throw new MermaidError(
             "E_ARGUMENT",
-            `Unsupported theme '${val}'. Supported themes: light, dark`
+            `Unsupported theme '${val}'. Supported themes: default, forest, dark, neutral, base, light`
           );
         }
-        theme = val;
+        theme = val as MermaidThemeMode;
         break;
       }
       case "-w":
@@ -187,6 +183,10 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
       case "--configFile":
         configFile = consumeValue();
         break;
+      case "-I":
+      case "--svgId":
+        svgId = consumeValue();
+        break;
       default:
         throw new MermaidError("E_ARGUMENT", `Unknown or unsupported argument '${arg}'`);
     }
@@ -203,6 +203,7 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
       width,
       height,
       scale,
+      svgId,
       backgroundColor,
       configFile,
       quiet
@@ -219,19 +220,19 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
       width,
       height,
       scale,
+      svgId,
       backgroundColor,
       configFile,
       quiet
     };
   }
 
-  if (!input || input.trim().length === 0) {
-    throw new MermaidError("E_ARGUMENT", "Missing required input option (-i/--input <path|->)");
+  if ((input !== undefined && input.trim().length === 0) || (output !== undefined && output.trim().length === 0)) {
+    throw new MermaidError("E_ARGUMENT", "Input and output paths must not be empty");
   }
-  if (!output || output.trim().length === 0) {
-    throw new MermaidError("E_ARGUMENT", "Missing required output option (-o/--output <path|->)");
-  }
-
+  input ??= "-";
+  output ??= `${input === "-" ? "out" : input}.${explicitFormat ?? "svg"}`;
+  if (output === "/dev/stdout") output = "-";
   const outputFormat = inferFormatFromPath(output, explicitFormat);
 
   return {
@@ -243,6 +244,7 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
     width,
     height,
     scale,
+    svgId,
     backgroundColor,
     configFile,
     quiet
@@ -252,20 +254,21 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
 export const MMDC_VERSION = "0.0.1";
 
 export const MMDC_HELP_TEXT = [
-  "Usage: mmdc -i <input.mmd|-> -o <output.svg|output.png|-> [options]",
+  "Usage: mmdc [options]",
   "",
   "Render Mermaid diagrams (flowchart, sequence, state, class, ER) to SVG or PNG.",
   "",
   "Options:",
-  "  -i, --input <path|->            Input Mermaid file or '-' for stdin (required)",
-  "  -o, --output <path|->           Output file (.svg or .png) or '-' for stdout (required)",
+  "  -i, --input <path|->            Input Mermaid file (default: stdin)",
+  "  -o, --output <path|->           Output file or '-' for stdout (default: input + .svg, or out.svg)",
   "  -e, --outputFormat <svg|png>    Explicit output format (inferred from -o when omitted)",
-  "  -t, --theme <light|dark>        Color palette mode (default: light or host setting)",
+  "  -t, --theme <theme>             default, forest, dark, neutral, base, light",
   "  -w, --width <pixels>            Positive viewport width in CSS pixels",
   "  -H, --height <pixels>           Positive viewport height in CSS pixels",
-  "  -s, --scale <multiplier>        PNG rasterization scale multiplier (default: 2)",
-  "  -b, --backgroundColor <color>   Canvas background color override (e.g. '#ffffff' or 'transparent')",
+  "  -s, --scale <multiplier>        PNG rasterization scale multiplier (default: 1)",
+  "  -b, --backgroundColor <color>   Canvas color (default: white; CSS names, hex, rgb/rgba, transparent)",
   "  -c, --configFile <path>         JSON configuration file for theme and layout spacing",
+  "  -I, --svgId <id>               ID of the root SVG element",
   "  -q, --quiet                     Suppress non-fatal status messages",
   "  -h, --help                      Display this help message and exit",
   "  -V, --version                   Display version information and exit",

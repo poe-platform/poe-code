@@ -12,6 +12,7 @@ export interface MeasuredTextBlock {
 }
 
 export interface MeasureTextOptions {
+  readonly maxWidth?: number | undefined;
   readonly fontSize: number;
   readonly lineHeight: number;
   readonly fontFamily?: "ui" | "mono" | undefined;
@@ -85,12 +86,33 @@ export function measureTextBlock(
   const rawLines = normalized.split("\n");
   const lines: MeasuredLine[] = [];
   let maxWidth = 0;
+  const wrapWidth = options.maxWidth ?? 240;
+  const append = (text: string): void => {
+    const width = measureLineWidth(text, options.fontSize, fontFamily, fontWeight);
+    maxWidth = Math.max(maxWidth, width);
+    lines.push({ text, width });
+  };
 
   for (const rawLine of rawLines) {
     const trimmed = rawLine.trim();
-    const width = measureLineWidth(trimmed, options.fontSize, fontFamily, fontWeight);
-    if (width > maxWidth) maxWidth = width;
-    lines.push({ text: trimmed, width });
+    let current = "";
+    for (const word of trimmed.split(" ")) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (measureLineWidth(candidate, options.fontSize, fontFamily, fontWeight) <= wrapWidth) {
+        current = candidate;
+        continue;
+      }
+      if (current) append(current);
+      current = "";
+      for (const character of word) {
+        if (current && measureLineWidth(current + character, options.fontSize, fontFamily, fontWeight) > wrapWidth) {
+          append(current);
+          current = "";
+        }
+        current += character;
+      }
+    }
+    append(current);
   }
 
   if (lines.length === 0) {

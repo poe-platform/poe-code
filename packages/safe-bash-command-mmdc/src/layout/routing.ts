@@ -200,7 +200,7 @@ function choosePortFaces(
   }
 
   // Decision diamonds and multi-branching nodes exit cleanly from their side/top/bottom faces into an L-elbow when target center is laterally offset beyond the source bounds and the L-corridor is unobstructed
-  if (src.shape === "diamond" || srcOutDegree >= 2) {
+  if (src.shape === "diamond" || srcOutDegree === 2) {
     const margin = src.shape === "diamond" ? 22 : 16;
     if (isHorizontal) {
       const targetFace: PortFace = dstCx >= srcCx ? "left" : "right";
@@ -254,6 +254,7 @@ function buildLabelPill(
   const fFamily = "ui";
   const fWeight = isShortCard ? 600 : 500;
   const measured = measureTextBlock(rawText, {
+    maxWidth: theme.wrappingWidth,
     fontSize: fSize,
     lineHeight: 16,
     fontFamily: fFamily,
@@ -311,10 +312,15 @@ function findSafePillCenter(
     (s) => s.index > 0 && s.index < segments.length - 1 && s.len >= 32
   );
   const pool = interior.length > 0 ? [...interior, ...segments] : [...segments];
-  pool.sort((x, y) => y.len - x.len);
+  pool.sort((x, y) => {
+    const terminal = segments.length - 1;
+    if (x.index === terminal && y.index !== terminal) return -1;
+    if (y.index === terminal && x.index !== terminal) return 1;
+    return y.len - x.len;
+  });
 
   const fractions = [0.5, 0.38, 0.62, 0.28, 0.72, 0.2, 0.8];
-  const normalOffsets = [0, -16, 16, -28, 28, -42, 42, -56, 56];
+  const normalOffsets = [0];
 
   for (const seg of pool) {
     if (seg.len < 1) continue;
@@ -363,32 +369,6 @@ function findSafePillCenter(
     x: (bestSeg.a.x + bestSeg.b.x) / 2,
     y: (bestSeg.a.y + bestSeg.b.y) / 2
   };
-  for (let radius = 24; radius <= 220; radius += 16) {
-    for (const [dx, dy] of [
-      [0, -radius],
-      [0, radius],
-      [radius, 0],
-      [-radius, 0],
-      [radius, -radius],
-      [-radius, -radius],
-      [radius, radius],
-      [-radius, radius]
-    ] as const) {
-      const candidate = buildLabelPill(rawText, { x: midPt.x + dx, y: midPt.y + dy }, theme);
-      const collidesObstacle = obstacles.some((obs) => rectsIntersect(candidate, obs, 2));
-      const collidesPill = placedPills.some((prev) => rectsIntersect(candidate, prev, 2));
-      if (!collidesObstacle && !collidesPill) {
-        placedPills.push({
-          x: candidate.x,
-          y: candidate.y,
-          width: candidate.width,
-          height: candidate.height
-        });
-        return candidate;
-      }
-    }
-  }
-
   const fallback = buildLabelPill(rawText, midPt, theme);
   placedPills.push({
     x: fallback.x,
@@ -703,15 +683,22 @@ export function routeGraphEdges(
   }
 
   const assignedOffsets = new Map<string, number>();
+  const assignedLanes = new Map<string, { index: number; count: number }>();
   for (const [, requests] of faceBuckets) {
     requests.sort((a, b) => a.sortKey - b.sortKey);
     const count = requests.length;
     const hasParallel = requests.some((r) => (edgeMeta.get(r.edgeId)?.pairTotal ?? 1) > 1);
     const isSelfLoopFace = requests.some((r) => edgeMeta.get(r.edgeId)?.isSelfLoop === true);
-    const spacing = hasParallel ? 42 : isSelfLoopFace ? 44 : 16;
+    const node = nodeById.get(requests[0]!.nodeId)!;
+    const face = requests[0]!.face;
+    const halfBreadth = face === "top" || face === "bottom" ? node.width / 2 : node.height / 2;
+    const allowance = Math.min(node.rx + 4, Math.min(node.width, node.height) * 0.3);
+    const spacing = Math.min(hasParallel ? 42 : isSelfLoopFace ? 44 : 16,
+      count > 1 ? Math.max(0, halfBreadth - allowance) * 2 / (count - 1) : 16);
     for (let i = 0; i < count; i++) {
       const offset = (i - (count - 1) / 2) * spacing;
       assignedOffsets.set(`${requests[i]!.edgeId}:${requests[i]!.endpoint}`, offset);
+      assignedLanes.set(`${requests[i]!.edgeId}:${requests[i]!.endpoint}`, { index: i, count });
     }
   }
 
@@ -847,6 +834,12 @@ export function routeGraphEdges(
     }
 
     let waypoints: Point[];
+    const sourceLane = assignedLanes.get(`${edge.id}:source`)!;
+    const targetLane = assignedLanes.get(`${edge.id}:target`)!;
+    const lane = sourceLane.count >= targetLane.count ? sourceLane : targetLane;
+    const corridorFraction = (lane.index + 1) / (lane.count + 1);
+    const labelSize = edge.label ? buildLabelPill(edge.label, { x: 0, y: 0 }, theme) : undefined;
+    const labelReserve = labelSize ? (direction === "LR" || direction === "RL" ? labelSize.width : labelSize.height) + 24 : 0;
 
     if (meta.isSelfLoop) {
       const loopOut = 38 + meta.pairIndex * 20;
@@ -982,7 +975,8 @@ export function routeGraphEdges(
           highY = Math.min(highY, dstGroup.y - 10);
         }
       }
-      const midY = Math.round((lowY + highY) / 2);
+      const laneEnd = Math.max(lowY, highY - labelReserve);
+      const midY = Math.round(lowY + (laneEnd - lowY) * corridorFraction);
 
       if (Math.abs(srcAttach.port.x - dstAttach.port.x) <= 4 && meta.pairTotal === 1) {
         const sharedX =
@@ -1004,7 +998,8 @@ export function routeGraphEdges(
         ];
       }
     } else if (effSrcFace === "top" && effDstFace === "bottom") {
-      const midY = Math.round((srcAttach.stubPoint.y + dstAttach.stubPoint.y) / 2);
+      const laneEnd = Math.min(srcAttach.stubPoint.y, dstAttach.stubPoint.y + labelReserve);
+      const midY = Math.round(srcAttach.stubPoint.y + (laneEnd - srcAttach.stubPoint.y) * corridorFraction);
       if (Math.abs(srcAttach.port.x - dstAttach.port.x) <= 4 && meta.pairTotal === 1) {
         const sharedX =
           dst.shape === "diamond"
@@ -1028,7 +1023,9 @@ export function routeGraphEdges(
       (effSrcFace === "right" && effDstFace === "left") ||
       (effSrcFace === "left" && effDstFace === "right")
     ) {
-      const midX = Math.round((srcAttach.stubPoint.x + dstAttach.stubPoint.x) / 2);
+      const sign = Math.sign(dstAttach.stubPoint.x - srcAttach.stubPoint.x);
+      const laneEnd = dstAttach.stubPoint.x - sign * Math.min(labelReserve, Math.abs(dstAttach.stubPoint.x - srcAttach.stubPoint.x));
+      const midX = Math.round(srcAttach.stubPoint.x + (laneEnd - srcAttach.stubPoint.x) * corridorFraction);
       if (Math.abs(srcAttach.port.y - dstAttach.port.y) <= 4 && meta.pairTotal === 1) {
         const sharedY =
           dst.shape === "diamond"

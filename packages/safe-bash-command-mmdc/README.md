@@ -13,7 +13,7 @@ Render crisp architecture flowcharts, sequence interactions, state machines, UML
 | **Command** | `mmdc` (`@poe-platform/safe-bash/commands/mmdc`) |
 | **Output Formats** | Vector `svg` and antialiased `png` (`4x4` subpixel supersampling, RFC 2083 PNG) |
 | **Diagram Families** | `flowchart` / `graph`, `sequenceDiagram`, `stateDiagram-v2` / `stateDiagram`, `classDiagram`, `erDiagram` |
-| **Themes** | Built-in `light` (`default`, `neutral`) and `dark` (`forest`) palettes on an `8px` spatial grid |
+| **Themes** | `default` / `light`, `dark`, green `forest`, slate `neutral`, and customizable `base` palettes on an `8px` spatial grid |
 | **Typography** | Embedded TrueType (`sfnt`) glyph metrics & outlines (`Latin`, `Greek`, math symbols, and `CJK`) |
 | **Sandbox Safety** | Zero DOM/browser dependencies, strict node/edge/pixel/time budgets, and VFS-only I/O |
 
@@ -31,8 +31,7 @@ import { mmdcCommands } from "@poe-platform/safe-bash/commands/mmdc";
 
 const shell = new Shell().use(
   mmdcCommands({
-    theme: { mode: "dark" },
-    scale: 2
+    theme: { mode: "dark" }
   })
 );
 
@@ -53,7 +52,7 @@ await shell.exec(`
 
 ```bash
 # Render SVG directly to stdout
-echo "flowchart TD; A[Start] --> B[Finish]" | mmdc > diagram.svg
+echo "flowchart TD; A[Start] --> B[Finish]" | mmdc -o - > diagram.svg
 
 # Render PNG directly via pipeline
 cat schema.mmd | mmdc -i - -o - -e png -t dark > schema.png
@@ -102,18 +101,39 @@ const verification = verifySceneGeometry(scene);
 | Flag | Alias | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `--input <path\|->` | `-i` | `-` (`stdin`) | Input Mermaid file path in the VFS or `-` for `stdin` |
-| `--output <path\|->` | `-o` | `-` (`stdout`) | Output file path in the VFS or `-` for `stdout` |
+| `--output <path\|->` | `-o` | `<input>.svg` or `out.svg` | Output file path in the VFS or `-` / `/dev/stdout` for `stdout`; `-e` controls the default extension |
 | `--outputFormat <svg\|png>` | `-e` | Inferred from `-o` or `svg` | Explicit output format (`svg` or `png`) |
-| `--theme <name>` | `-t` | `light` | Theme preset (`light`, `dark`, `default`, `neutral`, `forest`) |
-| `--backgroundColor <css>` | `-b` | Theme canvas | Canvas background color (`#hex`, `rgb(...)`, `rgba(...)`, or `transparent`) |
-| `--width <px>` | `-w` | Scene width | Target output width in pixels (`16..4096`) |
-| `--height <px>` | `-H` | Scene height | Target output height in pixels (`16..4096`) |
-| `--scale <factor>` | `-s` | `1` (`svg`), `2` (`png`) | Raster scale multiplier (`0.25..4`) |
+| `--theme <name>` | `-t` | `default` | Theme preset (`default`, `forest`, `dark`, `neutral`, `base`, `light`) |
+| `--backgroundColor <css>` | `-b` | `white` | Canvas background color (CSS names, `#hex`, `rgb(...)`, `rgba(...)`, or `transparent`) |
+| `--width <px>` | `-w` | Scene width | Positive integer output width; preserves aspect ratio when height is omitted |
+| `--height <px>` | `-H` | Scene height | Positive integer output height; preserves aspect ratio when width is omitted |
+| `--scale <factor>` | `-s` | `1` | Positive raster scale multiplier; resource budgets bound the output |
+| `--configFile <path>` | `-c` | — | JSON renderer configuration in the VFS |
+| `--svgId <id>` | `-I` | — | Root SVG ID; namespaces internal definitions for embedding |
 | `--quiet` | `-q` | `false` | Suppress non-error diagnostic output |
 | `--version` | `-V` | — | Print command version and exit `0` |
 | `--help` | `-h` | — | Print usage summary and exit `0` |
 
 ---
+
+This implements the SVG/PNG subset of Mermaid CLI 11.x options with a deterministic renderer. Explicit `-e` overrides format inference. The CLI and SDK default to white backgrounds and PNG scale 1; use `-b '#0b1120'` with dark diagrams for a dark canvas.
+
+Dimensions describe the output viewport, fitting the natural scene. They are not browser viewport dimensions; omitted dimensions use the natural scene size rather than Mermaid CLI's 800 × 600 browser viewport. Presets use this renderer's palette, not Mermaid's exact CSS. PDF output, Markdown extraction, Puppeteer, external CSS, icon packs, and diagram families outside the table below are unsupported and return explicit errors.
+
+Use `-c config.json`, or the same object as SDK `mermaidConfig` (also available in typed `runMmdc`):
+
+```ts
+const { svg } = renderMermaidSvg(source, {
+  svgId: "architecture",
+  mermaidConfig: {
+    theme: "base",
+    flowchart: { nodeSpacing: 40, rankSpacing: 64, wrappingWidth: 200 },
+    themeVariables: { primaryColor: "#e0f2fe", primaryTextColor: "#0c4a6e" }
+  }
+});
+```
+
+Supported `themeVariables` are `primaryColor`, `primaryTextColor`, `primaryBorderColor`, `lineColor`, `textColor`, `background`, `noteBkgColor`, `noteTextColor`, and `noteBorderColor`. The canvas background option controls the output background independently of theme variables. Config `theme` takes precedence over `-t`. Renderer extensions include `rankGap`, `nodeGap`, `padding`, `width`, `height`, `scale`, `backgroundColor`, and `theme: { mode, light, dark }` token overrides. Unknown config keys are rejected. Host settings remain authoritative for palette and resource limits.
 
 ## Supported Mermaid Syntax Reference
 

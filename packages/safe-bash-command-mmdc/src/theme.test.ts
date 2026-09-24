@@ -80,6 +80,9 @@ describe("theme tokens and resolution", () => {
     assert.deepEqual(parseCssColor("#f8fafc"), { r: 248, g: 250, b: 252, a: 255 });
     assert.deepEqual(parseCssColor("#f1f5f980"), { r: 241, g: 245, b: 249, a: 128 });
     assert.deepEqual(parseCssColor("transparent"), { r: 0, g: 0, b: 0, a: 0 });
+    assert.deepEqual(parseCssColor("red"), { r: 255, g: 0, b: 0, a: 255 });
+    assert.deepEqual(parseCssColor("rebeccapurple"), { r: 102, g: 51, b: 153, a: 255 });
+    assert.throws(() => parseCssColor("constructor"), (error: unknown) => error instanceof MermaidError);
     assert.deepEqual(parseCssColor("rgba(15, 23, 42, 0.5)"), { r: 15, g: 23, b: 42, a: 128 });
     assert.throws(() => parseCssColor("not-a-color"), (err: unknown) => err instanceof MermaidError && err.code === "E_CONFIG");
   });

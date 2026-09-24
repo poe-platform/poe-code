@@ -4,6 +4,7 @@ import {
   type MermaidThemeMode,
   type MermaidThemeTokens
 } from "./contracts.js";
+import { namedColors } from "./named-colors.js";
 
 export interface RgbaColor {
   readonly r: number;
@@ -52,6 +53,7 @@ export const lightThemeTokens: MermaidThemeTokens = Object.freeze({
   elbowRadius: 10,
   rankGap: 56,
   nodeGap: 32,
+  wrappingWidth: 200,
   padding: 32
 });
 
@@ -90,13 +92,8 @@ export const darkThemeTokens: MermaidThemeTokens = Object.freeze({
   elbowRadius: 10,
   rankGap: 56,
   nodeGap: 32,
+  wrappingWidth: 200,
   padding: 32
-});
-
-const NAMED_COLORS: Readonly<Record<string, RgbaColor>> = Object.freeze({
-  transparent: { r: 0, g: 0, b: 0, a: 0 },
-  white: { r: 255, g: 255, b: 255, a: 255 },
-  black: { r: 0, g: 0, b: 0, a: 255 }
 });
 
 function parseHexDigit(ch: string): number {
@@ -118,9 +115,9 @@ export function parseCssColor(raw: string): RgbaColor {
   if (typeof raw !== "string") {
     throw new MermaidError("E_CONFIG", "Color value must be a string");
   }
-  const value = raw.trim().toLowerCase();
-  const named = NAMED_COLORS[value];
-  if (named) return named;
+  let value = raw.trim().toLowerCase();
+  if (value === "transparent") return { r: 0, g: 0, b: 0, a: 0 };
+  if (Object.hasOwn(namedColors, value)) value = namedColors[value]!;
 
   if (value.startsWith("#")) {
     const hex = value.slice(1);
@@ -222,6 +219,7 @@ const NUMERIC_TOKEN_KEYS: readonly (keyof MermaidThemeTokens)[] = [
   "elbowRadius",
   "rankGap",
   "nodeGap",
+  "wrappingWidth",
   "padding"
 ];
 
@@ -268,7 +266,7 @@ export function resolveMermaidTheme(options?: MermaidLayoutOptions): ResolvedMer
   let mode: MermaidThemeMode = "light";
   const settingsMode = options?.settings?.theme?.mode;
   if (settingsMode !== undefined) {
-    if (settingsMode !== "light" && settingsMode !== "dark") {
+    if (!["light", "dark", "default", "neutral", "forest", "base"].includes(settingsMode)) {
       throw new MermaidError("E_CONFIG", `Unsupported theme mode '${String(settingsMode)}'`);
     }
     mode = settingsMode;
@@ -276,10 +274,10 @@ export function resolveMermaidTheme(options?: MermaidLayoutOptions): ResolvedMer
 
   let inlineOverrides: Partial<MermaidThemeTokens> | undefined;
   if (typeof options?.theme === "string") {
-    if (options.theme !== "light" && options.theme !== "dark") {
+    if (!["light", "dark", "default", "neutral", "forest", "base"].includes(options.theme)) {
       throw new MermaidError(
         "E_CONFIG",
-        `Unsupported theme '${options.theme}'. Expected 'light' or 'dark'.`
+        `Unsupported theme '${options.theme}'.`
       );
     }
     mode = options.theme;
@@ -287,22 +285,32 @@ export function resolveMermaidTheme(options?: MermaidLayoutOptions): ResolvedMer
     inlineOverrides = options.theme;
   }
 
+  const preset = mode;
+  mode = mode === "dark" ? "dark" : "light";
   const base = mode === "dark" ? darkThemeTokens : lightThemeTokens;
   const hostOverrides =
     mode === "dark" ? options?.settings?.theme?.dark : options?.settings?.theme?.light;
 
   // Merge inline options first, then host palette overrides so host overrides remain authoritative.
-  let tokens = validateAndMergeTokens(base, inlineOverrides);
+  let tokens = validateAndMergeTokens(base, preset === "forest" ? {
+    surfaceAccent: "#f0fdf4", accentSurface: "#dcfce7", accentBorder: "#4ade80",
+    accent: "#15803d", accentText: "#166534"
+  } : preset === "neutral" ? {
+    surfaceAccent: "#f1f5f9", accentSurface: "#e2e8f0", accentBorder: "#94a3b8",
+    accent: "#475569", accentText: "#334155"
+  } : undefined);
+  tokens = validateAndMergeTokens(tokens, inlineOverrides);
   tokens = validateAndMergeTokens(tokens, hostOverrides);
 
   if (
     options?.rankGap !== undefined ||
     options?.nodeGap !== undefined ||
-    options?.padding !== undefined
+    options?.padding !== undefined || options?.wrappingWidth !== undefined
   ) {
     tokens = validateAndMergeTokens(tokens, {
       ...(options.rankGap !== undefined ? { rankGap: options.rankGap } : {}),
       ...(options.nodeGap !== undefined ? { nodeGap: options.nodeGap } : {}),
+      ...(options.wrappingWidth !== undefined ? { wrappingWidth: options.wrappingWidth } : {}),
       ...(options.padding !== undefined ? { padding: options.padding } : {})
     });
   }

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+
 import {
   createCommandArguments,
   type CommandContext
@@ -7,6 +8,7 @@ import {
 import { FsError } from "safe-bash-contracts/errors";
 import {
   createMmdcCommand,
+  decodePngToRgba,
   mmdcCommands,
   parseMmdcArguments,
   renderMermaidPng,
@@ -14,6 +16,28 @@ import {
   runMmdc,
   type MmdcSettings
 } from "./index.js";
+
+it("uses consistent viewport sizing for graphs and sequences and rejects fractional pixels", () => {
+  for (const source of ["flowchart TD; A --> B", "sequenceDiagram\nA->>B: Hello"]) {
+    const natural = renderMermaidSvg(source);
+    const resized = renderMermaidSvg(source, { width: 320 });
+    assert.equal(resized.width, 320);
+    assert.equal(resized.height, Math.max(1, Math.round(320 * natural.height / natural.width)));
+    for (const dimension of ["width", "height"] as const) {
+      assert.throws(() => renderMermaidSvg(source, { [dimension]: 0.1 }), /positive integer/);
+    }
+  }
+});
+
+it("namespaces SVG definitions when embedding diagrams with different root IDs", () => {
+  const source = "classDiagram\nclass Example";
+  const first = renderMermaidSvg(source, { svgId: "first" }).svg;
+  const second = renderMermaidSvg(source, { svgId: "second" }).svg;
+  assert.ok(first.includes('id="svg-66-69-72-73-74-mmdc-shadow"'));
+  assert.ok(second.includes('id="svg-73-65-63-6f-6e-64-mmdc-node-clip-0"'));
+  assert.ok(second.includes('url(#svg-73-65-63-6f-6e-64-mmdc-node-clip-0)'));
+  assert.ok(!second.includes('id="mmdc-shadow"'));
+});
 
 function createTestVfs(initialFiles: Record<string, string | Uint8Array> = {}) {
   const files = new Map<string, Uint8Array>();
@@ -115,23 +139,77 @@ function createMockContext(
 }
 
 describe("mmdc CLI grammar, VFS command execution, and SDK parity", () => {
-  it("infers output format from -e or -o extension and rejects conflicting or unsupported formats with exit 2", () => {
+  it("uses standard stdin, output filename, format override, and scale defaults", () => {
+    const stdin = parseMmdcArguments([]);
+    assert.equal(stdin.input, "-");
+    assert.equal(stdin.output, "out.svg");
+    assert.equal(renderMermaidPng("flowchart LR\n A --> B").scale, 1);
+    assert.deepEqual(Array.from(decodePngToRgba(renderMermaidPng("flowchart LR\n A --> B").png).rgba.slice(0, 4)), [255, 255, 255, 255]);
+    assert.equal(parseMmdcArguments(["-i", "architecture.mmd"]).output, "architecture.mmd.svg");
+    assert.equal(parseMmdcArguments(["-i", "-", "-e", "png"]).output, "out.png");
+    assert.equal(parseMmdcArguments(["-o", "/dev/stdout"]).output, "-");
+    assert.equal(parseMmdcArguments(["-o", "diagram.svg", "-e", "png"]).outputFormat, "png");
+  });
+
+  it("accepts standard theme names through both CLI and SDK", () => {
+    const source = "flowchart LR\n A --> B";
+    for (const theme of ["default", "neutral", "forest", "base", "dark"] as const) {
+      assert.equal(parseMmdcArguments(["-t", theme]).theme, theme);
+      assert.ok(renderMermaidSvg(source, { theme }).svg.startsWith("<svg"));
+    }
+  });
+
+  it("honors config scale when no CLI scale is supplied and exposes SVG IDs through typed SDK options", async () => {
+    const source = "flowchart LR\n A --> B";
+    const vfs = createTestVfs({ "/vfs/config.json": JSON.stringify({ scale: 0.5 }), "/vfs/source.mmd": source });
+    const context = createMockContext(["-i", "/vfs/source.mmd", "-o", "-", "-e", "png", "-c", "/vfs/config.json"], vfs);
+    assert.equal((await runMmdc(context.context)).exitCode, 0);
+    assert.deepEqual(context.stdoutBytes(), renderMermaidPng(source, { scale: 0.5 }).png);
+    const typed = createMockContext([], vfs, source);
+    assert.equal((await runMmdc(typed.context, { input: "-", output: "-", svgId: "architecture" })).exitCode, 0);
+    assert.ok(typed.stdoutText().includes('id="architecture"'));
+    assert.ok(renderMermaidSvg(source, { svgId: 'a"b' }).svg.includes('id="a&quot;b"'));
+  });
+
+  it("accepts standard Mermaid flowchart configuration and theme variables", async () => {
+    const source = "flowchart TD\n A[Start] --> B[End]";
+    const config = { theme: "forest", flowchart: { nodeSpacing: 48, rankSpacing: 96, wrappingWidth: 160 },
+      themeVariables: { primaryColor: "#dcfce7", primaryTextColor: "#14532d", lineColor: "#166534" } };
+    const vfs = createTestVfs({ "/vfs/config.json": JSON.stringify(config) });
+    const run = createMockContext(["-i", "-", "-o", "-", "-c", "/vfs/config.json"], vfs, source);
+    assert.equal((await runMmdc(run.context)).exitCode, 0, run.stderrText());
+    assert.ok(run.stdoutText().includes("#166534"));
+    const sdk = renderMermaidSvg(source, { mermaidConfig: config });
+    assert.equal(run.stdoutText(), sdk.svg);
+    const override = createMockContext(["-i", "-", "-o", "-", "-t", "dark", "-c", "/vfs/config.json"], vfs, source);
+    assert.equal((await runMmdc(override.context)).exitCode, 0);
+    assert.equal(override.stdoutText(), sdk.svg);
+    const typed = createMockContext([], vfs, source);
+    assert.equal((await runMmdc(typed.context, { input: "-", output: "-", mermaidConfig: config })).exitCode, 0);
+    assert.equal(typed.stdoutText(), sdk.svg);
+  });
+
+  it("rejects malformed nested configuration instead of silently ignoring it", () => {
+    for (const mermaidConfig of [{ theme: { light: true } }, { theme: { dark: [] } }]) {
+      assert.throws(() => renderMermaidSvg("flowchart LR\n A --> B", { mermaidConfig }),
+        (error: unknown) => (error as { code?: string }).code === "E_CONFIG");
+    }
+  });
+
+  it("uses explicit format before the output extension and rejects unsupported formats", () => {
     assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.svg"]).outputFormat, "svg");
     assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.png"]).outputFormat, "png");
     assert.equal(parseMmdcArguments(["-i", "-", "-o", "-"]).outputFormat, "svg");
     assert.equal(parseMmdcArguments(["-i", "-", "-o", "-", "-e", "png"]).outputFormat, "png");
-    assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.png"]).scale, 2);
+    assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.png"]).scale, undefined);
 
-    assert.throws(
-      () => parseMmdcArguments(["-i", "in.mmd", "-o", "out.svg", "-e", "png"]),
-      (err: unknown) => (err as { exitCode?: number }).exitCode === 2
-    );
+    assert.equal(parseMmdcArguments(["-i", "in.mmd", "-o", "out.svg", "-e", "png"]).outputFormat, "png");
     assert.throws(
       () => parseMmdcArguments(["-i", "in.mmd", "-o", "out.pdf"]),
       (err: unknown) => (err as { exitCode?: number }).exitCode === 2
     );
     assert.throws(
-      () => parseMmdcArguments(["-i", "in.mmd", "-o", "out.svg", "-t", "forest"]),
+      () => parseMmdcArguments(["-i", "in.mmd", "-o", "out.svg", "-t", "unknown"]),
       (err: unknown) => (err as { exitCode?: number }).exitCode === 2
     );
     assert.throws(
@@ -164,7 +242,7 @@ describe("mmdc CLI grammar, VFS command execution, and SDK parity", () => {
     const resLight = await cmd.execute(runLight.context);
     assert.equal(resLight.exitCode, 0);
     const lightSvgText = new TextDecoder().decode(vfs.files.get("/vfs/light.svg")!);
-    assert.ok(lightSvgText.includes("#f8fafc"));
+    assert.ok(lightSvgText.includes('fill="white"'));
 
     // Render dark SVG
     const runDark = createMockContext(
@@ -174,7 +252,7 @@ describe("mmdc CLI grammar, VFS command execution, and SDK parity", () => {
     const resDark = await cmd.execute(runDark.context);
     assert.equal(resDark.exitCode, 0);
     const darkSvgText = new TextDecoder().decode(vfs.files.get("/vfs/dark.svg")!);
-    assert.ok(darkSvgText.includes("#0b1120"));
+    assert.ok(darkSvgText.includes("#1e293b"));
     assert.notEqual(lightSvgText, darkSvgText);
 
     // Render PNG at scale 2

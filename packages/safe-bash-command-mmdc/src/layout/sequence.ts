@@ -824,8 +824,8 @@ export function layoutSequenceDocument(
 
   const naturalWidth = Math.ceil(maxX - minX + padding * 2);
   const naturalHeight = Math.ceil(maxY - minY + padding * 2);
-  const width = options?.width ?? naturalWidth;
-  const height = options?.height ?? naturalHeight;
+  const width = naturalWidth;
+  const height = naturalHeight;
 
   budget.chargeWork(nodes.length * 10 + edges.length * 15);
 

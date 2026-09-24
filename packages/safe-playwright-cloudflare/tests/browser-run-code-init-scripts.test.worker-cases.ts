@@ -78,12 +78,9 @@ export async function assertRunCodeInitScriptRetention(
 			await f.run(batch("page.context()", 128));
 			await f.run(batch("page.context()", 128));
 			assert.equal(await executions(f.page), 256);
-			await assert.rejects(
-				f.run(batch("page.context()", 1)),
-				/retained init script limit exceeded/,
-			);
-			assert.equal(f.retired(), true);
-			assert.equal(f.retiredState()?.contextInitScripts.length, 256);
+			await f.run(batch("page.context()", 1));
+			assert.equal(f.retired(), false);
+			assert.equal(await executions(f.page), 257);
 			break;
 		case "/init-script-page-retention":
 			// Include an existing host registration and preserve guest registrations
@@ -97,19 +94,11 @@ export async function assertRunCodeInitScriptRetention(
 			assert.equal(f.retired(), false);
 			assert.equal(await executions(f.page), 256);
 			await assert.rejects(
-				f.run(
-					batch(
-						"page.context()",
-						1,
-						"await page.addInitScript('0'); throw new Error('over capacity')",
-					),
-				),
-				/retained init script limit exceeded/,
+				f.run(batch("page.context()", 1, "await page.addInitScript('0'); throw new Error('after more scripts')")),
+				/after more scripts/,
 			);
-			assert.equal(f.retired(), true);
-			// Neither the context nor the page portion of a rejected batch transfers.
-			assert.equal(f.retiredState()?.contextInitScripts.length, 1);
-			assert.equal(f.retiredState()?.pages[0]?.initScripts.length, 255);
+			assert.equal(f.retired(), false);
+			assert.equal(await executions(f.page), 257);
 			break;
 		case "/init-script-byte-retention": {
 			// 32 KiB retained: 32,718 UTF-8 source bytes + two native 25-byte
@@ -130,11 +119,11 @@ export async function assertRunCodeInitScriptRetention(
 			);
 			assert.equal(f.retired(), false);
 			assert.equal(retainedBytes(), 64 * 1024);
-			await assert.rejects(
-				f.run("async page => { await page.addInitScript('0'); }"),
-				/retained init script limit exceeded/,
-			);
-			assert.equal(f.retired(), true);
+			await f.run(`async page => { ${register}; await page.addInitScript('window.largeStateRestored = true'); }`);
+			assert.equal(f.retired(), false);
+			assert.equal(retainedBytes(), 96 * 1024);
+			await f.page.goto("data:text/html,<title>Large retained state</title>");
+			assert.equal(await f.page.evaluate("window.largeStateRestored"), true);
 			break;
 		}
 		case "/init-script-page-close-capacity": {

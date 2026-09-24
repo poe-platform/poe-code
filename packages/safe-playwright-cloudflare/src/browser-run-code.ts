@@ -21,7 +21,7 @@ import {
 	restoreRunCodePageState,
 	restoreRunCodeTimeouts,
 	runCodeContextOptions,
-	validateRunCodeInitScripts,
+	validateRunCodePageOwnership,
 } from "./browser-run-code-native.js";
 import { createRunCodeRelay } from "./browser-run-code-relay.js";
 import { parseRunCodeState } from "./browser-run-code-state.js";
@@ -381,7 +381,7 @@ async function restoreState(
 	}
 	const state = metadata.state;
 	if (!options.browser.contexts().includes(input.page.context())) return;
-	validateRunCodeInitScripts(options.browser, input.page.context(), state);
+	validateRunCodePageOwnership(options.browser, input.page.context(), state);
 	await restoreRunCodeContextState(input.page.context(), state.context);
 	restoreRunCodeTimeouts(input.page.context(), state.contextTimeouts);
 	await Promise.all(

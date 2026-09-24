@@ -26,6 +26,9 @@ Cloudflare Workers types. `run-code` reports an unavailable binding if no loader
 is supplied; other browser commands remain available.
 Pass one function accepting `page`, for example
 `playwright-cli run-code 'async (page) => { return await page.title(); }'`.
+Native page and context state transfers impose no default byte, page-count, or
+init-script-count cap. Script registrations survive reconnection and user-code
+errors; explicitly configured result and portable profile budgets still apply.
 Compilation syntax errors retain their original detail and include this example;
 corrected code can run in the same session.
 Worker `run-code` results are admitted before host JSON parsing: at most 1 Mi

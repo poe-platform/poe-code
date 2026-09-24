@@ -3,8 +3,6 @@ import {
 	type RunCodeContextState,
 } from "./browser-run-code-context-state.js";
 
-export const MAX_PAGE_STATE_BYTES = 64 * 1024;
-export const MAX_RUN_CODE_INIT_SCRIPTS = 256;
 const mediaValues = {
 	media: ["screen", "print", "no-override"],
 	colorScheme: ["dark", "light", "no-preference", "no-override"],
@@ -77,7 +75,6 @@ function emulatedSize(value: unknown): value is RunCodePageState["size"] {
 function scripts(value: unknown): value is string[] {
 	return (
 		Array.isArray(value) &&
-		value.length <= MAX_RUN_CODE_INIT_SCRIPTS &&
 		value.every((source) => typeof source === "string")
 	);
 }
@@ -114,13 +111,8 @@ function pageState(value: unknown): value is RunCodePageState {
 	);
 }
 
-/** Fixed schema and byte cap bound the guest's separate native state response. */
+/** Validate the guest completion schema without imposing a transfer budget. */
 export function parseRunCodeState(json: string): RunCodeState {
-	if (
-		typeof json !== "string" ||
-		new TextEncoder().encode(json).byteLength > MAX_PAGE_STATE_BYTES
-	)
-		throw new Error("Run-code page state byte limit exceeded");
 	return validateRunCodeState(JSON.parse(json));
 }
 
@@ -135,13 +127,9 @@ export function validateRunCodeState(value: unknown): RunCodeState {
 		]) ||
 		!isRunCodeContextState(value.context) ||
 		!Array.isArray(value.pages) ||
-		value.pages.length > 64 ||
 		!value.pages.every(pageState) ||
 		!scripts(value.contextInitScripts) ||
-		!timeouts(value.contextTimeouts) ||
-		value.contextInitScripts.length +
-			value.pages.reduce((count, page) => count + page.initScripts.length, 0) >
-			MAX_RUN_CODE_INIT_SCRIPTS
+		!timeouts(value.contextTimeouts)
 	)
 		throw new Error("Invalid run-code page state");
 	return {

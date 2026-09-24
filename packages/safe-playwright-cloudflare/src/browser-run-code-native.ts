@@ -1,5 +1,4 @@
 import type { Browser, BrowserContext, Page } from "@cloudflare/playwright";
-import { PlaywrightResourceLimitError } from "@poe-platform/safe-bash/playwright";
 import { browserPageCDP } from "./browser-page-cdp.js";
 import type { RunCodeContextState } from "./browser-run-code-context-state.js";
 import type {
@@ -7,8 +6,6 @@ import type {
 	RunCodeNativeContextOptions,
 } from "./browser-run-code-contract.js";
 import {
-	MAX_PAGE_STATE_BYTES,
-	MAX_RUN_CODE_INIT_SCRIPTS,
 	type RunCodePageState,
 	type RunCodeState,
 	type RunCodeTimeouts,
@@ -17,12 +14,6 @@ import {
 interface NativeInitScript {
 	source: string;
 }
-
-// Pinned @cloudflare/playwright 1.3.6 server/page.js InitScript wraps each source.
-// Transferred sources already have the guest wrapper; host registration adds one.
-const NATIVE_INIT_SCRIPT_WRAPPER_BYTES = new TextEncoder().encode(
-	"(() => {\n      \n    })();",
-).byteLength;
 
 interface NativeContext {
 	_browserContextId: string;
@@ -213,48 +204,18 @@ export async function replaceRunCodeContextInitScripts(browser: Browser, context
   for (const source of sources) await context.addInitScript(source);
 }
 
-/** Admit the entire batch against live native registrations before transferring it.
- * Closed pages/contexts release capacity naturally; no lifetime counter is kept. */
-export function validateRunCodeInitScripts(
-	browser: Browser,
-	context: BrowserContext,
-	state: RunCodeState,
+/** Verify every live page has captured state before mutating the native context. */
+export function validateRunCodePageOwnership(
+  browser: Browser,
+  context: BrowserContext,
+  state: RunCodeState,
 ) {
-	let count = 0;
-	let bytes = 0;
-	const encoder = new TextEncoder();
-	const include = (source: string, wrapperBytes = 0) => {
-		count++;
-		bytes += encoder.encode(source).byteLength + wrapperBytes;
-		if (count > MAX_RUN_CODE_INIT_SCRIPTS || bytes > MAX_PAGE_STATE_BYTES)
-			throw new PlaywrightResourceLimitError(
-				"Run-code retained init script limit exceeded",
-			);
-	};
-	const native = connection(browser).toImpl(context);
-	for (const script of native.initScripts)
-		if (script !== native.bindingsInitScript) include(script.source);
-	for (const source of state.contextInitScripts)
-		include(source, NATIVE_INIT_SCRIPT_WRAPPER_BYTES);
-	for (const page of context.pages())
-		includePageInitScripts(browser, page, state.pages, include);
-}
-
-function includePageInitScripts(
-	browser: Browser,
-	page: Page,
-	pages: RunCodePageState[],
-	include: (source: string, wrapperBytes?: number) => void,
-) {
-	if (page.isClosed()) return;
-	const retained = connection(browser).toImpl(page);
-	for (const script of retained.initScripts) include(script.source);
-	const incoming = pages.find(
-		(value) => value.targetId === retained.delegate._targetId,
-	);
-	if (!incoming) throw new Error("Run-code page state is unavailable");
-	for (const source of incoming.initScripts)
-		include(source, NATIVE_INIT_SCRIPT_WRAPPER_BYTES);
+  const targets = new Set(state.pages.map(page => page.targetId));
+  for (const page of context.pages()) {
+    if (page.isClosed()) continue;
+    const native = connection(browser).toImpl(page);
+    if (!targets.has(native.delegate._targetId)) throw new Error("Run-code page state is unavailable");
+  }
 }
 
 /** Reconnecting CDP clients reset emulation on detach. Reapply the native state,

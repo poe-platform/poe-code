@@ -42,9 +42,8 @@ test('portable profile total budget still rejects oversized provider scripts', a
   expect(() => encodeBrowserProfile({ state: { cookies: [], origins: [] }, tabs: [], selected: 0, runtimeState: saved }, limits)).toThrow('Browser profile byte limit exceeded');
 });
 
-test('run-code transfer retains its 64 KiB cap', () => {
-  expect(() => serializeRunCodeState(state)).toThrow('Run-code page state byte limit exceeded');
-  expect(() => parseRunCodeState(JSON.stringify(state))).toThrow('Run-code page state byte limit exceeded');
+test('run-code transfer preserves the same large scripts as portable profiles', () => {
+  expect(parseRunCodeState(serializeRunCodeState(state))).toEqual(state);
 });
 
 test('profile capture and restoration retain script schema validation', async () => {

@@ -486,15 +486,20 @@ export default {
 					);
 					break;
 				}
-				case "/init-script-limit":
-				case "/output": {
-					const source =
-						new URL(request.url).pathname === "/output"
-							? "async page => 'a'.repeat(1024)"
-							: "async page => { await page.addInitScript('/*' + 'x'.repeat(65536) + '*/'); throw new Error('after oversized script'); }";
+				case "/init-script-limit": {
 					await assert.rejects(
-						f.run(source, { maxOutputBytes: 64 }),
-						/(output|page state byte) limit/,
+						f.run("async page => { await page.addInitScript('window.largeScript = true; /*' + 'x'.repeat(65536) + '*/'); throw new Error('after large script'); }"),
+						/after large script/,
+					);
+					assert.equal(f.retired(), false);
+					await f.page.goto('data:text/html,<title>Large script</title>');
+					assert.equal(await f.page.evaluate('window.largeScript'), true);
+					break;
+				}
+				case "/output": {
+					await assert.rejects(
+						f.run("async page => 'a'.repeat(1024)", { maxOutputBytes: 64 }),
+						/output limit/,
 					);
 					assert.equal(f.retired(), true);
 					break;

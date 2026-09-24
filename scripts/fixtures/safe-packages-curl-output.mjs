@@ -21,7 +21,7 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"])
       const destination = buffered(backing);
       const fs = mounted ? createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/scratch": destination } }) : destination;
       let disposed = 0;
-      const shell = new Shell({ fs, cwd: mounted ? "/scratch" : "/" }).use(commands()).use(networkCommands({
+      const shell = new Shell({ fs, cwd: mounted ? "/scratch" : "/" }).use(commands()).use(networkCommands({ limits: { maxUrls: 8, maxBufferBytes: 1024 },
         authorize: () => true,
         transport: async () => ({ status: 200, statusText: "OK", headers: [], body: (async function* () {
           if (!empty) { yield new Uint8Array([1, 2, 255]); yield new Uint8Array([0, 128]); }
@@ -49,7 +49,7 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"])
     "/fast": fast, "/slow": slow, "/locked": createReadOnlyFileSystem(buffered(lockedBacking))
   } });
   assert.equal(fs.capabilities.streamingWrite, undefined);
-  const shell = new Shell({ fs }).use(commands()).use(networkCommands({
+  const shell = new Shell({ fs }).use(commands()).use(networkCommands({ limits: { maxUrls: 8, maxBufferBytes: 1024 },
     authorize: () => true,
     transport: async () => ({ status: 200, statusText: "OK", headers: [], body: (async function* () {
       for (let index = 0; index < 300; index++) yield new Uint8Array([index % 256]);
@@ -87,7 +87,7 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"])
       }
       throw new FsError(stage === "io-error" ? "EIO" : "ENOTSUP");
     };
-    const shell = new Shell({ fs: destination }).use(commands()).use(networkCommands({
+    const shell = new Shell({ fs: destination }).use(commands()).use(networkCommands({ limits: { maxUrls: 8, maxBufferBytes: 1024 },
       authorize: () => true,
       transport: async () => ({ status: 200, statusText: "OK", headers: [], body: (async function* () {
         produced++; yield new Uint8Array([1]); produced++; yield new Uint8Array([2]);
@@ -114,7 +114,7 @@ for (const entry of ["@poe-platform/safe-bash", "@poe-platform/safe-bash/node"])
     controller.abort(reason);
   };
   const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/scratch": destination } });
-  const canceled = new Shell({ fs: mounted }).use(commands()).use(networkCommands({
+  const canceled = new Shell({ fs: mounted }).use(commands()).use(networkCommands({ limits: { maxUrls: 8, maxBufferBytes: 1024 },
     authorize: () => true,
     transport: async () => ({ status: 200, statusText: "OK", headers: [], body: (async function* () {
       produced++; yield new Uint8Array([1]); produced++; yield new Uint8Array([2]);

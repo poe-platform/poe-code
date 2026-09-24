@@ -20,7 +20,7 @@ for (const [flags, method, mode, errorExit] of [
     fs.writeStream = async (...args) => { writes++; await writeStream(...args); };
     const output = scenario === "error" && mode !== "omit";
     const expectedReads = mode === "omit" || (scenario === "error" && mode === "omit-on-http-error") ? 0 : 1;
-    const shell = new Shell({ fs }).use(networkCommands({
+    const shell = new Shell({ fs }).use(networkCommands({ limits: { maxUrls: 8, maxBufferBytes: 1024 },
       authorize: () => true,
       async transport(request) {
         if (request.method !== method || request.responseBodyMode !== mode) {
@@ -55,7 +55,7 @@ for (const flags of ["-f --fail-with-body", "--fail-with-body -f", "-I -f --fail
   const writeStream = fs.writeStream.bind(fs);
   fs.writeFile = async (...args) => { effects++; await writeFile(...args); };
   fs.writeStream = async (...args) => { effects++; await writeStream(...args); };
-  const shell = new Shell({ fs }).use(networkCommands({
+  const shell = new Shell({ fs }).use(networkCommands({ limits: { maxUrls: 8, maxBufferBytes: 1024 },
     authorize: () => { effects++; return true; },
     async transport() { effects++; throw new Error("Unexpected transport"); },
   }));

@@ -241,7 +241,6 @@ export function parseErDiagram(
     nodes,
     edges,
     groups: [],
-    notes: [],
-    participants: []
+    notes: []
   };
 }

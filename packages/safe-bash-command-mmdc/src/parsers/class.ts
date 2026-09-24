@@ -180,7 +180,7 @@ function splitEndpointAndMultiplicity(
 function findClassRelation(text: string): {
   leftRaw: string;
   rightRaw: string;
-  labelRaw?: string;
+  labelRaw?: string | undefined;
   op: (typeof CLASS_OPERATORS)[number];
 } | null {
   let quote: string | null = null;

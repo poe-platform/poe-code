@@ -91,6 +91,23 @@ test("foundation: script-file preserves completed command effects before malform
   } finally { await instance.dispose(); }
 });
 
+test("foundation: script-file syntax validation precedes current-unit effects", { timeout: 5000 }, async () => {
+  for (const [separator, expectedEffects, errorLine] of [["\n", 1, 2], ["; ", 0, 1]] as const) {
+    const fs = new MemoryFileSystem();
+    const instance = new AuthorShell({ fs });
+    let effects = 0;
+    instance.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
+    await fs.writeFile("/invalid", new TextEncoder().encode(`effect${separator}a=(bad))\neffect\n`));
+    try {
+      const result = await instance.exec("a=(outer); bash /invalid");
+      assert.equal(result.exitCode, 2);
+      assert.equal(effects, expectedEffects);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, `/invalid: line ${errorLine}: syntax error: Expected command\n`);
+    } finally { await instance.dispose(); }
+  }
+});
+
 test("foundation: exported host environment stays scalar with null prototype", { timeout: 5000 }, async () => {
   const instance = shell();
   instance.register({ name: "environment", execute(context) {

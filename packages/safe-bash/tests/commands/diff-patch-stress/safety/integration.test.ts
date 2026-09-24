@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { diffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { FsError } from "../../../../src/contracts/index.js";
+import { ReadOnlyFileSystem } from "../../../../src/fs/readonly/index.js";
 import { Shell } from "../../../../src/shell/index.js";
 import { assertBytes, cwd, deferred, drain, instrument, memory, replacement, snapshot } from "./helpers.js";
 
@@ -115,5 +116,21 @@ test("Shell hardlink alias rejection does not truncate the alias or input", asyn
   assert.equal(result.exitCode, 2, result.stderr);
   assert.match(result.stderr, /hard-linked/u);
   assert.deepEqual(observed.mutations(), []);
+  assert.deepEqual(await snapshot(backing), before);
+});
+
+for (const dryRun of [false, true]) test(`Shell patch preserves readonly admission and dry-run semantics: dryRun=${dryRun}`, async context => {
+  const backing = await memory();
+  const before = await snapshot(backing);
+  const shell = new Shell({ fs: new ReadOnlyFileSystem(backing), cwd }).use(diffPatchCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(dryRun ? "patch --dry-run" : "patch", { stdin: replacement() });
+  assert.equal(result.exitCode, dryRun ? 0 : 2, result.stderr);
+  if (dryRun) assert.equal(result.stderr, "");
+  else {
+    assert.match(result.stderr, /EROFS/u);
+    assert.doesNotMatch(result.stderr, /race-safe patch publication/u);
+    assert.equal(result.stdout, "");
+  }
   assert.deepEqual(await snapshot(backing), before);
 });

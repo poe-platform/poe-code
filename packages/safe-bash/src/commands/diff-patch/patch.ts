@@ -1,5 +1,5 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
-import { dirname, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
+import { FsError, dirname, resolvePath, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { Budget, ToolError, definition, host, inspect, integer, type DiffPatchOptions } from "./shared.js";
 import { applyHunks, reversePatch, type FilePatch, type HunkOutcome } from "./unified.js";
 import { safeTarget } from "./patch-path.js";
@@ -244,6 +244,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   if (!options.dryRun) {
     const fs = context.fs;
     const capabilities = await host(context, async () => await fs.capabilitiesFor?.(context.cwd, { signal: context.signal }) ?? fs.capabilities);
+    if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "patch", path: context.cwd });
     if (!fs.confineExtraction || capabilities.atomicStagingAncestry !== true
       || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) {
       throw new ToolError("filesystem does not support race-safe patch publication");

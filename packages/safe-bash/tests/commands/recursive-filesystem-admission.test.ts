@@ -329,12 +329,13 @@ test("cp preserves top-level/default nested symlink policy, -L, -P, and -H", asy
   await fs.symlink("source", "/alias");
   const shell = new Shell({ fs, commands: new CommandRegistry(filesystemCommands(8)) });
   context.after(() => shell.dispose());
-  for (const source of ["cp -r /alias /default", "cp -rL /alias /followed", "cp -rP /alias /preserved"]) {
+  for (const source of ["cp -r /alias /default", "cp -r /source /default-nested", "cp -rL /alias /followed", "cp -rP /alias /preserved"]) {
     const result = await shell.exec(source);
     assert.equal(result.exitCode, 0, result.stderr);
   }
-  assert.equal((await fs.lstat("/default")).type, "directory");
-  assert.equal(await fs.readlink!("/default/link"), "deep");
+  assert.equal(await fs.readlink!("/default"), "source");
+  assert.equal((await fs.lstat("/default-nested")).type, "directory");
+  assert.equal(await fs.readlink!("/default-nested/link"), "deep");
   assert.equal((await fs.lstat("/followed/link")).type, "directory");
   assert.equal(await fs.readlink!("/preserved"), "source");
   const commandLine = await shell.exec("cp -rH /alias /command-line");

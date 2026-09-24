@@ -100,7 +100,7 @@ for (const command of ["hexdump", "hd"]) {
   });
 }
 
-for (const [flag, fields] of [["b", "101 102"], ["c", "  A   B"], ["d", "  16961"], ["x", "   4241"]]) {
+for (const [flag, fields] of [["b", "101 102"], ["c", "  A   B"], ["d", "  16961"], ["o", " 041101"], ["x", "   4241"]]) {
   test(`agent commands stream stdin through hexdump -${flag}`, async () => {
     const shell = new entry.Shell({ fs: entry.createMemoryFileSystem(), env: { LC_ALL: "C" } }).use(entry.agentCommands());
     try {
@@ -110,4 +110,26 @@ for (const [flag, fields] of [["b", "101 102"], ["c", "  A   B"], ["d", "  16961
       });
     } finally { await shell.dispose(); }
   });
+}
+
+for (const dialect of ["bsd", "util-linux"] as const) {
+  for (const command of ["hexdump", "hd"]) {
+    test(`${command} -o formats two-byte octal words in the ${dialect} dialect`, async () => {
+      const shell = new entry.Shell({ fs: entry.createMemoryFileSystem() }).use(entry.agentCommands({ hexdump: { dialect } }));
+      try {
+        for (const [stdin, fields, canonical] of [
+          [Uint8Array.of(65, 66, 67, 68), " 041101  042103", "00000000  41 42 43 44                                       |ABCD|\n"],
+          [Uint8Array.of(255, 255, 1), " 177777  000001", "00000000  ff ff 01                                          |...|\n"],
+          [Uint8Array.of(0, 0), " 000000", "00000000  00 00                                             |..|\n"],
+        ] as const) {
+          const result = await shell.exec(`${command} -ov`, { stdin });
+          const octal = `0000000 ${fields}${" ".repeat(stdin.length > 2 ? 48 : 56)}\n`;
+          const address = stdin.length.toString(16).padStart(7, "0");
+          assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, (command === "hd" ? canonical : "") + octal + address + "\n", ""]);
+        }
+        const empty = await shell.exec(`${command} -o`, { stdin: "" });
+        assert.deepEqual([empty.exitCode, empty.stdout, empty.stderr], [0, "", ""]);
+      } finally { await shell.dispose(); }
+    });
+  }
 }

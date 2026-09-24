@@ -29,7 +29,7 @@ export function formatBlock(block: Uint8Array, used: number, address: number, fo
         else if (format === "b") field = byte.toString(8).padStart(3, "0");
         else {
           const word = byte + (index + 1 < used ? block[index + 1]! * 256 : 0);
-          field = word.toString(format === "d" ? 10 : 16).padStart(format === "d" ? 5 : 4, "0");
+          field = word.toString(format === "d" ? 10 : format === "o" ? 8 : 16).padStart(format === "d" ? 5 : format === "o" ? 6 : 4, "0");
         }
       }
       result += field.padStart(width, " ") + (index + stride < 16 ? " " : "");

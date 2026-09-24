@@ -2,7 +2,7 @@ import { Budget, HexdumpError, type HexdumpCommandsOptions } from "./internal.js
 
 const usage = "usage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n       hd      [-bcdovx]  [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]";
 
-export type Format = "default" | "C" | "b" | "c" | "d" | "x";
+export type Format = "default" | "C" | "b" | "c" | "d" | "o" | "x";
 
 export interface Parsed {
   readonly files: readonly string[];
@@ -65,7 +65,7 @@ export function parse(budget: Budget, name: string, dialect: HexdumpCommandsOpti
       budget.charge();
       const flag = argument[offset]!;
       if (flag === "v") verbose = true;
-      else if (flag === "C" || flag === "b" || flag === "c" || flag === "d" || flag === "x") {
+      else if (flag === "C" || flag === "b" || flag === "c" || flag === "d" || flag === "o" || flag === "x") {
         if (name === "hd" && flag === "C") throw new HexdumpError(usage, true);
         budget.check(formats.length + 1, budget.limits.maxFormats, "format count");
         formats.push(flag);

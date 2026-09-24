@@ -26,7 +26,7 @@ export interface ParseCosOptions {
 }
 
 export class ParsedCosDocument {
-  readonly version: string;
+  version: string;
   readonly bytes: Uint8Array;
   readonly objects: Map<number, PdfIndirectObject>;
   readonly revisions: readonly PdfRevision[];

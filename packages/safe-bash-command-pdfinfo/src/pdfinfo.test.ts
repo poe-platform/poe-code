@@ -14,7 +14,14 @@ import {
   dictGet,
   dictSet
 } from "@poe-code/pdf-ast";
-import { inspectPdfBytes, runPdfinfoCli } from "./index.js";
+import {
+  inspectPdfBytes,
+  runPdfinfoCli,
+  runPdftoppmCli,
+  runPdfimagesCli,
+  runPdfuniteCli,
+  runPdfseparateCli,
+} from "./index.js";
 
 function buildRichTestPdf(options?: {
   encrypt?: boolean;
@@ -286,5 +293,54 @@ describe("safe-bash-command-pdfinfo", () => {
     const pdfBytes = buildRichTestPdf();
     const badRange = inspectPdfBytes(pdfBytes, ["-f", "3", "-l", "1"]);
     assert.equal(badRange.exitCode, 99);
+  });
+
+  it("supports Poppler pdftoppm, pdfimages, pdfunite, and pdfseparate CLI utilities", async () => {
+    const pdf1 = buildRichTestPdf();
+    const doc2 = PdfDocument.create();
+    const p2 = doc2.addPage({ width: 300, height: 200 });
+    p2.drawText("Merged Appendix Page", { x: 24, y: 120, size: 14 });
+    const imgPng = p2.renderToPng({ scale: 0.25 });
+    const embeddedImg = doc2.embedPng(imgPng);
+    p2.drawImage(embeddedImg, { x: 20, y: 20, width: 60, height: 40 });
+    const pdf2 = doc2.save();
+
+    const files = new Map<string, Uint8Array>([
+      ["/report.pdf", pdf1],
+      ["/appendix.pdf", pdf2],
+    ]);
+
+    const uniteRes = await runPdfuniteCli(["/report.pdf", "/appendix.pdf", "/combined.pdf"], files);
+    assert.equal(uniteRes.exitCode, 0);
+    const combinedBytes = files.get("/combined.pdf");
+    assert.ok(combinedBytes);
+    const combinedDoc = PdfDocument.load(combinedBytes);
+    assert.equal(combinedDoc.pageCount, 3);
+
+    const sepRes = await runPdfseparateCli(["-f", "2", "-l", "3", "/combined.pdf", "/split-%d.pdf"], files);
+    assert.equal(sepRes.exitCode, 0);
+    assert.ok(files.get("/split-2.pdf"));
+    assert.ok(files.get("/split-3.pdf"));
+    assert.match(PdfDocument.load(files.get("/split-3.pdf")!).extractText(), /Merged Appendix Page/);
+
+    const ppmPngRes = await runPdftoppmCli(["-png", "-r", "72", "-f", "1", "-l", "2", "/combined.pdf", "/page"], files);
+    assert.equal(ppmPngRes.exitCode, 0);
+    const p1Png = files.get("/page-1.png");
+    assert.ok(p1Png && p1Png[0] === 137 && p1Png[1] === 80);
+
+    const ppmGrayRes = await runPdftoppmCli(["-gray", "-singlefile", "/appendix.pdf", "/gray"], files);
+    assert.equal(ppmGrayRes.exitCode, 0);
+    const grayPgm = files.get("/gray.pgm");
+    assert.ok(grayPgm && grayPgm[0] === 0x50 && grayPgm[1] === 0x35);
+
+    const imgListRes = await runPdfimagesCli(["-list", "/appendix.pdf"], files);
+    assert.equal(imgListRes.exitCode, 0);
+    assert.match(imgListRes.stdout, /page\s+num\s+type\s+width\s+height/);
+    assert.match(imgListRes.stdout, /image/);
+
+    const imgExtractRes = await runPdfimagesCli(["-png", "/appendix.pdf", "/extracted"], files);
+    assert.equal(imgExtractRes.exitCode, 0);
+    const ext0 = files.get("/extracted-000.png");
+    assert.ok(ext0 && ext0[0] === 137 && ext0[1] === 80);
   });
 });

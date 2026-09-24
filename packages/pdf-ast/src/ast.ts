@@ -408,10 +408,15 @@ export function cosRef(objectNumber: number, generationNumber = 0, span?: ByteSp
 }
 
 export function cosStream(
-  data: Uint8Array,
-  options: { dict?: PdfCosDict; compress?: boolean } = {},
+  dataOrDict: Uint8Array | PdfCosDict,
+  optionsOrData: { dict?: PdfCosDict; compress?: boolean } | Uint8Array = {},
   span?: ByteSpan
 ): PdfCosStream {
+  const data = dataOrDict instanceof Uint8Array ? dataOrDict : (optionsOrData as Uint8Array);
+  const options: { dict?: PdfCosDict; compress?: boolean } =
+    dataOrDict instanceof Uint8Array
+      ? (optionsOrData as { dict?: PdfCosDict; compress?: boolean })
+      : { dict: dataOrDict };
   const entries = options.dict ? [...options.dict.entries] : [];
   const setEntry = (name: string, value: PdfCosNode) => {
     const idx = entries.findIndex(e => e.key.decoded === name);

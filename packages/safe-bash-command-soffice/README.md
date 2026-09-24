@@ -10,7 +10,7 @@ Headless LibreOffice (`soffice` / `libreoffice`) conversion command for `safe-ba
 | Calc -> PDF | `soffice --headless --convert-to pdf:calc_pdf_Export finance.xlsx` | Renders XLSX/CSV worksheets into grid-bordered tabular PDFs with shaded headers. |
 | Impress -> PDF | `soffice --headless --convert-to pdf:impress_pdf_Export deck.pptx` | Renders PPTX slides into landscape 16:9 widescreen PDFs. |
 | Calc -> CSV (StarCalc) | `soffice --headless --convert-to "csv:Text - txt - csv (StarCalc):59,34,76,1" book.xlsx` | Exports worksheets to CSV with configurable field separator, quote character, and BOM/encoding. |
-| PDF -> Text / HTML | `soffice --headless --convert-to txt document.pdf` | Extracts structured text or HTML from PDFs. |
+| PDF -> DOCX / XLSX / CSV / HTML / PNG / TXT | `soffice --headless --convert-to docx document.pdf` | Converts PDFs into DOCX, XLSX, CSV, HTML, PNG, or TXT and supports `soffice --cat` / `libreoffice` alias. |
 
 ## Quick Start
 

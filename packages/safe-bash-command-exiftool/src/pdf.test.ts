@@ -86,4 +86,47 @@ test("exiftool reads and writes PDF metadata, PageCount, and JSON", async () => 
     verifyRes.stdout,
     "Updated 2026 Audit\nCompliance Officer\nfinance, audit, verified\n"
   );
+
+  const updatedBytes = await fs.readFile("/report.pdf");
+  const updatedText = new TextDecoder("latin1").decode(updatedBytes);
+  const xrefLineMatch = /\n(\d{10}) 00000 n /.exec(updatedText);
+  assert.ok(xrefLineMatch);
+  const exactOffset = Number(xrefLineMatch[1]);
+  const sliceAtOffset = new TextDecoder("latin1").decode(updatedBytes.slice(exactOffset, exactOffset + 12));
+  assert.match(sliceAtOffset, /^\d+ 0 obj\n/);
+});
+
+test("exiftool extracts nested-parenthesis strings, pre-Type /Count, and XMP packet tags", async () => {
+  const fs = createMemoryFileSystem();
+  const complexPdf = `%PDF-1.6
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /Metadata 6 0 R >>
+endobj
+2 0 obj
+<< /Count 5 /Kids [3 0 R] /Type /Pages >>
+endobj
+3 0 obj
+<< /Count 2 /Kids [] /Type /Pages >>
+endobj
+5 0 obj
+<< /Title (Quarterly Report (2026 Q3/Q4) Final) /Author <FEFF004100640061> >>
+endobj
+6 0 obj
+<< /Type /Metadata /Subtype /XML /Length 210 >>
+stream
+<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description xmlns:pdf="http://ns.adobe.com/pdf/1.3/" xmlns:xmp="http://ns.adobe.com/xap/1.0/"><pdf:Keywords>xmp-key, cosmos</pdf:Keywords><xmp:CreatorTool>Illustrator Pro</xmp:CreatorTool></rdf:Description></rdf:RDF></x:xmpmeta>
+endstream
+endobj
+trailer
+<< /Size 7 /Root 1 0 R /Info 5 0 R >>
+%%EOF`;
+  await fs.writeFile("/complex.pdf", new TextEncoder().encode(complexPdf));
+  const res = await invoke(["-j", "complex.pdf"], fs);
+  assert.equal(res.exitCode, 0, res.stderr);
+  const meta = JSON.parse(res.stdout)[0];
+  assert.equal(meta.PageCount, 5);
+  assert.equal(meta.Title, "Quarterly Report (2026 Q3/Q4) Final");
+  assert.equal(meta.Author, "Ada");
+  assert.equal(meta.Keywords, "xmp-key, cosmos");
+  assert.equal(meta.Creator, "Illustrator Pro");
 });

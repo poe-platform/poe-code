@@ -144,6 +144,18 @@ export class PdfDocument {
     return this.pages.length;
   }
 
+  get version(): string {
+    return this.cos.version;
+  }
+
+  getVersion(): string {
+    return this.cos.version;
+  }
+
+  setVersion(version: string): void {
+    this.cos.version = version;
+  }
+
   addPage(size?: readonly [number, number] | { readonly width: number; readonly height: number }): PdfPage {
     const resolved: readonly [number, number] = size
       ? "width" in size

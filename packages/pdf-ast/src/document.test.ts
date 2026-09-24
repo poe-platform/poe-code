@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { PdfDocument, rgb } from "./index.js";
+import {
+  PdfDocument,
+  rgb,
+  cosDict,
+  cosName,
+  cosNumber,
+  cosArray,
+  cosStream,
+  decodePng,
+} from "./index.js";
 
 describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redaction & Rasterizer", () => {
   it("creates, edits, extracts text/tables/semantic-AST, merges pages, fills AcroForms, redacts, and renders to PNG", () => {
@@ -113,5 +122,88 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
     const reEmbeddedPng = mergedDoc.embedPng(pngBytes);
     expect(reEmbeddedPng.width).toBe(612);
     expect(reEmbeddedPng.height).toBe(792);
+  });
+
+  it("evaluates Form XObjects (/Subtype /Form), inline images (BI/ID/EI), v/y Bézier curves, and unclosed filled subpaths", () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage({ width: 200, height: 200 });
+
+    expect(doc.version).toBe("1.7");
+    expect(page.dict.kind).toBe("dict");
+
+    const formStreamText = [
+      "q",
+      "0 0.5 1 rg",
+      "10 10 m",
+      "20 30 40 30 v",
+      "50 20 30 10 y",
+      "f",
+      "BT /F1 12 Tf 15 45 Td (Form XObject Label) Tj ET",
+      "BI /W 2 /H 2 /CS /RGB /BPC 8 ID",
+      "\xff\x00\x00\x00\xff\x00\x00\x00\xff\xff\xff\x00",
+      "EI",
+      "Q",
+    ].join("\n");
+
+    const formFontDict = cosDict({
+      F1: cosDict({
+        Type: cosName("Font"),
+        Subtype: cosName("Type1"),
+        BaseFont: cosName("Helvetica"),
+      }),
+    });
+    const formXObj = cosStream(
+      cosDict({
+        Type: cosName("XObject"),
+        Subtype: cosName("Form"),
+        BBox: cosArray([cosNumber(0), cosNumber(0), cosNumber(100), cosNumber(100)]),
+        Matrix: cosArray([cosNumber(1), cosNumber(0), cosNumber(0), cosNumber(1), cosNumber(20), cosNumber(30)]),
+        Resources: cosDict({ Font: formFontDict }),
+      }),
+      new TextEncoder().encode(formStreamText)
+    );
+    const formRef = doc.cos.allocateObject(formXObj);
+
+    const resDict = page.getResourcesDict();
+    resDict.entries.push({
+      key: cosName("XObject"),
+      value: cosDict({ Fm1: formRef }),
+    });
+    page.setRawContentStream(new TextEncoder().encode("q /Fm1 Do Q"));
+
+    const dl = page.evaluateDisplayList();
+    expect(dl.glyphs.map(g => g.unicode).join("")).toContain("Form XObject Label");
+    expect(dl.paths.length).toBe(1);
+    const cubic0 = dl.paths[0]!.segments[1]!;
+    expect(cubic0.kind).toBe("cubic");
+    if (cubic0.kind === "cubic") {
+      expect(cubic0.x1).toBeCloseTo(30, 3);
+      expect(cubic0.y1).toBeCloseTo(40, 3);
+      expect(cubic0.x2).toBeCloseTo(40, 3);
+      expect(cubic0.y2).toBeCloseTo(60, 3);
+      expect(cubic0.x).toBeCloseTo(60, 3);
+      expect(cubic0.y).toBeCloseTo(60, 3);
+    }
+    const cubic1 = dl.paths[0]!.segments[2]!;
+    expect(cubic1.kind).toBe("cubic");
+    if (cubic1.kind === "cubic") {
+      expect(cubic1.x1).toBeCloseTo(70, 3);
+      expect(cubic1.y1).toBeCloseTo(50, 3);
+      expect(cubic1.x2).toBeCloseTo(50, 3);
+      expect(cubic1.y2).toBeCloseTo(40, 3);
+      expect(cubic1.x).toBeCloseTo(50, 3);
+      expect(cubic1.y).toBeCloseTo(40, 3);
+    }
+    expect(dl.images.length).toBe(1);
+    expect(dl.images[0]!.width).toBe(2);
+    expect(dl.images[0]!.height).toBe(2);
+
+    const pngBytes = page.renderToPng({ scale: 1 });
+    const bitmap = decodePng(pngBytes);
+    const px = 45;
+    const py = 200 - 48;
+    const idx = (py * bitmap.width + px) * 4;
+    expect(bitmap.data[idx]).toBeLessThan(50);
+    expect(bitmap.data[idx + 2]).toBeGreaterThan(200);
   });
 });

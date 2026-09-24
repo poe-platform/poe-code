@@ -666,13 +666,198 @@ export function createPdftotextCommand(_options: PdftotextCommandOptions = {}): 
 
 export const pdftotextCommand: CommandDefinition = createPdftotextCommand();
 
+function escapeHtmlXml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export async function runPdftohtmlCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  let xmlMode = false;
+  let toStdout = false;
+  let firstPage = 1;
+  let lastPage = 0;
+  let password = "";
+  const positionals: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdftohtml version 24.08.0\n", stderr: "" };
+    }
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout: "Usage: pdftohtml [options] <PDF-file> [<html-file>|<xml-file>]\n  -xml / -stdout / -s / -i / -noframes / -c / -f <int> / -l <int>\n",
+        stderr: ""
+      };
+    }
+    if (arg === "-xml") xmlMode = true;
+    else if (arg === "-stdout") toStdout = true;
+    else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
+    else if (arg === "-s" || arg === "-i" || arg === "-noframes" || arg === "-c" || arg === "-p" || arg === "-q") {
+      // Flag options
+    } else if (!arg.startsWith("-")) {
+      positionals.push(arg);
+    }
+  }
+
+  const inputPath = positionals[0];
+  if (!inputPath) {
+    return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
+  }
+  const pdfBytes = files.get(inputPath);
+  if (!pdfBytes) {
+    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  const totalPages = Math.max(1, doc.pageCount);
+  const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
+
+  let outputText = "";
+  if (xmlMode) {
+    const lines = [
+      `<?xml version="1.0" encoding="UTF-8"?>`,
+      `<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">`,
+      `<pdf2xml producer="@poe-code/pdf-ast" version="24.08.0">`
+    ];
+    for (let p = firstPage; p <= endPage; p++) {
+      const page = doc.getPage(p - 1);
+      const { width, height } = page.getSize();
+      const extracted = page.extractPage();
+      lines.push(`  <page number="${p}" position="absolute" top="0" left="0" height="${Math.round(height)}" width="${Math.round(width)}">`);
+      lines.push(`    <fontspec id="0" size="12" family="Helvetica" color="#000000"/>`);
+      for (const block of extracted.blocks) {
+        for (const line of block.lines) {
+          const [x0, y0, x1, y1] = line.bbox;
+          const top = Math.max(0, Math.round(height - y1));
+          const left = Math.max(0, Math.round(x0));
+          const w = Math.max(1, Math.round(x1 - x0));
+          const h = Math.max(1, Math.round(y1 - y0));
+          lines.push(`    <text top="${top}" left="${left}" width="${w}" height="${h}" font="0">${escapeHtmlXml(line.text)}</text>`);
+        }
+      }
+      lines.push(`  </page>`);
+    }
+    lines.push(`</pdf2xml>`);
+    outputText = lines.join("\n") + "\n";
+  } else {
+    const meta = doc.getMetadata();
+    const title = escapeHtmlXml(meta.title ?? inputPath);
+    const lines = [
+      `<!DOCTYPE html>`,
+      `<html>`,
+      `<head><meta charset="utf-8"/><title>${title}</title></head>`,
+      `<body>`
+    ];
+    for (let p = firstPage; p <= endPage; p++) {
+      const page = doc.getPage(p - 1);
+      const { width, height } = page.getSize();
+      const extracted = page.extractPage();
+      lines.push(`<div class="page" id="page${p}" style="position:relative;width:${Math.round(width)}pt;height:${Math.round(height)}pt;">`);
+      for (const block of extracted.blocks) {
+        for (const line of block.lines) {
+          const [x0, , , y1] = line.bbox;
+          const top = Math.max(0, Math.round(height - y1));
+          const left = Math.max(0, Math.round(x0));
+          lines.push(`  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">${escapeHtmlXml(line.text)}</p>`);
+        }
+      }
+      lines.push(`</div>`);
+    }
+    lines.push(`</body>`, `</html>`);
+    outputText = lines.join("\n") + "\n";
+  }
+
+  const explicitOut = positionals[1];
+  if (toStdout || explicitOut === "-") {
+    return { exitCode: 0, stdout: outputText, stderr: "" };
+  }
+  const defaultExt = xmlMode ? ".xml" : ".html";
+  const outPath = explicitOut
+    ? explicitOut.endsWith(".html") || explicitOut.endsWith(".xml")
+      ? explicitOut
+      : `${explicitOut}${defaultExt}`
+    : inputPath.replace(/\.pdf$/i, "") + defaultExt;
+  files.set(outPath, new TextEncoder().encode(outputText));
+  return { exitCode: 0, stdout: "", stderr: "" };
+}
+
+export async function pdftohtml(context: CommandContext): Promise<{ exitCode: number }> {
+  const invocation = createOutputOperation(context, { write: async () => {} });
+  try {
+    const carrier = getCommandArguments(context);
+    const argv = [...carrier.args];
+    const vfsFiles = new Map<string, Uint8Array>();
+    const resolveVfsPath = (p: string) =>
+      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
+
+    for (const token of argv) {
+      if (token.startsWith("-")) continue;
+      try {
+        const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+        vfsFiles.set(token, bytes);
+      } catch {
+        // Non-existing output path
+      }
+    }
+    const existingSnap = new Map(vfsFiles);
+    const res = await runPdftohtmlCli(argv, vfsFiles);
+    if (res.stderr) {
+      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
+    }
+    if (res.stdout) {
+      const stdout = invocation.child(context.stdout);
+      await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
+    }
+    for (const [key, val] of vfsFiles.entries()) {
+      if (existingSnap.get(key) !== val) {
+        const abs = resolveVfsPath(key);
+        await context.fs.writeFile(abs, val, { signal: invocation.signal });
+      }
+    }
+    return { exitCode: res.exitCode };
+  } finally {
+    await invocation.close();
+  }
+}
+
+export function createPdftohtmlCommand(_options: PdftotextCommandOptions = {}): CommandDefinition {
+  return Object.freeze({
+    name: "pdftohtml",
+    runtimeIdentity: commandRuntimeIdentity,
+    description: "Convert PDF pages into HTML or XML layout documents via @poe-code/pdf-ast",
+    execute(context: CommandContext) {
+      return pdftohtml(context);
+    }
+  });
+}
+
+export const pdftohtmlCommand: CommandDefinition = createPdftohtmlCommand();
+
 export function pdftotextCommands(options: PdftotextCommandOptions = {}): VirtualShellPlugin {
   const command = createPdftotextCommand(options);
+  const htmlCmd = createPdftohtmlCommand(options);
   const replace = options.replace ?? false;
   return {
     name: "pdftotext",
     setup(host) {
       host.commands.register(command, { replace });
+      host.commands.register(htmlCmd, { replace });
     }
   };
 }

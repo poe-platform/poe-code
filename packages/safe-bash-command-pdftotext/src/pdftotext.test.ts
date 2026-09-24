@@ -5,7 +5,7 @@ import {
   parseCosDocument,
   encryptCosDocument
 } from "@poe-code/pdf-ast";
-import { extractPdfToTextBytes, runPdftotextCli } from "./index.js";
+import { extractPdfToTextBytes, runPdftotextCli, runPdftohtmlCli } from "./index.js";
 
 function buildThreePageTestPdf(encrypt = false): Uint8Array {
   const doc = PdfDocument.create();
@@ -153,5 +153,20 @@ describe("safe-bash-command-pdftotext", () => {
     assert.equal(cliRes.exitCode, 0);
     assert.equal(cliRes.outputPath, "/report.txt");
     assert.match(cliRes.output, /Hello world/);
+
+    // pdftohtml -xml and -stdout HTML conversion
+    const xmlRes = await runPdftohtmlCli(["-xml", "-stdout", "/report.pdf"], files);
+    assert.equal(xmlRes.exitCode, 0);
+    assert.match(xmlRes.stdout, /<pdf2xml/);
+    assert.match(xmlRes.stdout, /<page number="1"/);
+    assert.match(xmlRes.stdout, /Hello world/);
+
+    const htmlRes = await runPdftohtmlCli(["-s", "/report.pdf", "/report.html"], files);
+    assert.equal(htmlRes.exitCode, 0);
+    const htmlBytes = files.get("/report.html");
+    assert.ok(htmlBytes);
+    const htmlText = new TextDecoder().decode(htmlBytes);
+    assert.match(htmlText, /<!DOCTYPE html>/i);
+    assert.match(htmlText, /Hello world/);
   });
 });

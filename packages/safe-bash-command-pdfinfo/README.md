@@ -15,6 +15,10 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 | URL & Link Extraction | `-url` | Lists all `/URI` link actions and URLs across inspected pages. |
 | Structure & JS Inspection | `-struct` / `-struct-text` / `-js` / `-dests` | Dumps `/StructTreeRoot`, JavaScript actions, or named destinations. |
 | Encrypted PDFs | `-upw <pw>` / `-opw <pw>` | Authenticates and inspects RC4/AES-encrypted PDFs and permission flags. |
+| Page Rasterization (`pdftoppm`) | `pdftoppm -png -r 150 file.pdf out` | Renders PDF pages to PNG (`-png`), PPM (`-ppm`), PGM (`-gray`), or PBM (`-mono`) with `-r`, `-scale-to`, `-f`/`-l`, and `-singlefile`. |
+| Image Extraction (`pdfimages`) | `pdfimages -list` / `-png file.pdf img` | Lists embedded images or extracts them as PNG/PPM files. |
+| PDF Merging (`pdfunite`) | `pdfunite a.pdf b.pdf out.pdf` | Merges multiple PDF documents into a single PDF. |
+| PDF Splitting (`pdfseparate`) | `pdfseparate -f 1 -l 2 in.pdf page-%d.pdf` | Splits selected pages into individual PDF files using a `%d` pattern. |
 
 ## Quick Start
 

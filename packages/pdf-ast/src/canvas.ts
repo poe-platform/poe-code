@@ -108,6 +108,14 @@ export class PdfPage {
     this.index = index;
   }
 
+  get dict(): PdfCosDict {
+    return this.pageDict;
+  }
+
+  getDisplayList(): PdfDisplayList {
+    return this.evaluateDisplayList();
+  }
+
   get width(): number {
     return this.getSize().width;
   }
@@ -250,6 +258,12 @@ export class PdfPage {
 
   getContentAst(): PdfContentNode[] {
     if (this.cachedContentAst) return this.cachedContentAst;
+    const merged = this.getRawContentStream();
+    this.cachedContentAst = parseContentStream(merged);
+    return this.cachedContentAst;
+  }
+
+  getRawContentStream(): Uint8Array {
     const contentsNode = this.cosDoc.resolve(dictGet(this.pageDict, "Contents"));
     const chunks: Uint8Array[] = [];
     if (contentsNode?.kind === "stream") {
@@ -270,8 +284,19 @@ export class PdfPage {
       merged.set(c, offset);
       offset += c.length;
     }
-    this.cachedContentAst = parseContentStream(merged);
-    return this.cachedContentAst;
+    return merged;
+  }
+
+  setRawContentStream(bytes: Uint8Array, compress = true): void {
+    this.cachedContentAst = parseContentStream(bytes);
+    const stm = cosStream(bytes, { compress });
+    const contentsRef = dictGet(this.pageDict, "Contents");
+    if (contentsRef?.kind === "ref") {
+      this.cosDoc.setObject(contentsRef.objectNumber, stm);
+    } else {
+      const newRef = this.cosDoc.allocateObject(stm);
+      dictSet(this.pageDict, "Contents", newRef);
+    }
   }
 
   setContentAst(nodes: PdfContentNode[], compress = true): void {

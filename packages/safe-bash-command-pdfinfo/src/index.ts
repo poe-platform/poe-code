@@ -11,6 +11,8 @@ import {
   PdfDocument,
   dictGet,
   decodePdfString,
+  decodePng,
+  encodePng,
   type PdfCosNode,
   type PdfCosDict,
   type ParsedCosDocument,
@@ -760,13 +762,485 @@ export function createPdfinfoCommand(_options: PdfinfoCommandOptions = {}): Comm
 
 export const pdfinfoCommand: CommandDefinition = createPdfinfoCommand();
 
+function encodeNetpbmFromRgba(
+  width: number,
+  height: number,
+  rgba: Uint8Array,
+  mode: "ppm" | "pgm" | "pbm"
+): Uint8Array {
+  const enc = new TextEncoder();
+  if (mode === "ppm") {
+    const header = enc.encode(`P6\n${width} ${height}\n255\n`);
+    const out = new Uint8Array(header.length + width * height * 3);
+    out.set(header, 0);
+    let dst = header.length;
+    for (let i = 0; i < width * height; i++) {
+      out[dst++] = rgba[i * 4]!;
+      out[dst++] = rgba[i * 4 + 1]!;
+      out[dst++] = rgba[i * 4 + 2]!;
+    }
+    return out;
+  }
+  if (mode === "pgm") {
+    const header = enc.encode(`P5\n${width} ${height}\n255\n`);
+    const out = new Uint8Array(header.length + width * height);
+    out.set(header, 0);
+    let dst = header.length;
+    for (let i = 0; i < width * height; i++) {
+      const r = rgba[i * 4]!;
+      const g = rgba[i * 4 + 1]!;
+      const b = rgba[i * 4 + 2]!;
+      out[dst++] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    }
+    return out;
+  }
+  const header = enc.encode(`P4\n${width} ${height}\n`);
+  const rowBytes = Math.ceil(width / 8);
+  const out = new Uint8Array(header.length + rowBytes * height);
+  out.set(header, 0);
+  let dst = header.length;
+  for (let y = 0; y < height; y++) {
+    for (let bx = 0; bx < rowBytes; bx++) {
+      let byteVal = 0;
+      for (let bit = 0; bit < 8; bit++) {
+        const x = bx * 8 + bit;
+        if (x < width) {
+          const idx = (y * width + x) * 4;
+          const lum = 0.299 * rgba[idx]! + 0.587 * rgba[idx + 1]! + 0.114 * rgba[idx + 2]!;
+          if (lum < 128) {
+            byteVal |= 1 << (7 - bit);
+          }
+        }
+      }
+      out[dst++] = byteVal;
+    }
+  }
+  return out;
+}
+
+export async function runPdftoppmCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): Promise<{ exitCode: number; stdout: string; stderr: string; stdoutBytes?: Uint8Array }> {
+  let format: "png" | "ppm" | "pgm" | "pbm" = "ppm";
+  let dpi = 150;
+  let scaleTo = 0;
+  let firstPage = 1;
+  let lastPage = 0;
+  let singleFile = false;
+  let password = "";
+  const positionals: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
+    }
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout: "Usage: pdftoppm [options] [PDF-file [PPM-file-prefix]]\n  -png / -ppm / -gray / -mono\n  -r <dpi> / -scale-to <px> / -f <int> / -l <int> / -singlefile\n",
+        stderr: ""
+      };
+    }
+    if (arg === "-png") format = "png";
+    else if (arg === "-ppm") format = "ppm";
+    else if (arg === "-gray" || arg === "-pgm") format = "pgm";
+    else if (arg === "-mono" || arg === "-pbm") format = "pbm";
+    else if (arg === "-singlefile") singleFile = true;
+    else if (arg === "-r" || arg === "-rx" || arg === "-ry") dpi = Number(argv[++i] ?? "150") || 150;
+    else if (arg === "-scale-to" || arg === "-scale-to-x" || arg === "-scale-to-y") scaleTo = Number(argv[++i] ?? "0") || 0;
+    else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
+    else if (arg === "-x" || arg === "-y" || arg === "-W" || arg === "-H") i++;
+    else if (arg === "-cropbox" || arg === "-aa" || arg === "-aaVector") {
+      if (arg === "-aa" || arg === "-aaVector") i++;
+    } else if (!arg.startsWith("-") || arg === "-") {
+      positionals.push(arg);
+    }
+  }
+
+  const inputPath = positionals[0];
+  if (!inputPath) {
+    return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-file-prefix]]\n" };
+  }
+  const pdfBytes = files.get(inputPath);
+  if (!pdfBytes) {
+    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  const totalPages = Math.max(1, doc.pageCount);
+  const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
+  const prefix = positionals[1];
+  const ext = format;
+  const outChunks: Uint8Array[] = [];
+
+  for (let p = firstPage; p <= endPage; p++) {
+    const page = doc.getPage(p - 1);
+    const { width: ptW, height: ptH } = page.getSize();
+    const scale = scaleTo > 0 ? scaleTo / Math.max(ptW, ptH, 1) : dpi / 72;
+    const pngBytes = page.renderToPng({ scale });
+    let renderedBytes = pngBytes;
+    if (format !== "png") {
+      const decoded = decodePng(pngBytes);
+      renderedBytes = encodeNetpbmFromRgba(decoded.width, decoded.height, decoded.data, format);
+    }
+    if (!prefix || prefix === "-") {
+      outChunks.push(renderedBytes);
+    } else {
+      const fileName = singleFile ? `${prefix}.${ext}` : `${prefix}-${p}.${ext}`;
+      files.set(fileName, renderedBytes);
+    }
+    if (singleFile) break;
+  }
+
+  if (outChunks.length > 0) {
+    const totalLen = outChunks.reduce((s, c) => s + c.byteLength, 0);
+    const merged = new Uint8Array(totalLen);
+    let off = 0;
+    for (const c of outChunks) {
+      merged.set(c, off);
+      off += c.byteLength;
+    }
+    return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: merged };
+  }
+  return { exitCode: 0, stdout: "", stderr: "" };
+}
+
+export async function runPdfimagesCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  let listOnly = false;
+  let usePng = false;
+  let firstPage = 1;
+  let lastPage = 0;
+  let includePage = false;
+  let password = "";
+  const positionals: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdfimages version 24.08.0\n", stderr: "" };
+    }
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n  -list / -png / -all / -f <int> / -l <int> / -p\n",
+        stderr: ""
+      };
+    }
+    if (arg === "-list") listOnly = true;
+    else if (arg === "-png" || arg === "-all") usePng = true;
+    else if (arg === "-p") includePage = true;
+    else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
+    else if (!arg.startsWith("-")) positionals.push(arg);
+  }
+
+  const inputPath = positionals[0];
+  if (!inputPath) {
+    return { exitCode: 99, stdout: "", stderr: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n" };
+  }
+  const pdfBytes = files.get(inputPath);
+  if (!pdfBytes) {
+    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
+  }
+
+  let doc: PdfDocument;
+  try {
+    doc = PdfDocument.load(pdfBytes, password ? { password } : undefined);
+  } catch (err) {
+    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
+  }
+
+  const totalPages = Math.max(1, doc.pageCount);
+  const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
+  const root = positionals[1] ?? "image";
+
+  const listLines = [
+    "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio",
+    "--------------------------------------------------------------------------------------------"
+  ];
+  let imgIndex = 0;
+  for (let p = firstPage; p <= endPage; p++) {
+    const dl = doc.getPage(p - 1).evaluateDisplayList();
+    for (const img of dl.images) {
+      const numStr = String(imgIndex).padStart(3, "0");
+      const colorShort = img.colorSpace === "DeviceGray" ? "gray" : img.colorSpace === "DeviceCMYK" ? "cmyk" : "rgb";
+      const comp = colorShort === "gray" ? 1 : colorShort === "cmyk" ? 4 : 3;
+      const byteSize = img.width * img.height * comp;
+      listLines.push(
+        `${String(p).padStart(4)} ${String(imgIndex).padStart(5)}  image  ${String(img.width).padStart(5)} ${String(img.height).padStart(6)} ${colorShort.padEnd(5)} ${String(comp).padStart(4)} ${String(img.bitsPerComponent).padStart(3)}  image   no       ${String(imgIndex + 1).padStart(6)}  0    72    72 ${String(byteSize).padStart(4)}B 100%`
+      );
+      if (!listOnly && img.decodedRgba) {
+        const ext = usePng ? "png" : "ppm";
+        const outBytes = usePng
+          ? encodePng({ width: img.width, height: img.height, data: img.decodedRgba })
+          : encodeNetpbmFromRgba(img.width, img.height, img.decodedRgba, "ppm");
+        const outName = includePage
+          ? `${root}-${String(p).padStart(3, "0")}-${numStr}.${ext}`
+          : `${root}-${numStr}.${ext}`;
+        files.set(outName, outBytes);
+      }
+      imgIndex++;
+    }
+  }
+
+  if (listOnly) {
+    return { exitCode: 0, stdout: listLines.join("\n") + "\n", stderr: "" };
+  }
+  return { exitCode: 0, stdout: "", stderr: "" };
+}
+
+export async function runPdfuniteCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  const positionals: string[] = [];
+  for (const arg of argv) {
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdfunite version 24.08.0\n", stderr: "" };
+    }
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+        stderr: ""
+      };
+    }
+    if (!arg.startsWith("-")) positionals.push(arg);
+  }
+  if (positionals.length < 3) {
+    return {
+      exitCode: 99,
+      stdout: "",
+      stderr: "Syntax Error: pdfunite requires at least two input files and one output file.\n"
+    };
+  }
+  const destPath = positionals[positionals.length - 1]!;
+  const sourcePaths = positionals.slice(0, -1);
+  const merged = PdfDocument.create();
+
+  for (const srcPath of sourcePaths) {
+    const srcBytes = files.get(srcPath);
+    if (!srcBytes) {
+      return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
+    }
+    const srcDoc = PdfDocument.load(srcBytes);
+    const indices = Array.from({ length: srcDoc.pageCount }, (_, idx) => idx);
+    merged.copyPagesFrom(srcDoc, indices);
+  }
+
+  files.set(destPath, merged.save());
+  return { exitCode: 0, stdout: "", stderr: "" };
+}
+
+export async function runPdfseparateCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>
+): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+  let firstPage = 1;
+  let lastPage = 0;
+  const positionals: string[] = [];
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "-v" || arg === "--version") {
+      return { exitCode: 0, stdout: "pdfseparate version 24.08.0\n", stderr: "" };
+    }
+    if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
+      return {
+        exitCode: 0,
+        stdout: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
+        stderr: ""
+      };
+    }
+    if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
+    else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    else if (!arg.startsWith("-")) positionals.push(arg);
+  }
+  if (positionals.length < 2) {
+    return {
+      exitCode: 99,
+      stdout: "",
+      stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n"
+    };
+  }
+  const srcPath = positionals[0]!;
+  const pattern = positionals[1]!;
+  const srcBytes = files.get(srcPath);
+  if (!srcBytes) {
+    return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
+  }
+  const srcDoc = PdfDocument.load(srcBytes);
+  const endPage = lastPage > 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
+  if (endPage > firstPage && !/%0?\d*d/.test(pattern)) {
+    return {
+      exitCode: 99,
+      stdout: "",
+      stderr: `Error: '${pattern}' must contain '%d' if more than one page should be extracted\n`
+    };
+  }
+
+  for (let p = firstPage; p <= endPage; p++) {
+    const singleDoc = PdfDocument.create();
+    singleDoc.copyPagesFrom(srcDoc, [p - 1]);
+    const outPath = /%0?\d*d/.test(pattern)
+      ? pattern.replace(/%0?(\d*)d/, (_, pad) => String(p).padStart(Number(pad || 0), "0"))
+      : pattern;
+    files.set(outPath, singleDoc.save());
+  }
+  return { exitCode: 0, stdout: "", stderr: "" };
+}
+
+async function executePopplerFileTool(
+  context: CommandContext,
+  runner: (
+    argv: readonly string[],
+    files: Map<string, Uint8Array>
+  ) => Promise<{ exitCode: number; stdout: string; stderr: string; stdoutBytes?: Uint8Array }>
+): Promise<{ exitCode: number }> {
+  const invocation = createOutputOperation(context, { write: async () => {} });
+  try {
+    const carrier = getCommandArguments(context);
+    const argv = [...carrier.args];
+    const vfsFiles = new Map<string, Uint8Array>();
+    const resolveVfsPath = (p: string) =>
+      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
+
+    for (const token of argv) {
+      if (token.startsWith("-") && token !== "-") continue;
+      if (token === "-") {
+        const chunks: Uint8Array[] = [];
+        let total = 0;
+        for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+          chunks.push(chunk);
+          total += chunk.byteLength;
+        }
+        const buf = new Uint8Array(total);
+        let off = 0;
+        for (const c of chunks) {
+          buf.set(c, off);
+          off += c.byteLength;
+        }
+        vfsFiles.set("-", buf);
+        continue;
+      }
+      try {
+        const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+        vfsFiles.set(token, bytes);
+      } catch {
+        // Non-existing output file or prefix
+      }
+    }
+
+    const existingSnap = new Map(vfsFiles);
+    const res = await runner(argv, vfsFiles);
+    if (res.stderr) {
+      await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
+    }
+    if (res.stdoutBytes) {
+      const stdout = invocation.child(context.stdout);
+      await writeBytes(stdout.output, res.stdoutBytes, invocation.signal);
+    } else if (res.stdout) {
+      const stdout = invocation.child(context.stdout);
+      await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
+    }
+    for (const [key, val] of vfsFiles.entries()) {
+      if (key !== "-" && existingSnap.get(key) !== val) {
+        const abs = resolveVfsPath(key);
+        const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
+        try {
+          await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });
+        } catch {
+          // Directory already exists
+        }
+        await context.fs.writeFile(abs, val, { signal: invocation.signal });
+      }
+    }
+    return { exitCode: res.exitCode };
+  } finally {
+    await invocation.close();
+  }
+}
+
+export function createPdftoppmCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+  return Object.freeze({
+    name: "pdftoppm",
+    runtimeIdentity: commandRuntimeIdentity,
+    description: "Render PDF pages to PNG, PPM, PGM, or PBM images via @poe-code/pdf-ast",
+    execute(context: CommandContext) {
+      return executePopplerFileTool(context, runPdftoppmCli);
+    }
+  });
+}
+
+export const pdftoppmCommand: CommandDefinition = createPdftoppmCommand();
+
+export function createPdfimagesCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+  return Object.freeze({
+    name: "pdfimages",
+    runtimeIdentity: commandRuntimeIdentity,
+    description: "List and extract embedded images from PDF pages via @poe-code/pdf-ast",
+    execute(context: CommandContext) {
+      return executePopplerFileTool(context, runPdfimagesCli);
+    }
+  });
+}
+
+export const pdfimagesCommand: CommandDefinition = createPdfimagesCommand();
+
+export function createPdfuniteCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+  return Object.freeze({
+    name: "pdfunite",
+    runtimeIdentity: commandRuntimeIdentity,
+    description: "Merge multiple PDF documents into a single PDF via @poe-code/pdf-ast",
+    execute(context: CommandContext) {
+      return executePopplerFileTool(context, runPdfuniteCli);
+    }
+  });
+}
+
+export const pdfuniteCommand: CommandDefinition = createPdfuniteCommand();
+
+export function createPdfseparateCommand(_options: PdfinfoCommandOptions = {}): CommandDefinition {
+  return Object.freeze({
+    name: "pdfseparate",
+    runtimeIdentity: commandRuntimeIdentity,
+    description: "Split PDF pages into individual PDF files via @poe-code/pdf-ast",
+    execute(context: CommandContext) {
+      return executePopplerFileTool(context, runPdfseparateCli);
+    }
+  });
+}
+
+export const pdfseparateCommand: CommandDefinition = createPdfseparateCommand();
+
 export function pdfinfoCommands(options: PdfinfoCommandOptions = {}): VirtualShellPlugin {
   const command = createPdfinfoCommand(options);
+  const ppmCmd = createPdftoppmCommand(options);
+  const imgCmd = createPdfimagesCommand(options);
+  const uniteCmd = createPdfuniteCommand(options);
+  const sepCmd = createPdfseparateCommand(options);
   const replace = options.replace ?? false;
   return {
     name: "pdfinfo",
     setup(host) {
       host.commands.register(command, { replace });
+      host.commands.register(ppmCmd, { replace });
+      host.commands.register(imgCmd, { replace });
+      host.commands.register(uniteCmd, { replace });
+      host.commands.register(sepCmd, { replace });
     }
   };
 }

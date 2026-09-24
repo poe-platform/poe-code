@@ -13,6 +13,7 @@ import {
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
+import { parseContentStream } from "./parser.js";
 import {
   buildFontEncodingDifferencesMap,
   decodeWinAnsiByte,
@@ -223,13 +224,16 @@ export function evaluateContentStreamToDisplayList(params: {
   const walkNodes = (
     nodes: readonly PdfContentNode[],
     mcid?: number,
-    actualText?: string
+    actualText?: string,
+    activeResources: PdfCosDict | undefined = params.resourcesDict,
+    activeFonts: Map<string, ResolvedPageFont> = fonts,
+    depth = 0
   ): void => {
     for (const node of nodes) {
       switch (node.kind) {
         case "graphics-group":
           stateStack.push({ ...curState(), ctm: [...curState().ctm] as Matrix6 });
-          walkNodes(node.ops, mcid, actualText);
+          walkNodes(node.ops, mcid, actualText, activeResources, activeFonts, depth);
           if (stateStack.length > 1) stateStack.pop();
           break;
 
@@ -237,7 +241,10 @@ export function evaluateContentStreamToDisplayList(params: {
           walkNodes(
             node.children,
             node.mcid ?? mcid,
-            node.actualText ?? actualText
+            node.actualText ?? actualText,
+            activeResources,
+            activeFonts,
+            depth
           );
           break;
 
@@ -327,8 +334,8 @@ export function evaluateContentStreamToDisplayList(params: {
 
         case "xobject": {
           const st = curState();
-          if (params.cosDoc && params.resourcesDict) {
-            const xobjDict = params.cosDoc.resolveDict(dictGet(params.resourcesDict, "XObject"));
+          if (params.cosDoc && activeResources) {
+            const xobjDict = params.cosDoc.resolveDict(dictGet(activeResources, "XObject"));
             const xobjNode = xobjDict ? params.cosDoc.resolve(dictGet(xobjDict, node.name)) : undefined;
             if (xobjNode?.kind === "stream") {
               const subNode = params.cosDoc.resolve(dictGet(xobjNode.dict, "Subtype"));
@@ -341,10 +348,16 @@ export function evaluateContentStreamToDisplayList(params: {
                 const w = wNode?.kind === "number" ? wNode.value : 1;
                 const h = hNode?.kind === "number" ? hNode.value : 1;
                 const bpc = bpcNode?.kind === "number" ? bpcNode.value : 8;
-                const cs = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
+                let cs = "DeviceRGB";
+                if (csNode?.kind === "name") {
+                  cs = csNode.decoded;
+                } else if (csNode?.kind === "array" && csNode.items.length > 0) {
+                  const csFirst = params.cosDoc.resolve(csNode.items[0]);
+                  if (csFirst?.kind === "name") cs = csFirst.decoded;
+                }
                 const rawSamples = params.cosDoc.decodeStream(xobjNode);
                 const rgba = new Uint8Array(w * h * 4);
-                if (cs === "DeviceRGB" && rawSamples.length >= w * h * 3) {
+                if ((cs === "DeviceRGB" || cs === "ICCBased") && rawSamples.length >= w * h * 3) {
                   for (let p = 0; p < w * h; p++) {
                     rgba[p * 4] = rawSamples[p * 3]!;
                     rgba[p * 4 + 1] = rawSamples[p * 3 + 1]!;
@@ -359,6 +372,40 @@ export function evaluateContentStreamToDisplayList(params: {
                     rgba[p * 4 + 2] = g;
                     rgba[p * 4 + 3] = 255;
                   }
+                } else if (cs === "DeviceGray" && bpc === 1) {
+                  const rowBytes = Math.ceil(w / 8);
+                  for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                      const byteIdx = y * rowBytes + (x >> 3);
+                      const bit = ((rawSamples[byteIdx] ?? 0) >> (7 - (x & 7))) & 1;
+                      const g = bit ? 255 : 0;
+                      const p = y * w + x;
+                      rgba[p * 4] = g;
+                      rgba[p * 4 + 1] = g;
+                      rgba[p * 4 + 2] = g;
+                      rgba[p * 4 + 3] = 255;
+                    }
+                  }
+                } else if (cs === "DeviceCMYK" && rawSamples.length >= w * h * 4) {
+                  for (let p = 0; p < w * h; p++) {
+                    const c = rawSamples[p * 4]! / 255;
+                    const m = rawSamples[p * 4 + 1]! / 255;
+                    const y = rawSamples[p * 4 + 2]! / 255;
+                    const k = rawSamples[p * 4 + 3]! / 255;
+                    rgba[p * 4] = Math.round((1 - c) * (1 - k) * 255);
+                    rgba[p * 4 + 1] = Math.round((1 - m) * (1 - k) * 255);
+                    rgba[p * 4 + 2] = Math.round((1 - y) * (1 - k) * 255);
+                    rgba[p * 4 + 3] = 255;
+                  }
+                }
+                const smaskNode = params.cosDoc.resolve(dictGet(xobjNode.dict, "SMask"));
+                if (smaskNode?.kind === "stream") {
+                  const alphaSamples = params.cosDoc.decodeStream(smaskNode);
+                  if (alphaSamples.length >= w * h) {
+                    for (let p = 0; p < w * h; p++) {
+                      rgba[p * 4 + 3] = alphaSamples[p]!;
+                    }
+                  }
                 }
                 images.push({
                   name: node.name,
@@ -369,9 +416,70 @@ export function evaluateContentStreamToDisplayList(params: {
                   bitsPerComponent: bpc,
                   decodedRgba: rgba,
                 });
+              } else if (sub === "Form" && depth < 8) {
+                const formStreamBytes = params.cosDoc.decodeStream(xobjNode);
+                const formNodes = parseContentStream(formStreamBytes);
+                const formResDict = params.cosDoc.resolveDict(dictGet(xobjNode.dict, "Resources")) ?? activeResources;
+                const formFonts = new Map<string, ResolvedPageFont>(activeFonts);
+                for (const [k, v] of resolvePageFonts(params.cosDoc, formResDict).entries()) {
+                  formFonts.set(k, v);
+                }
+                let nextCtm: Matrix6 = [...st.ctm] as Matrix6;
+                const matArr = params.cosDoc.resolveArray(dictGet(xobjNode.dict, "Matrix"));
+                if (matArr && matArr.items.length >= 6) {
+                  const mn = (idx: number, fb = 0) => {
+                    const resolved = params.cosDoc!.resolve(matArr.items[idx]);
+                    return resolved?.kind === "number" ? resolved.value : fb;
+                  };
+                  const formMat: Matrix6 = [mn(0, 1), mn(1, 0), mn(2, 0), mn(3, 1), mn(4, 0), mn(5, 0)];
+                  nextCtm = multiplyMatrices(formMat, nextCtm);
+                }
+                stateStack.push({ ...st, ctm: nextCtm });
+                walkNodes(formNodes, mcid, actualText, formResDict, formFonts, depth + 1);
+                if (stateStack.length > 1) stateStack.pop();
               }
             }
           }
+          break;
+        }
+
+        case "inline-image": {
+          const st = curState();
+          const wNode = dictGet(node.dict, "W") ?? dictGet(node.dict, "Width");
+          const hNode = dictGet(node.dict, "H") ?? dictGet(node.dict, "Height");
+          const bpcNode = dictGet(node.dict, "BPC") ?? dictGet(node.dict, "BitsPerComponent");
+          const csNode = dictGet(node.dict, "CS") ?? dictGet(node.dict, "ColorSpace");
+          const w = wNode?.kind === "number" ? wNode.value : 1;
+          const h = hNode?.kind === "number" ? hNode.value : 1;
+          const bpc = bpcNode?.kind === "number" ? bpcNode.value : 8;
+          const csRaw = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
+          const cs = csRaw === "RGB" ? "DeviceRGB" : csRaw === "G" ? "DeviceGray" : csRaw === "CMYK" ? "DeviceCMYK" : csRaw;
+          const rgba = new Uint8Array(w * h * 4);
+          if (cs === "DeviceRGB" && node.data.length >= w * h * 3) {
+            for (let p = 0; p < w * h; p++) {
+              rgba[p * 4] = node.data[p * 3]!;
+              rgba[p * 4 + 1] = node.data[p * 3 + 1]!;
+              rgba[p * 4 + 2] = node.data[p * 3 + 2]!;
+              rgba[p * 4 + 3] = 255;
+            }
+          } else if (cs === "DeviceGray" && node.data.length >= w * h) {
+            for (let p = 0; p < w * h; p++) {
+              const g = node.data[p]!;
+              rgba[p * 4] = g;
+              rgba[p * 4 + 1] = g;
+              rgba[p * 4 + 2] = g;
+              rgba[p * 4 + 3] = 255;
+            }
+          }
+          images.push({
+            name: "InlineImage",
+            matrix: [...st.ctm],
+            width: w,
+            height: h,
+            colorSpace: cs,
+            bitsPerComponent: bpc,
+            decodedRgba: rgba,
+          });
           break;
         }
 
@@ -381,7 +489,7 @@ export function evaluateContentStreamToDisplayList(params: {
           let tlm: Matrix6 = [1, 0, 0, 1, 0, 0];
 
           const emitTokenBytes = (bytes: Uint8Array) => {
-            const font = fonts.get(st.fontName);
+            const font = activeFonts.get(st.fontName) ?? fonts.get(st.fontName);
             const decoded = decodeTokenGlyphs(bytes, font);
             const scaleH = st.horizScale / 100;
             for (const item of decoded) {

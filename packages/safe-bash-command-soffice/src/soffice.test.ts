@@ -184,4 +184,65 @@ describe("safe-bash-command-soffice", () => {
     assert.match(html, /<h1>Executive Summary 2026<\/h1>/);
     assert.match(html, /<table>/);
   });
+
+  it("supports --cat, ODT/RTF inputs, PDF-to-DOCX/XLSX/CSV/PNG conversions, and JSON FilterData PageRange", async () => {
+    const docxBytes = buildTestDocx();
+    const odtXml = [
+      `<?xml version="1.0" encoding="UTF-8"?>`,
+      `<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0">`,
+      `<office:body><office:text>`,
+      `<text:h text:outline-level="1">ODF Architecture Specification</text:h>`,
+      `<text:p>OpenDocument paragraph content for PDF export.</text:p>`,
+      `</office:text></office:body></office:document-content>`
+    ].join("");
+    const odtBytes = createStoredZipArchive({
+      "mimetype": new TextEncoder().encode("application/vnd.oasis.opendocument.text"),
+      "content.xml": new TextEncoder().encode(odtXml)
+    });
+    const rtfBytes = new TextEncoder().encode(
+      "{\\rtf1\\ansi\\deff0 {\\b Quarterly RTF Briefing}\\par Detailed revenue notes.\\par}"
+    );
+
+    const files = new Map<string, Uint8Array>([
+      ["/docs/report.docx", docxBytes],
+      ["/docs/spec.odt", odtBytes],
+      ["/docs/brief.rtf", rtfBytes]
+    ]);
+
+    // 1. ODT and RTF -> PDF with JSON FilterData PageRange and SelectPdfVersion
+    const jsonFilter = `pdf:writer_pdf_Export:{"PageRange":{"type":"string","value":"1-1"},"SelectPdfVersion":{"type":"long","value":16}}`;
+    const odtRes = await runSofficeCli(
+      ["--headless", "--convert-to", jsonFilter, "--outdir", "/out", "/docs/spec.odt", "/docs/brief.rtf"],
+      files
+    );
+    assert.equal(odtRes.exitCode, 0);
+    const specPdf = PdfDocument.load(files.get("/out/spec.pdf")!);
+    assert.equal(specPdf.version, "1.6");
+    assert.match(specPdf.extractText(), /ODF Architecture Specification/);
+    const briefPdf = PdfDocument.load(files.get("/out/brief.pdf")!);
+    assert.match(briefPdf.extractText(), /Quarterly RTF Briefing/);
+
+    // 2. --cat dumps text of PDF and DOCX to stdout
+    const catRes = await runSofficeCli(["--cat", "/out/spec.pdf"], files);
+    assert.equal(catRes.exitCode, 0);
+    assert.match(catRes.stdout, /ODF Architecture Specification/);
+
+    // 3. Convert DOCX -> PDF (with table), then convert that PDF -> DOCX, XLSX, CSV, and PNG
+    await runSofficeCli(["--headless", "--convert-to", "pdf", "--outdir", "/out", "/docs/report.docx"], files);
+    const pdfToDocx = await runSofficeCli(
+      ["--headless", "--convert-to", "docx", "--outdir", "/roundtrip", "/out/report.pdf"],
+      files
+    );
+    assert.equal(pdfToDocx.exitCode, 0);
+    const rtDocx = files.get("/roundtrip/report.docx");
+    assert.ok(rtDocx && rtDocx[0] === 0x50 && rtDocx[1] === 0x4b);
+
+    const pdfToPng = await runSofficeCli(
+      ["--headless", "--convert-to", "png", "--outdir", "/roundtrip", "/out/report.pdf"],
+      files
+    );
+    assert.equal(pdfToPng.exitCode, 0);
+    const rtPng = files.get("/roundtrip/report.png");
+    assert.ok(rtPng && rtPng[0] === 137 && rtPng[1] === 80);
+  });
 });

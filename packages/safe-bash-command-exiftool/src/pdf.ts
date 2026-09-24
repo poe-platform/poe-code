@@ -87,6 +87,27 @@ function encodePdfLiteralString(value: string): string {
   return `(${escaped})`;
 }
 
+function readBalancedLiteralString(text: string, openParenIndex: number): { raw: string; endIndex: number } {
+  let depth = 0;
+  let i = openParenIndex;
+  for (; i < text.length; i++) {
+    const ch = text[i]!;
+    if (ch === "\\") {
+      i++;
+      continue;
+    }
+    if (ch === "(") {
+      depth++;
+    } else if (ch === ")") {
+      depth--;
+      if (depth === 0) {
+        return { raw: text.slice(openParenIndex + 1, i), endIndex: i + 1 };
+      }
+    }
+  }
+  return { raw: text.slice(openParenIndex + 1), endIndex: text.length };
+}
+
 function parsePdfStructure(bytes: Uint8Array): {
   version: string;
   pageCount: number;
@@ -99,24 +120,64 @@ function parsePdfStructure(bytes: Uint8Array): {
   const versionMatch = /^%PDF-(\d+\.\d+)/.exec(text);
   const version = versionMatch?.[1] ?? "1.7";
 
-  const pagesMatch = /\/Type\s*\/Pages\b[\s\S]{0,256}?\/Count\s+(\d+)/.exec(text);
-  let pageCount = pagesMatch ? Number(pagesMatch[1]) : 0;
+  let pageCount = 0;
+  const dictRe = /<<([\s\S]*?)>>/g;
+  let dm: RegExpExecArray | null;
+  while ((dm = dictRe.exec(text)) !== null) {
+    const body = dm[1]!;
+    if (/\/Type\s*\/Pages\b/.test(body)) {
+      const cm = /\/Count\s+(\d+)/.exec(body);
+      if (cm) {
+        const c = Number(cm[1]);
+        if (c > pageCount) pageCount = c;
+      }
+    }
+  }
   if (!pageCount) {
     const leafMatches = text.match(/\/Type\s*\/Page\b(?!s)/g);
     pageCount = leafMatches ? leafMatches.length : 1;
   }
 
   const info = new Map<string, string>();
-  const entryRegex =
-    /\/(Title|Author|Subject|Keywords|Creator|Producer|Description|Comment|Copyright|ModifyDate|CreateDate|ModDate|CreationDate)\s*(?:\(((?:\\.|[^\\()])*)\)|<([0-9A-Fa-f\s]*)>)/g;
-  let match: RegExpExecArray | null;
-  while ((match = entryRegex.exec(text)) !== null) {
-    const rawKey = match[1]!;
+  const keyRegex =
+    /\/(Title|Author|Subject|Keywords|Creator|Producer|Description|Comment|Copyright|ModifyDate|CreateDate|ModDate|CreationDate)\s*/g;
+  let km: RegExpExecArray | null;
+  while ((km = keyRegex.exec(text)) !== null) {
+    const rawKey = km[1]!;
     const key = rawKey === "ModDate" ? "ModifyDate" : rawKey === "CreationDate" ? "CreateDate" : rawKey;
-    const literal = match[2];
-    const hex = match[3];
-    const val = literal !== undefined ? decodePdfLiteralString(literal) : decodePdfHexString(hex ?? "");
-    info.set(key, val);
+    const afterKey = keyRegex.lastIndex;
+    const nextChar = text[afterKey];
+    if (nextChar === "(") {
+      const { raw, endIndex } = readBalancedLiteralString(text, afterKey);
+      info.set(key, decodePdfLiteralString(raw));
+      keyRegex.lastIndex = endIndex;
+    } else if (nextChar === "<" && text[afterKey + 1] !== "<") {
+      const closeAngle = text.indexOf(">", afterKey + 1);
+      if (closeAngle > afterKey) {
+        info.set(key, decodePdfHexString(text.slice(afterKey + 1, closeAngle)));
+        keyRegex.lastIndex = closeAngle + 1;
+      }
+    }
+  }
+
+  // Extract XMP metadata tags as fallback when absent from /Info
+  const xmpTagPairs: ReadonlyArray<readonly [string, RegExp]> = [
+    ["Title", /<dc:title\b[^>]*>[\s\S]*?<rdf:li\b[^>]*>([\s\S]*?)<\/rdf:li>/i],
+    ["Author", /<dc:creator\b[^>]*>[\s\S]*?<rdf:li\b[^>]*>([\s\S]*?)<\/rdf:li>/i],
+    ["Description", /<dc:description\b[^>]*>[\s\S]*?<rdf:li\b[^>]*>([\s\S]*?)<\/rdf:li>/i],
+    ["Keywords", /<pdf:Keywords\b[^>]*>([\s\S]*?)<\/pdf:Keywords>/i],
+    ["Producer", /<pdf:Producer\b[^>]*>([\s\S]*?)<\/pdf:Producer>/i],
+    ["Creator", /<xmp:CreatorTool\b[^>]*>([\s\S]*?)<\/xmp:CreatorTool>/i],
+    ["CreateDate", /<xmp:CreateDate\b[^>]*>([\s\S]*?)<\/xmp:CreateDate>/i],
+    ["ModifyDate", /<xmp:ModifyDate\b[^>]*>([\s\S]*?)<\/xmp:ModifyDate>/i],
+  ];
+  for (const [tag, re] of xmpTagPairs) {
+    if (!info.has(tag)) {
+      const xm = re.exec(text);
+      if (xm && xm[1]) {
+        info.set(tag, xm[1].trim());
+      }
+    }
   }
 
   return { version, pageCount, info };
@@ -228,9 +289,9 @@ export function editPdf(
     .map(([k, v]) => `/${k} ${encodePdfLiteralString(v)}`)
     .join(" ");
 
-  const offset = bytes.length;
+  const offset = bytes.length + 1; // +1 for the leading '\n' before `${infoObjNum} 0 obj`
   const objBlock = `\n${infoObjNum} 0 obj\n<< ${infoEntries} >>\nendobj\n`;
-  const xrefOffset = offset + encoder.encode(objBlock).length;
+  const xrefOffset = bytes.length + encoder.encode(objBlock).length;
   const pad10 = String(offset).padStart(10, "0");
   const trailerBlock =
     `xref\n0 1\n0000000000 65535 f \n${infoObjNum} 1\n${pad10} 00000 n \n` +

@@ -79,6 +79,10 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
   let currentTextCommands: PdfTextCommand[] = [];
   let currentPathSegments: PdfPathSegment[] = [];
   let pendingClip: "W" | "W*" | undefined;
+  let curPathX = 0;
+  let curPathY = 0;
+  let subpathStartX = 0;
+  let subpathStartY = 0;
 
   const currentTarget = (): PdfContentNode[] => stack[stack.length - 1]!.target;
 
@@ -287,37 +291,91 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
 
     // Path construction & painting outside BT..ET
     if (op === "m") {
-      currentPathSegments.push({ kind: "move", x: numVal(args[0]), y: numVal(args[1]) });
+      const mx = numVal(args[0]);
+      const my = numVal(args[1]);
+      currentPathSegments.push({ kind: "move", x: mx, y: my });
+      curPathX = mx;
+      curPathY = my;
+      subpathStartX = mx;
+      subpathStartY = my;
       continue;
     }
     if (op === "l") {
-      currentPathSegments.push({ kind: "line", x: numVal(args[0]), y: numVal(args[1]) });
+      const lx = numVal(args[0]);
+      const ly = numVal(args[1]);
+      currentPathSegments.push({ kind: "line", x: lx, y: ly });
+      curPathX = lx;
+      curPathY = ly;
       continue;
     }
-    if (op === "c" || op === "v" || op === "y") {
+    if (op === "c") {
+      const x = numVal(args[4]);
+      const y = numVal(args[5]);
       currentPathSegments.push({
         kind: "cubic",
         x1: numVal(args[0]),
         y1: numVal(args[1]),
         x2: numVal(args[2]),
         y2: numVal(args[3]),
-        x: numVal(args[4] ?? args[2]),
-        y: numVal(args[5] ?? args[3]),
+        x,
+        y,
       });
+      curPathX = x;
+      curPathY = y;
+      continue;
+    }
+    if (op === "v") {
+      const x = numVal(args[2]);
+      const y = numVal(args[3]);
+      currentPathSegments.push({
+        kind: "cubic",
+        x1: curPathX,
+        y1: curPathY,
+        x2: numVal(args[0]),
+        y2: numVal(args[1]),
+        x,
+        y,
+      });
+      curPathX = x;
+      curPathY = y;
+      continue;
+    }
+    if (op === "y") {
+      const x = numVal(args[2]);
+      const y = numVal(args[3]);
+      currentPathSegments.push({
+        kind: "cubic",
+        x1: numVal(args[0]),
+        y1: numVal(args[1]),
+        x2: x,
+        y2: y,
+        x,
+        y,
+      });
+      curPathX = x;
+      curPathY = y;
       continue;
     }
     if (op === "h") {
       currentPathSegments.push({ kind: "close" });
+      curPathX = subpathStartX;
+      curPathY = subpathStartY;
       continue;
     }
     if (op === "re") {
+      const rx = numVal(args[0]);
+      const ry = numVal(args[1]);
       currentPathSegments.push({
         kind: "rect",
-        x: numVal(args[0]),
-        y: numVal(args[1]),
+        x: rx,
+        y: ry,
         width: numVal(args[2]),
         height: numVal(args[3]),
       });
+      curPathX = rx;
+      curPathY = ry;
+      subpathStartX = rx;
+      subpathStartY = ry;
       continue;
     }
     if (op === "W" || op === "W*") {

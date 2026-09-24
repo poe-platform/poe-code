@@ -118,5 +118,27 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     const encInfoRes = await shell.exec("pdfinfo -upw userpw /encrypted.pdf");
     assert.equal(encInfoRes.exitCode, 0);
     assert.match(encInfoRes.stdout, /Encrypted:\s+yes \(print:no/);
+
+    // 8. Verify Poppler pdftoppm, pdfunite, pdfseparate, pdftohtml, and libreoffice --cat in Shell
+    const uniteRes = await shell.exec("pdfunite /input.pdf /web.pdf /united.pdf");
+    assert.equal(uniteRes.exitCode, 0);
+
+    const sepRes = await shell.exec("pdfseparate -f 1 -l 2 /united.pdf /page-%d.pdf");
+    assert.equal(sepRes.exitCode, 0);
+
+    const ppmRes = await shell.exec("pdftoppm -png -r 72 -singlefile /page-1.pdf /rendered-p1");
+    assert.equal(ppmRes.exitCode, 0);
+    const pngBytes = await fs.readFile("/rendered-p1.png");
+    assert.equal(pngBytes[0], 137);
+    assert.equal(pngBytes[1], 80);
+
+    const htmlRes = await shell.exec("pdftohtml -xml -stdout /page-2.pdf");
+    assert.equal(htmlRes.exitCode, 0);
+    assert.match(htmlRes.stdout, /<pdf2xml/);
+    assert.match(htmlRes.stdout, /HTML Heading/);
+
+    const loCatRes = await shell.exec("libreoffice --cat /page-1.pdf");
+    assert.equal(loCatRes.exitCode, 0);
+    assert.match(loCatRes.stdout, /Unified PDF AST Pipeline/);
   });
 });

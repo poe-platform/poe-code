@@ -216,26 +216,33 @@ interface Edge {
 function segmentsToScreenEdges(
   segments: readonly PdfPathSegment[],
   pageHeight: number,
-  scale: number
+  scale: number,
+  closeSubpaths = false
 ): Edge[] {
   const edges: Edge[] = [];
   let curX = 0;
   let curY = 0;
   let startX = 0;
   let startY = 0;
+  let hasOpenSubpath = false;
 
   const toScreen = (x: number, y: number): [number, number] => [x * scale, (pageHeight - y) * scale];
 
   for (const seg of segments) {
     if (seg.kind === "move") {
+      if (closeSubpaths && hasOpenSubpath && (curX !== startX || curY !== startY)) {
+        edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
+      }
       [curX, curY] = toScreen(seg.x, seg.y);
       startX = curX;
       startY = curY;
+      hasOpenSubpath = false;
     } else if (seg.kind === "line") {
       const [nx, ny] = toScreen(seg.x, seg.y);
       edges.push({ x0: curX, y0: curY, x1: nx, y1: ny });
       curX = nx;
       curY = ny;
+      hasOpenSubpath = true;
     } else if (seg.kind === "cubic") {
       const [p1x, p1y] = toScreen(seg.x1, seg.y1);
       const [p2x, p2y] = toScreen(seg.x2, seg.y2);
@@ -262,13 +269,18 @@ function segmentsToScreenEdges(
       }
       curX = p3x;
       curY = p3y;
+      hasOpenSubpath = true;
     } else if (seg.kind === "close") {
       if (curX !== startX || curY !== startY) {
         edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
         curX = startX;
         curY = startY;
       }
+      hasOpenSubpath = false;
     } else if (seg.kind === "rect") {
+      if (closeSubpaths && hasOpenSubpath && (curX !== startX || curY !== startY)) {
+        edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
+      }
       const [rx0, ry0] = toScreen(seg.x, seg.y + seg.height);
       const [rx1, ry1] = toScreen(seg.x + seg.width, seg.y);
       edges.push(
@@ -277,7 +289,11 @@ function segmentsToScreenEdges(
         { x0: rx1, y0: ry1, x1: rx0, y1: ry1 },
         { x0: rx0, y0: ry1, x1: rx0, y1: ry0 }
       );
+      hasOpenSubpath = false;
     }
+  }
+  if (closeSubpaths && hasOpenSubpath && (curX !== startX || curY !== startY)) {
+    edges.push({ x0: curX, y0: curY, x1: startX, y1: startY });
   }
   return edges;
 }
@@ -419,11 +435,12 @@ export function renderDisplayListToPng(
 
   // 1. Render vector paths
   for (const path of displayList.paths) {
-    const edges = segmentsToScreenEdges(path.segments, displayList.height, scale);
     if (path.fillColor) {
+      const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, true);
       fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor);
     }
     if (path.strokeColor) {
+      const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, false);
       const sw = Math.max(1, path.strokeWidth * scale);
       for (const e of edges) {
         drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor);

@@ -481,6 +481,7 @@ function assertSource7Discovery(files) {
     "tests/commands/network/safety.test.ts",
     "tests/commands/network/file-output-budget.test.ts",
     "tests/commands/network/http.test.ts",
+    "tests/commands/touch-compatibility.test.ts",
     "tests/contracts/value.test.ts",
     "tests/commands/diff-patch/diff-admitted-options.test.ts",
     "tests/commands/diff-patch/exclusions.test.ts",

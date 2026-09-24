@@ -20,9 +20,10 @@ export function touchTimes(
       const year = prefix.length === 4 ? Number(prefix) : prefix.length === 2
         ? Number(prefix) + (Number(prefix) >= 69 ? 1900 : 2000) : zone.fields(millisecondsInstant(base.mtimeMs)).year;
       const fields = digits.slice(-8);
+      const second = Number(parts[1] ?? 0);
       const instant = zone.instant({ year, month: Number(fields.slice(0, 2)), day: Number(fields.slice(2, 4)),
-        hour: Number(fields.slice(4, 6)), minute: Number(fields.slice(6, 8)), second: Number(parts[1] ?? 0) });
-      const milliseconds = Number(instant / 1000000n);
+        hour: Number(fields.slice(4, 6)), minute: Number(fields.slice(6, 8)), second: second === 60 ? 59 : second });
+      const milliseconds = Number(instant / 1000000n) + (second === 60 ? 1000 : 0);
       return { atimeMs: milliseconds, mtimeMs: milliseconds };
     }
     if (date === undefined) return base;

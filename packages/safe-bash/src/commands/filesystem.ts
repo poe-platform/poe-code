@@ -12,6 +12,7 @@ import { createDirectoryReader, type DirectoryReader } from "./directory-admissi
 import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { touchTimes } from "./touch-times.js";
+import { touchTarget } from "./touch-target.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
 import { canonicalizeExistingParent } from "./canonicalize-existing-parent.js";
 import { backupCopyTarget, copyOptions } from "./copy-backup.js";
@@ -432,7 +433,13 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
     }),
     define("touch", async context => {
-      const parsed = options(context.args, "cafhmr:d:t:", { "no-create": "c", "no-dereference": "h", reference: "r", date: "d" });
+      const parsed = options(context.args, "cafhmr:d:t:", { "no-create": "c", "no-dereference": "h", reference: "r", date: "d", time: "time:" });
+      const selection = value(parsed, "time");
+      if (selection !== undefined) {
+        if (["atime", "access", "use"].includes(selection)) parsed.flags.add("a");
+        else if (["mtime", "modify"].includes(selection)) parsed.flags.add("m");
+        else throw new UsageError(`invalid argument '${selection}' for '--time'`);
+      }
       requireOperands(parsed.operands);
       const follow = !parsed.flags.has("h");
       const inspectTarget = async (path: string) => {
@@ -458,13 +465,15 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const existing = await inspectTarget(path);
         const modes = existing ? ["existing"] : parsed.flags.has("c") ? ["no-create"]
           : explicit ? ["create", "existing"] : ["create"];
-        await admitFilesystemModes(context, "touch", modes, [path]);
+        const target = !existing && follow && !parsed.flags.has("c") ? await touchTarget(context, path) : path;
+        await admitFilesystemModes(context, "touch", modes, [target]);
       });
       return eachOperand(context, parsed.operands, async operand => {
-        const path = pathOf(context, operand);
+        let path = pathOf(context, operand);
         let existing = await inspectTarget(path);
         if (!existing) {
           if (parsed.flags.has("c")) return;
+          if (follow) path = await touchTarget(context, path);
           await admitFilesystemModes(context, "touch", explicit ? ["create", "existing"] : ["create"], [path]);
           if (explicit) needCapability(context, "utimes");
           await context.fs.writeFile(path, new Uint8Array(), { flag: "wx", signal: context.signal });

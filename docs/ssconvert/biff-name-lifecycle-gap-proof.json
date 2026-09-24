@@ -214,8 +214,11 @@
     "All 19 original goal families remain open; wider BIFF profiles and successful containing publication remain required."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
+    "localCommit": "29712d1a876c309c022590b0317ccfdf4d085947",
+    "remoteMain": {
+      "commit": "29712d1a876c309c022590b0317ccfdf4d085947",
+      "exactReadbackVerified": true
+    },
     "publication": "pending"
   }
 }

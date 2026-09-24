@@ -76,7 +76,10 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     const rowRelative = context.revision >= 8 ? !!(colBits & 0x8000) : !!(rowBits & 0x8000);
     const colRelative = context.revision >= 8 ? !!(colBits & 0x4000) : !!(rowBits & 0x4000);
     let row = context.revision >= 8 ? rowBits : rowBits & 0x3fff, column = colBits & 255;
-    if (relative && rowRelative) row = (context.row + (context.revision >= 8 ? row >= 32768 ? row - 65536 : row : row >= 8192 ? row - 16384 : row) + 65536) % 65536;
+    if (relative && rowRelative) {
+      const rows = context.revision >= 8 ? 65536 : 16384;
+      row = (context.row + (row >= rows / 2 ? row - rows : row) + rows) % rows;
+    }
     if (relative && colRelative) column = (context.column + (column >= 128 ? column - 256 : column) + 256) % 256;
     let letters = ""; for (let n = column + 1; n; n = Math.floor((n - 1) / 26)) letters = String.fromCharCode(65 + (n - 1) % 26) + letters;
     return `${colRelative ? "" : "$"}${letters}${rowRelative ? "" : "$"}${row + 1}`;

@@ -1281,6 +1281,13 @@ Device views support cleanup for admitted backing entries, not virtual devices.
 Quota, read-only, restricted extraction, and Real views do not advertise retained
 staging cleanup.
 
+Scoped creation forwards the ambient scope signal when no caller signal was
+supplied. If the caller supplied that same signal, its identity is preserved;
+a distinct caller signal is combined with the scope signal so either can stop
+cooperative resolution before commit. Cancellation after successful creation
+still returns the receipt, and an actual backend failure after dispatch remains
+the reported failure rather than being replaced by ambient cancellation.
+
 Publication atomically verifies the original staging file, its private directory,
 both parents, and the destination's supplied snapshot or explicit absence before
 renaming. Parent and directory conditions compare stable identity and type;

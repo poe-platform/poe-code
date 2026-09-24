@@ -195,7 +195,9 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const optionIndex = property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1;
           if (property === "createStagedFile") args[optionIndex] = snapshotStagingCreation(args[optionIndex] as CreateStagedFileOptions, path);
           const supplied = args[optionIndex] as FsOptions | undefined;
-          const options = property === "publishStagedFile" ? resizeOptions(supplied ?? {}) : supplied;
+          const options = property === "publishStagedFile" || property === "createStagedFile" && supplied?.signal !== signal
+            ? resizeOptions(supplied ?? {}) : supplied;
+          if (property === "createStagedFile") args[optionIndex] = options;
           const callerGuard = property === "publishStagedFile" ? (supplied as PublishStagedFileOptions | undefined)?.commitGuard : undefined;
           try {
             const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;

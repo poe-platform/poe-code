@@ -39,7 +39,8 @@ export async function parseSelection(text: string, budget: Budget): Promise<Sele
     node();
     const begin = offset;
     let name: string;
-    if (text[offset] === '"') {
+    const quoted = text[offset] === '"';
+    if (quoted) {
       offset++;
       const start = offset;
       let closed = false;
@@ -47,7 +48,11 @@ export async function parseSelection(text: string, budget: Budget): Promise<Sele
         budget.work();
         if (text[offset] === '"') {
           if (text[offset + 1] === '"') { offset += 2; continue; }
-          budget.hold((offset - start) * 2); name = text.slice(start, offset++); closed = true; break;
+          const size = (offset - start) * 2;
+          budget.hold(size * 2);
+          name = text.slice(start, offset++).replaceAll('""', '"');
+          budget.release(size);
+          closed = true; break;
         }
         offset++;
         if ((offset & 1023) === 0) await budget.checkpoint();
@@ -71,7 +76,7 @@ export async function parseSelection(text: string, budget: Budget): Promise<Sele
       if (occurrence === undefined) throw new XanError("invalid selector occurrence: expected signed i64");
       if (offset < text.length && ![":", ","].includes(text[offset]!)) invalid();
     }
-    const index = occurrence === undefined ? signed(name!) : undefined;
+    const index = !quoted && occurrence === undefined ? signed(name!) : undefined;
     return { name: name!, bytes: await budget.encode(name!), ...(index !== undefined ? { index } : {}), ...(occurrence !== undefined ? { occurrence } : {}) };
   };
   while (offset < text.length) {

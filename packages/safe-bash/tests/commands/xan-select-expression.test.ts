@@ -4,6 +4,20 @@ import { createXanCommands, xanCommands } from "../../src/commands/xan/index.js"
 import { Shell } from "../../src/shell/index.js";
 import { fixture, run } from "./helpers.js";
 
+for (const [selector, data, stdout] of [
+  ['"2024"', "id,2024\nx,99\n", "2024\n99\n"],
+  ['"0"', "id,0\nx,99\n", "0\n99\n"],
+  ['"a""b"', '"a""b",c\n1,2\n', '"a""b"\n1\n'],
+  ['"a""b"[1]', '"a""b","a""b"\n1,2\n', '"a""b"\n2\n'],
+  ['"0":"2024"', "id,0,2024\nx,1,2\n", "0,2024\n1,2\n"],
+  ["0", "id,0\nx,99\n", "id\nx\n"],
+] as const) test(`xan select preserves quoted names: ${selector}`, async () => {
+  const result = await run("xan", ["select", selector, "data"], {
+    fs: await fixture({ data }), commands: createXanCommands(),
+  });
+  assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, stdout, ""]);
+});
+
 for (const flag of ["--evaluate", "-e", "--evaluate-file", "-f"]) {
   test(`xan select accepts ${flag} named-column expression`, async () => {
     const fs = await fixture({ data: "name,n\nAda,1\nGrace,2\n", expr: "name\n" });

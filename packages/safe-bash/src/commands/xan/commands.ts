@@ -228,7 +228,7 @@ async function* headerOutput(args: Arguments, headers: Header[], budget: Budget,
       }
       return;
     }
-    const counts = new Map<string, { count: number; bytes: Uint8Array; display: string }>();
+    const counts = new Map<string, { count: number; lastFile: number; bytes: Uint8Array; display: string }>();
     for (let file = 0; file < headers.length; file++) {
       const header = headers[file]!;
       if (headers.length > 1) yield* emitted(await writer.text(`${file ? "\n" : ""}${args.inputs[file] === "-" ? "<stdin>" : args.inputs[file]}\n`), budget);
@@ -236,8 +236,10 @@ async function* headerOutput(args: Arguments, headers: Header[], budget: Budget,
         const name = header.names[index]!;
         if (headers.length > 1) {
           const previous = counts.get(name);
-          if (previous) previous.count++;
-          else { budget.hold(32); counts.set(name, { count: 1, bytes: header.row!.cells[index]!.decoded.view(), display: header.display[index]! }); }
+          if (previous) {
+            if (previous.lastFile !== file) { previous.count++; previous.lastFile = file; }
+          }
+          else { budget.hold(32); counts.set(name, { count: 1, lastFile: file, bytes: header.row!.cells[index]!.decoded.view(), display: header.display[index]! }); }
         }
         const prefix = args.justNames ? "" : `${checkedAdd(args.start, BigInt(index))} `;
         yield* emitted(await writer.text(`${prefix}${header.display[index]}\n`), budget);

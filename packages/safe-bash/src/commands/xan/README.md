@@ -57,7 +57,7 @@ Selectors use the adopted consuming grammar: signed indices, named duplicate
 occurrences, literal byte prefix/suffix, inclusive reversible/open ranges,
 ordered duplicate lists and one leading complement. Whole empty means all;
 bare `!` selects zero fields. One trailing comma is permitted. Quoted numbers
-remain numeric; doubled selector quotes remain two characters. Range second
+select column names; doubled selector quotes decode to one quote. Range second
 endpoints treat stars as literal names. Syntax/numeric errors precede I/O;
 resolution errors consume only the first logical record and precede publication.
 Empty headerless select input emits nothing without resolving column positions;

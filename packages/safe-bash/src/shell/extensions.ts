@@ -260,8 +260,9 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
   const specialParameters = new Map<string, ShellSpecialParameterHook>();
   const checkpoints: NonNullable<ShellExtensionInstance["checkpoint"]>[] = [];
   const flags = new Set(["e", "u", "f", "o"]);
+  const parentByDefinition = parent ? new Map(parent.entries.map(entry => [entry.definition.name, entry.instance])) : undefined;
   const entries = snapshots.map((definition, index) => {
-    const previous = parent?.entries[index]?.instance;
+    const previous = parentByDefinition?.get(definition.name) ?? parent?.entries[index]?.instance;
     const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
     if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
     const checkpoint = Object.getOwnPropertyDescriptor(instance, "checkpoint");

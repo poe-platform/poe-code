@@ -50,7 +50,8 @@ export async function publishPipelineStatus(
       if (!Number.isSafeInteger(status) || status < 0 || status > 255) throw new TypeError("Invalid PIPESTATUS completion");
       const token = await textToken(staged.owner, String(status), signal);
       try { staged.insert(index, token); } catch (error) { token.release(); throw error; }
-      await operation.ledger.checkpoint(signal, 2);
+      const pending = operation.ledger.checkpoint(signal, 2);
+      if (pending) await pending;
     }
     signal.throwIfAborted();
     scope.assertOpen();

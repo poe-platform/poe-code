@@ -75,6 +75,15 @@ import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
+import { isIdlePortableTrapInstance } from "./trap.js";
+
+function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
+  const ext = state.extensions;
+  if (!ext) return false;
+  if (ext.entries.length > 1 || ext.checkpoints.length > 0) return true;
+  const first = ext.entries[0];
+  return first ? !isIdlePortableTrapInstance(first.instance) : false;
+}
 
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
 const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
@@ -2971,7 +2980,7 @@ export class Runtime {
   }
 
   private async extensionEvent(event: ShellExtensionEvent, state: State, io: IO, status: number, command = ""): Promise<boolean> {
-    if (!state.extensions) return false;
+    if (!hasActiveExtensions(state)) return false;
     this.signal.throwIfAborted();
     await this.startExtensions(state, io);
     const previous = state.status;
@@ -3242,7 +3251,7 @@ export class Runtime {
       const closing = new Set<TurnHandle>();
       let statuses: number[];
       try {
-        if (state.extensions && !state.extensions.eventDepth) {
+        if (hasActiveExtensions(state) && !state.extensions!.eventDepth) {
           for (const command of pipeline.commands) {
             if (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional") {
               state.variables.BASH_COMMAND = commandSpelling(command);
@@ -3510,7 +3519,7 @@ export class Runtime {
       [1, { output: io.stdout }], [2, { output: io.stderr }],
     ]);
     io[invocationScope].assertOpen();
-    if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
+    if (hasActiveExtensions(state) && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
       io = { ...io, diagnosticLine: io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
       const description = commandSpelling(command);
       // Automatic command text is bounded by source admission. Charge its use
@@ -3691,7 +3700,7 @@ export class Runtime {
         return command.otherwise ? await this.script(command.otherwise, state, io) : 0;
       }
       if (command.kind === "case") {
-        if (state.extensions) {
+        if (hasActiveExtensions(state)) {
           const description = `case ${command.subject.spelling ?? command.subject.plain ?? ""} in `;
           if (!state.extensions.eventDepth) state.variables.BASH_COMMAND = description;
           if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
@@ -3725,7 +3734,7 @@ export class Runtime {
             this.budget.loop();
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             await this.assignVariable(state, command.name, value, io);
-            if (state.extensions) {
+            if (hasActiveExtensions(state)) {
               const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
               if (!state.extensions.eventDepth) state.variables.BASH_COMMAND = description;
               if (await this.extensionEvent("command", state, io, state.status, description)) continue;

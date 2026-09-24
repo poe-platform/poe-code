@@ -241,39 +241,55 @@ export class StateMonitor {
     const named = field === "variables" || field === "exported" || field === "readonlyVariables";
     let proxy: object;
     if (value instanceof Map || value instanceof Set) {
+      const boundCache = new Map<PropertyKey, unknown>();
+      if (value instanceof Map) {
+        boundCache.set("set", (name: unknown, entry: unknown) => {
+          const key = named ? String(name) : undefined;
+          const tickets = monitor.mutation(key);
+          value.set(name, entry);
+          monitor.finish(tickets, key);
+          return proxy;
+        });
+      }
+      if (value instanceof Set) {
+        boundCache.set("add", (name: unknown) => {
+          const key = named ? String(name) : undefined;
+          const tickets = monitor.mutation(key);
+          value.add(name);
+          monitor.finish(tickets, key);
+          return proxy;
+        });
+      }
+      boundCache.set("delete", (name: unknown) => {
+        const key = named ? String(name) : undefined;
+        const tickets = monitor.mutation(key);
+        const result = value.delete(name);
+        monitor.finish(tickets, key);
+        return result;
+      });
+      boundCache.set("clear", () => {
+        const tickets = monitor.mutation();
+        value.clear();
+        monitor.finish(tickets);
+      });
       proxy = new Proxy(value, { get(target, key) {
-        if (key === "set" && target instanceof Map) return (name: unknown, entry: unknown) => {
-          const tickets = monitor.mutation(named ? String(name) : undefined);
-          target.set(name, entry);
-          monitor.finish(tickets, named ? String(name) : undefined);
-          return proxy;
-        };
-        if (key === "add" && target instanceof Set) return (name: unknown) => {
-          const tickets = monitor.mutation(named ? String(name) : undefined);
-          target.add(name);
-          monitor.finish(tickets, named ? String(name) : undefined);
-          return proxy;
-        };
-        if (key === "delete") return (name: unknown) => {
-          const tickets = monitor.mutation(named ? String(name) : undefined);
-          const result = target.delete(name);
-          monitor.finish(tickets, named ? String(name) : undefined);
-          return result;
-        };
-        if (key === "clear") return () => {
-          const tickets = monitor.mutation();
-          target.clear();
-          monitor.finish(tickets);
-        };
+        const cached = boundCache.get(key);
+        if (cached !== undefined) return cached;
         const entry: unknown = Reflect.get(target, key, target);
-        return typeof entry === "function" ? entry.bind(target) : entry;
+        if (typeof entry === "function") {
+          const bound = entry.bind(target);
+          boundCache.set(key, bound);
+          return bound;
+        }
+        return entry;
       } });
     } else {
       proxy = new Proxy(value, {
         get(target, key, receiver) {
           const entry: unknown = Reflect.get(target, key, receiver);
+          if (typeof entry !== "object" || entry === null) return entry;
           if (field === "state" && key === "extensions") return entry;
-          if (entry && typeof entry === "object" && key !== "redirectAssignments") {
+          if (key !== "redirectAssignments") {
             if (field === "state" && key === "functions") return monitor.wrap(entry, "functions");
             if (field !== "functions") return monitor.wrap(entry, field === "state" ? String(key) : field);
           }

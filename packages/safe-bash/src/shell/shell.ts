@@ -7,7 +7,7 @@ import type {
 } from "../contracts/index.js";
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
-import { portableTrapExtension } from "./trap.js";
+import { defaultPortableTrapExtension } from "./trap.js";
 import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
@@ -286,7 +286,7 @@ export class Shell implements PluginHost {
         variables.OPTERR = "1";
         state = {
           umask: 0o022,
-          extensions: extensionState(extensions.definitions, undefined, undefined, portableTrapExtension()),
+          extensions: extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension),
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,

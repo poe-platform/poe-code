@@ -13,6 +13,12 @@ export interface TrapExtensionOptions {
 
 interface Action { readonly source: ShellValue; readonly active: boolean }
 
+const idlePortableTrapInstances = new WeakMap<ShellExtensionInstance, () => boolean>();
+
+export function isIdlePortableTrapInstance(instance: ShellExtensionInstance): boolean {
+  return idlePortableTrapInstances.get(instance)?.() ?? false;
+}
+
 function quote(source: ShellValue): Uint8Array {
   const bytes = shellValueBytes(source);
   const parts: Uint8Array[] = [Buffer.from("'")];
@@ -61,7 +67,7 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
       try { return await context.evaluate(action.source, { name: number === 0 ? "exit trap" : "trap" }); }
       finally { running.delete(number); }
     };
-    return {
+    const created: ShellExtensionInstance = {
       options,
       shoptOptions: [{ name: "extdebug", get enabled() { return extendedDebug; }, set enabled(value) { extendedDebug = value; for (const option of options) option.enabled = value; } }],
       start(context) {
@@ -157,7 +163,13 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
         if (name === "DEBUG" && extendedDebug && status) return status === 2 && (context.functionDepth > 0 || context.sourceDepth > 0) ? { action: "return", status } : { action: "skip" };
       },
     };
+    if (!configuration.signalHost) {
+      idlePortableTrapInstances.set(created, () => actions.size === 0 && pending.size === 0 && functions.length === 0 && sources.length === 0);
+    }
+    return created;
   }
 
   return { name: "trap", runtimeIdentity: commandRuntimeIdentity, create: () => instance() };
 }
+
+export const defaultPortableTrapExtension = portableTrapExtension();

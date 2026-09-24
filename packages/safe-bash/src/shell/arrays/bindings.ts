@@ -40,13 +40,14 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
   let bytes = 0;
   for (let offset = 0; offset < value.length;) {
     const end = Math.min(value.length, offset + 64);
-    owner.reserve({ work: end - offset }).release();
+    const step = end - offset;
+    owner.reserve({ work: step }).release();
     while (offset < end) {
       const code = value.codePointAt(offset)!;
       bytes = exactSum(bytes, code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4);
       offset += code > 0xffff ? 2 : 1;
     }
-    await owner.ledger.checkpoint(signal, 64);
+    await owner.ledger.checkpoint(signal, step);
   }
   signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
@@ -376,7 +377,8 @@ export class BindingStore {
     watch.observers++;
     const result = new BindingWatch(this, name, watch, observer);
     observer.cleanup = () => result.close();
-    await operation.ledger.checkpoint(signal, name.length);
+    const pending = operation.ledger.checkpoint(signal, name.length);
+    if (pending) await pending;
     return result;
   }
 

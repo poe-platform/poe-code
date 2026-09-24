@@ -65,6 +65,7 @@ test("direct host retires a source returned after readStream cancels", { timeout
   let returns = 0;
   let nextCalls = 0;
   let settled = false;
+  const retiring = deferred();
   const fs = wrap(memory, {
     readStream() {
       controller.abort(false);
@@ -72,7 +73,7 @@ test("direct host retires a source returned after readStream cancels", { timeout
         factories++;
         return {
           async next() { nextCalls++; return { done: true as const, value: undefined }; },
-          async return() { returns++; await release.promise; return { done: true as const, value: undefined }; },
+          async return() { returns++; retiring.resolve(); await release.promise; return { done: true as const, value: undefined }; },
         };
       } };
     },
@@ -80,7 +81,7 @@ test("direct host retires a source returned after readStream cancels", { timeout
   const executing = run("bzip2", ["-k", "input"], undefined, { fs, signal: controller.signal }).then(value => ({ value }), reason => ({ reason }));
   void executing.then(() => { settled = true; });
   try {
-    for (let turn = 0; turn < 5; turn++) await setImmediate();
+    await Promise.race([retiring.promise, executing.then(() => assert.fail("execution settled before source retirement"))]);
     const beforeRelease = { settled, factories, returns, nextCalls };
     release.resolve();
     const outcome = await executing;

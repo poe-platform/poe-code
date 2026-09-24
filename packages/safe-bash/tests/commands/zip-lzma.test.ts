@@ -310,7 +310,7 @@ test("LZMA valid uint32 dictionaries reach an injected codec without native allo
     };
     const codec = await createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, dictionary } }, signal(), () => { creates++; return module; });
     assert.equal(parameters[3], dictionary);
-    assert.equal(parameters[2], 0, "default memory allowance is unlimited");
+    assert.equal(parameters[2], 64 * 1024 * 1024, "raw LZMA receives the host allocation ceiling");
     codec.close(); codec.close();
     assert.equal(creates, 1);
     assert.equal(destroys, 1);

@@ -68,8 +68,8 @@ validation, `--stream-size=BYTES` for a pledged input size (written in the frame
 and enforced), `--size-hint=BYTES`, `--[no-]compress-literals`, and
 `--[no-]row-match-finder`. These settings reach the bounded Zstandard codec;
 checksum validation applies to every concatenated frame. `--long=LOG` enables
-long-distance matching for window logs 10–30, within the codec’s 32-bit address space. Bare `--long`
-requests the native default 27.
+long-distance matching for window logs 10–25. Higher logs, including the native
+default 27 requested by bare `--long`, fail under the host workspace policy.
 
 `--single-thread`, `-T1`, `-T 1`, `--threads=1` and `--threads 1` select the
 single-thread codec. `--auto-threads=physical` or `logical` is accepted but does
@@ -90,13 +90,14 @@ the `zstdcat` default. Last selection wins, and recognized frames still validate
 including stdout/force mode; stdin and decompression are unaffected.
 
 The XZ family (`xz`, `unxz`, `xzcat`) automatically decodes XZ containers and
-legacy LZMA-alone streams without an application allocation quota by default.
+legacy LZMA-alone streams under the host workspace ceiling.
 Compression produces XZ containers. It accepts `--compress` to select
 compression, including when invoked through a decompression alias. `-e` and
 `--extreme` enable liblzma's extreme preset with the selected level. `-T1`,
 `-T 1`, `--threads=1` and `--threads 1` select the codec's single-threaded
 execution; other counts, including automatic selection (`0`), fail explicitly.
-High presets remain subject to available host memory and codec representability.
+High presets remain subject to the host's 64 MiB native allocation ceiling;
+presets whose workspace exceeds it fail without silently lowering the level.
 
 `-q` and `--quiet` suppress warnings; repeating them also suppresses processing
 and filesystem error diagnostics, preserving failure status. `--single-stream`
@@ -115,10 +116,16 @@ The existing allocation ceiling still applies to every preset.
 `--memlimit-decompress=BYTES` (or a separate argument) limits allocations and
 XZ/LZMA decoder memory admission for every member, including test mode. Binary
 KiB/MiB/GiB suffixes and their XZ shorthand aliases are accepted. Zero disables
-the caller limit. Larger explicit limits are preserved without a second ceiling;
-values must fit the exact integer representation used by the SDK.
+the caller limit, while the host's 64 MiB ceiling remains enforced. Larger explicit
+limits cannot raise that ceiling; values must fit the SDK's exact integer range.
 The allocator's accounting includes allocation headers, so a tight limit may
-fail earlier than native XZ. Compression is unaffected.
+fail earlier than native XZ. This caller option does not affect compression.
+The host ceiling covers bzip2, XZ, Zstandard and ZIP LZMA, for both encoding and
+decoding. Dictionary/window requirements are checked before large workspace
+allocation; Zstandard windows are limited to 32 MiB. Output-byte limits remain
+independent. The allocation budget is per codec instance, not an aggregate
+isolate-memory guarantee: generated heap capacity, buffers and concurrent
+commands need additional host headroom.
 `--memlimit-mt-decompress` validates the same absolute values but has no effect
 on the single-threaded decoder, matching native XZ's soft MT limit behavior.
 Host-RAM percentages remain unsupported.

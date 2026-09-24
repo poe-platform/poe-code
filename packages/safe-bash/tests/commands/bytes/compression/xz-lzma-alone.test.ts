@@ -41,6 +41,10 @@ test('LZMA-alone rejects truncation and honors explicit dictionary memory quotas
     assert.equal(result.exitCode, 1);
     assert.ok(result.stderr.length > 0);
   }
-  const unlimited = await run('xz', ['-dc'], chunks(oversized));
-  assert.equal(unlimited.exitCode, 0, unlimited.stderr);
+  for (const flags of [[], ['--memlimit-decompress=0'], ['--memlimit-decompress=1GiB']]) {
+    const bounded = await run('xz', ['-dc', ...flags], chunks(oversized));
+    assert.equal(bounded.exitCode, 1, bounded.stderr);
+    assert.match(bounded.stderr, /memory limit/u);
+    assert.equal(bounded.stdout.length, 0);
+  }
 });

@@ -199,7 +199,9 @@ size hints and bounded long-distance matching are configurable; see the
 [compression options](src/commands/bytes/compression/README.md).
 Zstandard presets are parsed as whole numbers; the bounded codec supports levels
 1–9. Higher presets and `--fast[=NUM]` fail explicitly instead of selecting a
-different level. Codec allocations have no application quota by default; explicit XZ decompression memory limits remain available.
+different level. Native codecs enforce a 64 MiB allocation ceiling for encoding
+and decoding, including ZIP LZMA; Zstandard windows are limited to 32 MiB.
+XZ decompression flags can lower the ceiling. Output-byte limits remain separate.
 Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
 `grep -L` / `--files-without-match` prints filenames without selected lines. Its exit status follows GNU grep: 0 if any input line is selected, 1 otherwise, even when it prints a filename. `-v` inverts line selection; `-q` suppresses output. This also applies to `egrep` and `fgrep`.
 Use `grep -r` to search directories, with `--include`, `--exclude`, `--exclude-from` and `--exclude-dir` to filter basenames. `-R` follows nested symlinks; recursion is bounded to 128 levels and detects ancestor loops. `-b` prints byte offsets, `-Z` uses NUL after filenames, and `--no-group-separator` hides context separators. These options also work with `egrep` and `fgrep`.

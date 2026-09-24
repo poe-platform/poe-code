@@ -6,6 +6,7 @@ import { formatValue } from "./formats.js";
 import { scanRegex, substituteRegex } from "./regex.js";
 import { splitString } from "./split.js";
 import { fromDateIso8601, toDateIso8601 } from "./dates.js";
+import { capture } from "./capture.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
 type Path = (string | number | { start: number; end: number })[];
@@ -339,6 +340,16 @@ export class Interpreter {
     if (name === "todateiso8601") { yield toDateIso8601(input); return; }
     if (name === "scan") {
       for await (const source of this.run(args[0]!, input)) yield* scanRegex(input, source, budget);
+      return;
+    }
+    if (name === "capture") {
+      for await (const pattern of this.run(args[0]!, input)) {
+        if (args[1]) {
+          for await (const flags of this.run(args[1], input)) yield* capture(input, pattern, flags, budget);
+        } else if (typeof pattern === "string") yield* capture(input, pattern, null, budget);
+        else if (Array.isArray(pattern) && pattern.length) yield* capture(input, pattern[0]!, pattern[1] ?? null, budget);
+        else throw new JqError(`${type(pattern)} not a string or array`);
+      }
       return;
     }
     if (name === "setpath") {

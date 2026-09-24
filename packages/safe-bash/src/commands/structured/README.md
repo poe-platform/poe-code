@@ -34,6 +34,16 @@ declare const defaultJqLimits: Readonly<JqLimits>;
 ```
 
 `createStructuredCommands()` returns one definition, named `jq`.
+
+`capture("(?<key>[a-z]+)=(?<value>[0-9]+)")` extracts named groups into an
+object, for example `"foo=12"` becomes `{"key":"foo","value":"12"}`.
+No match emits no value; unmatched optional groups become null. The optional
+second argument (or `[pattern, flags]` argument) supports `g`, `i`, `m`, `n`,
+`p`, `s`, and `x` modifiers. The shared jq regex engine supports groups,
+character classes, alternation, quantifiers, anchors, and numbered backreferences;
+unsupported constructs and longest-match mode fail. Matching cooperatively yields
+and enforces work and value-memory budgets, including during backtracking.
+
 `structuredCommands()` returns a plugin named `structured-commands`, usable with
 `shell.use(structuredCommands())`. Registration rejects an existing `jq` unless
 `replace: true` is supplied. Neither entry point edits another command registry

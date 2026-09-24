@@ -785,10 +785,20 @@ class Converter {
     if (settings.developer) await this.output.emit(`formatting output:\n  value: ${fixed(value, 6)}\n  humanized: ${quote(rendered, settings.unicode)}\n`, true);
     if (settings.padding > BigInt(rendered.length)) {
       if (settings.padding > BigInt(this.output.remaining - settings.prefix.length - settings.postfix.length)) throw new PublicDiagnostic("numfmt output limit exceeded");
-      rendered = settings.left ? rendered.padEnd(Number(settings.padding)) : rendered.padStart(Number(settings.padding));
-      if (settings.developer) await this.output.emit(`  After padding: ${quote(rendered, settings.unicode)}\n`, true);
     }
     return rendered;
+  }
+
+  private async emitPadded(rendered: string, error = false): Promise<void> {
+    const padding = Math.max(0, Number(this.settings.padding) - rendered.length);
+    const spaces = async (): Promise<void> => {
+      for (let remaining = padding; remaining > 0; remaining -= 1024) {
+        await this.output.emit(" ".repeat(Math.min(remaining, 1024)), error);
+      }
+    };
+    if (!this.settings.left) await spaces();
+    await this.output.emit(error ? quote(rendered, this.settings.unicode).slice(this.settings.unicode ? 3 : 1, this.settings.unicode ? -3 : -1) : rendered, error);
+    if (this.settings.left) await spaces();
   }
 
   async line(line: string, newline: boolean, backing = textBytes(line + "\0")): Promise<void> {
@@ -821,7 +831,17 @@ class Converter {
         }
         const parsed = await this.number(text.slice(skipped), backing, start + skipped);
         const converted = parsed && await this.human(parsed.value, parsed.precision);
-        await this.output.emit(converted === false ? text : settings.prefix + converted + settings.postfix);
+        if (converted === false) await this.output.emit(text);
+        else {
+          if (settings.developer && settings.padding > BigInt(converted.length)) {
+            await this.output.emit(settings.unicode ? "  After padding: \xe2\x80\x98" : "  After padding: '", true);
+            await this.emitPadded(converted, true);
+            await this.output.emit(settings.unicode ? "\xe2\x80\x99\n" : "'\n", true);
+          }
+          await this.output.emit(settings.prefix);
+          await this.emitPadded(converted);
+          await this.output.emit(settings.postfix);
+        }
       } else await this.output.emit(text);
       if (end >= line.length) break;
       await this.output.emit(settings.delimiter ?? " ");

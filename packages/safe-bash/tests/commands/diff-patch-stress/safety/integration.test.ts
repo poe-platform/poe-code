@@ -17,7 +17,7 @@ test("Shell diff-to-patch pipeline treats Unicode/metacharacter labels literally
   await assertBytes(backing, "old", "old\n");
   await assertBytes(backing, "next", "new\n");
   await assertBytes(backing, "sentinel", "sentinel\n");
-  assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["writeFile", `${cwd}/${name}`]]);
+  assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/${name}`]]);
 });
 
 test("Shell heredoc unsafe later target cannot alter earlier files", async () => {
@@ -46,7 +46,7 @@ test("Shell dry-run reads explicit input outside cwd without any writes", async 
 test("Shell preserves partial commit diagnostics and third-file bytes on injected EIO", async () => {
   const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
   const observed = instrument(backing, {
-    before(call) { if (call.method === "writeFile" && call.path === `${cwd}/second`) throw new FsError("EIO"); },
+    before(call) { if (call.method === "publishStagedFile" && call.path === `${cwd}/second`) throw new FsError("EIO"); },
   });
   const shell = new Shell({ fs: observed.fs, cwd }).use(diffPatchCommands());
   const result = await shell.exec("patch", { stdin: replacement("first") + replacement("second") + replacement("third") });
@@ -67,17 +67,22 @@ test("Shell cancellation propagates exact reason during a blocked patch write", 
   let commandSignal: AbortSignal | undefined;
   const observed = instrument(backing, {
     async before(call) {
-      if (call.method !== "writeFile" || call.path !== `${cwd}/second`) return;
+      if (call.method !== "publishStagedFile" || call.path !== `${cwd}/second`) return;
       commandSignal = call.signal;
       entered.resolve();
       await blocked.promise;
     },
   });
   const shell = new Shell({ fs: observed.fs, cwd }).use(diffPatchCommands());
-  const rejected = assert.rejects(shell.exec("patch", { stdin: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal }), error => error === reason);
+  let settled = false;
+  const rejected = assert.rejects(shell.exec("patch", { stdin: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal }), error => error === reason)
+    .finally(() => { settled = true; });
   try {
     await entered.promise;
     controller.abort(reason);
+    await drain();
+    assert.equal(settled, false, "Shell waits for owned staging cleanup");
+    blocked.reject(new Error("late Shell publication rejection"));
     await rejected;
     assert(commandSignal?.aborted);
     assert.equal(commandSignal.reason, reason);

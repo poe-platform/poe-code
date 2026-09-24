@@ -5,6 +5,7 @@ import { filesystem, run } from "./helpers.js";
 import { Shell } from "../../../src/shell/index.js";
 import { diffPatchCommands } from "../../../src/commands/diff-patch/index.js";
 import { creationFileSystem } from "../../../src/shell/umask.js";
+import { deferred, drain, snapshot } from "../diff-patch-stress/safety/helpers.js";
 
 for (const atomic of [false, true]) {
   test(`patch refuses an ancestor swap at publication: atomic=${atomic}`, async () => {
@@ -153,4 +154,47 @@ test("patch publication rejects a private hardlink substituted for the destinati
   const result = await run("patch", [], { fs, input: "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n" });
   assert.notEqual(result.exitCode, 0);
   assert.equal(Buffer.from(await fs.readFile("/private/target")).toString(), "old\n");
+});
+
+for (const acquisition of ["receipt", "rejection"]) test(`Shell cancellation drains admitted patch staging ${acquisition} before settlement`, async () => {
+  const backing = await filesystem({ target: "old\n" });
+  const before = await snapshot(backing);
+  const acquired = deferred<void>();
+  const receipt = deferred<void>();
+  const controller = new AbortController();
+  const reason = new Error("cancel patch staging acquisition");
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "createStagedFile") return async (...args: Parameters<NonNullable<FileSystem["createStagedFile"]>>) => {
+        if (acquisition === "rejection") {
+          acquired.resolve();
+          await receipt.promise;
+          throw new Error("late acquisition rejection");
+        }
+        const staging = await target.createStagedFile(...args);
+        acquired.resolve();
+        await receipt.promise;
+        return staging;
+      };
+      const value: unknown = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const shell = new Shell({ fs, cwd: "/work" }).use(diffPatchCommands());
+  let settled = false;
+  const rejected = assert.rejects(shell.exec("patch", {
+    stdin: "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+    signal: controller.signal,
+  }), error => error === reason).finally(() => { settled = true; });
+  try {
+    await acquired.promise;
+    controller.abort(reason);
+    await drain();
+    assert.equal(settled, false, "the admitted staging receipt still needs cleanup");
+  } finally {
+    receipt.resolve();
+    await rejected;
+    await shell.dispose();
+  }
+  assert.deepEqual(await snapshot(backing), before, "no target mutation or retained staging after settlement");
 });

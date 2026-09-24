@@ -1,5 +1,5 @@
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { dirname, isFsError, type CommandContext, type FileStat, type FileSystem, type FileStagingEntry } from "../../contracts/index.js";
+import { dirname, isFsError, type CommandContext, type FileStat, type FileSystem, type FileStaging, type FileStagingEntry } from "../../contracts/index.js";
 import { host, ToolError } from "./shared.js";
 
 /** Keeps admission receipts until the backend atomically publishes each file. */
@@ -39,21 +39,31 @@ export class PatchPublication {
     }
     const context = this.context;
     const parent = ancestors[ancestors.length - 1]!.stat;
-    // Retain the original receipt even if cancellation arrives after creation.
-    const staging = await context.fs.createStagedFile!(`${dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
-      type: "file", data: Buffer.from(text),
-    }, { parent, signal: context.signal, ...(mode === undefined ? {} : { mode }),
-      ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
+    let staging: FileStaging | undefined;
     let operation: Promise<void> | undefined;
-    const cleanup = retainFileSystemCleanup(context.fs, async view => {
+    let closed = false;
+    const release = retainFileSystemCleanup(context.fs, async view => {
       await operation?.catch(() => {});
-      await view.removeStagedFile!(staging);
+      if (staging) await view.removeStagedFile!(staging);
     }, { maxOperations: 1 });
+    const cleanup = () => { closed = true; return release(); };
     context.registerCleanup?.(cleanup);
     try {
-      await host(context, () => operation = context.fs.publishStagedFile!(staging, path, {
-        parent, destination: destination ?? null, ancestors, signal: context.signal,
-      }));
+      // Install ownership before calling a host that may close the invocation.
+      operation = Promise.resolve().then(async () => {
+        context.signal.throwIfAborted();
+        if (closed) throw new ToolError("patch publication is closed");
+        staging = await context.fs.createStagedFile!(`${dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
+          type: "file", data: Buffer.from(text),
+        }, { parent, signal: context.signal, ...(mode === undefined ? {} : { mode }),
+          ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });
+        context.signal.throwIfAborted();
+        if (closed) throw new ToolError("patch publication is closed");
+        await context.fs.publishStagedFile!(staging, path, {
+          parent, destination: destination ?? null, ancestors, signal: context.signal,
+        });
+      });
+      await host(context, () => operation!);
     } finally { await cleanup(); }
   }
 

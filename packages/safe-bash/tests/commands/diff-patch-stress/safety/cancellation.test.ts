@@ -76,7 +76,7 @@ test("blocked stdin next and cleanup return cannot replace the abort reason", { 
     controller.abort(reason);
     await rejected;
     await cleanupEntered.promise;
-    assert.deepEqual(observed.calls, []);
+    assert.deepEqual(observed.calls.map(call => [call.method, call.path]), [["lstat", "/"], ["lstat", "/sandbox"], ["lstat", cwd]]);
     assert.deepEqual(await snapshot(backing), before);
   } finally {
     controller.abort(reason);
@@ -86,8 +86,8 @@ test("blocked stdin next and cleanup return cannot replace the abort reason", { 
   }
 });
 
-for (const method of ["writeFile", "rm"] as const) {
-  test(`abort blocked ${method} leaves only successful prefix and no cleanup writes`, { timeout: 4000 }, async () => {
+for (const method of ["publishStagedFile", "rm"] as const) {
+  test(`abort blocked ${method} preserves the successful prefix and drains owned staging`, { timeout: 4000 }, async () => {
     const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
     const entered = deferred<void>();
     const blocked = deferred<void>();
@@ -95,7 +95,7 @@ for (const method of ["writeFile", "rm"] as const) {
     const reason = new Error(`stop ${method}`);
     const observed = instrument(backing, {
       async before(call) {
-        assert.equal(call.signal, controller.signal);
+        assert.equal(call.signal, call.method === "removeStagedFile" ? undefined : controller.signal);
         if (call.method === method && call.path === `${cwd}/second`) {
           entered.resolve();
           await blocked.promise;
@@ -103,15 +103,22 @@ for (const method of ["writeFile", "rm"] as const) {
       },
     });
     const input = replacement("first") + (method === "rm" ? deletion("second") : replacement("second")) + replacement("third");
-    const rejected = assert.rejects(invoke(observed.fs, "patch", { input, signal: controller.signal }), error => error === reason);
+    let settled = false;
+    const rejected = assert.rejects(invoke(observed.fs, "patch", { input, signal: controller.signal }), error => error === reason)
+      .finally(() => { settled = true; });
     try {
       await entered.promise;
       controller.abort(reason);
+      if (method === "publishStagedFile") {
+        await drain();
+        assert.equal(settled, false, "staging cleanup drains the admitted publication");
+        blocked.reject(new Error("late commit failure"));
+      }
       await rejected;
       await assertBytes(backing, "first", "new\n");
       await assertBytes(backing, "second", "old\n");
       await assertBytes(backing, "third", "old\n");
-      assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["writeFile", `${cwd}/first`], [method, `${cwd}/second`]]);
+      assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), [["publishStagedFile", `${cwd}/first`], [method, `${cwd}/second`]]);
     } finally {
       controller.abort(reason);
       blocked.reject(new Error("late commit failure"));
@@ -120,7 +127,7 @@ for (const method of ["writeFile", "rm"] as const) {
   });
 }
 
-test("uncooperative in-flight write can finish after cancellation, but later files never start", { timeout: 4000 }, async () => {
+test("admitted publication finishes before cancellation settles, and later files never start", { timeout: 4000 }, async () => {
   const backing = await memory({ first: "old\n", second: "old\n", third: "old\n" });
   const entered = deferred<void>();
   const blocked = deferred<void>();
@@ -129,22 +136,26 @@ test("uncooperative in-flight write can finish after cancellation, but later fil
   const reason = { stop: "publication" };
   const observed = instrument(backing, {
     async before(call) {
-      if (call.method !== "writeFile" || call.path !== `${cwd}/second`) return;
+      if (call.method !== "publishStagedFile" || call.path !== `${cwd}/second`) return;
       entered.resolve();
       await blocked.promise;
       await backing.writeFile(call.path, bytes("late host side effect\n"));
       finished.resolve();
     },
   });
-  const rejected = assert.rejects(invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal }), error => error === reason);
+  let settled = false;
+  const rejected = assert.rejects(invoke(observed.fs, "patch", { input: replacement("first") + replacement("second") + replacement("third"), signal: controller.signal }), error => error === reason)
+    .finally(() => { settled = true; });
   try {
     await entered.promise;
     controller.abort(reason);
-    await rejected;
+    await drain();
+    assert.equal(settled, false);
     await assertBytes(backing, "first", "new\n");
     await assertBytes(backing, "second", "old\n");
     blocked.resolve();
     await finished.promise;
+    await rejected;
     await drain();
     await assertBytes(backing, "second", "late host side effect\n");
     await assertBytes(backing, "third", "old\n");
@@ -161,7 +172,7 @@ test("abort immediately after first publication preserves that side effect and e
   const controller = new AbortController();
   const reason = { stop: "after publication" };
   const observed = instrument(backing, {
-    after(call) { if (call.method === "writeFile") controller.abort(reason); },
+    after(call) { if (call.method === "publishStagedFile") controller.abort(reason); },
   });
   await assert.rejects(invoke(observed.fs, "patch", { input: replacement("first") + replacement("second"), signal: controller.signal }), error => error === reason);
   await drain();

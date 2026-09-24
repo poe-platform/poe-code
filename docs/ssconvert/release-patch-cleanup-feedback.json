@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "baseline": "bb896b59adfd3939b39e1eef3ace706041c89ee6",
+  "issue": "Patch registered resource cleanup after createStagedFile returned. Actual Shell cancellation settled while an admitted staging receipt was still pending.",
+  "repair": "Register idempotent cleanup before starting acquisition; close admission synchronously and track the complete acquisition/publication task before host calls. Drain that task and remove returned staging through retained cleanup before settlement. Preserve original cancellation identity, committed writes and foreign-entry ownership.",
+  "sources": {
+    "packages/safe-bash/src/commands/diff-patch/patch-publication.ts": "511e4408b76417373688fdeed67ab9614aa68cfb47cf299be34a0ecdc9dadd7e",
+    "packages/safe-bash/tests/commands/diff-patch/patch-containment.test.ts": "8f1d2081457776ff975bae18f926a3ceecc0d780555685f12a91136aa02a0fbe",
+    "packages/safe-bash/tests/commands/diff-patch-stress/safety/cancellation.test.ts": "db03383dda5efa7676c5bed6bfd32e499f9416987882dc0b44be6a05c9f7f563",
+    "packages/safe-bash/tests/commands/diff-patch-stress/safety/integration.test.ts": "7065c280d9b99a2da16c17efea4cd9b7528e1084f111a2e82e9df45909b3bd4f"
+  },
+  "validation": {
+    "originalRegression": {
+      "tests": 11,
+      "passed": 10,
+      "failed": 1,
+      "observation": "Shell cancellation settled before the blocked acquired-staging receipt was released."
+    },
+    "finalFocused": {
+      "tests": 2021,
+      "passed": 2021,
+      "failed": 0,
+      "skipped": 0
+    },
+    "lint": "All four cleanup source/test files and the separate exclusion fixture pass focused ESLint.",
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash",
+      "builds": 29,
+      "layers": 11,
+      "passed": true,
+      "postbuildPassed": true
+    },
+    "typecheck": {
+      "status": "typecheck-passed-not-runtime-acceptance",
+      "phases": 37,
+      "consumerGroups": 26,
+      "sourceAndCurrentConsumersPassed": true,
+      "runtimeExecutions": 0
+    },
+    "independentSource": {
+      "cases": [
+        {
+          "name": "synchronous registration-time closure admits no acquisition and returns one cleanup promise",
+          "passed": true
+        },
+        {
+          "name": "acquisition rejection retains exact false reason and no cleanup mutation",
+          "passed": true
+        },
+        {
+          "name": "acquisition rejection retains exact 0 reason and no cleanup mutation",
+          "passed": true
+        },
+        {
+          "name": "acquisition rejection retains exact \"\" reason and no cleanup mutation",
+          "passed": true
+        },
+        {
+          "name": "acquisition rejection retains exact null reason and no cleanup mutation",
+          "passed": true
+        },
+        {
+          "name": "late acquisition receipt drains cleanup before abort settles: false",
+          "passed": true
+        },
+        {
+          "name": "late acquisition receipt drains cleanup before abort settles: 0",
+          "passed": true
+        },
+        {
+          "name": "late acquisition receipt drains cleanup before abort settles: ",
+          "passed": true
+        },
+        {
+          "name": "late acquisition receipt drains cleanup before abort settles: null",
+          "passed": true
+        },
+        {
+          "name": "late acquisition receipt drains cleanup before abort settles: Error: parent abort",
+          "passed": true
+        },
+        {
+          "name": "late acquisition rejection drains before cancellation and preserves parent reason",
+          "passed": true
+        },
+        {
+          "name": "closure during acquisition without cancellation prevents publication and cleans late receipt once",
+          "passed": true
+        },
+        {
+          "name": "committed publication drains before abort settlement and preserves committed target",
+          "passed": true
+        },
+        {
+          "name": "cleanup preserves a substituted staging file instead of deleting foreign bytes",
+          "passed": true
+        },
+        {
+          "name": "public source Shell waits for late receipt and one removal before exact cancellation settlement",
+          "passed": true
+        }
+      ],
+      "unchanged": true,
+      "unhandledRejections": []
+    },
+    "compiledPublic": {
+      "profile": "Built checkout public package API, in-memory backing; no packed/install or real-provider qualification.",
+      "entry": "/Users/kjopek/Workspace/poe-code/packages/safe-bash/dist/index.js",
+      "before": {
+        "/Users/kjopek/Workspace/poe-code/packages/safe-bash/dist/index.js": "61166fd6f7def631f67d147b3c15b8de9e9daf8679ec0585ff565de57041def5",
+        "/Users/kjopek/Workspace/poe-code/packages/safe-bash/dist/commands/diff-patch/patch-publication.js": "a62e884fe1c5fa17299d8c5c8416f1421311cf8692f333fe575c1445f806f8c0",
+        "/Users/kjopek/Workspace/poe-code/packages/safe-bash/src/commands/diff-patch/patch-publication.ts": "511e4408b76417373688fdeed67ab9614aa68cfb47cf299be34a0ecdc9dadd7e"
+      },
+      "after": {
+        "/Users/kjopek/Workspace/poe-code/packages/safe-bash/dist/index.js": "61166fd6f7def631f67d147b3c15b8de9e9daf8679ec0585ff565de57041def5",
+        "/Users/kjopek/Workspace/poe-code/packages/safe-bash/dist/commands/diff-patch/patch-publication.js": "a62e884fe1c5fa17299d8c5c8416f1421311cf8692f333fe575c1445f806f8c0",
+        "/Users/kjopek/Workspace/poe-code/packages/safe-bash/src/commands/diff-patch/patch-publication.ts": "511e4408b76417373688fdeed67ab9614aa68cfb47cf299be34a0ecdc9dadd7e"
+      },
+      "unchanged": true,
+      "cases": [
+        {
+          "name": "normal patch publishes exact new bytes with no staging residue",
+          "passed": true
+        },
+        {
+          "name": "late receipt + delayed removal; exact abort false",
+          "passed": true
+        },
+        {
+          "name": "late receipt + delayed removal; exact abort 0",
+          "passed": true
+        },
+        {
+          "name": "late receipt + delayed removal; exact abort \"\"",
+          "passed": true
+        },
+        {
+          "name": "late receipt + delayed removal; exact abort null",
+          "passed": true
+        },
+        {
+          "name": "late receipt + delayed removal; exact abort \"parent cancellation\"",
+          "passed": true
+        },
+        {
+          "name": "late rejected acquisition drains before Shell and dispose settle",
+          "passed": true
+        },
+        {
+          "name": "committed publication stays committed while late completion drains",
+          "passed": true
+        }
+      ],
+      "unhandled": []
+    },
+    "visual": {
+      "inspected": true,
+      "sha256": "f23fbe523bda0c89f053868918c753136911c1bc3c15fdea34d083d18bef0455",
+      "content": "Terminal rendering of the completed compiled public replay log; not a second execution."
+    },
+    "broaderStress": {
+      "tests": 1768,
+      "passed": 1667,
+      "failed": 101,
+      "skipped": 0,
+      "beforeThisRepairFailures": 109
+    },
+    "harnessCorrection": "Initial compiled probe used CommonJS require.resolve on an import-only export. Standard ESM resolution fixed the harness; retain the initial failure separately from product results.",
+    "logHashes": {
+      "acquisition-red.log": "00d2737f70e0ce37d27c2c8c1f450db585ecaef1ba53f0a86c00850c950448fc",
+      "focused-final.log": "7912eca35bb60671a402e932cd562397abe76694b2861eedf4dd4d2d27f3dbad",
+      "build.log": "effc62fdd23febfd574bd48ef530fe625afc373a0d74102aeaf742441b1ec8cd",
+      "typecheck/report.json": "cf07167dc63b8dec29cdaaa1cd091db32a5ea3edb6325de151a746b638e728fd",
+      "independent/results.json": "0dbc2578653d9da14d8236dcae9f275bf66b843ca1349c0a2d440b0e6a7ca0c9",
+      "independent/compiled-results.json": "835b46d1bfd42edb5c43064370018c814cb3f852a98af87a52f231806ec27176",
+      "independent/compiled.log": "cf97eb426196fc0d0e9888b25b707e6f43f776c57e11d712f70fbd8fb55329b8",
+      "stress.log": "e94da525759be674cd41e78781df4890883e78782c23374ff7b3bbbf71cf3f87"
+    }
+  },
+  "limitations": [
+    "Compiled verification covers the built checkout public API with in-memory storage, not an installed package or real-provider certification.",
+    "Other patch stress fixtures and explicit-parent confinement remain unresolved. Root publication and all19original ssconvert families remain open."
+  ]
+}

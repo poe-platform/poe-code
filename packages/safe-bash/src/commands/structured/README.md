@@ -365,7 +365,10 @@ patterns additionally have bounded source, nesting and compiled-program size.
 
 - Not the entire jq language: no recursive definitions, destructuring `as` bindings,
   recursion, labels/break,
-  general regex/date/math libraries or arbitrary jq builtins.
+  regex/date/math libraries beyond `scan(pattern)` or arbitrary jq builtins.
+  `scan` streams nonoverlapping matches, or capture arrays when the pattern has
+  groups; unmatched groups yield null. Patterns use JavaScript Unicode regex
+  syntax; Oniguruma extensions and the flags overload are not supported.
 - Assignment paths do not include computed object/array constructions.
 - `limit` count and additional function overloads are restricted
   to the documented signatures.

@@ -334,6 +334,41 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "scan") {
+      for await (const source of this.run(args[0]!, input)) {
+        if (typeof source !== "string") throw new JqError(`${describe(source, budget)} is not a string`);
+        if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
+        if (source === "") {
+          const boundaries = Buffer.byteLength(input) + 1;
+          for (let index = 0; index < boundaries; index++) {
+            await budget.tick();
+            yield "";
+          }
+          continue;
+        }
+        let regex: RegExp;
+        try { regex = new RegExp(source, "gu"); }
+        catch (error) {
+          if (!(error instanceof SyntaxError)) throw error;
+          const message = error.message.includes("Unterminated character class") ? "premature end of char-class"
+            : error.message.includes("Unterminated group") ? "end pattern with unmatched parenthesis"
+            : error.message.includes("Unmatched") ? "unmatched close parenthesis"
+            : error.message.includes("Nothing to repeat") ? "target of repeat operator is not specified"
+            : error.message;
+          throw new JqError(`Regex failure: ${message}`);
+        }
+        while (regex.lastIndex <= input.length) {
+          await budget.tick();
+          const match = regex.exec(input);
+          if (!match) break;
+          const value: Json = match.length === 1 ? match[0] : match.slice(1).map(group => group ?? null);
+          budget.value(value);
+          yield value;
+          if (!match[0].length) regex.lastIndex += input.codePointAt(regex.lastIndex)! > 0xffff ? 2 : 1;
+        }
+      }
+      return;
+    }
     if (name === "setpath") {
       for await (const value of this.run(args[1]!, input)) {
         for await (const candidate of this.run(args[0]!, input)) {

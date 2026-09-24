@@ -133,14 +133,27 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     }
   }
   if (operands.length > 2) throw new PublicDiagnostic(`extra operand '${operands[2]}'`);
-  if ((suffixLength || 2) > limits.maxSuffixLength) throw new PublicDiagnostic("split suffix length limit exceeded");
-  if (numericStart !== undefined && numericStart.length > (suffixLength || 2)) throw new PublicDiagnostic("numerical suffix start value is too large for the suffix length");
+  let requiredSuffixLength = 1;
+  if (mode === "chunks") {
+    let capacity = alphabet.length;
+    while (capacity < size) {
+      capacity *= alphabet.length;
+      requiredSuffixLength++;
+    }
+    if (suffixLength && suffixLength < requiredSuffixLength) {
+      throw new PublicDiagnostic(`the suffix length needs to be at least ${requiredSuffixLength}`);
+    }
+  }
+  const automatic = suffixLength === 0 && numericStart === undefined && mode !== "chunks";
+  suffixLength ||= Math.max(2, requiredSuffixLength);
+  if (suffixLength > limits.maxSuffixLength) throw new PublicDiagnostic("split suffix length limit exceeded");
+  if (numericStart !== undefined && numericStart.length > suffixLength) throw new PublicDiagnostic("numerical suffix start value is too large for the suffix length");
   if (mode === "line-bytes" && size > limits.maxBufferBytes) throw new PublicDiagnostic("split line-bytes window exceeds buffer limit");
-  if (mode === "chunks" && size > limits.maxFiles) throw new PublicDiagnostic("split file limit exceeded");
+  if (mode === "chunks" && !elideEmpty && size > limits.maxFiles) throw new PublicDiagnostic("split file limit exceeded");
   return {
     mode: mode ?? "lines", size, input: operands[0] ?? "-", prefix: operands[1] ?? "x",
     alphabet,
-    suffixLength: suffixLength || 2, automatic: suffixLength === 0 && numericStart === undefined,
+    suffixLength, automatic,
     numericStart: numericStart ?? "0", additionalSuffix, separator, elideEmpty,
   };
 }

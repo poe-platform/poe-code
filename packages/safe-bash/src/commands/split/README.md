@@ -51,8 +51,11 @@ credentials are used.
   `\\0` selects NUL.
 - `-n COUNT`, `--number=COUNT`: divide input into COUNT byte chunks, assigning
   remainder bytes to the first chunks. Input collection is bounded by
-  `maxBufferBytes`; other GNU number-mode forms are unsupported.
-- `-e`, `--elide-empty-files`: skip empty output files in number mode.
+  `maxBufferBytes`; other GNU number-mode forms are unsupported. Default suffix
+  width is at least two characters and wide enough for COUNT in the selected
+  alphabet. An insufficient explicit width fails before creating any files.
+- `-e`, `--elide-empty-files`: skip empty output files in number mode without
+  consuming filename suffixes or the `maxFiles` quota.
 - Attached short arguments, combined short options, options following operands
   and `--` are supported. Long option names must be spelled in full.
 

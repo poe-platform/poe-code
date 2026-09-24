@@ -85,12 +85,13 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       chunkInput = await collectBytes(source, { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {})});
     }
     let files = 0;
+    let chunkIndex = 0;
     let chunkOffset = 0;
     const chunkSize = chunkInput ? Math.floor(chunkInput.length / args.size) : 0;
     while (true) {
-      if (chunkInput && files === args.size) break;
+      if (chunkInput && chunkIndex === args.size) break;
       const chunks = chunkInput ? (async function* (): AsyncGenerator<Uint8Array> {
-        const end = chunkOffset + chunkSize + (files < chunkInput.length % args.size ? 1 : 0);
+        const end = chunkOffset + chunkSize + (chunkIndex < chunkInput.length % args.size ? 1 : 0);
         while (chunkOffset < end) {
           const next = Math.min(end, chunkOffset + limits.maxChunkBytes);
           yield chunkInput.slice(chunkOffset, next);
@@ -102,9 +103,11 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       })() : segment(cursor, args);
       const first = await chunks.next();
       if (first.done && !chunkInput) break;
+      chunkIndex++;
+      // Empty byte chunks are trailing; none of the remaining chunks can emit a file.
+      if (first.done && args.elideEmpty) break;
       budget.check(++files, limits.maxFiles, "file");
       if (files > 1) name = names.next();
-      if (first.done && args.elideEmpty) continue;
       if (files === 1 && initialDirectoryError) throw initialDirectoryError;
       const destination = files === 1 && initial ? initial : await outputs.prepare(name);
       const source = (async function* (): ByteSource {

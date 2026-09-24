@@ -151,11 +151,15 @@ async function copy(
   preflight = false, displaySource = source, displayTarget = target, rootStat?: FileStat,
 ): Promise<void> {
   context.signal.throwIfAborted();
-  const { flags, preserve, copiedLinks, backup } = settings;
+  const { flags, preserve: requestedPreserve, copiedLinks, backup } = settings;
   const attributesOnly = flags.has("attributes-only");
   const linkMode = flags.has("s") || flags.has("l");
   const link = await context.fs.lstat(source, { signal: context.signal });
-  const preserveLink = link.type === "symlink" && !flags.has("L") && (flags.has("P") || !top);
+  const preserveLink = link.type === "symlink" && (flags.has("P") || flags.has("H") && !top);
+  // Archive copies preserve links without following them to mutate timestamps.
+  // The filesystem contract currently has no no-follow timestamp operation.
+  const preserve = flags.has("a") && preserveLink
+    ? new Set([...requestedPreserve].filter(attribute => attribute !== "timestamps")) : requestedPreserve;
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
   rootStat ??= sourceStat;
   const removeDestination = flags.has("remove-destination") && sourceStat.type !== "directory";

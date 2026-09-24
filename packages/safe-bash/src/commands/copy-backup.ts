@@ -15,6 +15,7 @@ export function copyOptions(context: CommandContext) {
   const preserve = new Set<CopyAttribute>();
   let ended = false;
   let overwrite: "i" | "n" | undefined;
+  let dereference: "H" | "L" | "P" | undefined;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
     if (!ended && argument.startsWith("--preserve=")) {
@@ -46,16 +47,21 @@ export function copyOptions(context: CommandContext) {
     archive: "a", preserve: "p", "attributes-only": false, link: "l", "symbolic-link": "s",
     recursive: "R", "one-file-system": "x", force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
+  }, false, undefined, undefined, flag => {
+    if (flag === "a" || flag === "d") dereference = "P";
+    else if (flag === "H" || flag === "L" || flag === "P") dereference = flag;
   });
   if (overwrite) parsed.flags.delete(overwrite === "i" ? "n" : "i");
   if (parsed.flags.has("l") && parsed.flags.has("s")) throw new UsageError("cannot make both hard and symbolic links");
   if (parsed.flags.has("a")) {
     parsed.flags.add("R");
-    parsed.flags.add("P");
+    parsed.flags.add("p");
+    preserve.add("links");
   }
   if (parsed.flags.has("p")) for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
-  if (parsed.flags.has("d")) { parsed.flags.add("P"); preserve.add("links"); }
-  if (parsed.flags.has("P") && parsed.flags.has("L")) throw new UsageError("-P and -L cannot be combined");
+  if (parsed.flags.has("d")) preserve.add("links");
+  for (const flag of ["H", "L", "P"]) parsed.flags.delete(flag);
+  parsed.flags.add(dereference ?? (parsed.flags.has("R") || parsed.flags.has("r") ? "P" : "H"));
   let backup: CopyBackup | undefined;
   if (parsed.flags.has("b") || parsed.flags.has("B")) {
     const control = value(parsed, "B") ?? context.env.VERSION_CONTROL ?? "existing";

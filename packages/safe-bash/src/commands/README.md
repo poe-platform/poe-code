@@ -63,7 +63,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `ls` | Sorted one-per-line names; `-1`, `-a`, `-A`, `-d`, `-F`, `-p`, `-r`, `-R`, `-L`, `-l`, `-h`; `-t`/`--sort=time`, `-S`/`--sort=size`. `-c`, `-u`, and `--time=mtime/modification/ctime/status/atime/access/use` select filesystem timestamps. Access/change time sorts names unless `-l` or size sorting is selected; `-lt` also sorts long records by the selected time. Long records use numeric metadata and UTC dates. |
 | `mkdir` | Multiple directories, recursive parents `-p`, octal mode `-m`, verbose `-v`. |
 | `touch` | Create without truncation; `-c`, `-a`, `-m`, reference times `-r`. New files without `-r` retain filesystem-assigned creation timestamps; existing files and reference times require provider timestamp support. |
-| `cp` | Multiple sources, `-r`/`-R`, `-n`, `-f`, `-v`, `-P`, `-L`; `-i`/`--interactive` reads stdin confirmation before overwriting; nested symlink preservation by default; same-file, descendant-copy and cycle checks. |
+| `cp` | Multiple sources, `-r`/`-R`, `-n`, `-f`, `-v`; recursive copies preserve symlinks by default. The last `-H` (follow operand links), `-L` (follow all links), or `-P` (preserve links) wins. `-a`/`--archive` enables recursive copying, link preservation, modes, matching reported ownership, and file/directory timestamps. `-i`/`--interactive` reads stdin confirmation before overwriting; same-file, descendant-copy and cycle checks. |
 | `mv` | Virtual rename, multiple sources into directories; `-n`, `-f`, `-v`; `-i`/`--interactive` reads stdin confirmation before replacement, with the last `-i`/`-f`/`-n` taking precedence. |
 | `rm` | Files and links; `-r`/`-R`, `-f`, empty directories `-d`, `-v`; root and dot-entry protection. |
 | `rmdir` | Directory/type/emptiness checks, parent removal `-p`, `-v`. |
@@ -72,8 +72,8 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `basename` | Root/trailing slash handling, optional suffix, `-a`, `-s`, `-z`. |
 | `dirname` | Multiple path operands, trailing slashes and roots, `-z`. |
 | `realpath` | Existing paths and missing final component; `-e`, `-m`, `-s`/`--strip`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base`; `-s` folds paths lexically without expanding symlinks, and relative bases follow the selected canonicalization mode. |
-| `head` | Default ten lines, `-n`, `-c`, legacy leading `-NUMBER`, negative omit-last counts, `-q`, `-v`; early input termination. |
-| `tail` | Default last ten lines, `-n`, `-c`, legacy leading `-NUMBER`, `+N` origins, `-q`, `-v`; bounded suffix buffering. |
+| `head` | Default ten lines, `-n`, `-c`, legacy `-NUMBER` even after flags, negative omit-last counts, `-q`, `-v`; count multipliers such as `b`, `kB`, `K`, `M`, `G`; early input termination. |
+| `tail` | Default last ten lines, `-n`, `-c`, legacy `-NUMBER` even after flags and attached follow flags (`-10f`), bare `+N` origins, `-q`, `-v`; count multipliers such as `b`, `kB`, `K`, `M`, `G`; bounded suffix buffering. |
 | `wc` | `-l`, `-w`, `-c`, `-m`; multiple files/totals and GNU field widths; Linux GNU 9.1 word counting ignores nonprinting-only spans (GNU 9.7 differs); C/POSIX words require printable ASCII, and `-m` counts bytes. Otherwise UTF-8 decoding spans chunks (default UTF-8), with GNU extra word separators unless POSIXLY_CORRECT is set. Locale priority is LC_ALL, LC_CTYPE, LANG. Virtual stdin is an opaque stream, so multi-column stream width is seven; native regular-file stdin width requires descriptor metadata not currently exposed. |
 | `sort` | Byte ordering, exact decimal numeric comparison `-n`, `-r`, `-f`, `-b`, `-s`, `-u`, `-t`, repeated `-k` with field/character ranges and `bfnr` modifiers, `-o`, `-c`, `-z`. |
 | `uniq` | Adjacent groups, `-c`, `-d`, `-u`, `-i`, field/byte skips `-f`/`-s`, comparison width `-w`, `-z`, optional input/output paths. |
@@ -124,10 +124,11 @@ options. Invalid options and malformed operands produce diagnostics and status
   JavaScript numbers rather than the platform C floating-point library. Unicode
   `\u`/`\U` escapes support C/POSIX and UTF-8 output, with `LC_ALL`, `LC_CTYPE`,
   then `LANG` precedence; UTF-8 is the default. Other locale encodings are absent.
-- Metadata preservation/archive copying, cross-device
-  move fallback, symbolic permission expressions, parsed touch dates, and atomic
-  recursive operations are absent. `cp` rejects combined `-P`/`-L` instead of
-  interpreting their order. `readlink -f`/`realpath -m` do not yet resolve
+- Ownership changes and symlink timestamp mutation are unavailable. Archive
+  copies retain symbolic links but skip their timestamps; explicit timestamp
+  preservation on symbolic links fails with `ENOTSUP`. Cross-device move
+  fallback and atomic recursive operations are absent.
+  `readlink -f`/`realpath -m` do not yet resolve
   dangling symlink chains as fully as native canonicalization utilities.
 - The filesystem contract has no atomic empty-directory removal method.
   `rmdir` and `rm -d` check emptiness and then use recursive removal; another

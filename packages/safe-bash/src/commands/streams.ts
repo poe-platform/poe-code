@@ -6,7 +6,7 @@ import { inputRequirements } from "./portable-requirements.js";
 import { followTail, parseTailFollow } from "./tail-follow.js";
 import { wcDisplayWidth } from "./wc-width.js";
 import {
-  assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input, integer,
+  assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input,
   lines, options, output, pathOf, UsageError, value,
 } from "./internal.js";
 
@@ -129,9 +129,54 @@ function wcSpace(point: number, posix: boolean): boolean {
     || !posix && (point === 0xa0 || point === 0x2007 || point === 0x202f || point === 0x2060);
 }
 
+function headTailArguments(name: "head" | "tail", arguments_: readonly string[]): string[] {
+  const args: string[] = [];
+  let ended = false;
+  for (let index = 0; index < arguments_.length; index++) {
+    const argument = arguments_[index]!;
+    if (argument === "--") ended = true;
+    let offset = 1;
+    while (offset < argument.length && argument[offset]! >= "0" && argument[offset]! <= "9") offset++;
+    if (!ended && (argument[0] === "-" || name === "tail" && argument[0] === "+") && offset > 1) {
+      const remainder = argument.slice(offset);
+      if (!remainder || remainder === "f" || remainder === "F") {
+        args.push("-n", `${argument[0] === "+" ? "+" : ""}${argument.slice(1, offset)}`);
+        if (remainder) args.push(`-${remainder}`);
+        continue;
+      }
+    }
+    args.push(argument);
+    // Keep option values intact, especially modern negative counts.
+    if (!ended && (["--lines", "--bytes", "--max-idle", "--sleep-interval", "--max-unchanged-stats"].includes(argument)
+      || argument.startsWith("-") && !argument.startsWith("--") && (argument.endsWith("n") || argument.endsWith("c") || argument.endsWith("s")))) {
+      if (arguments_[index + 1] !== undefined) args.push(arguments_[++index]!);
+    }
+  }
+  return args;
+}
+
+function headTailCount(amount: string): number {
+  const text = amount.startsWith("+") || amount.startsWith("-") ? amount.slice(1) : amount;
+  let offset = 0;
+  while (offset < text.length && text[offset]! >= "0" && text[offset]! <= "9") offset++;
+  const suffix = text.slice(offset);
+  let multiplier = 1n;
+  if (suffix === "b") multiplier = 512n;
+  else if (suffix) {
+    const power = "KMGTPEZYRQ".indexOf(suffix[0] === "k" ? "K" : suffix[0]!) + 1;
+    const ending = suffix.slice(1);
+    if (!power || !["", "B", "iB"].includes(ending)) throw new UsageError(`invalid number '${amount}'`);
+    multiplier = (ending === "B" ? 1000n : 1024n) ** BigInt(power);
+  }
+  if (!offset) throw new UsageError(`invalid number '${amount}'`);
+  const count = BigInt(text.slice(0, offset)) * multiplier;
+  if (count > BigInt(Number.MAX_SAFE_INTEGER)) throw new UsageError(`invalid number '${amount}'`);
+  return Number(count);
+}
+
 function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefinition {
   return define(name, async context => {
-    const args = context.args[0] && /^-[0-9]+$/u.test(context.args[0]) ? ["-n", context.args[0].slice(1), ...context.args.slice(1)] : context.args;
+    const args = headTailArguments(name, context.args);
     const follow = name === "tail" ? parseTailFollow(args) : undefined;
     const parsed = options(follow?.args ?? args, "n:c:qvz", { lines: "n", bytes: "c", quiet: "q", silent: "q", verbose: "v", "zero-terminated": "z" });
     if (parsed.flags.has("n") && parsed.flags.has("c")) throw new UsageError("cannot combine line and byte counts");
@@ -140,7 +185,7 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
     const amount = value(parsed, bytes ? "c" : "n") ?? "10";
     const positive = amount.startsWith("+");
     const negative = amount.startsWith("-");
-    const count = integer(amount.replace(/^[+-]/u, ""));
+    const count = headTailCount(amount);
     const names = parsed.operands.length ? parsed.operands : ["-"];
     if (follow?.mode) return followTail(context, {
       names, mode: follow.mode, idleMs: follow.idleMs, count, bytes, positive,

@@ -9,7 +9,7 @@ export interface TextProgramOptions {
   readonly replace?: boolean;
   readonly maxProgramInstructions?: number;
   readonly maxSteps?: number;
-  readonly maxBufferBytes?: number;
+  readonly maxBufferBytes?: number | undefined;
   readonly maxArrayEntries?: number;
   readonly maxFields?: number;
   readonly maxGetlineFiles?: number;

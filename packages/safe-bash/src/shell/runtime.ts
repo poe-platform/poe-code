@@ -3993,7 +3993,9 @@ export class Runtime {
       if (targets.length !== 1) throw new PublicDiagnostic("Ambiguous redirect");
       const target = targets[0]!;
       errorTarget = target;
-      if (redirect.operator.endsWith("&")) {
+      const bothOutput = redirect.operator === "&>" || redirect.operator === "&>>"
+        || redirect.operator === ">&" && !redirect.explicitDescriptor && target !== "-" && !/^\d+-?$/u.test(target);
+      if (redirect.operator.endsWith("&") && !bothOutput) {
         if (target === "-") await replaceDescriptor(redirect.descriptor);
         else {
           if (!/^\d+-?$/u.test(target)) throw new PublicDiagnostic(`${target}: Bad file descriptor`);
@@ -4013,10 +4015,11 @@ export class Runtime {
       } else {
         const path = pathOf(state, target);
         const options = { signal: this.commandSignal };
-        if (redirect.operator === "<") {
-          await interruptible(this.fs.access(path, 4, options), this.signal);
-          const stat = await interruptible(this.fs.stat(path, options), this.signal);
-          if (stat.type === "directory" && !fileShortcut) throw new PublicDiagnostic(`${target}: Is a directory`);
+        if (redirect.operator === "<" || redirect.operator === "<>") {
+          const readwrite = redirect.operator === "<>";
+          if (!readwrite) await interruptible(this.fs.access(path, 4, options), this.signal);
+          const stat = readwrite ? undefined : await interruptible(this.fs.stat(path, options), this.signal);
+          if (stat?.type === "directory" && !fileShortcut) throw new PublicDiagnostic(`${target}: Is a directory`);
           const inputOwner: { input?: ShellInput } = {};
           let closing: Promise<void> | undefined;
           const cleanups: (() => void | Promise<void>)[] = [];
@@ -4033,17 +4036,26 @@ export class Runtime {
           const lifetime = new DescriptorLifetime(close);
           inputs.add({ close: () => lifetime.release() });
           io[invocationScope].register(() => lifetime.release());
-          const prepared = stat.type === "directory" ? prepareBytesInput("", this.budget)
-            : await prepareFileInput({ fs: resourceFs, signal: this.commandSignal, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: close => {
+          const prepared = stat?.type === "directory" ? prepareBytesInput("", this.budget)
+            : await prepareFileInput({ fs: resourceFs, signal: this.commandSignal, readwrite, cleanupFailurePrioritySignal: this.budget.signal, registerCleanup: close => {
               cleanups.push(close);
             } }, path, this.budget, this.inputProfile, stat);
           if (!cleanups.includes(prepared.close)) cleanups.push(prepared.close);
           io[invocationScope].assertOpen();
           const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
           inputOwner.input = input;
-          await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime });
+          const file = prepared.options.descriptor;
+          const output = readwrite && file ? this.budget.sink({ async write(chunk) {
+            let offset = 0;
+            while (offset < chunk.length) {
+              const written = await file.write(chunk.subarray(offset), null, options);
+              if (written === 0) throw new FsError("EIO", { path, syscall: "write" });
+              offset += written;
+            }
+          } }, this.commandSignal) : undefined;
+          await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime, ...(file ? { file } : {}), ...(output ? { output } : {}) });
         } else {
-          const append = redirect.operator === ">>";
+          const append = redirect.operator === ">>" || redirect.operator === "&>>";
           const flag = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
           const capabilities = await this.fs.capabilitiesFor?.(path, { ...options, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? this.fs.capabilities;
           const canonical = capabilities.open === true;
@@ -4150,7 +4162,7 @@ export class Runtime {
           budgetedSinks.get(output)!.file = Object.freeze({ path });
           const binding: Descriptor = { output, lifetime, ...(target.descriptor ? { file: target.descriptor } : {}) };
           await replaceDescriptor(redirect.descriptor, binding);
-          if (redirect.operator === "&>") {
+          if (bothOutput) {
             replaced.add(2);
             await replaceDescriptor(2, { ...binding });
           }
@@ -4212,11 +4224,7 @@ export class Runtime {
       for (const original of assignments) {
         const assignment = { ...original, name: this.referenceName(state, original.name) };
         if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
-        if (arrayStore(state)?.get(assignment.name)) {
-          if (words.length) {
-            await this.word(assignment.value, state, io, false);
-            throw new ArrayFailure("indexed binding cannot be a command prefix");
-          }
+        if (!words.length && arrayStore(state)?.get(assignment.name)) {
           await this.arrayZero(state, assignment.name, async () => {
             const fields = await this.valueWord(assignment.value, state, io, false);
             return this.arrayJoin(requireArrays(state).owner, fields, "");
@@ -4236,8 +4244,16 @@ export class Runtime {
         }
         if (!previous.has(assignment.name)) {
           const saved = saveVariable(state, assignment.name);
-          if (words.length && guestArrays(state)) await this.prepareVariable(state, assignment.name, saved, true);
           previous.set(assignment.name, saved);
+          if (words.length && guestArrays(state)) {
+            const store = requireArrays(state);
+            await this.prepareVariable(state, assignment.name, saved, !store.get(assignment.name));
+            if (store.get(assignment.name)) {
+              const publication = store.tickets(assignment.name);
+              await store.remove(assignment.name, publication);
+              publication.release();
+            }
+          }
         }
         this.writeVariable(state, assignment.name, value);
         if (words.length) state.exported.add(assignment.name);

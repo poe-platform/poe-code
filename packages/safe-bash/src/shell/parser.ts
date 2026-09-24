@@ -137,6 +137,7 @@ export interface Redirect {
   readonly document?: HereDocument;
   readonly line?: number;
   readonly implicitPipeline?: boolean;
+  readonly explicitDescriptor?: boolean;
 }
 
 export interface CaseClause {
@@ -377,9 +378,9 @@ class Lexer {
       logical += this.source[cursor++]!;
       ends.push(cursor);
     }
-    const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+    const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|<>|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
-      if (operator === "&>>" || operator === "&" && !this.syntax.listTerminators.length) this.error(`Unsupported operator ${operator}`);
+      if (operator === "&" && !this.syntax.listTerminators.length) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
       if (operator === "<<" || operator === "<<-") this.delimiterOperator = operator;
       if (operator === "\n") this.readDocuments();
@@ -1324,16 +1325,17 @@ class Parser {
     let descriptor: number | undefined;
     if (this.current.kind === "word" && /^\d+$/u.test(this.current.value)) {
       const next = this.peek();
-      if (/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
+      if (/^(?:>|>>|<|<>|<<|<<-|<<<|>&|<&|>\|)$/u.test(next.value) && this.current.end === next.offset) descriptor = Number(this.advance().value);
     }
-    if (!/^(?:>|>>|<|<<|<<-|<<<|>&|<&|>\||&>)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
+    if (!/^(?:>|>>|<|<>|<<|<<-|<<<|>&|<&|>\||&>|&>>)$/u.test(this.current.value) || this.current.kind !== "operator") return undefined;
     this.budget.admit();
     const operator = this.advance().value;
+    const explicitDescriptor = descriptor !== undefined;
     descriptor ??= operator.startsWith("<") ? 0 : 1;
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
     if (!this.current.word) this.error("Expected redirect target");
     const target = this.advance();
-    return { descriptor, operator, target: target.word!, line: this.lexer.lineAt(Math.max(target.offset, target.end - 1)), ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}) };
+    return { descriptor, ...(explicitDescriptor ? { explicitDescriptor: true } : {}), operator, target: target.word!, line: this.lexer.lineAt(Math.max(target.offset, target.end - 1)), ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}) };
   }
 }
 

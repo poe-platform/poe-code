@@ -53,7 +53,9 @@ physical permissions, and the host process mask remains unchanged.
   conversion with optional patterns),
   `$(command)` and backtick substitution, arithmetic expansion, and pathname globs.
 - Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
-  `>>`), descriptor redirection such as `2>&1`, here-documents, and here-strings.
+  `>>`, `<>`), combined output redirection (`&>`, `>& file`, `&>>`), descriptor
+  redirection such as `2>&1`, here-documents, and here-strings. `<>` opens without
+  truncation and requires a filesystem with descriptor support.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
   `[[ … ]]` (including file age/identity, special-file, mode and nameref

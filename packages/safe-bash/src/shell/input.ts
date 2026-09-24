@@ -93,7 +93,7 @@ export function prepareBytesInput(value: string | Uint8Array, budget: Budget): P
 
 export async function prepareFileInput(
   context: Pick<CommandContext, "fs" | "signal"> & Required<Pick<CommandContext, "registerCleanup">>
-    & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined },
+    & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined; readonly readwrite?: boolean },
   path: string,
   budget: Budget,
   inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = context.fs,
@@ -163,8 +163,9 @@ export async function prepareFileInput(
     check();
     let provenance: NonNullable<ShellInputOptions["provenance"]> = "unknown";
     if (capabilities.open === true || capabilities.open !== false && typeof fs.open === "function") {
-      descriptor = await openCommandFile({ fs, signal, registerCleanup, cleanupFailurePrioritySignal }, path, { access: "read", signal });
+      descriptor = await openCommandFile({ fs, signal, registerCleanup, cleanupFailurePrioritySignal }, path, { access: context.readwrite ? "readwrite" : "read", ...(context.readwrite ? { creation: "ifMissing" as const } : {}), signal });
     } else {
+      if (context.readwrite) throw new FsError("ENOTSUP", { syscall: "open", path });
       stat = admittedStat ?? await fs.stat(path, { signal });
       check();
       legacySource = await fileInput(fs, path, budget.limits.maxInputBytes, readSignal, inputProfile, { stat, registerCleanup });

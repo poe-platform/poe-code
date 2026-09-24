@@ -53,7 +53,7 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
       const pending = stringCheckpoint(work);
       if (pending) await pending;
       const character = String.fromCharCode(byte);
-      if (part.literal && "\\*?[]-^".includes(character)) bytePattern += "\\";
+      if (part.literal && "\\*?[]-^!:".includes(character)) bytePattern += "\\";
       bytePattern += character;
     }
   }

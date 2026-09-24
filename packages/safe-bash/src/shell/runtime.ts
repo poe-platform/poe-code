@@ -7541,6 +7541,13 @@ export class Runtime {
             for (let cursor = 0; cursor < replacement.value.length; cursor++) {
               const pending = stringCheckpoint(work);
               if (pending) await pending;
+              if (replacement.value[cursor] === "\\" && ["&", "\\"].includes(replacement.value[cursor + 1] ?? "")) {
+                await append(replacement.value, fragment, cursor);
+                await append(replacement.value, cursor + 1, cursor + 2);
+                cursor++;
+                fragment = cursor + 1;
+                continue;
+              }
               if (replacement.value[cursor] !== "&") continue;
               await append(replacement.value, fragment, cursor);
               await append(text, start, end);
@@ -7619,7 +7626,7 @@ export class Runtime {
       const field = fields.at(-1)!;
       let escapes = 0;
       if (!glob) {
-        const special = conditionalPattern ? "\\*?[]-^()|+!@" : "\\*?[]-^";
+        const special = conditionalPattern ? "\\*?[]-^()|+!@:" : "\\*?[]-^!:";
         for (const character of text) if (special.includes(character)) escapes++;
       }
       scratch?.reserve(32, 0);
@@ -7627,7 +7634,7 @@ export class Runtime {
       if (escapes) {
         scratch?.reserve((field.patterns ? 32 : 32 * (field.fragments.length + 1)) + (text.length + escapes) * 2, 0);
         field.patterns ??= field.fragments.map(shellValueText);
-        field.patterns.push(text.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@]/gu : /[\\*?[\]\-^]/gu, "\\$&"));
+        field.patterns.push(text.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@:]/gu : /[\\*?[\]\-^!:]/gu, "\\$&"));
       } else if (field.patterns) {
         scratch?.reserve(32, 0);
         field.patterns.push(text);

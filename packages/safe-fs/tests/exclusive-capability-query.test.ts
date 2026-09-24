@@ -23,6 +23,143 @@ const views = [
   { name: "overlay", wrap: (fs: FileSystem) => createOverlayFileSystem({ upper: createMemoryFileSystem(), lower: fs }) },
 ];
 
+for (const options of [{}, { creation: "ifMissing" }, { creation: "never" }] as const) {
+  it(`generic queries resolve a missing leaf through an in-mount parent alias: ${JSON.stringify(options)}`, async () => {
+    const backing = createMemoryFileSystem();
+    await backing.mkdir("/work");
+    await backing.symlink("work", "/alias");
+    const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/selected": backing } });
+    await expect(fs.capabilitiesFor("/selected/alias/new", options)).resolves.toMatchObject({ write: true, exclusiveCreate: true });
+    expect(await backing.readdir("/work")).toEqual([]);
+    expect(await backing.readlink("/alias")).toBe("work");
+  });
+}
+
+for (const method of ["writeFile", "appendFile", "writeStream"] as const) {
+  it(`mounted ${method} creates a missing leaf through its parent alias`, async () => {
+    const backing = createMemoryFileSystem();
+    await backing.mkdir("/work");
+    await backing.symlink("work", "/alias");
+    const fs = createMountFileSystem({ root: backing });
+    const bytes = Uint8Array.of(0, 255, 65);
+    if (method === "writeStream") await fs.writeStream("/alias/new", (async function* () { yield bytes; })());
+    else await fs[method]("/alias/new", bytes);
+    expect(await backing.readFile("/work/new")).toEqual(bytes);
+    expect(await backing.readlink("/alias")).toBe("work");
+  });
+}
+
+for (const fault of ["retarget-parent", "raced-leaf", "cancel"] as const) {
+  it(`missing-leaf verification preserves publication refusal on ${fault}`, async () => {
+    const backing = createMemoryFileSystem();
+    await backing.mkdir("/work"); await backing.mkdir("/other");
+    await backing.writeFile("/private", Uint8Array.of(42));
+    await backing.symlink("work", "/alias");
+    const controller = new AbortController();
+    const write = vi.spyOn(backing, "writeFile");
+    const realpath = backing.realpath.bind(backing);
+    const leaf = new Proxy(backing, { get(target, key) {
+      if (key === "realpath") return async (path: string) => {
+        if (path === "/alias") {
+          if (fault === "retarget-parent") { await backing.rm("/alias"); await backing.symlink("other", "/alias"); }
+          if (fault === "raced-leaf") await backing.symlink("/private", "/work/new");
+          if (fault === "cancel") controller.abort(false);
+        }
+        return realpath(path);
+      };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const fs = createMountFileSystem({ root: leaf });
+    const action = fs.writeFile("/alias/new", Uint8Array.of(9), { signal: controller.signal });
+    if (fault === "cancel") await expect(action).rejects.toBe(false);
+    else await expect(action).rejects.toMatchObject({ code: "ENOTSUP" });
+    expect(write).not.toHaveBeenCalled();
+    expect(await backing.readFile("/private")).toEqual(Uint8Array.of(42));
+    expect(await backing.readdir("/other")).toEqual([]);
+  });
+}
+
+for (const replacement of ["hardlink", "file", "dangling-link"] as const) {
+  it(`refuses a ${replacement} appearing at the first missing-leaf verification`, async () => {
+    const backing = createMemoryFileSystem();
+    await backing.mkdir("/work"); await backing.writeFile("/private", Uint8Array.of(42));
+    await backing.symlink("work", "/alias");
+    const write = vi.fn(backing.writeFile.bind(backing));
+    let replaced = false;
+    const leaf = new Proxy(backing, { get(target, key) {
+      if (key === "writeFile") return write;
+      if (key === "lstat") return async (path: string) => {
+        if (path === "/alias/new" && !replaced) {
+          replaced = true;
+          if (replacement === "hardlink") await backing.link("/private", "/work/new");
+          if (replacement === "file") await backing.writeFile("/work/new", Uint8Array.of(43));
+          if (replacement === "dangling-link") await backing.symlink("/absent", "/work/new");
+        }
+        return backing.lstat(path);
+      };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    await expect(createMountFileSystem({ root: leaf }).writeFile("/alias/new", Uint8Array.of(9))).rejects.toMatchObject({ code: "ENOTSUP" });
+    expect(write).not.toHaveBeenCalled();
+    expect(await backing.readFile("/private")).toEqual(Uint8Array.of(42));
+    if (replacement === "dangling-link") expect(await backing.readlink("/work/new")).toBe("/absent");
+    else expect(await backing.readFile("/work/new")).toEqual(Uint8Array.of(replacement === "file" ? 43 : 42));
+  });
+}
+
+it("refuses a formerly dangling final symlink whose target appears during verification", async () => {
+  const backing = createMemoryFileSystem();
+  await backing.symlink("/absent", "/dangling");
+  const write = vi.fn(backing.writeFile.bind(backing));
+  const leaf = new Proxy(backing, { get(target, key) {
+    if (key === "writeFile") return write;
+    if (key === "realpath") return async (path: string) => {
+      if (path === "/dangling") await backing.writeFile("/absent", Uint8Array.of(42));
+      return backing.realpath(path);
+    };
+    const member: unknown = Reflect.get(target, key, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  await expect(createMountFileSystem({ root: leaf }).writeFile("/dangling", Uint8Array.of(9))).rejects.toMatchObject({ code: "ENOTSUP" });
+  expect(write).not.toHaveBeenCalled();
+  expect(await backing.readFile("/absent")).toEqual(Uint8Array.of(42));
+  expect(await backing.readlink("/dangling")).toBe("/absent");
+});
+
+for (const exclusive of [false, true]) for (const appeared of [false, true]) for (const reason of [false, new FsError("ENOENT")]) {
+  it(`does not dispatch after final metadata cancellation: exclusive=${exclusive}, appeared=${appeared}, reason=${String(reason)}`, async () => {
+    const backing = createMemoryFileSystem();
+    await backing.mkdir("/work"); await backing.symlink("work", "/alias");
+    const controller = new AbortController();
+    const write = vi.fn(backing.writeFile.bind(backing));
+    let parentChecked = false;
+    const leaf = new Proxy(backing, { get(target, key) {
+      if (key === "writeFile") return write;
+      if (key === "realpath") return async (path: string) => {
+        if (path === "/alias") parentChecked = true;
+        return backing.realpath(path);
+      };
+      if (key === "lstat") return async (path: string) => {
+        if (path === "/alias/new" && parentChecked) {
+          if (appeared) await backing.writeFile("/work/new", Uint8Array.of(42));
+          controller.abort(reason);
+        }
+        return backing.lstat(path);
+      };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    await expect(createMountFileSystem({ root: leaf }).writeFile("/alias/new", Uint8Array.of(9), {
+      flag: exclusive ? "wx" : "w", signal: controller.signal,
+    })).rejects.toBe(reason);
+    expect(write).not.toHaveBeenCalled();
+    if (appeared) expect(await backing.readFile("/work/new")).toEqual(Uint8Array.of(42));
+    else expect(await backing.readdir("/work")).toEqual([]);
+  });
+}
+
 for (const view of views) {
   it(`exclusive queries preserve final symlink entry and parent traversal: ${view.name}`, async () => {
     const backing = createMemoryFileSystem();

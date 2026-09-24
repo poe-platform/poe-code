@@ -364,17 +364,31 @@ export class MountFileSystem implements FileSystem {
     let boundary: Mount | undefined;
     let verification: { mount: Mount; path: string; finalName: string | undefined } | undefined;
     let creationVerification: typeof verification;
+    let followedFinalLink = false;
     const verified = async (location: Location): Promise<Location> => {
-      const inspection = !location.stat && settings.resizeCreate === true ? creationVerification : verification;
+      let inspection = !location.stat && settings.resizeCreate === true ? creationVerification : verification;
+      // A missing entry has no realpath. Verify its existing parent while
+      // leaving dangling final symlinks on the ordinary following path.
+      if (inspection && !location.stat && settings.allowMissing && !followedFinalLink && inspection.finalName === undefined) {
+        const separator = inspection.path.lastIndexOf("/");
+        const finalName = inspection.path.slice(separator + 1);
+        if (finalName && finalName !== "." && finalName !== "..") {
+          inspection = { ...inspection, path: inspection.path.slice(0, separator) || "/", finalName };
+        }
+      }
       if (inspection) {
         const canonical = await inspection.mount.backend.realpath(inspection.path, options);
+        options.signal?.throwIfAborted();
+        if (!location.stat && inspection.finalName === undefined) fail("ENOTSUP");
         validatePath(canonical);
         if (!canonical.startsWith("/") || normalizePath(canonical) !== canonical) fail("EIO");
         if (inspection.finalName !== undefined) {
           try {
             await inspection.mount.backend.lstat(`${inspection.path}/${inspection.finalName}`, options);
-            if (!location.stat && settings.resizeCreate === true) fail("ENOTSUP");
+            options.signal?.throwIfAborted();
+            if (!location.stat && settings.allowMissing && settings.followFinal !== false) fail("ENOTSUP");
           } catch (error) {
+            options.signal?.throwIfAborted();
             if (location.stat || toFsError(error).code !== "ENOENT") throw error;
           }
         }
@@ -425,6 +439,7 @@ export class MountFileSystem implements FileSystem {
         || settings.entry && pending.length === 1 && pending[0]!.trailing;
       if (next.stat?.type === "symlink" && (settings.followFinal !== false || !final)) {
         if (++links > 40) fail("ELOOP");
+        if (final) followedFinalLink = true;
         boundary ??= next.mount;
         if (boundary !== next.mount) fail("EACCES");
         if (!verification) {

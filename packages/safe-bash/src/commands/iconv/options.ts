@@ -81,8 +81,16 @@ export function parse(budget: Budget): Parsed | { readonly information: string }
       break;
     }
   }
-  const transliterate = to?.toUpperCase().endsWith("//TRANSLIT") ?? false;
-  if (transliterate) to = to!.slice(0, -10);
+  let transliterate = false;
+  if (to !== undefined) {
+    const [name, ...suffixes] = to.split("//");
+    for (const suffix of suffixes) {
+      if (suffix.toUpperCase() === "TRANSLIT") transliterate = true;
+      else if (suffix.toUpperCase() === "IGNORE") discard = true;
+      else throw new IconvError(`unsupported encoding suffix: ${to}`);
+    }
+    to = name!;
+  }
   if (from === undefined || to === undefined || transliterate) {
     const env = budget.context.env;
     budget.assertOpen();

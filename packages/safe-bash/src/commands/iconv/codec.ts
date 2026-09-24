@@ -14,9 +14,7 @@ function decode(input: Uint8Array, offset: number, encoding: Encoding, swap: boo
     let count = 0, value = 0;
     if (first >= 0xc2 && first < 0xe0) { count = 2; value = first & 0x1f; }
     else if (first >= 0xe0 && first < 0xf0) { count = 3; value = first & 0x0f; }
-    else if (first >= 0xf0 && first < 0xf8) { count = 4; value = first & 0x07; }
-    else if (first >= 0xf8 && first < 0xfc) { count = 5; value = first & 0x03; }
-    else if (first >= 0xfc && first < 0xfe) { count = 6; value = first & 0x01; }
+    else if (first >= 0xf0 && first < 0xf5) { count = 4; value = first & 0x07; }
     else {
       count = 1;
       while (count < 5 && offset + count < input.length && (input[offset + count]! & 0xc0) === 0x80) count++;
@@ -28,7 +26,7 @@ function decode(input: Uint8Array, offset: number, encoding: Encoding, swap: boo
       if ((byte & 0xc0) !== 0x80) return { count: index, error: "illegal" };
       value = value * 64 + (byte & 0x3f);
     }
-    if ((count > 2 && value < 2 ** (5 * count - 4)) || (value >= 0xd800 && value <= 0xdfff)) return { count, error: "illegal" };
+    if ((count > 2 && value < 2 ** (5 * count - 4)) || value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) return { count, error: "illegal" };
     return { count, value };
   }
   if (offset + 1 >= input.length) return { count: 0, error: "incomplete" };
@@ -43,6 +41,7 @@ function decode(input: Uint8Array, offset: number, encoding: Encoding, swap: boo
 }
 
 function encode(value: number, encoding: Encoding): number[] | undefined {
+  if (value > 0x10ffff || (value >= 0xd800 && value <= 0xdfff)) return undefined;
   if (encoding === "ascii" || encoding === "latin1") {
     if (value < (encoding === "ascii" ? 128 : 256)) return [value];
     if (value >= 0xe0000 && value <= 0xe007f) return [];
@@ -51,13 +50,12 @@ function encode(value: number, encoding: Encoding): number[] | undefined {
   if (encoding === "utf8") {
     if (value < 128) return [value];
     let count = 2;
-    while (count < 6 && value >= 2 ** (5 * count + 1)) count++;
+    while (count < 4 && value >= 2 ** (5 * count + 1)) count++;
     const result = new Array<number>(count);
     for (let index = count - 1; index > 0; index--) { result[index] = 0x80 | (value & 0x3f); value = Math.floor(value / 64); }
     result[0] = (256 - 2 ** (8 - count)) | value;
     return result;
   }
-  if (value > 0x10ffff) return undefined;
   const words = value < 0x10000 ? [value] : [0xd800 + Math.floor((value - 0x10000) / 1024), 0xdc00 + (value - 0x10000) % 1024];
   const result: number[] = [];
   for (const word of words) {
@@ -88,6 +86,7 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
     buffer.set(bytes, used); used += bytes.length;
   };
   try {
+    state.swap = false;
     if (options.from === "utf16" && input.length >= 2) {
       if (input[0] === 0xfe && input[1] === 0xff) { state.swap = true; offset = 2; }
       else if (input[0] === 0xff && input[1] === 0xfe) offset = 2;

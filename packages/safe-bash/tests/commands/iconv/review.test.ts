@@ -1,3 +1,4 @@
+import { unicodePolicy } from "./unicode-policy.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -9,8 +10,8 @@ import { run } from "./helpers.js";
 import { iconvCommands } from "../../../src/commands/iconv/index.js";
 import { reviewCases } from "./review-fixtures.js";
 
-for (const fixture of reviewCases) test(`independent native review: ${fixture.name}`, async () => {
-  assert.deepEqual(await run([...fixture.args], Buffer.from(fixture.inputHex, "hex")), { exitCode: fixture.status, stdoutHex: fixture.stdoutHex, stderrHex: fixture.stderrHex });
+for (const fixture of reviewCases) test(`${unicodePolicy[fixture.name] ? "Unicode policy" : "independent native review"}: ${fixture.name}`, async () => {
+  assert.deepEqual(await run([...fixture.args], Buffer.from(fixture.inputHex, "hex")), unicodePolicy[fixture.name] ?? { exitCode: fixture.status, stdoutHex: fixture.stdoutHex, stderrHex: fixture.stderrHex });
 });
 
 test("one admitted argv snapshot determines the only opened path", async () => {

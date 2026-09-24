@@ -116,7 +116,7 @@ const invalidCoordinates = [
 for (const [name, hunks] of invalidCoordinates) {
   test(`--atomic empty-range normalization retains rejection: ${name}`, async () => {
     for (const reverse of [false, true]) {
-      const result = await run("patch", reverse ? ["--atomic", "-R"] : ["--atomic"], { files: { target: "a\nb\nc\n" }, input: headers + hunks });
+      const result = await run("patch", reverse ? ["--atomic", "-R"] : ["--atomic"], { files: { target: "a\nb\nc\n" }, input: headers + hunks, ...(name === "coordinate limit" ? { options: { maxLines: 100_000 } } : {}) });
       assert.equal(result.exitCode, 2, result.stderr);
       assert.equal(result.stdout, "");
       assert.equal(await contents(result.fs, "target"), "a\nb\nc\n");

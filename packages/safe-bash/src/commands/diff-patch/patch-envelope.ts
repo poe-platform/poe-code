@@ -30,7 +30,7 @@ export async function unwrapPatch(text: string, budget: Budget): Promise<string>
       if (/^(?:--- |\*\*\* |diff |\d+(?:,\d+)?[acd]\d)/u.test(line)) break;
       if (/^(?:old mode |new mode |new file mode |deleted file mode |rename |copy |similarity index |dissimilarity index |GIT binary patch|Binary files |index |@@|[+\\])/u.test(line)) throw new ToolError("unsupported or malformed mail patch metadata");
       position = end + 1;
-      if (++lines > 1024 || position > 65_536) throw new ToolError("mail preamble limit exceeded");
+      if (++lines > budget.limits.maxLines) throw new ToolError("mail preamble limit exceeded");
     }
     if (position === text.length) throw new ToolError("mail preamble without patch");
   }
@@ -38,7 +38,7 @@ export async function unwrapPatch(text: string, budget: Budget): Promise<string>
   const signature = body.indexOf("\n-- \n");
   if (signature < 0) return body;
   const trailer = body.slice(signature + 5);
-  if (trailer.length > 8192 || trailer.split("\n").length > 128) throw new ToolError("mail signature limit exceeded");
+  if (trailer.split("\n").length > budget.limits.maxLines) throw new ToolError("mail signature limit exceeded");
   for (const line of trailer.split("\n")) {
     budget.step();
     if (/^(?:diff |---|\+\+\+|\*\*\*|@@|index |old mode |new mode |new file mode |deleted file mode |rename |copy |similarity index |dissimilarity index |GIT binary patch|Binary files |[+\\]|\d+(?:,\d+)?[acd]\d)/u.test(line)) throw new ToolError("patch data after mail signature");

@@ -163,7 +163,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const maxEntries = budget.remainingFiles - pending.length;
       for (const path of [leftStat ? left : undefined, rightStat ? right : undefined]) {
         if (path === undefined) continue;
-        const entries = await host(context, () => context.fs.readdir(pathOf(context, path), { signal: context.signal, maxEntries }));
+        const entries = await host(context, () => context.fs.readdir(pathOf(context, path), { signal: context.signal, ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
         if (entries.length > maxEntries) throw new ToolError("file/entry limit exceeded");
         for (const entry of entries) {
           budget.step();

@@ -5,8 +5,8 @@ import { Shell } from "../../../src/shell/index.js";
 import { filesystem, run } from "./helpers.js";
 
 test("diff rejects a newline-dense exclusion file with a normal limit diagnostic", async () => {
-  const fs = await filesystem({ exclude: "a\n".repeat(2_600_000), left: "same\n", right: "same\n" });
-  const shell = new Shell({ fs, cwd: "/work" }).use(diffPatchCommands());
+  const fs = await filesystem({ exclude: "a\n".repeat(8), left: "same\n", right: "same\n" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(diffPatchCommands({ maxExcludePatterns: 4 }));
   const result = await shell.exec("diff -X exclude left right");
   assert.equal(result.exitCode, 2);
   assert.equal(result.stdout, "");
@@ -38,7 +38,7 @@ test("diff shares the UTF-8 exclusion byte limit across arguments, files and std
 });
 
 test("diff bounds a single exclusion before compiling or comparing files", async () => {
-  const backing = await filesystem({ exclude: "a".repeat(65_537), left: "same", right: "same" });
+  const backing = await filesystem({ exclude: "a".repeat(33), left: "same", right: "same" });
   const fs = new Proxy(backing, {
     get(target, property) {
       if (property === "lstat") return async (...args: Parameters<typeof target.lstat>) => {
@@ -49,7 +49,7 @@ test("diff bounds a single exclusion before compiling or comparing files", async
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  const result = await run("diff", ["-X", "exclude", "left", "right"], { fs });
+  const result = await run("diff", ["-X", "exclude", "left", "right"], { fs, options: { maxExcludePatternBytes: 32, maxExcludePatterns: 4 } });
   assert.equal(result.exitCode, 2);
   assert.equal(result.stdout, "");
   assert.equal(result.stderr, "diff: exclusion pattern byte limit exceeded\n");

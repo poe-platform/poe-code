@@ -41,21 +41,20 @@ export class Budget {
 
   constructor(readonly context: CommandContext, options: DiffPatchOptions) {
     this.limits = {
-      maxInputBytes: options.maxInputBytes ?? 16 * 1024 * 1024,
-      maxOutputBytes: options.maxOutputBytes ?? 16 * 1024 * 1024,
-      maxLines: options.maxLines ?? 100_000,
-      maxWork: options.maxWork ?? 8_000_000,
-      maxMatrixCells: options.maxMatrixCells ?? 4_000_000,
-      maxFiles: options.maxFiles ?? 1024,
-      maxHunks: options.maxHunks ?? 10_000,
-      maxExcludePatterns: options.maxExcludePatterns ?? 1024,
-      maxExcludePatternBytes: options.maxExcludePatternBytes ?? 65_536,
+      maxInputBytes: options.maxInputBytes ?? Infinity,
+      maxOutputBytes: options.maxOutputBytes ?? Infinity,
+      maxLines: options.maxLines ?? Infinity,
+      maxWork: options.maxWork ?? Infinity,
+      maxMatrixCells: options.maxMatrixCells ?? Infinity,
+      maxFiles: options.maxFiles ?? Infinity,
+      maxHunks: options.maxHunks ?? Infinity,
+      maxExcludePatterns: options.maxExcludePatterns ?? Infinity,
+      maxExcludePatternBytes: options.maxExcludePatternBytes ?? Infinity,
     };
-    for (const [name, value] of Object.entries(this.limits)) {
-      if (!Number.isSafeInteger(value) || value < 1) throw new ToolError(`${name} must be a positive safe integer`);
+    for (const [name, value] of Object.entries(options).filter(([name]) => name !== "replace")) {
+      if (value !== undefined && (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1)) throw new ToolError(`${name} must be a positive safe integer`);
     }
   }
-
   step(amount = 1): void {
     this.context.signal.throwIfAborted();
     this.work += amount;
@@ -105,10 +104,10 @@ export class Budget {
     const capabilities = path === "-" ? undefined : await host(this.context, async () =>
       await this.context.fs.capabilitiesFor?.(path, { signal: this.context.signal }) ?? this.context.fs.capabilities);
     const bytes = path === "-"
-      ? await collectBytes(this.chunks(this.context.stdin), { signal: this.context.signal, maxBytes: remaining })
+      ? await collectBytes(this.chunks(this.context.stdin), { signal: this.context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) })
       : this.context.fs.readStream && capabilities?.streamingRead !== false
-        ? await collectBytes(this.chunks(this.context.fs.readStream(path, { signal: this.context.signal })), { signal: this.context.signal, maxBytes: remaining })
-        : await host(this.context, () => this.context.fs.readFile(path, { signal: this.context.signal, maxBytes: remaining }));
+        ? await collectBytes(this.chunks(this.context.fs.readStream(path, { signal: this.context.signal })), { signal: this.context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) })
+        : await host(this.context, () => this.context.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) }));
     this.inputBytes += bytes.byteLength;
     if (this.inputBytes > this.limits.maxInputBytes) throw new ToolError("input byte limit exceeded");
     return encoding === "latin1" ? Buffer.from(bytes).toString("latin1") : this.text(bytes);
@@ -197,10 +196,8 @@ export async function host<Result>(context: CommandContext, operation: () => Pro
 
 export async function inspect(budget: Budget, path: string): Promise<FileStat | undefined> {
   const context = budget.context;
-  if (path.length > 4096) throw new ToolError("path length limit exceeded");
   const absolute = pathOf(context, path);
   const parts = absolute.split("/").filter(Boolean);
-  if (absolute.length > 4096 || parts.length > 256) throw new ToolError("path length/depth limit exceeded");
   let current = "";
   for (let index = -1; index < parts.length; index++) {
     budget.step();

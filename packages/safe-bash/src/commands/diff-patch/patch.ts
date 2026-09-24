@@ -238,7 +238,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const cwd = resolvePath(context.cwd, options.directory);
     if ((await inspect(budget, cwd))?.type !== "directory") throw new ToolError(`not a directory: ${options.directory}`);
     context = { ...context, cwd };
-    budget = new Budget(context, budget.limits);
+    budget = new Budget(context, Object.fromEntries(Object.entries(budget.limits).filter(([, value]) => Number.isFinite(value))));
   }
   const publication = new PatchPublication(context);
   if (!options.dryRun) {
@@ -258,7 +258,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         return typeof value === "function" ? value.bind(selected) : value;
       },
     }) };
-    budget = new Budget(context, budget.limits);
+    budget = new Budget(context, Object.fromEntries(Object.entries(budget.limits).filter(([, value]) => Number.isFinite(value))));
   }
   const output = options.output === undefined ? undefined : safeTarget(options.output, 0, true);
   if (options.output !== undefined && output === undefined) throw new ToolError("/dev/null is not an output file");

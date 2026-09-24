@@ -2,7 +2,6 @@ import { ToolError } from "./shared.js";
 
 export function decodeHeaderPath(value: string): string {
   if (!value.startsWith('"')) return value.split("\t", 1)[0]!;
-  if (value.length > 16_384) throw new ToolError("quoted path length limit exceeded");
   const bytes: number[] = [];
   const escapes: Readonly<Record<string, number>> = { a: 7, b: 8, t: 9, n: 10, v: 11, f: 12, r: 13, '"': 34, "\\": 92 };
   let index = 1;
@@ -37,7 +36,6 @@ export function decodeHeaderPath(value: string): string {
 
 export function safeTarget(path: string, strip: number, allowAbsolute = false): string | undefined {
   if (path === "/dev/null") return undefined;
-  if (path.length > 4096 || path.split("/").length > 256) throw new ToolError("path length/depth limit exceeded");
   if (!path || (!allowAbsolute && path.startsWith("/")) || /[\\\0-\x08\x0a-\x1f\x7f]/u.test(path)) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);
   const parts = path.split(/\/+/u);
   if (parts.some(part => part === ".." || /^[A-Za-z]:/u.test(part))) throw new ToolError(`unsafe patch path: ${JSON.stringify(path)}`);

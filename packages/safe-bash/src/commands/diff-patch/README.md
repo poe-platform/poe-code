@@ -295,8 +295,8 @@ sections read unchanged VFS content. Do not assume that this simulates a
 sequential real run; `--atomic --dry-run` instead uses staged state.
 Input patch files may be read from another virtual directory with `-i`, including
 an absolute virtual path.
-Diff operands may use absolute virtual paths. Resolved paths are limited to
-4096 UTF-16 code units and 256 components; raw patch paths have the same bound.
+Diff operands may use absolute virtual paths. These commands impose no additional path length or depth quota.
+The filesystem provider still controls which paths it can represent.
 
 Both tools reject symlinks in inspected path components, including cwd
 ancestors, final targets, and patch-input paths. Patch also rejects hard-linked
@@ -366,22 +366,23 @@ synchronous JavaScript operation.
 
 | Option | Default | Scope |
 | --- | ---: | --- |
-| `maxInputBytes` | 16 MiB | Aggregate captured input, including target rechecks |
-| `maxOutputBytes` | 16 MiB | Diff stdout, or aggregate patch results, rejects, backups, and status |
-| `maxLines` | 100,000 | Aggregate tokenized lines, including converted formats and target contents, and individual hunk-coordinate bound |
-| `maxWork` | 8,000,000 | Traversal, chunk, matching, and computation work units |
-| `maxMatrixCells` | 4,000,000 | Diff LCS table cells, four bytes each |
-| `maxFiles` | 1,024 | Diff visited pairs/queued-entry bound, or patch file sections |
-| `maxHunks` | 10,000 | Aggregate generated/parsed hunks |
-| `maxExcludePatterns` | 1,024 | Aggregate diff exclusions from `-x` / `--exclude` and `-X` / `--exclude-from` |
-| `maxExcludePatternBytes` | 64 KiB | Aggregate UTF-8 bytes of those exclusion patterns, excluding file line delimiters |
+| `maxInputBytes` | Unlimited | Aggregate captured input, including target rechecks |
+| `maxOutputBytes` | Unlimited | Diff stdout, or aggregate patch results, rejects, backups, and status |
+| `maxLines` | Unlimited | Aggregate tokenized lines, including converted formats and target contents, and individual hunk-coordinate bound |
+| `maxWork` | Unlimited | Traversal, chunk, matching, and computation work units |
+| `maxMatrixCells` | Unlimited | Diff LCS table cells, four bytes each |
+| `maxFiles` | Unlimited | Diff visited pairs/queued-entry bound, or patch file sections |
+| `maxHunks` | Unlimited | Aggregate generated/parsed hunks |
+| `maxExcludePatterns` | Unlimited | Aggregate diff exclusions from `-x` / `--exclude` and `-X` / `--exclude-from` |
+| `maxExcludePatternBytes` | Unlimited | Aggregate UTF-8 bytes of those exclusion patterns, excluding file line delimiters |
 
 Exclusion files are scanned one line at a time, including `-X -` for stdin.
 Empty lines are ignored, but every line charges the shared work budget and
 participates in cancellation checkpoints. Exclusion limits are checked before
 patterns are compiled; exceeding a limit returns exit 2 without partial stdout.
 
-Limits must be positive safe integers. Diagnostic messages have a separate
+Omitted limits are unlimited. Each explicit setting is independent and must be
+a positive safe integer. Diagnostic messages have a separate
 fixed bound below 4096 bytes, even when an invalid argument is very large.
 Mixed patch formats share one invocation's file, hunk, line, and work budgets;
 normal/context conversion also shares a cumulative byte cap of

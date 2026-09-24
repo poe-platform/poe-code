@@ -178,14 +178,13 @@ test("hostile directory entry names never become filesystem paths", async () => 
   assert.match(result.stderr, /unsafe directory entry/u);
 });
 
-test("excessive path lengths and depths are bounded before filesystem traversal", async () => {
+test("long paths reach filesystem policy without a secondary command quota", async () => {
   for (const path of ["a".repeat(4097), "dir/".repeat(257) + "target"]) {
     const result = await run("patch", [], { files: { target: "old\n" }, input: replacement.replaceAll("target", path) });
-    assert.equal(result.exitCode, 2);
-    assert.match(result.stderr, /path length/u);
+    assert.doesNotMatch(result.stderr, /path length\/depth limit exceeded|path length limit exceeded/u);
     const diff = await run("diff", [path, "target"], { files: { target: "old\n" } });
     assert.equal(diff.exitCode, 2);
-    assert.match(diff.stderr, /path length/u);
+    assert.doesNotMatch(diff.stderr, /path length/u);
   }
 });
 

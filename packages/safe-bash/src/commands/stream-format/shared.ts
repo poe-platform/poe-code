@@ -23,7 +23,7 @@ export interface StreamFormatCommandsOptions {
 export function settings(options: StreamFormatCommandsOptions): StreamFormatLimits {
   const limits = {
     maxInputBytes: Infinity, maxOutputBytes: Infinity,
-    maxRecordBytes: Infinity, maxChunkBytes: Infinity,
+    maxRecordBytes: 1024 * 1024, maxChunkBytes: Infinity,
     maxFiles: Infinity, maxSteps: Infinity, maxArgumentBytes: Infinity,
     maxNumericDigits: Infinity, ...options.limits,
   };
@@ -72,8 +72,12 @@ export class Session {
     }
   }
 
+  admitOutput(size: number): void {
+    this.check(size, Math.min(this.limits.maxOutputBytes - this.outputBytes, (this.context as CommandContext & { remainingOutputBytes?: () => number }).remainingOutputBytes?.() ?? Infinity), "output");
+  }
+
   async output(bytes: Uint8Array): Promise<void> {
-    this.check(this.outputBytes + bytes.length, this.limits.maxOutputBytes, "output");
+    this.admitOutput(bytes.length);
     this.outputBytes += bytes.length;
     const width = Math.min(16384, this.limits.maxChunkBytes);
     for (let offset = 0; offset < bytes.length; offset += width) {

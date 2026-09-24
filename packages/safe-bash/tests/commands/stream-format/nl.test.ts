@@ -117,3 +117,43 @@ for (const reason of [false, Object.freeze({ cancelled: "nl match" })]) test(`nl
     assert.equal(written, 0);
   } finally { if (abort) clearImmediate(abort); await instance.dispose(); }
 });
+
+test("nl refuses oversized default number fields before constructing padding", async () => {
+  const instance = shell();
+  try {
+    const result = await instance.exec("nl -w16000000", { stdin: "x\n" });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /number field limit/);
+  } finally { await instance.dispose(); }
+});
+
+test("nl admits each complete record against remaining output before padding", async () => {
+  const instance = shell({ limits: { maxOutputBytes: 12 } });
+  try {
+    const result = await instance.exec("nl -w4 -nln", { stdin: "a\nb\n" });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "1   \ta\n");
+    assert.match(result.stderr, /output limit/);
+  } finally { await instance.dispose(); }
+});
+
+for (const format of ["ln", "rn", "rz"]) test(`nl streams ${format} padding in bounded chunks`, async () => {
+  const instance = shell({ limits: { maxChunkBytes: 64 } });
+  try {
+    const result = await instance.exec(`nl -w200 -v-2 -n${format}`, { stdin: "x\n\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    const label = format === "ln" ? "-2" + " ".repeat(198) : format === "rz" ? "-" + "0".repeat(198) + "2" : " ".repeat(198) + "-2";
+    assert.equal(result.stdout, label + "\tx\n" + " ".repeat(201) + "\n");
+  } finally { await instance.dispose(); }
+});
+
+test("nl rejects a wide field under a tiny shared stdout quota", async () => {
+  const instance = shell();
+  try {
+    const result = await instance.exec("nl -w16000000", { stdin: "x\n", limits: { maxOutputBytes: 1024 } });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /number field limit/);
+  } finally { await instance.dispose(); }
+});

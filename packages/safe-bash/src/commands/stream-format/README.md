@@ -29,8 +29,10 @@ not a published-release claim, final independent packed verification, or an
 extension of the native semantic coverage below.
 
 `StreamFormatCommandsOptions.limits` accepts partial `StreamFormatLimits`.
-All resource limits are unlimited when omitted. Explicit limits must be positive
-safe integers; selecting one leaves the others unlimited. The surrounding Shell still applies its
+Records default to a 1 MiB limit; other resource limits are unlimited when omitted.
+Explicit limits must be positive safe integers or Infinity; selecting one preserves
+the defaults for the others. Number fields are checked before allocation and padding
+is emitted in chunks of at most 16 KiB. The surrounding Shell still applies its
 own shared budgets. Output is awaited and copied before sink publication; retained
 input records are copied. Limit failures can leave already-published output.
 Cancellation cannot undo completed host effects or stop uncooperative host work.

@@ -44,6 +44,7 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
     const format = value(parsed, "n") ?? "rn";
     if (!["ln", "rn", "rz"].includes(format)) throw new UsageError(`invalid line numbering format: '${format}'`);
     session.check(width + separator.length, limits.maxRecordBytes, "number field");
+    session.admitOutput(width + separator.length);
     let delimiter = Buffer.from("\\:");
     for (const argument of parsed.values.get("d") ?? []) {
       const next = Buffer.from(argument);
@@ -51,7 +52,13 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
     }
     const delimiters = [1, 2, 3].map(count => Buffer.concat(Array.from({ length: count }, () => delimiter)));
     const budget = new PatternBudget(session);
-    const unnumbered = " ".repeat(width + separator.length);
+    async function padding(size: number, byte = 32): Promise<void> {
+      while (size > 0) {
+        const count = Math.min(size, 16384, limits.maxChunkBytes);
+        await session.output(Buffer.alloc(count, byte));
+        size -= count;
+      }
+    }
     let current: Style = body, number = start, blanks = 0;
     await session.files(session.names(parsed.operands), async source => {
       for await (const { bytes: record } of records(source, session)) {
@@ -72,13 +79,26 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
         else numbered = (await current.find(bytes.toString("latin1"), budget)) !== undefined;
         if (numbered) {
           if (number < -(1n << 63n) || number >= 1n << 63n) throw new UsageError("line number overflow");
-          let label = number.toString();
-          if (format === "ln") label = label.padEnd(width, " ");
-          else if (format === "rz" && number < 0n) label = "-" + label.slice(1).padStart(width - 1, "0");
-          else label = label.padStart(width, format === "rz" ? "0" : " ");
-          await session.output(Buffer.concat([Buffer.from(label), separator]));
+          const label = number.toString();
+          const pad = Math.max(0, width - label.length);
+          session.admitOutput(label.length + pad + separator.length + record.length + 1);
+          if (format === "ln") {
+            await session.text(label);
+            await padding(pad);
+          } else if (format === "rz" && number < 0n) {
+            await session.text("-");
+            await padding(pad, 48);
+            await session.text(label.slice(1));
+          } else {
+            await padding(pad, format === "rz" ? 48 : 32);
+            await session.text(label);
+          }
+          await session.output(separator);
           number += increment;
-        } else await session.text(unnumbered);
+        } else {
+          session.admitOutput(width + separator.length + record.length + 1);
+          await padding(width + separator.length);
+        }
         await session.output(record);
         await session.text("\n");
       }

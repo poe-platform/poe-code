@@ -33,6 +33,7 @@ test("quoted-path security: explicit target overrides absolute header without to
   await filesystem.writeFile("/target", Buffer.from("outside cwd\n"));
   const before = await snapshot(filesystem);
   const target = "/work/authorized";
+  const original = await filesystem.lstat(target);
   const expected = before.map(entry => {
     assert(typeof entry === "object" && entry !== null && "path" in entry);
     return entry.path === target ? { ...entry, data: Buffer.from("new\n").toString("hex") } : entry;
@@ -43,8 +44,11 @@ test("quoted-path security: explicit target overrides absolute header without to
   assert.deepEqual(result.stderr, Buffer.alloc(0));
   assert.deepEqual(result.stdout, Buffer.from("patching file authorized\n"));
   assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })),
-    [{ method: "writeFile", path: target }]);
-  assert.deepEqual(await snapshot(filesystem), expected, "Only the explicit target changes; header names and all other VFS entries remain intact");
+    [{ method: "publishStagedFile", path: target }]);
+  const published = await filesystem.lstat(target);
+  assert.notEqual(published.ino, original.ino, "publication replaces the target with its staged file");
+  assert.deepEqual(await snapshot(filesystem), expected.map(entry => entry.path === target ? { ...entry, ino: published.ino } : entry),
+    "Only the explicit target changes; header names and all other VFS entries remain intact");
 });
 
 for (const [name, quoted, linkTarget, linkPath, args] of [
@@ -66,17 +70,19 @@ test("quoted-path security: GNU default strips the unselected symlink ancestor a
   const filesystem = await memory({ first: "old\n", target: "old\n", "dir/target": "old\n" });
   await filesystem.symlink("dir", "/work/alias");
   const before = await snapshot(filesystem);
-  const expected = before.map(entry => {
-    assert(typeof entry === "object" && entry !== null && "path" in entry);
-    return entry.path === "/work/first" || entry.path === "/work/target"
-      ? { ...entry, data: Buffer.from("new\n").toString("hex") } : entry;
-  });
   const observed = instrument(filesystem);
   const result = await run("patch", [], observed.fs, replacement("first") + replacement('"alias/target"'));
   assert.equal(result.status, 0, result.stderr.toString());
   assert.deepEqual(result.stdout, Buffer.from("patching file first\npatching file target\n"));
   assert.deepEqual(result.stderr, Buffer.alloc(0));
   assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })),
-    [{ method: "writeFile", path: "/work/first" }, { method: "writeFile", path: "/work/target" }]);
-  assert.deepEqual(await snapshot(filesystem), expected);
+    [{ method: "publishStagedFile", path: "/work/first" }, { method: "publishStagedFile", path: "/work/target" }]);
+  const expected = await Promise.all(before.map(async entry => {
+    assert(typeof entry === "object" && entry !== null && "path" in entry && "ino" in entry);
+    if (entry.path !== "/work/first" && entry.path !== "/work/target") return entry;
+    const published = await filesystem.lstat(entry.path);
+    assert.notEqual(published.ino, entry.ino, "publication replaces each selected target with its staged file");
+    return { ...entry, ino: published.ino, data: Buffer.from("new\n").toString("hex") };
+  }));
+  assert.deepEqual(await snapshot(filesystem), expected, "Only the selected basenames change; aliases, referents and other entries remain intact");
 });

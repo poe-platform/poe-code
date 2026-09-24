@@ -102,5 +102,5 @@ export function assertDefaultAcceptance(fixture: Fixture, result: Awaited<Return
       .sort((left, right) => left.path.localeCompare(right.path));
     assert.deepEqual(ignored(execution.after), ignored(execution.before), "All ignored prefixes, referents, aliases, directories and sentinels retain identities and bytes");
   }
-  assert.deepEqual(result.product.mutations, Object.keys(fixture.selected).map(path => ({ method: "writeFile", path: `${fixture.cwd}/${path}` })));
+  assert.deepEqual(result.product.mutations, Object.keys(fixture.selected).map(path => ({ method: "publishStagedFile", path: `${fixture.cwd}/${path}` })));
 }

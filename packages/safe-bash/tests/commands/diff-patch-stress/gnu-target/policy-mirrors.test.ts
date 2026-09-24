@@ -46,6 +46,6 @@ for (const atomic of [false, true]) {
     const result = await run("patch", [...(atomic ? ["--atomic"] : []), ...flags], { fs: observed.fs, input });
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(await contents(fs, "target"), "final\n");
-    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), Array.from({ length: atomic ? 1 : 2 }, () => ["writeFile", "/work/target"]));
+    assert.deepEqual(observed.mutations().map(call => [call.method, call.path]), Array.from({ length: atomic ? 1 : 2 }, () => ["publishStagedFile", "/work/target"]));
   });
 }

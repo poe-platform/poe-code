@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "baseline": "370f753bb72fb8f98d829562cd9547de535d4d42",
+  "issue": "25 parser and selected-path controls still observed writeFile after patch switched to staged publication. Two quoted-path tests also retained replaced destination inodes in expected snapshots.",
+  "repair": "Observe publishStagedFile destination argument and recursively wrap confined views. Require staged publication with the original exact operation counts. Assert fresh selected inodes and retain every other namespace field, bytes, diagnostics and rejection behavior. No product code or historical capture changed.",
+  "sources": {
+    "packages/safe-bash/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts": "f54a33162a991407033b9288a315fa3c41b10dab5a20c35b3b77427ae18a2f9c",
+    "packages/safe-bash/tests/commands/diff-patch-stress/gnu-safety-strip-followup/evidence.ts": "b2a1107153024898abba434964453318ba70895e568637ab733a833c70abe799",
+    "packages/safe-bash/tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts": "f7d578d82598114eba72ca0e061898d600801134b5ed7e8ba05d01dc055249ea",
+    "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/helpers.ts": "31d5d9f72572dced5b440fd037651e660e41dc23e04f27b73e61d037220e2762",
+    "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts": "00db202298f27afdbd4758276b04931a2fb4c214b99a4645deefef1ff0b4df90"
+  },
+  "validation": {
+    "original": {
+      "tests": 125,
+      "passed": 100,
+      "failed": 25
+    },
+    "hookOnlyIntermediate": {
+      "tests": 125,
+      "passed": 123,
+      "failed": 2,
+      "remaining": "Quoted selected inode assertions; original diagnostics retained."
+    },
+    "final": {
+      "tests": 125,
+      "passed": 125,
+      "failed": 0
+    },
+    "related": {
+      "tests": 140,
+      "passed": 140,
+      "failed": 0,
+      "skipped": 0
+    },
+    "combinedDiffPatch": {
+      "tests": 3147,
+      "passed": 3112,
+      "failed": 35,
+      "skipped": 0
+    },
+    "lint": "Focused ESLint passes all five modified files.",
+    "sourceTypes": {
+      "command": "node scripts/historical-type-models.mjs --noEmit",
+      "exitCode": 0,
+      "scope": "Maintained source-and-tests compiler phase. No rebuild or full public-consumer rerun for this test-only change."
+    },
+    "incorrectTypeCommand": {
+      "command": "tsc --noEmit",
+      "exitCode": 2,
+      "explanation": "Raw tsc bypasses maintained authenticated historical type models and declaration origin handling. The original diagnostics remain separately recorded; this is not a maintained gate result."
+    },
+    "independentReview": {
+      "before": {
+        "packages/safe-bash/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts": "f54a33162a991407033b9288a315fa3c41b10dab5a20c35b3b77427ae18a2f9c",
+        "packages/safe-bash/tests/commands/diff-patch-stress/gnu-safety-strip-followup/evidence.ts": "b2a1107153024898abba434964453318ba70895e568637ab733a833c70abe799",
+        "packages/safe-bash/tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts": "f7d578d82598114eba72ca0e061898d600801134b5ed7e8ba05d01dc055249ea",
+        "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/helpers.ts": "31d5d9f72572dced5b440fd037651e660e41dc23e04f27b73e61d037220e2762",
+        "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts": "00db202298f27afdbd4758276b04931a2fb4c214b99a4645deefef1ff0b4df90",
+        "packages/safe-bash/src/commands/diff-patch/patch-publication.ts": "57998bf6e183db6ddae7c43ae73d4e632fd0df319845d2403a5427c64e54929d",
+        "packages/safe-bash/src/commands/diff-patch/patch.ts": "59f75077567f38ab16d7b3dd43898558ddd50f8604c18b75551e46fa9ff8b061"
+      },
+      "after": {
+        "packages/safe-bash/tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts": "f54a33162a991407033b9288a315fa3c41b10dab5a20c35b3b77427ae18a2f9c",
+        "packages/safe-bash/tests/commands/diff-patch-stress/gnu-safety-strip-followup/evidence.ts": "b2a1107153024898abba434964453318ba70895e568637ab733a833c70abe799",
+        "packages/safe-bash/tests/commands/diff-patch-stress/gnu-target/policy-mirrors.test.ts": "f7d578d82598114eba72ca0e061898d600801134b5ed7e8ba05d01dc055249ea",
+        "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/helpers.ts": "31d5d9f72572dced5b440fd037651e660e41dc23e04f27b73e61d037220e2762",
+        "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts": "00db202298f27afdbd4758276b04931a2fb4c214b99a4645deefef1ff0b4df90",
+        "packages/safe-bash/src/commands/diff-patch/patch-publication.ts": "57998bf6e183db6ddae7c43ae73d4e632fd0df319845d2403a5427c64e54929d",
+        "packages/safe-bash/src/commands/diff-patch/patch.ts": "59f75077567f38ab16d7b3dd43898558ddd50f8604c18b75551e46fa9ff8b061"
+      },
+      "unchanged": true,
+      "cases": [
+        {
+          "name": "exact parser wrapper records destination arg 1 and forwards receiver/arguments/result",
+          "passed": true
+        },
+        {
+          "name": "exact parser wrapper observes nested confined mkdir/rm/rmdir once each",
+          "passed": true
+        },
+        {
+          "name": "exact wrapper retains thrown false while recording attempted mutation",
+          "passed": true
+        },
+        {
+          "name": "exact wrapper retains thrown 0 while recording attempted mutation",
+          "passed": true
+        },
+        {
+          "name": "exact wrapper retains thrown \"\" while recording attempted mutation",
+          "passed": true
+        },
+        {
+          "name": "exact wrapper retains thrown null while recording attempted mutation",
+          "passed": true
+        },
+        {
+          "name": "parser fixture observes publication and confined parent creation",
+          "passed": true
+        },
+        {
+          "name": "parser preflight no effects and injected mutation detected: normal-truncated-new-body",
+          "passed": true
+        },
+        {
+          "name": "parser preflight no effects and injected mutation detected: atomic-extension-normal-valid-then-malformed-context",
+          "passed": true
+        },
+        {
+          "name": "parser preflight no effects and injected mutation detected: normal-maxInput",
+          "passed": true
+        },
+        {
+          "name": "parser preflight no effects and injected mutation detected: normal-cancel-input",
+          "passed": true
+        },
+        {
+          "name": "quoted explicit exact target receipts and untouched namespace",
+          "passed": true
+        },
+        {
+          "name": "quoted stripped exact target receipts and untouched namespace",
+          "passed": true
+        },
+        {
+          "name": "default acceptance enforces selected and untouched namespaces: author-ancestor",
+          "passed": true
+        },
+        {
+          "name": "default acceptance enforces selected and untouched namespaces: independent-ancestor",
+          "passed": true
+        },
+        {
+          "name": "default acceptance enforces selected and untouched namespaces: independent-file-parent",
+          "passed": true
+        }
+      ],
+      "unhandled": [],
+      "extractedWrapper": {
+        "sha256": "880fb586b063d380943171adca68db56e173b5e718bfee2b61894dc147980e26",
+        "source": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/helpers.ts"
+      },
+      "profile": "Current source fixture checks; exact AST-extracted wrapper probes and in-memory effects. No runtime change or compiled build qualification."
+    },
+    "logHashes": {
+      "red.log": "eb4b455dd40bb21127a8132744e5a91e06c1e90b120d67a02ca80a9f27e484a2",
+      "green.log": "351a807fadcccc2a3ef8c76b573fab34dfc8765061f72eacd0a8fe0b958da7f7",
+      "final.log": "a0185706733bedf3533cf233013fc5e48b81d2120a534c38acaf057846512013",
+      "related.log": "0a639d365e63ba128823e6a1db5f88e7bfb00faea1132ae1cc25f50136601c96",
+      "all-diff-patch.log": "37c3980aaba4ac1d8c2f16e18df3ef5c407b2b29fa258ae15546b8608b1b1cd6",
+      "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source-types.log": "8f18a383157a63f6a0950abdf870a4424748bc7b1d3f780f5f71f8586bc58cd9",
+      "maintained-source-types.log": "7e6d6ee5cc199525fdb2d3a638bf39ae4b0d70b5aa6b8ade4e07593b1f6911ed",
+      "independent/results.json": "a25469b7e57c968b412dea633125aed6de7f393820b22ef66b97b14f3e9560b5"
+    }
+  },
+  "previousDelivery": {
+    "commit": "370f753bb72fb8f98d829562cd9547de535d4d42",
+    "verifiedRemoteMain": true,
+    "postRebaseTests": {
+      "tests": 2134,
+      "passed": 2134,
+      "failed": 0
+    },
+    "publication": "pending"
+  },
+  "limitations": [
+    "35 diff/patch safety failures remain.",
+    "Root publication and all 19 original ssconvert families remain open."
+  ]
+}

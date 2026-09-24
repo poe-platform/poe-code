@@ -24,6 +24,6 @@ for (const count of [1, 2, 3]) for (const suffix of ["", "keep\nend\n", "keep\ne
     assert.deepEqual(productIssues(fixture, result), []);
     assert.equal(result.stdout, "patching file /work/target\n");
     assert.equal(result.stderr, "");
-    assert.deepEqual(result.mutations, ["writeFile:/work/target"]);
+    assert.deepEqual(result.mutations, ["publishStagedFile:/work/target"]);
   });
 }

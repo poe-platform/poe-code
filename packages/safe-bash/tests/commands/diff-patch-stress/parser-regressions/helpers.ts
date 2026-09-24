@@ -15,17 +15,21 @@ export async function product(fixture: ParserCase) {
   await memory.writeFile("/work/target", Buffer.from(fixture.before));
   await memory.writeFile("/work/other", Buffer.from("old\n"));
   const mutations: string[] = [];
-  const changing = new Set(["writeFile", "writeStream", "rm", "rename", "mkdir", "symlink", "link", "chmod", "utimes"]);
-  const fs = new Proxy(memory, {
+  const changing = new Set(["writeFile", "writeStream", "publishStagedFile", "rm", "rmdir", "rename", "mkdir", "symlink", "link", "chmod", "utimes"]);
+  const wrap = (backing: FileSystem): FileSystem => new Proxy(backing, {
     get(target, property) {
+      if (property === "confineExtraction" && target.confineExtraction) {
+        return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => wrap(await target.confineExtraction!(...args));
+      }
       const value: unknown = Reflect.get(target, property, target);
       if (typeof value !== "function") return value;
       return (...args: unknown[]) => {
-        if (changing.has(String(property))) mutations.push(`${String(property)}:${String(args[0])}`);
+        if (changing.has(String(property))) mutations.push(`${String(property)}:${String(args[property === "publishStagedFile" ? 1 : 0])}`);
         return Reflect.apply(value, target, args);
       };
     },
-  }) as FileSystem;
+  });
+  const fs = wrap(memory);
   const controller = new AbortController();
   const reason = new Error(`parser-verifier cancellation: ${fixture.id}`);
   let cancellationScheduled = false;

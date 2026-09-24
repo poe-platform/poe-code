@@ -879,10 +879,7 @@ class Lexer {
         if (this.source[end] !== "]") this.error("Unterminated indexed-array subscript");
         selector = arraySelector(this.source.slice(start, end), start, this.budget, keyWord);
         this.position = end + 1;
-        if (this.source[this.position] !== "}" && this.source[this.position] !== "@" && !(!length && !listing && (this.source[this.position] === "^" || this.source[this.position] === ",")) && !(this.syntax.indexedElementOperators && !length && selector.kind === "element"
-          && (this.source[this.position] === "-" || this.source[this.position] === "+" || this.source[this.position] === ":" && "-+".includes(this.source[this.position + 1] ?? "")))
-          && !(this.syntax.indexedElementOperators && !length && !listing && selector.kind === "members" && this.source[this.position] === ":"
-            && !"-=+?".includes(this.source[this.position + 1] ?? ""))) this.error("Unsupported indexed-array operator");
+        if (listing && this.source[this.position] !== "}" && this.source[this.position] !== "@") this.error("Unsupported array-key operator");
       }
       if (listing && selector?.kind === "element") this.error("Unsupported indirect parameter expansion");
       if (listing && selector?.kind === "members" && this.syntax.arrayKeys) {

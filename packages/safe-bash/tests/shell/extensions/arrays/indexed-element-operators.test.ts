@@ -175,8 +175,8 @@ test("indexed operator parser retains selector and nested substitution form", ()
 });
 
 for (const syntax of [undefined, { arrayKeys: true }, { indexedDeclarations: ["readonly"] }] as const) {
-  test(`indexed operators are not implicitly enabled: ${JSON.stringify(syntax)}`, () => {
-    assert.throws(() => parseShell('printf "${values[1]-fallback}"', 0, syntax), error => error instanceof ShellSyntaxError && error.reason === "Unsupported indexed-array operator");
+  test(`indexed operators are enabled by default: ${JSON.stringify(syntax)}`, () => {
+    assert.doesNotThrow(() => parseShell('printf "${values[1]-fallback}"', 0, syntax));
   });
 }
 
@@ -193,8 +193,14 @@ test("indexed operators preserve named subscript syntax", () => {
   assert.equal(part.operator, "-");
 });
 
-for (const expression of ["${values[1]:=x}", "${values[1]:?x}", "${values[1]:1}", "${!values[@]:1}", "${values[1]=x}", "${values[1]?x}", "${values[1]#x}", "${values[@]-x}", "${!values[@]+x}", "${#values[1]-x}"]) {
-  test(`broader indexed forms remain outside the increment: ${expression}`, () => {
+for (const expression of ["${values[1]:=x}", "${values[1]:?x}", "${values[1]:1}", "${values[1]=x}", "${values[1]?x}", "${values[1]#x}", "${values[@]-x}"]) {
+  test(`standard indexed operators are supported: ${expression}`, () => {
+    assert.doesNotThrow(() => parseShell(`printf '${expression}' ${expression}`, 0, arraysExtension().syntax));
+  });
+}
+
+for (const expression of ["${!values[@]:1}", "${!values[@]+x}", "${#values[1]-x}"]) {
+  test(`invalid key or length operators remain rejected: ${expression}`, () => {
     assert.throws(() => parseShell(`printf '${expression}' ${expression}`, 0, arraysExtension().syntax), ShellSyntaxError);
   });
 }

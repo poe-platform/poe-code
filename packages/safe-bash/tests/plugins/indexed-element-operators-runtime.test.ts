@@ -124,12 +124,12 @@ describe("compiled opt-in literal indexed element operators", { skip: selected =
   }
 
   for (const profile of ["default", "name-only", "keys-only", "readonly-only"] as const) for (const operator of ["-", "+"] as const) {
-    test(`public ${profile} does not admit indexed ${operator}`, async context => {
+    test(`public ${profile} admits indexed ${operator}`, async context => {
       const { shell } = await fixture(context, profile);
       const result = await shell.exec(`values=(set); printf '%s' "\${values[0]${operator}unexpected}"`);
-      assert.equal(result.exitCode, 2);
-      assert.equal(result.stdout, "");
-      assert.match(result.stderr, /Unsupported indexed-array operator/u);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, operator === "-" ? "set" : "unexpected");
+      assert.equal(result.stderr, "");
     });
   }
 

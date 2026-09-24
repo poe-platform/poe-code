@@ -74,6 +74,9 @@ import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
 
+const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
+const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
+
 async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
   const checkpoint = async (): Promise<void> => {
     budget.cpuCheckpoint();
@@ -6958,7 +6961,15 @@ export class Runtime {
     if (part.kind !== "variable" || selector?.kind !== "element" || selector.index.source === undefined) return part;
     const store = requireArrays(state);
     const binding = store.get(part.name);
-    if (binding?.associative) return part;
+    if (binding?.associative) {
+      const word = selector.index.word ?? parseArraySubscript(selector.index.source, this.budget.parsing, byteLocale(state.variables), state.depth);
+      const fields = await this.valueWord(word, state, io, false);
+      const value = concatShellValues(fields, io[valueScope]);
+      const resolved = { ...part };
+      copyArraySelector(part, resolved);
+      setArraySelector(resolved, { kind: "element", index: { decimal: shellValueText(value), word: { offset: word.offset, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } } });
+      return resolved;
+    }
     const maximum = binding?.maximum ?? (state.variables[part.name] === undefined ? -1 : 0);
     const index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum);
     const resolved = { ...part };
@@ -6984,7 +6995,53 @@ export class Runtime {
       return this.valuePart({ ...part, name, indirect: false }, state, io, hereString, split, hereDocument);
     }
     part = await this.resolveParameter(part, state, io);
-    if (part.kind === "variable" && (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? ""))) {
+    const memberSelector = getArraySelector(part);
+    if (part.kind === "variable" && memberSelector?.kind === "members" && part.operator && defaultParameterOperators.includes(part.operator)) {
+      const members = await this.arrayMembers(part.name, state, io);
+      const missing = members.length === 0;
+      const operator = part.operator.at(-1)!;
+      if (operator === "+" ? !missing : missing) {
+        if (operator === "=") throw new ArrayFailure(`${part.name}[${memberSelector.separator}]: bad array subscript`);
+        const alternate = concatShellValues(await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, false, hereString, false, undefined, hereDocument), io[valueScope]);
+        if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${shellValueText(alternate) || "parameter not set"}`, io.diagnosticLine ?? part.line);
+        return alternate;
+      }
+      if (operator === "+") return "";
+    }
+    const element = getArraySelector(part);
+    if (part.kind === "variable" && element?.kind === "element") {
+      const store = requireArrays(state);
+      const binding = store.get(part.name);
+      const index = binding?.associative
+        ? await this.arrayIndex(binding, element.index, state, io, store.owner)
+        : numericIndex(element.index, 4294967295);
+      const value = binding ? index === undefined ? undefined : binding.getValue(index)
+        : index === 0 ? this.variable(state, part.name) : undefined;
+      if (part.operator && defaultParameterOperators.includes(part.operator)) {
+        const missing = value === undefined || part.operator.startsWith(":") && shellValueByteLength(value) === 0;
+        const operator = part.operator.at(-1)!;
+        if (operator === "+" ? !missing : missing) {
+          const operandIO = this.parameterOperandIO(part.alternate!, state, io);
+          if (operator === "=") {
+            await this.arrayAssignment({ kind: "element", name: part.name, index: element.index, append: false, value: part.alternate! }, state, operandIO);
+            const assigned = store.get(part.name)!;
+            const assignedIndex = assigned.associative ? await this.arrayIndex(assigned, element.index, state, io, store.owner) : index;
+            return assignedIndex === undefined ? "" : assigned.getValue(assignedIndex) ?? "";
+          }
+          const alternate = concatShellValues(await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument), io[valueScope]);
+          if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${shellValueText(alternate) || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
+          return alternate;
+        }
+        return operator === "+" ? "" : value ?? "";
+      }
+      this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
+      if (part.length) return this.valueLength(value ?? "", state, io);
+      if (part.substring) return this.substring(part, value === undefined ? undefined : shellValueText(value), state, io);
+      if (part.transform) return this.transformValue(value ?? "", part.transform, state, io);
+      if (part.operator) return this.parameterPattern(part, value ?? "", state, io, hereString);
+      return value ?? "";
+    }
+    if (part.kind === "variable" && (part.transform || memberPatternOperators.includes(part.operator ?? ""))) {
       const selector = getArraySelector(part);
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
@@ -7477,7 +7534,7 @@ export class Runtime {
       return fields;
     }
     const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
-    const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && part.name === "@"));
+    const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@"));
     const positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && !part.transform);
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
@@ -7610,9 +7667,14 @@ export class Runtime {
       quoteGroup = prefixNameQuoteGroups.get(part);
       const quotedPresence = part.quoted && !((arrayOwned || prefixOwned || positionalOwned) && isQuoteMarker(part));
       const selector = getArraySelector(part);
-      if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
+      const defaultMembers = part.kind === "variable" && selector?.kind === "members" && defaultParameterOperators.includes(part.operator ?? "")
+        ? await this.arrayMembers(part.name, state, partIO) : undefined;
+      const expandMembers = !defaultMembers || defaultMembers.length > 0 && !(part.kind === "variable" && part.operator!.endsWith("+"));
+      if (part.kind === "variable" && !arrayStore(state)?.get(part.name)?.associative && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
         let value: ShellValue | undefined = this.variable(state, part.name);
-        if (selector?.kind === "element") {
+        if (selector?.kind === "members") {
+          value = defaultMembers!.length ? "set" : undefined;
+        } else if (selector?.kind === "element") {
           const index = numericIndex(selector.index, 4294967295);
           if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
           const binding = arrayStore(state)?.get(part.name);
@@ -7639,7 +7701,7 @@ export class Runtime {
           emptyNameGroups ??= new Set<object>();
           emptyNameGroups.add(quoteGroup);
         }
-      } else if (part.kind === "variable" && split && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
+      } else if (part.kind === "variable" && split && expandMembers && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
           // Split the joined expansion so non-whitespace IFS retains empty member fields.
@@ -7649,11 +7711,11 @@ export class Runtime {
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
           const original = members[position]!;
-          const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : ["^", "^^", ",", ",,"].includes(part.operator ?? "") ? await this.parameterPattern(part, original, state, partIO, hereString) : original;
+          const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : memberPatternOperators.includes(part.operator ?? "") ? await this.parameterPattern(part, original, state, partIO, hereString) : original;
           if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || shellValueByteLength(value) > 0);
           else await appendSplit(value);
         }
-        if ((part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && members.length === 0 && quoteGroup) {
+        if ((part.transform || memberPatternOperators.includes(part.operator ?? "")) && members.length === 0 && quoteGroup) {
           io[valueScope]?.reserve(32, 0);
           emptyNameGroups ??= new Set<object>();
           emptyNameGroups.add(quoteGroup);

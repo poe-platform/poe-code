@@ -61,8 +61,8 @@ physical permissions, and the host process mask remains unchanged.
   and relative negative element indices, including `declare -a`, `local -a`,
   and `readonly -a` array literals. Arithmetic array operands such as `a[i]`
   support reads, assignments, and increments in `$(( … ))`, `(( … ))`,
-  `for (( … ))`, and `let`, including associative keys. The optional arrays extension adds
-  member slices and lazy element default/alternate operators.
+  `for (( … ))`, and `let`, including associative keys. Array expansions support member slices, element substrings, member-wise trimming
+  and substitution, and lazy element default, alternate, assignment, and error operators by default.
   Ownership predicates `-O` and `-G` in `[[ … ]]`, `test` and `[` use explicit
   `capabilities: { predicateIdentity: { effectiveUid, effectiveGid } }` on the
   shell or execution options; missing caller or filesystem identity is refused.

@@ -41,7 +41,9 @@ export default {
       if (mode === "/json") await run("snapshot", "--json");
       const refreshed = await run("fill", parent, "preserved");
       assert.equal(await page.getByRole("textbox", { name: "Email" }).inputValue(), "preserved");
-      await assert.rejects(run("fill", child, "wrong document"), /stale/);
+      await assert.rejects(run("fill", child, "wrong document"), {
+        message: `Ref ${child} not found in the current page snapshot. Try capturing new snapshot.`,
+      });
       assert.equal(await childFrame.getByRole("textbox").inputValue(), "");
       const freshChild = textboxRef(refreshed, "Child");
       assert.notEqual(freshChild, child);

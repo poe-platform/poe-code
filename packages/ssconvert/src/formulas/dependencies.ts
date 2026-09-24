@@ -25,7 +25,7 @@ export function buildDependencyGraph(
   book: Workbook,
   roots: ReadonlyMap<Cell, FormulaNode>,
   resolve: (node: Extract<FormulaNode, { kind: "reference" }>, position: ParsePosition) => CalculationRange | undefined,
-  parse: (source: string, position: ParsePosition) => FormulaNode,
+  parse: (source: string, position: ParsePosition, arrayStringLiterals?: boolean) => FormulaNode,
   tick: () => void,
   onRange?: (cell: Cell, value: CalculationRange) => void
 ): DependencyGraph {

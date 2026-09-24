@@ -61,6 +61,7 @@ and linked workbooks are never fetched. External names use supported on-file
 declarations during recalculation; missing or inactive names produce `#REF!`,
 while a declaration can supply the expression for a linked workbook name placeholder.
 BIFF7/8 exports resolve sheet references without regard to case and preserve the exact spelling and scope of defined names. Relative row references wrap at the format's row limit: 16,384 before BIFF8 and 65,536 in BIFF8.
+BIFF7/8 literal arrays retain their stored value types during recalculation. SDK cell, name and formula-group records can set `arrayStringLiterals: true` to preserve strings such as `"001"`, `"TRUE"` and `"#REF!"`. XML/XLSX exports carry an ignorable annotation for ssconvert readback; native Gnumeric's text import still coerces those strings.
 Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.
 It verifies logical `PWD` aliases through the supplied filesystem before using

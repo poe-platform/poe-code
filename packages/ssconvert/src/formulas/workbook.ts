@@ -12,11 +12,11 @@ import { chartDataTypes } from "../objects/data.js";
 export function rewriteWorkbook(book: Workbook, context: CapabilityContext, rewrite: (document: FormulaDocument, namedExpression: boolean) => string): Workbook {
   let work = 0;
   const maximum = context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32;
-  const formula = (source: string, position: ParsePosition, namedExpression = false) => {
+  const formula = (source: string, position: ParsePosition, namedExpression = false, arrayStringLiterals = false) => {
     context.signal.throwIfAborted();
     work += source.length + 1;
     if (work > maximum) throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
-    const parsed = parseExpression(source, { position, workbook: book, signal: context.signal });
+    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
     return rewrite(parsed.document, namedExpression);
   };
@@ -40,9 +40,9 @@ export function rewriteWorkbook(book: Workbook, context: CapabilityContext, rewr
       ...(role !== undefined && Array.isArray(node.children) ? { children: node.children.map(child => chart(child, sheet, role, role === "Objects" && typeof node.namespace === "string" ? node.namespace : namespace)) } : {}) };
   };
   const rewriteSheet = (sheet: Sheet): Sheet => ({ ...sheet,
-      cells: sheet.cells.map(cell => cell.formula === undefined ? cell : { ...cell, formula: formula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }) }),
+      cells: sheet.cells.map(cell => cell.formula === undefined ? cell : { ...cell, formula: formula(cell.formula, { sheet: sheet.id, row: cell.row, column: cell.column }, false, cell.arrayStringLiterals) }),
       ...(sheet.formulaGroups ? { formulaGroups: sheet.formulaGroups.map(group => ({ ...group, expression: formula(group.expression,
-        { sheet: sheet.id, row: group.range.startRow, column: group.range.startColumn }) })) } : {}),
+        { sheet: sheet.id, row: group.range.startRow, column: group.range.startColumn }, false, group.arrayStringLiterals) })) } : {}),
       ...(sheet.unsupportedRecords ? { unsupportedRecords: sheet.unsupportedRecords.map(record =>
         record.source === "Gnumeric_XmlIO:sax" && record.kind === "Objects" && record.disposition === "retained" && record.data !== undefined
           ? { ...record, data: chart(record.data, sheet.id) } : record) } : {}) });
@@ -50,7 +50,7 @@ export function rewriteWorkbook(book: Workbook, context: CapabilityContext, rewr
     sheets: book.sheets.map(rewriteSheet),
     ...(book.detachedSheets ? { detachedSheets: book.detachedSheets.map(rewriteSheet) } : {}),
     ...(book.names ? { names: book.names.map(name => ({ ...name, expression: formula(name.expression, name.position ?? {
-      sheet: name.sheet ?? book.activeSheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 }, true) })) } : {})
+      sheet: name.sheet ?? book.activeSheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 }, true, name.arrayStringLiterals) })) } : {})
   }, context.limits);
 }
 
@@ -118,7 +118,7 @@ export function translateFormulaGroup(group: FormulaGroup, target: ParsePosition
   if (!Number.isSafeInteger(target.row) || !Number.isSafeInteger(target.column) || target.row < group.range.startRow || target.row > group.range.endRow || target.column < group.range.startColumn || target.column > group.range.endColumn)
     throw new SsconvertError("invalid-request", "Invalid formula group member");
   if (group.kind === "array") return group.expression;
-  const result = parseExpression(group.expression, { position: { sheet: target.sheet, row: group.range.startRow, column: group.range.startColumn }, signal: context.signal });
+  const result = parseExpression(group.expression, { position: { sheet: target.sheet, row: group.range.startRow, column: group.range.startColumn }, arrayStringLiterals: group.arrayStringLiterals ?? false, signal: context.signal });
   if (!result.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: shared formula syntax");
   return rewriteReferences(result.document, { position: target, translation: "copy", signal: context.signal });
 }

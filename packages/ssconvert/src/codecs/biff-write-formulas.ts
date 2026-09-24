@@ -83,9 +83,9 @@ export class BiffFormulaWriter {
     }
     return order;
   }
-  compile(source: string, sheet: string, row: number, column: number, definition?: NamedExpression): CompiledBiffFormula {
-    const parse = (expression: string, position: ParsePosition): FormulaNode => {
-      const parsed = parseExpression(expression, { workbook: this.book, position, signal: this.context.signal,
+  compile(source: string, sheet: string, row: number, column: number, definition?: NamedExpression, arrayStringLiterals?: boolean): CompiledBiffFormula {
+    const parse = (expression: string, position: ParsePosition, literals = arrayStringLiterals ?? false): FormulaNode => {
+      const parsed = parseExpression(expression, { workbook: this.book, position, arrayStringLiterals: literals, signal: this.context.signal,
         maximumNodes: this.context.limits.workbookNodes ?? this.context.limits.cells,
         maximumLength: this.context.limits.workbookTextBytes ?? this.context.limits.outputBytes });
       if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Cannot export Excel formula: ${expression}`);

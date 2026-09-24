@@ -19,9 +19,9 @@ export function dirtyWorkbook(book: Workbook, changes: readonly CellRange[], con
   const tick = budget(context);
   book = snapshotWorkbook(book, context.limits);
   const dirty = new Set<Cell>();
-  function parse(source: string, position: ParsePosition): FormulaNode {
+  function parse(source: string, position: ParsePosition, arrayStringLiterals = false): FormulaNode {
     tick();
-    const parsed = parseExpression(source, { position, workbook: book, signal: context.signal,
+    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal,
       maximumLength: context.limits.inputBytes, maximumNodes: context.limits.workbookWork ?? context.limits.cells * 32 + context.limits.inputBytes });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
     return parsed.document.root;
@@ -32,7 +32,7 @@ export function dirtyWorkbook(book: Workbook, changes: readonly CellRange[], con
     const group = sheet.formulaGroups?.find(group => group.id === cell.formulaGroup && group.kind === "array");
     const source = cell.formula ?? group?.expression;
     if (!source) continue;
-    roots.set(cell, parse(source, { sheet: sheet.id, row: group?.range.startRow ?? cell.row, column: group?.range.startColumn ?? cell.column }));
+    roots.set(cell, parse(source, { sheet: sheet.id, row: group?.range.startRow ?? cell.row, column: group?.range.startColumn ?? cell.column }, cell.arrayStringLiterals ?? group?.arrayStringLiterals));
     if (cell.formulaDirty) dirty.add(cell);
   }
   const graph = buildDependencyGraph(book, roots, (node, position) => localReferenceRange(book, node, position), parse, tick, (cell, range) => {

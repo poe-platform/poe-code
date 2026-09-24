@@ -1,4 +1,4 @@
-import type { CellValue, Workbook } from "../workbook.js";
+import type { CellValue, FormulaSemantics, Workbook } from "../workbook.js";
 
 export interface Span { readonly start: number; readonly end: number }
 export interface ParsePosition { readonly sheet: string; readonly row: number; readonly column: number }
@@ -58,14 +58,14 @@ export interface FormulaGrammar {
   readonly wholeAxisReferences?: boolean;
   readonly qualifiedNames?: boolean;
 }
-export interface FormulaDocument {
+export interface FormulaDocument extends FormulaSemantics {
   readonly source: string;
   readonly grammar: FormulaGrammar;
   readonly position: ParsePosition;
   readonly root: FormulaNode;
   readonly sheetNames?: Readonly<Record<string, string>>;
 }
-export interface FormulaParseOptions {
+export interface FormulaParseOptions extends FormulaSemantics {
   readonly grammar?: FormulaGrammar;
   readonly position: ParsePosition;
   readonly workbook?: Workbook;

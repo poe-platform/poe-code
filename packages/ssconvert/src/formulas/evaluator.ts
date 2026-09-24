@@ -46,6 +46,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
         if (!previous && ++cellCount > context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert formula group limit exceeded");
         cells.set(key, { ...previous, row, column, value: previous?.value ?? blank, formulaGroup: group.id,
           formula: group.kind === "shared" ? translateFormulaGroup(group, { sheet: sheet.id, row, column }, context) : group.expression,
+          arrayStringLiterals: group.arrayStringLiterals ?? false,
           formulaDirty: dirty });
       }
     }
@@ -69,9 +70,9 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     const key = JSON.stringify([value.sheets.map(sheet => sheet.id), value.firstRow, value.lastRow, value.firstColumn, value.lastColumn]);
     ranges.set(key, value);
   }
-  function parse(source: string, position: ParsePosition): FormulaNode {
+  function parse(source: string, position: ParsePosition, arrayStringLiterals = false): FormulaNode {
     tick();
-    const parsed = parseExpression(source, { position, workbook: book, signal: context.signal, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work });
+    const parsed = parseExpression(source, { position, arrayStringLiterals, workbook: book, signal: context.signal, maximumLength: context.limits.inputBytes, maximumNodes: maximumWork - work });
     if (!parsed.ok) throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula syntax at ${parsed.diagnostic.start}:${parsed.diagnostic.end}`);
     return parsed.document.root;
   }
@@ -80,7 +81,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     if (!cell.formula) continue;
     const group = sheet.formulaGroups?.find(group => group.id === cell.formulaGroup && group.kind === "array");
     if (group) arrayKeys.set(cell, `${sheet.id}:${group.id}`);
-    const root = parse(cell.formula, { sheet: sheet.id, row: group?.range.startRow ?? cell.row, column: group?.range.startColumn ?? cell.column });
+    const root = parse(cell.formula, { sheet: sheet.id, row: group?.range.startRow ?? cell.row, column: group?.range.startColumn ?? cell.column }, cell.arrayStringLiterals);
     expressions.set(cell, root);
   }
   function read(sheet: Sheet, row: number, column: number): CellValue {

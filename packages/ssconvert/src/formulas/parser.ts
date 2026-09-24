@@ -233,7 +233,7 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
           space();
           let value = [grammar.arrayColumn, grammar.arrayRow, "}"].includes(source[offset] ?? "")
             ? node({ kind: "literal", start: offset, end: offset, value: { kind: "blank" } }) : expression(0, true);
-          if (value.kind === "literal" && value.value.kind === "string") {
+          if (!options.arrayStringLiterals && value.kind === "literal" && value.value.kind === "string") {
             const text = value.value.value, upper = text.toUpperCase();
             if (upper === "TRUE" || upper === "FALSE") value = node({ ...value, value: { kind: "boolean", value: upper === "TRUE" } });
             else if (["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"].includes(text)) value = node({ ...value, value: { kind: "error", value: text } });
@@ -432,7 +432,8 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
       options.signal?.throwIfAborted();
       return [sheet.id, sheet.name];
     }))) : undefined;
-    return { ok: true, document: { source, grammar, position: { ...position }, root, ...(sheetNames ? { sheetNames } : {}) } };
+    return { ok: true, document: { source, grammar, position: { ...position }, root,
+      ...(options.arrayStringLiterals ? { arrayStringLiterals: true } : {}), ...(sheetNames ? { sheetNames } : {}) } };
   } catch (error) {
     if (error !== syntax) throw error;
     return { ok: false, source, diagnostic };

@@ -16,6 +16,7 @@ import { clipboardObjectRecords } from "../conversion/clipboard-objects.js";
 import { clipboardMerges } from "../conversion/clipboard-merges.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { rejectGnumericNameCycles } from "./gnumeric-name-cycles.js";
+import { formulaSemanticsAttributes, readFormulaSemantics } from "./formula-semantics.js";
 
 const namespace = "http://www.gnumeric.org/v10.dtd";
 const namespaces = new Set(["http://www.gnome.org/gnumeric/",
@@ -295,7 +296,7 @@ function names(node: XmlElement | undefined, sheet: string, local = false): Name
     const prop = (name: string) => item.children.find(c => c.localName === name && (namespaces.has(c.namespace) || !c.namespace))?.text;
     const name = prop("name"), expression = prop("value"); if (!name || expression === undefined) return [];
     const pos = parseA1(prop("position") ?? "A1");
-    return [{ name, expression, ...(local ? { sheet } : {}),
+    return [{ name, expression, ...readFormulaSemantics(item), ...(local ? { sheet } : {}),
       ...(pos ? { position: { sheet, ...pos } } : {}) }];
   });
 }
@@ -439,7 +440,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
   const sheetNodes = index.length ? [...index.map(n => byName.get(n.text) ?? { ...n, localName: "Sheet", children: [] }),
     ...dataSheets.filter(n => !indexedNames.has(sheetName(n) ?? ""))] : dataSheets;
   if (sheetNodes.length > context.limits.sheets) limit("sheets");
-  let count = 0, work = 0; const shared = new Map<string, { formula: string; row: number; column: number; sheet: string }>();
+  let count = 0, work = 0; const shared = new Map<string, { formula: string; row: number; column: number; sheet: string; arrayStringLiterals?: boolean }>();
   let expandedAxes = 0;
   const admitAxes = (count: number) => {
     context.signal.throwIfAborted();
@@ -464,10 +465,12 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       if (!Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 0 || column < 0 || row >= size.rows || column >= size.columns) invalid("invalid cell position");
       const text = child(item, "Content")?.text ?? item.text;
       const type = attribute(item, "ValueType"), cached = attribute(item, "Value"), id = attribute(item, "ExprID");
+      let semantics = readFormulaSemantics(item);
       let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? boundNames.formulas.get(item) ?? text : undefined;
       if (!text && id && shared.has(id)) {
         const original = shared.get(id)!;
-        const parsed = parseExpression(original.formula, { position: original, signal: context.signal });
+        semantics = original.arrayStringLiterals ? { arrayStringLiterals: true } : {};
+        const parsed = parseExpression(original.formula, { position: original, ...semantics, signal: context.signal });
         if (!parsed.ok) invalid("invalid shared expression");
         formula = rewriteReferences(parsed.document, { position: { sheet: name, row, column }, translation: "copy", signal: context.signal });
       }
@@ -482,7 +485,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
         context.signal.throwIfAborted();
         formula = "=" + quoteFormulaString(text.slice(1), '"', gnumericGrammar);
       }
-      if (id && formula && !shared.has(id)) shared.set(id, { formula, row, column, sheet: name });
+      if (id && formula && !shared.has(id)) shared.set(id, { formula, row, column, sheet: name, ...semantics });
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);
       const valueFormat = attribute(item, "ValueFormat"); const runs = richText(valueFormat);
       let style: ImportedValue | undefined; let format = valueFormat;
@@ -494,9 +497,9 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       const group = formula && array ? `array-${row}-${column}` : undefined;
       if (group) {
         if (!Number.isSafeInteger(rows) || !Number.isSafeInteger(cols) || rows < 1 || cols < 1 || rows > size.rows - row || cols > size.columns - column) invalid("invalid array dimensions");
-        groups.push({ id: group, kind: "array", range: { startRow: row, startColumn: column, endRow: row + rows - 1, endColumn: column + cols - 1 }, expression: formula! });
+        groups.push({ id: group, kind: "array", range: { startRow: row, startColumn: column, endRow: row + rows - 1, endColumn: column + cols - 1 }, expression: formula!, ...semantics });
       }
-      const cell: Cell = { row, column, value: stored, ...(formula ? { formula, formulaDirty: true, ...(cached !== undefined ? { cachedResult: stored } : {}) } : {}),
+      const cell: Cell = { row, column, value: stored, ...(formula ? { formula, ...semantics, formulaDirty: true, ...(cached !== undefined ? { cachedResult: stored } : {}) } : {}),
         ...(group ? { formulaGroup: group } : {}), ...(format ? { format } : {}), ...(runs ? { richText: runs } : {}),
         ...(style || valueFormat ? { style: { ...(style ? { gnumeric: style } : {}), ...(valueFormat ? { gnumericValueFormat: valueFormat } : {}) } } : {}) };
       const address = `${row}:${column}`, previous = addresses.get(address);
@@ -667,7 +670,7 @@ function emitRetained(records: readonly UnsupportedRecord[] | undefined, kind: s
   return records?.filter(r => r.source === "Gnumeric_XmlIO:sax" && r.kind === kind && r.disposition === "retained").map(r => emitRecord(r.data, depth, writer)).join("") ?? "";
 }
 function emitNames(book: Workbook, sheet: Sheet | undefined, depth: number, writer: XmlWriter): string {
-  const entries = book.names?.filter(n => n.sheet === sheet?.id).map(n => writer.element("gnm:Name", {}, "",
+  const entries = book.names?.filter(n => n.sheet === sheet?.id).map(n => writer.element("gnm:Name", formulaSemanticsAttributes(n.arrayStringLiterals), "",
     writer.element("gnm:name", {}, n.name, "", depth + 2) + writer.element("gnm:value", {}, n.expression.startsWith("=") ? n.expression.slice(1) : n.expression, "", depth + 2) +
     writer.element("gnm:position", {}, n.position ? formatA1(n.position.row, n.position.column) : "A1", "", depth + 2), depth + 1)).join("") ?? "";
   return entries ? writer.element("gnm:Names", {}, "", entries, depth) : "";
@@ -747,7 +750,8 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
     const array = sheet.formulaGroups?.find(group => group.kind === "array" && cell.row >= group.range.startRow && cell.row <= group.range.endRow && cell.column >= group.range.startColumn && cell.column <= group.range.endColumn);
     if (array && (cell.row !== array.range.startRow || cell.column !== array.range.startColumn)) continue;
     const value = cell.cachedResult ?? cell.value;
-    const attrs: Record<string, string | number> = { Row: cell.row, Col: cell.column };
+    const attrs: Record<string, string | number> = { Row: cell.row, Col: cell.column,
+      ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals) };
     let repeated = false;
     if (cell.formula) {
       const key = cell.formulaGroup ?? `${cell.row}:${cell.column}`;
@@ -873,7 +877,8 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
       if (!cell.formula && cell.value.kind === "blank") continue;
       const group = sheet.formulaGroups?.find(g => g.kind === "array" && cell.row >= g.range.startRow && cell.row <= g.range.endRow && cell.column >= g.range.startColumn && cell.column <= g.range.endColumn);
       if (group && (cell.row !== group.range.startRow || cell.column !== group.range.startColumn)) continue;
-      const cellAttrs: Record<string, string | number> = { Row: cell.row, Col: cell.column };
+      const cellAttrs: Record<string, string | number> = { Row: cell.row, Col: cell.column,
+        ...formulaSemanticsAttributes(group?.arrayStringLiterals ?? cell.arrayStringLiterals) };
       if (group) { cellAttrs.Rows = group.range.endRow - group.range.startRow + 1; cellAttrs.Cols = group.range.endColumn - group.range.startColumn + 1; }
       // Released normal writer deliberately omits formula caches.
       if (!cell.formula) { cellAttrs.ValueType = types[cell.value.kind];

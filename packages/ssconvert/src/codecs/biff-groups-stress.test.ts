@@ -29,11 +29,15 @@ it("rejects trailing bytes after a ptgExp instead of silently discarding tokens"
     .rejects.toThrow("ptgExp");
 });
 it("keeps unsupported group tokens and caches without dangling public group IDs", async () => {
-  const book = await readBiff(workbook(formula(0), group("array", [0x20, 0, 0, 0, 0, 0, 0, 0]), formula(1)), context);
+  const book = await readBiff(workbook(formula(0), group("array", [0x18, 0, 0, 0, 0, 0, 0, 0]), formula(1)), context);
   expect(book.sheets[0]!.formulaGroups).toBeUndefined();
   expect(book.sheets[0]!.cells.map(cell => cell.formulaGroup)).toEqual([undefined, undefined]);
   expect(book.sheets[0]!.cells.map(cell => cell.cachedResult)).toEqual([{ kind: "number", value: 10 }, { kind: "number", value: 11 }]);
   expect(book.sheets[0]!.unsupportedRecords?.some(record => record.kind === "untranslated-formula")).toBe(true);
+});
+it("rejects an array token whose auxiliary values are missing", async () => {
+  await expect(readBiff(workbook(formula(0), group("array", [0x20, 0, 0, 0, 0, 0, 0, 0]), formula(1)), context))
+    .rejects.toThrow("truncated string/CONTINUE");
 });
 it("uses the array anchor for relative tokens while preserving each cached result", async () => {
   const book = await readBiff(workbook(formula(0), group("array", [0x2c, 0, 0, 0, 0xc0]), formula(1)), context);

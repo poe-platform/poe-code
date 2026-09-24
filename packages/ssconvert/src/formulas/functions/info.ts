@@ -23,7 +23,7 @@ function metadata(name: string, args: readonly (Value | undefined)[], host: Func
     return blank;
   }
   if (!cell?.formula) return blank;
-  const parsed = parseExpression(cell.formula, { position: { sheet: value.sheets[0]!.id, row: cell.row, column: cell.column }, workbook: host.book,
+  const parsed = parseExpression(cell.formula, { position: { sheet: value.sheets[0]!.id, row: cell.row, column: cell.column }, arrayStringLiterals: cell.arrayStringLiterals ?? false, workbook: host.book,
     signal: host.context.signal, maximumLength: host.context.limits.inputBytes, maximumNodes: host.context.limits.workbookWork ?? host.context.limits.cells * 32 + host.context.limits.inputBytes });
   if (!parsed.ok) unsupported("formula metadata syntax");
   const pending: FormulaNode[] = [parsed.document.root];

@@ -16,6 +16,7 @@ import { createXlsxStyles, styleRecord } from "./xlsx-write-styles.js";
 import { writeXlsxSheetMetadata, writeXlsxProperties } from "./xlsx-write-metadata.js";
 import { gnumericNumber } from "./gnumeric-number.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
+import { formulaSemanticsAttributes, readFormulaSemantics } from "./formula-semantics.js";
 
 const spreadsheetNamespaces = new Set([
   "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
@@ -238,8 +239,8 @@ function data(node: XmlElement): ImportedValue {
 function record(node: XmlElement, source: string): UnsupportedRecord {
   return { source, kind: node.localName, disposition: "retained", data: data(node) };
 }
-function formula(source: string, sheet: string, row: number, column: number, context: CapabilityContext): string {
-  const parsed = parseExpression("=" + source, { grammar: excelGrammar, position: { sheet, row, column }, signal: context.signal,
+function formula(source: string, sheet: string, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
+  const parsed = parseExpression("=" + source, { grammar: excelGrammar, position: { sheet, row, column }, arrayStringLiterals, signal: context.signal,
     maximumLength: context.limits.workbookTextBytes ?? context.limits.inputBytes, maximumNodes: context.limits.workbookNodes ?? 100000 });
   if (!parsed.ok) return "=" + source;
   let simpleSheets = true;
@@ -298,7 +299,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
       source = await recognize(source, "xlsx_sheet_dtd", context);
       const sheetRelations = await opc.relations(relation.target);
       const cells: Cell[] = [], rows: AxisMetadata[] = [], columns: AxisMetadata[] = [], groups: FormulaGroup[] = [];
-      const shared = new Map<string, { expression: string; row: number; column: number; id: string }>();
+      const shared = new Map<string, { expression: string; row: number; column: number; id: string; arrayStringLiterals?: boolean }>();
       const columnStyles = children(child(source, "cols"), "col").filter(node => attr(node, "style") !== undefined)
         .map(node => ({ min: integer(attr(node, "min")) - 1, max: integer(attr(node, "max")) - 1, style: cellStyles[integer(attr(node, "style"))] }));
       let nextRow = 0;
@@ -341,25 +342,27 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
           if (boolean(attr(row, "customFormat")) && attr(row, "s") !== undefined) inheritedStyle = cellStyles[integer(attr(row, "s"))];
           const styleId = attr(node, "s"), style = styleId === undefined ? inheritedStyle : cellStyles[integer(styleId)];
           const f = child(node, "f"); let expression: string | undefined, groupId: string | undefined;
+          let semantics = readFormulaSemantics(f);
           if (f) {
             const kind = attr(f, "t");
             if (kind === "shared") {
               const si = attr(f, "si") ?? "0"; const existing = shared.get(si);
               if (f.text) {
-                expression = formula(f.text, id, position.row, position.column, context); groupId = `shared-${si}`;
-                shared.set(si, { expression, ...position, id: groupId });
-                if (attr(f, "ref")) groups.push({ id: groupId, kind: "shared", expression, range: range(attr(f, "ref")) });
+                expression = formula(f.text, id, position.row, position.column, context, semantics.arrayStringLiterals); groupId = `shared-${si}`;
+                shared.set(si, { expression, ...position, id: groupId, ...semantics });
+                if (attr(f, "ref")) groups.push({ id: groupId, kind: "shared", expression, range: range(attr(f, "ref")), ...semantics });
               } else if (existing) {
-                const parsed = parseExpression(existing.expression, { position: { sheet: id, row: existing.row, column: existing.column }, signal: context.signal });
+                semantics = existing.arrayStringLiterals ? { arrayStringLiterals: true } : {};
+                const parsed = parseExpression(existing.expression, { position: { sheet: id, row: existing.row, column: existing.column }, ...semantics, signal: context.signal });
                 if (!parsed.ok) invalid("invalid shared formula");
                 expression = rewriteReferences(parsed.document, { position: { sheet: id, ...position }, translation: "copy", signal: context.signal }); groupId = existing.id;
               } else invalid("shared formula has no preceding definition");
             } else {
-              expression = formula(f.text, id, position.row, position.column, context);
-              if (kind === "array") { groupId = `array-${position.row}-${position.column}`; groups.push({ id: groupId, kind: "array", expression, range: range(attr(f, "ref")) }); }
+              expression = formula(f.text, id, position.row, position.column, context, semantics.arrayStringLiterals);
+              if (kind === "array") { groupId = `array-${position.row}-${position.column}`; groups.push({ id: groupId, kind: "array", expression, range: range(attr(f, "ref")), ...semantics }); }
             }
           }
-          cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, formulaDirty: raw === undefined || raw === "",
+          cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: raw === undefined || raw === "",
             ...(raw === undefined || raw === "" ? {} : { cachedResult: value }) }), ...(groupId ? { formulaGroup: groupId } : {}),
             ...(style ?? {}), ...(richText ? { richText } : {}) });
         }
@@ -450,7 +453,8 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
         await context.diagnostic?.({ code: "xlsx-name-expression", severity: "warning", message,
           bytes: warningBytes(message, context) }); continue;
       }
-      const imported = { name, expression: node.text ? formula(node.text, position.sheet, 0, 0, context) : "=#REF!", ...(sheet ? { sheet: sheet.id } : {}) };
+      const semantics = readFormulaSemantics(node);
+      const imported = { name, expression: node.text ? formula(node.text, position.sheet, 0, 0, context, semantics.arrayStringLiterals) : "=#REF!", ...semantics, ...(sheet ? { sheet: sheet.id } : {}) };
       opc.charge(names.length);
       const existing = names.findIndex(n => n.name === name && n.sheet === sheet?.id);
       if (existing < 0) names.push(imported); else names[existing] = imported;
@@ -629,7 +633,9 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
           charge(sheet.formulaGroups?.length ?? 0);
           const array = sheet.formulaGroups?.find(g => g.kind === "array" && g.range.startRow <= cell.row && g.range.endRow >= cell.row && g.range.startColumn <= cell.column && g.range.endColumn >= cell.column);
           if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
-            body += xml("f", array ? { t: "array", ref: rangeText(array.range) } : {}, escapeXlsx(exportXlsxFormula(cell.formula, sheet, cell.row, cell.column, context)));
+            body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
+              ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true) },
+              escapeXlsx(exportXlsxFormula(cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals)));
           if (value.kind === "string") {
             if ((stringCounts.get(stringKey) ?? 0) > 1) {
               type = "s"; let id = sharedIds.get(stringKey);
@@ -721,7 +727,8 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
       if (name.sheet !== undefined && index < 0) continue;
       const sheet = book.sheets[index < 0 ? 0 : index]; if (!sheet) continue;
       names += xml("definedName", { name: ["Print_Area", "Sheet_Title"].includes(name.name) ? "_xlnm." + name.name : name.name,
-        localSheetId: index < 0 ? undefined : index }, escapeXlsx(exportXlsxFormula(name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context)));
+        localSheetId: index < 0 ? undefined : index, ...formulaSemanticsAttributes(name.arrayStringLiterals, true) },
+        escapeXlsx(exportXlsxFormula(name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context, name.arrayStringLiterals)));
     }
     for (const [index, sheet] of book.sheets.entries()) {
       for (const [name, expression] of [["Sheet_Title", '"' + sheet.name.split('"').join('""') + '"'], ["Print_Area", "#REF!"]])
@@ -782,9 +789,9 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
     catch (error) { context.signal.throwIfAborted(); if (error instanceof CodecError && error.code === "resource-limit") limit("output package"); throw error; }
   };
 }
-function exportXlsxFormula(source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext): string {
+function exportXlsxFormula(source: string, sheet: Sheet, row: number, column: number, context: CapabilityContext, arrayStringLiterals = false): string {
   const position = { sheet: sheet.id, row, column };
-  const parsed = parseExpression(source.startsWith("=") ? source : "=" + source, { grammar: gnumericGrammar, position,
+  const parsed = parseExpression(source.startsWith("=") ? source : "=" + source, { grammar: gnumericGrammar, position, arrayStringLiterals,
     signal: context.signal, maximumLength: context.limits.workbookTextBytes ?? context.limits.outputBytes,
     maximumNodes: context.limits.workbookNodes ?? 100000 });
   if (!parsed.ok) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: unparsed XLSX formula");

@@ -9,7 +9,7 @@ import type { FormulaNode, ParsePosition } from "./ast.js";
 export function parseNamedExpression(
   name: NamedExpression,
   book: Workbook,
-  parse: (source: string, position: ParsePosition) => FormulaNode,
+  parse: (source: string, position: ParsePosition, arrayStringLiterals?: boolean) => FormulaNode,
   tick: () => void
 ): FormulaNode {
   if (name.expression === "" || name.expression === "=") {
@@ -33,5 +33,5 @@ export function parseNamedExpression(
     if (node.kind === "array") return { ...node, rows: node.rows.map(row => row.map(child => bind(child, depth + 1))) };
     return node;
   }
-  return bind(parse(name.expression, position));
+  return bind(parse(name.expression, position, name.arrayStringLiterals));
 }

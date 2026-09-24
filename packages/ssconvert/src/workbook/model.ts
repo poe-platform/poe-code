@@ -308,6 +308,7 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
       for (const value of [cell.formula, cell.format, cell.displayedText, cell.formulaGroup])
         optionalType(value, "string", "Invalid cell text");
       optionalType(cell.formulaDirty, "boolean", "Invalid formula dirty state");
+      optionalType(cell.arrayStringLiterals, "boolean", "Invalid formula array string semantics");
       for (const value of [
         cell.value,
         ...(cell.cachedResult === undefined ? [] : [cell.cachedResult])
@@ -394,6 +395,7 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
       checkRecord(group);
       requiredString(group.id, "Invalid formula group", false);
       requiredString(group.expression, "Invalid formula group expression");
+      optionalType(group.arrayStringLiterals, "boolean", "Invalid formula array string semantics");
       if (!["shared", "array"].includes(group.kind)) invalid("Invalid formula group kind");
       if (!group.id || groups.has(group.id)) invalid("Duplicate formula group");
       checkRange(group.range, size);
@@ -416,6 +418,7 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
     checkRecord(name, [], ["position"]);
     requiredString(name.name, "Invalid named expression", false);
     requiredString(name.expression, "Invalid named expression");
+    optionalType(name.arrayStringLiterals, "boolean", "Invalid formula array string semantics");
     if (!name.name || (name.sheet !== undefined && !ids.has(name.sheet)))
       invalid("Invalid named expression scope");
     const key = JSON.stringify([name.sheet ?? null, name.name]);

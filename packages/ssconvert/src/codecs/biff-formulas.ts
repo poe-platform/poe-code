@@ -35,6 +35,8 @@ export interface BiffFormulaContext {
   readonly globalNameDefinition?: boolean;
   readonly localSheets?: readonly string[];
   readonly shared?: boolean;
+  readonly readArray?: () => string;
+  readonly accountWork?: (amount: number) => void;
   readonly limit: number;
 }
 const binaryOperators: Readonly<Record<number, readonly [string, number]>> = {
@@ -52,6 +54,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
   const push = (text: string, precedence = 99, functionName?: string) => {
     work += text.length;
     if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
+    context.accountWork?.(text.length);
     stack.push({ text, precedence, ...(functionName === undefined ? {} : { functionName }) });
   };
   function nameText(index: number, fallbackSheet?: string): string {
@@ -65,6 +68,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const other = context.names[at]!;
       work += other.length + 1;
       if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
+      context.accountWork?.(other.length + 1);
       if (context.nameSheets[at] !== undefined && other.toUpperCase() === name.toUpperCase()) return "[]" + name;
     }
     return name;
@@ -120,6 +124,9 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     else if (token === 0x1d) push(data.u8(offset++) ? "TRUE" : "FALSE");
     else if (token === 0x1e) { push(String(data.u16(offset))); offset += 2; }
     else if (token === 0x1f) { const value = data.f64(offset); if (!Number.isFinite(value)) invalidBiff("invalid formula number"); push(String(value)); offset += 8; }
+    else if (token === 0x20 && context.readArray) {
+      data.check(offset, 7); offset += 7; push(context.readArray());
+    }
     else if (token === 0x21 || token === 0x22) {
       const argc = token === 0x22 ? data.u8(offset++) & 0x7f : undefined;
       const index = context.revision >= 4 ? data.u16(offset) : data.u8(offset); offset += context.revision >= 4 ? 2 : 1;

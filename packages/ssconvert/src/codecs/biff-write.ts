@@ -89,7 +89,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   let extentWarningReported = false;
   for (const sheet of book.sheets) {
     for (const group of sheet.formulaGroups ?? []) if (group.kind === "array" && group.range.startRow < maxRows && group.range.startColumn < 256) {
-      const formula = formulaWriter.compile(group.expression, sheet.id, group.range.startRow, group.range.startColumn);
+      const formula = formulaWriter.compile(group.expression, sheet.id, group.range.startRow, group.range.startColumn, undefined, group.arrayStringLiterals);
       arrayFormulas.set(group, formula); for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic);
     }
     let lastColumn = 0, lastRow = 0;
@@ -111,7 +111,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       if (group) {
         formulas.set(cell, { tokens: new Uint8Array([1, ...words(group.range.startRow, group.range.startColumn)]),
           arrays: new Uint8Array(), diagnostics: [], nameDependencies: [] });
-      } else if (cell.formula) { const formula = formulaWriter.compile(cell.formula, sheet.id, cell.row, cell.column);
+      } else if (cell.formula) { const formula = formulaWriter.compile(cell.formula, sheet.id, cell.row, cell.column, undefined, cell.arrayStringLiterals);
         formulas.set(cell, formula); for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic); }
     }
   }

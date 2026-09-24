@@ -7,7 +7,11 @@ export type CellValue =
   | { readonly kind: "number"; readonly value: number }
   | { readonly kind: "boolean"; readonly value: boolean }
   | { readonly kind: "error"; readonly value: string };
-export interface Cell {
+export interface FormulaSemantics {
+  /** Preserve stored array string types instead of Gnumeric text-entry coercion. */
+  readonly arrayStringLiterals?: boolean;
+}
+export interface Cell extends FormulaSemantics {
   readonly row: number;
   readonly column: number;
   readonly value: CellValue;
@@ -55,7 +59,7 @@ export interface AxisMetadata {
   readonly collapsed?: boolean;
   readonly style?: Readonly<Record<string, ImportedValue>>;
 }
-export interface NamedExpression {
+export interface NamedExpression extends FormulaSemantics {
   readonly name: string;
   readonly expression: string;
   /** Missing sheet means workbook scope; references can include detached sheets. */
@@ -63,7 +67,7 @@ export interface NamedExpression {
   /** Relative-reference parse anchor (default A1); evaluation uses the caller cell. */
   readonly position?: { readonly sheet: string; readonly row: number; readonly column: number };
 }
-export interface FormulaGroup {
+export interface FormulaGroup extends FormulaSemantics {
   readonly id: string;
   readonly kind: "shared" | "array";
   readonly range: Range;

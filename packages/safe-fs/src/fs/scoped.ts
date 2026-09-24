@@ -179,13 +179,18 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       const cached = methods.get(property);
       if (cached?.original === method) return cached.scoped;
       const dispatch = (...args: unknown[]): unknown => {
-        if (property === "createStagedFile") {
+        let stagingSignal: AbortSignal | undefined;
+        if (property === "createStagedFile" || property === "publishStagedFile") {
           signal.throwIfAborted();
-          args[3] = snapshotStagingCreation(args[3] as CreateStagedFileOptions, args[0] as string);
+          if (property === "createStagedFile") args[3] = snapshotStagingCreation(args[3] as CreateStagedFileOptions, args[0] as string);
+          const callerSignal = (args[property === "createStagedFile" ? 3 : 2] as FsOptions | undefined)?.signal;
+          stagingSignal = callerSignal && callerSignal !== signal ? AbortSignal.any([signal, callerSignal]) : signal;
+          stagingSignal.throwIfAborted();
         }
         if (operations.has(property as keyof FileSystem)) {
           const options = args.at(-1);
-          admit(options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
+          admit(stagingSignal ? { signal: stagingSignal }
+            : options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
           if (typeof args[0] === "string") validatePath(args[0], maxPathComponents);
           if (["copyFile", "rename", "link", "compareEntry"].includes(String(property)) && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
           if (property === "symlink" && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
@@ -198,8 +203,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
           const optionIndex = property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1;
           const supplied = args[optionIndex] as FsOptions | undefined;
-          const options = property === "publishStagedFile" || property === "createStagedFile" && supplied?.signal !== signal
-            ? resizeOptions(supplied ?? {}) : supplied;
+          const options = stagingSignal ? { ...supplied, signal: stagingSignal } : supplied;
           if (property === "createStagedFile") args[optionIndex] = options;
           const assertReady = (): void => {
             if (property === "createStagedFile" || property === "publishStagedFile") options?.signal?.throwIfAborted();

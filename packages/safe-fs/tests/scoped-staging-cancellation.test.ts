@@ -12,7 +12,7 @@ function view(base: FileSystem, methods: Partial<FileSystem>): FileSystem {
   } });
 }
 
-for (const phase of ["creation admission", "publication admission", "publication guard"] as const) {
+for (const phase of ["creation charge", "publication charge", "creation admission", "publication admission", "publication guard"] as const) {
   for (const first of ["caller", "scope"] as const) for (const reason of [false, null, new FsError("EXDEV")] as const) {
     test(`${phase} retains the first ${first} cancellation reason: ${String(reason)}`, async () => {
       const memory = createMemoryFileSystem(); await memory.mkdir("/work");
@@ -24,12 +24,12 @@ for (const phase of ["creation admission", "publication admission", "publication
       };
       let armed = true;
       const backing = view(memory, { capabilitiesFor: async () => {
-        if (armed && phase !== "publication guard") { armed = false; cancel(); }
+        if (armed && phase.endsWith("admission")) { armed = false; cancel(); }
         return memory.capabilities;
       } });
-      const fs = scopeFileSystem(backing, () => {}, ambient.signal);
+      const fs = scopeFileSystem(backing, () => { if (phase.endsWith("charge")) cancel(); }, ambient.signal);
       const parent = await memory.lstat("/work");
-      if (phase === "creation admission") {
+      if (phase.startsWith("creation")) {
         await assert.rejects(fs.createStagedFile!("/work/.stage", "file", {
           type: "file", data: new Uint8Array([9]),
         }, { parent, retainCleanup: true, signal: caller.signal }), error => error === reason);

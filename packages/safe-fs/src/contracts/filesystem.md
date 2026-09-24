@@ -1288,6 +1288,7 @@ a distinct caller signal is combined with the scope signal so either can stop
 cooperative resolution before commit. Cancellation after successful creation
 still returns the receipt. Once signals are combined, staging admission and
 publication guards preserve the first abort reason, including false or null.
+Staging signals are combined before the admission charge callback can abort them.
 An actual backend failure after dispatch remains
 the reported failure rather than being replaced by ambient cancellation.
 Guarded scoped publication retains the caller signal and checks scope cancellation

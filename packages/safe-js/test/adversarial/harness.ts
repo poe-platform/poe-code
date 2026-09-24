@@ -117,10 +117,10 @@ async function assertSandboxFailure(
 
 function assertRegexBudgetFailure(): void {
   try {
-    matchRegex(parseRegex("(a+)+b"), `${"a".repeat(28)}X`);
+    matchRegex(parseRegex("(a+)+b"), `${"a".repeat(28)}X`, 0, new Budget({ maxSteps: 2_000 }));
     throw new Error("pathological regex completed without exhausting its budget");
   } catch (error) {
-    if (!(error instanceof SandboxError) || error.code !== "budgetExceeded") {
+    if (!(error instanceof SandboxError) || error.code !== "budgetExceeded" || error.budget !== "steps") {
       throw adversarialFailure({
         cause: error,
         kind: "source",

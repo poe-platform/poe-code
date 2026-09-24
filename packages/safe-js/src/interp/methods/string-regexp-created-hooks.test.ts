@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { run } from "../../run.js";
+import { Budget } from "../budget.js";
 
 // ECMA-262 edition 16 §§22.1.3.13, 22.1.3.14, 22.1.3.21:
 // RegExpCreate is followed by Invoke on the newly created object's symbol hook.
@@ -25,8 +26,10 @@ describe.each(["match", "matchAll", "search"] as const)("String %s fallback hook
   it("keeps budget failure inside the created-object callback fatal", async () => {
     await expect(run(`RegExp.prototype[Symbol.${method}]=function(){
       return /^(a+)+Z$/.test('aaaaaaaaaaaaaaaaaaaaaaaa!');
-    };try { return 'a'.${method}(); } catch(e) { return 'caught'; }`))
-      .rejects.toMatchObject({ code: "budgetExceeded" });
+    };try { return 'a'.${method}(); } catch(e) { return 'caught'; }`, {
+      budget: new Budget({ maxSteps: 2_000 })
+    }))
+      .rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
   });
 
   it("creates a new pattern after a deleted hook on a RegExp argument", async () => {

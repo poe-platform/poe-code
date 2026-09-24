@@ -540,6 +540,7 @@
     "vitest": "4.1.11",
     "@poe-code/pandoc": "0.0.1",
     "@poe-code/pdf": "0.0.1",
+    "@poe-code/pdf-ast": "0.0.1",
     "@poe-code/safe-playwright": "*",
     "@kayahr/text-encoding": "^2.2.0",
     "oxlint": "1.83.0",

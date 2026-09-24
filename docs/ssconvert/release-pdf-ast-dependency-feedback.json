@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "baseline": "de1be3abe87214f5b709b99da9a58eef2955fa93",
+  "release": 35953194599,
+  "job": 107488661257,
+  "issue": "The root dependency completeness gate found @poe-code/pdf-ast missing from root development dependencies.",
+  "repair": "Declare the existing private @poe-code/pdf-ast workspace at0.0.1 in root development dependencies and the corresponding lockfile root entry. Preserve the existing workspace link and package metadata.",
+  "validation": {
+    "before": {
+      "tests": 5,
+      "passed": 4,
+      "failed": 1
+    },
+    "after": {
+      "tests": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    "command": "vitest run --config vitest.root.config.js tests/integration/workspace-deps.test.ts",
+    "manifestAndLock": "Parsed both documents, checked exact workspace version and local link, and verified byte-for-byte that only the two intended dependency lines were inserted. Existing duplicate lock keys remain untouched.",
+    "diffCheck": "passed",
+    "scope": "Configuration-only correction; containing full fresh-unit gate and publication remain pending."
+  },
+  "sha256": {
+    "package.json": "f64805f9701bfc9d9d7678c289a1767661cec6008ebb8a7d1b418e7b005d4c8c",
+    "package-lock.json": "30fcd1ddc7ead77f27a57b81b005cfde1fbe6bef8abaa3ebd948ed7815951142",
+    "packages/pdf-ast/package.json": "2055616f2dc59e06bdeaaf74218685e6e40c7da1e7cbbe81bbb41260df94176a",
+    "tests/integration/workspace-deps.test.ts": "1f7c11d42ef3b2fb3df88a5d52ad18b4d8dfe15bb1ff5880adec7db6251ebbc8"
+  }
+}

@@ -873,7 +873,7 @@ export function layoutGraphDocument(
     const nh = Math.max(36, snapTo8(measured.height + 16));
     const targetNode = rawSceneNodes.find((n) => n.id === note.targetIds[0]);
     let nx = targetNode ? targetNode.x + targetNode.width + 32 : 80;
-    let ny = targetNode ? targetNode.y : 80;
+    const ny = targetNode ? targetNode.y : 80;
     if (note.position === "left" && targetNode) {
       nx = targetNode.x - nw - 32;
     }

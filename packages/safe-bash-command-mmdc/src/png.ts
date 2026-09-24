@@ -324,7 +324,7 @@ function inflateZlibFixed(zlibData: Uint8Array, expectedLength: number): Uint8Ar
     } else if (btype === 1) {
       // Fixed Huffman block
       while (true) {
-        let code7 = readBitsMsb(7);
+        const code7 = readBitsMsb(7);
         let sym: number;
         if (code7 <= 0x17) {
           sym = 256 + code7;

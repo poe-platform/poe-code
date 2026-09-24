@@ -103,7 +103,7 @@ import {
 
 export { createSandboxArguments, isSandboxArguments } from "./arguments.js";
 export { isSandboxMap, isSandboxSet } from "./collection-brands.js";
-import { readIndexedClosureCaptures } from "./indexed-closure-captures.js";
+import { readIndexedClosureCaptures, registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 
 // SDK-created closure shapes are frozen. Snapshot their own symbol identities
 // once; foreign frozen objects and mutable function property tables stay fresh.
@@ -423,6 +423,19 @@ export function registerDeferredClosureChargeIdentity(closure: SandboxClosure, i
   if (data?.closure !== true || data.chargeIdentity !== undefined)
     throw new TypeError("Deferred initialization requires a fresh SDK-created function.");
   writeFrozenClosureData(closure, freezeValueShape({ ...data, chargeIdentity: identity }));
+}
+
+export function registerClosureCaptureCollector(
+  closure: SandboxClosure,
+  provider: () => Iterable<SandboxValue>,
+  collect: (append: (value: SandboxValue) => void) => void
+): void {
+  // Construction hooks can replace the retained provider, including with an
+  // accessor. Only the unchanged immutable native provider can use this path.
+  if (readFrozenClosureData(closure)?.closure !== true) return;
+  const descriptor = captureClosureDescriptor(closure, sandboxRetainedValues);
+  if (descriptor !== undefined && hasClosureDescriptorField(descriptor, "value") && descriptor.value === provider)
+    registerIndexedClosureCaptures(closure, collect);
 }
 
 export function ownEnumerableSandboxEntries(

@@ -276,6 +276,18 @@ test('completed snapshots preserve a healthy session when the artifact budget re
   } finally { await controller.dispose(); await f.controller.dispose(); }
 });
 
+for (const json of [false, true]) test(`completed snapshot retains its browser when output is refused, json=${json}`, async () => {
+  const f = fixture();
+  try {
+    await f.run(['open']);
+    const owned = f.leases[0]!;
+    Object.assign(owned.lease.context.pages()[0]!, { on() {}, off() {}, async ariaSnapshot() { return '- text "ready"'; }, async ariaSnapshotJSON() { return [{ role: 'text', text: 'ready' }]; } });
+    await assert.rejects(f.run(['snapshot', ...(json ? ['--json'] : [])], { async write() { throw new Error('output refused'); } }), /output refused/);
+    assert.equal(owned.releases, 0);
+    await f.run(['tab-list']);
+  } finally { await f.controller.dispose(); }
+});
+
 test('deferred handle disposal failure retires a session after successful YAML capture', async () => {
   const f = fixture();
   const failure = new Error('old snapshot handle disposal failed');

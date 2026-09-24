@@ -45,6 +45,47 @@ afterEach(() => {
 });
 
 describe("bundled workspace packaging execution", () => {
+  it("normalizes nested private bundle references while preserving their files", async () => {
+    const nestedName = "nested-private";
+    vol.mkdirSync(path.join(root, "packages", nestedName), { recursive: true });
+    vol.writeFileSync(path.join(root, "packages", nestedName, "package.json"), JSON.stringify({
+      name: nestedName, version: "1.0.0", license: "MIT", private: true
+    }));
+    execFileSync.mockImplementation((command: string, args: string[]) => {
+      if (command === "tar") {
+        const destination = path.join(args[args.indexOf("-C") + 1], "package");
+        const nestedDir = path.join(destination, "node_modules", nestedName);
+        vol.mkdirSync(nestedDir, { recursive: true });
+        vol.writeFileSync(path.join(destination, "package.json"), JSON.stringify({
+          ...dependency,
+          optionalDependencies: { [nestedName]: `file:./node_modules/${nestedName}` },
+          dependencies: { "registry-dependency": "^2.0.0" },
+          bundleDependencies: [nestedName]
+        }));
+        vol.writeFileSync(path.join(nestedDir, "package.json"), JSON.stringify({
+          private: true, license: "MIT", exports: "./index.js"
+        }));
+        return "";
+      }
+      return JSON.stringify([{ filename: "pack-dependency-1.0.0.tgz" }]);
+    });
+
+    await import("./manage-bundled-workspace-deps.mjs");
+
+    const installedDir = path.join(packageDir, "node_modules", dependency.name);
+    expect(JSON.parse(vol.readFileSync(path.join(installedDir, "package.json"), "utf8") as string))
+      .toEqual({
+        ...dependency,
+        dependencies: { "registry-dependency": "^2.0.0" },
+        optionalDependencies: { [nestedName]: "*" },
+        bundleDependencies: [nestedName]
+      });
+    expect(JSON.parse(vol.readFileSync(path.join(installedDir, "node_modules", nestedName, "package.json"), "utf8") as string))
+      .toEqual({ private: true, license: "MIT", exports: "./index.js" });
+    expect(JSON.parse(vol.readFileSync(path.join(packageDir, "composition.json"), "utf8") as string).packages)
+      .toContainEqual({ name: nestedName, version: "1.0.0", license: "MIT" });
+  });
+
   it.each([
     "/compatible/npm/bin/npm-cli.js",
     "/manager with spaces/npm-cli.js",

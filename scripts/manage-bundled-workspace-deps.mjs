@@ -336,6 +336,18 @@ function sanitizeExtractedManifest(packageDir, targetDir, bundledDependencyNames
   assertSafeBundledPath(packageDir, packageJsonPath);
   const manifest = readJson(packageJsonPath);
   const sanitized = sanitizeBundledWorkspaceManifest(manifest, bundledDependencyNames);
+  // Keep nested bundle declarations so npm packs their files. npm ci cannot
+  // validate their relative file specifiers inside an optional parent bundle.
+  for (const nestedDir of listInstalledPackageDirs(
+    path.join(targetDir, "node_modules"), { existsSync, readdirSync }
+  )) {
+    const name = inferInstalledPackageName(nestedDir);
+    for (const field of ["dependencies", "optionalDependencies"]) {
+      if (sanitized[field]?.[name] === `file:./node_modules/${name}`) {
+        sanitized[field][name] = "*";
+      }
+    }
+  }
   writeFileSync(packageJsonPath, `${JSON.stringify(sanitized, null, 2)}\n`, "utf8");
 }
 

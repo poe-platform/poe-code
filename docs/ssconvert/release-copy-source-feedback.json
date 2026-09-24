@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "baseline": "8e30d7dec0bd32ad1b981ea5f6ed4412b3d651da",
+  "issue": "Three historical retained-copy tests expected cross-device mv to overwrite existing regular files, contrary to the explicit atomic destination/ancestry safety refusal.",
+  "baselineTests": {
+    "tests": 11,
+    "passed": 8,
+    "failed": 3
+  },
+  "repair": "Keep original existing-target cases and verify exact ENOTSUP refusal, source and target preservation, and zero writes. Add missing-target cases to exercise successful retained reads and source removal. Assert actual writer/acquisition injection counts, zero unsafe pathname copying, unchanged private bytes and disposal. Extend missing-reader and ancestor-replacement controls to missing targets so early overwrite refusal cannot mask their intended checks.",
+  "runtimeChanged": false,
+  "source": {
+    "path": "packages/safe-bash/tests/commands/copy-source-binding.test.ts",
+    "sha256": "dbbf146c0d30661765e22c07b956486c2ae6ad3f7b53879ce7e7abd64b621042"
+  },
+  "validation": {
+    "focused": {
+      "files": 5,
+      "tests": 67,
+      "passed": 67,
+      "skipped": 0
+    },
+    "lint": "Focused ESLint passed.",
+    "types": "Maintained historical-type-models source/test compilation passed.",
+    "public": [
+      {
+        "command": "cp",
+        "existing": false,
+        "status": 0,
+        "stderr": "",
+        "targetHex": "00ff0d0a2a",
+        "sourceRetained": true,
+        "sentinelUnchanged": true
+      },
+      {
+        "command": "cp",
+        "existing": true,
+        "status": 0,
+        "stderr": "",
+        "targetHex": "00ff0d0a2a",
+        "sourceRetained": true,
+        "sentinelUnchanged": true
+      },
+      {
+        "command": "mv",
+        "existing": false,
+        "status": 0,
+        "stderr": "",
+        "targetHex": "00ff0d0a2a",
+        "sourceRetained": false,
+        "sentinelUnchanged": true
+      },
+      {
+        "command": "mv",
+        "existing": true,
+        "status": 1,
+        "stderr": "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/source' -> '/destination/target'\n",
+        "targetHex": "6f6c64",
+        "sourceRetained": true,
+        "sentinelUnchanged": true
+      }
+    ],
+    "publicScope": "Four built public Shell commands across distinct mounted memory filesystems; exact binary payloads, source removal/preservation, existing-target refusal and unchanged sentinel verified. Not a packed installation.",
+    "postRebase": {
+      "onto": "b57edee86",
+      "tests": 67,
+      "passed": 67,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "remaining": "Other authority/adapter/mount/S3/WebDAV failures, containing publication and all 19 original ssconvert families remain open."
+}

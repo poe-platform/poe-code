@@ -946,6 +946,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/join-null-data.test.ts"));
   assert.ok(files.includes("tests/commands/ere-work-accounting.test.ts"));
   assert.ok(files.includes("tests/commands/find-time-delete.test.ts"));
+  assert.ok(files.includes("tests/commands/find-options.test.ts"));
   assert.ok(files.includes("tests/commands/sed-null-data.test.ts"));
   assert.ok(files.includes("tests/commands/ls-human-sort.test.ts"));
   assert.ok(files.includes("tests/commands/rg-file-types.test.ts"));

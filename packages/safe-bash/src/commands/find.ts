@@ -1,3 +1,4 @@
+import { modeChange } from "./metadata/chmod.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
@@ -30,6 +31,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       if (debug !== "tree") throw new UsageError(`unsupported debug option '${debug}' (supported: tree)`);
       debugTree = true;
     }
+    if (args[0] === "--") { args.shift(); values.shift(); }
     const roots: string[] = [];
     while (args.length && !args[0]!.startsWith("-") && !["!", "("].includes(args[0]!)) { roots.push(args.shift()!); values.shift(); }
     if (!roots.length) roots.push(".");
@@ -37,21 +39,6 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     let minDepth = 0;
     let depthFirst = false;
     let explicitDepth = false;
-    for (let index = 0; index < args.length;) {
-      if (args[index] === "-exec") {
-        index++;
-        while (index < args.length && args[index] !== ";" && !(args[index] === "+" && args[index - 1] === "{}")) index++;
-        index++;
-      } else if (args[index] === "-maxdepth" || args[index] === "-mindepth") {
-        if (args[index + 1] === undefined) throw new UsageError(`${args[index]} requires a number`);
-        const number = integer(args[index + 1]!);
-        if (args[index] === "-maxdepth") maxDepth = number; else minDepth = number;
-        args.splice(index, 2);
-        values.splice(index, 2);
-      } else if (args[index] === "-depth") { depthFirst = true; explicitDepth = true; args.splice(index, 1); values.splice(index, 1); }
-      else if (["-name", "-iname", "-path", "-ipath", "-type", "-size", "-mtime", "-mmin", "-newer", "-printf"].includes(args[index]!)) index += 2;
-      else index++;
-    }
     let offset = 0;
     let explicitAction = false;
     let exitCode = 0;
@@ -82,7 +69,19 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (args[offset++] !== ")") throw new UsageError("missing ')'");
         return inner;
       }
-      if (["-name", "-iname", "-path", "-ipath", "-type", "-size", "-mtime", "-mmin", "-newer"].includes(token)) {
+      if (token === "-depth") {
+        depthFirst = true;
+        explicitDepth = true;
+        return async () => true;
+      }
+      if (token === "-maxdepth" || token === "-mindepth") {
+        const operand = args[offset++];
+        if (operand === undefined) throw new UsageError(`${token} requires a number`);
+        const number = integer(operand);
+        if (token === "-maxdepth") maxDepth = number; else minDepth = number;
+        return async () => true;
+      }
+      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-newer"].includes(token)) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
         if (token === "-newer") {
@@ -106,8 +105,30 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         }
         if (token === "-type") {
           const types: Record<string, string> = { f: "file", d: "directory", l: "symlink", c: "character" };
-          if (!types[operand]) throw new UsageError(`unsupported file type '${operand}'`);
-          return async entry => entry.stat.type === types[operand];
+          const specialModes: Record<string, number> = { b: 0o060000, p: 0o010000, s: 0o140000 };
+          const requested = operand.split(",");
+          if (requested.some(type => !types[type] && !specialModes[type])) throw new UsageError(`unsupported file type '${operand}'`);
+          return async entry => requested.some(type => specialModes[type]
+            ? (entry.stat.mode & 0o170000) === specialModes[type] : entry.stat.type === types[type]);
+        }
+        if (token === "-perm") {
+          const comparison = operand[0] === "-" || operand[0] === "/" ? operand[0] : "";
+          const bits = modeChange(comparison ? operand.slice(1) : operand, 0)({ mode: 0, type: "file" });
+          return async entry => {
+            const permissions = entry.stat.mode & 0o7777;
+            return comparison === "-" ? (permissions & bits) === bits
+              : comparison === "/" ? bits === 0 || (permissions & bits) !== 0 : permissions === bits;
+          };
+        }
+        if (token === "-links") {
+          const comparison = operand[0] === "+" || operand[0] === "-" ? operand[0] : "";
+          const digits = comparison ? operand.slice(1) : operand;
+          if (!digits || [...digits].some(digit => digit < "0" || digit > "9")) throw new UsageError(`invalid link count '${operand}'`);
+          const count = integer(digits);
+          return async entry => {
+            if (entry.stat.nlink === undefined) throw new FsError("ENOTSUP", { path: entry.path, message: "link count unavailable" });
+            return comparison === "+" ? entry.stat.nlink > count : comparison === "-" ? entry.stat.nlink < count : entry.stat.nlink === count;
+          };
         }
         if (token === "-size") {
           const match = /^([+-]?)([0-9]+)([cbkM]?)$/u.exec(operand);
@@ -116,7 +137,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const unit = match[3] === "c" ? 1 : match[3] === "k" ? 1024 : match[3] === "M" ? 1048576 : 512;
           return async entry => match[1] === "+" ? Math.ceil(entry.stat.size / unit) > size : match[1] === "-" ? Math.ceil(entry.stat.size / unit) < size : Math.ceil(entry.stat.size / unit) === size;
         }
-        const ignoreCase = token === "-iname" || token === "-ipath";
+        const ignoreCase = token === "-iname" || token === "-ipath" || token === "-iwholename";
         const work = {
           remaining: 1_000_000,
           signal: context.signal,
@@ -258,7 +279,9 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
           const next = new Set(ancestors).add(physical);
           const children = await readDirectory(context, path, true);
-          for (const child of children) await visit(`${display.replace(/\/$/u, "")}/${child.name}`, depth + 1, next, root, relative ? `${relative}/${child.name}` : child.name);
+          let parent = display;
+          while (parent.endsWith("/")) parent = parent.slice(0, -1);
+          for (const child of children) await visit(`${parent}/${child.name}`, depth + 1, next, root, relative ? `${relative}/${child.name}` : child.name);
         }
         if (depthFirst) await apply();
       } catch (error) { if (formatBudget.exhausted) throw error; await diagnostic(context, error); exitCode = 1; }

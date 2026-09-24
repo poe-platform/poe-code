@@ -2,9 +2,9 @@ import { FsError, type FileStat } from "../../contracts/index.js";
 import { codeOf, diagnostic, options, pathOf, requireOperands, UsageError, value } from "../internal.js";
 import { MetadataBudget, metadataCommand, permissionString, settings, type MetadataCommandsOptions } from "./internal.js";
 
-type ModeChange = (stat: FileStat) => number;
+type ModeChange = (stat: Pick<FileStat, "mode" | "type">) => number;
 
-function modeChange(text: string, umask: number): ModeChange {
+export function modeChange(text: string, umask: number): ModeChange {
   const numeric = /^([+=-]?)([0-7]+)$/u.exec(text);
   if (numeric) {
     const bits = Number.parseInt(numeric[2]!, 8);

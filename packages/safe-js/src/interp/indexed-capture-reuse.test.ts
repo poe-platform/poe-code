@@ -11,6 +11,20 @@ function captured(...values: SandboxValue[]) {
   return closure;
 }
 
+it("does not let a saved append callback contaminate a later measurement", () => {
+  let saved!: (value: SandboxValue) => void;
+  const first = createSandboxClosure({ call: () => undefined });
+  registerIndexedClosureCaptures(first, append => { saved = append; });
+  expect(measureSandboxData([first])).toBe(1);
+  const later = createSandboxClosure({ call: () => undefined });
+  registerIndexedClosureCaptures(later, append => {
+    saved({ text: "x".repeat(1000) });
+    append("abc");
+  });
+  expect(measureSandboxData([later])).toBe(4);
+  expect(measureSandboxData([later])).toBe(4);
+});
+
 it.each([false, true])("keeps parent captures and later siblings charged (held=%s)", held => {
   const payload = { data: "x".repeat(1000) };
   const child = captured("abc", "longer");

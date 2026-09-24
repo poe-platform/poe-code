@@ -45,3 +45,69 @@ test("built replay-data helpers initialize without preloading the SDK", () => {
   const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
+
+test("built data accounting retains optimized code across garbage collections", () => {
+  const entry = name => JSON.stringify(new URL(`../dist/interp/${name}.js`, import.meta.url).href);
+  const source = `
+    import { measureSandboxData, createSandboxClosure } from ${entry("values")};
+    import { createIntrinsicArray } from ${entry("object-model")};
+    const child = { text: "text" };
+    const roots = Array.from({ length: 1200 }, (_, index) => index % 3 === 0
+      ? createSandboxClosure({ call: () => undefined, retainedValues: () => [child] })
+      : index % 3 === 1 ? createIntrinsicArray([child, "text"]) : { child, name: "record" });
+    const expected = measureSandboxData(roots);
+    for (let pass = 0; pass < 8; pass++) {
+      for (let index = 0; index < 100; index++)
+        if (measureSandboxData(roots) !== expected) throw new Error("Accounting changed");
+      if (pass === 1) console.log("MEASUREMENT_WARMED");
+      globalThis.gc();
+      await new Promise(resolve => setImmediate(resolve));
+    }
+  `;
+  const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 10000 });
+  assert.equal(result.status, 0, result.stderr || String(result.error));
+  const sections = result.stdout.split("MEASUREMENT_WARMED");
+  assert.equal(sections.length, 2, "Missing warmup boundary");
+  const optimizations = output => output.split("\n").filter(line =>
+    line.includes("completed optimizing") && line.includes("<JSFunction visit ")).length;
+  assert.ok(optimizations(sections[0]) > 0, "Visitor did not optimize during warmup");
+  // One final warmup compilation may finish asynchronously. Recompiling after
+  // every collection makes the large live browser graph repeatedly pay for JIT.
+  assert.ok(optimizations(sections[1]) <= 1, `Visitor reoptimized ${optimizations(sections[1])} times after warmup`);
+});
+
+test("built data accounting releases first-call roots and preserves native observations", () => {
+  const url = JSON.stringify(new URL("../dist/interp/values.js", import.meta.url).href);
+  const source = `
+    import assert from "node:assert/strict";
+    import { measureSandboxData } from ${url};
+    function measure() {
+      const root = { text: "payload" };
+      const ticket = {};
+      const options = { compileTickets: new Set([ticket]) };
+      const values = { root, *[Symbol.iterator]() { yield "abc"; } };
+      const iterator = Array.prototype[Symbol.iterator];
+      const NativeSet = globalThis.Set;
+      let arrays = 0, sets = 0, units;
+      Array.prototype[Symbol.iterator] = function () { arrays++; return iterator.call(this); };
+      globalThis.Set = class extends NativeSet {
+        constructor(iterable) { super(iterable); sets++; }
+      };
+      try { units = measureSandboxData(values, options); }
+      finally { Array.prototype[Symbol.iterator] = iterator; globalThis.Set = NativeSet; }
+      assert.equal(units, 3);
+      assert.equal(arrays, 0, "Initialization introduced native iterator calls");
+      assert.equal(sets, 1, "Initialization introduced native Set calls");
+      measureSandboxData([root]);
+      return [new WeakRef(root), new WeakRef(ticket), new WeakRef(options)];
+    }
+    const references = measure();
+    for (let index = 0; index < 8; index++) {
+      await new Promise(resolve => setImmediate(resolve));
+      globalThis.gc();
+    }
+    for (const reference of references) assert.equal(reference.deref(), undefined);
+  `;
+  const result = spawnSync(process.execPath, ["--expose-gc", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 10000 });
+  assert.equal(result.status, 0, result.stderr || String(result.error));
+});

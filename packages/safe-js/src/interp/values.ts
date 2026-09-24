@@ -856,6 +856,8 @@ interface DataContinuation {
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
 const MAX_REUSABLE_CAPTURE_LENGTH = 64;
+const NativeMeasurementSet = Set;
+let retainedMeasurementCode: ((value: unknown, depth?: number) => void) | undefined;
 
 export function measureSandboxData(
   values: Iterable<unknown>,
@@ -865,6 +867,12 @@ export function measureSandboxData(
     compileTickets?: Set<CompileTicket>;
   } = {}
 ): number {
+  // Keep one inert instance of the visitor alive so GC does not discard its
+  // optimized code between walks. Touch only an undefined leaf to keep its code
+  // current; real measurements still own fresh state and native callbacks.
+  if (retainedMeasurementCode === undefined)
+    withMeasurementSeen(seen => measureSandboxDataWithSeen([], {}, seen, true));
+  retainedMeasurementCode!(undefined);
   return withMeasurementSeen(seen => measureSandboxDataWithSeen(values, options, seen));
 }
 
@@ -875,9 +883,10 @@ function measureSandboxDataWithSeen(
     ignoreClosureCaptures?: boolean;
     compileTickets?: Set<CompileTicket>;
   },
-  seen: MeasurementSeen
+  seen: MeasurementSeen,
+  retainCode = false
 ): number {
-  const seenSymbols = new Set<symbol>();
+  const seenSymbols = retainCode ? new NativeMeasurementSet<symbol>() : new Set<symbol>();
   let usage = 0;
   const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];
   let pendingArguments: Array<{ state: DeferredArgumentsData; units: number | undefined; depth: number }> | undefined;
@@ -1724,6 +1733,10 @@ function measureSandboxDataWithSeen(
     }
   };
 
+  if (retainCode) {
+    retainedMeasurementCode = visit;
+    return 0;
+  }
   try {
     for (const value of values) visit(value);
     // Weak values may expose further keys or collections. Newly unlocked entries

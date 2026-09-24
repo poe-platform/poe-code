@@ -1646,31 +1646,46 @@ class Parser {
   }
 
   private parseIfStatement(): IfStatement {
-    if (this.ifStatementDepth >= MAX_IF_STATEMENT_DEPTH) {
-      const token = this.currentToken();
-      throw new Error(
-        `If statement nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
-      );
-    }
-
-    this.ifStatementDepth += 1;
+    const pending: Array<{ token: Token; test: Expression; consequent: Statement }> = [];
+    let entered = 0;
     try {
-      const ifToken = this.expectKeyword("if");
-      this.expectPunctuator("(");
-      const test = this.parseExpression({ allowSequence: true }).node;
-      this.expectPunctuator(")");
-      const consequent = this.parseIfClause();
-      const elseToken = this.consumeKeyword("else");
-      const alternate = elseToken === undefined ? undefined : this.parseIfClause();
-      return {
-        type: "IfStatement",
-        test,
-        consequent,
-        alternate,
-        span: createSpan(ifToken.start, alternate?.span.end ?? consequent.span.end)
-      };
+      for (;;) {
+        if (this.ifStatementDepth >= MAX_IF_STATEMENT_DEPTH) {
+          const token = this.currentToken();
+          throw new Error(
+            `If statement nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
+          );
+        }
+        this.ifStatementDepth++;
+        entered++;
+        const token = this.expectKeyword("if");
+        this.expectPunctuator("(");
+        const test = this.parseExpression({ allowSequence: true }).node;
+        this.expectPunctuator(")");
+        const consequent = this.parseIfClause();
+        const hasElse = this.consumeKeyword("else") !== undefined;
+        // Keep ladder continuations off the native stack. Nested consequents
+        // still parse their own clauses, including the nearest dangling else.
+        if (hasElse && this.currentToken().type === "keyword" && this.currentToken().value === "if") {
+          pending.push({ token, test, consequent });
+          continue;
+        }
+        const alternate = hasElse ? this.parseIfClause() : undefined;
+        let result: IfStatement = {
+          type: "IfStatement", test, consequent, alternate,
+          span: createSpan(token.start, alternate?.span.end ?? consequent.span.end)
+        };
+        while (pending.length > 0) {
+          const parent = pending.pop()!;
+          result = {
+            type: "IfStatement", test: parent.test, consequent: parent.consequent,
+            alternate: result, span: createSpan(parent.token.start, result.span.end)
+          };
+        }
+        return result;
+      }
     } finally {
-      this.ifStatementDepth -= 1;
+      this.ifStatementDepth -= entered;
     }
   }
 

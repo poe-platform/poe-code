@@ -38,12 +38,17 @@ test("diff shares the UTF-8 exclusion byte limit across arguments, files and std
 });
 
 test("diff bounds a single exclusion before compiling or comparing files", async () => {
-  const fs = await filesystem({ exclude: "a".repeat(65_537), left: "same", right: "same" });
-  const lstat = fs.lstat.bind(fs);
-  fs.lstat = async (path, options) => {
-    assert.notEqual(path, "/work/left", "comparison must not start after an exclusion limit failure");
-    return lstat(path, options);
-  };
+  const backing = await filesystem({ exclude: "a".repeat(65_537), left: "same", right: "same" });
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "lstat") return async (...args: Parameters<typeof target.lstat>) => {
+        assert.notEqual(args[0], "/work/left", "comparison must not start after an exclusion limit failure");
+        return target.lstat(...args);
+      };
+      const value: unknown = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
   const result = await run("diff", ["-X", "exclude", "left", "right"], { fs });
   assert.equal(result.exitCode, 2);
   assert.equal(result.stdout, "");

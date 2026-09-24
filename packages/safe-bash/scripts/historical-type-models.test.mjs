@@ -77,6 +77,100 @@ function resolveImport(host, path, specifier, compilerOptions = options) {
   return host.resolveModuleNameLiterals([literal], path, undefined, compilerOptions, source, undefined)[0].resolvedModule;
 }
 
+test("ordinary sibling imports reuse resolution probes only within one compiler host", () => {
+  const specimen = fixture();
+  const admission = admitHistoricalTypeModels(root, specimen.fileSystem, boundaries);
+  let probes = 0;
+  const baseHost = { ...specimen.baseHost, fileExists(path) { probes++; return specimen.baseHost.fileExists(path); } };
+  const host = createHistoricalCompilerHost(options, admission, baseHost);
+  const first = resolveImport(host, "/package/tests/first.ts", "./normal.js");
+  const firstProbes = probes;
+  assert.ok(firstProbes > 0);
+  assert.equal(first.resolvedFileName, "/package/tests/normal.ts");
+  assert.deepEqual(resolveImport(host, "/package/tests/second.ts", "./normal.js"), first);
+  assert.equal(probes, firstProbes, "a sibling import should reuse its ordinary resolution");
+  const independent = createHistoricalCompilerHost(options, admission, baseHost);
+  assert.deepEqual(resolveImport(independent, "/package/tests/third.ts", "./normal.js"), first);
+  assert.ok(probes > firstProbes, "a new compiler host must not inherit cached filesystem observations");
+});
+
+test("ordinary resolution caches separate compiler options and import versus require modes", () => {
+  const { host, fileSystem } = admittedFixture();
+  const path = "/package/tests/current.ts";
+  const firstOptions = { ...options, baseUrl: root, paths: { selected: ["tests/normal.ts"] } };
+  const secondOptions = { ...options, baseUrl: root, paths: { selected: ["tests/check.ts"] } };
+  assert.equal(resolveImport(host, path, "selected", firstOptions).resolvedFileName, "/package/tests/normal.ts");
+  assert.equal(resolveImport(host, path, "selected", secondOptions).resolvedFileName, "/package/tests/check.ts");
+  assert.equal(resolveImport(host, path, "selected", firstOptions).resolvedFileName, "/package/tests/normal.ts");
+  const dependency = "/package/node_modules/conditional";
+  fileSystem.mkdirSync(dependency, { recursive: true });
+  fileSystem.writeFileSync(`${dependency}/package.json`, JSON.stringify({ exports: { ".": { import: "./import.d.mts", require: "./require.d.cts" } } }));
+  for (const name of ["import.d.mts", "require.d.cts"]) fileSystem.writeFileSync(`${dependency}/${name}`, "export declare const value: number;");
+  for (const [mode, expected] of [[ts.ModuleKind.ESNext, "import.d.mts"], [ts.ModuleKind.CommonJS, "require.d.cts"], [ts.ModuleKind.ESNext, "import.d.mts"]]) {
+    const source = ts.createSourceFile(path, 'import { value } from "conditional";', ts.ScriptTarget.ES2023, true);
+    source.impliedNodeFormat = mode;
+    const literal = source.statements[0].moduleSpecifier;
+    assert.equal(host.resolveModuleNameLiterals([literal], path, undefined, options, source)[0].resolvedModule.resolvedFileName, `${dependency}/${expected}`);
+  }
+});
+
+for (const definition of historicalTypeModelDefinitions) for (const currentFirst of [false, true]) {
+  test(`ordinary cache cannot hide a restored ${definition.path} runtime: currentFirst=${currentFirst}`, () => {
+    const { host, fileSystem } = admittedFixture();
+    const caller = definition.callers[0];
+    const path = join(root, caller.path);
+    const current = join(dirname(path), "current.ts");
+    if (currentFirst) assert.equal(resolveImport(host, current, caller.specifier), undefined);
+    assert.equal(resolveImport(host, path, caller.specifier).resolvedFileName, join(root, definition.path.slice(0, -".fixture".length)));
+    if (!currentFirst) assert.equal(resolveImport(host, current, caller.specifier), undefined);
+    const restored = join(root, definition.absentPaths[0]);
+    fileSystem.mkdirSync(dirname(restored), { recursive: true });
+    fileSystem.writeFileSync(restored, "export const restored = true;");
+    assert.throws(() => resolveImport(host, path, caller.specifier), /retired historical import must remain unresolved/);
+  });
+}
+
+for (const currentFirst of [false, true]) {
+  test(`ordinary cache cannot hide raw-memory resolution drift: currentFirst=${currentFirst}`, () => {
+    const { host, fileSystem } = admittedFixture();
+    const path = join(root, historicalMemoryTypeModelDefinition.caller);
+    const current = join(dirname(path), "current.ts");
+    const specifier = historicalMemoryTypeModelDefinition.specifier;
+    const original = join(root, historicalMemoryTypeModelDefinition.resolvedPath);
+    if (currentFirst) assert.equal(resolveImport(host, current, specifier).resolvedFileName, original);
+    assert.equal(resolveImport(host, path, specifier).resolvedFileName, join(root, historicalMemoryTypeModelDefinition.path.slice(0, -".fixture".length)));
+    if (!currentFirst) assert.equal(resolveImport(host, current, specifier).resolvedFileName, original);
+    fileSystem.unlinkSync(original);
+    assert.throws(() => resolveImport(host, path, specifier), /historical memory import must retain its current resolution/);
+  });
+}
+
+test("source filesystem owner validation remains fresh for a cached sibling import", () => {
+  const specimen = fixture();
+  specimen.fileSystem.mkdirSync("/safe-fs/src", { recursive: true });
+  specimen.fileSystem.mkdirSync("/safe-fs/dist", { recursive: true });
+  specimen.fileSystem.writeFileSync("/safe-fs/package.json", '{"type":"module"}');
+  specimen.fileSystem.writeFileSync("/safe-fs/src/core.ts", "export const value = 1;");
+  specimen.fileSystem.writeFileSync("/safe-fs/dist/core.d.ts", "export declare const value: number;");
+  for (const name of ["first", "second"]) specimen.fileSystem.writeFileSync(`/package/tests/${name}.ts`, 'import { value } from "fixture-core"; void value;');
+  specimen.fileSystem.writeFileSync("/package/tsconfig.json", JSON.stringify({
+    compilerOptions: { strict: true, module: "NodeNext", types: [], noLib: true, paths: {
+      "@poe-code/safe-fs/core": ["../safe-fs/src/core.ts"], "fixture-core": ["../safe-fs/dist/core.d.ts"],
+    } }, files: ["tests/first.ts", "tests/second.ts"],
+  }));
+  const lstat = specimen.fileSystem.lstatSync.bind(specimen.fileSystem);
+  let observations = 0;
+  specimen.fileSystem.lstatSync = (path, ...args) => {
+    if (path === "/safe-fs/dist/core.d.ts" && ++observations === 2) {
+      specimen.fileSystem.unlinkSync(path);
+      specimen.fileSystem.symlinkSync("/safe-fs/src/core.ts", path);
+    }
+    return lstat(path, ...args);
+  };
+  assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries }), /source filesystem owner must be a canonical regular file/);
+  assert.equal(observations, 2);
+});
+
 test("historical models admit exactly six pinned callers and three declaration-only texts", () => {
   const { admission, host, fileSystem, baseHost } = admittedFixture();
   assert.equal(admission.callers.size, 6);

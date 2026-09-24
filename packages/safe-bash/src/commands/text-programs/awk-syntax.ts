@@ -123,7 +123,7 @@ export const builtinArities: Readonly<Record<string, readonly [number, number]>>
   rand: [0, 0], srand: [0, 1],
 };
 
-const reserved = new Set(["BEGIN", "END", "function", "if", "else", "while", "do", "for", "break", "continue", "next", "nextfile", "return", "exit", "delete", "print", "printf", "getline"]);
+const reserved = new Set(["BEGIN", "END", "function", "if", "else", "while", "do", "for", "break", "continue", "next", "nextfile", "return", "exit", "delete", "print", "printf", "getline", "in"]);
 const precedences: Readonly<Record<string, number>> = {
   "=": 1, "+=": 1, "-=": 1, "*=": 1, "/=": 1, "%=": 1, "^=": 1,
   "||": 3, "&&": 4, in: 5, "~": 6, "!~": 6, "==": 7, "!=": 7, "<": 7, "<=": 7, ">": 7, ">=": 7,
@@ -335,7 +335,7 @@ export class AwkParser {
     const token = this.token;
     if (this.accept("getline")) {
       let target: Expression | undefined;
-      if (this.token.kind === "name" || this.at("$")) {
+      if (this.token.kind === "name" && !reserved.has(this.token.text) || this.at("$")) {
         target = this.prefix();
         if (!isLvalue(target)) throw new ProgramError("getline requires an assignable target");
       }

@@ -38,6 +38,7 @@ export class AwkRuntime {
   private fields: Scalar[] = [];
   private fieldBytes = 0;
   private record = "";
+  private recordValue: Scalar = string("");
   private entries = 0;
   private phase = "BEGIN";
   private status = 0;
@@ -182,12 +183,12 @@ export class AwkRuntime {
     }
     return parts;
   }
-  private async setRecord(record: string): Promise<void> {
+  private async setRecord(record: string, value: Scalar = inputValue(record)): Promise<void> {
     this.budget.check(record);
     const fields = await this.split(record, this.varText("FS"), this.varText("RS") === "");
-    this.replaceRecord(record, fields);
+    this.replaceRecord(record, fields, value);
   }
-  private replaceRecord(record: string, fields: Scalar[]): void {
+  private replaceRecord(record: string, fields: Scalar[], value: Scalar = string(record)): void {
     let fieldBytes = 0;
     for (const field of fields) {
       if (field.kind === "string" || field.kind === "numeric") this.budget.check(field.text);
@@ -198,6 +199,7 @@ export class AwkRuntime {
       fields: fields.map((field, index) => field === this.fields[index] ? field : ownScalar(field)),
     }));
     this.record = owned.record; this.fields = owned.fields; this.fieldBytes = fieldBytes;
+    this.recordValue = value.kind === "string" || value.kind === "numeric" ? { ...value, text: this.record } : value;
     this.variables.set("NF", numeric(fields.length));
   }
   private join(parts: readonly string[], separator: string, suffix = ""): string {
@@ -231,9 +233,9 @@ export class AwkRuntime {
       const index = Math.trunc(number(await this.scalarExpression(expression.index)));
       if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
       return {
-        get: () => index === 0 ? inputValue(this.record) : this.fields[index - 1] ?? unset,
+        get: () => index === 0 ? this.recordValue : this.fields[index - 1] ?? unset,
         set: value => {
-          if (index === 0) return this.setRecord(this.asText(value));
+          if (index === 0) return this.setRecord(this.asText(value), value);
           const fields = this.fields.slice();
           while (fields.length < index) fields.push(unset);
           fields[index - 1] = value; this.rebuild(fields);
@@ -318,14 +320,15 @@ export class AwkRuntime {
   }
 
   private async getline(expression: Extract<Expression, { kind: "getline" }>): Promise<Scalar> {
-    const target = expression.target ? await this.reference(expression.target) : undefined;
     if (!expression.file) {
       const record = await this.readMainRecord();
       if (record === undefined) return numeric(0);
+      const target = expression.target ? await this.reference(expression.target) : undefined;
       if (target) await target.set(inputValue(record));
       else await this.setRecord(record);
       return numeric(1);
     }
+    const target = expression.target ? await this.reference(expression.target) : undefined;
     const file = Buffer.from(this.asText(await this.scalarExpression(expression.file)), "latin1").toString("utf8");
     if (!file) throw new ProgramError("getline requires a nonempty filename");
     let path: string;
@@ -589,6 +592,7 @@ export class AwkRuntime {
     this.releaseStore(this.variables);
     this.retention.release(this.record.length + this.fieldBytes);
     this.record = ""; this.fields = []; this.fieldBytes = 0;
+    this.recordValue = unset;
     this.context.signal.throwIfAborted();
     if (failed) throw failure;
     for (const result of cleanup) if (result.status === "rejected") throw result.reason;

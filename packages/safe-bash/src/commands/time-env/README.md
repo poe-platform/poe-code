@@ -169,12 +169,13 @@ formatting rule, not new negative-calendar-year input support or a claim about
 every platform. Primary-source reasoning and native year neighbors are recorded
 in `tests/commands/time-env/fraction-expansion/SEMANTICS.md`.
 
-Bare `%-N` follows that same unpadded virtual rule and retains all available input
-precision. GNU date9.7 specially rewrites this exact spelling to a precision based
-on the native machine's clock resolution, even for explicit input; the observed
-Darwin oracle uses six digits. The virtual command does not invent a host clock
-resolution or truncate explicit nanoseconds to it. This measured native profile
-difference is retained in `tests/commands/time-env/fraction-expansion/native-v1.json`.
+Bare `%-N` emits six fractional digits, matching the selected GNU/Darwin profile
+(verified with coreutils9.12), even for explicit nanosecond input. GNU date rewrites
+this exact spelling according to native clock resolution; the virtual command
+uses six digits consistently without probing the host. Use `%N` to retain nine
+digits, or `%-9N` for ordinary unpadded formatting. Repeated flags such as `%--N`
+also use ordinary formatting. Earlier native observations remain preserved in
+`tests/commands/time-env/fraction-expansion/native-v1.json`.
 The historical rejection profile for decorated/>9-width N remains preserved in
 the original author and independent captures; the expansion has new versioned
 positive assertions rather than silently rewriting those old results.

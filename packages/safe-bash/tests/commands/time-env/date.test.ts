@@ -24,6 +24,7 @@ for (const [input, expected] of [
 
 for (const [input, expected] of [
   ["1 day ago", "2024-02-28"], ["+2 days", "2024-03-02"], ["1 week ago", "2024-02-22"],
+  ["-7 days", "2024-02-22"], ["1 week", "2024-03-07"], ["2 weeks ago", "2024-02-15"],
   ["now +2 weeks", "2024-03-14"], ["1 month", "2024-03-29"], ["1 year ago", "2023-03-01"],
 ]) {
   test(`date calendar offsets from injected clock: ${input}`, async () => {
@@ -121,16 +122,32 @@ test("date %12N zero-padding at epoch matches the accepted GNU9.7 profile", asyn
   assert.deepEqual(Buffer.concat(stderr), Buffer.alloc(0));
 });
 
-test("date bare %-N at epoch uses virtual-clock ordinary formatting, not GNU9.7/Darwin bare parity", async () => {
+test("date bare %-N at epoch matches the GNU Darwin six-digit profile", async () => {
   const stderr: Uint8Array[] = [];
   const result = await run("date", ["-d@0", "+%-N"], {}, { stderr: { async write(bytes) { stderr.push(bytes.slice()); } } });
   assert.equal(result.exitCode, 0);
-  assert.equal(result.stdout, "0\n");
-  assert.equal(result.stdoutHex, "300a");
+  assert.equal(result.stdout, "000000\n");
+  assert.equal(result.stdoutHex, "3030303030300a");
   assert.equal(result.stderr, "");
   assert.equal(Buffer.concat(stderr).toString(), "");
   assert.deepEqual(Buffer.concat(stderr), Buffer.alloc(0));
 });
+
+// Fresh GNU coreutils 9.12/Darwin oracle: bare %-N uses six digits,
+// while explicit widths and repeated flags use ordinary fraction formatting.
+for (const [input, expected] of [
+  ["@1.5", "500000000|500000|5        |5|5|5"],
+  ["@1.05", "050000000|050000|05       |05|05|05"],
+  ["@1.000001", "000001000|000001|000001   |0|000001|000001"],
+  ["@1.123456789", "123456789|123456|123456789|123|123456|123456789"],
+  ["@1.123400000", "123400000|123400|1234     |123|1234|1234"],
+]) {
+  test(`date GNU Darwin bare nanoseconds and ordinary width controls: ${input}`, async () => {
+    const result = await run("date", ["-u", "-d", input!, "+%N|%-N|%_N|%-3N|%-6N|%-12N"]);
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected + "\n");
+  });
+}
 
 for (const args of [
   ["-d2023-02-29"], ["-d1900-02-29"], ["-d2024-13-01"], ["-d2024-04-31"], ["-d2024-01-00"],

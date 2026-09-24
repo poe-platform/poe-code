@@ -23,11 +23,11 @@ test("fraction widths preserve actual millisecond clock precision and sample onc
   let calls = 0;
   const result = await run("date", ["+%N|%3N|%6N|%17N|%-N|%_12N"], { clock: () => { calls++; return 1704164645123; } });
   assert.equal(calls, 1); assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
-  assert.equal(result.stdout, "123000000|123|123000|12300000000000000|123|123         \n");
+  assert.equal(result.stdout, "123000000|123|123000|12300000000000000|123000|123         \n");
 });
 test("unpadded virtual fractions do not infer native hardware resolution or discard explicit precision", async () => {
   for (const [input, expected] of [["@0", "0"], ["@0.0012", "0012"], ["@0.0000001", "0000001"], ["@0.123456789", "123456789"], ["@-0.000000001", "999999999"]]) {
-    const result = await run("date", ["-d", input!, "+%-N|%--N|%0-N"]);
+    const result = await run("date", ["-d", input!, "+%-9N|%--N|%0-N"]);
     assert.equal(result.exitCode, 0); assert.equal(result.stdout, `${expected}|${expected}|${expected}\n`);
   }
 });

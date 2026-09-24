@@ -84,6 +84,11 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
       case "M": value = String(fields.minute); defaultWidth = 2; break;
       case "n": value = "\n"; break;
       case "N": {
+        // GNU date rewrites only this exact token using clock resolution.
+        // Use the selected Darwin profile deterministically, without host probes.
+        if (format.slice(next, offset) === "%-N") {
+          append(nano.slice(0, 6)); continue;
+        }
         const precision = width ?? 9;
         const digits = nano.slice(0, precision).replace(/0+$/, "") || "0";
         const length = padding === "" ? digits.length : precision;

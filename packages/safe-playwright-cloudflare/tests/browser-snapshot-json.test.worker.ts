@@ -157,7 +157,7 @@ export default {
 					);
 					assert.ok((await captureBrowserSnapshotJSON(page, options)).length);
 					break;
-				case "/frames":
+				case "/frames": {
 					await page.setContent(
 						'<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128),
 					);
@@ -170,6 +170,7 @@ export default {
 						/snapshot frame limit/,
 					);
 					break;
+				}
 				case "/abort":
 					await assert.rejects(
 						captureBrowserSnapshotJSON(page, {

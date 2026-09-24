@@ -7723,15 +7723,17 @@ export class Runtime {
       const defaultMembers = part.kind === "variable" && selector?.kind === "members" && defaultParameterOperators.includes(part.operator ?? "")
         ? await this.arrayMembers(part.name, state, partIO) : undefined;
       const expandMembers = !defaultMembers || defaultMembers.length > 0 && !(part.kind === "variable" && part.operator!.endsWith("+"));
-      if (part.kind === "variable" && !arrayStore(state)?.get(part.name)?.associative && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
+      if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
         let value: ShellValue | undefined = this.variable(state, part.name);
         if (selector?.kind === "members") {
           value = defaultMembers!.length ? "set" : undefined;
         } else if (selector?.kind === "element") {
-          const index = numericIndex(selector.index, 4294967295);
-          if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
           const binding = arrayStore(state)?.get(part.name);
-          value = binding ? binding.getValue(index) : index === 0 ? value : undefined;
+          const index = binding?.associative
+            ? await this.arrayIndex(binding, selector.index, state, partIO, requireArrays(state).owner)
+            : numericIndex(selector.index, 4294967295);
+          if (index === undefined && !binding?.associative) throw new ArrayFailure("index outside 0..4294967295");
+          value = binding ? index === undefined ? undefined : binding.getValue(index) : index === 0 ? value : undefined;
         }
         const missing = value === undefined || (part.operator!.startsWith(":") && shellValueByteLength(value) === 0);
         if (part.operator!.endsWith("+") ? !missing : missing) {

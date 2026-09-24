@@ -2,6 +2,64 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 
+for (const key of ['k', '10', '01', 'two words']) {
+  for (const nounset of ['', 'set -u; ']) {
+    test(`associative default and alternate operators: ${key}, ${nounset || 'normal'}`, async () => {
+      const { shell } = setup();
+      try {
+        const result = await shell.exec(`${nounset}declare -A m; key='${key}'; m[$key]=value; m[empty]=''; args "\${m[missing]-fallback}" "\${m[missing]:-fallback}" "\${m[missing]+alt}" "\${m[missing]:+alt}" "\${m[$key]-fallback}" "\${m[$key]:-fallback}" "\${m[$key]+alt}" "\${m[$key]:+alt}" "\${m[empty]-fallback}" "\${m[empty]:-fallback}" "\${m[empty]+alt}" "\${m[empty]:+alt}"; x=\${m[missing]:-fallback}; args "$x"`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '["fallback","fallback","","","value","value","alt","alt","","fallback","alt",""]["fallback"]');
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const [source, expected] of [
+  ['args ${m[missing]:-"two words"}', '["two words"]'],
+  ['args ${m[k]:+"two words"}', '["two words"]'],
+  ['args ${m[missing]-"two words"}', '["two words"]'],
+  ['args ${m[k]+"two words"}', '["two words"]'],
+  ['args ${m[missing]:-""}', '[""]'],
+  ['args ${m[k]:+""}', '[""]'],
+  ['args ${m[missing]:-one two}', '["one","two"]'],
+  ['args "${m[missing]:-$@}"', '["one","two words"]'],
+] as const) test(`associative operand fields: ${source}`, async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec(`declare -A m; m[k]=value; set -- one 'two words'; ${source}`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, '');
+    assert.equal(result.stdout, expected);
+  } finally { await shell.dispose(); }
+});
+
+test('associative operands are lazy and subscripts expand once', async () => {
+  const { shell } = setup();
+  let effects = 0;
+  shell.register({ name: 'effect', execute() { effects++; return { exitCode: 0 }; } });
+  try {
+    const result = await shell.exec('set -u; declare -A m; m[k]=value; i=0; args "${m[k]:-$(effect)}" "${m[missing]:+$(effect)}" "${m[$((i+=1))]:-fallback}" "$i"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, '');
+    assert.equal(result.stdout, '["value","","fallback","1"]');
+    assert.equal(effects, 0);
+  } finally { await shell.dispose(); }
+});
+
+test('associative operators preserve distinct raw keys and values', async () => {
+  const { getCommandArguments } = await import('../../src/contracts/index.js');
+  const { shell } = setup();
+  shell.register({ name: 'raw', async execute(context) { await context.stdout.write(getCommandArguments(context).bytes(0)!); return { exitCode: 0 }; } });
+  try {
+    const result = await shell.exec('declare -A m; x=$\'\\377\'; y=$\'\\376\'; m[$x]=$\'\\375\'; raw "${m[$x]:-fallback}"; raw "${m[$y]:-missing}"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, '');
+    assert.deepEqual([...result.stdoutBytes], [253, 109, 105, 115, 115, 105, 110, 103]);
+  } finally { await shell.dispose(); }
+});
+
 for (const [label, source, expected] of [
   ["declaration and literal key", 'declare -A m; m[key]=value; args "${m[key]}"', '["value"]'],
   ["quoted space key", 'declare -A m; m["two words"]=value; args "${m["two words"]}"', '["value"]'],

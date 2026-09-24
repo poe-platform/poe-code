@@ -75,7 +75,7 @@ test("od: strings span chunks, require NUL and respect byte ranges", async () =>
   const ranged = await run("od", ["--strings=2", "-Ax", "-j2", "-N7"], sliced(Buffer.from("xxab\0cde\0tail"), 2));
   assert.equal(ranged.exitCode, 0, ranged.stderr);
   assert.equal(ranged.stdout, "000002 ab\n000005 cde\n");
-  assert.equal((await run("od", ["-S3", "-An"], "abc\0abc\0")).stdout, " abc\n abc\n");
+  assert.equal((await run("od", ["-S3", "-An"], "abc\0abc\0")).stdout, "abc\nabc\n");
   assert.equal((await run("od", ["-S3", "-N3"], "abc\0")).stdout, "");
   for (const value of ["0", "bad", "-1"]) assert.equal((await run("od", [`--strings=${value}`], "abc\0")).exitCode, 2);
 });
@@ -432,7 +432,7 @@ test("xxd: binary, include and little-endian issue 160 file reproductions", asyn
   await fs.writeFile("/input", Buffer.from("ABCD"));
   const result = await run("xxd", ["-e", "input"], "", { fs });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "00000000: 44434241                              ABCD\n");
+  assert.equal(result.stdout, "00000000: 44434241                             ABCD\n");
 });
 
 test("xxd: new modes preserve chunked bytes, partial groups and include row separators", async () => {
@@ -460,4 +460,37 @@ test("xxd: new mode aliases, byte range and invalid grouping", async () => {
   assert.equal((await run("xxd", ["-i"], "")).stdout, "");
   assert.equal((await run("xxd", ["-e", "-c2", "-g2", "-u"], Uint8Array.of(0, 255, 128))).stdout,
     "00000000: FF00  ..\n00000002:   80  .\n");
+});
+
+for (const args of [["-S", "5"], ["-S5"], ["--strings=5"], ["-vS", "5"]]) test(`od: issue 928 string length ${args.join(" ")}`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("abc\0defgh\0"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const result = await shell.exec(`od ${args.join(" ")} /input`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0000004 defgh\n");
+  } finally { await shell.dispose(); }
+});
+
+for (let control = 7; control <= 13; control++) test(`od: issue 928 control byte ${control} resets strings`, async () => {
+  const input = Buffer.concat([Buffer.from("abc"), Buffer.from([control]), Buffer.from("de\0xyz\0")]);
+  for (const args of [["-S"], ["--strings"], ["-An", "-S3"]]) {
+    const result = await run("od", args, sliced(input));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, args.includes("-An") ? "xyz\n" : "0000007 xyz\n");
+  }
+});
+
+for (const [group, hex] of [
+  [1, "30 31 32 33 34 35 36 37 38 39 61 62 63 64 65 66"],
+  [2, "3130 3332 3534 3736 3938 6261 6463 6665"],
+  [4, "33323130 37363534 62613938 66656463"],
+  [8, "3736353433323130 6665646362613938"],
+  [16, "66656463626139383736353433323130"],
+] as const) test(`xxd: issue 928 little-endian spacing with group ${group}`, async () => {
+  const result = await run("xxd", ["-e", `-g${group}`], sliced(Buffer.from("0123456789abcdef")));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, `00000000: ${hex}  0123456789abcdef\n`);
 });

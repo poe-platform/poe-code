@@ -107,7 +107,13 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset]!;
         if (flag === "S") {
-          rewritten.push(`-S${argument.slice(offset + 1) || "3"}`);
+          let parameter = argument.slice(offset + 1);
+          const next = context.args[index + 1];
+          if (!parameter && next && [...next].every(character => character >= "0" && character <= "9")) {
+            parameter = next;
+            index++;
+          }
+          rewritten.push(`-S${parameter || "3"}`);
           break;
         }
         if (flag === "e") throw new UsageError("use --endian=little or --endian=big; -e is unsupported");
@@ -151,15 +157,14 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
       let text = "";
       let length = 0;
       let start = "";
-      const escapes: Record<number, string> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
       for await (const chunk of range(sources(context, parsed.operands, maxInputBytes), skip, count)) {
         for (const byte of chunk) {
-          if (byte >= 32 && byte <= 126 || escapes[byte] !== undefined) {
+          if (byte >= 32 && byte <= 126) {
             if (!length) start = address();
-            text += escapes[byte] ?? String.fromCharCode(byte);
+            text += String.fromCharCode(byte);
             length++;
           } else {
-            if (byte === 0 && length >= minimumStringLength) await output(context, `${start} ${text}\n`);
+            if (byte === 0 && length >= minimumStringLength) await output(context, `${start ? start + " " : ""}${text}\n`);
             text = "";
             length = 0;
           }

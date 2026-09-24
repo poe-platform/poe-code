@@ -163,7 +163,7 @@ export function createXxdCommand(maxInputBytes: number): CommandDefinition {
       else {
         const octets = Math.min(group || columns, columns);
         const width = littleEndian
-          ? Math.ceil(columns / octets) * octets * 2 + (octets < columns ? Math.floor(columns / octets) : 0)
+          ? Math.ceil(columns / octets) * (octets * 2 + 1) - 1
           : columns * (binary ? 8 : 2) + (group ? Math.floor((columns - 1) / group) : 0);
         const address = offset.toString(parsed.flags.has("d") ? 10 : 16).padStart(8, "0");
         await output(context, `${address}: ${data.padEnd(width)}  ${ascii}\n`);

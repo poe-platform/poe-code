@@ -116,12 +116,23 @@ type FrozenClosureData = {
 const frozenClosureData = new WeakMap<object, FrozenClosureData>();
 const readFrozenClosureData = WeakMap.prototype.get.bind(frozenClosureData);
 const writeFrozenClosureData = WeakMap.prototype.set.bind(frozenClosureData);
-const freezeClosureShape = Object.freeze;
-const captureClosureSymbols = Object.getOwnPropertySymbols;
+const freezeValueShape = Object.freeze;
+const captureValueSymbols = Object.getOwnPropertySymbols;
+const sealValueShape = Object.seal;
+const sealedValueSymbols = new WeakMap<object, readonly symbol[]>();
+const readSealedValueSymbols = WeakMap.prototype.get.bind(sealedValueSymbols);
+const writeSealedValueSymbols = WeakMap.prototype.set.bind(sealedValueSymbols);
 const captureClosureDescriptor = Object.getOwnPropertyDescriptor;
 const hasClosureDescriptorField = Object.hasOwn;
 const invokeClosureGetter = Reflect.apply;
-const closureGetterArguments = freezeClosureShape([]);
+const closureGetterArguments = freezeValueShape([]);
+
+// Only factory-owned, finalized carriers enter this registry. Their key sets
+// cannot change; descriptors, payloads and separate guest property tables stay live.
+function captureSealedValueSymbols<T extends object>(value: T): T {
+  writeSealedValueSymbols(value, freezeValueShape(captureValueSymbols(value)));
+  return value;
+}
 
 // The own accessor is immutable, but its returned table and native observations
 // stay fresh. Calling it directly avoids polymorphic accessor loads for thousands
@@ -393,12 +404,12 @@ export function createSandboxClosure(input: {
     });
   }
 
-  freezeClosureShape(closure);
+  freezeValueShape(closure);
   const properties = captureClosureDescriptor(closure, "properties");
   writeFrozenClosureData(
     closure,
-    freezeClosureShape({
-      symbols: freezeClosureShape(captureClosureSymbols(closure)),
+    freezeValueShape({
+      symbols: freezeValueShape(captureValueSymbols(closure)),
       closure: captureClosureDescriptor(closure, sandboxClosureBrand) !== undefined,
       propertiesGetter: properties !== undefined && hasClosureDescriptorField(properties, "get")
         ? properties.get : undefined
@@ -411,7 +422,7 @@ export function registerDeferredClosureChargeIdentity(closure: SandboxClosure, i
   const data = readFrozenClosureData(closure);
   if (data?.closure !== true || data.chargeIdentity !== undefined)
     throw new TypeError("Deferred initialization requires a fresh SDK-created function.");
-  writeFrozenClosureData(closure, freezeClosureShape({ ...data, chargeIdentity: identity }));
+  writeFrozenClosureData(closure, freezeValueShape({ ...data, chargeIdentity: identity }));
 }
 
 export function ownEnumerableSandboxEntries(
@@ -555,7 +566,7 @@ export function createSandboxPromise(
   trackSandboxPromise(sandboxPromise);
   registerPromiseCancellation(sandboxPromise);
 
-  return Object.freeze(sandboxPromise);
+  return captureSealedValueSymbols(freezeValueShape(sandboxPromise));
 }
 
 export function createSandboxGenerator(
@@ -599,7 +610,7 @@ export function createSandboxMap(
     value: true
   });
 
-  return Object.freeze(map);
+  return captureSealedValueSymbols(freezeValueShape(map));
 }
 
 export function createSandboxSet(values: Iterable<SandboxValue> = []): SandboxSet {
@@ -620,7 +631,7 @@ export function createSandboxSet(values: Iterable<SandboxValue> = []): SandboxSe
     value: true
   });
 
-  return Object.freeze(set);
+  return captureSealedValueSymbols(freezeValueShape(set));
 }
 
 export function createSandboxRegex(
@@ -663,7 +674,7 @@ export function createSandboxRegex(
     [sandboxRegexBrand]: { value: true },
     [sandboxRegexPattern]: { value: pattern, writable: true }
   });
-  return Object.seal(regex);
+  return captureSealedValueSymbols(sealValueShape(regex));
 }
 
 export function getSandboxRegexPattern(regex: SandboxRegex): RegexPattern {
@@ -1191,7 +1202,7 @@ function measureSandboxDataWithSeen(
         }
         if (knownClosure || !isGuestHostObject(value)) {
           const ownedSymbols: readonly symbol[] | undefined =
-            closureData?.symbols ?? trackedPropertySymbols(value);
+            closureData?.symbols ?? trackedPropertySymbols(value) ?? readSealedValueSymbols(value);
           let firstSymbol: symbol | undefined;
           let firstDescriptor: PropertyDescriptor | undefined;
           let descriptors: RetainedSymbolSnapshot | undefined;

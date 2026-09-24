@@ -24,6 +24,7 @@ async function drain(iterator: AsyncGenerator<Json>): Promise<void> {
 }
 
 for (const source of [
+  'label $out | try (range(10000) | label $inner | break $inner) catch "caught"',
   'try (reduce range(10000) as $item (0; .)) catch "caught"',
   'try (foreach range(10000) as $item (0; .; empty)) catch "caught"',
   'try (reduce 1 as $item (0; range(10000))) catch "caught"',
@@ -37,6 +38,7 @@ for (const source of [
 });
 
 for (const source of [
+  "label $out | 1+2+3+4+5+6+7+8",
   "try . catch 1+2+3+4+5+6+7+8",
   "reduce (1+2+3+4+5+6+7+8) as $item (0; .)",
   "reduce 1 as $item (1+2+3+4+5+6+7+8; .)",
@@ -47,6 +49,7 @@ for (const source of [
 });
 
 for (const source of [
+  "label $out | range(10000) | label $inner | break $inner",
   "try (reduce range(10000) as $item (0; .)) catch 0",
   "try (foreach range(10000) as $item (0; .; empty)) catch 0",
   "try (.. | empty) catch 0",

@@ -210,6 +210,10 @@ necessarily earlier. Shell redirection effects are outside this command's scope.
 - Identity `.`, JSON scalar literals, `#` line comments, and `$name` variables.
 - Lexical `FILTER as $name | BODY` bindings keep the original input for `BODY`.
   Strings support `"\(FILTER)"` interpolation, including multiple results.
+- `label $name | BODY` scopes `break $name` to the nearest matching lexical
+  label. A break stops that label's remaining results; values already emitted
+  are retained. Labels have a separate namespace from variables. As in native
+  jq, `try ... catch` can intercept a break and receives its `{"__jq": ID}` value.
 - Property access `.foo`, `.foo.bar`, `."unusual key"`, `.["key"]`, computed
   indexes `.[EXPR]`, and chained indexing. Bare identifier access must touch its
   dot: `if . then ...` does not become a property named `then`.

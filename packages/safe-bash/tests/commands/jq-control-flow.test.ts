@@ -3,6 +3,18 @@ import { test } from "node:test";
 import { toByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { jqCommand } from "../../src/commands/structured/jq.js";
+import { Shell } from "../../src/shell/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
+
+test("jq label/break terminates foreach through the public Shell API", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("jq -c '[label $out | foreach range(5) as $i (0; if $i==3 then break $out else .+$i end)]'", { stdin: "null\n" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "[0,1,3]\n");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
 
 async function run(source: string, input = "null\n", args: string[] = []) {
   const stdout: Uint8Array[] = [];
@@ -18,6 +30,25 @@ async function run(source: string, input = "null\n", args: string[] = []) {
 }
 
 const vectors: readonly [string, string, string][] = [
+  ["[label $out | 1, break $out, 2]", "null", "[1]\n"],
+  ['[label $out | try (1, break $out, 2) catch "caught"]', "null", '[1,"caught"]\n'],
+  ["[label $out | try (1, break $out, 2) catch .]", "null", '[1,{"__jq":0}]\n'],
+  ["[label $x | 1, try break $x catch error(.), 2]", "null", "[1]\n"],
+  ['[label $x | 1, error({"__jq":0}), 2]', "null", "[1]\n"],
+  ["[label $out | (1, break $out, 2)?]", "null", "[1]\n"],
+  ["[label $out | 1, (label $inner | 2, break $out, 3), 4]", "null", "[1,2]\n"],
+  ["[label $x | 1, (label $x | 2, break $x, 3), 4]", "null", "[1,2,4]\n"],
+  ["[(label $x | 1, break $x), 2]", "null", "[1,2]\n"],
+  ["[label $out | reduce range(5) as $i (0; if $i==3 then break $out else .+$i end)]", "null", "[]\n"],
+  ["[label $x | foreach range(4) as $i (0; .+$i; if $i==2 then break $x else . end)]", "null", "[0,1]\n"],
+  ["[label $x | foreach (0, break $x, 1) as $i (0; .+$i)]", "null", "[0]\n"],
+  ["[label $x | foreach 1 as $i (break $x; .)]", "null", "[]\n"],
+  ["[label $x | 1 as $x | $x, break $x, 2]", "null", "[1]\n"],
+  ["[label $x | .]", "null", "[null]\n"],
+  ["[range(2) | label $x | ., break $x, 9]", "null", "[0,1]\n"],
+  ["[range(2) | label $x | try break $x catch .]", "null", '[{"__jq":0},{"__jq":1}]\n'],
+  ["def stop(f): f; [label $x | 1, stop(break $x), 2]", "null", "[1]\n"],
+  ["def stop: label $x | 1, break $x, 2; [stop, stop]", "null", "[1,1]\n"],
   [". as $item | $item", '{"value":42}', '{"value":42}\n'],
   ["def f: .; f", '[1,2]', '[1,2]\n'],
   ["..", '{"z":[1,{"a":null}],"b":[]}\n', '{"z":[1,{"a":null}],"b":[]}\n[1,{"a":null}]\n1\n{"a":null}\nnull\n[]\n'],
@@ -87,6 +118,8 @@ for (const source of ["try 1 | .a", "try 1/0", "try .a catch .b"]) test(`try doe
 });
 
 for (const source of [
+  "break $missing", "label $x | $x", "(label $x | .), break $x",
+  "label x | .", "label $x .", "label $x | break x", "label $x | missing",
   "reduce (1,2) as $item ($item; .)", "foreach $item as $item (0; .)",
   "(reduce 1 as $item (0; .)), $item", "foreach 1 as $item (0; .; $missing)",
   "try (1 +) catch 0", "try missing catch 0", "try . catch missing",
@@ -111,6 +144,10 @@ test("try does not catch input parse failures", async () => {
   const baseline = await run(".", "{\n");
   assert.equal(baseline.status, 5);
   assert.deepEqual(await run('try . catch "caught"', "{\n"), baseline);
+});
+
+test("labels do not swallow ordinary runtime errors", async () => {
+  assert.deepEqual(await run('label $x | error("broken")'), await run('error("broken")'));
 });
 
 test("try preserves jq exit-status selection", async () => {

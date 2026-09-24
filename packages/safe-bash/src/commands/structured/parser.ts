@@ -9,6 +9,8 @@ export type Ast =
   | { kind: "literal"; value: Json }
   | { kind: "variable"; name: string }
   | { kind: "bind"; source: Ast; name: string; body: Ast }
+  | { kind: "label"; target: symbol; body: Ast }
+  | { kind: "break"; target: symbol }
   | { kind: "binary"; operator: string; left: Ast; right: Ast }
   | { kind: "unary"; operand: Ast }
   | { kind: "optional"; operand: Ast }
@@ -165,6 +167,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   let defining = false;
   const unresolved = new Map<Ast, Token>();
   const bindings = new Map<string, number>();
+  const labels = new Map<string, symbol>();
   const parameters = new Map<string, Ast>();
   const peek = (): Token => tokens[Math.min(position, tokens.length - 1)]!;
   const take = (): Token => { const token = peek(); if (token.kind !== "end") position++; return token; };
@@ -249,7 +252,22 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       if (name.kind !== "name") fail("expected format name");
       result = peek().kind === "string" || peek().text === "string-start" ? stringExpression(take(), name.text) : { kind: "format", name: name.text };
     } else if (token.text === "..") result = { kind: "descend" };
-    else if (token.text === "try") {
+    else if (token.text === "label") {
+      expect("$");
+      const name = take(); if (name.kind !== "name") fail("expected label name");
+      expect("|");
+      const previous = labels.get(name.text);
+      const target = Symbol(name.text);
+      labels.set(name.text, target);
+      try { result = { kind: "label", target, body: expression() }; }
+      finally { if (previous) labels.set(name.text, previous); else labels.delete(name.text); }
+    } else if (token.text === "break") {
+      expect("$");
+      const name = take(); if (name.kind !== "name") fail("expected label name");
+      const target = labels.get(name.text);
+      if (target === undefined) fail(`undefined label $${name.text}`);
+      result = { kind: "break", target: target! };
+    } else if (token.text === "try") {
       const body = expression(10);
       result = { kind: "try", body, handler: accept("catch") ? expression(10) : undefined };
     } else if (token.text === "reduce" || token.text === "foreach") {
@@ -396,6 +414,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     }
     const children: Ast[] = [];
     if (node.kind === "invoke") children.push(node.body, ...node.args);
+    else if (node.kind === "label") children.push(node.body);
     else if (node.kind === "binary") children.push(node.left, node.right);
     else if (node.kind === "bind") children.push(node.source, node.body);
     else if (node.kind === "unary" || node.kind === "optional") children.push(node.operand);

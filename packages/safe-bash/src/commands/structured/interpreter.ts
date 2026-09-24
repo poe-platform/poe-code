@@ -19,6 +19,8 @@ class UserError extends JqError {
 }
 export class Interpreter {
   private filters = new Map<Ast, { ast: Ast; scope: Interpreter }>();
+  private labels = new Map<symbol, number>();
+  private labelSequence = { next: 0 };
   constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
   async collect(ast: Ast, input: Json): Promise<Json[]> {
     const result: Json[] = [];
@@ -40,6 +42,20 @@ export class Interpreter {
         yield* filter.scope.run(filter.ast, input); return;
       }
       case "invoke": yield* this.invocation(ast).run(ast.body, input); return;
+      case "label": {
+        const target = this.labelSequence.next++;
+        const labels = new Map(this.labels);
+        labels.set(ast.target, target);
+        const scope = Object.create(Interpreter.prototype) as Interpreter;
+        Object.assign(scope, this, { labels });
+        try { yield* scope.run(ast.body, input); }
+        catch (error) {
+          // jq exposes this value to catch handlers, which may rethrow it with error(.).
+          if (this.budget.signal.aborted || !(error instanceof UserError) || !equal(error.value, { __jq: target }, this.budget)) throw error;
+        }
+        return;
+      }
+      case "break": throw new UserError({ __jq: this.labels.get(ast.target)! }, "break");
       case "format": yield await formatValue(ast.name, input, this.budget); return;
       case "identity": yield input; return;
       case "literal": yield ast.value; return;

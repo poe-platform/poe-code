@@ -152,6 +152,39 @@ function parseNodeFromLexer(lexer: CosByteLexer, bytes: Uint8Array, depth = 0): 
   return parseNodeFromToken(tok, lexer, bytes, depth);
 }
 
+function resolveIndirectIntegerFromBytes(
+  bytes: Uint8Array,
+  objectNumber: number,
+  generationNumber: number
+): number | undefined {
+  const pattern = new TextEncoder().encode(`${objectNumber} ${generationNumber} obj`);
+  const pos = findSubsequence(bytes, pattern, 0);
+  if (pos < 0) return undefined;
+  const lex = new CosByteLexer(bytes, pos + pattern.length);
+  const tok = lex.nextToken();
+  if (tok?.kind === "number" && tok.isInteger && tok.value >= 0) {
+    return tok.value;
+  }
+  return undefined;
+}
+
+function findEndstreamBeforeEndobj(bytes: Uint8Array, fromIndex: number): number {
+  let searchPos = fromIndex;
+  let firstMatch = -1;
+  while (searchPos <= bytes.length - ENDSTREAM_BYTES.length) {
+    const idx = findSubsequence(bytes, ENDSTREAM_BYTES, searchPos);
+    if (idx < 0) break;
+    if (firstMatch < 0) firstMatch = idx;
+    const lex = new CosByteLexer(bytes, idx + ENDSTREAM_BYTES.length);
+    const nextTok = lex.nextToken();
+    if (nextTok?.kind === "keyword" && nextTok.value === "endobj") {
+      return idx;
+    }
+    searchPos = idx + ENDSTREAM_BYTES.length;
+  }
+  return firstMatch;
+}
+
 function parseNodeFromToken(
   tok: CosToken,
   lexer: CosByteLexer,
@@ -252,10 +285,16 @@ function parseNodeFromToken(
         }
 
         const lengthEntry = dictGet(dictNode, "Length");
+        const resolvedLength =
+          lengthEntry?.kind === "number"
+            ? lengthEntry.value
+            : lengthEntry?.kind === "ref"
+              ? resolveIndirectIntegerFromBytes(bytes, lengthEntry.objectNumber, lengthEntry.generationNumber)
+              : undefined;
         let rawStreamBytes: Uint8Array | undefined;
         let streamEnd = streamStart;
-        if (lengthEntry?.kind === "number" && lengthEntry.value >= 0 && streamStart + lengthEntry.value <= bytes.length) {
-          const candidateEnd = streamStart + lengthEntry.value;
+        if (resolvedLength !== undefined && resolvedLength >= 0 && streamStart + resolvedLength <= bytes.length) {
+          const candidateEnd = streamStart + resolvedLength;
           const tailSlice = bytes.subarray(candidateEnd, Math.min(bytes.length, candidateEnd + 32));
           const tailStr = new TextDecoder("latin1").decode(tailSlice);
           if (tailStr.includes("endstream")) {
@@ -264,7 +303,7 @@ function parseNodeFromToken(
           }
         }
         if (!rawStreamBytes) {
-          const marker = findSubsequence(bytes, ENDSTREAM_BYTES, streamStart);
+          const marker = findEndstreamBeforeEndobj(bytes, streamStart);
           if (marker < 0) {
             throw new PdfError("E_PARSE", "Missing endstream keyword in PDF stream object");
           }

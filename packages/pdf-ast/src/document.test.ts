@@ -412,4 +412,56 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
     const rectArr = scaleDoc.cos.resolveArray(annotDict.entries.find(e => e.key.decoded === "Rect")?.value)!;
     expect(rectArr.items.map(i => (i.kind === "number" ? i.value : 0))).toEqual([20, 30, 100, 60]);
   });
+
+  it("handles indirect /Length streams containing endstream (pdf.js/qpdf), /F1 1 Tf with 12 0 0 12 Tm glyph widths (pypdf #4116), AcroForm /DR fonts (pypdf #3983), and CMap surrogate pairs", async () => {
+    const { parseToUnicodeCMap } = await import("./fonts/cmap.js");
+
+    // 1. Stream with indirect /Length 5 0 R whose content contains the literal word "endstream"
+    const streamBody = "BT /F1 12 Tf 50 700 Td (Literal endstream token inside text) Tj ET";
+    const rawPdf = [
+      "%PDF-1.7",
+      "1 0 obj << /Type /Catalog /Pages 2 0 R /AcroForm << /DR << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >> >> endobj",
+      "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
+      "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << >> /Contents 4 0 R >> endobj",
+      `4 0 obj << /Length 5 0 R >>\nstream\n${streamBody}\nendstream\nendobj`,
+      `5 0 obj ${streamBody.length} endobj`,
+      "trailer << /Root 1 0 R >>",
+      "%%EOF",
+    ].join("\n");
+
+    const parsedDoc = PdfDocument.load(new TextEncoder().encode(rawPdf));
+    // Also tests AcroForm /DR /Font fallback (pypdf #3983) because page 3 has empty /Resources << >>!
+    expect(parsedDoc.extractText()).toContain("Literal endstream token inside text");
+
+    // 2. /F1 1 Tf with 12 0 0 12 72 700 Tm and 5 Tc (charSpace = 0.5 in 1pt font -> 6pt in 12x Tm)
+    const tmPage = parsedDoc.getPage(0);
+    tmPage.setRawContentStream(
+      new TextEncoder().encode("BT /F1 1 Tf 0.5 Tc 12 0 0 12 72 600 Tm (AB) Tj ET")
+    );
+    const tmDl = tmPage.evaluateDisplayList();
+    const glyphA = tmDl.glyphs.find(g => g.unicode === "A")!;
+    const glyphB = tmDl.glyphs.find(g => g.unicode === "B")!;
+    // Advance of A (667/1000 * 1 + 0.5 Tc) * 12 = 1.167 * 12 = 14.004pt
+    expect(glyphB.bbox[0] - glyphA.bbox[0]).toBeCloseTo(14.004, 2);
+    expect(glyphA.advanceWidth).toBeCloseTo(14.004, 2);
+
+    // 3. CMap beginbfrange with UTF-16BE surrogate pairs (U+1D400 Mathematical Bold Capital A -> U+1D402)
+    const cmapText = [
+      "begincmap",
+      "1 begincodespacerange",
+      "<0000> <FFFF>",
+      "endcodespacerange",
+      "1 beginbfrange",
+      "<0001> <0003> <D835DC00>",
+      "endbfrange",
+      "endcmap",
+    ].join("\n");
+    const cmap = parseToUnicodeCMap(new TextEncoder().encode(cmapText));
+    const decoded = cmap.decodeBytes(new Uint8Array([0x00, 0x01, 0x00, 0x02, 0x00, 0x03]));
+    expect(decoded.map(d => d.unicode)).toEqual([
+      String.fromCodePoint(0x1d400),
+      String.fromCodePoint(0x1d401),
+      String.fromCodePoint(0x1d402),
+    ]);
+  });
 });

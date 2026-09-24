@@ -108,7 +108,12 @@ export class PdfDocument {
   }
 
   static load(bytes: Uint8Array, options?: ParseCosOptions): PdfDocument {
-    return new PdfDocument(parseCosDocument(bytes, options));
+    return new PdfDocument(
+      parseCosDocument(bytes, {
+        ...options,
+        recovery: options?.recovery ?? "repair",
+      })
+    );
   }
 
   private rebuildPagesList(): void {

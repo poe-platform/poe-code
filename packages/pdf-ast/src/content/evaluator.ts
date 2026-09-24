@@ -3,6 +3,7 @@ import {
   dictGet,
   type PdfContentNode,
   type PdfCosDict,
+  type PdfDictEntry,
   type PdfDisplayList,
   type PdfEvaluatedImage,
   type PdfEvaluatedPath,
@@ -50,11 +51,23 @@ interface ResolvedPageFont {
 
 function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: PdfCosDict | undefined): Map<string, ResolvedPageFont> {
   const fonts = new Map<string, ResolvedPageFont>();
-  if (!doc || !resourcesDict) return fonts;
-  const fontDict = doc.resolveDict(dictGet(resourcesDict, "Font"));
-  if (!fontDict) return fonts;
+  if (!doc) return fonts;
 
-  for (const entry of fontDict.entries) {
+  const fontEntries: PdfDictEntry[] = [];
+  const catalog = doc.resolveDict(doc.rootRef);
+  const acroForm = catalog ? doc.resolveDict(dictGet(catalog, "AcroForm")) : undefined;
+  const drDict = acroForm ? doc.resolveDict(dictGet(acroForm, "DR")) : undefined;
+  const drFontDict = drDict ? doc.resolveDict(dictGet(drDict, "Font")) : undefined;
+  if (drFontDict) {
+    fontEntries.push(...drFontDict.entries);
+  }
+  const pageFontDict = resourcesDict ? doc.resolveDict(dictGet(resourcesDict, "Font")) : undefined;
+  if (pageFontDict) {
+    fontEntries.push(...pageFontDict.entries);
+  }
+  if (fontEntries.length === 0) return fonts;
+
+  for (const entry of fontEntries) {
     const fName = entry.key.decoded;
     const fObj = doc.resolveDict(entry.value);
     if (!fObj) continue;
@@ -497,8 +510,11 @@ export function evaluateContentStreamToDisplayList(params: {
               const [px, py] = [totalMatrix[4], totalMatrix[5] + st.rise];
               const effectiveFontSize = st.fontSize * Math.hypot(totalMatrix[0], totalMatrix[1]);
               const advUser = ((item.advance1000 * st.fontSize) / 1000 + st.charSpace + (item.unicode === " " ? st.wordSpace : 0)) * scaleH;
-              const [nextX] = transformPoint(totalMatrix, advUser / Math.max(0.001, Math.hypot(tm[0], tm[1])), 0);
-              const glyphWidth = Math.max(Math.abs(nextX - px), (item.advance1000 * effectiveFontSize) / 1000);
+              const [nextX, nextY] = transformPoint(totalMatrix, advUser, 0);
+              const glyphWidth = Math.max(
+                Math.hypot(nextX - px, nextY - py),
+                (item.advance1000 * effectiveFontSize) / 1000
+              );
               glyphs.push({
                 charCode: item.charCode,
                 unicode: item.unicode,

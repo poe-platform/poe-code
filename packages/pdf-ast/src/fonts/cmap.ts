@@ -26,10 +26,11 @@ function decodeUtf16BeBytes(bytes: Uint8Array): string {
 }
 
 function incrementStringCodePoint(str: string, delta: number): string {
-  if (str.length === 0) return "";
-  const prefix = str.slice(0, -1);
-  const lastCp = str.codePointAt(str.length - 1) ?? 0;
-  return prefix + String.fromCodePoint(lastCp + delta);
+  const cps = Array.from(str);
+  if (cps.length === 0) return "";
+  const lastCp = cps[cps.length - 1]!.codePointAt(0) ?? 0;
+  cps[cps.length - 1] = String.fromCodePoint(lastCp + delta);
+  return cps.join("");
 }
 
 export function parseToUnicodeCMap(cmapBytes: Uint8Array): ParsedToUnicodeCMap {

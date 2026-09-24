@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { PdfDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosString } from "@poe-code/pdf-ast";
 import { parseQpdfPageRange, runQpdfCli } from "./index.js";
 
 function createNumberedPdf(pageCount: number, prefix = "Doc"): Uint8Array {
@@ -246,5 +246,103 @@ describe("safe-bash-command-qpdf", () => {
     assert.match(collated.getPage(1).extractText(), /Even Page 1/);
     assert.match(collated.getPage(2).extractText(), /Odd Page 2/);
     assert.match(collated.getPage(3).extractText(), /Even Page 2/);
+  });
+
+  it("handles upstream qpdf issues: overlay resource cloning (#904), flatten-annotations AcroForm widgets (#949) & hyperlink preservation (#1039), and Form XObject image listing (#909)", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. qpdf #904: stamp.pdf contains an embedded RGB image (/Im1) that must survive --overlay
+    const baseDoc = PdfDocument.create();
+    const basePage = baseDoc.addPage([300, 300]);
+    basePage.drawText("Invoice Base Content", { x: 40, y: 240, size: 12 });
+    basePage.addLinkAnnotation({ rect: [40, 200, 180, 220], uri: "https://poe.com/invoice" });
+
+    // Add an AcroForm Widget annotation with /V (Paid-2026-09) on /Parent field (qpdf #949)
+    const parentFieldRef = baseDoc.cos.allocateObject(
+      cosDict({
+        FT: cosName("Tx"),
+        T: cosString("payment_status"),
+        V: cosString("PAID-IN-FULL"),
+      })
+    );
+    const widgetAnnotRef = baseDoc.cos.allocateObject(
+      cosDict({
+        Type: cosName("Annot"),
+        Subtype: cosName("Widget"),
+        Parent: parentFieldRef,
+        Rect: cosArray([cosNumber(40), cosNumber(150), cosNumber(200), cosNumber(170)]),
+      })
+    );
+    const annotsNode = baseDoc.cos.resolveArray(
+      basePage.dict.entries.find(e => e.key.decoded === "Annots")?.value
+    )!;
+    annotsNode.items.push(widgetAnnotRef);
+    files.set("/base-form.pdf", baseDoc.save());
+
+    const stampWithImageDoc = PdfDocument.create();
+    const stampPage = stampWithImageDoc.addPage([300, 300]);
+    const imgHandle = stampWithImageDoc.embedRgbImage(4, 4, new Uint8Array(4 * 4 * 3).fill(180));
+    stampPage.drawImage(imgHandle, { x: 200, y: 200, width: 32, height: 32 });
+    stampPage.drawText("STAMP-WATERMARK", { x: 40, y: 80, size: 12 });
+    files.set("/stamp-img.pdf", stampWithImageDoc.save());
+
+    // Run --overlay + --flatten-annotations
+    const res = await runQpdfCli(
+      [
+        "--flatten-annotations",
+        "--overlay",
+        "/stamp-img.pdf",
+        "--",
+        "/base-form.pdf",
+        "/out-flat.pdf",
+      ],
+      files
+    );
+    assert.equal(res.exitCode, 0);
+
+    const flatDoc = PdfDocument.load(files.get("/out-flat.pdf")!);
+    const flatPage = flatDoc.getPage(0);
+    const flatText = flatPage.extractText();
+    // Widget value PAID-IN-FULL must be flattened onto the page (qpdf #949)
+    assert.match(flatText, /PAID-IN-FULL/);
+    assert.match(flatText, /STAMP-WATERMARK/);
+    // Overlay image resource from stamp-img.pdf must be present in display list (qpdf #904)
+    const flatDl = flatPage.evaluateDisplayList();
+    assert.equal(flatDl.images.length, 1);
+    // Link annotation must be preserved in /Annots while Widget annotation was flattened (qpdf #1039)
+    const remainingAnnots = flatDoc.cos.resolveArray(
+      flatPage.dict.entries.find(e => e.key.decoded === "Annots")?.value
+    );
+    assert.ok(remainingAnnots);
+    assert.equal(remainingAnnots.items.length, 1);
+
+    // 2. qpdf #909: --show-pages --with-images lists images nested inside a Form XObject (/Subtype /Form)
+    const nestedImgDoc = PdfDocument.create();
+    const nestedPage = nestedImgDoc.addPage([200, 200]);
+    const innerImgHandle = nestedImgDoc.embedRgbImage(8, 6, new Uint8Array(8 * 6 * 3).fill(90));
+    const formXObjRef = nestedImgDoc.cos.allocateObject({
+      kind: "stream",
+      dict: cosDict({
+        Type: cosName("XObject"),
+        Subtype: cosName("Form"),
+        BBox: cosArray([cosNumber(0), cosNumber(0), cosNumber(100), cosNumber(100)]),
+        Resources: cosDict({
+          XObject: cosDict({ NestedIm1: innerImgHandle.xobjectRef }),
+        }),
+      }),
+      rawBytes: new TextEncoder().encode("q 8 0 0 6 10 10 cm /NestedIm1 Do Q"),
+    });
+    nestedPage.getResourcesDict().entries.push({
+      key: cosName("XObject"),
+      value: cosDict({ Form1: formXObjRef }),
+    });
+    files.set("/nested-form-img.pdf", nestedImgDoc.save());
+
+    const showImgRes = await runQpdfCli(
+      ["--show-pages", "--with-images", "/nested-form-img.pdf"],
+      files
+    );
+    assert.equal(showImgRes.exitCode, 0);
+    assert.match(showImgRes.stdout, /\/NestedIm1:.*\(8 x 6\)/);
   });
 });

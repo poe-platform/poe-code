@@ -15,10 +15,14 @@ import {
   decodePdfString,
   cosDict,
   cosNumber,
+  cosArray,
   dictGet,
+  dictSet,
   dictDelete,
   type PdfCosNode,
-  type PdfCosDict
+  type PdfCosDict,
+  type PdfCosRef,
+  type PdfDictEntry
 } from "@poe-code/pdf-ast";
 
 const asDict = (n: PdfCosNode | undefined): PdfCosDict | undefined => (n?.kind === "dict" ? n : undefined);
@@ -479,27 +483,37 @@ export async function runQpdfCli(
   if (showPages) {
     const lines: string[] = [];
     const pages = baseDoc.getPages();
+    const collectImagesFromResources = (
+      resDict: PdfCosDict | undefined,
+      visitedForms = new Set<number>()
+    ) => {
+      if (!resDict) return;
+      const xobjDict = asDict(baseDoc.cos.resolve(dictGet(resDict, "XObject")));
+      if (!xobjDict) return;
+      for (const entry of xobjDict.entries) {
+        const ref = asRef(entry.value);
+        const resolved = baseDoc.cos.resolve(entry.value);
+        const streamDict = resolved?.kind === "stream" ? resolved.dict : asDict(resolved);
+        const subtype = streamDict ? asName(dictGet(streamDict, "Subtype"))?.decoded : undefined;
+        if (subtype === "Image") {
+          const w = asNumber(dictGet(streamDict!, "Width"))?.value ?? 0;
+          const h = asNumber(dictGet(streamDict!, "Height"))?.value ?? 0;
+          const refStr = ref ? `${ref.objectNumber} ${ref.generationNumber} R` : "inline";
+          lines.push(`    /${entry.key.decoded}: ${refStr} (${w} x ${h})`);
+        } else if (subtype === "Form" && streamDict) {
+          if (ref && visitedForms.has(ref.objectNumber)) continue;
+          if (ref) visitedForms.add(ref.objectNumber);
+          const formRes = asDict(baseDoc.cos.resolve(dictGet(streamDict, "Resources")));
+          collectImagesFromResources(formRes, visitedForms);
+        }
+      }
+    };
     for (let idx = 0; idx < pages.length; idx++) {
       const p = pages[idx]!;
       lines.push(`page ${idx + 1}: ${p.ref.objectNumber} ${p.ref.generationNumber} R`);
       if (withImages) {
         lines.push("  images:");
-        const resDict = asDict(baseDoc.cos.resolve(dictGet(p.dict, "Resources")));
-        const xobjDict = resDict ? asDict(baseDoc.cos.resolve(dictGet(resDict, "XObject"))) : undefined;
-        if (xobjDict) {
-          for (const entry of xobjDict.entries) {
-            const ref = asRef(entry.value);
-            const resolved = baseDoc.cos.resolve(entry.value);
-            const streamDict = resolved?.kind === "stream" ? resolved.dict : asDict(resolved);
-            const subtype = streamDict ? asName(dictGet(streamDict, "Subtype"))?.decoded : undefined;
-            if (subtype === "Image") {
-              const w = asNumber(dictGet(streamDict!, "Width"))?.value ?? 0;
-              const h = asNumber(dictGet(streamDict!, "Height"))?.value ?? 0;
-              const refStr = ref ? `${ref.objectNumber} ${ref.generationNumber} R` : "inline";
-              lines.push(`    /${entry.key.decoded}: ${refStr} (${w} x ${h})`);
-            }
-          }
-        }
+        collectImagesFromResources(p.getResourcesDict());
       }
       lines.push("  content:");
       const contentsNode = dictGet(p.dict, "Contents");
@@ -633,6 +647,7 @@ export async function runQpdfCli(
   }
 
   // Apply --overlay / --underlay
+  let stampResCounter = 1;
   for (const stamp of stampSpecs) {
     const stampBytes = loadBytes(stamp.file);
     if (!stampBytes) {
@@ -645,6 +660,38 @@ export async function runQpdfCli(
     const repeatPages = stamp.repeatRange
       ? parseQpdfPageRange(stamp.repeatRange, stampDoc.getPageCount())
       : fromPages;
+
+    const cloneMemo = new Map<number, PdfCosRef>();
+    const cloneFromStampCos = (node: PdfCosNode): PdfCosNode => {
+      if (node.kind === "ref") {
+        const existing = cloneMemo.get(node.objectNumber);
+        if (existing) return existing;
+        const target = stampDoc.cos.getObject(node.objectNumber);
+        if (!target) return { kind: "null" };
+        const placeholder = workingDoc.cos.allocateObject({ kind: "null" });
+        cloneMemo.set(node.objectNumber, placeholder);
+        workingDoc.cos.setObject(placeholder.objectNumber, cloneFromStampCos(target), 0);
+        return placeholder;
+      }
+      if (node.kind === "array") {
+        return cosArray(node.items.map(cloneFromStampCos));
+      }
+      if (node.kind === "dict") {
+        const entries: PdfDictEntry[] = node.entries
+          .filter(e => e.key.decoded !== "Parent")
+          .map(e => ({ key: { ...e.key }, value: cloneFromStampCos(e.value) }));
+        return { kind: "dict", entries };
+      }
+      if (node.kind === "stream") {
+        return {
+          kind: "stream",
+          dict: cloneFromStampCos(node.dict) as PdfCosDict,
+          rawBytes: new Uint8Array(node.rawBytes),
+          decodedBytes: node.decodedBytes ? new Uint8Array(node.decodedBytes) : undefined,
+        };
+      }
+      return node;
+    };
 
     if (fromPages.length > 0 && toPages.length > 0) {
       const enc = new TextEncoder();
@@ -661,7 +708,36 @@ export async function runQpdfCli(
         const targetPage = workingDoc.getPage(targetPageNum - 1);
         const srcStampPage = stampDoc.getPage(stampPageNum - 1);
         const targetStream = targetPage.getRawContentStream();
-        const stampStream = srcStampPage.getRawContentStream();
+        let stampStreamStr = new TextDecoder("latin1").decode(srcStampPage.getRawContentStream());
+
+        // Clone and merge Font, XObject, ExtGState from srcStampPage into targetPage
+        const targetRes = targetPage.getResourcesDict();
+        const srcRes = srcStampPage.getResourcesDict();
+        for (const catKey of ["Font", "XObject", "ExtGState"] as const) {
+          const srcSub = asDict(stampDoc.cos.resolve(dictGet(srcRes, catKey)));
+          if (!srcSub) continue;
+          let dstSub = asDict(workingDoc.cos.resolve(dictGet(targetRes, catKey)));
+          if (!dstSub) {
+            dstSub = cosDict({});
+            dictSet(targetRes, catKey, dstSub);
+          }
+          for (const entry of srcSub.entries) {
+            const origKey = entry.key.decoded;
+            let finalKey = origKey;
+            if (dictGet(dstSub, origKey)) {
+              finalKey = `QStp${stampResCounter++}_${origKey}`;
+              stampStreamStr = stampStreamStr.replace(
+                new RegExp(`/${origKey}(?=[\\s/><\\[\\]()])`, "g"),
+                `/${finalKey}`
+              );
+            }
+            dictSet(dstSub, finalKey, cloneFromStampCos(entry.value));
+          }
+        }
+        const stampStream = new Uint8Array(stampStreamStr.length);
+        for (let k = 0; k < stampStreamStr.length; k++) {
+          stampStream[k] = stampStreamStr.charCodeAt(k) & 0xff;
+        }
 
         // Merge stamp stream into target stream wrapped in q ... Q
         const qOpen = enc.encode("q\n");
@@ -689,14 +765,32 @@ export async function runQpdfCli(
       const annotsNode = workingDoc.cos.resolve(dictGet(page.dict, "Annots"));
       const annotsArr = asArray(annotsNode);
       if (!annotsArr) continue;
+      const survivingAnnots: PdfCosNode[] = [];
       for (const item of annotsArr.items) {
         const annotDict = asDict(workingDoc.cos.resolve(item));
         if (!annotDict) continue;
         const subtype = asName(dictGet(annotDict, "Subtype"))?.decoded;
-        if (subtype === "Link") continue;
+        if (subtype === "Link" || subtype === "Popup") {
+          survivingAnnots.push(item);
+          continue;
+        }
         const contentsNode = dictGet(annotDict, "Contents");
-        const text =
+        let text =
           contentsNode?.kind === "string" ? decodePdfString(contentsNode).trim() : "";
+        if (!text) {
+          const parentDict = asDict(workingDoc.cos.resolve(dictGet(annotDict, "Parent")));
+          const vNode =
+            workingDoc.cos.resolve(dictGet(annotDict, "V")) ??
+            (parentDict ? workingDoc.cos.resolve(dictGet(parentDict, "V")) : undefined);
+          const asStateNode = workingDoc.cos.resolve(dictGet(annotDict, "AS"));
+          if (vNode?.kind === "string") {
+            text = decodePdfString(vNode).trim();
+          } else if (vNode?.kind === "name" && vNode.decoded !== "Off") {
+            text = vNode.decoded;
+          } else if (asStateNode?.kind === "name" && asStateNode.decoded !== "Off") {
+            text = asStateNode.decoded;
+          }
+        }
         const rectArr = asArray(dictGet(annotDict, "Rect"));
         const x = asNumber(rectArr?.items[0])?.value ?? 72;
         const y = asNumber(rectArr?.items[1])?.value ?? 72;
@@ -704,7 +798,11 @@ export async function runQpdfCli(
           page.drawText(text, { x, y, size: 10 });
         }
       }
-      dictDelete(page.dict, "Annots");
+      if (survivingAnnots.length > 0) {
+        dictSet(page.dict, "Annots", cosArray(survivingAnnots));
+      } else {
+        dictDelete(page.dict, "Annots");
+      }
     }
   }
 

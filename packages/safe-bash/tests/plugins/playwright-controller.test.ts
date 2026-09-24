@@ -50,7 +50,7 @@ for (const command of ['click', 'check', 'select'] as const) for (const change o
   };
   const handle = {
     async evaluate<T, Argument = undefined>(callback: (node: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(node, argument!); },
-    click: action, check: action, selectOption: action, async fill() {}, async dispose() {},
+    click: action, check: action, async selectOption() { await action(); return []; }, async fill() {}, async dispose() {},
   };
   const snapshot = createSnapshotFrame([{ node, native: handle }]);
   const page = {

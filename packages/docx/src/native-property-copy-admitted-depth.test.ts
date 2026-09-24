@@ -27,6 +27,6 @@ it(`copies only active native properties at admitted depth; strict=${strict}; ca
     if ("source" in item) { names.push(item.source.localName); pending.unshift(...item.content); }
   }
   expect(names).toEqual(["wrapper", property, leaf]);
-  expect(Buffer.compare(editor.serialize(), input)).toBe(0);
-  expect(Buffer.compare(memory.readFileSync("/source") as Buffer, input)).toBe(0);
+  expect(Buffer.compare(editor.serialize(), input), "editor preserves every source byte").toBe(0);
+  expect(Buffer.compare(memory.readFileSync("/source") as Buffer, input), "source remains unchanged").toBe(0);
 }, 20_000);

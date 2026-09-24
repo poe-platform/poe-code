@@ -1678,6 +1678,14 @@ const emptyShellValues: readonly ShellValue[] = [];
 const emptyStrings: readonly string[] = [];
 const assignmentCache = new WeakMap<Word, { name: string; value: Word; append: boolean } | null>();
 
+function hasGlobOrEscape(text: string): boolean {
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code === 42 || code === 63 || code === 91 || code === 92) return true;
+  }
+  return false;
+}
+
 export class Runtime {
   private readonly sourceFs: FileSystem;
   readonly #rawFs: FileSystem;
@@ -4452,7 +4460,10 @@ export class Runtime {
           }, assignment.append);
           continue;
         }
-        let value = concatShellValues(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0), io[valueScope]);
+        const fastAssigned = this.fastValueWord(assignment.value, state, io, false, false, false, false, 0);
+        let value = fastAssigned !== undefined
+          ? fastAssigned
+          : concatShellValues(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0), io[valueScope]);
         if (assignment.append) {
           value = state.variableAttributes?.get(assignment.name)?.includes("i")
             ? concatShellValues([`(${state.variables[assignment.name] || "0"})+(`, value, ")"], io[valueScope])
@@ -7219,7 +7230,15 @@ export class Runtime {
         fields.push(assignment.name);
       } else {
         const scalarAssignment = declaration ? this.assignment(word) : undefined;
-        const values = await this.valueWord(word, state, io, !scalarAssignment, false, false, false, undefined, false, true, scalarAssignment ? scalarAssignment.name.length + (scalarAssignment.append ? 2 : 1) : undefined);
+        const split = !scalarAssignment;
+        const assignmentStart = scalarAssignment ? scalarAssignment.name.length + (scalarAssignment.append ? 2 : 1) : undefined;
+        const fast = this.fastValueWord(word, state, io, split, false, false, true, assignmentStart);
+        if (fast !== undefined) {
+          if (1 > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+          fields.push(fast);
+          continue;
+        }
+        const values = await this.valueWord(word, state, io, split, false, false, false, undefined, false, true, assignmentStart);
         if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
         for (const value of values) fields.push(value);
       }
@@ -7863,7 +7882,56 @@ export class Runtime {
     return (await this.valueWord(word, state, io, split, pattern, hereString, conditionalPattern, regexAppend)).map(shellValueText);
   }
 
+  private fastValueWord(word: Word, state: State, io: IO, split: boolean, pattern: boolean, hereDocument: boolean, braces: boolean, assignmentStart?: number): ShellValue | undefined {
+    if (pattern || word.parts.length === 0 || state.variableAttributes?.size || guestArrays(state)) return undefined;
+    this.signal.throwIfAborted();
+    let out = "";
+    for (let i = 0; i < word.parts.length; i++) {
+      const part = word.parts[i]!;
+      if (part.kind === "text") {
+        if (part.byteValue || invokedValues.has(part)) return undefined;
+        if (!part.quoted) {
+          if (braces && state.braceexpand !== false && part.value.includes("{")) return undefined;
+          if (!hereDocument && (i === 0 && part.value.startsWith("~") || assignmentStart !== undefined && part.value.includes("~"))) return undefined;
+          if (split && !state.noglob && hasGlobOrEscape(part.value)) return undefined;
+        }
+        out += part.value;
+      } else if (part.kind === "variable") {
+        if (split && !part.quoted) return undefined;
+        if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.operator || part.substring || part.transform) return undefined;
+        if (part.name === "@" || part.name === "*" || (part.name === "LINENO" && state.extensions)) return undefined;
+        if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;
+        const raw = state.variables[part.name];
+        this.requireParameter(raw, part.name, state, io, part.line);
+        const val = raw === undefined ? "" : (stateMonitor(state)?.values.get(part.name, raw) ?? raw);
+        if (typeof val !== "string") return undefined;
+        out += val;
+      } else {
+        return undefined;
+      }
+    }
+    if (1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    const maxBytes = this.budget.limits.maxExpansionBytes;
+    if (out.length * 3 > maxBytes && shellValueByteLength(out) > maxBytes) this.budget.fail("maxExpansionBytes");
+    return out;
+  }
+
   private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number): Promise<ShellValue[]> {
+    if (!conditionalPattern && !regexAppend) {
+      const fast = this.fastValueWord(word, state, io, split, pattern, hereDocument, braces, assignmentStart);
+      if (fast !== undefined) return [fast];
+      if (!split && !pattern && word.parts.length === 1 && !state.variableAttributes?.size && !guestArrays(state)) {
+        const part = word.parts[0]!;
+        if (part.kind === "arithmetic" || (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && part.name !== "@" && part.name !== "*" && getArraySelector(part) === undefined && !["-", "+", ":-", ":+"].includes(part.operator ?? "") && isShellIdentifier(part.name))) {
+          const val = await this.valuePart(part, state, io, hereString, false, hereDocument);
+          if (1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+          const maxBytes = this.budget.limits.maxExpansionBytes;
+          if ((typeof val !== "string" || val.length * 3 > maxBytes) && shellValueByteLength(val) > maxBytes) this.budget.fail("maxExpansionBytes");
+          if (typeof val !== "string") io[valueScope]?.hold(val);
+          return [val];
+        }
+      }
+    }
     if (braces && state.braceexpand !== false && word.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
       const fields: ShellValue[] = [];
       let bytes = 0;

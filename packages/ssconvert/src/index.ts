@@ -3,6 +3,8 @@ export { readXlsx, probeXlsx, createXlsxWriter } from "./codecs/xlsx.js";
 export { referenceText } from "./cli/reference.js";
 export { exportOptionPairs } from "./cli/export-options.js";
 export { createResourceIO } from "./io/index.js";
+export { resolveVfsCwd } from "./io/cwd.js";
+export type { WorkingDirectoryFileSystem } from "./io/cwd.js";
 export type { ResourceIOOptions, DescriptorBinding } from "./io/index.js";
 export { createVfsOutput } from "./io/publication.js";
 export type { PublicationFileSystem } from "./io/publication.js";

@@ -10,7 +10,7 @@
     {
       "id": "pwd-resource-identity",
       "status": "open",
-      "currentFinding": "SDK/Shell resource identity fix delivered. Logical symlink, Windows and complete public qualification remain open."
+      "currentFinding": "SDK/Shell actual-cwd binding is delivered. Logical PWD aliases now require matching scoped directory identity through the public resolveVfsCwd helper, preserving exact exports and GETENV. Native GLib/GIO 2.90.0, memory-backed SDK/Shell, split/graph publication, cancellation and public-consumer checks cover the qualified POSIX behavior. Native Windows, broader real-adapter/installed-package qualification and containing publication remain open."
     },
     {
       "id": "lotus-named-formula-references",
@@ -105,7 +105,7 @@
   ],
   "delivery": {
     "verifiedRemoteMain": [
-      "0da3a4731863746b5e47563c57602026ae92b480"
+      "da7a6f2b376bb6044ae92e5614f7140a84833bc6"
     ],
     "verifiedPublication": {
       "version": "17.0.35",

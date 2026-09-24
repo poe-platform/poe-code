@@ -207,6 +207,31 @@ test("ssconvert public Shell diagnostics resolve resource identity against VFS c
   }
 });
 
+test("ssconvert uses a logical PWD only when its directory identity matches the actual cwd", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/physical/actual", { recursive: true });
+  await fs.mkdir("/logical");
+  await fs.symlink("/physical/actual", "/logical/alias");
+  await fs.writeFile("/physical/actual/input.independent", encode("original"));
+  const shell = new Shell({ fs, cwd: "/physical/actual" }).use(ssconvertCommands(options));
+  shell.commands.register({ name: "exact-env", async execute(context) {
+    return context.invoke!("ssconvert", context.args, { replaceEnv: true, env: { PWD: "/logical/alias" } });
+  } });
+  try {
+    const missing = await shell.exec("exact-env 'missing #.independent' output.independent");
+    assert.equal(missing.exitCode, 1);
+    assert.equal(missing.stderr, "E /logical/alias/missing #.independent: No such file or directory\n");
+    const exporter = await shell.exec("exact-env input.independent 'output #.unknown'");
+    assert.equal(exporter.exitCode, 2);
+    assert.equal(exporter.stderr, "Unable to guess exporter to use for 'file:///logical/alias/output%20%23.unknown'.\nTry --list-exporters to see a list of possibilities.\n");
+    const output = await shell.exec("exact-env input.independent ../output.independent");
+    assert.equal(output.exitCode, 0, output.stderr);
+    assert.deepEqual(await fs.readFile("/logical/output.independent"), encode("original"));
+    assert.deepEqual((await fs.readdir("/physical")).map(entry => entry.name), ["actual"]);
+    assert.deepEqual((await fs.readdir("/logical")).map(entry => entry.name).sort(), ["alias", "output.independent"]);
+  } finally { await shell.dispose(); }
+});
+
 test("ssconvert VFS cwd remains distinct from exact invocation exports and GETENV(PWD)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work");

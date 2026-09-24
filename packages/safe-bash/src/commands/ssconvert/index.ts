@@ -1,4 +1,4 @@
-import { createEngine, snapshotRuntimeFunctions, createResourceIO, createVfsOutput, runCommand, type EngineConfig, type ResourceIOOptions } from "@poe-code/ssconvert";
+import { createEngine, snapshotRuntimeFunctions, createResourceIO, createVfsOutput, resolveVfsCwd, runCommand, type EngineConfig, type ResourceIOOptions } from "@poe-code/ssconvert";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import {
   createOutputOperation,
@@ -79,17 +79,18 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions): Comma
         view => cleanup(path => view.rm(path)), { maxOperations: 1 }));
       let engine: ReturnType<typeof createEngine> | undefined;
       try {
+        const cwd = await owner.acquire(() => resolveVfsCwd(context.cwd, context.env.PWD, context.fs, owner.signal), () => {});
         engine = createEngine({
           ...binding,
           environment: {
             ...binding.environment,
-            cwd: context.cwd,
+            cwd,
             env: Object.freeze({ ...context.env })
           },
           limits: { ...binding.limits, inputBytes },
           filesystem: createResourceIO({
             ...binding.io,
-            cwd: context.cwd,
+            cwd,
             descriptors: { ...binding.io?.descriptors,
               0: { source: context.stdin },
               1: { sink: standardOutput }

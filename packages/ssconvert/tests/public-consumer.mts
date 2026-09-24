@@ -1,9 +1,15 @@
-import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs,
-  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig } from "@poe-code/ssconvert";
+import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd,
+  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type WorkingDirectoryFileSystem } from "@poe-code/ssconvert";
 import { readXlsx as rootReadXlsx } from "poe-code/ssconvert";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 1000000, outputBytes: 1000000, cells: 10, sheets: 2, operations: 30 } };
+const identityScope = {};
+const cwdFilesystem: WorkingDirectoryFileSystem = {
+  async stat() { return { type: "directory", identityScope, dev: 0, ino: 0 }; }
+};
+if (await resolveVfsCwd("/actual", "/alias", cwdFilesystem, context.signal) !== "/alias")
+  throw new Error("Public logical cwd consumer failed");
 const original: Workbook = { sheets: [{ id: "s", name: "Consumer", cells: [
   { row: 0, column: 0, value: { kind: "string", value: "Public consumer" } }
 ] }] };

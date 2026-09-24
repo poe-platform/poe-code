@@ -63,6 +63,11 @@ while a declaration can supply the expression for a linked workbook name placeho
 BIFF7/8 exports resolve sheet references without regard to case and preserve the exact spelling and scope of defined names.
 Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.
+It verifies logical `PWD` aliases through the supplied filesystem before using
+them for resource paths and diagnostics. SDK hosts can call
+`resolveVfsCwd(actualCwd, env.PWD, filesystem, signal)` and bind the result with
+`createResourceIO({ cwd, filesystem })`. Unknown identity keeps the actual cwd;
+the exported `PWD` value stays available to formulas unchanged.
 The optional `datasource` binding enables `ATL_LAST(tag)` through an owned host
 transport. Each operation opens a separate session; successful default solver
 processing polls one finite available byte batch and closes the transport after

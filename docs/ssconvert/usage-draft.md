@@ -148,10 +148,16 @@ the configured environment map.
 | `GNM_SHORTREP_FILES` | Presence, including an empty string, selects the Gnumeric XML writer's shortest numeric representation path. This is not a guarantee of complete writer parity. |
 | Other names | Available to workbook `GETENV` through the supplied map; absent names yield `#N/A`. They do not authorize host access or load plugins. |
 
-Diagnostic URIs and VFS reads/writes use the same captured actual cwd even when
-guest `PWD` names a distinct directory, is relative or is absent. The exported
-environment is preserved. Logical symlink-equivalent PWD and Windows behavior
-remain unverified; a supplied actual cwd must be absolute and contain no NUL.
+Diagnostic URIs and VFS reads/writes use one captured cwd. Safe Bash first calls
+`resolveVfsCwd(actualCwd, env.PWD, filesystem, signal)`: an absolute PWD alias is
+used only when directory stats prove the same scoped device/inode or opaque
+identity. Distinct, unknown or unavailable identity retains the actual cwd;
+relative, empty and absent PWD cannot replace it. SDK callers can use the same
+helper before passing its result to `createResourceIO({ cwd, filesystem })`.
+The exported environment and `GETENV("PWD")` remain unchanged. Identity checks
+are observations, not namespace leases. Native Windows behavior remains
+unqualified; this helper follows the POSIX VFS contract. Supplied cwd must be
+absolute and contain no NUL.
 
 Resource I/O requires injected filesystem bindings. createResourceIO resolves
 VFS paths, file URIs, explicit fd:// descriptors and named adapters.

@@ -223,7 +223,9 @@ export function createSeqCommand(limits: StreamFormatLimits): CommandDefinition 
       return;
     }
     const firstText = (first.negativeZero ? "-" : "") + fixed(current, scale, precision);
-    const width = equalWidth ? Math.max(firstText.length, fixed(finish, scale, precision).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0)) : 0;
+    // LAST bounds the sequence; discarded fractional digits must not widen it.
+    const widthFinish = finish / 10n ** BigInt(scale - precision);
+    const width = equalWidth ? Math.max(firstText.length, fixed(widthFinish, precision, precision).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0)) : 0;
     let written = false;
     while (step > 0n ? current <= finish : current >= finish) {
       await session.step();

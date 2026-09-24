@@ -68,3 +68,23 @@ test("seq preserves operand width and accepts hexadecimal numbers and conversion
     }
   } finally { await instance.dispose(); }
 });
+
+test("seq equal width truncates LAST at display precision instead of rounding up", async () => {
+  const instance = shell();
+  try {
+    for (const [script, stdout] of [
+      ["seq -w 7 1 9.5", "7\n8\n9\n"],
+      ["seq -w 97 1 99.5", "97\n98\n99\n"],
+      ["seq -w 9.7 0.1 9.95", "9.7\n9.8\n9.9\n"],
+      ["seq -w -7 -1 -9.5", "-7\n-8\n-9\n"],
+      ["seq -w 7 1 009.5", "007\n008\n009\n"],
+      ["seq -w 7 1 0x9.8", "7\n8\n9\n"],
+      ["seq -w 8 1 10", "08\n09\n10\n"],
+      ["seq 0x1 0x3", "1\n2\n3\n"],
+    ] as const) {
+      const result = await instance.exec(script);
+      assert.equal(result.exitCode, 0, script + result.stderr);
+      assert.equal(result.stdout, stdout, script);
+    }
+  } finally { await instance.dispose(); }
+});

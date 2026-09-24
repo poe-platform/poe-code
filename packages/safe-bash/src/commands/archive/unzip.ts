@@ -71,7 +71,8 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       const parsed = parseArguments(context, limits);
       if (parsed.pipe) output = createOutputOperation(context, context.stdout);
       if (parsed.pipe && parsed.destination !== undefined) await budget.output("caution:  not extracting; -d ignored\n", true);
-      const selection = new Selection(parsed.patterns, limits, context.signal);
+      const selection = new Selection(parsed.patterns, limits, context.signal, { caseInsensitive: parsed.caseInsensitive });
+      const exclusions = new Selection(parsed.exclusions, limits, context.signal, { caseInsensitive: parsed.caseInsensitive });
       let archive = parsed.archive;
       let archiveStat: FileStat | undefined;
       for (const candidate of [archive, `${archive}.zip`, `${archive}.ZIP`]) {
@@ -103,6 +104,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           await budget.member(entry.size);
           checkPath(entry.name, limits);
           if (!await selection.matches(entry.name)) continue;
+          if (parsed.exclusions.length && await exclusions.matches(entry.name, true)) continue;
           await budget.output(`${filtered(entry.name)}\n`);
           selected++;
         }
@@ -113,7 +115,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         }
         return { exitCode: selected && !unmatched ? 0 : 11 };
       }
-      if (parsed.list) await budget.output("  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
+      if (parsed.list) await budget.output(parsed.verbose
+        ? " Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n"
+        : "  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
       const rootRaw = parsed.destination === undefined ? context.cwd : vfsPath(context.cwd, parsed.destination);
       const root = parsed.list || parsed.pipe || parsed.test ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
       if (!parsed.list && !parsed.pipe && !parsed.test) answers = new Answers(extraction.source(context.stdin), limits, context.signal);
@@ -122,6 +126,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       let selected = 0;
       let badPasswords = 0;
       let total = 0;
+      let compressedTotal = 0;
       let actualTotal = 0;
       let password = parsed.password;
       const payload = async function* (entry: ZipEntry) {
@@ -157,6 +162,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         await budget.member(entry.size);
         checkPath(entry.name, limits);
         if (!await selection.matches(entry.name, parsed.pipe)) continue;
+        if (parsed.exclusions.length && await exclusions.matches(entry.name, true)) continue;
         selected++; total += entry.size;
         try {
           if (parsed.test) {
@@ -169,7 +175,13 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             continue;
           }
           if (parsed.list) {
-            await budget.output(`${String(entry.size).padStart(9)}  ${date(entry)}   ${filtered(entry.name)}\n`);
+            const size = entry.compressedSize ?? entry.data.length;
+            compressedTotal += size;
+            const method = entry.method === 0 ? "Stored" : entry.method === 8 ? "Defl:N" : entry.method === 12 ? "BZip2" : entry.method === 14 ? "LZMA" : `m${entry.method}`;
+            const ratio = entry.size ? Math.round(100 * (entry.size - size) / entry.size) : 0;
+            await budget.output(parsed.verbose
+              ? `${String(entry.size).padStart(8)}  ${method.padEnd(6)} ${String(size).padStart(8)} ${String(ratio).padStart(3)}% ${date(entry)} ${entry.crc32.toString(16).padStart(8, "0")}  ${filtered(entry.name)}\n`
+              : `${String(entry.size).padStart(9)}  ${date(entry)}   ${filtered(entry.name)}\n`);
             if (entry.comment) await comment(entry.comment, budget);
             continue;
           }
@@ -182,6 +194,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           if (parsed.junkPaths) path = extraction.member(root, name);
           if (path === root && !entry.directory) fail("entry would replace extraction root");
           let shown = parsed.destination === undefined ? name : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${name}`;
+          if (parsed.freshen && !await extraction.stat(path)) continue;
           await extraction.parents(root, path, true);
           if (entry.directory) {
             if (entry.size) fail("directory has nonempty payload");
@@ -202,6 +215,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           }
           let parent = await extraction.operation(() => context.fs.lstat(dirname(path), { signal: context.signal }));
           let existing = await extraction.destination(path, archivePath, archiveStat);
+          if (parsed.update && existing && Math.ceil(Math.floor(existing.mtimeMs / 1000) / 2) * 2000 >= entry.modified.getTime()) continue;
           let skip = false;
           let prompting = 0;
           while (existing && overwrite !== "all") {
@@ -260,7 +274,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           await budget.output(`skipping: ${filtered(entry.name)}  incorrect password\n`, true);
         }
       }
-      if (parsed.list) await budget.output(`---------                     -------\n${String(total).padStart(9)}                     ${selected} file${selected === 1 ? "" : "s"}\n`);
+      if (parsed.list) await budget.output(parsed.verbose
+        ? `--------          -------  ---                            -------\n${String(total).padStart(8)}         ${String(compressedTotal).padStart(8)} ${String(total ? Math.round(100 * (total - compressedTotal) / total) : 0).padStart(3)}%                            ${selected} file${selected === 1 ? "" : "s"}\n`
+        : `---------                     -------\n${String(total).padStart(9)}                     ${selected} file${selected === 1 ? "" : "s"}\n`);
       else {
         if (links.length && !parsed.quiet) await budget.output("finishing deferred symbolic links:\n");
         for (const link of links) {
@@ -273,10 +289,10 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         for (const { path, entry, identity, parent } of directories.reverse()) {
           await extraction.metadata(root, path, identity, parent, entry.mode, entry.modified);
         }
-        for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
-          await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
-          exitCode = 11;
-        }
+      }
+      for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
+        await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
+        exitCode = 11;
       }
       if (parsed.test && parsed.quiet < 2 && selected && !badPasswords && !exitCode) await budget.output(`No errors detected in compressed data of ${filtered(archive)}.\n`);
       return { exitCode: badPasswords ? badPasswords === selected ? 82 : 1 : selected ? exitCode : 11 };

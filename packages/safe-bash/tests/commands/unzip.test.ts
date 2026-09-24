@@ -70,6 +70,62 @@ const listing = "  Length      Date    Time    Name\n---------  ---------- -----
 const footer = "---------                     -------\n";
 const prompt = (name: string) => `replace ${name}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `;
 
+test("unzip Shell excludes multiple patterns and preserves case-sensitive defaults", async () => {
+  const fs = await fixture([{ name: "a.txt", body: "a" }, { name: "b.log", body: "b" }, { name: "c.tmp", body: "c" }]);
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("unzip -q sample.zip -x '*.log' '*.tmp' -d out");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/work/out/a.txt")).toString(), "a");
+    await assert.rejects(fs.stat("/work/out/b.log"));
+    await assert.rejects(fs.stat("/work/out/c.tmp"));
+    const unmatched = await shell.exec("unzip -l sample.zip A.TXT");
+    assert.equal(unmatched.exitCode, 11);
+    assert.equal(unmatched.stderr, "caution: filename not matched:  A.TXT\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const mode of ["-l", "-v", "-t", "-p", "-Z1", "-oq"]) test(`unzip exclusions and case-insensitive matching in ${mode}`, async () => {
+  const fs = await fixture([{ name: "src/a.txt", body: "hello" }, { name: "src/private/b.txt", body: "secret" }]);
+  const result = await run(fs, [mode, "-C", "sample.zip", "SRC/*", "-x", "SRC/PRIVATE/*", "-d", "out"].filter(arg => mode === "-oq" || arg !== "-d" && arg !== "out"));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(!result.stdout.includes("secret") && !result.stdout.includes("src/private/b.txt"));
+  if (mode === "-oq") {
+    assert.equal(Buffer.from(await fs.readFile("/work/out/src/a.txt")).toString(), "hello");
+    await assert.rejects(fs.stat("/work/out/src/private"));
+  }
+});
+
+for (const patterns of [["hello.txt", "missing.txt"], ["missing.txt"]]) test(`unzip listing diagnoses unmatched patterns ${patterns}`, async () => {
+  const result = await run(await fixture(), ["-l", "sample.zip", ...patterns]);
+  assert.equal(result.exitCode, 11);
+  assert.equal(result.stderr, "caution: filename not matched:  missing.txt\n");
+  assert.ok(result.stdout.includes(footer));
+});
+
+test("unzip verbose listing reports method, compressed size and CRC without extracting", async () => {
+  const fs = await fixture([{ name: "a.txt", body: "hello" }]);
+  const result = await run(fs, ["-v", "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("CRC-32") && result.stdout.includes("Stored") && result.stdout.includes("3610a686"));
+  await assert.rejects(fs.stat("/work/a.txt"));
+});
+
+for (const mode of ["-u", "-f"]) test(`unzip ${mode} extracts only newer existing files and handles missing members`, async () => {
+  const fs = await fixture([{ name: "old", body: "archive" }, { name: "new", body: "archive" }, { name: "equal", body: "archive" }, { name: "missing", body: "archive" }]);
+  for (const name of ["old", "new", "equal"]) await fs.writeFile(`/work/${name}`, Buffer.from("keep"));
+  const archived = new Date(2024, 0, 2, 3, 4, 6).getTime();
+  await fs.utimes!("/work/old", archived - 4000, archived - 4000);
+  await fs.utimes!("/work/new", archived + 4000, archived + 4000);
+  await fs.utimes!("/work/equal", archived, archived);
+  const result = await run(fs, [mode, "-oq", "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(Buffer.from(await fs.readFile("/work/old")).toString(), "archive");
+  for (const name of ["new", "equal"]) assert.equal(Buffer.from(await fs.readFile(`/work/${name}`)).toString(), "keep");
+  if (mode === "-u") assert.equal(Buffer.from(await fs.readFile("/work/missing")).toString(), "archive");
+  else await assert.rejects(fs.stat("/work/missing"));
+});
+
 test("unzip zipinfo names mode lists selected members without extracting or printing comments", async () => {
   const fs = await fixture();
   await fs.writeFile("/work/sample.zip", zip([{ name: "folder/" }, { name: "folder/a.txt", body: "a" }, { name: "b.bin", body: "b" }], "archive comment"));
@@ -228,7 +284,7 @@ test("unzip -d destination and -o are honored on either side of archive", async 
 
 test("unzip pattern selection and unmatched statuses follow native", async () => {
   const fs = await fixture();
-  assert.deepEqual(await run(fs, ["-l", "sample.zip", "absent"]), { exitCode: 11, stderr: "", stdout: heading + listing + footer + "        0                     0 files\n" });
+  assert.deepEqual(await run(fs, ["-l", "sample.zip", "absent"]), { exitCode: 11, stderr: "caution: filename not matched:  absent\n", stdout: heading + listing + footer + "        0                     0 files\n" });
   assert.deepEqual(await run(fs, ["sample.zip", "absent"]), { exitCode: 11, stderr: "caution: filename not matched:  absent\n", stdout: heading });
   assert.deepEqual(await run(fs, ["-l", "sample.zip", "*.txt"]), { exitCode: 0, stderr: "", stdout: heading + listing + "        6  2024-01-02 03:04   hello.txt\n        5  2024-01-02 03:04   folder/data.txt\n" + footer + "       11                     2 files\n" });
 });
@@ -322,10 +378,10 @@ test("unzip empty archive warning precedes any listing", async () => {
   }
 });
 
-test("unzip partial unmatched extraction exits 11 but listing exits zero", async () => {
+test("unzip partial unmatched extraction and listing exit 11", async () => {
   const fs = await fixture([{ name: "file", body: "a" }]);
   assert.deepEqual(await run(fs, ["sample.zip", "file", "absent"]), { exitCode: 11, stdout: heading + " extracting: file                    \n", stderr: "caution: filename not matched:  absent\n" });
-  assert.equal((await run(fs, ["-l", "sample.zip", "file", "absent"])).exitCode, 0);
+  assert.equal((await run(fs, ["-l", "sample.zip", "file", "absent"])).exitCode, 11);
 });
 
 test("unzip nine-byte prompt reads and ENTER display match native", async () => {

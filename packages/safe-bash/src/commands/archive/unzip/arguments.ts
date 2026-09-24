@@ -23,6 +23,12 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
     }
   }
   let list = false;
+  let verbose = false;
+  let caseInsensitive = false;
+  let update = false;
+  let freshen = false;
+  let excluding = false;
+  const exclusions: string[] = [];
   let zipinfo = false;
   let names = false;
   let archiveComment = false;
@@ -57,6 +63,15 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
         else if (flag === "t") test = true;
         else if (flag === "q") quiet++;
         else if (flag === "l") list = true;
+        else if (flag === "v") { list = true; verbose = true; }
+        else if (flag === "C") caseInsensitive = true;
+        else if (flag === "u") { update = true; freshen = false; }
+        else if (flag === "f") { update = true; freshen = true; }
+        else if (flag === "x") {
+          excluding = true;
+          if (argument.length > offset + 1) exclusions.push(argument.slice(offset + 1));
+          break;
+        }
         else if (flag === "p") pipe = true;
         else if (flag === "o") overwrite = true;
         else if (flag === "n") neverOverwrite = true;
@@ -70,17 +85,17 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
         } else fail(`unsupported option: -${flag}`);
       }
     } else if (archive === undefined) archive = argument;
-    else patterns.push(argument);
+    else (excluding ? exclusions : patterns).push(argument);
   }
   if (rawArguments) for (const [index, value] of rawArguments.values.entries()) {
     if (!passwordArguments.has(index)) text(shellValueBytes(value));
   }
-  if (archive === undefined) fail("usage: unzip [-l] [-p] [-t] [-z] [-Z -1] [-q[q]] [-o] [-n] [-j] [-d DIR] ARCHIVE [FILES...]");
+  if (archive === undefined) fail("usage: unzip [-l|-v] [-C] [-u|-f] [-p] [-t] [-z] [-Z -1] [-q[q]] [-o] [-n] [-j] [-d DIR] ARCHIVE [FILES...] [-x PATTERNS...]");
   checkPath(archive, limits);
   if (zipinfo && (!names || list || test || pipe || archiveComment || overwrite || destination !== undefined || password !== undefined)) fail("supported zipinfo mode is unzip -Z -1 ARCHIVE [FILES...]");
   if (archiveComment && (list || test || pipe || overwrite || destination !== undefined)) fail("archive comment mode cannot be combined with extraction, listing or test options");
   if (test && (list || pipe || destination !== undefined)) fail("unzip test mode cannot be combined with listing, pipe or destination");
-  return { test, quiet, password, names, archiveComment, list: list && !pipe, pipe, overwrite, neverOverwrite, junkPaths, destination, archive, patterns };
+  return { test, quiet, password, names, archiveComment, list: list && !pipe, verbose, caseInsensitive, update, freshen, exclusions, pipe, overwrite, neverOverwrite, junkPaths, destination, archive, patterns };
 }
 
 type Token = { kind: "star"; crossDirectories: boolean } | { kind: "any" | "never" } | { kind: "literal"; value: string }
@@ -142,8 +157,8 @@ export class Selection {
   private readonly tailComponents: readonly number[];
   private readonly emptyTailMatch: readonly boolean[];
   readonly matched = new Set<number>();
-  constructor(patterns: readonly string[], private readonly limits: ArchiveLimits, private readonly signal: AbortSignal, private readonly options: { noWild?: boolean; stopAtDirectories?: boolean; trailingComponents?: boolean } = {}) {
-    this.patterns = patterns.map(pattern => tokenize(pattern, options.noWild === true, options.stopAtDirectories === true));
+  constructor(patterns: readonly string[], private readonly limits: ArchiveLimits, private readonly signal: AbortSignal, private readonly options: { noWild?: boolean; stopAtDirectories?: boolean; trailingComponents?: boolean; caseInsensitive?: boolean } = {}) {
+    this.patterns = patterns.map(pattern => tokenize(options.caseInsensitive ? pattern.toLowerCase() : pattern, options.noWild === true, options.stopAtDirectories === true));
     this.tailComponents = patterns.map(pattern => pattern.split("/").length);
     this.emptyTailMatch = patterns.map(pattern => !options.noWild && (pattern === "*" || options.stopAtDirectories === true && pattern === "**"));
   }
@@ -152,6 +167,7 @@ export class Selection {
   }
   async matches(name: string, firstMatchOnly = false): Promise<boolean> {
     if (!this.patterns.length) return true;
+    if (this.options.caseInsensitive) name = name.toLowerCase();
     const fullCharacters = Array.from(name);
     let selected = false;
     for (let pattern = 0; pattern < this.patterns.length; pattern++) {

@@ -264,6 +264,10 @@ Discarded RHS branches are not evaluated. Repeated ordinary paths update
 repeatedly; repeated deletion paths delete only once. Deletions use original
 array positions. Values are copied on modification; assignments cannot mutate
 another result or create object cycles.
+Array assignments admit at most 1,000,000 elements and a 16 MiB minimum compact
+JSON size before copying or null padding, even when family limits are omitted;
+smaller configured collection/value limits still apply. Copying and padding
+yield cooperatively so cancellation and CPU budgets can interrupt the work.
 Deleting an absent path leaves its ancestors unchanged, including null and
 out-of-range array indexes. Deleting the root with `. |= empty` emits null.
 

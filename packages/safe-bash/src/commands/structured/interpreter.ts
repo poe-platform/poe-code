@@ -332,7 +332,7 @@ export class Interpreter {
       for await (const [key] of entries(base, this.budget)) { await this.budget.tick(); yield [...path, key]; }
     }
   }
-  set(input: Json, path: Path, value: Json | typeof deleted, depth = 0): Json {
+  async set(input: Json, path: Path, value: Json | typeof deleted, depth = 0): Promise<Json> {
     this.budget.step();
     if (depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
     if (depth === path.length) return value === deleted ? null : value;
@@ -343,7 +343,7 @@ export class Interpreter {
     if (typeof key === "object") {
       if (input !== null && !Array.isArray(input)) throw new JqError("slice assignment requires an array");
       const array = input === null ? [] : input;
-      const replacement = this.set(array.slice(key.start, key.end), path, value, depth + 1);
+      const replacement = await this.set(array.slice(key.start, key.end), path, value, depth + 1);
       if (!(value === deleted && depth === path.length - 1) && !Array.isArray(replacement)) throw new JqError("slice assignment requires an array value");
       const items = value === deleted && depth === path.length - 1 ? [] : replacement as Json[];
       this.budget.collection(array.length - (key.end - key.start) + items.length);
@@ -355,17 +355,25 @@ export class Interpreter {
       if (input !== null && !isObject(input)) throw new JqError("object assignment requires object or null");
       const result = copyObject(input);
       if (remove) removeKey(result, key);
-      else put(result, key, this.set(previous, path, value, depth + 1));
+      else put(result, key, await this.set(previous, path, value, depth + 1));
       this.budget.collection(objectKeys(result).length); return result;
     }
     if (key < 0) throw new JqError("array index out of bounds");
     if (input !== null && !Array.isArray(input)) throw new JqError("array assignment requires array or null");
-    const result = input === null ? [] : [...input];
+    const length = input === null ? 0 : input.length;
+    const size = remove ? Math.max(0, length - 1) : Math.max(length, key + 1);
+    this.budget.collection(size);
+    // Assignment must remain bounded even when callers omit family limits.
+    if (!Number.isSafeInteger(size) || size > 1000000) throw new JqLimitError("maxCollectionSize");
+    const padding = remove ? 0 : Math.max(0, key - length);
+    const minimumBytes = size ? 2 * size + 1 + 3 * padding : 2;
+    if (minimumBytes > Math.min(this.budget.limits.maxValueBytes, 16 * 1024 * 1024)) throw new JqLimitError("maxValueBytes");
+    const result: Json[] = [];
+    if (input !== null) for (const item of input) { await this.budget.tick(); result.push(item); }
     if (remove) { if (key < result.length) result.splice(key, 1); }
     else {
-      this.budget.collection(Math.max(result.length, key + 1));
-      while (result.length <= key) result.push(null);
-      result[key] = this.set(previous, path, value, depth + 1);
+      while (result.length <= key) { await this.budget.tick(); result.push(null); }
+      result[key] = await this.set(previous, path, value, depth + 1);
     }
     return result;
   }
@@ -376,7 +384,7 @@ export class Interpreter {
         for await (const path of this.paths(left, input)) {
           const previous = await this.read(result, path);
           const assigned = operator === "=" ? value : operator === "//=" ? truth(previous) ? previous : value : await binary(operator.slice(0, -1), previous, value, this.budget);
-          result = this.set(result, path, assigned); this.budget.value(result);
+          result = await this.set(result, path, assigned); this.budget.value(result);
         }
         yield result;
       }
@@ -391,12 +399,12 @@ export class Interpreter {
       let value: Json | typeof deleted = deleted;
       for await (const output of this.run(right, previous)) { value = output; break; }
       if (value === deleted) deletions.push(path);
-      else { result = this.set(result, path, value); this.budget.value(result); }
+      else { result = await this.set(result, path, value); this.budget.value(result); }
     }
     await stableSort(deletions, this.budget, async (first, second) => -await compare(first, second, this.budget));
     let lastDeletion: Path | undefined;
     for (const path of deletions) {
-      if (!lastDeletion || await compare(lastDeletion, path, this.budget) !== 0) result = this.set(result, path, deleted);
+      if (!lastDeletion || await compare(lastDeletion, path, this.budget) !== 0) result = await this.set(result, path, deleted);
       lastDeletion = path;
     }
     this.budget.value(result); yield result;
@@ -506,7 +514,7 @@ export class Interpreter {
             path.push(key);
             base = previous;
           }
-          const result = this.set(input, path, value);
+          const result = await this.set(input, path, value);
           budget.value(result);
           yield result;
         }

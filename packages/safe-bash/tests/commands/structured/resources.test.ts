@@ -7,6 +7,49 @@ import { Budget, resolveJqLimits } from "../../../src/commands/structured/limits
 import { type JqLimits } from "../../../src/commands/structured/index.js";
 import { runWithBytes, chunks, run } from "./helpers.js";
 import { assertNative } from "../structured-stress/jq-grammar-native-v3.js";
+import { Interpreter } from "../../../src/commands/structured/interpreter.js";
+import { agentCommands, createMemoryFileSystem, Shell, ShellLimitError } from "../../../src/index.js";
+
+test("array assignment admits null padding before allocation or copying", async () => {
+  const budget = new Budget(resolveJqLimits({ maxValueBytes: 16 }), new AbortController().signal);
+  const interpreter = new Interpreter(budget, new Map());
+  const input = [0];
+  Object.defineProperty(input, Symbol.iterator, { value: () => assert.fail("copied before admission") });
+  await assert.rejects(async () => interpreter.set(input, [500000], 1), /maxValueBytes/);
+});
+
+test("array assignment has a finite default index admission", async () => {
+  const interpreter = new Interpreter(new Budget(resolveJqLimits(), new AbortController().signal), new Map());
+  await assert.rejects(async () => interpreter.set(null, [1000000], 1), /maxCollectionSize/);
+});
+
+test("array padding observes cancellation before completing a large fill", async () => {
+  const controller = new AbortController();
+  const interpreter = new Interpreter(new Budget(resolveJqLimits(), controller.signal), new Map());
+  const reason = new Error("cancel padding");
+  const timer = setTimeout(() => controller.abort(reason), 0);
+  try { await assert.rejects(async () => interpreter.set(null, [500000], 1), error => error === reason); }
+  finally { clearTimeout(timer); }
+});
+
+test("array padding preserves assignment and byte boundary semantics", async () => {
+  for (const filter of [".[3]=1", ".[3]|=1", "setpath([3];1)"]) {
+    const admitted = await run(["-nc", filter], "", { limits: { maxValueBytes: 18 } });
+    assert.equal(admitted.stdout, "[null,null,null,1]\n", admitted.stderr);
+    const refused = await run(["-nc", filter], "", { limits: { maxValueBytes: 17 } });
+    assert.equal(refused.exitCode, 5);
+    assert.match(refused.stderr, /maxValueBytes/);
+  }
+});
+
+test("large array padding yields to a low shell CPU budget with bounded output", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    await assert.rejects(shell.exec("jq -nc '.[500000]=1'", {
+      limits: { maxCpuMs: 25, maxOutputBytes: 64 },
+    }), error => error instanceof ShellLimitError && error.limit === "maxCpuMs");
+  } finally { await shell.dispose(); }
+});
 
 test("compact JSON byte accounting is exact at container boundaries", async () => {
   for (const input of ["[0]", '{"a":0}', '"😀"', '["😀"]', "[]", "{}", '{"é":[0]}']) {

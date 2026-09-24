@@ -6,7 +6,7 @@ import { createMountFileSystem } from "../../../src/fs/mount/index.js";
 import { bytes, command, effects, payload, previous, provider, unchanged, unscoped, view } from "./helpers.js";
 
 for (const partial of [false, true]) test(`mv: failed publication preserves source; partial=${partial}`, async () => {
-  const { base, fs, events } = await provider();
+  const { base, fs, events } = await provider({ target: false });
   const observed = view(fs, {
     compareEntry: async () => "distinct",
     copyFile: async (_source, target) => {
@@ -20,11 +20,11 @@ for (const partial of [false, true]) test(`mv: failed publication preserves sour
   assert.match(result.stderr, /EIO.*publication failed/u);
   assert.deepEqual(effects(events), []);
   assert.deepEqual(await bytes(base, "/source"), payload);
-  assert.deepEqual(await bytes(base, "/target"), partial ? payload.subarray(0, 3) : previous);
+  assert.deepEqual(await bytes(base, "/target"), partial ? payload.subarray(0, 3) : null);
 });
 
 for (const phase of ["copy", "metadata", "remove"] as const) test(`mv: cancellation at ${phase} never deletes source`, async () => {
-  const { base, fs, events } = await provider({ scoped: true });
+  const { base, fs, events } = await provider({ scoped: true, target: false });
   const controller = new AbortController(), reason = new FsError("EACCES", { message: "caller canceled" });
   const observed = view(fs, {
     copyFile: async (source, target, controls) => {

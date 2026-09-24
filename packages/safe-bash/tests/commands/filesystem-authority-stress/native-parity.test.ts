@@ -25,7 +25,10 @@ for (const fixture of nativeFixtures) test(`GNU 9.7: ${fixture.name}`, async con
   for (const [name, data] of Object.entries(fixture.files)) await base.writeFile(`/${name}`, Buffer.from(data, "base64"));
   for (const [name, target] of Object.entries(fixture.links ?? {})) await base.symlink(target, `/${name}`);
   for (const [name, target] of Object.entries(fixture.hardlinks ?? {})) await base.link(`/${target}`, `/${name}`);
-  const fs = fixture.command === "mv" ? view(base, { rename: async () => { throw new FsError("EXDEV"); } }) : base;
+  // Existing regular-file overwrite is supported through same-device rename;
+  // the other move fixtures continue to exercise the cross-device fallback.
+  const fs = fixture.command === "mv" && fixture.name !== "move binary overwrite"
+    ? view(base, { rename: async () => { throw new FsError("EXDEV"); } }) : base;
   const actual = await command(fixture.command, fixture.args, fs);
   const entries: Observation["entries"] = {};
   for (const { name } of (await base.readdir("/")).sort((left, right) => left.name.localeCompare(right.name))) {

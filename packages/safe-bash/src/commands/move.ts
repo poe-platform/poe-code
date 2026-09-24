@@ -78,6 +78,11 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: origin, dest: destination, message: "existing move destination lacks authoritative distinctness" });
       if ((stat.type === "directory") !== (existing.type === "directory")) throw new FsError(existing.type === "directory" ? "EISDIR" : "ENOTDIR", { path: destination });
       if (stat.type === "directory" && (await context.fs.readdir(destination, { signal: context.signal })).length) throw new FsError("ENOTEMPTY", { path: destination });
+      // copyFile cannot atomically bind an overwrite to this entry and its
+      // ancestors. Refuse before publication rather than recheck a pathname.
+      if (stat.type === "file" && existing.type === "file") throw new FsError("ENOTSUP", {
+        path: origin, dest: destination, message: "cross-device overwrite requires atomic destination and ancestry binding",
+      });
     }
     if (stat.type === "directory" && compareCopyIdentity(stat, stat) !== "same") {
       throw new FsError("ENOTSUP", { path: origin, message: "move source directory lacks authoritative identity" });

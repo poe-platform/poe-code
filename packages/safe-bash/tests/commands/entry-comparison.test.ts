@@ -99,15 +99,11 @@ for (const relation of relations) test(`cross-device move uses comparison ${rela
   assert.equal(result.exitCode, 1, result.stderr);
   assert.equal(effects().comparisons, 1);
   if (relation === "distinct") {
-    assert.equal(effects().copies, 1); assert.equal(effects().removals, 0);
-    assert.match(result.stderr, /ENOTSUP/u);
-    assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source bytes");
-    assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "source bytes");
-  } else {
-    assert.equal(effects().copies, 0); assert.equal(effects().removals, 0);
-    assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source bytes");
-    assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "old target");
+    assert.match(result.stderr, /atomic destination and ancestry binding/u);
   }
+  assert.equal(effects().copies, 0); assert.equal(effects().removals, 0);
+  assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source bytes");
+  assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "old target");
 });
 
 test("followed comparison never authorizes unlinking an unknown symlink entry", async () => {

@@ -24,9 +24,17 @@ async function pair(existing = false, shared = false) {
 async function contents(fs: FileSystem, path: string): Promise<string> { return Buffer.from(await fs.readFile(path)).toString(); }
 
 for (const shared of [false, true]) for (const existing of [false, true]) {
-  test(`cross-mount file move succeeds: shared=${shared} existing=${existing}`, async () => {
+  test(`cross-mount file move admission: shared=${shared} existing=${existing}`, async () => {
     const { fs, left, right } = await pair(existing, shared);
     const result = await run("mv", ["-v", "/left/source", "/right/target"], { fs, cwd: "/" });
+    if (existing) {
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
+      assert.equal(await contents(left, "/source"), "payload");
+      assert.equal(await contents(right, "/target"), "previous");
+      assert.equal(result.stdout, "");
+      return;
+    }
     assert.equal(result.exitCode, 0, result.stderr); assert.equal(await contents(right, "/target"), "payload");
     await assert.rejects(left.lstat("/source"), { code: "ENOENT" });
     assert.match(result.stdout, /source.*target/u);

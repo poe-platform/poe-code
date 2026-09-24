@@ -1,4 +1,4 @@
-import { dirname, isPathWithin, relativePath, resolvePath, type CommandContext, type FileStat } from "../../contracts/index.js";
+import { dirname, FsError, isPathWithin, relativePath, resolvePath, type CommandContext, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
 import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
@@ -118,8 +118,16 @@ export class Walker {
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
     const local = await this.load(path, rules, repository);
     const maxEntries = this.limits.maxFiles - this.limits.files;
-    const entries = await this.context.fs.readdir(path, { signal: this.context.signal,
-      ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) });
+    let entries: DirectoryEntry[];
+    try {
+      entries = await this.context.fs.readdir(path, { signal: this.context.signal,
+        ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) });
+    } catch (error) {
+      this.context.signal.throwIfAborted();
+      if (Number.isFinite(maxEntries) && error instanceof FsError && error.code === "EFBIG" && error.syscall === "readdir")
+        throw new SearchError("filesystem entry limit exceeded");
+      throw error;
+    }
     this.context.signal.throwIfAborted();
     if (entries.length > maxEntries) throw new SearchError("filesystem entry limit exceeded");
     entries.sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name)));

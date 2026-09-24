@@ -3,7 +3,8 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield.js";
 import { type ByteSource } from "../../src/contracts/index.js";
-import { virtual } from "./search/helpers.js";
+import { FsError } from "../../src/contracts/errors.js";
+import { makeFileSystem, virtual } from "./search/helpers.js";
 
 const files = { "a.ts": "hit\n", "b.tsx": "hit\n", "c.json": "hit\n", "d.js": "hit\n", "e.untyped": "hit\n" };
 
@@ -198,6 +199,38 @@ test("rg admits repeated type selections while retaining explicit traversal reco
     assert.equal(result.code, 2);
     assert.equal(result.stdout.length, 0);
     assert.equal(result.stderr.toString(), `rg: ${message}\n`);
+  }
+});
+
+test("rg preserves unrelated filesystem errors at bounded directory enumeration", async () => {
+  for (const error of [
+    new FsError("EACCES", { syscall: "readdir", path: "/work" }),
+    new FsError("EFBIG", { syscall: "readFile", path: "/work" }),
+    Object.assign(new Error("foreign directory failure"), { code: "EFBIG", syscall: "readdir" }),
+  ]) {
+    const fs = await makeFileSystem({ args: [] });
+    fs.readdir = async () => { throw error; };
+    const result = await virtual({ args: ["--files", "."] }, { maxFiles: 1 }, { fs });
+    assert.equal(result.code, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.stderr.toString(), `rg: ${error instanceof FsError ? error.message : "internal error"}\n`);
+  }
+});
+
+test("rg bounded directory refusal preserves falsey cancellation reasons", async () => {
+  for (const reason of [false, null, 0, ""]) {
+    const controller = new AbortController(), fs = await makeFileSystem({ args: [] });
+    let enumerations = 0;
+    fs.readdir = async (path, options) => {
+      enumerations++;
+      assert.equal(options?.maxEntries, 0);
+      assert.equal(options?.signal, controller.signal);
+      controller.abort(reason);
+      throw new FsError("EFBIG", { syscall: "readdir", path, message: "directory entry limit exceeded" });
+    };
+    await assert.rejects(virtual({ args: ["--files", "."] }, { maxFiles: 1 }, { fs, signal: controller.signal }),
+      error => error === reason);
+    assert.equal(enumerations, 1);
   }
 });
 

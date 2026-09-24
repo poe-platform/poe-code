@@ -154,11 +154,17 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
       }
       if (specifier === "q") {
         const bytes = arguments_.bytes(suppliedIndex) ?? new Uint8Array();
-        if (bytes.some(byte => byte >= 128)) {
+        if (bytes.some(byte => byte < 32 || byte === 127 || byte >= 128)) {
+          const controls: Record<number, string> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 27: "\\E" };
           text = "$'";
-          for (const byte of bytes) text += `\\${byte.toString(8).padStart(3, "0")}`;
+          for (const byte of bytes) {
+            if (controls[byte]) text += controls[byte];
+            else if (byte < 32 || byte === 127 || byte >= 128) text += `\\${byte.toString(8).padStart(3, "0")}`;
+            else if (byte === 39 || byte === 92) text += `\\${String.fromCharCode(byte)}`;
+            else text += String.fromCharCode(byte);
+          }
           text += "'";
-        } else text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => character === "\n" ? "$'\\n'" : `\\${character}`);
+        } else text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => `\\${character}`);
       }
       else {
         let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? quotedNumber(suppliedIndex) : Number(supplied);

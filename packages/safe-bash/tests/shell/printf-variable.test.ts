@@ -18,6 +18,12 @@ function fixture(options: Parameters<typeof setup>[0] = {}) {
 }
 
 const cases = [
+  ["associative printf destinations", 'declare -A map; printf -v "map[foo]" %s hello; printf -v "map[01]" %s leading; printf "<%s:%s>" "${map[foo]}" "${map[01]}"'],
+  ["arithmetic printf destinations", 'arr=(a b c); i=1; printf -v "arr[i]" %s updated; printf -v "arr[i+1]" %s last; printf "<%s:%s>" "${arr[1]}" "${arr[2]}"'],
+  ["relative and quoted printf destinations", 'arr=(a b c); printf -v "arr[-1]" %s last; printf -v \'arr["01"]\' %s middle; printf "<%s:%s>" "${arr[1]}" "${arr[2]}"'],
+  ["expanded associative printf destination", 'declare -A map; key="a b"; printf -v \'map[$key]\' %s spaced; printf %s "${map[$key]}"'],
+  ["nameref associative printf destination", 'declare -A map; f(){ local -n ref=map; printf -v "ref[foo]" %s hello; }; f; printf %s "${map[foo]}"'],
+  ["printf control quoting", String.raw`printf '%q\n' $'a\tb\rc\x01' $'\a\b\e\f\n\v\x7f' $'quote\'slash\\\t'`],
   ["local integer initializer", "f(){ local -i a='2+3'; printf %s \"$a\"; }; f"],
   ["local integer subsequent writes", 'a=outer; f(){ local -i a=2; a="a+3"; printf -v a %s "a*2"; printf %s "$a"; }; f; printf %s "$a"'],
   ["scalar and empty assignment", 'value=old; printf -v value "%s:%03d" hi 7; printf "<%s>" "$value"; printf -v value ""; printf "<%s>" "$value"'],
@@ -111,6 +117,11 @@ test("local nameref cycles stop with a diagnostic", async () => {
 // GNU Bash 5.0.17 qualified the original corpus (docs/plans/bugfix-636-printf-variable.md).
 // Fixed contracts preserve required empty/readonly/indexed assignment on Bash 3 hosts.
 const modernContracts = new Map<string, { stdout: Uint8Array; hasStderr: boolean }>([
+  ["relative and quoted printf destinations", { stdout: new TextEncoder().encode("<middle:last>"), hasStderr: false }],
+  ["expanded associative printf destination", { stdout: new TextEncoder().encode("spaced"), hasStderr: false }],
+  ["arithmetic printf destinations", { stdout: new TextEncoder().encode("<updated:last>"), hasStderr: false }],
+  ["associative printf destinations", { stdout: new TextEncoder().encode("<hello:leading>"), hasStderr: false }],
+  ["nameref associative printf destination", { stdout: new TextEncoder().encode("hello"), hasStderr: false }],
   ["scalar and empty assignment", { stdout: new TextEncoder().encode("<hi:007><>"), hasStderr: false }],
   ["readonly refusal", { stdout: new TextEncoder().encode("<1:old>"), hasStderr: true }],
   ["indexed lvalues and scalar promotion", { stdout: new TextEncoder().encode("<replaced:two>"), hasStderr: false }],
@@ -213,13 +224,25 @@ test("custom registered printf remains authoritative through command and builtin
   } finally { await shell.dispose(); }
 });
 
-for (const target of ["value[-1]", "value[1+1]", "value[01]", "value[index]", "value[$(printf bad)]", "value[2147483648]", "value[]", "value[1]tail", 'value["2"]']) {
-  test(`printf -v refuses unsupported lvalue without evaluating it: ${target}`, async () => {
+for (const target of ["value[1]tail"]) {
+  test(`printf -v refuses malformed lvalue: ${target}`, async () => {
     const { shell } = fixture();
     try {
       const result = await shell.exec(`value=old; printf -v '${target}' %s new; printf '<%s:%s>' "$?" "$value"`);
       assert.equal(result.stdout, "<2:old>");
       assert.notEqual(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const target of ["value[2147483648]", "value[]", "value[-2]"]) {
+  test(`printf -v rejects invalid array destination: ${target}`, async () => {
+    const { shell } = fixture();
+    try {
+      const result = await shell.exec(`value=old; printf -v '${target}' %s new`);
+      assert.notEqual(result.exitCode, 0);
+      assert.notEqual(result.stderr, "");
+      assert.equal(result.stdout, "");
     } finally { await shell.dispose(); }
   });
 }

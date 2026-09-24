@@ -55,7 +55,7 @@ import type {
   CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
 } from "./cancellation.js";
 import { variablePresence } from "../commands/variable-presence.js";
-import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, isQuoteMarker, prefixNameQuoteGroups, setArraySelector } from "./arrays/syntax.js";
+import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, stringIndex, isQuoteMarker, prefixNameQuoteGroups, setArraySelector } from "./arrays/syntax.js";
 import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
@@ -6051,19 +6051,12 @@ export class Runtime {
       }
       index = undefined;
       if (bracket >= 0) {
-        if (target[bracket + 1] === "'" || target[bracket + 1] === '"') {
-          await writeDiagnostic(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
-          return 2;
-        }
-        try { index = literalIndex(target.slice(bracket + 1, -1), 0, this.budget.parsing); }
+        const source = target.slice(bracket + 1, -1);
+        try { index = stringIndex(source, this.budget.parsing, parseArraySubscript(source, this.budget.parsing, byteLocale(state.variables), state.depth)); }
         catch (error) {
           this.signal.throwIfAborted();
           if (!(error instanceof ShellSyntaxError)) throw error;
           await writeDiagnostic(context.stderr, `printf: '${target}': unsupported indexed-array subscript\n`);
-          return 2;
-        }
-        if (numericIndex(index) === undefined) {
-          await writeDiagnostic(context.stderr, "printf: index outside 0..2147483647\n");
           return 2;
         }
       }

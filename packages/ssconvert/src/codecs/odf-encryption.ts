@@ -1,5 +1,6 @@
 import { transformOdfBlowfish } from "./odf-blowfish.js";
-import { cbc } from "@noble/ciphers/aes.js";
+import { cbc, gcm } from "@noble/ciphers/aes.js";
+import { argon2idAsync } from "@noble/hashes/argon2.js";
 import { sha1 } from "@noble/hashes/legacy.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { hmac } from "@noble/hashes/hmac.js";
@@ -23,8 +24,8 @@ function invalid(message: string): never {
 function unsupported(message = "package"): never {
   throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: encrypted OpenDocument ${message}`);
 }
-function attribute(node: XmlElement | undefined, name: string): string | undefined {
-  return node?.attributes.find(a => a.namespace === manifestNamespace && a.localName === name)?.value;
+function attribute(node: XmlElement | undefined, name: string, namespace = manifestNamespace): string | undefined {
+  return node?.attributes.find(a => a.namespace === namespace && a.localName === name)?.value;
 }
 function child(node: XmlElement, name: string, optional = false): XmlElement | undefined {
   const found = node.children.filter(c => c.namespace === manifestNamespace && c.localName === name);
@@ -73,13 +74,16 @@ export async function deriveOdfKey(start: Uint8Array, salt: Uint8Array, iteratio
   finally { prf.destroy(); u?.fill(0); input.fill(0); }
 }
 
-/** Admit every encrypted member before acquiring one package password. The
- * checksum checks password correctness; legacy ODF encryption does not authenticate. */
+/** Admit every encrypted member before acquiring one package password. Legacy
+ * checksums check password correctness; GCM authenticates before inflation. */
 export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyMap<string, ZipEntry>,
   read: (name: string) => Promise<Uint8Array>, context: CapabilityContext, charge: (amount?: number) => void,
   remainingBytes: number, maximumEntryBytes: number): Promise<Map<string, Uint8Array>> {
   if (!context.password) unsupported();
   if (manifest.namespace !== manifestNamespace) unsupported("manifest revision");
+  const container = entries.has("encrypted-package");
+  if (container && (manifest.children.length !== 1 || [...entries.keys()].some(name =>
+    !["mimetype", "META-INF/manifest.xml", "encrypted-package"].includes(name)))) invalid("ambiguous encrypted package");
   const profiles = [], paths = new Set<string>(); let total = 0;
   for (const entry of manifest.children) {
     charge();
@@ -99,16 +103,29 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     const member = entries.get(path)!, encryption = declarations[0]!, algorithm = child(encryption, "algorithm")!, derivation = child(encryption, "key-derivation")!;
     const algorithmName = attribute(algorithm, "algorithm-name") ?? "";
     const blowfish = algorithmName === "Blowfish CFB" || algorithmName === manifestNamespace + "#blowfish";
-    const cipher: "aes-cbc" | "blowfish-cfb8" = blowfish ? "blowfish-cfb8" : "aes-cbc";
-    const keyBytes = blowfish ? integer(attribute(derivation, "key-size") ?? "16") : aesAlgorithms.get(algorithmName);
+    const authenticated = algorithmName === "http://www.w3.org/2009/xmlenc11#aes256-gcm";
+    if (container !== authenticated || authenticated && path !== "encrypted-package") unsupported("encryption algorithm");
+    const cipher: "aes-gcm" | "aes-cbc" | "blowfish-cfb8" = authenticated ? "aes-gcm" : blowfish ? "blowfish-cfb8" : "aes-cbc";
+    const keyBytes = authenticated ? 32 : blowfish ? integer(attribute(derivation, "key-size") ?? "16") : aesAlgorithms.get(algorithmName);
     if (keyBytes === undefined) unsupported("encryption algorithm");
     if (blowfish && (keyBytes < 4 || keyBytes > 56)) unsupported("encryption key size");
-    if (member.method !== 0 || member.size === 0 || !blowfish && member.size % 16) invalid("invalid encrypted member framing");
+    if (member.method !== 0 || member.size === 0 || cipher === "aes-cbc" && member.size % 16 || authenticated && member.size < 28) invalid("invalid encrypted member framing");
     const derivationName = attribute(derivation, "key-derivation-name");
-    if (derivationName !== "PBKDF2" && derivationName !== manifestNamespace + "#pbkdf2") unsupported("key derivation");
+    if (authenticated ? derivationName !== "urn:org:documentfoundation:names:experimental:office:manifest:argon2id"
+      : derivationName !== "PBKDF2" && derivationName !== manifestNamespace + "#pbkdf2") unsupported("key derivation");
     if (integer(attribute(derivation, "key-size") ?? "16") !== keyBytes) invalid("inconsistent encryption key size");
-    const iterations = integer(attribute(derivation, "iteration-count"));
+    const extension = "urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0";
+    const iterations = integer(authenticated ? attribute(derivation, "argon2-iterations", extension) : attribute(derivation, "iteration-count"));
     if (!iterations) invalid("invalid encryption iteration count");
+    const memory = authenticated ? integer(attribute(derivation, "argon2-memory", extension)) : 0;
+    const lanes = authenticated ? integer(attribute(derivation, "argon2-lanes", extension)) : 0;
+    const arenaBytes = authenticated ? 4 * lanes * Math.floor(memory / (4 * lanes)) * 1024 : 0;
+    if (authenticated) {
+      if (!lanes || lanes >= 2 ** 24 || memory < 8 * lanes || memory >= 2 ** 32 || iterations >= 2 ** 32)
+        invalid("invalid Argon2 parameters");
+      if (arenaBytes >= 2 ** 32 || arenaBytes > (context.limits.encryptionMemoryBytes ?? 64 * 1024 * 1024))
+        throw new SsconvertError("resource-limit", "ssconvert OpenDocument encryption memory limit exceeded");
+    }
     const size = integer(attribute(entry, "size"));
     if (size > maximumEntryBytes || size > (context.limits.zipRatio ?? 1000) * member.size)
       throw new SsconvertError("resource-limit", "ssconvert OpenDocument decrypted entry limit exceeded");
@@ -118,28 +135,37 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     const startGeneration = child(encryption, "start-key-generation", true);
     const startHash = hashAlgorithms.get(attribute(startGeneration, "start-key-generation-name") ?? "SHA1");
     if (!startHash) unsupported("start key algorithm");
+    if (authenticated && startHash !== sha256) unsupported("start key algorithm");
     if (integer(attribute(startGeneration, "key-size") ?? "20") !== startHash.outputLen) invalid("inconsistent start key size");
     const checksumType = attribute(encryption, "checksum-type") ?? "SHA1/1K";
     const checksumHash = checksumType === "SHA1/1K" || checksumType === manifestNamespace + "#sha1-1k" ? sha1
       : checksumType === manifestNamespace + "#sha256-1k" ? sha256 : hashAlgorithms.get(checksumType);
-    if (!checksumHash) unsupported("checksum algorithm");
-    const checksum = binary(attribute(encryption, "checksum"), checksumHash.outputLen), iv = binary(attribute(algorithm, "initialisation-vector"), blowfish ? 8 : 16), salt = binary(attribute(derivation, "salt"));
-    if (!salt.length) invalid("empty encryption salt");
+    if (!authenticated && !checksumHash) unsupported("checksum algorithm");
+    if (authenticated && (attribute(encryption, "checksum") !== undefined || attribute(encryption, "checksum-type") !== undefined)) invalid("unexpected authenticated checksum");
+    const checksum = authenticated ? undefined : binary(attribute(encryption, "checksum"), checksumHash!.outputLen);
+    const iv = binary(attribute(algorithm, "initialisation-vector"), authenticated ? 12 : blowfish ? 8 : 16), salt = binary(attribute(derivation, "salt"));
+    if (!salt.length || authenticated && salt.length < 8) invalid("invalid encryption salt");
     // The same Blowfish manifest identifier is used for CFB8 and LibreOffice's
     // CFB64. Admit both feedback attempts and key schedules before asking for a secret.
-    charge(iterations * Math.ceil(keyBytes / 20) * 128 + (blowfish ? (member.size + Math.ceil(member.size / 8) + 1042) * 128 : member.size * 4) + size + salt.length * Math.ceil(keyBytes / 20));
-    profiles.push({ path, cipher, keyBytes, iterations, size, startHash, checksumHash, checksum, iv, salt,
+    charge((authenticated ? memory * iterations * 1024 : iterations * Math.ceil(keyBytes / 20) * 128)
+      + (blowfish ? (member.size + Math.ceil(member.size / 8) + 1042) * 128 : member.size * 4) + size + salt.length * Math.ceil(keyBytes / 20));
+    if (authenticated) {
+      const bytes = await read(path);
+      if (!iv.every((byte, index) => bytes[index] === byte)) invalid("inconsistent encrypted package IV");
+    }
+    profiles.push({ path, cipher, keyBytes, iterations, memory, lanes, arenaBytes, size, startHash, checksumHash, checksum, iv, salt,
       prefixChecksum: checksumType === "SHA1/1K" || checksumType === manifestNamespace + "#sha1-1k" || checksumType === manifestNamespace + "#sha256-1k" });
   }
   const result = new Map<string, Uint8Array>();
   if (!profiles.length) return result;
+  context.own(() => { for (const bytes of result.values()) bytes.fill(0); });
   const firstCipher = profiles[0]!.cipher;
   const packageCipher = profiles.every(profile => profile.cipher === firstCipher) ? firstCipher : "mixed";
   const maxBytes = Math.min(4096, context.limits.inputBytes);
   context.signal.throwIfAborted();
   let secret: string | Uint8Array | undefined;
   try {
-    secret = await context.password.read(Object.freeze({ format: "odf", algorithm: packageCipher, revision: "1.2", encoding: "utf8", maxBytes,
+    secret = await context.password.read(Object.freeze({ format: "odf", algorithm: packageCipher, revision: container ? "libreoffice" : "1.2", encoding: "utf8", maxBytes,
       signal: context.signal, ...(context.inputFilename === undefined ? {} : { inputFilename: context.inputFilename }) }));
   } catch { context.signal.throwIfAborted(); unsupported("password acquisition failed"); }
   context.signal.throwIfAborted();
@@ -158,10 +184,20 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     for (const profile of profiles) {
       const start = profile.startHash(password); let key: Uint8Array | undefined, compressed: Uint8Array | undefined;
       try {
-        key = await deriveOdfKey(start, profile.salt, profile.iterations, profile.keyBytes, context);
+        // Noble wipes its arena on completion. Drain the admitted cooperative KDF
+        // before propagating cancellation, rather than throwing from onProgress
+        // and abandoning secret arena bytes inside the library.
+        key = profile.cipher === "aes-gcm" ? await argon2idAsync(start, profile.salt, {
+          t: profile.iterations, m: profile.memory, p: profile.lanes, dkLen: profile.keyBytes,
+          version: 0x13, maxmem: profile.arenaBytes, asyncTick: 10
+        }) : await deriveOdfKey(start, profile.salt, profile.iterations, profile.keyBytes, context);
+        context.signal.throwIfAborted();
         const ciphertext = await read(profile.path);
         let padding = 0;
-        if (profile.cipher === "blowfish-cfb8") compressed = await transformOdfBlowfish(key, profile.iv, ciphertext, context.signal, "decrypt");
+        if (profile.cipher === "aes-gcm") {
+          try { compressed = gcm(key, profile.iv).decrypt(ciphertext.subarray(12)); }
+          catch { invalid("encrypted content could not be verified"); }
+        } else if (profile.cipher === "blowfish-cfb8") compressed = await transformOdfBlowfish(key, profile.iv, ciphertext, context.signal, "decrypt");
         else {
           compressed = new Uint8Array(ciphertext.length); let iv = profile.iv;
           for (let at = 0; at < ciphertext.length; at += 16384) {
@@ -177,16 +213,18 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
           if (padding < 1 || padding > 16) invalid("encrypted content could not be verified");
         }
         let payload = compressed.subarray(0, compressed.length - padding);
-        let digest = profile.checksumHash(profile.prefixChecksum ? payload.subarray(0, 1024) : payload);
-        let mismatch = 0; for (let i = 0; i < digest.length; i++) mismatch |= digest[i]! ^ profile.checksum[i]!;
-        if (mismatch && profile.cipher === "blowfish-cfb8") {
-          compressed.fill(0);
-          compressed = await transformOdfBlowfish(key, profile.iv, ciphertext, context.signal, "decrypt", 8);
-          payload = compressed;
-          digest = profile.checksumHash(profile.prefixChecksum ? payload.subarray(0, 1024) : payload);
-          mismatch = 0; for (let i = 0; i < digest.length; i++) mismatch |= digest[i]! ^ profile.checksum[i]!;
+        if (profile.cipher !== "aes-gcm") {
+          let digest = profile.checksumHash!(profile.prefixChecksum ? payload.subarray(0, 1024) : payload);
+          let mismatch = 0; for (let i = 0; i < digest.length; i++) mismatch |= digest[i]! ^ profile.checksum![i]!;
+          if (mismatch && profile.cipher === "blowfish-cfb8") {
+            compressed.fill(0);
+            compressed = await transformOdfBlowfish(key, profile.iv, ciphertext, context.signal, "decrypt", 8);
+            payload = compressed;
+            digest = profile.checksumHash!(profile.prefixChecksum ? payload.subarray(0, 1024) : payload);
+            mismatch = 0; for (let i = 0; i < digest.length; i++) mismatch |= digest[i]! ^ profile.checksum![i]!;
+          }
+          if (mismatch) invalid("encrypted content could not be verified");
         }
-        if (mismatch) invalid("encrypted content could not be verified");
         const codec = createCompressionCodec(), input = new codec.CodecReader((async function* () { yield payload; })(), context.signal), plaintext = new Uint8Array(profile.size);
         let length = 0;
         try {
@@ -203,7 +241,6 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
         result.set(profile.path, plaintext);
       } finally { start.fill(0); key?.fill(0); compressed?.fill(0); }
     }
-    context.own(() => { for (const bytes of result.values()) bytes.fill(0); });
     return result;
   } catch (error) { for (const bytes of result.values()) bytes.fill(0); throw error; }
   finally { password.fill(0); }

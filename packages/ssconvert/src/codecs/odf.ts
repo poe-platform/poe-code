@@ -1,5 +1,5 @@
 import { decryptOdfEntries } from "./odf-encryption.js";
-import { createZipCodec, CodecError, type ZipLimits } from "@poe-code/office-package";
+import { createZipCodec, CodecError, type ZipLimits, type ZipEntry } from "@poe-code/office-package";
 import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlContent } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { MAX_SHEET_SIZE, DEFAULT_SHEET_SIZE, formatA1, type Workbook, type Sheet, type Cell,
@@ -86,16 +86,22 @@ function bounds(context: CapabilityContext): ZipLimits {
     maxPathBytes: 4096, maxDepth: context.limits.xmlDepth ?? 128, maxPaxBytes: context.limits.inputBytes,
     maxTextBytes: context.limits.workbookTextBytes ?? context.limits.inputBytes, chunkSize: 16384 };
 }
+function packageEntries(members: readonly ZipEntry[], context: CapabilityContext) {
+  for (const entry of members) {
+    if (entry.size > (context.limits.zipRatio ?? 1000) * Math.max(1, entry.data.length)) limit("ZIP ratio");
+  }
+  const entries = new Map(members.filter(e => !e.directory).map(e => [e.name, e]));
+  for (const entry of entries.values()) if (entry.symlink || entry.name.startsWith("/") || entry.name.includes("\\")
+    || entry.name.split("/").some(c => !c || c === "." || c === "..")) invalid("noncanonical ZIP member");
+  return entries;
+}
 async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
   context.signal.throwIfAborted();
   const zip = createZipCodec(undefined, { rejectDuplicateNames: true, zip64: true }), limits = bounds(context);
   const archive = await zip.readZipArchive(new Uint8Array(bytes), limits, context.signal);
-  for (const entry of archive.entries) {
-    if (entry.size > (context.limits.zipRatio ?? 1000) * Math.max(1, entry.data.length)) limit("ZIP ratio");
-  }
-  const entries = new Map(archive.entries.filter(e => !e.directory).map(e => [e.name, e]));
-  for (const entry of entries.values()) if (entry.symlink || entry.name.startsWith("/") || entry.name.includes("\\")
-    || entry.name.split("/").some(c => !c || c === "." || c === "..")) invalid("noncanonical ZIP member");
+  const entries = packageEntries(archive.entries, context);
+  const protectedBuffers = entries.has("encrypted-package") ? new Set<Uint8Array>() : undefined;
+  if (protectedBuffers) context.own(() => { for (const buffer of protectedBuffers) buffer.fill(0); });
   let decoded = 0, nodes = 0, textBytes = 0, work = 0;
   function charge(amount = 1) {
     context.signal.throwIfAborted();
@@ -107,10 +113,12 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
     const entry = entries.get(name); if (!entry) invalid(`missing part '${name}'`);
     const chunks: Uint8Array[] = []; let length = 0;
     for await (const chunk of zip.decodeZipEntry(entry, limits, context.signal)) {
+      protectedBuffers?.add(chunk);
       if (chunk.length > limits.maxTotalBytes - decoded) limit("decoded bytes");
       decoded += chunk.length; length += chunk.length; charge(chunk.length); chunks.push(chunk);
     }
     const result = new Uint8Array(length); let offset = 0;
+    protectedBuffers?.add(result);
     for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
     buffers.set(name, result); return result;
   }
@@ -146,7 +154,40 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
     textBytes += amount;
   }
   async function decrypt(manifest: XmlElement) {
+    const wrapped = entries.has("encrypted-package");
+    const outerMime = wrapped && entries.has("mimetype") ? await read("mimetype") : undefined;
+    if (wrapped) {
+      const declared = attr(manifest.children[0], "media-type", [urn + "manifest:1.0"]);
+      if (!outerMime || declared !== new TextDecoder().decode(outerMime)
+        || !["application/vnd.oasis.opendocument.spreadsheet", "application/vnd.oasis.opendocument.spreadsheet-template"].includes(declared))
+        invalid("inconsistent encrypted package media type");
+    }
     const plaintext = await decryptOdfEntries(manifest, entries, read, context, charge, limits.maxTotalBytes - decoded, limits.maxEntryBytes);
+    if (wrapped) {
+      const inner = plaintext.get("encrypted-package");
+      if (!inner || plaintext.size !== 1) invalid("missing encrypted package declaration");
+      decoded += inner.length;
+      const innerBytes = new Uint8Array(inner); protectedBuffers!.add(innerBytes);
+      const remainingMembers = limits.maxMembers - archive.entries.length;
+      if (remainingMembers < 1) limit("ZIP members");
+      const unpacked = await zip.readZipArchive(innerBytes, { ...limits,
+        maxMembers: remainingMembers, maxTotalBytes: limits.maxTotalBytes - decoded }, context.signal);
+      // Retain the codec's owned member bytes and metadata for disposal.
+      for (const entry of unpacked.entries) {
+        for (const buffer of [entry.data, entry.rawName, entry.localName, entry.comment, entry.localExtra, entry.centralExtra])
+          if (buffer) protectedBuffers!.add(buffer);
+      }
+      protectedBuffers!.add(unpacked.comment);
+      const innerEntries = packageEntries(unpacked.entries, context);
+      if (innerEntries.has("encrypted-package")) invalid("nested encrypted package");
+      entries.clear(); buffers.clear();
+      for (const [name, entry] of innerEntries) entries.set(name, entry);
+      if (!entries.has("mimetype")) invalid("missing inner package media type");
+      const innerMime = await read("mimetype");
+      if (innerMime.length !== outerMime!.length || !innerMime.every((byte, index) => byte === outerMime![index]))
+        invalid("inconsistent encrypted package media type");
+      return;
+    }
     for (const [name, bytes] of plaintext) { decoded += bytes.length; buffers.set(name, bytes); }
   }
   return { entries, read, document, version, charge, retainText, decrypt };
@@ -259,11 +300,19 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     const pkg = await openPackage(bytes, context), version = await pkg.version(true);
     if (version === undefined) invalid("Unknown mimetype for openoffice file.");
     const legacy: boolean = version;
-    if (!pkg.entries.has("content.xml")) invalid("No stream named content.xml found.");
-    const manifest = pkg.entries.has("META-INF/manifest.xml") ? await pkg.document("META-INF/manifest.xml") : undefined;
+    const wrapped = pkg.entries.has("encrypted-package");
+    if (!wrapped && !pkg.entries.has("content.xml")) invalid("No stream named content.xml found.");
+    let manifest = pkg.entries.has("META-INF/manifest.xml") ? await pkg.document("META-INF/manifest.xml") : undefined;
+    if (wrapped && !manifest) invalid("missing encrypted package manifest");
     if (manifest) {
       if (manifest.localName !== "manifest" || ![urn + "manifest:1.0", "http://openoffice.org/2001/manifest"].includes(manifest.namespace)) invalid("invalid manifest");
-      if (manifest.children.some(entry => entry.children.some(child => child.localName === "encryption-data"))) await pkg.decrypt(manifest);
+      if (wrapped || manifest.children.some(entry => entry.children.some(child => child.localName === "encryption-data"))) await pkg.decrypt(manifest);
+    }
+    if (wrapped) {
+      if (!pkg.entries.has("content.xml")) invalid("No stream named content.xml found.");
+      manifest = pkg.entries.has("META-INF/manifest.xml") ? await pkg.document("META-INF/manifest.xml") : undefined;
+      if (manifest && (manifest.localName !== "manifest" || manifest.namespace !== urn + "manifest:1.0"
+        || manifest.children.some(entry => entry.children.some(child => child.localName === "encryption-data")))) invalid("invalid inner package manifest");
     }
     const raw = await pkg.document("content.xml");
     const preparseRoot = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge);

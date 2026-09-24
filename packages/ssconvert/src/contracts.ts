@@ -48,13 +48,15 @@ export interface RuntimeLimits {
   readonly commandOutputBytes?: number;
   readonly compressedBytes?: number;
   readonly inflatedBytes?: number;
+  /** Maximum Argon2 arena bytes for encrypted ODF imports; defaults to 64 MiB. */
+  readonly encryptionMemoryBytes?: number;
   readonly zipEntries?: number;
   readonly zipRatio?: number;
   readonly xmlDepth?: number;
   readonly splitOutputs?: number;
   readonly workbookNodes?: number;
   readonly workbookTextBytes?: number;
-  /** Pairwise metadata comparisons per workbook validation and yielded input chunks per read. */
+  /** Workbook processing work, including metadata comparisons, input chunks and admitted cryptographic work. */
   readonly workbookWork?: number;
   readonly inputBytes: number;
   readonly outputBytes: number;
@@ -81,8 +83,8 @@ export interface PasswordCapability {
     encoding: "bytes" | "utf16le";
   } | {
     format: "odf";
-    algorithm: "aes-cbc" | "blowfish-cfb8" | "blowfish-cfb64" | "mixed";
-    revision: "1.2";
+    algorithm: "aes-cbc" | "aes-gcm" | "blowfish-cfb8" | "blowfish-cfb64" | "mixed";
+    revision: "1.2" | "libreoffice";
     /** ODF passwords are UTF-8 strings or explicitly encoded UTF-8 bytes. */
     encoding: "utf8";
   })>): Promise<string | Uint8Array | undefined>;

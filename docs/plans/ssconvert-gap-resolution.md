@@ -272,9 +272,11 @@ Resolve the requested gaps against Gnumeric 1.12.61 and applicable format specif
 
 The pipeline above defines the work and acceptance requirements. Validate each issue against current source, repair it with focused tests, check the maintained package routes, and deliver an atomic Conventional Commit. For visible CLI changes, inspect an ad hoc screenshot. Verify remote main and successful publication separately.
 
+Current implementation: LibreOffice Argon2id v19/AES256-GCM encrypted-package import is implemented with cumulative ZIP/XML/work limits, a default 64 MiB Argon2 arena cap, authenticated-before-inflation processing, cancellation and owned-buffer disposal. The retained LibreOffice 26.8 sample matches independently decrypted CSV and all five baseline diagnostics through Node SDK/Shell and browser/worker SDK. The package suite passed 23,280 tests before the final three authenticated-inner-package controls; all 27 focused package-encryption cases pass. The standalone browser Shell attempt requires a Buffer host dependency and is not counted as qualified.
+
 Current priorities:
 
-1. Support LibreOffice's default Argon2id/AES-GCM encrypted ODF package. Independent decryption confirmed Argon2id v19, SHA256 UTF-8 start key, 3 passes, 65536 KiB, 4 lanes and a 32-byte key. The member contains a 12-byte IV prefix, ciphertext and a 16-byte GCM tag with no associated data; authenticated raw DEFLATE expands to an inner ODF ZIP. Admit cumulative package/work/memory limits and preserve cancellation, secret cleanup and destination integrity.
+1. Continue encrypted-format qualification, including modern ODF writing and remaining BIFF/Paradox profiles; keep the encryption families open until their full requirements pass.
 2. Resolve the validated DOCX depth-2048 timeout affecting release CI. The uncommitted readback-cache experiment was discarded because five filtered cases still timed out. Preserve the matrix's routes and assertions.
 3. Continue the remaining ledger families and qualify the resulting packed SDK/Shell artifacts.
 

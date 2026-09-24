@@ -21,10 +21,10 @@ const config: EngineConfig = { codecs: [], limits: context.limits, environment: 
       const revision: number = request.revision;
       if (!algorithm || !encoding || revision < 1) throw new Error("Invalid public BIFF password request");
     } else {
-      const algorithm: "aes-cbc" | "blowfish-cfb8" | "blowfish-cfb64" | "mixed" = request.algorithm;
+      const algorithm: "aes-cbc" | "aes-gcm" | "blowfish-cfb8" | "blowfish-cfb64" | "mixed" = request.algorithm;
       const encoding: "utf8" = request.encoding;
-      const revision: "1.2" = request.revision;
-      if (!algorithm || !encoding || revision !== "1.2") throw new Error("Invalid public ODF password request");
+      const revision: "1.2" | "libreoffice" = request.revision;
+      if (!algorithm || !encoding || !["1.2", "libreoffice"].includes(revision)) throw new Error("Invalid public ODF password request");
     }
     if (request.maxBytes < 1 || request.signal.aborted) throw new Error("Invalid public password bounds");
     return undefined;

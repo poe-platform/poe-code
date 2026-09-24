@@ -73,7 +73,7 @@ export function createEngine(supplied: EngineConfig): Engine {
     if (!Number.isSafeInteger(value) || value < 0)
       throw new TypeError(`Invalid ssconvert limit: ${name}`);
   }
-  for (const name of ["workbookNodes", "workbookTextBytes", "workbookWork", "argumentBytes", "commandOutputBytes", "compressedBytes", "inflatedBytes", "zipEntries", "zipRatio", "xmlDepth", "splitOutputs"] as const) {
+  for (const name of ["workbookNodes", "workbookTextBytes", "workbookWork", "argumentBytes", "commandOutputBytes", "compressedBytes", "inflatedBytes", "encryptionMemoryBytes", "zipEntries", "zipRatio", "xmlDepth", "splitOutputs"] as const) {
     const value = config.limits[name];
     if (value !== undefined && (!Number.isSafeInteger(value) || value < 0))
       throw new TypeError(`Invalid ssconvert limit: ${name}`);

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "baseline": "1c8bef0ff814d0e897de3b271496ffeee70a8800",
+  "issue": "Three S3/WebDAV workflow fixtures expected gzip named inputs without retained scoped readers; one also asserted the later publication diagnostic instead of input admission.",
+  "baselineTests": { "files": 5, "tests": 65, "passed": 57, "failed": 8, "scope": "Three gzip failures addressed here; five copy/move failures separately delivered as 34f3e9e2b." },
+  "runtimeChanged": false,
+  "repair": "Use explicit stdin for supported gzip workflows and verify exact stdout and independently decompressed bytes. Preserve both named-input stdout and named-output refusals with exact diagnostics, metadata-only requests and unchanged bytes/namespaces. S3 decompression fixtures prepare valid compressed input through stdin. Keep same-view S3 move success and touch coverage, and dispose Shell instances.",
+  "sources": [
+    { "path": "packages/safe-bash/tests/fs/s3/production-flows.test.ts", "sha256": "dc37be3df85dcaa1142a1d8001de56638440da9af09b9332c00d5a52aa97f447", "ownership": "Local S3 repair." },
+    { "path": "packages/safe-bash/tests/fs/webdav/timestamps.test.ts", "sha256": "12fea11bb57877c72a10bd8c246e613f834ce8dae0fe76a18e1df8f5948117be", "ownership": "Equivalent WebDAV repair independently delivered upstream in f9d7c3251a1d8d431f95ab1f90ed1123388df9b4; local draft removed before rebasing, upstream file preserved exactly." }
+  ],
+  "validation": {
+    "related": { "files": 6, "tests": 34, "passed": 34, "failed": 0, "skipped": 0 },
+    "postRebase": { "files": 6, "tests": 34, "passed": 34, "failed": 0, "skipped": 0 },
+    "lint": "Focused ESLint passed before and after upstream integration.",
+    "types": "Maintained historical-type-models source/test compilation passed before and after upstream integration.",
+    "intermediate": "An added provisional missing-target S3 move refusal failed because the same-view provider supports conditional copy/delete. Preserve its original positive move behavior; do not conflate this route with cross-mount fallback."
+  },
+  "scope": "Mock S3 and loopback HTTP WebDAV services, including actual Shell dispatch; not deployed-service qualification.",
+  "priorDelivery": "34f3e9e2b19d9687e64ccfa15e5b1c19bab3bcd1 verified exactly on remote main; publication pending.",
+  "remaining": "Twelve reproduced mount/authority fixture failures, other release feedback, all 19 original ssconvert families and successful publication remain open."
+}

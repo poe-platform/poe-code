@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
+import { gunzipSync } from "node:zlib";
 import { agentCommands, Shell, MockS3Client, S3FileSystem } from "../../../src/index.js";
 import { collectBytes, toByteSource } from "../../../src/contracts/io.js";
 import { isFsError } from "../../../src/contracts/errors.js";
@@ -7,17 +9,27 @@ import { createS3Transport } from "../../../src/fs/s3/index.js";
 
 const bytes = (value: string) => new TextEncoder().encode(value);
 
-test("root agentCommands dispatches named reads, gzip, move, and existing-file touch on S3", async () => {
+test("root agentCommands supports S3 reads, stdin gzip, same-view move and touch", async () => {
   const transport = new MockS3Client({ buckets: ["tools"] });
   const fs = new S3FileSystem({ transport, bucket: "tools" });
   const shell = new Shell({ fs });
   shell.use(agentCommands());
-  await fs.writeFile("/input", bytes("hello\n"));
-  const result = await shell.exec("cat /input && sha256sum /input && gzip -c /input > /input.gz && gzip -dc /input.gz && mv /input /moved && touch /moved");
-  assert.equal(result.exitCode, 0, result.stderr);
-  assert.deepEqual(await fs.readFile("/moved"), bytes("hello\n"));
-  await assert.rejects(fs.stat("/input"), error => isFsError(error, "ENOENT"));
-  assert.equal(fs.capabilities.atomicRename, false);
+  try {
+    await fs.writeFile("/input", bytes("hello\n"));
+    const result = await shell.exec("cat /input && sha256sum /input && gzip -c < /input > /input.gz && gzip -dc < /input.gz && touch /input");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `hello\n${createHash("sha256").update("hello\n").digest("hex")}  /input\nhello\n`);
+    assert.deepEqual(gunzipSync(await fs.readFile("/input.gz")), Buffer.from("hello\n"));
+    const moved = await shell.exec("mv /input /moved");
+    assert.equal(moved.exitCode, 0, moved.stderr);
+    assert.equal(moved.stderr, "");
+    assert.equal(moved.stdout, "");
+    assert.deepEqual(await fs.readFile("/moved"), bytes("hello\n"));
+    await assert.rejects(fs.stat("/input"), error => isFsError(error, "ENOENT"));
+    assert.deepEqual(await fs.readdir("/"), ["input.gz", "moved"].map(name => ({ name, type: "file" })));
+    assert.equal(fs.capabilities.atomicRename, false);
+  } finally { await shell.dispose(); }
 });
 
 test("stream transport reads ranges beyond the buffered budget without eager body materialization", async () => {
@@ -63,7 +75,7 @@ test("timestamps persist in object metadata and truncate preserves bytes and pad
   assert.notEqual((await reopened.stat("/input")).mtimeMs, 5678);
 });
 
-test("root named-file gzip refuses unsupported S3 publication before acquiring or mutating entries", async () => {
+test("root named-file gzip refuses unsupported S3 retained reads before acquiring or mutating entries", async () => {
   for (const decompress of [false, true]) {
     const transport = new MockS3Client({ buckets: ["tools"] });
     const fs = new S3FileSystem({ transport, bucket: "tools" });
@@ -72,23 +84,26 @@ test("root named-file gzip refuses unsupported S3 publication before acquiring o
     try {
       await fs.writeFile("/input", bytes("hello\n"));
       if (decompress) {
-        const prepared = await shell.exec("gzip -c /input > /input.gz");
+        const prepared = await shell.exec("gzip -c < /input > /input.gz");
         assert.equal(prepared.exitCode, 0, prepared.stderr);
+        assert.deepEqual(gunzipSync(await fs.readFile("/input.gz")), Buffer.from("hello\n"));
         await fs.rm("/input");
       }
       const source = decompress ? "/input.gz" : "/input";
       const destination = decompress ? "/input" : "/input.gz";
       const sourceBytes = await fs.readFile(source);
-      const requestCount = transport.requests.length;
-      const result = await shell.exec(decompress ? "gzip -d /input.gz" : "gzip -k /input");
-      const commandRequests = transport.requests.slice(requestCount);
-      assert.equal(result.exitCode, 1);
-      assert.equal(result.stderr, `gzip: ENOTSUP: file output requires stable scoped entry identities '${source}'\n`);
-      assert.equal(result.stdout, "");
-      assert.deepEqual(commandRequests.filter(request => !["headObject", "listObjectsV2"].includes(request.operation)), []);
-      assert.deepEqual(await fs.readFile(source), sourceBytes);
-      await assert.rejects(fs.stat(destination), error => isFsError(error, "ENOENT"));
-      assert.deepEqual(await fs.readdir("/"), [{ name: source.slice(1), type: "file" }]);
+      for (const command of [decompress ? "gzip -d /input.gz" : "gzip -k /input", decompress ? "gzip -dc /input.gz" : "gzip -c /input"]) {
+        const requestCount = transport.requests.length;
+        const result = await shell.exec(command);
+        const commandRequests = transport.requests.slice(requestCount);
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stderr, `gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '${source}'\n`);
+        assert.equal(result.stdout, "");
+        assert.deepEqual(commandRequests.filter(request => !["headObject", "listObjectsV2"].includes(request.operation)), []);
+        assert.deepEqual(await fs.readFile(source), sourceBytes);
+        await assert.rejects(fs.stat(destination), error => isFsError(error, "ENOENT"));
+        assert.deepEqual(await fs.readdir("/"), [{ name: source.slice(1), type: "file" }]);
+      }
     } finally {
       await shell.dispose();
     }

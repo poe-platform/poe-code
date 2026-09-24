@@ -65,7 +65,7 @@ type TrackedPropertyData = {
   nonScalarProperties: number;
   symbols?: readonly symbol[];
   descriptors?: readonly (readonly [string, Readonly<PropertyDescriptor>])[];
-  strings?: { readonly all: TrackedStringData; readonly enumerable: TrackedStringData } | null;
+  strings?: { readonly all: TrackedStringData; readonly enumerable: TrackedStringData };
 };
 // Do not attach cache/backing data to revision records used by intrinsic captures.
 const trackedPropertyData = new WeakMap<object, TrackedPropertyData>();
@@ -171,10 +171,11 @@ function adjustScalarProperty(state: TrackedPropertyData, key: string, descripto
 const emptyPropertyReferences: readonly unknown[] = nativePropertyFreeze([]);
 
 // String/inert leaves have no volatile observations. Bigints, symbols and object
-// descendants still enter the fresh walk. Accessors retain the descriptor path.
+// descendants still enter the fresh walk. Private descriptor snapshots and adapter
+// identities are immutable; accessor closures still collect fresh roots each walk.
 export function trackedPropertyStringData(value: object, includeNonEnumerable: boolean): TrackedStringData | undefined {
   const state = nativePropertyDataGet(value);
-  if (state === undefined || state.array || state.strings === null) return undefined;
+  if (state === undefined || state.array) return undefined;
   if (state.strings === undefined && state.nonScalarProperties === 0) {
     state.strings = nativePropertyFreeze({
       all: nativePropertyFreeze({ units: state.allScalarUnits, references: emptyPropertyReferences }),
@@ -188,7 +189,18 @@ export function trackedPropertyStringData(value: object, includeNonEnumerable: b
     for (let index = 0; index < descriptors.length; index++) {
       const entry = descriptors[index]!;
       const key = entry[0], descriptor = entry[1];
-      if (!nativePropertyHasOwn(descriptor, "value")) { state.strings = null; return undefined; }
+      if (!nativePropertyHasOwn(descriptor, "value")) {
+        const units = 1 + key.length;
+        allUnits += units;
+        if (descriptor.enumerable) enumerableUnits += units;
+        const closures = retainedAccessorClosures(descriptor);
+        for (let cursor = 0; cursor < closures.length; cursor++) {
+          const item = closures[cursor]!;
+          nativePropertyWrite(allReferences, allReferences.length, { value: item, writable: true, enumerable: true, configurable: true });
+          if (descriptor.enumerable) nativePropertyWrite(enumerableReferences, enumerableReferences.length, { value: item, writable: true, enumerable: true, configurable: true });
+        }
+        continue;
+      }
       const item = descriptor.value;
       const units = 1 + key.length + (typeof item === "string" ? item.length : 0);
       allUnits += units;

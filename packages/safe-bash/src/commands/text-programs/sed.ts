@@ -56,7 +56,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     if (number) {
       offset += number[0].length;
       const value = Number(number[0]);
-      if (!Number.isSafeInteger(value) || value < 1) throw new ProgramError("sed line addresses must be positive integers");
+      if (!Number.isSafeInteger(value)) throw new ProgramError("sed line address exceeds safe integer range");
       return { kind: "number", number: value };
     }
     if (source[offset] === "$") { offset++; return { kind: "last" }; }
@@ -114,6 +114,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     horizontal();
     let second: Address | undefined;
     if (source[offset] === ",") { offset++; second = address(); if (!first || !second) throw new ProgramError("invalid address range"); }
+    if (first?.kind === "number" && first.number === 0 && second?.kind !== "regex" || second?.kind === "number" && second.number === 0) throw new ProgramError("zero address requires a 0,/regex/ range");
     horizontal();
     const negate = source[offset] === "!";
     if (negate) { offset++; horizontal(); }
@@ -140,7 +141,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
         }
       }
       let ignoreCase = false;
-      while (offset < source.length && ![";", "\n", "}", " ", "\t"].includes(source[offset]!)) {
+      while (offset < source.length && ![";", "\n", "}", " ", "\t", "#"].includes(source[offset]!)) {
         const flag = source[offset++]!;
         if (flag === "g" && !instruction.global) instruction.global = true;
         else if (flag === "p" && !instruction.print) instruction.print = true;
@@ -184,7 +185,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     } else if (!"pdDPhHgGxnN=l".includes(kind)) throw new ProgramError(`unsupported sed command '${kind}'`);
     result.push(instruction);
     horizontal();
-    if (offset < source.length && ![";", "\n", "}"].includes(source[offset]!)) throw new ProgramError(`unexpected text after '${kind}' command`);
+    if (offset < source.length && ![";", "\n", "}", "#"].includes(source[offset]!)) throw new ProgramError(`unexpected text after '${kind}' command`);
   }
   if (groups.length) throw new ProgramError("unclosed sed group");
   for (const instruction of result) if (["b", "t", "T"].includes(instruction.kind)) {
@@ -246,6 +247,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   };
   let lastPattern: Pattern | undefined;
   const active = new Set<number>();
+  for (let pc = 0; pc < program.length; pc++) {
+    const first = program[pc]!.first;
+    if (first?.kind === "number" && first.number === 0) active.add(pc);
+  }
   const getPattern = (pattern: Pattern | undefined) => {
     if (pattern) lastPattern = pattern;
     if (!lastPattern) throw new ProgramError("no previous regular expression");

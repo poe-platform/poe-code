@@ -34,6 +34,9 @@ for replacements. Supported syntax includes literal bytes, `.`, `^`, `$`,
 bracket/range/negated classes, ASCII POSIX classes, grouping, alternatives,
 `*`, `+`, `?`, and `{m}`, `{m,}`, `{m,n}` intervals. Basic expressions use escaped
 grouping/interval/alternative operators; unescaped ERE operators are literal.
+In basic expressions, a leading `*` (also after an initial `^` or escaped group
+opening) is literal. `^` anchors only at the start of an expression or group,
+and `$` anchors only at its end.
 
 Pattern backreferences to previously closed capture groups are supported with
 byte comparisons charged to the execution budget. Distinct capture states are
@@ -71,10 +74,12 @@ executed regex. Address ranges are inclusive; a regex range end is tested
 starting with the next input line, and a numeric end at/before its start matches
 one line. Ordinary multiple files form a single addressed stream; `-s` and
 in-place editing reset line/range/hold state per file.
+The special `0,/regex/` range starts before the first line and tests its end
+on that first line. Zero is rejected in other address positions.
 
 | Command | Implemented behavior |
 | --- | --- |
-| `s/regex/replacement/flags` | First, numbered, global, or numbered-and-later substitution; `p` prints changed pattern space; `I`/`i` ignores case. Replacement `&` and `\1`…`\9` expand matches/captures; escaped literals and newline/tab work. |
+| `s/regex/replacement/flags` | First, numbered, global, or numbered-and-later substitution; `p` prints changed pattern space; `I`/`i` ignores case. Replacement `&` and `\0` expand the whole match; `\1`…`\9` expand captures; escaped literals and newline/tab work. |
 | `p`, `P`, `=` | Print pattern space, its first line, or the input line number. |
 | `l` | Unambiguous C-byte listing with control/backslash escapes, three-digit octal for other nonprintable bytes, `$` record markers, and 60-column continuation wrapping. Literal backslashes are doubled rather than reproducing BSD's ambiguous single-backslash listing. |
 | `d`, `D` | Delete the cycle, or remove the first pattern-space line and restart the program without reading input. |

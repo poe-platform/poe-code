@@ -123,7 +123,7 @@ export class Pattern {
         return negate ? !accepted : accepted;
       } };
     };
-    const atom = (): Node => {
+    const atom = (atStart: boolean, afterBegin: boolean): Node => {
       const token = source[offset++];
       if (token === "(") {
         const index = ++groups;
@@ -144,13 +144,15 @@ export class Pattern {
         return characterNode(escaped());
       }
       if (token === ".") return { type: "character", accepts: () => true };
-      if (token === "^") return { type: "begin" };
-      if (token === "$") return { type: "end" };
+      if (token === "^") return extended || atStart ? { type: "begin" } : characterNode(token);
+      if (token === "$") return extended || offset === source.length || source[offset] === ")" || source[offset] === "|" ? { type: "end" } : characterNode(token);
+      if (token === "*" && !extended && (atStart || afterBegin)) return characterNode(token);
       if (token === undefined || "*+?{}".includes(token)) throw new ProgramError("quantifier without an expression");
       return characterNode(token);
     };
-    const repeated = (): Node => {
-      let node = atom();
+    const repeated = (atStart: boolean, afterBegin: boolean): Node => {
+      let node = atom(atStart, afterBegin);
+      if (!extended && (node.type === "begin" || node.type === "end")) return node;
       const quantifier = source[offset];
       if (quantifier === "*" || quantifier === "+" || quantifier === "?") {
         offset++;
@@ -169,7 +171,7 @@ export class Pattern {
     };
     const sequence = (): Node => {
       const nodes: Node[] = [];
-      while (offset < source.length && source[offset] !== ")" && source[offset] !== "|") nodes.push(repeated());
+      while (offset < source.length && source[offset] !== ")" && source[offset] !== "|") nodes.push(repeated(nodes.length === 0, nodes.length === 1 && nodes[0]!.type === "begin"));
       return nodes.length ? { type: "sequence", nodes } : { type: "empty" };
     };
     const alternate = (): Node => {
@@ -405,7 +407,7 @@ async function replacementLength(replacement: string, match: Match, budget: Budg
       const next = replacement[++index]!;
       if (syntax === "awk") {
         size = next === "&" || next === "\\" ? 1 : 2;
-      } else if (next >= "1" && next <= "9") {
+      } else if (next >= "0" && next <= "9") {
         budget.step();
         size = match.groups[Number(next)]?.length ?? 0;
       }
@@ -433,7 +435,7 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
       const next = replacement[++index]!;
       if (syntax === "awk") {
         await buffer.append(replacement, next === "&" || next === "\\" ? index : index - 1, index + 1);
-      } else if (next >= "1" && next <= "9") {
+      } else if (next >= "0" && next <= "9") {
         budget.step();
         await buffer.append(match.groups[Number(next)] ?? "");
       } else await buffer.append(next === "n" ? "\n" : next === "t" ? "\t" : next);

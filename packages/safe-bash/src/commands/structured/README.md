@@ -6,6 +6,10 @@ AST, and lazy asynchronous interpreter. Runtime code never uses `eval`, the
 only through the command's supplied virtual filesystem. This is a useful jq
 subset, not complete jq, and is not evidence of superiority to jq or just-bash.
 
+`fromdateiso8601` parses UTC dates with whole seconds, and `todateiso8601`
+formats Unix timestamps as UTC ISO 8601 strings. Fractional timestamps truncate
+toward zero; fractional date strings and timezone offsets are rejected.
+
 ## Public API
 
 The public entry point is this subtree's `index.ts`. Root/package integration is

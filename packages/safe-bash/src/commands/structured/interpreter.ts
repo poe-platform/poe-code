@@ -5,6 +5,7 @@ import type { Ast } from "./parser.js";
 import { formatValue } from "./formats.js";
 import { scanRegex, substituteRegex } from "./regex.js";
 import { splitString } from "./split.js";
+import { fromDateIso8601, toDateIso8601 } from "./dates.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
 type Path = (string | number | { start: number; end: number })[];
@@ -334,6 +335,8 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "fromdateiso8601") { yield fromDateIso8601(input); return; }
+    if (name === "todateiso8601") { yield toDateIso8601(input); return; }
     if (name === "scan") {
       for await (const source of this.run(args[0]!, input)) yield* scanRegex(input, source, budget);
       return;

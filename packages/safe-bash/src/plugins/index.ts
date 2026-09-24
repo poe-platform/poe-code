@@ -24,7 +24,8 @@ export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellP
     name: "agent-commands",
     setup(host) {
       if (disposal) throw new Error("Agent commands are disposed");
-      host.provideCapabilities?.({ regex: { executor: executors.grep.provider, limits: executors.grep.options } });
+      host.provideCapabilities?.({ regex: { executor: executors.grep.provider,
+        limits: Object.freeze(Object.fromEntries(Object.entries(executors.grep.options).filter(([, limit]) => limit !== Infinity))) } });
       const definitions = composeAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors);
       if (!options.replace) for (const definition of definitions) {
         if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);

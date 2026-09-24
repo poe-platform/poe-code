@@ -1,4 +1,8 @@
 import type { JSONSchema, OutputSchema } from "./types.js";
+import type { StandardSchema } from "toolcraft-schema";
+
+export type ToolInputSchema<T> = TypedSchema<T> | StandardSchema<unknown, T>;
+export type ToolOutputSchema<T> = TypedOutputSchema<T> | StandardSchema<T, unknown>;
 
 type SchemaPropertyType = "string" | "number" | "integer" | "boolean" | "object" | "array";
 

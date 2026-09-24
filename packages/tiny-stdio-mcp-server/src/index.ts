@@ -11,7 +11,7 @@ export type {
 
 // Schema
 export { defineSchema } from "./schema.js";
-export type { TypedSchema, TypedOutputSchema } from "./schema.js";
+export type { TypedSchema, TypedOutputSchema, ToolInputSchema, ToolOutputSchema } from "./schema.js";
 
 // Content helpers
 export {

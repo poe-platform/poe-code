@@ -1,4 +1,4 @@
-import { compileJsonSchema, formatIssues, normalizeLegacyNullability, type CompiledJsonSchema } from "toolcraft-schema";
+import { prepareToolSchema, formatToolIssues, type PreparedToolSchema } from "./tool-schema.js";
 import type {
   ServerOptions,
   ToolDefinition,
@@ -34,7 +34,7 @@ import {
   formatErrorResponse,
   isRequestId
 } from "./jsonrpc.js";
-import type { TypedSchema, TypedOutputSchema } from "./schema.js";
+import type { ToolInputSchema, ToolOutputSchema } from "./schema.js";
 import { parseUriTemplate, type UriTemplate } from "./uri-template.js";
 import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 import { ToolCallAdmission } from "./tool-call-admission.js";
@@ -59,9 +59,9 @@ export interface Server {
   tool<TIn, TOut = never>(
     name: string,
     description: string,
-    inputSchema: TypedSchema<TIn>,
+    inputSchema: ToolInputSchema<TIn>,
     handler: ToolHandler<TIn, TOut>,
-    outputSchema?: TypedOutputSchema<TOut>
+    outputSchema?: ToolOutputSchema<TOut>
   ): Server;
   registerTool<TIn, TOut = never>(
     definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
@@ -171,23 +171,16 @@ function createLifecycleState(
   };
 }
 
-interface RegisteredToolDefinition extends ToolDefinition {
-  inputValidator: CompiledJsonSchema;
-  outputValidator?: CompiledJsonSchema;
+interface RegisteredToolDefinition extends Omit<ToolDefinition, "inputSchema" | "outputSchema"> {
+  inputSchema: JSONSchema;
+  outputSchema?: OutputSchema;
+  inputValidator: PreparedToolSchema;
+  outputValidator?: PreparedToolSchema;
   parameterHeaders: ParameterHeader[];
 }
 
 interface RegisteredResourceTemplateDefinition extends ResourceTemplateDefinition {
   template: UriTemplate;
-}
-
-function compileToolSchema(schema: unknown): CompiledJsonSchema {
-  try {
-    return compileJsonSchema(schema);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`schema is invalid: ${message}`, { cause: error });
-  }
 }
 
 export function createProtocolServer(options: ServerOptions, stdio?: StdioRuntime): Server {
@@ -392,19 +385,18 @@ export function createProtocolServer(options: ServerOptions, stdio?: StdioRuntim
         );
         if (headerError !== undefined) return { error: { code: -32020, message: headerError } };
       }
-      const inputValidation = tool.inputValidator.validate(toolArgs);
-      if (options.validateToolArguments !== false && !inputValidation.ok) {
-        return {
-          error: {
-            code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
-            message: `Invalid tool arguments: ${formatIssues(inputValidation.issues)}`,
-            data: inputValidation.issues
-          }
-        };
+      // Raw JSON Schema validation is synchronous and can reject before taking a queue slot.
+      if (options.validateToolArguments !== false && !tool.inputValidator.standard) {
+        const validation = tool.inputValidator.validate(toolArgs);
+        if (validation.issues !== undefined) return { error: {
+          code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+          message: `Invalid tool arguments: ${formatToolIssues(validation.issues)}`,
+          data: validation.issues
+        } };
       }
 
       try {
-        let handlerResult: ToolReturn | CallToolResult | InputRequiredResult;
+        let handlerResult: CallToolResult | InputRequiredResult;
         const admissionController = new AbortController();
         const sessionSignal = requestSignal;
         const admissionSignal = admissionController.signal;
@@ -419,7 +411,20 @@ export function createProtocolServer(options: ServerOptions, stdio?: StdioRuntim
           const release = await toolAdmission.acquire(admissionSignal);
           try {
             admissionSignal.throwIfAborted();
-            return await tool.handler(toolArgs, { ...handlerContext, signal: admissionSignal });
+            let parsedArgs = toolArgs;
+            if (options.validateToolArguments !== false && tool.inputValidator.standard) {
+              const inputValidation = await tool.inputValidator.validate(toolArgs);
+              if (inputValidation.issues !== undefined) {
+                throw new ToolError(JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+                  `Invalid tool arguments: ${formatToolIssues(inputValidation.issues)}`, inputValidation.issues);
+              }
+              parsedArgs = inputValidation.value as Record<string, unknown>;
+            }
+            admissionSignal.throwIfAborted();
+            const returned = await tool.handler(parsedArgs, { ...handlerContext, signal: admissionSignal });
+            admissionSignal.throwIfAborted();
+            if (modern && isInputRequiredResult(returned)) return returned;
+            return await normalizeValidatedToolResult(returned, tool, modern);
           } finally {
             release();
           }
@@ -451,18 +456,7 @@ export function createProtocolServer(options: ServerOptions, stdio?: StdioRuntim
           lifecycle.admissions.delete(admissionController);
           sessionSignal.removeEventListener("abort", cancelAdmission);
         }
-        if (modern && isInputRequiredResult(handlerResult)) return { result: handlerResult };
-        const outputSchema = modern || tool.outputSchema?.type === "object" ? tool.outputSchema : undefined;
-        const result = normalizeToolResult(handlerResult, tool.outputSchema, modern);
-        const outputValidation = outputSchema === undefined ? undefined : tool.outputValidator?.validate(result.structuredContent);
-        if (result.isError !== true && outputValidation !== undefined && !outputValidation.ok) {
-          throw new ToolError(
-            JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
-            `Invalid structured tool result: ${formatIssues(outputValidation.issues)}`,
-            outputValidation.issues
-          );
-        }
-        return { result };
+        return { result: handlerResult };
       } catch (err) {
         if (err instanceof ToolError) {
           return {
@@ -871,23 +865,20 @@ export function createProtocolServer(options: ServerOptions, stdio?: StdioRuntim
     tool<TIn, TOut = never>(
       name: string,
       description: string,
-      inputSchema: TypedSchema<TIn>,
+      inputSchema: ToolInputSchema<TIn>,
       handler: ToolHandler<TIn, TOut>,
-      outputSchema?: TypedOutputSchema<TOut>
+      outputSchema?: ToolOutputSchema<TOut>
     ): Server {
       assertNonEmptyName(name, "Tool name required");
       if (tools.has(name)) {
         throw new Error(`Tool already registered: ${name}`);
       }
-      const inputSchemaSnapshot = normalizeLegacyNullability(inputSchema);
-      const outputSchemaSnapshot = outputSchema === undefined ? undefined : normalizeLegacyNullability(outputSchema) as OutputSchema;
-      const inputValidator = compileToolSchema(inputSchemaSnapshot);
+      const inputValidator = prepareToolSchema(inputSchema, "input");
+      const inputSchemaSnapshot = inputValidator.schema;
       assertObjectRootSchema(inputSchemaSnapshot, "inputSchema");
-      let outputValidator: CompiledJsonSchema | undefined;
-      if (outputSchemaSnapshot !== undefined) {
-        assertOutputSchema(outputSchemaSnapshot);
-        outputValidator = compileToolSchema(outputSchemaSnapshot);
-      }
+      const outputValidator = outputSchema === undefined ? undefined : prepareToolSchema(outputSchema, "output");
+      const outputSchemaSnapshot = outputValidator?.schema;
+      if (outputSchemaSnapshot !== undefined) assertOutputSchema(outputSchemaSnapshot);
       tools.set(name, {
         name,
         description,
@@ -909,19 +900,17 @@ export function createProtocolServer(options: ServerOptions, stdio?: StdioRuntim
       if (tools.has(definition.name)) {
         throw new Error(`Tool already registered: ${definition.name}`);
       }
-      const descriptor = structuredClone(definition);
-      const inputSchema = normalizeLegacyNullability(descriptor.inputSchema);
-      const inputValidator = compileToolSchema(inputSchema);
+      const { inputSchema: sourceInput, outputSchema: sourceOutput, ...metadata } = definition;
+      const descriptor = structuredClone(metadata);
+      const inputValidator = prepareToolSchema(sourceInput, "input");
+      const inputSchema = inputValidator.schema;
       assertObjectRootSchema(inputSchema, "inputSchema");
-      let outputValidator: CompiledJsonSchema | undefined;
-      if (descriptor.outputSchema !== undefined) {
-        descriptor.outputSchema = normalizeLegacyNullability(descriptor.outputSchema) as OutputSchema;
-        assertOutputSchema(descriptor.outputSchema);
-        outputValidator = compileToolSchema(descriptor.outputSchema);
-      }
+      const outputValidator = sourceOutput === undefined ? undefined : prepareToolSchema(sourceOutput, "output");
+      if (outputValidator !== undefined) assertOutputSchema(outputValidator.schema);
       tools.set(definition.name, {
         ...descriptor,
         inputSchema,
+        ...(outputValidator === undefined ? {} : { outputSchema: outputValidator.schema }),
         handler: handler as ToolHandler,
         inputValidator,
         parameterHeaders: getParameterHeaders(inputSchema),
@@ -1337,6 +1326,33 @@ function isCallToolResult(value: unknown, modern: boolean): value is CallToolRes
     value.isError !== undefined &&
     typeof value.isError !== "boolean"
   );
+}
+
+async function normalizeValidatedToolResult(
+  returned: unknown,
+  tool: RegisteredToolDefinition,
+  modern: boolean
+): Promise<CallToolResult> {
+  const validator = tool.outputValidator;
+  if (validator?.standard && !(isCallToolResult(returned, modern) && returned.isError === true)) {
+    const envelope = isCallToolResult(returned, modern) ? returned : undefined;
+    const parsed = await validator.validate(envelope === undefined ? returned : envelope.structuredContent);
+    if (parsed.issues !== undefined) {
+      throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+        `Invalid structured tool result: ${formatToolIssues(parsed.issues)}`, parsed.issues);
+    }
+    returned = envelope === undefined ? parsed.value : { ...envelope, structuredContent: parsed.value };
+  }
+  const result = normalizeToolResult(returned, tool.outputSchema, modern);
+  if (result.isError !== true && validator !== undefined && !validator.standard &&
+      (modern || tool.outputSchema?.type === "object")) {
+    const validation = await validator.validate(result.structuredContent);
+    if (validation.issues !== undefined) {
+      throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+        `Invalid structured tool result: ${formatToolIssues(validation.issues)}`, validation.issues);
+    }
+  }
+  return result;
 }
 
 function normalizeToolResult(

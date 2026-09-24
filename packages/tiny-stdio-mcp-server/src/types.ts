@@ -1,3 +1,5 @@
+import type { ToolInputSchema, ToolOutputSchema } from "./schema.js";
+
 // JSON-RPC 2.0 types
 export interface JSONRPCRequest {
   jsonrpc: "2.0";
@@ -325,8 +327,8 @@ export interface ToolDefinition<T = Record<string, unknown>, TOut = ToolReturn> 
   name: string;
   title?: string;
   description?: string;
-  inputSchema: JSONSchema;
-  outputSchema?: OutputSchema;
+  inputSchema: ToolInputSchema<T>;
+  outputSchema?: ToolOutputSchema<TOut>;
   annotations?: ToolAnnotations;
   execution?: ToolExecution;
   icons?: Icon[];

@@ -1,6 +1,6 @@
 # tiny-stdio-mcp-server
 
-Minimal [Model Context Protocol](https://modelcontextprotocol.io) server for Node.js. Zero runtime dependencies, type-safe tool definitions, rich content helpers for images/audio/files.
+Minimal [Model Context Protocol](https://modelcontextprotocol.io) server for Node.js. Type-safe tool definitions, rich content helpers for images/audio/files.
 
 ## Install
 
@@ -89,13 +89,51 @@ server.tool(
 );
 ```
 
-Output schemas must have `type: "object"` at the root because MCP structured content is an object. Otherwise, any schema accepted by Ajv is supported, including composition keywords, nullable type unions, and local `$defs`/`$ref` references. Input and output schemas compile synchronously during `.tool()` or `.registerTool()` registration, so malformed schemas throw immediately instead of failing on the first tool call.
+Object output schemas work across MCP versions; modern MCP also supports other JSON output types. Otherwise, supported JSON Schema keywords are accepted, including composition keywords, nullable type unions, and local `$defs`/`$ref` references. Input and output schemas compile synchronously during `.tool()` or `.registerTool()` registration, so malformed schemas throw immediately instead of failing on the first tool call.
 
-Successful structured results must satisfy `outputSchema`. Validation failures use JSON-RPC `-32602` for inputs and `-32603` for outputs, with Ajv's formatted error text in the message and the raw Ajv error array in `error.data`. Explicit handler results with `isError: true` are passed through unchanged and are exempt from structured-content and output-schema validation.
+Successful structured results must satisfy `outputSchema`. Validation failures use JSON-RPC `-32602` for inputs and `-32603` for outputs, with formatted validation details in the message and the issue array in `error.data`. Explicit handler results with `isError: true` are passed through unchanged and are exempt from structured-content and output-schema validation.
 
 Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
 
 Handlers can throw `ToolError` to return a JSON-RPC tool error with a specific code, message, and optional structured `data` payload. The server forwards that `data` field in the JSON-RPC error response so clients can inspect machine-readable failure details.
+
+### Standard schemas, including Zod
+
+Pass schemas implementing Standard Schema v1 and Standard JSON Schema v1
+straight to `.tool()` or `.registerTool()`. Toolcraft schemas and Zod 4.5.4
+support both interfaces. Existing `defineSchema` and raw JSON Schema inputs
+continue to work on the same server.
+
+```ts
+import { z } from "zod"; // Your application's existing dependency
+import { createServer } from "tiny-stdio-mcp-server";
+
+createServer({ name: "search", version: "1" }).tool(
+  "search",
+  "Search",
+  z.object({ query: z.string(), limit: z.number().default(10) }),
+  ({ query, limit }) => `${query}: ${limit}`
+);
+```
+
+Tiny MCP has no Zod dependency, peer dependency, imports, or adapter setup.
+Detection uses the standard interfaces. Older libraries exposing validation
+without JSON Schema conversion fail clearly during registration.
+
+Discovery uses the schema's input JSON Schema and, when supplied, its output
+JSON Schema. Runtime parsing uses the original library, preserving defaults,
+coercions, transforms, refinements, and asynchronous validation. Handler arguments
+are inferred from parsed output; a handler's return value is checked against the
+output schema's accepted input. Output parsing runs once before structured content
+and fallback text are produced. Explicit error results skip output parsing.
+
+Input wire schemas must describe objects. Output schemas may describe any JSON
+value for modern MCP; older clients receive object structured content or text
+fallbacks for other values. Conversion failures occur at registration. Custom
+refinements remain runtime checks and cannot always appear in discovery JSON
+Schema. Async parsing shares the tool timeout and concurrency limits.
+`validateToolArguments: false` disables input parsing, including defaults and
+transforms; handlers then receive the original arguments.
 
 ### `.listen()`
 

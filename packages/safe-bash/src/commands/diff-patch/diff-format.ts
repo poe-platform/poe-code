@@ -98,16 +98,29 @@ export async function contextual(changes: readonly Edit[], format: "unified" | "
       await budget.checkpoint();
     }
     if (changed === changes.length) break;
-    const start = Math.max(scan, changed - context);
+    const start = Math.max(0, changed - context);
     let lastChange = changed;
     let end = changed + 1;
     while (end < changes.length && end - lastChange - 1 <= 2 * context) {
-      if (changes[end]!.kind !== " ") lastChange = end;
+      if (changes[end]!.kind !== " ") {
+        // Ignored blocks can extend existing context, but cannot pull a later
+        // hunk into it from outside the trailing context window.
+        if (changes[end]!.ignored && end - lastChange - 1 >= context) break;
+        lastChange = end;
+      }
       end++;
       budget.step();
       await budget.checkpoint();
     }
     end = Math.min(changes.length, lastChange + context + 1);
+    // Splitting at an ignored block can leave shared context in both hunks.
+    while (scan > start) {
+      const edit = changes[--scan]!;
+      if (edit.kind !== "+") oldPosition--;
+      if (edit.kind !== "-") newPosition--;
+      budget.step();
+      await budget.checkpoint();
+    }
     while (scan < start) {
       if (changes[scan]!.kind !== "+") oldPosition++;
       if (changes[scan++]!.kind !== "-") newPosition++;

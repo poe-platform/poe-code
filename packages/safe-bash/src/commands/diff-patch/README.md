@@ -56,12 +56,17 @@ and the source entry point was exercised directly through `Shell.use`.
   tab expansion, `-Z` ignores trailing whitespace, and `-B` ignores blank-only
   change groups. `-I PATTERN` ignores groups whose changed lines all match one
   of the supplied basic regular expressions; matching shares the work budget.
+  Unified/context hunks can retain ignored groups inside their context. A
+  following ignored group outside the trailing context does not extend a hunk.
 - `-y` / `--side-by-side`, `-W N` / `--width=N` (default 130),
   `--left-column`, and `--suppress-common-lines` provide aligned columns,
-  including for identical input. `-t` expands tabs and `-T` inserts an initial
-  tab in normal/context/unified line prefixes.
+  including for identical input. Directory comparisons include command headers
+  for these identical-file sections; `--suppress-common-lines` omits them.
+  `-t` expands tabs and `-T` inserts an initial tab in normal/context/unified
+  line prefixes.
 - `-e` / `--ed`, `-n` / `--rcs`, and `-D NAME` / `--ifdef=NAME` emit edit
   scripts or conditional text. `-d` / `--minimal` uses the bounded LCS algorithm.
+  `-D` rejects directory operands, as GNU diff does.
   `-p` and `-F PATTERN` annotate context headers with preceding function lines.
   `-l` / `--paginate` formats output with the virtual `pr` command.
 - `-s` / `--report-identical-files` reports equal comparisons. `-a` / `--text`

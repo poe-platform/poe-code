@@ -139,6 +139,10 @@ run against the current input each time they are used; value parameters
 data imports and import search metadata remain unsupported.
 Modules contain imports followed by definitions, with no executable filter body.
 
+`walk(filter)` transforms values from the leaves upward, then applies the filter
+to each rebuilt array or object. Array children preserve all filter results;
+object children keep the first result and delete fields with no result.
+
 `del(path)` removes selected object fields or array elements. `error` and
 `error(value)` raise values that `try ... catch` can handle. `halt` stops jq with
 status 0. `halt_error(code)` (default code 5) stops all input processing and writes

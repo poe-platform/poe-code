@@ -338,6 +338,32 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "walk") {
+      const evaluate = (value: Json) => this.run(args[0]!, value);
+      async function* visit(value: Json): AsyncGenerator<Json> {
+        await budget.tick();
+        let result = value;
+        if (Array.isArray(value)) {
+          const mapped: Json[] = [];
+          for (const child of value) for await (const item of visit(child)) {
+            budget.collection(mapped.length + 1);
+            mapped.push(item);
+          }
+          result = mapped;
+        } else if (isObject(value)) {
+          const mapped = object();
+          for (const key of objectKeyIterator(value)) for await (const item of visit(value[key]!)) {
+            put(mapped, key, item);
+            break;
+          }
+          result = mapped;
+        }
+        budget.value(result);
+        yield* evaluate(result);
+      }
+      yield* visit(input);
+      return;
+    }
     if (name === "fromdateiso8601") { yield fromDateIso8601(input); return; }
     if (name === "todateiso8601") { yield toDateIso8601(input); return; }
     if (name === "scan") {

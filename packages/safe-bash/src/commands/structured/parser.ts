@@ -29,6 +29,7 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
   "+": 8, "-": 8, "*": 9, "/": 9, "%": 9,
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
+  walk: [1],
   fromdateiso8601: [0], todateiso8601: [0],
   scan: [1], paths: [0, 1], getpath: [1], flatten: [0, 1], del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
   halt: [0], halt_error: [0, 1], setpath: [2], empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],

@@ -565,10 +565,10 @@ it("portable network factories require transport injection and preserve HTTP hea
     import { createNetworkCommands, createMemoryFileSystem, toByteSource } from "@poe-platform/safe-bash";
     export async function probe() {
       let refused = false;
-      try { createNetworkCommands({ authorize: () => true }); } catch { refused = true; }
+      try { createNetworkCommands({ authorize: () => true, limits: { maxUrls: 1, maxBufferBytes: 1024 } }); } catch { refused = true; }
       const fs = createMemoryFileSystem();
       const requests = [];
-      const commands = createNetworkCommands({ authorize: () => true, transport: async request => {
+      const commands = createNetworkCommands({ authorize: () => true, limits: { maxUrls: 1, maxBufferBytes: 1024 }, transport: async request => {
         requests.push(request);
         return { status: 200, statusText: "OK", headers: [], body: toByteSource("ok"), async dispose() {} };
       } });

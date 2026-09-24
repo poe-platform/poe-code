@@ -913,7 +913,7 @@ export class MountFileSystem implements FileSystem {
           return true;
         },
       });
-    }, destination);
+    }, destination, true);
   }
 
   removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {

@@ -6,6 +6,15 @@ import { agentCommands } from "../../src/plugins/index.js";
 import { structuredCommands } from "../../src/commands/structured/index.js";
 import { Shell } from "../../src/shell/index.js";
 
+test("halt_error preserves the requested status and raw stderr through the public API", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("jq -c 'halt_error(7)'", { stdin: '"bad"\n' });
+    assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr },
+      { exitCode: 7, stdout: "", stderr: "bad" });
+  } finally { await shell.dispose(); }
+});
+
 const vectors: [string, string, string?][] = [
   ["halt_error(7)", '"bad"\n'],
   ["halt_error(0)", 'null\n', "-e"],

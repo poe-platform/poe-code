@@ -102,10 +102,15 @@ function measureNodeBox(node: DocumentNode, theme: MermaidThemeTokens): SizedNod
     return { doc: node, width: diameter, height: diameter, rx: Math.round(diameter / 2) };
   }
 
-  const extraW = node.shape === "subroutine" || node.shape === "hexagon" ? 48 : 36;
-  const extraH = node.shape === "cylinder" ? 30 : 22;
-  const width = Math.max(88, snapTo8(measured.width + extraW));
-  const height = Math.max(node.shape === "cylinder" ? 48 : 40, snapTo8(measured.height + extraH));
+  const extraW =
+    node.shape === "subroutine" || node.shape === "hexagon"
+      ? 48
+      : node.shape === "cylinder"
+        ? 30
+        : 36;
+  const extraH = node.shape === "cylinder" ? 38 : 22;
+  const width = Math.max(node.shape === "cylinder" ? 104 : 88, snapTo8(measured.width + extraW));
+  const height = Math.max(node.shape === "cylinder" ? 60 : 40, snapTo8(measured.height + extraH));
   const rx =
     node.shape === "stadium"
       ? Math.round(height / 2)
@@ -345,7 +350,7 @@ function buildSceneNode(
     fontWeight: 500
   });
   const totalTextHeight = measured.lines.length * theme.lineHeight;
-  const cylinderOffset = doc.shape === "cylinder" ? 4 : 0;
+  const cylinderOffset = doc.shape === "cylinder" ? 8 : 0;
   const startY = y + (height - totalTextHeight) / 2 + theme.fontSize + 1 + cylinderOffset;
 
   const lines: SceneTextLine[] = measured.lines.map((line, idx) => ({
@@ -850,15 +855,7 @@ export function layoutGraphDocument(
   const spineAxis = Math.round(maxTransverseBreadth / 2) + 80;
   for (let r = 0; r <= maxRank; r++) {
     const layer = rankLayers[r]!;
-    if (layer.length === 1) {
-      const onlyNode = layer[0]!;
-      const currentCenter = getTransverseCenter(onlyNode.doc.id, onlyNode);
-      const prevIsSingle = r > 0 && rankLayers[r - 1]!.length === 1;
-      const nextIsSingle = r < maxRank && rankLayers[r + 1]!.length === 1;
-      if (prevIsSingle || nextIsSingle || Math.abs(currentCenter - spineAxis) <= 48) {
-        setTransverseCenter(onlyNode.doc.id, onlyNode, spineAxis);
-      }
-    } else if (layer.length > 1) {
+    if (layer.length > 1) {
       // Check if one node in this layer connects both to a single-node previous rank and a single-node next rank (spine continuation)
       const prevSingleId = r > 0 && rankLayers[r - 1]!.length === 1 ? rankLayers[r - 1]![0]!.doc.id : undefined;
       const nextSingleId = r < maxRank && rankLayers[r + 1]!.length === 1 ? rankLayers[r + 1]![0]!.doc.id : undefined;
@@ -875,6 +872,32 @@ export function layoutGraphDocument(
         for (const item of layer) {
           setTransverseCenter(item.doc.id, item, getTransverseCenter(item.doc.id, item) + delta);
         }
+      }
+    }
+  }
+  for (let r = 0; r <= maxRank; r++) {
+    const layer = rankLayers[r]!;
+    if (layer.length === 1) {
+      const onlyNode = layer[0]!;
+      const adjNeighbors: SizedNode[] = [];
+      for (const e of document.edges) {
+        if (e.from === e.to) continue;
+        const otherId = e.from === onlyNode.doc.id ? e.to : e.to === onlyNode.doc.id ? e.from : undefined;
+        if (!otherId) continue;
+        const rOther = nodeRanks.get(otherId) ?? 0;
+        if (Math.abs(rOther - r) === 1) {
+          const otherSized = sizedById.get(otherId);
+          if (otherSized && !adjNeighbors.some((n) => n.doc.id === otherId)) {
+            adjNeighbors.push(otherSized);
+          }
+        }
+      }
+      const prevIsSingle = r > 0 && rankLayers[r - 1]!.length === 1;
+      const nextIsSingle = r < maxRank && rankLayers[r + 1]!.length === 1;
+      if (adjNeighbors.length === 1) {
+        setTransverseCenter(onlyNode.doc.id, onlyNode, getTransverseCenter(adjNeighbors[0]!.doc.id, adjNeighbors[0]!));
+      } else if (prevIsSingle || nextIsSingle || Math.abs(getTransverseCenter(onlyNode.doc.id, onlyNode) - spineAxis) <= 48) {
+        setTransverseCenter(onlyNode.doc.id, onlyNode, spineAxis);
       }
     }
   }
@@ -1043,6 +1066,30 @@ export function layoutGraphDocument(
     theme,
     nodeRanks
   );
+
+  // Ensure no vertical edge segment crosses a group's header title text
+  for (let gi = 0; gi < orderedGroups.length; gi++) {
+    const g = orderedGroups[gi]!;
+    let lx = g.label.x;
+    const lw = g.label.width;
+    for (const edge of rawEdges) {
+      for (let k = 0; k + 1 < edge.points.length; k++) {
+        const p1 = edge.points[k]!;
+        const p2 = edge.points[k + 1]!;
+        if (Math.abs(p1.x - p2.x) < 1.5) {
+          const sx = p1.x;
+          const minY = Math.min(p1.y, p2.y);
+          const maxY = Math.max(p1.y, p2.y);
+          if (minY <= g.y + g.headerHeight && maxY >= g.y && sx >= lx - 8 && sx <= lx + lw + 8) {
+            lx = Math.round(sx + 14);
+          }
+        }
+      }
+    }
+    if (lx !== g.label.x) {
+      orderedGroups[gi] = { ...g, label: { ...g.label, x: lx } };
+    }
+  }
 
   // Place notes next to target nodes without overlapping any node or group header
   const rawNotes: SceneNote[] = [];

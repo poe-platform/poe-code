@@ -247,16 +247,18 @@ function buildLabelPill(
   center: Point,
   theme: MermaidThemeTokens
 ): SceneLabelPill {
-  const measured = measureTextBlock(rawText, {
-    fontSize: theme.secondaryFontSize,
-    lineHeight: 16,
-    fontFamily: "ui",
-    fontWeight: 500
-  });
   const isShortCard = rawText.length <= 4 && /^[0-9.*nN]+$/.test(rawText);
-  const padX = isShortCard ? 6 : 9;
-  const padY = isShortCard ? 2 : 3.5;
+  const padX = isShortCard ? 8 : 9;
+  const padY = isShortCard ? 3.5 : 3.5;
   const fSize = isShortCard ? 11 : theme.secondaryFontSize;
+  const fFamily = "ui";
+  const fWeight = isShortCard ? 600 : 500;
+  const measured = measureTextBlock(rawText, {
+    fontSize: fSize,
+    lineHeight: 16,
+    fontFamily: fFamily,
+    fontWeight: fWeight
+  });
   const width = Math.ceil(measured.width + padX * 2);
   const height = Math.ceil(measured.height + padY * 2);
   const x = Math.round(center.x - width / 2);
@@ -268,9 +270,9 @@ function buildLabelPill(
     x: Math.round(x + width / 2),
     y: Math.round(y + padY + idx * 16 + (isShortCard ? 10.5 : 11.5)),
     fontSize: fSize,
-    fontWeight: 500,
-    fontFamily: isShortCard ? "mono" : "ui",
-    color: isShortCard ? theme.mutedText : theme.text,
+    fontWeight: fWeight,
+    fontFamily: fFamily,
+    color: theme.text,
     align: "center"
   }));
 
@@ -574,6 +576,16 @@ export function routeGraphEdges(
   nodeRanks: ReadonlyMap<string, number>
 ): readonly SceneEdge[] {
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
+  const groupById = new Map(groups.map((g) => [g.id, g]));
+  const hasInternalOutgoing = new Set<string>();
+  for (const e of edges) {
+    if (e.from === e.to) continue;
+    const u = nodeById.get(e.from);
+    const v = nodeById.get(e.to);
+    if (u?.groupId && u.groupId === v?.groupId) {
+      hasInternalOutgoing.add(u.id);
+    }
+  }
 
   const obstacles: Rect[] = [
     ...nodes.map((n) => ({ x: n.x, y: n.y, width: n.width, height: n.height })),
@@ -623,7 +635,8 @@ export function routeGraphEdges(
     const isSelfLoop = edge.from === edge.to;
     const rSrc = nodeRanks.get(edge.from) ?? 0;
     const rDst = nodeRanks.get(edge.to) ?? 0;
-    const isBackEdge = !isSelfLoop && rSrc > rDst;
+    const isReverseFlow = direction === "BT" || direction === "RL";
+    const isBackEdge = !isSelfLoop && (isReverseFlow ? rSrc < rDst : rSrc > rDst);
     const currentBackIdx = isBackEdge ? backEdgeCounter++ : 0;
 
     const pairKey =
@@ -739,8 +752,99 @@ export function routeGraphEdges(
 
     const srcOff = assignedOffsets.get(`${edge.id}:source`) ?? 0;
     const dstOff = assignedOffsets.get(`${edge.id}:target`) ?? 0;
-    const srcAttach = pointOnNodePerimeter(src, meta.srcFace, srcOff);
-    const dstAttach = pointOnNodePerimeter(dst, meta.dstFace, dstOff);
+    let srcAttach = pointOnNodePerimeter(src, meta.srcFace, srcOff);
+    let dstAttach = pointOnNodePerimeter(dst, meta.dstFace, dstOff);
+
+    // Anchor compositeState entry/exit transitions directly on the outer perimeter of the compositeState box
+    const srcStateGroup = src.groupId ? groupById.get(src.groupId) : undefined;
+    let effSrcFace = meta.srcFace;
+    let effDstFace = meta.dstFace;
+    if (
+      srcStateGroup?.kind === "compositeState" &&
+      src.groupId !== dst.groupId &&
+      !hasInternalOutgoing.has(src.id)
+    ) {
+      if (
+        (direction === "LR" || direction === "RL") &&
+        dst.x >= srcStateGroup.x + srcStateGroup.width + 24
+      ) {
+        effSrcFace = "right";
+        effDstFace = "left";
+        dstAttach = pointOnNodePerimeter(dst, "left", dstOff);
+      } else if (
+        (direction === "LR" || direction === "RL") &&
+        dst.x + dst.width <= srcStateGroup.x - 24
+      ) {
+        effSrcFace = "left";
+        effDstFace = "right";
+        dstAttach = pointOnNodePerimeter(dst, "right", dstOff);
+      } else if (
+        (direction === "TD" || direction === "BT") &&
+        dst.y >= srcStateGroup.y + srcStateGroup.height + 24
+      ) {
+        effSrcFace = "bottom";
+        effDstFace = "top";
+        dstAttach = pointOnNodePerimeter(dst, "top", dstOff);
+      }
+      const gx =
+        effSrcFace === "left"
+          ? srcStateGroup.x
+          : effSrcFace === "right"
+            ? srcStateGroup.x + srcStateGroup.width
+            : srcAttach.port.x;
+      const gy =
+        effSrcFace === "top"
+          ? srcStateGroup.y
+          : effSrcFace === "bottom"
+            ? srcStateGroup.y + srcStateGroup.height
+            : srcAttach.port.y;
+      const port = { x: gx, y: gy };
+      const norm =
+        effSrcFace === "left"
+          ? { x: -1, y: 0 }
+          : effSrcFace === "right"
+            ? { x: 1, y: 0 }
+            : effSrcFace === "top"
+              ? { x: 0, y: -1 }
+              : { x: 0, y: 1 };
+      srcAttach = {
+        port,
+        stubPoint: {
+          x: port.x + norm.x * 16,
+          y: port.y + norm.y * 16
+        },
+        normal: norm
+      };
+    }
+
+    const dstStateGroup = dst.groupId ? groupById.get(dst.groupId) : undefined;
+    if (
+      dstStateGroup?.kind === "compositeState" &&
+      dst.groupId !== src.groupId &&
+      dst.shape === "stateStart"
+    ) {
+      const gx =
+        meta.dstFace === "left"
+          ? dstStateGroup.x
+          : meta.dstFace === "right"
+            ? dstStateGroup.x + dstStateGroup.width
+            : dstAttach.port.x;
+      const gy =
+        meta.dstFace === "top"
+          ? dstStateGroup.y
+          : meta.dstFace === "bottom"
+            ? dstStateGroup.y + dstStateGroup.height
+            : dstAttach.port.y;
+      const port = { x: gx, y: gy };
+      dstAttach = {
+        port,
+        stubPoint: {
+          x: port.x + dstAttach.normal.x * 16,
+          y: port.y + dstAttach.normal.y * 16
+        },
+        normal: dstAttach.normal
+      };
+    }
 
     let waypoints: Point[];
 
@@ -846,8 +950,8 @@ export function routeGraphEdges(
         ];
       }
     } else if (
-      (meta.srcFace === "left" || meta.srcFace === "right") &&
-      (meta.dstFace === "top" || meta.dstFace === "bottom")
+      (effSrcFace === "left" || effSrcFace === "right") &&
+      (effDstFace === "top" || effDstFace === "bottom")
     ) {
       waypoints = [
         srcAttach.port,
@@ -855,15 +959,15 @@ export function routeGraphEdges(
         dstAttach.port
       ];
     } else if (
-      (meta.srcFace === "top" || meta.srcFace === "bottom") &&
-      (meta.dstFace === "left" || meta.dstFace === "right")
+      (effSrcFace === "top" || effSrcFace === "bottom") &&
+      (effDstFace === "left" || effDstFace === "right")
     ) {
       waypoints = [
         srcAttach.port,
         { x: srcAttach.port.x, y: dstAttach.port.y },
         dstAttach.port
       ];
-    } else if (meta.srcFace === "bottom" && meta.dstFace === "top") {
+    } else if (effSrcFace === "bottom" && effDstFace === "top") {
       let lowY = srcAttach.stubPoint.y;
       let highY = dstAttach.stubPoint.y;
       if (src.groupId && src.groupId !== dst.groupId) {
@@ -881,7 +985,12 @@ export function routeGraphEdges(
       const midY = Math.round((lowY + highY) / 2);
 
       if (Math.abs(srcAttach.port.x - dstAttach.port.x) <= 4 && meta.pairTotal === 1) {
-        const sharedX = Math.round((srcAttach.port.x + dstAttach.port.x) / 2);
+        const sharedX =
+          dst.shape === "diamond"
+            ? dstAttach.port.x
+            : src.shape === "diamond"
+              ? srcAttach.port.x
+              : Math.round((srcAttach.port.x + dstAttach.port.x) / 2);
         waypoints = [
           { x: sharedX, y: srcAttach.port.y },
           { x: sharedX, y: dstAttach.port.y }
@@ -894,10 +1003,15 @@ export function routeGraphEdges(
           dstAttach.port
         ];
       }
-    } else if (meta.srcFace === "top" && meta.dstFace === "bottom") {
+    } else if (effSrcFace === "top" && effDstFace === "bottom") {
       const midY = Math.round((srcAttach.stubPoint.y + dstAttach.stubPoint.y) / 2);
       if (Math.abs(srcAttach.port.x - dstAttach.port.x) <= 4 && meta.pairTotal === 1) {
-        const sharedX = Math.round((srcAttach.port.x + dstAttach.port.x) / 2);
+        const sharedX =
+          dst.shape === "diamond"
+            ? dstAttach.port.x
+            : src.shape === "diamond"
+              ? srcAttach.port.x
+              : Math.round((srcAttach.port.x + dstAttach.port.x) / 2);
         waypoints = [
           { x: sharedX, y: srcAttach.port.y },
           { x: sharedX, y: dstAttach.port.y }
@@ -911,12 +1025,17 @@ export function routeGraphEdges(
         ];
       }
     } else if (
-      (meta.srcFace === "right" && meta.dstFace === "left") ||
-      (meta.srcFace === "left" && meta.dstFace === "right")
+      (effSrcFace === "right" && effDstFace === "left") ||
+      (effSrcFace === "left" && effDstFace === "right")
     ) {
       const midX = Math.round((srcAttach.stubPoint.x + dstAttach.stubPoint.x) / 2);
       if (Math.abs(srcAttach.port.y - dstAttach.port.y) <= 4 && meta.pairTotal === 1) {
-        const sharedY = Math.round((srcAttach.port.y + dstAttach.port.y) / 2);
+        const sharedY =
+          dst.shape === "diamond"
+            ? dstAttach.port.y
+            : src.shape === "diamond"
+              ? srcAttach.port.y
+              : Math.round((srcAttach.port.y + dstAttach.port.y) / 2);
         waypoints = [
           { x: srcAttach.port.x, y: sharedY },
           { x: dstAttach.port.x, y: sharedY }

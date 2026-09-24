@@ -145,10 +145,17 @@ function renderNode(
       `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.headerHeight}" fill="${escapeXml(node.headerFill)}" clip-path="url(#${clipId})"/>` +
       `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="${node.rx}" fill="none" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"/>`;
   } else if (node.shape === "cylinder") {
-    const cx = node.x + node.width / 2;
+    const x = node.x;
+    const y = node.y;
+    const w = node.width;
+    const h = node.height;
+    const rx = w / 2;
+    const ry = Math.min(11, Math.max(9, Math.round(w * 0.075)));
+    const lidColor = node.fill.toLowerCase() === "#172554" ? "#1e3a8a" : "#dbeafe";
+    const outerD = `M ${x} ${y + ry} A ${rx} ${ry} 0 0 1 ${x + w} ${y + ry} L ${x + w} ${y + h - ry} A ${rx} ${ry} 0 0 1 ${x} ${y + h - ry} Z`;
     shapeSvg =
-      `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="10" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"${filterAttr}/>` +
-      `<ellipse cx="${cx}" cy="${node.y + 8}" rx="${Math.max(8, node.width / 2 - 2)}" ry="5.5" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="1.3"/>`;
+      `<path d="${outerD}" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}" stroke-linejoin="round"${filterAttr}/>` +
+      `<ellipse cx="${x + rx}" cy="${y + ry}" rx="${rx}" ry="${ry}" fill="${lidColor}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"/>`;
   } else if (node.shape === "hexagon") {
     const inset = 12;
     const x = node.x;

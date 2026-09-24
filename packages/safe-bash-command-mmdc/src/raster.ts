@@ -886,7 +886,7 @@ function drawNode4x4(
   }
 
   const isDiamond = node.shape === "diamond";
-  if (node.shadow) {
+  if (node.shadow && node.shape !== "cylinder") {
     drawShadow(
       rgba,
       frameW,
@@ -918,6 +918,43 @@ function drawNode4x4(
       { x, y: cy }
     ];
     drawPolygon4x4(rgba, frameW, frameH, hexPts, fill, stroke, node.strokeWidth * scale);
+  } else if (node.shape === "cylinder") {
+    const x = node.x;
+    const y = node.y;
+    const w = node.width;
+    const h = node.height;
+    const ry = Math.min(11, Math.max(9, Math.round(w * 0.075)));
+    const steps = 32;
+    const cylOuterPts: Point[] = [];
+    for (let s = 0; s <= steps; s++) {
+      const theta = Math.PI * (s / steps);
+      cylOuterPts.push({
+        x: (x + (w / 2) * (1 - Math.cos(theta))) * scale,
+        y: (y + ry * (1 - Math.sin(theta))) * scale
+      });
+    }
+    for (let s = 0; s <= steps; s++) {
+      const theta = Math.PI * (s / steps);
+      cylOuterPts.push({
+        x: (x + (w / 2) * (1 + Math.cos(theta))) * scale,
+        y: (y + h - ry + ry * Math.sin(theta)) * scale
+      });
+    }
+    drawPolygon4x4(rgba, frameW, frameH, cylOuterPts, fill, stroke, node.strokeWidth * scale);
+
+    const isDarkBody = fill.r < 128;
+    const lidFill: RgbaColor = isDarkBody
+      ? { r: Math.min(255, fill.r + 18), g: Math.min(255, fill.g + 28), b: Math.min(255, fill.b + 58), a: fill.a }
+      : { r: Math.max(0, fill.r - 24), g: Math.max(0, fill.g - 14), b: Math.max(0, fill.b - 4), a: fill.a };
+    const lidPts: Point[] = [];
+    for (let s = 0; s <= steps; s++) {
+      const theta = (Math.PI * 2 * s) / steps;
+      lidPts.push({
+        x: (x + w / 2 + (w / 2) * Math.cos(theta)) * scale,
+        y: (y + ry + ry * Math.sin(theta)) * scale
+      });
+    }
+    drawPolygon4x4(rgba, frameW, frameH, lidPts, lidFill, stroke, node.strokeWidth * scale);
   } else {
     drawRoundedShape(
       rgba,
@@ -937,24 +974,6 @@ function drawNode4x4(
       false,
       scale
     );
-  }
-
-  if (node.shape === "cylinder") {
-    // Draw unmistakable elliptical top disk cap curves
-    const arcPts1: Point[] = [];
-    const arcPts2: Point[] = [];
-    const steps = 20;
-    for (let s = 0; s <= steps; s++) {
-      const t = s / steps;
-      const angle = Math.PI * t;
-      const lx = node.x + 2 + (node.width - 4) * t;
-      const ly1 = node.y + 8 + Math.sin(angle) * 6.5;
-      const ly2 = node.y + 8 - Math.sin(angle) * 5.5;
-      arcPts1.push({ x: lx * scale, y: ly1 * scale });
-      arcPts2.push({ x: lx * scale, y: ly2 * scale });
-    }
-    drawPolyline4x4(rgba, frameW, frameH, arcPts1, stroke, 1.45 * scale, false, scale);
-    drawPolyline4x4(rgba, frameW, frameH, arcPts2, stroke, 1.2 * scale, false, scale);
   }
 
   for (const div of node.dividers) {
@@ -1177,7 +1196,13 @@ export function rasterizeScene(
     }
   }
 
-  // 4. Edges & markers
+  // 4. Nodes (drawn before edges/markers, matching SVG layer order so node shadows don't darken edges and arrowheads aren't clipped)
+  for (const node of scene.nodes) {
+    options?.budget?.chargeWork(64);
+    drawNode4x4(rgba, width, height, node, shadowColor, effectiveScale);
+  }
+
+  // 5. Edges & markers
   for (const edge of scene.edges) {
     options?.budget?.chargeWork(32);
     const polyPts = flattenSegments(edge.segments, effectiveScale);
@@ -1193,12 +1218,6 @@ export function rasterizeScene(
     );
     drawMarker4x4(rgba, width, height, edge.startMarker, effectiveScale);
     drawMarker4x4(rgba, width, height, edge.endMarker, effectiveScale);
-  }
-
-  // 5. Nodes
-  for (const node of scene.nodes) {
-    options?.budget?.chargeWork(64);
-    drawNode4x4(rgba, width, height, node, shadowColor, effectiveScale);
   }
 
   // 6. Edge label pills

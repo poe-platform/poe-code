@@ -424,8 +424,34 @@ export function verifySceneGeometry(scene: MermaidScene): GeometryReport {
 
       const startPt = edge.points[0]!;
       const endPt = edge.points[edge.points.length - 1]!;
-      const srcDist = distanceToNodePerimeter(startPt, srcNode);
-      const dstDist = distanceToNodePerimeter(endPt, dstNode);
+      const srcGroup = srcNode.groupId ? groupById.get(srcNode.groupId) : undefined;
+      const dstGroup = dstNode.groupId ? groupById.get(dstNode.groupId) : undefined;
+      const srcDist = Math.min(
+        distanceToNodePerimeter(startPt, srcNode),
+        srcGroup
+          ? distanceToNodePerimeter(startPt, {
+              ...srcNode,
+              shape: "rect",
+              x: srcGroup.x,
+              y: srcGroup.y,
+              width: srcGroup.width,
+              height: srcGroup.height
+            })
+          : Infinity
+      );
+      const dstDist = Math.min(
+        distanceToNodePerimeter(endPt, dstNode),
+        dstGroup
+          ? distanceToNodePerimeter(endPt, {
+              ...dstNode,
+              shape: "rect",
+              x: dstGroup.x,
+              y: dstGroup.y,
+              width: dstGroup.width,
+              height: dstGroup.height
+            })
+          : Infinity
+      );
       if (srcDist > 0.5) {
         violations.push(
           `Invariant 4 (source port perimeter): edge '${edge.id}' start (${startPt.x},${startPt.y}) is ${srcDist.toFixed(2)}px from '${srcNode.id}' perimeter (> 0.5px)`

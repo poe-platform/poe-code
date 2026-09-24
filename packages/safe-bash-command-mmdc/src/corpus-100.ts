@@ -252,6 +252,12 @@ export const COMPLEX_DIAGRAMS_100: readonly ComplexDiagramCase[] = [
   ...CLASS_DOMAINS.map((d, i): ComplexDiagramCase => {
     const idx = 66 + i;
     const id = `diagram-${String(idx).padStart(3, "0")}-class`;
+    const mults = ["1..*", "0..*", "0..1", "1..*"][i % 4]!;
+    const relVerb = ["orchestrates", "aggregates", "coordinates", "supervises"][i % 4]!;
+    const dispatchVerb = ["dispatches", "emitsTo", "delegates", "publishes"][i % 4]!;
+    const compRel = i % 2 === 0 ? "*--" : "o--";
+    const inhRel = i % 3 === 0 ? "<|.." : "<|--";
+    const inhLabel = i % 3 === 0 ? "implements" : "extends";
     return {
       id,
       index: idx,
@@ -261,29 +267,29 @@ export const COMPLEX_DIAGRAMS_100: readonly ComplexDiagramCase[] = [
   namespace ${d.ns1} {
     class ${d.c1} {
       <<${d.st1}>>
-      +id: string
-      -version: number
-      +execute(ctx: Context) Result
-      +validate() boolean
+      +${d.ns1.toLowerCase()}Id: string
+      -epochRev: number
+      +reconcile(ctx: ${d.ns1}Ctx) Result
+      +verifyInvariants() boolean
     }
     class ${d.c2} {
       <<${d.st2}>>
-      +handle(payload: Uint8Array) Promise
+      +accept(${d.c4.toLowerCase()}: ${d.c4}) Promise
     }
   }
   namespace ${d.ns2} {
     class ${d.c3} {
-      -timeoutMs: number
-      +runStep(input: Record) Output
+      -deadlineMs: number
+      +apply(${d.ns2.toLowerCase()}: ${d.c4}) Output
     }
     class ${d.c4} {
-      +metrics: Telemetry
-      +flush() void
+      +revision: uint64
+      +snapshot() Bytes
     }
   }
-  ${d.c2} <|.. ${d.c3} : implements
-  ${d.c1} "1" *-- "1..*" ${d.c2} : orchestrates
-  ${d.c3} "1" --> "1" ${d.c4} : dispatches`
+  ${d.c2} ${inhRel} ${d.c3} : ${inhLabel}
+  ${d.c1} "1" ${compRel} "${mults}" ${d.c2} : ${relVerb}
+  ${d.c3} "1" --> "1" ${d.c4} : ${dispatchVerb}`
     };
   }),
   ...ER_DOMAINS.map((d, i): ComplexDiagramCase => {

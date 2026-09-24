@@ -220,7 +220,12 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     }
     if (opcode === 0x1ae) {
       data.check(0, 4);
-      const kind = data.bytes.length === 4 && data.u16(2) === 0x401 ? "local" : data.bytes.length === 4 && data.u16(2) === 0x3a01 ? "addin" : "external";
+      let kind: "local" | "addin" | "external" = data.bytes.length === 4 && data.u16(2) === 0x401 ? "local" : data.bytes.length === 4 && data.u16(2) === 0x3a01 ? "addin" : "external";
+      if (kind === "external" && ver >= 8 && data.u16(2) === 1) {
+        const cursor = new BiffStrings([new Binary(data.slice(4, data.bytes.length - 4))], context, codepage);
+        // Gnumeric also recognizes the one-character NUL VirtualPath as self.
+        if (cursor.unicode(1).text === "\0") kind = "local";
+      }
       supbooks.push({ kind, names: [] });
       if (kind !== "addin") await retain(record, unsupported, kind === "external");
       continue;

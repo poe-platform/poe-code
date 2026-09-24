@@ -29,7 +29,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Qualified external-name binding, macro identity, duplicate replacement, permanent names and global alias spelling are repaired. Formula conversion and sheet edits preserve quoted external-workbook identities, including raw external named expressions, without adding implicit resolution authority. Legacy relative rows now wrap at 16,384; BIFF8 keeps 65,536. Final-row named references recalculate to 42 in native Gnumeric and compiled SDK/Shell readback; 858 BIFF tests pass. Wider token/version/reference semantics, dynamic diagnostics and final qualification remain open."
+      "currentFinding": "Qualified external-name binding, macro identity, duplicate replacement, permanent names and global alias spelling are repaired. Formula conversion and sheet edits preserve quoted external-workbook identities, including raw external named expressions, without adding implicit resolution authority. Legacy relative rows now wrap at 16,384; BIFF8 keeps 65,536. Final-row named references recalculate to 42 in native Gnumeric and compiled SDK/Shell readback; 858 BIFF tests pass. Compressed and UTF-16 single-NUL SUPBOOK paths now retain local cell/range/name bindings; 29 new tests and native/SDK/Shell controls pass without external resolution. XLSX raw-record warnings remain. Wider token/version/reference semantics, dynamic diagnostics and final qualification remain open."
     },
     {
       "id": "encrypted-biff",

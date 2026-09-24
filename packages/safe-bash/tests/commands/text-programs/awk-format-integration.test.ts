@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import test, { type TestContext } from "node:test";
 import { CommandRegistry, FsError, MemoryFileSystem, Shell, createTextProgramCommands } from "../../../src/index.js";
 
-function fixture(context: TestContext, maxSteps: number) {
+function fixture(context: TestContext, maxSteps: number, maxBufferBytes = 256) {
   const fs = new MemoryFileSystem();
-  const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands({ maxSteps, maxBufferBytes: 256 })) });
+  const shell = new Shell({ fs, commands: new CommandRegistry(createTextProgramCommands({ maxSteps, maxBufferBytes })) });
   context.after(() => shell.dispose());
   return { fs, shell };
 }
@@ -79,3 +79,20 @@ test("awk formatted output retains raw string bytes and dynamic width precision 
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 0, 32, 32));
 });
+
+for (const route of ["printf literal", "sprintf literal", "printf dynamic", "sprintf dynamic", "OFMT", "CONVFMT"]) {
+  test(`public awk rejects malformed long ${route} formats`, async context => {
+    const { shell } = fixture(context, 100000, 32768);
+    const format = JSON.stringify("%" + "0".repeat(16384) + "q");
+    const program = route === "printf literal" ? `printf ${format}, 1`
+      : route === "sprintf literal" ? `x=sprintf(${format}, 1)`
+      : route === "printf dynamic" ? `f=${format}; printf f, 1`
+      : route === "sprintf dynamic" ? `f=${format}; x=sprintf(f, 1)`
+      : route === "OFMT" ? `OFMT=${format}; print 1.5`
+      : `CONVFMT=${format}; x=1.5 ""`;
+    const result = await shell.exec(`awk 'BEGIN { ${program} }'`);
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr, /unsupported format/u);
+    assert.equal(result.stdout, "");
+  });
+}

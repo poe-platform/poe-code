@@ -175,7 +175,9 @@ Formatting supports `%c`, `%s`, `%d`/`%i`, `%u`, `%o`, `%x`/`%X`, `%f`/`%F`,
 Unsigned/octal/hex conversions use 32-bit unsigned values; arbitrary native
 integer-overflow behavior is not promised. Width and precision have no resource ceiling unless an explicit buffer or
 execution budget is supplied. Unsupported constant formats are rejected
-at parse time; dynamically computed formats are checked when executed.
+at parse time; dynamically computed formats are checked when executed. Format
+strings are limited to 64 KiB and scanned in linear time; runtime scanning work
+is admitted against the execution budget before parsing.
 
 The parser validates the whole source, literal regexes, function existence and
 arity, call targets, and structural control-flow restrictions before processing

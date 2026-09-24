@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MemoryFileSystem, toByteSource } from "../../../src/index.js";
 import { Budget } from "../../../src/commands/text-programs/shared.js";
-import { compare, formatted, numeric, string, text } from "../../../src/commands/text-programs/awk-values.js";
+import { compare, formatted, numeric, string, text, validateFormat } from "../../../src/commands/text-programs/awk-values.js";
 
 function budget(maxSteps: number, maxBufferBytes = 4096, signal = new AbortController().signal) {
   return new Budget({
@@ -141,4 +141,38 @@ test("formatter preserves raw-byte and numeric flags, width and precision semant
   for (const [format, values, expected] of cases) assert.equal(formatted(format, values, text, budget(1000)), expected);
   assert.throws(() => formatted("%s", [], text, budget(100)), { message: "not enough arguments for format" });
   assert.throws(() => formatted("%q", [], text, budget(100)), /unsupported format/u);
+});
+
+for (const format of ["%" + "0".repeat(8192) + "q", "%" + "0".repeat(8192) + ".q"]) {
+  test("awk malformed formats are scanned without regexp backtracking: " + format.at(-2), () => {
+    const original = RegExp.prototype.exec;
+    let scans = 0;
+    RegExp.prototype.exec = function (value) {
+      if (value === format) scans++;
+      return original.call(this, value);
+    };
+    try {
+      assert.throws(() => validateFormat(format), /unsupported format/u);
+      assert.throws(() => formatted(format, [], text, budget(100000)), /unsupported format/u);
+      assert.equal(scans, 0, "guest-controlled formats must not enter a regexp matcher");
+    } finally { RegExp.prototype.exec = original; }
+  });
+}
+
+test("awk format length has a finite admission boundary even without a runtime budget", () => {
+  const format = "%%".repeat(32768);
+  validateFormat(format);
+  assert.equal(formatted(format, [], text), "%".repeat(32768));
+  assert.throws(() => validateFormat(format + "x"), { message: "format length limit exceeded" });
+  assert.throws(() => formatted(format + "x", [], text), { message: "format length limit exceeded" });
+});
+
+test("awk scanner retains empty precision, repeated flags and width semantics", () => {
+  for (const [format, expected] of [["%0005d", "00007"], ["%--++5d", "+7   "], ["%.s", ""], ["%05.3d", "  007"]]) {
+    validateFormat(format!);
+    assert.equal(formatted(format!, [numeric(7)], text), expected);
+  }
+  for (const format of ["%", "%.*", "%1.2.3d", "%9007199254740992s"]) {
+    assert.throws(() => validateFormat(format), /unsupported format|excessive format/u);
+  }
 });

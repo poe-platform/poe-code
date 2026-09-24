@@ -87,20 +87,43 @@ function preciseFloat(value: number, precision: number, conversion: string, alte
   return negative + result;
 }
 
-const formatPattern = /^%([-+ #0]*)(\*|[0-9]+)?(?:\.(\*|[0-9]*))?([csdiuoxXfFeEgG])/u;
+// Bound synchronous parsing even for literal validation, which has no runtime budget.
+const maxFormatLength = 64 * 1024;
+
+function scanFormat(format: string, offset: number) {
+  let cursor = offset + 1;
+  const flagsStart = cursor;
+  while (cursor < format.length && "-+ #0".includes(format[cursor]!)) cursor++;
+  const flags = format.slice(flagsStart, cursor);
+  const amount = (): string => {
+    const start = cursor;
+    if (format[cursor] === "*") cursor++;
+    else while (cursor < format.length && format[cursor]! >= "0" && format[cursor]! <= "9") cursor++;
+    return format.slice(start, cursor);
+  };
+  const width = amount();
+  let precision: string | undefined;
+  if (format[cursor] === ".") { cursor++; precision = amount(); }
+  const conversion = format[cursor];
+  if (conversion === undefined || !"csdiuoxXfFeEgG".includes(conversion)) {
+    throw new ProgramError(`unsupported format near '${format.slice(offset)}'`);
+  }
+  return { end: cursor + 1, flags, width, precision, conversion };
+}
 
 export function validateFormat(format: string): void {
+  if (format.length > maxFormatLength) throw new ProgramError("format length limit exceeded");
   for (let offset = 0; offset < format.length;) {
     if (format[offset] !== "%") { offset++; continue; }
     if (format[offset + 1] === "%") { offset += 2; continue; }
-    const match = formatPattern.exec(format.slice(offset));
-    if (!match) throw new ProgramError(`unsupported format near '${format.slice(offset)}'`);
-    offset += match[0].length;
-    if (match[2] !== "*" && !Number.isSafeInteger(Number(match[2] ?? 0)) || match[3] !== "*" && (!Number.isSafeInteger(Number(match[3] ?? 0)))) throw new ProgramError("excessive format width or precision");
+    const match = scanFormat(format, offset);
+    offset = match.end;
+    if (match.width !== "*" && !Number.isSafeInteger(Number(match.width ?? 0)) || match.precision !== "*" && (!Number.isSafeInteger(Number(match.precision ?? 0)))) throw new ProgramError("excessive format width or precision");
   }
 }
 
 export function formatted(format: string, values: readonly Scalar[], text: (value: Scalar) => string, budget?: Budget): string {
+  if (format.length > maxFormatLength) throw new ProgramError("format length limit exceeded");
   budget?.step(format.length);
   let result = "";
   let argument = 0;
@@ -119,15 +142,14 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
   for (let offset = 0; offset < format.length;) {
     if (format[offset] !== "%") { admit(1); result += format[offset++]; continue; }
     if (format[offset + 1] === "%") { admit(1); result += "%"; offset += 2; continue; }
-    const match = formatPattern.exec(format.slice(offset));
-    if (!match) throw new ProgramError(`unsupported format near '${format.slice(offset)}'`);
-    offset += match[0].length;
-    let flags = match[1]!;
-    let width = match[2] === "*" ? Math.trunc(amountOf(take())) : Number(match[2] ?? 0);
-    let precision = match[3] === undefined ? undefined : match[3] === "*" ? Math.trunc(amountOf(take())) : Number(match[3] || 0);
+    const match = scanFormat(format, offset);
+    offset = match.end;
+    let flags = match.flags;
+    let width = match.width === "*" ? Math.trunc(amountOf(take())) : Number(match.width ?? 0);
+    let precision = match.precision === undefined ? undefined : match.precision === "*" ? Math.trunc(amountOf(take())) : Number(match.precision || 0);
     if (width < 0) { flags += "-"; width = -width; }
     if (precision !== undefined && precision < 0) precision = undefined;
-    const conversion = match[4]!;
+    const conversion = match.conversion;
     if (!Number.isSafeInteger(width) || precision !== undefined && (!Number.isSafeInteger(precision))) throw new ProgramError("excessive format width or precision");
     const value = take();
     let part: string;

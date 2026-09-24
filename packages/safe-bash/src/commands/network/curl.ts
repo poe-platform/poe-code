@@ -14,7 +14,7 @@ import { createBody, queryData } from "./body.js";
 import { decodeContent } from "./decode.js";
 import { dumpHeaders, responseHeaders, writeOutput, writeOutFormat } from "./output.js";
 import { delay, diagnostic, encode, header, limitsFor, networkError, withSignal } from "./shared.js";
-import { createDefaultHttpTransport } from "./platform.js";
+import { createDefaultHttpTransport, requiresFiniteUrlLimits } from "./platform.js";
 import { CurlError, type HttpHeaders, type HttpResponse, type NetworkCommandsOptions, type NetworkLimits } from "./types.js";
 
 const retryStatuses = new Set([408, 429, 500, 502, 503, 504]);
@@ -119,6 +119,9 @@ export function createCurlCommand(options: NetworkCommandsOptions): CommandDefin
 export function createTransferCommand(options: NetworkCommandsOptions, profile: TransferProfile): CommandDefinition {
   if (typeof options?.authorize !== "function") throw new TypeError(`${profile.name} requires an explicit network authorizer`);
   const limits = limitsFor(options.limits);
+  if (requiresFiniteUrlLimits && (!Number.isFinite(limits.maxUrls) || !Number.isFinite(limits.maxBufferBytes))) {
+    throw new TypeError("Portable network commands require finite maxUrls and maxBufferBytes limits");
+  }
   const transport = options.transport ?? createDefaultHttpTransport({ maxHeaderBytes: limits.maxHeaderBytes });
   if (typeof transport !== "function") throw new TypeError("Invalid HTTP transport");
   const authorize = options.authorize;

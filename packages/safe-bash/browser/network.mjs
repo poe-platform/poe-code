@@ -1,4 +1,5 @@
 import { Buffer } from "buffer";
+export const requiresFiniteUrlLimits = true;
 
 export function createDefaultHttpTransport() {
   throw new TypeError("Portable network commands require an explicit HTTP transport; inject createFetchTransport() or a host transport");

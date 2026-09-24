@@ -135,11 +135,14 @@ other CA/client-cert file flags, cookie-jar, HTTP/2/3, parallel,
 
 ## Streaming, quotas and failure state
 
-Network byte, buffer, count and time quotas are unlimited by default. Each
+On Node, network byte, buffer, count and time quotas are unlimited by default. Each
 `options.limits` setting enables only that quota. Curl and wget values have no
 implicit ceiling; an explicitly configured host quota can restrict them. Zero
 `--max-time`, `--timeout` or `--tries` removes that command limit while preserving
 explicit host quotas. Curl still defaults to no retries; wget defaults to 20 attempts.
+Portable browser/Worker registration requires positive finite `maxUrls` and
+`maxBufferBytes` quotas, including with an injected transport. URL ranges and
+repeated prefix/capture copies are admitted against those budgets before allocation.
 For Workers, pass `limits: cloudflareWorkerNetworkLimits`; its worst-case URL,
 retry, and redirect combination is 48 fetches, within the smallest 50-subrequest
 budget, and its byte/deadline ceilings are substantially smaller.

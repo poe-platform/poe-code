@@ -70,6 +70,7 @@ export interface NetworkLimits {
 export interface NetworkCommandsOptions {
   readonly authorize: NetworkAuthorizer;
   readonly transport?: HttpTransport;
+  /** Portable browser/Worker commands require finite maxUrls and maxBufferBytes. */
   readonly limits?: Partial<NetworkLimits>;
   readonly replace?: boolean;
 }

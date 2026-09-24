@@ -95,6 +95,7 @@ async function exercise(context: TestContext, settings: {
   filesystem: FileSystem; left: FileSystem; right: FileSystem;
   source: string; target: string; action: Action;
   trace?: () => { operation: string; key: string }[];
+  expectedError?: string;
 }) {
   const { filesystem, left, right, source, target, action, trace } = settings;
   const before = await snapshot(left, right);
@@ -104,8 +105,12 @@ async function exercise(context: TestContext, settings: {
     if (action === "copy") await filesystem.copyFile(source, target);
     else if (action === "rename") await filesystem.rename(source, target);
     else {
-      const result = await new Shell({ fs: filesystem }).use(standardCommands()).exec(`mv ${source} ${target}`);
-      if (result.exitCode !== 0) outcome = { status: "command-error", exitCode: result.exitCode, stderr: result.stderr };
+      const shell = new Shell({ fs: filesystem }).use(standardCommands());
+      try {
+        const result = await shell.exec(`mv ${source} ${target}`);
+        assert.equal(result.stdout, "");
+        if (result.exitCode !== 0) outcome = { status: "command-error", exitCode: result.exitCode, stderr: result.stderr };
+      } finally { await shell.dispose(); }
     }
   } catch (error) {
     assert.ok(error instanceof FsError, "filesystem failures must retain typed errno");
@@ -117,6 +122,12 @@ async function exercise(context: TestContext, settings: {
   context.diagnostic(JSON.stringify({ case: context.name, outcome, source, target, action, before, after, operations }));
   if (!("status" in outcome) || outcome.status !== "success") {
     assert.deepEqual(after, before, "this failed operation must not change bytes or namespace");
+  }
+  if (settings.expectedError !== undefined) {
+    assert.deepEqual(outcome, { status: "command-error", exitCode: 1, stderr: settings.expectedError });
+    assert.deepEqual(after, before);
+    assert.ok(operations.every(request => ["headObject", "listObjectsV2", "PROPFIND", "HEAD", "OPTIONS"].includes(request.operation)));
+    return;
   }
   assert.deepEqual(outcome, { status: "success" }, "REQUIRED compatibility: distinct-file operation must succeed");
   assert.deepEqual(await bytesAt(left, "/source"), action === "copy" ? [...payload] : null);
@@ -186,20 +197,22 @@ test("positive same-mount memory rename replaces a distinct file", async context
     source: "/source", target: "/target", action: "rename" });
 });
 
-test("REQUIRED shared memory backend mounted twice: distinct-file mv overwrite", async context => {
+test("shared memory mounted twice refuses cross-mount mv overwrite without atomic binding", async context => {
   const backing = createMemoryFileSystem();
   await seed(backing, backing, true);
   await exercise(context, { filesystem: mounted(backing, backing), left: backing, right: backing,
-    source: "/left/source", target: "/right/target", action: "mv" });
+    source: "/left/source", target: "/right/target", action: "mv",
+    expectedError: "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n" });
 });
 
 for (const existing of [false, true]) {
-  test(`REQUIRED cross-mount memory mv, target ${existing ? "existing" : "missing"}`, async context => {
+  test(`cross-mount memory mv ${existing ? "refuses existing target" : "publishes missing target"}`, async context => {
     const left = createMemoryFileSystem();
     const right = createMemoryFileSystem();
     await seed(left, right, existing);
     await exercise(context, { filesystem: mounted(left, right), left, right,
-      source: "/left/source", target: "/right/target", action: "mv" });
+      source: "/left/source", target: "/right/target", action: "mv",
+      ...(existing ? { expectedError: "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n" } : {}) });
   });
 }
 
@@ -230,11 +243,13 @@ for (const kind of ["s3", "webdav"] as const) {
   }
 
   for (const existing of [false, true]) {
-    test(`REQUIRED ${kind} separate-clients cross-mount mv, target ${existing ? "existing" : "missing"}`, async context => {
+    test(`${kind} separate-client cross-mount mv refuses unsupported ${existing ? "overwrite" : "conditional removal"}`, async context => {
       const pair = remote(kind, true);
       await seed(pair.left, pair.right, existing);
       await exercise(context, { filesystem: mounted(pair.left, pair.right), ...pair,
-        source: "/left/source", target: "/right/target", action: "mv" });
+        source: "/left/source", target: "/right/target", action: "mv", expectedError: existing
+          ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n"
+          : "mv: ENOTSUP: operation not supported, removeEntryConditional '/left/source'\n" });
     });
   }
 

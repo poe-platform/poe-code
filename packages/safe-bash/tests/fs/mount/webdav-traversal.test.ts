@@ -48,18 +48,24 @@ function wrapped(base: FileSystem, overrides: Partial<FileSystem>): FileSystem {
   } });
 }
 
-test("WebDAV loopback mounted tools copy missing target and rename existing target without execute fiction", async () => {
+test("WebDAV loopback preserves Shell copy admission, direct copy and same-mount rename", async context => {
   const mock = seeded();
   await withLoopbackDav(mock.fetch, async baseUrl => {
     const remote = new WebDavFileSystem({ baseUrl, fetch: globalThis.fetch });
     const fs = mounted(remote);
     const shell = new Shell({ fs }).use(standardCommands());
+    context.after(() => shell.dispose());
     assert.equal((await fs.stat("/dav/dir/source")).size, bytes.length);
     assert.deepEqual(await fs.readFile("/dav/dir/source"), bytes);
+    const offset = mock.requests.length;
+    const before = structuredClone(mock.files);
     const copy = await shell.exec("cp /dav/dir/source /dav/dir/new");
-    assert.equal(copy.exitCode, 0, copy.stderr);
+    assert.equal(copy.exitCode, 1);
     assert.equal(copy.stdout, "");
-    assert.equal(copy.stderr, "");
+    assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/dav/dir/source'\n");
+    assert.ok(mock.requests.slice(offset).every(request => ["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")));
+    assert.deepEqual(mock.files, before);
+    await fs.copyFile("/dav/dir/source", "/dav/dir/new", { exclusive: true });
     assert.deepEqual(mock.files.get("/dir/new"), bytes);
     const move = await shell.exec("mv /dav/dir/new /dav/dir/existing");
     assert.equal(move.exitCode, 0, move.stderr);
@@ -127,7 +133,7 @@ test("WebDAV mounted missing ancestors and file ancestors preserve typed errors 
   assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
 });
 
-test("WebDAV mounted cp propagates server COPY denial with nonzero status and no effects", async () => {
+test("WebDAV mounted cp refuses before COPY while direct copy propagates server denial", async context => {
   const mock = seeded();
   const before = structuredClone(mock.files);
   let denied = 0;
@@ -136,11 +142,16 @@ test("WebDAV mounted cp propagates server COPY denial with nonzero status and no
     return mock.fetch(url, init);
   }, async baseUrl => {
     const fs = mounted(new WebDavFileSystem({ baseUrl, fetch: globalThis.fetch }));
-    const result = await new Shell({ fs }).use(standardCommands()).exec("cp /dav/dir/source /dav/dir/new");
+    const shell = new Shell({ fs }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec("cp /dav/dir/source /dav/dir/new");
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.match(result.stderr, /permission denied/i);
-    assert.match(result.stderr, /source/);
+    assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/dav/dir/source'\n");
+    assert.equal(denied, 0);
+    assert.deepEqual(mock.files, before);
+    assert.ok(mock.requests.every(request => ["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")));
+    await assert.rejects(fs.copyFile("/dav/dir/source", "/dav/dir/new"), rejected("EACCES", "/dav/dir/source"));
     assert.equal(denied, 1);
     assert.deepEqual(mock.files, before);
   });

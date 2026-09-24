@@ -75,28 +75,44 @@ function deferred<Value>() {
   return { promise, resolve, reject };
 }
 
-test("01 faithful opaque S3 readonly source executes shell cp over existing target", options, async () => {
+test("01 faithful opaque S3 readonly source preserves Shell admission and direct-copy authority", options, async () => {
   const { store, fs } = s3();
   await seed(fs);
   const other = s3(store).fs;
   const mount = mounted(createReadOnlyFileSystem(fs), other);
-  const result = await new Shell({ fs: mount }).use(standardCommands()).exec("cp /left/source /right/target");
+  const offset = store.requests.length;
+  const shell = new Shell({ fs: mount }).use(standardCommands());
+  let result;
+  try { result = await shell.exec("cp /left/source /right/target"); }
+  finally { await shell.dispose(); }
+  assert.ok(store.requests.slice(offset).every(request => ["headObject", "listObjectsV2"].includes(request.operation)));
   observe("01", { result, files: await contents(fs) });
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/left/source'\n");
+  assert.deepEqual(await contents(fs), original());
+  await mount.copyFile("/left/source", "/right/target");
   assert.deepEqual(await contents(fs), copied());
   await failure(mount.copyFile("/left/source", "/right/source"), "EINVAL");
   assert.deepEqual(await contents(fs), copied());
 });
 
-test("02 faithful opaque DAV instances execute existing-target cp and preserve aliases", options, async () => {
+test("02 faithful opaque DAV instances preserve Shell admission and direct-copy aliases", options, async () => {
   const { store, fs } = dav();
   await seed(fs);
   const mount = mounted(fs, dav(store).fs);
-  const result = await new Shell({ fs: mount }).use(standardCommands()).exec("cp /left/source /right/target");
+  const offset = store.requests.length;
+  const shell = new Shell({ fs: mount }).use(standardCommands());
+  let result;
+  try { result = await shell.exec("cp /left/source /right/target"); }
+  finally { await shell.dispose(); }
+  assert.ok(store.requests.slice(offset).every(request => ["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")));
   observe("02", { result, files: await contents(fs) });
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/left/source'\n");
+  assert.deepEqual(await contents(fs), original());
+  await mount.copyFile("/left/source", "/right/target");
   assert.deepEqual(await contents(fs), copied());
   await failure(mount.copyFile("/left/source", "/right/source"), "EINVAL");
   assert.deepEqual(await contents(fs), copied());

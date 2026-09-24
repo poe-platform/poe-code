@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "baseline": "2485e6d3f6742fb7bec03d0a29f968e3dc456bc9",
+  "issue": "Ten mount/authority fixtures expected command copies or cross-mount moves without the required retained-reader, conditional-removal or overwrite binding guarantees.",
+  "baselineTests": { "files": 4, "tests": 76, "passed": 64, "failed": 12, "scope": "Ten failures repaired here; two move-ordering failures separately delivered in 2485e6d3f." },
+  "runtimeChanged": false,
+  "repair": "Assert exact unsupported-command diagnostics with complete byte/namespace preservation and metadata-only remote operations. Preserve missing-target memory moves, provider direct copies, alias refusals and WebDAV same-mount MOVE. A direct WebDAV COPY still reaches the deliberate server denial exactly once; Shell cp refuses before that request. Dispose affected Shell instances.",
+  "sources": [
+    { "path": "packages/safe-bash/tests/fs/mount/identity-compatibility-review/compatibility.test.ts", "sha256": "db02c05fd5174e35a1f2e7f1fe70e69b46fa14f3fd236b18947e3702ed39a465" },
+    { "path": "packages/safe-bash/tests/fs/authority-trust-review/authority.test.ts", "sha256": "b95b35c3c77ea2382bfa99bc53a7452deb9cb9d89a2770ee0eaa02d6db6b0648" },
+    { "path": "packages/safe-bash/tests/fs/mount/webdav-traversal.test.ts", "sha256": "c9b4d189c01451be3ca8a130e935df7e624b3b0f77daf9aa42fbf6bffe826281" }
+  ],
+  "validation": {
+    "focused": { "files": 4, "tests": 79, "passed": 79, "failed": 0 },
+    "related": { "files": 6, "tests": 122, "passed": 122, "failed": 0, "skipped": 0 },
+    "lint": "Focused ESLint passed.",
+    "types": "Final maintained historical-type-models source/test compilation passed."
+  },
+  "scope": "Current mock and loopback adapters plus existing real-root controls; no deployed-service qualification or new runtime guarantees.",
+  "priorDelivery": "2485e6d3f6742fb7bec03d0a29f968e3dc456bc9 verified exactly on remote main; publication pending.",
+  "remaining": "25 reproduced matrix/device failures, other fresh release feedback, all 19 original ssconvert families and successful publication remain open."
+}

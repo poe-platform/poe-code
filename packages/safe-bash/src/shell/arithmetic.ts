@@ -15,6 +15,7 @@ export interface ArithmeticProgram {
   readonly tree?: Arithmetic;
   readonly error?: ShellSyntaxError;
   readonly hasSubscript?: boolean;
+  readonly hasMutation?: boolean;
 }
 
 class ArithmeticFailure extends Error {
@@ -31,6 +32,21 @@ function treeHasSubscript(node: Arithmetic | undefined): boolean {
     case "unary": return treeHasSubscript(node.operand);
     case "binary": return treeHasSubscript(node.left) || treeHasSubscript(node.right);
     case "conditional": return treeHasSubscript(node.condition) || treeHasSubscript(node.yes) || treeHasSubscript(node.no);
+  }
+}
+
+function treeHasMutation(node: Arithmetic | undefined): boolean {
+  if (!node) return false;
+  switch (node.kind) {
+    case "literal":
+    case "name":
+      return false;
+    case "unary":
+      return node.operator === "++" || node.operator === "--" || treeHasMutation(node.operand);
+    case "binary":
+      return node.operator === "=" || precedence[node.operator] === 2 || treeHasMutation(node.left) || treeHasMutation(node.right);
+    case "conditional":
+      return treeHasMutation(node.condition) || treeHasMutation(node.yes) || treeHasMutation(node.no);
   }
 }
 
@@ -77,7 +93,7 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
   tracking.admit();
   try {
     const tree = parseArithmetic(source, 0, tracking);
-    const program: ArithmeticProgram = { source, tree, hasSubscript: treeHasSubscript(tree) };
+    const program: ArithmeticProgram = { source, tree, hasSubscript: treeHasSubscript(tree), hasMutation: treeHasMutation(tree) };
     if (source.length <= 256) {
       if (preparedArithmeticCache.size >= 512) {
         const oldest = preparedArithmeticCache.keys().next().value;

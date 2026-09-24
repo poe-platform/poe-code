@@ -257,4 +257,66 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
   return { exitCode };
 }
 
+export function tryFastPrintf(args: readonly string[]): string | undefined {
+  if (args.length === 0) return undefined;
+  const format = args[0]!;
+  if (format.startsWith("-") || format.length > 256) return undefined;
+  let result = "";
+  let argument = 1;
+  do {
+    const before = argument;
+    for (let offset = 0; offset < format.length;) {
+      const ch = format.charCodeAt(offset);
+      if (ch === 92) {
+        const next = format.charCodeAt(offset + 1);
+        if (next === 110) { result += "\n"; offset += 2; continue; }
+        if (next === 116) { result += "\t"; offset += 2; continue; }
+        if (next === 114) { result += "\r"; offset += 2; continue; }
+        if (next === 92) { result += "\\"; offset += 2; continue; }
+        return undefined;
+      }
+      if (ch !== 37) {
+        let nextSpecial = offset + 1;
+        while (nextSpecial < format.length) {
+          const c = format.charCodeAt(nextSpecial);
+          if (c === 37 || c === 92) break;
+          nextSpecial++;
+        }
+        result += format.slice(offset, nextSpecial);
+        offset = nextSpecial;
+        continue;
+      }
+      const spec = format.charCodeAt(offset + 1);
+      if (spec === 37) { result += "%"; offset += 2; continue; }
+      if (spec === 115) {
+        const val = args[argument++] ?? "";
+        if (val.includes("\0")) return undefined;
+        result += val;
+        offset += 2;
+        continue;
+      }
+      if (spec === 100 || spec === 105) {
+        const val = args[argument++] ?? "0";
+        if (val.length === 0 || val.length > 15) return undefined;
+        const first = val.charCodeAt(0);
+        let start = 0;
+        if (first === 45 || first === 43) {
+          if (val.length === 1) return undefined;
+          start = 1;
+        }
+        for (let i = start; i < val.length; i++) {
+          const d = val.charCodeAt(i);
+          if (d < 48 || d > 57) return undefined;
+        }
+        result += String(BigInt(val));
+        offset += 2;
+        continue;
+      }
+      return undefined;
+    }
+    if (argument <= before) break;
+  } while (argument < args.length);
+  return result;
+}
+
 export const printfCommand = define("printf", formatPrintf);

@@ -64,6 +64,7 @@ export class StateMonitor {
   #wrapperCount = 0;
   #enrollment: Admission | undefined;
   #internalEnrollment: Admission | undefined;
+  snapshotOwner: ArrayOwner | undefined;
   #restorations: Restoration | undefined;
   #freeRestorations: Restoration | undefined;
   #overlays: OverlayMap | undefined;
@@ -87,6 +88,20 @@ export class StateMonitor {
     this.values.close();
     this.positionals.close();
     this.invalidateGetoptsInput();
+    if (this.store) {
+      for (const [name] of this.store.bindings) {
+        void this.store.remove(name, { generation: 0, version: 0, epoch: 0 });
+      }
+    }
+    this.#internalEnrollment?.release();
+    this.#internalEnrollment = undefined;
+    this.#enrollment?.release();
+    this.#enrollment = undefined;
+    if (this.snapshotOwner) {
+      void this.snapshotOwner.close();
+      this.snapshotOwner = undefined;
+    }
+    if (this.session.monitors) this.session.monitors.delete(this);
     this.#retireCleanup?.();
     this.#retireCleanup = undefined;
   }
@@ -203,7 +218,8 @@ export class StateMonitor {
         owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
         saved.push(entry);
       }
-      await owner.ledger.checkpoint(signal, 2);
+      const pending = owner.ledger.checkpoint(signal, 2);
+      if (pending) await pending;
     }
     return () => { for (const entry of saved) entry.superseded = true; };
   }
@@ -472,15 +488,17 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     }
     check();
     result = new StateMonitor(clone(), session, monitor);
+    result.snapshotOwner = owner;
     const destination = result.activate(internal);
     for (const [name, entry] of store.bindings) {
       check();
-      const prepared = await destination.prepareName(name, owner, signal);
+      const prepared = destination.prepareExistingName(name, entry.name.bytes, owner, signal);
       check();
       const tickets = owner.reserve({ generation: true, version: true, epoch: true, work: 5 });
       entry.binding.retain();
       destination.publish(name, entry.binding, tickets, prepared);
-      await owner.ledger.checkpoint(signal, 5);
+      const pending = owner.ledger.checkpoint(signal, 5);
+      if (pending) await pending;
     }
     check();
     if (prepare) { await prepare(result.proxy, owner); check(); }

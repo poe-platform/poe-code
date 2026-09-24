@@ -32,7 +32,8 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
   if (typeof value !== "string") {
     const bytes = shellValueByteLength(value);
     const metadata = exactSum(32, shellValueRetainedBytes(value) - bytes);
-    await owner.ledger.checkpoint(signal, 4);
+    const pending = owner.ledger.checkpoint(signal, 4);
+    if (pending) await pending;
     signal.throwIfAborted();
     const admission = owner.reserve({ payload: bytes, metadata, work: 4 });
     return new OwnedText(value, bytes, admission);
@@ -47,7 +48,8 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
       bytes = exactSum(bytes, code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4);
       offset += code > 0xffff ? 2 : 1;
     }
-    await owner.ledger.checkpoint(signal, step);
+    const pending = owner.ledger.checkpoint(signal, step);
+    if (pending) await pending;
   }
   signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
@@ -65,7 +67,8 @@ export async function valueToken(owner: ArrayOwner, value: ShellValue, signal: A
     for (let offset = 0; offset < bytes; offset += 1024) {
       const end = Math.min(bytes, offset + 1024);
       owner.chargeWork(end - offset);
-      await owner.ledger.checkpoint(signal, end - offset);
+      const pending = owner.ledger.checkpoint(signal, end - offset);
+      if (pending) await pending;
       if (text !== undefined) try { text += decoder.decode(input.subarray(offset, end), { stream: end < bytes }); }
       catch (error) {
         if (!(error instanceof TypeError) || "code" in error && error.code !== "ERR_ENCODING_INVALID_ENCODED_DATA") throw error;
@@ -407,6 +410,18 @@ export class BindingStore {
   async prepareName(name: string, operation: ArrayOwner, signal: AbortSignal): Promise<{ readonly name: OwnedText; readonly admission: Admission } | undefined> {
     if (this.bindings.has(name)) return undefined;
     const token = await textToken(operation, name, signal);
+    try {
+      const admission = operation.reserve({ slots: 1, metadata: 32, work: 5 });
+      return { name: token, admission };
+    } catch (error) { token.release(); throw error; }
+  }
+
+  prepareExistingName(name: string, bytes: number, operation: ArrayOwner, signal: AbortSignal): { readonly name: OwnedText; readonly admission: Admission } | undefined {
+    if (this.bindings.has(name)) return undefined;
+    signal.throwIfAborted();
+    operation.assertOpen();
+    operation.chargeWork(name.length);
+    const token = new OwnedText(name, bytes, operation.reserve({ payload: bytes, metadata: 32, work: 4 }));
     try {
       const admission = operation.reserve({ slots: 1, metadata: 32, work: 5 });
       return { name: token, admission };

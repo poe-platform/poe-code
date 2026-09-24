@@ -41,18 +41,19 @@ export interface PipeDescriptorReference {
   close(): Promise<void>;
 }
 
+const resolvedVoid = Promise.resolve();
+
 export class PipeDescriptorFrame {
   readonly references = new Set<PipeDescriptorReference>();
   #closing: Promise<void> | undefined;
-  readonly #retireCleanup: () => void;
+  #retireCleanup: (() => void) | undefined;
 
-  constructor(readonly scope: InvocationScope) {
-    this.#retireCleanup = scope.register(() => this.close());
-  }
+  constructor(readonly scope: InvocationScope) {}
 
   open(endpoint: PipeReadEndpoint | PipeWriteEndpoint, budget: Budget): PipeDescriptorReference {
     if (this.#closing) throw new FsError("EBADF", { syscall: "open" });
     this.scope.assertOpen();
+    this.#retireCleanup ??= this.scope.register(() => this.close());
     const reference = ownPipeDescriptor(endpoint, budget);
     this.references.add(reference);
     return reference;
@@ -61,13 +62,23 @@ export class PipeDescriptorFrame {
   acquire(source: PipeDescriptorReference): PipeDescriptorReference {
     if (this.#closing) throw new FsError("EBADF", { syscall: "dup" });
     this.scope.assertOpen();
+    this.#retireCleanup ??= this.scope.register(() => this.close());
     const reference = source.acquire();
     this.references.add(reference);
     return reference;
   }
 
+  closeSyncIfEmpty(): boolean {
+    if (this.#closing) return false;
+    if (this.references.size !== 0) return false;
+    this.#closing = resolvedVoid;
+    this.#retireCleanup?.();
+    return true;
+  }
+
   close(): Promise<void> {
     if (this.#closing) return this.#closing;
+    if (this.closeSyncIfEmpty()) return resolvedVoid;
     let resolve!: () => void;
     let reject!: (reason: unknown) => void;
     this.#closing = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
@@ -78,7 +89,7 @@ export class PipeDescriptorFrame {
     void Promise.allSettled(work).then(results => {
       this.references.clear();
       throwCleanupFailures(results.filter(result => result.status === "rejected").map(result => result.reason));
-      this.#retireCleanup();
+      this.#retireCleanup?.();
     }).then(resolve, reject);
     return this.#closing;
   }

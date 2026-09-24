@@ -41,7 +41,6 @@ export function publishPipelineStatus(
       store &&
       existing &&
       !existing.associative &&
-      existing.references === 1 &&
       existing.values.size === 1 &&
       existing.maximum === 0 &&
       !store.watches.has(name) &&
@@ -49,7 +48,11 @@ export function publishPipelineStatus(
     ) {
       const statusStr = status === 0 ? "0" : status === 1 ? "1" : String(status);
       const elem0 = existing.values.get(0);
-      if (elem0 && elem0.text.references === 1 && elem0.text.bytes === statusStr.length) {
+      if (
+        elem0 &&
+        (elem0.text.shellValue === statusStr ||
+          (existing.references === 1 && elem0.text.references === 1 && elem0.text.bytes === statusStr.length))
+      ) {
         elem0.text.shellValue = statusStr;
         const owner = monitor.internalOwner();
         const tickets = owner.charge(pipeStatusFastCharge, pipeStatusTickets);

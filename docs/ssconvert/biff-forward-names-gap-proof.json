@@ -183,7 +183,7 @@
     }
   },
   "nativeReadback": {
-    "status": "Six corrected SDK exports added for18native commands; execution and authentication pending.",
+    "status": "Authenticated run35941587332 at74687c498 confirms all six repaired files and XML replays with expected values, empty stderr and no formula dumps.",
     "priorInputsPreserved": 105,
     "totalInputs": 111,
     "inputs": [
@@ -211,9 +211,27 @@
         "id": "biff-forward-names-fixed-256-excel_dsf",
         "sha256": "68a3fc4d2466b86ae9a378d9c96e71b2dc12db6ee5c7287744e5324ce4544c09"
       }
-    ]
+    ],
+    "capture": "docs/ssconvert/biff-forward-names-fixed-native-capture.json",
+    "publicReplayExecutions": 12
   },
   "remaining": [
-    "Corrected native readback, cyclic names, broader links/references, all19originalfamilies and root npm publication remain open."
-  ]
+    "Cyclic names, other link arrangements, broader references, all 19 original families and root publication remain open."
+  ],
+  "arrayRelocationFollowup": {
+    "scope": "Three additional profile checks combine array formulas and ordinary cells referencing reordered names and a macro.",
+    "tests": "All9tests in biff-forward-names.test.ts pass; final maintained lint/source/test/consumer types pass.",
+    "expectedArrayAndCellValues": [
+      11,
+      12,
+      3
+    ],
+    "fixtureCorrection": "The initial test expectation omitted the existing imported _xlfn.IFERROR declaration; preserve that record explicitly. No runtime change was needed.",
+    "logs": {
+      "array-relocation.log": "ff7f23ccfcfdbaab12758eec11c55b6efa764e76296d716e56bde72151e93d48",
+      "array-relocation-final.log": "446dae6a04de6d5f16ce28d6b4fdf174cea028cd73dbb96e14751fc386314114",
+      "array-lint.log": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+    },
+    "nativeArrayCapture": "Not claimed."
+  }
 }

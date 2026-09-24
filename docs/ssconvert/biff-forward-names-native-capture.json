@@ -966,7 +966,7 @@
   ],
   "authenticationReceiptSha256": "99b613afafd9a8309516667569744efd6e8686f6a5c5ae4d658915df76d8c55f",
   "qualification": {
-    "status": "Original candidate output confirms a native sequential-name import defect. Corrected writer readback pending.",
+    "status": "Original failures are preserved. Corrected writer output is now qualified in biff-forward-names-fixed-native-capture.json.",
     "smallWorkbook": "Forward local/qualified names become #REF!; forward macro becomes FwdDecl10 and evaluates #NAME?. Global ordinary forward reference remains13.",
     "largeWorkbook": "The same local failures plus global #NAME?, macro #Unknown!, and raw formula hex dumps on stdout. Direct stdout is not a clean CSV stream; preserve it verbatim.",
     "nativeXmlReplay": "All six XML replay values match compiled SDK/Shell; high-workbook custom quoted error remains #Unknown!.",
@@ -1514,8 +1514,7 @@
       }
     ],
     "remaining": [
-      "Correct dependency/macro declaration order and relocate all local name indices under TDD.",
-      "Cyclic definitions, other link arrangements, broader names/references, all19families and root publication remain open."
+      "Cyclic definitions, other link arrangements, broader names/references, all 19 families and root publication remain open."
     ],
     "screenshot": {
       "sha256": "11992541ca1e8807fb87d961019f3de5d23e0b94c3aa6d57aae8290a4f4a5d69",

@@ -56,3 +56,26 @@ for (const padding of [0, 256]) it.each([7, 8, "dsf"] as const)(
     expect(book).toEqual(before);
   }
 );
+
+it.each([7, 8, "dsf"] as const)("relocates BIFF %s names shared by array and ordinary cell formulas", async profile => {
+  const expression = "=Outer+NamedMacro+ROW(A1:A2)";
+  const book: Workbook = { names: [
+    { name: "Outer", expression: "Leaf" },
+    { name: "NamedMacro", expression: "IFERROR(1/0,3)" },
+    { name: "Leaf", expression: "7" }
+  ], sheets: [{ id: "here", name: "Here", formulaGroups: [{ id: "array", kind: "array",
+    range: { startRow: 0, endRow: 1, startColumn: 0, endColumn: 0 }, expression }], cells: [
+    { row: 0, column: 0, formula: expression, formulaGroup: "array", value: { kind: "number", value: 999 } },
+    { row: 1, column: 0, formula: expression, formulaGroup: "array", value: { kind: "number", value: 999 } },
+    { row: 2, column: 0, formula: "=NamedMacro", value: { kind: "number", value: 999 } }
+  ] }] };
+  const before = structuredClone(book);
+  for (const [stream, input] of readCfb(await createBiffWriter(profile)(book, [], context), context)) {
+    const reopened = await readBiff(input, context);
+    expect(reopened.names?.map(name => name.name), stream).toEqual(["Leaf", "Outer", "_xlfn.IFERROR", "NamedMacro"]);
+    expect(reopened.sheets[0]!.formulaGroups).toMatchObject([{ kind: "array", expression }]);
+    expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual(
+      [11, 12, 3].map(value => ({ kind: "number", value })));
+  }
+  expect(book).toEqual(before);
+});

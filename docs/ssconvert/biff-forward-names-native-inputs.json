@@ -124,5 +124,9 @@
     "Preserve full candidate ACOT binary64 output rather than assuming15decimal digits.",
     "Supply Uint8Array to MemoryFileSystem and explicit empty codec registry to the Shell command."
   ],
-  "status": "Native execution pending; source predicts gaps but no native values or repair are claimed. All19families and containing publication remain open."
+  "status": "Original native capture confirmed the predicted defects; corrected output is now independently qualified. All 19 families and containing publication remain open.",
+  "nativeCaptures": [
+    "docs/ssconvert/biff-forward-names-native-capture.json",
+    "docs/ssconvert/biff-forward-names-fixed-native-capture.json"
+  ]
 }

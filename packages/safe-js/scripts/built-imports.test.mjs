@@ -152,3 +152,26 @@ test("built scope accounting records retain fast fields without inherited metada
   const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
+
+for (const edge of ["target", "handler"]) {
+  test(`built Proxy accounting handles a cold ${edge} chain through the data-depth limit`, () => {
+    const entry = name => JSON.stringify(new URL(`../dist/${name}.js`, import.meta.url).href);
+    const source = `
+      import assert from "node:assert/strict";
+      import { MAX_DATA_DEPTH } from ${entry("graph-depth")};
+      import { measureSandboxData } from ${entry("interp/values")};
+      import { createGuestProxy } from ${entry("interp/guest-proxy")};
+      function chain(length) {
+        const shared = {};
+        let value = {};
+        for (let index = 0; index < length; index++)
+          value = ${JSON.stringify(edge)} === "target" ? createGuestProxy(value, shared) : createGuestProxy(shared, value);
+        return value;
+      }
+      assert.equal(measureSandboxData([chain(MAX_DATA_DEPTH)]), MAX_DATA_DEPTH + 2);
+      assert.throws(() => measureSandboxData([chain(MAX_DATA_DEPTH + 1)]), { code: "budgetExceeded", budget: "dataDepth" });
+    `;
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+    assert.equal(result.status, 0, result.stderr || String(result.error));
+  });
+}

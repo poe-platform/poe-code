@@ -865,6 +865,7 @@ interface DataContinuation {
   index: number;
   depth: number;
   capture: CaptureBuffer | undefined;
+  proxy: { handler: SandboxValue } | undefined;
 }
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
@@ -921,17 +922,18 @@ function measureSandboxDataWithSeen(
   // the segment above their entry count; completed frames release guest roots.
   let pending: DataContinuation[] | undefined;
   let pendingCount = 0;
-  const appendContinuation = (values: readonly unknown[], depth: number, capture?: CaptureBuffer): void => {
+  const appendContinuation = (values: readonly unknown[] | undefined, depth: number, capture?: CaptureBuffer, proxy?: { handler: SandboxValue }): void => {
     const frames = pending ??= nativeDataArraySetPrototype([], null) as DataContinuation[];
     let frame = frames[pendingCount];
     if (frame === undefined) {
-      frame = { values, index: 1, depth, capture };
+      frame = { values, index: 1, depth, capture, proxy };
       nativeDataArrayAppend(frames, frame);
     } else {
       frame.values = values;
       frame.index = 1;
       frame.depth = depth;
       frame.capture = capture;
+      frame.proxy = proxy;
     }
     pendingCount++;
   };
@@ -1173,8 +1175,19 @@ function measureSandboxDataWithSeen(
           for (const cell of finalization.state.cells) visit(cell.heldValue,depth + 1);
         }
         if (proxyState !== undefined) {
-          if (proxyState.target !== null) visit(proxyState.target, depth + 1);
-          if (proxyState.handler !== null) visit(proxyState.handler, depth + 1);
+          if (proxyState.target !== null) {
+            value = proxyState.target;
+            // Target callbacks can revoke the Proxy or replace its handler.
+            // Delay both handler reads until the entire target has been visited.
+            appendContinuation(undefined, depth + 1, undefined, proxyState);
+            depth++;
+            continue walk;
+          }
+          if (proxyState.handler !== null) {
+            value = proxyState.handler;
+            depth++;
+            continue walk;
+          }
           break entry;
         }
         if (dynamicSourceRecords.has(value)) {
@@ -1748,7 +1761,19 @@ function measureSandboxDataWithSeen(
       }
       while (pendingCount > floor) {
         const frame = pending![pendingCount - 1]!;
-        const references = frame.values!;
+        const references = frame.values;
+        if (references === undefined) {
+          const proxy = frame.proxy!;
+          const handlerDepth = frame.depth;
+          frame.proxy = undefined;
+          pendingCount--;
+          if (proxy.handler !== null) {
+            value = proxy.handler;
+            depth = handlerDepth;
+            continue walk;
+          }
+          continue;
+        }
         if (frame.index < (frame.capture?.length ?? references.length)) {
           value = references[frame.index++];
           depth = frame.depth;
@@ -1821,6 +1846,7 @@ function measureSandboxDataWithSeen(
       if (frame.capture !== undefined) releaseCaptures(frame.capture);
       frame.capture = undefined;
       frame.values = undefined;
+      frame.proxy = undefined;
     }
   }
 }

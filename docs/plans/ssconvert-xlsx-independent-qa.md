@@ -12,7 +12,7 @@ Native graphical rendering, every supported beta namespace, full chart/pivot fid
 
 ## Execution receipt
 
-The different-agent review captured 30 original native cases against the separately profiled Gnumeric 1.12.61 oracle, then read/exported those same inputs with the shared SDK engine and injected byte I/O. The source hashes were unchanged before/after the final SDK cohort. Original fixture ZIP bytes, exact native diagnostics and generated Gnumeric outputs are retained in `docs/ssconvert/xlsx-independent-verification.json`.
+The different-agent review captured 30 original native cases against the separately profiled Gnumeric 1.12.61 oracle, then read/exported those same inputs with the shared SDK engine and injected byte I/O. The source hashes were unchanged before/after the final SDK cohort. `docs/ssconvert/xlsx-independent-verification.json` retains case hashes, outcomes and diagnostics. Raw ZIP/XML captures are available at its recorded historical revision; recover them only under `out/` and purge after use.
 
 The independent unit suite initially reproduced seven defects, then five additional defects and the native odd-header/footer default-section mismatch. Root repaired reader/integration defects; this reviewer added the declarative 17-table recognition schema and native-matched style/rich-text helper. Final focused checks passed 23 independent/helper tests, ESLint for the four reviewer-owned source/test files, and the ssconvert test TypeScript project. Root owns the maintained uncached cross-workspace build/test/lint and visual integration checks; these focused results do not claim a complete package or release gate.
 

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { test } from "node:test";
+import { gunzipSync } from "node:zlib";
 import { agentCommands, Shell, WebDavFileSystem } from "../../../src/index.js";
 import { MockDav, multistatus, xmlResponse } from "./mock.js";
 import { namespace, PropertyDav, withLoopbackDav } from "./property-fixture.js";
@@ -90,35 +92,46 @@ test("invalid persisted timestamps fail closed while stale representation metada
   assert.equal((await fs.stat("/file")).atimeMs, 0);
 });
 
-test("loopback agentCommands touch and named gzip reads work with streamed uploads", async () => {
+test("loopback touch and streamed gzip preserve bytes; unsupported named reads are refused", async () => {
   const mock = new PropertyDav();
+  const payload = new Uint8Array([0, 255, 128, 10]);
   await withLoopbackDav(mock.fetch, async baseUrl => {
     const fs = new WebDavFileSystem({ baseUrl, fetch, timeoutMs: 2000 });
-    const shell = new Shell({ fs });
-    shell.use(agentCommands());
-    await fs.writeStream("/file", (async function* () { yield new Uint8Array([0, 255]); yield new Uint8Array([128, 10]); })());
-    const created = await shell.exec("touch /new && touch /new");
-    assert.equal(created.exitCode, 0, created.stderr);
-    assert.ok((await fs.stat("/new")).mtimeMs > 0);
-    await fs.utimes("/file", 12345, 67890);
-    const result = await shell.exec("gzip -c /file > /file.gz && gzip -dc /file.gz | sha256sum");
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.deepEqual(await fs.readFile("/file"), new Uint8Array([0, 255, 128, 10]));
-    const copied = await shell.exec("touch -r /file /new");
-    assert.equal(copied.exitCode, 0, copied.stderr);
-    assert.equal((await fs.stat("/new")).atimeMs, 12345);
-    assert.equal((await fs.stat("/new")).mtimeMs, 67890);
-    await fs.rm("/file.gz");
-    const entriesBefore = [...mock.base.files.keys()].sort();
-    const requestCount = mock.base.requests.length;
-    const namedOutput = await shell.exec("gzip -k /file");
-    const commandRequests = mock.base.requests.slice(requestCount);
-    assert.equal(namedOutput.exitCode, 1);
-    assert.equal(namedOutput.stderr, "gzip: ENOTSUP: file output requires stable scoped entry identities '/file'\n");
-    assert.deepEqual(commandRequests.filter(request => !["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")), []);
-    assert.deepEqual([...mock.base.files.keys()].sort(), entriesBefore);
-    assert.equal(mock.base.files.has("/file.gz"), false);
-    assert.deepEqual(await fs.readFile("/file"), new Uint8Array([0, 255, 128, 10]));
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      await fs.writeStream("/file", (async function* () { yield payload.subarray(0, 2); yield payload.subarray(2); })());
+      const created = await shell.exec("touch /new && touch /new");
+      assert.equal(created.exitCode, 0, created.stderr);
+      assert.ok((await fs.stat("/new")).mtimeMs > 0);
+      await fs.utimes("/file", 12345, 67890);
+      const result = await shell.exec("gzip -c < /file > /file.gz && gzip -dc < /file.gz | sha256sum");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, createHash("sha256").update(payload).digest("hex") + "  -\n");
+      assert.deepEqual(new Uint8Array(gunzipSync(await fs.readFile("/file.gz"))), payload);
+      assert.deepEqual(await fs.readFile("/file"), payload);
+      const copied = await shell.exec("touch -r /file /new");
+      assert.equal(copied.exitCode, 0, copied.stderr);
+      assert.equal((await fs.stat("/new")).atimeMs, 12345);
+      assert.equal((await fs.stat("/new")).mtimeMs, 67890);
+      await fs.rm("/file.gz");
+      const entriesBefore = [...mock.base.files.keys()].sort();
+      for (const command of ["gzip -c /file", "gzip -t /file", "gzip -k /file"]) {
+        const requestCount = mock.base.requests.length;
+        const refused = await shell.exec(command);
+        const commandRequests = mock.base.requests.slice(requestCount);
+        assert.equal(refused.exitCode, 1, command);
+        assert.equal(refused.stdout, "");
+        assert.equal(refused.stderr, "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/file'\n");
+        assert.ok(commandRequests.length > 0);
+        assert.deepEqual(commandRequests.filter(request => !["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")), []);
+        assert.deepEqual([...mock.base.files.keys()].sort(), entriesBefore);
+        assert.equal(mock.base.files.has("/file.gz"), false);
+        assert.deepEqual(await fs.readFile("/file"), payload);
+      }
+    } finally {
+      await shell.dispose();
+    }
     assert.equal(mock.base.locks.size, 0);
   });
 });

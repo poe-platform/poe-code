@@ -17,7 +17,7 @@ for (const native of [true, false]) test(`snapshot document identity survives if
   let controller = createPlaywrightController({ adapter: { browsers: { chromium: { headed: false } }, async acquire() { return lease; } } });
   const run = async (...args) => {
     let output = '';
-    await controller.run({ args, env: {}, signal: new AbortController().signal, async write(text) { output += text; }, async writeArtifact() {} });
+    await controller.run({ args, env: { PLAYWRIGHT_MCP_TIMEOUT_SETTLE: '0' }, signal: new AbortController().signal, async write(text) { output += text; }, async writeArtifact() {} });
     return output;
   };
   const ref = (snapshot, name) => {
@@ -45,15 +45,16 @@ for (const native of [true, false]) test(`snapshot document identity survives if
     assert.equal(await page.getByRole('textbox', { name: 'Email' }).inputValue(), 'preserved');
     const replaced = ref(await run('snapshot'), 'Email');
     await run('snapshot');
-    await assert.rejects(run('fill', replaced, 'old snapshot'), /stale/);
+    await run('fill', replaced, 'same document');
+    assert.equal(await page.getByRole('textbox', { name: 'Email' }).inputValue(), 'same document');
     const beforeNavigation = ref(await run('snapshot'), 'Email');
     await page.goto('https://snapshot.test/next');
-    await assert.rejects(run('fill', beforeNavigation, 'old document'), /stale/);
+    await assert.rejects(run('fill', beforeNavigation, 'old document'), /not found in the current page snapshot/);
     const beforeRestore = ref(await run('snapshot'), 'Email');
     await controller.dispose();
     controller = createPlaywrightController({ adapter: { browsers: { chromium: { headed: false } }, async acquire() { return lease; } } });
     await controller.restoreSession({ name: 'default', async acquire() { return { lease, selectedPage: page }; } });
-    await assert.rejects(run('fill', beforeRestore, 'cold restore'), /stale/);
+    await assert.rejects(run('fill', beforeRestore, 'cold restore'), /not found in the current page snapshot/);
     assert.equal(await page.getByRole('textbox', { name: 'Email' }).inputValue(), '');
     await original.dispose();
   } finally { await controller.dispose(); await browser.close(); }

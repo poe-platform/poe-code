@@ -401,6 +401,27 @@ export class Interpreter {
       }
       return;
     }
+    if (name === "paths") {
+      if (!Array.isArray(input) && !isObject(input)) return;
+      const stack = [{ iterator: entries(input, budget), path: [] as Json[] }];
+      while (stack.length) {
+        await budget.tick();
+        const frame = stack.at(-1)!;
+        const next = await frame.iterator.next();
+        if (next.done) { stack.pop(); continue; }
+        const [key, value] = next.value;
+        const depth = frame.path.length + 1;
+        if (depth > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+        budget.collection(depth);
+        const path = [...frame.path, key];
+        budget.value(path);
+        if (args.length) {
+          for await (const selected of this.run(args[0]!, value)) if (truth(selected)) yield path;
+        } else yield path;
+        if (Array.isArray(value) || isObject(value)) stack.push({ iterator: entries(value, budget), path });
+      }
+      return;
+    }
     if (name === "del") { yield* this.assign(args[0]!, { kind: "call", name: "empty", args: [] }, "|=", input); return; }
     if (name === "error") {
       for await (const value of args.length ? this.run(args[0]!, input) : [input]) {

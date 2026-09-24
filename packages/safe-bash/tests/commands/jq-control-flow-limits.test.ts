@@ -29,6 +29,8 @@ for (const source of [
   'try (reduce 1 as $item (0; range(10000))) catch "caught"',
   'try (foreach empty as $item (range(10000); .)) catch "caught"',
   'try ([.. | empty]) catch "caught"',
+  'try ([paths(empty)]) catch "caught"',
+  'try ([paths(false)]) catch "caught"',
 ]) test(`hidden work shares noncatchable step budget: ${source}`, async () => {
   const { iterator } = evaluation(source, Array<Json>(1000).fill(null), { maxSteps: 100 });
   await assert.rejects(drain(iterator), error => error instanceof JqLimitError && error.message === "maxSteps limit exceeded");

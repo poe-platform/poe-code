@@ -138,13 +138,14 @@ inclusive `start,end` pattern ranges, and named function definitions. A missing
 action prints the current record. A range can start and end on the same record.
 Comments, newlines, semicolons, and backslash-newline continuations are supported.
 Identifiers use ASCII letters/digits/underscore. String literals support standard
-control escapes and up to three octal digits. Numbers are finite decimal values
+control escapes, up to three octal digits, and one or two hexadecimal digits after
+`\x`; `-F` and `-v` values use the same decoding. Numbers are finite decimal values
 with optional exponents; arithmetic uses IEEE-754 doubles.
 
 | Area | Implemented behavior |
 | --- | --- |
 | Records and fields | `$0`, `$expression`, `NF`, `NR`, `FNR`, `FILENAME`; assignment to a field or `NF` rebuilds `$0` using `OFS`, assignment to `$0` resplits it. |
-| Separators | `FS=" "` whitespace fields, single-byte literal FS, empty FS byte fields, or ERE FS; single-byte `RS` and empty-RS paragraph mode; `OFS`, `ORS`. |
+| Separators | `FS=" "` splits on space, tab, and newline, preserving carriage returns, vertical tabs, and form feeds within fields; single-byte literal FS, empty FS byte fields, or ERE FS; single-byte `RS` and empty-RS paragraph mode; `OFS`, `ORS`. |
 | Expressions | Arithmetic `+ - * / % ^`, unary signs, prefix/postfix increment/decrement, assignments and compound assignments, concatenation, comparisons, `~`/`!~`, short-circuit `&&`/`||`, `!`, ternary expressions, parentheses. |
 | Control flow | Blocks, `if`/`else`, `while`, `do`/`while`, classic `for`, `for (key in array)`, `break`, `continue`, `next`, `nextfile`, `exit [status]`; `END` still runs after exit. |
 | Arrays | Associative indexing, comma-separated multidimensional keys via `SUBSEP`, `in` and `(a,b) in array`, element/whole-array `delete`; iteration uses insertion order and does not promise a host awk's unspecified traversal order. |

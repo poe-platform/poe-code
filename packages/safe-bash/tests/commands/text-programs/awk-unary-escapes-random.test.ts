@@ -23,6 +23,18 @@ test("awk decodes hex strings and octal, hex, and backspace regex escapes", asyn
   assert.equal(result.stdout.toString(), "AB JZ 1 1\n1 0 1 1\n1 1\n");
 });
 
+for (const options of [["-F", String.raw`\x2c`], [String.raw`-F\x2c`], ["-v", String.raw`FS=\x2c`]]) {
+  test(`awk decodes hex field separators from ${JSON.stringify(options)}`, async () => {
+    const result = await runVirtual("awk", { args: [...options, "{ print NF, $1, $2 }"], stdin: "a,b\n" });
+    assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, "2 a b\n", ""]);
+  });
+}
+
+test("awk decodes hex variable assignments before BEGIN", async () => {
+  const result = await runVirtual("awk", { args: ["-v", String.raw`value=\x41\x42`, "BEGIN { print value }"] });
+  assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, "AB\n", ""]);
+});
+
 test("awk rand is repeatable after srand and returns values in [0,1)", async () => {
   const program = `BEGIN {
     srand(1); a=rand(); b=rand(); print srand(42); print srand(1)

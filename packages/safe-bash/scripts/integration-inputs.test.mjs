@@ -895,6 +895,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/portable-random.test.ts"));
   assert.ok(files.includes("tests/commands/timeout-portable.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-concat-work-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-field-splitting.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/sed-program-budget.test.ts"));
   assert.ok(files.includes("tests/shell/memory-storage-limits.test.ts"));
   assert.ok(files.includes("tests/shell/virtual-null-device.test.ts"));

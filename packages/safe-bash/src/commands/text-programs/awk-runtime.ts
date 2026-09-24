@@ -140,7 +140,7 @@ export class AwkRuntime {
       let start = -1;
       for (let index = 0; index < value.length; index++) {
         if (index % 256 === 0) await this.budget.checkpoint();
-        if (" \t\n\r\v\f".includes(value[index]!)) {
+        if (" \t\n".includes(value[index]!)) {
           if (start >= 0) { append(start, index); start = -1; }
         } else if (start < 0) start = index;
       }

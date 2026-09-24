@@ -280,7 +280,7 @@ for (const separator of ["", " ", ",", ",+"]) {
 }
 
 for (const [separator, input, expected] of [
-  [" ", " \ta \n b\r\v\fc ", ["a", "b", "c"]],
+  [" ", " \ta \n b\r\v\fc ", ["a", "b\r\v\fc"]],
   [",", ",a,,b,", ["", "a", "", "b", ""]],
   [",+", ",a,,b,", ["", "a", "b", ""]],
   ["x*", "ab", ["ab"]],

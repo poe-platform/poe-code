@@ -12,7 +12,18 @@
       "ssconvertSha256": "71b44469d8202a9a21c9cfd2a6a57a6fd8091cbf8eb9b80fc317ae2fc707493c",
       "libspreadsheetSha256": "8bde28e087b35ec9fafa1b0ecd60c3e169864d899f449977d20c73b82a05e6e2",
       "passwordDriverSourceSha256": "01cfb3e60fda1d044608f6fe47100e3aa46c82590cd696be6e76758a0efb0d02",
-      "biffInputAggregateSha256": "b48d765052dee1e2807d5c41900f0387ba24712b3e4b9b30d7de49064fc237ab"
+      "biffInputAggregateSha256": "b48d765052dee1e2807d5c41900f0387ba24712b3e4b9b30d7de49064fc237ab",
+      "paradox": {
+        "pxlibVersion": "0.6.8",
+        "pxlibArchiveSha256": "5f9b58a5c3d9e5e60faad16dfbc5172ee14ae57a978732378660c0f2c9e74ef9",
+        "cipherSourceSha256": "d2fd804f309f8b95ae2ec4c67416ede457f7a2ce97dcb22237254c16eb15a445",
+        "pluginSourceSha256": "70933d8b124417e65edfdc5f9b06cd8e711d4bbf9ea26794d4709ee9b91530c6",
+        "pxlibSha256": "5d280ab28e435f35e9f8635564572750f8f9b269e2b80b2617e8c39fa1557f6f",
+        "moduleSha256": "55c003fa359923fbd471e5d7068a20855c7d3ebbac98ddd74e7274f6aa2b1b28",
+        "configuration": "Original plugin source built against the retained Gnumeric headers/library and pxlib with libgsf. Private header shim includes gnumeric-features.h and defines GETTEXT_PACKAGE as gnumeric; XML translation-tag underscores removed. pxlib uses -g -O2 -Wno-error=incompatible-function-pointer-types for its existing ssize_t/size_t callbacks. No algorithm/source edits.",
+        "qualification": "At 7e2c8879e, all six canonical encrypted inputs reopen with expected values (two v4 encoding warnings retained). A current public SDK plaintext table and five full-pxlib-encrypted copies reopen byte-exact: 145 rows, two physical blocks, ASCII/256-byte/high-byte passwords, empty stderr. This does not implement product encrypted export.",
+        "controlCsvSha256": "09143dc6fbca71fde69cc498c6fd339a6f3b835cf4e542320505dd4c15686925"
+      }
     }
   },
   "cases": [
@@ -44,7 +55,7 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "Qualified on-file-key encrypted imports match native records. Wider profiles, companions, writing and final delivery qualification remain open."
+      "currentFinding": "On-file-key encrypted imports match native records. The added Gnumeric Paradox plugin reads six canonical encrypted fixtures and six two-block current-writer/pxlib controls exactly. Public encrypted export still rejects encryption=paradox before password acquisition or writes. Wider profiles, companions, writing and final delivery qualification remain open."
     },
     {
       "id": "perl-date",

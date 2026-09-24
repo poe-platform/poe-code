@@ -7,21 +7,31 @@ const groups = new Map();
 const retiring = new Map();
 async function retire(pid) {
   if (retiring.has(pid)) return retiring.get(pid);
-  const completion = Promise.resolve().then(() => cleanup(pid));
+  const completion = Promise.resolve().then(async () => {
+    for (let attempt = 0; ; attempt++) {
+      try { process.kill(-pid, 'SIGKILL'); break; }
+      catch (error) {
+        if (error.code === 'ESRCH') break;
+        // macOS can report EPERM while an exited group is being reaped.
+        if (error.code !== 'EPERM' || attempt === 49) throw error;
+        await delay(100);
+      }
+    }
+    for (;;) {
+      try { await cleanup(pid); return; }
+      catch (error) {
+        // Failed inspection is not evidence of retirement. Keep the ownership
+        // witness (including after parent disconnect) until cleanup is verified.
+        console.error(`Browser guardian could not retire owned group ${pid}; retaining ownership and retrying`, error);
+        await delay(1000);
+      }
+    }
+  });
   retiring.set(pid, completion);
   return completion;
 }
 async function cleanup(pid) {
   const directory = groups.get(pid);
-  for (let attempt = 0; ; attempt++) {
-    try { process.kill(-pid, 'SIGKILL'); break; }
-    catch (error) {
-      if (error.code === 'ESRCH') break;
-      // macOS can report EPERM while an exited group is being reaped.
-      if (error.code !== 'EPERM' || attempt === 49) throw error;
-      await delay(100);
-    }
-  }
   // Crashpad double-forks into another process group. Its inherited private
   // cwd remains an ownership witness after reparenting; other Chrome is excluded.
   for (let attempt = 0; attempt < 50; attempt++) {

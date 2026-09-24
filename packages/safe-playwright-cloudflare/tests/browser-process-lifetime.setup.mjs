@@ -21,7 +21,11 @@ if (!childProcess.spawn[installed]) {
       guardian.unref();
       guardian.channel.unref?.();
       guardian.on('error', error => { throw error; });
+      guardian.on('exit', (code, signal) => {
+        throw new Error(`Browser guardian exited unexpectedly (${signal ?? code}); owned browser cleanup is unverified`);
+      });
     }
+    if (owned && !guardian.connected) throw new Error('Browser guardian IPC disconnected; owned browser cleanup is unverified');
     let directory;
     if (owned) {
       const root = fileURLToPath(new URL('../../../out/', import.meta.url));
@@ -32,7 +36,10 @@ if (!childProcess.spawn[installed]) {
     if (owned && child.pid) {
       child[Symbol.for('poe-code.native-browser-directory')] = directory;
       guardian.send({ operation: 'own', pid: child.pid, directory });
-      child.once('exit', () => guardian.send({ operation: 'retire', pid: child.pid }));
+      child.once('exit', () => {
+        if (!guardian.connected) throw new Error('Browser guardian IPC disconnected; owned browser cleanup is unverified');
+        guardian.send({ operation: 'retire', pid: child.pid });
+      });
     } else if (directory) rmSync(directory, { recursive: true });
     return child;
   };

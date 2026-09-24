@@ -358,6 +358,21 @@ describe("batched shared Vitest execution", () => {
     expect(execution.runTestSpecifications).not.toHaveBeenCalled();
   });
 
+  it("confines substring selector matches to their declared workspace", async () => {
+    const { execution } = contexts();
+    mocks.createVitest.mockReset().mockResolvedValueOnce(execution);
+    const sibling = { moduleId: "/repo/packages/alpha-extra/src/unit.test.ts" };
+    const files = [alphaFile, sibling];
+    execution.globTestSpecifications.mockImplementation(async filters => filters === undefined ? [...files]
+      : filters[0].startsWith("/repo/") ? files.filter(file => filters.includes(file.moduleId))
+        : filters[0] === "packages/alpha" ? files : [sibling]);
+    await runSharedVitest("/repo", [
+      { ...phases[1], selectors: ["packages/alpha"] },
+      { ...phases[1], name: "alpha-extra", path: "packages/alpha-extra", selectors: ["packages/alpha-extra"] }
+    ]);
+    expect(execution.runTestSpecifications).toHaveBeenCalledExactlyOnceWith(files, false);
+  });
+
   it("waits for the complete queue before closing the runner", async () => {
     const { execution } = contexts();
     let finish!: () => void;
@@ -390,8 +405,8 @@ describe("batched shared Vitest execution", () => {
   });
 
   it("rejects overlapping ownership before executing any tests", async () => {
-    const { execution } = contexts();
-    execution.globTestSpecifications.mockImplementation(async filters => filters === undefined ? [rootFile, alphaFile] : [rootFile]);
+    const { discovery, execution } = contexts();
+    discovery.globTestSpecifications.mockResolvedValue([alphaFile]);
     await expect(runSharedVitest("/repo", phases)).rejects.toThrow("overlap");
     expect(execution.runTestSpecifications).not.toHaveBeenCalled();
     expect(execution.close).toHaveBeenCalledOnce();

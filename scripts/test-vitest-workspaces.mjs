@@ -91,7 +91,10 @@ export async function runSharedVitest(root, phases, { cacheStore, fingerprints, 
     for (const phase of phases) {
       const owned = phase.path === null
         ? [...rootFiles].map(filename => byPath.get(filename))
-        : await context.globTestSpecifications(phase.selectors);
+        : (await context.globTestSpecifications(phase.selectors)).filter(specification => {
+          const relative = path.relative(path.resolve(root, phase.path), specification.moduleId);
+          return relative !== ".." && !relative.startsWith(".." + path.sep) && !path.isAbsolute(relative);
+        });
       const selected = requested ? owned.filter(specification => requested.has(specification.moduleId)) : owned;
       assert.ok(selected.length || phase.passWithNoTests, `No test files: ${phase.name}`);
       for (const specification of selected) {

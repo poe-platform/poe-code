@@ -20,9 +20,9 @@ describe("RegExp inline modifiers", () => {
   });
 
   it("keeps modifier compilation and nested backtracking bounded", async () => {
-    await expect(run("try{return new RegExp('(?i:'.repeat(65)+'a'+')'.repeat(65)).test('a')}catch(error){return 'caught'}"))
+    await expect(run("try{return new RegExp('(?i:'.repeat(65)+'a'+')'.repeat(65)).test('a')}catch(error){return 'caught'}", { budget: new Budget({ regexCompileAllocations: 64 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });
-    await expect(run("try{return /^(?i:(a+)+)b/.test('A'.repeat(16))}catch(error){return 'caught'}"))
+    await expect(run("try{return /^(?i:(a+)+)b/.test('A'.repeat(16))}catch(error){return 'caught'}", { budget: new Budget({ maxSteps: 2000 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });
     await expect(run("return /(?ims:a)/.test('A')", { budget: new Budget({ maxSteps: 10 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });

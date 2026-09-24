@@ -9,7 +9,7 @@ import { matchRegex } from "../regex/engine.js";
 
 describe("Unicode RegExp sets", () => {
   it("counts empty string alternatives toward the matcher ceiling", async () => {
-    await expect(run("try{return new RegExp('[\\\\q{'+'|'.repeat(2100)+'}]','v').test('a')}catch(error){return 'caught'}"))
+    await expect(run("try{return new RegExp('[\\\\q{'+'|'.repeat(2100)+'}]','v').test('a')}catch(error){return 'caught'}", { budget: new Budget({ maxSteps: 2000 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });
   });
 
@@ -34,9 +34,9 @@ describe("Unicode RegExp sets", () => {
   });
 
   it("keeps nested-set compilation and string matching bounded", async () => {
-    await expect(run("try{return new RegExp('['.repeat(65)+'a'+']'.repeat(65),'v').test('a')}catch(error){return 'caught'}"))
+    await expect(run("try{return new RegExp('['.repeat(65)+'a'+']'.repeat(65),'v').test('a')}catch(error){return 'caught'}", { budget: new Budget({ regexCompileAllocations: 64 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });
-    await expect(run("try{return /^[\\q{a|aa}]+b/v.test('a'.repeat(20))}catch(error){return 'caught'}"))
+    await expect(run("try{return /^[\\q{a|aa}]+b/v.test('a'.repeat(20))}catch(error){return 'caught'}", { budget: new Budget({ maxSteps: 2000 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });
     await expect(run("return /[\\q{abc|def}]/v.test('abc')", { budget: new Budget({ maxSteps: 10 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });

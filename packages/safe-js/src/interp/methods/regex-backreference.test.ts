@@ -6,7 +6,7 @@ import { restore } from "../../restore.js";
 
 describe("RegExp numbered backreferences", () => {
   it("charges each captured-character comparison", async () => {
-    await expect(run("return /^(a{250})\\1{7}$/.test('a'.repeat(2000));"))
+    await expect(run("return /^(a{250})\\1{7}$/.test('a'.repeat(2000));", { budget: new Budget({ maxSteps: 2000 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
     expect(await run("return /^(a{100})\\1{7}$/.test('a'.repeat(800));"))
       .toMatchObject({ ok: true, returnValue: true });

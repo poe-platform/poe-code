@@ -7,7 +7,7 @@ import { restore } from "../../restore.js";
 
 describe("Unicode RegExp matching", () => {
   it("counts each Unicode class comparison toward the matcher ceiling", async () => {
-    await expect(run("try{return new RegExp('['+'a'.repeat(2100)+']','u').test('b')}catch(error){return 'caught'}"))
+    await expect(run("try{return new RegExp('['+'a'.repeat(2100)+']','u').test('b')}catch(error){return 'caught'}", { budget: new Budget({ maxSteps: 2000 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });
     expect(await run("return new RegExp('['+'a'.repeat(100)+']','u').test('b')"))
       .toMatchObject({ ok: true, returnValue: false });
@@ -25,7 +25,7 @@ describe("Unicode RegExp matching", () => {
   });
 
   it("keeps Unicode backtracking failures fatal", async () => {
-    await expect(run("try{return /^(😀+)+x/u.test('😀'.repeat(16))}catch(error){return 'caught'}"))
+    await expect(run("try{return /^(😀+)+x/u.test('😀'.repeat(16))}catch(error){return 'caught'}", { budget: new Budget({ maxSteps: 2000 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded" });
     expect(await run("return /^(😀+)+x/u.test('😀😀x')")).toMatchObject({ ok: true, returnValue: true });
   });

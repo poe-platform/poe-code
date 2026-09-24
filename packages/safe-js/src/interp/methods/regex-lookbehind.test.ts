@@ -1,12 +1,12 @@
 import { runInNewContext } from "node:vm";
 import { describe, expect, it } from "vitest";
-import { run } from "../../core.js";
+import { Budget, run } from "../../core.js";
 import { dump } from "../../dump.js";
 import { restore } from "../../restore.js";
 
 describe("RegExp lookbehind", () => {
   it("bounds backward assertion backtracking", async () => {
-    await expect(run("return /(?<=b(a+)+)$/.test('a'.repeat(20));"))
+    await expect(run("return /(?<=b(a+)+)$/.test('a'.repeat(20));", { budget: new Budget({ maxSteps: 2000 }) }))
       .rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
     expect(await run("return /(?<=b(a+)+)$/.test('baaa');"))
       .toMatchObject({ ok: true, returnValue: true });

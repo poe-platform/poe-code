@@ -40,7 +40,7 @@ import { getRealmGlobalObject } from "./intrinsics.js";
 import { createSandboxBox } from "./boxed.js";
 import { createMappedSandboxArguments } from "./arguments.js";
 import { getGeneratorOrigin, registerClosureOrigin, registerGeneratorOrigin } from "./closure-origin.js";
-import { constructionStates } from "./construction-state.js";
+import { constructionStates, type ConstructionState } from "./construction-state.js";
 import {
   boundIdentifiers,
   containsParameterExpression,
@@ -192,6 +192,30 @@ export async function evaluateFunctionExpression(
   };
 }
 
+const captureContextHasOwn = Object.hasOwn;
+
+function createOwnedCaptureCollector(
+  scope: Scope,
+  sourceReference: AsyncEvaluationContext["sourceReference"],
+  environment: AsyncEvaluationContext["functionEnvironment"],
+  constructionState: ConstructionState | undefined
+) {
+  return (append: (value: SandboxValue) => void): void => {
+    visitScopeDataRoots(scope, append);
+    append(sourceReference);
+    append(environment?.homeObject);
+    append(environment?.newTarget);
+    if (constructionState !== undefined) {
+      append(constructionState.constructor);
+      append(constructionState.newTarget);
+      append(constructionState.prototype);
+      append(constructionState.thisValue);
+      if (constructionState.thisScope !== undefined)
+        visitScopeDataRoots(constructionState.thisScope, append);
+    }
+  };
+}
+
 export function createInterpretedClosure(
   node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression,
   context: AsyncEvaluationContext,
@@ -199,12 +223,14 @@ export function createInterpretedClosure(
   homeObject?: SandboxObject | SandboxClosure,
   initializeGeneratorPrototype = true
 ) {
+  let ownsCaptureContext = false;
   // Calls install their own callee. Keeping the creating invocation's callee
   // would retain its properties outside this closure's lexical captures.
   if (context.callee !== undefined || context.evalCompletion)
     context = {...context, callee: undefined, evalCompletion: undefined};
   if (node.type !== "ArrowFunctionExpression") {
     context = { ...context, functionEnvironment: { homeObject } };
+    ownsCaptureContext = true;
   }
   if (node.type !== "ArrowFunctionExpression" && node.generator) {
     return createGeneratorClosure(node, context, evaluateNode, initializeGeneratorPrototype);
@@ -320,7 +346,14 @@ export function createInterpretedClosure(
       }, context.budget, callContext, context.signal);
     }
   });
-  registerIndexedClosureCaptures(closure, append => {
+  // Only a private context copy's own data fields have stable references.
+  // Keep mutable payload reads and provider calls inside the collector; shared
+  // contexts and missing fields retain their original, possibly inherited reads.
+  registerIndexedClosureCaptures(closure,
+    ownsCaptureContext && captureContextHasOwn(context, "scope") &&
+    captureContextHasOwn(context, "sourceReference") && captureContextHasOwn(context, "functionEnvironment")
+      ? createOwnedCaptureCollector(context.scope, context.sourceReference, context.functionEnvironment, constructionState)
+      : append => {
     visitScopeDataRoots(context.scope, append);
     appendCapturedValues(append);
   });

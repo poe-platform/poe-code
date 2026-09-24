@@ -3,6 +3,7 @@ import { expect, it } from "vitest";
 import { run } from "../run.js";
 import { parseModule } from "../parse/parser.js";
 import { createInterpretedClosure, type AsyncEvaluationContext } from "./async.js";
+import { getClosureOrigin } from "./closure-origin.js";
 import { Budget } from "./budget.js";
 import { captureScopeDataRoots, Scope } from "./scope.js";
 import { appendScopeDataRoot, scopeDataRoots } from "./scope-data-roots.js";
@@ -39,6 +40,107 @@ function fixture(source = "() => null;") {
     }));
   return { context, make };
 }
+
+it("keeps private function capture pointers stable and their payloads fresh", () => {
+  const { context, make } = fixture("(function () { return null; });");
+  context.scope = new Scope();
+  context.scope.declare("payload", "let", "old");
+  const scope = context.scope;
+  const source = { referrer: "original" };
+  context.sourceReference = source;
+  const closure = make();
+  const before = measureSandboxData([closure]);
+  context.scope = new Scope({ ignored: "x".repeat(10000) });
+  context.sourceReference = { referrer: "replacement".repeat(1000) };
+  expect(measureSandboxData([closure])).toBe(before);
+  scope.assign("payload", "x".repeat(1003));
+  source.referrer += "y".repeat(1000);
+  expect(measureSandboxData([closure])).toBe(before + 2000);
+  expect(() => reconcileCompiledValues(new Budget({ dataSize: before + 1999 }), [closure]))
+    .toThrow(expect.objectContaining({ budget: "dataSize" }));
+});
+
+it("keeps shared arrow capture pointers live after creation", () => {
+  const { context, make } = fixture();
+  context.sourceReference = { referrer: "old" };
+  context.functionEnvironment = {};
+  const closure = make();
+  const before = measureSandboxData([closure]);
+  context.scope = new Scope({ payload: "x".repeat(1003) });
+  context.sourceReference = { referrer: "y".repeat(1003) };
+  expect(measureSandboxData([closure])).toBe(before + 2000);
+});
+
+it("observes inherited source references added after a private context was copied", () => {
+  const { make } = fixture("(function () { return null; });");
+  const closure = make();
+  const before = measureSandboxData([closure]);
+  const previous = Object.getOwnPropertyDescriptor(Object.prototype, "sourceReference");
+  const source = { referrer: "x".repeat(1000) };
+  let reads = 0;
+  Object.defineProperty(Object.prototype, "sourceReference", {
+    configurable: true,
+    get() { reads++; return source; }
+  });
+  try {
+    const first = measureSandboxData([closure]);
+    expect(first).toBe(before + measureSandboxData([source]));
+    source.referrer += "x".repeat(1000);
+    expect(measureSandboxData([closure])).toBe(first + 1000);
+    expect(reads).toBe(2);
+  } finally {
+    if (previous === undefined) Reflect.deleteProperty(Object.prototype, "sourceReference");
+    else Object.defineProperty(Object.prototype, "sourceReference", previous);
+  }
+});
+
+it("preserves private environment getter order, aliases and nested measurement", () => {
+  const { context, make } = fixture("(function () { return null; });");
+  context.sourceReference = undefined;
+  const closure = make();
+  const environment = getClosureOrigin(closure)?.environment;
+  if (environment === undefined) throw new Error("Missing function environment");
+  const order: string[] = [];
+  const payload = { text: "x".repeat(1000) };
+  const target = createSandboxClosure({ call: () => undefined, properties: { payload } });
+  const leaf = { text: "nested" };
+  context.scope.retainedDataRoots = () => { order.push("scope"); return []; };
+  Object.defineProperties(environment, {
+    homeObject: { configurable: true, get() {
+      order.push("home");
+      expect(measureSandboxData([leaf])).toBe(12);
+      return payload;
+    } },
+    newTarget: { configurable: true, get() { order.push("target"); return target; } }
+  });
+  const measured = measureSandboxData([closure]);
+  expect(order).toEqual(["scope", "home", "target"]);
+  order.length = 0;
+  expect(measureSandboxData([closure, payload, target])).toBe(measured);
+  expect(order).toEqual(["scope", "home", "target"]);
+  payload.text += "x".repeat(1000);
+  expect(measureSandboxData([closure])).toBe(measured + 1000);
+});
+
+it.skipIf(typeof global.gc !== "function")("releases detached private function environment payloads", async () => {
+  const { context, make } = fixture("(function () { return null; });");
+  context.sourceReference = undefined;
+  const closure = make();
+  const environment = getClosureOrigin(closure)?.environment;
+  if (environment === undefined) throw new Error("Missing function environment");
+  const remember = () => {
+    const payload = { text: "x".repeat(60000) };
+    const reference = new WeakRef(payload);
+    environment.homeObject = payload;
+    expect(measureSandboxData([closure])).toBeGreaterThan(60000);
+    environment.homeObject = undefined;
+    return reference;
+  };
+  const reference = remember();
+  for (let index = 0; index < 8; index++) { await setImmediate(); global.gc!(); }
+  expect(reference.deref()).toBeUndefined();
+  expect(measureSandboxData([closure])).toBeLessThan(60000);
+});
 
 it.each([
   "() => null;",

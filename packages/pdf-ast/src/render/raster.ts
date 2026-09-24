@@ -1,5 +1,79 @@
+import { parseCosDocument } from "../cos/parser.js";
+import { PdfPage } from "../canvas.js";
+import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
 import type { PdfDisplayList, PdfPathSegment, PdfRgbColor } from "../ast.js";
-import { encodeFlate } from "../cos/filters.js";
+import { applyPredictor, decodeFlate, encodeFlate } from "../cos/filters.js";
+
+export interface RgbaBitmap {
+  readonly width: number;
+  readonly height: number;
+  readonly data: Uint8Array;
+}
+
+export function encodePng(bitmap: RgbaBitmap): Uint8Array {
+  return encodeRgbaToPng(bitmap.width, bitmap.height, bitmap.data);
+}
+
+export function decodePng(pngBytes: Uint8Array): RgbaBitmap {
+  if (pngBytes.length < 24 || pngBytes[0] !== 137 || pngBytes[1] !== 80 || pngBytes[2] !== 78 || pngBytes[3] !== 71) {
+    throw new Error("Invalid PNG signature");
+  }
+  const view = new DataView(pngBytes.buffer, pngBytes.byteOffset, pngBytes.byteLength);
+  let width = 0, height = 0, bitDepth = 8, colorType = 2;
+  const idatParts: Uint8Array[] = [];
+  let pos = 8;
+  while (pos + 8 <= pngBytes.length) {
+    const len = view.getUint32(pos, false);
+    const type = String.fromCharCode(pngBytes[pos + 4]!, pngBytes[pos + 5]!, pngBytes[pos + 6]!, pngBytes[pos + 7]!);
+    const chunkData = pngBytes.subarray(pos + 8, pos + 8 + len);
+    if (type === "IHDR") {
+      width = view.getUint32(pos + 8, false);
+      height = view.getUint32(pos + 12, false);
+      bitDepth = chunkData[8]!;
+      colorType = chunkData[9]!;
+    } else if (type === "IDAT") {
+      idatParts.push(chunkData);
+    } else if (type === "IEND") {
+      break;
+    }
+    pos += 12 + len;
+  }
+  const totalIdat = idatParts.reduce((s, c) => s + c.length, 0);
+  const mergedIdat = new Uint8Array(totalIdat);
+  let off = 0;
+  for (const part of idatParts) {
+    mergedIdat.set(part, off);
+    off += part.length;
+  }
+  const inflated = decodeFlate(mergedIdat);
+  const colors = colorType === 6 ? 4 : colorType === 2 ? 3 : colorType === 4 ? 2 : 1;
+  const unpredicted = applyPredictor(inflated, {
+    Predictor: 15,
+    Columns: width,
+    Colors: colors,
+    BitsPerComponent: bitDepth,
+  });
+  const data = new Uint8Array(width * height * 4);
+  if (colors === 4) {
+    data.set(unpredicted.subarray(0, width * height * 4));
+  } else if (colors === 3) {
+    for (let i = 0; i < width * height; i++) {
+      data[i * 4] = unpredicted[i * 3]!;
+      data[i * 4 + 1] = unpredicted[i * 3 + 1]!;
+      data[i * 4 + 2] = unpredicted[i * 3 + 2]!;
+      data[i * 4 + 3] = 255;
+    }
+  } else {
+    for (let i = 0; i < width * height; i++) {
+      const g = unpredicted[i * colors]!;
+      data[i * 4] = g;
+      data[i * 4 + 1] = g;
+      data[i * 4 + 2] = g;
+      data[i * 4 + 3] = colors === 2 ? unpredicted[i * 2 + 1]! : 255;
+    }
+  }
+  return { width, height, data };
+}
 
 export interface RenderToPngOptions {
   readonly scale?: number | undefined;
@@ -412,4 +486,42 @@ export function renderDisplayListToPng(
   }
 
   return encodeRgbaToPng(width, height, rgba);
+}
+
+function collectLeavesForRaster(
+  cosDoc: ReturnType<typeof parseCosDocument>,
+  node: PdfCosNode | undefined,
+  out: Array<{ ref: PdfCosRef; dict: PdfCosDict }> = [],
+  visited = new Set<number>()
+): Array<{ ref: PdfCosRef; dict: PdfCosDict }> {
+  if (!node) return out;
+  let ref: PdfCosRef | undefined;
+  if (node.kind === "ref") {
+    if (visited.has(node.objectNumber)) return out;
+    visited.add(node.objectNumber);
+    ref = node;
+  }
+  const dict = cosDoc.resolveDict(node);
+  if (!dict) return out;
+  const kids = cosDoc.resolveArray(dictGet(dict, "Kids"));
+  if (kids) {
+    for (const k of kids.items) collectLeavesForRaster(cosDoc, k, out, visited);
+  } else {
+    out.push({ ref: ref ?? cosDoc.allocateObject(dict), dict });
+  }
+  return out;
+}
+
+export function renderPdfPageToPng(
+  pdfBytes: Uint8Array,
+  pageIndex = 0,
+  options?: RenderToPngOptions
+): Uint8Array {
+  const cos = parseCosDocument(pdfBytes);
+  const catalog = cos.resolveDict(cos.rootRef);
+  const leaves = collectLeavesForRaster(cos, catalog ? dictGet(catalog, "Pages") : undefined);
+  const leaf = leaves[pageIndex];
+  if (!leaf) throw new Error(`Page index ${pageIndex} out of bounds`);
+  const page = new PdfPage(cos, leaf.ref, leaf.dict, pageIndex);
+  return renderDisplayListToPng(page.evaluateDisplayList(), options);
 }

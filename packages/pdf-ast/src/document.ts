@@ -34,6 +34,7 @@ import { buildSemanticAstFromPages } from "./extract/semantic-ast.js";
 import { formatExtractedPageText, type ExtractTextOptions } from "./extract/text.js";
 import type { Standard14FontName } from "./fonts/standard14.js";
 import { parseTrueTypeFont } from "./fonts/truetype.js";
+import { renderDisplayListToPng, type RenderToPngOptions } from "./render/raster.js";
 
 export interface SavePdfOptions {
   readonly normalizeContent?: boolean | undefined;
@@ -135,8 +136,21 @@ export class PdfDocument {
     dictSet(pagesDict, "Count", cosNumber(this.pages.length));
   }
 
+  get pageCount(): number {
+    return this.pages.length;
+  }
+
   getPageCount(): number {
     return this.pages.length;
+  }
+
+  addPage(size?: readonly [number, number] | { readonly width: number; readonly height: number }): PdfPage {
+    const resolved: readonly [number, number] = size
+      ? "width" in size
+        ? [size.width, size.height]
+        : [size[0], size[1]]
+      : [612, 792];
+    return this.addPageWithSize(resolved);
   }
 
   getPages(): readonly PdfPage[] {
@@ -151,7 +165,7 @@ export class PdfDocument {
     return p;
   }
 
-  addPage(size: readonly [number, number] = [612, 792]): PdfPage {
+  private addPageWithSize(size: readonly [number, number] = [612, 792]): PdfPage {
     return this.insertPage(this.pages.length, size);
   }
 
@@ -385,6 +399,25 @@ export class PdfDocument {
     dictSet(this.ensureInfoDict(), "Producer", cosString(producer));
   }
 
+  setMetadata(info: PdfMetadataInfo & { readonly keywords?: readonly string[] | string | undefined }): void {
+    if (info.title !== undefined) this.setTitle(info.title);
+    if (info.author !== undefined) this.setAuthor(info.author);
+    if (info.subject !== undefined) this.setSubject(info.subject);
+    if (info.keywords !== undefined) this.setKeywords(info.keywords);
+    if (info.creator !== undefined) this.setCreator(info.creator);
+    if (info.producer !== undefined) this.setProducer(info.producer);
+  }
+
+  extractPage(index: number, modeOrOptions?: ExtractTextOptions["mode"] | ExtractTextOptions): PdfExtractedPage {
+    const opts: ExtractTextOptions | undefined =
+      typeof modeOrOptions === "string" ? { mode: modeOrOptions } : modeOrOptions;
+    return this.getPage(index).extractPage(opts);
+  }
+
+  renderPageToPng(index: number, options?: RenderToPngOptions): Uint8Array {
+    return renderDisplayListToPng(this.getPage(index).evaluateDisplayList(), options);
+  }
+
   getFormFields(): PdfFormFieldInfo[] {
     return getDocumentFormFields(this.cos);
   }
@@ -397,7 +430,8 @@ export class PdfDocument {
     return this.pages.map(p => p.extractPage(options));
   }
 
-  extractText(options?: ExtractTextOptions): string {
+  extractText(modeOrOptions?: ExtractTextOptions["mode"] | ExtractTextOptions): string {
+    const options: ExtractTextOptions | undefined = typeof modeOrOptions === "string" ? { mode: modeOrOptions } : modeOrOptions;
     return this.pages.map(p => formatExtractedPageText(p.extractPage(options), options)).join("\n\n");
   }
 

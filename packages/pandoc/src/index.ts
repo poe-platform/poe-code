@@ -66,3 +66,5 @@ export { parseConversionArgs } from "./cli.js";
 export type { CommandInputs } from "./cli.js";
 
 export {resolveConversionArgs} from "./defaults.js";
+
+export { pdfReader } from "./pdf-reader.js";

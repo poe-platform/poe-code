@@ -43,6 +43,7 @@
     "@poe-code/pdf": "0.0.1",
     "pptx": "*",
     "yaml": "2.9.0",
-    "fengari": "^0.1.5"
+    "fengari": "^0.1.5",
+    "@poe-code/pdf-ast": "*"
   }
 }

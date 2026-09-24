@@ -13,3 +13,12 @@ export { planPageSequence, requireRendererFeatures } from "./engine.js";
 export type { RendererFeature, RendererProfile, LaidOutObject, PageSequenceOptions, OutputPage, PageSequence } from "./engine.js";
 export { withResources } from "./resources.js";
 export type { ResourceLimits, ResourceUsage, ResourceLease, ResourceOpen, ResourceOptions, Resources } from "./resources.js";
+
+export {
+  createPdfAstRenderer,
+  pdfAstRenderer,
+  pdfAstRendererProfile,
+  createPdfAstWkhtmltopdfCommand,
+  pdfAstWkhtmltopdfCommand,
+  pdfAstWkhtmltopdfCommands,
+} from "./pdf-renderer.js";

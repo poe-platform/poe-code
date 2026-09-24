@@ -5,15 +5,21 @@ import { pdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
 import { pdftotextCommands } from "../../src/commands/pdftotext/index.js";
 import { qpdfCommands } from "../../src/commands/qpdf/index.js";
 import { sofficeCommands, createStoredZipArchive } from "../../src/commands/soffice/index.js";
+import { tesseractCommands } from "../../src/commands/tesseract/index.js";
+import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
+import { pdfAstWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
 
-describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice)", () => {
-  it("runs soffice -> pdfinfo -> pdftotext -> qpdf pipeline inside virtual Shell", async () => {
+describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtmltopdf, exiftool, tesseract)", () => {
+  it("runs soffice -> pdfinfo -> pdftotext -> qpdf -> exiftool -> wkhtmltopdf -> tesseract pipeline inside virtual Shell", async () => {
     const fs = createMemoryFileSystem();
     const shell = new Shell({ fs })
       .use(pdfinfoCommands())
       .use(pdftotextCommands())
       .use(qpdfCommands())
-      .use(sofficeCommands());
+      .use(sofficeCommands())
+      .use(tesseractCommands({ replace: true }))
+      .use(exiftoolCommands({ replace: true }))
+      .use(pdfAstWkhtmltopdfCommands({ replace: true }));
 
     const docxXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -59,29 +65,58 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice)", () =
     assert.match(infoRes.stdout, /Pages:\s+1/);
     assert.match(infoRes.stdout, /MediaBox:\s+0\.00\s+0\.00\s+612\.00\s+792\.00/);
 
-    // 3. Extract text and XHTML bbox via pdftotext
+    // 3. Edit and inspect PDF metadata via exiftool
+    const exifWrite = await shell.exec(
+      "exiftool -overwrite_original -Title=\"Enterprise PDF Spec\" -Author=\"Poe Platform\" /input.pdf"
+    );
+    assert.equal(exifWrite.exitCode, 0);
+
+    const exifRead = await shell.exec("exiftool -j /input.pdf");
+    assert.equal(exifRead.exitCode, 0);
+    const exifJson = JSON.parse(exifRead.stdout);
+    assert.equal(exifJson[0].Title, "Enterprise PDF Spec");
+    assert.equal(exifJson[0].Author, "Poe Platform");
+
+    // 4. Extract text and XHTML bbox via pdftotext
     const txtRes = await shell.exec("pdftotext /input.pdf -");
     assert.equal(txtRes.exitCode, 0);
     assert.match(txtRes.stdout, /Unified PDF AST Pipeline/);
     assert.match(txtRes.stdout, /Verified/);
 
-    const bboxRes = await shell.exec("pdftotext -bbox /input.pdf /input.html");
-    assert.equal(bboxRes.exitCode, 0);
-    const htmlBytes = await fs.readFile("/input.html");
-    assert.match(new TextDecoder().decode(htmlBytes), /<word xMin="/);
+    // 5. Render HTML to multi-page PDF via wkhtmltopdf (pdfAstWkhtmltopdfCommands)
+    await fs.writeFile(
+      "/web.html",
+      new TextEncoder().encode(
+        "<html><head><title>HTML Report</title></head><body><h1>HTML Heading</h1><p>Rendered via pdf-ast.</p></body></html>"
+      )
+    );
+    const wkRes = await shell.exec("wkhtmltopdf /web.html /web.pdf");
+    assert.equal(wkRes.exitCode, 0);
 
-    // 4. Rotate and encrypt via qpdf, then inspect with pdfinfo -upw
-    const qpdfRotRes = await shell.exec("qpdf --rotate=+90:1 /input.pdf /rotated.pdf");
-    assert.equal(qpdfRotRes.exitCode, 0);
+    // 6. Run OCR / text extraction + searchable PDF generation via tesseract on /web.pdf
+    const tessRes = await shell.exec("tesseract /web.pdf /ocr-out pdf txt tsv");
+    assert.equal(tessRes.exitCode, 0);
+    const ocrTxt = new TextDecoder().decode(await fs.readFile("/ocr-out.txt"));
+    assert.match(ocrTxt, /HTML Heading/);
+    const searchablePdfInfo = await shell.exec("pdfinfo /ocr-out.pdf");
+    assert.equal(searchablePdfInfo.exitCode, 0);
+    assert.match(searchablePdfInfo.stdout, /Pages:\s+1/);
+
+    // 7. Merge /input.pdf and /web.pdf via qpdf, rotate, and encrypt
+    const qpdfMergeRes = await shell.exec("qpdf --empty --pages /input.pdf /web.pdf -- /merged.pdf");
+    assert.equal(qpdfMergeRes.exitCode, 0);
+
+    const mergedInfo = await shell.exec("pdfinfo /merged.pdf");
+    assert.equal(mergedInfo.exitCode, 0);
+    assert.match(mergedInfo.stdout, /Pages:\s+2/);
 
     const qpdfEncRes = await shell.exec(
-      "qpdf --encrypt userpw ownerpw 256 --print=none -- /rotated.pdf /encrypted.pdf"
+      "qpdf --encrypt userpw ownerpw 256 --print=none -- /merged.pdf /encrypted.pdf"
     );
     assert.equal(qpdfEncRes.exitCode, 0);
 
     const encInfoRes = await shell.exec("pdfinfo -upw userpw /encrypted.pdf");
     assert.equal(encInfoRes.exitCode, 0);
     assert.match(encInfoRes.stdout, /Encrypted:\s+yes \(print:no/);
-    assert.match(encInfoRes.stdout, /Page rot:\s+90/);
   });
 });

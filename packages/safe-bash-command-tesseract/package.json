@@ -1,5 +1,5 @@
 {
-  "name": "safe-bash-command-wkhtmltopdf",
+  "name": "safe-bash-command-tesseract",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -23,10 +23,9 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {
-    "@poe-code/pdf-ast": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@poe-code/pdf-ast": "*",
     "safe-bash-contracts": "*"
   }
 }

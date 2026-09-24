@@ -3,7 +3,7 @@ import { pdfWriter } from "../pdf-writer.js";
 export default {
   writer: pdfWriter,
   name: "pdf",
-  read: false,
+  read: true,
   write: true,
   media: "binary",
   inputEncoding: "bytes",

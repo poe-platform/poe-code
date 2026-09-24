@@ -1,0 +1,16 @@
+export {
+  createTesseractCommand,
+  runTesseract,
+  tesseractCommand,
+  tesseractCommands,
+  tesseractLimits,
+  recognizeBitmapOcr,
+  type OcrBlockBox,
+  type OcrCharBox,
+  type OcrLineBox,
+  type OcrPageResult,
+  type OcrParagraphBox,
+  type OcrWordBox,
+  type TesseractCommandOptions,
+  type TesseractLimits,
+} from "safe-bash-command-tesseract";

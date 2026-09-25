@@ -84,7 +84,7 @@ const defaultSyntax = captureShellSyntax({});
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean; byteValue?: ByteShellValue }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; indirect?: boolean; specialParameter?: CapturedShellSyntax["specialParameters"][number]; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; indirect?: boolean; specialParameter?: CapturedShellSyntax["specialParameters"][number]; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E" | "a" | "A" | "K" | "k" | "P" | "u" | "U" | "L"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "failed-parameter"; source: string; line: number; quoted: boolean }
   | { kind: "compound-substitution-eof"; line: number; quoted: boolean }
@@ -916,7 +916,7 @@ class Lexer {
         this.budget.admit();
         selector = { kind: "keys", separator: selector.separator };
       }
-      let transform: "Q" | "E" | "a" | "A" | "K" | "k" | "P" | "u" | "U" | "L" | undefined;
+      let transform: Extract<WordPart, { kind: "variable" }>["transform"];
       if (this.source[this.position] === "@") {
         const operation = this.source[this.position + 1] as typeof transform;
         if (length || prefixNames || !["Q", "E", "a", "A", "K", "k", "P", "u", "U", "L"].includes(operation ?? "") || this.source[this.position + 2] !== "}") this.error("Unsupported parameter transform");
@@ -966,7 +966,7 @@ class Lexer {
         parts.push({ kind: "failed-parameter", source: this.source.slice(parameterStart, this.position), line, quoted });
       } else {
         this.position++;
-        const part: WordPart = { kind: "variable", name, quoted, line, ...(indirect ? { indirect: true } : {}), ...(specialParameter ? { specialParameter } : {}), ...(prefixNames ? { prefixNames } : {}), ...(transform ? { transform } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
+        const part: Extract<WordPart, { kind: "variable" }> = { kind: "variable", name, quoted, line, ...(indirect ? { indirect: true } : {}), ...(specialParameter ? { specialParameter } : {}), ...(prefixNames ? { prefixNames } : {}), ...(transform ? { transform } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
         if (listing && selector) part.keys = true;
         if (selector) setArraySelector(part, selector);
         parts.push(part);

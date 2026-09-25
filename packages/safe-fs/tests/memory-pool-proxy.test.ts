@@ -2,6 +2,25 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 import { MemoryFileSystem, tryWriteMemoryFileSync } from "../src/fs/memory/index.js";
 
+test("forwarded file reads share cache invalidation after ancestor chmod and rename", async () => {
+  const memory = new MemoryFileSystem();
+  const forwarded = new Proxy(memory, { get: (target, key) => Reflect.get(target, key) });
+  await memory.mkdir("/work/nested", { recursive: true });
+  await memory.writeFile("/work/nested/file", Uint8Array.of(19));
+  assert.deepEqual(await memory.readFile("/work/nested/file"), Uint8Array.of(19));
+  assert.deepEqual(await forwarded.readFile("/work/nested/file"), Uint8Array.of(19));
+  await forwarded.chmod("/work", 0o600);
+  await assert.rejects(memory.readFile("/work/nested/file"), { code: "EACCES" });
+  await forwarded.chmod("/work", 0o700);
+  assert.deepEqual(await memory.readFile("/work/nested/file"), Uint8Array.of(19));
+  await forwarded.rename("/work", "/moved");
+  await assert.rejects(memory.readFile("/work/nested/file"), { code: "ENOENT" });
+  await memory.mkdir("/work/nested", { recursive: true });
+  await memory.writeFile("/work/nested/file", Uint8Array.of(29));
+  assert.deepEqual(await forwarded.readFile("/work/nested/file"), Uint8Array.of(29));
+  assert.deepEqual(await memory.readFile("/moved/nested/file"), Uint8Array.of(19));
+});
+
 test("forwarded Memory receivers reuse released storage without retaining bytes or file identity", async () => {
   const memory = new MemoryFileSystem();
   const forwarded = new Proxy(memory, { get: (target, key) => Reflect.get(target, key) });

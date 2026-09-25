@@ -256,11 +256,17 @@ export class SharpInstance {
     if (angle === undefined) {
       this.nodes.push({ kind: "autoOrient" });
     } else {
-      this.nodes.push({
+      const nextNode: ImageAstNode = {
         kind: "rotate",
         angle,
         background: parseColor(options?.background, 255)
-      });
+      };
+      const existingIdx = this.nodes.findIndex(n => n.kind === "rotate");
+      if (existingIdx !== -1) {
+        this.nodes[existingIdx] = nextNode;
+      } else {
+        this.nodes.push(nextNode);
+      }
     }
     return this;
   }
@@ -316,15 +322,37 @@ export class SharpInstance {
   ): this {
     let w: number | null = null;
     let h: number | null = null;
+    let wProvided = false;
+    let hProvided = false;
     let opts: ResizeOptions = {};
     if (typeof widthOrOptions === "object" && widthOrOptions !== null) {
       opts = widthOrOptions;
       w = opts.width ?? null;
       h = opts.height ?? null;
+      wProvided = opts.width !== undefined;
+      hProvided = opts.height !== undefined;
     } else {
-      w = widthOrOptions ?? null;
-      h = height ?? null;
       opts = options ?? {};
+      w = widthOrOptions !== undefined ? widthOrOptions : (opts.width ?? null);
+      h = height !== undefined ? height : (opts.height ?? null);
+      wProvided = widthOrOptions !== undefined || opts.width !== undefined;
+      hProvided = height !== undefined || opts.height !== undefined;
+    }
+    const existingIdx = this.nodes.findIndex(n => n.kind === "resize");
+    if (existingIdx !== -1) {
+      const prev = this.nodes[existingIdx] as Extract<ImageAstNode, { readonly kind: "resize" }>;
+      this.nodes[existingIdx] = {
+        kind: "resize",
+        width: wProvided ? w : prev.width,
+        height: hProvided ? h : prev.height,
+        fit: opts.fit ?? prev.fit,
+        position: opts.position ?? prev.position,
+        kernel: opts.kernel ?? prev.kernel,
+        background: opts.background !== undefined ? parseColor(opts.background, 255) : prev.background,
+        withoutEnlargement: opts.withoutEnlargement ?? prev.withoutEnlargement,
+        withoutReduction: opts.withoutReduction ?? prev.withoutReduction
+      };
+      return this;
     }
     this.nodes.push({
       kind: "resize",
@@ -352,27 +380,32 @@ export class SharpInstance {
           readonly extendWith?: "background" | "copy" | "repeat" | "mirror";
         }
   ): this {
-    if (typeof edges === "number") {
-      this.nodes.push({
-        kind: "extend",
-        top: edges,
-        bottom: edges,
-        left: edges,
-        right: edges,
-        background: { r: 0, g: 0, b: 0, a: 255 },
-        extendWith: "background"
-      });
-      return this;
+    const nextNode: ImageAstNode =
+      typeof edges === "number"
+        ? {
+            kind: "extend",
+            top: edges,
+            bottom: edges,
+            left: edges,
+            right: edges,
+            background: { r: 0, g: 0, b: 0, a: 255 },
+            extendWith: "background"
+          }
+        : {
+            kind: "extend",
+            top: edges.top ?? 0,
+            bottom: edges.bottom ?? 0,
+            left: edges.left ?? 0,
+            right: edges.right ?? 0,
+            background: parseColor(edges.background, 255),
+            extendWith: edges.extendWith ?? "background"
+          };
+    const existingIdx = this.nodes.findIndex(n => n.kind === "extend");
+    if (existingIdx !== -1) {
+      this.nodes[existingIdx] = nextNode;
+    } else {
+      this.nodes.push(nextNode);
     }
-    this.nodes.push({
-      kind: "extend",
-      top: edges.top ?? 0,
-      bottom: edges.bottom ?? 0,
-      left: edges.left ?? 0,
-      right: edges.right ?? 0,
-      background: parseColor(edges.background, 255),
-      extendWith: edges.extendWith ?? "background"
-    });
     return this;
   }
 

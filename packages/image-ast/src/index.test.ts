@@ -1497,4 +1497,43 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Array.from(normCanceled)).toEqual(Array.from(raw4x1));
   });
+
+  it("merges/replaces existing resize(), extend(), and rotate() nodes on repeated calls (#83)", async () => {
+    const raw8x4 = Buffer.alloc(8 * 4 * 3);
+    for (let i = 0; i < 32; i++) {
+      raw8x4[i * 3] = (i * 19) & 255;
+      raw8x4[i * 3 + 1] = (i * 37) & 255;
+      raw8x4[i * 3 + 2] = (i * 73) & 255;
+    }
+    const ext = await sharp(raw8x4, { raw: { width: 8, height: 4, channels: 3 } })
+      .extend(2)
+      .extend(3)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(ext.info.width).toBe(14);
+    expect(ext.info.height).toBe(10);
+
+    const rot = await sharp(raw8x4, { raw: { width: 8, height: 4, channels: 3 } })
+      .rotate(90)
+      .rotate(180)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(rot.info.width).toBe(8);
+    expect(rot.info.height).toBe(4);
+
+    const res = await sharp(raw8x4, { raw: { width: 8, height: 4, channels: 3 } })
+      .resize(2, 2)
+      .resize(8, 4)
+      .raw()
+      .toBuffer();
+    expect(Array.from(res)).toEqual(Array.from(raw8x4));
+
+    const mergedRes = await sharp(raw8x4, { raw: { width: 8, height: 4, channels: 3 } })
+      .resize({ width: 12, fit: "fill" })
+      .resize({ height: 6 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(mergedRes.info.width).toBe(12);
+    expect(mergedRes.info.height).toBe(6);
+  });
 });

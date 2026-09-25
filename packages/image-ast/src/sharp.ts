@@ -217,9 +217,16 @@ export class SharpInstance {
   }
 
   metadataSync(): ImageMetadata {
+    const computeAutoOrient = (w: number, h: number, orient?: number) =>
+      orient !== undefined && orient >= 5 && orient <= 8
+        ? { width: h, height: w }
+        : { width: w, height: h };
     const rawMeta = readImageMetadata(this.inputBytes, this.inputOptions);
     if (this.nodes.length === 0) {
-      return rawMeta;
+      return {
+        ...rawMeta,
+        autoOrient: computeAutoOrient(rawMeta.width, rawMeta.height, rawMeta.orientation)
+      };
     }
     const evaluated = this.evaluateImage();
     return {
@@ -231,6 +238,7 @@ export class SharpInstance {
       depth: evaluated.depth,
       density: this.outputOptions.density ?? evaluated.density,
       hasAlpha: evaluated.hasAlpha,
+      autoOrient: computeAutoOrient(evaluated.width, evaluated.height, evaluated.orientation),
       ...(evaluated.orientation !== undefined ? { orientation: evaluated.orientation } : {}),
       ...(rawMeta.pages !== undefined ? { pages: rawMeta.pages } : {}),
       ...(rawMeta.pagePrimary !== undefined ? { pagePrimary: rawMeta.pagePrimary } : {}),
@@ -250,6 +258,10 @@ export class SharpInstance {
 
   async stats(): Promise<ImageStats> {
     return this.statsSync();
+  }
+
+  autoOrient(): this {
+    return this.rotate();
   }
 
   rotate(angle?: number, options?: { readonly background?: ColorInput }): this {
@@ -930,7 +942,7 @@ export class SharpInstance {
   }
 
   toFormat(
-    format: ImageFormat | "jpg",
+    format: ImageFormat | "jpg" | "tif" | "jpe" | { readonly id: string },
     options?: {
       readonly quality?: number;
       readonly compression?: "hevc" | "av1";
@@ -938,7 +950,14 @@ export class SharpInstance {
       readonly lossless?: boolean;
     }
   ): this {
-    const norm: ImageFormat = format === "jpg" ? "jpeg" : format;
+    const rawFmt = typeof format === "object" && format !== null ? format.id : String(format);
+    const lower = rawFmt.toLowerCase();
+    const norm: ImageFormat =
+      lower === "jpg" || lower === "jpe"
+        ? "jpeg"
+        : lower === "tif"
+          ? "tiff"
+          : (lower as ImageFormat);
     this.outputOptions = {
       ...this.outputOptions,
       format: norm,
@@ -1058,6 +1077,21 @@ Object.assign(sharp, {
     nohalo: "nohalo",
     vertexSplitQuadraticBasisSpline: "vsqbs"
   },
+  format: Object.fromEntries(
+    (["jpeg", "png", "webp", "tiff", "heif", "heic", "avif", "gif", "svg", "pdf", "ppm", "pgm", "pbm", "bmp", "raw"] as const).map(
+      id => [
+        id,
+        {
+          id,
+          input: { file: true, buffer: true, stream: true },
+          output: { file: true, buffer: true, stream: true }
+        }
+      ]
+    )
+  ) as Record<
+    "jpeg" | "png" | "webp" | "tiff" | "heif" | "heic" | "avif" | "gif" | "svg" | "pdf" | "ppm" | "pgm" | "pbm" | "bmp" | "raw",
+    { readonly id: string; readonly input: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean }; readonly output: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean } }
+  >,
   versions: {
     vips: "8.16.1",
     sharp: "0.34.5"

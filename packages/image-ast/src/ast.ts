@@ -44,6 +44,7 @@ export interface RgbaImage {
   readonly density: number;
   readonly hasAlpha: boolean;
   readonly orientation?: number;
+  readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;
   readonly pageHeight?: number;
   readonly delay?: readonly number[];
@@ -65,6 +66,7 @@ export interface ImageMetadata {
   readonly hasAlpha: boolean;
   readonly compression?: "hevc" | "av1";
   readonly orientation?: number;
+  readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;
   readonly pageHeight?: number;
   readonly pagePrimary?: number;

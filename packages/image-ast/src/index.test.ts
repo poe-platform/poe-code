@@ -1588,4 +1588,36 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(grayTint.info.channels).toBe(1);
     expect(Array.from(grayTint.data)).toEqual([255, 128, 0]);
   });
+
+  it("supports .autoOrient(), metadata().autoOrient, sharp.format, and .toFormat() object/alias inputs (#86)", async () => {
+    const raw10x20 = Buffer.alloc(10 * 20 * 3, 128);
+    const jpgOrient6 = await sharp(raw10x20, { raw: { width: 10, height: 20, channels: 3 } })
+      .withMetadata({ orientation: 6 })
+      .jpeg()
+      .toBuffer();
+
+    const meta6 = await sharp(jpgOrient6).metadata();
+    expect(meta6.width).toBe(10);
+    expect(meta6.height).toBe(20);
+    expect(meta6.orientation).toBe(6);
+    expect(meta6.autoOrient).toEqual({ width: 20, height: 10 });
+
+    const oriented = await sharp(jpgOrient6).autoOrient().toBuffer({ resolveWithObject: true });
+    expect(oriented.info.width).toBe(20);
+    expect(oriented.info.height).toBe(10);
+
+    expect(sharp.format).toBeDefined();
+    expect(sharp.format.png.id).toBe("png");
+    expect(sharp.format.tiff.id).toBe("tiff");
+
+    const fmtObjOut = await sharp(raw10x20, { raw: { width: 10, height: 20, channels: 3 } })
+      .toFormat(sharp.format.png)
+      .toBuffer({ resolveWithObject: true });
+    expect(fmtObjOut.info.format).toBe("png");
+
+    const tifOut = await sharp(raw10x20, { raw: { width: 10, height: 20, channels: 3 } })
+      .toFormat("tif")
+      .toBuffer({ resolveWithObject: true });
+    expect(tifOut.info.format).toBe("tiff");
+  });
 });

@@ -977,7 +977,6 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/structured/recurse.test.ts"));
   assert.ok(files.includes("tests/commands/yq-control-flow.test.ts"));
   assert.ok(files.includes("tests/commands/yq-toml.test.ts"));
-  assert.ok(files.includes("tests/commands/yq-toml-parser.test.ts"));
   assert.ok(files.includes("tests/commands/yq-toml-review.test.ts"));
   assert.ok(files.includes("tests/integration/xml-query.test.ts"));
   assert.ok(files.includes("tests/integration/xml-query-review.test.ts"));

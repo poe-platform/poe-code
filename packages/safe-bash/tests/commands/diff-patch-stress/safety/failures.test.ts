@@ -231,7 +231,28 @@ for (const phase of ["preflight", "publication"] as const) test(`same-byte repla
   assert.deepEqual((await backing.readdir(cwd)).map(entry => entry.name), ["target"]);
 });
 
-for (const method of ["lstat", "openReadFile", "retained read", "readdir"] as const) {
+test("recursive diff later lstat failure preserves valid comparisons and continues", async () => {
+  const backing = await memory({ "left/first": "old\n", "right/first": "new\n", "left/later/target": "old\n", "right/later/target": "new\n", "left/zafter": "before\n", "right/zafter": "after\n" });
+  const before = await snapshot(backing);
+  let injected = false;
+  const observed = instrument(backing, {
+    before(call) {
+      if (call.method === "lstat" && call.path === `${cwd}/right/later/target`) {
+        injected = true;
+        throw new FsError("EACCES", { path: call.path });
+      }
+    },
+  });
+  const result = await invoke(observed.fs, "diff", { args: ["-r", "left", "right"] });
+  assert(injected);
+  assert.equal(result.exitCode, 2, result.stderr);
+  assert.equal(result.stdout, "diff -r left/first right/first\n1c1\n< old\n---\n> new\ndiff -r left/zafter right/zafter\n1c1\n< before\n---\n> after\n");
+  assert.match(result.stderr, /EACCES/u);
+  assert.deepEqual(observed.mutations(), []);
+  assert.deepEqual(await snapshot(backing), before);
+});
+
+for (const method of ["openReadFile", "retained read", "readdir"] as const) {
   test(`recursive diff later ${method} failure emits no buffered partial patch`, async () => {
     const backing = await memory({ "left/first": "old\n", "right/first": "new\n", "left/later/target": "old\n", "right/later/target": "new\n" });
     const before = await snapshot(backing);

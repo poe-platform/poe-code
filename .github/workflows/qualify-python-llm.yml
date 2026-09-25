@@ -51,7 +51,8 @@ jobs:
       - run: npm clean-install
       - name: Build and independently install candidate public packages
         run: |
-          npm run build:workspaces -- --workspace=@poe-platform/safe-bash --workspace=@poe-code/safe-js
+          npm run build:workspaces -- --workspace=@poe-platform/safe-bash
+          npm run build:workspaces -- --workspace=@poe-code/safe-js
           node scripts/package-safe.mjs --out-dir out/python-llm/packages --version 0.0.0-python-llm-qualification
           mkdir -p out/python-llm/tarballs out/python-llm/public-consumer out/python-llm/tooling out/python-llm/runtime
           for package in safe-bash safe-fs safe-js; do

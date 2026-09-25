@@ -32,7 +32,7 @@ try {
    const request = requestFor(endpoint);
    const consumer = await request('/consumer');
    assert.equal(consumer.passed,true);assert.deepEqual(consumer.failures,[]);assert.deepEqual(consumer.callbacks,[]);
-   for (const key of ['modelOptions','authorization','billing']) assert.equal(consumer[key],true);
+   for (const key of ['modelOptions','bashPythonEquivalent','authorization','billing']) assert.equal(consumer[key],true);
    assert.equal(consumer.privateStorage,false);assert.equal(consumer.guestCredentials,false);
    const shell = await request('/python-shell');
    assert.equal(shell.exitCode,0);assert.equal(shell.stdout,'shell-ok\n');assert.equal(shell.stderr,'');assert.deepEqual(shell.failures,[]);

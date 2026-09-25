@@ -3,6 +3,7 @@ import {
   auditLogPlugin,
   builtinPluginRegistry,
   compactionPlugin,
+  createAgentSession,
   createTranscriptWriter,
   environmentPlugin,
   filesPlugin,
@@ -26,6 +27,7 @@ import {
   systemPromptPlugin,
   webPlugin
 } from "./index.js";
+import { createAgentSession as createAgentSessionFromImplementation } from "./agent-session.js";
 import auditLog from "./plugins/poe-agent-plugin-audit-log.js";
 import compaction from "./plugins/poe-agent-plugin-compaction.js";
 import environment from "./plugins/poe-agent-plugin-environment.js";
@@ -53,6 +55,10 @@ import { InvalidToolNameError as invalidToolName } from "./runtime/tool-names.js
 import web from "./plugins/poe-agent-plugin-web.js";
 
 describe("package root exports", () => {
+  it("re-exports createAgentSession without deep imports", () => {
+    expect(createAgentSession).toBe(createAgentSessionFromImplementation);
+  });
+
   it("re-exports built-in plugins without deep imports", () => {
     expect(auditLogPlugin).toBe(auditLog);
     expect(compactionPlugin).toBe(compaction);

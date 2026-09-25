@@ -4,6 +4,7 @@ import type { SessionUpdate } from "@poe-code/agent-spawn";
 import type { AcpSession } from "./agent.js";
 import type { AcpEvent, RunResult } from "./runtime/types.js";
 import * as poeAgent from "./index.js";
+import { createAgentSession } from "./agent-session.js";
 
 const openaiResponsesPluginMock = vi.hoisted(() =>
   vi.fn(() => ({ name: "openai-responses-plugin" }))
@@ -158,8 +159,6 @@ describe("createAgentSession", () => {
   });
 
   it("builds the agent with model and default plugins", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
-
     const session = await createAgentSession({
       apiKey: "explicit-key",
       model: "Claude-Sonnet-4.5",
@@ -205,8 +204,6 @@ describe("createAgentSession", () => {
   });
 
   it("adds the policy plugin when mode is provided", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
-
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       mode: "read"
@@ -227,7 +224,6 @@ describe("createAgentSession", () => {
   });
 
   it("uses explicit session plugins instead of the default plugin bundle", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
     const customPlugins = [{ name: "custom-a" }, { name: "custom-b" }];
 
     const session = await createAgentSession({
@@ -252,8 +248,6 @@ describe("createAgentSession", () => {
   });
 
   it("uses pluginsConfig instead of the default plugin bundle", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
-
     resolvePluginsFromConfigMock.mockReturnValue([{ name: "config-a" }, { name: "config-b" }]);
 
     const session = await createAgentSession({
@@ -277,8 +271,6 @@ describe("createAgentSession", () => {
   });
 
   it("rejects using plugins and pluginsConfig together", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
-
     await expect(
       createAgentSession({
         model: "Claude-Sonnet-4.5",
@@ -329,7 +321,6 @@ describe("createAgentSession", () => {
       ])
     );
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       apiKey: "test-key"
@@ -420,7 +411,6 @@ describe("createAgentSession", () => {
       ])
     );
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       apiKey: "test-key"
@@ -464,7 +454,6 @@ describe("createAgentSession", () => {
       ])
     );
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       apiKey: "test-key"
@@ -536,7 +525,6 @@ describe("createAgentSession", () => {
       ]);
     });
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       apiKey: "test-key"
@@ -552,7 +540,6 @@ describe("createAgentSession", () => {
     const fetchMock = vi.fn<typeof fetch>();
     const signal = new AbortController().signal;
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       apiKey: "test-key",
@@ -581,8 +568,6 @@ describe("createAgentSession", () => {
   it.each([-1, 0, 0.5, Number.POSITIVE_INFINITY, Number.NaN])(
     "rejects invalid maxToolCallIterations %s",
     async (maxToolCallIterations) => {
-      const { createAgentSession } = await import("./agent-session.js");
-
       await expect(
         createAgentSession({
           model: "Claude-Sonnet-4.5",
@@ -595,7 +580,6 @@ describe("createAgentSession", () => {
   );
 
   it.each(["", "   "])("rejects blank sendMessage prompt %j", async (prompt) => {
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       plugins: []
@@ -611,7 +595,6 @@ describe("createAgentSession", () => {
       { role: "user" as const, content: "remember zebra" },
       { role: "assistant" as const, content: "remembered" }
     ];
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       resume: { messages }
@@ -652,7 +635,6 @@ describe("createAgentSession", () => {
         }
       ])
     );
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
 
     await session.sendMessage("hello");
@@ -688,7 +670,6 @@ describe("createAgentSession", () => {
         }
       ])
     );
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
 
     await session.sendMessage("Read README");
@@ -724,7 +705,6 @@ describe("createAgentSession", () => {
         }
       ]);
     });
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
 
     await session.sendMessage("original prompt");
@@ -776,7 +756,6 @@ describe("createAgentSession", () => {
         }
       ])
     );
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       cwd: "/workspace/project"
@@ -795,7 +774,6 @@ describe("createAgentSession", () => {
   });
 
   it("navigates to an earlier entry and resumes from that branch", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
 
     await session.sendMessage("first");
@@ -823,7 +801,6 @@ describe("createAgentSession", () => {
   });
 
   it("forks from an existing entry into a new session", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
 
     await session.sendMessage("first");
@@ -842,7 +819,6 @@ describe("createAgentSession", () => {
   });
 
   it("forwards undefined apiKey to ACP when not provided", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5"
     });
@@ -858,14 +834,10 @@ describe("createAgentSession", () => {
   });
 
   it("does not resolve API key during session creation", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
-
     await createAgentSession({ model: "Claude-Sonnet-4.5" });
   });
 
   it("rejects a missing model as a user error without naming the internal API", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
-
     await expect(
       createAgentSession({
         apiKey: "provided-api-key",
@@ -882,7 +854,6 @@ describe("createAgentSession", () => {
       new Error("Missing Poe API key. Provide apiKey or run 'poe-code login'.")
     );
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
 
     await expect(session.sendMessage("hello")).rejects.toThrow(
@@ -891,7 +862,6 @@ describe("createAgentSession", () => {
   });
 
   it("dispose blocks future sends and is idempotent", async () => {
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       apiKey: "provided-api-key",
       model: "Claude-Sonnet-4.5"
@@ -927,7 +897,6 @@ describe("createAgentSession", () => {
       dispose: disposeRun
     });
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       apiKey: "provided-api-key",
       model: "Claude-Sonnet-4.5"
@@ -962,7 +931,6 @@ describe("createAgentSession", () => {
       ])
     );
 
-    const { createAgentSession } = await import("./agent-session.js");
     const session = await createAgentSession({
       model: "Claude-Sonnet-4.5",
       apiKey: "test-key"

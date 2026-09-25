@@ -120,3 +120,48 @@ test("forwarded rmdir releases a cached directory before its path is recreated",
   assert.equal(tryWriteMemoryFileSync(memory, "/work/file", Uint8Array.of(2), true, 0o666), true);
   assert.deepEqual(await memory.readFile("/work/file"), Uint8Array.of(2));
 });
+
+for (const path of ["/work", "/work/nested"]) test(`prepared permissions invalidate cached reads below ${path}`, async () => {
+  const memory = new MemoryFileSystem();
+  await memory.mkdir("/work/nested", { recursive: true });
+  await memory.writeFile("/work/nested/file", Uint8Array.of(1));
+  assert.deepEqual(await memory.readFile("/work/nested/file"), Uint8Array.of(1));
+  await memory.prepareDirectory(path, {
+    parent: await memory.stat(path === "/work" ? "/" : "/work"),
+    expected: await memory.stat(path), mode: 0,
+  });
+  await assert.rejects(memory.readFile("/work/nested/file"), { code: "EACCES" });
+});
+
+test("cached reads resolve a recreated staging directory while cleanup retains the old one", async () => {
+  const memory = new MemoryFileSystem();
+  await memory.mkdir("/work");
+  const staged = await memory.createStagedFile("/work/.stage", "file", { type: "file", data: Uint8Array.of(1) }, {
+    parent: await memory.stat("/work"), retainCleanup: true,
+  });
+  try {
+    assert.deepEqual(await memory.readFile("/work/.stage/file"), Uint8Array.of(1));
+    await memory.removeStagedFile(staged);
+    await memory.mkdir("/work/.stage");
+    await memory.writeFile("/work/.stage/file", Uint8Array.of(2));
+    assert.deepEqual(await memory.readFile("/work/.stage/file"), Uint8Array.of(2));
+  } finally {
+    await staged.cleanup!.close();
+  }
+});
+
+for (const readOtherDirectory of [false, true]) test(`conditional unlink invalidates cached appends with intervening read: ${readOtherDirectory}`, async () => {
+  const memory = new MemoryFileSystem();
+  await memory.mkdir("/work", { mode: readOtherDirectory ? 0o700 : 0o777 });
+  await memory.mkdir("/other");
+  await memory.writeFile("/other/file", Uint8Array.of(9));
+  assert.equal(tryWriteMemoryFileSync(memory, "/work/file", Uint8Array.of(1), true, 0o666), true);
+  await memory.link("/work/file", "/alias");
+  await memory.removeFileConditional("/work/file", {
+    parent: await memory.stat("/work"), expected: await memory.stat("/work/file"),
+  });
+  if (readOtherDirectory) assert.deepEqual(await memory.readFile("/other/file"), Uint8Array.of(9));
+  assert.equal(tryWriteMemoryFileSync(memory, "/work/file", Uint8Array.of(2), true, 0o666), true);
+  assert.deepEqual(await memory.readFile("/work/file"), Uint8Array.of(2));
+  assert.deepEqual(await memory.readFile("/alias"), Uint8Array.of(1));
+});

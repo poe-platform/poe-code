@@ -579,12 +579,14 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private file(path: string, syscall: string): FileNode {
+    const cache = memoryCaches.get(this.ledger)!;
     if (this.symlinkCount === 0 && isCleanAbsolutePath(path)) {
-      const fastDir = this.#lastFastDirNode;
-      const fastPrefix = this.#lastFastDirPrefix;
-      if (fastDir !== undefined && fastPrefix.length > 0 && path.startsWith(fastPrefix)) {
+      const fastDir = cache.lastFastDirNode;
+      const fastPrefix = cache.lastFastDirPrefix;
+      if (fastDir !== undefined && fastDir.nlink !== 0 && fastPrefix.length > 0 && path.startsWith(fastPrefix)) {
         const name = path.slice(fastPrefix.length);
         if (name.length > 0 && !name.includes("/")) {
+          this.permission(fastDir, 1, syscall, path);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
           const node = fastDir.entries.get(name);
           if (!node) this.fail("ENOENT", syscall, path);
@@ -598,8 +600,9 @@ export class MemoryFileSystem implements FileSystem {
         this.permission(current, 1, syscall, path);
         const slash = path.indexOf("/", start);
         if (slash === -1) {
-          this.#lastFastDirPrefix = path.slice(0, start);
-          this.#lastFastDirNode = current;
+          cache.clearWrites();
+          cache.lastFastDirPrefix = path.slice(0, start);
+          cache.lastFastDirNode = current;
           const name = path.slice(start);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
           const node = current.entries.get(name);
@@ -1253,7 +1256,10 @@ export class MemoryFileSystem implements FileSystem {
       node = this.addNode(location.parent, location.name, () => this.directory(mode ?? 0o777), "prepareDirectory", path);
     }
     if (node.type !== "directory") this.fail("ENOTDIR", "prepareDirectory", path);
-    if (mode !== undefined) node.mode = typeModes.directory | mode;
+    if (mode !== undefined) {
+      node.mode = typeModes.directory | mode;
+      memoryCaches.get(this.ledger)!.clearWrites();
+    }
     if (options.atimeMs !== undefined) node.atimeMs = options.atimeMs;
     if (options.mtimeMs !== undefined) node.mtimeMs = options.mtimeMs;
     node.ctimeMs = Date.now();
@@ -1309,6 +1315,7 @@ export class MemoryFileSystem implements FileSystem {
     if (node.type !== "file") this.fail("EINVAL", "removeFileConditional", path);
     this.permission(location.parent, 3, "removeFileConditional", path);
     location.parent.entries.delete(location.name);
+    memoryCaches.get(this.ledger)!.clearWrites();
     this.ledger.release(location.name.length * 2, 1);
     node.nlink--;
     node.ctimeMs = Date.now();
@@ -1582,10 +1589,7 @@ export class MemoryFileSystem implements FileSystem {
     if (expectedParent !== undefined) this.expectEntry(location.parent, expectedParent, path, false);
     if (expectedNode !== undefined) this.expectEntry(location.node, expectedNode, path, location.node?.type !== "directory");
     const node = location.node!;
-    if (node.type === "directory") {
-      this.#lastFastDirPrefix = "";
-      this.#lastFastDirNode = undefined;
-    }
+    if (node.type === "directory") memoryCaches.get(this.ledger)!.clearWrites();
     node.mode = typeModes[node.type] | permissions;
     node.ctimeMs = Date.now();
     node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);

@@ -330,9 +330,8 @@
       "sdk": "Imported XML value formats and an injected READDBTABLE recordset produced the exact native CSV control bytes.",
       "regressions": "packages/ssconvert/src/formulas/database-formats.test.ts",
       "remaining": [
-        "Successful native GDA connection/query execution",
-        "Complete database-type conversion",
-        "Connection and transaction lifecycle qualification",
+        "Wider database-type conversion beyond reference.databaseLive",
+        "Broader connection and transaction lifecycle qualification",
         "Registry-installed delivery and publication"
       ],
       "validation": {
@@ -346,6 +345,105 @@
         "publicConsumer": "Compiled root/scoped consumer executed successfully after workspace installation refresh."
       },
       "shell": "Actual Shell with compiled ssconvert package matched native CSV for imported value formats and the injected READDBTABLE recordset; zero diagnostics and owned shell disposal verified."
+    },
+    "databaseLive": {
+      "status": "partial",
+      "date": "2026-09-25",
+      "candidateCommit": "4e23877cc435df0f1a175d89408fa36acd47699c",
+      "procedure": "docs/plans/ssconvert-native-database-qualification.md",
+      "scope": "Supplemental Darwin Gnumeric application/plugin qualification with a real owned SQLite DSN and GTK dialog; not the frozen Linux optional profile or an unmodified headless ssconvert CLI.",
+      "profile": {
+        "os": "macOS 26.4.1 (25E253), arm64",
+        "gnumeric": "1.12.61",
+        "libgda": "6.0.0",
+        "gtk": "3.24.52",
+        "glib": "2.90.0",
+        "goffice": "0.10.62",
+        "nativeSqlite": "3.53.4",
+        "candidateNode": "22.23.2",
+        "candidateSqlite": "3.51.3",
+        "locale": "C",
+        "candidateTimezone": "UTC"
+      },
+      "source": {
+        "libgdaArchive": "https://download.gnome.org/sources/libgda/6.0/libgda-6.0.0.tar.xz",
+        "libgdaArchiveSha256": "995f4b420e666da5c8bac9faf55e7aedbe3789c525d634720a53be3ccf27a670",
+        "pluginSha256": "41d41467cab8d10f56332d1bf76bb5dd15d74257712e8666d11e32260409f4e5",
+        "sqliteProviderSha256": "dc215c85115c9881da6b9a6bc7b2851938ea094cb469a8d838cb7571ec842415",
+        "unchangedLibgdaSourceFiles": 976
+      },
+      "build": {
+        "runtimeSourceChanges": false,
+        "adaptations": [
+          "Relocated isolated Vala/introspection/GTKSourceView/ISO-data tooling and corrected data/library search paths.",
+          "Translated three GNU linker flags in generated Ninja rules to Darwin spelling.",
+          "External plugin header uses installed Gnumeric features and original gettext domain; authenticated private headers and untranslated XML manifests.",
+          "Owned .so symlinks expose actual provider/SQLite dylibs to the GModule suffix scanner."
+        ],
+        "pluginSha256": "6bfd8b42ea93628591ec4eee9d1491e56eca05f7dce09fd9108cd5259362611b",
+        "libgdaSha256": "027c1ab34a2c766c56c85c03ec2ba817cec2e205c9c6c2273bb37bdbe9e99cd0",
+        "libgdaUiSha256": "7ff46de207828c3b3dac1e5388dc1f7ab5eea047e6896cc8fe7699503762c3f6"
+      },
+      "native": {
+        "typedColumns": 13,
+        "dateSystems": [
+          "1900",
+          "1904"
+        ],
+        "acceptedConnectionDialogs": 1,
+        "rejectThenAcceptDialogs": 2,
+        "connectionHandles": {
+          "before": 0,
+          "connected": 1,
+          "deactivated": 0,
+          "shutdown": 0
+        },
+        "results": "EXECSQL and READDBTABLE return matching typed arrays; zero rows blank; missing table and second SQL statement retain errors. Rejected first dialog returns the connection error; retry connects and subsequent calls reuse it.",
+        "mapping": "gint to number; gint64 to exact decimal string; gdouble to number; gboolean to boolean; GDate/GdaTime to serial/fraction with default formats; GDateTime to blank in this profile; gchararray unchanged; GdaBinary to escaped octal text; GdaNull to blank.",
+        "screenshot": "Actual owned GTK Database Connection window inspected."
+      },
+      "nativeReadOnlyDefect": {
+        "observed": "DELETE FROM typed deletes the owned row despite GDA_CONNECTION_OPTIONS_READ_ONLY, then returns Statement is not a selection statement. Independent SQLite read confirms zero rows.",
+        "source": "libgda/sqlite/gda-sqlite-provider.c:1216 opens SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE.",
+        "candidatePolicy": "Host enforces read-only SQLite and refuses non-selection execution; independent write attempt fails and row count remains one. Native mutation is not a target behavior."
+      },
+      "publicSdk": {
+        "host": "Explicit node:sqlite fixture closure using parsed statement boundaries, metadata conversion and context.own cleanup; no shipped general adapter or ambient DSN access.",
+        "nativeScalarComparisons": 84,
+        "readOnlyControls": 4,
+        "successfulOperations": 2,
+        "cancelledOperations": 2,
+        "connectionsOpened": 4,
+        "connectionsClosedBeforeSettlement": 4,
+        "cancellationPublishedBytes": 0,
+        "limitation": "Cancellation occurs after the first query; in-flight synchronous query preemption and CLI/Shell live adapters remain unqualified."
+      },
+      "captureHashes": {
+        "native1900": "0ad7610a0f6aaec98487bccb69c2083bcb641abca626af9d4eaae01926695713",
+        "native1904": "190fe89af2b6369a842642bf87e1b4c907d71b445aa9fbddab2ae2949a827fcb",
+        "publicSummary": "03b02ab2d52cc304e67e99cba03b215738fda4861b4eccfd20f0096cb29067eb",
+        "nativeCapturePrimitive": "50b049ac1c6c24a3e1a6f2321066b2ec804cffb42fd3ee5fca3bc9a1081c8373"
+      },
+      "remaining": [
+        "Exact frozen Linux optional profile and plugin inventory",
+        "Wider database providers and GValue/date/time/encoding/boundary conversion",
+        "Authentication, transactions and cancellation during real query work",
+        "Public CLI/Shell and installed-package live adapters",
+        "Registry-installed delivery and publication"
+      ],
+      "validation": {
+        "focusedTests": 21,
+        "testFiles": 2,
+        "command": "npx vitest run packages/ssconvert/src/formulas/database-functions.test.ts packages/ssconvert/src/formulas/database-formats.test.ts",
+        "documentation": "Both JSON ledgers parse; git diff --check passed; no product code changed."
+      },
+      "cleanup": {
+        "temporaryDirectory": "out/ssconvert-gda-native",
+        "removedFiles": 5544,
+        "removedBytes": 193315100,
+        "removed": true,
+        "trackedArtifacts": 0
+      }
     }
   },
   "cases": [
@@ -402,7 +500,7 @@
     {
       "id": "database-functions",
       "status": "open",
-      "currentFinding": "EXECSQL/READDBTABLE use an explicit bounded cooperative host query port. Numeric results now carry value-owned date/time formats through formula selection and XML/XLSX/BIFF export. Native successful connections, complete database-type conversion and full lifecycle remain unqualified; native first connections require a GTK dialog."
+      "currentFinding": "Explicit cooperative query ports and value-owned date/time formats are delivered. Supplemental Darwin native GDA/SQLite qualification covers the real GTK dialog, 13 typed columns, both epochs, errors/retry/reuse and connection deactivation. Public SDK live hosts match 84 native scalar/error observations plus four read-only controls and close on success/cancellation. Native libgda mutates despite its read-only option; host enforcement remains required. Exact Linux profile, wider types/providers/lifecycle, live CLI/Shell, installed artifacts and publication remain open."
     },
     {
       "id": "atl-last",
@@ -447,7 +545,9 @@
   ],
   "delivery": {
     "verifiedRemoteMain": [
-      "da7a6f2b376bb6044ae92e5614f7140a84833bc6"
+      "da7a6f2b376bb6044ae92e5614f7140a84833bc6",
+      "9a50779779f03d936ea39449326863272b2bfdf7",
+      "4e23877cc435df0f1a175d89408fa36acd47699c"
     ],
     "verifiedPublication": {
       "version": "17.0.35",

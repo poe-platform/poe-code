@@ -1522,8 +1522,8 @@
     {
       "capability": "EXECSQL / READDBTABLE",
       "status": "unresolved",
-      "implementation": "requires explicit injected data source capability, SQL behavior, arrays and exact database diagnostics",
-      "oracle": "unmeasured in matching activated optional profile"
+      "implementation": "Explicit cooperative createDatabaseFunctions host port supplies EXECSQL/READDBTABLE, bounded typed arrays, value formats and exact host diagnostics; the host owns SQL parsing, read-only enforcement and connections.",
+      "oracle": "Supplemental Darwin native GDA 6 / SQLite 13-column application cohort measured, including actual GTK connection dialog and cleanup; exact frozen Linux optional profile and broader coverage remain unresolved. See gap-resolution.json#reference.databaseLive."
     },
     {
       "capability": "ATL_LAST",
@@ -1618,7 +1618,7 @@
   "knownMismatches": [
     "Absent optional function status and #NAME? cell values repaired and unit-covered against the native control. Native GOConf environment warning bytes are not reproduced and matching-profile stderr parity remains unqualified.",
     "Remaining Perl/Python callable samples and compatibility interpreters are not implemented.",
-    "GDA data-source and ATL FIFO lifecycle/environment behavior are not implemented.",
+    "GDA/ATL explicit service ports exist, but broader lifecycle/environment qualification remains incomplete. Supplemental GDA SQLite application and public SDK live-host evidence is in gap-resolution.json#reference.databaseLive; native read-only mutation is deliberately excluded.",
     "Trusted scalar JS ports do not reproduce general plugin loader lifecycle, namespace replacement or array-producing services.",
     "Exact optional dependency/plugin activation and locale profiles remain unqualified."
   ],

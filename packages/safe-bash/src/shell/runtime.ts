@@ -4308,36 +4308,22 @@ export class Runtime {
                   ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
                   : Buffer.from(formatted, "utf8");
               const byteLength = encoded.byteLength;
-              if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+              if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes && this.budget.canFileSystemOperation()) {
                 let writeSucceeded = false;
                 const mode = 0o666 & ~(state.umask ?? 0o022);
                 try {
-                  this.budget.fileSystemOperation();
-                  if (
-                    !tryWriteMemoryFileSync(
-                      this.backingFs,
-                      path,
-                      encoded,
-                      r0.operator === ">>",
-                      mode,
-                      this.commandSignal,
-                    )
-                  ) {
-                    const bytes = encoded.buffer === fastRedirectScratchBytes.buffer ? Buffer.from(encoded) : encoded;
-                    const resourceFs = creationFileSystem(this.sourceFs, state.umask ?? 0o022);
-                    const resumePathCache = this.budget.pathLookup.suspend();
-                    try {
-                      if (r0.operator === ">>") {
-                        await interruptible(resourceFs.appendFile(path, bytes, { signal: this.commandSignal }), this.signal);
-                      } else {
-                        await interruptible(resourceFs.writeFile(path, bytes, { signal: this.commandSignal, flag: "w" }), this.signal);
-                      }
-                    } finally {
-                      resumePathCache();
-                    }
+                  writeSucceeded = tryWriteMemoryFileSync(
+                    this.backingFs,
+                    path,
+                    encoded,
+                    r0.operator === ">>",
+                    mode,
+                    this.commandSignal,
+                  );
+                  if (writeSucceeded) {
+                    this.budget.fileSystemOperation();
+                    this.budget.bytes += byteLength;
                   }
-                  this.budget.bytes += byteLength;
-                  writeSucceeded = true;
                 } catch {
                   this.signal.throwIfAborted();
                 }

@@ -107,6 +107,10 @@ test("seq equal width truncates LAST at display precision instead of rounding up
       ["seq -w 7 1 0x9.8", "7\n8\n9\n"],
       ["seq -w 8 1 10", "08\n09\n10\n"],
       ["seq 0x1 0x3", "1\n2\n3\n"],
+      ["seq -w 10e-1 2", "01.0\n02.0\n"],
+      ["seq -w 100e-2 2", "001.00\n002.00\n"],
+      ["seq -w 0 -1 -0", "00\n"],
+      ["seq -w 1 -1 -0", "01\n00\n"],
     ] as const) {
       const result = await instance.exec(script);
       assert.equal(result.exitCode, 0, script + result.stderr);

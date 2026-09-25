@@ -94,14 +94,14 @@ export class Session {
     return names;
   }
 
-  private async *read(name: string): ByteSource {
+  private async *read(name: string, literalDash = false): ByteSource {
     const controller = new AbortController();
     const signal = AbortSignal.any([this.signal, controller.signal]);
     let reader: AsyncGenerator<Uint8Array> | undefined;
     try {
       const session = this;
       const source = (async function* (): ByteSource {
-        if (name === "-") {
+        if (name === "-" && !literalDash) {
           session.stdin ??= session.context.stdin[Symbol.asyncIterator]();
           const cursor = session.stdin;
           yield* { [Symbol.asyncIterator]() { return { next: () => cursor.next() }; } };
@@ -136,9 +136,9 @@ export class Session {
     }
   }
 
-  async files(names: readonly string[], process: (source: ByteSource, name: string) => Promise<void>): Promise<void> {
+  async files(names: readonly string[], process: (source: ByteSource, name: string) => Promise<void>, literalDash = false): Promise<void> {
     for (const name of names) {
-      try { await process(this.read(name), name); }
+      try { await process(this.read(name, literalDash), name); }
       catch (error) {
         this.signal.throwIfAborted();
         if (!(error instanceof InputFailure)) throw error;

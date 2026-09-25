@@ -41,8 +41,7 @@ export function createRevCommand(limits: StreamFormatLimits): CommandDefinition 
     const locale = session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C";
     const utf8 = /(?:^|[._-])utf-?8(?:@.*)?$/iu.test(locale);
     if (!utf8 && locale !== "C" && locale !== "POSIX") throw new UsageError(`unsupported character encoding locale: '${locale}'`);
-    const names = parsed.operands.length ? parsed.operands.map(name => name === "-" ? "./-" : name) : [];
-    await session.files(session.names(names), async (source, name) => {
+    await session.files(session.names(parsed.operands), async (source, name) => {
       for await (const { bytes: record, terminated } of records(source, session)) {
         const length = utf8 ? await validPrefix(record, session) : record.length;
         if (length || length === record.length) {
@@ -50,11 +49,11 @@ export function createRevCommand(limits: StreamFormatLimits): CommandDefinition 
           if (terminated || length !== record.length) await session.text("\n");
         }
         if (length !== record.length) {
-          await diagnostic(session.context, new PublicDiagnostic(`${name === "-" ? "stdin" : name}: Illegal byte sequence`));
+          await diagnostic(session.context, new PublicDiagnostic(`${name === "-" && !parsed.operands.length ? "stdin" : name}: Illegal byte sequence`));
           session.failed = true;
           break;
         }
       }
-    });
+    }, parsed.operands.length > 0);
   });
 }

@@ -157,3 +157,18 @@ test("nl rejects a wide field under a tiny shared stdout quota", async () => {
     assert.match(result.stderr, /number field limit/);
   } finally { await instance.dispose(); }
 });
+
+test("nl -d preserves 2-byte default delimiter buffer across 0-byte and >2-byte overrides", async () => {
+  const instance = shell();
+  try {
+    for (const [cmd, input, expected] of [
+      ["nl -d '' -d x", "x:\na\n", "\n       a\n"],
+      ["nl -d abc -d x", "x:\na\n", "\n       a\n"],
+      ["nl -d ab -d x", "xb\na\n", "\n       a\n"],
+    ] as const) {
+      const result = await instance.exec(cmd, { stdin: input });
+      assert.equal(result.exitCode, 0, cmd + ": " + result.stderr);
+      assert.equal(result.stdout, expected, cmd);
+    }
+  } finally { await instance.dispose(); }
+});

@@ -78,3 +78,12 @@ test("rev record cap does not substitute malformed bytes", async () => {
   assert.match(result.stderr, /record limit/);
   await instance.dispose();
 });
+
+test("rev - treats - as a literal file path without leaking ./- in diagnostics", async () => {
+  const instance = shell();
+  try {
+    const missing = await instance.exec("rev -");
+    assert.equal(missing.exitCode, 1);
+    assert.doesNotMatch(missing.stderr, /\.\/-/);
+  } finally { await instance.dispose(); }
+});

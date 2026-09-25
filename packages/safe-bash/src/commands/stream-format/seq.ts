@@ -32,7 +32,7 @@ function decimal(text: string, session: Session): Decimal {
   const scale = fraction.length - exponent;
   session.check(Math.max(digits.length, digits.length - scale, scale), session.limits.maxNumericDigits, "numeric digit");
   const coefficient = BigInt((match[1] === "-" ? "-" : "") + digits);
-  return { coefficient, scale, precision: Math.max(0, scale), negativeZero: coefficient === 0n && match[1] === "-", width: Math.max(1, (match[2] ?? "").length + exponent) + (match[1] === "-" ? 1 : 0) };
+  return { coefficient, scale, precision: Math.max(0, scale), negativeZero: coefficient === 0n && match[1] === "-", width: Math.max(1, (match[2] ?? "").length + Math.max(0, exponent)) + (match[1] === "-" ? 1 : 0) };
 }
 
 function rounded(coefficient: bigint, scale: number, precision: number): bigint {
@@ -231,7 +231,7 @@ export function createSeqCommand(limits: StreamFormatLimits): CommandDefinition 
       const discarded = scale - precision;
       const finishDigits = (finish < 0n ? -finish : finish).toString().length;
       const widthFinish = discarded >= finishDigits ? 0n : finish / 10n ** BigInt(discarded);
-      width = Math.max(firstText.length, fixed(widthFinish, precision, precision).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0));
+      width = Math.max(firstText.length, ((last.negativeZero ? "-" : "") + fixed(widthFinish, precision, precision)).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0));
     }
     let written = false;
     while (step > 0n ? current <= finish : current >= finish) {

@@ -45,10 +45,16 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
     if (!["ln", "rn", "rz"].includes(format)) throw new UsageError(`invalid line numbering format: '${format}'`);
     session.check(width + separator.length, limits.maxRecordBytes, "number field");
     session.admitOutput(width + separator.length);
-    let delimiter = Buffer.from("\\:");
+    const defaultDelimiter = Buffer.from("\\:");
+    let delimiter: Buffer = defaultDelimiter;
     for (const argument of parsed.values.get("d") ?? []) {
       const next = Buffer.from(argument);
-      delimiter = next.length === 1 ? Buffer.concat([next, delimiter.subarray(1)]) : next;
+      if (next.length === 1 || next.length === 2) {
+        defaultDelimiter.set(next, 0);
+        delimiter = defaultDelimiter;
+      } else {
+        delimiter = next;
+      }
     }
     const delimiters = [1, 2, 3].map(count => Buffer.concat(Array.from({ length: count }, () => delimiter)));
     const budget = new PatternBudget(session);

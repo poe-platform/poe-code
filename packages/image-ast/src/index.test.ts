@@ -3119,4 +3119,35 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Array.from(normBw.slice(0, 12))).toEqual([15, 70, 125, 179, 234, 24, 79, 134, 189, 243, 34, 88]);
   });
+  it("matches libvips vips_composite on premultiplied:true layers and sub-1-alpha Porter-Duff modes (#1246)", async () => {
+    const base = Buffer.from([
+      146, 168, 104, 1,
+      100, 150, 200, 128,
+      31, 1, 33, 254,
+      199, 9, 41, 38
+    ]);
+    const ov = Buffer.from([
+      225, 97, 247, 210,
+      200, 150, 100, 50,
+      240, 74, 18, 165,
+      40, 210, 170, 253
+    ]);
+    const inUnpremul = await sharp(base, { raw: { width: 2, height: 2, channels: 4 } })
+      .composite([{ input: ov, raw: { width: 2, height: 2, channels: 4 }, blend: "in" }])
+      .raw()
+      .toBuffer();
+    expect(Array.from(inUnpremul.slice(0, 4))).toEqual([225, 97, 247, 0]);
+
+    const mulPremul = await sharp(base, { raw: { width: 2, height: 2, channels: 4 } })
+      .composite([{ input: ov, raw: { width: 2, height: 2, channels: 4 }, blend: "multiply", premultiplied: true }])
+      .raw()
+      .toBuffer();
+    expect(Array.from(mulPremul.slice(4, 8))).toEqual([239, 232, 224, 152]);
+
+    const satPremul = await sharp(base, { raw: { width: 2, height: 2, channels: 4 } })
+      .composite([{ input: ov, raw: { width: 2, height: 2, channels: 4 }, blend: "saturate", premultiplied: true }])
+      .raw()
+      .toBuffer();
+    expect(Array.from(satPremul.slice(4, 8))).toEqual([128, 150, 171, 178]);
+  });
 });

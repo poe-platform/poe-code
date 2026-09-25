@@ -436,6 +436,12 @@ export function compositeImage(
   const out = new Uint8Array(base.data);
   const baseW = base.width;
   const baseH = base.height;
+  const initU32 = new Uint32Array(out.buffer, out.byteOffset, baseW * baseH);
+  for (let i = 0; i < initU32.length; i++) {
+    if ((initU32[i]! >>> 24) === 0) {
+      initU32[i] = 0;
+    }
+  }
 
   for (const layer of layers) {
     let overlay: RgbaImage;
@@ -448,7 +454,7 @@ export function compositeImage(
         ? {
             raw: {
               ...layer.raw,
-              ...(layer.premultiplied !== undefined ? { premultiplied: layer.premultiplied } : {})
+              premultiplied: false
             }
           }
         : {})
@@ -466,24 +472,7 @@ export function compositeImage(
             ? new Uint8Array(layer.input.buffer, layer.input.byteOffset, layer.input.byteLength)
             : new Uint8Array(layer.input);
       overlay = decodeImage(bufBytes, layerOpts);
-      if (layer.premultiplied && !layer.raw) {
-        const unpremul = new Uint8Array(overlay.data.length);
-        for (let i = 0; i < overlay.width * overlay.height; i++) {
-          const a = overlay.data[i * 4 + 3]!;
-          if (a > 0 && a < 255) {
-            const scale = 255 / a;
-            unpremul[i * 4] = Math.min(255, Math.round(overlay.data[i * 4]! * scale));
-            unpremul[i * 4 + 1] = Math.min(255, Math.round(overlay.data[i * 4 + 1]! * scale));
-            unpremul[i * 4 + 2] = Math.min(255, Math.round(overlay.data[i * 4 + 2]! * scale));
-          } else {
-            unpremul[i * 4] = overlay.data[i * 4]!;
-            unpremul[i * 4 + 1] = overlay.data[i * 4 + 1]!;
-            unpremul[i * 4 + 2] = overlay.data[i * 4 + 2]!;
-          }
-          unpremul[i * 4 + 3] = a;
-        }
-        overlay = { ...overlay, data: unpremul };
-      }
+
     } else {
       overlay = decodeImage(undefined, {
         ...(layer.input.create !== undefined ? { create: layer.input.create } : {}),
@@ -619,7 +608,7 @@ export function compositeImage(
               continue;
             }
             const daByte = dstBuf[dIdx + 3]!;
-            if (isOver && daByte === 255) {
+            if (isOver && daByte === 255 && !layer.premultiplied) {
               const invSa = 255 - saByte;
               out[dIdx] = ((ovData[sIdx]! * saByte + out[dIdx]! * invSa) / 255) | 0;
               out[dIdx + 1] = ((ovData[sIdx + 1]! * saByte + out[dIdx + 1]! * invSa) / 255) | 0;
@@ -627,10 +616,13 @@ export function compositeImage(
               continue;
             }
 
-            const sr = ovData[sIdx]! * inv255;
-            const sg = ovData[sIdx + 1]! * inv255;
-            const sb = ovData[sIdx + 2]! * inv255;
             const sa = saByte * inv255;
+            const srP = layer.premultiplied ? ovData[sIdx]! * inv255 : (ovData[sIdx]! * inv255) * sa;
+            const sgP = layer.premultiplied ? ovData[sIdx + 1]! * inv255 : (ovData[sIdx + 1]! * inv255) * sa;
+            const sbP = layer.premultiplied ? ovData[sIdx + 2]! * inv255 : (ovData[sIdx + 2]! * inv255) * sa;
+            const sr = layer.premultiplied ? (sa > 0 ? srP / sa : 0) : ovData[sIdx]! * inv255;
+            const sg = layer.premultiplied ? (sa > 0 ? sgP / sa : 0) : ovData[sIdx + 1]! * inv255;
+            const sb = layer.premultiplied ? (sa > 0 ? sbP / sa : 0) : ovData[sIdx + 2]! * inv255;
 
             const dr = dstBuf[dIdx]! * inv255;
             const dg = dstBuf[dIdx + 1]! * inv255;
@@ -645,9 +637,6 @@ export function compositeImage(
                 out[dIdx + 2] = 0;
                 out[dIdx + 3] = 0;
               } else {
-                const srP = sr * sa;
-                const sgP = sg * sa;
-                const sbP = sb * sa;
                 const drP = dr * da;
                 const dgP = dg * da;
                 const dbP = db * da;
@@ -677,19 +666,26 @@ export function compositeImage(
               continue;
             }
             if (blend === "source") {
-              out[dIdx] = Math.round(sr * 255);
-              out[dIdx + 1] = Math.round(sg * 255);
-              out[dIdx + 2] = Math.round(sb * 255);
-              out[dIdx + 3] = Math.round(sa * 255);
+              if (sa > 0) {
+                out[dIdx] = Math.max(0, Math.min(255, Math.floor(sr * 255 + 1e-5)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor(sg * 255 + 1e-5)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor(sb * 255 + 1e-5)));
+                out[dIdx + 3] = saByte;
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+              }
               continue;
             }
             if (blend === "dest") continue;
             if (blend === "over") {
               const outA = sa + da * (1 - sa);
               if (outA > 0) {
-                out[dIdx] = Math.max(0, Math.min(255, Math.floor((((sr * sa + dr * da * (1 - sa) + 1e-5)) / outA) * 255)));
-                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((((sg * sa + dg * da * (1 - sa) + 1e-5)) / outA) * 255)));
-                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((((sb * sa + db * da * (1 - sa) + 1e-5)) / outA) * 255)));
+                out[dIdx] = Math.max(0, Math.min(255, Math.floor((((srP + dr * da * (1 - sa) + 1e-5)) / outA) * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((((sgP + dg * da * (1 - sa) + 1e-5)) / outA) * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((((sbP + db * da * (1 - sa) + 1e-5)) / outA) * 255)));
                 out[dIdx + 3] = Math.max(0, Math.min(255, Math.floor((outA * 255) + 1e-5)));
               } else {
                 out[dIdx] = 0;
@@ -702,49 +698,91 @@ export function compositeImage(
             if (blend === "dest-over") {
               const outA = da + sa * (1 - da);
               if (outA > 0) {
-                out[dIdx] = Math.floor((((dr * da + sr * sa * (1 - da) + 1e-5)) / outA) * 255);
-                out[dIdx + 1] = Math.floor((((dg * da + sg * sa * (1 - da) + 1e-5)) / outA) * 255);
-                out[dIdx + 2] = Math.floor((((db * da + sb * sa * (1 - da) + 1e-5)) / outA) * 255);
-                out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
+                out[dIdx] = Math.max(0, Math.min(255, Math.floor((((dr * da + srP * (1 - da) + 1e-5)) / outA) * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((((dg * da + sgP * (1 - da) + 1e-5)) / outA) * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((((db * da + sbP * (1 - da) + 1e-5)) / outA) * 255)));
+                out[dIdx + 3] = Math.max(0, Math.min(255, Math.floor((outA * 255) + 1e-5)));
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
               }
               continue;
             }
             if (blend === "in") {
               const outA = sa * da;
-              out[dIdx] = Math.floor((sr * 255) + 1e-5);
-              out[dIdx + 1] = Math.floor((sg * 255) + 1e-5);
-              out[dIdx + 2] = Math.floor((sb * 255) + 1e-5);
-              out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
+              if (outA > 0) {
+                out[dIdx] = Math.max(0, Math.min(255, Math.floor((sr * 255) + 1e-5)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((sg * 255) + 1e-5)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((sb * 255) + 1e-5)));
+                out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+              }
               continue;
             }
             if (blend === "out") {
               const outA = sa * (1 - da);
-              out[dIdx] = Math.floor((sr * 255) + 1e-5);
-              out[dIdx + 1] = Math.floor((sg * 255) + 1e-5);
-              out[dIdx + 2] = Math.floor((sb * 255) + 1e-5);
-              out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
+              if (outA > 0) {
+                out[dIdx] = Math.max(0, Math.min(255, Math.floor((sr * 255) + 1e-5)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((sg * 255) + 1e-5)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((sb * 255) + 1e-5)));
+                out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+              }
               continue;
             }
             if (blend === "dest-in") {
-              out[dIdx] = dstBuf[dIdx]!;
-              out[dIdx + 1] = dstBuf[dIdx + 1]!;
-              out[dIdx + 2] = dstBuf[dIdx + 2]!;
-              out[dIdx + 3] = Math.floor((da * sa * 255) + 1e-5);
+              const outA = da * sa;
+              if (outA > 0) {
+                out[dIdx] = dstBuf[dIdx]!;
+                out[dIdx + 1] = dstBuf[dIdx + 1]!;
+                out[dIdx + 2] = dstBuf[dIdx + 2]!;
+                out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+              }
               continue;
             }
             if (blend === "dest-out") {
-              out[dIdx + 3] = Math.floor((da * (1 - sa) + 1e-5) * 255);
+              const outA = da * (1 - sa);
+              if (outA > 0) {
+                out[dIdx] = Math.floor((dr * 255) + 1e-5);
+                out[dIdx + 1] = Math.floor((dg * 255) + 1e-5);
+                out[dIdx + 2] = Math.floor((db * 255) + 1e-5);
+                out[dIdx + 3] = Math.floor((outA + 1e-5) * 255);
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+              }
               continue;
             }
             if (blend === "atop") {
               const outA = da;
               if (outA > 0) {
-                const cr = (sr * sa + dr * da * (1 - sa)) / outA;
-                const cg = (sg * sa + dg * da * (1 - sa)) / outA;
-                const cb = (sb * sa + db * da * (1 - sa)) / outA;
+                const cr = (srP + dr * da * (1 - sa)) / outA;
+                const cg = (sgP + dg * da * (1 - sa)) / outA;
+                const cb = (sbP + db * da * (1 - sa)) / outA;
                 out[dIdx] = Math.max(0, Math.min(255, Math.floor((cr * 255) + 1e-5)));
                 out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((cg * 255) + 1e-5)));
                 out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((cb * 255) + 1e-5)));
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
               }
               out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
               continue;
@@ -752,12 +790,16 @@ export function compositeImage(
             if (blend === "dest-atop") {
               const outA = sa;
               if (outA > 0) {
-                const cr = (dr * da + sr * sa * (1 - da)) / outA;
-                const cg = (dg * da + sg * sa * (1 - da)) / outA;
-                const cb = (db * da + sb * sa * (1 - da)) / outA;
+                const cr = (dr * da + srP * (1 - da)) / outA;
+                const cg = (dg * da + sgP * (1 - da)) / outA;
+                const cb = (db * da + sbP * (1 - da)) / outA;
                 out[dIdx] = Math.max(0, Math.min(255, Math.floor((cr * 255) + 1e-5)));
                 out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((cg * 255) + 1e-5)));
                 out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((cb * 255) + 1e-5)));
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
               }
               out[dIdx + 3] = Math.floor((outA * 255) + 1e-5);
               continue;
@@ -765,9 +807,9 @@ export function compositeImage(
             if (blend === "xor") {
               const outA = sa * (1 - da) + da * (1 - sa);
               if (outA > 0) {
-                const cr = (sr * sa * (1 - da) + dr * da * (1 - sa)) / outA;
-                const cg = (sg * sa * (1 - da) + dg * da * (1 - sa)) / outA;
-                const cb = (sb * sa * (1 - da) + db * da * (1 - sa)) / outA;
+                const cr = (srP * (1 - da) + dr * da * (1 - sa)) / outA;
+                const cg = (sgP * (1 - da) + dg * da * (1 - sa)) / outA;
+                const cb = (sbP * (1 - da) + db * da * (1 - sa)) / outA;
                 out[dIdx] = Math.max(0, Math.min(255, Math.floor((cr * 255) + 1e-5)));
                 out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor((cg * 255) + 1e-5)));
                 out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor((cb * 255) + 1e-5)));
@@ -783,27 +825,35 @@ export function compositeImage(
               const outA = Math.min(1, sa + da);
               if (outA > 0) {
                 const f = Math.min(sa, 1 - da);
-                const cr = (sr * sa * f + dr * da) / outA;
-                const cg = (sg * sa * f + dg * da) / outA;
-                const cb = (sb * sa * f + db * da) / outA;
-                out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
-                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
-                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
+                const cr = (srP * f + dr * da) / outA;
+                const cg = (sgP * f + dg * da) / outA;
+                const cb = (sbP * f + db * da) / outA;
+                out[dIdx] = Math.max(0, Math.min(255, Math.floor(cr * 255 + 1e-5)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor(cg * 255 + 1e-5)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor(cb * 255 + 1e-5)));
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
               }
-              out[dIdx + 3] = Math.round(outA * 255);
+              out[dIdx + 3] = Math.floor(outA * 255 + 1e-5);
               continue;
             }
             if (blend === "add") {
               const outA = Math.min(1, sa + da);
               if (outA > 0) {
-                const cr = (sr * sa + dr * da) / outA;
-                const cg = (sg * sa + dg * da) / outA;
-                const cb = (sb * sa + db * da) / outA;
-                out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
-                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
-                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
+                const cr = (srP + dr * da) / outA;
+                const cg = (sgP + dg * da) / outA;
+                const cb = (sbP + db * da) / outA;
+                out[dIdx] = Math.max(0, Math.min(255, Math.floor(cr * 255 + 1e-5)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor(cg * 255 + 1e-5)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor(cb * 255 + 1e-5)));
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
               }
-              out[dIdx + 3] = Math.round(outA * 255);
+              out[dIdx + 3] = Math.floor(outA * 255 + 1e-5);
               continue;
             }
 
@@ -837,12 +887,7 @@ export function compositeImage(
       }
     }
   }
-  const outU32 = new Uint32Array(out.buffer, out.byteOffset, baseW * baseH);
-  for (let i = 0; i < outU32.length; i++) {
-    if ((outU32[i]! >>> 24) === 0) {
-      outU32[i] = 0;
-    }
-  }
+
   return {
     ...base,
     data: out,

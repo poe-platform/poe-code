@@ -54,6 +54,10 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
     },
     complete(request: LlmServiceRequest): AsyncIterable<string | Uint8Array> {
       request.signal.throwIfAborted();
+      for (const [key, value] of Object.entries(request.options)) {
+        if (!key || value !== null && !['string', 'number', 'boolean'].includes(typeof value)) throw new TypeError('LLM options require nonempty names and scalar values');
+        if (typeof value === 'number' && !Number.isFinite(value)) throw new TypeError('LLM numeric options must be finite');
+      }
       const entry = this.resolve(request.model);
       for (const attachment of request.attachments) {
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) {

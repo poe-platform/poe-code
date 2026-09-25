@@ -29,15 +29,16 @@ const numericOptions = {
   ]),
 };
 
-function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number | boolean> {
+function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number | boolean | null> {
   return Object.fromEntries(Object.entries(options).map(([key, value]) => {
     if ((endpoint === "chat" ? ["store", "parallel_tool_calls", "logprobs"] : ["stream"]).includes(key)) {
+      if (typeof value === "boolean") return [key, value];
       if (value !== "true" && value !== "false") throw new Error(`Invalid OpenAI option ${key}: expected boolean`);
       return [key, value === "true"];
     }
     const type = numericOptions[endpoint].get(key);
     if (!type) return [key, value];
-    const number = value.trim() ? Number(value) : NaN;
+    const number = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
     if (!Number.isFinite(number) || type === "integer" && !Number.isSafeInteger(number)) {
       throw new Error(`Invalid OpenAI option ${key}: expected a finite ${type === "integer" ? "safe integer" : "number"}`);
     }
@@ -161,7 +162,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         const editing = request.attachments.length > 0;
         const outputFormat = model.outputType!.split(";", 1)[0]!.trim().toLowerCase().slice("image/".length);
         if (request.options.output_format !== undefined && request.options.output_format !== outputFormat) throw new TypeError("output_format conflicts with model outputType");
-        const values: Record<string, string | number | boolean> = { ...jsonOptions(request.options, "images"), output_format: outputFormat, model: request.model, prompt: request.prompt };
+        const values: Record<string, string | number | boolean | null> = { ...jsonOptions(request.options, "images"), output_format: outputFormat, model: request.model, prompt: request.prompt };
         if (values.stream === true) throw new TypeError("Image event streaming is not supported by this reference provider");
         const body = editing ? multipart({ ...values, ...request.options }, request.attachments.map(file => ({ ...file, field: "image[]" })), limits.maxRequestBytes) : jsonBody(values, limits.maxRequestBytes);
         for await (const response of send(editing ? "/images/edits" : "/images/generations", "POST", body)) {

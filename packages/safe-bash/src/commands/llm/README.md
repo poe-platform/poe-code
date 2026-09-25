@@ -25,7 +25,7 @@ The command entry exports `LlmCommandsOptions`, `LlmProvider`, `LlmModel`, and
 `LlmRequest`. `createLlmService({ providers, defaultModel })` exposes the same
 model registry and provider dispatch to JavaScript callers through `models`,
 `resolve(model?)` and `complete(request)`. Requests contain prompt, optional
-model/system, attachments, string-valued provider options and an abort signal.
+model/system, attachments, scalar provider options (string, finite number, boolean or null) and an abort signal.
 The service validates model selection and attachment support; providers validate
 and translate their own options. Response chunks have no shell newline or terminal
 formatting. `complete()` returns the provider's iterable: direct callers own its
@@ -133,7 +133,7 @@ interface LlmRequest {
   prompt: string;
   system?: string;
   attachments: readonly { mimeType: string; bytes: Uint8Array }[];
-  options: Readonly<Record<string, string>>;
+  options: Readonly<Record<string, LlmOption>>;
   signal: AbortSignal;
 }
 interface LlmCommandsOptions {

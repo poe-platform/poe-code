@@ -187,3 +187,14 @@ test("llm accepts an empty request under a zero input allowance", async () => {
   try { assert.equal((await shell.exec("llm")).stdout, "ok\n"); }
   finally { await shell.dispose(); }
 });
+
+test('shared LLM service rejects invalid scalar options before provider admission', async () => {
+  let calls = 0;
+  const service = createLlmService({defaultModel:'text',providers:[{name:'fake',models:[{id:'text'}],async *complete() { calls++; yield 'unexpected'; }}]});
+  for (const value of [NaN,Infinity,{nested:true}]) {
+    await assert.rejects(async () => {
+      for await (const chunk of service.complete({prompt:'hello',attachments:[],options:{temperature:value} as LlmRequest['options'],signal:new AbortController().signal})) assert.fail(String(chunk));
+    }, /finite|scalar/u);
+  }
+  assert.equal(calls, 0);
+});

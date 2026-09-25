@@ -316,9 +316,9 @@ class Client:
             raise TypeError("Request transform must return a Request")
         return transformed.payload()
 
-    async def _call(self, operation, payload, timeout):
+    async def _run(self, operation, timeout):
         self._check_open()
-        task = asyncio.ensure_future(self._bridge.call(operation, payload))
+        task = asyncio.ensure_future(operation())
         self._tasks.add(task)
         try:
             return await asyncio.wait_for(task, timeout)
@@ -326,7 +326,7 @@ class Client:
             self._tasks.discard(task)
 
     async def models(self):
-        values = await self._call("models", {}, self._timeout)
+        values = await self._run(lambda: self._bridge.call("models", {}), self._timeout)
         return tuple(Model(id=value["id"], aliases=tuple(value.get("aliases", ())),
                            capabilities=tuple(value.get("capabilities", ())),
                            metadata=copy.deepcopy(value.get("metadata", {}))) for value in values)
@@ -334,10 +334,13 @@ class Client:
     async def complete(self, prompt="", *, timeout=None, max_response_bytes=None, **values):
         limit = self._limit if max_response_bytes is None else _limit(max_response_bytes)
         timeout = self._timeout if timeout is None else _timeout(timeout)
-        payload = await self._payload(self._request(prompt, values))
-        response = Response.from_payload(await self._call("complete", payload, timeout))
-        _check_size(response, limit)
-        return await _transform(self._response_transform, response)
+        request = self._request(prompt, values)
+        async def execute():
+            payload = await self._payload(request)
+            response = Response.from_payload(await self._bridge.call("complete", payload))
+            _check_size(response, limit)
+            return await _transform(self._response_transform, response)
+        return await self._run(execute, timeout)
 
     def stream(self, prompt="", *, timeout=None, max_response_bytes=None, **values):
         self._check_open()
@@ -350,7 +353,7 @@ class Client:
             raise TypeError("Embedding inputs must be a sequence of strings")
         payload = {"model": model if model is not None else self._defaults["model"], "inputs": list(inputs),
                    "options": _options({**self._defaults["options"], **(options or {})})}
-        result = await self._call("embed", payload, self._timeout if timeout is None else _timeout(timeout))
+        result = await self._run(lambda: self._bridge.call("embed", payload), self._timeout if timeout is None else _timeout(timeout))
         vectors = tuple(tuple(vector) for vector in result["vectors"])
         if len(vectors) != len(inputs) or any(type(value) not in (int, float) or not math.isfinite(value) for vector in vectors for value in vector):
             raise LlmError("protocol", "Invalid embedding result")

@@ -58,18 +58,27 @@ for (const extra of [false, true]) {
     for (const name of names) await fs.writeFile(`/${name}`, new Uint8Array());
     const enumeration = context.mock.method(fs, "readdir");
     const metadata = context.mock.method(fs, "stat");
+    const entries = context.mock.method(fs, "lstat");
+    let argumentsSeen: readonly string[] | undefined;
+    shell.register({ name: "capture", execute(command) {
+      argumentsSeen = [...command.args];
+      return { exitCode: 0 };
+    } });
     try {
       if (extra) {
         await assert.rejects(shell.exec(": * >after"), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
         assert.equal(metadata.mock.callCount(), 0);
+        assert.equal(entries.mock.callCount(), 0);
         await assert.rejects(fs.stat("/after"), { code: "ENOENT" });
       } else {
-        const result = await shell.exec(": * >after");
+        const result = await shell.exec("capture * >after");
         assert.equal(result.exitCode, 0);
         assert.equal(result.stdout, "");
         assert.equal(result.stderr, "");
-        // Acquisition validates the parent once; the generic mode hint adds no parent stat.
-        assert.deepEqual(metadata.mock.calls.map(call => call.arguments[0]), [...names.toSorted().map(name => `/${name}`), "/"]);
+        assert.deepEqual(argumentsSeen, ["dev", ...names].toSorted());
+        // Glob checks entries without following links; redirect acquisition validates its parent.
+        assert.deepEqual(entries.mock.calls.map(call => call.arguments[0]).filter(path => path !== "/after"), names.toSorted().map(name => `/${name}`));
+        assert.deepEqual(metadata.mock.calls.map(call => call.arguments[0]), ["/"]);
         const created = await fs.stat("/after");
         assert.equal(created.size, 0);
         assert.equal(created.mode! & 0o777, 0o644);

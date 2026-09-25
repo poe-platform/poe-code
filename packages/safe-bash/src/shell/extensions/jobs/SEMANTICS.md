@@ -3,7 +3,7 @@
 ## Installation and scope
 
 `jobsExtension()` explicitly enables the `&` list terminator, `$!`, and the
-`wait` builtin. It takes no configuration and reads no environment variables
+`wait`, `jobs`, and `kill` builtins. It takes no configuration and reads no environment variables
 of its own. The extension is available through the repository's optional build,
 not the default root or browser entry, command aggregate, or package payload.
 No native processes, host PIDs, or host job table are used by the implementation.
@@ -32,6 +32,23 @@ that default. Shared input cursors and surviving descriptor aliases keep their
 normal ownership and byte behavior.
 
 ## Wait operands
+
+`wait` also accepts `%N`, `%%` and `%+` (the current job), and `%-` (the
+previous job), including with `-n`. Job specs select listed jobs owned by the
+current shell; numeric PIDs can additionally select retained completed children.
+Unknown job specs return 127.
+
+`jobs` lists job IDs and Running/Done state. `jobs -p` lists virtual child PIDs;
+`-l` includes them beside the state, and `-r` filters running jobs. `-s` has no
+results because virtual jobs cannot be suspended. Operands select job IDs.
+
+`kill` accepts virtual child PIDs or job specs, defaults to TERM, and supports
+`-s`, `-n`, numeric/name signal options, and `-l`/`-L` signal listing. Signal 0
+checks that a child is active. Termination cancels the child, waits for its normal
+cleanup, and publishes status 128 plus the signal number. Cancellation of the
+owning execution and cleanup failures retain their failure behavior. Host PIDs
+are never targeted. Suspension, continuation, and notification-only signals are
+explicitly unsupported; this extension does not implement interactive job control.
 
 Bare `wait` waits for this shell's children and returns zero when their ordinary
 statuses have been collected. Explicit numeric operands return the last

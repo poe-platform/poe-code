@@ -1,4 +1,5 @@
 import { commandRuntimeIdentity } from "../../../contracts/command.js";
+import { constants } from "node:os";
 import { writeText } from "../../../contracts/io.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes } from "../../../contracts/value.js";
 import type { ShellValue } from "../../../contracts/value.js";
@@ -37,6 +38,88 @@ function instance(inherited?: number): ShellExtensionInstance {
   let jobs: JobState | undefined;
   let failure: { reason: unknown } | undefined;
   const children = new Map<number, JobHandle>();
+  const resolve = (operand: string, flexible = false): JobHandle | undefined => {
+    if (!operand.startsWith("%")) {
+      const processId = waitProcessId(operand, flexible);
+      return processId === undefined ? undefined : children.get(processId);
+    }
+    const listed = jobs!.snapshot().filter(entry => entry.listed);
+    const spec = operand.slice(1);
+    if (spec === "" || spec === "%" || spec === "+") return listed.at(-1)?.handle;
+    if (spec === "-") return listed.at(-2)?.handle;
+    const jobId = waitProcessId(spec);
+    return listed.find(entry => entry.handle.jobId === jobId)?.handle;
+  };
+  const list = async (context: ShellExtensionContext): Promise<number> => {
+    let mode = "", offset = 0;
+    for (; offset < context.args.length; offset++) {
+      const option = context.args[offset]!;
+      if (option === "--") { offset++; break; }
+      if (!option.startsWith("-")) break;
+      if (option === "-p" || option === "-l" || option === "-r" || option === "-s") mode = option;
+      else { await context.diagnostic(`jobs: ${option}: invalid option`); return 2; }
+    }
+    const listed = jobs!.snapshot().filter(entry => entry.listed);
+    let result = 0;
+    const selected = offset === context.args.length ? listed.map(entry => entry.handle)
+      : context.args.slice(offset).map(operand => resolve(operand.startsWith("%") ? operand : `%${operand}`));
+    for (const [index, handle] of selected.entries()) {
+      if (!handle) { await context.diagnostic(`jobs: ${context.args[offset + index]}: no such job`); result = 1; continue; }
+      const entry = listed.find(entry => entry.handle === handle);
+      if (!entry || mode === "-s" || mode === "-r" && entry.state === "done") continue;
+      const pid = [...children].find(([, child]) => child === handle)?.[0];
+      if (mode === "-p") await writeText(context.stdout, `${pid}\n`);
+      else {
+        const marker = handle === listed.at(-1)?.handle ? "+" : handle === listed.at(-2)?.handle ? "-" : " ";
+        const state = entry.state === "done" ? "Done" : "Running";
+        await writeText(context.stdout, `[${handle.jobId}]${marker} ${mode === "-l" ? `${pid} ` : ""}${state}\n`);
+      }
+    }
+    return result;
+  };
+  const kill = async (context: ShellExtensionContext): Promise<number> => {
+    const signals: Readonly<Record<string, number>> = constants.signals;
+    const signalNumber = (name: string): number | undefined => {
+      const numeric = waitProcessId(name);
+      if (numeric !== undefined) return numeric === 0 || Object.values(signals).includes(numeric) ? numeric : undefined;
+      return signals[name.startsWith("SIG") ? name : `SIG${name}`];
+    };
+    let offset = 0, signal = signals.SIGTERM;
+    if (context.args[0] === "-l" || context.args[0] === "-L") {
+      if (context.args.length === 1) {
+        await writeText(context.stdout, `${Object.keys(signals).map(name => name.slice(3)).join(" ")}\n`);
+        return 0;
+      }
+      let result = 0;
+      for (const operand of context.args.slice(1)) {
+        const numeric = waitProcessId(operand);
+        const number = numeric === undefined ? signalNumber(operand) : numeric > 128 ? numeric - 128 : numeric;
+        const name = Object.keys(signals).find(name => signals[name] === number);
+        if (!name) { await context.diagnostic(`kill: ${operand}: invalid signal specification`); result = 1; }
+        else await writeText(context.stdout, `${numeric === undefined ? number : name.slice(3)}\n`);
+      }
+      return result;
+    }
+    if (context.args[0] === "-s" || context.args[0] === "-n") {
+      signal = signalNumber(context.args[1] ?? "")!;
+      offset = 2;
+    } else if (context.args[0]?.startsWith("-") && context.args[0] !== "--") {
+      signal = signalNumber(context.args[0].slice(1))!;
+      offset = 1;
+    }
+    if (context.args[offset] === "--") offset++;
+    if (signal === undefined || signal > 31) { await context.diagnostic("kill: invalid signal specification"); return 1; }
+    if ([signals.SIGSTOP, signals.SIGTSTP, signals.SIGTTIN, signals.SIGTTOU, signals.SIGCONT, signals.SIGCHLD, signals.SIGURG, signals.SIGWINCH].includes(signal)) {
+      await context.diagnostic("kill: signal is not supported by virtual job termination"); return 1;
+    }
+    if (offset >= context.args.length) { await context.diagnostic("kill: usage: kill [-s signal | -n signal | -signal] pid | %job ..."); return 2; }
+    let result = 0;
+    for (const operand of context.args.slice(offset)) {
+      const handle = resolve(operand);
+      if (!handle || !jobs!.signal(handle, signal)) { await context.diagnostic(`kill: ${operand}: no such ${operand.startsWith("%") ? "job" : "process"}`); result = 1; }
+    }
+    return result;
+  };
   const status = (outcome: JobOutcome): number => {
     if (outcome.kind === "failure") {
       failure ??= { reason: outcome.reason };
@@ -97,7 +180,7 @@ function instance(inherited?: number): ShellExtensionInstance {
         for (let index = offset; index < context.args.length; index++) {
           context.signal.throwIfAborted();
           const processId = waitProcessId(context.args[index]!, true);
-          const handle = processId === undefined || processId < 0 ? undefined : children.get(processId);
+          const handle = resolve(context.args[index]!, true);
           const saved = handle && jobs!.savedStatus(handle);
           if (saved !== undefined) return await publish(saved, processId);
         }
@@ -108,7 +191,7 @@ function instance(inherited?: number): ShellExtensionInstance {
           const operand = context.args[index]!;
           const raw = context.argumentValues[index]!;
           const processId = waitProcessId(operand, true);
-          const handle = processId === undefined ? undefined : children.get(processId);
+          const handle = resolve(operand, true);
           if (handle && active.has(handle)) { targets.push({ handle }); continue; }
           if ((processId === undefined || processId === -1) && operand.length && operand[0] !== "%") await context.diagnostic(concatShellValues(["wait: warning: ", raw, ": job specification requires leading `%'"]));
           await context.diagnostic(concatShellValues(["wait: `", raw, operand[0] === "%" ? "': no such job" : "': not a pid or valid job spec"]));
@@ -138,20 +221,25 @@ function instance(inherited?: number): ShellExtensionInstance {
           const raw = context.argumentValues[offset]!;
           const processId = waitProcessId(operand);
           returnedProcessId = undefined;
-          if (processId === undefined) {
+          const handle = resolve(operand);
+          if (operand.startsWith("%") && !handle) {
+            await context.diagnostic(concatShellValues(["wait: `", raw, "': no such job"]));
+            result = 127;
+            continue;
+          }
+          if (processId === undefined && !operand.startsWith("%")) {
             await context.diagnostic(concatShellValues(["wait: `", raw, "': not a pid or valid job spec"]));
             if (operand.length && operand[0]! >= "0" && operand[0]! <= "9") return { result: 1, processId: undefined };
             result = 1;
             continue;
           }
-          const handle = children.get(processId);
           if (!handle) {
             await context.diagnostic(`wait: pid ${processId} is not a child of this shell`);
             result = 127;
           } else {
             const waited = await jobs!.wait([{ handle }], { signal });
             result = status(waited.outcome);
-            returnedProcessId = processId;
+            returnedProcessId = [...children].find(([, child]) => child === handle)?.[0];
           }
         }
         return { result, processId: returnedProcessId };
@@ -174,7 +262,7 @@ function instance(inherited?: number): ShellExtensionInstance {
     return result;
   };
   return {
-    builtins: [{ name: "wait", execute: wait }],
+    builtins: [{ name: "wait", execute: wait }, { name: "jobs", execute: list }, { name: "kill", execute: kill }],
     start(context) {
       const registerExecutionCleanup = context.registerExecutionCleanup;
       if (typeof registerExecutionCleanup !== "function") throw new TypeError("Jobs require execution-scoped cleanup ownership");

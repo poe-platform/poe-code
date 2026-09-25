@@ -12,7 +12,7 @@ test("jobs factory explicitly declares syntax and matching runtime identity", ()
   const extension = jobsExtension();
   assert.equal(extension.runtimeIdentity, commandRuntimeIdentity);
   assert.deepEqual(extension.syntax, { listTerminators: [{ operator: "&" }], specialParameters: [{ name: "!" }] });
-  assert.deepEqual(extension.create().builtins.map(builtin => builtin.name), ["wait"]);
+  assert.deepEqual(extension.create().builtins.map(builtin => builtin.name), ["wait", "jobs", "kill"]);
 });
 
 test("standalone jobs refuse absent execution-cleanup capability before acquiring owner resources", () => {

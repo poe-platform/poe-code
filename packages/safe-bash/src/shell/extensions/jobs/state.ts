@@ -45,6 +45,7 @@ export interface JobState {
   snapshot(): readonly JobSnapshot[];
   retireNotified(): void;
   savedStatus(handle: JobHandle): number | undefined;
+  signal(handle: JobHandle, signal: number): boolean;
   wait(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
   waitNext(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
   finish(): Promise<void>;
@@ -62,6 +63,7 @@ interface JobRecord {
   saved: boolean;
   state: JobSnapshot["state"];
   outcome?: JobOutcome;
+  terminationStatus?: number;
   cleaning?: Promise<void>;
 }
 
@@ -169,6 +171,11 @@ class JobRegistry implements JobState {
     await this.#clean(record);
     let outcome: JobOutcome;
     if (this.#owner?.aborted) outcome = { kind: "failure", reason: this.#owner.reason };
+    else if (record.terminationStatus !== undefined && (!failure || failure.reason === record.controller.signal.reason)) {
+      outcome = record.cleanupFailures.length
+        ? { kind: "failure", reason: record.cleanupFailures[0] }
+        : { kind: "status", status: record.terminationStatus };
+    }
     else if (failure) outcome = { kind: "failure", reason: failure.reason };
     else if (record.controller.signal.aborted) outcome = { kind: "failure", reason: record.controller.signal.reason };
     else if (record.cleanupFailures.length) outcome = { kind: "failure", reason: record.cleanupFailures[0] };
@@ -221,6 +228,17 @@ class JobRegistry implements JobState {
   savedStatus(handle: JobHandle): number | undefined {
     const record = this.#records.get(handle);
     return record?.saved && record.outcome?.kind === "status" ? record.outcome.status : undefined;
+  }
+
+  signal(handle: JobHandle, signal: number): boolean {
+    if (!Number.isInteger(signal) || signal < 0 || signal > 31) throw new TypeError("invalid job signal");
+    const record = this.#records.get(handle);
+    if (!record || record.state === "done") return false;
+    if (signal !== 0) {
+      record.terminationStatus ??= 128 + signal;
+      record.controller.abort(new Error(`Job terminated by signal ${signal}`));
+    }
+    return true;
   }
 
   #targets(targets: readonly JobTarget[] | undefined): readonly JobTarget[] | undefined {

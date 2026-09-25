@@ -6,7 +6,7 @@ import { releaseObjectPrototype } from "./object-model.js";
 import { measureSandboxData, type SandboxArray, type SandboxObject } from "./values.js";
 
 const paths = [
-  ...["Object", "Array", "Symbol", "BigInt", "Date", "DataView", "RegExp", "Map", "Set", "ArrayBuffer",
+  ...["Object", "Array", "Symbol", "BigInt", "String", "Number", "Boolean", "Date", "DataView", "RegExp", "Map", "Set", "ArrayBuffer",
     "DisposableStack", "AsyncDisposableStack", "Error", "TypeError", "RangeError",
     "ReferenceError", "SyntaxError", "URIError", "EvalError", "AggregateError",
     "SuppressedError", "Promise"].map(name => [name, "prototype"]),
@@ -23,6 +23,7 @@ it.each(paths.map(path => [JSON.stringify(path)]))("reuses captures for %s while
   createBuiltinBindings({budget});
   const target = resolveIntrinsicIdentity(budget, id) as SandboxObject;
   try {
+    const baseline = measureSandboxData(budget.retainedValues());
     target.extra = {text: "abc"};
     const before = measureSandboxData(budget.retainedValues());
     const descriptors = vi.spyOn(Object, "getOwnPropertyDescriptor");
@@ -33,12 +34,12 @@ it.each(paths.map(path => [JSON.stringify(path)]))("reuses captures for %s while
     (target.extra as SandboxObject).text = "abcdef";
     expect(measureSandboxData(budget.retainedValues())).toBe(before + 3);
     delete target.extra;
-    expect([...budget.retainedValues()]).not.toContain("extra");
+    expect(measureSandboxData(budget.retainedValues())).toBe(baseline);
     const key = Symbol("new property");
     Object.defineProperty(target, key, {value: "hidden", configurable: true});
-    expect([...budget.retainedValues()]).toContain("hidden");
+    expect(measureSandboxData(budget.retainedValues())).toBe(baseline + measureSandboxData([key, "hidden"]));
     Reflect.deleteProperty(target, key);
-    expect([...budget.retainedValues()]).not.toContain("hidden");
+    expect(measureSandboxData(budget.retainedValues())).toBe(baseline);
   } finally { releaseObjectPrototype(budget); }
 });
 

@@ -6,7 +6,7 @@ import {
   type BoxedKind,
   type BoxedPrimitive
 } from "../boxed.js";
-import { createIntrinsicObject, installBoxedPrototype, materializeFunctionProperties, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
+import { createIntrinsicBox, createIntrinsicObject, installBoxedPrototype, materializeFunctionProperties, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
 import { registerBuiltinIdentities, resolveIntrinsicIdentity } from "../intrinsics.js";
 import { nextStringIterator, restoreSandboxStringIterator } from "../string-iterator.js";
 import { sandboxString } from "../string-coercion.js";
@@ -35,7 +35,7 @@ export function createPrimitiveConstructor(
 ): SandboxClosure {
   const initial: BoxedPrimitive = { Number: 0, String: "", Boolean: false }[options.name];
   const kind = typeof initial as BoxedKind;
-  const prototype = createSandboxBox(initial);
+  const prototype = createIntrinsicBox(initial);
   const allocate = (value: BoxedPrimitive, context?: SandboxCallContext) => {
     const box = createSandboxBox(value);
     const finish = (selectedPrototype: SandboxValue) => {

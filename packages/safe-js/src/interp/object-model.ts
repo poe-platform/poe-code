@@ -29,7 +29,7 @@ import { arrayBufferPrototypes, isSandboxArrayBuffer } from "./array-buffer.js";
 import { isSandboxSharedArrayBuffer, sharedArrayBufferPrototypes } from "./shared-array-buffer.js";
 import { dataViewPrototypes, isSandboxDataView } from "./data-view.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { boxedValue, isSandboxBox, type BoxedKind, type BoxedPrimitive } from "./boxed.js";
+import { boxedValue, createTrackedSandboxBox, isSandboxBox, type BoxedKind, type BoxedPrimitive } from "./boxed.js";
 import {
   isSandboxClosure,
   registerDeferredClosureProperties,
@@ -361,6 +361,12 @@ export function createIntrinsicArray(initial?: SandboxArray): SandboxArray {
     nativePropertyDefine(properties, nativePropertyDescriptors(initial as object));
   }
   const tracked = trackPropertyTable(properties as unknown as SandboxObject, true) as unknown as SandboxArray;
+  nativeIntrinsicObjectAdd(tracked);
+  return tracked;
+}
+
+export function createIntrinsicBox(value: string | number | boolean) {
+  const tracked = createTrackedSandboxBox(value, trackPropertyTable);
   nativeIntrinsicObjectAdd(tracked);
   return tracked;
 }

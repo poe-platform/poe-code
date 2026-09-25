@@ -6,6 +6,12 @@ export type BoxedKind = "string" | "number" | "bigint" | "boolean" | "symbol";
 declare const boxedPrimitiveBrand: unique symbol;
 export type SandboxBox = SandboxObject & { readonly [boxedPrimitiveBrand]: true };
 const boxes = new WeakSet<object>();
+const nativeBox = Object;
+const nativeSetPrototype = Object.setPrototypeOf;
+const addBox = WeakSet.prototype.add.bind(boxes);
+const trackedPayloads = new WeakMap<object, string | number | boolean>();
+const readTrackedPayload = WeakMap.prototype.get.bind(trackedPayloads);
+const writeTrackedPayload = WeakMap.prototype.set.bind(trackedPayloads);
 const numberValue = Number.prototype.valueOf;
 const stringValue = String.prototype.valueOf;
 const booleanValue = Boolean.prototype.valueOf;
@@ -13,6 +19,10 @@ const symbolValue = Symbol.prototype.valueOf;
 const bigintValue = BigInt.prototype.valueOf;
 
 export function nativeBoxedValue(value: unknown): BoxedPrimitive | undefined {
+  if (typeof value === "object" && value !== null) {
+    const payload = readTrackedPayload(value);
+    if (payload !== undefined) return payload;
+  }
   if (types.isNumberObject(value)) return Reflect.apply(numberValue, value, []);
   if (types.isStringObject(value)) return Reflect.apply(stringValue, value, []);
   if (types.isBooleanObject(value)) return Reflect.apply(booleanValue, value, []);
@@ -28,6 +38,23 @@ export function createSandboxBox(value: unknown): SandboxBox {
   Object.setPrototypeOf(box, null);
   boxes.add(box);
   return box;
+}
+
+// Only the owned property-table factory receives this fresh native backing.
+// The returned view keeps the immutable primitive payload, never the backing;
+// later native allocation/collection hooks must not expose an untracked alias.
+export function createTrackedSandboxBox(
+  value: string | number | boolean,
+  track: (properties: SandboxObject) => SandboxObject
+): SandboxBox {
+  if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean")
+    throw new TypeError("Invalid tracked boxed primitive payload.");
+  const backing = nativeBox(value) as SandboxObject;
+  nativeSetPrototype(backing, null);
+  const view = track(backing) as SandboxBox;
+  addBox(view);
+  writeTrackedPayload(view, value);
+  return view;
 }
 
 export function isSandboxBox(value: unknown): value is SandboxBox {

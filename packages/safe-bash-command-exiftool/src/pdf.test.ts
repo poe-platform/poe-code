@@ -8,7 +8,7 @@ const decoder = new TextDecoder();
 async function invoke(args: string[], fs = createMemoryFileSystem()) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
-  const res = await exiftoolCommand.execute({
+  const res = await exiftoolCommand.execute({ command: "exiftool",
     args,
     cwd: "/",
     env: {},

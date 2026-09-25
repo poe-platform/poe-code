@@ -594,7 +594,7 @@ test("asynchronous file input keeps its first iterator and awaits early-return c
   const backend = await bufferedBackend();
   let streams = 0;
   let closes = 0;
-  const fs = { ...backend, capabilities: {}, readStream() {
+  const fs: FileSystem = { ...backend, capabilities: {}, readStream() {
     streams++;
     return { [Symbol.asyncIterator]: () => ({
       next: async () => ({ done: false, value: Uint8Array.of(65) }),
@@ -615,7 +615,7 @@ test("synchronous ENOTSUP before bytes falls back once after closing the stream"
   let closes = 0;
   let streams = 0;
   const read = backend.readFile;
-  const fs = { ...backend, capabilities: {}, readStream() {
+  const fs: FileSystem = { ...backend, capabilities: {}, readStream() {
     streams++;
     return { [Symbol.asyncIterator]: () => ({
       tryNextSync(): IteratorResult<Uint8Array> | undefined { throw new FsError("ENOTSUP"); },

@@ -570,12 +570,25 @@ test("terminal dot components do not remove or move their containing directory",
 
 test("deep recursive removal uses bounded call-stack space", async () => {
   const depth = 12000;
-  const filesystem = new MemoryFileSystem({ maxMetadataUnits: depth * 2 + 3 });
-  const path = `/${Array.from({ length: depth }, () => "deep").join("/")}`;
-  await filesystem.mkdir(path, { recursive: true });
-  await filesystem.writeFile(`${path}/file`, bytes("value"));
-  await filesystem.rm("/deep", { recursive: true });
-  assert.deepEqual(await filesystem.readdir("/"), []);
+  // The retained leaf descriptor uses one additional metadata unit.
+  const filesystem = new MemoryFileSystem({ maxMetadataUnits: depth * 2 + 4 });
+  await filesystem.mkdir("/deep");
+  await filesystem.writeFile("/deep/file", bytes("value"));
+  const leaf = await filesystem.open("/deep/file", { access: "read" });
+  try {
+    // Build the deep tree without submitting an over-budget pathname.
+    for (let index = 1; index < depth; index++) {
+      await filesystem.mkdir("/parent");
+      await filesystem.rename("/deep", "/parent/deep");
+      await filesystem.rename("/parent", "/deep");
+    }
+    const content = new Uint8Array(5);
+    assert.equal(await leaf.read(content, 0), 5);
+    assert.deepEqual(content, bytes("value"));
+    await filesystem.rm("/deep", { recursive: true });
+    assert.deepEqual(await filesystem.readdir("/"), []);
+    assert.equal((await leaf.stat()).nlink, 0);
+  } finally { await leaf.close(); }
 });
 
 test("directory rename accepts a new slash-suffixed destination", async () => {

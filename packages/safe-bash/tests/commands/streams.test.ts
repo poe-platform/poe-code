@@ -762,7 +762,9 @@ for (const [first, second, stdin, expected] of [
   ["a-c", "[\\c*3]", "abc", "ccc"],
   ["\\a\\b\\f\\n\\r\\t\\v\\\\", "12345678", "\x07\b\f\n\r\t\v\\", "12345678"],
   ["\\141-\\143", "XYZ", "abc", "XYZ"],
-  ["\\x61\\142", "XY", "ab", "XY"],
+  ["\\x61\\142", "1234", "x61b", "1234"],
+  ["\\501", "XY", "(1", "XY"],
+  ["[a*2]b", "123", "ab", "23"],
   ["\\1z", "XY", "\x01z", "XY"],
 ] as const) {
   test(`tr parses ${JSON.stringify(first)} to ${JSON.stringify(second)}`, async () => {
@@ -782,4 +784,24 @@ test("tr translates, deletes, squeezes and complements byte sets across chunks",
   assert.deepEqual((await run("tr", ["\\000", "\\377"], { stdin: new Uint8Array([0, 1]) })).stdoutBytes, Buffer.from([255, 1]));
   assert.equal((await run("tr", ["z-a", "x"])).exitCode, 2);
   assert.equal((await run("tr", ["a", ""])).exitCode, 2);
+});
+
+test("streams match GNU tr escape/repeat rules, cat -E CRLF, tee --output-error=exit on open failure, and wc directory rows", async () => {
+  assert.equal((await run("tr", ["\\x41", "B"], { stdin: "Ax41\n" })).stdout, "ABBB\n");
+  assert.equal((await run("tr", ["[a*2]b", "123"], { stdin: "ab\n" })).stdout, "23\n");
+  const badDs = await run("tr", ["-ds", "a", "[b*]"], { stdin: "abbba\n" });
+  assert.notEqual(badDs.exitCode, 0);
+  assert.match(badDs.stderr, /the \[c\*\] construct may appear in string2 only when translating/u);
+
+  assert.equal((await run("cat", ["-E"], { stdin: chunks("a\r\nb\rc\n", 1) })).stdout, "a^M$\nb\rc$\n");
+
+  const roFs = await fixture({ "/dir/file": "seed" });
+  const teeExit = await run("tee", ["--output-error=exit", "/missing/out"], { fs: roFs, stdin: "hello\n" });
+  assert.equal(teeExit.exitCode, 1);
+  assert.equal(teeExit.stdout, "");
+
+  const wcDir = await run("wc", ["/dir"], { fs: roFs });
+  assert.equal(wcDir.exitCode, 1);
+  assert.equal(wcDir.stdout, "      0       0       0 /dir\n");
+  assert.match(wcDir.stderr, /EISDIR/u);
 });

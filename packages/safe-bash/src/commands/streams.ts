@@ -283,12 +283,12 @@ function characterSet(specification: string, repeatLength?: number): number[] {
       const start = offset + 1;
       if (start === specification.length) throw new UsageError("trailing backslash in character set");
       const next = specification[start]!;
-      const hexadecimal = next === "x" && "0123456789abcdefABCDEF".includes(specification[start + 1] ?? "!");
-      const digits = hexadecimal ? "0123456789abcdefABCDEF" : "01234567";
-      let end = start + (hexadecimal ? 1 : 0);
-      const digitStart = end;
-      while (end < specification.length && end - digitStart < (hexadecimal ? 2 : 3) && digits.includes(specification[end]!)) end++;
-      if (end > digitStart) return { bytes: [Number.parseInt(specification.slice(digitStart, end), hexadecimal ? 16 : 8) & 255], end, literal: false };
+      let end = start;
+      while (end < specification.length && end - start < 3 && "01234567".includes(specification[end]!)) end++;
+      if (end > start) {
+        if (end - start === 3 && specification[start]! >= "4") end--;
+        return { bytes: [Number.parseInt(specification.slice(start, end), 8)], end, literal: false };
+      }
       // tr quotes unknown escapes; echo's stop-output escape has no meaning here.
       const controls: Record<string, number> = { a: 7, b: 8, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
       const character = String.fromCodePoint(specification.codePointAt(start)!);
@@ -320,13 +320,13 @@ function characterSet(specification: string, repeatLength?: number): number[] {
         if (specification[character.end] === "*") {
           const end = specification.indexOf("]", character.end + 1);
           if (end !== -1) {
-            if (repeatLength === undefined) throw new UsageError("repeat expressions are only allowed in the second character set");
             const count = specification.slice(character.end + 1, end);
             const digits = count.startsWith("0") ? "01234567" : "0123456789";
             if (character.bytes.length !== 1 || ![...count].every(digit => digits.includes(digit))) throw new UsageError("invalid repeat expression");
+            const parsedRepeat = count ? Number.parseInt(count, count.startsWith("0") ? 8 : 10) : 0;
+            if (parsedRepeat === 0 && repeatLength === undefined) throw new UsageError("the [c*] construct may appear in string2 only when translating");
             // Only positions used by translation matter; retain the byte for squeezing.
-            const repeat = count ? Math.min(Number.parseInt(count, count.startsWith("0") ? 8 : 10), Math.max(1, repeatLength)) : 0;
-            if (repeat === 0 && repeatLength === 0) throw new UsageError("the [c*] construct may appear in string2 only when translating");
+            const repeat = parsedRepeat ? Math.min(parsedRepeat, repeatLength === undefined ? 65536 : Math.max(1, repeatLength)) : 0;
             tokens.push({ bytes: character.bytes, literal: false, repeat }); offset = end + 1; continue;
           }
         }
@@ -404,10 +404,17 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         let lineStart = true;
         let blankCount = 0;
         let number = 1;
+        let pendingCr = false;
+        const showEndsOnlyCr = parsed.flags.has("E") && !parsed.flags.has("v");
         for await (const chunk of source) {
           const transformed: number[] = [];
           const append = (text: string) => { for (const byte of encoder.encode(text)) transformed.push(byte); };
           for (const byte of chunk) {
+            if (pendingCr) {
+              pendingCr = false;
+              if (byte === 10) append("^M");
+              else transformed.push(13);
+            }
             if (lineStart && byte === 10 && parsed.flags.has("s") && blankCount > 0) continue;
             if (lineStart && (parsed.flags.has("b") ? byte !== 10 : parsed.flags.has("n"))) append(`${String(number++).padStart(6)}\t`);
             if (byte === 10) {
@@ -417,7 +424,9 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
               lineStart = true;
             } else {
               lineStart = false; blankCount = 0;
-              if (byte === 9) {
+              if (byte === 13 && showEndsOnlyCr) {
+                pendingCr = true;
+              } else if (byte === 9) {
                 if (parsed.flags.has("T")) append("^I");
                 else transformed.push(byte);
               } else if (parsed.flags.has("v")) {
@@ -432,6 +441,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
           }
           if (transformed.length) await output(context, Uint8Array.from(transformed));
         }
+        if (pendingCr) await output(context, Uint8Array.of(13));
         return state;
       } catch (error) {
         caller.signal.throwIfAborted();
@@ -514,7 +524,11 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
           for (const field of ["l", "w", "m", "c"]) totals[field]! += counts[field]!;
           totals.L = Math.max(totals.L!, counts.L!);
           await print(counts, parsed.operands.length ? name : undefined);
-        } catch (error) { await diagnostic(context, error); exitCode = 1; }
+        } catch (error) {
+          await diagnostic(context, error);
+          if (error instanceof FsError && error.code === "EISDIR") await print(counts, parsed.operands.length ? name : undefined);
+          exitCode = 1;
+        }
       }
       if (names.length > 1) await print(totals, "total");
       return { exitCode };
@@ -556,6 +570,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
             context.signal.throwIfAborted();
             await diagnostic(context, error);
             exitCode = 1;
+            if (exitOnError) return { exitCode };
           }
         }
         for await (const chunk of input(context)) {
@@ -601,7 +616,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         const selected = new Set(first);
         first = Array.from({ length: 256 }, (_, offset) => offset).filter(byte => !selected.has(byte));
       }
-      const second = parsed.operands[1] === undefined ? [] : characterSet(parsed.operands[1], translating ? first.length : 0);
+      const second = parsed.operands[1] === undefined ? [] : characterSet(parsed.operands[1], translating ? first.length : undefined);
       if (translating && parsed.flags.has("t")) first = first.slice(0, second.length);
       if (translating && !second.length && !parsed.flags.has("t")) throw new UsageError("second character set must not be empty");
       const mapping = new Uint8Array(256);

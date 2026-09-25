@@ -139,7 +139,24 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       return { exitCode: 0 };
     }),
     define("xargs", async context => {
-      const argumentValues = getCommandArguments(context);
+      const rawArgumentValues = getCommandArguments(context);
+      const normalizedValues = [...rawArgumentValues.values];
+      let expectOptionValue = false;
+      for (let i = 0; i < normalizedValues.length; i++) {
+        const arg = rawArgumentValues.args[i]!;
+        if (expectOptionValue) { expectOptionValue = false; continue; }
+        if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+        if (arg === "-i") { normalizedValues[i] = "-I{}"; continue; }
+        if (arg.startsWith("-i") && !arg.startsWith("--")) { normalizedValues[i] = "-I" + arg.slice(2); continue; }
+        if (arg === "-l") { normalizedValues[i] = "-L1"; continue; }
+        if (arg.startsWith("-l") && !arg.startsWith("--")) { normalizedValues[i] = "-L" + arg.slice(2); continue; }
+        if (arg === "-e") { normalizedValues[i] = "--eof="; continue; }
+        if (arg.startsWith("-e") && !arg.startsWith("--")) { normalizedValues[i] = "-E" + arg.slice(2); continue; }
+        if (["-n", "-s", "-I", "-d", "-P", "-E", "-a", "-L", "--arg-file", "--max-lines", "--max-args", "--max-chars", "--replace", "--delimiter", "--max-procs", "--eof", "--process-slot-var"].includes(arg)) {
+          expectOptionValue = true;
+        }
+      }
+      const argumentValues = rawArgumentValues.withValues(normalizedValues);
       const operandIndices: number[] = [];
       let replacementOrigin: { index: number; offset: number } | undefined;
       let batching: string | undefined;

@@ -223,3 +223,12 @@ test("xargs default whitespace mode preserves non-UTF-8 bytes without crashing",
   assert.equal(res.exitCode, 0, res.stderr);
   assert.deepEqual(res.stdoutBytes, Buffer.from([0xff, 0xfe]));
 });
+
+test("xargs supports -i[R], -l[MAX], and -e[EOF] short options", async () => {
+  assert.equal((await run("xargs", ["-i", "echo", "[{}]"], { stdin: "a\nb\n" })).stdout, "[a]\n[b]\n");
+  assert.equal((await run("xargs", ["-i%", "echo", "[%]"], { stdin: "a\nb\n" })).stdout, "[a]\n[b]\n");
+  assert.equal((await run("xargs", ["-l", "echo"], { stdin: "a b\nc d\n" })).stdout, "a b\nc d\n");
+  assert.equal((await run("xargs", ["-l2", "echo"], { stdin: "a\nb\nc\n" })).stdout, "a b\nc\n");
+  assert.equal((await run("xargs", ["-eEND", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a\n");
+  assert.equal((await run("xargs", ["-eEND", "-e", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a END b\n");
+});

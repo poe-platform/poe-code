@@ -1,7 +1,7 @@
 import { FsError, readBytes, type ByteSource } from "../../contracts/index.js";
 
 export interface ByteInputLimits {
-  /** Maximum cumulative source bytes per invocation; defaults to 32 MiB. Zero permits empty input. */
+  /** Optional maximum cumulative source bytes per invocation. Zero permits empty input. */
   readonly maxInputBytes: number;
 }
 
@@ -11,7 +11,8 @@ export interface ByteInputOptions {
 }
 
 export function resolveInputLimit(options: ByteInputOptions): number {
-  const { maxInputBytes } = { maxInputBytes: 32 * 1024 * 1024, ...options.limits };
+  const maxInputBytes = options.limits?.maxInputBytes;
+  if (maxInputBytes === undefined) return Infinity;
   if (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0) {
     throw new RangeError("maxInputBytes must be a nonnegative safe integer");
   }

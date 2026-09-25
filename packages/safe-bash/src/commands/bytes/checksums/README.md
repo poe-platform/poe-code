@@ -131,6 +131,10 @@ CRC32C, or a cryptographic hash.
 
 ## Streaming, limits, and cancellation
 
+Total input is unlimited unless `createChecksumCommands` receives
+`limits.maxInputBytes`. An explicit quota counts source bytes cumulatively;
+zero admits only empty input.
+
 - File and manifest reads require `fs.readStream`; otherwise they fail with
   `ENOTSUP`. There is no `readFile` fallback, stat preflight, or whole-file buffer.
   Stdin works even without a streaming-capable filesystem. An adapter may still

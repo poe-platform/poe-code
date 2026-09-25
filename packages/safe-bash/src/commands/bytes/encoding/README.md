@@ -172,6 +172,10 @@ filenames, not legacy offsets. This is not full GNU or POSIX `od` conformance.
 
 ## Streaming and resource limits
 
+Total input is unlimited unless `createEncodingCommands` receives
+`limits.maxInputBytes`. An explicit quota counts source bytes cumulatively;
+zero admits only empty input.
+
 Input chunks, including a huge single chunk, are processed in views of at most
 8192 bytes. Each nonempty block yields to the event loop before CPU processing;
 empty-only input yields every 64 empty chunks. Commands await each output write

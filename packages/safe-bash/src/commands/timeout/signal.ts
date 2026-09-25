@@ -1,8 +1,13 @@
 // Linux signal numbers give virtual commands stable statuses on every host.
 const signalNames = ["HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV", "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN", "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "SYS"];
 
-export function signalName(number: number): string {
-  return signalNames[number - 1] ?? String(number);
+/** Stable virtual names; native host signal numbers never enter this catalog. */
+export function signalName(signal: number): string | undefined {
+  if (!Number.isInteger(signal)) return undefined;
+  if (signal >= 1 && signal <= signalNames.length) return signalNames[signal - 1];
+  if (signal === 64) return "RTMAX";
+  if (signal >= 34 && signal < 64) return signal === 34 ? "RTMIN" : `RTMIN+${signal - 34}`;
+  return undefined;
 }
 
 export function parseSignal(value: string): number | undefined {

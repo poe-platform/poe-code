@@ -1100,7 +1100,6 @@ export interface State {
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
   dotglob?: boolean;
-  extglob?: boolean;
   globstar?: boolean;
   extglob?: boolean;
   nullglob?: boolean;

@@ -92,7 +92,7 @@ with its own cleanup scope and the same borrowed bridge.
 | --- | --- | --- |
 | Model discovery and selection | `models()`, `model=`; identities and aliases preserved | Pending #1443/#1444 |
 | Prompt, system, messages | `Request`, `Message`, `complete()` | Pending #1443/#1444 |
-| Provider options | String, integer, finite float, boolean, null; types preserved | Provider validation remains in JavaScript; pending #1443 |
+| Provider options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null; types preserved | Provider validation remains in JavaScript; pending #1443 |
 | File attachments | `Attachment(path, mime_type)` | Canonical host filesystem access pending #1444 |
 | Complete text/binary/usage/metadata | `Response` | Pending shared-service adapter |
 | Incremental text/binary and final response | `Stream`, `Event` | Pending bridge/runtime qualification |

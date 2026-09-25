@@ -61,6 +61,8 @@ def _options(values):
             raise TypeError("Option names must be nonempty strings")
         if value is not None and type(value) not in (str, int, float, bool):
             raise TypeError("Model options must be strings, numbers, booleans or None")
+        if type(value) is int and abs(value) > 9007199254740991:
+            raise ValueError("Integer model options must fit the JavaScript safe integer range")
         if type(value) is float and not math.isfinite(value):
             raise ValueError("Model options must be finite")
     return result

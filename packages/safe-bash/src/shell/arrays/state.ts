@@ -348,7 +348,7 @@ class CollectionProxyHandler implements ProxyHandler<Map<unknown, unknown> | Set
     private readonly named: boolean,
   ) {}
   get(target: Map<unknown, unknown> | Set<unknown>, key: PropertyKey): unknown {
-    let cache = this.boundCache;
+    const cache = this.boundCache;
     if (cache) {
       const cached = cache.get(key);
       if (cached !== undefined) return cached;

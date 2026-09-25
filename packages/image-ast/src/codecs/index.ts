@@ -79,7 +79,7 @@ function renderTextInput(spec: NonNullable<SharpInputOptions["text"]>, densityOp
     readonly bg: { readonly r: number; readonly g: number; readonly b: number; readonly a: number } | undefined;
   }
   const segments: SpanSeg[] = [];
-  let remaining = spec.text;
+  const remaining = spec.text;
   const spanRe = /<span([^>]*)>([\s\S]*?)<\/span>/gi;
   let lastIdx = 0;
   let match: RegExpExecArray | null;

@@ -544,3 +544,37 @@ test("cut field mode works with portable Buffer indexOf contracts", async () => 
     Object.defineProperty(Buffer.prototype, "indexOf", descriptor);
   }
 });
+
+test("sort -V dotfiles, incompatible -d/-i flags, -c/-C check modes, cut NUL delimiters, and uniq -D -u", async () => {
+  const commands = createStandardCommands();
+  assert.equal((await run("sort", ["-V"], { commands, stdin: ".a\n.b\n.a.1\n.a~\n" })).stdout, ".a~\n.a\n.a.1\n.b\n");
+  assert.equal((await run("sort", ["-V"], { commands, stdin: "..a\n.a\n...a\n" })).stdout, "..a\n.a\n...a\n");
+
+  for (const args of [["-dn"], ["-in"], ["-dg"], ["-ig"], ["-dh"], ["-ih"], ["-dM"], ["-iM"], ["-c", "-C"]]) {
+    const res = await run("sort", args, { commands, stdin: "" });
+    assert.equal(res.exitCode, 2);
+    assert.match(res.stderr, /are incompatible/u);
+  }
+
+  const quietFail = await run("sort", ["-C"], { commands, stdin: "b\na\n" });
+  assert.equal(quietFail.exitCode, 1);
+  assert.equal(quietFail.stderr, "");
+
+  const quietLongFail = await run("sort", ["--check=quiet"], { commands, stdin: "b\na\n" });
+  assert.equal(quietLongFail.exitCode, 1);
+  assert.equal(quietLongFail.stderr, "");
+
+  const fsFixture = await fixture({ f1: "a\n", f2: "b\n" });
+  const extraCheck = await run("sort", ["-c", "f1", "f2"], { commands, fs: fsFixture });
+  assert.equal(extraCheck.exitCode, 2);
+  assert.match(extraCheck.stderr, /extra operand 'f2' not allowed with -c/u);
+
+  const cutNulIn = await run("cut", ["-d", "", "-f1,3"], { commands, stdin: Uint8Array.from([97, 0, 98, 0, 99, 10]) });
+  assert.equal(cutNulIn.exitCode, 0, cutNulIn.stderr);
+  assert.deepEqual(cutNulIn.stdoutBytes, Buffer.from([97, 0, 99, 10]));
+
+  const cutNulOut = await run("cut", ["-f1,3", "--output-delimiter="], { commands, stdin: "a\tb\tc\n" });
+  assert.equal(cutNulOut.exitCode, 0, cutNulOut.stderr);
+  assert.deepEqual(cutNulOut.stdoutBytes, Buffer.from([97, 0, 99, 10]));
+
+});

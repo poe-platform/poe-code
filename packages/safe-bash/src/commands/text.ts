@@ -34,12 +34,6 @@ class SortWork {
     }
   }
 
-  async #checkpointAfter(first: Promise<void>): Promise<void> {
-    await first;
-    this.signal.throwIfAborted();
-    if (this.#pending >= 4096) await this.#checkpoint();
-  }
-
   async #checkpointOnce(): Promise<void> {
     await yieldTurn(this.signal);
     this.signal.throwIfAborted();
@@ -145,7 +139,7 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
 }
 
 class CutOutput {
-  readonly #buffer = new Uint8Array(16 * 1024);
+  readonly #buffer = new Uint8Array(64 * 1024);
   #used = 0;
 
   constructor(readonly context: CommandContext, readonly work: SortWork) {}
@@ -295,6 +289,7 @@ function asciiSlice(bytes: Uint8Array, start: number, end: number): string {
 }
 
 function parseNumericSync(bytes: Uint8Array, human = false): NumericValue {
+  Buffer.from(bytes);
   const len = bytes.length;
   let i = 0;
   while (i < len && (bytes[i] === 32 || bytes[i] === 9)) i++;
@@ -505,20 +500,24 @@ async function compareVersionParts(left: Uint8Array, right: Uint8Array, work: So
 }
 
 async function versionPrefix(bytes: Uint8Array, work: SortWork): Promise<Uint8Array> {
-  let end = bytes.length;
-  let suffix = bytes.length;
-  for (let index = bytes.length - 1; index >= 0; index--) {
+  let match = bytes.length;
+  let readAlpha = false;
+  for (let index = bytes[0] === 46 ? 1 : 0; index < bytes.length; index++) {
     const checkpoint = work.charge();
     if (checkpoint) await checkpoint;
     const byte = bytes[index]!;
-    if (byte === 46 && index + 1 < suffix) {
-      const first = bytes[index + 1]!;
-      if (first === 126 || first >= 65 && first <= 90 || first >= 97 && first <= 122) { end = index; suffix = index; continue; }
-      break;
+    const alpha = byte === 126 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122;
+    if (readAlpha) {
+      readAlpha = false;
+      if (!alpha) match = bytes.length;
+    } else if (byte === 46) {
+      readAlpha = true;
+      if (match === bytes.length) match = index;
+    } else if (!(alpha || byte >= 48 && byte <= 57)) {
+      match = bytes.length;
     }
-    if (!(byte === 126 || byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122)) break;
   }
-  return bytes.subarray(0, end);
+  return bytes.subarray(0, readAlpha ? bytes.length : match);
 }
 
 async function compareVersions(left: Uint8Array, right: Uint8Array, work: SortWork): Promise<number> {
@@ -701,25 +700,41 @@ async function collectSortRecords(
 export function textCommands(): CommandDefinition[] {
   return [
     define("sort", async context => {
-      const parsed = options(context.args, "hngMVdimrfbuszt:k:o:cS:", { "human-numeric-sort": "h", "numeric-sort": "n", "general-numeric-sort": "g", "month-sort": "M", "version-sort": "V", "dictionary-order": "d", "ignore-nonprinting": "i", merge: "m", sort: "S", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" }, false, undefined, (key, index) => {
-        // S is only an internal value slot for --sort, not a buffer-size option.
-        if (key === "S" && !context.args[index]!.startsWith("--sort=") && context.args[index - 1] !== "--sort") throw new UsageError("invalid option -- 'S'");
+      let ended = false;
+      const args = context.args.map(argument => {
+        if (ended) return argument;
+        if (argument === "--") ended = true;
+        if (argument === "--check" || argument === "--check=diagnose-first") return "-c";
+        if (argument === "--check=quiet" || argument === "--check=silent") return "-C";
+        if (argument.startsWith("--check=")) throw new UsageError(`invalid argument '${argument.slice(8)}' for '--check'`);
+        return argument;
       });
+      const parsed = options(args, "hngMVdimrfbuszt:k:o:cCS:", { "human-numeric-sort": "h", "numeric-sort": "n", "general-numeric-sort": "g", "month-sort": "M", "version-sort": "V", "dictionary-order": "d", "ignore-nonprinting": "i", merge: "m", sort: "S", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" }, false, undefined, (key, index) => {
+        // S is only an internal value slot for --sort, not a buffer-size option.
+        if (key === "S" && !args[index]!.startsWith("--sort=") && args[index - 1] !== "--sort") throw new UsageError("invalid option -- 'S'");
+      });
+      if (parsed.flags.has("c") && parsed.flags.has("C")) throw new UsageError("options '-cC' are incompatible");
+      const checking = parsed.flags.has("c") || parsed.flags.has("C");
+      if (checking && parsed.operands.length > 1) throw new UsageError(`extra operand '${parsed.operands[1]}' not allowed with -${parsed.flags.has("C") ? "C" : "c"}`);
       for (const mode of parsed.values.get("S") ?? []) {
         const flag = new Map([["numeric", "n"], ["general-numeric", "g"], ["human-numeric", "h"], ["month", "M"], ["version", "V"]]).get(mode);
         if (flag === undefined) throw new UsageError(`invalid sort argument '${mode}'`);
         parsed.flags.add(flag);
       }
       await assertInputRequirements(context, parsed.operands);
-      if (!parsed.flags.has("c")) await admitTextOutput(context, value(parsed, "o"));
+      if (!checking) await admitTextOutput(context, value(parsed, "o"));
       const separatorText = value(parsed, "t");
       if (separatorText !== undefined && encoder.encode(separatorText).length !== 1) throw new UsageError("field separator must be one byte");
       const separator = separatorText === undefined ? undefined : encoder.encode(separatorText)[0];
       const keys = (parsed.values.get("k") ?? []).map(sortKey);
       for (const key of keys.length ? keys : [undefined]) {
         const flags = key?.flags.size ? key.flags : parsed.flags;
-        const modes = ["h", "n", "g", "M", "V"].filter(flag => flags.has(flag));
-        if (modes.length > 1) throw new UsageError(`options '-${modes.join("")}' are incompatible`);
+        const modes = ["g", "h", "M", "n", "V"].filter(flag => flags.has(flag));
+        const nontextual = ["g", "h", "M", "n"].some(flag => flags.has(flag));
+        if (modes.length > 1 || nontextual && (flags.has("d") || flags.has("i"))) {
+          const incompatible = ["d", "g", "h", "i", "M", "n", ...(modes.length > 1 ? ["V"] : [])].filter(flag => flags.has(flag));
+          throw new UsageError(`options '-${incompatible.join("")}' are incompatible`);
+        }
       }
       const simple = !keys.length && !["b", "f", "h", "n", "g", "M", "V", "d", "i"].some(flag => parsed.flags.has(flag));
       const direction = parsed.flags.has("r") ? -1 : 1;
@@ -868,10 +883,10 @@ export function textCommands(): CommandDefinition[] {
         try {
           const complete = await collectSortRecords(input(context, name), delimiter, recordBudget, context.signal, bytes => {
             context.signal.throwIfAborted();
-            if (!parsed.flags.has("c")) { (parsed.flags.has("m") ? run : records).push(bytes); return; }
+            if (!checking) { (parsed.flags.has("m") ? run : records).push(bytes); return; }
             return (async () => {
               if (records.length && (await compare(records.at(-1)!, bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, bytes) === 0)) {
-                await diagnostic(context, new PublicDiagnostic(`disorder at record ${records.length + 1}`));
+                if (!parsed.flags.has("C")) await diagnostic(context, new PublicDiagnostic(`disorder at record ${records.length + 1}`));
                 return false;
               }
               records.push(bytes);
@@ -880,7 +895,7 @@ export function textCommands(): CommandDefinition[] {
           if (!complete) return { exitCode: 1 };
         } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
       }
-      if (parsed.flags.has("c")) return { exitCode };
+      if (checking) return { exitCode };
       const ordered = parsed.flags.has("m") ? await mergeSortRuns(runs, compare, work) : await sortRecords(records, compare, work);
       let estBytes = 0;
       for (let i = 0; i < ordered.length && estBytes < 64 * 1024; i++) estBytes += ordered[i]!.length + 1;
@@ -1022,12 +1037,11 @@ export function textCommands(): CommandDefinition[] {
       const ranges = await cutRanges(value(parsed, mode)!, work);
       const complement = parsed.flags.has("complement");
       const delimiter = value(parsed, "d") ?? "\t";
-      if (delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");
+      if (delimiter.length !== 0 && delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");
       const outputDelimiter = value(parsed, "output-delimiter");
       const recordDelimiter = parsed.flags.has("z") ? 0 : 10;
-      const recordDelimiterBytes = Uint8Array.of(recordDelimiter);
-      const outputDelimiterBytes = encoder.encode(outputDelimiter ?? delimiter);
-      const separator = Buffer.from(encoder.encode(delimiter));
+      const separator = delimiter.length === 0 ? Buffer.of(0) : Buffer.from(encoder.encode(delimiter));
+      const outputDelimiterBytes = outputDelimiter === undefined ? separator : outputDelimiter.length === 0 ? Uint8Array.of(0) : encoder.encode(outputDelimiter);
       const writer = new CutOutput(context, work);
       let exitCode = 0;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {

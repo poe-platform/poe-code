@@ -1785,7 +1785,8 @@ test("optional input changes after close cannot produce a successful bound resul
   let selected;
   owned.fileSystem.openSync = (...args) => { const descriptor = open(...args); if (String(args[0]) === root + "/src/commands/yes/helper.ts") selected = descriptor; return descriptor; };
   owned.fileSystem.closeSync = descriptor => { close(descriptor); if (descriptor === selected) { selected = undefined; owned.memory.appendFileSync(root + "/src/commands/yes/helper.ts", "\n"); } };
-  await assert.rejects(owned.run(["--optional"]), /input identity changed|input bytes changed/);
+  await assert.rejects(owned.run(["--optional"]), error => /input identity changed|input bytes changed/.test(error.message)
+    && error.message.includes(root + "/src/commands/yes/helper.ts"));
   noHeldReads(owned);
 });
 

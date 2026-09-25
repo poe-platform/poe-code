@@ -159,8 +159,8 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
     return stat;
   };
   const metadata = path => { checkCancellation(); return scope(path) ? physical(path) : undefined; };
-  const sameIdentity = (before, after) => {
-    for (const key of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) assert.equal(after[key], before[key], "compiler input identity changed: " + key);
+  const sameIdentity = (before, after, filename) => {
+    for (const key of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) assert.equal(after[key], before[key], "compiler input identity changed: " + key + ": " + filename);
   };
   const read = (path, maximum = Infinity) => {
     checkCancellation();
@@ -179,12 +179,12 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
     let failed = false, failure, bytes;
     try {
       checkCancellation();
-      sameIdentity(before, fileSystem.fstatSync(descriptor));
+      sameIdentity(before, fileSystem.fstatSync(descriptor), absolute);
       checkCancellation();
       bytes = fileSystem.readFileSync(descriptor);
       assert.equal(bytes.length, before.size, "compiler input size changed: " + absolute);
-      sameIdentity(before, fileSystem.fstatSync(descriptor));
-      sameIdentity(before, physical(absolute));
+      sameIdentity(before, fileSystem.fstatSync(descriptor), absolute);
+      sameIdentity(before, physical(absolute), absolute);
       checkCancellation();
     } catch (error) { failed = true; failure = error; }
     try { fileSystem.closeSync(descriptor); } catch (error) {
@@ -197,7 +197,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       const hashes = kind === "output" ? emittedHashes : inputHashes;
       const digest = sha256(bytes);
       if (hashes.has(absolute)) assert.equal(hashes.get(absolute), digest, "compiler " + (kind === "output" ? "output" : "input") + " bytes changed: " + absolute);
-      if (identities.has(absolute)) sameIdentity(identities.get(absolute), before);
+      if (identities.has(absolute)) sameIdentity(identities.get(absolute), before, absolute);
       hashes.set(absolute, digest);
       identities.set(absolute, before);
     }
@@ -240,7 +240,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
     host,
     bindings() {
       checkCancellation();
-      for (const [path, before] of identities) sameIdentity(before, physical(path));
+      for (const [path, before] of identities) sameIdentity(before, physical(path), path);
       return { inputHashes: Object.fromEntries(inputHashes), emittedHashes: Object.fromEntries(emittedHashes) };
     },
     admitPeer() {

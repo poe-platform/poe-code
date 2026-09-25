@@ -16,6 +16,21 @@ class _NativeCapability:
   if 'value' not in result:
    raise RuntimeError('Invalid host capability response')
   return result['value']
+ def fail(self, error):
+  code = error.get('code', 'service')
+  message = error.get('message', 'Host service failed')
+  if self.prefix == 'llm':
+   from poe_llm import LlmError, LimitError, CapabilityError
+   if code == 'limit':
+    raise LimitError(message)
+   if code == 'timeout':
+    import asyncio
+    raise asyncio.TimeoutError(message)
+   if code == 'capability':
+    raise CapabilityError(message)
+   raise LlmError(code, message)
+  from poe_shell import ShellError
+  raise ShellError(code, message)
  async def stream(self, payload):
   result = self.call('stream.open', payload)
   handle = result['handle']
@@ -23,8 +38,7 @@ class _NativeCapability:
    while True:
     item = self.call('stream.next', {'handle': handle})
     if item.get('error'):
-     from poe_llm import LlmError
-     raise LlmError(item['error']['code'], item['error']['message'])
+     self.fail(item['error'])
     if item['done']:
      break
     yield item['value']
@@ -38,12 +52,9 @@ class _AsyncNativeCapability:
   try:
    value = self.native.call(operation, payload)
   except RuntimeError as error:
-   from poe_llm import LlmError
-   raise LlmError('capability', str(error)) from error
+   self.native.fail({'code':'capability', 'message':str(error)})
   if isinstance(value, dict) and value.get('error'):
-   from poe_llm import LlmError
-   error = value['error']
-   raise LlmError(error.get('code', 'service'), error.get('message', 'LLM service failed'))
+   self.native.fail(value['error'])
   return value
 for _cap_name, _cap_prefix in [('_poe_llm_capability', 'llm'), ('_poe_shell_capability', 'shell')]:
  _cap_module = _cap_types.ModuleType(_cap_name)

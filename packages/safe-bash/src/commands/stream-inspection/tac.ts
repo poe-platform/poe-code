@@ -1,14 +1,19 @@
-import { FsError, type CommandDefinition } from "../../contracts/index.js";
-import { options, value } from "../internal.js";
+import { FsError, getCommandArguments, type CommandDefinition } from "../../contracts/index.js";
+import { options } from "../internal.js";
 import { command, type StreamInspectionLimits } from "./shared.js";
 import { reverseEmacsSteps } from "../expr/bre-engine.js";
 import { ExprMatchError, exprMatchCeilings } from "../regex-execution/protocol.js";
 
 export function createTacCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("tac", limits, async session => {
-    const parsed = options(session.context.args, "brs:", { before: "b", regex: "r", separator: "s" });
-    const text = value(parsed, "s") ?? "\n";
-    const separator = Buffer.from(text || "\0");
+    const arguments_ = getCommandArguments(session.context);
+    let separator: Buffer = Buffer.from("\n");
+    const parsed = options(session.context.args, "brs:", { before: "b", regex: "r", separator: "s" }, false, undefined, (key, index, offset) => {
+      if (key === "s") {
+        const raw = arguments_.bytes(index)!.subarray(offset);
+        separator = raw.length ? Buffer.from(raw) : Buffer.from("\0");
+      }
+    });
     const reversed = Uint8Array.from(separator).reverse();
     const prefix = new Uint32Array(reversed.length);
     for (let index = 1, matched = 0; index < reversed.length; index++) {

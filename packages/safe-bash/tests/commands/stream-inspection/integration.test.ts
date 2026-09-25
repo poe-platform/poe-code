@@ -141,3 +141,24 @@ test("early downstream pipeline closes input without processing full source", as
     assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "abcd");
   } finally { await shell.dispose(); }
 });
+
+test("tac -r honors Emacs line/past_end anchors and dot newline exclusions, and tac -s preserves raw non-UTF-8 separators", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: "C" } }).use(standardCommands()).use(streamInspectionCommands());
+  try {
+    for (const [cmd, expected] of [
+      ["printf 'a1\\na2\\na3' | tac -r -b -s '^a'", "a3a2\na1\n"],
+      ["printf 'a:\\nb:\\nc:' | tac -r -b -s ':$'", "::\nc:\nba"],
+      ["printf 'a::' | tac -r -s ':$'", ":a:"],
+      ["printf 'a\\nb' | tac -r -b -s '.'", "ba\n"],
+    ] as const) {
+      const result = await shell.exec(cmd);
+      assert.equal(result.exitCode, 0, cmd + ": " + result.stderr);
+      assert.equal(result.stdout, expected, cmd);
+    }
+    const rawSep = await shell.exec("printf '1\\xff2\\xff3' | tac -s $'\\xff'");
+    assert.equal(rawSep.exitCode, 0, rawSep.stderr);
+    assert.equal(Buffer.from(rawSep.stdoutBytes).toString("hex"), "3332ff31ff");
+  } finally {
+    await shell.dispose();
+  }
+});

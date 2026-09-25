@@ -2,7 +2,7 @@ import { ExprMatchError, breSearchSymbolWidth, type BreSearchDescriptor, type Br
 
 type CharacterSet = { negate: boolean; ranges: [number, number][]; classes: string[] };
 type Atom = { kind: "literal"; value: number } | { kind: "dot" } | { kind: "set"; set: CharacterSet }
-  | { kind: "start" | "end" } | { kind: "backref"; group: number }
+  | { kind: "start" | "end" | "begbuf" | "endbuf" } | { kind: "backref"; group: number }
   | { kind: "assertion"; value: "word" | "not-word" | "word-start" | "word-end" };
 type Tree = Atom | { kind: "sequence"; children: Tree[] } | { kind: "alternative"; children: Tree[] }
   | { kind: "group"; group: number; child: Tree }
@@ -492,7 +492,7 @@ class Parser {
       return this.tree({ kind: "backref", group });
     }
     if (this.search) {
-      if (escaped === "`" || escaped === "'") return this.tree({ kind: escaped === "`" ? "start" : "end" });
+      if (escaped === "`" || escaped === "'") return this.tree({ kind: escaped === "`" ? "begbuf" : "endbuf" });
       if (escaped === "b" || escaped === "B" || escaped === "<" || escaped === ">") {
         return this.tree({ kind: "assertion", value: escaped === "b" ? "word" : escaped === "B" ? "not-word" : escaped === "<" ? "word-start" : "word-end" });
       }
@@ -619,7 +619,7 @@ function* validateCaptureRepetition(tree: Tree, work: Work): Generator<void> {
     if (work.checkpoint()) yield;
     const prior = cached.get(node);
     if (prior !== undefined) return prior;
-    let result = node.kind === "start" || node.kind === "end" || node.kind === "backref";
+    let result = node.kind === "start" || node.kind === "end" || node.kind === "begbuf" || node.kind === "endbuf" || node.kind === "backref";
     if (node.kind === "group") result = yield* nullable(node.child);
     else if (node.kind === "repeat") result = node.minimum === 0 || (yield* nullable(node.child));
     else if (node.kind === "sequence" || node.kind === "alternative") {
@@ -769,7 +769,7 @@ function* prepareSearch(descriptor: BreSearchDescriptor, subject: Uint8Array, wo
       closes[Math.floor(instruction.slot / 2)]!.push(index);
     }
   }
-  return { instructions, input, groups: parser.groups, unicode, closes };
+  return { instructions, input, groups: parser.groups, unicode, emacs: Boolean(options.emacs), closes };
 }
 
 interface SearchProgram {
@@ -777,6 +777,7 @@ interface SearchProgram {
   readonly input: { readonly values: readonly number[]; readonly boundaries: readonly number[] };
   readonly groups: number;
   readonly unicode: boolean;
+  readonly emacs: boolean;
   readonly closes: readonly (readonly number[])[];
 }
 
@@ -819,8 +820,10 @@ function* searchCandidate(program: SearchProgram, candidate: number, work: Work,
           if (target?.program === state.program - 1 && target.position === state.position) return state.position;
         }
       }
-      else if (instruction.kind === "start") { if (state.position !== 0) break; }
-      else if (instruction.kind === "end") { if (state.position !== program.input.values.length) break; }
+      else if (instruction.kind === "begbuf") { if (state.position !== 0) break; }
+      else if (instruction.kind === "endbuf") { if (state.position !== (program.emacs ? maximum : program.input.values.length)) break; }
+      else if (instruction.kind === "start") { if (state.position !== 0 && !(program.emacs && program.input.values[state.position - 1] === 10)) break; }
+      else if (instruction.kind === "end") { if (state.position !== (program.emacs ? maximum : program.input.values.length) && !(program.emacs && state.position < maximum && program.input.values[state.position] === 10)) break; }
       else if (instruction.kind === "assertion") {
         const before = state.position > 0 && searchMember(program.input.values[state.position - 1]!, "word", program.unicode, work);
         const after = state.position < program.input.values.length && searchMember(program.input.values[state.position]!, "word", program.unicode, work);
@@ -858,7 +861,7 @@ function* searchCandidate(program: SearchProgram, candidate: number, work: Work,
         if (finish > start) { work.allocate(1); state.visited = []; }
       } else {
         const value = program.input.values[state.position];
-        if (value === undefined || instruction.kind === "dot" && value === 0
+        if (value === undefined || instruction.kind === "dot" && (program.emacs ? value === 10 : value === 0)
           || program.unicode && value >= 0xdc80 && value <= 0xdcff && instruction.kind !== "literal") break;
         if (instruction.kind === "literal" && value !== instruction.value) break;
         if (instruction.kind === "set") {

@@ -5,6 +5,8 @@ import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { searchCommands } from "../../../src/commands/search/index.js";
 import { makeFileSystem } from "./helpers.js";
+import { EventEmitter } from "node:events";
+import type { RegexWorkerRequest } from "../../../src/commands/regex-execution/provider.js";
 
 const files = {
   "src/first.ts": "export function first() {}\n// TODO: validate\n",
@@ -44,4 +46,30 @@ test("negative globs preserve repository ignore rules in file inventory pipeline
   const result = await shell.exec("rg --files -g '!*.md' | sort");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "src/first.ts\nsrc/space name.ts\n");
+});
+
+test("memory-file async regex failure is owned before slow-path fallback", async () => {
+  const fs = await makeFileSystem({ args: [], files: { input: "TODO\n" } });
+  let requests = 0;
+  const provider = { createWorker() {
+    const worker = new EventEmitter();
+    queueMicrotask(() => worker.emit("message", { ready: true }));
+    return Object.assign(worker, {
+      postMessage(request: RegexWorkerRequest) {
+        const fail = request.descriptor.kind === "rg" && request.rows.length > 0 && ++requests === 1;
+        queueMicrotask(() => worker.emit("message", fail
+          ? { id: request.id, error: "first batch failed" }
+          : { id: request.id, results: request.rows.map(() => Float64Array.of(0, 4)) }));
+      },
+      async terminate() {},
+    });
+  } };
+  const shell = new Shell({ fs, cwd: "/work" }).use(searchCommands({ regexExecutor: provider }));
+  try {
+    const result = await shell.exec("rg -l TODO .");
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.match(result.stderr, /first batch failed/u);
+    assert.equal(result.stdout, "");
+    assert.equal(requests, 1, "a failed asynchronous batch must not be redispatched");
+  } finally { await shell.dispose(); }
 });

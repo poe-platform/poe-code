@@ -30,7 +30,7 @@ function trySearchFileSync(
   filename: boolean,
   totals: Stats,
   admittedBacking: ReturnType<typeof getRuntimeBackingFileSystem>,
-): boolean | Promise<boolean> | undefined {
+): boolean | Promise<boolean | undefined> | undefined {
   if (args.mode === "json" || matcher.crossLine) return undefined;
   const selectedOutput = !args.quiet && args.mode === "lines";
   if (selectedOutput || args.before > 0 || args.after > 0 || target.path === "-") return undefined;
@@ -65,13 +65,15 @@ function trySearchFileSync(
   records: for (let bIdx = 0; bIdx < syncBatches.length; bIdx++) {
     const batch = syncBatches[bIdx]!;
     const batchRes = matcher.batchSync(batch);
-    if (batchRes instanceof Promise) return undefined;
+    if (batchRes instanceof Promise) {
+      return (pendingTick ? Promise.all([pendingTick, batchRes]) : batchRes).then(() => undefined);
+    }
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
       bytesSearched = line.offset + line.rawLength;
       const t = limits.tick();
       if (t !== undefined) {
-        if (hasExtYield) return undefined;
+        if (hasExtYield) return t.then(() => undefined);
         pendingTick ??= t;
       }
       const matches = batchRes[index]!;
@@ -483,6 +485,7 @@ Unicode selection and extended regex syntax require a configured executor.
                 }
                 if (syncOut instanceof Promise) {
                   return syncOut.then(f => {
+                    if (f === undefined) return runTargetSlow(target, showFilename);
                     found ||= f;
                     return !(args!.quiet && found && args!.mode !== "json");
                   }, async error => {

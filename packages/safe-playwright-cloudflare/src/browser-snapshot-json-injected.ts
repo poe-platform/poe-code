@@ -84,26 +84,28 @@ export function serializeNativeSnapshot(
 		return result;
 	};
 	const nodes: SnapshotNode[] = [];
-	const pending = snapshot.root.children.map((node) => ({
-		node,
-		parent: nodes as (SnapshotNode | string)[],
-	}));
-	for (const entry of pending) {
-		if (typeof entry.node === "string") {
-			const text = entry.parent === nodes ? { role: "text", text: entry.node } : entry.node;
+	// Admit each node before allocating traversal state for its descendants.
+	const pending = [{ children: snapshot.root.children, index: 0, parent: nodes as (SnapshotNode | string)[] }];
+	while (pending.length) {
+		const entry = pending[pending.length - 1]!;
+		if (entry.index === entry.children.length) {
+			pending.pop();
+			continue;
+		}
+		const node = entry.children[entry.index++]!;
+		if (typeof node === "string") {
+			const text = entry.parent === nodes ? { role: "text", text: node } : node;
 			if (!account(text, entry.parent)) return { limit: "byte" as const };
 			entry.parent.push(text);
 			continue;
 		}
-		const result = convertElement(entry.node);
-		if (entry.node.children.length === 1 && typeof entry.node.children[0] === "string")
-			result.text = entry.node.children[0];
-		if (entry.node.children.length && result.text === undefined) result.children = [];
+		const result = convertElement(node);
+		if (node.children.length === 1 && typeof node.children[0] === "string")
+			result.text = node.children[0];
+		if (node.children.length && result.text === undefined) result.children = [];
 		if (!account(result, entry.parent)) return { limit: "byte" as const };
 		entry.parent.push(result);
-		if (!result.children) continue;
-		for (const child of entry.node.children)
-			pending.push({ node: child, parent: result.children });
+		if (result.children) pending.push({ children: node.children, index: 0, parent: result.children });
 	}
 	const result = { nodes, iframeRefs: snapshot.iframeRefs };
 	return result;

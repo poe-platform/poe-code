@@ -15,7 +15,7 @@ function flatten(nodes: readonly PlaywrightSnapshotJSONNode[]) {
 	const result = [...nodes];
 	for (let index = 0; index < result.length; index++) {
 		const node = result[index];
-		if (node?.children) result.push(...node.children);
+		if (node?.children) for (const child of node.children) if (typeof child !== "string") result.push(child);
 	}
 	return result;
 }
@@ -80,6 +80,10 @@ export default {
           await run(['click', refs[0]!]);
           await run(['click', refs.at(-1)!]);
           assert.equal(await page.locator('button[data-clicked="yes"]').count(), 2);
+				} else if (scenario === "/recover-frames") {
+					output = "";
+					await run(["snapshot", "--json"]);
+					assert.equal((output.match(/"role"\s*:\s*"button"/g) ?? []).length, 128);
 				} else {
 					await assert.rejects(run(["snapshot", "--json"]), scenario === "/recover-refs" ? /Snapshot ref limit exceeded/ : /snapshot.*limit exceeded/i);
 				}
@@ -166,14 +170,13 @@ export default {
 				await page.setContent(
 					'<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128),
 				);
-				await assert.rejects(
-					lease.captureSnapshotJSON!(page, {
-						signal: new AbortController().signal,
-						timeoutMs: 15000,
-						maxBytes: 1048576,
-					}),
-					{ message: "Browser snapshot frame limit exceeded" },
-				);
+				const tree = await lease.captureSnapshotJSON!(page, {
+					signal: new AbortController().signal,
+					timeoutMs: 15000,
+					maxBytes: 1048576,
+				});
+				assert.equal(flatten(tree).filter(node => node.role === "button").length, 128);
+				assert.equal(page.isClosed(), false);
 				await lease.release();
 				assert.equal(page.isClosed(), true);
 				return Response.json({ ok: true });
@@ -267,14 +270,12 @@ export default {
 					await page.setContent(
 						'<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128),
 					);
-					await assert.rejects(
-						captureBrowserSnapshotJSON(page, {
-							...options,
-							timeoutMs: 15000,
-							maxBytes: 1024 * 1024,
-						}),
-						/snapshot frame limit/,
-					);
+					const tree = await captureBrowserSnapshotJSON(page, {
+						...options,
+						timeoutMs: 15000,
+						maxBytes: 1024 * 1024,
+					});
+					assert.equal(flatten(tree).filter(node => node.role === "button").length, 128);
 					break;
 				}
 				case "/abort":

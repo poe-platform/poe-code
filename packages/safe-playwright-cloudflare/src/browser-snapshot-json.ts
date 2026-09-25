@@ -30,8 +30,8 @@ interface NativeSnapshotPage {
 
 // The pinned provider's native tree owns accessibility semantics and usable refs.
 // Newer engine-only fields (invalid/ariaHidden) are not invented here.
-// The controller retires the owning lease on rejection, including timeout,
-// before accepting another command; native in-flight capture cannot be reused.
+// Resource refusals finish capture and preserve the healthy lease. Other
+// failures, including timeout, still retire potentially in-flight captures.
 export const captureBrowserSnapshotJSON: PlaywrightSnapshotJSONCapture = async (
 	page,
 	options,
@@ -78,7 +78,7 @@ async function capture(
 			maxBytes: remaining,
 			boxes: options.boxes ?? false,
 		});
-		if ("limit" in result) throw new PlaywrightSnapshotLimitError("Browser snapshot JSON limit exceeded");
+		if ("limit" in result) throw new PlaywrightSnapshotLimitError("Browser snapshot byte limit exceeded");
 		if (Number.isFinite(remaining))
 			remaining -= encoder.encode(JSON.stringify(result.nodes)).byteLength;
 		for (const node of result.nodes) entry.target.push(node);
@@ -100,7 +100,7 @@ async function capture(
 		for (const child of children) if (child) pending.push(child);
 	}
 	if (Number.isFinite(options.maxBytes) && encoder.encode(JSON.stringify(forest)).byteLength > options.maxBytes)
-		throw new PlaywrightSnapshotLimitError("Browser snapshot JSON limit exceeded");
+		throw new PlaywrightSnapshotLimitError("Browser snapshot byte limit exceeded");
 	return forest;
 }
 

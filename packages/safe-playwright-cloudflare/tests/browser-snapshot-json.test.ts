@@ -66,3 +66,11 @@ test("does not impose a frame count cap before native snapshot work", async () =
 	).resolves.toEqual([]);
 	expect(snapshot).toHaveBeenCalledOnce();
 });
+
+for (const nested of [false, true]) test(`JSON byte admission does not visit later siblings with nested=${nested}`, () => {
+  const children = ["oversized first child".repeat(100)];
+  Object.defineProperty(children, 1, { get() { throw new Error("unadmitted sibling read"); } });
+  const node = { role: "group", name: "", props: {}, box: {}, children };
+  const injected = { _lastAriaSnapshotForQuery: { root: { children: nested ? [node] : children }, iframeRefs: [] } } as unknown as NativeSnapshotScript;
+  expect(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toEqual({ limit: "byte" });
+});

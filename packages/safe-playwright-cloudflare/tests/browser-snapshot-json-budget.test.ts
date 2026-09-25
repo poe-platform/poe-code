@@ -18,7 +18,7 @@ test("native text retains compact leaf and mixed-child representations", () => {
   expect(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: Infinity, boxes: false }).nodes).toEqual([
     { role: "generic", children: ["Before", { role: "paragraph", text: "Hello" }, "After"] },
   ]);
-  expect(() => serializeNativeSnapshot(snapshot([mixed]), { maxBytes: 10, boxes: false })).toThrow("limit exceeded");
+  expect(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: 10, boxes: false })).toEqual({ limit: "byte" });
 });
 
 test("an explicit JSON budget accepts its exact serialized size", () => {
@@ -26,7 +26,7 @@ test("an explicit JSON budget accepts its exact serialized size", () => {
   const result = serializeNativeSnapshot(tree, { maxBytes: Infinity, boxes: false });
   const bytes = new TextEncoder().encode(JSON.stringify(result.nodes)).length;
   expect(serializeNativeSnapshot(tree, { maxBytes: bytes, boxes: false })).toEqual(result);
-  expect(() => serializeNativeSnapshot(tree, { maxBytes: bytes - 1, boxes: false })).toThrow("limit exceeded");
+  expect(serializeNativeSnapshot(tree, { maxBytes: bytes - 1, boxes: false })).toEqual({ limit: "byte" });
 });
 
 test.each([Infinity, 1024 * 1024])("snapshot traversal admits 129 child frames with byte budget %s", async maxBytes => {

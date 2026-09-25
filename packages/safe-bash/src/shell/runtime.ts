@@ -25,7 +25,7 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
+import { isCleanAbsolutePath, scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
 import { collectPureReadOnlySmiNames, compilePureSmiProgram, evalCompiledSmi, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
@@ -1396,6 +1396,9 @@ class FastShellCommandContext {
 
   get fs(): FileSystem {
     const self = this._self ?? this;
+    if (!self._contextFs && self._runtime._isMemoryBackingFs) {
+      return self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
+    }
     if (!self._contextFs) {
       self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
     }
@@ -2319,6 +2322,8 @@ type SyncLoopStep = {
   readonly name: string | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
+  readonly targetDirPrefix?: string | undefined;
+  readonly targetNamePrefix?: string | undefined;
   readonly append: boolean;
   readonly line: number;
   coalesceNext?: boolean;
@@ -2329,6 +2334,44 @@ const sharedSyncLoopTouched = new Set<string>();
 const sharedSyncLoopArithNames = new Set<string>();
 const sharedSyncLoopRegNames: string[] = [];
 const sharedSyncLoopIntSteps: (IntLoopStep | undefined)[] = [];
+let cachedRedirectNamePrefix = "";
+let cachedRedirectNameSuffix = "";
+let cachedRedirectNameTable: (string | undefined)[] = new Array(256);
+
+class DynamicFsSignal {
+  current: AbortSignal;
+  constructor(initial: AbortSignal) {
+    this.current = initial;
+  }
+  get aborted(): boolean {
+    return this.current.aborted;
+  }
+  get reason(): unknown {
+    return this.current.reason;
+  }
+  throwIfAborted(): void {
+    this.current.throwIfAborted();
+  }
+  addEventListener(type: string, listener: Parameters<AbortSignal["addEventListener"]>[1], options?: Parameters<AbortSignal["addEventListener"]>[2]): void {
+    this.current.addEventListener(type, listener, options);
+  }
+  removeEventListener(type: string, listener: Parameters<AbortSignal["removeEventListener"]>[1], options?: Parameters<AbortSignal["removeEventListener"]>[2]): void {
+    this.current.removeEventListener(type, listener, options);
+  }
+}
+Object.setPrototypeOf(DynamicFsSignal.prototype, AbortSignal.prototype);
+
+interface SharedMemoryFsEntry {
+  budget: Budget;
+  readonly signal: DynamicFsSignal;
+  readonly charge: () => void;
+  readonly cleanupCharge: () => void;
+  readonly maxPathComponents: number;
+  rawScopedFs: FileSystem | undefined;
+  readonly contextByMask: Map<number, FileSystem>;
+  readonly redirectByMask: Map<number, FileSystem>;
+}
+const sharedMemoryFsCache = new WeakMap<FileSystem, SharedMemoryFsEntry>();
 
 export class Runtime {
   declare readonly commands: CommandRegistry;
@@ -2352,7 +2395,7 @@ export class Runtime {
   declare private _contextFs: FileSystem | undefined;
   declare private _redirectFsMask: number;
   declare private _redirectFs: FileSystem | undefined;
-  declare private readonly _isMemoryBackingFs: boolean;
+  declare readonly _isMemoryBackingFs: boolean;
   declare private _fileWrites: Map<string, Promise<void>> | undefined;
   declare private _outputFiles: Map<string, OutputFile> | undefined;
   declare private _syncArithState: State | undefined;
@@ -2413,6 +2456,16 @@ export class Runtime {
   }
 
   get fs(): FileSystem {
+    if (this._isMemoryBackingFs && this._rawFs === this.sourceFs) {
+      const entry = this.getSharedMemoryFsEntry(this.signal);
+      if (!entry.rawScopedFs) {
+        const created = scopeFileSystem(this._rawFs, entry.charge, entry.signal as unknown as AbortSignal, entry.cleanupCharge, { maxPathComponents: entry.maxPathComponents });
+        runtimeFileSystems.set(created, this.sourceFs);
+        registerRuntimeBackingFileSystem(created, this.backingFs);
+        entry.rawScopedFs = created;
+      }
+      return entry.rawScopedFs;
+    }
     if (!this._fs) {
       this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
       runtimeFileSystems.set(this._fs, this.sourceFs);
@@ -2421,7 +2474,47 @@ export class Runtime {
     return this._fs;
   }
 
+  private getSharedMemoryFsEntry(sig: AbortSignal): SharedMemoryFsEntry {
+    let entry = sharedMemoryFsCache.get(this.sourceFs);
+    const maxPathComponents = this.budget.limits.maxPathnameComponents;
+    if (!entry || entry.maxPathComponents !== maxPathComponents) {
+      const signal = new DynamicFsSignal(sig);
+      const created: SharedMemoryFsEntry = {
+        budget: this.budget,
+        signal,
+        charge: () => created.budget.fileSystemOperation(),
+        cleanupCharge: () => created.budget.fileSystemCleanupOperation(),
+        maxPathComponents,
+        rawScopedFs: undefined,
+        contextByMask: new Map(),
+        redirectByMask: new Map(),
+      };
+      sharedMemoryFsCache.set(this.sourceFs, created);
+      return created;
+    }
+    entry.budget = this.budget;
+    entry.signal.current = sig;
+    return entry;
+  }
+
   private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
+    if (this._isMemoryBackingFs) {
+      const entry = this.getSharedMemoryFsEntry(sig);
+      let cached = entry.contextByMask.get(umask);
+      if (!cached) {
+        cached = scopeFileSystem(
+          creationFileSystem(this.sourceFs, umask),
+          entry.charge,
+          entry.signal as unknown as AbortSignal,
+          entry.cleanupCharge,
+          { maxPathComponents: entry.maxPathComponents },
+        );
+        runtimeFileSystems.set(cached, this.sourceFs);
+        registerRuntimeBackingFileSystem(cached, this.backingFs);
+        entry.contextByMask.set(umask, cached);
+      }
+      return cached;
+    }
     if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
       return this._contextFs;
     }
@@ -2441,6 +2534,21 @@ export class Runtime {
   }
 
   private getRedirectFs(umask: number): FileSystem {
+    if (this._isMemoryBackingFs) {
+      const entry = this.getSharedMemoryFsEntry(this.commandSignal);
+      let cached = entry.redirectByMask.get(umask);
+      if (!cached) {
+        cached = scopeFileSystem(
+          creationFileSystem(this.sourceFs, umask),
+          entry.charge,
+          entry.signal as unknown as AbortSignal,
+          entry.cleanupCharge,
+          { preserveDescriptorWriteReceipt: true, maxPathComponents: entry.maxPathComponents },
+        );
+        entry.redirectByMask.set(umask, cached);
+      }
+      return cached;
+    }
     if (this._redirectFs && this._redirectFsMask === umask) return this._redirectFs;
     this._redirectFsMask = umask;
     return (this._redirectFs = scopeFileSystem(
@@ -4857,7 +4965,29 @@ export class Runtime {
         if (cmd.redirects.length === 1) {
           redirectCount++;
           const r0 = cmd.redirects[0]!;
-          bodyAssignments.push({ cmd, name: undefined, value: cmd.words[1]!, targetWord: r0.target, append: r0.operator === ">>", line });
+          let targetDirPrefix: string | undefined;
+          let targetNamePrefix: string | undefined;
+          const firstTargetPart = r0.target.parts[0];
+          if (firstTargetPart?.kind === "text" && firstTargetPart.value.charCodeAt(0) === 47) {
+            const lastSlash = firstTargetPart.value.lastIndexOf("/");
+            if (lastSlash >= 1) {
+              const dirNoSlash = firstTargetPart.value.slice(0, lastSlash);
+              if (isCleanAbsolutePath(dirNoSlash) && dirNoSlash !== "/dev" && !dirNoSlash.startsWith("/dev/")) {
+                targetDirPrefix = firstTargetPart.value.slice(0, lastSlash + 1);
+                targetNamePrefix = firstTargetPart.value.slice(lastSlash + 1);
+              }
+            }
+          }
+          bodyAssignments.push({
+            cmd,
+            name: undefined,
+            value: cmd.words[1]!,
+            targetWord: r0.target,
+            targetDirPrefix,
+            targetNamePrefix,
+            append: r0.operator === ">>",
+            line,
+          });
         } else {
           const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
           bodyAssignments.push({ cmd, name: assignment?.name, value: assignment?.value, targetWord: undefined, append: false, line });
@@ -5375,6 +5505,152 @@ export class Runtime {
     return out;
   }
 
+  private evalSyncRedirectSuffix(
+    word: Word,
+    dirPrefix: string,
+    namePrefix: string,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    touched: Set<string>,
+  ): string {
+    this.signal.throwIfAborted();
+    const rawVars = rawState.variables;
+    const parts = word.parts;
+    let out = namePrefix;
+    if (parts.length === 3 && parts[1]!.kind === "variable" && parts[2]!.kind === "text") {
+      const name = parts[1]!.name;
+      const raw = rawVars[name];
+      const val = raw !== undefined ? (touched.has(name) ? raw : ((monitor.values.get(name, raw) as string | undefined) ?? raw)) : "";
+      const suffix = parts[2]!.value;
+      let n = -1;
+      if (val.length === 1) {
+        const d0 = val.charCodeAt(0) - 48;
+        if (d0 >= 0 && d0 <= 9) n = d0;
+      } else if (val.length === 2) {
+        const d0 = val.charCodeAt(0) - 48;
+        const d1 = val.charCodeAt(1) - 48;
+        if (d0 >= 1 && d0 <= 9 && d1 >= 0 && d1 <= 9) n = d0 * 10 + d1;
+      } else if (val.length === 3) {
+        const d0 = val.charCodeAt(0) - 48;
+        const d1 = val.charCodeAt(1) - 48;
+        const d2 = val.charCodeAt(2) - 48;
+        if (d0 >= 1 && d0 <= 2 && d1 >= 0 && d1 <= 9 && d2 >= 0 && d2 <= 9) n = d0 * 100 + d1 * 10 + d2;
+      }
+      if (n >= 0 && n < 256 && namePrefix.length + suffix.length <= 64) {
+        if (namePrefix !== cachedRedirectNamePrefix || suffix !== cachedRedirectNameSuffix) {
+          cachedRedirectNamePrefix = namePrefix;
+          cachedRedirectNameSuffix = suffix;
+          cachedRedirectNameTable = new Array(256);
+        }
+        out = cachedRedirectNameTable[n] ??= namePrefix + val + suffix;
+      } else {
+        out = namePrefix + val + suffix;
+      }
+    } else {
+      for (let i = 1; i < parts.length; i++) {
+        const part = parts[i]!;
+        if (part.kind === "text") {
+          out += part.value;
+        } else {
+          const name = (part as Extract<WordPart, { kind: "variable" }>).name;
+          const raw = rawVars[name];
+          if (raw !== undefined) {
+            out += touched.has(name) ? raw : ((monitor.values.get(name, raw) as string | undefined) ?? raw);
+          }
+        }
+      }
+    }
+    if (this.budget.maxExpansionFieldsSmi < 1 && 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    const totalChars = dirPrefix.length + out.length;
+    if (totalChars * 3 > this.budget.maxExpansionBytesSmi && (shellValueByteLength(dirPrefix) + shellValueByteLength(out)) > this.budget.limits.maxExpansionBytes) {
+      this.budget.fail("maxExpansionBytes");
+    }
+    return out;
+  }
+
+  private encodeSyncRedirectWordsToScratch(
+    word0: Word,
+    word1: Word | undefined,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    touched: Set<string>,
+  ): Uint8Array {
+    this.signal.throwIfAborted();
+    const rawVars = rawState.variables;
+    let pos = 0;
+    const wordCount = word1 !== undefined ? 2 : 1;
+    for (let w = 0; w < wordCount; w++) {
+      if (w === 1) this.signal.throwIfAborted();
+      const word = w === 0 ? word0 : word1!;
+      const parts = word.parts;
+      const wordStart = pos;
+      for (let i = 0; i < parts.length; i++) {
+        const part = parts[i]!;
+        let str: string | undefined;
+        if (part.kind === "text") {
+          str = part.value;
+        } else {
+          const name = (part as Extract<WordPart, { kind: "variable" }>).name;
+          const raw = rawVars[name];
+          if (raw !== undefined) {
+            str = touched.has(name) ? raw : ((monitor.values.get(name, raw) as string | undefined) ?? raw);
+          }
+        }
+        if (str !== undefined && str.length > 0) {
+          const sLen = str.length;
+          if (pos + sLen + 2 > fastRedirectScratchBytes.byteLength) {
+            const s0 = this.evalSyncRedirectWord(word0, rawState, monitor, touched);
+            if (word1 !== undefined) {
+              const s1 = this.evalSyncRedirectWord(word1, rawState, monitor, touched);
+              return encodeRedirectTextToScratch(`${s0}\n${s1}\n`);
+            }
+            return encodeRedirectTextToScratch(`${s0}\n`);
+          }
+          for (let j = 0; j < sLen; j++) {
+            const code = str.charCodeAt(j);
+            if (code >= 0x80) {
+              const s0 = this.evalSyncRedirectWord(word0, rawState, monitor, touched);
+              if (word1 !== undefined) {
+                const s1 = this.evalSyncRedirectWord(word1, rawState, monitor, touched);
+                return encodeRedirectTextToScratch(`${s0}\n${s1}\n`);
+              }
+              return encodeRedirectTextToScratch(`${s0}\n`);
+            }
+            fastRedirectScratchBytes[pos++] = code;
+          }
+        }
+      }
+      const wordBytes = pos - wordStart;
+      if (this.budget.maxExpansionFieldsSmi < 1 && 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      if (wordBytes > this.budget.maxExpansionBytesSmi && wordBytes > this.budget.limits.maxExpansionBytes) {
+        this.budget.fail("maxExpansionBytes");
+      }
+      fastRedirectScratchBytes[pos++] = 10;
+    }
+    return pos <= 128 ? fastRedirectScratchViews[pos]! : fastRedirectScratchBytes.subarray(0, pos);
+  }
+
+  private writeSyncRedirectStep(
+    step: SyncLoopStep,
+    encoded: Uint8Array,
+    append: boolean,
+    mode: number,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    touched: Set<string>,
+  ): void {
+    if (step.targetDirPrefix !== undefined && step.targetNamePrefix !== undefined) {
+      const fileName = this.evalSyncRedirectSuffix(step.targetWord!, step.targetDirPrefix, step.targetNamePrefix, rawState, monitor, touched);
+      if (tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) {
+        return;
+      }
+      tryWriteMemoryFileSync(this.backingFs, step.targetDirPrefix + fileName, encoded, append, mode, this.commandSignal);
+      return;
+    }
+    const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, monitor, touched);
+    tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
+  }
+
   private runSyncArithForFallback(
     e0: ArithmeticProgram,
     e1: ArithmeticProgram,
@@ -5392,7 +5668,9 @@ export class Runtime {
   ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string; lastInductionVal: string | undefined } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
+    let lastValueWord: Word | undefined;
     let lastInductionVal: string | undefined;
+    let lastArgInductionVal: string | undefined;
     this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
     let loopTurn = 0;
     while (true) {
@@ -5406,39 +5684,46 @@ export class Runtime {
         this.budget.tick();
         if (deferredMask & (1 << b)) {
           lastArg = "";
+          lastValueWord = undefined;
           continue;
         }
         if (step.coalesceNext) {
           const nextStep = bodyAssignments[++b]!;
           this.budget.tick();
-          const arg0 = this.evalSyncRedirectWord(step.value!, rawState, monitor, touched);
-          const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, monitor, touched);
-          const arg1 = this.evalSyncRedirectWord(nextStep.value!, rawState, monitor, touched);
-          const encoded = encodeRedirectTextToScratch(`${arg0}\n${arg1}\n`);
-          tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, false, mode, this.commandSignal);
+          const encoded = this.encodeSyncRedirectWordsToScratch(step.value!, nextStep.value!, rawState, monitor, touched);
+          this.writeSyncRedirectStep(step, encoded, false, mode, rawState, monitor, touched);
           this.budget.fileSystemOperation();
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastCmd = nextStep.cmd;
-          lastArg = arg1;
+          lastValueWord = nextStep.value;
         } else if (step.targetWord !== undefined && step.value !== undefined) {
-          const arg0 = this.evalSyncRedirectWord(step.value, rawState, monitor, touched);
-          const targetVal = this.evalSyncRedirectWord(step.targetWord, rawState, monitor, touched);
-          const encoded = encodeRedirectTextToScratch(`${arg0}\n`);
-          tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, step.append, mode, this.commandSignal);
+          const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, monitor, touched);
+          this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, monitor, touched);
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
-          lastArg = arg0;
+          lastValueWord = step.value;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           rawState.variables[step.name] = val;
           touched.add(step.name);
           lastArg = "";
+          lastValueWord = undefined;
         } else {
           lastArg = step.cmd.words[0]!.plain!;
+          lastValueWord = undefined;
         }
       }
+      if (lastValueWord !== undefined) lastArgInductionVal = rawState.variables[inductionName];
       this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
+    }
+    if (lastValueWord !== undefined) {
+      const postInd = rawState.variables[inductionName];
+      if (lastArgInductionVal === undefined) delete rawState.variables[inductionName];
+      else rawState.variables[inductionName] = lastArgInductionVal;
+      lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, monitor, touched);
+      if (postInd === undefined) delete rawState.variables[inductionName];
+      else rawState.variables[inductionName] = postInd;
     }
     return { lastCmd, lastArg, lastInductionVal };
   }
@@ -5455,6 +5740,7 @@ export class Runtime {
   ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string } {
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
+    let lastValueWord: Word | undefined;
     let loopTurn = 0;
     for (let idx = 0; idx < fastLoopWords.length; idx++) {
       this.budget.loop();
@@ -5467,33 +5753,33 @@ export class Runtime {
         if (step.coalesceNext) {
           const nextStep = bodyAssignments[++b]!;
           this.budget.tick();
-          const arg0 = this.evalSyncRedirectWord(step.value!, rawState, monitor, touched);
-          const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, monitor, touched);
-          const arg1 = this.evalSyncRedirectWord(nextStep.value!, rawState, monitor, touched);
-          const encoded = encodeRedirectTextToScratch(`${arg0}\n${arg1}\n`);
-          tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, false, mode, this.commandSignal);
+          const encoded = this.encodeSyncRedirectWordsToScratch(step.value!, nextStep.value!, rawState, monitor, touched);
+          this.writeSyncRedirectStep(step, encoded, false, mode, rawState, monitor, touched);
           this.budget.fileSystemOperation();
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
           lastCmd = nextStep.cmd;
-          lastArg = arg1;
+          lastValueWord = nextStep.value;
         } else if (step.targetWord !== undefined && step.value !== undefined) {
-          const arg0 = this.evalSyncRedirectWord(step.value, rawState, monitor, touched);
-          const targetVal = this.evalSyncRedirectWord(step.targetWord, rawState, monitor, touched);
-          const encoded = encodeRedirectTextToScratch(`${arg0}\n`);
-          tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, step.append, mode, this.commandSignal);
+          const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, monitor, touched);
+          this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, monitor, touched);
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
-          lastArg = arg0;
+          lastValueWord = step.value;
         } else if (step.name !== undefined && step.value !== undefined) {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           rawState.variables[step.name] = val;
           touched.add(step.name);
           lastArg = "";
+          lastValueWord = undefined;
         } else {
           lastArg = step.cmd.words[0]!.plain!;
+          lastValueWord = undefined;
         }
       }
+    }
+    if (lastValueWord !== undefined) {
+      lastArg = this.evalSyncRedirectWord(lastValueWord, rawState, monitor, touched);
     }
     return { lastCmd, lastArg };
   }

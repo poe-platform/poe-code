@@ -768,6 +768,23 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       try {
         if (interactive === "once" && (recursive || parsed.operands.length > 3)
           && !await confirm(`remove ${parsed.operands.length} argument${parsed.operands.length === 1 ? "" : "s"}${recursive ? " recursively" : ""}`)) return { exitCode: 0 };
+        const backingMem = getRuntimeBackingFileSystem(context.fs) as { symlinkCount?: number } | undefined;
+        const caps = context.fs.capabilities;
+        const fastStockMemory =
+          interactive === "never" &&
+          backingMem !== undefined &&
+          backingMem.symlinkCount === 0 &&
+          caps.remove === true &&
+          caps.recursiveRemove === true &&
+          caps.removeDirectory === true &&
+          !caps.readOnly &&
+          Object.getPrototypeOf(backingMem)?.constructor?.name === "MemoryFileSystem" &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "lstat") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "stat") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "realpath") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "rm") &&
+          !Object.prototype.hasOwnProperty.call(backingMem, "rmdir");
+        if (!fastStockMemory) {
         await preflightOperands(context, parsed.operands, async operand => {
           const path = pathOf(context, operand);
           const stat = await maybeStat(context, path, false);
@@ -776,9 +793,27 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           if (mode === "directory") await admitEmptyDirectory(context, path, readDirectory);
           else await admitFilesystemModes(context, "rm", [mode], [path]);
         });
+        }
         const remove = async (operand: string, depth = 0): Promise<boolean> => {
           const path = pathOf(context, operand);
           if (path === "/" || [".", ".."].includes(operand.replace(/\/+$/u, "").split("/").at(-1)!)) throw new FsError("EBUSY", { path, message: "refusing to remove root, '.' or '..'" });
+          if (fastStockMemory) {
+            if (!recursive && parsed.flags.has("d")) {
+              const stat = await maybeStat(context, path, false);
+              if (!stat) {
+                if (parsed.flags.has("f")) return true;
+                throw new FsError("ENOENT", { path });
+              }
+              if (stat.type === "directory") {
+                await context.fs.rmdir!(path, { signal: context.signal });
+                if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
+                return true;
+              }
+            }
+            await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
+            if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
+            return true;
+          }
           const stat = await maybeStat(context, path, false);
           if (!stat) {
             if (parsed.flags.has("f")) return true;

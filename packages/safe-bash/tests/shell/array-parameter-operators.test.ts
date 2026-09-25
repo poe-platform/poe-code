@@ -3,7 +3,7 @@ import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { setup } from './helpers.js';
 
-for (const [source, expected] of [
+for (const mode of ['inline', 'bash', 'sh'] as const) for (const [source, expected] of [
   ['a=(a b c d); args "${a[@]:1:2}" "${a[*]:1:2}"', ['b', 'c', 'b c']],
   ['a=(hello world); args "${a[0]:1:3}" "${a[1]: -3}"', ['ell', 'rld']],
   ['a=(dir/foo.txt dir/bar.txt); args "${a[0]%.txt}" "${a[@]##*/}" "${a[*]%.txt}"', ['dir/foo', 'foo.txt', 'bar.txt', 'dir/foo dir/bar']],
@@ -22,10 +22,10 @@ for (const [source, expected] of [
   ['a=("" yes); args "${a[0]?missing}" "${a[0]+set}" "${a[1]-fallback}" "${a[2]:+alt}"', ['', 'set', 'yes', '']],
   ['declare -A m; m[k]=dir/foo.txt; args "${m[k]##*/}" "${m[k]%.txt}" "${m[k]/foo/bar}" "${m[k]?missing}"', ['foo.txt', 'dir/foo', 'dir/bar.txt', 'dir/foo.txt']],
   ['a=(aaab.txt ab.txt); args "${a[@]#a}" "${a[@]##a*}" "${a[@]%.txt}" "${a[@]%%b*}"', ['aab.txt', 'b.txt', '', '', 'aaab', 'ab', 'aaa', 'a']],
-] as const) test(`array parameter operators: ${source}`, async () => {
+] as const) test(`array parameter operators through ${mode}: ${source}`, async () => {
   const { shell } = setup();
   try {
-    const result = await shell.exec(source);
+    const result = await shell.exec(mode === 'inline' ? source : `${mode} -c '${source}'`);
     assert.equal(result.stderr, '');
     assert.equal(result.exitCode, 0);
     assert.deepEqual(JSON.parse(result.stdout), expected);
@@ -33,16 +33,16 @@ for (const [source, expected] of [
   } finally { await shell.dispose(); }
 });
 
-for (const source of [
+for (const mode of ['inline', 'bash', 'sh'] as const) for (const source of [
   'a=(); args "${a[2]:?missing}"; args later',
   'a=(); args "${a[2]?missing}"; args later',
   'a=(""); args "${a[0]:?missing}"; args later',
   'declare -A m; args "${m[k]:?missing}"; args later',
   'declare -A m; args "${m[k]?missing}"; args later',
-]) test(`array element error operator stops execution: ${source}`, async () => {
+]) test(`array element error operator stops execution through ${mode}: ${source}`, async () => {
   const { shell } = setup();
   try {
-    const result = await shell.exec(source);
+    const result = await shell.exec(mode === 'inline' ? source : `${mode} -c '${source}'`);
     assert.notEqual(result.exitCode, 0);
     assert.match(result.stderr, /missing/);
     assert.equal(result.stdout, '');

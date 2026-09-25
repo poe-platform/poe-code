@@ -1,4 +1,5 @@
 import { createTrackedProxy } from "../platform/types.js";
+import { runDataCopy, type DataCopyOperation } from "./data-copy.js";
 import { withMeasurementSeen, type MeasurementSeen } from "./measurement-seen.js";
 import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
@@ -22,7 +23,7 @@ import { internalSymbols } from "./internal-symbols.js";
 import { getIntrinsicIdentity } from "./intrinsics.js";
 import { getGeneratorProperties } from "./generator-properties.js";
 import { getRegexProperties, regexGuestProperties } from "./regexp-properties.js";
-import { getCollectionProperties, collectionGuestProperties, copyCollectionProperties } from "./collection-properties.js";
+import { getCollectionProperties, collectionGuestProperties, copyCollectionPropertiesOperation } from "./collection-properties.js";
 export { getCollectionProperties } from "./collection-properties.js";
 export { getRegexProperties } from "./regexp-properties.js";
 import { retainedAccessorClosures } from "./accessors.js";
@@ -93,7 +94,7 @@ import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPr
 import type { FunctionSource } from "../parse/function-source.js";
 import { dynamicSourceRecords, dynamicValueSources, type DynamicSource } from "../parse/function-source.js";
 import {
-  copySandboxArgumentProperties,
+  copySandboxArgumentPropertiesOperation,
   createSandboxArguments,
   getSandboxArgumentEntries,
   mappedArgumentStates,
@@ -2017,6 +2018,16 @@ function copyToSandbox(
   cloneSandboxCollections = false,
   depth = 0
 ): SandboxValue {
+  return runDataCopy(copyToSandboxNode(value, state, path, cloneSandboxCollections, depth));
+}
+
+function* copyToSandboxNode(
+  value: unknown,
+  state: CopyState<SandboxValue>,
+  path = "<root>",
+  cloneSandboxCollections = false,
+  depth = 0
+): DataCopyOperation<SandboxValue> {
   assertSandboxDataDepth(depth);
   assertNativeProxyCopyable(value);
   if (state.structuredClone && (isSandboxPromise(value) || nodeTypes.isPromise(value)))
@@ -2074,7 +2085,7 @@ function copyToSandbox(
     const { source, flags } = sandbox ? value : readNativeRegExp(value);
     const copy = createSandboxRegex(source, flags, 0, state.compilation);
     state.seen.set(value, copy);
-    if (!state.resetRegexLastIndex) copy.lastIndex = copyToSandbox(value.lastIndex, state, `${path}.lastIndex`, true, depth + 1);
+    if (!state.resetRegexLastIndex) copy.lastIndex = (yield copyToSandboxNode(value.lastIndex, state, `${path}.lastIndex`, true, depth + 1));
     if (!state.structuredClone) {
       const properties = sandbox ? getRegexProperties(value) : value;
       for (const key of Reflect.ownKeys(properties)) {
@@ -2083,7 +2094,7 @@ function copyToSandbox(
         Object.defineProperty(getRegexProperties(copy), key, {
           ...descriptor,
           value: key === "lastIndex" && state.resetRegexLastIndex ? 0
-            : copyToSandbox(descriptor.value, state, `${path}.${String(key)}`, true, depth + 1)
+            : (yield copyToSandboxNode(descriptor.value, state, `${path}.${String(key)}`, true, depth + 1))
         });
       }
       if (!Object.isExtensible(properties)) Object.preventExtensions(getRegexProperties(copy));
@@ -2106,7 +2117,7 @@ function copyToSandbox(
         const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
         if (!("value" in descriptor)) throw new TypeError("Imported Promise property snapshots cannot contain accessors.");
         Object.defineProperty(properties, key, { ...descriptor,
-          value: copyToSandbox(descriptor.value, state, joinPath(path, String(key)), true, depth + 1) });
+          value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, String(key)), true, depth + 1)) });
       }
       if (!Object.isExtensible(original)) Object.preventExtensions(properties);
     }
@@ -2125,11 +2136,11 @@ function copyToSandbox(
     const snapshot = regexpIteratorState(value);
     const copy = restoreSandboxRegExpIterator({ matcher: undefined, input: undefined, exhausted: true });
     state.seen.set(value, copy);
-    const matcher = copyToSandbox(snapshot.matcher, state, `${path}.<matcher>`, true, depth + 1);
+    const matcher = (yield copyToSandboxNode(snapshot.matcher, state, `${path}.<matcher>`, true, depth + 1));
     if (matcher !== undefined && (snapshot.global === undefined ? !isSandboxRegex(matcher) : matcher === null || typeof matcher !== "object")) throw new TypeError("Invalid RegExp iterator matcher.");
     restoreSandboxRegExpIterator({ ...snapshot, matcher }, copy);
     for (const entry of getEnumerableObjectEntries(value, path)) {
-      defineOwnDataProperty(copy, entry.key, copyToSandbox(entry.value, state, joinPath(path, entry.key), true, depth + 1));
+      defineOwnDataProperty(copy, entry.key, (yield copyToSandboxNode(entry.value, state, joinPath(path, entry.key), true, depth + 1)));
     }
     return copy;
   }
@@ -2142,11 +2153,11 @@ function copyToSandbox(
     const snapshot = snapshotCollectionIterator(value);
     const copy = restoreSandboxCollectionIterator({ ...snapshot, collection: undefined, index: 0, exhausted: true });
     state.seen.set(value, copy);
-    const collection = copyToSandbox(snapshot.collection, state, `${path}.<collection>`, true, depth + 1);
+    const collection = (yield copyToSandboxNode(snapshot.collection, state, `${path}.<collection>`, true, depth + 1));
     if (collection !== undefined && !isSandboxMap(collection) && !isSandboxSet(collection)) throw new TypeError("Invalid cloned collection iterator source.");
     state.initializeIterators!.push(() => { restoreSandboxCollectionIterator({ ...snapshot, collection }, copy); });
     for (const entry of getEnumerableObjectEntries(value, path)) {
-      defineOwnDataProperty(copy, entry.key, copyToSandbox(entry.value, state, joinPath(path, entry.key), true, depth + 1));
+      defineOwnDataProperty(copy, entry.key, (yield copyToSandboxNode(entry.value, state, joinPath(path, entry.key), true, depth + 1)));
     }
     return copy;
   }
@@ -2176,7 +2187,7 @@ function copyToSandbox(
       const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
       if (!("value" in descriptor)) throw new TypeError("Temporal date accessor properties cannot be copied as data.");
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+        value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2195,7 +2206,7 @@ function copyToSandbox(
       const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
       if (!("value" in descriptor)) throw new TypeError("PlainTime accessor properties cannot be copied as data.");
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+        value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2214,7 +2225,7 @@ function copyToSandbox(
       const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
       if (!("value" in descriptor)) throw new TypeError("Duration accessor properties cannot be copied as data.");
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+        value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2233,7 +2244,7 @@ function copyToSandbox(
       const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
       if (!("value" in descriptor)) throw new TypeError("Instant accessor properties cannot be copied as data.");
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+        value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2251,7 +2262,7 @@ function copyToSandbox(
         if (!("value" in descriptor)) throw new TypeError("Boxed data cannot contain accessors.");
         Object.defineProperty(copy, key, {
           ...descriptor,
-          value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)
+          value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1))
         });
       }
     }
@@ -2265,11 +2276,11 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = createSandboxMap();
     state.seen.set(value, copy);
-    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, true, depth + 1));
+    if (!state.structuredClone) (yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), entry => copyToSandboxNode(entry, state, `${path}.<property>`, true, depth + 1)));
     for (const [key, entry] of value.entries) {
       copy.entries.set(
-        copyToSandbox(key, state, `${path}.<key>`, true, depth + 1),
-        copyToSandbox(entry, state, `${path}.<value>`, true, depth + 1)
+        (yield copyToSandboxNode(key, state, `${path}.<key>`, true, depth + 1)),
+        (yield copyToSandboxNode(entry, state, `${path}.<value>`, true, depth + 1))
       );
     }
     return copy;
@@ -2281,9 +2292,9 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = createSandboxSet();
     state.seen.set(value, copy);
-    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, true, depth + 1));
+    if (!state.structuredClone) (yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), entry => copyToSandboxNode(entry, state, `${path}.<property>`, true, depth + 1)));
     for (const entry of value.values) {
-      copy.values.add(copyToSandbox(entry, state, `${path}.<value>`, true, depth + 1));
+      copy.values.add((yield copyToSandboxNode(entry, state, `${path}.<value>`, true, depth + 1)));
     }
     return copy;
   }
@@ -2305,7 +2316,7 @@ function copyToSandbox(
     for (const [key, descriptor] of descriptors) {
       if (typeof key === "symbol" && key.description !== undefined) state.compilation?.owner?.budget.allocateString(key.description);
       Object.defineProperty(properties, typeof key === "string" ? state.compilation?.owner?.budget.allocateString(key) ?? key : key, { ...descriptor,
-        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+        value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(properties);
     const span = getBoundOtelSpan(value);
@@ -2324,7 +2335,7 @@ function copyToSandbox(
     if (state.structuredClone) return copy;
     for (const [key, descriptor] of arrayBufferDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+        value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2338,7 +2349,7 @@ function copyToSandbox(
     if (state.structuredClone) return copy;
     if (!state.structuredClone && hasNullObjectPrototype(value)) setSandboxPrototype(copy, null);
     for (const [key, descriptor] of dateDataProperties(value)) {
-      Object.defineProperty(copy, key, { ...descriptor, value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+      Object.defineProperty(copy, key, { ...descriptor, value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!state.structuredClone && !Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2357,10 +2368,10 @@ function copyToSandbox(
     const copy = copyDataViewStorage(value, state);
     state.seen.set(value, copy);
     if (state.structuredClone) return copy;
-    copyToSandbox(dataViewBuffer(value), state, `${path}.buffer`, cloneSandboxCollections, depth + 1);
+    (yield copyToSandboxNode(dataViewBuffer(value), state, `${path}.buffer`, cloneSandboxCollections, depth + 1));
     for (const [key, descriptor] of dataViewDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyToSandbox(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1) });
+        value: (yield copyToSandboxNode(descriptor.value, state, joinPath(path, key), cloneSandboxCollections, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2380,17 +2391,17 @@ function copyToSandbox(
     const copy = copyTypedArrayStorage(value, state, true);
     state.seen.set(value, copy);
     if (state.structuredClone) return copy;
-    copyToSandbox(typedArrayStorage(value).buffer, state, `${path}.buffer`, cloneSandboxCollections, depth + 1);
+    (yield copyToSandboxNode(typedArrayStorage(value).buffer, state, `${path}.buffer`, cloneSandboxCollections, depth + 1));
     for (const [key, descriptor] of typedArrayDataProperties(value)) {
       Object.defineProperty(copy, key, {
         ...descriptor,
-        value: copyToSandbox(
+        value: (yield copyToSandboxNode(
           descriptor.value,
           state,
           joinPath(path, key),
           cloneSandboxCollections,
           depth + 1
-        )
+        ))
       });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
@@ -2406,11 +2417,11 @@ function copyToSandbox(
     const native = readNativeMap(value, state.structuredClone);
     const copy = createSandboxMap();
     state.seen.set(value, copy);
-    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1));
+    if (!state.structuredClone) (yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), entry => copyToSandboxNode(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1)));
     for (const [key, entry] of native.entries) {
       copy.entries.set(
-        copyToSandbox(key, state, `${path}.<key>`, cloneSandboxCollections, depth + 1),
-        copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1)
+        (yield copyToSandboxNode(key, state, `${path}.<key>`, cloneSandboxCollections, depth + 1)),
+        (yield copyToSandboxNode(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1))
       );
     }
     return copy;
@@ -2425,10 +2436,10 @@ function copyToSandbox(
     const native = readNativeSet(value, state.structuredClone);
     const copy = createSandboxSet();
     state.seen.set(value, copy);
-    if (!state.structuredClone) copyCollectionProperties(value, getCollectionProperties(copy), entry => copyToSandbox(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1));
+    if (!state.structuredClone) (yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), entry => copyToSandboxNode(entry, state, `${path}.<property>`, cloneSandboxCollections, depth + 1)));
     for (const entry of native.entries) {
       copy.values.add(
-        copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1)
+        (yield copyToSandboxNode(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1))
       );
     }
     return copy;
@@ -2447,13 +2458,13 @@ function copyToSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyToSandbox(
+        (yield copyToSandboxNode(
           entry.value,
           state,
           joinArrayPath(path, entry.key),
           cloneSandboxCollections,
           depth + 1
-        )
+        ))
       );
     }
 
@@ -2465,9 +2476,9 @@ function copyToSandbox(
     if (existing !== undefined) return existing;
     const copy = createSandboxArguments([], unrestrictedArgumentObjects.has(value) ? {callee: undefined} : undefined);
     state.seen.set(value, copy);
-    copySandboxArgumentProperties(value, copy, (entry, key) =>
-      copyToSandbox(entry, state, joinPath(path, key), cloneSandboxCollections, depth + 1)
-    );
+    (yield copySandboxArgumentPropertiesOperation(value, copy, (entry, key) =>
+      copyToSandboxNode(entry, state, joinPath(path, key), cloneSandboxCollections, depth + 1)
+    ));
     return copy;
   }
 
@@ -2492,13 +2503,13 @@ function copyToSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyToSandbox(
+        (yield copyToSandboxNode(
           entry.value,
           state,
           joinPath(path, entry.key),
           cloneSandboxCollections,
           depth + 1
-        )
+        ))
       );
     }
 
@@ -2515,6 +2526,16 @@ function copyFromSandbox(
   options: CopyFromSandboxOptions,
   depth = 0
 ): unknown {
+  return runDataCopy(copyFromSandboxNode(value, state, path, options, depth));
+}
+
+function* copyFromSandboxNode(
+  value: SandboxValue,
+  state: CopyState<unknown>,
+  path = "<root>",
+  options: CopyFromSandboxOptions,
+  depth = 0
+): DataCopyOperation<unknown> {
   assertSandboxDataDepth(depth);
   if (isSandboxPrimitive(value)) {
     return value;
@@ -2568,7 +2589,7 @@ function copyFromSandbox(
     state.seen.set(value, copy);
     for (const [key, descriptor] of descriptors)
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });
+        value: (yield copyFromSandboxNode(descriptor.value, state, joinPath(path, key), options, depth + 1)) });
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
   }
@@ -2600,7 +2621,7 @@ function copyFromSandbox(
       const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
       if (!("value" in descriptor)) throw new TypeError("Temporal accessor properties cannot be copied as data.");
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });
+        value: (yield copyFromSandboxNode(descriptor.value, state, joinPath(path, key), options, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2615,7 +2636,7 @@ function copyFromSandbox(
       if (!("value" in descriptor)) throw new TypeError("Boxed data cannot contain accessors.");
       Object.defineProperty(copy, key, {
         ...descriptor,
-        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1)
+        value: (yield copyFromSandboxNode(descriptor.value, state, joinPath(path, key), options, depth + 1))
       });
     }
     return copy;
@@ -2635,14 +2656,14 @@ function copyFromSandbox(
       guard.allocate(1 + source.length + flags.length);
       const regex = new RegExp(source, flags);
       state.seen.set(value, regex);
-      Reflect.set(regex, "lastIndex", copyFromSandbox(lastIndex, state, `${path}.lastIndex`, options, depth + 1));
+      Reflect.set(regex, "lastIndex", (yield copyFromSandboxNode(lastIndex, state, `${path}.lastIndex`, options, depth + 1)));
       const properties = regexGuestProperties.get(value);
       if (properties !== undefined) {
         for (const key of Reflect.ownKeys(properties)) {
           const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
           if (!("value" in descriptor)) throw new TypeError("RegExp accessor properties cannot be copied as data.");
           Object.defineProperty(regex, key, { ...descriptor,
-            value: copyFromSandbox(descriptor.value, state, `${path}.${String(key)}`, options, depth + 1) });
+            value: (yield copyFromSandboxNode(descriptor.value, state, `${path}.${String(key)}`, options, depth + 1)) });
         }
         if (!Object.isExtensible(properties)) Object.preventExtensions(regex);
       }
@@ -2658,11 +2679,11 @@ function copyFromSandbox(
     if (existing !== undefined) return existing;
     const copy = copyTypedArrayStorage(value, state);
     state.seen.set(value, copy);
-    copyFromSandbox(typedArrayStorage(value).buffer, state, `${path}.buffer`, options, depth + 1);
+    (yield copyFromSandboxNode(typedArrayStorage(value).buffer, state, `${path}.buffer`, options, depth + 1));
     for (const [key, descriptor] of typedArrayDataProperties(value)) {
       Object.defineProperty(copy, key, {
         ...descriptor,
-        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1)
+        value: (yield copyFromSandboxNode(descriptor.value, state, joinPath(path, key), options, depth + 1))
       });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
@@ -2675,10 +2696,10 @@ function copyFromSandbox(
     const copy = isSandboxDataView(value) ? copyDataViewStorage(value, state) : copyArrayBufferStorage(value, state);
     state.seen.set(value, copy);
     if (isSandboxSharedArrayBuffer(copy)) options.onSharedBuffer?.(copy);
-    if (isSandboxDataView(value)) copyFromSandbox(dataViewBuffer(value), state, `${path}.buffer`, options, depth + 1);
+    if (isSandboxDataView(value)) (yield copyFromSandboxNode(dataViewBuffer(value), state, `${path}.buffer`, options, depth + 1));
     for (const [key, descriptor] of isSandboxDataView(value) ? dataViewDataProperties(value) : arrayBufferDataProperties(value)) {
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });
+        value: (yield copyFromSandboxNode(descriptor.value, state, joinPath(path, key), options, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2691,7 +2712,7 @@ function copyFromSandbox(
     if (hasNullObjectPrototype(value)) Object.setPrototypeOf(copy, null);
     state.seen.set(value, copy);
     for (const [key, descriptor] of dateDataProperties(value)) {
-      Object.defineProperty(copy, key, { ...descriptor, value: copyFromSandbox(descriptor.value, state, joinPath(path, key), options, depth + 1) });
+      Object.defineProperty(copy, key, { ...descriptor, value: (yield copyFromSandboxNode(descriptor.value, state, joinPath(path, key), options, depth + 1)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
@@ -2742,7 +2763,7 @@ function copyFromSandbox(
       if (!("value" in descriptor)) throw new TypeError("Promise accessor properties cannot be copied as data.");
       Object.defineProperty(copy, key, {
         ...descriptor,
-        value: copyFromSandbox(descriptor.value, state, `${path}.<property>`, options, depth + 1)
+        value: (yield copyFromSandboxNode(descriptor.value, state, `${path}.<property>`, options, depth + 1))
       });
     }
     if (hasNullObjectPrototype(value)) Object.setPrototypeOf(copy, null);
@@ -2774,11 +2795,11 @@ function copyFromSandbox(
 
     const copy = new Map<unknown, unknown>();
     state.seen.set(value, copy);
-    copyCollectionProperties(value, copy, entry => copyFromSandbox(entry as SandboxValue, state, `${path}.<property>`, options, depth + 1));
+    (yield copyCollectionPropertiesOperation(value, copy, entry => copyFromSandboxNode(entry as SandboxValue, state, `${path}.<property>`, options, depth + 1)));
     for (const [key, entry] of value.entries) {
       copy.set(
-        copyFromSandbox(key, state, `${path}.<key>`, options, depth + 1),
-        copyFromSandbox(entry, state, `${path}.<value>`, options, depth + 1)
+        (yield copyFromSandboxNode(key, state, `${path}.<key>`, options, depth + 1)),
+        (yield copyFromSandboxNode(entry, state, `${path}.<value>`, options, depth + 1))
       );
     }
     return copy;
@@ -2792,9 +2813,9 @@ function copyFromSandbox(
 
     const copy = new Set<unknown>();
     state.seen.set(value, copy);
-    copyCollectionProperties(value, copy, entry => copyFromSandbox(entry as SandboxValue, state, `${path}.<property>`, options, depth + 1));
+    (yield copyCollectionPropertiesOperation(value, copy, entry => copyFromSandboxNode(entry as SandboxValue, state, `${path}.<property>`, options, depth + 1)));
     for (const entry of value.values) {
-      copy.add(copyFromSandbox(entry, state, `${path}.<value>`, options, depth + 1));
+      copy.add((yield copyFromSandboxNode(entry, state, `${path}.<value>`, options, depth + 1)));
     }
     return copy;
   }
@@ -2812,7 +2833,7 @@ function copyFromSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyFromSandbox(entry.value, state, joinArrayPath(path, entry.key), options, depth + 1)
+        (yield copyFromSandboxNode(entry.value, state, joinArrayPath(path, entry.key), options, depth + 1))
       );
     }
 
@@ -2824,9 +2845,9 @@ function copyFromSandbox(
     if (existing !== undefined) return existing;
     const copy = createSandboxArguments([], unrestrictedArgumentObjects.has(value) ? {callee: undefined} : undefined);
     state.seen.set(value, copy);
-    copySandboxArgumentProperties(value, copy, (entry, key) =>
-      copyFromSandbox(entry, state, joinPath(path, key), options, depth + 1)
-    );
+    (yield copySandboxArgumentPropertiesOperation(value, copy, (entry, key) =>
+      copyFromSandboxNode(entry, state, joinPath(path, key), options, depth + 1)
+    ));
     return copy;
   }
 
@@ -2846,7 +2867,7 @@ function copyFromSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyFromSandbox(entry.value, state, joinPath(path, entry.key), options, depth + 1)
+        (yield copyFromSandboxNode(entry.value, state, joinPath(path, entry.key), options, depth + 1))
       );
     }
 

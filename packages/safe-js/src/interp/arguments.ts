@@ -2,6 +2,7 @@ import { createTrackedProxy } from "../platform/types.js";
 import type { SandboxObject, SandboxValue } from "./values.js";
 import { internalSymbols } from "./internal-symbols.js";
 import type { Scope } from "./scope.js";
+import { runDataCopy, type DataCopyOperation } from "./data-copy.js";
 
 export const sandboxArgumentsBrand = Symbol("SandboxArguments");
 internalSymbols.add(sandboxArgumentsBrand);
@@ -94,6 +95,18 @@ export function copySandboxArgumentProperties(
   target: object,
   copyValue: (value: SandboxValue, key: string | symbol) => unknown
 ): void {
+  // The synchronous callback is a leaf operation with no child to schedule.
+  // eslint-disable-next-line require-yield
+  runDataCopy(copySandboxArgumentPropertiesOperation(source, target, function* (value, key) {
+    return copyValue(value, key);
+  }));
+}
+
+export function* copySandboxArgumentPropertiesOperation<T>(
+  source: SandboxObject,
+  target: object,
+  copyValue: (value: SandboxValue, key: string | symbol) => DataCopyOperation<T>
+): DataCopyOperation<T> {
   const names = Object.getOwnPropertyNames(source);
   if (unrestrictedArgumentObjects.has(source) && !names.includes("callee")) Reflect.deleteProperty(target, "callee");
   if (!names.includes("length") || names.indexOf("length") > names.indexOf("callee")) {
@@ -106,7 +119,7 @@ export function copySandboxArgumentProperties(
       if (key !== "callee" || unrestrictedArgumentObjects.has(source)) throw new TypeError(`Cannot copy arguments accessor '${String(key)}'.`);
       continue;
     }
-    Object.defineProperty(target, key, { ...descriptor, value: copyValue(descriptor.value, key) });
+    Object.defineProperty(target, key, { ...descriptor, value: yield copyValue(descriptor.value, key) });
   }
   const iterator = Object.getOwnPropertyDescriptor(source, Symbol.iterator);
   if (iterator === undefined) {
@@ -118,4 +131,5 @@ export function copySandboxArgumentProperties(
     Object.defineProperty(target, Symbol.iterator, iterator);
   }
   if (!Object.isExtensible(source)) Object.preventExtensions(target);
+  return undefined as T;
 }

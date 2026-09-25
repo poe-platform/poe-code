@@ -213,28 +213,10 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedS
   return { ...result, ...(commandLimits === undefined ? {} : { commandLimits }) };
 }
 
-const budgetedSinkSymbol = Symbol("safe-bash.budgetedSink");
-const syncSinkSymbol = Symbol("safe-bash.syncSink");
-const fallbackBudgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
-const fallbackSyncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
-const budgetedSinks = {
-  get(sink: ByteSink) {
-    return (sink as unknown as Record<symbol, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> } | undefined>)[budgetedSinkSymbol] ?? fallbackBudgetedSinks.get(sink);
-  },
-  set(sink: ByteSink, value: { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }) {
-    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, unknown>)[budgetedSinkSymbol] = value;
-    else fallbackBudgetedSinks.set(sink, value);
-  },
-};
-const syncSinks = {
-  get(sink: ByteSink) {
-    return (sink as unknown as Record<symbol, ((chunk: Uint8Array) => void) | undefined>)[syncSinkSymbol] ?? fallbackSyncSinks.get(sink);
-  },
-  set(sink: ByteSink, value: (chunk: Uint8Array) => void) {
-    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, unknown>)[syncSinkSymbol] = value;
-    else fallbackSyncSinks.set(sink, value);
-  },
-};
+// Accounting exemptions and synchronous writers belong to exact sink identities.
+// Properties would also expose them through unknown proxies and inherited sinks.
+const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
+const syncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 
@@ -524,8 +506,7 @@ export class Budget {
               (error: unknown) => { signal.throwIfAborted(); throw error; },
             );
           } catch (error) {
-            signal.throwIfAborted();
-            return Promise.reject(error);
+            return Promise.reject(signal.aborted ? signal.reason : error);
           }
         },
       } } : {}),
@@ -1022,8 +1003,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
             (error: unknown) => { signal.throwIfAborted(); throw error; },
           );
         } catch (error) {
-          signal.throwIfAborted();
-          return Promise.reject(error);
+          return Promise.reject(signal.aborted ? signal.reason : error);
         }
       },
     } } : {}),

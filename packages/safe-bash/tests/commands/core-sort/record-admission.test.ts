@@ -20,7 +20,16 @@ for (const args of [[], ["-c"]]) test(`sort ${args.join(" ")} does not copy late
     if (length === 113) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
     originalAdmit.call(this, length);
   });
-  const result = await execute(args, { async *[Symbol.asyncIterator]() { yield input; } });
+  // Typed-array constructors copy without calling the observable set method.
+  globalThis.Uint8Array = new Proxy(originalUint8Array, { construct(target, argumentsList, newTarget) {
+    const source: unknown = argumentsList[0];
+    if (source instanceof originalUint8Array && source.buffer === input.buffer) copied.push(source.length);
+    return Reflect.construct(target, argumentsList, newTarget);
+  } });
+  const result = await (async () => {
+    try { return await execute(args, { async *[Symbol.asyncIterator]() { yield input; } }); }
+    finally { globalThis.Uint8Array = originalUint8Array; }
+  })();
   assert.equal(result.exitCode, 2);
   assert.equal(result.stdout.length, 0);
   assert.deepEqual(copied, [1], "only the first admitted record may be copied");

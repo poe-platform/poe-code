@@ -842,7 +842,6 @@ async function collectSortRecords(
   try {
     for await (const chunk of source) {
       let start = 0;
-      let ownedChunk: Uint8Array | undefined;
       while (start < chunk.length) {
         const offset = chunk.indexOf(delimiter, start);
         if (offset < 0) break;
@@ -855,8 +854,9 @@ async function collectSortRecords(
           if (tailLength === 0) {
             record = emptySortRecord;
           } else {
-            ownedChunk ??= new Uint8Array(chunk);
-            record = ownedChunk.subarray(start, offset);
+            // Later records in this chunk have not passed admission yet.
+            record = new Uint8Array(tailLength);
+            record.set(chunk.subarray(start, offset));
           }
         } else {
           record = pending.finish(admit, chunk, start, offset);

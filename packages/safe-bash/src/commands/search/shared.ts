@@ -236,8 +236,8 @@ export function trySyncLineBatches(
   }
   let usingPool = reusePool && maxRecords() === 128;
   let poolCount = 0;
-  let batches: Line[][] | undefined;
-  let batch: Line[] | undefined;
+  let batches: Line[][] | undefined = usingPool ? undefined : [];
+  let batch: Line[] | undefined = usingPool ? undefined : [];
   let batchBytes = 0;
   let offset = 0;
   let number = 0;

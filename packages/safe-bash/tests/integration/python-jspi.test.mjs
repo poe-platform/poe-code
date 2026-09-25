@@ -72,7 +72,7 @@ const empty = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
 const callbacks = createPythonJspiCallbackCatalog(files['pyodide.asm.mjs']);
 const callbackFiles = callbacks.map(({signature}) => 'callback-' + signature + '.wasm');
 
-test('real workerd native async I/O, imports, binary streams and asynchronous finalization', { timeout: 30000 }, async context => {
+test('real workerd native async I/O, imports, binary streams and asynchronous finalization', async context => {
   const injection = `
 import main from 'main.wasm';
 import helper from 'helper.wasm';
@@ -143,71 +143,96 @@ export { WebAssembly, fetch, location };
     },
     handleUncaughtError(error) { runtimeErrors.push({uncaught:String(error)}); },
   }));
+  const check = async (name, verify) => {
+    let completed = false;
+    await context.test(name, { timeout: 30000 }, async () => {
+      await verify();
+      completed = true;
+    });
+    assert.ok(completed, 'Runtime phase did not complete: ' + name);
+  };
+  let result, finalization;
   try {
-    const response = await miniflare.dispatchFetch('http://fixture/native');
-    const result = await response.json();
-    assert.equal(response.status, 200, JSON.stringify(result));
-    assert.equal(result.exitCode, 0, JSON.stringify(result));
-    assert.deepEqual(result.stdout, [0, 255, 42]);
-    assert.deepEqual(result.stderr, [255, 0]);
-    assert.deepEqual(result.output, [0, 255, 42]);
-    assert.deepEqual(result.failures, []);
-    assert.equal(result.maximumRequests, 1);
-    assert.ok(result.ticks > 0);
-    assert.ok(result.requests.some(request => request.op === 'open' && request.path === '/work/local_module.py'));
-    assert.ok(result.requests.some(request => request.op === 'stdin'));
-    const finalizationResponse = await miniflare.dispatchFetch('http://fixture/finalization');
-    const finalization = await finalizationResponse.json();
-    assert.equal(finalizationResponse.status, 200, JSON.stringify(finalization));
-    assert.deepEqual(finalization.failures, []);
-    assert.deepEqual(finalization.finalized, [42]);
-    assert.deepEqual(finalization.buffered, [255, 0, 43]);
-    assert.deepEqual(finalization.destructor, [44]);
-    assert.deepEqual(finalization.stdout, [0, 255, 42, 45]);
-    const backgroundResponse = await miniflare.dispatchFetch('http://fixture/background');
-    const background = await backgroundResponse.json();
-    assert.equal(backgroundResponse.status, 200, JSON.stringify(background));
-    assert.deepEqual(background.callbacks, []);
-    assert.deepEqual(background.failures, []);
-    const tasksResponse = await miniflare.dispatchFetch('http://fixture/tasks');
-    const tasks = await tasksResponse.json();
-    assert.equal(tasksResponse.status, 200, JSON.stringify(tasks));
-    assert.equal(tasks.exitCode, 0, JSON.stringify(tasks));
-    assert.deepEqual(tasks.failures, []);
-    assert.deepEqual(tasks.taskFinalized, [46]);
-    assert.deepEqual(tasks.generatorFinalized, [47]);
-    const cancelledResponse = await miniflare.dispatchFetch('http://fixture/cancel');
-    const cancelled = await cancelledResponse.json();
-    assert.equal(cancelledResponse.status, 200, JSON.stringify(cancelled));
-    assert.deepEqual(cancelled.finalizations, ['atexit']);
-    assert.deepEqual(cancelled.failures, []);
-    const startupResponse = await miniflare.dispatchFetch('http://fixture/startup-cancel');
-    const startup = await startupResponse.json();
-    assert.equal(startupResponse.status, 200, JSON.stringify(startup));
-    assert.deepEqual(startup.finalizations, ['atexit']);
-    assert.deepEqual(startup.failures, []);
-    const shellResponse = await miniflare.dispatchFetch('http://fixture/shell');
-    const shell = await shellResponse.json();
-    assert.equal(shellResponse.status, 200, JSON.stringify(shell));
-    assert.equal(shell.waitedForRead, true);
-    assert.equal(shell.firstError, 'Error: Shell is disposed', JSON.stringify(shell));
-    assert.deepEqual(shell.borrowed, {active:1, capacity:2, closed:false});
-    assert.equal(shell.siblingExit, 0, JSON.stringify(shell));
-    assert.deepEqual(shell.siblingBytes, [255, 0, 49]);
-    assert.equal(shell.freshExit, 0);
-    assert.equal(shell.fresh, 'fresh\n');
-    assert.deepEqual(shell.closed, ['first', 'sibling']);
-    assert.equal(shell.acquisitions, 3);
-    assert.deepEqual(shell.failures, []);
-    assert.deepEqual(shell.finalizations, ['atexit']);
-    const proxyResponse = await miniflare.dispatchFetch('http://fixture/proxy');
-    const proxy = await proxyResponse.json();
-    assert.equal(proxyResponse.status, 200, JSON.stringify(proxy));
-    assert.deepEqual(proxy.failures, []);
-    const errorResponse = await miniflare.dispatchFetch('http://fixture/unhandled-errors');
-    assert.equal(errorResponse.status, 200);
-    assert.deepEqual(await errorResponse.json(), [], 'Actual workerd qualification must have zero unhandled Worker errors');
-    assert.deepEqual(runtimeErrors, [], 'Actual workerd qualification must have zero runtime errors');
+    await check('native I/O and bundled Python library import', async () => {
+      const response = await miniflare.dispatchFetch('http://fixture/native');
+      result = await response.json();
+      assert.equal(response.status, 200, JSON.stringify(result));
+      assert.equal(result.exitCode, 0, JSON.stringify(result));
+      assert.deepEqual(result.stdout, [0, 255, 42]);
+      assert.deepEqual(result.stderr, [255, 0]);
+      assert.deepEqual(result.output, [0, 255, 42]);
+      assert.deepEqual(result.failures, []);
+      assert.equal(result.maximumRequests, 1);
+      assert.ok(result.ticks > 0);
+      assert.ok(result.requests.some(request => request.op === 'open' && request.path === '/work/local_module.py'));
+      assert.ok(result.requests.some(request => request.op === 'stdin'));
+    });
+    await check('asynchronous interpreter finalization', async () => {
+      const finalizationResponse = await miniflare.dispatchFetch('http://fixture/finalization');
+      finalization = await finalizationResponse.json();
+      assert.equal(finalizationResponse.status, 200, JSON.stringify(finalization));
+      assert.deepEqual(finalization.failures, []);
+      assert.deepEqual(finalization.finalized, [42]);
+      assert.deepEqual(finalization.buffered, [255, 0, 43]);
+      assert.deepEqual(finalization.destructor, [44]);
+      assert.deepEqual(finalization.stdout, [0, 255, 42, 45]);
+    });
+    await check('delayed callback retirement', async () => {
+      const backgroundResponse = await miniflare.dispatchFetch('http://fixture/background');
+      const background = await backgroundResponse.json();
+      assert.equal(backgroundResponse.status, 200, JSON.stringify(background));
+      assert.deepEqual(background.callbacks, []);
+      assert.deepEqual(background.failures, []);
+    });
+    await check('task and generator cleanup', async () => {
+      const tasksResponse = await miniflare.dispatchFetch('http://fixture/tasks');
+      const tasks = await tasksResponse.json();
+      assert.equal(tasksResponse.status, 200, JSON.stringify(tasks));
+      assert.equal(tasks.exitCode, 0, JSON.stringify(tasks));
+      assert.deepEqual(tasks.failures, []);
+      assert.deepEqual(tasks.taskFinalized, [46]);
+      assert.deepEqual(tasks.generatorFinalized, [47]);
+    });
+    await check('guest cancellation cleanup', async () => {
+      const cancelledResponse = await miniflare.dispatchFetch('http://fixture/cancel');
+      const cancelled = await cancelledResponse.json();
+      assert.equal(cancelledResponse.status, 200, JSON.stringify(cancelled));
+      assert.deepEqual(cancelled.finalizations, ['atexit']);
+      assert.deepEqual(cancelled.failures, []);
+    });
+    await check('startup cancellation cleanup', async () => {
+      const startupResponse = await miniflare.dispatchFetch('http://fixture/startup-cancel');
+      const startup = await startupResponse.json();
+      assert.equal(startupResponse.status, 200, JSON.stringify(startup));
+      assert.deepEqual(startup.finalizations, ['atexit']);
+      assert.deepEqual(startup.failures, []);
+    });
+    await check('concurrent shell executor ownership', async () => {
+      const shellResponse = await miniflare.dispatchFetch('http://fixture/shell');
+      const shell = await shellResponse.json();
+      assert.equal(shellResponse.status, 200, JSON.stringify(shell));
+      assert.equal(shell.waitedForRead, true);
+      assert.equal(shell.firstError, 'Error: Shell is disposed', JSON.stringify(shell));
+      assert.deepEqual(shell.borrowed, {active:1, capacity:2, closed:false});
+      assert.equal(shell.siblingExit, 0, JSON.stringify(shell));
+      assert.deepEqual(shell.siblingBytes, [255, 0, 49]);
+      assert.equal(shell.freshExit, 0);
+      assert.equal(shell.fresh, 'fresh\n');
+      assert.deepEqual(shell.closed, ['first', 'sibling']);
+      assert.equal(shell.acquisitions, 3);
+      assert.deepEqual(shell.failures, []);
+      assert.deepEqual(shell.finalizations, ['atexit']);
+    });
+    await check('proxy retirement and runtime error gate', async () => {
+      const proxyResponse = await miniflare.dispatchFetch('http://fixture/proxy');
+      const proxy = await proxyResponse.json();
+      assert.equal(proxyResponse.status, 200, JSON.stringify(proxy));
+      assert.deepEqual(proxy.failures, []);
+      const errorResponse = await miniflare.dispatchFetch('http://fixture/unhandled-errors');
+      assert.equal(errorResponse.status, 200);
+      assert.deepEqual(await errorResponse.json(), [], 'Actual workerd qualification must have zero unhandled Worker errors');
+      assert.deepEqual(runtimeErrors, [], 'Actual workerd qualification must have zero runtime errors');
+    });
     if (assetDirectory) {
       await mkdir(assetDirectory, {recursive:false});
       const assets = [];

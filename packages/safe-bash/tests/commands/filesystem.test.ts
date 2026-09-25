@@ -1396,3 +1396,35 @@ test("#701: rm -r rejects parent symlink swap between inspection and deletion", 
     await shell.dispose();
   }
 });
+
+test("#709: ls reuses directory listing metadata on S3 and bounds backend transport calls by maxFileSystemOperations", async () => {
+  const { MockS3Client, S3FileSystem, MountFileSystem } = await import("@poe-code/safe-fs");
+  const observedCalls: number[] = [];
+  for (const count of [6, 16]) {
+    const transport = new MockS3Client({ buckets: ["bucket"] });
+    for (let index = 0; index < count; index++) {
+      await transport.putObject({ Bucket: "bucket", Key: `item-${String(index).padStart(2, "0")}`, Body: new Uint8Array([1]) });
+    }
+    const s3 = new S3FileSystem({ transport, bucket: "bucket" });
+    const mounted = new MountFileSystem({ root: s3 });
+    const sh = new Shell({ fs: mounted, cwd: "/", limits: { maxFileSystemOperations: 100 } }).use(agentCommands());
+    const start = transport.requests.length;
+    const result = await sh.exec("ls /");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const backendCalls = transport.requests.length - start;
+    assert.ok(backendCalls <= 10, `expected <= 10 S3 backend calls for ls / with ${count} objects, got ${backendCalls}`);
+    observedCalls.push(backendCalls);
+  }
+  assert.equal(observedCalls[0], observedCalls[1]);
+
+  const transport = new MockS3Client({ buckets: ["bucket"] });
+  for (let index = 0; index < 16; index++) {
+    await transport.putObject({ Bucket: "bucket", Key: `item-${String(index).padStart(2, "0")}`, Body: new Uint8Array([1]) });
+  }
+  const s3 = new S3FileSystem({ transport, bucket: "bucket" });
+  const mounted = new MountFileSystem({ root: s3 });
+  const sh = new Shell({ fs: mounted, cwd: "/", limits: { maxFileSystemOperations: 20 } }).use(agentCommands());
+  const start = transport.requests.length;
+  await assert.rejects(() => sh.exec("ls -l /"), /maxFileSystemOperations/u);
+  assert.ok(transport.requests.length - start <= 20);
+});

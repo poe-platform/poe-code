@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { FileStat, FileSystem } from "../../contracts/filesystem.js";
+import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import type { S3HeadOutput, S3ObjectInput } from "./transport.js";
 
 import { recordS3Observation } from "./registry.js";
@@ -38,4 +38,41 @@ export function recordS3Stat(filesystem: FileSystem, path: string, stat: FileSta
   const entry = acceptedHeads.get(metadata);
   acceptedHeads.delete(metadata);
   if (entry) recordS3Observation(filesystem, path, stat, entry);
+}
+
+export interface ScopedTransportBudgetFrame {
+  credit: number;
+  readonly admit: (options?: FsOptions) => void;
+}
+
+const transportBudgets = new AsyncLocalStorage<readonly ScopedTransportBudgetFrame[]>();
+
+export function getScopedTransportBudget(): readonly ScopedTransportBudgetFrame[] | undefined {
+  return transportBudgets.getStore();
+}
+
+export function withScopedTransportBudget<Result>(
+  frames: readonly ScopedTransportBudgetFrame[] | undefined,
+  action: () => Result,
+): Result {
+  return frames ? transportBudgets.run(frames, action) : action();
+}
+
+export function runScopedTransportBudget<Result>(
+  admit: (options?: FsOptions) => void,
+  action: () => Result,
+  credit = 1,
+): Result {
+  const parent = transportBudgets.getStore() ?? [];
+  const frame: ScopedTransportBudgetFrame = { credit, admit };
+  return transportBudgets.run([...parent, frame], action);
+}
+
+export function chargeScopedTransportCall(options?: FsOptions): void {
+  const frames = transportBudgets.getStore();
+  if (!frames) return;
+  for (const frame of frames) {
+    if (frame.credit > 0) frame.credit--;
+    else frame.admit(options);
+  }
 }

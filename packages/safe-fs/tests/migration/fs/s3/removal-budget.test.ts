@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { MockS3Client } from "../../../../src/fs/s3/mock.js";
 import { S3FileSystem } from "../../../../src/fs/s3/filesystem.ts";
+import { scopeFileSystem } from "../../../../src/fs/scoped.js";
 
 async function fixture(count: number, pageSize = 1000) {
   const transport = new MockS3Client({ buckets: ["test"], pageSize });
@@ -77,4 +78,33 @@ test("removal budgets reject invalid configuration", () => {
         .toThrow(expect.objectContaining({ code: "EINVAL" }));
     }
   }
+});
+
+test("#709: S3FileSystem maxRequests and scopeFileSystem budget S3 transport calls including nested lookups", async () => {
+  const transport = await fixture(6);
+  for (const invalid of [0, -1, 1.5, Infinity]) {
+    expect(() => new S3FileSystem({ transport, bucket: "test", maxRequests: invalid }))
+      .toThrow(expect.objectContaining({ code: "EINVAL" }));
+  }
+
+  const capped = new S3FileSystem({ transport, bucket: "test", maxRequests: 4 });
+  const beforeCapped = transport.requests.length;
+  await expect(capped.stat("/dir/0")).resolves.toMatchObject({ type: "file" });
+  await expect(capped.stat("/dir/1")).rejects.toMatchObject({ code: "EFBIG" });
+  expect(transport.requests.length - beforeCapped).toBe(4);
+
+  const raw = new S3FileSystem({ transport, bucket: "test" });
+  let charges = 0;
+  const controller = new AbortController();
+  const scoped = scopeFileSystem(raw, () => {
+    if (++charges > 5) {
+      const error = new Error("maxFileSystemOperations");
+      controller.abort(error);
+      throw error;
+    }
+  }, controller.signal);
+  const beforeScoped = transport.requests.length;
+  await expect(scoped.stat("/dir/0")).resolves.toMatchObject({ type: "file" });
+  await expect(scoped.stat("/dir/1")).rejects.toThrow("maxFileSystemOperations");
+  expect(transport.requests.length - beforeScoped).toBeLessThanOrEqual(5);
 });

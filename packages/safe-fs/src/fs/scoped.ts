@@ -5,6 +5,7 @@ import { validatePath } from "../contracts/virtual-path.js";
 import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
+import { getScopedTransportBudget, runScopedTransportBudget, withScopedTransportBudget } from "./s3/authority.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
@@ -140,7 +141,9 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       close: () => closing ??= Promise.resolve().then(() => descriptor.close()),
     };
   };
-  const wrapStream = (source: ByteSource, options?: FsOptions): ByteSource => ({
+  const wrapStream = (source: ByteSource, options?: FsOptions): ByteSource => {
+    const budgetFrames = getScopedTransportBudget();
+    return {
     [Symbol.asyncIterator]() {
       assertOpen(options);
       const iterator = source[Symbol.asyncIterator]();
@@ -152,7 +155,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         try {
           assertOpen(options);
           if (closing) { await closing; return { done: true, value: undefined }; }
-          const result = await operation();
+          const result = await withScopedTransportBudget(budgetFrames, operation);
           assertOpen(options);
           if (closing) { await closing; return { done: true, value: undefined }; }
           return result;
@@ -167,7 +170,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         ...(iterator.throw ? { throw: (error?: unknown) => advance(() => iterator.throw!(error)) } : {}),
       };
     },
-  });
+  };
+  };
   const view = new Proxy(Object.create(original) as FileSystem, {
     set(_target, property, value) {
       return Reflect.set(original, property, value, original);
@@ -178,7 +182,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       if (typeof method !== "function") return method;
       const cached = methods.get(property);
       if (cached?.original === method) return cached.scoped;
-      const dispatch = (...args: unknown[]): unknown => {
+      const dispatch = (...args: unknown[]): unknown => runScopedTransportBudget(admit, () => {
         if (property === "removeEntryConditional") args[1] = resizeOptions({ ...args[1] as FsOptions });
         let stagingSignal: AbortSignal | undefined;
         if (property === "createStagedFile" || property === "publishStagedFile") {
@@ -288,7 +292,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           return Reflect.apply(method, original, args);
         })();
         return Reflect.apply(method, original, args);
-      };
+      }, operations.has(property as keyof FileSystem) ? 1 : 0);
       const scoped = property === "prepareStagingResolution"
         ? async (path: string, options: FsOptions = {}) => {
           const controls = resizeOptions({ ...options });

@@ -1254,7 +1254,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         } else await output(context, `${inode}${formatName(display)}${suffix}\n`);
         outputWritten = true;
       };
-      const list = async ({ path, display }: ListingEntry, header: boolean, ancestors = new Set<string>()): Promise<void> => {
+      const list = async ({ path, display, stat }: ListingEntry, header: boolean, ancestors = new Set<string>()): Promise<void> => {
         context.signal.throwIfAborted();
         await admitFilesystemModes(context, "ls", ["directory"], [path]);
         const physical = await context.fs.realpath(path, { signal: context.signal });
@@ -1267,15 +1267,27 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         try {
           if (header) { await output(context, `${outputWritten ? "\n" : ""}${formatName(display)}:\n`); outputWritten = true; }
           const entries = await readDirectory(context, path, true);
+          const byName = new Map(entries.map(entry => [entry.name, entry.type] as const));
           const names = entries.map(entry => entry.name).filter(name => (hidden !== "none" || !name.startsWith(".")) && (!parsed.flags.has("B") || !name.endsWith("~")));
           if (hidden === "all") for (const name of [".", ".."]) {
             const index = names.findIndex(entry => entry > name);
             names.splice(index < 0 ? names.length : index, 0, name);
           }
+          const needsStat = parsed.flags.has("l") || parsed.flags.has("i") || sort === "time" || sort === "size";
           const children: ListingEntry[] = [];
           for (const [index, name] of names.entries()) {
             if (index % 128 === 0) await yieldTurn(context.signal);
-            children.push(await inspect(joinPath(path, name), name));
+            const childPath = joinPath(path, name);
+            const entryType = byName.get(name) ?? "directory";
+            if (needsStat || (parsed.flags.has("L") && entryType === "symlink") || (indicator === "classify" && entryType === "file")) {
+              children.push(await inspect(childPath, name));
+            } else {
+              children.push({
+                path: childPath,
+                display: name,
+                stat: name === "." ? stat : { type: entryType, size: 0, mode: entryType === "directory" ? 0o40755 : 0o100644, mtimeMs: 0 },
+              });
+            }
           }
           await order(children, true);
           for (const child of children) await render(child);

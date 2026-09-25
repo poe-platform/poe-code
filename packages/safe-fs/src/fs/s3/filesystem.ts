@@ -9,7 +9,7 @@ import type {
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
-import { compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
+import { chargeScopedTransportCall, compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
 import { encodeCopySource } from "./transport.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
@@ -29,6 +29,7 @@ export interface S3FileSystemOptions {
   readonly maxReadBytes?: number;
   readonly maxStreamBytes?: number;
   readonly maxListEntries?: number;
+  readonly maxRequests?: number;
   /** Aggregate budgets for each rm operation, including ancestor inspection. */
   readonly removalLimits?: {
     readonly maxRequests?: number;
@@ -133,6 +134,8 @@ export class S3FileSystem implements FileSystem {
   private readonly maxReadBytes: number;
   private readonly maxStreamBytes: number;
   private readonly maxListEntries: number;
+  private readonly maxRequests: number;
+  private requests = 0;
   private readonly removalLimits: { maxRequests: number; maxListEntries: number; maxDeleteObjects: number };
   private readonly removalBudgets = new WeakMap<FsOptions, { requests: number; entries: number }>();
 
@@ -161,6 +164,7 @@ export class S3FileSystem implements FileSystem {
     this.maxReadBytes = options.maxReadBytes === undefined ? Infinity : validateLimit(options.maxReadBytes, "maxReadBytes", 0);
     this.maxStreamBytes = options.maxStreamBytes === undefined ? Infinity : validateLimit(options.maxStreamBytes, "maxStreamBytes", 0);
     this.maxListEntries = options.maxListEntries === undefined ? Infinity : validateLimit(options.maxListEntries, "maxListEntries", 1);
+    this.maxRequests = options.maxRequests === undefined ? Infinity : validateLimit(options.maxRequests, "maxRequests", 1);
     this.removalLimits = {
       maxRequests: validateLimit(options.removalLimits?.maxRequests ?? 32, "removalLimits.maxRequests", 1),
       maxListEntries: validateLimit(options.removalLimits?.maxListEntries ?? 32, "removalLimits.maxListEntries", 1),
@@ -237,10 +241,16 @@ export class S3FileSystem implements FileSystem {
 
   private async call<Result>(syscall: string, path: string, options: FsOptions, action: () => Promise<Result>, precondition?: ErrnoCode): Promise<Result> {
     this.checkAbort(options, syscall, path);
+    chargeScopedTransportCall(options);
+    this.checkAbort(options, syscall, path);
     const budget = this.removalBudgets.get(options);
     if (budget && ++budget.requests > this.removalLimits.maxRequests) {
       fail("EFBIG", "rm", path, "S3 removal request budget exceeded");
     }
+    if (this.requests >= this.maxRequests) {
+      fail("EFBIG", syscall, path, "S3 transport request budget exceeded");
+    }
+    this.requests++;
     let onAbort: (() => void) | undefined;
     try {
       const pending = action();
@@ -372,17 +382,17 @@ export class S3FileSystem implements FileSystem {
       return file ? { stat: this.makeStat("file", file), metadata: file } : undefined;
     }
     const directoryKey = this.directoryKey(path);
-    const marker = await this.head(directoryKey, path, options);
-    if (marker && marker.ContentLength !== 0) this.unsupported("nonempty directory markers", path);
-    let directory = marker !== undefined;
-    if (!directory) {
-      for await (const children of this.pages(directoryKey, path, options, undefined, 1)) {
-        if ((children.Contents?.length ?? 0) > 0) {
-          directory = true;
-          break;
-        }
+    let directory = false;
+    let hasMarker = false;
+    for await (const children of this.pages(directoryKey, path, options, undefined, 1)) {
+      if ((children.Contents?.length ?? 0) > 0) {
+        directory = true;
+        hasMarker = children.Contents!.some(object => object.Key === directoryKey);
+        break;
       }
     }
+    const marker = hasMarker ? await this.head(directoryKey, path, options) : undefined;
+    if (marker && marker.ContentLength !== 0) this.unsupported("nonempty directory markers", path);
     if (file && directory) this.unsupported("file/prefix collisions", path);
     if (file) return { stat: this.makeStat("file", file), metadata: file };
     if (directory) return { stat: this.makeStat("directory", marker), ...(marker ? { metadata: marker } : {}) };
@@ -396,6 +406,7 @@ export class S3FileSystem implements FileSystem {
       if (parent === "/") break;
     }
     for (const parent of ancestors) {
+      if (parent === "/" && this.prefix === "") continue;
       const ancestor = await this.inspect(parent, options);
       if (!ancestor) fail("ENOENT", "stat", parent);
       if (ancestor.stat.type !== "directory") fail("ENOTDIR", "stat", parent);

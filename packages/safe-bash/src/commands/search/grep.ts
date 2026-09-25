@@ -53,7 +53,7 @@ async function forEachGrepLineBatch(
   maxLineBytes: number,
   maxRecords: () => number,
   all = false,
-  onBatch: (batch: GrepLine[]) => Promise<boolean> | boolean,
+  onBatch: (batch: GrepLine[], endOfChunk: boolean) => Promise<boolean> | boolean,
 ): Promise<void> {
   const lineLimit = Math.min(internalBufferLimit, maxLineBytes);
   const pending = new RecordBuffer(lineLimit);
@@ -99,7 +99,7 @@ async function forEachGrepLineBatch(
           bytes + next - start > 64 * 1024 ||
           next - start > maxLineBytes
         ) {
-          const cont = onBatch(batch);
+          const cont = onBatch(batch, next < 0);
           const keepGoing = cont instanceof Promise ? await cont : cont;
           batch.length = 0;
           bytes = 0;
@@ -112,7 +112,7 @@ async function forEachGrepLineBatch(
       batch.push({ bytes: pending.finish(), all, terminated: false });
     }
     if (batch.length) {
-      const cont = onBatch(batch);
+      const cont = onBatch(batch, true);
       if (cont instanceof Promise) await cont;
     }
   } finally {
@@ -358,7 +358,7 @@ inspect the resulting state before repeating the action.
           const isCountOnly = parsed.flags.has("c");
           const isOnlyMatching = parsed.flags.has("o");
           const canFastBufferLines = !isQuiet && !isListFiles && !isCountOnly && !withContext && !isOnlyMatching && !hasLinePrefix && !lineBuffered && binaryFiles.mode !== "without-match";
-          const processBatchSlow = async (batch: GrepLine[], resultsPromise?: Promise<readonly (readonly { start: number; end: number }[])[]>, startIdx = 0, precomputedResults?: readonly (readonly { start: number; end: number }[])[]): Promise<boolean> => {
+          const processBatchSlow = async (batch: GrepLine[], endOfChunk: boolean, resultsPromise?: Promise<readonly (readonly { start: number; end: number }[])[]>, startIdx = 0, precomputedResults?: readonly (readonly { start: number; end: number }[])[]): Promise<boolean> => {
             const results = precomputedResults ?? await resultsPromise!;
             for (let index = startIdx; index < batch.length; index++) {
               const line = batch[index]!;
@@ -437,10 +437,10 @@ inspect the resulting state before repeating the action.
               }
               if (count >= maxCount && remainingAfter === 0) return false;
             }
-            await flushOut();
+            if (endOfChunk || lineBuffered || outUsed >= 8192) await flushOut();
             return true;
           };
-          if (maxCount > 0) await forEachGrepLineBatch(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches, batch => {
+          if (maxCount > 0) await forEachGrepLineBatch(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches, (batch, endOfChunk) => {
             if (binaryFiles.mode === "without-match" && batch.some(line => line.bytes.includes(0))) {
               count = 0;
               return false;
@@ -448,8 +448,8 @@ inspect the resulting state before repeating the action.
             const resOrPromise = session.runSync(descriptor, batch);
             if (resOrPromise instanceof Promise || !canFastBufferLines) {
               return resOrPromise instanceof Promise
-                ? processBatchSlow(batch, resOrPromise)
-                : processBatchSlow(batch, undefined, 0, resOrPromise);
+                ? processBatchSlow(batch, endOfChunk, resOrPromise)
+                : processBatchSlow(batch, endOfChunk, undefined, 0, resOrPromise);
             }
             const results = resOrPromise;
             for (let index = 0; index < batch.length; index++) {
@@ -481,9 +481,9 @@ inspect the resulting state before repeating the action.
               }
               number--;
               nextOffset = byteOffset;
-              return processBatchSlow(batch, undefined, index, results);
+              return processBatchSlow(batch, endOfChunk, undefined, index, results);
             }
-            if (outUsed > 0) {
+            if ((endOfChunk || outUsed >= 8192) && outUsed > 0) {
               return flushOut().then(() => true);
             }
             return true;

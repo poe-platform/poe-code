@@ -1,5 +1,7 @@
 const cancellationAdmissionClosedError = new Error("Cancellation admission is closed");
 const cancellationAlreadyActivatedError = new Error("Prepared cancellation admission was already activated");
+const EMPTY_PREPARED_CONTROLS: readonly PreparedControl[] = Object.freeze([]);
+const NO_ADMISSION_FAILURE = Object.freeze({ failed: false, reason: undefined });
 export type CancellationRole = "root-caller" | "invoke-option" | "budget-control" | "pipeline-control";
 
 export interface CancellationAdmissionSnapshot {
@@ -348,7 +350,20 @@ function bestVisibleOrigin(state: LinkState): CancellationOrigin | undefined {
   return invokes[0] ?? origins.find(origin => origin.role === "budget-control" || origin.role === "pipeline-control");
 }
 
+function hasAnyAdmissionFailure(state: LinkState): boolean {
+  for (let frame: LinkState | undefined = state; frame; frame = frame.parent) {
+    if (frame.closed || frame.delivered) return true;
+    if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) return true;
+    if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) return true;
+    for (let i = 0; i < frame.controls.length; i++) {
+      if (signalAborted(frame.controls[i]!.signal)) return true;
+    }
+  }
+  return false;
+}
+
 function admissionFailure(state: LinkState): { readonly failed: boolean; readonly reason: unknown } {
+  if (!hasAnyAdmissionFailure(state)) return NO_ADMISSION_FAILURE;
   const origins = admissionOrigins(state);
   const root = origins.find(origin => origin.role === "root-caller");
   const invokes = origins.filter(origin => origin.role === "invoke-option")
@@ -357,10 +372,11 @@ function admissionFailure(state: LinkState): { readonly failed: boolean; readonl
     ?? origins.find(candidate => candidate.role === "budget-control" || candidate.role === "pipeline-control");
   if (origin) return { failed: true, reason: origin.signal.reason };
   if (state.closed) return { failed: true, reason: state.closedReason };
-  return { failed: false, reason: undefined };
+  return NO_ADMISSION_FAILURE;
 }
 
 function throwAdmissionFailure(state: LinkState): void {
+  if (!hasAnyAdmissionFailure(state)) return;
   const failure = admissionFailure(state);
   if (failure.failed) throw failure.reason;
 }
@@ -443,7 +459,7 @@ function prepareControls(
   parent: LinkState,
   controls: readonly CancellationControlOriginInput[] | undefined,
 ): readonly PreparedControl[] {
-  if (controls === undefined) return Object.freeze([]);
+  if (controls === undefined) return EMPTY_PREPARED_CONTROLS;
   if (!Array.isArray(controls)) return stagedFailure(parent, new TypeError("Cancellation controls must be an array"));
   const prepared: PreparedControl[] = [];
   for (const input of controls) {
@@ -489,9 +505,11 @@ function localActivationFailure(state: PreparedState): { readonly failed: boolea
   if (state.localSignal && signalAborted(state.localSignal)) {
     return { failed: true, reason: state.localSignal.reason };
   }
-  const control = state.controls.find(candidate => signalAborted(candidate.signal));
-  if (control) return { failed: true, reason: control.signal.reason };
-  return { failed: false, reason: undefined };
+  for (let i = 0; i < state.controls.length; i++) {
+    const candidate = state.controls[i]!;
+    if (signalAborted(candidate.signal)) return { failed: true, reason: candidate.signal.reason };
+  }
+  return NO_ADMISSION_FAILURE;
 }
 
 function throwLocalActivationFailure(state: PreparedState): void {

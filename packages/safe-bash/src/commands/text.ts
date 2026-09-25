@@ -328,6 +328,8 @@ function compareBytes(left: Uint8Array, right: Uint8Array): number { return Buff
 function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 97 && byte <= 122 ? byte - 32 : byte); }
 
 interface NumericValue { whole: string; fraction: string; negative: boolean; suffixRank: number }
+const cachedSmallNumericValues: (NumericValue | undefined)[] = new Array(1000);
+const ZERO_NUMERIC_VALUE: NumericValue = { whole: "0", fraction: "", negative: false, suffixRank: 0 };
 
 function asciiSlice(bytes: Uint8Array, start: number, end: number): string {
   const len = end - start;
@@ -364,6 +366,16 @@ function parseNumericRangeSync(bytes: Uint8Array, startOffset: number, endOffset
     while (i < len && bytes[i]! >= 48 && bytes[i]! <= 57) i++;
     fracEnd = i;
     while (fracEnd > fracStart && bytes[fracEnd - 1] === 48) fracEnd--;
+  }
+  const wholeLen = wholeEnd - wholeStart;
+  if (fracEnd === fracStart && (!human || (bytes[i] === undefined))) {
+    if (wholeLen === 0) return ZERO_NUMERIC_VALUE;
+    if (!neg && wholeLen <= 3) {
+      let num = bytes[wholeStart]! - 48;
+      if (wholeLen >= 2) num = num * 10 + (bytes[wholeStart + 1]! - 48);
+      if (wholeLen === 3) num = num * 10 + (bytes[wholeStart + 2]! - 48);
+      return (cachedSmallNumericValues[num] ??= { whole: String(num), fraction: "", negative: false, suffixRank: 0 });
+    }
   }
   const whole = wholeEnd > wholeStart ? asciiSlice(bytes, wholeStart, wholeEnd) : "0";
   const fraction = fracEnd > fracStart ? asciiSlice(bytes, fracStart, fracEnd) : "";
@@ -618,6 +630,7 @@ async function mergeSortRuns(runs: Uint8Array[][], compare: (left: Uint8Array, r
 
 const syncFieldStarts = new Int32Array(1025);
 const syncFieldEnds = new Int32Array(1025);
+let lastKeyNumericLength = 0;
 
 function keyBytesSync(line: Uint8Array, key: SortKey, separator: number | undefined, blanks: boolean, work: SortWork): Uint8Array | Promise<Uint8Array> {
   if (line.length > 1024) return keyBytes(line, key, separator, blanks, work);
@@ -689,7 +702,7 @@ function keyNumericValueSync(
   blanks: boolean,
   work: SortWork,
   human: boolean,
-): { value: NumericValue; keyLength: number } | undefined {
+): NumericValue | undefined {
   if (line.length > 1024) return undefined;
   let fieldCount = 0;
   if (separator !== undefined) {
@@ -752,10 +765,8 @@ function keyNumericValueSync(
   const keyLength = sliceEnd - sliceStart;
   const checkpoint = work.charge(extraCharge + keyLength);
   if (checkpoint !== undefined) return undefined;
-  return {
-    value: parseNumericRangeSync(line, sliceStart, sliceEnd, human),
-    keyLength,
-  };
+  lastKeyNumericLength = keyLength;
+  return parseNumericRangeSync(line, sliceStart, sliceEnd, human);
 }
 
 async function keyBytes(line: Uint8Array, key: SortKey, separator: number | undefined, blanks: boolean, work: SortWork): Promise<Uint8Array> {
@@ -1061,12 +1072,12 @@ export function textCommands(): CommandDefinition[] {
           if (cached !== undefined) return cached;
           const fastParsed = keyNumericValueSync(record, numericKey, separator, false, work, keyHuman);
           if (fastParsed !== undefined) {
-            const charge = 6 * fastParsed.keyLength + 10;
+            const charge = 6 * lastKeyNumericLength + 10;
             if (keyedNumericValues.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
-              keyedNumericValues.set(record, fastParsed.value);
+              keyedNumericValues.set(record, fastParsed);
               retainedKeyBytes += charge;
             }
-            return fastParsed.value;
+            return fastParsed;
           }
           const bytesOrPromise = keyBytesSync(record, numericKey, separator, false, work);
           if (!(bytesOrPromise instanceof Promise)) {

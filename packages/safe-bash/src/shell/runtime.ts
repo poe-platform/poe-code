@@ -46,6 +46,8 @@ import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.j
 import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
 import { defaultEchoExecutors, formatPrintf, printfCommand, tryFastPrintf } from "../commands/basic.js";
+export const customRegisteredCommands = new WeakSet<object>();
+export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
 import { defaultPredicateExecutors, tryFastPredicate } from "../commands/predicates.js";
 import { pathOf, UsageError } from "../commands/internal.js";
 import { cloneGetoptsState, createGetoptsInput, createGetoptsState, GetoptsError, getoptsInputAllocationSize, scanGetopts, withGetoptsIndex } from "./getopts.js";
@@ -3921,12 +3923,15 @@ export class Runtime {
           const closedReason = new Error("Invocation is closed");
           for (const controller of controllers) controller.abort(closedReason);
         });
-        let transferred!: () => void;
+        let transferred: (() => void) | undefined;
         let pendingTransfers = pipeline.commands.length;
-        const transfer = new Promise<void>(resolve => { transferred = resolve; });
-        const retireBaseline = terminal ? transfer.then(() => terminal.frame.reconcile(new Map())) : Promise.resolve();
-        retain(retireBaseline);
-        void retireBaseline.catch(() => undefined);
+        const retireBaseline = terminal
+          ? new Promise<void>(resolve => { transferred = resolve; }).then(() => terminal.frame.reconcile(new Map()))
+          : undefined;
+        if (retireBaseline) {
+          retain(retireBaseline);
+          void retireBaseline.catch(() => undefined);
+        }
         let preparedStages = 0;
         let acceptPreparation: (() => void) | undefined;
         let rejectPreparation: ((reason: unknown) => void) | undefined;
@@ -3934,7 +3939,7 @@ export class Runtime {
           acceptPreparation = () => { if (++preparedStages === pipeline.commands.length) resolve(); };
           rejectPreparation = reject;
         }).then(async () => {
-          await retireBaseline;
+          if (retireBaseline) await retireBaseline;
           await this.extensionCheckpoint("child-job-install", state, io);
         }) : undefined;
         if (installation) {
@@ -3946,7 +3951,7 @@ export class Runtime {
           const admit = (): void => {
             if (admitted) return;
             admitted = true;
-            if (--pendingTransfers === 0) transferred();
+            if (--pendingTransfers === 0) transferred?.();
           };
           try {
           const incoming = pipes[index - 1];
@@ -4028,7 +4033,7 @@ export class Runtime {
                   stderr: signalSink(io.stderr, signal),
                   terminal: { target: command, frame: descriptorFrame },
                 };
-                const descriptors = new Map(childIO.descriptors);
+                const descriptors = inherited.descriptors as Map<number, Descriptor>;
                 descriptors.set(0, incoming ? { input, stdinIsDefault: false, ...(readReference ? { pipe: readReference } : {}) } : { ...descriptors.get(0), input });
                 descriptors.set(1, outgoing ? { output: childIO.stdout, ...(writeReference ? { pipe: writeReference } : {}) } : { ...descriptors.get(1), output: childIO.stdout });
                 descriptors.set(2, { ...descriptors.get(2), output: childIO.stderr });
@@ -4036,7 +4041,7 @@ export class Runtime {
                 descriptorFrame.acquire(descriptors);
                 admit();
                 acceptPreparation?.();
-                await retireBaseline;
+                await (retireBaseline ?? Promise.resolve());
                 if (installation) {
                   await installation;
                   signal.throwIfAborted();
@@ -5472,9 +5477,12 @@ export class Runtime {
       }
     }
     const scope = io[invocationScope].child();
+    const externalDef = typeof name === "string" ? this.commands.get(name) : undefined;
     const fastInline =
+      !state.externalInvocation &&
       this.middleware.length === 0 &&
       typeof name === "string" &&
+      (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) &&
       !(!bypassFunctions && state.functions.has(name)) &&
       !state.extensions?.builtins.has(name) &&
       name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
@@ -5486,11 +5494,11 @@ export class Runtime {
           this.cancellation, this.cancellationState, this.cancellationOwner,
           this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
         );
-    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath); }
+    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath, !fastInline); }
     finally { await scope.close(); }
   }
 
-  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
+  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false): Promise<number> {
     const { [invocationScope]: scope, ...publicIO } = io;
     Reflect.deleteProperty(publicIO, valueScope);
     Reflect.deleteProperty(publicIO, declarationArrays);
@@ -5514,7 +5522,7 @@ export class Runtime {
     }
     const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
-    let scopedSignal: AbortSignal | undefined;
+    let scopedSignal: AbortSignal | undefined = signalIsScoped ? this.signal : undefined;
     const getScopedSignal = (): AbortSignal => (scopedSignal ??= AbortSignal.any([this.signal, scope.signal]));
     let contextFs: FileSystem | undefined;
     const getContextFs = (): FileSystem => {
@@ -5570,7 +5578,7 @@ export class Runtime {
       invoke: (name, args, options) => {
         const invRuntime = new Runtime(
           this.sourceFs, this.commands, this.middleware, this.budget,
-          getScopedSignal(), this.fileWrites, this.outputFiles, this.commandSignal,
+          this.signal, this.fileWrites, this.outputFiles, this.commandSignal,
           this.cancellation, this.cancellationState, this.cancellationOwner,
           this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
         );

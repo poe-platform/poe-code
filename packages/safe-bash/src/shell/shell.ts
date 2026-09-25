@@ -12,7 +12,7 @@ import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
-import { Budget, Capture, interruptible, registerRuntimeBackingFileSystem, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
+import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
 import type { State } from "./runtime.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
@@ -113,6 +113,8 @@ export class Shell implements PluginHost {
   #ready: Promise<void> = Promise.resolve();
   #disposed = false;
   #disposal: Promise<void> | undefined;
+  #defaultIoCapabilities: Readonly<Record<string, unknown>> | undefined;
+  #hasCustomCommands = false;
   readonly #active = new Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }>();
 
   constructor(options: ShellOptions) {
@@ -120,6 +122,10 @@ export class Shell implements PluginHost {
     if (options.deviceView !== undefined && options.deviceView !== "default" && options.deviceView !== "provided") throw new TypeError("deviceView must be default or provided");
     const commands = options.commands ?? new CommandRegistry();
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
+    if (options.commands) {
+      this.#hasCustomCommands = true;
+      customRegisteredRegistries.add(commands);
+    }
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
     const resolvedLimits = resolveLimits(options.limits);
@@ -145,7 +151,7 @@ export class Shell implements PluginHost {
           if (this.#disposed && !active) throw new Error("Shell is disposed");
         };
         const host: PluginHost = {
-          provideCapabilities: capabilities => { admit(); Object.assign(this.#capabilities, capabilities); },
+          provideCapabilities: capabilities => { admit(); Object.assign(this.#capabilities, capabilities); this.#defaultIoCapabilities = undefined; },
           commands: this.commands,
           use: (middleware) => { admit(); this.#install(middleware); },
           registerFileSystem: (scheme, factory) => { admit(); this.#registerFileSystem(scheme, factory); },
@@ -161,6 +167,8 @@ export class Shell implements PluginHost {
 
   register(command: CommandDefinition, options?: RegisterCommandOptions): this {
     if (this.#disposed) throw new Error("Shell is disposed");
+    this.#hasCustomCommands = true;
+    if (command && typeof command.execute === "function") customRegisteredCommands.add(command.execute);
     this.commands.register(command, options);
     return this;
   }
@@ -193,8 +201,9 @@ export class Shell implements PluginHost {
     const scope = new InvocationScope(options.signal);
     const cancellationState = new RuntimeCancellationState();
     const owner = new RootInvocationCancellationOwner(scope);
+    const admission = Runtime.rootCancellationAdmission(budget);
     const boundary = createRootCancellationLink({
-      admission: Runtime.rootCancellationAdmission(budget),
+      admission,
       callerSignal: options.signal,
       controls: [{ role: "budget-control", signal: budget.controller.signal }],
     });
@@ -209,7 +218,7 @@ export class Shell implements PluginHost {
     this.#active.add(active);
     let captured: CapturedCancellationOutcome<ShellResult>;
     try {
-      captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner));
+      captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
       if (captured.kind === "throw") budget.executionCleanup.abort(captured.reason);
     } finally {
       await budget.executionCleanup.drain();
@@ -233,11 +242,16 @@ export class Shell implements PluginHost {
     cancellation: CancellationBoundary,
     cancellationState: RuntimeCancellationState,
     owner: RootInvocationCancellationOwner,
+    admission: ReturnType<typeof Runtime.rootCancellationAdmission>,
   ): Promise<ShellResult> {
     if (typeof source !== "string") throw new TypeError("Shell source must be a string");
     if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
+    if (scope.signal.aborted) {
+      budget.controller.abort(scope.signal.reason);
+    }
+    const unseal = scope.onSeal(() => budget.controller.abort(new Error("Invocation is closed")));
     const stdout = new Capture();
     const stderr = new Capture();
     const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
@@ -259,7 +273,9 @@ export class Shell implements PluginHost {
       catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
     });
     const io = {
-      capabilities: Object.freeze({ ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }),
+      capabilities: options.capabilities === undefined && options.limits === undefined
+        ? (this.#defaultIoCapabilities ?? Object.freeze({ ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+        : Object.freeze({ ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }),
       [invocationScope]: scope,
       ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
       ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
@@ -277,7 +293,9 @@ export class Shell implements PluginHost {
         const extensions = !rawExtensions || rawExtensions.length === 0
           ? EMPTY_CAPTURED_EXTENSIONS
           : captureShellExtensions(rawExtensions);
-        const locale = byteLocale({ ...this.#options.env, ...options.env });
+        const locale = options.env === undefined
+          ? byteLocale(this.#options.env ?? {})
+          : (this.#options.env === undefined ? byteLocale(options.env) : byteLocale({ ...this.#options.env, ...options.env }));
         const canCacheParse = extensions === EMPTY_CAPTURED_EXTENSIONS && source.length <= 16384;
         let lineIndex: SourceLineIndex | undefined;
         let lineIndexUnits = 0;
@@ -333,7 +351,9 @@ export class Shell implements PluginHost {
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
-        io.capabilities = Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
+        io.capabilities = options.capabilities === undefined && options.limits === undefined
+          ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
+          : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
         const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
         const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
         for (const [name, value] of Object.entries(variables)) {
@@ -351,16 +371,17 @@ export class Shell implements PluginHost {
           globstar: false,
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
-        const admission = Runtime.rootCancellationAdmission(budget);
         const filesystem = options.fs ?? this.#options.fs;
         const runtimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
         registerRuntimeBackingFileSystem(runtimeFs, filesystem);
         runtime = new Runtime(
           runtimeFs,
           this.commands,
-          [...this.#middleware],
+          this.#middleware,
           budget,
-          AbortSignal.any([cancellation.deliverySignal, scope.signal]),
+          this.#hasCustomCommands || this.#middleware.length > 0
+            ? AbortSignal.any([cancellation.deliverySignal, scope.signal])
+            : cancellation.deliverySignal,
           undefined,
           undefined,
           cancellation.deliverySignal,
@@ -405,6 +426,7 @@ export class Shell implements PluginHost {
       throw error;
     }
     finally {
+      unseal();
       await budget.executionCleanup.drain();
       if (failed) await stdin?.close().catch(() => {});
       else await stdin?.close();

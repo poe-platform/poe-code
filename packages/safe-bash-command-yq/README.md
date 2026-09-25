@@ -6,12 +6,13 @@ against the shell's virtual filesystem and retain their existing byte and work
 limits. The optional profile requires the optional `yaml@2.9.0` peer.
 
 ```ts
-import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { Shell, createMemoryFileSystem, standardCommands } from "@poe-platform/safe-bash";
 import { yqCommands } from "@poe-platform/safe-bash/commands/yq";
 
 const shell = new Shell({ fs: createMemoryFileSystem() });
-shell.use(yqCommands());
+shell.use(standardCommands()).use(yqCommands());
 await shell.exec("printf 'name: example\\n' | yq '.name'");
+await shell.dispose();
 ```
 
 Use `@poe-platform/safe-bash/yq` for the optional Mike-yq profile. Register one profile

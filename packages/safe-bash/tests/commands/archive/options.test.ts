@@ -613,6 +613,7 @@ test("tar strips listed names and skips members with too few components", async 
 test("tar transforms creation and extraction names while selecting original names", async () => {
   const { fs, shell } = await fixture();
   try {
+    assert.ok(fs.symlink && fs.link && fs.readlink);
     await fs.mkdir("/work/dir");
     await fs.writeFile("/work/dir/a", binary);
     await fs.symlink("a", "/work/dir/link");

@@ -989,6 +989,11 @@ interface OutputFinalizer {
   readonly descriptor?: CommandFileDescriptor;
 }
 
+interface OutputFailureTracker {
+  list?: { descriptor: CommandFileDescriptor; reason: unknown }[];
+  outputStatus?: number;
+}
+
 class Flow extends Error {
   constructor(readonly kind: "exit" | "return" | "break" | "continue" | "discard", readonly status: number, public levels = 1, readonly previousStatus?: number, readonly expansionFailure = false) {
     super(kind);
@@ -5939,6 +5944,7 @@ export class Runtime {
     };
     let io = originalIO;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+    let outputTracker: OutputFailureTracker | undefined;
     const snapshotHolder: { scope?: InvocationScope; finish?: () => void } = {};
     try {
       let status = 0;
@@ -5960,7 +5966,7 @@ export class Runtime {
         terminal.completed = true;
       }
       if (outputs.size > 0 || inputs.size > 0 || processSubstitutions.length > 0) {
-        await this.finishCommandResources(status, outputs, inputs, processSubstitutions);
+        await this.finishCommandResources(status, outputs, inputs, processSubstitutions, outputTracker = {});
       }
       return status;
     } catch (caught) {
@@ -5973,6 +5979,7 @@ export class Runtime {
         outputs,
         inputs,
         processSubstitutions,
+        outputTracker,
       );
       if (errResult.diagnosticFailure) diagnosticFailure = errResult.diagnosticFailure;
       return errResult.status;
@@ -5995,7 +6002,7 @@ export class Runtime {
     outputs: Set<OutputFinalizer>,
     inputs: Set<{ close(): void | Promise<void> }>,
     processSubstitutions: (() => Promise<void>)[],
-    outputFailuresOut?: { list?: { descriptor: CommandFileDescriptor; reason: unknown }[]; outputStatus?: number },
+    outputFailuresOut?: OutputFailureTracker,
   ): Promise<void> {
     if (outputs.size > 0) {
       const pending = [...outputs];
@@ -6392,9 +6399,9 @@ export class Runtime {
     outputs: Set<OutputFinalizer>,
     inputs: Set<{ close(): void | Promise<void> }>,
     processSubstitutions: (() => Promise<void>)[],
+    outputTracker: OutputFailureTracker = {},
   ): Promise<{ status: number; diagnosticFailure: NounsetDiagnosticFailure | undefined }> {
       let diagnosticFailure: NounsetDiagnosticFailure | undefined;
-      const outputTracker: { list?: { descriptor: CommandFileDescriptor; reason: unknown }[]; outputStatus?: number } = {};
       const diagnostic = caught instanceof ExecutionFailure ? caught.diagnostic : undefined;
       const error = caught instanceof ExecutionFailure ? caught.original : caught;
       if (caught instanceof ExecutionFailure) io = caught.io;

@@ -265,7 +265,7 @@ async function execute(context: ShellExtensionContext): Promise<number> {
 }
 
 export function mapfileExtension(options: { readonly replace?: boolean } = {}): ShellExtension {
-  const { replace = false } = options;
+  const { replace = true } = options;
   if (typeof replace !== "boolean") throw new TypeError("mapfile replace must be boolean");
   return { name: "mapfile", runtimeIdentity: commandRuntimeIdentity, syntax: { arrayKeys: true }, create: () => ({ builtins: [{ name: "mapfile", execute, replace }, { name: "readarray", execute, replace }] }) };
 }

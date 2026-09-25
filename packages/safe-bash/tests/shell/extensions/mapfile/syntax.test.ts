@@ -7,8 +7,8 @@ import { mapfileExtension } from "../../../../src/shell/extensions/mapfile/index
 import { Shell } from "../../../../src/shell/shell.js";
 import { primaryReference } from "./primary-reference.js";
 
-test("mapfile variant requires explicit replacement of current core builtins", async context => {
-  const ordinary = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension()] });
+test("mapfile variant allows explicit rejection of core builtin replacement", async context => {
+  const ordinary = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: false })] });
   context.after(() => ordinary.dispose());
   await assert.rejects(ordinary.exec(":"), /Extension builtin conflicts with existing builtin: mapfile/);
   const replacement = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: true })] });

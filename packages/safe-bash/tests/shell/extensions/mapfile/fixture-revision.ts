@@ -35,7 +35,7 @@ interface ReplacementRevision {
 export function verifyMapfileFixtureRevision(fixture: { readonly file: string; readonly sha256: string }, current: Uint8Array, referenceSHA256: string, receipt: Uint8Array): void {
   assert.ok(receipt.byteLength <= 16384, "Fixture revision receipt exceeds its bound");
   assert.ok(current.byteLength <= 65536, "Revised fixture exceeds its bound");
-  assert.equal(createHash("sha256").update(receipt).digest("hex"), "4bf5b0b10a1282e92579f8a3f05beaa69081fa738af4cc800d58cd1466dbf0c0");
+  assert.equal(createHash("sha256").update(receipt).digest("hex"), "15f894a4b8ef1a29f4ee4083ac1b0096eca4b156c92adc790c1871f6cc9970fd");
   const replacement = JSON.parse(Buffer.from(receipt).toString()) as ReplacementRevision;
   assert.equal(replacement.schemaVersion, 4);
   assert.equal(referenceSHA256, replacement.referenceSHA256);

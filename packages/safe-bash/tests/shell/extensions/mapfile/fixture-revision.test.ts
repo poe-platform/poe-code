@@ -78,7 +78,7 @@ function predecessorBytes(file: string, bytes: Uint8Array): Buffer {
 test("replacement revision admits only six exact fixture updates with bounded reverse steps", () => {
   assert.deepEqual(replacementReceipt.revisions.map(entry => [entry.fixture, entry.replacements.length]), [
     ["arguments.test.ts", 1], ["behavior.test.ts", 1], ["review.test.ts", 8],
-    ["evaluation-exit-review.test.ts", 1], ["callback-boundary.test.ts", 2], ["syntax.test.ts", 7],
+    ["evaluation-exit-review.test.ts", 1], ["callback-boundary.test.ts", 2], ["syntax.test.ts", 8],
   ]);
   for (const revision of replacementReceipt.revisions) {
     const bytes = readFileSync(new URL(revision.fixture, import.meta.url));

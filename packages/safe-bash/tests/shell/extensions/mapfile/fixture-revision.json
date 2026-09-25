@@ -176,7 +176,7 @@
     {
       "fixture": "syntax.test.ts",
       "previousSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
-      "currentSHA256": "33274084b7efd97bd5cb49b8e1781e2ddf9c4b75798bd8b1f18d4f3d954979d7",
+      "currentSHA256": "a84bcab0a7aa6bfca00054fa494d2897327a41a96a7df597f73b51b4c656a22d",
       "replacements": [
         {
           "beforeSHA256": "4513f0afea52aa8fbe5b593bf7fc6af1a70dcdb8190cdab09b2c4a6fe7fd1205",
@@ -226,6 +226,13 @@
           "offset": 3733,
           "removed": "  assert.equal(actual.exitCode, 2);\n  assert.deepEqual(Buffer.from(actual.stdoutBytes), Buffer.alloc(0));\n  assert.equal(actual.stderr, \"shell: Unsupported parameter expansion at offset 30\\n\");\n",
           "insertion": "  assert.equal(actual.exitCode, 0);\n  assert.equal(actual.stdout, \"<0><1>\");\n  assert.equal(actual.stderr, \"\");\n"
+        },
+        {
+          "beforeSHA256": "33274084b7efd97bd5cb49b8e1781e2ddf9c4b75798bd8b1f18d4f3d954979d7",
+          "afterSHA256": "a84bcab0a7aa6bfca00054fa494d2897327a41a96a7df597f73b51b4c656a22d",
+          "offset": 523,
+          "removed": "requires explicit replacement of current core builtins\", async context => {\n  const ordinary = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension(",
+          "insertion": "allows explicit rejection of core builtin replacement\", async context => {\n  const ordinary = new Shell({ fs: createMemoryFileSystem(), extensions: [mapfileExtension({ replace: false }"
         }
       ]
     }

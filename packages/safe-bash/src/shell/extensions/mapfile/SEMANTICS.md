@@ -1,7 +1,9 @@
 # Mapfile/readarray implementation and qualification
 
 `index.ts` now exports `mapfileExtension()`, providing both builtins with runtime
-identity tagging. Actual Shell record/callback tests execute through the borrowed
+identity tagging. Both names replace the core builtins by
+default; pass `{ replace: false }` to require conflict rejection. Actual Shell
+record/callback tests execute through the borrowed
 record and incremental binding APIs. Open-descriptor validation and byte-valued
 diagnostics are now integrated. The primary target is GNU Bash 5.3.0, not 5.2.37.
 The current 241-test cohort passes against frozen authenticated 5.3 observations

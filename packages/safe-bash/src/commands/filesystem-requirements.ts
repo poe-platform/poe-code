@@ -1,5 +1,7 @@
+import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "../contracts/command-requirements.js";
 import { dirname, FsError, type CommandContext } from "../contracts/index.js";
+import { getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 import { codeOf } from "./internal.js";
 
 export const filesystemCommandRequirements = {
@@ -75,6 +77,22 @@ export async function admitFilesystemModes(
   creation?: "exclusive",
 ): Promise<void> {
   const requirements = filesystemCommandRequirements[command];
+  const backing = getRuntimeBackingFileSystem(context.fs);
+  if (backing !== undefined && backing.capabilitiesFor === undefined) {
+    let allFastMemory = true;
+    for (let i = 0; i < paths.length; i++) {
+      if (tryResolveMemoryDevicePath(backing, paths[i]!) === undefined) {
+        allFastMemory = false;
+        break;
+      }
+    }
+    if (allFastMemory) {
+      context.signal.throwIfAborted();
+      assertCommandRequirements(context, requirements, modes, context.fs.capabilities.readOnly === true ? { readOnly: true } : {});
+      assertCommandRequirements(context, requirements, modes, backing.capabilities);
+      return;
+    }
+  }
   for (const path of paths) {
     let candidate = path;
     while (true) {

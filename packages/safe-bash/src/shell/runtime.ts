@@ -216,10 +216,6 @@ const syncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 
-function isSyncResolved(promise: unknown): promise is Promise<never> {
-  return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
-}
-
 async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
   const compare = async (left: string, right: string): Promise<number> => {
     let first = 0, second = 0;
@@ -500,38 +496,6 @@ export class Budget {
   }
 }
 
-export function interruptible<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
-  if (signal.aborted) {
-    void promise.catch(() => undefined);
-    return Promise.reject(signal.reason);
-  }
-  if (isSyncResolved(promise)) return promise;
-  return interruptibleSlow(promise, signal);
-}
-
-const signalAbortWaiters = new WeakMap<AbortSignal, Set<(reason: unknown) => void>>();
-
-function interruptibleSlow<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
-  return new Promise<Value>((resolve, reject) => {
-    let waiters = signalAbortWaiters.get(signal);
-    if (!waiters) {
-      waiters = new Set();
-      signalAbortWaiters.set(signal, waiters);
-      const set = waiters;
-      signal.addEventListener("abort", () => {
-        const reason = signal.reason;
-        const pending = [...set];
-        set.clear();
-        for (let i = 0; i < pending.length; i++) pending[i]!(reason);
-      }, { once: true });
-    }
-    waiters.add(reject);
-    promise.then(
-      value => { waiters!.delete(reject); resolve(value); },
-      error => { waiters!.delete(reject); reject(error); },
-    );
-  });
-}
 
 export class Capture implements ByteSink {
   readonly chunks: Uint8Array[] = [];
@@ -1782,15 +1746,8 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
-const runtimeBackingFileSystems = new WeakMap<FileSystem, FileSystem>();
-
-export function registerRuntimeBackingFileSystem(wrapper: FileSystem, backing: FileSystem): void {
-  runtimeBackingFileSystems.set(wrapper, backing);
-}
-
-export function getRuntimeBackingFileSystem(fs: FileSystem): FileSystem | undefined {
-  return runtimeBackingFileSystems.get(fs);
-}
+import { getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem } from "../fs/creation-mask.js";
+export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
 const emptyStrings: readonly string[] = [];
@@ -1852,7 +1809,7 @@ export class Runtime {
   ) {
     this.#rawFs = fs;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
-    this.backingFs = runtimeBackingFileSystems.get(this.sourceFs) ?? this.sourceFs;
+    this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
     this.#isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem";
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {
@@ -1865,7 +1822,7 @@ export class Runtime {
     if (!this.#fs) {
       this.#fs = scopeFileSystem(this.#rawFs, this.#chargeFs, this.signal, this.#cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
       runtimeFileSystems.set(this.#fs, this.sourceFs);
-      runtimeBackingFileSystems.set(this.#fs, this.backingFs);
+      registerRuntimeBackingFileSystem(this.#fs, this.backingFs);
     }
     return this.#fs;
   }
@@ -1882,7 +1839,7 @@ export class Runtime {
       { maxPathComponents: this.budget.limits.maxPathnameComponents },
     );
     runtimeFileSystems.set(created, this.sourceFs);
-    runtimeBackingFileSystems.set(created, this.backingFs);
+    registerRuntimeBackingFileSystem(created, this.backingFs);
     if (sig === this.signal) {
       this.#contextFsMask = umask;
       this.#contextFsSignal = sig;
@@ -4031,7 +3988,7 @@ export class Runtime {
           const signal = boundary.deliverySignal;
           const frame: RuntimeOutcomeFrame = {};
           const runtime = new Runtime(
-            this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
+            this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
             boundary.deliverySignal, boundary, this.cancellationState, owner,
             childDepth, this.cancellationMaxDepth, frame, this.inputProfile,
           );
@@ -4681,7 +4638,10 @@ export class Runtime {
       state.loopDepth++;
       try {
         if (command.kind === "for") {
-          const values = command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state);
+          const fastLoopWords = command.words?.length === 1 && state.braceexpand !== false && !state.variableAttributes?.size && !guestArrays(state)
+            ? tryFastExpandBraceRange(command.words[0]!, this.budget, io[valueScope] ? (b, o) => io[valueScope]!.reserve(b, o) : undefined)
+            : undefined;
+          const values = fastLoopWords ?? (command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state));
           const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           const canFastAssignLoopVar =
             isShellIdentifier(command.name) &&

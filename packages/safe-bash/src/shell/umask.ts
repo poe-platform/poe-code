@@ -1,10 +1,10 @@
 import type { CommandContext } from "../contracts/command.js";
 import { writeText } from "../contracts/io.js";
 import { writeDiagnostic } from "../escaping.js";
-import { creationUmask } from "../fs/creation-mask.js";
+import { creationUmask, getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
-import { registerEntryView, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/core";
+import { registerEntryView, tryResolveMemoryDevicePath, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/core";
 
 const creationFileSystems = new WeakMap<FileSystem, Map<number, FileSystem>>();
 const creationKeys = new Set(["writeFile", "appendFile", "writeStream", "mkdir", "open", "createStagedFile"]);
@@ -48,8 +48,11 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
                 if (statExisting?.type === "directory") return Reflect.apply(method, target, args);
               }
               let capabilities = target.capabilities;
+              const backing = getRuntimeBackingFileSystem(target);
+              const skipCapabilitiesQuery = backing !== undefined && backing.capabilitiesFor === undefined
+                && tryResolveMemoryDevicePath(backing, path) !== undefined;
               // Atomic final-symlink admission must precede any following path query.
-              while (target.capabilitiesFor && !(key === "open" && options.noFollow)) {
+              while (!skipCapabilitiesQuery && target.capabilitiesFor && !(key === "open" && options.noFollow)) {
                 try {
                   capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true }
                     : (key === "writeFile" || key === "writeStream") && (options.flag === "wx" || options.flag === "ax") ? { ...options, creation: "exclusive" } : options);

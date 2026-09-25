@@ -52,4 +52,13 @@ export class MemoryAllocation {
     if (this.references <= 0) throw new Error("Memory allocation already released");
     if (--this.references === 0) this.ledger.release(this.data.byteLength, 0);
   }
+
+  isReleased64(): boolean {
+    return this.references === 0 && this.data.byteLength === 64;
+  }
+
+  reuse(): void {
+    this.references = 1;
+    this.data.fill(0);
+  }
 }

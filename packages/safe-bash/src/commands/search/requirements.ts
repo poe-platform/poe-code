@@ -2,6 +2,8 @@ import type { CommandContext } from "../../contracts/command.js";
 import { FsError } from "../../contracts/errors.js";
 import { readBytes, type ByteSource } from "../../contracts/io.js";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "../../contracts/command-requirements.js";
+import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { pathOf } from "../internal.js";
 import { inputRequirements } from "../portable-requirements.js";
 
@@ -36,6 +38,17 @@ export async function assertPathRequirements(
   if (!paths.length) return;
   assertCommandRequirements(context, requirements, modes);
   if (!context.fs.capabilitiesFor) return;
+  const backing = getRuntimeBackingFileSystem(context.fs);
+  if (backing !== undefined && backing.capabilitiesFor === undefined) {
+    let allSafe = true;
+    for (let i = 0; i < paths.length; i++) {
+      if (tryResolveMemoryDevicePath(backing, pathOf(context, paths[i]!)) === undefined) {
+        allSafe = false;
+        break;
+      }
+    }
+    if (allSafe) return;
+  }
   for (const path of new Set(paths)) {
     try {
       const capabilities = await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal });
@@ -54,8 +67,11 @@ export async function* requiredFileInput(
   const path = pathOf(context, file);
   let capabilities = context.fs.capabilities;
   if (context.fs.capabilitiesFor) {
-    capabilities = await context.fs.capabilitiesFor(path, { signal: context.signal });
-    assertCommandRequirements(context, requirements, [mode], capabilities);
+    const backing = getRuntimeBackingFileSystem(context.fs);
+    if (backing === undefined || backing.capabilitiesFor !== undefined || tryResolveMemoryDevicePath(backing, path) === undefined) {
+      capabilities = await context.fs.capabilitiesFor(path, { signal: context.signal });
+      assertCommandRequirements(context, requirements, [mode], capabilities);
+    }
   }
   if (context.fs.readStream && capabilities.streamingRead !== false && context.fs.capabilities.streamingRead !== false) {
     let emitted = false;

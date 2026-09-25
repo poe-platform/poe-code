@@ -35,19 +35,45 @@ function isSimpleUnpaddedInt(s: string): boolean {
   return true;
 }
 
+interface CachedBraceRange {
+  readonly values: readonly string[];
+  readonly totalCharLen: number;
+  readonly maxTermBytes: number;
+}
+const braceRangeWordCache = new WeakMap<Word, CachedBraceRange | null>();
+
 export function tryFastExpandBraceRange(
   word: Word,
   budget: Budget,
   reserveBytes?: (bytes: number, objects: number) => void,
 ): string[] | undefined {
+  const cached = braceRangeWordCache.get(word);
+  if (cached !== undefined) {
+    if (cached === null) return undefined;
+    if (cached.values.length > budget.limits.maxExpansionFields || cached.values.length * cached.maxTermBytes > budget.limits.maxExpansionBytes) {
+      return undefined;
+    }
+    budget.cpuCheckpoint();
+    reserveBytes?.(cached.values.length * 32 + cached.totalCharLen * 2, 0);
+    return cached.values as string[];
+  }
   if (word.parts.length !== 1) return undefined;
   const part = word.parts[0]!;
-  if (part.kind !== "text" || part.quoted || part.byteValue) return undefined;
+  if (part.kind !== "text" || part.quoted || part.byteValue) {
+    braceRangeWordCache.set(word, null);
+    return undefined;
+  }
   const text = part.value;
   const open = text.indexOf("{");
-  if (open < 0) return undefined;
+  if (open < 0) {
+    braceRangeWordCache.set(word, null);
+    return undefined;
+  }
   const close = text.indexOf("}", open + 1);
-  if (close < 0) return undefined;
+  if (close < 0) {
+    braceRangeWordCache.set(word, null);
+    return undefined;
+  }
   for (let i = 0; i < text.length; i++) {
     if (i === open || i === close) continue;
     const c = text.charCodeAt(i);
@@ -55,20 +81,34 @@ export function tryFastExpandBraceRange(
       c === 123 || c === 125 || c === 44 || c === 92 || c === 126 ||
       c === 42 || c === 63 || c === 91 || c === 32 || c === 9 || c === 10
     ) {
+      braceRangeWordCache.set(word, null);
       return undefined;
     }
   }
   const inner = text.slice(open + 1, close);
   const dot = inner.indexOf("..");
-  if (dot <= 0 || inner.indexOf("..", dot + 2) >= 0) return undefined;
+  if (dot <= 0 || inner.indexOf("..", dot + 2) >= 0) {
+    braceRangeWordCache.set(word, null);
+    return undefined;
+  }
   const startStr = inner.slice(0, dot);
   const endStr = inner.slice(dot + 2);
-  if (!isSimpleUnpaddedInt(startStr) || !isSimpleUnpaddedInt(endStr)) return undefined;
+  if (!isSimpleUnpaddedInt(startStr) || !isSimpleUnpaddedInt(endStr)) {
+    braceRangeWordCache.set(word, null);
+    return undefined;
+  }
   const start = Number(startStr);
   const end = Number(endStr);
-  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return undefined;
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) {
+    braceRangeWordCache.set(word, null);
+    return undefined;
+  }
   const count = Math.abs(end - start) + 1;
-  if (count > 2048 || count > budget.limits.maxExpansionFields) return undefined;
+  if (count > 2048) {
+    braceRangeWordCache.set(word, null);
+    return undefined;
+  }
+  if (count > budget.limits.maxExpansionFields) return undefined;
   const prefix = text.slice(0, open);
   const suffix = text.slice(close + 1);
   const prefixBytes = Buffer.byteLength(prefix);
@@ -94,6 +134,7 @@ export function tryFastExpandBraceRange(
     }
   }
   reserveBytes?.(count * 32 + totalCharLen * 2, 0);
+  braceRangeWordCache.set(word, { values: out, totalCharLen, maxTermBytes });
   return out;
 }
 

@@ -4,7 +4,7 @@ import { platform } from "#safe-fs-platform";
 
 export type ByteSource = AsyncIterable<Uint8Array>;
 
-const sharedTextEncoder = new TextEncoder();
+let sharedTextEncoder: TextEncoder | undefined;
 const EMPTY_BYTES = new Uint8Array(0);
 const DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
 const RESOLVED_DONE: Promise<IteratorResult<Uint8Array>> = Promise.resolve(DONE_RESULT);
@@ -34,7 +34,7 @@ export function toByteSource(input: string | Uint8Array): ByteSource {
   } else if (input.byteLength === 0) {
     return EMPTY_BYTE_SOURCE;
   }
-  const bytes = typeof input === "string" ? sharedTextEncoder.encode(input) : new Uint8Array(input);
+  const bytes = typeof input === "string" ? (sharedTextEncoder ??= new TextEncoder()).encode(input) : new Uint8Array(input);
   return {
     [Symbol.asyncIterator](): AsyncIterableIterator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> } {
       let consumed = false;
@@ -115,28 +115,43 @@ export async function collectBytes(source: ByteSource, options: CollectOptions):
   }
 }
 
+const abortSignalWaiters = new WeakMap<AbortSignal, Set<(reason: unknown) => void>>();
+
+function addSignalAbortWaiter(signal: AbortSignal, reject: (reason: unknown) => void): Set<(reason: unknown) => void> {
+  let waiters = abortSignalWaiters.get(signal);
+  if (!waiters) {
+    waiters = new Set();
+    abortSignalWaiters.set(signal, waiters);
+    const set = waiters;
+    signal.addEventListener("abort", () => {
+      const reason = signal.reason;
+      const pending = [...set];
+      set.clear();
+      for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+    }, { once: true });
+  }
+  waiters.add(reject);
+  return waiters;
+}
+
 async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortSignal): Promise<Result> {
   signal?.throwIfAborted();
   if (!signal) return operation();
   return new Promise<Result>((resolve, reject) => {
-    const onAbort = (): void => {
-      signal.removeEventListener("abort", onAbort);
-      reject(signal.reason);
-    };
-    signal.addEventListener("abort", onAbort, { once: true });
+    const waiters = addSignalAbortWaiter(signal, reject);
     try {
       Promise.resolve(operation()).then(
         (result) => {
-          signal.removeEventListener("abort", onAbort);
+          waiters.delete(reject);
           resolve(result);
         },
         (error: unknown) => {
-          signal.removeEventListener("abort", onAbort);
+          waiters.delete(reject);
           reject(error);
         },
       );
     } catch (error) {
-      signal.removeEventListener("abort", onAbort);
+      waiters.delete(reject);
       reject(error);
     }
   });
@@ -146,14 +161,16 @@ export async function* readBytes(source: ByteSource, signal?: AbortSignal): Asyn
   signal?.throwIfAborted();
   const iterator = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
     tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+    abortSignal?: AbortSignal | undefined;
   };
+  const nativeAbort = signal !== undefined && iterator.abortSignal === signal;
   let finished = false;
   let failed = false;
   try {
     while (true) {
       signal?.throwIfAborted();
       const syncResult = typeof iterator.tryNextSync === "function" ? iterator.tryNextSync() : undefined;
-      const result = syncResult ?? await abortable(() => iterator.next(), signal);
+      const result = syncResult ?? (nativeAbort ? await iterator.next() : await abortable(() => iterator.next(), signal));
       if (result.done) {
         finished = true;
         return;

@@ -1,7 +1,9 @@
+import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { modeChange } from "./metadata/chmod.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
+import { getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
 import { escapeText } from "../escaping.js";
 import { createDirectoryReader } from "./directory-admission.js";
@@ -359,6 +361,9 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       })();
     };
     const canSkipChildStat = !needsStat && !explicitAction && follow !== "-L";
+    const backing = getRuntimeBackingFileSystem(context.fs);
+    const maxEntriesLimit = maxDirectoryEntries ?? 10000;
+    let uniformDirAdmitted = false;
     const scratchChildEntry: Entry = { path: "", display: "", name: "", stat: SYNTHETIC_FILE_STAT, symlink: false, depth: 0, root: "", relative: "", prune: false };
     const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string, knownName?: string, knownType?: FileStat["type"]): Promise<void> => {
       if (quitRequested) return;
@@ -366,9 +371,21 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       const path = pathOf(context, display);
       try {
         if (depth > 1024) throw new FsError("ELOOP", { path, message: "find depth limit exceeded (1024)" });
+        const memDirEntries = canSkipChildStat && backing !== undefined && backing.capabilitiesFor === undefined
+          && context.fs.capabilities.readOnly !== true && context.fs.capabilities.readdir !== false && context.fs.capabilities.realpath !== false
+          && path !== "/dev" && !path.startsWith("/dev/")
+          ? tryGetMemoryDirectoryEntryNamesSync(backing, path)
+          : undefined;
         let stat: FileStat;
         let symlink: boolean;
-        if (knownType !== undefined && canSkipChildStat && !(knownType === "symlink" && follow === "-H" && depth === 0)) {
+        if (memDirEntries !== undefined) {
+          if (!uniformDirAdmitted) {
+            assertCommandRequirements(context, filesystemCommandRequirements.ls, ["directory"]);
+            uniformDirAdmitted = true;
+          }
+          stat = SYNTHETIC_DIR_STAT;
+          symlink = false;
+        } else if (knownType !== undefined && canSkipChildStat && !(knownType === "symlink" && follow === "-H" && depth === 0)) {
           stat = syntheticStatFor(knownType);
           symlink = knownType === "symlink";
         } else {
@@ -387,14 +404,58 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           if (quitRequested) return;
         }
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
-          const physical = await context.fs.realpath(path, { signal: context.signal });
+          const physical = memDirEntries !== undefined ? path : await context.fs.realpath(path, { signal: context.signal });
           if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
-          const next = new Set(ancestors).add(physical);
-          const children = await readDirectory(context, path, true);
+          let next: Set<string> | undefined;
           let parent = display;
           while (parent.endsWith("/")) parent = parent.slice(0, -1);
           const escapedParent = canSkipChildStat && !needsDisplay ? escapeText(parent, "display") : "";
           const childDepth = depth + 1;
+          if (memDirEntries !== undefined && memDirEntries.size <= maxEntriesLimit) {
+            let isSorted = true;
+            let prevKey = "";
+            for (const k of memDirEntries.keys()) {
+              if (prevKey > k) { isSorted = false; break; }
+              prevKey = k;
+            }
+            const sortedKeys = isSorted ? undefined : Array.from(memDirEntries.keys()).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+            const totalChildren = memDirEntries.size;
+            const keyIter = isSorted ? memDirEntries.keys() : undefined;
+            for (let i = 0; i < totalChildren; i++) {
+              if (quitRequested) return;
+              const childName = keyIter ? keyIter.next().value! : sortedKeys![i]!;
+              const childType = memDirEntries.get(childName)!.type;
+              if (childType === "file" && childDepth <= 1024) {
+                if (childDepth >= minDepth) {
+                  scratchChildEntry.name = childName;
+                  scratchChildEntry.depth = childDepth;
+                  scratchChildEntry.root = root;
+                  scratchChildEntry.prune = false;
+                  if (needsDisplay) {
+                    const childDisplay = `${parent}/${childName}`;
+                    scratchChildEntry.display = childDisplay;
+                    scratchChildEntry.path = pathOf(context, childDisplay);
+                    scratchChildEntry.relative = relative ? `${relative}/${childName}` : childName;
+                  }
+                  const res = evaluate(scratchChildEntry);
+                  const ok = typeof res === "boolean" ? res : await res;
+                  if (ok) {
+                    if (needsDisplay) await appendPrintLine(escapeText(scratchChildEntry.display, "display"));
+                    else {
+                      const pending = appendPrintChild(escapedParent, escapeText(childName, "display"));
+                      if (pending) await pending;
+                    }
+                  }
+                }
+                continue;
+              }
+              next ??= new Set(ancestors).add(physical);
+              const childDisplay = `${parent}/${childName}`;
+              const childRel = relative ? `${relative}/${childName}` : childName;
+              await visit(childDisplay, childDepth, next, root, childRel, childName, childType);
+            }
+          } else {
+          const children = await readDirectory(context, path, true);
           for (const child of children) {
             if (quitRequested) return;
             if (canSkipChildStat && child.type === "file" && childDepth <= 1024) {
@@ -421,9 +482,11 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
               }
               continue;
             }
+            next ??= new Set(ancestors).add(physical);
             const childDisplay = `${parent}/${child.name}`;
             const childRel = relative ? `${relative}/${child.name}` : child.name;
             await visit(childDisplay, childDepth, next, root, childRel, child.name, child.type);
+          }
           }
         }
         if (depthFirst && depth >= minDepth) {

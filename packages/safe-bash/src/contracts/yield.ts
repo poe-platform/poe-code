@@ -69,6 +69,10 @@ export function hasYieldCheckpoint(signal?: AbortSignal): boolean {
   return signal !== undefined && externalCheckpoints.has(signal);
 }
 
+export function hasRegisteredYieldCheckpoint(signal?: AbortSignal): boolean {
+  return signal !== undefined && checkpoints.has(signal);
+}
+
 export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal): void {
   const checkpoint = checkpoints.get(parent);
   if (checkpoint) checkpoints.set(child, checkpoint);

@@ -26,6 +26,7 @@ import type {
 
 const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
 const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+const sharedUtf8Encoder = new TextEncoder();
 interface CachedParsedUnit {
   readonly unit: ReturnType<typeof parseShellUnit>;
   readonly unitsCharged: number;
@@ -329,7 +330,7 @@ export class Shell implements PluginHost {
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
           const value = options.stdin ?? "";
           const inlineBytes = typeof value === "string"
-            ? (value.length > 0 ? Buffer.from(value, "utf8") : undefined)
+            ? (value.length > 0 ? sharedUtf8Encoder.encode(value) : undefined)
             : (value.byteLength > 0 ? new Uint8Array(value) : undefined);
           let available = inlineBytes !== undefined;
           const inline = {

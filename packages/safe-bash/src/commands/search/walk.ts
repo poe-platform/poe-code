@@ -1,6 +1,6 @@
 import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, dirname, FsError, isPathWithin, relativePath, resolvePath, type CommandContext, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
-import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
+import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
@@ -201,10 +201,21 @@ export class Walker {
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[] | undefined;
     let fastNames: string[] | undefined;
+    let fastSortedKeys = false;
     if (canFastMemReaddir && memDirEntries.size <= maxEntries) {
       this.context.signal.throwIfAborted();
-      fastNames = Array.from(memDirEntries.keys());
-      fastNames.sort(compareEntryNames);
+      let isSorted = true;
+      let prevKey = "";
+      for (const k of memDirEntries.keys()) {
+        if (prevKey > k) { isSorted = false; break; }
+        prevKey = k;
+      }
+      if (isSorted) {
+        fastSortedKeys = true;
+      } else {
+        fastNames = Array.from(memDirEntries.keys());
+        fastNames.sort(compareEntryNames);
+      }
     } else {
       try {
         entries = await (uniformCanonical ? backing : this.context.fs).readdir(uniformCanonical ? canonical : path, { signal: this.context.signal,
@@ -225,10 +236,11 @@ export class Walker {
       entries.sort((left, right) => compareEntryNames(left.name, right.name));
     }
     const local = admitted ?? await this.load(path, rules, repository, entries);
-    const totalEntries = fastNames ? fastNames.length : entries!.length;
+    const totalEntries = fastSortedKeys ? memDirEntries!.size : fastNames ? fastNames.length : entries!.length;
+    const keyIter = fastSortedKeys ? memDirEntries!.keys() : undefined;
     for (let entryIdx = 0; entryIdx < totalEntries; entryIdx++) {
-      const entryName = fastNames ? fastNames[entryIdx]! : entries![entryIdx]!.name;
-      const entryType = fastNames ? memDirEntries!.get(entryName)!.type : entries![entryIdx]!.type;
+      const entryName = keyIter ? keyIter.next().value! : fastNames ? fastNames[entryIdx]! : entries![entryIdx]!.name;
+      const entryType = (fastSortedKeys || fastNames) ? memDirEntries!.get(entryName)!.type : entries![entryIdx]!.type;
       const tickPending = this.limits.tick();
       if (tickPending) await tickPending;
       if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");

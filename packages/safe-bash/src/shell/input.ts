@@ -1,7 +1,9 @@
 import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, CommandInput, FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, InvocationCleanup } from "../contracts/index.js";
+import { hasRegisteredYieldCheckpoint } from "../contracts/yield.js";
 import { monotonicNow, yieldTurn } from "../contracts/yield.js";
-import { Budget, interruptible } from "./runtime.js";
+import { addAbortSignalWaiter, interruptible } from "../fs/creation-mask.js";
+import type { Budget } from "./runtime.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
 import type { ValueScope } from "./value-state.js";
@@ -503,7 +505,8 @@ class InputCursor {
   #readError: { reason: unknown } | undefined;
   #readSettled = false;
   #readFailed = false;
-  #turn = Promise.resolve();
+  #turn: Promise<void> = resolvedVoid;
+  #turnRelease: (() => void) | undefined;
   #returned: Promise<void> | undefined;
   #initialChunk: Uint8Array | undefined;
   #onInitialConsumed: (() => void) | undefined;
@@ -601,6 +604,24 @@ class InputCursor {
   async consume<Value>(signal: AbortSignal, operation: () => Promise<Value>, interrupted?: (error: unknown) => Promise<Value>): Promise<Value> {
     if (signal.aborted && interrupted) return interrupted(signal.reason);
     signal.throwIfAborted();
+    if (this.#consumers === 0 && this.#turn === resolvedVoid) {
+      this.#consumers = 1;
+      try {
+        if (this.#eof === "retryable") this.#ended = false;
+        return await operation();
+      } finally {
+        this.#consumers = 0;
+        const notify = this.#turnRelease;
+        if (notify) {
+          this.#turnRelease = undefined;
+          this.#turn = resolvedVoid;
+          notify();
+        }
+      }
+    }
+    if (this.#turn === resolvedVoid) {
+      this.#turn = new Promise<void>(resolve => { this.#turnRelease = resolve; });
+    }
     const previous = this.#turn;
     let release!: () => void;
     const completed = new Promise<void>((resolve) => { release = resolve; });
@@ -611,7 +632,11 @@ class InputCursor {
       catch (error) { if (signal.aborted && interrupted) return await interrupted(error); throw error; }
       if (this.#eof === "retryable") this.#ended = false;
       return await operation();
-    } finally { this.#consumers--; release(); }
+    } finally {
+      this.#consumers--;
+      if (this.#consumers === 0) this.#turn = resolvedVoid;
+      release();
+    }
   }
 
   tryTakeReadySync(): IteratorResult<Uint8Array> | undefined {
@@ -674,14 +699,33 @@ class InputCursor {
     if (!this.#read) {
       this.#readSettled = false;
       this.#readResult = undefined;
-      this.#read = Promise.resolve().then(() => this.#closed ? { value: undefined, done: true as const } : this.#readChunk ? this.#readChunk(maxBytes) : this.#iterator.next()).then((result) => {
-        if (result.done) return { value: undefined, done: true };
-        if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
-        if (this.#boundedReads && result.value.byteLength > this.#budget.limits.maxInputBytes - this.#produced) this.#budget.fail("maxInputBytes");
-        this.#produced += result.value.byteLength;
-        return { value: this.#boundedReads ? new Uint8Array(result.value) : result.value, done: false };
-      });
-      void this.#read.then(result => { this.#readSettled = true; this.#readResult = result; }, reason => { this.#readSettled = true; this.#readError = { reason }; });
+      let rawNext: Promise<IteratorResult<Uint8Array>>;
+      try {
+        rawNext = Promise.resolve(this.#closed ? doneResult : this.#readChunk ? this.#readChunk(maxBytes) : this.#iterator.next());
+      } catch (err) {
+        rawNext = Promise.reject(err);
+      }
+      this.#read = rawNext.then(
+        (result): IteratorResult<Uint8Array> => {
+          if (result.done) {
+            this.#readSettled = true;
+            this.#readResult = doneResult;
+            return doneResult;
+          }
+          if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
+          if (this.#boundedReads && result.value.byteLength > this.#budget.limits.maxInputBytes - this.#produced) this.#budget.fail("maxInputBytes");
+          this.#produced += result.value.byteLength;
+          const out: IteratorResult<Uint8Array> = { value: this.#boundedReads ? new Uint8Array(result.value) : result.value, done: false };
+          this.#readSettled = true;
+          this.#readResult = out;
+          return out;
+        },
+        (reason): never => {
+          this.#readSettled = true;
+          this.#readError = { reason };
+          throw reason;
+        },
+      );
     }
     try {
       const result = await interruptible(this.#read, signal);
@@ -694,6 +738,106 @@ class InputCursor {
       if (!signal.aborted) { this.#read = undefined; this.#readFailed = true; this.#closed = true; }
       throw error;
     }
+  }
+
+  takeNextForView(signal: AbortSignal, view: ShellInput): Promise<IteratorResult<Uint8Array>> {
+    if (this.#consumers !== 0 || this.#turn !== resolvedVoid) {
+      return this.consume(signal, async () => {
+        if (view._isViewClosed()) throw shellInputViewClosedError;
+        const result = await this.take(signal);
+        if (view._isViewClosed()) throw shellInputViewClosedError;
+        if (result.done) return result;
+        this.position += result.value.byteLength;
+        return { done: false, value: this.ownsChunks ? result.value : new Uint8Array(result.value) };
+      });
+    }
+    this.#consumers = 1;
+    if (this.#eof === "retryable") this.#ended = false;
+    if (!this.#read) {
+      this.#readSettled = false;
+      this.#readResult = undefined;
+      let rawNext: Promise<IteratorResult<Uint8Array>>;
+      try {
+        rawNext = Promise.resolve(this.#closed ? doneResult : this.#readChunk ? this.#readChunk(undefined) : this.#iterator.next());
+      } catch (err) {
+        rawNext = Promise.reject(err);
+      }
+      this.#read = rawNext.then(
+        (result): IteratorResult<Uint8Array> => {
+          if (result.done) {
+            this.#readSettled = true;
+            this.#readResult = doneResult;
+            return doneResult;
+          }
+          if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
+          if (this.#boundedReads && result.value.byteLength > this.#budget.limits.maxInputBytes - this.#produced) this.#budget.fail("maxInputBytes");
+          this.#produced += result.value.byteLength;
+          const out: IteratorResult<Uint8Array> = { value: this.#boundedReads ? new Uint8Array(result.value) : result.value, done: false };
+          this.#readSettled = true;
+          this.#readResult = out;
+          return out;
+        },
+        (reason): never => {
+          this.#readSettled = true;
+          this.#readError = { reason };
+          throw reason;
+        },
+      );
+    }
+    const readPromise = this.#read;
+    return new Promise<IteratorResult<Uint8Array>>((resolve, reject) => {
+      let settled = false;
+      const finishConsumer = (): void => {
+        this.#consumers = 0;
+        const notify = this.#turnRelease;
+        if (notify) {
+          this.#turnRelease = undefined;
+          this.#turn = resolvedVoid;
+          notify();
+        }
+      };
+      const onCancel = (reason: unknown): void => {
+        if (settled) return;
+        settled = true;
+        waiters.delete(onCancel);
+        view._removeCloseWaiter(onCancel);
+        finishConsumer();
+        reject(reason);
+      };
+      const waiters = addAbortSignalWaiter(signal, onCancel);
+      view._addCloseWaiter(onCancel);
+      readPromise.then(
+        result => {
+          if (settled) return;
+          settled = true;
+          waiters.delete(onCancel);
+          view._removeCloseWaiter(onCancel);
+          if (signal.aborted) { finishConsumer(); reject(signal.reason); return; }
+          if (view._isViewClosed()) { finishConsumer(); reject(shellInputViewClosedError); return; }
+          this.#read = undefined;
+          this.#readResult = undefined;
+          if (result.done) {
+            this.#ended = true;
+            finishConsumer();
+            resolve(doneResult);
+            return;
+          }
+          this.position += result.value.byteLength;
+          const value = this.ownsChunks ? result.value : new Uint8Array(result.value);
+          finishConsumer();
+          resolve({ done: false, value });
+        },
+        error => {
+          if (settled) return;
+          settled = true;
+          waiters.delete(onCancel);
+          view._removeCloseWaiter(onCancel);
+          if (!signal.aborted) { this.#read = undefined; this.#readFailed = true; this.#closed = true; }
+          finishConsumer();
+          reject(error);
+        },
+      );
+    });
   }
 
   canCloseSync(): boolean {
@@ -816,6 +960,9 @@ export class ShellInput implements ByteSource, CommandInput {
   #lifetime: AbortController | undefined;
   #signal: AbortSignal | undefined;
   #viewClosed = false;
+  readonly #signalIncludesBudget: boolean;
+  #closeWaiter: ((reason: unknown) => void) | undefined;
+  #closeWaiters: Set<(reason: unknown) => void> | undefined;
   readonly #cleanupSignal: AbortSignal;
   readonly #reads = new Set<() => Promise<void>>();
   readonly stat?: FileStat;
@@ -828,6 +975,7 @@ export class ShellInput implements ByteSource, CommandInput {
     this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options ?? {}, budget);
     this.descriptor = source instanceof ShellInput ? source.descriptor : options?.descriptor;
     this.#cleanupSignal = signal;
+    this.#signalIncludesBudget = signal === budget.signal || hasRegisteredYieldCheckpoint(signal);
     if (this.#cursor.stat) this.stat = this.#cursor.stat;
     if (this.#cursor.seek) this.seek = (position, callerSignal) => {
       const signal = AbortSignal.any([this.signal, callerSignal]);
@@ -853,6 +1001,20 @@ export class ShellInput implements ByteSource, CommandInput {
     this.budget.signal.throwIfAborted();
     if (this.#cleanupSignal !== this.budget.signal) this.#cleanupSignal.throwIfAborted();
     if (this.#viewClosed) throw shellInputViewClosedError;
+  }
+
+  _isViewClosed(): boolean {
+    return this.#viewClosed;
+  }
+
+  _addCloseWaiter(waiter: (reason: unknown) => void): void {
+    if (!this.#closeWaiter) this.#closeWaiter = waiter;
+    else (this.#closeWaiters ??= new Set()).add(waiter);
+  }
+
+  _removeCloseWaiter(waiter: (reason: unknown) => void): void {
+    if (this.#closeWaiter === waiter) this.#closeWaiter = undefined;
+    else this.#closeWaiters?.delete(waiter);
   }
 
   get bufferedBytes(): number {
@@ -959,6 +1121,9 @@ export class ShellInput implements ByteSource, CommandInput {
     } catch (err) {
       return Promise.reject(err);
     }
+    if (!this.#signal && this.#signalIncludesBudget) {
+      return this.#cursor.takeNextForView(this.#cleanupSignal, this);
+    }
     return this.#cursor.consume(this.signal, async () => {
       const result = await this.#cursor.take(this.signal);
       if (result.done) return result;
@@ -982,6 +1147,7 @@ export class ShellInput implements ByteSource, CommandInput {
     return {
       next: () => this.next(),
       tryNextSync: () => this.tryNextSync(),
+      abortSignal: !this.#signal && this.#signalIncludesBudget ? this.#cleanupSignal : undefined,
       [Symbol.asyncIterator]() { return this; },
     } as AsyncIterableIterator<Uint8Array>;
   }
@@ -1411,6 +1577,15 @@ export class ShellInput implements ByteSource, CommandInput {
     if (!this.#closing) {
       this.#viewClosed = true;
       this.#lifetime?.abort(shellInputViewClosedError);
+      if (this.#closeWaiter) {
+        const waiter = this.#closeWaiter;
+        this.#closeWaiter = undefined;
+        waiter(shellInputViewClosedError);
+      }
+      if (this.#closeWaiters?.size) {
+        for (const reject of this.#closeWaiters) reject(shellInputViewClosedError);
+        this.#closeWaiters.clear();
+      }
       if (this.#reads.size === 0 && !this.#owned) {
         this.#closing = resolvedVoid;
         return resolvedVoid;

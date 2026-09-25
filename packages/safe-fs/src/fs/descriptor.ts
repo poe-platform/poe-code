@@ -270,9 +270,10 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
   catch (error) { signal?.throwIfAborted(); throw error; }
   try {
     signal?.throwIfAborted();
-    const selected = backend.capabilities ? Object.freeze({ ...backend.capabilities }) : admittedCapabilities;
+    const rawBackendCapabilities = backend.capabilities;
+    const selected = rawBackendCapabilities ? Object.freeze({ ...rawBackendCapabilities }) : admittedCapabilities;
     signal?.throwIfAborted();
-    if (backend.capabilities) admitCapabilities(path, admitted, selected);
+    if (rawBackendCapabilities) admitCapabilities(path, admitted, selected);
     const descriptor = new ManagedFileDescriptor(path, admitted, selected, backend);
     signal?.throwIfAborted();
     return descriptor;

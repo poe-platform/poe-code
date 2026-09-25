@@ -6,6 +6,11 @@ import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, Reg
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
 
+const resolvedVoid = Promise.resolve();
+const closedSessionError = new RegexExecutionError("CLOSED", "invocation is closed");
+const sharedEmptyRetirements = new Set<Promise<void>>();
+const idleProviderSlots = new WeakMap<object, Set<() => void>>();
+
 interface Pending {
   readonly descriptor: Descriptor | ExprMatchDescriptor | BreSearchDescriptor;
   readonly rows: readonly Row[];
@@ -33,7 +38,17 @@ export async function withRegexSession(
   context.signal.throwIfAborted();
   let session: RegexSession | undefined;
   let closing: Promise<void> | undefined;
-  const close = () => closing ??= (async () => { await session?.close(); })();
+  const close = (): Promise<void> => {
+    if (!closing) {
+      if (!session || session.canCloseSync()) {
+        session?.closeSync();
+        closing = resolvedVoid;
+      } else {
+        closing = session.close();
+      }
+    }
+    return closing;
+  };
   try { context.registerCleanup?.(close); }
   catch (error) { context.signal.throwIfAborted(); throw error; }
   let outcome: { result: CommandResult } | { error: unknown };
@@ -46,7 +61,14 @@ export async function withRegexSession(
     outcome = { error };
   }
   let cleanupFailure: { error: unknown } | undefined;
-  try { await close(); }
+  try {
+    if (!closing && (!session || session.canCloseSync())) {
+      session?.closeSync();
+      closing = resolvedVoid;
+    } else {
+      await close();
+    }
+  }
   catch (error) { cleanupFailure = { error }; }
   context.signal.throwIfAborted();
   if ("error" in outcome) throw outcome.error;
@@ -232,6 +254,11 @@ export class RegexExecutor {
   readonly options: Required<RegexExecutionOptions>;
   private readonly slots = new Set<Slot>();
   private cachedReadySlot: Slot | undefined;
+  private readonly idleEvictor = (): void => {
+    if (this.sessions === 0 && this.cachedReadySlot && !this.cachedReadySlot.busy && !this.cachedReadySlot.retired) {
+      void this.cachedReadySlot.retire();
+    }
+  };
   private readonly queue: Pending[] = [];
   private queuedBytes = 0;
   private sessions = 0;
@@ -244,15 +271,50 @@ export class RegexExecutor {
   open(signal: AbortSignal): RegexSession {
     signal.throwIfAborted();
     if (this.disposed) throw new RegexExecutionError("CLOSED", "executor is disposed");
+    if (this.sessions === 0 && this.cachedReadySlot !== undefined) {
+      idleProviderSlots.get(this.provider)?.delete(this.idleEvictor);
+    }
     this.sessions++;
     return new RegexSession(this, signal);
   }
+  canCloseSync(): boolean {
+    if (this.sessions > 1) return true;
+    if (this.slots.size === 0) return true;
+    if (
+      this.slots.size === 1 &&
+      this.cachedReadySlot !== undefined &&
+      this.cachedReadySlot.inProcess &&
+      !this.cachedReadySlot.busy &&
+      !this.cachedReadySlot.retired &&
+      this.cachedReadySlot.ready &&
+      this.cachedReadySlot.terminal === undefined
+    ) {
+      return true;
+    }
+    return false;
+  }
+  closeSync(): void {
+    this.sessions--;
+    if (this.sessions === 0 && this.cachedReadySlot !== undefined) {
+      let evictors = idleProviderSlots.get(this.provider);
+      if (!evictors) {
+        evictors = new Set();
+        idleProviderSlots.set(this.provider, evictors);
+      }
+      evictors.add(this.idleEvictor);
+    }
+  }
   async close(): Promise<void> {
+    if (this.canCloseSync()) {
+      this.closeSync();
+      return;
+    }
     this.sessions--;
     if (this.sessions === 0) await awaitRetirements([...this.slots].filter(slot => !slot.busy || slot.retired).map(slot => slot.retire()));
   }
   async dispose(): Promise<void> {
     this.disposed = true;
+    idleProviderSlots.get(this.provider)?.delete(this.idleEvictor);
     const error = new RegexExecutionError("CLOSED", "executor is disposed");
     for (const pending of this.queue.splice(0)) {
       pending.signal.removeEventListener("abort", pending.abort);
@@ -279,6 +341,12 @@ export class RegexExecutor {
       }
     }
     if (this.slots.size < this.options.maxWorkers && inProcessRegexProviders.has(this.provider)) {
+      const evictors = idleProviderSlots.get(this.provider);
+      if (evictors?.size) {
+        const first = evictors.values().next().value as () => void;
+        evictors.delete(first);
+        first();
+      }
       const candidate = new Slot(this);
       this.slots.add(candidate);
       if (!candidate.busy && candidate.ready && candidate.terminal === undefined) {
@@ -468,16 +536,27 @@ export class RegexExecutor {
 
 export class RegexSession {
   private closed: Promise<void> | undefined;
-  private readonly pending = new Set<Promise<Match[][] | ExprMatchResult | BreSearchResult>>();
-  private readonly retirements = new Set<Promise<void>>();
-  private readonly controller = new AbortController();
-  private readonly requestSignal: AbortSignal;
+  private pending: Set<Promise<Match[][] | ExprMatchResult | BreSearchResult>> | undefined;
+  private retirements: Set<Promise<void>> = sharedEmptyRetirements;
+  private controller: AbortController | undefined;
+  private requestSignal: AbortSignal;
   constructor(private readonly executor: RegexExecutor, private readonly signal: AbortSignal) {
-    this.requestSignal = AbortSignal.any([signal, this.controller.signal]);
+    this.requestSignal = signal;
+  }
+  private ensureAsyncState(): AbortSignal {
+    if (!this.controller) {
+      this.controller = new AbortController();
+      if (this.closed) this.controller.abort(this.signal.aborted ? this.signal.reason : closedSessionError);
+      this.requestSignal = AbortSignal.any([this.signal, this.controller.signal]);
+      this.retirements = new Set();
+    }
+    return this.requestSignal;
   }
   private trackPending<T extends Match[][] | ExprMatchResult | BreSearchResult>(result: Promise<T>): Promise<T> {
-    this.pending.add(result);
-    const cleanup = () => this.pending.delete(result);
+    this.ensureAsyncState();
+    const pending = this.pending ??= new Set();
+    pending.add(result);
+    const cleanup = () => pending.delete(result);
     void result.then(cleanup, cleanup);
     return result;
   }
@@ -495,25 +574,40 @@ export class RegexSession {
   matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], this.requestSignal, this.retirements);
-    this.pending.add(result);
-    void result.then(() => this.pending.delete(result), () => this.pending.delete(result));
-    return result;
+    const sig = this.ensureAsyncState();
+    const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
+    return this.trackPending(result);
   }
   searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], this.requestSignal, this.retirements);
-    this.pending.add(result);
-    void result.then(() => this.pending.delete(result), () => this.pending.delete(result));
-    return result;
+    const sig = this.ensureAsyncState();
+    const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
+    return this.trackPending(result);
+  }
+  canCloseSync(): boolean {
+    return !this.pending?.size && this.retirements.size === 0 && this.executor.canCloseSync();
+  }
+  closeSync(): void {
+    if (!this.closed) {
+      this.closed = resolvedVoid;
+      this.controller?.abort(this.signal.aborted ? this.signal.reason : closedSessionError);
+      this.executor.closeSync();
+    }
   }
   close(): Promise<void> {
+    if (this.closed) return this.closed;
+    if (this.canCloseSync()) {
+      this.closeSync();
+      return resolvedVoid;
+    }
     return this.closed ??= Promise.resolve().then(async () => {
-      this.controller.abort(this.signal.aborted ? this.signal.reason : new RegexExecutionError("CLOSED", "invocation is closed"));
-      try { await Promise.allSettled([...this.pending]); }
+      this.controller?.abort(this.signal.aborted ? this.signal.reason : closedSessionError);
+      try { if (this.pending?.size) await Promise.allSettled([...this.pending]); }
       finally {
-        await awaitRetirements([...this.retirements, this.executor.close()]);
+        const rets = this.retirements.size ? [...this.retirements] : [];
+        if (this.retirements === sharedEmptyRetirements) this.retirements.clear();
+        await awaitRetirements([...rets, this.executor.close()]);
       }
     });
   }

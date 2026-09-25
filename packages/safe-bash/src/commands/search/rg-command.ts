@@ -1,7 +1,7 @@
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { hasYieldCheckpoint } from "../../contracts/yield.js";
-import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
+import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
 import { Matcher, type Match } from "./matcher.js";
 import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";

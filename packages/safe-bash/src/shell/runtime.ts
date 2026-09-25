@@ -1069,6 +1069,7 @@ export interface State {
   dotglob?: boolean;
   extglob?: boolean;
   globstar?: boolean;
+  extglob?: boolean;
   nullglob?: boolean;
   nocaseglob?: boolean;
   nocasematch?: boolean;

@@ -352,7 +352,9 @@ it("admits Shell byte argv through an isolated packed private command graph", as
     outdir: "/repo/packages/safe-bash/dist",
     external: [...portable.external, "safe-bash-contracts", "@poe-platform/safe-fs"],
   });
-  for (const target of ["index.js", "core.browser.js"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${target}`, shell.outputFiles[0]!.contents);
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", shell.outputFiles[0]!.contents);
+  // Both public routes share this fixture's Shell; package its source graph once.
+  volume.writeFileSync("/repo/packages/safe-bash/dist/core.browser.js", 'export * from "./index.js";');
   const fs = await build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")], bundle: true,
     write: false, platform: "browser", format: "esm", target: "es2022" });
   const fsManifest = JSON.parse(volume.readFileSync("/repo/packages/safe-fs/package.json", "utf8").toString());

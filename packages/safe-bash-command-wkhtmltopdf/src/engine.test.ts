@@ -39,6 +39,21 @@ test("admission bounds multiplied output and work before retaining page records"
   assert.throws(() => planPageSequence([{ physicalPages: 2, pagesCount: true }], { ...options, limits: { ...options.limits, maxWork: 1 } }), { code: "LIMIT_EXCEEDED" });
 });
 
+test("unlimited page quotas preserve finite counts and checked arithmetic", () => {
+  const unlimited = { ...options, limits: { maxObjects: Infinity, maxPhysicalPages: Infinity, maxWork: Infinity } };
+  const objects = [{ physicalPages: 2, pagesCount: true }];
+  assert.deepEqual(planPageSequence(objects, unlimited), planPageSequence(objects, options));
+  for (const quota of ["maxObjects", "maxPhysicalPages", "maxWork"] as const) {
+    assert.throws(() => planPageSequence([objects[0]!, objects[0]!], {
+      ...unlimited, limits: { ...unlimited.limits, [quota]: 1 },
+    }), { code: "LIMIT_EXCEEDED" });
+  }
+  assert.throws(() => planPageSequence(objects, { ...unlimited, copies: Infinity }), { code: "INVALID_VALUE" });
+  assert.throws(() => planPageSequence([{ physicalPages: Number.MAX_SAFE_INTEGER, pagesCount: false }], {
+    ...unlimited, copies: 2,
+  }), { code: "LIMIT_EXCEEDED" });
+});
+
 test("reject unchecked values, including limits, rather than coercing them", () => {
   for (const physicalPages of [-1, 0.5, Infinity, NaN]) {
     assert.throws(() => planPageSequence([{ physicalPages, pagesCount: true }], options), { code: "INVALID_VALUE" });

@@ -83,10 +83,13 @@ export function planPageSequence(objects: readonly LaidOutObject[], options: Pag
   const checkCancellation = () => { if (options.signal?.aborted) throw options.signal.reason; };
   checkCancellation();
   const { maxObjects, maxPhysicalPages, maxWork } = options.limits;
-  for (const value of [maxObjects, maxPhysicalPages, maxWork, options.copies]) {
-    if (!Number.isSafeInteger(value) || value < 1) {
-      throw new WkhtmltopdfError("INVALID_VALUE", "Page sequence limits and copies must be positive safe integers");
+  for (const value of [maxObjects, maxPhysicalPages, maxWork]) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {
+      throw new WkhtmltopdfError("INVALID_VALUE", "Page sequence limits must be positive safe integers or Infinity");
     }
+  }
+  if (!Number.isSafeInteger(options.copies) || options.copies < 1) {
+    throw new WkhtmltopdfError("INVALID_VALUE", "Page copies must be positive safe integers");
   }
   if (typeof options.collate !== "boolean" || !Number.isInteger(options.pageOffset) ||
       options.pageOffset < -2147483648 || options.pageOffset > 2147483647) {
@@ -98,7 +101,8 @@ export function planPageSequence(objects: readonly LaidOutObject[], options: Pag
   let outlineTotal = 0;
   let logicalTotal = 0;
   // Division prevents multiplication overflow during copies admission.
-  const sourcePageLimit = Math.floor(Math.min(maxPhysicalPages, maxWork - objects.length) / options.copies);
+  const workLimit = Math.min(maxWork, Number.MAX_SAFE_INTEGER);
+  const sourcePageLimit = Math.floor(Math.min(maxPhysicalPages, workLimit - objects.length) / options.copies);
   for (const object of objects) {
     checkCancellation();
     if (!Number.isSafeInteger(object.physicalPages) || object.physicalPages < 0 || typeof object.pagesCount !== "boolean") {
@@ -115,7 +119,7 @@ export function planPageSequence(objects: readonly LaidOutObject[], options: Pag
   }
   const passes = options.collate ? options.copies : 1;
   if (outlineTotal > 0) {
-    const remainingWork = maxWork - objects.length - outlineTotal * options.copies;
+    const remainingWork = workLimit - objects.length - outlineTotal * options.copies;
     if (objects.length > Math.floor(remainingWork / passes)) {
       throw new WkhtmltopdfError("LIMIT_EXCEEDED", "Page sequence repeated traversal work limit exceeded");
     }

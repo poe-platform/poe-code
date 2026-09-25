@@ -89,7 +89,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
       )
     );
     const wkRes = await shell.exec("wkhtmltopdf /web.html /web.pdf");
-    assert.equal(wkRes.exitCode, 0);
+    assert.equal(wkRes.exitCode, 0, wkRes.stderr);
 
     // 6. Merge /input.pdf and /web.pdf via qpdf, rotate, and encrypt
     const qpdfMergeRes = await shell.exec("qpdf --empty --pages /input.pdf /web.pdf -- /merged.pdf");

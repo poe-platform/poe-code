@@ -57,3 +57,36 @@ it("a rejected backend upload cannot strand a backpressured publication pump", {
     expect(await backend.store.acquire('/failed', { access: 'read' })).toBeUndefined();
   } finally { await backend.dispose(); }
 });
+
+it("uses a fresh R2 key for every acknowledged page revision and truncation", async () => {
+  const backend = fixture();
+  const uploads = vi.spyOn(backend.bucket, "put");
+  const stage = await backend.store.createStaging('/pages', { chunkBytes: 4, maxFileBytes: 16 });
+  try {
+    await stage.writePage(0, new Uint8Array([1, 2, 3, 4]));
+    await stage.writePage(0, new Uint8Array([5, 6, 7, 8]));
+    expect(await stage.readPage(0)).toEqual(new Uint8Array([5, 6, 7, 8]));
+    await stage.truncate(2);
+    expect(await stage.readPage(0)).toEqual(new Uint8Array([5, 6, 0, 0]));
+    const keys = uploads.mock.calls.map(([key]) => key);
+    expect(keys).toHaveLength(3);
+    expect(new Set(keys).size).toBe(keys.length);
+  } finally { await stage.close(); await backend.dispose(); }
+});
+
+it("keeps the acknowledged revision after a cancelled upload and drains orphaned revisions", async () => {
+  const backend = fixture();
+  const stage = await backend.store.createStaging('/cancelled', { chunkBytes: 4, maxFileBytes: 16 });
+  const controller = new AbortController();
+  const reason = new Error('cancelled after upload');
+  try {
+    await stage.writePage(0, new Uint8Array([1, 2, 3, 4]));
+    const put = backend.bucket.put.bind(backend.bucket);
+    vi.spyOn(backend.bucket, "put").mockImplementationOnce(async (...args) => {
+      await put(...args);
+      controller.abort(reason);
+    });
+    await expect(stage.writePage(0, new Uint8Array([5, 6, 7, 8]), { signal: controller.signal })).rejects.toBe(reason);
+    expect(await stage.readPage(0)).toEqual(new Uint8Array([1, 2, 3, 4]));
+  } finally { await stage.close(); await backend.dispose(); }
+});

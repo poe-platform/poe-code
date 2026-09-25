@@ -98,11 +98,15 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
     const stagePrefix = `${prefix}stage-${++events.created}/`;
     const initialRevision = files.get(path)?.revision;
     let closing;
+    let revision = 0;
+    const pages = new Map();
     return {
       async readPage(index, forwarded) {
         await pause(forwarded);
         check(!closing, 'stage closed');
-        const object = await bucket.get(`${stagePrefix}${index}`);
+        const key = pages.get(index);
+        if (!key) return undefined;
+        const object = await bucket.get(key);
         if (!object) return undefined;
         const bytes = new Uint8Array(await object.arrayBuffer());
         check(bytes.length === chunkBytes, 'wrong stored page length');
@@ -117,23 +121,32 @@ export function createR2StagingFixture(bucket, { chunkBytes, delayed, spill }) {
         try {
           await pause(forwarded);
           check(files.get(path)?.revision === initialRevision, 'premature namespace publication');
-          await bucket.put(`${stagePrefix}${index}`, bytes);
+          const key = `${stagePrefix}${index}-${++revision}`;
+          await bucket.put(key, bytes);
           events.stageWriteBytes += bytes.length;
           forwarded?.signal?.throwIfAborted();
+          const previous = pages.get(index);
+          pages.set(index, key);
+          if (previous) await bucket.delete(previous);
         } finally { events.activeWrites--; }
       },
       async truncate(size, forwarded) {
         await pause(forwarded);
         check(!closing, 'stage closed');
-        for await (const key of keys(stagePrefix)) {
+        for (const [index, key] of pages) {
           forwarded?.signal?.throwIfAborted();
-          const index = Number(key.slice(stagePrefix.length));
-          if (index * chunkBytes >= size) await bucket.delete(key);
-          else if ((index + 1) * chunkBytes > size) {
+          if (index * chunkBytes >= size) {
+            await bucket.delete(key);
+            pages.delete(index);
+          } else if ((index + 1) * chunkBytes > size) {
             const object = await bucket.get(key);
             const bytes = new Uint8Array(await object.arrayBuffer());
             bytes.fill(0, size % chunkBytes);
-            await bucket.put(key, bytes);
+            const replacement = `${stagePrefix}${index}-${++revision}`;
+            await bucket.put(replacement, bytes);
+            forwarded?.signal?.throwIfAborted();
+            pages.set(index, replacement);
+            await bucket.delete(key);
           }
         }
       },

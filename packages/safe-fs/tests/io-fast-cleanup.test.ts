@@ -8,6 +8,29 @@ function gate() {
   return { promise, release };
 }
 
+for (const reason of [false, 0, "", null]) {
+  for (const done of [false, true]) test(`synchronous reads refuse producer cancellation ${String(reason)} before done=${done}`, async () => {
+    const controller = new AbortController();
+    const closed = gate();
+    let pulls = 0;
+    let closes = 0;
+    const reader = readBytes({ [Symbol.asyncIterator]: () => ({
+      tryNextSync(): IteratorResult<Uint8Array> {
+        pulls++;
+        controller.abort(reason);
+        return done ? { done: true, value: undefined } : { done: false, value: Uint8Array.of(1) };
+      },
+      next: async () => assert.fail("cancelled synchronous source was read again"),
+      async return() { closes++; closed.release(); return { done: true, value: undefined }; },
+    }) }, controller.signal) as AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
+    assert.equal(reader.tryNextSync(), undefined);
+    await assert.rejects(reader.next(), error => error === reason);
+    await closed.promise;
+    assert.equal(pulls, 1);
+    assert.equal(closes, 1);
+  });
+}
+
 for (const failedRead of [false, true]) test(`closed byte readers do not replay a cleanup rejection after failedRead=${failedRead}`, async () => {
   const primary = new Error("primary");
   const cleanup = new Error("cleanup");

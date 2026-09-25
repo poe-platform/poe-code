@@ -202,6 +202,7 @@ export function readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenera
       if (typeof it.tryNextSync !== "function") return undefined;
       signal?.throwIfAborted();
       const syncResult = it.tryNextSync();
+      signal?.throwIfAborted();
       if (syncResult === undefined) return undefined;
       if (syncResult.done) {
         finished = true;

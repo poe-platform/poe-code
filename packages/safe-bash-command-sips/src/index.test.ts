@@ -454,4 +454,38 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(idRes.exitCode).toBe(0);
     expect(idRes.stdout).toBe(`${png.byteLength}|${png.byteLength}B|Zip`);
   });
+
+  it("supports sips --oneLine, --formats, -x/--extractProfile, --embedProfileIfNone, -s metadata mutation, and identify %P/%W/%H/%U/%[fx:w*h]", async () => {
+    const png = await sharp({
+      create: { width: 12, height: 8, channels: 3, background: "green" }
+    })
+      .png()
+      .toBuffer();
+    const files = new Map<string, Uint8Array>([["/in.png", png]]);
+
+    const oneLineRes = await runSipsCli(["--oneLine", "-g", "pixelWidth", "-g", "format", "/in.png"], files);
+    expect(oneLineRes.exitCode).toBe(0);
+    expect(oneLineRes.stdout).toBe("/in.png|pixelWidth: 12|format: png|\n");
+
+    const formatsRes = await runSipsCli(["--formats"], files);
+    expect(formatsRes.exitCode).toBe(0);
+    expect(formatsRes.stdout).toContain("Supported Formats:");
+    expect(formatsRes.stdout).toContain("public.png");
+    expect(formatsRes.stdout).toContain("public.heic");
+
+    const extractRes = await runSipsCli(["-x", "/out.icc", "/in.png"], files);
+    expect(extractRes.exitCode).toBe(0);
+
+    const embedIfNoneRes = await runSipsCli(["--embedProfileIfNone", "sRGB", "/in.png", "-o", "/out_embed.png"], files);
+    expect(embedIfNoneRes.exitCode).toBe(0);
+    expect(files.has("/out_embed.png")).toBe(true);
+
+    const setMetaRes = await runSipsCli(["-s", "description", "Sample image", "/in.png", "-o", "/out_desc.png"], files);
+    expect(setMetaRes.exitCode).toBe(0);
+    expect(files.has("/out_desc.png")).toBe(true);
+
+    const idRes = await runIdentifyCli(["-format", "%P|%W|%H|%U|%[fx:w*h]", "/in.png"], files);
+    expect(idRes.exitCode).toBe(0);
+    expect(idRes.stdout).toBe("12x8|12|8|PixelsPerInch|96");
+  });
 });

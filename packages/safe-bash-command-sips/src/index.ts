@@ -251,7 +251,26 @@ export async function runSipsCli(
     if (arg === "-v" || arg === "--version") {
       return { exitCode: 0, stdout: "sips 10.4.4\n", stderr: "" };
     }
-    if (arg === "-1") {
+    if (arg === "--formats") {
+      return {
+        exitCode: 0,
+        stdout:
+          "Supported Formats:\n" +
+          "-------------------------------------------\n" +
+          "com.adobe.pdf                pdf   Writable\n" +
+          "com.compuserve.gif           gif   Writable\n" +
+          "com.microsoft.bmp            bmp   Writable\n" +
+          "org.webmproject.webp         webp  Writable\n" +
+          "public.avif                  avif  Writable\n" +
+          "public.heic                  heic  Writable\n" +
+          "public.heif                  heif  Writable\n" +
+          "public.jpeg                  jpeg  Writable\n" +
+          "public.png                   png   Writable\n" +
+          "public.tiff                  tiff  Writable\n",
+        stderr: ""
+      };
+    }
+    if (arg === "-1" || arg === "--oneLine") {
       singleLine = true;
     } else if (arg === "-g" || arg === "--getProperty") {
       const key = argv[++i];
@@ -281,6 +300,7 @@ export async function runSipsCli(
         const num = Number(val);
         if (Number.isFinite(num) && num > 0) targetDpi = Math.round(num);
       }
+      propertyMutated = true;
     } else if (arg === "-Z" || arg === "--resampleHeightWidthMax") {
       const maxDim = Number(argv[++i]);
       if (!Number.isFinite(maxDim) || maxDim <= 0) {
@@ -358,23 +378,39 @@ export async function runSipsCli(
       arg === "--deleteColorManagementProperties" ||
       arg === "--optimizeColorForSharing" ||
       arg === "-i" ||
-      arg === "--addIcon"
+      arg === "--addIcon" ||
+      arg === "--repair" ||
+      arg === "--debug"
     ) {
       propertyMutated = true;
+    } else if (arg === "-x" || arg === "--extractProfile") {
+      const profile = argv[++i];
+      if (!profile) {
+        return { exitCode: 1, stdout: "", stderr: `sips: missing argument for ${arg}\n` };
+      }
+      verifyMode = true;
     } else if (
       arg === "-m" ||
       arg === "--matchTo" ||
       arg === "-e" ||
       arg === "--embedProfile" ||
       arg === "-E" ||
-      arg === "--extractProfile"
+      arg === "--embedProfileIfNone" ||
+      arg === "--deleteTag"
     ) {
       const profile = argv[++i];
       if (!profile) {
         return { exitCode: 1, stdout: "", stderr: `sips: missing argument for ${arg}\n` };
       }
       propertyMutated = true;
-    } else if (arg === "-M" || arg === "--matchToWithIntent") {
+    } else if (
+      arg === "-M" ||
+      arg === "--matchToWithIntent" ||
+      arg === "-X" ||
+      arg === "--extractTag" ||
+      arg === "--copyTag" ||
+      arg === "--loadTag"
+    ) {
       const profile = argv[++i];
       const intent = argv[++i];
       if (!profile || !intent) {
@@ -767,6 +803,21 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
               out += String(meta.hasAlpha);
               break;
             default:
+              if (expr.startsWith("fx:")) {
+                const fxExpr = expr.slice(3).trim();
+                if (fxExpr === "w*h" || fxExpr === "h*w") {
+                  out += String(meta.width * meta.height);
+                } else if (fxExpr === "w/h") {
+                  out += String(meta.width / meta.height);
+                } else if (fxExpr === "w+h" || fxExpr === "h+w") {
+                  out += String(meta.width + meta.height);
+                } else if (fxExpr === "w-h") {
+                  out += String(meta.width - meta.height);
+                } else {
+                  out += "";
+                }
+                break;
+              }
               out += "";
               break;
           }
@@ -845,7 +896,21 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
           out += `${meta.width}x${meta.height}+0+0`;
           break;
         case "G":
+        case "P":
           out += `${meta.width}x${meta.height}`;
+          break;
+        case "W":
+          out += String(meta.width);
+          break;
+        case "H":
+          out += String(meta.height);
+          break;
+        case "X":
+        case "Y":
+          out += "+0";
+          break;
+        case "U":
+          out += "PixelsPerInch";
           break;
         case "A":
           out += meta.hasAlpha ? "Blend" : "Undefined";

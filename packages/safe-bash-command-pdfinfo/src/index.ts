@@ -919,7 +919,7 @@ export function inspectPdfBytes(
   const firstPage = Math.max(1, args.firstPage);
   const lastPage = args.lastPageExplicit
     ? Math.min(pageCount, args.lastPage <= 0 ? pageCount : args.lastPage)
-    : firstPage;
+    : 1;
 
   if (firstPage > pageCount || (args.lastPageExplicit && firstPage > lastPage)) {
     return {

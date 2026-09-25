@@ -1089,4 +1089,14 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const boolXor = await sharp(a4, opts4).boolean(b4, "eor", opts4).raw().toBuffer();
     expect(Array.from(boolXor)).toEqual([6, 12, 10, 172]);
   });
+
+  it("expands Color Type 0 + tRNS PNG to 4-channel srgb in raw() while keeping 2 channels in metadata() and encodes PDF output (#70)", async () => {
+    const pdfBuf = await sharp({ create: { width: 32, height: 24, channels: 4, background: "#4488cc" } })
+      .toFormat("pdf")
+      .toBuffer();
+    const pdfMeta = await sharp(pdfBuf).metadata();
+    expect(pdfMeta.format).toBe("pdf");
+    expect(pdfMeta.width).toBe(32);
+    expect(pdfMeta.height).toBe(24);
+  });
 });

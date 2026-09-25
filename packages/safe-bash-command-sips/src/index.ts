@@ -136,6 +136,7 @@ function normalizeTargetFormat(fmt: string): ImageFormat | undefined {
   if (lower === "pbm") return "pbm";
   if (lower === "bmp") return "bmp";
   if (lower === "tiff" || lower === "tif") return "tiff";
+  if (lower === "pdf" || lower === "com.adobe.pdf") return "pdf";
   return undefined;
 }
 

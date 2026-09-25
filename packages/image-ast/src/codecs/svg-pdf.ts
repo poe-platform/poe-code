@@ -1,6 +1,6 @@
 import { PdfDocument, renderPdfPageToPng } from "@poe-code/pdf-ast";
 import { parseColor, type ImageMetadata, type RgbaImage } from "../ast.js";
-import { decodePngImage } from "./png.js";
+import { decodePngImage, encodePngImage } from "./png.js";
 
 export function isPdfBytes(bytes: Uint8Array): boolean {
   if (bytes.length < 5) return false;
@@ -70,6 +70,20 @@ export function decodePdfImage(
     density,
     pages: doc.pageCount
   };
+}
+
+export function encodePdfImage(img: RgbaImage): Uint8Array {
+  const doc = PdfDocument.create();
+  const pngBytes = encodePngImage(img);
+  const embedded = doc.embedPng(pngBytes);
+  const page = doc.addPage([img.width, img.height]);
+  page.drawImage(embedded, {
+    x: 0,
+    y: 0,
+    width: img.width,
+    height: img.height
+  });
+  return doc.save();
 }
 
 function parseSvgNumber(val: string | undefined, fallback: number): number {

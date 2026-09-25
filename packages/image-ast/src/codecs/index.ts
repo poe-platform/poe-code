@@ -35,6 +35,7 @@ import {
 import {
   decodePdfImage,
   decodeSvgImage,
+  encodePdfImage,
   isPdfBytes,
   isSvgBytes,
   readPdfMetadata,
@@ -325,7 +326,7 @@ export function encodeImage(
   options: OutputEncodeOptions
 ): { readonly data: Uint8Array; readonly format: ImageFormat; readonly channels: number } {
   const fmt: ImageFormat =
-    options.format === "pdf" || options.format === "svg"
+    options.format === "svg"
       ? "png"
       : (options.format ?? (img.format === "pdf" || img.format === "svg" ? "png" : img.format));
 
@@ -407,6 +408,10 @@ export function encodeImage(
         ...(orientation !== undefined ? { orientation } : {})
       });
       return { data, format: "tiff", channels: 4 };
+    }
+    case "pdf": {
+      const data = encodePdfImage(img);
+      return { data, format: "pdf", channels: img.hasAlpha ? 4 : 3 };
     }
     case "raw": {
       if (img.channels === 4) {

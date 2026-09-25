@@ -262,4 +262,19 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(meta2.width).toBe(30);
     expect(meta2.height).toBe(40);
   });
+
+  it("converts images to PDF via sips -s format pdf --out matching /usr/bin/sips (#70)", async () => {
+    const png = await makeSamplePng(64, 48);
+    const files = new Map<string, Uint8Array>([["/work/in.png", png]]);
+    const res = await runSipsCli(
+      ["-Z", "32", "-s", "format", "pdf", "/work/in.png", "--out", "/work/out.pdf"],
+      files
+    );
+    expect(res.exitCode).toBe(0);
+    expect(files.has("/work/out.pdf")).toBe(true);
+    const meta = await sharp(files.get("/work/out.pdf")!).metadata();
+    expect(meta.format).toBe("pdf");
+    expect(meta.width).toBe(32);
+    expect(meta.height).toBe(24);
+  });
 });

@@ -69,7 +69,8 @@ for (const [name, script] of portableByteScripts) {
       const observed: unknown[] = [];
       try {
         try {
-          const result = await shell.exec(script, { onInternalError(error) { observed.push(error); } });
+          // A unique source exercises decoding even when earlier tests cached a parsed quote.
+          const result = await shell.exec(`${script}\n# ${name} decoder failure: ${failure.message}`, { onInternalError(error) { observed.push(error); } });
           assert.notEqual(result.exitCode, 0);
           assert.equal(result.stdoutBytes.length, 0);
         } catch (error) { observed.push(error); }
@@ -87,7 +88,7 @@ for (const [name, script] of portableByteScripts) {
     });
     const { shell } = fixture();
     try {
-      await assert.rejects(shell.exec(script, { signal: controller.signal }), error => error === reason);
+      await assert.rejects(shell.exec(`${script}\n# ${name} decoder cancellation: ${JSON.stringify(reason)}`, { signal: controller.signal }), error => error === reason);
     } finally { await shell.dispose(); }
   });
 }

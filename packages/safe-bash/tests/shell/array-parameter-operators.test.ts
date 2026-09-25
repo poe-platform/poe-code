@@ -19,6 +19,9 @@ for (const [source, expected] of [
   ['a=(foo.txt bar.txt); IFS=:; args "${a[*]%.txt}" "${a[@]%.txt}"', ['foo:bar', 'foo', 'bar']],
   ['a=(); args "${a[@]%.txt}" "${a[*]%.txt}"', ['']],
   ['a=("" yes); b=(); args "${a[@]:-fallback}" "${a[@]:+alt}" "${b[@]:-fallback}" "${b[@]:+alt}"', ['', 'yes', 'alt', 'fallback', '']],
+  ['a=("" yes); args "${a[0]?missing}" "${a[0]+set}" "${a[1]-fallback}" "${a[2]:+alt}"', ['', 'set', 'yes', '']],
+  ['declare -A m; m[k]=dir/foo.txt; args "${m[k]##*/}" "${m[k]%.txt}" "${m[k]/foo/bar}" "${m[k]?missing}"', ['foo.txt', 'dir/foo', 'dir/bar.txt', 'dir/foo.txt']],
+  ['a=(aaab.txt ab.txt); args "${a[@]#a}" "${a[@]##a*}" "${a[@]%.txt}" "${a[@]%%b*}"', ['aab.txt', 'b.txt', '', '', 'aaab', 'ab', 'aaa', 'a']],
 ] as const) test(`array parameter operators: ${source}`, async () => {
   const { shell } = setup();
   try {
@@ -30,10 +33,16 @@ for (const [source, expected] of [
   } finally { await shell.dispose(); }
 });
 
-test('array element error operator stops execution', async () => {
+for (const source of [
+  'a=(); args "${a[2]:?missing}"; args later',
+  'a=(); args "${a[2]?missing}"; args later',
+  'a=(""); args "${a[0]:?missing}"; args later',
+  'declare -A m; args "${m[k]:?missing}"; args later',
+  'declare -A m; args "${m[k]?missing}"; args later',
+]) test(`array element error operator stops execution: ${source}`, async () => {
   const { shell } = setup();
   try {
-    const result = await shell.exec('a=(); args "${a[2]:?missing}"; args later');
+    const result = await shell.exec(source);
     assert.notEqual(result.exitCode, 0);
     assert.match(result.stderr, /missing/);
     assert.equal(result.stdout, '');

@@ -1,4 +1,4 @@
-import {convert, createJsonFilterCapability, resolveConversionArgs, inspectCommand, PandocError, defaultLimits, type ConversionContext} from "@poe-code/pandoc";
+import {convert, createCiteprocFilterCapability, createJsonFilterCapability, createLuaFilterCapability, resolveConversionArgs, inspectCommand, PandocError, defaultLimits, type CiteprocFilterOptions, type ConversionContext, type FilterCapability} from "@poe-code/pandoc";
 import {createOutputOperation, getCommandArguments, readBytes, dirname, FsError, type CommandDefinition, type CommandContext, type OutputOperation, type FileStat, type VirtualShellPlugin} from "../../contracts/index.js";
 import {writeFileOutput} from "../../contracts/filesystem-output.js";
 import {compareObservedEntries, compareCopyIdentity} from "../copy-identity.js";
@@ -9,6 +9,7 @@ export interface PandocCommandsOptions {
   readonly filters?: ConversionContext["filters"];
   /** Explicit registered interpreter for local JSON filters, e.g. python3 or node. */
   readonly jsonFilterCommand?: string;
+  readonly citeproc?: CiteprocFilterOptions;
   readonly replace?: boolean;
 }
 const statuses: Readonly<Record<string, number>> = {
@@ -31,8 +32,21 @@ async function verifyOutputIdentity(context: CommandContext, owner: OutputOperat
   }
 }
 
+function parseShebangCommand(bytes: Uint8Array): string | undefined {
+  const line = new TextDecoder("utf-8").decode(bytes).split(/\r?\n/, 1)[0] ?? "";
+  if (!line.startsWith("#!")) return undefined;
+  const tokens = line.slice(2).trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return undefined;
+  const first = tokens[0]!.split("/").pop()!;
+  if (first === "env") {
+    const second = tokens.find((token, idx) => idx > 0 && !token.startsWith("-") && !token.includes("="));
+    return second?.split("/").pop();
+  }
+  return first || undefined;
+}
+
 /** Explicit opt-in: SDK owns all parsing, validation and document conversion. */
-export function createPandocCommand(options: PandocCommandsOptions = {}): CommandDefinition {
+export function createPandocCommand(options: PandocCommandsOptions = {}, hasCommand?: (name: string) => boolean): CommandDefinition {
   if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("pandoc replace must be boolean");
   const interpreter = options.jsonFilterCommand;
   if (interpreter !== undefined && (typeof interpreter !== "string" || !interpreter || [...interpreter].some(character => character.trim() === "" || character === "/" || character === "\0")))
@@ -40,15 +54,16 @@ export function createPandocCommand(options: PandocCommandsOptions = {}): Comman
   if (interpreter !== undefined && options.filters !== undefined) throw new TypeError("Supply either filters or jsonFilterCommand");
   const limits = {...options.limits};
   const configuredFilters = options.filters;
+  const citeprocCapability = createCiteprocFilterCapability(options.citeproc);
   return {name: "pandoc", description: "Convert documents with the original bounded TypeScript SDK", async execute(context) {
     context.signal.throwIfAborted();
     // Enroll the root scope before any invocation-owned I/O. stdout gets its own
     // child scope, so consumer closure cannot cancel a file destination.
     const invocation = createOutputOperation(context, {write: async () => {}});
-    const filters = interpreter === undefined ? configuredFilters : createJsonFilterCapability({async run(filter) {
+    const makeJsonCapability = (commandName: string): FilterCapability => createJsonFilterCapability({async run(filter) {
       if (!context.invoke) throw new PandocError("E_CAPABILITY", "convert", "The command host cannot invoke a filter interpreter");
       // Dispatch arguments directly; filter paths never become shell source or interpreter options.
-      const result = await context.invoke(interpreter, ["--", pathOf(context, filter.path), ...filter.args], {
+      const result = await context.invoke(commandName, ["--", pathOf(context, filter.path), ...filter.args], {
         stdin: (async function* () {yield filter.stdin;})(), stdinIsDefault: false, stdout: filter.stdout,
         stderr: context.stderr, signal: filter.signal ?? invocation.signal
       });
@@ -83,6 +98,39 @@ export function createPandocCommand(options: PandocCommandsOptions = {}): Comman
         // Parsing checks authority without acquiring or opening the destination.
         writeFile: async () => {}
       };
+      const luaCapability = createLuaFilterCapability({readFile: (path, signal) => files.readFile(path, signal ?? readSignal)});
+      const resolveJsonInterpreter = async (filterPath: string): Promise<string | undefined> => {
+        if (!context.invoke || !hasCommand) return undefined;
+        const lower = filterPath.toLowerCase();
+        const extCandidates = lower.endsWith(".py") ? ["python3", "python"]
+          : lower.endsWith(".js") || lower.endsWith(".cjs") || lower.endsWith(".mjs") ? ["node"]
+          : lower.endsWith(".sh") ? ["sh", "bash"] : [];
+        const matchedExt = extCandidates.find(candidate => hasCommand(candidate));
+        if (matchedExt) return matchedExt;
+        if (!["python3", "python", "node", "sh", "bash"].some(candidate => hasCommand(candidate))) return undefined;
+        try {
+          const head = await context.fs.readFile(pathOf(context, filterPath), {signal: readSignal, maxBytes: 256});
+          const shebangCmd = parseShebangCommand(head);
+          if (shebangCmd && hasCommand(shebangCmd)) return shebangCmd;
+        } catch {
+          return undefined;
+        }
+        return undefined;
+      };
+      const defaultFilters: FilterCapability = {
+        async supports(request) {
+          if (request.kind === "lua" || request.kind === "citeproc") return true;
+          return (await resolveJsonInterpreter(request.path)) !== undefined;
+        },
+        async apply(document, request, filterContext) {
+          if (request.kind === "lua") return luaCapability.apply(document, request, filterContext);
+          if (request.kind === "citeproc") return citeprocCapability.apply(document, request, filterContext);
+          const resolved = await resolveJsonInterpreter(request.path);
+          if (!resolved) throw new PandocError("E_CAPABILITY", "convert", "Filter capability does not support json processing");
+          return makeJsonCapability(resolved).apply(document, request, filterContext);
+        }
+      };
+      const filters = interpreter !== undefined ? makeJsonCapability(interpreter) : (configuredFilters ?? defaultFilters);
       const parsed = await resolveConversionArgs(carrier.args, files, invocation.signal, {limits: {...limits, inputBytes: maxBytes}});
       const protectedInputs = [...(parsed.operands ?? []), ...(parsed.options.metadataFiles ?? []), ...(parsed.options.pdfFonts ?? []), ...(parsed.options.template ? [parsed.options.template] : []), ...(parsed.options.includeInHeader ?? []), ...(parsed.options.includeBeforeBody ?? []), ...(parsed.options.includeAfterBody ?? [])];
       const protectedPaths = [...parsed.defaultsPaths.map(path => pathOf(context, path)), ...protectedInputs.filter(input => input.source && !("chunks" in input && input.chunks === files.stdin)).map(input => pathOf(context, input.source!))];
@@ -156,8 +204,10 @@ export function createPandocCommands(options: PandocCommandsOptions = {}): reado
   return [createPandocCommand(options)];
 }
 export function pandocCommands(options: PandocCommandsOptions = {}): VirtualShellPlugin {
-  const commands = createPandocCommands(options), replace = options.replace ?? false;
+  let checkCommand: ((name: string) => boolean) | undefined;
+  const commands = [createPandocCommand(options, name => checkCommand?.(name) ?? false)], replace = options.replace ?? false;
   return {name: "pandoc-commands", setup(host) {
+    checkCommand = name => host.commands.has(name);
     if (!replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
     for (const command of commands) host.commands.register(command, {replace});
   }};

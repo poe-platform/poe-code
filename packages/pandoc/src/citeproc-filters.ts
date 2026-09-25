@@ -1,22 +1,55 @@
 import CSL from "citeproc";
 import {PandocError} from "./errors.js";
 import {htmlReader} from "./html.js";
-import type {Block, Citation, Inline} from "./ast-types.js";
+import type {Block, Citation, Inline, MetaValue} from "./ast-types.js";
 import type {FilterCapability, MetadataObject} from "./types.js";
+
+const defaultStyle = '<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0"><info><title>Chicago Manual of Style (author-date)</title><id>http://www.zotero.org/styles/chicago-author-date</id><updated>2026-01-01T00:00:00Z</updated></info><citation><layout prefix="(" suffix=")" delimiter="; "><group delimiter=", "><names variable="author"><name form="short" and="text"/></names><date variable="issued"><date-part name="year"/></date></group></layout></citation><bibliography><layout suffix="."><group delimiter=". "><names variable="author"><name name-as-sort-order="all" sort-separator=", " initialize-with=". "/></names><date variable="issued"><date-part name="year"/></date><text variable="title" font-style="italic"/></group></layout></bibliography></style>';
+const defaultLocale = '<locale xmlns="http://purl.org/net/xbiblio/csl" version="1.0" xml:lang="en-US"><terms><term name="and">and</term><term name="et-al">et al.</term></terms></locale>';
 
 /** Trusted CSL inputs only: the synchronous processor is not an isolated or
  * instruction-metered runtime. No locale, style or bibliography is fetched. */
 export interface CiteprocFilterOptions {
-  readonly style: string;
-  readonly locale: string;
+  readonly style?: string;
+  readonly locale?: string;
   readonly language?: string;
-  readonly references: readonly MetadataObject[];
+  readonly references?: readonly MetadataObject[];
 }
 
-/** Run citeproc-js with explicitly supplied CSL style, locale and references. */
-export function createCiteprocFilterCapability(options: CiteprocFilterOptions): FilterCapability {
-  if (!options || typeof options.style !== "string" || typeof options.locale !== "string" || !Array.isArray(options.references))
-    throw new TypeError("CSL style, locale and references are required");
+function metaInlinesToText(inlines: readonly Inline[]): string {
+  return inlines.map(inline => {
+    if (inline.t === "Str") return inline.c;
+    if (inline.t === "Space" || inline.t === "SoftBreak" || inline.t === "LineBreak") return " ";
+    if (inline.t === "Code" || inline.t === "Math") return inline.c[1];
+    if ("c" in inline && Array.isArray(inline.c)) {
+      const children = inline.c.find(part => Array.isArray(part));
+      if (Array.isArray(children)) return metaInlinesToText(children as readonly Inline[]);
+    }
+    return "";
+  }).join("");
+}
+
+function metaValueToCsl(value: MetaValue, numeric = false): unknown {
+  if (value.t === "MetaString") return numeric && /^-?\d+$/.test(value.c) ? Number(value.c) : value.c;
+  if (value.t === "MetaBool") return value.c;
+  if (value.t === "MetaInlines") {
+    const text = metaInlinesToText(value.c);
+    return numeric && /^-?\d+$/.test(text) ? Number(text) : text;
+  }
+  if (value.t === "MetaBlocks") return "";
+  if (value.t === "MetaList") return value.c.map(entry => metaValueToCsl(entry, numeric));
+  return Object.fromEntries(Object.entries(value.c).map(([key, child]) => [key, metaValueToCsl(child, numeric || key === "date-parts")]));
+}
+
+/** Run citeproc-js with supplied or metadata CSL references and bounded defaults. */
+export function createCiteprocFilterCapability(options: CiteprocFilterOptions = {}): FilterCapability {
+  if (!options || typeof options !== "object" ||
+      (options.style !== undefined && typeof options.style !== "string") ||
+      (options.locale !== undefined && typeof options.locale !== "string") ||
+      (options.references !== undefined && !Array.isArray(options.references)))
+    throw new TypeError("CSL style, locale and references must be valid when supplied");
+  const style = options.style ?? defaultStyle;
+  const locale = options.locale ?? defaultLocale;
   return {
     supports: request => request.kind === "citeproc",
     async apply(document, request, context) {
@@ -43,13 +76,15 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions): 
       };
       await collect(document.blocks, 0);
       if (!citations.length) return document;
-      const serialized = JSON.stringify(options.references);
+      const metadataRefs = document.metadata.references ? metaValueToCsl(document.metadata.references) : undefined;
+      const rawRefs = options.references ?? (Array.isArray(metadataRefs) ? metadataRefs : []);
+      const serialized = JSON.stringify(rawRefs);
       context.charge("retainedBytes", serialized.length * 5);
-      context.charge("text", options.style.length + options.locale.length + serialized.length);
+      context.charge("text", style.length + locale.length + serialized.length);
       const items = new Map<string, Record<string, unknown>>();
       for (const item of JSON.parse(serialized) as Record<string, unknown>[]) {
         context.checkpoint();
-        if (typeof item.id !== "string" || !item.id || items.has(item.id))
+        if (!item || typeof item !== "object" || typeof item.id !== "string" || !item.id || items.has(item.id))
           throw new PandocError("E_AST", "convert", "CSL references require unique string IDs");
         items.set(item.id, item);
       }
@@ -74,14 +109,14 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions): 
       let noteStyle = false;
       try {
         const processor = new CSL.Engine({
-          retrieveLocale: () => options.locale,
+          retrieveLocale: () => locale,
           retrieveItem: id => {
             context.checkpoint();
             const item = items.get(id);
             if (!item) throw new PandocError("E_AST", "convert", `Missing CSL reference: ${id}`);
             return item;
           }
-        }, options.style, options.language ?? "en-US");
+        }, style, options.language ?? document.language ?? "en-US");
         noteStyle = processor.opt.xclass === "note";
         if (noteStyle) for (let index = 0; index < clusters.length; index++) {
           if (!clusters[index]!.properties.noteIndex) clusters[index]!.properties.noteIndex = index + 1;

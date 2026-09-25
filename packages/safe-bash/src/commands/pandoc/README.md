@@ -1,6 +1,10 @@
-# Local JSON filters with Pandoc
+# Local filters and citeproc with Pandoc
 
-Run local filters using an interpreter you explicitly register with Safe Bash:
+By default, `pandocCommands()` enables:
+
+- Local Lua filters (`-L` / `--lua-filter`) executed in the JavaScript Lua 5.3 VM using the virtual filesystem.
+- Citation processing (`-C` / `--citeproc`) backed by `citeproc` with built-in Chicago author-date CSL defaults and document `references` metadata.
+- Local JSON filters (`-F` / `--filter`) when a matching virtual interpreter (`python3`, `python`, `node`) is registered on the shell or explicitly selected via `jsonFilterCommand`:
 
 ```ts
 import {pandocCommands} from "@poe-platform/safe-bash/commands/pandoc";
@@ -18,5 +22,4 @@ Pandoc from publishing its output.
 
 Interpreter access follows its existing filesystem and capability configuration.
 This option does not install an interpreter or run a host executable. Choose
-either `jsonFilterCommand` or the SDK's `filters` capability. Lua filters and
-citeproc require their own explicit SDK capability.
+either `jsonFilterCommand` or the SDK's `filters` capability.

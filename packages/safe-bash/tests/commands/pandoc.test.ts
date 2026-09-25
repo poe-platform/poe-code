@@ -3,7 +3,7 @@ import test from "node:test";
 import type {FilterRequest} from "@poe-code/pandoc";
 import {Shell} from "../../src/shell/index.js";
 import {MemoryFileSystem} from "../../src/fs/memory/index.js";
-import {FsError} from "../../src/contracts/index.js";
+import {FsError, readBytes} from "../../src/contracts/index.js";
 import {agentCommands} from "../../src/plugins/index.js";
 import {createPandocCommand, createPandocCommands, pandocCommands} from "../../src/commands/pandoc/index.js";
 
@@ -366,4 +366,47 @@ test("pandoc resolves table-of-contents aliases before defaults and CLI override
       assert.ok(!result.stdout.includes("<nav"), result.stdout);
     }
   } finally {await shell.dispose();}
+});
+
+test("pandoc default plugin profile executes local Lua filters, citeproc flags, and registered interpreter JSON filters", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/sample.md", "Hello\n");
+  volume.writeFileSync("/work/uppercase.lua", "function Str(el) el.text = string.upper(el.text); return el end\n");
+  volume.writeFileSync("/work/identity.py", "#!/usr/bin/python3\nimport json, sys\njson.dump(json.load(sys.stdin),sys.stdout)\n");
+  try {
+    for (const cmd of [
+      "pandoc -f commonmark -t html --lua-filter=uppercase.lua sample.md",
+      "pandoc -f commonmark -t html -L uppercase.lua sample.md"
+    ]) {
+      const result = await shell.exec(cmd);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "<p>HELLO</p>\n");
+    }
+    for (const cmd of [
+      "pandoc -f commonmark -t html --citeproc sample.md",
+      "pandoc -f commonmark -t html -C sample.md"
+    ]) {
+      const result = await shell.exec(cmd);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "<p>Hello</p>\n");
+    }
+    shell.commands.register({
+      name: "python3",
+      async execute(ctx) {
+        assert.deepEqual(ctx.args, ["--", "/work/./identity.py", "html"]);
+        for await (const chunk of readBytes(ctx.stdin, ctx.signal)) await ctx.stdout.write(chunk);
+        return {exitCode: 0};
+      }
+    });
+    for (const cmd of [
+      "pandoc -f commonmark -t html --filter=./identity.py sample.md",
+      "pandoc -f commonmark -t html -F ./identity.py sample.md"
+    ]) {
+      const result = await shell.exec(cmd);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "<p>Hello</p>\n");
+    }
+  } finally {
+    await shell.dispose();
+  }
 });

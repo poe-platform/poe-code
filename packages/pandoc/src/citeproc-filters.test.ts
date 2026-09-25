@@ -108,3 +108,13 @@ it.each(["-C", "--citeproc"])("executes citation-bearing JSON through %s", async
   expect(stdout).toContain("(Doe, 2020)");
   expect(stdout).toContain("<em>A real book</em>");
 });
+
+it("processes citation-free and metadata-supplied citation documents with default CiteprocFilterOptions", async () => {
+  const filters = createCiteprocFilterCapability();
+  await expect(convert([{bytes: new TextEncoder().encode("Hello\n")}], {from: "commonmark", to: "html", filters: [{kind: "citeproc"}]}, {filters})).resolves.toMatchObject({kind: "text", text: "<p>Hello</p>\n"});
+  const withMeta = await convert([{bytes: input()}], {...options, metadataJson: [{references}]}, {filters});
+  expect(withMeta).toMatchObject({kind: "text"});
+  if (withMeta.kind !== "text") throw new Error("Expected HTML");
+  expect(withMeta.text).toContain("(Doe, 2020)");
+  expect(withMeta.text).toContain("<em>A real book</em>");
+});

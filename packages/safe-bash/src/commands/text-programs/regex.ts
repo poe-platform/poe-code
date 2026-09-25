@@ -104,6 +104,14 @@ export class Pattern {
   private readonly anchored: boolean;
   private linear = false;
   private literalMatch: { readonly value: string; readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly groups: readonly [string] } | undefined;
+  private simpleRepeatMatch: {
+    readonly prefix: string;
+    readonly anchoredStart: boolean;
+    readonly anchoredEnd: boolean;
+    readonly captured: boolean;
+    readonly minimum: number;
+    readonly accepts: (candidate: string) => boolean;
+  } | undefined;
   private backreferences = false;
 
   constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
@@ -349,6 +357,54 @@ export class Pattern {
       if (validLiteral) {
         this.literalMatch = { value: literalValue, anchoredStart, anchoredEnd, groups: [literalValue] };
       }
+    } else if (!this.ignoreCase && this.dialect !== "jq" && root.type === "sequence" && this.groupCount <= 1) {
+      let startIdx = 0;
+      let endIdx = root.nodes.length;
+      let anchoredStart = false;
+      let anchoredEnd = false;
+      if (startIdx < endIdx && root.nodes[startIdx]?.type === "begin") {
+        anchoredStart = true;
+        startIdx++;
+      }
+      if (startIdx < endIdx && root.nodes[endIdx - 1]?.type === "end") {
+        anchoredEnd = true;
+        endIdx--;
+      }
+      if (startIdx < endIdx) {
+        let prefix = "";
+        let prefixValid = true;
+        for (let i = startIdx; i < endIdx - 1; i++) {
+          const n = root.nodes[i]!;
+          if (n.type === "character" && n.literal !== undefined) {
+            prefix += n.literal;
+          } else {
+            prefixValid = false;
+            break;
+          }
+        }
+        const tail = root.nodes[endIdx - 1]!;
+        const captured = tail.type === "group" && tail.index === 1 && this.groupCount === 1;
+        const rawInner = captured ? tail.node : this.groupCount === 0 ? tail : undefined;
+        const repeatNode = rawInner?.type === "sequence" && rawInner.nodes.length === 1 ? rawInner.nodes[0] : rawInner;
+        if (
+          prefixValid &&
+          (anchoredStart || prefix.length > 0) &&
+          repeatNode?.type === "repeat" &&
+          repeatNode.minimum >= 1 &&
+          repeatNode.maximum === Infinity &&
+          !repeatNode.lazy &&
+          repeatNode.node.type === "character"
+        ) {
+          this.simpleRepeatMatch = {
+            prefix,
+            anchoredStart,
+            anchoredEnd,
+            captured,
+            minimum: repeatNode.minimum,
+            accepts: repeatNode.node.accepts,
+          };
+        }
+      }
     }
     this.backreferences = code.some(instruction => instruction.kind === "backreference");
     this.code = code;
@@ -419,7 +475,88 @@ export class Pattern {
     return undefined;
   }
 
+  canFindSync(): boolean {
+    return this.code.length > 0 && this.dialect !== "jq" && Boolean(this.literalMatch || this.simpleRepeatMatch);
+  }
+
+  findSyncFast(
+    text: string,
+    budget: Pick<Budget, "step" | "maxBufferBytes">,
+    from = 0,
+  ): Match | undefined {
+    if (this.simpleRepeatMatch) {
+      const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts } = this.simpleRepeatMatch;
+      if (from > text.length || (anchoredStart && from > 0)) return undefined;
+      let found = -1;
+      let matchEnd = -1;
+      let groupStart = -1;
+      let groupEnd = -1;
+      if (anchoredStart) {
+        if (text.startsWith(prefix)) {
+          const pos = prefix.length;
+          let cursor = pos;
+          while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+          if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
+            found = 0;
+            matchEnd = cursor;
+            groupStart = pos;
+            groupEnd = cursor;
+          }
+        }
+      } else {
+        let searchFrom = from;
+        while (searchFrom <= text.length - prefix.length) {
+          const idx = text.indexOf(prefix, searchFrom);
+          if (idx < 0) break;
+          const pos = idx + prefix.length;
+          let cursor = pos;
+          while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+          if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
+            found = idx;
+            matchEnd = cursor;
+            groupStart = pos;
+            groupEnd = cursor;
+            break;
+          }
+          searchFrom = idx + 1;
+        }
+      }
+      const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
+      const len = found >= 0 ? matchEnd - found : 0;
+      budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
+      if (found < 0) return undefined;
+      if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      const full = text.slice(found, matchEnd);
+      const groups = captured ? [full, text.slice(groupStart, groupEnd)] : [full];
+      return { start: found, end: matchEnd, groups };
+    }
+    const { value, anchoredStart, anchoredEnd, groups } = this.literalMatch!;
+    const len = value.length;
+    if (from > text.length || (anchoredStart && from > 0)) return undefined;
+    let found = -1;
+    if (anchoredStart && anchoredEnd) {
+      if (from === 0 && text.length === len && text === value) found = 0;
+    } else if (anchoredStart) {
+      if (from === 0 && text.startsWith(value)) found = 0;
+    } else if (anchoredEnd) {
+      const candidate = text.length - len;
+      if (candidate >= from && text.endsWith(value)) found = candidate;
+    } else {
+      found = text.indexOf(value, from);
+    }
+    const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
+    budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
+    if (found < 0) return undefined;
+    if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    return { start: found, end: found + len, groups };
+  }
+
   tryFindSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Match | undefined | Promise<Match | undefined> {
+    if (this.code.length && this.simpleRepeatMatch && this.dialect !== "jq") {
+      const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      if (initialCheck) return initialCheck.then(() => this.find(text, budget, from));
+      return this.execSimpleRepeat(text, budget, from);
+    }
     if (!this.code.length || !this.literalMatch || this.dialect === "jq") {
       return this.find(text, budget, from);
     }
@@ -457,9 +594,75 @@ export class Pattern {
     return { start: found, end: found + len, groups };
   }
 
+  private execSimpleRepeat(
+    text: string,
+    budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>,
+    from: number,
+  ): Match | undefined | Promise<Match | undefined> {
+    const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts } = this.simpleRepeatMatch!;
+    if (from > text.length || (anchoredStart && from > 0)) return undefined;
+    let found = -1;
+    let matchEnd = -1;
+    let groupStart = -1;
+    let groupEnd = -1;
+    if (anchoredStart) {
+      if (text.startsWith(prefix)) {
+        const pos = prefix.length;
+        let cursor = pos;
+        while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+        if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
+          found = 0;
+          matchEnd = cursor;
+          groupStart = pos;
+          groupEnd = cursor;
+        }
+      }
+    } else {
+      let searchFrom = from;
+      while (searchFrom <= text.length - prefix.length) {
+        const idx = text.indexOf(prefix, searchFrom);
+        if (idx < 0) break;
+        const pos = idx + prefix.length;
+        let cursor = pos;
+        while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+        if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
+          found = idx;
+          matchEnd = cursor;
+          groupStart = pos;
+          groupEnd = cursor;
+          break;
+        }
+        searchFrom = idx + 1;
+      }
+    }
+    const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
+    const len = found >= 0 ? matchEnd - found : 0;
+    const stepCount = positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0);
+    budget.step(stepCount);
+    const finish = (): Match | undefined => {
+      if (found < 0) return undefined;
+      if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      const full = text.slice(found, matchEnd);
+      const groups = captured ? [full, text.slice(groupStart, groupEnd)] : [full];
+      return { start: found, end: matchEnd, groups };
+    };
+    if (stepCount >= 64) {
+      const midCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      if (midCheck) return midCheck.then(finish);
+    }
+    const endCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (endCheck) return endCheck.then(finish);
+    return finish();
+  }
+
   async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Promise<Match | undefined> {
     if (!this.code.length) await this.prepare(budget);
     if (this.dialect === "jq") return (await this.findJq(text, budget, from))?.match;
+    if (this.simpleRepeatMatch) {
+      const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      if (initialCheck) await initialCheck;
+      return await this.execSimpleRepeat(text, budget, from);
+    }
     const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     if (initialCheck) await initialCheck;
     if (this.literalMatch) {
@@ -745,6 +948,45 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
   await buffer.append(replacement, literal);
 }
 
+function expandReplacementSync(
+  replacement: string,
+  match: Match,
+  budget: Budget,
+  available: number,
+  syntax: ReplacementSyntax,
+): string {
+  if (!replacement.includes("&") && !replacement.includes("\\")) {
+    budget.step(replacement.length * 2 + 1);
+    if (replacement.length > available) throw new ProgramError("text buffer limit exceeded");
+    return replacement;
+  }
+  let out = "";
+  for (let index = 0; index < replacement.length; index++) {
+    budget.step();
+    const character = replacement[index]!;
+    let piece = character;
+    if (character === "&") {
+      budget.step();
+      piece = match.groups[0] ?? "";
+    } else if (character === "\\" && index + 1 < replacement.length) {
+      budget.step();
+      const next = replacement[++index]!;
+      if (syntax === "awk") {
+        piece = next === "&" || next === "\\" ? next : `\\${next}`;
+      } else if (next >= "0" && next <= "9") {
+        budget.step();
+        piece = match.groups[Number(next)] ?? "";
+      } else {
+        piece = next === "n" ? "\n" : next === "t" ? "\t" : next;
+      }
+    }
+    if (piece.length > available - out.length) throw new ProgramError("text buffer limit exceeded");
+    out += piece;
+  }
+  budget.step(out.length + 1);
+  return out;
+}
+
 export function trySubstituteSync(
   text: string,
   pattern: Pattern,
@@ -754,6 +996,52 @@ export function trySubstituteSync(
   occurrence = 1,
   syntax: ReplacementSyntax = "sed",
 ): { text: string; count: number } | Promise<{ text: string; count: number }> {
+  if (pattern.canFindSync() && text.length <= 4096 && replacement.length <= 256) {
+    const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (check) return substitute(text, pattern, replacement, budget, global, occurrence, syntax);
+    let search = 0;
+    let consumed = 0;
+    let previousEnd = -1;
+    let encountered = 0;
+    let count = 0;
+    let out = "";
+    while (search <= text.length) {
+      budget.step();
+      const match = pattern.findSyncFast(text, budget, search);
+      if (!match) break;
+      if (match.start === match.end && match.start === previousEnd) {
+        search = match.end + 1;
+        continue;
+      }
+      encountered++;
+      if (encountered >= occurrence) {
+        const prefixLen = match.start - consumed;
+        if (out.length + prefixLen > budget.maxBufferBytes) {
+          throw new ProgramError("text buffer limit exceeded");
+        }
+        if (prefixLen > 0) out += text.slice(consumed, match.start);
+        const rep = expandReplacementSync(replacement, match, budget, budget.maxBufferBytes - out.length, syntax);
+        out += rep;
+        consumed = match.end;
+        count++;
+        if (!global) break;
+      }
+      previousEnd = match.end;
+      search = match.end === match.start ? match.end + 1 : match.end;
+    }
+    if (count > 0) {
+      const tailLen = text.length - consumed;
+      if (out.length + tailLen > budget.maxBufferBytes) {
+        throw new ProgramError("text buffer limit exceeded");
+      }
+      if (tailLen > 0) out += text.slice(consumed);
+    } else {
+      out = budget.check(text);
+    }
+    const postCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (postCheck) return postCheck.then(() => ({ text: out, count }));
+    return { text: out, count };
+  }
   if (!global && occurrence === 1 && !replacement.includes("&") && !replacement.includes("\\")) {
     const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     if (check) return substitute(text, pattern, replacement, budget, global, occurrence, syntax);

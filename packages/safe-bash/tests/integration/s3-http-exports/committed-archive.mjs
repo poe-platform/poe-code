@@ -71,6 +71,7 @@ export function captureWorkspaceMetadata(manifest, lock, read) {
         assert.equal(metadata.version, profile.version, `private workspace version: ${name}`);
         for (const field of ["dependencies", "devDependencies"]) assert.deepEqual(metadata[field] ?? {}, profile[field], `private workspace closure: ${name} ${field}`);
         for (const field of ["peerDependencies", "peerDependenciesMeta"]) assert.deepEqual(metadata[field] ?? {}, profile[field] ?? {}, `private workspace peer closure: ${name} ${field}`);
+        assert.deepEqual(metadata.peerDependenciesMeta ?? {}, Object.fromEntries(Object.keys(metadata.peerDependencies ?? {}).map(peer => [peer, { optional: true }])), `private workspace optional peer metadata: ${name}`);
         for (const [peer, range] of Object.entries(metadata.peerDependencies ?? {})) {
           assert.equal(typeof range, "string", `private workspace peer range: ${name} ${peer}`);
           assert.equal(metadata.peerDependenciesMeta?.[peer]?.optional, true, `private workspace peer must be optional: ${name} ${peer}`);
@@ -740,7 +741,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       }
       assert.equal(lock.lockfileVersion, 3, "workspace lock version");
       for (const [key, expected] of [["", rootManifest], [packagePrefix, manifest]]) {
-        for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "peerDependencies", "engines", ...(key === "" ? ["workspaces"] : [])]) {
+        for (const field of ["name", "version", "dependencies", "devDependencies", "optionalDependencies", "peerDependencies", "peerDependenciesMeta", "engines", ...(key === "" ? ["workspaces"] : [])]) {
           const actual = lock.packages?.[key]?.[field];
           assert.deepEqual(field === "dependencies" ? actual ?? {} : actual,
             field === "dependencies" ? expected[field] ?? {} : expected[field],

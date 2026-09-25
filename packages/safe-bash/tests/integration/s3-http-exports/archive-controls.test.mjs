@@ -87,6 +87,8 @@ test("workspace prerequisites authenticate explicitly bound optional peers", () 
   const fixture = optionalPeerFixture();
   const captured = distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read);
   assert.deepEqual([...captured.keys()], [...fixture.files.keys()]);
+  const path = "packages/safe-bash-command-fmt/package.json";
+  assert.deepEqual(JSON.parse(captured.get(path)), JSON.parse(fixture.files.get(path)));
 });
 
 test("workspace prerequisites capture linked optional peer metadata", () => {
@@ -100,7 +102,7 @@ test("workspace prerequisites capture linked optional peer metadata", () => {
   assert.ok(fixture.reads.includes("packages/yaml/package.json"));
 });
 
-for (const defect of ["undeclared-peer", "required-peer", "parent-range", "parent-required", "peer-lock-drift", "optional-dependency"]) test(`workspace prerequisites reject optional peer ${defect}`, () => {
+for (const defect of ["undeclared-peer", "required-peer", "parent-range", "parent-required", "peer-lock-drift", "optional-dependency", "profile-range", "profile-metadata", "missing-parent-peer", "peer-range-lock-drift", "orphan-peer-metadata", "extra-peer-metadata-field", "non-string-peer-range"]) test(`workspace prerequisites reject optional peer ${defect}`, () => {
   const fixture = optionalPeerFixture();
   const name = "safe-bash-command-fmt", path = `packages/${name}/package.json`;
   const metadata = JSON.parse(fixture.files.get(path));
@@ -112,11 +114,18 @@ for (const defect of ["undeclared-peer", "required-peer", "parent-range", "paren
   }
   if (defect === "parent-range") fixture.manifest.peerDependencies.yaml = "3.0.0";
   if (defect === "parent-required") fixture.manifest.peerDependenciesMeta.yaml.optional = false;
+  if (defect === "profile-range") profile.peerDependencies.yaml = "*";
+  if (defect === "profile-metadata") delete profile.peerDependenciesMeta;
+  if (defect === "missing-parent-peer") delete fixture.manifest.peerDependencies;
+  if (defect === "orphan-peer-metadata") for (const target of [metadata, profile]) target.peerDependenciesMeta.unbound = { optional: true };
+  if (defect === "extra-peer-metadata-field") for (const target of [metadata, profile]) target.peerDependenciesMeta.yaml.unbound = true;
+  if (defect === "non-string-peer-range") for (const target of [metadata, profile, fixture.manifest]) target.peerDependencies.yaml = 2.9;
   if (defect === "optional-dependency") metadata.optionalDependencies = { unbound: "*" };
   for (const field of ["peerDependencies", "peerDependenciesMeta", "optionalDependencies"]) {
     if (metadata[field]) fixture.lock.packages[`packages/${name}`][field] = structuredClone(metadata[field]);
   }
   if (defect === "peer-lock-drift") fixture.lock.packages[`packages/${name}`].peerDependenciesMeta.yaml.optional = false;
+  if (defect === "peer-range-lock-drift") fixture.lock.packages[`packages/${name}`].peerDependencies.yaml = "*";
   fixture.files.set(path, Buffer.from(JSON.stringify(metadata)));
   assert.throws(() => distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read), /workspace|peer/);
 });
@@ -1628,6 +1637,14 @@ function requestedBodies(args, options) {
   for (const oid of ids) assert.match(oid, /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u);
   return ids;
 }
+
+for (const key of ["", packagePrefix]) test(`committed workspace rejects peer metadata lock drift: ${key || "root"}`, async () => {
+  await withRepository(fixture => {
+    fixture.lock.packages[key].peerDependenciesMeta = { unbound: { optional: true } };
+  }, fixture => {
+    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), /workspace lock drift: .* peerDependenciesMeta/);
+  });
+});
 
 for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects bad ${defect} before requesting product source bodies`, async () => {
   for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short", "missing-exclusion", "missing-comments-exclusion", "reordered-comments-exclusion", ...["js", "js.map", "d.ts", "d.ts.map"].map(suffix => `missing-formats-${suffix}`), "reordered-formats-exclusion", "widened-exclusion", "traversal-exclusion", "postbuild"]) await withRepository(fixture => {

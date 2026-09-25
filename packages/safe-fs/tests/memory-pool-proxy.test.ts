@@ -2,6 +2,19 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 import { MemoryFileSystem, tryWriteMemoryFileSync } from "../src/fs/memory/index.js";
 
+test("reading another directory cannot revive a cached append after chmod", async () => {
+  const memory = new MemoryFileSystem();
+  await memory.mkdir("/denied");
+  await memory.mkdir("/other");
+  assert.equal(tryWriteMemoryFileSync(memory, "/denied/file", Uint8Array.of(1), true, 0o666), true);
+  await memory.writeFile("/other/file", Uint8Array.of(2));
+  await memory.chmod("/denied", 0o600);
+  await memory.readFile("/other/file");
+  assert.throws(() => tryWriteMemoryFileSync(memory, "/denied/file", Uint8Array.of(3), true, 0o666), { code: "EACCES" });
+  await memory.chmod("/denied", 0o700);
+  assert.deepEqual(await memory.readFile("/denied/file"), Uint8Array.of(1));
+});
+
 test("forwarded file reads share cache invalidation after ancestor chmod and rename", async () => {
   const memory = new MemoryFileSystem();
   const forwarded = new Proxy(memory, { get: (target, key) => Reflect.get(target, key) });

@@ -102,7 +102,8 @@ export { WebAssembly, fetch, location };
         '@poe-code/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-bash/commands/python': resolve(root, 'packages/safe-bash/src/commands/python/index.ts'),
-        '@poe-platform/safe-bash': resolve(root, 'packages/safe-bash/src/shell/shell.ts'),
+        '@poe-platform/safe-bash': resolve(root, 'packages/safe-bash/src/core.ts'),
+        '@poe-platform/safe-bash/commands/llm': resolve(root, 'packages/safe-bash/src/commands/llm/index.ts'),
         'safe-bash-contracts': resolve(root, 'packages/safe-bash-contracts/src'),
       }) },
     inject: ['python-static-assets'], plugins: [{ name: 'python-static-assets', setup(plugin) {

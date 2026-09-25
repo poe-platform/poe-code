@@ -6,6 +6,7 @@ import { installPythonLlmModule } from './llm-module.js';
 import { installPythonShellModule } from './shell-module.js';
 import { installPythonCapabilityModule } from './capability-module.js';
 import { parsePythonInvocation } from './invocation.js';
+import { installPythonJspiRunSync } from './jspi-run-sync.js';
 import { pythonExecution } from './execution.js';
 import { pythonJspiSignatures } from './jspi-trampoline.js';
 import { createPythonJspiScheduler, type PythonJspiCallback } from './jspi-scheduler.js';
@@ -203,6 +204,7 @@ _safe_stat_type = _safe_native_stat_type
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
       installPythonLlmModule(runtime);
       installPythonShellModule(runtime);
+      installPythonJspiRunSync(runtime);
       if (start.hasCapabilities) installPythonCapabilityModule(runtime);
       runtime.globals.set('_safe_execution_code', pythonExecution);
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);

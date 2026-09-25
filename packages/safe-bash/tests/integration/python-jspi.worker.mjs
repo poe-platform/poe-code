@@ -297,9 +297,9 @@ export default {
       const service = createLlmService({defaultModel:'short',providers:[{name:'qualified',models:[{id:'model',aliases:['short'],attachmentTypes:['text/plain']}],async *complete(request) {
         requests.push({model:request.model,prompt:request.prompt,options:request.options,attachment:request.attachments.map(value => new TextDecoder().decode(value.bytes))});
         try {
-          if (request.prompt === 'cancel-task') await new Promise(resolve => {
+          if (['cancel-task','deadline'].includes(request.prompt)) await new Promise(resolve => {
             const timer = setTimeout(resolve, 1000);
-            request.signal.addEventListener('abort', () => {taskAborted++; clearTimeout(timer); resolve();}, {once:true});
+            request.signal.addEventListener('abort', () => {if (request.prompt === 'cancel-task') taskAborted++; clearTimeout(timer); resolve();}, {once:true});
           });
           yield 'first'; yield 'second';
         } finally { llmRetired++; }
@@ -322,7 +322,7 @@ export default {
       await backend.writeFile('/work/shell.py',new TextEncoder().encode(String.raw`
 import subprocess
 from poe_shell import Client, ShellError
-from poe_llm import Client as LlmClient, Attachment
+from poe_llm import Client as LlmClient, Attachment, LimitError
 from pyodide.ffi import run_sync
 result = subprocess.run(['echo', '$(secret)', 'two words'], capture_output=True, text=True)
 assert result.args == ['echo', '$(secret)', 'two words']
@@ -380,6 +380,18 @@ async def main():
    await task
   except asyncio.CancelledError:
    pass
+  try:
+   await llm.complete('limited',max_response_bytes=1)
+  except LimitError:
+   pass
+  else:
+   raise AssertionError('missing typed host limit error')
+  try:
+   await llm.complete('deadline',timeout=0.01)
+  except asyncio.TimeoutError:
+   pass
+  else:
+   raise AssertionError('missing typed host deadline error')
  async with Client() as client:
   try:
    await client.run(['echo','overflow'],max_output_bytes=1)
@@ -396,7 +408,10 @@ print('shell-ok')
 `));
       try {
         const result = await shell.exec('python /work/shell.py');
-        if (taskAborted !== 1 || requests.length !== 4 || llmRetired !== 4 || requests[0]?.options.temperature !== 0.2 || requests[0]?.options.store !== false || !requests[0]?.attachment[0]?.includes('TODO')) failures.push('LLM qualification or cleanup mismatch: ' + JSON.stringify({requests,llmRetired,taskAborted}));
+        if (taskAborted !== 1 || requests.length !== 6 || llmRetired !== 6 || requests[0]?.options.temperature !== 0.2 || requests[0]?.options.store !== false || !requests[0]?.attachment[0]?.includes('TODO')) failures.push('LLM qualification or cleanup mismatch: ' + JSON.stringify({requests,llmRetired,taskAborted}));
+        await backend.writeFile('/work/uncaught-limit.py',new TextEncoder().encode("from poe_llm import Client\nfrom pyodide.ffi import run_sync\nasync def main():\n async with Client() as llm:\n  await llm.complete('uncaught-limit',max_response_bytes=1)\nrun_sync(main())\n"));
+        const failure = await shell.exec('python /work/uncaught-limit.py');
+        if (failure.exitCode !== 1 || !failure.stderr.includes('LimitError:')) failures.push('Uncaught Python library error did not report normally: ' + JSON.stringify(failure));
         for (const [name,source,expected] of [['single',singleCallExample,'firstsecond\n'],['stream',streamingExample,'firstsecond'],['shell',shellToolsExample,'shell-example-ok\n']]) {
           await backend.writeFile('/work/example-' + name + '.py',new TextEncoder().encode(source));
           const example = await shell.exec('python /work/example-' + name + '.py');

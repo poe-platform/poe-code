@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
+import { installPythonCapabilityModule } from '../../src/commands/python/capability-module.js';
 import { installPythonLlmModule } from '../../src/commands/python/llm-module.js';
 
 test('pure Python library preserves typed requests, customization and stream ownership', () => {
@@ -278,4 +279,50 @@ unittest.main(argv=['python-llm'], verbosity=2)
   });
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
+
+test('native LLM failures preserve Python limit, timeout and capability exceptions', () => {
+  const globals = new Map<string,unknown>();
+  let source:unknown;
+  let registration = '';
+  installPythonLlmModule({globals,runPython(value) {source = globals.get('_safe_llm_source');registration = value;}});
+  let native = '';
+  installPythonCapabilityModule({runPython(value) {native = value;}});
+  const program = `
+import sys, json, types, asyncio
+bundle = json.load(sys.stdin)
+_safe_llm_source = bundle['source']
+exec(bundle['registration'])
+from poe_llm import LimitError, CapabilityError, LlmError
+native = types.ModuleType('_safe_native_fs')
+error = {'code':'limit','message':'bounded'}
+def request(payload):
+ operation = json.loads(payload)[1]
+ value = {'handle':'stream'} if operation.endswith('.stream.open') else {'closed':True} if operation.endswith('.stream.close') else {'error':error}
+ return json.dumps({'value':value})
+native.request = request
+sys.modules['_safe_native_fs'] = native
+exec(bundle['native'])
+from _poe_llm_capability import bridge
+async def main():
+ for code,expected in [('limit',LimitError),('timeout',asyncio.TimeoutError),('capability',CapabilityError),('service',LlmError)]:
+  error['code'] = code
+  try:
+   await bridge.call('complete', {})
+  except expected as caught:
+   assert str(caught) == 'bounded'
+  else:
+   raise AssertionError('Missing typed native exception: '+code)
+  try:
+   async for event in bridge.stream({}):
+    raise AssertionError('Unexpected event')
+  except expected as caught:
+   assert str(caught) == 'bounded'
+  else:
+   raise AssertionError('Missing typed native stream exception: '+code)
+asyncio.run(main())
+`;
+  const result = spawnSync('python3',['-B','-c',program],{input:JSON.stringify({source,registration,native}),encoding:'utf8',timeout:5000});
+  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

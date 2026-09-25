@@ -598,7 +598,10 @@
     "safe-bash-command-imagemagick": "*",
     "@poe-code/audio-ast": "*",
     "safe-bash-command-xmllint": "*",
-    "safe-bash-xml-engine": "*"
+    "safe-bash-xml-engine": "*",
+    "safe-bash-command-yq": "*",
+    "safe-bash-query-engine": "*",
+    "safe-bash-regex-engine": "*"
   },
   "repository": {
     "type": "git",

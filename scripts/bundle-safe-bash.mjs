@@ -3,10 +3,10 @@ import * as fileSystem from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import { rewriteModuleSpecifiers } from "./package-safe.mjs";
 
-export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alias, external }) {
+export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alias, external, portable = false }) {
   const entryPoints = {};
   for (const [name, profile] of Object.entries(profiles)) {
-    if (!name.startsWith("safe-bash-command-")) continue;
+    if (portable ? profile.portable !== true : profile.portable === true || !name.startsWith("safe-bash-command-")) continue;
     const workspace = workspaces.find(({ pkg }) => pkg.name === name);
     // Only prepare workspaces present in this build. Referenced missing owners
     // still fail admission in the artifact traversal.
@@ -15,10 +15,14 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     if (!pkg || workspace.dir !== name || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
         !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
         !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
-        Object.keys(pkg.peerDependencies ?? {}).length || Object.keys(pkg.optionalDependencies ?? {}).length) {
+        !isDeepStrictEqual(pkg.peerDependencies ?? {}, profile.peerDependencies ?? {}) ||
+        !isDeepStrictEqual(pkg.peerDependenciesMeta ?? {}, profile.peerDependenciesMeta ?? {}) ||
+        Object.keys(pkg.peerDependencies ?? {}).some(peer => pkg.peerDependenciesMeta?.[peer]?.optional !== true) ||
+        Object.keys(pkg.optionalDependencies ?? {}).length) {
       throw new Error("Qualified private workspace profile mismatch: " + name);
     }
-    for (const target of Object.values(pkg.exports ?? {})) {
+    for (const [route, target] of Object.entries(pkg.exports ?? {})) {
+      if (Object.hasOwn(profile.optionalModules ?? {}, route)) continue;
       // This recipe prepares ESM import entries only. Other runtime profiles
       // need their own qualified build before they can be admitted here.
       for (const condition of Object.keys(target ?? {})) {
@@ -40,7 +44,8 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     absWorkingDir: rootDir, entryPoints, alias, external,
     outdir: path.join(rootDir, "packages"), allowOverwrite: true,
     bundle: true, splitting: true, chunkNames: "safe-bash/dist/command-chunks/[name]-[hash]",
-    platform: "node", format: "esm", target: "node22", sourcemap: true, write: false,
+    platform: portable ? "browser" : "node", format: "esm", target: portable ? "es2022" : "node22", sourcemap: true, write: false,
+    ...(portable ? { conditions: ["workerd", "worker", "browser"], inject: [path.join(rootDir, "packages/safe-bash/browser/buffer.mjs")] } : {}),
   };
 }
 

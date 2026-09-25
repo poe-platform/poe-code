@@ -262,6 +262,21 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-yq#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-query-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-regex-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

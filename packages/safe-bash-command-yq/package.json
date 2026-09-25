@@ -1,0 +1,101 @@
+{
+  "name": "safe-bash-command-yq",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./accounting": {
+      "types": "./dist/accounting.d.ts",
+      "import": "./dist/accounting.js"
+    },
+    "./arguments": {
+      "types": "./dist/arguments.d.ts",
+      "import": "./dist/arguments.js"
+    },
+    "./comments": {
+      "types": "./dist/comments.d.ts",
+      "import": "./dist/comments.js"
+    },
+    "./encoder": {
+      "types": "./dist/encoder.d.ts",
+      "import": "./dist/encoder.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.js"
+    },
+    "./evaluate": {
+      "types": "./dist/evaluate.d.ts",
+      "import": "./dist/evaluate.js"
+    },
+    "./expression": {
+      "types": "./dist/expression.d.ts",
+      "import": "./dist/expression.js"
+    },
+    "./formats": {
+      "types": "./dist/formats.d.ts",
+      "import": "./dist/formats.js"
+    },
+    "./inplace": {
+      "types": "./dist/inplace.d.ts",
+      "import": "./dist/inplace.js"
+    },
+    "./mike": {
+      "types": "./dist/mike.d.ts",
+      "import": "./dist/mike.js"
+    },
+    "./native-encoder": {
+      "types": "./dist/native-encoder.d.ts",
+      "import": "./dist/native-encoder.js"
+    },
+    "./native-work": {
+      "types": "./dist/native-work.d.ts",
+      "import": "./dist/native-work.js"
+    },
+    "./nodes": {
+      "types": "./dist/nodes.d.ts",
+      "import": "./dist/nodes.js"
+    },
+    "./parser": {
+      "types": "./dist/parser.d.ts",
+      "import": "./dist/parser.js"
+    },
+    "./toml": {
+      "types": "./dist/toml.d.ts",
+      "import": "./dist/toml.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "safe-bash-query-engine": "*",
+    "safe-bash-regex-engine": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "peerDependencies": {
+    "yaml": "2.9.0"
+  },
+  "peerDependenciesMeta": {
+    "yaml": {
+      "optional": true
+    }
+  }
+}

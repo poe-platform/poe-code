@@ -591,9 +591,12 @@
     "safe-bash-command-qpdf": "*",
     "safe-bash-command-soffice": "*",
     "safe-bash-command-sips": "*",
-    "safe-bash-command-imagemagick": "*",
     "safe-bash-command-xmllint": "*",
-    "safe-bash-xml-engine": "*"
+    "safe-bash-xml-engine": "*",
+    "safe-bash-command-imagemagick": "*",
+    "safe-bash-command-yq": "*",
+    "safe-bash-query-engine": "*",
+    "safe-bash-regex-engine": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -664,7 +667,8 @@
           "dependencies": {
             "@poe-code/safe-fs": "*"
           },
-          "devDependencies": {}
+          "devDependencies": {},
+          "publicAlias": "@poe-platform/safe-bash/contracts"
         },
         "safe-bash-command-wkhtmltopdf": {
           "version": "0.0.1",
@@ -847,6 +851,55 @@
           "assets": [
             "./dist/index.d.ts"
           ]
+        },
+        "safe-bash-command-yq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-query-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "peerDependencies": {
+            "yaml": "2.9.0"
+          },
+          "peerDependenciesMeta": {
+            "yaml": {
+              "optional": true
+            }
+          },
+          "optionalModules": {
+            "./expression": "./dist/commands/yq/expression.js",
+            "./comments": "./dist/commands/yq/comments.js",
+            "./nodes": "./dist/commands/yq/nodes.js",
+            "./evaluate": "./dist/commands/yq/evaluate.js",
+            "./native-work": "./dist/commands/yq/native-work.js",
+            "./inplace": "./dist/commands/yq/inplace.js",
+            "./arguments": "./dist/commands/yq/arguments.js",
+            "./mike": "./dist/commands/yq/mike.js",
+            "./formats": "./dist/commands/yq/formats.js",
+            "./native-encoder": "./dist/commands/yq/native-encoder.js"
+          },
+          "portable": true
+        },
+        "safe-bash-query-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-regex-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-regex-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
         }
       }
     }

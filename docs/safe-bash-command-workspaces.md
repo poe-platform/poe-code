@@ -102,6 +102,15 @@ same canonical owner; separately bundling contracts into each command breaks
 brands. Keep current types/import-only command profiles until additional export
 conditions are qualified.
 
+For an existing optional profile, `privateWorkspaces.optionalModules` maps
+explicit private export routes to their existing optional-owned dist paths.
+The optional loader validates the private manifest and paired dist exports before
+copying implementations. Shared imports retain the established optional-host
+bindings or an explicitly admitted `publicAlias`; aliases must resolve through
+the existing public export map. Optional peers must match the parent's admitted
+range and metadata. These maps preserve distribution boundaries and do not
+register commands or publish private workspaces.
+
 Zero dependencies means zero external runtime dependencies throughout the shipped
 JS and asset graph, including transitive engines. First-party private code may be
 bundled; an empty dependencies object alone proves nothing. Development tools and
@@ -184,3 +193,7 @@ including the three failed probes, without changing their deadlines.
 Concurrent host load was observed, but a causal diagnosis and successful full
 verification remain unresolved and block completion. No unrelated runtime code
 or deadlines were changed. No commit, remote delivery or release was performed.
+
+An admitted `portable: true` private profile builds its canonical runtime with
+the parent Buffer shim for browser and workerd consumers. Engines may use this
+profile too; optional-owned modules remain in their existing opt-in artifact.

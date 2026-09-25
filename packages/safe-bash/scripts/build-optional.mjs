@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import path from "node:path";
 import { builtinModules } from "node:module";
 import { createHash } from "node:crypto";
+import { isDeepStrictEqual } from "node:util";
 import glob from "fast-glob";
 import ts from "typescript";
 import { rewriteModuleSpecifiers } from "../../../scripts/package-safe.mjs";
@@ -160,6 +161,38 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
   }
   for (const filename of observed.keys()) regular(filename);
   const emitted = new Set(compilation.emittedFiles);
+  const profiles = coreManifest.poeCode?.integration?.privateWorkspaces ?? {};
+  const implementations = new Map();
+  const implementation = name => {
+    if (implementations.has(name)) return implementations.get(name);
+    const profile = profiles[name];
+    if (!profile || name.includes("/") || !name.startsWith("safe-bash-") || coreManifest.devDependencies?.[name] !== "*") throw new Error(`Unadmitted private implementation: ${name}`);
+    const directory = path.join(root, "packages", name);
+    const manifest = json(path.join(directory, "package.json"));
+    if (manifest.name !== name || manifest.private !== true || manifest.type !== "module" || manifest.version !== profile.version ||
+        !isDeepStrictEqual(manifest.dependencies ?? {}, profile.dependencies) || !isDeepStrictEqual(manifest.devDependencies ?? {}, profile.devDependencies) ||
+        !isDeepStrictEqual(manifest.peerDependencies ?? {}, profile.peerDependencies ?? {}) || !isDeepStrictEqual(manifest.peerDependenciesMeta ?? {}, profile.peerDependenciesMeta ?? {}) ||
+        Object.keys(manifest.optionalDependencies ?? {}).length || Object.entries(manifest.peerDependencies ?? {}).some(([peer, range]) => manifest.peerDependenciesMeta?.[peer]?.optional !== true || coreManifest.peerDependencies?.[peer] !== range || coreManifest.peerDependenciesMeta?.[peer]?.optional !== true)) throw new Error(`Private optional profile mismatch: ${name}`);
+    const value = { directory, manifest, profile };
+    implementations.set(name, value);
+    return value;
+  };
+  const privateRoute = (name, route, declaration) => {
+    const owner = implementation(name);
+    const pair = owner.manifest.exports?.[route];
+    if (typeof pair?.import !== "string" || !pair.import.startsWith("./dist/") || pair.types !== pair.import.slice(0, -3) + ".d.ts" || Object.keys(pair).some(key => key !== "types" && key !== "import")) throw new Error(`Invalid private optional route: ${name}${route}`);
+    const source = path.resolve(owner.directory, declaration ? pair.types : pair.import);
+    if (!below(path.join(owner.directory, "dist"), source)) throw new Error(`Private optional route escapes dist: ${name}${route}`);
+    return { owner, source };
+  };
+  const optionalSource = (filename, declaration) => {
+    for (const [name, profile] of Object.entries(profiles)) for (const [route, target] of Object.entries(profile.optionalModules ?? {})) {
+      if (typeof target !== "string" || !target.startsWith("./dist/") || !target.endsWith(".js")) throw new Error(`Invalid optional module target: ${name}`);
+      const destination = path.resolve(core, declaration ? declarationTarget(target) : target);
+      if (!below(dist, destination) || !optionalOwned(destination)) throw new Error(`Private optional module must retain optional ownership: ${target}`);
+      if (destination === filename) return { ...privateRoute(name, route, declaration), name };
+    }
+  };
   const publicImports = new Set();
   const requirePeer = specifier => {
     const name = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
@@ -213,25 +246,72 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
   };
   const pending = roots.map(name => ({ filename: path.join(dist, name), asset: false }));
   const selected = new Map();
+  const privateReference = (specifier, names, declaration) => {
+    const name = Object.keys(profiles).find(name => specifier === name || specifier.startsWith(name + "/"));
+    if (!name) return;
+    const profile = profiles[name];
+    const route = specifier === name ? "." : "." + specifier.slice(name.length);
+    if (profile.optionalModules?.[route]) {
+      const target = path.resolve(core, declaration ? declarationTarget(profile.optionalModules[route]) : profile.optionalModules[route]);
+      optionalSource(target, declaration);
+      pending.push({ filename: target, asset: false });
+      return target;
+    }
+    if (profile.publicAlias) {
+      const publicName = profile.publicAlias + specifier.slice(name.length);
+      if (!publicName.startsWith("@poe-platform/safe-bash/")) throw new Error(`Invalid private public alias: ${name}`);
+      const key = "." + publicName.slice("@poe-platform/safe-bash".length);
+      let resolved;
+      for (const route of routes(coreManifest, declaration)) {
+        const parts = route.key.split("*");
+        if (route.key === key) resolved = path.resolve(core, route.target);
+        else if (parts.length === 2 && key.startsWith(parts[0]) && key.endsWith(parts[1])) resolved = path.resolve(core, route.target.replace("*", key.slice(parts[0].length, key.length - parts[1].length)));
+      }
+      if (!resolved || optionalOwned(resolved) || publicRoute(coreManifest, core, resolved, declaration) === undefined) throw new Error(`Unexported private public alias: ${publicName}`);
+      return requirePeer(publicName);
+    }
+    const host = path.resolve(core, coreManifest.exports?.["./optional-host"]?.[declaration ? "types" : "import"] ?? "");
+    for (const edge of moduleEdges(host, regular(host).toString()).edges) {
+      if (!edge.specifier.startsWith(".")) continue;
+      const target = declaration ? declarationTarget(path.resolve(path.dirname(host), edge.specifier)) : path.resolve(path.dirname(host), edge.specifier);
+      if (moduleEdges(target, regular(target).toString()).edges.some(reference => reference.specifier === specifier) && supportBinding(target, names, declaration)) return requirePeer("@poe-platform/safe-bash/optional-host");
+    }
+    throw new Error(`Unmapped private optional reference: ${specifier}`);
+  };
   while (pending.length) {
     const { filename, asset } = pending.pop();
     if (selected.has(filename)) continue;
     if (!below(dist, filename) || !optionalOwned(filename)) throw new Error(`Not optional-owned: ${filename}`);
     if (emitted.has(filename) && (filename.endsWith(".js.map") || filename.endsWith(".d.ts.map"))) throw new Error(`Compiler map assets are not published: ${filename}`);
     const module = filename.endsWith(".js") || filename.endsWith(".d.ts");
-    if (module && !emitted.has(filename)) throw new Error(`Not in successful compiler output: ${filename}`);
+    const declaration = filename.endsWith(".d.ts");
+    const privateInput = module && optionalSource(filename, declaration);
+    if (module && !emitted.has(filename) && !privateInput) throw new Error(`Not in successful compiler output: ${filename}`);
     if (!module && !asset) throw new Error(`Unsupported module target: ${filename}`);
     const source = !module && !emitted.has(filename) ? path.join(parsed.options.rootDir, path.relative(dist, filename)) : filename;
-    let contents = regular(source);
+    let contents = regular(privateInput ? privateInput.source : source);
     selected.set(filename, contents);
     if (!module) continue;
-    const declaration = filename.endsWith(".d.ts");
     const parsedModule = moduleEdges(filename, contents.toString());
     const replacements = new Map();
     for (const edge of parsedModule.edges) {
-      const { specifier } = edge;
+      let { specifier } = edge;
+      if (privateInput && specifier.startsWith(".")) {
+        const target = declaration ? declarationTarget(path.resolve(path.dirname(privateInput.source), specifier)) : path.resolve(path.dirname(privateInput.source), specifier);
+        const route = Object.entries(privateInput.owner.manifest.exports).find(([, pair]) => path.resolve(privateInput.owner.directory, declaration ? pair.types : pair.import) === target)?.[0];
+        if (!route) throw new Error(`Unexported private optional dependency: ${specifier}`);
+        specifier = privateInput.name + (route === "." ? "" : route.slice(1));
+      }
       let replacement = specifier;
-      if (specifier.startsWith("./") || specifier.startsWith("../")) {
+      const privateTarget = privateReference(specifier, edge.names, declaration);
+      if (privateTarget) {
+        if (edge.asset) throw new Error(`Unsupported private optional asset: ${specifier}`);
+        if (below(dist, privateTarget)) {
+          replacement = path.relative(path.dirname(filename), privateTarget).split(path.sep).join("/");
+          if (declaration && replacement.endsWith(".d.ts")) replacement = replacement.slice(0, -5) + ".js";
+          if (!replacement.startsWith(".")) replacement = "./" + replacement;
+        } else replacement = privateTarget;
+      } else if (specifier.startsWith("./") || specifier.startsWith("../")) {
         let target = path.resolve(path.dirname(filename), specifier);
         if (declaration && !edge.asset) target = declarationTarget(target);
         if (!below(dist, target)) throw new Error(`Module escapes core output: ${specifier}`);
@@ -267,8 +347,8 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
           requirePeer(specifier);
         }
       }
-      if (replacements.has(specifier) && replacements.get(specifier) !== replacement) throw new Error(`Ambiguous module boundary: ${specifier}`);
-      replacements.set(specifier, replacement);
+      if (replacements.has(edge.specifier) && replacements.get(edge.specifier) !== replacement) throw new Error(`Ambiguous module boundary: ${edge.specifier}`);
+      replacements.set(edge.specifier, replacement);
     }
     contents = Buffer.from(rewriteModuleSpecifiers(filename, parsedModule.text, specifier => replacements.get(specifier) ?? specifier));
     selected.set(filename, contents);

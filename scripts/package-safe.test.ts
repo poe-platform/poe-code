@@ -295,6 +295,29 @@ it.each(["missing", "symlink", "excluded", "traversal", "outside-dist"])("refuse
   expect(volume.existsSync(`/output/safe-bash/dist/${name}/profile.bin`)).toBe(false);
 });
 
+it.each(["admitted", "drift", "required", "unknown"])("preserves only explicitly admitted parent optional peers: %s", async kind => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-peer-fixture";
+  const peers = { yaml: "2.9.0" };
+  const metadata = { yaml: { optional: true } };
+  const directory = `/repo/packages/${name}`;
+  volume.mkdirSync(directory + "/dist", { recursive: true });
+  volume.writeFileSync(directory + "/dist/profile.bin", "admitted");
+  volume.writeFileSync(directory + "/package.json", JSON.stringify({
+    name, private: true, type: "module", version: "0.0.1", dependencies: {}, devDependencies: {}, files: ["dist"],
+    peerDependencies: kind === "drift" ? { yaml: "0.0.0" } : kind === "unknown" ? { other: "2.9.0" } : peers,
+    peerDependenciesMeta: kind === "required" ? {} : metadata,
+  }));
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = { [name]: {
+    version: "0.0.1", dependencies: {}, devDependencies: {}, peerDependencies: peers,
+    peerDependenciesMeta: metadata, assets: ["./dist/profile.bin"],
+  } };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  if (kind === "admitted") await expect(packageSafeLibraries({ ...options, outDir: "/output" })).resolves.toBeDefined();
+  else await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("profile mismatch");
+});
+
 it("rejects declared assets whose private workspace is missing", async () => {
   const { volume, options } = optionalLeftovers();
   const manifest = structuredClone(bashManifest);

@@ -46,6 +46,18 @@
     "./process": {
       "types": "./dist/process.d.ts",
       "import": "./dist/process.js"
+    },
+    "./public-diagnostic": {
+      "types": "./dist/public-diagnostic.d.ts",
+      "import": "./dist/public-diagnostic.js"
+    },
+    "./yield": {
+      "types": "./dist/yield.d.ts",
+      "import": "./dist/yield.js"
+    },
+    "./filesystem-output-budget": {
+      "types": "./dist/filesystem-output-budget.d.ts",
+      "import": "./dist/filesystem-output-budget.js"
     }
   },
   "files": [

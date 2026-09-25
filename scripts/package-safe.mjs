@@ -271,7 +271,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       if (!profile || !pkg || workspace.dir !== workspaceName || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
           !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
           !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
-          Object.keys(pkg.peerDependencies ?? {}).length || Object.keys(pkg.optionalDependencies ?? {}).length) {
+          !isDeepStrictEqual(pkg.peerDependencies ?? {}, profile.peerDependencies ?? {}) ||
+          !isDeepStrictEqual(pkg.peerDependenciesMeta ?? {}, profile.peerDependenciesMeta ?? {}) ||
+          Object.entries(pkg.peerDependencies ?? {}).some(([peer, range]) =>
+            pkg.peerDependenciesMeta?.[peer]?.optional !== true || source.peerDependencies?.[peer] !== range || source.peerDependenciesMeta?.[peer]?.optional !== true) ||
+          Object.keys(pkg.optionalDependencies ?? {}).length) {
         throw new Error("Qualified private workspace profile mismatch: " + workspaceName);
       }
     };
@@ -325,6 +329,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       external.push(...canonical);
       const commands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, { alias, external });
       if (commands) recipes.push(commands);
+      const portableCommands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, { alias, external, portable: true });
+      if (portableCommands) recipes.push(portableCommands);
       if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
         const browser = resolveBrowserShellBuild(rootDir);
         recipes.push({ ...browser,

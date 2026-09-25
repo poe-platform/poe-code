@@ -1,0 +1,70 @@
+{
+  "name": "safe-bash-regex-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./ere/errors": {
+      "types": "./dist/ere/errors.d.ts",
+      "import": "./dist/ere/errors.js"
+    },
+    "./ere/limits": {
+      "types": "./dist/ere/limits.d.ts",
+      "import": "./dist/ere/limits.js"
+    },
+    "./ere/matcher": {
+      "types": "./dist/ere/matcher.d.ts",
+      "import": "./dist/ere/matcher.js"
+    },
+    "./ere/syntax": {
+      "types": "./dist/ere/syntax.d.ts",
+      "import": "./dist/ere/syntax.js"
+    },
+    "./ere/types": {
+      "types": "./dist/ere/types.d.ts",
+      "import": "./dist/ere/types.js"
+    },
+    "./ascii": {
+      "types": "./dist/ascii.d.ts",
+      "import": "./dist/ascii.js"
+    },
+    "./utf8": {
+      "types": "./dist/utf8.d.ts",
+      "import": "./dist/utf8.js"
+    },
+    "./text/regex": {
+      "types": "./dist/text/regex.d.ts",
+      "import": "./dist/text/regex.js"
+    },
+    "./text/replacement-buffer": {
+      "types": "./dist/text/replacement-buffer.d.ts",
+      "import": "./dist/text/replacement-buffer.js"
+    },
+    "./text/budget": {
+      "types": "./dist/text/budget.d.ts",
+      "import": "./dist/text/budget.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*"
+  }
+}

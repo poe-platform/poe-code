@@ -1,3 +1,4 @@
+import { pathOf } from "safe-bash-query-engine/path";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -5,7 +6,7 @@ import { inputRequirements } from "./portable-requirements.js";
 import { RecordBuffer } from "./record-buffer.js";
 import { gnuInformation } from "./gnu-information.js";
 import {
-  FsError, isAbsolutePath, readBytes, toByteSource, validatePath, writeBytes,
+  FsError, readBytes, toByteSource, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
 } from "../contracts/index.js";
 
@@ -106,14 +107,8 @@ export function requireOperands(operands: readonly string[], minimum = 1, maximu
   if (operands.length < minimum) throw new UsageError("missing operand");
   if (operands.length > maximum) throw new UsageError(`extra operand '${operands[maximum]}'`);
 }
+export { pathOf } from "safe-bash-query-engine/path";
 
-export function pathOf(context: Pick<CommandContext, "cwd">, path: string): string {
-  if (!path) throw new FsError("ENOENT", { path });
-  validatePath(path);
-  validatePath(context.cwd);
-  if (!isAbsolutePath(context.cwd)) throw new FsError("EINVAL", { path: context.cwd, message: "cwd must be absolute" });
-  return isAbsolutePath(path) ? path : `${context.cwd.replace(/\/$/u, "")}/${path}`;
-}
 
 export function codeOf(error: unknown): string | undefined {
   return error instanceof Error && "code" in error ? String(error.code) : undefined;

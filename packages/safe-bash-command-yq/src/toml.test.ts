@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { parseTomlDocument } from "../../src/commands/yq/toml.js";
-import { YqLedger } from "../../src/commands/yq/accounting.js";
-import { createYqQuerySession } from "../../src/commands/structured/query-core.js";
+import { parseTomlDocument } from "./toml.js";
+import { YqLedger } from "./accounting.js";
+import { createYqQuerySession } from "safe-bash-query-engine/query-core";
 
 async function parse(source: string, signal = new AbortController().signal) {
   const session = createYqQuerySession({ signal });

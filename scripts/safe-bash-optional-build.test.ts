@@ -15,6 +15,38 @@ const root = "/repo";
 const core = root + "/packages/safe-bash";
 const optional = core;
 
+it.each(["admitted", "drift", "source", "symlink", "alias"])("copies admitted private optional implementations while preserving public contracts: %s", async defect => {
+  const { volume, options } = fixture();
+  const name = "safe-bash-command-fixture";
+  const directory = root + "/packages/" + name;
+  volume.mkdirSync(directory + "/dist", { recursive: true });
+  volume.writeFileSync(directory + "/dist/index.js", 'import { commandRuntimeIdentity } from "safe-bash-contracts/command"; export const yesCommands = () => commandRuntimeIdentity;\n');
+  volume.writeFileSync(directory + "/dist/index.d.ts", 'import type { CommandDefinition } from "safe-bash-contracts/command"; export declare function yesCommands(): CommandDefinition;\n');
+  volume.writeFileSync(directory + "/package.json", JSON.stringify({
+    name, private: true, type: "module", version: defect === "drift" ? "0.0.2" : "0.0.1", dependencies: {}, devDependencies: {},
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  if (defect === "symlink") {
+    volume.renameSync(directory + "/dist/index.js", directory + "/dist/target.js");
+    volume.symlinkSync(directory + "/dist/target.js", directory + "/dist/index.js");
+  }
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync(core + "/dist/commands/yes/index." + suffix, `export * from "${name}";\n`);
+  const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());
+  manifest.devDependencies[name] = "*";
+  manifest.poeCode.integration.privateWorkspaces[name] = {
+    version: "0.0.1", dependencies: {}, devDependencies: {},
+    optionalModules: { ".": defect === "source" ? "./src/commands/yes/index.js" : "./dist/commands/yes/index.js" },
+  };
+  manifest.poeCode.integration.privateWorkspaces["safe-bash-contracts"].publicAlias = defect === "alias" ? "@poe-platform/safe-bash/hidden" : "@poe-platform/safe-bash/contracts";
+  volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
+  if (defect !== "admitted") await expect(buildOptionalPackage(options)).rejects.toThrow();
+  else {
+    await expect(buildOptionalPackage(options)).resolves.toMatchObject({ status: 0 });
+    expect(volume.readFileSync(core + "/dist/opt-in/commands/yes/index.js", "utf8")).toContain('@poe-platform/safe-bash/contracts/command');
+    expect(volume.readFileSync(core + "/dist/opt-in/commands/yes/index.d.ts", "utf8")).not.toContain('safe-bash-contracts');
+  }
+});
+
 function fixture() {
   const data: Record<string, string | Buffer> = {
     [core + "/package.json"]: JSON.stringify({ ...bashManifest, exports: { ...bashManifest.exports, "./optional-host": { types: "./dist/optional-host.d.ts", import: "./dist/optional-host.js" } } }),

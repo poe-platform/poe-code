@@ -1,1 +1,1 @@
-export class PublicDiagnostic extends Error {}
+export * from "safe-bash-contracts/public-diagnostic";

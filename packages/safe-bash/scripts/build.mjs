@@ -268,7 +268,14 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         assert.equal(implementation.type, "module", "private workspace must use ESM");
         assert.deepEqual(implementation.dependencies ?? {}, profile.dependencies, "private workspace runtime closure");
         assert.deepEqual(implementation.devDependencies ?? {}, profile.devDependencies, "private workspace build closure");
-        assert.ok(!Object.keys(implementation.peerDependencies ?? {}).length && !Object.keys(implementation.optionalDependencies ?? {}).length, "private workspace has no implicit dependency closure");
+        assert.deepEqual(implementation.peerDependencies ?? {}, profile.peerDependencies ?? {}, "private workspace peer closure");
+        assert.deepEqual(implementation.peerDependenciesMeta ?? {}, profile.peerDependenciesMeta ?? {}, "private workspace peer metadata");
+        for (const [peer, range] of Object.entries(implementation.peerDependencies ?? {})) {
+          assert.equal(implementation.peerDependenciesMeta?.[peer]?.optional, true, "private workspace peers must be optional");
+          assert.equal(manifest.peerDependencies?.[peer], range, "private workspace peer must match parent admission");
+          assert.equal(manifest.peerDependenciesMeta?.[peer]?.optional, true, "private workspace peer requires parent optional admission");
+        }
+        assert.ok(!Object.keys(implementation.optionalDependencies ?? {}).length, "private workspace has no implicit optional dependency closure");
         const routes = Object.entries(implementation.exports ?? {});
         assert.ok(routes.length > 0 && routes.length <= 32, "private workspace has bounded explicit exports");
         for (const [route, target] of routes) {

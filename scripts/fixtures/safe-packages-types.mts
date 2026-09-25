@@ -5,6 +5,7 @@ import "./safe-packages-htmlq-types.mjs";
 import "./safe-packages-fold-types.mjs";
 import "./safe-packages-csvcut-types.mjs";
 import "./safe-packages-csvgrep-types.mjs";
+import "./safe-packages-yq-types.mjs";
 import "./safe-packages-portable-search-types.mjs";
 import "./safe-packages-diff3-types.mjs";
 import { agentCommands, createAgentCommands, createBoundedRegexProvider, createZipCommand, createUnzipCommand, type AgentCommandsOptions, type ArchiveCommandsOptions, type CsplitCommandsOptions } from "@poe-platform/safe-bash";

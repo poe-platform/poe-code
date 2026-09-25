@@ -368,11 +368,12 @@ test("mkdir still passes mode and emits verbose output only for absent directori
   const result = await run("mkdir", ["-pv", "-m", "700", "reports/drafts", "new/deep"], { fs: current.fs });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "mkdir: created directory 'new'\nmkdir: created directory 'new/deep'\n");
+  assert.equal((await current.fs.stat("/work/new")).mode & 0o777, 0o755);
   assert.equal((await current.fs.stat("/work/new/deep")).mode & 0o777, 0o700);
   assert.equal((await current.fs.stat("/work/reports/drafts")).mode & 0o777, 0o755);
   assert.deepEqual(current.calls.map(call => call.options), [
     { recursive: true, signal: result.context.signal },
-    { recursive: true, signal: result.context.signal },
+    { recursive: true, mode: 0o755, signal: result.context.signal },
     { recursive: true, mode: 0o700, signal: result.context.signal },
   ]);
 });

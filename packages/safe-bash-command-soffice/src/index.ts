@@ -214,7 +214,7 @@ function parseXlsxRows(zipBytes: Uint8Array): string[][] {
   const rows: string[][] = [];
   for (const rowMatch of sheetXml.matchAll(/<row\b[\s\S]*?<\/row>/g)) {
     const rowCells: string[] = [];
-    for (const cellMatch of rowMatch[0].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)) {
+    for (const cellMatch of rowMatch[0].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
       const attrs = cellMatch[1] ?? "";
       const body = cellMatch[2] ?? "";
       const refMatch = /\br="([A-Z]+)\d+"/i.exec(attrs);
@@ -227,6 +227,10 @@ function parseXlsxRows(zipBytes: Uint8Array): string[][] {
         while (rowCells.length < targetCol) {
           rowCells.push("");
         }
+      }
+      if (cellMatch[2] === undefined) {
+        rowCells.push("");
+        continue;
       }
       const typeMatch = /\bt="([^"]+)"/.exec(attrs);
       const cellType = typeMatch?.[1] ?? "n";
@@ -438,17 +442,21 @@ function formatStarCalcCsv(rows: readonly string[][], filterOptions?: string): U
   return new TextEncoder().encode(lines.join("\n") + "\n");
 }
 
+function escapeHtmlText(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 function renderBlocksToHtml(blocks: readonly DocBlock[], title = "Document"): Uint8Array {
-  let html = `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${title}</title></head><body>\n`;
+  let html = `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${escapeHtmlText(title)}</title></head><body>\n`;
   for (const b of blocks) {
     if (b.kind === "heading") {
-      html += `<h1>${b.text ?? ""}</h1>\n`;
+      html += `<h1>${escapeHtmlText(b.text ?? "")}</h1>\n`;
     } else if (b.kind === "paragraph") {
-      html += `<p>${b.text ?? ""}</p>\n`;
+      html += `<p>${escapeHtmlText(b.text ?? "")}</p>\n`;
     } else if (b.kind === "table" && b.rows) {
       html += "<table>\n";
       for (const r of b.rows) {
-        html += `  <tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>\n`;
+        html += `  <tr>${r.map((c) => `<td>${escapeHtmlText(c)}</td>`).join("")}</tr>\n`;
       }
       html += "</table>\n";
     }
@@ -787,7 +795,7 @@ export async function runSofficeCli(
           ? { kind: "heading", text: l.slice(2).trim() }
           : { kind: "paragraph", text: l }
       );
-      outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : inputBytes;
+      outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
     }
 
     if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {

@@ -278,4 +278,28 @@ describe("safe-bash-command-soffice", () => {
     assert.equal(docxCat.exitCode, 0);
     assert.match(docxCat.stdout, /Alpha\s+Beta\s+Gamma — Delta/);
   });
+  it("handles self-closing XLSX cells, escapes HTML in renderBlocksToHtml, and converts text/markdown to HTML (issue 1032)", async () => {
+    const xlsxZip = createStoredZipArchive({
+      "xl/sharedStrings.xml": new TextEncoder().encode(`<?xml version="1.0"?><sst><si><t>Hello World</t></si></sst>`),
+      "xl/worksheets/sheet1.xml": new TextEncoder().encode(`<?xml version="1.0"?><worksheet><sheetData><row r="1"><c r="A1"/><c r="B1" t="s"><v>0</v></c></row></sheetData></worksheet>`)
+    });
+    const docxZip = createStoredZipArchive({
+      "word/document.xml": new TextEncoder().encode(`<?xml version="1.0"?><w:document><w:body><w:p><w:r><w:t>1 &lt; 2 &amp; 3 &gt; 0</w:t></w:r></w:p></w:body></w:document>`)
+    });
+    const files = new Map<string, Uint8Array>([
+      ["test.xlsx", xlsxZip],
+      ["doc.docx", docxZip],
+      ["note.txt", new TextEncoder().encode("# Title\n\nBody <text>\n")]
+    ]);
+    await runSofficeCli(["--headless", "--convert-to", "csv", "test.xlsx"], files, "/");
+    assert.equal(new TextDecoder().decode(files.get("/test.csv")), ",Hello World\n");
+
+    await runSofficeCli(["--headless", "--convert-to", "html", "doc.docx"], files, "/");
+    assert.match(new TextDecoder().decode(files.get("/doc.html")), /<p>1 &lt; 2 &amp; 3 &gt; 0<\/p>/);
+
+    await runSofficeCli(["--headless", "--convert-to", "html", "note.txt"], files, "/");
+    const noteHtml = new TextDecoder().decode(files.get("/note.html"));
+    assert.match(noteHtml, /<h1>Title<\/h1>/);
+    assert.match(noteHtml, /<p>Body &lt;text&gt;<\/p>/);
+  });
 });

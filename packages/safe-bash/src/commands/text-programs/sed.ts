@@ -546,9 +546,11 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       status = 0;
       for (let pc = 0; pc < program.length;) {
         budget.step();
-        const pendingCheck = budget.checkpointSync();
-        if (pendingCheck) await pendingCheck;
         const instruction = program[pc]!;
+        if (number === 1 || (number & 31) === 0 || instruction.kind === "b" || instruction.kind === "t" || instruction.kind === "T" || instruction.kind === "D") {
+          const pendingCheck = budget.checkpointSync();
+          if (pendingCheck) await pendingCheck;
+        }
         let selected = true;
         let ending = false;
         if (instruction.first) {

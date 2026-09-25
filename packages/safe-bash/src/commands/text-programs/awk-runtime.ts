@@ -1061,9 +1061,14 @@ export class AwkRuntime {
     return numeric(result);
   }
 
+  private recordChecks = 0;
+
   private executeSync(statement: Statement): void | Promise<void> {
     if (!this.inspection) {
-      const p = this.budget.checkpointSync();
+      const count = ++this.recordChecks;
+      const p = (count <= 2 || (count & 31) === 0 || this.phase !== "record")
+        ? this.budget.checkpointSync()
+        : undefined;
       if (!p) {
         return this.executeSyncBody(statement);
       } else return this.executeAfterCheckpoint(p, statement);
@@ -1080,7 +1085,15 @@ export class AwkRuntime {
     if (statement.kind === "block") {
       this.budget.step();
       for (let i = 0; i < statement.body.length; i++) {
-        const res = this.executeSync(statement.body[i]!);
+        const child = statement.body[i]!;
+        let res: void | Promise<void>;
+        if (child.kind === "expression" && !this.inspection) {
+          this.budget.step();
+          const val = this.evaluate(child.expression);
+          res = val instanceof Promise ? this.ignorePromiseValue(val) : undefined;
+        } else {
+          res = this.executeSync(child);
+        }
         if (res instanceof Promise) {
           return this.executeBlockRemainder(statement.body, i + 1, res);
         }

@@ -684,8 +684,6 @@ export class Pattern {
     }
     if (found < 0) return undefined;
     if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-    const endCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (endCheck) return this.finishLiteralAfterCheck(endCheck, found, len, budget.maxBufferBytes, groups);
     return { start: found, end: found + len, groups };
   }
 
@@ -738,20 +736,23 @@ export class Pattern {
     const len = found >= 0 ? matchEnd - found : 0;
     const stepCount = positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0);
     budget.step(stepCount);
-    const finish = (): Match | undefined => {
-      if (found < 0) return undefined;
-      if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-      const full = text.slice(found, matchEnd);
-      const groups = captured ? [full, text.slice(groupStart, groupEnd)] : [full];
-      return { start: found, end: matchEnd, groups };
-    };
     if (stepCount >= 64) {
       const midCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-      if (midCheck) return midCheck.then(finish);
+      if (midCheck) {
+        return midCheck.then(() => {
+          if (found < 0) return undefined;
+          if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+          const full = text.slice(found, matchEnd);
+          const groups = captured ? [full, text.slice(groupStart, groupEnd)] : [full];
+          return { start: found, end: matchEnd, groups };
+        });
+      }
     }
-    const endCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (endCheck) return endCheck.then(finish);
-    return finish();
+    if (found < 0) return undefined;
+    if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    const full = text.slice(found, matchEnd);
+    const groups = captured ? [full, text.slice(groupStart, groupEnd)] : [full];
+    return { start: found, end: matchEnd, groups };
   }
 
   async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Promise<Match | undefined> {
@@ -1231,8 +1232,6 @@ export function trySubstituteSync(
   syntax: ReplacementSyntax = "sed",
 ): { text: string; count: number } | Promise<{ text: string; count: number }> {
   if (pattern.canFindSync() && text.length <= 4096 && replacement.length <= 256) {
-    const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (check) return substituteAfterCheck(check, text, pattern, replacement, budget, global, occurrence, syntax);
     let search = 0;
     let consumed = 0;
     let previousEnd = -1;
@@ -1280,15 +1279,11 @@ export function trySubstituteSync(
     } else {
       out = budget.check(text);
     }
-    const postCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (postCheck) return resolveSubAfterCheck(postCheck, out, count);
     SYNC_SUB_RESULT.text = out;
     SYNC_SUB_RESULT.count = count;
     return SYNC_SUB_RESULT;
   }
   if (!global && occurrence === 1 && !replacement.includes("&") && !replacement.includes("\\")) {
-    const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (check) return check.then(() => substitute(text, pattern, replacement, budget, global, occurrence, syntax));
     budget.step();
     const matchOrPromise = pattern.tryFindSync(text, budget, 0);
     if (matchOrPromise instanceof Promise) {
@@ -1433,8 +1428,6 @@ export function trySubstitutePairSync(
   const sr1 = getSimpleReplacement(rep1, "sed");
   const sr2 = getSimpleReplacement(rep2, "sed");
   if (!sr1 || !sr2) return undefined;
-  const checkpoint = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
-  if (checkpoint) return checkpoint.then(RETURN_UNDEFINED);
   budget.step();
   if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return undefined;
   const e1 = PAIR_OFFSETS_1[1]!;
@@ -1498,8 +1491,6 @@ export function trySubstitutePairToBufferSync(
   const sr1 = getSimpleReplacement(rep1, "sed");
   const sr2 = getSimpleReplacement(rep2, "sed");
   if (!sr1 || !sr2) return -1;
-  const checkpoint = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
-  if (checkpoint) return checkpoint.then(RETURN_MINUS_ONE);
   budget.step();
   if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return -1;
   const e1 = PAIR_OFFSETS_1[1]!;

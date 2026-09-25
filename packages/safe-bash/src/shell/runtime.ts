@@ -1228,6 +1228,7 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
 
 class FastShellCommandContext {
   stdin: ByteSource;
+  stdinIsDefault?: boolean | undefined;
   stdout: ByteSink;
   stderr: ByteSink;
   descriptors: ReadonlyMap<number, Descriptor> | undefined;
@@ -1280,6 +1281,7 @@ class FastShellCommandContext {
     this.#scope = scope;
     this.#scopedSignal = signalIsScoped ? runtime.signal : undefined;
     this.stdin = io.stdin;
+    this.stdinIsDefault = io.stdinIsDefault;
     this.stdout = io.stdout;
     this.stderr = io.stderr;
     this.descriptors = io.descriptors;

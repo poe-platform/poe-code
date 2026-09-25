@@ -6,6 +6,8 @@ import type { ByteSource } from "../../src/contracts/index.js";
 import type { ShellExecOptions, ShellInvokeOptions } from "../../src/shell/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { createSearchCommands } from "../../src/commands/search/index.js";
+import { Shell, MemoryFileSystem } from "../../src/core.js";
+import { agentCommands } from "../../src/plugins/index.js";
 import { setup } from "./helpers.js";
 
 function originSetup() {
@@ -198,7 +200,7 @@ test("stdin origin: forwarding changed clones requires explicit invocation optio
   assert.equal(result.stdout, "true\nfalse\n");
 });
 
-for (const [source, options, expectedCode, expectedOutput] of [
+for (const registry of ["custom", "agent"] as const) for (const [source, options, expectedCode, expectedOutput] of [
   ["rg match", {}, 0, "matched:match\n"],
   ["rg match", { stdin: "" }, 1, ""],
   ["rg match", { stdin: new Uint8Array() }, 1, ""],
@@ -217,9 +219,18 @@ for (const [source, options, expectedCode, expectedOutput] of [
   ["printf '' | env rg match", {}, 1, ""],
   ["printf '' | rg match matched", {}, 0, "match\n"],
 ] satisfies [string, ShellExecOptions, number, string][]) {
-  test(`stdin origin: rg integration ${source} supplied=${options.stdin !== undefined}`, async () => {
-    const { shell, fs, commands } = setup();
-    for (const command of [...createStandardCommands({ regexExecutor: createNodeRegexProvider() }), ...createSearchCommands({ regexExecutor: createNodeRegexProvider() })]) commands.register(command);
+  test(`stdin origin: rg integration ${source} supplied=${options.stdin !== undefined} registry=${registry}`, async context => {
+    let shell: Shell;
+    let fs: MemoryFileSystem;
+    if (registry === "agent") {
+      fs = new MemoryFileSystem();
+      shell = new Shell({ fs }).use(agentCommands());
+    } else {
+      const fixture = setup();
+      ({ shell, fs } = fixture);
+      for (const command of [...createStandardCommands({ regexExecutor: createNodeRegexProvider() }), ...createSearchCommands({ regexExecutor: createNodeRegexProvider() })]) fixture.commands.register(command);
+    }
+    context.after(() => shell.dispose());
     await fs.writeFile("/matched", new TextEncoder().encode("match\n"));
     await fs.writeFile("/empty", new Uint8Array());
     await fs.mkdir("/.patterns");

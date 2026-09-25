@@ -15,6 +15,31 @@ function deferred<Value = void>() {
 const turn = () => new Promise<void>((resolve) => setImmediate(resolve));
 const delay = () => new Promise<void>((resolve) => setTimeout(resolve, 15));
 
+test("a public cleanup promise marker cannot bypass its drain or failure", async () => {
+  const scope = new InvocationScope();
+  const gate = deferred();
+  const pending = Object.defineProperty(gate.promise, Symbol.for("safe-bash.syncResolved"), { value: true });
+  // Observe the test's promise independently so a broken drain cannot leak a rejection.
+  void pending.catch(() => {});
+  let finalized = false;
+  let settled = false;
+  scope.register(() => pending);
+  scope.registerFinalizer(() => { finalized = true; });
+  const closing = scope.close();
+  void closing.then(() => { settled = true; });
+  try {
+    await Promise.resolve();
+    assert.equal(settled, false);
+    assert.equal(finalized, false);
+  } finally {
+    gate.reject(undefined);
+    await closing;
+  }
+  assert.equal(finalized, true);
+  assert.equal(settled, true);
+  assert.deepEqual(scope.failures, [undefined]);
+});
+
 for (const reentry of ["finalizer", "abort"] as const) test(`scope close publishes one drain before ${reentry} reentry`, async () => {
   const scope = new InvocationScope();
   const gate = deferred();

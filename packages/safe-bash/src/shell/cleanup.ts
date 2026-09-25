@@ -157,7 +157,8 @@ export class InvocationScope {
           this.#singleCallback = undefined;
           try {
             const res = cb();
-            if (res && !isSyncResolved(res)) {
+            // Public callbacks can return promises carrying arbitrary markers.
+            if (res && res !== resolvedVoid) {
               singleCbAsync = Promise.resolve(res).catch(error => { this.failures.push(error); });
             }
           } catch (error) {

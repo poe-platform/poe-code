@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as fs from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { consumerGroups, currentConsumerPaths, currentSourceConsumerGroups, negativeGroups } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { verifyInventory } from "../tests/plugins/qualified-current-release/inventory-check.mjs";
 import { verifyStagedTypeInputs } from "./typecheck-staged-inputs.mjs";

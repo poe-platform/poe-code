@@ -51,6 +51,27 @@ for (const fixture of cases) test(fixture.name, { timeout: 5000 }, async () => {
   assert.equal(result.stderr.length, 0);
 });
 
+test("synchronous grep flushes each batch before reading feedback-dependent input", { timeout: 5000 }, async () => {
+  const definition = createStandardCommands().find(entry => entry.name === "grep")!;
+  const chunks: Uint8Array[] = [];
+  let closed = false;
+  const source = (async function* () {
+    try {
+      yield Buffer.from("a\na\na\n");
+      assert.equal(Buffer.concat(chunks).toString(), "a\na\na\n");
+      yield Buffer.from("a\n");
+      assert.equal(Buffer.concat(chunks).toString(), "a\na\na\na\n");
+    } finally { closed = true; }
+  })();
+  const result = await run(definition, ["a", "-"], source, {
+    stdout: { async write(bytes) { await delay(1); chunks.push(bytes.slice()); } },
+  });
+  assert.equal(result.code, 0, result.stderr.toString());
+  assert.equal(result.stderr.length, 0);
+  assert.equal(Buffer.concat(chunks).toString(), "a\na\na\na\n");
+  assert.equal(closed, true);
+});
+
 for (const tool of ["grep", "rg"] as const) {
   test(`${tool} validation and fragment matching never construct host RegExp`, { timeout: 5000 }, async () => {
     const definition = command(tool);

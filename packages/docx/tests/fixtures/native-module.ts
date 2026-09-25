@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolve } from "import-meta-resolve";
 
 /** Compile a source fixture in memory so native-stack checks pay no TS loader startup. */
@@ -11,7 +11,7 @@ export async function nativeModule(source: string | URL): Promise<string> {
     bundle: true, write: false, platform: "node", format: "esm", target: "node22", packages: "external",
     plugins: [{ name: "fixture-file-urls", setup(builder) {
       builder.onResolve({ filter: /^file:/ }, args => ({ path: fileURLToPath(args.path) }));
-      builder.onResolve({ filter: /^[^./]/ }, args => ({ path: resolve(args.path, import.meta.url), external: true }));
+      builder.onResolve({ filter: /^[^./]/ }, args => ({ path: resolve(args.path, args.importer ? pathToFileURL(args.importer).href : import.meta.url), external: true }));
     } }]
   });
   return result.outputFiles[0]!.text;

@@ -278,20 +278,25 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
   });
 }
 
+const TR_CHARACTER_CLASSES: Readonly<Record<string, number[]>> = (() => {
+  const lower = Array.from({ length: 26 }, (_, offset) => 97 + offset);
+  const upper = Array.from({ length: 26 }, (_, offset) => 65 + offset);
+  const digit = Array.from({ length: 10 }, (_, offset) => 48 + offset);
+  const space = [9, 10, 11, 12, 13, 32];
+  const blank = [9, 32];
+  const cntrl = [...Array.from({ length: 32 }, (_, offset) => offset), 127];
+  const graph = Array.from({ length: 94 }, (_, offset) => 33 + offset);
+  const print = Array.from({ length: 95 }, (_, offset) => 32 + offset);
+  const alpha = [...upper, ...lower];
+  const alnum = [...digit, ...alpha];
+  const xdigit = [...digit, ...upper.slice(0, 6), ...lower.slice(0, 6)];
+  const punct = graph.filter(byte => !alnum.includes(byte));
+  return { lower, upper, digit, space, blank, cntrl, graph, print, alpha, alnum, xdigit, punct };
+})();
+const TR_CONTROLS: Readonly<Record<string, number>> = { a: 7, b: 8, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
+
 function characterSet(specification: string, repeatLength?: number, translatingSecond = false): { bytes: number[]; caseOffsets: Set<number>; endsWithClass: boolean } {
-  const classes: Record<string, number[]> = {
-    lower: Array.from({ length: 26 }, (_, offset) => 97 + offset),
-    upper: Array.from({ length: 26 }, (_, offset) => 65 + offset),
-    digit: Array.from({ length: 10 }, (_, offset) => 48 + offset),
-    space: [9, 10, 11, 12, 13, 32], blank: [9, 32],
-    cntrl: [...Array.from({ length: 32 }, (_, offset) => offset), 127],
-    graph: Array.from({ length: 94 }, (_, offset) => 33 + offset),
-    print: Array.from({ length: 95 }, (_, offset) => 32 + offset),
-  };
-  classes.alpha = [...classes.upper!, ...classes.lower!];
-  classes.alnum = [...classes.digit!, ...classes.alpha];
-  classes.xdigit = [...classes.digit!, ...classes.upper!.slice(0, 6), ...classes.lower!.slice(0, 6)];
-  classes.punct = classes.graph!.filter(byte => !classes.alnum!.includes(byte));
+  const classes = TR_CHARACTER_CLASSES;
   const tokens: { bytes: number[]; literal: boolean; repeat?: number; className?: string }[] = [];
   const readCharacter = (offset: number) => {
     if (specification[offset] === "\\") {
@@ -305,7 +310,7 @@ function characterSet(specification: string, repeatLength?: number, translatingS
         return { bytes: [Number.parseInt(specification.slice(start, end), 8)], end, literal: false };
       }
       // tr quotes unknown escapes; echo's stop-output escape has no meaning here.
-      const controls: Record<string, number> = { a: 7, b: 8, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
+      const controls = TR_CONTROLS;
       const character = String.fromCodePoint(specification.codePointAt(start)!);
       return { bytes: controls[next] === undefined ? [...encoder.encode(character)] : [controls[next]], end: start + character.length, literal: false };
     }

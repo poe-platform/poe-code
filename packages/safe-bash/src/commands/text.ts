@@ -139,11 +139,41 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
   return normalized;
 }
 
+const sharedCutOutBuffer = new Uint8Array(64 * 1024);
+let sharedCutOutInUse = false;
+
 class CutOutput {
-  readonly #buffer = new Uint8Array(64 * 1024);
+  readonly #buffer: Uint8Array;
+  readonly #ownsShared: boolean;
   #used = 0;
 
-  constructor(readonly context: CommandContext, readonly work: SortWork) {}
+  constructor(readonly context: CommandContext, readonly work: SortWork) {
+    if (!sharedCutOutInUse) {
+      sharedCutOutInUse = true;
+      this.#buffer = sharedCutOutBuffer;
+      this.#ownsShared = true;
+    } else {
+      this.#buffer = new Uint8Array(64 * 1024);
+      this.#ownsShared = false;
+    }
+  }
+
+  get remaining(): number {
+    return this.#buffer.length - this.#used;
+  }
+
+  writeRangeUncharged(source: Uint8Array, start: number, end: number): number {
+    const len = end - start;
+    const buf = this.#buffer;
+    let dst = this.#used;
+    for (let i = start; i < end; i++) buf[dst++] = source[i]!;
+    this.#used = dst;
+    return len;
+  }
+
+  writeByteUncharged(byte: number): void {
+    this.#buffer[this.#used++] = byte;
+  }
 
   write(bytes: Uint8Array): Promise<void> | undefined {
     if (bytes.length <= 4096 && this.#used + bytes.length < this.#buffer.length) {
@@ -199,9 +229,13 @@ class CutOutput {
 
   async flush(): Promise<void> {
     if (!this.#used) return;
-    const bytes = this.#buffer.subarray(0, this.#used);
+    const bytes = this.#buffer.slice(0, this.#used);
     this.#used = 0;
     await output(this.context, bytes);
+  }
+
+  release(): void {
+    if (this.#ownsShared) sharedCutOutInUse = false;
   }
 }
 
@@ -308,8 +342,12 @@ function asciiSlice(bytes: Uint8Array, start: number, end: number): string {
 }
 
 function parseNumericSync(bytes: Uint8Array, human = false): NumericValue {
-  const len = bytes.length;
-  let i = 0;
+  return parseNumericRangeSync(bytes, 0, bytes.length, human);
+}
+
+function parseNumericRangeSync(bytes: Uint8Array, startOffset: number, endOffset: number, human = false): NumericValue {
+  const len = endOffset;
+  let i = startOffset;
   while (i < len && (bytes[i] === 32 || bytes[i] === 9)) i++;
   let neg = false;
   if (i < len && bytes[i] === 45) { neg = true; i++; }
@@ -644,6 +682,82 @@ function keyBytesSync(line: Uint8Array, key: SortKey, separator: number | undefi
   return checkpoint ? resolveValueAfterCheckpoint(checkpoint, result) : result;
 }
 
+function keyNumericValueSync(
+  line: Uint8Array,
+  key: SortKey,
+  separator: number | undefined,
+  blanks: boolean,
+  work: SortWork,
+  human: boolean,
+): { value: NumericValue; keyLength: number } | undefined {
+  if (line.length > 1024) return undefined;
+  let fieldCount = 0;
+  if (separator !== undefined) {
+    let start = 0;
+    for (let offset = 0; offset <= line.length; offset++) {
+      if (offset === line.length || line[offset] === separator) {
+        syncFieldStarts[fieldCount] = start;
+        syncFieldEnds[fieldCount] = offset;
+        fieldCount++;
+        start = offset + 1;
+      }
+    }
+  } else {
+    let offset = 0;
+    while (offset < line.length) {
+      const leading = offset;
+      while (offset < line.length && (line[offset] === 32 || line[offset] === 9)) offset++;
+      const start = leading;
+      while (offset < line.length && line[offset] !== 32 && line[offset] !== 9) offset++;
+      syncFieldStarts[fieldCount] = start;
+      syncFieldEnds[fieldCount] = offset;
+      fieldCount++;
+    }
+  }
+  let extraCharge = line.length;
+  const inheritBlanks = key.flags.size === 0 && blanks;
+  const startIdx = key.start - 1;
+  let startOffset = line.length;
+  if (startIdx >= 0 && startIdx < fieldCount) {
+    startOffset = syncFieldStarts[startIdx]!;
+    const fEnd = syncFieldEnds[startIdx]!;
+    if (key.startBlanks || inheritBlanks) {
+      while (startOffset < fEnd && (line[startOffset] === 32 || line[startOffset] === 9)) {
+        extraCharge++;
+        startOffset++;
+      }
+    }
+  }
+  const start = startOffset + key.startCharacter - 1;
+  const lastIdx = key.end === undefined ? -1 : key.end - 1;
+  const hasLast = lastIdx >= 0 && lastIdx < fieldCount;
+  let end: number;
+  if (key.end === undefined || !hasLast) {
+    end = line.length;
+  } else if (key.endCharacter === undefined) {
+    end = syncFieldEnds[lastIdx]!;
+  } else {
+    let lastStart = syncFieldStarts[lastIdx]!;
+    const fEnd = syncFieldEnds[lastIdx]!;
+    if (key.endBlanks || inheritBlanks) {
+      while (lastStart < fEnd && (line[lastStart] === 32 || line[lastStart] === 9)) {
+        extraCharge++;
+        lastStart++;
+      }
+    }
+    end = Math.min(line.length, lastStart + key.endCharacter);
+  }
+  const sliceStart = Math.min(start, line.length);
+  const sliceEnd = Math.max(start, end);
+  const keyLength = sliceEnd - sliceStart;
+  const checkpoint = work.charge(extraCharge + keyLength);
+  if (checkpoint !== undefined) return undefined;
+  return {
+    value: parseNumericRangeSync(line, sliceStart, sliceEnd, human),
+    keyLength,
+  };
+}
+
 async function keyBytes(line: Uint8Array, key: SortKey, separator: number | undefined, blanks: boolean, work: SortWork): Promise<Uint8Array> {
   const fields: { start: number; end: number }[] = [];
   if (separator !== undefined) {
@@ -945,6 +1059,15 @@ export function textCommands(): CommandDefinition[] {
         const keyedNumericValue = (record: Uint8Array): NumericValue | Promise<NumericValue> => {
           const cached = keyedNumericValues.get(record);
           if (cached !== undefined) return cached;
+          const fastParsed = keyNumericValueSync(record, numericKey, separator, false, work, keyHuman);
+          if (fastParsed !== undefined) {
+            const charge = 6 * fastParsed.keyLength + 10;
+            if (keyedNumericValues.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
+              keyedNumericValues.set(record, fastParsed.value);
+              retainedKeyBytes += charge;
+            }
+            return fastParsed.value;
+          }
           const bytesOrPromise = keyBytesSync(record, numericKey, separator, false, work);
           if (!(bytesOrPromise instanceof Promise)) {
             const charge = 6 * bytesOrPromise.length + 10;
@@ -1036,7 +1159,27 @@ export function textCommands(): CommandDefinition[] {
       if (checking) return { exitCode };
       const ordered = parsed.flags.has("m") ? await mergeSortRuns(runs, compare, work) : await sortRecords(records, compare, work);
       let estBytes = 0;
-      for (let i = 0; i < ordered.length && estBytes < 64 * 1024; i++) estBytes += ordered[i]!.length + 1;
+      let allCounted = true;
+      for (let i = 0; i < ordered.length; i++) {
+        estBytes += ordered[i]!.length + 1;
+        if (estBytes >= 64 * 1024) { allCounted = false; break; }
+      }
+      const outPath = value(parsed, "o");
+      if (outPath === undefined && !parsed.flags.has("u") && allCounted) {
+        if (estBytes > 0) {
+          const outBuf = new Uint8Array(estBytes);
+          let used = 0;
+          for (let i = 0; i < ordered.length; i++) {
+            context.signal.throwIfAborted();
+            const rec = ordered[i]!;
+            outBuf.set(rec, used);
+            used += rec.length;
+            outBuf[used++] = delimiter;
+          }
+          await output(context, outBuf);
+        }
+        return { exitCode };
+      }
       const sortBufCap = Math.min(64 * 1024, Math.max(64, estBytes));
       const sorted = (async function* (): ByteSource {
         let previous: Uint8Array | undefined;
@@ -1182,13 +1325,15 @@ export function textCommands(): CommandDefinition[] {
       const outputDelimiterBytes = outputDelimiter === undefined ? separator : outputDelimiter.length === 0 ? Uint8Array.of(0) : encoder.encode(outputDelimiter);
       const writer = new CutOutput(context, work);
       let exitCode = 0;
+      try {
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
           try {
             const onlyDelimited = parsed.flags.has("s");
             const fastSingleByteField = mode === "f" && separator.length === 1;
             const sepByte = separator[0]!;
-            const processFastFieldRange = async (buf: Uint8Array, lineStart: number, lineEnd: number) => {
+            const outDelimLen = outputDelimiterBytes.length;
+            const processFastFieldRangeSlow = async (buf: Uint8Array, lineStart: number, lineEnd: number) => {
               context.signal.throwIfAborted();
               let boundary = buf.indexOf(sepByte, lineStart);
               if (boundary >= lineEnd) boundary = -1;
@@ -1228,6 +1373,46 @@ export function textCommands(): CommandDefinition[] {
               }
               const wd = writer.writeByte(recordDelimiter);
               if (wd) await wd;
+            };
+            const processFastFieldRange = (buf: Uint8Array, lineStart: number, lineEnd: number): Promise<void> | undefined => {
+              const lineLen = lineEnd - lineStart;
+              if (writer.remaining <= lineLen * (outDelimLen > 1 ? outDelimLen : 1) + 1) {
+                return processFastFieldRangeSlow(buf, lineStart, lineEnd);
+              }
+              context.signal.throwIfAborted();
+              let boundary = buf.indexOf(sepByte, lineStart);
+              if (boundary >= lineEnd) boundary = -1;
+              let totalCharge = boundary < 0 ? lineLen : boundary - lineStart + 1;
+              if (boundary < 0) {
+                if (onlyDelimited) return work.charge(totalCharge);
+                totalCharge += writer.writeRangeUncharged(buf, lineStart, lineEnd);
+              } else {
+                let cursor = 0;
+                let field = 1;
+                let start = lineStart;
+                let emitted = false;
+                while (true) {
+                  totalCharge += 1;
+                  while (cursor < ranges.length && field > ranges[cursor]!.end) cursor++;
+                  const included = cursor < ranges.length && field >= ranges[cursor]!.start;
+                  if (included !== complement) {
+                    if (emitted) {
+                      totalCharge += writer.writeRangeUncharged(outputDelimiterBytes, 0, outDelimLen);
+                    }
+                    totalCharge += writer.writeRangeUncharged(buf, start, boundary < 0 ? lineEnd : boundary);
+                    emitted = true;
+                  }
+                  field++;
+                  if (boundary < 0 || (!complement && cursor >= ranges.length)) break;
+                  start = boundary + 1;
+                  boundary = start <= lineEnd ? buf.indexOf(sepByte, start) : -1;
+                  if (boundary >= lineEnd) boundary = -1;
+                  totalCharge += boundary < 0 ? lineEnd - start : boundary - start + 1;
+                }
+              }
+              writer.writeByteUncharged(recordDelimiter);
+              totalCharge += 1;
+              return work.charge(totalCharge);
             };
             const processLineBytes = async (lineBytes: Uint8Array) => {
               context.signal.throwIfAborted();
@@ -1326,7 +1511,8 @@ export function textCommands(): CommandDefinition[] {
                   const offset = chunk.indexOf(recordDelimiter, start);
                   if (offset < 0) break;
                   if (fastSingleByteField && pending.size === 0 && offset - start <= 4096) {
-                    await processFastFieldRange(chunk, start, offset);
+                    const p = processFastFieldRange(chunk, start, offset);
+                    if (p) await p;
                   } else {
                     await processLineBytes(pending.finish(undefined, chunk, start, offset));
                   }
@@ -1337,7 +1523,8 @@ export function textCommands(): CommandDefinition[] {
               if (pending.size) {
                 const finalBytes = pending.finish();
                 if (fastSingleByteField && finalBytes.length <= 4096) {
-                  await processFastFieldRange(finalBytes, 0, finalBytes.length);
+                  const p = processFastFieldRange(finalBytes, 0, finalBytes.length);
+                  if (p) await p;
                 } else {
                   await processLineBytes(finalBytes);
                 }
@@ -1349,6 +1536,9 @@ export function textCommands(): CommandDefinition[] {
             await writer.flush();
           }
         } catch (error) { await diagnostic(context, error); exitCode = 1; }
+      }
+      } finally {
+        writer.release();
       }
       return { exitCode };
     }),

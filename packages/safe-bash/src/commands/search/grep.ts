@@ -2,7 +2,7 @@ import { FsError, toByteSource, type ByteSource, type CommandDefinition } from "
 import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
-import { trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
+import { reusableBatchRows, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
 import { grepFiles } from "./grep-files.js";
 
@@ -44,21 +44,26 @@ class PooledGrepLine implements GrepLine {
 const grepLinePool: PooledGrepLine[] = Array.from({ length: 128 }, () => new PooledGrepLine());
 const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
 trustedInputRows.add(EMPTY_GREP_ROWS);
+const sharedGrepOutBuffer = new Uint8Array(16 * 1024);
+let sharedGrepOutInUse = false;
 
-async function* grepLineBatches(
+async function forEachGrepLineBatch(
   source: ByteSource,
   separator: number,
   maxLineBytes: number,
   maxRecords: () => number,
   all = false,
-): AsyncGenerator<GrepLine[]> {
+  onBatch: (batch: GrepLine[]) => Promise<boolean> | boolean,
+): Promise<void> {
   const lineLimit = Math.min(internalBufferLimit, maxLineBytes);
   const pending = new RecordBuffer(lineLimit);
   const batch: GrepLine[] = [];
+  trustedInputRows.add(batch);
+  reusableBatchRows.add(batch);
   let bytes = 0;
   try {
     for await (const rawChunk of source) {
-      const chunk = Uint8Array.from(rawChunk);
+      const chunk = rawChunk;
       let start = 0;
       while (start < chunk.length) {
         const end = chunk.indexOf(separator, start);
@@ -94,9 +99,11 @@ async function* grepLineBatches(
           bytes + next - start > 64 * 1024 ||
           next - start > maxLineBytes
         ) {
-          yield batch;
+          const cont = onBatch(batch);
+          const keepGoing = cont instanceof Promise ? await cont : cont;
           batch.length = 0;
           bytes = 0;
+          if (!keepGoing) return;
         }
       }
       pending.append(chunk, start);
@@ -104,7 +111,10 @@ async function* grepLineBatches(
     if (pending.size) {
       batch.push({ bytes: pending.finish(), all, terminated: false });
     }
-    if (batch.length) yield batch;
+    if (batch.length) {
+      const cont = onBatch(batch);
+      if (cont instanceof Promise) await cont;
+    }
   } finally {
     pending.clear();
   }
@@ -284,11 +294,13 @@ inspect the resulting state before repeating the action.
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
       const delimiterBytes = encoder.encode(delimiter);
       const lineBuffered = parsed.flags.has("line-buffered") || parsed.flags.has("o");
+      const ownsSharedOut = !sharedGrepOutInUse;
+      if (ownsSharedOut) sharedGrepOutInUse = true;
       let outBuffer: Uint8Array | undefined;
       let outUsed = 0;
       const flushOut = async () => {
         if (!outBuffer || outUsed === 0) return;
-        const view = outBuffer.subarray(0, outUsed);
+        const view = outBuffer.slice(0, outUsed);
         outUsed = 0;
         await output(context, view);
       };
@@ -300,13 +312,14 @@ inspect the resulting state before repeating the action.
           await output(context, bytes);
           return;
         }
-        outBuffer ??= new Uint8Array(16 * 1024);
+        outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(16 * 1024);
         if (outUsed + bytes.length > outBuffer.length) {
           await flushOut();
         }
         outBuffer.set(bytes, outUsed);
         outUsed += bytes.length;
       };
+      try {
       const extractMatches = parsed.flags.has("o") && !["c", "q", "l", "L", "v"].some(flag => parsed.flags.has(flag));
       const displayLines = !["c", "q", "l", "L"].some(flag => parsed.flags.has(flag));
       const withContext = [...contextLengths.values()].some(length => length > 0) && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
@@ -338,14 +351,16 @@ inspect the resulting state before repeating the action.
         };
         try {
           const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, limits.maxFileBytes ?? Infinity);
-          records: if (maxCount > 0) for await (const batch of grepLineBatches(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches)) {
-            if (binaryFiles.mode === "without-match" && batch.some(line => line.bytes.includes(0))) {
-              count = 0;
-              break records;
-            }
-            trustedInputRows.add(batch);
-            const resOrPromise = session.runSync(descriptor, batch); const results = resOrPromise instanceof Promise ? await resOrPromise : resOrPromise;
-            for (let index = 0; index < batch.length; index++) {
+          let earlyExitZero = false;
+          const invertMatch = parsed.flags.has("v");
+          const isQuiet = parsed.flags.has("q");
+          const isListFiles = parsed.flags.has("l") || parsed.flags.has("L");
+          const isCountOnly = parsed.flags.has("c");
+          const isOnlyMatching = parsed.flags.has("o");
+          const canFastBufferLines = !isQuiet && !isListFiles && !isCountOnly && !withContext && !isOnlyMatching && !hasLinePrefix && !lineBuffered && binaryFiles.mode !== "without-match";
+          const processBatchSlow = async (batch: GrepLine[], resultsPromise?: Promise<readonly (readonly { start: number; end: number }[])[]>, startIdx = 0, precomputedResults?: readonly (readonly { start: number; end: number }[])[]): Promise<boolean> => {
+            const results = precomputedResults ?? await resultsPromise!;
+            for (let index = startIdx; index < batch.length; index++) {
               const line = batch[index]!;
               context.signal.throwIfAborted();
               number++;
@@ -353,12 +368,12 @@ inspect the resulting state before repeating the action.
               const curLineLen = line.searchEnd !== undefined ? line.searchEnd - line.start! : line.bytes.length;
               nextOffset += curLineLen + (line.terminated ? 1 : 0);
               const found = results[index]!;
-              const selected = count < maxCount && (found.length > 0) !== parsed.flags.has("v");
+              const selected = count < maxCount && (found.length > 0) !== invertMatch;
               if (!selected) {
                 if (remainingAfter > 0) {
                   await emitContext(line, number);
                   remainingAfter--;
-                  if (count >= maxCount && remainingAfter === 0) break records;
+                  if (count >= maxCount && remainingAfter === 0) return false;
                 } else if (before > 0) {
                   if (pending.size >= before) {
                     const oldest = pending.keys().next().value!;
@@ -374,9 +389,9 @@ inspect the resulting state before repeating the action.
               }
               count++;
               anySelected = true;
-              if (parsed.flags.has("q")) return { exitCode: 0 };
-              if (parsed.flags.has("l") || parsed.flags.has("L")) break records;
-              if (!parsed.flags.has("c")) {
+              if (isQuiet) { earlyExitZero = true; return false; }
+              if (isListFiles) return false;
+              if (!isCountOnly) {
                 if (withContext) {
                   const first = pending.keys().next().value ?? number;
                   if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await writeOut((value(parsed, "group-separator") ?? "--") + delimiter);
@@ -387,8 +402,8 @@ inspect the resulting state before repeating the action.
                   lastCovered = number;
                   emittedGroup = true;
                 }
-                if (parsed.flags.has("o")) {
-                  if (!parsed.flags.has("v")) {
+                if (isOnlyMatching) {
+                  if (!invertMatch) {
                     let end = -1;
                     for (const match of found) {
                       if (match.start === match.end || match.start < end) continue;
@@ -403,14 +418,14 @@ inspect the resulting state before repeating the action.
                     const lStart = line.start;
                     const lEnd = line.searchEnd;
                     const lLen = lEnd - lStart;
-                    outBuffer ??= new Uint8Array(16 * 1024);
+                    outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(16 * 1024);
                     if (outUsed + lLen + 1 <= outBuffer.length) {
                       const c = line.chunk;
                       let dst = outUsed;
                       for (let i = lStart; i < lEnd; i++) outBuffer[dst++] = c[i]!;
                       outBuffer[dst++] = delimiterByte;
                       outUsed = dst;
-                      if (count >= maxCount && remainingAfter === 0) break records;
+                      if (count >= maxCount && remainingAfter === 0) return false;
                       continue;
                     }
                   }
@@ -420,10 +435,57 @@ inspect the resulting state before repeating the action.
                   await writeOut(delimiterBytes);
                 }
               }
-              if (count >= maxCount && remainingAfter === 0) break records;
+              if (count >= maxCount && remainingAfter === 0) return false;
             }
-            await flushOut();
-          }
+            if (lineBuffered) await flushOut();
+            return true;
+          };
+          if (maxCount > 0) await forEachGrepLineBatch(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches, batch => {
+            if (binaryFiles.mode === "without-match" && batch.some(line => line.bytes.includes(0))) {
+              count = 0;
+              return false;
+            }
+            const resOrPromise = session.runSync(descriptor, batch);
+            if (resOrPromise instanceof Promise || !canFastBufferLines) {
+              return resOrPromise instanceof Promise
+                ? processBatchSlow(batch, resOrPromise)
+                : processBatchSlow(batch, undefined, 0, resOrPromise);
+            }
+            const results = resOrPromise;
+            for (let index = 0; index < batch.length; index++) {
+              const line = batch[index]!;
+              context.signal.throwIfAborted();
+              number++;
+              byteOffset = nextOffset;
+              const curLineLen = line.searchEnd !== undefined ? line.searchEnd - line.start! : line.bytes.length;
+              nextOffset += curLineLen + (line.terminated ? 1 : 0);
+              const found = results[index]!;
+              const selected = count < maxCount && (found.length > 0) !== invertMatch;
+              if (!selected) continue;
+              if (line.chunk !== undefined && line.start !== undefined && line.searchEnd !== undefined) {
+                const lStart = line.start;
+                const lEnd = line.searchEnd;
+                const lLen = lEnd - lStart;
+                outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(16 * 1024);
+                if (outUsed + lLen + 1 <= outBuffer.length) {
+                  count++;
+                  anySelected = true;
+                  const c = line.chunk;
+                  let dst = outUsed;
+                  for (let i = lStart; i < lEnd; i++) outBuffer[dst++] = c[i]!;
+                  outBuffer[dst++] = delimiterByte;
+                  outUsed = dst;
+                  if (count >= maxCount) return false;
+                  continue;
+                }
+              }
+              number--;
+              nextOffset = byteOffset;
+              return processBatchSlow(batch, undefined, index, results);
+            }
+            return true;
+          });
+          if (earlyExitZero) return { exitCode: 0 };
           await flushOut();
           if (parsed.flags.has("q")) continue;
           if (parsed.flags.has("l") && count > 0 || parsed.flags.has("L") && count === 0) {
@@ -438,6 +500,9 @@ inspect the resulting state before repeating the action.
         }
       }
       return { exitCode: failed ? 2 : anySelected ? 0 : 1 };
+      } finally {
+        if (ownsSharedOut) sharedGrepOutInUse = false;
+      }
     } catch (error) {
       context.signal.throwIfAborted();
       await diagnostic(context, error);

@@ -58,3 +58,14 @@ test("XPath positions are per parent and equality checks every child/text node",
     }
   } finally { await shell.dispose(); }
 });
+
+test("xmllint --xpath serializes the document root node for /., //., and /r/..", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(xmlCommands());
+  try {
+    const input = Buffer.from("<r><a>1</a></r>");
+    const docOut = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<r><a>1</a></r>\n\n";
+    assert.equal((await shell.exec("xmllint --xpath \"/.\" -", { stdin: input })).stdout, docOut);
+    assert.equal((await shell.exec("xmllint --xpath \"/r/..\" -", { stdin: input })).stdout, docOut);
+    assert.equal((await shell.exec("xmllint --xpath \"//.\" -", { stdin: input })).stdout, docOut + "<r><a>1</a></r>\n<a>1</a>\n1\n");
+  } finally { await shell.dispose(); }
+});

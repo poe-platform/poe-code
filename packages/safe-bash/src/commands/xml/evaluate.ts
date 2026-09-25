@@ -145,7 +145,14 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
   if (node.kind === "attribute") {
     yield ` ${node.value.name}="`; yield* escape(node.value.value, true, budget); yield '"'; return;
   }
-  if (node.kind === "document") return;
+  if (node.kind === "document") {
+    yield "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    for (const child of node.children) {
+      yield* serialize(child, budget);
+      yield "\n";
+    }
+    return;
+  }
   const pending: (XmlContent | string)[] = [node.value];
   while (pending.length) {
     await budget.tick();

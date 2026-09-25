@@ -84,7 +84,8 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
       }
       const second = await input.byte();
       if (first !== 31 || second !== 139) {
-        if (force && !members) {
+        // GNU forced stdout/test passes non-member bytes through after valid members too.
+        if (force) {
           yield Uint8Array.from(second === undefined ? [first] : [first, second]);
           for (;;) { const chunk = await input.chunk(); if (!chunk) return; yield chunk; }
         }

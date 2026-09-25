@@ -27,7 +27,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
     if (!node || typeof node !== 'object' || typeof node.role !== 'string' || Object.keys(node).some(key => !fields.has(key))) throw new Error('Invalid native JSON snapshot node');
     if (node.children !== undefined) {
       if (!Array.isArray(node.children)) throw new Error('Invalid native JSON snapshot children');
-      for (const child of node.children) pending.push(child);
+      for (let offset = 0; offset < node.children.length; offset += 1024) pending.push(...node.children.slice(offset, offset + 1024));
     }
     if (node.ref !== undefined) {
       if (!isPlaywrightSnapshotRef(node.ref)) throw new Error('Invalid native snapshot reference');
@@ -50,7 +50,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
       }
       const children = node.children ? await select(node.children, included) : undefined;
       if (included) output.push({ ...node, ...(children === undefined ? {} : { children }) });
-      else if (children) for (const child of children) output.push(child);
+      else if (children) for (let offset = 0; offset < children.length; offset += 1024) output.push(...children.slice(offset, offset + 1024));
     }
     return output;
   };

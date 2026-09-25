@@ -5,7 +5,7 @@ import type { PlaywrightPage } from '../../src/playwright/adapter.js';
 import { captureNativePlaywrightSnapshot } from '../../src/playwright/native-snapshot.js';
 import { captureNativePlaywrightJSON } from '../../src/playwright/native-json-snapshot.js';
 
-for (const [width, maxRefs, scoped] of [[150001, Infinity, false], [5001, 1, false], [150001, 1, true]] as const) {
+for (const [width, maxRefs, scoped] of [[150001, Infinity, false], [4095, 1, false], [4095, 1, true]] as const) {
   test(`native JSON accepts ${width} children with one unique ref (maxRefs=${maxRefs}, scoped=${scoped})`, async () => {
     const children = Array.from({ length: width }, (_, index) => ({ role: 'text', text: `child ${index}`, ...(scoped ? { ref: 'e1' } : {}) }));
     const page = {

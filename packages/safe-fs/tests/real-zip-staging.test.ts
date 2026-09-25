@@ -250,3 +250,21 @@ for (const reason of [false, null, new Error("publication cancelled")]) it(`Real
     await expect(fs.lstat("/work/output")).rejects.toMatchObject({ code: "ENOENT" });
   } finally { await fs.removeStagedFile(receipt); }
 });
+
+it("aligns staged symlink self-publication error precedence across Memory and Real (#1103)", async () => {
+  const memory = createMemoryFileSystem();
+  vol.mkdirSync("/root", { recursive: true });
+  const real = new RealFileSystem("/root");
+  for (const fs of [memory, real]) {
+    await fs.mkdir("/work");
+    const parent = await fs.lstat("/work");
+    const staged = await fs.createStagedFile!("/work/.stage", "entry", { type: "symlink", target: "rel" }, { parent });
+    await expect(
+      fs.publishStagedFile!(staged, staged.file.path, {
+        parent: staged.directory.stat,
+        destination: staged.file.stat,
+      })
+    ).rejects.toMatchObject({ code: "EINVAL" });
+    await fs.removeStagedFile!(staged);
+  }
+});

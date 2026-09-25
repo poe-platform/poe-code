@@ -387,9 +387,9 @@ export class RealFileSystem implements FileSystem {
       this.expectStaging(paths.file, staging.file.stat);
       this.expectStaging(dirname(target), options.parent, true);
       const existing = this.expectStaging(target, options.destination);
-      if (existing && existing.type !== "file") throw new FsError("EAGAIN");
       if (existing && existing.dev === staging.file.stat.dev && existing.ino === staging.file.stat.ino
         || target === paths.file || target === paths.directory || dirname(target) === paths.directory) throw new FsError("EINVAL");
+      if (existing && existing.type !== "file") throw new FsError("EAGAIN");
       immediate.renameSync(paths.file, target);
     }, destination, true);
   }

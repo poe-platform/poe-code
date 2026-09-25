@@ -213,6 +213,124 @@ function smartcropAttention(
   return { x: bestX, y: bestY };
 }
 
+function fmaDouble(a: number, b: number, c: number): number {
+  const splitter = 134217729;
+  const p = a * b;
+  const ca = splitter * a;
+  const ah = ca - (ca - a);
+  const al = a - ah;
+  const cb = splitter * b;
+  const bh = cb - (cb - b);
+  const bl = b - bh;
+  const err = ((ah * bh - p) + ah * bl + al * bh) + al * bl;
+  return (p + c) + err;
+}
+
+function computeVipsNearestIndices2D(
+  srcW: number,
+  srcH: number,
+  dstW: number,
+  dstH: number
+): { readonly xs: Int32Array; readonly ys: Int32Array } {
+  let hscale = 1.0 / (srcW / dstW);
+  let vscale = 1.0 / (srcH / dstH);
+  const targetW = Math.trunc(fmaDouble(srcW, hscale, 0.5));
+  const targetH = Math.trunc(fmaDouble(srcH, vscale, 0.5));
+  const intHshrink = Math.max(1, Math.floor((srcW / targetW) / 2.0));
+  const intVshrink = Math.max(1, Math.floor((srcH / targetH) / 2.0));
+  let subW = srcW;
+  let subH = srcH;
+  let xshrink = 1;
+  let yshrink = 1;
+  if (intHshrink > 1 || intVshrink > 1) {
+    xshrink = intHshrink;
+    yshrink = intVshrink;
+    subW = Math.floor(srcW / xshrink);
+    subH = Math.floor(srcH / yshrink);
+    hscale *= xshrink;
+    vscale *= yshrink;
+  }
+  hscale = Math.max(hscale, 1.0 / subW);
+  vscale = Math.max(vscale, 1.0 / subH);
+
+  let remVscale = vscale;
+  const ys = new Int32Array(dstH);
+  if (vscale < 1.0) {
+    const vshrink = 1.0 / vscale;
+    const outH = Math.trunc(subH / vshrink + 0.5);
+    const extraPixels = fmaDouble(outH, vshrink, -subH);
+    const voffset = (extraPixels + 1.0) * 0.5 - 1.0;
+    let pos = fmaDouble(0.5, vshrink, -0.5) - voffset;
+    for (let y = 0; y < dstH; y++) {
+      const subIdx = Math.max(0, Math.min(subH - 1, Math.trunc(pos)));
+      ys[y] = subIdx * yshrink;
+      pos += vshrink;
+    }
+    remVscale = 1.0;
+  }
+
+  let remHscale = hscale;
+  const xs = new Int32Array(dstW);
+  if (hscale < 1.0) {
+    const hshrink = 1.0 / hscale;
+    const outW = Math.trunc(subW / hshrink + 0.5);
+    const extraPixels = fmaDouble(outW, hshrink, -subW);
+    const hoffset = (extraPixels + 1.0) * 0.5 - 1.0;
+    let pos = fmaDouble(0.5, hshrink, -0.5) - hoffset;
+    for (let x = 0; x < dstW; x++) {
+      const subIdx = Math.max(0, Math.min(subW - 1, Math.trunc(pos)));
+      xs[x] = subIdx * xshrink;
+      pos += hshrink;
+    }
+    remHscale = 1.0;
+  }
+
+  if (remHscale > 1.0 || remVscale > 1.0) {
+    const isIntZoom = remHscale === Math.floor(remHscale) && remVscale === Math.floor(remVscale);
+    if (isIntZoom) {
+      if (hscale >= 1.0) {
+        const zoomX = Math.floor(remHscale);
+        for (let x = 0; x < dstW; x++) {
+          xs[x] = Math.max(0, Math.min(subW - 1, Math.floor(x / zoomX))) * xshrink;
+        }
+      }
+      if (vscale >= 1.0) {
+        const zoomY = Math.floor(remVscale);
+        for (let y = 0; y < dstH; y++) {
+          ys[y] = Math.max(0, Math.min(subH - 1, Math.floor(y / zoomY))) * yshrink;
+        }
+      }
+    } else {
+      const invDet = 1.0 / (remHscale * remVscale);
+      const ia = remVscale * invDet;
+      const id = remHscale * invDet;
+      if (hscale >= 1.0) {
+        let d9 = 1.0;
+        for (let x = 0; x < dstW; x++) {
+          const subIdx = Math.max(0, Math.min(subW - 1, Math.trunc(d9) - 1));
+          xs[x] = subIdx * xshrink;
+          d9 += ia;
+        }
+      }
+      if (vscale >= 1.0) {
+        for (let y = 0; y < dstH; y++) {
+          const d8 = y * id + 1.0;
+          const subIdx = Math.max(0, Math.min(subH - 1, Math.trunc(d8) - 1));
+          ys[y] = subIdx * yshrink;
+        }
+      }
+    }
+  } else {
+    if (hscale === 1.0) {
+      for (let x = 0; x < dstW; x++) xs[x] = Math.min(subW - 1, x) * xshrink;
+    }
+    if (vscale === 1.0) {
+      for (let y = 0; y < dstH; y++) ys[y] = Math.min(subH - 1, y) * yshrink;
+    }
+  }
+  return { xs, ys };
+}
+
 export function resampleRawBitmap(
   src: Uint8Array,
   srcW: number,
@@ -226,10 +344,11 @@ export function resampleRawBitmap(
   }
   if (kernel === "nearest") {
     const out = new Uint8Array(dstW * dstH * 4);
+    const { xs, ys } = computeVipsNearestIndices2D(srcW, srcH, dstW, dstH);
     for (let y = 0; y < dstH; y++) {
-      const sy = Math.min(srcH - 1, Math.floor(((y + 0.5) * srcH) / dstH));
+      const sy = ys[y]!;
       for (let x = 0; x < dstW; x++) {
-        const sx = Math.min(srcW - 1, Math.floor(((x + 0.5) * srcW) / dstW));
+        const sx = xs[x]!;
         const sIdx = (sy * srcW + sx) * 4;
         const dIdx = (y * dstW + x) * 4;
         out[dIdx] = src[sIdx]!;

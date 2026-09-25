@@ -2932,4 +2932,31 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Math.abs(st.entropy - 7.686896215425804)).toBeLessThan(1e-6);
     expect(Math.abs(st.sharpness - 4.765222009223374)).toBeLessThan(1e-5);
   });
+
+  it("matches libvips vips_resize / vips_affine / vips_reduce on resize({ kernel: 'nearest' }) (#1143)", async () => {
+    const w = 48, h = 36;
+    const buf = Buffer.alloc(w * h * 3);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 3;
+        buf[idx] = x;
+        buf[idx + 1] = y;
+        buf[idx + 2] = (x * 5 + y * 7) & 255;
+      }
+    }
+    // Upscale 48x36 -> 72x54 (scale = 1.5, vips_affine with idx=0)
+    const up = await sharp(buf, { raw: { width: w, height: h, channels: 3 } })
+      .resize(72, 54, { kernel: "nearest", fit: "fill" })
+      .raw()
+      .toBuffer();
+    const row0X = Array.from({ length: 12 }, (_, x) => up[x * 3]);
+    expect(row0X).toEqual([0, 0, 1, 1, 2, 3, 4, 4, 5, 6, 6, 7]);
+
+    // Downscale 48x36 -> 31x23 (vips_reduce with nearest)
+    const down = await sharp(buf, { raw: { width: w, height: h, channels: 3 } })
+      .resize(31, 23, { kernel: "nearest", fit: "fill" })
+      .raw()
+      .toBuffer();
+    expect(down[15 * 3]).toBe(23);
+  });
 });

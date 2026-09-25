@@ -659,7 +659,6 @@ export function annexBToAvcc(annexB: Uint8Array): {
   isKeyframe: boolean;
 } {
   const nalus: Uint8Array[] = [];
-  const i = 0;
   const len = annexB.byteLength;
 
   function findStartCode(from: number): { pos: number; scLen: number } | null {
@@ -684,8 +683,6 @@ export function annexBToAvcc(annexB: Uint8Array): {
     }
     current = next;
   }
-  void i;
-
   const sps: Uint8Array[] = [];
   const pps: Uint8Array[] = [];
   const writer = new BinaryWriter(annexB.byteLength + 16);

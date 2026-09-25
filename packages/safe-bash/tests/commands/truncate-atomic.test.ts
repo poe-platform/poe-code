@@ -11,7 +11,7 @@ function deferred() {
   return { promise, resolve };
 }
 
-function fixture() {
+function fixture(options: Parameters<typeof truncateCommand>[0] = {}) {
   const fs = new MemoryFileSystem();
   Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, retainedResize: false, atomicResize: true } });
   const calls: { path: string; operation: FileResizeOperation; options: FileResizeOptions }[] = [];
@@ -22,9 +22,21 @@ function fixture() {
     },
   });
   const shell = new Shell({ fs: backend, cwd: "/" });
-  shell.register(truncateCommand());
+  shell.register(truncateCommand(options));
   return { backend, calls, shell };
 }
+
+for (const [umask, expected] of [
+  [undefined, [0o600, 0o664]], [0o027, [0o640, 0o640]], [0, [0o666, 0o666]],
+] as const) test(`atomic resize creation masks: configured ${umask ?? "omitted"}`, async () => {
+  const { calls, shell } = fixture(umask === undefined ? {} : { umask });
+  try {
+    const result = await shell.exec("umask 0077; truncate -s0 /first; umask 0002; truncate -s0 /second");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(calls.map(call => call.options.mode), expected);
+  } finally { await shell.dispose(); }
+});
 
 for (const [argument, modifier, size] of [
   ["7", "absolute", 7n], ["+3", "relative", 3n], ["-9223372036854775808", "relative", -9223372036854775808n],

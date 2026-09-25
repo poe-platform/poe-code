@@ -323,6 +323,11 @@ function observedSize(stat: FileStat, label: string): bigint {
 
 export function truncateCommand(options: MetadataCommandsOptions = {}): CommandDefinition {
   const configured = metadataSettings(options);
+  const configuredUmask = options.umask === undefined ? undefined : configured.umask;
+  const creationMode = (context: CommandContext): number => {
+    const umask = configuredUmask ?? Reflect.get(context.fs, creationUmask);
+    return 0o666 & ~(typeof umask === "number" ? umask : configured.umask);
+  };
   const argumentLimit = Math.min(65536, configured.limits.maxArgumentBytes);
   const outputMaximum = Math.min(bufferLimit, configured.limits.maxOutputBytes);
   return { name: "truncate", filesystemRequirements: [{ id: "resize", description: "Resize writable VFS entries through retained handles or atomic operations", capabilities: [], anyOf: [["retainedResize"], ["atomicResize"]], mutates: true }], async execute(context) {
@@ -465,7 +470,7 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
               const operation: FileResizeOperation = { size: settings.size ?? reference!, modifier: settings.modifier,
                 ...(reference === undefined ? {} : { referenceSize: reference }), ioBlocks: settings.blocks };
               await root.acquire(signal => Reflect.apply(resize, filesystem, [path, operation,
-                { create: !settings.noCreate, mode: 0o666 & ~(typeof Reflect.get(context.fs, creationUmask) === "number" ? (Reflect.get(context.fs, creationUmask) as number) : configured.umask), signal }]), () => {});
+                { create: !settings.noCreate, mode: creationMode(context), signal }]), () => {});
               signal.throwIfAborted();
               continue;
             }
@@ -473,7 +478,7 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
             const openResizeFile = filesystem.openResizeFile;
             signal.throwIfAborted();
             if (typeof openResizeFile !== "function") throw new FsError("ENOTSUP");
-            handle = await root.acquire(signal => Reflect.apply(openResizeFile, filesystem, [path, { create: !settings.noCreate, mode: 0o666 & ~(typeof Reflect.get(context.fs, creationUmask) === "number" ? (Reflect.get(context.fs, creationUmask) as number) : configured.umask), signal }]), closeHandle);
+            handle = await root.acquire(signal => Reflect.apply(openResizeFile, filesystem, [path, { create: !settings.noCreate, mode: creationMode(context), signal }]), closeHandle);
           } catch (error) {
             signal.throwIfAborted();
             if (settings.noCreate && error instanceof FsError && error.code === "ENOENT") continue;

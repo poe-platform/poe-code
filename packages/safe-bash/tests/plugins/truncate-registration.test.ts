@@ -23,6 +23,19 @@ test("truncate support declaration accepts retained or atomic resizing and respe
 });
 
 for (const route of ["factory", "plugin"] as const) {
+  for (const [umask, expected] of [
+    [undefined, [0o600, 0o664]], [0o027, [0o640, 0o640]], [0, [0o666, 0o666]],
+  ] as const) test(`truncate ${route} creation masks: configured ${umask ?? "omitted"}`, async () => {
+    const fs = createMemoryFileSystem();
+    const options = { metadata: umask === undefined ? {} : { umask } };
+    const shell = new Shell({ fs, commands: new CommandRegistry(route === "factory" ? createAgentCommands(options) : []) });
+    if (route === "plugin") shell.use(agentCommands(options));
+    try {
+      const result = await shell.exec("umask 0077; truncate -s0 /first; umask 0002; truncate -s0 /second");
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""]);
+      assert.deepEqual([(await fs.stat("/first")).mode & 0o777, (await fs.stat("/second")).mode & 0o777], expected);
+    } finally { await shell.dispose(); }
+  });
   test(`truncate ${route} uses configured modes through direct, nested and VFS script workflows`, async () => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/existing", Uint8Array.of(1, 2, 3, 4, 5, 6), { mode: 0o620 });

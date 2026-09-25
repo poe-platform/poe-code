@@ -202,6 +202,22 @@ test("integer-like keys retain source/constructor order through output and updat
   assert.equal((await run(["-c", '{"10":10,"2":2}'])).stdout, '{"10":10,"2":2}\n');
 });
 
+test("compact constructors retain special and duplicate keys while reusing object storage", async () => {
+  for (const [filter, expected] of [
+    ['{a:1,"10":10,b:2}', '{"a":1,"10":10,"b":2}'],
+    ['{"__proto__":1,a:2}', '{"__proto__":1,"a":2}'],
+    ['{a:1,a:2}', '{"a":2}'],
+  ]) {
+    const result = await run(["-c", filter!], "null\nnull\n");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `${expected}\n${expected}\n`);
+  }
+  const result = await run(["-c", '{(.key):.value,tail:0}'],
+    '{"key":"10","value":1}\n{"key":"plain","value":2}\n{"key":"__proto__","value":3}\n');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, '{"10":1,"tail":0}\n{"plain":2,"tail":0}\n{"__proto__":3,"tail":0}\n');
+});
+
 for (const fixture of [
   { filter: ".[range(8):1]", output: ["x", ...Array<string>(7).fill("")], scans: 1 },
   { filter: ".[range(8):0]", output: Array<string>(8).fill(""), scans: 0 },

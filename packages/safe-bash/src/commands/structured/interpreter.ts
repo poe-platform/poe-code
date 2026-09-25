@@ -1,4 +1,4 @@
-import { Budget, copyObject, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
+import { Budget, copyObject, hasCustomKeyOrder, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
 import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast, BindingPattern } from "./parser.js";
@@ -177,6 +177,10 @@ export class Interpreter {
         let result = canScratch ? this.scratchObj : object();
         const sKeys = this.scratchKeys;
         let shapeMatch = canScratch && sKeys.length === ast.fields.length;
+        if (canScratch && !shapeMatch && sKeys.length > 0) {
+          result = this.scratchObj = object();
+          sKeys.length = 0;
+        }
         for (let i = 0; i < ast.fields.length; i++) {
           const f = ast.fields[i]!;
           const key = this.tryEvalSingle(f.key, input, depth + 1);
@@ -190,25 +194,19 @@ export class Interpreter {
             return NOT_SINGLE;
           }
           if (val === NOT_SINGLE) return NOT_SINGLE;
+          if (shapeMatch && sKeys[i] !== key) {
+            shapeMatch = false;
+            const fresh = object();
+            for (let k = 0; k < i; k++) put(fresh, sKeys[k]!, result[sKeys[k]!]!);
+            result = fresh;
+            if (canScratch) { this.scratchObj = result; sKeys.length = i; }
+          }
+          // The serializer consumes this ordered unique list, including special keys.
+          if (!shapeMatch && canScratch && !Object.hasOwn(result, key)) sKeys.push(key);
           const kFirst = key.charCodeAt(0);
-          if (kFirst >= 48 && kFirst <= 57 || key === "__proto__") {
-            if (shapeMatch) {
-              shapeMatch = false;
-              const fresh = object();
-              for (let k = 0; k < i; k++) fresh[sKeys[k]!] = result[sKeys[k]!]!;
-              result = fresh;
-              if (canScratch) { this.scratchObj = result; sKeys.length = 0; }
-            }
+          if (kFirst >= 48 && kFirst <= 57 || key === "__proto__" || hasCustomKeyOrder(result)) {
             put(result, key, val);
           } else {
-            if (shapeMatch && sKeys[i] !== key) {
-              shapeMatch = false;
-              const fresh = object();
-              for (let k = 0; k < i; k++) fresh[sKeys[k]!] = result[sKeys[k]!]!;
-              result = fresh;
-              if (canScratch) { this.scratchObj = result; sKeys.length = i; }
-            }
-            if (!shapeMatch && canScratch && sKeys.length === i) sKeys.push(key);
             result[key] = val;
           }
         }

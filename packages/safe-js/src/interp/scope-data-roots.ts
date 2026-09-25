@@ -39,6 +39,13 @@ type ScopeDataRoot =
   { readonly value: InterpreterValue } | { readonly values: readonly InterpreterValue[] } |
   { readonly arguments: DeferredArgumentsData } |
   { readonly deferred: DeferredFunctionData } | { readonly properties: DeferredPropertyData };
+type ScopeAccountingRoot = {
+  readonly value: InterpreterValue | undefined;
+  readonly values: readonly InterpreterValue[] | undefined;
+  readonly arguments: DeferredArgumentsData | undefined;
+  readonly deferred: DeferredFunctionData | undefined;
+  readonly properties: DeferredPropertyData | undefined;
+};
 const freeze = Object.freeze;
 const setPrototypeOf = Object.setPrototypeOf;
 const defineProperty = Reflect.defineProperty;
@@ -46,6 +53,11 @@ const hasOwn = Object.hasOwn;
 const records = new WeakMap<object, ScopeDataRoot>();
 const nativeGet: typeof records.get = WeakMap.prototype.get.bind(records);
 const nativeSet: typeof records.set = WeakMap.prototype.set.bind(records);
+// The hot walker reads one uniform layout. Keep the public discriminated
+// snapshots unchanged; both weak registries share their frozen payloads.
+const accountingRecords = new WeakMap<object, ScopeAccountingRoot>();
+export const readScopeAccountingRoot: typeof accountingRecords.get = WeakMap.prototype.get.bind(accountingRecords);
+const writeAccountingRoot: typeof accountingRecords.set = WeakMap.prototype.set.bind(accountingRecords);
 const freshRootDescriptor = {
   __proto__: null,
   value: undefined as InterpreterValue,
@@ -87,6 +99,13 @@ export const scopeDataRoots = Object.freeze({
         ? freeze(setPrototypeOf({ properties: freeze((data as Extract<ScopeDataRoot, {properties: unknown}>).properties) }, null))
       : freeze(setPrototypeOf({ values: freeze((data as { values: readonly InterpreterValue[] }).values) }, null));
     nativeSet(root, snapshot);
+    writeAccountingRoot(root, freeze(setPrototypeOf({
+      value: "value" in snapshot ? snapshot.value : undefined,
+      values: "values" in snapshot ? snapshot.values : undefined,
+      arguments: "arguments" in snapshot ? snapshot.arguments : undefined,
+      deferred: "deferred" in snapshot ? snapshot.deferred : undefined,
+      properties: "properties" in snapshot ? snapshot.properties : undefined
+    }, null)));
   }
 });
 

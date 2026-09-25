@@ -5,7 +5,7 @@ import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
-import { getDeferredMaterializationRevision, scopeDataRoots, type DeferredArgumentsData, type DeferredFunctionData } from "./scope-data-roots.js";
+import { getDeferredMaterializationRevision, readScopeAccountingRoot, type DeferredArgumentsData, type DeferredFunctionData } from "./scope-data-roots.js";
 import { getGeneratorOrigin, getGeneratorSourceReference } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
@@ -1167,10 +1167,10 @@ function measureSandboxDataWithSeen(
             if ((typeof item === "object" && item !== null) || typeof item === "symbol") visit(item, depth);
           break entry;
         }
-        const bindingRoot = scopeDataRoots.get(value);
+        const bindingRoot = readScopeAccountingRoot(value);
         if (bindingRoot !== undefined) {
           seen.add(value);
-          if ("arguments" in bindingRoot) {
+          if (bindingRoot.arguments !== undefined) {
             const state = bindingRoot.arguments;
             const current = state.read();
             if (current !== undefined) { value = current; continue walk; }
@@ -1191,7 +1191,7 @@ function measureSandboxDataWithSeen(
             depth++;
             continue walk;
           }
-          if ("deferred" in bindingRoot) {
+          if (bindingRoot.deferred !== undefined) {
             const deferred = bindingRoot.deferred;
             // An owned pending function uses its root as the charge identity.
             // This first root visit already marked it; charge before following
@@ -1241,7 +1241,7 @@ function measureSandboxDataWithSeen(
             }
             break entry;
           }
-          if ("properties" in bindingRoot) {
+          if (bindingRoot.properties !== undefined) {
             const state = bindingRoot.properties;
             const current = state.read();
             // Preserve the existence check and fresh second table observation.
@@ -1253,7 +1253,7 @@ function measureSandboxDataWithSeen(
             nativeDataArrayAppend(pendingArguments, { state, units, depth });
             break entry;
           }
-          if ("value" in bindingRoot) value = bindingRoot.value;
+          if (bindingRoot.values === undefined) value = bindingRoot.value;
           else {
             const references = bindingRoot.values;
             if (references.length === 0) break entry;

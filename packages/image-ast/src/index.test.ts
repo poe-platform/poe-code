@@ -2484,4 +2484,34 @@ describe("@poe-code/image-ast (sharp core)", () => {
     await expect(sharp(png10x10, { limitInputPixels: 50 }).toBuffer()).rejects.toThrow(/Input image exceeds pixel limit/);
     await expect(sharp(png10x10, { limitInputPixels: false }).toBuffer()).resolves.toBeInstanceOf(Buffer);
   });
+
+  it("matches libvips vips_similarity / vips_affine(bilinear) on arbitrary-angle rotate(30/-30/135/-135) for non-square images", async () => {
+    const w = 6;
+    const h = 4;
+    const raw = Buffer.alloc(w * h * 3);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 3;
+        raw[i] = x * 40;
+        raw[i + 1] = y * 60;
+        raw[i + 2] = (x + y) * 25;
+      }
+    }
+    for (const angle of [30, -30, 135, -135]) {
+      const rad = (angle * Math.PI) / 180;
+      const c = Math.cos(rad);
+      const s = Math.sin(rad);
+      const rotOut = await sharp(raw, { raw: { width: w, height: h, channels: 3 } })
+        .rotate(angle)
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const affOut = await sharp(raw, { raw: { width: w, height: h, channels: 3 } })
+        .affine([c, -s, s, c], { interpolator: "bilinear" })
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      expect(rotOut.info.width).toBe(affOut.info.width);
+      expect(rotOut.info.height).toBe(affOut.info.height);
+      expect(Buffer.from(rotOut.data).equals(Buffer.from(affOut.data))).toBe(true);
+    }
+  });
 });

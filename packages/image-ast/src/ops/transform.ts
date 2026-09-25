@@ -145,87 +145,11 @@ export function rotateImage(
   const rad = (norm * Math.PI) / 180;
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
-  const absCos = Math.abs(cos);
-  const absSin = Math.abs(sin);
-  const dstW = Math.max(1, Math.round(img.width * absCos + img.height * absSin));
-  const dstH = Math.max(1, Math.round(img.width * absSin + img.height * absCos));
-  const out = new Uint8Array(dstW * dstH * 4);
-
-  const cxSrc = (img.width - 1) / 2;
-  const cySrc = (img.height - 1) / 2;
-  const cxDst = (dstW - 1) / 2;
-  const cyDst = (dstH - 1) / 2;
-  const samplePremul = (ix: number, iy: number): [number, number, number, number] => {
-    if (ix < 0 || ix >= img.width || iy < 0 || iy >= img.height) {
-      const ba = background.a;
-      return [(background.r * ba) / 255, (background.g * ba) / 255, (background.b * ba) / 255, ba];
-    }
-    const sIdx = (iy * img.width + ix) * 4;
-    const sa = img.data[sIdx + 3]!;
-    return [
-      (img.data[sIdx]! * sa) / 255,
-      (img.data[sIdx + 1]! * sa) / 255,
-      (img.data[sIdx + 2]! * sa) / 255,
-      sa
-    ];
-  };
-
-  for (let y = 0; y < dstH; y++) {
-    const dy = y - cyDst;
-    for (let x = 0; x < dstW; x++) {
-      const dx = x - cxDst;
-      const sx = dx * cos + dy * sin + cxSrc;
-      const sy = -dx * sin + dy * cos + cySrc;
-      const dIdx = (y * dstW + x) * 4;
-      if (sx <= -1 || sx >= img.width || sy <= -1 || sy >= img.height) {
-        if (background.a > 0) {
-          out[dIdx] = background.r;
-          out[dIdx + 1] = background.g;
-          out[dIdx + 2] = background.b;
-          out[dIdx + 3] = background.a;
-        }
-      } else {
-        const x0 = Math.floor(sx);
-        const y0 = Math.floor(sy);
-        const fx = sx - x0;
-        const fy = sy - y0;
-        const w00 = (1 - fx) * (1 - fy);
-        const w10 = fx * (1 - fy);
-        const w01 = (1 - fx) * fy;
-        const w11 = fx * fy;
-        const p00 = samplePremul(x0, y0);
-        const p10 = samplePremul(x0 + 1, y0);
-        const p01 = samplePremul(x0, y0 + 1);
-        const p11 = samplePremul(x0 + 1, y0 + 1);
-        const outA = p00[3] * w00 + p10[3] * w10 + p01[3] * w01 + p11[3] * w11;
-        if (outA > 1e-6) {
-          for (let c = 0; c < 3; c++) {
-            const pm =
-              p00[c]! * w00 +
-              p10[c]! * w10 +
-              p01[c]! * w01 +
-              p11[c]! * w11;
-            out[dIdx + c] = Math.max(0, Math.min(255, Math.round((pm * 255) / outA)));
-          }
-          out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(outA)));
-        } else {
-          out[dIdx] = 0;
-          out[dIdx + 1] = 0;
-          out[dIdx + 2] = 0;
-          out[dIdx + 3] = 0;
-        }
-      }
-    }
-  }
-  const nextHasAlpha = img.hasAlpha || background.a < 255;
-  return {
-    ...img,
-    width: dstW,
-    height: dstH,
-    data: out,
-    hasAlpha: nextHasAlpha,
-    channels: nextHasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
-  };
+  return affineImage(img, {
+    matrix: [cos, -sin, sin, cos],
+    background,
+    interpolator: "bilinear"
+  });
 }
 
 export function extractImage(

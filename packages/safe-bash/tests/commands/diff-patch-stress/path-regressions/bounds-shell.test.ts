@@ -29,9 +29,22 @@ for (const [name, header] of [
   });
 }
 
-test("decoded paths have no additional command depth quota", async () => {
-  const name = `${"d/".repeat(257)}target`;
-  await exactUpdate(name, section(quoted(name)), ["-p0"]);
+test("deep decoded headers are accepted before path stripping", async () => {
+  const name = `${"d/".repeat(257)}deep-target`;
+  await exactUpdate("deep-target", section(quoted(name)), ["-p257"]);
+});
+
+test("unstripped deep paths retain Memory's resolution limit without mutation", async () => {
+  const name = `${"d/".repeat(257)}deep-target`;
+  const backing = await memory({ "deep-target": "old\n", sentinel: "untouched\n" });
+  const before = await snapshot(backing);
+  const observed = instrument(backing);
+  const result = await invoke(observed.fs, "patch", { input: section(quoted(name)), args: ["-p0"] });
+  assert.equal(result.exitCode, 2, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /ENAMETOOLONG/u);
+  assert.deepEqual(observed.mutations(), []);
+  assert.deepEqual(await snapshot(backing), before);
 });
 
 for (const budget of ["input", "work", "files"] as const) {

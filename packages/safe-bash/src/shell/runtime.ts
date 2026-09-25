@@ -2143,6 +2143,7 @@ export class Runtime {
     },
     read: reference => {
       this.signal.throwIfAborted();
+      if (arrayStore(this.#syncArithState!)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
       const value = this.#syncArithRawVars![reference];
       if (this.#syncArithState!.nounset && value === undefined) {
         throw new NounsetFailure(`${reference}: unbound variable`, this.#syncArithLine);
@@ -2151,6 +2152,7 @@ export class Runtime {
     },
     write: (reference, value) => {
       const st = this.#syncArithState!;
+      if (arrayStore(st)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
       const raw = stateMonitor(st)?.raw ?? st;
       if (raw.readonlyVariables?.has(reference)) throw new PublicDiagnostic(`${reference}: readonly variable`);
       publishVariable(st, reference, value);
@@ -4452,17 +4454,43 @@ export class Runtime {
               return undefined;
             }
           };
-          if (await evaluate(command.expressions[0]) === undefined) return 1;
+          const evaluateSync = (program: ArithmeticProgram | undefined): bigint | Promise<bigint | undefined> | undefined => {
+            if (!program) return 1n;
+            if (!program.error && !program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size) {
+              try { return this.syncShellArithmetic(program, state, io.diagnosticLine); }
+              catch (error) {
+                this.rethrowArithmeticControl(error);
+                return this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`).then(() => undefined);
+              }
+            }
+            return evaluate(program);
+          };
+          const initOrPromise = evaluateSync(command.expressions[0]);
+          if ((typeof initOrPromise === "bigint" ? initOrPromise : await initOrPromise) === undefined) return 1;
+          const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           while (true) {
             this.budget.loop();
-            await yieldTurn(this.signal);
-            const condition = await evaluate(command.expressions[1]);
+            if (this.budget.loops % 128 === 0) await yieldTurn(this.signal);
+            const condOrPromise = evaluateSync(command.expressions[1]);
+            const condition = typeof condOrPromise === "bigint" ? condOrPromise : await condOrPromise;
             if (condition === undefined) return 1;
             if (condition === 0n) break;
-            const result = await this.loopBody(command.body, state, io);
-            status = result.status;
-            if (result.stop) break;
-            if (await evaluate(command.expressions[2]) === undefined) return 1;
+            if (!state.extensions?.checkpoints.length) {
+              const syncBody = this.trySyncScript(command.body, state, io, bodyIgnoreErrexit);
+              if (typeof syncBody === "number") {
+                status = syncBody;
+              } else {
+                const result = await this.loopBody(command.body, state, io, syncBody.listIndex, syncBody.pipelineIndex);
+                status = result.status;
+                if (result.stop) break;
+              }
+            } else {
+              const result = await this.loopBody(command.body, state, io);
+              status = result.status;
+              if (result.stop) break;
+            }
+            const stepOrPromise = evaluateSync(command.expressions[2]);
+            if ((typeof stepOrPromise === "bigint" ? stepOrPromise : await stepOrPromise) === undefined) return 1;
           }
         } else if (command.kind === "select") {
           const values = command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state);

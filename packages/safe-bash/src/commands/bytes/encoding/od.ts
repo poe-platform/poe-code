@@ -19,7 +19,7 @@ function formats(text: string): Format[] {
         size = sizeMap[next] ?? Number(next);
         offset++;
       } else {
-        size = 4;
+        size = kind === "f" ? 8 : 4;
       }
       if (!(kind === "f" ? [4, 8] : [1, 2, 4, 8]).includes(size)) {
         throw new UsageError(`unsupported type '${text}': use a, c, f4/f8 or d/o/u/x with size 1, 2, 4, or 8`);

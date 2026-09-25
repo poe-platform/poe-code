@@ -439,3 +439,22 @@ for (const [name, program, stdin, args, files, expected] of [
     assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, expected, ""]);
   });
 }
+
+test("awk treats nonexistent/intervening fields as empty strings, supports /dev/std* redirects, preserves mainReader for END getline, and parses hex numeric strings", async () => {
+  const r1 = await runVirtual("awk", { args: ['BEGIN { $1="a"; $3="c"; print ($2 == 0), ($4 == 0) }'] });
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout.toString(), "0 0\n");
+
+  const r2 = await runVirtual("awk", { args: ['BEGIN { print "err" > "/dev/stderr"; print "out" > "/dev/stdout" }'] });
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout.toString(), "out\n");
+  assert.equal(r2.stderr.toString(), "err\n");
+
+  const r3 = await runVirtual("awk", { args: ['NR == 1 { exit } END { print (getline), $0 }'], stdin: "line1\nline2\n" });
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout.toString(), "1 line2\n");
+
+  const r4 = await runVirtual("awk", { args: ['BEGIN { printf "%d\\n", "0x10" }'] });
+  assert.equal(r4.exitCode, 0);
+  assert.equal(r4.stdout.toString(), "16\n");
+});

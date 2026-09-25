@@ -1,4 +1,4 @@
-import { FsError, type CommandContext } from "../../contracts/index.js";
+import { FsError, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
@@ -166,7 +166,7 @@ export class AwkRuntime {
       const length = Math.trunc(number(value));
       if (!Number.isSafeInteger(length) || length < 0 || length > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive NF");
       const fields = this.ensureFields().slice(0, length);
-      while (fields.length < length) fields.push(unset);
+      while (fields.length < length) fields.push(string(""));
       this.rebuild(fields); return;
     }
     this.storeScalar(this.store(name), name, value);
@@ -318,9 +318,9 @@ export class AwkRuntime {
     }
     const slot = index - 1;
     if (this.fieldsMaterialized) {
-      return this.rawFields[slot] ?? unset;
+      return this.rawFields[slot] ?? string("");
     }
-    if (slot < 0 || slot >= this.fieldCount) return unset;
+    if (slot < 0 || slot >= this.fieldCount) return string("");
     if (this.lazyFieldGen[slot] === this.fieldGeneration) {
       return this.lazyFields[slot]!;
     }
@@ -520,7 +520,7 @@ export class AwkRuntime {
         set: value => {
           if (index === 0) return this.setRecord(this.asText(value), value);
           const fields = this.ensureFields().slice();
-          while (fields.length < index) fields.push(unset);
+          while (fields.length < index) fields.push(string(""));
           fields[index - 1] = value; this.rebuild(fields);
         },
       };
@@ -844,7 +844,7 @@ export class AwkRuntime {
       if (this.inputs.size >= (this.budget.options.maxGetlineFiles ?? Infinity)) throw new ProgramError("getline open-file limit exceeded");
       const { context, budget } = this;
       const name = this.retainName(path);
-      const useStdin = file === "-";
+      const useStdin = file === "-" || file === "/dev/stdin";
       const source = (async function* () {
         if (useStdin) yield* context.stdin;
         else {
@@ -1062,6 +1062,8 @@ export class AwkRuntime {
           : this.join(values.length ? values.map(value => text(value, this.varText("OFMT"), this.budget)) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
         if (!statement.redirect) { await write(this.context, output); return; }
         const destination = Buffer.from(this.asText(await this.scalarExpression(statement.redirect.destination)), "latin1").toString("utf8");
+        if (destination === "/dev/stdout") { await write(this.context, output); return; }
+        if (destination === "/dev/stderr") { this.context.signal.throwIfAborted(); await writeBytes(this.context.stderr, bytes(output), this.context.signal); return; }
         const path = virtualPath(this.context, destination);
         if (this.outputs.has(path)) await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.appendFile(path, chunk, { signal: this.context.signal }));
         else {
@@ -1297,8 +1299,15 @@ export class AwkRuntime {
         else if (error.kind !== "next") throw error;
       }
     }
-    // Free terminal main blocks before END without waiting ahead of named readers.
-    if (this.mainReader) void this.mainReader.close().catch(() => undefined);
+    // Free terminal main blocks before END unless END may read main input via getline.
+    const hasMainGetline = (node: unknown): boolean => {
+      if (!node || typeof node !== "object") return false;
+      if ((node as { kind?: string; file?: unknown }).kind === "getline" && !(node as { file?: unknown }).file) return true;
+      return Object.values(node).some(child => Array.isArray(child) ? child.some(hasMainGetline) : hasMainGetline(child));
+    };
+    if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {
+      void this.mainReader.close().catch(() => undefined);
+    }
     this.phase = "END";
     try { for (const statement of this.program.end) await this.execute(statement); }
     catch (error) { if (error instanceof Flow && error.kind === "exit") this.exit(error); else throw error; }

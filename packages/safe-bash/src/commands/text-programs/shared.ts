@@ -90,7 +90,7 @@ export async function write(context: CommandContext, text: string): Promise<void
 
 export async function* input(context: CommandContext, file = "-"): ByteSource {
   context.signal.throwIfAborted();
-  if (file === "-") yield* readBytes(context.stdin, context.signal);
+  if (file === "-" || file === "/dev/stdin") yield* readBytes(context.stdin, context.signal);
   else {
     yield* requiredFileInput(context, inputRequirements, "file", file, Infinity);
   }

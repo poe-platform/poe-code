@@ -101,8 +101,15 @@ export function scalar(value: Value): Scalar {
 export function number(value: Scalar): number {
   if (value.kind === "unset") return 0;
   if (value.kind === "number" || value.kind === "numeric") return value.number;
-  const prefix = /^[ \t\r\n]*[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?/u.exec(value.text)?.[0];
-  return prefix === undefined ? 0 : Number(prefix);
+  const prefix = /^[ \t\r\n]*[+-]?(?:0[xX][0-9a-fA-F]+|(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)/u.exec(value.text)?.[0];
+  if (prefix === undefined) return 0;
+  if (prefix.includes("x") || prefix.includes("X")) {
+    const trimmed = prefix.trimStart();
+    const sign = trimmed[0] === "-" ? -1 : 1;
+    const digits = trimmed.slice(trimmed[0] === "+" || trimmed[0] === "-" ? 3 : 2);
+    return sign * Number.parseInt(digits, 16);
+  }
+  return Number(prefix);
 }
 
 export function truth(value: Scalar): boolean {

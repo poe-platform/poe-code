@@ -1620,4 +1620,20 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer({ resolveWithObject: true });
     expect(tifOut.info.format).toBe("tiff");
   });
+
+  it("matches libvips vips_cast_uchar float truncation across composite() blend modes (#87)", async () => {
+    const bd = Buffer.from([120, 180, 60, 200, 40, 90, 220, 128, 200, 50, 100, 255, 80, 80, 80, 64]);
+    const ov = Buffer.from([200, 60, 140, 180, 100, 200, 50, 200, 50, 150, 220, 128, 240, 120, 30, 192]);
+    const rOpts = { raw: { width: 2, height: 2, channels: 4 as const } };
+    const ovPng = await sharp(ov, rOpts).png().toBuffer();
+
+    const overOut = await sharp(bd, rOpts).composite([{ input: ovPng, blend: "over" }]).raw().toBuffer();
+    expect(Array.from(overOut)).toEqual([180, 89, 120, 238, 92, 186, 70, 227, 124, 100, 160, 255, 227, 116, 33, 207]);
+
+    const mulOut = await sharp(bd, rOpts).composite([{ input: ovPng, blend: "multiply" }]).raw().toBuffer();
+    expect(Array.from(mulOut)).toEqual([92, 67, 48, 238, 51, 110, 56, 227, 109, 32, 71, 255, 175, 90, 27, 207]);
+
+    const screenOut = await sharp(bd, rOpts).composite([{ input: ovPng, blend: "screen" }]).raw().toBuffer();
+    expect(Array.from(screenOut)).toEqual([170, 148, 112, 238, 89, 175, 107, 227, 202, 80, 133, 255, 215, 113, 36, 207]);
+  });
 });

@@ -372,6 +372,7 @@ test("mkdir still passes mode and emits verbose output only for absent directori
   assert.equal((await current.fs.stat("/work/reports/drafts")).mode & 0o777, 0o755);
   assert.deepEqual(current.calls.map(call => call.options), [
     { recursive: true, signal: result.context.signal },
+    { recursive: true, signal: result.context.signal },
     { recursive: true, mode: 0o700, signal: result.context.signal },
   ]);
 });

@@ -1,6 +1,7 @@
 import type { CommandContext } from "../contracts/command.js";
 import { writeText } from "../contracts/io.js";
 import { writeDiagnostic } from "../escaping.js";
+import { creationUmask } from "../fs/creation-mask.js";
 
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
 import { registerEntryView, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/core";
@@ -20,6 +21,7 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
   const methods = new Map<PropertyKey, { raw: unknown; wrapped: unknown }>();
   const view = new Proxy(fs, {
     get(target, key) {
+      if (key === creationUmask) return mask;
       const method: unknown = Reflect.get(target, key, target);
       if (typeof method !== "function") return method;
       const existing = methods.get(key);

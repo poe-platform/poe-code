@@ -15,6 +15,8 @@ import { touchTimes } from "./touch-times.js";
 import { touchTarget } from "./touch-target.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
 import { canonicalizeExistingParent } from "./canonicalize-existing-parent.js";
+import { modeChange } from "./metadata/chmod.js";
+import { creationUmask } from "../fs/creation-mask.js";
 import { backupCopyTarget, copyOptions, matchBackupMode, normalizeBackupSuffix } from "./copy-backup.js";
 import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from "./copy-preserve.js";
 
@@ -418,7 +420,9 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       const parsed = options(context.args, "pm:v", { parents: "p", mode: "m", verbose: "v" });
       requireOperands(parsed.operands);
       const mode = value(parsed, "m");
-      if (mode !== undefined && !/^[0-7]{1,4}$/u.test(mode)) throw new UsageError(`invalid mode '${mode}' (octal required)`);
+      const mask: unknown = Reflect.get(context.fs, creationUmask);
+      const umask = typeof mask === "number" ? mask : 0o022;
+      const directoryMode = mode === undefined ? undefined : modeChange(mode, umask)({ type: "directory", mode: 0o777 & ~umask });
       const createDirectory = async (operand: string, preflight: boolean): Promise<void> => {
         const path = pathOf(context, operand);
         const recursive = parsed.flags.has("p");
@@ -446,7 +450,10 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             }
             created.push(operand);
           }
-          await context.fs.mkdir(path, { recursive, ...(stat || mode === undefined ? {} : { mode: parseInt(mode, 8) }), signal: context.signal });
+          if (recursive && !stat && directoryMode !== undefined) {
+            await context.fs.mkdir(dirname(path), { recursive: true, signal: context.signal });
+          }
+          await context.fs.mkdir(path, { recursive, ...(stat || directoryMode === undefined ? {} : { mode: directoryMode }), signal: context.signal });
           for (const directory of created) await output(context, `mkdir: created directory '${escapeText(directory, "display")}'\n`);
         }
       };

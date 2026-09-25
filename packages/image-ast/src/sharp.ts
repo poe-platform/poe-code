@@ -128,6 +128,57 @@ function validateInputOptions(opts: SharpInputOptions | undefined): void {
       }
     }
   }
+  const validAlignments = ["left", "top", "low", "center", "centre", "right", "bottom", "high"];
+  if (opts.join !== undefined) {
+    const join = opts.join;
+    if (join && typeof join === "object") {
+      if (join.across !== undefined && (!Number.isInteger(join.across) || join.across < 1 || join.across > 100000)) {
+        throw new Error(`Expected integer between 1 and 100000 for join.across but received ${join.across} of type ${typeof join.across}`);
+      }
+      if (join.shim !== undefined && (!Number.isInteger(join.shim) || join.shim < 0 || join.shim > 100000)) {
+        throw new Error(`Expected integer between 0 and 100000 for join.shim but received ${join.shim} of type ${typeof join.shim}`);
+      }
+      if (join.halign !== undefined && !validAlignments.includes(join.halign)) {
+        throw new Error(`Expected valid alignment for join.halign but received ${join.halign} of type ${typeof join.halign}`);
+      }
+      if (join.valign !== undefined && !validAlignments.includes(join.valign)) {
+        throw new Error(`Expected valid alignment for join.valign but received ${join.valign} of type ${typeof join.valign}`);
+      }
+      if (join.animated !== undefined && typeof join.animated !== "boolean") {
+        throw new Error(`Expected boolean for join.animated but received ${join.animated} of type ${typeof join.animated}`);
+      }
+      if (join.background !== undefined) {
+        parseColor(join.background, 255);
+      }
+    }
+  }
+  if (opts.text !== undefined) {
+    const text = opts.text;
+    if (!text || typeof text !== "object" || typeof text.text !== "string" || text.text.trim().length === 0) {
+      throw new Error("Expected a valid string to create an image with text.");
+    }
+    if (text.width !== undefined && (!Number.isInteger(text.width) || text.width <= 0)) {
+      throw new Error(`Expected positive integer for text.width but received ${text.width} of type ${typeof text.width}`);
+    }
+    if (text.height !== undefined && (!Number.isInteger(text.height) || text.height <= 0)) {
+      throw new Error(`Expected positive integer for text.height but received ${text.height} of type ${typeof text.height}`);
+    }
+    if (text.dpi !== undefined && (!Number.isInteger(text.dpi) || text.dpi < 1 || text.dpi > 1000000)) {
+      throw new Error(`Expected integer between 1 and 1000000 for text.dpi but received ${text.dpi} of type ${typeof text.dpi}`);
+    }
+    if (text.align !== undefined && !validAlignments.includes(text.align)) {
+      throw new Error(`Expected valid alignment for text.align but received ${text.align} of type ${typeof text.align}`);
+    }
+    if (text.justify !== undefined && typeof text.justify !== "boolean") {
+      throw new Error(`Expected boolean for text.justify but received ${text.justify} of type ${typeof text.justify}`);
+    }
+    if (text.rgba !== undefined && typeof text.rgba !== "boolean") {
+      throw new Error(`Expected bool for text.rgba but received ${text.rgba} of type ${typeof text.rgba}`);
+    }
+    if (text.wrap !== undefined && !["word", "char", "word-char", "none"].includes(text.wrap)) {
+      throw new Error(`Expected one of: word, char, word-char, none for text.wrap but received ${text.wrap} of type ${typeof text.wrap}`);
+    }
+  }
   if (opts.create !== undefined) {
     const create = opts.create;
     if (
@@ -262,6 +313,9 @@ export class SharpInstance extends Duplex {
     if (Array.isArray(input)) {
       if (input.length < 2) {
         throw new Error("Expected at least two images to join");
+      }
+      if (input.some(item => Array.isArray(item))) {
+        throw new Error("Recursive join is unsupported");
       }
       this.inputBytes = undefined;
       this.joinInputs = input;

@@ -2688,4 +2688,42 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => sharp(png).avif({ effort: 12 } as any)).toThrow(/Expected integer between 0 and 9 for effort/);
     expect(() => sharp(png).toFormat("bogus" as any)).toThrow(/for format but received bogus/);
   });
+
+  it("validates join (across, shim, halign, valign, animated, recursive join) and text (dpi, align, justify, rgba, wrap) options matching sharp", async () => {
+    const png = await sharp({ create: { width: 4, height: 4, channels: 3, background: "red" } }).png().toBuffer();
+
+    expect(() => sharp([[png, png], png] as any)).toThrow(/Recursive join is unsupported/);
+    expect(() => sharp([png, png], { join: { across: 0 } })).toThrow(
+      /Expected integer between 1 and 100000 for join.across/
+    );
+    expect(() => sharp([png, png], { join: { shim: -1 } })).toThrow(
+      /Expected integer between 0 and 100000 for join.shim/
+    );
+    expect(() => sharp([png, png], { join: { halign: "bogus" as any } })).toThrow(
+      /Expected valid alignment for join.halign/
+    );
+    expect(() => sharp([png, png], { join: { valign: "bogus" as any } })).toThrow(
+      /Expected valid alignment for join.valign/
+    );
+    expect(() => sharp([png, png], { join: { animated: "yes" as any } })).toThrow(
+      /Expected boolean for join.animated/
+    );
+
+    expect(() => sharp({ text: { text: "" } })).toThrow(/Expected a valid string to create an image with text/);
+    expect(() => sharp({ text: { text: "Hi", dpi: 0 } })).toThrow(
+      /Expected integer between 1 and 1000000 for text.dpi/
+    );
+    expect(() => sharp({ text: { text: "Hi", align: "bogus" } })).toThrow(
+      /Expected valid alignment for text.align/
+    );
+    expect(() => sharp({ text: { text: "Hi", justify: "yes" as any } })).toThrow(
+      /Expected boolean for text.justify/
+    );
+    expect(() => sharp({ text: { text: "Hi", rgba: "yes" as any } })).toThrow(
+      /Expected bool for text.rgba/
+    );
+    expect(() => sharp({ text: { text: "Hi", wrap: "bogus" } })).toThrow(
+      /Expected one of: word, char, word-char, none for text.wrap/
+    );
+  });
 });

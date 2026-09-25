@@ -379,8 +379,9 @@ export function setHostObjectPrototype(value: HostObject, reference: unknown, ow
   state.prototypeGuard = guard;
 }
 
-export function getHostObjectPrototype(value: SandboxObject): SandboxObject | null {
-  const state = readGuestObject(value)!;
+export function getHostObjectPrototype(value: SandboxObject): SandboxObject | null | undefined {
+  const state = readGuestObject(value);
+  if (state === undefined) return undefined;
   state.controller.assertActive();
   state.controller.chargeWork();
   assertExpandoActive(state);

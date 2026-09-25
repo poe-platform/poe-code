@@ -714,7 +714,8 @@ export function releaseObjectPrototype(budget: Budget): void {
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
-  if (isGuestHostObject(value)) return getHostObjectPrototype(value);
+  const host = getHostObjectPrototype(value as SandboxObject);
+  if (host !== undefined) return host;
   const explicit = prototypes.get(value);
   if (explicit !== undefined) return explicit;
   if (budget === undefined) return null;

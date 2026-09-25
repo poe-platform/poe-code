@@ -1,11 +1,13 @@
 import path from "node:path";
-import { build } from "esbuild";
-import { expect, it } from "vitest";
+import { build, type BuildResult } from "esbuild";
+import { beforeAll, expect, it } from "vitest";
 import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { canonicalFs } from "../packages/package-lint/src/bundle-policy.js";
 import { readFile, readdir } from "node:fs/promises";
 
-it("keeps filesystem imports out of the CLI startup graph", async () => {
+let result: BuildResult<{ metafile: true }>;
+
+beforeAll(async () => {
   const root = path.resolve(import.meta.dirname, "..");
   const workspaces = [];
   for (const entry of await readdir(path.join(root, "packages"), { withFileTypes: true })) {
@@ -21,7 +23,7 @@ it("keeps filesystem imports out of the CLI startup graph", async () => {
     }
   }
   const graph = await resolveBundleGraph(root, workspaces);
-  const result = await build({
+  result = await build({
     entryPoints: [path.join(root, "src/cli-entry.ts")],
     ...resolveConsumerGraph(graph, canonicalFs),
     bundle: true,
@@ -33,6 +35,9 @@ it("keeps filesystem imports out of the CLI startup graph", async () => {
     metafile: true,
     loader: { ".md": "text", ".mustache": "text", ".log": "text" }
   });
+});
+
+it("keeps filesystem imports out of the CLI startup graph", () => {
   const pending = ["dist/cli-entry.js"];
   const visited = new Set<string>();
   // Include the CLI program, which main loads dynamically before parsing commands.

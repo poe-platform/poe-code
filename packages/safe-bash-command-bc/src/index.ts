@@ -195,8 +195,6 @@ function sqrtDec(x: DecimalValue, currentScale: number): DecimalValue {
   const shift = 2 * resScale - x.scale;
   const target = shift >= 0 ? x.coeff * pow10(shift) : x.coeff / pow10(-shift);
   if (target === 0n) return { coeff: 0n, scale: resScale };
-  const low = 1n;
-  const high = target;
   let guess = 1n << BigInt(Math.ceil(target.toString(2).length / 2));
   while (true) {
     const next = (guess + target / guess) >> 1n;
@@ -206,8 +204,6 @@ function sqrtDec(x: DecimalValue, currentScale: number): DecimalValue {
     }
     guess = next;
   }
-  void low;
-  void high;
   return { coeff: guess, scale: resScale };
 }
 

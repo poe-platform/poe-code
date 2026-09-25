@@ -72,12 +72,11 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
     const created: ShellExtensionInstance = {
       options,
       shoptOptions: [{ name: "extdebug", get enabled() { return extendedDebug; }, set enabled(value) { extendedDebug = value; for (const option of options) option.enabled = value; } }],
-      start(context) {
-        if (!configuration.signalHost) return;
+      ...(configuration.signalHost ? { start(context: ShellExtensionContext) {
         let open = true;
         const subscription: { close?: () => void | Promise<void> } = {};
         context.registerCleanup(async () => { open = false; pending?.clear(); await subscription.close?.(); });
-        subscription.close = configuration.signalHost.subscribe(signal => {
+        subscription.close = configuration.signalHost!.subscribe(signal => {
           if (!open || context.signal.aborted) return false;
           const number = resolve(signal);
           if (number === undefined || number === 0 || number >= pseudoBase || names.get(number) === "SIGKILL" || names.get(number) === "SIGSTOP") return false;
@@ -90,7 +89,7 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
           }
           return true;
         }, context.scope);
-      },
+      } } : {}),
       builtins: [{
         name: "trap", special: true,
         async execute(context) {

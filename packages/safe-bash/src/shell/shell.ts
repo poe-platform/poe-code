@@ -237,7 +237,7 @@ export class Shell implements PluginHost {
     const stderr = new Capture();
     const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
       ...(external?.ownedOutput ? { ownedOutput: {
-        consumerClosed: external.ownedOutput.consumerClosed,
+        get consumerClosed() { return external.ownedOutput!.consumerClosed; },
         write: async (chunk: Uint8Array) => {
           await capture.write(chunk);
           await external.ownedOutput!.write(chunk);
@@ -304,12 +304,27 @@ export class Shell implements PluginHost {
         let unit = getOrParseUnit(0, locale);
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
           const value = options.stdin ?? "";
-          const source = toByteSource(value);
-          let available = value.length > 0;
-          const inline = { async *[Symbol.asyncIterator]() {
-            for await (const bytes of source) { available = false; yield bytes; }
-          } };
-          stdin = new ShellInput(inline, budget, budget.signal, { provenance: "stream", poll: () => available ? "ready" : "eof" });
+          const inlineBytes = typeof value === "string"
+            ? (value.length > 0 ? Buffer.from(value, "utf8") : undefined)
+            : (value.byteLength > 0 ? new Uint8Array(value) : undefined);
+          let available = inlineBytes !== undefined;
+          const inline = {
+            [Symbol.asyncIterator]() {
+              return {
+                next() {
+                  if (!available) return Promise.resolve({ done: true as const, value: undefined });
+                  available = false;
+                  return Promise.resolve({ done: false as const, value: inlineBytes! });
+                },
+                [Symbol.asyncIterator]() { return this; },
+              };
+            },
+          };
+          stdin = new ShellInput(inline, budget, budget.signal, {
+            provenance: "stream",
+            poll: () => available ? "ready" : "eof",
+            ...(inlineBytes ? { initialChunk: inlineBytes, onInitialConsumed: () => { available = false; } } : { initialEof: true }),
+          });
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);

@@ -437,7 +437,7 @@ export class Budget {
     const output: ByteSink = {
       ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
       ...(sink.ownedOutput ? { ownedOutput: {
-        consumerClosed: sink.ownedOutput.consumerClosed,
+        get consumerClosed() { return sink.ownedOutput!.consumerClosed; },
         write: async (chunk: Uint8Array) => {
           signal.throwIfAborted();
           if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
@@ -907,7 +907,7 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   const output: ByteSink = {
     ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
     ...(sink.ownedOutput ? { ownedOutput: {
-      consumerClosed: sink.ownedOutput.consumerClosed,
+      get consumerClosed() { return sink.ownedOutput!.consumerClosed; },
       async write(chunk: Uint8Array) {
         signal.throwIfAborted();
         try {
@@ -3248,7 +3248,7 @@ export class Runtime {
     if (!frame || frame.started) return;
     frame.started = true;
     for (const [name, builtin] of frame.builtins) if (shellBuiltinNames.has(name) && builtin.replace !== true) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
-    for (const entry of frame.entries) await entry.instance.start?.(this.extensionContext(state, io));
+    for (const entry of frame.entries) if (entry.instance.start) await entry.instance.start(this.extensionContext(state, io));
   }
 
   private async extensionEvent(event: ShellExtensionEvent, state: State, io: IO, status: number, command = ""): Promise<boolean> {
@@ -3297,6 +3297,10 @@ export class Runtime {
     if (!frame || frame.exiting) return status;
     if (frame.exitStatus !== undefined) return frame.exitStatus;
     this.signal.throwIfAborted();
+    if (!hasActiveExtensions(state)) {
+      frame.exitStatus = status;
+      return status;
+    }
     state = trackState(state, this.budget, io[invocationScope]);
     frame.exiting = true;
     frame.exitStatus = status;
@@ -3333,7 +3337,11 @@ export class Runtime {
   }
 
   private async releaseExtensions(state: State): Promise<void> {
-    const cleanup = await Promise.allSettled(state.extensions?.cleanup.map(close => close()) ?? []);
+    if (!state.extensions?.cleanup.length) {
+      this.signal.throwIfAborted();
+      return;
+    }
+    const cleanup = await Promise.allSettled(state.extensions.cleanup.map(close => close()));
     this.signal.throwIfAborted();
     throwCleanupFailures(cleanup.filter(result => result.status === "rejected").map(result => result.reason));
   }
@@ -5307,8 +5315,8 @@ export class Runtime {
     if (
       !state.externalInvocation &&
       this.middleware.length === 0 &&
-      !state.extensions &&
       typeof name === "string" &&
+      !state.extensions?.builtins.has(name) &&
       !(!bypassFunctions && state.functions.has(name)) &&
       (values === args || !values.some(value => typeof value !== "string"))
     ) {
@@ -5341,8 +5349,7 @@ export class Runtime {
       typeof name === "string" &&
       !(!bypassFunctions && state.functions.has(name)) &&
       !state.extensions?.builtins.has(name) &&
-      (name === "[" || name === "test" || name === "echo" || name === "true" || name === "false" || name === "printf" ||
-        (implementedBuiltins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray"));
+      name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
     const runtime = fastInline
       ? this
       : new Runtime(
@@ -5379,10 +5386,12 @@ export class Runtime {
     }
     const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
+    let scopedSignal: AbortSignal | undefined;
+    const getScopedSignal = (): AbortSignal => (scopedSignal ??= AbortSignal.any([this.signal, scope.signal]));
     let contextFs: FileSystem | undefined;
     const getContextFs = (): FileSystem => {
       if (!contextFs) {
-        contextFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation());
+        contextFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), getScopedSignal(), () => this.budget.fileSystemCleanupOperation());
         runtimeFileSystems.set(contextFs, this.sourceFs);
         runtimeBackingFileSystems.set(contextFs, this.backingFs);
       }
@@ -5419,7 +5428,13 @@ export class Runtime {
       },
       registerCleanup: (cleanup) => { scope.register(cleanup); },
       invoke: (name, args, options) => {
-        const invocation = this.invoke(name, args, options, context, state, scope);
+        const invRuntime = new Runtime(
+          this.sourceFs, this.commands, this.middleware, this.budget,
+          getScopedSignal(), this.fileWrites, this.outputFiles, this.commandSignal,
+          this.cancellation, this.cancellationState, this.cancellationOwner,
+          this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
+        );
+        const invocation = invRuntime.invoke(name, args, options, context, state, scope);
         void invocation.catch(() => undefined);
         return invocation;
       },
@@ -5430,7 +5445,7 @@ export class Runtime {
     });
     variablePresence.set(context.shellPredicates!, name => this.variablePresent(state, name, io));
     bindCommandIO(context, io);
-    bindFileOutputBudget(context, sink => this.budget.sink(sink, this.signal), (chunk, write) => this.budget.writeCounted(chunk, write, this.signal));
+    bindFileOutputBudget(context, sink => this.budget.sink(sink, getScopedSignal()), (chunk, write) => this.budget.writeCounted(chunk, write, getScopedSignal()));
     if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
     const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();

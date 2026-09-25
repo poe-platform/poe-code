@@ -110,8 +110,24 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   let closePromise: Promise<void> | undefined;
   let abortPromise: Promise<void> | undefined;
   let finished = false;
-  const consumer = new AbortController();
+  let consumer: AbortController | undefined;
+  let consumerAborted = false;
+  let consumerReason: unknown;
   const brokenPipe = (): FsError => new FsError("EPIPE", { syscall: "pipe" });
+  const getConsumerSignal = (): AbortSignal => {
+    if (!consumer) {
+      consumer = new AbortController();
+      if (consumerAborted) consumer.abort(consumerReason !== undefined ? consumerReason : brokenPipe());
+    }
+    return consumer.signal;
+  };
+  const abortConsumer = (reason?: unknown): void => {
+    if (!consumerAborted) {
+      consumerAborted = true;
+      consumerReason = reason;
+      if (consumer) consumer.abort(reason !== undefined ? reason : brokenPipe());
+    }
+  };
   const checkFailure = (): void => { if (failed) throw failure; };
   const checkEndpoint = (endpoint: EndpointState): void => {
     checkFailure();
@@ -187,7 +203,9 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       removeWrite(request);
       request.reject(reason);
     }
-    consumer.abort(reason);
+    (consumer ??= new AbortController()).abort(reason);
+    consumerAborted = true;
+    consumerReason = reason;
     changed();
     cleanup();
     return abortPromise;
@@ -255,10 +273,8 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   const closeEndpoint = (endpoint: EndpointState): Promise<void> => {
     if (endpoint.closing) return endpoint.closing;
-    let closed!: () => void;
-    endpoint.closing = new Promise(resolve => { closed = resolve; });
     endpoint.open = false;
-    const admittedWrites = [...endpoint.writes].map(request => request.completion);
+    const admittedWrites = endpoint.writes.size > 0 ? [...endpoint.writes].map(request => request.completion) : undefined;
     if (endpoint.direction === "read") {
       readerReferences--;
       for (const request of reads) if (request.lease.endpoint === endpoint) {
@@ -269,21 +285,31 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       if (!readerReferences) {
         buffered.clear();
         availableBytes = 0;
-        const reason = brokenPipe();
-        for (const request of writes) {
-          removeWrite(request);
-          request.reject(failed ? failure : reason);
+        if (writes.size > 0) {
+          const reason = failed ? failure : brokenPipe();
+          for (const request of writes) {
+            removeWrite(request);
+            request.reject(reason);
+          }
+          abortConsumer(reason);
+        } else {
+          abortConsumer(failed ? failure : undefined);
         }
-        consumer.abort(reason);
       }
     } else writerReferences--;
     changed();
     pump();
-    if (!readerReferences && !writerReferences) cleanup();
+    if (!readerReferences && !writerReferences) { finished = true; cleanup(); }
+    if (!admittedWrites) {
+      endpoint.closing = resolvedVoid;
+      return resolvedVoid;
+    }
+    let closed!: () => void;
+    endpoint.closing = new Promise(resolve => { closed = resolve; });
     void Promise.allSettled(admittedWrites).then(closed);
     return endpoint.closing;
   };
-  const borrow = (endpoint: EndpointState): AsyncIterableIterator<Uint8Array> => {
+  const borrow = (endpoint: EndpointState): AsyncIterableIterator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined; syncReturn(): void } => {
     const lease: ReadLease = { endpoint, pending: new Set(), done: false };
     const release = (): IteratorResult<Uint8Array> => {
       lease.done = true;
@@ -295,6 +321,30 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     };
     return {
       [Symbol.asyncIterator]() { return this; },
+      tryNextSync(): IteratorResult<Uint8Array> | undefined {
+        if (lease.done) return { done: true, value: undefined };
+        checkEndpoint(endpoint);
+        if (reads.size === 0) {
+          const chunk = buffered.values().next().value as Uint8Array | undefined;
+          if (chunk) {
+            buffered.delete(chunk);
+            availableBytes -= chunk.byteLength;
+            changed();
+            if (writes.size > 0) pump();
+            return { done: false, value: chunk };
+          }
+          if (!writerReferences) {
+            lease.done = true;
+            finished = true;
+            cleanup();
+            return { done: true, value: undefined };
+          }
+        }
+        return undefined;
+      },
+      syncReturn(): void {
+        release();
+      },
       next() {
         if (lease.done) return Promise.resolve({ done: true, value: undefined });
         try { checkEndpoint(endpoint); }
@@ -372,7 +422,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     const writing = (chunk: Uint8Array): Promise<void> => write(state, chunk);
     return {
       direction: "write",
-      writable: { write: writing, [outputFailure]: fail, ownedOutput: { consumerClosed: consumer.signal, write: writing } },
+      writable: { write: writing, [outputFailure]: fail, ownedOutput: { get consumerClosed() { return getConsumerSignal(); }, write: writing } },
       acquire() { checkEndpoint(state); return createWriteEndpoint(createState("write")); },
       probe: () => probe(state),
       waitForChange: (previous, options) => waitForChange(state, previous, options),
@@ -382,41 +432,48 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   const readState = createState("read");
   const writeState = createState("write");
   const endpoints = { read: createReadEndpoint(readState), write: createWriteEndpoint(writeState) };
-  const reader = borrow(readState);
-  const iterator = (async function* (): AsyncGenerator<Uint8Array> {
-    try {
-      while (true) {
-        if (failed) throw failure;
-        const result = await reader.next();
-        if (failed) throw failure;
-        if (result.done) {
-          finished = true;
-          return;
+  let legacyReader: AsyncIterableIterator<Uint8Array> | undefined;
+  let legacyIterator: AsyncGenerator<Uint8Array> | undefined;
+  const getLegacyIterator = (): AsyncGenerator<Uint8Array> => {
+    if (!legacyIterator) {
+      const reader = (legacyReader ??= borrow(readState));
+      legacyIterator = (async function* (): AsyncGenerator<Uint8Array> {
+        try {
+          while (true) {
+            if (failed) throw failure;
+            const result = await reader.next();
+            if (failed) throw failure;
+            if (result.done) {
+              finished = true;
+              return;
+            }
+            yield result.value;
+          }
+        } finally {
+          if (!finished) await abort();
+          await reader.return?.();
         }
-        yield result.value;
-      }
-    } finally {
-      if (!finished) await abort();
-      await reader.return?.();
+      })();
     }
-  })();
+    return legacyIterator;
+  };
   const readable: AsyncIterableIterator<Uint8Array> = {
     [Symbol.asyncIterator]() { return this; },
-    next() { return iterator.next(); },
+    next() { return getLegacyIterator().next(); },
     async return() {
       if (!finished) await abort();
       try {
-        return await iterator.return(undefined);
+        return await getLegacyIterator().return(undefined);
       } finally {
-        await reader.return?.();
+        await legacyReader?.return?.();
       }
     },
     async throw(reason) {
       await fail(reason);
       try {
-        return await iterator.throw(reason);
+        return await getLegacyIterator().throw(reason);
       } finally {
-        await reader.return?.();
+        await legacyReader?.return?.();
       }
     },
   };
@@ -433,7 +490,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     writable: {
       write: legacyWrite,
       [outputFailure]: fail,
-      ownedOutput: { consumerClosed: consumer.signal, write: legacyWrite },
+      ownedOutput: { get consumerClosed() { return getConsumerSignal(); }, write: legacyWrite },
     },
     close() {
       if (failed) return Promise.reject(failure);

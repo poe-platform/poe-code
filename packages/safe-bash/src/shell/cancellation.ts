@@ -1,3 +1,5 @@
+const cancellationAdmissionClosedError = new Error("Cancellation admission is closed");
+const cancellationAlreadyActivatedError = new Error("Prepared cancellation admission was already activated");
 export type CancellationRole = "root-caller" | "invoke-option" | "budget-control" | "pipeline-control";
 
 export interface CancellationAdmissionSnapshot {
@@ -377,7 +379,7 @@ function initializeState(
     resourceLimit: admission.resourceLimit,
     resourcesUsed: 1,
     controller,
-    closedReason: new Error("Cancellation admission is closed"),
+    closedReason: cancellationAdmissionClosedError,
     rootCaller: undefined,
     localInvoke: undefined,
     controls: [],
@@ -475,7 +477,7 @@ function makePrepared(
     controls,
     admission,
     owned: localSignal !== undefined || controls.length > 0,
-    replayError: new Error("Prepared cancellation admission was already activated"),
+    replayError: cancellationAlreadyActivatedError,
     activated: false,
   };
   return new Prepared(state);

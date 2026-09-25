@@ -9,8 +9,15 @@ import { assertCommandRequirements } from "../contracts/command-requirements.js"
 import { filesystemCommandRequirements } from "./filesystem-requirements.js";
 import { compileFindFormat, FindFormatBudget, type FindFormatEntry } from "./find-format.js";
 
-interface Entry extends FindFormatEntry { path: string; symlink: boolean; prune: boolean }
-type Expression = (entry: Entry) => Promise<boolean>;
+interface Entry extends FindFormatEntry { path: string; name: string; symlink: boolean; prune: boolean }
+type Expression = (entry: Entry) => boolean | Promise<boolean>;
+const SYNTHETIC_FILE_STAT: FileStat = Object.freeze({ type: "file", size: 0, mode: 0o644, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
+const SYNTHETIC_DIR_STAT: FileStat = Object.freeze({ type: "directory", size: 0, mode: 0o755, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
+const SYNTHETIC_SYMLINK_STAT: FileStat = Object.freeze({ type: "symlink", size: 0, mode: 0o777, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
+const SYNTHETIC_CHAR_STAT: FileStat = Object.freeze({ type: "character", size: 0, mode: 0o666, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
+function syntheticStatFor(type: FileStat["type"]): FileStat {
+  return type === "file" ? SYNTHETIC_FILE_STAT : type === "directory" ? SYNTHETIC_DIR_STAT : type === "symlink" ? SYNTHETIC_SYMLINK_STAT : SYNTHETIC_CHAR_STAT;
+}
 
 export function findCommands(execute: CommandHandler, maxDirectoryEntries?: number): CommandDefinition[] {
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
@@ -44,6 +51,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     let exitCode = 0;
     let deletes = false;
     let prunes = false;
+    let needsStat = false;
     const references = new Map<string, number>();
     const flushes: (() => Promise<void>)[] = [];
     const formats: (() => Promise<void>)[] = [];
@@ -60,7 +68,10 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       if (token === undefined) throw new UsageError("missing expression");
       if (token === "!" || token === "-not") {
         const inner = primary();
-        const expression: Expression = async entry => !await inner(entry);
+        const expression: Expression = entry => {
+          const res = inner(entry);
+          return typeof res === "boolean" ? !res : res.then(v => !v);
+        };
         if (debugTree) trees.set(expression, `NOT(${trees.get(inner)})`);
         return expression;
       }
@@ -72,23 +83,25 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       if (token === "-depth") {
         depthFirst = true;
         explicitDepth = true;
-        return async () => true;
+        return () => true;
       }
       if (token === "-maxdepth" || token === "-mindepth") {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires a number`);
         const number = integer(operand);
         if (token === "-maxdepth") maxDepth = number; else minDepth = number;
-        return async () => true;
+        return () => true;
       }
       if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-newer"].includes(token)) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
         if (token === "-newer") {
+          needsStat = true;
           references.set(operand, 0);
-          return async entry => entry.stat.mtimeMs > references.get(operand)!;
+          return entry => entry.stat.mtimeMs > references.get(operand)!;
         }
         if (token === "-mtime" || token === "-mmin") {
+          needsStat = true;
           const match = /^([+-]?)([0-9]+)$/u.exec(operand);
           if (!match) throw new UsageError(`invalid time '${operand}'`);
           const amount = integer(match[2]!);
@@ -108,10 +121,16 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const specialModes: Record<string, number> = { b: 0o060000, p: 0o010000, s: 0o140000 };
           const requested = operand.split(",");
           if (requested.some(type => !types[type] && !specialModes[type])) throw new UsageError(`unsupported file type '${operand}'`);
-          return async entry => requested.some(type => specialModes[type]
+          if (requested.some(type => Boolean(specialModes[type]))) needsStat = true;
+          if (requested.length === 1 && types[requested[0]!]) {
+            const expectedType = types[requested[0]!]!;
+            return entry => entry.stat.type === expectedType;
+          }
+          return entry => requested.some(type => specialModes[type]
             ? (entry.stat.mode & 0o170000) === specialModes[type] : entry.stat.type === types[type]);
         }
         if (token === "-perm") {
+          needsStat = true;
           const comparison = operand[0] === "-" || operand[0] === "/" ? operand[0] : "";
           const bits = modeChange(comparison ? operand.slice(1) : operand, 0)({ mode: 0, type: "file" });
           return async entry => {
@@ -121,6 +140,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           };
         }
         if (token === "-links") {
+          needsStat = true;
           const comparison = operand[0] === "+" || operand[0] === "-" ? operand[0] : "";
           const digits = comparison ? operand.slice(1) : operand;
           if (!digits || [...digits].some(digit => digit < "0" || digit > "9")) throw new UsageError(`invalid link count '${operand}'`);
@@ -131,6 +151,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           };
         }
         if (token === "-size") {
+          needsStat = true;
           const comparison = operand[0] === "+" || operand[0] === "-" ? operand[0] : "";
           const units: Record<string, number> = { c: 1, w: 2, b: 512, k: 1024, M: 1048576, G: 1073741824 };
           const suffix = operand.at(-1)!;
@@ -146,15 +167,15 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           signal: context.signal,
           exhausted(): never { throw new UsageError(`pattern work limit exceeded for '${operand}'`); },
         };
-        const matcher = compilePattern(operand, work, ignoreCase);
-        return async entry => {
-          const value = token === "-name" || token === "-iname" ? basename(entry.display) || "/" : entry.display;
-          return (await matcher)(value);
-        };
+        const matcherPromise = compilePattern(operand, work, ignoreCase);
+        let compiledMatcher: ((value: string) => boolean | Promise<boolean>) | undefined;
+        formats.push(async () => { compiledMatcher = await matcherPromise; });
+        const useName = token === "-name" || token === "-iname";
+        return entry => compiledMatcher!(useName ? entry.name : entry.display);
       }
-      if (token === "-true" || token === "-false") return async () => token === "-true";
-      if (token === "-empty") return async entry => entry.stat.type === "directory" ? !(await readDirectory(context, entry.path)).length : entry.stat.type === "file" && entry.stat.size === 0;
-      if (token === "-prune") { prunes = true; return async entry => { entry.prune = true; return true; }; }
+      if (token === "-true" || token === "-false") return () => token === "-true";
+      if (token === "-empty") { needsStat = true; return async entry => entry.stat.type === "directory" ? !(await readDirectory(context, entry.path)).length : entry.stat.type === "file" && entry.stat.size === 0; }
+      if (token === "-prune") { prunes = true; return entry => { entry.prune = true; return true; }; }
       if (token === "-delete") {
         explicitAction = true;
         depthFirst = true;
@@ -181,6 +202,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         return async entry => { await output(context, token === "-print0" ? `${entry.display}\0` : `${escapeText(entry.display, "display")}\n`); return true; };
       }
       if (token === "-printf") {
+        needsStat = true;
         if (args[offset] === undefined) throw new UsageError("-printf requires a format");
         const operand = values[offset++]!;
         let render: ((entry: FindFormatEntry) => Promise<void>) | undefined;
@@ -226,7 +248,10 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (args[offset] === "-a" || args[offset] === "-and") offset++;
         const left = predicate;
         const right = primary();
-        predicate = async entry => await left(entry) && await right(entry);
+        predicate = entry => {
+          const l = left(entry);
+          return typeof l === "boolean" ? (l ? right(entry) : false) : l.then(lv => lv ? right(entry) : false);
+        };
         if (debugTree) trees.set(predicate, `AND(${trees.get(left)}, ${trees.get(right)})`);
       }
       return predicate;
@@ -237,12 +262,15 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         offset++;
         const left = predicate;
         const right = conjunction();
-        predicate = async entry => await left(entry) || await right(entry);
+        predicate = entry => {
+          const l = left(entry);
+          return typeof l === "boolean" ? (l ? true : right(entry)) : l.then(lv => lv ? true : right(entry));
+        };
         if (debugTree) trees.set(predicate, `OR(${trees.get(left)}, ${trees.get(right)})`);
       }
       return predicate;
     };
-    const evaluate: Expression = args.length ? disjunction() : async () => true;
+    const evaluate: Expression = args.length ? disjunction() : () => true;
     if (offset !== args.length) throw new UsageError(`unexpected expression '${args[offset]}'`);
     for (const prepare of formats) await prepare();
     if (deletes && prunes && !explicitDepth) throw new PublicDiagnostic("-delete implies -depth; -prune is ineffective unless -depth is explicitly supplied");
@@ -270,21 +298,33 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       printBuffer = "";
       await output(context, out);
     };
-    const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string): Promise<void> => {
+    const canSkipChildStat = !needsStat && !explicitAction && follow !== "-L";
+    const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string, knownName?: string, knownType?: FileStat["type"]): Promise<void> => {
       context.signal.throwIfAborted();
       const path = pathOf(context, display);
       try {
         if (depth > 1024) throw new FsError("ELOOP", { path, message: "find depth limit exceeded (1024)" });
-        let stat = await context.fs.lstat(path, { signal: context.signal });
-        const symlink = stat.type === "symlink";
-        if ((follow === "-L" || follow === "-H" && depth === 0) && stat.type === "symlink") {
-          try { stat = await context.fs.stat(path, { signal: context.signal }); }
-          catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
+        let stat: FileStat;
+        let symlink: boolean;
+        if (knownType !== undefined && canSkipChildStat && !(knownType === "symlink" && follow === "-H" && depth === 0)) {
+          stat = syntheticStatFor(knownType);
+          symlink = knownType === "symlink";
+        } else {
+          stat = await context.fs.lstat(path, { signal: context.signal });
+          symlink = stat.type === "symlink";
+          if ((follow === "-L" || follow === "-H" && depth === 0) && symlink) {
+            try { stat = await context.fs.stat(path, { signal: context.signal }); }
+            catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
+          }
         }
-        const entry: Entry = { path, display, stat, symlink, depth, root, relative, prune: false };
-        if (!depthFirst && depth >= minDepth && await evaluate(entry) && !explicitAction) {
-          printBuffer += `${escapeText(display, "display")}\n`;
-          if (printBuffer.length >= 4096) await flushPrintBuffer();
+        const entry: Entry = { path, display, name: knownName ?? (basename(display) || "/"), stat, symlink, depth, root, relative, prune: false };
+        if (!depthFirst && depth >= minDepth) {
+          const res = evaluate(entry);
+          const ok = typeof res === "boolean" ? res : await res;
+          if (ok && !explicitAction) {
+            printBuffer += `${escapeText(display, "display")}\n`;
+            if (printBuffer.length >= 4096) await flushPrintBuffer();
+          }
         }
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
           const physical = await context.fs.realpath(path, { signal: context.signal });
@@ -293,11 +333,32 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const children = await readDirectory(context, path, true);
           let parent = display;
           while (parent.endsWith("/")) parent = parent.slice(0, -1);
-          for (const child of children) await visit(`${parent}/${child.name}`, depth + 1, next, root, relative ? `${relative}/${child.name}` : child.name);
+          const childDepth = depth + 1;
+          for (const child of children) {
+            const childDisplay = `${parent}/${child.name}`;
+            const childRel = relative ? `${relative}/${child.name}` : child.name;
+            if (canSkipChildStat && child.type === "file" && childDepth <= 1024) {
+              if (childDepth >= minDepth) {
+                const childEntry: Entry = { path: pathOf(context, childDisplay), display: childDisplay, name: child.name, stat: SYNTHETIC_FILE_STAT, symlink: false, depth: childDepth, root, relative: childRel, prune: false };
+                const res = evaluate(childEntry);
+                const ok = typeof res === "boolean" ? res : await res;
+                if (ok) {
+                  printBuffer += `${escapeText(childDisplay, "display")}\n`;
+                  if (printBuffer.length >= 4096) await flushPrintBuffer();
+                }
+              }
+              continue;
+            }
+            await visit(childDisplay, childDepth, next, root, childRel, child.name, child.type);
+          }
         }
-        if (depthFirst && depth >= minDepth && await evaluate(entry) && !explicitAction) {
-          printBuffer += `${escapeText(display, "display")}\n`;
-          if (printBuffer.length >= 4096) await flushPrintBuffer();
+        if (depthFirst && depth >= minDepth) {
+          const res = evaluate(entry);
+          const ok = typeof res === "boolean" ? res : await res;
+          if (ok && !explicitAction) {
+            printBuffer += `${escapeText(display, "display")}\n`;
+            if (printBuffer.length >= 4096) await flushPrintBuffer();
+          }
         }
       } catch (error) {
         if (formatBudget.exhausted) throw error;

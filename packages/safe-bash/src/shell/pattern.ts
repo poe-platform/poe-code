@@ -71,7 +71,7 @@ async function tokens(pattern: string, work: StringWork, ignoreCase = false): Pr
   return { patternTokens: result, reservation };
 }
 
-export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false): Promise<(value: string, start?: number, end?: number) => Promise<boolean>> {
+export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false): Promise<(value: string, start?: number, end?: number) => boolean | Promise<boolean>> {
   work.signal.throwIfAborted();
   const { patternTokens } = await tokens(pattern, work, ignoreCase);
   return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase);
@@ -133,7 +133,7 @@ export async function compilePatternBoundaries(pattern: string, work: StringWork
   };
 }
 
-async function matchTokens(patternTokens: PatternToken[], value: string, work: StringWork, start: number, end: number, ignoreCase = false): Promise<boolean> {
+function matchTokens(patternTokens: PatternToken[], value: string, work: StringWork, start: number, end: number, ignoreCase = false): boolean | Promise<boolean> {
   work.signal.throwIfAborted();
   let position = start;
   let tokenIndex = 0;
@@ -141,7 +141,7 @@ async function matchTokens(patternTokens: PatternToken[], value: string, work: S
   let retry = start;
   while (position < end) {
     const pending = stringCheckpoint(work);
-    if (pending) await pending;
+    if (pending) return matchTokensAsync(patternTokens, value, work, end, ignoreCase, position, tokenIndex, star, retry, pending);
     work.signal.throwIfAborted();
     const token = patternTokens[tokenIndex];
     const point = value.codePointAt(position)!;
@@ -151,6 +151,37 @@ async function matchTokens(patternTokens: PatternToken[], value: string, work: S
       tokenIndex++;
     } else if (star !== -1) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }
     else return false;
+  }
+  work.signal.throwIfAborted();
+  while (patternTokens[tokenIndex]?.kind === "star") tokenIndex++;
+  return tokenIndex === patternTokens.length;
+}
+
+async function matchTokensAsync(
+  patternTokens: PatternToken[],
+  value: string,
+  work: StringWork,
+  end: number,
+  ignoreCase: boolean,
+  position: number,
+  tokenIndex: number,
+  star: number,
+  retry: number,
+  initialPending: Promise<void>,
+): Promise<boolean> {
+  await initialPending;
+  while (position < end) {
+    work.signal.throwIfAborted();
+    const token = patternTokens[tokenIndex];
+    const point = value.codePointAt(position)!;
+    if (token?.kind === "star") { star = tokenIndex++; retry = position; }
+    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.expression.test(String.fromCodePoint(point))))) {
+      position += point > 0xffff ? 2 : 1;
+      tokenIndex++;
+    } else if (star !== -1) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }
+    else return false;
+    const pending = stringCheckpoint(work);
+    if (pending) await pending;
   }
   work.signal.throwIfAborted();
   while (patternTokens[tokenIndex]?.kind === "star") tokenIndex++;

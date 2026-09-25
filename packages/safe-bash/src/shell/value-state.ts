@@ -20,32 +20,63 @@ const DEFAULT_VALUE_ARENA_FAIL = (limit: "maxExpansionBytes" | "maxExpansionFiel
   throw new ShellLimitError(limit);
 };
 
+export type ValueArenaHost = {
+  _aborted: boolean;
+  readonly _hasExternalSignal: boolean;
+  readonly signal: AbortSignal;
+  fail(limit: "maxExpansionBytes" | "maxExpansionFields"): never;
+};
+
 export class ValueArena {
-  #objects: WeakMap<object, AllocationRecord> | undefined;
-  #freeScopes: ValueScope[] | undefined;
-  #freeStores: ValueStore[] | undefined;
-  #freeRecords: AllocationRecord[] | undefined;
-  #epoch = 1;
-  #bytes = 0;
-  #slots = 0;
-  #closed = false;
+  declare readonly maximumBytes: number;
+  declare readonly maximumSlots: number;
+  declare readonly checkpoint: (() => void) | ValueArenaHost;
+  declare readonly fail: (limit: "maxExpansionBytes" | "maxExpansionFields") => never;
+  declare private _objects: WeakMap<object, AllocationRecord> | undefined;
+  declare private _freeScopes: ValueScope[] | undefined;
+  declare private _freeStores: ValueStore[] | undefined;
+  declare private _freeRecords: AllocationRecord[] | undefined;
+  declare private _epoch: number;
+  declare private _bytes: number;
+  declare private _slots: number;
+  declare private _closed: boolean;
 
-  constructor(readonly maximumBytes: number, readonly maximumSlots: number, readonly checkpoint: () => void, readonly fail: (limit: "maxExpansionBytes" | "maxExpansionFields") => never = DEFAULT_VALUE_ARENA_FAIL) {}
+  constructor(maximumBytes: number, maximumSlots: number, checkpoint: (() => void) | ValueArenaHost, fail: (limit: "maxExpansionBytes" | "maxExpansionFields") => never = DEFAULT_VALUE_ARENA_FAIL) {
+    this.maximumBytes = maximumBytes;
+    this.maximumSlots = maximumSlots;
+    this.checkpoint = checkpoint;
+    this.fail = fail;
+    this._objects = undefined;
+    this._freeScopes = undefined;
+    this._freeStores = undefined;
+    this._freeRecords = undefined;
+    this._epoch = 1;
+    this._bytes = 0;
+    this._slots = 0;
+    this._closed = false;
+  }
 
-  get usage(): { bytes: number; slots: number } { return { bytes: this.#bytes, slots: this.#slots }; }
+  get usage(): { bytes: number; slots: number } { return { bytes: this._bytes, slots: this._slots }; }
+
+  private _failLimit(limit: "maxExpansionBytes" | "maxExpansionFields"): never {
+    if (typeof this.checkpoint === "function") return this.fail(limit);
+    return this.checkpoint.fail(limit);
+  }
 
   assertOpen(): void {
-    this.checkpoint();
-    this.assertRetained();
+    const cp = this.checkpoint;
+    if (typeof cp === "function") cp();
+    else if (cp._aborted || (cp._hasExternalSignal && cp.signal.aborted)) cp.signal.throwIfAborted();
+    if (this._closed) throw new Error("Shell value arena is closed");
   }
 
   assertRetained(): void {
-    if (this.#closed) throw new Error("Shell value arena is closed");
+    if (this._closed) throw new Error("Shell value arena is closed");
   }
 
   scope(): ValueScope {
     this.assertOpen();
-    const pooled = this.#freeScopes?.pop();
+    const pooled = this._freeScopes?.pop();
     if (pooled) {
       pooled._reopen();
       return pooled;
@@ -54,14 +85,14 @@ export class ValueArena {
   }
 
   recycleScope(scope: ValueScope): void {
-    if (!this.#closed) {
-      const list = this.#freeScopes ??= [];
+    if (!this._closed) {
+      const list = this._freeScopes ??= [];
       if (list.length < 64) list.push(scope);
     }
   }
 
   createStore(): ValueStore {
-    const pooled = this.#freeStores?.pop();
+    const pooled = this._freeStores?.pop();
     if (pooled) {
       this.assertOpen();
       pooled._reopen();
@@ -71,8 +102,8 @@ export class ValueArena {
   }
 
   recycleStore(store: ValueStore): void {
-    if (!this.#closed) {
-      const list = this.#freeStores ??= [];
+    if (!this._closed) {
+      const list = this._freeStores ??= [];
       if (list.length < 64) list.push(store);
     }
   }
@@ -80,67 +111,67 @@ export class ValueArena {
   allocate(bytes: number, slots: number): AllocationRecord {
     this.assertOpen();
     if (!Number.isSafeInteger(bytes) || bytes < 0 || !Number.isSafeInteger(slots) || slots < 0) throw new RangeError("Invalid shell value allocation");
-    if (bytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
-    if (slots > this.maximumSlots - this.#slots) this.fail("maxExpansionFields");
-    let record = this.#freeRecords?.pop();
+    if (bytes > this.maximumBytes - this._bytes) this._failLimit("maxExpansionBytes");
+    if (slots > this.maximumSlots - this._slots) this._failLimit("maxExpansionFields");
+    let record = this._freeRecords?.pop();
     if (record) {
       record.bytes = bytes;
       record.slots = slots;
       record.references = 1;
-      record.epoch = this.#epoch;
+      record.epoch = this._epoch;
       record.object = undefined;
     } else {
-      record = { arena: this, bytes, slots, references: 1, epoch: this.#epoch };
+      record = { arena: this, bytes, slots, references: 1, epoch: this._epoch };
     }
-    this.#bytes += bytes;
-    this.#slots += slots;
+    this._bytes += bytes;
+    this._slots += slots;
     return record;
   }
 
   grow(record: AllocationRecord, bytes: number): void {
     this.assertOpen();
-    if (record.arena !== this || record.epoch !== this.#epoch || record.object) throw new Error("Shell value reservation cannot grow");
+    if (record.arena !== this || record.epoch !== this._epoch || record.object) throw new Error("Shell value reservation cannot grow");
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new RangeError("Invalid shell value allocation");
-    if (bytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
+    if (bytes > this.maximumBytes - this._bytes) this._failLimit("maxExpansionBytes");
     record.bytes += bytes;
-    this.#bytes += bytes;
+    this._bytes += bytes;
   }
 
   resizeStringRecord(record: AllocationRecord, newBytes: number): void {
     this.assertOpen();
-    if (record.arena !== this || record.epoch !== this.#epoch || record.object || record.slots !== 0) throw new Error("Invalid string record resize");
+    if (record.arena !== this || record.epoch !== this._epoch || record.object || record.slots !== 0) throw new Error("Invalid string record resize");
     if (!Number.isSafeInteger(newBytes) || newBytes < 0) throw new RangeError("Invalid shell value allocation");
     const delta = newBytes - record.bytes;
-    if (delta > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
-    this.#bytes += delta;
+    if (delta > this.maximumBytes - this._bytes) this._failLimit("maxExpansionBytes");
+    this._bytes += delta;
     record.bytes = newBytes;
   }
 
   shrinkStringRecord(record: AllocationRecord, removedBytes: number): void {
-    if (record.arena !== this || record.epoch !== this.#epoch || record.object || record.slots !== 0) return;
+    if (record.arena !== this || record.epoch !== this._epoch || record.object || record.slots !== 0) return;
     record.bytes -= removedBytes;
-    this.#bytes -= removedBytes;
+    this._bytes -= removedBytes;
   }
 
   commit(record: AllocationRecord, object: object): void {
     this.assertOpen();
-    const objects = (this.#objects ??= new WeakMap());
-    if (record.arena !== this || record.epoch !== this.#epoch || record.object || objects.has(object)) throw new Error("Shell value reservation is not fresh");
+    const objects = (this._objects ??= new WeakMap());
+    if (record.arena !== this || record.epoch !== this._epoch || record.object || objects.has(object)) throw new Error("Shell value reservation is not fresh");
     record.object = object;
     objects.set(object, record);
   }
 
   release(record: AllocationRecord): void {
-    if (record.arena !== this || record.epoch !== this.#epoch) return;
+    if (record.arena !== this || record.epoch !== this._epoch) return;
     if (--record.references) return;
     record.epoch = 0;
-    if (record.object) this.#objects?.delete(record.object);
+    if (record.object) this._objects?.delete(record.object);
     else {
-      const list = this.#freeRecords ??= [];
+      const list = this._freeRecords ??= [];
       if (list.length < 128) list.push(record);
     }
-    this.#bytes -= record.bytes;
-    this.#slots -= record.slots;
+    this._bytes -= record.bytes;
+    this._slots -= record.slots;
   }
 
   hold(value: ShellValue): HeldValue {
@@ -158,7 +189,7 @@ export class ValueArena {
     const reference = this.allocate(32, 1);
     let payload: AllocationRecord;
     try {
-      const existing = this.#objects?.get(value);
+      const existing = this._objects?.get(value);
       if (existing) { payload = existing; payload.references++; }
       else {
         payload = this.allocate(shellValueRetainedBytes(value), 1);
@@ -176,51 +207,59 @@ export class ValueArena {
   }
 
   close(): void {
-    this.#closed = true;
-    this.#epoch++;
-    this.#objects = undefined;
-    if (this.#freeScopes) this.#freeScopes.length = 0;
-    if (this.#freeScopes) this.#freeScopes = undefined;
-    if (this.#freeStores) this.#freeStores.length = 0;
-    if (this.#freeStores) this.#freeStores = undefined;
-    if (this.#freeRecords) this.#freeRecords.length = 0;
-    if (this.#freeRecords) this.#freeRecords = undefined;
-    this.#bytes = 0;
-    this.#slots = 0;
+    this._closed = true;
+    this._epoch++;
+    this._objects = undefined;
+    if (this._freeScopes) this._freeScopes.length = 0;
+    if (this._freeScopes) this._freeScopes = undefined;
+    if (this._freeStores) this._freeStores.length = 0;
+    if (this._freeStores) this._freeStores = undefined;
+    if (this._freeRecords) this._freeRecords.length = 0;
+    if (this._freeRecords) this._freeRecords = undefined;
+    this._bytes = 0;
+    this._slots = 0;
   }
 }
 
 export class ValueScope implements ValueAllocation {
-  #releases: Set<() => void> | undefined;
-  #holds: Map<HeldValue, { scope: ValueScope }> | undefined;
-  #closed = false;
-  #enrollment: AllocationRecord | undefined;
-  #bytesReservation: AllocationRecord | undefined;
+  declare readonly arena: ValueArena;
+  declare _releases: Set<() => void> | undefined;
+  declare _holds: Map<HeldValue, { scope: ValueScope }> | undefined;
+  declare _closed: boolean;
+  declare _enrollment: AllocationRecord | undefined;
+  declare _bytesReservation: AllocationRecord | undefined;
 
-  constructor(readonly arena: ValueArena) {}
+  constructor(arena: ValueArena) {
+    this.arena = arena;
+    this._releases = undefined;
+    this._holds = undefined;
+    this._closed = false;
+    this._enrollment = undefined;
+    this._bytesReservation = undefined;
+  }
 
   _reopen(): void {
-    this.#closed = false;
+    this._closed = false;
   }
 
   assertOpen(): void {
     this.arena.assertOpen();
-    if (this.#closed) throw new Error("Shell value scope is closed");
+    if (this._closed) throw new Error("Shell value scope is closed");
   }
 
   reserveBytes(bytes: number): void {
     this.assertOpen();
-    this.#enrollment ??= this.arena.allocate(64, 1);
-    if (this.#bytesReservation) this.arena.grow(this.#bytesReservation, bytes);
-    else this.#bytesReservation = this.arena.allocate(bytes, 0);
+    this._enrollment ??= this.arena.allocate(64, 1);
+    if (this._bytesReservation) this.arena.grow(this._bytesReservation, bytes);
+    else this._bytesReservation = this.arena.allocate(bytes, 0);
   }
 
   reserve(bytes: number, slots: number): ValueReservation {
     this.assertOpen();
-    this.#enrollment ??= this.arena.allocate(64, 1);
+    this._enrollment ??= this.arena.allocate(64, 1);
     const record = this.arena.allocate(bytes, slots);
     let released = false;
-    const releases = this.#releases ??= new Set();
+    const releases = this._releases ??= new Set();
     const release = (): void => {
       if (released) return;
       released = true;
@@ -233,67 +272,67 @@ export class ValueScope implements ValueAllocation {
 
   hold(value: ShellValue): HeldValue {
     this.assertOpen();
-    if (typeof value !== "string") this.#enrollment ??= this.arena.allocate(64, 1);
+    if (typeof value !== "string") this._enrollment ??= this.arena.allocate(64, 1);
     const held = this.arena.hold(value) as HeldValue & { __stringRecord?: AllocationRecord };
     const owner = { scope: this as ValueScope };
     const result: HeldValue & { __stringRecord?: AllocationRecord; value: ShellValue } = {
       value,
       ...(held.__stringRecord ? { __stringRecord: held.__stringRecord } : {}),
       release: (): void => {
-      owner.scope.#holds?.delete(result);
-      owner.scope.#releases?.delete(result.release);
+      owner.scope._holds?.delete(result);
+      owner.scope._releases?.delete(result.release);
       held.release();
     } };
     const release = result.release;
-    (this.#releases ??= new Set()).add(release);
-    (this.#holds ??= new Map()).set(result, owner);
+    (this._releases ??= new Set()).add(release);
+    (this._holds ??= new Map()).set(result, owner);
     return result;
   }
 
   prepareTransfer(held: HeldValue, destination: ValueScope): () => void {
     const validate = (): { scope: ValueScope } => {
       this.arena.assertRetained();
-      const owner = this.#holds?.get(held);
-      if (!owner || this.#closed || destination.#closed || this.arena !== destination.arena || typeof held.value !== "string" && !destination.#enrollment) throw new Error("Shell value restoration ownership is not prepared");
+      const owner = this._holds?.get(held);
+      if (!owner || this._closed || destination._closed || this.arena !== destination.arena || typeof held.value !== "string" && !destination._enrollment) throw new Error("Shell value restoration ownership is not prepared");
       return owner;
     };
     validate();
     return () => {
       const owner = validate();
-      this.#holds?.delete(held);
-      this.#releases?.delete(held.release);
+      this._holds?.delete(held);
+      this._releases?.delete(held.release);
       owner.scope = destination;
-      (destination.#holds ??= new Map()).set(held, owner);
-      (destination.#releases ??= new Set()).add(held.release);
+      (destination._holds ??= new Map()).set(held, owner);
+      (destination._releases ??= new Set()).add(held.release);
     };
   }
 
   close(): void {
-    if (this.#closed) return;
-    this.#closed = true;
-    if (this.#releases) {
-      for (const release of this.#releases) release();
+    if (this._closed) return;
+    this._closed = true;
+    if (this._releases) {
+      for (const release of this._releases) release();
     }
-    if (this.#bytesReservation) this.arena.release(this.#bytesReservation);
-    if (this.#enrollment) this.arena.release(this.#enrollment);
-    if (!this.#releases?.size && !this.#holds?.size) {
-      this.#bytesReservation = undefined;
-      this.#enrollment = undefined;
+    if (this._bytesReservation) this.arena.release(this._bytesReservation);
+    if (this._enrollment) this.arena.release(this._enrollment);
+    if (!this._releases?.size && !this._holds?.size) {
+      this._bytesReservation = undefined;
+      this._enrollment = undefined;
       this.arena.recycleScope(this);
     }
   }
 
   closeForStoreRecycle(): boolean {
-    if (this.#closed) return false;
-    this.#closed = true;
-    if (this.#releases) {
-      for (const release of this.#releases) release();
+    if (this._closed) return false;
+    this._closed = true;
+    if (this._releases) {
+      for (const release of this._releases) release();
     }
-    if (this.#bytesReservation) this.arena.release(this.#bytesReservation);
-    if (this.#enrollment) this.arena.release(this.#enrollment);
-    if (!this.#releases?.size && !this.#holds?.size) {
-      this.#bytesReservation = undefined;
-      this.#enrollment = undefined;
+    if (this._bytesReservation) this.arena.release(this._bytesReservation);
+    if (this._enrollment) this.arena.release(this._enrollment);
+    if (!this._releases?.size && !this._holds?.size) {
+      this._bytesReservation = undefined;
+      this._enrollment = undefined;
       return true;
     }
     return false;
@@ -301,87 +340,96 @@ export class ValueScope implements ValueAllocation {
 }
 
 export class ValueStore {
-  #values: Map<string, HeldValue> | undefined;
-  #strings: Map<string, string> | undefined;
-  #stringsShared = false;
-  #stringBytes = 0;
-  #stringRecord: AllocationRecord | undefined;
-  #closed = false;
-  #scope: ValueScope | undefined;
+  declare readonly arena: ValueArena;
+  declare private _values: Map<string, HeldValue> | undefined;
+  declare private _strings: Map<string, string> | undefined;
+  declare private _stringsShared: boolean;
+  declare private _stringBytes: number;
+  declare private _stringRecord: AllocationRecord | undefined;
+  declare private _closed: boolean;
+  declare private _scope: ValueScope | undefined;
 
-  constructor(readonly arena: ValueArena) {
+  constructor(arena: ValueArena) {
+    this.arena = arena;
+    this._values = undefined;
+    this._strings = undefined;
+    this._stringsShared = false;
+    this._stringBytes = 0;
+    this._stringRecord = undefined;
+    this._closed = false;
+    this._scope = undefined;
     arena.assertOpen();
   }
 
   get scope(): ValueScope {
-    return this.#scope ??= new ValueScope(this.arena);
+    return this._scope ??= new ValueScope(this.arena);
   }
 
   _reopen(): void {
-    this.#closed = false;
-    this.#scope?._reopen();
+    this._closed = false;
+    this._scope?._reopen();
   }
 
-  get(name: string, text: string): ShellValue { return this.#values?.get(name)?.value ?? this.#strings?.get(name) ?? text; }
+  get(name: string, text: string): ShellValue { return this._values?.get(name)?.value ?? this._strings?.get(name) ?? text; }
 
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
     const newBytes = value.length * 2;
-    const held = this.#values?.get(name);
-    const oldStr = this.#strings?.get(name);
+    const held = this._values?.get(name);
+    const oldStr = this._strings?.get(name);
     const oldBytes = oldStr !== undefined ? oldStr.length * 2 : 0;
     const delta = newBytes - oldBytes;
-    const previousRecord = this.#stringRecord;
-    if (this.#stringRecord) {
-      if (delta !== 0) this.arena.resizeStringRecord(this.#stringRecord, this.#stringRecord.bytes + delta);
+    const previousRecord = this._stringRecord;
+    if (this._stringRecord) {
+      if (delta !== 0) this.arena.resizeStringRecord(this._stringRecord, this._stringRecord.bytes + delta);
       else this.arena.assertOpen();
     } else {
-      this.#stringRecord = this.arena.allocate(newBytes, 0);
+      this._stringRecord = this.arena.allocate(newBytes, 0);
     }
     try { rawVariables[name] = value; }
     catch (error) {
       if (previousRecord) this.arena.shrinkStringRecord(previousRecord, delta);
       else {
-        this.arena.release(this.#stringRecord!);
-        this.#stringRecord = undefined;
+        this.arena.release(this._stringRecord!);
+        this._stringRecord = undefined;
       }
       throw error;
     }
     if (held) {
       held.release();
-      this.#values!.delete(name);
+      this._values!.delete(name);
     }
-    if (this.#stringsShared && this.#strings) {
-      this.#strings = new Map(this.#strings);
-      this.#stringsShared = false;
+    if (this._stringsShared && this._strings) {
+      this._strings = new Map(this._strings);
+      this._stringsShared = false;
     }
-    (this.#strings ??= new Map()).set(name, value);
-    this.#stringBytes += delta;
+    (this._strings ??= new Map()).set(name, value);
+    this._stringBytes += delta;
   }
 
   publish(name: string, value: ShellValue, action: () => boolean): boolean {
     if (typeof value === "string") {
       const newBytes = value.length * 2;
-      const hadRecord = this.#stringRecord !== undefined;
-      if (this.#stringRecord) this.arena.resizeStringRecord(this.#stringRecord, this.#stringRecord.bytes + newBytes);
-      else this.#stringRecord = this.arena.allocate(newBytes, 0);
+      const hadRecord = this._stringRecord !== undefined;
+      if (this._stringRecord) this.arena.resizeStringRecord(this._stringRecord, this._stringRecord.bytes + newBytes);
+      else this._stringRecord = this.arena.allocate(newBytes, 0);
       try {
         if (!action()) {
-          if (hadRecord) this.arena.shrinkStringRecord(this.#stringRecord!, newBytes);
-          else { this.arena.release(this.#stringRecord!); this.#stringRecord = undefined; }
+          if (hadRecord) this.arena.shrinkStringRecord(this._stringRecord!, newBytes);
+          else { this.arena.release(this._stringRecord!); this._stringRecord = undefined; }
           return false;
         }
       } catch (error) {
-        if (hadRecord) this.arena.shrinkStringRecord(this.#stringRecord!, newBytes);
-        else { this.arena.release(this.#stringRecord!); this.#stringRecord = undefined; }
+        if (hadRecord) this.arena.shrinkStringRecord(this._stringRecord!, newBytes);
+        else { this.arena.release(this._stringRecord!); this._stringRecord = undefined; }
         throw error;
       }
       this.invalidate(name);
-      if (this.#stringsShared && this.#strings) {
-        this.#strings = new Map(this.#strings);
-        this.#stringsShared = false;
+      if (this._stringsShared && this._strings) {
+        this._strings = new Map(this._strings);
+        this._stringsShared = false;
       }
-      (this.#strings ??= new Map()).set(name, value);
-      this.#stringBytes += newBytes;
+      (this._strings ??= new Map()).set(name, value);
+      this._stringBytes += newBytes;
       return true;
     }
     const held = this.scope.hold(value);
@@ -389,42 +437,42 @@ export class ValueStore {
       if (!action()) { held.release(); return false; }
     } catch (error) { held.release(); throw error; }
     this.invalidate(name);
-    (this.#values ??= new Map()).set(name, held);
+    (this._values ??= new Map()).set(name, held);
     return true;
   }
 
   invalidate(name?: string): void {
     if (name === undefined) {
-      if (this.#values) {
-        for (const value of this.#values.values()) value.release();
-        this.#values.clear();
+      if (this._values) {
+        for (const value of this._values.values()) value.release();
+        this._values.clear();
       }
-      if (this.#stringsShared) {
-        this.#strings = undefined;
-        this.#stringsShared = false;
-      } else if (this.#strings) {
-        this.#strings.clear();
+      if (this._stringsShared) {
+        this._strings = undefined;
+        this._stringsShared = false;
+      } else if (this._strings) {
+        this._strings.clear();
       }
-      this.#stringBytes = 0;
-      if (this.#stringRecord) {
-        this.arena.release(this.#stringRecord);
-        this.#stringRecord = undefined;
+      this._stringBytes = 0;
+      if (this._stringRecord) {
+        this.arena.release(this._stringRecord);
+        this._stringRecord = undefined;
       }
     } else {
-      if (this.#values) {
-        this.#values.get(name)?.release();
-        this.#values.delete(name);
+      if (this._values) {
+        this._values.get(name)?.release();
+        this._values.delete(name);
       }
-      const oldStr = this.#strings?.get(name);
+      const oldStr = this._strings?.get(name);
       if (oldStr !== undefined) {
-        if (this.#stringsShared) {
-          this.#strings = new Map(this.#strings);
-          this.#stringsShared = false;
+        if (this._stringsShared) {
+          this._strings = new Map(this._strings);
+          this._stringsShared = false;
         }
-        this.#strings!.delete(name);
+        this._strings!.delete(name);
         const delta = oldStr.length * 2;
-        this.#stringBytes -= delta;
-        if (this.#stringRecord) this.arena.shrinkStringRecord(this.#stringRecord, delta);
+        this._stringBytes -= delta;
+        if (this._stringRecord) this.arena.shrinkStringRecord(this._stringRecord, delta);
       }
     }
   }
@@ -432,17 +480,17 @@ export class ValueStore {
   clone(): ValueStore {
     const copy = this.arena.createStore();
     try {
-      if (this.#stringRecord) {
-        copy.#stringRecord = this.arena.allocate(this.#stringBytes, 0);
-        copy.#stringBytes = this.#stringBytes;
-        if (this.#strings && this.#strings.size > 0) {
-          this.#stringsShared = true;
-          copy.#strings = this.#strings;
-          copy.#stringsShared = true;
+      if (this._stringRecord) {
+        copy._stringRecord = this.arena.allocate(this._stringBytes, 0);
+        copy._stringBytes = this._stringBytes;
+        if (this._strings && this._strings.size > 0) {
+          this._stringsShared = true;
+          copy._strings = this._strings;
+          copy._stringsShared = true;
         }
       }
-      if (this.#values) {
-        for (const [name, held] of this.#values) copy.publish(name, held.value, () => true);
+      if (this._values) {
+        for (const [name, held] of this._values) copy.publish(name, held.value, () => true);
       }
       return copy;
     } catch (error) { copy.close(); throw error; }
@@ -460,7 +508,7 @@ export class ValueStore {
     } catch (error) { for (const held of staged.values()) held.release(); throw error; }
     this.invalidate();
     if (staged.size > 0) {
-      const values = this.#values ??= new Map();
+      const values = this._values ??= new Map();
       for (const [name, held] of staged) values.set(name, held);
     }
   }
@@ -468,26 +516,26 @@ export class ValueStore {
   restore(source: ValueStore, action: () => void): void {
     if (source === this) throw new Error("Shell value restoration requires an independent snapshot");
     this.arena.assertRetained();
-    if (this.#closed || source.#closed || this.arena !== source.arena) throw new Error("Shell value restoration ownership is not prepared");
-    const transfers = source.#values ? [...source.#values].map(([name, held]) => ({ name, held, transfer: source.scope.prepareTransfer(held, this.scope) })) : [];
+    if (this._closed || source._closed || this.arena !== source.arena) throw new Error("Shell value restoration ownership is not prepared");
+    const transfers = source._values ? [...source._values].map(([name, held]) => ({ name, held, transfer: source.scope.prepareTransfer(held, this.scope) })) : [];
     action();
     this.invalidate();
-    if (source.#stringRecord) {
-      this.#stringRecord = source.#stringRecord;
-      this.#stringBytes = source.#stringBytes;
-      this.#strings = source.#strings;
-      this.#stringsShared = source.#stringsShared;
-      source.#stringRecord = undefined;
-      source.#stringBytes = 0;
-      source.#strings = undefined;
-      source.#stringsShared = false;
+    if (source._stringRecord) {
+      this._stringRecord = source._stringRecord;
+      this._stringBytes = source._stringBytes;
+      this._strings = source._strings;
+      this._stringsShared = source._stringsShared;
+      source._stringRecord = undefined;
+      source._stringBytes = 0;
+      source._strings = undefined;
+      source._stringsShared = false;
     }
     if (transfers.length > 0) {
-      const values = this.#values ??= new Map();
+      const values = this._values ??= new Map();
       for (const { name, held, transfer } of transfers) {
         transfer();
         values.set(name, held);
-        source.#values!.delete(name);
+        source._values!.delete(name);
       }
     }
   }
@@ -497,14 +545,14 @@ export class ValueStore {
     action();
     this.invalidate(name);
     transfer();
-    (this.#values ??= new Map()).set(name, held);
+    (this._values ??= new Map()).set(name, held);
   }
 
   close(): void {
-    if (this.#closed) return;
-    this.#closed = true;
+    if (this._closed) return;
+    this._closed = true;
     this.invalidate();
-    if (!this.#scope || this.#scope.closeForStoreRecycle()) {
+    if (!this._scope || this._scope.closeForStoreRecycle()) {
       this.arena.recycleStore(this);
     }
   }

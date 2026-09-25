@@ -25,23 +25,46 @@ const labels = ["wrapper", "Map slot", "payload", "metadata", "allocated byte", 
 type Counters = [number, number, number, number, number, number, number];
 
 export class Admission implements Tickets {
-  previous: Admission | undefined;
-  next: Admission | undefined;
-  owner: ArrayOwner | undefined;
-  released = false;
-  cleanup: (() => void) | undefined;
-  restorationReferences = 0;
+  declare readonly ledger: ArrayLedger;
+  declare wrappers: number;
+  declare slots: number;
+  declare payload: number;
+  declare metadata: number;
+  declare generation: number;
+  declare version: number;
+  declare epoch: number;
+  declare previous: Admission | undefined;
+  declare next: Admission | undefined;
+  declare owner: ArrayOwner | undefined;
+  declare released: boolean;
+  declare cleanup: (() => void) | undefined;
+  declare restorationReferences: number;
 
   constructor(
-    readonly ledger: ArrayLedger,
-    public wrappers: number,
-    public slots: number,
-    public payload: number,
-    public metadata: number,
-    public generation: number,
-    public version: number,
-    public epoch: number,
-  ) {}
+    ledger: ArrayLedger,
+    wrappers: number,
+    slots: number,
+    payload: number,
+    metadata: number,
+    generation: number,
+    version: number,
+    epoch: number,
+  ) {
+    this.ledger = ledger;
+    this.wrappers = wrappers;
+    this.slots = slots;
+    this.payload = payload;
+    this.metadata = metadata;
+    this.generation = generation;
+    this.version = version;
+    this.epoch = epoch;
+    this.previous = undefined;
+    this.next = undefined;
+    this.owner = undefined;
+    this.released = false;
+    this.cleanup = undefined;
+    this.restorationReferences = 0;
+  }
 
   _reset(
     wrappers: number,
@@ -77,31 +100,56 @@ export class Admission implements Tickets {
 }
 
 export class ArrayLedger {
-  private caps: Counters | undefined;
-  private used: Counters | undefined;
-  private c3Smi = -1;
-  private c4Smi = -1;
-  private c5Smi = -1;
-  private c6Smi = -1;
-  private u0Smi = 0;
-  private u1Smi = 0;
-  private u2Smi = 0;
-  private u3Smi = 0;
-  private u4Smi = 0;
-  private u5Smi = 0;
-  private u6Smi = 0;
-  private sequence: { lastIssued: number };
-  private checkpointCount = 0;
-  private freeAdmissions: Admission[] | undefined;
+  declare readonly bytes: number;
+  declare readonly fields: number;
+  declare private _active: boolean;
+  declare private caps: Counters | undefined;
+  declare private used: Counters | undefined;
+  declare private c3Smi: number;
+  declare private c4Smi: number;
+  declare private c5Smi: number;
+  declare private c6Smi: number;
+  declare private u0Smi: number;
+  declare private u1Smi: number;
+  declare private u2Smi: number;
+  declare private u3Smi: number;
+  declare private u4Smi: number;
+  declare private u5Smi: number;
+  declare private u6Smi: number;
+  declare private sequence: { lastIssued: number };
+  declare private checkpointCount: number;
+  declare private freeAdmissions: Admission[] | undefined;
 
-  constructor(readonly bytes: number, readonly fields: number, initialTicket = 0, sharedSequence?: { lastIssued: number }) {
+  constructor(bytes: number, fields: number, initialTicket = 0, sharedSequence?: { lastIssued: number }) {
     if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError("Invalid private initial ticket");
+    this.bytes = bytes;
+    this.fields = fields;
+    this._active = false;
+    this.caps = undefined;
+    this.used = undefined;
+    this.c3Smi = -1;
+    this.c4Smi = -1;
+    this.c5Smi = -1;
+    this.c6Smi = -1;
+    this.u0Smi = 0;
+    this.u1Smi = 0;
+    this.u2Smi = 0;
+    this.u3Smi = 0;
+    this.u4Smi = 0;
+    this.u5Smi = 0;
+    this.u6Smi = 0;
     this.sequence = sharedSequence ?? { lastIssued: initialTicket };
+    this.checkpointCount = 0;
+    this.freeAdmissions = undefined;
   }
 
   internal(commandLimit: number): ArrayLedger {
     if (commandLimit === Infinity) {
       return new ArrayLedger(Infinity, Infinity, 0, this.sequence);
+    }
+    if (commandLimit >= 0 && commandLimit <= 272759172 && Number.isSafeInteger(commandLimit)) {
+      const units = commandLimit + 1;
+      return new ArrayLedger(32 * units, 64 * units, 0, this.sequence);
     }
     const requested = BigInt(commandLimit) + 1n;
     const maximum = BigInt(Number.MAX_SAFE_INTEGER) / 33024n;
@@ -109,7 +157,7 @@ export class ArrayLedger {
     return new ArrayLedger(Number(32n * units), Number(64n * units), 0, this.sequence);
   }
 
-  get active(): boolean { return this.caps !== undefined; }
+  get active(): boolean { return this._active; }
 
   private syncUsedArray(): Counters {
     const used = this.used ??= [0, 0, 0, 0, 0, 0, 0];
@@ -125,11 +173,13 @@ export class ArrayLedger {
 
   snapshot(): { readonly caps: readonly number[] | undefined; readonly used: readonly number[]; readonly lastIssued: number } {
     const used = this.syncUsedArray();
-    return { caps: this.caps?.slice(), used: used.slice(), lastIssued: this.sequence.lastIssued };
+    const caps = this._active ? (this.caps ??= this.derive()) : undefined;
+    return { caps: caps?.slice(), used: used.slice(), lastIssued: this.sequence.lastIssued };
   }
 
   private activateCaps(caps: Counters): void {
     if (!this.caps) {
+      this._active = true;
       this.caps = caps;
       this.c3Smi = caps[3]! <= 0x3fffffff ? (caps[3]! | 0) : 0x3fffffff;
       this.c4Smi = caps[4]! <= 0x3fffffff ? (caps[4]! | 0) : 0x3fffffff;
@@ -138,9 +188,57 @@ export class ArrayLedger {
     }
   }
 
+  private ensureSmiCaps(): boolean {
+    if (this.c4Smi >= 0) return true;
+    const b = this.bytes;
+    const f = this.fields;
+    if (b === Infinity || f === Infinity) {
+      this._active = true;
+      this.c3Smi = 0x3fffffff;
+      this.c4Smi = 0x3fffffff;
+      this.c5Smi = 0x3fffffff;
+      this.c6Smi = 0x3fffffff;
+      return true;
+    }
+    if (b >= 0 && f >= 0 && b <= 1e13 && f <= 1e12 && Number.isSafeInteger(b) && Number.isSafeInteger(f)) {
+      const c3 = 128 * f;
+      const c4 = 8 * b + 512 * f;
+      const c5 = 8 * f;
+      const c6 = 32 * b + 256 * f;
+      this._active = true;
+      this.c3Smi = c3 <= 0x3fffffff ? (c3 | 0) : 0x3fffffff;
+      this.c4Smi = c4 <= 0x3fffffff ? (c4 | 0) : 0x3fffffff;
+      this.c5Smi = c5 <= 0x3fffffff ? (c5 | 0) : 0x3fffffff;
+      this.c6Smi = c6 <= 0x3fffffff ? (c6 | 0) : 0x3fffffff;
+      return true;
+    }
+    return false;
+  }
+
+  chargeOwnerHeader(): void {
+    if (this.ensureSmiCaps() && 128 <= this.c3Smi - this.u3Smi && 128 <= this.c4Smi - this.u4Smi && 24 <= this.c6Smi - this.u6Smi) {
+      this.u3Smi = (this.u3Smi + 128) | 0;
+      this.u4Smi = (this.u4Smi + 128) | 0;
+      this.u6Smi = (this.u6Smi + 24) | 0;
+      return;
+    }
+    const adm = this.reserve({ metadata: 64, work: 9 });
+    const free = this.freeAdmissions ??= [];
+    if (free.length < 128) free.push(adm);
+  }
+
+  adoptPrechargedHeader(): Admission {
+    const pooled = this.freeAdmissions?.pop();
+    if (pooled) {
+      pooled._reset(0, 0, 0, 128, 0, 0, 0);
+      return pooled;
+    }
+    return new Admission(this, 0, 0, 0, 128, 0, 0, 0);
+  }
+
   charge(charge: Charge = {}, out?: { generation: number; version: number; epoch: number }): Tickets {
     if (
-      this.c4Smi >= 0 &&
+      (this.c4Smi >= 0 || this.ensureSmiCaps()) &&
       charge.wrappers === undefined &&
       charge.slots === undefined &&
       charge.payload === undefined &&
@@ -384,9 +482,9 @@ export class ArrayOwner {
     return this._completion;
   }
 
-  static create(ledger: ArrayLedger, parent?: ArrayOwner): ArrayOwner {
+  static create(ledger: ArrayLedger, parent?: ArrayOwner, prechargedHeader = false): ArrayOwner {
     parent?.assertOpen();
-    const header = ledger.reserve({ metadata: 64, work: 9 });
+    const header = prechargedHeader ? ledger.adoptPrechargedHeader() : ledger.reserve({ metadata: 64, work: 9 });
     const owner = new ArrayOwner(ledger, parent, header);
     if (parent) {
       owner._nextSibling = parent._firstChild;

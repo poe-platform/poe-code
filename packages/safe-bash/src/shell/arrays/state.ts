@@ -14,6 +14,7 @@ interface Session {
   firstMonitor: StateMonitor | undefined;
   monitors: Set<StateMonitor> | undefined;
   owner: ArrayOwner | undefined;
+  ownerHeaderCharged: boolean;
   guestOwner: ArrayOwner | undefined;
 }
 
@@ -48,6 +49,7 @@ function createSession(
     firstMonitor: undefined,
     monitors: undefined,
     owner: undefined,
+    ownerHeaderCharged: false,
     guestOwner: undefined,
   };
   scope.registerFinalizer(() => {
@@ -236,7 +238,28 @@ export class StateMonitor {
 
   internalOwner(): ArrayOwner {
     this.session.scope.assertOpen();
-    return this.session.owner ??= ArrayOwner.create(this.session.internal);
+    if (!this.session.owner) {
+      const precharged = this.session.ownerHeaderCharged;
+      this.session.owner = ArrayOwner.create(this.session.internal, undefined, precharged);
+      this.session.ownerHeaderCharged = true;
+    }
+    return this.session.owner;
+  }
+
+  chargeLazyPipeStatus(
+    signal: AbortSignal,
+    charge: import("./ledger.js").Charge,
+    out: { generation: number; version: number; epoch: number },
+  ): Tickets | undefined {
+    this.session.scope.assertOpen();
+    if (this.session.owner) {
+      this.session.owner.assertOpen();
+    } else if (!this.session.ownerHeaderCharged) {
+      this.session.internal.chargeOwnerHeader();
+      this.session.ownerHeaderCharged = true;
+    }
+    if (this.session.internal.checkpoint(signal, 0)) return undefined;
+    return this.session.internal.charge(charge, out);
   }
 
   activate(internal = false): BindingStore {

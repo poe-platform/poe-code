@@ -39,9 +39,8 @@ export function publishPipelineStatus(
       const s = statuses[i]!;
       if (!Number.isSafeInteger(s) || s < 0 || s > 255) throw new TypeError("Invalid PIPESTATUS completion");
     }
-    const owner = monitor.internalOwner();
-    if (!owner.ledger.checkpoint(signal, 0)) {
-      const tickets = owner.charge(pipeStatusFastCharge, pipeStatusTickets);
+    const tickets = monitor.chargeLazyPipeStatus(signal, pipeStatusFastCharge, pipeStatusTickets);
+    if (tickets) {
       monitor.epoch = tickets.epoch;
       monitor.lazyPipeStatus = statuses;
       return;

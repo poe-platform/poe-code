@@ -356,8 +356,8 @@ export class Budget {
   declare readonly controller: ManagedControlController;
   declare readonly signal: AbortSignal;
   declare readonly yieldCheckpoint: () => void;
-  declare readonly chargeFs: () => void;
-  declare readonly cleanupChargeFs: () => void;
+  declare private _chargeFs: (() => void) | undefined;
+  declare private _cleanupChargeFs: (() => void) | undefined;
   declare private _wallClockTimer: ReturnType<typeof setTimeout> | undefined;
   declare private _wallClockDeadline: number;
   declare private _pipelineStages: number;
@@ -366,8 +366,8 @@ export class Budget {
     return this._fileSystemOperations;
   }
   declare private readonly _cpuStarted: number;
-  declare private _aborted: boolean;
-  declare private readonly _hasExternalSignal: boolean;
+  declare _aborted: boolean;
+  declare readonly _hasExternalSignal: boolean;
   declare readonly hasCpuLimit: boolean;
   declare readonly maxCommandsSmi: number;
   declare readonly maxLoopIterationsSmi: number;
@@ -392,8 +392,8 @@ export class Budget {
     this.globstarStates = 0;
     this.controller = createManagedControlController();
     this.yieldCheckpoint = () => { this.cpuCheckpoint(); };
-    this.chargeFs = () => { this.fileSystemOperation(); };
-    this.cleanupChargeFs = () => { this.fileSystemCleanupOperation(); };
+    this._chargeFs = undefined;
+    this._cleanupChargeFs = undefined;
     this._wallClockTimer = undefined;
     this._wallClockDeadline = Date.now() + limits.maxWallClockMs;
     this._pipelineStages = 0;
@@ -411,14 +411,17 @@ export class Budget {
     this.maxOutputBytesSmi = limits.maxOutputBytes <= 0x3fffffff ? (limits.maxOutputBytes | 0) : 0x3fffffff;
     this.signal = signal ? combineManagedSignals(signal, this.controller.signal) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
-    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, error => this.abort(error));
-    this.values = new ValueArena(
-      limits.maxExpansionBytes,
-      limits.maxExpansionFields,
-      () => { if (this._aborted || (this._hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted(); },
-      limit => this.fail(limit),
-    );
+    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this);
+    this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, this);
     if (limits.maxWallClockMs !== Infinity) this._armWallClock();
+  }
+
+  get chargeFs(): () => void {
+    return this._chargeFs ??= () => { this.fileSystemOperation(); };
+  }
+
+  get cleanupChargeFs(): () => void {
+    return this._cleanupChargeFs ??= () => { this.fileSystemCleanupOperation(); };
   }
 
   get executionScope(): object {
@@ -2308,8 +2311,6 @@ export class Runtime {
   declare private _contextFs: FileSystem | undefined;
   declare private _redirectFsMask: number;
   declare private _redirectFs: FileSystem | undefined;
-  declare private readonly _chargeFs: () => void;
-  declare private readonly _cleanupChargeFs: () => void;
   declare private readonly _isMemoryBackingFs: boolean;
   declare private _fileWrites: Map<string, Promise<void>> | undefined;
   declare private _outputFiles: Map<string, OutputFile> | undefined;
@@ -2356,8 +2357,6 @@ export class Runtime {
     this._contextFs = undefined;
     this._redirectFsMask = -1;
     this._redirectFs = undefined;
-    this._chargeFs = budget.chargeFs;
-    this._cleanupChargeFs = budget.cleanupChargeFs;
     this._fileWrites = fileWrites;
     this._outputFiles = outputFiles;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
@@ -2387,7 +2386,7 @@ export class Runtime {
 
   get fs(): FileSystem {
     if (!this._fs) {
-      this._fs = scopeFileSystem(this._rawFs, this._chargeFs, this.signal, this._cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
+      this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
       runtimeFileSystems.set(this._fs, this.sourceFs);
       registerRuntimeBackingFileSystem(this._fs, this.backingFs);
     }
@@ -2400,9 +2399,9 @@ export class Runtime {
     }
     const created = scopeFileSystem(
       creationFileSystem(this.sourceFs, umask),
-      this._chargeFs,
+      this.budget.chargeFs,
       sig,
-      this._cleanupChargeFs,
+      this.budget.cleanupChargeFs,
       { maxPathComponents: this.budget.limits.maxPathnameComponents },
     );
     runtimeFileSystems.set(created, this.sourceFs);
@@ -2420,9 +2419,9 @@ export class Runtime {
     this._redirectFsMask = umask;
     return (this._redirectFs = scopeFileSystem(
       creationFileSystem(this.sourceFs, umask),
-      this._chargeFs,
+      this.budget.chargeFs,
       this.commandSignal,
-      this._cleanupChargeFs,
+      this.budget.cleanupChargeFs,
       { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathnameComponents },
     ));
   }

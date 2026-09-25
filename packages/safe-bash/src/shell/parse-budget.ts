@@ -3,18 +3,28 @@ import { ShellLimitError } from "./types.js";
 export const defaultMaxParseUnits = Infinity;
 
 export class ParseBudget {
-  private remainingSmi: number;
-  private remainingNum: number;
-  private totalAdmitted = 0;
-  private readonly unlimited: boolean;
-  private failure: ShellLimitError | undefined;
+  declare private remainingSmi: number;
+  declare private remainingNum: number;
+  declare private totalAdmitted: number;
+  declare private readonly unlimited: boolean;
+  declare private failure: ShellLimitError | undefined;
+  declare private readonly signal: AbortSignal | undefined;
+  declare private readonly onLimit: ((error: ShellLimitError) => void) | { abort(error: ShellLimitError): void } | undefined;
 
-  constructor(maximum?: number, private readonly signal?: AbortSignal, private readonly onLimit?: (error: ShellLimitError) => void) {
+  constructor(
+    maximum?: number,
+    signal?: AbortSignal,
+    onLimit?: ((error: ShellLimitError) => void) | { abort(error: ShellLimitError): void },
+  ) {
     if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("maxParseUnits must be a nonnegative safe integer");
     const rem = maximum ?? defaultMaxParseUnits;
+    this.totalAdmitted = 0;
     this.unlimited = rem === Infinity;
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
+    this.failure = undefined;
+    this.signal = signal;
+    this.onLimit = onLimit;
   }
 
   get admittedUnits(): number {
@@ -47,7 +57,8 @@ export class ParseBudget {
     }
     if (units > this.remainingNum) {
       const error = this.failure = new ShellLimitError("maxParseUnits");
-      this.onLimit?.(error);
+      if (typeof this.onLimit === "function") this.onLimit(error);
+      else this.onLimit?.abort(error);
       throw error;
     }
     this.remainingNum -= units;

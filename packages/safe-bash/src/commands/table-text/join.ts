@@ -19,7 +19,7 @@ interface Options {
 }
 
 function number(value: string, label: string): number {
-  if (!/^[0-9]+$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) fail(`invalid ${label}: ${value}`);
+  if (!/^\+?[0-9]+$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 1) fail(`invalid ${label}: ${value}`);
   return Number(value);
 }
 
@@ -29,6 +29,9 @@ function parse(context: CommandContext, budget: Budget): Options {
   let delimiterChoice: number | undefined;
   const explicitFields: [number | undefined, number | undefined] = [undefined, undefined];
   let explicitReplacement: string | undefined;
+  const fieldCandidates: ("1" | "2" | undefined)[] = [];
+  const pendingFields = { "1": 0, "2": 0 };
+  let nextFieldCandidate: "1" | "2" | undefined;
   const setField = (fileIndex: 0 | 1, field: number): void => {
     const existing = explicitFields[fileIndex];
     if (existing !== undefined && existing !== field) fail(`incompatible join fields ${existing}, ${field}`);
@@ -74,7 +77,23 @@ function parse(context: CommandContext, budget: Budget): Options {
   };
   for (let index = 0; index < context.args.length; index++) {
     const token = context.args[index]!;
-    if (literal || token === "-" || !token.startsWith("-")) { options.files.push(token); continue; }
+    const candidate = nextFieldCandidate;
+    nextFieldCandidate = undefined;
+    if (literal || token === "-" || !token.startsWith("-")) {
+      // GNU defers -j1/-j2 until excess operands reveal a separate field.
+      if (options.files.length === 2) {
+        const position = fieldCandidates.findIndex(field => field !== undefined);
+        if (position < 0) fail("join requires exactly two files");
+        const field = fieldCandidates[position]!;
+        apply(field, options.files[position]!);
+        pendingFields[field]--;
+        options.files.splice(position, 1);
+        fieldCandidates.splice(position, 1);
+      }
+      options.files.push(token);
+      fieldCandidates.push(literal ? undefined : candidate);
+      continue;
+    }
     if (token === "--") { literal = true; continue; }
     if (token === "--header") { options.header = true; continue; }
     if (token === "--check-order") { options.order = "check"; continue; }
@@ -88,10 +107,10 @@ function parse(context: CommandContext, budget: Budget): Options {
       else if (flag === "z") options.separator = 0;
       else if ("12jaevto".includes(flag)) {
         const rest = token.slice(offset + 1);
-        if (flag === "j" && (rest === "1" || rest === "2") && context.args.length - (index + 1) >= 3) {
-          let value: string;
-          [value, index] = argument(context.args, index, undefined, `-j${rest}`);
-          apply(rest, value); break;
+        if (token === `-j${rest}` && (rest === "1" || rest === "2")) {
+          pendingFields[rest]++;
+          nextFieldCandidate = rest;
+          break;
         }
         let value: string;
         [value, index] = argument(context.args, index, rest || undefined, `-${flag}`);
@@ -100,6 +119,7 @@ function parse(context: CommandContext, budget: Budget): Options {
     }
   }
   if (options.files.length !== 2) fail("join requires exactly two files");
+  for (const field of ["1", "2"] as const) if (pendingFields[field]) apply("j", field);
   if (options.files.every(file => file === "-")) fail("both files cannot be standard input");
   return options;
 }

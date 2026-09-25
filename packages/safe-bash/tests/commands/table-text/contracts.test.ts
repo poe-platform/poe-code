@@ -264,3 +264,20 @@ for (const command of ["join", "comm"] as const) {
     }
   }
 }
+
+for (const [args, files, expected] of [
+  [["-j2", "-eNA", "left", "right"], { left: "alone\n", right: "other\n" }, "NA alone other\n"],
+  [["-j2", "left", "right", "-eNA"], { left: "alone\n", right: "other\n" }, "NA alone other\n"],
+  [["-j2", "2", "left", "right"], { left: "key\n", right: "prefix key\n" }, "key prefix\n"],
+  [["left", "-j2", "2", "right"], { left: "key\n", right: "prefix key\n" }, "key prefix\n"],
+  [["-j2", "+2", "left", "right"], { left: "key\n", right: "prefix key\n" }, "key prefix\n"],
+  [["-j2", "2", "right", "-eNA"], { "2": "prefix key\n", right: "prefix key\n" }, "key prefix prefix\n"],
+  [["-j2", "2", "right"], { "2": "prefix key\n", right: "prefix key\n" }, "key prefix prefix\n"],
+] as const) {
+  test(`join disambiguates shared and per-file fields: ${JSON.stringify(args)}`, async () => {
+    const result = await runTable(fixture("join", args, files));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
+  });
+}

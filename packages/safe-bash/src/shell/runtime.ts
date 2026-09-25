@@ -1182,10 +1182,10 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
 }
 
 class FastShellCommandContext {
-  stdin: ByteSource;
-  stdout: ByteSink;
-  stderr: ByteSink;
-  descriptors: ReadonlyMap<number, Descriptor> | undefined;
+  declare stdin: ByteSource;
+  declare stdout: ByteSink;
+  declare stderr: ByteSink;
+  declare descriptors: ReadonlyMap<number, Descriptor> | undefined;
   command: string;
   args: readonly string[];
   env: Record<string, string>;
@@ -1193,13 +1193,13 @@ class FastShellCommandContext {
   signal: AbortSignal;
   executionScope: CommandContext["executionScope"];
   onInternalError: CommandContext["onInternalError"];
-  argv0?: string;
-  capabilities?: import("./types.js").ShellCapabilities;
-  processSignals?: CommandContext["processSignals"];
-  diagnosticLine?: number;
-  scriptName?: string;
-  [invocationScope]?: InvocationScope;
-  [valueScope]?: ValueScope;
+  declare argv0?: string;
+  declare capabilities?: import("./types.js").ShellCapabilities;
+  declare processSignals?: CommandContext["processSignals"];
+  declare diagnosticLine?: number;
+  declare scriptName?: string;
+  declare [invocationScope]?: InvocationScope;
+  declare [valueScope]?: ValueScope;
   readonly _self: FastShellCommandContext;
   readonly #runtime: Runtime;
   readonly #state: State;
@@ -1209,8 +1209,6 @@ class FastShellCommandContext {
   #contextFs: FileSystem | undefined;
   #cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
   #cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
-  #admittedHandles: CommandContext["admittedHandles"] | undefined;
-  #admittedHandlesInitialized = false;
   #argumentValues: CommandArguments | undefined;
   #registerCleanup: NonNullable<CommandContext["registerCleanup"]> | undefined;
   #invoke: ShellCommandContext["invoke"] | undefined;
@@ -1232,10 +1230,8 @@ class FastShellCommandContext {
     this.#io = io;
     this.#scope = scope;
     this.#scopedSignal = signalIsScoped ? runtime.signal : undefined;
-    this.stdin = io.stdin;
-    this.stdout = io.stdout;
-    this.stderr = io.stderr;
-    this.descriptors = io.descriptors;
+    const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
+    Object.assign(this, publicIO);
     this.command = name;
     this.args = args;
     this.#argumentValues = argumentValues;
@@ -1244,21 +1240,18 @@ class FastShellCommandContext {
     this.signal = runtime.commandSignal;
     this.executionScope = runtime.budget.executionScope;
     this.onInternalError = runtime.budget.onInternalError;
-    if (io.argv0 !== undefined) this.argv0 = io.argv0;
-    if (io.capabilities !== undefined) this.capabilities = io.capabilities;
-    if (io.processSignals !== undefined) this.processSignals = io.processSignals;
-    if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
-    if (io.scriptName !== undefined) this.scriptName = io.scriptName;
-    // Standard command adapters also forward contexts with spread or copied descriptors.
+    // Command adapters forward contexts with spread or copied descriptors.
+    // Keep lazy fields enumerable and bind their private state to this instance.
     for (const [key, descriptor] of fastShellCommandAccessors) {
       Object.defineProperty(this, key, {
         ...descriptor,
         enumerable: true,
-        configurable: key !== "stdinInput" && key !== "stdoutFile",
         get: descriptor.get!.bind(this),
         ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
       });
     }
+    bindCommandIO(this as unknown as CommandContext, io);
+    void this.registerCleanup;
   }
 
   get argumentValues(): CommandArguments | undefined {
@@ -1335,36 +1328,9 @@ class FastShellCommandContext {
     this._self.#cachedInputBudget = replacement;
   }
 
-  get stdinInput(): ShellInput | undefined {
-    return this.stdin instanceof ShellInput ? this.stdin : undefined;
-  }
-
-  get stdoutFile(): CommandContext["stdoutFile"] {
-    const ownership = budgetedSinks.get(this.stdout);
-    return ownership?.write === this.stdout.write ? ownership.file : undefined;
-  }
-
-  get admittedHandles(): CommandContext["admittedHandles"] {
-    const self = this._self;
-    if (!self.#admittedHandlesInitialized) {
-      self.#admittedHandlesInitialized = true;
-      if (self.#io.descriptors) {
-        const temp: Record<string, unknown> = { signal: self.signal, registerCleanup: self.registerCleanup };
-        bindCommandIO(temp as unknown as CommandContext, { ...self.#io, [invocationScope]: self.#scope });
-        self.#admittedHandles = (temp as unknown as CommandContext).admittedHandles;
-      }
-    }
-    return self.#admittedHandles;
-  }
-
-  set admittedHandles(v: CommandContext["admittedHandles"]) {
-    const self = this._self;
-    self.#admittedHandlesInitialized = true;
-    self.#admittedHandles = v;
-  }
 }
 
-const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "stdinInput", "stdoutFile", "admittedHandles", "registerCleanup", "invoke", "argumentValues"].map(
+const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "registerCleanup", "invoke", "argumentValues"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
 );
 

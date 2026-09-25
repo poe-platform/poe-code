@@ -2,9 +2,110 @@ import assert from "node:assert/strict";
 import { createProcessSignalChannel } from "safe-bash-contracts/process";
 import { test } from "node:test";
 import { toByteSource, writeText } from "../../src/contracts/index.js";
-import { ShellLimitError } from "../../src/shell/index.js";
+import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import type { ShellCommandContext } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
+
+test("plugin command contexts retain own enumerable capabilities through object spread", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs });
+  let checked = false;
+  shell.use({ name: "context-spread", setup(host) {
+    host.commands.register({ name: "context-spread", async execute(context) {
+      for (const name of ["fs", "inputBudget", "shellPredicates", "admittedHandles", "stdinInput", "stdoutFile"]) {
+        assert.equal(Object.getOwnPropertyDescriptor(context, name)?.enumerable, true, name);
+      }
+      const forwarded = { ...context };
+      assert.equal(forwarded.fs, context.fs);
+      assert.equal(forwarded.inputBudget, context.inputBudget);
+      assert.equal(forwarded.shellPredicates, context.shellPredicates);
+      assert.equal(forwarded.admittedHandles, context.admittedHandles);
+      assert.equal(forwarded.stdinInput, context.stdinInput);
+      assert.equal(forwarded.stdoutFile, context.stdoutFile);
+      const descriptorCopy = Object.create(Object.getPrototypeOf(context), Object.getOwnPropertyDescriptors(context)) as typeof context;
+      assert.equal(descriptorCopy.fs, context.fs);
+      assert.equal(descriptorCopy.inputBudget, context.inputBudget);
+      assert.equal(descriptorCopy.shellPredicates, context.shellPredicates);
+      assert.equal(descriptorCopy.admittedHandles, context.admittedHandles);
+      assert.equal(descriptorCopy.stdinInput, context.stdinInput);
+      assert.equal(descriptorCopy.stdoutFile, context.stdoutFile);
+      assert.equal(forwarded.stdoutFile?.path, "/output");
+      forwarded.inputBudget!.check(2);
+      assert.deepEqual((await forwarded.stdinInput!.read(2, forwarded.signal)).value, new TextEncoder().encode("in"));
+      await forwarded.fs.writeFile("/copied", new TextEncoder().encode("yes"));
+      checked = true;
+      return { exitCode: 0 };
+    } });
+  } });
+  try {
+    const result = await shell.exec("context-spread > /output", { stdin: "in" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(checked, true);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/copied")), "yes");
+  } finally { await shell.dispose(); }
+});
+
+for (const stdin of [undefined, "input"]) test(`plugin command contexts preserve stdin provenance through invoke: ${stdin === undefined ? "default" : "explicit"}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  let checked = false;
+  shell.use({ name: "context-provenance", setup(host) {
+    host.commands.register({ name: "check-provenance", execute(context) {
+      assert.equal(Object.hasOwn(context, "stdinIsDefault"), true);
+      assert.equal(context.stdinIsDefault, stdin === undefined);
+      checked = true;
+      return { exitCode: 0 };
+    } });
+    host.commands.register({ name: "forward-provenance", execute: context => context.invoke!("check-provenance", []) });
+  } });
+  try {
+    const result = await shell.exec("forward-provenance", stdin === undefined ? {} : { stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(checked, true);
+  } finally { await shell.dispose(); }
+});
+
+for (const middleware of [false, true]) test(`plugin pipeline stages retain the terminal field through object spread with middleware=${middleware}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  if (middleware) shell.use((_context, next) => next());
+  let checked = false;
+  shell.use({ name: "context-terminal", setup(host) {
+    host.commands.register({ name: "check-terminal", execute(context) {
+      const original = context as unknown as { terminal?: object };
+      const forwarded = { ...original };
+      assert.equal(Object.hasOwn(original, "terminal"), true);
+      assert.equal(original.terminal, undefined);
+      assert.equal(forwarded.terminal, original.terminal);
+      checked = true;
+      return { exitCode: 0 };
+    } });
+  } });
+  try {
+    const result = await shell.exec("check-terminal | :");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(checked, true);
+  } finally { await shell.dispose(); }
+});
+
+for (const [source, stdout, contents] of [
+  ["cat /file", "abc\n", "abc\n"],
+  ["truncate -s 1 /file", "", "a"],
+  ["html-to-markdown /page", "**hi**\n", "abc\n"],
+] as const) test(`default commands retain spread context capabilities: ${source}`, async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  await fs.writeFile("/file", new TextEncoder().encode("abc\n"));
+  await fs.writeFile("/page", new TextEncoder().encode("<b>hi</b>"));
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, stdout);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/file")), contents);
+  } finally { await shell.dispose(); }
+});
 
 test("descriptor leases return an available fragment without filling the request", async () => {
   const { shell, commands } = setup();

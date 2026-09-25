@@ -1010,7 +1010,9 @@ class CooperativeWorker implements RegexWorker {
       if (error instanceof ExprMatchError) category = error.category;
       failure = error.message.slice(0, 512);
     }
-    if (owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
+    // Only the in-process executor consumes private direct-match replies.
+    // Public worker requests retain the wire protocol's owned span arrays.
+    if (trustedWorkerRequests.has(input) && owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
       try {
         this.controller.signal.throwIfAborted();
         const syncReply = tryExecuteSync(owned as OwnedRequest, this.controller.signal);

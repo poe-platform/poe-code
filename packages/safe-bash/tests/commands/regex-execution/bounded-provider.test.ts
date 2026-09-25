@@ -81,6 +81,21 @@ test("fixed literals, BRE subset, pattern lists, whole and empty patterns retain
   assert.deepEqual(spans(await run(request({ ...rg, patterns: ["a", "ab"] }, ["ab"]))), [[0, 1]]);
 });
 
+test("public worker literal replies retain owned wire rows across reuse", async () => {
+  const worker = createBoundedRegexProvider().createWorker(defaults);
+  try {
+    const descriptor = literal("rg", ["x"]);
+    const first = await exchange(worker, request(descriptor, ["ax", "missing"]));
+    assert.deepEqual(spans(first), [[1, 2], []]);
+    assert.ok("results" in first);
+    assert.equal(Object.hasOwn(first, "directMatches"), false);
+    first.results[0]!.fill(99);
+    const second = await exchange(worker, request(descriptor, ["ax", "missing"]));
+    assert.deepEqual(spans(second), [[1, 2], []]);
+    assert.equal(Object.hasOwn(second, "directMatches"), false);
+  } finally { await worker.terminate(); }
+});
+
 test("unsupported dialects and flags are rejected even without subject rows", async () => {
   const unsupported: Descriptor[] = [
     grep(["a\\+"], { extended: false }), grep(["é"]),

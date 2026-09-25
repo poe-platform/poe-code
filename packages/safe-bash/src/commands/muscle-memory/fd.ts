@@ -1,4 +1,4 @@
-import { posix as posixPath } from "node:path";
+import { posixPath } from "../../contracts/path.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { define, output, pathOf, UsageError } from "../internal.js";
 import { prepareErgonomicRegex } from "../search/ergonomic-regex.js";
@@ -204,12 +204,13 @@ export function createFdCommand(options: FdCommandOptions = {}): CommandDefiniti
     } else {
       const prepared = prepareErgonomicRegex([pattern], {
         kind: "rg",
+        fixed: false, whole: false, word: false, nullData: false,
         extended: true,
         caseMode: effectiveCaseSensitive ? "sensitive" : "insensitive",
       });
       if (prepared.mode === "vm") {
         const enc = new TextEncoder();
-        matcher = candidate => prepared.vm.findMatches(enc.encode(candidate), true).length > 0;
+        matcher = candidate => prepared.vm.matchBytes(enc.encode(candidate), false).length > 0;
       } else {
         const re = new RegExp(prepared.patterns[0] ?? pattern, effectiveCaseSensitive ? "u" : "iu");
         matcher = candidate => re.test(candidate);

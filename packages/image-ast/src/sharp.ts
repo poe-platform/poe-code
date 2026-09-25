@@ -1109,6 +1109,9 @@ export class SharpInstance {
   }
 
   toColorspace(colorspace: string): this {
+    if (typeof colorspace !== "string") {
+      throw new Error(`Expected string for colourspace but received ${colorspace}`);
+    }
     const norm = colorspace.toLowerCase();
     const space: ColorSpace =
       norm === "grey16"
@@ -1120,6 +1123,11 @@ export class SharpInstance {
             : norm === "cmyk"
               ? "cmyk"
               : "srgb";
+    if (space === "srgb" && this.nodes.some(n => n.kind === "grayscale")) {
+      const idx = this.nodes.findIndex(n => n.kind === "toColorspace");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
     this.upsertNode({ kind: "toColorspace", space });
     return this;
   }
@@ -1247,6 +1255,14 @@ export class SharpInstance {
   }
 
   withMetadata(options?: { readonly density?: number; readonly orientation?: number }): this {
+    if (options && typeof options === "object") {
+      if (options.orientation !== undefined && (!Number.isInteger(options.orientation) || options.orientation < 1 || options.orientation > 8)) {
+        throw new Error(`Expected integer between 1 and 8 for orientation but received ${options.orientation}`);
+      }
+      if (options.density !== undefined && (typeof options.density !== "number" || Number.isNaN(options.density) || options.density <= 0)) {
+        throw new Error(`Expected positive number for density but received ${options.density}`);
+      }
+    }
     const existingIdx = this.nodes.findIndex(n => n.kind === "withMetadata");
     const prev = existingIdx !== -1 ? (this.nodes[existingIdx] as Extract<ImageAstNode, { readonly kind: "withMetadata" }>) : undefined;
     const density = options?.density ?? prev?.density;
@@ -1269,6 +1285,9 @@ export class SharpInstance {
   }
 
   withExif(exif: Record<string, Record<string, string>>): this {
+    if (!exif || typeof exif !== "object" || Array.isArray(exif)) {
+      throw new Error(`Expected object for exif but received ${exif}`);
+    }
     const orientStr = exif?.IFD0?.Orientation;
     const orientNum = orientStr !== undefined ? Number(orientStr) : undefined;
     return this.withMetadata(orientNum !== undefined && Number.isFinite(orientNum) ? { orientation: orientNum } : undefined);
@@ -1282,7 +1301,10 @@ export class SharpInstance {
     return this;
   }
 
-  withIccProfile(_profile: string, _options?: { readonly attach?: boolean }): this {
+  withIccProfile(profile: string, _options?: { readonly attach?: boolean }): this {
+    if (typeof profile !== "string") {
+      throw new Error(`Expected string for icc but received ${profile}`);
+    }
     return this;
   }
 
@@ -1294,7 +1316,10 @@ export class SharpInstance {
     return this;
   }
 
-  withXmp(_xmp: string): this {
+  withXmp(xmp: string): this {
+    if (typeof xmp !== "string" || xmp.length === 0) {
+      throw new Error(`Expected non-empty string for xmp but received ${xmp}`);
+    }
     return this;
   }
 

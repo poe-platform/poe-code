@@ -2314,4 +2314,19 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => inst().extend(-1)).toThrow(/extend/);
     expect(() => inst().extend({ top: -2 })).toThrow(/top/);
   });
+
+  it("preserves 1-channel output on .greyscale().toColourspace(srgb).raw() and validates colourspace/metadata methods", async () => {
+    const rgb = Buffer.from([100, 150, 200]);
+    const inst = () => sharp(rgb, { raw: { width: 1, height: 1, channels: 3 } });
+
+    const gsSrgb = await inst().greyscale().toColourspace("srgb").raw().toBuffer({ resolveWithObject: true });
+    expect(gsSrgb.info.channels).toBe(1);
+
+    expect(() => inst().toColourspace(123 as any)).toThrow(/colourspace/);
+    expect(() => inst().withMetadata({ orientation: 9 })).toThrow(/orientation/);
+    expect(() => inst().withMetadata({ density: -10 })).toThrow(/density/);
+    expect(() => inst().withExif(null as any)).toThrow(/exif/);
+    expect(() => inst().withIccProfile(123 as any)).toThrow(/icc/);
+    expect(() => inst().withXmp("")).toThrow(/xmp/);
+  });
 });

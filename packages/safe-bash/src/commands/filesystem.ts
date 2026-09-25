@@ -932,7 +932,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("readlink", async context => {
       const canonicalOptions: Record<string, string> = { canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m" };
-      let verboseMode: "default" | "verbose" | "quiet" = "default";
+      let verboseMode = "default" as "default" | "verbose" | "quiet";
       const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, false, undefined, undefined, key => {
         if (key === "v") verboseMode = "verbose";
         else if (key === "q" || key === "s") verboseMode = "quiet";

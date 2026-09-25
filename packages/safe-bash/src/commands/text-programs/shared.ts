@@ -1,6 +1,6 @@
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { inputRequirements } from "../portable-requirements.js";
 import { requiredFileInput } from "../search/requirements.js";
@@ -62,12 +62,7 @@ export class Budget {
   checkpointSync(): Promise<void> | undefined {
     if (this.signal.aborted) this.signal.throwIfAborted();
     const count = ++this.checkpoints;
-    if ((count & 255) === 0) {
-      if (!hasYieldCheckpoint(this.signal) && (count & 4095) !== 0 && monotonicNow() - this.lastYield < 25) {
-        runYieldCheckpoint(this.signal);
-        return undefined;
-      }
-      this.lastYield = monotonicNow();
+    if ((count & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
       return yieldTurn(this.signal).then(() => {
         this.lastYield = monotonicNow();
         this.signal.throwIfAborted();

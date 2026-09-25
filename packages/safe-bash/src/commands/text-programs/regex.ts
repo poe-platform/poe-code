@@ -623,8 +623,10 @@ export class Pattern {
       const midCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (midCheck) {
         if (found < 0) return midCheck.then(() => undefined);
-        if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-        return midCheck.then(() => ({ start: found, end: found + len, groups }));
+        return midCheck.then(() => {
+          if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+          return { start: found, end: found + len, groups };
+        });
       }
     }
     if (found < 0) return undefined;
@@ -1153,7 +1155,7 @@ export function trySubstituteSync(
 ): { text: string; count: number } | Promise<{ text: string; count: number }> {
   if (pattern.canFindSync() && text.length <= 4096 && replacement.length <= 256) {
     const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (check) return substitute(text, pattern, replacement, budget, global, occurrence, syntax);
+    if (check) return check.then(() => substitute(text, pattern, replacement, budget, global, occurrence, syntax));
     let search = 0;
     let consumed = 0;
     let previousEnd = -1;
@@ -1209,7 +1211,7 @@ export function trySubstituteSync(
   }
   if (!global && occurrence === 1 && !replacement.includes("&") && !replacement.includes("\\")) {
     const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (check) return substitute(text, pattern, replacement, budget, global, occurrence, syntax);
+    if (check) return check.then(() => substitute(text, pattern, replacement, budget, global, occurrence, syntax));
     budget.step();
     const matchOrPromise = pattern.tryFindSync(text, budget, 0);
     if (matchOrPromise instanceof Promise) {
@@ -1345,7 +1347,7 @@ export function trySubstitutePairSync(
   global2: boolean,
   occ2: number,
   budget: Budget,
-): { text: string; substituted: boolean } | undefined {
+): { text: string; substituted: boolean } | undefined | Promise<undefined> {
   if (occ1 !== 1 || occ2 !== 1 || global1 || text.length > 4096) return undefined;
   if (!pat1.canFindSync() || !pat2.canFindSync()) return undefined;
   const info1 = pat1.getFastPrefixInfo();
@@ -1354,7 +1356,8 @@ export function trySubstitutePairSync(
   const sr1 = getSimpleReplacement(rep1, "sed");
   const sr2 = getSimpleReplacement(rep2, "sed");
   if (!sr1 || !sr2) return undefined;
-  if ((budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint()) !== undefined) return undefined;
+  const checkpoint = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
+  if (checkpoint) return checkpoint.then(() => undefined);
   budget.step();
   if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return undefined;
   const e1 = PAIR_OFFSETS_1[1]!;

@@ -123,6 +123,62 @@ test("text-program checkpoint restores the original clock after fixtures", () =>
   assert.equal(performance.now, originalNow);
 });
 
+for (const elapsed of [false, true]) test(`text-program synchronous checkpoint returns cancellable work only at its threshold: elapsed=${elapsed}`, async context => {
+  const { budget, clock, controller } = await checkpointFixture(context);
+  const calls = elapsed ? 1 : 255;
+  for (let count = 0; count < calls; count++) assert.equal(budget.checkpointSync(), undefined);
+  if (elapsed) clock.now = 125;
+  watchTurn(context, () => controller.abort(false));
+  const pending = budget.checkpointSync();
+  assert.ok(pending instanceof Promise);
+  await assert.rejects(pending, error => error === false);
+});
+
+for (const [tool, args, expected] of [
+  ["sed", ["s/a/x/"], "xb\n"],
+  ["sed", ["-E", "s/(a|b)/x/"], "xb\n"],
+  ["sed", ["s/^a/x/;s/b/y/"], "xy\n"],
+  ["awk", ["{ value++; print value }"], "1\n"],
+] as const) test(`${tool} awaits every started checkpoint through ${args.join(" ")}`, async context => {
+  const fs = await makeFileSystem();
+  const command = createTextProgramCommands().find(item => item.name === tool)!;
+  let calls = 0;
+  let rejectAt = Infinity;
+  let reason: unknown;
+  let controller = new AbortController();
+  const pendingCheckpoints: Promise<void>[] = [];
+  const stdout: Uint8Array[] = [];
+  const execute = () => command.execute({
+    command: tool, args, cwd: "/work", env: {}, fs, signal: controller.signal,
+    stdin: toByteSource("ab\n"), stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write() {} },
+  });
+  context.mock.method(Budget.prototype, "checkpointSync", () => {
+    if (++calls !== rejectAt) return undefined;
+    const pending = new Promise<void>((_resolve, reject) => {
+      scheduleTurn(() => { controller.abort(reason); reject(reason); });
+    });
+    // Observe the injected failure independently so a lost promise is reported
+    // as an incorrect command result rather than leaking into another case.
+    void pending.catch(() => {});
+    pendingCheckpoints.push(pending);
+    return pending;
+  });
+  const baseline = await execute();
+  assert.equal(baseline.exitCode, 0);
+  assert.equal(Buffer.concat(stdout).toString(), expected);
+  const checkpoints = calls;
+  assert.ok(checkpoints > 0);
+  for (reason of [false, null]) {
+    for (rejectAt = 1; rejectAt <= checkpoints; rejectAt++) {
+      calls = 0;
+      controller = new AbortController();
+      const [outcome] = await Promise.allSettled([execute()]);
+      await Promise.allSettled(pendingCheckpoints.splice(0));
+      assert.deepEqual(outcome, { status: "rejected", reason }, `checkpoint ${rejectAt} must retain ${String(reason)}`);
+    }
+  }
+});
+
 for (const tool of ["sed", "awk"] as const) {
   for (const blocked of ["stdin", "stdout", "stderr", "loop"] as const) {
     test(`${tool} cancels blocked ${blocked} without waiting for host cooperation`, { timeout: 2000 }, async () => {

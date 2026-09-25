@@ -78,6 +78,21 @@ test("NFA combines visited and queued storage rather than admitting both indepen
     error => error instanceof ProgramError && error.message === "regular expression state buffer limit exceeded");
 });
 
+test("literal synchronous match awaits its started checkpoint before buffer refusal", async context => {
+  const pattern = new Pattern("a".repeat(32));
+  await pattern.prepare({ step() {}, async checkpoint() {} });
+  const budget = makeBudget(2048, 16);
+  let calls = 0;
+  context.mock.method(budget, "checkpointSync", () => {
+    if (++calls !== 2) return undefined;
+    const pending = Promise.reject<void>(false);
+    void pending.catch(() => {});
+    return pending;
+  });
+  await assert.rejects(async () => pattern.tryFindSync("a".repeat(32), budget), error => error === false);
+  assert.equal(calls, 2);
+});
+
 test("NFA refuses a capture state before serializing its key", async () => {
   const pattern = new Pattern("(a)");
   const join = Array.prototype.join;

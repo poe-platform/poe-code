@@ -595,7 +595,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
               if (nextInst.kind === "s" && !nextInst.first && !nextInst.second && !nextInst.negate && !nextInst.print && !nextInst.file && nextInst.pattern) {
                 const nextExpr = nextInst.pattern;
                 if (nextInst.replacementGroupCount! <= nextExpr.groupCount) {
-                  const paired = trySubstitutePairSync(
+                  const pairedOrPromise = trySubstitutePairSync(
                     pattern,
                     expression,
                     instruction.replacement!,
@@ -607,6 +607,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
                     nextInst.occurrence ?? 1,
                     budget,
                   );
+                  const paired = pairedOrPromise instanceof Promise ? await pairedOrPromise : pairedOrPromise;
                   if (paired !== undefined) {
                     lastPattern = nextExpr;
                     pattern = paired.text;

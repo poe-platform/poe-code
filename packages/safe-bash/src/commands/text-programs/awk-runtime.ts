@@ -974,7 +974,7 @@ export class AwkRuntime {
             return branch ? this.executeSync(branch) : undefined;
           });
         }
-      }
+      } else return p.then(() => this.execute(statement));
     }
     return this.execute(statement);
   }

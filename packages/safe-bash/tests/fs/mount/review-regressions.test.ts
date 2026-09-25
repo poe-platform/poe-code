@@ -13,8 +13,24 @@ const errno = (code: string) => (error: unknown): boolean => error instanceof Fs
 function snapshot(filesystems: readonly FileSystem[]): unknown {
   return filesystems.map((filesystem) => {
     const root: unknown = Reflect.get(filesystem, "root");
-    assert.ok(root);
-    return structuredClone({ root, nextInode: Reflect.get(filesystem, "nextInode") });
+    assert.ok(root && typeof root === "object");
+    const state = structuredClone({ root, nextInode: Reflect.get(filesystem, "nextInode") });
+    const pending = [state.root];
+    while (pending.length) {
+      const node = pending.pop()!;
+      if (Reflect.get(node, "type") !== "directory") continue;
+      // Metadata reads may populate derived link-count caches. Compare every
+      // other field, including revisions, timestamps, entries and file bytes.
+      Reflect.deleteProperty(node, "cachedNlink");
+      Reflect.deleteProperty(node, "cachedNlinkRev");
+      const entries: unknown = Reflect.get(node, "entries");
+      assert.ok(entries instanceof Map);
+      for (const child of entries.values()) {
+        assert.ok(child && typeof child === "object");
+        pending.push(child);
+      }
+    }
+    return state;
   });
 }
 

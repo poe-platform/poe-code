@@ -66,6 +66,7 @@ import {
   isSandboxClosure,
   isSandboxPromise,
   measureSandboxData,
+  defaultDataMeasurementOptions,
   reconcileCompiledValues,
   type SandboxValue,
   type SandboxPromise
@@ -377,7 +378,7 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
             moduleOptions.prepareNamespace = (namespace,name) => {
               const prepared = initialInputs.prepareNamespace(namespace,name);
               const included = new Set<CompileTicket>();
-              const size = measureSandboxData([prepared],{ignoreClosureCaptures:true,compileTickets:included});
+              const size = measureSandboxData([prepared],{...defaultDataMeasurementOptions,ignoreClosureCaptures:true,compileTickets:included});
               budget.reconcileCompileData(moduleInputSize+size,included,included,moduleInputOwner);
               moduleInputSize += size;
               return prepared;
@@ -401,7 +402,7 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
               ...(initialInputs.values.entryPointArgs ?? []),
               initialInputs.values.importMeta
             ],
-            { ignoreClosureCaptures: true, compileTickets: inputTickets }
+            { ...defaultDataMeasurementOptions, ignoreClosureCaptures: true, compileTickets: inputTickets }
           );
           budget.reconcileCompileData(inputSize, inputTickets, inputTickets, initialInputs);
           const entryPointArgs = initialInputs.values.entryPointArgs;

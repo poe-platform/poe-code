@@ -77,6 +77,7 @@ import {
   isSandboxSet,
   isSandboxPromise,
   measureSandboxData,
+  defaultDataMeasurementOptions,
   type SandboxClosure,
   type SandboxPromise,
   type SandboxCallContext,
@@ -788,7 +789,7 @@ function copyHostResultToSandbox(
     },
     "<root>"
   );
-  options.budget.chargeDataUsage(measureSandboxData([value], { ignoreHostObjectPrototypes: true }));
+  options.budget.chargeDataUsage(measureSandboxData([value], { ...defaultDataMeasurementOptions, ignoreHostObjectPrototypes: true }));
   return value;
 }
 

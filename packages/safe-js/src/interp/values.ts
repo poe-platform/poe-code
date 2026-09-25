@@ -915,6 +915,15 @@ function createMeasurementCollector(target: ((value: SandboxValue) => void) | un
   };
 }
 
+// SDK-created options must not inherit exemptions or expose compile tickets to
+// host prototype fields. Caller-supplied records retain their live getter reads.
+export const defaultDataMeasurementOptions = freezeValueShape({
+  ignoreClosures: false,
+  ignoreClosureCaptures: false,
+  ignoreHostObjectPrototypes: false,
+  compileTickets: undefined as Set<CompileTicket> | undefined
+});
+
 export function measureSandboxData(
   values: Iterable<unknown>,
   options: {
@@ -925,13 +934,13 @@ export function measureSandboxData(
      */
     ignoreHostObjectPrototypes?: boolean;
     compileTickets?: Set<CompileTicket>;
-  } = {}
+  } = defaultDataMeasurementOptions
 ): number {
   // Keep one inert instance of the visitor alive so GC does not discard its
   // optimized code between walks. Touch only an undefined leaf to keep its code
   // current; real measurements still own fresh state and native callbacks.
   if (retainedMeasurementCode === undefined)
-    withMeasurementSeen(seen => measureSandboxDataWithSeen([], {}, seen, true));
+    withMeasurementSeen(seen => measureSandboxDataWithSeen([], defaultDataMeasurementOptions, seen, true));
   retainedMeasurementCode!(undefined);
   return withMeasurementSeen(seen => measureSandboxDataWithSeen(values, options, seen));
 }
@@ -2030,14 +2039,14 @@ export function reconcileCompiledValues(
 ): void {
   while (parent?.closed) parent = parent.parent;
   const included = new Set<CompileTicket>();
-  const usage = measureSandboxData([...values, ...budget.retainedValues()], { compileTickets: included });
+  const usage = measureSandboxData([...values, ...budget.retainedValues()], { ...defaultDataMeasurementOptions, compileTickets: included });
   const kept = new Set<CompileTicket>();
   // Always measure the primary graph, including while accounting is held.
   // Escaping ownership matters only when a staged charge can be transferred.
   if (parent !== undefined && !budget.reconciliationDeferred) {
     for (const ticket of included) {
       if (budget.compileTicketUsage(ticket) > 0) {
-        measureSandboxData(escaping, { compileTickets: kept });
+        measureSandboxData(escaping, { ...defaultDataMeasurementOptions, compileTickets: kept });
         break;
       }
     }

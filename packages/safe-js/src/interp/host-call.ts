@@ -20,6 +20,7 @@ import {
   isArrayIndexKey,
   isSandboxPromise,
   measureSandboxData,
+  defaultDataMeasurementOptions,
   type SandboxClosure,
   type SandboxPromise,
   type SandboxValue
@@ -720,8 +721,8 @@ export class HostCallJournal {
   recordCallback(record: HostCallRecord, id: number, args: SandboxValue[], step: number, hasReceiver = false): string {
     const sharedValues = this.exposedSharedStorage.size === 0 ? undefined : [args, ...this.exposedSharedStorage.values()];
     const retainedSize =
-      this.retainedSize + 1 + measureSandboxData([args], { ignoreClosures: true }) +
-      (sharedValues === undefined ? 0 : measureSandboxData([sharedValues], { ignoreClosures: true }));
+      this.retainedSize + 1 + measureSandboxData([args], { ...defaultDataMeasurementOptions, ignoreClosures: true }) +
+      (sharedValues === undefined ? 0 : measureSandboxData([sharedValues], { ...defaultDataMeasurementOptions, ignoreClosures: true }));
     this.budget?.setRetainedDataUsage(this, retainedSize);
     let data: ReplayData;
     let sharedState: ReplayData | undefined;
@@ -777,7 +778,7 @@ export class HostCallJournal {
       copied = copyOutcome(outcome,snapshots);
       size = measureSandboxData(
         [outcome.status === "fulfilled" ? outcome.value : outcome.reason,...arguments_],
-        { ignoreClosures: true, compileTickets: included }
+        { ...defaultDataMeasurementOptions, ignoreClosures: true, compileTickets: included }
       );
       retainedSize = this.retainedSize + size - (this.outcomeSizes.get(record.id) ?? 0);
       budget?.reconcileCompileData(retainedSize, included, included, this);

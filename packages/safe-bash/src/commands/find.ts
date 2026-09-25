@@ -15,6 +15,8 @@ const SYNTHETIC_FILE_STAT: FileStat = Object.freeze({ type: "file", size: 0, mod
 const SYNTHETIC_DIR_STAT: FileStat = Object.freeze({ type: "directory", size: 0, mode: 0o755, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
 const SYNTHETIC_SYMLINK_STAT: FileStat = Object.freeze({ type: "symlink", size: 0, mode: 0o777, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
 const SYNTHETIC_CHAR_STAT: FileStat = Object.freeze({ type: "character", size: 0, mode: 0o666, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
+const sharedFindPrintBuf = Buffer.allocUnsafe(8192);
+let sharedFindPrintBufInUse = false;
 function syntheticStatFor(type: FileStat["type"]): FileStat {
   return type === "file" ? SYNTHETIC_FILE_STAT : type === "directory" ? SYNTHETIC_DIR_STAT : type === "symlink" ? SYNTHETIC_SYMLINK_STAT : SYNTHETIC_CHAR_STAT;
 }
@@ -315,11 +317,13 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       context.signal.throwIfAborted();
       references.set(reference, stat.mtimeMs);
     }
-    const printBuf = Buffer.allocUnsafe(8192);
+    const useSharedPrintBuf = !sharedFindPrintBufInUse;
+    if (useSharedPrintBuf) sharedFindPrintBufInUse = true;
+    const printBuf = useSharedPrintBuf ? sharedFindPrintBuf : Buffer.allocUnsafe(8192);
     let printPos = 0;
     const flushPrintBuffer = async (): Promise<void> => {
       if (printPos === 0) return;
-      const chunk = printBuf.subarray(0, printPos);
+      const chunk = Uint8Array.prototype.slice.call(printBuf, 0, printPos);
       printPos = 0;
       await output(context, chunk);
     };
@@ -333,17 +337,26 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       printPos += printBuf.write(escaped, printPos, "utf8");
       printBuf[printPos++] = 10;
     };
-    const appendPrintChild = async (escapedParent: string, escapedChild: string): Promise<void> => {
+    const appendPrintChild = (escapedParent: string, escapedChild: string): Promise<void> | void => {
       const maxNeed = (escapedParent.length + escapedChild.length) * 3 + 2;
-      if (printPos + maxNeed > printBuf.length) await flushPrintBuffer();
-      if (maxNeed > printBuf.length) {
-        await output(context, `${escapedParent}/${escapedChild}\n`);
+      if (printPos + maxNeed <= printBuf.length) {
+        printPos += printBuf.write(escapedParent, printPos, "utf8");
+        printBuf[printPos++] = 47;
+        printPos += printBuf.write(escapedChild, printPos, "utf8");
+        printBuf[printPos++] = 10;
         return;
       }
-      printPos += printBuf.write(escapedParent, printPos, "utf8");
-      printBuf[printPos++] = 47;
-      printPos += printBuf.write(escapedChild, printPos, "utf8");
-      printBuf[printPos++] = 10;
+      return (async () => {
+        await flushPrintBuffer();
+        if (maxNeed > printBuf.length) {
+          await output(context, `${escapedParent}/${escapedChild}\n`);
+          return;
+        }
+        printPos += printBuf.write(escapedParent, printPos, "utf8");
+        printBuf[printPos++] = 47;
+        printPos += printBuf.write(escapedChild, printPos, "utf8");
+        printBuf[printPos++] = 10;
+      })();
     };
     const canSkipChildStat = !needsStat && !explicitAction && follow !== "-L";
     const scratchChildEntry: Entry = { path: "", display: "", name: "", stat: SYNTHETIC_FILE_STAT, symlink: false, depth: 0, root: "", relative: "", prune: false };
@@ -400,7 +413,10 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
                 const ok = typeof res === "boolean" ? res : await res;
                 if (ok) {
                   if (needsDisplay) await appendPrintLine(escapeText(scratchChildEntry.display, "display"));
-                  else await appendPrintChild(escapedParent, escapeText(child.name, "display"));
+                  else {
+                    const pending = appendPrintChild(escapedParent, escapeText(child.name, "display"));
+                    if (pending) await pending;
+                  }
                 }
               }
               continue;
@@ -422,9 +438,13 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         exitCode = 1;
       }
     };
-    for (const root of roots) { if (quitRequested) break; await visit(root, 0, new Set(), root, ""); }
-    await flushPrintBuffer();
-    for (const flush of flushes) await flush();
-    return { exitCode };
+    try {
+      for (const root of roots) { if (quitRequested) break; await visit(root, 0, new Set(), root, ""); }
+      await flushPrintBuffer();
+      for (const flush of flushes) await flush();
+      return { exitCode };
+    } finally {
+      if (useSharedPrintBuf) sharedFindPrintBufInUse = false;
+    }
   })];
 }

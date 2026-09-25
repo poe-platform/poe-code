@@ -1,9 +1,41 @@
 import { FsError } from "@poe-code/safe-fs/core";
-import type { FileDescriptor, FsOptions, OpenFileOptions } from "@poe-code/safe-fs/core";
+import type { FileDescriptor, FileDescriptorCapabilities, FsOptions, OpenFileOptions } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output-budget.js";
 
 export interface CommandFileDescriptor extends FileDescriptor {
   acknowledgeCloseFailure(reason: unknown): boolean;
+}
+
+const admittedCommandCapabilitiesCache = new WeakMap<FileDescriptorCapabilities, Map<string, FileDescriptorCapabilities>>();
+
+function getAdmittedCommandCapabilities(descriptorCapabilities: FileDescriptorCapabilities, access: OpenFileOptions["access"], append: boolean | undefined, hasPosition: boolean): FileDescriptorCapabilities {
+  let byKey = admittedCommandCapabilitiesCache.get(descriptorCapabilities);
+  const key = `${access}:${append ? 1 : 0}:${hasPosition ? 1 : 0}`;
+  if (byKey) {
+    const cached = byKey.get(key);
+    if (cached) return cached;
+  } else {
+    byKey = new Map();
+    admittedCommandCapabilitiesCache.set(descriptorCapabilities, byKey);
+  }
+  const { delegateZeroLengthWrite, ...retainedCapabilities } = descriptorCapabilities;
+  const position = retainedCapabilities.position === true && hasPosition;
+  const admitted = Object.freeze({ ...retainedCapabilities,
+    positionedRead: retainedCapabilities.positionedRead && access !== "write",
+    positionedWrite: retainedCapabilities.positionedWrite && access !== "read"
+      && (!append || retainedCapabilities.positionedAppendWrite === true),
+    truncate: retainedCapabilities.truncate && access !== "read",
+    ...(retainedCapabilities.position === undefined ? {} : { position }),
+    ...(retainedCapabilities.positionedAppendWrite === undefined ? {} : {
+      positionedAppendWrite: retainedCapabilities.positionedAppendWrite === true
+        && retainedCapabilities.positionedWrite && access !== "read",
+    }),
+    ...(delegateZeroLengthWrite === undefined ? {} : {
+      delegateZeroLengthWrite: delegateZeroLengthWrite === true && access !== "read",
+    }),
+  });
+  byKey.set(key, admitted);
+  return admitted;
 }
 
 /** descriptorCleanup: "caller" requires an already-enrolled owner that drains late
@@ -13,16 +45,24 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
   const { cleanupFailurePrioritySignal } = context;
   let descriptor: FileDescriptor | undefined;
   let accepting = true;
+  let acquiring = true;
   let closing: Promise<void> | undefined;
   let closeFailure: { reason: unknown; acknowledged: boolean; drained: boolean } | undefined;
   let work: Promise<void> = Promise.resolve();
-  let acquisitionSettled!: () => void;
-  const acquired = new Promise<void>(resolve => { acquisitionSettled = resolve; });
+  let acquisitionSettled: (() => void) | undefined;
+  let acquired: Promise<void> | undefined;
+  const settleAcquisition = (): void => {
+    acquiring = false;
+    acquisitionSettled?.();
+  };
   let scope: AbortSignal | undefined;
   const close = (): Promise<void> => {
     accepting = false;
     closing ??= (async () => {
-      await acquired;
+      if (acquiring) {
+        acquired ??= new Promise<void>(resolve => { acquisitionSettled = resolve; });
+        await acquired;
+      }
       await work;
       const retained = descriptor;
       descriptor = undefined;
@@ -42,6 +82,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     scope?.throwIfAborted();
     signal?.throwIfAborted();
   };
+  let defaultFsOptions!: { signal: AbortSignal };
   const run = <Result>(syscall: string, forwarded: FsOptions,
     action: (retained: FileDescriptor, options: FsOptions) => Promise<Result>): Promise<Result> => {
     const signal = forwarded.signal;
@@ -51,9 +92,9 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     } catch (error) { return Promise.reject(error); }
     const operation = work.then(async () => {
       check(signal);
-      const local = signal ? AbortSignal.any([scope!, signal]) : scope!;
+      const supplied = signal ? { signal: AbortSignal.any([scope!, signal]) } : defaultFsOptions;
       try {
-        const result = await action(descriptor!, { signal: local });
+        const result = await action(descriptor!, supplied);
         if (syscall !== "write" || !context.preserveWriteReceipt) check(signal);
         return result;
       } catch (error) {
@@ -83,6 +124,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     if (request.access !== "read") assertCountedFileOutput(context);
     const fsOptions = { signal: scope };
+    defaultFsOptions = fsOptions;
     // Final-symlink admission belongs to the enforcing open, including dangling
     // and self-loop links that a following capability query cannot resolve.
     const capabilities = request.noFollow || request.creation === "exclusive" ? context.fs.capabilities
@@ -91,27 +133,33 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     if (!context.fs.open || capabilities?.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
     descriptor = await context.fs.open(path, { ...request, signal: scope });
-    acquisitionSettled();
+    settleAcquisition();
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
-    const { delegateZeroLengthWrite, ...retainedCapabilities } = descriptor.capabilities;
-    const position = retainedCapabilities.position === true && typeof descriptor.getPosition === "function";
-    const probeRead = retainedCapabilities.readObservation === true ? descriptor.probeRead : undefined;
-    if (retainedCapabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
-    const admitted = Object.freeze({ ...retainedCapabilities,
-      positionedRead: retainedCapabilities.positionedRead && request.access !== "write",
-      positionedWrite: retainedCapabilities.positionedWrite && request.access !== "read"
-        && (!request.append || retainedCapabilities.positionedAppendWrite === true),
-      truncate: retainedCapabilities.truncate && request.access !== "read",
-      ...(retainedCapabilities.position === undefined ? {} : { position }),
-      ...(retainedCapabilities.positionedAppendWrite === undefined ? {} : {
-        positionedAppendWrite: retainedCapabilities.positionedAppendWrite === true
-          && retainedCapabilities.positionedWrite && request.access !== "read",
-      }),
-      ...(delegateZeroLengthWrite === undefined ? {} : {
-        delegateZeroLengthWrite: delegateZeroLengthWrite === true && request.access !== "read",
-      }),
-    });
+    const descriptorCaps = descriptor.capabilities;
+    const hasGetPosition = typeof descriptor.getPosition === "function";
+    const position = descriptorCaps.position === true && hasGetPosition;
+    const probeRead = descriptorCaps.readObservation === true ? descriptor.probeRead : undefined;
+    if (descriptorCaps.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
+    const admitted = Object.isFrozen(descriptorCaps)
+      ? getAdmittedCommandCapabilities(descriptorCaps, request.access, request.append, hasGetPosition)
+      : (() => {
+          const { delegateZeroLengthWrite, ...retainedCapabilities } = descriptorCaps;
+          return Object.freeze({ ...retainedCapabilities,
+            positionedRead: retainedCapabilities.positionedRead && request.access !== "write",
+            positionedWrite: retainedCapabilities.positionedWrite && request.access !== "read"
+              && (!request.append || retainedCapabilities.positionedAppendWrite === true),
+            truncate: retainedCapabilities.truncate && request.access !== "read",
+            ...(retainedCapabilities.position === undefined ? {} : { position }),
+            ...(retainedCapabilities.positionedAppendWrite === undefined ? {} : {
+              positionedAppendWrite: retainedCapabilities.positionedAppendWrite === true
+                && retainedCapabilities.positionedWrite && request.access !== "read",
+            }),
+            ...(delegateZeroLengthWrite === undefined ? {} : {
+              delegateZeroLengthWrite: delegateZeroLengthWrite === true && request.access !== "read",
+            }),
+          });
+        })();
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     return {
@@ -134,7 +182,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
       }),
       write: (buffer, position, forwarded = {}) => run("write", forwarded, async (retained, supplied) => {
         if (request.access === "read") throw new FsError("EBADF", { syscall: "write", path });
-        return writeFileOutputCounted({ ...context, signal: supplied.signal! }, buffer, () => retained.write(buffer, position, supplied));
+        return writeFileOutputCounted(supplied.signal === context.signal ? context : { ...context, signal: supplied.signal! }, buffer, () => retained.write(buffer, position, supplied));
       }),
       truncate: (length, forwarded = {}) => run("ftruncate", forwarded, async (retained, supplied) => {
         if (request.access === "read") throw new FsError("EBADF", { syscall: "ftruncate", path });
@@ -151,7 +199,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
       },
     };
   } catch (error) {
-    acquisitionSettled();
+    settleAcquisition();
     try { await close(); } catch {}
     check();
     throw error;

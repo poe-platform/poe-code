@@ -393,6 +393,12 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
           changed();
           return resolvedVoid;
         }
+        if (availableBytes < highWaterMark) {
+          buffered.add(owned);
+          availableBytes += owned.byteLength;
+          changed();
+          return resolvedVoid;
+        }
       }
       let resolve!: () => void;
       let reject!: (reason: unknown) => void;

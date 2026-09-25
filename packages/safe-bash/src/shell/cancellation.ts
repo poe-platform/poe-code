@@ -342,6 +342,7 @@ function admissionOrigins(state: LinkState): CancellationOrigin[] {
 }
 
 function bestVisibleOrigin(state: LinkState): CancellationOrigin | undefined {
+  if (!hasAnyAdmissionFailure(state)) return undefined;
   const origins = visibleOrigins(state);
   const root = origins.find(origin => origin.role === "root-caller");
   if (root) return root;
@@ -352,7 +353,7 @@ function bestVisibleOrigin(state: LinkState): CancellationOrigin | undefined {
 
 function hasAnyAdmissionFailure(state: LinkState): boolean {
   for (let frame: LinkState | undefined = state; frame; frame = frame.parent) {
-    if (frame.closed || frame.delivered) return true;
+    if (frame.closed || frame.delivered || frame.selected) return true;
     if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) return true;
     if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) return true;
     for (let i = 0; i < frame.controls.length; i++) {
@@ -754,6 +755,9 @@ export function selectCancellationOutcome<Value>(
   }
   const state = boundary[boundaryState];
   const lineage = state.kind === "link" ? state : state.lineage;
+  if (captured.kind === "return" && !hasAnyAdmissionFailure(lineage)) {
+    return { outcome: { kind: "return", value: captured.value } };
+  }
   const origins = visibleOrigins(lineage);
   const root = origins.find(origin => origin.role === "root-caller");
   if (root) return throwingSelection(state, root.signal.reason, root);
@@ -788,6 +792,9 @@ export function selectRuntimeCancellationOutcome<Value>(
   }
   const state = boundary[boundaryState];
   const lineage = state.kind === "link" ? state : state.lineage;
+  if (captured.kind === "return" && !hasAnyAdmissionFailure(lineage)) {
+    return { outcome: { kind: "return", value: captured.value } };
+  }
   const origins = visibleOrigins(lineage);
   const root = origins.find(origin => origin.role === "root-caller");
   if (root) return throwingSelection(state, root.signal.reason, root);

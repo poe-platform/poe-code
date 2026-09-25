@@ -475,6 +475,14 @@ export class MemoryFileSystem implements FileSystem {
     return /(?:^|\/)\.{1,2}\/*$/.test(path);
   }
 
+  private directoryNlink(node: DirectoryNode): number {
+    let nlink = 2;
+    for (const entry of node.entries.values()) {
+      if (entry.type === "directory") nlink++;
+    }
+    return nlink;
+  }
+
   private snapshot(node: MemoryNode): FileStat {
     return {
       type: node.type,
@@ -487,7 +495,7 @@ export class MemoryFileSystem implements FileSystem {
       mode: node.mode, ...(ownedStores.get(this)?.intact() ? { identityScope: this.identityScope } : {}),
       ino: node.ino, dev: 0, uid: 0, gid: 0,
       nlink: node.type === "directory" && node.nlink !== 0
-        ? 2 + [...node.entries.values()].filter((entry) => entry.type === "directory").length : node.nlink,
+        ? this.directoryNlink(node) : node.nlink,
       atimeMs: node.atimeMs, mtimeMs: node.mtimeMs, ctimeMs: node.ctimeMs, birthtimeMs: node.birthtimeMs,
     };
   }
@@ -515,9 +523,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
-    return openFileDescriptor<{ node: FileNode | undefined; position: number }>(path, options, {
-      noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile", position: true,
-    }, async admitted => {
+    return openFileDescriptor<{ fs: MemoryFileSystem; path: string; append: boolean; node: FileNode | undefined; position: number }>(path, options, MEMORY_DESCRIPTOR_CAPABILITIES, async admitted => {
       const location = this.resolve(path, "open", {
         followFinal: !admitted.noFollow && admitted.creation !== "exclusive", allowMissing: admitted.creation !== "never",
       });
@@ -539,38 +545,16 @@ export class MemoryFileSystem implements FileSystem {
         throw error;
       }
       node.references++;
-      const resource: { node: FileNode | undefined; position: number } = { node, position: 0 };
+      const resource = { fs: this, path, append: admitted.append, node, position: 0 };
       return {
         resource,
-        getPosition: async retained => retained.position,
-        stat: async retained => this.snapshot(retained.node!),
-        read: async (retained, buffer, position) => {
-          const inode = retained.node!;
-          const start = position ?? retained.position;
-          const count = Math.min(buffer.byteLength, Math.max(0, inode.data.byteLength - start));
-          buffer.set(inode.data.subarray(start, start + count));
-          if (position === null) retained.position += count;
-          inode.atimeMs = Date.now();
-          return count;
-        },
-        write: async (retained, buffer, position) => {
-          const inode = retained.node!;
-          const start = admitted.append ? inode.data.byteLength : position ?? retained.position;
-          const end = start + buffer.byteLength;
-          this.writeAt(inode, buffer, start, "write", path);
-          if (position === null) retained.position = end;
-          return buffer.byteLength;
-        },
-        truncate: async (retained, length) => {
-          const inode = retained.node!;
-          this.resizeNode(inode, length, "ftruncate", path);
-        },
-        sync: async () => {},
-        close: async retained => {
-          const inode = retained.node!;
-          retained.node = undefined;
-          this.releaseReference(inode, path);
-        },
+        getPosition: memoryDescriptorGetPosition,
+        stat: memoryDescriptorStat,
+        read: memoryDescriptorRead,
+        write: memoryDescriptorWrite,
+        truncate: memoryDescriptorTruncate,
+        sync: memoryDescriptorSync,
+        close: memoryDescriptorClose,
       };
     });
   }
@@ -614,7 +598,7 @@ export class MemoryFileSystem implements FileSystem {
       return current;
     }
     if (!current) {
-      const capacity = target.append && length > 0
+      const capacity = length > 0 && (target.append || (length < 64 && this.ledger.availableBytes > 65536 && this.ledger.limits.maxFileBytes >= 64))
         ? Math.min(Math.max(length, 64), this.ledger.limits.maxFileBytes,
           this.ledger.availableBytes - target.location.name.length * 2)
         : length;
@@ -690,15 +674,20 @@ export class MemoryFileSystem implements FileSystem {
       return;
     }
     if (!node) this.fail("EAGAIN", "fileStaging", path);
+    if (!unchanged) {
+      const currentScope = ownedStores.get(this)?.intact() ? this.identityScope : undefined;
+      if (!expected.identityScope || expected.identityScope !== currentScope
+        || !Number.isSafeInteger(expected.ino) || !Number.isSafeInteger(expected.dev)) this.fail("ENOTSUP", "fileStaging", path);
+      if (node.ino !== expected.ino || expected.dev !== 0 || node.type !== expected.type) this.fail("EAGAIN", "fileStaging", path);
+      return;
+    }
     const current = this.snapshot(node);
     if (!expected.identityScope || expected.identityScope !== current.identityScope
       || !Number.isSafeInteger(expected.ino) || !Number.isSafeInteger(expected.dev)) this.fail("ENOTSUP", "fileStaging", path);
     if (current.ino !== expected.ino || current.dev !== expected.dev || current.type !== expected.type) this.fail("EAGAIN", "fileStaging", path);
-    if (unchanged) {
-      if (!Number.isSafeInteger(expected.revision) || !Number.isSafeInteger(current.revision)) this.fail("ENOTSUP", "fileStaging", path);
-      if (current.revision !== expected.revision || current.size !== expected.size || current.mode !== expected.mode
-        || current.nlink !== expected.nlink || current.mtimeMs !== expected.mtimeMs || current.ctimeMs !== expected.ctimeMs) this.fail("EAGAIN", "fileStaging", path);
-    }
+    if (!Number.isSafeInteger(expected.revision) || !Number.isSafeInteger(current.revision)) this.fail("ENOTSUP", "fileStaging", path);
+    if (current.revision !== expected.revision || current.size !== expected.size || current.mode !== expected.mode
+      || current.nlink !== expected.nlink || current.mtimeMs !== expected.mtimeMs || current.ctimeMs !== expected.ctimeMs) this.fail("EAGAIN", "fileStaging", path);
   }
 
   private stagingLocations(staging: FileStaging): { directory: Location; file: Location } {
@@ -1008,8 +997,12 @@ export class MemoryFileSystem implements FileSystem {
     this.permission(node, 4, "readdir", path);
     admitDirectoryEntries(node.entries.size, limit, path);
     node.atimeMs = Date.now();
-    return [...node.entries].map(([name, entry]) => ({ name, type: entry.type }))
-      .sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
+    const result = new Array<DirectoryEntry>(node.entries.size);
+    let idx = 0;
+    for (const [name, entry] of node.entries) {
+      result[idx++] = { name, type: entry.type };
+    }
+    return result.sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
   }
 
   async mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
@@ -1410,6 +1403,44 @@ export class MemoryFileSystem implements FileSystem {
 }
 
 const memoryImplementation = Object.getOwnPropertyDescriptors(MemoryFileSystem.prototype);
+const MEMORY_DESCRIPTOR_CAPABILITIES = Object.freeze({
+  noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile" as const, position: true,
+});
+interface MemoryDescriptorResource {
+  fs: MemoryFileSystem;
+  path: string;
+  append: boolean;
+  node: FileNode | undefined;
+  position: number;
+}
+const memoryDescriptorGetPosition = async (retained: MemoryDescriptorResource): Promise<number> => retained.position;
+const memoryDescriptorStat = async (retained: MemoryDescriptorResource): Promise<FileStat> => (retained.fs as any).snapshot(retained.node!);
+const memoryDescriptorRead = async (retained: MemoryDescriptorResource, buffer: Uint8Array, position: number | null): Promise<number> => {
+  const inode = retained.node!;
+  const start = position ?? retained.position;
+  const count = Math.min(buffer.byteLength, Math.max(0, inode.data.byteLength - start));
+  buffer.set(inode.data.subarray(start, start + count));
+  if (position === null) retained.position += count;
+  inode.atimeMs = Date.now();
+  return count;
+};
+const memoryDescriptorWrite = async (retained: MemoryDescriptorResource, buffer: Uint8Array, position: number | null): Promise<number> => {
+  const inode = retained.node!;
+  const start = retained.append ? inode.data.byteLength : position ?? retained.position;
+  const end = start + buffer.byteLength;
+  (retained.fs as any).writeAt(inode, buffer, start, "write", retained.path);
+  if (position === null) retained.position = end;
+  return buffer.byteLength;
+};
+const memoryDescriptorTruncate = async (retained: MemoryDescriptorResource, length: number): Promise<void> => {
+  (retained.fs as any).resizeNode(retained.node!, length, "ftruncate", retained.path);
+};
+const memoryDescriptorSync = async (): Promise<void> => {};
+const memoryDescriptorClose = async (retained: MemoryDescriptorResource): Promise<void> => {
+  const inode = retained.node!;
+  retained.node = undefined;
+  (retained.fs as any).releaseReference(inode, retained.path);
+};
 
 const stockDescriptorWriteMethodNames = [
   "writeStream", "writeFile", "appendFile", "access", "stat", "lstat", "realpath",
@@ -1489,7 +1520,7 @@ export function isCleanAbsolutePath(path: string): boolean {
   return true;
 }
 
-export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string): string | undefined {
+export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string, resizeCreate?: boolean): string | undefined {
   const mem = filesystem as MemoryFileSystem;
   if (!ownedStores.has(mem) || mem.symlinkCount !== 0 || !isStockMemoryMethods(mem, deviceFastMethodNames, false)) return undefined;
   if (!isCleanAbsolutePath(path) || path === "/dev" || path.startsWith("/dev/")) return undefined;
@@ -1501,12 +1532,14 @@ export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string)
     if (slash === -1) {
       const name = path.slice(start);
       if (exceedsComponentByteLimit(name)) return undefined;
+      if (resizeCreate === false && !current.entries.has(name)) return undefined;
       return path;
     }
     const name = path.slice(start, slash);
     if (exceedsComponentByteLimit(name)) return undefined;
     const next = current.entries.get(name);
     if (!next) {
+      if (resizeCreate !== undefined) return undefined;
       let remStart = slash + 1;
       while (true) {
         const nextSlash = path.indexOf("/", remStart);

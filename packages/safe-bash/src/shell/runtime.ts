@@ -508,14 +508,28 @@ export function interruptible<Value>(promise: Promise<Value>, signal: AbortSigna
   return interruptibleSlow(promise, signal);
 }
 
-async function interruptibleSlow<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
-  let abort: (() => void) | undefined;
-  const aborted = new Promise<never>((_resolve, reject) => {
-    abort = () => reject(signal.reason);
-    signal.addEventListener("abort", abort, { once: true });
+const signalAbortWaiters = new WeakMap<AbortSignal, Set<(reason: unknown) => void>>();
+
+function interruptibleSlow<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
+  return new Promise<Value>((resolve, reject) => {
+    let waiters = signalAbortWaiters.get(signal);
+    if (!waiters) {
+      waiters = new Set();
+      signalAbortWaiters.set(signal, waiters);
+      const set = waiters;
+      signal.addEventListener("abort", () => {
+        const reason = signal.reason;
+        const pending = [...set];
+        set.clear();
+        for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+      }, { once: true });
+    }
+    waiters.add(reject);
+    promise.then(
+      value => { waiters!.delete(reject); resolve(value); },
+      error => { waiters!.delete(reject); reject(error); },
+    );
   });
-  try { return await Promise.race([promise, aborted]); }
-  finally { signal.removeEventListener("abort", abort!); }
 }
 
 export class Capture implements ByteSink {
@@ -1810,6 +1824,14 @@ export class Runtime {
   private readonly backingFs: FileSystem;
   readonly #rawFs: FileSystem;
   #fs: FileSystem | undefined;
+  #contextFsMask = -1;
+  #contextFsSignal: AbortSignal | undefined;
+  #contextFs: FileSystem | undefined;
+  #redirectFsMask = -1;
+  #redirectFs: FileSystem | undefined;
+  readonly #chargeFs = (): void => { this.budget.fileSystemOperation(); };
+  readonly #cleanupChargeFs = (): void => { this.budget.fileSystemCleanupOperation(); };
+  readonly #isMemoryBackingFs: boolean;
   constructor(
     fs: FileSystem,
     readonly commands: CommandRegistry,
@@ -1830,6 +1852,7 @@ export class Runtime {
     this.#rawFs = fs;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = runtimeBackingFileSystems.get(this.sourceFs) ?? this.sourceFs;
+    this.#isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem";
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {
       inheritYieldCheckpoint(signal, commandSignal);
@@ -1839,11 +1862,44 @@ export class Runtime {
 
   get fs(): FileSystem {
     if (!this.#fs) {
-      this.#fs = scopeFileSystem(this.#rawFs, () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation(), { maxPathComponents: this.budget.limits.maxPathComponents });
+      this.#fs = scopeFileSystem(this.#rawFs, this.#chargeFs, this.signal, this.#cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathComponents });
       runtimeFileSystems.set(this.#fs, this.sourceFs);
       runtimeBackingFileSystems.set(this.#fs, this.backingFs);
     }
     return this.#fs;
+  }
+
+  private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
+    if (this.#contextFs && this.#contextFsMask === umask && this.#contextFsSignal === sig) {
+      return this.#contextFs;
+    }
+    const created = scopeFileSystem(
+      creationFileSystem(this.sourceFs, umask),
+      this.#chargeFs,
+      sig,
+      this.#cleanupChargeFs,
+      { maxPathComponents: this.budget.limits.maxPathComponents },
+    );
+    runtimeFileSystems.set(created, this.sourceFs);
+    runtimeBackingFileSystems.set(created, this.backingFs);
+    if (sig === this.signal) {
+      this.#contextFsMask = umask;
+      this.#contextFsSignal = sig;
+      this.#contextFs = created;
+    }
+    return created;
+  }
+
+  private getRedirectFs(umask: number): FileSystem {
+    if (this.#redirectFs && this.#redirectFsMask === umask) return this.#redirectFs;
+    this.#redirectFsMask = umask;
+    return (this.#redirectFs = scopeFileSystem(
+      creationFileSystem(this.sourceFs, umask),
+      this.#chargeFs,
+      this.commandSignal,
+      this.#cleanupChargeFs,
+      { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathComponents },
+    ));
   }
 
   private async ereDiagnostic(io: IO, detail: string): Promise<void> {
@@ -3996,18 +4052,31 @@ export class Runtime {
           preparationCleanup.push(() => input.close());
           const writable = writing?.writable ?? outgoing?.writable;
           const failOutput = writable?.[outputFailure]?.bind(writable);
-          const pipeOutput: ByteSink | undefined = outgoing && { ...(failOutput ? { [outputFailure]: failOutput } : {}), ownedOutput: writable!.ownedOutput!, write: async (chunk) => {
+          const pipeOutput: ByteSink | undefined = outgoing && { ...(failOutput ? { [outputFailure]: failOutput } : {}), ownedOutput: writable!.ownedOutput!, write: (chunk) => {
             try {
-              await writable!.write(chunk);
-              if (chunk.byteLength) written.add(index);
-            }
-            catch (error) {
+              const res = writable!.write(chunk);
+              if (isSyncResolved(res)) {
+                if (chunk.byteLength) written.add(index);
+                return resolvedVoid;
+              }
+              return res.then(
+                () => { if (chunk.byteLength) written.add(index); },
+                (error) => {
+                  if (errorCode(error) === "EPIPE") {
+                    const closed = new PipelineClosed();
+                    controllers[index]!.abort(closed);
+                    throw closed;
+                  }
+                  throw error;
+                },
+              );
+            } catch (error) {
               if (errorCode(error) === "EPIPE") {
                 const closed = new PipelineClosed();
                 controllers[index]!.abort(closed);
-                throw closed;
+                return Promise.reject(closed);
               }
-              throw error;
+              return Promise.reject(error);
             }
           } };
           const executeStage = async (): Promise<CommandResult> => {
@@ -4963,7 +5032,7 @@ export class Runtime {
         return io;
       }
     }
-    const resourceFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathComponents });
+    const resourceFs = this.getRedirectFs(state.umask ?? 0o022);
     const inputDescriptor = io.descriptors.get(0);
     const outputDescriptor = io.descriptors.get(1);
     const errorDescriptor = io.descriptors.get(2);
@@ -5497,7 +5566,7 @@ export class Runtime {
           this.cancellation, this.cancellationState, this.cancellationOwner,
           this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
         );
-    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath, !fastInline); }
+    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath, !fastInline || this.#isMemoryBackingFs); }
     finally { await scope.close(); }
   }
 
@@ -5530,9 +5599,7 @@ export class Runtime {
     let contextFs: FileSystem | undefined;
     const getContextFs = (): FileSystem => {
       if (!contextFs) {
-        contextFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), getScopedSignal(), () => this.budget.fileSystemCleanupOperation(), { maxPathComponents: this.budget.limits.maxPathComponents });
-        runtimeFileSystems.set(contextFs, this.sourceFs);
-        runtimeBackingFileSystems.set(contextFs, this.backingFs);
+        contextFs = this.getContextFsFor(state.umask ?? 0o022, getScopedSignal());
       }
       return contextFs;
     };

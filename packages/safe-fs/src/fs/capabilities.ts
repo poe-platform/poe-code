@@ -124,24 +124,35 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   });
 }
 
+const TRUSTED_OWNED_STAGING_METHODS: readonly (keyof FileSystem)[] = [
+  "createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory",
+];
+
 export function ownedMutationCapabilities(filesystem: FileSystem, capabilities = filesystem.capabilities): FileSystemCapabilities {
-  const unavailable: Record<string, false> = {};
-  if (capabilities.atomicFilePublication === true && (capabilities.readOnly === true || typeof filesystem.publishFileConditional !== "function")) unavailable.atomicFilePublication = false;
-  if (capabilities.atomicEntryRemoval === true && (capabilities.readOnly === true || typeof filesystem.removeEntryConditional !== "function")) unavailable.atomicEntryRemoval = false;
-  if (capabilities.atomicEntryRemovalReceipt === true && (capabilities.atomicEntryRemoval !== true || unavailable.atomicEntryRemoval === false)) unavailable.atomicEntryRemovalReceipt = false;
-  if (capabilities.atomicTreeRemoval === true && (capabilities.readOnly === true || typeof filesystem.removeTreeConditional !== "function")) unavailable.atomicTreeRemoval = false;
-  if (capabilities.atomicFileMutation === true && (capabilities.readOnly === true || typeof filesystem.writeFileConditional !== "function" || typeof filesystem.removeFileConditional !== "function")) unavailable.atomicFileMutation = false;
+  let unavailable: Record<string, false> | undefined;
+  if (capabilities.atomicFilePublication === true && (capabilities.readOnly === true || typeof filesystem.publishFileConditional !== "function")) (unavailable ??= {}).atomicFilePublication = false;
+  if (capabilities.atomicEntryRemoval === true && (capabilities.readOnly === true || typeof filesystem.removeEntryConditional !== "function")) (unavailable ??= {}).atomicEntryRemoval = false;
+  if (capabilities.atomicEntryRemovalReceipt === true && (capabilities.atomicEntryRemoval !== true || unavailable?.atomicEntryRemoval === false)) (unavailable ??= {}).atomicEntryRemovalReceipt = false;
+  if (capabilities.atomicTreeRemoval === true && (capabilities.readOnly === true || typeof filesystem.removeTreeConditional !== "function")) (unavailable ??= {}).atomicTreeRemoval = false;
+  if (capabilities.atomicFileMutation === true && (capabilities.readOnly === true || typeof filesystem.writeFileConditional !== "function" || typeof filesystem.removeFileConditional !== "function")) (unavailable ??= {}).atomicFileMutation = false;
   if (capabilities.atomicFileStaging === true && (capabilities.readOnly === true
-    || typeof filesystem.createStagedFile !== "function" || typeof filesystem.publishStagedFile !== "function" || typeof filesystem.removeStagedFile !== "function")) unavailable.atomicFileStaging = false;
-  if (capabilities.retainedStagingCleanup === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.retainedStagingCleanup = false;
-  if (capabilities.atomicStagingAncestry === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.atomicStagingAncestry = false;
-  if (capabilities.synchronousDirectoryValidation === true && typeof filesystem.prepareDirectoryAncestry !== "function") unavailable.synchronousDirectoryValidation = false;
-  if (capabilities.synchronousStagingResolution === true && (capabilities.readOnly === true || typeof filesystem.prepareStagingResolution !== "function")) unavailable.synchronousStagingResolution = false;
-  if (capabilities.guardedStagingPublication === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.guardedStagingPublication = false;
-  if (capabilities.atomicDirectoryMetadata === true && (capabilities.readOnly === true || typeof filesystem.prepareDirectory !== "function")) unavailable.atomicDirectoryMetadata = false;
-  if (capabilities.trustedOwnedStaging === true && (capabilities.readOnly === true
-    || ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"].some(method => typeof filesystem[method as keyof FileSystem] !== "function"))) unavailable.trustedOwnedStaging = false;
-  return Object.keys(unavailable).length ? { ...capabilities, ...unavailable } : capabilities;
+    || typeof filesystem.createStagedFile !== "function" || typeof filesystem.publishStagedFile !== "function" || typeof filesystem.removeStagedFile !== "function")) (unavailable ??= {}).atomicFileStaging = false;
+  if (capabilities.retainedStagingCleanup === true && (capabilities.atomicFileStaging !== true || unavailable?.atomicFileStaging === false)) (unavailable ??= {}).retainedStagingCleanup = false;
+  if (capabilities.atomicStagingAncestry === true && (capabilities.atomicFileStaging !== true || unavailable?.atomicFileStaging === false)) (unavailable ??= {}).atomicStagingAncestry = false;
+  if (capabilities.synchronousDirectoryValidation === true && typeof filesystem.prepareDirectoryAncestry !== "function") (unavailable ??= {}).synchronousDirectoryValidation = false;
+  if (capabilities.synchronousStagingResolution === true && (capabilities.readOnly === true || typeof filesystem.prepareStagingResolution !== "function")) (unavailable ??= {}).synchronousStagingResolution = false;
+  if (capabilities.guardedStagingPublication === true && (capabilities.atomicFileStaging !== true || unavailable?.atomicFileStaging === false)) (unavailable ??= {}).guardedStagingPublication = false;
+  if (capabilities.atomicDirectoryMetadata === true && (capabilities.readOnly === true || typeof filesystem.prepareDirectory !== "function")) (unavailable ??= {}).atomicDirectoryMetadata = false;
+  if (capabilities.trustedOwnedStaging === true) {
+    let missing = capabilities.readOnly === true;
+    if (!missing) {
+      for (let i = 0; i < TRUSTED_OWNED_STAGING_METHODS.length; i++) {
+        if (typeof filesystem[TRUSTED_OWNED_STAGING_METHODS[i]!] !== "function") { missing = true; break; }
+      }
+    }
+    if (missing) (unavailable ??= {}).trustedOwnedStaging = false;
+  }
+  return unavailable ? { ...capabilities, ...unavailable } : capabilities;
 }
 
 export async function requireOwnedMutation(filesystem: FileSystem, path: string,

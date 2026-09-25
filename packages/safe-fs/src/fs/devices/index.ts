@@ -176,38 +176,38 @@ export class DeviceFileSystem implements FileSystem {
     const observed = ownedMutationCapabilities(this.#filesystem, selected ?? this.#filesystem.capabilities);
     options.signal?.throwIfAborted();
     const capabilities = observed.retainedResize === true ? retainedResizeCapabilities(this.#filesystem, observed) : observed;
-    const unavailable: Record<string, false> = {};
+    let unavailable: Record<string, false> | undefined;
     if (options.stagingResolution === true && observed.synchronousStagingResolution === true) {
       try {
         const resolution = snapshotStagingResolution(await this.#filesystem.prepareStagingResolution!(path, options));
         options.signal?.throwIfAborted();
         if (resolution.path !== resolved) throw new FsError("EAGAIN", { path });
         if ([resolution.path, ...resolution.traversed.map(entry => entry.path)].some(entry => entry === deviceDirectory || entry.startsWith(`${deviceDirectory}/`))) {
-          unavailable.synchronousStagingResolution = false;
+          (unavailable ??= {}).synchronousStagingResolution = false;
         }
         runStagingGuard(resolution.validate);
       } catch (error) {
         options.signal?.throwIfAborted();
         if (!isFsError(error, "ENOTSUP")) throw error;
-        unavailable.synchronousStagingResolution = false;
+        (unavailable ??= {}).synchronousStagingResolution = false;
       }
     }
     if (resolved.startsWith(`${deviceDirectory}/`)) {
-      unavailable.atomicStagingAncestry = false;
-      unavailable.synchronousDirectoryValidation = false;
-      unavailable.synchronousStagingResolution = false;
+      const u = unavailable ??= {};
+      u.atomicStagingAncestry = false;
+      u.synchronousDirectoryValidation = false;
+      u.synchronousStagingResolution = false;
     }
-    if (typeof this.#filesystem.open !== "function") unavailable.open = false;
-    if (typeof this.#filesystem.readStream !== "function") unavailable.streamingRead = false;
+    if (typeof this.#filesystem.open !== "function" && capabilities.open !== false) (unavailable ??= {}).open = false;
+    if (typeof this.#filesystem.readStream !== "function" && capabilities.streamingRead !== false) (unavailable ??= {}).streamingRead = false;
     if (typeof this.#filesystem.writeStream !== "function") {
-      unavailable.streamingWrite = false;
-      unavailable.streamingAppend = false;
-      unavailable.descriptorWriteStream = false;
+      if (capabilities.streamingWrite !== false) (unavailable ??= {}).streamingWrite = false;
+      if (capabilities.streamingAppend !== false) (unavailable ??= {}).streamingAppend = false;
+      if (capabilities.descriptorWriteStream !== false) (unavailable ??= {}).descriptorWriteStream = false;
     }
-    if (typeof this.#filesystem.openReadFile !== "function") unavailable.retainedRead = false;
-    if (observed.atomicResize === true && (typeof this.#filesystem.resizeFile !== "function" || observed.readOnly === true)) unavailable.atomicResize = false;
-    const result = Object.keys(unavailable).some(key => capabilities[key] !== false)
-      ? { ...capabilities, ...unavailable } : capabilities;
+    if (typeof this.#filesystem.openReadFile !== "function" && capabilities.retainedRead !== false) (unavailable ??= {}).retainedRead = false;
+    if (observed.atomicResize === true && (typeof this.#filesystem.resizeFile !== "function" || observed.readOnly === true) && capabilities.atomicResize !== false) (unavailable ??= {}).atomicResize = false;
+    const result = unavailable ? { ...capabilities, ...unavailable } : capabilities;
     options.signal?.throwIfAborted();
     return result;
   }

@@ -69,6 +69,37 @@ function integer(value: number, syscall: string, path: string): void {
   if (!Number.isSafeInteger(value) || value < 0) throw new FsError("EINVAL", { syscall, path });
 }
 
+const OPEN_FILE_OPTION_KEYS = new Set(["access", "creation", "truncate", "append", "mode", "exactMode", "noFollow", "synchronization", "signal"]);
+const managedCapabilitiesCache = new WeakMap<FileDescriptorCapabilities, Map<string, FileDescriptorCapabilities>>();
+
+function getManagedCapabilities(capabilities: FileDescriptorCapabilities, access: OpenFileOptions["access"], append: boolean): FileDescriptorCapabilities {
+  let byKey = managedCapabilitiesCache.get(capabilities);
+  const key = `${access}:${append ? 1 : 0}`;
+  if (byKey) {
+    const cached = byKey.get(key);
+    if (cached) return cached;
+  } else {
+    byKey = new Map();
+    managedCapabilitiesCache.set(capabilities, byKey);
+  }
+  const positionedAppendWrite = capabilities.positionedAppendWrite === true && capabilities.positionedWrite && access !== "read";
+  const frozen = Object.freeze({
+    ...(capabilities.noFollow === undefined ? {} : { noFollow: capabilities.noFollow }),
+    ...(capabilities.publication === undefined ? {} : { publication: capabilities.publication }),
+    ...(capabilities.position === undefined ? {} : { position: capabilities.position }),
+    ...(capabilities.readObservation === undefined ? {} : { readObservation: capabilities.readObservation }),
+    ...(capabilities.openTruncate === undefined ? {} : { openTruncate: capabilities.openTruncate }),
+    positionedRead: capabilities.positionedRead && access !== "write",
+    positionedWrite: capabilities.positionedWrite && access !== "read" && (!append || positionedAppendWrite),
+    ...(capabilities.positionedAppendWrite === undefined ? {} : { positionedAppendWrite }),
+    ...(capabilities.delegateZeroLengthWrite === undefined ? {} : { delegateZeroLengthWrite: capabilities.delegateZeroLengthWrite && access !== "read" }),
+    truncate: capabilities.truncate && access !== "read",
+    synchronization: capabilities.synchronization,
+  });
+  byKey.set(key, frozen);
+  return frozen;
+}
+
 class ManagedFileDescriptor<Resource> implements FileDescriptor {
   readonly capabilities: FileDescriptorCapabilities;
   readonly #path: string;
@@ -86,25 +117,12 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     this.#append = options.append;
     const getPosition = capabilities.position === true ? backend.getPosition : undefined;
     if (capabilities.position === true && typeof getPosition !== "function") throw new FsError("ENOTSUP", { syscall: "getPosition", path });
-    this.#getPosition = getPosition?.bind(backend);
+    this.#getPosition = getPosition;
     const probeRead = capabilities.readObservation === true ? backend.probeRead : undefined;
     if (capabilities.readObservation === true && typeof probeRead !== "function") throw new FsError("ENOTSUP", { syscall: "probeRead", path });
-    this.#probeRead = probeRead?.bind(backend);
+    this.#probeRead = probeRead;
     this.#backend = backend;
-    const positionedAppendWrite = capabilities.positionedAppendWrite === true && capabilities.positionedWrite && options.access !== "read";
-    this.capabilities = Object.freeze({
-      ...(capabilities.noFollow === undefined ? {} : { noFollow: capabilities.noFollow }),
-      ...(capabilities.publication === undefined ? {} : { publication: capabilities.publication }),
-      ...(capabilities.position === undefined ? {} : { position: capabilities.position }),
-      ...(capabilities.readObservation === undefined ? {} : { readObservation: capabilities.readObservation }),
-      ...(capabilities.openTruncate === undefined ? {} : { openTruncate: capabilities.openTruncate }),
-      positionedRead: capabilities.positionedRead && options.access !== "write",
-      positionedWrite: capabilities.positionedWrite && options.access !== "read" && (!options.append || positionedAppendWrite),
-      ...(capabilities.positionedAppendWrite === undefined ? {} : { positionedAppendWrite }),
-      ...(capabilities.delegateZeroLengthWrite === undefined ? {} : { delegateZeroLengthWrite: capabilities.delegateZeroLengthWrite && options.access !== "read" }),
-      truncate: capabilities.truncate && options.access !== "read",
-      synchronization: capabilities.synchronization,
-    });
+    this.capabilities = getManagedCapabilities(capabilities, options.access, options.append);
   }
 
   #run<Result>(syscall: string, options: FsOptions,
@@ -148,7 +166,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
   getPosition(options: FsOptions = {}): Promise<number> {
     return this.#run("getPosition", options, async (backend, forwarded) => {
       if (!this.capabilities.position || !this.#getPosition) throw new FsError("ENOTSUP", { syscall: "getPosition", path: this.#path });
-      const position = await this.#getPosition(backend.resource, forwarded);
+      const position = await this.#getPosition.call(backend, backend.resource, forwarded);
       if (!Number.isSafeInteger(position) || position < 0) throw new FsError("EIO", { syscall: "getPosition", path: this.#path });
       return position;
     });
@@ -157,7 +175,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
   probeRead(options: FsOptions = {}): Promise<"ready" | "blocked" | "unknown"> {
     return this.#run("probeRead", options, async (backend, forwarded) => {
       if (!this.capabilities.readObservation || !this.#probeRead) throw new FsError("ENOTSUP", { syscall: "probeRead", path: this.#path });
-      const readiness = await this.#probeRead(backend.resource, forwarded);
+      const readiness = await this.#probeRead.call(backend, backend.resource, forwarded);
       if (readiness !== "ready" && readiness !== "blocked" && readiness !== "unknown") throw new FsError("EIO", { syscall: "probeRead", path: this.#path });
       return readiness;
     });
@@ -222,11 +240,17 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
   if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
   const signal = options.signal;
   signal?.throwIfAborted();
-  const keys = ["access", "creation", "truncate", "append", "mode", "exactMode", "noFollow", "synchronization", "signal"];
   const { access, creation = "never", truncate = false, append = false, mode = 0o666, synchronization } = options;
-  if (Object.keys(options).some(key => !keys.includes(key))
-    || !["read", "write", "readwrite"].includes(access)
-    || !["never", "ifMissing", "exclusive"].includes(creation)
+  let invalidKey = false;
+  for (const key in options) {
+    if (Object.prototype.hasOwnProperty.call(options, key) && !OPEN_FILE_OPTION_KEYS.has(key)) {
+      invalidKey = true;
+      break;
+    }
+  }
+  if (invalidKey
+    || (access !== "read" && access !== "write" && access !== "readwrite")
+    || (creation !== "never" && creation !== "ifMissing" && creation !== "exclusive")
     || options.noFollow !== undefined && typeof options.noFollow !== "boolean"
     || options.exactMode !== undefined && typeof options.exactMode !== "boolean"
     || typeof truncate !== "boolean" || typeof append !== "boolean"
@@ -239,16 +263,16 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
     ...(options.noFollow === undefined ? {} : { noFollow: options.noFollow }),
     ...(options.exactMode === undefined ? {} : { exactMode: options.exactMode }),
     ...(signal === undefined ? {} : { signal }), ...(synchronization === undefined ? {} : { synchronization }) });
-  const admittedCapabilities = Object.freeze({ ...capabilities });
+  const admittedCapabilities = Object.isFrozen(capabilities) ? capabilities : Object.freeze({ ...capabilities });
   admitCapabilities(path, admitted, admittedCapabilities);
   let backend: DescriptorBackend<Resource>;
   try { backend = await acquire(admitted); }
   catch (error) { signal?.throwIfAborted(); throw error; }
   try {
     signal?.throwIfAborted();
-    const selected = Object.freeze({ ...(backend.capabilities ?? admittedCapabilities) });
+    const selected = backend.capabilities ? Object.freeze({ ...backend.capabilities }) : admittedCapabilities;
     signal?.throwIfAborted();
-    admitCapabilities(path, admitted, selected);
+    if (backend.capabilities) admitCapabilities(path, admitted, selected);
     const descriptor = new ManagedFileDescriptor(path, admitted, selected, backend);
     signal?.throwIfAborted();
     return descriptor;

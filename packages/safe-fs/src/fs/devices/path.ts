@@ -122,8 +122,8 @@ function exceedsComponentByteLimit(value: string): boolean {
 
 export async function resolveDevicePath(filesystem: FileSystem, path: string, options: FsOptions, followFinal = true, resizeCreate?: boolean, traversal?: { virtual: boolean }): Promise<string> {
   options.signal?.throwIfAborted();
-  if (resizeCreate === undefined && Reflect.get(filesystem, pathNamespace) === undefined) {
-    const fast = tryResolveMemoryDevicePath(filesystem, path);
+  if (Reflect.get(filesystem, pathNamespace) === undefined) {
+    const fast = tryResolveMemoryDevicePath(filesystem, path, resizeCreate);
     if (fast !== undefined) return fast;
   }
   const namespace = capturePathNamespace(filesystem, options);
@@ -152,7 +152,6 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
       if (boundary !== undefined && `/${parts.join("/")}` === boundary) throw new FsError("EACCES", { path });
       parts.pop();
       if (parts.length < failedDepth) {
-        traversalFailure = undefined;
         failedDepth = Infinity;
       }
       continue;
@@ -195,7 +194,6 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
         if (target.startsWith("/")) {
           parts.splice(0, parts.length, ...(boundary ?? "/").split("/").filter(Boolean));
           absolute = true;
-          traversalFailure = undefined;
           failedDepth = Infinity;
         }
         pending.unshift(...targetSplit);

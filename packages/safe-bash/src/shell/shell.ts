@@ -110,7 +110,7 @@ export class Shell implements PluginHost {
   readonly #capabilities: Record<string, unknown> = {};
   readonly #options: ShellOptions;
   readonly #resolvedLimits: ReturnType<typeof resolveLimits>;
-  #ready: Promise<void> = Promise.resolve();
+  #ready: Promise<void> = Object.defineProperty(Promise.resolve(), Symbol.for("safe-bash.syncResolved"), { value: true });
   #disposed = false;
   #disposal: Promise<void> | undefined;
   #defaultIoCapabilities: Readonly<Record<string, unknown>> | undefined;
@@ -145,7 +145,7 @@ export class Shell implements PluginHost {
     if (typeof middleware === "function") this.#middleware.push(middleware);
     else {
       if (!middleware || typeof middleware.setup !== "function") throw new TypeError("Expected middleware or shell plugin");
-      this.#ready = this.#ready.then(async () => {
+      const nextReady = this.#ready.then(async () => {
         let active = true;
         const admit = () => {
           if (this.#disposed && !active) throw new Error("Shell is disposed");
@@ -161,7 +161,8 @@ export class Shell implements PluginHost {
           this.#plugins.push(middleware);
         } finally { active = false; }
       });
-      void this.#ready.catch(() => undefined);
+      this.#ready = nextReady;
+      void nextReady.then(() => { Object.defineProperty(nextReady, Symbol.for("safe-bash.syncResolved"), { value: true }); }, () => undefined);
     }
   }
 

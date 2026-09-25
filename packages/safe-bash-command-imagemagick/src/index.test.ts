@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import sharp from "@poe-code/image-ast";
 import {
+  runCompareCli,
   runConvertCli,
   runMagickCli,
   runMogrifyCli,
@@ -300,5 +301,59 @@ describe("safe-bash-command-imagemagick", () => {
     const monMeta = await sharp(files.get("/montage.png")!).metadata();
     expect(monMeta.width).toBe(48);
     expect(monMeta.height).toBe(48);
+  });
+
+  it("runs compare / magick compare with AE, RMSE, MAE, MSE, PSNR, SSIM metrics, -fuzz, and diff image output", async () => {
+    const imgA = await makeTestImage(20, 20, 100, 100, 100);
+    const imgB = await makeTestImage(20, 20, 100, 100, 100);
+    const files = new Map<string, Uint8Array>([
+      ["/a.png", imgA],
+      ["/b.png", imgB]
+    ]);
+
+    // Draw a 5x5 bright red patch on /b.png (25 pixels changed by delta 155,100,100)
+    await runConvertCli(
+      ["/b.png", "-fill", "#ff0000", "-draw", "rectangle 0,0 4,4", "/b-mod.png"],
+      files
+    );
+
+    // Identical images -> AE = 0, PSNR = inf, SSIM = 1
+    const idAe = await runCompareCli(["-metric", "AE", "/a.png", "/b.png", "null:"], files);
+    expect(idAe.exitCode).toBe(0);
+    expect((idAe.stderr || idAe.stdout).trim()).toBe("0");
+
+    const idPsnr = await runMagickCli(["compare", "-metric", "PSNR", "/a.png", "/b.png", "null:"], files);
+    expect((idPsnr.stderr || idPsnr.stdout).trim()).toBe("inf");
+
+    const idSsim = await runCompareCli(["-metric", "SSIM", "/a.png", "/b.png", "null:"], files);
+    expect(Number((idSsim.stderr || idSsim.stdout).trim())).toBeCloseTo(1, 3);
+
+    // Modified 5x5 rectangle -> 25 pixels differ -> AE = 25
+    const diffAe = await runCompareCli(
+      ["-metric", "AE", "-highlight-color", "#ff00ff", "/a.png", "/b-mod.png", "/diff.png"],
+      files
+    );
+    expect(Number((diffAe.stderr || diffAe.stdout).trim())).toBe(25);
+    expect(files.has("/diff.png")).toBe(true);
+    const diffRaw = await sharp(files.get("/diff.png")!).raw().toBuffer();
+    // Top-left pixel (0,0) was modified -> should be highlighted in #ff00ff
+    expect(diffRaw[0]).toBe(255);
+    expect(diffRaw[1]).toBe(0);
+    expect(diffRaw[2]).toBe(255);
+
+    // RMSE metric outputs "quantum (normalized)"
+    const diffRmse = await runCompareCli(["-metric", "RMSE", "/a.png", "/b-mod.png", "null:"], files);
+    expect((diffRmse.stderr || diffRmse.stdout).trim()).toMatch(/^\d+(\.\d+)?\s+\(\d+(\.\d+)?\)$/);
+
+    // With small color shift (100 -> 108) and -fuzz 10%, AE should be 0
+    const imgSlight = await makeTestImage(20, 20, 108, 100, 100);
+    files.set("/slight.png", imgSlight);
+    const noFuzz = await runCompareCli(["-metric", "AE", "/a.png", "/slight.png", "null:"], files);
+    expect(Number((noFuzz.stderr || noFuzz.stdout).trim())).toBe(400);
+    const withFuzz = await runCompareCli(
+      ["-metric", "AE", "-fuzz", "10%", "/a.png", "/slight.png", "null:"],
+      files
+    );
+    expect(Number((withFuzz.stderr || withFuzz.stdout).trim())).toBe(0);
   });
 });

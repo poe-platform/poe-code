@@ -554,8 +554,8 @@ function applyMagickDraw(img: RgbaImage, drawCmd: string, state: MagickState): R
       const y1 = num();
       const rx = Math.min(x0, x1);
       const ry = Math.min(y0, y1);
-      const rw = Math.max(1, Math.abs(x1 - x0));
-      const rh = Math.max(1, Math.abs(y1 - y0));
+      const rw = Math.max(1, Math.abs(x1 - x0) + 1);
+      const rh = Math.max(1, Math.abs(y1 - y0) + 1);
       svgElements.push(
         `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
       );
@@ -568,8 +568,8 @@ function applyMagickDraw(img: RgbaImage, drawCmd: string, state: MagickState): R
       const hc = num();
       const rx = Math.min(x0, x1);
       const ry = Math.min(y0, y1);
-      const rw = Math.max(1, Math.abs(x1 - x0));
-      const rh = Math.max(1, Math.abs(y1 - y0));
+      const rw = Math.max(1, Math.abs(x1 - x0) + 1);
+      const rh = Math.max(1, Math.abs(y1 - y0) + 1);
       svgElements.push(
         `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`
       );
@@ -1398,6 +1398,265 @@ export async function runCompositeCli(
   return runConvertCli([base, overlay, ...options, "-composite", out], files, stdinBytes);
 }
 
+function formatMetricNum(n: number): string {
+  if (!Number.isFinite(n)) return "inf";
+  if (Math.abs(n) < 1e-9) return "0";
+  const fixed = n.toFixed(6).replace(/\.?0+$/, "");
+  return fixed === "-0" ? "0" : fixed;
+}
+
+export async function runCompareCli(
+  argv: readonly string[],
+  files: Map<string, Uint8Array>,
+  stdinBytes?: Uint8Array
+): Promise<ImageMagickCliResult> {
+  const state = createDefaultState();
+  state.fuzz = 0;
+  let metric = "rmse";
+  let highlightColor: RgbaColor = { r: 241, g: 0, b: 30, a: 255 };
+  let lowlightColor: RgbaColor | undefined;
+  let composeSrc = false;
+  let dissimilarityThreshold: number | undefined;
+  const operands: string[] = [];
+
+  for (let i = 0; i < argv.length; i++) {
+    const t = argv[i]!;
+    if (t === "--help" || t === "-help" || t === "-h") {
+      return {
+        exitCode: 0,
+        stdout:
+          "Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n",
+        stderr: ""
+      };
+    } else if (t === "-metric") {
+      metric = (argv[++i] ?? "rmse").toLowerCase();
+    } else if (t === "-fuzz") {
+      const rawFuzz = argv[++i] ?? "0";
+      state.fuzz = rawFuzz.endsWith("%")
+        ? (parseFloat(rawFuzz) / 100) * 255
+        : parseFloat(rawFuzz);
+    } else if (t === "-highlight-color") {
+      highlightColor = parseColor(argv[++i] ?? "#f1001e");
+    } else if (t === "-lowlight-color") {
+      lowlightColor = parseColor(argv[++i] ?? "#ffffff");
+    } else if (t === "-compose") {
+      const cm = (argv[++i] ?? "over").toLowerCase();
+      if (cm === "src" || cm === "source" || cm === "copy") composeSrc = true;
+    } else if (t === "-dissimilarity-threshold") {
+      dissimilarityThreshold = Number(argv[++i] ?? 1);
+    } else if (t === "-density") {
+      const g = parseMagickGeometry(argv[++i] ?? "72");
+      state.density = Math.max(1, Math.round(g.width ?? 72));
+    } else if (t === "-quality") {
+      state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
+    } else if (t.startsWith("-") && t.length > 1) {
+      // Skip optional flags with arguments if recognized
+      if (t === "-format" || t === "-alpha" || t === "-channel") i++;
+    } else {
+      operands.push(t);
+    }
+  }
+
+  if (operands.length < 2) {
+    return {
+      exitCode: 2,
+      stdout: "",
+      stderr: "compare: missing an image filename\n"
+    };
+  }
+
+  const refSpec = operands[0]!;
+  const candSpec = operands[1]!;
+  const outSpec = operands[2] ?? "null:";
+
+  const imgA = parseInputOperand(refSpec, files, state, stdinBytes);
+  if (!imgA) {
+    return {
+      exitCode: 2,
+      stdout: "",
+      stderr: `compare: unable to open image '${refSpec}': No such file or directory\n`
+    };
+  }
+  const imgB = parseInputOperand(candSpec, files, state, stdinBytes);
+  if (!imgB) {
+    return {
+      exitCode: 2,
+      stdout: "",
+      stderr: `compare: unable to open image '${candSpec}': No such file or directory\n`
+    };
+  }
+
+  const width = Math.max(imgA.width, imgB.width);
+  const height = Math.max(imgA.height, imgB.height);
+  const totalPixels = Math.max(1, width * height);
+  const diffData = new Uint8Array(width * height * 4);
+
+  let aeCount = 0;
+  let sumAbs = 0;
+  let sumSq = 0;
+  let maxAbs = 0;
+
+  const lumA = new Float64Array(totalPixels);
+  const lumB = new Float64Array(totalPixels);
+  let sumLumA = 0;
+  let sumLumB = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pIdx = y * width + x;
+      const outOff = pIdx * 4;
+      const inBoundsA = x < imgA.width && y < imgA.height;
+      const inBoundsB = x < imgB.width && y < imgB.height;
+      const offA = inBoundsA ? (y * imgA.width + x) * 4 : -1;
+      const offB = inBoundsB ? (y * imgB.width + x) * 4 : -1;
+
+      const rA = offA >= 0 ? imgA.data[offA]! : 0;
+      const gA = offA >= 0 ? imgA.data[offA + 1]! : 0;
+      const bA = offA >= 0 ? imgA.data[offA + 2]! : 0;
+      const aA = offA >= 0 ? imgA.data[offA + 3]! : 0;
+
+      const rB = offB >= 0 ? imgB.data[offB]! : 0;
+      const gB = offB >= 0 ? imgB.data[offB + 1]! : 0;
+      const bB = offB >= 0 ? imgB.data[offB + 2]! : 0;
+      const aB = offB >= 0 ? imgB.data[offB + 3]! : 0;
+
+      const dr = Math.abs(rA - rB);
+      const dg = Math.abs(gA - gB);
+      const db = Math.abs(bA - bB);
+      const da = Math.abs(aA - aB);
+      const maxDelta = Math.max(dr, dg, db, da);
+
+      if (!inBoundsA || !inBoundsB || maxDelta > state.fuzz) {
+        aeCount++;
+        diffData[outOff] = highlightColor.r;
+        diffData[outOff + 1] = highlightColor.g;
+        diffData[outOff + 2] = highlightColor.b;
+        diffData[outOff + 3] = highlightColor.a;
+      } else if (composeSrc) {
+        diffData[outOff] = 0;
+        diffData[outOff + 1] = 0;
+        diffData[outOff + 2] = 0;
+        diffData[outOff + 3] = 0;
+      } else if (lowlightColor) {
+        diffData[outOff] = lowlightColor.r;
+        diffData[outOff + 1] = lowlightColor.g;
+        diffData[outOff + 2] = lowlightColor.b;
+        diffData[outOff + 3] = lowlightColor.a;
+      } else {
+        diffData[outOff] = Math.round(rA * 0.3 + 255 * 0.7);
+        diffData[outOff + 1] = Math.round(gA * 0.3 + 255 * 0.7);
+        diffData[outOff + 2] = Math.round(bA * 0.3 + 255 * 0.7);
+        diffData[outOff + 3] = 255;
+      }
+
+      sumAbs += dr + dg + db;
+      sumSq += dr * dr + dg * dg + db * db;
+      if (maxDelta > maxAbs) maxAbs = maxDelta;
+
+      const lA = (0.299 * rA + 0.587 * gA + 0.114 * bA) / 255;
+      const lB = (0.299 * rB + 0.587 * gB + 0.114 * bB) / 255;
+      lumA[pIdx] = lA;
+      lumB[pIdx] = lB;
+      sumLumA += lA;
+      sumLumB += lB;
+    }
+  }
+
+  const maeNorm = sumAbs / (totalPixels * 3 * 255);
+  const mseNorm = sumSq / (totalPixels * 3 * 255 * 255);
+  const rmseNorm = Math.sqrt(mseNorm);
+  const paeNorm = maxAbs / 255;
+
+  const muA = sumLumA / totalPixels;
+  const muB = sumLumB / totalPixels;
+  let varA = 0;
+  let varB = 0;
+  let covAB = 0;
+  for (let i = 0; i < totalPixels; i++) {
+    const dA = lumA[i]! - muA;
+    const dB = lumB[i]! - muB;
+    varA += dA * dA;
+    varB += dB * dB;
+    covAB += dA * dB;
+  }
+  varA /= totalPixels;
+  varB /= totalPixels;
+  covAB /= totalPixels;
+
+  const c1 = 0.0001;
+  const c2 = 0.0009;
+  const ssim =
+    ((2 * muA * muB + c1) * (2 * covAB + c2)) /
+    ((muA * muA + muB * muB + c1) * (varA + varB + c2));
+  const ncc = varA === 0 && varB === 0 ? 1 : covAB / (Math.sqrt(varA * varB) || 1);
+
+  let metricStr: string;
+  switch (metric) {
+    case "ae":
+      metricStr = String(aeCount);
+      break;
+    case "mae":
+      metricStr = `${formatMetricNum(maeNorm * 65535)} (${formatMetricNum(maeNorm)})`;
+      break;
+    case "mse":
+      metricStr = `${formatMetricNum(mseNorm * 65535)} (${formatMetricNum(mseNorm)})`;
+      break;
+    case "pae":
+      metricStr = `${formatMetricNum(paeNorm * 65535)} (${formatMetricNum(paeNorm)})`;
+      break;
+    case "psnr":
+      metricStr = mseNorm === 0 ? "inf" : formatMetricNum(10 * Math.log10(1 / mseNorm));
+      break;
+    case "ssim":
+      metricStr = formatMetricNum(ssim);
+      break;
+    case "dssim":
+      metricStr = formatMetricNum((1 - ssim) / 2);
+      break;
+    case "ncc":
+      metricStr = formatMetricNum(ncc);
+      break;
+    case "rmse":
+    default:
+      metricStr = `${formatMetricNum(rmseNorm * 65535)} (${formatMetricNum(rmseNorm)})`;
+      break;
+  }
+
+  const exitCode =
+    dissimilarityThreshold !== undefined && rmseNorm > dissimilarityThreshold ? 1 : 0;
+
+  if (outSpec.toLowerCase() !== "null:") {
+    const diffImg: RgbaImage = {
+      width,
+      height,
+      format: "png",
+      channels: 4,
+      depth: "uchar",
+      density: state.density,
+      space: "srgb",
+      hasAlpha: true,
+      data: diffData
+    };
+    const { format, path: outPath } = inferOutputFormat(outSpec, "png");
+    const { data: encoded } = encodeImage(diffImg, { format, quality: state.quality });
+    if (outPath === "-" || outSpec.endsWith(":-")) {
+      return {
+        exitCode,
+        stdout: "",
+        stderr: `${metricStr}\n`,
+        stdoutBytes: encoded
+      };
+    }
+    files.set(outPath, encoded);
+  }
+
+  return {
+    exitCode,
+    stdout: `${metricStr}\n`,
+    stderr: `${metricStr}\n`
+  };
+}
+
 export async function runMontageCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
@@ -1533,6 +1792,9 @@ export async function runMagickCli(
   }
   if (sub === "montage") {
     return runMontageCli(argv.slice(1), files, stdinBytes);
+  }
+  if (sub === "compare") {
+    return runCompareCli(argv.slice(1), files, stdinBytes);
   }
   if (sub === "convert") {
     return runConvertCli(argv.slice(1), files, stdinBytes);
@@ -1707,6 +1969,19 @@ export function createIdentifyCommand(_options: ImageMagickCommandOptions = {}):
 
 export const identifyCommand: CommandDefinition = createIdentifyCommand();
 
+export function createCompareCommand(_options: ImageMagickCommandOptions = {}): CommandDefinition {
+  return Object.freeze({
+    name: "compare",
+    runtimeIdentity: commandRuntimeIdentity,
+    description: "ImageMagick image comparison and diff generator powered by @poe-code/image-ast",
+    execute(context: CommandContext) {
+      return executeVfsMagickTool(context, runCompareCli);
+    }
+  });
+}
+
+export const compareCommand: CommandDefinition = createCompareCommand();
+
 export function imagemagickPlugin(options: ImageMagickCommandOptions = {}): VirtualShellPlugin {
   const magick = createMagickCommand(options);
   const convert = createConvertCommand(options);
@@ -1714,6 +1989,7 @@ export function imagemagickPlugin(options: ImageMagickCommandOptions = {}): Virt
   const composite = createCompositeCommand(options);
   const montage = createMontageCommand(options);
   const identify = createIdentifyCommand(options);
+  const compare = createCompareCommand(options);
   const replace = options.replace ?? false;
   return {
     name: "imagemagick",
@@ -1724,6 +2000,7 @@ export function imagemagickPlugin(options: ImageMagickCommandOptions = {}): Virt
       host.commands.register(composite, { replace });
       host.commands.register(montage, { replace });
       host.commands.register(identify, { replace });
+      host.commands.register(compare, { replace });
     }
   };
 }

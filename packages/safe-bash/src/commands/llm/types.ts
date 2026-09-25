@@ -1,3 +1,5 @@
+export type LlmOption = string | number | boolean | null;
+
 export interface LlmProvider {
   readonly name: string;
   readonly models: readonly LlmModel[];
@@ -16,7 +18,7 @@ export interface LlmRequest {
   prompt: string;
   system?: string;
   attachments: readonly { mimeType: string; bytes: Uint8Array }[];
-  options: Readonly<Record<string, string>>;
+  options: Readonly<Record<string, LlmOption>>;
   signal: AbortSignal;
 }
 

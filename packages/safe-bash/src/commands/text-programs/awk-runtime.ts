@@ -1062,6 +1062,14 @@ export class AwkRuntime {
   }
 
   private recordChecks = 0;
+  private stdoutBuffer = "";
+
+  private flushStdout(): void | Promise<void> {
+    if (this.stdoutBuffer.length === 0) return undefined;
+    const chunk = this.stdoutBuffer;
+    this.stdoutBuffer = "";
+    return write(this.context, chunk);
+  }
 
   private executeSync(statement: Statement): void | Promise<void> {
     if (!this.inspection) {
@@ -1109,6 +1117,30 @@ export class AwkRuntime {
       }
       return this.executeIfAsync(statement, cond);
     }
+    if (statement.kind === "print" && !statement.redirect && !statement.formatted) {
+      this.budget.step();
+      const args = statement.args;
+      const ofs = args.length ? this.varText("OFS") : "";
+      const ors = this.varText("ORS");
+      if (args.length === 0) {
+        const output = this.budget.check(this.record + ors);
+        this.stdoutBuffer += output;
+        if (this.stdoutBuffer.length >= 16384) return this.flushStdout();
+        return undefined;
+      }
+      const ofmt = this.varText("OFMT");
+      let acc = "";
+      for (let i = 0; i < args.length; i++) {
+        const v = this.scalarExpression(args[i]!);
+        if (v instanceof Promise) return this.execute(statement);
+        const t = text(v, ofmt, this.budget);
+        acc = i === 0 ? t : acc + ofs + t;
+      }
+      const output = this.budget.check(acc + ors);
+      this.stdoutBuffer += output;
+      if (this.stdoutBuffer.length >= 16384) return this.flushStdout();
+      return undefined;
+    }
     return this.execute(statement);
   }
 
@@ -1153,9 +1185,18 @@ export class AwkRuntime {
         const output = statement.formatted
           ? this.budget.check(formatted(this.asText(values[0]!), values.slice(1), value => this.asText(value), this.budget))
           : this.join(values.length ? values.map(value => text(value, this.varText("OFMT"), this.budget)) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
-        if (!statement.redirect) { await write(this.context, output); return; }
+        if (!statement.redirect) {
+          this.stdoutBuffer += output;
+          if (this.stdoutBuffer.length >= 16384) await this.flushStdout();
+          return;
+        }
         const destination = Buffer.from(this.asText(await this.scalarExpression(statement.redirect.destination)), "latin1").toString("utf8");
-        if (destination === "/dev/stdout") { await write(this.context, output); return; }
+        if (destination === "/dev/stdout") {
+          this.stdoutBuffer += output;
+          if (this.stdoutBuffer.length >= 16384) await this.flushStdout();
+          return;
+        }
+        if (this.stdoutBuffer.length > 0) await this.flushStdout();
         if (destination === "/dev/stderr") { this.context.signal.throwIfAborted(); await writeBytes(this.context.stderr, bytes(output), this.context.signal); return; }
         const path = virtualPath(this.context, destination);
         const outputs = this.outputs ??= new Set<string>();
@@ -1200,7 +1241,10 @@ export class AwkRuntime {
         for (const key of [...array.entries.keys()]) {
           this.budget.step(); if (!array.entries.has(key)) continue;
           this.set(statement.variable, string(key));
-          try { await this.execute(statement.body); }
+          try {
+            const res = this.executeSync(statement.body);
+            if (res instanceof Promise) await res;
+          }
           catch (error) { if (error instanceof Flow && error.kind === "break") break; if (!(error instanceof Flow && error.kind === "continue")) throw error; }
         }
         return;
@@ -1249,8 +1293,17 @@ export class AwkRuntime {
   async run(): Promise<number> {
     let status = 0, failed = false;
     let failure: unknown;
-    try { status = await this.runProgram(); this.syncSpecialVars(); await this.inspection?.publish(this.variables); }
+    try {
+      status = await this.runProgram();
+      if (this.stdoutBuffer.length > 0) await this.flushStdout();
+      this.syncSpecialVars();
+      await this.inspection?.publish(this.variables);
+    }
     catch (error) { failed = true; failure = error; }
+    if (this.stdoutBuffer.length > 0) {
+      try { await this.flushStdout(); }
+      catch (error) { if (!failed) { failed = true; failure = error; } }
+    }
     let cleanup: PromiseSettledResult<void>[] | undefined;
     if (this.mainReader || (this.inputs && this.inputs.size > 0)) {
       const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs ? this.inputs.values() : []];

@@ -702,6 +702,36 @@ const sharedSortEnds = new Int32Array(4096);
 const sharedSortIndices = new Int32Array(4096);
 const sharedSortScratchIndices = new Int32Array(4096);
 const sharedSortKeyNums = new Int32Array(4096);
+const sharedSortInScratch = new Uint8Array(65536);
+const sharedSortOutScratch = new Uint8Array(65536);
+const SORT_LONG_OPTIONS = Object.freeze({
+  "human-numeric-sort": "h",
+  "numeric-sort": "n",
+  "general-numeric-sort": "g",
+  "month-sort": "M",
+  "version-sort": "V",
+  "dictionary-order": "d",
+  "ignore-nonprinting": "i",
+  merge: "m",
+  sort: "S",
+  reverse: "r",
+  "ignore-case": "f",
+  "ignore-leading-blanks": "b",
+  unique: "u",
+  stable: "s",
+  "zero-terminated": "z",
+  "field-separator": "t",
+  key: "k",
+  output: "o",
+  check: "c",
+});
+const SORT_MODE_FLAGS: Readonly<Record<string, string>> = Object.freeze({
+  numeric: "n",
+  "general-numeric": "g",
+  "human-numeric": "h",
+  month: "M",
+  version: "V",
+});
 
 function compareChunkSliceBytes(
   chunk: Uint8Array,
@@ -972,15 +1002,23 @@ export function textCommands(): CommandDefinition[] {
   return [
     define("sort", async context => {
       let ended = false;
-      const args = context.args.map(argument => {
-        if (ended) return argument;
-        if (argument === "--") ended = true;
-        if (argument === "--check" || argument === "--check=diagnose-first") return "-c";
-        if (argument === "--check=quiet" || argument === "--check=silent") return "-C";
-        if (argument.startsWith("--check=")) throw new UsageError(`invalid argument '${argument.slice(8)}' for '--check'`);
-        return argument;
-      });
-      const parsed = options(args, "hngMVdimrfbuszt:k:o:cCS:", { "human-numeric-sort": "h", "numeric-sort": "n", "general-numeric-sort": "g", "month-sort": "M", "version-sort": "V", "dictionary-order": "d", "ignore-nonprinting": "i", merge: "m", sort: "S", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" }, false, undefined, (key, index) => {
+      let hasCheckLong = false;
+      for (let i = 0; i < context.args.length; i++) {
+        const a = context.args[i]!;
+        if (a === "--") break;
+        if (a.startsWith("--check")) { hasCheckLong = true; break; }
+      }
+      const args = hasCheckLong
+        ? context.args.map(argument => {
+            if (ended) return argument;
+            if (argument === "--") ended = true;
+            if (argument === "--check" || argument === "--check=diagnose-first") return "-c";
+            if (argument === "--check=quiet" || argument === "--check=silent") return "-C";
+            if (argument.startsWith("--check=")) throw new UsageError(`invalid argument '${argument.slice(8)}' for '--check'`);
+            return argument;
+          })
+        : context.args;
+      const parsed = options(args, "hngMVdimrfbuszt:k:o:cCS:", SORT_LONG_OPTIONS, false, undefined, (key, index) => {
         // S is only an internal value slot for --sort, not a buffer-size option.
         if (key === "S" && !args[index]!.startsWith("--sort=") && args[index - 1] !== "--sort") throw new UsageError("invalid option -- 'S'");
       });
@@ -988,7 +1026,7 @@ export function textCommands(): CommandDefinition[] {
       const checking = parsed.flags.has("c") || parsed.flags.has("C");
       if (checking && parsed.operands.length > 1) throw new UsageError(`extra operand '${parsed.operands[1]}' not allowed with -${parsed.flags.has("C") ? "C" : "c"}`);
       for (const mode of parsed.values.get("S") ?? []) {
-        const flag = new Map([["numeric", "n"], ["general-numeric", "g"], ["human-numeric", "h"], ["month", "M"], ["version", "V"]]).get(mode);
+        const flag = Object.hasOwn(SORT_MODE_FLAGS, mode) ? SORT_MODE_FLAGS[mode] : undefined;
         if (flag === undefined) throw new UsageError(`invalid sort argument '${mode}'`);
         parsed.flags.add(flag);
       }
@@ -1011,6 +1049,152 @@ export function textCommands(): CommandDefinition[] {
       const simple = !keys.length && !["b", "f", "h", "n", "g", "M", "V", "d", "i"].some(flag => parsed.flags.has(flag));
       const direction = parsed.flags.has("r") ? -1 : 1;
       const work = new SortWork(context.signal);
+      const numericKey = keys.length === 1 ? keys[0] : undefined;
+      const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
+      const skipTieFallback = simple || parsed.flags.has("s") || parsed.flags.has("u");
+      const recordBudget = new SortRecordBudget();
+      const exitCode: number = 0;
+      const delimiter = parsed.flags.has("z") ? 0 : 10;
+      const outPath = value(parsed, "o");
+      const canFastIndexSort =
+        !checking &&
+        !hasYieldCheckpoint(context.signal) &&
+        !parsed.flags.has("m") &&
+        !parsed.flags.has("u") &&
+        outPath === undefined &&
+        (parsed.operands.length === 0 || (parsed.operands.length === 1 && parsed.operands[0] === "-")) &&
+        SortRecordBudget.prototype.admit === defaultSortAdmit &&
+        Uint8Array === defaultUint8Array &&
+        (simple || (
+          keys.length === 1 &&
+          numericKey !== undefined &&
+          numericKeyFlags.has("n") &&
+          !numericKeyFlags.has("h") &&
+          !["b", "f", "d", "i", "M", "V", "g"].some(flag => numericKeyFlags.has(flag)) &&
+          !["b", "f", "d", "i", "n", "h", "M", "V", "g"].some(flag => parsed.flags.has(flag)) &&
+          numericKey.startCharacter === 1 &&
+          (numericKey.endCharacter === undefined || numericKey.endCharacter === 0)
+        ));
+      let preReadChunks: Uint8Array[] | undefined;
+      if (canFastIndexSort) {
+        let firstChunk: Uint8Array | undefined;
+        let moreChunks: Uint8Array[] | undefined;
+        let totalChunkBytes = 0;
+        try {
+          for await (const ch of input(context, "-")) {
+            if (ch.length === 0) continue;
+            totalChunkBytes += ch.length;
+            if (!firstChunk) firstChunk = ch;
+            else (moreChunks ??= [firstChunk]).push(ch);
+          }
+        } catch (error) {
+          await diagnostic(context, error);
+          return { exitCode: 2 };
+        }
+        if (!firstChunk) return { exitCode: 0 };
+        if (moreChunks && totalChunkBytes <= 65536) {
+          let pos = 0;
+          for (let i = 0; i < moreChunks.length; i++) {
+            const c = moreChunks[i]!;
+            sharedSortInScratch.set(c, pos);
+            pos += c.length;
+          }
+          firstChunk = sharedSortInScratch.subarray(0, totalChunkBytes);
+          moreChunks = undefined;
+        }
+        if (
+          !moreChunks &&
+          firstChunk.length <= 65536 &&
+          firstChunk[firstChunk.length - 1] === delimiter &&
+          recordBudget.canAdmitChunk(firstChunk.length)
+        ) {
+          let start = 0;
+          let count = 0;
+          let validLines = true;
+          while (start < firstChunk.length) {
+            const offset = firstChunk.indexOf(delimiter, start);
+            if (offset < 0 || count >= 4096 || offset - start > bufferLimit) {
+              validLines = false;
+              break;
+            }
+            sharedSortStarts[count] = start;
+            sharedSortEnds[count] = offset;
+            sharedSortIndices[count] = count;
+            if (!simple && numericKey) {
+              const kNum = parseFastCanonicalNumericKey(firstChunk, start, offset, numericKey, separator);
+              if (kNum < 0) {
+                validLines = false;
+                break;
+              }
+              sharedSortKeyNums[count] = kNum;
+            }
+            count++;
+            start = offset + 1;
+          }
+          if (validLines) {
+            for (let i = 0; i < count; i++) {
+              context.signal.throwIfAborted();
+              recordBudget.admit(sharedSortEnds[i]! - sharedSortStarts[i]!);
+            }
+            const revScale = numericKeyFlags?.has("r") ? -1 : 1;
+            let src = sharedSortIndices;
+            let dst = sharedSortScratchIndices;
+            for (let width = 1; width < count; width *= 2) {
+              for (let begin = 0; begin < count; begin += width * 2) {
+                const middle = Math.min(begin + width, count);
+                const end = Math.min(begin + width * 2, count);
+                let left = begin;
+                let right = middle;
+                for (let index = begin; index < end; index++) {
+                  const cp = work.charge(4);
+                  if (cp) await cp;
+                  if (left < middle) {
+                    if (right === end) {
+                      dst[index] = src[left++]!;
+                      continue;
+                    }
+                    const a = src[left]!;
+                    const b = src[right]!;
+                    let order = 0;
+                    if (simple) {
+                      order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
+                    } else {
+                      const diff = sharedSortKeyNums[a]! - sharedSortKeyNums[b]!;
+                      order = diff === 0 ? 0 : (diff < 0 ? -revScale : revScale);
+                      if (order === 0 && !skipTieFallback) {
+                        order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
+                      }
+                    }
+                    if (order <= 0) {
+                      dst[index] = src[left++]!;
+                      continue;
+                    }
+                  }
+                  dst[index] = src[right++]!;
+                }
+              }
+              const tmp = src;
+              src = dst;
+              dst = tmp;
+            }
+            const outBuf = sharedSortOutScratch.subarray(0, firstChunk.length);
+            let used = 0;
+            for (let i = 0; i < count; i++) {
+              const idx = src[i]!;
+              const s = sharedSortStarts[idx]!;
+              const e = sharedSortEnds[idx]!;
+              for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
+              outBuf[used++] = delimiter;
+            }
+            await output(context, outBuf);
+            return { exitCode: 0 };
+          }
+          if (firstChunk.buffer === sharedSortInScratch.buffer) {
+            firstChunk = new Uint8Array(firstChunk);
+          }
+        }
+        preReadChunks = moreChunks ?? [firstChunk];
+      }
       let compareNumeric = async (left: Uint8Array, right: Uint8Array, human: boolean) => compareNumericValues(await parseNumeric(left, work, human), await parseNumeric(right, work, human), work);
       const isUnkeyedNumericFast = !keys.length && (parsed.flags.has("n") || parsed.flags.has("h")) && !["b", "f", "c", "d", "i"].some(flag => parsed.flags.has(flag));
       const numericValues = isUnkeyedNumericFast ? new Map<Uint8Array, NumericValue>() : undefined;
@@ -1105,8 +1289,6 @@ export function textCommands(): CommandDefinition[] {
         }
         return keyCompareGeneralAsync(left, right, checkpoint);
       };
-      const numericKey = keys.length === 1 ? keys[0] : undefined;
-      const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
       const isSingleLexKeyFast = numericKey !== undefined && !["g", "h", "M", "n", "V", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c");
       if (isSingleLexKeyFast) {
         const lexRev = numericKeyFlags.has("r") ? -1 : 1;
@@ -1228,7 +1410,6 @@ export function textCommands(): CommandDefinition[] {
           return keyCompareNumericAsync(left, right, checkpoint, leftPending, rightPending);
         };
       }
-      const skipTieFallback = simple || parsed.flags.has("s") || parsed.flags.has("u");
       const compareSlowAsync = async (resultPromise: Promise<number>, left: Uint8Array, right: Uint8Array): Promise<number> => {
         const resolved = await resultPromise;
         if (resolved !== 0 || skipTieFallback) return resolved;
@@ -1245,134 +1426,6 @@ export function textCommands(): CommandDefinition[] {
       };
       const records: Uint8Array[] = [];
       const runs: Uint8Array[][] = [];
-      const recordBudget = new SortRecordBudget();
-      const exitCode: number = 0;
-      const delimiter = parsed.flags.has("z") ? 0 : 10;
-      const outPath = value(parsed, "o");
-      const canFastIndexSort =
-        !checking &&
-        !hasYieldCheckpoint(context.signal) &&
-        !parsed.flags.has("m") &&
-        !parsed.flags.has("u") &&
-        outPath === undefined &&
-        (parsed.operands.length === 0 || (parsed.operands.length === 1 && parsed.operands[0] === "-")) &&
-        SortRecordBudget.prototype.admit === defaultSortAdmit &&
-        Uint8Array === defaultUint8Array &&
-        (simple || (
-          keys.length === 1 &&
-          numericKey !== undefined &&
-          numericKeyFlags.has("n") &&
-          !numericKeyFlags.has("h") &&
-          !["b", "f", "d", "i", "M", "V", "g"].some(flag => numericKeyFlags.has(flag)) &&
-          !["b", "f", "d", "i", "n", "h", "M", "V", "g"].some(flag => parsed.flags.has(flag)) &&
-          numericKey.startCharacter === 1 &&
-          (numericKey.endCharacter === undefined || numericKey.endCharacter === 0)
-        ));
-      let preReadChunks: Uint8Array[] | undefined;
-      if (canFastIndexSort) {
-        let firstChunk: Uint8Array | undefined;
-        let moreChunks: Uint8Array[] | undefined;
-        try {
-          for await (const ch of input(context, "-")) {
-            if (ch.length === 0) continue;
-            if (!firstChunk) firstChunk = ch;
-            else (moreChunks ??= [firstChunk]).push(ch);
-          }
-        } catch (error) {
-          await diagnostic(context, error);
-          return { exitCode: 2 };
-        }
-        if (!firstChunk) return { exitCode: 0 };
-        if (
-          !moreChunks &&
-          firstChunk.length <= 65536 &&
-          firstChunk[firstChunk.length - 1] === delimiter &&
-          recordBudget.canAdmitChunk(firstChunk.length)
-        ) {
-          let start = 0;
-          let count = 0;
-          let validLines = true;
-          while (start < firstChunk.length) {
-            const offset = firstChunk.indexOf(delimiter, start);
-            if (offset < 0 || count >= 4096 || offset - start > bufferLimit) {
-              validLines = false;
-              break;
-            }
-            sharedSortStarts[count] = start;
-            sharedSortEnds[count] = offset;
-            sharedSortIndices[count] = count;
-            if (!simple && numericKey) {
-              const kNum = parseFastCanonicalNumericKey(firstChunk, start, offset, numericKey, separator);
-              if (kNum < 0) {
-                validLines = false;
-                break;
-              }
-              sharedSortKeyNums[count] = kNum;
-            }
-            count++;
-            start = offset + 1;
-          }
-          if (validLines) {
-            for (let i = 0; i < count; i++) {
-              context.signal.throwIfAborted();
-              recordBudget.admit(sharedSortEnds[i]! - sharedSortStarts[i]!);
-            }
-            const revScale = numericKeyFlags?.has("r") ? -1 : 1;
-            let src = sharedSortIndices;
-            let dst = sharedSortScratchIndices;
-            for (let width = 1; width < count; width *= 2) {
-              for (let begin = 0; begin < count; begin += width * 2) {
-                const middle = Math.min(begin + width, count);
-                const end = Math.min(begin + width * 2, count);
-                let left = begin;
-                let right = middle;
-                for (let index = begin; index < end; index++) {
-                  const cp = work.charge(4);
-                  if (cp) await cp;
-                  if (left < middle) {
-                    if (right === end) {
-                      dst[index] = src[left++]!;
-                      continue;
-                    }
-                    const a = src[left]!;
-                    const b = src[right]!;
-                    let order = 0;
-                    if (simple) {
-                      order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
-                    } else {
-                      const diff = sharedSortKeyNums[a]! - sharedSortKeyNums[b]!;
-                      order = diff === 0 ? 0 : (diff < 0 ? -revScale : revScale);
-                      if (order === 0 && !skipTieFallback) {
-                        order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
-                      }
-                    }
-                    if (order <= 0) {
-                      dst[index] = src[left++]!;
-                      continue;
-                    }
-                  }
-                  dst[index] = src[right++]!;
-                }
-              }
-              const tmp = src;
-              src = dst;
-              dst = tmp;
-            }
-            const outBuf = new Uint8Array(firstChunk.length);
-            let used = 0;
-            for (let i = 0; i < count; i++) {
-              const idx = src[i]!;
-              const s = sharedSortStarts[idx]!;
-              const e = sharedSortEnds[idx]!;
-              for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
-              outBuf[used++] = delimiter;
-            }
-            await output(context, outBuf);
-            return { exitCode: 0 };
-          }
-        }
-        preReadChunks = moreChunks ?? [firstChunk];
-      }
       const checkRecordAsync = async (bytes: Uint8Array): Promise<boolean> => {
         if (records.length && (await compare(records.at(-1)!, bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, bytes) === 0)) {
           if (!parsed.flags.has("C")) await diagnostic(context, new PublicDiagnostic(`disorder at record ${records.length + 1}`));

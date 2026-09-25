@@ -25,7 +25,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { scopeFileSystem, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
-import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, isSafeSmiProgram, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -1873,7 +1873,7 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
     try { this.#detach?.(); } catch (error) { this.#failures.push(error); }
     this.#detach = undefined;
     const result = this.#boundary.close();
-    this.#failures.push(...result.failures);
+    if (result.failures.length > 0) this.#failures.push(...result.failures);
   }
 }
 
@@ -2378,6 +2378,8 @@ export class Runtime {
   }
   #syncArithRawVars: Record<string, string | undefined> | undefined;
   #syncArithLine: number | undefined;
+  #syncArithRawWriteOnly = false;
+  #syncArithTouched: Set<string> | undefined;
   #syncArithRefs: ArithmeticReferences | undefined;
   private get syncArithRefs(): ArithmeticReferences {
     return this.#syncArithRefs ??= {
@@ -2401,6 +2403,11 @@ export class Runtime {
       },
       write: (reference, value) => {
         const st = this.#syncArithState!;
+        if (this.#syncArithRawWriteOnly) {
+          st.variables[reference] = value;
+          this.#syncArithTouched?.add(reference);
+          return;
+        }
         if (arrayStore(st)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
         const raw = stateMonitor(st)?.raw ?? st;
         if (raw.readonlyVariables?.has(reference)) throw new PublicDiagnostic(`${reference}: readonly variable`);
@@ -3645,14 +3652,43 @@ export class Runtime {
     }
   }
 
-  async runUnit(script: Script, state: State, io: IO): Promise<{ exitCode: number; terminated: boolean }> {
+  runUnit(script: Script, state: State, io: IO): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     if (state.noexec) return { exitCode: 0, terminated: false };
     state = trackState(state, this.budget, io[invocationScope]);
-    try {
-      if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
-      return { exitCode: await this.inputUnit(script, state, io), terminated: false };
+    if (this.tryStartExtensionsSync(state)) {
+      if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
+      try {
+        const syncResult = this.trySyncScript(script, state, io, Boolean(io.execution?.ignoreErrexit));
+        if (typeof syncResult === "number") {
+          return { exitCode: syncResult, terminated: false };
+        }
+        return this.runUnitFrom(script, state, io, syncResult.listIndex, syncResult.pipelineIndex, false);
+      } catch (error) {
+        if (error instanceof Flow && error.kind === "discard") {
+          this.signal.throwIfAborted();
+          throwCleanupFailures(io[invocationScope].failures);
+          state.status = error.status;
+          return { exitCode: error.status, terminated: false };
+        }
+        if (error instanceof NounsetDiagnosticFailure) {
+          if (state.isolated) throw error;
+          throw error.reason;
+        }
+        if (error instanceof Flow && error.kind === "exit") {
+          if (this.tryFinishShellSync(state)) return { exitCode: error.status, terminated: true };
+          return this.finishShell(state, io, error.status).then(exitCode => ({ exitCode, terminated: true }));
+        }
+        throw error;
+      }
     }
-    catch (error) {
+    return this.runUnitFrom(script, state, io, 0, 0, true);
+  }
+
+  private async runUnitFrom(script: Script, state: State, io: IO, startListIndex: number, startPipelineIndex: number, needStartExtensions: boolean): Promise<{ exitCode: number; terminated: boolean }> {
+    try {
+      if (needStartExtensions) await this.startExtensions(state, io);
+      return { exitCode: await this.inputUnit(script, state, io, startListIndex, startPipelineIndex, !needStartExtensions), terminated: false };
+    } catch (error) {
       if (error instanceof NounsetDiagnosticFailure) {
         if (state.isolated) throw error;
         throw error.reason;
@@ -3662,8 +3698,8 @@ export class Runtime {
     }
   }
 
-  private async inputUnit(script: Script, state: State, io: IO): Promise<number> {
-    try { return await this.script(script, state, io); }
+  private async inputUnit(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {
+    try { return await this.script(script, state, io, startListIndex, startPipelineIndex, skipFirstSync); }
     catch (error) {
       if (!(error instanceof Flow) || error.kind !== "discard") throw error;
       this.signal.throwIfAborted();
@@ -3677,7 +3713,12 @@ export class Runtime {
     if (this.middleware.length > 0) return undefined;
     if (pipeline.commands.length !== 1) return undefined;
     const command = pipeline.commands[0]!;
-    if ((command.kind !== "simple" && command.kind !== "arithmetic") || command.redirects.length > 1) return undefined;
+    if (
+      (command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "arithmetic-for" && command.kind !== "for") ||
+      command.redirects.length > 1
+    ) {
+      return undefined;
+    }
     const scope = io[invocationScope];
     if (scope.failures.length > 0) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
@@ -3690,11 +3731,7 @@ export class Runtime {
     }
     this.signal.throwIfAborted();
     scope.assertOpen();
-    io.descriptors ??= new Map<number, Descriptor>([
-      [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
-      [1, { output: io.stdout }], [2, { output: io.stderr }],
-    ]);
-    if (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed) return undefined;
+    if (io.descriptors && (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) return undefined;
     if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
     const store = monitor.store;
     const existing = store?.get("PIPESTATUS");
@@ -3750,6 +3787,9 @@ export class Runtime {
       monitor.epoch = restEpoch;
       if (store) store.epoch = restEpoch;
       return finalStatus;
+    }
+    if (command.kind === "arithmetic-for" || command.kind === "for") {
+      return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
     }
     if (command.redirects.length === 1) {
       if (!canMutatePipeStatus && elem0!.text.shellValue !== "0") return undefined;
@@ -3959,6 +3999,100 @@ export class Runtime {
       if (store) store.epoch = restEpoch;
       return finalStatus;
     }
+    if (command.words.length >= 1) {
+      const w0Plain = command.words[0]!.plain;
+      if (
+        (w0Plain === "echo" || w0Plain === "printf") &&
+        !rawState.functions.has(w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain) &&
+        (!io.descriptors || io.descriptors.get(1)?.output === io.stdout)
+      ) {
+        const syncOut = syncSinks.get(io.stdout);
+        const def = syncOut ? this.commands.get(w0Plain) : undefined;
+        if (
+          syncOut &&
+          def &&
+          (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) &&
+          command.words.length <= this.budget.limits.maxExpansionFields &&
+          command.words.every(w => this.isPureArgWord(w, rawState)) &&
+          (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
+          (!pipeline.negate || ignored || !rawState.errexit)
+        ) {
+          let formatted: string | undefined;
+          let lastArg = w0Plain;
+          try {
+            if (w0Plain === "echo" && command.words.length === 1) {
+              formatted = "\n";
+            } else if (w0Plain === "echo" && command.words.length === 2) {
+              const arg0 = this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+              if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
+                formatted = `${arg0}\n`;
+                lastArg = arg0;
+              }
+            } else {
+              fastSubScratchArgs.length = 0;
+              let allStrings = true;
+              for (let i = 1; i < command.words.length; i++) {
+                const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
+                if (typeof v !== "string") {
+                  allStrings = false;
+                  break;
+                }
+                fastSubScratchArgs.push(v);
+              }
+              if (allStrings) {
+                if (fastSubScratchArgs.length > 0) lastArg = fastSubScratchArgs[fastSubScratchArgs.length - 1]!;
+                if (w0Plain === "printf") {
+                  formatted = tryFastPrintf(fastSubScratchArgs);
+                } else if (!fastSubScratchArgs[0]?.startsWith("-")) {
+                  const joined = `${fastSubScratchArgs.join(" ")}\n`;
+                  if (!joined.includes("\0")) formatted = joined;
+                }
+              }
+              fastSubScratchArgs.length = 0;
+            }
+          } catch {
+            fastSubScratchArgs.length = 0;
+            return undefined;
+          }
+          if (formatted !== undefined) {
+            const encoded =
+              formatted.length * 3 <= fastRedirectScratchBytes.byteLength
+                ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
+                : Buffer.from(formatted, "utf8");
+            const byteLength = encoded.byteLength;
+            if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+              if (rawState.extensions && !rawState.extensions.eventDepth) {
+                publishCommandSpelling(rawState, commandSpelling(command));
+              }
+              const owner = monitor.internalOwner();
+              const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+              this.budget.tick();
+              if (budgetedSinks.get(io.stdout)?.budget !== this.budget) {
+                this.budget.bytes += byteLength;
+              }
+              syncOut(encoded);
+              rawState.substitutionStatus = 0;
+              if (rawState.variables._ !== undefined) delete rawState.variables._;
+              rawState.lastArgument = lastArg;
+              if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+              if (!existing) {
+                monitor.lazyPipeStatus = singleStatusZero;
+                owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+              } else {
+                elem0!.text.shellValue = "0";
+                store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+              }
+              const finalStatus = pipeline.negate ? 1 : 0;
+              rawState.status = finalStatus;
+              monitor.epoch = restEpoch;
+              if (store) store.epoch = restEpoch;
+              return finalStatus;
+            }
+          }
+        }
+      }
+    }
     if (command.words.length >= 2) {
       const w0Plain = command.words[0]!.plain;
       if (
@@ -4035,7 +4169,298 @@ export class Runtime {
     return script.lists.length ? state.status : 0;
   }
 
-  async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0): Promise<number> {
+  private isPureSyncValueWord(word: Word, rawState: State): boolean {
+    if (word.parts.length === 0) return false;
+    for (let i = 0; i < word.parts.length; i++) {
+      const part = word.parts[i]!;
+      if (part.kind === "text") {
+        if (part.byteValue || invokedValues.has(part)) return false;
+        continue;
+      }
+      if (part.kind === "variable") {
+        if (
+          part.indirect ||
+          part.prefixNames ||
+          part.specialParameter ||
+          part.length ||
+          part.substring ||
+          part.transform ||
+          part.operator !== undefined ||
+          part.name === "@" ||
+          part.name === "*" ||
+          part.name === "PIPESTATUS" ||
+          part.name === "LINENO" ||
+          part.name === "_" ||
+          part.name === "FUNCNAME" ||
+          getArraySelector(part) !== undefined ||
+          !isShellIdentifier(part.name)
+        ) {
+          return false;
+        }
+        continue;
+      }
+      if (part.kind === "arithmetic") {
+        if (part.expression.error || part.expression.hasSubscript || !isSafeSmiProgram(part.expression)) return false;
+        continue;
+      }
+      if (part.kind === "substitution") {
+        if (part.script.lists.length !== 1) return false;
+        const list = part.script.lists[0]!;
+        if (list.terminator || list.pipelines.length !== 1) return false;
+        const p = list.pipelines[0]!;
+        if (p.negate || p.commands.length !== 1) return false;
+        const cmd = p.commands[0]!;
+        if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return false;
+        const w0Plain = cmd.words[0]!.plain;
+        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo") || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
+        const def = this.commands.get(w0Plain);
+        if (!def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute))) return false;
+        if (!cmd.words.every(w => this.isPureSyncValueWord(w, rawState))) return false;
+        continue;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  private canSyncLoopBody(script: Script, rawState: State): boolean {
+    if (script.lists.length === 0) return false;
+    const store = stateMonitor(rawState)?.store;
+    for (let l = 0; l < script.lists.length; l++) {
+      const list = script.lists[l]!;
+      if (list.terminator) return false;
+      for (let p = 0; p < list.pipelines.length; p++) {
+        const pipeline = list.pipelines[p]!;
+        if (pipeline.negate || pipeline.commands.length !== 1) return false;
+        const cmd = pipeline.commands[0]!;
+        if (cmd.kind !== "simple" || cmd.redirects.length !== 0 || cmd.words.length !== 1) return false;
+        const w0 = cmd.words[0]!;
+        const w0Plain = w0.plain;
+        if ((w0Plain === ":" || w0Plain === "true") && !rawState.functions.has(w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
+          continue;
+        }
+        const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
+        if (
+          !assignment ||
+          assignment.append ||
+          assignment.name === "OPTIND" ||
+          assignment.name === "PIPESTATUS" ||
+          assignment.name.includes("[") ||
+          rawState.readonlyVariables?.has(assignment.name) ||
+          store?.get(assignment.name) ||
+          !this.isPureSyncValueWord(assignment.value, rawState)
+        ) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  private trySyncLoop(
+    command: Extract<Command, { kind: "arithmetic-for" | "for" }>,
+    pipeline: Pipeline,
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    store: ReturnType<typeof arrayStore>,
+    existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>,
+    elem0: { text: { shellValue: ShellValue } } | undefined,
+    canMutatePipeStatus: boolean,
+    io: IO,
+    diagnosticLine: number,
+  ): number | undefined {
+    if (
+      command.redirects.length !== 0 ||
+      pipeline.negate ||
+      !canMutatePipeStatus ||
+      rawState.errexit ||
+      rawState.nounset ||
+      rawState.readonlyVariables?.size ||
+      rawState.extensions?.checkpoints.length ||
+      hasYieldCheckpoint(this.signal) ||
+      !this.canSyncLoopBody(command.body, rawState)
+    ) {
+      return undefined;
+    }
+    const bodyAssignments: { readonly cmd: Extract<Command, { kind: "simple" }>; readonly name: string | undefined; readonly value: Word | undefined; readonly line: number }[] = [];
+    for (let l = 0; l < command.body.lists.length; l++) {
+      const list = command.body.lists[l]!;
+      for (let p = 0; p < list.pipelines.length; p++) {
+        const cmd = list.pipelines[p]!.commands[0] as Extract<Command, { kind: "simple" }>;
+        const w0 = cmd.words[0]!;
+        const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
+        const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
+        bodyAssignments.push({ cmd, name: assignment?.name, value: assignment?.value, line });
+      }
+    }
+    const touched = new Set<string>();
+    let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
+    let lastArg = "";
+    if (command.kind === "arithmetic-for") {
+      const e0 = command.expressions[0];
+      const e1 = command.expressions[1];
+      const e2 = command.expressions[2];
+      if (
+        !e0 || !e1 || !e2 ||
+        e0.error || e0.hasSubscript || !isSafeSmiProgram(e0) ||
+        e1.error || e1.hasSubscript || !isSafeSmiProgram(e1) ||
+        e2.error || e2.hasSubscript || !isSafeSmiProgram(e2) ||
+        e1.tree?.kind !== "binary" ||
+        (e1.tree.operator !== "<" && e1.tree.operator !== "<=") ||
+        e1.tree.right.kind !== "literal" ||
+        e1.tree.right.value < 0n ||
+        e1.tree.right.value > 1500n ||
+        (this.budget.commands + 1600) >= this.budget.limits.maxCommands ||
+        (this.budget.iterations + 1600) >= this.budget.limits.maxLoopIterations
+      ) {
+        return undefined;
+      }
+      const owner = monitor.internalOwner();
+      owner.charge(syncRestorationCharge, syncRestorationTickets);
+      this.budget.tick();
+      rawState.loopDepth++;
+      const prevRawWrite = this.#syncArithRawWriteOnly;
+      const prevTouched = this.#syncArithTouched;
+      this.#syncArithRawWriteOnly = true;
+      this.#syncArithTouched = touched;
+      try {
+        this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
+        let loopTurn = 0;
+        while (true) {
+          this.budget.loop();
+          if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
+          if (!this.syncShellArithmeticNonZero(e1, rawState, diagnosticLine)) break;
+          for (let b = 0; b < bodyAssignments.length; b++) {
+            const step = bodyAssignments[b]!;
+            lastCmd = step.cmd;
+            this.budget.tick();
+            if (step.name !== undefined && step.value !== undefined) {
+              const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+              rawState.variables[step.name] = val;
+              touched.add(step.name);
+              lastArg = "";
+            } else {
+              lastArg = step.cmd.words[0]!.plain!;
+            }
+          }
+          this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
+        }
+      } finally {
+        this.#syncArithRawWriteOnly = prevRawWrite;
+        this.#syncArithTouched = prevTouched;
+        rawState.loopDepth--;
+        for (const varName of touched) {
+          const finalVal = rawState.variables[varName];
+          if (finalVal !== undefined) {
+            monitor.publishStringVariable(varName, finalVal);
+            if (rawState.allexport) monitor.proxy.exported.add(varName);
+          }
+        }
+        if (lastCmd) {
+          if (rawState.extensions && !rawState.extensions.eventDepth) {
+            publishCommandSpelling(rawState, commandSpelling(lastCmd));
+          }
+          rawState.substitutionStatus = 0;
+          if (rawState.variables._ !== undefined && !touched.has("_")) delete rawState.variables._;
+          rawState.lastArgument = lastArg;
+          if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+          if (!existing) {
+            monitor.lazyPipeStatus = singleStatusZero;
+            owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+          } else {
+            elem0!.text.shellValue = "0";
+            store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+          }
+        }
+      }
+      rawState.status = 0;
+      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+      monitor.epoch = restEpoch;
+      if (store) store.epoch = restEpoch;
+      return 0;
+    }
+    if (
+      !isShellIdentifier(command.name) ||
+      command.name === "OPTIND" ||
+      command.name.includes("[") ||
+      store?.get(command.name) ||
+      command.words?.length !== 1 ||
+      rawState.braceexpand === false
+    ) {
+      return undefined;
+    }
+    const fastLoopWords = tryFastExpandBraceRange(
+      command.words[0]!,
+      this.budget,
+      io[valueScope] ? (b, o) => io[valueScope]!.reserve(b, o) : undefined,
+    );
+    if (
+      !fastLoopWords ||
+      fastLoopWords.length > 1500 ||
+      (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands ||
+      (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations
+    ) {
+      return undefined;
+    }
+    const owner = monitor.internalOwner();
+    owner.charge(syncRestorationCharge, syncRestorationTickets);
+    this.budget.tick();
+    rawState.loopDepth++;
+    touched.add(command.name);
+    try {
+      let loopTurn = 0;
+      for (let idx = 0; idx < fastLoopWords.length; idx++) {
+        this.budget.loop();
+        if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
+        rawState.variables[command.name] = fastLoopWords[idx]!;
+        for (let b = 0; b < bodyAssignments.length; b++) {
+          const step = bodyAssignments[b]!;
+          lastCmd = step.cmd;
+          this.budget.tick();
+          if (step.name !== undefined && step.value !== undefined) {
+            const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+            rawState.variables[step.name] = val;
+            touched.add(step.name);
+            lastArg = "";
+          } else {
+            lastArg = step.cmd.words[0]!.plain!;
+          }
+        }
+      }
+    } finally {
+      rawState.loopDepth--;
+      for (const varName of touched) {
+        const finalVal = rawState.variables[varName];
+        if (finalVal !== undefined) {
+          monitor.publishStringVariable(varName, finalVal);
+          if (rawState.allexport) monitor.proxy.exported.add(varName);
+        }
+      }
+      if (lastCmd) {
+        if (rawState.extensions && !rawState.extensions.eventDepth) {
+          publishCommandSpelling(rawState, commandSpelling(lastCmd));
+        }
+        rawState.substitutionStatus = 0;
+        if (rawState.variables._ !== undefined && !touched.has("_")) delete rawState.variables._;
+        rawState.lastArgument = lastArg;
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        if (!existing) {
+          monitor.lazyPipeStatus = singleStatusZero;
+          owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+        } else {
+          elem0!.text.shellValue = "0";
+          store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
+      }
+    }
+    rawState.status = 0;
+    const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+    monitor.epoch = restEpoch;
+    if (store) store.epoch = restEpoch;
+    return 0;
+  }
+
+  async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {
     if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
     for (let listIndex = startListIndex; listIndex < script.lists.length; listIndex++) {
       const list = script.lists[listIndex]!;
@@ -4072,7 +4497,9 @@ export class Runtime {
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
         const pipeline = list.pipelines[index]!;
         const ignored = io.execution?.ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
-        const syncStatus = this.trySyncPipeline(pipeline, state, io, Boolean(ignored));
+        const syncStatus = (skipFirstSync && listIndex === startListIndex && index === startPipelineIndex)
+          ? undefined
+          : this.trySyncPipeline(pipeline, state, io, Boolean(ignored));
         if (syncStatus !== undefined) continue;
         const completion = stateMonitor(state)?.restoration();
         try {

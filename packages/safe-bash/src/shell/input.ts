@@ -2,7 +2,7 @@ import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, CommandInput, FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, InvocationCleanup } from "../contracts/index.js";
 import { hasRegisteredYieldCheckpoint } from "../contracts/yield.js";
 import { monotonicNow, yieldTurn } from "../contracts/yield.js";
-import { addAbortSignalWaiter, interruptible } from "../fs/creation-mask.js";
+import { addAbortSignalWaiter, interruptible, removeAbortSignalWaiter } from "../fs/creation-mask.js";
 import type { Budget } from "./runtime.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
@@ -78,12 +78,11 @@ export function prepareBytesInput(value: string | Uint8Array, budget: Budget): P
   let sent = false;
   let closed = false;
   let closing: Promise<void> | undefined;
-  let waiters: Set<(reason: unknown) => void> | undefined;
   const close = (): Promise<void> => {
     closed = true;
     buffer?.release();
     buffer = undefined;
-    waiters?.delete(aborted);
+    removeAbortSignalWaiter(budget.signal, aborted);
     return closing ??= resolvedVoid;
   };
   const aborted = (): void => { void close(); };
@@ -91,7 +90,7 @@ export function prepareBytesInput(value: string | Uint8Array, budget: Budget): P
     if (length) {
       buffer = new InputBufferLease(budget, length, () => typeof value === "string" ? new TextEncoder().encode(value) : new Uint8Array(value));
     }
-    waiters = addAbortSignalWaiter(budget.signal, aborted);
+    addAbortSignalWaiter(budget.signal, aborted);
     const source: AsyncIterableIterator<Uint8Array> & {
       tryNextSync(): IteratorResult<Uint8Array> | undefined;
       syncReturn(): void;
@@ -149,7 +148,6 @@ export async function prepareFileInput(
   const acquisition = new Promise<void>(resolve => { admitted = resolve; });
   let closing: Promise<void> | undefined;
   let teardownFailed = false;
-  let abortWaiters: Set<(reason: unknown) => void> | undefined;
   const close = (): Promise<void> => {
     accepting = false;
     if (pendingReads && !readerController.signal.aborted) readerController.abort(new FsError("EBADF", { syscall: "read", path }));
@@ -169,7 +167,7 @@ export async function prepareFileInput(
         legacySource = undefined;
         buffer?.release();
         buffer = undefined;
-        abortWaiters?.delete(aborted);
+        removeAbortSignalWaiter(signal, aborted);
       }
       signal.throwIfAborted();
     })();
@@ -189,7 +187,7 @@ export async function prepareFileInput(
         throw error;
       }
     });
-    abortWaiters = addAbortSignalWaiter(signal, aborted);
+    addAbortSignalWaiter(signal, aborted);
     check();
     const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
     check();
@@ -835,18 +833,18 @@ class InputCursor {
       const onCancel = (reason: unknown): void => {
         if (settled) return;
         settled = true;
-        waiters.delete(onCancel);
+        removeAbortSignalWaiter(signal, onCancel);
         view._removeCloseWaiter(onCancel);
         finishConsumer();
         reject(reason);
       };
-      const waiters = addAbortSignalWaiter(signal, onCancel);
+      addAbortSignalWaiter(signal, onCancel);
       view._addCloseWaiter(onCancel);
       readPromise.then(
         result => {
           if (settled) return;
           settled = true;
-          waiters.delete(onCancel);
+          removeAbortSignalWaiter(signal, onCancel);
           view._removeCloseWaiter(onCancel);
           if (signal.aborted) { finishConsumer(); reject(signal.reason); return; }
           if (view._isViewClosed()) { finishConsumer(); reject(shellInputViewClosedError); return; }
@@ -866,7 +864,7 @@ class InputCursor {
         error => {
           if (settled) return;
           settled = true;
-          waiters.delete(onCancel);
+          removeAbortSignalWaiter(signal, onCancel);
           view._removeCloseWaiter(onCancel);
           if (!signal.aborted) { this.#read = undefined; this.#readFailed = true; this.#closed = true; }
           finishConsumer();

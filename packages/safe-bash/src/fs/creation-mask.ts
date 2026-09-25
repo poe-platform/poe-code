@@ -29,27 +29,31 @@ export interface ManagedControlController {
   abort(reason?: unknown): void;
 }
 
-class ManagedControlSignalImpl {
+type AbortSignalWaiter = (reason: unknown) => void;
+type AbortSignalWaiterStore = AbortSignalWaiter | Set<AbortSignalWaiter> | undefined;
+
+class ManagedControlSignalImpl implements ManagedControlController {
   readonly [managedSignalSymbol] = true;
   readonly [managedControlSignalSymbol] = true;
+  [managedWaitersSymbol]: AbortSignalWaiterStore = undefined;
   aborted = false;
   reason: unknown = undefined;
+  get signal(): AbortSignal {
+    return this as unknown as AbortSignal;
+  }
+  abort(reason?: unknown): void {
+    if (this.aborted) return;
+    this.aborted = true;
+    this.reason = reason !== undefined ? reason : new DOMException("This operation was aborted", "AbortError");
+    notifyAbortSignalWaiters(this as unknown as AbortSignal, this.reason);
+  }
   throwIfAborted(): void {
     if (this.aborted) throw this.reason;
   }
 }
 
 export function createManagedControlController(): ManagedControlController {
-  const signal = new ManagedControlSignalImpl();
-  return {
-    signal: signal as unknown as AbortSignal,
-    abort(reason?: unknown): void {
-      if (signal.aborted) return;
-      signal.aborted = true;
-      signal.reason = reason !== undefined ? reason : new DOMException("This operation was aborted", "AbortError");
-      notifyAbortSignalWaiters(signal as unknown as AbortSignal, signal.reason);
-    },
-  };
+  return new ManagedControlSignalImpl();
 }
 
 export function isManagedControlSignal(value: unknown): value is AbortSignal {
@@ -57,7 +61,9 @@ export function isManagedControlSignal(value: unknown): value is AbortSignal {
 }
 
 export function registerManagedAbortSignal(signal: AbortSignal): AbortSignal {
-  (signal as unknown as Record<symbol, unknown>)[managedSignalSymbol] = true;
+  const record = signal as unknown as Record<symbol, unknown>;
+  record[managedSignalSymbol] = true;
+  record[managedWaitersSymbol] = undefined;
   return signal;
 }
 
@@ -66,10 +72,17 @@ export function isManagedAbortSignal(signal: AbortSignal): boolean {
 }
 
 export function notifyAbortSignalWaiters(signal: AbortSignal, reason: unknown): void {
-  const symSet = (signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
-  if (symSet && symSet.size > 0) {
-    const pending = [...symSet];
-    symSet.clear();
+  const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
+  const current = record[managedWaitersSymbol];
+  if (!current) return;
+  if (typeof current === "function") {
+    record[managedWaitersSymbol] = undefined;
+    current(reason);
+    return;
+  }
+  if (current.size > 0) {
+    const pending = [...current];
+    current.clear();
     for (let i = 0; i < pending.length; i++) pending[i]!(reason);
   }
 }
@@ -84,31 +97,53 @@ export function abortManagedController(controller: { readonly signal: AbortSigna
   notifyAbortSignalWaiters(signal, signal.reason);
 }
 
-export function addAbortSignalWaiter(signal: AbortSignal, waiter: (reason: unknown) => void): Set<(reason: unknown) => void> {
-  let waiters = (signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
-  if (!waiters) {
-    waiters = new Set();
-    (signal as unknown as Record<symbol, Set<(reason: unknown) => void>>)[managedWaitersSymbol] = waiters;
-    if (!(signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      const set = waiters;
-      signal.addEventListener("abort", () => {
-        const reason = signal.reason;
-        const pending = [...set];
-        set.clear();
-        for (let i = 0; i < pending.length; i++) pending[i]!(reason);
-      }, { once: true });
+export function addAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignalWaiter): void {
+  const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
+  const current = record[managedWaitersSymbol];
+  if (!current) {
+    if (record[managedSignalSymbol]) {
+      record[managedWaitersSymbol] = waiter;
+      return;
     }
+    const set = new Set<AbortSignalWaiter>();
+    set.add(waiter);
+    record[managedWaitersSymbol] = set;
+    signal.addEventListener("abort", () => {
+      const reason = signal.reason;
+      const pending = [...set];
+      set.clear();
+      for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+    }, { once: true });
+    return;
   }
-  waiters.add(waiter);
-  return waiters;
+  if (typeof current === "function") {
+    if (current === waiter) return;
+    const set = new Set<AbortSignalWaiter>();
+    set.add(current);
+    set.add(waiter);
+    record[managedWaitersSymbol] = set;
+    return;
+  }
+  current.add(waiter);
+}
+
+export function removeAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignalWaiter): void {
+  const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
+  const current = record[managedWaitersSymbol];
+  if (!current) return;
+  if (typeof current === "function") {
+    if (current === waiter) record[managedWaitersSymbol] = undefined;
+    return;
+  }
+  current.delete(waiter);
 }
 
 function interruptibleSlow<Value>(promise: Promise<Value>, signal: AbortSignal): Promise<Value> {
   return new Promise<Value>((resolve, reject) => {
-    const waiters = addAbortSignalWaiter(signal, reject);
+    addAbortSignalWaiter(signal, reject);
     promise.then(
-      value => { waiters.delete(reject); resolve(value); },
-      error => { waiters.delete(reject); reject(error); },
+      value => { removeAbortSignalWaiter(signal, reject); resolve(value); },
+      error => { removeAbortSignalWaiter(signal, reject); reject(error); },
     );
   });
 }

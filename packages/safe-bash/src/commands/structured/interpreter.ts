@@ -115,6 +115,29 @@ export class Interpreter {
           if (right === NOT_SINGLE) return NOT_SINGLE;
           return truth(right);
         }
+        if (op === "==" || op === "!=") {
+          const rightVal = this.tryEvalSingle(ast.right, input, depth + 1);
+          if (rightVal === NOT_SINGLE) return NOT_SINGLE;
+          const leftVal = this.tryEvalSingle(ast.left, input, depth + 1);
+          if (leftVal === NOT_SINGLE) return NOT_SINGLE;
+          if (
+            typeof rightVal === "boolean" ||
+            typeof rightVal === "string" ||
+            rightVal === null ||
+            typeof leftVal === "boolean" ||
+            typeof leftVal === "string" ||
+            leftVal === null
+          ) {
+            this.budget.step();
+            return op === "==" ? leftVal === rightVal : leftVal !== rightVal;
+          }
+          const right = exactFiniteNumber(rightVal);
+          if (right === undefined) return NOT_SINGLE;
+          const left = exactFiniteNumber(leftVal);
+          if (left === undefined) return NOT_SINGLE;
+          this.budget.step();
+          return op === "==" ? left === right : left !== right;
+        }
         if (op === "+" || op === "-" || op === "*" || op === "==" || op === "!=" || op === "<" || op === "<=" || op === ">" || op === ">=") {
           const rightVal = this.tryEvalSingle(ast.right, input, depth + 1);
           if (rightVal === NOT_SINGLE) return NOT_SINGLE;

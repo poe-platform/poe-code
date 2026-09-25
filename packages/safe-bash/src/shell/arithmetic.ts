@@ -465,7 +465,7 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
 
 const safeSmiSymbol = Symbol("safe-bash.safeSmiTree");
 
-function isSafeSmiProgram(program: ArithmeticProgram): boolean {
+export function isSafeSmiProgram(program: ArithmeticProgram): boolean {
   if (program.error || !program.tree) return false;
   let cached = (program as unknown as Record<symbol, boolean | undefined>)[safeSmiSymbol];
   if (cached === undefined) {

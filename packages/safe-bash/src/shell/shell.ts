@@ -114,7 +114,7 @@ class RootInvocationCancellationOwner {
       try { this.#detach?.(); } catch (error) { this.scope.failures.push(error); }
       this.#detach = undefined;
       const close = this.#boundary!.close();
-      this.scope.failures.push(...close.failures);
+      if (close.failures.length > 0) this.scope.failures.push(...close.failures);
       return selectRuntimeCancellationOutcome(this.#boundary!, captured, this.#observedOrigin);
     } finally { this.#resolveFinalized?.(); }
   }
@@ -248,7 +248,7 @@ export class Shell implements PluginHost {
     } finally {
       const cleanupDrain = budget.executionCleanup.drain();
       if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
-      scope.failures.push(...budget.executionCleanup.failures);
+      if (budget.executionCleanup.failures.length > 0) scope.failures.push(...budget.executionCleanup.failures);
       budget.close();
       const scopeClose = scope.close();
       if (!isSyncResolved(scopeClose)) await scopeClose;
@@ -370,7 +370,11 @@ export class Shell implements PluginHost {
             : new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, EMPTY_STDIN_OPTIONS);
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
-        await interruptible(this.#ready, budget.signal);
+        if (!isSyncResolved(this.#ready)) {
+          await interruptible(this.#ready, budget.signal);
+        } else {
+          budget.signal.throwIfAborted();
+        }
         io.capabilities = options.capabilities === undefined && options.limits === undefined
           ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
           : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
@@ -428,7 +432,11 @@ export class Shell implements PluginHost {
         while (true) {
           for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
           if (unit.script.lists.length) {
-            const result = await interruptible(runtime.runUnit(unit.script, state, io), budget.signal);
+            const unitResult = runtime.runUnit(unit.script, state, io);
+            const result = unitResult instanceof Promise
+              ? await interruptible(unitResult, budget.signal)
+              : unitResult;
+            budget.signal.throwIfAborted();
             exitCode = result.exitCode;
             if (result.terminated) break;
           }

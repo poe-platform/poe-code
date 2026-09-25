@@ -1564,6 +1564,10 @@ function clamp(n: number): number {
   return Math.max(0, Math.min(255, Math.round(n)));
 }
 
+function clampFloor(n: number): number {
+  return Math.max(0, Math.min(255, Math.floor(n)));
+}
+
 export function recombImage(
   img: RgbaImage,
   matrix: readonly (readonly number[])[]
@@ -1579,18 +1583,18 @@ export function recombImage(
     const rRow = matrix[0] ?? [1, 0, 0, 0];
     const gRow = matrix[1] ?? [0, 1, 0, 0];
     const bRow = matrix[2] ?? [0, 0, 1, 0];
-    out[idx] = clamp(
+    out[idx] = clampFloor(
       r * (rRow[0] ?? 0) + g * (rRow[1] ?? 0) + b * (rRow[2] ?? 0) + (is4x4 ? a * (rRow[3] ?? 0) : 0)
     );
-    out[idx + 1] = clamp(
+    out[idx + 1] = clampFloor(
       r * (gRow[0] ?? 0) + g * (gRow[1] ?? 0) + b * (gRow[2] ?? 0) + (is4x4 ? a * (gRow[3] ?? 0) : 0)
     );
-    out[idx + 2] = clamp(
+    out[idx + 2] = clampFloor(
       r * (bRow[0] ?? 0) + g * (bRow[1] ?? 0) + b * (bRow[2] ?? 0) + (is4x4 ? a * (bRow[3] ?? 0) : 0)
     );
     if (is4x4 && matrix[3]) {
       const aRow = matrix[3]!;
-      out[idx + 3] = clamp(
+      out[idx + 3] = clampFloor(
         r * (aRow[0] ?? 0) + g * (aRow[1] ?? 0) + b * (aRow[2] ?? 0) + a * (aRow[3] ?? 1)
       );
     } else {

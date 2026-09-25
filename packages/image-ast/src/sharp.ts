@@ -456,7 +456,9 @@ export class SharpInstance {
   }
 
   unflatten(): this {
-    this.nodes.push({ kind: "unflatten" });
+    const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
+    if (grayIdx !== -1) this.nodes.splice(grayIdx, 0, { kind: "unflatten" });
+    else this.nodes.push({ kind: "unflatten" });
     return this;
   }
 
@@ -488,7 +490,10 @@ export class SharpInstance {
   }
 
   tint(rgb: ColorInput): this {
-    this.nodes.push({ kind: "tint", color: parseColor(rgb, 255) });
+    const nextNode: ImageAstNode = { kind: "tint", color: parseColor(rgb, 255) };
+    const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
+    if (grayIdx !== -1) this.nodes.splice(grayIdx, 0, nextNode);
+    else this.nodes.push(nextNode);
     return this;
   }
 
@@ -951,12 +956,16 @@ export class SharpInstance {
     let img = this.evaluateImage();
     if (
       this.outputOptions.format === "raw" &&
-      img.channels === 2 &&
+      (img.channels === 2 || (img.channels === 1 && this.nodes.some(n => n.kind === "removeAlpha"))) &&
       !this.nodes.some(
-        n => (n.kind === "toColorspace" && n.space === "b-w") || n.kind === "grayscale" || n.kind === "joinChannel"
+        n =>
+          (n.kind === "toColorspace" && n.space === "b-w") ||
+          n.kind === "grayscale" ||
+          n.kind === "joinChannel" ||
+          n.kind === "extractChannel"
       )
     ) {
-      img = { ...img, space: "srgb", channels: 4 };
+      img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
     }
     const encoded = encodeImage(img, this.outputOptions);
     return {

@@ -393,7 +393,7 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(sepia[0]).toBe(151);
     expect(sepia[1]).toBe(134);
-    expect(sepia[2]).toBe(105);
+    expect(sepia[2]).toBe(104);
 
     const bw = await sharp({ create: { width: 2, height: 2, channels: 3, background: { r: 200, g: 100, b: 50 } } })
       .toColorspace("b-w")
@@ -1555,5 +1555,37 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .raw()
       .toBuffer();
     expect(Array.from(flipCanceled)).toEqual(Array.from(raw2x2));
+  });
+
+  it("matches libvips on recomb() truncation, removeAlpha() 1ch/2ch srgb expansion, and grayscale() ordering with unflatten()/tint() (#85)", async () => {
+    // 1. recomb() float-to-uchar truncation matching vips_cast_uchar
+    const buf3 = Buffer.from([200, 100, 50, 120, 240, 60, 30, 90, 180, 255, 128, 64]);
+    const mat3 = [
+      [0.3588, 0.7044, 0.1368],
+      [0.2990, 0.5870, 0.1140],
+      [0.2392, 0.4696, 0.0912]
+    ];
+    const rec3 = await sharp(buf3, { raw: { width: 2, height: 2, channels: 3 } }).recomb(mat3).raw().toBuffer();
+    expect(Array.from(rec3)).toEqual([149, 124, 99, 220, 183, 146, 98, 82, 65, 190, 158, 126]);
+
+    // 2. removeAlpha() on 1ch and 2ch inputs expands to 3ch srgb unless b-w/grayscale is specified
+    const buf2 = Buffer.from([50, 128, 100, 255]);
+    const rem2 = await sharp(buf2, { raw: { width: 2, height: 1, channels: 2 } }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    expect(rem2.info.channels).toBe(3);
+    expect(Array.from(rem2.data)).toEqual([50, 50, 50, 100, 100, 100]);
+
+    const rem2Bw = await sharp(buf2, { raw: { width: 2, height: 1, channels: 2 } }).toColorspace("b-w").removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    expect(rem2Bw.info.channels).toBe(1);
+    expect(Array.from(rem2Bw.data)).toEqual([50, 100]);
+
+    // 3. grayscale().unflatten() and grayscale().tint() execute grayscale after unflatten/tint
+    const rgb3 = Buffer.from([255, 255, 255, 200, 100, 50, 0, 0, 0]);
+    const grayUnf = await sharp(rgb3, { raw: { width: 3, height: 1, channels: 3 } }).grayscale().unflatten().raw().toBuffer({ resolveWithObject: true });
+    expect(grayUnf.info.channels).toBe(1);
+    expect(Array.from(grayUnf.data)).toEqual([255, 128, 0]);
+
+    const grayTint = await sharp(rgb3, { raw: { width: 3, height: 1, channels: 3 } }).grayscale().tint("#ff0000").raw().toBuffer({ resolveWithObject: true });
+    expect(grayTint.info.channels).toBe(1);
+    expect(Array.from(grayTint.data)).toEqual([255, 128, 0]);
   });
 });

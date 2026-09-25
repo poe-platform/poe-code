@@ -181,11 +181,20 @@ function headTailArguments(name: "head" | "tail", arguments_: readonly string[])
     if (argument === "--") ended = true;
     let offset = 1;
     while (offset < argument.length && argument[offset]! >= "0" && argument[offset]! <= "9") offset++;
-    if (!ended && (argument[0] === "-" || name === "tail" && argument[0] === "+") && offset > 1) {
+    if (!ended && (argument[0] === "-" || name === "tail" && index === 0 && argument[0] === "+") && offset > 1) {
       const remainder = argument.slice(offset);
-      if (!remainder || remainder === "f" || remainder === "F") {
-        args.push("-n", `${argument[0] === "+" ? "+" : ""}${argument.slice(1, offset)}`);
-        if (remainder) args.push(`-${remainder}`);
+      let unitFlag = "-n";
+      let unitSuffix = "";
+      let rest = remainder;
+      if (rest[0] === "c") { unitFlag = "-c"; rest = rest.slice(1); }
+      else if (rest[0] === "b") { unitFlag = "-c"; unitSuffix = "b"; rest = rest.slice(1); }
+      else if (rest[0] === "k") { unitFlag = "-c"; unitSuffix = "K"; rest = rest.slice(1); }
+      else if (rest[0] === "m") { unitFlag = "-c"; unitSuffix = "M"; rest = rest.slice(1); }
+      else if (rest[0] === "l") { unitFlag = "-n"; rest = rest.slice(1); }
+      const allowedFlags = name === "tail" ? "qvzfF" : "qvz";
+      if (Array.from(rest).every(ch => allowedFlags.includes(ch))) {
+        args.push(unitFlag, `${argument[0] === "+" ? "+" : ""}${argument.slice(1, offset)}${unitSuffix}`);
+        for (const ch of rest) args.push(`-${ch}`);
         continue;
       }
     }
@@ -212,8 +221,8 @@ function headTailCount(amount: string): number {
     if (!power || !["", "B", "iB"].includes(ending)) throw new UsageError(`invalid number '${amount}'`);
     multiplier = (ending === "B" ? 1000n : 1024n) ** BigInt(power);
   }
-  if (!offset) throw new UsageError(`invalid number '${amount}'`);
-  const count = BigInt(text.slice(0, offset)) * multiplier;
+  if (!offset && !suffix) throw new UsageError(`invalid number '${amount}'`);
+  const count = (offset ? BigInt(text.slice(0, offset)) : 1n) * multiplier;
   if (count > BigInt(Number.MAX_SAFE_INTEGER)) throw new UsageError(`invalid number '${amount}'`);
   return Number(count);
 }
@@ -222,19 +231,24 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
   return define(name, async context => {
     const args = headTailArguments(name, context.args);
     const follow = name === "tail" ? parseTailFollow(args) : undefined;
-    const parsed = options(follow?.args ?? args, "n:c:qvz", { lines: "n", bytes: "c", quiet: "q", silent: "q", verbose: "v", "zero-terminated": "z" });
-    if (parsed.flags.has("n") && parsed.flags.has("c")) throw new UsageError("cannot combine line and byte counts");
-    const bytes = parsed.flags.has("c");
+    let lastMode = "n" as "n" | "c";
+    let lastHeader: "q" | "v" | undefined;
+    const parsed = options(follow?.args ?? args, "n:c:qvz", { lines: "n", bytes: "c", quiet: "q", silent: "q", verbose: "v", "zero-terminated": "z" }, false, undefined, undefined, key => {
+      if (key === "n" || key === "c") lastMode = key;
+      if (key === "q" || key === "v") lastHeader = key;
+    });
+    const bytes = lastMode === "c";
     const delimiter = parsed.flags.has("z") ? 0 : 10;
     const amount = value(parsed, bytes ? "c" : "n") ?? "10";
     const positive = amount.startsWith("+");
     const negative = amount.startsWith("-");
     const count = headTailCount(amount);
     const names = parsed.operands.length ? parsed.operands : ["-"];
+    const showHeaders = lastHeader === "v" || lastHeader !== "q" && names.length > 1;
     if (follow?.mode) return followTail(context, {
       names, mode: follow.mode, idleMs: follow.idleMs, count, bytes, positive,
       retry: follow.retry, sleepMs: follow.sleepMs, maxUnchangedStats: follow.maxUnchangedStats,
-      headers: parsed.flags.has("v") || names.length > 1 && !parsed.flags.has("q"),
+      headers: showHeaders,
     }, maxTailFollowHandles, (target, source) => positive
       ? prefix(target, source, Math.max(0, count - 1), bytes, true, delimiter)
       : suffix(target, source, count, bytes, false, delimiter));
@@ -250,7 +264,7 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
           if ((await context.fs.stat(path, { signal: context.signal })).type === "directory") throw new FsError("EISDIR", { path });
           await context.fs.access(path, 4, { signal: context.signal });
         }
-        if (parsed.flags.has("v") || names.length > 1 && !parsed.flags.has("q")) {
+        if (showHeaders) {
           await output(context, `${headerWritten ? "\n" : ""}==> ${file === "-" ? "standard input" : file} <==\n`);
           headerWritten = true;
         }

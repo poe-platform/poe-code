@@ -805,3 +805,20 @@ test("streams match GNU tr escape/repeat rules, cat -E CRLF, tee --output-error=
   assert.equal(wcDir.stdout, "      0       0       0 /dir\n");
   assert.match(wcDir.stderr, /EISDIR/u);
 });
+
+test("head and tail apply last-wins for -n/-c and -v/-q, unit-only multipliers, obsolete -NUM[cbkmqv], and non-first +NUM operands", async () => {
+  const fs = await fixture({ "/work/f1": "hello\nworld\n", "/work/+2": "alpha\nbeta\n" });
+  assert.equal((await run("head", ["-n", "1", "-c", "3", "f1"], { fs })).stdout, "hel");
+  assert.equal((await run("head", ["-c", "3", "-n", "1", "f1"], { fs })).stdout, "hello\n");
+  assert.equal((await run("tail", ["-n", "1", "-c", "3", "f1"], { fs })).stdout, "ld\n");
+  assert.equal((await run("head", ["-v", "-q", "-n", "1", "f1", "+2"], { fs })).stdout, "hello\nalpha\n");
+  assert.equal((await run("head", ["-q", "-v", "-n", "1", "f1"], { fs })).stdout, "==> f1 <==\nhello\n");
+  assert.equal((await run("head", ["-c", "K", "f1"], { fs })).stdout, "hello\nworld\n");
+  assert.equal((await run("tail", ["-c", "K", "f1"], { fs })).stdout, "hello\nworld\n");
+  assert.equal((await run("head", ["-3c", "f1"], { fs })).stdout, "hel");
+  assert.equal((await run("tail", ["-3c", "f1"], { fs })).stdout, "ld\n");
+  assert.equal((await run("tail", ["+2c", "f1"], { fs })).stdout, "ello\nworld\n");
+  assert.equal((await run("head", ["-3q", "f1", "+2"], { fs })).stdout, "hello\nworld\nalpha\nbeta\n");
+  assert.equal((await run("tail", ["-n", "1", "+2"], { fs })).stdout, "beta\n");
+  assert.equal((await run("tail", ["-q", "f1", "+2"], { fs })).stdout, "hello\nworld\nalpha\nbeta\n");
+});

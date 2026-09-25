@@ -1,3 +1,4 @@
+import { parseIgnorePatterns } from "safe-bash-regex-engine/glob";
 import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import type { GlobDescriptor, Row } from "../regex-execution/protocol.js";
 import { SearchError } from "./options.js";
@@ -42,20 +43,7 @@ export async function matchGlobs(globs: readonly Glob[], candidates: readonly { 
 export interface IgnoreRule { readonly base: string; readonly priority: number; readonly include: boolean; readonly glob: Glob }
 
 export async function ignoreRules(contents: string, base: string, priority: number, session: RegexSession): Promise<IgnoreRule[]> {
-  const rules: IgnoreRule[] = [];
-  for (let source of contents.split(/\r?\n/u)) {
-    if (!source || source.startsWith("#")) continue;
-    while (source.endsWith(" ")) {
-      let backslashes = 0;
-      for (let offset = source.length - 2; offset >= 0 && source[offset] === "\\"; offset--) backslashes++;
-      if (backslashes % 2) break;
-      source = source.slice(0, -1);
-    }
-    if (!source) continue;
-    const include = source.startsWith("!");
-    if (include) source = source.slice(1);
-    if (source) rules.push({ base, priority, include, glob: new Glob(source, false, true) });
-  }
+  const rules = parseIgnorePatterns(contents).map(({pattern, include}) => ({base, priority, include, glob: new Glob(pattern, false, true)}));
   await matchGlobs(rules.map(rule => rule.glob), [], session);
   return rules;
 }

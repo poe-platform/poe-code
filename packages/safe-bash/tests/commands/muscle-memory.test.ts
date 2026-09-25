@@ -99,7 +99,7 @@ fd -e ts -x printf 'stem:%s\\n' '{/.}'
     assert.equal(r1.exitCode, 0);
     assert.equal(
       r1.stdout,
-      "src/components/Button.tsx\nsrc/utils/math.ts\n---\n.env\n---\nsrc\nsrc/components\nsrc/utils\n---\nstem:math\n"
+      "src/components/Button.tsx\nsrc/utils/math.ts\n---\n.env\n---\nsrc/\nsrc/components/\nsrc/utils/\n---\nstem:math\n"
     );
   } finally {
     await shell.dispose();

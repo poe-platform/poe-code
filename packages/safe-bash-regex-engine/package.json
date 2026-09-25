@@ -50,6 +50,10 @@
     "./text/budget": {
       "types": "./dist/text/budget.d.ts",
       "import": "./dist/text/budget.js"
+    },
+    "./glob": {
+      "types": "./dist/glob.d.ts",
+      "import": "./dist/glob.js"
     }
   },
   "files": [

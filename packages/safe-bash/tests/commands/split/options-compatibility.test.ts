@@ -64,3 +64,22 @@ test("selected chunks consume output budget but no file quota", async () => {
   assert.ok(capped.stderr.includes("output"));
   assert.deepEqual(await files(capped.fs), {});
 });
+
+test("mixed -d and -x suffix options format start values in the final radix without undefined digits", async () => {
+  const hexToDec = await run(["-l1", "--hex-suffixes=f", "-d"], "a\nb\n");
+  assert.equal(hexToDec.exitCode, 0, hexToDec.stderr);
+  assert.deepEqual(await files(hexToDec.fs), { x15: hex("a\n"), x16: hex("b\n") });
+
+  const decToHex = await run(["-l1", "--numeric-suffixes=15", "-x"], "a\nb\n");
+  assert.equal(decToHex.exitCode, 0, decToHex.stderr);
+  assert.deepEqual(await files(decToHex.fs), { x0f: hex("a\n"), x10: hex("b\n") });
+
+  const dec100ToHex = await run(["-l1", "--numeric-suffixes=100", "-x"], "a\nb\n");
+  assert.equal(dec100ToHex.exitCode, 0, dec100ToHex.stderr);
+  assert.deepEqual(await files(dec100ToHex.fs), { x64: hex("a\n"), x65: hex("b\n") });
+
+  const overflowAfterDec = await run(["-l1", "--hex-suffixes=ff", "-d"], "a\nb\n");
+  assert.equal(overflowAfterDec.exitCode, 1);
+  assert.match(overflowAfterDec.stderr, /too large for the suffix length/);
+  assert.deepEqual(await files(overflowAfterDec.fs), {});
+});

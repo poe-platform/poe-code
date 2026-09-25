@@ -74,7 +74,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   let selectedChunk = 0;
   let suffixLength = 0;
   let alphabet = "abcdefghijklmnopqrstuvwxyz";
-  let numericStart: string | undefined;
+  let numericStartValue: bigint | undefined;
   let additionalSuffix = "";
   let separator = 10;
   let elideEmpty = false;
@@ -85,7 +85,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       alphabet = option === "d" ? "0123456789" : "0123456789abcdef";
       if (value !== undefined) {
         if ([...value.toLowerCase()].some(digit => !alphabet.includes(digit))) throw new PublicDiagnostic(`invalid start value for numerical suffix: '${value}'`);
-        numericStart = BigInt(option === "x" ? `0x${value || "0"}` : value || "0").toString(alphabet.length);
+        numericStartValue = BigInt(option === "x" ? `0x${value || "0"}` : value || "0");
       }
     } else if (option === "a") suffixLength = number(value!, "suffix length", false, true);
     else if (option === "e") elideEmpty = true;
@@ -161,6 +161,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       throw new PublicDiagnostic(`the suffix length needs to be at least ${requiredSuffixLength}`);
     }
   }
+  const numericStart = numericStartValue?.toString(alphabet.length);
   const automatic = suffixLength === 0 && numericStart === undefined && mode !== "chunks";
   suffixLength ||= Math.max(2, requiredSuffixLength);
   if (suffixLength > limits.maxSuffixLength) throw new PublicDiagnostic("split suffix length limit exceeded");

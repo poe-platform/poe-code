@@ -2,7 +2,7 @@ import { FsError } from "@poe-code/safe-fs/core";
 import type { FileDescriptor, FileDescriptorCapabilities, FsOptions, OpenFileOptions } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output-budget.js";
 
-import { addAbortSignalWaiter, isManagedAbortSignal, removeAbortSignalWaiter } from "../fs/creation-mask.js";
+import { addAbortSignalWaiter, combineManagedSignals, isManagedAbortSignal, removeAbortSignalWaiter } from "../fs/creation-mask.js";
 
 export interface CommandFileDescriptor extends FileDescriptor {
   acknowledgeCloseFailure(reason: unknown): boolean;
@@ -45,6 +45,7 @@ function getAdmittedCommandCapabilities(descriptorCapabilities: FileDescriptorCa
  * original registerCleanup identity in either ownership mode. */
 export async function openCommandFile(context: FileOutputContext & { readonly cleanupFailurePrioritySignal?: AbortSignal | undefined; readonly descriptorCleanup?: "caller" }, path: string, options: OpenFileOptions): Promise<CommandFileDescriptor> {
   const { cleanupFailurePrioritySignal } = context;
+  const openingSignal = options.signal;
   let descriptor: FileDescriptor | undefined;
   let accepting = true;
   let acquiring = true;
@@ -95,7 +96,10 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     } catch (error) { return Promise.reject(error); }
     const operation = work.then(async () => {
       check(signal);
-      const supplied = signal ? { signal: AbortSignal.any([scope!, signal]) } : defaultFsOptions;
+      // Reuse the admitted scope for repeated reads instead of retaining a new
+      // child signal for every chunk of the same descriptor.
+      const supplied = signal && signal !== scope && signal !== context.signal && signal !== openingSignal
+        ? { signal: combineManagedSignals(scope!, signal) } : defaultFsOptions;
       try {
         const result = await action(descriptor!, supplied);
         if (syscall !== "write" || !context.preserveWriteReceipt) check(signal);
@@ -121,7 +125,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
       check();
     });
     const request = { ...options };
-    scope = request.signal ? AbortSignal.any([context.signal, request.signal]) : context.signal;
+    scope = request.signal ? combineManagedSignals(context.signal, request.signal) : context.signal;
     if (isManagedAbortSignal(scope)) {
       addAbortSignalWaiter(scope, aborted);
     } else {

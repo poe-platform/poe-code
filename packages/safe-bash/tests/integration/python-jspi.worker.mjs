@@ -42,7 +42,7 @@ async function qualifyShells(backend, createExecutor) {
   const pool = createPythonExecutorPool({maxConcurrentExecutors:2, createExecutor() { acquisitions++; return createExecutor(); }});
   const first = new Shell({fs:filesystem, cwd:'/work'}).use(pythonCommands({createExecutor:pool.createExecutor}));
   const sibling = new Shell({fs:filesystem, cwd:'/work'}).use(pythonCommands({createExecutor:pool.createExecutor}));
-  const firstRun = first.exec('python first.py').then(result => ({exitCode:result.exitCode}), error => ({error:String(error)}));
+  const firstRun = first.exec('python first.py').then(result => ({exitCode:result.exitCode, stderr:result.stderr}), error => ({error:String(error)}));
   const siblingRun = sibling.exec('python sibling.py');
   try {
     await Promise.race([

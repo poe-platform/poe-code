@@ -341,6 +341,7 @@ export type ImageAstNode =
       readonly idy: number;
       readonly odx: number;
       readonly ody: number;
+      readonly interpolator?: string;
     }
   | {
       readonly kind: "withMetadata";

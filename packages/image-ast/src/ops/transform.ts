@@ -1779,6 +1779,7 @@ export function affineImage(
     readonly idy?: number;
     readonly odx?: number;
     readonly ody?: number;
+    readonly interpolator?: string;
   }
 ): RgbaImage {
   const [a, b, c, d] = spec.matrix;
@@ -1835,6 +1836,14 @@ export function affineImage(
           out[dIdx + 2] = spec.background.b;
           out[dIdx + 3] = spec.background.a;
         }
+      } else if (spec.interpolator === "nearest") {
+        const p = samplePremul(Math.floor(sx), Math.floor(sy));
+        const pa = p[3];
+        const outA = Math.max(0, Math.min(255, Math.round(pa)));
+        out[dIdx] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[0] * 255) / pa))) : 0;
+        out[dIdx + 1] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[1] * 255) / pa))) : 0;
+        out[dIdx + 2] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[2] * 255) / pa))) : 0;
+        out[dIdx + 3] = outA;
       } else {
         const x0 = Math.floor(sx);
         const y0 = Math.floor(sy);

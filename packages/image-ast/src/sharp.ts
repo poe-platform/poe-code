@@ -387,7 +387,12 @@ export class SharpInstance {
   }
 
   grayscale(grayscale = true): this {
-    if (grayscale) this.nodes.push({ kind: "grayscale" });
+    if (grayscale === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "grayscale");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    this.nodes.push({ kind: "grayscale" });
     return this;
   }
 
@@ -409,7 +414,11 @@ export class SharpInstance {
   }
 
   negate(options?: boolean | { readonly alpha?: boolean }): this {
-    if (options === false) return this;
+    if (options === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "negate");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
     const alpha = typeof options === "object" ? (options.alpha ?? true) : true;
     this.nodes.push({ kind: "negate", alpha });
     return this;
@@ -476,16 +485,26 @@ export class SharpInstance {
   }
 
   threshold(
-    threshold = 128,
+    threshold: number | boolean = 128,
     options?: { readonly grayscale?: boolean; readonly greyscale?: boolean }
   ): this {
+    if (threshold === false || threshold === 0) {
+      const idx = this.nodes.findIndex(n => n.kind === "threshold");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    const val = typeof threshold === "number" ? threshold : 128;
     const gs = options?.grayscale ?? options?.greyscale ?? true;
-    this.nodes.push({ kind: "threshold", value: threshold, grayscale: gs });
+    this.nodes.push({ kind: "threshold", value: val, grayscale: gs });
     return this;
   }
 
   blur(sigma?: number | boolean | { readonly sigma?: number }): this {
-    if (sigma === false) return this;
+    if (sigma === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "blur");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
     const s =
       sigma === undefined || sigma === true
         ? -1
@@ -511,7 +530,11 @@ export class SharpInstance {
     flat?: number,
     jagged?: number
   ): this {
-    if (options === false) return this;
+    if (options === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "sharpen");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
     if (options === undefined || options === true) {
       this.nodes.push({ kind: "sharpen", sigma: -1, m1: 1.0, m2: 2.0, x1: 2.0, y2: 10.0, y3: 20.0 });
       return this;
@@ -685,6 +708,7 @@ export class SharpInstance {
       readonly idy?: number;
       readonly odx?: number;
       readonly ody?: number;
+      readonly interpolator?: string;
     }
   ): this {
     const flat: [number, number, number, number] = Array.isArray(matrix[0])
@@ -707,7 +731,8 @@ export class SharpInstance {
       idx: options?.idx ?? 0,
       idy: options?.idy ?? 0,
       odx: options?.odx ?? 0,
-      ody: options?.ody ?? 0
+      ody: options?.ody ?? 0,
+      ...(options?.interpolator !== undefined ? { interpolator: options.interpolator } : {})
     });
     return this;
   }
@@ -959,6 +984,14 @@ Object.assign(sharp, {
   strategy: {
     entropy: 16,
     attention: 17
+  },
+  interpolators: {
+    nearest: "nearest",
+    bilinear: "bilinear",
+    bicubic: "bicubic",
+    locallyBoundedBicubic: "lbb",
+    nohalo: "nohalo",
+    vertexSplitQuadraticBasisSpline: "vsqbs"
   },
   versions: {
     vips: "8.16.1",

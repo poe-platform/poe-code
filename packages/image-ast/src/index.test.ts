@@ -1426,4 +1426,44 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Array.from(outIdx.data.slice(0, 3))).toEqual([0, 0, 0]);
     expect(Array.from(outIdx.data.slice((2 * 6 + 2) * 3, (2 * 6 + 2) * 3 + 3))).toEqual([20, 30, 50]);
   });
+
+  it("exposes sharp.interpolators, honors affine({ interpolator: 'nearest' }), and cancels ops on false/0 (#81)", async () => {
+    expect((sharp as any).interpolators).toEqual({
+      nearest: "nearest",
+      bilinear: "bilinear",
+      bicubic: "bicubic",
+      locallyBoundedBicubic: "lbb",
+      nohalo: "nohalo",
+      vertexSplitQuadraticBasisSpline: "vsqbs"
+    });
+
+    const raw2x2 = Buffer.from([0, 0, 0, 100, 100, 100, 200, 200, 200, 50, 50, 50]);
+    const affNear = await sharp(raw2x2, { raw: { width: 2, height: 2, channels: 3 } })
+      .affine(
+        [
+          [2, 0],
+          [0, 2]
+        ],
+        { interpolator: "nearest" }
+      )
+      .raw()
+      .toBuffer();
+    expect(Array.from({ length: 4 }, (_, x) => affNear[x * 3])).toEqual([0, 0, 100, 100]);
+
+    // threshold(0), threshold(false), blur(false), sharpen(false), negate(false), grayscale(false) cancel ops
+    const canceled = await sharp(raw2x2, { raw: { width: 2, height: 2, channels: 3 } })
+      .threshold(128)
+      .threshold(0)
+      .blur(2)
+      .blur(false as any)
+      .sharpen(2)
+      .sharpen(false as any)
+      .negate()
+      .negate(false)
+      .grayscale()
+      .grayscale(false)
+      .raw()
+      .toBuffer();
+    expect(Array.from(canceled)).toEqual(Array.from(raw2x2));
+  });
 });

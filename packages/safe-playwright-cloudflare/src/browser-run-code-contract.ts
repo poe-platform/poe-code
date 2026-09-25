@@ -16,9 +16,11 @@ export interface BrowserRunCodeInput {
 	page: Page;
 	source: string;
 	signal: AbortSignal;
-	timeoutMs: number;
-	maxOutputBytes: number;
-	maxPages: number;
+	timeoutMs?: number;
+	maxSourceBytes?: number;
+	maxOutputBytes?: number;
+	maxPages?: number;
+	maxContexts?: number;
 }
 
 export interface BrowserRunCodeOptions {
@@ -37,7 +39,7 @@ export interface BrowserRunCodeMetadata {
 	contextId: string;
 	contextOptions: RunCodeNativeContextOptions;
 	state: RunCodeState;
-	maxOutputBytes: number;
+	maxOutputBytes?: number;
 }
 
 export interface BrowserRunCodeReceiver {

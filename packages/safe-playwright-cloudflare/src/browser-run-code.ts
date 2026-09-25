@@ -2,11 +2,7 @@ import type { CDPSession } from "@cloudflare/playwright";
 import { PlaywrightResourceLimitError } from "@poe-platform/safe-bash/playwright";
 import { browserPageCDP } from "./browser-page-cdp.js";
 import type BrowserRunCodeGuest from "./browser-run-code-guest.js";
-import {
-	createRunCodeCreationBudget,
-	MAX_RUN_CODE_CONTEXTS,
-	MAX_RUN_CODE_TARGETS,
-} from "./browser-run-code-budget.js";
+import { createRunCodeCreationBudget, frameByteLength } from "./browser-run-code-budget.js";
 import { restoreRunCodeContextState } from "./browser-run-code-context-state.js";
 import type {
 	BrowserRunCodeInput,
@@ -28,23 +24,20 @@ import { parseRunCodeState } from "./browser-run-code-state.js";
 import { parseRunCodeJson } from "./browser-run-code-json.js";
 
 const activeOwners = new Set<string>();
-const MAX_SOURCE_BYTES = 1024 * 1024;
-const MAX_OUTPUT_BYTES = 16 * 1024 * 1024;
 
 class RunCodeUserError extends Error {}
+class RunCodeOutputLimitError extends PlaywrightResourceLimitError {}
 
 function validate(input: BrowserRunCodeInput) {
 	input.signal.throwIfAborted();
-	if (new TextEncoder().encode(input.source).byteLength > MAX_SOURCE_BYTES)
-		throw new PlaywrightResourceLimitError("Run-code source limit exceeded");
-	for (const [value, maximum] of [
-		[input.timeoutMs, 30_000],
-		[input.maxOutputBytes, MAX_OUTPUT_BYTES],
-		[input.maxPages, 64],
-	] as const) {
-		if (!Number.isSafeInteger(value) || value < 1 || value > maximum)
-			throw new PlaywrightResourceLimitError("Invalid run-code limits");
+	for (const name of ["timeoutMs", "maxSourceBytes", "maxOutputBytes", "maxPages", "maxContexts"] as const) {
+		const value = input[name];
+		if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1))
+			throw new PlaywrightResourceLimitError(`Invalid run-code limit: ${name}`);
 	}
+	if (typeof input.source !== "string") throw new TypeError("Invalid run-code source");
+	if (Number.isFinite(input.maxSourceBytes) && frameByteLength(input.source) > input.maxSourceBytes!)
+		throw new PlaywrightResourceLimitError("Run-code source limit exceeded");
 }
 
 async function identify(
@@ -71,7 +64,7 @@ async function identify(
 			contextInitScripts: [],
 			contextTimeouts: captureRunCodeTimeouts(input.page.context()),
 		},
-		maxOutputBytes: input.maxOutputBytes,
+		...(input.maxOutputBytes === undefined ? {} : { maxOutputBytes: input.maxOutputBytes }),
 	};
 }
 
@@ -116,12 +109,19 @@ async function execute(
 	};
 	const onAbort = () => fail(input.signal.reason);
 	input.signal.addEventListener("abort", onAbort, { once: true });
-	const deadline = AbortSignal.timeout(input.timeoutMs);
 	const onDeadline = () =>
 		fail(new PlaywrightResourceLimitError("Run-code deadline exceeded"));
-	deadline.addEventListener("abort", onDeadline, { once: true });
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const started = performance.now();
+	const scheduleDeadline = () => {
+		const remaining = input.timeoutMs! - (performance.now() - started);
+		if (remaining <= 0) onDeadline();
+		// Chunk long waits so native timer overflow cannot shorten a selected deadline.
+		else timer = setTimeout(scheduleDeadline, Math.min(remaining, 2147483647));
+	};
 	try {
 		input.signal.throwIfAborted();
+		if (Number.isFinite(input.timeoutMs)) scheduleDeadline();
 		result = await Promise.race([
 			prepareAndRun(
 				options,
@@ -136,9 +136,9 @@ async function execute(
 		]);
 	} catch (error) {
 		executionFailure = { error };
-		if (!(error instanceof RunCodeUserError)) fail(error);
+		if (!(error instanceof RunCodeUserError) && !(error instanceof RunCodeOutputLimitError)) fail(error);
 	} finally {
-		deadline.removeEventListener("abort", onDeadline);
+		clearTimeout(timer);
 		input.signal.removeEventListener("abort", onAbort);
 		void relay?.close();
 	}
@@ -208,15 +208,9 @@ async function prepareAndRun(
 				.filter((target) => target.browserContextId === metadata.contextId)
 				.map((target) => [target.targetId, target.type]),
 		);
-		if (
-			targets.size > MAX_RUN_CODE_TARGETS ||
-			browserContextIds.length > MAX_RUN_CODE_CONTEXTS
-		)
-			throw new PlaywrightResourceLimitError(
-				"Run-code browser resource limit exceeded",
-			);
 		const creations = createRunCodeCreationBudget({
-			maxPages: input.maxPages,
+			...(input.maxPages === undefined ? {} : { maxPages: input.maxPages }),
+			...(input.maxContexts === undefined ? {} : { maxContexts: input.maxContexts }),
 			pages: [...targets]
 				.filter(([, type]) => type === "page")
 				.map(([id]) => id),
@@ -224,11 +218,6 @@ async function prepareAndRun(
 		});
 		observer.on("Target.targetCreated", ({ targetInfo }) => {
 			try {
-				targets.set(targetInfo.targetId, targetInfo.type);
-				if (targets.size > MAX_RUN_CODE_TARGETS)
-					throw new PlaywrightResourceLimitError(
-						"Run-code target limit exceeded",
-					);
 				if (targetInfo.type === "page")
 					creations.pageCreated(targetInfo.targetId);
 			} catch (error) {
@@ -236,7 +225,6 @@ async function prepareAndRun(
 			}
 		});
 		observer.on("Target.targetDestroyed", ({ targetId }) => {
-			targets.delete(targetId);
 			creations.pageDestroyed(targetId);
 		});
 		await observer.send("Target.setDiscoverTargets", { discover: true });
@@ -325,7 +313,6 @@ async function runGuest(
 			"guest.js": options.guestSource,
 			"browser-user-code.js": source,
 		},
-		limits: { cpuMs: 1000, subRequests: 4096 },
 	});
 	const entry =
 		worker.getEntrypoint<BrowserRunCodeGuest>() as Fetcher<BrowserRunCodeGuest> &
@@ -349,10 +336,12 @@ async function runGuest(
 	try {
 		const response = await result;
 		signal.throwIfAborted();
-		const userError = response.ok ? undefined : new RunCodeUserError(response.message.slice(0, 4096));
+		const userError = response.ok ? undefined : response.outputLimit
+			? new RunCodeOutputLimitError(response.message)
+			: new RunCodeUserError(response.message);
 		try {
 			const state = parseRunCodeState(response.stateJson);
-			if (state.pages.length > input.maxPages)
+			if (state.pages.length > (input.maxPages ?? Infinity))
 				throw new PlaywrightResourceLimitError("Run-code page state limit exceeded");
 			metadata.state = state;
 		} catch (stateError) {
@@ -363,11 +352,9 @@ async function runGuest(
 		}
 		if (userError) throw userError;
 		const json = response.json;
-		if (
-			typeof json !== "string" ||
-			new TextEncoder().encode(json).byteLength > input.maxOutputBytes
-		)
-			throw new PlaywrightResourceLimitError("Run-code output limit exceeded");
+		if (typeof json !== "string") throw new TypeError("Invalid run-code output");
+		if (Number.isFinite(input.maxOutputBytes) && frameByteLength(json) > input.maxOutputBytes!)
+			throw new RunCodeOutputLimitError("Run-code output limit exceeded");
 		return parseRunCodeJson(json, signal);
 	} finally {
 		signal.removeEventListener("abort", dispose);

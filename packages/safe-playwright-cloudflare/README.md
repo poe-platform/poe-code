@@ -35,10 +35,13 @@ init-script-count cap. Script registrations survive reconnection and user-code
 errors; explicitly configured result and portable profile budgets still apply.
 Compilation syntax errors retain their original detail and include this example;
 corrected code can run in the same session.
-Worker `run-code` results have no implicit host JSON size, nesting, container,
-entry, allocation, or parsing-time limits. The configured output byte budget
-is checked before host parsing, and cancellation is checked before and after
-parsing. Invalid JSON still fails syntax validation.
+Worker `run-code` imposes no default source, result, page, context, execution-time,
+CPU, or subrequest ceiling. Limits supplied by the host still apply; individual
+omitted limits stay unlimited. Results have no implicit JSON size, nesting,
+container, entry, allocation, or parsing-time limits. A configured output byte
+budget is checked before host parsing, and cancellation is checked before and
+after parsing. Invalid JSON still fails syntax validation. Cloudflare's own
+platform constraints continue to apply.
 
 The host constructs the trusted `ownerId` and scopes each CLI instance to one
 authenticated user/agent. Session aliases, `-s`, and `PLAYWRIGHT_CLI_SESSION`
@@ -109,8 +112,10 @@ replayed; the original DOM and in-flight JavaScript cannot be reconstructed.
 
 Browser acquisitions retain one owned provider session and its physical sockets.
 Release is idempotent and shares deletion with Worker retirement. Ordinary guest
-script errors retain the session; cancellation, deadlines, and resource failures
-retire it. A pre-existing foreign private context rejects `run-code` and retires
+script errors and configured output-byte refusals retain the session after state
+restoration and confirmed transport cleanup. Cancellation, deadlines, active
+page/context quota failures, and unconfirmed cleanup retire it.
+A pre-existing foreign private context rejects `run-code` and retires
 the browser. That error includes the owned target/context IDs, the observed
 private-context IDs, and foreign page IDs with private-context flags and URL
 states (`empty`, `about:blank`, or `other`);

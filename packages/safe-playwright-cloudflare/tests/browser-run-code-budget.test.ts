@@ -2,7 +2,6 @@ import { expect, test } from "vitest";
 import {
 	createRunCodeCreationBudget,
 	createRunCodeFrameBudget,
-	MAX_RUN_CODE_CONTEXTS,
 	frameByteLength
 } from "../src/browser-run-code-budget";
 
@@ -25,8 +24,9 @@ test("raw CDP creation commands reserve capacity before their responses", () => 
 test("only successful context disposal releases live capacity", () => {
 	const budget = createRunCodeCreationBudget({
 		maxPages: 4,
+		maxContexts: 16,
 		pages: [],
-		contexts: Array.from({ length: MAX_RUN_CODE_CONTEXTS }, (_, i) => `context-${i}`)
+		contexts: Array.from({ length: 16 }, (_, i) => `context-${i}`)
 	});
 	budget.command({
 		id: 1,
@@ -83,6 +83,7 @@ test("popup events independently enforce the same page bound", () => {
 test("empty contexts and invalid creation IDs cannot bypass reservations", () => {
 	const budget = createRunCodeCreationBudget({
 		maxPages: 4,
+		maxContexts: 16,
 		pages: [],
 		contexts: []
 	});
@@ -123,4 +124,32 @@ test("individual CDP budgets apply only when selected", () => {
 		expect(() => createRunCodeFrameBudget({ maxFrames: value })).toThrow(
 			"Invalid run-code CDP limit"
 		);
+});
+
+test("omitted creation budgets allow pages, contexts and pending reservations beyond former caps", () => {
+	const budget = createRunCodeCreationBudget({ pages: ["parent"], contexts: ["owner"] });
+	for (let id = 1; id <= 80; id++) {
+		budget.command({ id, method: "Target.createTarget" });
+		budget.command({ id: id + 80, method: "Target.createBrowserContext" });
+	}
+	for (let id = 1; id <= 80; id++) {
+		budget.reply({ id, result: { targetId: `page-${id}` } });
+		budget.pageCreated(`page-${id}`);
+		budget.reply({ id: id + 80, result: { browserContextId: `context-${id}` } });
+	}
+	budget.pageCreated("popup");
+});
+
+test("a context-only budget leaves pages unlimited and counts pending context reservations", () => {
+	const budget = createRunCodeCreationBudget({ maxContexts: 2, pages: [], contexts: ["owner"] });
+	budget.command({ id: 1, method: "Target.createBrowserContext" });
+	expect(() => budget.command({ id: 2, method: "Target.createBrowserContext" })).toThrow("context limit");
+	for (let id = 3; id < 100; id++) budget.command({ id, method: "Target.createTarget" });
+	budget.reply({ id: 1, error: { message: "refused" } });
+	budget.command({ id: 100, method: "Target.createBrowserContext" });
+});
+
+test("configured budgets reject an already oversized browser census", () => {
+	expect(() => createRunCodeCreationBudget({ maxPages: 1, pages: ["a", "b"], contexts: [] })).toThrow("page limit");
+	expect(() => createRunCodeCreationBudget({ maxContexts: 1, pages: [], contexts: ["a", "b"] })).toThrow("context limit");
 });

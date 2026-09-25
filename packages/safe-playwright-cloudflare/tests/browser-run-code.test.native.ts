@@ -72,6 +72,8 @@ for (const scenario of [
 	"loader-error",
 	"cancel",
 	"output",
+	"unlimited-source-output",
+	"unlimited-contexts",
 ]) {
 	test(`native run-code ${scenario}`, async () => {
 		const url = new URL(`http://localhost/${scenario}`);

@@ -515,10 +515,48 @@ export default {
 				}
 				case "/output": {
 					await assert.rejects(
-						f.run("async page => 'a'.repeat(1024)", { maxOutputBytes: 64 }),
+						f.run(`async page => {
+              await page.setViewportSize({ width: 650, height: 480 });
+              await page.addInitScript('window.outputRecovered = true');
+              await page.evaluate(() => { document.title = 'Output retained'; });
+              return 'a'.repeat(1024);
+            }`, { maxOutputBytes: 64 }),
 						/output limit/,
 					);
-					assert.equal(f.retired(), true);
+					assert.equal(f.retired(), false);
+					assert.equal(f.browser.contexts()[0], f.context);
+					assert.equal(f.context.pages()[0], f.page);
+					assert.equal(await f.page.title(), "Output retained");
+					assert.deepEqual(f.page.viewportSize(), { width: 650, height: 480 });
+					await f.page.goto('data:text/html,<title>Output recovered</title>');
+					assert.equal(await f.page.evaluate('window.outputRecovered'), true);
+					assert.equal(await f.run("async page => page.title()"), "Output recovered");
+					break;
+				}
+				case "/unlimited-source-output": {
+					const result = await f.execute({
+						page: f.page, signal: new AbortController().signal,
+						source: `async page => { /*${"x".repeat(1024 * 1024)}*/ return 'x'.repeat(17 * 1024 * 1024); }`,
+					});
+					assert.equal(result, "x".repeat(17 * 1024 * 1024));
+					assert.equal(f.retired(), false);
+					assert.equal(await f.run("async page => page.title()"), "");
+					break;
+				}
+				case "/unlimited-contexts": {
+					const result = await f.execute({
+						page: f.page, signal: new AbortController().signal,
+						source: `async page => {
+              const browser = page.context().browser();
+              const contexts = await Promise.all(Array.from({ length: 17 }, () => browser.newContext()));
+              const count = browser.contexts().length;
+              await Promise.all(contexts.map(context => context.close()));
+              return count;
+            }`,
+					});
+					assert.equal(result, 18);
+					assert.equal(f.retired(), false);
+					assert.equal(await f.run("async page => page.title()"), "");
 					break;
 				}
 				default:

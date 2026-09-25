@@ -2,8 +2,6 @@ import { PlaywrightResourceLimitError } from "@poe-platform/safe-bash/playwright
 
 // The separate owned-browser privacy transport still uses this legacy budget.
 export const MAX_RUN_CODE_FRAME_BYTES = 32 * 1024 * 1024;
-export const MAX_RUN_CODE_CONTEXTS = 16;
-export const MAX_RUN_CODE_TARGETS = 64;
 
 interface ProtocolMessage {
 	id?: number;
@@ -62,7 +60,8 @@ export function createRunCodeFrameBudget(limits: RunCodeFrameLimits = {}) {
 
 /** Reservations count before forwarding, including commands awaiting replies. */
 export function createRunCodeCreationBudget(options: {
-	maxPages: number;
+	maxPages?: number;
+	maxContexts?: number;
 	pages: Iterable<string>;
 	contexts: Iterable<string>;
 }) {
@@ -71,15 +70,20 @@ export function createRunCodeCreationBudget(options: {
 	const pending = new Map<number, "page" | "context">();
 	const disposals = new Map<number, string>();
 	const groups = {
-		page: { ids: pages, limit: options.maxPages, field: "targetId" },
+		page: { ids: pages, limit: options.maxPages ?? Infinity, field: "targetId", pending: 0 },
 		context: {
 			ids: contexts,
-			limit: MAX_RUN_CODE_CONTEXTS,
-			field: "browserContextId"
+			limit: options.maxContexts ?? Infinity,
+			field: "browserContextId",
+			pending: 0
 		}
 	};
-	const count = (kind: "page" | "context") =>
-		[...pending.values()].filter((value) => value === kind).length;
+	for (const [kind, group] of Object.entries(groups)) {
+		if (group.limit !== Infinity && (!Number.isSafeInteger(group.limit) || group.limit < 1))
+			throw new TypeError(`Invalid run-code ${kind} limit`);
+		if (group.ids.size > group.limit)
+			throw new PlaywrightResourceLimitError(`Run-code ${kind} limit exceeded`);
+	}
 	const reserveDisposal = (message: ProtocolMessage) => {
 		if (!Number.isSafeInteger(message.id) || pending.has(message.id!) || disposals.has(message.id!))
 			throw new Error("Invalid run-code creation command ID");
@@ -108,9 +112,10 @@ export function createRunCodeCreationBudget(options: {
 			)
 				throw new Error("Invalid run-code creation command ID");
 			const group = groups[kind];
-			if (group.ids.size + count(kind) >= group.limit)
+			if (group.ids.size + group.pending >= group.limit)
 				throw new PlaywrightResourceLimitError(`Run-code ${kind} limit exceeded`);
 			pending.set(message.id!, kind);
+			group.pending++;
 		},
 		reply(message: ProtocolMessage) {
 			if (message.id === undefined) return;
@@ -118,15 +123,16 @@ export function createRunCodeCreationBudget(options: {
 			const kind = pending.get(message.id);
 			if (!kind) return;
 			pending.delete(message.id);
-			if (message.error) return;
 			const group = groups[kind];
+			group.pending--;
+			if (message.error) return;
 			const id = message.result?.[group.field];
 			if (typeof id !== "string") throw new Error("Invalid CDP creation response");
 			group.ids.add(id);
 		},
 		pageCreated(id: string) {
 			pages.add(id);
-			if (pages.size > options.maxPages)
+			if (pages.size > groups.page.limit)
 				throw new PlaywrightResourceLimitError("Run-code page limit exceeded");
 		},
 		pageDestroyed(id: string) {

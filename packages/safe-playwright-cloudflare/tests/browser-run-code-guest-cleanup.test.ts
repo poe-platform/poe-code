@@ -81,6 +81,24 @@ test("guest retains output limit failure when cleanup also fails", async () => {
   expect(error.errors[1]).toBe(cleanup);
 });
 
+test("guest returns output refusal with recoverable state after confirmed cleanup", async () => {
+  fixture.userCode.mockResolvedValueOnce("界");
+  fixture.close.mockResolvedValueOnce(undefined);
+  await expect(new Guest().run({} as never, { ...metadata, maxOutputBytes: 4 } as never)).resolves.toMatchObject({
+    ok: false, message: "Error: Run-code output limit exceeded", stateJson: "{}"
+  });
+});
+
+test("guest output byte boundaries use JSON UTF-8 bytes and allow omission", async () => {
+  for (const maxOutputBytes of [undefined, 5]) {
+    fixture.userCode.mockResolvedValueOnce("界");
+    fixture.close.mockResolvedValueOnce(undefined);
+    await expect(new Guest().run({} as never, { ...metadata, maxOutputBytes } as never)).resolves.toMatchObject({
+      ok: true, json: '"界"', stateJson: "{}"
+    });
+  }
+});
+
 test.each([false, true])("guest retains serialization error when state capture fails (close fails: %s)", async (closeFails) => {
   fixture.userCode.mockResolvedValueOnce(1n);
   const stateError = new Error("Run-code state limit exceeded");

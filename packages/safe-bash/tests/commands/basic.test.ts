@@ -728,3 +728,17 @@ test("printf preserves hex signed zero, subnormals and exponent cancellation", a
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");
 });
+
+test("test and [ evaluate parenthesized operator expressions and -N predicate", async () => {
+  for (const args of [
+    ["(", "=", "=", "=", ")"],
+    ["(", "=", ")", "-a", "true"],
+    ["(", "!", ")", "-a", "true"],
+    ["(", "-f", ")", "-a", "(", "-d", ")"],
+    ["(", "-f", ")", "-o", "true"],
+    ["(", "-n", ")", "-a", "(", "-z", ")"],
+  ]) {
+    const res = await run("test", args);
+    assert.deepEqual([res.exitCode, res.stderr], [0, ""], args.join(" "));
+  }
+});

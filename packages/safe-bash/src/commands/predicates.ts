@@ -182,7 +182,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
         offset += 3;
         return async () => value;
       }
-      if ((token === "!" || token === "(") && !binary.has(args[offset] ?? "")) {
+      if ((token === "!" || token === "(") && !(binary.has(args[offset] ?? "") && !binary.has(args[offset + 1] ?? ""))) {
         if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
         if (token === "!") { const inner = primary(depth + 1); return async () => !await inner(); }
         const inner = disjunction(depth + 1);

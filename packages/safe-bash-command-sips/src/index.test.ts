@@ -290,4 +290,40 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(meta.width).toBe(49);
     expect(meta.height).toBe(49);
   });
+
+  it("matches /usr/bin/sips on RGBA default transparent padColor, rotate/flip CGAffineTransform ordering, and crop-before-resample scaling (#73)", async () => {
+    const w = 40, h = 20;
+    const raw = new Uint8Array(w * h * 4);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 4;
+        raw[idx] = x * 6;
+        raw[idx + 1] = y * 12;
+        raw[idx + 2] = 100;
+        raw[idx + 3] = 255;
+      }
+    }
+    const inPng = await sharp(raw, { raw: { width: w, height: h, channels: 4 } }).png().toBuffer();
+    const files = new Map<string, Uint8Array>([["/work/in.png", inPng]]);
+
+    // 1. Default pad on RGBA image is transparent [0, 0, 0, 0]
+    await runSipsCli(["-p", "30", "50", "/work/in.png", "--out", "/work/pad.png"], files);
+    const padRaw = await sharp(files.get("/work/pad.png")!).raw().toBuffer();
+    expect(Array.from(padRaw.slice(0, 4))).toEqual([0, 0, 0, 0]);
+
+    // 2. -r 90 -f horizontal vs -f horizontal -r 90
+    await runSipsCli(["-r", "90", "-f", "horizontal", "/work/in.png", "--out", "/work/rf.png"], files);
+    const rfRaw = await sharp(files.get("/work/rf.png")!).raw().toBuffer();
+    expect(Array.from(rfRaw.slice(0, 3))).toEqual([234, 228, 100]);
+
+    await runSipsCli(["-f", "horizontal", "-r", "90", "/work/in.png", "--out", "/work/fr.png"], files);
+    const frRaw = await sharp(files.get("/work/fr.png")!).raw().toBuffer();
+    expect(Array.from(frRaw.slice(0, 3))).toEqual([0, 0, 100]);
+
+    // 3. -c 6 8 -z 10 20 crops 40x20 to 8x6 then scales by (20/40, 10/20) -> 4x3
+    await runSipsCli(["-c", "6", "8", "-z", "10", "20", "/work/in.png", "--out", "/work/cz.png"], files);
+    const czMeta = await sharp(files.get("/work/cz.png")!).metadata();
+    expect(czMeta.width).toBe(4);
+    expect(czMeta.height).toBe(3);
+  });
 });

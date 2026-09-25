@@ -154,7 +154,7 @@ export async function runSipsCli(
 
   let singleLine = false;
   let outTarget: string | undefined;
-  let padColor = "000000";
+  let padColor: string | undefined;
   let cropOffsetY: number | undefined;
   let cropOffsetX: number | undefined;
   let targetFormat: ImageFormat | undefined;
@@ -338,10 +338,24 @@ export async function runSipsCli(
   });
   const isResample = (k: string) =>
     k === "resampleMax" || k === "resampleHW" || k === "resampleW" || k === "resampleH";
-  const effectiveActions = [
-    ...filteredActions.filter(act => isResample(act.kind)),
-    ...filteredActions.filter(act => !isResample(act.kind))
-  ];
+  const isRotFlip = (k: string) => k === "rotate" || k === "flip";
+  const reversedRotFlips = filteredActions.filter(act => isRotFlip(act.kind)).reverse();
+  const firstRotFlipIdx = filteredActions.findIndex(act => isRotFlip(act.kind));
+  let effectiveActions: SipsAction[];
+  if (firstRotFlipIdx === -1) {
+    effectiveActions = [...filteredActions];
+  } else {
+    const beforeRotFlip = filteredActions.slice(0, firstRotFlipIdx);
+    const afterRotFlip = filteredActions.slice(firstRotFlipIdx).filter(act => !isRotFlip(act.kind));
+    const resamplesAfter = afterRotFlip.filter(act => isResample(act.kind));
+    const otherAfter = afterRotFlip.filter(act => !isResample(act.kind));
+    effectiveActions = [
+      ...beforeRotFlip,
+      ...resamplesAfter,
+      ...reversedRotFlips,
+      ...otherAfter
+    ];
+  }
 
   for (const inPath of inputPaths) {
     const inBytes = files.get(inPath);
@@ -356,38 +370,53 @@ export async function runSipsCli(
       let meta = await inst.metadata();
       let curW = meta.width;
       let curH = meta.height;
+      const origW = meta.width;
+      const origH = meta.height;
+      const effectivePadColor =
+        padColor ?? (meta.hasAlpha ? { r: 0, g: 0, b: 0, alpha: 0 } : "000000");
 
       if (hasMutation) {
         for (const act of effectiveActions) {
           if (act.kind === "rotate") {
-            inst = inst.rotate(act.degrees, { background: padColor });
+            inst = sharp(
+              await inst.rotate(act.degrees, { background: effectivePadColor }).toBuffer()
+            );
             meta = await inst.metadata();
             curW = meta.width;
             curH = meta.height;
           } else if (act.kind === "flip") {
-            if (act.direction === "horizontal") inst = inst.flop();
-            else inst = inst.flip();
+            inst = sharp(
+              await (act.direction === "horizontal" ? inst.flop() : inst.flip()).toBuffer()
+            );
           } else if (act.kind === "resampleMax") {
-            const scale = act.maxDim / Math.max(curW, curH, 1);
+            const scale = act.maxDim / Math.max(origW, origH, 1);
             const nw = Math.max(1, Math.round(curW * scale));
             const nh = Math.max(1, Math.round(curH * scale));
             inst = inst.resize(nw, nh, { fit: "fill" });
             curW = nw;
             curH = nh;
           } else if (act.kind === "resampleHW") {
-            inst = inst.resize(act.width, act.height, { fit: "fill" });
-            curW = act.width;
-            curH = act.height;
+            const scaleX = act.width / Math.max(1, origW);
+            const scaleY = act.height / Math.max(1, origH);
+            const nw = Math.max(1, Math.round(curW * scaleX));
+            const nh = Math.max(1, Math.round(curH * scaleY));
+            inst = inst.resize(nw, nh, { fit: "fill" });
+            curW = nw;
+            curH = nh;
           } else if (act.kind === "resampleW") {
-            const nh = Math.max(1, Math.round((curH * act.width) / Math.max(1, curW)));
-            inst = inst.resize(act.width, nh, { fit: "fill" });
-            curW = act.width;
+            const scale = act.width / Math.max(1, origW);
+            const nw = Math.max(1, Math.round(curW * scale));
+            const nh = Math.max(1, Math.round(curH * scale));
+            inst = inst.resize(nw, nh, { fit: "fill" });
+            curW = nw;
             curH = nh;
           } else if (act.kind === "resampleH") {
-            const nw = Math.max(1, Math.round((curW * act.height) / Math.max(1, curH)));
-            inst = inst.resize(nw, act.height, { fit: "fill" });
+            const scale = act.height / Math.max(1, origH);
+            const nw = Math.max(1, Math.round(curW * scale));
+            const nh = Math.max(1, Math.round(curH * scale));
+            inst = inst.resize(nw, nh, { fit: "fill" });
             curW = nw;
-            curH = act.height;
+            curH = nh;
           } else if (act.kind === "crop") {
             const cw = Math.min(curW, act.width);
             const ch = Math.min(curH, act.height);
@@ -414,7 +443,7 @@ export async function runSipsCli(
                 bottom: padBottom,
                 left: padLeft,
                 right: padRight,
-                background: padColor
+                background: effectivePadColor
               });
               curW = act.width;
               curH = act.height;
@@ -440,7 +469,7 @@ export async function runSipsCli(
               bottom,
               left,
               right,
-              background: padColor
+              background: effectivePadColor
             });
             curW = act.width;
             curH = act.height;

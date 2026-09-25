@@ -5,6 +5,12 @@ import * as api from "./index.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 import { runElementOpen } from "./run-properties.js";
+import { nativeModule, nativeModuleLoader } from "../tests/fixtures/native-module.js";
+
+let compiled: string;
+beforeAll(async () => {
+  compiled = await nativeModule(`import {Volume} from 'memfs';import * as api from ${JSON.stringify(new URL("../dist/index.js", import.meta.url).href)};let data='';for await(const b of process.stdin)data+=b;const r=JSON.parse(data),input=new Uint8Array(Buffer.from(r.input,'base64')),m=Volume.fromJSON({'/output':''}),sink={async write(b){m.appendFileSync('/output',b);}},ctx=()=>({signal:new AbortController().signal,limits:r.limits,budget:new api.DocumentBudget(r.host,new AbortController().signal,async()=>{})});try{if(r.route==='model'){const d=await api.Document(input,ctx());d.tables[0].cell(0,0).text=r.value;await d.save(sink);}else await api.editDocumentTables(input,{operation:'tables.set',options:{table:1,cell:'A1',text:r.value,output:'-'}},{...ctx(),stdout:sink,encoding:{order:'input',compression:'store'}});console.log(JSON.stringify({ok:true,output:Buffer.from(m.readFileSync('/output')).toString('base64')}));}catch(error){console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack,outputBytes:m.statSync('/output').size}));}`);
+});
 
 const host = { xmlDepth: 16384, work: 4 * 1024 ** 3, retainedBytes: 4 * 1024 ** 3 };
 const limits = { ...textContext.limits, maxArchiveBytes: 2 * 1024 ** 2, maxEntryBytes: 1024 ** 2, maxTotalBytes: 2 * 1024 ** 2, maxRetainedBytes: 4 * 1024 ** 3 };
@@ -35,24 +41,27 @@ describe(`nested native fixture; ${strict}; ${kind}; levels=${levels}`, () => {
   await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z") })) }, sink("/input"), { order: "input", compression: "store" }, context());
   input = new Uint8Array(memory.readFileSync("/input") as Buffer); original = input.slice();
   });
-  for (const route of ["model", "direct"] as const)
+  for (const route of ["model", "direct"] as const) describe(route, () => {
+  const outputPath = `/output-${route}`;
   it(`whole cell text honors admitted nested native blocks; ${strict}; ${kind}; levels=${levels}; ${route}`, async () => {
   memory.writeFileSync("/output", "");
-  const outside = '<w:p><w:r><w:t>Outside 日本 עברית é 🌊</w:t></w:r></w:p>';
-  const code = `import {Volume} from 'memfs';import * as api from 'docx';let data='';for await(const b of process.stdin)data+=b;const r=JSON.parse(data),input=new Uint8Array(Buffer.from(r.input,'base64')),m=Volume.fromJSON({'/output':''}),sink={async write(b){m.appendFileSync('/output',b);}},ctx=()=>({signal:new AbortController().signal,limits:r.limits,budget:new api.DocumentBudget(r.host,new AbortController().signal,async()=>{})});try{if(r.route==='model'){const d=await api.Document(input,ctx());d.tables[0].cell(0,0).text=r.value;await d.save(sink);}else await api.editDocumentTables(input,{operation:'tables.set',options:{table:1,cell:'A1',text:r.value,output:'-'}},{...ctx(),stdout:sink,encoding:{order:'input',compression:'store'}});console.log(JSON.stringify({ok:true,output:Buffer.from(m.readFileSync('/output')).toString('base64')}));}catch(error){console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack,outputBytes:m.statSync('/output').size}));}`;
   const response = JSON.parse(await new Promise<string>((resolve, reject) => {
-    const child = spawn(process.execPath, ["--input-type=module", "-e", code], { stdio: ["pipe", "pipe", "pipe"] }); let stdout = "", stderr = "";
+    const child = spawn(process.execPath, ["--input-type=module", "-e", nativeModuleLoader], { stdio: ["pipe", "pipe", "pipe"] }); let stdout = "", stderr = "";
     onTestFinished(() => { if (child.exitCode === null) child.kill(); });
-    child.stdout.on("data", b => { stdout += String(b); }); child.stderr.on("data", b => { stderr += String(b); }); child.on("error", reject); child.on("close", status => { if (status !== 0) reject(new Error(stderr)); else resolve(stdout); }); child.stdin.end(JSON.stringify({ input: Buffer.from(input).toString("base64"), value, route, host, limits }));
+    child.stdout.on("data", b => { stdout += String(b); }); child.stderr.on("data", b => { stderr += String(b); }); child.on("error", reject); child.on("close", status => { if (status !== 0) reject(new Error(stderr)); else resolve(stdout); }); child.stdin.on("error", reject); child.stdin.end(JSON.stringify(compiled) + "\n" + JSON.stringify({ input: Buffer.from(input).toString("base64"), value, route, host, limits }));
   })) as { ok: boolean; output: string; error?: string; stack?: string };
   expect(response, response.stack ?? response.error).toMatchObject({ ok: true });
-  memory.writeFileSync("/output", new Uint8Array(Buffer.from(response.output, "base64")));
-  const output = new Uint8Array(memory.readFileSync("/output") as Buffer), after = readPackage(output), xml = new TextDecoder().decode(after.get("word/document.xml"));
+  memory.writeFileSync(outputPath, new Uint8Array(Buffer.from(response.output, "base64")));
+  });
+  it(`retains archive and public model after ${route} cell edit`, async () => {
+  const outside = '<w:p><w:r><w:t>Outside 日本 עברית é 🌊</w:t></w:r></w:p>';
+  const output = new Uint8Array(memory.readFileSync(outputPath) as Buffer), after = readPackage(output), xml = new TextDecoder().decode(after.get("word/document.xml"));
   expect(xml).toContain('w:id="71"'); expect(xml).toContain('w:name="NestedAnchor"'); expect(xml).toContain("<!--nested-native-retain-->"); expect(xml).toContain("<?nested retain?>"); expect(xml).toContain(outside);
   for (const [name, bytes] of parts) if (name !== "word/document.xml") expect(after.get(name), name).toEqual(bytes);
   const doc = await api.Document(output, context()), cell = doc.tables[0]!.cell(0, 0);
   expect(cell.text).toBe(value); expect(cell.width!.inches).toBe(1); expect(cell.tables.length).toBe(0); expect(cell.paragraphs.length).toBe(1); expect(cell.paragraphs[0]!.runs.length).toBe(1); expect(cell.paragraphs[0]!.runs[0]!.bold).toBe(null); expect(doc.paragraphs[0]!.text).toBe("Outside 日本 עברית é 🌊");
   expect(Buffer.from(input).equals(Buffer.from(original))).toBe(true);
   expect((memory.readFileSync("/input") as Buffer).equals(Buffer.from(original))).toBe(true);
+});
 });
 });

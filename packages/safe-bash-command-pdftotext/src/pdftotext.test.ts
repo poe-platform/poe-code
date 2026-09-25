@@ -199,4 +199,12 @@ describe("safe-bash-command-pdftotext", () => {
     const lineXMax = Number(lineMatch[3]);
     assert.ok(lineXMax < 55, `expected cropped line xMax < 55, got ${lineXMax}`);
   });
+  it("rejects negative -l and non-numeric -x/-y/-W/-H with exitCode 99 (issue 1035)", () => {
+    const doc = PdfDocument.create();
+    doc.addPage([612, 792]).drawText("Page 1", { x: 72, y: 720, size: 12 });
+    doc.addPage([595, 842]).drawText("Page 2", { x: 72, y: 720, size: 12 });
+    const bytes = doc.save();
+    assert.equal(extractPdfToTextBytes(bytes, ["-f", "2", "-l", "-5"]).exitCode, 99);
+    assert.equal(extractPdfToTextBytes(bytes, ["-x", "abc"]).exitCode, 99);
+  });
 });

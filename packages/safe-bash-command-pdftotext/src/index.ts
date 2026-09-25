@@ -119,14 +119,17 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
         return res;
       }
       res.resolution = val;
-    } else if (arg === "-x") {
-      res.cropX = Number.parseFloat(argv[++i] ?? "0");
-    } else if (arg === "-y") {
-      res.cropY = Number.parseFloat(argv[++i] ?? "0");
-    } else if (arg === "-W") {
-      res.cropW = Number.parseFloat(argv[++i] ?? "0");
-    } else if (arg === "-H") {
-      res.cropH = Number.parseFloat(argv[++i] ?? "0");
+    } else if (arg === "-x" || arg === "-y" || arg === "-W" || arg === "-H") {
+      const val = Number.parseFloat(argv[++i] ?? "");
+      if (!Number.isFinite(val)) {
+        res.error = `Command Line Error: Invalid numeric argument for ${arg}\n`;
+        res.errorExitCode = 99;
+        return res;
+      }
+      if (arg === "-x") res.cropX = val;
+      else if (arg === "-y") res.cropY = val;
+      else if (arg === "-W") res.cropW = val;
+      else res.cropH = val;
     } else if (arg === "-layout") {
       res.layout = true;
     } else if (arg === "-raw") {
@@ -465,7 +468,7 @@ export function extractPdfToTextBytes(
   const pageCount = doc.getPageCount();
   const firstPage = args.firstPage < 1 ? 1 : args.firstPage;
   const lastPage =
-    !args.lastPageExplicit || args.lastPage < 1 || args.lastPage > pageCount
+    !args.lastPageExplicit || args.lastPage === 0 || args.lastPage > pageCount
       ? pageCount
       : args.lastPage;
 

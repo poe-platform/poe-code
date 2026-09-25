@@ -395,4 +395,12 @@ describe("safe-bash-command-pdfinfo", () => {
     const sepInfo = inspectPdfBytes(sepBytes);
     assert.match(sepInfo.stdout, /Title:\s+Architecture Handbook/);
   });
+  it("includes Page size and Page rot when -f > 1 is passed without -l (issue 1035)", () => {
+    const doc = PdfDocument.create();
+    doc.addPage([612, 792]).drawText("Page 1", { x: 72, y: 720, size: 12 });
+    doc.addPage([595, 842]).drawText("Page 2", { x: 72, y: 720, size: 12 });
+    const res = inspectPdfBytes(doc.save(), ["-f", "2"]);
+    assert.equal(res.exitCode, 0);
+    assert.match(res.stdout, /Page size:\s+595 x 842 pts/);
+  });
 });

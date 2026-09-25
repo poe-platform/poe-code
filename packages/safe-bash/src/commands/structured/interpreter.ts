@@ -34,7 +34,14 @@ export class Interpreter {
   private filters = new Map<Ast, { ast: Ast; scope: Interpreter }>();
   private labels = new Map<symbol, number>();
   private labelSequence = { next: 0 };
+  private readonly singleResult: [Json] = [null];
+  private scratchObj: Record<string, Json> = object();
+  private readonly scratchKeys: string[] = [];
+  private scratchInUse = false;
   constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
+  releaseScratch(): void {
+    this.scratchInUse = false;
+  }
   tryRunSync(ast: Ast, input: Json): Json[] | undefined {
     const savedSteps = this.budget.currentSteps;
     const res = this.tryRunSyncInternal(ast, input);
@@ -45,6 +52,13 @@ export class Interpreter {
     if (this.budget.needsYield()) return undefined;
     if (ast.kind === "binary" && ast.operator === "|") {
       this.budget.step();
+      if (ast.left.kind === "call" && ast.left.name === "select" && ast.left.args.length === 1) {
+        this.budget.step();
+        const cond = this.tryEvalSingle(ast.left.args[0]!, input);
+        if (cond === NOT_SINGLE) return undefined;
+        if (!truth(cond)) return EMPTY_RESULTS;
+        return this.tryRunSyncInternal(ast.right, input);
+      }
       const leftResults = this.tryRunSyncInternal(ast.left, input);
       if (!leftResults) return undefined;
       if (leftResults.length === 0) return EMPTY_RESULTS;
@@ -61,13 +75,18 @@ export class Interpreter {
       this.budget.step();
       const cond = this.tryEvalSingle(ast.args[0]!, input);
       if (cond === NOT_SINGLE) return undefined;
-      return truth(cond) ? [input] : EMPTY_RESULTS;
+      if (!truth(cond)) return EMPTY_RESULTS;
+      this.singleResult[0] = input;
+      return this.singleResult;
     }
     const single = this.tryEvalSingle(ast, input);
-    if (single !== NOT_SINGLE) return [single];
+    if (single !== NOT_SINGLE) {
+      this.singleResult[0] = single;
+      return this.singleResult;
+    }
     return undefined;
   }
-  private tryEvalSingle(ast: Ast, input: Json): Json | typeof NOT_SINGLE {
+  private tryEvalSingle(ast: Ast, input: Json, depth = 0): Json | typeof NOT_SINGLE {
     if (this.budget.needsYield()) return NOT_SINGLE;
     switch (ast.kind) {
       case "identity":
@@ -78,9 +97,9 @@ export class Interpreter {
         return ast.value;
       case "index": {
         this.budget.step();
-        const idx = this.tryEvalSingle(ast.index, input);
+        const idx = this.tryEvalSingle(ast.index, input, depth + 1);
         if (typeof idx !== "string") return NOT_SINGLE;
-        const base = this.tryEvalSingle(ast.base, input);
+        const base = this.tryEvalSingle(ast.base, input, depth + 1);
         if (base === NOT_SINGLE || !(base === null || isObject(base))) return NOT_SINGLE;
         return base === null ? null : Object.hasOwn(base, idx) ? base[idx]! : null;
       }
@@ -88,20 +107,20 @@ export class Interpreter {
         this.budget.step();
         const op = ast.operator;
         if (op === "and" || op === "or") {
-          const left = this.tryEvalSingle(ast.left, input);
+          const left = this.tryEvalSingle(ast.left, input, depth + 1);
           if (left === NOT_SINGLE) return NOT_SINGLE;
           if (op === "and" && !truth(left)) return false;
           if (op === "or" && truth(left)) return true;
-          const right = this.tryEvalSingle(ast.right, input);
+          const right = this.tryEvalSingle(ast.right, input, depth + 1);
           if (right === NOT_SINGLE) return NOT_SINGLE;
           return truth(right);
         }
         if (op === "+" || op === "-" || op === "*" || op === "==" || op === "!=" || op === "<" || op === "<=" || op === ">" || op === ">=") {
-          const rightVal = this.tryEvalSingle(ast.right, input);
+          const rightVal = this.tryEvalSingle(ast.right, input, depth + 1);
           if (rightVal === NOT_SINGLE) return NOT_SINGLE;
           const right = exactFiniteNumber(rightVal);
           if (right === undefined) return NOT_SINGLE;
-          const leftVal = this.tryEvalSingle(ast.left, input);
+          const leftVal = this.tryEvalSingle(ast.left, input, depth + 1);
           if (leftVal === NOT_SINGLE) return NOT_SINGLE;
           const left = exactFiniteNumber(leftVal);
           if (left === undefined) return NOT_SINGLE;
@@ -122,23 +141,47 @@ export class Interpreter {
       }
       case "object": {
         this.budget.step();
-        const result = object();
+        const canScratch = depth === 0 && !this.scratchInUse;
+        let result = canScratch ? this.scratchObj : object();
+        const sKeys = this.scratchKeys;
+        let shapeMatch = canScratch && sKeys.length === ast.fields.length;
         for (let i = 0; i < ast.fields.length; i++) {
           const f = ast.fields[i]!;
-          const key = this.tryEvalSingle(f.key, input);
+          const key = this.tryEvalSingle(f.key, input, depth + 1);
           if (typeof key !== "string") return NOT_SINGLE;
           let val: Json | typeof NOT_SINGLE;
           if (f.value) {
-            val = this.tryEvalSingle(f.value, input);
+            val = this.tryEvalSingle(f.value, input, depth + 1);
           } else if (input === null || isObject(input)) {
             val = input === null ? null : Object.hasOwn(input, key) ? input[key]! : null;
           } else {
             return NOT_SINGLE;
           }
           if (val === NOT_SINGLE) return NOT_SINGLE;
-          put(result, key, val);
+          const kFirst = key.charCodeAt(0);
+          if (kFirst >= 48 && kFirst <= 57 || key === "__proto__") {
+            if (shapeMatch) {
+              shapeMatch = false;
+              const fresh = object();
+              for (let k = 0; k < i; k++) fresh[sKeys[k]!] = result[sKeys[k]!]!;
+              result = fresh;
+              if (canScratch) { this.scratchObj = result; sKeys.length = 0; }
+            }
+            put(result, key, val);
+          } else {
+            if (shapeMatch && sKeys[i] !== key) {
+              shapeMatch = false;
+              const fresh = object();
+              for (let k = 0; k < i; k++) fresh[sKeys[k]!] = result[sKeys[k]!]!;
+              result = fresh;
+              if (canScratch) { this.scratchObj = result; sKeys.length = i; }
+            }
+            if (!shapeMatch && canScratch && sKeys.length === i) sKeys.push(key);
+            result[key] = val;
+          }
         }
-        this.budget.value(result);
+        if (canScratch) this.scratchInUse = true;
+        this.budget.checkValue(result);
         return result;
       }
       default:

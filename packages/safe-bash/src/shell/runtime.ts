@@ -1042,18 +1042,19 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
 }
 
 async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
-  const hasLocals = inheritLocals && state.locals.length > 0;
+  const raw = stateMonitor(state)?.raw ?? state;
+  const hasLocals = inheritLocals && raw.locals.length > 0;
   const destination = await snapshotState(state, () => ({
-    ...state,
-    variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
-    exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
-    ...(state.exportedFunctions ? { exportedFunctions: new Set(state.exportedFunctions) } : {}),
-    ...(state.readonlyVariables ? { readonlyVariables: new Set(state.readonlyVariables) } : {}),
-    ...(state.readonlyFunctions ? { readonlyFunctions: new Set(state.readonlyFunctions) } : {}),
-    ...(state.variableAttributes ? { variableAttributes: new Map(state.variableAttributes) } : {}),
-    ...(state.getopts ? { getopts: cloneGetoptsBinding(state) } : {}),
-    directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
-    locals: hasLocals ? state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))) : [],
+    ...raw,
+    variables: Object.assign(Object.create(null) as Record<string, string>, raw.variables),
+    exported: new Set(raw.exported), functions: new Map(raw.functions), positional: [...raw.positional],
+    ...(raw.exportedFunctions ? { exportedFunctions: new Set(raw.exportedFunctions) } : {}),
+    ...(raw.readonlyVariables ? { readonlyVariables: new Set(raw.readonlyVariables) } : {}),
+    ...(raw.readonlyFunctions ? { readonlyFunctions: new Set(raw.readonlyFunctions) } : {}),
+    ...(raw.variableAttributes ? { variableAttributes: new Map(raw.variableAttributes) } : {}),
+    ...(raw.getopts ? { getopts: cloneGetoptsBinding(raw) } : {}),
+    directoryStack: { entries: [...raw.directoryStack?.entries ?? []], bytes: raw.directoryStack?.bytes ?? 0 },
+    locals: hasLocals ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))) : [],
   }), signal, hasLocals ? async (destination, owner) => {
     const store = arrayStore(destination) ?? requireArrays(destination);
     for (let index = 0; index < destination.locals.length; index++) {

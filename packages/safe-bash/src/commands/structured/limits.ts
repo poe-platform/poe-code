@@ -1,4 +1,4 @@
-import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { Decimal, isNumber, numberText } from "./numbers.js";
 
 export type Json = null | boolean | number | Decimal | string | Json[] | { [key: string]: Json };
@@ -48,24 +48,42 @@ export class Budget {
   private steps = 0;
   private nextYield = 1024;
   private lastYield = monotonicNow();
+  private readonly unlimitedSteps: boolean;
+  private readonly maxStepsSmi: number;
   inputBytes = 0;
   outputBytes = 0;
   results = 0;
   inputLocation: InputLocation = { name: "<unknown>", line: 0, complete: true };
-  constructor(readonly limits: JqLimits, readonly signal: AbortSignal) {}
+  constructor(readonly limits: JqLimits, readonly signal: AbortSignal) {
+    this.unlimitedSteps = limits.maxSteps === Infinity;
+    this.maxStepsSmi = !this.unlimitedSteps && limits.maxSteps <= 0x3fffffff ? (limits.maxSteps | 0) : 0x3fffffff;
+  }
   step(count = 1): void {
-    this.signal.throwIfAborted();
-    this.steps += count;
-    if (this.steps > this.limits.maxSteps) throw new JqLimitError("maxSteps");
+    if (this.signal.aborted) this.signal.throwIfAborted();
+    const next = this.steps + count;
+    this.steps = next;
+    if (!this.unlimitedSteps && next > this.maxStepsSmi && next > this.limits.maxSteps) throw new JqLimitError("maxSteps");
   }
   get currentSteps(): number { return this.steps; }
   restoreSteps(steps: number): void { this.steps = steps; }
   needsYield(): boolean {
-    return this.steps >= this.nextYield || ((this.steps & 31) === 0 && monotonicNow() - this.lastYield >= 25);
+    if (this.steps < this.nextYield) return false;
+    if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+      runYieldCheckpoint(this.signal);
+      this.nextYield = this.steps + 1024;
+      return false;
+    }
+    return true;
   }
   tickSync(count = 1): Promise<void> | undefined {
     this.step(count);
-    if (this.steps >= this.nextYield || ((this.steps & 31) === 0 && monotonicNow() - this.lastYield >= 25)) {
+    if (this.steps >= this.nextYield) {
+      if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+        runYieldCheckpoint(this.signal);
+        this.nextYield = this.steps + 1024;
+        return undefined;
+      }
+      this.lastYield = monotonicNow();
       return yieldTurn(this.signal).then(() => {
         this.signal.throwIfAborted();
         this.nextYield = this.steps + 1024;
@@ -88,6 +106,13 @@ export class Budget {
   }
   text(text: string): void {
     if (text.length > this.limits.maxValueBytes || (text.length * 3 > this.limits.maxValueBytes && Buffer.byteLength(text) > this.limits.maxValueBytes)) throw new JqLimitError("maxValueBytes");
+  }
+  checkValue(value: Json): void {
+    if (this.limits.maxValueBytes === Infinity && this.limits.maxDepth === Infinity && this.limits.maxCollectionSize === Infinity) {
+      this.step();
+      return;
+    }
+    this.visitValue(value, 0, 0);
   }
   value(value: Json): number {
     return this.visitValue(value, 0, 0);

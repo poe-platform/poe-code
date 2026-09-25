@@ -2,7 +2,7 @@ import { FsError, type CommandContext } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import type { AwkProgram, Expression, Statement } from "./awk-syntax.js";
 import { decodeString } from "./awk-syntax.js";
-import { AwkArray, compare, formatted, inputValue, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
+import { AwkArray, compare, formatted, inputValue, inputValueFromSlice, number, numeric, scalar, string, text, truth, unset, type Scalar, type Value } from "./awk-values.js";
 import { Pattern, substitute } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, input, virtualPath, write } from "./shared.js";
 import { AwkRetention } from "./awk-retention.js";
@@ -14,6 +14,11 @@ function textSize(value: Value | undefined): number {
 }
 
 function ownScalar(value: Scalar): Scalar {
+  if (value.kind === "number") {
+    return (value.number | 0) === value.number && value.number >= -1 && value.number <= 4096 && (value.number !== 0 || 1 / value.number > 0)
+      ? value
+      : { kind: "number", number: value.number };
+  }
   return value.kind === "string" || value.kind === "numeric"
     ? { ...value, text: value.text.length < 13 ? value.text : Buffer.from(value.text, "latin1").toString("latin1") } : value;
 }
@@ -46,9 +51,34 @@ export class AwkRuntime {
   private lazyFieldGen = new Int32Array(64);
   private lazyFields: Scalar[] = new Array(64);
   private fieldBytes = 0;
-  private record = "";
+  private rawRecord: string | undefined = "";
+  private recordSource = "";
+  private recordStart = 0;
+  private recordEnd = 0;
+  private get record(): string {
+    return this.rawRecord ??= this.recordSource.slice(this.recordStart, this.recordEnd);
+  }
+  private set record(v: string) {
+    this.rawRecord = v;
+    this.recordSource = v;
+    this.recordStart = 0;
+    this.recordEnd = v.length;
+  }
+  private get recordLength(): number {
+    return this.rawRecord !== undefined ? this.rawRecord.length : this.recordEnd - this.recordStart;
+  }
+  private readonly sliceBox = { source: "", start: 0, end: 0 };
   private recordValue: Scalar | undefined = string("");
   private entries = 0;
+  private fsText = " ";
+  private rsText = "\n";
+  private convfmtText = "%.6g";
+  private nrNum = 0;
+  private nrDirty = false;
+  private fnrNum = 0;
+  private fnrDirty = false;
+  private nfNum = 0;
+  private nfDirty = false;
   private phase = "BEGIN";
   private status = 0;
   private randomSeed = 1;
@@ -66,14 +96,33 @@ export class AwkRuntime {
     } catch (error) { this.releaseStore(this.variables); throw error; }
   }
   private store(name: string): Map<string, Value> { return this.frames.at(-1)?.has(name) ? this.frames.at(-1)! : this.variables; }
-  private get(name: string): Value { return this.store(name).get(name) ?? unset; }
+  private syncSpecialVars(): void {
+    if (this.nrDirty) { this.nrDirty = false; this.storeScalar(this.variables, "NR", numeric(this.nrNum)); }
+    if (this.fnrDirty) { this.fnrDirty = false; this.storeScalar(this.variables, "FNR", numeric(this.fnrNum)); }
+    if (this.nfDirty) { this.nfDirty = false; this.storeScalar(this.variables, "NF", numeric(this.nfNum)); }
+  }
+  private get(name: string): Value {
+    if (this.frames.length === 0 || !this.frames.at(-1)!.has(name)) {
+      if (name === "NR" && this.nrDirty) { this.nrDirty = false; this.storeScalar(this.variables, "NR", numeric(this.nrNum)); }
+      else if (name === "FNR" && this.fnrDirty) { this.fnrDirty = false; this.storeScalar(this.variables, "FNR", numeric(this.fnrNum)); }
+      else if (name === "NF" && this.nfDirty) { this.nfDirty = false; this.storeScalar(this.variables, "NF", numeric(this.nfNum)); }
+    }
+    return this.store(name).get(name) ?? unset;
+  }
   private getScalar(name: string): Scalar { return scalar(this.get(name)); }
   private asText(value: Scalar): string {
     if (value.kind === "string" || value.kind === "numeric") return value.text;
     if (value.kind === "unset") return "";
     return text(value, text(this.getScalar("CONVFMT"), undefined, this.budget), this.budget);
   }
-  private varText(name: string): string { return this.asText(this.getScalar(name)); }
+  private varText(name: string): string {
+    if (this.frames.length === 0) {
+      if (name === "FS") return this.fsText;
+      if (name === "RS") return this.rsText;
+      if (name === "CONVFMT") return this.convfmtText;
+    }
+    return this.asText(this.getScalar(name));
+  }
   private retainName(path: string): string {
     this.context.signal.throwIfAborted();
     return this.retention.replace(0, Buffer.byteLength(path, "utf8"), () => Buffer.from(path, "utf16le").toString("utf16le"));
@@ -81,7 +130,16 @@ export class AwkRuntime {
   private storeScalar(store: Map<string, Value>, name: string, value: Scalar): void {
     if (value.kind === "string" || value.kind === "numeric") this.budget.check(value.text);
     this.retention.admit(textSize(store.get(name)), textSize(value));
-    store.set(name, ownScalar(value));
+    const owned = ownScalar(value);
+    store.set(name, owned);
+    if (store === this.variables) {
+      if (name === "FS") this.fsText = this.asText(owned);
+      else if (name === "RS") this.rsText = this.asText(owned);
+      else if (name === "CONVFMT") this.convfmtText = this.asText(owned);
+      else if (name === "NR") { this.nrNum = number(owned); this.nrDirty = false; }
+      else if (name === "FNR") { this.fnrNum = number(owned); this.fnrDirty = false; }
+      else if (name === "NF") { this.nfNum = number(owned); this.nfDirty = false; }
+    }
   }
   private bindArray(store: Map<string, Value>, name: string, array: AwkArray): void {
     let allocation = this.arrays.get(array);
@@ -123,13 +181,18 @@ export class AwkRuntime {
     this.budget.check(key);
     if (value.kind === "string" || value.kind === "numeric") this.budget.check(value.text);
     const existingValue = array.entries.get(key);
+    if (existingValue !== undefined && existingValue.kind === "number" && value.kind === "number") {
+      if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+      array.entries.set(key, value);
+      return;
+    }
     const existing = existingValue !== undefined || array.entries.has(key);
     if (!existing && this.entries >= (this.budget.options.maxArrayEntries ?? Infinity)) throw new ProgramError("array entry limit exceeded");
     const previous = textSize(existingValue), next = textSize(value) + (existing ? 0 : key.length);
     this.retention.admit(previous, next);
     const ownedKey = existing || key.length < 13 ? key : Buffer.from(key, "latin1").toString("latin1");
     array.entries.set(ownedKey, ownScalar(value));
-    this.arrays.get(array)!.bytes += next - previous;
+    if (next !== previous) this.arrays.get(array)!.bytes += next - previous;
     if (!existing) this.entries++;
   }
   private pattern(source: string): Pattern {
@@ -261,7 +324,7 @@ export class AwkRuntime {
     if (this.lazyFieldGen[slot] === this.fieldGeneration) {
       return this.lazyFields[slot]!;
     }
-    const val = inputValue(this.record.slice(this.fieldStarts[slot]!, this.fieldEnds[slot]!));
+    const val = inputValueFromSlice(this.recordSource, this.fieldStarts[slot]!, this.fieldEnds[slot]!);
     this.lazyFieldGen[slot] = this.fieldGeneration;
     this.lazyFields[slot] = val;
     return val;
@@ -272,14 +335,70 @@ export class AwkRuntime {
       for (let i = 0; i < this.fieldCount; i++) {
         out[i] = this.lazyFieldGen[i] === this.fieldGeneration
           ? this.lazyFields[i]!
-          : inputValue(this.record.slice(this.fieldStarts[i]!, this.fieldEnds[i]!));
+          : inputValueFromSlice(this.recordSource, this.fieldStarts[i]!, this.fieldEnds[i]!);
       }
       this.rawFields = out;
       this.fieldsMaterialized = true;
     }
     return this.rawFields;
   }
+  private setRecordSliceSync(source: string, recStart: number, recEnd: number): void | Promise<void> {
+    const recLen = recEnd - recStart;
+    if (recLen > this.budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    const separator = this.varText("FS");
+    const paragraph = this.varText("RS") === "";
+    const maxFields = this.budget.options.maxFields ?? Infinity;
+    if (!paragraph && recLen < 256 && (separator === " " || separator.length === 1) && maxFields >= 64) {
+      this.budget.step(recLen);
+      let count = 0;
+      let fieldBytes = 0;
+      const starts = this.fieldStarts;
+      const ends = this.fieldEnds;
+      if (separator === " ") {
+        let start = -1;
+        for (let index = recStart; index < recEnd; index++) {
+          const ch = source.charCodeAt(index);
+          if (ch === 32 || ch === 9 || ch === 10) {
+            if (start >= 0) {
+              if (count >= maxFields || count >= 64) return this.setRecordSlow(source.slice(recStart, recEnd), separator, paragraph);
+              starts[count] = start; ends[count] = index; fieldBytes += index - start; count++;
+              start = -1;
+            }
+          } else if (start < 0) start = index;
+        }
+        if (start >= 0) {
+          if (count >= maxFields || count >= 64) return this.setRecordSlow(source.slice(recStart, recEnd), separator, paragraph);
+          starts[count] = start; ends[count] = recEnd; fieldBytes += recEnd - start; count++;
+        }
+      } else if (recLen > 0) {
+        let start = recStart;
+        let idx: number;
+        while ((idx = source.indexOf(separator, start)) >= 0 && idx < recEnd) {
+          if (count >= maxFields || count >= 64) return this.setRecordSlow(source.slice(recStart, recEnd), separator, paragraph);
+          starts[count] = start; ends[count] = idx; fieldBytes += idx - start; count++;
+          start = idx + 1;
+        }
+        if (count >= maxFields || count >= 64) return this.setRecordSlow(source.slice(recStart, recEnd), separator, paragraph);
+        starts[count] = start; ends[count] = recEnd; fieldBytes += recEnd - start; count++;
+      }
+      this.retention.admit(this.recordLength + this.fieldBytes, recLen + fieldBytes);
+      this.rawRecord = undefined;
+      this.recordSource = source;
+      this.recordStart = recStart;
+      this.recordEnd = recEnd;
+      this.fieldBytes = fieldBytes;
+      this.fieldCount = count;
+      this.fieldsMaterialized = false;
+      this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
+      this.recordValue = undefined;
+      this.nfNum = count;
+      this.nfDirty = true;
+      return;
+    }
+    return this.setRecordSlow(source.slice(recStart, recEnd), separator, paragraph);
+  }
   private setRecordSync(record: string, value?: Scalar): void | Promise<void> {
+    if (value === undefined) return this.setRecordSliceSync(record, 0, record.length);
     this.budget.check(record);
     const separator = this.varText("FS");
     const paragraph = this.varText("RS") === "";
@@ -347,10 +466,11 @@ export class AwkRuntime {
       if (field.kind === "string" || field.kind === "numeric") this.budget.check(field.text);
       fieldBytes += textSize(field);
     }
-    this.retention.admit(this.record.length + this.fieldBytes, record.length + fieldBytes);
+    this.retention.admit(this.recordLength + this.fieldBytes, record.length + fieldBytes);
     this.record = record; this.fields = fields; this.fieldCount = fields.length; this.fieldsMaterialized = true; this.fieldBytes = fieldBytes;
     this.recordValue = value.kind === "string" || value.kind === "numeric" ? { ...value, text: this.record } : value;
-    this.variables.set("NF", numeric(fields.length));
+    this.nfNum = fields.length;
+    this.nfDirty = true;
   }
   private join(parts: readonly string[], separator: string, suffix = ""): string {
     this.budget.step(parts.length + 1);
@@ -541,6 +661,14 @@ export class AwkRuntime {
               const previous = scalar(current!);
               const rightVal = this.scalarExpression(expression.right);
               if (!(rightVal instanceof Promise)) {
+                if (operator !== "=" && current !== undefined && current.kind === "number" && (current.number < -1 || current.number > 4096)) {
+                  const nextNum = this.arithmetic(operator[0]!, current.number, number(rightVal));
+                  if (nextNum < -1 || nextNum > 4096) {
+                    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+                    (current as { number: number }).number = nextNum;
+                    return current;
+                  }
+                }
                 const value = operator === "=" ? rightVal : numeric(this.arithmetic(operator[0]!, number(previous), number(rightVal)));
                 this.arraySet(array, k, value);
                 return value;
@@ -592,7 +720,14 @@ export class AwkRuntime {
       return string(leftText + rightText);
     }
     if (operator === "==" || operator === "!=" || operator === "<" || operator === "<=" || operator === ">" || operator === ">=") {
-      const order = compare(left, right, this.varText("CONVFMT"), this.budget);
+      let order: number;
+      if (left.kind !== "string" && right.kind !== "string") {
+        const first = number(left);
+        const second = number(right);
+        order = first < second ? -1 : first > second ? 1 : 0;
+      } else {
+        order = compare(left, right, this.varText("CONVFMT"), this.budget);
+      }
       return numeric((operator === "==" ? order === 0 : operator === "!=" ? order !== 0 : operator === "<" ? order < 0 : operator === "<=" ? order <= 0 : operator === ">" ? order > 0 : order >= 0) ? 1 : 0);
     }
     return numeric(this.arithmetic(operator, number(left), number(right)));
@@ -947,7 +1082,7 @@ export class AwkRuntime {
   async run(): Promise<number> {
     let status = 0, failed = false;
     let failure: unknown;
-    try { status = await this.runProgram(); await this.inspection?.publish(this.variables); }
+    try { status = await this.runProgram(); this.syncSpecialVars(); await this.inspection?.publish(this.variables); }
     catch (error) { failed = true; failure = error; }
     const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs.values()];
     this.mainReader = undefined;
@@ -957,7 +1092,7 @@ export class AwkRuntime {
     for (const name of this.outputs) this.retention.release(Buffer.byteLength(name, "utf8"));
     this.outputs.clear();
     this.releaseStore(this.variables);
-    this.retention.release(this.record.length + this.fieldBytes);
+    this.retention.release(this.recordLength + this.fieldBytes);
     this.record = ""; this.fields = []; this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.recordValue = unset;
     this.context.signal.throwIfAborted();
@@ -972,11 +1107,27 @@ export class AwkRuntime {
   }
 
   private incrementCounter(name: string): void {
-    const current = this.variables.get(name);
-    if (current && !(current instanceof AwkArray) && current.kind === "number" && !this.frames.at(-1)?.has(name)) {
-      this.retention.admit(0, 0);
-      this.variables.set(name, numeric(current.number + 1));
-      return;
+    if (this.frames.length === 0 || !this.frames.at(-1)!.has(name)) {
+      const nrVal = name === "NR" && !this.nrDirty ? this.variables.get("NR") : undefined;
+      if (nrVal && !("entries" in nrVal) && nrVal.kind === "number") {
+        this.nrNum++;
+        this.nrDirty = true;
+        return;
+      }
+      if (name === "NR" && this.nrDirty) {
+        this.nrNum++;
+        return;
+      }
+      const fnrVal = name === "FNR" && !this.fnrDirty ? this.variables.get("FNR") : undefined;
+      if (fnrVal && !("entries" in fnrVal) && fnrVal.kind === "number") {
+        this.fnrNum++;
+        this.fnrDirty = true;
+        return;
+      }
+      if (name === "FNR" && this.fnrDirty) {
+        this.fnrNum++;
+        return;
+      }
     }
     this.set(name, numeric(number(this.getScalar(name)) + 1));
   }
@@ -1048,11 +1199,18 @@ export class AwkRuntime {
     const ranges = new Set<number>();
     if (!stopped && (this.program.rules.length || this.program.end.length)) while (true) {
       this.budget.step();
-      const recOrPromise = this.readMainRecordSync();
-      const record = recOrPromise instanceof Promise ? await recOrPromise : recOrPromise;
-      if (record === undefined) break;
-      const setRecPromise = this.setRecordSync(record);
-      if (setRecPromise instanceof Promise) await setRecPromise;
+      if (this.mainReader && this.mainReader.readSliceSync(this.varText("RS"), this.sliceBox)) {
+        this.incrementCounter("NR");
+        this.incrementCounter("FNR");
+        const setRecPromise = this.setRecordSliceSync(this.sliceBox.source, this.sliceBox.start, this.sliceBox.end);
+        if (setRecPromise instanceof Promise) await setRecPromise;
+      } else {
+        const recOrPromise = this.readMainRecordSync();
+        const record = recOrPromise instanceof Promise ? await recOrPromise : recOrPromise;
+        if (record === undefined) break;
+        const setRecPromise = this.setRecordSync(record);
+        if (setRecPromise instanceof Promise) await setRecPromise;
+      }
       try {
         for (let index = 0; index < this.program.rules.length; index++) {
           const rule = this.program.rules[index]!;

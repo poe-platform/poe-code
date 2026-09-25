@@ -126,7 +126,7 @@ export class StateMonitor {
     this.#positionalRevision = {};
   }
 
-  private changedValue(target: object, field: string, key: PropertyKey): void {
+  changedValue(target: object, field: string, key: PropertyKey): void {
     if (field === "state") {
       if (key === "variables") this.values.invalidate();
       if (key === "positional") { this.positionals.invalidate(); this.invalidateGetoptsInput(); }
@@ -276,100 +276,132 @@ export class StateMonitor {
     this.store?.changed(tickets, name);
   }
 
-  private wrap(value: object, field: string): object {
+  wrap(value: object, field: string): object {
     const previous = this.#wrapped.get(value);
     if (previous) return previous;
     if (this.#enrollment || this.#internalEnrollment) {
       (this.#enrollment ? this.session.guestOwner! : this.session.owner!).reserve({ slots: 2, metadata: 128, work: 8 });
     }
     this.#wrapperCount++;
-    const monitor = this;
     const named = field === "variables" || field === "exported" || field === "readonlyVariables";
     let proxy: object;
     if (value instanceof Map || value instanceof Set) {
-      const boundCache = new Map<PropertyKey, unknown>();
-      if (value instanceof Map) {
-        boundCache.set("set", (name: unknown, entry: unknown) => {
-          const key = named ? String(name) : undefined;
-          const tickets = monitor.mutation(key);
-          value.set(name, entry);
-          monitor.finish(tickets, key);
-          return proxy;
-        });
-      }
-      if (value instanceof Set) {
-        boundCache.set("add", (name: unknown) => {
-          const key = named ? String(name) : undefined;
-          const tickets = monitor.mutation(key);
-          value.add(name);
-          monitor.finish(tickets, key);
-          return proxy;
-        });
-      }
-      boundCache.set("delete", (name: unknown) => {
-        const key = named ? String(name) : undefined;
-        const tickets = monitor.mutation(key);
-        const result = value.delete(name);
-        monitor.finish(tickets, key);
-        return result;
-      });
-      boundCache.set("clear", () => {
-        const tickets = monitor.mutation();
-        value.clear();
-        monitor.finish(tickets);
-      });
-      proxy = new Proxy(value, { get(target, key) {
-        const cached = boundCache.get(key);
-        if (cached !== undefined) return cached;
-        const entry: unknown = Reflect.get(target, key, target);
-        if (typeof entry === "function") {
-          const bound = entry.bind(target);
-          boundCache.set(key, bound);
-          return bound;
-        }
-        return entry;
-      } });
+      const handler = new CollectionProxyHandler(this, named);
+      proxy = new Proxy(value, handler);
+      handler.proxy = proxy;
     } else {
-      proxy = new Proxy(value, {
-        get(target, key, receiver) {
-          const entry: unknown = Reflect.get(target, key, receiver);
-          if (typeof entry !== "object" || entry === null) return entry;
-          if (field === "state" && key === "extensions") return entry;
-          if (key !== "redirectAssignments") {
-            if (field === "state" && key === "functions") return monitor.wrap(entry, "functions");
-            if (field !== "functions") return monitor.wrap(entry, field === "state" ? String(key) : field);
-          }
-          return entry;
-        },
-        set(target, key, entry) {
-          const name = named ? String(key) : undefined;
-          const tickets = monitor.mutation(name);
-          const result = Reflect.set(target, key, entry);
-          if (result) monitor.changedValue(target, field, key);
-          monitor.finish(tickets, name);
-          return result;
-        },
-        deleteProperty(target, key) {
-          const name = named ? String(key) : undefined;
-          const tickets = monitor.mutation(name);
-          const result = Reflect.deleteProperty(target, key);
-          if (result) monitor.changedValue(target, field, key);
-          monitor.finish(tickets, name);
-          return result;
-        },
-        defineProperty(target, key, descriptor) {
-          const name = named ? String(key) : undefined;
-          const tickets = monitor.mutation(name);
-          const result = Reflect.defineProperty(target, key, descriptor);
-          if (result) monitor.changedValue(target, field, key);
-          monitor.finish(tickets, name);
-          return result;
-        },
-      });
+      proxy = new Proxy(value, new StateProxyHandler(this, field, named));
     }
     this.#wrapped.set(value, proxy);
     this.#wrapped.set(proxy, proxy);
     return proxy;
+  }
+}
+
+class StateProxyHandler implements ProxyHandler<object> {
+  constructor(
+    private readonly monitor: StateMonitor,
+    private readonly field: string,
+    private readonly named: boolean,
+  ) {}
+  get(target: object, key: PropertyKey, receiver: unknown): unknown {
+    const entry: unknown = Reflect.get(target, key, receiver);
+    if (typeof entry !== "object" || entry === null) return entry;
+    if (this.field === "state" && key === "extensions") return entry;
+    if (key !== "redirectAssignments") {
+      if (this.field === "state" && key === "functions") return this.monitor.wrap(entry, "functions");
+      if (this.field !== "functions") return this.monitor.wrap(entry, this.field === "state" ? String(key) : this.field);
+    }
+    return entry;
+  }
+  set(target: object, key: PropertyKey, entry: unknown): boolean {
+    const name = this.named ? String(key) : undefined;
+    const tickets = this.monitor.mutation(name);
+    const result = Reflect.set(target, key, entry);
+    if (result) this.monitor.changedValue(target, this.field, key);
+    this.monitor.finish(tickets, name);
+    return result;
+  }
+  deleteProperty(target: object, key: PropertyKey): boolean {
+    const name = this.named ? String(key) : undefined;
+    const tickets = this.monitor.mutation(name);
+    const result = Reflect.deleteProperty(target, key);
+    if (result) this.monitor.changedValue(target, this.field, key);
+    this.monitor.finish(tickets, name);
+    return result;
+  }
+  defineProperty(target: object, key: PropertyKey, descriptor: PropertyDescriptor): boolean {
+    const name = this.named ? String(key) : undefined;
+    const tickets = this.monitor.mutation(name);
+    const result = Reflect.defineProperty(target, key, descriptor);
+    if (result) this.monitor.changedValue(target, this.field, key);
+    this.monitor.finish(tickets, name);
+    return result;
+  }
+}
+
+class CollectionProxyHandler implements ProxyHandler<Map<unknown, unknown> | Set<unknown>> {
+  proxy!: object;
+  private boundCache: Map<PropertyKey, unknown> | undefined;
+  constructor(
+    private readonly monitor: StateMonitor,
+    private readonly named: boolean,
+  ) {}
+  get(target: Map<unknown, unknown> | Set<unknown>, key: PropertyKey): unknown {
+    let cache = this.boundCache;
+    if (cache) {
+      const cached = cache.get(key);
+      if (cached !== undefined) return cached;
+    }
+    if (key === "set" && target instanceof Map) {
+      const fn = (name: unknown, entry: unknown) => {
+        const k = this.named ? String(name) : undefined;
+        const tickets = this.monitor.mutation(k);
+        target.set(name, entry);
+        this.monitor.finish(tickets, k);
+        return this.proxy;
+      };
+      (this.boundCache ??= new Map()).set(key, fn);
+      return fn;
+    }
+    if (key === "add" && target instanceof Set) {
+      const fn = (name: unknown) => {
+        const k = this.named ? String(name) : undefined;
+        const tickets = this.monitor.mutation(k);
+        target.add(name);
+        this.monitor.finish(tickets, k);
+        return this.proxy;
+      };
+      (this.boundCache ??= new Map()).set(key, fn);
+      return fn;
+    }
+    if (key === "delete") {
+      const fn = (name: unknown) => {
+        const k = this.named ? String(name) : undefined;
+        const tickets = this.monitor.mutation(k);
+        const result = target.delete(name);
+        this.monitor.finish(tickets, k);
+        return result;
+      };
+      (this.boundCache ??= new Map()).set(key, fn);
+      return fn;
+    }
+    if (key === "clear") {
+      const fn = () => {
+        const tickets = this.monitor.mutation();
+        target.clear();
+        this.monitor.finish(tickets);
+      };
+      (this.boundCache ??= new Map()).set(key, fn);
+      return fn;
+    }
+    const entry: unknown = Reflect.get(target, key, target);
+    if (typeof entry === "function") {
+      const bound = entry.bind(target);
+      (this.boundCache ??= new Map()).set(key, bound);
+      return bound;
+    }
+    return entry;
   }
 }
 

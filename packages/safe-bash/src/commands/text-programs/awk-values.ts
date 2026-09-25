@@ -43,8 +43,9 @@ export function inputValue(text: string): Scalar {
     if (len <= 12) {
       const slot = ((first * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
       if (INPUT_STRING_CACHE_KEYS[slot] === text) return INPUT_STRING_CACHE_VALS[slot]!;
-      const val: Scalar = Object.freeze({ kind: "string", text });
-      INPUT_STRING_CACHE_KEYS[slot] = text;
+      const flat = Buffer.from(text, "latin1").toString("latin1");
+      const val: Scalar = Object.freeze({ kind: "string", text: flat });
+      INPUT_STRING_CACHE_KEYS[slot] = flat;
       INPUT_STRING_CACHE_VALS[slot] = val;
       return val;
     }
@@ -52,6 +53,44 @@ export function inputValue(text: string): Scalar {
   }
   return /^[ \t\r\n]*[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?[ \t\r\n]*$/u.test(text)
     ? { kind: "numeric", text, number: Number(text) } : string(text);
+}
+
+export function inputValueFromSlice(record: string, start: number, end: number): Scalar {
+  const len = end - start;
+  if (len <= 0) return EMPTY_STRING_SCALAR;
+  const first = record.charCodeAt(start);
+  if (first >= 48 && first <= 57 && len <= 15) {
+    let num = first - 48;
+    let allDigits = true;
+    for (let i = start + 1; i < end; i++) {
+      const c = record.charCodeAt(i);
+      if (c < 48 || c > 57) {
+        allDigits = false;
+        break;
+      }
+      num = num * 10 + (c - 48);
+    }
+    if (allDigits) {
+      if (num < 1024 && (len === 1 || first !== 48)) return SMALL_NUMERIC_STRINGS[num]!;
+      return { kind: "numeric", text: record.slice(start, end), number: num };
+    }
+  }
+  if (first > 57 || (first < 48 && first !== 32 && first !== 9 && first !== 10 && first !== 13 && first !== 43 && first !== 45 && first !== 46)) {
+    if (len <= 12) {
+      const slot = ((first * 31 + record.charCodeAt(end - 1) * 17 + len) & 63);
+      const cachedKey = INPUT_STRING_CACHE_KEYS[slot];
+      if (cachedKey !== undefined && cachedKey.length === len && record.startsWith(cachedKey, start)) {
+        return INPUT_STRING_CACHE_VALS[slot]!;
+      }
+      const flat = Buffer.from(record.slice(start, end), "latin1").toString("latin1");
+      const val: Scalar = Object.freeze({ kind: "string", text: flat });
+      INPUT_STRING_CACHE_KEYS[slot] = flat;
+      INPUT_STRING_CACHE_VALS[slot] = val;
+      return val;
+    }
+    return { kind: "string", text: record.slice(start, end) };
+  }
+  return inputValue(record.slice(start, end));
 }
 
 export function scalar(value: Value): Scalar {

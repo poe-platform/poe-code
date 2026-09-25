@@ -13,6 +13,7 @@ interface Scan {
 export class Reader {
   private readonly iterator: AsyncIterator<Uint8Array>;
   private blocks: (Buffer | undefined)[] = [];
+  private blockStrings: (string | undefined)[] = [];
   private head = 0;
   private offset = 0;
   private buffered = 0;
@@ -41,6 +42,7 @@ export class Reader {
     });
     try { this.blocks.push(block); }
     catch (error) { this.retention.release(length); throw error; }
+    this.blockStrings.push(undefined);
     this.buffered += length;
     this.ownedBytes += length;
   }
@@ -54,12 +56,15 @@ export class Reader {
       length -= available;
       this.retention.release(block.length);
       this.ownedBytes -= block.length;
-      this.blocks[this.head++] = undefined;
+      this.blocks[this.head] = undefined;
+      this.blockStrings[this.head] = undefined;
+      this.head++;
       this.offset = 0;
     }
-    if (this.head === this.blocks.length) { this.blocks = []; this.head = 0; }
+    if (this.head === this.blocks.length) { this.blocks.length = 0; this.blockStrings.length = 0; this.head = 0; }
     else if (this.head >= 256 && this.head * 2 >= this.blocks.length) {
       this.blocks = this.blocks.slice(this.head);
+      this.blockStrings = this.blockStrings.slice(this.head);
       this.head = 0;
     }
   }
@@ -67,7 +72,8 @@ export class Reader {
   private finish(length: number, consumed: number): string {
     const firstBlock = this.blocks[this.head]!;
     if (length <= firstBlock.length - this.offset) {
-      const record = firstBlock.toString("latin1", this.offset, this.offset + length);
+      const str = (this.blockStrings[this.head] ??= firstBlock.toString("latin1"));
+      const record = str.slice(this.offset, this.offset + length);
       this.consume(consumed);
       return record;
     }
@@ -119,14 +125,15 @@ export class Reader {
   }
 
   readSync(separator: string): string | undefined | Promise<string | undefined> {
-    this.budget.context.signal.throwIfAborted();
+    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
     if (separator.length === 1 && !this.closed && this.head < this.blocks.length) {
       const headBlock = this.blocks[this.head]!;
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
       if (idx >= 0 && idx - this.offset < 4096) {
         this.budget.step();
-        const record = headBlock.toString("latin1", this.offset, idx);
+        const str = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+        const record = str.slice(this.offset, idx);
         this.consume(idx - this.offset + 1);
         return record;
       }
@@ -134,6 +141,22 @@ export class Reader {
     return this.read(separator);
   }
 
+  readSliceSync(separator: string, out: { source: string; start: number; end: number }): boolean {
+    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+    if (separator.length === 1 && !this.closed && this.head < this.blocks.length) {
+      const headBlock = this.blocks[this.head]!;
+      const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+      if (idx >= 0 && idx - this.offset < 4096) {
+        this.budget.step();
+        out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+        out.start = this.offset;
+        out.end = idx;
+        this.consume(idx - this.offset + 1);
+        return true;
+      }
+    }
+    return false;
+  }
   async read(separator: string): Promise<string | undefined> {
     this.budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");

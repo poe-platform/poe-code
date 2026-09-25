@@ -1,6 +1,6 @@
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { inputRequirements } from "../portable-requirements.js";
 import { requiredFileInput } from "../search/requirements.js";
@@ -22,40 +22,55 @@ export class ProgramError extends PublicDiagnostic {}
 
 export class Budget {
   readonly maxBufferBytes: number;
-  private remaining: number;
+  private remainingSmi: number;
+  private remainingNum: number;
+  private readonly unlimited: boolean;
+  private readonly signal: AbortSignal;
   private checkpoints = 0;
   private lastYield = monotonicNow();
   constructor(readonly context: CommandContext, readonly options: TextProgramOptions) {
-    this.remaining = options.maxSteps ?? Infinity;
+    const rem = options.maxSteps ?? Infinity;
+    this.unlimited = rem === Infinity;
+    this.remainingNum = this.unlimited ? 0 : rem;
+    this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
+    this.signal = context.signal;
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
     for (const value of Object.entries(options).filter(([key]) => key.startsWith("max")).map(([, value]) => value)) {
       if (value !== undefined && (typeof value !== "number" || value !== Infinity && !Number.isSafeInteger(value) || value < 1)) throw new ProgramError("limits must be positive safe integers");
     }
   }
   step(count = 1): void {
-    this.context.signal.throwIfAborted();
-    this.remaining -= count;
-    if (this.remaining < 0) throw new ProgramError("execution step limit exceeded");
+    if (this.signal.aborted) this.signal.throwIfAborted();
+    if (this.unlimited) return;
+    if ((count | 0) === count && count >= 0 && count <= this.remainingSmi) {
+      this.remainingSmi = (this.remainingSmi - (count | 0)) | 0;
+      this.remainingNum -= count;
+      return;
+    }
+    if (count > this.remainingNum) throw new ProgramError("execution step limit exceeded");
+    this.remainingNum -= count;
+    this.remainingSmi = this.remainingNum <= 0x3fffffff ? (this.remainingNum | 0) : 0x3fffffff;
   }
   check(text: string): string {
     if (text.length > this.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     return text;
   }
   async checkpoint(): Promise<void> {
-    this.context.signal.throwIfAborted();
-    if ((++this.checkpoints & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
-      await yieldTurn(this.context.signal);
-      this.lastYield = monotonicNow();
-      this.context.signal.throwIfAborted();
-    }
+    const p = this.checkpointSync();
+    if (p) await p;
   }
   checkpointSync(): Promise<void> | undefined {
-    this.context.signal.throwIfAborted();
+    if (this.signal.aborted) this.signal.throwIfAborted();
     const count = ++this.checkpoints;
-    if ((count & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
-      return yieldTurn(this.context.signal).then(() => {
+    if ((count & 255) === 0) {
+      if (!hasYieldCheckpoint(this.signal) && (count & 4095) !== 0 && monotonicNow() - this.lastYield < 25) {
+        runYieldCheckpoint(this.signal);
+        return undefined;
+      }
+      this.lastYield = monotonicNow();
+      return yieldTurn(this.signal).then(() => {
         this.lastYield = monotonicNow();
-        this.context.signal.throwIfAborted();
+        this.signal.throwIfAborted();
       });
     }
     return undefined;

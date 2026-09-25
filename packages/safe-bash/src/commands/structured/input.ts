@@ -39,6 +39,25 @@ export function decodeUtf8(bytes: string, budget: Budget): string {
   }
   return points.join("") + block;
 }
+const SHORT_JSON_STRINGS = new Array<string>(64);
+function shortSliceString(fullText: string, start: number, end: number): string {
+  const len = end - start;
+  if (len === 0) return "";
+  if (len <= 12) {
+    const first = fullText.charCodeAt(start);
+    const last = fullText.charCodeAt(end - 1);
+    const slot = ((first * 31 + last * 17 + len * 13) & 63);
+    const cached = SHORT_JSON_STRINGS[slot];
+    if (cached !== undefined && cached.length === len && fullText.startsWith(cached, start)) {
+      return cached;
+    }
+    const s = Buffer.from(fullText.slice(start, end), "latin1").toString("latin1");
+    SHORT_JSON_STRINGS[slot] = s;
+    return s;
+  }
+  return fullText.slice(start, end);
+}
+
 class JsonParser {
   private readonly stack: (Json[] | Record<string, Json> | string)[] = [];
   private next: Json | undefined;
@@ -55,8 +74,15 @@ class JsonParser {
   private readonly counts = new WeakMap<object, number>();
   private readonly closed = new WeakSet<object>();
   private readonly lastKey = new WeakMap<object, string>();
+  private reusableObj: Record<string, Json> = object();
+  private readonly reusableKeys: string[] = [];
+  private readonly reusableArr: Json[] = [];
+  private reusableInUse = false;
   constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0) {
     this.line = line; this.column = column;
+  }
+  releaseReusable(): void {
+    this.reusableInUse = false;
   }
   isQuotedUnescaped(): boolean {
     return this.quoted && !this.escaped && this.bom >= 3;
@@ -72,7 +98,11 @@ class JsonParser {
     if (byteLen < 2 || byteLen > this.budget.limits.maxValueBytes) return undefined;
     if (fullText.charCodeAt(start) !== 123 || fullText.charCodeAt(end - 1) !== 125) return undefined;
     if (this.budget.limits.maxDepth < 1) return undefined;
-    const obj = object();
+    const canReuse = !this.reusableInUse;
+    let obj = canReuse ? this.reusableObj : object();
+    const rKeys = this.reusableKeys;
+    let shapeMatch = canReuse && rKeys.length > 0;
+    let usedArr = false;
     let pos = start + 1;
     let count = 0;
     if (pos < end - 1) {
@@ -87,8 +117,26 @@ class JsonParser {
           pos++;
         }
         if (pos >= end - 1) return undefined;
-        const key = fullText.slice(keyStart, pos);
-        if (Object.hasOwn(obj, key)) return undefined;
+        const key = shortSliceString(fullText, keyStart, pos);
+        if (shapeMatch) {
+          if (count >= rKeys.length || rKeys[count] !== key) {
+            shapeMatch = false;
+            const fresh = object();
+            for (let k = 0; k < count; k++) {
+              const prevKey = rKeys[k]!;
+              fresh[prevKey] = obj[prevKey]!;
+            }
+            obj = fresh;
+            if (canReuse) {
+              this.reusableObj = obj;
+              rKeys.length = count;
+            }
+          }
+        }
+        if (!shapeMatch) {
+          if (Object.hasOwn(obj, key)) return undefined;
+          if (canReuse) rKeys.push(key);
+        }
         pos++;
         if (fullText.charCodeAt(pos) !== 58) return undefined;
         pos++;
@@ -105,7 +153,7 @@ class JsonParser {
             pos++;
           }
           if (pos >= end - 1) return undefined;
-          val = fullText.slice(vStart, pos);
+          val = shortSliceString(fullText, vStart, pos);
           pos++;
         } else if (vFirst === 116) {
           if (fullText.charCodeAt(pos + 1) !== 114 || fullText.charCodeAt(pos + 2) !== 117 || fullText.charCodeAt(pos + 3) !== 101) return undefined;
@@ -145,7 +193,14 @@ class JsonParser {
           }
         } else if (vFirst === 91) {
           pos++;
-          const arr: Json[] = [];
+          let arr: Json[];
+          if (canReuse && !usedArr) {
+            usedArr = true;
+            arr = this.reusableArr;
+            arr.length = 0;
+          } else {
+            arr = [];
+          }
           if (fullText.charCodeAt(pos) === 93) {
             pos++;
           } else {
@@ -162,7 +217,7 @@ class JsonParser {
                   pos++;
                 }
                 if (pos >= end - 1) return undefined;
-                elem = fullText.slice(sStart, pos);
+                elem = shortSliceString(fullText, sStart, pos);
                 pos++;
               } else if (eFirst >= 48 && eFirst <= 57) {
                 const nStart = pos;
@@ -207,7 +262,24 @@ class JsonParser {
         }
         count++;
         if (count > this.budget.limits.maxCollectionSize) return undefined;
-        put(obj, key, val);
+        const kFirst = key.charCodeAt(0);
+        if (kFirst >= 48 && kFirst <= 57 || key === "__proto__") {
+          if (shapeMatch) {
+            shapeMatch = false;
+            const fresh = object();
+            for (let k = 0; k < count - 1; k++) {
+              const prevKey = rKeys[k]!;
+              fresh[prevKey] = obj[prevKey]!;
+            }
+            obj = fresh;
+            if (canReuse) {
+              this.reusableObj = obj;
+              rKeys.length = 0;
+            }
+          }
+          put(obj, key, val);
+        }
+        else obj[key] = val;
         const sep = fullText.charCodeAt(pos);
         if (sep === 44) {
           pos++;
@@ -217,6 +289,19 @@ class JsonParser {
         return undefined;
       }
     }
+    if (shapeMatch && count !== rKeys.length) {
+      const fresh = object();
+      for (let k = 0; k < count; k++) {
+        const prevKey = rKeys[k]!;
+        fresh[prevKey] = obj[prevKey]!;
+      }
+      obj = fresh;
+      if (canReuse) {
+        this.reusableObj = obj;
+        rKeys.length = count;
+      }
+    }
+    if (canReuse) this.reusableInUse = true;
     this.bom = 3;
     this.offset += byteLen + 1;
     this.line++;
@@ -563,6 +648,11 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
               if (options.onValue) {
                 const pending = options.onValue(fastObj);
                 if (pending) await pending;
+                else parser.releaseReusable();
+                if (budget.needsYield()) {
+                  const py = budget.tickSync(0);
+                  if (py) await py;
+                }
               } else {
                 yield fastObj;
               }
@@ -843,6 +933,81 @@ export async function measureValue(value: Json, budget: Budget, depth = 0, maxBy
     if (bytes > maxBytes) throw new JqLimitError("maxValueBytes");
   }
   return bytes;
+}
+
+export function tryWriteCompactSync(
+  value: Json,
+  budget: Budget,
+  buf: Uint8Array,
+  startPos: number,
+  suffix: string,
+  maxBytes: number,
+): number {
+  if (budget.needsYield()) return -1;
+  if (value === null || typeof value !== "object" || Array.isArray(value) || isNumber(value) || budget.limits.maxDepth < 1) {
+    return -1;
+  }
+  const obj = value as Record<string, Json>;
+  if (hasCustomKeyOrder(obj)) return -1;
+  let pos = startPos;
+  const cap = buf.length;
+  if (pos + 2 + suffix.length > cap) return -1;
+  buf[pos++] = 123; // '{'
+  let count = 0;
+  for (const key in obj) {
+    if (!Object.hasOwn(obj, key)) continue;
+    const kLen = key.length;
+    if (kLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    if (pos + kLen + 5 + suffix.length > cap) return -1;
+    if (count++ > 0) buf[pos++] = 44; // ','
+    budget.collection(count);
+    buf[pos++] = 34; // '"'
+    for (let i = 0; i < kLen; i++) {
+      const c = key.charCodeAt(i);
+      if (c < 32 || c >= 127 || c === 34 || c === 92) return -1;
+      buf[pos++] = c;
+    }
+    buf[pos++] = 34; // '"'
+    buf[pos++] = 58; // ':'
+    const v = obj[key]!;
+    if (typeof v === "string") {
+      const vLen = v.length;
+      if (vLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      if (pos + vLen + 3 + suffix.length > cap) return -1;
+      buf[pos++] = 34; // '"'
+      for (let i = 0; i < vLen; i++) {
+        const c = v.charCodeAt(i);
+        if (c < 32 || c >= 127 || c === 34 || c === 92) return -1;
+        buf[pos++] = c;
+      }
+      buf[pos++] = 34; // '"'
+    } else {
+      let vStr: string;
+      if (typeof v === "number" && Number.isFinite(v)) {
+        vStr = (v | 0) === v && v >= 0 && v <= 1024 && (v !== 0 || 1 / v > 0)
+          ? SMALL_DECIMALS[v]!.text
+          : Object.is(v, -0) ? "-0" : String(v);
+      } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+        vStr = v.text;
+      } else if (typeof v === "boolean") {
+        vStr = v ? "true" : "false";
+      } else if (v === null) {
+        vStr = "null";
+      } else {
+        return -1;
+      }
+      const vLen = vStr.length;
+      if (pos + vLen + 1 + suffix.length > cap) return -1;
+      for (let i = 0; i < vLen; i++) buf[pos++] = vStr.charCodeAt(i);
+    }
+  }
+  buf[pos++] = 125; // '}'
+  const jsonLen = pos - startPos;
+  if (jsonLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+  if (jsonLen > maxBytes) throw new JqLimitError("maxOutputBytes");
+  for (let i = 0; i < suffix.length; i++) buf[pos++] = suffix.charCodeAt(i);
+  budget.step(jsonLen * 2 + count * 12 + 2);
+  return pos;
 }
 
 export function tryStringifyCompactSync(

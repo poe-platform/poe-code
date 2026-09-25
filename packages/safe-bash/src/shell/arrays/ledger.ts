@@ -130,17 +130,14 @@ export class ArrayLedger {
     return { caps: this.caps?.slice(), used: this.used.slice(), lastIssued: this.sequence.lastIssued };
   }
 
-  private ensureCaps(): Counters {
-    let caps = this.caps;
-    if (!caps) {
-      caps = this.derive();
+  private activateCaps(caps: Counters): void {
+    if (!this.caps) {
       this.caps = caps;
       this.c3Smi = caps[3]! <= 0x3fffffff ? (caps[3]! | 0) : 0x3fffffff;
       this.c4Smi = caps[4]! <= 0x3fffffff ? (caps[4]! | 0) : 0x3fffffff;
       this.c5Smi = caps[5]! <= 0x3fffffff ? (caps[5]! | 0) : 0x3fffffff;
       this.c6Smi = caps[6]! <= 0x3fffffff ? (caps[6]! | 0) : 0x3fffffff;
     }
-    return caps;
   }
 
   charge(charge: Charge = {}, out?: { generation: number; version: number; epoch: number }): Tickets {
@@ -210,7 +207,7 @@ export class ArrayLedger {
   }
 
   reserve(charge: Charge = {}): Admission {
-    const caps = this.ensureCaps();
+    const caps = this.caps ?? this.derive();
     let cursor = this.sequence.lastIssued;
     let generation = 0;
     if (charge.generation) {
@@ -258,6 +255,7 @@ export class ArrayLedger {
         if (caps[4]! !== Infinity && allocBytes > caps[4]! - this.u4Smi) throw new ArrayFailure(`private ${labels[4]} limit exceeded`);
         if (caps[5]! !== Infinity && allocatedSlots > caps[5]! - this.u5Smi) throw new ArrayFailure(`private ${labels[5]} limit exceeded`);
         if (caps[6]! !== Infinity && workNum > caps[6]! - this.u6Smi) throw new ArrayFailure(`private ${labels[6]} limit exceeded`);
+        this.activateCaps(caps);
         this.sequence.lastIssued = cursor;
         this.u0Smi += wrappers;
         this.u1Smi += slots;
@@ -284,6 +282,7 @@ export class ArrayLedger {
         throw new ArrayFailure(`private ${labels[index]} limit exceeded`);
       }
     }
+    this.activateCaps(caps);
     this.sequence.lastIssued = cursor;
     this.u0Smi += Number(requested[0]!);
     this.u1Smi += Number(requested[1]!);

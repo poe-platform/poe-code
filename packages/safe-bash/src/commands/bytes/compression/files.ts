@@ -144,8 +144,10 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
     const realSource = await context.fs.realpath(source, { signal: context.signal });
     if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource }); continue; }
-    if (context.fs.capabilities.readOnly === true) {
-      throw new FsError("EROFS", { syscall: context.command, path: realSource });
+    const destination = outputPath(realSource, options);
+    const capabilities = await context.fs.capabilitiesFor?.(destination, { signal: context.signal }) ?? context.fs.capabilities;
+    if (context.fs.capabilities.readOnly === true || sourceCapabilities.readOnly === true || capabilities.readOnly === true) {
+      throw new FsError("EROFS", { syscall: context.command, path: capabilities.readOnly === true ? destination : realSource });
     }
     if (!options.keep && !options.force && (sourceStat.nlink ?? 1) > 1) {
       throw new FsError("EINVAL", { path: source, message: "input has multiple links (use -k or -f)" });
@@ -160,9 +162,6 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
         throw new FsError("ENOTSUP", { path: source, message: "atomic source removal requires parent identity and source revision (use -k or -c)" });
       }
     }
-    const destination = outputPath(realSource, options);
-    const capabilities = await context.fs.capabilitiesFor?.(destination, { signal: context.signal }) ?? context.fs.capabilities;
-    if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: context.command, path: destination });
     if (!context.fs.writeStream || capabilities.streamingWrite === false) {
       throw new FsError("ENOTSUP", { message: "file output requires VFS streaming writes (use -c for stdout)" });
     }

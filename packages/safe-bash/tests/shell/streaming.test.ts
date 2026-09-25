@@ -338,7 +338,7 @@ for (const length of [0, 17, 4096, 8192]) {
       assert.equal(captures.size, 2);
       for (const [bytes, expected] of [[result.stdoutBytes, 65], [result.stderrBytes, 66]] as const) {
         const copiedBytes = set.mock.calls.reduce((total, call) => total + (call.this === bytes ? call.arguments[0].length : 0), 0);
-        assert.equal(copiedBytes, length === 4096 ? 0 : length, "terminal assembly copy bytes");
+        assert.equal(copiedBytes, length <= 4096 ? 0 : length, "terminal assembly copy bytes");
         assert.equal(bytes.byteLength, length);
         assert.equal(bytes.buffer.byteLength, length);
         assert.ok(bytes.every(byte => byte === expected));

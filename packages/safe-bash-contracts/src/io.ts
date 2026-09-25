@@ -703,73 +703,37 @@ class BytePipeImpl implements BytePipe {
   _getLegacyIterator(): AsyncGenerator<Uint8Array> {
     if (!this._legacyIterator) {
       const reader = (this._legacyReader ??= new PipeBorrowIterator(this, this._readEndpoint));
-      const self = this;
-      this._legacyIterator = (async function* (): AsyncGenerator<Uint8Array> {
+      this._legacyIterator = (async function* (this: BytePipeImpl): AsyncGenerator<Uint8Array> {
         try {
           while (true) {
-            if (self.failed) throw self.failure;
+            if (this.failed) throw this.failure;
             const result = await reader.next();
-            if (self.failed) throw self.failure;
+            if (this.failed) throw this.failure;
             if (result.done) {
-              self.finished = true;
+              this.finished = true;
               return;
             }
             yield result.value;
           }
         } finally {
-          if (!self.finished) await self.abort();
+          if (!this.finished) await this.abort();
           await reader.return();
         }
-      })();
+      }).call(this);
     }
     return this._legacyIterator;
   }
 
   get readable(): ByteSource {
     if (!this._legacyReadable) {
-      const self = this;
-      this._legacyReadable = {
-        [Symbol.asyncIterator]() {
-          return this;
-        },
-        next() {
-          return self._getLegacyIterator().next();
-        },
-        async return() {
-          if (!self.finished) await self.abort();
-          try {
-            return await self._getLegacyIterator().return(undefined);
-          } finally {
-            await self._legacyReader?.return();
-          }
-        },
-        async throw(reason) {
-          await self._fail(reason);
-          try {
-            return await self._getLegacyIterator().throw(reason);
-          } finally {
-            await self._legacyReader?.return();
-          }
-        },
-      };
+      this._legacyReadable = createLegacyReadable(this);
     }
     return this._legacyReadable;
   }
 
   get writable(): ByteSink {
     if (!this._legacyWritable) {
-      const self = this;
-      const legacyWrite = (chunk: Uint8Array): Promise<void> => self._write(self._writeEndpoint, chunk, true);
-      this._legacyWritable = {
-        write: legacyWrite,
-        [outputFailure]: self._getFailHandler(),
-        ownedOutput: {
-          get consumerClosed() {
-            return self._getConsumerSignal();
-          },
-          write: legacyWrite,
-        },
-      };
+      this._legacyWritable = createLegacyWritable(this);
     }
     return this._legacyWritable;
   }
@@ -894,4 +858,45 @@ function waitAbortable<Result>(pending: PromiseLike<Result>, signal: AbortSignal
       },
     );
   });
+}
+
+function createLegacyReadable(pipe: BytePipeImpl): AsyncIterableIterator<Uint8Array> {
+  return {
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+    next() {
+      return pipe._getLegacyIterator().next();
+    },
+    async return() {
+      if (!pipe.finished) await pipe.abort();
+      try {
+        return await pipe._getLegacyIterator().return(undefined);
+      } finally {
+        await pipe._legacyReader?.return();
+      }
+    },
+    async throw(reason) {
+      await pipe._fail(reason);
+      try {
+        return await pipe._getLegacyIterator().throw(reason);
+      } finally {
+        await pipe._legacyReader?.return();
+      }
+    },
+  };
+}
+
+function createLegacyWritable(pipe: BytePipeImpl): ByteSink {
+  const legacyWrite = (chunk: Uint8Array): Promise<void> => pipe._write(pipe._writeEndpoint, chunk, true);
+  return {
+    write: legacyWrite,
+    [outputFailure]: pipe._getFailHandler(),
+    ownedOutput: {
+      get consumerClosed() {
+        return pipe._getConsumerSignal();
+      },
+      write: legacyWrite,
+    },
+  };
 }

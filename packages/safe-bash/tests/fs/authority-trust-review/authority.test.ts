@@ -90,7 +90,7 @@ test("01 faithful opaque S3 readonly source preserves Shell admission and direct
   observe("01", { result, files: await contents(fs) });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/left/source'\n");
+  assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads '/left/source'\n");
   assert.deepEqual(await contents(fs), original());
   await mount.copyFile("/left/source", "/right/target");
   assert.deepEqual(await contents(fs), copied());
@@ -112,7 +112,7 @@ test("02 faithful opaque DAV instances preserve Shell admission and direct-copy 
   observe("02", { result, files: await contents(fs) });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/left/source'\n");
+  assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads '/left/source'\n");
   assert.deepEqual(await contents(fs), original());
   await mount.copyFile("/left/source", "/right/target");
   assert.deepEqual(await contents(fs), copied());

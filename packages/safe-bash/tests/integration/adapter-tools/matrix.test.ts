@@ -157,7 +157,7 @@ for (const backend of writableAdapters) {
       const copied = await exec("mkdir -p scratch/nested && cp old.txt scratch/nested/copy.txt && printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt");
       if (profile.retainedReads) success(copied, `${original}gamma\n`);
       else {
-        refusal(copied, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/old.txt'\n", 1);
+        refusal(copied, "cp: ENOTSUP: copy requires retained reads '/work/old.txt'\n", 1);
         assert.deepEqual(await snapshotTree(fs), { ...before, "/work/scratch": null, "/work/scratch/nested": null }, "refused copy publishes no file");
         success(await exec("cat old.txt > scratch/nested/copy.txt"), "");
         success(await exec("printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt"), `${original}gamma\n`);
@@ -174,7 +174,7 @@ for (const backend of writableAdapters) {
       const copied = await exec("cp payload.bin move-source.bin");
       if (profile.retainedReads) success(copied, "");
       else {
-        refusal(copied, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/payload.bin'\n", 1);
+        refusal(copied, "cp: ENOTSUP: copy requires retained reads '/work/payload.bin'\n", 1);
         assert.deepEqual(await snapshotTree(fs), before, "refused setup copy preserves namespace and bytes");
         success(await exec("cat payload.bin > move-source.bin"), "");
       }
@@ -450,7 +450,7 @@ test("mount: cross-backend pipelines, supported copy and explicit S3 source refu
         const before = { ...await snapshotTree(fs), ...await snapshotTree(fs, "/objects") };
         const result = await exec(source);
         if (source === "cp /objects/seed.bin returned.bin") {
-          refusal(result, "cp: ENOTSUP: copy requires retained reads and streaming writes '/objects/seed.bin'\n", 1);
+          refusal(result, "cp: ENOTSUP: copy requires retained reads '/objects/seed.bin'\n", 1);
           assert.deepEqual({ ...await snapshotTree(fs), ...await snapshotTree(fs, "/objects") }, before);
         } else success(result, "");
       }
@@ -545,7 +545,7 @@ for (const source of [
         await assert.rejects(fs.writeFile("/work/target.txt", Buffer.from("changed")), fsError("EROFS", "/work/target.txt"));
         assert.deepEqual(await snapshotTree(fs), before, "the readonly provider still enforces EROFS at its write boundary");
       } else if (source === "patch -i change.diff") {
-        refusal(result, patchPublicationError);
+        refusal(result, "patch: EROFS: read-only file system, patch '/work'\n");
         await assert.rejects(fs.writeFile("/work/target.txt", Buffer.from("changed")), fsError("EROFS", "/work/target.txt"));
         assert.deepEqual(await snapshotTree(fs), before);
       } else {

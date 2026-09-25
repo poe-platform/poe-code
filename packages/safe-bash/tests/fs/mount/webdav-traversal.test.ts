@@ -62,7 +62,7 @@ test("WebDAV loopback preserves Shell copy admission, direct copy and same-mount
     const copy = await shell.exec("cp /dav/dir/source /dav/dir/new");
     assert.equal(copy.exitCode, 1);
     assert.equal(copy.stdout, "");
-    assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/dav/dir/source'\n");
+    assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads '/dav/dir/source'\n");
     assert.ok(mock.requests.slice(offset).every(request => ["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")));
     assert.deepEqual(mock.files, before);
     await fs.copyFile("/dav/dir/source", "/dav/dir/new", { exclusive: true });
@@ -150,7 +150,7 @@ test("WebDAV mounted cp refuses before COPY while direct copy propagates server 
     const result = await shell.exec("cp /dav/dir/source /dav/dir/new");
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/dav/dir/source'\n");
+    assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads '/dav/dir/source'\n");
     assert.equal(denied, 0);
     assert.deepEqual(mock.files, before);
     assert.ok(mock.requests.every(request => ["HEAD", "PROPFIND", "OPTIONS"].includes(request.init.method ?? "GET")));

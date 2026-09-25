@@ -129,7 +129,7 @@ test("Shell cp refuses missing retained reads while direct HTTP fallback remains
       const result = await shell.exec(`cp /source /${target}`);
       assert.equal(result.exitCode, 1);
       assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/source'\n");
+      assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads '/source'\n");
       assert.ok(fixture.trace.slice(offset).every(entry => entry.method === "HEAD" || (entry.method === "GET" && entry.listing)));
       assert.deepEqual(fixture.objects.get("target"), previous);
       assert.equal(fixture.objects.has("new"), false);
@@ -168,7 +168,7 @@ test("mounted cp preserves retained-read refusal while direct exclusive HTTP fal
     const result = await shell.exec("cp /remote/source /remote/mounted-new");
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/remote/source'\n");
+    assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads '/remote/source'\n");
   } finally { await shell.dispose(); }
   assert.ok(fixture.trace.every(entry => entry.method === "HEAD" || (entry.method === "GET" && entry.listing)));
   assert.deepEqual(fixture.objects.get("source"), payload);

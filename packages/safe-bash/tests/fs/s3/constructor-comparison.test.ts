@@ -83,7 +83,7 @@ for (const command of ["cp", "mv"] as const) test(`constructor authority does no
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, command === "cp"
-      ? "cp: ENOTSUP: copy requires retained reads and streaming writes '/first/nested/source'\n"
+      ? "cp: ENOTSUP: copy requires retained reads '/first/nested/source'\n"
       : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/first/nested/source' -> '/second/target'\n");
   } finally { await shell.dispose(); }
   metadataOnly(example.service, offset);

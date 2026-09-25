@@ -8,6 +8,8 @@ export type TurnHandle =
   | { kind: "timeout"; value: ReturnType<typeof setTimeout> };
 const checkpoints = new WeakMap<AbortSignal, () => void>();
 const externalCheckpoints = new WeakSet<AbortSignal>();
+let checkpointCount = 0;
+let externalCheckpointCount = 0;
 
 interface SignalYieldState {
   currentAbort: (() => void) | null;
@@ -46,6 +48,8 @@ export function monotonicNow(): number {
 export function registerYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
   checkpoints.set(signal, checkpoint);
   externalCheckpoints.add(signal);
+  checkpointCount++;
+  externalCheckpointCount++;
 }
 
 export function registerInternalYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
@@ -57,26 +61,35 @@ export function registerInternalYieldCheckpoint(signal: AbortSignal, checkpoint:
     });
   } else if (!existing) {
     checkpoints.set(signal, checkpoint);
+    checkpointCount++;
   }
 }
 
 export function runYieldCheckpoint(signal?: AbortSignal): void {
-  signal?.throwIfAborted();
-  if (signal) checkpoints.get(signal)?.();
+  if (!signal) return;
+  if (signal.aborted) throw signal.reason;
+  if (checkpointCount > 0) checkpoints.get(signal)?.();
 }
 
 export function hasYieldCheckpoint(signal?: AbortSignal): boolean {
-  return signal !== undefined && externalCheckpoints.has(signal);
+  return externalCheckpointCount > 0 && signal !== undefined && externalCheckpoints.has(signal);
 }
 
 export function hasRegisteredYieldCheckpoint(signal?: AbortSignal): boolean {
-  return signal !== undefined && checkpoints.has(signal);
+  return checkpointCount > 0 && signal !== undefined && checkpoints.has(signal);
 }
 
 export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal): void {
+  if (checkpointCount === 0) return;
   const checkpoint = checkpoints.get(parent);
-  if (checkpoint) checkpoints.set(child, checkpoint);
-  if (externalCheckpoints.has(parent)) externalCheckpoints.add(child);
+  if (checkpoint) {
+    checkpoints.set(child, checkpoint);
+    checkpointCount++;
+  }
+  if (externalCheckpointCount > 0 && externalCheckpoints.has(parent)) {
+    externalCheckpoints.add(child);
+    externalCheckpointCount++;
+  }
 }
 
 export function scheduleTurn(callback: () => void): TurnHandle {

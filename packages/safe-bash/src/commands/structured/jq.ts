@@ -15,6 +15,9 @@ const JQ_LONG_FLAGS: Readonly<Record<string, string>> = {
   "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M",
 };
 const jqAstCache = new Map<string, Ast>();
+const OUT_BUF_SIZE = 16 * 1024;
+const sharedJqOutBuf = new Uint8Array(OUT_BUF_SIZE);
+let sharedJqOutBufInUse = false;
 
 interface Options {
   stream: boolean;
@@ -398,19 +401,32 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
   let diagnosticBytes = 0;
   let diagnosticWriteFailed = false;
   let stdoutWriteFailed = false;
-  const OUT_BUF_SIZE = 16 * 1024;
   let outBuf: Uint8Array | null = null;
+  let usingSharedOutBuf = false;
   let outPos = 0;
-  const flushStdout = async (): Promise<void> => {
+  const releaseOutBuf = (): void => {
+    if (usingSharedOutBuf) {
+      usingSharedOutBuf = false;
+      sharedJqOutBufInUse = false;
+      outBuf = null;
+    }
+  };
+  const flushStdout = (): Promise<void> | void => {
     if (outPos > 0 && outBuf) {
       const slice = outBuf.subarray(0, outPos);
       outPos = 0;
-      try { await writeBytes(context.stdout, slice, context.signal); }
-      catch (error) { stdoutWriteFailed = true; throw error; }
+      try {
+        const pending = writeBytes(context.stdout, slice, context.signal);
+        if (isSyncResolved(pending)) return;
+        return pending.catch(error => { stdoutWriteFailed = true; throw error; });
+      } catch (error) { stdoutWriteFailed = true; throw error; }
     }
   };
   const flush = async (force = false): Promise<void> => {
-    if (outPos > 0) await flushStdout();
+    if (outPos > 0) {
+      const p = flushStdout();
+      if (p) await p;
+    }
     if (!diagnostics.length) return;
     let written = 0;
     try {
@@ -453,7 +469,15 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
       if (budget.results + 1 > limits.maxResults) throw new JqLimitError("maxResults");
       const remaining = limits.maxOutputBytes - budget.outputBytes;
       let buf = outBuf;
-      if (!buf) buf = outBuf = new Uint8Array(OUT_BUF_SIZE);
+      if (!buf) {
+        if (!sharedJqOutBufInUse) {
+          sharedJqOutBufInUse = true;
+          usingSharedOutBuf = true;
+          buf = outBuf = sharedJqOutBuf;
+        } else {
+          buf = outBuf = new Uint8Array(OUT_BUF_SIZE);
+        }
+      }
       const newPos = tryWriteCompactSync(result, budget, buf, outPos, suffix, Math.max(0, remaining - suffix.length));
       if (newPos >= 0) {
         const chunkLen = newPos - outPos;
@@ -599,7 +623,8 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
       const p = emitSyncOrAsync(value);
       if (p) await p;
     }
-    await flushStdout();
+    const pFlush = flushStdout();
+    if (pFlush) await pFlush;
     await flush(true);
     return { exitCode: options.exitStatus && lastTruth === undefined && status === 0 ? 4 : status };
   } catch (error) {
@@ -616,9 +641,12 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     await flush(true);
     await writeDiagnostic(context.stderr, `jq: ${error.message.slice(0, 1000)}\n`, context.signal);
     return { exitCode: error instanceof JqError ? error.exitCode : 2 };
+  } finally {
+    releaseOutBuf();
   }
 }
 export function jqCommand(options: StructuredCommandsOptions = {}): CommandDefinition {
   const limits = resolveJqLimits(options.limits);
   return { name: "jq", description: "Bounded, dependency-free JSON filter interpreter", execute: context => executeJq(context, limits) };
 }
+import { isSyncResolved } from "../../fs/creation-mask.js";

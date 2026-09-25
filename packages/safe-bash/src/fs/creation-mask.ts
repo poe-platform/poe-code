@@ -20,20 +20,46 @@ export function isSyncResolved(promise: unknown): promise is Promise<never> {
   return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
 
+const managedSignals = new WeakSet<AbortSignal>();
 const signalAbortWaiters = new WeakMap<AbortSignal, Set<(reason: unknown) => void>>();
+
+export function registerManagedAbortSignal(signal: AbortSignal): AbortSignal {
+  managedSignals.add(signal);
+  return signal;
+}
+
+export function isManagedAbortSignal(signal: AbortSignal): boolean {
+  return managedSignals.has(signal);
+}
+
+export function notifyAbortSignalWaiters(signal: AbortSignal, reason: unknown): void {
+  const set = signalAbortWaiters.get(signal);
+  if (!set || set.size === 0) return;
+  const pending = [...set];
+  set.clear();
+  for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+}
+
+export function abortManagedController(controller: AbortController, reason?: unknown): void {
+  const signal = controller.signal;
+  controller.abort(reason);
+  notifyAbortSignalWaiters(signal, signal.reason);
+}
 
 export function addAbortSignalWaiter(signal: AbortSignal, waiter: (reason: unknown) => void): Set<(reason: unknown) => void> {
   let waiters = signalAbortWaiters.get(signal);
   if (!waiters) {
     waiters = new Set();
     signalAbortWaiters.set(signal, waiters);
-    const set = waiters;
-    signal.addEventListener("abort", () => {
-      const reason = signal.reason;
-      const pending = [...set];
-      set.clear();
-      for (let i = 0; i < pending.length; i++) pending[i]!(reason);
-    }, { once: true });
+    if (!managedSignals.has(signal)) {
+      const set = waiters;
+      signal.addEventListener("abort", () => {
+        const reason = signal.reason;
+        const pending = [...set];
+        set.clear();
+        for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+      }, { once: true });
+    }
   }
   waiters.add(waiter);
   return waiters;

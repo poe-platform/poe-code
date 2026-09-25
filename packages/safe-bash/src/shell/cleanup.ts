@@ -2,12 +2,17 @@ import type { InvocationCleanup } from "../contracts/command.js";
 
 export const invocationScope = Symbol("invocation cleanup scope");
 const invocationClosedError = new Error("Invocation is closed");
-const resolvedVoid = Promise.resolve();
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
+
+function isSyncResolved(promise: unknown): boolean {
+  return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
 
 export class InvocationScope {
   #children: Set<InvocationScope> | undefined;
   #callbacks: Map<symbol, InvocationCleanup> | undefined;
-  #finalizers: (() => void)[] | undefined;
+  #finalizers: (() => void | Promise<void>)[] | undefined;
   #activeWork = 0;
   #workWaiters: (() => void)[] | undefined;
   #controller: AbortController | undefined;
@@ -28,7 +33,7 @@ export class InvocationScope {
     return this.#controller.signal;
   }
 
-  registerFinalizer(finalize: () => void): void {
+  registerFinalizer(finalize: () => void | Promise<void>): void {
     this.assertOpen();
     (this.#finalizers ??= []).push(finalize);
   }
@@ -119,11 +124,23 @@ export class InvocationScope {
     if (!this.#drain) {
       this.#seal();
       if (!this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
+        let asyncFinalizers: Promise<unknown>[] | undefined;
         if (this.#finalizers) {
           for (const finalize of this.#finalizers.splice(0)) {
-            try { finalize(); }
+            try {
+              const res = finalize();
+              if (res && !isSyncResolved(res)) {
+                (asyncFinalizers ??= []).push(Promise.resolve(res).catch(error => { this.failures.push(error); }));
+              }
+            }
             catch (error) { this.failures.push(error); }
           }
+        }
+        if (asyncFinalizers) {
+          this.#drain = Promise.all(asyncFinalizers).then(() => {
+            if (this.parent) this.parent.#children?.delete(this);
+          });
+          return this.#drain;
         }
         if (this.parent) this.parent.#children?.delete(this);
         this.#drain = resolvedVoid;
@@ -141,7 +158,10 @@ export class InvocationScope {
         } finally {
           if (this.#finalizers) {
             for (const finalize of this.#finalizers.splice(0)) {
-              try { finalize(); }
+              try {
+                const res = finalize();
+                if (res && !isSyncResolved(res)) await res;
+              }
               catch (error) { this.failures.push(error); }
             }
           }

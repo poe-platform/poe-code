@@ -19,6 +19,7 @@ export interface PreparedShellInput {
 
 const inputBuffers = new WeakMap<Budget, Set<InputBufferLease>>();
 const inputByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype) as object, "byteLength")!.get!;
+const ownedByteChunks = Symbol.for("safe-bash.ownedByteChunks");
 
 export function inputBufferUsage(budget: Budget): Readonly<{ bytes: number; buffers: number }> {
   let bytes = 0;
@@ -61,27 +62,39 @@ export function prepareBytesInput(value: string | Uint8Array, budget: Budget): P
   let sent = false;
   let closed = false;
   let closing: Promise<void> | undefined;
+  let waiters: Set<(reason: unknown) => void> | undefined;
   const close = (): Promise<void> => {
     closed = true;
     buffer?.release();
     buffer = undefined;
-    budget.signal.removeEventListener("abort", aborted);
-    return closing ??= Promise.resolve();
+    waiters?.delete(aborted);
+    return closing ??= resolvedVoid;
   };
   const aborted = (): void => { void close(); };
   try {
     if (length) {
       buffer = new InputBufferLease(budget, length, () => typeof value === "string" ? new TextEncoder().encode(value) : new Uint8Array(value));
     }
-    budget.signal.addEventListener("abort", aborted, { once: true });
-    const source: AsyncIterableIterator<Uint8Array> = {
+    waiters = addAbortSignalWaiter(budget.signal, aborted);
+    const source: AsyncIterableIterator<Uint8Array> & {
+      tryNextSync(): IteratorResult<Uint8Array> | undefined;
+      syncReturn(): void;
+      [ownedByteChunks]: true;
+    } = {
+      [ownedByteChunks]: true,
       [Symbol.asyncIterator]() { return this; },
-      async next() {
+      tryNextSync() {
         budget.signal.throwIfAborted();
         const bytes = buffer?.bytes;
         if (closed || sent || !bytes?.byteLength) return { done: true, value: undefined };
         sent = true;
         return { done: false, value: bytes };
+      },
+      syncReturn() {
+        void close();
+      },
+      async next() {
+        return this.tryNextSync()!;
       },
       async return() { await close(); return { done: true as const, value: undefined }; },
     };
@@ -120,6 +133,7 @@ export async function prepareFileInput(
   const acquisition = new Promise<void>(resolve => { admitted = resolve; });
   let closing: Promise<void> | undefined;
   let teardownFailed = false;
+  let abortWaiters: Set<(reason: unknown) => void> | undefined;
   const close = (): Promise<void> => {
     accepting = false;
     if (pendingReads && !readerController.signal.aborted) readerController.abort(new FsError("EBADF", { syscall: "read", path }));
@@ -139,7 +153,7 @@ export async function prepareFileInput(
         legacySource = undefined;
         buffer?.release();
         buffer = undefined;
-        signal.removeEventListener("abort", aborted);
+        abortWaiters?.delete(aborted);
       }
       signal.throwIfAborted();
     })();
@@ -159,7 +173,7 @@ export async function prepareFileInput(
         throw error;
       }
     });
-    signal.addEventListener("abort", aborted, { once: true });
+    abortWaiters = addAbortSignalWaiter(signal, aborted);
     check();
     const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
     check();
@@ -426,7 +440,6 @@ const shellInputViewClosedError = new Error("Shell input view closed");
 const resolvedVoid = Promise.resolve();
 const doneResult: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
 const resolvedDoneResult: Promise<IteratorResult<Uint8Array>> = Promise.resolve(doneResult);
-const ownedByteChunks = Symbol.for("safe-bash.ownedByteChunks");
 
 const inputClock: InputClock = {
   now: monotonicNow,

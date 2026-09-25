@@ -1,3 +1,5 @@
+import { abortManagedController, addAbortSignalWaiter, isManagedAbortSignal, registerManagedAbortSignal } from "../fs/creation-mask.js";
+
 const cancellationAdmissionClosedError = new Error("Cancellation admission is closed");
 const cancellationAlreadyActivatedError = new Error("Prepared cancellation admission was already activated");
 const EMPTY_PREPARED_CONTROLS: readonly PreparedControl[] = Object.freeze([]);
@@ -85,6 +87,7 @@ interface SignalDetacher {
   active: boolean;
   readonly signal: AbortSignal;
   readonly listener: () => void;
+  readonly waiters?: Set<(reason: unknown) => void> | undefined;
 }
 
 interface LinkState {
@@ -103,8 +106,8 @@ interface LinkState {
   delivered: CancellationOrigin | undefined;
   selected: CancellationOrigin | undefined;
   readonly signalDetachers: SignalDetacher[];
-  readonly subscribers: Set<Subscriber>;
-  readonly failures: unknown[];
+  subscribers: Set<Subscriber> | undefined;
+  failures: unknown[] | undefined;
   parentDetach: (() => void) | undefined;
   closed: boolean;
   finalized: boolean;
@@ -219,11 +222,12 @@ function betterOrigin(current: CancellationOrigin | undefined, candidate: Cancel
 function deactivateSubscriber(state: LinkState, subscriber: Subscriber, release: boolean): void {
   if (!subscriber.active) return;
   subscriber.active = false;
-  state.subscribers.delete(subscriber);
+  state.subscribers?.delete(subscriber);
   if (release) state.resourcesUsed--;
 }
 
 function notify(state: LinkState, origin: CancellationOrigin): void {
+  if (!state.subscribers || state.subscribers.size === 0) return;
   state.notifying++;
   try {
     for (const subscriber of [...state.subscribers]) {
@@ -231,7 +235,7 @@ function notify(state: LinkState, origin: CancellationOrigin): void {
       if (!subscriber.active) continue;
       try { subscriber.callback(origin); }
       catch (error) {
-        state.failures.push(error);
+        (state.failures ??= []).push(error);
         deactivateSubscriber(state, subscriber, false);
       }
     }
@@ -246,7 +250,7 @@ function publish(state: LinkState, origin: CancellationOrigin): void {
   let changed = false;
   if (!state.delivered) {
     state.delivered = origin;
-    state.controller.abort(origin.signal.reason);
+    abortManagedController(state.controller, origin.signal.reason);
     changed = true;
   }
   if (betterOrigin(state.selected, origin)) {
@@ -261,7 +265,7 @@ function addSubscriber(state: LinkState, callback: (origin: CancellationOrigin) 
   ensureCapacity(state);
   const subscriber: Subscriber = { active: true, callback };
   state.resourcesUsed++;
-  state.subscribers.add(subscriber);
+  (state.subscribers ??= new Set()).add(subscriber);
   let detached = false;
   return () => {
     if (detached) return;
@@ -273,6 +277,10 @@ function addSubscriber(state: LinkState, callback: (origin: CancellationOrigin) 
 function removeSignalListener(detacher: SignalDetacher): unknown[] {
   if (!detacher.active) return [];
   detacher.active = false;
+  if (detacher.waiters) {
+    detacher.waiters.delete(detacher.listener);
+    return [];
+  }
   try {
     detacher.signal.removeEventListener("abort", detacher.listener);
     return [];
@@ -285,13 +293,19 @@ function attachOrigin(state: LinkState, origin: CancellationOrigin): void {
   if (signalAborted(origin.signal)) return;
   ensureCapacity(state);
   const listener = () => publish(state, origin);
-  const detacher: SignalDetacher = { active: true, signal: origin.signal, listener };
-  try {
-    origin.signal.addEventListener("abort", listener, { once: true });
-  } catch (error) {
-    const rollback = removeSignalListener(detacher);
-    if (rollback.length) throw new AggregateError([error, ...rollback], "Cancellation listener initialization failed");
-    throw error;
+  let detacher: SignalDetacher;
+  if (isManagedAbortSignal(origin.signal)) {
+    const waiters = addAbortSignalWaiter(origin.signal, listener);
+    detacher = { active: true, signal: origin.signal, listener, waiters };
+  } else {
+    detacher = { active: true, signal: origin.signal, listener };
+    try {
+      origin.signal.addEventListener("abort", listener, { once: true });
+    } catch (error) {
+      const rollback = removeSignalListener(detacher);
+      if (rollback.length) throw new AggregateError([error, ...rollback], "Cancellation listener initialization failed");
+      throw error;
+    }
   }
   state.resourcesUsed++;
   state.signalDetachers.push(detacher);
@@ -387,6 +401,7 @@ function initializeState(
   admission: CancellationAdmissionSnapshot,
 ): LinkState {
   const controller = new AbortController();
+  registerManagedAbortSignal(controller.signal);
   const state: LinkState = {
     kind: "link",
     boundary: undefined as unknown as CancellationBoundary,
@@ -403,8 +418,8 @@ function initializeState(
     delivered: undefined,
     selected: undefined,
     signalDetachers: [],
-    subscribers: new Set(),
-    failures: [],
+    subscribers: undefined,
+    failures: undefined,
     parentDetach: undefined,
     closed: false,
     finalized: false,
@@ -418,23 +433,32 @@ function initializeState(
 function finalizeClose(state: LinkState): void {
   if (state.finalized) return;
   state.finalized = true;
-  for (const detacher of state.signalDetachers) state.failures.push(...removeSignalListener(detacher));
+  for (let i = 0; i < state.signalDetachers.length; i++) {
+    const errs = removeSignalListener(state.signalDetachers[i]!);
+    if (errs.length) (state.failures ??= []).push(...errs);
+  }
   state.signalDetachers.length = 0;
   state.parentDetach?.();
   state.parentDetach = undefined;
-  for (const subscriber of [...state.subscribers]) deactivateSubscriber(state, subscriber, true);
-  state.subscribers.clear();
+  if (state.subscribers && state.subscribers.size > 0) {
+    for (const subscriber of [...state.subscribers]) deactivateSubscriber(state, subscriber, true);
+    state.subscribers.clear();
+  }
   state.resourcesUsed = 0;
-  Object.freeze(state.failures);
-  Object.freeze(state.closeResult!);
+  if (state.failures && state.failures.length > 0) {
+    Object.freeze(state.failures);
+    state.closeResult = Object.freeze({ failures: state.failures });
+  } else {
+    state.closeResult = emptyCloseResult;
+  }
 }
 
 function closeLink(state: LinkState): CancellationCloseResult {
   if (state.closeResult) return state.closeResult;
   state.closed = true;
-  state.closeResult = { failures: state.failures };
   if (state.notifying === 0) finalizeClose(state);
-  return state.closeResult;
+  else state.closeResult = { failures: (state.failures ??= []) };
+  return state.closeResult!;
 }
 
 function rollbackState(state: LinkState): unknown[] {
@@ -444,8 +468,10 @@ function rollbackState(state: LinkState): unknown[] {
   state.signalDetachers.length = 0;
   try { state.parentDetach?.(); } catch (error) { failures.push(error); }
   state.parentDetach = undefined;
-  for (const subscriber of [...state.subscribers]) deactivateSubscriber(state, subscriber, true);
-  state.subscribers.clear();
+  if (state.subscribers && state.subscribers.size > 0) {
+    for (const subscriber of [...state.subscribers]) deactivateSubscriber(state, subscriber, true);
+    state.subscribers.clear();
+  }
   state.resourcesUsed = 0;
   state.finalized = true;
   return failures;
@@ -714,6 +740,14 @@ export function subscribeCancellation(
   const state = boundary[boundaryState];
   if (state.kind === "borrow") throw new TypeError("Borrowed cancellation boundaries cannot own subscriptions");
   return addSubscriber(state, callback);
+}
+
+export function admitCancellationSubscriptionCapacity(boundary: CancellationBoundary): void {
+  const state = boundary[boundaryState];
+  if (state.kind === "borrow") throw new TypeError("Borrowed cancellation boundaries cannot own subscriptions");
+  if (state.closed) throw state.closedReason;
+  ensureCapacity(state);
+  state.resourcesUsed++;
 }
 
 function validReport(boundary: BoundaryState, captured: CapturedCancellationOutcome<unknown>): CancellationOrigin | undefined {

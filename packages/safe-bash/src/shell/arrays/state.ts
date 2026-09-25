@@ -18,6 +18,11 @@ interface Session {
 
 const sessions = new WeakMap<object, Session>();
 const monitors = new WeakMap<State, StateMonitor>();
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+
+function isSyncResolved(promise: unknown): boolean {
+  return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
 const overlayNext = Symbol("array overlay parent");
 const guardedMutationCharge = { generation: true, version: true, epoch: true, work: 5 } as const;
 const unguardedMutationCharge = { generation: false, version: false, epoch: true, work: 5 } as const;
@@ -32,10 +37,17 @@ export function trackState(state: State, budget: { readonly values?: ValueArena;
     while (scope.parent) scope = scope.parent;
     const ledger = new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields);
     const values = budget.values ?? new ValueArena(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields, () => scope.assertOpen());
-    session = { values, ledger, internal: ledger.internal(budget.limits.maxCommands ?? 10_000), scope, owner: undefined, guestOwner: undefined };
+    session = { values, ledger, internal: ledger.internal(budget.limits.maxCommands ?? 10_000), scope, monitors: new Set(), owner: undefined, guestOwner: undefined };
     const registered = session;
-    scope.register(async () => { await registered.scope.drainWork(); await registered.owner?.close(); });
-    scope.register(async () => { await registered.scope.drainWork(); values.close(); });
+    scope.registerFinalizer(() => {
+      for (const owned of [...registered.monitors!]) owned.closeValues();
+      registered.monitors!.clear();
+      if (registered.owner) {
+        const closed = registered.owner.close();
+        if (!isSyncResolved(closed)) return closed.finally(() => values.close());
+      }
+      values.close();
+    });
     sessions.set(budget, session);
   }
   return new StateMonitor(state, session).proxy;
@@ -69,7 +81,12 @@ export class StateMonitor {
   #lazyStoreView: BindingStore | undefined;
   epoch = 0;
   #publication = false;
-  readonly #wrapped = new WeakMap<object, object>();
+  #wrapped: WeakMap<object, object> | undefined;
+  #variablesProxy: object | undefined;
+  #functionsProxy: object | undefined;
+  #exportedProxy: object | undefined;
+  #positionalProxy: object | undefined;
+  #localsProxy: object | undefined;
   #wrapperCount = 0;
   #enrollment: Admission | undefined;
   #internalEnrollment: Admission | undefined;
@@ -78,16 +95,17 @@ export class StateMonitor {
   #freeRestorations: Restoration | undefined;
   #overlays: OverlayMap | undefined;
   #retireCleanup: (() => void) | undefined;
-  #positionalRevision: object = {};
+  #positionalRevision: object | undefined;
   #getoptsInput: { input: GetoptsInput; allocation: ValueScope } | undefined;
   readonly #mutationTickets = { generation: 0, version: 0, epoch: 0 };
 
   constructor(readonly raw: State, readonly session: Session, source?: StateMonitor) {
-    this.values = source ? source.values.clone() : new ValueStore(session.values);
+    this.values = source ? source.values.clone() : session.values.createStore();
     if (source?.lazyPipeStatus !== undefined) this.lazyPipeStatus = source.lazyPipeStatus;
-    try { this.positionals = source ? source.positionals.clone() : new ValueStore(session.values); }
+    try { this.positionals = source ? source.positionals.clone() : session.values.createStore(); }
     catch (error) { this.values.close(); throw error; }
-    this.proxy = this.wrap(raw, "state") as State;
+    this.#wrapperCount = 1;
+    this.proxy = new Proxy(raw, new StateProxyHandler(this, "state", false)) as State;
     monitors.set(raw, this);
     monitors.set(this.proxy, this);
     if (session.monitors) session.monitors.add(this);
@@ -117,7 +135,7 @@ export class StateMonitor {
     this.#retireCleanup = undefined;
   }
 
-  get positionalRevision(): object { return this.#positionalRevision; }
+  get positionalRevision(): object { return this.#positionalRevision ??= {}; }
   get getoptsInput(): GetoptsInput | undefined { return this.#getoptsInput?.input; }
   get lazyStoreView(): BindingStore {
     return this.#lazyStoreView ??= new LazyPipeStatusStoreView(this) as unknown as BindingStore;
@@ -125,7 +143,7 @@ export class StateMonitor {
 
   retainGetoptsInput(revision: object, input: GetoptsInput, allocation: ValueScope): boolean {
     this.session.scope.assertOpen();
-    if (revision !== this.#positionalRevision) return false;
+    if (revision !== (this.#positionalRevision ??= {})) return false;
     this.#getoptsInput?.allocation.close();
     this.#getoptsInput = { input, allocation };
     return true;
@@ -134,16 +152,16 @@ export class StateMonitor {
   private invalidateGetoptsInput(): void {
     this.#getoptsInput?.allocation.close();
     this.#getoptsInput = undefined;
-    this.#positionalRevision = {};
+    this.#positionalRevision = undefined;
   }
 
   changedValue(target: object, field: string, key: PropertyKey): void {
     if (field === "state") {
-      if (key === "variables") this.values.invalidate();
-      if (key === "positional") { this.positionals.invalidate(); this.invalidateGetoptsInput(); }
-    } else if (field === "variables" && (this.raw.variables === target || this.raw.variables === this.#wrapped.get(target))) {
+      if (key === "variables") { this.#variablesProxy = undefined; this.values.invalidate(); }
+      if (key === "positional") { this.#positionalProxy = undefined; this.positionals.invalidate(); this.invalidateGetoptsInput(); }
+    } else if (field === "variables" && (this.raw.variables === target || this.#variablesProxy === target || this.raw.variables === this.#wrapped?.get(target))) {
       this.values.invalidate(String(key));
-    } else if (field === "positional" && (this.raw.positional === target || this.raw.positional === this.#wrapped.get(target))) {
+    } else if (field === "positional" && (this.raw.positional === target || this.#positionalProxy === target || this.raw.positional === this.#wrapped?.get(target))) {
       this.positionals.invalidate();
       this.invalidateGetoptsInput();
     }
@@ -333,13 +351,55 @@ export class StateMonitor {
     this.store?.changed(tickets, name);
   }
 
-  wrap(value: object, field: string): object {
-    const previous = this.#wrapped.get(value);
-    if (previous) return previous;
+  #reserveWrapSlot(): void {
     if (this.#enrollment || this.#internalEnrollment) {
       (this.#enrollment ? this.session.guestOwner! : this.session.owner!).reserve({ slots: 2, metadata: 128, work: 8 });
     }
     this.#wrapperCount++;
+  }
+
+  wrap(value: object, field: string): object {
+    if (value === this.raw || value === this.proxy) return this.proxy;
+    if (field === "variables" && (value === this.raw.variables || value === this.#variablesProxy)) {
+      if (this.#variablesProxy) return this.#variablesProxy;
+      this.#reserveWrapSlot();
+      return this.#variablesProxy = new Proxy(this.raw.variables, new StateProxyHandler(this, "variables", true));
+    }
+    if (field === "functions" && (value === this.raw.functions || value === this.#functionsProxy)) {
+      if (this.#functionsProxy) return this.#functionsProxy;
+      this.#reserveWrapSlot();
+      const handler = new CollectionProxyHandler(this, false);
+      const proxy = new Proxy(this.raw.functions, handler);
+      handler.proxy = proxy;
+      return this.#functionsProxy = proxy;
+    }
+    if (field === "exported" && (value === this.raw.exported || value === this.#exportedProxy)) {
+      if (this.#exportedProxy) return this.#exportedProxy;
+      this.#reserveWrapSlot();
+      const handler = new CollectionProxyHandler(this, true);
+      const proxy = new Proxy(this.raw.exported, handler);
+      handler.proxy = proxy;
+      return this.#exportedProxy = proxy;
+    }
+    if (field === "positional" && (value === this.raw.positional || value === this.#positionalProxy)) {
+      if (this.#positionalProxy) return this.#positionalProxy;
+      this.#reserveWrapSlot();
+      return this.#positionalProxy = new Proxy(this.raw.positional, new StateProxyHandler(this, "positional", false));
+    }
+    if (field === "locals" && (value === this.raw.locals || value === this.#localsProxy)) {
+      if (this.#localsProxy) return this.#localsProxy;
+      this.#reserveWrapSlot();
+      return this.#localsProxy = new Proxy(this.raw.locals, new StateProxyHandler(this, "locals", false));
+    }
+    let wrapped = this.#wrapped;
+    if (wrapped) {
+      const previous = wrapped.get(value);
+      if (previous) return previous;
+    } else {
+      wrapped = new WeakMap();
+      this.#wrapped = wrapped;
+    }
+    this.#reserveWrapSlot();
     const named = field === "variables" || field === "exported" || field === "readonlyVariables";
     let proxy: object;
     if (value instanceof Map || value instanceof Set) {
@@ -349,8 +409,8 @@ export class StateMonitor {
     } else {
       proxy = new Proxy(value, new StateProxyHandler(this, field, named));
     }
-    this.#wrapped.set(value, proxy);
-    this.#wrapped.set(proxy, proxy);
+    wrapped.set(value, proxy);
+    wrapped.set(proxy, proxy);
     return proxy;
   }
 }
@@ -557,6 +617,13 @@ export class Restoration {
     this.admission = undefined;
     this.holding = undefined;
   }
+}
+
+export function trySnapshotStateSync(state: State, clone: () => State, scope?: InvocationScope): State | undefined {
+  const monitor = stateMonitor(state);
+  if (!monitor) return clone();
+  if (scope || monitor.store || monitor.session.ledger.active) return undefined;
+  return new StateMonitor(clone(), monitor.session, monitor).proxy;
 }
 
 export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>, scope?: InvocationScope): Promise<State> {

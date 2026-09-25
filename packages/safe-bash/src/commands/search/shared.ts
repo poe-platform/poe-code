@@ -1,6 +1,6 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { hasYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { reusableBatchRows, trustedInputRows } from "../regex-execution/protocol.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
@@ -27,12 +27,15 @@ export class Limits {
   outputBytes = 0;
   files = 0;
   private ticks = 0;
+  private readonly hasExtYield: boolean;
+  private lastYieldMs = monotonicNow();
   private stopped: AbortController | undefined;
   private _signal: AbortSignal | undefined;
   private outBuf: Uint8Array | null = null;
   private usingSharedBuf = false;
   outPos = 0;
   constructor(readonly context: CommandContext, options: SearchOptions) {
+    this.hasExtYield = hasYieldCheckpoint(context.signal);
     this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
     this.maxLineBytes = options.maxLineBytes ?? Infinity;
     this.maxFileBytes = options.maxFileBytes ?? Infinity;
@@ -76,9 +79,19 @@ export class Limits {
     }
   }
   tick(): Promise<void> | undefined {
-    this.context.signal.throwIfAborted();
-    const interval = hasYieldCheckpoint(this.context.signal) ? 128 : 2048;
-    if (++this.ticks % interval === 0) return yieldTurn(this.context.signal);
+    if (this.context.signal.aborted) throw this.context.signal.reason;
+    if (this.hasExtYield) {
+      runYieldCheckpoint(this.context.signal);
+      if ((++this.ticks & 127) === 0) return yieldTurn(this.context.signal);
+      return undefined;
+    }
+    if ((++this.ticks & 2047) === 0) {
+      const now = monotonicNow();
+      if (now - this.lastYieldMs >= 25) {
+        this.lastYieldMs = now;
+        return yieldTurn(this.context.signal);
+      }
+    }
     return undefined;
   }
   private async write(chunk: Uint8Array): Promise<void> {

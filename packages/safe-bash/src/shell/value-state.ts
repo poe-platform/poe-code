@@ -17,8 +17,9 @@ export interface HeldValue {
 }
 
 export class ValueArena {
-  #objects = new WeakMap<object, AllocationRecord>();
+  #objects: WeakMap<object, AllocationRecord> | undefined;
   #freeScopes: ValueScope[] = [];
+  #freeStores: ValueStore[] = [];
   #freeRecords: AllocationRecord[] = [];
   #epoch = 1;
   #bytes = 0;
@@ -50,6 +51,20 @@ export class ValueArena {
 
   recycleScope(scope: ValueScope): void {
     if (!this.#closed && this.#freeScopes.length < 64) this.#freeScopes.push(scope);
+  }
+
+  createStore(): ValueStore {
+    const pooled = this.#freeStores.pop();
+    if (pooled) {
+      this.assertOpen();
+      pooled._reopen();
+      return pooled;
+    }
+    return new ValueStore(this);
+  }
+
+  recycleStore(store: ValueStore): void {
+    if (!this.#closed && this.#freeStores.length < 64) this.#freeStores.push(store);
   }
 
   allocate(bytes: number, slots: number): AllocationRecord {
@@ -99,16 +114,17 @@ export class ValueArena {
 
   commit(record: AllocationRecord, object: object): void {
     this.assertOpen();
-    if (record.arena !== this || record.epoch !== this.#epoch || record.object || this.#objects.has(object)) throw new Error("Shell value reservation is not fresh");
+    const objects = (this.#objects ??= new WeakMap());
+    if (record.arena !== this || record.epoch !== this.#epoch || record.object || objects.has(object)) throw new Error("Shell value reservation is not fresh");
     record.object = object;
-    this.#objects.set(object, record);
+    objects.set(object, record);
   }
 
   release(record: AllocationRecord): void {
     if (record.arena !== this || record.epoch !== this.#epoch) return;
     if (--record.references) return;
     record.epoch = 0;
-    if (record.object) this.#objects.delete(record.object);
+    if (record.object) this.#objects?.delete(record.object);
     else if (this.#freeRecords.length < 128) this.#freeRecords.push(record);
     this.#bytes -= record.bytes;
     this.#slots -= record.slots;
@@ -129,7 +145,7 @@ export class ValueArena {
     const reference = this.allocate(32, 1);
     let payload: AllocationRecord;
     try {
-      const existing = this.#objects.get(value);
+      const existing = this.#objects?.get(value);
       if (existing) { payload = existing; payload.references++; }
       else {
         payload = this.allocate(shellValueRetainedBytes(value), 1);
@@ -149,8 +165,9 @@ export class ValueArena {
   close(): void {
     this.#closed = true;
     this.#epoch++;
-    this.#objects = new WeakMap();
+    this.#objects = undefined;
     this.#freeScopes.length = 0;
+    this.#freeStores.length = 0;
     this.#freeRecords.length = 0;
     this.#bytes = 0;
     this.#slots = 0;
@@ -243,34 +260,59 @@ export class ValueScope implements ValueAllocation {
     }
     if (this.#bytesReservation) this.arena.release(this.#bytesReservation);
     if (this.#enrollment) this.arena.release(this.#enrollment);
-    if (!this.#releases && !this.#holds) {
+    if (!this.#releases?.size && !this.#holds?.size) {
       this.#bytesReservation = undefined;
       this.#enrollment = undefined;
       this.arena.recycleScope(this);
     }
   }
+
+  closeForStoreRecycle(): boolean {
+    if (this.#closed) return false;
+    this.#closed = true;
+    if (this.#releases) {
+      for (const release of this.#releases) release();
+    }
+    if (this.#bytesReservation) this.arena.release(this.#bytesReservation);
+    if (this.#enrollment) this.arena.release(this.#enrollment);
+    if (!this.#releases?.size && !this.#holds?.size) {
+      this.#bytesReservation = undefined;
+      this.#enrollment = undefined;
+      return true;
+    }
+    return false;
+  }
 }
 
 export class ValueStore {
-  readonly #values = new Map<string, HeldValue>();
-  readonly #strings = new Map<string, string>();
+  #values: Map<string, HeldValue> | undefined;
+  #strings: Map<string, string> | undefined;
+  #stringsShared = false;
   #stringBytes = 0;
   #stringRecord: AllocationRecord | undefined;
   #closed = false;
   readonly scope: ValueScope;
 
-  constructor(readonly arena: ValueArena) { this.scope = arena.scope(); }
+  constructor(readonly arena: ValueArena) {
+    arena.assertOpen();
+    this.scope = new ValueScope(arena);
+  }
 
-  get(name: string, text: string): ShellValue { return this.#values.get(name)?.value ?? this.#strings.get(name) ?? text; }
+  _reopen(): void {
+    this.#closed = false;
+    this.scope._reopen();
+  }
+
+  get(name: string, text: string): ShellValue { return this.#values?.get(name)?.value ?? this.#strings?.get(name) ?? text; }
 
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
     const newBytes = value.length * 2;
-    const held = this.#values.get(name);
+    const held = this.#values?.get(name);
     if (held) {
       held.release();
-      this.#values.delete(name);
+      this.#values!.delete(name);
     }
-    const oldStr = this.#strings.get(name);
+    const oldStr = this.#strings?.get(name);
     const oldBytes = oldStr !== undefined ? oldStr.length * 2 : 0;
     const delta = newBytes - oldBytes;
     if (this.#stringRecord) {
@@ -280,7 +322,11 @@ export class ValueStore {
       this.#stringRecord = this.arena.allocate(newBytes, 0);
     }
     rawVariables[name] = value;
-    this.#strings.set(name, value);
+    if (this.#stringsShared && this.#strings) {
+      this.#strings = new Map(this.#strings);
+      this.#stringsShared = false;
+    }
+    (this.#strings ??= new Map()).set(name, value);
     this.#stringBytes += delta;
   }
 
@@ -302,7 +348,11 @@ export class ValueStore {
         throw error;
       }
       this.invalidate(name);
-      this.#strings.set(name, value);
+      if (this.#stringsShared && this.#strings) {
+        this.#strings = new Map(this.#strings);
+        this.#stringsShared = false;
+      }
+      (this.#strings ??= new Map()).set(name, value);
       this.#stringBytes += newBytes;
       return true;
     }
@@ -311,26 +361,39 @@ export class ValueStore {
       if (!action()) { held.release(); return false; }
     } catch (error) { held.release(); throw error; }
     this.invalidate(name);
-    this.#values.set(name, held);
+    (this.#values ??= new Map()).set(name, held);
     return true;
   }
 
   invalidate(name?: string): void {
     if (name === undefined) {
-      for (const value of this.#values.values()) value.release();
-      this.#values.clear();
-      this.#strings.clear();
+      if (this.#values) {
+        for (const value of this.#values.values()) value.release();
+        this.#values.clear();
+      }
+      if (this.#stringsShared) {
+        this.#strings = undefined;
+        this.#stringsShared = false;
+      } else if (this.#strings) {
+        this.#strings.clear();
+      }
       this.#stringBytes = 0;
       if (this.#stringRecord) {
         this.arena.release(this.#stringRecord);
         this.#stringRecord = undefined;
       }
     } else {
-      this.#values.get(name)?.release();
-      this.#values.delete(name);
-      const oldStr = this.#strings.get(name);
+      if (this.#values) {
+        this.#values.get(name)?.release();
+        this.#values.delete(name);
+      }
+      const oldStr = this.#strings?.get(name);
       if (oldStr !== undefined) {
-        this.#strings.delete(name);
+        if (this.#stringsShared) {
+          this.#strings = new Map(this.#strings);
+          this.#stringsShared = false;
+        }
+        this.#strings!.delete(name);
         const delta = oldStr.length * 2;
         this.#stringBytes -= delta;
         if (this.#stringRecord) this.arena.shrinkStringRecord(this.#stringRecord, delta);
@@ -339,14 +402,20 @@ export class ValueStore {
   }
 
   clone(): ValueStore {
-    const copy = new ValueStore(this.arena);
+    const copy = this.arena.createStore();
     try {
       if (this.#stringRecord) {
         copy.#stringRecord = this.arena.allocate(this.#stringBytes, 0);
         copy.#stringBytes = this.#stringBytes;
-        for (const [name, val] of this.#strings) copy.#strings.set(name, val);
+        if (this.#strings && this.#strings.size > 0) {
+          this.#stringsShared = true;
+          copy.#strings = this.#strings;
+          copy.#stringsShared = true;
+        }
       }
-      for (const [name, held] of this.#values) copy.publish(name, held.value, () => true);
+      if (this.#values) {
+        for (const [name, held] of this.#values) copy.publish(name, held.value, () => true);
+      }
       return copy;
     } catch (error) { copy.close(); throw error; }
   }
@@ -362,28 +431,36 @@ export class ValueStore {
       action();
     } catch (error) { for (const held of staged.values()) held.release(); throw error; }
     this.invalidate();
-    for (const [name, held] of staged) this.#values.set(name, held);
+    if (staged.size > 0) {
+      const values = this.#values ??= new Map();
+      for (const [name, held] of staged) values.set(name, held);
+    }
   }
 
   restore(source: ValueStore, action: () => void): void {
     if (source === this) throw new Error("Shell value restoration requires an independent snapshot");
     this.arena.assertRetained();
     if (this.#closed || source.#closed || this.arena !== source.arena) throw new Error("Shell value restoration ownership is not prepared");
-    const transfers = [...source.#values].map(([name, held]) => ({ name, held, transfer: source.scope.prepareTransfer(held, this.scope) }));
+    const transfers = source.#values ? [...source.#values].map(([name, held]) => ({ name, held, transfer: source.scope.prepareTransfer(held, this.scope) })) : [];
     action();
     this.invalidate();
     if (source.#stringRecord) {
       this.#stringRecord = source.#stringRecord;
       this.#stringBytes = source.#stringBytes;
-      for (const [name, val] of source.#strings) this.#strings.set(name, val);
+      this.#strings = source.#strings;
+      this.#stringsShared = source.#stringsShared;
       source.#stringRecord = undefined;
       source.#stringBytes = 0;
-      source.#strings.clear();
+      source.#strings = undefined;
+      source.#stringsShared = false;
     }
-    for (const { name, held, transfer } of transfers) {
-      transfer();
-      this.#values.set(name, held);
-      source.#values.delete(name);
+    if (transfers.length > 0) {
+      const values = this.#values ??= new Map();
+      for (const { name, held, transfer } of transfers) {
+        transfer();
+        values.set(name, held);
+        source.#values!.delete(name);
+      }
     }
   }
 
@@ -392,8 +469,15 @@ export class ValueStore {
     action();
     this.invalidate(name);
     transfer();
-    this.#values.set(name, held);
+    (this.#values ??= new Map()).set(name, held);
   }
 
-  close(): void { this.#closed = true; this.invalidate(); this.scope.close(); }
+  close(): void {
+    if (this.#closed) return;
+    this.#closed = true;
+    this.invalidate();
+    if (this.scope.closeForStoreRecycle()) {
+      this.arena.recycleStore(this);
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../../contracts/yield.js";
 import { EreProfileLimitError, EreUsageUnknownError } from "./errors.js";
 import type { EreExpansionBounds, EreLimits, EreResource, EreUsage } from "./types.js";
 
@@ -32,6 +32,7 @@ export class EreLedger {
   private uCaptureSlots = 0;
   private poison: EreUsageUnknownError | undefined;
   private lastYield = 0;
+  private lastYieldMs = monotonicNow();
 
   constructor(bounds: EreExpansionBounds, overrides?: Partial<EreLimits>, prevalidated?: EreLimits) {
     if (prevalidated !== undefined) {
@@ -66,6 +67,7 @@ export class EreLedger {
     this.uCaptureSlots = 0;
     this.poison = undefined;
     this.lastYield = 0;
+    this.lastYieldMs = monotonicNow();
     return this;
   }
 
@@ -152,9 +154,15 @@ export class EreLedger {
   checkpoint(signal?: AbortSignal): Promise<void> | undefined {
     runYieldCheckpoint(signal);
     this.check(signal);
-    const interval = hasYieldCheckpoint(signal) ? 256 : 16384;
+    const hasExt = hasYieldCheckpoint(signal);
+    const interval = hasExt ? 256 : 16384;
     if (this.uWork - this.lastYield >= interval) {
       this.lastYield = this.uWork;
+      if (!hasExt) {
+        const now = monotonicNow();
+        if (now - this.lastYieldMs < 25) return undefined;
+        this.lastYieldMs = now;
+      }
       return yieldTurn(signal).then(() => {
         this.check(signal);
       });

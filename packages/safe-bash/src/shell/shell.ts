@@ -13,6 +13,7 @@ import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
+import { isSyncResolved } from "../fs/creation-mask.js";
 import type { State } from "./runtime.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
@@ -34,8 +35,8 @@ interface CachedParsedUnit {
 const parsedUnitCache = new Map<string, CachedParsedUnit>();
 
 class RootInvocationCancellationOwner {
-  readonly finalized: Promise<void>;
-  #resolveFinalized!: () => void;
+  #finalized: Promise<void> | undefined;
+  #resolveFinalized: (() => void) | undefined;
   #admissionOpen = true;
   #boundary: CancellationBoundary | undefined;
   #observedOrigin: CancellationOrigin | undefined;
@@ -44,8 +45,12 @@ class RootInvocationCancellationOwner {
   #finished = false;
 
   constructor(readonly scope: InvocationScope) {
-    this.finalized = new Promise<void>(resolve => { this.#resolveFinalized = resolve; });
-    scope.register(() => { this.#admissionOpen = false; });
+    scope.registerFinalizer(() => { this.#admissionOpen = false; });
+  }
+
+  get finalized(): Promise<void> {
+    if (this.#finished) return Promise.resolve();
+    return this.#finalized ??= new Promise<void>(resolve => { this.#resolveFinalized = resolve; });
   }
 
   activate(boundary: CancellationBoundary): void {
@@ -99,7 +104,7 @@ class RootInvocationCancellationOwner {
       const close = this.#boundary!.close();
       this.scope.failures.push(...close.failures);
       return selectRuntimeCancellationOutcome(this.#boundary!, captured, this.#observedOrigin);
-    } finally { this.#resolveFinalized(); }
+    } finally { this.#resolveFinalized?.(); }
   }
 }
 
@@ -223,10 +228,12 @@ export class Shell implements PluginHost {
       captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
       if (captured.kind === "throw") budget.executionCleanup.abort(captured.reason);
     } finally {
-      await budget.executionCleanup.drain();
+      const cleanupDrain = budget.executionCleanup.drain();
+      if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
       scope.failures.push(...budget.executionCleanup.failures);
       budget.close();
-      await scope.close();
+      const scopeClose = scope.close();
+      if (!isSyncResolved(scopeClose)) await scopeClose;
     }
     const selection = owner.finish(captured);
     cancellationState.close();
@@ -250,10 +257,7 @@ export class Shell implements PluginHost {
     if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
-    if (scope.signal.aborted) {
-      budget.controller.abort(scope.signal.reason);
-    }
-    const unseal = scope.onSeal(() => budget.controller.abort(new Error("Invocation is closed")));
+    const unseal = scope.onSeal(() => budget.abort(new Error("Invocation is closed")));
     const stdout = new Capture();
     const stderr = new Capture();
     const sink = (capture: Capture, external?: ByteSink): ByteSink => external === undefined
@@ -272,10 +276,15 @@ export class Shell implements PluginHost {
           },
         });
     let stdin: ShellInput | undefined;
-    scope.register(async () => {
-      try { await stdin?.close(); }
-      catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
-    });
+    let unregisterStdin: (() => void) | undefined;
+    if (options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
+      unregisterStdin = scope.register(async () => {
+        try { await stdin?.close(); }
+        catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
+      });
+    } else {
+      scope.registerFinalizer(() => { void stdin?.close(); });
+    }
     const io = {
       capabilities: options.capabilities === undefined && options.limits === undefined
         ? (this.#defaultIoCapabilities ?? Object.freeze({ ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
@@ -423,7 +432,9 @@ export class Shell implements PluginHost {
         } else await writeDiagnostic(io.stderr, `shell: ${error.message}\n`);
         exitCode = error.exitCode;
       }
-      if (runtime && state) exitCode = await runtime.finishShell(state, io, exitCode);
+      if (runtime && state && !runtime.tryFinishShellSync(state)) {
+        exitCode = await runtime.finishShell(state, io, exitCode);
+      }
     } catch (error) {
       failed = true;
       budget.executionCleanup.abort(error);
@@ -431,9 +442,18 @@ export class Shell implements PluginHost {
     }
     finally {
       unseal();
-      await budget.executionCleanup.drain();
-      if (failed) await stdin?.close().catch(() => {});
-      else await stdin?.close();
+      unregisterStdin?.();
+      const cleanupDrain = budget.executionCleanup.drain();
+      if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
+      const activeStdin = stdin;
+      stdin = undefined;
+      if (activeStdin) {
+        const closedStdin = activeStdin.close();
+        if (!isSyncResolved(closedStdin)) {
+          if (failed) await closedStdin.catch(() => {});
+          else await closedStdin;
+        }
+      }
     }
     throwCleanupFailures(budget.executionCleanup.failures);
     const stdoutBytes = stdout.takeBytes();
@@ -452,7 +472,7 @@ export class Shell implements PluginHost {
     const drains: Promise<void>[] = [];
     this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
     for (const { scope, budget } of active) {
-      budget.controller.abort(new Error("Shell is disposed"));
+      budget.abort(new Error("Shell is disposed"));
       drains.push(budget.executionCleanup.drain().then(() => scope.close()));
     }
     return this.#disposal;

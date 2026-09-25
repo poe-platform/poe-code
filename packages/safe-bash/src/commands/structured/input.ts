@@ -40,23 +40,30 @@ export function decodeUtf8(bytes: string, budget: Budget): string {
   return points.join("") + block;
 }
 const SHORT_JSON_STRINGS = new Array<string>(512);
-function shortSliceString(fullText: string, start: number, end: number): string {
+function matchAsciiBytes(bytes: Uint8Array, start: number, expected: string): boolean {
+  const len = expected.length;
+  for (let i = 0; i < len; i++) {
+    if (bytes[start + i] !== expected.charCodeAt(i)) return false;
+  }
+  return true;
+}
+function shortSliceString(bytes: Uint8Array, start: number, end: number): string {
   const len = end - start;
   if (len === 0) return "";
   if (len <= 16) {
-    const first = fullText.charCodeAt(start);
-    const last = fullText.charCodeAt(end - 1);
-    const mid = fullText.charCodeAt((start + end) >> 1);
+    const first = bytes[start]!;
+    const last = bytes[end - 1]!;
+    const mid = bytes[(start + end) >> 1]!;
     const slot = ((first * 31 + mid * 131 + last * 17 + len * 13) & 511);
     const cached = SHORT_JSON_STRINGS[slot];
-    if (cached !== undefined && cached.length === len && fullText.startsWith(cached, start)) {
+    if (cached !== undefined && cached.length === len && matchAsciiBytes(bytes, start, cached)) {
       return cached;
     }
-    const s = Buffer.from(fullText.slice(start, end), "latin1").toString("latin1");
+    const s = Buffer.from(bytes.buffer, bytes.byteOffset + start, len).toString("latin1");
     SHORT_JSON_STRINGS[slot] = s;
     return s;
   }
-  return fullText.slice(start, end);
+  return Buffer.from(bytes.buffer, bytes.byteOffset + start, len).toString("latin1");
 }
 
 class JsonParser {
@@ -94,10 +101,10 @@ class JsonParser {
   isTopLevelIdle(): boolean {
     return !this.quoted && !this.escaped && this.stack.length === 0 && this.token === "" && this.next === undefined && !this.stream;
   }
-  tryParseFlatLine(fullText: string, start: number, end: number): Json | undefined {
+  tryParseFlatLine(bytes: Uint8Array, start: number, end: number): Json | undefined {
     const byteLen = end - start;
     if (byteLen < 2 || byteLen > this.budget.limits.maxValueBytes) return undefined;
-    if (fullText.charCodeAt(start) !== 123 || fullText.charCodeAt(end - 1) !== 125) return undefined;
+    if (bytes[start] !== 123 || bytes[end - 1] !== 125) return undefined;
     if (this.budget.limits.maxDepth < 1) return undefined;
     const canReuse = !this.reusableInUse;
     let obj = canReuse ? this.reusableObj : object();
@@ -108,25 +115,25 @@ class JsonParser {
     let count = 0;
     if (pos < end - 1) {
       while (true) {
-        if (fullText.charCodeAt(pos) !== 34) return undefined;
+        if (bytes[pos] !== 34) return undefined;
         pos++;
         const keyStart = pos;
         let key: string;
         if (shapeMatch && count < rKeys.length) {
           const expectedKey = rKeys[count]!;
           const expectedEnd = keyStart + expectedKey.length;
-          if (expectedEnd < end - 1 && fullText.charCodeAt(expectedEnd) === 34 && fullText.startsWith(expectedKey, keyStart)) {
+          if (expectedEnd < end - 1 && bytes[expectedEnd] === 34 && matchAsciiBytes(bytes, keyStart, expectedKey)) {
             key = expectedKey;
             pos = expectedEnd;
           } else {
             while (pos < end - 1) {
-              const c = fullText.charCodeAt(pos);
+              const c = bytes[pos]!;
               if (c === 34) break;
               if (c < 32 || c >= 127 || c === 92) return undefined;
               pos++;
             }
             if (pos >= end - 1) return undefined;
-            key = shortSliceString(fullText, keyStart, pos);
+            key = shortSliceString(bytes, keyStart, pos);
             if (expectedKey !== key) {
               shapeMatch = false;
               const fresh = object();
@@ -143,13 +150,13 @@ class JsonParser {
           }
         } else {
           while (pos < end - 1) {
-            const c = fullText.charCodeAt(pos);
+            const c = bytes[pos]!;
             if (c === 34) break;
             if (c < 32 || c >= 127 || c === 92) return undefined;
             pos++;
           }
           if (pos >= end - 1) return undefined;
-          key = shortSliceString(fullText, keyStart, pos);
+          key = shortSliceString(bytes, keyStart, pos);
           if (shapeMatch) {
             shapeMatch = false;
             const fresh = object();
@@ -169,33 +176,33 @@ class JsonParser {
           if (canReuse) rKeys.push(key);
         }
         pos++;
-        if (fullText.charCodeAt(pos) !== 58) return undefined;
+        if (bytes[pos] !== 58) return undefined;
         pos++;
         if (pos >= end - 1) return undefined;
-        const vFirst = fullText.charCodeAt(pos);
+        const vFirst = bytes[pos]!;
         let val: Json;
         if (vFirst === 34) {
           pos++;
           const vStart = pos;
           while (pos < end - 1) {
-            const c = fullText.charCodeAt(pos);
+            const c = bytes[pos]!;
             if (c === 34) break;
             if (c < 32 || c >= 127 || c === 92) return undefined;
             pos++;
           }
           if (pos >= end - 1) return undefined;
-          val = shortSliceString(fullText, vStart, pos);
+          val = shortSliceString(bytes, vStart, pos);
           pos++;
         } else if (vFirst === 116) {
-          if (fullText.charCodeAt(pos + 1) !== 114 || fullText.charCodeAt(pos + 2) !== 117 || fullText.charCodeAt(pos + 3) !== 101) return undefined;
+          if (bytes[pos + 1] !== 114 || bytes[pos + 2] !== 117 || bytes[pos + 3] !== 101) return undefined;
           val = true;
           pos += 4;
         } else if (vFirst === 102) {
-          if (fullText.charCodeAt(pos + 1) !== 97 || fullText.charCodeAt(pos + 2) !== 108 || fullText.charCodeAt(pos + 3) !== 115 || fullText.charCodeAt(pos + 4) !== 101) return undefined;
+          if (bytes[pos + 1] !== 97 || bytes[pos + 2] !== 108 || bytes[pos + 3] !== 115 || bytes[pos + 4] !== 101) return undefined;
           val = false;
           pos += 5;
         } else if (vFirst === 110) {
-          if (fullText.charCodeAt(pos + 1) !== 117 || fullText.charCodeAt(pos + 2) !== 108 || fullText.charCodeAt(pos + 3) !== 108) return undefined;
+          if (bytes[pos + 1] !== 117 || bytes[pos + 2] !== 108 || bytes[pos + 3] !== 108) return undefined;
           val = null;
           pos += 4;
         } else if (vFirst >= 48 && vFirst <= 57) {
@@ -203,22 +210,22 @@ class JsonParser {
           let num = vFirst - 48;
           pos++;
           if (vFirst === 48) {
-            const nextC = fullText.charCodeAt(pos);
+            const nextC = bytes[pos]!;
             if (nextC !== 44 && nextC !== 125) return undefined;
             val = SMALL_DECIMALS[0]!;
           } else {
             while (pos < end - 1) {
-              const c = fullText.charCodeAt(pos);
+              const c = bytes[pos]!;
               if (c < 48 || c > 57) break;
               num = num * 10 + (c - 48);
               pos++;
             }
             if (pos - nStart > 15) return undefined;
-            const nextC = fullText.charCodeAt(pos);
+            const nextC = bytes[pos]!;
             if (nextC !== 44 && nextC !== 125) return undefined;
             if (num <= 1024) val = SMALL_DECIMALS[num]!;
             else {
-              const s = fullText.slice(nStart, pos);
+              const s = String(num);
               val = new Decimal(s, 0, false, s, num);
             }
           }
@@ -228,27 +235,27 @@ class JsonParser {
           if (canReuse && !usedArr) {
             usedArr = true;
             arr = this.reusableArr;
-            arr.length = 0;
           } else {
             arr = [];
           }
-          if (fullText.charCodeAt(pos) === 93) {
+          let aIdx = 0;
+          if (bytes[pos] === 93) {
             pos++;
           } else {
             while (pos < end - 1) {
-              const eFirst = fullText.charCodeAt(pos);
+              const eFirst = bytes[pos]!;
               let elem: Json;
               if (eFirst === 34) {
                 pos++;
                 const sStart = pos;
                 while (pos < end - 1) {
-                  const c = fullText.charCodeAt(pos);
+                  const c = bytes[pos]!;
                   if (c === 34) break;
                   if (c < 32 || c >= 127 || c === 92) return undefined;
                   pos++;
                 }
                 if (pos >= end - 1) return undefined;
-                elem = shortSliceString(fullText, sStart, pos);
+                elem = shortSliceString(bytes, sStart, pos);
                 pos++;
               } else if (eFirst >= 48 && eFirst <= 57) {
                 const nStart = pos;
@@ -256,26 +263,26 @@ class JsonParser {
                 pos++;
                 if (eFirst !== 48) {
                   while (pos < end - 1) {
-                    const c = fullText.charCodeAt(pos);
+                    const c = bytes[pos]!;
                     if (c < 48 || c > 57) break;
                     num = num * 10 + (c - 48);
                     pos++;
                   }
                 }
                 if (pos - nStart > 15) return undefined;
-                const nextC = fullText.charCodeAt(pos);
+                const nextC = bytes[pos]!;
                 if (nextC !== 44 && nextC !== 93) return undefined;
                 if (num <= 1024) elem = SMALL_DECIMALS[num]!;
                 else {
-                  const s = fullText.slice(nStart, pos);
+                  const s = String(num);
                   elem = new Decimal(s, 0, false, s, num);
                 }
               } else {
                 return undefined;
               }
-              arr.push(elem);
-              if (arr.length > this.budget.limits.maxCollectionSize) return undefined;
-              const aSep = fullText.charCodeAt(pos);
+              arr[aIdx++] = elem;
+              if (aIdx > this.budget.limits.maxCollectionSize) return undefined;
+              const aSep = bytes[pos]!;
               if (aSep === 44) {
                 pos++;
                 continue;
@@ -287,6 +294,7 @@ class JsonParser {
               return undefined;
             }
           }
+          if (arr.length !== aIdx) arr.length = aIdx;
           val = arr;
         } else {
           return undefined;
@@ -311,7 +319,7 @@ class JsonParser {
           put(obj, key, val);
         }
         else obj[key] = val;
-        const sep = fullText.charCodeAt(pos);
+        const sep = bytes[pos]!;
         if (sep === 44) {
           pos++;
           continue;
@@ -657,17 +665,15 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
       if (pt) await pt;
       budget.inputBytes += rawChunk.byteLength;
       if (budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
-      const fullText = Buffer.isBuffer(rawChunk)
-        ? rawChunk.toString("latin1")
-        : Buffer.from(rawChunk.buffer, rawChunk.byteOffset, rawChunk.byteLength).toString("latin1");
+      let fullText: string | undefined;
       let chunkOffset = 0;
-      while (chunkOffset < fullText.length) {
+      while (chunkOffset < rawChunk.length) {
         if (budget.inputLocation.complete) {
           if (options.hasPendingDiagnostics?.()) budget.inputLocation = { ...budget.inputLocation, complete: false };
           else budget.inputLocation.complete = false;
         }
-        const newline = fullText.indexOf("\n", chunkOffset);
-        const segEnd = Math.min(newline < 0 ? fullText.length : newline + 1, chunkOffset + 16384);
+        const newline = rawChunk.indexOf(10, chunkOffset);
+        const segEnd = Math.min(newline < 0 ? rawChunk.length : newline + 1, chunkOffset + 16384);
         budget.step(Math.ceil((segEnd - chunkOffset) / 1024));
         const pt = budget.tickSync();
         if (pt) await pt;
@@ -675,7 +681,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
           budget.inputLocation.line++;
           budget.inputLocation.complete = true;
           if (nulTail === undefined && active && !failed && !options.sequence && !options.stream && !options.streamErrors && parser.isTopLevelIdle()) {
-            const fastObj = parser.tryParseFlatLine(fullText, chunkOffset, newline);
+            const fastObj = parser.tryParseFlatLine(rawChunk, chunkOffset, newline);
             if (fastObj !== undefined) {
               line++;
               column = 0;
@@ -701,6 +707,9 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
             }
           }
         }
+        fullText ??= Buffer.isBuffer(rawChunk)
+          ? rawChunk.toString("latin1")
+          : Buffer.from(rawChunk.buffer, rawChunk.byteOffset, rawChunk.byteLength).toString("latin1");
         for (let index = chunkOffset; index < segEnd; index++) {
           if ((++scanned & 1023) === 0) {
             const p = budget.tickSync();
@@ -809,7 +818,10 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
         }
         chunkOffset = segEnd;
       }
-      if (options.onChunkEnd) await options.onChunkEnd();
+      if (options.onChunkEnd) {
+        const pendingEnd = options.onChunkEnd();
+        if (pendingEnd) await pendingEnd;
+      }
     }
   } finally {
     if (!done) await iter.return?.();

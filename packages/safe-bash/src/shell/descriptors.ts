@@ -41,7 +41,12 @@ export interface PipeDescriptorReference {
   close(): Promise<void>;
 }
 
-const resolvedVoid = Promise.resolve();
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
+
+function isSyncResolved(promise: unknown): boolean {
+  return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
 
 export class PipeDescriptorFrame {
   readonly references = new Set<PipeDescriptorReference>();
@@ -79,13 +84,34 @@ export class PipeDescriptorFrame {
   close(): Promise<void> {
     if (this.#closing) return this.#closing;
     if (this.closeSyncIfEmpty()) return resolvedVoid;
+    let asyncWork: Promise<void>[] | undefined;
+    const syncFailures: unknown[] = [];
+    for (const reference of this.references) {
+      try {
+        const pending = reference.close();
+        if (!isSyncResolved(pending)) {
+          (asyncWork ??= []).push(pending);
+        }
+      } catch (reason) {
+        syncFailures.push(reason);
+      }
+    }
+    if (!asyncWork) {
+      this.references.clear();
+      this.#retireCleanup?.();
+      if (syncFailures.length > 0) {
+        try { throwCleanupFailures(syncFailures); }
+        catch (err) { this.#closing = Promise.reject(err); return this.#closing; }
+      }
+      this.#closing = resolvedVoid;
+      return resolvedVoid;
+    }
     let resolve!: () => void;
     let reject!: (reason: unknown) => void;
     this.#closing = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
-    const work = [...this.references].map(reference => {
-      try { return reference.close(); }
-      catch (reason) { return Promise.reject(reason); }
-    });
+    const work = syncFailures.length > 0
+      ? [...syncFailures.map(r => Promise.reject(r)), ...asyncWork]
+      : asyncWork;
     void Promise.allSettled(work).then(results => {
       this.references.clear();
       throwCleanupFailures(results.filter(result => result.status === "rejected").map(result => result.reason));
@@ -112,19 +138,34 @@ export function ownPipeDescriptor(endpoint: PipeReadEndpoint | PipeWriteEndpoint
       },
       close() {
         if (closing) return closing;
+        references--;
+        if (references > 0) {
+          allocation.close();
+          closing = resolvedVoid;
+          return resolvedVoid;
+        }
+        let pending: Promise<void>;
+        try {
+          pending = close();
+        } catch (reason) {
+          allocation.close();
+          closing = Promise.reject(reason);
+          return closing;
+        }
+        if (isSyncResolved(pending)) {
+          allocation.close();
+          closing = resolvedVoid;
+          return resolvedVoid;
+        }
         let resolve!: () => void;
         let reject!: (reason: unknown) => void;
         closing = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
-        references--;
         const finish = (failure?: { reason: unknown }): void => {
           allocation.close();
           if (failure) reject(failure.reason);
           else resolve();
         };
-        try {
-          if (references) finish();
-          else void close().then(() => finish(), reason => finish({ reason }));
-        } catch (reason) { finish({ reason }); }
+        void pending.then(() => finish(), reason => finish({ reason }));
         return closing;
       },
     };

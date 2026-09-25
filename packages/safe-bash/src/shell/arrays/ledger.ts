@@ -337,7 +337,7 @@ export function exactSum(left: number, right: number): number {
   return left + right;
 }
 
-const resolvedPromise = Promise.resolve();
+const resolvedPromise: Promise<void> = Object.defineProperty(Promise.resolve(), Symbol.for("safe-bash.syncResolved"), { value: true });
 const sharedDiscardTickets = { generation: 0, version: 0, epoch: 0 };
 
 export class ArrayOwner {

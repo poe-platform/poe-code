@@ -53,7 +53,7 @@ import { pathOf, UsageError } from "../commands/internal.js";
 import { cloneGetoptsState, createGetoptsInput, createGetoptsState, GetoptsError, getoptsInputAllocationSize, scanGetopts, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
 import {
-  activateChildCancellation, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellation,
+  activateChildCancellation, admitCancellationSubscriptionCapacity, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellation,
 } from "./cancellation.js";
 import type {
   CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
@@ -65,7 +65,7 @@ import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
-import { arrayStore, guestArrays, requireArrays, snapshotState, stateMonitor, trackState } from "./arrays/state.js";
+import { arrayStore, guestArrays, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
 import { pipelineStatusTarget, publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
@@ -314,7 +314,7 @@ class ExecutionCleanup {
 
 export class Budget {
   readonly executionScope = Object.freeze({});
-  readonly pathLookup = new PathLookup();
+  #pathLookup: PathLookup | undefined;
   readonly parsing: ParseBudget;
   readonly values: ValueArena;
   readonly executionCleanup = new ExecutionCleanup(this);
@@ -327,6 +327,8 @@ export class Budget {
   readonly controller = new AbortController();
   readonly signal: AbortSignal;
   readonly yieldCheckpoint = (): void => { this.cpuCheckpoint(); };
+  readonly chargeFs = (): void => { this.fileSystemOperation(); };
+  readonly cleanupChargeFs = (): void => { this.fileSystemCleanupOperation(); };
   #wallClockTimer: ReturnType<typeof setTimeout> | undefined;
   #wallClockDeadline = 0;
   #pipelineStages = 0;
@@ -334,18 +336,27 @@ export class Budget {
   readonly #cpuStarted = monotonicNow();
 
   constructor(readonly limits: ResolvedShellLimits, signal?: AbortSignal, readonly onInternalError?: InternalErrorHandler) {
+    registerManagedAbortSignal(this.controller.signal);
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
-    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, error => this.controller.abort(error));
+    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, error => this.abort(error));
     this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, () => this.signal.throwIfAborted(), limit => this.fail(limit));
     this.#wallClockDeadline = Date.now() + limits.maxWallClockMs;
     if (limits.maxWallClockMs !== Infinity) this.#armWallClock();
   }
 
+  get pathLookup(): PathLookup {
+    return this.#pathLookup ??= new PathLookup();
+  }
+
+  abort(reason: unknown): void {
+    abortManagedController(this.controller, reason);
+  }
+
   #armWallClock(): void {
     const remaining = this.#wallClockDeadline - Date.now();
     if (remaining <= 0) {
-      this.controller.abort(new ShellLimitError("maxWallClockMs"));
+      this.abort(new ShellLimitError("maxWallClockMs"));
       return;
     }
     this.#wallClockTimer = setTimeout(() => this.#armWallClock(), Math.min(remaining, 2_147_483_647));
@@ -360,7 +371,7 @@ export class Budget {
 
   fail(limit: keyof ShellLimits): never {
     const error = new ShellLimitError(limit);
-    this.controller.abort(error);
+    this.abort(error);
     throw error;
   }
 
@@ -509,6 +520,11 @@ export class Capture implements ByteSink {
 
   writeSync(chunk: Uint8Array): void {
     if (!chunk.byteLength) return;
+    if (this.chunks.length === 0 && chunk.byteLength <= 4096) {
+      this.chunks.push(chunk.slice());
+      this.length = chunk.byteLength;
+      return;
+    }
     let offset = 0;
     while (offset < chunk.byteLength) {
       if (!this.#tail || this.#tailLength === this.#tail.byteLength) {
@@ -733,13 +749,23 @@ class DescriptorLifetime {
 }
 
 class PreparedDescriptorFrame {
-  #bindings = new Map<number, { lifetime: DescriptorLifetime; release(): Promise<void> }>();
-  #work: Promise<void> = Promise.resolve();
+  #bindings: Map<number, { lifetime: DescriptorLifetime; release(): Promise<void> }> | undefined;
+  #work: Promise<void> = resolvedVoid;
   #closing: Promise<void> | undefined;
   readonly #retireCleanup: () => void;
 
   constructor(private readonly references: PipeDescriptorFrame, private readonly budget: Budget) {
     this.#retireCleanup = references.scope.register(() => this.close());
+  }
+
+  closeSyncIfIdle(): boolean {
+    if (this.#closing) return false;
+    if ((!this.#bindings || this.#bindings.size === 0) && this.#work === resolvedVoid) {
+      this.#closing = resolvedVoid;
+      this.#retireCleanup();
+      return true;
+    }
+    return false;
   }
 
   acquire(descriptors: ReadonlyMap<number, Descriptor>): void {
@@ -750,7 +776,7 @@ class PreparedDescriptorFrame {
       try {
         allocation.reserve(64, 1);
         const release = descriptor.lifetime.acquire();
-        this.#bindings.set(number, { lifetime: descriptor.lifetime, async release() {
+        (this.#bindings ??= new Map()).set(number, { lifetime: descriptor.lifetime, async release() {
           try { await release(); } finally { allocation.close(); }
         } });
       } catch (reason) { allocation.close(); throw reason; }
@@ -760,15 +786,15 @@ class PreparedDescriptorFrame {
   reconcile(descriptors: ReadonlyMap<number, Descriptor>): Promise<void> {
     if (this.#closing) return Promise.reject(new FsError("EBADF"));
     const previous = this.#bindings;
-    this.#bindings = new Map();
+    this.#bindings = undefined;
     const failures: unknown[] = [];
-    const inherited = new Set([...previous.values()].map(binding => binding.lifetime));
+    const inherited = new Set(previous ? [...previous.values()].map(binding => binding.lifetime) : []);
     const surviving = new Map([...descriptors].filter(([, descriptor]) => descriptor.lifetime && inherited.has(descriptor.lifetime)));
     try { this.acquire(surviving); } catch (reason) { failures.push(reason); }
     const activePipes = new Set([...descriptors.values()].filter(descriptor => !descriptor.closed).map(descriptor => descriptor.pipe));
     this.#work = this.#work.then(async () => {
       const retired = await Promise.allSettled([
-        ...[...previous.values()].map(binding => binding.release()),
+        ...(previous ? [...previous.values()].map(binding => binding.release()) : []),
         ...[...this.references.references].filter(reference => !activePipes.has(reference)).map(reference => reference.close()),
       ]);
       failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
@@ -778,11 +804,12 @@ class PreparedDescriptorFrame {
   }
 
   close(): Promise<void> {
+    if (this.closeSyncIfIdle()) return resolvedVoid;
     return this.#closing ??= Promise.resolve().then(async () => {
       const failures: unknown[] = [];
       try { await this.#work; } catch (reason) { failures.push(reason); }
-      const retired = await Promise.allSettled([...this.#bindings.values()].map(binding => binding.release()));
-      this.#bindings.clear();
+      const retired = this.#bindings ? await Promise.allSettled([...this.#bindings.values()].map(binding => binding.release())) : [];
+      this.#bindings?.clear();
       failures.push(...retired.filter(result => result.status === "rejected").map(result => result.reason));
       throwCleanupFailures(failures);
       this.#retireCleanup();
@@ -1063,22 +1090,42 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
   });
 }
 
-async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
-  const raw = stateMonitor(state)?.raw ?? state;
-  const hasLocals = inheritLocals && raw.locals.length > 0;
-  const destination = await snapshotState(state, () => ({
+function cloneRawState(raw: State, hasLocals: boolean): State {
+  const cloned: State = {
     ...raw,
     variables: Object.assign(Object.create(null) as Record<string, string>, raw.variables),
-    exported: new Set(raw.exported), functions: new Map(raw.functions), positional: [...raw.positional],
-    ...(raw.exportedFunctions ? { exportedFunctions: new Set(raw.exportedFunctions) } : {}),
-    ...(raw.readonlyVariables ? { readonlyVariables: new Set(raw.readonlyVariables) } : {}),
-    ...(raw.readonlyFunctions ? { readonlyFunctions: new Set(raw.readonlyFunctions) } : {}),
-    ...(raw.variableAttributes ? { variableAttributes: new Map(raw.variableAttributes) } : {}),
-    ...(raw.getopts ? { getopts: cloneGetoptsBinding(raw) } : {}),
-    ...(raw.functionNames ? { functionNames: [...raw.functionNames] } : {}),
-    directoryStack: { entries: [...raw.directoryStack?.entries ?? []], bytes: raw.directoryStack?.bytes ?? 0 },
-    locals: hasLocals ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))) : [],
-  }), signal, hasLocals ? async (destination, owner) => {
+    exported: raw.exported.size ? new Set(raw.exported) : new Set(),
+    functions: raw.functions.size ? new Map(raw.functions) : new Map(),
+    positional: raw.positional.length > 0 ? [...raw.positional] : [],
+    directoryStack: {
+      entries: raw.directoryStack?.entries.length ? [...raw.directoryStack.entries] : [],
+      bytes: raw.directoryStack?.bytes ?? 0,
+    },
+    locals: hasLocals
+      ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
+      : [],
+  };
+  if (raw.exportedFunctions) cloned.exportedFunctions = new Set(raw.exportedFunctions);
+  if (raw.readonlyVariables) cloned.readonlyVariables = new Set(raw.readonlyVariables);
+  if (raw.readonlyFunctions) cloned.readonlyFunctions = new Set(raw.readonlyFunctions);
+  if (raw.variableAttributes) cloned.variableAttributes = new Map(raw.variableAttributes);
+  if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
+  if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
+  return cloned;
+}
+
+function tryCloneStateSync(state: State, scope?: InvocationScope, inheritLocals = true): State | undefined {
+  const raw = stateMonitor(state)?.raw ?? state;
+  if (scope || inheritLocals && raw.locals.length > 0) return undefined;
+  return trySnapshotStateSync(state, () => cloneRawState(raw, false));
+}
+
+async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
+  const syncClone = tryCloneStateSync(state, scope, inheritLocals);
+  if (syncClone) return syncClone;
+  const raw = stateMonitor(state)?.raw ?? state;
+  const hasLocals = inheritLocals && raw.locals.length > 0;
+  const destination = await snapshotState(state, () => cloneRawState(raw, hasLocals), signal, hasLocals ? async (destination, owner) => {
     const store = arrayStore(destination) ?? requireArrays(destination);
     for (let index = 0; index < destination.locals.length; index++) {
       const sourceFrame = state.locals[index]!;
@@ -1557,15 +1604,16 @@ interface InvokeOutcomeRecord {
 
 /** Internal to the shell/runtime pair; it is not exported by the package root. */
 export class RuntimeCancellationState {
-  readonly #records = new Set<InvokeOutcomeRecord>();
-  #diagnostics = new WeakMap<object, NounsetDiagnosticFailure>();
+  #records: Set<InvokeOutcomeRecord> | undefined;
+  #diagnostics: WeakMap<object, NounsetDiagnosticFailure> | undefined;
   #closed = false;
 
   recordDiagnostic(promise: Promise<CommandResult>, failure: NounsetDiagnosticFailure): void {
-    if (!this.#closed) this.#diagnostics.set(promise, failure);
+    if (!this.#closed) (this.#diagnostics ??= new WeakMap()).set(promise, failure);
   }
 
   consumeDiagnostic(rawReturn: unknown): NounsetDiagnosticFailure | undefined {
+    if (!this.#diagnostics) return undefined;
     if (rawReturn === null || typeof rawReturn !== "object" && typeof rawReturn !== "function") return undefined;
     const failure = this.#diagnostics.get(rawReturn);
     this.#diagnostics.delete(rawReturn);
@@ -1575,17 +1623,18 @@ export class RuntimeCancellationState {
   bind(promise: Promise<CommandResult>, boundary: CancellationBoundary): InvokeOutcomeRecord {
     if (this.#closed) throw new Error("Cancellation outcome admission is closed");
     const record: InvokeOutcomeRecord = { promise, boundary, finalized: false, consumed: false };
-    this.#records.add(record);
+    (this.#records ??= new Set()).add(record);
     return record;
   }
 
   finalize(record: InvokeOutcomeRecord, selection: CancellationSelection<CommandResult>): void {
-    if (record.consumed || !this.#records.has(record)) return;
+    if (record.consumed || !this.#records?.has(record)) return;
     record.selection = selection;
     record.finalized = true;
   }
 
   consume(rawReturn: unknown, capturedReason: unknown): CancellationReport | undefined {
+    if (!this.#records) return undefined;
     for (const record of this.#records) {
       if (record.promise !== rawReturn) continue;
       record.consumed = true;
@@ -1601,14 +1650,16 @@ export class RuntimeCancellationState {
   discard(record: InvokeOutcomeRecord | undefined): void {
     if (!record) return;
     record.consumed = true;
-    this.#records.delete(record);
+    this.#records?.delete(record);
   }
 
   close(): void {
     this.#closed = true;
-    for (const record of this.#records) record.consumed = true;
-    this.#records.clear();
-    this.#diagnostics = new WeakMap();
+    if (this.#records) {
+      for (const record of this.#records) record.consumed = true;
+      this.#records.clear();
+    }
+    this.#diagnostics = undefined;
   }
 }
 
@@ -1617,12 +1668,13 @@ interface CancellationAdmissionOwner {
 }
 
 class InvocationCancellationOwner implements CancellationAdmissionOwner {
-  readonly finalized: Promise<void>;
   readonly #failures: unknown[];
   readonly #outcomes: RuntimeCancellationState;
   readonly #publicPromise: Promise<CommandResult> | undefined;
   readonly #retireCleanup: () => void;
-  #resolveFinalized!: () => void;
+  #finalizedPromise: Promise<void> | undefined;
+  #resolveFinalized: (() => void) | undefined;
+  #completed = false;
   #admissionOpen = true;
   #boundary: CancellationBoundary | undefined;
   #boundaryClosed = false;
@@ -1641,10 +1693,11 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
     this.#failures = parent.failures;
     this.#outcomes = outcomes;
     this.#publicPromise = publicPromise;
-    this.finalized = new Promise<void>(resolve => { this.#resolveFinalized = resolve; });
     this.#retireCleanup = parent.register(async () => {
       this.requestClose();
-      await this.finalized;
+      if (!this.#completed) {
+        await (this.#finalizedPromise ??= new Promise<void>(resolve => { this.#resolveFinalized = resolve; }));
+      }
     });
   }
 
@@ -1654,12 +1707,16 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 
   requestClose(): void { this.#admissionOpen = false; }
 
-  activate(): CancellationBoundary {
+  activate(subscribe = true): CancellationBoundary {
     this.assertAdmissionOpen();
     const boundary = activateChildCancellation(this.prepared);
     this.#boundary = boundary;
     try {
-      this.#detach = subscribeCancellation(boundary, origin => { this.#captureCancellation?.(origin); });
+      if (subscribe) {
+        this.#detach = subscribeCancellation(boundary, origin => { this.#captureCancellation?.(origin); });
+      } else {
+        admitCancellationSubscriptionCapacity(boundary);
+      }
       if (this.#publicPromise) this.#record = this.#outcomes.bind(this.#publicPromise, boundary);
       return boundary;
     } catch (error) {
@@ -1709,13 +1766,28 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
     return this.#finish;
   }
 
+  finishSync(captured: CapturedCancellationOutcome<CommandResult>): CancellationSelection<CommandResult> {
+    this.requestClose();
+    try {
+      this.#closeBoundary();
+      const selection = selectRuntimeCancellationOutcome(this.#boundary!, captured, this.#observedOrigin);
+      if (this.#record) this.#outcomes.finalize(this.#record, selection);
+      return selection;
+    } finally {
+      this.#completed = true;
+      this.#resolveFinalized?.();
+      this.#retireCleanup();
+    }
+  }
+
   async abandon(barrier: Promise<void>): Promise<void> {
     this.requestClose();
     try { await barrier; }
     finally {
       this.#outcomes.discard(this.#record);
       this.#closeBoundary();
-      this.#resolveFinalized();
+      this.#completed = true;
+      this.#resolveFinalized?.();
       this.#retireCleanup();
     }
   }
@@ -1729,7 +1801,8 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
       if (this.#record) this.#outcomes.finalize(this.#record, selection);
       return selection;
     } finally {
-      this.#resolveFinalized();
+      this.#completed = true;
+      this.#resolveFinalized?.();
       this.#retireCleanup();
     }
   }
@@ -1746,7 +1819,7 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
-import { getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem } from "../fs/creation-mask.js";
+import { abortManagedController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
@@ -1787,17 +1860,19 @@ export class Runtime {
   #contextFs: FileSystem | undefined;
   #redirectFsMask = -1;
   #redirectFs: FileSystem | undefined;
-  readonly #chargeFs = (): void => { this.budget.fileSystemOperation(); };
-  readonly #cleanupChargeFs = (): void => { this.budget.fileSystemCleanupOperation(); };
+  readonly #chargeFs: () => void;
+  readonly #cleanupChargeFs: () => void;
   readonly #isMemoryBackingFs: boolean;
+  #fileWrites: Map<string, Promise<void>> | undefined;
+  #outputFiles: Map<string, OutputFile> | undefined;
   constructor(
     fs: FileSystem,
     readonly commands: CommandRegistry,
     readonly middleware: readonly Middleware[],
     readonly budget: Budget,
     readonly signal: AbortSignal = budget.signal,
-    readonly fileWrites = new Map<string, Promise<void>>(),
-    readonly outputFiles = new Map<string, OutputFile>(),
+    fileWrites: Map<string, Promise<void>> | undefined = undefined,
+    outputFiles: Map<string, OutputFile> | undefined = undefined,
     readonly commandSignal: AbortSignal = signal,
     readonly cancellation: CancellationBoundary,
     readonly cancellationState: RuntimeCancellationState,
@@ -1808,6 +1883,10 @@ export class Runtime {
     private readonly inputProfile: Pick<FileSystem, "readStream" | "capabilities"> = fs,
   ) {
     this.#rawFs = fs;
+    this.#chargeFs = budget.chargeFs;
+    this.#cleanupChargeFs = budget.cleanupChargeFs;
+    this.#fileWrites = fileWrites;
+    this.#outputFiles = outputFiles;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
     this.#isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem";
@@ -1816,6 +1895,14 @@ export class Runtime {
       inheritYieldCheckpoint(signal, commandSignal);
       registerInternalYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
     }
+  }
+
+  get fileWrites(): Map<string, Promise<void>> {
+    return this.#fileWrites ??= new Map();
+  }
+
+  get outputFiles(): Map<string, OutputFile> {
+    return this.#outputFiles ??= new Map();
   }
 
   get fs(): FileSystem {
@@ -2206,35 +2293,38 @@ export class Runtime {
   #syncArithState: State | undefined;
   #syncArithRawVars: Record<string, string | undefined> | undefined;
   #syncArithLine: number | undefined;
-  readonly #syncArithRefs: ArithmeticReferences = {
-    isSync: true,
-    resolve: variable => {
-      this.signal.throwIfAborted();
-      return variable;
-    },
-    read: reference => {
-      this.signal.throwIfAborted();
-      if (arrayStore(this.#syncArithState!)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
-      const value = this.#syncArithRawVars![reference]
-        ?? (reference === "LINENO" ? String(this.#syncArithLine ?? 1)
-          : reference === "_" ? this.#syncArithState!.lastArgument ?? ""
-          : reference === "FUNCNAME" ? this.#syncArithState!.functionNames?.[0]
-          : undefined);
-      if (this.#syncArithState!.nounset && value === undefined) {
-        throw new NounsetFailure(`${reference}: unbound variable`, this.#syncArithLine);
-      }
-      return value;
-    },
-    write: (reference, value) => {
-      const st = this.#syncArithState!;
-      if (arrayStore(st)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
-      const raw = stateMonitor(st)?.raw ?? st;
-      if (raw.readonlyVariables?.has(reference)) throw new PublicDiagnostic(`${reference}: readonly variable`);
-      publishVariable(st, reference, value);
-      if (raw.allexport) st.exported.add(reference);
-      if (reference === "OPTIND") this.syncGetopts(st);
-    },
-  };
+  #syncArithRefs: ArithmeticReferences | undefined;
+  private get syncArithRefs(): ArithmeticReferences {
+    return this.#syncArithRefs ??= {
+      isSync: true,
+      resolve: variable => {
+        this.signal.throwIfAborted();
+        return variable;
+      },
+      read: reference => {
+        this.signal.throwIfAborted();
+        if (arrayStore(this.#syncArithState!)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
+        const value = this.#syncArithRawVars![reference]
+          ?? (reference === "LINENO" ? String(this.#syncArithLine ?? 1)
+            : reference === "_" ? this.#syncArithState!.lastArgument ?? ""
+            : reference === "FUNCNAME" ? this.#syncArithState!.functionNames?.[0]
+            : undefined);
+        if (this.#syncArithState!.nounset && value === undefined) {
+          throw new NounsetFailure(`${reference}: unbound variable`, this.#syncArithLine);
+        }
+        return value;
+      },
+      write: (reference, value) => {
+        const st = this.#syncArithState!;
+        if (arrayStore(st)?.get(reference)) throw new ArrayFailure("indexed arithmetic is unsupported");
+        const raw = stateMonitor(st)?.raw ?? st;
+        if (raw.readonlyVariables?.has(reference)) throw new PublicDiagnostic(`${reference}: readonly variable`);
+        publishVariable(st, reference, value);
+        if (raw.allexport) st.exported.add(reference);
+        if (reference === "OPTIND") this.syncGetopts(st);
+      },
+    };
+  }
 
   private syncShellArithmetic(program: ArithmeticProgram, state: State, line: number | undefined): bigint {
     const prevState = this.#syncArithState;
@@ -2244,7 +2334,7 @@ export class Runtime {
     this.#syncArithRawVars = (stateMonitor(state)?.raw ?? state).variables;
     this.#syncArithLine = line;
     try {
-      return evaluateArithmeticSync(program, this.#syncArithRefs, this.budget.parsing);
+      return evaluateArithmeticSync(program, this.syncArithRefs, this.budget.parsing);
     } finally {
       this.#syncArithState = prevState;
       this.#syncArithRawVars = prevVars;
@@ -2260,7 +2350,7 @@ export class Runtime {
     this.#syncArithRawVars = (stateMonitor(state)?.raw ?? state).variables;
     this.#syncArithLine = line;
     try {
-      return evaluateArithmeticSyncString(program, this.#syncArithRefs, this.budget.parsing);
+      return evaluateArithmeticSyncString(program, this.syncArithRefs, this.budget.parsing);
     } finally {
       this.#syncArithState = prevState;
       this.#syncArithRawVars = prevVars;
@@ -3373,7 +3463,27 @@ export class Runtime {
     return status;
   }
 
+  tryFinishShellSync(state: State): boolean {
+    const frame = state.extensions;
+    if (!frame || frame.exiting) return true;
+    if (!hasActiveExtensions(state) && frame.cleanup.length === 0) {
+      frame.exiting = true;
+      this.signal.throwIfAborted();
+      return true;
+    }
+    return false;
+  }
+
+  private releaseExtensionsSyncIfEmpty(state: State): boolean {
+    if (!state.extensions?.cleanup.length) {
+      this.signal.throwIfAborted();
+      return true;
+    }
+    return false;
+  }
+
   async finishShell(state: State, io: IO, status: number): Promise<number> {
+    if (this.tryFinishShellSync(state)) return status;
     const frame = state.extensions;
     if (!frame || frame.exiting) return status;
     let failure: { reason: unknown } | undefined;
@@ -3852,7 +3962,7 @@ export class Runtime {
     try {
       options.registerCleanup(close);
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
-      child = await cloneState(state, signal);
+      child = tryCloneStateSync(state) ?? await cloneState(state, signal);
       if (closed) throw new TypeError("Shell child preparation is closed");
       signal.throwIfAborted();
       child.extensions = forkExtensions(state.extensions, "subshell");
@@ -3933,10 +4043,14 @@ export class Runtime {
         for (let index = 1; index < pipeline.commands.length; index++) pipes.push(createBytePipe({
           highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
         }));
-        for (let index = 0; index < pipeline.commands.length; index++) controllers.push(new AbortController());
+        for (let index = 0; index < pipeline.commands.length; index++) {
+          const controller = new AbortController();
+          registerManagedAbortSignal(controller.signal);
+          controllers.push(controller);
+        }
         unsealScope = io[invocationScope].onSeal(() => {
           const closedReason = new Error("Invocation is closed");
-          for (const controller of controllers) controller.abort(closedReason);
+          for (const controller of controllers) abortManagedController(controller, closedReason);
         });
         let transferred: (() => void) | undefined;
         let pendingTransfers = pipeline.commands.length;
@@ -3983,7 +4097,7 @@ export class Runtime {
           );
           const owner = new InvocationCancellationOwner(io[invocationScope], prepared, this.cancellationState);
           let boundary: CancellationBoundary;
-          try { boundary = owner.activate(); }
+          try { boundary = owner.activate(false); }
           catch (error) { await owner.abandon(Promise.resolve()); throw error; }
           const signal = boundary.deliverySignal;
           const frame: RuntimeOutcomeFrame = {};
@@ -4022,7 +4136,7 @@ export class Runtime {
                 (error) => {
                   if (errorCode(error) === "EPIPE") {
                     const closed = new PipelineClosed();
-                    controllers[index]!.abort(closed);
+                    abortManagedController(controllers[index]!, closed);
                     throw closed;
                   }
                   throw error;
@@ -4031,7 +4145,7 @@ export class Runtime {
             } catch (error) {
               if (errorCode(error) === "EPIPE") {
                 const closed = new PipelineClosed();
-                controllers[index]!.abort(closed);
+                abortManagedController(controllers[index]!, closed);
                 return Promise.reject(closed);
               }
               return Promise.reject(error);
@@ -4046,7 +4160,7 @@ export class Runtime {
             try {
               let exitCode: number;
               try {
-                const child = await cloneState(state, this.signal);
+                const child = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
                 preparedChild = child;
                 child.extensions = undefined;
                 child.extensions = forkExtensions(state.extensions, "pipeline");
@@ -4069,23 +4183,35 @@ export class Runtime {
                 descriptorFrame.acquire(descriptors);
                 admit();
                 acceptPreparation?.();
-                await (retireBaseline ?? Promise.resolve());
+                if (retireBaseline) await retireBaseline;
                 if (installation) {
                   await installation;
                   signal.throwIfAborted();
                 }
-                const execution = runtime.runCommandIsolated(command, child, childIO).then(status => runtime.finishShell(child, childIO, status));
-                const work = (child.extensions?.checkpoints.length ? execution.catch(reason => {
-                  if (reason instanceof ExtensionCheckpointFailure) checkpointFailure = reason;
-                  throw reason;
-                }) : execution).finally(async () => {
-                  try { await runtime.releaseExtensions(child); }
-                  catch (cleanup) {
-                    if (checkpointFailure) io[invocationScope].failures.push(cleanup);
-                    else throw cleanup;
+                const runStageWork = async (): Promise<number> => {
+                  try {
+                    let stageStatus = await runtime.runCommandIsolated(command, child, childIO);
+                    if (!runtime.tryFinishShellSync(child)) {
+                      stageStatus = await runtime.finishShell(child, childIO, stageStatus);
+                    }
+                    return stageStatus;
+                  } catch (reason) {
+                    if (reason instanceof ExtensionCheckpointFailure) checkpointFailure = reason;
+                    throw reason;
+                  } finally {
+                    try {
+                      if (!runtime.releaseExtensionsSyncIfEmpty(child)) {
+                        await runtime.releaseExtensions(child);
+                      }
+                    } catch (cleanup) {
+                      if (checkpointFailure) io[invocationScope].failures.push(cleanup);
+                      else throw cleanup;
+                    } finally {
+                      stateMonitor(child)?.closeValues();
+                    }
                   }
-                  finally { stateMonitor(child)?.closeValues(); }
-                });
+                };
+                const work = runStageWork();
                 preparedChild = undefined;
                 started = true;
                 retain(work);
@@ -4117,19 +4243,30 @@ export class Runtime {
                 const upstream = index - 1;
                 const close = scheduleTurn(() => {
                   closing.delete(close);
-                  if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
+                  if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, new PipelineClosed());
                 });
                 closing.add(close);
                 try { await incoming.abort(); }
                 catch (reason) { cleanupFailures.push(reason); }
               }
-              try { await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; }); }
-              catch (reason) { cleanupFailures.push(reason); }
-              try { await descriptorFrame.close(); }
-              catch (reason) { cleanupFailures.push(reason); }
-              try { await references.close(); }
-              catch (reason) { cleanupFailures.push(reason); }
-              if (outgoing && !writing) await outgoing.close().catch(() => undefined);
+              const closedInput = input.close();
+              if (!isSyncResolved(closedInput)) {
+                try { await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; }); }
+                catch (reason) { cleanupFailures.push(reason); }
+              }
+              if (!descriptorFrame.closeSyncIfIdle()) {
+                try { await descriptorFrame.close(); }
+                catch (reason) { cleanupFailures.push(reason); }
+              }
+              const closedRefs = references.close();
+              if (!isSyncResolved(closedRefs)) {
+                try { await closedRefs; }
+                catch (reason) { cleanupFailures.push(reason); }
+              }
+              if (outgoing && !writing) {
+                const closedOut = outgoing.close();
+                if (!isSyncResolved(closedOut)) await closedOut.catch(() => undefined);
+              }
               if (checkpointFailure || installation && preparationFailed) io[invocationScope].failures.push(...cleanupFailures);
               else if (cleanupFailures.length) {
                 io[invocationScope].failures.push(...cleanupFailures.slice(1));
@@ -4148,7 +4285,7 @@ export class Runtime {
               ? { kind: "throw", reason, report: frame.report }
               : { kind: "throw", reason };
           }
-          const selection = await owner.finish(Promise.resolve(), captured);
+          const selection = owner.finishSync(captured);
           if (selection.outcome.kind === "throw") throw selection.outcome.reason;
           return selection.outcome.value.exitCode;
           } catch (reason) {
@@ -4162,7 +4299,7 @@ export class Runtime {
         unsealScope?.();
         try {
           for (const close of closing) cancelTurn(close);
-          for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
+          for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) abortManagedController(controller, new PipelineClosed());
           const aborts = pipes.map((pipe) => pipe.abort());
           for (const abort of aborts) retain(abort);
           await Promise.all(aborts);
@@ -4585,7 +4722,7 @@ export class Runtime {
         catch (error) { this.rethrowArithmeticControl(error); throw new PublicDiagnostic(`((: ${message(error, this.budget.onInternalError)}`); }
       }
       if (command.kind === "subshell") {
-        const child = await cloneState(state, this.signal);
+        const child = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         child.extensions = undefined;
         let started = false;
         try {
@@ -5376,7 +5513,7 @@ export class Runtime {
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
       if (inlineInput && functionCommand && previous?.size) {
         if (stateMonitor(state)?.lazyPipeStatus !== undefined) stateMonitor(state)!.activate(true);
-        const redirectState = await cloneState(state, this.signal);
+        const redirectState = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         const variables = redirectState.variables;
         const redirectAssignments = new Map<string, ShellValue>();
         for (const [name, saved] of previous) {
@@ -8788,7 +8925,7 @@ export class Runtime {
         }
         const pendingCapture = lifetime.settled();
         if (pendingCapture) await pendingCapture;
-        await this.sourceFs.writeFile(tempPath, capture.bytes());
+        await this.sourceFs.writeFile(tempPath, capture.takeBytes());
         io.processSubstitutions?.push(async () => {
           try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
         });
@@ -8891,7 +9028,7 @@ export class Runtime {
       const pendingCapture = lifetime.settled();
       if (pendingCapture) await pendingCapture;
       state.status = state.substitutionStatus;
-      const bytes = capture.bytes();
+      const bytes = capture.takeBytes();
       let length = bytes.length;
       if (bytes.includes(0)) {
         await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${warningLine}: warning: command substitution: ignored null byte in input\n`);
@@ -9906,7 +10043,7 @@ export class Runtime {
     // entries. They are separate from the number of emitted expansion fields.
     const failWalk = (message: string): never => {
       const error = new FsError("EFBIG", { syscall: "glob", message });
-      this.budget.controller.abort(error);
+      this.budget.abort(error);
       throw error;
     };
     const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
@@ -9951,7 +10088,7 @@ export class Runtime {
         try { entries = await interruptible(this.fs.readdir(pathOf(state, candidate.path || "."), { signal: this.signal, maxEntries }), this.signal); }
         catch (error) {
           this.signal.throwIfAborted();
-          if (errorCode(error) === "EFBIG") this.budget.controller.abort(error);
+          if (errorCode(error) === "EFBIG") this.budget.abort(error);
           throw error;
         }
         this.signal.throwIfAborted();

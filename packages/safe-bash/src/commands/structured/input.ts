@@ -143,6 +143,65 @@ class JsonParser {
               val = new Decimal(s, 0, false, s, num);
             }
           }
+        } else if (vFirst === 91) {
+          pos++;
+          const arr: Json[] = [];
+          if (fullText.charCodeAt(pos) === 93) {
+            pos++;
+          } else {
+            while (pos < end - 1) {
+              const eFirst = fullText.charCodeAt(pos);
+              let elem: Json;
+              if (eFirst === 34) {
+                pos++;
+                const sStart = pos;
+                while (pos < end - 1) {
+                  const c = fullText.charCodeAt(pos);
+                  if (c === 34) break;
+                  if (c < 32 || c >= 127 || c === 92) return undefined;
+                  pos++;
+                }
+                if (pos >= end - 1) return undefined;
+                elem = fullText.slice(sStart, pos);
+                pos++;
+              } else if (eFirst >= 48 && eFirst <= 57) {
+                const nStart = pos;
+                let num = eFirst - 48;
+                pos++;
+                if (eFirst !== 48) {
+                  while (pos < end - 1) {
+                    const c = fullText.charCodeAt(pos);
+                    if (c < 48 || c > 57) break;
+                    num = num * 10 + (c - 48);
+                    pos++;
+                  }
+                }
+                if (pos - nStart > 15) return undefined;
+                const nextC = fullText.charCodeAt(pos);
+                if (nextC !== 44 && nextC !== 93) return undefined;
+                if (num <= 1024) elem = SMALL_DECIMALS[num]!;
+                else {
+                  const s = fullText.slice(nStart, pos);
+                  elem = new Decimal(s, 0, false, s, num);
+                }
+              } else {
+                return undefined;
+              }
+              arr.push(elem);
+              if (arr.length > this.budget.limits.maxCollectionSize) return undefined;
+              const aSep = fullText.charCodeAt(pos);
+              if (aSep === 44) {
+                pos++;
+                continue;
+              }
+              if (aSep === 93) {
+                pos++;
+                break;
+              }
+              return undefined;
+            }
+          }
+          val = arr;
         } else {
           return undefined;
         }

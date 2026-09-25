@@ -637,7 +637,9 @@
     "safe-bash-command-ffmpeg": "*",
     "safe-bash-compression-engine": "*",
     "safe-bash-command-xz": "*",
-    "safe-bash-command-ssconvert": "*"
+    "safe-bash-command-ssconvert": "*",
+    "safe-bash-table-text-engine": "*",
+    "safe-bash-command-column": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -1040,6 +1042,21 @@
             "typescript": "^5.9.3"
           },
           "portable": true
+        },
+        "safe-bash-table-text-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-column": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-table-text-engine": "*"
+          }
         }
       }
     }

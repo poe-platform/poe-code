@@ -305,6 +305,16 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-column#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-table-text-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

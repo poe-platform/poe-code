@@ -2,7 +2,7 @@ import type { State } from "./runtime.js";
 import { throwCleanupFailures, type InvocationScope } from "./cleanup.js";
 import { ArrayFailure, ArrayOwner } from "./arrays/ledger.js";
 import { IndexedBinding, OwnedText, textToken } from "./arrays/bindings.js";
-import { arrayStore, stateMonitor } from "./arrays/state.js";
+import { stateMonitor } from "./arrays/state.js";
 
 const name = "PIPESTATUS";
 const pipeStatusFastCharge = { generation: true, version: true, epoch: true, work: 8 } as const;
@@ -11,7 +11,8 @@ const pipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
 export type PipelineStatusTarget = "indexed" | "scalar" | "readonly-absent" | "local-tombstone" | "exported-absent" | "absent";
 
 export function pipelineStatusTarget(state: State): PipelineStatusTarget {
-  if (arrayStore(state)?.get(name)) return "indexed";
+  const monitor = stateMonitor(state);
+  if (monitor?.lazyPipeStatus !== undefined || monitor?.store?.get(name)) return "indexed";
   if (Object.hasOwn(state.variables, name)) return "scalar";
   if (state.readonlyVariables?.has(name)) return "readonly-absent";
   for (let index = state.locals.length - 1; index >= 0; index--) {
@@ -32,6 +33,19 @@ export function publishPipelineStatus(
   const target = pipelineStatusTarget(state);
   if (target !== "absent" && target !== "indexed") return;
   const monitor = stateMonitor(state)!;
+  if (!monitor.store && !monitor.hasOverlay(name)) {
+    for (let i = 0; i < statuses.length; i++) {
+      const s = statuses[i]!;
+      if (!Number.isSafeInteger(s) || s < 0 || s > 255) throw new TypeError("Invalid PIPESTATUS completion");
+    }
+    const owner = monitor.internalOwner();
+    if (!owner.ledger.checkpoint(signal, 0)) {
+      const tickets = owner.charge(pipeStatusFastCharge, pipeStatusTickets);
+      monitor.epoch = tickets.epoch;
+      monitor.lazyPipeStatus = statuses;
+      return;
+    }
+  }
   if (!monitor.store?.watches.has(name) && !monitor.hasOverlay(name)) {
     for (let i = 0; i < statuses.length; i++) {
       const s = statuses[i]!;
@@ -68,9 +82,9 @@ export function publishPipelineStatus(
             return;
           }
         }
-        if (existing.references === 1) {
-          for (let i = statuses.length; i <= existing.maximum; i++) {
-            existing.remove(i);
+        if (existing.references === 1 && statuses.length <= 16) {
+          for (const key of existing.values.keys()) {
+            if (key >= statuses.length) existing.remove(key);
           }
           existing.maximum = statuses.length - 1;
           for (let i = 0; i < statuses.length; i++) {

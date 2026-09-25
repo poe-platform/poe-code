@@ -3450,9 +3450,9 @@ export class Runtime {
     ]);
     if (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed) return undefined;
     if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
-    let store = monitor.store;
+    const store = monitor.store;
     const existing = store?.get("PIPESTATUS");
-    const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
+    const psTarget = existing ? "indexed" : pipelineStatusTarget(tracked);
     if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
     if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
     if (
@@ -3585,8 +3585,8 @@ export class Runtime {
       rawState.lastArgument = lastArg;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
-        try { void publishPipelineStatus(tracked, [0], this.signal, scope); store = monitor.store; }
-        catch { return undefined; }
+        monitor.lazyPipeStatus = singleStatusZero;
+        owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
         elem0!.text.shellValue = "0";
         store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
@@ -3621,8 +3621,8 @@ export class Runtime {
         rawState.lastArgument = w0Plain;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         if (!existing) {
-          try { void publishPipelineStatus(tracked, [rawStatus], this.signal, scope); store = monitor.store; }
-          catch { return undefined; }
+          monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : singleStatusOne;
+          owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
           elem0!.text.shellValue = statusChar;
           store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
@@ -3666,8 +3666,8 @@ export class Runtime {
       if (rawState.allexport) tracked.exported.add(assignment.name);
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
-        try { void publishPipelineStatus(tracked, [0], this.signal, scope); store = monitor.store; }
-        catch { return undefined; }
+        monitor.lazyPipeStatus = singleStatusZero;
+        owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
         elem0!.text.shellValue = "0";
         store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
@@ -3720,8 +3720,8 @@ export class Runtime {
           rawState.lastArgument = lastPredArg;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
-            try { void publishPipelineStatus(tracked, [fastPred], this.signal, scope); store = monitor.store; }
-            catch { return undefined; }
+            monitor.lazyPipeStatus = fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred];
+            owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
           } else {
             elem0!.text.shellValue = statusChar;
             store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
@@ -3902,6 +3902,7 @@ export class Runtime {
       const completed = new Set<number>();
       const closing = new Set<TurnHandle>();
       let statuses: number[];
+      let unsealScope: (() => void) | undefined;
       try {
         if (hasActiveExtensions(state) && !state.extensions!.eventDepth) {
           for (const command of pipeline.commands) {
@@ -3914,6 +3915,10 @@ export class Runtime {
           highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
         }));
         for (let index = 0; index < pipeline.commands.length; index++) controllers.push(new AbortController());
+        unsealScope = io[invocationScope].onSeal(() => {
+          const closedReason = new Error("Invocation is closed");
+          for (const controller of controllers) controller.abort(closedReason);
+        });
         let transferred!: () => void;
         let pendingTransfers = pipeline.commands.length;
         const transfer = new Promise<void>(resolve => { transferred = resolve; });
@@ -3958,7 +3963,7 @@ export class Runtime {
           let boundary: CancellationBoundary;
           try { boundary = owner.activate(); }
           catch (error) { await owner.abandon(Promise.resolve()); throw error; }
-          const signal = AbortSignal.any([boundary.deliverySignal, io[invocationScope].signal]);
+          const signal = boundary.deliverySignal;
           const frame: RuntimeOutcomeFrame = {};
           const runtime = new Runtime(
             this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
@@ -4119,6 +4124,7 @@ export class Runtime {
         for (const task of tasks) retain(task);
         statuses = await interruptible(Promise.all(tasks), this.signal);
       } finally {
+        unsealScope?.();
         try {
           for (const close of closing) cancelTurn(close);
           for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) controller.abort(new PipelineClosed());
@@ -5283,7 +5289,7 @@ export class Runtime {
         if (previous && !previous.has(assignment.name)) {
           const saved = saveVariable(state, assignment.name);
           previous.set(assignment.name, saved);
-          if (words.length && guestArrays(state)) {
+          if (words.length && (guestArrays(state) || (assignment.name === "PIPESTATUS" && arrayStore(state)?.get(assignment.name)))) {
             const store = requireArrays(state);
             await this.prepareVariable(state, assignment.name, saved, !store.get(assignment.name));
             if (store.get(assignment.name)) {
@@ -5306,6 +5312,7 @@ export class Runtime {
       }
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
       if (inlineInput && functionCommand && previous?.size) {
+        if (stateMonitor(state)?.lazyPipeStatus !== undefined) stateMonitor(state)!.activate(true);
         const redirectState = await cloneState(state, this.signal);
         const variables = redirectState.variables;
         const redirectAssignments = new Map<string, ShellValue>();
@@ -5790,7 +5797,7 @@ export class Runtime {
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
           const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
-          const builtin = arrayStore(state) ? await interruptible(builtinWork, this.signal) : await builtinWork;
+          const builtin = stateMonitor(state)?.store ? await interruptible(builtinWork, this.signal) : await builtinWork;
           if (builtin !== undefined) {
             if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
             return { exitCode: builtin };
@@ -8976,7 +8983,7 @@ export class Runtime {
       } else if (part.kind === "variable") {
         if (split && !part.quoted) return undefined;
         if (part.indirect || part.prefixNames || part.specialParameter || part.length || part.substring || part.transform) return undefined;
-        if (part.name === "@" || part.name === "*" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
+        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME") return undefined;
         if (getArraySelector(part) !== undefined || !isShellIdentifier(part.name)) return undefined;
         if (part.operator !== undefined) {
           if (
@@ -9791,7 +9798,7 @@ export class Runtime {
             let entries;
             try {
               const pending = this.fs.readdir(pathOf(state, candidate || "."), { signal: this.signal });
-              entries = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
+              entries = stateMonitor(state)?.store ? await interruptible(pending, this.signal) : await pending;
             }
             catch (error) {
               this.signal.throwIfAborted();
@@ -9813,7 +9820,7 @@ export class Runtime {
       try {
         const path = pathOf(state, candidate);
         const pending = value.endsWith("/") ? this.fs.stat(path, { signal: this.signal }) : this.fs.lstat(path, { signal: this.signal });
-        const stat = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
+        const stat = stateMonitor(state)?.store ? await interruptible(pending, this.signal) : await pending;
         if (!value.endsWith("/") || stat.type === "directory") found.push(candidate + (value.endsWith("/") ? "/" : ""));
       } catch (error) {
         this.signal.throwIfAborted();

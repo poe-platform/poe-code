@@ -2,7 +2,7 @@ import type { State } from "../runtime.js";
 import type { InvocationScope } from "../cleanup.js";
 import { ArrayFailure, ArrayLedger, ArrayOwner } from "./ledger.js";
 import type { Admission, Tickets } from "./ledger.js";
-import { BindingStore, textToken } from "./bindings.js";
+import { BindingStore, IndexedBinding, OwnedText, textToken } from "./bindings.js";
 import { ValueArena, ValueStore, type ValueScope } from "../value-state.js";
 import type { GetoptsInput } from "../getopts.js";
 
@@ -43,7 +43,11 @@ export function trackState(state: State, budget: { readonly values?: ValueArena;
 
 export function stateMonitor(state: State): StateMonitor | undefined { return monitors.get(state); }
 
-export function arrayStore(state: State): BindingStore | undefined { return monitors.get(state)?.store; }
+export function arrayStore(state: State): BindingStore | undefined {
+  const monitor = monitors.get(state);
+  if (!monitor) return undefined;
+  return monitor.store ?? (monitor.lazyPipeStatus !== undefined ? monitor.lazyStoreView : undefined);
+}
 
 export function guestArrays(state: State): BindingStore | undefined {
   const monitor = monitors.get(state), store = monitor?.store;
@@ -61,6 +65,8 @@ export class StateMonitor {
   readonly values: ValueStore;
   readonly positionals: ValueStore;
   store: BindingStore | undefined;
+  lazyPipeStatus: readonly number[] | undefined;
+  #lazyStoreView: BindingStore | undefined;
   epoch = 0;
   #publication = false;
   readonly #wrapped = new WeakMap<object, object>();
@@ -78,6 +84,7 @@ export class StateMonitor {
 
   constructor(readonly raw: State, readonly session: Session, source?: StateMonitor) {
     this.values = source ? source.values.clone() : new ValueStore(session.values);
+    if (source?.lazyPipeStatus !== undefined) this.lazyPipeStatus = source.lazyPipeStatus;
     try { this.positionals = source ? source.positionals.clone() : new ValueStore(session.values); }
     catch (error) { this.values.close(); throw error; }
     this.proxy = this.wrap(raw, "state") as State;
@@ -90,6 +97,7 @@ export class StateMonitor {
   closeValues(): void {
     this.values.close();
     this.positionals.close();
+    this.lazyPipeStatus = undefined;
     this.invalidateGetoptsInput();
     if (this.store) {
       for (const [name] of this.store.bindings) {
@@ -111,6 +119,9 @@ export class StateMonitor {
 
   get positionalRevision(): object { return this.#positionalRevision; }
   get getoptsInput(): GetoptsInput | undefined { return this.#getoptsInput?.input; }
+  get lazyStoreView(): BindingStore {
+    return this.#lazyStoreView ??= new LazyPipeStatusStoreView(this) as unknown as BindingStore;
+  }
 
   retainGetoptsInput(revision: object, input: GetoptsInput, allocation: ValueScope): boolean {
     this.session.scope.assertOpen();
@@ -162,6 +173,42 @@ export class StateMonitor {
     if (this.store) this.store.owner = owner;
     else this.store = BindingStore.create(owner);
     this.store.epoch = this.epoch;
+    if (this.lazyPipeStatus !== undefined) {
+      const statuses = this.lazyPipeStatus;
+      this.lazyPipeStatus = undefined;
+      const savedEpoch = this.epoch;
+      const tickets = root.reserve({ generation: true, version: true, epoch: true, work: 8 + statuses.length * 2 });
+      const prepared = this.store.prepareExistingName("PIPESTATUS", 10, root, this.session.scope.signal);
+      const staged = IndexedBinding.create(root);
+      try {
+        for (let i = 0; i < statuses.length; i++) {
+          const s = statuses[i]!;
+          const statusStr = s === 0 ? "0" : s === 1 ? "1" : String(s);
+          staged.owner.chargeWork(statusStr.length);
+          const token = new OwnedText(statusStr, statusStr.length, staged.owner.reserve({ payload: statusStr.length, metadata: 32, work: 4 }));
+          try { staged.insert(i, token); }
+          catch (error) { token.release(); throw error; }
+        }
+        const savedPublication = this.#publication;
+        this.#publication = false;
+        try {
+          this.publish(tickets, "PIPESTATUS", () => {
+            void this.store!.publish("PIPESTATUS", staged, tickets, prepared, false, root);
+          });
+        } finally {
+          this.#publication = savedPublication;
+        }
+        this.epoch = savedEpoch;
+        this.store.epoch = savedEpoch;
+      } catch (error) {
+        this.lazyPipeStatus = statuses;
+        void staged.release();
+        prepared?.admission.release();
+        prepared?.name.release();
+        tickets.release();
+        throw error;
+      }
+    }
     return this.store;
   }
 
@@ -295,6 +342,41 @@ export class StateMonitor {
     this.#wrapped.set(value, proxy);
     this.#wrapped.set(proxy, proxy);
     return proxy;
+  }
+}
+
+class LazyPipeStatusStoreView {
+  constructor(private readonly monitor: StateMonitor) {}
+  get(name: string): IndexedBinding | undefined {
+    if (this.monitor.store) return this.monitor.store.get(name);
+    if (name !== "PIPESTATUS" || this.monitor.lazyPipeStatus === undefined) return undefined;
+    return this.monitor.activate(true).get("PIPESTATUS");
+  }
+  get owner() { return this.monitor.activate(true).owner; }
+  get bindings() { return this.monitor.activate(true).bindings; }
+  get watches() { return this.monitor.activate(true).watches; }
+  get epoch(): number { return this.monitor.store ? this.monitor.store.epoch : this.monitor.epoch; }
+  set epoch(value: number) { if (this.monitor.store) this.monitor.store.epoch = value; else this.monitor.epoch = value; }
+  prepareExistingName(...args: Parameters<BindingStore["prepareExistingName"]>) {
+    return this.monitor.activate(true).prepareExistingName(...args);
+  }
+  prepareName(...args: Parameters<BindingStore["prepareName"]>) {
+    return this.monitor.activate(true).prepareName(...args);
+  }
+  tickets(...args: Parameters<BindingStore["tickets"]>) {
+    return this.monitor.activate(true).tickets(...args);
+  }
+  publish(...args: Parameters<BindingStore["publish"]>) {
+    return this.monitor.activate(true).publish(...args);
+  }
+  remove(...args: Parameters<BindingStore["remove"]>) {
+    return this.monitor.activate(true).remove(...args);
+  }
+  watch(...args: Parameters<BindingStore["watch"]>) {
+    return this.monitor.activate(true).watch(...args);
+  }
+  changed(...args: Parameters<BindingStore["changed"]>) {
+    this.monitor.activate(true).changed(...args);
   }
 }
 

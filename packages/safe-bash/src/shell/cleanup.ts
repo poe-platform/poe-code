@@ -33,6 +33,19 @@ export class InvocationScope {
     (this.#finalizers ??= []).push(finalize);
   }
 
+  onSeal(callback: () => void): () => void {
+    if (this.#closed) {
+      callback();
+      return () => {};
+    }
+    const list = (this.#finalizers ??= []);
+    list.push(callback);
+    return () => {
+      const idx = list.indexOf(callback);
+      if (idx !== -1) list.splice(idx, 1);
+    };
+  }
+
   assertOpen(): void {
     this.callerSignal?.throwIfAborted();
     if (this.#closed) throw this.#controller ? this.#controller.signal.reason : invocationClosedError;

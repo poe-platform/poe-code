@@ -165,6 +165,93 @@ class SlicedLine implements Line {
 
 export interface ReadState { bytesRead: number; bytesSearched: number; binaryOffset: number | null; skipped: boolean }
 
+const LF_DELIMITER_BUFFER = Buffer.from([10]);
+const NUL_DELIMITER_BUFFER = Buffer.from([0]);
+
+export function trySyncLineBatches(
+  source: Uint8Array,
+  limits: Limits,
+  state: ReadState,
+  binary: "skip" | "binary" | "text",
+  nullData: boolean,
+  maxRecords: () => number,
+  needAll = false,
+  crlf = false,
+): Line[][] | undefined {
+  if (limits.tick() !== undefined) return undefined;
+  const chunk = Buffer.isBuffer(source) ? source : Buffer.from(source.buffer, source.byteOffset, source.byteLength);
+  if (state.bytesRead + chunk.length > limits.maxFileBytes) throw new SearchError("input file byte limit exceeded");
+  const delimiter = nullData ? 0 : 10;
+  const extraDelimiter = binary === "binary" ? 0 : -1;
+  const delimiterBuffer = nullData ? NUL_DELIMITER_BUFFER : LF_DELIMITER_BUFFER;
+  const nul = nullData || binary === "text" ? -1 : chunk.indexOf(0);
+  if (nul >= 0 && state.binaryOffset === null) state.binaryOffset = state.bytesRead + nul;
+  state.bytesRead += chunk.length;
+  if (nul >= 0 && binary === "skip") {
+    state.skipped = true;
+    return [];
+  }
+  const batches: Line[][] = [];
+  let batch: Line[] = [];
+  let batchBytes = 0;
+  let offset = 0;
+  let number = 0;
+  let start = 0;
+  let next = extraDelimiter === -1
+    ? chunk.indexOf(delimiter, 0)
+    : (() => {
+        for (let scan = 0; scan < chunk.length; scan++) {
+          if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) return scan;
+        }
+        return -1;
+      })();
+  while (next >= 0) {
+    const end = next;
+    if (end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
+    const searchEnd = crlf && end > start && chunk[end - 1] === 13 ? end - 1 : end;
+    const isNormalDelimiter = chunk[end] === delimiter;
+    const line = new SlicedLine(
+      chunk,
+      start,
+      end,
+      isNormalDelimiter ? end + 1 : end,
+      isNormalDelimiter ? undefined : delimiterBuffer,
+      searchEnd,
+      needAll,
+      true,
+      ++number,
+      offset,
+    );
+    state.bytesSearched = offset + line.rawLength;
+    batch.push(line);
+    batchBytes += end - start;
+    offset += line.rawLength;
+    start = end + 1;
+    next = extraDelimiter === -1
+      ? chunk.indexOf(delimiter, start)
+      : (() => {
+          for (let scan = start; scan < chunk.length; scan++) {
+            if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) return scan;
+          }
+          return -1;
+        })();
+    if (batch.length >= maxRecords() || batchBytes >= 64 * 1024 || next < 0 || batchBytes + next - start > 64 * 1024 || next - start > limits.maxLineBytes) {
+      batches.push(batch);
+      batch = [];
+      batchBytes = 0;
+    }
+  }
+  if (start < chunk.length) {
+    if (chunk.length - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
+    const searchEnd = crlf && chunk.length > start && chunk[chunk.length - 1] === 13 ? chunk.length - 1 : chunk.length;
+    const line = new SlicedLine(chunk, start, chunk.length, chunk.length, undefined, searchEnd, needAll, false, ++number, offset);
+    state.bytesSearched = offset + line.rawLength;
+    batch.push(line);
+  }
+  if (batch.length) batches.push(batch);
+  return batches;
+}
+
 export async function* lineBatches(
   source: ByteSource | Uint8Array,
   limits: Limits,
@@ -182,7 +269,7 @@ export async function* lineBatches(
   let batchBytes = 0;
   const delimiter = nullData ? 0 : 10;
   const extraDelimiter = binary === "binary" ? 0 : -1;
-  const delimiterBuffer = Buffer.from([delimiter]);
+  const delimiterBuffer = nullData ? NUL_DELIMITER_BUFFER : LF_DELIMITER_BUFFER;
   const chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> = source instanceof Uint8Array ? [source] : readBytes(source, limits.signal);
   for await (const data of chunks) {
     const tickPending = limits.tick();

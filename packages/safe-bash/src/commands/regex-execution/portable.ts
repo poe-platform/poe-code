@@ -62,7 +62,7 @@ class Slot {
   idleTimer: ReturnType<typeof setTimeout> | undefined;
   private receiver: ((value: unknown) => void) | undefined;
   private failure: ((error: unknown) => void) | undefined;
-  private terminal: unknown;
+  terminal: unknown;
   private exited = false;
   private readonly message = (value: unknown) => {
     if (this.receiver) this.receiver(value);
@@ -86,21 +86,47 @@ class Slot {
     if (this.failure) this.failure(error);
     else if (!this.busy) void this.retire();
   }
-  exchange(timeout: number, startup: boolean, signal: AbortSignal, send?: () => void): Promise<unknown> {
+  exchangeSyncOrAsync(timeout: number, startup: boolean, signal: AbortSignal, send?: () => void): { sync: true; value: unknown } | { sync: false; promise: Promise<unknown> } {
     signal.throwIfAborted();
-    if (this.terminal !== undefined) return Promise.reject(this.terminal);
-    return new Promise((resolve, reject) => {
-      const finish = (rejected: boolean, value: unknown) => {
-        clearTimeout(timer);
-        this.receiver = undefined;
-        this.failure = undefined;
-        if (rejected) reject(value); else resolve(value);
-      };
-      const timer = timeout === Infinity ? undefined : setTimeout(() => finish(true, new RegexExecutionError(startup ? "STARTUP_TIMEOUT" : "REQUEST_TIMEOUT", `${startup ? "startup" : "active request"} exceeded ${timeout}ms`)), timeout);
-      this.receiver = value => finish(false, value);
-      this.failure = error => finish(true, error);
-      try { signal.throwIfAborted(); send?.(); } catch (error) { finish(true, error); }
-    });
+    if (this.terminal !== undefined) return { sync: false, promise: Promise.reject(this.terminal) };
+    let settled = false;
+    let isRejected = false;
+    let settledValue: unknown;
+    let resolvePromise: ((v: unknown) => void) | undefined;
+    let rejectPromise: ((e: unknown) => void) | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const finish = (rej: boolean, value: unknown) => {
+      if (timer !== undefined) clearTimeout(timer);
+      this.receiver = undefined;
+      this.failure = undefined;
+      if (resolvePromise) {
+        if (rej) rejectPromise!(value);
+        else resolvePromise(value);
+      } else {
+        settled = true;
+        isRejected = rej;
+        settledValue = value;
+      }
+    };
+    this.receiver = value => finish(false, value);
+    this.failure = error => finish(true, error);
+    try { signal.throwIfAborted(); send?.(); } catch (error) { finish(true, error); }
+    if (settled) {
+      if (isRejected) return { sync: false, promise: Promise.reject(settledValue) };
+      return { sync: true, value: settledValue };
+    }
+    return {
+      sync: false,
+      promise: new Promise((resolve, reject) => {
+        resolvePromise = resolve;
+        rejectPromise = reject;
+        timer = timeout === Infinity ? undefined : setTimeout(() => finish(true, new RegexExecutionError(startup ? "STARTUP_TIMEOUT" : "REQUEST_TIMEOUT", `${startup ? "startup" : "active request"} exceeded ${timeout}ms`)), timeout);
+      }),
+    };
+  }
+  exchange(timeout: number, startup: boolean, signal: AbortSignal, send?: () => void): Promise<unknown> {
+    const res = this.exchangeSyncOrAsync(timeout, startup, signal, send);
+    return res.sync ? Promise.resolve(res.value) : res.promise;
   }
   retire(): Promise<void> {
     if (this.retired) return this.retired;
@@ -158,6 +184,75 @@ export class RegexExecutor {
   retired(slot: Slot): void {
     this.slots.delete(slot);
     this.pump();
+  }
+  requestSyncOrAsync(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements: Set<Promise<void>>): Match[][] | Promise<Match[][]> {
+    signal.throwIfAborted();
+    if (this.disposed) return Promise.reject(new RegexExecutionError("CLOSED", "executor is disposed"));
+    if (this.queue.length === 0 && trustedInputRows.has(rows)) {
+      let readySlot: Slot | undefined;
+      for (const candidate of this.slots) {
+        if (!candidate.busy && !candidate.retired && candidate.ready && candidate.terminal === undefined) {
+          readySlot = candidate;
+          break;
+        }
+      }
+      if (readySlot) {
+        inputBytes(descriptor, rows, signal);
+        const id = ++this.sequence;
+        const message = { id, descriptor, rows };
+        trustedWorkerRequests.add(message);
+        readySlot.busy = true;
+        clearTimeout(readySlot.idleTimer);
+        readySlot.idleTimer = undefined;
+        const ex = readySlot.exchangeSyncOrAsync(this.options.requestTimeoutMs, false, signal, () => readySlot!.worker.postMessage(message));
+        if (ex.sync) {
+          try {
+            const validated = validateReply(ex.value, id, rows, signal);
+            signal.throwIfAborted();
+            return validated;
+          } catch (error) {
+            const retirement = readySlot.retire();
+            retirements.add(retirement);
+            throw signal.aborted ? signal.reason : error;
+          } finally {
+            readySlot.busy = false;
+            if (readySlot.retired) this.retired(readySlot);
+            else if (this.options.idleTimeoutMs !== Infinity) {
+              readySlot.idleTimer = setTimeout(() => { if (!readySlot!.busy) void readySlot!.retire(); }, this.options.idleTimeoutMs);
+              readySlot.idleTimer?.unref?.();
+            }
+            this.pump();
+          }
+        }
+        readySlot.worker.ref?.();
+        const onAbort = () => readySlot!.fail(signal.reason);
+        signal.addEventListener("abort", onAbort, { once: true });
+        return ex.promise.then(
+          reply => {
+            const validated = validateReply(reply, id, rows, signal);
+            signal.throwIfAborted();
+            return validated;
+          },
+          async error => {
+            const retirement = readySlot!.retire();
+            retirements.add(retirement);
+            try { await retirement; } catch {}
+            throw signal.aborted ? signal.reason : error;
+          },
+        ).finally(() => {
+          signal.removeEventListener("abort", onAbort);
+          readySlot!.busy = false;
+          if (readySlot!.retired) this.retired(readySlot!);
+          else {
+            readySlot!.worker.unref?.();
+            readySlot!.idleTimer = this.options.idleTimeoutMs === Infinity ? undefined : setTimeout(() => { if (!readySlot!.busy) void readySlot!.retire(); }, this.options.idleTimeoutMs);
+            readySlot!.idleTimer?.unref?.();
+          }
+          this.pump();
+        });
+      }
+    }
+    return this.request(descriptor, rows, signal, retirements);
   }
   request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<Match[][]>;
   request(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<ExprMatchResult>;
@@ -275,13 +370,18 @@ export class RegexSession {
   constructor(private readonly executor: RegexExecutor, private readonly signal: AbortSignal) {
     this.requestSignal = AbortSignal.any([signal, this.controller.signal]);
   }
-  run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]> {
+  runSync(descriptor: Descriptor, rows: readonly Row[]): Match[][] | Promise<Match[][]> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const result = this.executor.request(descriptor, rows, this.requestSignal, this.retirements);
+    const result = this.executor.requestSyncOrAsync(descriptor, rows, this.requestSignal, this.retirements);
+    if (!(result instanceof Promise)) return result;
     this.pending.add(result);
     void result.then(() => this.pending.delete(result), () => this.pending.delete(result));
     return result;
+  }
+  run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]> {
+    const res = this.runSync(descriptor, rows);
+    return res instanceof Promise ? res : Promise.resolve(res);
   }
   matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {
     this.signal.throwIfAborted();

@@ -141,15 +141,15 @@ export class Walker {
     if (include !== undefined) return include;
     return this.args.hidden || !name.startsWith(".");
   }
-  private async* directory(path: string, label: string, depth: number, ancestors: ReadonlyMap<string, string>, rules: readonly IgnoreRule[], repository: boolean): AsyncGenerator<FileTarget> {
-    if (depth >= this.args.maxDepth) return;
+  private async walkDirectory(path: string, label: string, depth: number, ancestors: ReadonlyMap<string, string>, rules: readonly IgnoreRule[], repository: boolean, onTarget: (target: FileTarget) => Promise<boolean>): Promise<boolean> {
+    if (depth >= this.args.maxDepth) return true;
     const backing = getRuntimeBackingFileSystem(this.context.fs);
     const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");
     if (uniformNonDevPath) assertCommandRequirements(this.context, searchRequirements, ["directory"]);
     else await assertPathRequirements(this.context, searchRequirements, ["directory"], [path]);
     const canonical = await this.context.fs.realpath(path, { signal: this.context.signal });
     const uniformCanonical = backing !== undefined && backing.capabilitiesFor === undefined && canonical !== "/dev" && !canonical.startsWith("/dev/");
-    if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return; }
+    if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return true; }
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[];
@@ -184,27 +184,41 @@ export class Walker {
             continue;
           }
         }
-        if (!await this.accepted(child, entry.name, type === "directory", local.rules)) continue;
-        if (type === "directory") yield* this.directory(child, display, depth + 1, parents, local.rules, local.repository);
-        else if (type === "file") {
+        const isDir = type === "directory";
+        const accepted = (this.globs.length === 0 && local.rules.length === 0 && (isDir || this.typeGlobs.length === 0))
+          ? (this.args.hidden || !entry.name.startsWith("."))
+          : await this.accepted(child, entry.name, isDir, local.rules);
+        if (!accepted) continue;
+        if (isDir) {
+          if (!await this.walkDirectory(child, display, depth + 1, parents, local.rules, local.repository, onTarget)) return false;
+        } else if (type === "file") {
           if (Number.isFinite(this.args.maxFileSize)) {
             await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
             if ((await this.context.fs.stat(child, { signal: this.context.signal })).size > this.args.maxFileSize) continue;
           }
-          yield { path: child, label: display, explicit: false, recursive: true, ...(uniformCanonical && entry.type === "file" ? { canonicalPath: `${canonical === "/" ? "" : canonical}/${entry.name}` } : {}) };
+          if (!await onTarget({ path: child, label: display, explicit: false, recursive: true, ...(uniformCanonical && entry.type === "file" ? { canonicalPath: `${canonical === "/" ? "" : canonical}/${entry.name}` } : {}) })) return false;
         }
       } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }
+    return true;
   }
-  async* targets(paths: readonly string[], implicit = false): AsyncGenerator<FileTarget> {
+  async walkTargets(paths: readonly string[], implicit: boolean, onTarget: (target: FileTarget) => Promise<boolean>): Promise<void> {
     for (const operand of paths) {
-      await this.limits.tick();
+      if (operand !== "-") await assertPathRequirements(this.context, searchRequirements, ["metadata"], [operand]);
+      const tickPending = this.limits.tick();
+      if (tickPending) await tickPending;
       if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
-      if (operand === "-") { yield { path: "-", label: "<stdin>", explicit: true, recursive: false }; continue; }
+      if (operand === "-") {
+        if (!await onTarget({ path: "-", label: "<stdin>", explicit: true, recursive: false })) return;
+        continue;
+      }
       const path = pathFor(this.context, operand);
       try {
         const stat: FileStat = await this.context.fs.stat(path, { signal: this.context.signal });
-        if (stat.type !== "directory") { yield { path, label: operand, explicit: true, recursive: false }; continue; }
+        if (stat.type !== "directory") {
+          if (!await onTarget({ path, label: operand, explicit: true, recursive: false })) return;
+          continue;
+        }
         let inherited: { rules: IgnoreRule[]; repository: boolean } = { rules: this.explicitRules, repository: false };
         const parents: string[] = [];
         let parent = dirname(resolvePath("/", path));
@@ -218,7 +232,7 @@ export class Walker {
             parent = dirname(parent);
           }
         }
-        yield* this.directory(path, implicit ? "" : operand, 0, new Map(), inherited.rules, inherited.repository);
+        if (!await this.walkDirectory(path, implicit ? "" : operand, 0, new Map(), inherited.rules, inherited.repository, onTarget)) return;
       } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }
   }

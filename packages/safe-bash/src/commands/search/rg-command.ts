@@ -3,7 +3,7 @@ import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
 import { Matcher, type Match } from "./matcher.js";
 import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
-import { diagnostic, Limits, lineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
+import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
 import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "./requirements.js";
@@ -70,8 +70,21 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
   const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches";
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
-  records: for await (const batch of lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf)) {
-    const results = await matcher.batch(batch);
+  const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf) : undefined;
+  let syncIdx = 0;
+  let asyncIter: AsyncIterator<Line[]> | undefined;
+  records: while (true) {
+    let batch: Line[];
+    if (syncBatches !== undefined) {
+      if (syncIdx >= syncBatches.length) break;
+      batch = syncBatches[syncIdx++]!;
+    } else {
+      asyncIter ??= lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf)[Symbol.asyncIterator]();
+      const next = await asyncIter.next();
+      if (next.done) { asyncIter = undefined; break; }
+      batch = next.value;
+    }
+    const batchRes = matcher.batchSync(batch); const results = batchRes instanceof Promise ? await batchRes : batchRes;
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
       state.bytesSearched = line.offset + line.rawLength;
@@ -115,6 +128,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       }
     }
   }
+  if (asyncIter?.return) await asyncIter.return();
   if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0 && !binaryPrinted) {
     await printer.binary(target.label, state.binaryOffset, filename);
   }
@@ -242,20 +256,28 @@ Unicode selection and extended regex syntax require a configured executor.
           if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
           const printer = new Printer(args, limits);
           const totals = stats();
-          const targets = async function* () {
-            for (const path of selection.paths) {
-              if (path !== "-") await assertPathRequirements(context, searchRequirements, ["metadata"], [path]);
-              yield* walker.targets([path], selection.implicit);
+          for (const p of selection.paths) {
+            if (p !== "-") await assertPathRequirements(context, searchRequirements, ["metadata"], [p]);
+            await walker.walkTargets([p], selection.implicit, async target => {
+            if (args!.mode === "files") {
+              found = true;
+              if (!args!.quiet) { await printer.filename(target.label); return true; }
+              return false;
             }
-          };
-          for await (const target of targets()) {
-            if (args.mode === "files") { found = true; if (!args.quiet) await printer.filename(target.label); else break; continue; }
             try {
-              const result = await searchFile(context, args, limits, matcher, printer, target, context.stdin, args.filename ?? (target.recursive || selection.paths.length > 1));
+              const result = await searchFile(context, args!, limits!, matcher, printer, target, context.stdin, args!.filename ?? (target.recursive || selection.paths.length > 1));
               found ||= result.found;
-              for (const field of ["searches", "searches_with_match", "bytes_searched", "bytes_printed", "matched_lines", "matches"] as const) totals[field] += result.stats[field];
-              if (args.quiet && found && args.mode !== "json") break;
+              totals.searches += result.stats.searches;
+              totals.searches_with_match += result.stats.searches_with_match;
+              totals.bytes_searched += result.stats.bytes_searched;
+              totals.bytes_printed += result.stats.bytes_printed;
+              totals.matched_lines += result.stats.matched_lines;
+              totals.matches += result.stats.matches;
+              if (args!.quiet && found && args!.mode !== "json") return false;
             } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
+            return true;
+            });
+            if (args.quiet && found && args.mode !== "json" || args.mode === "files" && args.quiet && found) break;
           }
           if (args.mode === "json") await printer.event("summary", { elapsed_total: elapsed, stats: totals });
           await limits.flush();

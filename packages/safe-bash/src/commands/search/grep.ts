@@ -289,7 +289,7 @@ inspect the resulting state before repeating the action.
           records: if (maxCount > 0) for await (const batch of grepLineBatches(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize)) {
             const rows = batch.map(line => ({ bytes: line.bytes, all: extractMatches, terminated: line.terminated }));
             trustedInputRows.add(rows);
-            const results = await session.run(descriptor, rows);
+            const resOrPromise = session.runSync(descriptor, rows); const results = resOrPromise instanceof Promise ? await resOrPromise : resOrPromise;
             for (let index = 0; index < batch.length; index++) {
               const line = batch[index]!;
               context.signal.throwIfAborted();

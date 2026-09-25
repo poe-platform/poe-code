@@ -3371,6 +3371,8 @@ export class Runtime {
           assertOpen();
           if (closed) throw new Error("Input borrow is closed");
           const { count, delimiter, exact, timeoutMs } = options;
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
           if (typeof raw !== "boolean" || count !== undefined && (!Number.isSafeInteger(count) || count < 0) || delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) || exact !== undefined && typeof exact !== "boolean" || timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs <= 0)) throw new TypeError("Invalid input read options");
           return scope.run(() => input.line(raw, { ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), ...(exact === undefined ? {} : { exact }), ...(timeoutMs === undefined ? {} : { timeoutMs }), byteCount: byteLocale(state.variables) }));
         },
@@ -3378,6 +3380,8 @@ export class Runtime {
           assertOpen();
           if (closed) throw new Error("Input borrow is closed");
           const { delimiter } = options;
+          assertOpen();
+          if (closed) throw new Error("Input borrow is closed");
           if (delimiter !== undefined && (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255)) throw new TypeError("Invalid input record options");
           return scope.run(() => input.record(delimiter === undefined ? {} : { delimiter }));
         },

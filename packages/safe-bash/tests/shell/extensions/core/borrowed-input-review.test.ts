@@ -181,12 +181,19 @@ test("borrow review: invalid zero timeout and unknown positive timeout leave raw
   } finally { await subject.shell.dispose(); }
 });
 
-test("borrow review: reentrant lease release from an option getter prevents consumption", async () => {
+for (const [operation, option, value] of [
+  ["record", "delimiter", 10],
+  ["read", "count", 1],
+  ["read", "delimiter", 10],
+  ["read", "exact", true],
+  ["read", "timeoutMs", 1],
+] as const) test(`borrow review: reentrant lease release from ${operation} ${option} getter prevents consumption`, async () => {
   let pulls = 0;
   const subject = setup(async context => {
     const lease = context.input.borrow(0);
     let releasing: Promise<void> | undefined;
-    await assert.rejects(lease.record({ get delimiter() { releasing = lease.release(); return 10; } }), /closed/);
+    const options = Object.defineProperty({}, option, { get() { releasing = lease.release(); return value; } });
+    await assert.rejects(operation === "record" ? lease.record(options) : lease.read(true, options), /closed/);
     await releasing;
     assert.equal(pulls, 0);
     const next = context.input.borrow(0);

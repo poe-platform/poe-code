@@ -5,6 +5,28 @@ import {
   collectBytes, collectText, createBytePipe, isFsError, pipeBytes, toByteSource, writeText,
   type ByteSink, type ByteSource,
 } from "../../src/contracts/index.js";
+import { createOutputOperation } from "../../src/contracts/output.js";
+import { addAbortSignalWaiter } from "../../src/fs/creation-mask.js";
+
+for (const reason of [false, null, 0, ""]) {
+  for (const first of [true, false]) {
+    test(`shell and pipe cancellation registrations preserve ${String(reason)}, shell first=${first}`, async () => {
+      const upstream = createOutputOperation({ signal: new AbortController().signal }, { async write() {} });
+      const received: unknown[] = [];
+      const register = () => addAbortSignalWaiter(upstream.signal, value => { received.push(value); });
+      if (first) register();
+      const pipe = createBytePipe({ signal: upstream.signal });
+      try {
+        if (!first) register();
+        const reading = pipe.endpoints!.read.readable[Symbol.asyncIterator]().next();
+        const rejected = assert.rejects(reading, error => Object.is(error, reason));
+        await upstream.abort(reason);
+        await rejected;
+        assert.deepEqual(received, [reason]);
+      } finally { await pipe.abort(reason); await upstream.close(); }
+    });
+  }
+}
 
 test("byte sources preserve binary bytes and UTF-8 text", async () => {
   assert.deepEqual(await collectBytes(toByteSource(new Uint8Array([0, 128, 255])), { maxBytes: 3 }),

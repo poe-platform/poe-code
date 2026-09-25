@@ -144,7 +144,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       else { right = childPath(right, basename(left)); rightStat = await inspect(budget, right); }
     }
     if (!leftStat && !rightStat) throw new ToolError(`both paths are missing: ${left}, ${right}`);
-    if ((!leftStat || !rightStat) && !options.newFile) {
+    const treatMissingAsEmpty = (!leftStat && (options.newFile || options.unidirectionalNewFile)) || (!rightStat && options.newFile);
+    if ((!leftStat || !rightStat) && !treatMissingAsEmpty) {
       if (!pair.nested) throw new ToolError(`file not found: ${leftStat ? right : left}`);
       const present = leftStat ? left : right;
       append(`Only in ${present.slice(0, present.lastIndexOf("/")) || "/"}: ${basename(present)}\n`);
@@ -190,9 +191,13 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const label = (name: string) => options.text ? Buffer.from(name).toString("latin1") : name;
     const reportSame = () => { if (options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
     // Latin-1 preserves byte identity before binary inputs reach text validation.
-    if (!options.text && oldBytes.includes("\0") && oldBytes === newBytes) { reportSame(); continue; }
-    const oldText = options.text ? oldBytes : budget.text(Buffer.from(oldBytes, "latin1"));
-    const newText = options.text ? newBytes : budget.text(Buffer.from(newBytes, "latin1"));
+    if (!options.text && oldBytes === newBytes && (options.format !== "side" && options.format !== "ifdef" || oldBytes.includes("\0"))) { reportSame(); continue; }
+    let oldText = options.text ? oldBytes : budget.text(Buffer.from(oldBytes, "latin1"));
+    let newText = options.text ? newBytes : budget.text(Buffer.from(newBytes, "latin1"));
+    if (options.stripTrailingCr) {
+      oldText = oldText.replace(/\r(?=\n|$)/gu, "");
+      newText = newText.replace(/\r(?=\n|$)/gu, "");
+    }
     if (oldText === newText && options.format !== "side" && options.format !== "ifdef") { reportSame(); continue; }
     const oldLines = budget.split(oldText);
     const newLines = budget.split(newText);

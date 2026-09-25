@@ -143,3 +143,23 @@ for (const option of ["-D", "--ifdef"]) {
     });
   }
 }
+
+test("diff -P (--unidirectional-new-file), --strip-trailing-cr, and identical non-UTF-8 files", async () => {
+  const unidirectional = await run("diff", ["-P", "d1", "d2"], {
+    files: { "d1/only1": "one\n", "d2/only2": "two\n" },
+  });
+  assert.equal(unidirectional.exitCode, 1, unidirectional.stderr);
+  assert.equal(unidirectional.stdout, "Only in d1: only1\ndiff -P d1/only2 d2/only2\n0a1\n> two\n");
+
+  const cr = await run("diff", ["--strip-trailing-cr", "a", "b"], {
+    files: { a: "hello\r\n", b: "hello\n" },
+  });
+  assert.equal(cr.exitCode, 0, cr.stderr);
+  assert.equal(cr.stdout, "");
+
+  const identicalNonUtf8 = await run("diff", ["-s", "a", "b"], {
+    files: { a: Buffer.from([0xff, 0x0a]), b: Buffer.from([0xff, 0x0a]) },
+  });
+  assert.equal(identicalNonUtf8.exitCode, 0, identicalNonUtf8.stderr);
+  assert.equal(identicalNonUtf8.stdout, "Files a and b are identical\n");
+});

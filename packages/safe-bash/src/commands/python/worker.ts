@@ -1,6 +1,7 @@
 import { mountPythonFileSystem } from '@poe-code/safe-fs/core';
 import { pythonExecution } from './execution.js';
 import { installPythonLlmModule } from './llm-module.js';
+import { installPythonShellModule } from './shell-module.js';
 import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonHardLinks, pythonTreeCleanup } from './runtime-scripts.js';
 import { parsePythonInvocation } from './invocation.js';
 import { installPythonPackages } from './provisioning-runtime.js';
@@ -8,6 +9,7 @@ import type { PythonPackageStart } from './provisioning.js';
 import { PythonFailure, type PythonFailureCategory } from './diagnostics.js';
 
 export interface PythonWorkerStart {
+  readonly hasCapabilities?: boolean;
   readonly packages?: PythonPackageStart;
   readonly installOnly?: boolean;
   readonly shared: SharedArrayBuffer;
@@ -137,6 +139,7 @@ export async function runPythonWorker(options: {
   };
   let category: PythonFailureCategory = 'startup';
   try {
+    if (start.hasCapabilities) throw new PythonFailure('executor-unavailable');
     const startupRequest = createPythonWorkerRequest(start.shared, postMessage, code => new Error(code));
     const startupWrite = (stream: string, message: string) => {
       const bytes = new TextEncoder().encode(message + '\n');
@@ -263,6 +266,7 @@ export async function runPythonWorker(options: {
     postMessage({type:'ready'});
     category = 'runtime';
     installPythonLlmModule(runtime);
+    installPythonShellModule(runtime);
     const exitCode = runtime.runPython(pythonExecution);
     // Finalize CPython while canonical storage and stream RPC remain live.
     // This runs atexit and releases buffered files retained by guest modules.

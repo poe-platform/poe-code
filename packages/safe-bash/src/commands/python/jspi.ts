@@ -3,6 +3,8 @@ import { createPythonNativeSyscalls } from '@poe-code/safe-fs/core';
 import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
 import { PythonFailure } from './diagnostics.js';
 import { installPythonLlmModule } from './llm-module.js';
+import { installPythonShellModule } from './shell-module.js';
+import { installPythonCapabilityModule } from './capability-module.js';
 import { parsePythonInvocation } from './invocation.js';
 import { pythonExecution } from './execution.js';
 import { pythonJspiSignatures } from './jspi-trampoline.js';
@@ -120,6 +122,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
         let response = await encode(async () => {
           signal.throwIfAborted();
           const [operation, path, follow] = JSON.parse(module.UTF8ToString(pointer, 16384));
+          if (operation === 'capability') return {value: await start.dispatch({op:'capability', args:[path, follow]})};
           if (operation === 'stat') return native!.metadata(path, follow);
           if (typeof path !== 'string') throw Object.assign(new Error('Invalid native Python path'), {code:'EINVAL'});
           const target = absolute(path);
@@ -199,6 +202,8 @@ _safe_stat_type = _safe_native_stat_type
 `);
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
       installPythonLlmModule(runtime);
+      installPythonShellModule(runtime);
+      if (start.hasCapabilities) installPythonCapabilityModule(runtime);
       runtime.globals.set('_safe_execution_code', pythonExecution);
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);
       runtime.runPython(pythonJspiTimers);

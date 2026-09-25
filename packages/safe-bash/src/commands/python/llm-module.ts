@@ -188,6 +188,7 @@ class Stream:
                 async def read():
                     if self._iterator is None:
                         payload = await self._client._payload(self._request)
+                        payload["timeout"] = self._timeout
                         self._iterator = self._client._bridge.stream(payload).__aiter__()
                     return await self._iterator.__anext__()
                 remaining = None if self._deadline is None else max(0, self._deadline - asyncio.get_running_loop().time())
@@ -339,6 +340,7 @@ class Client:
         request = self._request(prompt, values)
         async def execute():
             payload = await self._payload(request)
+            payload["timeout"] = timeout
             response = Response.from_payload(await self._bridge.call("complete", payload))
             _check_size(response, limit)
             return await _transform(self._response_transform, response)

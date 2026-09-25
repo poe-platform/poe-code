@@ -84,3 +84,5 @@ reentry through scripts, aliases or pipelines fails admission immediately rather
 than waiting for the suspended interpreter. Independent invocation scopes may
 run concurrently subject to configured worker/pool limits. Hosted consumer
 acceptance remains recorded in the issue's requirement matrix.
+
+Run the bundled [shell-tools.py](examples/shell-tools.py) with `python /work/shell-tools.py` after placing it in the canonical filesystem. It requires the parent to enable `rg`, `/project` to contain a TODO, and a writable `/work`. The independently installed workerd gate executes this exact file.

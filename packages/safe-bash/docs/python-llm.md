@@ -103,11 +103,11 @@ with its own cleanup scope and the same borrowed bridge.
 | Usage and metadata | Typed response fields | Available when supplied by a configured bridge; basic shared chunk providers do not report these |
 | Incremental text/binary and final response | `Stream`, `Event` | Installed workerd qualified, including early close |
 | Structured output | `schema`; `Response.json()` | Shared schema validation; OpenAI chat JSON schema serialization qualified |
-| Templates | `template`, `parameters`; reusable `client.prompt()` functions | Python prompt functions work; named host templates require a configured service |
+| Templates | `template`, `parameters`; reusable `client.prompt()` functions | Python prompt functions and registered shared-service templates work; host templates use `{name}` placeholders and require service configuration |
 | Conversations | `Conversation`, prior messages | Python-owned orchestration; named host continuation requires a configured service |
 | Embeddings | `embed()` returns `Embeddings` | Shared optional provider hook validates vectors; unsupported providers fail explicitly |
 | Logs, collections, plugins and configuration | No host persistence API | No corresponding current shared-service operations |
-| Cleanup, cancellation, per-call limits | Async context managers, timeouts and response-byte checks | Native invocation retirement and host completion/stream deadlines; hosted qualification pending |
+| Cleanup, cancellation, per-call limits | Async context managers, timeouts and response-byte checks | Native invocation retirement, individual task cancellation, host completion/stream/embedding deadlines, and early close qualified in installed workerd; hosted qualification pending |
 
 The client defaults to an 8 MiB response payload limit and no timeout. Set
 `max_response_bytes` and `timeout` (seconds) on the client or individual completion
@@ -116,7 +116,7 @@ client cleanup cancels and awaits that work too. Text is measured as UTF-8, bina
 bytes per numeric element. Stream limits count emitted payload bytes and separately
 check a final complete response. These are guest payload checks, not bounds on
 interpreter memory, host transport buffers or provider billing. Host admission,
-request/chunk limits and cancellation are enforced by the invocation bridge. The current host adapter caps combined completion payloads at 128 KiB and native request JSON at 16 KiB. Canonical attachment bytes are read in JavaScript and do not count against that JSON request size.
+request/chunk limits and cancellation are enforced by the invocation bridge. The current host adapter caps combined prompt/system/message/attachment inputs and completion payloads at 128 KiB, clamps per-call response limits to that ceiling, and caps native request JSON at 16 KiB. Embedding inputs and serialized results also have a 128 KiB host ceiling. Canonical attachment bytes are read in JavaScript and do not count against that JSON request size.
 
 Exceptions include `LlmError(code, message)`, `CapabilityError`, `LimitError`,
 native `asyncio.CancelledError` and `asyncio.TimeoutError`. Invalid Python option

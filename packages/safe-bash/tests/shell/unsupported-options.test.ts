@@ -47,30 +47,27 @@ test("noclobber is visible in option queries and does not persist across exec", 
   assert.equal((await shell.exec("[[ -o noclobber ]]")).exitCode, 1);
 });
 
-for (const source of [
-  `set -a; VALUE=hello; sh -c 'printf %s "$VALUE"'`,
-  `BEFORE=hidden; set -a; VALUE=hello; set +a; AFTER=hidden; VALUE+=world; sh -c 'printf "<%s><%s><%s>" "$BEFORE" "$VALUE" "$AFTER"'`,
-  `set -aeu; VALUE=hello; set +au; sh -c 'printf %s "$VALUE"'`,
-  `set -o allexport; VALUE=hello; set +o allexport; AFTER=hidden; sh -c 'printf "<%s><%s>" "$VALUE" "$AFTER"'`,
-  `set -a; (set +a; INNER=hidden); OUTER=hello; sh -c 'printf "<%s><%s>" "$INNER" "$OUTER"'`,
-  `set -a; f() { local VALUE=local; sh -c 'printf %s "$VALUE"'; }; f; sh -c 'printf "<%s>" "$VALUE"'`,
-  `set -a; : "\${VALUE:=default}"; for ITEM in one two; do :; done; let 'COUNT=3'; sh -c 'printf "<%s><%s><%s>" "$VALUE" "$ITEM" "$COUNT"'`,
-  `set -a; case "$-" in *a*) printf on;; esac; set +a; case "$-" in *a*) printf bad;; *) printf off;; esac`,
-  `set -a; [[ -o allexport ]]; printf '%s' "$?"; set +a; [[ -o allexport ]]; printf '%s' "$?"`,
-  String.raw`set -a; sh -c 'CHILD=hidden; sh -c '\''printf "<%s>" "$CHILD"'\'''`,
-  `set -a; VALUE=original; VALUE=temporary sh -c 'printf "<%s>" "$VALUE"'; sh -c 'printf "<%s>" "$VALUE"'`,
-  `set -a; VALUE=hello; unset VALUE; set +a; VALUE=hidden; sh -c 'printf "<%s>" "$VALUE"'`,
-]) {
+for (const [source, expectedStdout] of [
+  [`set -a; VALUE=hello; sh -c 'printf %s "$VALUE"'`, "hello"],
+  [`BEFORE=hidden; set -a; VALUE=hello; set +a; AFTER=hidden; VALUE+=world; sh -c 'printf "<%s><%s><%s>" "$BEFORE" "$VALUE" "$AFTER"'`, "<><helloworld><>"],
+  [`set -aeu; VALUE=hello; set +au; sh -c 'printf %s "$VALUE"'`, "hello"],
+  [`set -o allexport; VALUE=hello; set +o allexport; AFTER=hidden; sh -c 'printf "<%s><%s>" "$VALUE" "$AFTER"'`, "<hello><>"],
+  [`set -a; (set +a; INNER=hidden); OUTER=hello; sh -c 'printf "<%s><%s>" "$INNER" "$OUTER"'`, "<><hello>"],
+  [`set -a; f() { local VALUE=local; sh -c 'printf %s "$VALUE"'; }; f; sh -c 'printf "<%s>" "$VALUE"'`, "local<>"],
+  [`set -a; : "\${VALUE:=default}"; for ITEM in one two; do :; done; let 'COUNT=3'; sh -c 'printf "<%s><%s><%s>" "$VALUE" "$ITEM" "$COUNT"'`, "<default><two><3>"],
+  [`set -a; case "$-" in *a*) printf on;; esac; set +a; case "$-" in *a*) printf bad;; *) printf off;; esac`, "onoff"],
+  [`set -a; [[ -o allexport ]]; printf '%s' "$?"; set +a; [[ -o allexport ]]; printf '%s' "$?"`, "01"],
+  [String.raw`set -a; sh -c 'CHILD=hidden; sh -c '\''printf "<%s>" "$CHILD"'\'''`, "<>"],
+  [`set -a; VALUE=original; VALUE=temporary sh -c 'printf "<%s>" "$VALUE"'; sh -c 'printf "<%s>" "$VALUE"'`, "<temporary><original>"],
+  [`set -a; VALUE=hello; unset VALUE; set +a; VALUE=hidden; sh -c 'printf "<%s>" "$VALUE"'`, "<>"],
+] as const) {
   test(`automatic export matches Bash: ${source}`, async context => {
     const env = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
-    const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { cwd: "/", env, timeout: 2000 });
-    assert.equal(expected.error, undefined);
-    assert.equal(expected.signal, null);
     const shell = new Shell({ fs: createMemoryFileSystem(), env }).use(agentCommands());
     context.after(() => shell.dispose());
     const actual = await shell.exec(source);
-    assert.deepEqual({ stdout: Buffer.from(actual.stdoutBytes).toString("hex"), stderr: Buffer.from(actual.stderrBytes).toString("hex"), exitCode: actual.exitCode },
-      { stdout: expected.stdout.toString("hex"), stderr: expected.stderr.toString("hex"), exitCode: expected.status });
+    assert.deepEqual({ stdout: actual.stdout, stderr: actual.stderr, exitCode: actual.exitCode },
+      { stdout: expectedStdout, stderr: "", exitCode: 0 });
   });
 }
 
@@ -120,4 +117,32 @@ test("supported set forms still execute normally", async () => {
   assert.equal((await shell.exec('set -- a b; args "$@"')).stdout, '["a","b"]');
   assert.equal((await shell.exec("set -o pipefail; false | true")).exitCode, 1);
   assert.equal((await shell.exec("set +o pipefail; false | true")).exitCode, 0);
+});
+
+test("set with no arguments lists shell variables and functions and exits 0", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  const result = await shell.exec("x=hello; myfn() { echo hi; }; set");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.match(result.stdout, /^x=hello$/mu);
+  assert.match(result.stdout, /^myfn \(\)/mu);
+});
+
+test("$_ tracks last argument of previous command, $LINENO tracks current line, $FUNCNAME tracks function stack, and let expands $var", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  const lastArg = await shell.exec('echo hello; echo "$_"; echo first second third; echo "$_"');
+  assert.equal(lastArg.exitCode, 0);
+  assert.equal(lastArg.stdout, "hello\nhello\nfirst second third\nthird\n");
+
+  const lineno = await shell.exec("echo $LINENO\necho $LINENO\n");
+  assert.equal(lineno.exitCode, 0);
+  assert.equal(lineno.stdout, "1\n2\n");
+
+  const funcname = await shell.exec('inner() { echo "$FUNCNAME:${FUNCNAME[0]}:${FUNCNAME[1]}:${#FUNCNAME[@]}:${FUNCNAME[*]}"; }; outer() { inner; }; outer');
+  assert.equal(funcname.exitCode, 0);
+  assert.equal(funcname.stdout, "inner:inner:outer:2:inner outer\n");
+
+  const letVar = await shell.exec('a=5; let "b = $a + 1"; let \'c = $b + $a\'; echo "$b:$c"');
+  assert.equal(letVar.exitCode, 0);
+  assert.equal(letVar.stdout, "6:11\n");
 });

@@ -53,9 +53,11 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     define("pwd", async (context) => {
-      let mode: "physical" | "logical" = "logical";
+      let mode: "physical" | "logical" = (context as { externalInvocation?: boolean }).externalInvocation && context.env.POSIXLY_CORRECT === undefined ? "physical" : "logical";
       for (const arg of context.args) {
         if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+        if (arg === "--logical") { mode = "logical"; continue; }
+        if (arg === "--physical") { mode = "physical"; continue; }
         for (const flag of arg.slice(1)) {
           if (flag !== "L" && flag !== "P") throw new UsageError(`invalid option '${flag}'`);
           mode = flag === "P" ? "physical" : "logical";

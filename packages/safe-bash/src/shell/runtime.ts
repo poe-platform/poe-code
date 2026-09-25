@@ -5120,6 +5120,7 @@ export class Runtime {
 
   async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
     if (
+      !(state as { externalInvocation?: boolean }).externalInvocation &&
       this.middleware.length === 0 &&
       !state.extensions &&
       typeof name === "string" &&
@@ -5449,7 +5450,7 @@ export class Runtime {
           if (outcome.kind === "throw") throw outcome.reason;
           return outcome.value;
         }
-        if (selected?.kind === "builtin") {
+        if (selected?.kind === "builtin" && !((state as { externalInvocation?: boolean }).externalInvocation && this.commands.has(context.command))) {
           const extensionBuiltin = state.extensions?.builtins.get(context.command);
           const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
           if (special) assignments.clear();
@@ -5486,6 +5487,9 @@ export class Runtime {
           return { exitCode: 127 };
         }
         this.budget.pathLookup.suspendUntilClosed(scope);
+        if ((state as { externalInvocation?: boolean }).externalInvocation) {
+          Object.defineProperty(forwarded, "externalInvocation", { value: true, configurable: true });
+        }
         const raw = definition.execute(forwarded);
         const observed = this.observeRuntimeReturn(raw, runtimeFrame);
         return await interruptible(observed, this.signal);
@@ -6344,10 +6348,13 @@ export class Runtime {
     }
     child.exported = new Set(Object.keys(env));
     }
-    for (const key of child.exportedFunctions ?? []) {
-      const body = child.functions.get(key);
-      if (!body || env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
+    for (const [key, body] of child.functions) {
+      if (!child.exportedFunctions?.has(key) || (options.replaceEnv && env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd())) {
+        child.functions.delete(key);
+        child.exportedFunctions?.delete(key);
+      }
     }
+    (child as { externalInvocation?: boolean }).externalInvocation = true;
     this.reconcileGetopts(child, state.variables.OPTIND);
     child.depth++;
     child.loopDepth = 0;
@@ -7066,6 +7073,8 @@ export class Runtime {
       let physical = false;
       for (const arg of args) {
         if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+        if (arg === "--logical") { physical = false; continue; }
+        if (arg === "--physical") { physical = true; continue; }
         for (const flag of arg.slice(1)) {
           if (flag !== "L" && flag !== "P") { await writeDiagnostic(stderr, "pwd: invalid option\n"); return 2; }
           physical = flag === "P";

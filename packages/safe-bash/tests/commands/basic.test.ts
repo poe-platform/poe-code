@@ -742,3 +742,19 @@ test("test and [ evaluate parenthesized operator expressions and -N predicate", 
     assert.deepEqual([res.exitCode, res.stderr], [0, ""], args.join(" "));
   }
 });
+
+test("external invoke isolates unexported functions, dispatches external pwd/true/echo, and supports --logical/--physical", async () => {
+  const fs = await fixture();
+  await fs.symlink("/work", "/alias");
+  const shell = new Shell({ fs, cwd: "/alias", commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    assert.equal((await shell.exec("myfn() { echo FROM_FN; }; env -i myfn")).exitCode, 127);
+    assert.equal((await shell.exec("myfn() { echo FROM_FN; }; xargs myfn <<< hi")).exitCode, 127);
+    assert.equal((await shell.exec("env pwd")).stdout, "/work\n");
+    assert.equal((await shell.exec("env pwd --logical")).stdout, "/alias\n");
+    assert.equal((await shell.exec("env pwd --physical")).stdout, "/work\n");
+    assert.equal((await shell.exec("env pwd -P -L")).stdout, "/alias\n");
+    assert.match((await shell.exec("env true --version")).stdout, /^true /u);
+    assert.match((await shell.exec("env echo --version")).stdout, /^echo /u);
+  } finally { await shell.dispose(); }
+});

@@ -50,6 +50,11 @@ const information: Readonly<Record<string, Information>> = {
   unexpand: { usage: "[OPTION]... [FILE]...", description: "Convert spaces to tabs.", options: ["-a, --all", "-t, --tabs=LIST", "--first-only"] },
   uniq: { usage: "[OPTION]... [INPUT [OUTPUT]]", description: "Filter adjacent repeated input records.", options: ["-c, --count", "-d, --repeated", "-u, --unique", "-i, --ignore-case", "-f, --skip-fields=NUM", "-s, --skip-chars=NUM", "-w, --check-chars=NUM", "-z, --zero-terminated"] },
   wc: { usage: "[OPTION]... [FILE]...", description: "Count input lines, words, bytes, characters or display width.", options: ["-l, --lines", "-w, --words", "-c, --bytes", "-m, --chars", "-L, --max-line-length"] },
+  pwd: { usage: "[OPTION]...", description: "Print the full filename of the current working directory.", options: ["-L, --logical", "-P, --physical"] },
+  true: { usage: "[ignored command line arguments]", description: "Exit with a status code indicating success.", options: [] },
+  false: { usage: "[ignored command line arguments]", description: "Exit with a status code indicating failure.", options: [] },
+  echo: { usage: "[SHORT-OPTION]... [STRING]...", description: "Echo the STRING(s) to standard output.", options: ["-n", "-e", "-E"] },
+  "[": { usage: "EXPRESSION ]", description: "Evaluate conditional expression.", options: [] },
 };
 
 const checksumInformation: Information = {
@@ -59,6 +64,7 @@ const checksumInformation: Information = {
 
 export async function gnuInformation(name: string, context: CommandContext): Promise<CommandResult | undefined> {
   if (!context.args.includes("--help") && !context.args.includes("--version")) return undefined;
+  if ((name === "true" || name === "false" || name === "echo" || name === "[") && (context.args.length !== 1 || !(context as { externalInvocation?: boolean }).externalInvocation)) return undefined;
   const info = information[name] ?? (["md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum"].includes(name) ? checksumInformation : undefined);
   if (!info) return undefined;
   const flags = new Map<string, "none" | "required" | "optional">();

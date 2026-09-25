@@ -312,6 +312,14 @@ export function sha512Bytes(data: Uint8Array): Uint8Array {
 const SBOX = new Uint8Array(256);
 const INV_SBOX = new Uint8Array(256);
 const RCON = new Uint8Array([0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36]);
+const GF2 = new Uint8Array(256);
+const GF3 = new Uint8Array(256);
+const GF9 = new Uint8Array(256);
+const GF11 = new Uint8Array(256);
+const GF13 = new Uint8Array(256);
+const GF14 = new Uint8Array(256);
+const AES_S = new Uint8Array(16);
+const AES_TMP = new Uint8Array(16);
 
 function gfMul(a: number, b: number): number {
   let p = 0;
@@ -344,6 +352,14 @@ function gfMul(a: number, b: number): number {
   } while (p !== 1);
   SBOX[0] = 0x63;
   INV_SBOX[0x63] = 0;
+  for (let i = 0; i < 256; i++) {
+    GF2[i] = gfMul(i, 2);
+    GF3[i] = gfMul(i, 3);
+    GF9[i] = gfMul(i, 0x09);
+    GF11[i] = gfMul(i, 0x0b);
+    GF13[i] = gfMul(i, 0x0d);
+    GF14[i] = gfMul(i, 0x0e);
+  }
 })();
 
 function expandKey(key: Uint8Array): { roundKeys: Uint8Array; rounds: number } {
@@ -385,10 +401,10 @@ function expandKey(key: Uint8Array): { roundKeys: Uint8Array; rounds: number } {
 }
 
 function aesEncryptBlock(block: Uint8Array, roundKeys: Uint8Array, rounds: number): Uint8Array {
-  const s = new Uint8Array(16);
+  const s = AES_S;
   for (let i = 0; i < 16; i++) s[i] = block[i]! ^ roundKeys[i]!;
 
-  const tmp = new Uint8Array(16);
+  const tmp = AES_TMP;
   for (let r = 1; r < rounds; r++) {
     // SubBytes + ShiftRows
     tmp[0] = SBOX[s[0]!]!;
@@ -416,10 +432,10 @@ function aesEncryptBlock(block: Uint8Array, roundKeys: Uint8Array, rounds: numbe
       const a1 = tmp[idx + 1]!;
       const a2 = tmp[idx + 2]!;
       const a3 = tmp[idx + 3]!;
-      s[idx] = gfMul(a0, 2) ^ gfMul(a1, 3) ^ a2 ^ a3 ^ roundKeys[rkOffset + idx]!;
-      s[idx + 1] = a0 ^ gfMul(a1, 2) ^ gfMul(a2, 3) ^ a3 ^ roundKeys[rkOffset + idx + 1]!;
-      s[idx + 2] = a0 ^ a1 ^ gfMul(a2, 2) ^ gfMul(a3, 3) ^ roundKeys[rkOffset + idx + 2]!;
-      s[idx + 3] = gfMul(a0, 3) ^ a1 ^ a2 ^ gfMul(a3, 2) ^ roundKeys[rkOffset + idx + 3]!;
+      s[idx] = GF2[a0]! ^ GF3[a1]! ^ a2 ^ a3 ^ roundKeys[rkOffset + idx]!;
+      s[idx + 1] = a0 ^ GF2[a1]! ^ GF3[a2]! ^ a3 ^ roundKeys[rkOffset + idx + 1]!;
+      s[idx + 2] = a0 ^ a1 ^ GF2[a2]! ^ GF3[a3]! ^ roundKeys[rkOffset + idx + 2]!;
+      s[idx + 3] = GF3[a0]! ^ a1 ^ a2 ^ GF2[a3]! ^ roundKeys[rkOffset + idx + 3]!;
     }
   }
 
@@ -446,11 +462,11 @@ function aesEncryptBlock(block: Uint8Array, roundKeys: Uint8Array, rounds: numbe
 }
 
 function aesDecryptBlock(block: Uint8Array, roundKeys: Uint8Array, rounds: number): Uint8Array {
-  const s = new Uint8Array(16);
+  const s = AES_S;
   const rkFinal = rounds * 16;
   for (let i = 0; i < 16; i++) s[i] = block[i]! ^ roundKeys[rkFinal + i]!;
 
-  const tmp = new Uint8Array(16);
+  const tmp = AES_TMP;
   for (let r = rounds - 1; r >= 1; r--) {
     // InvShiftRows + InvSubBytes
     tmp[0] = INV_SBOX[s[0]!]!;
@@ -478,10 +494,10 @@ function aesDecryptBlock(block: Uint8Array, roundKeys: Uint8Array, rounds: numbe
       const a1 = tmp[idx + 1]! ^ roundKeys[rkOffset + idx + 1]!;
       const a2 = tmp[idx + 2]! ^ roundKeys[rkOffset + idx + 2]!;
       const a3 = tmp[idx + 3]! ^ roundKeys[rkOffset + idx + 3]!;
-      s[idx] = gfMul(a0, 0x0e) ^ gfMul(a1, 0x0b) ^ gfMul(a2, 0x0d) ^ gfMul(a3, 0x09);
-      s[idx + 1] = gfMul(a0, 0x09) ^ gfMul(a1, 0x0e) ^ gfMul(a2, 0x0b) ^ gfMul(a3, 0x0d);
-      s[idx + 2] = gfMul(a0, 0x0d) ^ gfMul(a1, 0x09) ^ gfMul(a2, 0x0e) ^ gfMul(a3, 0x0b);
-      s[idx + 3] = gfMul(a0, 0x0b) ^ gfMul(a1, 0x0d) ^ gfMul(a2, 0x09) ^ gfMul(a3, 0x0e);
+      s[idx] = GF14[a0]! ^ GF11[a1]! ^ GF13[a2]! ^ GF9[a3]!;
+      s[idx + 1] = GF9[a0]! ^ GF14[a1]! ^ GF11[a2]! ^ GF13[a3]!;
+      s[idx + 2] = GF13[a0]! ^ GF9[a1]! ^ GF14[a2]! ^ GF11[a3]!;
+      s[idx + 3] = GF11[a0]! ^ GF13[a1]! ^ GF9[a2]! ^ GF14[a3]!;
     }
   }
 

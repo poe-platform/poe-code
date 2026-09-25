@@ -1,5 +1,5 @@
 import { deflate, inflate } from "pako";
-import { dictGet, type PdfCosDict, type PdfCosStream } from "../ast.js";
+import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { PdfError } from "../errors.js";
 
 export interface PdfFilterDecodeParms {
@@ -8,6 +8,10 @@ export interface PdfFilterDecodeParms {
   readonly Colors?: number | undefined;
   readonly BitsPerComponent?: number | undefined;
   readonly EarlyChange?: number | undefined;
+  readonly K?: number | undefined;
+  readonly Rows?: number | undefined;
+  readonly BlackIs1?: boolean | undefined;
+  readonly EncodedByteAlign?: boolean | undefined;
 }
 
 const DEFAULT_MAX_DECODED_BYTES = 64_000_000;
@@ -67,6 +71,26 @@ export function applyPredictor(bytes: Uint8Array, parms?: PdfFilterDecodeParms):
           const sum = (cur + prev) & 0xffff;
           out[base + i] = (sum >>> 8) & 0xff;
           out[base + i + 1] = sum & 0xff;
+        }
+      } else if (bits === 1 || bits === 2 || bits === 4) {
+        const totalSamples = columns * colors;
+        const mask = (1 << bits) - 1;
+        const samples = new Uint8Array(totalSamples);
+        for (let s = 0; s < totalSamples; s++) {
+          const bitOffset = s * bits;
+          const byteIdx = base + (bitOffset >>> 3);
+          const shift = 8 - bits - (bitOffset & 7);
+          samples[s] = ((out[byteIdx] ?? 0) >>> shift) & mask;
+        }
+        for (let s = colors; s < totalSamples; s++) {
+          samples[s] = (samples[s]! + samples[s - colors]!) & mask;
+        }
+        out.fill(0, base, base + rowBytes);
+        for (let s = 0; s < totalSamples; s++) {
+          const bitOffset = s * bits;
+          const byteIdx = base + (bitOffset >>> 3);
+          const shift = 8 - bits - (bitOffset & 7);
+          out[byteIdx] = (out[byteIdx] ?? 0) | ((samples[s]! & mask) << shift);
         }
       }
     }
@@ -395,6 +419,197 @@ export function decodeLzw(bytes: Uint8Array, parms?: PdfFilterDecodeParms): Uint
   return applyPredictor(out, parms);
 }
 
+const CCITT_WHITE_CODES: ReadonlyMap<string, number> = new Map([
+  ["00110101", 0], ["000111", 1], ["0111", 2], ["1000", 3], ["1011", 4], ["1100", 5], ["1110", 6], ["1111", 7],
+  ["10011", 8], ["10100", 9], ["00111", 10], ["01000", 11], ["001000", 12], ["000011", 13], ["110100", 14], ["110101", 15],
+  ["101010", 16], ["101011", 17], ["0100111", 18], ["0001100", 19], ["0001000", 20], ["0010111", 21], ["0000011", 22], ["0000100", 23],
+  ["0101000", 24], ["0101011", 25], ["0010011", 26], ["0100100", 27], ["0011000", 28], ["00000010", 29], ["00000011", 30], ["00011010", 31],
+  ["00011011", 32], ["00010010", 33], ["00010011", 34], ["00010100", 35], ["00010101", 36], ["00010110", 37], ["00010111", 38], ["00101000", 39],
+  ["00101001", 40], ["00101010", 41], ["00101011", 42], ["00101100", 43], ["00101101", 44], ["00000100", 45], ["00000101", 46], ["00001010", 47],
+  ["00001011", 48], ["01010010", 49], ["01010011", 50], ["01010100", 51], ["01010101", 52], ["00100100", 53], ["00100101", 54], ["01011000", 55],
+  ["01011001", 56], ["01011010", 57], ["01011011", 58], ["01001010", 59], ["01001011", 60], ["00110010", 61], ["00110011", 62], ["00110100", 63],
+  ["11011", 64], ["10010", 128], ["010111", 192], ["0110111", 256], ["00110110", 320], ["00110111", 384], ["01100100", 448], ["01100101", 512],
+  ["01101000", 576], ["01100111", 640], ["010011011", 1728],
+]);
+
+const CCITT_BLACK_CODES: ReadonlyMap<string, number> = new Map([
+  ["0000110111", 0], ["010", 1], ["11", 2], ["10", 3], ["011", 4], ["0011", 5], ["0010", 6], ["00011", 7],
+  ["000101", 8], ["000100", 9], ["0000100", 10], ["0000101", 11], ["0000111", 12], ["00000100", 13], ["00000111", 14], ["000011000", 15],
+  ["0000010111", 16], ["0000011000", 17], ["0000001000", 18], ["00001100111", 19], ["00001101000", 20], ["00001101100", 21], ["00000110111", 22], ["00000101000", 23],
+  ["00000010111", 24], ["00000011000", 25], ["000011001010", 26], ["000011001011", 27], ["000011001100", 28], ["000011001101", 29], ["000001101000", 30], ["000001101001", 31],
+  ["000001101010", 32], ["000001101011", 33], ["000011010010", 34], ["000011010011", 35], ["000011010100", 36], ["000011010101", 37], ["000011010110", 38], ["000011010111", 39],
+  ["000001101100", 40], ["000001101101", 41], ["000011011010", 42], ["000011011011", 43], ["000001010100", 44], ["000001010101", 45], ["000001010110", 46], ["000001010111", 47],
+  ["000001100100", 48], ["000001100101", 49], ["000001010010", 50], ["000001010011", 51], ["000000100100", 52], ["000000110111", 53], ["000000111000", 54], ["000000100111", 55],
+  ["000000101000", 56], ["000001011000", 57], ["000001011001", 58], ["000000101011", 59], ["000000101100", 60], ["000001011010", 61], ["000001100110", 62], ["000001100111", 63],
+  ["0000001111", 64], ["000011001000", 128], ["000011001001", 192], ["000001011011", 256],
+]);
+
+export function decodeCcittFax(bytes: Uint8Array, parms?: PdfFilterDecodeParms): Uint8Array {
+  const columns = Math.max(1, parms?.Columns ?? 1728);
+  const maxRows = parms?.Rows && parms.Rows > 0 ? parms.Rows : 2048;
+  const k = parms?.K ?? 0;
+  const blackIs1 = parms?.BlackIs1 ?? false;
+  const byteAlign = parms?.EncodedByteAlign ?? false;
+  const rowBytes = Math.ceil(columns / 8);
+
+  const totalBits = bytes.length * 8;
+  let bitPos = 0;
+  const readBit = (): number | undefined => {
+    if (bitPos >= totalBits) return undefined;
+    const b = (bytes[bitPos >>> 3]! >>> (7 - (bitPos & 7))) & 1;
+    bitPos++;
+    return b;
+  };
+  const readRunLength = (isBlack: boolean): number | undefined => {
+    const table = isBlack ? CCITT_BLACK_CODES : CCITT_WHITE_CODES;
+    let totalRun = 0;
+    while (true) {
+      let prefix = "";
+      let matched: number | undefined;
+      for (let len = 1; len <= 13; len++) {
+        const bit = readBit();
+        if (bit === undefined) return undefined;
+        prefix += bit ? "1" : "0";
+        if (prefix === "000000000001") return undefined; // EOL / EOFB
+        const val = table.get(prefix);
+        if (val !== undefined) {
+          matched = val;
+          break;
+        }
+      }
+      if (matched === undefined) return undefined;
+      totalRun += matched;
+      if (matched < 64) return totalRun;
+    }
+  };
+
+  const decodedRows: Uint8Array[] = [];
+  let refLine = new Uint8Array(columns); // 0 = white, 1 = black
+
+  while (decodedRows.length < maxRows && bitPos < totalBits) {
+    if (byteAlign && (bitPos & 7) !== 0) {
+      bitPos = (bitPos + 7) & ~7;
+    }
+    const curLine = new Uint8Array(columns);
+    if (k < 0) {
+      // Group 4 2D decoding
+      let a0 = -1;
+      let curColor = 0; // 0 = white, 1 = black
+      let eofb = false;
+      while ((a0 < 0 ? 0 : a0) < columns) {
+        let modePrefix = "";
+        let mode: string | undefined;
+        for (let len = 1; len <= 12; len++) {
+          const bit = readBit();
+          if (bit === undefined) {
+            eofb = true;
+            break;
+          }
+          modePrefix += bit ? "1" : "0";
+          if (modePrefix === "1") { mode = "V0"; break; }
+          if (modePrefix === "011") { mode = "VR1"; break; }
+          if (modePrefix === "010") { mode = "VL1"; break; }
+          if (modePrefix === "001") { mode = "H"; break; }
+          if (modePrefix === "0001") { mode = "P"; break; }
+          if (modePrefix === "000011") { mode = "VR2"; break; }
+          if (modePrefix === "000010") { mode = "VL2"; break; }
+          if (modePrefix === "0000011") { mode = "VR3"; break; }
+          if (modePrefix === "0000010") { mode = "VL3"; break; }
+          if (modePrefix === "000000000001") {
+            eofb = true;
+            break;
+          }
+        }
+        if (eofb || !mode) break;
+
+        const startPos = a0 < 0 ? 0 : a0;
+        // Find b1 (first changing element on refLine to the right of a0 with opposite color of curColor)
+        let b1 = columns;
+        for (let x = a0 < 0 ? 0 : a0 + 1; x < columns; x++) {
+          const prevColor = x === 0 ? 0 : refLine[x - 1]!;
+          if (refLine[x]! !== prevColor && refLine[x]! === (1 - curColor)) {
+            b1 = x;
+            break;
+          }
+        }
+        let b2 = columns;
+        for (let x = b1 + 1; x < columns; x++) {
+          if (refLine[x]! !== refLine[x - 1]!) {
+            b2 = x;
+            break;
+          }
+        }
+
+        if (mode === "P") {
+          for (let x = startPos; x < Math.min(columns, b2); x++) curLine[x] = curColor;
+          a0 = b2;
+        } else if (mode === "H") {
+          const r1 = readRunLength(curColor === 1) ?? 0;
+          const r2 = readRunLength(curColor === 0) ?? 0;
+          const a1 = Math.min(columns, startPos + r1);
+          const a2 = Math.min(columns, a1 + r2);
+          for (let x = startPos; x < a1; x++) curLine[x] = curColor;
+          for (let x = a1; x < a2; x++) curLine[x] = 1 - curColor;
+          a0 = a2;
+        } else {
+          let offset = 0;
+          if (mode === "VR1") offset = 1;
+          else if (mode === "VR2") offset = 2;
+          else if (mode === "VR3") offset = 3;
+          else if (mode === "VL1") offset = -1;
+          else if (mode === "VL2") offset = -2;
+          else if (mode === "VL3") offset = -3;
+          const a1 = Math.max(startPos, Math.min(columns, b1 + offset));
+          for (let x = startPos; x < a1; x++) curLine[x] = curColor;
+          a0 = a1;
+          curColor = 1 - curColor;
+        }
+      }
+      if (eofb && a0 < 0) break;
+    } else {
+      // Group 3 1D decoding
+      let xPos = 0;
+      let isBlack = false;
+      let aborted = false;
+      while (xPos < columns) {
+        const run = readRunLength(isBlack);
+        if (run === undefined) {
+          aborted = xPos === 0;
+          break;
+        }
+        const endX = Math.min(columns, xPos + run);
+        if (isBlack) {
+          for (let x = xPos; x < endX; x++) curLine[x] = 1;
+        }
+        xPos = endX;
+        isBlack = !isBlack;
+      }
+      if (aborted) break;
+    }
+
+    const packedRow = new Uint8Array(rowBytes);
+    for (let x = 0; x < columns; x++) {
+      const isBlackPixel = curLine[x] === 1;
+      const bitVal = blackIs1 ? (isBlackPixel ? 1 : 0) : (isBlackPixel ? 0 : 1);
+      if (bitVal) {
+        const bIdx = x >>> 3;
+        packedRow[bIdx] = (packedRow[bIdx] ?? 0) | (1 << (7 - (x & 7)));
+      }
+    }
+    decodedRows.push(packedRow);
+    refLine = curLine;
+  }
+
+  if (decodedRows.length === 0) {
+    return bytes;
+  }
+  const out = new Uint8Array(decodedRows.length * rowBytes);
+  for (let r = 0; r < decodedRows.length; r++) {
+    out.set(decodedRows[r]!, r * rowBytes);
+  }
+  return out;
+}
+
 export function decodePdfFilter(
   filterName: string,
   bytes: Uint8Array,
@@ -417,8 +632,13 @@ export function decodePdfFilter(
     case "RunLengthDecode":
     case "RL":
       return decodeRunLength(bytes);
+    case "CCITTFaxDecode":
+    case "CCF":
+      return decodeCcittFax(bytes, parms);
     case "DCTDecode":
     case "DCT":
+    case "JPXDecode":
+    case "JBIG2Decode":
     case "Identity":
     case "Crypt":
       return bytes;
@@ -440,45 +660,74 @@ export function decodePdfFilterPipeline(
   return current;
 }
 
-function extractDecodeParms(dict: PdfCosDict): PdfFilterDecodeParms {
-  const p = dictGet(dict, "Predictor");
-  const c = dictGet(dict, "Colors");
-  const b = dictGet(dict, "BitsPerComponent");
-  const cols = dictGet(dict, "Columns");
-  const ec = dictGet(dict, "EarlyChange");
+function extractDecodeParms(
+  dict: PdfCosDict,
+  resolve: (node: PdfCosNode | undefined) => PdfCosNode | undefined = n => n
+): PdfFilterDecodeParms {
+  const p = resolve(dictGet(dict, "Predictor"));
+  const c = resolve(dictGet(dict, "Colors"));
+  const b = resolve(dictGet(dict, "BitsPerComponent") ?? dictGet(dict, "BPC"));
+  const cols = resolve(dictGet(dict, "Columns"));
+  const ec = resolve(dictGet(dict, "EarlyChange"));
+  const kNode = resolve(dictGet(dict, "K"));
+  const rowsNode = resolve(dictGet(dict, "Rows"));
+  const biNode = resolve(dictGet(dict, "BlackIs1"));
+  const baNode = resolve(dictGet(dict, "EncodedByteAlign"));
   return {
     Predictor: p?.kind === "number" ? p.value : undefined,
     Colors: c?.kind === "number" ? c.value : undefined,
     BitsPerComponent: b?.kind === "number" ? b.value : undefined,
     Columns: cols?.kind === "number" ? cols.value : undefined,
     EarlyChange: ec?.kind === "number" ? ec.value : undefined,
+    K: kNode?.kind === "number" ? kNode.value : undefined,
+    Rows: rowsNode?.kind === "number" ? rowsNode.value : undefined,
+    BlackIs1: biNode?.kind === "boolean" ? biNode.value : undefined,
+    EncodedByteAlign: baNode?.kind === "boolean" ? baNode.value : undefined,
   };
 }
 
 export function decodeStreamObject(
   stream: PdfCosStream,
-  maxDecodedBytes = DEFAULT_MAX_DECODED_BYTES
+  maxDecodedBytes = DEFAULT_MAX_DECODED_BYTES,
+  resolve: (node: PdfCosNode | undefined) => PdfCosNode | undefined = n => n
 ): Uint8Array {
-  const filterNode = dictGet(stream.dict, "Filter");
+  const filterNode = resolve(dictGet(stream.dict, "Filter") ?? dictGet(stream.dict, "F"));
   if (!filterNode) return stream.rawBytes;
 
-  const parmsNode = dictGet(stream.dict, "DecodeParms");
+  const parmsNode = resolve(dictGet(stream.dict, "DecodeParms") ?? dictGet(stream.dict, "DP"));
   if (filterNode.kind === "name") {
-    const parms = parmsNode?.kind === "dict" ? extractDecodeParms(parmsNode) : undefined;
+    const parms = parmsNode?.kind === "dict" ? extractDecodeParms(parmsNode, resolve) : undefined;
     return decodePdfFilter(filterNode.decoded, stream.rawBytes, parms, maxDecodedBytes);
   }
   if (filterNode.kind === "array") {
     const filters: string[] = [];
     for (const item of filterNode.items) {
-      if (item.kind === "name") filters.push(item.decoded);
+      const resolvedItem = resolve(item);
+      if (resolvedItem?.kind === "name") filters.push(resolvedItem.decoded);
     }
     const parmsList: (PdfFilterDecodeParms | undefined)[] = [];
     if (parmsNode?.kind === "array") {
       for (const item of parmsNode.items) {
-        parmsList.push(item.kind === "dict" ? extractDecodeParms(item) : undefined);
+        const resolvedItem = resolve(item);
+        parmsList.push(resolvedItem?.kind === "dict" ? extractDecodeParms(resolvedItem, resolve) : undefined);
       }
     } else if (parmsNode?.kind === "dict") {
-      parmsList.push(extractDecodeParms(parmsNode));
+      const singleParms = extractDecodeParms(parmsNode, resolve);
+      for (const f of filters) {
+        if (
+          f === "FlateDecode" ||
+          f === "Fl" ||
+          f === "LZWDecode" ||
+          f === "LZW" ||
+          f === "CCITTFaxDecode" ||
+          f === "CCF" ||
+          f === "JBIG2Decode"
+        ) {
+          parmsList.push(singleParms);
+        } else {
+          parmsList.push(undefined);
+        }
+      }
     }
     return decodePdfFilterPipeline(filters, stream.rawBytes, parmsList, maxDecodedBytes);
   }

@@ -122,7 +122,7 @@ export function redactPageContentAst(params: {
           const rebuiltCommands: PdfTextCommand[] = [];
           for (const g of survivingGlyphs) {
             const [localX, localY] = invertPoint(curCtm, g.bbox[0], g.baselineY);
-            rebuiltCommands.push({ kind: "font", fontName: "F1", size: g.fontSize });
+            rebuiltCommands.push({ kind: "font", fontName: g.fontName || "F1", size: g.fontSize });
             rebuiltCommands.push({
               kind: "matrix",
               matrix: [1, 0, 0, 1, localX, localY],
@@ -133,6 +133,33 @@ export function redactPageContentAst(params: {
             });
           }
           out.push({ kind: "text-object", commands: rebuiltCommands });
+        }
+        continue;
+      }
+      if (node.kind === "xobject" || node.kind === "inline-image") {
+        const singleDl = evaluateContentStreamToDisplayList({
+          pageIndex: params.pageIndex,
+          width: params.width,
+          height: params.height,
+          nodes: evalNodes,
+          cosDoc: params.cosDoc,
+          resourcesDict: params.resourcesDict,
+        });
+        const imgHit = singleDl.images.some(img => {
+          const [a, b, c, d, e, f] = img.matrix;
+          const xs = [e, a + e, c + e, a + c + e];
+          const ys = [f, b + f, d + f, b + d + f];
+          const bbox: [number, number, number, number] = [
+            Math.min(...xs),
+            Math.min(...ys),
+            Math.max(...xs),
+            Math.max(...ys),
+          ];
+          return regions.some(r => boxesIntersect(bbox, r));
+        });
+        const formGlyphHit = singleDl.glyphs.some(g => regions.some(r => boxesIntersect(g.bbox, r)));
+        if (!imgHit && !formGlyphHit) {
+          out.push(node);
         }
         continue;
       }

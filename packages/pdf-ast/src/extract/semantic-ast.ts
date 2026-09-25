@@ -1,5 +1,23 @@
 import type { PdfDisplayList, PdfExtractedPage, PdfExtractedTable, PdfSemanticNode } from "../ast.js";
 
+function parseOrderedListPrefix(text: string): string | undefined {
+  let pos = 0;
+  while (pos < text.length) {
+    const c = text.charCodeAt(pos);
+    if (c >= 0x30 && c <= 0x39) {
+      pos++;
+    } else {
+      break;
+    }
+  }
+  if (pos === 0 || pos >= text.length) return undefined;
+  const sep = text[pos];
+  if ((sep === "." || sep === ")") && text[pos + 1] === " ") {
+    return text.slice(pos + 2).trimStart();
+  }
+  return undefined;
+}
+
 export function buildSemanticAstFromPages(
   pages: readonly PdfExtractedPage[],
   tablesByPage: ReadonlyMap<number, readonly PdfExtractedTable[]>,
@@ -29,13 +47,33 @@ export function buildSemanticAstFromPages(
         const fontSize = block.lines[0]?.words[0]?.glyphs[0]?.fontSize ?? 16;
         const level: 1 | 2 | 3 | 4 | 5 | 6 = fontSize >= 22 ? 1 : fontSize >= 18 ? 2 : 3;
         nodes.push({ kind: "heading", level, text });
-      } else if (block.kind === "list-item") {
-        const cleaned = text.replace(/^[•\-*]\s*/, "");
-        const last = nodes[nodes.length - 1];
-        if (last?.kind === "list") {
-          last.items.push(cleaned);
-        } else {
-          nodes.push({ kind: "list", ordered: false, items: [cleaned] });
+      } else if (block.kind === "list-item" || parseOrderedListPrefix(text) !== undefined) {
+        for (const line of block.lines) {
+          const lineText = line.text.trim();
+          if (!lineText) continue;
+          const orderedBody = parseOrderedListPrefix(lineText);
+          const isBullet =
+            lineText.startsWith("•") || lineText.startsWith("-") || lineText.startsWith("*");
+          const isOrdered = orderedBody !== undefined;
+          const last = nodes[nodes.length - 1];
+          if (orderedBody !== undefined) {
+            if (last?.kind === "list" && last.ordered) {
+              last.items.push(orderedBody);
+            } else {
+              nodes.push({ kind: "list", ordered: true, items: [orderedBody] });
+            }
+          } else if (isBullet) {
+            const cleaned = lineText.slice(1).trimStart();
+            if (last?.kind === "list" && !last.ordered) {
+              last.items.push(cleaned);
+            } else {
+              nodes.push({ kind: "list", ordered: false, items: [cleaned] });
+            }
+          } else if (last?.kind === "list" && last.items.length > 0) {
+            last.items[last.items.length - 1] += ` ${lineText}`;
+          } else {
+            nodes.push({ kind: "list", ordered: false, items: [lineText] });
+          }
         }
       } else {
         nodes.push({ kind: "paragraph", text });

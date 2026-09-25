@@ -123,6 +123,7 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
   const operands: PdfCosNode[] = [];
 
   let inText = false;
+  let textContinuation = false;
   let currentTextCommands: PdfTextCommand[] = [];
   let currentPathSegments: PdfPathSegment[] = [];
   let pendingClip: "W" | "W*" | undefined;
@@ -132,6 +133,18 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
   let subpathStartY = 0;
 
   const currentTarget = (): PdfContentNode[] => stack[stack.length - 1]!.target;
+  const flushInTextCommands = (): void => {
+    if (!inText) return;
+    if (currentTextCommands.length > 0 || !textContinuation) {
+      currentTarget().push({
+        kind: "text-object",
+        commands: currentTextCommands,
+        ...(textContinuation ? { continuation: true } : {}),
+      });
+      currentTextCommands = [];
+      textContinuation = true;
+    }
+  };
 
   while (true) {
     const tok = lexer.nextToken();
@@ -200,6 +213,7 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
     }
 
     if (op === "BMC" || op === "BDC") {
+      flushInTextCommands();
       const tagNode = args[0];
       const tag = tagNode?.kind === "name" ? tagNode.decoded : "Span";
       const propNode = args[1];
@@ -228,19 +242,28 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
       continue;
     }
     if (op === "EMC") {
+      flushInTextCommands();
       if (stack.length > 1) stack.pop();
       continue;
     }
 
     if (op === "BT") {
       inText = true;
+      textContinuation = false;
       currentTextCommands = [];
       continue;
     }
     if (op === "ET") {
       if (inText) {
-        currentTarget().push({ kind: "text-object", commands: currentTextCommands });
+        if (currentTextCommands.length > 0 || !textContinuation) {
+          currentTarget().push({
+            kind: "text-object",
+            commands: currentTextCommands,
+            ...(textContinuation ? { continuation: true } : {}),
+          });
+        }
         inText = false;
+        textContinuation = false;
         currentTextCommands = [];
       }
       continue;
@@ -334,7 +357,7 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
           break;
         }
         default:
-          currentTarget().push({ kind: "state-op", operator: op, operands: args });
+          currentTextCommands.push({ kind: "state-op", operator: op, operands: args });
           break;
       }
       continue;

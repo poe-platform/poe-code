@@ -103,6 +103,16 @@ export function encodePermissionsMask(perms: Partial<PdfPermissions>): number {
   return p;
 }
 
+const R5_R6_HASH_CACHE = new Map<string, Uint8Array>();
+
+function bytesToHexKey(b: Uint8Array): string {
+  let s = "";
+  for (let i = 0; i < b.length; i++) {
+    s += b[i]!.toString(16).padStart(2, "0");
+  }
+  return s;
+}
+
 /**
  * PDF 2.0 / ISO 32000-2 Algorithm 2.B (R6 hash) and R5 SHA-256 hash.
  */
@@ -113,13 +123,25 @@ export function computeR5R6Hash(
   revision: 5 | 6
 ): Uint8Array {
   const pwd = passwordBytes.subarray(0, 127);
-  let k = sha256([pwd, salt, userKey]);
-  if (revision === 5) return k;
+  const cacheKey = `${revision}:${bytesToHexKey(pwd)}:${bytesToHexKey(salt)}:${bytesToHexKey(userKey)}`;
+  const cached = R5_R6_HASH_CACHE.get(cacheKey);
+  if (cached) return new Uint8Array(cached);
 
+  let k = sha256([pwd, salt, userKey]);
+  if (revision === 5) {
+    R5_R6_HASH_CACHE.set(cacheKey, new Uint8Array(k));
+    return k;
+  }
+
+  const k1Bufs = new Map<number, Uint8Array>([
+    [32, new Uint8Array((pwd.length + 32 + userKey.length) * 64)],
+    [48, new Uint8Array((pwd.length + 48 + userKey.length) * 64)],
+    [64, new Uint8Array((pwd.length + 64 + userKey.length) * 64)],
+  ]);
   let round = 0;
   while (true) {
     const k1BlockLen = pwd.length + k.length + userKey.length;
-    const k1 = new Uint8Array(k1BlockLen * 64);
+    const k1 = k1Bufs.get(k.length) ?? new Uint8Array(k1BlockLen * 64);
     for (let i = 0; i < 64; i++) {
       const base = i * k1BlockLen;
       k1.set(pwd, base);
@@ -137,7 +159,10 @@ export function computeR5R6Hash(
       break;
     }
   }
-  return k.subarray(0, 32);
+  const result = new Uint8Array(k.subarray(0, 32));
+  if (R5_R6_HASH_CACHE.size > 512) R5_R6_HASH_CACHE.clear();
+  R5_R6_HASH_CACHE.set(cacheKey, result);
+  return new Uint8Array(result);
 }
 
 export function derivePdfEncryptionKey(

@@ -99,6 +99,60 @@ const GLYPH_NAME_TO_UNICODE: Readonly<Record<string, string>> = {
   quotedblright: "\u201d",
   fi: "fi",
   fl: "fl",
+  ff: "ff",
+  ffi: "ffi",
+  ffl: "ffl",
+  Omega: "\u2126",
+  Delta: "\u2206",
+  mu: "\u00b5",
+  fraction: "\u2044",
+  dagger: "\u2020",
+  daggerdbl: "\u2021",
+  perthousand: "\u2030",
+  guilsinglleft: "\u2039",
+  guilsinglright: "\u203a",
+  guillemotleft: "\u00ab",
+  guillemotright: "\u00bb",
+  OE: "\u0152",
+  oe: "\u0153",
+  Scaron: "\u0160",
+  scaron: "\u0161",
+  Ydieresis: "\u0178",
+  Zcaron: "\u017d",
+  zcaron: "\u017e",
+  florin: "\u0192",
+  circumflex: "\u02c6",
+  tilde: "\u02dc",
+  aacute: "\u00e1",
+  agrave: "\u00e0",
+  acircumflex: "\u00e2",
+  adieresis: "\u00e4",
+  atilde: "\u00e3",
+  aring: "\u00e5",
+  ae: "\u00e6",
+  ccedilla: "\u00e7",
+  eacute: "\u00e9",
+  egrave: "\u00e8",
+  ecircumflex: "\u00ea",
+  edieresis: "\u00eb",
+  iacute: "\u00ed",
+  igrave: "\u00ec",
+  icircumflex: "\u00ee",
+  idieresis: "\u00ef",
+  ntilde: "\u00f1",
+  oacute: "\u00f3",
+  ograve: "\u00f2",
+  ocircumflex: "\u00f4",
+  odieresis: "\u00f6",
+  otilde: "\u00f5",
+  oslash: "\u00f8",
+  uacute: "\u00fa",
+  ugrave: "\u00f9",
+  ucircumflex: "\u00fb",
+  udieresis: "\u00fc",
+  yacute: "\u00fd",
+  ydieresis: "\u00ff",
+  germandbls: "\u00df",
   Euro: "\u20ac",
   copyright: "\u00a9",
   registered: "\u00ae",
@@ -106,22 +160,102 @@ const GLYPH_NAME_TO_UNICODE: Readonly<Record<string, string>> = {
   ellipsis: "\u2026",
 };
 
+const RAW_LIGATURE_PRE_NFKC: Readonly<Record<string, string>> = {
+  ff: "\ufb00",
+  fi: "\ufb01",
+  fl: "\ufb02",
+  ffi: "\ufb03",
+  ffl: "\ufb04",
+};
+
+function isAsciiHexDigit(ch: number): boolean {
+  return (
+    (ch >= 0x30 && ch <= 0x39) ||
+    (ch >= 0x41 && ch <= 0x46) ||
+    (ch >= 0x61 && ch <= 0x66)
+  );
+}
+
+function parseStrictHexChunk(str: string): number | undefined {
+  if (str.length === 0) return undefined;
+  for (let i = 0; i < str.length; i++) {
+    if (!isAsciiHexDigit(str.charCodeAt(i))) return undefined;
+  }
+  const val = Number.parseInt(str, 16);
+  return Number.isFinite(val) ? val : undefined;
+}
+
+function resolveSingleGlyphComponent(baseName: string, isVariantPass: boolean): string | undefined {
+  if (baseName === ".notdef") return "";
+  if (isVariantPass && RAW_LIGATURE_PRE_NFKC[baseName] !== undefined) {
+    return RAW_LIGATURE_PRE_NFKC[baseName]!;
+  }
+  if (GLYPH_NAME_TO_UNICODE[baseName] !== undefined) {
+    return GLYPH_NAME_TO_UNICODE[baseName]!;
+  }
+  if (baseName.length === 1) {
+    return baseName;
+  }
+  if (baseName.startsWith("uni") && baseName.length >= 7 && (baseName.length - 3) % 4 === 0) {
+    const hexPart = baseName.slice(3);
+    if (hexPart === "0000") return "";
+    const scalars: string[] = [];
+    for (let i = 0; i + 4 <= hexPart.length && scalars.length < 8; i += 4) {
+      const cp = parseStrictHexChunk(hexPart.slice(i, i + 4));
+      if (cp === undefined || cp === 0 || (cp >= 0xd800 && cp <= 0xdfff)) {
+        continue;
+      }
+      scalars.push(String.fromCodePoint(cp));
+    }
+    return scalars.length > 0 ? scalars.join("") : undefined;
+  }
+  if (baseName.startsWith("u") && baseName.length >= 5 && baseName.length <= 7) {
+    const hexPart = baseName.slice(1);
+    const cp = parseStrictHexChunk(hexPart);
+    if (cp === undefined) return undefined;
+    if (cp === 0) return "";
+    if (cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff)) return undefined;
+    return String.fromCodePoint(cp);
+  }
+  return undefined;
+}
+
 export function glyphNameToUnicode(glyphName: string): string {
+  const resolved = resolveGlyphNameOptional(glyphName);
+  return resolved ?? "";
+}
+
+export function resolveGlyphNameOptional(glyphName: string): string | undefined {
+  if (glyphName === ".notdef" || glyphName === "u0000" || glyphName === "uni0000") {
+    return "";
+  }
+  // Pass 1: Direct lookup in Adobe Glyph List (with NFKC ligature expansion)
   if (GLYPH_NAME_TO_UNICODE[glyphName] !== undefined) {
     return GLYPH_NAME_TO_UNICODE[glyphName]!;
   }
   if (glyphName.length === 1) {
     return glyphName;
   }
-  if (glyphName.startsWith("uni") && glyphName.length === 7) {
-    const cp = Number.parseInt(glyphName.slice(3), 16);
-    if (Number.isFinite(cp)) return String.fromCodePoint(cp);
+
+  // Pass 2: Strip variant suffix (.swash, .sc, etc.) and split ligature components (_)
+  const dotIdx = glyphName.indexOf(".");
+  const hasDotVariant = dotIdx > 0;
+  const basePart = hasDotVariant ? glyphName.slice(0, dotIdx) : glyphName;
+
+  if (basePart.includes("_")) {
+    const components = basePart.split("_");
+    const out: string[] = [];
+    for (const comp of components) {
+      if (!comp) continue;
+      const mapped = resolveSingleGlyphComponent(comp, hasDotVariant);
+      if (mapped !== undefined && mapped.length > 0) {
+        out.push(mapped);
+      }
+    }
+    return out.length > 0 ? out.join("") : undefined;
   }
-  if (glyphName.startsWith("u") && (glyphName.length === 5 || glyphName.length === 7)) {
-    const cp = Number.parseInt(glyphName.slice(1), 16);
-    if (Number.isFinite(cp)) return String.fromCodePoint(cp);
-  }
-  return "";
+
+  return resolveSingleGlyphComponent(basePart, hasDotVariant);
 }
 
 export function decodeWinAnsiByte(code: number): string {
@@ -204,8 +338,23 @@ export const STANDARD_14_FONTS: Readonly<Record<Standard14FontName, Standard14Fo
   ZapfDingbats: { name: "ZapfDingbats", ascender: 690, descender: -143, capHeight: 690, defaultWidth: 600, widthsByCode: COURIER_WIDTHS },
 };
 
+function stripSubsetPrefix(name: string): string {
+  if (name.length >= 8 && name[6] === "+") {
+    let allUpper = true;
+    for (let i = 0; i < 6; i++) {
+      const c = name.charCodeAt(i);
+      if (c < 65 || c > 90) {
+        allUpper = false;
+        break;
+      }
+    }
+    if (allUpper) return name.slice(7);
+  }
+  return name;
+}
+
 export function normalizeStandard14FontName(rawName: string): Standard14FontName {
-  const stripped = rawName.replace(/^[A-Z]{6}\+/, "");
+  const stripped = stripSubsetPrefix(rawName);
   if (stripped in STANDARD_14_FONTS) {
     return stripped as Standard14FontName;
   }
@@ -238,20 +387,112 @@ export function measureStandard14TextWidth(text: string, fontName: Standard14Fon
   return (totalUnits * fontSize) / 1000;
 }
 
+function isAsciiAlpha(ch: number): boolean {
+  return (ch >= 0x41 && ch <= 0x5a) || (ch >= 0x61 && ch <= 0x7a);
+}
+
+function isAsciiDigit(ch: number): boolean {
+  return ch >= 0x30 && ch <= 0x39;
+}
+
+function parseDecimalNumericGlyphName(name: string): number | undefined {
+  if (name.length === 0) return undefined;
+  let pos = 0;
+  if (name[0] === "-") {
+    pos = 1;
+  } else {
+    let alphaCount = 0;
+    while (pos < name.length && isAsciiAlpha(name.charCodeAt(pos)) && alphaCount < 2) {
+      pos++;
+      alphaCount++;
+    }
+  }
+  const numStart = pos;
+  while (pos < name.length && isAsciiDigit(name.charCodeAt(pos))) {
+    pos++;
+  }
+  if (pos === numStart) return undefined;
+  for (let i = pos; i < name.length; i++) {
+    const c = name.charCodeAt(i);
+    if (isAsciiAlpha(c) || isAsciiDigit(c)) return undefined;
+  }
+  const val = Number.parseInt(name.slice(name[0] === "-" ? 0 : numStart, pos), 10);
+  return Number.isFinite(val) ? val : undefined;
+}
+
+function parseHexNumericGlyphName(name: string): number | undefined {
+  let rest = name;
+  if (rest.length === 3 && isAsciiAlpha(rest.charCodeAt(0))) {
+    rest = rest.slice(1);
+  }
+  if (rest.length !== 2) return undefined;
+  return parseStrictHexChunk(rest);
+}
+
 export function buildFontEncodingDifferencesMap(encodingNode: PdfCosNode | undefined): Map<number, string> {
   const diffs = new Map<number, string>();
   if (!encodingNode || encodingNode.kind !== "dict") return diffs;
   const diffArray = dictGet(encodingNode as PdfCosDict, "Differences");
   if (diffArray?.kind !== "array") return diffs;
+  const items = (diffArray as PdfCosArray).items;
+  const sequenceStarts: number[] = [];
+  const glyphEntries: Array<{ code: number; name: string }> = [];
+  let currentCode = 0;
+  for (const item of items) {
+    if (item.kind === "number") {
+      currentCode = item.value;
+      sequenceStarts.push(item.value);
+    } else if (item.kind === "name") {
+      glyphEntries.push({ code: currentCode, name: item.decoded });
+      currentCode++;
+    }
+  }
+
+  const startsAdmitted =
+    sequenceStarts.length > 0 &&
+    glyphEntries.length > 0 &&
+    sequenceStarts.every((s) => Number.isInteger(s) && s >= 0 && s <= 5);
+
+  if (startsAdmitted) {
+    const allDecimal = glyphEntries.every((e) => parseDecimalNumericGlyphName(e.name) !== undefined);
+    const allHex = !allDecimal && glyphEntries.every((e) => parseHexNumericGlyphName(e.name) !== undefined);
+    if (allDecimal || allHex) {
+      for (const entry of glyphEntries) {
+        const parsed = allDecimal
+          ? parseDecimalNumericGlyphName(entry.name)
+          : parseHexNumericGlyphName(entry.name);
+        if (parsed !== undefined && parsed > 0 && parsed <= 0x10ffff && (parsed < 0xd800 || parsed > 0xdfff)) {
+          diffs.set(entry.code, String.fromCodePoint(parsed));
+        } else {
+          diffs.set(entry.code, "");
+        }
+      }
+      return diffs;
+    }
+  }
+
+  for (const entry of glyphEntries) {
+    const u = resolveGlyphNameOptional(entry.name);
+    if (u !== undefined) {
+      diffs.set(entry.code, u);
+    }
+  }
+  return diffs;
+}
+
+export function buildFontEncodingGlyphNamesMap(encodingNode: PdfCosNode | undefined): Map<number, string> {
+  const names = new Map<number, string>();
+  if (!encodingNode || encodingNode.kind !== "dict") return names;
+  const diffArray = dictGet(encodingNode as PdfCosDict, "Differences");
+  if (diffArray?.kind !== "array") return names;
   let currentCode = 0;
   for (const item of (diffArray as PdfCosArray).items) {
     if (item.kind === "number") {
       currentCode = item.value;
     } else if (item.kind === "name") {
-      const u = glyphNameToUnicode(item.decoded);
-      if (u) diffs.set(currentCode, u);
+      names.set(currentCode, item.decoded);
       currentCode++;
     }
   }
-  return diffs;
+  return names;
 }

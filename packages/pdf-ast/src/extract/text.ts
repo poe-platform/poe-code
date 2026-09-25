@@ -10,6 +10,11 @@ import type {
 export interface ExtractTextOptions {
   readonly mode?: "logical" | "layout" | "raw" | "bbox" | undefined;
   readonly rejoinHyphens?: boolean | undefined;
+  readonly discardDiagonal?: boolean | undefined;
+  readonly clipText?: boolean | undefined;
+  readonly colSpacing?: number | undefined;
+  readonly fixedPitch?: number | undefined;
+  readonly lineSpacing?: number | undefined;
 }
 
 function mergeBBox(
@@ -49,7 +54,49 @@ export function extractPageFromDisplayList(
   displayList: PdfDisplayList,
   options: ExtractTextOptions = {}
 ): PdfExtractedPage {
-  const glyphs = displayList.glyphs.filter(g => g.unicode.length > 0);
+  const collapsedGlyphs: PdfPlacedGlyph[] = [];
+  for (let i = 0; i < displayList.glyphs.length; i++) {
+    const g = displayList.glyphs[i]!;
+    if (g.actualText !== undefined) {
+      let mergedBox: [number, number, number, number] = [...g.bbox] as [number, number, number, number];
+      let totalAdv = g.advanceWidth;
+      while (
+        i + 1 < displayList.glyphs.length &&
+        displayList.glyphs[i + 1]!.actualText === g.actualText &&
+        displayList.glyphs[i + 1]!.mcid === g.mcid
+      ) {
+        i++;
+        const nextG = displayList.glyphs[i]!;
+        mergedBox = mergeBBox(mergedBox, nextG.bbox);
+        totalAdv += nextG.advanceWidth;
+      }
+      collapsedGlyphs.push({
+        ...g,
+        unicode: g.actualText,
+        bbox: mergedBox,
+        advanceWidth: totalAdv,
+      });
+    } else {
+      collapsedGlyphs.push(g);
+    }
+  }
+  const glyphs = collapsedGlyphs.filter(g => {
+    if (g.unicode.length === 0) return false;
+    if (options.discardDiagonal) {
+      const dir = glyphDirection(g);
+      if (Math.abs(dir.ux) > 0.1 && Math.abs(dir.uy) > 0.1) {
+        return false;
+      }
+    }
+    if (options.clipText && g.clipRect) {
+      const cx = (g.bbox[0] + g.bbox[2]) / 2;
+      const cy = (g.bbox[1] + g.bbox[3]) / 2;
+      if (cx < g.clipRect[0] || cx > g.clipRect[2] || cy < g.clipRect[1] || cy > g.clipRect[3]) {
+        return false;
+      }
+    }
+    return true;
+  });
   if (glyphs.length === 0) {
     return {
       pageIndex: displayList.pageIndex,
@@ -113,7 +160,8 @@ export function extractPageFromDisplayList(
       }
       const prev = cur[cur.length - 1]!;
       const gap = glyphDirection(g).along - (glyphDirection(prev).along + prev.advanceWidth);
-      const colSplitThreshold = Math.max(prev.fontSize, g.fontSize) * 4.0;
+      const colScale = options.colSpacing !== undefined && options.colSpacing > 0 ? options.colSpacing / 0.7 : 1.0;
+      const colSplitThreshold = Math.max(prev.fontSize, g.fontSize) * 4.0 * colScale;
       if ((options.mode === "logical" || options.mode === "layout" || options.mode === undefined) && gap > colSplitThreshold) {
         subLines.push([g]);
       } else {
@@ -133,7 +181,13 @@ export function extractPageFromDisplayList(
           wBox = mergeBBox(wBox, wg.bbox);
           text += wg.unicode;
         }
-        words.push({ text, bbox: wBox, glyphs: curWordGlyphs });
+        words.push({
+          text,
+          bbox: wBox,
+          fontSize: curWordGlyphs[0]!.fontSize,
+          fontName: curWordGlyphs[0]!.fontName,
+          glyphs: curWordGlyphs,
+        });
         curWordGlyphs = [];
       };
 
@@ -181,12 +235,23 @@ export function extractPageFromDisplayList(
   }
 
   const blocks: PdfTextBlock[] = [];
+function isBulletPrefixedLine(str: string): boolean {
+  const trimmed = str.trimStart();
+  if (trimmed.startsWith("•")) return true;
+  if ((trimmed.startsWith("-") || trimmed.startsWith("*")) && trimmed.length > 1) {
+    const second = trimmed[1]!;
+    return second === " " || second === "\t";
+  }
+  return false;
+}
+
+
   for (const line of lines) {
     const lineFontSize = line.words[0]?.glyphs[0]?.fontSize ?? 12;
     const lineKind =
       lineFontSize >= 15
         ? "heading"
-        : line.text.trimStart().startsWith("•") || /^[-*]\s/.test(line.text)
+        : isBulletPrefixedLine(line.text)
           ? "list-item"
           : "paragraph";
     const prevBlock = blocks[blocks.length - 1];
@@ -216,6 +281,12 @@ export function extractPageFromDisplayList(
     blocks,
     tables: [],
   };
+}
+
+function startsWithAsciiLower(str: string): boolean {
+  if (str.length === 0) return false;
+  const c = str.charCodeAt(0);
+  return c >= 0x61 && c <= 0x7a;
 }
 
 export function formatExtractedPageText(
@@ -255,16 +326,35 @@ export function formatExtractedPageText(
       }
     }
     return rows
-      .map(row => {
+      .map((row, rowIdx) => {
         row.sort((a, b) => a.bbox[0] - b.bbox[0]);
+        const pitch = options.fixedPitch !== undefined && options.fixedPitch > 0 ? options.fixedPitch : 6;
         let lineStr = "";
         let curX = 0;
-        for (const seg of row) {
-          const spaces = Math.max(curX > 0 ? 2 : 0, Math.round((seg.bbox[0] - curX) / 6));
-          lineStr += " ".repeat(Math.min(spaces, 40)) + seg.text;
-          curX = seg.bbox[2];
+        if (options.fixedPitch !== undefined && options.fixedPitch > 0) {
+          const words = row.flatMap(seg => seg.words).sort((a, b) => a.bbox[0] - b.bbox[0]);
+          for (const w of words) {
+            const spaces = Math.max(curX > 0 ? 1 : 0, Math.round((w.bbox[0] - curX) / pitch));
+            lineStr += " ".repeat(Math.min(spaces, 80)) + w.text;
+            curX = w.bbox[2];
+          }
+        } else {
+          for (const seg of row) {
+            const spaces = Math.max(curX > 0 ? 2 : 0, Math.round((seg.bbox[0] - curX) / pitch));
+            lineStr += " ".repeat(Math.min(spaces, 40)) + seg.text;
+            curX = seg.bbox[2];
+          }
         }
-        return lineStr.trimEnd();
+        let prefixNewlines = "";
+        if (rowIdx > 0 && options.lineSpacing !== undefined && options.lineSpacing > 0) {
+          const prevY = rows[rowIdx - 1]![0]!.baselineY;
+          const curY = row[0]!.baselineY;
+          const blankCount = Math.max(0, Math.min(40, Math.round((prevY - curY) / options.lineSpacing) - 1));
+          if (blankCount > 0) {
+            prefixNewlines = "\n".repeat(blankCount);
+          }
+        }
+        return prefixNewlines + lineStr.trimEnd();
       })
       .join("\n");
   }
@@ -276,7 +366,7 @@ export function formatExtractedPageText(
         const lineText = b.lines[i]!.text;
         if (i === 0) {
           out = lineText;
-        } else if (rejoinHyphens && out.endsWith("-") && /^[a-z]/.test(lineText)) {
+        } else if (rejoinHyphens && out.endsWith("-") && startsWithAsciiLower(lineText)) {
           out = out.slice(0, -1) + lineText;
         } else {
           out += "\n" + lineText;

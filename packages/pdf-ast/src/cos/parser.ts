@@ -122,7 +122,7 @@ export class ParsedCosDocument {
 
   decodeStream(stream: PdfCosStream): Uint8Array {
     if (stream.decodedBytes) return stream.decodedBytes;
-    const decoded = decodeStreamObject(stream, this.maxDecompressedBytes);
+    const decoded = decodeStreamObject(stream, this.maxDecompressedBytes, n => this.resolve(n));
     (stream as { decodedBytes?: Uint8Array }).decodedBytes = decoded;
     return decoded;
   }
@@ -540,6 +540,14 @@ function parseXrefRevisionAt(bytes: Uint8Array, xrefOffset: number, maxDecompres
   };
 }
 
+function isAsciiWhitespace(ch: number): boolean {
+  return ch === 0x20 || ch === 0x09 || ch === 0x0a || ch === 0x0d || ch === 0x0c || ch === 0x00;
+}
+
+function isAsciiDigit(ch: number): boolean {
+  return ch >= 0x30 && ch <= 0x39;
+}
+
 function repairScanCosDocument(bytes: Uint8Array): {
   objects: Map<number, PdfIndirectObject>;
   rootRef: PdfCosRef;
@@ -547,17 +555,67 @@ function repairScanCosDocument(bytes: Uint8Array): {
   encryptRef?: PdfCosRef | undefined;
   idArray?: PdfCosArray | undefined;
 } {
-  const text = new TextDecoder("latin1").decode(bytes);
-  const objHeaderRegex = /(?:^|[\r\n\s])(\d+)\s+(\d+)\s+obj\b/g;
   const objects = new Map<number, PdfIndirectObject>();
-  let match: RegExpExecArray | null;
-  while ((match = objHeaderRegex.exec(text)) !== null) {
-    const headerStart = match.index + (match[0].length - `${match[1]} ${match[2]} obj`.length);
-    try {
-      const parsed = parseObjectAtOffset(bytes, headerStart);
-      objects.set(parsed.objectNumber, parsed);
-    } catch {
-      // Skip unparseable fragments during full-file repair scan
+  let pos = 0;
+  while (pos < bytes.length) {
+    while (pos < bytes.length && !isAsciiDigit(bytes[pos]!)) pos++;
+    if (pos >= bytes.length) break;
+    if (pos > 0 && !isAsciiWhitespace(bytes[pos - 1]!)) {
+      while (pos < bytes.length && !isAsciiWhitespace(bytes[pos]!)) pos++;
+      continue;
+    }
+    const headerStart = pos;
+    while (pos < bytes.length && isAsciiDigit(bytes[pos]!)) pos++;
+    if (pos >= bytes.length || !isAsciiWhitespace(bytes[pos]!)) continue;
+    while (pos < bytes.length && isAsciiWhitespace(bytes[pos]!)) pos++;
+    const genStart = pos;
+    while (pos < bytes.length && isAsciiDigit(bytes[pos]!)) pos++;
+    if (pos === genStart || pos >= bytes.length || !isAsciiWhitespace(bytes[pos]!)) continue;
+    while (pos < bytes.length && isAsciiWhitespace(bytes[pos]!)) pos++;
+    if (
+      pos + 3 <= bytes.length &&
+      bytes[pos] === 0x6f && // 'o'
+      bytes[pos + 1] === 0x62 && // 'b'
+      bytes[pos + 2] === 0x6a && // 'j'
+      (pos + 3 === bytes.length ||
+        isAsciiWhitespace(bytes[pos + 3]!) ||
+        bytes[pos + 3] === 0x3c || // '<'
+        bytes[pos + 3] === 0x5b || // '['
+        bytes[pos + 3] === 0x2f || // '/'
+        bytes[pos + 3] === 0x28) // '('
+    ) {
+      pos += 3;
+      try {
+        const parsed = parseObjectAtOffset(bytes, headerStart);
+        objects.set(parsed.objectNumber, parsed);
+        if (parsed.span && parsed.span.end > pos) {
+          pos = parsed.span.end;
+        }
+      } catch {
+        // Skip unparseable fragments during full-file repair scan
+      }
+    }
+  }
+
+  // Unpack any discovered /Type /ObjStm compressed object streams so Catalog/Info inside ObjStm can be recovered
+  for (const obj of [...objects.values()]) {
+    if (obj.value.kind === "stream") {
+      const t = dictGet(obj.value.dict, "Type");
+      if (t?.kind === "name" && t.decoded === "ObjStm") {
+        try {
+          for (const [unpackedNum, unpackedVal] of unpackObjectStream(obj.value, 128 * 1024 * 1024).entries()) {
+            if (!objects.has(unpackedNum)) {
+              objects.set(unpackedNum, {
+                objectNumber: unpackedNum,
+                generationNumber: 0,
+                value: unpackedVal,
+              });
+            }
+          }
+        } catch {
+          // Ignore damaged object stream
+        }
+      }
     }
   }
 
@@ -569,6 +627,9 @@ function repairScanCosDocument(bytes: Uint8Array): {
     const typeEntry = dictGet(dict, "Type");
     if (typeEntry?.kind === "name" && typeEntry.decoded === "Catalog") {
       rootRef = { kind: "ref", objectNumber: obj.objectNumber, generationNumber: obj.generationNumber };
+    } else if (!rootRef && typeEntry?.kind === "name" && typeEntry.decoded === "XRef") {
+      const xrefRoot = dictGet(dict, "Root");
+      if (xrefRoot?.kind === "ref") rootRef = xrefRoot;
     }
     if (dictGet(dict, "Title") || dictGet(dict, "Producer") || dictGet(dict, "Author")) {
       infoRef = { kind: "ref", objectNumber: obj.objectNumber, generationNumber: obj.generationNumber };
@@ -602,10 +663,14 @@ function unpackObjectStream(
   }
   const result = new Map<number, PdfCosNode>();
   for (const pair of pairs) {
-    const valLexer = new CosByteLexer(decoded, firstNode.value + pair.relativeOffset);
-    const node = parseNodeFromLexer(valLexer, decoded);
-    if (node) {
-      result.set(pair.objectNumber, node);
+    try {
+      const valLexer = new CosByteLexer(decoded, firstNode.value + pair.relativeOffset);
+      const node = parseNodeFromLexer(valLexer, decoded);
+      if (node) {
+        result.set(pair.objectNumber, node);
+      }
+    } catch {
+      // Skip malformed entry in object stream
     }
   }
   return result;

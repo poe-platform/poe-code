@@ -195,7 +195,11 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
             decoded += String.fromCharCode(bytes[off + j]!);
           }
         }
-        const cleaned = decoded.replace(/[^\x21-\x7e]/g, "");
+        let cleaned = "";
+        for (let k = 0; k < decoded.length; k++) {
+          const code = decoded.charCodeAt(k);
+          if (code >= 0x21 && code <= 0x7e) cleaned += decoded[k]!;
+        }
         if (cleaned) {
           postScriptName = cleaned;
           break;

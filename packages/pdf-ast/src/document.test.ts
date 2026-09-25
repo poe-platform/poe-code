@@ -8,6 +8,7 @@ import {
   cosArray,
   cosStream,
   decodePng,
+  encodePng,
 } from "./index.js";
 
 describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redaction & Rasterizer", () => {
@@ -463,5 +464,57 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
       String.fromCodePoint(0x1d401),
       String.fromCodePoint(0x1d402),
     ]);
+  });
+
+  it("extracts ruled-grid tables separated by vertical vector lines and ordered numbered lists in semantic AST", () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage({ width: 300, height: 300 });
+    // Draw an ordered numbered list at the top
+    page.drawText("1. First requirement", { x: 20, y: 260, size: 11 });
+    page.drawText("2. Second requirement", { x: 20, y: 242, size: 11 });
+
+    // Draw a 2-column ruled table where columns are separated by a vertical border rule at x = 62
+    // (only a ~8pt horizontal gap between "ID" and "Name", which requires vertical rule detection)
+    page.drawRect({ x: 20, y: 100, width: 140, height: 60, borderColor: { r: 0, g: 0, b: 0 }, borderWidth: 1 });
+    page.drawLine({ x1: 62, y1: 100, x2: 62, y2: 160, color: { r: 0, g: 0, b: 0 }, width: 1 });
+    page.drawText("Key", { x: 35, y: 140, size: 10 });
+    page.drawText("Value", { x: 66, y: 140, size: 10 });
+    page.drawText("A01", { x: 35, y: 118, size: 10 });
+    page.drawText("Alpha", { x: 66, y: 118, size: 10 });
+
+    const tables = page.extractTables();
+    expect(tables).toHaveLength(1);
+    expect(tables[0]!.headers).toEqual(["Key", "Value"]);
+    expect(tables[0]!.rows).toEqual([["A01", "Alpha"]]);
+
+    const ast = doc.toSemanticAst();
+    const orderedList = ast.find((n): n is Extract<typeof n, { kind: "list" }> => n.kind === "list");
+    expect(orderedList).toBeDefined();
+    expect(orderedList!.ordered).toBe(true);
+    expect(orderedList!.items).toEqual(["First requirement", "Second requirement"]);
+  });
+
+  it("purges placed XObject images intersecting redaction rectangles while preserving surviving images and glyph fonts", () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage({ width: 200, height: 200 });
+    const pngBytes = encodePng({
+      width: 2,
+      height: 2,
+      data: Uint8Array.from([
+        255, 0, 0, 255, 0, 255, 0, 255,
+        0, 0, 255, 255, 255, 255, 0, 255,
+      ]),
+    });
+    const img = doc.embedPng(pngBytes);
+    // Image 1 at (10, 10) size 30x30 (inside redaction box [5, 5, 50, 50])
+    page.drawImage(img, { x: 10, y: 10, width: 30, height: 30 });
+    // Image 2 at (120, 120) size 30x30 (outside redaction box)
+    page.drawImage(img, { x: 120, y: 120, width: 30, height: 30 });
+
+    expect(page.evaluateDisplayList().images).toHaveLength(2);
+    page.redact([[5, 5, 50, 50]]);
+    const afterDl = page.evaluateDisplayList();
+    expect(afterDl.images).toHaveLength(1);
+    expect(afterDl.images[0]!.matrix[4]).toBeCloseTo(120, 1);
   });
 });

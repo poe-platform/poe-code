@@ -1,8 +1,68 @@
 import type { PdfDisplayList, PdfExtractedTable, PdfPlacedGlyph } from "../ast.js";
 
+interface VerticalRule {
+  readonly x: number;
+  readonly yMin: number;
+  readonly yMax: number;
+}
+
+function collectVerticalRules(displayList: PdfDisplayList): VerticalRule[] {
+  const rules: VerticalRule[] = [];
+  for (const path of displayList.paths) {
+    if (!path.strokeColor && !path.fillColor) continue;
+    let curX = 0;
+    let curY = 0;
+    let startX = 0;
+    let startY = 0;
+    for (const seg of path.segments) {
+      if (seg.kind === "move") {
+        curX = seg.x;
+        curY = seg.y;
+        startX = seg.x;
+        startY = seg.y;
+      } else if (seg.kind === "line") {
+        if (Math.abs(seg.x - curX) <= 3 && Math.abs(seg.y - curY) >= 10) {
+          rules.push({
+            x: (curX + seg.x) / 2,
+            yMin: Math.min(curY, seg.y),
+            yMax: Math.max(curY, seg.y),
+          });
+        }
+        curX = seg.x;
+        curY = seg.y;
+      } else if (seg.kind === "close") {
+        if (Math.abs(startX - curX) <= 3 && Math.abs(startY - curY) >= 10) {
+          rules.push({
+            x: (curX + startX) / 2,
+            yMin: Math.min(curY, startY),
+            yMax: Math.max(curY, startY),
+          });
+        }
+        curX = startX;
+        curY = startY;
+      } else if (seg.kind === "rect") {
+        const yMin = Math.min(seg.y, seg.y + seg.height);
+        const yMax = Math.max(seg.y, seg.y + seg.height);
+        if (yMax - yMin >= 10) {
+          if (Math.abs(seg.width) <= 3) {
+            // Thin filled vertical rule
+            rules.push({ x: seg.x + seg.width / 2, yMin, yMax });
+          } else {
+            // Stroked cell box left & right edges
+            rules.push({ x: seg.x, yMin, yMax });
+            rules.push({ x: seg.x + seg.width, yMin, yMax });
+          }
+        }
+      }
+    }
+  }
+  return rules;
+}
+
 export function extractTablesFromDisplayList(displayList: PdfDisplayList): PdfExtractedTable[] {
   const glyphs = displayList.glyphs.filter(g => g.unicode.trim().length > 0);
   if (glyphs.length === 0) return [];
+  const verticalRules = collectVerticalRules(displayList);
 
   // Group glyphs by baseline row
   const sorted = [...glyphs].sort((a, b) => {
@@ -55,7 +115,14 @@ export function extractTablesFromDisplayList(displayList: PdfDisplayList): PdfEx
     for (const g of rGroup) {
       if (curCell.length > 0) {
         const prev = curCell[curCell.length - 1]!;
-        if (g.bbox[0] - prev.bbox[2] > 16) {
+        const crossedVerticalRule = verticalRules.some(
+          r =>
+            r.x >= prev.bbox[2] - 2 &&
+            r.x <= g.bbox[0] + 2 &&
+            r.yMin - 4 <= g.baselineY &&
+            g.baselineY <= r.yMax + 4
+        );
+        if (g.bbox[0] - prev.bbox[2] > 16 || crossedVerticalRule) {
           flushCell();
         }
       }
@@ -87,7 +154,16 @@ export function extractTablesFromDisplayList(displayList: PdfDisplayList): PdfEx
     const colAnchors: number[] = [];
     for (const row of currentCluster) {
       for (const cell of row.cells) {
-        if (!colAnchors.some(a => Math.abs(a - cell.x0) <= 24)) {
+        const hasMatchingAnchor = colAnchors.some(a => {
+          if (Math.abs(a - cell.x0) > 24) return false;
+          const minX = Math.min(a, cell.x0);
+          const maxX = Math.max(a, cell.x0);
+          const separatedByRule = verticalRules.some(
+            r => r.x > minX + 1 && r.x < maxX - 1
+          );
+          return !separatedByRule;
+        });
+        if (!hasMatchingAnchor) {
           colAnchors.push(cell.x0);
         }
       }

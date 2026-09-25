@@ -9,6 +9,7 @@ import {
   encodeWinAnsiBytes,
   measureStandard14TextWidth,
   normalizeStandard14FontName,
+  resolveGlyphNameOptional,
 } from "./standard14.js";
 import { embedTrueTypeFontInCos, parseTrueTypeFont } from "./truetype.js";
 
@@ -116,5 +117,59 @@ describe("Layer 2 Fonts: Standard 14, ToUnicode CMap, and First-Party TrueType E
     const fontRef = embedTrueTypeFontInCos(cosDoc, font, usedGlyphs);
     const embeddedDict = cosDoc.resolveDict(fontRef);
     expect(embeddedDict).toBeDefined();
+  });
+
+  it("resolves Adobe glyph names, presentation-form ligatures vs .swash variants, uni/u sequences, and whole-font numeric heuristics", () => {
+    expect(resolveGlyphNameOptional("fi")).toBe("fi");
+    expect(resolveGlyphNameOptional("ffi")).toBe("ffi");
+    expect(resolveGlyphNameOptional("fi.swash")).toBe("\ufb01");
+    expect(resolveGlyphNameOptional("ffi.swash")).toBe("\ufb03");
+    expect(resolveGlyphNameOptional("uniFB01")).toBe("\ufb01");
+    expect(resolveGlyphNameOptional("f_f_i")).toBe("ffi");
+    expect(resolveGlyphNameOptional("A.swash")).toBe("A");
+    expect(resolveGlyphNameOptional("A_a")).toBe("Aa");
+    expect(resolveGlyphNameOptional("A_unknown_B")).toBe("AB");
+    expect(resolveGlyphNameOptional("Omega")).toBe("\u2126");
+
+    expect(resolveGlyphNameOptional("uni00410042D8000043")).toBe("ABC");
+    expect(resolveGlyphNameOptional("uni0041zzzz0042")).toBe("AB");
+    expect(resolveGlyphNameOptional("uniD83DDE00")).toBeUndefined();
+    expect(resolveGlyphNameOptional("uni00e9")).toBe("\u00e9");
+    expect(resolveGlyphNameOptional("u1F600")).toBe("\u{1F600}");
+    expect(resolveGlyphNameOptional("u110000")).toBeUndefined();
+    expect(resolveGlyphNameOptional(".notdef")).toBe("");
+    expect(resolveGlyphNameOptional("u0000")).toBe("");
+    expect(resolveGlyphNameOptional("uni0000")).toBe("");
+
+    const numericEnc = cosDict({
+      Type: cosName("Encoding"),
+      Differences: cosArray([
+        cosNumber(1),
+        cosName("a65"),
+        cosName("66"),
+        cosName("zz67"),
+        cosName("a68--"),
+      ]),
+    });
+    const numDiffs = buildFontEncodingDifferencesMap(numericEnc);
+    expect(numDiffs.get(1)).toBe("A");
+    expect(numDiffs.get(2)).toBe("B");
+    expect(numDiffs.get(3)).toBe("C");
+    expect(numDiffs.get(4)).toBe("D");
+
+    const hexNumericEnc = cosDict({
+      Type: cosName("Encoding"),
+      Differences: cosArray([cosNumber(5), cosName("A4F"), cosName("50")]),
+    });
+    const hexDiffs = buildFontEncodingDifferencesMap(hexNumericEnc);
+    expect(hexDiffs.get(5)).toBe("O");
+    expect(hexDiffs.get(6)).toBe("P");
+
+    const nonNumericEnc = cosDict({
+      Type: cosName("Encoding"),
+      Differences: cosArray([cosNumber(65), cosName("a65")]),
+    });
+    const disabledDiffs = buildFontEncodingDifferencesMap(nonNumericEnc);
+    expect(disabledDiffs.has(65)).toBe(false);
   });
 });

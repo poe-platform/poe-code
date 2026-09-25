@@ -1,7 +1,9 @@
 import {
+  cosArray,
   cosDict,
   cosName,
   cosNumber,
+  cosStream,
   dictGet,
   dictSet,
   formatPdfNumber,
@@ -12,6 +14,7 @@ import {
   type PdfIndirectObject,
 } from "../ast.js";
 import { PdfError } from "../errors.js";
+import { encodeFlate } from "./filters.js";
 import type { ParsedCosDocument } from "./parser.js";
 
 export interface SerializeCosOptions {
@@ -22,6 +25,7 @@ export interface SerializeCosOptions {
   readonly idArray?: PdfCosArray | undefined;
   readonly version?: string | undefined;
   readonly normalizeContent?: boolean | undefined;
+  readonly objectStreams?: "preserve" | "disable" | "generate" | undefined;
   readonly maxOutputBytes?: number | undefined;
   readonly maxObjects?: number | undefined;
 }
@@ -41,7 +45,8 @@ export function serializeCosNodeBytes(node: PdfCosNode, depth = 0): Uint8Array {
       if (!Number.isFinite(node.value)) {
         throw new PdfError("E_CAPABILITY", "Non-finite PDF number");
       }
-      const outRaw = /[eE]/.test(node.raw) ? formatPdfNumber(node.value) : node.raw;
+      const hasExp = node.raw.includes("e") || node.raw.includes("E");
+      const outRaw = hasExp ? formatPdfNumber(node.value) : node.raw;
       return textEncoder.encode(outRaw);
     }
     case "name": {
@@ -168,10 +173,116 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
   }
 
-  const version = options.version ?? "1.7";
+  const rawVersion = options.version ?? "1.7";
+  const version =
+    options.objectStreams === "generate" && Number.parseFloat(rawVersion) < 1.5
+      ? "1.5"
+      : rawVersion;
   const header = textEncoder.encode(`%PDF-${version}\n%\x81\x81\x81\x81\n\n`);
   const chunks: Uint8Array[] = [header];
   let offset = header.length;
+
+  if (options.objectStreams === "generate" && !options.encryptRef && !options.normalizeContent) {
+    const packable: PdfIndirectObject[] = [];
+    const direct: PdfIndirectObject[] = [];
+    for (const obj of sorted) {
+      const isLinearized = obj.value.kind === "dict" && dictGet(obj.value, "Linearized") !== undefined;
+      if (obj.value.kind !== "stream" && obj.generationNumber === 0 && !isLinearized) {
+        packable.push(obj);
+      } else {
+        direct.push(obj);
+      }
+    }
+    if (packable.length > 0) {
+      const objStmNum = maxObjectNumber + 1;
+      const xrefStmNum = maxObjectNumber + 2;
+      const bodyChunks: Uint8Array[] = [];
+      const headerPairs: string[] = [];
+      let relOffset = 0;
+      for (const pObj of packable) {
+        headerPairs.push(`${pObj.objectNumber} ${relOffset}`);
+        const bBytes = serializeCosNodeBytes(pObj.value);
+        const nl = textEncoder.encode("\n");
+        bodyChunks.push(bBytes, nl);
+        relOffset += bBytes.length + nl.length;
+      }
+      const headerBytes = textEncoder.encode(headerPairs.join(" ") + "\n");
+      const rawObjStm = concatByteArrays([headerBytes, ...bodyChunks]);
+      const compObjStm = encodeFlate(rawObjStm);
+      const objStmValue = cosStream(compObjStm, {
+        dict: cosDict({
+          Type: cosName("ObjStm"),
+          N: cosNumber(packable.length),
+          First: cosNumber(headerBytes.length),
+          Filter: cosName("FlateDecode"),
+          Length: cosNumber(compObjStm.length),
+        }),
+        compress: false,
+      });
+      const allDirect: PdfIndirectObject[] = [
+        ...direct,
+        { objectNumber: objStmNum, generationNumber: 0, value: objStmValue },
+      ];
+      const directOffsets = new Map<number, { offset: number; generation: number }>();
+      for (const dObj of allDirect) {
+        directOffsets.set(dObj.objectNumber, { offset, generation: dObj.generationNumber });
+        const prefix = textEncoder.encode(`${dObj.objectNumber} ${dObj.generationNumber} obj\n`);
+        const body = serializeCosNodeBytes(dObj.value);
+        const suffix = textEncoder.encode("\nendobj\n\n");
+        offset += prefix.length + body.length + suffix.length;
+        chunks.push(prefix, body, suffix);
+      }
+      const compressedMap = new Map<number, number>();
+      for (let idx = 0; idx < packable.length; idx++) {
+        compressedMap.set(packable[idx]!.objectNumber, idx);
+      }
+      const xrefOffset = offset;
+      const size = xrefStmNum + 1;
+      const xrefRaw = new Uint8Array(size * 7);
+      const writeEntry7 = (objIdx: number, type: number, f1: number, f2: number) => {
+        const base = objIdx * 7;
+        xrefRaw[base] = type & 0xff;
+        xrefRaw[base + 1] = (f1 >>> 24) & 0xff;
+        xrefRaw[base + 2] = (f1 >>> 16) & 0xff;
+        xrefRaw[base + 3] = (f1 >>> 8) & 0xff;
+        xrefRaw[base + 4] = f1 & 0xff;
+        xrefRaw[base + 5] = (f2 >>> 8) & 0xff;
+        xrefRaw[base + 6] = f2 & 0xff;
+      };
+      writeEntry7(0, 0, 0, 65535);
+      for (let i = 1; i < size; i++) {
+        if (i === xrefStmNum) {
+          writeEntry7(i, 1, xrefOffset, 0);
+        } else if (compressedMap.has(i)) {
+          writeEntry7(i, 2, objStmNum, compressedMap.get(i)!);
+        } else if (directOffsets.has(i)) {
+          const d = directOffsets.get(i)!;
+          writeEntry7(i, 1, d.offset, d.generation);
+        } else {
+          writeEntry7(i, 0, 0, 65535);
+        }
+      }
+      const compXref = encodeFlate(xrefRaw);
+      const xrefStreamNode = cosStream(compXref, {
+        dict: cosDict({
+          Type: cosName("XRef"),
+          Size: cosNumber(size),
+          W: cosArray([cosNumber(1), cosNumber(4), cosNumber(2)]),
+          Root: options.rootRef,
+          Info: options.infoRef,
+          ID: options.idArray,
+          Filter: cosName("FlateDecode"),
+          Length: cosNumber(compXref.length),
+        }),
+        compress: false,
+      });
+      const xrefPrefix = textEncoder.encode(`${xrefStmNum} 0 obj\n`);
+      const xrefBody = serializeCosNodeBytes(xrefStreamNode);
+      const xrefSuffix = textEncoder.encode(`\nendobj\n\nstartxref\n${xrefOffset}\n%%EOF`);
+      chunks.push(xrefPrefix, xrefBody, xrefSuffix);
+      return concatByteArrays(chunks);
+    }
+  }
 
   const objectOffsets = new Map<number, { offset: number; generation: number }>();
 

@@ -37,6 +37,8 @@ function serializeTextCommand(cmd: PdfTextCommand): string {
       return `${fmtNode(cmd.token)} Tj`;
     case "show-text-array":
       return `[${cmd.items.map(fmtNode).join(" ")}] TJ`;
+    case "state-op":
+      return cmd.operands.length === 0 ? cmd.operator : `${cmd.operands.map(fmtNode).join(" ")} ${cmd.operator}`;
   }
 }
 
@@ -55,13 +57,24 @@ function serializePathSegment(seg: PdfPathSegment): string {
   }
 }
 
-export function serializeContentNodesToLines(nodes: readonly PdfContentNode[]): string[] {
+export function serializeContentNodesToLines(
+  nodes: readonly PdfContentNode[],
+  inBt: { open: boolean } = { open: false },
+  isRoot = true
+): string[] {
   const lines: string[] = [];
+  const closeBtIfOpen = () => {
+    if (inBt.open) {
+      lines.push("ET");
+      inBt.open = false;
+    }
+  };
   for (const node of nodes) {
     switch (node.kind) {
       case "graphics-group":
+        closeBtIfOpen();
         lines.push("q");
-        lines.push(...serializeContentNodesToLines(node.ops));
+        lines.push(...serializeContentNodesToLines(node.ops, { open: false }, true));
         lines.push("Q");
         break;
       case "marked-content":
@@ -74,17 +87,24 @@ export function serializeContentNodesToLines(nodes: readonly PdfContentNode[]): 
         } else {
           lines.push(`/${node.tag} BMC`);
         }
-        lines.push(...serializeContentNodesToLines(node.children));
+        lines.push(...serializeContentNodesToLines(node.children, inBt, false));
         lines.push("EMC");
         break;
       case "text-object":
-        lines.push("BT");
+        if (!node.continuation) {
+          closeBtIfOpen();
+          lines.push("BT");
+          inBt.open = true;
+        } else if (!inBt.open) {
+          lines.push("BT");
+          inBt.open = true;
+        }
         for (const cmd of node.commands) {
           lines.push(serializeTextCommand(cmd));
         }
-        lines.push("ET");
         break;
       case "path-op":
+        closeBtIfOpen();
         for (const seg of node.segments) {
           lines.push(serializePathSegment(seg));
         }
@@ -94,9 +114,11 @@ export function serializeContentNodesToLines(nodes: readonly PdfContentNode[]): 
         lines.push(node.paint);
         break;
       case "xobject":
+        closeBtIfOpen();
         lines.push(`/${node.name} Do`);
         break;
       case "inline-image": {
+        closeBtIfOpen();
         const entryParts: string[] = [];
         for (const entry of node.dict.entries) {
           entryParts.push(`/${entry.key.decoded} ${fmtNode(entry.value)}`);
@@ -107,6 +129,7 @@ export function serializeContentNodesToLines(nodes: readonly PdfContentNode[]): 
         break;
       }
       case "state-op": {
+        closeBtIfOpen();
         if (node.operands.length === 0) {
           lines.push(node.operator);
         } else {
@@ -115,6 +138,9 @@ export function serializeContentNodesToLines(nodes: readonly PdfContentNode[]): 
         break;
       }
     }
+  }
+  if (isRoot) {
+    closeBtIfOpen();
   }
   return lines;
 }

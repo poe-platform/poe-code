@@ -40,6 +40,37 @@ function hexValue(byte: number): number {
   return -1;
 }
 
+function isPdfNumericLexeme(raw: string): boolean {
+  if (raw.length === 0) return false;
+  let i = 0;
+  if (raw[i] === "+" || raw[i] === "-") i++;
+  let digitsBefore = 0;
+  while (i < raw.length && raw.charCodeAt(i) >= 48 && raw.charCodeAt(i) <= 57) {
+    digitsBefore++;
+    i++;
+  }
+  let digitsAfter = 0;
+  if (i < raw.length && raw[i] === ".") {
+    i++;
+    while (i < raw.length && raw.charCodeAt(i) >= 48 && raw.charCodeAt(i) <= 57) {
+      digitsAfter++;
+      i++;
+    }
+  }
+  if (digitsBefore === 0 && digitsAfter === 0) return false;
+  if (i < raw.length && (raw[i] === "e" || raw[i] === "E")) {
+    i++;
+    if (i < raw.length && (raw[i] === "+" || raw[i] === "-")) i++;
+    let expDigits = 0;
+    while (i < raw.length && raw.charCodeAt(i) >= 48 && raw.charCodeAt(i) <= 57) {
+      expDigits++;
+      i++;
+    }
+    if (expDigits === 0) return false;
+  }
+  return i === raw.length;
+}
+
 export class CosByteLexer {
   readonly bytes: Uint8Array;
   pos: number;
@@ -135,13 +166,14 @@ export class CosByteLexer {
     if (raw === "false") return { kind: "boolean", value: false, span };
     if (raw === "null") return { kind: "null", span };
 
-    if (/^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw)) {
+    if (isPdfNumericLexeme(raw)) {
       const value = Number(raw);
       if (!Number.isFinite(value)) {
         throw new PdfError("E_CAPABILITY", `Non-finite PDF number: ${raw}`);
       }
-      const isInteger = Number.isInteger(value) && !raw.includes(".") && !/[eE]/.test(raw);
-      const normalizedRaw = /[eE]/.test(raw) ? formatPdfNumber(value) : raw;
+      const hasExponent = raw.includes("e") || raw.includes("E");
+      const isInteger = Number.isInteger(value) && !raw.includes(".") && !hasExponent;
+      const normalizedRaw = hasExponent ? formatPdfNumber(value) : raw;
       return { kind: "number", value, raw: normalizedRaw, isInteger, span };
     }
 

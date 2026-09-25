@@ -6,6 +6,7 @@ import {
   cosRef,
   cosStream,
   cosString,
+  decodePdfString,
   dictGet,
   dictSet,
   type PdfCosDict,
@@ -33,11 +34,13 @@ import { PdfError } from "./errors.js";
 import { buildSemanticAstFromPages } from "./extract/semantic-ast.js";
 import { formatExtractedPageText, type ExtractTextOptions } from "./extract/text.js";
 import type { Standard14FontName } from "./fonts/standard14.js";
+import { decodePng } from "./render/raster.js";
 import { parseTrueTypeFont } from "./fonts/truetype.js";
 import { renderDisplayListToPng, type RenderToPngOptions } from "./render/raster.js";
 
 export interface SavePdfOptions {
   readonly normalizeContent?: boolean | undefined;
+  readonly objectStreams?: "preserve" | "disable" | "generate" | undefined;
   readonly incremental?: boolean | undefined;
   readonly encrypt?: EncryptPdfOptions | undefined;
 }
@@ -327,6 +330,88 @@ export class PdfDocument {
       this.pages.push(newPage);
       copiedPages.push(newPage);
     }
+
+    const srcCatalog = sourceDoc.cos.resolveDict(sourceDoc.cos.rootRef);
+    const srcAcroForm = srcCatalog ? sourceDoc.cos.resolveDict(dictGet(srcCatalog, "AcroForm")) : undefined;
+    const srcFieldsArr = srcAcroForm ? sourceDoc.cos.resolveArray(dictGet(srcAcroForm, "Fields")) : undefined;
+    if (srcFieldsArr && srcFieldsArr.items.length > 0) {
+      const hasClonedDescendant = (node: PdfCosNode | undefined, visited = new Set<number>()): boolean => {
+        if (!node) return false;
+        if (node.kind === "ref") {
+          if (memo.has(node.objectNumber)) return true;
+          if (visited.has(node.objectNumber)) return false;
+          visited.add(node.objectNumber);
+        }
+        const d = sourceDoc.cos.resolveDict(node);
+        if (!d) return false;
+        const kids = sourceDoc.cos.resolveArray(dictGet(d, "Kids"));
+        if (!kids) return false;
+        return kids.items.some(k => hasClonedDescendant(k, visited));
+      };
+
+      const clonedRootFieldRefs: PdfCosRef[] = [];
+      for (const item of srcFieldsArr.items) {
+        if (!hasClonedDescendant(item)) continue;
+        const cloned = cloneNode(item);
+        if (cloned.kind === "ref") {
+          const clonedDict = this.cos.resolveDict(cloned);
+          const kidsArr = clonedDict ? this.cos.resolveArray(dictGet(clonedDict, "Kids")) : undefined;
+          if (clonedDict && kidsArr && item.kind === "ref") {
+            const srcDict = sourceDoc.cos.resolveDict(item);
+            const srcKids = srcDict ? sourceDoc.cos.resolveArray(dictGet(srcDict, "Kids")) : undefined;
+            if (srcKids && srcKids.items.length === kidsArr.items.length) {
+              const filteredKids = kidsArr.items.filter((_, kIdx) => hasClonedDescendant(srcKids.items[kIdx]));
+              if (filteredKids.length > 0) {
+                dictSet(clonedDict, "Kids", cosArray(filteredKids));
+              }
+            }
+          }
+          clonedRootFieldRefs.push(cloned);
+        }
+      }
+
+      if (clonedRootFieldRefs.length > 0) {
+        const dstCatalog = this.cos.resolveDict(this.cos.rootRef);
+        if (dstCatalog) {
+          let dstAcroForm = this.cos.resolveDict(dictGet(dstCatalog, "AcroForm"));
+          if (!dstAcroForm) {
+            dstAcroForm = cosDict({ Fields: cosArray([]) });
+            dictSet(dstCatalog, "AcroForm", this.cos.allocateObject(dstAcroForm));
+          }
+          let dstFields = this.cos.resolveArray(dictGet(dstAcroForm, "Fields"));
+          if (!dstFields) {
+            dstFields = cosArray([]);
+            dictSet(dstAcroForm, "Fields", dstFields);
+          }
+          const existingNums = new Set(
+            dstFields.items.filter((x): x is PdfCosRef => x.kind === "ref").map(x => x.objectNumber)
+          );
+          for (const fRef of clonedRootFieldRefs) {
+            if (!existingNums.has(fRef.objectNumber)) {
+              dstFields.items.push(fRef);
+              existingNums.add(fRef.objectNumber);
+            }
+          }
+          const srcDr = dictGet(srcAcroForm!, "DR");
+          if (srcDr && !dictGet(dstAcroForm, "DR")) {
+            dictSet(dstAcroForm, "DR", cloneNode(srcDr));
+          }
+          const srcDa = dictGet(srcAcroForm!, "DA");
+          if (srcDa && !dictGet(dstAcroForm, "DA")) {
+            dictSet(dstAcroForm, "DA", cloneNode(srcDa));
+          }
+        }
+      }
+    }
+
+    const srcOcProps = srcCatalog ? dictGet(srcCatalog, "OCProperties") : undefined;
+    if (srcOcProps) {
+      const dstCatalog = this.cos.resolveDict(this.cos.rootRef);
+      if (dstCatalog && !dictGet(dstCatalog, "OCProperties")) {
+        dictSet(dstCatalog, "OCProperties", cloneNode(srcOcProps));
+      }
+    }
+
     this.syncPageTree();
     return copiedPages;
   }
@@ -356,74 +441,105 @@ export class PdfDocument {
   }
 
   embedPng(pngBytes: Uint8Array): PdfImageHandle {
-    if (pngBytes.length < 24 || pngBytes[0] !== 137 || pngBytes[1] !== 80) {
-      throw new PdfError("E_PARSE", "Invalid PNG signature");
+    let decoded: { width: number; height: number; data: Uint8Array };
+    try {
+      decoded = decodePng(pngBytes);
+    } catch (err) {
+      throw new PdfError("E_PARSE", (err as Error).message);
     }
-    const view = new DataView(pngBytes.buffer, pngBytes.byteOffset, pngBytes.byteLength);
-    let pos = 8;
-    let width = 0;
-    let height = 0;
-    let bitDepth = 8;
-    let colorType = 6;
-    const idatParts: Uint8Array[] = [];
-
-    while (pos + 8 <= pngBytes.length) {
-      const len = view.getUint32(pos, false);
-      const type = String.fromCharCode(
-        pngBytes[pos + 4]!,
-        pngBytes[pos + 5]!,
-        pngBytes[pos + 6]!,
-        pngBytes[pos + 7]!
-      );
-      const chunkData = pngBytes.subarray(pos + 8, pos + 8 + len);
-      if (type === "IHDR") {
-        width = view.getUint32(pos + 8, false);
-        height = view.getUint32(pos + 12, false);
-        bitDepth = chunkData[8]!;
-        colorType = chunkData[9]!;
-      } else if (type === "IDAT") {
-        idatParts.push(chunkData);
-      } else if (type === "IEND") {
-        break;
-      }
-      pos += 12 + len;
-    }
-
-    const totalIdat = idatParts.reduce((s, c) => s + c.length, 0);
-    const mergedIdat = new Uint8Array(totalIdat);
-    let off = 0;
-    for (const part of idatParts) {
-      mergedIdat.set(part, off);
-      off += part.length;
-    }
-    const inflated = decodeFlate(mergedIdat);
-    const colors = colorType === 6 ? 4 : colorType === 2 ? 3 : colorType === 4 ? 2 : 1;
-    const unpredicted = applyPredictor(inflated, {
-      Predictor: 15,
-      Columns: width,
-      Colors: colors,
-      BitsPerComponent: bitDepth,
-    });
-
+    const { width, height, data } = decoded;
     const rgbBytes = new Uint8Array(width * height * 3);
-    if (colors === 4) {
-      for (let i = 0; i < width * height; i++) {
-        const a = unpredicted[i * 4 + 3]! / 255;
-        rgbBytes[i * 3] = Math.round(unpredicted[i * 4]! * a + 255 * (1 - a));
-        rgbBytes[i * 3 + 1] = Math.round(unpredicted[i * 4 + 1]! * a + 255 * (1 - a));
-        rgbBytes[i * 3 + 2] = Math.round(unpredicted[i * 4 + 2]! * a + 255 * (1 - a));
-      }
-    } else if (colors === 3) {
-      rgbBytes.set(unpredicted.subarray(0, width * height * 3));
-    } else {
-      for (let i = 0; i < width * height; i++) {
-        const g = unpredicted[i * colors]!;
-        rgbBytes[i * 3] = g;
-        rgbBytes[i * 3 + 1] = g;
-        rgbBytes[i * 3 + 2] = g;
-      }
+    const aBuf = new Uint8Array(width * height);
+    let hasTransparency = false;
+    for (let i = 0; i < width * height; i++) {
+      rgbBytes[i * 3] = data[i * 4]!;
+      rgbBytes[i * 3 + 1] = data[i * 4 + 1]!;
+      rgbBytes[i * 3 + 2] = data[i * 4 + 2]!;
+      const a = data[i * 4 + 3]!;
+      aBuf[i] = a;
+      if (a < 255) hasTransparency = true;
+    }
+    const alphaBytes = hasTransparency ? aBuf : undefined;
+    if (alphaBytes) {
+      const smaskStream = cosStream(alphaBytes, {
+        dict: cosDict({
+          Type: cosName("XObject"),
+          Subtype: cosName("Image"),
+          Width: cosNumber(width),
+          Height: cosNumber(height),
+          ColorSpace: cosName("DeviceGray"),
+          BitsPerComponent: cosNumber(8),
+        }),
+        compress: true,
+      });
+      const smaskRef = this.cos.allocateObject(smaskStream);
+      const streamObj = cosStream(rgbBytes, {
+        dict: cosDict({
+          Type: cosName("XObject"),
+          Subtype: cosName("Image"),
+          Width: cosNumber(width),
+          Height: cosNumber(height),
+          ColorSpace: cosName("DeviceRGB"),
+          BitsPerComponent: cosNumber(8),
+          SMask: smaskRef,
+        }),
+        compress: true,
+      });
+      const xobjectRef = this.cos.allocateObject(streamObj);
+      return { xobjectRef, width, height };
     }
     return this.embedRgbImage(width, height, rgbBytes);
+  }
+
+  embedJpg(jpegBytes: Uint8Array): PdfImageHandle {
+    if (jpegBytes.length < 4 || jpegBytes[0] !== 0xff || jpegBytes[1] !== 0xd8) {
+      throw new PdfError("E_PARSE", "Invalid JPEG signature");
+    }
+    let width = 1;
+    let height = 1;
+    let components = 3;
+    let pos = 2;
+    while (pos + 1 < jpegBytes.length) {
+      if (jpegBytes[pos] !== 0xff) {
+        pos++;
+        continue;
+      }
+      while (pos < jpegBytes.length && jpegBytes[pos] === 0xff) pos++;
+      if (pos >= jpegBytes.length) break;
+      const marker = jpegBytes[pos++]!;
+      if (marker === 0xd9 || marker === 0xda) break;
+      if (marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7) || marker === 0x01) continue;
+      if (pos + 1 >= jpegBytes.length) break;
+      const segLen = ((jpegBytes[pos]! << 8) | jpegBytes[pos + 1]!) - 2;
+      pos += 2;
+      if (segLen < 0 || pos + segLen > jpegBytes.length) break;
+      if ((marker === 0xc0 || marker === 0xc1 || marker === 0xc2) && segLen >= 6) {
+        height = Math.max(1, (jpegBytes[pos + 1]! << 8) | jpegBytes[pos + 2]!);
+        width = Math.max(1, (jpegBytes[pos + 3]! << 8) | jpegBytes[pos + 4]!);
+        components = jpegBytes[pos + 5]!;
+        break;
+      }
+      pos += segLen;
+    }
+    const csName = components === 1 ? "DeviceGray" : components === 4 ? "DeviceCMYK" : "DeviceRGB";
+    const streamObj = cosStream(jpegBytes, {
+      dict: cosDict({
+        Type: cosName("XObject"),
+        Subtype: cosName("Image"),
+        Width: cosNumber(width),
+        Height: cosNumber(height),
+        ColorSpace: cosName(csName),
+        BitsPerComponent: cosNumber(8),
+        Filter: cosName("DCTDecode"),
+      }),
+      compress: false,
+    });
+    const xobjectRef = this.cos.allocateObject(streamObj);
+    return { xobjectRef, width, height };
+  }
+
+  embedJpeg(jpegBytes: Uint8Array): PdfImageHandle {
+    return this.embedJpg(jpegBytes);
   }
 
   private ensureInfoDict(): PdfCosDict {
@@ -541,6 +657,99 @@ export class PdfDocument {
       idArray: this.cos.idArray,
       version: this.cos.version,
       normalizeContent: options.normalizeContent,
+      objectStreams: options.objectStreams,
     });
   }
+}
+
+export function resolveDestinationPageIndex(
+  doc: PdfDocument,
+  destOrActionNode: PdfCosNode | undefined
+): number | undefined {
+  const cos = doc.cos;
+  let node = cos.resolve(destOrActionNode);
+  if (!node) return undefined;
+
+  if (node.kind === "dict") {
+    const actionD = dictGet(node, "D");
+    const directDest = dictGet(node, "Dest");
+    if (actionD) node = cos.resolve(actionD);
+    else if (directDest) node = cos.resolve(directDest);
+  }
+
+  if (node?.kind === "string" || node?.kind === "name") {
+    const destName = node.kind === "string" ? decodePdfString(node) : node.decoded;
+    const catalog = cos.resolveDict(cos.rootRef);
+    let foundTarget: PdfCosNode | undefined;
+    if (catalog) {
+      const catDests = cos.resolveDict(dictGet(catalog, "Dests"));
+      if (catDests) {
+        foundTarget = dictGet(catDests, destName);
+      }
+      if (!foundTarget) {
+        const namesDict = cos.resolveDict(dictGet(catalog, "Names"));
+        const destsTree = namesDict ? dictGet(namesDict, "Dests") : undefined;
+        const lookupInNameTree = (
+          treeNode: PdfCosNode | undefined,
+          visited = new Set<number>()
+        ): PdfCosNode | undefined => {
+          if (!treeNode) return undefined;
+          if (treeNode.kind === "ref") {
+            if (visited.has(treeNode.objectNumber)) return undefined;
+            visited.add(treeNode.objectNumber);
+          }
+          const d = cos.resolveDict(treeNode);
+          if (!d) return undefined;
+          const namesArr = cos.resolveArray(dictGet(d, "Names"));
+          if (namesArr) {
+            for (let i = 0; i + 1 < namesArr.items.length; i += 2) {
+              const kNode = cos.resolve(namesArr.items[i]);
+              const kStr =
+                kNode?.kind === "string"
+                  ? decodePdfString(kNode)
+                  : kNode?.kind === "name"
+                    ? kNode.decoded
+                    : "";
+              if (kStr === destName) {
+                return namesArr.items[i + 1];
+              }
+            }
+          }
+          const kidsArr = cos.resolveArray(dictGet(d, "Kids"));
+          if (kidsArr) {
+            for (const kid of kidsArr.items) {
+              const hit = lookupInNameTree(kid, visited);
+              if (hit) return hit;
+            }
+          }
+          return undefined;
+        };
+        foundTarget = lookupInNameTree(destsTree);
+      }
+    }
+    node = cos.resolve(foundTarget);
+    if (node?.kind === "dict") {
+      const innerD = dictGet(node, "D");
+      if (innerD) node = cos.resolve(innerD);
+    }
+  }
+
+  if (node?.kind === "array" && node.items.length > 0) {
+    const first = node.items[0]!;
+    if (first.kind === "ref") {
+      const pages = doc.getPages();
+      for (let p = 0; p < pages.length; p++) {
+        if (pages[p]!.ref.objectNumber === first.objectNumber) {
+          return p;
+        }
+      }
+    } else {
+      const rFirst = cos.resolve(first);
+      if (rFirst?.kind === "number" && rFirst.value >= 0 && rFirst.value < doc.getPageCount()) {
+        return Math.round(rFirst.value);
+      }
+    }
+  }
+
+  return undefined;
 }

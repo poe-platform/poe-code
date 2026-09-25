@@ -150,7 +150,8 @@ export type PdfTextCommand =
   | { readonly kind: "render-mode"; readonly mode: number }
   | { readonly kind: "rise"; readonly rise: number }
   | { readonly kind: "show-text"; readonly token: PdfCosString }
-  | { readonly kind: "show-text-array"; readonly items: readonly (PdfCosString | PdfCosNumber)[] };
+  | { readonly kind: "show-text-array"; readonly items: readonly (PdfCosString | PdfCosNumber)[] }
+  | { readonly kind: "state-op"; readonly operator: string; readonly operands: readonly PdfCosNode[] };
 
 export type PdfPathSegment =
   | { readonly kind: "move"; readonly x: number; readonly y: number }
@@ -169,7 +170,7 @@ export type PdfContentNode =
       readonly mcid?: number | undefined;
       readonly children: PdfContentNode[];
     }
-  | { readonly kind: "text-object"; readonly commands: PdfTextCommand[] }
+  | { readonly kind: "text-object"; readonly commands: PdfTextCommand[]; readonly continuation?: boolean }
   | {
       readonly kind: "path-op";
       readonly segments: PdfPathSegment[];
@@ -196,18 +197,27 @@ export interface PdfPlacedGlyph {
   readonly fontSize: number;
   readonly fontName: string;
   readonly color: PdfRgbColor;
+  readonly renderMode?: number | undefined;
   readonly mcid?: number | undefined;
   readonly actualText?: string | undefined;
+  readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
 export interface PdfEvaluatedPath {
   readonly segments: readonly PdfPathSegment[];
   readonly strokeColor?: PdfRgbColor | undefined;
+  readonly strokeAlpha?: number | undefined;
   readonly fillColor?: PdfRgbColor | undefined;
+  readonly fillAlpha?: number | undefined;
   readonly strokeWidth: number;
+  readonly lineCap?: 0 | 1 | 2 | undefined;
+  readonly lineJoin?: 0 | 1 | 2 | undefined;
+  readonly miterLimit?: number | undefined;
   readonly fillRule?: "nonzero" | "evenodd" | undefined;
   readonly dashArray?: readonly number[] | undefined;
+  readonly dashPhase?: number | undefined;
   readonly isClip?: boolean | undefined;
+  readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
 export interface PdfEvaluatedImage {
@@ -218,6 +228,7 @@ export interface PdfEvaluatedImage {
   readonly colorSpace: string;
   readonly bitsPerComponent: number;
   readonly decodedRgba?: Uint8Array | undefined;
+  readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
 export interface PdfLinkAnnotation {
@@ -322,7 +333,9 @@ export function formatPdfNumber(value: number): string {
   if (Number.isInteger(value)) {
     return String(value);
   }
-  const fixed = value.toFixed(6).replace(/\.?0+$/, "");
+  let fixed = value.toFixed(6);
+  while (fixed.endsWith("0")) fixed = fixed.slice(0, -1);
+  if (fixed.endsWith(".")) fixed = fixed.slice(0, -1);
   return fixed === "-0" || fixed === "" ? "0" : fixed;
 }
 
@@ -331,8 +344,9 @@ export function cosNumber(value: number, raw?: string, span?: ByteSpan): PdfCosN
     throw new Error(`Invalid non-finite PDF number: ${String(value)}`);
   }
   const isInteger = Number.isInteger(value);
+  const hasExponent = raw !== undefined && (raw.includes("e") || raw.includes("E"));
   const formatted =
-    raw !== undefined && !/[eE]/.test(raw)
+    raw !== undefined && !hasExponent
       ? raw
       : formatPdfNumber(value);
   return { kind: "number", value, raw: formatted, isInteger, span };
@@ -379,7 +393,13 @@ export function cosString(value: string | Uint8Array, span?: ByteSpan): PdfCosSt
 
 export function cosHexString(hexOrBytes: string | Uint8Array, span?: ByteSpan): PdfCosString {
   if (typeof hexOrBytes === "string") {
-    const clean = hexOrBytes.replace(/\s+/g, "");
+    let clean = "";
+    for (let i = 0; i < hexOrBytes.length; i++) {
+      const ch = hexOrBytes[i]!;
+      if (ch !== " " && ch !== "\t" && ch !== "\r" && ch !== "\n" && ch !== "\f") {
+        clean += ch;
+      }
+    }
     const padded = clean.length % 2 === 1 ? `${clean}0` : clean;
     const bytes = new Uint8Array(padded.length / 2);
     for (let i = 0; i < bytes.length; i++) {
@@ -395,11 +415,17 @@ export function cosArray(items: PdfCosNode[], span?: ByteSpan): PdfCosArray {
 }
 
 export function cosDict(
-  entriesOrRecord: readonly PdfDictEntry[] | Record<string, PdfCosNode | undefined>,
+  entriesOrRecord:
+    | readonly PdfDictEntry[]
+    | ReadonlyArray<readonly [string, PdfCosNode]>
+    | Record<string, PdfCosNode | undefined> = [],
   span?: ByteSpan
 ): PdfCosDict {
   if (Array.isArray(entriesOrRecord)) {
-    return { kind: "dict", entries: [...entriesOrRecord], span };
+    const normalized: PdfDictEntry[] = entriesOrRecord.map(entry =>
+      Array.isArray(entry) ? { key: cosName(entry[0]), value: entry[1] } : (entry as PdfDictEntry)
+    );
+    return { kind: "dict", entries: normalized, span };
   }
   const rec = entriesOrRecord as Record<string, PdfCosNode | undefined>;
   const entries: PdfDictEntry[] = [];
@@ -444,11 +470,14 @@ export function cosStream(
     };
   }
   setEntry("Length", cosNumber(data.length));
+  const hasExplicitFilter = entries.some(
+    e => e.key.decoded === "Filter" || e.key.decoded === "F"
+  );
   return {
     kind: "stream",
     dict: { kind: "dict", entries },
     rawBytes: data,
-    decodedBytes: data,
+    ...(hasExplicitFilter ? {} : { decodedBytes: data }),
     span,
   };
 }
@@ -481,28 +510,96 @@ export function dictDelete(dict: PdfCosDict, key: string): void {
   }
 }
 
+const PDF_DOC_ENCODING_MAP: Readonly<Record<number, number>> = {
+  0x18: 0x02d8,
+  0x19: 0x02c7,
+  0x1a: 0x02c6,
+  0x1b: 0x02d9,
+  0x1c: 0x02dd,
+  0x1d: 0x02db,
+  0x1e: 0x02da,
+  0x1f: 0x02dc,
+  0x80: 0x2022,
+  0x81: 0x2020,
+  0x82: 0x2021,
+  0x83: 0x2026,
+  0x84: 0x2014,
+  0x85: 0x2013,
+  0x86: 0x0192,
+  0x87: 0x2044,
+  0x88: 0x2039,
+  0x89: 0x203a,
+  0x8a: 0x2212,
+  0x8b: 0x2030,
+  0x8c: 0x201e,
+  0x8d: 0x201c,
+  0x8e: 0x201d,
+  0x8f: 0x2018,
+  0x90: 0x2019,
+  0x91: 0x201a,
+  0x92: 0x2122,
+  0x93: 0xfb01,
+  0x94: 0xfb02,
+  0x95: 0x0141,
+  0x96: 0x0152,
+  0x97: 0x0160,
+  0x98: 0x0178,
+  0x99: 0x017d,
+  0x9a: 0x0131,
+  0x9b: 0x0142,
+  0x9c: 0x0153,
+  0x9d: 0x0161,
+  0x9e: 0x017e,
+  0x9f: 0xfffd,
+  0xa0: 0x20ac,
+  0xad: 0xfffd,
+};
+
+function decodeUtf16UnitsWithSurrogateCheck(units: readonly number[]): string {
+  let out = "";
+  for (let i = 0; i < units.length; i++) {
+    const u = units[i]!;
+    if (u >= 0xd800 && u <= 0xdbff) {
+      const next = units[i + 1];
+      if (next !== undefined && next >= 0xdc00 && next <= 0xdfff) {
+        out += String.fromCharCode(u, next);
+        i++;
+      } else {
+        out += "\ufffd";
+      }
+    } else if (u >= 0xdc00 && u <= 0xdfff) {
+      out += "\ufffd";
+    } else {
+      out += String.fromCharCode(u);
+    }
+  }
+  return out;
+}
+
 export function decodePdfString(node: PdfCosString): string {
   const bytes = node.bytes;
   if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
-    let out = "";
+    const units: number[] = [];
     for (let i = 2; i + 1 < bytes.length; i += 2) {
-      out += String.fromCharCode((bytes[i]! << 8) | bytes[i + 1]!);
+      units.push((bytes[i]! << 8) | bytes[i + 1]!);
     }
-    return out;
+    return decodeUtf16UnitsWithSurrogateCheck(units);
   }
   if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
-    let out = "";
+    const units: number[] = [];
     for (let i = 2; i + 1 < bytes.length; i += 2) {
-      out += String.fromCharCode((bytes[i + 1]! << 8) | bytes[i]!);
+      units.push((bytes[i + 1]! << 8) | bytes[i]!);
     }
-    return out;
+    return decodeUtf16UnitsWithSurrogateCheck(units);
   }
   if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
     return new TextDecoder("utf-8").decode(bytes.subarray(3));
   }
   let out = "";
   for (let i = 0; i < bytes.length; i++) {
-    out += String.fromCharCode(bytes[i]!);
+    const b = bytes[i]!;
+    const mapped = PDF_DOC_ENCODING_MAP[b];
+    out += String.fromCharCode(mapped !== undefined ? mapped : b);
   }
   return out;
 }

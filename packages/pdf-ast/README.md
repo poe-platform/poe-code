@@ -13,8 +13,10 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 | Content-Stream Redaction | `page.redact(regions, options)` | Physically strip glyphs and vector paths intersecting redaction boxes and paint replacement labels |
 | Text & Table Extraction | `doc.extractText()`, `doc.extractTables()`, `doc.toSemanticAst()` | Spatial reading-order clustering (`logical`, `layout`, `raw`, `bbox`), table recovery, and semantic AST conversion |
 | Page Merging & Forms | `doc.copyPagesFrom()`, `doc.getFormFields()`, `doc.setFormField()` | Deep-clone pages across PDFs and inspect or fill `AcroForm` fields |
+| Form Data & Flattening | `parseFormDataBytes()`, `flattenDocumentFormFields()` | Parse FDF, XFDF, and `dump_data_fields` stanzas; bake widget appearances into static page content |
+| Image Extraction | `extractDocumentImages(doc.cos, options)` | Extract XObject, nested Form XObject, and inline images with CTM PPI, `/SMask` alpha, and `/ImageMask` stencil support |
 | Security & Encryption | `doc.save({ encrypt })`, `PdfDocument.load(bytes, { password })` | Standard Security Handler (`R2`–`R6`, RC4, AES-128, AES-256) encryption and decryption |
-| 2D PNG Rasterizer | `page.renderToPng({ scale })` | Pure-TypeScript 4x4 subpixel anti-aliased scanline rasterizer to RFC 2083 PNG |
+| Raster & Vector Export | `renderPdfPageToBitmap()`, `encodePng()`, `encodeJpeg()`, `encodePpm()`, `encodePgm()`, `encodePbm()`, `renderDisplayListToSvg()` | Pure-TypeScript 4x4 subpixel anti-aliased scanline rasterizer to PNG, JPEG, PPM/PGM/PBM, and SVG |
 
 ## Quick Start
 

@@ -1,6 +1,6 @@
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { Pattern, substitute, trySubstituteSync } from "./regex.js";
+import { Pattern, substitute, trySubstituteSync, trySubstitutePairSync } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, command, input, lineRecordBatches, readProgram, virtualPath, write, type LineRecordBatch, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 import { editInPlace, prepareInPlace } from "./inplace.js";
@@ -590,6 +590,34 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "s": {
             const expression = getPattern(instruction.pattern);
             if (instruction.replacementGroupCount! > expression.groupCount) throw new ProgramError("replacement references an undefined capture group");
+            if (!instruction.print && !instruction.file && pc + 1 < program.length) {
+              const nextInst = program[pc + 1]!;
+              if (nextInst.kind === "s" && !nextInst.first && !nextInst.second && !nextInst.negate && !nextInst.print && !nextInst.file && nextInst.pattern) {
+                const nextExpr = nextInst.pattern;
+                if (nextInst.replacementGroupCount! <= nextExpr.groupCount) {
+                  const paired = trySubstitutePairSync(
+                    pattern,
+                    expression,
+                    instruction.replacement!,
+                    instruction.global ?? false,
+                    instruction.occurrence ?? 1,
+                    nextExpr,
+                    nextInst.replacement!,
+                    nextInst.global ?? false,
+                    nextInst.occurrence ?? 1,
+                    budget,
+                  );
+                  if (paired !== undefined) {
+                    lastPattern = nextExpr;
+                    pattern = paired.text;
+                    if (paired.substituted) substituted = true;
+                    budget.step();
+                    pc += 2;
+                    continue;
+                  }
+                }
+              }
+            }
             const changedOrPromise = trySubstituteSync(pattern, expression, instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
             const changed = changedOrPromise instanceof Promise ? await changedOrPromise : changedOrPromise;
             pattern = changed.text;

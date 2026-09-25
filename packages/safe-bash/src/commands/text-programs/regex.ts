@@ -486,6 +486,24 @@ export class Pattern {
     return this.code.length > 0 && this.dialect !== "jq" && Boolean(this.literalMatch || this.simpleRepeatMatch);
   }
 
+  getFastPrefixInfo(): { anchoredStart: boolean; anchoredEnd: boolean; prefix: string } | undefined {
+    if (this.simpleRepeatMatch) {
+      return {
+        anchoredStart: this.simpleRepeatMatch.anchoredStart,
+        anchoredEnd: this.simpleRepeatMatch.anchoredEnd,
+        prefix: this.simpleRepeatMatch.prefix,
+      };
+    }
+    if (this.literalMatch) {
+      return {
+        anchoredStart: this.literalMatch.anchoredStart,
+        anchoredEnd: this.literalMatch.anchoredEnd,
+        prefix: this.literalMatch.value,
+      };
+    }
+    return undefined;
+  }
+
   findSyncFastInto(
     text: string,
     budget: Pick<Budget, "step" | "maxBufferBytes">,
@@ -982,6 +1000,7 @@ interface SimpleReplacement {
   readonly group: number;
   readonly suffix: string;
   readonly stepsPerExpansion: number;
+  readonly smallInts: (string | undefined)[];
 }
 const SIMPLE_REPLACEMENT_CACHE = new Map<string, SimpleReplacement | null>();
 
@@ -991,7 +1010,7 @@ function getSimpleReplacement(replacement: string, syntax: ReplacementSyntax): S
   if (cached !== undefined) return cached;
   if (SIMPLE_REPLACEMENT_CACHE.size >= 128) SIMPLE_REPLACEMENT_CACHE.clear();
   if (!replacement.includes("&") && !replacement.includes("\\")) {
-    const res: SimpleReplacement = { kind: "literal", prefix: replacement, group: -1, suffix: "", stepsPerExpansion: replacement.length * 2 + 1 };
+    const res: SimpleReplacement = { kind: "literal", prefix: replacement, group: -1, suffix: "", stepsPerExpansion: replacement.length * 2 + 1, smallInts: [] };
     SIMPLE_REPLACEMENT_CACHE.set(key, res);
     return res;
   }
@@ -1025,8 +1044,8 @@ function getSimpleReplacement(replacement: string, syntax: ReplacementSyntax): S
       }
     }
     const res: SimpleReplacement = group === -1
-      ? { kind: "literal", prefix, group: -1, suffix: "", stepsPerExpansion: steps + prefix.length }
-      : { kind: "singleRef", prefix, group, suffix, stepsPerExpansion: steps + prefix.length + suffix.length };
+      ? { kind: "literal", prefix, group: -1, suffix: "", stepsPerExpansion: steps + prefix.length, smallInts: [] }
+      : { kind: "singleRef", prefix, group, suffix, stepsPerExpansion: steps + prefix.length + suffix.length, smallInts: new Array(100) };
     SIMPLE_REPLACEMENT_CACHE.set(key, res);
     return res;
   }
@@ -1059,8 +1078,24 @@ function appendReplacementFromOffsetsSync(
     const addedLen = simpleRep.prefix.length + gLen + simpleRep.suffix.length;
     budget.step(simpleRep.stepsPerExpansion + gLen);
     if (out.length + addedLen > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-    const gStr = gLen > 0 ? text.slice(gStart, gEnd) : "";
-    const expanded = simpleRep.suffix ? simpleRep.prefix + gStr + simpleRep.suffix : simpleRep.prefix + gStr;
+    let expanded: string | undefined;
+    if (gLen === 1) {
+      const c0 = text.charCodeAt(gStart) - 48;
+      if (c0 >= 0 && c0 <= 9) {
+        expanded = simpleRep.smallInts[c0] ??= (simpleRep.suffix ? simpleRep.prefix + String.fromCharCode(c0 + 48) + simpleRep.suffix : simpleRep.prefix + String.fromCharCode(c0 + 48));
+      }
+    } else if (gLen === 2) {
+      const c0 = text.charCodeAt(gStart) - 48;
+      const c1 = text.charCodeAt(gStart + 1) - 48;
+      if (c0 >= 1 && c0 <= 9 && c1 >= 0 && c1 <= 9) {
+        const num = c0 * 10 + c1;
+        expanded = simpleRep.smallInts[num] ??= (simpleRep.suffix ? simpleRep.prefix + String(num) + simpleRep.suffix : simpleRep.prefix + String(num));
+      }
+    }
+    if (expanded === undefined) {
+      const gStr = gLen > 0 ? text.slice(gStart, gEnd) : "";
+      expanded = simpleRep.suffix ? simpleRep.prefix + gStr + simpleRep.suffix : simpleRep.prefix + gStr;
+    }
     return out ? out + expanded : expanded;
   }
   const initialOutLen = out.length;
@@ -1258,4 +1293,104 @@ export async function substitute(text: string, pattern: Pattern, replacement: st
     await result.append(text, consumed);
     return { text: await result.finish(), count };
   } finally { result.clear(); }
+}
+
+
+const PAIR_OFFSETS_1 = new Int32Array(4);
+const PAIR_OFFSETS_2 = new Int32Array(4);
+const SYNC_PAIR_RESULT = { text: "", substituted: false };
+
+function expandSimpleFromOffsets(
+  simpleRep: SimpleReplacement,
+  text: string,
+  matchStart: number,
+  matchEnd: number,
+  group1Start: number,
+  group1End: number,
+  budget: Budget,
+): string {
+  if (simpleRep.kind === "literal") {
+    budget.step(simpleRep.stepsPerExpansion);
+    return simpleRep.prefix;
+  }
+  const gStart = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : -1;
+  const gEnd = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : -1;
+  const gLen = gStart >= 0 && gEnd > gStart ? gEnd - gStart : 0;
+  budget.step(simpleRep.stepsPerExpansion + gLen);
+  if (gLen === 1) {
+    const c0 = text.charCodeAt(gStart) - 48;
+    if (c0 >= 0 && c0 <= 9) {
+      return simpleRep.smallInts[c0] ??= (simpleRep.suffix ? simpleRep.prefix + String.fromCharCode(c0 + 48) + simpleRep.suffix : simpleRep.prefix + String.fromCharCode(c0 + 48));
+    }
+  } else if (gLen === 2) {
+    const c0 = text.charCodeAt(gStart) - 48;
+    const c1 = text.charCodeAt(gStart + 1) - 48;
+    if (c0 >= 1 && c0 <= 9 && c1 >= 0 && c1 <= 9) {
+      const num = c0 * 10 + c1;
+      return simpleRep.smallInts[num] ??= (simpleRep.suffix ? simpleRep.prefix + String(num) + simpleRep.suffix : simpleRep.prefix + String(num));
+    }
+  }
+  const gStr = gLen > 0 ? text.slice(gStart, gEnd) : "";
+  return simpleRep.suffix ? simpleRep.prefix + gStr + simpleRep.suffix : simpleRep.prefix + gStr;
+}
+
+export function trySubstitutePairSync(
+  text: string,
+  pat1: Pattern,
+  rep1: string,
+  global1: boolean,
+  occ1: number,
+  pat2: Pattern,
+  rep2: string,
+  global2: boolean,
+  occ2: number,
+  budget: Budget,
+): { text: string; substituted: boolean } | undefined {
+  if (occ1 !== 1 || occ2 !== 1 || global1 || text.length > 4096) return undefined;
+  if (!pat1.canFindSync() || !pat2.canFindSync()) return undefined;
+  const info1 = pat1.getFastPrefixInfo();
+  const info2 = pat2.getFastPrefixInfo();
+  if (!info1 || !info2 || !info1.anchoredStart || info2.anchoredStart || info2.prefix.length === 0) return undefined;
+  const sr1 = getSimpleReplacement(rep1, "sed");
+  const sr2 = getSimpleReplacement(rep2, "sed");
+  if (!sr1 || !sr2) return undefined;
+  if ((budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint()) !== undefined) return undefined;
+  budget.step();
+  if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return undefined;
+  const e1 = PAIR_OFFSETS_1[1]!;
+  if (e1 === 0) return undefined;
+  const exp1 = expandSimpleFromOffsets(sr1, text, 0, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+  const firstChar2 = info2.prefix.charCodeAt(0);
+  for (let i = 0; i < exp1.length; i++) {
+    if (exp1.charCodeAt(i) === firstChar2) return undefined;
+  }
+  budget.step();
+  if (!pat2.findSyncFastInto(text, budget, e1, PAIR_OFFSETS_2)) {
+    const outLen = exp1.length + (text.length - e1);
+    if (outLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    budget.step(text.length - e1 + 1);
+    SYNC_PAIR_RESULT.text = e1 < text.length ? exp1 + text.slice(e1) : exp1;
+    SYNC_PAIR_RESULT.substituted = true;
+    return SYNC_PAIR_RESULT;
+  }
+  const s2 = PAIR_OFFSETS_2[0]!;
+  const e2 = PAIR_OFFSETS_2[1]!;
+  if (s2 < e1 || e2 === s2) return undefined;
+  const g2s = PAIR_OFFSETS_2[2]!;
+  const g2e = PAIR_OFFSETS_2[3]!;
+  if (global2 && e2 <= text.length) {
+    budget.step();
+    if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1)) return undefined;
+  }
+  const exp2 = expandSimpleFromOffsets(sr2, text, s2, e2, g2s, g2e, budget);
+  const midLen = s2 - e1;
+  const tailLen = text.length - e2;
+  const totalLen = exp1.length + midLen + exp2.length + tailLen;
+  if (totalLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+  budget.step(midLen + tailLen + 2);
+  const mid = midLen > 0 ? text.slice(e1, s2) : "";
+  const tail = tailLen > 0 ? text.slice(e2) : "";
+  SYNC_PAIR_RESULT.text = exp1 + mid + exp2 + tail;
+  SYNC_PAIR_RESULT.substituted = true;
+  return SYNC_PAIR_RESULT;
 }

@@ -443,6 +443,83 @@
         "removedBytes": 193315100,
         "removed": true,
         "trackedArtifacts": 0
+      },
+      "publicShell": {
+        "node": "v22.23.2",
+        "records": [
+          {
+            "epoch": "1900",
+            "cancel": false,
+            "opened": 1,
+            "closed": 1,
+            "queries": 8,
+            "writeRefusals": 1,
+            "comparisons": 44,
+            "formatComparisons": 6,
+            "outputBytes": 6531,
+            "sha256": "111382b96924041166353d1cba09906ac1a4e2919ab4b4889694ac34be154122"
+          },
+          {
+            "epoch": "1900",
+            "cancel": true,
+            "opened": 1,
+            "closed": 1,
+            "queries": 1,
+            "writeRefusals": 1,
+            "originalReasonPreserved": true,
+            "publishedBytes": 0
+          },
+          {
+            "epoch": "1904",
+            "cancel": false,
+            "opened": 1,
+            "closed": 1,
+            "queries": 8,
+            "writeRefusals": 1,
+            "comparisons": 44,
+            "formatComparisons": 6,
+            "outputBytes": 6532,
+            "sha256": "c550e90067fccccb6e1c31230ef68f3c0bcf631d6e465057e7f98b94a6ffc63e"
+          },
+          {
+            "epoch": "1904",
+            "cancel": true,
+            "opened": 1,
+            "closed": 1,
+            "queries": 1,
+            "writeRefusals": 1,
+            "originalReasonPreserved": true,
+            "publishedBytes": 0
+          }
+        ],
+        "independentRowCount": 1,
+        "candidateCommit": "78876b3ec0",
+        "scope": "Compiled public Shell with explicit read-only node:sqlite fixture host; both workbook epochs; actual XLSX output reopened through the public SDK. Not an installed-package or general database-adapter qualification.",
+        "procedure": "../plans/ssconvert-native-database-qualification.md#compiled-shell-follow-up",
+        "bindings": [
+          {
+            "path": "packages/ssconvert/dist/index.js",
+            "sha256": "212f882f4ab54a6656b10cc20e2dad6554f650e710b9a2d8ff095aeb7c23b354"
+          },
+          {
+            "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+            "sha256": "fdbf0d665fcd6fe584e052c4cf0cc705af5a791f8fb4afd423b9d1a346b2ed32"
+          },
+          {
+            "path": "out/ssconvert-gda-shell/capture.mjs",
+            "sha256": "0cf138837e7e167261219774f8b9bba21e8c55fa7cb6ecf8defc20d884ea4098"
+          },
+          {
+            "path": "out/ssconvert-gda-shell/result.json",
+            "sha256": "b1a7e01062b0197489afc928547063cd47a6d1ac274b50898ddd7e6409c341ce"
+          }
+        ],
+        "cleanup": {
+          "removedFiles": 4,
+          "removedBytes": 18184,
+          "removed": true,
+          "trackedArtifacts": 0
+        }
       }
     }
   },
@@ -500,7 +577,7 @@
     {
       "id": "database-functions",
       "status": "open",
-      "currentFinding": "Explicit cooperative query ports and value-owned date/time formats are delivered. Supplemental Darwin native GDA/SQLite qualification covers the real GTK dialog, 13 typed columns, both epochs, errors/retry/reuse and connection deactivation. Public SDK live hosts match 84 native scalar/error observations plus four read-only controls and close on success/cancellation. Native libgda mutates despite its read-only option; host enforcement remains required. Exact Linux profile, wider types/providers/lifecycle, live CLI/Shell, installed artifacts and publication remain open."
+      "currentFinding": "Explicit cooperative query ports and value-owned date/time formats are delivered. Supplemental Darwin native GDA/SQLite qualification covers the real GTK dialog, 13 typed columns, both epochs, errors/retry/reuse and connection deactivation. Public SDK live hosts match 84 native scalar/error observations plus four read-only controls. Compiled public Shell passes 88 scalar/error and 12 format comparisons through actual XLSX readback. All live connections close before settlement; cancellation preserves the destination and original reason. Native libgda mutates despite its read-only option, so explicit host enforcement remains required. Exact Linux profile, wider types/providers/lifecycle, installed artifacts and publication remain open."
     },
     {
       "id": "atl-last",

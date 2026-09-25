@@ -24,6 +24,8 @@ for (const [args, stdin, expected] of [
   [["a-e", "[x*999999999999999999999]yz"], "abcde", "xxxxx"],
   [["a-j", "[x*010]yz"], "abcdefghij", "xxxxxxxxyz"],
   [["a-e", "[\\170*3]yz"], "abcde", "xxxyz"],
+  [["[x*3]", "a"], "x[x*3]xyz\n", "a[a*3]ayz\n"],
+  [["-d", "[x*3]"], "x[x*3]xyz\n", "[*3]yz\n"],
   [["-c", "x", "[y*]"], "abcx", "yyyx"],
   [["-ts", "a-e", "[x*3]"], "abcde", "xde"],
   [["-ds", "a", "[x*3]"], "axxxb", "xb"],
@@ -39,7 +41,7 @@ for (const [args, stdin, expected] of [
   });
 }
 
-for (const args of [["[x*3]", "a"], ["abc", "[x*08]"], ["abc", "[x*]yz[z*]"], ["-d", "[:unknown:]"], ["-ds", "a", "[b*]"], ["-ds", "a", "[b*0]"]]) {
+for (const args of [["[x*]", "a"], ["[x*0]", "a"], ["abc", "[x*08]"], ["abc", "[x*]yz[z*]"], ["-d", "[:unknown:]"], ["-ds", "a", "[b*]"], ["-ds", "a", "[b*0]"]]) {
   test(`tr rejects invalid set expression: ${JSON.stringify(args)}`, async () => {
     const result = await run("tr", args);
     assert.equal(result.exitCode, 2);

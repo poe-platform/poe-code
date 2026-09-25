@@ -66,3 +66,21 @@ test("indices handles long repeated prefixes within linear work", async () => {
   const budget = new Budget(resolveJqLimits({ maxSteps: 100000 }), new AbortController().signal);
   assert.deepEqual(await indices(input, sought, budget), [9000]);
 });
+
+test("jq supports NaN slice bounds, object slice indices, subarray indices, and string * nan", async () => {
+  for (const [expr, expected] of [
+    ["[1,2,3] | del(.[] | select(. == 2))", "[1,3]\n"],
+    ["[{\"a\":1},{\"a\":2}] | (.[] | select(.a == 2) | .a) = 99", "[{\"a\":1},{\"a\":99}]\n"],
+    ["[10,20,30,40] | .[1:3] = [99]", "[10,99,40]\n"],
+    ["[10,20,30,40][0.5:2.5]", "[10,20,30]\n"],
+    ["[10,20,30][nan:2]", "[10,20]\n"],
+    ["[10,20,30,40][{\"start\":1,\"end\":3}]", "[20,30]\n"],
+    ["[10,20,30,20,30][[20,30]]", "[1,3]\n"],
+    ["\"a\" * nan", "null\n"],
+    ["\"\" * nan", "null\n"],
+  ] as const) {
+    const res = await run(["-nc", expr]);
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, expected);
+  }
+});

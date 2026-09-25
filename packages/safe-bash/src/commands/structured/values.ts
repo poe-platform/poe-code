@@ -232,7 +232,7 @@ export async function binary(operator: string, left: Json, right: Json, budget: 
   if (operator === "*" && ((typeof left === "string" && isNumber(right)) || (typeof right === "string" && isNumber(left)))) {
     const text = typeof left === "string" ? left : right as string;
     const count = numberValue(isNumber(left) ? left : right as Numeric);
-    if (count < 0) return null;
+    if (count < 0 || Number.isNaN(count)) return null;
     if (text === "") return "";
     if (!Number.isFinite(count) || Buffer.byteLength(text) * Math.floor(count) > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     const result = text.repeat(Math.floor(count)); budget.text(result); return result;

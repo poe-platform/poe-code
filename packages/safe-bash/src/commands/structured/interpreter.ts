@@ -289,12 +289,21 @@ export class Interpreter {
         catch (error) { if (!(error instanceof JqError) || error instanceof JqLimitError || this.budget.signal.aborted) throw error; }
         return;
       case "index":
-        for await (const index of this.run(ast.index, input)) for await (const base of this.run(ast.base, input)) yield indexValue(base, index);
+        for await (const index of this.run(ast.index, input)) for await (const base of this.run(ast.base, input)) {
+          if (isObject(index) && (base === null || Array.isArray(base) || typeof base === "string") || Array.isArray(base) && Array.isArray(index)) {
+            yield await indices(base, index, this.budget);
+          } else {
+            yield indexValue(base, index);
+          }
+        }
         return;
       case "slice":
         for await (const start of ast.start ? this.run(ast.start, input) : [null])
           for await (const end of ast.end ? this.run(ast.end, input) : [null])
-            for await (const base of this.run(ast.base, input)) { await this.budget.tick(); yield await sliceValue(base, start, end, this.budget); }
+            for await (const base of this.run(ast.base, input)) {
+              await this.budget.tick();
+              yield await sliceValue(base, isNumber(start) && Number.isNaN(numberValue(start)) ? null : start, isNumber(end) && Number.isNaN(numberValue(end)) ? null : end, this.budget);
+            }
         return;
       case "iterate":
         for await (const base of this.run(ast.base, input)) for await (const [, value] of entries(base, this.budget)) { await this.budget.tick(); yield value; }
@@ -427,11 +436,11 @@ export class Interpreter {
         for await (const end of ast.end ? this.run(ast.end, input) : [null])
           for await (const path of this.paths(ast.base, input)) {
             const base = await this.read(input, path);
-            await sliceValue(base, start, end, this.budget);
+            await sliceValue(base, isNumber(start) && Number.isNaN(numberValue(start)) ? null : start, isNumber(end) && Number.isNaN(numberValue(end)) ? null : end, this.budget);
             if (base !== null && !Array.isArray(base)) throw new JqError("slice assignment requires an array");
             const length = base === null ? 0 : base.length;
-            let first = start === null ? 0 : Math.floor(numberValue(start as Numeric));
-            let last = end === null ? length : Math.ceil(numberValue(end as Numeric));
+            let first = start === null || (isNumber(start) && Number.isNaN(numberValue(start))) ? 0 : Math.floor(numberValue(start as Numeric));
+            let last = end === null || (isNumber(end) && Number.isNaN(numberValue(end))) ? length : Math.ceil(numberValue(end as Numeric));
             first = Math.max(0, Math.min(length, first < 0 ? length + first : first));
             last = Math.max(first, Math.min(length, last < 0 ? length + last : last));
             yield [...path, { start: first, end: last }];

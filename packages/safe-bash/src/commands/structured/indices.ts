@@ -10,18 +10,18 @@ export async function indices(input: Json, sought: Json, budget: Budget): Promis
     // jq's string search returns UTF-8 byte offsets, including overlapping matches.
     source = Buffer.from(input);
     pattern = Buffer.from(sought);
-  } else if (Array.isArray(input)) {
-    source = input;
-    pattern = Array.isArray(sought) ? sought : [sought];
-  } else if (isObject(sought) && (input === null || typeof input === "string")) {
+  } else if (isObject(sought) && (input === null || Array.isArray(input) || typeof input === "string")) {
     if (input === null) return null;
     const start = Object.hasOwn(sought, "start") ? sought.start! : undefined;
     const end = Object.hasOwn(sought, "end") ? sought.end! : undefined;
-    if ((start !== null && (!isNumber(start) || !Number.isFinite(numberValue(start))))
-      || (end !== null && (!isNumber(end) || !Number.isFinite(numberValue(end))))) {
+    if ((start !== null && (!isNumber(start) || (!Number.isFinite(numberValue(start)) && !Number.isNaN(numberValue(start)))))
+      || (end !== null && (!isNumber(end) || (!Number.isFinite(numberValue(end)) && !Number.isNaN(numberValue(end)))))) {
       throw new JqError("Array/string slice indices must be integers");
     }
-    return sliceValue(input, start, end, budget);
+    return sliceValue(input, isNumber(start) && Number.isNaN(numberValue(start)) ? null : start, isNumber(end) && Number.isNaN(numberValue(end)) ? null : end, budget);
+  } else if (Array.isArray(input)) {
+    source = input;
+    pattern = Array.isArray(sought) ? sought : [sought];
   } else return indexValue(input, sought);
 
   const result: number[] = [];

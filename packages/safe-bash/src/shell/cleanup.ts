@@ -122,6 +122,15 @@ export class InvocationScope {
 
   close(): Promise<void> {
     if (!this.#drain) {
+      if (!this.#controller && !this.#finalizers?.length && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
+        this.#drain = resolvedVoid;
+        this.#seal();
+        if (this.parent) this.parent.#children?.delete(this);
+        return resolvedVoid;
+      }
+      let resolve!: () => void;
+      let reject!: (reason: unknown) => void;
+      this.#drain = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
       this.#seal();
       if (!this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         let asyncFinalizers: Promise<unknown>[] | undefined;
@@ -137,16 +146,17 @@ export class InvocationScope {
           }
         }
         if (asyncFinalizers) {
-          this.#drain = Promise.all(asyncFinalizers).then(() => {
+          void Promise.all(asyncFinalizers).then(() => {
             if (this.parent) this.parent.#children?.delete(this);
-          });
+          }).then(resolve, reject);
           return this.#drain;
         }
         if (this.parent) this.parent.#children?.delete(this);
-        this.#drain = resolvedVoid;
-        return resolvedVoid;
+        resolve();
+        Object.defineProperty(this.#drain, syncResolved, { value: true });
+        return this.#drain;
       }
-      this.#drain = Promise.resolve().then(async () => {
+      void Promise.resolve().then(async () => {
         const callbacks = this.#callbacks ? [...this.#callbacks.values()] : [];
         this.#callbacks?.clear();
         try {
@@ -167,7 +177,7 @@ export class InvocationScope {
           }
           if (this.parent) this.parent.#children?.delete(this);
         }
-      });
+      }).then(resolve, reject);
     }
     return this.#drain;
   }

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ByteSource, CommandContext, CommandResult, InvocationCleanup } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/index.js";
+import { InvocationScope } from "../../src/shell/cleanup.js";
 import { setup } from "./helpers.js";
 
 function deferred<Value = void>() {
@@ -13,6 +14,33 @@ function deferred<Value = void>() {
 
 const turn = () => new Promise<void>((resolve) => setImmediate(resolve));
 const delay = () => new Promise<void>((resolve) => setTimeout(resolve, 15));
+
+for (const reentry of ["finalizer", "abort"] as const) test(`scope close publishes one drain before ${reentry} reentry`, async () => {
+  const scope = new InvocationScope();
+  const gate = deferred();
+  let reentrant: Promise<void> | undefined;
+  let settled = false;
+  let finalizers = 0;
+  const closeAgain = (): void => {
+    reentrant = scope.close();
+    void reentrant.then(() => { settled = true; });
+  };
+  if (reentry === "abort") scope.signal.addEventListener("abort", closeAgain, { once: true });
+  scope.registerFinalizer(() => {
+    finalizers++;
+    if (reentry === "finalizer") closeAgain();
+    return gate.promise;
+  });
+  const closing = scope.close();
+  try {
+    assert.strictEqual(reentrant, closing);
+    assert.strictEqual(scope.close(), closing);
+    await Promise.resolve();
+    assert.equal(settled, false);
+    assert.equal(finalizers, 1);
+  } finally { gate.resolve(); await closing; }
+  assert.equal(settled, true);
+});
 
 for (const failure of [undefined, null, new Error("cleanup only")]) {
   test(`sole cleanup rejection preserves ${String(failure)} identity`, { timeout: 2000 }, async () => {

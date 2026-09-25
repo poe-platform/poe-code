@@ -33,13 +33,21 @@ for (const shared of [false, true]) for (const existing of [false, true]) {
   });
 }
 
-test("cross-mount hardlink alias is a no-op, never copy followed by source removal", async () => {
+for (const flags of [[], ["-u"], ["-n"]]) test(`cross-mount hardlink alias preserves same-file status: ${flags}`, async () => {
   const { fs, left } = await pair(false, true); await left.link("/source", "/target");
   let copies = 0, removals = 0;
   const wrapped = proxy(fs, { writeStream: async () => { copies++; }, rm: async () => { removals++; } });
-  const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
-  assert.equal(result.exitCode, 1, result.stderr); assert.equal(copies, 0); assert.equal(removals, 0);
+  const result = await run("mv", [...flags, "/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
+  assert.equal(result.exitCode, flags.includes("-n") ? 0 : 1, result.stderr); assert.equal(copies, 0); assert.equal(removals, 0);
   assert.equal(await contents(left, "/source"), "payload"); assert.equal(await contents(left, "/target"), "payload");
+});
+
+test("mv -u rejects an identical source and destination path", async () => {
+  const { fs, left } = await pair();
+  const result = await run("mv", ["-u", "/left/source", "/left/source"], { fs, cwd: "/" });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.match(result.stderr, /same file/u);
+  assert.equal(await contents(left, "/source"), "payload");
 });
 
 test("unknown existing identity rejects before a hypothetical no-op copy or deletion", async () => {

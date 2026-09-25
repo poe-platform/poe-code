@@ -608,8 +608,15 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (!targetStat) return false;
         if (parsed.flags.has("n")) return true;
         const sourceStat = await context.fs.lstat(source, { signal: context.signal });
-        return sourceStat.type !== "directory" && targetStat.type !== "directory"
-          && sourceStat.mtimeMs <= targetStat.mtimeMs;
+        if (sourceStat.type === "directory" || targetStat.type === "directory"
+          || !(sourceStat.mtimeMs <= targetStat.mtimeMs)) return false;
+        const identity = sourceStat.type === "symlink" || targetStat.type === "symlink"
+          ? compareCopyIdentity(sourceStat, targetStat)
+          : await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
+        if (source === target || identity === "same") {
+          throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+        }
+        return true;
       };
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);

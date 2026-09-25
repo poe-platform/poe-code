@@ -101,8 +101,30 @@ for (const relation of relations) test(`cross-device move uses comparison ${rela
   assert.equal(result.exitCode, 1, result.stderr);
   assert.equal(effects().comparisons, 1);
   if (relation === "distinct") {
-    assert.match(result.stderr, /atomic destination and ancestry binding/u);
+    // The wrapper's unscoped observation cannot bind Memory's retained identity.
+    assert.match(result.stderr, /EAGAIN: move destination changed during resolution capture/u);
   }
+  assert.equal(effects().copies, 0); assert.equal(effects().removals, 0);
+  assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source bytes");
+  assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "old target");
+});
+
+for (const afterRename of [false, true]) test(`mv -u checks authoritative aliases before timestamp skips, afterRename=${afterRename}`, async () => {
+  const { fs, base, effects } = await uncertain("same");
+  await base.utimes("/work/source", 2000, 2000);
+  await base.utimes("/work/target", 1000, afterRename ? 1000 : 2000);
+  let renames = 0;
+  const wrapped = proxy(fs, { rename: async () => {
+    renames++;
+    await base.utimes("/work/target", 2000, 2000);
+    throw new FsError("EXDEV");
+  } });
+  const result = await run("mv", ["-uv", "source", "target"], { fs: wrapped });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.match(result.stderr, /same file/u);
+  assert.equal(result.stdout, "");
+  assert.equal(renames, afterRename ? 1 : 0);
+  assert.ok(effects().comparisons > 0);
   assert.equal(effects().copies, 0); assert.equal(effects().removals, 0);
   assert.equal(Buffer.from(await base.readFile("/work/source")).toString(), "source bytes");
   assert.equal(Buffer.from(await base.readFile("/work/target")).toString(), "old target");

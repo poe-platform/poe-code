@@ -97,14 +97,14 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   const sourceStat = await context.fs.lstat(source, { signal: context.signal });
   const targetStat = await optionalStat(context, target);
   if (noClobber && targetStat) return false;
-  if (update && targetStat && sourceStat.type !== "directory" && targetStat.type !== "directory"
-    && sourceStat.mtimeMs <= targetStat.mtimeMs) return "skipped";
   if (source === target || compareCopyIdentity(sourceStat, targetStat) === "same") return false;
   const compare = (origin: string, destination: string, stat: FileStat, existing: FileStat) =>
     stat.type === "symlink" || existing.type === "symlink" ? Promise.resolve(compareCopyIdentity(stat, existing))
       : compareObservedEntries(context.fs, origin, stat, context.fs, destination, existing, { signal: context.signal });
   const rootIdentity = targetStat ? await compare(source, target, sourceStat, targetStat) : "unknown";
   if (rootIdentity === "same") return false;
+  if (update && targetStat && sourceStat.type !== "directory" && targetStat.type !== "directory"
+    && sourceStat.mtimeMs <= targetStat.mtimeMs) return "skipped";
   if (source === "/") throw new FsError("EBUSY", { path: source });
   if (sourceStat.type === "directory") {
     if (isPathWithin(source, target)) throw new FsError("EINVAL", { path: target, message: "cannot move a directory into itself" });

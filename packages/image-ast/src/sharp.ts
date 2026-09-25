@@ -632,6 +632,12 @@ export class SharpInstance {
       wProvided = true;
       hProvided = true;
     }
+    if (w !== null && (!Number.isInteger(w) || w <= 0)) {
+      throw new Error(`Expected positive integer for width but received ${w}`);
+    }
+    if (h !== null && (!Number.isInteger(h) || h <= 0)) {
+      throw new Error(`Expected positive integer for height but received ${h}`);
+    }
     const existingIdx = this.nodes.findIndex(n => n.kind === "resize");
     if (existingIdx !== -1) {
       const prev = this.nodes[existingIdx] as Extract<ImageAstNode, { readonly kind: "resize" }>;
@@ -677,6 +683,20 @@ export class SharpInstance {
           readonly extendWith?: "background" | "copy" | "repeat" | "mirror";
         }
   ): this {
+    if (typeof edges === "number") {
+      if (!Number.isInteger(edges) || edges <= 0) {
+        throw new Error(`Expected positive integer for extend but received ${edges}`);
+      }
+    } else if (edges && typeof edges === "object") {
+      for (const side of ["top", "bottom", "left", "right"] as const) {
+        const val = edges[side];
+        if (val !== undefined && (!Number.isInteger(val) || val < 0)) {
+          throw new Error(`Expected positive integer for ${side} but received ${val}`);
+        }
+      }
+    } else {
+      throw new Error(`Expected integer or object for extend but received ${edges}`);
+    }
     const nextNode: ImageAstNode =
       typeof edges === "number"
         ? {

@@ -1981,11 +1981,14 @@ export function affineImage(
       }
     }
   }
+  const hasAlpha = img.hasAlpha || spec.background.a < 255;
   return {
     ...img,
     width: dstW,
     height: dstH,
-    data: out
+    data: out,
+    hasAlpha,
+    channels: hasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
   };
 }
 

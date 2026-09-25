@@ -2298,4 +2298,20 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => inst().dilate(0)).toThrow(/dilate/);
     expect(() => inst().erode(-1)).toThrow(/erode/);
   });
+
+  it("promotes 3ch RGB to 4ch RGBA in affine() with semi-transparent background and validates resize()/extend() bounds", async () => {
+    const rgb4x4 = Buffer.alloc(4 * 4 * 3, 200);
+    const affRes = await sharp(rgb4x4, { raw: { width: 4, height: 4, channels: 3 } })
+      .affine([[1, 0.2], [0.2, 1]], { background: { r: 255, g: 0, b: 0, alpha: 0.5 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(affRes.info.channels).toBe(4);
+    expect(Array.from(affRes.data.subarray(4 * 4, 4 * 4 + 4))).toEqual([255, 0, 0, 128]);
+
+    const inst = () => sharp(rgb4x4, { raw: { width: 4, height: 4, channels: 3 } });
+    expect(() => inst().resize(-5)).toThrow(/width/);
+    expect(() => inst().resize(10, 0)).toThrow(/height/);
+    expect(() => inst().extend(-1)).toThrow(/extend/);
+    expect(() => inst().extend({ top: -2 })).toThrow(/top/);
+  });
 });

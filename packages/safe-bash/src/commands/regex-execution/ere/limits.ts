@@ -120,8 +120,9 @@ export class EreLedger {
     this.check(signal);
     integer(amount);
     const current = this.getResource(resource);
-    if (amount > this.limits[resource] - current) {
-      throw new EreProfileLimitError(resource, this.limits[resource]);
+    const limit = this.limits[resource];
+    if (limit !== Infinity && amount > limit - current) {
+      throw new EreProfileLimitError(resource, limit);
     }
     this.addResource(resource, amount);
   }

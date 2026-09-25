@@ -67,7 +67,17 @@ function getSignalYieldState(signal: AbortSignal): SignalYieldState {
       }
     };
     if ((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      (((signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol]) ??= new Set()).add(onSignalAbort);
+      const record = signal as unknown as Record<symbol, (() => void) | Set<() => void> | undefined>;
+      const existing = record[managedWaitersSymbol];
+      if (!existing) record[managedWaitersSymbol] = onSignalAbort;
+      else if (typeof existing === "function") {
+        const set = new Set<() => void>();
+        set.add(existing);
+        set.add(onSignalAbort);
+        record[managedWaitersSymbol] = set;
+      } else {
+        existing.add(onSignalAbort);
+      }
     } else {
       signal.addEventListener("abort", onSignalAbort, { once: true });
     }

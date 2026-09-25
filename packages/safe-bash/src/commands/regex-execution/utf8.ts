@@ -6,14 +6,22 @@ function invalidUtf8(): never {
 }
 
 export function validateUtf8(input: Uint8Array | string, ledger: EreLedger, signal?: AbortSignal): Promise<void> | undefined {
-  if (typeof input !== "string") {
-    const len = input.length;
-    if (len === 0) {
-      ledger.check(signal);
-      return undefined;
-    }
-    if (ledger.workAllowanceUntilCheckpoint(signal) >= len) {
-      let ascii = true;
+  const len = input.length;
+  if (len === 0) {
+    ledger.check(signal);
+    return undefined;
+  }
+  if (ledger.workAllowanceUntilCheckpoint(signal) >= len) {
+    let ascii = true;
+    if (typeof input === "string") {
+      for (let i = 0; i < len; i++) {
+        const b = input.charCodeAt(i);
+        if (b === 0 || b >= 0x80) {
+          ascii = false;
+          break;
+        }
+      }
+    } else {
       for (let i = 0; i < len; i++) {
         const b = input[i]!;
         if (b === 0 || b >= 0x80) {
@@ -21,10 +29,10 @@ export function validateUtf8(input: Uint8Array | string, ledger: EreLedger, sign
           break;
         }
       }
-      if (ascii) {
-        ledger.chargeWork(len, signal);
-        return ledger.checkpoint(signal);
-      }
+    }
+    if (ascii) {
+      ledger.chargeWork(len, signal);
+      return ledger.checkpoint(signal);
     }
   }
   return validateUtf8Async(input, ledger, signal);

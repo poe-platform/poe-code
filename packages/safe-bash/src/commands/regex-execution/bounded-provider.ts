@@ -113,11 +113,14 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
     const d = value as SelectionDescriptor | GlobDescriptor;
     if (d.kind === "rg" || d.kind === "grep") {
       if (d.patterns.length > limits.maxPatterns) fail("limit", "pattern count limit exceeded");
-      let bytes = 0;
-      for (let index = 0; index < d.patterns.length; index++) {
-        const pattern = d.patterns[index]!;
-        if (pattern.length > limits.maxPatternBytes - bytes) fail("limit", "aggregate pattern byte limit exceeded");
-        bytes += pattern.length;
+      const maxPatternBytes = limits.maxPatternBytes;
+      if (maxPatternBytes !== Infinity) {
+        let bytes = 0;
+        for (let index = 0; index < d.patterns.length; index++) {
+          const pattern = d.patterns[index]!;
+          if (pattern.length > maxPatternBytes - bytes) fail("limit", "aggregate pattern byte limit exceeded");
+          bytes += pattern.length;
+        }
       }
       return d;
     }
@@ -168,22 +171,23 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     array(input.rows, limits.maxRows, "row");
   }
   if (selected.kind === "glob" && input.rows.length !== 0 && input.rows.length !== selected.patterns.length) fail("protocol", "invalid glob row count");
-  if (input.rows.length > Math.floor(limits.maxResultBytes / 16)) fail("limit", "result byte limit exceeded");
+  if (limits.maxResultBytes !== Infinity && input.rows.length > Math.floor(limits.maxResultBytes / 16)) fail("limit", "result byte limit exceeded");
   let bytes = 0;
+  const maxInputBytes = limits.maxInputBytes;
   const knownTrustedRows = trusted && selected.kind !== "glob" && trustedInputRows.has(input.rows);
   let allTrustedRows = trusted && selected.kind !== "glob";
   if (knownTrustedRows) {
     for (let index = 0; index < input.rows.length; index++) {
       const r = input.rows[index]! as Row & { start?: number; searchEnd?: number };
       const length = typeof r.searchEnd === "number" ? r.searchEnd - r.start! : r.bytes.byteLength;
-      if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
+      if (maxInputBytes !== Infinity && length > maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
       bytes += length;
     }
   } else for (let index = 0; index < input.rows.length; index++) {
     const row = input.rows[index]!;
     if (allTrustedRows && row && row.bytes instanceof Uint8Array && typeof row.all === "boolean" && typeof row.terminated === "boolean" && !Object.hasOwn(row, "directory") && !Object.hasOwn(row, "ancestors")) {
       const length = row.bytes.byteLength;
-      if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
+      if (maxInputBytes !== Infinity && length > maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
       bytes += length;
       continue;
     }
@@ -195,7 +199,7 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     if (selected.kind !== "glob" && (Object.hasOwn(row, "directory") || Object.hasOwn(row, "ancestors"))) fail("protocol", "unexpected glob row flags");
     const length = byteLength.call(row.bytes) as number;
     if (selected.kind === "glob" && (row.all || length % 2 !== 0)) fail("protocol", "invalid glob row");
-    if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
+    if (maxInputBytes !== Infinity && length > maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
     bytes += length;
   }
   if (allowSharedLedger && knownTrustedRows) {
@@ -609,8 +613,10 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
 }
 
 interface CachedLiteralPrograms {
-  readonly key: string;
+  readonly kind: SelectionDescriptor["kind"];
   readonly fold: boolean;
+  readonly nullData: boolean;
+  readonly pattern0: string;
   readonly programs: readonly LiteralProgram[];
   readonly work: number;
   readonly patternBytes: number;
@@ -666,7 +672,9 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     ? reusableDirectMatchesByLength[rows.length]!
     : new Array(rows.length);
   let matchCount = 0;
-  const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
+  const maxMatches = input.limits.maxTotalMatches === Infinity && input.limits.maxResultBytes === Infinity
+    ? 0x3fffffff
+    : Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
   const leftmostFirst = selected.kind === "rg";
   const word = selected.word;
   for (let r = 0; r < rows.length; r++) {
@@ -779,11 +787,16 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   for (let i = 0; i < rows.length; i++) {
     if (rows[i]!.all) return undefined;
   }
-  const cacheKey = selected.patterns.length === 1 && selected.patterns[0]!.length <= 128
-    ? `${selected.kind}:${fold ? 1 : 0}:${selected.kind === "rg" && selected.nullData ? 1 : 0}:${selected.patterns[0]}`
-    : undefined;
-  if (cacheKey === undefined) return undefined;
-  if (lastLiteralCache?.key !== cacheKey) {
+  if (selected.patterns.length !== 1) return undefined;
+  const pattern0 = selected.patterns[0]!;
+  if (pattern0.length > 128) return undefined;
+  const nullData = selected.kind === "rg" && selected.nullData;
+  if (
+    lastLiteralCache?.kind !== selected.kind ||
+    lastLiteralCache.fold !== fold ||
+    lastLiteralCache.nullData !== nullData ||
+    lastLiteralCache.pattern0 !== pattern0
+  ) {
     const snapBefore = ledger.usage;
     const compiled: LiteralProgram[] = [];
     for (const pattern of selected.patterns) {
@@ -796,8 +809,10 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
     }
     const snapAfter = ledger.usage;
     lastLiteralCache = {
-      key: cacheKey,
+      kind: selected.kind,
       fold,
+      nullData,
+      pattern0,
       programs: compiled,
       work: snapAfter.work - snapBefore.work,
       patternBytes: snapAfter.patternBytes - snapBefore.patternBytes,
@@ -829,7 +844,9 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
     ? reusableDirectMatchesByLength[rows.length]!
     : new Array(rows.length);
   let matchCount = 0;
-  const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
+  const maxMatches = input.limits.maxTotalMatches === Infinity && input.limits.maxResultBytes === Infinity
+    ? 0x3fffffff
+    : Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
   for (let r = 0; r < rows.length; r++) {
     const row = rows[r]! as Row & { chunk?: Uint8Array; start?: number; searchEnd?: number };
     const hasRange = row.chunk !== undefined && typeof row.start === "number" && typeof row.searchEnd === "number";
@@ -912,13 +929,15 @@ function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undef
 
 async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: boolean): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
-  const cacheKey = selected.patterns.length === 1 && selected.patterns[0]!.length <= 128
-    ? `${selected.kind}:${fold ? 1 : 0}:${selected.kind === "rg" && selected.nullData ? 1 : 0}:${selected.patterns[0]}`
-    : undefined;
+  const pattern0 = selected.patterns.length === 1 && selected.patterns[0]!.length <= 128 ? selected.patterns[0]! : undefined;
+  const nullData = selected.kind === "rg" && selected.nullData;
   let programs: readonly LiteralProgram[];
   if (
-    cacheKey !== undefined &&
-    lastLiteralCache?.key === cacheKey &&
+    pattern0 !== undefined &&
+    lastLiteralCache?.kind === selected.kind &&
+    lastLiteralCache.fold === fold &&
+    lastLiteralCache.nullData === nullData &&
+    lastLiteralCache.pattern0 === pattern0 &&
     ledger.workAllowanceUntilCheckpoint(signal) >= lastLiteralCache.work
   ) {
     ledger.charge("work", lastLiteralCache.work, signal);
@@ -937,11 +956,13 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
       compiled.push("bytes" in progOrPromise ? progOrPromise : await progOrPromise);
     }
     programs = compiled;
-    if (cacheKey !== undefined) {
+    if (pattern0 !== undefined) {
       const snapAfter = ledger.usage;
       lastLiteralCache = {
-        key: cacheKey,
+        kind: selected.kind,
         fold,
+        nullData,
+        pattern0,
         programs,
         work: snapAfter.work - snapBefore.work,
         patternBytes: snapAfter.patternBytes - snapBefore.patternBytes,

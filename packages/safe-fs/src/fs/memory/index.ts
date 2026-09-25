@@ -134,6 +134,7 @@ class MemoryCache {
 }
 
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
+const emptyResolveOptions: ResolveOptions = Object.freeze({});
 const preferredIoBlockSize = 64 * 1024;
 const ext4HtreeEof64 = (1n << 63n) - 1n;
 const extractionStreamGuard = Symbol("extractionStreamGuard");
@@ -268,15 +269,27 @@ export class MemoryFileSystem implements FileSystem {
         return [...node.entries.keys()];
       },
     }, () => {
-      if (Object.getPrototypeOf(this) !== MemoryFileSystem.prototype
-        || Object.getOwnPropertyDescriptor(this, "root")?.value !== root
-        || Object.getOwnPropertyDescriptor(this, "ledger")?.value !== ownedStores.get(this)?.ledger
-        || Object.getOwnPropertyDescriptor(this, "capabilities")?.value !== ownedStores.get(this)?.capabilities) return false;
-      return Object.entries(memoryImplementation).every(([name, expected]) => {
-        const actual = Object.getOwnPropertyDescriptor(this, name)
-          ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
-        return actual?.value === expected.value && actual?.get === expected.get && actual?.set === expected.set;
-      });
+      if (
+        Object.getPrototypeOf(this) !== MemoryFileSystem.prototype ||
+        this.root !== root ||
+        this.ledger !== ownedStores.get(this)?.ledger ||
+        this.capabilities !== ownedStores.get(this)?.capabilities
+      ) {
+        return false;
+      }
+      const proto = MemoryFileSystem.prototype as unknown as Record<string, unknown>;
+      for (let i = 0; i < memoryImplementationKeys.length; i++) {
+        const name = memoryImplementationKeys[i]!;
+        const expected = memoryImplementationDescriptors[i]!;
+        if (Object.prototype.hasOwnProperty.call(this, name)) {
+          const actual = Object.getOwnPropertyDescriptor(this, name);
+          if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return false;
+        } else if (expected.get !== undefined || expected.set !== undefined || proto[name] !== expected.value) {
+          const actual = Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+          if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return false;
+        }
+      }
+      return true;
     });
     if (this.compareEntry === memoryImplementation.compareEntry?.value) {
       registeredAuthorities.add(this);
@@ -430,7 +443,8 @@ export class MemoryFileSystem implements FileSystem {
 
   private admitSize(node: FileNode | undefined, length: number, syscall: string, path: string): void {
     this.ledger.fileSize(length, syscall, path);
-    if (length - (node?.byteLength ?? 0) > (this.ledger.limits.maxBytes ?? Number.MAX_SAFE_INTEGER) - this.totalBytes) {
+    const maxBytes = this.ledger.limits.maxBytes;
+    if (maxBytes !== undefined && length - (node?.byteLength ?? 0) > maxBytes - this.totalBytes) {
       this.fail("ENOSPC", syscall, path);
     }
   }
@@ -459,11 +473,11 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private changed(node: MemoryNode): void {
-    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
+    node.revision = node.revision < 1073741823 ? (node.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     node.mtimeMs = node.ctimeMs = Date.now();
   }
 
-  private resolve(path: string, syscall: string, options: ResolveOptions = {}): Location {
+  private resolve(path: string, syscall: string, options: ResolveOptions = emptyResolveOptions): Location {
     this.validatePath(path, syscall);
     if (this.symlinkCount === 0 && options.createDirectories === undefined && options.resizeCreate === undefined
       && options.resolutionSteps === undefined && isCleanAbsolutePath(path)) {
@@ -563,6 +577,43 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private file(path: string, syscall: string): FileNode {
+    if (this.symlinkCount === 0 && isCleanAbsolutePath(path)) {
+      const fastDir = this.#lastFastDirNode;
+      const fastPrefix = this.#lastFastDirPrefix;
+      if (fastDir !== undefined && fastPrefix.length > 0 && path.startsWith(fastPrefix)) {
+        const name = path.slice(fastPrefix.length);
+        if (name.length > 0 && !name.includes("/")) {
+          if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+          const node = fastDir.entries.get(name);
+          if (!node) this.fail("ENOENT", syscall, path);
+          if (node.type !== "file") this.fail("EISDIR", syscall, path);
+          return node;
+        }
+      }
+      let current: DirectoryNode = this.root;
+      let start = 1;
+      while (true) {
+        this.permission(current, 1, syscall, path);
+        const slash = path.indexOf("/", start);
+        if (slash === -1) {
+          this.#lastFastDirPrefix = path.slice(0, start);
+          this.#lastFastDirNode = current;
+          const name = path.slice(start);
+          if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+          const node = current.entries.get(name);
+          if (!node) this.fail("ENOENT", syscall, path);
+          if (node.type !== "file") this.fail("EISDIR", syscall, path);
+          return node;
+        }
+        const name = path.slice(start, slash);
+        if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+        const next = current.entries.get(name);
+        if (!next) this.fail("ENOENT", syscall, path);
+        if (next.type !== "directory") this.fail("ENOTDIR", syscall, path);
+        current = next;
+        start = slash + 1;
+      }
+    }
     const node = this.resolve(path, syscall).node!;
     if (node.type !== "file") this.fail("EISDIR", syscall, path);
     return node;
@@ -593,18 +644,44 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private snapshot(node: MemoryNode): FileStat {
+    const hasRev = Number.isSafeInteger(node.revision);
+    const hasScope = ownedStores.get(this)?.intact() === true;
+    const size = node.type === "file" ? node.byteLength
+      : node.type === "symlink" ? new TextEncoder().encode(node.target).byteLength : 0;
+    const nlink = node.type === "directory" && node.nlink !== 0
+      ? this.directoryNlink(node) : node.nlink;
+    if (hasRev && hasScope) {
+      return {
+        type: node.type,
+        filesystemType: "memory",
+        ioBlockSize: preferredIoBlockSize,
+        revision: node.revision,
+        preferredIoBlockSize: 4096,
+        size,
+        mode: node.mode,
+        identityScope: this.identityScope,
+        ino: node.ino,
+        dev: 0,
+        uid: 0,
+        gid: 0,
+        nlink,
+        atimeMs: node.atimeMs,
+        mtimeMs: node.mtimeMs,
+        ctimeMs: node.ctimeMs,
+        birthtimeMs: node.birthtimeMs,
+      };
+    }
     return {
       type: node.type,
       filesystemType: "memory",
       ioBlockSize: preferredIoBlockSize,
-      ...(Number.isSafeInteger(node.revision) ? { revision: node.revision } : {}),
+      ...(hasRev ? { revision: node.revision } : {}),
       preferredIoBlockSize: 4096,
-      size: node.type === "file" ? node.byteLength
-        : node.type === "symlink" ? new TextEncoder().encode(node.target).byteLength : 0,
-      mode: node.mode, ...(ownedStores.get(this)?.intact() ? { identityScope: this.identityScope } : {}),
+      size,
+      mode: node.mode,
+      ...(hasScope ? { identityScope: this.identityScope } : {}),
       ino: node.ino, dev: 0, uid: 0, gid: 0,
-      nlink: node.type === "directory" && node.nlink !== 0
-        ? this.directoryNlink(node) : node.nlink,
+      nlink,
       atimeMs: node.atimeMs, mtimeMs: node.mtimeMs, ctimeMs: node.ctimeMs, birthtimeMs: node.birthtimeMs,
     };
   }
@@ -1503,6 +1580,10 @@ export class MemoryFileSystem implements FileSystem {
     if (expectedParent !== undefined) this.expectEntry(location.parent, expectedParent, path, false);
     if (expectedNode !== undefined) this.expectEntry(location.node, expectedNode, path, location.node?.type !== "directory");
     const node = location.node!;
+    if (node.type === "directory") {
+      this.#lastFastDirPrefix = "";
+      this.#lastFastDirNode = undefined;
+    }
     node.mode = typeModes[node.type] | permissions;
     node.ctimeMs = Date.now();
     node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
@@ -1768,6 +1849,8 @@ export class MemoryFileSystem implements FileSystem {
 }
 
 const memoryImplementation = Object.getOwnPropertyDescriptors(MemoryFileSystem.prototype);
+const memoryImplementationKeys = Object.keys(memoryImplementation);
+const memoryImplementationDescriptors = memoryImplementationKeys.map(key => memoryImplementation[key]!);
 const MEMORY_DESCRIPTOR_CAPABILITIES = Object.freeze({
   noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile" as const, position: true,
 });

@@ -8,7 +8,8 @@ export class MemoryLedger {
   constructor(readonly limits: Readonly<MemoryFileSystemLimits>) {}
 
   get availableBytes(): number {
-    return this.limits.maxRetainedBytes - this.retainedBytes;
+    const max = this.limits.maxRetainedBytes;
+    return max === Infinity ? Infinity : max - this.retainedBytes;
   }
 
   fileSize(length: number, syscall: string, path: string): void {
@@ -18,8 +19,12 @@ export class MemoryLedger {
   }
 
   check(bytes: number, units: number, syscall: string, path: string): void {
-    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.availableBytes ||
-      !Number.isSafeInteger(units) || units < 0 || units > this.limits.maxMetadataUnits - this.metadataUnits) {
+    const maxRetained = this.limits.maxRetainedBytes;
+    const maxUnits = this.limits.maxMetadataUnits;
+    if (!Number.isSafeInteger(bytes) || bytes < 0 ||
+      (maxRetained !== Infinity && bytes > maxRetained - this.retainedBytes) ||
+      !Number.isSafeInteger(units) || units < 0 ||
+      (maxUnits !== Infinity && units > maxUnits - this.metadataUnits)) {
       throw new FsError("ENOSPC", { syscall, path });
     }
   }

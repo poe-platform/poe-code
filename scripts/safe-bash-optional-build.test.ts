@@ -96,6 +96,21 @@ function fixture() {
 }
 
 describe("optional-owned compiled graph", () => {
+  it("keeps optional jobs exports bound to the core host after jobs enter the default shell", async () => {
+    const { volume, options } = fixture();
+    volume.mkdirSync(core + "/dist/shell/extensions/jobs", { recursive: true });
+    for (const suffix of ["js", "d.ts"]) {
+      volume.writeFileSync(core + `/dist/shell/extensions/jobs/index.${suffix}`, "export {};\n");
+      volume.appendFileSync(core + `/dist/optional.${suffix}`, 'export { jobsExtension } from "./shell/extensions/jobs/index.js";\n');
+    }
+    await expect(buildOptionalPackage(options)).resolves.toMatchObject({ status: 0 });
+    for (const suffix of ["js", "d.ts"]) {
+      expect(volume.readFileSync(optional + `/dist/opt-in/optional.${suffix}`, "utf8").toString())
+        .toContain('export { jobsExtension } from "@poe-platform/safe-bash/optional-host";');
+      expect(volume.existsSync(optional + `/dist/opt-in/shell/extensions/jobs/index.${suffix}`)).toBe(false);
+    }
+  });
+
   it("strips multiple trailing source maps on runtimes without Array.toReversed", async () => {
     const { volume, options } = fixture();
     const filename = core + "/dist/commands/yes/helper.js";

@@ -55,8 +55,8 @@ const addDeferredFunctionProperties = WeakSet.prototype.add.bind(deferredFunctio
 export const hostFunctionPropertyTables = new WeakSet<object>();
 type TrackedPropertyState = {
   revision: number;
-  measuredRevision?: number;
-  measuredDescriptors?: Array<[string, PropertyDescriptor]>;
+  measuredRevision: number | undefined;
+  measuredDescriptors: Array<[string, PropertyDescriptor]> | undefined;
 };
 const functionPropertyRevisions = new WeakMap<object, TrackedPropertyState>();
 const nativePropertyStateGet = WeakMap.prototype.get.bind(functionPropertyRevisions) as (value: object) => TrackedPropertyState | undefined;
@@ -371,7 +371,9 @@ export function isTrackedIntrinsicObject(value: object): boolean {
 
 function trackPropertyTable(properties: SandboxObject, array = false): SandboxObject {
   // Never expose the raw table: native callers must invalidate captures too.
-  const state: TrackedPropertyState = { revision: 0 };
+  // Own cache slots from construction: inherited fields must neither replace
+  // descriptor snapshots nor receive private state through prototype setters.
+  const state: TrackedPropertyState = { revision: 0, measuredRevision: undefined, measuredDescriptors: undefined };
   const data: TrackedPropertyData = {
     backing: properties, array, allScalarUnits: 0, enumerableScalarUnits: 0,
     nonScalarProperties: 0, symbols: undefined, descriptors: undefined, strings: undefined, elements: undefined

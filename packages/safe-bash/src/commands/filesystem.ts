@@ -1169,7 +1169,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         return quoted + '"';
       };
       const operands = parsed.operands.length ? parsed.operands : ["."];
-      interface ListingEntry { path: string; display: string; stat: FileStat }
+      interface ListingEntry { path: string; display: string; stat: FileStat | Pick<FileStat, "type"> }
       let outputWritten = false;
       const inspect = async (path: string, display: string, operand = false): Promise<ListingEntry> => {
         await admitFilesystemModes(context, "ls", ["entry"], [path]);
@@ -1190,6 +1190,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (sort !== "name" || !lexical) entries.sort((left, right) => {
           context.signal.throwIfAborted();
           if (sort === "time" || sort === "size") {
+            if (!("size" in left.stat) || !("size" in right.stat)) throw new Error("ls metadata sorting requires file stats");
             const key = sort === "time" ? timeKey : "size";
             if (left.stat[key] > right.stat[key]) return -1;
             if (left.stat[key] < right.stat[key]) return 1;
@@ -1217,16 +1218,20 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const tenths = (bytes * 10n + scale - 1n) / scale;
         return (tenths < 100n ? `${tenths / 10n}.${tenths % 10n}` : String((bytes + scale - 1n) / scale)) + units[unit]!;
       };
-      const suffixFor = (stat: FileStat): string => {
+      const suffixFor = (stat: ListingEntry["stat"]): string => {
         if (stat.type === "directory" && indicator !== "none") return "/";
         if ((indicator === "file-type" || indicator === "classify") && stat.type === "symlink") return "@";
-        if (indicator === "classify" && stat.type === "file" && stat.mode & 0o111) return "*";
+        if (indicator === "classify" && stat.type === "file") {
+          if (!("mode" in stat)) throw new Error("ls file classification requires file stats");
+          if (stat.mode & 0o111) return "*";
+        }
         return "";
       };
       const render = async ({ path, display, stat }: ListingEntry): Promise<void> => {
         let suffix = suffixFor(stat);
-        const inode = parsed.flags.has("i") ? `${stat.ino ?? "?"} ` : "";
+        const inode = parsed.flags.has("i") ? `${"ino" in stat ? stat.ino ?? "?" : "?"} ` : "";
         if (parsed.flags.has("l")) {
+          if (!("size" in stat)) throw new Error("ls long listing requires file stats");
           let size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
           const date = new Date(stat[timeKey]).toISOString().slice(0, 16).replace("T", " ");
           let target = "";
@@ -1285,7 +1290,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
               children.push({
                 path: childPath,
                 display: name,
-                stat: name === "." ? stat : { type: entryType, size: 0, mode: entryType === "directory" ? 0o40755 : 0o100644, mtimeMs: 0 },
+                stat: name === "." ? stat : { type: entryType },
               });
             }
           }

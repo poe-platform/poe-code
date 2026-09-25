@@ -178,6 +178,26 @@ test("ls recursive metadata order reuses one observation per entry", async conte
   assert.deepEqual(calls.sort(), ["/work/root", "/work/root/child", "/work/root/child/leaf", "/work/root/older"]);
 });
 
+for (const [flags, directorySuffix, linkSuffix] of [
+  [["-R"], "", ""], [["-Rp"], "/", ""], [["-R", "--file-type"], "/", "@"],
+] as const) test(`ls ${flags.join(" ")} traverses directory entries without per-child stats`, async context => {
+  const fs = await fixture({ "root/child/leaf": "", "root/file": "" });
+  await fs.symlink("file", "/work/root/link");
+  const lstat = fs.lstat.bind(fs);
+  const calls: string[] = [];
+  context.mock.method(fs, "lstat", async (path: string, options?: FsOptions) => {
+    calls.push(path);
+    assert.equal(path, "/work/root", "names-only listing must not request child metadata");
+    return lstat(path, options);
+  });
+  context.mock.method(fs, "stat", async () => assert.fail("unexpected dereference"));
+  const result = await run("ls", [...flags, "root"], { fs });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, `root:\nchild${directorySuffix}\nfile\nlink${linkSuffix}\n\nroot/child:\nleaf\n`);
+  assert.deepEqual(calls, ["/work/root"]);
+});
+
 test("ls ignores hidden entries before collecting sort metadata", async context => {
   const fs = await sortableFixture();
   await fs.writeFile("/work/.hidden", new Uint8Array());

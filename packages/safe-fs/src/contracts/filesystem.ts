@@ -219,6 +219,8 @@ export interface ConditionalWriteFileOptions extends FsOptions {
   readonly expected: FileStat | null;
   readonly append?: boolean;
   readonly mode?: number;
+  readonly atimeMs?: number;
+  readonly mtimeMs?: number;
 }
 
 export interface ConditionalRemoveEntryOptions extends FsOptions {

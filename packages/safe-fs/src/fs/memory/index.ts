@@ -914,8 +914,12 @@ export class MemoryFileSystem implements FileSystem {
     this.expectEntry(location.parent, options.parent, path, false);
     this.expectEntry(location.node, options.expected, path);
     if (location.node && location.node.type !== "file") this.fail("EINVAL", "writeFileConditional", path);
-    this.writeData(path, data, { ...(options.mode === undefined ? {} : { mode: options.mode }), flag: options.append ? "a" : "w" }, "writeFileConditional");
-    return Object.freeze(this.snapshot(location.parent.entries.get(location.name)!));
+    if (options.atimeMs !== undefined) this.integer(options.atimeMs, "writeFileConditional", path);
+    if (options.mtimeMs !== undefined) this.integer(options.mtimeMs, "writeFileConditional", path);
+    const node = this.writeData(path, data, { ...(options.mode === undefined ? {} : { mode: options.mode }), flag: options.append ? "a" : "w" }, "writeFileConditional");
+    if (options.atimeMs !== undefined) node.atimeMs = options.atimeMs;
+    if (options.mtimeMs !== undefined) node.mtimeMs = options.mtimeMs;
+    return Object.freeze(this.snapshot(node));
   }
 
   removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions & { readonly returnRemainingStat?: false | undefined }): Promise<void>;

@@ -25,9 +25,14 @@ export function unchangedZipSource(before: FileStat, after: FileStat): boolean {
     && (!hasZipIdentity(before) || sameZipIdentity(before, after));
 }
 
-export async function safeZipFile(scope: ZipScope, path: string, stat: FileStat): Promise<boolean> {
+export async function safeZipFile(scope: ZipScope, path: string, stat: FileStat, allowHardlinked = false): Promise<boolean> {
   if (stat.type !== "file" || !hasZipIdentity(stat)) return false;
-  if (stat.nlink !== undefined) return stat.nlink === 1;
+  if (stat.nlink !== undefined) {
+    if (stat.nlink === 1) return true;
+    if (!allowHardlinked || stat.nlink < 1 || !hasPosixIdentity(stat)) return false;
+    const capabilities = await scope.operation(() => scope.context.fs.capabilitiesFor?.(path, { signal: scope.context.signal }) ?? scope.context.fs.capabilities);
+    return capabilities.hardlinks === true && capabilities.atomicFileMutation === true && typeof scope.context.fs.writeFileConditional === "function";
+  }
   const capabilities = await scope.operation(() => scope.context.fs.capabilitiesFor?.(path, { signal: scope.context.signal }) ?? scope.context.fs.capabilities);
   return stat.opaqueIdentity !== undefined && capabilities.hardlinks === false;
 }
@@ -300,6 +305,17 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
     }
     const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
     if (parent !== prepared.parent) fail("archive parent changed before publication");
+    if (prepared.existing && (prepared.existing.nlink ?? 1) > 1) {
+      if (capabilities.atomicFileMutation !== true || !fs.writeFileConditional) fail("ZIP hardlinked archive update requires conditional in-place file mutation");
+      const stagedBytes = await scope.operation(() => fs.readFile(staging.file.path, { signal, ...(Number.isFinite(scope.limits.maxArchiveBytes) ? { maxBytes: scope.limits.maxArchiveBytes } : {}) }));
+      const receipt = await scope.operation(() => fs.writeFileConditional!(prepared.output, stagedBytes, {
+        signal, parent: prepared.parentStat, expected: prepared.existing!,
+        ...(capabilities.permissions !== false ? { mode: prepared.existing!.mode & 0o7777 } : {}),
+        ...(prepared.mtimeMs === undefined ? {} : { mtimeMs: prepared.mtimeMs, atimeMs: prepared.mtimeMs }),
+      }));
+      if (prepared.mtimeMs !== undefined && (receipt.mtimeMs !== prepared.mtimeMs || receipt.atimeMs !== prepared.mtimeMs)) fail("ZIP publication did not retain archive modification time");
+      return;
+    }
     await scope.operation(() => fs.publishStagedFile!(staging, prepared.output, {
       signal, parent: prepared.parentStat, destination: prepared.existing ?? null,
     }));

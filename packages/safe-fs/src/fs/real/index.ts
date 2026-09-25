@@ -417,7 +417,7 @@ export class RealFileSystem implements FileSystem {
       options.signal?.throwIfAborted();
       this.expectStaging(dirname(target), options.parent, true);
       const existing = this.expectStaging(target, options.expected);
-      if (existing && (existing.type !== "file" || existing.nlink !== 1)) throw new FsError("EAGAIN");
+      if (existing && existing.type !== "file") throw new FsError("EAGAIN");
       const fd = immediate.openSync(target, constants.O_WRONLY | constants.O_NOFOLLOW | (existing ? 0 : constants.O_CREAT | constants.O_EXCL), options.mode ?? 0o666);
       try {
         if (!options.append) immediate.ftruncateSync(fd, 0);
@@ -429,6 +429,10 @@ export class RealFileSystem implements FileSystem {
           written += count; offset += count;
         }
         if (options.mode !== undefined) immediate.fchmodSync(fd, options.mode);
+        if (options.atimeMs !== undefined || options.mtimeMs !== undefined) {
+          const stat = immediate.fstatSync(fd);
+          immediate.futimesSync(fd, (options.atimeMs ?? stat.atimeMs) / 1000, (options.mtimeMs ?? stat.mtimeMs) / 1000);
+        }
         return fileStat(immediate.fstatSync(fd, { bigint: true }));
       } finally { immediate.closeSync(fd); }
     } catch (error) { options.signal?.throwIfAborted(); throw new FsError(nativeError(error).code, { syscall: "writeFileConditional", path }); }

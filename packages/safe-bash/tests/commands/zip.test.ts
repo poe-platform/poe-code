@@ -163,8 +163,18 @@ test("zip source failure, limits, and unsafe aliases never destroy an existing a
   assert.notEqual((await run(fs, ["bundle", "tree/child"], { limits: { maxEntryBytes: 512 } })).exitCode, 0);
   assert.deepEqual(await fs.readFile("/work/bundle.zip"), before);
   await fs.link!("/work/bundle.zip", "/work/hard.zip");
-  assert.notEqual((await run(fs, ["bundle", "file"])).exitCode, 0);
+  const noInPlace = wrapped(fs, { writeFileConditional: undefined as never });
+  assert.notEqual((await run(noInPlace, ["bundle", "file"])).exitCode, 0);
   assert.deepEqual(await fs.readFile("/work/hard.zip"), before);
+  await fs.writeFile("/work/file", Buffer.from("updated longer contents\n"));
+  assert.equal((await run(fs, ["bundle", "file"])).exitCode, 0);
+  const bundleStat = await fs.lstat("/work/bundle.zip");
+  const hardStat = await fs.lstat("/work/hard.zip");
+  assert.equal(bundleStat.ino, hardStat.ino);
+  assert.equal(bundleStat.nlink, 2);
+  assert.equal(hardStat.nlink, 2);
+  assert.deepEqual(await fs.readFile("/work/hard.zip"), await fs.readFile("/work/bundle.zip"));
+  assert.notDeepEqual(await fs.readFile("/work/hard.zip"), before);
 });
 
 test("zip preserves falsey cancellation reasons during source reads", async () => {

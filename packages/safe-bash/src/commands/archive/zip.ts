@@ -591,9 +591,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     }
   }
   if ((parsed.action === "copy" || parsed.showFiles !== undefined && !parsed.operands.length || parsed.output !== undefined && parsed.archive !== "-") && !existing) throw new ZipFailure(18, "File not found or no read permission", parsed.archive);
-  if (publication?.existing && !await safeZipFile(scope, publication.output, publication.existing)) fail("output archive requires a regular, single-link file with known backing identity");
+  const allowHardlinkedUpdate = !parsed.split && parsed.output === undefined;
+  if (publication?.existing && !await safeZipFile(scope, publication.output, publication.existing, allowHardlinkedUpdate)) fail("output archive requires a regular, single-link file with known backing identity");
   if (parsed.archive === "-" && parsed.test && !parsed.quiet) await budget.output("\tzip warning: can't use -T on stdout, -T ignored\n");
-  if (existing && !await safeZipFile(scope, input!, existing)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
+  if (existing && !await safeZipFile(scope, input!, existing, allowHardlinkedUpdate)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
   let archive: ZipArchive = { entries: [], comment: new Uint8Array() };
   let originalBytes: Uint8Array | undefined;
   let inputPaths: readonly string[] = [];

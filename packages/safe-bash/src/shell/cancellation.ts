@@ -1,4 +1,4 @@
-import { abortManagedController, addAbortSignalWaiter, isManagedAbortSignal, registerManagedAbortSignal } from "../fs/creation-mask.js";
+import { abortManagedController, addAbortSignalWaiter, isManagedAbortSignal, isManagedControlSignal, registerManagedAbortSignal } from "../fs/creation-mask.js";
 
 const cancellationAdmissionClosedError = new Error("Cancellation admission is closed");
 const cancellationAlreadyActivatedError = new Error("Prepared cancellation admission was already activated");
@@ -173,6 +173,7 @@ class Prepared implements PreparedChildCancellation {
 }
 
 function nativeSignal(value: unknown): value is AbortSignal {
+  if (isManagedControlSignal(value)) return true;
   if (!nativeAbortedGetter) return false;
   try {
     Reflect.apply(nativeAbortedGetter, value, []);
@@ -183,6 +184,7 @@ function nativeSignal(value: unknown): value is AbortSignal {
 }
 
 function signalAborted(signal: AbortSignal): boolean {
+  if (isManagedControlSignal(signal)) return signal.aborted;
   return Boolean(Reflect.apply(nativeAbortedGetter!, signal, []));
 }
 

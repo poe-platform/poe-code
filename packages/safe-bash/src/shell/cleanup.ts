@@ -18,6 +18,9 @@ export class InvocationScope {
   #controller: AbortController | undefined;
   #closed = false;
   #drain: Promise<void> | undefined;
+  #closingSync = false;
+  #reentrantResolve: (() => void) | undefined;
+  #reentrantReject: ((reason: unknown) => void) | undefined;
 
   constructor(
     readonly callerSignal?: AbortSignal,
@@ -122,6 +125,14 @@ export class InvocationScope {
   }
 
   close(): Promise<void> {
+    if (this.#drain) return this.#drain;
+    if (this.#closingSync) {
+      this.#drain = new Promise<void>((accept, refuse) => {
+        this.#reentrantResolve = accept;
+        this.#reentrantReject = refuse;
+      });
+      return this.#drain;
+    }
     if (!this.#drain) {
       if (!this.#controller && !this.#finalizers?.length && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         this.#drain = resolvedVoid;
@@ -129,9 +140,7 @@ export class InvocationScope {
         if (this.parent) this.parent.#children?.delete(this);
         return resolvedVoid;
       }
-      let resolve!: () => void;
-      let reject!: (reason: unknown) => void;
-      this.#drain = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
+      this.#closingSync = true;
       this.#seal();
       if (!this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         let asyncFinalizers: Promise<unknown>[] | undefined;
@@ -149,18 +158,29 @@ export class InvocationScope {
             catch (error) { this.failures.push(error); }
           }
         }
+        this.#closingSync = false;
         if (asyncFinalizers) {
-          void Promise.all(asyncFinalizers).then(() => {
+          const done = Promise.all(asyncFinalizers).then(() => {
             if (this.parent) this.parent.#children?.delete(this);
-          }).then(resolve, reject);
+          });
+          if (this.#drain) {
+            void done.then(this.#reentrantResolve, this.#reentrantReject);
+          } else {
+            this.#drain = done;
+          }
           return this.#drain;
         }
         if (this.parent) this.parent.#children?.delete(this);
-        resolve();
-        Object.defineProperty(this.#drain, syncResolved, { value: true });
-        return this.#drain;
+        if (this.#drain) {
+          this.#reentrantResolve?.();
+          Object.defineProperty(this.#drain, syncResolved, { value: true });
+          return this.#drain;
+        }
+        this.#drain = resolvedVoid;
+        return resolvedVoid;
       }
-      void Promise.resolve().then(async () => {
+      this.#closingSync = false;
+      const done = Promise.resolve().then(async () => {
         const callbacks = this.#callbacks ? [...this.#callbacks.values()] : [];
         this.#callbacks?.clear();
         try {
@@ -181,7 +201,12 @@ export class InvocationScope {
           }
           if (this.parent) this.parent.#children?.delete(this);
         }
-      }).then(resolve, reject);
+      });
+      if (this.#drain) {
+        void done.then(this.#reentrantResolve, this.#reentrantReject);
+      } else {
+        this.#drain = done;
+      }
     }
     return this.#drain;
   }

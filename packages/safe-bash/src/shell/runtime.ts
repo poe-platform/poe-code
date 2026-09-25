@@ -963,6 +963,7 @@ class PipelineClosed extends Error {
   readonly code = "EPIPE";
   constructor() { super("Pipeline consumer exited"); }
 }
+const SHARED_PIPELINE_CLOSED = new PipelineClosed();
 
 function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   const ownership = budgetedSinks.get(sink);
@@ -1878,7 +1879,7 @@ class InvocationCancellationOwner implements CancellationAdmissionOwner {
 
 const mapfileCallbackStates = new WeakSet<State>();
 const runtimeFileSystems = new WeakMap<FileSystem, FileSystem>();
-import { abortManagedController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem } from "../fs/creation-mask.js";
+import { abortManagedController, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem, type ManagedControlController } from "../fs/creation-mask.js";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
@@ -4177,7 +4178,7 @@ export class Runtime {
         void work.then(settled, settled);
       };
       const pipes: ReturnType<typeof createBytePipe>[] = [];
-      const controllers: AbortController[] = [];
+      const controllers: ManagedControlController[] = [];
       const written = new Set<number>();
       const completed = new Set<number>();
       const closing = new Set<TurnHandle>();
@@ -4195,9 +4196,7 @@ export class Runtime {
           highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
         }));
         for (let index = 0; index < pipeline.commands.length; index++) {
-          const controller = new AbortController();
-          registerManagedAbortSignal(controller.signal);
-          controllers.push(controller);
+          controllers.push(createManagedControlController());
         }
         unsealScope = io[invocationScope].onSeal(() => {
           const closedReason = new Error("Invocation is closed");
@@ -4285,7 +4284,7 @@ export class Runtime {
                 () => { if (chunk.byteLength) written.add(index); },
                 (error) => {
                   if (errorCode(error) === "EPIPE") {
-                    const closed = new PipelineClosed();
+                    const closed = SHARED_PIPELINE_CLOSED;
                     abortManagedController(controllers[index]!, closed);
                     throw closed;
                   }
@@ -4294,7 +4293,7 @@ export class Runtime {
               );
             } catch (error) {
               if (errorCode(error) === "EPIPE") {
-                const closed = new PipelineClosed();
+                const closed = SHARED_PIPELINE_CLOSED;
                 abortManagedController(controllers[index]!, closed);
                 return Promise.reject(closed);
               }
@@ -4395,7 +4394,7 @@ export class Runtime {
                 const upstream = index - 1;
                 const close = scheduleTurn(() => {
                   closing.delete(close);
-                  if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, new PipelineClosed());
+                  if (written.has(upstream) && !completed.has(upstream)) abortManagedController(controllers[upstream]!, SHARED_PIPELINE_CLOSED);
                 });
                 closing.add(close);
                 try { await incoming.abort(); }
@@ -4455,7 +4454,7 @@ export class Runtime {
         unsealScope?.();
         try {
           for (const close of closing) cancelTurn(close);
-          for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) abortManagedController(controller, new PipelineClosed());
+          for (const [index, controller] of controllers.entries()) if (!completed.has(index) || written.has(index)) abortManagedController(controller, SHARED_PIPELINE_CLOSED);
           const aborts = pipes.map((pipe) => pipe.abort());
           for (const abort of aborts) retain(abort);
           await Promise.all(aborts);

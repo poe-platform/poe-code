@@ -21,7 +21,40 @@ export function isSyncResolved(promise: unknown): promise is Promise<never> {
 }
 
 const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
+const managedControlSignalSymbol = Symbol.for("safe-bash.managedControlSignal");
 const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
+
+export interface ManagedControlController {
+  readonly signal: AbortSignal;
+  abort(reason?: unknown): void;
+}
+
+class ManagedControlSignalImpl {
+  readonly [managedSignalSymbol] = true;
+  readonly [managedControlSignalSymbol] = true;
+  aborted = false;
+  reason: unknown = undefined;
+  throwIfAborted(): void {
+    if (this.aborted) throw this.reason;
+  }
+}
+
+export function createManagedControlController(): ManagedControlController {
+  const signal = new ManagedControlSignalImpl();
+  return {
+    signal: signal as unknown as AbortSignal,
+    abort(reason?: unknown): void {
+      if (signal.aborted) return;
+      signal.aborted = true;
+      signal.reason = reason !== undefined ? reason : new DOMException("This operation was aborted", "AbortError");
+      notifyAbortSignalWaiters(signal as unknown as AbortSignal, signal.reason);
+    },
+  };
+}
+
+export function isManagedControlSignal(value: unknown): value is AbortSignal {
+  return Boolean(value && typeof value === "object" && (value as Record<symbol, unknown>)[managedControlSignalSymbol]);
+}
 
 export function registerManagedAbortSignal(signal: AbortSignal): AbortSignal {
   (signal as unknown as Record<symbol, unknown>)[managedSignalSymbol] = true;
@@ -41,8 +74,12 @@ export function notifyAbortSignalWaiters(signal: AbortSignal, reason: unknown): 
   }
 }
 
-export function abortManagedController(controller: AbortController, reason?: unknown): void {
+export function abortManagedController(controller: { readonly signal: AbortSignal; abort(reason?: unknown): void }, reason?: unknown): void {
   const signal = controller.signal;
+  if ((signal as unknown as Record<symbol, unknown>)[managedControlSignalSymbol]) {
+    controller.abort(reason);
+    return;
+  }
   controller.abort(reason);
   notifyAbortSignalWaiters(signal, signal.reason);
 }

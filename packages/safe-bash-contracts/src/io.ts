@@ -215,9 +215,9 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     if (abortPromise) return abortPromise;
     if (finished) {
       if (observers) for (const observer of [...observers]) observer.aborted(reason);
-      return Promise.resolve();
+      return resolvedVoid;
     }
-    abortPromise = Promise.resolve();
+    abortPromise = resolvedVoid;
     failed = true;
     failure = reason;
     buffered.clear();
@@ -231,14 +231,16 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       removeWrite(request);
       request.reject(reason);
     }
-    (consumer ??= new AbortController()).abort(reason);
-    consumerAborted = true;
-    consumerReason = reason;
+    abortConsumer(reason);
     changed();
     cleanup();
     return abortPromise;
   };
-  const abort = (reason: unknown = new FsError("EPIPE", { syscall: "pipe" })): Promise<void> => fail(reason);
+  const abort = (reason?: unknown): Promise<void> => {
+    if (abortPromise) return abortPromise;
+    if (finished && !observers?.size) return resolvedVoid;
+    return fail(reason !== undefined ? reason : brokenPipe());
+  };
   const onAbort = (): void => { void fail(signal?.reason); };
   const probe = (endpoint: EndpointState): PipeEndpointObservation => {
     checkEndpoint(endpoint);

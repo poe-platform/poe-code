@@ -51,6 +51,9 @@ function isSyncResolved(promise: unknown): boolean {
 export class PipeDescriptorFrame {
   readonly references = new Set<PipeDescriptorReference>();
   #closing: Promise<void> | undefined;
+  #closingSync = false;
+  #reentrantResolve: (() => void) | undefined;
+  #reentrantReject: ((reason: unknown) => void) | undefined;
   #retireCleanup: (() => void) | undefined;
 
   constructor(readonly scope: InvocationScope) {}
@@ -83,46 +86,67 @@ export class PipeDescriptorFrame {
 
   close(): Promise<void> {
     if (this.#closing) return this.#closing;
+    if (this.#closingSync) {
+      this.#closing = new Promise<void>((accept, refuse) => {
+        this.#reentrantResolve = accept;
+        this.#reentrantReject = refuse;
+      });
+      return this.#closing;
+    }
     if (this.closeSyncIfEmpty()) return resolvedVoid;
-    let resolve!: () => void;
-    let reject!: (reason: unknown) => void;
-    this.#closing = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
+    this.#closingSync = true;
     let asyncWork: Promise<void>[] | undefined;
-    const failures: { reason: unknown }[] = [];
+    let failures: { reason: unknown }[] | undefined;
     let position = 0;
     for (const reference of this.references) {
       const index = position++;
       try {
         const pending = reference.close();
         if (!isSyncResolved(pending)) {
-          (asyncWork ??= []).push(pending.catch(reason => { failures[index] = { reason }; }));
+          (asyncWork ??= []).push(pending.catch(reason => { (failures ??= [])[index] = { reason }; }));
         }
       } catch (reason) {
-        failures[index] = { reason };
+        (failures ??= [])[index] = { reason };
       }
     }
+    this.#closingSync = false;
     if (!asyncWork) {
       this.references.clear();
       this.#retireCleanup?.();
-      if (failures.length > 0) {
+      if (failures && failures.length > 0) {
         try { throwCleanupFailures(failures.flatMap(failure => [failure.reason])); }
-        catch (err) { reject(err); return this.#closing; }
+        catch (err) {
+          if (this.#closing) {
+            this.#reentrantReject?.(err);
+            return this.#closing;
+          }
+          this.#closing = Promise.reject(err);
+          return this.#closing;
+        }
       }
-      resolve();
-      Object.defineProperty(this.#closing, syncResolved, { value: true });
-      return this.#closing;
+      if (this.#closing) {
+        this.#reentrantResolve?.();
+        Object.defineProperty(this.#closing, syncResolved, { value: true });
+        return this.#closing;
+      }
+      this.#closing = resolvedVoid;
+      return resolvedVoid;
     }
-    void Promise.all(asyncWork).then(() => {
+    const done = Promise.all(asyncWork).then(() => {
       this.references.clear();
-      throwCleanupFailures(failures.flatMap(failure => [failure.reason]));
+      if (failures) throwCleanupFailures(failures.flatMap(failure => [failure.reason]));
       this.#retireCleanup?.();
-    }).then(resolve, reject);
+    });
+    if (this.#closing) {
+      void done.then(this.#reentrantResolve, this.#reentrantReject);
+    } else {
+      this.#closing = done;
+    }
     return this.#closing;
   }
 }
 
 export function ownPipeDescriptor(endpoint: PipeReadEndpoint | PipeWriteEndpoint, budget: Budget): PipeDescriptorReference {
-  const close = endpoint.close.bind(endpoint);
   let references = 0;
   const acquire = (): PipeDescriptorReference => {
     const allocation = budget.values.scope();
@@ -130,43 +154,64 @@ export function ownPipeDescriptor(endpoint: PipeReadEndpoint | PipeWriteEndpoint
     catch (reason) { allocation.close(); throw reason; }
     references++;
     let closing: Promise<void> | undefined;
+    let closingSync = false;
+    let reentrantResolve: (() => void) | undefined;
+    let reentrantReject: ((reason: unknown) => void) | undefined;
     return {
       endpoint,
       acquire() {
-        if (closing) throw new FsError("EBADF", { syscall: "dup" });
+        if (closing || closingSync) throw new FsError("EBADF", { syscall: "dup" });
         return acquire();
       },
       close() {
         if (closing) return closing;
+        if (closingSync) {
+          closing = new Promise<void>((accept, refuse) => {
+            reentrantResolve = accept;
+            reentrantReject = refuse;
+          });
+          return closing;
+        }
         references--;
         if (references > 0) {
           closing = resolvedVoid;
           allocation.close();
           return resolvedVoid;
         }
-        let resolve!: () => void;
-        let reject!: (reason: unknown) => void;
-        closing = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
+        closingSync = true;
         let pending: Promise<void>;
         try {
-          pending = close();
+          pending = endpoint.close();
         } catch (reason) {
+          closingSync = false;
           allocation.close();
-          reject(reason);
+          if (closing) {
+            reentrantReject?.(reason);
+            return closing;
+          }
+          closing = Promise.reject(reason);
           return closing;
         }
+        closingSync = false;
         if (isSyncResolved(pending)) {
           allocation.close();
-          resolve();
-          Object.defineProperty(closing, syncResolved, { value: true });
-          return closing;
+          if (closing) {
+            reentrantResolve?.();
+            Object.defineProperty(closing, syncResolved, { value: true });
+            return closing;
+          }
+          closing = resolvedVoid;
+          return resolvedVoid;
         }
-        const finish = (failure?: { reason: unknown }): void => {
-          allocation.close();
-          if (failure) reject(failure.reason);
-          else resolve();
-        };
-        void pending.then(() => finish(), reason => finish({ reason }));
+        const done = pending.then(
+          () => { allocation.close(); },
+          reason => { allocation.close(); throw reason; },
+        );
+        if (closing) {
+          void done.then(reentrantResolve, reentrantReject);
+        } else {
+          closing = done;
+        }
         return closing;
       },
     };

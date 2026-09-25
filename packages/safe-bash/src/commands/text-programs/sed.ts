@@ -350,12 +350,40 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   let number = 0;
   let hold = "";
   let holdTerminated = true;
-  let stdoutBuffer = "";
+  const STDOUT_CAP = 32768;
+  let stdoutBuf: Buffer | undefined;
+  let stdoutLen = 0;
+  const sepCode = separator.charCodeAt(0) & 0xff;
+  const appendStdout = (text: string): void => {
+    const tLen = text.length;
+    if (tLen === 0) return;
+    if (!stdoutBuf) {
+      stdoutBuf = Buffer.allocUnsafe(Math.max(STDOUT_CAP, tLen + 1));
+    } else if (stdoutLen + tLen > stdoutBuf.length) {
+      const grown = Buffer.allocUnsafe(Math.max(stdoutBuf.length * 2, stdoutLen + tLen + 1));
+      stdoutBuf.copy(grown, 0, 0, stdoutLen);
+      stdoutBuf = grown;
+    }
+    stdoutBuf.write(text, stdoutLen, tLen, "latin1");
+    stdoutLen += tLen;
+  };
+  const appendStdoutSep = (): void => {
+    if (!stdoutBuf) {
+      stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+    } else if (stdoutLen + 1 > stdoutBuf.length) {
+      const grown = Buffer.allocUnsafe(stdoutBuf.length * 2);
+      stdoutBuf.copy(grown, 0, 0, stdoutLen);
+      stdoutBuf = grown;
+    }
+    stdoutBuf[stdoutLen++] = sepCode;
+  };
   const flushStdout = async (): Promise<void> => {
-    if (stdoutBuffer.length > 0) {
-      const chunk = stdoutBuffer;
-      stdoutBuffer = "";
-      await write(context, chunk);
+    if (stdoutLen > 0 && stdoutBuf) {
+      const chunk = stdoutBuf.subarray(0, stdoutLen);
+      stdoutBuf = undefined;
+      stdoutLen = 0;
+      context.signal.throwIfAborted();
+      await writeBytes(context.stdout, chunk, context.signal);
     }
   };
   const joinSpace = (left: string, right: string): string => {
@@ -363,10 +391,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     return left + separator + right;
   };
   const emit = (text: string, terminated = true): Promise<void> | undefined => {
-    if (outputState.stdoutUnterminated) stdoutBuffer += separator;
-    stdoutBuffer += text;
+    if (outputState.stdoutUnterminated) appendStdoutSep();
+    appendStdout(text);
     outputState.stdoutUnterminated = !terminated;
-    if (!useBatches || stdoutBuffer.length >= 16384) return flushStdout();
+    if (!useBatches || stdoutLen >= 24576) return flushStdout();
     return undefined;
   };
   let lastPattern: Pattern | undefined;
@@ -394,11 +422,11 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   let quit = false;
   let status = 0;
   const print = (): Promise<void> | undefined => {
-    if (outputState.stdoutUnterminated) stdoutBuffer += separator;
-    stdoutBuffer += pattern;
-    if (record.terminated) stdoutBuffer += separator;
+    if (outputState.stdoutUnterminated) appendStdoutSep();
+    appendStdout(pattern);
+    if (record.terminated) appendStdoutSep();
     outputState.stdoutUnterminated = !record.terminated;
-    if (!useBatches || stdoutBuffer.length >= 16384) return flushStdout();
+    if (!useBatches || stdoutLen >= 24576) return flushStdout();
     return undefined;
   };
   const flushSlow = async (printPattern: boolean): Promise<void> => {
@@ -410,14 +438,14 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       if (p) await p;
     }
     if (outputState.stdoutUnterminated && (appended.length || quit)) {
-      stdoutBuffer += separator;
-      if (stdoutBuffer.length >= 16384) await flushStdout();
+      appendStdoutSep();
+      if (stdoutLen >= 24576) await flushStdout();
       outputState.stdoutUnterminated = false;
     }
     for (const item of appended) {
       if (item.text !== undefined) {
-        stdoutBuffer += item.text;
-        if (stdoutBuffer.length >= 16384) await flushStdout();
+        appendStdout(item.text);
+        if (stdoutLen >= 24576) await flushStdout();
         continue;
       }
       await flushStdout();
@@ -446,7 +474,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     return flushSlow(printPattern);
   };
   const writeFile = async (file: string): Promise<void> => {
-    if (stdoutBuffer.length > 0) await flushStdout();
+    if (stdoutLen > 0) await flushStdout();
     const path = virtualPath(context, file);
     const terminated = record.terminated || separator === "\n";
     const text = (outputState.unterminatedFiles.has(path) ? separator : "") + pattern + (terminated ? separator : "");
@@ -608,7 +636,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     }
     return { status: 0, quit: false };
   } finally {
-    if (stdoutBuffer.length > 0) await flushStdout();
+    if (stdoutLen > 0) await flushStdout();
     if (batchSource) await batchSource.return(undefined);
     else if (singleSource) await singleSource.return(undefined);
   }

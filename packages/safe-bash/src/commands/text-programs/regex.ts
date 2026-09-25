@@ -111,6 +111,7 @@ export class Pattern {
     readonly captured: boolean;
     readonly minimum: number;
     readonly accepts: (candidate: string) => boolean;
+    readonly ascii: Uint8Array;
   } | undefined;
   private backreferences = false;
 
@@ -395,13 +396,19 @@ export class Pattern {
           !repeatNode.lazy &&
           repeatNode.node.type === "character"
         ) {
+          const acceptsFn = repeatNode.node.accepts;
+          const ascii = new Uint8Array(128);
+          for (let c = 0; c < 128; c++) {
+            if (acceptsFn(String.fromCharCode(c))) ascii[c] = 1;
+          }
           this.simpleRepeatMatch = {
             prefix,
             anchoredStart,
             anchoredEnd,
             captured,
             minimum: repeatNode.minimum,
-            accepts: repeatNode.node.accepts,
+            accepts: acceptsFn,
+            ascii,
           };
         }
       }
@@ -486,7 +493,7 @@ export class Pattern {
     outOffsets: Int32Array,
   ): boolean {
     if (this.simpleRepeatMatch) {
-      const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts } = this.simpleRepeatMatch;
+      const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts, ascii } = this.simpleRepeatMatch;
       if (from > text.length || (anchoredStart && from > 0)) return false;
       let found = -1;
       let matchEnd = -1;
@@ -496,7 +503,11 @@ export class Pattern {
         if (text.startsWith(prefix)) {
           const pos = prefix.length;
           let cursor = pos;
-          while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+          while (cursor < text.length) {
+            const code = text.charCodeAt(cursor);
+            if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
+            cursor++;
+          }
           if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
             found = 0;
             matchEnd = cursor;
@@ -511,7 +522,11 @@ export class Pattern {
           if (idx < 0) break;
           const pos = idx + prefix.length;
           let cursor = pos;
-          while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+          while (cursor < text.length) {
+            const code = text.charCodeAt(cursor);
+            if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
+            cursor++;
+          }
           if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
             found = idx;
             matchEnd = cursor;
@@ -606,7 +621,7 @@ export class Pattern {
     budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>,
     from: number,
   ): Match | undefined | Promise<Match | undefined> {
-    const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts } = this.simpleRepeatMatch!;
+    const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts, ascii } = this.simpleRepeatMatch!;
     if (from > text.length || (anchoredStart && from > 0)) return undefined;
     let found = -1;
     let matchEnd = -1;
@@ -616,7 +631,11 @@ export class Pattern {
       if (text.startsWith(prefix)) {
         const pos = prefix.length;
         let cursor = pos;
-        while (cursor < text.length && accepts(text[cursor]!)) cursor++;
+        while (cursor < text.length) {
+          const code = text.charCodeAt(cursor);
+          if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
+          cursor++;
+        }
         if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
           found = 0;
           matchEnd = cursor;
@@ -957,6 +976,63 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
 
 const FAST_MATCH_OFFSETS = new Int32Array(4);
 const SYNC_SUB_RESULT = { text: "", count: 0 };
+interface SimpleReplacement {
+  readonly kind: "literal" | "singleRef";
+  readonly prefix: string;
+  readonly group: number;
+  readonly suffix: string;
+  readonly stepsPerExpansion: number;
+}
+const SIMPLE_REPLACEMENT_CACHE = new Map<string, SimpleReplacement | null>();
+
+function getSimpleReplacement(replacement: string, syntax: ReplacementSyntax): SimpleReplacement | null {
+  const key = syntax === "sed" ? replacement : `awk:${replacement}`;
+  const cached = SIMPLE_REPLACEMENT_CACHE.get(key);
+  if (cached !== undefined) return cached;
+  if (SIMPLE_REPLACEMENT_CACHE.size >= 128) SIMPLE_REPLACEMENT_CACHE.clear();
+  if (!replacement.includes("&") && !replacement.includes("\\")) {
+    const res: SimpleReplacement = { kind: "literal", prefix: replacement, group: -1, suffix: "", stepsPerExpansion: replacement.length * 2 + 1 };
+    SIMPLE_REPLACEMENT_CACHE.set(key, res);
+    return res;
+  }
+  if (syntax === "sed") {
+    let prefix = "";
+    let suffix = "";
+    let group = -1;
+    let steps = 1;
+    for (let i = 0; i < replacement.length; i++) {
+      steps++;
+      const ch = replacement[i]!;
+      if (ch === "&") {
+        if (group !== -1) { SIMPLE_REPLACEMENT_CACHE.set(key, null); return null; }
+        steps++;
+        group = 0;
+      } else if (ch === "\\" && i + 1 < replacement.length) {
+        steps++;
+        const next = replacement[++i]!;
+        if (next >= "0" && next <= "9") {
+          if (group !== -1) { SIMPLE_REPLACEMENT_CACHE.set(key, null); return null; }
+          steps++;
+          group = next.charCodeAt(0) - 48;
+        } else {
+          const decoded = next === "n" ? "\n" : next === "t" ? "\t" : next;
+          if (group === -1) prefix += decoded;
+          else suffix += decoded;
+        }
+      } else {
+        if (group === -1) prefix += ch;
+        else suffix += ch;
+      }
+    }
+    const res: SimpleReplacement = group === -1
+      ? { kind: "literal", prefix, group: -1, suffix: "", stepsPerExpansion: steps + prefix.length }
+      : { kind: "singleRef", prefix, group, suffix, stepsPerExpansion: steps + prefix.length + suffix.length };
+    SIMPLE_REPLACEMENT_CACHE.set(key, res);
+    return res;
+  }
+  SIMPLE_REPLACEMENT_CACHE.set(key, null);
+  return null;
+}
 
 function appendReplacementFromOffsetsSync(
   out: string,
@@ -969,11 +1045,23 @@ function appendReplacementFromOffsetsSync(
   budget: Budget,
   maxBufferBytes: number,
   syntax: ReplacementSyntax,
+  simpleRep = getSimpleReplacement(replacement, syntax),
 ): string {
-  if (!replacement.includes("&") && !replacement.includes("\\")) {
-    budget.step(replacement.length * 2 + 1);
-    if (out.length + replacement.length > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-    return out ? out + replacement : replacement;
+  if (simpleRep !== null) {
+    if (simpleRep.kind === "literal") {
+      budget.step(simpleRep.stepsPerExpansion);
+      if (out.length + simpleRep.prefix.length > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      return out ? out + simpleRep.prefix : simpleRep.prefix;
+    }
+    const gStart = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : -1;
+    const gEnd = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : -1;
+    const gLen = gStart >= 0 && gEnd > gStart ? gEnd - gStart : 0;
+    const addedLen = simpleRep.prefix.length + gLen + simpleRep.suffix.length;
+    budget.step(simpleRep.stepsPerExpansion + gLen);
+    if (out.length + addedLen > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    const gStr = gLen > 0 ? text.slice(gStart, gEnd) : "";
+    const expanded = simpleRep.suffix ? simpleRep.prefix + gStr + simpleRep.suffix : simpleRep.prefix + gStr;
+    return out ? out + expanded : expanded;
   }
   const initialOutLen = out.length;
   let literalStart = 0;

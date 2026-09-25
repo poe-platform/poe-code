@@ -16,7 +16,7 @@ export interface GrepLimits {
 
 
 interface GrepLine extends Line {
-  readonly raw?: Uint8Array;
+  readonly all: boolean;
 }
 
 async function* grepLineBatches(
@@ -24,6 +24,7 @@ async function* grepLineBatches(
   separator: number,
   maxLineBytes: number,
   maxRecords: () => number,
+  all = false,
 ): AsyncGenerator<GrepLine[]> {
   const pending = new RecordBuffer(internalBufferLimit);
   let batch: GrepLine[] = [];
@@ -43,12 +44,13 @@ async function* grepLineBatches(
           }
           line = {
             bytes: chunk.subarray(start, end),
-            raw: chunk.subarray(start, end + 1),
+            all,
             terminated: true,
           };
         } else {
           line = {
             bytes: pending.finish(undefined, chunk, start, end),
+            all,
             terminated: true,
           };
         }
@@ -71,7 +73,7 @@ async function* grepLineBatches(
       pending.append(chunk, start);
     }
     if (pending.size) {
-      batch.push({ bytes: pending.finish(), terminated: false });
+      batch.push({ bytes: pending.finish(), all, terminated: false });
     }
     if (batch.length) yield batch;
   } finally {
@@ -286,10 +288,9 @@ inspect the resulting state before repeating the action.
         };
         try {
           const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, limits.maxFileBytes ?? Infinity);
-          records: if (maxCount > 0) for await (const batch of grepLineBatches(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize)) {
-            const rows = batch.map(line => ({ bytes: line.bytes, all: extractMatches, terminated: line.terminated }));
-            trustedInputRows.add(rows);
-            const resOrPromise = session.runSync(descriptor, rows); const results = resOrPromise instanceof Promise ? await resOrPromise : resOrPromise;
+          records: if (maxCount > 0) for await (const batch of grepLineBatches(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches)) {
+            trustedInputRows.add(batch);
+            const resOrPromise = session.runSync(descriptor, batch); const results = resOrPromise instanceof Promise ? await resOrPromise : resOrPromise;
             for (let index = 0; index < batch.length; index++) {
               const line = batch[index]!;
               context.signal.throwIfAborted();
@@ -345,8 +346,8 @@ inspect the resulting state before repeating the action.
                 } else {
                   const p = prefix(true);
                   if (p) await writeOut(p);
-                  if (line.raw) await writeOut(line.raw);
-                  else { await writeOut(line.bytes); await writeOut(delimiterBytes); }
+                  await writeOut(line.bytes);
+                  await writeOut(delimiterBytes);
                 }
               }
               if (count >= maxCount && remainingAfter === 0) break records;

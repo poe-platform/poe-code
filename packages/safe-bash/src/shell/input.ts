@@ -624,11 +624,11 @@ class InputCursor {
         if (this.#eof === "retryable") this.#ended = false;
         return await operation();
       } finally {
-        this.#consumers = 0;
+        this.#consumers--;
+        if (this.#consumers === 0) this.#turn = resolvedVoid;
         const notify = this.#turnRelease;
         if (notify) {
           this.#turnRelease = undefined;
-          this.#turn = resolvedVoid;
           notify();
         }
       }
@@ -802,11 +802,11 @@ class InputCursor {
     return new Promise<IteratorResult<Uint8Array>>((resolve, reject) => {
       let settled = false;
       const finishConsumer = (): void => {
-        this.#consumers = 0;
+        this.#consumers--;
+        if (this.#consumers === 0) this.#turn = resolvedVoid;
         const notify = this.#turnRelease;
         if (notify) {
           this.#turnRelease = undefined;
-          this.#turn = resolvedVoid;
           notify();
         }
       };

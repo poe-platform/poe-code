@@ -138,6 +138,34 @@ test("EOF review: next cannot overtake a queued record over retained bytes", asy
   assert.equal(subject.reads, 2);
 });
 
+for (const firstKind of ["record", "next"] as const) test(`EOF review: ${firstKind} completion keeps later retained reads serialized`, async context => {
+  const subject = await retained(Uint8Array.of(65, 10, 66, 10, 67, 10));
+  const entered = deferred<void>(), gate = deferred<void>();
+  context.after(() => subject.close());
+  subject.hooks.read = async (descriptor, buffer, position, options) => {
+    if (subject.reads === 2) { entered.resolve(); await gate.promise; }
+    return descriptor.read(buffer.subarray(0, 2), position, options);
+  };
+  const first = firstKind === "record" ? record(subject.input, Uint8Array.of(65, 10), "delimiter")
+    : subject.input.next().then(result => { assert.deepEqual(result, { done: false, value: Uint8Array.of(65, 10) }); });
+  const second = record(subject.input, Uint8Array.of(66, 10), "delimiter");
+  try {
+    await first;
+    await entered.promise;
+    assert.equal(subject.input.readiness(), "blocked");
+    const third = subject.input.next();
+    assert.equal(subject.reads, 2);
+    gate.resolve();
+    await second;
+    assert.deepEqual(await third, { done: false, value: Uint8Array.of(67, 10) });
+    assert.deepEqual(await subject.input.next(), { done: true, value: undefined });
+    assert.equal(subject.input.readiness(), "eof");
+    assert.equal(subject.input.bufferedBytes, 0);
+    assert.equal(subject.reads, 4);
+    assert.equal(await subject.position(), 6);
+  } finally { gate.resolve(); await Promise.all([first, second]); }
+});
+
 test("EOF review: unlink and replacement cannot redirect a retained reader or its alias", async context => {
   const subject = await retained();
   const alias = new ShellInput(subject.input, subject.budget);

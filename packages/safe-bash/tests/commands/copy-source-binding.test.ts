@@ -65,6 +65,53 @@ test("copy reports a retained-source close failure after successful publication"
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/target")), "ordinary");
 });
 
+for (const rejectRead of [false, true]) test(`buffered copy drains an aborted retained read before cleanup, rejection=${rejectRead}`, async () => {
+  const fs = await fixture({ source: "payload" });
+  const { context } = await run("true", [], { fs });
+  const expected = await fs.stat("/work/source");
+  const controller = new AbortController(), reason = new Error("copy cancelled");
+  let begin!: () => void, release!: () => void;
+  const started = new Promise<void>(resolve => { begin = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let cleanup!: () => void | Promise<void>;
+  let closes = 0, writes = 0, settled = false;
+  const view = new Proxy(fs, { get(target, property) {
+    if (property === "capabilities") return { ...fs.capabilities, streamingWrite: false };
+    if (property === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+      const reader = await fs.openReadFile(...args);
+      return { ...reader, async read() {
+        begin();
+        await gate;
+        if (rejectRead) throw new Error("late read failure");
+        return new Uint8Array();
+      }, async close() { closes++; await reader.close(); } };
+    };
+    if (property === "writeFile") return async () => { writes++; };
+    const member = Reflect.get(target, property);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const operation = copyCheckedSource({ ...context, fs: view, signal: controller.signal,
+    registerCleanup(close) { cleanup = close; },
+  }, "/work/source", "/work/new", expected, true).then(() => undefined, error => error).then(error => { settled = true; return error; });
+  await started;
+  controller.abort(reason);
+  const closing = cleanup();
+  try {
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(closes, 0);
+    assert.equal(settled, false);
+  } finally {
+    release();
+    await closing;
+    assert.equal(await operation, reason);
+  }
+  await cleanup();
+  assert.equal(closes, 1);
+  assert.equal(writes, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/source")), "payload");
+  await assert.rejects(fs.stat("/work/new"), { code: "ENOENT" });
+});
+
 for (const streaming of [false, true]) for (const command of ["cp --remove-destination", "mv"]) {
   test(`${command} replaces a looping destination symlink, streaming=${streaming}`, async () => {
     const source = await fixture({ source: "payload" });
@@ -316,6 +363,8 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
   test(`${command} ${refused ? "refuses unbound overwrite" : "uses retained reads and streaming writes"} when pathname copy is unavailable, existing=${existing}`, async () => {
     const fs = await fixture({ source: "ordinary", ...(existing ? { target: "old" } : {}) });
     if (command === "mv") fs.rename = async () => { throw new FsError("EXDEV"); };
+    // This cohort exercises providers that cannot bind staged destination ancestry.
+    if (refused) Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, atomicStagingAncestry: false } });
     const capabilities = { ...fs.capabilities, copy: false, exclusiveCopy: false };
     const operations: string[] = [];
     const view = new Proxy(fs, {
@@ -339,7 +388,7 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     assert.equal(result.exitCode, refused ? 1 : 0, result.stderr);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, refused
-      ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/source' -> '/work/target'\n" : "");
+      ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/target'\n" : "");
     assert.deepEqual(operations, refused ? [] : ["open", "write"]);
     assert.equal(Buffer.from(await fs.readFile("/work/target")).toString(), refused ? "old" : "ordinary");
     if (command === "mv" && !refused) await assert.rejects(fs.lstat("/work/source"), { code: "ENOENT" });
@@ -352,6 +401,8 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     if (!existing) await fs.mkdir("/work/output");
     const rename = fs.rename.bind(fs);
     if (command === "mv") fs.rename = async () => { throw new FsError("EXDEV"); };
+    // This cohort exercises providers that cannot bind staged destination ancestry.
+    if (refused) Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, atomicStagingAncestry: false } });
     let swaps = 0;
     const view = new Proxy(fs, {
       get(target, property) {
@@ -372,7 +423,7 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
       assert.equal(result.exitCode, refused ? 1 : 0, result.stderr);
       assert.equal(result.stdout, "");
       assert.equal(result.stderr, refused
-        ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/sub/a' -> '/work/output/a'\n" : "");
+        ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/output/a'\n" : "");
       assert.equal(swaps, refused ? 0 : 1);
       assert.equal(Buffer.from(await fs.readFile("/work/output/a")).toString(), refused ? "old" : "ordinary");
       assert.equal(Buffer.from(await fs.readFile("/private/a")).toString(), "topsecret");
@@ -387,6 +438,8 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     if (!existing) await fs.mkdir("/work/output");
     const rename = fs.rename.bind(fs);
     if (command === "mv") fs.rename = async () => { throw new FsError("EXDEV"); };
+    // This cohort exercises providers that cannot bind staged destination ancestry.
+    if (refused) Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, atomicStagingAncestry: false } });
     const copy = fs.copyFile.bind(fs);
     let copies = 0;
     fs.copyFile = async (source, target, options) => {
@@ -400,7 +453,7 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     assert.equal(result.exitCode, refused ? 1 : 0, result.stderr);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, refused
-      ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/sub/a' -> '/work/output/a'\n" : "");
+      ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/output/a'\n" : "");
     assert.equal(copies, 0);
     assert.equal(Buffer.from(await fs.readFile("/work/output/a")).toString(), refused ? "old" : "ordinary");
     assert.equal(Buffer.from(await fs.readFile("/private/a")).toString(), "topsecret");
@@ -435,7 +488,7 @@ test("copy drains and closes a reader acquired while cleanup closes admission", 
 
 for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
   const refused = command === "mv" && existing;
-  test(`${command} ${refused ? "refuses overwrite before acquisition" : "rejects a changed ancestor at reader acquisition before writing bytes"}, existing=${existing}`, async () => {
+  test(`${command} rejects a changed ancestor at reader acquisition before writing bytes, existing=${existing}`, async () => {
     const fs = await fixture({ "sub/a": "ordinary", "/private/a": "topsecret", ...(existing ? { "output/a": "old" } : {}) });
     if (!existing) await fs.mkdir("/work/output");
     const rename = fs.rename.bind(fs);
@@ -459,9 +512,9 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, refused
-      ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/sub/a' -> '/work/output/a'\n"
+      ? "mv: EBUSY: move source changed during retained read '/work/sub/a'\n"
       : `${command}: EBUSY: copy reader is not bound to the inspected source identity '/work/sub/a'\n`);
-    assert.equal(acquisitions, refused ? 0 : 1);
+    assert.equal(acquisitions, 1);
     if (existing) assert.equal(Buffer.from(await fs.readFile("/work/output/a")).toString(), "old");
     else await assert.rejects(fs.lstat("/work/output/a"), { code: "ENOENT" });
     assert.equal(Buffer.from(await fs.readFile("/work/sub/a")).toString(), "ordinary");
@@ -469,7 +522,7 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     assert.deepEqual(await fs.readdir("/work"), [{ name: "output", type: "directory" }, { name: "sub", type: "directory" }]);
   });
 
-  test(`${command} refuses ${refused ? "unbound overwrite" : "a backend without retained readers"} without mutating entries, existing=${existing}`, async () => {
+  test(`${command} refuses a backend without retained readers without mutating entries, existing=${existing}`, async () => {
     const fs = await fixture({ source: "ordinary", ...(existing ? { target: "old" } : {}) });
     if (command === "mv") fs.rename = async () => { throw new FsError("EXDEV"); };
     const view = new Proxy(fs, {
@@ -482,9 +535,7 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     const result = await run(command, ["source", "target"], { fs: view });
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.equal(result.stderr, refused
-      ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/work/source' -> '/work/target'\n"
-      : `${command}: ENOTSUP: copy requires retained reads '/work/source'\n`);
+    assert.equal(result.stderr, `${command}: ENOTSUP: copy requires retained reads '/work/source'\n`);
     if (existing) assert.equal(Buffer.from(await fs.readFile("/work/target")).toString(), "old");
     else await assert.rejects(fs.lstat("/work/target"), { code: "ENOENT" });
     assert.equal(Buffer.from(await fs.readFile("/work/source")).toString(), "ordinary");

@@ -39,6 +39,7 @@ export async function copyCheckedSource(context: CommandContext, source: string,
   let acquisition: Promise<FileReadHandle> | undefined;
   let closing: Promise<void> | undefined;
   let work: Promise<void> | undefined;
+  let reading: Promise<Uint8Array> | undefined;
   let accepting = true;
   let acquired!: () => void;
   const acquisitionSettled = new Promise<void>(resolve => { acquired = resolve; });
@@ -48,6 +49,8 @@ export async function copyCheckedSource(context: CommandContext, source: string,
       await acquisitionSettled;
       const reader = await acquisition?.catch(() => undefined);
       await work?.catch(() => undefined);
+      // Buffered collection can settle on abort before its admitted read settles.
+      await reading?.catch(() => undefined);
       await reader?.close();
     })();
   };
@@ -83,7 +86,12 @@ export async function copyCheckedSource(context: CommandContext, source: string,
       let position = 0;
       while (true) {
         context.signal.throwIfAborted();
-        const chunk = await reader.read(position, 64 * 1024, { signal: context.signal });
+        reading = Promise.resolve().then(() => {
+          context.signal.throwIfAborted();
+          if (!accepting) throw new FsError("EBADF", { path: source });
+          return reader.read(position, 64 * 1024, { signal: context.signal });
+        });
+        const chunk = await reading;
         if (!chunk.length) { consumed = true; return; }
         position += chunk.length;
         yield chunk;

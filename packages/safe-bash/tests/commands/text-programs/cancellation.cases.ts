@@ -139,7 +139,7 @@ for (const [tool, args, expected] of [
   ["sed", ["-E", "s/(a|b)/x/"], "xb\n"],
   ["sed", ["s/^a/x/;s/b/y/"], "xy\n"],
   ["awk", ["{ value++; print value }"], "1\n"],
-] as const) test(`${tool} awaits every started checkpoint through ${args.join(" ")}`, async context => {
+] as const) for (const cacheState of tool === "sed" ? ["cold", "warm"] : ["cold"]) test(`${tool} awaits every started checkpoint through ${args.join(" ")}: ${cacheState} program`, async context => {
   const fs = await makeFileSystem();
   const command = createTextProgramCommands().find(item => item.name === tool)!;
   let calls = 0;
@@ -148,8 +148,12 @@ for (const [tool, args, expected] of [
   let controller = new AbortController();
   const pendingCheckpoints: Promise<void>[] = [];
   const stdout: Uint8Array[] = [];
+  let execution = 0;
   const execute = () => command.execute({
-    command: tool, args, cwd: "/work", env: {}, fs, signal: controller.signal,
+    command: tool,
+    // Cold runs need distinct source keys; warm runs share one prepared program.
+    args: tool === "sed" ? [...args.slice(0, -1), `${args.at(-1)}\n# checkpoint-${cacheState}-${cacheState === "cold" ? ++execution : 0}`] : args,
+    cwd: "/work", env: {}, fs, signal: controller.signal,
     stdin: toByteSource("ab\n"), stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write() {} },
   });
   context.mock.method(Budget.prototype, "checkpointSync", () => {
@@ -163,6 +167,11 @@ for (const [tool, args, expected] of [
     pendingCheckpoints.push(pending);
     return pending;
   });
+  if (cacheState === "warm") {
+    assert.equal((await execute()).exitCode, 0);
+    calls = 0;
+    stdout.length = 0;
+  }
   const baseline = await execute();
   assert.equal(baseline.exitCode, 0);
   assert.equal(Buffer.concat(stdout).toString(), expected);
@@ -174,6 +183,7 @@ for (const [tool, args, expected] of [
       controller = new AbortController();
       const [outcome] = await Promise.allSettled([execute()]);
       await Promise.allSettled(pendingCheckpoints.splice(0));
+      assert.ok(calls >= rejectAt, `checkpoint ${rejectAt} must be reached in the ${cacheState} program`);
       assert.deepEqual(outcome, { status: "rejected", reason }, `checkpoint ${rejectAt} must retain ${String(reason)}`);
     }
   }

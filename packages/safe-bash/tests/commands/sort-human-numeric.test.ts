@@ -242,8 +242,8 @@ test("sort human numeric retains record admission before retaining payloads", as
   assert.equal(result.stderr, "sort: EFBIG: sort buffer limit exceeded\n");
 });
 
-test("sort human numeric parsing paths preserve queued cancellation", async () => {
-  for (const args of [["-h"], ["-k1,1h"], ["-hf"], ["-bh"], ["-hc"], ["-g"], ["-V"], ["-d"], ["-i"], ["-M"]]) {
+test("sort comparison and numeric parsing paths preserve queued cancellation", async () => {
+  for (const args of [[], ["-h"], ["-k1,1h"], ["-k1,1n"], ["-hf"], ["-bh"], ["-hc"], ["-g"], ["-V"], ["-d"], ["-i"], ["-M"]]) {
     for (const reason of [false, null]) {
       const controller = new AbortController();
       const fs = await fixture({ kept: "unchanged" });

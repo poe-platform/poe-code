@@ -671,12 +671,9 @@ export function textCommands(): CommandDefinition[] {
       let keyCompare: (left: Uint8Array, right: Uint8Array) => number | Promise<number> = (left: Uint8Array, right: Uint8Array) => {
         const checkpoint = work.charge();
         if (simple) {
+          if (checkpoint) return checkpoint.then(async () => (await compareSortBytes(left, right, work)) * direction);
           const cmp = compareSortBytes(left, right, work);
-          if (!checkpoint && typeof cmp === "number") return cmp * direction;
-          return (async () => {
-            if (checkpoint) await checkpoint;
-            return (await cmp) * direction;
-          })();
+          return typeof cmp === "number" ? cmp * direction : cmp.then(result => result * direction);
         }
         return (async () => {
           if (checkpoint) await checkpoint;
@@ -731,6 +728,13 @@ export function textCommands(): CommandDefinition[] {
               }
               return parsedOrPromise;
             }
+            return parsedOrPromise.then(parsedValue => {
+              if (keyedNumericValues.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
+                keyedNumericValues.set(record, parsedValue);
+                retainedKeyBytes += charge;
+              }
+              return parsedValue;
+            });
           }
           return (async () => {
             const bytes = await bytesOrPromise;
@@ -742,20 +746,16 @@ export function textCommands(): CommandDefinition[] {
             return parsedValue;
           })();
         };
-        keyCompare = (left, right) => {
+        keyCompare = async (left, right) => {
           const checkpoint = work.charge();
-          const leftVal = keyedNumericValue(left);
-          const rightVal = keyedNumericValue(right);
-          if (!checkpoint && !(leftVal instanceof Promise) && !(rightVal instanceof Promise)) {
-            const cmp = compareNumericValues(leftVal, rightVal, work);
-            if (typeof cmp === "number") return numericKeyFlags.has("r") ? -cmp : cmp;
-            return cmp.then(r => numericKeyFlags.has("r") ? -r : r);
-          }
-          return (async () => {
-            if (checkpoint) await checkpoint;
-            const result = await compareNumericValues(await leftVal, await rightVal, work);
-            return numericKeyFlags.has("r") ? -result : result;
-          })();
+          if (checkpoint) await checkpoint;
+          const leftPending = keyedNumericValue(left);
+          const leftVal = leftPending instanceof Promise ? await leftPending : leftPending;
+          const rightPending = keyedNumericValue(right);
+          const rightVal = rightPending instanceof Promise ? await rightPending : rightPending;
+          const comparison = compareNumericValues(leftVal, rightVal, work);
+          const result = comparison instanceof Promise ? await comparison : comparison;
+          return numericKeyFlags.has("r") ? -result : result;
         };
       }
       const compare = (left: Uint8Array, right: Uint8Array): number | Promise<number> => {

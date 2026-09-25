@@ -115,43 +115,28 @@ export async function collectBytes(source: ByteSource, options: CollectOptions):
   }
 }
 
-const abortSignalWaiters = new WeakMap<AbortSignal, Set<(reason: unknown) => void>>();
-
-function addSignalAbortWaiter(signal: AbortSignal, reject: (reason: unknown) => void): Set<(reason: unknown) => void> {
-  let waiters = abortSignalWaiters.get(signal);
-  if (!waiters) {
-    waiters = new Set();
-    abortSignalWaiters.set(signal, waiters);
-    const set = waiters;
-    signal.addEventListener("abort", () => {
-      const reason = signal.reason;
-      const pending = [...set];
-      set.clear();
-      for (let i = 0; i < pending.length; i++) pending[i]!(reason);
-    }, { once: true });
-  }
-  waiters.add(reject);
-  return waiters;
-}
-
 async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortSignal): Promise<Result> {
   signal?.throwIfAborted();
   if (!signal) return operation();
   return new Promise<Result>((resolve, reject) => {
-    const waiters = addSignalAbortWaiter(signal, reject);
+    const onAbort = (): void => {
+      signal.removeEventListener("abort", onAbort);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
     try {
       Promise.resolve(operation()).then(
         (result) => {
-          waiters.delete(reject);
+          signal.removeEventListener("abort", onAbort);
           resolve(result);
         },
         (error: unknown) => {
-          waiters.delete(reject);
+          signal.removeEventListener("abort", onAbort);
           reject(error);
         },
       );
     } catch (error) {
-      waiters.delete(reject);
+      signal.removeEventListener("abort", onAbort);
       reject(error);
     }
   });

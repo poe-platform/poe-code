@@ -187,8 +187,11 @@ export function createSplitCommand(limits: SplitLimits): CommandDefinition {
   return { name: "split", async execute(context) {
     context.signal.throwIfAborted();
     try {
-      const info = await gnuInformation("split", context);
-      if (info) return info;
+      const infoPromise = gnuInformation("split", context);
+      if (infoPromise) {
+        const info = await infoPromise;
+        if (info) return info;
+      }
       const profile = (context.capabilities?.commandLimits as CommandFamilyLimits | undefined)?.split;
       const effective = { ...limits };
       if (profile) {

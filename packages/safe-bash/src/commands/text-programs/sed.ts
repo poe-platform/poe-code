@@ -29,6 +29,16 @@ interface OutputState {
   readonly unterminatedFiles: Set<string>;
 }
 
+interface CachedSedProgram {
+  readonly program: readonly Instruction[];
+  readonly steps: number;
+  readonly outputFiles: readonly string[];
+  readonly readFiles: readonly string[];
+}
+const sedProgramCache = new Map<string, CachedSedProgram>();
+const EMPTY_STRINGS: readonly string[] = Object.freeze([]);
+const EMPTY_SET: Set<string> = new Set();
+
 async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget): Promise<Instruction[]> {
   const result: Instruction[] = [];
   const groups: number[] = [];
@@ -818,26 +828,59 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       sources.push(byteString(files.shift()!));
     }
     if (sources[0]?.startsWith("#n")) quiet = true;
-    const program = await parse(sources.join("\n"), extended, separator, maxProgramInstructions, budget);
-    const outputFiles = program.flatMap(instruction => instruction.kind !== "r" && instruction.file !== undefined ? [instruction.file] : []);
-    await assertPathRequirements(context, sedRequirements, ["script-output"], outputFiles);
-    if (inPlace !== undefined || outputFiles.length) {
+    const sourceText = sources.length === 1 ? sources[0]! : sources.join("\n");
+    const canCache = sourceText.length <= 8192;
+    const cacheKey = canCache ? `${extended ? 1 : 0}:${separator}:${maxProgramInstructions}:${sourceText}` : "";
+    let cached = canCache ? sedProgramCache.get(cacheKey) : undefined;
+    if (cached) {
+      if (cached.steps > 0) budget.step(cached.steps);
+    } else {
+      const stepsBefore = budget.stepsUsed;
+      const parsedProgram = await parse(sourceText, extended, separator, maxProgramInstructions, budget);
+      const steps = budget.stepsUsed - stepsBefore;
+      let outFiles: string[] | undefined;
+      let rdFiles: string[] | undefined;
+      for (let i = 0; i < parsedProgram.length; i++) {
+        const inst = parsedProgram[i]!;
+        if (inst.file !== undefined) {
+          if (inst.kind === "r") (rdFiles ??= []).push(inst.file);
+          else (outFiles ??= []).push(inst.file);
+        }
+      }
+      cached = {
+        program: parsedProgram,
+        steps,
+        outputFiles: outFiles ?? EMPTY_STRINGS,
+        readFiles: rdFiles ?? EMPTY_STRINGS,
+      };
+      if (canCache) {
+        if (sedProgramCache.size >= 64) sedProgramCache.delete(sedProgramCache.keys().next().value!);
+        sedProgramCache.set(cacheKey, cached);
+      }
+    }
+    const { program, outputFiles, readFiles } = cached;
+    if (outputFiles.length > 0) {
+      await assertPathRequirements(context, sedRequirements, ["script-output"], outputFiles);
+    }
+    if (inPlace !== undefined || outputFiles.length > 0) {
       await assertPathRequirements(context, sedRequirements, ["file"], files.filter(file => file !== "-"));
-      await assertPathRequirements(context, sedRequirements, ["script-read"],
-        program.flatMap(instruction => instruction.kind === "r" && instruction.file !== undefined ? [instruction.file] : []));
+      if (readFiles.length > 0) {
+        await assertPathRequirements(context, sedRequirements, ["script-read"], readFiles);
+      }
     }
     const prepareOutputs = async (): Promise<void> => {
+      if (outputFiles.length === 0) return;
       const paths = new Set(outputFiles.map(file => virtualPath(context, file)));
       for (const path of paths) await writeFileOutput(context, new Uint8Array(), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
     };
-    const outputState: OutputState = { stdoutUnterminated: false, unterminatedFiles: new Set() };
+    const outputState: OutputState = { stdoutUnterminated: false, unterminatedFiles: outputFiles.length > 0 ? new Set() : EMPTY_SET };
     if (inPlace !== undefined) {
       if (!files.length || files.includes("-")) throw new ProgramError("in-place editing requires named files");
       if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
       await assertPathRequirements(context, sedRequirements, ["in-place"], files);
       if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
       const targets = await prepareInPlace(context, files, inPlace);
-      await prepareOutputs();
+      if (outputFiles.length > 0) await prepareOutputs();
       for (const target of targets) {
         const result = await editInPlace(context, target, inPlace, budget, async stdin => {
           let rewritten = "";
@@ -850,7 +893,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       }
       return 0;
     }
-    await prepareOutputs();
+    if (outputFiles.length > 0) await prepareOutputs();
     if (separate) {
       for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState, lineLength); if (result.quit || result.status) return result.status; }
       return 0;

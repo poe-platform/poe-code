@@ -62,8 +62,12 @@ const checksumInformation: Information = {
   options: ["-b, --binary", "-c, --check", "-t, --text", "-z, --zero", "--tag", "--quiet", "--status", "--strict", "--warn", "--ignore-missing"],
 };
 
-export async function gnuInformation(name: string, context: CommandContext): Promise<CommandResult | undefined> {
+export function gnuInformation(name: string, context: CommandContext): Promise<CommandResult | undefined> | undefined {
   if (!context.args.includes("--help") && !context.args.includes("--version")) return undefined;
+  return gnuInformationSlow(name, context);
+}
+
+async function gnuInformationSlow(name: string, context: CommandContext): Promise<CommandResult | undefined> {
   if ((name === "true" || name === "false" || name === "echo" || name === "[") && (context.args.length !== 1 || !(context as { externalInvocation?: boolean }).externalInvocation)) return undefined;
   const info = information[name] ?? (["md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum"].includes(name) ? checksumInformation : undefined);
   if (!info) return undefined;

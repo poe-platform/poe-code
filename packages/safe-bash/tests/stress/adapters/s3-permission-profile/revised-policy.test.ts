@@ -22,7 +22,7 @@ for (const mode of [0, 0o600, 0o755]) test(`approved advisory mode ${mode.toStri
   const { client, fs, fresh } = fixture();
   assert.equal(fs.capabilities.permissions, false);
   await fs.writeFile("/file", bytes, { mode, flag: "wx" });
-  assert.equal(client.requests.length, 5);
+  assert.equal(client.requests.length, 4);
   const put = client.requests.at(-1)!;
   assert.equal(put.operation, "putObject");
   assert.ok("IfNoneMatch" in put.input);

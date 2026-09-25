@@ -20,8 +20,11 @@ export interface TextProgramOptions {
 
 export class ProgramError extends PublicDiagnostic {}
 
+const validatedTextProgramOptions = new WeakSet<TextProgramOptions>();
+
 export class Budget {
   readonly maxBufferBytes: number;
+  stepsUsed = 0;
   private remainingSmi: number;
   private remainingNum: number;
   private readonly unlimited: boolean;
@@ -35,12 +38,17 @@ export class Budget {
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
-    for (const value of Object.entries(options).filter(([key]) => key.startsWith("max")).map(([, value]) => value)) {
-      if (value !== undefined && (typeof value !== "number" || value !== Infinity && !Number.isSafeInteger(value) || value < 1)) throw new ProgramError("limits must be positive safe integers");
+    if (!validatedTextProgramOptions.has(options)) {
+      for (const [key, value] of Object.entries(options)) {
+        if (!key.startsWith("max")) continue;
+        if (value !== undefined && (typeof value !== "number" || value !== Infinity && !Number.isSafeInteger(value) || value < 1)) throw new ProgramError("limits must be positive safe integers");
+      }
+      validatedTextProgramOptions.add(options);
     }
   }
   step(count = 1): void {
     if (this.signal.aborted) this.signal.throwIfAborted();
+    this.stepsUsed += count;
     if (this.unlimited) return;
     if ((count | 0) === count && count >= 0 && count <= this.remainingSmi) {
       this.remainingSmi = (this.remainingSmi - (count | 0)) | 0;
@@ -88,12 +96,10 @@ export async function write(context: CommandContext, text: string): Promise<void
   await writeBytes(context.stdout, bytes(text), context.signal);
 }
 
-export async function* input(context: CommandContext, file = "-"): ByteSource {
+export function input(context: CommandContext, file = "-"): ByteSource {
   context.signal.throwIfAborted();
-  if (file === "-" || file === "/dev/stdin") yield* readBytes(context.stdin, context.signal);
-  else {
-    yield* requiredFileInput(context, inputRequirements, "file", file, Infinity);
-  }
+  if (file === "-" || file === "/dev/stdin") return readBytes(context.stdin, context.signal);
+  return requiredFileInput(context, inputRequirements, "file", file, Infinity);
 }
 
 export async function readProgram(context: CommandContext, file: string): Promise<string> {

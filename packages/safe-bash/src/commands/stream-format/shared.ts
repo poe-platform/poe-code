@@ -162,8 +162,11 @@ export function command(name: string, limits: StreamFormatLimits, run: (session:
     context.signal.throwIfAborted();
     let session: Session | undefined;
     try {
-      const info = await gnuInformation(name, context);
-      if (info) return info;
+      const infoPromise = gnuInformation(name, context);
+      if (infoPromise) {
+        const info = await infoPromise;
+        if (info) return info;
+      }
       session = new Session(context, limits);
       await run(session);
       context.signal.throwIfAborted();

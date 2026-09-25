@@ -44,7 +44,14 @@ export function fail(message: string): never { throw new FsError("EINVAL", { mes
 export function command(name: string, handler: CommandHandler): CommandDefinition {
   return { name, async execute(context) {
     context.signal.throwIfAborted();
-    try { return await gnuInformation(name, context) ?? await handler(context); }
+    try {
+      const infoPromise = gnuInformation(name, context);
+      if (infoPromise) {
+        const info = await infoPromise;
+        if (info) return info;
+      }
+      return await handler(context);
+    }
     catch (error) { context.signal.throwIfAborted(); await diagnostic(context, error); return { exitCode: 1 }; }
   } };
 }

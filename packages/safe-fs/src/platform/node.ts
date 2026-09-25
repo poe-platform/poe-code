@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import * as util from "node:util";
 import { constants } from "node:os";
 import type { FsOptions } from "../contracts/filesystem.js";
-import type { ScopedTransportBudgetFrame } from "./transport-budget.js";
+import { hasRegisteredS3FileSystem, type ScopedTransportBudgetFrame } from "./transport-budget.js";
 
 export type PlatformErrno = number;
 export type PlatformComparisonCallback<Callback> = Callback;
@@ -42,7 +42,7 @@ export const comparisonContext = Object.freeze({
 const transportBudgets = new AsyncLocalStorage<readonly ScopedTransportBudgetFrame[]>();
 
 export function getScopedTransportBudget(): readonly ScopedTransportBudgetFrame[] | undefined {
-  return transportBudgets.getStore();
+  return hasRegisteredS3FileSystem ? transportBudgets.getStore() : undefined;
 }
 
 export function withScopedTransportBudget<Result>(
@@ -57,12 +57,14 @@ export function runScopedTransportBudget<Result>(
   action: () => Result,
   credit = 1,
 ): Result {
+  if (!hasRegisteredS3FileSystem) return action();
   const parent = transportBudgets.getStore() ?? [];
   const frame: ScopedTransportBudgetFrame = { credit, admit };
   return transportBudgets.run([...parent, frame], action);
 }
 
 export function chargeScopedTransportCall(options?: FsOptions): void {
+  if (!hasRegisteredS3FileSystem) return;
   const frames = transportBudgets.getStore();
   if (!frames) return;
   for (const frame of frames) {

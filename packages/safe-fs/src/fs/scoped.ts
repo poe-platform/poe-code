@@ -6,6 +6,7 @@ import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { getScopedTransportBudget, runScopedTransportBudget, withScopedTransportBudget } from "#safe-fs-platform";
+import { hasRegisteredS3FileSystem } from "../platform/transport-budget.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
@@ -182,7 +183,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       if (typeof method !== "function") return method;
       const cached = methods.get(property);
       if (cached?.original === method) return cached.scoped;
-      const dispatch = (...args: unknown[]): unknown => runScopedTransportBudget(admit, () => {
+      const credit = operations.has(property as keyof FileSystem) ? 1 : 0;
+      const executeDispatch = (args: unknown[]): unknown => {
         if (property === "removeEntryConditional") args[1] = resizeOptions({ ...args[1] as FsOptions });
         let stagingSignal: AbortSignal | undefined;
         if (property === "createStagedFile" || property === "publishStagedFile") {
@@ -293,7 +295,11 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         })();
         const result: unknown = Reflect.apply(method, original, args);
         return property === "readStream" ? wrapStream(result as ByteSource, args[1] as FsOptions | undefined) : result;
-      }, operations.has(property as keyof FileSystem) ? 1 : 0);
+      };
+      const dispatch = (...args: unknown[]): unknown =>
+        hasRegisteredS3FileSystem
+          ? runScopedTransportBudget(admit, () => executeDispatch(args), credit)
+          : executeDispatch(args);
       const scoped = property === "prepareStagingResolution"
         ? async (path: string, options: FsOptions = {}) => {
           const controls = resizeOptions({ ...options });

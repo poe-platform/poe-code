@@ -853,7 +853,7 @@ async function collectSortRecords(
           if (tailLength > bufferLimit * 2) throw new FsError("EFBIG", { message: "line finalization buffer limit exceeded" });
           if (tailLength === 0) {
             record = emptySortRecord;
-          } else if (chunk.buffer.byteLength <= 65536) {
+          } else if ((start > 0 || offset + 1 < chunk.length) && chunk.buffer.byteLength <= 65536) {
             record = chunk.subarray(start, offset);
           } else {
             record = new Uint8Array(tailLength);

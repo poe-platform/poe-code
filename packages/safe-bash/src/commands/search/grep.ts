@@ -46,6 +46,22 @@ const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
 trustedInputRows.add(EMPTY_GREP_ROWS);
 const sharedGrepOutBuffer = new Uint8Array(16 * 1024);
 let sharedGrepOutInUse = false;
+const NEWLINE_BYTES = new Uint8Array([10]);
+const NUL_BYTES = new Uint8Array([0]);
+const SINGLE_STDIN_FILE: readonly { name: string; nested: boolean }[] = Object.freeze([Object.freeze({ name: "-", nested: false })]);
+const GREP_LONG_OPTIONS: Readonly<Record<string, string | false>> = Object.freeze({
+  color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false,
+  label: "label:", "initial-tab": "T", "group-separator": "group-separator:", help: false,
+  "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i",
+  "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l",
+  "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H",
+  "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f",
+  "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A",
+  "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r",
+  "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false,
+  "no-group-separator": false, "no-ignore-case": false, include: "include:", exclude: "exclude:",
+  "exclude-from": "exclude-from:", "exclude-dir": "exclude-dir:",
+});
 
 async function forEachGrepLineBatch(
   source: ByteSource,
@@ -128,7 +144,8 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
   const bufferLimit = limits.maxPatternBytes ?? Infinity;
   return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
     try {
-      const contextLengths = new Map<string, number>();
+      let afterContext = 0;
+      let beforeContext = 0;
       let fileSelection: "l" | "L" | undefined;
       let filenameOption: "h" | "H" | undefined;
       let matcher: "G" | "E" | "F" | undefined;
@@ -137,14 +154,23 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
       const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "text" };
       let directoriesAction: string | undefined;
       const filters: { key: string; pattern: string }[] = [];
-      const normalizedArgs: string[] = [];
-      let optionsEnded = false;
-      for (const arg of context.args) {
-        if (!optionsEnded && arg === "--") { optionsEnded = true; normalizedArgs.push(arg); continue; }
-        if (!optionsEnded && /^-[0-9]+$/u.test(arg)) { normalizedArgs.push(`-C${arg.slice(1)}`); continue; }
-        normalizedArgs.push(arg);
+      let normalizedArgs: readonly string[] = context.args;
+      for (let i = 0; i < context.args.length; i++) {
+        const arg = context.args[i]!;
+        if (arg === "--") break;
+        if (arg.length > 1 && arg.charCodeAt(0) === 45 && arg.charCodeAt(1) >= 48 && arg.charCodeAt(1) <= 57 && /^-[0-9]+$/u.test(arg)) {
+          const copy = context.args.slice();
+          let optionsEnded = false;
+          for (let j = i; j < copy.length; j++) {
+            const item = copy[j]!;
+            if (!optionsEnded && item === "--") { optionsEnded = true; continue; }
+            if (!optionsEnded && /^-[0-9]+$/u.test(item)) copy[j] = `-C${item.slice(1)}`;
+          }
+          normalizedArgs = copy;
+          break;
+        }
       }
-      const parsed = parseOptions(normalizedArgs, "GEFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT", { color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false, label: "label:", "initial-tab": "T", "group-separator": "group-separator:", help: false, "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "include:", exclude: "exclude:", "exclude-from": "exclude-from:", "exclude-dir": "exclude-dir:" }, false, undefined, (key, index, offset) => {
+      const parsed = parseOptions(normalizedArgs, "GEFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT", GREP_LONG_OPTIONS, false, undefined, (key, index, offset) => {
         const text = normalizedArgs[index]!.slice(offset);
         if (["include", "exclude", "exclude-from"].includes(key)) filters.push({ key, pattern: text });
         if (key === "d") directoriesAction = text;
@@ -155,7 +181,8 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
         if (!["A", "B", "C"].includes(key)) return;
         try {
           const length = integer(text);
-          for (const side of key === "C" ? ["A", "B"] : [key]) contextLengths.set(side, length);
+          if (key === "A" || key === "C") afterContext = length;
+          if (key === "B" || key === "C") beforeContext = length;
         }
         catch { throw new UsageError(`${text}: invalid context length argument`); }
       }, key => {
@@ -260,10 +287,24 @@ inspect the resulting state before repeating the action.
         }
         return atStart;
       };
-      const addArgument = async (pattern: string) => {
+      const addArgument = (pattern: string) => {
         admit(pattern, true);
         if (pattern !== "") {
-          for await (const line of lines(toByteSource(pattern))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
+          let ascii = true;
+          for (let i = 0; i < pattern.length; i++) {
+            if (pattern.charCodeAt(i) >= 128) { ascii = false; break; }
+          }
+          const latin1 = ascii ? pattern : Buffer.from(pattern, "utf8").toString("latin1");
+          let start = 0;
+          while (start < latin1.length) {
+            const newline = latin1.indexOf("\n", start);
+            if (newline < 0) {
+              patterns.push(start === 0 ? latin1 : latin1.slice(start));
+              break;
+            }
+            patterns.push(latin1.slice(start, newline));
+            start = newline + 1;
+          }
         }
         if (pattern === "" || pattern.endsWith("\n")) {
           if (++patternCount > maxPatternCount) throw new UsageError(`pattern count limit exceeded (${maxPatternCount})`);
@@ -277,12 +318,13 @@ inspect the resulting state before repeating the action.
           yield chunk;
         }
       }
-      for (const pattern of parsed.values.get("e") ?? []) await addArgument(pattern);
+      const ePatterns = parsed.values.get("e");
+      if (ePatterns) for (const pattern of ePatterns) addArgument(pattern);
       for (const name of patternFiles) {
         const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "pattern-file", name, bufferLimit - patternBytes);
         for await (const line of lines(admitted(source))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
       }
-      if (positionalPattern !== undefined) await addArgument(positionalPattern);
+      if (positionalPattern !== undefined) addArgument(positionalPattern);
       const descriptor: GrepDescriptor = {
         kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
         insensitive: ignoreCase, whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
@@ -292,7 +334,7 @@ inspect the resulting state before repeating the action.
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
-      const delimiterBytes = encoder.encode(delimiter);
+      const delimiterBytes = parsed.flags.has("z") ? NUL_BYTES : NEWLINE_BYTES;
       const lineBuffered = parsed.flags.has("line-buffered") || parsed.flags.has("o");
       const ownsSharedOut = !sharedGrepOutInUse;
       if (ownsSharedOut) sharedGrepOutInUse = true;
@@ -322,13 +364,16 @@ inspect the resulting state before repeating the action.
       try {
       const extractMatches = parsed.flags.has("o") && !["c", "q", "l", "L", "v"].some(flag => parsed.flags.has(flag));
       const displayLines = !["c", "q", "l", "L"].some(flag => parsed.flags.has(flag));
-      const withContext = [...contextLengths.values()].some(length => length > 0) && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
-      const before = withContext ? contextLengths.get("B") ?? 0 : 0;
-      const after = withContext ? contextLengths.get("A") ?? 0 : 0;
+      const withContext = (beforeContext > 0 || afterContext > 0) && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
+      const before = withContext ? beforeContext : 0;
+      const after = withContext ? afterContext : 0;
       let emittedGroup = false;
       let anySelected = false;
       let failed = false;
-      for await (const { name, nested } of grepFiles(context, parsed, filters, () => { failed = true; }, directoriesAction)) {
+      const targets = (parsed.operands.length === 0 && directoriesAction === undefined && !parsed.flags.has("r") && !parsed.flags.has("R") && !parsed.values.has("d") && !parsed.values.has("D") && filters.length === 0)
+        ? SINGLE_STDIN_FILE
+        : grepFiles(context, parsed, filters, () => { failed = true; }, directoriesAction);
+      for await (const { name, nested } of targets) {
         let count = 0;
         let number = 0;
         let byteOffset = 0;
@@ -336,7 +381,7 @@ inspect the resulting state before repeating the action.
         let lastCovered = 0;
         let remainingAfter = 0;
         let pendingBytes = 0;
-        const pending = new Map<number, Line & { offset: number }>();
+        const pending = withContext ? new Map<number, Line & { offset: number }>() : undefined;
         const named = name === "-" ? value(parsed, "label") ?? "(standard input)" : name;
         const hasLinePrefix = (!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) || parsed.flags.has("n") || parsed.flags.has("b");
         const delimiterByte = delimiterBytes[0]!;
@@ -375,14 +420,14 @@ inspect the resulting state before repeating the action.
                   remainingAfter--;
                   if (count >= maxCount && remainingAfter === 0) return false;
                 } else if (before > 0) {
-                  if (pending.size >= before) {
-                    const oldest = pending.keys().next().value!;
-                    pendingBytes -= pending.get(oldest)!.bytes.length + 1;
-                    pending.delete(oldest);
+                  if (pending!.size >= before) {
+                    const oldest = pending!.keys().next().value!;
+                    pendingBytes -= pending!.get(oldest)!.bytes.length + 1;
+                    pending!.delete(oldest);
                   }
                   const size = line.bytes.length + 1;
                   if (size > (limits.maxContextBytes ?? Infinity) - pendingBytes) throw new UsageError(`context byte limit exceeded (${limits.maxContextBytes} bytes)`);
-                  pending.set(number, { bytes: Uint8Array.from(line.bytes), terminated: line.terminated, offset: byteOffset });
+                  pending!.set(number, { bytes: Uint8Array.from(line.bytes), terminated: line.terminated, offset: byteOffset });
                   pendingBytes += size;
                 }
                 continue;
@@ -393,10 +438,10 @@ inspect the resulting state before repeating the action.
               if (isListFiles) return false;
               if (!isCountOnly) {
                 if (withContext) {
-                  const first = pending.keys().next().value ?? number;
+                  const first = pending!.keys().next().value ?? number;
                   if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await writeOut((value(parsed, "group-separator") ?? "--") + delimiter);
-                  for (const [position, previous] of pending) await emitContext(previous, position, previous.offset);
-                  pending.clear();
+                  for (const [position, previous] of pending!) await emitContext(previous, position, previous.offset);
+                  pending!.clear();
                   pendingBytes = 0;
                   remainingAfter = after;
                   lastCovered = number;

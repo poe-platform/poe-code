@@ -21,6 +21,8 @@ export interface ParsedOptions {
   readonly operands: string[];
 }
 
+const specificationsCache = new Map<string, ReadonlyMap<string, boolean>>();
+
 export function options(
   args: readonly string[], short: string, long: Readonly<Record<string, string | false>> = {},
   stopAtOperand = false, onOperand?: (index: number) => void,
@@ -30,11 +32,16 @@ export function options(
   const flags = new Set<string>();
   const values = new Map<string, string[]>();
   const operands: string[] = [];
-  const specifications = new Map<string, boolean>();
-  for (let index = 0; index < short.length; index++) {
-    const key = short[index]!;
-    specifications.set(key, short[index + 1] === ":");
-    if (short[index + 1] === ":") index++;
+  let specifications = specificationsCache.get(short);
+  if (!specifications) {
+    const built = new Map<string, boolean>();
+    for (let index = 0; index < short.length; index++) {
+      const key = short[index]!;
+      built.set(key, short[index + 1] === ":");
+      if (short[index + 1] === ":") index++;
+    }
+    specifications = built;
+    specificationsCache.set(short, specifications);
   }
   let ended = false;
   for (let index = 0; index < args.length; index++) {
@@ -57,7 +64,9 @@ export function options(
         const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
         if (value === undefined) throw new UsageError(`option '--${name}' requires an argument`);
         onValue?.(key, index, equals >= 0 ? equals + 1 : 0);
-        values.set(key, [...values.get(key) ?? [], value]);
+        const list = values.get(key);
+        if (list) list.push(value);
+        else values.set(key, [value]);
       } else if (equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);
       flags.add(key);
       onOption?.(key, values.get(key)?.at(-1));
@@ -70,7 +79,9 @@ export function options(
         const value = argument.slice(offset + 1) || args[++index];
         if (value === undefined) throw new UsageError(`option requires an argument -- '${key}'`);
         onValue?.(key, index, offset + 1 < argument.length ? offset + 1 : 0);
-        values.set(key, [...values.get(key) ?? [], value]);
+        const list = values.get(key);
+        if (list) list.push(value);
+        else values.set(key, [value]);
         offset = argument.length;
       }
       flags.add(key);
@@ -123,7 +134,14 @@ export function define(name: string, handler: CommandHandler, failureCode = 1): 
     name,
     async execute(context) {
       context.signal.throwIfAborted();
-      try { return await gnuInformation(name, context) ?? await handler(context); }
+      try {
+        const infoPromise = gnuInformation(name, context);
+        if (infoPromise) {
+          const info = await infoPromise;
+          if (info) return info;
+        }
+        return await handler(context);
+      }
       catch (error) {
         context.signal.throwIfAborted();
         await diagnostic(context, error);

@@ -14,14 +14,52 @@ function textSize(value: Value | undefined): number {
 }
 
 function ownScalar(value: Scalar): Scalar {
-  if (value.kind === "number") {
-    return (value.number | 0) === value.number && value.number >= -1 && value.number <= 4096 && (value.number !== 0 || 1 / value.number > 0)
-      ? value
-      : { kind: "number", number: value.number };
+  if (value.kind === "string" || value.kind === "numeric") {
+    const ownedText = value.text.length >= 13 ? Buffer.from(value.text, "latin1").toString("latin1") : value.text;
+    return value.kind === "numeric"
+      ? { kind: "numeric", text: ownedText, number: value.number }
+      : { kind: "string", text: ownedText };
   }
-  return value.kind === "string" || value.kind === "numeric"
-    ? { ...value, text: value.text.length < 13 ? value.text : Buffer.from(value.text, "latin1").toString("latin1") } : value;
+  return value;
 }
+
+const DEFAULT_VARIABLES: readonly (readonly [string, Scalar])[] = [
+  ["FS", Object.freeze({ kind: "string", text: " " })],
+  ["RS", Object.freeze({ kind: "string", text: "\n" })],
+  ["OFS", Object.freeze({ kind: "string", text: " " })],
+  ["ORS", Object.freeze({ kind: "string", text: "\n" })],
+  ["OFMT", Object.freeze({ kind: "string", text: "%.6g" })],
+  ["CONVFMT", Object.freeze({ kind: "string", text: "%.6g" })],
+  ["SUBSEP", Object.freeze({ kind: "string", text: "\x1c" })],
+  ["NR", numeric(0)],
+  ["FNR", numeric(0)],
+  ["NF", numeric(0)],
+  ["FILENAME", string("")],
+  ["RSTART", numeric(0)],
+  ["RLENGTH", numeric(0)],
+];
+const AWK_ARGV0: Scalar = Object.freeze({ kind: "string", text: "awk" });
+
+function hasMainGetline(node: unknown): boolean {
+  if (!node || typeof node !== "object") return false;
+  if ((node as { kind?: string; file?: unknown }).kind === "getline" && !(node as { file?: unknown }).file) return true;
+  return Object.values(node).some(child => Array.isArray(child) ? child.some(hasMainGetline) : hasMainGetline(child));
+}
+
+interface PooledFieldBuffers {
+  fieldStarts: Int32Array;
+  fieldEnds: Int32Array;
+  lazyFieldGen: Int32Array;
+  lazyFields: Scalar[];
+  fieldGeneration: number;
+}
+let sharedFieldBuffers: PooledFieldBuffers | undefined = {
+  fieldStarts: new Int32Array(64),
+  fieldEnds: new Int32Array(64),
+  lazyFieldGen: new Int32Array(64),
+  lazyFields: new Array(64),
+  fieldGeneration: 1,
+};
 
 class Flow {
   constructor(readonly kind: string, readonly value: Scalar = unset) {}
@@ -33,9 +71,11 @@ export class AwkRuntime {
   private readonly variables = new Map<string, Value>();
   private readonly frames: Map<string, Value>[] = [];
   private readonly arrays = new Map<AwkArray, { bytes: number; references: number }>();
-  private readonly regexes = new Map<string, Pattern>();
-  private readonly outputs = new Set<string>();
-  private readonly inputs = new Map<string, Reader>();
+  private regexes: Map<string, Pattern> | undefined;
+  private outputs: Set<string> | undefined;
+  private inputs: Map<string, Reader> | undefined;
+  private environInitialized = false;
+  private pooledBuffers: PooledFieldBuffers | undefined;
   private mainReader: Reader | undefined;
   private argument = 1;
   private sawFile = false;
@@ -43,13 +83,13 @@ export class AwkRuntime {
   private rawFields: Scalar[] = [];
   private get fields(): Scalar[] { return this.ensureFields(); }
   private set fields(v: Scalar[]) { this.rawFields = v; }
-  private fieldStarts = new Int32Array(64);
-  private fieldEnds = new Int32Array(64);
+  private fieldStarts: Int32Array;
+  private fieldEnds: Int32Array;
   private fieldCount = 0;
   private fieldsMaterialized = true;
-  private fieldGeneration = 1;
-  private lazyFieldGen = new Int32Array(64);
-  private lazyFields: Scalar[] = new Array(64);
+  private fieldGeneration: number;
+  private lazyFieldGen: Int32Array;
+  private lazyFields: Scalar[];
   private fieldBytes = 0;
   private rawRecord: string | undefined = "";
   private recordSource = "";
@@ -84,16 +124,47 @@ export class AwkRuntime {
   private randomSeed = 1;
   private randomState = 1;
   constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private readonly operandAssignments = true, private readonly ordchr = false, private readonly inspection?: AwkInspection) {
-    const defaults: Record<string, Scalar> = { FS: string(" "), RS: string("\n"), OFS: string(" "), ORS: string("\n"), OFMT: string("%.6g"), CONVFMT: string("%.6g"), SUBSEP: string("\x1c"), NR: numeric(0), FNR: numeric(0), NF: numeric(0), FILENAME: string(""), RSTART: numeric(0), RLENGTH: numeric(0), ARGC: numeric(args.length + 1) };
+    const pooled = sharedFieldBuffers;
+    if (pooled) {
+      sharedFieldBuffers = undefined;
+      this.pooledBuffers = pooled;
+      this.fieldStarts = pooled.fieldStarts;
+      this.fieldEnds = pooled.fieldEnds;
+      this.lazyFieldGen = pooled.lazyFieldGen;
+      this.lazyFields = pooled.lazyFields;
+      this.fieldGeneration = pooled.fieldGeneration;
+    } else {
+      this.fieldStarts = new Int32Array(64);
+      this.fieldEnds = new Int32Array(64);
+      this.lazyFieldGen = new Int32Array(64);
+      this.lazyFields = new Array(64);
+      this.fieldGeneration = 1;
+    }
     try {
-      for (const [name, value] of Object.entries(defaults)) this.storeScalar(this.variables, name, value);
-      const environment = this.array("ENVIRON");
-      for (const [name, value] of Object.entries(context.env)) this.arraySet(environment, byteString(name), inputValue(byteString(value)));
-      const argv = this.array("ARGV"); this.arraySet(argv, "0", string("awk"));
-      args.forEach((argument, index) => this.arraySet(argv, String(index + 1), inputValue(byteString(argument))));
+      for (let i = 0; i < DEFAULT_VARIABLES.length; i++) {
+        const pair = DEFAULT_VARIABLES[i]!;
+        this.storeScalar(this.variables, pair[0], pair[1]);
+      }
+      this.storeScalar(this.variables, "ARGC", numeric(args.length + 1));
+      if (inspection !== undefined || retention.capacity <= 65536 || budget.options.maxArrayEntries !== undefined || budget.options.maxBufferBytes !== undefined || budget.options.maxRetainedBytes !== undefined) {
+        this.ensureEnviron();
+      }
+      const argv = this.array("ARGV"); this.arraySet(argv, "0", AWK_ARGV0);
+      for (let index = 0; index < args.length; index++) {
+        this.arraySet(argv, String(index + 1), inputValue(byteString(args[index]!)));
+      }
       if (separator !== undefined) this.set("FS", string(separator));
       for (const assignment of assignments) this.assignment(assignment);
     } catch (error) { this.releaseStore(this.variables); throw error; }
+  }
+  private ensureEnviron(): void {
+    if (this.environInitialized) return;
+    this.environInitialized = true;
+    const environment = new AwkArray();
+    this.bindArray(this.variables, "ENVIRON", environment);
+    for (const [name, value] of Object.entries(this.context.env)) {
+      this.arraySet(environment, byteString(name), inputValue(byteString(value)));
+    }
   }
   private store(name: string): Map<string, Value> { return this.frames.at(-1)?.has(name) ? this.frames.at(-1)! : this.variables; }
   private syncSpecialVars(): void {
@@ -106,6 +177,7 @@ export class AwkRuntime {
       if (name === "NR" && this.nrDirty) { this.nrDirty = false; this.storeScalar(this.variables, "NR", numeric(this.nrNum)); }
       else if (name === "FNR" && this.fnrDirty) { this.fnrDirty = false; this.storeScalar(this.variables, "FNR", numeric(this.fnrNum)); }
       else if (name === "NF" && this.nfDirty) { this.nfDirty = false; this.storeScalar(this.variables, "NF", numeric(this.nfNum)); }
+      else if (name === "ENVIRON" && !this.environInitialized) this.ensureEnviron();
     }
     return this.store(name).get(name) ?? unset;
   }
@@ -196,11 +268,12 @@ export class AwkRuntime {
     if (!existing) this.entries++;
   }
   private pattern(source: string): Pattern {
-    let pattern = this.regexes.get(source);
+    const map = this.regexes ??= new Map<string, Pattern>();
+    let pattern = map.get(source);
     if (!pattern) {
       pattern = new Pattern(source, true, false, "awk");
-      if (this.regexes.size >= 256) this.regexes.delete(this.regexes.keys().next().value!);
-      this.regexes.set(source, pattern);
+      if (map.size >= 256) map.delete(map.keys().next().value!);
+      map.set(source, pattern);
     }
     return pattern;
   }
@@ -839,9 +912,10 @@ export class AwkRuntime {
       this.set("ERRNO", string(byteString(error.message)));
       return numeric(-1);
     }
-    let reader = this.inputs.get(path);
+    const inputs = this.inputs ??= new Map<string, Reader>();
+    let reader = inputs.get(path);
     if (!reader) {
-      if (this.inputs.size >= (this.budget.options.maxGetlineFiles ?? Infinity)) throw new ProgramError("getline open-file limit exceeded");
+      if (inputs.size >= (this.budget.options.maxGetlineFiles ?? Infinity)) throw new ProgramError("getline open-file limit exceeded");
       const { context, budget } = this;
       const name = this.retainName(path);
       const useStdin = file === "-" || file === "/dev/stdin";
@@ -858,7 +932,7 @@ export class AwkRuntime {
       })();
       try {
         reader = new Reader(source, budget, this.retention);
-        this.inputs.set(name, reader);
+        inputs.set(name, reader);
       } catch (error) { this.retention.release(Buffer.byteLength(name, "utf8")); throw error; }
     }
     let record: string | undefined;
@@ -866,7 +940,7 @@ export class AwkRuntime {
     catch (error) {
       this.context.signal.throwIfAborted();
       if (!(error instanceof FsError)) throw error;
-      this.inputs.delete(path);
+      inputs.delete(path);
       this.retention.release(Buffer.byteLength(path, "utf8"));
       await reader.close();
       this.set("ERRNO", string(byteString(error.message)));
@@ -973,11 +1047,11 @@ export class AwkRuntime {
     if (name === "toupper") return string(this.asText(first).replace(/[a-z]/gu, character => character.toUpperCase()));
     if (name === "close") {
       const path = virtualPath(this.context, Buffer.from(this.asText(first), "latin1").toString("utf8"));
-      const reader = this.inputs.get(path);
-      this.inputs.delete(path);
+      const reader = this.inputs?.get(path);
+      this.inputs?.delete(path);
       if (reader) this.retention.release(Buffer.byteLength(path, "utf8"));
       await reader?.close();
-      const output = this.outputs.delete(path);
+      const output = this.outputs?.delete(path) ?? false;
       if (output) this.retention.release(Buffer.byteLength(path, "utf8"));
       return numeric(output || reader !== undefined ? 0 : -1);
     }
@@ -991,31 +1065,36 @@ export class AwkRuntime {
     if (!this.inspection) {
       const p = this.budget.checkpointSync();
       if (!p) {
-        if (statement.kind === "expression") {
-          this.budget.step();
-          const val = this.evaluate(statement.expression);
-          return val instanceof Promise ? this.ignorePromiseValue(val) : undefined;
-        }
-        if (statement.kind === "block") {
-          this.budget.step();
-          for (let i = 0; i < statement.body.length; i++) {
-            const res = this.executeSync(statement.body[i]!);
-            if (res instanceof Promise) {
-              return this.executeBlockRemainder(statement.body, i + 1, res);
-            }
-          }
-          return undefined;
-        }
-        if (statement.kind === "if") {
-          this.budget.step();
-          const cond = this.scalarExpression(statement.condition);
-          if (!(cond instanceof Promise)) {
-            const branch = truth(cond) ? statement.yes : statement.no;
-            return branch ? this.executeSync(branch) : undefined;
-          }
-          return this.executeIfAsync(statement, cond);
-        }
+        return this.executeSyncBody(statement);
       } else return this.executeAfterCheckpoint(p, statement);
+    }
+    return this.execute(statement);
+  }
+
+  private executeSyncBody(statement: Statement): void | Promise<void> {
+    if (statement.kind === "expression") {
+      this.budget.step();
+      const val = this.evaluate(statement.expression);
+      return val instanceof Promise ? this.ignorePromiseValue(val) : undefined;
+    }
+    if (statement.kind === "block") {
+      this.budget.step();
+      for (let i = 0; i < statement.body.length; i++) {
+        const res = this.executeSync(statement.body[i]!);
+        if (res instanceof Promise) {
+          return this.executeBlockRemainder(statement.body, i + 1, res);
+        }
+      }
+      return undefined;
+    }
+    if (statement.kind === "if") {
+      this.budget.step();
+      const cond = this.scalarExpression(statement.condition);
+      if (!(cond instanceof Promise)) {
+        const branch = truth(cond) ? statement.yes : statement.no;
+        return branch ? this.executeSync(branch) : undefined;
+      }
+      return this.executeIfAsync(statement, cond);
     }
     return this.execute(statement);
   }
@@ -1035,7 +1114,8 @@ export class AwkRuntime {
 
   private async executeAfterCheckpoint(checkpoint: Promise<void>, statement: Statement): Promise<void> {
     await checkpoint;
-    await this.execute(statement);
+    const res = this.executeSyncBody(statement);
+    if (res instanceof Promise) await res;
   }
 
   private async executeBlockRemainder(body: readonly Statement[], startIndex: number, current: Promise<void>): Promise<void> {
@@ -1065,14 +1145,15 @@ export class AwkRuntime {
         if (destination === "/dev/stdout") { await write(this.context, output); return; }
         if (destination === "/dev/stderr") { this.context.signal.throwIfAborted(); await writeBytes(this.context.stderr, bytes(output), this.context.signal); return; }
         const path = virtualPath(this.context, destination);
-        if (this.outputs.has(path)) await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.appendFile(path, chunk, { signal: this.context.signal }));
+        const outputs = this.outputs ??= new Set<string>();
+        if (outputs.has(path)) await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.appendFile(path, chunk, { signal: this.context.signal }));
         else {
           const name = this.retainName(path);
           try {
             const flag = statement.redirect.append ? "a" : "w";
             await writeFileOutput(this.context, bytes(output), chunk => this.context.fs.writeFile(name, chunk, { flag, signal: this.context.signal }));
             this.context.signal.throwIfAborted();
-            this.outputs.add(name);
+            outputs.add(name);
           } catch (error) { this.retention.release(Buffer.byteLength(name, "utf8")); throw error; }
         }
         return;
@@ -1145,20 +1226,37 @@ export class AwkRuntime {
     let failure: unknown;
     try { status = await this.runProgram(); this.syncSpecialVars(); await this.inspection?.publish(this.variables); }
     catch (error) { failed = true; failure = error; }
-    const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs.values()];
-    this.mainReader = undefined;
-    for (const name of this.inputs.keys()) this.retention.release(Buffer.byteLength(name, "utf8"));
-    this.inputs.clear();
-    const cleanup = await Promise.allSettled(readers.map(async reader => { await reader.close(); }));
-    for (const name of this.outputs) this.retention.release(Buffer.byteLength(name, "utf8"));
-    this.outputs.clear();
+    let cleanup: PromiseSettledResult<void>[] | undefined;
+    if (this.mainReader || (this.inputs && this.inputs.size > 0)) {
+      const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs ? this.inputs.values() : []];
+      this.mainReader = undefined;
+      if (this.inputs) {
+        for (const name of this.inputs.keys()) this.retention.release(Buffer.byteLength(name, "utf8"));
+        this.inputs.clear();
+      }
+      cleanup = await Promise.allSettled(readers.map(async reader => { await reader.close(); }));
+    }
+    if (this.outputs && this.outputs.size > 0) {
+      for (const name of this.outputs) this.retention.release(Buffer.byteLength(name, "utf8"));
+      this.outputs.clear();
+    }
     this.releaseStore(this.variables);
     this.retention.release(this.recordLength + this.fieldBytes);
     this.record = ""; this.fields = []; this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.recordValue = unset;
+    if (this.pooledBuffers && !sharedFieldBuffers) {
+      this.pooledBuffers.fieldStarts = this.fieldStarts;
+      this.pooledBuffers.fieldEnds = this.fieldEnds;
+      this.pooledBuffers.lazyFieldGen = this.lazyFieldGen;
+      this.pooledBuffers.lazyFields = this.lazyFields;
+      this.pooledBuffers.fieldGeneration = this.fieldGeneration + 1;
+      this.lazyFields.fill(unset, 0, Math.min(64, this.lazyFields.length));
+      sharedFieldBuffers = this.pooledBuffers;
+      this.pooledBuffers = undefined;
+    }
     this.context.signal.throwIfAborted();
     if (failed) throw failure;
-    for (const result of cleanup) if (result.status === "rejected") throw result.reason;
+    if (cleanup) for (const result of cleanup) if (result.status === "rejected") throw result.reason;
     return status;
   }
 
@@ -1260,7 +1358,7 @@ export class AwkRuntime {
     try { for (const statement of this.program.begin) await this.execute(statement); }
     catch (error) { if (error instanceof Flow && error.kind === "exit") { this.exit(error); stopped = true; } else throw error; }
     this.phase = "record";
-    const ranges = new Set<number>();
+    let ranges: Set<number> | undefined;
     if (!stopped && (this.program.rules.length || this.program.end.length)) while (true) {
       this.budget.step();
       if (this.mainReader && this.mainReader.readSliceSync(this.varText("RS"), this.sliceBox)) {
@@ -1278,7 +1376,7 @@ export class AwkRuntime {
       try {
         for (let index = 0; index < this.program.rules.length; index++) {
           const rule = this.program.rules[index]!;
-          let selected = !rule.pattern || ranges.has(index);
+          let selected = !rule.pattern || (ranges !== undefined && ranges.has(index));
           if (!selected) {
             const patVal = this.scalarExpression(rule.pattern!);
             selected = truth(patVal instanceof Promise ? await patVal : patVal);
@@ -1286,8 +1384,8 @@ export class AwkRuntime {
           if (!selected) continue;
           if (rule.end) {
             const endVal = this.scalarExpression(rule.end);
-            if (truth(endVal instanceof Promise ? await endVal : endVal)) ranges.delete(index);
-            else ranges.add(index);
+            if (truth(endVal instanceof Promise ? await endVal : endVal)) ranges?.delete(index);
+            else (ranges ??= new Set<number>()).add(index);
           }
           const execRes = this.executeSync(rule.action);
           if (execRes instanceof Promise) await execRes;
@@ -1299,12 +1397,6 @@ export class AwkRuntime {
         else if (error.kind !== "next") throw error;
       }
     }
-    // Free terminal main blocks before END unless END may read main input via getline.
-    const hasMainGetline = (node: unknown): boolean => {
-      if (!node || typeof node !== "object") return false;
-      if ((node as { kind?: string; file?: unknown }).kind === "getline" && !(node as { file?: unknown }).file) return true;
-      return Object.values(node).some(child => Array.isArray(child) ? child.some(hasMainGetline) : hasMainGetline(child));
-    };
     if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {
       void this.mainReader.close().catch(() => undefined);
     }

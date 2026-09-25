@@ -1,5 +1,5 @@
 import type { CommandDefinition } from "../../contracts/index.js";
-import { AwkParser, builtinArities, decodeString } from "./awk-syntax.js";
+import { AwkParser, builtinArities, decodeString, type AwkProgram } from "./awk-syntax.js";
 import { AwkRuntime } from "./awk-runtime.js";
 import { AwkRetention } from "./awk-retention.js";
 import { AwkInspection, type AwkInspectionOptions } from "./awk-inspection.js";
@@ -7,6 +7,10 @@ import { prettyAwk } from "./awk-pretty.js";
 import { quoteAwk } from "./awk-quote.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { Budget, ProgramError, byteString, bytes, command, readProgram, virtualPath, write, type TextProgramOptions } from "./shared.js";
+
+const ordchrArities = Object.freeze({ ...builtinArities, ord: [1, 1] as const, chr: [1, 1] as const });
+const awkProgramCache = new Map<string, AwkProgram>();
+const EMPTY_ARGS: readonly string[] = Object.freeze([]);
 
 export function awkCommand(options: TextProgramOptions = {}): CommandDefinition {
   return command("awk", async context => {
@@ -71,9 +75,20 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (program === undefined) throw new ProgramError("missing awk program");
       programs.push(byteString(program));
     }
-    const arities = ordchr ? { ...builtinArities, ord: [1, 1] as const, chr: [1, 1] as const } : builtinArities;
-    const parser = new AwkParser(programs.join("\n"), arities);
-    const program = parser.parse();
+    const source = programs.length === 1 ? programs[0]! : programs.join("\n");
+    const arities = ordchr ? ordchrArities : builtinArities;
+    const canCache = !generatePot && options.maxSteps === undefined && source.length <= 8192;
+    const cacheKey = canCache ? (ordchr ? `1:${source}` : `0:${source}`) : "";
+    let program = canCache ? awkProgramCache.get(cacheKey) : undefined;
+    let parser: AwkParser | undefined;
+    if (!program) {
+      parser = new AwkParser(source, arities);
+      program = parser.parse();
+      if (canCache) {
+        if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
+        awkProgramCache.set(cacheKey, program);
+      }
+    }
     if (debug !== undefined) {
       if (!hasProgramFile) throw new ProgramError("debugging requires a program supplied with -f");
       const commands = await readProgram(context, debug);
@@ -98,7 +113,7 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     if (generatePot) {
       let output = "";
-      for (const message of parser.messages) {
+      for (const message of parser!.messages) {
         const quoted = quoteAwk(message, budget);
         const entry = `msgid ${quoted}\nmsgstr ""\n\n`;
         if (output.length + entry.length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
@@ -107,7 +122,9 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
       await write(context, output);
       return 0;
     }
-    const observer = Object.keys(inspection).length ? new AwkInspection(context, budget, inspection) : undefined;
-    return new AwkRuntime(program, context, budget, new AwkRetention(options.maxRetainedBytes ?? Infinity, context.signal), context.args.slice(index), assignments, separator, operandAssignments, ordchr, observer).run();
+    const hasInspection = inspection.trace !== undefined || inspection.dump !== undefined || inspection.profile !== undefined;
+    const observer = hasInspection ? new AwkInspection(context, budget, inspection) : undefined;
+    const remainingArgs = index >= context.args.length ? EMPTY_ARGS : context.args.slice(index);
+    return new AwkRuntime(program, context, budget, new AwkRetention(options.maxRetainedBytes ?? Infinity, context.signal), remainingArgs, assignments, separator, operandAssignments, ordchr, observer).run();
   });
 }

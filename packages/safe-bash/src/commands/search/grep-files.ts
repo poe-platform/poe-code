@@ -58,5 +58,12 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
     }
   }
   const names = parsed.operands.length ? parsed.operands : [directories === "recurse" ? "." : "-"];
-  for (const name of names) yield* visit(name, new Set(), 0, true);
+  for (const name of names) {
+    if (name === "-") {
+      context.signal.throwIfAborted();
+      yield { name: "-", nested: false };
+      continue;
+    }
+    yield* visit(name, new Set(), 0, true);
+  }
 }

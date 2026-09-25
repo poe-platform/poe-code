@@ -2,6 +2,7 @@ import { FsError } from "../../contracts/errors.js";
 import type { FileStat, FileSystem, FsOptions, EntryComparison } from "../../contracts/filesystem.js";
 import type { EntryView } from "../mount/comparison.js";
 import { assertCallbackAuthorityAllowed } from "../mount/comparison.js";
+import { enableS3TransportBudget } from "../../platform/transport-budget.js";
 
 export interface OwnedS3Entry {
   readonly storage: object;
@@ -19,6 +20,7 @@ export function recordS3Observation(filesystem: FileSystem, path: string, stat: 
 
 export function registerS3EntryOwner(filesystem: FileSystem, normalize: (path: string) => string,
   intact: () => boolean, baseComparison: NonNullable<FileSystem["compareEntry"]>, comparison?: NonNullable<FileSystem["compareEntry"]>): void {
+  enableS3TransportBudget();
   comparisons.set(filesystem, baseComparison);
   if (comparison) configuredComparisons.set(filesystem, comparison);
   entries.set(filesystem, view => {

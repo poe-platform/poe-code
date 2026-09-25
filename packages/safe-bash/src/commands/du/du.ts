@@ -189,8 +189,11 @@ export function createDuCommand(options: DuCommandsOptions = {}): CommandDefinit
     const budget = new Budget(work, limits, context);
     context.registerCleanup?.(budget.close);
     try {
-      const info = await gnuInformation("du", context);
-      if (info) return info;
+      const infoPromise = gnuInformation("du", context);
+      if (infoPromise) {
+        const info = await infoPromise;
+        if (info) return info;
+      }
       const args = parse(budget);
       if (context.stdout.ownedOutput) operation = createOutputOperation(context, context.stdout);
       if (args.help) { await budget.emit(work.stdout, helpText); return { exitCode: 0 }; }

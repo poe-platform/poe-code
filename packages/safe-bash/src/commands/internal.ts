@@ -179,7 +179,7 @@ export function input(context: CommandContext, name = "-"): ByteSource {
           context.signal.throwIfAborted();
         }
       } catch (error) {
-        return fileInputSource(context, name, { async *[Symbol.asyncIterator]() { throw error; } });
+        return fileInputSource(context, name, { [Symbol.asyncIterator]: () => ({ async next() { throw error; } }) });
       }
       const source = { [Symbol.asyncIterator]: () => iterator };
       const reader = readBytes(source, context.signal) as AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };

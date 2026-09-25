@@ -48,7 +48,6 @@ for (const failedRead of [false, true]) test(`closed byte readers do not replay 
 for (const sync of [false, true]) test(`byte reads serialize synchronous producer reentry with sync=${sync}`, async () => {
   const trace: string[] = [];
   let nested!: Promise<IteratorResult<Uint8Array>>;
-  let reader!: AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
   const pull = (): IteratorResult<Uint8Array> => {
     if (trace.length) { trace.push("second"); return { done: true, value: undefined }; }
     trace.push("first entered");
@@ -56,10 +55,10 @@ for (const sync of [false, true]) test(`byte reads serialize synchronous produce
     trace.push("first returned");
     return { done: false, value: Uint8Array.of(1) };
   };
-  reader = readBytes({ [Symbol.asyncIterator]: () => ({
+  const reader = readBytes({ [Symbol.asyncIterator]: () => ({
     ...(sync ? { tryNextSync: pull } : {}),
     next: async () => pull(),
-  }) }) as typeof reader;
+  }) }) as AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
   const first = sync ? reader.tryNextSync() : await reader.next();
   assert.deepEqual(first, { done: false, value: Uint8Array.of(1) });
   await nested;

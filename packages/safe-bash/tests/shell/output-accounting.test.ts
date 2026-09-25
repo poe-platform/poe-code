@@ -73,11 +73,17 @@ test("middleware replacement of contextual sink cannot bypass accounting", async
   finally { await shell.dispose(); }
 });
 
-test("unknown host proxy is not blindly unwrapped", async () => {
+for (const shape of ["proxy", "inherited", "copied"] as const) for (const maximum of [4, 8]) test(`unknown host ${shape} sink limit ${maximum}`, async () => {
   const { shell } = setup(); let visible = "";
-  shell.register({ name: "proxy", execute: context => context.invoke!("printf", ["1234"], { stdout: new Proxy(context.stdout, {}) }) });
-  try { await assert.rejects(shell.exec("proxy", { limits: { maxOutputBytes: 4 }, stdout: { async write(bytes) { visible += Buffer.from(bytes).toString(); } } }), limitError); assert.equal(visible, ""); }
-  finally { await shell.dispose(); }
+  shell.register({ name: "wrapped", execute(context) {
+    const stdout = shape === "proxy" ? new Proxy(context.stdout, {}) : shape === "inherited" ? Object.create(context.stdout) : { ...context.stdout };
+    return context.invoke!("printf", ["1234"], { stdout });
+  } });
+  try {
+    const operation = shell.exec("wrapped", { limits: { maxOutputBytes: maximum }, stdout: { async write(bytes) { visible += Buffer.from(bytes).toString(); } } });
+    if (maximum === 4) { await assert.rejects(operation, limitError); assert.equal(visible, ""); }
+    else { assert.equal((await operation).exitCode, 0); assert.equal(visible, "1234"); }
+  } finally { await shell.dispose(); }
 });
 
 test("mutating an owned sink write cannot retain its accounting exemption", async () => {

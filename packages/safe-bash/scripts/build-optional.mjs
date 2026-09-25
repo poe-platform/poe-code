@@ -357,10 +357,12 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
   for (const extension of [".js", ".d.ts"]) {
     const filename = path.join(dist, "optional" + extension);
     const source = ts.createSourceFile(filename, selected.get(filename).toString(), ts.ScriptTarget.Latest, true);
-    for (const statement of source.statements) {
+    const original = ts.createSourceFile(filename, regular(filename).toString(), ts.ScriptTarget.Latest, true);
+    for (const [index, statement] of source.statements.entries()) {
       if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
-      const specifier = statement.moduleSpecifier.text;
-      const parts = specifier.split("/");
+      const origin = original.statements[index];
+      if (!ts.isExportDeclaration(origin) || !origin.moduleSpecifier || !ts.isStringLiteral(origin.moduleSpecifier)) continue;
+      const parts = origin.moduleSpecifier.text.split("/");
       const name = parts[1] === "commands" || parts[1] === "fs" ? parts[2] : parts[1] === "shell" && parts[2] === "extensions" ? parts[3] : undefined;
       if (!name) continue;
       const target = path.join(dist, "entrypoints", name + extension);

@@ -1790,7 +1790,7 @@ test("optional input changes after close cannot produce a successful bound resul
   noHeldReads(owned);
 });
 
-test("real guarded optional compilation feeds the frozen graph stage entirely in memory", async () => {
+for (const coreOwned of [false, true]) test(`real guarded optional compilation preserves entrypoints with core ownership ${coreOwned}`, async () => {
   const owned = optionalFixture();
   const core = "/owned/packages/safe-bash";
   for (const [filename, contents] of Object.entries(owned.volume.toJSON())) {
@@ -1803,6 +1803,13 @@ test("real guarded optional compilation feeds the frozen graph stage entirely in
   manifest.version = "1.0.0";
   manifest.devDependencies = { ...manifest.devDependencies, "@poe-code/safe-fs": "*" };
   manifest.exports = { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } };
+  if (coreOwned) {
+    manifest.files = manifest.files.filter(value => value !== "!dist/commands/yes");
+    manifest.exports["./yes"] = { import: "./dist/commands/yes/index.js", types: "./dist/commands/yes/index.d.ts" };
+    const build = JSON.parse(owned.memory.readFileSync(core + "/tsconfig.build.json", "utf8"));
+    build.exclude = build.exclude.filter(value => value !== "src/commands/yes");
+    owned.memory.writeFileSync(core + "/tsconfig.build.json", JSON.stringify(build));
+  }
   owned.memory.writeFileSync(core + "/package.json", JSON.stringify(manifest));
   for (const [directory, value] of [
     ["safe-fs", { name: "@poe-platform/safe-fs", exports: { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } } }],
@@ -1819,10 +1826,11 @@ test("real guarded optional compilation feeds the frozen graph stage entirely in
   assert.equal(calls, 1);
   assert.equal(compilerResult.status, 0, owned.output.join(""));
   assert.equal(result.status, 0);
-  assert.equal(result.files.length, 8);
+  assert.equal(result.files.length, coreOwned ? 4 : 8);
   assert.ok(result.files.includes("entrypoints/yes.js"));
   assert.ok(result.files.includes("entrypoints/yes.d.ts"));
-  assert.deepEqual(result.peerImports, ["@poe-platform/safe-bash"]);
+  if (coreOwned) assert.match(owned.memory.readFileSync(core + "/dist/opt-in/entrypoints/yes.js", "utf8"), /from "@poe-platform\/safe-bash\/yes"/);
+  assert.deepEqual(result.peerImports, coreOwned ? ["@poe-platform/safe-bash", "@poe-platform/safe-bash/yes"] : ["@poe-platform/safe-bash"]);
   assert.equal(result.files.includes("index.js"), false);
   assert.equal(result.files.some(filename => filename.endsWith(".map")), false);
   assert.match(owned.memory.readFileSync("/owned/packages/safe-bash/dist/opt-in/optional.js", "utf8"), /from "@poe-platform\/safe-bash"/);

@@ -3,6 +3,7 @@ declare module "fengari" {
   export function to_jsstring(value: Uint8Array): string;
   export function to_luastring(text: string): Uint8Array;
   export const lua: {
+    LUA_REGISTRYINDEX: number;
     LUA_OK: number; LUA_MASKCOUNT: number;
     lua_close(state: State): void;
     lua_sethook(state: State, hook: () => void, mask: number, count: number): void;
@@ -31,6 +32,7 @@ declare module "fengari" {
     lua_pcall(state: State, args: number, results: number, handler: number): number;
   };
   export const lauxlib: {
+    luaL_ref(state: State, index: number): number;
     luaL_newstate(): State;
     luaL_requiref(state: State, name: Uint8Array, open: (state: State) => number, global: boolean): void;
     luaL_loadbuffer(state: State, source: Uint8Array, length: number, name: Uint8Array): number;

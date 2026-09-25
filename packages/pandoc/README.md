@@ -163,6 +163,7 @@ It does not expose host filesystem/process libraries. Conversion work limits
 interrupt Lua instructions. Use trusted scripts: VM allocations and library
 calls are not isolated or individually metered. `Str` callbacks may be global
 or returned in a single table, such as `return {Str = function(el) return el end}`.
+The loaded callback stays fixed for the traversal even if the script changes globals.
 Callbacks return an inline element, an inline list (empty deletes the element),
 or nil to preserve it. Supported constructors are `pandoc.Str`, `pandoc.Space`,
 `pandoc.SoftBreak`, `pandoc.LineBreak`, `pandoc.Emph`, `pandoc.Underline`,

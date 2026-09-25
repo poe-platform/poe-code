@@ -109,8 +109,9 @@ function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapab
         lua.lua_getglobal(state, to_luastring("Str"));
         const hasStr = !lua.lua_isnil(state, -1);
         if (hasStr && !lua.lua_isfunction(state, -1)) fail("E_AST", "Lua Str callback must be a function");
-        lua.lua_pop(state, 1);
-        if (!hasStr) return document;
+        if (!hasStr) {lua.lua_pop(state, 1); return document;}
+        // Root the loaded callback independently of globals and the decoding stack.
+        const callback = lauxlib.luaL_ref(state, lua.LUA_REGISTRYINDEX);
         const readInline = (depth: number): Inline => {
           context.checkpoint();
           context.bound("depth", depth);
@@ -165,7 +166,7 @@ function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapab
           context.bound("depth", depth);
           if (!value || typeof value !== "object") return value;
           if ("t" in value && value.t === "Str" && "c" in value && typeof value.c === "string") {
-            lua.lua_getglobal(state, to_luastring("Str"));
+            lua.lua_rawgeti(state, lua.LUA_REGISTRYINDEX, callback);
             lua.lua_newtable(state);
             lua.lua_pushstring(state, to_luastring(value.c));
             lua.lua_setfield(state, -2, to_luastring("text"));

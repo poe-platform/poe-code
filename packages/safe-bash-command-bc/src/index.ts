@@ -195,8 +195,8 @@ function sqrtDec(x: DecimalValue, currentScale: number): DecimalValue {
   const shift = 2 * resScale - x.scale;
   const target = shift >= 0 ? x.coeff * pow10(shift) : x.coeff / pow10(-shift);
   if (target === 0n) return { coeff: 0n, scale: resScale };
-  let low = 1n;
-  let high = target;
+  const low = 1n;
+  const high = target;
   let guess = 1n << BigInt(Math.ceil(target.toString(2).length / 2));
   while (true) {
     const next = (guess + target / guess) >> 1n;
@@ -466,10 +466,10 @@ class BcParser {
   parseProgram(): Stmt[] {
     const stmts: Stmt[] = [];
     while (this.pos < this.tokens.length) {
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       if (this.pos >= this.tokens.length) break;
       stmts.push(this.parseStmt());
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
     }
     return stmts;
   }
@@ -478,10 +478,10 @@ class BcParser {
     if (this.matchPunct("{")) {
       const stmts: Stmt[] = [];
       while (this.pos < this.tokens.length && !this.matchPunct("}")) {
-        while (this.matchPunct(";")) {}
+        while (this.matchPunct(";")) { /* Consume statement separators. */ }
         if (this.matchPunct("}")) break;
         stmts.push(this.parseStmt());
-        while (this.matchPunct(";")) {}
+        while (this.matchPunct(";")) { /* Consume statement separators. */ }
       }
       return { kind: "block", stmts };
     }
@@ -499,7 +499,7 @@ class BcParser {
           if (!this.matchPunct(",")) throw new Error("expected ',' or ')' in parameter list");
         }
       }
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return { kind: "define", name: nameTok.name ?? "", params, body };
     }
@@ -520,12 +520,12 @@ class BcParser {
       if (!this.matchPunct("(")) throw new Error("expected '(' after if");
       const cond = this.parseExpr();
       if (!this.matchPunct(")")) throw new Error("expected ')' after if condition");
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const thenBranch = this.parseStmt();
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       let elseBranch: Stmt | undefined;
       if (this.matchId("else")) {
-        while (this.matchPunct(";")) {}
+        while (this.matchPunct(";")) { /* Consume statement separators. */ }
         elseBranch = this.parseStmt();
       }
       return { kind: "if", cond, thenBranch, ...(elseBranch ? { elseBranch } : {}) };
@@ -534,7 +534,7 @@ class BcParser {
       if (!this.matchPunct("(")) throw new Error("expected '(' after while");
       const cond = this.parseExpr();
       if (!this.matchPunct(")")) throw new Error("expected ')' after while condition");
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return { kind: "while", cond, body };
     }
@@ -546,7 +546,7 @@ class BcParser {
       if (!this.matchPunct(";")) throw new Error("expected ';' in for");
       const update = this.peek()?.type === "punct" && this.peek()?.value === ")" ? undefined : this.parseExpr();
       if (!this.matchPunct(")")) throw new Error("expected ')' after for clauses");
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return {
         kind: "for",

@@ -72,3 +72,36 @@ test("decoder byte-budget failure cancels the encoded producer", async () => {
   assert.equal(cancelled, true);
   assert.ok(reads <= 4, `Read ${reads} chunks after budget failure`);
 });
+
+test("decoder budget failure awaits encoded producer cancellation", async () => {
+  const { decodeContent } = await import("../../../src/commands/network/decode.js");
+  let release!: () => void;
+  const cleanup = new Promise<void>(resolve => { release = resolve; });
+  let started!: () => void;
+  const closing = new Promise<void>(resolve => { started = resolve; });
+  let settled = false;
+  const source = {
+    [Symbol.asyncIterator]() {
+      return {
+        async next() {
+          await new Promise<void>(resolve => setImmediate(resolve));
+          return { done: false as const, value: gzipSync(Buffer.alloc(32768)) };
+        },
+        async return() { started(); await cleanup; return { done: true as const, value: undefined }; },
+      };
+    },
+  };
+  const operation = (async () => {
+    for await (const ignoredChunk of decodeContent(source, "gzip", new AbortController().signal, 1024)) {
+      assert.fail("Over-budget data must not be emitted");
+    }
+  })();
+  const outcome = operation.catch(error => error).finally(() => { settled = true; });
+  try {
+    await closing;
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(settled, false, "decoder must await the producer's cancellation acknowledgement");
+  } finally { release(); }
+  const error: unknown = await outcome;
+  assert.ok(error instanceof Error && "exitCode" in error && error.exitCode === 63);
+});

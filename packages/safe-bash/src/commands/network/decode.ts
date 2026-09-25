@@ -25,7 +25,7 @@ export async function* decodeContent(source: ByteSource, encoding: string, signa
       } catch (error) { inputFailed = true; inputError = error; controller.error(error); }
     },
     async cancel() { await iterator.return?.(undefined); },
-  });
+  }, { highWaterMark: 0 });
   let budgetError: CurlError | undefined;
   for (const format of formats.reverse()) {
     let decodedBytes = 0;
@@ -56,6 +56,9 @@ export async function* decodeContent(source: ByteSource, encoding: string, signa
     throw new CurlError(61, "Invalid compressed response body");
   } finally {
     await reader.cancel().catch(() => undefined);
+    // An errored downstream stream can acknowledge cancellation before its
+    // pipe chain finishes closing the encoded producer.
+    await iterator.return(undefined).catch(() => undefined);
     reader.releaseLock();
   }
 }

@@ -79,7 +79,12 @@ export class BiffFormulaWriter {
       this.context.signal.throwIfAborted();
       const index = relocation.kind === "sheet" ? relocation.index + Number(this.externNames.length > 0) :
         indices.get(relocation.index)!;
-      new DataView(relocation.tokens.buffer, relocation.tokens.byteOffset).setUint16(relocation.offset, index, true);
+      const view = new DataView(relocation.tokens.buffer, relocation.tokens.byteOffset);
+      if (relocation.kind === "name" && this.revision === 8) view.setUint32(relocation.offset, index, true);
+      else {
+        if (index > 65535) throw new SsconvertError("unsupported-feature", "Excel BIFF formula index exceeds version limits");
+        view.setUint16(relocation.offset, index, true);
+      }
     }
     return order;
   }
@@ -208,7 +213,11 @@ export class BiffFormulaWriter {
             if (index < 0) { index = this.externNames.length; this.externNames.push(name); }
             data[0] = 0x39;
             view.setUint16(1, this.revision === 8 ? 0 : this.book.sheets.length + 1, true);
-            view.setUint16(this.revision === 8 ? 3 : 11, index + 1, true);
+            if (this.revision === 8) view.setUint32(3, index + 1, true);
+            else {
+              if (index >= 65535) throw new SsconvertError("unsupported-feature", "Excel BIFF formula index exceeds version limits");
+              view.setUint16(11, index + 1, true);
+            }
           }
           push(data);
         }

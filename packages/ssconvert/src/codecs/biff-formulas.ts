@@ -160,7 +160,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const width = context.revision >= 8 ? 6 : 24;
       data.check(offset, width);
       const rawSheet = data.u16(offset), signedSheet = rawSheet >= 32768 ? rawSheet - 65536 : rawSheet;
-      const index = data.u16(offset + (context.revision >= 8 ? 2 : 10));
+      const index = context.revision >= 8 ? data.u32(offset + 2) : data.u16(offset + 10);
       offset += width;
       const namespace = context.revision >= 8 ? rawSheet : signedSheet > 0 ? signedSheet - 1 : undefined;
       const extern = namespace === undefined ? undefined : context.externalNames?.[namespace];
@@ -184,7 +184,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const sheet = binding === null ? context.nameSheets?.[resolved - 1] ?? context.currentSheet : typeof binding === "string" ? binding : binding[0];
       push(nameText(resolved, sheet), 99, resolution === undefined ? name : resolution.functionName);
     } else if (token === 0x23) {
-      const index = data.u16(offset), width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : 10;
+      const index = context.revision >= 8 ? data.u32(offset) : data.u16(offset), width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : 10;
       data.check(offset, width); offset += width;
       const resolution = context.resolveName?.(index, false), resolved = resolution?.value ?? index;
       if (typeof resolved === "string") { push(resolved, 99, resolution?.functionName); continue; }

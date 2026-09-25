@@ -94,6 +94,22 @@ export class SharpInstance {
     return this.nodes;
   }
 
+  private upsertNode(nextNode: ImageAstNode, beforeGrayscale = false): void {
+    const idx = this.nodes.findIndex(n => n.kind === nextNode.kind);
+    if (idx !== -1) {
+      this.nodes[idx] = nextNode;
+      return;
+    }
+    if (beforeGrayscale) {
+      const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
+      if (grayIdx !== -1) {
+        this.nodes.splice(grayIdx, 0, nextNode);
+        return;
+      }
+    }
+    this.nodes.push(nextNode);
+  }
+
   private evaluateImage(): RgbaImage {
     let img = decodeImage(this.inputBytes, this.inputOptions);
     for (const node of this.nodes) {
@@ -461,7 +477,7 @@ export class SharpInstance {
       if (idx !== -1) this.nodes.splice(idx, 1);
       return this;
     }
-    this.nodes.push({ kind: "grayscale" });
+    this.upsertNode({ kind: "grayscale" });
     return this;
   }
 
@@ -476,7 +492,7 @@ export class SharpInstance {
       return this;
     }
     const bg = typeof options === "object" ? options?.background : undefined;
-    this.nodes.push({
+    this.upsertNode({
       kind: "flatten",
       background: parseColor(bg ?? "#000000", 255)
     });
@@ -484,9 +500,7 @@ export class SharpInstance {
   }
 
   unflatten(): this {
-    const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
-    if (grayIdx !== -1) this.nodes.splice(grayIdx, 0, { kind: "unflatten" });
-    else this.nodes.push({ kind: "unflatten" });
+    this.upsertNode({ kind: "unflatten" }, true);
     return this;
   }
 
@@ -497,7 +511,7 @@ export class SharpInstance {
       return this;
     }
     const alpha = typeof options === "object" ? (options.alpha ?? true) : true;
-    this.nodes.push({ kind: "negate", alpha });
+    this.upsertNode({ kind: "negate", alpha });
     return this;
   }
 
@@ -507,6 +521,18 @@ export class SharpInstance {
     readonly hue?: number;
     readonly lightness?: number;
   }): this {
+    const idx = this.nodes.findIndex(n => n.kind === "modulate");
+    if (idx !== -1) {
+      const prev = this.nodes[idx] as Extract<ImageAstNode, { readonly kind: "modulate" }>;
+      this.nodes[idx] = {
+        kind: "modulate",
+        brightness: options.brightness ?? prev.brightness,
+        saturation: options.saturation ?? prev.saturation,
+        hue: options.hue ?? prev.hue,
+        lightness: options.lightness ?? prev.lightness
+      };
+      return this;
+    }
     this.nodes.push({
       kind: "modulate",
       brightness: options.brightness ?? 1,
@@ -518,22 +544,19 @@ export class SharpInstance {
   }
 
   tint(rgb: ColorInput): this {
-    const nextNode: ImageAstNode = { kind: "tint", color: parseColor(rgb, 255) };
-    const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
-    if (grayIdx !== -1) this.nodes.splice(grayIdx, 0, nextNode);
-    else this.nodes.push(nextNode);
+    this.upsertNode({ kind: "tint", color: parseColor(rgb, 255) }, true);
     return this;
   }
 
   gamma(gamma = 2.2, gammaOut = gamma): this {
-    this.nodes.push({ kind: "gamma", gamma, gammaOut });
+    this.upsertNode({ kind: "gamma", gamma, gammaOut });
     return this;
   }
 
   linear(a: number | readonly number[] = 1, b: number | readonly number[] = 0): this {
     const aArr = typeof a === "number" ? [a] : [...a];
     const bArr = typeof b === "number" ? [b] : [...b];
-    this.nodes.push({ kind: "linear", a: aArr, b: bArr });
+    this.upsertNode({ kind: "linear", a: aArr, b: bArr });
     return this;
   }
 
@@ -547,18 +570,16 @@ export class SharpInstance {
       return this;
     }
     if (lowerOrOptions === true) {
-      this.nodes.push({ kind: "normalize", lower: 1, upper: 99 });
+      this.upsertNode({ kind: "normalize", lower: 1, upper: 99 });
       return this;
     }
     if (typeof lowerOrOptions === "number") {
-      this.nodes.push({
-        kind: "normalize",
+      this.upsertNode({ kind: "normalize",
         lower: lowerOrOptions,
         upper: upperArg ?? 99
       });
     } else {
-      this.nodes.push({
-        kind: "normalize",
+      this.upsertNode({ kind: "normalize",
         lower: lowerOrOptions?.lower ?? 1,
         upper: lowerOrOptions?.upper ?? 99
       });
@@ -584,7 +605,7 @@ export class SharpInstance {
     }
     const val = typeof threshold === "number" ? threshold : 128;
     const gs = options?.grayscale ?? options?.greyscale ?? true;
-    this.nodes.push({ kind: "threshold", value: val, grayscale: gs });
+    this.upsertNode({ kind: "threshold", value: val, grayscale: gs });
     return this;
   }
 
@@ -600,7 +621,7 @@ export class SharpInstance {
         : typeof sigma === "number"
           ? sigma
           : (sigma.sigma ?? -1);
-    this.nodes.push({ kind: "blur", sigma: s });
+    this.upsertNode({ kind: "blur", sigma: s });
     return this;
   }
 
@@ -625,12 +646,11 @@ export class SharpInstance {
       return this;
     }
     if (options === undefined || options === true) {
-      this.nodes.push({ kind: "sharpen", sigma: -1, m1: 1.0, m2: 2.0, x1: 2.0, y2: 10.0, y3: 20.0 });
+      this.upsertNode({ kind: "sharpen", sigma: -1, m1: 1.0, m2: 2.0, x1: 2.0, y2: 10.0, y3: 20.0 });
       return this;
     }
     if (typeof options === "number") {
-      this.nodes.push({
-        kind: "sharpen",
+      this.upsertNode({ kind: "sharpen",
         sigma: options,
         m1: flat ?? 1.0,
         m2: jagged ?? 2.0,
@@ -640,8 +660,7 @@ export class SharpInstance {
       });
       return this;
     }
-    this.nodes.push({
-      kind: "sharpen",
+    this.upsertNode({ kind: "sharpen",
       sigma: options.sigma ?? -1,
       m1: options.m1 ?? 1.0,
       m2: options.m2 ?? 2.0,
@@ -653,7 +672,7 @@ export class SharpInstance {
   }
 
   median(size = 3): this {
-    this.nodes.push({ kind: "median", size });
+    this.upsertNode({ kind: "median", size });
     return this;
   }
 
@@ -665,8 +684,7 @@ export class SharpInstance {
     readonly offset?: number;
   }): this {
     const defaultScale = kernelSpec.kernel.reduce((s, v) => s + v, 0) || 1;
-    this.nodes.push({
-      kind: "convolve",
+    this.upsertNode({ kind: "convolve",
       width: kernelSpec.width,
       height: kernelSpec.height,
       kernel: [...kernelSpec.kernel],
@@ -707,8 +725,7 @@ export class SharpInstance {
   }
 
   recomb(matrix: readonly (readonly number[])[]): this {
-    this.nodes.push({
-      kind: "recomb",
+    this.upsertNode({ kind: "recomb",
       matrix: matrix.map(row => [...row])
     });
     return this;
@@ -780,8 +797,7 @@ export class SharpInstance {
     readonly height: number;
     readonly maxSlope?: number;
   }): this {
-    this.nodes.push({
-      kind: "clahe",
+    this.upsertNode({ kind: "clahe",
       width: options.width,
       height: options.height,
       maxSlope: options.maxSlope ?? 3
@@ -813,8 +829,7 @@ export class SharpInstance {
           (matrix as readonly number[])[2] ?? 0,
           (matrix as readonly number[])[3] ?? 1
         ];
-    this.nodes.push({
-      kind: "affine",
+    this.upsertNode({ kind: "affine",
       matrix: flat,
       background: parseColor(options?.background ?? "#000000", 255),
       idx: options?.idx ?? 0,

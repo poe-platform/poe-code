@@ -1711,4 +1711,35 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(repTrim.info.width).toBe(6);
     expect(repTrim.info.height).toBe(6);
   });
+
+  it("merges modulate() options and replaces existing slot nodes on repeated filter/color calls (#92)", async () => {
+    const buf = Buffer.from([100, 150, 200, 50, 100, 150, 200, 50, 100, 150, 200, 50]);
+    const raw = { raw: { width: 2, height: 2, channels: 3 as const } };
+
+    // 1. negate().negate() replaces node (negates once)
+    const neg2 = await sharp(buf, raw).negate().negate().raw().toBuffer();
+    expect(Array.from(neg2.slice(0, 3))).toEqual([155, 105, 55]);
+
+    // 2. modulate({ brightness: 2, saturation: 2 }).modulate({ brightness: 1 }) merges options
+    const modMerged = await sharp(buf, raw).modulate({ brightness: 2, saturation: 2 }).modulate({ brightness: 1 }).raw().toBuffer();
+    const modSingle = await sharp(buf, raw).modulate({ brightness: 1, saturation: 2 }).raw().toBuffer();
+    expect(Array.from(modMerged)).toEqual(Array.from(modSingle));
+
+    // 3. linear(2, 50).linear(1, 10) replaces linear node
+    const lin2 = await sharp(buf, raw).linear(2, 50).linear(1, 10).raw().toBuffer();
+    expect(Array.from(lin2.slice(0, 3))).toEqual([110, 160, 210]);
+
+    // 4. gamma(3.0).gamma(2.2) and tint("#ff0000").tint("#00ff00") and affine([2,0,0,2]).affine([1,0,0,1])
+    const gam2 = await sharp(buf, raw).gamma(3.0).gamma(2.2).raw().toBuffer();
+    const gamSingle = await sharp(buf, raw).gamma(2.2).raw().toBuffer();
+    expect(Array.from(gam2)).toEqual(Array.from(gamSingle));
+
+    const tint2 = await sharp(buf, raw).tint("#ff0000").tint("#00ff00").raw().toBuffer();
+    const tintSingle = await sharp(buf, raw).tint("#00ff00").raw().toBuffer();
+    expect(Array.from(tint2)).toEqual(Array.from(tintSingle));
+
+    const aff2 = await sharp(buf, raw).affine([2, 0, 0, 2]).affine([1, 0, 0, 1]).raw().toBuffer({ resolveWithObject: true });
+    expect(aff2.info.width).toBe(2);
+    expect(aff2.info.height).toBe(2);
+  });
 });

@@ -63,6 +63,7 @@ function parse(args: readonly string[]) {
 
 export function createMktempCommand(configuration: MetadataCommandsOptions = {}) {
   const configured = settings(configuration);
+  const configuredUmask = configuration.umask === undefined ? undefined : configured.umask;
   return metadataCommand("mktemp", async context => {
     const budget = new MetadataBudget(context, configured.limits);
     const parsed = parse(context.args);
@@ -92,7 +93,7 @@ export function createMktempCommand(configuration: MetadataCommandsOptions = {})
           if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "mktemp" });
           if (capabilities.permissions !== true) throw new FsError("ENOTSUP", { syscall: "mktemp", message: "private temporary creation requires declared permission support" });
           try {
-            const mask: unknown = Reflect.get(context.fs, creationUmask);
+            const mask: unknown = configuredUmask ?? Reflect.get(context.fs, creationUmask);
             const activeUmask = typeof mask === "number" ? mask : configured.umask;
             const mode = (parsed.directory ? 0o700 : 0o600) & ~activeUmask;
             if (parsed.directory) await context.fs.mkdir(path, { mode, recursive: false, signal: context.signal });

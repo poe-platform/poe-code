@@ -58,6 +58,7 @@ export function modeChange(text: string, umask: number): ModeChange {
 
 export function createChmodCommand(configuration: MetadataCommandsOptions = {}) {
   const configured = settings(configuration);
+  const configuredUmask = configuration.umask === undefined ? undefined : configured.umask;
   return metadataCommand("chmod", async context => {
     const budget = new MetadataBudget(context, configured.limits);
     const modeOptions: string[] = [];
@@ -78,7 +79,7 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
     if (reference !== undefined && modeOptions.length) throw new UsageError("cannot combine mode and --reference options");
     requireOperands(parsed.operands, reference === undefined && !modeOptions.length ? 2 : 1);
     const mode = modeOptions.length ? modeOptions.join(",") : reference === undefined ? parsed.operands.shift()! : undefined;
-    const mask: unknown = Reflect.get(context.fs, creationUmask);
+    const mask: unknown = configuredUmask ?? Reflect.get(context.fs, creationUmask);
     const activeUmask = typeof mask === "number" ? mask : configured.umask;
     const change = mode === undefined ? undefined : modeChange(mode, activeUmask);
     const paths = parsed.operands;

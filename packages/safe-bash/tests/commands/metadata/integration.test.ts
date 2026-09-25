@@ -53,6 +53,34 @@ test("metadata options are forwarded through the aggregate without enabling host
   } finally { await shell.dispose(); }
 });
 
+for (const route of ["factory", "plugin"] as const) {
+  for (const [umask, chmodModes, temporaryModes] of [
+    [undefined, [0o477, 0o775], [0o400, 0o400, 0o600, 0o700]],
+    [0o200, [0o577, 0o577], [0o400, 0o500, 0o400, 0o500]],
+    [0, [0o777, 0o777], [0o600, 0o700, 0o600, 0o700]],
+  ] as const) {
+    for (const command of ["chmod", "mktemp"] as const) test(`${command} ${route} masks: configured ${umask ?? "omitted"}`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/tmp");
+      await fs.writeFile("/first", Uint8Array.of(1), { mode: 0o400 });
+      await fs.writeFile("/second", Uint8Array.of(2), { mode: 0o400 });
+      const options = { metadata: umask === undefined ? {} : { umask } };
+      const shell = new Shell({ fs, commands: new CommandRegistry(route === "factory" ? createAgentCommands(options) : []) });
+      if (route === "plugin") shell.use(agentCommands(options));
+      try {
+        const script = command === "chmod"
+          ? "umask 0300; chmod +rwx /first; umask 0002; chmod +rwx /second; stat -c %a /first /second"
+          : 'umask 0300; f=$(mktemp); d=$(mktemp -d); stat -c %a "$f" "$d"; umask 0002; f=$(mktemp); d=$(mktemp -d); stat -c %a "$f" "$d"';
+        const result = await shell.exec(script);
+        const expected = command === "chmod" ? chmodModes : temporaryModes;
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, expected.map(mode => `${mode.toString(8)}\n`).join(""), ""]);
+        assert.deepEqual(await fs.readFile("/first"), Uint8Array.of(1));
+        assert.deepEqual(await fs.readFile("/second"), Uint8Array.of(2));
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 test("aggregate shell stat filesystem mode reads backend metadata through filesystem wrappers", async () => {
   const backing = createMemoryFileSystem();
   await backing.mkdir("/work");

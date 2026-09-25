@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
@@ -6,6 +5,9 @@ import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as api from "./index.js";
 import { textFixture, textContext, w } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
+import { useNativeProcess } from "../tests/native-process.js";
+
+const execute = useNativeProcess(["--import", "tsx", "packages/docx/tests/fixtures/comment-extension-native.ts"]);
 
 const namespace = "http://schemas.microsoft.com/office/word/2018/wordml/cex";
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
@@ -25,14 +27,11 @@ it(`${route} inventories inert modern comment metadata at admitted depth ${depth
   const input = new Uint8Array(memory.readFileSync("/input") as Buffer), context = { ...textContext, limits, budget: new api.DocumentBudget({ xmlDepth: 8192, ...(capacity === "insufficient" ? { retainedBytes: depth === 4096 ? 67108864 : 1 } : {}) }, textContext.signal) };
   let data: api.CommentReadData;
   if (route === "native-sdk" || route === "native-cli") {
-    const script = `import * as api from 'docx';let json='';for await(const chunk of process.stdin)json+=chunk;const request=JSON.parse(json),input=new Uint8Array(Buffer.from(request.input,'base64')),signal=new AbortController().signal,budget=new api.DocumentBudget({xmlDepth:8192,...(request.capacity==='insufficient'?{retainedBytes:request.depth===4096?67108864:1}:{})},signal);try{let data;if(request.route==='native-sdk')data=await api.inspectDocumentComments(input,{operation:'comments.list',options:{}},{limits:request.limits,signal,budget});else{const {Shell,MemoryFileSystem}=await import('@poe-platform/safe-bash');const {docxCommands}=await import('@poe-platform/safe-bash/commands/docx');const fs=new MemoryFileSystem();await fs.writeFile('/input',input);const shell=new Shell({fs,limits:{maxOutputBytes:67108864}}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits:request.limits,documentLimits:{xmlDepth:8192}})}));try{const result=await shell.exec('docx comments list /input --json'+(request.capacity==='insufficient'?' --limit retainedBytes='+(request.depth===4096?67108864:1):''));if(result.exitCode!==0){console.log(JSON.stringify({ok:false,code:JSON.parse(result.stdout).errors[0].code}));process.exitCode=0;data=null;}else {const actual=JSON.parse(result.stdout).data;if(actual.items.length!==1||actual.items[0].details.commentId!==43||actual.items[0].details.modern!==true||actual.items[0].text!=='Stored comment')throw new Error('Canonical resource mismatch');data=await api.inspectDocumentComments(input,{operation:'comments.list',options:{}},{limits:request.limits,signal,budget:new api.DocumentBudget({xmlDepth:8192},signal)});}if(Buffer.compare(Buffer.from(input),Buffer.from(await fs.readFile('/input'))))throw new Error('Input changed');}finally{await shell.dispose();}}if(data)console.log(JSON.stringify({ok:true,data,retainedBytes:budget.usage.retainedBytes}));}catch(error){console.log(JSON.stringify({ok:false,code:error.code??error.name,error:String(error),stack:error.stack}));}`;
-    const response = JSON.parse(await new Promise<string>((resolve, reject) => {
-      const child = spawn(process.execPath, ["--input-type=module", "-e", script], { stdio: ["pipe", "pipe", "pipe"] }); let stdout = "", stderr = "";
-      child.stdout.on("data", bytes => { stdout += String(bytes); }); child.stderr.on("data", bytes => { stderr += String(bytes); }); child.on("error", reject); child.on("close", status => status === 0 ? resolve(stdout) : reject(new Error(stderr))); child.stdin.end(JSON.stringify({ input: Buffer.from(input).toString("base64"), limits, route, depth, capacity }));
-    })) as { ok: boolean; code?: string; data: api.CommentReadData; retainedBytes: number };
-    if (capacity === "insufficient") { expect(response).toMatchObject({ ok: false, code: "limit-exceeded" }); expect(readPackage(input)).toEqual(files); return; }
-    expect(response).toMatchObject({ ok: true }); data = response.data;
-    if (route === "native-sdk") expect(response.retainedBytes).toBeGreaterThanOrEqual(data.extensions.reduce((sum, extension) => sum + extension.entries.reduce((total, entry) => total + entry.path.length * 8, 0), 0));
+    const response = await execute({ input: Buffer.from(input).toString("base64"), limits, route, depth, capacity }) as { ok: boolean; code?: string; stack?: string };
+    expect(response, response.stack).toMatchObject(capacity === "insufficient" ? { ok: false, code: "limit-exceeded" } : { ok: true });
+    expect(new Uint8Array(memory.readFileSync("/input") as Buffer)).toEqual(input);
+    expect(readPackage(input)).toEqual(files);
+    return;
   } else if (route === "sdk") {
     const result = api.inspectDocumentComments(input, { operation: "comments.list", options: {} }, context);
     if (capacity === "insufficient") { await expect(result).rejects.toMatchObject({ code: "limit-exceeded" }); expect(readPackage(input)).toEqual(files); return; }

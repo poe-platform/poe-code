@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+import { createInterface } from "node:readline";
 import { Volume } from "memfs";
 import * as api from "../../src/index.js";
 import { textContext, textFixture } from "./text.js";
 
-let request = "";
-for await (const bytes of process.stdin) request += String(bytes);
+console.log(JSON.stringify({ ready: true }));
+for await (const request of createInterface({ input: process.stdin })) {
 const { strict, depth, action, route } = JSON.parse(request) as {
   strict: boolean; depth: number; action: "read" | "rename" | "remove"; route: "sdk" | "cli";
 };
@@ -51,4 +52,5 @@ try {
   console.log(JSON.stringify({ ok: true, strict, depth, action, route }));
 } catch (error) {
   console.log(JSON.stringify({ ok: false, strict, depth, action, route, error: String(error), stack: error instanceof Error ? error.stack : undefined }));
+}
 }

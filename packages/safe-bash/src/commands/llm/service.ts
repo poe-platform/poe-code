@@ -4,6 +4,7 @@ import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddi
 export interface LlmServiceOptions {
   readonly providers: readonly LlmProvider[];
   readonly defaultModel?: string;
+  readonly templates?: Readonly<Record<string, string>>;
 }
 
 export interface LlmServiceModel {
@@ -13,6 +14,9 @@ export interface LlmServiceModel {
 
 export interface LlmServiceRequest extends Omit<LlmRequest, "model"> {
   readonly model?: string;
+  readonly template?: string;
+  readonly parameters?: Readonly<Record<string, unknown>>;
+  readonly maxInputBytes?: number;
 }
 
 /** Structured host API shared by shell and other language front ends. */
@@ -23,10 +27,43 @@ export interface LlmService {
   embed(request: Omit<LlmEmbeddingRequest, "model"> & {readonly model?: string}): Promise<LlmEmbeddingResponse>;
 }
 
+export class LlmInputLimitError extends RangeError {
+  readonly code = "limit";
+  constructor() { super("LLM input limit exceeded"); }
+}
+
+function renderTemplate(template: string, parameters: Readonly<Record<string, unknown>>, maxBytes: number): string {
+  const pieces: string[] = [];
+  let size = 0;
+  const append = (value: string): void => {
+    size += new TextEncoder().encode(value).length;
+    if (size > maxBytes) throw new LlmInputLimitError();
+    pieces.push(value);
+  };
+  let offset = 0;
+  while (offset < template.length) {
+    const start = template.indexOf("{",offset);
+    if (start < 0) { append(template.slice(offset)); break; }
+    append(template.slice(offset,start));
+    const end = template.indexOf("}",start+1);
+    if (end < 0) throw new TypeError("Unclosed template parameter");
+    const name = template.slice(start+1,end);
+    if (!Object.hasOwn(parameters,name)) throw new TypeError(`Missing template parameter: ${name}`);
+    const value = parameters[name];
+    const text = typeof value === "string" ? value : JSON.stringify(value);
+    if (text === undefined) throw new TypeError(`Invalid template parameter: ${name}`);
+    append(text);
+    offset = end+1;
+  }
+  return pieces.join("");
+}
+
 export function createLlmService(options: LlmServiceOptions): LlmService {
   const models: LlmServiceModel[] = [];
   const lookup = new Map<string, LlmServiceModel>();
   const defaultModel = options.defaultModel;
+  const templates = new Map(Object.entries(options.templates ?? {}));
+  for (const [name,body] of templates) if (!name || typeof body !== "string") throw new TypeError("Templates require names and string bodies");
   for (const provider of options.providers) {
     if (!provider.name || typeof provider.complete !== "function") throw new TypeError("Providers require a name and complete function");
     for (const declared of provider.models) {
@@ -74,13 +111,31 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       }
       if (request.messages?.some(message => !['system','user','assistant'].includes(message.role) || typeof message.content !== 'string')) throw new TypeError('Invalid LLM message');
       if (request.schema !== undefined && (request.schema === null || typeof request.schema !== 'object' || Array.isArray(request.schema))) throw new TypeError('Invalid LLM schema');
+      if (typeof request.prompt !== "string" || request.system !== undefined && typeof request.system !== "string") throw new TypeError("Invalid LLM prompt");
+      const maxInputBytes = request.maxInputBytes ?? Infinity;
+      if (request.maxInputBytes !== undefined && (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 0)) throw new RangeError("Invalid LLM input limit");
+      const encoder = new TextEncoder();
+      let inputBytes = encoder.encode(request.prompt).length + encoder.encode(request.system ?? "").length;
+      for (const message of request.messages ?? []) inputBytes += encoder.encode(message.content).length;
+      for (const attachment of request.attachments) inputBytes += attachment.bytes.length;
+      if (inputBytes > maxInputBytes) throw new LlmInputLimitError();
+      let prompt = request.prompt;
+      if (request.template !== undefined) {
+        const template = templates.get(request.template);
+        if (template === undefined) throw new TypeError(`Unknown template: ${request.template}`);
+        const parameters = request.parameters ?? {};
+        if (!parameters || typeof parameters !== "object" || Array.isArray(parameters)) throw new TypeError("Invalid template parameters");
+        const separator = prompt ? "\n\n" : "";
+        prompt = renderTemplate(template,parameters,maxInputBytes-inputBytes-encoder.encode(separator).length) + separator + prompt;
+      } else if (request.parameters && Object.keys(request.parameters).length) throw new TypeError("Template parameters require a template");
       const entry = this.resolve(request.model);
       for (const attachment of request.attachments) {
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) {
           throw new Error(`Model ${entry.model.id} does not accept ${attachment.mimeType}`);
         }
       }
-      return entry.provider.complete({ ...request, model: entry.model.id });
+      const {template: _template, parameters: _parameters, maxInputBytes: _maxInputBytes, ...input} = request;
+      return entry.provider.complete({ ...input, prompt, model: entry.model.id });
     },
   });
 }

@@ -1,6 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import { combineManagedSignals } from '../../fs/creation-mask.js';
-import type { LlmService, LlmServiceRequest } from '../llm/service.js';
+import { LlmInputLimitError, type LlmService, type LlmServiceRequest } from '../llm/service.js';
+import { pathOf } from '../internal.js';
 import { sniffMimeType } from '../llm/mime.js';
 import type { LlmOption } from '../llm/types.js';
 import type { PythonInvocationCapabilities } from './index.js';
@@ -23,7 +24,7 @@ export function createPythonLlmCapability(context: CommandContext, service: LlmS
     if (typeof payload.prompt !== 'string') throw new TypeError('Prompt must be a string');
     if (payload.model !== undefined && typeof payload.model !== 'string') throw new TypeError('Invalid model');
     if (payload.system !== undefined && typeof payload.system !== 'string') throw new TypeError('Invalid system prompt');
-    for (const key of ['template','conversation','parameters']) {
+    for (const key of ['conversation']) {
       if (payload[key] !== undefined) throw new TypeError(`Shared LLM service does not yet support ${key}`);
     }
     if (payload.messages !== undefined && !Array.isArray(payload.messages)) throw new TypeError('Invalid messages');
@@ -35,16 +36,19 @@ export function createPythonLlmCapability(context: CommandContext, service: LlmS
       if (!value || typeof value !== 'object') throw new TypeError('Invalid attachment');
       const attachment = value as Record<string,unknown>;
       if (typeof attachment.path !== 'string' || attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Attachment requires path and mimeType');
-      const bytes = await context.fs.readFile(attachment.path,{signal:childSignal,maxBytes:Math.max(0,limit-size)});
+      const bytes = await context.fs.readFile(pathOf(context,attachment.path),{signal:childSignal,maxBytes:Math.max(0,limit-size)});
       size += bytes.length;
       if (size > limit) throw new Error('LLM input limit exceeded');
       attachments.push({mimeType:typeof attachment.mimeType === 'string' ? attachment.mimeType : sniffMimeType(attachment.path,bytes),bytes});
     }
     if (size > limit) throw new Error('LLM input limit exceeded');
-    return {prompt:payload.prompt, ...(typeof payload.model === 'string' ? {model:payload.model}:{}), ...(typeof payload.system === 'string' ? {system:payload.system}:{}), ...(payload.messages !== undefined ? {messages:payload.messages as NonNullable<LlmServiceRequest['messages']>}:{}), ...(payload.schema !== undefined ? {schema:payload.schema as NonNullable<LlmServiceRequest['schema']>}:{}), attachments,options:(payload.options ?? {}) as Record<string,LlmOption>,signal:childSignal};
+    return {prompt:payload.prompt, maxInputBytes:limit, ...(payload.template !== undefined ? {template:payload.template as string}:{}), ...(payload.parameters !== undefined ? {parameters:payload.parameters as Record<string,unknown>}:{}), ...(typeof payload.model === 'string' ? {model:payload.model}:{}), ...(typeof payload.system === 'string' ? {system:payload.system}:{}), ...(payload.messages !== undefined ? {messages:payload.messages as NonNullable<LlmServiceRequest['messages']>}:{}), ...(payload.schema !== undefined ? {schema:payload.schema as NonNullable<LlmServiceRequest['schema']>}:{}), attachments,options:(payload.options ?? {}) as Record<string,LlmOption>,signal:childSignal};
   }
 
   async function* events(payload:Readonly<Record<string,unknown>>, childSignal:AbortSignal):AsyncGenerator<Record<string,unknown>> {
+    const responseLimit = payload.max_response_bytes;
+    if (responseLimit !== undefined && (!Number.isSafeInteger(responseLimit) || (responseLimit as number) <= 0)) throw new TypeError('Invalid LLM response limit');
+    const maxBytes = Math.min(limit, (responseLimit as number | undefined) ?? limit);
     const timeout = payload.timeout;
     if (timeout !== undefined && timeout !== null && (typeof timeout !== 'number' || !Number.isFinite(timeout) || timeout <= 0)) throw new TypeError('Invalid LLM timeout');
     const deadline = new AbortController();
@@ -60,7 +64,7 @@ export function createPythonLlmCapability(context: CommandContext, service: LlmS
     for await (const chunk of service.complete(input)) {
       operationSignal.throwIfAborted();
       size += typeof chunk === 'string' ? new TextEncoder().encode(chunk).length : chunk.length;
-      if (size > limit) throw new Error('LLM response limit exceeded');
+      if (size > maxBytes) throw new LlmCapabilityError('limit','LLM response limit exceeded');
       if (typeof chunk === 'string') { text += chunk; yield {type:'text',text:chunk}; }
       else { for (const byte of chunk) data.push(byte); yield {type:'bytes',data:Array.from(chunk)}; }
     }
@@ -79,7 +83,17 @@ export function createPythonLlmCapability(context: CommandContext, service: LlmS
       if (!Array.isArray(payload.inputs) || payload.inputs.some(value => typeof value !== 'string')) throw new TypeError('Invalid embedding inputs');
       if (payload.model !== undefined && payload.model !== null && typeof payload.model !== 'string') throw new TypeError('Invalid embedding model');
       if (payload.options !== undefined && (!payload.options || typeof payload.options !== 'object' || Array.isArray(payload.options))) throw new TypeError('Invalid embedding options');
-      return service.embed({inputs:payload.inputs as string[],...(typeof payload.model === 'string' ? {model:payload.model}:{}), options:(payload.options ?? {}) as Record<string,LlmOption>,signal});
+      if ((payload.inputs as string[]).reduce((size,value) => size + new TextEncoder().encode(value).length,0) > limit) throw new LlmCapabilityError('limit','LLM input limit exceeded');
+      const timeout = payload.timeout;
+      if (timeout !== undefined && timeout !== null && (typeof timeout !== 'number' || !Number.isFinite(timeout) || timeout <= 0)) throw new TypeError('Invalid LLM timeout');
+      const deadline = new AbortController();
+      const operationSignal = combineManagedSignals(signal,deadline.signal);
+      const timer = typeof timeout === 'number' ? setTimeout(() => deadline.abort(new LlmCapabilityError('timeout','LLM request exceeded timeout')),timeout*1000):undefined;
+      try {
+        const result = await service.embed({inputs:payload.inputs as string[],...(typeof payload.model === 'string' ? {model:payload.model}:{}), options:(payload.options ?? {}) as Record<string,LlmOption>,signal:operationSignal});
+        if (new TextEncoder().encode(JSON.stringify(result)).length > limit) throw new LlmCapabilityError('limit','LLM response limit exceeded');
+        return result;
+      } finally {if (timer !== undefined) clearTimeout(timer);}
     }
     if (operation === 'llm.complete') {
       let response:unknown;
@@ -108,7 +122,7 @@ export function createPythonLlmCapability(context: CommandContext, service: LlmS
       const task = dispatch(operation,payload);
       pending.add(task);
       try { return await task; }
-      catch (error) { if (error instanceof LlmCapabilityError) return {error:{code:error.code,message:error.message}}; throw error; }
+      catch (error) { if (error instanceof LlmCapabilityError || error instanceof LlmInputLimitError) return {error:{code:error.code,message:error.message}}; throw error; }
       finally { pending.delete(task); }
     },
     async close() {

@@ -210,3 +210,15 @@ test('shared service validates conversation messages and delegates structured em
   assert.throws(() => service.complete({prompt:'',attachments:[],options:{},messages:[{role:'unsupported',content:'x'}],signal}),/message/u);
   assert.equal(calls,0);
 });
+
+test('shared service renders registered templates before provider admission and enforces input limits', async () => {
+  const requests: LlmRequest[] = [];
+  const service = createLlmService({defaultModel:'model',templates:{summary:'Summarize {topic} in {count} points'},providers:[{name:'fixture',models:[{id:'model'}],async *complete(request) {requests.push(request);yield 'answer';}}]});
+  const request = {prompt:'extra',template:'summary',parameters:{topic:'gravity',count:2},options:{},attachments:[],signal:new AbortController().signal};
+  for await (const chunk of service.complete(request)) assert.equal(chunk,'answer');
+  assert.equal(requests[0]!.prompt,'Summarize gravity in 2 points\n\nextra');
+  assert.throws(() => service.complete({...request,parameters:{topic:'gravity'}}),/parameter/u);
+  assert.throws(() => service.complete({...request,template:'missing'}),/template/u);
+  assert.throws(() => service.complete({...request,maxInputBytes:1}),/input limit/u);
+  assert.equal(requests.length,1);
+});

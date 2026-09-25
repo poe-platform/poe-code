@@ -292,6 +292,12 @@ export type ImageAstNode =
   | { readonly kind: "toColorspace"; readonly space: ColorSpace }
   | { readonly kind: "bandbool"; readonly op: "and" | "or" | "eor" }
   | {
+      readonly kind: "boolean";
+      readonly operand: Uint8Array;
+      readonly options?: SharpInputOptions;
+      readonly op: "and" | "or" | "eor";
+    }
+  | {
       readonly kind: "joinChannel";
       readonly inputs: ReadonlyArray<{
         readonly data: Uint8Array;

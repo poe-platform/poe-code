@@ -420,7 +420,6 @@ function getBlendModeId(mode: BlendMode): number {
     case "soft-light": return 9;
     case "difference": return 10;
     case "exclusion": return 11;
-    case "add": return 12;
     default: return 0;
   }
 }
@@ -525,6 +524,9 @@ export function compositeImage(
 
     // Fast scanline copy for opaque non-tiled "over"/"source" layers (e.g. multi-megapixel panorama/grid merges)
     if (!layer.tile && !overlay.hasAlpha && (blend === "over" || blend === "source")) {
+      if (blend === "source") {
+        out.fill(0);
+      }
       const copyStartX = Math.max(0, startX);
       const copyEndX = Math.min(baseW, startX + overlay.width);
       const copyW = copyEndX - copyStartX;
@@ -556,6 +558,10 @@ export function compositeImage(
       blend !== "out" &&
       blend !== "dest-in" &&
       blend !== "dest-atop";
+    const dstBuf = !skipWhenSaZero && !layer.tile ? new Uint8Array(out) : out;
+    if (!skipWhenSaZero && !layer.tile) {
+      out.fill(0);
+    }
 
     const inv255 = 1 / 255;
     const ovData = overlay.data;
@@ -580,6 +586,13 @@ export function compositeImage(
             const saByte = ovData[sIdx + 3]!;
             if (saByte === 0 && skipWhenSaZero) continue;
             const dIdx = (dyRow + dx) * 4;
+            if (saByte === 0 && !skipWhenSaZero) {
+              out[dIdx] = 0;
+              out[dIdx + 1] = 0;
+              out[dIdx + 2] = 0;
+              out[dIdx + 3] = 0;
+              continue;
+            }
             if (isOver && saByte === 255) {
               out[dIdx] = ovData[sIdx]!;
               out[dIdx + 1] = ovData[sIdx + 1]!;
@@ -587,7 +600,7 @@ export function compositeImage(
               out[dIdx + 3] = 255;
               continue;
             }
-            const daByte = out[dIdx + 3]!;
+            const daByte = dstBuf[dIdx + 3]!;
             if (isOver && daByte === 255) {
               const invSa = 255 - saByte;
               out[dIdx] = ((ovData[sIdx]! * saByte + out[dIdx]! * invSa + 128) * 257) >>> 16;
@@ -601,9 +614,9 @@ export function compositeImage(
             const sb = ovData[sIdx + 2]! * inv255;
             const sa = saByte * inv255;
 
-            const dr = out[dIdx]! * inv255;
-            const dg = out[dIdx + 1]! * inv255;
-            const db = out[dIdx + 2]! * inv255;
+            const dr = dstBuf[dIdx]! * inv255;
+            const dg = dstBuf[dIdx + 1]! * inv255;
+            const db = dstBuf[dIdx + 2]! * inv255;
             const da = daByte * inv255;
 
             if (isSeparable) {
@@ -695,6 +708,9 @@ export function compositeImage(
               continue;
             }
             if (blend === "dest-in") {
+              out[dIdx] = dstBuf[dIdx]!;
+              out[dIdx + 1] = dstBuf[dIdx + 1]!;
+              out[dIdx + 2] = dstBuf[dIdx + 2]!;
               out[dIdx + 3] = Math.round(da * sa * 255);
               continue;
             }
@@ -759,6 +775,19 @@ export function compositeImage(
               out[dIdx + 3] = Math.round(outA * 255);
               continue;
             }
+            if (blend === "add") {
+              const outA = Math.min(1, sa + da);
+              if (outA > 0) {
+                const cr = (sr * sa + dr * da) / outA;
+                const cg = (sg * sa + dg * da) / outA;
+                const cb = (sb * sa + db * da) / outA;
+                out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
+              }
+              out[dIdx + 3] = Math.round(outA * 255);
+              continue;
+            }
 
             // Standard W3C separable blend over destination
             const outA = sa + da * (1 - sa);
@@ -795,6 +824,41 @@ export function compositeImage(
     data: out,
     hasAlpha: true,
     channels: base.channels < 3 ? 2 : 4
+  };
+}
+
+export function booleanImage(
+  img: RgbaImage,
+  operand: RgbaImage,
+  op: "and" | "or" | "eor"
+): RgbaImage {
+  const out = new Uint8Array(img.data.length);
+  const w = img.width;
+  const h = img.height;
+  const opW = operand.width;
+  const opH = operand.height;
+  for (let y = 0; y < h; y++) {
+    const oy = Math.min(opH - 1, y);
+    for (let x = 0; x < w; x++) {
+      const ox = Math.min(opW - 1, x);
+      const idx = (y * w + x) * 4;
+      const oIdx = (oy * opW + ox) * 4;
+      for (let c = 0; c < 4; c++) {
+        const a = img.data[idx + c]!;
+        const b = operand.data[oIdx + c]!;
+        out[idx + c] = op === "and" ? a & b : op === "or" ? a | b : a ^ b;
+      }
+      if (!img.hasAlpha && !operand.hasAlpha) {
+        out[idx + 3] = 255;
+      }
+    }
+  }
+  const hasAlpha = img.hasAlpha || operand.hasAlpha;
+  return {
+    ...img,
+    data: out,
+    hasAlpha,
+    channels: hasAlpha ? 4 : img.channels
   };
 }
 

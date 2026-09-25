@@ -19,6 +19,7 @@ import {
   affineImage,
   applyExifOrientation,
   bandboolImage,
+  booleanImage,
   blurImage,
   claheImage,
   compositeImage,
@@ -187,6 +188,11 @@ export class SharpInstance {
         case "bandbool":
           img = bandboolImage(img, node.op);
           break;
+        case "boolean": {
+          const opImg = decodeImage(node.operand, node.options);
+          img = booleanImage(img, opImg, node.op);
+          break;
+        }
         case "joinChannel": {
           const extras = node.inputs.map(item => decodeImage(item.data, item.options));
           img = joinChannelImage(img, extras);
@@ -565,6 +571,23 @@ export class SharpInstance {
 
   bandbool(boolOp: "and" | "or" | "eor"): this {
     this.nodes.push({ kind: "bandbool", op: boolOp });
+    return this;
+  }
+
+  boolean(
+    operand: Uint8Array | ArrayBuffer | string,
+    op: "and" | "or" | "eor",
+    options?: SharpInputOptions
+  ): this {
+    const data = toBytes(operand);
+    if (data) {
+      this.nodes.push({
+        kind: "boolean",
+        operand: data,
+        op,
+        ...(options?.raw !== undefined ? { options: { raw: options.raw } } : {})
+      });
+    }
     return this;
   }
 

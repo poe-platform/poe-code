@@ -1062,4 +1062,31 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const edgeInside = (40 * 80 + 65) * 4; // distance 25 from (40,40), inside scaled radius 30 (15*2)
     expect(Array.from(cBuf.subarray(edgeInside, edgeInside + 4))).toEqual([255, 0, 0, 255]);
   });
+
+  it("clears outside-overlay pixels for Porter-Duff in/out/dest-in/dest-atop/clear/source, sums alpha in blend:add, and supports boolean() (#69)", async () => {
+    const dst2x1 = new Uint8Array([100, 150, 200, 200, 100, 150, 200, 200]);
+    const src1x1 = new Uint8Array([80, 120, 100, 120]);
+    const inOut = await sharp(dst2x1, { raw: { width: 2, height: 1, channels: 4 } })
+      .composite([{ input: src1x1, raw: { width: 1, height: 1, channels: 4 }, top: 0, left: 0, blend: "in" }])
+      .raw()
+      .toBuffer();
+    expect(Array.from(inOut.subarray(0, 4))).toEqual([80, 120, 100, 94]);
+    expect(Array.from(inOut.subarray(4, 8))).toEqual([0, 0, 0, 0]);
+
+    const addOut = await sharp(new Uint8Array([100, 150, 200, 200]), { raw: { width: 1, height: 1, channels: 4 } })
+      .composite([{ input: src1x1, raw: { width: 1, height: 1, channels: 4 }, blend: "add" }])
+      .raw()
+      .toBuffer();
+    expect(addOut[0]).toBe(116);
+    expect(addOut[1]).toBe(174);
+    expect(addOut[3]).toBe(255);
+
+    const a4 = new Uint8Array([0b1100, 0b1010, 0b1111, 200]);
+    const b4 = new Uint8Array([0b1010, 0b0110, 0b0101, 100]);
+    const opts4 = { raw: { width: 1, height: 1, channels: 4 as const } };
+    const boolAnd = await sharp(a4, opts4).boolean(b4, "and", opts4).raw().toBuffer();
+    expect(Array.from(boolAnd)).toEqual([8, 2, 5, 64]);
+    const boolXor = await sharp(a4, opts4).boolean(b4, "eor", opts4).raw().toBuffer();
+    expect(Array.from(boolXor)).toEqual([6, 12, 10, 172]);
+  });
 });

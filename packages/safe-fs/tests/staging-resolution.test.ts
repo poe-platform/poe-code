@@ -9,6 +9,19 @@ import { FsError } from "../src/contracts/errors.js";
 import { ReadOnlyFileSystem } from "../src/fs/readonly/index.js";
 import { withFileSystemQuota } from "../src/fs/quota/index.js";
 
+test("Memory staging resolution records plain paths and detects replaced ancestors", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/output");
+  await fs.writeFile("/output/a", Uint8Array.of(1));
+  const resolution = await fs.prepareStagingResolution("/output/a");
+  assert.deepEqual(resolution.traversed.map(entry => entry.path), ["/", "/output", "/output/a"]);
+  assert.equal(resolution.validate(), true);
+  await fs.rename("/output", "/held");
+  await fs.mkdir("/output");
+  await fs.writeFile("/output/a", Uint8Array.of(1));
+  assert.throws(() => resolution.validate(), { code: "EAGAIN" });
+});
+
 for (const operation of ["query", "prepare"] as const) {
   test(`Device staging resolution rejects noncanonical virtual operands before unsupported traversal: ${operation}`, async () => {
     const memory = new MemoryFileSystem();

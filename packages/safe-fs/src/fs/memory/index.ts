@@ -361,7 +361,8 @@ export class MemoryFileSystem implements FileSystem {
 
   private resolve(path: string, syscall: string, options: ResolveOptions = {}): Location {
     this.validatePath(path, syscall);
-    if (this.symlinkCount === 0 && options.createDirectories === undefined && options.resizeCreate === undefined && isCleanAbsolutePath(path)) {
+    if (this.symlinkCount === 0 && options.createDirectories === undefined && options.resizeCreate === undefined
+      && options.resolutionSteps === undefined && isCleanAbsolutePath(path)) {
       let current: DirectoryNode = this.root;
       let start = 1;
       while (true) {

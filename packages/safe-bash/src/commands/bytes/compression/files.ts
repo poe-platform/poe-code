@@ -83,6 +83,26 @@ export async function planOperands(context: CommandContext, options: Compression
   } finally { await operation.close(); context.signal.throwIfAborted(); }
 }
 
+export async function verifyOperandDestinations(context: CommandContext, plans: readonly Operand[]): Promise<void> {
+  const operation = new FileOperation(context);
+  try {
+    await operation.run(async () => {
+      const active = { ...context, fs: operation.fs, signal: operation.signal };
+      const destinations = new Set<string>();
+      for (const plan of plans) {
+        if (!plan.destination) continue;
+        const parent = await active.fs.realpath(dirname(plan.destination), { signal: active.signal });
+        const realDestination = joinPath(parent, plan.destination.slice(plan.destination.lastIndexOf("/") + 1));
+        if (destinations.has(realDestination) || plans.some((other) => other.realSource === realDestination
+          || (plan.destinationStat && other.sourceStat && sameIdentity(plan.destinationStat, other.sourceStat)))) {
+          throw new FsError("EINVAL", { path: plan.destination, message: "multiple operands share a source or destination path" });
+        }
+        destinations.add(realDestination);
+      }
+    });
+  } finally { await operation.close(); context.signal.throwIfAborted(); }
+}
+
 async function collectOperands(context: CommandContext, options: CompressionOptions): Promise<Operand[]> {
   const plans: Operand[] = [];
   const pending = [...options.operands].reverse();
@@ -92,9 +112,21 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     context.signal.throwIfAborted();
     if (name === "-") { plans.push({ source: "-" }); continue; }
     if (!name) throw new FsError("ENOENT", { path: name });
-    const source = pathOf(context, name);
+    let source = pathOf(context, name);
     if (options.excludeCompressed && !options.decompress && [".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2", ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"].some(suffix => source.endsWith(suffix))) continue;
-    const sourceStat = await context.fs.lstat(source, { signal: context.signal });
+    let sourceStat: FileStat;
+    try {
+      sourceStat = await context.fs.lstat(source, { signal: context.signal });
+    } catch (error) {
+      if (codeOf(error) === "ENOENT" && options.decompress && options.format === "gzip") {
+        const suffix = options.suffix ?? ".gz";
+        const candidate = `${source}${suffix}`;
+        const fallback = !source.toLowerCase().endsWith(suffix.toLowerCase()) ? await existing(context, candidate) : undefined;
+        if (!fallback) throw error;
+        source = candidate;
+        sourceStat = fallback;
+      } else throw error;
+    }
     if (options.recursive && sourceStat.type === "directory") {
       const realDirectory = await context.fs.realpath(source, { signal: context.signal });
       if (directories.has(realDirectory)) continue;

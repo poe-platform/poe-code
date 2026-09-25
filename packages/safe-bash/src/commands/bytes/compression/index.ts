@@ -1,7 +1,7 @@
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { readBytes, writeBytes, type CommandDefinition } from "../../../contracts/index.js";
 import { define, diagnostic, output } from "../../internal.js";
-import { planOperands, sourceBytes, unchangedSource, writeFileOperand } from "./files.js";
+import { planOperands, sourceBytes, unchangedSource, verifyOperandDestinations, writeFileOperand } from "./files.js";
 import { parseOptions, profiles } from "./options.js";
 import { DecodedBudget, transform, type CompressionCommandOptions } from "./stream.js";
 import { CompressedDataError } from "./errors.js";
@@ -26,7 +26,7 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
     let planningFailed = false;
     const listingNames: string[] = [];
     try {
-      if (options.xzList) {
+      if (options.xzList || options.operands.length > 1) {
         plans = [];
         for (const name of options.operands) {
           try {
@@ -38,6 +38,7 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
             if (options.quiet < 2) await diagnostic(context, error);
           }
         }
+        if (!options.xzList && plans.length > 1) await verifyOperandDestinations(context, plans);
       } else plans = await planOperands(context, options);
     }
     catch (error) {

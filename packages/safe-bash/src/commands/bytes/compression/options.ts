@@ -56,6 +56,7 @@ export type CompressionFormat = typeof profiles[number]["format"];
 const aliases: Readonly<Record<string, string>> = {
   stdout: "c", "to-stdout": "c", decompress: "d", uncompress: "d", keep: "k",
   force: "f", test: "t", best: "9", "no-name": "n", help: "h", quiet: "q", recursive: "r", compress: "z", small: "s",
+  verbose: "v", list: "l",
 };
 
 export function parseOptions(command: string, args: readonly string[]): CompressionOptions {
@@ -189,6 +190,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     if ((profile.format === "gzip" || profile.format === "xz") && (argument === "--suffix" || argument.startsWith("--suffix="))) {
       const suffix = argument === "--suffix" ? args[++index] : argument.slice("--suffix=".length);
       if (suffix === undefined) throw new UsageError("option '--suffix' requires an argument");
+      if (!suffix || suffix.includes("/")) throw new UsageError(`incorrect suffix '${suffix}'`);
       result.suffix = suffix;
       continue;
     }
@@ -236,12 +238,15 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           if (profile.format !== "gzip" && profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           const suffix = flags.slice(offset + 1) || args[++index];
           if (suffix === undefined) throw new UsageError("option '-S' requires an argument");
+          if (!suffix || suffix.includes("/")) throw new UsageError(`incorrect suffix '${suffix}'`);
           result.suffix = suffix;
           offset = flags.length;
           break;
         }
         case "c": result.stdout = true; break;
+        case "v": break;
         case "l":
+          if (profile.format === "gzip") break;
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           result.xzList = true; result.test = false; break;
         case "d": result.decompress = true; delete result.xzList; break;

@@ -452,3 +452,26 @@ test("force stdout passes non-gzip data through and forced test follows GNU", as
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout.length, 0);
 });
+
+test("gzip/gunzip/zcat process valid operands past missing files, resolve foo.gz on decompress, reject empty/slash suffixes, and accept -v/-l", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a.txt", Buffer.from("hello\n"));
+  await fs.writeFile("/b.txt", Buffer.from("world\n"));
+  const partial = await run("gzip", ["a.txt", "missing.txt", "b.txt"], undefined, { fs });
+  assert.equal(partial.exitCode, 1);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["a.txt.gz", "b.txt.gz"]);
+
+  const zcatResolved = await run("zcat", ["a.txt"], undefined, { fs });
+  assert.equal(zcatResolved.exitCode, 0, zcatResolved.stderr);
+  assert.equal(zcatResolved.stdout.toString(), "hello\n");
+
+  for (const args of [["-S", "", "b.txt.gz"], ["-S", "/bad", "b.txt.gz"], ["--suffix=", "b.txt.gz"]]) {
+    const badSuffix = await run("gzip", args, undefined, { fs });
+    assert.equal(badSuffix.exitCode, 2);
+  }
+
+  for (const flag of ["-v", "--verbose", "-l", "--list"]) {
+    const ok = await run("gzip", [flag, "-d", "-c", "a.txt.gz"], undefined, { fs });
+    assert.equal(ok.exitCode, 0, ok.stderr);
+  }
+});

@@ -290,7 +290,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const current = preview.has(path) ? preview.get(path) : await inspect(budget, path) ? await budget.read(path) : undefined;
       const applied = await applyContent(item.patch, current ?? "", current !== undefined, options, budget);
       if (!applied) return;
-      const remove = !options.posix && options.ifdef === undefined && applied.result === "" && (applied.deletion || options.removeEmpty);
+      const remove = options.ifdef === undefined && applied.result === "" && ((!options.posix && applied.deletion) || options.removeEmpty);
       preview.set(path, remove ? undefined : applied.result);
       if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) previewParents.add(parent);
     },
@@ -400,7 +400,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
     if (backupPath !== undefined) backupPaths.add(backupPath);
     if (rejectPath !== undefined) rejectPaths.add(rejectPath);
-    const remove = !options.posix && options.ifdef === undefined && outputPath === undefined && result === "" && (deletion || options.removeEmpty);
+    const remove = options.ifdef === undefined && outputPath === undefined && result === "" && ((!options.posix && deletion) || options.removeEmpty);
     const outputPrior = outputPath === undefined ? undefined : staged.get(outputPath);
     const outputOriginal = outputPath === undefined ? original : outputPrior ? outputPrior.original : await inspect(budget, outputPath) ? await budget.read(outputPath) : undefined;
     if (outputPath !== undefined) outputContents += result;

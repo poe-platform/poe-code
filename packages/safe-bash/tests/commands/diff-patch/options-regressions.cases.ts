@@ -84,3 +84,24 @@ for (const fixture of identicalInputs) {
     );
   });
 }
+
+test("patch suffixFuzz multi-hunk cursor, -l trailing whitespace, --posix -E, and diff empty -L label", async () => {
+  const multiPatch = "--- multi.txt\n+++ multi.txt\n@@ -1,5 +1,5 @@\n a1\n-old1\n+new1\n t1\n t2\n t3\n@@ -7,3 +7,3 @@\n h2_ctx1\n h2_ctx2\n-old2\n+new2\n";
+  const r1 = await run("patch", [], { files: { "multi.txt": "a1\nold1\nt1\nt2\nh2_ctx1\nh2_ctx2\nold2\n" }, input: multiPatch });
+  assert.equal(r1.exitCode, 0, r1.stderr);
+  assert.equal(Buffer.from(await r1.fs.readFile("/work/multi.txt")).toString("utf8"), "a1\nnew1\nt1\nt2\nh2_ctx1\nh2_ctx2\nnew2\n");
+
+  const wsPatch = "--- ws.txt\n+++ ws.txt\n@@ -1,2 +1,2 @@\n-alpha\n+ALPHA\n beta\n";
+  const r2 = await run("patch", ["-l"], { files: { "ws.txt": "alpha   \nbeta\n" }, input: wsPatch });
+  assert.equal(r2.exitCode, 0, r2.stderr);
+  assert.equal(Buffer.from(await r2.fs.readFile("/work/ws.txt")).toString("utf8"), "ALPHA\nbeta\n");
+
+  const emptyPatch = "--- emptyme.txt\n+++ emptyme.txt\n@@ -1 +0,0 @@\n-bye\n";
+  const r3 = await run("patch", ["--posix", "-E"], { files: { "emptyme.txt": "bye\n" }, input: emptyPatch });
+  assert.equal(r3.exitCode, 0, r3.stderr);
+  await assert.rejects(() => r3.fs.stat("/work/emptyme.txt"));
+
+  const r4 = await run("diff", ["-u", "-L", "", "-L", "", "left", "right"], { files: { left: "a\n", right: "b\n" } });
+  assert.equal(r4.exitCode, 1, r4.stderr);
+  assert.match(r4.stdout, /^--- \n\+\+\+ \n/u);
+});

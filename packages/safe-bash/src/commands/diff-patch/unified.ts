@@ -179,32 +179,34 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
         if (actual === undefined) return false;
         const expectedLine = oldLines[lineIndex]!.text;
         if (ignoreWhitespace) budget.step(actual.length + expectedLine.length);
-        if (!budget.equal(ignoreWhitespace ? actual.replace(/[ \t]+/gu, " ") : actual,
-          ignoreWhitespace ? expectedLine.replace(/[ \t]+/gu, " ") : expectedLine)) return false;
+        if (!budget.equal(ignoreWhitespace ? actual.replace(/[ \t]+(?=\r?\n|$)/gu, "").replace(/[ \t]+/gu, " ") : actual,
+          ignoreWhitespace ? expectedLine.replace(/[ \t]+(?=\r?\n|$)/gu, "").replace(/[ \t]+/gu, " ") : expectedLine)) return false;
         await budget.checkpoint();
       }
       if (position < cursor) misordered = true;
       return true;
     };
+    let matchedPrefixFuzz = 0;
+    let matchedSuffixFuzz = 0;
     for (let tolerance = 0; tolerance <= Math.min(fuzz, context); tolerance++) {
       if (application.rejectAll) break;
       usedFuzz = tolerance;
       const prefixFuzz = tolerance + leading - context;
       const suffixFuzz = tolerance + trailing - context;
       if (prefixFuzz < 0 && hunk.oldStart <= 1) {
-        if (await matches(0, 0, suffixFuzz)) found = 0;
+        if (await matches(0, 0, suffixFuzz)) { found = 0; matchedPrefixFuzz = 0; matchedSuffixFuzz = suffixFuzz; }
         if (found >= 0) break;
         continue;
       }
       if (suffixFuzz < 0) {
         const end = source.length - hunk.oldCount;
-        if (await matches(end, Math.max(0, prefixFuzz), 0)) found = end;
+        if (await matches(end, Math.max(0, prefixFuzz), 0)) { found = end; matchedPrefixFuzz = Math.max(0, prefixFuzz); matchedSuffixFuzz = 0; }
         if (found >= 0) break;
         continue;
       }
       const retained = oldLines.length - Math.max(0, prefixFuzz) - suffixFuzz;
       if (retained === 0) {
-        if (await matches(expected, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected; break; }
+        if (await matches(expected, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected; matchedPrefixFuzz = Math.max(0, prefixFuzz); matchedSuffixFuzz = suffixFuzz; break; }
         continue;
       }
       const maximum = source.length - hunk.oldCount + suffixFuzz;
@@ -213,8 +215,8 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       const distanceLimit = Math.max(positiveLimit, negativeLimit);
       const firstDistance = positiveLimit < 0 ? -positiveLimit : negativeLimit < 0 ? negativeLimit : 0;
       for (let distance = firstDistance; distance <= distanceLimit; distance++) {
-        if (distance <= positiveLimit && await matches(expected + distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected + distance; break; }
-        if (distance <= negativeLimit && await matches(expected - distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected - distance; break; }
+        if (distance <= positiveLimit && await matches(expected + distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected + distance; matchedPrefixFuzz = Math.max(0, prefixFuzz); matchedSuffixFuzz = suffixFuzz; break; }
+        if (distance <= negativeLimit && await matches(expected - distance, Math.max(0, prefixFuzz), suffixFuzz)) { found = expected - distance; matchedPrefixFuzz = Math.max(0, prefixFuzz); matchedSuffixFuzz = suffixFuzz; break; }
       }
       if (found >= 0) break;
     }
@@ -270,7 +272,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       if (application.partial) continue;
       throw new ToolError(`hunk ${hunkIndex + 1} does not match ${patch.oldPath}`, 1);
     }
-    while (cursor < found) append(source[cursor++]!);
+    while (cursor < found + matchedPrefixFuzz) append(source[cursor++]!);
     let removed: string[] = [];
     let added: string[] = [];
     const flush = () => {
@@ -284,7 +286,7 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
       } else for (const text of added) append(text);
       removed = []; added = [];
     };
-    for (const line of hunk.lines) {
+    for (const line of hunk.lines.slice(matchedPrefixFuzz, hunk.lines.length - matchedSuffixFuzz)) {
       if (line.kind === "+") added.push(line.text);
       else if (line.kind === " ") { flush(); if (cursor < source.length) append(source[cursor++]!); }
       else { removed.push(source[cursor] ?? line.text); cursor++; }

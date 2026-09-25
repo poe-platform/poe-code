@@ -739,7 +739,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (argument === "--") { ended = true; continue; }
       if (argument === "--null-data") { separator = "\0"; continue; }
       if (argument === "--quiet" || argument === "--silent") { quiet = true; continue; }
-      if (argument === "--unbuffered") continue;
+      if (argument === "--unbuffered" || argument === "--posix") continue;
       if (argument === "--regexp-extended") { extended = true; continue; }
       if (argument === "--in-place" || argument.startsWith("--in-place=")) {
         inPlace = argument === "--in-place" ? "" : argument.slice("--in-place=".length);

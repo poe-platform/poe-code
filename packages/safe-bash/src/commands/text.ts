@@ -600,7 +600,6 @@ function keyBytesSync(line: Uint8Array, key: SortKey, separator: number | undefi
       const leading = offset;
       while (offset < line.length && (line[offset] === 32 || line[offset] === 9)) offset++;
       const start = leading;
-      if (offset === line.length) break;
       while (offset < line.length && line[offset] !== 32 && line[offset] !== 9) offset++;
       syncFieldStarts[fieldCount] = start;
       syncFieldEnds[fieldCount] = offset;
@@ -663,7 +662,6 @@ async function keyBytes(line: Uint8Array, key: SortKey, separator: number | unde
         if (++offset % 1024 === 0) await work.charge(1024);
       }
       const start = leading;
-      if (offset === line.length) break;
       while (offset < line.length && line[offset] !== 32 && line[offset] !== 9) {
         if (++offset % 1024 === 0) await work.charge(1024);
       }

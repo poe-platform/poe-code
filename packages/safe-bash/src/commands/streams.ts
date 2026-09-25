@@ -6,6 +6,7 @@ import { inputRequirements } from "./portable-requirements.js";
 import { followTail, parseTailFollow } from "./tail-follow.js";
 import { wcDisplayWidth } from "./wc-width.js";
 import { RecordBuffer } from "./record-buffer.js";
+import { PublicDiagnostic } from "../diagnostics.js";
 import {
   assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, input,
   lines, options, output, pathOf, UsageError, value,
@@ -277,7 +278,7 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
   });
 }
 
-function characterSet(specification: string, repeatLength?: number): number[] {
+function characterSet(specification: string, repeatLength?: number, translatingSecond = false): { bytes: number[]; caseOffsets: Set<number>; endsWithClass: boolean } {
   const classes: Record<string, number[]> = {
     lower: Array.from({ length: 26 }, (_, offset) => 97 + offset),
     upper: Array.from({ length: 26 }, (_, offset) => 65 + offset),
@@ -291,11 +292,11 @@ function characterSet(specification: string, repeatLength?: number): number[] {
   classes.alnum = [...classes.digit!, ...classes.alpha];
   classes.xdigit = [...classes.digit!, ...classes.upper!.slice(0, 6), ...classes.lower!.slice(0, 6)];
   classes.punct = classes.graph!.filter(byte => !classes.alnum!.includes(byte));
-  const tokens: { bytes: number[]; literal: boolean; repeat?: number }[] = [];
+  const tokens: { bytes: number[]; literal: boolean; repeat?: number; className?: string }[] = [];
   const readCharacter = (offset: number) => {
     if (specification[offset] === "\\") {
       const start = offset + 1;
-      if (start === specification.length) throw new UsageError("trailing backslash in character set");
+      if (start === specification.length) return { bytes: [92], end: start, literal: false };
       const next = specification[start]!;
       let end = start;
       while (end < specification.length && end - start < 3 && "01234567".includes(specification[end]!)) end++;
@@ -317,7 +318,10 @@ function characterSet(specification: string, repeatLength?: number): number[] {
       const name = specification.slice(offset + 2, classEnd);
       const bytes = Object.hasOwn(classes, name) ? classes[name] : undefined;
       if (!bytes) throw new UsageError(`unknown character class '${name}'`);
-      tokens.push({ bytes, literal: false }); offset = classEnd + 2; continue;
+      if (translatingSecond && name !== "upper" && name !== "lower") {
+        throw new PublicDiagnostic("when translating, the only character classes that may appear in string2 are 'upper' and 'lower'");
+      }
+      tokens.push({ bytes, literal: false, className: name }); offset = classEnd + 2; continue;
     }
     if (specification[offset] === "[" && offset + 1 < specification.length) {
       const equivalent = specification[offset + 1] === "=";
@@ -349,7 +353,7 @@ function characterSet(specification: string, repeatLength?: number): number[] {
     const character = readCharacter(offset);
     tokens.push(character); offset = character.end;
   }
-  const expanded: { bytes: number[]; repeat?: number }[] = [];
+  const expanded: { bytes: number[]; repeat?: number; className?: string }[] = [];
   for (let index = 0; index < tokens.length; index++) {
     const current = tokens[index]!;
     if (current.repeat === undefined && current.bytes.length === 1 && tokens[index + 1]?.literal && tokens[index + 2]?.repeat === undefined && tokens[index + 2]?.bytes.length === 1) {
@@ -364,11 +368,14 @@ function characterSet(specification: string, repeatLength?: number): number[] {
   if (fills.length > 1) throw new UsageError("only one indefinite repeat expression is allowed");
   const length = expanded.reduce((length, token) => length + (token.repeat ?? token.bytes.length), 0);
   const result: number[] = [];
+  const caseOffsets = new Set<number>();
   for (const token of expanded) {
+    if (token.className === "upper" || token.className === "lower") caseOffsets.add(result.length);
     if (token.repeat === undefined) result.push(...token.bytes);
     else for (let index = 0; index < (token.repeat || Math.max(0, (repeatLength ?? 0) - length)); index++) result.push(token.bytes[0]!);
   }
-  return result;
+  const endsWithClass = expanded.length > 0 && expanded.at(-1)!.className !== undefined;
+  return { bytes: result, caseOffsets, endsWithClass };
 }
 
 export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): CommandDefinition[] {
@@ -465,8 +472,10 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
     }),
     headTail("head"), headTail("tail", maxTailFollowHandles),
     define("wc", async context => {
-      const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L" });
-      if (!parsed.flags.size) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
+      const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L", total: "total:" });
+      const totalMode = value(parsed, "total") ?? "auto";
+      if (!["auto", "always", "only", "never"].includes(totalMode)) throw new UsageError(`invalid argument '${totalMode}' for '--total'`);
+      if (!["l", "w", "m", "c", "L"].some(flag => parsed.flags.has(flag))) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
       const selected = ["l", "w", "m", "c", "L"].filter(flag => parsed.flags.has(flag));
       const names = parsed.operands.length ? parsed.operands : ["-"];
       await assertInputRequirements(context, names);
@@ -475,7 +484,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       const singleByte = locale === "C" || locale === "POSIX";
       const posix = Object.hasOwn(context.env, "POSIXLY_CORRECT");
       let width = 1;
-      if (names.length > 1 || selected.length > 1) {
+      if (totalMode !== "only" && (names.length > 1 || selected.length > 1)) {
         let totalSize = 0n;
         for (const name of names) {
           if (name === "-") { width = Math.max(width, 7); continue; }
@@ -537,14 +546,15 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
           counts.L = Math.max(counts.L!, columns);
           for (const field of ["l", "w", "m", "c"]) totals[field]! += counts[field]!;
           totals.L = Math.max(totals.L!, counts.L!);
-          await print(counts, parsed.operands.length ? name : undefined);
+          if (totalMode !== "only") await print(counts, parsed.operands.length ? name : undefined);
         } catch (error) {
           await diagnostic(context, error);
-          if (error instanceof FsError && error.code === "EISDIR") await print(counts, parsed.operands.length ? name : undefined);
+          if (totalMode !== "only" && error instanceof FsError && error.code === "EISDIR") await print(counts, parsed.operands.length ? name : undefined);
           exitCode = 1;
         }
       }
-      if (names.length > 1) await print(totals, "total");
+      if (totalMode === "only") await print(totals);
+      else if (totalMode === "always" || (totalMode === "auto" && names.length > 1)) await print(totals, "total");
       return { exitCode };
     }),
     define("tee", async context => {
@@ -625,12 +635,24 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       const translating = !deleting && parsed.operands.length === 2;
       if (parsed.operands.length < 1 || parsed.operands.length > 2 || !deleting && !squeezing && parsed.operands.length !== 2
         || deleting && !squeezing && parsed.operands.length !== 1 || deleting && squeezing && parsed.operands.length !== 2) throw new UsageError("invalid number of character sets");
-      let first = characterSet(parsed.operands[0]!);
+      const firstSet = characterSet(parsed.operands[0]!);
+      let first = firstSet.bytes;
+      let firstCaseOffsets = firstSet.caseOffsets;
       if (parsed.flags.has("c") || parsed.flags.has("C")) {
         const selected = new Set(first);
         first = Array.from({ length: 256 }, (_, offset) => offset).filter(byte => !selected.has(byte));
+        firstCaseOffsets = new Set();
       }
-      const second = parsed.operands[1] === undefined ? [] : characterSet(parsed.operands[1], translating ? first.length : undefined);
+      const secondSet = parsed.operands[1] === undefined ? { bytes: [] as number[], caseOffsets: new Set<number>(), endsWithClass: false } : characterSet(parsed.operands[1], translating ? first.length : undefined, translating);
+      const second = secondSet.bytes;
+      if (translating) {
+        if (!parsed.flags.has("t") && secondSet.endsWithClass && first.length > second.length) {
+          throw new PublicDiagnostic("when translating with string1 longer than string2, the latter string must not end with a character class");
+        }
+        for (const offset of secondSet.caseOffsets) {
+          if (!firstCaseOffsets.has(offset)) throw new PublicDiagnostic("misaligned [:upper:] and/or [:lower:] construct");
+        }
+      }
       if (translating && parsed.flags.has("t")) first = first.slice(0, second.length);
       if (translating && !second.length && !parsed.flags.has("t")) throw new UsageError("second character set must not be empty");
       const mapping = new Uint8Array(256);

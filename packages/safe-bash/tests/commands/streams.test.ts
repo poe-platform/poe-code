@@ -822,3 +822,16 @@ test("head and tail apply last-wins for -n/-c and -v/-q, unit-only multipliers, 
   assert.equal((await run("tail", ["-n", "1", "+2"], { fs })).stdout, "beta\n");
   assert.equal((await run("tail", ["-q", "f1", "+2"], { fs })).stdout, "hello\nworld\nalpha\nbeta\n");
 });
+
+test("tr SET2 class alignment, trailing backslash, and wc --total modes", async () => {
+  assert.equal((await run("tr", ["a\\", "bc"], { stdin: "a\\" })).stdout, "bc");
+  const badClass = await run("tr", ["a-c", "[:digit:]"], { stdin: "abc" });
+  assert.equal(badClass.exitCode, 1);
+  assert.match(badClass.stderr, /only character classes that may appear in string2/u);
+  const misaligned = await run("tr", ["a", "[:lower:]"], { stdin: "a" });
+  assert.equal(misaligned.exitCode, 1);
+  assert.match(misaligned.stderr, /misaligned \[:upper:\] and\/or \[:lower:\] construct/u);
+  assert.equal((await run("wc", ["-l", "--total=always"], { stdin: "a\n" })).stdout, "1\n1 total\n");
+  assert.equal((await run("wc", ["-l", "--total=only"], { stdin: "a\nb\n" })).stdout, "2\n");
+  assert.equal((await run("wc", ["--total=only"], { stdin: "a\nb\n" })).stdout, "2 2 4\n");
+});

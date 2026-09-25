@@ -541,7 +541,7 @@ test("cut field mode works with portable Buffer indexOf contracts", async () => 
   });
   try {
     const commands = createStandardCommands();
-    const stdin = await run("cut", ["-f", "2,3"], { commands, stdin: "a\tb\t\nc\t\td\n" });
+    const stdin = await run("cut", ["-f", "2,3"], { commands: textCommands(), stdin: "a\tb\t\nc\t\td\n" });
     assert.equal(stdin.exitCode, 0, stdin.stderr);
     assert.equal(stdin.stdout, "b\t\n\td\n");
 
@@ -556,20 +556,20 @@ test("cut field mode works with portable Buffer indexOf contracts", async () => 
 
 test("sort -V dotfiles, incompatible -d/-i flags, -c/-C check modes, cut NUL delimiters, and uniq -D -u", async () => {
   const commands = createStandardCommands();
-  assert.equal((await run("sort", ["-V"], { commands, stdin: ".a\n.b\n.a.1\n.a~\n" })).stdout, ".a~\n.a\n.a.1\n.b\n");
-  assert.equal((await run("sort", ["-V"], { commands, stdin: "..a\n.a\n...a\n" })).stdout, "..a\n.a\n...a\n");
+  assert.equal((await run("sort", ["-V"], { commands: textCommands(), stdin: ".a\n.b\n.a.1\n.a~\n" })).stdout, ".a~\n.a\n.a.1\n.b\n");
+  assert.equal((await run("sort", ["-V"], { commands: textCommands(), stdin: "..a\n.a\n...a\n" })).stdout, "..a\n.a\n...a\n");
 
   for (const args of [["-dn"], ["-in"], ["-dg"], ["-ig"], ["-dh"], ["-ih"], ["-dM"], ["-iM"], ["-c", "-C"]]) {
-    const res = await run("sort", args, { commands, stdin: "" });
+    const res = await run("sort", args, { commands: textCommands(), stdin: "" });
     assert.equal(res.exitCode, 2);
     assert.match(res.stderr, /are incompatible/u);
   }
 
-  const quietFail = await run("sort", ["-C"], { commands, stdin: "b\na\n" });
+  const quietFail = await run("sort", ["-C"], { commands: textCommands(), stdin: "b\na\n" });
   assert.equal(quietFail.exitCode, 1);
   assert.equal(quietFail.stderr, "");
 
-  const quietLongFail = await run("sort", ["--check=quiet"], { commands, stdin: "b\na\n" });
+  const quietLongFail = await run("sort", ["--check=quiet"], { commands: textCommands(), stdin: "b\na\n" });
   assert.equal(quietLongFail.exitCode, 1);
   assert.equal(quietLongFail.stderr, "");
 
@@ -578,21 +578,33 @@ test("sort -V dotfiles, incompatible -d/-i flags, -c/-C check modes, cut NUL del
   assert.equal(extraCheck.exitCode, 2);
   assert.match(extraCheck.stderr, /extra operand 'f2' not allowed with -c/u);
 
-  const cutNulIn = await run("cut", ["-d", "", "-f1,3"], { commands, stdin: Uint8Array.from([97, 0, 98, 0, 99, 10]) });
+  const cutNulIn = await run("cut", ["-d", "", "-f1,3"], { commands: textCommands(), stdin: Uint8Array.from([97, 0, 98, 0, 99, 10]) });
   assert.equal(cutNulIn.exitCode, 0, cutNulIn.stderr);
   assert.deepEqual(cutNulIn.stdoutBytes, Buffer.from([97, 0, 99, 10]));
 
-  const cutNulOut = await run("cut", ["-f1,3", "--output-delimiter="], { commands, stdin: "a\tb\tc\n" });
+  const cutNulOut = await run("cut", ["-f1,3", "--output-delimiter="], { commands: textCommands(), stdin: "a\tb\tc\n" });
   assert.equal(cutNulOut.exitCode, 0, cutNulOut.stderr);
   assert.deepEqual(cutNulOut.stdoutBytes, Buffer.from([97, 0, 99, 10]));
 
-  const cutTouching = await run("cut", ["-b", "1,2", "--output-delimiter=:"], { commands, stdin: "abcd\n" });
+  const cutTouching = await run("cut", ["-b", "1,2", "--output-delimiter=:"], { commands: textCommands(), stdin: "abcd\n" });
   assert.equal(cutTouching.exitCode, 0, cutTouching.stderr);
   assert.equal(cutTouching.stdout, "a:b\n");
 
   for (const sep of ["\\0", ""]) {
-    const sortNulSep = await run("sort", ["-t", sep, "-k2,2"], { commands, stdin: Uint8Array.from([120, 0, 98, 10, 121, 0, 97, 10]) });
+    const sortNulSep = await run("sort", ["-t", sep, "-k2,2"], { commands: textCommands(), stdin: Uint8Array.from([120, 0, 98, 10, 121, 0, 97, 10]) });
     assert.equal(sortNulSep.exitCode, 0, sortNulSep.stderr);
     assert.deepEqual(sortNulSep.stdoutBytes, Buffer.from([121, 0, 97, 10, 120, 0, 98, 10]));
   }
+});
+
+test("sort -k preserves blank-only and trailing-blank fields", async () => {
+  const s1 = await run("sort", ["-k", "1,1", "-s"], { commands: textCommands(), stdin: "   \n\n" });
+  assert.equal(s1.exitCode, 0, s1.stderr);
+  assert.equal(s1.stdout, "\n   \n");
+  const s2 = await run("sort", ["-k", "1,1", "-u"], { commands: textCommands(), stdin: "   \n\n" });
+  assert.equal(s2.exitCode, 0, s2.stderr);
+  assert.equal(s2.stdout, "\n   \n");
+  const s3 = await run("sort", ["-k", "2,2", "-u"], { commands: textCommands(), stdin: "a   \na\n" });
+  assert.equal(s3.exitCode, 0, s3.stderr);
+  assert.equal(s3.stdout, "a\na   \n");
 });

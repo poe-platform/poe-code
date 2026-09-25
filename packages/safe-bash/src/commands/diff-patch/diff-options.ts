@@ -171,8 +171,11 @@ export function flags(args: readonly string[]): DiffFlags {
   if (result.files.length !== 2) throw new ToolError("expected two files or directories");
   if (selectedFormat === undefined && result.functions.length) { result.format = "context"; result.context = Math.max(3, result.context); }
   if (result.labels.length > 2) throw new ToolError("at most two labels are supported");
-  for (const name of [...result.labels, ...result.files]) {
+  for (const name of result.files) {
     if (!name || /[\0\r\n\t]/u.test(name)) throw new ToolError("empty names or control characters in filenames/labels are unsupported");
+  }
+  for (const label of result.labels) {
+    if (/[\0\r\n\t]/u.test(label)) throw new ToolError("empty names or control characters in filenames/labels are unsupported");
   }
   return result;
 }

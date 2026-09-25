@@ -267,3 +267,9 @@ test("sed supports one-line a/i/c, N queue flushing, --silent/-u, Q/z/F, and ste
     await sh.dispose();
   }
 });
+
+test("sed accepts --posix flag", async () => {
+  const r = await runVirtual("sed", { args: ["--posix", "s/a/b/"], stdin: "a\n" });
+  assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(r.stdout.toString(), "b\n");
+});

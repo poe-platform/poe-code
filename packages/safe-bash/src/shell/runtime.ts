@@ -3387,6 +3387,7 @@ export class Runtime {
         this.outputFiles.size > 0 ||
         this.backingFs.capabilitiesFor !== undefined ||
         this.backingFs.capabilities.open !== true ||
+        this.backingFs.capabilities.preferStreamingRedirection === true ||
         this.backingFs.capabilities.readOnly === true ||
         this.backingFs.capabilities.write === false ||
         this.backingFs.capabilities.append === false ||
@@ -4160,6 +4161,7 @@ export class Runtime {
       this.outputFiles.size === 0 &&
       !this.sourceFs.capabilitiesFor &&
       this.sourceFs.capabilities.open === true &&
+      this.sourceFs.capabilities.preferStreamingRedirection !== true &&
       this.sourceFs.capabilities.readOnly !== true &&
       this.sourceFs.capabilities.write !== false &&
       this.sourceFs.capabilities.append !== false
@@ -4841,8 +4843,10 @@ export class Runtime {
           const append = redirect.operator === ">>" || redirect.operator === "&>>";
           const flag = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
           const capabilities = await this.fs.capabilitiesFor?.(path, { ...options, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? this.fs.capabilities;
-          const canonical = capabilities.open === true;
-          const random = capabilities.randomAccessWrite === true;
+          const streaming = capabilities.preferStreamingRedirection === true && typeof this.fs.writeStream === "function"
+            && (append ? capabilities.streamingAppend ?? capabilities.streamingWrite : capabilities.streamingWrite) === true;
+          const canonical = capabilities.open === true && !streaming;
+          const random = capabilities.randomAccessWrite === true && !streaming;
           const key = resolvePath(state.cwd, path);
           let file!: OutputFile;
           if (!canonical) await this.fileOperation(key, async () => {

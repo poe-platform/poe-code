@@ -37,8 +37,10 @@ class ManagedControlSignalImpl implements ManagedControlController {
   readonly [managedSignalSymbol] = true;
   readonly [managedControlSignalSymbol] = true;
   [managedWaitersSymbol]: AbortSignalWaiterStore = undefined;
+  #listenerMap: Map<unknown, AbortSignalWaiter> | undefined = undefined;
   aborted = false;
   reason: unknown = undefined;
+  onabort: ((ev: unknown) => unknown) | null = null;
   get signal(): AbortSignal {
     return this as unknown as AbortSignal;
   }
@@ -47,10 +49,63 @@ class ManagedControlSignalImpl implements ManagedControlController {
     this.aborted = true;
     this.reason = reason !== undefined ? reason : new DOMException("This operation was aborted", "AbortError");
     notifyAbortSignalWaiters(this as unknown as AbortSignal, this.reason);
+    if (typeof this.onabort === "function") {
+      try { this.onabort({ type: "abort", target: this }); } catch { /* ignore */ }
+    }
   }
   throwIfAborted(): void {
     if (this.aborted) throw this.reason;
   }
+  addEventListener(type: string, listener: unknown): void {
+    if (type !== "abort" || !listener) return;
+    if (this.aborted) return;
+    const map = this.#listenerMap ??= new Map();
+    if (map.has(listener)) return;
+    const fn: AbortSignalWaiter = () => {
+      map.delete(listener);
+      if (typeof listener === "function") (listener as (ev: unknown) => void)({ type: "abort", target: this });
+      else if (typeof (listener as { handleEvent?: unknown }).handleEvent === "function") {
+        (listener as { handleEvent: (ev: unknown) => void }).handleEvent({ type: "abort", target: this });
+      }
+    };
+    map.set(listener, fn);
+    addAbortSignalWaiter(this as unknown as AbortSignal, fn);
+  }
+  removeEventListener(type: string, listener: unknown): void {
+    if (type !== "abort" || !listener || !this.#listenerMap) return;
+    const fn = this.#listenerMap.get(listener);
+    if (fn) {
+      this.#listenerMap.delete(listener);
+      removeAbortSignalWaiter(this as unknown as AbortSignal, fn);
+    }
+  }
+}
+Object.setPrototypeOf(ManagedControlSignalImpl.prototype, AbortSignal.prototype);
+
+export function combineManagedSignals(primary: AbortSignal, secondary: AbortSignal, tertiary?: AbortSignal): AbortSignal {
+  if (primary.aborted) return primary;
+  if (secondary.aborted) return secondary;
+  if (tertiary?.aborted) return tertiary;
+  const combined = new ManagedControlSignalImpl();
+  const onPrimary = (reason: unknown) => {
+    removeAbortSignalWaiter(secondary, onSecondary);
+    if (tertiary) removeAbortSignalWaiter(tertiary, onTertiary);
+    combined.abort(reason);
+  };
+  const onSecondary = (reason: unknown) => {
+    removeAbortSignalWaiter(primary, onPrimary);
+    if (tertiary) removeAbortSignalWaiter(tertiary, onTertiary);
+    combined.abort(reason);
+  };
+  const onTertiary = (reason: unknown) => {
+    removeAbortSignalWaiter(primary, onPrimary);
+    removeAbortSignalWaiter(secondary, onSecondary);
+    combined.abort(reason);
+  };
+  addAbortSignalWaiter(primary, onPrimary);
+  addAbortSignalWaiter(secondary, onSecondary);
+  if (tertiary) addAbortSignalWaiter(tertiary, onTertiary);
+  return combined.signal;
 }
 
 export function createManagedControlController(): ManagedControlController {

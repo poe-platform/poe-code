@@ -1,4 +1,4 @@
-import { abortManagedController, addAbortSignalWaiter, isManagedAbortSignal, isManagedControlSignal, registerManagedAbortSignal, removeAbortSignalWaiter } from "../fs/creation-mask.js";
+import { abortManagedController, addAbortSignalWaiter, createManagedControlController, isManagedAbortSignal, isManagedControlSignal, removeAbortSignalWaiter, type ManagedControlController } from "../fs/creation-mask.js";
 
 const cancellationAdmissionClosedError = new Error("Cancellation admission is closed");
 const cancellationAlreadyActivatedError = new Error("Prepared cancellation admission was already activated");
@@ -103,7 +103,7 @@ interface LinkState {
   readonly maxDepth: number;
   readonly resourceLimit: number;
   resourcesUsed: number;
-  readonly controller: AbortController;
+  readonly controller: ManagedControlController;
   readonly closedReason: Error;
   readonly rootCaller: CancellationOrigin | undefined;
   readonly localInvoke: CancellationOrigin | undefined;
@@ -496,8 +496,7 @@ function initializeState(
   parent: LinkState | undefined,
   admission: CancellationAdmissionSnapshot,
 ): LinkState {
-  const controller = new AbortController();
-  registerManagedAbortSignal(controller.signal);
+  const controller = createManagedControlController();
   const state: LinkState = {
     kind: "link",
     boundary: undefined as unknown as CancellationBoundary,
@@ -560,6 +559,9 @@ function finalizeClose(state: LinkState): void {
 
 function closeLink(state: LinkState): CancellationCloseResult {
   if (state.closeResult) return state.closeResult;
+  if (state.closed) {
+    return state.closeResult = { failures: (state.failures ??= []) };
+  }
   state.closed = true;
   if (state.notifying > 0) {
     state.closeResult = { failures: (state.failures ??= []) };

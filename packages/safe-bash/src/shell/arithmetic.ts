@@ -503,11 +503,11 @@ export function collectPureReadOnlySmiNames(program: ArithmeticProgram, names: S
   return collectPureSmiTreeNames(program.tree, names, 1);
 }
 
-export function evalPureSmiWithInts(node: Arithmetic, intVars: Record<string, number>, budget: ParseBudget): number | undefined {
+export function evalPureSmiWithInts(node: Arithmetic, intVars: Map<string, number>, budget: ParseBudget): number | undefined {
   budget.admit(0);
-  if (node.kind === "literal") return Number(node.value);
+  if (node.kind === "literal") return Number(node.value) | 0;
   if (node.kind === "name") {
-    const val = intVars[node.name];
+    const val = intVars.get(node.name);
     if (val === undefined) return undefined;
     budget.admit(val < 0 ? 4 : 2);
     return val;
@@ -516,7 +516,7 @@ export function evalPureSmiWithInts(node: Arithmetic, intVars: Record<string, nu
     const v = evalPureSmiWithInts(node.operand, intVars, budget);
     if (v === undefined || v < -94906265 || v > 94906265) return undefined;
     if (node.operator === "+") return v;
-    if (node.operator === "-") return -v;
+    if (node.operator === "-") return (-v) | 0;
     if (node.operator === "!") return v === 0 ? 1 : 0;
     return undefined;
   }
@@ -526,10 +526,10 @@ export function evalPureSmiWithInts(node: Arithmetic, intVars: Record<string, nu
     const r = evalPureSmiWithInts(node.right, intVars, budget);
     if (r === undefined || r < -94906265 || r > 94906265) return undefined;
     switch (node.operator) {
-      case "+": return l + r;
-      case "-": return l - r;
-      case "*": return l * r;
-      case "/": return Math.trunc(l / r);
+      case "+": return (l + r) | 0;
+      case "-": return (l - r) | 0;
+      case "*": return l >= -32767 && l <= 32767 && r >= -32767 && r <= 32767 ? Math.imul(l, r) | 0 : l * r;
+      case "/": return (l / r) | 0;
       case "%": return (l % r) | 0;
       case "<": return l < r ? 1 : 0;
       case "<=": return l <= r ? 1 : 0;
@@ -797,4 +797,226 @@ function* arithmeticEvaluation(program: ArithmeticProgram, references: Arithmeti
   } catch (error) {
     formatArithmeticError(program, error);
   }
+}
+export const sharedLoopIntRegs = new Int32Array(32);
+const sharedRpnStack = new Int32Array(32);
+
+export interface CompiledSmiExpr {
+  readonly ops: Int32Array;
+  readonly args: Int32Array;
+  readonly varNames: readonly string[];
+}
+
+const compiledSmiCache = new WeakMap<ArithmeticProgram, CompiledSmiExpr | null>();
+
+export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<string>): CompiledSmiExpr | undefined {
+  if (program.error || program.hasSubscript || !program.tree) return undefined;
+  const cached = compiledSmiCache.get(program);
+  if (cached !== undefined) {
+    if (cached === null) return undefined;
+    for (let i = 0; i < cached.varNames.length; i++) namesOut.add(cached.varNames[i]!);
+    return cached;
+  }
+  const ops: number[] = [];
+  const args: number[] = [];
+  const varNames: string[] = [];
+  const visit = (node: Arithmetic, depth: number): boolean => {
+    if (depth > 32) return false;
+    if (node.kind === "literal") {
+      if (node.value < -94906265n || node.value > 94906265n) return false;
+      ops.push(0);
+      args.push(Number(node.value) | 0);
+      return true;
+    }
+    if (node.kind === "name") {
+      if (node.subscript !== undefined) return false;
+      let idx = varNames.indexOf(node.name);
+      if (idx === -1) {
+        idx = varNames.length;
+        varNames.push(node.name);
+      }
+      ops.push(1);
+      args.push(idx);
+      return true;
+    }
+    if (node.kind === "unary") {
+      if (node.operator !== "+" && node.operator !== "-" && node.operator !== "!") return false;
+      if (!visit(node.operand, depth + 1)) return false;
+      ops.push(node.operator === "+" ? 2 : node.operator === "-" ? 3 : 4);
+      args.push(0);
+      return true;
+    }
+    if (node.kind === "binary") {
+      let opCode = 0;
+      switch (node.operator) {
+        case "+": opCode = 5; break;
+        case "-": opCode = 6; break;
+        case "*": opCode = 7; break;
+        case "/": opCode = 8; break;
+        case "%": opCode = 9; break;
+        case "<": opCode = 10; break;
+        case "<=": opCode = 11; break;
+        case ">": opCode = 12; break;
+        case ">=": opCode = 13; break;
+        case "==": opCode = 14; break;
+        case "!=": opCode = 15; break;
+        default: return false;
+      }
+      if ((opCode === 8 || opCode === 9) && (node.right.kind !== "literal" || node.right.value === 0n || node.right.value < -94906265n || node.right.value > 94906265n)) {
+        return false;
+      }
+      if (!visit(node.left, depth + 1) || !visit(node.right, depth + 1)) return false;
+      ops.push(opCode);
+      args.push(0);
+      return true;
+    }
+    return false;
+  };
+  if (!visit(program.tree, 1)) {
+    compiledSmiCache.set(program, null);
+    return undefined;
+  }
+  for (let i = 0; i < varNames.length; i++) namesOut.add(varNames[i]!);
+  const compiled: CompiledSmiExpr = {
+    ops: new Int32Array(ops),
+    args: new Int32Array(args),
+    varNames,
+  };
+  compiledSmiCache.set(program, compiled);
+  return compiled;
+}
+
+export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: Int32Array, budget: ParseBudget): number {
+  const ops = compiled.ops;
+  const args = compiled.args;
+  const len = ops.length;
+  if (len === 3 && ops[0] === 1 && ops[1] === 0 && ops[2] === 7) {
+    const v0 = sharedLoopIntRegs[varRegMap[args[0]!]!]!;
+    budget.admit(v0 < 0 ? 4 : 2);
+    return Math.imul(v0, args[1]!) | 0;
+  }
+  if (len === 3 && ops[0] === 1 && ops[1] === 1 && ops[2] === 5) {
+    const v0 = sharedLoopIntRegs[varRegMap[args[0]!]!]!;
+    const v1 = sharedLoopIntRegs[varRegMap[args[1]!]!]!;
+    budget.admit((v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2));
+    return (v0 + v1) | 0;
+  }
+  if (len === 9 && ops[0] === 1 && ops[1] === 1 && ops[2] === 0 && ops[3] === 7 && ops[4] === 5 && ops[5] === 1 && ops[6] === 0 && ops[7] === 9 && ops[8] === 6) {
+    const v0 = sharedLoopIntRegs[varRegMap[args[0]!]!]!;
+    const v1 = sharedLoopIntRegs[varRegMap[args[1]!]!]!;
+    const v2 = sharedLoopIntRegs[varRegMap[args[5]!]!]!;
+    budget.admit((v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2) + (v2 < 0 ? 4 : 2));
+    return ((v0 + Math.imul(v1, args[2]!)) - (v2 % args[6]!)) | 0;
+  }
+  let sp = 0;
+  let admitUnits = 0;
+  for (let pc = 0; pc < len; pc++) {
+    const op = ops[pc]!;
+    if (op === 0) {
+      sharedRpnStack[sp++] = args[pc]!;
+    } else if (op === 1) {
+      const val = sharedLoopIntRegs[varRegMap[args[pc]!]!]!;
+      admitUnits += val < 0 ? 4 : 2;
+      sharedRpnStack[sp++] = val;
+    } else if (op <= 4) {
+      const v = sharedRpnStack[sp - 1]!;
+      sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? (-v) | 0 : (v === 0 ? 1 : 0);
+    } else {
+      sp--;
+      const r = sharedRpnStack[sp]!;
+      const l = sharedRpnStack[sp - 1]!;
+      let res = 0;
+      switch (op) {
+        case 5: res = (l + r) | 0; break;
+        case 6: res = (l - r) | 0; break;
+        case 7: res = Math.imul(l, r) | 0; break;
+        case 8: res = (l / r) | 0; break;
+        case 9: res = (l % r) | 0; break;
+        case 10: res = l < r ? 1 : 0; break;
+        case 11: res = l <= r ? 1 : 0; break;
+        case 12: res = l > r ? 1 : 0; break;
+        case 13: res = l >= r ? 1 : 0; break;
+        case 14: res = l === r ? 1 : 0; break;
+        case 15: res = l !== r ? 1 : 0; break;
+      }
+      sharedRpnStack[sp - 1] = res;
+    }
+  }
+  budget.admit(admitUnits);
+  return sharedRpnStack[0]!;
+}
+
+export interface FastIntStepDesc {
+  readonly name: string;
+  readonly compiled: CompiledSmiExpr;
+  readonly varRegMap: Int32Array;
+  targetReg: number;
+  readonly isSub: boolean;
+  readonly extraNewlineByte: number;
+}
+
+export function runIntArithForLoop(
+  startVal: number,
+  limitVal: number,
+  isLe: boolean,
+  stepCount: number,
+  deferredMask: number,
+  intSteps: readonly (FastIntStepDesc | undefined)[],
+  parseBudget: ParseBudget,
+): { lastInductionInt: number | undefined; subBytes: number; subCount: number } {
+  let iVal = startVal | 0;
+  sharedLoopIntRegs[0] = iVal;
+  parseBudget.admit(0);
+  let lastInductionInt: number | undefined;
+  let subBytes = 0;
+  let subCount = 0;
+  while (isLe ? iVal <= limitVal : iVal < limitVal) {
+    parseBudget.admit(iVal < 0 ? 4 : 2);
+    lastInductionInt = iVal;
+    for (let b = 0; b < stepCount; b++) {
+      if (deferredMask & (1 << b)) continue;
+      const intStep = intSteps[b]!;
+      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap, parseBudget);
+      sharedLoopIntRegs[intStep.targetReg] = res;
+      if (intStep.isSub) {
+        let abs = res < 0 ? -res : res;
+        let digits = res < 0 ? 2 : 1;
+        while (abs >= 10) { abs = (abs / 10) | 0; digits++; }
+        subBytes = (subBytes + digits + intStep.extraNewlineByte) | 0;
+        subCount = (subCount + 1) | 0;
+      }
+    }
+    parseBudget.admit(iVal < 0 ? 4 : 2);
+    iVal = (iVal + 1) | 0;
+    sharedLoopIntRegs[0] = iVal;
+  }
+  return { lastInductionInt, subBytes, subCount };
+}
+
+export function runIntForLoop(
+  words: readonly string[],
+  stepCount: number,
+  intSteps: readonly (FastIntStepDesc | undefined)[],
+  parseBudget: ParseBudget,
+): { ok: boolean; subBytes: number; subCount: number } {
+  let subBytes = 0;
+  let subCount = 0;
+  for (let idx = 0; idx < words.length; idx++) {
+    const iVal = fastSafeInt(words[idx]!, parseBudget);
+    if (iVal === undefined) return { ok: false, subBytes: 0, subCount: 0 };
+    sharedLoopIntRegs[0] = iVal | 0;
+    for (let b = 0; b < stepCount; b++) {
+      const intStep = intSteps[b]!;
+      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap, parseBudget);
+      sharedLoopIntRegs[intStep.targetReg] = res;
+      if (intStep.isSub) {
+        let abs = res < 0 ? -res : res;
+        let digits = res < 0 ? 2 : 1;
+        while (abs >= 10) { abs = (abs / 10) | 0; digits++; }
+        subBytes = (subBytes + digits + intStep.extraNewlineByte) | 0;
+        subCount = (subCount + 1) | 0;
+      }
+    }
+  }
+  return { ok: true, subBytes, subCount };
 }

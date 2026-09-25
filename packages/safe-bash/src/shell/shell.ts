@@ -13,7 +13,7 @@ import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
 import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
-import { isSyncResolved } from "../fs/creation-mask.js";
+import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
 import type { State } from "./runtime.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
@@ -420,7 +420,7 @@ export class Shell implements PluginHost {
           this.#middleware,
           budget,
           this.#hasCustomCommands || this.#middleware.length > 0
-            ? AbortSignal.any([cancellation.deliverySignal, scope.signal])
+            ? combineManagedSignals(cancellation.deliverySignal, scope.signal)
             : cancellation.deliverySignal,
           undefined,
           undefined,

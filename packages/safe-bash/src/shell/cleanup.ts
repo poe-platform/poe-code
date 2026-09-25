@@ -1,4 +1,5 @@
 import type { InvocationCleanup } from "../contracts/command.js";
+import { createManagedControlController, type ManagedControlController } from "../fs/creation-mask.js";
 
 export const invocationScope = Symbol("invocation cleanup scope");
 const invocationClosedError = new Error("Invocation is closed");
@@ -17,7 +18,7 @@ export class InvocationScope {
   #finalizers: (() => void | Promise<void>)[] | undefined;
   #activeWork = 0;
   #workWaiters: (() => void)[] | undefined;
-  #controller: AbortController | undefined;
+  #controller: ManagedControlController | undefined;
   #closed = false;
   #drain: Promise<void> | undefined;
   #closingSync = false;
@@ -32,7 +33,7 @@ export class InvocationScope {
 
   get signal(): AbortSignal {
     if (!this.#controller) {
-      this.#controller = new AbortController();
+      this.#controller = createManagedControlController();
       if (this.#closed) this.#controller.abort(invocationClosedError);
     }
     return this.#controller.signal;
@@ -142,7 +143,7 @@ export class InvocationScope {
       return this.#drain;
     }
     if (!this.#drain) {
-      if (!this.#controller && !this.#finalizers?.length && !this.#singleCallback && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
+      if (!this.#finalizers?.length && !this.#singleCallback && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         this.#drain = resolvedVoid;
         this.#seal();
         if (this.parent) this.parent.#children?.delete(this);

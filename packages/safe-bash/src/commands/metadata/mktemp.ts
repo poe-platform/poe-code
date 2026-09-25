@@ -1,3 +1,4 @@
+import { creationUmask } from "../../fs/creation-mask.js";
 import { randomInteger } from "../portable-random.js";
 import { FsError, validatePath } from "../../contracts/index.js";
 import { codeOf, diagnostic, pathOf, UsageError } from "../internal.js";
@@ -91,7 +92,9 @@ export function createMktempCommand(configuration: MetadataCommandsOptions = {})
           if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "mktemp" });
           if (capabilities.permissions !== true) throw new FsError("ENOTSUP", { syscall: "mktemp", message: "private temporary creation requires declared permission support" });
           try {
-            const mode = (parsed.directory ? 0o700 : 0o600) & ~configured.umask;
+            const mask: unknown = Reflect.get(context.fs, creationUmask);
+            const activeUmask = typeof mask === "number" ? mask : configured.umask;
+            const mode = (parsed.directory ? 0o700 : 0o600) & ~activeUmask;
             if (parsed.directory) await context.fs.mkdir(path, { mode, recursive: false, signal: context.signal });
             else await context.fs.writeFile(path, new Uint8Array(), { mode, flag: "wx", signal: context.signal });
           } catch (error) {

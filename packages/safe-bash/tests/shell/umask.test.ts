@@ -709,3 +709,36 @@ test("umask retains symbolic permission copies and multiple operations", async (
     assert.equal(result.stdout, "0272\n0232\n");
   } finally { await shell.dispose(); }
 });
+
+test("chmod, mktemp, truncate, and mkdir -m honor shell umask and symbolic modes", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const r1 = await shell.exec("mkdir -m u=rwx,go=rx symdir && stat -c %a symdir");
+    assert.equal(r1.exitCode, 0, r1.stderr);
+    assert.equal(r1.stdout, "755\n");
+
+    const r2 = await shell.exec('mkdir -p -m 0700 p/q/r && stat -c "%n:%a" p p/q p/q/r');
+    assert.equal(r2.exitCode, 0, r2.stderr);
+    assert.equal(r2.stdout, "p:755\np/q:755\np/q/r:700\n");
+
+    const r3 = await shell.exec("umask 0077; touch f1; chmod +x f1; stat -c %a f1");
+    assert.equal(r3.exitCode, 0, r3.stderr);
+    assert.equal(r3.stdout, "700\n");
+
+    const r4 = await shell.exec("umask 0000; touch f2; chmod =rw f2; stat -c %a f2");
+    assert.equal(r4.exitCode, 0, r4.stderr);
+    assert.equal(r4.stdout, "666\n");
+
+    const r5 = await shell.exec('umask 0177; d=$(mktemp -d /work/tmp.XXXXXX); stat -c %a "$d"');
+    assert.equal(r5.exitCode, 0, r5.stderr);
+    assert.equal(r5.stdout, "600\n");
+
+    const r6 = await shell.exec("umask 0077; truncate -s 0 t1; stat -c %a t1");
+    assert.equal(r6.exitCode, 0, r6.stderr);
+    assert.equal(r6.stdout, "600\n");
+  } finally {
+    await shell.dispose();
+  }
+});

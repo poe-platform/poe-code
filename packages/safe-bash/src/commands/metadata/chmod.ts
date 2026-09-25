@@ -1,3 +1,4 @@
+import { creationUmask } from "../../fs/creation-mask.js";
 import { FsError, type FileStat } from "../../contracts/index.js";
 import { codeOf, diagnostic, options, pathOf, requireOperands, UsageError, value } from "../internal.js";
 import { MetadataBudget, metadataCommand, permissionString, settings, type MetadataCommandsOptions } from "./internal.js";
@@ -77,7 +78,9 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
     if (reference !== undefined && modeOptions.length) throw new UsageError("cannot combine mode and --reference options");
     requireOperands(parsed.operands, reference === undefined && !modeOptions.length ? 2 : 1);
     const mode = modeOptions.length ? modeOptions.join(",") : reference === undefined ? parsed.operands.shift()! : undefined;
-    const change = mode === undefined ? undefined : modeChange(mode, configured.umask);
+    const mask: unknown = Reflect.get(context.fs, creationUmask);
+    const activeUmask = typeof mask === "number" ? mask : configured.umask;
+    const change = mode === undefined ? undefined : modeChange(mode, activeUmask);
     const paths = parsed.operands;
     if (context.fs.capabilities.readOnly) throw new FsError("EROFS", { syscall: "chmod" });
     if (!context.fs.chmod || context.fs.capabilities.permissions === false) throw new FsError("ENOTSUP", { syscall: "chmod" });

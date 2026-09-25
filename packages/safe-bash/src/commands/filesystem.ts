@@ -454,8 +454,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             }
             created.push(operand);
           }
-          if (recursive && !stat && directoryMode !== undefined) {
-            await context.fs.mkdir(dirname(path), { recursive: true, signal: context.signal });
+          if (recursive && !stat && (directoryMode !== undefined || (umask & 0o300) !== 0)) {
+            await context.fs.mkdir(dirname(path), { recursive: true, mode: (0o777 & ~umask) | 0o300, signal: context.signal });
           }
           await context.fs.mkdir(path, { recursive, ...(stat || directoryMode === undefined ? {} : { mode: directoryMode }), signal: context.signal });
           for (const directory of created) await output(context, `mkdir: created directory '${escapeText(directory, "display")}'\n`);

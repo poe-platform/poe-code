@@ -1,3 +1,4 @@
+import { creationUmask } from "../fs/creation-mask.js";
 import { FsError, getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type FileReadHandle, type FileResizeHandle, type FileResizeOperation, type FileStat } from "../contracts/index.js";
 import { createOutputOperation } from "../contracts/output.js";
 import { shellValueByteLength } from "../contracts/value.js";
@@ -464,7 +465,7 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
               const operation: FileResizeOperation = { size: settings.size ?? reference!, modifier: settings.modifier,
                 ...(reference === undefined ? {} : { referenceSize: reference }), ioBlocks: settings.blocks };
               await root.acquire(signal => Reflect.apply(resize, filesystem, [path, operation,
-                { create: !settings.noCreate, mode: 0o666 & ~configured.umask, signal }]), () => {});
+                { create: !settings.noCreate, mode: 0o666 & ~(typeof Reflect.get(context.fs, creationUmask) === "number" ? (Reflect.get(context.fs, creationUmask) as number) : configured.umask), signal }]), () => {});
               signal.throwIfAborted();
               continue;
             }
@@ -472,7 +473,7 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
             const openResizeFile = filesystem.openResizeFile;
             signal.throwIfAborted();
             if (typeof openResizeFile !== "function") throw new FsError("ENOTSUP");
-            handle = await root.acquire(signal => Reflect.apply(openResizeFile, filesystem, [path, { create: !settings.noCreate, mode: 0o666 & ~configured.umask, signal }]), closeHandle);
+            handle = await root.acquire(signal => Reflect.apply(openResizeFile, filesystem, [path, { create: !settings.noCreate, mode: 0o666 & ~(typeof Reflect.get(context.fs, creationUmask) === "number" ? (Reflect.get(context.fs, creationUmask) as number) : configured.umask), signal }]), closeHandle);
           } catch (error) {
             signal.throwIfAborted();
             if (settings.noCreate && error instanceof FsError && error.code === "ENOENT") continue;

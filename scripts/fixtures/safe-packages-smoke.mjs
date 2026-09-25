@@ -2,6 +2,7 @@ import "./safe-packages-xmllint.mjs";
 import { verifyFfmpeg } from "./safe-packages-ffmpeg.mjs";
 await verifyFfmpeg();
 import "./safe-packages-yq.mjs";
+import "./safe-packages-column.mjs";
 import "./safe-packages-fmt.mjs";
 import "./safe-packages-unrtf.mjs";
 import "./safe-packages-htmlq.mjs";

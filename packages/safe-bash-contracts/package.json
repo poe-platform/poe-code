@@ -74,6 +74,10 @@
     "./filesystem-identity": {
       "types": "./dist/filesystem-identity.d.ts",
       "import": "./dist/filesystem-identity.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes.d.ts",
+      "import": "./dist/bytes.js"
     }
   },
   "files": [

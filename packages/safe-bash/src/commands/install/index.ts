@@ -29,7 +29,17 @@ async function maybeStat(context: CommandContext, path: string, follow = false):
     const stat = await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal });
     context.signal.throwIfAborted();
     return stat;
-  } catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
+  } catch (error) {
+    context.signal.throwIfAborted();
+    const code = codeOf(error);
+    if (
+      code === "ENOENT"
+      || (follow && (code === "ELOOP" || code === "ENOTDIR") && await context.fs.lstat(path, { signal: context.signal }).then(stat => stat.type === "symlink", () => false))
+    ) {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 async function admit(context: CommandContext, path: string, capabilities: readonly string[]): Promise<FileSystemCapabilities> {
@@ -48,7 +58,13 @@ async function admit(context: CommandContext, path: string, capabilities: readon
       check(available);
       return available;
     }
-    catch (error) { if (codeOf(error) !== "ENOENT" || candidate === "/") throw error; candidate = dirname(candidate); }
+    catch (error) {
+      const code = codeOf(error);
+      const symlinkCandidate = (code === "ELOOP" || code === "ENOTDIR")
+        && await context.fs.lstat(candidate, { signal: context.signal }).then(stat => stat.type === "symlink", () => false);
+      if ((code !== "ENOENT" && !symlinkCandidate) || candidate === "/") throw error;
+      candidate = dirname(candidate);
+    }
   }
 }
 
@@ -226,15 +242,22 @@ async function installFile(operation: Operation, sourceDisplay: string, destinat
   if (!destinationDisplay) throw new InstallError(`cannot overwrite directory ${quote(destinationDisplay)} with non-directory ${quote(sourceDisplay)}`);
   try { destination = pathOf(context, destinationDisplay); }
   catch (error) { throw failure(`cannot create regular file ${quote(destinationDisplay)}`, error); }
-  const target = await maybeStat(context, destination);
-  if (target?.type === "directory") throw new InstallError(`cannot overwrite directory ${quote(destinationDisplay)} with non-directory ${quote(sourceDisplay)}`);
-  if (target?.type === "file") {
-    const identity = await compareObservedEntries(context.fs, source, sourceStat, context.fs, destination, target, fsOptions);
-    if (identity === "unknown") throw new InstallError(`cannot establish source/destination identity: Operation not supported`);
-    if (identity === "same" && await context.fs.realpath(source, fsOptions) === await context.fs.realpath(destination, fsOptions)) throw new InstallError(`${quote(sourceDisplay)} and ${quote(destinationDisplay)} are the same file`);
+  let target: FileStat | undefined;
+  let destinationCapabilities: FileSystemCapabilities;
+  try {
+    target = await maybeStat(context, destination);
+    if (target?.type === "directory") throw new InstallError(`cannot overwrite directory ${quote(destinationDisplay)} with non-directory ${quote(sourceDisplay)}`);
+    if (target?.type === "file") {
+      const identity = await compareObservedEntries(context.fs, source, sourceStat, context.fs, destination, target, fsOptions);
+      if (identity === "unknown") throw new InstallError(`cannot establish source/destination identity: Operation not supported`);
+      if (identity === "same" && await context.fs.realpath(source, fsOptions) === await context.fs.realpath(destination, fsOptions)) throw new InstallError(`${quote(sourceDisplay)} and ${quote(destinationDisplay)} are the same file`);
+    }
+    if (args.compare && target && await sameContent(operation, source, sourceStat, destination, target)) return;
+    destinationCapabilities = await admit(context, destination, ["write", "exclusiveCreate", "permissions", ...(target ? ["remove"] : [])]);
+  } catch (error) {
+    if (error instanceof InstallError || codeOf(error) === "ENOTSUP" || codeOf(error) === "EROFS") throw error;
+    throw failure(`cannot create regular file ${quote(destinationDisplay)}`, error);
   }
-  if (args.compare && target && await sameContent(operation, source, sourceStat, destination, target)) return;
-  const destinationCapabilities = await admit(context, destination, ["write", "exclusiveCreate", "permissions", ...(target ? ["remove"] : [])]);
   const streamingOutput = !!context.fs.writeStream && destinationCapabilities.streamingWrite !== false;
   if (!streamingOutput) assertCountedFileOutput(context);
   const removeAfterStripFailure = args.strip ? retainFileSystemCleanup(context.fs, cleanup => cleanup.rm(destination), { maxOperations: 1 }) : undefined;
@@ -410,7 +433,11 @@ export function createInstallCommand(options: InstallCommandsOptions = {}): Comm
         } catch (error) { throw failure(`failed to access ${quote(targetDirectory)}`, error); }
       } else if (!args.directory && !args.noTarget) {
         const last = args.files.at(-1)!;
-        const target = last ? await maybeStat(context, pathOf(context, last), true) : undefined;
+        const target = last ? await maybeStat(context, pathOf(context, last), true).catch(error => {
+          context.signal.throwIfAborted();
+          if (codeOf(error) === "ENOTDIR" || codeOf(error) === "ELOOP") return undefined;
+          throw error;
+        }) : undefined;
         if (target?.type === "directory") { targetDirectory = last; args.files.pop(); }
         else if (args.files.length > 2) throw failure(`target ${quote(last)}`, new FsError(target ? "ENOTDIR" : "ENOENT"));
       }

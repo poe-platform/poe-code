@@ -1094,7 +1094,7 @@ test("ln honors backup environment controls and existing numbered backups", asyn
 
 test("ln disabled backups preserve existing destinations and invalid controls are usage errors", async () => {
   const fs = await fixture({ source: "new", dest: "old" });
-  for (const args of [["--backup=none"], ["--suffix=.saved"]]) {
+  for (const args of [["--backup=none"], ["--backup=none", "--suffix=.saved"]]) {
     assert.equal((await run("ln", [...args, "source", "dest"], { fs })).exitCode, 1);
     assert.equal(new TextDecoder().decode(await fs.readFile("/work/dest")), "old");
   }

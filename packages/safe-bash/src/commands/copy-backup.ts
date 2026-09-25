@@ -63,18 +63,12 @@ export function copyOptions(context: CommandContext) {
   for (const flag of ["H", "L", "P"]) parsed.flags.delete(flag);
   parsed.flags.add(dereference ?? (parsed.flags.has("R") || parsed.flags.has("r") ? "P" : "H"));
   let backup: CopyBackup | undefined;
-  if (parsed.flags.has("b") || parsed.flags.has("backup")) {
+  if (parsed.flags.has("b") || parsed.flags.has("backup") || parsed.flags.has("S")) {
     const control = value(parsed, "backup") ?? context.env.VERSION_CONTROL ?? "existing";
-    const modes: Record<string, CopyBackup["mode"] | "none"> = {
-      none: "none", off: "none", numbered: "numbered", t: "numbered",
-      existing: "existing", nil: "existing", simple: "simple", never: "simple",
-    };
-    const mode = Object.hasOwn(modes, control) ? modes[control] : undefined;
-    if (!mode) throw new UsageError(`invalid argument '${control}' for 'backup type'`);
-    if (mode !== "none") backup = { mode, suffix: value(parsed, "S") ?? context.env.SIMPLE_BACKUP_SUFFIX ?? "~" };
+    const mode = matchBackupMode(control);
+    if (mode !== "none") backup = { mode, suffix: normalizeBackupSuffix(value(parsed, "S") ?? context.env.SIMPLE_BACKUP_SUFFIX) };
   }
   if (backup && parsed.flags.has("n")) throw new UsageError("options --backup and --no-clobber are mutually exclusive");
-  if (backup && (!backup.suffix || backup.suffix.includes("/"))) throw new UsageError("invalid backup suffix");
   const copiedLinks = new Map<object | symbol, Map<string, { path: string; stat?: FileStat }>>();
   const sourceMetadata = new Map<string, FileStat>();
   const copiedTargets = new Map<string, FileStat>();
@@ -91,7 +85,7 @@ export async function backupCopyTarget(
     for (const entry of await readDirectory(context, dirname(target))) {
       if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
       const digits = entry.name.slice(prefix.length, -1);
-      if (!digits || [...digits].some(character => character < "0" || character > "9")) continue;
+      if (!digits || digits[0] === "0" || [...digits].some(character => character < "0" || character > "9")) continue;
       const number = BigInt(digits);
       if (number > highest) highest = number;
     }
@@ -114,4 +108,19 @@ export async function backupCopyTarget(
   }
   await admitFilesystemModes(context, "cp", ["backup"], [target, backupPath]);
   if (!preflight) await context.fs.rename(target, backupPath, { signal: context.signal });
+}
+
+export function matchBackupMode(control: string): CopyBackup["mode"] | "none" {
+  const aliases: Readonly<Record<string, CopyBackup["mode"] | "none">> = {
+    none: "none", off: "none", numbered: "numbered", t: "numbered",
+    existing: "existing", nil: "existing", simple: "simple", never: "simple",
+  };
+  if (Object.hasOwn(aliases, control)) return aliases[control]!;
+  const matches = Object.keys(aliases).filter(alias => alias.startsWith(control));
+  if (matches.length && new Set(matches.map(alias => aliases[alias])).size === 1) return aliases[matches[0]!]!;
+  throw new UsageError(`${matches.length ? "ambiguous" : "invalid"} argument '${control}' for 'backup type'`);
+}
+
+export function normalizeBackupSuffix(suffix: string | undefined): string {
+  return !suffix || suffix.includes("/") ? "~" : suffix;
 }

@@ -15,7 +15,7 @@ import { touchTimes } from "./touch-times.js";
 import { touchTarget } from "./touch-target.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
 import { canonicalizeExistingParent } from "./canonicalize-existing-parent.js";
-import { backupCopyTarget, copyOptions } from "./copy-backup.js";
+import { backupCopyTarget, copyOptions, matchBackupMode, normalizeBackupSuffix } from "./copy-backup.js";
 import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from "./copy-preserve.js";
 
 // Operand directories start at depth zero; files inside the last admitted
@@ -573,12 +573,10 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         "no-target-directory": "T", "target-directory": "t",
       });
       for (const flag of ["f", "i", "n"]) if (flag !== overwrite) parsed.flags.delete(flag);
-      const control = value(parsed, "backup") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
-      const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
-      const backupMode = modes[control];
-      if (!backupMode) throw new UsageError(`invalid argument '${control}' for backup type`);
+      const control = value(parsed, "backup") ?? (parsed.flags.has("b") || parsed.flags.has("S") ? context.env.VERSION_CONTROL || "existing" : "none");
+      const backupMode = matchBackupMode(control);
       if (backupMode !== "none" && parsed.flags.has("n")) throw new UsageError("options --backup and --no-clobber are mutually exclusive");
-      const backupSuffix = value(parsed, "S") || context.env.SIMPLE_BACKUP_SUFFIX || "~";
+      const backupSuffix = normalizeBackupSuffix(value(parsed, "S") ?? context.env.SIMPLE_BACKUP_SUFFIX);
       if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
       const targetDirectory = value(parsed, "t");
       if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
@@ -647,7 +645,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
                 for (const entry of await readDirectory(context, dirname(target))) {
                   if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
                   const digits = entry.name.slice(prefix.length, -1);
-                  if (!digits || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
+                  if (!digits || digits[0] === "0" || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
                   const number = BigInt(digits);
                   if (number > largest) largest = number;
                 }
@@ -838,11 +836,9 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       if (parsed.flags.has("r") && !parsed.flags.has("s")) throw new UsageError("cannot do --relative without --symbolic");
       const targetDirectory = value(parsed, "t");
       if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
-      const control = value(parsed, "backup") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
-      const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
-      const backupMode = Object.hasOwn(modes, control) ? modes[control]! : undefined;
-      if (!backupMode) throw new UsageError(`invalid argument '${control}' for backup type`);
-      const backupSuffix = value(parsed, "S") || context.env.SIMPLE_BACKUP_SUFFIX || "~";
+      const control = value(parsed, "backup") ?? (parsed.flags.has("b") || parsed.flags.has("S") ? context.env.VERSION_CONTROL || "existing" : "none");
+      const backupMode = matchBackupMode(control);
+      const backupSuffix = normalizeBackupSuffix(value(parsed, "S") ?? context.env.SIMPLE_BACKUP_SUFFIX);
       requireOperands(parsed.operands);
       if (parsed.flags.has("T")) requireOperands(parsed.operands, 2, 2);
       const operands = targetDirectory !== undefined ? [...parsed.operands, targetDirectory] : parsed.operands.length === 1 ? [...parsed.operands, "."] : parsed.operands;
@@ -895,7 +891,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
                 for (const entry of await readDirectory(context, dirname(destination))) {
                   if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
                   const digits = entry.name.slice(prefix.length, -1);
-                  if (!digits || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
+                  if (!digits || digits[0] === "0" || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
                   const number = BigInt(digits);
                   if (number > largest) largest = number;
                 }

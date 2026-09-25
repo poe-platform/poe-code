@@ -253,3 +253,16 @@ test("directory overwrite and missing-parent diagnostics include GNU operands", 
   assert.equal((await run(["-T", "source", "dir"], fs)).stderr, "install: cannot overwrite directory 'dir' with non-directory 'source'\n");
   assert.equal((await run(["source", "missing/"], fs)).stderr, "install: cannot create regular file 'missing/': No such file or directory\n");
 });
+
+test("install replaces looping destination symlinks and diagnoses non-directory destination parents", async () => {
+  const fs = await seed({});
+  await fs.writeFile("/src", new TextEncoder().encode("payload\n"));
+  await fs.writeFile("/file", new TextEncoder().encode("regular\n"));
+  await fs.symlink("/dest_loop", "/dest_loop");
+  const loopRes = await run(["/src", "/dest_loop"], fs);
+  assert.equal(loopRes.exitCode, 0, loopRes.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/dest_loop")), "payload\n");
+  const nonDirRes = await run(["/src", "/file/dest"], fs);
+  assert.equal(nonDirRes.exitCode, 1);
+  assert.match(nonDirRes.stderr, /cannot create regular file '\/file\/dest': Not a directory/u);
+});

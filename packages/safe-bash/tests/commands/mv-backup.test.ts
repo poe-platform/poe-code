@@ -50,7 +50,7 @@ test("mv rejects combining backups with no-clobber", async () => {
   assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), "old");
 });
 
-for (const args of [["--backup=none"], ["--suffix=.saved"]]) {
+for (const args of [["--backup=none"], ["--backup=none", "--suffix=.saved"]]) {
   test(`mv ${args.join(" ")} does not enable backups`, async () => {
     const fs = await fixture({ input: "new", output: "old" });
     assert.equal((await run("mv", [...args, "input", "output"], { fs })).exitCode, 0);

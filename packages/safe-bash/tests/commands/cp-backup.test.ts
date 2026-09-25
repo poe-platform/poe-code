@@ -98,3 +98,18 @@ test("backup rename refusal is admitted before modifying any destination", async
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "old");
   assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["input", "output"]);
 });
+
+test("cp, mv, and ln enable backups with -S alone, normalize empty/slash suffixes, and match control prefixes", async () => {
+  const fs = await fixture({ src: "new\n", cp1: "old\n", cp2: "old\n", mv_src: "new\n", mv1: "old\n", ln1: "old\n" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  assert.equal((await shell.exec("cp -S .bak src cp1")).exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/cp1.bak")), "old\n");
+  assert.equal((await shell.exec("cp -b -S a/b src cp2")).exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/cp2~")), "old\n");
+  assert.equal((await shell.exec("cp --backup=num src cp1")).exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/cp1.~1~")), "new\n");
+  assert.equal((await shell.exec("mv -S .bak mv_src mv1")).exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/mv1.bak")), "old\n");
+  assert.equal((await shell.exec("ln -s -S .bak src ln1")).exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/ln1.bak")), "old\n");
+});

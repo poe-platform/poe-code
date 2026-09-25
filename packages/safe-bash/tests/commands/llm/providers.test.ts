@@ -296,3 +296,13 @@ test('ElevenLabs preserves typed scalar settings from structured callers', async
   await collect(provider, request('speech', {options:{stability:0.25,use_speaker_boost:false}}));
   assert.deepEqual(JSON.parse(new TextDecoder().decode(f.requests[0]!.bytes)).voice_settings, {stability:0.25,use_speaker_boost:false});
 });
+
+test('OpenAI chat preserves conversation messages and structured output schema', async () => {
+  const f = fixture(['data: [DONE]\n\n']);
+  const provider = createOpenAiProvider({transport:f.transport,apiKey:'fixture',models:[{id:'chat',endpoint:'chat'}]});
+  const schema = {type:'object',properties:{answer:{type:'string'}},required:['answer'],additionalProperties:false};
+  await collect(provider,request('chat',{messages:[{role:'user',content:'previous'},{role:'assistant',content:'reply'}],schema}));
+  const body = JSON.parse(new TextDecoder().decode(f.requests[0]!.bytes));
+  assert.deepEqual(body.messages,[{role:'user',content:'previous'},{role:'assistant',content:'reply'},{role:'user',content:'hello'}]);
+  assert.deepEqual(body.response_format,{type:'json_schema',json_schema:{name:'response',strict:true,schema}});
+});

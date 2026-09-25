@@ -139,6 +139,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
       if (request.attachments.reduce((size, file) => size + file.bytes.byteLength, 0) > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       if (model.endpoint !== "chat" && request.system !== undefined) throw new TypeError("System prompts are supported only by chat models");
+      if (model.endpoint !== "chat" && (request.messages?.length || request.schema)) throw new Error("Conversation messages and schemas require a chat model");
       const reserved = model.endpoint === "chat" ? ["model", "messages", "stream"]
         : model.endpoint === "images" ? ["model", "prompt", "image", "image[]"] : ["model", "prompt", "input_reference"];
       for (const key of Object.keys(request.options)) {
@@ -151,11 +152,12 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (model.endpoint === "chat") {
         const messages: unknown[] = [];
         if (request.system !== undefined) messages.push({ role: "system", content: request.system });
+        messages.push(...request.messages ?? []);
         messages.push({ role: "user", content: request.attachments.length === 0 ? request.prompt : [
           { type: "text", text: request.prompt },
           ...request.attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
         ] });
-        for await (const response of send("/chat/completions", "POST", jsonBody({ ...jsonOptions(request.options, "chat"), model: request.model, messages, stream: true }, limits.maxRequestBytes))) {
+        for await (const response of send("/chat/completions", "POST", jsonBody({ ...jsonOptions(request.options, "chat"), model: request.model, messages, stream: true, ...(request.schema ? {response_format:{type:"json_schema",json_schema:{name:"response",strict:true,schema:request.schema}}} : {}) }, limits.maxRequestBytes))) {
           yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
         }
       } else if (model.endpoint === "images") {

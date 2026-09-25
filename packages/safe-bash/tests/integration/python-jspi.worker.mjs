@@ -5,8 +5,9 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool } from '@poe-platform/safe-bash/commands/python';
-import { Shell } from '@poe-platform/safe-bash';
+import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability } from '@poe-platform/safe-bash/commands/python';
+import { Shell, standardCommands, portableSearchCommands, createBoundedRegexProvider } from '@poe-platform/safe-bash';
+import { createLlmService } from '@poe-platform/safe-bash/commands/llm';
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
@@ -258,6 +259,113 @@ export default {
       try { return Response.json({...await qualifyShells(backend, createExecutor), failures, finalizations}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
       finally { clearInterval(timer); await filesystem.close(); }
+    }
+    if (mode === '/python-shell') {
+      const observedExecutor = () => {
+        const executor = createExecutor();
+        return {terminate:executor.terminate.bind(executor),run(start) {
+          return executor.run({...start,async dispatch(operation) {
+            try { return await start.dispatch(operation); }
+            catch (error) {
+              if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') failures.push(operation.op + ': ' + String(error.stack ?? error));
+              throw error;
+            }
+          }});
+        }};
+      };
+      const requests = [];
+      let llmRetired = 0;
+      const service = createLlmService({defaultModel:'short',providers:[{name:'qualified',models:[{id:'model',aliases:['short'],attachmentTypes:['text/plain']}],async *complete(request) {
+        requests.push({model:request.model,prompt:request.prompt,options:request.options,attachment:request.attachments.map(value => new TextDecoder().decode(value.bytes))});
+        try { yield 'first'; yield 'second'; } finally { llmRetired++; }
+      }}]});
+      const capabilities = context => {
+        const shell = createPythonShellCapability(context);
+        const llm = createPythonLlmCapability(context,service);
+        return {request(operation,payload) { return operation.startsWith('llm.') ? llm.request(operation,payload) : shell.request(operation,payload); },async close() { await Promise.all([llm.close(),shell.close()]); }};
+      };
+      const shell = new Shell({fs:backend,cwd:'/work',onInternalError(error) { failures.push(String(error.stack ?? error)); }}).use(standardCommands()).use(portableSearchCommands({provider:createBoundedRegexProvider(),replace:true})).use(pythonCommands({createExecutor:observedExecutor,createCapabilities:capabilities,onDiagnostic(event) { if (event.cause !== undefined) failures.push(String(event.cause?.stack ?? event.cause)); }}));
+      await backend.mkdir('/project');
+      await backend.writeFile('/project/tasks.txt',new TextEncoder().encode('TODO: verify Python shell\n'));
+      shell.register({name:'wait-for-cancellation',async execute(context) {
+        await new Promise((resolve,reject) => {
+          if (context.signal.aborted) { reject(context.signal.reason); return; }
+          context.signal.addEventListener('abort',() => reject(context.signal.reason),{once:true});
+        });
+        return {exitCode:0};
+      }});
+      await backend.writeFile('/work/shell.py',new TextEncoder().encode(String.raw`
+import subprocess
+from poe_shell import Client, ShellError
+from poe_llm import Client as LlmClient, Attachment
+from pyodide.ffi import run_sync
+result = subprocess.run(['echo', '$(secret)', 'two words'], capture_output=True, text=True)
+assert result.args == ['echo', '$(secret)', 'two words']
+assert result.stdout == '$(secret) two words\n'
+result = subprocess.run(['rg','TODO','/project'],capture_output=True,text=True)
+assert result.returncode == 0 and 'TODO: verify Python shell' in result.stdout, (result.returncode, result.stdout, result.stderr)
+try:
+ subprocess.run(['wait-for-cancellation'],capture_output=True,timeout=0.01)
+except subprocess.TimeoutExpired as error:
+ assert error.timeout == 0.01 and error.output == b''
+else:
+ raise AssertionError('missing timeout')
+try:
+ subprocess.run(['python','-c','pass'],capture_output=True)
+except ShellError as error:
+ assert error.code == 'nested_python'
+else:
+ raise AssertionError('nested Python argv admitted')
+result = subprocess.run('python -c pass',shell=True,capture_output=True)
+assert result.returncode == 1
+assert subprocess.check_output(['cat'], input=bytes([255,0,42])) == bytes([255,0,42])
+assert subprocess.check_output('printf x | cat', shell=True) == b'x'
+with open('/work/shell-input.bin','wb') as output:
+ output.write(bytes([255,0,42]))
+subprocess.run('cat /work/shell-input.bin > /work/shell-copy.bin',shell=True,check=True)
+with open('/work/shell-copy.bin','rb') as source:
+ assert source.read() == bytes([255,0,42])
+result = subprocess.run(['bash','-c','printf "%s" "$ONLY"'],env={'ONLY':'child'},capture_output=True,text=True)
+assert result.stdout == 'child'
+try:
+ subprocess.run(['bash','-c','printf err >&2; exit 7'],capture_output=True,check=True)
+except subprocess.CalledProcessError as error:
+ assert error.returncode == 7 and error.stderr == b'err'
+else:
+ raise AssertionError('missing nonzero-status error')
+async def main():
+ async with LlmClient(model='short',options={'temperature':0.2,'store':False}) as llm:
+  models = await llm.models()
+  assert models[0].id == 'model'
+  response = await llm.complete('hello',attachments=[Attachment('/project/tasks.txt','text/plain')])
+  assert response.model == 'model' and response.text == 'firstsecond'
+  async with llm.stream('stream') as stream:
+   events = [event async for event in stream]
+   assert [event.text for event in events if event.type == 'text'] == ['first','second']
+   assert stream.response.text == 'firstsecond'
+  async with llm.stream('cancel') as stream:
+   async for event in stream:
+    assert event.text == 'first'
+    break
+ async with Client() as client:
+  try:
+   await client.run(['echo','overflow'],max_output_bytes=1)
+  except ShellError as error:
+   assert error.code == 'limit'
+  else:
+   raise AssertionError('output limit not enforced')
+  async with client.stream(['echo','stream']) as stream:
+   async for event in stream:
+    assert event.type == 'stdout' and event.data == b'stream\n'
+    break
+run_sync(main())
+print('shell-ok')
+`));
+      try {
+        const result = await shell.exec('python /work/shell.py');
+        if (requests.length !== 3 || llmRetired !== 3 || requests[0]?.options.temperature !== 0.2 || requests[0]?.options.store !== false || !requests[0]?.attachment[0]?.includes('TODO')) failures.push('LLM qualification or cleanup mismatch: ' + JSON.stringify({requests,llmRetired}));
+        return Response.json({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr,failures,callbacks,ticks});
+      } finally { await shell.dispose(); clearInterval(timer); await filesystem.close(); }
     }
     const executor = createExecutor();
     try {

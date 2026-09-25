@@ -221,6 +221,7 @@ for (const separator of [separators[0], separators[1], separators[2], separators
 
 const boundaries = [
   ["scalar indirect expansion", 'a=name; name=value; printf "%s" "${!a}"', "value"],
+  ["array element indirect expansion", 'a=([0]=name); name=value; printf "%s" "${!a[0]}"', "value"],
   ["word prefix and suffix", 'a=([2]=x [10]=y); printf "<%s>" pre"${!a[@]}"post', "<pre2><10post>"],
   ["empty splice", 'unset a; printf "<%s>" pre"${!a[@]}"post', "<prepost>"],
   ["adjacent splices", 'a=([2]=x [10]=y); printf "<%s>" "${!a[@]}${!a[@]}"', "<2><102><10>"],
@@ -258,7 +259,7 @@ for (const duplicate of ["name", "builtin"]) test(`key capability union preserve
   assert.equal(executed, 0);
 });
 
-for (const source of ["true &", "printf $!", "printf ${!a[0]}", "printf ${!a[@]:1}", "printf ${!a[@]-x}"]) {
+for (const source of ["true &", "printf $!", "printf ${!a[@]:1}", "printf ${!a[@]-x}"]) {
   test(`key capability does not enable other grammar: ${source}`, async context => {
     const subject = setup(); context.after(() => subject.shell.dispose());
     const result = await subject.shell.exec(source);
@@ -273,10 +274,12 @@ test("key capability preserves scalar indirect lookup and invalid-reference fail
   assert.equal(valid.exitCode, 0);
   assert.equal(valid.stdout, "value");
   assert.equal(valid.stderr, "");
-  const invalid = await subject.shell.exec('unset a; printf "${!a}"; printf unsafe');
-  assert.equal(invalid.exitCode, 1);
-  assert.equal(invalid.stdout, "");
-  assert.ok(invalid.stderr.includes("invalid variable name"));
+  for (const reference of ["${!a}", "${!a[0]}"]) {
+    const invalid = await subject.shell.exec(`unset a; printf "${reference}"; printf unsafe`);
+    assert.equal(invalid.exitCode, 1);
+    assert.equal(invalid.stdout, "");
+    assert.ok(invalid.stderr.includes("invalid variable name"));
+  }
 });
 
 test("captured parser capability is frozen and survives caller mutation", () => {

@@ -36,10 +36,23 @@ for (const [script, expected] of cases) test(`GNU Bash 5.2.37 prefix-name expans
   } finally { await shell.dispose(); }
 });
 
-for (const source of ["${!*}", "${!@}", "${!ZZ@:-x}", "${!ZZ[0]}"]) test(`unsupported indirect syntax remains refused: ${source}`, async () => {
+for (const source of ["${!*}", "${!@}", "${!ZZ@:-x}"]) test(`unsupported indirect syntax remains refused: ${source}`, async () => {
   const { shell } = setup();
   try { assert.equal((await shell.exec(`args "${source}"`)).exitCode, 2); }
   finally { await shell.dispose(); }
+});
+
+test("array element indirection remains available beside prefix-name expansion", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec('ZZ=(target); target=value; args "${!ZZ[0]}" "${!ZZ@}"');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '["value","ZZ"]');
+    const invalid = await shell.exec('unset ZZ; args "${!ZZ[0]}"; args unsafe');
+    assert.equal(invalid.exitCode, 1);
+    assert.equal(invalid.stdout, "");
+    assert.match(invalid.stderr, /invalid variable name/u);
+  } finally { await shell.dispose(); }
 });
 
 for (const [suffix, expected] of [

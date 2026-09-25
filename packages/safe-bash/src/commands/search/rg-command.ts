@@ -1,11 +1,11 @@
-import { assertCommandRequirements, collectBytes, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
 import { Matcher, type Match } from "./matcher.js";
 import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
 import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
 import { Walker, type FileTarget } from "./walk.js";
-import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
+import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "./requirements.js";
 
 interface InputSelection { readonly paths: readonly string[]; readonly implicit: boolean }
@@ -71,19 +71,8 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches";
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
   const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf) : undefined;
-  let syncIdx = 0;
-  let asyncIter: AsyncIterator<Line[]> | undefined;
-  records: while (true) {
-    let batch: Line[];
-    if (syncBatches !== undefined) {
-      if (syncIdx >= syncBatches.length) break;
-      batch = syncBatches[syncIdx++]!;
-    } else {
-      asyncIter ??= lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf)[Symbol.asyncIterator]();
-      const next = await asyncIter.next();
-      if (next.done) { asyncIter = undefined; break; }
-      batch = next.value;
-    }
+  const batches = syncBatches ?? lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf);
+  records: for await (const batch of batches) {
     const batchRes = matcher.batchSync(batch); const results = batchRes instanceof Promise ? await batchRes : batchRes;
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
@@ -127,8 +116,8 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
         if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
       }
     }
+    await limits.flush();
   }
-  if (asyncIter?.return) await asyncIter.return();
   if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0 && !binaryPrinted) {
     await printer.binary(target.label, state.binaryOffset, filename);
   }

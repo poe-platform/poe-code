@@ -1,7 +1,7 @@
 import { FsError, toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
 import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
-import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
+import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
 import { grepFiles } from "./grep-files.js";
@@ -26,7 +26,8 @@ async function* grepLineBatches(
   maxRecords: () => number,
   all = false,
 ): AsyncGenerator<GrepLine[]> {
-  const pending = new RecordBuffer(internalBufferLimit);
+  const lineLimit = Math.min(internalBufferLimit, maxLineBytes);
+  const pending = new RecordBuffer(lineLimit);
   let batch: GrepLine[] = [];
   let bytes = 0;
   try {
@@ -39,7 +40,7 @@ async function* grepLineBatches(
         let line: GrepLine;
         if (pending.size === 0) {
           const tailLength = end - start;
-          if (tailLength > internalBufferLimit) {
+          if (tailLength > lineLimit) {
             throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
           }
           line = {
@@ -247,7 +248,7 @@ inspect the resulting state before repeating the action.
       const writeOut = async (chunk: string | Uint8Array) => {
         const bytes = typeof chunk === "string" ? (chunk.length === 0 ? undefined : encoder.encode(chunk)) : (chunk.length === 0 ? undefined : chunk);
         if (!bytes) return;
-        if (lineBuffered || bytes.length > 64 * 1024) {
+        if (lineBuffered || parsed.flags.has("o") || bytes.length > 64 * 1024) {
           await flushOut();
           await output(context, bytes);
           return;
@@ -352,6 +353,7 @@ inspect the resulting state before repeating the action.
               }
               if (count >= maxCount && remainingAfter === 0) break records;
             }
+            await flushOut();
           }
           await flushOut();
           if (parsed.flags.has("q")) continue;

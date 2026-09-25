@@ -151,6 +151,7 @@ export class Walker {
     const uniformCanonical = backing !== undefined && backing.capabilitiesFor === undefined && canonical !== "/dev" && !canonical.startsWith("/dev/");
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return true; }
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
+    const local = await this.load(path, rules, repository);
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[];
     try {
@@ -164,7 +165,6 @@ export class Walker {
     }
     this.context.signal.throwIfAborted();
     if (entries.length > maxEntries) throw new SearchError("filesystem entry limit exceeded");
-    const local = await this.load(path, rules, repository, entries);
     entries.sort((left, right) => compareEntryNames(left.name, right.name));
     for (const entry of entries) {
       const tickPending = this.limits.tick();

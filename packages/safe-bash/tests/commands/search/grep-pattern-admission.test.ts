@@ -6,9 +6,9 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { bufferLimit } from "../../../src/commands/internal.js";
 import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 import type { RegexWorkerRequest } from "../../../src/commands/regex-execution/provider.js";
-import { createGrepCommands } from "../../../src/commands/search/grep.js";
+import { createGrepCommands, type GrepLimits } from "../../../src/commands/search/grep.js";
 
-async function run(args: readonly string[], overrides: Partial<CommandContext> = {}) {
+async function run(args: readonly string[], overrides: Partial<CommandContext> = {}, limits: GrepLimits = {}) {
   const messages: RegexWorkerRequest[] = [];
   const workers: EventEmitter[] = [];
   let terminated = 0;
@@ -32,13 +32,34 @@ async function run(args: readonly string[], overrides: Partial<CommandContext> =
     stderr: { async write(bytes) { errors.push(bytes.slice()); } }, ...overrides,
   };
   try {
-    const result = await createGrepCommands(executor, { maxPatterns: 1024, maxPatternBytes: bufferLimit })[0]!.execute(context);
+    const result = await createGrepCommands(executor, { maxPatterns: 1024, maxPatternBytes: bufferLimit, ...limits })[0]!.execute(context);
     return { code: result.exitCode, stderr: Buffer.concat(errors).toString(), messages, created: workers.length };
   } finally {
     await executor.dispose();
     assert.equal(terminated, workers.length);
     for (const worker of workers) assert.deepEqual(worker.eventNames(), []);
   }
+}
+
+for (const chunks of [["xxx\n"], ["xxx"], ["x", "xx\n"], ["xxxx\n"], ["xxxx"], ["xx", "xx\n"], ["xx", "xx"]]) {
+  test(`grep enforces line bytes across ${JSON.stringify(chunks)}`, async () => {
+    let closed = false;
+    const stdin = (async function* () {
+      try { for (const chunk of chunks) yield Buffer.from(chunk); }
+      finally { closed = true; }
+    })();
+    const exceeded = chunks.join("").replaceAll("\n", "").length > 3;
+    const result = await run(["x"], { stdin }, { maxLineBytes: 3 });
+    assert.equal(result.code, exceeded ? 2 : 1);
+    assert.equal(closed, true);
+    if (exceeded) {
+      assert.match(result.stderr, /line.*limit exceeded/u);
+      assert.equal(result.messages.some(message => message.rows.length > 0), false);
+    } else {
+      assert.equal(result.stderr, "");
+      assert.equal(result.messages.filter(message => message.rows.length > 0).length, 1);
+    }
+  });
 }
 
 test("grep rejects the modest pattern-file spread reproduction before dispatch", { timeout: 5000 }, async () => {

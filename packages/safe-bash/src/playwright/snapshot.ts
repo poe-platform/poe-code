@@ -23,6 +23,23 @@ async function nativeConnected(handle: PlaywrightElementHandle): Promise<boolean
   } catch { return false; }
 }
 
+function snapshotSignal(timeout: number, signal?: AbortSignal): AbortSignal {
+  const signals = signal ? [signal] : [];
+  if (timeout !== 0) signals.push(AbortSignal.timeout(timeout));
+  return AbortSignal.any(signals);
+}
+
+async function waitForSnapshot<Result>(operation: Promise<Result>, signal: AbortSignal): Promise<Result> {
+  let onAbort = () => {};
+  const aborted = new Promise<never>((_, reject) => {
+    onAbort = () => reject(signal.reason);
+    if (signal.aborted) onAbort();
+    else signal.addEventListener('abort', onAbort, { once: true });
+  });
+  try { return await Promise.race([operation, aborted]); }
+  finally { signal.removeEventListener('abort', onAbort); }
+}
+
 // Bound browser RPC concurrency while draining every admitted acquisition on failure.
 async function visitReferences<T>(entries: readonly T[], visit: (entry: T) => Promise<void>) {
   for (let index = 0; index < entries.length; index += 32) {
@@ -107,22 +124,25 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       await retire([]);
     }
   };
-  const nativeRefIssuer = async (page: PlaywrightPage) => {
+  const nativeRefIssuer = async (page: PlaywrightPage, signal: AbortSignal) => {
+    signal.throwIfAborted();
     // Check after native capture: child navigation can recycle an ID while
     // leaving the main document and its public references intact.
     const existing = new Map<string, string>();
     const batches = new Map<PlaywrightSnapshotReferenceBatch, readonly boolean[]>();
     for (const entry of refs.values()) if (entry.kind === 'native' && entry.page === page && entry.witness && !batches.has(entry.witness.batch)) {
-      batches.set(entry.witness.batch, await entry.witness.batch.connected());
+      batches.set(entry.witness.batch, await waitForSnapshot(entry.witness.batch.connected({ signal }), signal));
     }
     await visitReferences([...refs], async ([issued, entry]) => {
+      signal.throwIfAborted();
       if (entry.kind !== 'native' || entry.page !== page) return;
-      const connected = entry.witness ? batches.get(entry.witness.batch)?.[entry.witness.index] : entry.native && await nativeConnected(entry.native);
+      const connected = entry.witness ? batches.get(entry.witness.batch)?.[entry.witness.index] : entry.native && await waitForSnapshot(nativeConnected(entry.native), signal);
       if (connected) existing.set(entry.ref, issued);
     });
     return (native?: string) => (native === undefined ? undefined : existing.get(native)) ?? nextRef?.() ?? `e${++sequence}`;
   };
   const prepareNativeCapture = (page: PlaywrightPage, captureReferences: PlaywrightSnapshotReferenceCapture | undefined, timeoutMs: number, signal?: AbortSignal) => {
+    const captureSignal = snapshotSignal(timeoutMs, signal);
     let binding: { batch: PlaywrightSnapshotReferenceBatch; indices: Map<string, number> } | undefined;
     let fallbackIssuer: ((native?: string) => string) | undefined;
     const issued = new Map<string, string>();
@@ -143,8 +163,9 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         return ref;
       },
       prepareRefs: async (nativeRefs: readonly string[]) => {
-        if (!captureReferences) { fallbackIssuer = await nativeRefIssuer(page); return; }
-        const batch = await captureReferences(page, nativeRefs, { signal: signal ?? new AbortController().signal, timeoutMs });
+        if (!captureReferences) { fallbackIssuer = await nativeRefIssuer(page, captureSignal); return; }
+        captureSignal.throwIfAborted();
+        const batch = await waitForSnapshot(captureReferences(page, nativeRefs, { signal: captureSignal, timeoutMs }), captureSignal);
         const indices = new Map<string, number>();
         for (let index = 0; index < nativeRefs.length; index++) {
           const native = nativeRefs[index]!;
@@ -305,7 +326,8 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     try { await invalidate(); } catch (cleanup) { throw new SnapshotCleanupError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
     throw error;
   });
-  const resolve = async (ref: string, _timeout = 5000): Promise<PlaywrightElementHandle> => {
+  const resolveReference = async (ref: string, signal: AbortSignal): Promise<PlaywrightElementHandle> => {
+    signal.throwIfAborted();
     const reference = refs.get(ref);
     if (!reference) throw new Error(`Ref ${ref} not found in the current page snapshot. Try capturing new snapshot.`);
     const capturedEpoch = epoch;
@@ -313,14 +335,14 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       if (!reference.native && reference.witness) {
         reference.resolving ??= (async () => {
           let handle: PlaywrightElementHandle | null;
-          try { handle = await reference.witness!.batch.resolve(reference.witness!.index); }
+          try { handle = await reference.witness!.batch.resolve(reference.witness!.index, { signal }); }
           catch (error) { throw new SnapshotCleanupError([error], 'Snapshot reference acquisition failed'); }
           if (handle) {
             const current = refs.get(ref);
             const identity = reference.witness!.batch.identities[reference.witness!.index];
             const currentIdentity = current?.kind === 'native' && current.witness ? current.witness.batch.identities[current.witness.index] : undefined;
             const same = current === reference || identity && currentIdentity?.scope === identity.scope && currentIdentity.value === identity.value;
-            if (capturedEpoch !== epoch || !same) { await retire([handle]); throw new Error(`Snapshot ref stale: ${ref}; snapshot again`); }
+            if (signal.aborted || capturedEpoch !== epoch || !same) { await retire([handle]); signal.throwIfAborted(); throw new Error(`Snapshot ref stale: ${ref}; snapshot again`); }
             resources.add(handle);
             reference.native = handle;
             if (current?.kind === 'native') current.native = handle;
@@ -347,18 +369,31 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         return !!node && node.isConnected && (!node.ownerDocument || node.ownerDocument.defaultView?.document === node.ownerDocument);
       }, reference.slot);
     } catch { connected = false; }
+    signal.throwIfAborted();
     if (!connected || capturedEpoch !== epoch) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
     if (!reference.native) {
       const handle = await reference.capsule.evaluateHandle((capsule, slot) => capsule.nodes[slot], reference.slot);
       const native = handle.asElement();
-      if (!native || capturedEpoch !== epoch) {
+      if (!native || signal.aborted || capturedEpoch !== epoch) {
         await retire([handle]);
+        signal.throwIfAborted();
         throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
       }
       resources.add(handle);
       reference.native = native;
     }
     return reference.native;
+  };
+  const resolve = async (ref: string, timeout = 5000, signal?: AbortSignal): Promise<PlaywrightElementHandle> => {
+    const actionSignal = snapshotSignal(timeout, signal);
+    actionSignal.throwIfAborted();
+    try { return await waitForSnapshot(resolveReference(ref, actionSignal), actionSignal); }
+    catch (error) {
+      // Opaque acquisition can finish after cancellation. Retire its late handle
+      // above, and require the caller to retire the uncertain browser lease now.
+      if (actionSignal.aborted) throw new SnapshotCleanupError([error], 'Snapshot reference acquisition interrupted');
+      throw error;
+    }
   };
   const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture; captureReferences?: PlaywrightSnapshotReferenceCapture } = {}) => captureStable(async options => {
     const capturedEpoch = epoch;

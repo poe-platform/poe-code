@@ -545,10 +545,16 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       // Install completion before abort dispatch can reenter cleanup.
       cleanupCompletion = Promise.resolve().then(async () => {
         await operation.catch(() => {});
-        const retirements = [...ownedTargets].map(handle => handle.dispose());
-        if (active && (!retained || active.releasing)) retirements.push(release(active));
+        const retirements = [...ownedTargets].map(handle => Promise.resolve().then(() => handle.dispose()));
+        const retiring = active && (!retained || active.releasing);
+        if (retiring) retirements.push(release(active!));
         const settled = await Promise.allSettled(retirements);
         const errors = settled.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
+        if (errors.length && active && !retiring) {
+          retained = false;
+          try { await release(active); }
+          catch (error) { errors.push(error); }
+        }
         if (errors.length === 1) throw errors[0];
         if (errors.length) throw new AggregateError(errors, 'Playwright invocation cleanup failed');
       });
@@ -702,14 +708,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         if (parsed.command === 'snapshot' && parsed.json && filename === undefined) {
           const tree = await session.snapshot.captureJSON(page, local.signal, { ...snapshotOptions, ...(session.lease?.captureSnapshotJSON ? { captureJSON: session.lease.captureSnapshotJSON } : {}) });
           check();
-          retained = true;
+          retained = parsed.command === 'snapshot';
           sections.push({ title: 'Snapshot', content: { json: tree as unknown as import('./response.js').PlaywrightJsonValue }, codeframe: 'json' });
           return { sections };
         }
         retained = false;
         const text = await session.snapshot.capture(page, local.signal, snapshotOptions);
         check();
-        retained = true;
+        retained = parsed.command === 'snapshot';
         if (filename !== undefined || snapshot === 'file' && invocation.writeArtifact) {
           const target = filename ?? capabilityArtifactName('page', 'yml', session.configuration);
           const bytes = new TextEncoder().encode(text);
@@ -734,7 +740,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       checkSession(session);
       if (!session.page) throw new Error('Selected tab closed; select a tab explicitly');
       const handle = await resolvePlaywrightTarget({ target, page: session.page, timeout: sessionActionTimeout(session), signal: local.signal,
-        resolveRef: ref => session.snapshot.resolve(ref, sessionActionTimeout(session)), own: handle => ownedTargets.add(handle) });
+        resolveRef: ref => session.snapshot.resolve(ref, sessionActionTimeout(session), local.signal), own: handle => ownedTargets.add(handle) });
       checkSession(session);
       if (!targetLocators.has(target)) {
         const reference = isPlaywrightSnapshotRef(target);

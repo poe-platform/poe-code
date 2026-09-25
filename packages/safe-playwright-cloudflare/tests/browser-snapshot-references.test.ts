@@ -117,3 +117,44 @@ for (const timeoutMs of [0, 5]) test(`bulk capture respects timeout=${timeoutMs}
   finish([1]);
   if (!timeoutMs) expect(await result).toBe('fulfilled');
 });
+
+
+test('cancelled witness evaluation disposes the adopted handle and client candidate', async () => {
+  const f = fixture();
+  const batch = await captureBrowserSnapshotReferences(f.page, ['e1'], { signal: new AbortController().signal, timeoutMs: 5000 });
+  const abort = new AbortController();
+  const adopted = Object.assign(f.original, { dispose: vi.fn(async () => {}) });
+  f.adopt.mockResolvedValueOnce(adopted);
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  let finish!: (value: boolean) => void;
+  f.injected.evaluate.mockImplementationOnce(() => { entered(); return new Promise(resolve => { finish = resolve; }); });
+  const operation = batch.resolve(0, { signal: abort.signal });
+  const result = operation.then(() => 'fulfilled', () => 'rejected');
+  await started;
+  abort.abort(new Error('cancel witness evaluation'));
+  const outcome = await Promise.race([result, new Promise(resolve => setTimeout(() => resolve('pending'), 30))]);
+  finish(true);
+  await result;
+  expect(adopted.dispose).toHaveBeenCalledOnce();
+  expect(f.handles[0]!.dispose).toHaveBeenCalledOnce();
+  expect(outcome).toBe('rejected');
+});
+
+test('cancelled lazy acquisition disposes candidates that arrive after abort', async () => {
+  const f = fixture();
+  const batch = await captureBrowserSnapshotReferences(f.page, ['e1'], { signal: new AbortController().signal, timeoutMs: 5000 });
+  const abort = new AbortController();
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  let finish!: (handles: typeof f.handles) => void;
+  const handle = { node: f.original, dispose: vi.fn(async () => {}) };
+  f.locator.mockImplementationOnce(() => ({ async elementHandles() { entered(); return new Promise(resolve => { finish = resolve; }); } }));
+  const result = batch.resolve(0, { signal: abort.signal }).then(() => 'fulfilled', () => 'rejected');
+  await started;
+  abort.abort(new Error('cancel lazy acquisition'));
+  finish([handle]);
+  expect(await result).toBe('rejected');
+  expect(handle.dispose).toHaveBeenCalledOnce();
+  expect(f.adopt).not.toHaveBeenCalled();
+});

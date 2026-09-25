@@ -37,7 +37,7 @@ export const captureBrowserSnapshotJSON: PlaywrightSnapshotJSONCapture = async (
 	options,
 ) => {
 	const native = page as typeof page & NativeSnapshotPage;
-	const signal = AbortSignal.any([
+	const signal = options.timeoutMs === 0 ? options.signal : AbortSignal.any([
 		options.signal,
 		AbortSignal.timeout(options.timeoutMs),
 	]);

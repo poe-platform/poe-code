@@ -23,6 +23,18 @@ interface NativeContext {
 interface ReferenceWitness { frame: Frame; context: NativeContext; injected: InjectedHandle; identity: number }
 type NativePage = Page & { _connection: { toImpl(value: Frame): NativeFrame; toImpl(value: unknown): unknown } };
 
+async function readWitness<Result>(operation: Promise<Result>, signal?: AbortSignal): Promise<Result> {
+  if (!signal) return operation;
+  let onAbort = () => {};
+  const aborted = new Promise<never>((_, reject) => {
+    onAbort = () => reject(signal.reason);
+    if (signal.aborted) onAbort();
+    else signal.addEventListener('abort', onAbort, { once: true });
+  });
+  try { return await Promise.race([operation, aborted]); }
+  finally { signal.removeEventListener('abort', onAbort); }
+}
+
 /** Preserve native accessibility IDs, but bind immutable identities in one RPC per frame.
  * Borrow the provider's utility handle; acquire no per-node browser resources here. */
 export const captureBrowserSnapshotReferences: PlaywrightSnapshotReferenceCapture = async (page, refs, options) => {
@@ -77,7 +89,9 @@ const captureReferences: PlaywrightSnapshotReferenceCapture = async (page, refs,
   options.signal.throwIfAborted();
   return {
     identities: witnesses.map(witness => witness && { scope: witness.injected, value: witness.identity }),
-    async connected() {
+    async connected(controls) {
+      const signal = controls?.signal;
+      signal?.throwIfAborted();
       const result = refs.map(() => false);
       const groups = new Map<InjectedHandle, { index: number; ref: string; identity: number }[]>();
       for (let index = 0; index < witnesses.length; index++) {
@@ -90,47 +104,51 @@ const captureReferences: PlaywrightSnapshotReferenceCapture = async (page, refs,
       for (const [injected, entries] of groups) {
         let live: boolean[];
         try {
-          live = await injected.evaluate((script, entries) => {
+          live = await readWitness(injected.evaluate((script, entries) => {
             const identities = new Set(script.querySelectorAll(script.parseSelector('css=*'), script.document)
               .filter(node => node.isConnected && node.ownerDocument.defaultView?.document === node.ownerDocument)
               .map(node => script.__safeBashSnapshotIdentity?.nodes.get(node)));
             return entries.map(entry => identities.has(entry.identity));
-          }, entries);
-        } catch { continue; } // A destroyed execution context has no live witnesses.
+          }, entries), signal);
+        } catch { signal?.throwIfAborted(); continue; } // A destroyed execution context has no live witnesses.
         for (let index = 0; index < entries.length; index++) result[entries[index]!.index] = live[index] === true;
       }
       return result;
     },
-    async resolve(index) {
+    async resolve(index, controls) {
+      const signal = controls?.signal;
+      signal?.throwIfAborted();
       const witness = witnesses[index];
       if (!witness) return null;
       try {
-        if (await native._connection.toImpl(witness.frame)._utilityContext() !== witness.context) return null;
-      } catch { return null; }
+        if (await readWitness(native._connection.toImpl(witness.frame)._utilityContext(), signal) !== witness.context) return null;
+      } catch { signal?.throwIfAborted(); return null; }
       // External native snapshots can assign the same node a different aria ID
       // (for example after its accessible name changes). Find that original node
       // by identity if its old native selector no longer denotes it. Recheck the
       // acquired handle so a DOM reorder cannot redirect the action.
       for (let attempt = 0; attempt < 2; attempt++) {
+        signal?.throwIfAborted();
         let selector = `aria-ref=${refs[index]}`;
         if (attempt) {
           let slot: number;
           try {
-            slot = await witness.injected.evaluate((script, identity) => script.querySelectorAll(script.parseSelector('css=*'), script.document)
-              .findIndex(node => script.__safeBashSnapshotIdentity?.nodes.get(node) === identity), witness.identity);
-          } catch { return null; }
+            slot = await readWitness(witness.injected.evaluate((script, identity) => script.querySelectorAll(script.parseSelector('css=*'), script.document)
+              .findIndex(node => script.__safeBashSnapshotIdentity?.nodes.get(node) === identity), witness.identity), signal);
+          } catch { signal?.throwIfAborted(); return null; }
           if (slot < 0) return null;
           selector = `css=* >> nth=${slot}`;
         }
         let handles: Awaited<ReturnType<ReturnType<Frame['locator']>['elementHandles']>>;
         try { handles = await witness.frame.locator(selector).elementHandles(); }
-        catch { continue; }
+        catch { signal?.throwIfAborted(); continue; }
         let keep = false;
         const errors: unknown[] = [];
-        if (handles.length === 1) {
-          try { keep = await matchesWitness(witness, native._connection.toImpl(handles[0]!)); }
+        if (handles.length === 1 && !signal?.aborted) {
+          try { keep = await matchesWitness(witness, native._connection.toImpl(handles[0]!), signal); }
           catch (error) { errors.push(error); }
         }
+        if (signal?.aborted) { keep = false; errors.push(signal.reason); }
         if (!keep) {
           const results = await Promise.allSettled(handles.map(handle => handle.dispose()));
           for (const result of results) if (result.status === 'rejected') errors.push(result.reason);
@@ -144,7 +162,7 @@ const captureReferences: PlaywrightSnapshotReferenceCapture = async (page, refs,
   };
 };
 
-async function matchesWitness(witness: ReferenceWitness, server: unknown): Promise<boolean> {
+async function matchesWitness(witness: ReferenceWitness, server: unknown, signal?: AbortSignal): Promise<boolean> {
   // Adopt explicitly before evaluate: the pinned engine otherwise leaves an
   // unobserved disposal promise when cross-world adoption rejects.
   let adopted: { dispose(): void | Promise<void> } | null;
@@ -152,12 +170,14 @@ async function matchesWitness(witness: ReferenceWitness, server: unknown): Promi
   catch { return false; }
   let matches = false;
   try {
-    matches = await witness.injected.evaluate((script, args) => args.node.isConnected && args.node.ownerDocument.defaultView?.document === args.node.ownerDocument && script.__safeBashSnapshotIdentity?.nodes.get(args.node) === args.identity, {
+    signal?.throwIfAborted();
+    matches = await readWitness(witness.injected.evaluate((script, args) => args.node.isConnected && args.node.ownerDocument.defaultView?.document === args.node.ownerDocument && script.__safeBashSnapshotIdentity?.nodes.get(args.node) === args.identity, {
       node: (adopted ?? server) as Element,
       identity: witness.identity,
-    });
+    }), signal);
   } catch { /* A disappeared document or target is stale. */ }
   // Cleanup errors propagate separately and the caller still disposes its candidate.
   await adopted?.dispose();
+  signal?.throwIfAborted();
   return matches;
 }

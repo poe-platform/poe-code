@@ -288,6 +288,40 @@ for (const json of [false, true]) test(`completed snapshot retains its browser w
   } finally { await f.controller.dispose(); }
 });
 
+for (const command of ['open', 'goto', 'tab-new', 'press']) test(`output failure after ${command} snapshot retires an uncheckpointed session`, async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  f.adapter.acquire = async request => {
+    const lease = await acquire(request);
+    Object.assign(lease.context.pages()[0]!, { on() {}, off() {}, async ariaSnapshot() { return '- text "ready"'; }, keyboard: { async press() {} } });
+    return lease;
+  };
+  const failure = new Error('output refused');
+  try {
+    if (command !== 'open') await f.run(['open']);
+    const args = command === 'goto' ? ['goto', 'https://example.test/next'] : command === 'press' ? ['press', 'Enter'] : [command];
+    await assert.rejects(f.run(args, { async write() { throw failure; } }), error => error === failure);
+    assert.equal(f.leases[0]!.releases, 1);
+    assert.deepEqual(f.controller.inspectSessions(), []);
+  } finally { await f.controller.dispose(); }
+});
+
+test('owned selector cleanup failure retires an otherwise retained session', async () => {
+  const f = fixture();
+  const failure = new Error('selector handle disposal failed');
+  try {
+    await f.run(['open']);
+    const owned = f.leases[0]!;
+    Object.assign(owned.lease.context.pages()[0]!, { locator() { return {
+      async elementHandle() { return { async dispose() { throw failure; } }; },
+      toString() { return "locator('#button')"; },
+    }; } });
+    await assert.rejects(f.run(['generate-locator', '#button']), error => error === failure);
+    assert.equal(owned.releases, 1);
+    assert.deepEqual(f.controller.inspectSessions(), []);
+  } finally { await f.controller.dispose(); }
+});
+
 test('deferred handle disposal failure retires a session after successful YAML capture', async () => {
   const f = fixture();
   const failure = new Error('old snapshot handle disposal failed');

@@ -23,6 +23,24 @@ for (const nested of [false, true]) test(`JSON serialization admits more than 20
 	expect(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toEqual({ limit: "byte" });
 });
 
+test("zero snapshot timeout allows asynchronous capture and preserves caller cancellation", async () => {
+	const controller = new AbortController();
+	const reason = new Error("caller cancelled");
+	const snapshot = vi.fn(async () => {
+		await new Promise(resolve => setTimeout(resolve, 10));
+		return { full: "" };
+	});
+	const frame = { async _utilityContext() { return { async injectedScript() { return {
+		async evaluate() { return { nodes: [], iframeRefs: [] }; },
+	}; } }; } };
+	const page = { frames: () => [frame], _snapshotForAI: snapshot, _connection: { toImpl: () => ({ mainFrame: () => frame }) } };
+	const options = { signal: controller.signal, timeoutMs: 0, maxBytes: 1048576 };
+	await expect(captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, options)).resolves.toEqual([]);
+	expect(snapshot).toHaveBeenCalledWith({ timeout: 0 });
+	snapshot.mockImplementationOnce(async () => { controller.abort(reason); return { full: "" }; });
+	await expect(captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, options)).rejects.toBe(reason);
+});
+
 // Captured with real @playwright/cli 0.1.19: setContent, fill Name with Ada,
 // snapshot --json. Refs are fixed here only to test transport, not DOM identity.
 test("serializes the captured native text and textbox schema", () => {

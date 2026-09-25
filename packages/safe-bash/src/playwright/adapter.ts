@@ -362,11 +362,13 @@ export type PlaywrightSnapshotJSONCapture = (page: PlaywrightPage, options: { re
 
 /** Host-owned immutable identity witnesses, in requested ref order. No browser resources
  * may be retained by the batch. resolve returns an owned handle only if it still denotes
- * the captured node; recycled native IDs must never resolve to a replacement node. */
+ * the captured node; recycled native IDs must never resolve to a replacement node.
+ * Operation signals include the caller's deadline. Cancelled resolutions must dispose
+ * acquired candidates, including handles delivered after cancellation. */
 export interface PlaywrightSnapshotReferenceBatch {
   readonly identities: readonly ({ readonly scope: object; readonly value: number } | undefined)[];
-  connected(): Promise<readonly boolean[]>;
-  resolve(index: number): Promise<PlaywrightElementHandle | null>;
+  connected(options?: { readonly signal: AbortSignal }): Promise<readonly boolean[]>;
+  resolve(index: number, options?: { readonly signal: AbortSignal }): Promise<PlaywrightElementHandle | null>;
 }
 export type PlaywrightSnapshotReferenceCapture = (page: PlaywrightPage, refs: readonly string[], options: { readonly signal: AbortSignal; readonly timeoutMs: number }) => Promise<PlaywrightSnapshotReferenceBatch>;
 

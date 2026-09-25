@@ -22,7 +22,7 @@ for (const cached of [false, true]) test(`bulk ref reuse rejects an iframe docum
   if (cached) assert.equal(await f.engine.resolve(old), handles[0]);
   const second = await f.engine.captureJSON(f.page, undefined, options);
   assert.notEqual(second[0]!.ref, old);
-  await assert.rejects(f.engine.resolve(old), /stale/);
+  await assert.rejects(f.engine.resolve(old), /not found in the current page snapshot/);
   assert.equal(await f.engine.resolve(second[0]!.ref!), handles[1]);
   await f.engine.invalidate();
 });
@@ -461,4 +461,51 @@ test('navigation during native binding drains acquired handles before retrying',
   await f.engine.resolve('e102');
   await f.engine.invalidate();
   assert.equal(disposals, 2);
+});
+
+
+for (const mode of ['timeout', 'abort'] as const) test(`lazy native acquisition obeys ${mode} and disposes its late handle`, async () => {
+  const f = fixture();
+  const abort = new AbortController();
+  let finish!: (handle: PlaywrightElementHandle) => void;
+  let started!: () => void;
+  const entered = new Promise<void>(resolve => { started = resolve; });
+  let disposed!: () => void;
+  const retired = new Promise<void>(resolve => { disposed = resolve; });
+  const handle = { async evaluate() { return true; }, async dispose() { disposed(); } } as unknown as PlaywrightElementHandle;
+  f.page.ariaSnapshotJSON = async () => [{ role: 'button', ref: 'e1' }];
+  const tree = await f.engine.captureJSON(f.page, undefined, { captureReferences: async () => ({
+    identities: [{ scope: {}, value: 1 }], async connected() { return [true]; },
+    async resolve() { started(); return new Promise<PlaywrightElementHandle>(resolve => { finish = resolve; }); },
+  }) });
+  const result = f.engine.resolve(tree[0]!.ref!, mode === 'timeout' ? 5 : 0, abort.signal).then(() => 'fulfilled', () => 'rejected');
+  await entered;
+  if (mode === 'abort') abort.abort(new Error('cancel lazy acquisition'));
+  const outcome = await Promise.race([result, new Promise<string>(resolve => setTimeout(() => resolve('pending'), 40))]);
+  finish(handle);
+  await result;
+  await f.engine.invalidate();
+  await retired;
+  assert.equal(outcome, 'rejected');
+});
+
+for (const format of ['yaml', 'json'] as const) test(`${format} fallback witness connectivity obeys the capture deadline`, async () => {
+  const f = fixture();
+  let finish!: (connected: boolean[]) => void;
+  let started!: () => void;
+  const entered = new Promise<void>(resolve => { started = resolve; });
+  f.page.ariaSnapshotJSON = async () => [{ role: 'button', ref: 'e1' }];
+  await f.engine.captureJSON(f.page, undefined, { captureReferences: async () => ({
+    identities: [{ scope: {}, value: 1 }],
+    async connected() { started(); return new Promise<boolean[]>(resolve => { finish = resolve; }); },
+    async resolve() { return null; },
+  }) });
+  const operation = format === 'yaml' ? f.engine.capture(f.page, undefined, { timeout: 5 }) : f.engine.captureJSON(f.page, undefined, { timeout: 5 });
+  const result = operation.then(() => 'fulfilled', () => 'rejected');
+  await entered;
+  const outcome = await Promise.race([result, new Promise<string>(resolve => setTimeout(() => resolve('pending'), 40))]);
+  finish([true]);
+  await result;
+  await f.engine.invalidate();
+  assert.equal(outcome, 'rejected');
 });

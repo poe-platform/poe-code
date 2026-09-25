@@ -37,7 +37,18 @@ async function preflightOperands(
 
 async function maybeStat(context: CommandContext, path: string, follow = true, allowNonDirectory = false): Promise<FileStat | undefined> {
   try { return await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
-  catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT" || allowNonDirectory && codeOf(error) === "ENOTDIR") return undefined; throw error; }
+  catch (error) {
+    context.signal.throwIfAborted();
+    const code = codeOf(error);
+    if (
+      code === "ENOENT"
+      || (allowNonDirectory && code === "ENOTDIR")
+      || (follow && (code === "ENOTDIR" || code === "ELOOP") && await context.fs.lstat(path, { signal: context.signal }).then(stat => stat.type === "symlink", () => false))
+    ) {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 async function admitNoReplaceRename(context: CommandContext, target: string): Promise<void> {
@@ -1100,7 +1111,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           try {
             const target = await context.fs.stat(path, { signal: context.signal });
             if (target.type === "directory") stat = target;
-          } catch (error) { context.signal.throwIfAborted(); if (codeOf(error) !== "ENOENT") throw error; }
+          } catch (error) { context.signal.throwIfAborted(); if (codeOf(error) !== "ENOENT" && codeOf(error) !== "ENOTDIR" && codeOf(error) !== "ELOOP") throw error; }
           context.signal.throwIfAborted();
         }
         return { path, display, stat };
@@ -1147,7 +1158,11 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             await admitFilesystemModes(context, "ls", ["link"], [path]);
             needCapability(context, "readlink");
             const link = await context.fs.readlink!(path, { signal: context.signal });
-            const targetStat = indicator === "none" || indicator === "slash" ? undefined : await maybeStat(context, path);
+            const targetStat = indicator === "none" || indicator === "slash" ? undefined : await maybeStat(context, path).catch(error => {
+              context.signal.throwIfAborted();
+              if (codeOf(error) === "ENOTDIR" || codeOf(error) === "ELOOP") return undefined;
+              throw error;
+            });
             suffix = "";
             target = ` -> ${formatName(link)}${targetStat ? suffixFor(targetStat) : ""}`;
           }

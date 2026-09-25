@@ -88,7 +88,10 @@ export async function admitFilesystemModes(
         if (codeOf(error) === "ENOTSUP" || codeOf(error) === "EROFS") {
           throw new FsError(codeOf(error) === "EROFS" ? "EROFS" : "ENOTSUP", { syscall: command, path, cause: error });
         }
-        if (codeOf(error) !== "ENOENT" && !(allowNonDirectory && codeOf(error) === "ENOTDIR") || candidate === "/") throw error;
+        const code = codeOf(error);
+        const symlinkCandidate = (code === "ENOTDIR" || code === "ELOOP")
+          && await context.fs.lstat(candidate, { signal: context.signal }).then(stat => stat.type === "symlink", () => false);
+        if ((code !== "ENOENT" && !(allowNonDirectory && code === "ENOTDIR") && !symlinkCandidate) || candidate === "/") throw error;
         candidate = dirname(candidate);
       }
     }

@@ -1292,3 +1292,31 @@ test("ls implements hidden names, classification, explicit directories, recursio
   assert.match((await run("ls", ["-l", "link"], { fs })).stdout, /^lrwxrwxrwx .* link -> alpha\n$/u);
   assert.equal((await run("ls", ["--made-up"], { fs })).exitCode, 2);
 });
+
+test("ls, readlink, and ln -sf handle symlinks pointing through regular files or loops", async () => {
+  const fs = await fixture({});
+  await fs.mkdir("/d/sub", { recursive: true });
+  await fs.writeFile("/d/real_file", new TextEncoder().encode("hello"));
+  await fs.symlink("real_file/sub", "/d/broken_enotdir");
+  await fs.symlink("loop", "/d/loop");
+  const sh = new Shell({ fs, cwd: "/" }).use(agentCommands());
+
+  const lsDir = await sh.exec("ls /d");
+  assert.equal(lsDir.exitCode, 0, lsDir.stderr);
+  assert.equal(lsDir.stdout, "broken_enotdir\nloop\nreal_file\nsub\n");
+
+  const lsLongF = await sh.exec("ls -lF /d");
+  assert.equal(lsLongF.exitCode, 0, lsLongF.stderr);
+  assert.match(lsLongF.stdout, /broken_enotdir -> real_file\/sub\n/u);
+  assert.match(lsLongF.stdout, /loop -> loop\n/u);
+
+  const lsLoop = await sh.exec("ls /d/loop");
+  assert.equal(lsLoop.exitCode, 0, lsLoop.stderr);
+  assert.equal(lsLoop.stdout, "/d/loop\n");
+
+  assert.equal((await sh.exec("readlink /d/broken_enotdir")).stdout, "real_file/sub\n");
+  assert.equal((await sh.exec("readlink /d/loop")).stdout, "loop\n");
+
+  assert.equal((await sh.exec("ln -sf real_file /d/broken_enotdir")).exitCode, 0);
+  assert.equal((await sh.exec("ln -sf real_file /d/loop")).exitCode, 0);
+});

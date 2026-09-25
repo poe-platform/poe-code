@@ -509,6 +509,11 @@ test("optional scripting leaves stay outside the default build and package expor
     }
   }
   assert.equal(metadata.files.includes("!dist/commands/yq"), false, "shared restricted yq must remain packaged");
+  for (const path of ["src/jobs.ts", "src/shell/extensions/jobs/index.ts", "src/shell/extensions/jobs/state.ts"]) {
+    assert.equal(configuration.exclude.includes(path), false, `core jobs must remain in the default build: ${path}`);
+    assert.equal(metadata.poeCode.packageLint.sourceExclude.includes(path), false, `core jobs must remain linted: ${path}`);
+  }
+  assert.equal(metadata.files.includes("!dist/shell/extensions/jobs"), false, "default and public jobs share one packaged implementation");
   for (const path of ["./commands/cmp", "./commands/dd", "./commands/install", "./commands/shuf", "./commands/truncate", "./commands/yes", "./fs/devices", "./shell/extensions/trap", "./shell/extensions/mapfile", "./shell/extensions/read"]) {
     assert.equal(Object.hasOwn(metadata.exports, path), false, `optional leaf is not a default package export: ${path}`);
   }

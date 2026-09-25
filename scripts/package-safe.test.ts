@@ -848,6 +848,32 @@ it("resolves packaged real filesystem declarations for Workers while retaining b
   expect(platform([])).toBe("/consumer/node_modules/@poe-platform/safe-fs/dist/safe-fs/platform/node.d.ts");
 });
 
+it("packages core jobs with one canonical public facade", async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = "/repo/packages/safe-bash/dist";
+  volume.mkdirSync(directory + "/shell/extensions/jobs", { recursive: true });
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(directory + "/index." + suffix, 'export { jobsExtension as defaultJobs, getJobsDisownBuiltin } from "./shell/extensions/jobs/index.js";\n');
+    volume.writeFileSync(directory + "/jobs." + suffix, 'export { jobsExtension } from "./shell/extensions/jobs/index.js";\n');
+    volume.writeFileSync(directory + "/shell/extensions/jobs/index." + suffix, 'export { jobsExtension, getJobsDisownBuiltin } from "./state.js";\n');
+    volume.writeFileSync(directory + "/shell/extensions/jobs/state." + suffix, suffix === "js"
+      ? 'export const jobsExtension = () => ({}); export const getJobsDisownBuiltin = () => undefined;\n'
+      : 'export declare const jobsExtension: () => object; export declare const getJobsDisownBuiltin: () => undefined;\n');
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(manifest.exports["./jobs"]).toEqual({
+    types: "./dist/safe-bash/jobs.d.ts",
+    workerd: "./dist/safe-bash/jobs.browser.js",
+    browser: "./dist/safe-bash/jobs.browser.js",
+    import: "./dist/safe-bash/jobs.js",
+  });
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/jobs." + suffix, "utf8")).toContain('"./shell/extensions/jobs/index.js"');
+    expect(volume.existsSync("/output/safe-bash/dist/safe-bash/shell/extensions/jobs/state." + suffix)).toBe(true);
+  }
+});
+
 it('preserves companion references to conditional public contracts in the same published package', async () => {
   const { volume, options } = optionalLeftovers();
   const contractsManifest = structuredClone(bashManifest);

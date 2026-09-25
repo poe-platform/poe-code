@@ -111,6 +111,30 @@ describe("optional-owned compiled graph", () => {
     }
   });
 
+  it("forwards jobs to the canonical public route without copying job state", async () => {
+    const { volume, compilation, options } = fixture();
+    const source = ts.createSourceFile("optional.ts", readFileSync(new URL("../packages/safe-bash/src/optional.ts", import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
+    const statement = source.statements.find(statement => ts.isExportDeclaration(statement)
+      && statement.exportClause && ts.isNamedExports(statement.exportClause)
+      && statement.exportClause.elements.some(element => element.name.text === "jobsExtension"));
+    expect(statement).toBeDefined();
+    const exported = statement!.getText(source) + "\n";
+    volume.mkdirSync(core + "/dist/shell/extensions/jobs", { recursive: true });
+    for (const suffix of ["js", "d.ts"]) {
+      volume.writeFileSync(core + "/dist/optional." + suffix, exported);
+      for (const filename of ["jobs", "shell/extensions/jobs/index"]) {
+        const target = core + "/dist/" + filename + "." + suffix;
+        volume.writeFileSync(target, suffix === "js" ? "export const jobsExtension = () => ({});\n" : "export declare const jobsExtension: () => object;\n");
+        compilation.emittedFiles.push(target);
+      }
+    }
+    const result = await buildOptionalPackage(options);
+    expect(result.peerImports).toContain("@poe-platform/safe-bash/jobs");
+    for (const suffix of ["js", "d.ts"]) expect(volume.readFileSync(core + "/dist/opt-in/optional." + suffix, "utf8"))
+      .toBe('export { jobsExtension } from "@poe-platform/safe-bash/jobs";\n');
+    expect(result.files.some(filename => filename.includes("shell/extensions/jobs") || filename.startsWith("jobs."))).toBe(false);
+  });
+
   it("strips multiple trailing source maps on runtimes without Array.toReversed", async () => {
     const { volume, options } = fixture();
     const filename = core + "/dist/commands/yes/helper.js";

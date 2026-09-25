@@ -52,7 +52,7 @@ async function bundlePublicConsumer(contents: string) {
       name: "public-built-shell-entries",
       setup(builder) {
         builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/ }, () => ({ path: "@poe-platform/safe-fs/core", external: true }));
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/jobs|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -93,6 +93,42 @@ it.each(commandFactories.map(([command, factory], index) => [command, factory, i
   expect(manifest.exports[`./commands/${command}`]?.browser).toBe(`./dist/commands/${command}/index.browser.js`);
   expect(manifest.exports[`./commands/${command}`]?.workerd).toBe(`./dist/commands/${command}/index.browser.js`);
   expect(factoryIdentity[index]).toBe(true);
+});
+
+it("shares disown state between default jobs and the public browser jobs extension", async () => {
+  const compiled = await bundlePublicConsumer(`
+    import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+    import { jobsExtension } from "@poe-platform/safe-bash/jobs";
+    export async function run() {
+      const results = [];
+      for (const explicit of [false, true]) {
+        let release;
+        const held = new Promise(resolve => { release = resolve; });
+        const shell = new Shell({
+          fs: createMemoryFileSystem(), backgroundJobs: true,
+          ...(explicit ? { extensions: [jobsExtension()] } : {}),
+        });
+        shell.register({ name: "hold", async execute() { await held; return { exitCode: 0 }; } });
+        shell.register({ name: "release", execute() { release(); return { exitCode: 0 }; } });
+        try { results.push(await shell.exec("hold & disown %1; jobs -p; release; wait")); }
+        finally { release(); await shell.dispose(); }
+      }
+      return results;
+    }
+  `);
+  const sandbox = createContext({
+    TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
+    require(name: string) {
+      if (name !== "@poe-platform/safe-fs/core") throw new Error(name);
+      return filesystem;
+    },
+  });
+  const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
+  expect(await consumer.run()).toMatchObject([
+    { exitCode: 0, stdout: "", stderr: "" },
+    { exitCode: 0, stdout: "", stderr: "" },
+  ]);
 });
 
 it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node through the portable %s API", async factory => {
@@ -213,6 +249,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/llm/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/index.ts"),
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
+    "jobs.browser": path.join(root, "packages/safe-bash/src/jobs.ts"),
     "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),
     "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
     "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),

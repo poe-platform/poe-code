@@ -141,6 +141,45 @@ for (const reason of [false, { cancelled: "arithmetic for" }]) test(`arithmetic 
   } finally { await shell.dispose(); }
 });
 
+for (const source of [
+  'for ((i=0;i<1;i+=0)); do :; done',
+  'for ((i=-1000000;i<1;i++)); do :; done',
+  'for ((i=0;i<2;i++)); do i=0; done',
+  'for ((i=0;i<2;i++)); do x=$((i=0)); done',
+  "j='i=0'; for ((i=0;i<2;i++)); do x=$((j)); done",
+]) test(`unproved arithmetic loop bounds still yield to cancellation: ${source}`, async () => {
+  const { shell } = setup({ limits: { maxCommands: 200000, maxLoopIterations: 100000, maxCpuMs: 2000 } });
+  const controller = new AbortController();
+  let yielded = false;
+  const pending = setImmediate(() => { yielded = true; controller.abort(false); });
+  try {
+    await assert.rejects(shell.exec(source, { signal: controller.signal }), error => error === false);
+    assert.equal(yielded, true);
+    assert.equal((await shell.exec("say recovered")).stdout, "recovered\n");
+  } finally { clearImmediate(pending); await shell.dispose(); }
+});
+
+test("bounded arithmetic loops preserve copied values and final induction state", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec('for ((i=0;i<1000;i++)); do copy=$i; done; say "$i:$copy"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "1000:999\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const header of ["for ((i=0;i<1500;i++))", "for i in {1..1500}"]) test(`bounded loops with wide bodies still yield to cancellation: ${header}`, async () => {
+  const { shell } = setup({ limits: { maxCommands: 100000, maxLoopIterations: 100000, maxCpuMs: 2000 } });
+  const controller = new AbortController();
+  const source = `${header}; do ${'copy=$i;'.repeat(128)} done`;
+  const pending = setImmediate(() => controller.abort(false));
+  try {
+    await assert.rejects(shell.exec(source, { signal: controller.signal }), error => error === false);
+    assert.equal((await shell.exec("say recovered")).stdout, "recovered\n");
+  } finally { clearImmediate(pending); await shell.dispose(); }
+});
+
 test("arithmetic for uses the shared loop iteration cap", async () => {
   const { shell } = setup();
   try {

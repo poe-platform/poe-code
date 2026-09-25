@@ -4600,16 +4600,36 @@ export class Runtime {
         e0.error || e0.hasSubscript || !isSafeSmiProgram(e0) ||
         e1.error || e1.hasSubscript || !isSafeSmiProgram(e1) ||
         e2.error || e2.hasSubscript || !isSafeSmiProgram(e2) ||
+        e0.tree?.kind !== "binary" || e0.tree.operator !== "=" ||
+        e0.tree.left.kind !== "name" ||
+        e0.tree.right.kind !== "literal" ||
+        e0.tree.right.value < 0n || e0.tree.right.value > 1500n ||
         e1.tree?.kind !== "binary" ||
         (e1.tree.operator !== "<" && e1.tree.operator !== "<=") ||
+        e1.tree.left.kind !== "name" || e1.tree.left.name !== e0.tree.left.name ||
         e1.tree.right.kind !== "literal" ||
         e1.tree.right.value < 0n ||
         e1.tree.right.value > 1500n ||
+        e2.tree?.kind !== "unary" || e2.tree.operator !== "++" ||
+        e2.tree.operand.kind !== "name" || e2.tree.operand.name !== e0.tree.left.name ||
         (this.budget.commands + 1600) >= this.budget.limits.maxCommands ||
         (this.budget.iterations + 1600) >= this.budget.limits.maxLoopIterations ||
         (redirectCount > 0 && (this.budget.fileSystemOperations + 1600 * redirectCount) >= this.budget.limits.maxFileSystemOperations)
       ) {
         return undefined;
+      }
+      const iterations = Math.max(0, Number(e1.tree.right.value - e0.tree.right.value) + (e1.tree.operator === "<=" ? 1 : 0));
+      if (iterations * bodyAssignments.length > 1600) return undefined;
+      // Synchronous admission must prove progress. Arithmetic values can mutate
+      // the induction variable indirectly through another variable's contents.
+      const inductionName = e0.tree.left.name;
+      for (const step of bodyAssignments) {
+        if (
+          step.name === inductionName ||
+          step.value?.parts.some(part => part.kind !== "text" && part.kind !== "variable")
+        ) {
+          return undefined;
+        }
       }
       const owner = monitor.internalOwner();
       owner.charge(syncRestorationCharge, syncRestorationTickets);
@@ -4694,18 +4714,21 @@ export class Runtime {
     ) {
       return undefined;
     }
+    let braceReservation: ValueReservation | undefined;
     const fastLoopWords = tryFastExpandBraceRange(
       command.words[0]!,
       this.budget,
-      io[valueScope] ? (b, o) => io[valueScope]!.reserve(b, o) : undefined,
+      io[valueScope] ? (b, o) => { braceReservation = io[valueScope]!.reserve(b, o); } : undefined,
     );
     if (
       !fastLoopWords ||
       fastLoopWords.length > 1500 ||
+      fastLoopWords.length * bodyAssignments.length > 1600 ||
       (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands ||
       (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations ||
       (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)
     ) {
+      braceReservation?.release();
       return undefined;
     }
     const owner = monitor.internalOwner();

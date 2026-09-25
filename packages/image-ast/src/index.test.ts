@@ -495,4 +495,109 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(viaToFormat.info.format).toBe("heic");
     expect((await sharp(viaToFormat.data).metadata()).format).toBe("heic");
   });
+
+  it("decodes Tiled TIFFs (322/323/324/325), centers composite() by default, matches libvips premultiplied blends & premultiplied:true, and premultiplies alpha in blur()/rotate() (#44, #45, #46, #47)", async () => {
+    // 1. #44: Tiled TIFF (6x4 image stored as four 4x2 tiles via tags 322, 323, 324, 325)
+    const tileW = 4, tileH = 2, imgW = 6, imgH = 4;
+    // 4 tiles of 4x2 RGB (24 bytes each = 96 bytes total)
+    const tilesData = new Uint8Array(4 * tileW * tileH * 3);
+    for (let t = 0; t < 4; t++) {
+      const tx = (t % 2) * tileW;
+      const ty = Math.floor(t / 2) * tileH;
+      for (let ry = 0; ry < tileH; ry++) {
+        for (let rx = 0; rx < tileW; rx++) {
+          const x = tx + rx;
+          const y = ty + ry;
+          const off = (t * tileW * tileH + ry * tileW + rx) * 3;
+          tilesData[off] = x * 30;
+          tilesData[off + 1] = y * 50;
+          tilesData[off + 2] = 123;
+        }
+      }
+    }
+    // Build Big-Endian Tiled TIFF with ExifIFD dummy bytes at offset 8 and tiles starting at offset 32
+    const tileDataStart = 32;
+    const ifdStart = tileDataStart + tilesData.length;
+    const numTags = 9;
+    const extraStart = ifdStart + 2 + numTags * 12 + 4;
+    const tiffBuf = new Uint8Array(extraStart + 64);
+    const tv = new DataView(tiffBuf.buffer);
+    tiffBuf[0] = 0x4d; tiffBuf[1] = 0x4d; // Big-Endian MM
+    tv.setUint16(2, 42, false);
+    tv.setUint32(4, ifdStart, false);
+    // Put non-zero Exif-like header at offset 8 to ensure decoder doesn't fall back to offset 8
+    tiffBuf.set([0x00, 0x04, 0x90, 0x00, 0xff, 0xff], 8);
+    tiffBuf.set(tilesData, tileDataStart);
+    tv.setUint16(ifdStart, numTags, false);
+    const writeBeTag = (idx: number, tag: number, type: number, count: number, val: number) => {
+      const p = ifdStart + 2 + idx * 12;
+      tv.setUint16(p, tag, false);
+      tv.setUint16(p + 2, type, false);
+      tv.setUint32(p + 4, count, false);
+      if (type === 3 && count === 1) tv.setUint16(p + 8, val, false);
+      else tv.setUint32(p + 8, val, false);
+    };
+    // Extra offsets: bps at extraStart (6B), tileOffsets at extraStart+8 (16B), tileByteCounts at extraStart+24 (16B)
+    tv.setUint16(extraStart, 8, false);
+    tv.setUint16(extraStart + 2, 8, false);
+    tv.setUint16(extraStart + 4, 8, false);
+    for (let t = 0; t < 4; t++) {
+      tv.setUint32(extraStart + 8 + t * 4, tileDataStart + t * 24, false);
+      tv.setUint32(extraStart + 24 + t * 4, 24, false);
+    }
+    writeBeTag(0, 256, 3, 1, imgW);
+    writeBeTag(1, 257, 3, 1, imgH);
+    writeBeTag(2, 258, 3, 3, extraStart);
+    writeBeTag(3, 259, 3, 1, 1);
+    writeBeTag(4, 262, 3, 1, 2);
+    writeBeTag(5, 277, 3, 1, 3);
+    writeBeTag(6, 322, 3, 1, tileW);
+    writeBeTag(7, 323, 3, 1, tileH);
+    writeBeTag(8, 324, 4, 4, extraStart + 8);
+    const tiledRaw = await sharp(tiffBuf).raw().toBuffer({ resolveWithObject: true });
+    expect(tiledRaw.info.width).toBe(6);
+    expect(tiledRaw.info.height).toBe(4);
+    // Check pixel at (x=5, y=3) which comes from tile #3 (bottom-right tile)
+    const p53 = (3 * 6 + 5) * tiledRaw.info.channels;
+    expect(tiledRaw.data[p53]).toBe(150);
+    expect(tiledRaw.data[p53 + 1]).toBe(150);
+    expect(tiledRaw.data[p53 + 2]).toBe(123);
+
+    // 2. #45: composite() defaults to center placement and promotes 3-channel RGB to 4 channels
+    const baseRgb = await sharp({ create: { width: 10, height: 10, channels: 3, background: "#000000" } }).jpeg().toBuffer();
+    const overRed = await sharp({ create: { width: 2, height: 2, channels: 4, background: "#ff0000" } }).png().toBuffer();
+    const centered = await sharp(baseRgb).composite([{ input: overRed }]).raw().toBuffer({ resolveWithObject: true });
+    expect(centered.info.channels).toBe(4);
+    expect(centered.data[0]).toBe(0); // (0,0) is black, not red!
+    const centerIdx = (4 * 10 + 4) * 4;
+    expect(centered.data[centerIdx]).toBe(255); // (4,4) is red!
+
+    // 3. #46: premultiplied: true composite & libvips premultiplied blend modes (darken, lighten, multiply)
+    const base50 = await sharp({ create: { width: 1, height: 1, channels: 4, background: { r: 50, g: 100, b: 150, alpha: 1 } } }).png().toBuffer();
+    const over75 = await sharp({ create: { width: 1, height: 1, channels: 4, background: { r: 180, g: 90, b: 220, alpha: 0.75 } } }).png().toBuffer();
+    const mulRes = await sharp(base50).composite([{ input: over75, blend: "multiply" }]).raw().toBuffer();
+    expect(Math.abs(mulRes[0]! - 32)).toBeLessThanOrEqual(1);
+    expect(Math.abs(mulRes[1]! - 45)).toBeLessThanOrEqual(1);
+    expect(Math.abs(mulRes[2]! - 110)).toBeLessThanOrEqual(1);
+
+    const premulBuf = new Uint8Array([100, 50, 25, 128]); // premultiplied (200, 100, 50) at alpha=128
+    const premulComp = await sharp(base50)
+      .composite([{ input: premulBuf, raw: { width: 1, height: 1, channels: 4 }, premultiplied: true }])
+      .raw()
+      .toBuffer();
+    expect(Math.abs(premulComp[0]! - 125)).toBeLessThanOrEqual(1);
+
+    // 4. #47: blur() premultiplies alpha so opaque red next to transparent black stays red (255, 0, 0)
+    const edgeRgba = new Uint8Array([
+      255, 0, 0, 255,
+      255, 0, 0, 255,
+      0, 0, 0, 0,
+      0, 0, 0, 0
+    ]);
+    const blurredRgba = await sharp(edgeRgba, { raw: { width: 4, height: 1, channels: 4 } }).blur(1.5).raw().toBuffer();
+    expect(blurredRgba[0]).toBe(255);
+    expect(blurredRgba[4]).toBe(255);
+    expect(blurredRgba[8]).toBe(255);
+    expect(blurredRgba[12]).toBe(255);
+  });
 });

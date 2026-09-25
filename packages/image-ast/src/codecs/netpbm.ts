@@ -554,6 +554,10 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let photometric = 2;
   let stripOffsets: number[] = [8];
   let stripByteCounts: number[] = [];
+  let tileWidth = 0;
+  let tileLength = 0;
+  let tileOffsets: number[] = [];
+  let tileByteCounts: number[] = [];
   let samplesPerPixel = 4;
   let rowsPerStrip = 0;
   let predictor = 1;
@@ -578,45 +582,84 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 282 && first > 0) xRes = first;
     else if (tag === 296 && (first === 2 || first === 3)) resUnit = first;
     else if (tag === 317 && first > 0) predictor = first;
+    else if (tag === 322 && first > 0) tileWidth = first;
+    else if (tag === 323 && first > 0) tileLength = first;
+    else if (tag === 324 && vals.length > 0) tileOffsets = vals;
+    else if (tag === 325 && vals.length > 0) tileByteCounts = vals;
   }
 
   const bytesPerSample = Math.max(1, bitsPerSample >>> 3);
+  const bytesPerPixel = samplesPerPixel * bytesPerSample;
   const rowByteWidth = width * samplesPerPixel * bytesPerSample;
   const totalExpectedBytes = height * rowByteWidth;
   const combined = new Uint8Array(totalExpectedBytes);
-  const effectiveRowsPerStrip = rowsPerStrip > 0 ? rowsPerStrip : height;
-  let dstOff = 0;
-  for (let s = 0; s < stripOffsets.length && dstOff < totalExpectedBytes; s++) {
-    const off = stripOffsets[s]!;
-    const remainingBytes = totalExpectedBytes - dstOff;
-    const expectedStripBytes = Math.min(remainingBytes, effectiveRowsPerStrip * rowByteWidth);
-    const rawLen = stripByteCounts[s] ?? Math.max(0, bytes.length - off);
+
+  const decompressChunk = (off: number, rawLen: number, expectedBytes: number): Uint8Array => {
     const rawSlice = bytes.subarray(off, Math.min(bytes.length, off + rawLen));
-    let decodedStrip: Uint8Array;
     if (compression === 8 || compression === 32946) {
       try {
-        decodedStrip = inflate(rawSlice);
+        return inflate(rawSlice);
       } catch {
-        decodedStrip = rawSlice;
+        return rawSlice;
       }
-    } else if (compression === 5) {
-      decodedStrip = decodeTiffLzw(rawSlice, expectedStripBytes);
-    } else if (compression === 32773) {
-      decodedStrip = decodePackBits(rawSlice, expectedStripBytes);
-    } else {
-      decodedStrip = rawSlice;
     }
-    const copyLen = Math.min(decodedStrip.length, remainingBytes);
-    combined.set(decodedStrip.subarray(0, copyLen), dstOff);
-    dstOff += copyLen;
-  }
+    if (compression === 5) return decodeTiffLzw(rawSlice, expectedBytes);
+    if (compression === 32773) return decodePackBits(rawSlice, expectedBytes);
+    return rawSlice;
+  };
 
-  if (predictor === 2 && bytesPerSample === 1) {
-    for (let y = 0; y < height; y++) {
-      const rowStart = y * rowByteWidth;
-      for (let x = samplesPerPixel; x < rowByteWidth; x++) {
-        combined[rowStart + x] =
-          ((combined[rowStart + x] ?? 0) + (combined[rowStart + x - samplesPerPixel] ?? 0)) & 0xff;
+  if (tileWidth > 0 && tileLength > 0 && tileOffsets.length > 0) {
+    const tilesAcross = Math.max(1, Math.ceil(width / tileWidth));
+    const tileRowByteWidth = tileWidth * bytesPerPixel;
+    const expectedTileBytes = tileLength * tileRowByteWidth;
+    for (let t = 0; t < tileOffsets.length; t++) {
+      const off = tileOffsets[t]!;
+      const rawLen = tileByteCounts[t] ?? Math.max(0, bytes.length - off);
+      const decodedTile = new Uint8Array(decompressChunk(off, rawLen, expectedTileBytes));
+      if (predictor === 2 && bytesPerSample === 1) {
+        for (let ry = 0; ry < tileLength; ry++) {
+          const rStart = ry * tileRowByteWidth;
+          for (let rx = samplesPerPixel; rx < tileRowByteWidth && rStart + rx < decodedTile.length; rx++) {
+            decodedTile[rStart + rx] =
+              ((decodedTile[rStart + rx] ?? 0) + (decodedTile[rStart + rx - samplesPerPixel] ?? 0)) &
+              0xff;
+          }
+        }
+      }
+      const tx = (t % tilesAcross) * tileWidth;
+      const ty = Math.floor(t / tilesAcross) * tileLength;
+      const validW = Math.max(0, Math.min(tileWidth, width - tx));
+      const validH = Math.max(0, Math.min(tileLength, height - ty));
+      const validRowBytes = validW * bytesPerPixel;
+      for (let ry = 0; ry < validH; ry++) {
+        const srcStart = ry * tileRowByteWidth;
+        const dstStart = (ty + ry) * rowByteWidth + tx * bytesPerPixel;
+        if (srcStart + validRowBytes <= decodedTile.length && dstStart + validRowBytes <= combined.length) {
+          combined.set(decodedTile.subarray(srcStart, srcStart + validRowBytes), dstStart);
+        }
+      }
+    }
+  } else {
+    const effectiveRowsPerStrip = rowsPerStrip > 0 ? rowsPerStrip : height;
+    let dstOff = 0;
+    for (let s = 0; s < stripOffsets.length && dstOff < totalExpectedBytes; s++) {
+      const off = stripOffsets[s]!;
+      const remainingBytes = totalExpectedBytes - dstOff;
+      const expectedStripBytes = Math.min(remainingBytes, effectiveRowsPerStrip * rowByteWidth);
+      const rawLen = stripByteCounts[s] ?? Math.max(0, bytes.length - off);
+      const decodedStrip = decompressChunk(off, rawLen, expectedStripBytes);
+      const copyLen = Math.min(decodedStrip.length, remainingBytes);
+      combined.set(decodedStrip.subarray(0, copyLen), dstOff);
+      dstOff += copyLen;
+    }
+
+    if (predictor === 2 && bytesPerSample === 1) {
+      for (let y = 0; y < height; y++) {
+        const rowStart = y * rowByteWidth;
+        for (let x = samplesPerPixel; x < rowByteWidth; x++) {
+          combined[rowStart + x] =
+            ((combined[rowStart + x] ?? 0) + (combined[rowStart + x - samplesPerPixel] ?? 0)) & 0xff;
+        }
       }
     }
   }

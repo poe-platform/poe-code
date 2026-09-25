@@ -182,20 +182,42 @@ export function rotateImage(
         const i10 = (y0 * img.width + (x0 + 1)) * 4;
         const i01 = ((y0 + 1) * img.width + x0) * 4;
         const i11 = ((y0 + 1) * img.width + (x0 + 1)) * 4;
-        for (let c = 0; c < 4; c++) {
-          const top = img.data[i00 + c]! * (1 - fx) + img.data[i10 + c]! * fx;
-          const bot = img.data[i01 + c]! * (1 - fx) + img.data[i11 + c]! * fx;
-          out[dIdx + c] = Math.round(top * (1 - fy) + bot * fy);
+        const w00 = (1 - fx) * (1 - fy);
+        const w10 = fx * (1 - fy);
+        const w01 = (1 - fx) * fy;
+        const w11 = fx * fy;
+        const a00 = img.data[i00 + 3]! / 255;
+        const a10 = img.data[i10 + 3]! / 255;
+        const a01 = img.data[i01 + 3]! / 255;
+        const a11 = img.data[i11 + 3]! / 255;
+        const outA = a00 * w00 + a10 * w10 + a01 * w01 + a11 * w11;
+        if (outA > 1e-6) {
+          for (let c = 0; c < 3; c++) {
+            const pm =
+              img.data[i00 + c]! * a00 * w00 +
+              img.data[i10 + c]! * a10 * w10 +
+              img.data[i01 + c]! * a01 * w01 +
+              img.data[i11 + c]! * a11 * w11;
+            out[dIdx + c] = Math.max(0, Math.min(255, Math.round(pm / outA)));
+          }
+          out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(outA * 255)));
+        } else {
+          out[dIdx] = 0;
+          out[dIdx + 1] = 0;
+          out[dIdx + 2] = 0;
+          out[dIdx + 3] = 0;
         }
       }
     }
   }
+  const nextHasAlpha = img.hasAlpha || background.a < 255;
   return {
     ...img,
     width: dstW,
     height: dstH,
     data: out,
-    hasAlpha: img.hasAlpha || background.a < 255
+    hasAlpha: nextHasAlpha,
+    channels: nextHasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
   };
 }
 
@@ -370,7 +392,9 @@ export function extendImage(
     width: dstW,
     height: dstH,
     data: out,
-    hasAlpha: img.hasAlpha || spec.background.a < 255
+    hasAlpha: img.hasAlpha || spec.background.a < 255,
+    channels:
+      img.hasAlpha || spec.background.a < 255 ? (img.channels < 3 ? 2 : 4) : img.channels
   };
 }
 
@@ -427,8 +451,33 @@ export function compositeImage(
     } else if (layer.input instanceof Uint8Array) {
       overlay = decodeImage(layer.input, {
         ...(layer.density !== undefined ? { density: layer.density } : {}),
-        ...(layer.raw !== undefined ? { raw: layer.raw } : {})
+        ...(layer.raw !== undefined
+          ? {
+              raw: {
+                ...layer.raw,
+                ...(layer.premultiplied !== undefined ? { premultiplied: layer.premultiplied } : {})
+              }
+            }
+          : {})
       });
+      if (layer.premultiplied && !layer.raw) {
+        const unpremul = new Uint8Array(overlay.data.length);
+        for (let i = 0; i < overlay.width * overlay.height; i++) {
+          const a = overlay.data[i * 4 + 3]!;
+          if (a > 0 && a < 255) {
+            const scale = 255 / a;
+            unpremul[i * 4] = Math.min(255, Math.round(overlay.data[i * 4]! * scale));
+            unpremul[i * 4 + 1] = Math.min(255, Math.round(overlay.data[i * 4 + 1]! * scale));
+            unpremul[i * 4 + 2] = Math.min(255, Math.round(overlay.data[i * 4 + 2]! * scale));
+          } else {
+            unpremul[i * 4] = overlay.data[i * 4]!;
+            unpremul[i * 4 + 1] = overlay.data[i * 4 + 1]!;
+            unpremul[i * 4 + 2] = overlay.data[i * 4 + 2]!;
+          }
+          unpremul[i * 4 + 3] = a;
+        }
+        overlay = { ...overlay, data: unpremul };
+      }
     } else {
       overlay = decodeImage(undefined, {
         create: layer.input.create,
@@ -442,10 +491,39 @@ export function compositeImage(
       baseH,
       overlay.width,
       overlay.height,
-      layer.gravity ?? "northwest"
+      layer.gravity ?? "center"
     );
-    const startX = layer.left !== undefined ? Math.round(layer.left) : grav.x;
-    const startY = layer.top !== undefined ? Math.round(layer.top) : grav.y;
+    const startX =
+      layer.left !== undefined
+        ? Math.round(layer.left)
+        : layer.top !== undefined
+          ? 0
+          : grav.x;
+    const startY =
+      layer.top !== undefined
+        ? Math.round(layer.top)
+        : layer.left !== undefined
+          ? 0
+          : grav.y;
+
+    // Fast scanline copy for opaque non-tiled "over"/"source" layers (e.g. multi-megapixel panorama/grid merges)
+    if (!layer.tile && !overlay.hasAlpha && (blend === "over" || blend === "source")) {
+      const copyStartX = Math.max(0, startX);
+      const copyEndX = Math.min(baseW, startX + overlay.width);
+      const copyW = copyEndX - copyStartX;
+      if (copyW > 0) {
+        const srcOffX = copyStartX - startX;
+        const copyStartY = Math.max(0, startY);
+        const copyEndY = Math.min(baseH, startY + overlay.height);
+        for (let dy = copyStartY; dy < copyEndY; dy++) {
+          const sy = dy - startY;
+          const sRowOff = (sy * overlay.width + srcOffX) * 4;
+          const dRowOff = (dy * baseW + copyStartX) * 4;
+          out.set(overlay.data.subarray(sRowOff, sRowOff + copyW * 4), dRowOff);
+        }
+      }
+      continue;
+    }
 
     const iterW = layer.tile ? baseW : overlay.width;
     const iterH = layer.tile ? baseH : overlay.height;
@@ -455,11 +533,15 @@ export function compositeImage(
         for (let y = 0; y < iterH; y++) {
           const dy = layer.tile ? y : startY + y;
           if (dy < 0 || dy >= baseH) continue;
-          const sy = layer.tile ? dy % overlay.height : y;
+          const sy = layer.tile
+            ? (((dy - startY) % overlay.height) + overlay.height) % overlay.height
+            : y;
           for (let x = 0; x < iterW; x++) {
             const dx = layer.tile ? x : startX + x;
             if (dx < 0 || dx >= baseW) continue;
-            const sx = layer.tile ? dx % overlay.width : x;
+            const sx = layer.tile
+              ? (((dx - startX) % overlay.width) + overlay.width) % overlay.width
+              : x;
             const sIdx = (sy * overlay.width + sx) * 4;
             const dIdx = (dy * baseW + dx) * 4;
 
@@ -488,6 +570,21 @@ export function compositeImage(
               continue;
             }
             if (blend === "dest") continue;
+            if (blend === "over") {
+              const outA = sa + da * (1 - sa);
+              if (outA > 0) {
+                out[dIdx] = Math.max(0, Math.min(255, Math.round(((sr * sa + dr * da * (1 - sa)) / outA) * 255)));
+                out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(((sg * sa + dg * da * (1 - sa)) / outA) * 255)));
+                out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(((sb * sa + db * da * (1 - sa)) / outA) * 255)));
+                out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(outA * 255)));
+              } else {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+              }
+              continue;
+            }
             if (blend === "dest-over") {
               const outA = da + sa * (1 - da);
               if (outA > 0) {
@@ -588,12 +685,18 @@ export function compositeImage(
               out[dIdx + 2] = 0;
               out[dIdx + 3] = 0;
             } else {
-              const br = blendChannel(sr, dr, blend);
-              const bg = blendChannel(sg, dg, blend);
-              const bb = blendChannel(sb, db, blend);
-              const cr = (sa * (1 - da) * sr + sa * da * br + (1 - sa) * da * dr) / outA;
-              const cg = (sa * (1 - da) * sg + sa * da * bg + (1 - sa) * da * dg) / outA;
-              const cb = (sa * (1 - da) * sb + sa * da * bb + (1 - sa) * da * db) / outA;
+              const srP = sr * sa;
+              const sgP = sg * sa;
+              const sbP = sb * sa;
+              const drP = dr * da;
+              const dgP = dg * da;
+              const dbP = db * da;
+              const br = blendChannel(srP, drP, blend);
+              const bg = blendChannel(sgP, dgP, blend);
+              const bb = blendChannel(sbP, dbP, blend);
+              const cr = ((1 - da) * srP + (1 - sa) * drP + sa * da * br) / outA;
+              const cg = ((1 - da) * sgP + (1 - sa) * dgP + sa * da * bg) / outA;
+              const cb = ((1 - da) * sbP + (1 - sa) * dbP + sa * da * bb) / outA;
               out[dIdx] = Math.max(0, Math.min(255, Math.round(cr * 255)));
               out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(cg * 255)));
               out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(cb * 255)));
@@ -604,7 +707,12 @@ export function compositeImage(
       }
     }
   }
-  return { ...base, data: out };
+  return {
+    ...base,
+    data: out,
+    hasAlpha: true,
+    channels: base.channels < 3 ? 2 : 4
+  };
 }
 
 export function grayscaleImage(img: RgbaImage): RgbaImage {
@@ -907,10 +1015,11 @@ export function blurImage(img: RgbaImage, sigma = 1.5): RgbaImage {
         const sx = Math.max(0, Math.min(width - 1, x + k));
         const sIdx = (y * width + sx) * 4;
         const w = kernel[k + radius]!;
-        r += data[sIdx]! * w;
-        g += data[sIdx + 1]! * w;
-        b += data[sIdx + 2]! * w;
-        a += data[sIdx + 3]! * w;
+        const sa = data[sIdx + 3]! / 255;
+        r += data[sIdx]! * sa * w;
+        g += data[sIdx + 1]! * sa * w;
+        b += data[sIdx + 2]! * sa * w;
+        a += sa * w;
       }
       const dIdx = (y * width + x) * 4;
       temp[dIdx] = r;
@@ -936,10 +1045,17 @@ export function blurImage(img: RgbaImage, sigma = 1.5): RgbaImage {
         a += temp[sIdx + 3]! * w;
       }
       const dIdx = (y * width + x) * 4;
-      out[dIdx] = Math.max(0, Math.min(255, Math.round(r)));
-      out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(g)));
-      out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(b)));
-      out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(a)));
+      if (a > 1e-6) {
+        out[dIdx] = Math.max(0, Math.min(255, Math.round(r / a)));
+        out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(g / a)));
+        out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(b / a)));
+        out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(a * 255)));
+      } else {
+        out[dIdx] = 0;
+        out[dIdx + 1] = 0;
+        out[dIdx + 2] = 0;
+        out[dIdx + 3] = 0;
+      }
     }
   }
   return { ...img, data: out };

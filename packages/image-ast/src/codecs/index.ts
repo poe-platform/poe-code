@@ -42,6 +42,7 @@ import {
 } from "./svg-pdf.js";
 
 const DEFAULT_PIXEL_LIMIT = 268402689; // 16383 * 16383 (matches sharp default)
+const DECODE_CACHE = new WeakMap<Uint8Array, RgbaImage>();
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isPngBytes(bytes)) return "png";
@@ -190,14 +191,25 @@ export function decodeImage(
     };
   }
   if (options?.raw && bytes) {
-    const { width, height, channels } = options.raw;
+    const { width, height, channels, premultiplied } = options.raw;
     const data = new Uint8Array(width * height * 4);
     for (let i = 0; i < width * height; i++) {
       if (channels === 4) {
-        data[i * 4] = bytes[i * 4] ?? 0;
-        data[i * 4 + 1] = bytes[i * 4 + 1] ?? 0;
-        data[i * 4 + 2] = bytes[i * 4 + 2] ?? 0;
-        data[i * 4 + 3] = bytes[i * 4 + 3] ?? 255;
+        const r = bytes[i * 4] ?? 0;
+        const g = bytes[i * 4 + 1] ?? 0;
+        const b = bytes[i * 4 + 2] ?? 0;
+        const a = bytes[i * 4 + 3] ?? 255;
+        if (premultiplied && a > 0 && a < 255) {
+          const scale = 255 / a;
+          data[i * 4] = Math.min(255, Math.round(r * scale));
+          data[i * 4 + 1] = Math.min(255, Math.round(g * scale));
+          data[i * 4 + 2] = Math.min(255, Math.round(b * scale));
+        } else {
+          data[i * 4] = r;
+          data[i * 4 + 1] = g;
+          data[i * 4 + 2] = b;
+        }
+        data[i * 4 + 3] = a;
       } else if (channels === 3) {
         data[i * 4] = bytes[i * 3] ?? 0;
         data[i * 4 + 1] = bytes[i * 3 + 1] ?? 0;
@@ -232,35 +244,60 @@ export function decodeImage(
   if (!bytes || bytes.length === 0) {
     throw new Error("Empty image input");
   }
+  const canCache =
+    options?.density === undefined &&
+    options?.page === undefined &&
+    options?.pages === undefined &&
+    options?.raw === undefined &&
+    options?.create === undefined;
+  if (canCache) {
+    const cached = DECODE_CACHE.get(bytes);
+    if (cached) return cached;
+  }
   const meta = readImageMetadata(bytes, options);
+  let decoded: RgbaImage;
   switch (meta.format) {
     case "png":
-      return decodePngImage(bytes);
+      decoded = decodePngImage(bytes);
+      break;
     case "jpeg":
-      return decodeJpegImage(bytes);
+      decoded = decodeJpegImage(bytes);
+      break;
     case "webp":
-      return decodeWebpImage(bytes);
+      decoded = decodeWebpImage(bytes);
+      break;
     case "heic":
     case "heif":
     case "avif":
-      return decodeHeifImage(bytes);
+      decoded = decodeHeifImage(bytes);
+      break;
     case "gif":
-      return decodeGifImage(bytes, options);
+      decoded = decodeGifImage(bytes, options);
+      break;
     case "ppm":
     case "pgm":
     case "pbm":
-      return decodeNetpbmImage(bytes);
+      decoded = decodeNetpbmImage(bytes);
+      break;
     case "bmp":
-      return decodeBmpImage(bytes);
+      decoded = decodeBmpImage(bytes);
+      break;
     case "tiff":
-      return decodeTiffImage(bytes);
+      decoded = decodeTiffImage(bytes);
+      break;
     case "pdf":
-      return decodePdfImage(bytes, options);
+      decoded = decodePdfImage(bytes, options);
+      break;
     case "svg":
-      return decodeSvgImage(bytes, options);
+      decoded = decodeSvgImage(bytes, options);
+      break;
     default:
       throw new Error(`Unsupported format: ${meta.format}`);
   }
+  if (canCache) {
+    DECODE_CACHE.set(bytes, decoded);
+  }
+  return decoded;
 }
 
 export function encodeImage(

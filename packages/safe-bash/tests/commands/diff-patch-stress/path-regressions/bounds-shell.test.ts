@@ -16,9 +16,8 @@ test("bounded 4079-byte path accepts 16318-character octal quoted header", { tim
 for (const [name, header] of [
   ["quoted source length", `"${"\\141".repeat(4096)}"`],
   ["decoded path length", quoted("x".repeat(4097))],
-  ["decoded depth", quoted(`${"d/".repeat(257)}target`)],
 ] as const) {
-  test(`decoder limit ${name} rejects before earlier section writes`, { timeout: 4000 }, async () => {
+  test(`provider rejects ${name} before earlier section writes`, { timeout: 4000 }, async () => {
     const backing = await memory({ first: "old\n", target: "old\n" });
     const before = await snapshot(backing);
     const observed = instrument(backing);
@@ -26,9 +25,14 @@ for (const [name, header] of [
     assert.deepEqual(observed.mutations(), []);
     assert.deepEqual(await snapshot(backing), before);
     assert.equal(result.exitCode, 2, result.stderr);
-    assert.match(result.stderr, /(?:path length|depth) limit/u);
+    assert.match(result.stderr, /ENAMETOOLONG/u);
   });
 }
+
+test("decoded paths have no additional command depth quota", async () => {
+  const name = `${"d/".repeat(257)}target`;
+  await exactUpdate(name, section(quoted(name)), ["-p0"]);
+});
 
 for (const budget of ["input", "work", "files"] as const) {
   test(`encoded headers obey ${budget} budget before mutations`, async () => {

@@ -14,11 +14,14 @@ for (const [name, invalid] of [
   ["extra deletion", "@@ -1 +1 @@\n-old\n+new\n-old\n"],
   ["huge coordinate", "@@ -999999999 +999999999 @@\n-old\n+new\n"],
   ["repeated newline marker", "@@ -1 +1 @@\n-old\n+new\n\\ No newline at end of file\n\\ No newline at end of file\n"],
-] as const) test(`atomic extension malformed later section ${name} cannot partially commit`, async () => {
+] as const) test(`atomic extension invalid or over-budget later section ${name} cannot partially commit`, async () => {
   const backing = await memory({ first: "old\n", second: "old\n" });
   const before = await snapshot(backing);
   const observed = instrument(backing);
-  const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + `--- second\n+++ second\n${invalid}` });
+  const result = await invoke(observed.fs, "patch", {
+    args: ["--atomic"], input: replacement("first") + `--- second\n+++ second\n${invalid}`,
+    options: name === "huge coordinate" ? { maxLines: 1_000_000 } : {},
+  });
   assert.equal(result.exitCode, 2, result.stderr);
   assert.equal(result.stdout, "");
   assert.deepEqual(observed.mutations(), []);
@@ -111,14 +114,15 @@ for (const input of [bytes("bad\0text\n"), new Uint8Array([0xff, 0xfe, 0x0a])]) 
   });
 }
 
-test("overlong paths fail before any stat, read or write of their target", async () => {
+test("provider path-length refusal prevents target reads and writes", async () => {
   const backing = await memory();
   const before = await snapshot(backing);
-  for (const name of ["segment/".repeat(257) + "target", "x".repeat(4097)]) {
+  for (const name of ["x".repeat(4097)]) {
     const observed = instrument(backing);
     const result = await invoke(observed.fs, "patch", { input: replacement(name) });
     assert.equal(result.exitCode, 2);
-    assert.deepEqual(observed.calls.map(call => [call.method, call.path]), [["lstat", "/"], ["lstat", "/sandbox"], ["lstat", cwd]], "only cwd ancestry is admitted; overlong targets receive no filesystem calls");
+    assert.deepEqual(observed.calls.map(call => [call.method, call.path]), [["lstat", "/"], ["lstat", "/sandbox"], ["lstat", cwd], ["stat", `${cwd}/${name}`]]);
+    assert.match(result.stderr, /ENAMETOOLONG/);
     assert.deepEqual(observed.mutations(), []);
     assert.deepEqual(await snapshot(backing), before);
     assert(Buffer.byteLength(result.stderr) < 4096);

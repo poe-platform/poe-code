@@ -41,6 +41,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes zsh
           test -x /bin/zsh
+      # Each stage owns its worker pool; avoid overlapping CPU-heavy replay suites.
       - run: npm test -- --concurrency=1 --exclude-workspace=@poe-platform/safe-bash
       - run: npm run smoke
   safe-bash-node22:

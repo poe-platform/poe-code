@@ -245,16 +245,29 @@ describe("real safe-bash browser kernel", () => {
   it("bounds infinite loops and output while allowing browser tasks to run", async () => {
     const { shell } = await fixture();
     try {
-      let yielded = false;
-      setTimeout(() => {
-        yielded = true;
-      }, 0);
       await expect(
         shell.exec("while true; do :; done", {
           limits: { maxLoopIterations: 80, maxCommands: 200 }
         })
-      ).rejects.toThrow();
-      expect(yielded).toBe(true);
+      ).rejects.toThrow("maxLoopIterations");
+      let yielded = false;
+      const activeController = new AbortController();
+      const cancellation = new Error("browser task cancellation");
+      const timer = setTimeout(() => {
+        yielded = true;
+        activeController.abort(cancellation);
+      }, 0);
+      try {
+        await expect(
+          shell.exec("while true; do :; done", {
+            signal: activeController.signal,
+            limits: { maxCommands: 2_000_000, maxLoopIterations: 1_000_000 }
+          })
+        ).rejects.toBe(cancellation);
+        expect(yielded).toBe(true);
+      } finally {
+        clearTimeout(timer);
+      }
       await expect(
         shell.exec("printf '%10000s' x", { limits: { maxOutputBytes: 128 } })
       ).rejects.toThrow();
@@ -287,11 +300,15 @@ describe("real safe-bash browser kernel", () => {
   it("observes cancellation scheduled while a loop is already executing", async () => {
     const { shell } = await fixture();
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(new Error("active cancellation")), 15);
+    const cancellation = new Error("active cancellation");
+    const timer = setTimeout(() => controller.abort(cancellation), 15);
     try {
       await expect(
-        shell.exec("while :; do :; done", { signal: controller.signal })
-      ).rejects.toThrow("active cancellation");
+        shell.exec("while :; do :; done", {
+          signal: controller.signal,
+          limits: { maxCommands: 2_000_000, maxLoopIterations: 1_000_000 }
+        })
+      ).rejects.toBe(cancellation);
     } finally {
       clearTimeout(timer);
       await shell.dispose();
@@ -384,14 +401,16 @@ describe("real safe-bash browser kernel", () => {
         ).exitCode
       ).toBe(1);
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(new Error("stop root")), 15);
+      const cancellation = new Error("stop root");
+      const timer = setTimeout(() => controller.abort(cancellation), 15);
       try {
         await expect(
           shell.exec("cd sub; while :; do :; done", {
             signal: controller.signal,
+            limits: { maxCommands: 2_000_000, maxLoopIterations: 1_000_000 },
             onState: (state) => states.push(state)
           })
-        ).rejects.toThrow("stop root");
+        ).rejects.toBe(cancellation);
       } finally {
         clearTimeout(timer);
       }

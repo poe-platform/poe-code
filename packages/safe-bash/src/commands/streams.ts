@@ -17,6 +17,63 @@ function isSyncResolved(promise: unknown): boolean {
   return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
 
+const sharedTrOutBuffer = new Uint8Array(64 * 1024);
+let sharedTrOutInUse = false;
+interface TrCompiledConfig {
+  readonly deleting: boolean;
+  readonly squeezing: boolean;
+  readonly mapping: Uint8Array;
+  readonly removed: Uint8Array;
+  readonly squeezed: Uint8Array;
+}
+const trConfigCache = new Map<string, TrCompiledConfig>();
+function compileTrConfig(args: readonly string[]): TrCompiledConfig {
+  const cacheKey = args.length <= 4 ? args.join("\0") : undefined;
+  if (cacheKey !== undefined) {
+    const cached = trConfigCache.get(cacheKey);
+    if (cached) return cached;
+  }
+  const parsed = options(args, "dscCt", { delete: "d", "squeeze-repeats": "s", complement: "c", "truncate-set1": "t" });
+  const deleting = parsed.flags.has("d");
+  const squeezing = parsed.flags.has("s");
+  const translating = !deleting && parsed.operands.length === 2;
+  if (parsed.operands.length < 1 || parsed.operands.length > 2 || !deleting && !squeezing && parsed.operands.length !== 2
+    || deleting && !squeezing && parsed.operands.length !== 1 || deleting && squeezing && parsed.operands.length !== 2) throw new UsageError("invalid number of character sets");
+  const firstSet = characterSet(parsed.operands[0]!);
+  let first = firstSet.bytes;
+  let firstCaseOffsets = firstSet.caseOffsets;
+  if (parsed.flags.has("c") || parsed.flags.has("C")) {
+    const selected = new Set(first);
+    first = Array.from({ length: 256 }, (_, offset) => offset).filter(byte => !selected.has(byte));
+    firstCaseOffsets = new Set();
+  }
+  const secondSet = parsed.operands[1] === undefined ? { bytes: [] as number[], caseOffsets: new Set<number>(), endsWithClass: false } : characterSet(parsed.operands[1], translating ? first.length : undefined, translating);
+  const second = secondSet.bytes;
+  if (translating) {
+    if (!parsed.flags.has("t") && secondSet.endsWithClass && first.length > second.length) {
+      throw new PublicDiagnostic("when translating with string1 longer than string2, the latter string must not end with a character class");
+    }
+    for (const offset of secondSet.caseOffsets) {
+      if (!firstCaseOffsets.has(offset)) throw new PublicDiagnostic("misaligned [:upper:] and/or [:lower:] construct");
+    }
+  }
+  if (translating && parsed.flags.has("t")) first = first.slice(0, second.length);
+  if (translating && !second.length && !parsed.flags.has("t")) throw new UsageError("second character set must not be empty");
+  const mapping = new Uint8Array(256);
+  for (let offset = 0; offset < 256; offset++) mapping[offset] = offset;
+  if (translating) first.forEach((byte, index) => { mapping[byte] = second[Math.min(index, second.length - 1)]!; });
+  const removed = new Uint8Array(256);
+  if (deleting) for (const byte of first) removed[byte] = 1;
+  const squeezed = new Uint8Array(256);
+  if (squeezing) for (const byte of (parsed.operands.length === 2 ? second : first)) squeezed[byte] = 1;
+  const config: TrCompiledConfig = { deleting, squeezing, mapping, removed, squeezed };
+  if (cacheKey !== undefined) {
+    if (trConfigCache.size >= 32) trConfigCache.clear();
+    trConfigCache.set(cacheKey, config);
+  }
+  return config;
+}
+
 const inspectedInputRequirements: readonly CommandFileSystemRequirement[] = inputRequirements.map(mode => mode.id === "file" ? { ...mode, capabilities: ["stat", "access"] } : mode);
 const countRequirements: readonly CommandFileSystemRequirement[] = [
   ...inputRequirements,
@@ -42,19 +99,43 @@ async function* combinedInput(context: CommandContext, names: readonly string[],
 async function prefix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, skip: boolean, delimiter: number): Promise<void> {
   let remaining = count;
   if (!remaining && !skip) return;
-  for await (const chunk of source) {
-    context.signal.throwIfAborted();
-    let offset = 0;
-    if (remaining) {
-      if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
-      else {
-        for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
+  const iter = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+    tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+    syncReturn?: () => void;
+  };
+  const canTrySync = typeof iter.tryNextSync === "function";
+  let done = false;
+  try {
+    while (true) {
+      let step = canTrySync ? iter.tryNextSync!() : undefined;
+      if (step === undefined) step = await iter.next();
+      if (step.done) { done = true; break; }
+      const chunk = step.value;
+      context.signal.throwIfAborted();
+      let offset = 0;
+      if (remaining) {
+        if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
+        else {
+          for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
+        }
+      }
+      if (skip) {
+        if (!remaining && offset < chunk.length) {
+          const p = output(context, chunk.subarray(offset));
+          if (!isSyncResolved(p)) await p;
+        }
+      } else {
+        if (offset) {
+          const p = output(context, chunk.subarray(0, offset));
+          if (!isSyncResolved(p)) await p;
+        }
+        if (!remaining) return;
       }
     }
-    if (skip) { if (!remaining && offset < chunk.length) await output(context, chunk.subarray(offset)); }
-    else {
-      if (offset) await output(context, chunk.subarray(0, offset));
-      if (!remaining) return;
+  } finally {
+    if (!done) {
+      if (typeof iter.syncReturn === "function") iter.syncReturn();
+      else await iter.return?.();
     }
   }
 }
@@ -623,7 +704,18 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
           if (parsed.flags.has("L") && point !== undefined) lineWidth(point);
         }) : undefined;
         try {
-          for await (const chunk of input(context, name)) {
+          const iter = input(context, name)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+            tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+            syncReturn?: () => void;
+          };
+          const canTrySync = typeof iter.tryNextSync === "function";
+          let done = false;
+          try {
+          while (true) {
+            let step = canTrySync ? iter.tryNextSync!() : undefined;
+            if (step === undefined) step = await iter.next();
+            if (step.done) { done = true; break; }
+            const chunk = step.value;
             context.signal.throwIfAborted();
             counts.c! += chunk.length;
             if (!needsText) {
@@ -639,6 +731,12 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
             }
             if (singleByte) counts.m! += chunk.length;
             else utf8!.write(chunk);
+          }
+          } finally {
+            if (!done) {
+              if (typeof iter.syncReturn === "function") iter.syncReturn();
+              else await iter.return?.();
+            }
           }
           if (needsText && !singleByte) utf8!.finish();
           counts.L = Math.max(counts.L!, columns);
@@ -727,56 +825,51 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       }
     }),
     define("tr", async context => {
-      const parsed = options(context.args, "dscCt", { delete: "d", "squeeze-repeats": "s", complement: "c", "truncate-set1": "t" });
-      const deleting = parsed.flags.has("d");
-      const squeezing = parsed.flags.has("s");
-      const translating = !deleting && parsed.operands.length === 2;
-      if (parsed.operands.length < 1 || parsed.operands.length > 2 || !deleting && !squeezing && parsed.operands.length !== 2
-        || deleting && !squeezing && parsed.operands.length !== 1 || deleting && squeezing && parsed.operands.length !== 2) throw new UsageError("invalid number of character sets");
-      const firstSet = characterSet(parsed.operands[0]!);
-      let first = firstSet.bytes;
-      let firstCaseOffsets = firstSet.caseOffsets;
-      if (parsed.flags.has("c") || parsed.flags.has("C")) {
-        const selected = new Set(first);
-        first = Array.from({ length: 256 }, (_, offset) => offset).filter(byte => !selected.has(byte));
-        firstCaseOffsets = new Set();
-      }
-      const secondSet = parsed.operands[1] === undefined ? { bytes: [] as number[], caseOffsets: new Set<number>(), endsWithClass: false } : characterSet(parsed.operands[1], translating ? first.length : undefined, translating);
-      const second = secondSet.bytes;
-      if (translating) {
-        if (!parsed.flags.has("t") && secondSet.endsWithClass && first.length > second.length) {
-          throw new PublicDiagnostic("when translating with string1 longer than string2, the latter string must not end with a character class");
-        }
-        for (const offset of secondSet.caseOffsets) {
-          if (!firstCaseOffsets.has(offset)) throw new PublicDiagnostic("misaligned [:upper:] and/or [:lower:] construct");
-        }
-      }
-      if (translating && parsed.flags.has("t")) first = first.slice(0, second.length);
-      if (translating && !second.length && !parsed.flags.has("t")) throw new UsageError("second character set must not be empty");
-      const mapping = new Uint8Array(256);
-      for (let offset = 0; offset < 256; offset++) mapping[offset] = offset;
-      if (translating) first.forEach((byte, index) => { mapping[byte] = second[Math.min(index, second.length - 1)]!; });
-      const removed = new Uint8Array(256);
-      if (deleting) for (const byte of first) removed[byte] = 1;
-      const squeezed = new Uint8Array(256);
-      if (squeezing) for (const byte of (parsed.operands.length === 2 ? second : first)) squeezed[byte] = 1;
+      const { deleting, squeezing, mapping, removed, squeezed } = compileTrConfig(context.args);
       let previous = -1;
-      for await (const chunk of input(context)) {
-        context.signal.throwIfAborted();
-        const transformed = new Uint8Array(chunk.length);
-        if (!deleting && !squeezing) {
-          for (let index = 0; index < chunk.length; index++) transformed[index] = mapping[chunk[index]!]!;
-          if (chunk.length) await output(context, transformed);
-          continue;
+      const iter = input(context)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+        tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+        syncReturn?: () => void;
+      };
+      const canTrySync = typeof iter.tryNextSync === "function";
+      const ownsShared = !sharedTrOutInUse;
+      if (ownsShared) sharedTrOutInUse = true;
+      let done = false;
+      try {
+        while (true) {
+          let step = canTrySync ? iter.tryNextSync!() : undefined;
+          if (step === undefined) step = await iter.next();
+          if (step.done) { done = true; break; }
+          const chunk = step.value;
+          context.signal.throwIfAborted();
+          if (!chunk.length) continue;
+          const useShared = ownsShared && chunk.length <= sharedTrOutBuffer.length;
+          const buf = useShared ? sharedTrOutBuffer : new Uint8Array(chunk.length);
+          if (!deleting && !squeezing) {
+            for (let index = 0; index < chunk.length; index++) buf[index] = mapping[chunk[index]!]!;
+            const p = output(context, useShared ? buf.subarray(0, chunk.length) : buf);
+            if (!isSyncResolved(p)) await p;
+            continue;
+          }
+          let count = 0;
+          for (let index = 0; index < chunk.length; index++) {
+            const byte = chunk[index]!;
+            if (removed[byte]) continue;
+            const translated = mapping[byte]!;
+            if (translated === previous && squeezed[translated]) continue;
+            buf[count++] = translated; previous = translated;
+          }
+          if (count) {
+            const p = output(context, buf.subarray(0, count));
+            if (!isSyncResolved(p)) await p;
+          }
         }
-        let count = 0;
-        for (const byte of chunk) {
-          if (removed[byte]) continue;
-          const translated = mapping[byte]!;
-          if (translated === previous && squeezed[translated]) continue;
-          transformed[count++] = translated; previous = translated;
+      } finally {
+        if (ownsShared) sharedTrOutInUse = false;
+        if (!done) {
+          if (typeof iter.syncReturn === "function") iter.syncReturn();
+          else await iter.return?.();
         }
-        if (count) await output(context, transformed.subarray(0, count));
       }
       return { exitCode: 0 };
     }),

@@ -55,6 +55,10 @@ const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
 trustedInputRows.add(EMPTY_GREP_ROWS);
 const sharedGrepOutBuffer = new Uint8Array(64 * 1024);
 let sharedGrepOutInUse = false;
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+function isSyncResolved(promise: unknown): boolean {
+  return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
 const NEWLINE_BYTES = new Uint8Array([10]);
 const NUL_BYTES = new Uint8Array([0]);
 const SINGLE_STDIN_FILE: readonly { name: string; nested: boolean }[] = Object.freeze([Object.freeze({ name: "-", nested: false })]);
@@ -85,9 +89,21 @@ async function forEachGrepLineBatch(
   let fallbackBatch: GrepLine[] | undefined;
   let poolCount = 0;
   let bytes = 0;
+  const iter = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+    tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+    syncReturn?: () => void;
+  };
+  const canTrySync = typeof iter.tryNextSync === "function";
+  let done = false;
   try {
-    for await (const rawChunk of source) {
-      const chunk = rawChunk;
+    while (true) {
+      let step = canTrySync ? iter.tryNextSync!() : undefined;
+      if (step === undefined) step = await iter.next();
+      if (step.done) {
+        done = true;
+        break;
+      }
+      const chunk = step.value;
       let start = 0;
       while (start < chunk.length) {
         const end = chunk.indexOf(separator, start);
@@ -172,6 +188,10 @@ async function forEachGrepLineBatch(
       if (cont instanceof Promise) await cont;
     }
   } finally {
+    if (!done) {
+      if (typeof iter.syncReturn === "function") iter.syncReturn();
+      else await iter.return?.();
+    }
     pending?.clear();
   }
 }
@@ -409,11 +429,26 @@ inspect the resulting state before repeating the action.
       let outBuffer: Uint8Array | undefined;
       let outStart = 0;
       let outUsed = 0;
-      const flushOut = async () => {
-        if (!outBuffer || outUsed === outStart) return;
+      const flushOutSyncOrAsync = (): Promise<void> | undefined => {
+        if (!outBuffer || outUsed === outStart) return undefined;
         const view = outBuffer.subarray(outStart, outUsed);
+        const p = output(context, view);
+        if (isSyncResolved(p)) {
+          outStart = 0;
+          outUsed = 0;
+          return undefined;
+        }
         outStart = outUsed;
-        await output(context, view);
+        return p.then(() => {
+          if (outStart === outUsed) {
+            outStart = 0;
+            outUsed = 0;
+          }
+        });
+      };
+      const flushOut = async () => {
+        const p = flushOutSyncOrAsync();
+        if (p) await p;
       };
       const writeOut = async (chunk: string | Uint8Array) => {
         const bytes = typeof chunk === "string" ? (chunk.length === 0 ? undefined : encoder.encode(chunk)) : (chunk.length === 0 ? undefined : chunk);
@@ -601,12 +636,14 @@ inspect the resulting state before repeating the action.
               return processBatchSlow(batch, endOfChunk, undefined, index, results);
             }
             if ((endOfChunk || outUsed - outStart >= 8192) && outUsed > outStart) {
-              return flushOut().then(() => true);
+              const p = flushOutSyncOrAsync();
+              return p ? p.then(() => true) : true;
             }
             return true;
           });
           if (earlyExitZero) return { exitCode: 0 };
-          await flushOut();
+          const finalFlush = flushOutSyncOrAsync();
+          if (finalFlush) await finalFlush;
           if (parsed.flags.has("q")) continue;
           if (parsed.flags.has("l") && count > 0 || parsed.flags.has("L") && count === 0) {
             await output(context, named + (parsed.flags.has("Z") ? "\0" : "\n"));

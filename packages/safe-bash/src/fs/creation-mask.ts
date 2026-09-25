@@ -34,31 +34,132 @@ type AbortSignalWaiter = (reason: unknown) => void;
 type AbortSignalWaiterStore = AbortSignalWaiter | Set<AbortSignalWaiter> | undefined;
 
 class ManagedControlSignalImpl implements ManagedControlController {
-  readonly #controller = new AbortController();
-  readonly signal = registerManagedAbortSignal(this.#controller.signal);
+  declare _waiters: AbortSignalWaiterStore;
+  declare private _listenerMap: Map<unknown, AbortSignalWaiter> | undefined;
+  declare private _nativeController: AbortController | undefined;
+  declare aborted: boolean;
+  declare reason: unknown;
+  declare onabort: ((ev: unknown) => unknown) | null;
 
   constructor() {
-    (this.signal as unknown as Record<symbol, unknown>)[managedControlSignalSymbol] = true;
+    this._waiters = undefined;
+    this._listenerMap = undefined;
+    this._nativeController = undefined;
+    this.aborted = false;
+    this.reason = undefined;
+    this.onabort = null;
+  }
+
+  get signal(): AbortSignal {
+    return this as unknown as AbortSignal;
+  }
+
+  _ensureNativeSignal(): AbortSignal {
+    let ctrl = this._nativeController;
+    if (!ctrl) {
+      ctrl = this._nativeController = new AbortController();
+      registerManagedAbortSignal(ctrl.signal);
+      if (this.aborted) {
+        ctrl.abort(this.reason);
+      }
+    }
+    return ctrl.signal;
   }
 
   abort(reason?: unknown): void {
-    if (this.signal.aborted) return;
-    // Native consumers (including AbortSignal.any and host APIs) require a real
-    // AbortSignal. Internal subscribers still use the shared subscription protocol.
-    this.#controller.abort(reason);
-    notifyAbortSignalWaiters(this.signal, this.signal.reason);
+    if (this.aborted) return;
+    this.aborted = true;
+    this.reason = reason !== undefined ? reason : new DOMException("This operation was aborted", "AbortError");
+    if (this._nativeController) {
+      this._nativeController.abort(this.reason);
+      notifyAbortSignalWaiters(this._nativeController.signal, this.reason);
+    }
+    notifyAbortSignalWaiters(this as unknown as AbortSignal, this.reason);
+    if (typeof this.onabort === "function") {
+      try { this.onabort({ type: "abort", target: this }); } catch { /* ignore */ }
+    }
+  }
+
+  throwIfAborted(): void {
+    if (this.aborted) throw this.reason;
+  }
+
+  addEventListener(type: string, listener: unknown): void {
+    if (type !== "abort" || !listener) return;
+    if (this.aborted) return;
+    const map = this._listenerMap ??= new Map();
+    if (map.has(listener)) return;
+    const fn: AbortSignalWaiter = () => {
+      map.delete(listener);
+      if (typeof listener === "function") (listener as (ev: unknown) => void)({ type: "abort", target: this });
+      else if (typeof (listener as { handleEvent?: unknown }).handleEvent === "function") {
+        (listener as { handleEvent: (ev: unknown) => void }).handleEvent({ type: "abort", target: this });
+      }
+    };
+    map.set(listener, fn);
+    addAbortSignalWaiter(this as unknown as AbortSignal, fn);
+  }
+
+  removeEventListener(type: string, listener: unknown): void {
+    if (type !== "abort" || !listener || !this._listenerMap) return;
+    const fn = this._listenerMap.get(listener);
+    if (fn) {
+      this._listenerMap.delete(listener);
+      removeAbortSignalWaiter(this as unknown as AbortSignal, fn);
+    }
   }
 }
+Object.setPrototypeOf(ManagedControlSignalImpl.prototype, AbortSignal.prototype);
+Object.defineProperties(ManagedControlSignalImpl.prototype, {
+  aborted: { value: false, writable: true, configurable: true },
+  reason: { value: undefined, writable: true, configurable: true },
+  onabort: { value: null, writable: true, configurable: true },
+  [managedSignalSymbol]: { value: true },
+  [managedControlSignalSymbol]: { value: true },
+  [managedWaitersSymbol]: {
+    get(this: ManagedControlSignalImpl) { return this._waiters; },
+    set(this: ManagedControlSignalImpl, value: AbortSignalWaiterStore) { this._waiters = value; },
+  },
+});
+
+const nativeAbortSignalAny = AbortSignal.any.bind(AbortSignal);
+AbortSignal.any = function any(signals: Iterable<AbortSignal>): AbortSignal {
+  if (Array.isArray(signals)) {
+    let hasManaged = false;
+    for (let i = 0; i < signals.length; i++) {
+      if (signals[i] instanceof ManagedControlSignalImpl) {
+        hasManaged = true;
+        break;
+      }
+    }
+    if (!hasManaged) return nativeAbortSignalAny(signals);
+    const mapped = new Array<AbortSignal>(signals.length);
+    for (let i = 0; i < signals.length; i++) {
+      const s = signals[i]!;
+      mapped[i] = s instanceof ManagedControlSignalImpl ? s._ensureNativeSignal() : s;
+    }
+    return nativeAbortSignalAny(mapped);
+  }
+  return nativeAbortSignalAny(
+    Array.from(signals, s => (s instanceof ManagedControlSignalImpl ? s._ensureNativeSignal() : s)),
+  );
+};
 
 export function combineManagedSignals(primary: AbortSignal, secondary: AbortSignal, tertiary?: AbortSignal): AbortSignal {
   if (primary.aborted) return primary;
   if (secondary.aborted) return secondary;
   if (tertiary?.aborted) return tertiary;
-  const combined = registerManagedAbortSignal(AbortSignal.any(tertiary
-    ? [primary, secondary, tertiary]
-    : [primary, secondary]));
-  combined.addEventListener("abort", () => notifyAbortSignalWaiters(combined, combined.reason), { once: true });
-  return combined;
+  const combined = new ManagedControlSignalImpl();
+  const onAbort = (reason: unknown) => {
+    removeAbortSignalWaiter(primary, onAbort);
+    removeAbortSignalWaiter(secondary, onAbort);
+    if (tertiary) removeAbortSignalWaiter(tertiary, onAbort);
+    combined.abort(reason);
+  };
+  addAbortSignalWaiter(primary, onAbort);
+  addAbortSignalWaiter(secondary, onAbort);
+  if (tertiary) addAbortSignalWaiter(tertiary, onAbort);
+  return combined.signal;
 }
 
 export function createManagedControlController(): ManagedControlController {

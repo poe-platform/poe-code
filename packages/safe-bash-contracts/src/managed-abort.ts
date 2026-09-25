@@ -7,9 +7,7 @@ export function addManagedAbortWaiter(signal: AbortSignal, waiter: Waiter): void
   const record = signal as unknown as Record<symbol, Waiters>;
   const current = record[managedWaitersSymbol];
   if (!current) {
-    const set = new Set<Waiter>();
-    set.add(waiter);
-    record[managedWaitersSymbol] = set;
+    record[managedWaitersSymbol] = waiter;
   }
   else if (typeof current === "function") {
     if (current !== waiter) {

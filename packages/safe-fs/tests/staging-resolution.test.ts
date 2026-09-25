@@ -169,7 +169,7 @@ test("resolution admission withholds read-only and quota views", () => {
   const memory = new MemoryFileSystem();
   for (const fs of [new ReadOnlyFileSystem(memory), withFileSystemQuota(memory, { maxBytes: 1000 })]) {
     assert.equal(fs.capabilities.synchronousStagingResolution, false);
-    assert.equal(fs.prepareStagingResolution, undefined);
+    assert.equal(Reflect.get(fs, "prepareStagingResolution"), undefined);
   }
 });
 

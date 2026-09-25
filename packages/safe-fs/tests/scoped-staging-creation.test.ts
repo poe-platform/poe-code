@@ -130,8 +130,8 @@ for (const kind of ["memory", "mount", "device"] as const) for (const inherited 
 test("scope captures caller controls before an admission charge changes them", async () => {
   const memory = createMemoryFileSystem(); await memory.mkdir("/work");
   const caller = new AbortController();
-  const options = { parent: await memory.lstat("/work"), retainCleanup: true, signal: caller.signal as AbortSignal | undefined };
-  const fs = scopeFileSystem(memory, () => { options.signal = undefined; caller.abort(null); }, new AbortController().signal);
+  const options = { parent: await memory.lstat("/work"), retainCleanup: true, signal: caller.signal };
+  const fs = scopeFileSystem(memory, () => { Reflect.set(options, "signal", undefined); caller.abort(null); }, new AbortController().signal);
   let receipt: Awaited<ReturnType<NonNullable<FileSystem["createStagedFile"]>>> | undefined;
   try {
     await assert.rejects(async () => { receipt = await fs.createStagedFile!("/work/.stage", "file", {
@@ -147,7 +147,7 @@ test("scope rejects an already closed creation before reading caller controls", 
   let reads = 0, charges = 0;
   const fs = scopeFileSystem(memory, () => { charges++; }, ambient.signal);
   await assert.rejects(fs.createStagedFile!("/work/.stage", "file", { type: "file", data: new Uint8Array([1]) }, {
-    parent: await memory.lstat("/work"), get signal() { reads++; throw new Error("must not read"); },
+    parent: await memory.lstat("/work"), get signal(): AbortSignal { reads++; throw new Error("must not read"); },
   }), error => error === false);
   assert.equal(reads, 0);
   assert.equal(charges, 0);

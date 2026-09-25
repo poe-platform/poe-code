@@ -88,3 +88,72 @@ export async function decryptParadoxBlocks(bytes: Uint8Array, header: number, bl
   }
   return decoded;
 }
+
+/** pxlib px_encrypt_chunk: the same permutation and tables as the reader.
+ * Source and destination may alias; scratch is owned by this invocation. */
+function encryptChunk(bytes: Uint8Array, scratch: Uint8Array, first: number, second: number,
+  chunk: number, block: number): void {
+  for (let x = 0; x < 256; x++) {
+    const y = (c[x]! - block) & 255;
+    scratch[y] = bytes[x]! ^ a[(x + first) & 255]! ^ b[(y + second) & 255]! ^ c[(y + chunk) & 255]!;
+  }
+  bytes.set(scratch);
+}
+
+/** Encrypt an owned table. Legacy Paradox stores its recoverable key in the
+ * header; this obfuscation neither authenticates data nor hides the schema. */
+export async function encryptParadoxTable(bytes: Uint8Array, context: CapabilityContext): Promise<void> {
+  context.signal.throwIfAborted();
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes.length < 120) throw new TypeError("Invalid Paradox encryption layout");
+  const header = view.getUint16(2, true), blockSize = bytes[5]! * 1024, payload = bytes.length - header;
+  if (header < 120 || payload < 0 || !blockSize || payload % blockSize)
+    throw new TypeError("Invalid Paradox encryption layout");
+  // Admit the maximum password copy/expansion/checksum and all table/chunk
+  // copies before invoking the host or allocating secret material.
+  if (1536 + bytes.length + payload > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
+    throw new SsconvertError("resource-limit", "ssconvert Paradox encryption work limit exceeded");
+  function unsupported(message: string): never {
+    throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: encrypted Paradox ${message}`);
+  }
+  if (!context.password) unsupported("export requires a password capability");
+  let secret: string | Uint8Array | undefined;
+  try {
+    secret = await context.password.read(Object.freeze({ purpose: "encrypt", format: "paradox", algorithm: "paradox",
+      revision: 12, encoding: "bytes", maxBytes: 256, signal: context.signal,
+      ...(context.outputFilename === undefined ? {} : { outputFilename: context.outputFilename }) }));
+  } catch { context.signal.throwIfAborted(); unsupported("password acquisition failed"); }
+  context.signal.throwIfAborted();
+  if (secret === undefined) unsupported("password required");
+  if (!(secret instanceof Uint8Array) || !secret.length || secret.length > 256 || secret[0] === 0)
+    unsupported("password encoding or length");
+  const password = new Uint8Array(secret), state = new Uint8Array(256), scratch = new Uint8Array(256);
+  let key = 0;
+  try {
+    const terminator = password.indexOf(0), length = terminator < 0 ? password.length : terminator;
+    for (let i = 0; i < 256; i++) state[i] = password[i % length]!;
+    encryptChunk(state, scratch, state[0]!, state[1]!, state[2]!, state[3]!);
+    const partial = state[0]! | state[1]! << 8;
+    state.set(password.subarray(0, length));
+    for (let i = length; i < 256; i++) state[i] = a[state[i - length]!]! ^ i;
+    encryptChunk(state, scratch, state[0]!, state[20]!, state[40]!, state[255]!);
+    let even = 0, odd = 0;
+    for (let i = 0; i < 256; i += 2) { even ^= state[i]!; odd ^= state[i + 1]!; }
+    key = (((odd << 8 | even) || 1) << 16 | partial) >>> 0;
+    password.fill(0); state.fill(0);
+    let chunks = 0;
+    for (let start = header, block = 1; start < bytes.length; start += blockSize, block++) {
+      for (let chunk = 0; chunk < blockSize / 256; chunk++) {
+        context.signal.throwIfAborted();
+        const offset = start + chunk * 256;
+        encryptChunk(bytes.subarray(offset, offset + 256), scratch, key & 255, key >>> 8 & 255, chunk, block);
+        if (++chunks % 128 === 0) {
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          context.signal.throwIfAborted();
+        }
+      }
+    }
+    context.signal.throwIfAborted();
+    view.setUint32(92, key, true);
+  } finally { password.fill(0); state.fill(0); scratch.fill(0); key = 0; }
+}

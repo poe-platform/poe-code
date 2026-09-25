@@ -89,6 +89,14 @@ export interface PasswordCapability {
     revision: "1.2" | "libreoffice";
     /** ODF passwords are UTF-8 strings or explicitly encoded UTF-8 bytes. */
     encoding: "utf8";
+  } | {
+    format: "paradox";
+    algorithm: "paradox";
+    revision: 12;
+    purpose: "encrypt";
+    /** Explicit bytes only, 1–256 total. Native NUL termination applies;
+     * an empty effective password cannot produce an encrypted table. */
+    encoding: "bytes";
   })>): Promise<string | Uint8Array | undefined>;
 }
 /** Trusted cryptographic randomness. The host must provide fresh, unpredictable bytes. */

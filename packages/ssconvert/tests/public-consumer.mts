@@ -26,6 +26,14 @@ const config: EngineConfig = { codecs: [], limits: context.limits, environment: 
       const encoding: "bytes" | "utf16le" = request.encoding;
       const revision: number = request.revision;
       if (!algorithm || !encoding || revision < 1) throw new Error("Invalid public BIFF password request");
+    } else if (request.format === "paradox") {
+      const algorithm: "paradox" = request.algorithm;
+      const encoding: "bytes" = request.encoding;
+      const revision: 12 = request.revision;
+      const purpose: "encrypt" = request.purpose;
+      const maximum: number = request.maxBytes;
+      if (!algorithm || !encoding || revision !== 12 || purpose !== "encrypt" || maximum !== 256)
+        throw new Error("Invalid public Paradox password request");
     } else {
       const algorithm: "aes-cbc" | "aes-gcm" | "blowfish-cfb8" | "blowfish-cfb64" | "mixed" = request.algorithm;
       const encoding: "utf8" = request.encoding;

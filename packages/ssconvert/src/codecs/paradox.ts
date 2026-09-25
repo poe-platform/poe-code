@@ -5,7 +5,8 @@ import { databaseInput, databaseText, databaseNumber, databaseNumeric } from "./
 import { recordSheet, enteredRecord } from "./record-text.js";
 import { renderCellText } from "../formatting.js";
 import { encodeText } from "../encoding/encode.js";
-import { decryptParadoxBlocks } from "./paradox-encryption.js";
+import { decryptParadoxBlocks, encryptParadoxTable } from "./paradox-encryption.js";
+import { exportOptionPairs } from "../cli/export-options.js";
 
 interface Field { name: string; type: number; length: number; precision: number }
 const fieldLetters = "?ADSI$N??L??MBFOG???T@+#Y";
@@ -172,7 +173,24 @@ export async function readParadox(bytes: Uint8Array, context: CapabilityContext)
   return { sheets: [{ id: name, name, size: { columns: 256, rows: 65536 }, cells }], activeSheet: name };
 }
 
-export async function writeParadox(book: Workbook, _options: readonly string[], context: CapabilityContext): Promise<Uint8Array> {
+export async function writeParadox(book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> {
+  context.signal.throwIfAborted();
+  let encrypted = false;
+  for (const text of options) for (const [key, value] of exportOptionPairs(text)) if (key === "encryption") {
+    if (value !== "paradox") throw new SsconvertError("invalid-request", "Invalid Paradox encryption profile");
+    encrypted = true;
+  }
+  const bytes = await writeParadoxTable(book, context);
+  if (encrypted) {
+    try {
+      if (!bytes.length) throw new SsconvertError("invalid-request", "Invalid Paradox schema for encrypted export");
+      await encryptParadoxTable(bytes, context);
+    } catch (error) { bytes.fill(0); throw error; }
+  }
+  return bytes;
+}
+
+async function writeParadoxTable(book: Workbook, context: CapabilityContext): Promise<Uint8Array> {
   const sheet = recordSheet(book), input = databaseInput(new Uint8Array(), context);
   const cells = new Map<string, Cell>(); let endRow = 0, endColumn = 0, startRow = Infinity;
   async function warning(message: string) { await context.diagnostic?.({ code: "paradox", severity: "warning", message }); }

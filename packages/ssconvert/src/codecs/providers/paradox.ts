@@ -19,6 +19,7 @@ export default {
       "id": "paradox",
       "direction": "write",
       write: writeParadox,
+      exportOptionRules: { encryption: { kind: "enum", values: ["paradox"] } },
       "description": "Paradox database (*.db)",
       "extensions": [
         "db"

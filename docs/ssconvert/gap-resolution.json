@@ -21,8 +21,16 @@
         "pxlibSha256": "5d280ab28e435f35e9f8635564572750f8f9b269e2b80b2617e8c39fa1557f6f",
         "moduleSha256": "55c003fa359923fbd471e5d7068a20855c7d3ebbac98ddd74e7274f6aa2b1b28",
         "configuration": "Original plugin source built against the retained Gnumeric headers/library and pxlib with libgsf. Private header shim includes gnumeric-features.h and defines GETTEXT_PACKAGE as gnumeric; XML translation-tag underscores removed. pxlib uses -g -O2 -Wno-error=incompatible-function-pointer-types for its existing ssize_t/size_t callbacks. No algorithm/source edits.",
-        "qualification": "At 7e2c8879e, all six canonical encrypted inputs reopen with expected values (two v4 encoding warnings retained). A current public SDK plaintext table and five full-pxlib-encrypted copies reopen byte-exact: 145 rows, two physical blocks, ASCII/256-byte/high-byte passwords, empty stderr. This does not implement product encrypted export.",
-        "controlCsvSha256": "09143dc6fbca71fde69cc498c6fd339a6f3b835cf4e542320505dd4c15686925"
+        "qualification": "At 7e2c8879e, all six canonical encrypted inputs reopen with expected values (two v4 encoding warnings retained). A public SDK plaintext table and five full-pxlib-encrypted copies reopen byte-exact: 145 rows, two physical blocks, ASCII/256-byte/high-byte passwords, empty stderr. This establishes the native reader independently of product encrypted export.",
+        "controlCsvSha256": "09143dc6fbca71fde69cc498c6fd339a6f3b835cf4e542320505dd4c15686925",
+        "exporterQualification": {
+          "baseCandidate": "15366a7a1",
+          "sourceAggregateSha256": "7eacd7a9fdad28d45d208f664c1adb66f419ec68494189ff402ac026a38a0d35",
+          "sourceAggregateRule": "Sorted repository paths: UTF-8 path, NUL, binary SHA-256 digest; contracts.ts, codecs/paradox.ts, codecs/paradox-encryption.ts and codecs/providers/paradox.ts under packages/ssconvert/src.",
+          "profiles": "Plaintext; byte 61; ASCII test; ASCII 0123456789abcde; 256 bytes 61; bytes 80 e9 ff; bytes 61 00 7a.",
+          "result": "All seven actual compiled public SDK exports preserve all 145 rows on SDK and native Gnumeric readback across two physical blocks; each native CSV matches controlCsvSha256 with empty stderr. The actual compiled Shell test-password export matches the same native CSV. Shell absent/string/throwing-password, output-budget and invalid-schema controls retain the destination; preflight failures do not acquire passwords and no case requests entropy.",
+          "regressions": "34 memory-based tests include independent pxlib complete-file vectors, every admitted password length and physical block numbers 1/2/255/256/257. Focused cohort: 8 files, 113 tests passed. Visible missing-capability diagnostic screenshot inspected."
+        }
       }
     }
   },
@@ -55,7 +63,7 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "On-file-key encrypted imports match native records. The added Gnumeric Paradox plugin reads six canonical encrypted fixtures and six two-block current-writer/pxlib controls exactly. Public encrypted export still rejects encryption=paradox before password acquisition or writes. Wider profiles, companions, writing and final delivery qualification remain open."
+      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open."
     },
     {
       "id": "perl-date",

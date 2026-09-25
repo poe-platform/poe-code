@@ -146,7 +146,7 @@ export const defaultLimits: ResolvedShellLimits = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask",
-  "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
+  "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -645,6 +645,7 @@ export interface State {
   redirectAssignments?: ReadonlyMap<string, ShellValue>;
   lastArgument?: string;
   functionNames?: string[];
+  hashedCommands?: Map<string, string>;
 }
 
 const declarationArrays = Symbol("declarationArrays");
@@ -3450,7 +3451,7 @@ export class Runtime {
     if (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed) return undefined;
     if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
     let store = monitor.store;
-    let existing = store?.get("PIPESTATUS");
+    const existing = store?.get("PIPESTATUS");
     const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
     if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
     if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
@@ -5492,47 +5493,46 @@ export class Runtime {
       }
       return contextFs;
     };
-    const self = this;
     let cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
     let cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
+    const getShellPredicates = (): NonNullable<CommandContext["shellPredicates"]> => {
+      if (!cachedPredicates) {
+        cachedPredicates = {
+          variable: name => this.variable(state, name) !== undefined,
+          reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
+          option: name => {
+            const extension = state.extensions?.options.get(name);
+            if (extension) return extension.enabled;
+            if (name === "braceexpand") return state.braceexpand !== false;
+            if (name === "allexport") return !!state.allexport;
+            if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+            return false;
+          },
+          // Shell byte streams and virtual descriptors have no terminal capability.
+          terminal: () => false,
+        };
+        variablePresence.set(cachedPredicates, name => this.variablePresent(state, name, io));
+      }
+      return cachedPredicates;
+    };
+    const getInputBudget = (): NonNullable<CommandContext["inputBudget"]> => (cachedInputBudget ??= {
+      maxBytes: this.budget.limits.maxInputBytes,
+      check: totalBytes => {
+        this.commandSignal.throwIfAborted();
+        if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+        if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
+      },
+    });
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
-      get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
-        if (!cachedPredicates) {
-          cachedPredicates = {
-            variable: name => self.variable(state, name) !== undefined,
-            reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
-            option: name => {
-              const extension = state.extensions?.options.get(name);
-              if (extension) return extension.enabled;
-              if (name === "braceexpand") return state.braceexpand !== false;
-              if (name === "allexport") return !!state.allexport;
-              if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
-              return false;
-            },
-            // Shell byte streams and virtual descriptors have no terminal capability.
-            terminal: () => false,
-          };
-          variablePresence.set(cachedPredicates, name => self.variablePresent(state, name, io));
-        }
-        return cachedPredicates;
-      },
+      get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); },
       set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; },
       get fs() { return getContextFs(); },
       set fs(replacement: FileSystem) { contextFs = replacement; },
       signal: this.commandSignal,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
-      get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
-        return (cachedInputBudget ??= {
-          maxBytes: self.budget.limits.maxInputBytes,
-          check: totalBytes => {
-            self.commandSignal.throwIfAborted();
-            if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
-            if (totalBytes > self.budget.limits.maxInputBytes) self.budget.fail("maxInputBytes");
-          },
-        });
-      },
+      get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); },
       set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; },
       registerCleanup: (cleanup) => { scope.register(cleanup); },
       invoke: (name, args, options) => {
@@ -7409,6 +7409,85 @@ export class Runtime {
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
     if (command === "umask") return umaskBuiltin(context, state);
+    if (command === "hash") {
+      const hashArgs = [...args];
+      let reset = false;
+      let listMode = false;
+      let deleteMode = false;
+      let printTarget = false;
+      let customPath: string | undefined;
+      while (hashArgs[0]?.startsWith("-") && hashArgs[0] !== "-") {
+        const option = hashArgs.shift()!;
+        if (option === "--") break;
+        for (let i = 1; i < option.length; i++) {
+          const flag = option[i]!;
+          if (flag === "r") reset = true;
+          else if (flag === "l") listMode = true;
+          else if (flag === "d") deleteMode = true;
+          else if (flag === "t") printTarget = true;
+          else if (flag === "p") {
+            const inline = option.slice(i + 1);
+            customPath = inline.length > 0 ? inline : hashArgs.shift();
+            if (customPath === undefined) {
+              await this.diagnostic(context, "hash: -p: option requires an argument");
+              return 2;
+            }
+            break;
+          } else {
+            await this.diagnostic(context, `hash: -${flag}: invalid option`);
+            await writeDiagnostic(stderr, "hash: usage: hash [-lr] [-p pathname] [-dt] [name ...]\n");
+            return 2;
+          }
+        }
+      }
+      if (reset) state.hashedCommands?.clear();
+      if (printTarget && hashArgs.length === 0) {
+        await this.diagnostic(context, "hash: -t: option requires arguments");
+        return 1;
+      }
+      if (hashArgs.length === 0) {
+        if (!reset && state.hashedCommands?.size) {
+          for (const [name, target] of state.hashedCommands) {
+            await writeText(stdout, listMode ? `builtin hash -p ${target} ${name}\n` : `0\t${target}\n`);
+          }
+        }
+        return 0;
+      }
+      let status = 0;
+      const table = (state.hashedCommands ??= new Map<string, string>());
+      for (const name of hashArgs) {
+        if (deleteMode) {
+          if (!table.delete(name)) {
+            await this.diagnostic(context, `hash: ${name}: not found`);
+            status = 1;
+          }
+          continue;
+        }
+        if (customPath !== undefined) {
+          table.set(name, customPath);
+          continue;
+        }
+        if (printTarget) {
+          const existing = table.get(name) ?? (await this.searchPaths(name, state, false, true, false))[0];
+          if (existing === undefined) {
+            await this.diagnostic(context, `hash: ${name}: not found`);
+            status = 1;
+          } else {
+            await writeText(stdout, hashArgs.length > 1 ? `${name}\t${existing}\n` : `${existing}\n`);
+          }
+          continue;
+        }
+        const [resolved] = await this.searchPaths(name, state, false, true, false);
+        if (resolved !== undefined) {
+          table.set(name, resolved);
+        } else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh") {
+          await this.diagnostic(context, `hash: ${name}: not found`);
+          status = 1;
+        }
+      }
+      return status;
+    }
+
     if (command === "shopt") return this.shoptBuiltin(context, state);
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "mapfile" || command === "readarray") return this.mapfileBuiltin(context, state);

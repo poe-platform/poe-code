@@ -35,3 +35,14 @@ test("keywords precede PATH executables while path-only and all discovery retain
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
 });
+
+test("hash builtin supports -r, -p, -t, -d, and type discovery", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/bin");
+  await fs.writeFile("/bin/mytool", new TextEncoder().encode("#!/bin/sh\n"), { mode: 0o755 });
+  const shell = new Shell({ fs, env: { PATH: "/bin" } });
+  const result = await shell.exec("type -t hash; hash -r; hash mytool; hash -t mytool; hash -d mytool; hash -r");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "builtin\n/bin/mytool\n");
+});

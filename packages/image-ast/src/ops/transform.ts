@@ -505,7 +505,7 @@ export function compositeImage(
       overlay.width,
       overlay.height,
       layer.gravity ?? "center",
-      !Boolean(layer.tile)
+      !layer.tile
     );
     let startX: number;
     let startY: number;

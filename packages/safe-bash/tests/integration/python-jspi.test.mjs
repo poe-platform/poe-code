@@ -92,7 +92,7 @@ export { WebAssembly, fetch, location };
 `;
   const outputRoot = process.env.TMPDIR;
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
-    bundle: true, write: false, metafile: true, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
+    loader:{'.py':'text'}, bundle: true, write: false, metafile: true, platform: 'node', format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
     external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
     alias: { 'pinned-pyodide-loader': resolve(runtimeRoot, 'pyodide.mjs'),
@@ -110,6 +110,8 @@ export { WebAssembly, fetch, location };
         if (args.pluginData?.consumer) return;
         return plugin.resolve(args.path, {resolveDir:consumerRoot, kind:'import-statement', pluginData:{consumer:true}});
       });
+      plugin.onResolve({filter:/^python-consumer-qualification$/}, () => process.env.SAFE_BASH_PYTHON_HOSTED_CONSUMER ? {path:resolve(process.env.SAFE_BASH_PYTHON_HOSTED_CONSUMER)} : {path:'consumer',namespace:'python-consumer-stub'});
+      plugin.onLoad({filter:/.*/,namespace:'python-consumer-stub'}, () => ({contents:'export async function qualifyPythonLlm() {throw new Error("No hosted consumer configured");}',loader:'js'}));
       plugin.onResolve({ filter: /^python-static-assets$/ }, () => ({ path: 'assets', namespace: 'python-static-assets' }));
       plugin.onLoad({ filter: /.*/, namespace: 'python-static-assets' }, () => ({ contents: injection, loader: 'js', resolveDir: root }));
     } }] });
@@ -176,6 +178,24 @@ export { WebAssembly, fetch, location };
       assert.equal(shell.stderr, '');
       assert.deepEqual(shell.failures, []);
       assert.ok(shell.ticks > 0);
+    });
+    if (process.env.SAFE_BASH_PYTHON_HOSTED_CONSUMER) await check('actual consumer authorization, options and billing', async () => {
+      const response = await miniflare.dispatchFetch('http://fixture/consumer');
+      const result = await response.json();
+      assert.equal(response.status,200,JSON.stringify(result));
+      assert.equal(result.passed,true);
+      assert.deepEqual(result.failures,[]);
+      assert.deepEqual(result.callbacks,[]);
+    });
+    if (process.env.SAFE_BASH_PYTHON_HOSTED_CONSUMER) await check('hosted authentication and scratch cleanup', async () => {
+      const hosted = new Miniflare(convertV4MiniflareOptions({modules,compatibilityDate:'2026-09-17',cf:false,
+        bindings:{QUALIFICATION_TOKEN:'synthetic-hosted-token',QUALIFICATION_EXPIRES_AT:String(Date.now()+60000)},r2Buckets:['SCRATCH']}));
+      try {
+        assert.equal((await hosted.dispatchFetch('http://fixture/consumer',{method:'POST'})).status,403);
+        assert.equal((await hosted.dispatchFetch('http://fixture/consumer',{headers:{Authorization:'Bearer synthetic-hosted-token'}})).status,403);
+        const response = await hosted.dispatchFetch('http://fixture/cleanup',{method:'POST',headers:{Authorization:'Bearer synthetic-hosted-token'}});
+        assert.equal(response.status,200);assert.deepEqual(await response.json(),{empty:true});
+      } finally {await hosted.dispose();}
     });
     await check('asynchronous interpreter finalization', async () => {
       const finalizationResponse = await miniflare.dispatchFetch('http://fixture/finalization');
@@ -253,6 +273,8 @@ export { WebAssembly, fetch, location };
         assets.push({name, type:module.type, bytes:bytes.length, sha256:createHash('sha256').update(bytes).digest('hex')});
       }
       await writeFile(resolve(assetDirectory, 'manifest.json'), JSON.stringify({
+        consumerQualification:Boolean(process.env.SAFE_BASH_PYTHON_HOSTED_CONSUMER),
+        consumerRevision:process.env.SAFE_BASH_PYTHON_HOSTED_CONSUMER_REVISION,
         packageVersion:JSON.parse(readFileSync(resolve(consumerPackage, 'package.json'), 'utf8')).version,
         mainModule:'main.mjs', compatibilityDate:'2026-09-17', compatibilityFlags:[],
         miniflare:require('miniflare/package.json').version, workerd:require('workerd/package.json').version,

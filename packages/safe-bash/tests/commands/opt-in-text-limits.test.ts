@@ -37,19 +37,32 @@ async function run(command: string, args: string[], options: { stdin?: string; c
   return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
 }
 
+const finiteDefaults: Record<string, Record<string, number>> = {
+  column: { maxRows: 10_000, maxCells: 50_000, maxFields: 1_000, maxWidth: 65_536, maxRetainedBytes: 8_388_608 },
+  table: { maxGroupBytes: 8_388_608, maxGroupRecords: 4096 },
+  format: { maxRecordBytes: 1_048_576, maxNumericDigits: 1024 },
+  pr: { maxColumns: 256, maxPageWidth: 16_384, maxBufferedBytes: 8_388_608 },
+  xml: {
+    maxInputBytes: 8_388_608, maxOutputBytes: 8_388_608, maxSourceBytes: 65_536,
+    maxDepth: 64, maxNodes: 10_000, maxAttributes: 10_000,
+    maxAttributesPerElement: 128, maxNamespaces: 256, maxSteps: 1_000_000, maxResults: 100_000,
+  },
+};
+
 for (const [name, resolve] of Object.entries({ tree, du, column, table, inspection, format, file, pr, html,
   jq: (options: { limits?: object }) => resolveJqLimits(options.limits),
   xml: (options: { limits?: object }) => resolveXmlQueryLimits(options.limits),
   yq: (options: { limits?: object }) => limitsFor(options.limits),
   xan: (options: { limits?: object }) => validateOptions(options).limits,
 })) {
-  test(`${name} budgets are unlimited when omitted and independent when supplied`, () => {
+  test(`${name} budgets retain documented defaults and independent overrides`, () => {
     const defaults = resolve({});
+    assert.deepEqual(Object.fromEntries(Object.entries(defaults).filter(([, value]) => value !== Infinity)), finiteDefaults[name] ?? {});
     for (const [key, value] of Object.entries(defaults)) {
-      assert.equal(value, Infinity, key);
+      assert.equal(value, finiteDefaults[name]?.[key] ?? Infinity, key);
       const configured = resolve({ limits: { [key]: 123_456_789 } });
       assert.equal(configured[key as keyof typeof configured], 123_456_789, key);
-      for (const [other, amount] of Object.entries(configured)) if (other !== key) assert.equal(amount, Infinity, other);
+      for (const [other, amount] of Object.entries(configured)) if (other !== key) assert.equal(amount, finiteDefaults[name]?.[other] ?? Infinity, other);
     }
   });
 }
@@ -90,8 +103,9 @@ test("sed accepts more than the former instruction count and enforces an explici
   assert.equal(limited.exitCode, 2);
 });
 
-test("text regex compilation and awk fields have no implicit ceilings", async () => {
-  assert.doesNotThrow(() => new Pattern("(".repeat(65) + "x" + ")".repeat(65)));
+test("text regex compilation retains its depth bound while awk field budgets are opt-in", async () => {
+  assert.doesNotThrow(() => new Pattern("(".repeat(64) + "x" + ")".repeat(64)));
+  assert.throws(() => new Pattern("(".repeat(65) + "x" + ")".repeat(65)), /regular expression depth limit exceeded/);
   assert.doesNotThrow(() => new Pattern("x{1001}"));
   const result = await run("awk", ['BEGIN { NF=100001; print NF }'], { commands: createTextProgramCommands() });
   assert.equal(result.exitCode, 0, result.stderr);

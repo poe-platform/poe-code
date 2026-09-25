@@ -644,7 +644,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
     if (!(error instanceof JqParseError)) throw error;
     if (options.streamErrors) yield [error.diagnostic(), parser.path()];
     else if (options.sequence) await options.warning?.(`ignoring parse error: ${error.diagnostic()}${eof ? "" : " (need RS to resync)"}`);
-    else throw error;
+    else throw new JqError(`parse error: ${error.diagnostic()}`);
     failed = true;
   };
   let scanned = 0;
@@ -826,14 +826,9 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   } finally {
     if (!done) await iter.return?.();
   }
-  try {
-    budget.inputLocation.complete = true;
-    if (active && !failed) {
-      try { yield* values(parser.finish(options.sequence ? { line, column, eof: true } : undefined)); } catch (error) { yield* failure(error, true); }
-    }
-  } catch (error) {
-    if (!(error instanceof JqParseError)) throw error;
-    throw new JqError(`parse error: ${error.diagnostic()}`);
+  budget.inputLocation.complete = true;
+  if (active && !failed) {
+    try { yield* values(parser.finish(options.sequence ? { line, column, eof: true } : undefined)); } catch (error) { yield* failure(error, true); }
   }
 }
 

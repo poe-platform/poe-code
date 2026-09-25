@@ -89,6 +89,22 @@ test("native JSON grammar, large decimals and division diagnostics", async () =>
   assertNative(surrogate, ["-c", "."], '"\\uD83D\\uDE00"');
 });
 
+test("streamed JSON parse diagnostics retain locations at every input split", async () => {
+  for (const input of ['"\\uD800"', '[1,]', '{"a":}', '"bad\nstring"']) {
+    const bytes = Buffer.from(input);
+    for (let split = 1; split < bytes.length; split++) {
+      let closed = false;
+      const source = (async function* () {
+        try { yield bytes.subarray(0, split); yield bytes.subarray(split); }
+        finally { closed = true; }
+      })();
+      const result = await runWithBytes(["-c", "."], source);
+      assertNative(result, ["-c", "."], input);
+      assert.equal(closed, true);
+    }
+  }
+});
+
 test("depth limits cover inputs, constructed outputs, and source AST", async () => {
   for (const depth of [7, 8, 9]) {
     const source = "[".repeat(depth) + "0" + "]".repeat(depth);

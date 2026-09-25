@@ -60,29 +60,49 @@ function parseSingleTokenPageNumber(tok: string, totalPages: number): number {
 
 export function parseQpdfPageRange(rangeSpec: string, totalPages: number): number[] {
   let spec = rangeSpec.trim();
-  let parity: "odd" | "even" | undefined;
-  if (spec.endsWith(":odd")) {
-    parity = "odd";
-    spec = spec.slice(0, -4);
-  } else if (spec.endsWith(":even")) {
-    parity = "even";
-    spec = spec.slice(0, -5);
+  let wholeParity: "odd" | "even" | undefined;
+  const lastComma = spec.lastIndexOf(",");
+  const tailPart = lastComma >= 0 ? spec.slice(lastComma + 1) : spec;
+  if (!tailPart.includes("-") && (spec.endsWith(":odd") || spec.endsWith(":even"))) {
+    if (spec.endsWith(":odd")) {
+      wholeParity = "odd";
+      spec = spec.slice(0, -4);
+    } else {
+      wholeParity = "even";
+      spec = spec.slice(0, -5);
+    }
   }
 
-  const expandSubRange = (part: string): number[] => {
+  const expandSubRange = (rawPart: string): number[] => {
+    let part = rawPart.trim();
+    let subParity: "odd" | "even" | undefined;
+    if (part.endsWith(":odd")) {
+      subParity = "odd";
+      part = part.slice(0, -4);
+    } else if (part.endsWith(":even")) {
+      subParity = "even";
+      part = part.slice(0, -5);
+    }
+    let out: number[];
     if (part.includes("-")) {
       const [startStr, endStr] = part.split("-", 2);
       const start = parseSingleTokenPageNumber(startStr ?? "1", totalPages);
       const end = parseSingleTokenPageNumber(endStr ?? "z", totalPages);
-      const out: number[] = [];
+      out = [];
       if (start <= end) {
         for (let p = start; p <= end; p++) out.push(p);
       } else {
         for (let p = start; p >= end; p--) out.push(p);
       }
-      return out;
+    } else {
+      out = [parseSingleTokenPageNumber(part, totalPages)];
     }
-    return [parseSingleTokenPageNumber(part, totalPages)];
+    if (subParity === "odd") {
+      out = out.filter((_, idx) => idx % 2 === 0);
+    } else if (subParity === "even") {
+      out = out.filter((_, idx) => idx % 2 === 1);
+    }
+    return out;
   };
 
   let pages: number[] = [];
@@ -95,10 +115,9 @@ export function parseQpdfPageRange(rangeSpec: string, totalPages: number): numbe
       pages.push(...expandSubRange(part));
     }
   }
-
-  if (parity === "odd") {
+  if (wholeParity === "odd") {
     pages = pages.filter((_, idx) => idx % 2 === 0);
-  } else if (parity === "even") {
+  } else if (wholeParity === "even") {
     pages = pages.filter((_, idx) => idx % 2 === 1);
   }
   return pages;
@@ -416,7 +435,9 @@ export async function runQpdfCli(
       return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${inputFile}\n` };
     }
     // Check if /Encrypt exists in trailer without password first
-    const hasEncryptRef = new TextDecoder("latin1").decode(raw).includes("/Encrypt");
+    const decodedRaw = new TextDecoder("latin1").decode(raw);
+    const lastTrailerIdx = decodedRaw.lastIndexOf("trailer");
+    const hasEncryptRef = (lastTrailerIdx >= 0 ? decodedRaw.slice(lastTrailerIdx) : decodedRaw).includes("/Encrypt");
     if (isEncrypted) {
       return { exitCode: hasEncryptRef ? 0 : 2, stdout: "", stderr: "" };
     }
@@ -600,10 +621,15 @@ export async function runQpdfCli(
       if (!srcBytes) {
         return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${spec.file}\n` };
       }
-      const srcPw = spec.password ?? password;
-      const srcDoc = PdfDocument.load(srcBytes, srcPw !== undefined ? { password: srcPw } : {});
-      const pageNumbers = parseQpdfPageRange(spec.range, srcDoc.getPageCount());
-      loadedSpecs.push({ doc: srcDoc, indices: pageNumbers.map((p) => p - 1) });
+      try {
+        const srcPw = spec.password ?? password;
+        const srcDoc = PdfDocument.load(srcBytes, srcPw !== undefined ? { password: srcPw } : {});
+        const pageNumbers = parseQpdfPageRange(spec.range, srcDoc.getPageCount());
+        loadedSpecs.push({ doc: srcDoc, indices: pageNumbers.map((p) => p - 1) });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { exitCode: 2, stdout: "", stderr: `qpdf: ${spec.file}: ${msg}\n` };
+      }
     }
     if (collateCount !== undefined && loadedSpecs.length > 1) {
       const cursors = loadedSpecs.map(() => 0);
@@ -631,7 +657,13 @@ export async function runQpdfCli(
 
   // Apply rotations (--rotate=[+|-]angle:range)
   for (const rot of rotateSpecs) {
-    const pageNums = parseQpdfPageRange(rot.range, workingDoc.getPageCount());
+    let pageNums: number[];
+    try {
+      pageNums = parseQpdfPageRange(rot.range, workingDoc.getPageCount());
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { exitCode: 2, stdout: "", stderr: `qpdf: ${msg}\n` };
+    }
     for (const pNum of pageNums) {
       const page = workingDoc.getPage(pNum - 1);
       if (rot.relative) {
@@ -866,6 +898,9 @@ export async function runQpdfCli(
     });
   } else if (decrypt && workingDoc.cos.encryption) {
     // Strip encryption state and reserialize clean objects
+    if (workingDoc.cos.encryptRef) {
+      workingDoc.cos.objects.delete(workingDoc.cos.encryptRef.objectNumber);
+    }
     workingDoc.cos.encryptRef = undefined;
     workingDoc.cos.encryption = undefined;
     outBytes = serializeCosDocument({

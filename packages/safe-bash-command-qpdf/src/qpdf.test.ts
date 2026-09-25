@@ -345,4 +345,26 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(showImgRes.exitCode, 0);
     assert.match(showImgRes.stdout, /\/NestedIm1:.*\(8 x 6\)/);
   });
+  it("removes /Encrypt object on --decrypt, parses subrange :odd/:even, and returns exitCode 2 on invalid ranges (issue 1033)", async () => {
+    const doc = PdfDocument.create();
+    doc.addPage([612, 792]).drawText("Hello", { x: 72, y: 720, size: 12 });
+    const files = new Map<string, Uint8Array>([["/plain.pdf", doc.save()]]);
+
+    await runQpdfCli(["--encrypt", "u-pass", "o-pass", "256", "--", "/plain.pdf", "/enc.pdf"], files);
+    await runQpdfCli(["--decrypt", "--password=u-pass", "/enc.pdf", "/dec.pdf"], files);
+
+    const isEncAfterDecrypt = await runQpdfCli(["--is-encrypted", "/dec.pdf"], files);
+    assert.equal(isEncAfterDecrypt.exitCode, 2);
+    const reqPwAfterDecrypt = await runQpdfCli(["--requires-password", "/dec.pdf"], files);
+    assert.equal(reqPwAfterDecrypt.exitCode, 2);
+
+    assert.deepEqual(parseQpdfPageRange("1-4:odd,6", 6), [1, 3, 6]);
+    assert.deepEqual(parseQpdfPageRange("1-z:odd,2", 6), [1, 3, 5, 2]);
+    assert.deepEqual(parseQpdfPageRange("2,1-4:odd", 6), [2, 1, 3]);
+
+    const badPages = await runQpdfCli(["/plain.pdf", "--pages", ".", "99", "--", "/out.pdf"], files);
+    assert.equal(badPages.exitCode, 2);
+    const badRotate = await runQpdfCli(["--rotate=+90:99", "/plain.pdf", "/out.pdf"], files);
+    assert.equal(badRotate.exitCode, 2);
+  });
 });

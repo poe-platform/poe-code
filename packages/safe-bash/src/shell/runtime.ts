@@ -188,6 +188,13 @@ function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmeti
   return computed;
 }
 
+function publishCommandSpelling(state: State, description: string): void {
+  const monitor = stateMonitor(state);
+  monitor?.values.invalidate("BASH_COMMAND");
+  // Source admission bounds automatic text; charge its use during expansion.
+  (monitor?.raw ?? state).variables.BASH_COMMAND = description;
+}
+
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedShellLimits {
   const result = Object.assign({}, defaultLimits, ...limits) as ResolvedShellLimits;
   const commandLimits = resolveCommandLimits(...limits.map(value => value?.commandLimits));
@@ -3419,6 +3426,9 @@ export class Runtime {
       ) {
         return undefined;
       }
+      if (rawState.extensions && !rawState.extensions.eventDepth) {
+        publishCommandSpelling(rawState, commandSpelling(command));
+      }
       let fastAssigned: ShellValue | undefined;
       try {
         fastAssigned = this.fastValueWord(assignment.value, tracked, io, false, false, false, false, 0, diagnosticLine);
@@ -3429,9 +3439,6 @@ export class Runtime {
       const owner = monitor.internalOwner();
       const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        rawState.variables.BASH_COMMAND = commandSpelling(command);
-      }
       rawState.substitutionStatus = 0;
       publishVariable(tracked, assignment.name, fastAssigned);
       if (rawState.allexport) tracked.exported.add(assignment.name);
@@ -3455,6 +3462,9 @@ export class Runtime {
         const cmd = this.commands.get(w0Plain);
         if (cmd && defaultPredicateExecutors.has(cmd.execute)) {
           if (command.words.length > this.budget.limits.maxExpansionFields) return undefined;
+          if (rawState.extensions && !rawState.extensions.eventDepth) {
+            publishCommandSpelling(rawState, commandSpelling(command));
+          }
           predicateScratchWords.length = 0;
           try {
             for (let i = 0; i < command.words.length; i++) {
@@ -3478,9 +3488,6 @@ export class Runtime {
           const owner = monitor.internalOwner();
           const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
-          if (rawState.extensions && !rawState.extensions.eventDepth) {
-            rawState.variables.BASH_COMMAND = commandSpelling(command);
-          }
           rawState.substitutionStatus = 0;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           elem0.text.shellValue = statusChar;
@@ -3666,7 +3673,7 @@ export class Runtime {
         if (hasActiveExtensions(state) && !state.extensions!.eventDepth) {
           for (const command of pipeline.commands) {
             if (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional") {
-              state.variables.BASH_COMMAND = commandSpelling(command);
+              publishCommandSpelling(state, commandSpelling(command));
             }
           }
         }
@@ -3933,9 +3940,7 @@ export class Runtime {
     io[invocationScope].assertOpen();
     if (state.extensions && (command.kind === "simple" || command.kind === "arithmetic" || command.kind === "conditional")) {
       const description = commandSpelling(command);
-      // Automatic command text is bounded by source admission. Charge its use
-      // during expansion, rather than retaining it as a guest assignment.
-      if (!state.extensions.eventDepth) (stateMonitor(state)?.raw ?? state).variables.BASH_COMMAND = description;
+      if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
       if (hasActiveExtensions(state)) {
         io = { ...io, diagnosticLine: io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0) };
         if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
@@ -4283,7 +4288,7 @@ export class Runtime {
       if (command.kind === "case") {
         if (hasActiveExtensions(state)) {
           const description = `case ${command.subject.spelling ?? command.subject.plain ?? ""} in `;
-          if (!state.extensions.eventDepth) state.variables.BASH_COMMAND = description;
+          if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
           if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
         }
         const subject = (await this.word(command.subject, state, io, false)).join("");
@@ -4331,7 +4336,7 @@ export class Runtime {
             }
             if (hasActiveExtensions(state)) {
               const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
-              if (!state.extensions.eventDepth) state.variables.BASH_COMMAND = description;
+              if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
               if (await this.extensionEvent("command", state, io, state.status, description)) continue;
             }
             if (!state.extensions?.checkpoints.length) {

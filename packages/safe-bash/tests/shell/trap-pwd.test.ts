@@ -17,6 +17,18 @@ for (const extensions of [undefined, [trapExtension()]]) {
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, 'printf "%s" "$BASH_COMMAND"');
   });
+  for (const [source, stdout] of [
+    ['BASH_COMMAND=stale; saved=$BASH_COMMAND; printf "%s" "$saved"', "saved=$BASH_COMMAND"],
+    [`BASH_COMMAND=stale; trap 'printf "[%s]" "$BASH_COMMAND"' DEBUG; true; trap - DEBUG`, "[true][trap - DEBUG]"],
+  ] as const) test(`automatic command spelling after assignment ${extensions ? "configured" : "default"}: ${source}`, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), ...(extensions ? { extensions } : {}) });
+    context.after(() => shell.dispose());
+    for (const command of basicCommands()) shell.register(command);
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, stdout);
+  });
   for (const [source, status] of [
     ["trap 'true; exit' EXIT; exit 7", 7],
     ["trap 'false; exit' EXIT; exit 0", 0],

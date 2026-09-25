@@ -148,7 +148,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
   for (let index = 0; index < format.length;) {
     context.signal.throwIfAborted();
     if (escapes && format[index] === "\\") {
-      const named: Record<string, string> = { a: "\x07", b: "\b", e: "\x1b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v", "\\": "\\" };
+      const named: Record<string, string> = { a: "\x07", b: "\b", e: "\x1b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v", "\\": "\\", "\"": "\"" };
       const code = format[index + 1] ?? "";
       if (Object.hasOwn(named, code)) {
         append(named[code]!);
@@ -217,7 +217,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
       text = code === "w" && value === undefined ? "-" : timestamp(available(value, code));
     } else {
       const fields: Record<string, number | undefined> = { s: stat.size, a: stat.mode & 0o7777, f: stat.mode, i: stat.ino, h: stat.nlink, u: stat.uid, g: stat.gid, d: stat.dev, D: stat.dev,
-        b: stat.allocatedBytes === undefined ? undefined : Math.ceil(stat.allocatedBytes / 512),
+        B: 512, b: stat.allocatedBytes === undefined ? undefined : Math.ceil(stat.allocatedBytes / 512),
         o: stat.ioBlockSize, t: stat.rdevMajor, T: stat.rdevMinor };
       if (!Object.hasOwn(fields, code)) throw new FsError("ENOTSUP", { message: `unsupported stat format: %${code}` });
       const value = fields[code];

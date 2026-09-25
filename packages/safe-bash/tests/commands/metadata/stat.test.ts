@@ -261,3 +261,9 @@ test("stat filesystem mode follows links, validates operands and refuses unavail
   assert.equal(unavailable.stdout, "");
   assert.match(unavailable.stderr, /ENOTSUP/u);
 });
+
+test("stat supports %B block size and escaped double quotes in --printf", async () => {
+  const fs = await fixture();
+  assert.equal((await runMetadata("stat", ["-c", "%B", "file"], fs)).stdout, "512\n");
+  assert.equal((await runMetadata("stat", ["--printf", "\"%s\"", "file"], fs)).stdout, "\"4\"");
+});

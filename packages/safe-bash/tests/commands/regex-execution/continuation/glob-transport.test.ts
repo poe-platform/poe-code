@@ -128,10 +128,12 @@ for (const failure of ["messageerror", "match"] as const) test(`public ignore ${
   await backing.mkdir("/work");
   await backing.writeFile("/work/.ignore", Buffer.from("alpha.*\n"));
   await backing.writeFile("/work/alpha.ts", Buffer.from("hit\n"));
-  let listings = 0;
+  await backing.mkdir("/work/nested");
+  await backing.writeFile("/work/nested/beta.ts", Buffer.from("hit\n"));
+  const listings: string[] = [];
   const fs = new Proxy(backing, {
     get(target, property) {
-      if (property === "readdir") return (...args: Parameters<FileSystem["readdir"]>) => { listings++; return target.readdir(...args); };
+      if (property === "readdir") return (...args: Parameters<FileSystem["readdir"]>) => { listings.push(args[0]); return target.readdir(...args); };
       const value: unknown = Reflect.get(target, property);
       return typeof value === "function" ? value.bind(target) : value;
     },
@@ -141,9 +143,9 @@ for (const failure of ["messageerror", "match"] as const) test(`public ignore ${
   try {
     const result = await shell.exec("rg --files");
     assert.equal(result.exitCode, 2);
-    assert.equal(result.stdout, failure === "match" ? "alpha.ts\n" : "");
+    assert.equal(result.stdout, failure === "match" ? "alpha.ts\nnested/beta.ts\n" : "");
     assert.match(result.stderr, failure === "match" ? /invalid glob/u : /regex PROTOCOL/u);
-    assert.equal(listings, failure === "match" ? 1 : 0);
+    assert.deepEqual(listings, failure === "match" ? ["/work", "/work/nested"] : []);
     clean();
   } finally { await shell.dispose(); }
 });

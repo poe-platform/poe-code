@@ -151,6 +151,7 @@ export class Walker {
     const uniformCanonical = backing !== undefined && backing.capabilitiesFor === undefined && canonical !== "/dev" && !canonical.startsWith("/dev/");
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return true; }
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
+    const admitted = this.args.ignore ? await this.load(path, rules, repository) : undefined;
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[];
     try {
@@ -159,17 +160,17 @@ export class Walker {
     } catch (error) {
       this.context.signal.throwIfAborted();
       if (Number.isFinite(maxEntries) && error instanceof FsError && error.code === "EFBIG" && error.syscall === "readdir") {
-        await this.load(path, rules, repository);
+        if (!admitted) await this.load(path, rules, repository);
         throw new SearchError("filesystem entry limit exceeded");
       }
       throw error;
     }
     this.context.signal.throwIfAborted();
     if (entries.length > maxEntries) {
-      await this.load(path, rules, repository, entries);
+      if (!admitted) await this.load(path, rules, repository, entries);
       throw new SearchError("filesystem entry limit exceeded");
     }
-    const local = await this.load(path, rules, repository, entries);
+    const local = admitted ?? await this.load(path, rules, repository, entries);
     entries.sort((left, right) => compareEntryNames(left.name, right.name));
     for (const entry of entries) {
       const tickPending = this.limits.tick();

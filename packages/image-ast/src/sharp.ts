@@ -1035,9 +1035,72 @@ export class SharpInstance extends Duplex {
     if (!Array.isArray(images)) {
       throw new Error("Expected array for images to composite");
     }
+    const validBlends = [
+      "clear",
+      "source",
+      "over",
+      "in",
+      "out",
+      "atop",
+      "dest",
+      "dest-over",
+      "dest-in",
+      "dest-out",
+      "dest-atop",
+      "xor",
+      "add",
+      "saturate",
+      "multiply",
+      "screen",
+      "overlay",
+      "darken",
+      "lighten",
+      "colour-dodge",
+      "color-dodge",
+      "colour-burn",
+      "color-burn",
+      "hard-light",
+      "soft-light",
+      "difference",
+      "exclusion"
+    ];
+    const validGravities = [
+      "center",
+      "centre",
+      "north",
+      "east",
+      "south",
+      "west",
+      "northeast",
+      "southeast",
+      "southwest",
+      "northwest"
+    ];
     for (const img of images) {
       if (!img || typeof img !== "object") {
         throw new Error("Expected object for image to composite");
+      }
+      if (img.input === undefined) {
+        throw new Error(`Unsupported input '${img.input}' of type ${typeof img.input}`);
+      }
+      validateInputOptions(img as unknown as SharpInputOptions);
+      if (img.blend !== undefined && !validBlends.includes(img.blend)) {
+        throw new Error(`Expected valid blend name for blend but received ${img.blend} of type ${typeof img.blend}`);
+      }
+      if (img.tile !== undefined && typeof img.tile !== "boolean") {
+        throw new Error(`Expected boolean for tile but received ${img.tile} of type ${typeof img.tile}`);
+      }
+      if (img.premultiplied !== undefined && typeof img.premultiplied !== "boolean") {
+        throw new Error(`Expected boolean for premultiplied but received ${img.premultiplied} of type ${typeof img.premultiplied}`);
+      }
+      if (img.gravity !== undefined) {
+        const validG =
+          typeof img.gravity === "string"
+            ? validGravities.includes(img.gravity)
+            : typeof img.gravity === "number" && Number.isInteger(img.gravity) && img.gravity >= 0 && img.gravity <= 8;
+        if (!validG) {
+          throw new Error(`Expected valid gravity for gravity but received ${img.gravity} of type ${typeof img.gravity}`);
+        }
       }
       if ((img.top !== undefined) !== (img.left !== undefined)) {
         throw new Error("Expected both left and top to be set");

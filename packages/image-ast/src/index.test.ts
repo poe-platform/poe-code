@@ -2632,4 +2632,27 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const rot90 = await sharp(png).rotate(90, { background: "not-a-color" }).raw().toBuffer();
     expect([rot90[0], rot90[1], rot90[2]]).toEqual([255, 0, 0]);
   });
+
+  it("validates composite() layer blend, tile, gravity, premultiplied, input, and inputOptions matching sharp", async () => {
+    const png = await sharp({ create: { width: 8, height: 8, channels: 3, background: "red" } }).png().toBuffer();
+    const ov = await sharp({ create: { width: 2, height: 2, channels: 3, background: "blue" } }).png().toBuffer();
+
+    expect(() => sharp(png).composite([{ input: ov, blend: "bogus" as any }])).toThrow(
+      /Expected valid blend name for blend/
+    );
+    expect(() => sharp(png).composite([{ input: ov, tile: "yes" as any }])).toThrow(/Expected boolean for tile/);
+    expect(() => sharp(png).composite([{ input: ov, gravity: "bogus" as any }])).toThrow(
+      /Expected valid gravity for gravity/
+    );
+    expect(() => sharp(png).composite([{ input: ov, gravity: 99 as any }])).toThrow(
+      /Expected valid gravity for gravity/
+    );
+    expect(() => sharp(png).composite([{ input: ov, premultiplied: "yes" as any }])).toThrow(
+      /Expected boolean for premultiplied/
+    );
+    expect(() => sharp(png).composite([{} as any])).toThrow(/Unsupported input/);
+    expect(() => sharp(png).composite([{ input: ov, density: 0 }])).toThrow(
+      /Expected number between 1 and 100000 for density/
+    );
+  });
 });

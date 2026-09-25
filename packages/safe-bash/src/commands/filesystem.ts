@@ -36,16 +36,7 @@ const RMDIR_LONG_OPTIONS = Object.freeze({ parents: "p", verbose: "v", "ignore-f
 async function preflightOperands(
   context: CommandContext, operands: readonly string[], check: (operand: string) => Promise<void>,
 ): Promise<void> {
-  if (
-    operands.length <= 1 &&
-    !context.fs.capabilitiesFor &&
-    context.fs.capabilities.readOnly !== true &&
-    context.fs.capabilities.write !== false &&
-    context.fs.capabilities.delete !== false &&
-    context.fs.capabilities.mkdir !== false
-  ) {
-    return;
-  }
+  // One operand can contain a whole tree; checks may also snapshot metadata before reads change it.
   for (const operand of operands) {
     try { await check(operand); }
     catch (error) {

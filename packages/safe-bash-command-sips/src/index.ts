@@ -452,8 +452,27 @@ export async function runSipsCli(
 
         let finalOutPath = inPath;
         if (outTarget) {
-          if (inputPaths.length > 1 || outTarget.endsWith("/")) {
-            const base = inPath.split("/").pop() ?? inPath;
+          const normTarget = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
+          let isExistingDir = false;
+          for (const k of files.keys()) {
+            if (k.startsWith(`${normTarget}/`)) {
+              isExistingDir = true;
+              break;
+            }
+          }
+          if (inputPaths.length > 1 || outTarget.endsWith("/") || isExistingDir) {
+            const rawBase = inPath.split("/").pop() ?? inPath;
+            let base = rawBase;
+            if (targetFormat) {
+              const ext =
+                targetFormat === "jpeg"
+                  ? "jpg"
+                  : targetFormat === "tiff"
+                    ? "tif"
+                    : targetFormat;
+              const dotIdx = rawBase.lastIndexOf(".");
+              base = dotIdx > 0 ? `${rawBase.slice(0, dotIdx)}.${ext}` : `${rawBase}.${ext}`;
+            }
             const dir = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
             finalOutPath = `${dir}/${base}`;
           } else {

@@ -210,4 +210,33 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(padRaw[topIdx + 1]).toBe(120);
     expect(padRaw[topIdx + 2]).toBe(220);
   });
+
+  it("updates file extension when --out points to an existing directory or batch output with -s format (#59)", async () => {
+    const png80x40 = await makeSamplePng(80, 40);
+    const png60x90 = await makeSamplePng(60, 90);
+    const files = new Map<string, Uint8Array>([
+      ["/work/a.png", png80x40],
+      ["/work/b.png", png60x90]
+    ]);
+
+    const batchRes = await runSipsCli(
+      ["-Z", "30", "-s", "format", "jpeg", "/work/a.png", "/work/b.png", "--out", "/work/out"],
+      files
+    );
+    expect(batchRes.exitCode).toBe(0);
+    expect(files.has("/work/out/a.jpg")).toBe(true);
+    expect(files.has("/work/out/b.jpg")).toBe(true);
+    const metaA = await sharp(files.get("/work/out/a.jpg")!).metadata();
+    expect(metaA.format).toBe("jpeg");
+    expect(metaA.width).toBe(30);
+    expect(metaA.height).toBe(15);
+
+    // Single file when /work/out already exists as a directory (contains /work/out/a.jpg)
+    const singleRes = await runSipsCli(
+      ["-s", "format", "webp", "/work/a.png", "--out", "/work/out"],
+      files
+    );
+    expect(singleRes.exitCode).toBe(0);
+    expect(files.has("/work/out/a.webp")).toBe(true);
+  });
 });

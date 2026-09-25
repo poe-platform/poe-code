@@ -35,10 +35,19 @@ export class AwkRuntime {
   private argument = 1;
   private sawFile = false;
   private defaultUsed = false;
-  private fields: Scalar[] = [];
+  private rawFields: Scalar[] = [];
+  private get fields(): Scalar[] { return this.ensureFields(); }
+  private set fields(v: Scalar[]) { this.rawFields = v; }
+  private fieldStarts = new Int32Array(64);
+  private fieldEnds = new Int32Array(64);
+  private fieldCount = 0;
+  private fieldsMaterialized = true;
+  private fieldGeneration = 1;
+  private lazyFieldGen = new Int32Array(64);
+  private lazyFields: Scalar[] = new Array(64);
   private fieldBytes = 0;
   private record = "";
-  private recordValue: Scalar = string("");
+  private recordValue: Scalar | undefined = string("");
   private entries = 0;
   private phase = "BEGIN";
   private status = 0;
@@ -98,7 +107,7 @@ export class AwkRuntime {
     if (name === "NF" && this.store(name) === this.variables) {
       const length = Math.trunc(number(value));
       if (!Number.isSafeInteger(length) || length < 0 || length > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive NF");
-      const fields = this.fields.slice(0, length);
+      const fields = this.ensureFields().slice(0, length);
       while (fields.length < length) fields.push(unset);
       this.rebuild(fields); return;
     }
@@ -240,16 +249,96 @@ export class AwkRuntime {
     }
     return parts;
   }
-  private setRecordSync(record: string, value: Scalar = inputValue(record)): void | Promise<void> {
+  private getField(index: number): Scalar {
+    if (index === 0) {
+      return this.recordValue ??= inputValue(this.record);
+    }
+    const slot = index - 1;
+    if (this.fieldsMaterialized) {
+      return this.rawFields[slot] ?? unset;
+    }
+    if (slot < 0 || slot >= this.fieldCount) return unset;
+    if (this.lazyFieldGen[slot] === this.fieldGeneration) {
+      return this.lazyFields[slot]!;
+    }
+    const val = inputValue(this.record.slice(this.fieldStarts[slot]!, this.fieldEnds[slot]!));
+    this.lazyFieldGen[slot] = this.fieldGeneration;
+    this.lazyFields[slot] = val;
+    return val;
+  }
+  private ensureFields(): Scalar[] {
+    if (!this.fieldsMaterialized) {
+      const out: Scalar[] = new Array(this.fieldCount);
+      for (let i = 0; i < this.fieldCount; i++) {
+        out[i] = this.lazyFieldGen[i] === this.fieldGeneration
+          ? this.lazyFields[i]!
+          : inputValue(this.record.slice(this.fieldStarts[i]!, this.fieldEnds[i]!));
+      }
+      this.rawFields = out;
+      this.fieldsMaterialized = true;
+    }
+    return this.rawFields;
+  }
+  private setRecordSync(record: string, value?: Scalar): void | Promise<void> {
     this.budget.check(record);
-    const fields = this.splitSync(record, this.varText("FS"), this.varText("RS") === "");
-    if (!(fields instanceof Promise)) {
-      this.replaceRecord(record, fields, value);
+    const separator = this.varText("FS");
+    const paragraph = this.varText("RS") === "";
+    const maxFields = this.budget.options.maxFields ?? Infinity;
+    if (value === undefined && !paragraph && record.length < 256 && (separator === " " || separator.length === 1) && maxFields >= 64) {
+      this.budget.step(record.length);
+      let count = 0;
+      let fieldBytes = 0;
+      const starts = this.fieldStarts;
+      const ends = this.fieldEnds;
+      if (separator === " ") {
+        let start = -1;
+        for (let index = 0; index < record.length; index++) {
+          const ch = record.charCodeAt(index);
+          if (ch === 32 || ch === 9 || ch === 10) {
+            if (start >= 0) {
+              if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
+              starts[count] = start; ends[count] = index; fieldBytes += index - start; count++;
+              start = -1;
+            }
+          } else if (start < 0) start = index;
+        }
+        if (start >= 0) {
+          if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
+          starts[count] = start; ends[count] = record.length; fieldBytes += record.length - start; count++;
+        }
+      } else if (record !== "") {
+        let start = 0;
+        let idx: number;
+        while ((idx = record.indexOf(separator, start)) >= 0) {
+          if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
+          starts[count] = start; ends[count] = idx; fieldBytes += idx - start; count++;
+          start = idx + 1;
+        }
+        if (count >= maxFields || count >= 64) return this.setRecordSlow(record, separator, paragraph, value);
+        starts[count] = start; ends[count] = record.length; fieldBytes += record.length - start; count++;
+      }
+      this.retention.admit(this.record.length + this.fieldBytes, record.length + fieldBytes);
+      this.record = record;
+      this.fieldBytes = fieldBytes;
+      this.fieldCount = count;
+      this.fieldsMaterialized = false;
+      this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
+      this.recordValue = undefined;
+      this.variables.set("NF", numeric(count));
       return;
     }
-    return fields.then(resolved => { this.replaceRecord(record, resolved, value); });
+    return this.setRecordSlow(record, separator, paragraph, value);
   }
-  private async setRecord(record: string, value: Scalar = inputValue(record)): Promise<void> {
+  private setRecordSlow(record: string, separator: string, paragraph: boolean, value?: Scalar): void | Promise<void> {
+    const resolvedVal = value ?? inputValue(record);
+    const fields = this.splitSync(record, separator, paragraph);
+    if (!(fields instanceof Promise)) {
+      this.replaceRecord(record, fields, resolvedVal);
+      return;
+    }
+    return fields.then(resolved => { this.replaceRecord(record, resolved, resolvedVal); });
+  }
+  private async setRecord(record: string, value?: Scalar): Promise<void> {
     await this.setRecordSync(record, value);
   }
   private replaceRecord(record: string, fields: Scalar[], value: Scalar = string(record)): void {
@@ -259,7 +348,7 @@ export class AwkRuntime {
       fieldBytes += textSize(field);
     }
     this.retention.admit(this.record.length + this.fieldBytes, record.length + fieldBytes);
-    this.record = record; this.fields = fields; this.fieldBytes = fieldBytes;
+    this.record = record; this.fields = fields; this.fieldCount = fields.length; this.fieldsMaterialized = true; this.fieldBytes = fieldBytes;
     this.recordValue = value.kind === "string" || value.kind === "numeric" ? { ...value, text: this.record } : value;
     this.variables.set("NF", numeric(fields.length));
   }
@@ -307,10 +396,10 @@ export class AwkRuntime {
       const index = Math.trunc(number(await this.scalarExpression(expression.index)));
       if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
       return {
-        get: () => index === 0 ? this.recordValue : this.fields[index - 1] ?? unset,
+        get: () => this.getField(index),
         set: value => {
           if (index === 0) return this.setRecord(this.asText(value), value);
-          const fields = this.fields.slice();
+          const fields = this.ensureFields().slice();
           while (fields.length < index) fields.push(unset);
           fields[index - 1] = value; this.rebuild(fields);
         },
@@ -346,12 +435,12 @@ export class AwkRuntime {
         if (!(idxVal instanceof Promise)) {
           const index = Math.trunc(number(idxVal));
           if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
-          return index === 0 ? this.recordValue : this.fields[index - 1] ?? unset;
+          return this.getField(index);
         }
         return idxVal.then(resolved => {
           const index = Math.trunc(number(resolved));
           if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
-          return index === 0 ? this.recordValue : this.fields[index - 1] ?? unset;
+          return this.getField(index);
         });
       }
       case "array": {
@@ -745,6 +834,10 @@ export class AwkRuntime {
             const branch = truth(cond) ? statement.yes : statement.no;
             return branch ? this.executeSync(branch) : undefined;
           }
+          return cond.then(resolved => {
+            const branch = truth(resolved) ? statement.yes : statement.no;
+            return branch ? this.executeSync(branch) : undefined;
+          });
         }
       }
     }
@@ -865,7 +958,7 @@ export class AwkRuntime {
     this.outputs.clear();
     this.releaseStore(this.variables);
     this.retention.release(this.record.length + this.fieldBytes);
-    this.record = ""; this.fields = []; this.fieldBytes = 0;
+    this.record = ""; this.fields = []; this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.recordValue = unset;
     this.context.signal.throwIfAborted();
     if (failed) throw failure;

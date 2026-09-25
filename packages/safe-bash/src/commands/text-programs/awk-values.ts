@@ -7,12 +7,21 @@ export type Scalar = { readonly kind: "number"; readonly number: number }
 export class AwkArray { readonly entries = new Map<string, Scalar>(); }
 export type Value = Scalar | AwkArray;
 export const unset: Scalar = Object.freeze({ kind: "unset" });
-export const numeric = (number: number): Scalar => ({ kind: "number", number });
-export const string = (text: string): Scalar => ({ kind: "string", text });
+const SMALL_NUMERICS: readonly Scalar[] = Array.from({ length: 4098 }, (_, i) => Object.freeze({ kind: "number" as const, number: i - 1 }));
+const SMALL_NUMERIC_STRINGS: readonly Scalar[] = Array.from({ length: 1024 }, (_, i) => Object.freeze({ kind: "numeric" as const, text: String(i), number: i }));
+const EMPTY_STRING_SCALAR: Scalar = Object.freeze({ kind: "string", text: "" });
+const INPUT_STRING_CACHE_KEYS = new Array<string>(64);
+const INPUT_STRING_CACHE_VALS = new Array<Scalar>(64);
+
+export const numeric = (n: number): Scalar =>
+  (n | 0) === n && n >= -1 && n <= 4096 && (n !== 0 || 1 / n > 0)
+    ? SMALL_NUMERICS[n + 1]!
+    : { kind: "number", number: n };
+export const string = (text: string): Scalar => (text.length === 0 ? EMPTY_STRING_SCALAR : { kind: "string", text });
 
 export function inputValue(text: string): Scalar {
   const len = text.length;
-  if (len === 0) return string(text);
+  if (len === 0) return EMPTY_STRING_SCALAR;
   const first = text.charCodeAt(0);
   if (first >= 48 && first <= 57 && len <= 15) {
     let num = first - 48;
@@ -25,10 +34,21 @@ export function inputValue(text: string): Scalar {
       }
       num = num * 10 + (c - 48);
     }
-    if (allDigits) return { kind: "numeric", text, number: num };
+    if (allDigits) {
+      if (num < 1024 && (len === 1 || first !== 48)) return SMALL_NUMERIC_STRINGS[num]!;
+      return { kind: "numeric", text, number: num };
+    }
   }
   if (first > 57 || (first < 48 && first !== 32 && first !== 9 && first !== 10 && first !== 13 && first !== 43 && first !== 45 && first !== 46)) {
-    return string(text);
+    if (len <= 12) {
+      const slot = ((first * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
+      if (INPUT_STRING_CACHE_KEYS[slot] === text) return INPUT_STRING_CACHE_VALS[slot]!;
+      const val: Scalar = Object.freeze({ kind: "string", text });
+      INPUT_STRING_CACHE_KEYS[slot] = text;
+      INPUT_STRING_CACHE_VALS[slot] = val;
+      return val;
+    }
+    return { kind: "string", text };
   }
   return /^[ \t\r\n]*[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?[ \t\r\n]*$/u.test(text)
     ? { kind: "numeric", text, number: Number(text) } : string(text);

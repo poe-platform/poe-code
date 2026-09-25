@@ -18,9 +18,10 @@ Browser resources and action duration are unlimited by default. Each optional co
 | `limits.maxSessions`      | Unlimited |
 | `limits.actionTimeoutMs`  | Unlimited |
 | `limits.maxTabs`          | Unlimited |
-| `limits.maxSnapshotBytes` | Unlimited |
 | `limits.maxSnapshotRefs`  | Unlimited |
 | `limits.maxArtifactBytes` | Unlimited |
+
+Snapshots have no byte limit. Legacy `limits.maxSnapshotBytes` values are ignored.
 
 `billing` is unsupported and rejected. Invocations provide `args`, `env`, `signal`,
 `write(text)` and optional `writeArtifact(bytes, filename)` and `registerCleanup`.

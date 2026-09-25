@@ -4,7 +4,9 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 /** Use the pinned provider's own accessibility tree; externally issued refs stay
  * scoped to the controller even when native engines reuse short e1-style IDs. */
 export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, options: {
-  maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
+  /** @deprecated Ignored. Snapshots have no byte limit. */
+  maxBytes?: number;
+  maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   prepareNextRef?: () => Promise<(native?: string) => string>;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number;
   prepareRefs?(refs: readonly string[]): Promise<void>;
@@ -20,8 +22,6 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
   options.signal?.throwIfAborted();
   if (typeof source !== 'string') throw new Error('Invalid native snapshot result');
   let snapshot = source;
-  const encoder = new TextEncoder();
-  if (source.length > options.maxBytes || encoder.encode(source).length > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   if (options.root) {
     const included: { line: string; indent: number }[] = [];
     const ancestors: { indent: number; included: boolean }[] = [];
@@ -98,7 +98,6 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     }
   }
   text += snapshot.slice(start);
-  if (text.length > options.maxBytes || encoder.encode(text).length > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   return { text, refs };
 }
 

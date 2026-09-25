@@ -5,7 +5,11 @@ import { captureNativePlaywrightJSON } from './native-json-snapshot.js';
 
 export class SnapshotCleanupError extends AggregateError {}
 
-export interface SnapshotLimits { readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number }
+export interface SnapshotLimits {
+  /** @deprecated Ignored. Snapshots have no byte limit. */
+  readonly maxSnapshotBytes?: number;
+  readonly maxSnapshotRefs?: number;
+}
 
 interface SnapshotResource { dispose(): Promise<void> }
 type SnapshotReference = {
@@ -68,8 +72,7 @@ async function captureStable<Result, Options extends { timeout?: number; root?: 
 }
 
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
-  for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
-  const maxSnapshotBytes = limits.maxSnapshotBytes ?? Infinity;
+  for (const value of [limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
   const maxSnapshotRefs = limits.maxSnapshotRefs ?? Infinity;
   let sequence = 0;
   let epoch = 0;
@@ -252,7 +255,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     if (page.ariaSnapshot || page._snapshotForAI) {
       const capturedEpoch = epoch;
       const native = prepareNativeCapture(page, options.captureReferences, options.timeout ?? 5000, signal);
-      const captured = await captureNativePlaywrightSnapshot(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
+      const captured = await captureNativePlaywrightSnapshot(page, { maxRefs: maxSnapshotRefs,
         nextRef: native.nextRef, ...(native.prepareRefs ? { prepareRefs: native.prepareRefs } : {}), ...(signal ? { signal } : {}),
         ...options,
       });
@@ -269,12 +272,10 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     const acquired = new Set<SnapshotResource>();
     const pending = new Map<string, SnapshotReference>();
     let text = '';
-    let bytes = 0;
     try {
       for (const frame of frames) {
         signal?.throwIfAborted();
         const capsule = await frame.evaluateHandle!(createFrameSnapshot, {
-          maxSnapshotBytes: maxSnapshotBytes - bytes,
           maxSnapshotRefs: maxSnapshotRefs - pending.size,
         });
         acquired.add(capsule);
@@ -303,11 +304,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         }
         signal?.throwIfAborted();
         const rendered = await capsule.evaluate((value, frameRefs) => value.render(frameRefs), frameRefs);
-        if (rendered.status === 'byte-limit') throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
         if (rendered.status !== 'ok' || typeof rendered.text !== 'string') throw new Error('Snapshot capture failed');
-        if (rendered.text.length > maxSnapshotBytes - bytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
-        bytes += new TextEncoder().encode(rendered.text).byteLength;
-        if (bytes > maxSnapshotBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
         text += rendered.text;
       }
       signal?.throwIfAborted();
@@ -398,7 +395,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture; captureReferences?: PlaywrightSnapshotReferenceCapture } = {}) => captureStable(async options => {
     const capturedEpoch = epoch;
     const native = prepareNativeCapture(page, options.captureReferences, options.timeout ?? 5000, signal);
-    const captured = await captureNativePlaywrightJSON(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
+    const captured = await captureNativePlaywrightJSON(page, { maxRefs: maxSnapshotRefs,
       nextRef: native.nextRef, ...(native.prepareRefs ? { prepareRefs: native.prepareRefs } : {}), ...(signal ? { signal } : {}), ...options });
     signal?.throwIfAborted();
     if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();

@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
 import type { PlaywrightPage } from "@poe-platform/safe-bash/playwright";
 import { captureBrowserSnapshotJSON } from "../src/browser-snapshot-json";
-import { serializeNativeSnapshot, type NativeSnapshotScript } from "../src/browser-snapshot-json-injected";
+import { serializeNativeSnapshot, type NativeSnapshotScript, type NativeSnapshotResult } from "../src/browser-snapshot-json-injected";
 import nativeSnapshot from "./fixtures/native-snapshot-876.json";
 
 for (const nested of [false, true]) test(`JSON serialization admits more than 20000 nodes with nested=${nested}`, () => {
@@ -13,14 +13,16 @@ for (const nested of [false, true]) test(`JSON serialization admits more than 20
 	const injected: NativeSnapshotScript = { _lastAriaSnapshotForQuery: {
 		root: { ...group, children: nested ? [group] : children }, iframeRefs: [],
 	} };
-	const result = serializeNativeSnapshot(injected, { maxBytes: Infinity, boxes: false });
+	const serialized = serializeNativeSnapshot(injected, { maxBytes: Infinity, boxes: false });
+	expect(typeof serialized).toBe("string");
+	const result = JSON.parse(serialized) as NativeSnapshotResult;
 	expect(result).not.toHaveProperty("limit");
 	if ("limit" in result) throw new Error(`Unexpected ${result.limit} admission limit`);
 	const buttons = nested ? result.nodes[0]!.children! : result.nodes;
 	expect(buttons).toHaveLength(20001);
 	expect(buttons[0]).toMatchObject({ name: "Probe0", ref: "e0" });
 	expect(buttons[20000]).toMatchObject({ name: "Probe20000", ref: "e20000" });
-	expect(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toEqual({ limit: "byte" });
+  expect(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toEqual(serializeNativeSnapshot(injected, { maxBytes: Infinity, boxes: false }));
 });
 
 test("zero snapshot timeout allows asynchronous capture and preserves caller cancellation", async () => {
@@ -31,7 +33,7 @@ test("zero snapshot timeout allows asynchronous capture and preserves caller can
 		return { full: "" };
 	});
 	const frame = { async _utilityContext() { return { async injectedScript() { return {
-		async evaluate() { return { nodes: [], iframeRefs: [] }; },
+		async evaluate() { return JSON.stringify({ nodes: [], iframeRefs: [] }); },
 	}; } }; } };
 	const page = { frames: () => [frame], _snapshotForAI: snapshot, _connection: { toImpl: () => ({ mainFrame: () => frame }) } };
 	const options = { signal: controller.signal, timeoutMs: 0, maxBytes: 1048576 };
@@ -50,12 +52,12 @@ test("serializes the captured native text and textbox schema", () => {
 		return { name: "", ...fields, props: {}, box: {}, children: text === undefined ? (children ?? []).map(nativeNode) : [text] };
 	};
 	const injected = { _lastAriaSnapshotForQuery: { root: { children: nativeSnapshot.map(nativeNode) }, iframeRefs: [] } } as unknown as NativeSnapshotScript;
-	expect(serializeNativeSnapshot(injected, { maxBytes: 65536, boxes: false }).nodes).toEqual(nativeSnapshot);
+	expect(JSON.parse(serializeNativeSnapshot(injected, { maxBytes: 65536, boxes: false })).nodes).toEqual(nativeSnapshot);
 });
 
 test("does not impose a frame count cap before native snapshot work", async () => {
 	const snapshot = vi.fn().mockResolvedValue({ full: "" });
-	const root = { _utilityContext: async () => ({ injectedScript: async () => ({ evaluate: async () => ({ nodes: [], iframeRefs: [] }) }) }) };
+	const root = { _utilityContext: async () => ({ injectedScript: async () => ({ evaluate: async () => JSON.stringify({ nodes: [], iframeRefs: [] }) }) }) };
 	const page = { frames: () => Array(129).fill({}), _snapshotForAI: snapshot, _connection: { toImpl: () => ({ mainFrame: () => root }) } };
 	await expect(
 		captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, {
@@ -67,10 +69,11 @@ test("does not impose a frame count cap before native snapshot work", async () =
 	expect(snapshot).toHaveBeenCalledOnce();
 });
 
-for (const nested of [false, true]) test(`JSON byte admission does not visit later siblings with nested=${nested}`, () => {
+for (const nested of [false, true]) test(`JSON capture retains later siblings beyond legacy byte limits with nested=${nested}`, () => {
   const children = ["oversized first child".repeat(100)];
-  Object.defineProperty(children, 1, { get() { throw new Error("unadmitted sibling read"); } });
+  children.push("last child");
   const node = { role: "group", name: "", props: {}, box: {}, children };
   const injected = { _lastAriaSnapshotForQuery: { root: { children: nested ? [node] : children }, iframeRefs: [] } } as unknown as NativeSnapshotScript;
-  expect(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toEqual({ limit: "byte" });
+  const result = JSON.parse(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false }));
+  expect(result.nodes).toEqual(nested ? [{ role: "group", children }] : children.map(text => ({ role: "text", text })));
 });

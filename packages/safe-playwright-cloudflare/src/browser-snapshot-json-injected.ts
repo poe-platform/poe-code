@@ -6,6 +6,8 @@ export type SnapshotNode = {
 		: PlaywrightSnapshotJSONNode[Key];
 };
 
+export type NativeSnapshotResult = { nodes: SnapshotNode[]; iframeRefs: string[] };
+
 interface NativeAriaNode {
 	role: string;
 	name: string;
@@ -30,24 +32,13 @@ export interface NativeSnapshotScript {
 	};
 }
 
-/** Runs in the native utility world. O(nodes + bytes), bounded before CDP transfer. */
+/** Runs in the native utility world. JSON avoids per-property CDP serialization overhead. */
 export function serializeNativeSnapshot(
 	injected: NativeSnapshotScript,
-	options: { maxBytes: number; boxes: boolean },
+	options: { maxBytes?: number; boxes: boolean },
 ) {
 	const snapshot = injected._lastAriaSnapshotForQuery;
 	if (!snapshot) throw new Error("Native browser snapshot is unavailable");
-	const encoder = new TextEncoder();
-	const limited = Number.isFinite(options.maxBytes);
-	let bytes = 2;
-	if (bytes > options.maxBytes) return { limit: "byte" as const };
-	const account = (node: SnapshotNode | string, parent: (SnapshotNode | string)[]) => {
-		if (!limited) return true;
-		// Empty child arrays are counted with their parent; descendants add only
-		// their own shallow encoding and the comma preceding each later sibling.
-		bytes += encoder.encode(JSON.stringify(node)).byteLength + Number(parent.length > 0);
-		return bytes <= options.maxBytes;
-	};
 	const rectangle = (node: NativeAriaNode) => {
 		const symbol = Object.getOwnPropertySymbols(node).find(
 			(key) => key.description === "element",
@@ -84,7 +75,7 @@ export function serializeNativeSnapshot(
 		return result;
 	};
 	const nodes: SnapshotNode[] = [];
-	// Admit each node before allocating traversal state for its descendants.
+	// Traverse iteratively so wide trees do not expand the JavaScript call stack.
 	const pending = [{ children: snapshot.root.children, index: 0, parent: nodes as (SnapshotNode | string)[] }];
 	while (pending.length) {
 		const entry = pending[pending.length - 1]!;
@@ -95,7 +86,6 @@ export function serializeNativeSnapshot(
 		const node = entry.children[entry.index++]!;
 		if (typeof node === "string") {
 			const text = entry.parent === nodes ? { role: "text", text: node } : node;
-			if (!account(text, entry.parent)) return { limit: "byte" as const };
 			entry.parent.push(text);
 			continue;
 		}
@@ -103,10 +93,8 @@ export function serializeNativeSnapshot(
 		if (node.children.length === 1 && typeof node.children[0] === "string")
 			result.text = node.children[0];
 		if (node.children.length && result.text === undefined) result.children = [];
-		if (!account(result, entry.parent)) return { limit: "byte" as const };
 		entry.parent.push(result);
 		if (result.children) pending.push({ children: node.children, index: 0, parent: result.children });
 	}
-	const result = { nodes, iframeRefs: snapshot.iframeRefs };
-	return result;
+	return JSON.stringify({ nodes, iframeRefs: snapshot.iframeRefs });
 }

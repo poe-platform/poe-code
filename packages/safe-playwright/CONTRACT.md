@@ -72,9 +72,10 @@ Omitted limits are unlimited, including when other limits are configured. Explic
 | `maxSessions` | Unlimited | Before context acquisition |
 | `actionTimeoutMs` | Unlimited | Uses Playwright timeout `0` when omitted; explicit values are passed to navigation, ref actions and screenshots; keyboard press has no public timeout option |
 | `maxTabs` | Unlimited | Before commanded tab creation |
-| `maxSnapshotBytes` | Unlimited | UTF-8 summary bytes before publication |
 | `maxSnapshotRefs` | Unlimited | Acquired handles before publication |
 | `maxArtifactBytes` | Unlimited | Screenshot / snapshot artifact bytes before copy or write |
+
+Snapshots have no byte limit; legacy `maxSnapshotBytes` values are ignored.
 
 The library materializes screenshot bytes and each frame's handle array before
 these limits can inspect them; these are output/retention limits, not browser

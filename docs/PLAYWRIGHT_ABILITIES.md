@@ -181,12 +181,12 @@ unsupported. The limits and defaults are:
 | `maxSessions` | 4 | Concurrent controller-managed sessions |
 | `maxTabs` | 16 | All tabs in a controller-managed session, including page-created popups; overflow retires that session |
 | `actionTimeoutMs` | 30000 | Existing built-in browser action timeouts |
-| `maxSnapshotBytes` | 262144 | Aggregate built-in snapshot UTF-8 output, admitted inside each frame before transfer |
-| `maxSnapshotRefs` | 1000 | Retained built-in snapshot nodes, admitted before native element-handle extraction |
+| `maxSnapshotRefs` | Unlimited | Retained built-in snapshot nodes, admitted before native element-handle extraction |
 | `maxArtifactBytes` | 16777216 | Each artifact read/write |
 | `maxCommandBytes` | 16777216 | Per-invocation aggregate text/artifact output (including help, version and response framing), custom-handler artifact input and generated code |
 
-All limits are positive safe integers. These are admission/transfer limits, not
+Snapshots have no byte limit. Legacy `maxSnapshotBytes` settings are ignored.
+All active limits are positive safe integers. These are admission/transfer limits, not
 an isolation or memory ceiling for arbitrary client code. Client handlers must
 honor cancellation and implement their backend's action timeout policy. Opaque,
 uncooperative host work cannot be forcibly preempted by this library.

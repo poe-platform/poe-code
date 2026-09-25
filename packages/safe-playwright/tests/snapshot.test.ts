@@ -28,11 +28,13 @@ test('shared snapshot binds identical elements and frames to distinct handles, w
   await assert.rejects(engine.resolve('e1'), /stale/);
 });
 
-test('snapshot limits fail closed, retire all acquired handles, and never reuse old refs', async () => {
+test('legacy snapshot byte limits allow full text and actionable refs', async () => {
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1, maxSnapshotRefs: 10 });
-  await assert.rejects(engine.capture(f.page), /limit/);
-  assert.equal(f.actions.filter(a => a.startsWith('dispose:')).length, 2);
+  assert.equal(await engine.capture(f.page), '- button "Same" [ref=e1]\n- button "Same" [ref=e2]\n- button "Same" [ref=e3]\n');
+  await (await engine.resolve('e3')).click();
+  await engine.invalidate();
+  assert.equal(f.actions.filter(a => a.startsWith('dispose:')).length, 3);
   await assert.rejects(engine.resolve('e1'), /stale/);
   const refs = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 1 });
   await assert.rejects(refs.capture(f.page), /limit/);
@@ -47,7 +49,7 @@ test('plain ARIA snapshots cannot establish actionable refs', async () => {
 });
 
 test('invalid limits and overlapping navigation during capture fail closed', async () => {
-  for (const limits of [{ maxSnapshotBytes: 0, maxSnapshotRefs: 1 }, { maxSnapshotBytes: 1, maxSnapshotRefs: Infinity }]) assert.throws(() => createSnapshotEngine(limits), /limit/i);
+  for (const limits of [{ maxSnapshotRefs: 0 }, { maxSnapshotRefs: Infinity }]) assert.throws(() => createSnapshotEngine(limits), /limit/i);
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
   const original = f.nodes[0]!.evaluate.bind(f.nodes[0]);
@@ -72,14 +74,14 @@ test('failed snapshot capture preserves both its limit error and handle cleanup 
   const f = fixture();
   const cleanup = new Error('handle cleanup failed');
   f.nodes[0]!.dispose = async () => { throw cleanup; };
-  const engine = createSnapshotEngine({ maxSnapshotBytes: 1, maxSnapshotRefs: 10 });
+  const engine = createSnapshotEngine({ maxSnapshotRefs: 1 });
   await assert.rejects(engine.capture(f.page), error => error instanceof AggregateError && error.errors.some((cause: unknown) => cause === cleanup) && error.errors.some((cause: unknown) => cause instanceof Error && cause.message.includes('limit')));
 });
 
 test('snapshot limits are retained independently of later caller mutation', async () => {
-  const f = fixture(); const limits = { maxSnapshotBytes: 1, maxSnapshotRefs: 10 };
+  const f = fixture(); const limits = { maxSnapshotRefs: 1 };
   const engine = createSnapshotEngine(limits);
-  limits.maxSnapshotBytes = Infinity;
+  limits.maxSnapshotRefs = Infinity;
   await assert.rejects(engine.capture(f.page), /limit/);
 });
 

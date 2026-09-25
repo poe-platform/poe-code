@@ -37,10 +37,10 @@ the user to a dashboard or login window through that command. The standard
 command vocabulary is retained; a configured dashboard ability is reported as
 supported without implying an authenticated website profile.
 
-The safe-bash controller has no default snapshot byte or reference cap. Configure
-`limits.maxSnapshotBytes` or `limits.maxSnapshotRefs` to opt in independently;
-setting another limit does not impose either snapshot cap. Other controller and
-provider resource limits still apply.
+Snapshots have no byte limit. Legacy `limits.maxSnapshotBytes` values are ignored,
+including on automatic snapshots after navigation. Reference counts are unlimited
+by default; `limits.maxSnapshotRefs` remains an optional reference cap. Other
+controller and provider resource limits still apply.
 
 The session and tab admission limits are also opt-in: omitted `maxSessions` and
 `maxTabs` do not impose a controller count cap. Explicit values remain positive
@@ -48,7 +48,7 @@ safe integers. Code executors receive `maxPages: Infinity` when no tab limit is
 configured and must preserve that sentinel; independent provider transport and
 creation budgets remain in effect.
 
-An explicit snapshot cap rejects the capture without publishing partial refs or
+An explicit snapshot reference cap rejects the capture without publishing partial refs or
 closing a healthy browser. Inspection and navigation remain available in the same
 context. A failed automatic snapshot can follow a completed navigation or click;
 inspect that page before repeating the action. Cancellation, provider loss, and

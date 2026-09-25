@@ -84,8 +84,14 @@ export default {
 					output = "";
 					await run(["snapshot", "--json"]);
 					assert.equal((output.match(/"role"\s*:\s*"button"/g) ?? []).length, 128);
+				} else if (scenario === "/recover-refs") {
+					await assert.rejects(run(["snapshot", "--json"]), /Snapshot ref limit exceeded/);
 				} else {
-					await assert.rejects(run(["snapshot", "--json"]), scenario === "/recover-refs" ? /Snapshot ref limit exceeded/ : /snapshot.*limit exceeded/i);
+					for (const args of [["snapshot"], ["snapshot", "--json"]]) {
+						output = "";
+						await run(args);
+						assert.ok(output.includes("x".repeat(2048)));
+					}
 				}
 				await run(["tab-list"]);
 				assert.equal(lease.context.pages()[0], page);
@@ -260,9 +266,9 @@ export default {
 					break;
 				}
 				case "/bounds":
-					await assert.rejects(
-						captureBrowserSnapshotJSON(page, { ...options, maxBytes: 128 }),
-						/snapshot byte limit/,
+					assert.deepEqual(
+						await captureBrowserSnapshotJSON(page, { ...options, maxBytes: 1 }),
+						await captureBrowserSnapshotJSON(page, options),
 					);
 					assert.ok((await captureBrowserSnapshotJSON(page, options)).length);
 					break;

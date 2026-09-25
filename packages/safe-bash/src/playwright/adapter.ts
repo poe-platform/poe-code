@@ -357,7 +357,7 @@ export interface PlaywrightSnapshotJSONNode {
   readonly cursor?: 'pointer';
   readonly box?: { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
 }
-/** maxBytes is Infinity when the caller omits the snapshot byte limit. */
+/** Snapshot byte limits are ignored. Providers receive maxBytes: Infinity for compatibility. */
 export type PlaywrightSnapshotJSONCapture = (page: PlaywrightPage, options: { readonly signal: AbortSignal; readonly timeoutMs: number; readonly maxBytes: number; readonly boxes?: boolean }) => Promise<readonly PlaywrightSnapshotJSONNode[]>;
 
 /** Host-owned immutable identity witnesses, in requested ref order. No browser resources
@@ -533,8 +533,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
           ...(resource.captureSnapshotJSON ? { captureSnapshotJSON: ((page, captureOptions) => {
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             captureOptions.signal.throwIfAborted();
-            if (captureOptions.maxBytes !== Infinity && (!Number.isSafeInteger(captureOptions.maxBytes) || captureOptions.maxBytes < 1)) return Promise.reject(new TypeError('Invalid Playwright snapshot capture options'));
-            const ownedOptions = Object.freeze({ ...captureOptions });
+            const ownedOptions = Object.freeze({ ...captureOptions, maxBytes: Infinity });
             const operation = Promise.resolve().then(async () => {
               ownedOptions.signal.throwIfAborted();
               const result = await resource.captureSnapshotJSON!(page, ownedOptions);

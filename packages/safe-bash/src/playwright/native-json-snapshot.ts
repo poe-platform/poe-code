@@ -4,7 +4,9 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 
 /** Serialize the native accessibility tree, keeping controller-issued refs. */
 export async function captureNativePlaywrightJSON(page: PlaywrightPage, options: {
-  maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
+  /** @deprecated Ignored. Snapshots have no byte limit. */
+  maxBytes?: number;
+  maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   prepareNextRef?: () => Promise<(native?: string) => string>;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture;
   prepareRefs?(refs: readonly string[]): Promise<void>;
@@ -14,11 +16,10 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   if (!page.ariaSnapshotJSON && !options.captureJSON) throw new Error('Native JSON accessibility snapshots unsupported by this browser');
   const tree = page.ariaSnapshotJSON
     ? await page.ariaSnapshotJSON({ mode: 'ai', timeout: options.timeout ?? 5000, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) })
-    : await options.captureJSON!(page, { signal, timeoutMs: options.timeout ?? 5000, maxBytes: options.maxBytes, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
+    : await options.captureJSON!(page, { signal, timeoutMs: options.timeout ?? 5000, maxBytes: Infinity, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
   signal.throwIfAborted();
   const encoded = JSON.stringify(tree);
   if (typeof encoded !== 'string') throw new Error('Invalid native JSON snapshot');
-  if (new TextEncoder().encode(encoded).byteLength > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   if (!Array.isArray(tree) || tree.some(node => typeof node === 'string')) throw new Error('Invalid native JSON snapshot');
   const fields = new Set(['role', 'name', 'text', 'children', 'checked', 'disabled', 'expanded', 'active', 'invalid', 'level', 'pressed', 'selected', 'ariaHidden', 'url', 'placeholder', 'ref', 'cursor', 'box']);
   const nativeRefs = new Set<string>();
@@ -85,6 +86,5 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   };
   const result = rewrite(selected, 0).filter((node): node is PlaywrightSnapshotJSONNode => typeof node !== 'string');
   signal.throwIfAborted();
-  if (new TextEncoder().encode(JSON.stringify(result)).byteLength > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   return { tree: result, refs };
 }

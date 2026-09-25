@@ -26,6 +26,8 @@ afterAll(async () => {
 for (const scenario of ["fidelity", "bounds", "frames", "abort", "public-frames", "handle-burst", "public-unlimited", "public-identities", "unlimited-nodes", "recover-bytes", "recover-refs", "recover-frames"]) {
 	test(`native structured snapshot ${scenario}`, async () => {
 		const response = await worker.dispatchFetch(`http://localhost/${scenario}`);
-		expect(await response.json()).toEqual({ ok: true });
+		const body = await response.text();
+		expect(response.status, body).toBe(200);
+		expect(JSON.parse(body)).toEqual({ ok: true });
 	}, 30000);
 }

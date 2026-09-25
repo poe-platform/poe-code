@@ -4,7 +4,10 @@ import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
 
 export interface PlaywrightControllerOptions {
   readonly adapter: PlaywrightAdapter;
-  readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number };
+  readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number;
+    /** @deprecated Ignored. Snapshots have no byte limit. */
+    readonly maxSnapshotBytes?: number;
+    readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number };
   /** Billing declarations are separate; reporting/charging is not implemented. */
   readonly billing?: never;
 }
@@ -29,12 +32,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
   const maxSessions = options.limits?.maxSessions ?? Infinity;
   const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 0;
-  const maxSnapshotBytes = options.limits?.maxSnapshotBytes;
   const maxSnapshotRefs = options.limits?.maxSnapshotRefs;
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? Infinity;
   const maxTabs = options.limits?.maxTabs ?? Infinity;
   let refSequence = 0;
-  for (const value of Object.values(options.limits ?? {})) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const [key, value] of Object.entries(options.limits ?? {})) if (key !== 'maxSnapshotBytes' && value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
   const tails = new Map<string, Promise<void>>();
   const work = new Set<Promise<unknown>>();
@@ -161,7 +163,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
             // claim this slot during retirement's asynchronous boundary.
             const occupied = [...sessions.values()].filter(s => s.state !== 'closed').length;
             if (occupied >= maxSessions) throw new Error('Playwright session capacity exceeded');
-            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${++refSequence}`) };
+            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotRefs }, () => `e${++refSequence}`) };
             sessions.set(parsed.session, active);
             const session = active;
             session.lease = await options.adapter.acquire({ acquisitionId: `playwright-${session.generation}`, session: session.name, browser: parsed.browser, headless: parsed.headless, signal: local.signal });

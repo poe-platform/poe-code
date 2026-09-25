@@ -154,9 +154,10 @@ has a separate first-build incompatibility with unused peer Electron assets in
 the qualified versions. See the [runtime qualification](docs/runtime-qualification.md)
 for the tested versions, restart results and diagnostic boundaries.
 
-Structured snapshots support at most 128 frames, including the main frame.
-Larger trees reject with `Browser snapshot frame limit exceeded` before native
-snapshot work starts.
+Text and structured snapshots have no byte limit, including when an older caller
+passes `maxSnapshotBytes` or snapshot-capture `maxBytes`. Structured snapshots
+traverse all captured frames and transfer JSON as text so large trees avoid CDP
+per-property serialization overhead. Native reference identities remain actionable.
 
 The reusable implementation and conformance cases were ported from Poe's
 agent-tool-service at `a03e2c70269656d767e775848e69e30254f27217`. Consumer persistence

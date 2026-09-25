@@ -1,7 +1,7 @@
-import { PlaywrightSnapshotLimitError } from "@poe-platform/safe-bash/playwright";
 import type { PlaywrightSnapshotJSONCapture } from "@poe-platform/safe-bash/playwright";
 import {
 	type SnapshotNode,
+	type NativeSnapshotResult,
 	serializeNativeSnapshot,
 } from "./browser-snapshot-json-injected.js";
 
@@ -10,7 +10,7 @@ interface NativeFrame {
 		injectedScript(): Promise<{
 			evaluate(
 				fn: typeof serializeNativeSnapshot,
-				options: { maxBytes: number; boxes: boolean },
+				options: { boxes: boolean },
 			): Promise<ReturnType<typeof serializeNativeSnapshot>>;
 		}>;
 	}>;
@@ -64,8 +64,6 @@ async function capture(
 	await page._snapshotForAI({ timeout: options.timeoutMs });
 	options.signal.throwIfAborted();
 	const root = page._connection.toImpl(page).mainFrame();
-	const encoder = new TextEncoder();
-	let remaining = options.maxBytes;
 	const forest: SnapshotNode[] = [];
 	const pending = [{ frame: root, target: forest }];
 	for (let index = 0; index < pending.length; index++) {
@@ -74,13 +72,10 @@ async function capture(
 		if (!entry) continue;
 		const context = await entry.frame._utilityContext();
 		const injected = await context.injectedScript();
-		const result = await injected.evaluate(serializeNativeSnapshot, {
-			maxBytes: remaining,
+		const serialized = await injected.evaluate(serializeNativeSnapshot, {
 			boxes: options.boxes ?? false,
 		});
-		if ("limit" in result) throw new PlaywrightSnapshotLimitError("Browser snapshot byte limit exceeded");
-		if (Number.isFinite(remaining))
-			remaining -= encoder.encode(JSON.stringify(result.nodes)).byteLength;
+		const result = JSON.parse(serialized) as NativeSnapshotResult;
 		for (const node of result.nodes) entry.target.push(node);
 		const byRef = indexNodes(result.nodes);
 		const children = await Promise.all(
@@ -99,12 +94,10 @@ async function capture(
 		);
 		for (const child of children) if (child) pending.push(child);
 	}
-	if (Number.isFinite(options.maxBytes) && encoder.encode(JSON.stringify(forest)).byteLength > options.maxBytes)
-		throw new PlaywrightSnapshotLimitError("Browser snapshot byte limit exceeded");
 	return forest;
 }
 
-/** O(nodes), sharing the optional renderer byte budget. */
+/** Index native references in O(nodes). */
 function indexNodes(nodes: SnapshotNode[]) {
 	const byRef = new Map<string, SnapshotNode>();
 	const pending: (SnapshotNode | string)[] = [...nodes];

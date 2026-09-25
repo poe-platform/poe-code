@@ -36,7 +36,10 @@ export interface PlaywrightControllerOptions {
   readonly persistence?: PlaywrightSessionPersistence;
   /** Opt in only when this controller and persistence are bound to one authenticated owner. */
   readonly namedSessionAttachment?: boolean;
-  readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number; readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number; readonly maxCommandBytes?: number };
+  readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number;
+    /** @deprecated Ignored. Snapshots have no byte limit. */
+    readonly maxSnapshotBytes?: number;
+    readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number; readonly maxCommandBytes?: number };
   /** Billing declarations are separate; reporting/charging is not implemented. */
   readonly billing?: never;
 }
@@ -148,15 +151,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 5_000;
   // Isolated startup and multiple native actions share this host budget, not one action's timeout.
   const codeExecutionTimeoutMs = options.limits?.codeExecutionTimeoutMs ?? 30_000;
-  const maxSnapshotBytes = options.limits?.maxSnapshotBytes ?? Infinity;
   const maxSnapshotRefs = options.limits?.maxSnapshotRefs ?? Infinity;
-  const snapshotLimits = { ...(options.limits?.maxSnapshotBytes === undefined ? {} : { maxSnapshotBytes }), ...(options.limits?.maxSnapshotRefs === undefined ? {} : { maxSnapshotRefs }) };
+  const snapshotLimits = { ...(options.limits?.maxSnapshotRefs === undefined ? {} : { maxSnapshotRefs }) };
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? Infinity;
   const maxTabs = options.limits?.maxTabs ?? Infinity;
   const maxCommandBytes = options.limits?.maxCommandBytes ?? Infinity;
   const abilities = registerPlaywrightAbilities(options.abilities, options.adapter !== undefined);
   let refSequence = 0;
-  for (const value of [options.limits?.maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotBytes, options.limits?.maxSnapshotRefs, options.limits?.maxArtifactBytes, options.limits?.maxTabs, options.limits?.maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const value of [options.limits?.maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotRefs, options.limits?.maxArtifactBytes, options.limits?.maxTabs, options.limits?.maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
   const pendingRestores = new Set<string>();
   const occupiedSessions = (except?: string) => new Set([

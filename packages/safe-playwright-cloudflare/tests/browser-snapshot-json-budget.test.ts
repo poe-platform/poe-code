@@ -9,27 +9,27 @@ function snapshot(children: unknown[]): NativeSnapshotScript {
 
 test("unlimited JSON snapshots retain more than 20000 native nodes", () => {
   const nodes = Array.from({ length: 20001 }, () => ({ role: "button", name: "Save", children: [], props: {}, box: {} }));
-  expect(serializeNativeSnapshot(snapshot(nodes), { maxBytes: Infinity, boxes: false }).nodes).toHaveLength(20001);
+  expect(JSON.parse(serializeNativeSnapshot(snapshot(nodes), { maxBytes: Infinity, boxes: false })).nodes).toHaveLength(20001);
 });
 
 test("native text retains compact leaf and mixed-child representations", () => {
   const node = { role: "paragraph", name: "", props: {}, box: {}, children: ["Hello"] };
   const mixed = { ...node, role: "generic", children: ["Before", node, "After"] };
-  expect(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: Infinity, boxes: false }).nodes).toEqual([
+  expect(JSON.parse(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: Infinity, boxes: false })).nodes).toEqual([
     { role: "generic", children: ["Before", { role: "paragraph", text: "Hello" }, "After"] },
   ]);
-  expect(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: 10, boxes: false })).toEqual({ limit: "byte" });
+  expect(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: 10, boxes: false })).toEqual(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: Infinity, boxes: false }));
 });
 
-test("an explicit JSON budget accepts its exact serialized size", () => {
+test("legacy JSON byte budgets do not truncate or reject snapshots", () => {
   const tree = snapshot([{ role: "generic", name: "", props: {}, box: {}, children: ["Before", { role: "button", name: "Save", props: {}, box: {}, children: [] }, "After"] }]);
   const result = serializeNativeSnapshot(tree, { maxBytes: Infinity, boxes: false });
-  const bytes = new TextEncoder().encode(JSON.stringify(result.nodes)).length;
+  const bytes = new TextEncoder().encode(JSON.stringify(JSON.parse(result).nodes)).length;
   expect(serializeNativeSnapshot(tree, { maxBytes: bytes, boxes: false })).toEqual(result);
-  expect(serializeNativeSnapshot(tree, { maxBytes: bytes - 1, boxes: false })).toEqual({ limit: "byte" });
+  expect(serializeNativeSnapshot(tree, { maxBytes: 1, boxes: false })).toEqual(result);
 });
 
-test.each([Infinity, 1024 * 1024])("snapshot traversal admits 129 child frames with byte budget %s", async maxBytes => {
+test.each([Infinity, 1])("snapshot traversal admits 129 child frames with byte budget %s", async maxBytes => {
   const refs = Array.from({ length: 129 }, (_, index) => `frame-${index}`);
   const frame = (tree: NativeSnapshotScript) => ({
     _utilityContext: async () => ({ injectedScript: async () => ({
@@ -50,7 +50,7 @@ test.each([Infinity, 1024 * 1024])("snapshot traversal admits 129 child frames w
   expect(result.every(node => node.children?.length === 1)).toBe(true);
 });
 
-test("public capture accepts its exact output byte budget and recovers after a smaller budget", async () => {
+test("public capture ignores legacy output byte budgets", async () => {
   const tree = snapshot([{ role: "button", name: "Save", children: [], props: {}, box: {} }]);
   const root = { _utilityContext: async () => ({ injectedScript: async () => ({
     evaluate: async (fn: typeof serializeNativeSnapshot, options: { maxBytes: number; boxes: boolean }) => fn(tree, options),
@@ -60,7 +60,7 @@ test("public capture accepts its exact output byte budget and recovers after a s
   const result = await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, options);
   const bytes = new TextEncoder().encode(JSON.stringify(result)).length;
   expect(await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, { ...options, maxBytes: bytes })).toEqual(result);
-  await expect(captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, { ...options, maxBytes: bytes - 1 })).rejects.toThrow("limit exceeded");
+  expect(await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, { ...options, maxBytes: 1 })).toEqual(result);
   expect(await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, options)).toEqual(result);
 });
 

@@ -436,7 +436,7 @@ test("command cancellation after publication does not close a transferred lease"
   assert.equal(closed, true);
 });
 
-test("JSON snapshot defaults cross the adapter without an implicit finite byte limit", async () => {
+test("JSON snapshots ignore legacy byte limits across the adapter", async () => {
   const f = fixture();
   const budgets: number[] = [];
   const tree = [{ role: "text", text: "x".repeat(300 * 1024) }];
@@ -457,12 +457,12 @@ test("JSON snapshot defaults cross the adapter without an implicit finite byte l
   const limited = createSnapshotEngine({ maxSnapshotBytes: 1024 });
   try {
     assert.deepEqual(await unlimited.captureJSON(page, undefined, { captureJSON: lease.captureSnapshotJSON }), tree);
-    await assert.rejects(limited.captureJSON(page, undefined, { captureJSON: lease.captureSnapshotJSON }), /Snapshot byte limit exceeded/);
-    assert.deepEqual(budgets, [Infinity, 1024]);
+    assert.deepEqual(await limited.captureJSON(page, undefined, { captureJSON: lease.captureSnapshotJSON }), tree);
+    assert.deepEqual(budgets, [Infinity, Infinity]);
     for (const maxBytes of [NaN, -Infinity, 0, -1, 1.5]) {
-      await assert.rejects(lease.captureSnapshotJSON(page, { signal: new AbortController().signal, timeoutMs: 1000, maxBytes }), /Invalid Playwright snapshot capture options/);
+      assert.deepEqual(await lease.captureSnapshotJSON(page, { signal: new AbortController().signal, timeoutMs: 1000, maxBytes }), tree);
     }
-    assert.equal(budgets.length, 2);
+    assert.deepEqual(budgets, Array(7).fill(Infinity));
   } finally {
     await unlimited.invalidate();
     await limited.invalidate();

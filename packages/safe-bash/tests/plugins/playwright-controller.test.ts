@@ -146,7 +146,7 @@ for (const limits of [undefined, { maxSessions: 1 }]) test(`omitted snapshot lim
   } finally { await controller.dispose(); }
 });
 
-for (const limits of [{ maxSnapshotBytes: 32 }, { maxSnapshotRefs: 1 }]) test(`explicit snapshot cap preserves the same browser ${JSON.stringify(limits)}`, async () => {
+for (const limits of [{ maxSnapshotRefs: 1 }]) test(`explicit snapshot cap preserves the same browser ${JSON.stringify(limits)}`, async () => {
   const f = fixture();
   const acquire = f.adapter.acquire.bind(f.adapter);
   const checkpoints: PlaywrightSessionCheckpoint[] = [];

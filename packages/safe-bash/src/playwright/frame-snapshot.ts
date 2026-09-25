@@ -1,12 +1,13 @@
 import type { SnapshotContentNode, SnapshotNode } from './adapter.js';
 
 export interface FrameSnapshotInput {
-  readonly maxSnapshotBytes: number;
+  /** @deprecated Ignored. Snapshots have no byte limit. */
+  readonly maxSnapshotBytes?: number;
   readonly maxSnapshotRefs: number;
 }
 
 export type FrameSnapshotStatus = 'ok' | 'ref-limit' | 'invalid-input' | 'failed';
-export type FrameSnapshotRenderStatus = FrameSnapshotStatus | 'byte-limit' | 'invalid-refs';
+export type FrameSnapshotRenderStatus = FrameSnapshotStatus | 'invalid-refs';
 
 export interface FrameSnapshotRenderResult {
   readonly status: FrameSnapshotRenderStatus;
@@ -26,7 +27,6 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
     readonly body: { readonly innerText?: string } | null;
     querySelectorAll(selector: string): ArrayLike<SnapshotNode>;
   };
-  const maxSnapshotBytes = input?.maxSnapshotBytes;
   const maxSnapshotRefs = input?.maxSnapshotRefs;
   const nodes: SnapshotNode[] = [];
   let document: SnapshotDocument;
@@ -46,23 +46,12 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
     },
     render(refs: readonly string[]): FrameSnapshotRenderResult {
       if (capsule.status !== 'ok') return { status: capsule.status, text: '' };
-      const byteLimit = {};
       try {
         if (!Array.isArray(refs) || refs.length !== nodes.length || refs.some(ref => typeof ref !== 'string')) return { status: 'invalid-refs', text: '' };
-        let remaining = maxSnapshotBytes;
         let text = '';
-        const encoder = new TextEncoder();
         const output = {
           append(value: string) {
-            if (value.length > remaining) throw byteLimit;
-            const bytes = encoder.encode(value).byteLength;
-            if (bytes > remaining) throw byteLimit;
-            remaining -= bytes;
             text += value;
-          },
-          json(value: string) {
-            if (value.length > remaining) throw byteLimit;
-            return JSON.stringify(value);
           },
         };
         const content = document.body?.innerText || '';
@@ -73,7 +62,7 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
           const paragraph = content.slice(start, end).trim();
           if (paragraph) {
             output.append('- text ');
-            output.append(output.json(paragraph));
+            output.append(JSON.stringify(paragraph));
             output.append('\n');
           }
           start = end + 1;
@@ -82,18 +71,12 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
         const inputRoles: Record<string, string> = { checkbox: 'checkbox', radio: 'radio', number: 'spinbutton', range: 'slider', search: 'searchbox', button: 'button', submit: 'button', reset: 'button', image: 'button' };
         const contentRoles = new Set(['button', 'cell', 'checkbox', 'columnheader', 'gridcell', 'heading', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'radio', 'row', 'rowheader', 'switch', 'tab', 'tooltip', 'treeitem']);
         const prohibitedRoles = new Set(['caption', 'code', 'deletion', 'emphasis', 'generic', 'insertion', 'mark', 'none', 'paragraph', 'presentation', 'strong', 'subscript', 'superscript', 'suggestion', 'term', 'time']);
-        let work = maxSnapshotBytes;
         const naming = {
-          visit() { if (--work < 0) throw byteLimit; },
-          bounded(value: string) {
-            if (value.length > maxSnapshotBytes) throw byteLimit;
-            return value;
-          },
-          attribute(node: SnapshotContentNode, name: string) { return naming.bounded(node.getAttribute?.(name) || ''); },
+          attribute(node: SnapshotContentNode, name: string) { return (node.getAttribute?.(name) || ''); },
           normalize(value: string) {
             let result = '';
             let space = false;
-            for (const character of naming.bounded(value)) {
+            for (const character of value) {
               if (' \t\n\r\f'.includes(character)) space = result.length > 0;
               else {
                 result += (space ? ' ' : '') + character;
@@ -110,7 +93,6 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
           },
           hiddenReference(node: SnapshotContentNode) {
             for (let current: SnapshotContentNode | null | undefined = node; current; current = current.parentElement) {
-              naming.visit();
               if (current.tagName && naming.hidden(current)) return true;
             }
             return false;
@@ -120,11 +102,9 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
             const stack: ({ node: SnapshotContentNode; sibling: boolean } | null)[] = [{ node: root, sibling: false }];
             let result = '';
             const content = { append(value: string) {
-              if (value.length > maxSnapshotBytes - result.length) throw byteLimit;
               result += value;
             } };
             while (stack.length) {
-              naming.visit();
               const entry = stack.pop();
               if (!entry) { content.append(' '); continue; }
               const { node: current, sibling } = entry;
@@ -164,13 +144,12 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
             for (const character of ids + ' ') {
               if (' \t\n\r\f'.includes(character)) {
                 if (labelId && !seen.has(labelId)) {
-                  naming.visit();
                   seen.add(labelId);
                   const label = node.ownerDocument?.getElementById?.(labelId);
                   if (label) {
                     validReference = true;
                     const name = naming.contentName(label, true);
-                    labelledBy = naming.bounded(labelledBy + (labelledBy && name ? ' ' : '') + name);
+                    labelledBy = labelledBy + (labelledBy && name ? ' ' : '') + name;
                   }
                 }
                 labelId = '';
@@ -183,13 +162,12 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
             if (labels?.length) {
               let name = '';
               for (let index = 0; index < labels.length; index++) {
-                naming.visit();
                 const label = naming.contentName(labels[index]!, true, node);
-                name = naming.bounded(name + (name && label ? ' ' : '') + label);
+                name = name + (name && label ? ' ' : '') + label;
               }
               return name;
             }
-            if (tag === 'input' && ['button', 'submit', 'reset'].includes(type)) return naming.bounded(node.value || (type === 'submit' ? 'Submit' : type === 'reset' ? 'Reset' : ''));
+            if (tag === 'input' && ['button', 'submit', 'reset'].includes(type)) return (node.value || (type === 'submit' ? 'Submit' : type === 'reset' ? 'Reset' : ''));
             if (tag === 'input' && type === 'image' && naming.attribute(node, 'alt')) return naming.attribute(node, 'alt');
             const contents = contentRoles.has(role) && !['input', 'textarea', 'select'].includes(tag) ? naming.contentName(node, false) : '';
             return contents || naming.attribute(node, 'title') || (tag === 'input' || tag === 'textarea' ? naming.attribute(node, 'placeholder') : '');
@@ -203,9 +181,9 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
             : tag === 'select' && (node.multiple || (node.size ?? 0) > 1) ? 'listbox' : Object.hasOwn(roles, tag) ? roles[tag]! : tag);
           const name = naming.accessibleName(node, tag, type, role);
           output.append('- ');
-          output.append(output.json(role).slice(1, -1));
+          output.append(JSON.stringify(role).slice(1, -1));
           output.append(' ');
-          output.append(output.json(name.trim()));
+          output.append(JSON.stringify(name.trim()));
           output.append(' [ref=');
           output.append(refs[index]!);
           output.append(']');
@@ -218,20 +196,20 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
             const value = node.value;
             if (value !== undefined) {
               output.append(' [value=');
-              output.append(output.json(value));
+              output.append(JSON.stringify(value));
               output.append(']');
             }
           }
           output.append('\n');
         }
         return { status: 'ok', text };
-      } catch (error) {
-        return { status: error === byteLimit ? 'byte-limit' : 'failed', text: '' };
+      } catch {
+        return { status: 'failed', text: '' };
       }
     },
   };
   try {
-    if ((maxSnapshotBytes !== Infinity && !Number.isSafeInteger(maxSnapshotBytes)) || maxSnapshotBytes < 0 || (maxSnapshotRefs !== Infinity && !Number.isSafeInteger(maxSnapshotRefs)) || maxSnapshotRefs < 0) {
+    if ((maxSnapshotRefs !== Infinity && !Number.isSafeInteger(maxSnapshotRefs)) || maxSnapshotRefs < 0) {
       capsule.status = 'invalid-input';
       return capsule;
     }

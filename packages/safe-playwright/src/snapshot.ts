@@ -1,6 +1,10 @@
 import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightFrame } from './adapter.js';
 
-export interface SnapshotLimits { readonly maxSnapshotBytes?: number | undefined; readonly maxSnapshotRefs?: number | undefined }
+export interface SnapshotLimits {
+  /** @deprecated Ignored. Snapshots have no byte limit. */
+  readonly maxSnapshotBytes?: number | undefined;
+  readonly maxSnapshotRefs?: number | undefined;
+}
 
 export class SnapshotLimitError extends Error {}
 
@@ -9,8 +13,8 @@ export class SnapshotLimitError extends Error {}
  * Guest text is never compiled or evaluated as a locator or browser program.
  */
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
-  for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
-  const { maxSnapshotBytes = Infinity, maxSnapshotRefs = Infinity } = limits;
+  for (const value of [limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
+  const { maxSnapshotRefs = Infinity } = limits;
   let sequence = 0;
   let epoch = 0;
   const retirements = new Set<Promise<void>>();
@@ -39,7 +43,6 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     const acquired = new Set<PlaywrightElementHandle>();
     const pending = new Map<string, { handle: PlaywrightElementHandle; frame: PlaywrightFrame }>();
     let text = '';
-    let bytes = 0;
     try {
       for (const frame of frames) {
         signal?.throwIfAborted();
@@ -55,8 +58,6 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
           });
           const ref = nextRef?.() ?? `e${++sequence}`;
           const line = `- ${JSON.stringify(summary.role).slice(1, -1)} ${JSON.stringify(summary.name.trim())} [ref=${ref}]\n`;
-          bytes += new TextEncoder().encode(line).byteLength;
-          if (bytes > maxSnapshotBytes) throw new SnapshotLimitError('Snapshot byte limit exceeded');
           pending.set(ref, { handle, frame });
           text += line;
         }

@@ -37,6 +37,18 @@ describe("safe-bash imagemagick integration", () => {
     assert.equal(monRes.exitCode, 0, monRes.stderr);
     assert.equal(monRes.stdout, "48x14");
 
+    const parityRes = await shell.exec(
+      [
+        "magick -size 30x20 gradient:#ff0000-#0000ff -fx '(u + 0.2) / 1.2' -distort SRT '1 15' /grad.png",
+        "compare -metric AE /piped.png /piped.png /diff.png",
+        "magick /piped.png /grad.png -morph 1 /anim-%02d.png"
+      ].join(" && ")
+    );
+    assert.equal(parityRes.exitCode, 0, parityRes.stderr);
+    assert.equal(parityRes.stdout.trim(), "0");
+    const frame01Meta = await sharp(await fs.readFile("/anim-01.png")).metadata();
+    assert.ok(frame01Meta.width > 0);
+
     await shell.dispose();
   });
 });

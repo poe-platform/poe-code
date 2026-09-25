@@ -485,4 +485,83 @@ describe("safe-bash-command-imagemagick", () => {
     expect(artMeta.width).toBe(40);
     expect(artMeta.height).toBe(30);
   });
+
+  it("supports gradient:/radial-gradient:/pattern:checkerboard, polygon/path/bezier -draw, -splice/-chop/-roll, -morph, and out-%d.png multi-frame output", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. gradient: and radial-gradient: and pattern:checkerboard
+    await runMagickCli(["-size", "40x20", "gradient:#ff0000-#0000ff", "/grad.png"], files);
+    const gradRaw = await sharp(files.get("/grad.png")!).raw().toBuffer();
+    // Top row is red, bottom row is blue
+    expect(gradRaw[0]).toBeGreaterThan(240);
+    expect(gradRaw[2]).toBeLessThan(15);
+    const bottomIdx = (19 * 40 + 0) * 4;
+    expect(gradRaw[bottomIdx]).toBeLessThan(15);
+    expect(gradRaw[bottomIdx + 2]).toBeGreaterThan(240);
+
+    await runMagickCli(["-size", "30x30", "radial-gradient:#ffffff-#000000", "/rgrad.png"], files);
+    const rgradMeta = await sharp(files.get("/rgrad.png")!).metadata();
+    expect(rgradMeta.width).toBe(30);
+    expect(rgradMeta.height).toBe(30);
+
+    await runMagickCli(["-size", "32x32", "pattern:checkerboard", "/check.png"], files);
+    const checkMeta = await sharp(files.get("/check.png")!).metadata();
+    expect(checkMeta.width).toBe(32);
+
+    // 2. Advanced -draw: polygon, polyline, bezier, path
+    await runMagickCli(
+      [
+        "-size",
+        "50x50",
+        "xc:#000000",
+        "-fill",
+        "#00ff00",
+        "-draw",
+        "polygon 10,10 40,10 40,40 10,40 path 'M 5 5 L 15 5 L 10 15 Z' bezier 0,0 25,50 50,0",
+        "/poly-draw.png"
+      ],
+      files
+    );
+    const polyRaw = await sharp(files.get("/poly-draw.png")!).raw().toBuffer();
+    // Center (25, 25) is inside the green polygon
+    const centerIdx = (25 * 50 + 25) * 4;
+    expect(polyRaw[centerIdx + 1]).toBeGreaterThan(200);
+
+    // 3. -splice, -chop, -roll
+    await runMagickCli(
+      [
+        "-size",
+        "20x20",
+        "xc:#ff0000",
+        "-background",
+        "#0000ff",
+        "-splice",
+        "10x5+0+0",
+        "/spliced.png"
+      ],
+      files
+    );
+    const spliceMeta = await sharp(files.get("/spliced.png")!).metadata();
+    expect(spliceMeta.width).toBe(30);
+    expect(spliceMeta.height).toBe(25);
+
+    await runMagickCli(["/spliced.png", "-chop", "10x5+0+0", "-roll", "+5+5", "/chopped.png"], files);
+    const chopMeta = await sharp(files.get("/chopped.png")!).metadata();
+    expect(chopMeta.width).toBe(20);
+    expect(chopMeta.height).toBe(20);
+
+    // 4. -morph 2 between two images + multi-file scene pattern /frame-%02d.png -> 4 output files
+    const f0 = await makeTestImage(16, 16, 0, 0, 0);
+    const f1 = await makeTestImage(16, 16, 240, 240, 240);
+    files.set("/f0.png", f0);
+    files.set("/f1.png", f1);
+    const morphRes = await runMagickCli(["/f0.png", "/f1.png", "-morph", "2", "/frame-%02d.png"], files);
+    expect(morphRes.exitCode).toBe(0);
+    expect(files.has("/frame-00.png")).toBe(true);
+    expect(files.has("/frame-01.png")).toBe(true);
+    expect(files.has("/frame-02.png")).toBe(true);
+    expect(files.has("/frame-03.png")).toBe(true);
+    const mid1Raw = await sharp(files.get("/frame-01.png")!).raw().toBuffer();
+    expect(mid1Raw[0]).toBeCloseTo(80, 2);
+  });
 });

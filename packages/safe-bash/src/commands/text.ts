@@ -838,10 +838,12 @@ export function textCommands(): CommandDefinition[] {
         const rev = numericKeyFlags.has("r");
         keyCompare = (left, right) => {
           const checkpoint = work.charge();
+          let leftPending: NumericValue | Promise<NumericValue> | undefined;
+          let rightPending: NumericValue | Promise<NumericValue> | undefined;
           if (checkpoint === undefined) {
-            const leftPending = keyedNumericValue(left);
+            leftPending = keyedNumericValue(left);
             if (!(leftPending instanceof Promise)) {
-              const rightPending = keyedNumericValue(right);
+              rightPending = keyedNumericValue(right);
               if (!(rightPending instanceof Promise)) {
                 const comparison = compareNumericValues(leftPending, rightPending, work);
                 if (typeof comparison === "number") return rev ? -comparison : comparison;
@@ -851,10 +853,8 @@ export function textCommands(): CommandDefinition[] {
           }
           return (async () => {
             if (checkpoint) await checkpoint;
-            const leftPending = keyedNumericValue(left);
-            const leftVal = leftPending instanceof Promise ? await leftPending : leftPending;
-            const rightPending = keyedNumericValue(right);
-            const rightVal = rightPending instanceof Promise ? await rightPending : rightPending;
+            const leftVal = await (leftPending ?? keyedNumericValue(left));
+            const rightVal = await (rightPending ?? keyedNumericValue(right));
             const comparison = compareNumericValues(leftVal, rightVal, work);
             const result = comparison instanceof Promise ? await comparison : comparison;
             return rev ? -result : result;

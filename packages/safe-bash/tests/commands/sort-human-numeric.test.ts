@@ -265,6 +265,22 @@ test("sort comparison and numeric parsing paths preserve queued cancellation", a
   }
 });
 
+for (const key of ["1,1h", "1,1n", "1,1hr"]) {
+  for (const longSide of ["left", "right"]) test(`sort key ${key} awaits the original ${longSide} numeric-key checkpoint`, async () => {
+    for (const reason of [false, null]) {
+      const controller = new AbortController();
+      const fs = await fixture({ kept: "unchanged" });
+      const long = "1".repeat(8192) + "M";
+      const stdin = longSide === "left" ? `${long}\n2M\n` : `2M\n${long}\n`;
+      let checkpoints = 0;
+      registerYieldCheckpoint(controller.signal, () => { checkpoints++; scheduleTurn(() => controller.abort(reason)); });
+      await assert.rejects(run("sort", ["-k", key, "-o", "kept"], { fs, stdin, signal: controller.signal }), error => error === reason);
+      assert.equal(checkpoints, 1);
+      assert.equal(Buffer.from(await fs.readFile("/work/kept")).toString(), "unchanged");
+    }
+  });
+}
+
 test("sort human numeric warmed descriptors keep yielding without reparsing retained keys", async testContext => {
   const stdin = Array.from({ length: 128 }, (_, index) => `${String(index * 73 % 128).padStart(3, "0")}K`).join("\n") + "\n";
   for (const args of [["-h"], ["-k1,1h"]]) {

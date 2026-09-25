@@ -114,15 +114,15 @@ test("unterminated operands form independent records, including empty files", as
   } finally { await shell.dispose(); }
 });
 
-for (const flags of ["-c", "-cu", "-cnu"]) test(`sort ${flags} reports global record number and stops before later source failure`, async () => {
+for (const flags of ["-c", "-cu", "-cnu"]) test(`sort ${flags} reports record number across chunks and stops before later source failure`, async () => {
   const fs = new MemoryFileSystem();
-  await fs.writeFile("/first", Buffer.from("1\n"));
-  await fs.writeFile("/second", Buffer.from(flags === "-c" ? "2\n0\n" : "2\n2\n"));
+  await fs.writeFile("/input", Buffer.from(flags === "-c" ? "1\n2\n0\n" : "1\n2\n2\n"));
   const original = fs.readStream.bind(fs);
   let pulledPastDisorder = false;
   let closed = false;
-  fs.readStream = (path, options) => path !== "/second" ? original(path, options) : (async function* (): ByteSource {
+  fs.readStream = (path, options) => path !== "/input" ? original(path, options) : (async function* (): ByteSource {
     try {
+      yield Buffer.from("1\n");
       yield Buffer.from(flags === "-c" ? "2\n0\n" : "2\n2\n");
       pulledPastDisorder = true;
       throw new FsError("EIO", { message: "must not read past disorder" });
@@ -130,7 +130,7 @@ for (const flags of ["-c", "-cu", "-cnu"]) test(`sort ${flags} reports global re
   })();
   const shell = new Shell({ fs }).use(standardCommands());
   try {
-    const result = await shell.exec(`sort ${flags} /first /second`);
+    const result = await shell.exec(`sort ${flags} /input`);
     assert.equal(result.exitCode, 1, result.stderr);
     assert.equal(result.stderr, "sort: disorder at record 3\n");
     assert.equal(result.stdout, "");

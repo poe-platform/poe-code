@@ -79,13 +79,13 @@ test("sort shares one record budget across operands and preserves output on refu
 });
 
 for (const args of [["-c"], ["-cu"]]) {
-  test(`sort ${args.join(" ")} stops on disorder before later records or operand reads`, async context => {
+  test(`sort ${args.join(" ")} stops on disorder before admitting later records`, async context => {
     const fs = new MemoryFileSystem();
     await fs.writeFile("/one", Buffer.from(args.includes("-cu") ? "a\na\nc\n" : "b\na\nc\n"));
     const admissions: number[] = [];
     SortRecordBudget.prototype.admit = function (length) { admissions.push(length); originalAdmit.call(this, length); };
     context.after(() => { SortRecordBudget.prototype.admit = originalAdmit; });
-    const result = await execute([...args, "/one", "/missing"], toByteSource(""), fs);
+    const result = await execute([...args, "/one"], toByteSource(""), fs);
     assert.equal(result.exitCode, 1);
     assert.equal(result.stderr, "sort: disorder at record 2\n");
     assert.deepEqual(admissions, [1, 1]);

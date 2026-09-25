@@ -127,7 +127,7 @@ async function verifyInstalled(files, consumer, identities) {
   const lock = await readInstalledJson(files, path.join(consumer, "package-lock.json"));
   for (const location of Object.keys(lock.packages ?? {})) {
     const leaf = location.split("/").at(-1);
-    if (leaf === "safe-bash-contracts" || leaf.startsWith("safe-bash-command-") || leaf.startsWith("safe-bash-engine-")) {
+    if (leaf === "safe-bash-contracts" || leaf.startsWith("safe-bash-command-") || (leaf.startsWith("safe-bash-engine-") || leaf.startsWith("safe-bash-") && leaf.endsWith("-engine"))) {
       throw new Error(`Private safe-bash installation: ${location}`);
     }
   }
@@ -137,7 +137,7 @@ async function verifyInstalled(files, consumer, identities) {
     const manifest = await readInstalledJson(files, path.join(packagePath, "package.json"));
     for (const requirement of Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies, ...manifest.peerDependencies })) {
       const leaf = requirement.split("/").at(-1);
-      if (leaf === "safe-bash-contracts" || leaf.startsWith("safe-bash-command-") || leaf.startsWith("safe-bash-engine-")) {
+      if (leaf === "safe-bash-contracts" || leaf.startsWith("safe-bash-command-") || (leaf.startsWith("safe-bash-engine-") || leaf.startsWith("safe-bash-") && leaf.endsWith("-engine"))) {
         throw new Error(`${identity.name}: Private safe-bash requirement: ${requirement}`);
       }
     }

@@ -1,1 +1,1 @@
-export * from "safe-bash-query-engine/escaping";
+export * from "safe-bash-contracts/escaping";

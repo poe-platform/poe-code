@@ -156,6 +156,8 @@ export default defineConfig({
       "packages/safe-bash-command-fmt/src/*.test.ts",
       "packages/safe-bash-command-htmlq/src/*.test.ts",
       "packages/safe-bash-command-fold/src/*.test.ts",
+      "packages/safe-bash-command-column/src/*.test.ts",
+      "packages/safe-bash-table-text-engine/src/*.test.ts",
       "packages/safe-bash-command-csvgrep/src/*.test.ts",
       "packages/safe-bash-command-csvcut/src/*.test.ts",
       "packages/safe-bash-csv-engine/src/*.test.ts",

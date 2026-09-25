@@ -8,3 +8,5 @@ export * from "./errors.js";
 export * from "./command-requirements.js";
 
 export * from "./process.js";
+
+export * from "./path.js";

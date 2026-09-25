@@ -1,3 +1,4 @@
+import "./safe-packages-column-types.mjs";
 import "./safe-packages-xmllint-types.mjs";
 import "./safe-packages-ffmpeg-types.mjs";
 import "./safe-packages-fmt-types.mjs";

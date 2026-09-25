@@ -143,14 +143,28 @@ export function rotateImage(
   const sin = Math.sin(rad);
   const absCos = Math.abs(cos);
   const absSin = Math.abs(sin);
-  const dstW = Math.max(1, Math.ceil(img.width * absCos + img.height * absSin - 1e-6));
-  const dstH = Math.max(1, Math.ceil(img.width * absSin + img.height * absCos - 1e-6));
+  const dstW = Math.max(1, Math.round(img.width * absCos + img.height * absSin));
+  const dstH = Math.max(1, Math.round(img.width * absSin + img.height * absCos));
   const out = new Uint8Array(dstW * dstH * 4);
 
   const cxSrc = (img.width - 1) / 2;
   const cySrc = (img.height - 1) / 2;
   const cxDst = (dstW - 1) / 2;
   const cyDst = (dstH - 1) / 2;
+  const samplePremul = (ix: number, iy: number): [number, number, number, number] => {
+    if (ix < 0 || ix >= img.width || iy < 0 || iy >= img.height) {
+      const ba = background.a;
+      return [(background.r * ba) / 255, (background.g * ba) / 255, (background.b * ba) / 255, ba];
+    }
+    const sIdx = (iy * img.width + ix) * 4;
+    const sa = img.data[sIdx + 3]!;
+    return [
+      (img.data[sIdx]! * sa) / 255,
+      (img.data[sIdx + 1]! * sa) / 255,
+      (img.data[sIdx + 2]! * sa) / 255,
+      sa
+    ];
+  };
 
   for (let y = 0; y < dstH; y++) {
     const dy = y - cyDst;
@@ -159,16 +173,8 @@ export function rotateImage(
       const sx = dx * cos + dy * sin + cxSrc;
       const sy = -dx * sin + dy * cos + cySrc;
       const dIdx = (y * dstW + x) * 4;
-      if (sx < 0 || sy < 0 || sx >= img.width - 1 || sy >= img.height - 1) {
-        if (sx >= -0.5 && sy >= -0.5 && sx < img.width - 0.5 && sy < img.height - 0.5) {
-          const ix = Math.max(0, Math.min(img.width - 1, Math.round(sx)));
-          const iy = Math.max(0, Math.min(img.height - 1, Math.round(sy)));
-          const sIdx = (iy * img.width + ix) * 4;
-          out[dIdx] = img.data[sIdx]!;
-          out[dIdx + 1] = img.data[sIdx + 1]!;
-          out[dIdx + 2] = img.data[sIdx + 2]!;
-          out[dIdx + 3] = img.data[sIdx + 3]!;
-        } else {
+      if (sx <= -1 || sx >= img.width || sy <= -1 || sy >= img.height) {
+        if (background.a > 0) {
           out[dIdx] = background.r;
           out[dIdx + 1] = background.g;
           out[dIdx + 2] = background.b;
@@ -179,29 +185,25 @@ export function rotateImage(
         const y0 = Math.floor(sy);
         const fx = sx - x0;
         const fy = sy - y0;
-        const i00 = (y0 * img.width + x0) * 4;
-        const i10 = (y0 * img.width + (x0 + 1)) * 4;
-        const i01 = ((y0 + 1) * img.width + x0) * 4;
-        const i11 = ((y0 + 1) * img.width + (x0 + 1)) * 4;
         const w00 = (1 - fx) * (1 - fy);
         const w10 = fx * (1 - fy);
         const w01 = (1 - fx) * fy;
         const w11 = fx * fy;
-        const a00 = img.data[i00 + 3]! / 255;
-        const a10 = img.data[i10 + 3]! / 255;
-        const a01 = img.data[i01 + 3]! / 255;
-        const a11 = img.data[i11 + 3]! / 255;
-        const outA = a00 * w00 + a10 * w10 + a01 * w01 + a11 * w11;
+        const p00 = samplePremul(x0, y0);
+        const p10 = samplePremul(x0 + 1, y0);
+        const p01 = samplePremul(x0, y0 + 1);
+        const p11 = samplePremul(x0 + 1, y0 + 1);
+        const outA = p00[3] * w00 + p10[3] * w10 + p01[3] * w01 + p11[3] * w11;
         if (outA > 1e-6) {
           for (let c = 0; c < 3; c++) {
             const pm =
-              img.data[i00 + c]! * a00 * w00 +
-              img.data[i10 + c]! * a10 * w10 +
-              img.data[i01 + c]! * a01 * w01 +
-              img.data[i11 + c]! * a11 * w11;
-            out[dIdx + c] = Math.max(0, Math.min(255, Math.round(pm / outA)));
+              p00[c]! * w00 +
+              p10[c]! * w10 +
+              p01[c]! * w01 +
+              p11[c]! * w11;
+            out[dIdx + c] = Math.max(0, Math.min(255, Math.round((pm * 255) / outA)));
           }
-          out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(outA * 255)));
+          out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(outA)));
         } else {
           out[dIdx] = 0;
           out[dIdx + 1] = 0;
@@ -925,7 +927,7 @@ export function grayscaleImage(img: RgbaImage): RgbaImage {
     out[idx + 2] = luma;
     out[idx + 3] = img.data[idx + 3]!;
   }
-  return { ...img, data: out, space: "b-w", channels: img.hasAlpha ? 2 : 1 };
+  return { ...img, data: out, space: "b-w", channels: 1 };
 }
 
 export function flattenImage(img: RgbaImage, background: RgbaColor): RgbaImage {
@@ -1669,13 +1671,17 @@ export function affineImage(
   spec: {
     readonly matrix: readonly [number, number, number, number];
     readonly background: RgbaColor;
-    readonly idx: number;
-    readonly idy: number;
-    readonly odx: number;
-    readonly ody: number;
+    readonly idx?: number;
+    readonly idy?: number;
+    readonly odx?: number;
+    readonly ody?: number;
   }
 ): RgbaImage {
   const [a, b, c, d] = spec.matrix;
+  const idx = spec.idx ?? 0;
+  const idy = spec.idy ?? 0;
+  const odx = spec.odx ?? 0;
+  const ody = spec.ody ?? 0;
   const det = a * d - b * c;
   if (Math.abs(det) < 1e-8) return img;
   const corners: Array<[number, number]> = [
@@ -1689,8 +1695,8 @@ export function affineImage(
   let minY = Infinity;
   let maxY = -Infinity;
   for (const [cx, cy] of corners) {
-    const x = a * (cx - spec.idx) + b * (cy - spec.idy) + spec.odx;
-    const y = c * (cx - spec.idx) + d * (cy - spec.idy) + spec.ody;
+    const x = a * (cx - idx) + b * (cy - idy) + idx + odx;
+    const y = c * (cx - idx) + d * (cy - idy) + idy + ody;
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
@@ -1713,16 +1719,18 @@ export function affineImage(
 
   for (let y = 0; y < dstH; y++) {
     for (let x = 0; x < dstW; x++) {
-      const ox = x + iMinX - spec.odx;
-      const oy = y + iMinY - spec.ody;
-      const sx = (d * ox - b * oy) / det + spec.idx;
-      const sy = (-c * ox + a * oy) / det + spec.idy;
+      const ox = x + iMinX - idx - odx;
+      const oy = y + iMinY - idy - ody;
+      const sx = (d * ox - b * oy) / det + idx;
+      const sy = (-c * ox + a * oy) / det + idy;
       const dIdx = (y * dstW + x) * 4;
       if (sx <= -1 || sx >= img.width || sy <= -1 || sy >= img.height) {
-        out[dIdx] = spec.background.r;
-        out[dIdx + 1] = spec.background.g;
-        out[dIdx + 2] = spec.background.b;
-        out[dIdx + 3] = spec.background.a;
+        if (spec.background.a > 0) {
+          out[dIdx] = spec.background.r;
+          out[dIdx + 1] = spec.background.g;
+          out[dIdx + 2] = spec.background.b;
+          out[dIdx + 3] = spec.background.a;
+        }
       } else {
         const x0 = Math.floor(sx);
         const y0 = Math.floor(sy);

@@ -277,4 +277,17 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(meta.width).toBe(32);
     expect(meta.height).toBe(24);
   });
+
+  it("rotates 40x30 by 45 degrees via sips -r 45 --padColor matching /usr/bin/sips 49x49 bounding box (#71)", async () => {
+    const png = await makeSamplePng(40, 30);
+    const files = new Map<string, Uint8Array>([["/work/in.png", png]]);
+    const res = await runSipsCli(
+      ["-r", "45", "--padColor", "FF0000", "/work/in.png", "--out", "/work/out.png"],
+      files
+    );
+    expect(res.exitCode).toBe(0);
+    const meta = await sharp(files.get("/work/out.png")!).metadata();
+    expect(meta.width).toBe(49);
+    expect(meta.height).toBe(49);
+  });
 });

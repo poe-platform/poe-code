@@ -819,6 +819,7 @@ export class SharpInstance {
         width: img.width,
         height: img.height,
         channels: encoded.channels,
+        ...(encoded.format === "raw" ? { depth: img.depth } : {}),
         premultiplied: false,
         ...(img.pageHeight !== undefined ? { pageHeight: img.pageHeight } : {}),
         ...(img.pages !== undefined ? { pages: img.pages } : {}),

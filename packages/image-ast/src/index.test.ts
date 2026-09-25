@@ -1099,4 +1099,52 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(pdfMeta.width).toBe(32);
     expect(pdfMeta.height).toBe(24);
   });
+
+  it("matches libvips on contain-resize alpha promotion, rotate/affine bounding box & unpremultiplication, and b-w raw() channels/depth (#71)", async () => {
+    // 1. contain resize on 3-channel RGB image with alpha < 1 background promotes to 4 channels
+    const containRgba = await sharp({
+      create: { width: 40, height: 30, channels: 3, background: { r: 100, g: 150, b: 200 } }
+    })
+      .resize(60, 60, { fit: "contain", background: { r: 10, g: 20, b: 30, alpha: 0.5 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(containRgba.info.channels).toBe(4);
+    expect(containRgba.info.depth).toBe("uchar");
+    expect(containRgba.data.length).toBe(60 * 60 * 4);
+    expect(containRgba.data[3]).toBe(128);
+
+    // 2. rotate(45) and affine() on 40x30 produce 49x49 and [0,0,0,0] at alpha=0 corners
+    const rot45 = await sharp({
+      create: { width: 40, height: 30, channels: 4, background: { r: 200, g: 100, b: 50, alpha: 1 } }
+    })
+      .rotate(45, { background: { r: 10, g: 20, b: 30, alpha: 0 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(rot45.info.width).toBe(49);
+    expect(rot45.info.height).toBe(49);
+    expect(Array.from(rot45.data.slice(0, 4))).toEqual([0, 0, 0, 0]);
+
+    const c = Math.cos(Math.PI / 4);
+    const s = Math.sin(Math.PI / 4);
+    const aff45 = await sharp({
+      create: { width: 40, height: 30, channels: 4, background: { r: 200, g: 100, b: 50, alpha: 1 } }
+    })
+      .affine([c, -s, s, c], { idx: 20, idy: 15, odx: 0, ody: 0, background: { r: 10, g: 20, b: 30, alpha: 0 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(aff45.info.width).toBe(49);
+    expect(aff45.info.height).toBe(49);
+    expect(Array.from(aff45.data.slice(0, 4))).toEqual([0, 0, 0, 0]);
+
+    // 3. grayscale().raw() and toColorspace("b-w").raw() on RGBA output 1 channel with depth: "uchar"
+    const grayRaw = await sharp({
+      create: { width: 8, height: 8, channels: 4, background: { r: 200, g: 100, b: 50, alpha: 0.5 } }
+    })
+      .grayscale()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(grayRaw.info.channels).toBe(1);
+    expect(grayRaw.info.depth).toBe("uchar");
+    expect(grayRaw.data.length).toBe(64);
+  });
 });

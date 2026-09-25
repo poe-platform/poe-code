@@ -333,11 +333,13 @@ export function resizeImage(
     const dstRow = ((offset.y + y) * targetW + offset.x) * 4;
     canvas.set(scaledData.subarray(srcRow, srcRow + innerW * 4), dstRow);
   }
+  const nextHasAlpha = img.hasAlpha || bg.a < 255;
   return {
     ...img,
     width: targetW,
     height: targetH,
     data: canvas,
-    hasAlpha: img.hasAlpha || bg.a < 255
+    hasAlpha: nextHasAlpha,
+    channels: nextHasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
   };
 }

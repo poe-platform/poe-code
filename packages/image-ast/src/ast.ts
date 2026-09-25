@@ -99,6 +99,7 @@ export interface OutputInfo {
   readonly width: number;
   readonly height: number;
   readonly channels: number;
+  readonly depth?: string;
   readonly premultiplied: boolean;
   readonly pageHeight?: number;
   readonly pages?: number;

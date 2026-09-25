@@ -244,6 +244,7 @@ export function createObjectArrayGlobals(options: {
         getPrototypeOf: createSandboxClosure({
           sandbox: true,
           call: ([value], context) => {
+            if (isGuestHostObject(value)) return getSandboxPrototype(value, options.budget) as SandboxValue;
             if (typeof value === "object" && value !== null && guestProxyStates.has(value))
               return sandboxGetPrototypeOf(value, options.budget, context);
             if (isSandboxMap(value) || isSandboxSet(value))
@@ -590,9 +591,7 @@ function createArrayGlobal(budget: Budget): SandboxClosure {
       length: arrayMethodLengths[name],
       call: (args, context) => callArrayMethod(context?.thisValue, name, args, {
         budget, context,
-        hasProperty: (value, key) => isGuestHostObject(value)
-          ? hasOwnSandboxProperty(value, key, false) || getSandboxPropertyDescriptor(value, key, budget) !== undefined
-          : sandboxHasProperty(value, key, budget, context),
+        hasProperty: (value, key) => sandboxHasProperty(value, key, budget, context),
         deleteProperty: (value, key) => sandboxDeleteProperty(value, String(key), budget, context),
         setProperty: (value, key, entry) => setSandboxProperty(value, key, entry, budget, true, context),
         callClosure: (closure, values, _stack, receiver) => invokeBuiltinClosure(closure, values, budget, context, receiver)

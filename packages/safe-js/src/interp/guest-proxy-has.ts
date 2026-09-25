@@ -9,11 +9,12 @@ import { objectProperties } from "./globals/object-array.js";
 import { getSandboxPrototype } from "./object-model.js";
 import { isNumericTypedArray, isTypedArrayIndex } from "./typed-array.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { isGuestHostObject, hasHostObjectMember } from "./host-capabilities.js";
 
 export function sandboxHasProperty(
   value: SandboxValue, key: PropertyKey, budget: Budget, context?: SandboxCallContext
 ): boolean | Promise<boolean> {
-  objectProperties(value);
+  if (!isGuestHostObject(value)) objectProperties(value);
   let current = value as object, depth = 0;
   for (;;) {
     if (guestProxyStates.has(current)) {
@@ -29,7 +30,9 @@ export function sandboxHasProperty(
       });
     }
     if (isSandboxModuleNamespace(current)) return Reflect.has(current,key);
-    if (Object.getOwnPropertyDescriptor(objectProperties(current as SandboxValue), key) !== undefined) return true;
+    if (isGuestHostObject(current)) {
+      if (hasHostObjectMember(current, typeof key === "symbol" ? key : String(key))) return true;
+    } else if (Object.getOwnPropertyDescriptor(objectProperties(current as SandboxValue), key) !== undefined) return true;
     // Integer-indexed objects do not consult prototypes for canonical numeric keys.
     if (isNumericTypedArray(current) && typeof key !== "symbol" && isTypedArrayIndex(String(key))) return false;
     const prototype = getSandboxPrototype(current, budget);

@@ -788,7 +788,7 @@ function copyHostResultToSandbox(
     },
     "<root>"
   );
-  options.budget.chargeDataUsage(measureSandboxData([value]));
+  options.budget.chargeDataUsage(measureSandboxData([value], { ignoreHostObjectPrototypes: true }));
   return value;
 }
 

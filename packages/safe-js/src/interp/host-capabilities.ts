@@ -46,6 +46,8 @@ export type HostObjectController = {
   method(operation: HostOperation): SandboxClosure;
 };
 type HostObjectState = {
+  prototype?: SandboxObject | null;
+  prototypeGuard?: () => void;
   controller: HostObjectController;
   memberDataUnits: number;
   host: HostObject;
@@ -357,21 +359,67 @@ export function revokeHostObject(value: HostObject, owner: object): void {
   state.named = undefined;
   state.expandos = undefined;
   state.memberDataUnits = 0;
+  state.prototype = undefined;
+  state.prototypeGuard = undefined;
 }
 
+export function setHostObjectPrototype(value: HostObject, reference: unknown, owner: object, guard?: () => void): void {
+  const state = readHostObject(value);
+  if (state === undefined || state.controller.owner !== owner)
+    throw new TypeError("Foreign or invalid host object.");
+  state.controller.assertActive();
+  assertExpandoActive(state);
+  if (guard !== undefined && (typeof guard !== "function" || types.isProxy(guard) || types.isAsyncFunction(guard) || types.isGeneratorFunction(guard)))
+    throw new TypeError("Host prototype guard must be a synchronous native function.");
+  assertPrototypeGuard(guard);
+  const prototype = reference === null ? null : readGuestReference(reference, owner);
+  if (prototype !== null && (typeof prototype !== "object" || isLiveCapability(prototype)))
+    throw new TypeError("Host prototype requires a retained guest object or null.");
+  state.prototype = prototype as SandboxObject | null;
+  state.prototypeGuard = guard;
+}
+
+export function getHostObjectPrototype(value: SandboxObject): SandboxObject | null {
+  const state = readGuestObject(value)!;
+  state.controller.assertActive();
+  state.controller.chargeWork();
+  assertExpandoActive(state);
+  assertPrototypeGuard(state.prototypeGuard);
+  return state.prototype ?? null;
+}
+
+export function hostObjectPrototypeRoot(value: HostObject | SandboxObject): SandboxObject | undefined {
+  return (readHostObject(value) ?? readGuestObject(value)!).prototype ?? undefined;
+}
+
+function assertPrototypeGuard(guard?: () => void): void {
+  const result = guard?.();
+  if (types.isPromise(result)) {
+    void Promise.resolve(result).catch(() => undefined);
+    throw new TypeError("Host prototype guard must be synchronous.");
+  }
+}
+
+export const noHostObjectMember = Symbol("missing host member");
+
 export function getHostObjectMember(value: SandboxObject, key: string | symbol): SandboxValue {
+  const result = getHostObjectOwnMember(value, key);
+  return result === noHostObjectMember ? undefined : result;
+}
+
+export function getHostObjectOwnMember(value: SandboxObject, key: string | symbol): SandboxValue {
   const state = readGuestObject(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
   assertExpandoActive(state);
   if (state.expandos && Object.hasOwn(state.expandos.values, key))
     return Reflect.get(state.expandos.values, key);
-  if (typeof key === "symbol") return undefined;
+  if (typeof key === "symbol") return noHostObjectMember;
   if (state.indexed !== undefined) {
     if (key === "length") return indexedLength(state);
     const index = canonicalIndex(key);
     if (index !== undefined) {
-      if (index >= state.indexed.maxLength || index >= indexedLength(state)) return undefined;
+      if (index >= state.indexed.maxLength || index >= indexedLength(state)) return noHostObjectMember;
       return state.controller.read(() => state.indexed!.get(index));
     }
   }
@@ -382,7 +430,7 @@ export function getHostObjectMember(value: SandboxObject, key: string | symbol):
   if (method !== undefined) return method;
   if (state.named !== undefined && namedKeys(state).includes(key))
     return state.controller.read(() => state.named!.get(key));
-  return undefined;
+  return noHostObjectMember;
 }
 
 export function setHostObjectMember(value: SandboxObject, key: string | symbol, entry: SandboxValue): void {
@@ -652,5 +700,7 @@ export function hostObjectGuestRoot(value: HostObject | SandboxObject): SandboxO
 
 export function hostObjectGuestRoots(value: HostObject | SandboxObject): SandboxValue[] {
   const state = readHostObject(value) ?? readGuestObject(value)!;
-  return state.expandos ? [state.expandos.values] : [];
+  return state.expandos
+    ? state.prototype == null ? [state.expandos.values] : [state.expandos.values, state.prototype]
+    : state.prototype == null ? [] : [state.prototype];
 }

@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { Budget } from "./budget.js";
 import {
   createLiveHostObject,
+  createGuestReference,
   deleteHostObjectMember,
   getHostObjectMember,
   hostObjectGuestRoots,
@@ -9,6 +10,7 @@ import {
   isGuestHostObject,
   revokeHostObject,
   setHostObjectMember,
+  setHostObjectPrototype,
   type HostObjectController
 } from "./host-capabilities.js";
 import {
@@ -44,6 +46,42 @@ function fixture() {
   if (typeof root !== "object" || root === null) throw new Error("Missing expando table");
   return { controller, host, guest, root };
 }
+
+it.each(["absent", "replace", "clear"])(
+  "reads a host prototype after an expando collector can %s its link",
+  (mode) => {
+    const { guest, host, controller } = fixture();
+    const oldPrototype = { text: "old" };
+    const nextPrototype = { text: "x".repeat(1000) };
+    const reference = (value: SandboxValue) =>
+      createGuestReference([value], controller.owner, () => undefined);
+    if (mode !== "absent") setHostObjectPrototype(host, reference(oldPrototype), controller.owner);
+    let change = false;
+    setHostObjectMember(
+      guest,
+      "effect",
+      createSandboxClosure({
+        call: () => undefined,
+        retainedValues: () => {
+          if (change)
+            setHostObjectPrototype(
+              host,
+              mode === "clear" ? null : reference(nextPrototype),
+              controller.owner
+            );
+          return [];
+        }
+      })
+    );
+    const before = measureSandboxData([guest]);
+    change = true;
+    expect(measureSandboxData([guest])).toBe(
+      before -
+        (mode === "absent" ? 0 : measureSandboxData([oldPrototype])) +
+        (mode === "clear" ? 0 : measureSandboxData([nextPrototype]))
+    );
+  }
+);
 
 it("does not recapture unchanged expando descriptors during repeated accounting", () => {
   const { guest, root } = fixture();
@@ -124,18 +162,30 @@ it("preserves exact charges across writes, aliasing, replacement and deletion", 
   }
 });
 
-it("measures host expando chains through the depth boundary without native stack overflow", () => {
-  let root: SandboxValue = {};
-  for (let index = 0; index < STRESS_DEPTH / 2; index++) {
+it.each([false, true])(
+  "measures host expando chains through the depth boundary without native stack overflow (linked=%s)",
+  (linked) => {
+    let root: SandboxValue = {};
+    const prototype = { marker: "linked" };
+    for (let index = 0; index < STRESS_DEPTH / 2; index++) {
+      const { guest, host, controller } = fixture();
+      setHostObjectMember(guest, "next", root);
+      if (linked)
+        setHostObjectPrototype(
+          host,
+          createGuestReference([prototype], controller.owner, () => undefined),
+          controller.owner
+        );
+      root = guest;
+    }
+    expect(measureSandboxData([root])).toBe(
+      1 + (STRESS_DEPTH / 2) * 7 + (linked ? measureSandboxData([prototype]) : 0)
+    );
     const { guest } = fixture();
     setHostObjectMember(guest, "next", root);
-    root = guest;
+    expect(() => measureSandboxData([guest])).not.toThrow();
   }
-  expect(measureSandboxData([root])).toBe(1 + (STRESS_DEPTH / 2) * 7);
-  const { guest } = fixture();
-  setHostObjectMember(guest, "next", root);
-  expect(() => measureSandboxData([guest])).not.toThrow();
-});
+);
 
 it.each([false, true])(
   "rejects warmed scalar and descendant growth during reconciliation (held=%s)",

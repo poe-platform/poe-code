@@ -14,7 +14,7 @@ import { invokeBuiltinClosure } from "./builtin-call.js";
 import { isSandboxModuleNamespace } from "./module-namespace.js";
 import { bigIntOperation, type BigIntOperator } from "./bigint-operators.js";
 import { accessorAdapter, readPropertyDescriptor, writePropertyDescriptor } from "./accessors.js";
-import { getHostObjectSymbolKeys, deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
+import { hostObjectPrototypeRoot, getHostObjectOwnMember, noHostObjectMember, getHostObjectSymbolKeys, deleteHostObjectMember, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, isGuestHostObject, setHostObjectMember } from "./host-capabilities.js";
 import { propertyFunctionName, toPropertyKey } from "./property-key.js";
 import { assertPromiseExecutionAllowed } from "./promise-tracker.js";
 import { SandboxJobQueue, runAsyncPrefix, suspendJob } from "./jobs.js";
@@ -1537,9 +1537,7 @@ async function evaluateWithStatement(
 
 function bindingOperations(context: EvaluationContext) {
   return {
-    has: (object: SandboxObject, key: string) => isGuestHostObject(object)
-      ? hasSandboxProperty(object, key, context)
-      : sandboxHasProperty(object, key, context.budget, createCoercionContext(context)),
+    has: (object: SandboxObject, key: string) => sandboxHasProperty(object, key, context.budget, createCoercionContext(context)),
     get: (object: SandboxObject, key: PropertyKey) => getPropertyValue(object, key, context)
   };
 }
@@ -2447,7 +2445,7 @@ function forInObject(value: SandboxValue): object | undefined {
 }
 
 async function forInKeys(object: object, budget: Budget, context: SandboxCallContext): Promise<string[]> {
-  if (isGuestHostObject(object)) return getHostObjectKeys(object);
+  if (isGuestHostObject(object) && hostObjectPrototypeRoot(object) === undefined) return getHostObjectKeys(object);
   const keys: string[] = [];
   const seen = new Set<string>();
   let depth = 0;
@@ -2457,6 +2455,12 @@ async function forInKeys(object: object, budget: Budget, context: SandboxCallCon
   for (; current !== null; current = await sandboxGetPrototypeOf(current as SandboxValue, budget, context) as object | null) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
+    if (isGuestHostObject(current)) {
+      for (const key of getHostObjectKeys(current)) {
+        if (!seen.has(key)) { seen.add(key); keys.push(key); }
+      }
+      continue;
+    }
     if (guestProxyStates.has(current)) {
       for (const key of await sandboxOwnKeys(current as SandboxValue, budget, context)) {
         if (typeof key !== "string" || seen.has(key)) continue;
@@ -2479,7 +2483,7 @@ async function forInKeys(object: object, budget: Budget, context: SandboxCallCon
 }
 
 async function hasForInProperty(object: object, key: string, budget: Budget, context: SandboxCallContext): Promise<boolean> {
-  if (isGuestHostObject(object)) return hasHostObjectMember(object, key, true);
+  if (isGuestHostObject(object) && hostObjectPrototypeRoot(object) === undefined) return hasHostObjectMember(object, key, true);
   let depth = 0;
   let current: object | null = object;
   const release = retainValues(budget, () => [object as SandboxValue, current as SandboxValue, key]);
@@ -2487,6 +2491,10 @@ async function hasForInProperty(object: object, key: string, budget: Budget, con
   for (; current !== null; current = await sandboxGetPrototypeOf(current as SandboxValue, budget, context) as object | null) {
     if (depth > 0) budget.visitNode();
     assertSandboxDataDepth(depth++);
+    if (isGuestHostObject(current)) {
+      if (hasHostObjectMember(current, key)) return hasHostObjectMember(current, key, true);
+      continue;
+    }
     if (guestProxyStates.has(current)) {
       const descriptor = await sandboxGetOwnPropertyDescriptor(current as SandboxValue, key, budget, context);
       if (descriptor !== undefined) return descriptor.enumerable === true;
@@ -3328,7 +3336,14 @@ function getPropertyValue(
   context: EvaluationContext,
   receiver: SandboxValue = target
 ): SandboxValue | Promise<SandboxValue> {
-  if (isGuestHostObject(target)) return getHostObjectMember(target, typeof property === "symbol" ? property : String(property));
+  if (isGuestHostObject(target)) {
+    const key = typeof property === "symbol" ? property : String(property);
+    const own = getHostObjectOwnMember(target, key);
+    if (own !== noHostObjectMember) return own;
+    if (hostObjectPrototypeRoot(target) === undefined) return undefined;
+    const prototype = getSandboxPrototype(target, context.budget);
+    return prototype === null ? undefined : getPropertyValue(prototype as SandboxValue, property, context, receiver);
+  }
   let proxyBoundary: object | undefined;
   const descriptor = getSandboxPropertyDescriptor(target, property, context.budget, proxy => { proxyBoundary = proxy; });
   if (proxyBoundary !== undefined)
@@ -4156,9 +4171,7 @@ function applyBinaryOperator(
     case "instanceof":
       return evaluateInstanceof(left, right, context.budget, createCoercionContext(context));
     case "in":
-      return isGuestHostObject(right)
-        ? hasSandboxProperty(right, left as string | symbol, context)
-        : sandboxHasProperty(right, left as string | symbol, context.budget, createCoercionContext(context));
+      return sandboxHasProperty(right, left as string | symbol, context.budget, createCoercionContext(context));
   }
 }
 
@@ -4184,26 +4197,6 @@ export function createCoercionContext(context: EvaluationContext): SandboxCallCo
     invokeClosure: (closure, args, thisValue, construct, newTarget) =>
       invokeSandboxClosure(closure, args, context, context.callStack, undefined, thisValue, construct, newTarget)
   };
-}
-
-function hasSandboxProperty(value: SandboxValue, key: PropertyKey, context: EvaluationContext): boolean {
-  let current = value;
-  let depth = 0;
-  while (typeof current === "object" && current !== null) {
-    if (isGuestHostObject(current)) return hasHostObjectMember(current, typeof key === "symbol" ? key : String(key));
-    if (hasOwnSandboxProperty(current, key, false)) return true;
-    if (!isSandboxDate(current) && !isSandboxRegex(current) && !isSandboxMap(current) && !isSandboxSet(current) && !((isGuestClosure(current) || isSandboxGenerator(current) || Array.isArray(current)) && hasExplicitSandboxPrototype(current)) &&
-        (Array.isArray(current) || !isPlainSandboxObject(current) ||
-        isSandboxDate(current) || isNumericTypedArray(current) || isSandboxGenerator(current) || isSandboxCollectionIterator(current) || isSandboxRegExpIterator(current))) {
-      return getPropertyValue(current, key, context) !== undefined;
-    }
-    current = getSandboxPrototype(current, context.budget) as SandboxValue;
-    if (current !== null) {
-      context.budget.visitNode();
-      assertSandboxDataDepth(++depth);
-    }
-  }
-  return false;
 }
 
 async function applyCompoundAssignmentOperator(
@@ -4479,7 +4472,7 @@ function getMemberValue(
   property: string | number,
   context: EvaluationContext
 ): SandboxValue | Promise<SandboxValue> {
-  if (isGuestHostObject(target)) return getHostObjectMember(target, String(property));
+  if (isGuestHostObject(target)) return getPropertyValue(target, String(property), context);
   let current: SandboxValue = target;
   let depth = 0;
   while (typeof current === "object" && current !== null) {
@@ -4523,6 +4516,26 @@ export function setSandboxProperty(
   throwOnFailure = true
 ): void | Promise<void> {
   if (isGuestHostObject(target)) {
+    const key = typeof property === "symbol" ? property : String(property);
+    if (checkInherited && hostObjectPrototypeRoot(target) !== undefined && !hasHostObjectMember(target, key)) {
+      const prototype = getSandboxPrototype(target, budget);
+      if (prototype !== null) {
+        let proxyBoundary: object | undefined;
+        const descriptor = getSandboxPropertyDescriptor(prototype as SandboxValue, property, budget, proxy => { proxyBoundary = proxy; });
+        if (proxyBoundary !== undefined) {
+          return sandboxSetProperty(proxyBoundary as SandboxValue, property, value, target, budget, context).then(success => {
+            if (!success && throwOnFailure) throw new TypeError("Proxy refused property assignment.");
+          });
+        }
+        if (descriptor !== undefined) {
+          if (!("value" in descriptor)) return writePropertyDescriptor(descriptor, target, value, context);
+          if (descriptor.writable === false) {
+            if (throwOnFailure) throw new TypeError("Inherited property is not writable.");
+            return;
+          }
+        }
+      }
+    }
     setHostObjectMember(target, typeof property === "symbol" ? property : String(property), value);
     return;
   }
@@ -4766,9 +4779,7 @@ function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOption
   return {
     budget: context.budget,
     context: callContext,
-    hasProperty: (value, property) => isGuestHostObject(value)
-      ? hasSandboxProperty(value, property, context)
-      : sandboxHasProperty(value, property, context.budget, callContext),
+    hasProperty: (value, property) => sandboxHasProperty(value, property, context.budget, callContext),
     setProperty: (value, property, entry) => setSandboxProperty(value, property, entry, context.budget, true, callContext),
     deleteProperty: (value, property) => sandboxDeleteProperty(value, String(property), context.budget, callContext),
     callClosure: (

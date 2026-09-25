@@ -19,7 +19,7 @@ import { isSandboxTemporalZonedDateTime } from "./temporal-zoned-date-time.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
-import { getHostObjectMember, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
+import { getHostObjectOwnMember, noHostObjectMember, getHostObjectPrototype, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
 import { errorPrototypes } from "./error-prototypes.js";
 import { typedArrayProperties, typedArrayStorage, isNumericTypedArray, isTypedArrayIndex } from "./typed-array.js";
@@ -714,6 +714,7 @@ export function releaseObjectPrototype(budget: Budget): void {
 }
 
 export function getSandboxPrototype(value: object, budget?: Budget): object | null {
+  if (isGuestHostObject(value)) return getHostObjectPrototype(value);
   const explicit = prototypes.get(value);
   if (explicit !== undefined) return explicit;
   if (budget === undefined) return null;
@@ -817,7 +818,10 @@ export function getSandboxDataProperty(
   while (typeof current === "object" && current !== null) {
     if (isNumericTypedArray(current) && typeof key !== "symbol" && isTypedArrayIndex(String(key)))
       return Object.getOwnPropertyDescriptor(current, key)?.value;
-    if (isGuestHostObject(current)) return getHostObjectMember(current, typeof key === "symbol" ? key : String(key));
+    if (isGuestHostObject(current)) {
+      const own = getHostObjectOwnMember(current, typeof key === "symbol" ? key : String(key));
+      if (own !== noHostObjectMember) return own;
+    }
     if (isSandboxRegex(current)) return Object.getOwnPropertyDescriptor(getRegexProperties(current), key)?.value;
     if (isSandboxPromise(current)) return Object.getOwnPropertyDescriptor(getPromiseProperties(current), key)?.value;
     if (isSandboxGenerator(current)) {

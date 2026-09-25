@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { isGuestHostObject } from "../host-capabilities.js";
 import { sandboxIsExtensible, sandboxPreventExtensions } from "../guest-proxy-extensibility.js";
 import { sandboxGetPrototypeOf, sandboxSetPrototypeOf } from "../guest-proxy-prototype.js";
 import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
@@ -31,7 +32,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
     } },
     getPrototypeOf: { length: 1, call: ([target], context) => sandboxGetPrototypeOf(target, budget, context) },
     has: { length: 2, call: async ([target, key], context) => {
-      objectProperties(target);
+      if (!isGuestHostObject(target)) objectProperties(target);
       return sandboxHasProperty(target, await toPropertyKey(key, budget, context), budget, context);
     } },
     isExtensible: { length: 1, call: ([target], context) => sandboxIsExtensible(target, budget, context) },
@@ -43,7 +44,7 @@ export function createReflectGlobal(budget: Budget): SandboxObject {
     } },
     get: { length: 2, call: async (args, context) => {
       const [target, key] = args;
-      objectProperties(target);
+      if (!isGuestHostObject(target)) objectProperties(target);
       const property = await toPropertyKey(key, budget, context);
       return sandboxGetProperty(target, property, args.length > 2 ? args[2] : target, budget, context);
     } },

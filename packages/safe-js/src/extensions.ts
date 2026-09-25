@@ -35,6 +35,8 @@ export type ExtensionContext = {
   onCleanup(cleanup: () => void | Promise<void>): void;
   chargeWork(units?: number): void;
   createHostObject(definition: HostObjectDefinition): HostObject;
+  /** Link a live capability to an owned guest prototype reference (or null). */
+  setHostObjectPrototype(value: HostObject, prototype: unknown, assertActive?: () => void): void;
   /** A realm-owned constructor that synchronously returns a live host object.
    * Release the opaque handle with releaseGuestReference when no longer needed.
    * Returned objects keep their existing identity and prototype, including with newTarget.

@@ -60,7 +60,7 @@ import { isSandboxPluralRules, pluralRulesState } from "./intl-pluralrules.js";
 import { isSandboxDurationFormat, durationFormatState } from "./intl-durationformat.js";
 import { createRawJson, isRawJson } from "./raw-json.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
-import { hostObjectGuestRoot, getHostObjectSymbolKeys, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
+import { hostObjectPrototypeRoot, hostObjectGuestRoot, getHostObjectSymbolKeys, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "#safe-js-platform";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
@@ -868,6 +868,7 @@ interface DataContinuation {
   depth: number;
   capture: CaptureBuffer | undefined;
   proxy: { handler: SandboxValue } | undefined;
+  host: SandboxObject | undefined;
 }
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
@@ -890,6 +891,10 @@ export function measureSandboxData(
   options: {
     ignoreClosures?: boolean;
     ignoreClosureCaptures?: boolean;
+    /** Host-result allocation only: linked prototypes are already realm-owned.
+     * Primary reconciliation must always traverse the complete mutable graph.
+     */
+    ignoreHostObjectPrototypes?: boolean;
     compileTickets?: Set<CompileTicket>;
   } = {}
 ): number {
@@ -907,6 +912,7 @@ function measureSandboxDataWithSeen(
   options: {
     ignoreClosures?: boolean;
     ignoreClosureCaptures?: boolean;
+    ignoreHostObjectPrototypes?: boolean;
     compileTickets?: Set<CompileTicket>;
   },
   seen: MeasurementSeen,
@@ -926,11 +932,11 @@ function measureSandboxDataWithSeen(
   // the segment above their entry count; completed frames release guest roots.
   let pending: DataContinuation[] | undefined;
   let pendingCount = 0;
-  const appendContinuation = (values: readonly unknown[] | undefined, depth: number, capture?: CaptureBuffer, proxy?: { handler: SandboxValue }): void => {
+  const appendContinuation = (values: readonly unknown[] | undefined, depth: number, capture?: CaptureBuffer, proxy?: { handler: SandboxValue }, host?: SandboxObject): void => {
     const frames = pending ??= nativeDataArraySetPrototype([], null) as DataContinuation[];
     let frame = frames[pendingCount];
     if (frame === undefined) {
-      frame = { values, index: 1, depth, capture, proxy };
+      frame = { values, index: 1, depth, capture, proxy, host };
       nativeDataArrayAppend(frames, frame);
     } else {
       frame.values = values;
@@ -938,6 +944,7 @@ function measureSandboxDataWithSeen(
       frame.depth = depth;
       frame.capture = capture;
       frame.proxy = proxy;
+      frame.host = host;
     }
     pendingCount++;
   };
@@ -1497,7 +1504,17 @@ function measureSandboxDataWithSeen(
           usage += measureHostObjectData(value);
           const root = hostObjectGuestRoot(value);
           if (root !== undefined) {
+            // Read the link after every expando descendant: a collector can
+            // install, replace or clear it, including when initially absent.
+            if (!options.ignoreHostObjectPrototypes)
+              appendContinuation(undefined, depth + 1, undefined, undefined, value);
             value = root;
+            depth++;
+            continue walk;
+          }
+          const prototype = options.ignoreHostObjectPrototypes ? undefined : hostObjectPrototypeRoot(value);
+          if (prototype !== undefined) {
+            value = prototype;
             depth++;
             continue walk;
           }
@@ -1813,16 +1830,21 @@ function measureSandboxDataWithSeen(
         const frame = pending![pendingCount - 1]!;
         const references = frame.values;
         if (references === undefined) {
-          const proxy = frame.proxy!;
-          const handlerDepth = frame.depth;
+          const proxy = frame.proxy;
+          const host = frame.host;
+          const continuationDepth = frame.depth;
           frame.proxy = undefined;
+          frame.host = undefined;
           pendingCount--;
-          if (proxy.handler !== null) {
-            value = proxy.handler;
-            depth = handlerDepth;
-            continue walk;
+          if (host !== undefined) {
+            value = hostObjectPrototypeRoot(host);
+            if (value === undefined) continue;
+          } else {
+            if (proxy!.handler === null) continue;
+            value = proxy!.handler;
           }
-          continue;
+          depth = continuationDepth;
+          continue walk;
         }
         if (frame.index < (frame.capture?.length ?? references.length)) {
           value = references[frame.index++];
@@ -1924,6 +1946,7 @@ function measureSandboxDataWithSeen(
       frame.capture = undefined;
       frame.values = undefined;
       frame.proxy = undefined;
+      frame.host = undefined;
     }
   }
 }

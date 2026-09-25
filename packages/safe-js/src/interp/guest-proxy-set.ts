@@ -11,6 +11,7 @@ import { isSandboxModuleNamespace } from "./module-namespace.js";
 import { isNumericTypedArray, isTypedArrayIndex } from "./typed-array.js";
 import { setTypedArrayMember } from "./globals/numeric-typed-array.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { isGuestHostObject, hasHostObjectMember, hostObjectGuestRoot, setHostObjectMember } from "./host-capabilities.js";
 
 export async function sandboxSetProperty(
   target: SandboxValue, key: PropertyKey, value: SandboxValue, receiver: SandboxValue,
@@ -59,6 +60,16 @@ export async function sandboxSetProperty(
     }
     if (descriptor !== undefined && !descriptor.writable) return false;
     if (receiver === null || typeof receiver !== "object") return false;
+    if (isGuestHostObject(receiver)) {
+      const property = typeof key === "symbol" ? key : String(key);
+      const expandos = hostObjectGuestRoot(receiver);
+      // Ordinary data assignment must not invoke a native receiver accessor
+      // or replace a protected member. Guest expandos retain their own quotas.
+      if (hasHostObjectMember(receiver, property) &&
+          (expandos === undefined || !Object.hasOwn(expandos, property))) return false;
+      setHostObjectMember(receiver, property, value);
+      return true;
+    }
     const existing = await sandboxGetOwnPropertyDescriptor(receiver, key, budget, context);
     if (existing !== undefined && (!("value" in existing) || !existing.writable)) return false;
     return Boolean(await defineDataProperty(receiver, key, existing === undefined

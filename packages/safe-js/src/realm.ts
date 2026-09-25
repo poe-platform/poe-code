@@ -32,6 +32,8 @@ import {
 } from "./interp/host-bridge.js";
 import {
   createLiveHostObject,
+  setHostObjectPrototype,
+  hostObjectPrototypeRoot,
   hostObjectGuestRoot,
   createGuestReference,
   exportHostCapability,
@@ -329,6 +331,8 @@ class RealmState {
     for (const object of this.hostObjects) {
       const root = hostObjectGuestRoot(object);
       if (root !== undefined) nativeRetainedArrayAppend(roots, root);
+      const prototype = hostObjectPrototypeRoot(object);
+      if (prototype !== undefined) nativeRetainedArrayAppend(roots, prototype);
     }
     for (const closure of this.callbacks.values()) nativeRetainedArrayAppend(roots, closure);
     for (const pending of this.pendingCallbacks) nativeRetainedArrayAppend(roots, pending.closure);
@@ -684,6 +688,19 @@ class RealmState {
     return object;
   };
 
+  setHostObjectPrototype: ExtensionContext["setHostObjectPrototype"] = (value, prototype, assertActive) => {
+    this.assertOpen();
+    try {
+      setHostObjectPrototype(value, prototype, this, assertActive);
+      reconcileCompiledValues(this.budget,
+        [...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()],
+        this.compilation);
+    } catch (error) {
+      if (error instanceof SandboxError) this.poison(error);
+      throw error;
+    }
+  };
+
   wrapCallback = (closure: SandboxClosure, owned = false, queued = false): Callback => {
     this.assertOpen();
     const cache = queued ? this.queuedCallbackCache : this.callbackCache;
@@ -854,6 +871,7 @@ class RealmState {
         onCleanup: cleanup => { this.onCleanup(cleanup); },
         chargeWork: this.chargeWork,
         createHostObject: this.createHostObject,
+        setHostObjectPrototype: this.setHostObjectPrototype,
         createHostConstructor: this.createHostConstructor,
         createArrayBufferReference: buffer => {
           this.assertOpen();

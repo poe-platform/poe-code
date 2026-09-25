@@ -6,9 +6,10 @@ import { invokeBuiltinClosure } from "./builtin-call.js";
 import { objectProperties } from "./globals/object-array.js";
 import { getSandboxPrototype, setSandboxPrototype } from "./object-model.js";
 import { retainValues } from "./resources.js";
+import { isGuestHostObject } from "./host-capabilities.js";
 
 export function sandboxGetPrototypeOf(value: SandboxValue, budget: Budget, context?: SandboxCallContext): SandboxValue | Promise<SandboxValue> {
-  objectProperties(value);
+  if (!isGuestHostObject(value)) objectProperties(value);
   if (!guestProxyStates.has(value as object)) return getSandboxPrototype(value as object, budget) as SandboxValue;
   budget.visitNode();
   return withGuestProxyTrap(value as object, "getPrototypeOf", budget, context, async ({ target, handler, trap }) => {

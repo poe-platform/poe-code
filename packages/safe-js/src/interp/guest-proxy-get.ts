@@ -9,12 +9,13 @@ import { readPropertyDescriptor } from "./accessors.js";
 import { retainValues } from "./resources.js";
 import { isNumericTypedArray, isTypedArrayIndex } from "./typed-array.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
+import { isGuestHostObject, getHostObjectOwnMember, noHostObjectMember } from "./host-capabilities.js";
 
 export function sandboxGetProperty(
   value: SandboxValue, key: PropertyKey, receiver: SandboxValue, budget: Budget, context?: SandboxCallContext
 ): SandboxValue | Promise<SandboxValue> {
   if (typeof key === "number") key = String(key);
-  objectProperties(value);
+  if (!isGuestHostObject(value)) objectProperties(value);
   let current = value as object, depth = 0;
   for (;;) {
     if (guestProxyStates.has(current)) {
@@ -33,6 +34,16 @@ export function sandboxGetProperty(
         }
         return result;
       }).finally(release);
+    }
+    if (isGuestHostObject(current)) {
+      const own = getHostObjectOwnMember(current, typeof key === "symbol" ? key : String(key));
+      if (own !== noHostObjectMember) return own;
+      const prototype = getSandboxPrototype(current, budget);
+      if (prototype === null) return undefined;
+      budget.visitNode();
+      assertSandboxDataDepth(++depth);
+      current = prototype;
+      continue;
     }
     const descriptor = Object.getOwnPropertyDescriptor(objectProperties(current as SandboxValue), key);
     if (descriptor !== undefined) return readPropertyDescriptor(descriptor, receiver, context);

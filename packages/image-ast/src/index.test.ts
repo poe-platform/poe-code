@@ -3240,4 +3240,37 @@ describe("@poe-code/image-ast (sharp core)", () => {
       250, 250, 250
     ]);
   });
+
+  it("matches libvips vips_boolean 1-band broadcasting and band-count validation, and validates array input for join (#1250)", async () => {
+    const rgb = Buffer.from([255, 170, 85, 240, 15, 128]);
+    const rgba = Buffer.from([255, 170, 85, 200, 240, 15, 128, 100]);
+    const mask1 = Buffer.from([15, 240]);
+
+    // 1. 1-ch main | 3-ch operand -> promotes to 3 channels
+    const b13 = await sharp(mask1, { raw: { width: 2, height: 1, channels: 1 } })
+      .boolean(rgb, "or", { raw: { width: 2, height: 1, channels: 3 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(b13.info.channels).toBe(3);
+    expect(Array.from(b13.data)).toEqual([255, 175, 95, 240, 255, 240]);
+
+    // 2. 4-ch main & 1-ch operand -> broadcasts band 0 of mask1 across all 4 RGBA bands
+    const b41 = await sharp(rgba, { raw: { width: 2, height: 1, channels: 4 } })
+      .boolean(mask1, "and", { raw: { width: 2, height: 1, channels: 1 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(b41.info.channels).toBe(4);
+    expect(Array.from(b41.data)).toEqual([15, 10, 5, 8, 240, 0, 128, 96]);
+
+    // 3. 3-ch main & 4-ch operand -> rejects with "boolean: not one band or 4 bands"
+    await expect(
+      sharp(rgb, { raw: { width: 2, height: 1, channels: 3 } })
+        .boolean(rgba, "and", { raw: { width: 2, height: 1, channels: 4 } })
+        .raw()
+        .toBuffer()
+    ).rejects.toThrow("boolean: not one band or 4 bands");
+
+    // 4. sharp({ join: ... }) without array input -> throws "Expected input to be an array of images to join"
+    expect(() => sharp({ join: { across: 2 } } as any)).toThrow("Expected input to be an array of images to join");
+  });
 });

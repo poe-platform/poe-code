@@ -903,11 +903,16 @@ export function booleanImage(
   operand: RgbaImage,
   op: "and" | "or" | "eor"
 ): RgbaImage {
+  if (img.channels !== operand.channels && img.channels !== 1 && operand.channels !== 1) {
+    throw new Error(`boolean: not one band or ${operand.channels} bands`);
+  }
   const out = new Uint8Array(img.data.length);
   const w = img.width;
   const h = img.height;
   const opW = operand.width;
   const opH = operand.height;
+  const outChannels = Math.max(img.channels, operand.channels) as 1 | 2 | 3 | 4;
+  const hasAlpha = outChannels === 4 || outChannels === 2;
   for (let y = 0; y < h; y++) {
     const oy = Math.min(opH - 1, y);
     for (let x = 0; x < w; x++) {
@@ -915,21 +920,21 @@ export function booleanImage(
       const idx = (y * w + x) * 4;
       const oIdx = (oy * opW + ox) * 4;
       for (let c = 0; c < 4; c++) {
-        const a = img.data[idx + c]!;
-        const b = operand.data[oIdx + c]!;
+        const a = img.channels === 1 ? img.data[idx]! : img.data[idx + c]!;
+        const b = operand.channels === 1 ? operand.data[oIdx]! : operand.data[oIdx + c]!;
         out[idx + c] = op === "and" ? a & b : op === "or" ? a | b : a ^ b;
       }
-      if (!img.hasAlpha && !operand.hasAlpha) {
+      if (!hasAlpha) {
         out[idx + 3] = 255;
       }
     }
   }
-  const hasAlpha = img.hasAlpha || operand.hasAlpha;
   return {
     ...img,
     data: out,
     hasAlpha,
-    channels: hasAlpha ? 4 : img.channels
+    channels: outChannels,
+    ...(outChannels >= 3 ? { space: "srgb" as const } : {})
   };
 }
 

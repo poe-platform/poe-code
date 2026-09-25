@@ -331,10 +331,17 @@ export class SharpInstance extends Duplex {
       this.inputBytes = undefined;
       this.joinInputs = undefined;
       this.inputOptions = input as SharpInputOptions;
+      if (this.inputOptions.join !== undefined) {
+        throw new Error("Expected input to be an array of images to join");
+      }
+      validateInputOptions(this.inputOptions);
       if (!this.inputOptions.create && !this.inputOptions.text && Object.keys(this.inputOptions).length > 0) {
         this.streamIn = true;
       }
     } else {
+      if (options?.join !== undefined) {
+        throw new Error("Expected input to be an array of images to join");
+      }
       this.inputFilePath =
         typeof input === "string" && !input.trimStart().startsWith("<") ? input : undefined;
       const inferredDepth = inferTypedArrayDepth(input);

@@ -178,9 +178,9 @@ test("partial pipe creation releases admission and closes already-created pipes"
   let subscriptionsAtRelease: unknown[] = [];
   const subscriptions = (signal: AbortSignal): unknown[] => {
     const record = signal as unknown as Record<symbol, unknown>;
-    return record[Symbol.for("safe-bash.managedSignal")]
-      ? [...(record[Symbol.for("safe-bash.managedWaiters")] as Set<unknown> | undefined ?? [])]
-      : getEventListeners(signal, "abort");
+    if (!record[Symbol.for("safe-bash.managedSignal")]) return getEventListeners(signal, "abort");
+    const waiters = record[Symbol.for("safe-bash.managedWaiters")] as Set<unknown> | ((reason: unknown) => void) | undefined;
+    return typeof waiters === "function" ? [waiters] : [...(waiters ?? [])];
   };
   const retired: AbortSignal[] = [];
   const abort = AbortController.prototype.abort;

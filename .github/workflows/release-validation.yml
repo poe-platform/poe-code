@@ -121,6 +121,7 @@ jobs:
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
       TURBO_TELEMETRY_DISABLED: "1"
+      VITEST_MAX_WORKERS: "1"
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -167,6 +168,7 @@ jobs:
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
       TURBO_TELEMETRY_DISABLED: "1"
+      VITEST_MAX_WORKERS: "1"
     steps:
       - uses: actions/checkout@v7.0.1
         with:

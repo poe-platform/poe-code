@@ -1435,54 +1435,79 @@ export function claheImage(
   img: RgbaImage,
   options: { readonly width: number; readonly height: number; readonly maxSlope: number }
 ): RgbaImage {
-  const out = new Uint8Array(img.data.length);
-  const tileW = Math.max(1, options.width || 8);
-  const tileH = Math.max(1, options.height || 8);
-  const maxSlope = options.maxSlope > 0 ? options.maxSlope : 3;
+  const { width, height, data } = img;
+  const out = new Uint8Array(data);
+  const winW = Math.max(1, options.width || 8);
+  const winH = Math.max(1, options.height || 8);
+  const maxSlope = options.maxSlope !== undefined ? Math.max(0, options.maxSlope) : 3;
+  const halfW = Math.floor(winW / 2);
+  const halfH = Math.floor(winH / 2);
+  const nPixels = winW * winH;
+  const threshold = maxSlope > 0 ? Math.floor((maxSlope * nPixels) / 256) : nPixels;
+  const numCh = img.channels === 1 || img.space === "b-w" ? 1 : 3;
 
-  for (let ty = 0; ty < img.height; ty += tileH) {
-    for (let tx = 0; tx < img.width; tx += tileW) {
-      const xEnd = Math.min(img.width, tx + tileW);
-      const yEnd = Math.min(img.height, ty + tileH);
-      const count = (xEnd - tx) * (yEnd - ty);
-      if (count <= 0) continue;
-      const hist = new Float64Array(256);
-      for (let y = ty; y < yEnd; y++) {
-        for (let x = tx; x < xEnd; x++) {
-          const idx = (y * img.width + x) * 4;
-          const luma = Math.round(
-            0.299 * img.data[idx]! + 0.587 * img.data[idx + 1]! + 0.114 * img.data[idx + 2]!
-          );
-          hist[luma]!++;
+  const mirrorCoord = (c: number, max: number): number => {
+    if (max <= 1) return 0;
+    let cur = c;
+    while (cur < 0 || cur >= max) {
+      if (cur < 0) cur = -cur;
+      if (cur >= max) cur = 2 * max - 2 - cur;
+    }
+    return cur;
+  };
+
+  const syTable = new Int32Array(winH);
+  const sxTable = new Int32Array(width + winW);
+  for (let i = 0; i < width + winW; i++) {
+    sxTable[i] = mirrorCoord(i - halfW, width);
+  }
+
+  const hist = new Int32Array(256);
+  for (let ch = 0; ch < numCh; ch++) {
+    for (let y = 0; y < height; y++) {
+      for (let dy = 0; dy < winH; dy++) {
+        syTable[dy] = mirrorCoord(y + dy - halfH, height) * width * 4 + ch;
+      }
+      hist.fill(0);
+      for (let dy = 0; dy < winH; dy++) {
+        const rowBase = syTable[dy]!;
+        for (let dx = 0; dx < winW; dx++) {
+          hist[data[rowBase + sxTable[dx]! * 4]!]!++;
         }
       }
-      const clipLimit = Math.max(1, (maxSlope * count) / 256);
-      let excess = 0;
-      for (let i = 0; i < 256; i++) {
-        if (hist[i]! > clipLimit) {
-          excess += hist[i]! - clipLimit;
-          hist[i] = clipLimit;
+      for (let x = 0; x < width; x++) {
+        const pIdx = (y * width + x) * 4;
+        const target = data[pIdx + ch]!;
+        let sum = 0;
+        if (maxSlope > 0) {
+          let clipLe = 0;
+          let clipTot = 0;
+          for (let i = 0; i < 256; i++) {
+            const h = hist[i]!;
+            const c = h > threshold ? threshold : h;
+            clipTot += c;
+            if (i <= target) clipLe += c;
+          }
+          sum = clipLe + Math.floor((target * (nPixels - clipTot)) / 256);
+        } else {
+          for (let i = 0; i <= target; i++) sum += hist[i]!;
         }
-      }
-      const addPerBin = excess / 256;
-      const cdf = new Uint8Array(256);
-      let cum = 0;
-      for (let i = 0; i < 256; i++) {
-        cum += hist[i]! + addPerBin;
-        cdf[i] = clamp((cum * 255) / count);
-      }
-      for (let y = ty; y < yEnd; y++) {
-        for (let x = tx; x < xEnd; x++) {
-          const idx = (y * img.width + x) * 4;
-          const r = img.data[idx]!;
-          const g = img.data[idx + 1]!;
-          const b = img.data[idx + 2]!;
-          const luma = Math.max(1, Math.round(0.299 * r + 0.587 * g + 0.114 * b));
-          const scale = cdf[luma]! / luma;
-          out[idx] = clamp(r * scale);
-          out[idx + 1] = clamp(g * scale);
-          out[idx + 2] = clamp(b * scale);
-          out[idx + 3] = img.data[idx + 3]!;
+        const outVal = Math.max(0, Math.min(255, Math.floor((255 * sum) / nPixels + 0.5)));
+        if (numCh === 1) {
+          out[pIdx] = outVal;
+          out[pIdx + 1] = outVal;
+          out[pIdx + 2] = outVal;
+        } else {
+          out[pIdx + ch] = outVal;
+        }
+        if (x + 1 < width) {
+          const sxOut = sxTable[x]! * 4;
+          const sxIn = sxTable[x + winW]! * 4;
+          for (let dy = 0; dy < winH; dy++) {
+            const rowBase = syTable[dy]!;
+            hist[data[rowBase + sxOut]!]!--;
+            hist[data[rowBase + sxIn]!]!++;
+          }
         }
       }
     }
@@ -1615,7 +1640,10 @@ export function computeImageStats(img: RgbaImage): ImageStats {
       }
     }
     const mean = sum / totalPixels;
-    const variance = Math.max(0, squaresSum / totalPixels - mean * mean);
+    const variance =
+      totalPixels > 1
+        ? Math.max(0, (squaresSum - (sum * sum) / totalPixels) / (totalPixels - 1))
+        : 0;
     channels.push({
       min,
       max,
@@ -1673,9 +1701,9 @@ export function computeImageStats(img: RgbaImage): ImageStats {
   const dominant =
     maxBinCount > 0
       ? {
-          r: Math.round(binSumR[maxBin]! / maxBinCount),
-          g: Math.round(binSumG[maxBin]! / maxBinCount),
-          b: Math.round(binSumB[maxBin]! / maxBinCount)
+          r: ((maxBin >>> 8) & 0x0f) * 16 + 8,
+          g: ((maxBin >>> 4) & 0x0f) * 16 + 8,
+          b: (maxBin & 0x0f) * 16 + 8
         }
       : { r: 0, g: 0, b: 0 };
 

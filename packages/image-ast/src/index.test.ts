@@ -912,4 +912,29 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(affOut.data[aIdx + 1]).toBe(120);
     expect(affOut.data[aIdx + 2]).toBe(119);
   });
+
+  it("matches libvips vips_hist_local in clahe() and vips_stats sample stdev / dominant in stats() (#63)", async () => {
+    const W = 64, H = 64;
+    const srcRgb = new Uint8Array(W * H * 3);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 3;
+        srcRgb[i] = Math.min(255, Math.floor((x * x) / 16));
+        srcRgb[i + 1] = Math.min(255, Math.floor((y * y) / 16));
+        srcRgb[i + 2] = Math.min(255, Math.floor((x + y) * 2));
+      }
+    }
+    const claheOut = await sharp(srcRgb, { raw: { width: W, height: H, channels: 3 } })
+      .clahe({ width: 16, height: 16, maxSlope: 3 })
+      .raw()
+      .toBuffer();
+    const p20 = (20 * W + 20) * 3;
+    expect(claheOut[p20]).toBe(47);
+    expect(claheOut[p20 + 1]).toBe(47);
+    expect(claheOut[p20 + 2]).toBe(100);
+
+    const st = await sharp(srcRgb, { raw: { width: W, height: H, channels: 3 } }).stats();
+    expect(st.channels[0]!.stdev).toBeCloseTo(75.199667, 4);
+    expect(st.dominant).toEqual({ r: 8, g: 8, b: 24 });
+  });
 });

@@ -322,7 +322,7 @@ export class ValueStore {
     this.#scope?._reopen();
   }
 
-  get(name: string, text: string): ShellValue { return this.#values ? (this.#values.get(name)?.value ?? text) : text; }
+  get(name: string, text: string): ShellValue { return this.#values?.get(name)?.value ?? this.#strings?.get(name) ?? text; }
 
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
     const newBytes = value.length * 2;

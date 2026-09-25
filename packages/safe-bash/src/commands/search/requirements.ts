@@ -57,6 +57,15 @@ export async function* requiredFileInput(
     capabilities = await context.fs.capabilitiesFor(path, { signal: context.signal });
     assertCommandRequirements(context, requirements, [mode], capabilities);
   }
+  if (capabilities.read !== false && context.fs.capabilities.read !== false) {
+    try {
+      yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
+      return;
+    } catch (error) {
+      context.signal.throwIfAborted();
+      if (!(error instanceof FsError) || (error.code !== "ENOTSUP" && error.code !== "EFBIG") || !context.fs.readStream || capabilities.streamingRead === false || context.fs.capabilities.streamingRead === false) throw error;
+    }
+  }
   if (context.fs.readStream && capabilities.streamingRead !== false && context.fs.capabilities.streamingRead !== false) {
     let emitted = false;
     let reading = true;
@@ -73,6 +82,5 @@ export async function* requiredFileInput(
       if (!reading || emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
     }
   }
-  if (capabilities.read === false || context.fs.capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
-  yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
+  throw new FsError("ENOTSUP", { syscall: "readFile", path });
 }

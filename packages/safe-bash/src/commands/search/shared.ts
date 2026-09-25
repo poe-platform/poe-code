@@ -13,6 +13,7 @@ export function pathFor(context: CommandContext, path: string): string {
 export class OutputClosed extends SearchError {}
 
 const emptyBuffer = Buffer.alloc(0);
+const OUT_BUFFER_SIZE = 64 * 1024;
 
 export class Limits {
   readonly maxOutputBytes: number;
@@ -25,6 +26,8 @@ export class Limits {
   private ticks = 0;
   private readonly stopped = new AbortController();
   readonly signal: AbortSignal;
+  private outBuf: Uint8Array | null = null;
+  private outPos = 0;
   constructor(readonly context: CommandContext, options: SearchOptions) {
     this.signal = AbortSignal.any([context.signal, this.stopped.signal]);
     this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
@@ -52,10 +55,51 @@ export class Limits {
       throw error;
     }
   }
+  async flush(): Promise<void> {
+    if (this.outPos > 0 && this.outBuf) {
+      const slice = this.outBuf.subarray(0, this.outPos);
+      this.outPos = 0;
+      await this.write(slice);
+    }
+  }
   async output(value: string | Uint8Array): Promise<void> {
+    if (typeof value === "string") {
+      const len = value.length;
+      let ascii = true;
+      for (let i = 0; i < len; i++) {
+        if (value.charCodeAt(i) >= 0x80) { ascii = false; break; }
+      }
+      if (ascii && len <= OUT_BUFFER_SIZE) {
+        if (this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+        let buf = this.outBuf;
+        if (!buf) buf = this.outBuf = new Uint8Array(OUT_BUFFER_SIZE);
+        if (this.outPos + len > OUT_BUFFER_SIZE) {
+          await this.flush();
+        }
+        const pos = this.outPos;
+        for (let i = 0; i < len; i++) {
+          buf[pos + i] = value.charCodeAt(i);
+        }
+        this.outPos = pos + len;
+        this.outputBytes += len;
+        return;
+      }
+    }
     const chunk = typeof value === "string" ? Buffer.from(value) : value;
     if (this.outputBytes + chunk.byteLength > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
-    await this.write(chunk);
+    if (chunk.byteLength >= OUT_BUFFER_SIZE) {
+      await this.flush();
+      await this.write(chunk);
+      this.outputBytes += chunk.byteLength;
+      return;
+    }
+    let buf = this.outBuf;
+    if (!buf) buf = this.outBuf = new Uint8Array(OUT_BUFFER_SIZE);
+    if (this.outPos + chunk.byteLength > OUT_BUFFER_SIZE) {
+      await this.flush();
+    }
+    buf.set(chunk, this.outPos);
+    this.outPos += chunk.byteLength;
     this.outputBytes += chunk.byteLength;
   }
 }
@@ -70,56 +114,66 @@ export async function diagnostic(context: CommandContext, error: unknown): Promi
   await writeDiagnostic(context.stderr, `rg: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
 }
 
-export interface Line { readonly bytes: Buffer; readonly content: Buffer; readonly number: number; readonly offset: number }
+export interface Line {
+  readonly bytes: Uint8Array;
+  readonly content: Buffer;
+  readonly rawBytes: Buffer;
+  readonly rawLength: number;
+  readonly all: boolean;
+  readonly terminated: boolean;
+  readonly number: number;
+  readonly offset: number;
+}
+
+class SlicedLine implements Line {
+  readonly bytes: Uint8Array;
+  readonly rawLength: number;
+  readonly all: boolean;
+  readonly terminated: boolean;
+  readonly number: number;
+  readonly offset: number;
+  #content: Buffer | undefined;
+  #rawBytes: Buffer | undefined;
+  constructor(
+    private readonly chunk: Buffer,
+    private readonly start: number,
+    private readonly contentEnd: number,
+    private readonly rawEnd: number,
+    private readonly delimiterBuffer: Buffer | undefined,
+    searchEnd: number,
+    all: boolean,
+    terminated: boolean,
+    number: number,
+    offset: number,
+  ) {
+    this.bytes = new Uint8Array(chunk.buffer, chunk.byteOffset + start, searchEnd - start);
+    this.rawLength = rawEnd - start + (delimiterBuffer ? 1 : 0);
+    this.all = all;
+    this.terminated = terminated;
+    this.number = number;
+    this.offset = offset;
+  }
+  get content(): Buffer {
+    return this.#content ??= this.chunk.subarray(this.start, this.contentEnd);
+  }
+  get rawBytes(): Buffer {
+    if (this.#rawBytes) return this.#rawBytes;
+    const content = this.chunk.subarray(this.start, this.rawEnd);
+    return this.#rawBytes = this.delimiterBuffer ? Buffer.concat([content, this.delimiterBuffer]) : content;
+  }
+}
+
 export interface ReadState { bytesRead: number; bytesSearched: number; binaryOffset: number | null; skipped: boolean }
 
-export async function* lines(source: ByteSource, limits: Limits, state: ReadState, binary: "skip" | "binary" | "text", nullData: boolean): AsyncGenerator<Line> {
-  let pending: Buffer = emptyBuffer;
-  let offset = 0;
-  let number = 0;
-  const delimiter = nullData ? 0 : 10;
-  const delimiterBuffer = Buffer.from([delimiter]);
-  for await (const data of readBytes(source, limits.signal)) {
-    const tickPending = limits.tick();
-    if (tickPending) await tickPending;
-    const chunk = Buffer.isBuffer(data) ? data : Buffer.from(data.buffer, data.byteOffset, data.byteLength);
-    if (state.bytesRead + chunk.length > limits.maxFileBytes) throw new SearchError("input file byte limit exceeded");
-    const nul = nullData || binary === "text" ? -1 : chunk.indexOf(0);
-    if (nul >= 0 && state.binaryOffset === null) state.binaryOffset = state.bytesRead + nul;
-    state.bytesRead += chunk.length;
-    if (nul >= 0 && binary === "skip") { state.skipped = true; return; }
-    let start = 0;
-    for (let end = 0; end < chunk.length; end++) {
-      if (chunk[end] !== delimiter && !(binary === "binary" && chunk[end] === 0)) continue;
-      if (pending.length + end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
-      let content: Buffer;
-      let bytes: Buffer;
-      if (pending.length === 0 && chunk[end] === delimiter) {
-        content = chunk.subarray(start, end);
-        bytes = chunk.subarray(start, end + 1);
-      } else {
-        content = pending.length === 0 ? chunk.subarray(start, end) : Buffer.concat([pending, chunk.subarray(start, end)]);
-        bytes = Buffer.concat([content, delimiterBuffer]);
-      }
-      state.bytesSearched = offset + bytes.length;
-      yield { content, bytes, number: ++number, offset };
-      offset += bytes.length; pending = emptyBuffer; start = end + 1;
-    }
-    if (pending.length + chunk.length - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
-    if (start < chunk.length) {
-      const tail = chunk.subarray(start);
-      pending = pending.length === 0 ? Buffer.from(tail) : Buffer.concat([pending, tail]);
-    }
-  }
-  if (pending.length) { state.bytesSearched = offset + pending.length; yield { bytes: pending, content: pending, number: ++number, offset }; }
-}
 export async function* lineBatches(
-  source: ByteSource,
+  source: ByteSource | Uint8Array,
   limits: Limits,
   state: ReadState,
   binary: "skip" | "binary" | "text",
   nullData: boolean,
   maxRecords: () => number,
+  needAll = false,
+  crlf = false,
 ): AsyncGenerator<Line[]> {
   let pending: Buffer = emptyBuffer;
   let offset = 0;
@@ -129,7 +183,8 @@ export async function* lineBatches(
   const delimiter = nullData ? 0 : 10;
   const extraDelimiter = binary === "binary" ? 0 : -1;
   const delimiterBuffer = Buffer.from([delimiter]);
-  for await (const data of readBytes(source, limits.signal)) {
+  const chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array> = source instanceof Uint8Array ? [source] : readBytes(source, limits.signal);
+  for await (const data of chunks) {
     const tickPending = limits.tick();
     if (tickPending) await tickPending;
     const chunk = Buffer.isBuffer(data) ? data : Buffer.from(data.buffer, data.byteOffset, data.byteLength);
@@ -154,20 +209,45 @@ export async function* lineBatches(
     while (next >= 0) {
       const end = next;
       if (pending.length + end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
-      let content: Buffer;
-      let bytes: Buffer;
-      if (pending.length === 0 && chunk[end] === delimiter) {
-        content = chunk.subarray(start, end);
-        bytes = chunk.subarray(start, end + 1);
+      if (pending.length === 0) {
+        const searchEnd = crlf && end > start && chunk[end - 1] === 13 ? end - 1 : end;
+        const isNormalDelimiter = chunk[end] === delimiter;
+        const line = new SlicedLine(
+          chunk,
+          start,
+          end,
+          isNormalDelimiter ? end + 1 : end,
+          isNormalDelimiter ? undefined : delimiterBuffer,
+          searchEnd,
+          needAll,
+          true,
+          ++number,
+          offset,
+        );
+        state.bytesSearched = offset + line.rawLength;
+        batch.push(line);
+        batchBytes += end - start;
+        offset += line.rawLength;
       } else {
-        content = pending.length === 0 ? chunk.subarray(start, end) : Buffer.concat([pending, chunk.subarray(start, end)]);
-        bytes = Buffer.concat([content, delimiterBuffer]);
+        const content = Buffer.concat([pending, chunk.subarray(start, end)]);
+        const rawBytes = Buffer.concat([content, delimiterBuffer]);
+        const searchBytes = crlf && content.length > 0 && content[content.length - 1] === 13 ? content.subarray(0, content.length - 1) : content;
+        const line: Line = {
+          bytes: searchBytes,
+          content,
+          rawBytes,
+          rawLength: rawBytes.length,
+          all: needAll,
+          terminated: true,
+          number: ++number,
+          offset,
+        };
+        state.bytesSearched = offset + rawBytes.length;
+        batch.push(line);
+        batchBytes += content.length;
+        offset += rawBytes.length;
+        pending = emptyBuffer;
       }
-      state.bytesSearched = offset + bytes.length;
-      batch.push({ content, bytes, number: ++number, offset });
-      batchBytes += content.length;
-      offset += bytes.length;
-      pending = emptyBuffer;
       start = end + 1;
       next = extraDelimiter === -1
         ? chunk.indexOf(delimiter, start)
@@ -197,7 +277,17 @@ export async function* lineBatches(
   }
   if (pending.length) {
     state.bytesSearched = offset + pending.length;
-    batch.push({ bytes: pending, content: pending, number: ++number, offset });
+    const searchBytes = crlf && pending.length > 0 && pending[pending.length - 1] === 13 ? pending.subarray(0, pending.length - 1) : pending;
+    batch.push({
+      bytes: searchBytes,
+      content: pending,
+      rawBytes: pending,
+      rawLength: pending.length,
+      all: needAll,
+      terminated: false,
+      number: ++number,
+      offset,
+    });
   }
   if (batch.length) yield batch;
 }

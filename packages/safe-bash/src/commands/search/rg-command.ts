@@ -1,4 +1,5 @@
-import { collectBytes, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { assertCommandRequirements, collectBytes, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
 import { Matcher, type Match } from "./matcher.js";
 import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
 import { data, elapsed, Printer, stats, type Stats } from "./output.js";
@@ -42,8 +43,16 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   if (args.maxCount === 0) return { found: false, stats: totals };
   const state: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
   const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
-  const source = target.path === "-" ? readBytes(stdin, limits.signal)
-    : readBytes(requiredFileInput(context, searchRequirements, "file", target.path, limits.maxFileBytes), limits.signal);
+  const backing = target.canonicalPath ? getRuntimeBackingFileSystem(context.fs) : undefined;
+  let source: ByteSource | Uint8Array;
+  if (target.path === "-") {
+    source = stdin;
+  } else if (target.canonicalPath && backing && backing.capabilitiesFor === undefined && context.fs.capabilities.read !== false && backing.capabilities.read !== false) {
+    assertCommandRequirements(context, searchRequirements, ["file"]);
+    source = await backing.readFile(target.canonicalPath, { signal: context.signal, ...(Number.isFinite(limits.maxFileBytes) ? { maxBytes: limits.maxFileBytes } : {}) });
+  } else {
+    source = requiredFileInput(context, searchRequirements, "file", target.path, limits.maxFileBytes);
+  }
   const before: { line: Line; matches: Match[] }[] = [];
   let beforeBytes = 0;
   let lastPrinted = 0;
@@ -61,30 +70,20 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
   const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches";
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
-  records: for await (const batch of lineBatches(source, limits, state, binary, args.nullData, batchSize)) {
-    const rows: { bytes: Uint8Array; all: boolean; terminated: boolean }[] = new Array(batch.length);
-    for (let i = 0; i < batch.length; i++) {
-      const line = batch[i]!;
-      const content = line.content;
-      rows[i] = {
-        bytes: args.crlf && content.length > 0 && content[content.length - 1] === 13 ? content.subarray(0, content.length - 1) : content,
-        all: needAll,
-        terminated: line.bytes.length !== content.length,
-      };
-    }
-    const results = await matcher.batch(rows);
+  records: for await (const batch of lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf)) {
+    const results = await matcher.batch(batch);
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
-      state.bytesSearched = line.offset + line.bytes.length;
+      state.bytesSearched = line.offset + line.rawLength;
       const tickPending = limits.tick();
       if (tickPending) await tickPending;
       if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0) {
         await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break records;
       }
       const matches = results[index]!;
-      const limitedInvertedTail = args.invert && totals.matched_lines >= args.maxCount && after > 0 && line.bytes.length === line.content.length;
+      const limitedInvertedTail = args.invert && totals.matched_lines >= args.maxCount && after > 0 && line.rawLength === line.content.length;
       const selected = (matches.length > 0) !== args.invert || limitedInvertedTail;
-      if (selected) lastSelectedEnd = line.offset + line.bytes.length;
+      if (selected) lastSelectedEnd = line.offset + line.rawLength;
       if (selected && totals.matched_lines < args.maxCount) {
         totals.matched_lines++; totals.matches += args.invert ? 0 : matches.length;
         if (args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without") break records;
@@ -106,12 +105,12 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       }
       if (binaryOutput && args.before > 0 && state.binaryOffset !== null) break records;
       if (totals.matched_lines >= args.maxCount && (!selectedOutput || after === 0)) {
-        state.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.bytes.length === line.content.length ? line.offset : 0);
+        state.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.rawLength === line.content.length ? line.offset : 0);
         break records;
       }
       if (args.before > 0) {
-        before.push({ line, matches }); beforeBytes += line.bytes.length;
-        while (before.length > args.before) beforeBytes -= before.shift()!.line.bytes.length;
+        before.push({ line, matches }); beforeBytes += line.rawLength;
+        while (before.length > args.before) beforeBytes -= before.shift()!.line.rawLength;
         if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
       }
     }
@@ -145,10 +144,11 @@ export function createRgCommand(executor: RegexExecutor, options: SearchOptions 
     async execute(context) {
       return withRegexSession(context, executor, async session => {
         let args: Arguments | undefined;
+        let limits: Limits | undefined;
         let failed = false;
         let found = false;
         try {
-          const limits = new Limits(context, options);
+          limits = new Limits(context, options);
           args = parse(context.args);
           if (args.help) {
             await limits.output(Buffer.from(`Usage: rg [OPTIONS] PATTERN [PATH ...]
@@ -218,10 +218,12 @@ Regex operators: . ^ $ [...] (...) | * + ? {n,m}; -F treats patterns literally.
 Case and word selection support ASCII patterns and subjects.
 Unicode selection and extended regex syntax require a configured executor.
 `));
+            await limits.flush();
             return { exitCode: 0 };
           }
           if (args.version) {
             await limits.output(Buffer.from(`rg (safe-bash bounded implementation)\n${args.version === "long" ? `Regex engine: ${options.regexExecutor === undefined ? "bounded ASCII regular expressions and UTF-8 literals" : "configured bounded regex executor (capabilities depend on provider)"}\nNative ripgrep revision, PCRE2 and SIMD capabilities are not reported by this implementation.\n` : ""}`));
+            await limits.flush();
             return { exitCode: 0 };
           }
           if (args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) {
@@ -230,6 +232,7 @@ Unicode selection and extended regex syntax require a configured executor.
           const selection = selectInput(context, args, options);
           const report = async (error: unknown) => {
             context.signal.throwIfAborted(); failed = true;
+            await limits!.flush();
             if (args!.messages) await diagnostic(context, error);
           };
           const walker = new Walker(context, args, limits, report, session);
@@ -255,10 +258,12 @@ Unicode selection and extended regex syntax require a configured executor.
             } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
           }
           if (args.mode === "json") await printer.event("summary", { elapsed_total: elapsed, stats: totals });
+          await limits.flush();
           return { exitCode: args.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };
         } catch (error) {
           context.signal.throwIfAborted();
           if (error instanceof OutputClosed) return { exitCode: 0 };
+          try { await limits?.flush(); } catch (flushErr) { if (flushErr instanceof OutputClosed) return { exitCode: 0 }; }
           if (args?.messages !== false) await diagnostic(context, error);
           return { exitCode: 2 };
         }

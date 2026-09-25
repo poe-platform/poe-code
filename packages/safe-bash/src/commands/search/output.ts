@@ -30,7 +30,7 @@ export class Printer {
   async record(label: string, line: Line, matches: readonly Match[], selected: boolean, filename: boolean): Promise<void> {
     if (this.args.mode === "json") {
       await this.event(selected ? "match" : "context", {
-        path: data(Buffer.from(label)), lines: data(line.bytes), line_number: line.number, absolute_offset: line.offset,
+        path: data(Buffer.from(label)), lines: data(line.rawBytes), line_number: line.number, absolute_offset: line.offset,
         submatches: matches.map(match => ({ match: data(line.content.subarray(match.start, match.end)), start: match.start, end: match.end })),
       });
       return;

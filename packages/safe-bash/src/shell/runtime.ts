@@ -1726,6 +1726,10 @@ const runtimeBackingFileSystems = new WeakMap<FileSystem, FileSystem>();
 export function registerRuntimeBackingFileSystem(wrapper: FileSystem, backing: FileSystem): void {
   runtimeBackingFileSystems.set(wrapper, backing);
 }
+
+export function getRuntimeBackingFileSystem(fs: FileSystem): FileSystem | undefined {
+  return runtimeBackingFileSystems.get(fs);
+}
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
 const emptyStrings: readonly string[] = [];
@@ -1785,6 +1789,7 @@ export class Runtime {
     if (!this.#fs) {
       this.#fs = scopeFileSystem(this.#rawFs, () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation());
       runtimeFileSystems.set(this.#fs, this.sourceFs);
+      runtimeBackingFileSystems.set(this.#fs, this.backingFs);
     }
     return this.#fs;
   }
@@ -4468,9 +4473,10 @@ export class Runtime {
           const initOrPromise = evaluateSync(command.expressions[0]);
           if ((typeof initOrPromise === "bigint" ? initOrPromise : await initOrPromise) === undefined) return 1;
           const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
+          let loopTurn = 0;
           while (true) {
             this.budget.loop();
-            if (this.budget.loops % 128 === 0) await yieldTurn(this.signal);
+            if ((++loopTurn & 127) === 0) await yieldTurn(this.signal);
             const condOrPromise = evaluateSync(command.expressions[1]);
             const condition = typeof condOrPromise === "bigint" ? condOrPromise : await condOrPromise;
             if (condition === undefined) return 1;
@@ -5280,7 +5286,14 @@ export class Runtime {
     const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
     let contextFs: FileSystem | undefined;
-    const getContextFs = (): FileSystem => contextFs ??= scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation());
+    const getContextFs = (): FileSystem => {
+      if (!contextFs) {
+        contextFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation());
+        runtimeFileSystems.set(contextFs, this.sourceFs);
+        runtimeBackingFileSystems.set(contextFs, this.backingFs);
+      }
+      return contextFs;
+    };
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
       shellPredicates: {

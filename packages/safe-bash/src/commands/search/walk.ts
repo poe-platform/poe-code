@@ -1,4 +1,5 @@
-import { dirname, FsError, isPathWithin, relativePath, resolvePath, type CommandContext, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
+import { assertCommandRequirements, dirname, FsError, isPathWithin, relativePath, resolvePath, type CommandContext, type DirectoryEntry, type FileStat } from "../../contracts/index.js";
+import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
 import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import { Glob, ignoreRules, matchGlobs, type IgnoreRule } from "./glob.js";
 import { SearchError, type Arguments } from "./options.js";
@@ -6,7 +7,7 @@ import { Limits, pathFor } from "./shared.js";
 import { assertPathRequirements, searchRequirements } from "./requirements.js";
 import { defaultFileTypes } from "./file-types.js";
 
-export interface FileTarget { readonly path: string; readonly label: string; readonly explicit: boolean; readonly recursive: boolean }
+export interface FileTarget { readonly path: string; readonly label: string; readonly explicit: boolean; readonly recursive: boolean; readonly canonicalPath?: string }
 
 function compareEntryNames(left: string, right: string): number {
   const min = Math.min(left.length, right.length);
@@ -76,9 +77,21 @@ export class Walker {
       const names: [string, number][] = [];
       if (this.args.ignoreVcs && (repository || !this.args.requireGit)) names.push([".gitignore", 1]);
       if (this.args.ignoreDot) names.push([".ignore", 2], [".rgignore", 3]);
+      const backing = getRuntimeBackingFileSystem(this.context.fs);
+      const uniformNonDev = backing !== undefined && backing.capabilitiesFor === undefined && base !== "/dev" && !base.startsWith("/dev/");
+      let checkedIgnoreReq = false;
       for (const [name, priority] of names) {
-        await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [`${directory}/${name}`]);
-        if (entries && !entries.some(entry => entry.name === name)) continue;
+        if (entries && !entries.some(entry => entry.name === name)) {
+          if (!checkedIgnoreReq) {
+            checkedIgnoreReq = true;
+            if (uniformNonDev) assertCommandRequirements(this.context, searchRequirements, ["ignore-file"]);
+            else await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [`${directory}/${name}`]);
+          }
+          continue;
+        }
+        checkedIgnoreReq = true;
+        if (uniformNonDev) assertCommandRequirements(this.context, searchRequirements, ["ignore-file"]);
+        else await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [`${directory}/${name}`]);
         try {
           const data = await this.context.fs.readFile(`${directory}/${name}`, { signal: this.context.signal });
           local.push(...await ignoreRules(Buffer.from(data).toString("utf8"), base, priority, this.session));
@@ -130,14 +143,18 @@ export class Walker {
   }
   private async* directory(path: string, label: string, depth: number, ancestors: ReadonlyMap<string, string>, rules: readonly IgnoreRule[], repository: boolean): AsyncGenerator<FileTarget> {
     if (depth >= this.args.maxDepth) return;
-    await assertPathRequirements(this.context, searchRequirements, ["directory"], [path]);
+    const backing = getRuntimeBackingFileSystem(this.context.fs);
+    const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");
+    if (uniformNonDevPath) assertCommandRequirements(this.context, searchRequirements, ["directory"]);
+    else await assertPathRequirements(this.context, searchRequirements, ["directory"], [path]);
     const canonical = await this.context.fs.realpath(path, { signal: this.context.signal });
+    const uniformCanonical = backing !== undefined && backing.capabilitiesFor === undefined && canonical !== "/dev" && !canonical.startsWith("/dev/");
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return; }
     const parents = new Map(ancestors); parents.set(canonical, label || ".");
     const maxEntries = this.limits.maxFiles - this.limits.files;
     let entries: DirectoryEntry[];
     try {
-      entries = await this.context.fs.readdir(path, { signal: this.context.signal,
+      entries = await (uniformCanonical ? backing : this.context.fs).readdir(uniformCanonical ? canonical : path, { signal: this.context.signal,
         ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) });
     } catch (error) {
       this.context.signal.throwIfAborted();
@@ -174,7 +191,7 @@ export class Walker {
             await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
             if ((await this.context.fs.stat(child, { signal: this.context.signal })).size > this.args.maxFileSize) continue;
           }
-          yield { path: child, label: display, explicit: false, recursive: true };
+          yield { path: child, label: display, explicit: false, recursive: true, ...(uniformCanonical && entry.type === "file" ? { canonicalPath: `${canonical === "/" ? "" : canonical}/${entry.name}` } : {}) };
         }
       } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }

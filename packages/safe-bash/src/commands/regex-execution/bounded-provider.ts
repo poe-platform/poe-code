@@ -10,7 +10,7 @@ import { validateUtf8 } from "./utf8.js";
 import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -159,8 +159,15 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
   if (selected.kind === "glob" && input.rows.length !== 0 && input.rows.length !== selected.patterns.length) fail("protocol", "invalid glob row count");
   if (input.rows.length > Math.floor(limits.maxResultBytes / 16)) fail("limit", "result byte limit exceeded");
   let bytes = 0;
+  const knownTrustedRows = trusted && selected.kind !== "glob" && trustedInputRows.has(input.rows);
   let allTrustedRows = trusted && selected.kind !== "glob";
-  for (let index = 0; index < input.rows.length; index++) {
+  if (knownTrustedRows) {
+    for (let index = 0; index < input.rows.length; index++) {
+      const length = input.rows[index]!.bytes.byteLength;
+      if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
+      bytes += length;
+    }
+  } else for (let index = 0; index < input.rows.length; index++) {
     const row = input.rows[index]!;
     if (allTrustedRows && row && row.bytes instanceof Uint8Array && typeof row.all === "boolean" && typeof row.terminated === "boolean" && !Object.hasOwn(row, "directory") && !Object.hasOwn(row, "ancestors")) {
       const length = row.bytes.byteLength;
@@ -320,12 +327,53 @@ async function breFragments(pattern: string, ledger: EreLedger, signal: AbortSig
 }
 
 
-async function literalBytes(pattern: string, selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal): Promise<Uint8Array> {
+function literalBytes(pattern: string, selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal): Uint8Array | Promise<Uint8Array> {
+  const { kind } = selected;
+  if (ledger.workAllowanceUntilCheckpoint(signal) >= pattern.length * 6 + 8) {
+    let length = 0;
+    if (kind === "grep") {
+      const pendingUtf8 = validateUtf8(pattern, ledger, signal);
+      if (pendingUtf8) return literalBytesAsync(pattern, selected, ledger, signal, pendingUtf8);
+      length = pattern.length;
+    } else {
+      for (let index = 0; index < pattern.length;) {
+        const scalar = pattern.codePointAt(index)!;
+        const units = scalar > 0xffff ? 2 : 1;
+        ledger.charge("work", units, signal);
+        if (scalar === 0 || scalar >= 0xd800 && scalar <= 0xdfff) fail("unsupported", "rg literal patterns require non-NUL Unicode scalars for UTF-8");
+        if (scalar === 10 && selected.kind === "rg" && !selected.nullData) fail("unsupported", "rg multiline matching is unsupported");
+        length += scalar < 0x80 ? 1 : scalar < 0x800 ? 2 : scalar < 0x10000 ? 3 : 4;
+        index += units;
+      }
+    }
+    ledger.charge("patternBytes", length, signal);
+    ledger.charge("allocationUnits", length + 1, signal);
+    const bytes = new Uint8Array(length);
+    let offset = 0;
+    for (let index = 0; index < pattern.length;) {
+      const scalar = kind === "grep" ? pattern.charCodeAt(index) : pattern.codePointAt(index)!;
+      const width = kind === "grep" || scalar < 0x80 ? 1 : scalar < 0x800 ? 2 : scalar < 0x10000 ? 3 : 4;
+      ledger.charge("work", width, signal);
+      if (width === 1) bytes[offset++] = scalar;
+      else {
+        bytes[offset++] = width === 2 ? 0xc0 | scalar >> 6 : width === 3 ? 0xe0 | scalar >> 12 : 0xf0 | scalar >> 18;
+        if (width === 4) bytes[offset++] = 0x80 | scalar >> 12 & 0x3f;
+        if (width >= 3) bytes[offset++] = 0x80 | scalar >> 6 & 0x3f;
+        bytes[offset++] = 0x80 | scalar & 0x3f;
+      }
+      index += kind === "rg" && scalar > 0xffff ? 2 : 1;
+    }
+    return bytes;
+  }
+  return literalBytesAsync(pattern, selected, ledger, signal);
+}
+
+async function literalBytesAsync(pattern: string, selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal, pendingUtf8?: Promise<void>): Promise<Uint8Array> {
   const { kind } = selected;
   let length = 0;
   if (kind === "grep") {
-    // grep transports raw pattern bytes in Latin-1 code units, not Unicode text.
-    await validateUtf8(pattern, ledger, signal);
+    if (pendingUtf8) await pendingUtf8;
+    else await validateUtf8(pattern, ledger, signal);
     length = pattern.length;
   } else {
     for (let index = 0; index < pattern.length;) {
@@ -362,7 +410,27 @@ async function literalBytes(pattern: string, selected: SelectionDescriptor, ledg
 
 interface LiteralProgram { readonly bytes: Uint8Array; readonly fallback: Uint32Array; readonly insensitive: boolean }
 
-async function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal, insensitive = false): Promise<LiteralProgram> {
+function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal, insensitive = false): LiteralProgram | Promise<LiteralProgram> {
+  if (ledger.workAllowanceUntilCheckpoint(signal) >= bytes.length * 3 + 4) {
+    if (insensitive) {
+      ledger.charge("work", bytes.length, signal);
+      for (let index = 0; index < bytes.length; index++) bytes[index] = foldAscii(bytes[index]!);
+    }
+    ledger.charge("states", bytes.length, signal);
+    ledger.charge("allocationUnits", bytes.length * 4 + 4, signal);
+    const fallback = new Uint32Array(bytes.length);
+    for (let index = 1, prefix = 0; index < bytes.length;) {
+      ledger.charge("work", 1, signal);
+      if (bytes[index] === bytes[prefix]) fallback[index++] = ++prefix;
+      else if (prefix > 0) prefix = fallback[prefix - 1]!;
+      else index++;
+    }
+    return { bytes, fallback, insensitive };
+  }
+  return compileLiteralAsync(bytes, ledger, signal, insensitive);
+}
+
+async function compileLiteralAsync(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal, insensitive = false): Promise<LiteralProgram> {
   if (insensitive) for (let index = 0; index < bytes.length; index++) {
     ledger.charge("work", 1, signal);
     await ledger.checkpoint(signal);
@@ -518,13 +586,135 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
   return new Float64Array(ranges);
 }
 
+interface CachedLiteralPrograms {
+  readonly key: string;
+  readonly fold: boolean;
+  readonly programs: readonly LiteralProgram[];
+  readonly work: number;
+  readonly patternBytes: number;
+  readonly states: number;
+  readonly allocationUnits: number;
+}
+let lastLiteralCache: CachedLiteralPrograms | undefined;
+
+function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: boolean): Reply | undefined {
+  const { descriptor: selected, rows, ledger } = input;
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i]!.all) return undefined;
+  }
+  const cacheKey = selected.patterns.length === 1 && selected.patterns[0]!.length <= 128
+    ? `${selected.kind}:${fold ? 1 : 0}:${selected.kind === "rg" && selected.nullData ? 1 : 0}:${selected.patterns[0]}`
+    : undefined;
+  if (
+    cacheKey === undefined ||
+    lastLiteralCache?.key !== cacheKey ||
+    ledger.workAllowanceUntilCheckpoint(signal) < lastLiteralCache.work
+  ) {
+    return undefined;
+  }
+  // Check if total row work fits within workAllowanceUntilCheckpoint
+  let estimatedWork = lastLiteralCache.work + 3;
+  for (let i = 0; i < rows.length; i++) {
+    estimatedWork += rows[i]!.bytes.length * 3 + 8;
+  }
+  if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
+    return undefined;
+  }
+  ledger.charge("work", lastLiteralCache.work, signal);
+  ledger.charge("patternBytes", lastLiteralCache.patternBytes, signal);
+  ledger.charge("states", lastLiteralCache.states, signal);
+  ledger.charge("allocationUnits", lastLiteralCache.allocationUnits, signal);
+  const programs = lastLiteralCache.programs;
+  ledger.charge("allocationUnits", 3, signal);
+  const results: Float64Array[] = new Array(rows.length);
+  let matchCount = 0;
+  const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r]!;
+    if (selected.kind === "rg") {
+      const pendingUtf8 = validateUtf8(row.bytes, ledger, signal);
+      if (pendingUtf8) return undefined;
+      if ((selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
+    } else {
+      ledger.charge("work", row.bytes.length, signal);
+    }
+    let start = -1;
+    let end = -1;
+    for (let p = 0; p < programs.length; p++) {
+      const program = programs[p]!;
+      const candidate = literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
+      if (typeof candidate !== "number") return undefined;
+      if (candidate < 0) continue;
+      if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; }
+      if (selected.kind === "grep") break;
+    }
+    signal.throwIfAborted();
+    if (start >= 0) {
+      if (matchCount >= maxMatches) fail("limit", "total match or result byte limit exceeded");
+      matchCount++;
+    }
+    results[r] = start < 0 ? emptyFloat64 : new Float64Array([start, end]);
+  }
+  return { id: input.id, results };
+}
+
+function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undefined {
+  const { descriptor: selected, ledger } = input;
+  const foldOrPromise = insensitive(selected, ledger, signal);
+  if (typeof foldOrPromise !== "boolean") return undefined;
+  let literal = selected.fixed;
+  if (!literal) {
+    literal = true;
+    patterns: for (const pattern of selected.patterns) {
+      if (ledger.workAllowanceUntilCheckpoint(signal) < pattern.length) return undefined;
+      ledger.charge("work", pattern.length, signal);
+      for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)
+        || selected.kind === "grep" && character.charCodeAt(0) >= 128) { literal = false; break patterns; }
+    }
+  }
+  if (!literal) return undefined;
+  return tryExecuteLiteralSync(input, signal, foldOrPromise);
+}
+
 async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: boolean): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
-  const programs: LiteralProgram[] = [];
-  for (const pattern of selected.patterns) {
-    const bytes = await literalBytes(pattern, selected, ledger, signal);
-    if (fold && selected.kind === "rg" && bytes.some(byte => byte >= 128)) fail("unsupported", "rg case folding supports ASCII patterns only");
-    programs.push(await compileLiteral(bytes, ledger, signal, fold));
+  const cacheKey = selected.patterns.length === 1 && selected.patterns[0]!.length <= 128
+    ? `${selected.kind}:${fold ? 1 : 0}:${selected.kind === "rg" && selected.nullData ? 1 : 0}:${selected.patterns[0]}`
+    : undefined;
+  let programs: readonly LiteralProgram[];
+  if (
+    cacheKey !== undefined &&
+    lastLiteralCache?.key === cacheKey &&
+    ledger.workAllowanceUntilCheckpoint(signal) >= lastLiteralCache.work
+  ) {
+    ledger.charge("work", lastLiteralCache.work, signal);
+    ledger.charge("patternBytes", lastLiteralCache.patternBytes, signal);
+    ledger.charge("states", lastLiteralCache.states, signal);
+    ledger.charge("allocationUnits", lastLiteralCache.allocationUnits, signal);
+    programs = lastLiteralCache.programs;
+  } else {
+    const snapBefore = ledger.usage;
+    const compiled: LiteralProgram[] = [];
+    for (const pattern of selected.patterns) {
+      const bytesOrPromise = literalBytes(pattern, selected, ledger, signal);
+      const bytes = bytesOrPromise instanceof Uint8Array ? bytesOrPromise : await bytesOrPromise;
+      if (fold && selected.kind === "rg" && bytes.some(byte => byte >= 128)) fail("unsupported", "rg case folding supports ASCII patterns only");
+      const progOrPromise = compileLiteral(bytes, ledger, signal, fold);
+      compiled.push("bytes" in progOrPromise ? progOrPromise : await progOrPromise);
+    }
+    programs = compiled;
+    if (cacheKey !== undefined) {
+      const snapAfter = ledger.usage;
+      lastLiteralCache = {
+        key: cacheKey,
+        fold,
+        programs,
+        work: snapAfter.work - snapBefore.work,
+        patternBytes: snapAfter.patternBytes - snapBefore.patternBytes,
+        states: snapAfter.states - snapBefore.states,
+        allocationUnits: snapAfter.allocationUnits - snapBefore.allocationUnits,
+      };
+    }
   }
   ledger.charge("allocationUnits", 3, signal);
   const results: Float64Array[] = [];
@@ -573,9 +763,22 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
   return { id: input.id, results };
 }
 
-async function insensitive(selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal): Promise<boolean> {
+function insensitive(selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal): boolean | Promise<boolean> {
   if (selected.kind === "grep") return selected.insensitive;
   if (selected.case !== "smart") return selected.case === "insensitive";
+  for (const pattern of selected.patterns) {
+    if (ledger.workAllowanceUntilCheckpoint(signal) < pattern.length) {
+      return insensitiveAsync(selected, ledger, signal);
+    }
+    for (let index = 0; index < pattern.length; index++) {
+      ledger.charge("work", 1, signal);
+      if (pattern[index]! >= "A" && pattern[index]! <= "Z") return false;
+    }
+  }
+  return true;
+}
+
+async function insensitiveAsync(selected: Extract<SelectionDescriptor, { kind: "rg" }>, ledger: EreLedger, signal: AbortSignal): Promise<boolean> {
   for (const pattern of selected.patterns) {
     for (let index = 0; index < pattern.length; index++) {
       ledger.charge("work", 1, signal);
@@ -588,13 +791,18 @@ async function insensitive(selected: SelectionDescriptor, ledger: EreLedger, sig
 
 async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
-  const fold = await insensitive(selected, ledger, signal);
+  const foldOrPromise = insensitive(selected, ledger, signal);
+  const fold = typeof foldOrPromise === "boolean" ? foldOrPromise : await foldOrPromise;
   let literal = selected.fixed;
   if (!literal) {
     literal = true;
     patterns: for (const pattern of selected.patterns) {
-      ledger.charge("work", pattern.length, signal);
-      await ledger.checkpoint(signal);
+      if (ledger.workAllowanceUntilCheckpoint(signal) >= pattern.length) {
+        ledger.charge("work", pattern.length, signal);
+      } else {
+        ledger.charge("work", pattern.length, signal);
+        await ledger.checkpoint(signal);
+      }
       for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)
         || selected.kind === "grep" && character.charCodeAt(0) >= 128) { literal = false; break patterns; }
     }
@@ -689,6 +897,34 @@ class CooperativeWorker implements RegexWorker {
       if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) throw error;
       if (error instanceof ExprMatchError) category = error.category;
       failure = error.message.slice(0, 512);
+    }
+    if (owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
+      try {
+        this.#controller.signal.throwIfAborted();
+        const syncReply = tryExecuteSync(owned as OwnedRequest, this.#controller.signal);
+        if (syncReply !== undefined) {
+          trustedWorkerReplies.add(syncReply);
+          owned = undefined;
+          if (!this.#closing) this.emit(syncReply);
+          return;
+        }
+      } catch (error) {
+        if (error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError) {
+          const errReply: Reply = { id, error: error.message.slice(0, 512) };
+          owned = undefined;
+          if (!this.#closing) this.emit(errReply);
+          return;
+        }
+      }
+      // Re-admit with fresh ledger if tryExecuteSync partially charged before bailing out
+      try {
+        owned = admit(input, this.limits, this.#controller.signal);
+      } catch (error) {
+        if (error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError) {
+          failure = error.message.slice(0, 512);
+          owned = undefined;
+        } else throw error;
+      }
     }
     this.#busy = true;
     const task = Promise.resolve().then(async () => {

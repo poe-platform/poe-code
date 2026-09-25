@@ -758,3 +758,9 @@ test("external invoke isolates unexported functions, dispatches external pwd/tru
     assert.match((await shell.exec("env echo --version")).stdout, /^echo /u);
   } finally { await shell.dispose(); }
 });
+
+test("printf supports grouping flag (%\x27d)", async () => {
+  const res = await run("printf", ["%\x27d\n", "1234"]);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout, "1234\n");
+});

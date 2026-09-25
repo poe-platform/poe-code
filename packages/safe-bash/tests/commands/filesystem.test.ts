@@ -1321,3 +1321,15 @@ test("ls, readlink, and ln -sf handle symlinks pointing through regular files or
   assert.equal((await sh.exec("ln -sf real_file /d/broken_enotdir")).exitCode, 0);
   assert.equal((await sh.exec("ln -sf real_file /d/loop")).exitCode, 0);
 });
+
+test("readlink -v/-q/-s, realpath -s -P ordering, and ls --file-type/-B/--sort=none|name|extension|version", async () => {
+  const vfs = await fixture({ file: "x", "backup~": "y", "a.txt": "1", "b.md": "2" });
+  await vfs.symlink("file", "/work/link");
+  assert.equal((await run("readlink", ["file"], { fs: vfs })).stderr, "");
+  assert.notEqual((await run("readlink", ["-v", "file"], { fs: vfs })).stderr, "");
+  assert.equal((await run("readlink", ["-v", "-q", "file"], { fs: vfs })).stderr, "");
+  assert.equal((await run("realpath", ["-s", "-P", "link"], { fs: vfs })).stdout, "/work/file\n");
+  assert.match((await run("ls", ["--file-type"], { fs: vfs })).stdout, /link@/u);
+  assert.doesNotMatch((await run("ls", ["-B"], { fs: vfs })).stdout, /backup~/u);
+  assert.equal((await run("ls", ["--sort=extension", "a.txt", "b.md"], { fs: vfs })).stdout, "b.md\na.txt\n");
+});

@@ -242,3 +242,9 @@ test("env exits 125 on usage/chdir errors, rejects -u A=B, and accepts =value", 
   assert.equal(eqVal.exitCode, 0);
   assert.equal(eqVal.stdout, "=foo\n");
 });
+
+test("xargs respects -d and -0 option ordering", async () => {
+  const res = await run("xargs", ["-d", ":", "-0", "-n", "1", "echo"], { stdin: "a:b\0c\0" });
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout, "a:b\nc\n");
+});

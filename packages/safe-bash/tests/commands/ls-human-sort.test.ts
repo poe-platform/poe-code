@@ -92,7 +92,7 @@ test("ls option scanning stops at --, including sort-looking filenames", async (
   assert.equal(result.stdout, "-S\n-t\n");
 });
 
-for (const args of [["--sort"], ["--sort="], ["--sort=name"], ["--sort=none"], ["--sort=time=bad"], ["--human-readable=1"], ["-s"]]) {
+for (const args of [["--sort"], ["--sort="], ["--sort=time=bad"], ["--human-readable=1"], ["-s"]]) {
   test(`ls rejects unsupported option ${args.join(" ")} before filesystem access`, async context => {
     const fs = await fixture();
     context.mock.method(fs, "lstat", async () => assert.fail("unexpected metadata access"));

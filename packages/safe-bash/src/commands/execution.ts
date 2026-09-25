@@ -170,11 +170,15 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const operandIndices: number[] = [];
       let replacementOrigin: { index: number; offset: number } | undefined;
       let batching: string | undefined;
+      let lastDelimMode: "0" | "d" | undefined;
       const shortOptions = "0rn:s:I:d:tP:xE:a:L:";
       const longOptions = { "arg-file": "a", "max-lines": "L", null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E", "process-slot-var": "process-slot-var:" };
       const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
         (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; },
-        key => { if (key === "I" || key === "L" || key === "n") batching = key; });
+        key => {
+          if (key === "I" || key === "L" || key === "n") batching = key;
+          if (key === "0" || key === "d") lastDelimMode = key;
+        });
       const requested = integer(value(parsed, "P") ?? "1");
       const parallelism = requested === 0 ? maxParallelProcesses : Math.min(requested, maxParallelProcesses);
       const slotVariable = value(parsed, "process-slot-var");
@@ -199,7 +203,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       if (suppliedDelimiter !== undefined) {
         const bytes = escapeBytes(suppliedDelimiter).bytes;
         if (bytes.length !== 1 || bytes[0]! > 127) throw new UsageError("delimiter must be one ASCII byte");
-        delimiter = String.fromCharCode(bytes[0]!);
+        if (lastDelimMode === "d") delimiter = String.fromCharCode(bytes[0]!);
       }
       const command = parsed.operands[0] ?? "echo";
       const initial = argumentValues.select(operandIndices).slice(1);

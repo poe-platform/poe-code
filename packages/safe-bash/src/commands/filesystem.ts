@@ -932,9 +932,13 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("readlink", async context => {
       const canonicalOptions: Record<string, string> = { canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m" };
-      const parsed = options(context.args, "femnz", { ...canonicalOptions, zero: "z", "no-newline": "n" });
+      let verboseMode: "default" | "verbose" | "quiet" = "default";
+      const parsed = options(context.args, "femnzvqs", { ...canonicalOptions, zero: "z", "no-newline": "n", verbose: "v", quiet: "q", silent: "s" }, false, undefined, undefined, key => {
+        if (key === "v") verboseMode = "verbose";
+        else if (key === "q" || key === "s") verboseMode = "quiet";
+      });
       requireOperands(parsed.operands);
-      if (parsed.flags.has("n") && parsed.operands.length > 1) {
+      if (parsed.flags.has("n") && parsed.operands.length > 1 && verboseMode !== "quiet") {
         await diagnostic(context, new PublicDiagnostic("ignoring --no-newline with multiple arguments"));
       }
       let mode = "link";
@@ -944,7 +948,15 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           : argument.startsWith("-") ? argument.slice(1) : "";
         for (const flag of flags) if (flag === "f" || flag === "e" || flag === "m") mode = flag;
       }
-      return eachOperand(context, parsed.operands, async operand => {
+      const operandContext = verboseMode === "quiet"
+        ? { ...context, stderr: { async write() {} } }
+        : verboseMode === "default"
+        ? { ...context, stderr: { async write(bytes: Uint8Array) {
+            const text = new TextDecoder().decode(bytes);
+            if (!text.includes("EINVAL") && !text.includes("ENOENT")) await context.stderr.write(bytes);
+          } } }
+        : context;
+      return eachOperand(operandContext, parsed.operands, async operand => {
         const path = pathOf(context, operand);
         await admitFilesystemModes(context, "readlink", [mode === "link" ? "link" : "canonical"], [path]);
         let result: string;
@@ -975,17 +987,20 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       }
       let mode = "E";
       let traversal = "P";
+      let strip = false;
       const parsed = options(args, "EemszLPq", {
         canonicalize: "E", "canonicalize-existing": "e", "canonicalize-missing": "m",
         logical: "L", physical: "P", quiet: "q", strip: "s", "no-symlinks": "s", zero: "z",
       }, false, undefined, undefined, key => {
         if (key === "E" || key === "e" || key === "m") mode = key;
-        if (key === "L" || key === "P") traversal = key;
+        if (key === "L") traversal = "L";
+        if (key === "P") { traversal = "P"; strip = false; }
+        if (key === "s") strip = true;
       });
       requireOperands(parsed.operands);
       const canonical = async (operand: string): Promise<string> => {
         let path = pathOf(context, operand);
-        if (parsed.flags.has("s") || traversal === "L") {
+        if (strip || traversal === "L") {
           context.signal.throwIfAborted();
           const lexical = normalizePath(path);
           if (mode !== "m") {
@@ -1006,7 +1021,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             }
             if (mode === "e") await context.fs.stat(lexical, { signal: context.signal });
           }
-          if (parsed.flags.has("s")) return lexical;
+          if (strip) return lexical;
           path = lexical;
         }
         await admitFilesystemModes(context, "realpath", ["canonical"], [path], mode === "m");
@@ -1044,7 +1059,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("ls", async context => {
       let hidden: "none" | "all" | "almost-all" = "none";
-      let sort: "name" | "time" | "size" = "name";
+      let sort: "name" | "time" | "size" | "none" | "extension" | "version" = "name";
       let timeKey: "mtimeMs" | "atimeMs" | "ctimeMs" = "mtimeMs";
       let indicator: "none" | "slash" | "file-type" | "classify" = "none";
       let ended = false;
@@ -1063,9 +1078,15 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         if (!ended && (argument === "--sort" || argument.startsWith("--sort="))) {
           const selection = argument === "--sort" ? context.args[++index] : argument.slice(7);
-          if (selection !== "time" && selection !== "size") throw new UsageError("--sort requires 'time' or 'size'");
+          if (selection !== "time" && selection !== "size" && selection !== "none" && selection !== "name" && selection !== "extension" && selection !== "version") {
+            throw new UsageError("--sort requires 'time' or 'size'");
+          }
           sort = selection;
-          args.push(selection === "time" ? "-t" : "-S");
+          if (selection === "time") args.push("-t");
+          else if (selection === "size") args.push("-S");
+          else if (selection === "none") args.push("-U");
+          else if (selection === "extension") args.push("-X");
+          else if (selection === "version") args.push("-v");
           continue;
         }
         if (!ended && (argument === "--indicator-style" || argument.startsWith("--indicator-style="))) {
@@ -1080,6 +1101,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           continue;
         }
         if (!ended && argument === "--classify") indicator = "classify";
+        if (!ended && argument === "--file-type") { indicator = "file-type"; continue; }
+        if (!ended && argument === "--ignore-backups") { args.push("-B"); continue; }
         args.push(argument);
         if (argument === "--") ended = true;
         if (!ended && argument.startsWith("-") && !argument.startsWith("--")) for (const flag of argument.slice(1)) {
@@ -1087,11 +1110,16 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           else if (flag === "c") timeKey = "ctimeMs";
           else if (flag === "u") timeKey = "atimeMs";
           else if (flag === "S") sort = "size";
+          else if (flag === "U") sort = "none";
+          else if (flag === "f") { sort = "none"; hidden = "all"; }
+          else if (flag === "X") sort = "extension";
+          else if (flag === "v") sort = "version";
           else if (flag === "F") indicator = "classify";
           else if (flag === "p") indicator = "slash";
         }
       }
-      const parsed = options(args, "aAl1dFprRLhtSQcui", { inode: "i", "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" }, false, undefined, undefined, key => {
+      const parsed = options(args, "aAl1dFprRLhtSQcuiUfXvB", { inode: "i", "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h", "ignore-backups": "B" }, false, undefined, undefined, key => {
+        if (key === "f") hidden = "all";
         if (key === "a") hidden = "all";
         else if (key === "A") hidden = "almost-all";
       });
@@ -1122,12 +1150,20 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       };
       const order = async (entries: ListingEntry[], lexical = false): Promise<void> => {
         await yieldTurn(context.signal);
+        if (sort === "none") return;
         if (sort !== "name" || !lexical) entries.sort((left, right) => {
           context.signal.throwIfAborted();
-          if (sort !== "name") {
+          if (sort === "time" || sort === "size") {
             const key = sort === "time" ? timeKey : "size";
             if (left.stat[key] > right.stat[key]) return -1;
             if (left.stat[key] < right.stat[key]) return 1;
+          } else if (sort === "extension") {
+            const extOf = (s: string) => { const dot = s.lastIndexOf("."); return dot > 0 ? s.slice(dot + 1) : ""; };
+            const le = extOf(left.display), re = extOf(right.display);
+            if (le !== re) return le < re ? -1 : 1;
+          } else if (sort === "version") {
+            const cmp = left.display.localeCompare(right.display, undefined, { numeric: true });
+            if (cmp !== 0) return cmp;
           }
           return left.display < right.display ? -1 : left.display > right.display ? 1 : 0;
         });
@@ -1195,7 +1231,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         try {
           if (header) { await output(context, `${outputWritten ? "\n" : ""}${formatName(display)}:\n`); outputWritten = true; }
           const entries = await readDirectory(context, path, true);
-          const names = entries.map(entry => entry.name).filter(name => hidden !== "none" || !name.startsWith("."));
+          const names = entries.map(entry => entry.name).filter(name => (hidden !== "none" || !name.startsWith(".")) && (!parsed.flags.has("B") || !name.endsWith("~")));
           if (hidden === "all") for (const name of [".", ".."]) {
             const index = names.findIndex(entry => entry > name);
             names.splice(index < 0 ? names.length : index, 0, name);

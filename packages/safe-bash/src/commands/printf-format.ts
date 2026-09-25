@@ -21,7 +21,7 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
   };
   let flags = "";
   let current = character();
-  while (current && "-+ #0".includes(current)) {
+  while (current && "-+ #0'".includes(current)) {
     if (!flags.includes(current)) flags += current;
     offset++;
     if ((offset - start) % 1024 === 0) await yieldTurn(signal);

@@ -25,7 +25,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
-import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, isSafeSmiProgram, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { collectPureReadOnlySmiNames, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, isSafeSmiProgram, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -1285,7 +1285,7 @@ class FastShellCommandContext {
     this.processSignals = io.processSignals;
     this.diagnosticLine = io.diagnosticLine;
     this.scriptName = io.scriptName;
-    if (!io.descriptors && (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok")))) {
+    if (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"))) {
       return;
     }
     const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
@@ -1392,7 +1392,7 @@ class FastShellCommandContext {
 }
 
 const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
-  "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr",
+  "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc",
 ]);
 
 const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "registerCleanup", "invoke", "argumentValues"].map(
@@ -4669,13 +4669,37 @@ export class Runtime {
       // Synchronous admission must prove progress. Arithmetic values can mutate
       // the induction variable indirectly through another variable's contents.
       const inductionName = e0.tree.left.name;
+      let arithNames: Set<string> | undefined;
       for (const step of bodyAssignments) {
-        if (
-          step.name === inductionName ||
-          step.value?.parts.some(part => part.kind !== "text" && part.kind !== "variable") ||
-          step.targetWord?.parts.some(part => part.kind !== "text" && part.kind !== "variable")
-        ) {
+        if (step.name === inductionName) return undefined;
+        if (step.targetWord?.parts.some(part => part.kind !== "text" && part.kind !== "variable")) {
           return undefined;
+        }
+        if (step.value) {
+          for (let i = 0; i < step.value.parts.length; i++) {
+            const part = step.value.parts[i]!;
+            if (part.kind === "text" || part.kind === "variable") continue;
+            if (part.kind === "arithmetic") {
+              if (!collectPureReadOnlySmiNames(part.expression, arithNames ??= new Set())) return undefined;
+              continue;
+            }
+            return undefined;
+          }
+        }
+      }
+      if (arithNames) {
+        for (const refName of arithNames) {
+          if (refName === inductionName) continue;
+          const initial = rawState.variables[refName];
+          if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
+          for (const step of bodyAssignments) {
+            if (
+              step.name === refName &&
+              (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))
+            ) {
+              return undefined;
+            }
+          }
         }
       }
       const owner = monitor.internalOwner();

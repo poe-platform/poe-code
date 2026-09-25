@@ -465,6 +465,40 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
 
 const safeSmiSymbol = Symbol("safe-bash.safeSmiTree");
 
+function collectPureSmiTreeNames(node: Arithmetic, names: Set<string>, depth = 1): boolean {
+  if (depth > 32) return false;
+  if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
+  if (node.kind === "name") {
+    if (node.subscript !== undefined) return false;
+    names.add(node.name);
+    return true;
+  }
+  if (node.kind === "unary") {
+    if (node.operator === "+" || node.operator === "-" || node.operator === "!") {
+      return collectPureSmiTreeNames(node.operand, names, depth + 1);
+    }
+    return false;
+  }
+  if (node.kind === "binary") {
+    if (
+      node.operator === "+" || node.operator === "-" || node.operator === "*" ||
+      node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
+      node.operator === ">=" || node.operator === "==" || node.operator === "!="
+    ) {
+      return collectPureSmiTreeNames(node.left, names, depth + 1) && collectPureSmiTreeNames(node.right, names, depth + 1);
+    }
+    if (node.operator === "/" || node.operator === "%") {
+      return node.right.kind === "literal" && node.right.value !== 0n && node.right.value >= -94906265n && node.right.value <= 94906265n && collectPureSmiTreeNames(node.left, names, depth + 1);
+    }
+  }
+  return false;
+}
+
+export function collectPureReadOnlySmiNames(program: ArithmeticProgram, names: Set<string>): boolean {
+  if (program.error || program.hasSubscript || !program.tree) return false;
+  return collectPureSmiTreeNames(program.tree, names, 1);
+}
+
 export function isSafeSmiProgram(program: ArithmeticProgram): boolean {
   if (program.error || !program.tree) return false;
   let cached = (program as unknown as Record<symbol, boolean | undefined>)[safeSmiSymbol];

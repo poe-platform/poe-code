@@ -418,7 +418,7 @@ for (const failDetach of [false, true]) test(`cancellation close publishes its r
   const parent = root({ callerSignal: caller.signal });
   const remove = caller.signal.removeEventListener.bind(caller.signal);
   let reentrant: ReturnType<typeof parent.close> | undefined;
-  caller.signal.removeEventListener = (...args) => {
+  caller.signal.removeEventListener = (...args: Parameters<typeof remove>) => {
     reentrant = parent.close();
     remove(...args);
     if (failDetach) throw null;

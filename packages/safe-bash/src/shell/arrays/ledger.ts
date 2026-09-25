@@ -77,101 +77,127 @@ export class Admission implements Tickets {
 }
 
 export class ArrayLedger {
-  #caps: Counters | undefined;
-  #used: Counters = [0, 0, 0, 0, 0, 0, 0];
-  #sequence = { lastIssued: 0 };
-  #checkpoint = 0;
-  #freeAdmissions: Admission[] = [];
+  private caps: Counters | undefined;
+  private readonly used: Counters = [0, 0, 0, 0, 0, 0, 0];
+  private c3Smi = -1;
+  private c4Smi = -1;
+  private c5Smi = -1;
+  private c6Smi = -1;
+  private u0Smi = 0;
+  private u1Smi = 0;
+  private u2Smi = 0;
+  private u3Smi = 0;
+  private u4Smi = 0;
+  private u5Smi = 0;
+  private u6Smi = 0;
+  private sequence = { lastIssued: 0 };
+  private checkpointCount = 0;
+  private readonly freeAdmissions: Admission[] = [];
 
   constructor(readonly bytes: number, readonly fields: number, initialTicket = 0) {
     if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError("Invalid private initial ticket");
-    this.#sequence.lastIssued = initialTicket;
+    this.sequence.lastIssued = initialTicket;
   }
 
   internal(commandLimit: number): ArrayLedger {
     if (commandLimit === Infinity) {
       const ledger = new ArrayLedger(Infinity, Infinity);
-      ledger.#sequence = this.#sequence;
+      ledger.sequence = this.sequence;
       return ledger;
     }
     const requested = BigInt(commandLimit) + 1n;
     const maximum = BigInt(Number.MAX_SAFE_INTEGER) / 33024n;
     const units = requested < maximum ? requested : maximum;
     const ledger = new ArrayLedger(Number(32n * units), Number(64n * units));
-    ledger.#sequence = this.#sequence;
+    ledger.sequence = this.sequence;
     return ledger;
   }
 
-  get active(): boolean { return this.#caps !== undefined; }
+  get active(): boolean { return this.caps !== undefined; }
+
+  private syncUsedArray(): void {
+    this.used[0] = this.u0Smi;
+    this.used[1] = this.u1Smi;
+    this.used[2] = this.u2Smi;
+    this.used[3] = this.u3Smi;
+    this.used[4] = this.u4Smi;
+    this.used[5] = this.u5Smi;
+    this.used[6] = this.u6Smi;
+  }
 
   snapshot(): { readonly caps: readonly number[] | undefined; readonly used: readonly number[]; readonly lastIssued: number } {
-    return { caps: this.#caps?.slice(), used: this.#used.slice(), lastIssued: this.#sequence.lastIssued };
+    this.syncUsedArray();
+    return { caps: this.caps?.slice(), used: this.used.slice(), lastIssued: this.sequence.lastIssued };
+  }
+
+  private ensureCaps(): Counters {
+    let caps = this.caps;
+    if (!caps) {
+      caps = this.derive();
+      this.caps = caps;
+      this.c3Smi = caps[3]! <= 0x3fffffff ? (caps[3]! | 0) : 0x3fffffff;
+      this.c4Smi = caps[4]! <= 0x3fffffff ? (caps[4]! | 0) : 0x3fffffff;
+      this.c5Smi = caps[5]! <= 0x3fffffff ? (caps[5]! | 0) : 0x3fffffff;
+      this.c6Smi = caps[6]! <= 0x3fffffff ? (caps[6]! | 0) : 0x3fffffff;
+    }
+    return caps;
   }
 
   charge(charge: Charge = {}, out?: { generation: number; version: number; epoch: number }): Tickets {
-    const caps = this.#caps ?? this.derive();
-    let cursor = this.#sequence.lastIssued;
-    let generation = 0;
-    if (charge.generation) {
-      const count = charge.generation === true ? 1 : charge.generation;
-      if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure("private generation capacity exhausted");
-      cursor += count;
-      generation = cursor;
-    }
-    let version = 0;
-    if (charge.version) {
-      const count = charge.version === true ? 1 : charge.version;
-      if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure("private version capacity exhausted");
-      cursor += count;
-      version = cursor;
-    }
-    let epoch = 0;
-    if (charge.epoch) {
-      const count = charge.epoch === true ? 1 : charge.epoch;
-      if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure("private epoch capacity exhausted");
-      cursor += count;
-      epoch = cursor;
-    }
-    const wrappers = charge.wrappers ?? 0;
-    const slots = charge.slots ?? 0;
-    const payload = charge.payload ?? 0;
-    const rawMeta = charge.metadata ?? 0;
-    const allocatedSlots = charge.allocatedSlots ?? slots;
-    const rawWork = charge.work ?? 0;
     if (
-      Number.isSafeInteger(wrappers) && wrappers >= 0 &&
-      Number.isSafeInteger(slots) && slots >= 0 &&
-      Number.isSafeInteger(payload) && payload >= 0 &&
-      Number.isSafeInteger(rawMeta) && rawMeta >= 0 && rawMeta <= Number.MAX_SAFE_INTEGER - 64 &&
-      Number.isSafeInteger(allocatedSlots) && allocatedSlots >= 0 &&
-      Number.isSafeInteger(rawWork) && rawWork >= 0 && rawWork <= Number.MAX_SAFE_INTEGER - 15
+      this.c4Smi >= 0 &&
+      charge.wrappers === undefined &&
+      charge.slots === undefined &&
+      charge.payload === undefined &&
+      charge.allocatedSlots === undefined
     ) {
-      const metadataNum = rawMeta + 64;
-      const allocBytes = payload + metadataNum;
-      const workNum = rawWork + 15;
-      if (Number.isSafeInteger(allocBytes)) {
-        const used = this.#used;
-        if (caps[0]! !== Infinity && wrappers > caps[0]! - used[0]!) throw new ArrayFailure(`private ${labels[0]} limit exceeded`);
-        if (caps[1]! !== Infinity && slots > caps[1]! - used[1]!) throw new ArrayFailure(`private ${labels[1]} limit exceeded`);
-        if (caps[2]! !== Infinity && payload > caps[2]! - used[2]!) throw new ArrayFailure(`private ${labels[2]} limit exceeded`);
-        if (caps[3]! !== Infinity && metadataNum > caps[3]! - used[3]!) throw new ArrayFailure(`private ${labels[3]} limit exceeded`);
-        if (caps[4]! !== Infinity && allocBytes > caps[4]! - used[4]!) throw new ArrayFailure(`private ${labels[4]} limit exceeded`);
-        if (caps[5]! !== Infinity && allocatedSlots > caps[5]! - used[5]!) throw new ArrayFailure(`private ${labels[5]} limit exceeded`);
-        if (caps[6]! !== Infinity && workNum > caps[6]! - used[6]!) throw new ArrayFailure(`private ${labels[6]} limit exceeded`);
-        this.#caps = caps;
-        this.#sequence.lastIssued = cursor;
-        used[4]! += allocBytes;
-        used[5]! += allocatedSlots;
-        used[6]! += workNum;
-        if (out) {
-          out.generation = generation;
-          out.version = version;
-          out.epoch = epoch;
-          return out;
+      const rawMeta = charge.metadata ?? 0;
+      const rawWork = charge.work ?? 0;
+      if ((rawMeta | 0) === rawMeta && rawMeta >= 0 && rawMeta <= 0x1fffffff && (rawWork | 0) === rawWork && rawWork >= 0 && rawWork <= 0x1fffffff) {
+        const metaNum = (rawMeta + 64) | 0;
+        const workNum = (rawWork + 15) | 0;
+        const nextU4 = this.u4Smi + metaNum;
+        const nextU6 = this.u6Smi + workNum;
+        if (metaNum <= this.c3Smi - this.u3Smi && nextU4 <= this.c4Smi && nextU6 <= this.c6Smi) {
+          let cursor = this.sequence.lastIssued;
+          let generation = 0;
+          if (charge.generation) {
+            const count = charge.generation === true ? 1 : charge.generation;
+            if ((count | 0) !== count || count < 0 || count > 0x3fffffff - cursor) return this.chargeSlow(charge, out);
+            cursor = (cursor + (count | 0)) | 0;
+            generation = cursor;
+          }
+          let version = 0;
+          if (charge.version) {
+            const count = charge.version === true ? 1 : charge.version;
+            if ((count | 0) !== count || count < 0 || count > 0x3fffffff - cursor) return this.chargeSlow(charge, out);
+            cursor = (cursor + (count | 0)) | 0;
+            version = cursor;
+          }
+          let epoch = 0;
+          if (charge.epoch) {
+            const count = charge.epoch === true ? 1 : charge.epoch;
+            if ((count | 0) !== count || count < 0 || count > 0x3fffffff - cursor) return this.chargeSlow(charge, out);
+            cursor = (cursor + (count | 0)) | 0;
+            epoch = cursor;
+          }
+          this.sequence.lastIssued = cursor;
+          this.u4Smi = nextU4 | 0;
+          this.u6Smi = nextU6 | 0;
+          if (out) {
+            out.generation = generation;
+            out.version = version;
+            out.epoch = epoch;
+            return out;
+          }
+          return { generation, version, epoch };
         }
-        return { generation, version, epoch };
       }
     }
+    return this.chargeSlow(charge, out);
+  }
+
+  private chargeSlow(charge: Charge, out?: { generation: number; version: number; epoch: number }): Tickets {
     const admission = this.reserve(charge);
     admission.release();
     if (out) {
@@ -184,8 +210,8 @@ export class ArrayLedger {
   }
 
   reserve(charge: Charge = {}): Admission {
-    const caps = this.#caps ?? this.derive();
-    let cursor = this.#sequence.lastIssued;
+    const caps = this.ensureCaps();
+    let cursor = this.sequence.lastIssued;
     let generation = 0;
     if (charge.generation) {
       const count = charge.generation === true ? 1 : charge.generation;
@@ -225,24 +251,22 @@ export class ArrayLedger {
       const allocBytes = payload + metadataNum;
       const workNum = rawWork + 15;
       if (Number.isSafeInteger(allocBytes)) {
-        const used = this.#used;
-        if (caps[0]! !== Infinity && wrappers > caps[0]! - used[0]!) throw new ArrayFailure(`private ${labels[0]} limit exceeded`);
-        if (caps[1]! !== Infinity && slots > caps[1]! - used[1]!) throw new ArrayFailure(`private ${labels[1]} limit exceeded`);
-        if (caps[2]! !== Infinity && payload > caps[2]! - used[2]!) throw new ArrayFailure(`private ${labels[2]} limit exceeded`);
-        if (caps[3]! !== Infinity && metadataNum > caps[3]! - used[3]!) throw new ArrayFailure(`private ${labels[3]} limit exceeded`);
-        if (caps[4]! !== Infinity && allocBytes > caps[4]! - used[4]!) throw new ArrayFailure(`private ${labels[4]} limit exceeded`);
-        if (caps[5]! !== Infinity && allocatedSlots > caps[5]! - used[5]!) throw new ArrayFailure(`private ${labels[5]} limit exceeded`);
-        if (caps[6]! !== Infinity && workNum > caps[6]! - used[6]!) throw new ArrayFailure(`private ${labels[6]} limit exceeded`);
-        this.#caps = caps;
-        this.#sequence.lastIssued = cursor;
-        used[0]! += wrappers;
-        used[1]! += slots;
-        used[2]! += payload;
-        used[3]! += metadataNum;
-        used[4]! += allocBytes;
-        used[5]! += allocatedSlots;
-        used[6]! += workNum;
-        const pooled = this.#freeAdmissions.pop();
+        if (caps[0]! !== Infinity && wrappers > caps[0]! - this.u0Smi) throw new ArrayFailure(`private ${labels[0]} limit exceeded`);
+        if (caps[1]! !== Infinity && slots > caps[1]! - this.u1Smi) throw new ArrayFailure(`private ${labels[1]} limit exceeded`);
+        if (caps[2]! !== Infinity && payload > caps[2]! - this.u2Smi) throw new ArrayFailure(`private ${labels[2]} limit exceeded`);
+        if (caps[3]! !== Infinity && metadataNum > caps[3]! - this.u3Smi) throw new ArrayFailure(`private ${labels[3]} limit exceeded`);
+        if (caps[4]! !== Infinity && allocBytes > caps[4]! - this.u4Smi) throw new ArrayFailure(`private ${labels[4]} limit exceeded`);
+        if (caps[5]! !== Infinity && allocatedSlots > caps[5]! - this.u5Smi) throw new ArrayFailure(`private ${labels[5]} limit exceeded`);
+        if (caps[6]! !== Infinity && workNum > caps[6]! - this.u6Smi) throw new ArrayFailure(`private ${labels[6]} limit exceeded`);
+        this.sequence.lastIssued = cursor;
+        this.u0Smi += wrappers;
+        this.u1Smi += slots;
+        this.u2Smi += payload;
+        this.u3Smi += metadataNum;
+        this.u4Smi += allocBytes;
+        this.u5Smi += allocatedSlots;
+        this.u6Smi += workNum;
+        const pooled = this.freeAdmissions.pop();
         if (pooled) {
           pooled._reset(wrappers, slots, payload, metadataNum, generation, version, epoch);
           return pooled;
@@ -250,18 +274,24 @@ export class ArrayLedger {
         return new Admission(this, wrappers, slots, payload, metadataNum, generation, version, epoch);
       }
     }
+    this.syncUsedArray();
     const metadataRequest = BigInt(charge.metadata ?? 0) + 64n;
     const work = BigInt(charge.work ?? 0) + 15n;
     const requested = [BigInt(wrappers), BigInt(slots), BigInt(payload), metadataRequest, BigInt(payload) + metadataRequest, BigInt(allocatedSlots), work];
     for (let index = 0; index < requested.length; index++) {
       const amount = requested[index]!;
-      if (amount < 0n || caps[index] !== Infinity && amount > BigInt(caps[index]! - this.#used[index]!)) {
+      if (amount < 0n || caps[index] !== Infinity && amount > BigInt(caps[index]! - this.used[index]!)) {
         throw new ArrayFailure(`private ${labels[index]} limit exceeded`);
       }
     }
-    this.#caps = caps;
-    this.#sequence.lastIssued = cursor;
-    for (let index = 0; index < requested.length; index++) this.#used[index]! += Number(requested[index]!);
+    this.sequence.lastIssued = cursor;
+    this.u0Smi += Number(requested[0]!);
+    this.u1Smi += Number(requested[1]!);
+    this.u2Smi += Number(requested[2]!);
+    this.u3Smi += Number(requested[3]!);
+    this.u4Smi += Number(requested[4]!);
+    this.u5Smi += Number(requested[5]!);
+    this.u6Smi += Number(requested[6]!);
     return new Admission(this, wrappers, slots, payload, Number(metadataRequest), generation, version, epoch);
   }
 
@@ -282,20 +312,20 @@ export class ArrayLedger {
   }
 
   release(admission: Admission): void {
-    this.#used[0] -= admission.wrappers;
-    this.#used[1] -= admission.slots;
-    this.#used[2] -= admission.payload;
-    this.#used[3] -= admission.metadata;
+    this.u0Smi -= admission.wrappers;
+    this.u1Smi -= admission.slots;
+    this.u2Smi -= admission.payload;
+    this.u3Smi -= admission.metadata;
     admission.cleanup = undefined;
     admission.restorationReferences = 0;
-    if (this.#freeAdmissions.length < 128) this.#freeAdmissions.push(admission);
+    if (this.freeAdmissions.length < 128) this.freeAdmissions.push(admission);
   }
 
   checkpoint(signal?: AbortSignal, units = 1): Promise<void> | undefined {
     signal?.throwIfAborted();
-    this.#checkpoint += units;
-    if (this.#checkpoint >= 128) {
-      this.#checkpoint %= 128;
+    this.checkpointCount += units;
+    if (this.checkpointCount >= 128) {
+      this.checkpointCount %= 128;
       return yieldTurn(signal);
     }
   }

@@ -1,7 +1,7 @@
 import type { InternalErrorHandler } from "../contracts/command.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
-import { cancelTurn, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
+import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, runYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
   ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText,
 } from "../contracts/index.js";
@@ -25,7 +25,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { scopeFileSystem } from "@poe-code/safe-fs/core";
-import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncString, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -2191,6 +2191,22 @@ export class Runtime {
     }
   }
 
+  private syncShellArithmeticString(program: ArithmeticProgram, state: State, line: number | undefined): string {
+    const prevState = this.#syncArithState;
+    const prevVars = this.#syncArithRawVars;
+    const prevLine = this.#syncArithLine;
+    this.#syncArithState = state;
+    this.#syncArithRawVars = (stateMonitor(state)?.raw ?? state).variables;
+    this.#syncArithLine = line;
+    try {
+      return evaluateArithmeticSyncString(program, this.#syncArithRefs, this.budget.parsing);
+    } finally {
+      this.#syncArithState = prevState;
+      this.#syncArithRawVars = prevVars;
+      this.#syncArithLine = prevLine;
+    }
+  }
+
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
     if (!program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size && variables === undefined) {
       return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -3363,7 +3379,10 @@ export class Runtime {
     if (!monitor) return undefined;
     const rawState = monitor.raw;
     if (io.terminal || io.asyncDefaultInput || hasActiveExtensions(rawState) || rawState.variableAttributes?.size || guestArrays(tracked)) return undefined;
-    if ((this.budget.commands + 1) % 128 === 0) return undefined;
+    if (((this.budget.commands + 1) & 127) === 0) {
+      if (hasYieldCheckpoint(this.signal) || ((this.budget.commands + 1) & 2047) === 0) return undefined;
+      runYieldCheckpoint(this.signal);
+    }
     this.signal.throwIfAborted();
     scope.assertOpen();
     io.descriptors ??= new Map<number, Descriptor>([
@@ -4534,7 +4553,10 @@ export class Runtime {
           let loopTurn = 0;
           while (true) {
             this.budget.loop();
-            if ((++loopTurn & 127) === 0) await yieldTurn(this.signal);
+            if ((++loopTurn & 127) === 0) {
+              if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+              else runYieldCheckpoint(this.signal);
+            }
             const condOrPromise = evaluateSync(command.expressions[1]);
             const condition = typeof condOrPromise === "bigint" ? condOrPromise : await condOrPromise;
             if (condition === undefined) return 1;
@@ -8683,7 +8705,7 @@ export class Runtime {
         if (part.expression.error || part.expression.hasSubscript) return undefined;
         const line = overrideDiagnosticLine ?? io.diagnosticLine ?? part.line;
         try {
-          out += String(this.syncShellArithmetic(part.expression, state, line));
+          out += this.syncShellArithmeticString(part.expression, state, line);
         } catch (error) {
           this.rethrowArithmeticControl(error);
           throw new ExpansionFailure(message(error, this.budget.onInternalError), line);

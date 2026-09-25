@@ -19,6 +19,9 @@ interface Session {
 const sessions = new WeakMap<object, Session>();
 const monitors = new WeakMap<State, StateMonitor>();
 const overlayNext = Symbol("array overlay parent");
+const guardedMutationCharge = { generation: true, version: true, epoch: true, work: 5 } as const;
+const unguardedMutationCharge = { generation: false, version: false, epoch: true, work: 5 } as const;
+const guestMutationCharge = { epoch: true, work: 5 } as const;
 type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
 
 export function trackState(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
@@ -247,9 +250,9 @@ export class StateMonitor {
     if (this.#publication) return undefined;
     if (this.store) {
       const guarded = name !== undefined && (this.store.bindings.has(name) || this.store.watches.has(name));
-      return this.store.owner.charge({ generation: guarded, version: guarded, epoch: true, work: 5 }, this.#mutationTickets);
+      return this.store.owner.charge(guarded ? guardedMutationCharge : unguardedMutationCharge, this.#mutationTickets);
     }
-    return this.session.guestOwner?.charge({ epoch: true, work: 5 }, this.#mutationTickets);
+    return this.session.guestOwner?.charge(guestMutationCharge, this.#mutationTickets);
   }
 
   finish(tickets: Tickets | undefined, name?: string): void {

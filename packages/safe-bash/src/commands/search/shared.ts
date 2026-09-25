@@ -28,7 +28,7 @@ export class Limits {
   private readonly stopped = new AbortController();
   readonly signal: AbortSignal;
   private outBuf: Uint8Array | null = null;
-  private outPos = 0;
+  outPos = 0;
   constructor(readonly context: CommandContext, options: SearchOptions) {
     this.signal = AbortSignal.any([context.signal, this.stopped.signal]);
     this.maxOutputBytes = options.maxOutputBytes ?? Infinity;

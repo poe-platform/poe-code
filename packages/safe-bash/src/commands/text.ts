@@ -3,20 +3,46 @@ import { FsError, type ByteSource, type CommandContext, type CommandDefinition }
 import { assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
-import { yieldTurn } from "../contracts/yield.js";
+import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
 import { RecordBuffer } from "./record-buffer.js";
 import { SortRecordBudget } from "./sort-admission.js";
 import { compareObservedEntries } from "./copy-identity.js";
 
 class SortWork {
   #pending = 0;
+  #syncTurns = 0;
 
   constructor(readonly signal: AbortSignal) {}
 
   charge(units = 1): Promise<void> | undefined {
     this.signal.throwIfAborted();
     this.#pending += units;
-    if (this.#pending >= 4096) return this.#checkpoint();
+    if (this.#pending >= 4096) {
+      if (!hasYieldCheckpoint(this.signal)) {
+        while (this.#pending >= 4096) {
+          this.#pending -= 4096;
+          runYieldCheckpoint(this.signal);
+          this.signal.throwIfAborted();
+          if (++this.#syncTurns >= 32) {
+            this.#syncTurns = 0;
+            return this.#checkpointOnce();
+          }
+        }
+        return undefined;
+      }
+      return this.#checkpoint();
+    }
+  }
+
+  async #checkpointAfter(first: Promise<void>): Promise<void> {
+    await first;
+    this.signal.throwIfAborted();
+    if (this.#pending >= 4096) await this.#checkpoint();
+  }
+
+  async #checkpointOnce(): Promise<void> {
+    await yieldTurn(this.signal);
+    this.signal.throwIfAborted();
   }
 
   async #checkpoint(): Promise<void> {
@@ -119,7 +145,7 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
 }
 
 class CutOutput {
-  readonly #buffer = new Uint8Array(64 * 1024);
+  readonly #buffer = new Uint8Array(16 * 1024);
   #used = 0;
 
   constructor(readonly context: CommandContext, readonly work: SortWork) {}
@@ -132,6 +158,26 @@ class CutOutput {
       return checkpoint;
     }
     return this.#writeSlow(bytes);
+  }
+
+  writeRange(source: Uint8Array, start: number, end: number): Promise<void> | undefined {
+    const len = end - start;
+    if (len <= 4096 && this.#used + len < this.#buffer.length) {
+      const checkpoint = this.work.charge(len);
+      for (let i = 0; i < len; i++) this.#buffer[this.#used + i] = source[start + i]!;
+      this.#used += len;
+      return checkpoint;
+    }
+    return this.#writeSlow(source.subarray(start, end));
+  }
+
+  writeByte(byte: number): Promise<void> | undefined {
+    if (this.#used + 1 < this.#buffer.length) {
+      const checkpoint = this.work.charge(1);
+      this.#buffer[this.#used++] = byte;
+      return checkpoint;
+    }
+    return this.#writeSlow(Uint8Array.of(byte));
   }
 
   async #writeSlow(bytes: Uint8Array): Promise<void> {
@@ -158,7 +204,7 @@ class CutOutput {
 
   async flush(): Promise<void> {
     if (!this.#used) return;
-    const bytes = this.#buffer.slice(0, this.#used);
+    const bytes = this.#buffer.subarray(0, this.#used);
     this.#used = 0;
     await output(this.context, bytes);
   }
@@ -191,7 +237,12 @@ function compareSortBytes(left: Uint8Array, right: Uint8Array, work: SortWork): 
   const length = Math.min(left.length, right.length);
   if (length <= 1024) {
     const checkpoint = work.charge(2 * length);
-    const order = Buffer.compare(left.subarray(0, length), right.subarray(0, length)) || (left.length - right.length);
+    let order = 0;
+    for (let i = 0; i < length; i++) {
+      const diff = left[i]! - right[i]!;
+      if (diff !== 0) { order = diff; break; }
+    }
+    if (order === 0) order = left.length - right.length;
     return checkpoint ? checkpoint.then(() => order) : order;
   }
   return (async () => {
@@ -231,8 +282,19 @@ function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 
 
 interface NumericValue { whole: string; fraction: string; negative: boolean; suffixRank: number }
 
+function asciiSlice(bytes: Uint8Array, start: number, end: number): string {
+  const len = end - start;
+  if (len <= 0) return "";
+  if (len === 1) return String.fromCharCode(bytes[start]!);
+  if (len === 2) return String.fromCharCode(bytes[start]!, bytes[start + 1]!);
+  if (len === 3) return String.fromCharCode(bytes[start]!, bytes[start + 1]!, bytes[start + 2]!);
+  if (len === 4) return String.fromCharCode(bytes[start]!, bytes[start + 1]!, bytes[start + 2]!, bytes[start + 3]!);
+  let out = "";
+  for (let i = start; i < end; i++) out += String.fromCharCode(bytes[i]!);
+  return out;
+}
+
 function parseNumericSync(bytes: Uint8Array, human = false): NumericValue {
-  const buf = Buffer.from(bytes);
   const len = bytes.length;
   let i = 0;
   while (i < len && (bytes[i] === 32 || bytes[i] === 9)) i++;
@@ -252,8 +314,8 @@ function parseNumericSync(bytes: Uint8Array, human = false): NumericValue {
     fracEnd = i;
     while (fracEnd > fracStart && bytes[fracEnd - 1] === 48) fracEnd--;
   }
-  const whole = wholeEnd > wholeStart ? buf.toString("latin1", wholeStart, wholeEnd) : "0";
-  const fraction = fracEnd > fracStart ? buf.toString("latin1", fracStart, fracEnd) : "";
+  const whole = wholeEnd > wholeStart ? asciiSlice(bytes, wholeStart, wholeEnd) : "0";
+  const fraction = fracEnd > fracStart ? asciiSlice(bytes, fracStart, fracEnd) : "";
   const nonzero = whole !== "0" || fraction !== "";
   const suffix = bytes[i];
   const suffixRank = human && nonzero ? "KMGTPEZYRQ".indexOf(String.fromCharCode(suffix === 107 ? 75 : suffix ?? 0)) + 1 : 0;
@@ -497,14 +559,20 @@ async function mergeSortRuns(runs: Uint8Array[][], compare: (left: Uint8Array, r
   return runs[0] ?? [];
 }
 
+const syncFieldStarts = new Int32Array(1025);
+const syncFieldEnds = new Int32Array(1025);
+
 function keyBytesSync(line: Uint8Array, key: SortKey, separator: number | undefined, blanks: boolean, work: SortWork): Uint8Array | Promise<Uint8Array> {
   if (line.length > 1024) return keyBytes(line, key, separator, blanks, work);
-  const fields: { start: number; end: number }[] = [];
+  let fieldCount = 0;
   if (separator !== undefined) {
     let start = 0;
     for (let offset = 0; offset <= line.length; offset++) {
       if (offset === line.length || line[offset] === separator) {
-        fields.push({ start, end: offset }); start = offset + 1;
+        syncFieldStarts[fieldCount] = start;
+        syncFieldEnds[fieldCount] = offset;
+        fieldCount++;
+        start = offset + 1;
       }
     }
   } else {
@@ -515,23 +583,28 @@ function keyBytesSync(line: Uint8Array, key: SortKey, separator: number | undefi
       const start = leading;
       if (offset === line.length) break;
       while (offset < line.length && line[offset] !== 32 && line[offset] !== 9) offset++;
-      fields.push({ start, end: offset });
+      syncFieldStarts[fieldCount] = start;
+      syncFieldEnds[fieldCount] = offset;
+      fieldCount++;
     }
   }
   let extraCharge = line.length;
-  const fieldStart = (field: { start: number; end: number } | undefined, skipBlanks: boolean) => {
-    let offset = field?.start ?? line.length;
-    if (skipBlanks) while (offset < (field?.end ?? line.length) && (line[offset] === 32 || line[offset] === 9)) {
+  const fieldStartIdx = (idx: number, skipBlanks: boolean) => {
+    if (idx < 0 || idx >= fieldCount) return line.length;
+    let offset = syncFieldStarts[idx]!;
+    const fEnd = syncFieldEnds[idx]!;
+    if (skipBlanks) while (offset < fEnd && (line[offset] === 32 || line[offset] === 9)) {
       extraCharge++;
       offset++;
     }
     return offset;
   };
   const inheritBlanks = key.flags.size === 0 && blanks;
-  const start = fieldStart(fields[key.start - 1], key.startBlanks || inheritBlanks) + key.startCharacter - 1;
-  const last = key.end === undefined ? undefined : fields[key.end - 1];
-  const end = key.end === undefined ? line.length : last === undefined ? line.length
-    : key.endCharacter === undefined ? last.end : Math.min(line.length, fieldStart(last, key.endBlanks || inheritBlanks) + key.endCharacter);
+  const start = fieldStartIdx(key.start - 1, key.startBlanks || inheritBlanks) + key.startCharacter - 1;
+  const lastIdx = key.end === undefined ? -1 : key.end - 1;
+  const hasLast = lastIdx >= 0 && lastIdx < fieldCount;
+  const end = key.end === undefined ? line.length : !hasLast ? line.length
+    : key.endCharacter === undefined ? syncFieldEnds[lastIdx]! : Math.min(line.length, fieldStartIdx(lastIdx, key.endBlanks || inheritBlanks) + key.endCharacter);
   const result = line.subarray(Math.min(start, line.length), Math.max(start, end));
   const checkpoint = work.charge(extraCharge);
   return checkpoint ? checkpoint.then(() => result) : result;
@@ -746,16 +819,30 @@ export function textCommands(): CommandDefinition[] {
             return parsedValue;
           })();
         };
-        keyCompare = async (left, right) => {
+        const rev = numericKeyFlags.has("r");
+        keyCompare = (left, right) => {
           const checkpoint = work.charge();
-          if (checkpoint) await checkpoint;
-          const leftPending = keyedNumericValue(left);
-          const leftVal = leftPending instanceof Promise ? await leftPending : leftPending;
-          const rightPending = keyedNumericValue(right);
-          const rightVal = rightPending instanceof Promise ? await rightPending : rightPending;
-          const comparison = compareNumericValues(leftVal, rightVal, work);
-          const result = comparison instanceof Promise ? await comparison : comparison;
-          return numericKeyFlags.has("r") ? -result : result;
+          if (checkpoint === undefined) {
+            const leftPending = keyedNumericValue(left);
+            if (!(leftPending instanceof Promise)) {
+              const rightPending = keyedNumericValue(right);
+              if (!(rightPending instanceof Promise)) {
+                const comparison = compareNumericValues(leftPending, rightPending, work);
+                if (typeof comparison === "number") return rev ? -comparison : comparison;
+                return comparison.then(result => rev ? -result : result);
+              }
+            }
+          }
+          return (async () => {
+            if (checkpoint) await checkpoint;
+            const leftPending = keyedNumericValue(left);
+            const leftVal = leftPending instanceof Promise ? await leftPending : leftPending;
+            const rightPending = keyedNumericValue(right);
+            const rightVal = rightPending instanceof Promise ? await rightPending : rightPending;
+            const comparison = compareNumericValues(leftVal, rightVal, work);
+            const result = comparison instanceof Promise ? await comparison : comparison;
+            return rev ? -result : result;
+          })();
         };
       }
       const compare = (left: Uint8Array, right: Uint8Array): number | Promise<number> => {
@@ -795,22 +882,31 @@ export function textCommands(): CommandDefinition[] {
       }
       if (parsed.flags.has("c")) return { exitCode };
       const ordered = parsed.flags.has("m") ? await mergeSortRuns(runs, compare, work) : await sortRecords(records, compare, work);
+      let estBytes = 0;
+      for (let i = 0; i < ordered.length && estBytes < 64 * 1024; i++) estBytes += ordered[i]!.length + 1;
+      const sortBufCap = Math.min(64 * 1024, Math.max(64, estBytes));
       const sorted = (async function* (): ByteSource {
         let previous: Uint8Array | undefined;
-        let buffer = new Uint8Array(64 * 1024);
+        let buffer = new Uint8Array(sortBufCap);
         let used = 0;
         for (const record of ordered) {
           context.signal.throwIfAborted();
           if (parsed.flags.has("u") && previous !== undefined && await keyCompare(previous, record) === 0) continue;
           let offset = 0;
-          while (offset < record.length) {
-            const length = Math.min(record.length - offset, buffer.length - used);
-            buffer.set(record.subarray(offset, offset + length), used);
-            offset += length; used += length;
-            if (used === buffer.length) { yield buffer; buffer = new Uint8Array(64 * 1024); used = 0; }
+          if (record.length <= buffer.length - used) {
+            buffer.set(record, used);
+            used += record.length;
+            if (used === buffer.length) { yield buffer; buffer = new Uint8Array(sortBufCap); used = 0; }
+          } else {
+            while (offset < record.length) {
+              const length = Math.min(record.length - offset, buffer.length - used);
+              buffer.set(record.subarray(offset, offset + length), used);
+              offset += length; used += length;
+              if (used === buffer.length) { yield buffer; buffer = new Uint8Array(sortBufCap); used = 0; }
+            }
           }
           buffer[used++] = delimiter;
-          if (used === buffer.length) { yield buffer; buffer = new Uint8Array(64 * 1024); used = 0; }
+          if (used === buffer.length) { yield buffer; buffer = new Uint8Array(sortBufCap); used = 0; }
           previous = record;
         }
         if (used) yield buffer.subarray(0, used);
@@ -937,7 +1033,51 @@ export function textCommands(): CommandDefinition[] {
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
           try {
-            for await (const line of lines(input(context, name), recordDelimiter)) {
+            const onlyDelimited = parsed.flags.has("s");
+            const fastSingleByteField = mode === "f" && separator.length === 1;
+            const sepByte = separator[0]!;
+            const processFastFieldRange = async (buf: Uint8Array, lineStart: number, lineEnd: number) => {
+              context.signal.throwIfAborted();
+              let boundary = buf.indexOf(sepByte, lineStart);
+              if (boundary >= lineEnd) boundary = -1;
+              const c0 = work.charge(boundary < 0 ? lineEnd - lineStart : boundary - lineStart + 1);
+              if (c0) await c0;
+              if (boundary < 0) {
+                if (onlyDelimited) return;
+                const w = writer.writeRange(buf, lineStart, lineEnd);
+                if (w) await w;
+              } else {
+                let cursor = 0;
+                let field = 1;
+                let start = lineStart;
+                let emitted = false;
+                while (true) {
+                  const cp = work.charge();
+                  if (cp) await cp;
+                  while (cursor < ranges.length && field > ranges[cursor]!.end) cursor++;
+                  const included = cursor < ranges.length && field >= ranges[cursor]!.start;
+                  if (included !== complement) {
+                    if (emitted) {
+                      const w1 = writer.write(outputDelimiterBytes);
+                      if (w1) await w1;
+                    }
+                    const w2 = writer.writeRange(buf, start, boundary < 0 ? lineEnd : boundary);
+                    if (w2) await w2;
+                    emitted = true;
+                  }
+                  field++;
+                  if (boundary < 0 || (!complement && cursor >= ranges.length)) break;
+                  start = boundary + 1;
+                  boundary = start <= lineEnd ? buf.indexOf(sepByte, start) : -1;
+                  if (boundary >= lineEnd) boundary = -1;
+                  const cn = work.charge(boundary < 0 ? lineEnd - start : boundary - start + 1);
+                  if (cn) await cn;
+                }
+              }
+              const wd = writer.writeByte(recordDelimiter);
+              if (wd) await wd;
+            };
+            const processLineBytes = async (lineBytes: Uint8Array) => {
               context.signal.throwIfAborted();
               let cursor = 0;
               const selected = (position: number) => {
@@ -946,12 +1086,12 @@ export function textCommands(): CommandDefinition[] {
                 return included !== complement ? cursor : -1;
               };
               if (mode === "f") {
-                const record = Buffer.from(line.bytes.buffer, line.bytes.byteOffset, line.bytes.byteLength);
+                const record = Buffer.from(lineBytes.buffer, lineBytes.byteOffset, lineBytes.byteLength);
                 const b0 = cutFieldBoundary(record, separator, 0, work);
                 let boundary = typeof b0 === "number" ? b0 : await b0;
                 if (boundary < 0) {
-                  if (parsed.flags.has("s")) continue;
-                  const w = writer.write(line.bytes);
+                  if (onlyDelimited) return;
+                  const w = writer.write(lineBytes);
                   if (w) await w;
                 } else {
                   let field = 1;
@@ -978,14 +1118,14 @@ export function textCommands(): CommandDefinition[] {
               } else if (byteSelection) {
                 let emitted = false;
                 let previousRange = -1;
-                for (let offset = 0; offset < line.bytes.length; offset += 4096) {
-                  const end = Math.min(line.bytes.length, offset + 4096);
+                for (let offset = 0; offset < lineBytes.length; offset += 4096) {
+                  const end = Math.min(lineBytes.length, offset + 4096);
                   const checkpoint = work.charge(end - offset);
                   if (checkpoint) await checkpoint;
                   let start = -1;
                   for (let index = offset; index < end; index++) {
                     const range = selected(index + 1);
-                    if (range !== previousRange && start >= 0) { await writer.write(line.bytes.subarray(start, index)); start = -1; }
+                    if (range !== previousRange && start >= 0) { await writer.write(lineBytes.subarray(start, index)); start = -1; }
                     if (range >= 0 && start < 0) {
                       if (range !== previousRange && emitted && outputDelimiter !== undefined) await writer.write(outputDelimiterBytes);
                       start = index;
@@ -993,18 +1133,18 @@ export function textCommands(): CommandDefinition[] {
                     }
                     previousRange = range;
                   }
-                  if (start >= 0) await writer.write(line.bytes.subarray(start, end));
+                  if (start >= 0) await writer.write(lineBytes.subarray(start, end));
                 }
               } else {
                 const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
                 let index = 0;
                 let emitted = false;
                 let previousRange = -1;
-                for (let offset = 0; offset < line.bytes.length; offset += 4096) {
-                  const end = Math.min(line.bytes.length, offset + 4096);
+                for (let offset = 0; offset < lineBytes.length; offset += 4096) {
+                  const end = Math.min(lineBytes.length, offset + 4096);
                   const checkpoint = work.charge(end - offset);
                   if (checkpoint) await checkpoint;
-                  const text = decoder.decode(line.bytes.subarray(offset, end), { stream: end < line.bytes.length });
+                  const text = decoder.decode(lineBytes.subarray(offset, end), { stream: end < lineBytes.length });
                   let start = -1;
                   let position = 0;
                   for (const character of text) {
@@ -1023,8 +1163,35 @@ export function textCommands(): CommandDefinition[] {
                   if (start >= 0) await writer.text(text.slice(start));
                 }
               }
-              const wd = writer.write(recordDelimiterBytes);
+              const wd = writer.writeByte(recordDelimiter);
               if (wd) await wd;
+            };
+            const pending = new RecordBuffer(bufferLimit);
+            try {
+              for await (const chunk of input(context, name)) {
+                let start = 0;
+                while (start < chunk.length) {
+                  const offset = chunk.indexOf(recordDelimiter, start);
+                  if (offset < 0) break;
+                  if (fastSingleByteField && pending.size === 0 && offset - start <= 4096) {
+                    await processFastFieldRange(chunk, start, offset);
+                  } else {
+                    await processLineBytes(pending.finish(undefined, chunk, start, offset));
+                  }
+                  start = offset + 1;
+                }
+                pending.append(chunk, start);
+              }
+              if (pending.size) {
+                const finalBytes = pending.finish();
+                if (fastSingleByteField && finalBytes.length <= 4096) {
+                  await processFastFieldRange(finalBytes, 0, finalBytes.length);
+                } else {
+                  await processLineBytes(finalBytes);
+                }
+              }
+            } finally {
+              pending.clear();
             }
           } finally {
             await writer.flush();

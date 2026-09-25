@@ -334,11 +334,235 @@ function formatArithmeticError(program: ArithmeticProgram, error: unknown): neve
   throw error;
 }
 
+const SMALL_INT_STRINGS: string[] = Array.from({ length: 4097 }, (_, i) => String(i));
+const SMALL_BIGINTS: bigint[] = Array.from({ length: 4097 }, (_, i) => BigInt(i));
+
+function smallBigInt(n: number): bigint {
+  return n >= 0 && n <= 4096 ? SMALL_BIGINTS[n]! : BigInt(n);
+}
+
+function intToStr(n: number): string {
+  return n >= 0 && n <= 4096 ? SMALL_INT_STRINGS[n]! : String(n);
+}
+
+function fastSafeInt(text: string | undefined, budget: ParseBudget): number | undefined {
+  if (text === undefined || text === "0") { budget.admit(2); return 0; }
+  if (text === "") { budget.admit(1); return 0; }
+  const len = text.length;
+  if (len > 8) return undefined;
+  let start = 0;
+  let negative = false;
+  if (text.charCodeAt(0) === 45) {
+    if (len === 1) return undefined;
+    if (text === "-0") { budget.admit(4); return 0; }
+    negative = true;
+    start = 1;
+  }
+  const first = text.charCodeAt(start);
+  if (first < 49 || first > 57) return undefined;
+  let num = first - 48;
+  for (let i = start + 1; i < len; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 48 || code > 57) return undefined;
+    num = num * 10 + (code - 48);
+  }
+  budget.admit(negative ? 4 : 2);
+  return negative ? -num : num;
+}
+
+function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
+  if (depth > 32) return false;
+  if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
+  if (node.kind === "name") return node.subscript === undefined;
+  if (node.kind === "unary") {
+    if (node.operator === "+" || node.operator === "-" || node.operator === "!") return canEvalSafeSmiTree(node.operand, depth + 1);
+    if (node.operator === "++" || node.operator === "--") return node.operand.kind === "name" && node.operand.subscript === undefined && depth === 0;
+    return false;
+  }
+  if (node.kind === "binary") {
+    if (node.operator === "=" && depth === 0) {
+      return node.left.kind === "name" && node.left.subscript === undefined && canEvalSafeSmiTree(node.right, depth + 1);
+    }
+    if (
+      node.operator === "+" || node.operator === "-" || node.operator === "*" ||
+      node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
+      node.operator === ">=" || node.operator === "==" || node.operator === "!="
+    ) {
+      return canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
+    }
+    if (node.operator === "/" || node.operator === "%") {
+      return node.right.kind === "literal" && node.right.value !== 0n && node.right.value >= -94906265n && node.right.value <= 94906265n && canEvalSafeSmiTree(node.left, depth + 1);
+    }
+  }
+  return false;
+}
+
+function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: ParseBudget): number | undefined {
+  budget.admit(0);
+  if (node.kind === "literal") return Number(node.value);
+  if (node.kind === "name") {
+    const ref = refs.resolve(node.name, undefined) as string;
+    const text = refs.read(ref) as string | undefined;
+    return fastSafeInt(text, budget);
+  }
+  if (node.kind === "unary") {
+    if (node.operator === "++" || node.operator === "--") {
+      const target = node.operand as Extract<Arithmetic, { kind: "name" }>;
+      const ref = refs.resolve(target.name, undefined) as string;
+      const cur = fastSafeInt(refs.read(ref) as string | undefined, budget);
+      if (cur === undefined || cur < -94906264 || cur > 94906264) return undefined;
+      const next = node.operator === "++" ? cur + 1 : cur - 1;
+      refs.write(ref, intToStr(next));
+      return node.postfix ? cur : next;
+    }
+    const v = evalSafeSmi(node.operand, refs, budget);
+    if (v === undefined || v < -94906265 || v > 94906265) return undefined;
+    if (node.operator === "+") return v;
+    if (node.operator === "-") return -v;
+    if (node.operator === "!") return v === 0 ? 1 : 0;
+    return undefined;
+  }
+  if (node.kind === "binary") {
+    if (node.operator === "=") {
+      const r = evalSafeSmi(node.right, refs, budget);
+      if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+      const target = node.left as Extract<Arithmetic, { kind: "name" }>;
+      const ref = refs.resolve(target.name, undefined) as string;
+      refs.write(ref, intToStr(r));
+      return r;
+    }
+    const l = evalSafeSmi(node.left, refs, budget);
+    if (l === undefined || l < -94906265 || l > 94906265) return undefined;
+    const r = evalSafeSmi(node.right, refs, budget);
+    if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+    switch (node.operator) {
+      case "+": return l + r;
+      case "-": return l - r;
+      case "*": return l * r;
+      case "/": return Math.trunc(l / r);
+      case "%": return (l % r) | 0;
+      case "<": return l < r ? 1 : 0;
+      case "<=": return l <= r ? 1 : 0;
+      case ">": return l > r ? 1 : 0;
+      case ">=": return l >= r ? 1 : 0;
+      case "==": return l === r ? 1 : 0;
+      case "!=": return l !== r ? 1 : 0;
+    }
+  }
+  return undefined;
+}
+
 export function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
-  const evaluation = arithmeticEvaluation(program, references, budget);
-  let step = evaluation.next();
-  while (!step.done) step = evaluation.next(step.value as string | undefined);
-  return step.value;
+  if (!program.error && program.tree && canEvalSafeSmiTree(program.tree)) {
+    const savedBudget = budget.snapshot();
+    const smi = evalSafeSmi(program.tree, references, budget);
+    if (smi !== undefined) return smallBigInt(smi);
+    budget.restore(savedBudget);
+  }
+  try {
+    if (program.error) throw program.error;
+    let visiting: Set<string> | undefined;
+    const evalDeep = (root: Arithmetic): bigint => {
+      const evaluation = arithmeticEvaluation({ source: program.source, tree: root }, references, budget);
+      let step = evaluation.next();
+      while (!step.done) step = evaluation.next(step.value as string | undefined);
+      return step.value;
+    };
+    const evalNameValue = (node: Extract<Arithmetic, { kind: "name" }>, depth: number): bigint => {
+      const reference = references.resolve(node.name, node.subscript) as string;
+      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
+      const text = references.read(reference) as string | undefined;
+      const fast = fastDecimalLiteral(text, budget);
+      if (fast !== undefined) return fast;
+      visiting ??= new Set();
+      visiting.add(reference);
+      try {
+        return evalNode(parseArithmetic(text ?? "0", 0, budget), depth + 1);
+      } finally {
+        visiting.delete(reference);
+      }
+    };
+    const evalName = (node: Extract<Arithmetic, { kind: "name" }>, depth: number): { reference: string; value: bigint } => {
+      const reference = references.resolve(node.name, node.subscript) as string;
+      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
+      const text = references.read(reference) as string | undefined;
+      const fast = fastDecimalLiteral(text, budget);
+      if (fast !== undefined) return { reference, value: fast };
+      visiting ??= new Set();
+      visiting.add(reference);
+      try {
+        return { reference, value: evalNode(parseArithmetic(text ?? "0", 0, budget), depth + 1) };
+      } finally {
+        visiting.delete(reference);
+      }
+    };
+    const evalNode = (node: Arithmetic, depth: number): bigint => {
+      if (depth >= 64) return evalDeep(node);
+      budget.admit(0);
+      switch (node.kind) {
+        case "literal":
+          return node.value;
+        case "name":
+          return evalNameValue(node, depth);
+        case "conditional": {
+          const cond = evalNode(node.condition, depth + 1);
+          return evalNode(cond ? node.yes : node.no, depth + 1);
+        }
+        case "unary": {
+          if (node.operator === "+") return BigInt.asIntN(64, evalNode(node.operand, depth + 1));
+          if (node.operator === "-") return BigInt.asIntN(64, -evalNode(node.operand, depth + 1));
+          if (node.operator === "!") return BigInt(!evalNode(node.operand, depth + 1));
+          if (node.operator === "~") return BigInt.asIntN(64, ~evalNode(node.operand, depth + 1));
+          const { reference, value: operand } = evalName(node.operand as Extract<Arithmetic, { kind: "name" }>, depth + 1);
+          const updated = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
+          references.write(reference, String(updated));
+          return node.postfix ? BigInt.asIntN(64, operand) : updated;
+        }
+        case "binary": {
+          if (node.operator === "&&" || node.operator === "||") {
+            const left = evalNode(node.left, depth + 1);
+            if (node.operator === "&&" ? left === 0n : left !== 0n) return BigInt(left !== 0n);
+            return BigInt(evalNode(node.right, depth + 1) !== 0n);
+          }
+          if (node.operator === ",") {
+            evalNode(node.left, depth + 1);
+            return BigInt.asIntN(64, evalNode(node.right, depth + 1));
+          }
+          if (node.operator === "=") {
+            const right = evalNode(node.right, depth + 1);
+            const operand = node.left as Extract<Arithmetic, { kind: "name" }>;
+            const reference = references.resolve(operand.name, operand.subscript) as string;
+            const updated = BigInt.asIntN(64, right);
+            references.write(reference, String(updated));
+            return updated;
+          }
+          if (precedence[node.operator] === 2) {
+            const { reference, value: left } = evalName(node.left as Extract<Arithmetic, { kind: "name" }>, depth + 1);
+            const right = evalNode(node.right, depth + 1);
+            const updated = BigInt.asIntN(64, binaryArithmeticOp(node.operator.slice(0, -1), left, right, node.right.start ?? 0));
+            references.write(reference, String(updated));
+            return updated;
+          }
+          const left = evalNode(node.left, depth + 1);
+          const right = evalNode(node.right, depth + 1);
+          return BigInt.asIntN(64, binaryArithmeticOp(node.operator, left, right, node.right.start ?? 0));
+        }
+      }
+    };
+    return evalNode(program.tree!, 0);
+  } catch (error) {
+    formatArithmeticError(program, error);
+  }
+}
+
+export function evaluateArithmeticSyncString(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): string {
+  if (!program.error && program.tree && canEvalSafeSmiTree(program.tree)) {
+    const savedBudget = budget.snapshot();
+    const smi = evalSafeSmi(program.tree, references, budget);
+    if (smi !== undefined) return intToStr(smi);
+    budget.restore(savedBudget);
+  }
+  return String(evaluateArithmeticSync(program, references, budget));
 }
 
 export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>, budget = new ParseBudget()): bigint {

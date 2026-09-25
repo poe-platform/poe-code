@@ -131,7 +131,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
         if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
       }
     }
-    await limits.flush();
+    if (syncBatches === undefined && limits.outPos > 0) await limits.flush();
   }
   if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0 && !binaryPrinted) {
     await printer.binary(target.label, state.binaryOffset, filename);

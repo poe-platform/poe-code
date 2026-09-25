@@ -320,7 +320,7 @@ test("nested locals keep shadowed text charged until restoration", async () => {
   const { shell } = fixture({ limits: { maxExpansionBytes: 200 } });
   try {
     await assert.rejects(
-      shell.exec(`value=${"a".repeat(30)}; inner() { local value=${"c".repeat(30)}; }; outer() { local value=${"b".repeat(30)}; inner; }; outer`),
+      shell.exec(`value=${"a".repeat(40)}; inner() { local value=${"c".repeat(40)}; }; outer() { local value=${"b".repeat(40)}; inner; }; outer`),
       error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes",
     );
   } finally { await shell.dispose(); }

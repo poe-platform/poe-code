@@ -285,9 +285,10 @@ for (const failures of [[undefined], [null], [false], [0], [""], [undefined, nul
   });
 }
 
-for (const source of ["seed=; true", "seed=; f() { return 4; }; f", "seed=; cancel-cleanup"]) {
+for (const source of ["seed= true", "f() { return 4; }; seed= f", "seed= cancel-cleanup"]) {
   test(`overlay cleanup failures release all restoration holds: ${source}`, { timeout: 2000 }, async context => {
     const { shell, commands } = setup();
+    shell.use((command, next) => { command.env.overlay = "temporary"; return next(); });
     const controller = new AbortController();
     commands.register({ name: "cancel-cleanup", execute() { controller.abort(0); throw 0; } });
     const holds: Admission[] = [];
@@ -302,7 +303,7 @@ for (const source of ["seed=; true", "seed=; f() { return 4; }; f", "seed=; canc
       if (closed === 2) throw null;
     });
     try {
-      await assert.rejects(shell.exec(source, { signal: controller.signal }), error => {
+      await assert.rejects(shell.exec(`values=(); ${source}`, { signal: controller.signal }), error => {
         if (source.endsWith("cancel-cleanup")) return Object.is(error, 0);
         assert.ok(error instanceof AggregateError);
         assert.deepEqual(error.errors, [undefined, null]);

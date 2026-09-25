@@ -15,9 +15,11 @@ function observeTokens(context: TestContext, pattern: string, materialized?: () 
   const from = Array.from;
   const live = new Set<ReturnType<typeof allocate>>();
   const liveAtMaterialization: number[] = [];
+  let attempts = 0;
   let admissions = 0;
   let materializations = 0;
   context.mock.method(ValueArena.prototype, "allocate", function(this: ValueArena, bytes: number, slots: number) {
+    if (bytes === 128 + pattern.length * 64 && slots === 0) attempts++;
     const record = allocate.call(this, bytes, slots);
     if (bytes === 128 + pattern.length * 64 && slots === 0) { live.add(record); admissions++; }
     return record;
@@ -34,7 +36,7 @@ function observeTokens(context: TestContext, pattern: string, materialized?: () 
     }
     return Reflect.apply(from, Array, [input, ...rest]);
   });
-  return { liveAtMaterialization, get admissions() { return admissions; }, get materializations() { return materializations; }, get live() { return live.size; } };
+  return { liveAtMaterialization, get attempts() { return attempts; }, get admissions() { return admissions; }, get materializations() { return materializations; }, get live() { return live.size; } };
 }
 
 const routes = [
@@ -135,13 +137,27 @@ test("glob segment admission closes on filesystem failure before shell continuat
   } finally { await shell.dispose(); }
 });
 
-test("parameter trimming retains its existing token admission control", async context => {
+test("parameter trimming admits wildcard tokens before materializing them", async context => {
+  const text = "0".repeat(128);
+  const observed = observeTokens(context, `${text}?`);
+  const shell = new Shell({ fs: memory() });
+  try {
+    await assert.rejects(shell.exec(`a=${text}; : \${a#"$a"?}`, { limits: { maxExpansionBytes: 8192 } }),
+      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+    assert.equal(observed.attempts, 1);
+    assert.equal(observed.admissions, 0);
+    assert.equal(observed.materializations, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("literal parameter trimming fits its admitted fast path without allocating pattern tokens", async context => {
   const text = "0".repeat(128);
   const observed = observeTokens(context, text);
   const shell = new Shell({ fs: memory() });
   try {
-    await assert.rejects(shell.exec(`a=${text}; : \${a#"$a"}`, { limits: { maxExpansionBytes: 4096 } }),
-      error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+    const result = await shell.exec(`a=${text}; [[ -z \${a#"$a"} ]]`, { limits: { maxExpansionBytes: 4096 } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(observed.admissions, 0);
     assert.equal(observed.materializations, 0);
   } finally { await shell.dispose(); }
 });

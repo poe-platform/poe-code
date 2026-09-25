@@ -9,19 +9,26 @@ import { setup } from "./helpers.js";
 async function observeNewlines(source: string, action: () => void | Promise<void>): Promise<number> {
   const indexOf = String.prototype.indexOf;
   const charCodeAt = String.prototype.charCodeAt;
+  const lineAt = SourceLineIndex.prototype.lineAt;
+  let indexing = 0;
   let matches = 0;
+  SourceLineIndex.prototype.lineAt = function (position) {
+    indexing++;
+    try { return lineAt.call(this, position); }
+    finally { indexing--; }
+  };
   String.prototype.indexOf = function (search, position) {
     const result = indexOf.call(this, search, position);
-    if (String(this) === source && search === "\n" && result !== -1) matches++;
+    if (indexing && String(this) === source && search === "\n" && result !== -1) matches++;
     return result;
   };
   String.prototype.charCodeAt = function (position) {
     const result = charCodeAt.call(this, position);
-    if (String(this) === source && result === 10) matches++;
+    if (indexing && String(this) === source && result === 10) matches++;
     return result;
   };
   try { await action(); return matches; }
-  finally { String.prototype.indexOf = indexOf; String.prototype.charCodeAt = charCodeAt; }
+  finally { String.prototype.indexOf = indexOf; String.prototype.charCodeAt = charCodeAt; SourceLineIndex.prototype.lineAt = lineAt; }
 }
 
 test("#614 exhausted parse allowance does not index an unread suffix", async () => {

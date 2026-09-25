@@ -1724,17 +1724,14 @@ export function claheImage(
   const halfW = Math.floor(winW / 2);
   const halfH = Math.floor(winH / 2);
   const nPixels = winW * winH;
-  const threshold = maxSlope > 0 ? Math.floor((maxSlope * nPixels) / 256) : nPixels;
+  const threshold = maxSlope;
   const numCh = img.channels === 1 || img.space === "b-w" ? 1 : 3;
 
   const mirrorCoord = (c: number, max: number): number => {
     if (max <= 1) return 0;
-    let cur = c;
-    while (cur < 0 || cur >= max) {
-      if (cur < 0) cur = -cur;
-      if (cur >= max) cur = 2 * max - 2 - cur;
-    }
-    return cur;
+    const period = max * 2;
+    const m = ((c % period) + period) % period;
+    return m < max ? m : period - 1 - m;
   };
 
   const syTable = new Int32Array(winH);
@@ -1762,18 +1759,21 @@ export function claheImage(
         let sum = 0;
         if (maxSlope > 0) {
           let clipLe = 0;
-          let clipTot = 0;
+          let totalClipped = 0;
           for (let i = 0; i < 256; i++) {
             const h = hist[i]!;
-            const c = h > threshold ? threshold : h;
-            clipTot += c;
-            if (i <= target) clipLe += c;
+            if (h > threshold) {
+              totalClipped += h - threshold;
+              if (i <= target) clipLe += threshold;
+            } else if (i <= target) {
+              clipLe += h;
+            }
           }
-          sum = clipLe + Math.floor((target * (nPixels - clipTot)) / 256);
+          sum = clipLe + Math.floor((totalClipped * (target + 1)) / 256);
         } else {
           for (let i = 0; i <= target; i++) sum += hist[i]!;
         }
-        const outVal = Math.max(0, Math.min(255, Math.floor((255 * sum) / nPixels + 0.5)));
+        const outVal = Math.max(0, Math.min(255, Math.floor((255 * sum) / nPixels)));
         if (numCh === 1) {
           out[pIdx] = outVal;
           out[pIdx + 1] = outVal;

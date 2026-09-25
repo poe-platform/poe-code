@@ -552,6 +552,13 @@ export class SharpInstance extends Duplex {
       this.nodes[idx] = nextNode;
       return;
     }
+    if (nextNode.kind === "removeAlpha" || nextNode.kind === "flatten") {
+      const ensureIdx = this.nodes.findIndex(n => n.kind === "ensureAlpha");
+      if (ensureIdx !== -1) {
+        this.nodes.splice(ensureIdx, 0, nextNode);
+        return;
+      }
+    }
     if (beforeGrayscale) {
       const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
       if (grayIdx !== -1) {
@@ -676,9 +683,21 @@ export class SharpInstance extends Duplex {
           img = joinChannelImage(img, extras);
           break;
         }
-        case "clahe":
+        case "clahe": {
+          const explicitBw = this.nodes.some(
+            n => n.kind === "grayscale" || (n.kind === "toColorspace" && (n.space === "b-w" || n.space === "grey16"))
+          );
+          if (!explicitBw && (img.channels === 1 || img.channels === 2)) {
+            img = {
+              ...img,
+              channels: img.channels === 2 ? 4 : 3,
+              space: "srgb",
+              hasAlpha: img.channels === 2
+            };
+          }
           img = claheImage(img, node);
           break;
+        }
         case "affine":
           img = affineImage(img, node);
           break;
@@ -1503,17 +1522,12 @@ export class SharpInstance extends Duplex {
     if (typeof alpha !== "number" || Number.isNaN(alpha) || alpha < 0 || alpha > 1) {
       throw new Error(`Expected number between 0 and 1 for alpha but received ${alpha}`);
     }
-    const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
-    if (grayIdx !== -1) {
-      this.nodes.splice(grayIdx, 0, { kind: "ensureAlpha", alpha });
-    } else {
-      this.nodes.push({ kind: "ensureAlpha", alpha });
-    }
+    this.upsertNode({ kind: "ensureAlpha", alpha }, true);
     return this;
   }
 
   removeAlpha(): this {
-    this.nodes.push({ kind: "removeAlpha" });
+    this.upsertNode({ kind: "removeAlpha" }, true);
     return this;
   }
 

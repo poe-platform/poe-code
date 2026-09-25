@@ -2726,4 +2726,42 @@ describe("@poe-code/image-ast (sharp core)", () => {
       /Expected one of: word, char, word-char, none for text.wrap/
     );
   });
+
+  it("executes removeAlpha() and flatten() before ensureAlpha() and matches libvips vips_hist_local on small-window and 1-channel clahe()", async () => {
+    const b4 = Buffer.from([
+      20, 40, 60, 128,   80, 100, 120, 255,
+      140, 160, 180, 0,  200, 220, 240, 64
+    ]);
+    const ensRem = await sharp(b4, { raw: { width: 2, height: 2, channels: 4 } })
+      .ensureAlpha(0.5)
+      .removeAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(ensRem.info.channels).toBe(4);
+    expect([...ensRem.data]).toEqual([20, 40, 60, 127, 80, 100, 120, 127, 140, 160, 180, 127, 200, 220, 240, 127]);
+
+    const ensFlat = await sharp(b4, { raw: { width: 2, height: 2, channels: 4 } })
+      .ensureAlpha(0.5)
+      .flatten({ background: "#ff0000" })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(ensFlat.info.channels).toBe(4);
+    expect([...ensFlat.data]).toEqual([137, 20, 30, 127, 80, 100, 120, 127, 255, 0, 0, 127, 241, 55, 60, 127]);
+
+    const b1 = Buffer.from([10, 50, 100, 200, 20, 60, 110, 210, 30, 70, 120, 220, 40, 80, 130, 250]);
+    const clahe1Default = await sharp(b1, { raw: { width: 4, height: 4, channels: 1 } })
+      .clahe({ width: 2, height: 2, maxSlope: 3 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(clahe1Default.info.channels).toBe(3);
+    expect([...clahe1Default.data.slice(0, 6)]).toEqual([191, 191, 191, 255, 255, 255]);
+
+    const clahe1Bw = await sharp(b1, { raw: { width: 4, height: 4, channels: 1 } })
+      .toColorspace("b-w")
+      .clahe({ width: 3, height: 3, maxSlope: 2 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(clahe1Bw.info.channels).toBe(1);
+    expect([...clahe1Bw.data]).toEqual([56, 141, 141, 170, 113, 141, 141, 198, 113, 141, 141, 198, 113, 170, 170, 226]);
+  });
 });

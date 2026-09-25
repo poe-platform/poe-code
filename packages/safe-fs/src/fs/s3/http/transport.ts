@@ -10,6 +10,20 @@ import { children, integer, malformed, parseXml, text, timestamp } from "./xml.j
 
 const empty = new Uint8Array();
 
+function utf8ByteLength(value: string): number {
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && i + 1 < value.length && value.charCodeAt(i + 1) >= 0xdc00 && value.charCodeAt(i + 1) <= 0xdfff) {
+      bytes += 4;
+      i++;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
 function limit(value: number | undefined, fallback: number, name: string, maximum = Number.MAX_SAFE_INTEGER): number {
   if (value === undefined) return fallback;
   const result = value;

@@ -3,6 +3,7 @@ import type { CapabilityContext } from "../contracts.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
 import { createBiffWriter, readBiff } from "./biff.js";
 import { translateBiffFormula } from "./biff-formulas.js";
+import { biffString } from "./biff-write.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -28,7 +29,7 @@ function workbook(first: number, last: number, raw: number, global: boolean, loc
   view.setFloat64(6, 999, true); view.setUint16(20, tokens.length, true); cell.set(tokens, 22);
   return join(record(0x809, new Uint8Array([0, 6, 5, 0])),
     name(global ? 0 : 1, global ? 99 : 20), name(global ? 1 : 2, global ? 20 : 30),
-    record(0x1ae, new Uint8Array(local ? [2, 0, 1, 4] : [2, 0, 0, 0])), record(0x17, link), record(10),
+    record(0x1ae, local ? new Uint8Array([2, 0, 1, 4]) : join(new Uint8Array([0, 0]), biffString("\u0001external.xls", 8, context))), record(0x17, link), record(10),
     record(0x809, new Uint8Array([0, 6, 16, 0])), record(6, cell), record(10),
     record(0x809, new Uint8Array([0, 6, 16, 0])), record(10));
 }

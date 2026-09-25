@@ -37,8 +37,8 @@ function workbook(raw: number, mode: "missing" | "inactive" | "active", namespac
   return join(...globals, bof(16), record(6, cell), record(10));
 }
 
-// Gnumeric1.12.61 ms-formula-read.c:1710-1793 binds nonlocal SUPBOOK NameX
-// through its own EXTERNNAME table. These are source-derived memory fixtures.
+// Gnumeric 1.12.61 binds these names to local placeholders. Preserve external
+// identity instead: only an explicit external-reference host may supply values.
 it.each(["missing", "inactive", "active"] as const)("recalculates BIFF8 %s external names in every token class", async mode => {
   for (const raw of [0x39, 0x59, 0x79]) {
     const input = workbook(raw, mode), before = input.slice();
@@ -46,9 +46,9 @@ it.each(["missing", "inactive", "active"] as const)("recalculates BIFF8 %s exter
     const book = await readBiff(input, { ...context,
       externalReferences: { resolve() { resolutions++; throw new Error("implicit external access"); } },
       async diagnostic(d) { diagnostics.push(d.message); } });
-    expect(book.sheets[0]!.cells[0]!.formula).toBe(mode === "active" ? "=([]Rate)+1" : mode === "inactive" ? "=(#REF!)+1" : "=#REF!+1");
+    expect(book.sheets[0]!.cells[0]!.formula).toBe(mode === "missing" ? "=#REF!+1" : "=['book.xls']Rate+1");
     expect(book.sheets[0]!.cells[0]!.cachedResult).toEqual({ kind: "number", value: 999 });
-    expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual(mode === "active" ? { kind: "number", value: 6 } : { kind: "error", value: "#REF!" });
+    expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#REF!" });
     expect(resolutions).toBe(0);
     expect(input).toEqual(before);
     expect(diagnostics.some(message => message.includes("external BIFF workbook reference"))).toBe(false);
@@ -62,14 +62,17 @@ it("keeps external name tables separate from neighboring declarations and workbo
   const book = await readBiff(workbook(0x39, "active", 1), context);
   expect(book.sheets[0]!.cells[0]!.formula).toBe("=#REF!+1");
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#REF!" });
-  expect(book.names).toEqual([{ name: "Rate", expression: "=2+3" },
-    { name: "Sheet_Title", expression: '="Here"', sheet: "Here" },
+  expect(book.names).toEqual([{ name: "Sheet_Title", expression: '="Here"', sheet: "Here" },
     { name: "Print_Area", expression: "=#REF!", sheet: "Here" }]);
 });
 
-it.each(["Sheet_Title", "Print_Area"])("keeps linked global %s external names distinct from implicit sheet names", async name => {
+it.each(["Sheet_Title", "Print_Area"])("keeps external %s names distinct from implicit sheet names", async name => {
   const book = await readBiff(workbook(0x39, "active", 0, 1, 0, name), context);
-  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 6 });
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#REF!" });
+  expect(recalculateWorkbook(book, { ...context, externalReferences: { resolve(request) {
+    expect(request).toMatchObject({ kind: "name", workbook: "book.xls", name });
+    return { kind: "number", value: 5 };
+  } } }, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 6 });
 });
 
 it.each([0, 2])("refuses missing external name index %i without using the cached value", async index => {

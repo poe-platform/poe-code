@@ -6,7 +6,8 @@ import { encryptBiffStream, createBiffEncryptionHeader, biffEncryptionProfiles, 
 import { encryptBiffXorStreams } from "./biff-xor-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
-import { translateBiffFormula, biffErrors, type BiffFormulaContext } from "./biff-formulas.js";
+import { translateBiffFormula, biffErrors, type BiffFormulaContext, type BiffExternalName } from "./biff-formulas.js";
+import { biffExternalPath } from "./biff-external-path.js";
 import { biffFormulaExtras } from "./biff-formula-extras.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
 import { biffOpcodes } from "./biff-source.js";
@@ -57,7 +58,7 @@ const ignoredOpcodes = new Set([0xb, 0x20b, 0xd7, 0xff, 0x16, 0x1f, 0x5b, 0x5c, 
   0x40, 0x8c, 0x9c, 0xbf, 0xda, 0x160, 0x161, 0x13d, 0x1c0, 0x1c1, 0x1c2, 0x86, 0x87, 0x9b,
   0x80, 0x82, 0x8d, 0x5f, 0x8b, 0x8e, 0x42e, 0x1af, 0xe, 0x293, 0x1b7, 0x1bc]);
 interface PendingCell { cell: Cell; xf: number; tokens?: Uint8Array; arrays?: readonly Binary[]; revision: number; codepage: number; }
-interface PendingExternalName { name: string; tokens: Uint8Array; arrays?: readonly Binary[]; revision: number; codepage: number; supported: boolean; record: BiffRecord; }
+interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8Array; arrays?: readonly Binary[]; revision: number; codepage: number; supported: boolean; record: BiffRecord; }
 interface PendingSheet {
   id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
   cells: PendingCell[]; merges: Range[]; rows: AxisMetadata[]; columns: AxisMetadata[];
@@ -105,7 +106,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const names: { name: string; flags: number; tokens: Uint8Array; arrays: readonly Binary[]; sheetIndex: number; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
   const legacyExternalSheets: (string | null | undefined)[] = [];
   const legacyExternalNames: PendingExternalName[] = [], legacyAddinSheets = new Set<number>();
-  const supbooks: { kind: "local" | "addin" | "external"; names: PendingExternalName[] }[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
+  const supbooks: { kind: "local" | "addin" | "external"; names: PendingExternalName[]; workbook?: string; sheets: string[] }[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
   const fontTable: Font[] = [], xfTable: { data: Binary; revision: number }[] = [], palette = [...defaultPalette];
   const formatTable = new Map<number, string>(Object.entries(formats).map(([id, code]) => [Number(id), code]));
   const sharedStrings: { text: string; richText?: readonly RichTextRun[] }[] = [];
@@ -228,13 +229,21 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (opcode === 0x1ae) {
       data.check(0, 4);
       let kind: "local" | "addin" | "external" = data.bytes.length === 4 && data.u16(2) === 0x401 ? "local" : data.bytes.length === 4 && data.u16(2) === 0x3a01 ? "addin" : "external";
-      if (kind === "external" && ver >= 8 && data.u16(2) === 1) {
-        const cursor = new BiffStrings([new Binary(data.slice(4, data.bytes.length - 4))], context, codepage);
+      let workbook: string | undefined;
+      const externalSheets: string[] = [];
+      if (kind === "external" && ver >= 8) {
+        const parts = stringParts(index, 4); index = parts.next;
+        const cursor = new BiffStrings(parts.parts, context, codepage);
+        const path = accountText(cursor.unicode(data.u16(2)).text);
         // Gnumeric also recognizes the one-character NUL VirtualPath as self.
-        if (cursor.unicode(1).text === "\0") kind = "local";
+        if (path === "\0") kind = "local";
+        else {
+          workbook = biffExternalPath(path);
+          for (let at = 0; at < data.u16(0); at++) externalSheets.push(accountText(cursor.unicode(cursor.word()).text));
+        }
       }
-      supbooks.push({ kind, names: [] });
-      if (kind !== "addin") await retain(record, unsupported, kind === "external");
+      supbooks.push({ kind, names: [], sheets: externalSheets, ...(workbook === undefined ? {} : { workbook }) });
+      if (kind !== "addin") await retain(record, unsupported, kind === "external" && workbook === undefined);
       continue;
     }
     if (ver >= 7 && (opcode === 0x23 || opcode === 0x223)) {
@@ -249,7 +258,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       if (!table) invalidBiff("EXTERNNAME without SUPBOOK");
       const arrays = tokenLength ? stringParts(index, end + 2 + tokenLength) : { parts: [], next: index };
       index = arrays.next;
-      table.push({ name, tokens, arrays: arrays.parts, revision: ver, codepage, supported: flags === 0, record });
+      table.push({ name, sheetIndex: data.u16(2), tokens, arrays: arrays.parts, revision: ver, codepage, supported: flags === 0, record });
       const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : (sheet?.legacyAddinSheets ?? legacyAddinSheets).size > 0;
       if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported);
       continue;
@@ -429,6 +438,10 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     return ref.first === ref.last ? first : [first, last] as const;
   });
   const externalNameSheets = externalReferences.map(ref => supbooks[ref.book]?.kind !== "local" ? undefined : ref.first >= 0xfffe ? null : sheets[ref.first]?.name);
+  const externalWorkbooks = externalReferences.map(ref => {
+    const book = supbooks[ref.book], first = book?.sheets[ref.first], last = book?.sheets[ref.last];
+    return book?.workbook === undefined || first === undefined || last === undefined ? undefined : { workbook: book.workbook, first, last };
+  });
   const deletedExternalSheets = externalReferences.map(ref => supbooks[ref.book]?.kind === "local" && (ref.first === 0xffff || ref.last === 0xffff));
   const unavailableExternalSheets = externalReferences.map(ref => supbooks[ref.book]?.kind === "external");
   const localSheets = sheets.map(sheet => sheet.name);
@@ -436,7 +449,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (!name.sheetIndex) return undefined;
     return (name.revision >= 8 ? sheets[name.sheetIndex - 1]?.name : (name.owner?.legacyExternalSheets ?? legacyExternalSheets)[name.sheetIndex - 1]) ?? undefined;
   });
-  const externalNameTables = new Map<PendingExternalName[], readonly ({ name: string; expression?: string } | undefined)[]>();
+  const externalNameTables = new Map<PendingExternalName[], readonly (BiffExternalName | undefined)[]>();
   const formulaNames = names.map(name => name.name);
   const nameBindings = new BiffNameBindings(context, sheets);
   const formula = (tokens: Uint8Array, arrays: readonly Binary[] | undefined, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
@@ -445,7 +458,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     ...biffFormulaExtras(arrays ?? [], revision, cp, { ...context,
       limits: { ...context.limits, workbookTextBytes: (context.limits.workbookTextBytes ?? context.limits.inputBytes) - textBytes }
     }, accountFormulaWork), names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
-    ...(owner ? { currentSheet: owner.name } : {}), shared, globalNameDefinition, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
+    ...(owner ? { currentSheet: owner.name } : {}), shared, globalNameDefinition, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets, externalWorkbooks,
     externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
   const externalTables = [
@@ -454,10 +467,18 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     ...sheets.filter(sheet => sheet.legacyAddinSheets.size > 0).map(sheet => sheet.legacyExternalNames)
   ];
   const globals = new Map(names.filter(name => name.sheetIndex === 0).map(name => [name.name, name]));
+  const externalBooks = new Map(supbooks.filter(book => book.kind === "external").map(book => [book.names, book]));
   for (const table of externalTables) {
-    const entries: ({ name: string; expression?: string } | undefined)[] = [];
+    const entries: (BiffExternalName | undefined)[] = [];
+    const externalBook = externalBooks.get(table);
     for (const name of table) {
       if (!name.supported) { entries.push({ name: name.name }); continue; }
+      if (externalBook) {
+        if (externalBook.workbook === undefined) { entries.push({ name: name.name }); continue; }
+        const sheet = name.sheetIndex ? externalBook.sheets[name.sheetIndex - 1] : undefined;
+        entries.push(name.sheetIndex && sheet === undefined ? undefined : { name: name.name, workbook: externalBook.workbook, ...(sheet === undefined ? {} : { sheet }) });
+        continue;
+      }
       const global = globals.get(name.name);
       if (global && global.record.offset < name.record.offset) {
         const placeholder = global.tokens.length === 0 || global.tokens.length === 2 && global.tokens[0] === 0x1c && global.tokens[1] === 29;

@@ -49,7 +49,7 @@ for (const wide of [false, true]) for (const raw of [0x39, 0x59, 0x79, 0x3a, 0x5
 
 it.each([" ", "x", "\0suffix"])("does not treat external marker %j as the current workbook", async marker => {
   const book = await readBiff(fixture([...biffString(marker, 8, context)]), context);
-  expect(book.sheets[0]!.cells[0]!.formula).toBe("=#REF!+1");
+  expect(book.sheets[0]!.cells[0]!.formula).toBe(marker.startsWith("\0") ? "=#REF!+1" : `=['${marker}']'Worksheet2'!$A$1+1`);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value)
     .toEqual({ kind: "error", value: "#REF!" });
 });

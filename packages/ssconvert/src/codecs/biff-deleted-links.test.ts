@@ -56,16 +56,17 @@ it("bounds the complete modern reference payload before consuming deleted links"
   }
 });
 
-it.each([0x3a, 0x5a, 0x7a, 0x3b, 0x5b, 0x7b])("recalculates an unavailable external BIFF8 token %x instead of its cache", async raw => {
+it.each([0x3a, 0x5a, 0x7a, 0x3b, 0x5b, 0x7b])("preserves external BIFF8 token %x without substituting its cache", async raw => {
   const diagnostics: string[] = [];
   let resolutions = 0;
   const book = await readBiff(workbook(raw, 0, 0, false), { ...context,
     externalReferences: { resolve() { resolutions++; throw new Error("implicit external access"); } },
     async diagnostic(value) { diagnostics.push(value.message); } });
-  expect(book.sheets[0]!.cells[0]).toMatchObject({ formula: "=#REF!+1", cachedResult: { kind: "number", value: 99 } });
+  expect(book.sheets[0]!.cells[0]).toMatchObject({ formula: "=['owned-external.xls']'Owned Sheet'!" +
+    ((raw & 0x1f) === 0x1a ? "$A$1" : "$A$1:$A$1") + "+1", cachedResult: { kind: "number", value: 99 } });
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#REF!" });
   expect(resolutions).toBe(0);
-  expect(diagnostics).toContain("BIFF SUPBOOK retained without semantic interpretation");
+  expect(diagnostics).not.toContain("BIFF SUPBOOK retained without semantic interpretation");
   expect(book.unsupportedRecords?.some(record => record.kind === "SUPBOOK")).toBe(true);
 });
 

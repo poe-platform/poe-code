@@ -4,12 +4,19 @@ import { biffFunctions } from "./biff-source.js";
 import { biffDecode } from "./biff-strings.js";
 import { parseExpression } from "../formulas/parser.js";
 import { functionDescriptors } from "../formulas/function-descriptors.js";
-import { excelGrammar } from "../formulas/conventions.js";
+import { excelGrammar, gnumericGrammar } from "../formulas/conventions.js";
+import { quoteFormulaString } from "../formulas/serialization.js";
 
 interface Expression { text: string; precedence: number; functionName?: string; }
 export interface BiffNameReference {
   readonly value: number | "#REF!" | "#NAME?";
   readonly functionName: string | undefined;
+}
+export interface BiffExternalName {
+  readonly name: string;
+  readonly expression?: string;
+  readonly workbook?: string;
+  readonly sheet?: string;
 }
 export interface BiffFormulaContext {
   readonly revision: number;
@@ -25,7 +32,8 @@ export interface BiffFormulaContext {
   /** NameX uses the first display sheet; null is its deleted/self scope marker. */
   readonly externalNameSheets?: readonly (string | null | undefined)[];
   /** Associated external/add-in names; undefined denotes an unbound/unsupported namespace. */
-  readonly externalNames?: readonly (readonly ({ readonly name: string; readonly expression?: string } | undefined)[] | undefined)[];
+  readonly externalNames?: readonly (readonly (BiffExternalName | undefined)[] | undefined)[];
+  readonly externalWorkbooks?: readonly ({ readonly workbook: string; readonly first: string; readonly last: string } | undefined)[];
   /** Deleted local link endpoints. */
   readonly deletedExternalSheets?: readonly boolean[];
   /** Native standard external SUPBOOKs have no bound workbook and evaluate to #REF!. */
@@ -167,6 +175,17 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       if (extern !== undefined) {
         const name = extern[index - 1];
         if (!name) { push("#REF!"); continue; }
+        if (name.workbook !== undefined) {
+          const text = "[" + quoteFormulaString(name.workbook, "'", gnumericGrammar) + "]" +
+            (name.sheet === undefined ? "" : quoteFormulaString(name.sheet, "'", gnumericGrammar) + "!") + name.name;
+          const parsed = parseExpression("=" + text, { position: { sheet: context.currentSheet ?? "", row: context.row, column: context.column },
+            maximumNodes: context.limit, maximumLength: context.limit });
+          const root = parsed.ok ? parsed.document.root : undefined;
+          if (root?.kind !== "name" || root.name !== name.name || root.workbook !== name.workbook || root.sheet !== name.sheet)
+            throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: invalid external BIFF name");
+          push(text);
+          continue;
+        }
         if (name.expression === undefined)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF name expression");
         if (!name.expression.startsWith("=")) invalidBiff("invalid external name expression");
@@ -199,12 +218,14 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     }
     else if (token === 0x3a || token === 0x3b) {
       let sheet: (typeof context.externalSheets)[number];
+      let external: NonNullable<BiffFormulaContext["externalWorkbooks"]>[number];
       if (context.revision >= 8) {
         const size = token === 0x3a ? 6 : 10;
         data.check(offset, size);
         const index = data.u16(offset);
-        if (context.deletedExternalSheets?.[index] || context.unavailableExternalSheets?.[index]) { offset += size; push("#REF!"); continue; }
-        sheet = context.externalSheets[index]; offset += 2;
+        external = context.externalWorkbooks?.[index];
+        if (context.deletedExternalSheets?.[index] || !external && context.unavailableExternalSheets?.[index]) { offset += size; push("#REF!"); continue; }
+        sheet = external ? external.first === external.last ? external.first : [external.first, external.last] : context.externalSheets[index]; offset += 2;
       }
       else {
         const size = token === 0x3a ? 17 : 20;
@@ -229,8 +250,8 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const ref = token === 0x3a ? reference(offset, relative) : area(offset, relative);
       offset += context.revision >= 8 ? token === 0x3a ? 4 : 8 : token === 0x3a ? 3 : 6;
       const endpoints = sheet === null ? [] : typeof sheet === "string" ? [sheet] : sheet;
-      const qualifier = endpoints.map(name => "'" + name.split("'").join("''") + "'").join(":");
-      push((qualifier ? qualifier + "!" : "") + ref);
+      const qualifier = endpoints.map(name => external ? quoteFormulaString(name, "'", gnumericGrammar) : "'" + name.split("'").join("''") + "'").join(":");
+      push((external ? "[" + quoteFormulaString(external.workbook, "'", gnumericGrammar) + "]" : "") + (qualifier ? qualifier + "!" : "") + ref);
     } else if (token === 0x26 || token === 0x27 || token === 0x28) {
       data.check(offset, 6); offset += 6;
       if (token === 0x26) context.readMemory?.();

@@ -55,11 +55,12 @@ left/right/center alignment, regular or bold, sizes
 share one invocation byte budget. This profile uses the captured native 96-DPI
 scale and print insets, so size 10 paints at 7.5 points. Cell alignment, fit and glyph placement
 use shaped advances and offsets. Exact native rendering remains unqualified. Other styles,
-merges and text layouts retain explicit refusals. BIFF8 external cell and area
-links calculate to `#REF!`; their cached values and raw link records remain retained,
-and linked workbooks are never fetched. External names use supported on-file
-declarations during recalculation; missing or inactive names produce `#REF!`,
-while a declaration can supply the expression for a linked workbook name placeholder.
+merges and text layouts retain explicit refusals. BIFF8 imports preserve external
+workbook, sheet, cell/range and defined-name identities, cached values and raw link records.
+Recalculation uses the explicit `externalReferences` host binding and otherwise
+returns `#REF!`; linked workbooks are never fetched automatically. External names
+retain their workbook or sheet scope without taking values from local names or
+on-file external-name expressions. BIFF external-reference export remains unsupported.
 BIFF7/8 exports resolve sheet references without regard to case and preserve the exact spelling and scope of defined names. Relative row references wrap at the format's row limit: 16,384 before BIFF8 and 65,536 in BIFF8.
 BIFF7/8 literal arrays retain their stored value types during recalculation. SDK cell, name and formula-group records can set `arrayStringLiterals: true` to preserve strings such as `"001"`, `"TRUE"` and `"#REF!"`. XML/XLSX exports carry an ignorable annotation for ssconvert readback; native Gnumeric's text import still coerces those strings.
 Safe Bash provides a separate,

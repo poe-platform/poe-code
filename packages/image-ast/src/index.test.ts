@@ -2655,4 +2655,37 @@ describe("@poe-code/image-ast (sharp core)", () => {
       /Expected number between 1 and 100000 for density/
     );
   });
+
+  it("validates raw(), gif(), png(), webp(), tiff(), heif(), avif(), and toFormat() options matching sharp", async () => {
+    const png = await sharp({ create: { width: 4, height: 4, channels: 3, background: "red" } }).png().toBuffer();
+
+    expect(() => sharp(png).raw({ depth: "bogus" })).toThrow(
+      /Expected one of: char, uchar, short, ushort, int, uint, float, complex, double, dpcomplex for depth/
+    );
+    expect(() => sharp(png).gif({ loop: -1 })).toThrow(/Expected integer between 0 and 65535 for loop/);
+    expect(() => sharp(png).gif({ loop: 70000 })).toThrow(/Expected integer between 0 and 65535 for loop/);
+    expect(() => sharp(png).gif({ delay: -5 })).toThrow(
+      /Expected integer or an array of integers between 0 and 65535 for delay/
+    );
+    expect(() => sharp(png).gif({ delay: [-10] })).toThrow(
+      /Expected integer or an array of integers between 0 and 65535 for delay/
+    );
+    expect(() => sharp(png).png({ effort: 15 } as any)).toThrow(/Expected integer between 1 and 10 for effort/);
+    expect(() => sharp(png).webp({ alphaQuality: 105 } as any)).toThrow(
+      /Expected integer between 0 and 100 for alphaQuality/
+    );
+    expect(() => sharp(png).webp({ effort: 10 } as any)).toThrow(/Expected integer between 0 and 6 for effort/);
+    expect(() => sharp(png).webp({ preset: "bogus" } as any)).toThrow(
+      /Expected one of: default, photo, picture, drawing, icon, text for preset/
+    );
+    expect(() => sharp(png).tiff({ compression: "bogus" } as any)).toThrow(
+      /Expected one of: none, jpeg, deflate, packbits, ccittfax4, lzw, webp, zstd, jp2k for compression/
+    );
+    expect(() => sharp(png).tiff({ bitdepth: 3 } as any)).toThrow(/Expected 1, 2, 4 or 8 for bitdepth/);
+    expect(() => sharp(png).heif({ compression: "bogus" as any })).toThrow(
+      /Expected one of: av1, hevc for compression/
+    );
+    expect(() => sharp(png).avif({ effort: 12 } as any)).toThrow(/Expected integer between 0 and 9 for effort/);
+    expect(() => sharp(png).toFormat("bogus" as any)).toThrow(/for format but received bogus/);
+  });
 });

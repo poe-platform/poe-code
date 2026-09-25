@@ -1759,6 +1759,13 @@ export class SharpInstance extends Duplex {
   png(options?: { readonly compressionLevel?: number; readonly palette?: boolean; readonly quality?: number; readonly force?: boolean }): this {
     this.validateCompressionLevel(options?.compressionLevel);
     this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 1 || (anyOpts.effort as number) > 10)) {
+      throw new Error(`Expected integer between 1 and 10 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    if (anyOpts?.bitdepth !== undefined && ![1, 2, 4, 8, 16].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 1, 2, 4, 8 or 16 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "png" }),
@@ -1782,6 +1789,23 @@ export class SharpInstance extends Duplex {
 
   webp(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (
+      anyOpts?.alphaQuality !== undefined &&
+      (!Number.isInteger(anyOpts.alphaQuality) || (anyOpts.alphaQuality as number) < 0 || (anyOpts.alphaQuality as number) > 100)
+    ) {
+      throw new Error(
+        `Expected integer between 0 and 100 for alphaQuality but received ${anyOpts.alphaQuality} of type ${typeof anyOpts.alphaQuality}`
+      );
+    }
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 6)) {
+      throw new Error(`Expected integer between 0 and 6 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    if (anyOpts?.preset !== undefined && !["default", "photo", "picture", "drawing", "icon", "text"].includes(anyOpts.preset as string)) {
+      throw new Error(
+        `Expected one of: default, photo, picture, drawing, icon, text for preset but received ${anyOpts.preset} of type ${typeof anyOpts.preset}`
+      );
+    }
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "webp" }),
@@ -1798,6 +1822,13 @@ export class SharpInstance extends Duplex {
     readonly force?: boolean;
   }): this {
     this.validateQuality(options?.quality);
+    if (options?.compression !== undefined && !["av1", "hevc"].includes(options.compression)) {
+      throw new Error(`Expected one of: av1, hevc for compression but received ${options.compression} of type ${typeof options.compression}`);
+    }
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 9)) {
+      throw new Error(`Expected integer between 0 and 9 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "heif" }),
@@ -1827,6 +1858,10 @@ export class SharpInstance extends Duplex {
 
   avif(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 9)) {
+      throw new Error(`Expected integer between 0 and 9 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "avif" }),
@@ -1843,6 +1878,20 @@ export class SharpInstance extends Duplex {
     readonly loop?: number;
     readonly force?: boolean;
   }): this {
+    if (options?.loop !== undefined && (!Number.isInteger(options.loop) || options.loop < 0 || options.loop > 65535)) {
+      throw new Error(`Expected integer between 0 and 65535 for loop but received ${options.loop} of type ${typeof options.loop}`);
+    }
+    if (options?.delay !== undefined) {
+      const isValidDelay =
+        (Number.isInteger(options.delay) && (options.delay as number) >= 0 && (options.delay as number) <= 65535) ||
+        (Array.isArray(options.delay) &&
+          options.delay.every(d => Number.isInteger(d) && d >= 0 && d <= 65535));
+      if (!isValidDelay) {
+        throw new Error(
+          `Expected integer or an array of integers between 0 and 65535 for delay but received ${options.delay} of type ${typeof options.delay}`
+        );
+      }
+    }
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "gif" }),
@@ -1875,6 +1924,18 @@ export class SharpInstance extends Duplex {
 
   tiff(options?: { readonly quality?: number; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (
+      anyOpts?.compression !== undefined &&
+      !["none", "jpeg", "deflate", "packbits", "ccittfax4", "lzw", "webp", "zstd", "jp2k"].includes(anyOpts.compression as string)
+    ) {
+      throw new Error(
+        `Expected one of: none, jpeg, deflate, packbits, ccittfax4, lzw, webp, zstd, jp2k for compression but received ${anyOpts.compression} of type ${typeof anyOpts.compression}`
+      );
+    }
+    if (anyOpts?.bitdepth !== undefined && ![1, 2, 4, 8].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 1, 2, 4 or 8 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "tiff" }),
@@ -1884,6 +1945,14 @@ export class SharpInstance extends Duplex {
   }
 
   raw(options?: { readonly depth?: string }): this {
+    if (
+      options?.depth !== undefined &&
+      !["char", "uchar", "short", "ushort", "int", "uint", "float", "complex", "double", "dpcomplex"].includes(options.depth)
+    ) {
+      throw new Error(
+        `Expected one of: char, uchar, short, ushort, int, uint, float, complex, double, dpcomplex for depth but received ${options.depth} of type ${typeof options.depth}`
+      );
+    }
     this.outputOptions = {
       ...this.outputOptions,
       format: "raw",
@@ -1909,6 +1978,28 @@ export class SharpInstance extends Duplex {
         : lower === "tif"
           ? "tiff"
           : (lower as ImageFormat);
+    const validFormats = [
+      "jpeg",
+      "png",
+      "webp",
+      "tiff",
+      "heif",
+      "heic",
+      "avif",
+      "gif",
+      "svg",
+      "pdf",
+      "ppm",
+      "pgm",
+      "pbm",
+      "bmp",
+      "raw",
+      "jp2",
+      "jxl"
+    ];
+    if (!validFormats.includes(norm)) {
+      throw new Error(`Expected one of: ${validFormats.join(", ")} for format but received ${rawFmt}`);
+    }
     this.validateQuality(options?.quality);
     this.validateCompressionLevel(options?.compressionLevel);
     this.outputOptions = {

@@ -5,6 +5,7 @@ import { setImmediate as turn } from "node:timers/promises";
 
 import { MemoryFileSystem, Shell } from "../../../../src/index.js";
 import { InvocationScope } from "../../../../src/shell/cleanup.js";
+import { RuntimeCancellationState } from "../../../../src/shell/runtime.js";
 
 const capture = <Value>(pending: Value | PromiseLike<Value>) => Promise.resolve(pending).then(
   value => ({ kind: "return" as const, value }),
@@ -17,9 +18,15 @@ function deferred(): { readonly promise: Promise<void>; readonly resolve: () => 
   return { promise, resolve };
 }
 
-test("borrowed forms preserve the parent signal without cancellation resources", async () => {
+test("borrowed forms preserve the parent signal without cancellation resources", async testContext => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   const seen: AbortSignal[] = [];
+  let ownedBindings = 0;
+  const bind = RuntimeCancellationState.prototype.bind;
+  testContext.mock.method(RuntimeCancellationState.prototype, "bind", function (this: RuntimeCancellationState, ...args: Parameters<RuntimeCancellationState["bind"]>) {
+    ownedBindings++;
+    return bind.apply(this, args);
+  });
   shell.register({ name: "leaf", execute(context) { seen.push(context.signal); return { exitCode: 3 }; } });
   shell.register({ name: "driver", async execute(context) {
     const baseline = getEventListeners(context.signal, "abort").length;
@@ -40,11 +47,22 @@ test("borrowed forms preserve the parent signal without cancellation resources",
       ]) {
         created.push(0);
         assert.equal((await invoke()).exitCode, 3);
+        assert.equal(ownedBindings, 0);
+        assert.equal(getEventListeners(context.signal, "abort").length, baseline);
+        assert.equal(context.signal.aborted, false);
       }
     } finally { globalThis.AbortController = native; }
-    assert.deepEqual(created, [2, 2, 2, 2]);
+    // First use creates the cached parent scope controller; every call adds its child scope controller.
+    assert.deepEqual(created, [2, 1, 1, 1]);
     assert.equal(getEventListeners(context.signal, "abort").length, baseline);
     assert.ok(seen.every(signal => signal === context.signal));
+    const local = new AbortController();
+    assert.equal((await context.invoke!("leaf", [], { signal: local.signal })).exitCode, 3);
+    assert.equal(ownedBindings, 1, "an owned signal must exercise the cancellation record observer");
+    assert.notEqual(seen.at(-1), context.signal);
+    assert.equal(getEventListeners(local.signal, "abort").length, 0);
+    assert.equal(getEventListeners(context.signal, "abort").length, baseline);
+    assert.equal(context.signal.aborted, false);
     return { exitCode: 0 };
   } });
   try { assert.equal((await shell.exec("driver")).exitCode, 0); }

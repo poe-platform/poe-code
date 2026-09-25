@@ -624,3 +624,21 @@ test("grouped flags and attached values preserve CLI/SDK parity and literal oper
     assert.equal(f.text(), "");
   }
 });
+
+test("csvgrep -n flushes a single-line header without trailing newline and accepts negative numeric option values", async () => {
+  const eofHeader = fixture(["-n"], "name,n");
+  assert.equal((await createCsvgrepCommand().execute(eofHeader.context)).exitCode, 0, eofHeader.error());
+  assert.equal(eofHeader.text(), "  1: name\n  2: n\n");
+
+  const openStart = fixture(["-c", "-1", "-m", "1"], "a,b\n1,-5\n2,3\n");
+  assert.equal((await createCsvgrepCommand().execute(openStart.context)).exitCode, 0, openStart.error());
+  assert.equal(openStart.text(), "a,b\n1,-5\n");
+
+  const negMatch = fixture(["-c", "2", "-m", "-5"], "a,b\n1,-5\n2,3\n");
+  assert.equal((await createCsvgrepCommand().execute(negMatch.context)).exitCode, 0, negMatch.error());
+  assert.equal(negMatch.text(), "a,b\n1,-5\n");
+
+  const negRegex = fixture(["-c", "2", "-r", "-5"], "a,b\n1,-5\n2,3\n");
+  assert.equal((await createCsvgrepCommand().execute(negRegex.context)).exitCode, 0, negRegex.error());
+  assert.equal(negRegex.text(), "a,b\n1,-5\n");
+});

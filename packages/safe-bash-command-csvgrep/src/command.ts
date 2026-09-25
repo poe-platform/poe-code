@@ -129,7 +129,13 @@ export function parseCsvgrepArguments(args: readonly string[], b: CsvBudget): Cs
         ].includes(arg))
     ) {
       const value = inline ?? args[++i];
-      if (value === undefined || (inline === undefined && value.startsWith("-") && value !== "-"))
+      const negativeNumber =
+        value !== undefined &&
+        value.length > 1 &&
+        value[0] === "-" &&
+        ((value.charCodeAt(1) >= 48 && value.charCodeAt(1) <= 57) ||
+          (value[1] === "." && value.length > 2 && value.charCodeAt(2) >= 48 && value.charCodeAt(2) <= 57));
+      if (value === undefined || (inline === undefined && value.startsWith("-") && value !== "-" && !negativeNumber))
         throw new CsvError("ARGUMENT", `Expected a value for ${arg}`);
       if (isString) Object.assign(options, { [string[arg]!]: value });
       else if (arg === "-d" || arg === "--delimiter") dialect.delimiter = value;
@@ -491,7 +497,7 @@ export async function csvgrep(
         },
         () => Boolean(options.names && headers !== undefined)
       );
-      if (!options.names) await deliver(parser.end());
+      if (!options.names || headers === undefined) await deliver(parser.end());
       if (headers === undefined) {
         if (options.names) throw new CsvError("INPUT", "No header row available");
         await write(serializeRow([], b));

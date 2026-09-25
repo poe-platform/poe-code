@@ -362,9 +362,9 @@ export function selectColumns(
       }
     } else if (token.includes("-")) {
       const parts = token.split("-");
-      if (parts.length !== 2 || !parts[0] || !parts[1])
+      if (parts.length !== 2 || !parts[1])
         throw new CsvError("UNSUPPORTED", "Open column ranges are not qualified");
-      const start = position(parts[0]),
+      const start = position(parts[0] || (zero ? "0" : "1")),
         end = position(parts[1]);
       if (end < start) throw new CsvError("INPUT", "Reversed column range");
       for (let index = start; index <= end; index++) {

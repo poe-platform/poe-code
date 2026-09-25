@@ -440,9 +440,21 @@
       "types": "./dist/commands/pdfinfo/index.d.ts",
       "import": "./dist/commands/pdfinfo/index.js"
     },
+    "./commands/pdftoppm": {
+      "types": "./dist/commands/pdftoppm/index.d.ts",
+      "import": "./dist/commands/pdftoppm/index.js"
+    },
+    "./commands/pdfimages": {
+      "types": "./dist/commands/pdfimages/index.d.ts",
+      "import": "./dist/commands/pdfimages/index.js"
+    },
     "./commands/pdftotext": {
       "types": "./dist/commands/pdftotext/index.d.ts",
       "import": "./dist/commands/pdftotext/index.js"
+    },
+    "./commands/pdftk": {
+      "types": "./dist/commands/pdftk/index.d.ts",
+      "import": "./dist/commands/pdftk/index.js"
     },
     "./commands/qpdf": {
       "types": "./dist/commands/qpdf/index.d.ts",
@@ -568,7 +580,10 @@
     "docx": "*",
     "safe-bash-command-mmdc": "*",
     "safe-bash-command-pdfinfo": "*",
+    "safe-bash-command-pdftoppm": "*",
+    "safe-bash-command-pdfimages": "*",
     "safe-bash-command-pdftotext": "*",
+    "safe-bash-command-pdftk": "*",
     "safe-bash-command-qpdf": "*",
     "safe-bash-command-soffice": "*",
     "safe-bash-command-sips": "*"
@@ -739,7 +754,31 @@
             "safe-bash-contracts": "*"
           }
         },
+        "safe-bash-command-pdftoppm": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-pdfimages": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
         "safe-bash-command-pdftotext": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-pdftk": {
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {

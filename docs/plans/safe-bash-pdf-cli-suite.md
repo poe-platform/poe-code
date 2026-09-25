@@ -214,13 +214,13 @@ export function pdftkPlugin(options?: PdftkCommandOptions): VirtualShellPlugin;
 
 ### Must-Work Checklist
 
-- [ ] `pdftoppm -png -r 150 doc.pdf page` writes valid PNG files (`\x89PNG\r\n\x1a\n`) scaled to `widthPt * 150 / 72` x `heightPt * 150 / 72` with Poppler zero-padded page suffixes.
-- [ ] `pdftoppm -png -singlefile -f 2 -l 2 doc.pdf thumb` writes `thumb.png` for page 2 without a trailing `-2` suffix.
-- [ ] `pdfimages -list doc.pdf` outputs the exact Poppler table header and one row per embedded/inline image with accurate dimensions and object IDs.
-- [ ] `pdfimages -png doc.pdf img` extracts embedded images to `img-000.png`, `img-001.png` matching original image pixel dimensions.
-- [ ] `pdftk form.pdf dump_data_fields_utf8` lists every AcroForm field (`FieldType`, `FieldName`, `FieldValue`, `FieldStateOption`).
-- [ ] `pdftk form.pdf fill_form data.fdf output filled.pdf flatten` populates field values, bakes appearance streams into page content, and removes interactive widget annotations.
-- [ ] `pdftk A=a.pdf B=b.pdf cat A1-2 B1east output merged.pdf` produces a 3-page PDF with page 3 rotated +90 degrees and inherited page resources preserved.
+- [x] `pdftoppm -png -r 150 doc.pdf page` writes valid PNG files (`\x89PNG\r\n\x1a\n`) scaled to `widthPt * 150 / 72` x `heightPt * 150 / 72` with Poppler zero-padded page suffixes.
+- [x] `pdftoppm -png -singlefile -f 2 -l 2 doc.pdf thumb` writes `thumb.png` for page 2 without a trailing `-2` suffix.
+- [x] `pdfimages -list doc.pdf` outputs the exact Poppler table header and one row per embedded/inline image with accurate dimensions and object IDs.
+- [x] `pdfimages -png doc.pdf img` extracts embedded images to `img-000.png`, `img-001.png` matching original image pixel dimensions.
+- [x] `pdftk form.pdf dump_data_fields_utf8` lists every AcroForm field (`FieldType`, `FieldName`, `FieldValue`, `FieldStateOption`).
+- [x] `pdftk form.pdf fill_form data.fdf output filled.pdf flatten` populates field values, bakes appearance streams into page content, and removes interactive widget annotations.
+- [x] `pdftk A=a.pdf B=b.pdf cat A1-2 B1east output merged.pdf` produces a 3-page PDF with page 3 rotated +90 degrees and inherited page resources preserved.
 
 ## 5. Code plan
 

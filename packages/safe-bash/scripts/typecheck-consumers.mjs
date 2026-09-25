@@ -109,13 +109,15 @@ export async function stageStandaloneConsumerPackage(root, temporary) {
     assert.ok(filesystem.declarations.has(target.slice(2)), `filesystem private mapping is outside the authenticated declarations: ${specifier}`);
     binding.filesystem.privateEntries.set(specifier, target.slice(2));
   }
-  for (const name of Object.keys(source.poeCode.integration.privateWorkspaces)) {
+  binding.privateAliases = Object.keys(source.poeCode.integration.privateWorkspaces);
+  for (const name of binding.privateAliases) {
     const metadata = JSON.parse(readFileSync(resolve(root, "..", name, "package.json"), "utf8"));
     for (const [route, entry] of Object.entries(metadata.exports ?? {})) {
       const target = nodeTypeTarget(entry.types);
       if (!target?.startsWith("./dist/")) continue;
       const declaration = join("dist", name, target.slice("./dist/".length));
-      if (!route.includes("*")) assert.ok(binding.declarations.has(declaration), `source helper type owner is outside the artifact: ${name}${route}`);
+      // Packaging retains the declaration dependency closure. Unused exports need
+      // no artifact entry; every actual helper resolution is authenticated below.
       paths[name + (route === "." ? "" : route.slice(1))] = [join(candidate, declaration)];
     }
   }
@@ -239,9 +241,10 @@ function assertCandidateResolutions(stdout, installed, binding, filesystemRoot) 
     if (peerRoot) assertPeerResolution(specifier, physicalTarget, importer, peerRoot, dependency, packageRoot);
     const publicName = [binding.name, ...binding.publicAliases ?? []].find(name => specifier === name || specifier.startsWith(`${name}/`));
     const publicImport = publicName !== undefined;
+    const privateImport = binding.privateAliases?.some(name => specifier === name || specifier.startsWith(`${name}/`));
     const localLeaf = (specifier.startsWith("node_modules/@poe-platform/safe-bash/") || specifier.includes("/node_modules/@poe-platform/safe-bash/"));
     const relativeDeclaration = /^\.\.?\//u.test(specifier) && importer && existsSync(importer) && within(dist, realpathSync(importer));
-    if (!publicImport && !localLeaf && !relativeDeclaration && !within(dist, physicalTarget)) continue;
+    if (!publicImport && !privateImport && !localLeaf && !relativeDeclaration && !within(dist, physicalTarget)) continue;
     assert.ok(within(dist, physicalTarget), `foreign candidate declaration/source fallback: ${specifier} -> ${target}`);
     const local = relative(packageRoot, physicalTarget), expected = binding.declarations.get(local);
     assert.ok(expected, `resolution is not an authenticated candidate declaration: ${specifier} -> ${target}`);

@@ -6,6 +6,17 @@ const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syn
 const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
 const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
 
+function ensureWaiterSet(target: unknown): Set<() => void> {
+  const rec = target as Record<symbol, (() => void) | Set<() => void> | undefined>;
+  const cur = rec[managedWaitersSymbol];
+  if (typeof cur === "function") {
+    const set = new Set<() => void>([cur]);
+    rec[managedWaitersSymbol] = set;
+    return set;
+  }
+  return (rec[managedWaitersSymbol] = cur ?? new Set<() => void>());
+}
+
 function isSyncResolved(promise: unknown): promise is Promise<never> {
   return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
@@ -73,8 +84,11 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   };
   const abort = (reason: unknown): void => {
     controller.abort(reason);
-    const symSet = (signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol];
-    if (symSet && symSet.size > 0) {
+    const symSet = (signal as unknown as Record<symbol, (() => void) | Set<() => void> | undefined>)[managedWaitersSymbol];
+    if (typeof symSet === "function") {
+      (signal as unknown as Record<symbol, unknown>)[managedWaitersSymbol] = undefined;
+      symSet();
+    } else if (symSet && symSet.size > 0) {
       const pending = [...symSet];
       symSet.clear();
       for (let i = 0; i < pending.length; i++) pending[i]!();
@@ -91,7 +105,7 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   const wait = <Value>(pending: Promise<Value>): Promise<Value> => new Promise((resolve, reject) => {
     const aborted = (): void => reject(signal.reason);
     if (signal.aborted) aborted();
-    const symSet = ((signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol] ??= new Set());
+    const symSet = ensureWaiterSet(signal);
     if (!signal.aborted) symSet.add(aborted);
     pending.then(value => {
       symSet.delete(aborted);
@@ -106,7 +120,7 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   else if (capability?.consumerClosed.aborted) outputAbort();
   else {
     if ((context.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      callerWaiters = ((context.signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol] ??= new Set());
+      callerWaiters = ensureWaiterSet(context.signal);
       callerWaiters.add(callerAbort);
     } else {
       context.signal.addEventListener("abort", callerAbort, { once: true });
@@ -114,7 +128,7 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
     if (capability) {
       const consumerClosed = capability.consumerClosed;
       if ((consumerClosed as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-        outputWaiters = ((consumerClosed as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol] ??= new Set());
+        outputWaiters = ensureWaiterSet(consumerClosed);
         outputWaiters.add(outputAbort);
       } else {
         consumerClosed.addEventListener("abort", outputAbort, { once: true });

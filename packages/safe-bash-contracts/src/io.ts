@@ -135,8 +135,11 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       consumerReason = reason;
       if (consumer) {
         consumer.abort(reason !== undefined ? reason : brokenPipe());
-        const symSet = (consumer.signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol];
-        if (symSet && symSet.size > 0) {
+        const symSet = (consumer.signal as unknown as Record<symbol, (() => void) | Set<() => void> | undefined>)[managedWaitersSymbol];
+        if (typeof symSet === "function") {
+          (consumer.signal as unknown as Record<symbol, unknown>)[managedWaitersSymbol] = undefined;
+          symSet();
+        } else if (symSet && symSet.size > 0) {
           const pending = [...symSet];
           symSet.clear();
           for (let i = 0; i < pending.length; i++) pending[i]!();
@@ -167,7 +170,9 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   const attachSignal = (): void => {
     if (!signal) return;
     if ((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      managedWaiters = ((signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol] ??= new Set());
+      const rec = signal as unknown as Record<symbol, (() => void) | Set<() => void> | undefined>;
+      const cur = rec[managedWaitersSymbol];
+      managedWaiters = typeof cur === "function" ? (rec[managedWaitersSymbol] = new Set([cur])) : (cur ?? (rec[managedWaitersSymbol] = new Set()));
       managedWaiters.add(onAbort);
     } else {
       signal.addEventListener("abort", onAbort, { once: true });

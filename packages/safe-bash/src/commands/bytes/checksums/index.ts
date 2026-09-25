@@ -11,7 +11,6 @@ import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageErro
 import { ByteInputBudget, resolveInputLimit, type ByteInputOptions } from "../input-budget.js";
 
 const blockBytes = 64 * 1024;
-const manifestLineBytes = 64 * 1024;
 const filenameBytes = 16 * 1024;
 const maxLength = (1n << 64n) - 1n;
 const utf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });

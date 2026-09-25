@@ -112,14 +112,14 @@ test("generation and verification await sink backpressure before opening next in
   }
 });
 
-test("manifest lines have a strict 64-KiB bound; next manifests still run", async () => {
+test("long manifest comments cross chunk boundaries and later manifests still run", async () => {
   const fs = await fixture({ good: "abc", next: `${abcSha}  good\n` });
   for (const size of [1, 65535, 65536, 65537, 1024 * 1024]) {
-    const overlong = encoder.encode("#".repeat(65537) + "\n");
-    const result = await run("sha256sum", ["-c", "-", "next"], { fs, stdin: chunks(overlong, size) });
-    assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /EFBIG.*65536/u);
-    assert.equal(result.stdout, "good: OK\n");
+    const manifest = encoder.encode("#".repeat(65537) + `\n${abcSha}  good\n`);
+    const result = await run("sha256sum", ["-c", "--strict", "-", "next"], { fs, stdin: chunks(manifest, size) });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "good: OK\ngood: OK\n");
   }
   const allowed = "#".repeat(65536) + `\n${abcSha}  good\n`;
   assert.equal((await run("sha256sum", ["-c", "--strict"], { fs, stdin: allowed })).exitCode, 0);

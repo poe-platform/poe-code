@@ -69,6 +69,15 @@ test("kill lists signals and rejects foreign PIDs", async context => {
   assert.ok(result.stderr.includes("no such process"));
 });
 
+test("kill converts signal names and numbers through the portable virtual catalog", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] });
+  context.after(() => shell.dispose());
+  const result = await shell.exec("kill -l 1 2 9 15 17 31; kill -l HUP INT KILL TERM CHLD SYS");
+  assert.equal(result.stdout, "HUP\nINT\nKILL\nTERM\nCHLD\nSYS\n1\n2\n9\n15\n17\n31\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
 test("wait -n accepts job specs and publishes the virtual PID", async context => {
   const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [jobsExtension()] });
   for (const command of basicCommands()) shell.register(command);

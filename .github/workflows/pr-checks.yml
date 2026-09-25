@@ -36,6 +36,11 @@ jobs:
         run: |
           echo "Both unit jobs use Node22 for native-reference APIs and @poe-platform/safe-bash test discovery."
           echo "Its complete test:unit suite runs in the separate safe-bash-node22 job; no tests are waived."
+      - name: Install Zsh for native completion tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes zsh
+          test -x /bin/zsh
       - run: npm test -- --concurrency=1 --exclude-workspace=@poe-platform/safe-bash
       - run: npm run smoke
   safe-bash-node22:

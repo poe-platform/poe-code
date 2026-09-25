@@ -225,7 +225,7 @@ const budgetedSinks = {
     return entry?.self === sink ? entry : fallbackBudgetedSinks.get(sink);
   },
   set(sink: ByteSink, value: { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }) {
-    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, BudgetedSinkEntry>)[budgetedSinkSymbol] = { self: sink, ...value };
+    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, BudgetedSinkEntry>)[budgetedSinkSymbol] = { ...value, self: sink };
     else fallbackBudgetedSinks.set(sink, value);
   },
 };
@@ -1249,17 +1249,15 @@ class FastShellCommandContext {
     if (io.processSignals !== undefined) this.processSignals = io.processSignals;
     if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
     if (io.scriptName !== undefined) this.scriptName = io.scriptName;
-    if (!FAST_PROTOTYPE_CONTEXT_COMMANDS.has(name)) {
-      for (const [key, descriptor] of fastShellCommandAccessors) {
-        Object.defineProperty(this, key, {
-          ...descriptor,
-          enumerable: true,
-          configurable: key !== "stdinInput" && key !== "stdoutFile",
-          get: descriptor.get!.bind(this),
-          ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
-        });
-      }
-      void this.registerCleanup;
+    // Standard command adapters also forward contexts with spread or copied descriptors.
+    for (const [key, descriptor] of fastShellCommandAccessors) {
+      Object.defineProperty(this, key, {
+        ...descriptor,
+        enumerable: true,
+        configurable: key !== "stdinInput" && key !== "stdoutFile",
+        get: descriptor.get!.bind(this),
+        ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
+      });
     }
   }
 
@@ -1365,17 +1363,6 @@ class FastShellCommandContext {
     self.#admittedHandles = v;
   }
 }
-
-const FAST_PROTOTYPE_CONTEXT_COMMANDS = new Set([
-  "mkdir", "rm", "rmdir", "touch", "mv", "cp", "chmod", "ls", "stat", "realpath",
-  "find", "grep", "egrep", "fgrep", "rg", "awk", "jq", "sort", "cut", "head", "tail",
-  "wc", "cat", "tr", "uniq", "nl", "paste", "join", "comm", "fold", "expand", "unexpand",
-  "fmt", "rev", "tac", "od", "hexdump", "xxd", "base64", "base32", "md5sum", "sha1sum",
-  "sha256sum", "sha512sum", "cksum", "b2sum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2",
-  "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "tar", "zip", "unzip",
-  "date", "seq", "expr", "basename", "dirname", "mktemp", "sleep", "uname", "whoami",
-  "id", "hostname", "nproc", "arch", "printenv", "yes", "sed",
-]);
 
 const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "stdinInput", "stdoutFile", "admittedHandles", "registerCleanup", "invoke", "argumentValues"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,

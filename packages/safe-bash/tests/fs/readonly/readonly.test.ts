@@ -324,14 +324,14 @@ for (const readlink of [false, true]) {
 
 test("capabilities are immutable, detached, conservative, and omit unknown extensions", () => {
   const capabilities = {
-    readOnly: false, append: true, symlinks: true, hardlinks: true, permissions: true, timestamps: true,
+    readOnly: false, append: true, symlinks: true, hardlinks: true, permissions: true, conditionalChmod: true, timestamps: true,
     atomicRename: true, atomicResize: true, streamingRead: true, streamingWrite: true, nativeExec: true, customWrites: true,
     atomicFilePublication: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true, atomicFileStaging: true, atomicDirectoryMetadata: true, trustedOwnedStaging: true,
   };
   const fixture = createFixture(true, capabilities);
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);
   assert.deepEqual(filesystem.capabilities, {
-    readOnly: true, append: false, symlinks: true, hardlinks: false, permissions: false, timestamps: false,
+    readOnly: true, append: false, symlinks: true, hardlinks: false, permissions: false, conditionalChmod: false, timestamps: false,
     atomicRename: false, atomicRenameNoReplace: false, streamingRead: true, streamingWrite: false, retainedRead: false, open: false,
     descriptorWriteStream: false, retainedResize: false, atomicResize: false,
     retainedStagingCleanup: false, synchronousStagingResolution: false, atomicEntryRemovalReceipt: false,

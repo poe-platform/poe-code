@@ -525,6 +525,64 @@ test("closed invocation does not leave an admitted filesystem view usable", asyn
   assert.equal(stat.mock.callCount(), 0);
 });
 
+test("later invocations cannot reopen a retained memory filesystem scope", async context => {
+  const { shell, commands, fs } = fixture(context, 1);
+  const stat = context.mock.method(fs, "stat");
+  let retained: FileSystem | undefined;
+  commands.register({ name: "retain", execute({ fs }) { retained = fs; return { exitCode: 0 }; } });
+  commands.register({ name: "later", async execute({ fs }) {
+    await assert.rejects(retained!.stat("/"));
+    await fs.stat("/");
+    return { exitCode: 0 };
+  } });
+  assert.equal((await shell.exec("retain")).exitCode, 0);
+  const result = await shell.exec("later");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(stat.mock.callCount(), 1);
+});
+
+test("overlapping memory filesystem invocations keep their own operation budgets", async context => {
+  const first = fixture(context, 1);
+  const second = fixture(context, 1, first.fs);
+  const firstEntered = deferred<void>();
+  const secondEntered = deferred<void>();
+  const releaseFirst = deferred<void>();
+  const releaseSecond = deferred<void>();
+  first.commands.register({ name: "first", async execute({ fs }) {
+    await fs.stat("/");
+    firstEntered.resolve();
+    await releaseFirst.promise;
+    await fs.stat("/");
+    return { exitCode: 0 };
+  } });
+  second.commands.register({ name: "second", async execute({ fs }) {
+    secondEntered.resolve();
+    await releaseSecond.promise;
+    await fs.stat("/");
+    return { exitCode: 0 };
+  } });
+  const firstResult = first.shell.exec("first").then(value => ({ value }), error => ({ error }));
+  let secondResult: typeof firstResult | undefined;
+  try {
+    await firstEntered.promise;
+    secondResult = second.shell.exec("second").then(value => ({ value }), error => ({ error }));
+    await secondEntered.promise;
+    releaseFirst.resolve();
+    const firstOutcome = await firstResult;
+    releaseSecond.resolve();
+    const secondOutcome = await secondResult;
+    assert.ok("error" in firstOutcome && operationLimit(firstOutcome.error));
+    assert.ok("value" in secondOutcome, "another invocation exhausted the second budget");
+    assert.equal(secondOutcome.value.exitCode, 0, secondOutcome.value.stderr);
+    assert.equal(secondOutcome.value.stderr, "");
+  } finally {
+    releaseFirst.resolve();
+    releaseSecond.resolve();
+    await Promise.all([firstResult, secondResult]);
+  }
+});
+
 test("an unstarted read stream cannot read after its Shell invocation closes", async context => {
   const { shell, commands, fs } = fixture(context, 1);
   await fs.writeFile("/data", new Uint8Array([7]));

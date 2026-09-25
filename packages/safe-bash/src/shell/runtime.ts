@@ -1849,8 +1849,9 @@ class FastShellCommandContext {
   get fs(): FileSystem {
     const self = this._self ?? this;
     self.signal = toNativeAbortSignal(self.signal);
-    if (!self._contextFs && self._runtime._isMemoryBackingFs) return self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
-    if (!self._contextFs) self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
+    if (!self._contextFs) {
+      self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
+    }
     return self._contextFs;
   }
   set fs(replacement: FileSystem) {

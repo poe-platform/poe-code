@@ -5,6 +5,23 @@ import { getCommandArguments } from "../../src/contracts/command.js";
 import { setup } from "./helpers.js";
 
 for (const builtin of ["mapfile", "readarray"]) {
+  test(`${builtin} callback leaves the retained memory file descriptor open`, async () => {
+    const { shell, fs } = setup({ env: { LC_ALL: "C" } });
+    const seen: Uint8Array[][] = [];
+    shell.register({ name: "capture", execute(context) {
+      const arguments_ = getCommandArguments(context);
+      seen.push(arguments_.values.map((_value, index) => arguments_.bytes(index)!));
+      return { exitCode: 0 };
+    } });
+    await fs.writeFile("/input", Uint8Array.of(128, 255, 10, 97));
+    try {
+      const result = await shell.exec(`cb() { :; }; ${builtin} -t -C cb -c 1 rows < /input; capture "\${rows[@]}"`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(seen, [[Uint8Array.of(128, 255), Uint8Array.of(97)]]);
+    } finally { await shell.dispose(); }
+  });
+
   for (const record of [Uint8Array.of(128, 255), Buffer.from("'quoted' $(say WRONG) \\"), new Uint8Array()]) {
     test(`${builtin} callback owns synthetic eval arguments: ${Buffer.from(record).toString("hex")}`, async () => {
       const { shell } = setup({ env: { LC_ALL: "C" } });

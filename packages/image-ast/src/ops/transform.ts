@@ -512,6 +512,9 @@ export function compositeImage(
       });
     }
 
+    if (overlay.width > baseW || overlay.height > baseH) {
+      throw new Error("Image to composite must have same dimensions or smaller");
+    }
     const blend: BlendMode = layer.blend ?? "over";
     const grav = resolveGravityOffset(
       baseW,
@@ -1637,6 +1640,22 @@ export function joinChannelImage(img: RgbaImage, extraImages: readonly RgbaImage
     const aImg = extraImages[2];
     for (let i = 0; i < img.width * img.height; i++) {
       out[i * 4 + 1] = gImg.data[i * 4] ?? 0;
+      out[i * 4 + 2] = bImg.data[i * 4] ?? 0;
+      out[i * 4 + 3] = aImg ? (aImg.data[i * 4] ?? 255) : 255;
+    }
+    return {
+      ...img,
+      data: out,
+      space: "srgb",
+      channels: aImg ? 4 : 3,
+      hasAlpha: Boolean(aImg)
+    };
+  }
+  if (img.channels === 2) {
+    const bImg = extraImages[0]!;
+    const aImg = extraImages[1];
+    for (let i = 0; i < img.width * img.height; i++) {
+      out[i * 4 + 1] = img.data[i * 4 + 3] ?? 0;
       out[i * 4 + 2] = bImg.data[i * 4] ?? 0;
       out[i * 4 + 3] = aImg ? (aImg.data[i * 4] ?? 255) : 255;
     }

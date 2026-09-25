@@ -377,7 +377,12 @@ export class SharpInstance {
   }
 
   composite(images: readonly CompositeLayer[]): this {
-    this.nodes.push({ kind: "composite", layers: [...images] });
+    const existingIdx = this.nodes.findIndex(n => n.kind === "composite");
+    if (existingIdx !== -1) {
+      this.nodes[existingIdx] = { kind: "composite", layers: [...images] };
+    } else {
+      this.nodes.push({ kind: "composite", layers: [...images] });
+    }
     return this;
   }
 

@@ -1214,4 +1214,41 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(trimmed.info.trimOffsetLeft).toBe(-5);
     expect(trimmed.info.trimOffsetTop).toBe(-7);
   });
+
+  it("supports chained joinChannel(1->2->3->4), replaces composite() on repeated calls, and rejects oversized composite overlays (#74)", async () => {
+    const w = 4, h = 4;
+    const chR = new Uint8Array(w * h).fill(50);
+    const chG = new Uint8Array(w * h).fill(120);
+    const chB = new Uint8Array(w * h).fill(200);
+    const chA = new Uint8Array(w * h).fill(180);
+    const rPng = await sharp(chR, { raw: { width: w, height: h, channels: 1 } }).toColorspace("b-w").png().toBuffer();
+    const gPng = await sharp(chG, { raw: { width: w, height: h, channels: 1 } }).toColorspace("b-w").png().toBuffer();
+    const bPng = await sharp(chB, { raw: { width: w, height: h, channels: 1 } }).toColorspace("b-w").png().toBuffer();
+    const aPng = await sharp(chA, { raw: { width: w, height: h, channels: 1 } }).toColorspace("b-w").png().toBuffer();
+
+    const joined3 = await sharp(rPng).joinChannel(gPng).joinChannel(bPng).raw().toBuffer({ resolveWithObject: true });
+    expect(joined3.info.channels).toBe(3);
+    expect(Array.from(joined3.data.slice(0, 3))).toEqual([50, 120, 200]);
+
+    const joined4 = await sharp(rPng).joinChannel(gPng).joinChannel([bPng, aPng]).raw().toBuffer({ resolveWithObject: true });
+    expect(joined4.info.channels).toBe(4);
+    expect(Array.from(joined4.data.slice(0, 4))).toEqual([50, 120, 200, 180]);
+
+    // Repeated .composite() replaces earlier .composite()
+    const base = await sharp({ create: { width: 10, height: 10, channels: 4, background: { r: 10, g: 20, b: 30, alpha: 1 } } }).png().toBuffer();
+    const ov1 = await sharp({ create: { width: 4, height: 4, channels: 4, background: { r: 255, g: 0, b: 0, alpha: 1 } } }).png().toBuffer();
+    const ov2 = await sharp({ create: { width: 4, height: 4, channels: 4, background: { r: 0, g: 255, b: 0, alpha: 1 } } }).png().toBuffer();
+    const repComp = await sharp(base)
+      .composite([{ input: ov1, left: 0, top: 0 }])
+      .composite([{ input: ov2, left: 4, top: 4 }])
+      .raw()
+      .toBuffer();
+    expect(Array.from(repComp.slice(0, 4))).toEqual([10, 20, 30, 255]);
+
+    // Oversized overlay throws
+    const bigOv = await sharp({ create: { width: 20, height: 20, channels: 4, background: "#ff0000" } }).png().toBuffer();
+    await expect(sharp(base).composite([{ input: bigOv }]).toBuffer()).rejects.toThrow(
+      /Image to composite must have same dimensions or smaller/
+    );
+  });
 });

@@ -271,6 +271,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
   let diagnosticWriteFailed = false;
   let stdoutWriteFailed = false;
   const flush = async (force = false): Promise<void> => {
+    if (!diagnostics.length) return;
     let written = 0;
     try {
       while (written < diagnostics.length && (force || diagnostics[written]!.location.complete)) {
@@ -292,10 +293,43 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     const interpreter = new Interpreter(budget, options.variables);
     let last: Json | undefined;
     let status = 0;
+    const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";
+    const publishResult = async (result: Json): Promise<void> => {
+      const pt = budget.tickSync();
+      if (pt) await pt;
+      budget.value(result);
+      if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
+      const remaining = limits.maxOutputBytes - budget.outputBytes;
+      const prefix = options.sequence && !(options.raw && typeof result === "string") ? "\x1e" : "";
+      const output = options.sortKeys ? await sortObjectKeys(result, budget) : result;
+      const rawString = options.raw && typeof output === "string";
+      const format = rawString ? { ...options.format, color: false } : options.format;
+      const text = rawString && !format.ascii ? output : await stringify(output, budget, format, Math.max(0, remaining - suffix.length - prefix.length), "maxOutputBytes");
+      const chunkText = `${prefix}${text}${suffix}`;
+      const byteLen = Buffer.byteLength(chunkText);
+      if (byteLen > remaining) throw new JqLimitError("maxOutputBytes");
+      budget.outputBytes += byteLen;
+      try { await writeBytes(context.stdout, Buffer.from(chunkText), context.signal); }
+      catch (error) { stdoutWriteFailed = true; throw error; }
+    };
     const emit = async (input: Json): Promise<void> => {
-      await flush();
+      if (diagnostics.length) await flush();
       status = options.exitStatus ? last === undefined ? 4 : truth(last) ? 0 : 1 : 0;
       let invocationLast: Json | undefined;
+      if (!options.rawOutput0) {
+        const syncResults = interpreter.tryRunSync(ast, input);
+        if (syncResults !== undefined) {
+          for (let i = 0; i < syncResults.length; i++) {
+            const result = syncResults[i]!;
+            await publishResult(result);
+            invocationLast = result;
+            status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
+          }
+          if (status < 2 && invocationLast !== undefined) last = invocationLast;
+          if (diagnostics.length) await flush();
+          return;
+        }
+      }
       const iterator = interpreter.run(ast, input);
       try {
         while (true) {
@@ -319,26 +353,13 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
           }
           if (next.done) break;
           const result = next.value;
-          await budget.tick(); budget.value(result);
-          if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
-          const remaining = limits.maxOutputBytes - budget.outputBytes;
-          const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";
-          const prefix = options.sequence && !(options.raw && typeof result === "string") ? "\x1e" : "";
-          const output = options.sortKeys ? await sortObjectKeys(result, budget) : result;
-          const rawString = options.raw && typeof output === "string";
-          const format = rawString ? { ...options.format, color: false } : options.format;
-          const text = rawString && !format.ascii ? output : await stringify(output, budget, format, Math.max(0, remaining - suffix.length - prefix.length), "maxOutputBytes");
-          if (prefix.length + Buffer.byteLength(text) + suffix.length > remaining) throw new JqLimitError("maxOutputBytes");
-          const bytes = Buffer.from(`${prefix}${text}${suffix}`);
-          budget.outputBytes += bytes.byteLength;
-          try { await writeBytes(context.stdout, bytes, context.signal); }
-          catch (error) { stdoutWriteFailed = true; throw error; }
+          await publishResult(result);
           invocationLast = result;
           status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
         }
       } finally { await iterator.return(undefined); }
       if (status < 2 && invocationLast !== undefined) last = invocationLast;
-      await flush();
+      if (diagnostics.length) await flush();
     };
     if (options.nullInput) {
       await emit(null);

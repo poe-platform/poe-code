@@ -58,6 +58,22 @@ export class Budget {
     this.steps += count;
     if (this.steps > this.limits.maxSteps) throw new JqLimitError("maxSteps");
   }
+  get currentSteps(): number { return this.steps; }
+  restoreSteps(steps: number): void { this.steps = steps; }
+  needsYield(): boolean {
+    return this.steps >= this.nextYield || ((this.steps & 31) === 0 && monotonicNow() - this.lastYield >= 25);
+  }
+  tickSync(count = 1): Promise<void> | undefined {
+    this.step(count);
+    if (this.steps >= this.nextYield || ((this.steps & 31) === 0 && monotonicNow() - this.lastYield >= 25)) {
+      return yieldTurn(this.signal).then(() => {
+        this.signal.throwIfAborted();
+        this.nextYield = this.steps + 1024;
+        this.lastYield = monotonicNow();
+      });
+    }
+    return undefined;
+  }
   async tick(count = 1): Promise<void> {
     this.step(count);
     if (this.steps >= this.nextYield || monotonicNow() - this.lastYield >= 25) {
@@ -74,38 +90,37 @@ export class Budget {
     if (text.length > this.limits.maxValueBytes || (text.length * 3 > this.limits.maxValueBytes && Buffer.byteLength(text) > this.limits.maxValueBytes)) throw new JqLimitError("maxValueBytes");
   }
   value(value: Json): number {
-    let bytes = 0;
-    const visit = (current: Json, depth: number): void => {
-      this.step();
-      if (depth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
-      if (current !== null && typeof current === "object" && !(current instanceof Decimal)) {
-        if (depth + 1 > this.limits.maxDepth) throw new JqLimitError("maxDepth");
-        if (Array.isArray(current)) {
-          this.collection(current.length);
-          bytes += 2 + Math.max(0, current.length - 1);
-          for (let index = 0; index < current.length; index++) {
-            if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-            visit(current[index]!, depth + 1);
-          }
-        } else {
-          const keys = keyOrders.get(current) ?? Object.keys(current);
-          this.collection(keys.length);
-          bytes += 2 + Math.max(0, keys.length - 1);
-          for (let index = 0; index < keys.length; index++) {
-            const key = keys[index]!;
-            this.text(key);
-            bytes += scalarJsonByteLength(key, this) + 1;
-            if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-            visit(current[key]!, depth + 1);
-          }
+    return this.visitValue(value, 0, 0);
+  }
+  private visitValue(current: Json, depth: number, bytes: number): number {
+    this.step();
+    if (depth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
+    if (current !== null && typeof current === "object" && !(current instanceof Decimal)) {
+      if (depth + 1 > this.limits.maxDepth) throw new JqLimitError("maxDepth");
+      if (Array.isArray(current)) {
+        this.collection(current.length);
+        bytes += 2 + Math.max(0, current.length - 1);
+        for (let index = 0; index < current.length; index++) {
+          if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          bytes = this.visitValue(current[index]!, depth + 1, bytes);
         }
       } else {
-        if (typeof current === "string") { this.step(current.length); this.text(current); }
-        bytes += scalarJsonByteLength(current, this);
+        const keys = keyOrders.get(current) ?? Object.keys(current);
+        this.collection(keys.length);
+        bytes += 2 + Math.max(0, keys.length - 1);
+        for (let index = 0; index < keys.length; index++) {
+          const key = keys[index]!;
+          this.text(key);
+          bytes += scalarJsonByteLength(key, this) + 1;
+          if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          bytes = this.visitValue(current[key]!, depth + 1, bytes);
+        }
       }
-      if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-    };
-    visit(value, 0);
+    } else {
+      if (typeof current === "string") { this.step(current.length); this.text(current); }
+      bytes += scalarJsonByteLength(current, this);
+    }
+    if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     return bytes;
   }
 }

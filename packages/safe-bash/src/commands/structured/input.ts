@@ -1,6 +1,6 @@
 import { readBytes, type ByteSource } from "../../contracts/index.js";
 import { Budget, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
-import { numericToken, isNumber } from "./numbers.js";
+import { Decimal, numericToken, isNumber, SMALL_DECIMALS } from "./numbers.js";
 
 export class JqParseError extends JqError {
   constructor(readonly detail: string, readonly offset: number, readonly line = 1, readonly column = offset, readonly located = true) { super(detail); }
@@ -57,6 +57,130 @@ class JsonParser {
   private readonly lastKey = new WeakMap<object, string>();
   constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0) {
     this.line = line; this.column = column;
+  }
+  isQuotedUnescaped(): boolean {
+    return this.quoted && !this.escaped && this.bom >= 3;
+  }
+  isUnquotedReady(): boolean {
+    return !this.quoted && this.bom >= 3;
+  }
+  isTopLevelIdle(): boolean {
+    return !this.quoted && !this.escaped && this.stack.length === 0 && this.token === "" && this.next === undefined && !this.stream;
+  }
+  tryParseFlatLine(fullText: string, start: number, end: number): Json | undefined {
+    const byteLen = end - start;
+    if (byteLen < 2 || byteLen > this.budget.limits.maxValueBytes) return undefined;
+    if (fullText.charCodeAt(start) !== 123 || fullText.charCodeAt(end - 1) !== 125) return undefined;
+    if (this.budget.limits.maxDepth < 1) return undefined;
+    const obj = object();
+    let pos = start + 1;
+    let count = 0;
+    if (pos < end - 1) {
+      while (true) {
+        if (fullText.charCodeAt(pos) !== 34) return undefined;
+        pos++;
+        const keyStart = pos;
+        while (pos < end - 1) {
+          const c = fullText.charCodeAt(pos);
+          if (c === 34) break;
+          if (c < 32 || c >= 127 || c === 92) return undefined;
+          pos++;
+        }
+        if (pos >= end - 1) return undefined;
+        const key = fullText.slice(keyStart, pos);
+        if (Object.hasOwn(obj, key)) return undefined;
+        pos++;
+        if (fullText.charCodeAt(pos) !== 58) return undefined;
+        pos++;
+        if (pos >= end - 1) return undefined;
+        const vFirst = fullText.charCodeAt(pos);
+        let val: Json;
+        if (vFirst === 34) {
+          pos++;
+          const vStart = pos;
+          while (pos < end - 1) {
+            const c = fullText.charCodeAt(pos);
+            if (c === 34) break;
+            if (c < 32 || c >= 127 || c === 92) return undefined;
+            pos++;
+          }
+          if (pos >= end - 1) return undefined;
+          val = fullText.slice(vStart, pos);
+          pos++;
+        } else if (vFirst === 116) {
+          if (fullText.charCodeAt(pos + 1) !== 114 || fullText.charCodeAt(pos + 2) !== 117 || fullText.charCodeAt(pos + 3) !== 101) return undefined;
+          val = true;
+          pos += 4;
+        } else if (vFirst === 102) {
+          if (fullText.charCodeAt(pos + 1) !== 97 || fullText.charCodeAt(pos + 2) !== 108 || fullText.charCodeAt(pos + 3) !== 115 || fullText.charCodeAt(pos + 4) !== 101) return undefined;
+          val = false;
+          pos += 5;
+        } else if (vFirst === 110) {
+          if (fullText.charCodeAt(pos + 1) !== 117 || fullText.charCodeAt(pos + 2) !== 108 || fullText.charCodeAt(pos + 3) !== 108) return undefined;
+          val = null;
+          pos += 4;
+        } else if (vFirst >= 48 && vFirst <= 57) {
+          const nStart = pos;
+          let num = vFirst - 48;
+          pos++;
+          if (vFirst === 48) {
+            const nextC = fullText.charCodeAt(pos);
+            if (nextC !== 44 && nextC !== 125) return undefined;
+            val = SMALL_DECIMALS[0]!;
+          } else {
+            while (pos < end - 1) {
+              const c = fullText.charCodeAt(pos);
+              if (c < 48 || c > 57) break;
+              num = num * 10 + (c - 48);
+              pos++;
+            }
+            if (pos - nStart > 15) return undefined;
+            const nextC = fullText.charCodeAt(pos);
+            if (nextC !== 44 && nextC !== 125) return undefined;
+            if (num <= 1024) val = SMALL_DECIMALS[num]!;
+            else {
+              const s = fullText.slice(nStart, pos);
+              val = new Decimal(s, 0, false, s, num);
+            }
+          }
+        } else {
+          return undefined;
+        }
+        count++;
+        if (count > this.budget.limits.maxCollectionSize) return undefined;
+        put(obj, key, val);
+        const sep = fullText.charCodeAt(pos);
+        if (sep === 44) {
+          pos++;
+          continue;
+        }
+        if (sep === 125 && pos === end - 1) break;
+        return undefined;
+      }
+    }
+    this.bom = 3;
+    this.offset += byteLen + 1;
+    this.line++;
+    this.column = 0;
+    this.bytes = 0;
+    this.budget.step(count * 3 + 2);
+    return obj;
+  }
+  appendQuotedSpan(span: string): void {
+    const len = span.length;
+    this.offset += len;
+    this.column += len;
+    this.bytes += len;
+    if (this.bytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    this.token += span;
+  }
+  appendTokenSpan(span: string): void {
+    const len = span.length;
+    this.offset += len;
+    this.column += len;
+    this.bytes += len;
+    if (this.bytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    this.token += span;
   }
   path(): Json[] {
     const path: Json[] = [];
@@ -307,7 +431,8 @@ export async function* readChunks(source: ByteSource, budget: Budget): AsyncGene
       const newline = chunk.indexOf(10, offset);
       const end = Math.min(newline < 0 ? chunk.length : newline + 1, offset + 16384);
       budget.step(Math.ceil((end - offset) / 1024));
-      await budget.tick();
+      const p1 = budget.tickSync();
+      if (p1) await p1;
       if (newline >= 0 && end === newline + 1) { budget.inputLocation.line++; budget.inputLocation.complete = true; }
       yield chunk.subarray(offset, end);
       offset = end;
@@ -340,37 +465,152 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let line = 1;
   let column = 0;
   let nulTail: string | undefined;
-  async function* scan(text: string, completeLine = false): AsyncGenerator<Json> {
-    for (const character of text) {
-      if (++scanned % 1024 === 0) await budget.tick();
-      if (!completeLine && character === "\0" && nulTail === undefined) nulTail = "";
-      if (nulTail !== undefined) {
-        nulTail += character;
-        if (nulTail.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-        if (character === "\n") { const tail = nulTail; nulTail = undefined; yield* scan(tail, true); }
-        continue;
-      }
-      if (character === "\n") { line++; column = 0; } else column++;
-      if (options.sequence && character === "\x1e") {
-        if (active && !failed) {
-          try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
+  try {
+    for await (const rawChunk of readBytes(source, budget.signal)) {
+      await budget.tick();
+      budget.inputBytes += rawChunk.byteLength;
+      if (budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
+      const fullText = Buffer.isBuffer(rawChunk)
+        ? rawChunk.toString("latin1")
+        : Buffer.from(rawChunk.buffer, rawChunk.byteOffset, rawChunk.byteLength).toString("latin1");
+      let chunkOffset = 0;
+      while (chunkOffset < fullText.length) {
+        if (budget.inputLocation.complete) budget.inputLocation = { ...budget.inputLocation, complete: false };
+        const newline = fullText.indexOf("\n", chunkOffset);
+        const segEnd = Math.min(newline < 0 ? fullText.length : newline + 1, chunkOffset + 16384);
+        budget.step(Math.ceil((segEnd - chunkOffset) / 1024));
+        const pt = budget.tickSync();
+        if (pt) await pt;
+        if (newline >= 0 && segEnd === newline + 1) {
+          budget.inputLocation.line++;
+          budget.inputLocation.complete = true;
+          if (nulTail === undefined && active && !failed && !options.sequence && !options.stream && !options.streamErrors && parser.isTopLevelIdle()) {
+            const fastObj = parser.tryParseFlatLine(fullText, chunkOffset, newline);
+            if (fastObj !== undefined) {
+              line++;
+              column = 0;
+              scanned += segEnd - chunkOffset;
+              if (scanned >= 1024) {
+                scanned &= 1023;
+                const p = budget.tickSync();
+                if (p) await p;
+              }
+              yield fastObj;
+              chunkOffset = segEnd;
+              continue;
+            }
+          }
         }
-        parser = new JsonParser(budget, options.stream, line, column);
-        active = true; failed = false;
-        continue;
-      }
-      if (!active) continue;
-      if (!failed) {
-        try { yield* values(parser.feed(character)); } catch (error) { yield* failure(error); }
-      }
-      if (failed && options.streamErrors && !options.sequence && character === "\n") {
-        parser = new JsonParser(budget, true, line, column);
-        failed = false;
+        for (let index = chunkOffset; index < segEnd; index++) {
+          if ((++scanned & 1023) === 0) {
+            const p = budget.tickSync();
+            if (p) await p;
+          }
+          if (nulTail === undefined && active && !failed) {
+            if (parser.isQuotedUnescaped()) {
+              let end = index;
+              while (end < segEnd) {
+                const code = fullText.charCodeAt(end);
+                if (code === 34 || code === 92 || code === 10 || code === 0 || code === 30) break;
+                end++;
+              }
+              if (end > index) {
+                parser.appendQuotedSpan(fullText.slice(index, end));
+                column += end - index;
+                scanned += end - index - 1;
+                index = end - 1;
+                continue;
+              }
+            } else if (parser.isUnquotedReady()) {
+              const firstCode = fullText.charCodeAt(index);
+              if (firstCode > 32 && firstCode !== 34 && firstCode !== 44 && firstCode !== 58 && firstCode !== 91 && firstCode !== 93 && firstCode !== 123 && firstCode !== 125 && firstCode !== 30) {
+                let end = index + 1;
+                while (end < segEnd) {
+                  const c = fullText.charCodeAt(end);
+                  if (c <= 32 || c === 34 || c === 44 || c === 58 || c === 91 || c === 93 || c === 123 || c === 125 || c === 30) break;
+                  end++;
+                }
+                if (end > index + 1) {
+                  parser.appendTokenSpan(fullText.slice(index, end));
+                  column += end - index;
+                  scanned += end - index - 1;
+                  index = end - 1;
+                  continue;
+                }
+              }
+            }
+          }
+          const character = fullText[index]!;
+          if (character === "\0" && nulTail === undefined) nulTail = "";
+          if (nulTail !== undefined) {
+            nulTail += character;
+            if (nulTail.length > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+            if (character === "\n") {
+              const tail = nulTail;
+              nulTail = undefined;
+              for (let ti = 0; ti < tail.length; ti++) {
+                if ((++scanned & 1023) === 0) {
+                  const p = budget.tickSync();
+                  if (p) await p;
+                }
+                const tc = tail[ti]!;
+                if (tc === "\n") { line++; column = 0; } else column++;
+                if (options.sequence && tc === "\x1e") {
+                  if (active && !failed) {
+                    try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
+                  }
+                  parser = new JsonParser(budget, options.stream, line, column);
+                  active = true; failed = false;
+                  continue;
+                }
+                if (!active) continue;
+                if (!failed) {
+                  try {
+                    const produced = parser.feed(tc);
+                    if (options.stream) {
+                      if (parser.events.length) yield* parser.events.splice(0);
+                    } else if (produced !== undefined) {
+                      yield produced;
+                    }
+                  } catch (error) { yield* failure(error); }
+                }
+                if (failed && options.streamErrors && !options.sequence && tc === "\n") {
+                  parser = new JsonParser(budget, true, line, column);
+                  failed = false;
+                }
+              }
+            }
+            continue;
+          }
+          if (character === "\n") { line++; column = 0; } else column++;
+          if (options.sequence && character === "\x1e") {
+            if (active && !failed) {
+              try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
+            }
+            parser = new JsonParser(budget, options.stream, line, column);
+            active = true; failed = false;
+            continue;
+          }
+          if (!active) continue;
+          if (!failed) {
+            try {
+              const produced = parser.feed(character);
+              if (options.stream) {
+                if (parser.events.length) yield* parser.events.splice(0);
+              } else if (produced !== undefined) {
+                yield produced;
+              }
+            } catch (error) { yield* failure(error); }
+          }
+          if (failed && options.streamErrors && !options.sequence && character === "\n") {
+            parser = new JsonParser(budget, true, line, column);
+            failed = false;
+          }
+        }
+        chunkOffset = segEnd;
       }
     }
-  }
-  try {
-    for await (const chunk of readChunks(source, budget)) yield* scan(Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1"));
+    budget.inputLocation.complete = true;
     if (active && !failed) {
       try { yield* values(parser.finish(options.sequence ? { line, column, eof: true } : undefined)); } catch (error) { yield* failure(error, true); }
     }
@@ -535,13 +775,59 @@ export async function measureValue(value: Json, budget: Budget, depth = 0, maxBy
 }
 
 export async function stringify(value: Json, budget: Budget, format: boolean | JsonFormat = false, maxBytes = budget.limits.maxValueBytes, limitName: "maxValueBytes" | "maxOutputBytes" = "maxValueBytes", asStringValue = false): Promise<string> {
-  await budget.tick(0);
+  const p0 = budget.tickSync(0);
+  if (p0) await p0;
+  const isCompactPlain = !asStringValue && (format === false || (typeof format === "object" && format.indent === "" && !format.ascii && !format.color));
+  if (isCompactPlain && value !== null && typeof value === "object" && !Array.isArray(value) && !isNumber(value) && budget.limits.maxDepth >= 1) {
+    let fastOk = true;
+    let out = "{";
+    let count = 0;
+    for (const key of objectKeyIterator(value as Record<string, Json>)) {
+      for (let i = 0; i < key.length; i++) {
+        const c = key.charCodeAt(i);
+        if (c < 32 || c >= 127 || c === 34 || c === 92) { fastOk = false; break; }
+      }
+      if (!fastOk) break;
+      const v = (value as Record<string, Json>)[key]!;
+      let vStr: string;
+      if (typeof v === "number" && Number.isFinite(v)) {
+        vStr = Object.is(v, -0) ? "-0" : String(v);
+      } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+        vStr = v.text;
+      } else if (typeof v === "boolean") {
+        vStr = v ? "true" : "false";
+      } else if (v === null) {
+        vStr = "null";
+      } else if (typeof v === "string") {
+        for (let i = 0; i < v.length; i++) {
+          const c = v.charCodeAt(i);
+          if (c < 32 || c >= 127 || c === 34 || c === 92) { fastOk = false; break; }
+        }
+        if (!fastOk) break;
+        vStr = `"${v}"`;
+      } else {
+        fastOk = false;
+        break;
+      }
+      if (count++) out += ",";
+      out += `"${key}":${vStr}`;
+      budget.collection(count);
+    }
+    if (fastOk) {
+      out += "}";
+      if (out.length > maxBytes) throw new JqLimitError(limitName);
+      const pEnd = budget.tickSync(out.length + count * 4 + 2);
+      if (pEnd) await pEnd;
+      return out;
+    }
+  }
   const parts: string[] = [];
   let bytes = 0;
   let units = 0;
   let stringBytes = 2;
   for (const fragment of jsonFragments(value, budget, format)) {
-    await budget.tick(0);
+    const pf = budget.tickSync(0);
+    if (pf) await pf;
     bytes += fragment.bytes;
     if (bytes > maxBytes) throw new JqLimitError(limitName);
     const text = renderJsonFragment(fragment, budget);
@@ -554,6 +840,7 @@ export async function stringify(value: Json, budget: Budget, format: boolean | J
     units += text.length;
     parts.push(text);
   }
-  await budget.tick(units);
+  const pEnd = budget.tickSync(units);
+  if (pEnd) await pEnd;
   return parts.join("");
 }

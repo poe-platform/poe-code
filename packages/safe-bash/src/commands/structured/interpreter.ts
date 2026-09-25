@@ -16,14 +16,135 @@ import { binary, compare, contains, describe, entries, equal, indexValue, sliceV
 type Path = (string | number | { start: number; end: number })[];
 interface Frame { readonly name: string; readonly value: Json; readonly parent: Frame | undefined; readonly depth: number }
 const deleted = Symbol("deleted");
+const NOT_SINGLE = Symbol("NOT_SINGLE");
+const EMPTY_RESULTS: Json[] = [];
 class UserError extends JqError {
   constructor(readonly value: Json, message: string) { super(message); }
 }
+function exactFiniteNumber(value: Json): number | undefined {
+  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
+  if (value instanceof Object && "double" in value && "digits" in value && "exponent" in value) {
+    const d = value as Numeric & { digits: string; exponent: number; double: number };
+    if (d.digits.length <= 15 && d.exponent === 0 && Number.isFinite(d.double)) return d.double;
+  }
+  return undefined;
+}
+
 export class Interpreter {
   private filters = new Map<Ast, { ast: Ast; scope: Interpreter }>();
   private labels = new Map<symbol, number>();
   private labelSequence = { next: 0 };
   constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
+  tryRunSync(ast: Ast, input: Json): Json[] | undefined {
+    const savedSteps = this.budget.currentSteps;
+    const res = this.tryRunSyncInternal(ast, input);
+    if (res === undefined) this.budget.restoreSteps(savedSteps);
+    return res;
+  }
+  private tryRunSyncInternal(ast: Ast, input: Json): Json[] | undefined {
+    if (this.budget.needsYield()) return undefined;
+    if (ast.kind === "binary" && ast.operator === "|") {
+      this.budget.step();
+      const leftResults = this.tryRunSyncInternal(ast.left, input);
+      if (!leftResults) return undefined;
+      if (leftResults.length === 0) return EMPTY_RESULTS;
+      if (leftResults.length === 1) return this.tryRunSyncInternal(ast.right, leftResults[0]!);
+      const out: Json[] = [];
+      for (const item of leftResults) {
+        const rightResults = this.tryRunSyncInternal(ast.right, item);
+        if (!rightResults) return undefined;
+        out.push(...rightResults);
+      }
+      return out;
+    }
+    if (ast.kind === "call" && ast.name === "select" && ast.args.length === 1) {
+      this.budget.step();
+      const cond = this.tryEvalSingle(ast.args[0]!, input);
+      if (cond === NOT_SINGLE) return undefined;
+      return truth(cond) ? [input] : EMPTY_RESULTS;
+    }
+    const single = this.tryEvalSingle(ast, input);
+    if (single !== NOT_SINGLE) return [single];
+    return undefined;
+  }
+  private tryEvalSingle(ast: Ast, input: Json): Json | typeof NOT_SINGLE {
+    if (this.budget.needsYield()) return NOT_SINGLE;
+    switch (ast.kind) {
+      case "identity":
+        this.budget.step();
+        return input;
+      case "literal":
+        this.budget.step();
+        return ast.value;
+      case "index": {
+        this.budget.step();
+        const idx = this.tryEvalSingle(ast.index, input);
+        if (typeof idx !== "string") return NOT_SINGLE;
+        const base = this.tryEvalSingle(ast.base, input);
+        if (base === NOT_SINGLE || !(base === null || isObject(base))) return NOT_SINGLE;
+        return base === null ? null : Object.hasOwn(base, idx) ? base[idx]! : null;
+      }
+      case "binary": {
+        this.budget.step();
+        const op = ast.operator;
+        if (op === "and" || op === "or") {
+          const left = this.tryEvalSingle(ast.left, input);
+          if (left === NOT_SINGLE) return NOT_SINGLE;
+          if (op === "and" && !truth(left)) return false;
+          if (op === "or" && truth(left)) return true;
+          const right = this.tryEvalSingle(ast.right, input);
+          if (right === NOT_SINGLE) return NOT_SINGLE;
+          return truth(right);
+        }
+        if (op === "+" || op === "-" || op === "*" || op === "==" || op === "!=" || op === "<" || op === "<=" || op === ">" || op === ">=") {
+          const rightVal = this.tryEvalSingle(ast.right, input);
+          if (rightVal === NOT_SINGLE) return NOT_SINGLE;
+          const right = exactFiniteNumber(rightVal);
+          if (right === undefined) return NOT_SINGLE;
+          const leftVal = this.tryEvalSingle(ast.left, input);
+          if (leftVal === NOT_SINGLE) return NOT_SINGLE;
+          const left = exactFiniteNumber(leftVal);
+          if (left === undefined) return NOT_SINGLE;
+          let res: Json;
+          if (op === "+") res = left + right;
+          else if (op === "-") res = left - right;
+          else if (op === "*") res = left * right;
+          else if (op === "==") res = left === right;
+          else if (op === "!=") res = left !== right;
+          else if (op === "<") res = left < right;
+          else if (op === "<=") res = left <= right;
+          else if (op === ">") res = left > right;
+          else res = left >= right;
+          this.budget.step();
+          return res;
+        }
+        return NOT_SINGLE;
+      }
+      case "object": {
+        this.budget.step();
+        const result = object();
+        for (let i = 0; i < ast.fields.length; i++) {
+          const f = ast.fields[i]!;
+          const key = this.tryEvalSingle(f.key, input);
+          if (typeof key !== "string") return NOT_SINGLE;
+          let val: Json | typeof NOT_SINGLE;
+          if (f.value) {
+            val = this.tryEvalSingle(f.value, input);
+          } else if (input === null || isObject(input)) {
+            val = input === null ? null : Object.hasOwn(input, key) ? input[key]! : null;
+          } else {
+            return NOT_SINGLE;
+          }
+          if (val === NOT_SINGLE) return NOT_SINGLE;
+          put(result, key, val);
+        }
+        this.budget.value(result);
+        return result;
+      }
+      default:
+        return NOT_SINGLE;
+    }
+  }
   private binding(name: string, value: Json): Interpreter {
     const depth = (this.frame?.depth ?? 0) + 1;
     if (depth > this.budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
@@ -64,7 +185,8 @@ export class Interpreter {
     return result;
   }
   async *run(ast: Ast, input: Json): AsyncGenerator<Json> {
-    await this.budget.tick();
+    const p = this.budget.tickSync();
+    if (p) await p;
     switch (ast.kind) {
       case "parameter": {
         const filter = this.filters.get(ast)!;

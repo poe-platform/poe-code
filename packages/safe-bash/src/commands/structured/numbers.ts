@@ -5,10 +5,38 @@ export class Decimal {
     Object.freeze(this);
   }
 }
+export const SMALL_DECIMALS: readonly Decimal[] = Array.from({ length: 1025 }, (_, i) => {
+  const s = String(i);
+  return new Decimal(s, 0, false, s, i);
+});
 export type Numeric = number | Decimal;
 export function isNumber(value: unknown): value is Numeric { return typeof value === "number" || value instanceof Decimal; }
 export function numberValue(value: Numeric): number { return typeof value === "number" ? value : value.double; }
 export function numericToken(token: string, budget: Budget): Numeric | undefined {
+  const len = token.length;
+  if (len >= 1 && len <= 15) {
+    const first = token.charCodeAt(0);
+    if (first === 48 && len === 1) {
+      budget.step(2);
+      budget.text(token);
+      return SMALL_DECIMALS[0]!;
+    }
+    if (first >= 49 && first <= 57) {
+      let val = first - 48;
+      let allDigits = true;
+      for (let i = 1; i < len; i++) {
+        const c = token.charCodeAt(i);
+        if (c < 48 || c > 57) { allDigits = false; break; }
+        val = val * 10 + (c - 48);
+      }
+      if (allDigits) {
+        budget.step(2);
+        budget.text(token);
+        if (val <= 1024) return SMALL_DECIMALS[val]!;
+        return new Decimal(token, 0, false, token, val);
+      }
+    }
+  }
   budget.step(Math.ceil(token.length / 32));
   const end = token.indexOf("\0");
   const text = end < 0 ? token : token.slice(0, end);

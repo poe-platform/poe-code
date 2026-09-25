@@ -552,6 +552,15 @@ export class SharpInstance {
     readonly width: number;
     readonly height: number;
   }): this {
+    if (!region || typeof region !== "object") {
+      throw new Error("Expected object for extract region");
+    }
+    for (const name of ["left", "top", "width", "height"] as const) {
+      const val = region[name];
+      if (!Number.isInteger(val) || val < 0) {
+        throw new Error(`Expected integer for ${name} but received ${val}`);
+      }
+    }
     const nextNode: ImageAstNode = {
       kind: "extract",
       left: region.left,
@@ -559,6 +568,21 @@ export class SharpInstance {
       width: region.width,
       height: region.height
     };
+    const resizeIdx = this.nodes.findIndex(n => n.kind === "resize");
+    const extractIndices: number[] = [];
+    for (let i = 0; i < this.nodes.length; i++) {
+      if (this.nodes[i]!.kind === "extract") extractIndices.push(i);
+    }
+    if (resizeIdx !== -1) {
+      const postIdx = extractIndices.find(idx => idx > resizeIdx);
+      if (postIdx !== undefined) {
+        this.nodes[postIdx] = nextNode;
+        return this;
+      }
+    } else if (extractIndices.length >= 2) {
+      this.nodes[extractIndices[1]!] = nextNode;
+      return this;
+    }
     const extIdx = this.nodes.findIndex(n => n.kind === "extend");
     if (extIdx !== -1) this.nodes.splice(extIdx, 0, nextNode);
     else this.nodes.push(nextNode);
@@ -877,6 +901,16 @@ export class SharpInstance {
       if (idx !== -1) this.nodes.splice(idx, 1);
       return this;
     }
+    if (typeof sigma === "number" && (Number.isNaN(sigma) || sigma < 0.3 || sigma > 1000)) {
+      throw new Error(`Expected number between 0.3 and 1000 for sigma but received ${sigma}`);
+    }
+    if (
+      sigma &&
+      typeof sigma === "object" &&
+      (typeof sigma.sigma !== "number" || Number.isNaN(sigma.sigma) || sigma.sigma < 0.3 || sigma.sigma > 1000)
+    ) {
+      throw new Error(`Expected number between 0.3 and 1000 for options.sigma but received ${sigma.sigma}`);
+    }
     const s =
       sigma === undefined || sigma === true
         ? -1
@@ -912,6 +946,9 @@ export class SharpInstance {
       return this;
     }
     if (typeof options === "number") {
+      if (Number.isNaN(options) || options < 0.01 || options > 10000) {
+        throw new Error(`Expected number between 0.01 and 10000 for sigma but received ${options}`);
+      }
       this.upsertNode({ kind: "sharpen",
         sigma: options,
         m1: flat ?? 1.0,
@@ -921,6 +958,12 @@ export class SharpInstance {
         y3: 20.0
       });
       return this;
+    }
+    if (
+      options.sigma !== undefined &&
+      (typeof options.sigma !== "number" || Number.isNaN(options.sigma) || options.sigma < 0.000001 || options.sigma > 10)
+    ) {
+      throw new Error(`Expected number between 0.000001 and 10 for options.sigma but received ${options.sigma}`);
     }
     this.upsertNode({ kind: "sharpen",
       sigma: options.sigma ?? -1,
@@ -933,8 +976,17 @@ export class SharpInstance {
     return this;
   }
 
-  median(size = 3): this {
-    this.upsertNode({ kind: "median", size });
+  median(size: number | boolean = 3): this {
+    if (size === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "median");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    const effSize = size === true ? 3 : size;
+    if (!Number.isInteger(effSize) || effSize < 1 || effSize > 1000) {
+      throw new Error(`Expected integer between 1 and 1000 for size but received ${size}`);
+    }
+    this.upsertNode({ kind: "median", size: effSize });
     return this;
   }
 

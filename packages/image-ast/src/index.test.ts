@@ -2258,4 +2258,44 @@ describe("@poe-code/image-ast (sharp core)", () => {
       readSpy.mockRestore();
     }
   });
+
+  it("matches sharp Pre/Post extract() slot replacement and validates extract/blur/median/sharpen/dilate/erode parameters", async () => {
+    const raw8x8 = Buffer.alloc(8 * 8 * 3);
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        const i = (y * 8 + x) * 3;
+        raw8x8[i] = x * 10;
+        raw8x8[i + 1] = y * 10;
+        raw8x8[i + 2] = 100;
+      }
+    }
+    const inst = () => sharp(raw8x8, { raw: { width: 8, height: 8, channels: 3 } });
+
+    const ext3 = await inst()
+      .extract({ left: 1, top: 1, width: 6, height: 6 })
+      .extract({ left: 1, top: 1, width: 2, height: 2 })
+      .extract({ left: 2, top: 2, width: 3, height: 3 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(ext3.info.width).toBe(3);
+    expect(ext3.info.height).toBe(3);
+    expect(Array.from(ext3.data.subarray(0, 3))).toEqual([30, 30, 100]);
+
+    const extRes = await inst()
+      .extract({ left: 0, top: 0, width: 8, height: 8 })
+      .resize(4, 4)
+      .extract({ left: 0, top: 0, width: 2, height: 2 })
+      .extract({ left: 1, top: 1, width: 3, height: 3 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(extRes.info.width).toBe(3);
+    expect(extRes.info.height).toBe(3);
+
+    expect(() => inst().extract({ left: -1, top: 0, width: 2, height: 2 })).toThrow(/left/);
+    expect(() => inst().blur(0.1)).toThrow(/0\.3 and 1000/);
+    expect(() => inst().median(0)).toThrow(/1 and 1000/);
+    expect(() => inst().sharpen(0.001)).toThrow(/0\.01 and 10000/);
+    expect(() => inst().dilate(0)).toThrow(/dilate/);
+    expect(() => inst().erode(-1)).toThrow(/erode/);
+  });
 });

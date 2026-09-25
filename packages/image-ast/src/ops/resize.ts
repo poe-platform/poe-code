@@ -230,10 +230,12 @@ function computeVipsNearestIndices2D(
   srcW: number,
   srcH: number,
   dstW: number,
-  dstH: number
+  dstH: number,
+  explicitHscale?: number,
+  explicitVscale?: number
 ): { readonly xs: Int32Array; readonly ys: Int32Array } {
-  let hscale = 1.0 / (srcW / dstW);
-  let vscale = 1.0 / (srcH / dstH);
+  let hscale = explicitHscale ?? 1.0 / (srcW / dstW);
+  let vscale = explicitVscale ?? 1.0 / (srcH / dstH);
   const targetW = Math.trunc(fmaDouble(srcW, hscale, 0.5));
   const targetH = Math.trunc(fmaDouble(srcH, vscale, 0.5));
   const intHshrink = Math.max(1, Math.floor((srcW / targetW) / 2.0));
@@ -440,9 +442,11 @@ export function resampleRawBitmap(
   srcH: number,
   dstW: number,
   dstH: number,
-  kernel: ResizeKernel = "lanczos3"
+  kernel: ResizeKernel = "lanczos3",
+  explicitHscale?: number,
+  explicitVscale?: number
 ): Uint8Array {
-  if (srcW === dstW && srcH === dstH) {
+  if (srcW === dstW && srcH === dstH && (explicitHscale === undefined || explicitHscale === 1.0) && (explicitVscale === undefined || explicitVscale === 1.0)) {
     return new Uint8Array(src);
   }
 
@@ -470,7 +474,7 @@ export function resampleRawBitmap(
 
   if (kernel === "nearest") {
     const out = new Uint8Array(dstW * dstH * 4);
-    const { xs, ys } = computeVipsNearestIndices2D(srcW, srcH, dstW, dstH);
+    const { xs, ys } = computeVipsNearestIndices2D(srcW, srcH, dstW, dstH, explicitHscale, explicitVscale);
     for (let y = 0; y < dstH; y++) {
       const sy = ys[y]!;
       for (let x = 0; x < dstW; x++) {
@@ -487,8 +491,8 @@ export function resampleRawBitmap(
   } else {
     let w = srcW;
     let h = srcH;
-    const hscale = 1.0 / (srcW / dstW);
-    const vscale = 1.0 / (srcH / dstH);
+    const hscale = explicitHscale ?? 1.0 / (srcW / dstW);
+    const vscale = explicitVscale ?? 1.0 / (srcH / dstH);
     const targetW = Math.trunc(fmaDouble(srcW, hscale, 0.5));
     const targetH = Math.trunc(fmaDouble(srcH, vscale, 0.5));
 
@@ -743,119 +747,121 @@ export function resizeImage(
     return img;
   }
 
-  const isFill = spec.fit === "fill";
-  let targetW =
-    spec.width ?? (isFill ? srcW : Math.max(1, Math.round((srcW * spec.height!) / srcH)));
-  let targetH =
-    spec.height ?? (isFill ? srcH : Math.max(1, Math.round((srcH * spec.width!) / srcW)));
-  const bothSpecified = (spec.width !== null && spec.height !== null) || isFill;
-  const fit: ResizeFit = bothSpecified ? spec.fit : "inside";
-
-  const clampScale = (w: number, h: number): [number, number] => {
-    let rw = w;
-    let rh = h;
-    if (spec.withoutEnlargement && (rw > srcW || rh > srcH)) {
-      const ratio = Math.min(srcW / rw, srcH / rh, 1);
-      rw = Math.max(1, Math.round(rw * ratio));
-      rh = Math.max(1, Math.round(rh * ratio));
+  const reqW = spec.width ?? 0;
+  const reqH = spec.height ?? 0;
+  let xShrink = 1.0;
+  let yShrink = 1.0;
+  if (reqW > 0 && reqH > 0) {
+    xShrink = srcW / reqW;
+    yShrink = srcH / reqH;
+    if (spec.fit === "cover" || spec.fit === "outside") {
+      if (xShrink < yShrink) yShrink = xShrink;
+      else xShrink = yShrink;
+    } else if (spec.fit === "contain" || spec.fit === "inside") {
+      if (xShrink > yShrink) yShrink = xShrink;
+      else xShrink = yShrink;
     }
-    if (spec.withoutReduction && (rw < srcW || rh < srcH)) {
-      const ratio = Math.max(srcW / rw, srcH / rh, 1);
-      rw = Math.max(1, Math.round(rw * ratio));
-      rh = Math.max(1, Math.round(rh * ratio));
-    }
-    return [rw, rh];
-  };
-
-  if (fit === "fill") {
-    let rw = targetW;
-    let rh = targetH;
-    if (spec.withoutEnlargement) {
-      rw = Math.min(rw, srcW);
-      rh = Math.min(rh, srcH);
-    }
-    if (spec.withoutReduction) {
-      rw = Math.max(rw, srcW);
-      rh = Math.max(rh, srcH);
-    }
-    const data = resampleRawBitmap(img.data, srcW, srcH, rw, rh, spec.kernel);
-    return { ...img, width: rw, height: rh, data };
+  } else if (reqW > 0) {
+    xShrink = srcW / reqW;
+    if (spec.fit !== "fill") yShrink = xShrink;
+  } else if (reqH > 0) {
+    yShrink = srcH / reqH;
+    if (spec.fit !== "fill") xShrink = yShrink;
   }
-
-  if (fit === "inside" || fit === "outside") {
-    const scaleX = targetW / srcW;
-    const scaleY = targetH / srcH;
-    const scale = fit === "inside" ? Math.min(scaleX, scaleY) : Math.max(scaleX, scaleY);
-    const [rw, rh] = clampScale(
-      Math.max(1, Math.round(srcW * scale)),
-      Math.max(1, Math.round(srcH * scale))
-    );
-    const data = resampleRawBitmap(img.data, srcW, srcH, rw, rh, spec.kernel);
-    return { ...img, width: rw, height: rh, data };
+  if (spec.withoutEnlargement) {
+    xShrink = Math.max(1.0, xShrink);
+    yShrink = Math.max(1.0, yShrink);
   }
+  if (spec.withoutReduction) {
+    xShrink = Math.min(1.0, xShrink);
+    yShrink = Math.min(1.0, yShrink);
+  }
+  xShrink = Math.min(srcW, xShrink);
+  yShrink = Math.min(srcH, yShrink);
 
-  if (fit === "cover") {
-    if (spec.withoutEnlargement && (targetW > srcW || targetH > srcH)) {
-      targetW = Math.min(targetW, srcW);
-      targetH = Math.min(targetH, srcH);
+  const hscale = 1.0 / xShrink;
+  const vscale = 1.0 / yShrink;
+  const scaledW = Math.max(1, Math.trunc(fmaDouble(srcW, hscale, 0.5)));
+  const scaledH = Math.max(1, Math.trunc(fmaDouble(srcH, vscale, 0.5)));
+  const scaledData = resampleRawBitmap(
+    img.data,
+    srcW,
+    srcH,
+    scaledW,
+    scaledH,
+    spec.kernel,
+    hscale,
+    vscale
+  );
+
+  if (reqW > 0 && reqH > 0 && spec.fit === "cover") {
+    let targetCropW = reqW;
+    let targetCropH = reqH;
+    if (spec.withoutEnlargement && (targetCropW > srcW || targetCropH > srcH)) {
+      targetCropW = Math.min(targetCropW, srcW);
+      targetCropH = Math.min(targetCropH, srcH);
     }
-    if (spec.withoutReduction && (targetW < srcW || targetH < srcH)) {
-      targetW = Math.max(targetW, srcW);
-      targetH = Math.max(targetH, srcH);
+    if (spec.withoutReduction && (targetCropW < srcW || targetCropH < srcH)) {
+      targetCropW = Math.max(targetCropW, srcW);
+      targetCropH = Math.max(targetCropH, srcH);
     }
-    let scale = Math.max(targetW / srcW, targetH / srcH);
-    if (spec.withoutEnlargement) scale = Math.min(1, scale);
-    if (spec.withoutReduction) scale = Math.max(1, scale);
-    const scaledW = Math.max(targetW, Math.round(srcW * scale));
-    const scaledH = Math.max(targetH, Math.round(srcH * scale));
-    const scaledData = resampleRawBitmap(img.data, srcW, srcH, scaledW, scaledH, spec.kernel);
-    const pos = typeof spec.position === "string" ? spec.position.toLowerCase() : spec.position;
-    const offset =
-      pos === "entropy" || pos === 16
-        ? smartcropEntropy(scaledData, scaledW, scaledH, targetW, targetH)
-        : pos === "attention" || pos === 17
-          ? smartcropAttention(scaledData, scaledW, scaledH, targetW, targetH)
-          : resolveGravityOffset(scaledW, scaledH, targetW, targetH, spec.position, true);
-    const cropped = new Uint8Array(targetW * targetH * 4);
-    for (let y = 0; y < targetH; y++) {
-      const srcRow = ((offset.y + y) * scaledW + offset.x) * 4;
-      cropped.set(scaledData.subarray(srcRow, srcRow + targetW * 4), y * targetW * 4);
+    const cropW = Math.min(scaledW, targetCropW);
+    const cropH = Math.min(scaledH, targetCropH);
+    if (cropW < scaledW || cropH < scaledH) {
+      const pos = typeof spec.position === "string" ? spec.position.toLowerCase() : spec.position;
+      const offset =
+        pos === "entropy" || pos === 16
+          ? smartcropEntropy(scaledData, scaledW, scaledH, cropW, cropH)
+          : pos === "attention" || pos === 17
+            ? smartcropAttention(scaledData, scaledW, scaledH, cropW, cropH)
+            : resolveGravityOffset(scaledW, scaledH, cropW, cropH, spec.position, true);
+      const cropped = new Uint8Array(cropW * cropH * 4);
+      for (let y = 0; y < cropH; y++) {
+        const srcRow = ((offset.y + y) * scaledW + offset.x) * 4;
+        cropped.set(scaledData.subarray(srcRow, srcRow + cropW * 4), y * cropW * 4);
+      }
+      return { ...img, width: cropW, height: cropH, data: cropped };
     }
-    return { ...img, width: targetW, height: targetH, data: cropped };
+    return { ...img, width: scaledW, height: scaledH, data: scaledData };
   }
 
-  // fit === "contain"
-  if (spec.withoutReduction && (targetW < srcW || targetH < srcH)) {
-    targetW = Math.max(targetW, srcW);
-    targetH = Math.max(targetH, srcH);
+  if (reqW > 0 && reqH > 0 && spec.fit === "contain") {
+    const embedW = Math.max(scaledW, reqW);
+    const embedH = Math.max(scaledH, reqH);
+    const bg = spec.background;
+    const nextHasAlpha = img.hasAlpha || bg.a < 255;
+    if (embedW > scaledW || embedH > scaledH) {
+      const canvas = new Uint8Array(embedW * embedH * 4);
+      for (let i = 0; i < embedW * embedH; i++) {
+        canvas[i * 4] = bg.r;
+        canvas[i * 4 + 1] = bg.g;
+        canvas[i * 4 + 2] = bg.b;
+        canvas[i * 4 + 3] = bg.a;
+      }
+      const offset = resolveGravityOffset(embedW, embedH, scaledW, scaledH, spec.position, false);
+      for (let y = 0; y < scaledH; y++) {
+        const srcRow = y * scaledW * 4;
+        const dstRow = ((offset.y + y) * embedW + offset.x) * 4;
+        canvas.set(scaledData.subarray(srcRow, srcRow + scaledW * 4), dstRow);
+      }
+      return {
+        ...img,
+        width: embedW,
+        height: embedH,
+        data: canvas,
+        hasAlpha: nextHasAlpha,
+        channels: nextHasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
+      };
+    }
+    return {
+      ...img,
+      width: scaledW,
+      height: scaledH,
+      data: scaledData,
+      hasAlpha: nextHasAlpha,
+      channels: nextHasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
+    };
   }
-  let scale = Math.min(targetW / srcW, targetH / srcH);
-  if (spec.withoutEnlargement) scale = Math.min(1, scale);
-  if (spec.withoutReduction) scale = Math.max(1, scale);
-  const innerW = Math.min(targetW, Math.max(1, Math.round(srcW * scale)));
-  const innerH = Math.min(targetH, Math.max(1, Math.round(srcH * scale)));
-  const scaledData = resampleRawBitmap(img.data, srcW, srcH, innerW, innerH, spec.kernel);
-  const canvas = new Uint8Array(targetW * targetH * 4);
-  const bg = spec.background;
-  for (let i = 0; i < targetW * targetH; i++) {
-    canvas[i * 4] = bg.r;
-    canvas[i * 4 + 1] = bg.g;
-    canvas[i * 4 + 2] = bg.b;
-    canvas[i * 4 + 3] = bg.a;
-  }
-  const offset = resolveGravityOffset(targetW, targetH, innerW, innerH, spec.position);
-  for (let y = 0; y < innerH; y++) {
-    const srcRow = y * innerW * 4;
-    const dstRow = ((offset.y + y) * targetW + offset.x) * 4;
-    canvas.set(scaledData.subarray(srcRow, srcRow + innerW * 4), dstRow);
-  }
-  const nextHasAlpha = img.hasAlpha || bg.a < 255;
-  return {
-    ...img,
-    width: targetW,
-    height: targetH,
-    data: canvas,
-    hasAlpha: nextHasAlpha,
-    channels: nextHasAlpha ? (img.channels < 3 ? 2 : 4) : img.channels
-  };
+
+  return { ...img, width: scaledW, height: scaledH, data: scaledData };
 }

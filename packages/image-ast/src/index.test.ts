@@ -2980,4 +2980,24 @@ describe("@poe-code/image-ast (sharp core)", () => {
       155, 192, 148, 110
     ]);
   });
+
+  it("passes exact ResolveShrink hscale and vscale to vips_resize for inside, outside, cover, and contain (#1241)", async () => {
+    const sw = 31, sh = 23;
+    const rgb = Buffer.alloc(sw * sh * 3);
+    for (let i = 0; i < sw * sh; i++) {
+      rgb[i * 3] = (i * 73 + 19) & 255;
+      rgb[i * 3 + 1] = (i * 151 + 53) & 255;
+      rgb[i * 3 + 2] = (i * 211 + 107) & 255;
+    }
+    const inside = await sharp(rgb, { raw: { width: sw, height: sh, channels: 3 } })
+      .resize(17, 13, { fit: "inside", kernel: "lanczos3" })
+      .raw()
+      .toBuffer();
+    expect(Array.from(inside.slice(0, 12))).toEqual([
+      70, 102, 121,
+      177, 164, 107,
+      103, 150, 158,
+      149, 94, 116
+    ]);
+  });
 });

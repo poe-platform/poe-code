@@ -41,8 +41,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes zsh
           test -x /bin/zsh
-      # Each stage owns its worker pool; avoid overlapping CPU-heavy replay suites.
-      - run: npm test -- --concurrency=1 --exclude-workspace=@poe-platform/safe-bash
+      - name: Run workspace unit stages serially
+        # Each stage has its own workers; overlapping stages oversubscribe runner CPUs.
+        run: npm test -- --concurrency=1 --exclude-workspace=@poe-platform/safe-bash
+        env:
+          # Native replay tests also need the full CPU budget within each stage.
+          VITEST_MAX_WORKERS: "1"
       - run: npm run smoke
   safe-bash-node22:
     name: "@poe-platform/safe-bash (Node22)"

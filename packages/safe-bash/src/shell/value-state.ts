@@ -16,17 +16,21 @@ export interface HeldValue {
   release(): void;
 }
 
+const DEFAULT_VALUE_ARENA_FAIL = (limit: "maxExpansionBytes" | "maxExpansionFields"): never => {
+  throw new ShellLimitError(limit);
+};
+
 export class ValueArena {
   #objects: WeakMap<object, AllocationRecord> | undefined;
-  #freeScopes: ValueScope[] = [];
-  #freeStores: ValueStore[] = [];
-  #freeRecords: AllocationRecord[] = [];
+  #freeScopes: ValueScope[] | undefined;
+  #freeStores: ValueStore[] | undefined;
+  #freeRecords: AllocationRecord[] | undefined;
   #epoch = 1;
   #bytes = 0;
   #slots = 0;
   #closed = false;
 
-  constructor(readonly maximumBytes: number, readonly maximumSlots: number, readonly checkpoint: () => void, readonly fail: (limit: "maxExpansionBytes" | "maxExpansionFields") => never = limit => { throw new ShellLimitError(limit); }) {}
+  constructor(readonly maximumBytes: number, readonly maximumSlots: number, readonly checkpoint: () => void, readonly fail: (limit: "maxExpansionBytes" | "maxExpansionFields") => never = DEFAULT_VALUE_ARENA_FAIL) {}
 
   get usage(): { bytes: number; slots: number } { return { bytes: this.#bytes, slots: this.#slots }; }
 
@@ -41,7 +45,7 @@ export class ValueArena {
 
   scope(): ValueScope {
     this.assertOpen();
-    const pooled = this.#freeScopes.pop();
+    const pooled = this.#freeScopes?.pop();
     if (pooled) {
       pooled._reopen();
       return pooled;
@@ -50,11 +54,14 @@ export class ValueArena {
   }
 
   recycleScope(scope: ValueScope): void {
-    if (!this.#closed && this.#freeScopes.length < 64) this.#freeScopes.push(scope);
+    if (!this.#closed) {
+      const list = this.#freeScopes ??= [];
+      if (list.length < 64) list.push(scope);
+    }
   }
 
   createStore(): ValueStore {
-    const pooled = this.#freeStores.pop();
+    const pooled = this.#freeStores?.pop();
     if (pooled) {
       this.assertOpen();
       pooled._reopen();
@@ -64,7 +71,10 @@ export class ValueArena {
   }
 
   recycleStore(store: ValueStore): void {
-    if (!this.#closed && this.#freeStores.length < 64) this.#freeStores.push(store);
+    if (!this.#closed) {
+      const list = this.#freeStores ??= [];
+      if (list.length < 64) list.push(store);
+    }
   }
 
   allocate(bytes: number, slots: number): AllocationRecord {
@@ -72,7 +82,7 @@ export class ValueArena {
     if (!Number.isSafeInteger(bytes) || bytes < 0 || !Number.isSafeInteger(slots) || slots < 0) throw new RangeError("Invalid shell value allocation");
     if (bytes > this.maximumBytes - this.#bytes) this.fail("maxExpansionBytes");
     if (slots > this.maximumSlots - this.#slots) this.fail("maxExpansionFields");
-    let record = this.#freeRecords.pop();
+    let record = this.#freeRecords?.pop();
     if (record) {
       record.bytes = bytes;
       record.slots = slots;
@@ -125,7 +135,10 @@ export class ValueArena {
     if (--record.references) return;
     record.epoch = 0;
     if (record.object) this.#objects?.delete(record.object);
-    else if (this.#freeRecords.length < 128) this.#freeRecords.push(record);
+    else {
+      const list = this.#freeRecords ??= [];
+      if (list.length < 128) list.push(record);
+    }
     this.#bytes -= record.bytes;
     this.#slots -= record.slots;
   }
@@ -166,9 +179,12 @@ export class ValueArena {
     this.#closed = true;
     this.#epoch++;
     this.#objects = undefined;
-    this.#freeScopes.length = 0;
-    this.#freeStores.length = 0;
-    this.#freeRecords.length = 0;
+    if (this.#freeScopes) this.#freeScopes.length = 0;
+    if (this.#freeScopes) this.#freeScopes = undefined;
+    if (this.#freeStores) this.#freeStores.length = 0;
+    if (this.#freeStores) this.#freeStores = undefined;
+    if (this.#freeRecords) this.#freeRecords.length = 0;
+    if (this.#freeRecords) this.#freeRecords = undefined;
     this.#bytes = 0;
     this.#slots = 0;
   }
@@ -291,16 +307,19 @@ export class ValueStore {
   #stringBytes = 0;
   #stringRecord: AllocationRecord | undefined;
   #closed = false;
-  readonly scope: ValueScope;
+  #scope: ValueScope | undefined;
 
   constructor(readonly arena: ValueArena) {
     arena.assertOpen();
-    this.scope = new ValueScope(arena);
+  }
+
+  get scope(): ValueScope {
+    return this.#scope ??= new ValueScope(this.arena);
   }
 
   _reopen(): void {
     this.#closed = false;
-    this.scope._reopen();
+    this.#scope?._reopen();
   }
 
   get(name: string, text: string): ShellValue { return this.#values ? (this.#values.get(name)?.value ?? text) : text; }
@@ -485,7 +504,7 @@ export class ValueStore {
     if (this.#closed) return;
     this.#closed = true;
     this.invalidate();
-    if (this.scope.closeForStoreRecycle()) {
+    if (!this.#scope || this.#scope.closeForStoreRecycle()) {
       this.arena.recycleStore(this);
     }
   }

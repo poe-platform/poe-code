@@ -101,6 +101,143 @@ function extendedSource(source: string): string {
 
 export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[] }
 
+type ChainStep =
+  | { readonly kind: "literal"; value: string; readonly group: number }
+  | { readonly kind: "char"; readonly accepts: (candidate: string) => boolean; readonly ascii: Uint8Array; readonly group: number }
+  | { readonly kind: "repeat"; readonly minimum: number; readonly accepts: (candidate: string) => boolean; readonly ascii: Uint8Array; readonly group: number };
+
+interface ChainMatch {
+  readonly prefix: string;
+  readonly anchoredStart: boolean;
+  readonly anchoredEnd: boolean;
+  readonly steps: readonly ChainStep[];
+}
+
+function makeAsciiTable(accepts: (candidate: string) => boolean): Uint8Array {
+  const ascii = new Uint8Array(128);
+  for (let c = 0; c < 128; c++) {
+    if (accepts(String.fromCharCode(c))) ascii[c] = 1;
+  }
+  return ascii;
+}
+
+function buildChainMatch(root: Node, groupCount: number): ChainMatch | undefined {
+  if (root.type !== "sequence" || groupCount > 9) return undefined;
+  let startIdx = 0;
+  let endIdx = root.nodes.length;
+  let anchoredStart = false;
+  let anchoredEnd = false;
+  if (startIdx < endIdx && root.nodes[startIdx]?.type === "begin") {
+    anchoredStart = true;
+    startIdx++;
+  }
+  if (startIdx < endIdx && root.nodes[endIdx - 1]?.type === "end") {
+    anchoredEnd = true;
+    endIdx--;
+  }
+  if (startIdx >= endIdx) return undefined;
+  const steps: ChainStep[] = [];
+  let hasRepeat = false;
+  for (let i = startIdx; i < endIdx; i++) {
+    let n = root.nodes[i]!;
+    let group = 0;
+    if (n.type === "group") {
+      group = n.index;
+      n = n.node.type === "sequence" && n.node.nodes.length === 1 ? n.node.nodes[0]! : n.node;
+    }
+    if (n.type === "character") {
+      if (n.literal !== undefined) {
+        const prev = steps[steps.length - 1];
+        if (group === 0 && prev && prev.kind === "literal" && prev.group === 0) {
+          prev.value += n.literal;
+        } else {
+          steps.push({ kind: "literal", value: n.literal, group });
+        }
+      } else {
+        steps.push({ kind: "char", accepts: n.accepts, ascii: makeAsciiTable(n.accepts), group });
+      }
+    } else if (
+      n.type === "repeat" &&
+      n.minimum >= 1 &&
+      n.maximum === Infinity &&
+      !n.lazy &&
+      n.node.type === "character"
+    ) {
+      hasRepeat = true;
+      steps.push({ kind: "repeat", minimum: n.minimum, accepts: n.node.accepts, ascii: makeAsciiTable(n.node.accepts), group });
+    } else {
+      return undefined;
+    }
+  }
+  const first = steps[0];
+  if (!first || first.kind !== "literal" || first.value.length === 0 || first.group !== 0) return undefined;
+  for (let s = 0; s < steps.length; s++) {
+    const step = steps[s]!;
+    if (step.kind === "repeat") {
+      if (s < steps.length - 1) {
+        const next = steps[s + 1]!;
+        if (next.kind !== "literal" || next.value.length === 0 || step.accepts(next.value[0]!)) return undefined;
+      }
+      if (!anchoredStart) {
+        for (let k = 0; k < first.value.length; k++) {
+          if (step.accepts(first.value[k]!)) return undefined;
+        }
+      }
+    }
+  }
+  if (!hasRepeat && steps.length < 2) return undefined;
+  return { prefix: first.value, anchoredStart, anchoredEnd, steps };
+}
+
+function matchChainAt(
+  steps: readonly ChainStep[],
+  prefixLen: number,
+  anchoredEnd: boolean,
+  text: string,
+  startPos: number,
+  outOffsets: Int32Array,
+  groupCount: number,
+  textEnd = text.length,
+): number {
+  for (let g = 1; g <= groupCount; g++) {
+    outOffsets[g * 2] = -1;
+    outOffsets[g * 2 + 1] = -1;
+  }
+  let cursor = startPos + prefixLen;
+  for (let s = 1; s < steps.length; s++) {
+    const step = steps[s]!;
+    const stepStart = cursor;
+    if (step.kind === "literal") {
+      const val = step.value;
+      if (cursor + val.length > textEnd) return -1;
+      for (let k = 0; k < val.length; k++) {
+        if (text.charCodeAt(cursor + k) !== val.charCodeAt(k)) return -1;
+      }
+      cursor += val.length;
+    } else if (step.kind === "char") {
+      if (cursor >= textEnd) return -1;
+      const code = text.charCodeAt(cursor);
+      if (code < 128 ? step.ascii[code] === 0 : !step.accepts(text[cursor]!)) return -1;
+      cursor++;
+    } else {
+      while (cursor < textEnd) {
+        const code = text.charCodeAt(cursor);
+        if (code < 128 ? step.ascii[code] === 0 : !step.accepts(text[cursor]!)) break;
+        cursor++;
+      }
+      if (cursor - stepStart < step.minimum) return -1;
+    }
+    if (step.group > 0) {
+      outOffsets[step.group * 2] = stepStart;
+      outOffsets[step.group * 2 + 1] = cursor;
+    }
+  }
+  if (anchoredEnd && cursor !== textEnd) return -1;
+  outOffsets[0] = startPos;
+  outOffsets[1] = cursor;
+  return cursor;
+}
+
 class NfaStorage {
   private used = 0;
   constructor(private readonly budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>) {}
@@ -135,6 +272,7 @@ export class Pattern {
     readonly accepts: (candidate: string) => boolean;
     readonly ascii: Uint8Array;
   } | undefined;
+  private chainMatch: ChainMatch | undefined;
   private backreferences = false;
   private fastPrefixInfo: { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined;
 
@@ -463,6 +601,13 @@ export class Pattern {
         }
       }
     }
+    if (!this.ignoreCase && this.dialect !== "jq" && !this.literalMatch && !this.simpleRepeatMatch) {
+      const cm = buildChainMatch(root, this.groupCount);
+      if (cm) {
+        this.chainMatch = cm;
+        this.fastPrefixInfo = { anchoredStart: cm.anchoredStart, anchoredEnd: cm.anchoredEnd, prefix: cm.prefix };
+      }
+    }
     this.backreferences = code.some(instruction => instruction.kind === "backreference");
     this.code = code;
     this.parsed = undefined;
@@ -533,7 +678,7 @@ export class Pattern {
   }
 
   canFindSync(): boolean {
-    return this.code.length > 0 && this.dialect !== "jq" && Boolean(this.literalMatch || this.simpleRepeatMatch);
+    return this.code.length > 0 && this.dialect !== "jq" && Boolean(this.literalMatch || this.simpleRepeatMatch || this.chainMatch);
   }
 
   getFastPrefixInfo(): { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined {
@@ -545,25 +690,58 @@ export class Pattern {
     budget: Pick<Budget, "step" | "maxBufferBytes">,
     from: number,
     outOffsets: Int32Array,
+    textEnd = text.length,
+    textStart = 0,
   ): boolean {
+    if (this.chainMatch) {
+      const { prefix, anchoredStart, anchoredEnd, steps } = this.chainMatch;
+      if (from > textEnd || (anchoredStart && from > textStart)) return false;
+      let found = -1;
+      let matchEnd = -1;
+      if (anchoredStart) {
+        if (textStart + prefix.length <= textEnd && text.startsWith(prefix, textStart)) {
+          matchEnd = matchChainAt(steps, prefix.length, anchoredEnd, text, textStart, outOffsets, this.groupCount, textEnd);
+          if (matchEnd >= 0) found = textStart;
+        }
+      } else {
+        let searchFrom = from;
+        while (searchFrom <= textEnd - prefix.length) {
+          const idx = text.indexOf(prefix, searchFrom);
+          if (idx < 0 || idx > textEnd - prefix.length) break;
+          const end = matchChainAt(steps, prefix.length, anchoredEnd, text, idx, outOffsets, this.groupCount, textEnd);
+          if (end >= 0) {
+            found = idx;
+            matchEnd = end;
+            break;
+          }
+          searchFrom = idx + 1;
+        }
+      }
+      const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : textEnd - from + 1;
+      const len = found >= 0 ? matchEnd - found : 0;
+      budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
+      if (found < 0) return false;
+      if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      return true;
+    }
     if (this.simpleRepeatMatch) {
       const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts, ascii } = this.simpleRepeatMatch;
-      if (from > text.length || (anchoredStart && from > 0)) return false;
+      if (from > textEnd || (anchoredStart && from > textStart)) return false;
       let found = -1;
       let matchEnd = -1;
       let groupStart = -1;
       let groupEnd = -1;
       if (anchoredStart) {
-        if (text.startsWith(prefix)) {
-          const pos = prefix.length;
+        if (textStart + prefix.length <= textEnd && text.startsWith(prefix, textStart)) {
+          const pos = textStart + prefix.length;
           let cursor = pos;
-          while (cursor < text.length) {
+          while (cursor < textEnd) {
             const code = text.charCodeAt(cursor);
             if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
             cursor++;
           }
-          if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
-            found = 0;
+          if (cursor - pos >= minimum && (!anchoredEnd || cursor === textEnd)) {
+            found = textStart;
             matchEnd = cursor;
             groupStart = pos;
             groupEnd = cursor;
@@ -571,17 +749,17 @@ export class Pattern {
         }
       } else {
         let searchFrom = from;
-        while (searchFrom <= text.length - prefix.length) {
+        while (searchFrom <= textEnd - prefix.length) {
           const idx = text.indexOf(prefix, searchFrom);
-          if (idx < 0) break;
+          if (idx < 0 || idx > textEnd - prefix.length) break;
           const pos = idx + prefix.length;
           let cursor = pos;
-          while (cursor < text.length) {
+          while (cursor < textEnd) {
             const code = text.charCodeAt(cursor);
             if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
             cursor++;
           }
-          if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
+          if (cursor - pos >= minimum && (!anchoredEnd || cursor === textEnd)) {
             found = idx;
             matchEnd = cursor;
             groupStart = pos;
@@ -591,7 +769,7 @@ export class Pattern {
           searchFrom = idx + 1;
         }
       }
-      const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
+      const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : textEnd - from + 1;
       const len = found >= 0 ? matchEnd - found : 0;
       budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
       if (found < 0) return false;
@@ -604,19 +782,20 @@ export class Pattern {
     }
     const { value, anchoredStart, anchoredEnd } = this.literalMatch!;
     const len = value.length;
-    if (from > text.length || (anchoredStart && from > 0)) return false;
+    if (from > textEnd || (anchoredStart && from > textStart)) return false;
     let found = -1;
     if (anchoredStart && anchoredEnd) {
-      if (from === 0 && text.length === len && text === value) found = 0;
+      if (from === textStart && textEnd - textStart === len && text.startsWith(value, textStart)) found = textStart;
     } else if (anchoredStart) {
-      if (from === 0 && text.startsWith(value)) found = 0;
+      if (from === textStart && textStart + len <= textEnd && text.startsWith(value, textStart)) found = textStart;
     } else if (anchoredEnd) {
-      const candidate = text.length - len;
-      if (candidate >= from && text.endsWith(value)) found = candidate;
+      const candidate = textEnd - len;
+      if (candidate >= from && text.startsWith(value, candidate)) found = candidate;
     } else {
-      found = text.indexOf(value, from);
+      const idx = text.indexOf(value, from);
+      if (idx >= 0 && idx <= textEnd - len) found = idx;
     }
-    const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
+    const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : textEnd - from + 1;
     budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
     if (found < 0) return false;
     if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
@@ -651,6 +830,21 @@ export class Pattern {
   }
 
   tryFindSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Match | undefined | Promise<Match | undefined> {
+    if (this.code.length && this.chainMatch && this.dialect !== "jq") {
+      const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
+      if (!this.findSyncFastInto(text, budget, from, FAST_MATCH_OFFSETS)) return undefined;
+      const start = FAST_MATCH_OFFSETS[0]!;
+      const end = FAST_MATCH_OFFSETS[1]!;
+      const groups: (string | undefined)[] = new Array(this.groupCount + 1);
+      groups[0] = text.slice(start, end);
+      for (let g = 1; g <= this.groupCount; g++) {
+        const gs = FAST_MATCH_OFFSETS[g * 2]!;
+        const ge = FAST_MATCH_OFFSETS[g * 2 + 1]!;
+        groups[g] = gs >= 0 ? text.slice(gs, ge) : undefined;
+      }
+      return { start, end, groups };
+    }
     if (this.code.length && this.simpleRepeatMatch && this.dialect !== "jq") {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
@@ -685,6 +879,18 @@ export class Pattern {
     if (found < 0) return undefined;
     if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     return { start: found, end: found + len, groups };
+  }
+
+  tryTestSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>): boolean | Promise<boolean> {
+    if (this.canFindSync()) {
+      const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      if (!initialCheck) {
+        return this.findSyncFastInto(text, budget, 0, FAST_MATCH_OFFSETS);
+      }
+    }
+    const found = this.tryFindSync(text, budget, 0);
+    if (found instanceof Promise) return found.then(res => res !== undefined);
+    return found !== undefined;
   }
 
   private execSimpleRepeat(
@@ -1051,12 +1257,14 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
 
 const RETURN_UNDEFINED = (): undefined => undefined;
 const RETURN_MINUS_ONE = (): -1 => -1;
-const FAST_MATCH_OFFSETS = new Int32Array(4);
+const FAST_MATCH_OFFSETS = new Int32Array(20);
 const SYNC_SUB_RESULT = { text: "", count: 0 };
 interface SimpleReplacement {
-  readonly kind: "literal" | "singleRef";
+  readonly kind: "literal" | "singleRef" | "twoRefs";
   readonly prefix: string;
   readonly group: number;
+  readonly mid: string;
+  readonly group2: number;
   readonly suffix: string;
   readonly stepsPerExpansion: number;
   readonly smallInts: (string | undefined)[];
@@ -1069,42 +1277,50 @@ function getSimpleReplacement(replacement: string, syntax: ReplacementSyntax): S
   if (cached !== undefined) return cached;
   if (SIMPLE_REPLACEMENT_CACHE.size >= 128) SIMPLE_REPLACEMENT_CACHE.clear();
   if (!replacement.includes("&") && !replacement.includes("\\")) {
-    const res: SimpleReplacement = { kind: "literal", prefix: replacement, group: -1, suffix: "", stepsPerExpansion: replacement.length * 2 + 1, smallInts: [] };
+    const res: SimpleReplacement = { kind: "literal", prefix: replacement, group: -1, mid: "", group2: -1, suffix: "", stepsPerExpansion: replacement.length * 2 + 1, smallInts: [] };
     SIMPLE_REPLACEMENT_CACHE.set(key, res);
     return res;
   }
   if (syntax === "sed") {
     let prefix = "";
+    let mid = "";
     let suffix = "";
     let group = -1;
+    let group2 = -1;
     let steps = 1;
     for (let i = 0; i < replacement.length; i++) {
       steps++;
       const ch = replacement[i]!;
       if (ch === "&") {
-        if (group !== -1) { SIMPLE_REPLACEMENT_CACHE.set(key, null); return null; }
+        if (group2 !== -1) { SIMPLE_REPLACEMENT_CACHE.set(key, null); return null; }
         steps++;
-        group = 0;
+        if (group === -1) group = 0;
+        else group2 = 0;
       } else if (ch === "\\" && i + 1 < replacement.length) {
         steps++;
         const next = replacement[++i]!;
         if (next >= "0" && next <= "9") {
-          if (group !== -1) { SIMPLE_REPLACEMENT_CACHE.set(key, null); return null; }
+          if (group2 !== -1) { SIMPLE_REPLACEMENT_CACHE.set(key, null); return null; }
           steps++;
-          group = next.charCodeAt(0) - 48;
+          if (group === -1) group = next.charCodeAt(0) - 48;
+          else group2 = next.charCodeAt(0) - 48;
         } else {
           const decoded = next === "n" ? "\n" : next === "t" ? "\t" : next;
           if (group === -1) prefix += decoded;
+          else if (group2 === -1) mid += decoded;
           else suffix += decoded;
         }
       } else {
         if (group === -1) prefix += ch;
+        else if (group2 === -1) mid += ch;
         else suffix += ch;
       }
     }
     const res: SimpleReplacement = group === -1
-      ? { kind: "literal", prefix, group: -1, suffix: "", stepsPerExpansion: steps + prefix.length, smallInts: [] }
-      : { kind: "singleRef", prefix, group, suffix, stepsPerExpansion: steps + prefix.length + suffix.length, smallInts: new Array(100) };
+      ? { kind: "literal", prefix, group: -1, mid: "", group2: -1, suffix: "", stepsPerExpansion: steps + prefix.length, smallInts: [] }
+      : group2 === -1
+      ? { kind: "singleRef", prefix, group, mid: "", group2: -1, suffix: mid, stepsPerExpansion: steps + prefix.length + mid.length, smallInts: new Array(100) }
+      : { kind: "twoRefs", prefix, group, mid, group2, suffix, stepsPerExpansion: steps + prefix.length + mid.length + suffix.length, smallInts: [] };
     SIMPLE_REPLACEMENT_CACHE.set(key, res);
     return res;
   }
@@ -1131,8 +1347,25 @@ function appendReplacementFromOffsetsSync(
       if (out.length + simpleRep.prefix.length > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
       return out ? out + simpleRep.prefix : simpleRep.prefix;
     }
-    const gStart = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : -1;
-    const gEnd = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : -1;
+    if (simpleRep.kind === "twoRefs") {
+      const g1Start = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : FAST_MATCH_OFFSETS[simpleRep.group * 2]!;
+      const g1End = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : FAST_MATCH_OFFSETS[simpleRep.group * 2 + 1]!;
+      const g2Start = simpleRep.group2 === 0 ? matchStart : simpleRep.group2 === 1 ? group1Start : FAST_MATCH_OFFSETS[simpleRep.group2 * 2]!;
+      const g2End = simpleRep.group2 === 0 ? matchEnd : simpleRep.group2 === 1 ? group1End : FAST_MATCH_OFFSETS[simpleRep.group2 * 2 + 1]!;
+      const g1Len = g1Start >= 0 && g1End > g1Start ? g1End - g1Start : 0;
+      const g2Len = g2Start >= 0 && g2End > g2Start ? g2End - g2Start : 0;
+      const addedLen = simpleRep.prefix.length + g1Len + simpleRep.mid.length + g2Len + simpleRep.suffix.length;
+      budget.step(simpleRep.stepsPerExpansion + g1Len + g2Len);
+      if (out.length + addedLen > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      const g1Str = g1Len > 0 ? text.slice(g1Start, g1End) : "";
+      const g2Str = g2Len > 0 ? text.slice(g2Start, g2End) : "";
+      const expanded = simpleRep.suffix
+        ? simpleRep.prefix + g1Str + simpleRep.mid + g2Str + simpleRep.suffix
+        : simpleRep.prefix + g1Str + simpleRep.mid + g2Str;
+      return out ? out + expanded : expanded;
+    }
+    const gStart = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : FAST_MATCH_OFFSETS[simpleRep.group * 2]!;
+    const gEnd = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : FAST_MATCH_OFFSETS[simpleRep.group * 2 + 1]!;
     const gLen = gStart >= 0 && gEnd > gStart ? gEnd - gStart : 0;
     const addedLen = simpleRep.prefix.length + gLen + simpleRep.suffix.length;
     budget.step(simpleRep.stepsPerExpansion + gLen);
@@ -1183,6 +1416,11 @@ function appendReplacementFromOffsetsSync(
         const g = next.charCodeAt(0) - 48;
         if (g === 0) piece = matchEnd > matchStart ? text.slice(matchStart, matchEnd) : "";
         else if (g === 1 && group1Start >= 0) piece = group1End > group1Start ? text.slice(group1Start, group1End) : "";
+        else if (g > 1) {
+          const gs = FAST_MATCH_OFFSETS[g * 2]!;
+          const ge = FAST_MATCH_OFFSETS[g * 2 + 1]!;
+          if (gs >= 0 && ge > gs) piece = text.slice(gs, ge);
+        }
       } else {
         piece = next === "n" ? "\n" : next === "t" ? "\t" : next;
       }
@@ -1482,8 +1720,11 @@ export function trySubstitutePairToBufferSync(
   outBuf: Uint8Array,
   outPos: number,
   sepCode: number,
+  lineStart = 0,
+  lineEnd = text.length,
 ): number | Promise<-1> {
-  if (occ1 !== 1 || occ2 !== 1 || global1 || text.length > 4096) return -1;
+  const lineLen = lineEnd - lineStart;
+  if (occ1 !== 1 || occ2 !== 1 || global1 || lineLen > 4096) return -1;
   if (!pat1.canFindSync() || !pat2.canFindSync()) return -1;
   const info1 = pat1.getFastPrefixInfo();
   const info2 = pat2.getFastPrefixInfo();
@@ -1492,23 +1733,23 @@ export function trySubstitutePairToBufferSync(
   const sr2 = getSimpleReplacement(rep2, "sed");
   if (!sr1 || !sr2) return -1;
   budget.step();
-  if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return -1;
+  if (!pat1.findSyncFastInto(text, budget, lineStart, PAIR_OFFSETS_1, lineEnd, lineStart)) return -1;
   const e1 = PAIR_OFFSETS_1[1]!;
-  if (e1 === 0) return -1;
-  const exp1 = expandSimpleFromOffsets(sr1, text, 0, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+  if (e1 === lineStart) return -1;
+  const exp1 = expandSimpleFromOffsets(sr1, text, lineStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
   const firstChar2 = info2.prefix.charCodeAt(0);
   for (let i = 0; i < exp1.length; i++) {
     if (exp1.charCodeAt(i) === firstChar2) return -1;
   }
   budget.step();
-  if (!pat2.findSyncFastInto(text, budget, e1, PAIR_OFFSETS_2)) {
-    const outLen = exp1.length + (text.length - e1);
+  if (!pat2.findSyncFastInto(text, budget, e1, PAIR_OFFSETS_2, lineEnd, lineStart)) {
+    const outLen = exp1.length + (lineEnd - e1);
     if (outLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     if (outPos + outLen + 1 > outBuf.length) return -1;
-    budget.step(text.length - e1 + 1);
+    budget.step(lineEnd - e1 + 1);
     let pos = outPos;
     for (let i = 0; i < exp1.length; i++) outBuf[pos++] = exp1.charCodeAt(i);
-    for (let i = e1; i < text.length; i++) outBuf[pos++] = text.charCodeAt(i);
+    for (let i = e1; i < lineEnd; i++) outBuf[pos++] = text.charCodeAt(i);
     outBuf[pos++] = sepCode;
     return pos;
   }
@@ -1517,13 +1758,13 @@ export function trySubstitutePairToBufferSync(
   if (s2 < e1 || e2 === s2) return -1;
   const g2s = PAIR_OFFSETS_2[2]!;
   const g2e = PAIR_OFFSETS_2[3]!;
-  if (global2 && e2 <= text.length) {
+  if (global2 && e2 <= lineEnd) {
     budget.step();
-    if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1)) return -1;
+    if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1, lineEnd, lineStart)) return -1;
   }
   const exp2 = expandSimpleFromOffsets(sr2, text, s2, e2, g2s, g2e, budget);
   const midLen = s2 - e1;
-  const tailLen = text.length - e2;
+  const tailLen = lineEnd - e2;
   const totalLen = exp1.length + midLen + exp2.length + tailLen;
   if (totalLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
   if (outPos + totalLen + 1 > outBuf.length) return -1;
@@ -1532,7 +1773,7 @@ export function trySubstitutePairToBufferSync(
   for (let i = 0; i < exp1.length; i++) outBuf[pos++] = exp1.charCodeAt(i);
   for (let i = e1; i < s2; i++) outBuf[pos++] = text.charCodeAt(i);
   for (let i = 0; i < exp2.length; i++) outBuf[pos++] = exp2.charCodeAt(i);
-  for (let i = e2; i < text.length; i++) outBuf[pos++] = text.charCodeAt(i);
+  for (let i = e2; i < lineEnd; i++) outBuf[pos++] = text.charCodeAt(i);
   outBuf[pos++] = sepCode;
   return pos;
 }

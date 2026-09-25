@@ -291,6 +291,13 @@ const reusableBatchSlices: Line[][] = Array.from({ length: 129 }, (_, k) => {
 });
 const reusableSingleBatchWrapper: Line[][] = [[]];
 
+function findDualDelimiter(chunk: Uint8Array, start: number, delimiter: number, extraDelimiter: number): number {
+  for (let scan = start; scan < chunk.length; scan++) {
+    if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) return scan;
+  }
+  return -1;
+}
+
 export function trySyncLineBatches(
   source: Uint8Array,
   limits: Limits,
@@ -325,15 +332,13 @@ export function trySyncLineBatches(
   let start = 0;
   let next = extraDelimiter === -1
     ? chunk.indexOf(delimiter, 0)
-    : (() => {
-        for (let scan = 0; scan < chunk.length; scan++) {
-          if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) return scan;
-        }
-        return -1;
-      })();
+    : findDualDelimiter(chunk, 0, delimiter, extraDelimiter);
   while (next >= 0) {
     const end = next;
-    if (end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
+    if (end - start > limits.maxLineBytes) {
+      state.bytesSearched = offset;
+      throw new SearchError("line byte limit exceeded");
+    }
     const searchEnd = crlf && end > start && chunk[end - 1] === 13 ? end - 1 : end;
     const isNormalDelimiter = chunk[end] === delimiter;
     const rawEnd = isNormalDelimiter ? end + 1 : end;
@@ -341,23 +346,18 @@ export function trySyncLineBatches(
     const line = usingPool
       ? reusableLines[poolCount++]!.reset(chunk, start, end, rawEnd, delimBuf, searchEnd, needAll, true, ++number, offset)
       : new SlicedLine(chunk, start, end, rawEnd, delimBuf, searchEnd, needAll, true, ++number, offset);
-    state.bytesSearched = offset + line.rawLength;
     if (!usingPool) batch!.push(line);
     batchBytes += end - start;
     offset += line.rawLength;
     start = end + 1;
     next = extraDelimiter === -1
       ? chunk.indexOf(delimiter, start)
-      : (() => {
-          for (let scan = start; scan < chunk.length; scan++) {
-            if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) return scan;
-          }
-          return -1;
-        })();
+      : findDualDelimiter(chunk, start, delimiter, extraDelimiter);
     const currentLen = usingPool ? poolCount : batch!.length;
     if (currentLen >= maxRecords() || batchBytes >= 64 * 1024 || next < 0 || batchBytes + next - start > 64 * 1024 || next - start > limits.maxLineBytes) {
       if (usingPool) {
         if (next < 0 && start >= chunk.length) {
+          state.bytesSearched = offset;
           reusableSingleBatchWrapper[0] = reusableBatchSlices[poolCount]!;
           return reusableSingleBatchWrapper;
         }
@@ -374,6 +374,7 @@ export function trySyncLineBatches(
       batchBytes = 0;
     }
   }
+  state.bytesSearched = offset;
   if (start < chunk.length) {
     if (chunk.length - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
     const searchEnd = crlf && chunk.length > start && chunk[chunk.length - 1] === 13 ? chunk.length - 1 : chunk.length;

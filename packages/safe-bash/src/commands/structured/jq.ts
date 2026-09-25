@@ -525,6 +525,17 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
       try { await writeBytes(context.stdout, chunkBuf, context.signal); }
       catch (error) { stdoutWriteFailed = true; throw error; }
     };
+    const emitRemainingAsync = async (syncResults: Json[], startIdx: number, initialLast: Json | undefined): Promise<void> => {
+      let invocationLast = initialLast;
+      for (let idx = startIdx; idx < syncResults.length; idx++) {
+        const r = syncResults[idx]!;
+        await publishResult(r);
+        invocationLast = r;
+        status = options.exitStatus ? truth(r) ? 0 : 1 : 0;
+      }
+      if (status < 2 && invocationLast !== undefined) lastTruth = truth(invocationLast);
+      if (diagnostics.length) await flush();
+    };
     const emitSyncOrAsync = (input: Json): Promise<void> | void => {
       if (!diagnostics.length && !options.rawOutput0 && interpreter.run === DEFAULT_INTERPRETER_RUN) {
         const syncResults = interpreter.tryRunSync(ast, input);
@@ -535,16 +546,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
           while (idx < syncResults.length) {
             const result = syncResults[idx]!;
             if (!tryPublishSync(result)) {
-              return (async () => {
-                for (; idx < syncResults.length; idx++) {
-                  const r = syncResults[idx]!;
-                  await publishResult(r);
-                  invocationLast = r;
-                  status = options.exitStatus ? truth(r) ? 0 : 1 : 0;
-                }
-                if (status < 2 && invocationLast !== undefined) lastTruth = truth(invocationLast);
-                if (diagnostics.length) await flush();
-              })();
+              return emitRemainingAsync(syncResults, idx, invocationLast);
             }
             invocationLast = result;
             status = options.exitStatus ? truth(result) ? 0 : 1 : 0;

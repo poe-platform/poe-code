@@ -11,7 +11,8 @@ interface Session {
   readonly ledger: ArrayLedger;
   readonly internal: ArrayLedger;
   readonly scope: InvocationScope;
-  readonly monitors?: Set<StateMonitor>;
+  firstMonitor: StateMonitor | undefined;
+  monitors: Set<StateMonitor> | undefined;
   owner: ArrayOwner | undefined;
   guestOwner: ArrayOwner | undefined;
 }
@@ -29,33 +30,53 @@ const overlayNext = Symbol("array overlay parent");
 const guardedMutationCharge = { generation: true, version: true, epoch: true, work: 5 } as const;
 const unguardedMutationCharge = { generation: false, version: false, epoch: true, work: 5 } as const;
 const guestMutationCharge = { epoch: true, work: 5 } as const;
+const SHARED_MUTATION_TICKETS = { generation: 0, version: 0, epoch: 0 };
 type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
+
+function createSession(
+  budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } },
+  scope: InvocationScope,
+): Session {
+  while (scope.parent) scope = scope.parent;
+  const ledger = new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields);
+  const values = budget.values ?? new ValueArena(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields, () => scope.assertOpen());
+  const session: Session = {
+    values,
+    ledger,
+    internal: ledger.internal(budget.limits.maxCommands ?? 10_000),
+    scope,
+    firstMonitor: undefined,
+    monitors: undefined,
+    owner: undefined,
+    guestOwner: undefined,
+  };
+  scope.registerFinalizer(() => {
+    if (session.monitors) {
+      for (const owned of [...session.monitors]) owned.closeValues();
+      session.monitors.clear();
+    } else if (session.firstMonitor) {
+      const first = session.firstMonitor;
+      session.firstMonitor = undefined;
+      first.closeValues();
+    }
+    if (session.owner) {
+      const closed = session.owner.close();
+      if (!isSyncResolved(closed)) return closed.finally(() => values.close());
+    }
+    values.close();
+  });
+  if (Object.isExtensible(budget)) {
+    (budget as unknown as Record<symbol, Session>)[sessionSymbol] = session;
+  } else {
+    fallbackSessions.set(budget, session);
+  }
+  return session;
+}
 
 export function trackState(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
   const existing = stateMonitor(state);
   if (existing) return existing.proxy;
-  let session = (budget as unknown as Record<symbol, Session | undefined>)[sessionSymbol] ?? fallbackSessions.get(budget);
-  if (!session) {
-    while (scope.parent) scope = scope.parent;
-    const ledger = new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields);
-    const values = budget.values ?? new ValueArena(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields, () => scope.assertOpen());
-    session = { values, ledger, internal: ledger.internal(budget.limits.maxCommands ?? 10_000), scope, monitors: new Set(), owner: undefined, guestOwner: undefined };
-    const registered = session;
-    scope.registerFinalizer(() => {
-      for (const owned of [...registered.monitors!]) owned.closeValues();
-      registered.monitors!.clear();
-      if (registered.owner) {
-        const closed = registered.owner.close();
-        if (!isSyncResolved(closed)) return closed.finally(() => values.close());
-      }
-      values.close();
-    });
-    if (Object.isExtensible(budget)) {
-      (budget as unknown as Record<symbol, Session>)[sessionSymbol] = session;
-    } else {
-      fallbackSessions.set(budget, session);
-    }
-  }
+  const session = (budget as unknown as Record<symbol, Session | undefined>)[sessionSymbol] ?? fallbackSessions.get(budget) ?? createSession(budget, scope);
   return new StateMonitor(state, session).proxy;
 }
 
@@ -83,7 +104,7 @@ export function requireArrays(state: State): BindingStore {
 export class StateMonitor {
   readonly proxy: State;
   readonly values: ValueStore;
-  readonly positionals: ValueStore;
+  #positionals: ValueStore | undefined;
   store: BindingStore | undefined;
   lazyPipeStatus: readonly number[] | undefined;
   #lazyStoreView: BindingStore | undefined;
@@ -102,16 +123,16 @@ export class StateMonitor {
   #restorations: Restoration | undefined;
   #freeRestorations: Restoration | undefined;
   #overlays: OverlayMap | undefined;
-  #retireCleanup: (() => void) | undefined;
   #positionalRevision: object | undefined;
   #getoptsInput: { input: GetoptsInput; allocation: ValueScope } | undefined;
-  readonly #mutationTickets = { generation: 0, version: 0, epoch: 0 };
 
   constructor(readonly raw: State, readonly session: Session, source?: StateMonitor) {
     this.values = source ? source.values.clone() : session.values.createStore();
     if (source?.lazyPipeStatus !== undefined) this.lazyPipeStatus = source.lazyPipeStatus;
-    try { this.positionals = source ? source.positionals.clone() : session.values.createStore(); }
-    catch (error) { this.values.close(); throw error; }
+    if (source && source.#positionals) {
+      try { this.#positionals = source.#positionals.clone(); }
+      catch (error) { this.values.close(); throw error; }
+    }
     this.#wrapperCount = 1;
     this.proxy = new Proxy(raw, new StateProxyHandler(this, "state", false)) as State;
     if (Object.isExtensible(raw)) {
@@ -119,13 +140,23 @@ export class StateMonitor {
     } else {
       rawMonitors.set(raw, this);
     }
-    if (session.monitors) session.monitors.add(this);
-    else this.#retireCleanup = session.scope.register(async () => { await session.scope.drainWork(); this.closeValues(); });
+    if (session.monitors) {
+      session.monitors.add(this);
+    } else if (!session.firstMonitor) {
+      session.firstMonitor = this;
+    } else if (session.firstMonitor !== this) {
+      session.monitors = new Set([session.firstMonitor, this]);
+      session.firstMonitor = undefined;
+    }
+  }
+
+  get positionals(): ValueStore {
+    return this.#positionals ??= this.session.values.createStore();
   }
 
   closeValues(): void {
     this.values.close();
-    this.positionals.close();
+    this.#positionals?.close();
     this.lazyPipeStatus = undefined;
     this.invalidateGetoptsInput();
     if (this.store) {
@@ -142,8 +173,7 @@ export class StateMonitor {
       this.snapshotOwner = undefined;
     }
     if (this.session.monitors) this.session.monitors.delete(this);
-    this.#retireCleanup?.();
-    this.#retireCleanup = undefined;
+    else if (this.session.firstMonitor === this) this.session.firstMonitor = undefined;
   }
 
   get positionalRevision(): object { return this.#positionalRevision ??= {}; }
@@ -169,14 +199,14 @@ export class StateMonitor {
   changedValue(target: object, field: string, key: PropertyKey): void {
     if (field === "state") {
       if (key === "variables") { this.#variablesProxy = undefined; this.values.invalidate(); }
-      if (key === "positional") { this.#positionalProxy = undefined; this.positionals.invalidate(); this.invalidateGetoptsInput(); }
+      if (key === "positional") { this.#positionalProxy = undefined; this.#positionals?.invalidate(); this.invalidateGetoptsInput(); }
       if (key === "functions") this.#functionsProxy = undefined;
       if (key === "exported") this.#exportedProxy = undefined;
       if (key === "locals") this.#localsProxy = undefined;
     } else if (field === "variables" && (this.raw.variables === target || this.#variablesProxy === target || this.raw.variables === this.#wrapped?.get(target))) {
       this.values.invalidate(String(key));
     } else if (field === "positional" && (this.raw.positional === target || this.#positionalProxy === target || this.raw.positional === this.#wrapped?.get(target))) {
-      this.positionals.invalidate();
+      this.#positionals?.invalidate();
       this.invalidateGetoptsInput();
     }
   }
@@ -339,9 +369,9 @@ export class StateMonitor {
     if (this.#publication) return undefined;
     if (this.store) {
       const guarded = name !== undefined && (this.store.bindings.has(name) || this.store.watches.has(name));
-      return this.store.owner.charge(guarded ? guardedMutationCharge : unguardedMutationCharge, this.#mutationTickets);
+      return this.store.owner.charge(guarded ? guardedMutationCharge : unguardedMutationCharge, SHARED_MUTATION_TICKETS);
     }
-    return this.session.guestOwner?.charge(guestMutationCharge, this.#mutationTickets);
+    return this.session.guestOwner?.charge(guestMutationCharge, SHARED_MUTATION_TICKETS);
   }
 
   finish(tickets: Tickets | undefined, name?: string): void {
@@ -644,7 +674,7 @@ export function trySnapshotStateSync(state: State, clone: () => State, scope?: I
 export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>, scope?: InvocationScope): Promise<State> {
   const monitor = stateMonitor(state);
   if (!monitor) return clone();
-  const session: Session = scope ? { ...monitor.session, scope, owner: undefined, guestOwner: undefined, monitors: new Set() } : monitor.session;
+  const session: Session = scope ? { ...monitor.session, scope, owner: undefined, guestOwner: undefined, firstMonitor: undefined, monitors: new Set() } : monitor.session;
   if (scope) scope.register(async () => {
     await scope.drainWork();
     for (const owned of session.monitors!) {

@@ -83,14 +83,17 @@ export class Budget {
         this.nextYield = this.steps + 1024;
         return undefined;
       }
-      this.lastYield = monotonicNow();
-      return yieldTurn(this.signal).then(() => {
-        this.signal.throwIfAborted();
-        this.nextYield = this.steps + 1024;
-        this.lastYield = monotonicNow();
-      });
+      return this.yieldTickSync();
     }
     return undefined;
+  }
+  private yieldTickSync(): Promise<void> {
+    this.lastYield = monotonicNow();
+    return yieldTurn(this.signal).then(() => {
+      this.signal.throwIfAborted();
+      this.nextYield = this.steps + 1024;
+      this.lastYield = monotonicNow();
+    });
   }
   async tick(count = 1): Promise<void> {
     this.step(count);

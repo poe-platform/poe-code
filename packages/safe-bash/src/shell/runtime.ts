@@ -339,12 +339,12 @@ class ExecutionCleanup {
 }
 
 export class Budget {
-  readonly executionScope = Object.freeze({});
+  #executionScope: object | undefined;
   #pathLookup: PathLookup | undefined;
   #pathLookupSuspensions = 0;
   readonly parsing: ParseBudget;
   readonly values: ValueArena;
-  readonly executionCleanup = new ExecutionCleanup(this);
+  #executionCleanup: ExecutionCleanup | undefined;
   commands = 0;
   iterations = 0;
   bytes = 0;
@@ -366,10 +366,26 @@ export class Budget {
   readonly #cpuStarted: number;
   #aborted = false;
   readonly #hasExternalSignal: boolean;
+  readonly hasCpuLimit: boolean;
+  readonly maxCommandsSmi: number;
+  readonly maxLoopIterationsSmi: number;
+  readonly maxFileSystemOperationsSmi: number;
+  readonly maxSubstitutionDepthSmi: number;
+  readonly maxExpansionFieldsSmi: number;
+  readonly maxExpansionBytesSmi: number;
+  readonly maxOutputBytesSmi: number;
 
   constructor(readonly limits: ResolvedShellLimits, signal?: AbortSignal, readonly onInternalError?: InternalErrorHandler) {
-    this.#cpuStarted = limits.maxCpuMs === Infinity ? 0 : monotonicNow();
+    this.hasCpuLimit = limits.maxCpuMs !== Infinity;
+    this.#cpuStarted = this.hasCpuLimit ? monotonicNow() : 0;
     this.#hasExternalSignal = signal !== undefined;
+    this.maxCommandsSmi = limits.maxCommands <= 0x3fffffff ? (limits.maxCommands | 0) : 0x3fffffff;
+    this.maxLoopIterationsSmi = limits.maxLoopIterations <= 0x3fffffff ? (limits.maxLoopIterations | 0) : 0x3fffffff;
+    this.maxFileSystemOperationsSmi = limits.maxFileSystemOperations <= 0x3fffffff ? (limits.maxFileSystemOperations | 0) : 0x3fffffff;
+    this.maxSubstitutionDepthSmi = limits.maxSubstitutionDepth <= 0x3fffffff ? (limits.maxSubstitutionDepth | 0) : 0x3fffffff;
+    this.maxExpansionFieldsSmi = limits.maxExpansionFields <= 0x3fffffff ? (limits.maxExpansionFields | 0) : 0x3fffffff;
+    this.maxExpansionBytesSmi = limits.maxExpansionBytes <= 0x3fffffff ? (limits.maxExpansionBytes | 0) : 0x3fffffff;
+    this.maxOutputBytesSmi = limits.maxOutputBytes <= 0x3fffffff ? (limits.maxOutputBytes | 0) : 0x3fffffff;
     registerManagedAbortSignal(this.controller.signal);
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
@@ -382,6 +398,18 @@ export class Budget {
     );
     this.#wallClockDeadline = Date.now() + limits.maxWallClockMs;
     if (limits.maxWallClockMs !== Infinity) this.#armWallClock();
+  }
+
+  get executionScope(): object {
+    return this.#executionScope ??= Object.freeze({});
+  }
+
+  get hasExecutionCleanup(): boolean {
+    return this.#executionCleanup !== undefined;
+  }
+
+  get executionCleanup(): ExecutionCleanup {
+    return this.#executionCleanup ??= new ExecutionCleanup(this);
   }
 
   get pathLookup(): PathLookup {
@@ -431,12 +459,14 @@ export class Budget {
 
   cpuCheckpoint(): void {
     if (this.#aborted || (this.#hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted();
-    if (this.limits.maxCpuMs !== Infinity && monotonicNow() - this.#cpuStarted > this.limits.maxCpuMs) this.fail("maxCpuMs");
+    if (this.hasCpuLimit && monotonicNow() - this.#cpuStarted > this.limits.maxCpuMs) this.fail("maxCpuMs");
   }
 
   tick(): void {
     this.cpuCheckpoint();
-    if (++this.commands > this.limits.maxCommands) this.fail("maxCommands");
+    const next = (this.commands + 1) | 0;
+    this.commands = next;
+    if (next > this.maxCommandsSmi && next > this.limits.maxCommands) this.fail("maxCommands");
   }
 
   fileSystemOperation(): void {
@@ -445,12 +475,12 @@ export class Budget {
   }
 
   fileSystemCleanupOperation(): void {
-    if (this.#fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
+    if (this.#fileSystemOperations >= this.maxFileSystemOperationsSmi && this.#fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
     this.#fileSystemOperations++;
   }
 
   canFileSystemOperation(): boolean {
-    return this.#fileSystemOperations < this.limits.maxFileSystemOperations;
+    return this.#fileSystemOperations < this.maxFileSystemOperationsSmi || this.#fileSystemOperations < this.limits.maxFileSystemOperations;
   }
 
   reservePipelineStages(count: number): () => void {
@@ -466,8 +496,10 @@ export class Budget {
   }
 
   loop(): void {
-    this.signal.throwIfAborted();
-    if (++this.iterations > this.limits.maxLoopIterations) this.fail("maxLoopIterations");
+    if (this.#aborted || (this.#hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted();
+    const next = (this.iterations + 1) | 0;
+    this.iterations = next;
+    if (next > this.maxLoopIterationsSmi && next > this.limits.maxLoopIterations) this.fail("maxLoopIterations");
   }
 
   source(bytes: number): void {
@@ -497,6 +529,14 @@ export class Budget {
   sink(sink: ByteSink, signal = this.signal): ByteSink {
     const ownership = budgetedSinks.get(sink);
     if (ownership?.budget === this && ownership.write === sink.write) return signalSink(sink, signal);
+    return this.createBudgetedSink(sink, signal, ownership);
+  }
+
+  private createBudgetedSink(
+    sink: ByteSink,
+    signal: AbortSignal,
+    ownership: ReturnType<typeof budgetedSinks.get>,
+  ): ByteSink {
     const syncWrite = syncSinks.get(sink);
     const countedSyncWrite = syncWrite
       ? (chunk: Uint8Array): void => {
@@ -1182,24 +1222,23 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
 }
 
 class FastShellCommandContext {
-  declare stdin: ByteSource;
-  declare stdout: ByteSink;
-  declare stderr: ByteSink;
-  declare descriptors: ReadonlyMap<number, Descriptor> | undefined;
+  stdin: ByteSource;
+  stdout: ByteSink;
+  stderr: ByteSink;
+  descriptors: ReadonlyMap<number, Descriptor> | undefined;
   command: string;
   args: readonly string[];
   env: Record<string, string>;
   cwd: string;
   signal: AbortSignal;
-  executionScope: CommandContext["executionScope"];
   onInternalError: CommandContext["onInternalError"];
-  declare argv0?: string;
-  declare capabilities?: import("./types.js").ShellCapabilities;
-  declare processSignals?: CommandContext["processSignals"];
-  declare diagnosticLine?: number;
-  declare scriptName?: string;
-  declare [invocationScope]?: InvocationScope;
-  declare [valueScope]?: ValueScope;
+  argv0?: string | undefined;
+  capabilities?: import("./types.js").ShellCapabilities | undefined;
+  processSignals?: CommandContext["processSignals"] | undefined;
+  diagnosticLine?: number | undefined;
+  scriptName?: string | undefined;
+  [invocationScope]?: InvocationScope;
+  [valueScope]?: ValueScope;
   readonly _self: FastShellCommandContext;
   readonly #runtime: Runtime;
   readonly #state: State;
@@ -1230,18 +1269,27 @@ class FastShellCommandContext {
     this.#io = io;
     this.#scope = scope;
     this.#scopedSignal = signalIsScoped ? runtime.signal : undefined;
-    const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
-    Object.assign(this, publicIO);
+    this.stdin = io.stdin;
+    this.stdout = io.stdout;
+    this.stderr = io.stderr;
+    this.descriptors = io.descriptors;
     this.command = name;
     this.args = args;
     this.#argumentValues = argumentValues;
     this.env = env;
     this.cwd = state.cwd;
     this.signal = runtime.commandSignal;
-    this.executionScope = runtime.budget.executionScope;
     this.onInternalError = runtime.budget.onInternalError;
-    // Command adapters forward contexts with spread or copied descriptors.
-    // Keep lazy fields enumerable and bind their private state to this instance.
+    this.argv0 = io.argv0;
+    this.capabilities = io.capabilities;
+    this.processSignals = io.processSignals;
+    this.diagnosticLine = io.diagnosticLine;
+    this.scriptName = io.scriptName;
+    if (!io.descriptors && (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok")))) {
+      return;
+    }
+    const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
+    Object.assign(this, publicIO);
     for (const [key, descriptor] of fastShellCommandAccessors) {
       Object.defineProperty(this, key, {
         ...descriptor,
@@ -1295,6 +1343,10 @@ class FastShellCommandContext {
     return this.#scopedSignal ??= AbortSignal.any([this.#runtime.signal, this.#scope.signal]);
   }
 
+  get executionScope(): CommandContext["executionScope"] {
+    return this._self.#runtime.budget.executionScope;
+  }
+
   get fs(): FileSystem {
     const self = this._self;
     if (!self.#contextFs) {
@@ -1328,7 +1380,20 @@ class FastShellCommandContext {
     this._self.#cachedInputBudget = replacement;
   }
 
+  get stdinInput(): ShellInput | undefined {
+    return this.stdin instanceof ShellInput ? this.stdin : undefined;
+  }
+
+  get stdoutFile(): CommandContext["stdoutFile"] {
+    const ownership = budgetedSinks.get(this.stdout);
+    return ownership?.write === this.stdout.write ? ownership.file : undefined;
+  }
+
 }
+
+const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
+  "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr",
+]);
 
 const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "registerCleanup", "invoke", "argumentValues"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
@@ -2586,7 +2651,11 @@ export class Runtime {
   #syncArithTouched: Set<string> | undefined;
   #syncArithRefs: ArithmeticReferences | undefined;
   private get syncArithRefs(): ArithmeticReferences {
-    return this.#syncArithRefs ??= {
+    return this.#syncArithRefs ??= this.createSyncArithRefs();
+  }
+
+  private createSyncArithRefs(): ArithmeticReferences {
+    return {
       isSync: true,
       resolve: variable => {
         this.signal.throwIfAborted();
@@ -10620,15 +10689,16 @@ export class Runtime {
         return undefined;
       }
     }
-    if (1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
-    const maxBytes = this.budget.limits.maxExpansionBytes;
-    if (out.length * 3 > maxBytes && shellValueByteLength(out) > maxBytes) this.budget.fail("maxExpansionBytes");
+    if (this.budget.maxExpansionFieldsSmi < 1 && 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+    const maxBytesSmi = this.budget.maxExpansionBytesSmi;
+    if (out.length * 3 > maxBytesSmi && shellValueByteLength(out) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
     return out;
   }
 
   private isPureArgWord(word: Word, rawState: State): boolean {
     if (word.parts.length === 0) return false;
-    for (const p of word.parts) {
+    for (let i = 0; i < word.parts.length; i++) {
+      const p = word.parts[i]!;
       if (p.kind === "text") continue;
       if (p.kind === "variable") {
         if (
@@ -10660,7 +10730,7 @@ export class Runtime {
 
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
     if (this.middleware.length > 0) return undefined;
-    if (rawState.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    if (rawState.depth >= this.budget.maxSubstitutionDepthSmi && rawState.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     this.signal.throwIfAborted();
     const parameterDepth = io.parameterDepth ?? 0;
     if (parameterDepth > 0 && rawState.depth + parameterDepth + 1 > 64) throw new ShellSyntaxError("Syntax nesting exceeds 64", 0);
@@ -10692,9 +10762,29 @@ export class Runtime {
     if (!def) return undefined;
     if (w0Plain === "printf" && def.execute !== printfCommand.execute) return undefined;
     if (w0Plain === "echo" && !defaultEchoExecutors.has(def.execute)) return undefined;
-    if (cmd.words.length > this.budget.limits.maxExpansionFields) return undefined;
+    if (cmd.words.length > this.budget.maxExpansionFieldsSmi && cmd.words.length > this.budget.limits.maxExpansionFields) return undefined;
     for (let i = 0; i < cmd.words.length; i++) {
       if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
+    }
+    if (w0Plain === "echo" && cmd.words.length <= 2) {
+      let val = "";
+      if (cmd.words.length === 2) {
+        const wVal = this.fastValueWord(cmd.words[1]!, state, io, true, false, false, true, undefined, part.line);
+        if (typeof wVal !== "string" || wVal.startsWith("-") || wVal.includes("\0")) return undefined;
+        val = wVal;
+      }
+      const byteLength = (val.length * 3 > 127 ? Buffer.byteLength(val) : val.length) + 1;
+      const nextBytes = this.budget.bytes + byteLength;
+      if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) {
+        this.budget.fail("maxOutputBytes");
+      }
+      this.budget.bytes = nextBytes;
+      this.budget.tick();
+      rawState.substitutionStatus = 0;
+      rawState.status = 0;
+      let end = val.length;
+      while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
+      return end === val.length ? val : val.slice(0, end);
     }
     fastSubScratchArgs.length = 0;
     for (let i = 1; i < cmd.words.length; i++) {

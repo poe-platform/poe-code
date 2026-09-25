@@ -78,7 +78,7 @@ export class Admission implements Tickets {
 
 export class ArrayLedger {
   private caps: Counters | undefined;
-  private readonly used: Counters = [0, 0, 0, 0, 0, 0, 0];
+  private used: Counters | undefined;
   private c3Smi = -1;
   private c4Smi = -1;
   private c5Smi = -1;
@@ -90,44 +90,42 @@ export class ArrayLedger {
   private u4Smi = 0;
   private u5Smi = 0;
   private u6Smi = 0;
-  private sequence = { lastIssued: 0 };
+  private sequence: { lastIssued: number };
   private checkpointCount = 0;
-  private readonly freeAdmissions: Admission[] = [];
+  private freeAdmissions: Admission[] | undefined;
 
-  constructor(readonly bytes: number, readonly fields: number, initialTicket = 0) {
+  constructor(readonly bytes: number, readonly fields: number, initialTicket = 0, sharedSequence?: { lastIssued: number }) {
     if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError("Invalid private initial ticket");
-    this.sequence.lastIssued = initialTicket;
+    this.sequence = sharedSequence ?? { lastIssued: initialTicket };
   }
 
   internal(commandLimit: number): ArrayLedger {
     if (commandLimit === Infinity) {
-      const ledger = new ArrayLedger(Infinity, Infinity);
-      ledger.sequence = this.sequence;
-      return ledger;
+      return new ArrayLedger(Infinity, Infinity, 0, this.sequence);
     }
     const requested = BigInt(commandLimit) + 1n;
     const maximum = BigInt(Number.MAX_SAFE_INTEGER) / 33024n;
     const units = requested < maximum ? requested : maximum;
-    const ledger = new ArrayLedger(Number(32n * units), Number(64n * units));
-    ledger.sequence = this.sequence;
-    return ledger;
+    return new ArrayLedger(Number(32n * units), Number(64n * units), 0, this.sequence);
   }
 
   get active(): boolean { return this.caps !== undefined; }
 
-  private syncUsedArray(): void {
-    this.used[0] = this.u0Smi;
-    this.used[1] = this.u1Smi;
-    this.used[2] = this.u2Smi;
-    this.used[3] = this.u3Smi;
-    this.used[4] = this.u4Smi;
-    this.used[5] = this.u5Smi;
-    this.used[6] = this.u6Smi;
+  private syncUsedArray(): Counters {
+    const used = this.used ??= [0, 0, 0, 0, 0, 0, 0];
+    used[0] = this.u0Smi;
+    used[1] = this.u1Smi;
+    used[2] = this.u2Smi;
+    used[3] = this.u3Smi;
+    used[4] = this.u4Smi;
+    used[5] = this.u5Smi;
+    used[6] = this.u6Smi;
+    return used;
   }
 
   snapshot(): { readonly caps: readonly number[] | undefined; readonly used: readonly number[]; readonly lastIssued: number } {
-    this.syncUsedArray();
-    return { caps: this.caps?.slice(), used: this.used.slice(), lastIssued: this.sequence.lastIssued };
+    const used = this.syncUsedArray();
+    return { caps: this.caps?.slice(), used: used.slice(), lastIssued: this.sequence.lastIssued };
   }
 
   private activateCaps(caps: Counters): void {
@@ -264,7 +262,7 @@ export class ArrayLedger {
         this.u4Smi += allocBytes;
         this.u5Smi += allocatedSlots;
         this.u6Smi += workNum;
-        const pooled = this.freeAdmissions.pop();
+        const pooled = this.freeAdmissions?.pop();
         if (pooled) {
           pooled._reset(wrappers, slots, payload, metadataNum, generation, version, epoch);
           return pooled;
@@ -272,13 +270,13 @@ export class ArrayLedger {
         return new Admission(this, wrappers, slots, payload, metadataNum, generation, version, epoch);
       }
     }
-    this.syncUsedArray();
+    const used = this.syncUsedArray();
     const metadataRequest = BigInt(charge.metadata ?? 0) + 64n;
     const work = BigInt(charge.work ?? 0) + 15n;
     const requested = [BigInt(wrappers), BigInt(slots), BigInt(payload), metadataRequest, BigInt(payload) + metadataRequest, BigInt(allocatedSlots), work];
     for (let index = 0; index < requested.length; index++) {
       const amount = requested[index]!;
-      if (amount < 0n || caps[index] !== Infinity && amount > BigInt(caps[index]! - this.used[index]!)) {
+      if (amount < 0n || caps[index] !== Infinity && amount > BigInt(caps[index]! - used[index]!)) {
         throw new ArrayFailure(`private ${labels[index]} limit exceeded`);
       }
     }
@@ -317,7 +315,8 @@ export class ArrayLedger {
     this.u3Smi -= admission.metadata;
     admission.cleanup = undefined;
     admission.restorationReferences = 0;
-    if (this.freeAdmissions.length < 128) this.freeAdmissions.push(admission);
+    const free = this.freeAdmissions ??= [];
+    if (free.length < 128) free.push(admission);
   }
 
   checkpoint(signal?: AbortSignal, units = 1): Promise<void> | undefined {

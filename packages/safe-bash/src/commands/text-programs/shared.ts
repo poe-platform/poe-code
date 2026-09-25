@@ -132,13 +132,14 @@ export async function* lineRecords(context: CommandContext, files: readonly stri
 export interface LineRecordBatch {
   readonly text: string;
   readonly firstLinePrefix: string;
-  readonly ends: readonly number[];
+  readonly ends: ArrayLike<number>;
   readonly trailingText: string | undefined;
   readonly file: string;
   readonly fileIndex: number;
 }
 
-const sharedBatchEnds: number[] = [];
+const EMPTY_ENDS = new Int32Array(0);
+let sharedBatchEnds = new Int32Array(4096);
 
 export async function* lineRecordBatches(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<LineRecordBatch> {
   const names = files.length ? files : ["-"];
@@ -159,31 +160,35 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
       const text = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
       let start = 0;
       let end: number;
-      const ends = sharedBatchEnds;
-      ends.length = 0;
+      let endsCount = 0;
       let firstLinePrefix = "";
       while ((end = text.indexOf("\n", start)) >= 0) {
-        const len = (ends.length === 0 ? pending.length : 0) + (end - start);
+        const len = (endsCount === 0 ? pending.length : 0) + (end - start);
         if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-        if (ends.length === 0 && pending) {
+        if (endsCount === 0 && pending) {
           firstLinePrefix = pending;
           pending = "";
         }
-        ends.push(end);
+        if (endsCount === sharedBatchEnds.length) {
+          const grown = new Int32Array(sharedBatchEnds.length * 2);
+          grown.set(sharedBatchEnds);
+          sharedBatchEnds = grown;
+        }
+        sharedBatchEnds[endsCount++] = end;
         start = end + 1;
       }
       if (start < text.length) {
         pending = budget.check(pending ? pending + text.slice(start) : text.slice(start));
       }
-      if (ends.length > 0) {
-        yield { text, firstLinePrefix, ends, trailingText: undefined, file, fileIndex };
+      if (endsCount > 0) {
+        yield { text, firstLinePrefix, ends: sharedBatchEnds.subarray(0, endsCount), trailingText: undefined, file, fileIndex };
       }
     }
     } finally {
       if (!done) await iter.return?.();
     }
     if (pending) {
-      yield { text: "", firstLinePrefix: "", ends: [], trailingText: pending, file, fileIndex };
+      yield { text: "", firstLinePrefix: "", ends: EMPTY_ENDS, trailingText: pending, file, fileIndex };
     }
   }
 }

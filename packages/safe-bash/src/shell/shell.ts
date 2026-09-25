@@ -120,6 +120,23 @@ class RootInvocationCancellationOwner {
   }
 }
 
+function createInvocationSink(budget: Budget, capture: Capture, external?: ByteSink): ByteSink {
+  if (external === undefined) return budget.sink(capture);
+  return budget.sink({
+    ...(external.ownedOutput ? { ownedOutput: {
+      get consumerClosed() { return external.ownedOutput!.consumerClosed; },
+      write: async (chunk: Uint8Array) => {
+        await capture.write(chunk);
+        await external.ownedOutput!.write(chunk);
+      },
+    } } : {}),
+    write: async (chunk) => {
+      await capture.write(chunk);
+      await external.write(chunk);
+    },
+  });
+}
+
 export class Shell implements PluginHost {
   readonly commands: CommandRegistry;
   readonly #middleware: Middleware[] = [];
@@ -244,11 +261,13 @@ export class Shell implements PluginHost {
     let captured: CapturedCancellationOutcome<ShellResult>;
     try {
       captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
-      if (captured.kind === "throw") budget.executionCleanup.abort(captured.reason);
+      if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
     } finally {
-      const cleanupDrain = budget.executionCleanup.drain();
-      if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
-      if (budget.executionCleanup.failures.length > 0) scope.failures.push(...budget.executionCleanup.failures);
+      if (budget.hasExecutionCleanup) {
+        const cleanupDrain = budget.executionCleanup.drain();
+        if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
+        if (budget.executionCleanup.failures.length > 0) scope.failures.push(...budget.executionCleanup.failures);
+      }
       budget.close();
       const scopeClose = scope.close();
       if (!isSyncResolved(scopeClose)) await scopeClose;
@@ -278,21 +297,6 @@ export class Shell implements PluginHost {
     const unseal = scope.onSeal(() => budget.abort(new Error("Invocation is closed")));
     const stdout = new Capture();
     const stderr = new Capture();
-    const sink = (capture: Capture, external?: ByteSink): ByteSink => external === undefined
-      ? budget.sink(capture)
-      : budget.sink({
-          ...(external.ownedOutput ? { ownedOutput: {
-            get consumerClosed() { return external.ownedOutput!.consumerClosed; },
-            write: async (chunk: Uint8Array) => {
-              await capture.write(chunk);
-              await external.ownedOutput!.write(chunk);
-            },
-          } } : {}),
-          write: async (chunk) => {
-            await capture.write(chunk);
-            await external.write(chunk);
-          },
-        });
     let stdin: ShellInput | undefined;
     let unregisterStdin: (() => void) | undefined;
     if (options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
@@ -300,7 +304,7 @@ export class Shell implements PluginHost {
         try { await stdin?.close(); }
         catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
       });
-    } else {
+    } else if (options.stdin !== undefined) {
       scope.registerFinalizer(() => { void stdin?.close(); });
     }
     const io = {
@@ -312,7 +316,8 @@ export class Shell implements PluginHost {
       ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
       stdin: SHARED_EMPTY_SOURCE,
       stdinIsDefault: options.stdin === undefined,
-      stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
+      stdout: createInvocationSink(budget, stdout, options.stdout),
+      stderr: createInvocationSink(budget, stderr, options.stderr),
     };
     let exitCode: number;
     let runtime: Runtime | undefined;
@@ -463,14 +468,16 @@ export class Shell implements PluginHost {
       }
     } catch (error) {
       failed = true;
-      budget.executionCleanup.abort(error);
+      if (budget.hasExecutionCleanup) budget.executionCleanup.abort(error);
       throw error;
     }
     finally {
       unseal();
       unregisterStdin?.();
-      const cleanupDrain = budget.executionCleanup.drain();
-      if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
+      if (budget.hasExecutionCleanup) {
+        const cleanupDrain = budget.executionCleanup.drain();
+        if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
+      }
       const activeStdin = stdin;
       stdin = undefined;
       if (activeStdin) {
@@ -481,7 +488,7 @@ export class Shell implements PluginHost {
         }
       }
     }
-    throwCleanupFailures(budget.executionCleanup.failures);
+    if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();
     return {

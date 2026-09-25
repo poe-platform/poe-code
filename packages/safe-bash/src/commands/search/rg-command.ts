@@ -14,6 +14,11 @@ const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
 const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
 const BATCH_SIZE_1: () => number = () => 1;
 const BATCH_SIZE_128: () => number = () => 128;
+const RETURN_TRUE = () => true;
+const RETURN_FALSE = () => false;
+function resolveToBoolean(promise: Promise<unknown>, found: boolean): Promise<boolean> {
+  return promise.then(found ? RETURN_TRUE : RETURN_FALSE);
+}
 
 function trySearchFileSync(
   context: CommandContext,
@@ -51,17 +56,19 @@ function trySearchFileSync(
   const syncBatches = trySyncLineBatches(view, limits, sharedReadState, binary, args.nullData, batchSizeFn, needAll, args.crlf, true);
   if (syncBatches === undefined) return undefined;
   const hasExtYield = hasYieldCheckpoint(context.signal);
+  const maxCountSmi = Number.isFinite(args.maxCount) ? (args.maxCount | 0) : 0x3fffffff;
   let pendingTick: Promise<void> | undefined;
   let matchedLines = 0;
   let matchesCount = 0;
   let lastSelectedEnd = 0;
+  let bytesSearched = sharedReadState.bytesSearched | 0;
   records: for (let bIdx = 0; bIdx < syncBatches.length; bIdx++) {
     const batch = syncBatches[bIdx]!;
     const batchRes = matcher.batchSync(batch);
     if (batchRes instanceof Promise) return undefined;
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
-      sharedReadState.bytesSearched = line.offset + line.rawLength;
+      bytesSearched = line.offset + line.rawLength;
       const t = limits.tick();
       if (t !== undefined) {
         if (hasExtYield) return undefined;
@@ -70,17 +77,18 @@ function trySearchFileSync(
       const matches = batchRes[index]!;
       const selected = (matches.length > 0) !== args.invert;
       if (selected) lastSelectedEnd = line.offset + line.rawLength;
-      if (selected && matchedLines < args.maxCount) {
+      if (selected && matchedLines < maxCountSmi) {
         matchedLines++;
         matchesCount += args.invert ? 0 : matches.length;
         if (args.quiet || args.mode === "with" || args.mode === "without") break records;
       }
-      if (matchedLines >= args.maxCount) {
-        sharedReadState.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.rawLength === line.content.length ? line.offset : 0);
+      if (matchedLines >= maxCountSmi) {
+        bytesSearched = Math.max(lastSelectedEnd, args.invert || line.rawLength === line.content.length ? line.offset : 0);
         break records;
       }
     }
   }
+  sharedReadState.bytesSearched = bytesSearched;
   const matched = matchedLines > 0;
   const found = args.mode === "without" ? !matched && !sharedReadState.skipped : matched;
   totals.searches++;
@@ -91,15 +99,15 @@ function trySearchFileSync(
   if (!args.quiet) {
     if ((args.mode === "with" || args.mode === "without") && found) {
       const p = printer.filenameSyncOrAsync(target.label);
-      if (p) return pendingTick ? Promise.all([pendingTick, p]).then(() => found) : p.then(() => found);
+      if (p) return resolveToBoolean(pendingTick ? Promise.all([pendingTick, p]) : p, found);
     }
     if ((args.mode === "count" || args.mode === "matches") && (matched || args.includeZero) && !sharedReadState.skipped) {
       const amount = !args.invert && (args.mode === "matches" || args.onlyMatching) ? matchesCount : matchedLines;
       const p = printer.countSyncOrAsync(target.label, amount, filename);
-      if (p) return pendingTick ? Promise.all([pendingTick, p]).then(() => found) : p.then(() => found);
+      if (p) return resolveToBoolean(pendingTick ? Promise.all([pendingTick, p]) : p, found);
     }
   }
-  return pendingTick ? pendingTick.then(() => found) : found;
+  return pendingTick ? resolveToBoolean(pendingTick, found) : found;
 }
 
 interface InputSelection { readonly paths: readonly string[]; readonly implicit: boolean }

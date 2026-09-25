@@ -531,9 +531,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       if (batchSource && batchIndex < currentBatchLen) return false;
       return peekNextRecord().then(next => next === undefined);
     }
-    const found = getPattern(address.pattern).tryFindSync(pattern, budget);
-    if (found instanceof Promise) return found.then(res => res !== undefined);
-    return found !== undefined;
+    return getPattern(address.pattern).tryTestSync(pattern, budget);
   };
   try {
     while (currentRecord !== undefined) {
@@ -681,6 +679,53 @@ async function execute(program: readonly Instruction[], context: CommandContext,
                       budget.step();
                       if (!useBatches || stdoutLen >= 24576) {
                         await flushStdout();
+                      }
+                      if (batchSource && currentBatch && followingRecord === undefined) {
+                        const batchText = currentBatch.text;
+                        const batchEnds = currentBatch.ends;
+                        const endsLen = batchEnds.length;
+                        const g1 = instruction.global ?? false;
+                        const o1 = instruction.occurrence ?? 1;
+                        const r1 = instruction.replacement!;
+                        const g2 = nextInst.global ?? false;
+                        const o2 = nextInst.occurrence ?? 1;
+                        const r2 = nextInst.replacement!;
+                        while (batchIndex < endsLen) {
+                          if (batchIndex === 0 && currentBatch.firstLinePrefix) break;
+                          const lStart = batchIndex === 0 ? 0 : batchEnds[batchIndex - 1]! + 1;
+                          const lEnd = batchEnds[batchIndex]!;
+                          if (!stdoutBuf) stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+                          const nextPosOrPromise = trySubstitutePairToBufferSync(
+                            batchText,
+                            expression,
+                            r1,
+                            g1,
+                            o1,
+                            nextExpr,
+                            r2,
+                            g2,
+                            o2,
+                            budget,
+                            stdoutBuf,
+                            stdoutLen,
+                            sepCode,
+                            lStart,
+                            lEnd,
+                          );
+                          const nextPos = typeof nextPosOrPromise === "number" ? nextPosOrPromise : await nextPosOrPromise;
+                          if (nextPos < 0) break;
+                          batchIndex++;
+                          number++;
+                          budget.step(3);
+                          if ((number & 31) === 0) {
+                            const pendingCheck = budget.checkpointSync();
+                            if (pendingCheck) await pendingCheck;
+                          }
+                          stdoutLen = nextPos;
+                          if (stdoutLen >= 24576) {
+                            await flushStdout();
+                          }
+                        }
                       }
                       deleted = true;
                       pc += 2;

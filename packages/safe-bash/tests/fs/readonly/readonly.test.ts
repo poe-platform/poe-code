@@ -355,11 +355,12 @@ test("no delegate references or unknown convenience/native execution APIs are ex
   Object.assign(fixture.filesystem, {
     nativeExec() { assert.fail("native execution must not be exposed"); },
     writeTextFile() { assert.fail("convenience writes must not be exposed"); },
+    removeEntryConditional() { assert.fail("conditional removal must not be exposed"); },
     open() { assert.fail("mutable handles must not be exposed"); },
   });
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);
   assert.deepEqual(Reflect.ownKeys(filesystem), []);
-  for (const key of ["filesystem", "delegate", "inner", "nativeExec", "exec", "writeTextFile"]) {
+  for (const key of ["filesystem", "delegate", "inner", "nativeExec", "exec", "writeTextFile", "removeEntryConditional"]) {
     assert.equal(Reflect.get(filesystem, key), undefined);
   }
   assert.notEqual(filesystem.open, fixture.filesystem.open);

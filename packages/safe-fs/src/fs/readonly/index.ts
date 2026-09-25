@@ -43,7 +43,7 @@ function snapshotStat(stat: FileStat): FileStat {
 }
 
 export class ReadOnlyFileSystem implements FileSystem {
-  readonly removeEntryConditional?: NonNullable<FileSystem["removeEntryConditional"]>;
+  declare readonly removeEntryConditional?: NonNullable<FileSystem["removeEntryConditional"]>;
   readonly #filesystem: FileSystem;
   readonly #capabilities: FileSystemCapabilities;
 

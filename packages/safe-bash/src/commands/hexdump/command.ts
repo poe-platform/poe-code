@@ -53,6 +53,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
         catch (error) {
           budget.signal.throwIfAborted();
           if (!(error instanceof FsError)) throw error;
+          if (error.code !== "EISDIR") exitCode = 1;
           await lifecycle.write(`${name}: ${file ?? "stdin"}: ${fsDetail(error)}\n`, true);
           break;
         }

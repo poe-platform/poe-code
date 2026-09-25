@@ -4506,6 +4506,17 @@ export class Runtime {
           ) {
             return false;
           }
+          for (const word of [cmd.words[1]!, r0.target]) {
+            for (let i = 0; i < word.parts.length; i++) {
+              const part = word.parts[i]!;
+              if (part.kind !== "text" && (part.kind !== "variable" || !part.quoted)) return false;
+              if (part.kind === "text" && !part.quoted && (
+                rawState.braceexpand !== false && part.value.includes("{") ||
+                i === 0 && part.value.startsWith("~") ||
+                !rawState.noglob && hasGlobOrEscape(part.value)
+              )) return false;
+            }
+          }
           const lastSlash = targetPart0.value.lastIndexOf("/");
           const parentDir = lastSlash <= 0 ? "/" : targetPart0.value.slice(0, lastSlash);
           if (!tryGetMemoryDirectoryEntryNamesSync(this.backingFs, parentDir)) {
@@ -4626,7 +4637,8 @@ export class Runtime {
       for (const step of bodyAssignments) {
         if (
           step.name === inductionName ||
-          step.value?.parts.some(part => part.kind !== "text" && part.kind !== "variable")
+          step.value?.parts.some(part => part.kind !== "text" && part.kind !== "variable") ||
+          step.targetWord?.parts.some(part => part.kind !== "text" && part.kind !== "variable")
         ) {
           return undefined;
         }

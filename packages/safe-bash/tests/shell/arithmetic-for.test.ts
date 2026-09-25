@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/types.js";
+import { basicCommands } from "../../src/commands/basic.js";
 
 for (const argument of ["", " 0", " 7"]) {
   for (const errexit of [false, true]) test(`top-level return${argument} reports usage status${errexit ? " under errexit" : ""}`, async () => {
@@ -166,6 +167,102 @@ test("bounded arithmetic loops preserve copied values and final induction state"
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "1000:999\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const source of [
+  'for ((i=0;i<2;i++)); do echo x > /file$((i=0)); done',
+  "j='i=0'; for ((i=0;i<2;i++)); do echo x > /file$((j)); done",
+]) test(`arithmetic loop redirect targets still yield to cancellation: ${source}`, async () => {
+  const { shell } = setup({ limits: { maxCommands: 200000, maxLoopIterations: 100000, maxCpuMs: 2000 } });
+  shell.register(basicCommands().find(command => command.name === "echo")!);
+  const controller = new AbortController();
+  const pending = setImmediate(() => controller.abort(false));
+  try {
+    await assert.rejects(shell.exec(source, { signal: controller.signal }), error => error === false);
+    assert.equal((await shell.exec("say recovered")).stdout, "recovered\n");
+  } finally { clearImmediate(pending); await shell.dispose(); }
+});
+
+test("bounded arithmetic loops preserve redirects with variable values and targets", async () => {
+  const { shell, fs } = setup();
+  shell.register(basicCommands().find(command => command.name === "echo")!);
+  try {
+    const result = await shell.exec('for ((i=0;i<3;i++)); do echo value$i > /file$i; done; say "$i"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "3\n");
+    for (let i = 0; i < 3; i++) assert.equal(new TextDecoder().decode(await fs.readFile(`/file${i}`)), `value${i}\n`);
+  } finally { await shell.dispose(); }
+});
+
+test("bounded arithmetic loops preserve literal and quoted-variable redirects", async () => {
+  const { shell, fs } = setup();
+  shell.register(basicCommands().find(command => command.name === "echo")!);
+  try {
+    const result = await shell.exec('for ((i=0;i<3;i++)); do echo literal >> /literal; echo "value$i" > "/file$i"; done; say "$i"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "3\n");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/literal")), "literal\nliteral\nliteral\n");
+    for (let i = 0; i < 3; i++) assert.equal(new TextDecoder().decode(await fs.readFile(`/file${i}`)), `value${i}\n`);
+  } finally { await shell.dispose(); }
+});
+
+for (const header of ["for ((i=0;i<2;i++))", "for i in {1..2}"]) {
+  for (const [word, expected] of [["val{a,b}", "vala valb\n"], ["/val*", "/value\n"], ["~", "/home\n"]]) test(`redirected loop expands ${word}: ${header}`, async () => {
+    const { shell, fs } = setup({ env: { HOME: "/home" } });
+    shell.register(basicCommands().find(command => command.name === "echo")!);
+    await fs.writeFile("/value", new Uint8Array());
+    try {
+      const result = await shell.exec(`${header}; do echo ${word} > /file; done`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/file")), expected);
+    } finally { await shell.dispose(); }
+  });
+
+  test(`redirected loop expands glob targets and reports ambiguous brace targets: ${header}`, async () => {
+    const { shell, fs } = setup();
+    shell.register(basicCommands().find(command => command.name === "echo")!);
+    await fs.writeFile("/file-a", new Uint8Array());
+    try {
+      const result = await shell.exec(`${header}; do echo x > /file-*; done`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/file-a")), "x\n");
+      const ambiguous = await shell.exec(`${header}; do echo x > /file{a,b}; done`);
+      assert.equal(ambiguous.exitCode, 1);
+      assert.match(ambiguous.stderr, /Ambiguous redirect/);
+    } finally { await shell.dispose(); }
+  });
+
+  test(`redirected loop preserves quoted brace and glob text: ${header}`, async () => {
+    const { shell, fs } = setup();
+    shell.register(basicCommands().find(command => command.name === "echo")!);
+    try {
+      const result = await shell.exec(`${header}; do echo "val{a,b}*~" > "/file{a,b}*"; done`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/file{a,b}*")), "val{a,b}*~\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [source, path, expected] of [
+  ['IFS=:; for i in {1..2}; do echo val$((i)) > /file; done', "/file", "val2\n"],
+  ['IFS=:; for i in {1..2}; do echo x > /file$((i)); done', "/file2", "x\n"],
+  ['for i in {1..2}; do echo "val$(echo /item*)" > /file; done', "/file", "val/item\n"],
+  ['for i in {1..2}; do echo x > "/file$(echo item*)"; done', "/fileitem", "x\n"],
+]) test(`redirected brace loops preserve full expansion: ${source}`, async () => {
+  const { shell, fs } = setup();
+  shell.register(basicCommands().find(command => command.name === "echo")!);
+  await fs.writeFile("/item", new Uint8Array());
+  try {
+    const result = await shell.exec(source!);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(new TextDecoder().decode(await fs.readFile(path!)), expected);
   } finally { await shell.dispose(); }
 });
 

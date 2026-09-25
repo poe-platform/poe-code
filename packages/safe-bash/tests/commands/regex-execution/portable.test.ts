@@ -157,7 +157,7 @@ test("sed required writes and backups are rejected before any truncation or stdi
   for (const [capabilities, source] of [
     [{ append: false }, "sed 'w /output'"],
     [{ write: false, streamingWrite: true }, "sed 'w /output'"],
-    [{ copy: false }, "sed -i.bak -e 'w /output' /input"],
+    [{ atomicFileMutation: false }, "sed -i.bak -e 'w /output' /input"],
     [{ readOnly: true }, "sed -i -e 'w /output' /input"],
   ] as const) {
     const { shell, backing, calls } = await capabilityShell(capabilities);
@@ -178,7 +178,7 @@ test("sed preflights all path-specific script reads, outputs, and backup destina
   for (const [paths, source] of [
     [{ "/denied": { readOnly: true } }, "sed -e 'w /output' -e 'w /denied' /input"],
     [{ "/extra": { read: false, streamingRead: false } }, "sed -e 'w /output' -e 'r /extra' /input"],
-    [{ "/input.bak": { copy: false } }, "sed -i.bak -e 'w /output' /input"],
+    [{ "/input.bak": { atomicFileMutation: false } }, "sed -i.bak -e 'w /output' /input"],
   ] as const) {
     const { shell, backing, calls } = await capabilityShell({}, paths);
     try {

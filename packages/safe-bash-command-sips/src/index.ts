@@ -519,6 +519,7 @@ export async function runSipsCli(
               curW = act.width;
               curH = act.height;
             }
+            inst = sharp(await inst.toBuffer());
           } else if (act.kind === "pad") {
             if ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0) {
               inst = await applySipsOddCanvasCropOrPad(
@@ -557,6 +558,7 @@ export async function runSipsCli(
             });
             curW = act.width;
             curH = act.height;
+            inst = sharp(await inst.toBuffer());
           }
         }
 

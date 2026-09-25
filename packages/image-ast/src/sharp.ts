@@ -315,13 +315,16 @@ export class SharpInstance {
     readonly width: number;
     readonly height: number;
   }): this {
-    this.nodes.push({
+    const nextNode: ImageAstNode = {
       kind: "extract",
       left: region.left,
       top: region.top,
       width: region.width,
       height: region.height
-    });
+    };
+    const extIdx = this.nodes.findIndex(n => n.kind === "extend");
+    if (extIdx !== -1) this.nodes.splice(extIdx, 0, nextNode);
+    else this.nodes.push(nextNode);
     return this;
   }
 
@@ -374,7 +377,7 @@ export class SharpInstance {
       };
       return this;
     }
-    this.nodes.push({
+    const nextResizeNode: ImageAstNode = {
       kind: "resize",
       width: w,
       height: h,
@@ -384,7 +387,10 @@ export class SharpInstance {
       background: parseColor(opts.background, 255),
       withoutEnlargement: opts.withoutEnlargement ?? false,
       withoutReduction: opts.withoutReduction ?? false
-    });
+    };
+    const extIdx = this.nodes.findIndex(n => n.kind === "extend");
+    if (extIdx !== -1) this.nodes.splice(extIdx, 0, nextResizeNode);
+    else this.nodes.push(nextResizeNode);
     return this;
   }
 

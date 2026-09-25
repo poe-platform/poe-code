@@ -1669,4 +1669,17 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Array.from(flatOut)).toEqual([125, 74, 87, 104, 162, 79]);
   });
+
+  it("executes extend() after resize() and extract() regardless of method call order (#90)", async () => {
+    const buf = Buffer.alloc(20 * 10 * 3, 128);
+    const raw = { raw: { width: 20, height: 10, channels: 3 as const } };
+
+    const extThenRes = await sharp(buf, raw).extend(4).resize(14, 9, { fit: "fill" }).raw().toBuffer({ resolveWithObject: true });
+    expect(extThenRes.info.width).toBe(22);
+    expect(extThenRes.info.height).toBe(17);
+
+    const extThenExtr = await sharp(buf, raw).extend(4).extract({ left: 2, top: 2, width: 10, height: 6 }).raw().toBuffer({ resolveWithObject: true });
+    expect(extThenExtr.info.width).toBe(18);
+    expect(extThenExtr.info.height).toBe(14);
+  });
 });

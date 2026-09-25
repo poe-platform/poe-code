@@ -255,7 +255,7 @@ test("directory overwrite and missing-parent diagnostics include GNU operands", 
 });
 
 test("install replaces looping destination symlinks and diagnoses non-directory destination parents", async () => {
-  const fs = await seed({});
+  const fs = await seed();
   await fs.writeFile("/src", new TextEncoder().encode("payload\n"));
   await fs.writeFile("/file", new TextEncoder().encode("regular\n"));
   await fs.symlink("/dest_loop", "/dest_loop");

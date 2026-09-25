@@ -278,3 +278,21 @@ test("SSE event limits count UTF-8 bytes rather than characters", async () => {
   await assert.rejects(collect(provider, request("model")), /event byte limit/);
   assert.equal(fixtureTransport.disposed, 1);
 });
+
+test('OpenAI preserves structured numeric, boolean and null options at the HTTP boundary', async () => {
+  const f = fixture(['data: {"choices":[{"delta":{"content":"ok"}}]}\n\ndata: [DONE]\n\n']);
+  const provider = createOpenAiProvider({transport:f.transport,apiKey:'secret',models:[{id:'chat',endpoint:'chat'}]});
+  await collect(provider, request('chat', {options:{temperature:0.25,store:false,seed:42,user:null}}));
+  const body = JSON.parse(new TextDecoder().decode(f.requests[0]!.bytes));
+  assert.equal(body.temperature, 0.25);
+  assert.equal(body.store, false);
+  assert.equal(body.seed, 42);
+  assert.equal(body.user, null);
+});
+
+test('ElevenLabs preserves typed scalar settings from structured callers', async () => {
+  const f = fixture([Uint8Array.of(0,255)]);
+  const provider = createElevenLabsProvider({transport:f.transport,apiKey:'secret',models:[{id:'speech',endpoint:'tts',outputType:'audio/mpeg',defaultVoiceId:'voice'}]});
+  await collect(provider, request('speech', {options:{stability:0.25,use_speaker_boost:false}}));
+  assert.deepEqual(JSON.parse(new TextDecoder().decode(f.requests[0]!.bytes)).voice_settings, {stability:0.25,use_speaker_boost:false});
+});

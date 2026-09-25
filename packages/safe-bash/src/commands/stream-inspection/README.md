@@ -205,3 +205,6 @@ and the official GNU Binutils strings manual. Runtime behavior and hashes are
 decisive for the pinned native cohort, not a claim that a changing web manual
 matches this installed release. This scoped module does not establish broad
 GNU parity, a current full gate, superiority over just-bash, or product completion.
+
+`expand` requires repeating tab stops (`+N` or `/N`) to follow all explicit
+stops, including when stops are supplied through separate `-t` options.

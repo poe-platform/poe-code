@@ -23,6 +23,7 @@ function tabs(specifications: readonly string[]): (column: number) => number {
         if (absoluteRepeat) throw new UsageError("repeating tab stop must be last");
         absoluteRepeat = stop;
       } else {
+        if (relativeRepeat || absoluteRepeat) throw new UsageError("repeating tab stop must be last");
         if (stop <= (stops.at(-1) ?? 0)) throw new UsageError("tab stops must be ascending");
         stops.push(stop);
       }

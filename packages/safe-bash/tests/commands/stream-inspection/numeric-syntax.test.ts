@@ -22,6 +22,13 @@ for (const specimen of numericSyntaxCases) {
     if (specimen.error === undefined) assert.equal(native.stderrHex, "");
     else assert.notEqual(native.stderrHex, "");
     const result = await runFixture(specimen, {}, {}, 1);
+    // Issue 1079 supersedes this native acceptance of a stop after +N.
+    if (specimen.id === "expand-repeat-separate-stop") {
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdoutHex, "");
+      assert.match(result.stderr, /repeating tab stop must be last/u);
+      return;
+    }
     assert.equal(result.exitCode, native.status, result.stderr);
     assert.equal(result.stdoutHex, native.stdoutHex);
     assert.equal(result.stderr, specimen.error ?? "");
@@ -77,4 +84,13 @@ test("legacy numeric syntax retains the actual shared shell output budget", asyn
   try {
     await assert.rejects(shell.exec("printf 'a\\tb\\n' | expand -32 | cat"), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
   } finally { await shell.dispose(); }
+});
+
+test("expand rejects explicit stops after repeating stops across options", async () => {
+  for (const args of [["-t", "4", "-t", "+2", "-t", "8"], ["-t", "+2", "-t", "6"], ["-t", "/2", "-t", "6"]]) {
+    const result = await runFixture({ id: "repeat-order", command: "expand", args, stdinHex: "09580a" });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /repeating tab stop must be last/u);
+    assert.equal(result.stdoutHex, "");
+  }
 });

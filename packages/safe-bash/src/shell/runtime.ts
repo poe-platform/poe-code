@@ -3432,6 +3432,7 @@ export class Runtime {
   }
 
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
+    if (this.middleware.length > 0) return undefined;
     if (pipeline.commands.length !== 1) return undefined;
     const command = pipeline.commands[0]!;
     if (command.kind !== "simple" || command.redirects.length > 1) return undefined;
@@ -4246,6 +4247,7 @@ export class Runtime {
     if (this.budget.commands % 128 === 0) await yieldTurn(this.signal);
     this.signal.throwIfAborted();
     if (
+      this.middleware.length === 0 &&
       command.kind === "simple" &&
       command.redirects.length === 0 &&
       !fileShortcut &&
@@ -4314,6 +4316,7 @@ export class Runtime {
       }
     }
     if (
+      this.middleware.length === 0 &&
       command.kind === "simple" &&
       command.redirects.length === 1 &&
       command.words.length >= 1 &&
@@ -9277,6 +9280,7 @@ export class Runtime {
   }
 
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
+    if (this.middleware.length > 0) return undefined;
     if (rawState.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     this.signal.throwIfAborted();
     const parameterDepth = io.parameterDepth ?? 0;

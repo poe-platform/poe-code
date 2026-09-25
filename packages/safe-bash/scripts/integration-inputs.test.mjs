@@ -888,6 +888,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/pattern-admission.test.ts"));
   assert.ok(files.includes("tests/shell/pattern-boundaries.test.ts"));
   assert.ok(files.includes("tests/shell/cleanup-retention.test.ts"));
+  assert.ok(files.includes("tests/shell/middleware-fast-paths.test.ts"));
   assert.ok(files.includes("tests/shell/getopts-validation.test.ts"));
   assert.ok(files.includes("tests/shell/brace-reservations.test.ts"));
   assert.ok(files.includes("tests/shell/value-scope-reservations.test.ts"));

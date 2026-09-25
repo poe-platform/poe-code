@@ -1,3 +1,4 @@
+import { combineManagedSignals } from '../../fs/creation-mask.js';
 import { PythonFileSystem, PythonStatTranslator, type FileStat } from '@poe-code/safe-fs/core';
 import type { CommandContext, CommandDefinition, VirtualShellPlugin } from '../../contracts/index.js';
 import { validateExitCode } from '../../contracts/command.js';
@@ -105,7 +106,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       return { exitCode: 1 };
     }
     const controller = new AbortController();
-    const signal = AbortSignal.any([context.signal, controller.signal]);
+    const signal = combineManagedSignals(context.signal, controller.signal);
     inheritYieldCheckpoint(context.signal, signal);
     // The service is the single registered owner of descriptors and late acquisition.
     const fileContext = { ...context, descriptorCleanup: "caller" as const };

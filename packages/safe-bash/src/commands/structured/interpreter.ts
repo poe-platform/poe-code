@@ -273,7 +273,7 @@ export class Interpreter {
         const labels = new Map(this.labels);
         labels.set(ast.target, target);
         const scope = Object.create(Interpreter.prototype) as Interpreter;
-        Object.assign(scope, this, { labels });
+        Object.assign(scope, this, { _labels: labels });
         try { yield* scope.run(ast.body, input); }
         catch (error) {
           // jq exposes this value to catch handlers, which may rethrow it with error(.).
@@ -461,7 +461,7 @@ export class Interpreter {
       this.budget.step();
       filters.set(ast.parameters[index]!, { ast: ast.args[index]!, scope: this });
     }
-    Object.assign(scope, this, { filters });
+    Object.assign(scope, this, { _filters: filters });
     return scope;
   }
   async read(input: Json, path: Path): Promise<Json> {

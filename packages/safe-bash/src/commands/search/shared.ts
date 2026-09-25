@@ -199,7 +199,7 @@ export class Limits {
           if (ascii) {
             if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
             let v = amount | 0;
-            let dEnd = dst + digits;
+            const dEnd = dst + digits;
             buf[dEnd] = 10;
             for (let d = dEnd - 1; d >= dst; d--) {
               const q = (v / 10) | 0;

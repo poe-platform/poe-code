@@ -11,7 +11,8 @@ export interface UnrtfLimits {
   outputBytes: number;
   work: number;
 }
-export interface UnrtfOptions { limits: UnrtfLimits; signal: AbortSignal; profile?: 'standards-strict' | 'gnu-0.21.10' | 'native-legacy' | 'recovery' }
+export const defaultUnrtfLimits: UnrtfLimits = Object.freeze({inputBytes: Infinity, retainedBytes: Infinity, binaryBytes: Infinity, images: Infinity, imageBytes: Infinity, tokenBytes: Infinity, tokens: Infinity, depth: Infinity, decodedBytes: Infinity, outputBytes: Infinity, work: Infinity});
+export interface UnrtfOptions { limits?: Partial<UnrtfLimits>; signal: AbortSignal; profile?: 'standards-strict' | 'gnu-0.21.10' | 'native-legacy' | 'recovery' }
 export const unrtfBaseline = Object.freeze({
   version: '0.21.10', archiveSha256: 'b49f20211fa69fff97d42d6e782a62d7e2da670b064951f14bbff968c93734ae',
   profile: 'standards-strict', nativePersonalityCompatible: false,
@@ -31,13 +32,13 @@ export type RtfToken =
   | { kind: 'binary'; length: number; offset: number };
 export class Budget {
   private readonly counts: Partial<Record<keyof UnrtfLimits, number>> = {};
-  readonly options: UnrtfOptions;
+  readonly options: UnrtfOptions & { limits: UnrtfLimits };
   constructor(options: UnrtfOptions) {
     if (options.profile !== undefined && options.profile !== 'standards-strict' && options.profile !== 'gnu-0.21.10')
       throw new UnrtfError('E_PROFILE', 'Only standards-strict extraction is admitted; native-legacy and recovery are not implemented', 0);
-    this.options = {...options, limits:{...options.limits}};
+    this.options = {...options, limits:{...defaultUnrtfLimits,...options.limits}};
     for (const name of ['retainedBytes','images','imageBytes','inputBytes','binaryBytes','tokenBytes','tokens','depth','decodedBytes','outputBytes','work'] as const) {
-      if (!Number.isSafeInteger(options.limits[name]) || options.limits[name] < 0)
+      if (this.options.limits[name] !== Infinity && (!Number.isSafeInteger(this.options.limits[name]) || this.options.limits[name] < 0))
         throw new UnrtfError('E_LIMIT', 'Limits must be nonnegative safe integers', 0, name);
     }
   }

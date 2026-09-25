@@ -3,7 +3,7 @@ import { FsError } from 'safe-bash-contracts/errors';
 import { readBytes, writeBytes } from 'safe-bash-contracts/io';
 import { createOutputOperation, type OutputOperation } from 'safe-bash-contracts/output';
 import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';
-import { Budget, UnrtfError, type UnrtfLimits, type UnrtfOptions } from './contracts.js';
+import { Budget, UnrtfError, defaultUnrtfLimits, type UnrtfLimits, type UnrtfOptions } from './contracts.js';
 import { renderRtf } from './render.js';
 
 export interface UnrtfCommandOptions {
@@ -11,12 +11,11 @@ export interface UnrtfCommandOptions {
   profile?:UnrtfOptions['profile']; replace?:boolean;
 }
 export interface UnrtfResult { readonly exitCode:0|1 }
-const defaultLimits:UnrtfLimits = Object.freeze({inputBytes:16777216,retainedBytes:1048576,binaryBytes:16777216,images:1000,imageBytes:16777216,tokenBytes:8192,tokens:16777216,depth:256,decodedBytes:33554432,outputBytes:67108864,work:268435456});
 
 async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOptions = {}, cli = false):Promise<UnrtfResult> {
   const controller = new AbortController(), signal = controller.signal;
   const abort = ():void => controller.abort(context.signal.reason);
-  const limits = {...defaultLimits,...configuration.limits};
+  const limits = {...defaultUnrtfLimits,...configuration.limits};
   let format = configuration.format ?? 'html', file = configuration.file;
   let profile = configuration.profile, quiet = configuration.quiet, noremap = configuration.noremap;
   let failed = false;
@@ -86,7 +85,8 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
           if (context.fs.readStream) {
             for await (const bytes of readBytes(context.fs.readStream(candidate,{signal}),signal)) { yielded = true; yield bytes; }
           } else {
-            const bytes = await context.fs.readFile(candidate,{signal,maxBytes:Math.min(limits.inputBytes,limits.retainedBytes)});
+            const maxBytes = Math.min(limits.inputBytes, limits.retainedBytes);
+            const bytes = await context.fs.readFile(candidate,{signal,...(Number.isFinite(maxBytes) ? { maxBytes } : {})});
             budget.charge('retainedBytes',bytes.length,0);
             try { yield bytes; } finally { budget.release('retainedBytes',bytes.length); }
           }

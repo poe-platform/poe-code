@@ -109,20 +109,9 @@ before input access; no ambient configuration search occurs.
 `noremap`. `--help` and `--version` remain unsupported. The last format flag
 wins. `--nopict` is unconditional in both profiles; SDK `quiet` controls the GNU banner.
 
-| Limit | Command default |
-| --- | ---: |
-| `inputBytes`, `binaryBytes`, `imageBytes` | 16,777,216 each |
-| `retainedBytes` | 1,048,576 |
-| `images` | 1,000 |
-| `tokenBytes` | 8,192 |
-| `tokens` | 16,777,216 |
-| `depth` | 256 |
-| `decodedBytes` | 33,554,432 |
-| `outputBytes` | 67,108,864 |
-| `work` | 268,435,456 |
-
-The command accepts partial `limits` overrides; stream APIs require all limits
-and an `AbortSignal` explicitly. Limits must be nonnegative safe integers.
+All resource quotas are unlimited by default. The command and stream APIs
+accept partial `limits`; setting one leaves the others unlimited. Explicit
+limits must be nonnegative safe integers. Stream APIs require an `AbortSignal`.
 Success returns status 0; admitted document/profile/VFS failures return status 1
 with bounded `unrtf: CODE: message\n` diagnostics on stderr. Cancellation and
 unexpected capability failures reject rather than becoming successful output.

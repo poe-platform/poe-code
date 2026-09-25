@@ -4647,7 +4647,9 @@ export class Runtime {
       if (
         w0Plain === "printf" &&
         cmd.words.length === 3 &&
-        cmd.words[1]!.plain === "%d" &&
+        cmd.words[1]!.parts.length === 1 &&
+        cmd.words[1]!.parts[0]!.kind === "text" &&
+        cmd.words[1]!.parts[0]!.value === "%d" &&
         cmd.words[2]!.parts.length === 1 &&
         cmd.words[2]!.parts[0]!.kind === "arithmetic"
       ) {
@@ -11145,7 +11147,15 @@ export class Runtime {
       while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
       return end === val.length ? val : val.slice(0, end);
     }
-    if (w0Plain === "printf" && cmd.words.length === 3 && cmd.words[1]!.plain === "%d" && cmd.words[2]!.parts.length === 1 && cmd.words[2]!.parts[0]!.kind === "arithmetic") {
+    if (
+      w0Plain === "printf" &&
+      cmd.words.length === 3 &&
+      cmd.words[1]!.parts.length === 1 &&
+      cmd.words[1]!.parts[0]!.kind === "text" &&
+      cmd.words[1]!.parts[0]!.value === "%d" &&
+      cmd.words[2]!.parts.length === 1 &&
+      cmd.words[2]!.parts[0]!.kind === "arithmetic"
+    ) {
       const val = this.fastValueWord(cmd.words[2]!, state, io, true, false, false, true, undefined, part.line);
       if (typeof val !== "string") return undefined;
       const nextBytes = this.budget.bytes + val.length;

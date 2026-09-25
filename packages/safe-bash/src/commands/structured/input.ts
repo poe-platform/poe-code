@@ -79,9 +79,12 @@ class JsonParser {
   private line = 1;
   private column = 0;
   readonly events: Json[] = [];
-  private readonly counts = new WeakMap<object, number>();
-  private readonly closed = new WeakSet<object>();
-  private readonly lastKey = new WeakMap<object, string>();
+  private _counts: WeakMap<object, number> | undefined;
+  private _closed: WeakSet<object> | undefined;
+  private _lastKey: WeakMap<object, string> | undefined;
+  private get counts(): WeakMap<object, number> { return this._counts ??= new WeakMap(); }
+  private get closed(): WeakSet<object> { return this._closed ??= new WeakSet(); }
+  private get lastKey(): WeakMap<object, string> { return this._lastKey ??= new WeakMap(); }
   private reusableObj: Record<string, Json> = object();
   private readonly reusableKeys: string[] = [];
   private readonly reusableArr: Json[] = [];
@@ -103,9 +106,9 @@ class JsonParser {
   }
   tryParseFlatLine(bytes: Uint8Array, start: number, end: number): Json | undefined {
     const byteLen = end - start;
-    if (byteLen < 2 || byteLen > this.budget.limits.maxValueBytes) return undefined;
+    if (byteLen < 2 || (byteLen > this.budget.maxValueBytesSmi && byteLen > this.budget.limits.maxValueBytes)) return undefined;
     if (bytes[start] !== 123 || bytes[end - 1] !== 125) return undefined;
-    if (this.budget.limits.maxDepth < 1) return undefined;
+    if (this.budget.maxDepthSmi < 1) return undefined;
     const canReuse = !this.reusableInUse;
     let obj = canReuse ? this.reusableObj : object();
     const rKeys = this.reusableKeys;
@@ -281,7 +284,7 @@ class JsonParser {
                 return undefined;
               }
               arr[aIdx++] = elem;
-              if (aIdx > this.budget.limits.maxCollectionSize) return undefined;
+              if (aIdx > this.budget.maxCollectionSizeSmi && aIdx > this.budget.limits.maxCollectionSize) return undefined;
               const aSep = bytes[pos]!;
               if (aSep === 44) {
                 pos++;
@@ -300,7 +303,7 @@ class JsonParser {
           return undefined;
         }
         count++;
-        if (count > this.budget.limits.maxCollectionSize) return undefined;
+        if (count > this.budget.maxCollectionSizeSmi && count > this.budget.limits.maxCollectionSize) return undefined;
         const kFirst = key.charCodeAt(0);
         if (kFirst >= 48 && kFirst <= 57 || key === "__proto__") {
           if (shapeMatch) {
@@ -664,7 +667,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
       const pt = budget.tickSync();
       if (pt) await pt;
       budget.inputBytes += rawChunk.byteLength;
-      if (budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
+      if (budget.inputBytes > budget.maxInputBytesSmi && budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
       let fullText: string | undefined;
       let chunkOffset = 0;
       while (chunkOffset < rawChunk.length) {
@@ -674,7 +677,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
         }
         const newline = rawChunk.indexOf(10, chunkOffset);
         const segEnd = Math.min(newline < 0 ? rawChunk.length : newline + 1, chunkOffset + 16384);
-        budget.step(Math.ceil((segEnd - chunkOffset) / 1024));
+        budget.step((segEnd - chunkOffset + 1023) >> 10);
         const pt = budget.tickSync();
         if (pt) await pt;
         if (newline >= 0 && segEnd === newline + 1) {
@@ -993,22 +996,73 @@ export function tryWriteCompactSync(
   startPos: number,
   suffix: string,
   maxBytes: number,
+  knownKeys?: readonly string[],
 ): number {
   if (budget.needsYield()) return -1;
-  if (value === null || typeof value !== "object" || Array.isArray(value) || isNumber(value) || budget.limits.maxDepth < 1) {
+  if (value === null || typeof value !== "object" || Array.isArray(value) || isNumber(value) || budget.maxDepthSmi < 1) {
     return -1;
   }
   const obj = value as Record<string, Json>;
-  if (hasCustomKeyOrder(obj)) return -1;
+  if (!knownKeys && hasCustomKeyOrder(obj)) return -1;
   let pos = startPos;
   const cap = buf.length;
   if (pos + 2 + suffix.length > cap) return -1;
   buf[pos++] = 123; // '{'
   let count = 0;
+  const maxValSmi = budget.maxValueBytesSmi;
+  if (knownKeys) {
+    for (let kIdx = 0; kIdx < knownKeys.length; kIdx++) {
+      const key = knownKeys[kIdx]!;
+      const kLen = key.length;
+      if (kLen > maxValSmi && kLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      if (pos + kLen + 5 + suffix.length > cap) return -1;
+      if (count++ > 0) buf[pos++] = 44; // ','
+      budget.collection(count);
+      buf[pos++] = 34; // '"'
+      for (let i = 0; i < kLen; i++) {
+        const c = key.charCodeAt(i);
+        if (c < 32 || c >= 127 || c === 34 || c === 92) return -1;
+        buf[pos++] = c;
+      }
+      buf[pos++] = 34; // '"'
+      buf[pos++] = 58; // ':'
+      const v = obj[key]!;
+      if (typeof v === "string") {
+        const vLen = v.length;
+        if (vLen > maxValSmi && vLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+        if (pos + vLen + 3 + suffix.length > cap) return -1;
+        buf[pos++] = 34; // '"'
+        for (let i = 0; i < vLen; i++) {
+          const c = v.charCodeAt(i);
+          if (c < 32 || c >= 127 || c === 34 || c === 92) return -1;
+          buf[pos++] = c;
+        }
+        buf[pos++] = 34; // '"'
+      } else {
+        let vStr: string;
+        if (typeof v === "number" && Number.isFinite(v)) {
+          vStr = (v | 0) === v && v >= 0 && v <= 1024 && (v !== 0 || 1 / v > 0)
+            ? SMALL_DECIMALS[v]!.text
+            : Object.is(v, -0) ? "-0" : String(v);
+        } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+          vStr = v.text;
+        } else if (typeof v === "boolean") {
+          vStr = v ? "true" : "false";
+        } else if (v === null) {
+          vStr = "null";
+        } else {
+          return -1;
+        }
+        const vLen = vStr.length;
+        if (pos + vLen + 1 + suffix.length > cap) return -1;
+        for (let i = 0; i < vLen; i++) buf[pos++] = vStr.charCodeAt(i);
+      }
+    }
+  } else {
   for (const key in obj) {
     if (!Object.hasOwn(obj, key)) continue;
     const kLen = key.length;
-    if (kLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    if (kLen > maxValSmi && kLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     if (pos + kLen + 5 + suffix.length > cap) return -1;
     if (count++ > 0) buf[pos++] = 44; // ','
     budget.collection(count);
@@ -1023,7 +1077,7 @@ export function tryWriteCompactSync(
     const v = obj[key]!;
     if (typeof v === "string") {
       const vLen = v.length;
-      if (vLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      if (vLen > maxValSmi && vLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
       if (pos + vLen + 3 + suffix.length > cap) return -1;
       buf[pos++] = 34; // '"'
       for (let i = 0; i < vLen; i++) {
@@ -1052,9 +1106,10 @@ export function tryWriteCompactSync(
       for (let i = 0; i < vLen; i++) buf[pos++] = vStr.charCodeAt(i);
     }
   }
+  }
   buf[pos++] = 125; // '}'
   const jsonLen = pos - startPos;
-  if (jsonLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+  if (jsonLen > maxValSmi && jsonLen > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
   if (jsonLen > maxBytes) throw new JqLimitError("maxOutputBytes");
   for (let i = 0; i < suffix.length; i++) buf[pos++] = suffix.charCodeAt(i);
   budget.step(jsonLen * 2 + count * 12 + 2);

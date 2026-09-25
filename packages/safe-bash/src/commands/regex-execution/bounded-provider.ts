@@ -814,10 +814,10 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
       nullData,
       pattern0,
       programs: compiled,
-      work: snapAfter.work - snapBefore.work,
-      patternBytes: snapAfter.patternBytes - snapBefore.patternBytes,
-      states: snapAfter.states - snapBefore.states,
-      allocationUnits: snapAfter.allocationUnits - snapBefore.allocationUnits,
+      work: (snapAfter.work - snapBefore.work) | 0,
+      patternBytes: (snapAfter.patternBytes - snapBefore.patternBytes) | 0,
+      states: (snapAfter.states - snapBefore.states) | 0,
+      allocationUnits: (snapAfter.allocationUnits - snapBefore.allocationUnits) | 0,
     };
   } else {
     if (ledger.workAllowanceUntilCheckpoint(signal) < lastLiteralCache.work) return undefined;
@@ -832,7 +832,7 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i]! as Row & { start?: number; searchEnd?: number };
     const rLen = typeof r.searchEnd === "number" ? r.searchEnd - r.start! : r.bytes.length;
-    estimatedWork += rLen * workPerByte + 2;
+    estimatedWork = (estimatedWork + Math.imul(rLen, workPerByte) + 2) | 0;
   }
   if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
     return undefined;

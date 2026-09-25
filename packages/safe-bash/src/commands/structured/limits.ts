@@ -50,6 +50,14 @@ export class Budget {
   private lastYield = monotonicNow();
   private readonly unlimitedSteps: boolean;
   private readonly maxStepsSmi: number;
+  readonly maxInputBytesSmi: number;
+  readonly maxValueBytesSmi: number;
+  readonly maxOutputBytesSmi: number;
+  readonly maxDepthSmi: number;
+  readonly maxAstDepthSmi: number;
+  readonly maxResultsSmi: number;
+  readonly maxCollectionSizeSmi: number;
+  readonly unlimitedValueCheck: boolean;
   inputBytes = 0;
   outputBytes = 0;
   results = 0;
@@ -57,6 +65,14 @@ export class Budget {
   constructor(readonly limits: JqLimits, readonly signal: AbortSignal) {
     this.unlimitedSteps = limits.maxSteps === Infinity;
     this.maxStepsSmi = !this.unlimitedSteps && limits.maxSteps <= 0x3fffffff ? (limits.maxSteps | 0) : 0x3fffffff;
+    this.maxInputBytesSmi = limits.maxInputBytes <= 0x3fffffff ? (limits.maxInputBytes | 0) : 0x3fffffff;
+    this.maxValueBytesSmi = limits.maxValueBytes <= 0x3fffffff ? (limits.maxValueBytes | 0) : 0x3fffffff;
+    this.maxOutputBytesSmi = limits.maxOutputBytes <= 0x3fffffff ? (limits.maxOutputBytes | 0) : 0x3fffffff;
+    this.maxDepthSmi = limits.maxDepth <= 0x3fffffff ? (limits.maxDepth | 0) : 0x3fffffff;
+    this.maxAstDepthSmi = limits.maxAstDepth <= 0x3fffffff ? (limits.maxAstDepth | 0) : 0x3fffffff;
+    this.maxResultsSmi = limits.maxResults <= 0x3fffffff ? (limits.maxResults | 0) : 0x3fffffff;
+    this.maxCollectionSizeSmi = limits.maxCollectionSize <= 0x3fffffff ? (limits.maxCollectionSize | 0) : 0x3fffffff;
+    this.unlimitedValueCheck = limits.maxValueBytes === Infinity && limits.maxDepth === Infinity && limits.maxCollectionSize === Infinity;
   }
   step(count = 1): void {
     if (this.signal.aborted) this.signal.throwIfAborted();
@@ -105,13 +121,13 @@ export class Budget {
     }
   }
   collection(size: number): void {
-    if (size > this.limits.maxCollectionSize) throw new JqLimitError("maxCollectionSize");
+    if (size > this.maxCollectionSizeSmi && size > this.limits.maxCollectionSize) throw new JqLimitError("maxCollectionSize");
   }
   text(text: string): void {
-    if (text.length > this.limits.maxValueBytes || (text.length * 3 > this.limits.maxValueBytes && Buffer.byteLength(text) > this.limits.maxValueBytes)) throw new JqLimitError("maxValueBytes");
+    if (text.length > this.maxValueBytesSmi || (text.length * 3 > this.maxValueBytesSmi && Buffer.byteLength(text) > this.limits.maxValueBytes)) throw new JqLimitError("maxValueBytes");
   }
   checkValue(value: Json): void {
-    if (this.limits.maxValueBytes === Infinity && this.limits.maxDepth === Infinity && this.limits.maxCollectionSize === Infinity) {
+    if (this.unlimitedValueCheck) {
       this.step();
       return;
     }

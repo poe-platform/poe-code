@@ -468,8 +468,11 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     const isCompactPlain = options.format.indent === "" && !options.format.ascii && !options.format.color && !options.sortKeys && !options.sequence;
     const tryPublishSync = (result: Json): boolean => {
       if (!isCompactPlain || budget.needsYield()) return false;
-      if (budget.results + 1 > limits.maxResults) throw new JqLimitError("maxResults");
-      const remaining = limits.maxOutputBytes - budget.outputBytes;
+      if (budget.results + 1 > budget.maxResultsSmi && budget.results + 1 > limits.maxResults) throw new JqLimitError("maxResults");
+      const remSmi = budget.maxOutputBytesSmi - budget.outputBytes;
+      const maxChunkSmi = remSmi > suffix.length
+        ? remSmi - suffix.length
+        : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - suffix.length));
       let buf = outBuf;
       if (!buf) {
         if (!sharedJqOutBufInUse) {
@@ -480,10 +483,10 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
           buf = outBuf = new Uint8Array(OUT_BUF_SIZE);
         }
       }
-      const newPos = tryWriteCompactSync(result, budget, buf, outPos, suffix, Math.max(0, remaining - suffix.length));
+      const newPos = tryWriteCompactSync(result, budget, buf, outPos, suffix, maxChunkSmi, interpreter.getScratchKeys(result));
       if (newPos >= 0) {
         const chunkLen = newPos - outPos;
-        if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
+        if (chunkLen > remSmi && chunkLen > limits.maxOutputBytes - budget.outputBytes) throw new JqLimitError("maxOutputBytes");
         budget.results++;
         budget.outputBytes += chunkLen;
         outPos = newPos;
@@ -491,6 +494,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
       }
       budget.step();
       budget.value(result);
+      const remaining = limits.maxOutputBytes - budget.outputBytes;
       const text = tryStringifyCompactSync(result, budget, Math.max(0, remaining - suffix.length), "maxOutputBytes");
       if (text === undefined) return false;
       const chunkLen = text.length + suffix.length;

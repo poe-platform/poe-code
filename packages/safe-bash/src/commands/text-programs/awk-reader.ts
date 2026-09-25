@@ -1,6 +1,6 @@
 import { readBytes, type ByteSource } from "../../contracts/index.js";
 import type { AwkRetention } from "./awk-retention.js";
-import { Budget, ProgramError } from "./shared.js";
+import { Budget, ProgramError, getCachedLatin1Batch } from "./shared.js";
 
 interface Scan {
   block: number;
@@ -16,6 +16,8 @@ export class Reader {
   private readonly iterator: AsyncIterator<Uint8Array>;
   private blocks: (Buffer | undefined)[] = [];
   private blockStrings: (string | undefined)[] = [];
+  private blockEnds: (Int32Array | undefined)[] = [];
+  private blockEndIdx = 0;
   private head = 0;
   private offset = 0;
   private buffered = 0;
@@ -45,11 +47,14 @@ export class Reader {
       if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
       if (length === 0) continue;
       this.retention.admit(0, length);
-      const owned = Buffer.allocUnsafe(length);
-      owned.set(next.value);
+      const owned = Buffer.isBuffer(next.value)
+        ? next.value
+        : Buffer.from(next.value.buffer, next.value.byteOffset, length);
       try { this.blocks.push(owned); }
       catch (error) { this.retention.release(length); throw error; }
-      this.blockStrings.push(undefined);
+      const batch = getCachedLatin1Batch(next.value);
+      this.blockStrings.push(batch?.text);
+      this.blockEnds.push(batch?.ends);
       this.buffered += length;
       this.ownedBytes += length;
       return true;
@@ -67,11 +72,14 @@ export class Reader {
     if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
     if (length === 0) return;
     this.retention.admit(0, length);
-    const block = Buffer.allocUnsafe(length);
-    block.set(next.value);
+    const block = Buffer.isBuffer(next.value)
+      ? next.value
+      : Buffer.from(next.value.buffer, next.value.byteOffset, length);
     try { this.blocks.push(block); }
     catch (error) { this.retention.release(length); throw error; }
-    this.blockStrings.push(undefined);
+    const batch = getCachedLatin1Batch(next.value);
+    this.blockStrings.push(batch?.text);
+    this.blockEnds.push(batch?.ends);
     this.buffered += length;
     this.ownedBytes += length;
   }
@@ -87,13 +95,16 @@ export class Reader {
       this.ownedBytes -= block.length;
       this.blocks[this.head] = undefined;
       this.blockStrings[this.head] = undefined;
+      this.blockEnds[this.head] = undefined;
+      this.blockEndIdx = 0;
       this.head++;
       this.offset = 0;
     }
-    if (this.head === this.blocks.length) { this.blocks.length = 0; this.blockStrings.length = 0; this.head = 0; }
+    if (this.head === this.blocks.length) { this.blocks.length = 0; this.blockStrings.length = 0; this.blockEnds.length = 0; this.blockEndIdx = 0; this.head = 0; }
     else if (this.head >= 256 && this.head * 2 >= this.blocks.length) {
       this.blocks = this.blocks.slice(this.head);
       this.blockStrings = this.blockStrings.slice(this.head);
+      this.blockEnds = this.blockEnds.slice(this.head);
       this.head = 0;
     }
   }
@@ -178,7 +189,24 @@ export class Reader {
       }
       if (this.head < this.blocks.length) {
         const headBlock = this.blocks[this.head]!;
-        const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+        const sepCode = separator.charCodeAt(0);
+        const cachedEnds = sepCode === 10 ? this.blockEnds[this.head] : undefined;
+        if (cachedEnds !== undefined) {
+          let eIdx = this.blockEndIdx;
+          while (eIdx < cachedEnds.length && cachedEnds[eIdx]! < this.offset) eIdx++;
+          if (eIdx < cachedEnds.length) {
+            const idx = cachedEnds[eIdx]!;
+            if (idx - this.offset < 4096) {
+              this.blockEndIdx = eIdx + 1;
+              out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+              out.start = this.offset;
+              out.end = idx;
+              this.consume(idx - this.offset + 1);
+              return true;
+            }
+          }
+        }
+        const idx = headBlock.indexOf(sepCode, this.offset);
         if (idx >= 0 && idx - this.offset < 4096) {
           out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
           out.start = this.offset;

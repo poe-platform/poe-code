@@ -141,6 +141,72 @@ export interface LineRecordBatch {
 const EMPTY_ENDS = new Int32Array(0);
 let sharedBatchEnds = new Int32Array(4096);
 
+export interface CachedLatin1Batch {
+  readonly byteLength: number;
+  readonly b0: number;
+  readonly bMid: number;
+  readonly bEnd: number;
+  readonly text: string;
+  readonly ends: Int32Array;
+  readonly maxLineLen: number;
+  readonly lastLineStart: number;
+}
+
+const latin1BatchCache = new WeakMap<Uint8Array, CachedLatin1Batch>();
+
+export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | undefined {
+  const cLen = chunk.byteLength;
+  if (cLen < 256) return undefined;
+  let cached = latin1BatchCache.get(chunk);
+  if (
+    !cached ||
+    cached.byteLength !== cLen ||
+    cached.b0 !== chunk[0] ||
+    cached.bMid !== chunk[cLen >> 1] ||
+    cached.bEnd !== chunk[cLen - 1]
+  ) {
+    const cText = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, cLen).toString("latin1");
+    let cStart = 0;
+    let cEnd: number;
+    let cEndsCount = 0;
+    let maxLineLen = 0;
+    while ((cEnd = cText.indexOf("\n", cStart)) >= 0) {
+      const lLen = cEnd - cStart;
+      if (lLen > maxLineLen) maxLineLen = lLen;
+      if (cEndsCount === sharedBatchEnds.length) {
+        const grown = new Int32Array(sharedBatchEnds.length * 2);
+        grown.set(sharedBatchEnds);
+        sharedBatchEnds = grown;
+      }
+      sharedBatchEnds[cEndsCount++] = cEnd;
+      cStart = cEnd + 1;
+    }
+    const tailLen = cText.length - cStart;
+    if (tailLen > maxLineLen) maxLineLen = tailLen;
+    const ends = cEndsCount > 0 ? sharedBatchEnds.slice(0, cEndsCount) : EMPTY_ENDS;
+    cached = {
+      byteLength: cLen,
+      b0: chunk[0]!,
+      bMid: chunk[cLen >> 1]!,
+      bEnd: chunk[cLen - 1]!,
+      text: cText,
+      ends,
+      maxLineLen,
+      lastLineStart: cStart,
+    };
+    latin1BatchCache.set(chunk, cached);
+  }
+  return cached;
+}
+
+export function getCachedLatin1Text(chunk: Uint8Array): string {
+  const cached = getCachedLatin1Batch(chunk);
+  if (cached) return cached.text;
+  return Buffer.isBuffer(chunk)
+    ? chunk.toString("latin1")
+    : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
+}
+
 export async function* lineRecordBatches(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<LineRecordBatch> {
   const names = files.length ? files : ["-"];
   for (let fileIndex = 0; fileIndex < names.length; fileIndex++) {
@@ -157,6 +223,17 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
       if (res.done) { done = true; break; }
       const chunk = res.value;
       budget.step();
+      const cLen = chunk.byteLength;
+      if (pending === "" && cLen >= 256) {
+        const cached = getCachedLatin1Batch(chunk)!;
+        if (cached.maxLineLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+        if (cached.lastLineStart === cached.text.length) {
+          if (cached.ends.length > 0) {
+            yield { text: cached.text, firstLinePrefix: "", ends: cached.ends, trailingText: undefined, file, fileIndex };
+          }
+          continue;
+        }
+      }
       const text = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
       let start = 0;
       let end: number;

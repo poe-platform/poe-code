@@ -697,6 +697,92 @@ function keyBytesSync(line: Uint8Array, key: SortKey, separator: number | undefi
   return checkpoint ? resolveValueAfterCheckpoint(checkpoint, result) : result;
 }
 
+const sharedSortStarts = new Int32Array(4096);
+const sharedSortEnds = new Int32Array(4096);
+const sharedSortIndices = new Int32Array(4096);
+const sharedSortScratchIndices = new Int32Array(4096);
+const sharedSortKeyNums = new Int32Array(4096);
+
+function compareChunkSliceBytes(
+  chunk: Uint8Array,
+  sA: number,
+  eA: number,
+  sB: number,
+  eB: number,
+): number {
+  const lenA = eA - sA;
+  const lenB = eB - sB;
+  const minLen = lenA < lenB ? lenA : lenB;
+  for (let i = 0; i < minLen; i++) {
+    const diff = chunk[sA + i]! - chunk[sB + i]!;
+    if (diff !== 0) return diff;
+  }
+  return lenA - lenB;
+}
+
+function parseFastCanonicalNumericKey(
+  chunk: Uint8Array,
+  lineStart: number,
+  lineEnd: number,
+  key: SortKey,
+  separator: number | undefined,
+): number {
+  const len = lineEnd - lineStart;
+  if (len > 1024) return -1;
+  let fieldCount = 0;
+  if (separator !== undefined) {
+    let start = lineStart;
+    for (let offset = lineStart; offset <= lineEnd; offset++) {
+      if (offset === lineEnd || chunk[offset] === separator) {
+        if (fieldCount < 256) {
+          syncFieldStarts[fieldCount] = start;
+          syncFieldEnds[fieldCount] = offset;
+        }
+        fieldCount++;
+        start = offset + 1;
+      }
+    }
+  } else {
+    let offset = lineStart;
+    while (offset < lineEnd) {
+      const leading = offset;
+      while (offset < lineEnd && (chunk[offset] === 32 || chunk[offset] === 9)) offset++;
+      const start = leading;
+      while (offset < lineEnd && chunk[offset] !== 32 && chunk[offset] !== 9) offset++;
+      if (fieldCount < 256) {
+        syncFieldStarts[fieldCount] = start;
+        syncFieldEnds[fieldCount] = offset;
+      }
+      fieldCount++;
+    }
+  }
+  const startIdx = key.start - 1;
+  if (startIdx < 0 || startIdx >= fieldCount || startIdx >= 256) return -1;
+  let fStart = syncFieldStarts[startIdx]!;
+  let fEnd = lineEnd;
+  if (key.end !== undefined) {
+    const endIdx = key.end - 1;
+    if (endIdx < 0 || endIdx >= fieldCount || endIdx >= 256) return -1;
+    fEnd = syncFieldEnds[endIdx]!;
+  }
+  while (fStart < fEnd && (chunk[fStart] === 32 || chunk[fStart] === 9)) fStart++;
+  if (fStart >= fEnd) return -1;
+  const kLen = fEnd - fStart;
+  if (kLen > 9) return -1;
+  const first = chunk[fStart]!;
+  if (first === 48) {
+    return kLen === 1 ? 0 : -1;
+  }
+  if (first < 49 || first > 57) return -1;
+  let num = first - 48;
+  for (let i = fStart + 1; i < fEnd; i++) {
+    const c = chunk[i]!;
+    if (c < 48 || c > 57) return -1;
+    num = num * 10 + (c - 48);
+  }
+  return num;
+}
+
 function keyNumericValueSync(
   line: Uint8Array,
   key: SortKey,
@@ -1025,16 +1111,17 @@ export function textCommands(): CommandDefinition[] {
       if (isSingleLexKeyFast) {
         const lexRev = numericKeyFlags.has("r") ? -1 : 1;
         const lexBlanks = numericKeyFlags.has("b");
-        const keyedLexSlices = new Map<Uint8Array, Uint8Array>();
+        let keyedLexSlices: Map<Uint8Array, Uint8Array> | undefined;
         const getKeyedLexSlice = (record: Uint8Array): Uint8Array | Promise<Uint8Array> => {
-          const cached = keyedLexSlices.get(record);
+          const cached = keyedLexSlices?.get(record);
           if (cached !== undefined) {
             const checkpoint = work.charge(record.length);
             return checkpoint ? resolveValueAfterCheckpoint(checkpoint, cached) : cached;
           }
           const sliceOrPromise = keyBytesSync(record, numericKey, separator, lexBlanks, work);
           if (!(sliceOrPromise instanceof Promise)) {
-            if (keyedLexSlices.size < 16_384) keyedLexSlices.set(record, sliceOrPromise);
+            const map = keyedLexSlices ??= new Map();
+            if (map.size < 16_384) map.set(record, sliceOrPromise);
             return sliceOrPromise;
           }
           return sliceOrPromise;
@@ -1065,27 +1152,29 @@ export function textCommands(): CommandDefinition[] {
         };
       }
       if (numericKey && (numericKeyFlags.has("n") || numericKeyFlags.has("h")) && !["b", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
-        const keyedNumericValues = new Map<Uint8Array, NumericValue>();
+        let keyedNumericValues: Map<Uint8Array, NumericValue> | undefined;
         let retainedKeyBytes = 0;
         const keyHuman = numericKeyFlags.has("h");
         const keyedNumericValueSlow = async (record: Uint8Array, bytesOrPromise: Uint8Array | Promise<Uint8Array>, parsedPending?: Promise<NumericValue>): Promise<NumericValue> => {
           const bytes = bytesOrPromise instanceof Promise ? await bytesOrPromise : bytesOrPromise;
           const charge = 6 * bytes.length + 10;
           const parsedValue = await (parsedPending ?? parseNumeric(bytes, work, keyHuman));
-          if (keyedNumericValues.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
-            keyedNumericValues.set(record, parsedValue);
+          const map = keyedNumericValues ??= new Map();
+          if (map.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
+            map.set(record, parsedValue);
             retainedKeyBytes += charge;
           }
           return parsedValue;
         };
         const keyedNumericValue = (record: Uint8Array): NumericValue | Promise<NumericValue> => {
-          const cached = keyedNumericValues.get(record);
+          const cached = keyedNumericValues?.get(record);
           if (cached !== undefined) return cached;
           const fastParsed = keyNumericValueSync(record, numericKey, separator, false, work, keyHuman);
           if (fastParsed !== undefined) {
             const charge = 6 * lastKeyNumericLength + 10;
-            if (keyedNumericValues.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
-              keyedNumericValues.set(record, fastParsed);
+            const map = keyedNumericValues ??= new Map();
+            if (map.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
+              map.set(record, fastParsed);
               retainedKeyBytes += charge;
             }
             return fastParsed;
@@ -1095,8 +1184,9 @@ export function textCommands(): CommandDefinition[] {
             const charge = 6 * bytesOrPromise.length + 10;
             const parsedOrPromise = parseNumeric(bytesOrPromise, work, keyHuman);
             if (!(parsedOrPromise instanceof Promise)) {
-              if (keyedNumericValues.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
-                keyedNumericValues.set(record, parsedOrPromise);
+              const map = keyedNumericValues ??= new Map();
+              if (map.size < 16_384 && charge <= 1_048_576 - retainedKeyBytes) {
+                map.set(record, parsedOrPromise);
                 retainedKeyBytes += charge;
               }
               return parsedOrPromise;
@@ -1158,6 +1248,131 @@ export function textCommands(): CommandDefinition[] {
       const recordBudget = new SortRecordBudget();
       const exitCode: number = 0;
       const delimiter = parsed.flags.has("z") ? 0 : 10;
+      const outPath = value(parsed, "o");
+      const canFastIndexSort =
+        !checking &&
+        !hasYieldCheckpoint(context.signal) &&
+        !parsed.flags.has("m") &&
+        !parsed.flags.has("u") &&
+        outPath === undefined &&
+        (parsed.operands.length === 0 || (parsed.operands.length === 1 && parsed.operands[0] === "-")) &&
+        SortRecordBudget.prototype.admit === defaultSortAdmit &&
+        Uint8Array === defaultUint8Array &&
+        (simple || (
+          keys.length === 1 &&
+          numericKey !== undefined &&
+          numericKeyFlags.has("n") &&
+          !numericKeyFlags.has("h") &&
+          !["b", "f", "d", "i", "M", "V", "g"].some(flag => numericKeyFlags.has(flag)) &&
+          !["b", "f", "d", "i", "n", "h", "M", "V", "g"].some(flag => parsed.flags.has(flag)) &&
+          numericKey.startCharacter === 1 &&
+          (numericKey.endCharacter === undefined || numericKey.endCharacter === 0)
+        ));
+      let preReadChunks: Uint8Array[] | undefined;
+      if (canFastIndexSort) {
+        let firstChunk: Uint8Array | undefined;
+        let moreChunks: Uint8Array[] | undefined;
+        try {
+          for await (const ch of input(context, "-")) {
+            if (ch.length === 0) continue;
+            if (!firstChunk) firstChunk = ch;
+            else (moreChunks ??= [firstChunk]).push(ch);
+          }
+        } catch (error) {
+          await diagnostic(context, error);
+          return { exitCode: 2 };
+        }
+        if (!firstChunk) return { exitCode: 0 };
+        if (
+          !moreChunks &&
+          firstChunk.length <= 65536 &&
+          firstChunk[firstChunk.length - 1] === delimiter &&
+          recordBudget.canAdmitChunk(firstChunk.length)
+        ) {
+          let start = 0;
+          let count = 0;
+          let validLines = true;
+          while (start < firstChunk.length) {
+            const offset = firstChunk.indexOf(delimiter, start);
+            if (offset < 0 || count >= 4096 || offset - start > bufferLimit) {
+              validLines = false;
+              break;
+            }
+            sharedSortStarts[count] = start;
+            sharedSortEnds[count] = offset;
+            sharedSortIndices[count] = count;
+            if (!simple && numericKey) {
+              const kNum = parseFastCanonicalNumericKey(firstChunk, start, offset, numericKey, separator);
+              if (kNum < 0) {
+                validLines = false;
+                break;
+              }
+              sharedSortKeyNums[count] = kNum;
+            }
+            count++;
+            start = offset + 1;
+          }
+          if (validLines) {
+            for (let i = 0; i < count; i++) {
+              context.signal.throwIfAborted();
+              recordBudget.admit(sharedSortEnds[i]! - sharedSortStarts[i]!);
+            }
+            const revScale = numericKeyFlags?.has("r") ? -1 : 1;
+            let src = sharedSortIndices;
+            let dst = sharedSortScratchIndices;
+            for (let width = 1; width < count; width *= 2) {
+              for (let begin = 0; begin < count; begin += width * 2) {
+                const middle = Math.min(begin + width, count);
+                const end = Math.min(begin + width * 2, count);
+                let left = begin;
+                let right = middle;
+                for (let index = begin; index < end; index++) {
+                  const cp = work.charge(4);
+                  if (cp) await cp;
+                  if (left < middle) {
+                    if (right === end) {
+                      dst[index] = src[left++]!;
+                      continue;
+                    }
+                    const a = src[left]!;
+                    const b = src[right]!;
+                    let order = 0;
+                    if (simple) {
+                      order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
+                    } else {
+                      const diff = sharedSortKeyNums[a]! - sharedSortKeyNums[b]!;
+                      order = diff === 0 ? 0 : (diff < 0 ? -revScale : revScale);
+                      if (order === 0 && !skipTieFallback) {
+                        order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
+                      }
+                    }
+                    if (order <= 0) {
+                      dst[index] = src[left++]!;
+                      continue;
+                    }
+                  }
+                  dst[index] = src[right++]!;
+                }
+              }
+              const tmp = src;
+              src = dst;
+              dst = tmp;
+            }
+            const outBuf = new Uint8Array(firstChunk.length);
+            let used = 0;
+            for (let i = 0; i < count; i++) {
+              const idx = src[i]!;
+              const s = sharedSortStarts[idx]!;
+              const e = sharedSortEnds[idx]!;
+              for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
+              outBuf[used++] = delimiter;
+            }
+            await output(context, outBuf);
+            return { exitCode: 0 };
+          }
+        }
+        preReadChunks = moreChunks ?? [firstChunk];
+      }
       const checkRecordAsync = async (bytes: Uint8Array): Promise<boolean> => {
         if (records.length && (await compare(records.at(-1)!, bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, bytes) === 0)) {
           if (!parsed.flags.has("C")) await diagnostic(context, new PublicDiagnostic(`disorder at record ${records.length + 1}`));
@@ -1174,7 +1389,10 @@ export function textCommands(): CommandDefinition[] {
           ? checkRecordAsync
           : (bytes: Uint8Array): void => { targetList.push(bytes); };
         try {
-          const complete = await collectSortRecords(input(context, name), delimiter, recordBudget, context.signal, acceptRecord);
+          const src = preReadChunks
+            ? (async function* () { for (const ch of preReadChunks!) yield ch; })()
+            : input(context, name);
+          const complete = await collectSortRecords(src, delimiter, recordBudget, context.signal, acceptRecord);
           if (!complete) return { exitCode: 1 };
         } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
       }
@@ -1186,7 +1404,6 @@ export function textCommands(): CommandDefinition[] {
         estBytes += ordered[i]!.length + 1;
         if (estBytes >= 64 * 1024) { allCounted = false; break; }
       }
-      const outPath = value(parsed, "o");
       if (outPath === undefined && !parsed.flags.has("u") && allCounted) {
         if (estBytes > 0) {
           const outBuf = new Uint8Array(estBytes);

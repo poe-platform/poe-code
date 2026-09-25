@@ -22,7 +22,7 @@ export function deriveEreLimits(bounds: EreExpansionBounds): EreLimits {
 
 export class EreLedger {
   readonly limits: EreLimits;
-  private readonly limitWorkSmi: number;
+  private limitWorkSmi = 0x3fffffff;
   private uPatternBytes = 0;
   private uSubjectBytes = 0;
   private uWork = 0;
@@ -37,7 +37,7 @@ export class EreLedger {
   constructor(bounds: EreExpansionBounds, overrides?: Partial<EreLimits>, prevalidated?: EreLimits) {
     if (prevalidated !== undefined) {
       this.limits = prevalidated;
-      this.limitWorkSmi = prevalidated.work > 0x3fffffff ? 0x3fffffff : prevalidated.work;
+      this.limitWorkSmi = prevalidated.work > 0x3fffffff ? 0x3fffffff : (prevalidated.work | 0);
       return;
     }
     const limits = { ...deriveEreLimits(bounds) };
@@ -52,12 +52,12 @@ export class EreLedger {
       }
     }
     this.limits = Object.freeze(limits);
-    this.limitWorkSmi = limits.work > 0x3fffffff ? 0x3fffffff : limits.work;
+    this.limitWorkSmi = limits.work > 0x3fffffff ? 0x3fffffff : (limits.work | 0);
   }
 
   resetWithLimits(limits: EreLimits): this {
     (this as { limits: EreLimits }).limits = limits;
-    (this as unknown as { limitWorkSmi: number }).limitWorkSmi = limits.work > 0x3fffffff ? 0x3fffffff : limits.work;
+    this.limitWorkSmi = limits.work > 0x3fffffff ? 0x3fffffff : (limits.work | 0);
     this.uPatternBytes = 0;
     this.uSubjectBytes = 0;
     this.uWork = 0;
@@ -100,14 +100,15 @@ export class EreLedger {
   }
 
   private addResource(resource: EreResource, amount: number): void {
+    const amtSmi = amount | 0;
     switch (resource) {
-      case "patternBytes": this.uPatternBytes += amount; break;
-      case "subjectBytes": this.uSubjectBytes += amount; break;
-      case "work": this.uWork += amount; break;
-      case "states": this.uStates += amount; break;
-      case "allocationUnits": this.uAllocationUnits += amount; break;
-      case "captureBytes": this.uCaptureBytes += amount; break;
-      case "captureSlots": this.uCaptureSlots += amount; break;
+      case "patternBytes": this.uPatternBytes = amtSmi === amount && this.uPatternBytes + amtSmi <= 0x3fffffff ? (this.uPatternBytes + amtSmi) | 0 : this.uPatternBytes + amount; break;
+      case "subjectBytes": this.uSubjectBytes = amtSmi === amount && this.uSubjectBytes + amtSmi <= 0x3fffffff ? (this.uSubjectBytes + amtSmi) | 0 : this.uSubjectBytes + amount; break;
+      case "work": this.uWork = amtSmi === amount && this.uWork + amtSmi <= 0x3fffffff ? (this.uWork + amtSmi) | 0 : this.uWork + amount; break;
+      case "states": this.uStates = amtSmi === amount && this.uStates + amtSmi <= 0x3fffffff ? (this.uStates + amtSmi) | 0 : this.uStates + amount; break;
+      case "allocationUnits": this.uAllocationUnits = amtSmi === amount && this.uAllocationUnits + amtSmi <= 0x3fffffff ? (this.uAllocationUnits + amtSmi) | 0 : this.uAllocationUnits + amount; break;
+      case "captureBytes": this.uCaptureBytes = amtSmi === amount && this.uCaptureBytes + amtSmi <= 0x3fffffff ? (this.uCaptureBytes + amtSmi) | 0 : this.uCaptureBytes + amount; break;
+      case "captureSlots": this.uCaptureSlots = amtSmi === amount && this.uCaptureSlots + amtSmi <= 0x3fffffff ? (this.uCaptureSlots + amtSmi) | 0 : this.uCaptureSlots + amount; break;
     }
   }
 
@@ -133,13 +134,14 @@ export class EreLedger {
     if (amount > this.limitWorkSmi - this.uWork && amount > this.limits.work - this.uWork) {
       throw new EreProfileLimitError("work", this.limits.work);
     }
-    this.uWork += amount;
+    const amtSmi = amount | 0;
+    this.uWork = amtSmi === amount && this.uWork + amtSmi <= 0x3fffffff ? (this.uWork + amtSmi) | 0 : this.uWork + amount;
   }
 
   workAllowanceUntilCheckpoint(signal?: AbortSignal): number {
-    const untilLimit = this.limitWorkSmi - this.uWork;
+    const untilLimit = (this.limitWorkSmi - (this.uWork | 0)) | 0;
     const interval = hasYieldCheckpoint(signal) ? 256 : 16384;
-    const untilYield = interval - (this.uWork - this.lastYield);
+    const untilYield = (interval - ((this.uWork | 0) - (this.lastYield | 0))) | 0;
     const min = untilLimit < untilYield ? untilLimit : untilYield;
     return min > 0 ? min : 0;
   }

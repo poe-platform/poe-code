@@ -31,8 +31,14 @@ function exactFiniteNumber(value: Json): number | undefined {
 }
 
 export class Interpreter {
-  private filters = new Map<Ast, { ast: Ast; scope: Interpreter }>();
-  private labels = new Map<symbol, number>();
+  private _filters: Map<Ast, { ast: Ast; scope: Interpreter }> | undefined;
+  private _labels: Map<symbol, number> | undefined;
+  private get filters(): Map<Ast, { ast: Ast; scope: Interpreter }> {
+    return this._filters ??= new Map();
+  }
+  private get labels(): Map<symbol, number> {
+    return this._labels ??= new Map();
+  }
   private labelSequence = { next: 0 };
   private readonly singleResult: [Json] = [null];
   private scratchObj: Record<string, Json> = object();
@@ -41,6 +47,9 @@ export class Interpreter {
   constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
   releaseScratch(): void {
     this.scratchInUse = false;
+  }
+  getScratchKeys(value: Json): readonly string[] | undefined {
+    return value === this.scratchObj ? this.scratchKeys : undefined;
   }
   tryRunSync(ast: Ast, input: Json): Json[] | undefined {
     const savedSteps = this.budget.currentSteps;

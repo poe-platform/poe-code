@@ -4,9 +4,14 @@ import { setImmediate } from "node:timers/promises";
 import { run } from "../run.js";
 import { dump } from "../dump.js";
 import { restore } from "../restore.js";
+import { encodeReplayData } from "../snapshot/replay-data.js";
 import { restoreSandboxArrayIterator } from "./array-iterator.js";
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
-import { deferFunctionProperties, materializeFunctionProperties } from "./object-model.js";
+import {
+  deferFunctionProperties,
+  hasGuestObjectState,
+  materializeFunctionProperties
+} from "./object-model.js";
 import {
   createSandboxClosure,
   measureSandboxData,
@@ -26,6 +31,20 @@ function method(retainedValues?: () => Iterable<SandboxValue>) {
   expect(deferFunctionProperties(value)).toBe(true);
   return value;
 }
+
+it("recognizes reserved function properties as guest state before reflection", () => {
+  const value = method();
+  expect(hasGuestObjectState(value)).toBe(true);
+  materializeFunctionProperties(value);
+  expect(hasGuestObjectState(value)).toBe(true);
+});
+
+it("keeps unobserved class method properties out of capability-only replay", () => {
+  const value = method();
+  expect(() => encodeReplayData(value, { identifyCapability: () => "method" })).toThrow(
+    "Guest function properties and prototype links cannot be serialized."
+  );
+});
 
 it("charges the same default property table before and after reflection materializes it", () => {
   const value = method();

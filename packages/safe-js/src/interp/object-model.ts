@@ -953,7 +953,7 @@ export function hasGuestObjectState(value: object): boolean {
   const intrinsicUnchanged = intrinsicConstructors.get(value);
   if (intrinsicUnchanged !== undefined) return !intrinsicUnchanged();
   if (isLiveCapability(value)) return true;
-  if (functionProperties.has(value)) return true;
+  if (functionProperties.has(value) || hasDeferredFunctionProperties(value)) return true;
   if (prototypes.has(value) && !hasNullObjectPrototype(value)) {
     const prototype = prototypes.get(value);
     if (prototype === undefined || prototype === null || prototype !== defaultPrototypeLinks.get(value)) return true;

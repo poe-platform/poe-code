@@ -260,13 +260,19 @@ export function trimImage(
     b: img.data[2] ?? 0,
     a: img.data[3] ?? 255
   };
+  const refAlpha = ref.a / 255;
+  const refRP = ref.r * refAlpha;
+  const refGP = ref.g * refAlpha;
+  const refBP = ref.b * refAlpha;
 
   const isBg = (x: number, y: number): boolean => {
     const idx = (y * img.width + x) * 4;
-    const dr = Math.abs(img.data[idx]! - ref.r);
-    const dg = Math.abs(img.data[idx + 1]! - ref.g);
-    const db = Math.abs(img.data[idx + 2]! - ref.b);
-    const da = Math.abs(img.data[idx + 3]! - ref.a);
+    const pa = img.data[idx + 3]!;
+    const pAlpha = pa / 255;
+    const dr = Math.abs(img.data[idx]! * pAlpha - refRP);
+    const dg = Math.abs(img.data[idx + 1]! * pAlpha - refGP);
+    const db = Math.abs(img.data[idx + 2]! * pAlpha - refBP);
+    const da = Math.abs(pa - ref.a);
     return dr <= threshold && dg <= threshold && db <= threshold && da <= threshold;
   };
 
@@ -715,13 +721,64 @@ export function compositeImage(
   };
 }
 
+const SRGB_TO_LINEAR_LUT = new Float64Array(256);
+for (let i = 0; i < 256; i++) {
+  const v = i / 255;
+  SRGB_TO_LINEAR_LUT[i] = v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+}
+
+function linearToSrgbByte(v: number): number {
+  if (v <= 0) return 0;
+  if (v >= 1) return 255;
+  const c = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055;
+  return Math.max(0, Math.min(255, Math.round(c * 255)));
+}
+
+function srgbToBwByte(r: number, g: number, b: number): number {
+  if (r === g && g === b) return r;
+  const y =
+    0.2126729 * SRGB_TO_LINEAR_LUT[r]! +
+    0.7151522 * SRGB_TO_LINEAR_LUT[g]! +
+    0.0721750 * SRGB_TO_LINEAR_LUT[b]!;
+  return linearToSrgbByte(y);
+}
+
+function srgbToLab(r: number, g: number, b: number): [number, number, number] {
+  const lr = SRGB_TO_LINEAR_LUT[r]!;
+  const lg = SRGB_TO_LINEAR_LUT[g]!;
+  const lb = SRGB_TO_LINEAR_LUT[b]!;
+  const x = (0.4124564 * lr + 0.3575761 * lg + 0.1804375 * lb) / 0.95047;
+  const y = (0.2126729 * lr + 0.7151522 * lg + 0.0721750 * lb) / 1.0;
+  const z = (0.0193339 * lr + 0.1191920 * lg + 0.9503041 * lb) / 1.08883;
+  const f = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const fx = f(x);
+  const fy = f(y);
+  const fz = f(z);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+function labToSrgb(L: number, a: number, b: number): [number, number, number] {
+  const fy = (Math.max(0, L) + 16) / 116;
+  const fx = a / 500 + fy;
+  const fz = fy - b / 200;
+  const finv = (t: number): number => {
+    const t3 = t * t * t;
+    return t3 > 0.008856 ? t3 : Math.max(0, (t - 16 / 116) / 7.787);
+  };
+  const x = finv(fx) * 0.95047;
+  const y = L <= 0 ? 0 : finv(fy) * 1.0;
+  const z = finv(fz) * 1.08883;
+  const lr = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z;
+  const lg = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
+  const lb = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
+  return [linearToSrgbByte(lr), linearToSrgbByte(lg), linearToSrgbByte(lb)];
+}
+
 export function grayscaleImage(img: RgbaImage): RgbaImage {
   const out = new Uint8Array(img.data.length);
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
-    const luma = Math.round(
-      0.2126 * img.data[idx]! + 0.7152 * img.data[idx + 1]! + 0.0722 * img.data[idx + 2]!
-    );
+    const luma = srgbToBwByte(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
     out[idx] = luma;
     out[idx + 1] = luma;
     out[idx + 2] = luma;
@@ -837,13 +894,14 @@ export function modulateImage(
   }
 ): RgbaImage {
   const out = new Uint8Array(img.data.length);
+  const hueRadOffset = (spec.hue * Math.PI) / 180;
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
-    const [h, s, l] = rgbToHsl(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
-    const nh = h + spec.hue;
-    const ns = Math.max(0, Math.min(1, s * spec.saturation));
-    const nl = Math.max(0, Math.min(1, l * spec.brightness + spec.lightness / 100));
-    const [r, g, b] = hslToRgb(nh, ns, nl);
+    const [L, a, bLab] = srgbToLab(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
+    const C = Math.hypot(a, bLab) * spec.saturation;
+    const hRad = Math.atan2(bLab, a) + hueRadOffset;
+    const nL = L * spec.brightness + spec.lightness;
+    const [r, g, b] = labToSrgb(nL, C * Math.cos(hRad), C * Math.sin(hRad));
     out[idx] = r;
     out[idx + 1] = g;
     out[idx + 2] = b;
@@ -853,15 +911,24 @@ export function modulateImage(
 }
 
 export function tintImage(img: RgbaImage, color: RgbaColor): RgbaImage {
-  const [th, ts] = rgbToHsl(color.r, color.g, color.b);
+  const [, ta, tb] = srgbToLab(color.r, color.g, color.b);
+  const lut = new Uint8Array(256 * 3);
+  for (let i = 0; i < 256; i++) {
+    const [L] = srgbToLab(i, i, i);
+    const d = L / 100.0 - 0.5;
+    const weight = 1.0 - 4.0 * d * d;
+    const [ro, go, bo] = labToSrgb(L, ta * weight, tb * weight);
+    lut[i * 3] = ro;
+    lut[i * 3 + 1] = go;
+    lut[i * 3 + 2] = bo;
+  }
   const out = new Uint8Array(img.data.length);
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
-    const [, , l] = rgbToHsl(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
-    const [r, g, b] = hslToRgb(th, ts, l);
-    out[idx] = r;
-    out[idx + 1] = g;
-    out[idx + 2] = b;
+    const bw = srgbToBwByte(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
+    out[idx] = lut[bw * 3]!;
+    out[idx + 1] = lut[bw * 3 + 1]!;
+    out[idx + 2] = lut[bw * 3 + 2]!;
     out[idx + 3] = img.data[idx + 3]!;
   }
   return { ...img, data: out, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
@@ -909,9 +976,41 @@ export function normalizeImage(
 ): RgbaImage {
   const lowerPct = Math.max(0, Math.min(100, options?.lower ?? 1));
   const upperPct = Math.max(lowerPct, Math.min(100, options?.upper ?? 99));
-  const totalSamples = img.width * img.height * 3;
-  if (totalSamples === 0) return img;
+  const numPixels = img.width * img.height;
+  if (numPixels === 0) return img;
 
+  if (img.channels >= 3 && img.space !== "b-w") {
+    const labs = new Float64Array(numPixels * 3);
+    const sortedL = new Float64Array(numPixels);
+    for (let p = 0; p < numPixels; p++) {
+      const idx = p * 4;
+      const [L, a, b] = srgbToLab(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
+      labs[p * 3] = L;
+      labs[p * 3 + 1] = a;
+      labs[p * 3 + 2] = b;
+      sortedL[p] = L;
+    }
+    sortedL.sort();
+    const lowIdx = Math.min(numPixels - 1, Math.max(0, Math.floor((numPixels * lowerPct) / 100)));
+    const highIdx = Math.min(numPixels - 1, Math.max(lowIdx, Math.floor((numPixels * upperPct) / 100)));
+    const minL = lowerPct <= 0 ? sortedL[0]! : Math.trunc(sortedL[lowIdx]!);
+    const maxL = upperPct >= 100 ? sortedL[numPixels - 1]! : Math.trunc(sortedL[highIdx]!);
+    const range = maxL - minL;
+    if (Math.abs(range) < 2) return img;
+    const out = new Uint8Array(img.data.length);
+    for (let p = 0; p < numPixels; p++) {
+      const idx = p * 4;
+      const L = ((labs[p * 3]! - minL) * 100) / range;
+      const [r, g, b] = labToSrgb(L, labs[p * 3 + 1]!, labs[p * 3 + 2]!);
+      out[idx] = r;
+      out[idx + 1] = g;
+      out[idx + 2] = b;
+      out[idx + 3] = img.data[idx + 3]!;
+    }
+    return { ...img, data: out };
+  }
+
+  const totalSamples = numPixels * 3;
   const hist = new Uint32Array(256);
   let min = 255;
   let max = 0;
@@ -927,7 +1026,7 @@ export function normalizeImage(
 
   let lowBound = min;
   let highBound = max;
-  if (lowerPct > 1 || upperPct < 99) {
+  if (lowerPct > 0 || upperPct < 100) {
     const lowTarget = Math.floor((totalSamples * lowerPct) / 100);
     const highTarget = Math.ceil((totalSamples * upperPct) / 100);
     let cum = 0;
@@ -971,8 +1070,7 @@ export function thresholdImage(
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
     if (grayscale) {
-      const luma =
-        0.2126 * img.data[idx]! + 0.7152 * img.data[idx + 1]! + 0.0722 * img.data[idx + 2]!;
+      const luma = srgbToBwByte(img.data[idx]!, img.data[idx + 1]!, img.data[idx + 2]!);
       const bit = luma >= value ? 255 : 0;
       out[idx] = bit;
       out[idx + 1] = bit;

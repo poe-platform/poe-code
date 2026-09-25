@@ -180,4 +180,34 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(jpgMeta.width).toBe(160);
     expect(jpgMeta.height).toBe(120);
   });
+
+  it("matches macOS /usr/bin/sips slot precedence when combining --resampleWidth/--resampleHeight and -c/--padToHeightWidth (#52)", async () => {
+    const png200x100 = await makeSamplePng(200, 100);
+    const files = new Map<string, Uint8Array>([["/work/in.png", png200x100]]);
+
+    await runSipsCli(
+      ["--resampleWidth", "100", "--resampleHeight", "100", "/work/in.png", "--out", "/work/res.png"],
+      files
+    );
+    const resMeta = await sharp(files.get("/work/res.png")!).metadata();
+    expect(resMeta.width).toBe(100);
+    expect(resMeta.height).toBe(50);
+
+    const png240x160 = await sharp({
+      create: { width: 240, height: 160, channels: 4, background: { r: 40, g: 120, b: 220, alpha: 1 } }
+    })
+      .png()
+      .toBuffer();
+    files.set("/work/blue.png", png240x160);
+    await runSipsCli(
+      ["-Z", "120", "-r", "90", "-c", "80", "60", "--padToHeightWidth", "100", "100", "--padColor", "FF0000", "/work/blue.png", "--out", "/work/pad.png"],
+      files
+    );
+    const padRaw = await sharp(files.get("/work/pad.png")!).raw().toBuffer();
+    // At (50, 5), the rotated 80x120 image was cropped to 80x100 and padded to 100x100, so (50, 5) is blue (40, 120, 220), not red!
+    const topIdx = (5 * 100 + 50) * 4;
+    expect(padRaw[topIdx]).toBe(40);
+    expect(padRaw[topIdx + 1]).toBe(120);
+    expect(padRaw[topIdx + 2]).toBe(220);
+  });
 });

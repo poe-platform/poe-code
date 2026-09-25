@@ -318,6 +318,23 @@ export async function runSipsCli(
   const outLines: string[] = [];
   const errLines: string[] = [];
   let exitCode = 0;
+  // Match macOS /usr/bin/sips slot precedence:
+  // - If multiple crop/pad flags (-c / --padToHeightWidth) are supplied, only the final crop/pad flag applies.
+  // - If both --resampleWidth and --resampleHeight are supplied separately, --resampleWidth takes precedence.
+  const lastCropPadIdx = actions.reduce(
+    (acc, act, idx) => (act.kind === "crop" || act.kind === "pad" ? idx : acc),
+    -1
+  );
+  const hasResampleW = actions.some(act => act.kind === "resampleW");
+  const effectiveActions = actions.filter((act, idx) => {
+    if ((act.kind === "crop" || act.kind === "pad") && idx !== lastCropPadIdx) {
+      return false;
+    }
+    if (act.kind === "resampleH" && hasResampleW) {
+      return false;
+    }
+    return true;
+  });
 
   for (const inPath of inputPaths) {
     const inBytes = files.get(inPath);
@@ -334,7 +351,7 @@ export async function runSipsCli(
       let curH = meta.height;
 
       if (hasMutation) {
-        for (const act of actions) {
+        for (const act of effectiveActions) {
           if (act.kind === "rotate") {
             inst = inst.rotate(act.degrees, { background: padColor });
             meta = await inst.metadata();

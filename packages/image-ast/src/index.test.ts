@@ -600,4 +600,92 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(blurredRgba[8]).toBe(255);
     expect(blurredRgba[12]).toBe(255);
   });
+
+  it("matches libvips on trim() transparent borders, linear-light greyscale()/threshold(), CIE LCh modulate(), CIE Lab tint(), and Lab normalise() (#48, #49, #50, #51)", async () => {
+    // 1. #48: trim() on transparent border with varying hidden RGB bytes
+    const W = 10, H = 10;
+    const dirtyTrans = new Uint8Array(W * H * 4);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        dirtyTrans[i] = x * 25;
+        dirtyTrans[i + 1] = y * 25;
+        dirtyTrans[i + 2] = 200 - x * 15;
+        dirtyTrans[i + 3] = x >= 2 && x <= 7 && y >= 3 && y <= 6 ? 255 : 0;
+      }
+    }
+    const trimmedDirty = await sharp(dirtyTrans, { raw: { width: W, height: H, channels: 4 } })
+      .trim()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(trimmedDirty.info.width).toBe(6);
+    expect(trimmedDirty.info.height).toBe(4);
+
+    // 2. #49: linear-light sRGB -> b-w greyscale() and threshold(128)
+    const colors = new Uint8Array([
+      255, 0, 0, 255,
+      0, 255, 0, 255,
+      0, 0, 255, 255,
+      200, 100, 50, 255
+    ]);
+    const greyRaw = await sharp(colors, { raw: { width: 4, height: 1, channels: 4 } })
+      .greyscale()
+      .removeAlpha()
+      .raw()
+      .toBuffer();
+    expect(greyRaw[0]).toBe(127);
+    expect(greyRaw[1]).toBe(220);
+    expect(greyRaw[2]).toBe(76);
+    expect(greyRaw[3]).toBe(128);
+
+    const threshRaw = await sharp(new Uint8Array([200, 100, 50]), { raw: { width: 1, height: 1, channels: 3 } })
+      .threshold(128)
+      .raw()
+      .toBuffer();
+    expect(threshRaw[0]).toBe(255);
+
+    // 3. #50: CIE LCh modulate() and CIE Lab tint()
+    const modRaw = await sharp(new Uint8Array([255, 0, 0, 255]), { raw: { width: 1, height: 1, channels: 4 } })
+      .modulate({ brightness: 1.2, saturation: 0.8, hue: 90, lightness: 10 })
+      .raw()
+      .toBuffer();
+    expect(Math.abs(modRaw[0]! - 108)).toBeLessThanOrEqual(1);
+    expect(Math.abs(modRaw[1]! - 204)).toBeLessThanOrEqual(1);
+    expect(Math.abs(modRaw[2]! - 47)).toBeLessThanOrEqual(1);
+
+    const tintRaw = await sharp(new Uint8Array([255, 0, 0, 255, 255, 255, 255, 255]), { raw: { width: 2, height: 1, channels: 4 } })
+      .tint({ r: 255, g: 128, b: 64 })
+      .raw()
+      .toBuffer();
+    expect(Math.abs(tintRaw[0]! - 210)).toBeLessThanOrEqual(1);
+    expect(Math.abs(tintRaw[1]! - 91)).toBeLessThanOrEqual(1);
+    expect(Math.abs(tintRaw[2]! - 28)).toBeLessThanOrEqual(1);
+    // Pure white (L*=100) stays pure white (255,255,255) under sharp::Tint quadratic L* weighting
+    expect(tintRaw[4]).toBe(255);
+    expect(tintRaw[5]).toBe(255);
+    expect(tintRaw[6]).toBe(255);
+
+    // 4. #51: normalise() preserves neutral grey in CIE Lab and clips default 1%/99% percentiles
+    const normGrad = new Uint8Array(20 * 10 * 4);
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 20; x++) {
+        const i = (y * 20 + x) * 4;
+        normGrad[i] = Math.round((x / 20) * 255);
+        normGrad[i + 1] = Math.round((y / 10) * 255);
+        normGrad[i + 2] = Math.round(((20 - x + y) / 30) * 255);
+        normGrad[i + 3] = 255;
+      }
+    }
+    // Set pixel (10, 5) to neutral grey [128, 128, 128, 255]
+    const midIdx = (5 * 20 + 10) * 4;
+    normGrad[midIdx] = 128;
+    normGrad[midIdx + 1] = 128;
+    normGrad[midIdx + 2] = 128;
+    const normOut = await sharp(normGrad, { raw: { width: 20, height: 10, channels: 4 } })
+      .normalise()
+      .raw()
+      .toBuffer();
+    expect(Math.abs(normOut[midIdx]! - normOut[midIdx + 1]!)).toBeLessThanOrEqual(1);
+    expect(Math.abs(normOut[midIdx + 1]! - normOut[midIdx + 2]!)).toBeLessThanOrEqual(1);
+  });
 });

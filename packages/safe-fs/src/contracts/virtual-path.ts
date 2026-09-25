@@ -1,8 +1,27 @@
 import { FsError } from "./errors.js";
 
-export function validatePath(path: string): void {
+export const MAX_PATH_BYTES = 65_536;
+export const MAX_PATH_COMPONENTS = 256;
+
+export function validatePath(path: string, maxComponents = MAX_PATH_COMPONENTS): void {
   if (typeof path !== "string" || path.includes("\0")) {
     throw new FsError("EINVAL", { syscall: "resolve", message: "paths must be strings without NUL bytes" });
+  }
+  if (path.length > MAX_PATH_BYTES) {
+    throw new FsError("ENAMETOOLONG", { syscall: "resolve", path });
+  }
+  const limit = Math.min(maxComponents, MAX_PATH_COMPONENTS);
+  let components = 0;
+  let inComponent = false;
+  for (let i = 0; i < path.length; i++) {
+    if (path.charCodeAt(i) === 47) {
+      inComponent = false;
+    } else if (!inComponent) {
+      inComponent = true;
+      if (++components > limit) {
+        throw new FsError("ENAMETOOLONG", { syscall: "resolve", path });
+      }
+    }
   }
 }
 

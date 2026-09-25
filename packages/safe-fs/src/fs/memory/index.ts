@@ -378,7 +378,17 @@ export class MemoryFileSystem implements FileSystem {
     // Bound all component arrays allocated by this resolution, including cycles.
     let remainingPathUnits = 65_536 - path.length;
     if (remainingPathUnits < 0) this.fail("ENAMETOOLONG", syscall, path);
+    let initialComponents = 0;
+    let inComp = false;
+    for (let i = 0; i < path.length; i++) {
+      if (path.charCodeAt(i) === 47) inComp = false;
+      else if (!inComp) {
+        inComp = true;
+        if (++initialComponents > 256) this.fail("ENAMETOOLONG", syscall, path);
+      }
+    }
     const pending = path.split("/").filter(Boolean);
+    let remainingComponents = 256 - pending.length;
     if (path.endsWith("/")) pending.push("");
     const stack: { node: MemoryNode; name: string }[] = [{ node: this.root, name: "" }];
     let links = 0;
@@ -411,6 +421,8 @@ export class MemoryFileSystem implements FileSystem {
         if (node.target.length > remainingPathUnits) this.fail("ENAMETOOLONG", syscall, path);
         remainingPathUnits -= node.target.length;
         const target = node.target.split("/").filter(Boolean);
+        if (target.length > remainingComponents) this.fail("ENAMETOOLONG", syscall, path);
+        remainingComponents -= target.length;
         if (node.target.endsWith("/")) target.push("");
         if (options.resizeCreate !== undefined && target.at(-1) === "" && pending[0] === "") target.pop();
         pending.unshift(...target);
@@ -1339,6 +1351,7 @@ export function isCleanAbsolutePath(path: string): boolean {
   const len = path.length;
   if (len <= 1 || len > 65536 || path.charCodeAt(0) !== 47 || path.charCodeAt(len - 1) === 47) return false;
   let segStart = 1;
+  let components = 1;
   for (let i = 1; i < len; i++) {
     const c = path.charCodeAt(i);
     if (c === 0) return false;
@@ -1347,6 +1360,7 @@ export function isCleanAbsolutePath(path: string): boolean {
       if (segLen === 0) return false;
       if (segLen === 1 && path.charCodeAt(segStart) === 46) return false;
       if (segLen === 2 && path.charCodeAt(segStart) === 46 && path.charCodeAt(segStart + 1) === 46) return false;
+      if (++components > 256) return false;
       segStart = i + 1;
     }
   }

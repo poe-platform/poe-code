@@ -1,18 +1,22 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
-import { validatePath } from "../../contracts/virtual-path.js";
+import { MAX_PATH_COMPONENTS, validatePath } from "../../contracts/virtual-path.js";
 import { capturePathNamespace, pathNamespace } from "../path-namespace.js";
 import { isCleanAbsolutePath, tryResolveMemoryDevicePath } from "../memory/index.js";
 
 export const nullPath = "/dev/null";
 export const deviceDirectory = "/dev";
 
+function isNullParts(parts: readonly string[]): boolean {
+  return parts.length === 2 && parts[0] === "dev" && parts[1] === "null";
+}
+
 export function lexicalDevicePath(path: string): string {
   validatePath(path);
   if (isCleanAbsolutePath(path) && !path.startsWith("/dev/null/")) return path;
   const parts: string[] = [];
   for (const component of path.split("/")) {
-    if (`/${parts.join("/")}` === nullPath) throw new FsError("ENOTDIR", { path });
+    if (isNullParts(parts)) throw new FsError("ENOTDIR", { path });
     if (component === "..") parts.pop();
     else if (component && component !== ".") parts.push(component);
   }
@@ -27,6 +31,8 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
     return result;
   };
   const pending = components(path);
+  let remainingComponents = MAX_PATH_COMPONENTS - pending.length;
+  if (remainingComponents < 0) throw new FsError("ENAMETOOLONG", { path });
   const parts: string[] = [];
   let links = 0;
   let expanded = path.length;
@@ -84,6 +90,8 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
         if (target.startsWith("/")) parts.splice(0, parts.length, ...(boundary ?? "/").split("/").filter(Boolean));
         const targetParts = components(target);
         if (targetParts.at(-1) === "" && pending[0] === "") targetParts.pop();
+        if (targetParts.length > remainingComponents) throw new FsError("ENAMETOOLONG", { path });
+        remainingComponents -= targetParts.length;
         pending.unshift(...targetParts);
         continue;
       }
@@ -125,26 +133,33 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
   const aliases = typeof lstat === "function";
   if (!aliases && lexical !== nullPath && lexical !== deviceDirectory && lexical !== "/") return lexical;
   const pending = path.split("/");
+  let remainingComponents = MAX_PATH_COMPONENTS - pending.filter(Boolean).length;
+  if (remainingComponents < 0) throw new FsError("ENAMETOOLONG", { path });
   const parts: string[] = [];
   let links = 0;
   let expanded = path.length;
   let absolute = path.startsWith("/");
   let traversalFailure: FsError | undefined;
+  let failedDepth = Infinity;
   let boundary: string | undefined;
   while (pending.length) {
     options.signal?.throwIfAborted();
-    if (`/${parts.join("/")}` === nullPath) throw new FsError("ENOTDIR", { path });
+    if (isNullParts(parts)) throw new FsError("ENOTDIR", { path });
     const component = pending.shift()!;
     if (!component || component === ".") continue;
     if (component === "..") {
       if (boundary !== undefined && `/${parts.join("/")}` === boundary) throw new FsError("EACCES", { path });
       parts.pop();
+      if (parts.length < failedDepth) {
+        traversalFailure = undefined;
+        failedDepth = Infinity;
+      }
       continue;
     }
     const candidate = `/${[...parts, component].join("/")}`;
     const selected = namespace === undefined ? undefined : candidate === deviceDirectory || candidate === nullPath ? "/" : namespace(candidate);
     if (boundary !== undefined && selected !== boundary) throw new FsError("EACCES", { path });
-    if (candidate !== deviceDirectory && candidate !== nullPath && ((followFinal && aliases) || pending.length)) {
+    if (parts.length < failedDepth && candidate !== deviceDirectory && candidate !== nullPath && ((followFinal && aliases) || pending.length)) {
       const lookup = absolute ? candidate : candidate.slice(1);
       let stat: FileStat | undefined;
       try {
@@ -154,7 +169,10 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
         options.signal?.throwIfAborted();
         if (isFsError(error, "ENOTSUP") && links === 0 && lexical !== nullPath && lexical !== deviceDirectory && lexical !== "/") return lexical;
         if (!isFsError(error, "ENOENT")) throw error;
-        if (pending.length) traversalFailure ??= error;
+        if (pending.length) {
+          traversalFailure ??= error;
+          failedDepth = Math.min(failedDepth, parts.length + 1);
+        }
       }
       options.signal?.throwIfAborted();
       if (stat?.type === "symlink") {
@@ -168,14 +186,23 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
         validatePath(target);
         expanded += target.length;
         if (expanded > 65536) throw new FsError("ENAMETOOLONG", { path });
+        const targetSplit = target.split("/");
+        const nonEmptyCount = targetSplit.filter(Boolean).length;
+        if (nonEmptyCount > remainingComponents) throw new FsError("ENAMETOOLONG", { path });
+        remainingComponents -= nonEmptyCount;
         if (target.startsWith("/")) {
           parts.splice(0, parts.length, ...(boundary ?? "/").split("/").filter(Boolean));
           absolute = true;
+          traversalFailure = undefined;
+          failedDepth = Infinity;
         }
-        pending.unshift(...target.split("/"));
+        pending.unshift(...targetSplit);
         continue;
       }
-      if (stat && pending.length && stat.type !== "directory") traversalFailure ??= new FsError("ENOTDIR", { path });
+      if (stat && pending.length && stat.type !== "directory") {
+        traversalFailure ??= new FsError("ENOTDIR", { path });
+        failedDepth = Math.min(failedDepth, parts.length + 1);
+      }
     }
     parts.push(component);
   }

@@ -615,3 +615,18 @@ for (const reason of [null, false, 0, "", NaN]) {
     assert.equal(closes, 1);
   });
 }
+
+test("Worker profile bounds guest pathname components before default device filesystem resolution (#606)", async context => {
+  const fs = new MemoryFileSystem();
+  const lstat = context.mock.method(fs, "lstat");
+  const { createStandardCommands } = await import("../../src/commands/index.js");
+  const shell = new Shell({ fs, commands: new CommandRegistry(createStandardCommands()), limits: cloudflareWorkerLimits });
+  context.after(() => shell.dispose());
+  const start = Date.now();
+  const result = await shell.exec('x=a/; for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14; do x="$x$x"; done; cat "/$x"');
+  const elapsed = Date.now() - start;
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /name too long/i);
+  assert.equal(lstat.mock.callCount(), 0);
+  assert.ok(elapsed < 500, `Expected fast rejection before path resolution, took ${elapsed}ms`);
+});

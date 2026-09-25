@@ -1,12 +1,13 @@
 import type { FileStaging, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError } from "../contracts/errors.js";
+import { validatePath } from "../contracts/virtual-path.js";
 import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 
-const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined }>();
+const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
 const operations = new Set<keyof FileSystem>([
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "confineExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
@@ -16,9 +17,10 @@ const operations = new Set<keyof FileSystem>([
 ]);
 
 export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge,
-  options: { readonly preserveDescriptorWriteReceipt?: boolean; readonly creationMask?: number } = {}): FileSystem {
+  options: { readonly preserveDescriptorWriteReceipt?: boolean; readonly creationMask?: number; readonly maxPathComponents?: number } = {}): FileSystem {
   const original = originals.get(filesystem)?.filesystem ?? filesystem;
   const creationMask = options.creationMask ?? originals.get(filesystem)?.creationMask;
+  const maxPathComponents = options.maxPathComponents ?? originals.get(filesystem)?.maxPathComponents;
   if (creationMask !== undefined && (!Number.isInteger(creationMask) || creationMask < 0 || creationMask > 0o777)) throw new RangeError("creationMask must be a permission mask between 0 and 0777");
   const creationOptions = <Options extends FsOptions & { readonly mode?: number }>(settings: Options, directory = false): Options => {
     // Explicit directory modes (mkdir -m) are independent of the shell mask.
@@ -177,6 +179,9 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         if (operations.has(property as keyof FileSystem)) {
           const options = args.at(-1);
           admit(options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
+          if (typeof args[0] === "string") validatePath(args[0], maxPathComponents);
+          if (["copyFile", "rename", "link", "compareEntry"].includes(String(property)) && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
+          if (property === "symlink" && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
         }
         if (["writeFile", "appendFile", "writeStream", "mkdir"].includes(String(property))) {
           const index = property === "mkdir" ? 1 : 2;
@@ -250,7 +255,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return scoped;
     },
   });
-  originals.set(view, { filesystem: original, signal, cleanupCharge, creationMask });
+  originals.set(view, { filesystem: original, signal, cleanupCharge, creationMask, maxPathComponents });
   registerEntryView(view, async (path, options) => {
     assertOpen(options);
     return { filesystem: original, path };

@@ -1837,7 +1837,7 @@ export class Runtime {
 
   get fs(): FileSystem {
     if (!this.#fs) {
-      this.#fs = scopeFileSystem(this.#rawFs, () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation());
+      this.#fs = scopeFileSystem(this.#rawFs, () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation(), { maxPathComponents: this.budget.limits.maxPathComponents });
       runtimeFileSystems.set(this.#fs, this.sourceFs);
       runtimeBackingFileSystems.set(this.#fs, this.backingFs);
     }
@@ -4955,7 +4955,7 @@ export class Runtime {
         return io;
       }
     }
-    const resourceFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true });
+    const resourceFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathComponents });
     const inputDescriptor = io.descriptors.get(0);
     const outputDescriptor = io.descriptors.get(1);
     const errorDescriptor = io.descriptors.get(2);
@@ -5519,7 +5519,7 @@ export class Runtime {
     let contextFs: FileSystem | undefined;
     const getContextFs = (): FileSystem => {
       if (!contextFs) {
-        contextFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), getScopedSignal(), () => this.budget.fileSystemCleanupOperation());
+        contextFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), getScopedSignal(), () => this.budget.fileSystemCleanupOperation(), { maxPathComponents: this.budget.limits.maxPathComponents });
         runtimeFileSystems.set(contextFs, this.sourceFs);
         runtimeBackingFileSystems.set(contextFs, this.backingFs);
       }

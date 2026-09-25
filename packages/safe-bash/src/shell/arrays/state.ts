@@ -32,7 +32,55 @@ const guardedMutationCharge = { generation: true, version: true, epoch: true, wo
 const unguardedMutationCharge = { generation: false, version: false, epoch: true, work: 5 } as const;
 const guestMutationCharge = { epoch: true, work: 5 } as const;
 const SHARED_MUTATION_TICKETS = { generation: 0, version: 0, epoch: 0 };
+const sharedMonitorDescriptor: PropertyDescriptor = { value: undefined, writable: true, configurable: true };
 type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
+
+class ArraySessionImpl implements Session {
+  declare readonly values: ValueArena;
+  declare readonly ledger: ArrayLedger;
+  declare readonly internal: ArrayLedger;
+  declare readonly scope: InvocationScope;
+  declare firstMonitor: StateMonitor | undefined;
+  declare monitors: Set<StateMonitor> | undefined;
+  declare owner: ArrayOwner | undefined;
+  declare ownerHeaderCharged: boolean;
+  declare guestOwner: ArrayOwner | undefined;
+
+  constructor(
+    values: ValueArena,
+    ledger: ArrayLedger,
+    internal: ArrayLedger,
+    scope: InvocationScope,
+  ) {
+    this.values = values;
+    this.ledger = ledger;
+    this.internal = internal;
+    this.scope = scope;
+    this.firstMonitor = undefined;
+  }
+
+  closeSession(): void | Promise<void> {
+    if (this.monitors) {
+      for (const owned of [...this.monitors]) owned.closeValues();
+      this.monitors.clear();
+    } else if (this.firstMonitor) {
+      const first = this.firstMonitor;
+      this.firstMonitor = undefined;
+      first.closeValues();
+    }
+    if (this.owner) {
+      const closed = this.owner.close();
+      if (!isSyncResolved(closed)) return closed.finally(() => this.values.close());
+    }
+    this.values.close();
+  }
+}
+Object.assign(ArraySessionImpl.prototype, {
+  monitors: undefined,
+  owner: undefined,
+  ownerHeaderCharged: false,
+  guestOwner: undefined,
+});
 
 function createSession(
   budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } },
@@ -41,33 +89,16 @@ function createSession(
   while (scope.parent) scope = scope.parent;
   const ledger = new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields);
   const values = budget.values ?? new ValueArena(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields, () => scope.assertOpen());
-  const session: Session = {
+  const session = new ArraySessionImpl(
     values,
     ledger,
-    internal: ledger.internal(budget.limits.maxCommands ?? 10_000),
+    ledger.internal(budget.limits.maxCommands ?? 10_000),
     scope,
-    firstMonitor: undefined,
-    monitors: undefined,
-    owner: undefined,
-    ownerHeaderCharged: false,
-    guestOwner: undefined,
-  };
-  scope.registerFinalizer(() => {
-    if (session.monitors) {
-      for (const owned of [...session.monitors]) owned.closeValues();
-      session.monitors.clear();
-    } else if (session.firstMonitor) {
-      const first = session.firstMonitor;
-      session.firstMonitor = undefined;
-      first.closeValues();
-    }
-    if (session.owner) {
-      const closed = session.owner.close();
-      if (!isSyncResolved(closed)) return closed.finally(() => values.close());
-    }
-    values.close();
-  });
-  if (Object.isExtensible(budget)) {
+  );
+  scope.setArraySession(session);
+  if ("_arraySession" in budget) {
+    (budget as { _arraySession?: Session })._arraySession = session;
+  } else if (Object.isExtensible(budget)) {
     (budget as unknown as Record<symbol, Session>)[sessionSymbol] = session;
   } else {
     fallbackSessions.set(budget, session);
@@ -78,7 +109,10 @@ function createSession(
 export function trackState(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
   const existing = stateMonitor(state);
   if (existing) return existing.proxy;
-  const session = (budget as unknown as Record<symbol, Session | undefined>)[sessionSymbol] ?? fallbackSessions.get(budget) ?? createSession(budget, scope);
+  const session = (budget as { _arraySession?: Session })._arraySession
+    ?? (budget as unknown as Record<symbol, Session | undefined>)[sessionSymbol]
+    ?? fallbackSessions.get(budget)
+    ?? createSession(budget, scope);
   return new StateMonitor(state, session).proxy;
 }
 
@@ -134,34 +168,20 @@ export class StateMonitor {
     this.raw = raw;
     this.session = session;
     this.values = source ? source.values.clone() : session.values.createStore();
-    this._positionals = undefined;
-    this.store = undefined;
-    this.lazyPipeStatus = source?.lazyPipeStatus;
-    this._lazyStoreView = undefined;
-    this.epoch = 0;
-    this._publication = false;
-    this._wrapped = undefined;
     this._variablesProxy = undefined;
-    this._functionsProxy = undefined;
-    this._exportedProxy = undefined;
-    this._positionalProxy = undefined;
-    this._localsProxy = undefined;
     this._wrapperCount = 1;
-    this._enrollment = undefined;
-    this._internalEnrollment = undefined;
-    this.snapshotOwner = undefined;
-    this._restorations = undefined;
-    this._freeRestorations = undefined;
-    this._overlays = undefined;
-    this._positionalRevision = undefined;
-    this._getoptsInput = undefined;
+    if (source?.lazyPipeStatus !== undefined) {
+      this.lazyPipeStatus = source.lazyPipeStatus;
+    }
     if (source && source._positionals) {
       try { this._positionals = source._positionals.clone(); }
       catch (error) { this.values.close(); throw error; }
     }
     this.proxy = new Proxy(raw, new StateProxyHandler(this, "state", false)) as State;
     if (Object.isExtensible(raw)) {
-      Object.defineProperty(raw, monitorSymbol, { value: this, writable: true, configurable: true });
+      sharedMonitorDescriptor.value = this;
+      Object.defineProperty(raw, monitorSymbol, sharedMonitorDescriptor);
+      sharedMonitorDescriptor.value = undefined;
     } else {
       rawMonitors.set(raw, this);
     }
@@ -182,17 +202,21 @@ export class StateMonitor {
   closeValues(): void {
     this.values.close();
     this._positionals?.close();
-    this.lazyPipeStatus = undefined;
-    this.invalidateGetoptsInput();
+    if (this.lazyPipeStatus !== undefined) this.lazyPipeStatus = undefined;
+    if (this._getoptsInput) this.invalidateGetoptsInput();
     if (this.store) {
       for (const [name] of this.store.bindings) {
         void this.store.remove(name, { generation: 0, version: 0, epoch: 0 });
       }
     }
-    this._internalEnrollment?.release();
-    this._internalEnrollment = undefined;
-    this._enrollment?.release();
-    this._enrollment = undefined;
+    if (this._internalEnrollment) {
+      this._internalEnrollment.release();
+      this._internalEnrollment = undefined;
+    }
+    if (this._enrollment) {
+      this._enrollment.release();
+      this._enrollment = undefined;
+    }
     if (this.snapshotOwner) {
       void this.snapshotOwner.close();
       this.snapshotOwner = undefined;
@@ -504,6 +528,27 @@ export class StateMonitor {
     return proxy;
   }
 }
+Object.assign(StateMonitor.prototype, {
+  _positionals: undefined,
+  store: undefined,
+  lazyPipeStatus: undefined,
+  _lazyStoreView: undefined,
+  epoch: 0,
+  _publication: false,
+  _wrapped: undefined,
+  _functionsProxy: undefined,
+  _exportedProxy: undefined,
+  _positionalProxy: undefined,
+  _localsProxy: undefined,
+  _enrollment: undefined,
+  _internalEnrollment: undefined,
+  snapshotOwner: undefined,
+  _restorations: undefined,
+  _freeRestorations: undefined,
+  _overlays: undefined,
+  _positionalRevision: undefined,
+  _getoptsInput: undefined,
+});
 
 class LazyPipeStatusStoreView {
   constructor(private readonly monitor: StateMonitor) {}

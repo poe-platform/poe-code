@@ -50,7 +50,7 @@ const grepBatchSlices: GrepLine[][] = Array.from({ length: 129 }, (_, k) => {
 });
 const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
 trustedInputRows.add(EMPTY_GREP_ROWS);
-const sharedGrepOutBuffer = new Uint8Array(16 * 1024);
+const sharedGrepOutBuffer = new Uint8Array(64 * 1024);
 let sharedGrepOutInUse = false;
 const NEWLINE_BYTES = new Uint8Array([10]);
 const NUL_BYTES = new Uint8Array([0]);
@@ -376,11 +376,12 @@ inspect the resulting state before repeating the action.
       const ownsSharedOut = !sharedGrepOutInUse;
       if (ownsSharedOut) sharedGrepOutInUse = true;
       let outBuffer: Uint8Array | undefined;
+      let outStart = 0;
       let outUsed = 0;
       const flushOut = async () => {
-        if (!outBuffer || outUsed === 0) return;
-        const view = outBuffer.slice(0, outUsed);
-        outUsed = 0;
+        if (!outBuffer || outUsed === outStart) return;
+        const view = outBuffer.subarray(outStart, outUsed);
+        outStart = outUsed;
         await output(context, view);
       };
       const writeOut = async (chunk: string | Uint8Array) => {
@@ -391,9 +392,12 @@ inspect the resulting state before repeating the action.
           await output(context, bytes);
           return;
         }
-        outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(16 * 1024);
+        outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
         if (outUsed + bytes.length > outBuffer.length) {
           await flushOut();
+          outBuffer = new Uint8Array(64 * 1024);
+          outStart = 0;
+          outUsed = 0;
         }
         outBuffer.set(bytes, outUsed);
         outUsed += bytes.length;
@@ -500,7 +504,7 @@ inspect the resulting state before repeating the action.
                     const lStart = line.start;
                     const lEnd = line.searchEnd;
                     const lLen = lEnd - lStart;
-                    outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(16 * 1024);
+                    outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
                     if (outUsed + lLen + 1 <= outBuffer.length) {
                       const c = line.chunk;
                       let dst = outUsed;
@@ -519,7 +523,7 @@ inspect the resulting state before repeating the action.
               }
               if (count >= maxCount && remainingAfter === 0) return false;
             }
-            if (endOfChunk || lineBuffered || outUsed >= 8192) await flushOut();
+            if (endOfChunk || lineBuffered || outUsed - outStart >= 8192) await flushOut();
             return true;
           };
           if (maxCount > 0) await forEachGrepLineBatch(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches, (batch, endOfChunk) => {
@@ -548,7 +552,7 @@ inspect the resulting state before repeating the action.
                 const lStart = line.start;
                 const lEnd = line.searchEnd;
                 const lLen = lEnd - lStart;
-                outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(16 * 1024);
+                outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
                 if (outUsed + lLen + 1 <= outBuffer.length) {
                   count++;
                   anySelected = true;
@@ -565,7 +569,7 @@ inspect the resulting state before repeating the action.
               nextOffset = byteOffset;
               return processBatchSlow(batch, endOfChunk, undefined, index, results);
             }
-            if ((endOfChunk || outUsed >= 8192) && outUsed > 0) {
+            if ((endOfChunk || outUsed - outStart >= 8192) && outUsed > outStart) {
               return flushOut().then(() => true);
             }
             return true;

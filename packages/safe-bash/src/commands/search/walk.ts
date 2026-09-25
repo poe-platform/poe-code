@@ -166,7 +166,162 @@ export class Walker {
     return this.args.hidden || !name.startsWith(".");
   }
   private readonly reusableTarget: FileTarget = { path: "", label: "", explicit: false, recursive: true, canonicalPath: undefined };
-  private async walkDirectory(path: string, label: string, depth: number, ancestors: Map<string, string>, rules: readonly IgnoreRule[], repository: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): Promise<boolean> {
+  private walkDirectory(path: string, label: string, depth: number, ancestors: Map<string, string>, rules: readonly IgnoreRule[], repository: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): boolean | Promise<boolean> {
+    if (depth >= this.args.maxDepth) return true;
+    const backing = getRuntimeBackingFileSystem(this.context.fs);
+    const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");
+    if (uniformNonDevPath && this.globs.length === 0 && rules.length === 0 && this.typeGlobs.length === 0 && !Number.isFinite(this.args.maxFileSize)) {
+      if (!this.uniformDirAdmitted) {
+        assertCommandRequirements(this.context, searchRequirements, ["directory"]);
+        this.uniformDirAdmitted = true;
+      } else {
+        this.context.signal.throwIfAborted();
+      }
+      const canTryMemDir = this.uniformCanonicalAdmitted ??= (this.context.fs.capabilities.realpath !== false && backing.capabilities.realpath !== false && (assertCommandRequirements(this.context, searchRequirements, ["canonical"]), true));
+      const memDirEntries = canTryMemDir ? tryGetMemoryDirectoryEntryNamesSync(backing, path) : undefined;
+      if (
+        memDirEntries !== undefined &&
+        !ancestors.has(path) &&
+        (this.uniformReaddirAdmitted ??= (this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false)) &&
+        memDirEntries.size <= this.limits.maxFiles - this.limits.files &&
+        (!this.args.ignore || (!memDirEntries.has(".git") && !memDirEntries.has(".gitignore") && !memDirEntries.has(".ignore") && !memDirEntries.has(".rgignore")))
+      ) {
+        if (this.args.ignore && !this.uniformIgnoreAdmitted) {
+          assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
+          this.uniformIgnoreAdmitted = true;
+        }
+        let isSorted = true;
+        let hasFollowedSymlink = false;
+        let prevKey = "";
+        for (const [k, v] of memDirEntries) {
+          if (v.type === "symlink" && this.args.follow) { hasFollowedSymlink = true; break; }
+          if (prevKey > k) isSorted = false;
+          prevKey = k;
+        }
+        if (isSorted && !hasFollowedSymlink) {
+          ancestors.set(path, label || ".");
+          const pathPrefix = path.endsWith("/") ? path : `${path}/`;
+          const labelPrefix = label ? (label.endsWith("/") ? label : `${label}/`) : "";
+          const allowHidden = this.args.hidden;
+          let handedOff = false;
+          let entryIdx = 0;
+          try {
+            for (const [entryName, entryMeta] of memDirEntries) {
+              const entryType = entryMeta.type;
+              const tickPending = this.limits.tick();
+              if (tickPending) {
+                handedOff = true;
+                return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx, tickPending, true, onTarget);
+              }
+              if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+              if (entryType !== "symlink" && (allowHidden || !entryName.startsWith("."))) {
+                const child = `${pathPrefix}${entryName}`;
+                const display = labelPrefix ? `${labelPrefix}${entryName}` : entryName;
+                try {
+                  if (entryType === "directory") {
+                    const sub = this.walkDirectory(child, display, depth + 1, ancestors, rules, repository, onTarget);
+                    if (sub instanceof Promise) {
+                      handedOff = true;
+                      return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, sub, false, onTarget);
+                    }
+                    if (!sub) return false;
+                  } else if (entryType === "file") {
+                    const t = this.reusableTarget;
+                    t.path = child;
+                    t.label = display;
+                    t.explicit = false;
+                    t.recursive = true;
+                    t.canonicalPath = child;
+                    const res = onTarget(t);
+                    if (res instanceof Promise) {
+                      handedOff = true;
+                      return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, res, false, onTarget);
+                    }
+                    if (!res) return false;
+                  }
+                } catch (error) {
+                  this.context.signal.throwIfAborted();
+                  if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+                  handedOff = true;
+                  return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, this.report(error).then(() => true), false, onTarget);
+                }
+              }
+              entryIdx++;
+            }
+            return true;
+          } finally {
+            if (!handedOff) ancestors.delete(path);
+          }
+        }
+      }
+    }
+    return this.walkDirectoryAsync(path, label, depth, ancestors, rules, repository, onTarget);
+  }
+  private async finishFastMemDirectoryAsync(
+    path: string,
+    pathPrefix: string,
+    labelPrefix: string,
+    depth: number,
+    ancestors: Map<string, string>,
+    rules: readonly IgnoreRule[],
+    repository: boolean,
+    allowHidden: boolean,
+    memDirEntries: ReadonlyMap<string, { readonly type: FileStat["type"] }>,
+    startIdx: number,
+    pending: Promise<void | boolean>,
+    pendingIsTick: boolean,
+    onTarget: (target: FileTarget) => boolean | Promise<boolean>,
+  ): Promise<boolean> {
+    try {
+      if (!pendingIsTick) {
+        try {
+          if (!(await pending)) return false;
+        } catch (error) {
+          this.context.signal.throwIfAborted();
+          if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+          await this.report(error);
+        }
+      }
+      let idx = 0;
+      for (const [entryName, entryMeta] of memDirEntries) {
+        if (idx < startIdx) { idx++; continue; }
+        if (idx === startIdx && pendingIsTick) {
+          await pending;
+        } else {
+          const tickPending = this.limits.tick();
+          if (tickPending) await tickPending;
+        }
+        idx++;
+        if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
+        const entryType = entryMeta.type;
+        if (entryType === "symlink" || (!allowHidden && entryName.startsWith("."))) continue;
+        const child = `${pathPrefix}${entryName}`;
+        const display = labelPrefix ? `${labelPrefix}${entryName}` : entryName;
+        try {
+          if (entryType === "directory") {
+            if (!(await this.walkDirectory(child, display, depth + 1, ancestors, rules, repository, onTarget))) return false;
+          } else if (entryType === "file") {
+            const t = this.reusableTarget;
+            t.path = child;
+            t.label = display;
+            t.explicit = false;
+            t.recursive = true;
+            t.canonicalPath = child;
+            const res = onTarget(t);
+            if (res instanceof Promise ? !(await res) : !res) return false;
+          }
+        } catch (error) {
+          this.context.signal.throwIfAborted();
+          if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+          await this.report(error);
+        }
+      }
+      return true;
+    } finally {
+      ancestors.delete(path);
+    }
+  }
+  private async walkDirectoryAsync(path: string, label: string, depth: number, ancestors: Map<string, string>, rules: readonly IgnoreRule[], repository: boolean, onTarget: (target: FileTarget) => boolean | Promise<boolean>): Promise<boolean> {
     if (depth >= this.args.maxDepth) return true;
     const backing = getRuntimeBackingFileSystem(this.context.fs);
     const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");

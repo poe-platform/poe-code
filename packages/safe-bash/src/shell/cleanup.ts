@@ -1,5 +1,5 @@
 import type { InvocationCleanup } from "../contracts/command.js";
-import { createManagedControlController, type ManagedControlController } from "../fs/creation-mask.js";
+import { abortManagedController, registerManagedAbortSignal } from "../fs/creation-mask.js";
 
 export const invocationScope = Symbol("invocation cleanup scope");
 const invocationClosedError = new Error("Invocation is closed");
@@ -12,16 +12,20 @@ function isSyncResolved(promise: unknown): boolean {
 
 export class InvocationScope {
   declare readonly callerSignal: AbortSignal | undefined;
-  declare readonly failures: unknown[];
+  declare private _failures: unknown[] | undefined;
   declare readonly parent: InvocationScope | undefined;
   declare private _children: Set<InvocationScope> | undefined;
   declare private _singleCallback: InvocationCleanup | undefined;
   declare private _regCount: number;
   declare private _callbacks: Map<number, InvocationCleanup> | undefined;
   declare private _finalizers: (() => void | Promise<void>)[] | undefined;
+  declare private _owner: { closeAdmission(): void } | undefined;
+  declare private _activeBudget: { abort(reason: unknown): void } | undefined;
+  declare private _activeStdin: { close(): unknown } | undefined;
+  declare private _arraySession: { closeSession(): void | Promise<void> } | undefined;
   declare private _activeWork: number;
   declare private _workWaiters: (() => void)[] | undefined;
-  declare private _controller: ManagedControlController | undefined;
+  declare private _controller: AbortController | undefined;
   declare private _closed: boolean;
   declare private _drain: Promise<void> | undefined;
   declare private _closingSync: boolean;
@@ -30,31 +34,95 @@ export class InvocationScope {
 
   constructor(
     callerSignal?: AbortSignal,
-    failures: unknown[] = [],
+    failures?: unknown[],
     parent?: InvocationScope,
   ) {
     this.callerSignal = callerSignal;
-    this.failures = failures;
-    this.parent = parent;
-    this._children = undefined;
-    this._singleCallback = undefined;
-    this._regCount = 0;
-    this._callbacks = undefined;
-    this._finalizers = undefined;
-    this._activeWork = 0;
-    this._workWaiters = undefined;
-    this._controller = undefined;
+    this._owner = undefined;
+    this._activeBudget = undefined;
+    this._arraySession = undefined;
     this._closed = false;
     this._drain = undefined;
-    this._closingSync = false;
-    this._reentrantResolve = undefined;
-    this._reentrantReject = undefined;
+    if (failures !== undefined) this._failures = failures;
+    if (parent !== undefined) this.parent = parent;
+  }
+
+  get failures(): unknown[] {
+    return this._failures ??= [];
+  }
+
+  get hasFailures(): boolean {
+    return this._failures !== undefined && this._failures.length > 0;
+  }
+
+  setOwner(owner: { closeAdmission(): void }): void {
+    this.assertOpen();
+    this._owner = owner;
+  }
+
+  setActiveBudget(budget: { abort(reason: unknown): void }): void {
+    if (this._closed) {
+      budget.abort(invocationClosedError);
+      return;
+    }
+    this._activeBudget = budget;
+  }
+
+  clearActiveBudget(): void {
+    this._activeBudget = undefined;
+  }
+
+  setActiveStdin(stdin: { close(): unknown }): void {
+    this.assertOpen();
+    this._activeStdin = stdin;
+  }
+
+  clearActiveStdin(): void {
+    if (this._activeStdin !== undefined) this._activeStdin = undefined;
+  }
+
+  setArraySession(session: { closeSession(): void | Promise<void> }): void {
+    this.assertOpen();
+    this._arraySession = session;
+  }
+
+  private _notifyInlineFinalizers(): Promise<unknown> | undefined {
+    if (this._owner) {
+      const owner = this._owner;
+      this._owner = undefined;
+      owner.closeAdmission();
+    }
+    if (this._activeBudget) {
+      const budget = this._activeBudget;
+      this._activeBudget = undefined;
+      budget.abort(invocationClosedError);
+    }
+    if (this._activeStdin) {
+      const stdin = this._activeStdin;
+      this._activeStdin = undefined;
+      try { void stdin.close(); } catch (error) { this.failures.push(error); }
+    }
+    if (this._arraySession) {
+      const session = this._arraySession;
+      this._arraySession = undefined;
+      try {
+        const res = session.closeSession();
+        if (res && !isSyncResolved(res)) {
+          return Promise.resolve(res).catch(error => { this.failures.push(error); });
+        }
+      } catch (error) {
+        this.failures.push(error);
+      }
+    }
+    return undefined;
   }
 
   get signal(): AbortSignal {
     if (!this._controller) {
-      this._controller = createManagedControlController();
-      if (this._closed) this._controller.abort(invocationClosedError);
+      const ctrl = new AbortController();
+      registerManagedAbortSignal(ctrl.signal);
+      this._controller = ctrl;
+      if (this._closed) abortManagedController(ctrl, invocationClosedError);
     }
     return this._controller.signal;
   }
@@ -150,7 +218,7 @@ export class InvocationScope {
     if (this._children) {
       for (const child of this._children) child._seal();
     }
-    this._controller?.abort(invocationClosedError);
+    if (this._controller) abortManagedController(this._controller, invocationClosedError);
   }
 
   close(): Promise<void> {
@@ -164,10 +232,18 @@ export class InvocationScope {
     }
     if (!this._drain) {
       if (!this._finalizers?.length && !this._singleCallback && !this._callbacks?.size && !this._children?.size && this._activeWork === 0) {
-        this._drain = resolvedVoid;
         this._seal();
-        if (this.parent) this.parent._children?.delete(this);
-        return resolvedVoid;
+        const inlineAsync = this._notifyInlineFinalizers();
+        if (!inlineAsync) {
+          this._drain = resolvedVoid;
+          if (this.parent) this.parent._children?.delete(this);
+          return resolvedVoid;
+        }
+        const done = inlineAsync.then(() => {
+          if (this.parent) this.parent._children?.delete(this);
+        });
+        this._drain = done;
+        return done;
       }
       this._closingSync = true;
       this._seal();
@@ -187,7 +263,9 @@ export class InvocationScope {
           }
         }
         if (!singleCbAsync && !this._callbacks?.size && !this._children?.size && this._activeWork === 0) {
+        const inlineAsync = this._notifyInlineFinalizers();
         let asyncFinalizers: Promise<unknown>[] | undefined;
+        if (inlineAsync) asyncFinalizers = [inlineAsync];
         if (this._finalizers) {
           const finalizers = this._finalizers;
           this._finalizers = undefined;
@@ -235,6 +313,8 @@ export class InvocationScope {
               ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
             ]);
           } finally {
+            const inlineAsync = this._notifyInlineFinalizers();
+            if (inlineAsync) await inlineAsync;
             if (this._finalizers) {
               for (const finalize of this._finalizers.splice(0)) {
                 try {
@@ -269,10 +349,12 @@ export class InvocationScope {
             ...(this._children ? [...this._children].map((child) => child.close()) : []),
             ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
           ]);
-        } finally {
-          if (this._finalizers) {
-            for (const finalize of this._finalizers.splice(0)) {
-              try {
+          } finally {
+            const inlineAsync = this._notifyInlineFinalizers();
+            if (inlineAsync) await inlineAsync;
+            if (this._finalizers) {
+              for (const finalize of this._finalizers.splice(0)) {
+                try {
                 const res = finalize();
                 if (res && !isSyncResolved(res)) await res;
               }
@@ -291,6 +373,23 @@ export class InvocationScope {
     return this._drain;
   }
 }
+
+Object.assign(InvocationScope.prototype, {
+  _failures: undefined,
+  parent: undefined,
+  _children: undefined,
+  _singleCallback: undefined,
+  _regCount: 0,
+  _callbacks: undefined,
+  _finalizers: undefined,
+  _activeStdin: undefined,
+  _activeWork: 0,
+  _workWaiters: undefined,
+  _controller: undefined,
+  _closingSync: false,
+  _reentrantResolve: undefined,
+  _reentrantReject: undefined,
+});
 
 export function throwCleanupFailures(failures: readonly unknown[]): void {
   if (failures.length === 1) throw failures[0];

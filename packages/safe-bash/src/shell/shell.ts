@@ -48,76 +48,101 @@ interface CachedParsedUnit {
 const parsedUnitCache = new Map<string, CachedParsedUnit>();
 
 class RootInvocationCancellationOwner {
-  #finalized: Promise<void> | undefined;
-  #resolveFinalized: (() => void) | undefined;
-  #admissionOpen = true;
-  #boundary: CancellationBoundary | undefined;
-  #observedOrigin: CancellationOrigin | undefined;
-  #captureCancellation: ((origin: CancellationOrigin) => void) | undefined;
-  #detach: (() => void) | undefined;
-  #finished = false;
+  declare readonly scope: InvocationScope;
+  declare private _finalized: Promise<void> | undefined;
+  declare private _resolveFinalized: (() => void) | undefined;
+  declare private _admissionOpen: boolean;
+  declare private _boundary: CancellationBoundary | undefined;
+  declare private _observedOrigin: CancellationOrigin | undefined;
+  declare private _resolveCapture: ((captured: CapturedCancellationOutcome<any>) => void) | undefined;
+  declare private _rawPromise: Promise<any> | undefined;
+  declare private _settled: boolean;
+  declare private _queuedOrigin: boolean;
+  declare private _detach: (() => void) | undefined;
+  declare private _finished: boolean;
 
-  constructor(readonly scope: InvocationScope) {
-    scope.registerFinalizer(() => { this.#admissionOpen = false; });
+  constructor(scope: InvocationScope) {
+    this.scope = scope;
+    this._finalized = undefined;
+    this._resolveFinalized = undefined;
+    this._admissionOpen = true;
+    this._boundary = undefined;
+    this._observedOrigin = undefined;
+    this._resolveCapture = undefined;
+    this._rawPromise = undefined;
+    this._settled = false;
+    this._queuedOrigin = false;
+    this._detach = undefined;
+    this._finished = false;
+    scope.setOwner(this);
+  }
+
+  closeAdmission(): void {
+    this._admissionOpen = false;
   }
 
   get finalized(): Promise<void> {
-    if (this.#finished) return Promise.resolve();
-    return this.#finalized ??= new Promise<void>(resolve => { this.#resolveFinalized = resolve; });
+    if (this._finished) return Promise.resolve();
+    return this._finalized ??= new Promise<void>(resolve => { this._resolveFinalized = resolve; });
   }
 
   activate(boundary: CancellationBoundary): void {
-    if (!this.#admissionOpen) throw new Error("Root cancellation admission is closed");
-    this.#boundary = boundary;
-    this.#detach = subscribeCancellation(boundary, origin => { this.#captureCancellation?.(origin); });
+    if (!this._admissionOpen) throw new Error("Root cancellation admission is closed");
+    this._boundary = boundary;
+    this._detach = subscribeCancellation(boundary, origin => { this._onCancellation(origin); });
   }
 
   assertAdmissionOpen(): void {
-    if (!this.#admissionOpen) throw new Error("Root cancellation admission is closed");
+    if (!this._admissionOpen) throw new Error("Root cancellation admission is closed");
   }
 
-  capture<Value>(execute: () => Promise<Value>): Promise<CapturedCancellationOutcome<Value>> {
+  private _onCancellation(origin: CancellationOrigin): void {
+    if (!this._resolveCapture || this._settled || this._queuedOrigin) return;
+    this._queuedOrigin = true;
+    queueMicrotask(() => {
+      if (this._settled) return;
+      this._settled = true;
+      this._observedOrigin = origin;
+      const resolve = this._resolveCapture;
+      this._resolveCapture = undefined;
+      resolve?.({ kind: "throw", reason: origin.signal.reason });
+      void this._rawPromise?.catch(() => undefined);
+    });
+  }
+
+  capture<Value>(raw: Promise<Value>): Promise<CapturedCancellationOutcome<Value>> {
+    this._rawPromise = raw;
     return new Promise(resolve => {
-      let settled = false;
-      let raw: Promise<Value> | undefined;
-      let queuedOrigin = false;
-      const settle = (captured: CapturedCancellationOutcome<Value>): void => {
-        if (settled) return;
-        settled = true;
-        this.#captureCancellation = undefined;
-        resolve(captured);
-      };
-      this.#captureCancellation = origin => {
-        if (settled || queuedOrigin) return;
-        queuedOrigin = true;
-        queueMicrotask(() => {
-          if (settled) return;
-          this.#observedOrigin = origin;
-          settle({ kind: "throw", reason: origin.signal.reason });
-          void raw?.catch(() => undefined);
-        });
-      };
-      try { raw = Promise.resolve(execute()); }
-      catch (reason) { settle({ kind: "throw", reason }); return; }
+      this._resolveCapture = resolve;
       void raw.then(
-        value => settle({ kind: "return", value }),
-        reason => settle({ kind: "throw", reason }),
+        value => {
+          if (this._settled) return;
+          this._settled = true;
+          this._resolveCapture = undefined;
+          resolve({ kind: "return", value });
+        },
+        reason => {
+          if (this._settled) return;
+          this._settled = true;
+          this._resolveCapture = undefined;
+          resolve({ kind: "throw", reason });
+        },
       );
-      if (settled) void raw.catch(() => undefined);
+      if (this._settled) void raw.catch(() => undefined);
     });
   }
 
   finish<Value>(captured: CapturedCancellationOutcome<Value>): CancellationSelection<Value> {
-    if (this.#finished) throw new Error("Root cancellation was already finalized");
-    this.#finished = true;
-    this.#admissionOpen = false;
+    if (this._finished) throw new Error("Root cancellation was already finalized");
+    this._finished = true;
+    this._admissionOpen = false;
     try {
-      try { this.#detach?.(); } catch (error) { this.scope.failures.push(error); }
-      this.#detach = undefined;
-      const close = this.#boundary!.close();
+      try { this._detach?.(); } catch (error) { this.scope.failures.push(error); }
+      this._detach = undefined;
+      const close = this._boundary!.close();
       if (close.failures.length > 0) this.scope.failures.push(...close.failures);
-      return selectRuntimeCancellationOutcome(this.#boundary!, captured, this.#observedOrigin);
-    } finally { this.#resolveFinalized?.(); }
+      return selectRuntimeCancellationOutcome(this._boundary!, captured, this._observedOrigin);
+    } finally { this._resolveFinalized?.(); }
   }
 }
 
@@ -271,7 +296,8 @@ export class Shell implements PluginHost {
     const boundary = createRootCancellationLink({
       admission,
       callerSignal: options.signal,
-      controls: [{ role: "budget-control", signal: budget.controller.signal }],
+      budgetControlSignal: budget.controller.signal,
+      nativeDeliverySignal: this.#hasCustomCommands || this.#middleware.length > 0 || options.signal !== undefined,
     });
     try { owner.activate(boundary); }
     catch (error) {
@@ -284,7 +310,7 @@ export class Shell implements PluginHost {
     this.#active.add(active);
     let captured: CapturedCancellationOutcome<ShellResult>;
     try {
-      captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
+      captured = await owner.capture(this.#execute(source, options, scope, budget, boundary, cancellationState, owner, admission));
       if (captured.kind === "throw" && budget.hasExecutionCleanup) budget.executionCleanup.abort(captured.reason);
     } finally {
       if (budget.hasExecutionCleanup) {
@@ -300,7 +326,7 @@ export class Shell implements PluginHost {
     cancellationState.close();
     this.#active.delete(active);
     if (selection.outcome.kind === "throw") throw selection.outcome.reason;
-    throwCleanupFailures(scope.failures);
+    if (scope.hasFailures) throwCleanupFailures(scope.failures);
     return selection.outcome.value;
   }
 
@@ -318,7 +344,7 @@ export class Shell implements PluginHost {
     if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     budget.source(Buffer.byteLength(source));
     budget.signal.throwIfAborted();
-    const unseal = scope.onSeal(() => budget.abort(new Error("Invocation is closed")));
+    scope.setActiveBudget(budget);
     const stdout = new Capture();
     const stderr = new Capture();
     let stdin: ShellInput | undefined;
@@ -328,8 +354,6 @@ export class Shell implements PluginHost {
         try { await stdin?.close(); }
         catch (error) { if (!budget.signal.aborted || !Object.is(error, budget.signal.reason)) throw error; }
       });
-    } else if (options.stdin !== undefined) {
-      scope.registerFinalizer(() => { void stdin?.close(); });
     }
     const io = {
       capabilities: options.capabilities === undefined && options.limits === undefined
@@ -387,9 +411,10 @@ export class Shell implements PluginHost {
         let unit = getOrParseUnit(0, locale);
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
           const value = options.stdin ?? "";
+          const needsCopy = extensions !== EMPTY_CAPTURED_EXTENSIONS || this.#hasCustomCommands || this.#middleware.length > 0;
           const inlineBytes = typeof value === "string"
             ? (value.length > 0 ? sharedUtf8Encoder.encode(value) : undefined)
-            : (value.byteLength > 0 ? new Uint8Array(value) : undefined);
+            : (value.byteLength > 0 ? (needsCopy ? new Uint8Array(value) : value) : undefined);
           stdin = inlineBytes
             ? new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, {
                 provenance: "stream",
@@ -397,6 +422,7 @@ export class Shell implements PluginHost {
                 initialChunkOwned: true,
               })
             : new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, EMPTY_STDIN_OPTIONS);
+          if (options.stdin !== undefined) scope.setActiveStdin(stdin);
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         if (!isSyncResolved(this.#ready)) {
@@ -508,7 +534,8 @@ export class Shell implements PluginHost {
       throw error;
     }
     finally {
-      unseal();
+      scope.clearActiveBudget();
+      scope.clearActiveStdin();
       unregisterStdin?.();
       if (budget.hasExecutionCleanup) {
         const cleanupDrain = budget.executionCleanup.drain();

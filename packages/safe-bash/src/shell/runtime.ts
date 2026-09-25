@@ -341,6 +341,7 @@ class ExecutionCleanup {
 export class Budget {
   declare readonly limits: ResolvedShellLimits;
   declare readonly onInternalError: InternalErrorHandler | undefined;
+  declare _arraySession: unknown;
   declare private _executionScope: object | undefined;
   declare private _pathLookup: PathLookup | undefined;
   declare private _pathLookupSuspensions: number;
@@ -379,29 +380,21 @@ export class Budget {
 
   constructor(limits: ResolvedShellLimits, signal?: AbortSignal, onInternalError?: InternalErrorHandler) {
     this.limits = limits;
-    this.onInternalError = onInternalError;
-    this._executionScope = undefined;
-    this._pathLookup = undefined;
-    this._pathLookupSuspensions = 0;
-    this._executionCleanup = undefined;
+    this._arraySession = undefined;
     this.commands = 0;
     this.iterations = 0;
     this.bytes = 0;
     this.sourceBytes = 0;
-    this.globstarEntries = 0;
-    this.globstarStates = 0;
     this.controller = createManagedControlController();
     this.yieldCheckpoint = () => { this.cpuCheckpoint(); };
     this._chargeFs = undefined;
-    this._cleanupChargeFs = undefined;
-    this._wallClockTimer = undefined;
     this._wallClockDeadline = Date.now() + limits.maxWallClockMs;
     this._pipelineStages = 0;
     this._fileSystemOperations = 0;
-    this._aborted = false;
     this.hasCpuLimit = limits.maxCpuMs !== Infinity;
-    this._cpuStarted = this.hasCpuLimit ? monotonicNow() : 0;
-    this._hasExternalSignal = signal !== undefined;
+    if (onInternalError !== undefined) this.onInternalError = onInternalError;
+    if (this.hasCpuLimit) this._cpuStarted = monotonicNow();
+    if (signal !== undefined) this._hasExternalSignal = true;
     this.maxCommandsSmi = limits.maxCommands <= 0x3fffffff ? (limits.maxCommands | 0) : 0x3fffffff;
     this.maxLoopIterationsSmi = limits.maxLoopIterations <= 0x3fffffff ? (limits.maxLoopIterations | 0) : 0x3fffffff;
     this.maxFileSystemOperationsSmi = limits.maxFileSystemOperations <= 0x3fffffff ? (limits.maxFileSystemOperations | 0) : 0x3fffffff;
@@ -627,6 +620,20 @@ export class Budget {
     return output;
   }
 }
+Object.assign(Budget.prototype, {
+  onInternalError: undefined,
+  _executionScope: undefined,
+  _pathLookup: undefined,
+  _pathLookupSuspensions: 0,
+  _executionCleanup: undefined,
+  globstarEntries: 0,
+  globstarStates: 0,
+  _cleanupChargeFs: undefined,
+  _wallClockTimer: undefined,
+  _aborted: false,
+  _cpuStarted: 0,
+  _hasExternalSignal: false,
+});
 
 
 export class Capture implements ByteSink {
@@ -1251,36 +1258,36 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
 }
 
 class FastShellCommandContext {
-  stdin: ByteSource;
-  stdinIsDefault?: boolean | undefined;
-  stdout: ByteSink;
-  stderr: ByteSink;
-  descriptors: ReadonlyMap<number, Descriptor> | undefined;
-  command: string;
-  args: readonly string[];
-  env: Record<string, string>;
-  cwd: string;
-  signal: AbortSignal;
-  onInternalError: CommandContext["onInternalError"];
-  argv0?: string | undefined;
-  capabilities?: import("./types.js").ShellCapabilities | undefined;
-  processSignals?: CommandContext["processSignals"] | undefined;
-  diagnosticLine?: number | undefined;
-  scriptName?: string | undefined;
+  declare stdin: ByteSource;
+  declare stdinIsDefault?: boolean | undefined;
+  declare stdout: ByteSink;
+  declare stderr: ByteSink;
+  declare descriptors: ReadonlyMap<number, Descriptor> | undefined;
+  declare command: string;
+  declare args: readonly string[];
+  declare env: Record<string, string>;
+  declare cwd: string;
+  declare signal: AbortSignal;
+  declare onInternalError: CommandContext["onInternalError"];
+  declare argv0?: string | undefined;
+  declare capabilities?: import("./types.js").ShellCapabilities | undefined;
+  declare processSignals?: CommandContext["processSignals"] | undefined;
+  declare diagnosticLine?: number | undefined;
+  declare scriptName?: string | undefined;
   declare [invocationScope]?: InvocationScope;
   declare [valueScope]?: ValueScope;
-  readonly _self: FastShellCommandContext;
-  private readonly _runtime: Runtime;
-  private readonly _state: State;
-  private readonly _io: IO;
-  private readonly _scope: InvocationScope;
-  private _scopedSignal: AbortSignal | undefined;
-  private _contextFs: FileSystem | undefined;
-  private _cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
-  private _cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
-  private _argumentValues: CommandArguments | undefined;
-  private _registerCleanup: NonNullable<CommandContext["registerCleanup"]> | undefined;
-  private _invoke: ShellCommandContext["invoke"] | undefined;
+  declare readonly _self: FastShellCommandContext | undefined;
+  declare private readonly _runtime: Runtime;
+  declare private readonly _state: State;
+  declare private readonly _io: IO;
+  declare private readonly _scope: InvocationScope;
+  declare private _scopedSignal: AbortSignal | undefined;
+  declare private _contextFs: FileSystem | undefined;
+  declare private _cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
+  declare private _cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
+  declare private _argumentValues: CommandArguments | undefined;
+  declare private _registerCleanup: NonNullable<CommandContext["registerCleanup"]> | undefined;
+  declare private _invoke: ShellCommandContext["invoke"] | undefined;
 
   constructor(
     runtime: Runtime,
@@ -1297,30 +1304,30 @@ class FastShellCommandContext {
     if (!directContext) {
       const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
       Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));
+      this._self = this;
     }
-    this._self = this;
     this._runtime = runtime;
     this._state = state;
     this._io = io;
     this._scope = scope;
-    this._scopedSignal = signalIsScoped ? runtime.signal : undefined;
+    if (signalIsScoped) this._scopedSignal = runtime.signal;
     this.stdin = io.stdin;
     this.stdinIsDefault = io.stdinIsDefault;
     this.stdout = io.stdout;
     this.stderr = io.stderr;
-    this.descriptors = io.descriptors;
+    if (io.descriptors !== undefined) this.descriptors = io.descriptors;
     this.command = name;
     this.args = args;
     this._argumentValues = argumentValues;
     this.env = env;
     this.cwd = state.cwd;
     this.signal = runtime.commandSignal;
-    this.onInternalError = runtime.budget.onInternalError;
-    this.argv0 = io.argv0;
+    if (runtime.budget.onInternalError !== undefined) this.onInternalError = runtime.budget.onInternalError;
+    if (io.argv0 !== undefined) this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
-    this.processSignals = io.processSignals;
-    this.diagnosticLine = io.diagnosticLine;
-    this.scriptName = io.scriptName;
+    if (io.processSignals !== undefined) this.processSignals = io.processSignals;
+    if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
+    if (io.scriptName !== undefined) this.scriptName = io.scriptName;
     if (directContext) {
       return;
     }
@@ -1336,16 +1343,20 @@ class FastShellCommandContext {
     void this.registerCleanup;
   }
 
+  registerScopeCleanup(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): () => void {
+    return (this._self ?? this)._scope.register(cleanup);
+  }
+
   get argumentValues(): CommandArguments | undefined {
-    return this._self._argumentValues;
+    return (this._self ?? this)._argumentValues;
   }
 
   set argumentValues(replacement: CommandArguments | undefined) {
-    this._self._argumentValues = replacement;
+    (this._self ?? this)._argumentValues = replacement;
   }
 
   get registerCleanup(): NonNullable<CommandContext["registerCleanup"]> {
-    const self = this._self;
+    const self = this._self ?? this;
     if (!self._registerCleanup) {
       const scope = self._scope;
       const runtime = self._runtime;
@@ -1360,17 +1371,17 @@ class FastShellCommandContext {
   }
 
   set registerCleanup(replacement: NonNullable<CommandContext["registerCleanup"]>) {
-    this._self._registerCleanup = replacement;
+    (this._self ?? this)._registerCleanup = replacement;
   }
 
   get invoke(): ShellCommandContext["invoke"] {
-    const self = this._self;
+    const self = this._self ?? this;
     return self._invoke ??= (cmdName, cmdArgs, options) =>
       self._runtime.invokeFromFastContext(cmdName, cmdArgs, options, self as unknown as ShellCommandContext, self._state, self._scope);
   }
 
   set invoke(replacement: ShellCommandContext["invoke"]) {
-    this._self._invoke = replacement;
+    (this._self ?? this)._invoke = replacement;
   }
 
   private _getScopedSignal(): AbortSignal {
@@ -1378,11 +1389,11 @@ class FastShellCommandContext {
   }
 
   get executionScope(): CommandContext["executionScope"] {
-    return this._self._runtime.budget.executionScope;
+    return (this._self ?? this)._runtime.budget.executionScope;
   }
 
   get fs(): FileSystem {
-    const self = this._self;
+    const self = this._self ?? this;
     if (!self._contextFs) {
       self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
     }
@@ -1390,11 +1401,11 @@ class FastShellCommandContext {
   }
 
   set fs(replacement: FileSystem) {
-    this._self._contextFs = replacement;
+    (this._self ?? this)._contextFs = replacement;
   }
 
   get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
-    const self = this._self;
+    const self = this._self ?? this;
     if (!self._cachedPredicates) {
       self._cachedPredicates = self._runtime.createShellPredicatesForFast(self._state, self._io);
     }
@@ -1402,16 +1413,16 @@ class FastShellCommandContext {
   }
 
   set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) {
-    this._self._cachedPredicates = replacement;
+    (this._self ?? this)._cachedPredicates = replacement;
   }
 
   get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
-    const self = this._self;
+    const self = this._self ?? this;
     return self._cachedInputBudget ??= self._runtime.createInputBudgetForFast();
   }
 
   set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) {
-    this._self._cachedInputBudget = replacement;
+    (this._self ?? this)._cachedInputBudget = replacement;
   }
 
   get stdinInput(): ShellInput | undefined {
@@ -1424,9 +1435,27 @@ class FastShellCommandContext {
   }
 
 }
+Object.assign(FastShellCommandContext.prototype, {
+  _self: undefined,
+  stdinIsDefault: undefined,
+  descriptors: undefined,
+  onInternalError: undefined,
+  argv0: undefined,
+  capabilities: undefined,
+  processSignals: undefined,
+  diagnosticLine: undefined,
+  scriptName: undefined,
+  _scopedSignal: undefined,
+  _contextFs: undefined,
+  _cachedPredicates: undefined,
+  _cachedInputBudget: undefined,
+  _argumentValues: undefined,
+  _registerCleanup: undefined,
+  _invoke: undefined,
+});
 
 const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
-  "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc",
+  "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc",
 ]);
 
 const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
@@ -2348,27 +2377,14 @@ export class Runtime {
     this.cancellationOwner = cancellationOwner;
     this.cancellationDepth = cancellationDepth;
     this.cancellationMaxDepth = cancellationMaxDepth;
-    this.outcomeFrame = outcomeFrame;
+    if (outcomeFrame !== undefined) this.outcomeFrame = outcomeFrame;
     this.inputProfile = inputProfile;
     this._rawFs = fs;
-    this._fs = undefined;
-    this._contextFsMask = -1;
-    this._contextFsSignal = undefined;
-    this._contextFs = undefined;
-    this._redirectFsMask = -1;
-    this._redirectFs = undefined;
-    this._fileWrites = fileWrites;
-    this._outputFiles = outputFiles;
+    if (fileWrites !== undefined) this._fileWrites = fileWrites;
+    if (outputFiles !== undefined) this._outputFiles = outputFiles;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = getRuntimeBackingFileSystem(this.sourceFs) ?? this.sourceFs;
     this._isMemoryBackingFs = this.backingFs.constructor?.name === "MemoryFileSystem";
-    this._syncArithState = undefined;
-    this._canFastMemoryRedirect = undefined;
-    this._syncArithRawVars = undefined;
-    this._syncArithLine = undefined;
-    this._syncArithRawWriteOnly = false;
-    this._syncArithTouched = undefined;
-    this._syncArithRefs = undefined;
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {
       inheritYieldCheckpoint(signal, commandSignal);
@@ -12190,3 +12206,21 @@ export class Runtime {
     return found.length ? found : state.nullglob ? [] : [value];
   }
 }
+Object.assign(Runtime.prototype, {
+  outcomeFrame: undefined,
+  _fs: undefined,
+  _contextFsMask: -1,
+  _contextFsSignal: undefined,
+  _contextFs: undefined,
+  _redirectFsMask: -1,
+  _redirectFs: undefined,
+  _fileWrites: undefined,
+  _outputFiles: undefined,
+  _syncArithState: undefined,
+  _canFastMemoryRedirect: undefined,
+  _syncArithRawVars: undefined,
+  _syncArithLine: undefined,
+  _syncArithRawWriteOnly: false,
+  _syncArithTouched: undefined,
+  _syncArithRefs: undefined,
+});

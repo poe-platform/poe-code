@@ -1,4 +1,4 @@
-import { abortManagedController, addAbortSignalWaiter, createManagedControlController, isManagedAbortSignal, isManagedControlSignal, removeAbortSignalWaiter, type ManagedControlController } from "../fs/creation-mask.js";
+import { abortManagedController, addAbortSignalWaiter, createManagedControlController, isManagedAbortSignal, registerManagedAbortSignal, removeAbortSignalWaiter, type ManagedControlController } from "../fs/creation-mask.js";
 
 const cancellationAdmissionClosedError = new Error("Cancellation admission is closed");
 const cancellationAlreadyActivatedError = new Error("Prepared cancellation admission was already activated");
@@ -22,6 +22,8 @@ export interface RootCancellationInput {
   readonly admission: CancellationAdmissionSnapshot;
   readonly callerSignal?: AbortSignal | undefined;
   readonly controls?: readonly CancellationControlOriginInput[] | undefined;
+  readonly budgetControlSignal?: AbortSignal | undefined;
+  readonly nativeDeliverySignal?: boolean | undefined;
 }
 
 export interface CancellationInvokeOptions {
@@ -94,6 +96,20 @@ interface SignalDetacher {
   readonly listener: () => void;
 }
 
+class SignalDetacherImpl implements SignalDetacher {
+  declare active: boolean;
+  declare readonly managed: boolean;
+  declare readonly signal: AbortSignal;
+  declare readonly listener: () => void;
+
+  constructor(managed: boolean, signal: AbortSignal, listener: () => void) {
+    this.active = true;
+    this.managed = managed;
+    this.signal = signal;
+    this.listener = listener;
+  }
+}
+
 interface LinkState {
   readonly kind: "link";
   boundary: CancellationBoundary;
@@ -105,12 +121,14 @@ interface LinkState {
   resourcesUsed: number;
   readonly controller: ManagedControlController;
   readonly closedReason: Error;
-  readonly rootCaller: CancellationOrigin | undefined;
-  readonly localInvoke: CancellationOrigin | undefined;
-  readonly controls: readonly CancellationOrigin[];
+  rootCaller: CancellationOrigin | undefined;
+  localInvoke: CancellationOrigin | undefined;
+  firstControl: CancellationOrigin | undefined;
+  controls: readonly CancellationOrigin[];
   delivered: CancellationOrigin | undefined;
   selected: CancellationOrigin | undefined;
-  readonly signalDetachers: SignalDetacher[];
+  firstDetacher: SignalDetacher | undefined;
+  signalDetachers: SignalDetacher[] | undefined;
   firstSubscriber: SubscriberEntry | undefined;
   subscribers: Set<SubscriberEntry> | undefined;
   failures: unknown[] | undefined;
@@ -151,23 +169,100 @@ interface PreparedState {
 const emptyCloseResult: CancellationCloseResult = Object.freeze({ failures: Object.freeze([]) });
 const nativeAbortedGetter = Object.getOwnPropertyDescriptor(AbortSignal.prototype, "aborted")?.get;
 
-class Boundary implements CancellationBoundary {
-  readonly [boundaryState]: BoundaryState;
+class LinkStateImpl implements LinkState, CancellationBoundary {
+  declare readonly kind: "link";
+  declare borrowedBoundary: CancellationBoundary | undefined;
+  declare readonly parent: LinkState | undefined;
+  declare readonly depth: number;
+  declare readonly maxDepth: number;
+  declare readonly resourceLimit: number;
+  declare resourcesUsed: number;
+  declare readonly controller: ManagedControlController;
+  declare readonly closedReason: Error;
+  declare rootCaller: CancellationOrigin | undefined;
+  declare localInvoke: CancellationOrigin | undefined;
+  declare firstControl: CancellationOrigin | undefined;
+  declare controls: readonly CancellationOrigin[];
+  declare delivered: CancellationOrigin | undefined;
+  declare selected: CancellationOrigin | undefined;
+  declare firstDetacher: SignalDetacher | undefined;
+  declare signalDetachers: SignalDetacher[] | undefined;
+  declare firstSubscriber: SubscriberEntry | undefined;
+  declare subscribers: Set<SubscriberEntry> | undefined;
+  declare failures: unknown[] | undefined;
+  declare parentActive: boolean;
+  declare closed: boolean;
+  declare finalized: boolean;
+  declare notifying: number;
+  declare closeResult: CancellationCloseResult | undefined;
 
-  constructor(state: BoundaryState) { this[boundaryState] = state; }
-
-  get owned(): boolean { return this[boundaryState].kind === "link"; }
-
-  get deliverySignal(): AbortSignal {
-    const state = this[boundaryState];
-    return (state.kind === "link" ? state : state.lineage).controller.signal;
+  constructor(
+    parent: LinkState | undefined,
+    admission: CancellationAdmissionSnapshot,
+    useNativeController = false,
+  ) {
+    this.parent = parent;
+    this.depth = admission.depth;
+    this.maxDepth = admission.maxDepth;
+    this.resourceLimit = admission.resourceLimit;
+    this.resourcesUsed = 1;
+    if (useNativeController) {
+      const ctrl = new AbortController();
+      registerManagedAbortSignal(ctrl.signal);
+      this.controller = ctrl;
+    } else {
+      this.controller = createManagedControlController();
+    }
+    this.firstControl = undefined;
+    this.firstDetacher = undefined;
+    this.firstSubscriber = undefined;
+    this.closed = false;
+    this.finalized = false;
+    this.closeResult = undefined;
   }
 
-  close(): CancellationCloseResult {
-    const state = this[boundaryState];
-    if (state.kind === "borrow") return emptyCloseResult;
-    return closeLink(state);
+  get boundary(): CancellationBoundary { return this; }
+
+  get [boundaryState](): BoundaryState { return this; }
+
+  get owned(): boolean { return true; }
+
+  get deliverySignal(): AbortSignal { return this.controller.signal; }
+
+  close(): CancellationCloseResult { return closeLink(this); }
+}
+Object.assign(LinkStateImpl.prototype, {
+  kind: "link",
+  borrowedBoundary: undefined,
+  closedReason: cancellationAdmissionClosedError,
+  rootCaller: undefined,
+  localInvoke: undefined,
+  controls: EMPTY_ORIGINS,
+  delivered: undefined,
+  selected: undefined,
+  signalDetachers: undefined,
+  subscribers: undefined,
+  failures: undefined,
+  parentActive: false,
+  notifying: 0,
+});
+
+class BorrowedBoundary implements BorrowState, CancellationBoundary {
+  declare readonly kind: "borrow";
+  declare readonly lineage: LinkState;
+
+  constructor(lineage: LinkState) {
+    this.kind = "borrow";
+    this.lineage = lineage;
   }
+
+  get [boundaryState](): BoundaryState { return this; }
+
+  get owned(): boolean { return false; }
+
+  get deliverySignal(): AbortSignal { return this.lineage.controller.signal; }
+
+  close(): CancellationCloseResult { return emptyCloseResult; }
 }
 
 class Prepared implements PreparedChildCancellation {
@@ -376,9 +471,9 @@ function attachOrigin(state: LinkState, origin: CancellationOrigin): void {
   let detacher: SignalDetacher;
   if (isManagedAbortSignal(origin.signal)) {
     addAbortSignalWaiter(origin.signal, listener);
-    detacher = { active: true, managed: true, signal: origin.signal, listener };
+    detacher = new SignalDetacherImpl(true, origin.signal, listener);
   } else {
-    detacher = { active: true, managed: false, signal: origin.signal, listener };
+    detacher = new SignalDetacherImpl(false, origin.signal, listener);
     try {
       origin.signal.addEventListener("abort", listener, { once: true });
     } catch (error) {
@@ -388,7 +483,14 @@ function attachOrigin(state: LinkState, origin: CancellationOrigin): void {
     }
   }
   state.resourcesUsed++;
-  state.signalDetachers.push(detacher);
+  if (!state.firstDetacher && (!state.signalDetachers || state.signalDetachers.length === 0)) {
+    state.firstDetacher = detacher;
+  } else if (!state.signalDetachers) {
+    state.signalDetachers = state.firstDetacher ? [state.firstDetacher, detacher] : [detacher];
+    state.firstDetacher = undefined;
+  } else {
+    state.signalDetachers.push(detacher);
+  }
   if (signalAborted(origin.signal)) publish(state, origin);
 }
 
@@ -409,6 +511,7 @@ function visibleOrigins(state: LinkState): CancellationOrigin[] {
     }
     if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) origins.push(frame.rootCaller);
     if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) origins.push(frame.localInvoke);
+    if (frame.firstControl && signalAborted(frame.firstControl.signal)) origins.push(frame.firstControl);
     for (const control of frame.controls) if (signalAborted(control.signal)) origins.push(control);
     if (frame.selected && !origins.includes(frame.selected)) origins.push(frame.selected);
     if (frame.delivered && !origins.includes(frame.delivered)) origins.push(frame.delivered);
@@ -428,6 +531,9 @@ function admissionOrigins(state: LinkState): CancellationOrigin[] {
       ? frame.delivered
       : undefined;
     if (deliveredControl && signalAborted(deliveredControl.signal)) origins.push(deliveredControl);
+    if (frame.firstControl && signalAborted(frame.firstControl.signal) && frame.firstControl !== deliveredControl) {
+      origins.push(frame.firstControl);
+    }
     for (const control of frame.controls) {
       if (signalAborted(control.signal) && control !== deliveredControl) origins.push(control);
     }
@@ -454,6 +560,7 @@ function hasAnyVisibleOrigin(state: LinkState): boolean {
     if (frame.closed) continue;
     if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) return true;
     if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) return true;
+    if (frame.firstControl && signalAborted(frame.firstControl.signal)) return true;
     for (let i = 0; i < frame.controls.length; i++) {
       if (signalAborted(frame.controls[i]!.signal)) return true;
     }
@@ -466,6 +573,7 @@ function hasAnyAdmissionFailure(state: LinkState): boolean {
     if (frame.closed || frame.delivered || frame.selected) return true;
     if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) return true;
     if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) return true;
+    if (frame.firstControl && signalAborted(frame.firstControl.signal)) return true;
     for (let i = 0; i < frame.controls.length; i++) {
       if (signalAborted(frame.controls[i]!.signal)) return true;
     }
@@ -495,46 +603,27 @@ function throwAdmissionFailure(state: LinkState): void {
 function initializeState(
   parent: LinkState | undefined,
   admission: CancellationAdmissionSnapshot,
+  useNativeController = false,
 ): LinkState {
-  const controller = createManagedControlController();
-  const state: LinkState = {
-    kind: "link",
-    boundary: undefined as unknown as CancellationBoundary,
-    borrowedBoundary: undefined,
-    parent,
-    depth: admission.depth,
-    maxDepth: admission.maxDepth,
-    resourceLimit: admission.resourceLimit,
-    resourcesUsed: 1,
-    controller,
-    closedReason: cancellationAdmissionClosedError,
-    rootCaller: undefined,
-    localInvoke: undefined,
-    controls: EMPTY_ORIGINS,
-    delivered: undefined,
-    selected: undefined,
-    signalDetachers: [],
-    firstSubscriber: undefined,
-    subscribers: undefined,
-    failures: undefined,
-    parentActive: false,
-    closed: false,
-    finalized: false,
-    notifying: 0,
-    closeResult: undefined,
-  };
-  state.boundary = new Boundary(state);
-  return state;
+  return new LinkStateImpl(parent, admission, useNativeController);
 }
 
 function finalizeClose(state: LinkState): void {
   if (state.finalized) return;
   state.finalized = true;
-  for (let i = 0; i < state.signalDetachers.length; i++) {
-    const err = removeSignalListener(state.signalDetachers[i]!);
+  if (state.firstDetacher) {
+    const detacher = state.firstDetacher;
+    state.firstDetacher = undefined;
+    const err = removeSignalListener(detacher);
     if (err) (state.failures ??= []).push(err.error);
   }
-  state.signalDetachers.length = 0;
+  if (state.signalDetachers) {
+    for (let i = 0; i < state.signalDetachers.length; i++) {
+      const err = removeSignalListener(state.signalDetachers[i]!);
+      if (err) (state.failures ??= []).push(err.error);
+    }
+    state.signalDetachers.length = 0;
+  }
   if (state.parentActive && state.parent) {
     deactivateSubscriber(state.parent, state, true);
   }
@@ -563,7 +652,9 @@ function closeLink(state: LinkState): CancellationCloseResult {
     return state.closeResult = { failures: (state.failures ??= []) };
   }
   state.closed = true;
-  if (state.notifying > 0 || state.signalDetachers.length > 0) {
+  const hasUnmanagedDetacher = (state.firstDetacher !== undefined && !state.firstDetacher.managed)
+    || (state.signalDetachers !== undefined && state.signalDetachers.some(d => !d.managed));
+  if (state.notifying > 0 || hasUnmanagedDetacher) {
     state.closeResult = { failures: (state.failures ??= []) };
   }
   if (state.notifying === 0) finalizeClose(state);
@@ -573,11 +664,19 @@ function closeLink(state: LinkState): CancellationCloseResult {
 function rollbackState(state: LinkState): unknown[] {
   state.closed = true;
   const failures: unknown[] = [];
-  for (let i = 0; i < state.signalDetachers.length; i++) {
-    const err = removeSignalListener(state.signalDetachers[i]!);
+  if (state.firstDetacher) {
+    const detacher = state.firstDetacher;
+    state.firstDetacher = undefined;
+    const err = removeSignalListener(detacher);
     if (err) failures.push(err.error);
   }
-  state.signalDetachers.length = 0;
+  if (state.signalDetachers) {
+    for (let i = 0; i < state.signalDetachers.length; i++) {
+      const err = removeSignalListener(state.signalDetachers[i]!);
+      if (err) failures.push(err.error);
+    }
+    state.signalDetachers.length = 0;
+  }
   if (state.parentActive && state.parent) {
     try { deactivateSubscriber(state.parent, state, true); } catch (error) { failures.push(error); }
   }
@@ -633,7 +732,7 @@ function countActiveControls(controls: readonly { readonly signal: AbortSignal }
 }
 
 function getBorrowedBoundary(parent: LinkState): CancellationBoundary {
-  return parent.borrowedBoundary ??= new Boundary({ kind: "borrow", lineage: parent });
+  return parent.borrowedBoundary ??= new BorrowedBoundary(parent);
 }
 
 function makePrepared(
@@ -728,7 +827,7 @@ export function activateChildCancellation(prepared: PreparedChildCancellation): 
   ensureCapacity(preparation.parent);
   throwLocalActivationFailure(preparation);
 
-  const state = initializeState(preparation.parent, admission);
+  const state = initializeState(preparation.parent, admission, preparation.localSignal !== undefined);
   if (preparation.localSignal) {
     (state as { localInvoke: CancellationOrigin | undefined }).localInvoke = {
       role: "invoke-option",
@@ -736,18 +835,22 @@ export function activateChildCancellation(prepared: PreparedChildCancellation): 
       frame: state.boundary,
     };
   }
-  if (preparation.controls.length > 0) {
+  if (preparation.controls.length === 1) {
+    const control = preparation.controls[0]!;
+    state.firstControl = { role: control.role, signal: control.signal, frame: state.boundary };
+  } else if (preparation.controls.length > 1) {
     const controlsList: CancellationOrigin[] = new Array(preparation.controls.length);
     for (let i = 0; i < preparation.controls.length; i++) {
       const control = preparation.controls[i]!;
       controlsList[i] = { role: control.role, signal: control.signal, frame: state.boundary };
     }
-    (state as { controls: readonly CancellationOrigin[] }).controls = controlsList;
+    state.controls = controlsList;
   }
 
   try {
     attachChildToParent(preparation.parent, state);
     if (state.localInvoke) attachOrigin(state, state.localInvoke);
+    if (state.firstControl) attachOrigin(state, state.firstControl);
     for (let i = 0; i < state.controls.length; i++) attachOrigin(state, state.controls[i]!);
     throwAdmissionFailure(preparation.parent);
     const inherited = preparation.parent.selected ?? preparation.parent.delivered;
@@ -773,7 +876,11 @@ export function createRootCancellationLink(input: RootCancellationInput): Cancel
   const admission = validateSnapshot(input.admission);
   if (admission.depth !== 0) throw new RangeError("Root cancellation depth must be zero");
   if (input.callerSignal !== undefined && !nativeSignal(input.callerSignal)) throw new TypeError("Root caller signal must be an AbortSignal");
-  const controls = input.controls ?? [];
+  const budgetControlSignal = input.budgetControlSignal;
+  if (budgetControlSignal !== undefined && !nativeSignal(budgetControlSignal)) {
+    throw new TypeError("Invalid cancellation control origin");
+  }
+  const controls = input.controls ?? EMPTY_ORIGINS;
   if (!Array.isArray(controls)) throw new TypeError("Cancellation controls must be an array");
   for (const control of controls) {
     if (!control || typeof control !== "object"
@@ -782,22 +889,33 @@ export function createRootCancellationLink(input: RootCancellationInput): Cancel
   }
   const required = 1
     + Number(input.callerSignal !== undefined && !signalAborted(input.callerSignal))
+    + Number(budgetControlSignal !== undefined && !signalAborted(budgetControlSignal))
     + countActiveControls(controls);
   if (admission.resourceLimit < required) throw new CancellationCapacityError();
-  const state = initializeState(undefined, admission);
-  (state as { rootCaller: CancellationOrigin | undefined }).rootCaller = input.callerSignal === undefined
-    ? undefined
-    : { role: "root-caller", signal: input.callerSignal, frame: state.boundary };
-  if (controls.length > 0) {
-    const controlsList: CancellationOrigin[] = new Array(controls.length);
+  const state = initializeState(undefined, admission, Boolean(input.nativeDeliverySignal || input.callerSignal !== undefined));
+  if (input.callerSignal !== undefined) {
+    state.rootCaller = { role: "root-caller", signal: input.callerSignal, frame: state.boundary };
+  }
+  if (budgetControlSignal !== undefined && controls.length === 0) {
+    state.firstControl = { role: "budget-control", signal: budgetControlSignal, frame: state.boundary };
+  } else if (budgetControlSignal === undefined && controls.length === 1) {
+    const control = controls[0]!;
+    state.firstControl = { role: control.role, signal: control.signal, frame: state.boundary };
+  } else if (budgetControlSignal !== undefined || controls.length > 0) {
+    const extra = budgetControlSignal !== undefined ? 1 : 0;
+    const controlsList: CancellationOrigin[] = new Array(controls.length + extra);
+    if (budgetControlSignal !== undefined) {
+      controlsList[0] = { role: "budget-control", signal: budgetControlSignal, frame: state.boundary };
+    }
     for (let i = 0; i < controls.length; i++) {
       const control = controls[i]!;
-      controlsList[i] = { role: control.role, signal: control.signal, frame: state.boundary };
+      controlsList[i + extra] = { role: control.role, signal: control.signal, frame: state.boundary };
     }
-    (state as { controls: readonly CancellationOrigin[] }).controls = controlsList;
+    state.controls = controlsList;
   }
   try {
     if (state.rootCaller) attachOrigin(state, state.rootCaller);
+    if (state.firstControl) attachOrigin(state, state.firstControl);
     for (let i = 0; i < state.controls.length; i++) attachOrigin(state, state.controls[i]!);
     const preaborted = bestVisibleOrigin(state);
     if (preaborted) publish(state, preaborted);

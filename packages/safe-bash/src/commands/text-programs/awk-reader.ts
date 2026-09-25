@@ -40,8 +40,8 @@ export class Reader {
     if (length === 0) return;
     this.retention.admit(0, length);
     try {
-      const block = Buffer.from(chunk);
-      const batch = getCachedLatin1Batch(block);
+      const block = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk.buffer, chunk.byteOffset, length);
+      const batch = getCachedLatin1Batch(chunk);
       this.blocks.push(block);
       this.blockStrings.push(batch?.text);
       this.blockEnds.push(batch?.ends);
@@ -58,6 +58,10 @@ export class Reader {
     if (typeof syncIter.tryNextSync !== "function") return false;
     while (!this.ended && !this.closed) {
       this.budget.step();
+      if (this.head < this.blocks.length) {
+        const lastIdx = this.blocks.length - 1;
+        this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
+      }
       const next = syncIter.tryNextSync();
       if (next === undefined) return false;
       this.budget.context.signal.throwIfAborted();
@@ -71,6 +75,10 @@ export class Reader {
 
   private async fill(): Promise<void> {
     this.budget.step();
+    if (this.head < this.blocks.length) {
+      const lastIdx = this.blocks.length - 1;
+      this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
+    }
     const next = await this.iterator.next();
     this.budget.context.signal.throwIfAborted();
     if (this.closed) return;

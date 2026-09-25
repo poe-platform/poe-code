@@ -49,7 +49,12 @@ export async function withRegexSession(
     return closing;
   };
   let unregisterCleanup: (() => void) | undefined;
-  try { unregisterCleanup = context.registerCleanup?.(close) as (() => void) | undefined; }
+  const fastScope = (context as { registerScopeCleanup?: (cleanup: () => Promise<void>) => () => void }).registerScopeCleanup;
+  try {
+    unregisterCleanup = fastScope
+      ? fastScope.call(context, close)
+      : (context.registerCleanup?.(close) as (() => void) | undefined);
+  }
   catch (error) { context.signal.throwIfAborted(); throw error; }
   let result: CommandResult | undefined;
   let hasError = false;
@@ -397,7 +402,8 @@ export class RegexExecutor {
       this.pump();
     });
   }
-  requestSyncOrAsync(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, getRetirements: () => Set<Promise<void>>): Match[][] | Promise<Match[][]> {
+  requestSyncOrAsync(descriptor: Descriptor, rows: readonly Row[], session: RegexSession): Match[][] | Promise<Match[][]> {
+    const signal = session.signal;
     signal.throwIfAborted();
     if (this.disposed) return Promise.reject(new RegexExecutionError("CLOSED", "executor is disposed"));
     if (this.queue.length === 0 && trustedInputRows.has(rows)) {
@@ -412,7 +418,7 @@ export class RegexExecutor {
           reusableTrustedRequest.rows = rows;
           ex = readySlot.postInProcessSync(reusableTrustedRequest, this.options.requestTimeoutMs, signal);
         } else {
-          ex = this.exchangeOutOfProcessSyncOrAsync(readySlot, id, descriptor, rows, signal);
+          ex = this.exchangeOutOfProcessSyncOrAsync(readySlot, id, descriptor, rows, session._ensureAsyncState());
         }
         if (ex.sync) {
           try {
@@ -421,7 +427,7 @@ export class RegexExecutor {
             return validated;
           } catch (error) {
             const retirement = readySlot.retire();
-            getRetirements().add(retirement);
+            session._getRetirements().add(retirement);
             throw signal.aborted ? signal.reason : error;
           } finally {
             readySlot.busy = false;
@@ -430,10 +436,12 @@ export class RegexExecutor {
             if (this.queue.length > 0) this.pump();
           }
         }
-        return this.finishSyncRequestAsync(readySlot, ex.promise, id, rows, signal, getRetirements());
+        const asyncSignal = session._ensureAsyncState();
+        return this.finishSyncRequestAsync(readySlot, ex.promise, id, rows, asyncSignal, session._getRetirements());
       }
     }
-    return this.request(descriptor, rows, signal, getRetirements());
+    const asyncSignal = session._ensureAsyncState();
+    return this.request(descriptor, rows, asyncSignal, session._getRetirements());
   }
   request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<Match[][]>;
   request(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>>): Promise<ExprMatchResult>;
@@ -541,19 +549,19 @@ export class RegexExecutor {
 }
 
 export class RegexSession {
-  private closed: Promise<void> | undefined;
-  private pending: Set<Promise<Match[][] | ExprMatchResult | BreSearchResult>> | undefined;
-  private retirements: Set<Promise<void>> | undefined;
-  private controller: AbortController | undefined;
-  private requestSignal: AbortSignal;
-  private readonly getRetirementsBound = (): Set<Promise<void>> => {
-    this.ensureAsyncState();
-    return this.retirements!;
-  };
-  constructor(private readonly executor: RegexExecutor, private readonly signal: AbortSignal) {
+  declare readonly executor: RegexExecutor;
+  declare readonly signal: AbortSignal;
+  declare private closed: Promise<void> | undefined;
+  declare private pending: Set<Promise<Match[][] | ExprMatchResult | BreSearchResult>> | undefined;
+  declare private retirements: Set<Promise<void>> | undefined;
+  declare private controller: AbortController | undefined;
+  declare private requestSignal: AbortSignal;
+  constructor(executor: RegexExecutor, signal: AbortSignal) {
+    this.executor = executor;
+    this.signal = signal;
     this.requestSignal = signal;
   }
-  private ensureAsyncState(): AbortSignal {
+  _ensureAsyncState(): AbortSignal {
     if (!this.controller) {
       this.controller = new AbortController();
       if (this.closed) this.controller.abort(this.signal.aborted ? this.signal.reason : closedSessionError);
@@ -562,8 +570,12 @@ export class RegexSession {
     }
     return this.requestSignal;
   }
+  _getRetirements(): Set<Promise<void>> {
+    this._ensureAsyncState();
+    return this.retirements!;
+  }
   private trackPending<T extends Match[][] | ExprMatchResult | BreSearchResult>(result: Promise<T>): Promise<T> {
-    this.ensureAsyncState();
+    this._ensureAsyncState();
     const pending = this.pending ??= new Set();
     pending.add(result);
     const cleanup = () => pending.delete(result);
@@ -573,9 +585,7 @@ export class RegexSession {
   runSync(descriptor: Descriptor, rows: readonly Row[]): Match[][] | Promise<Match[][]> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    // Dispatch may become asynchronous, so its first signal must already belong to this session.
-    const signal = this.ensureAsyncState();
-    const result = this.executor.requestSyncOrAsync(descriptor, rows, signal, this.getRetirementsBound);
+    const result = this.executor.requestSyncOrAsync(descriptor, rows, this);
     if (!(result instanceof Promise)) return result;
     return this.trackPending(result);
   }
@@ -586,14 +596,14 @@ export class RegexSession {
   matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const sig = this.ensureAsyncState();
+    const sig = this._ensureAsyncState();
     const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
     return this.trackPending(result);
   }
   searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const sig = this.ensureAsyncState();
+    const sig = this._ensureAsyncState();
     const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
     return this.trackPending(result);
   }
@@ -623,6 +633,12 @@ export class RegexSession {
     });
   }
 }
+Object.assign(RegexSession.prototype, {
+  closed: undefined,
+  pending: undefined,
+  retirements: undefined,
+  controller: undefined,
+});
 
 export class AvailableRecords {
   private chunk = new Uint8Array(0);

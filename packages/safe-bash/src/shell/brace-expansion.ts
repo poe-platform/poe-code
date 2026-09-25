@@ -19,6 +19,84 @@ interface Frame {
 
 export class BraceExpansionFailure extends Error {}
 
+function isSimpleUnpaddedInt(s: string): boolean {
+  const len = s.length;
+  if (len === 0 || len > 10) return false;
+  let start = 0;
+  if (s.charCodeAt(0) === 45) {
+    if (len === 1) return false;
+    start = 1;
+  }
+  if (len - start > 1 && s.charCodeAt(start) === 48) return false;
+  for (let i = start; i < len; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 48 || c > 57) return false;
+  }
+  return true;
+}
+
+export function tryFastExpandBraceRange(
+  word: Word,
+  budget: Budget,
+  reserveBytes?: (bytes: number, objects: number) => void,
+): string[] | undefined {
+  if (word.parts.length !== 1) return undefined;
+  const part = word.parts[0]!;
+  if (part.kind !== "text" || part.quoted || part.byteValue) return undefined;
+  const text = part.value;
+  const open = text.indexOf("{");
+  if (open < 0) return undefined;
+  const close = text.indexOf("}", open + 1);
+  if (close < 0) return undefined;
+  for (let i = 0; i < text.length; i++) {
+    if (i === open || i === close) continue;
+    const c = text.charCodeAt(i);
+    if (
+      c === 123 || c === 125 || c === 44 || c === 92 || c === 126 ||
+      c === 42 || c === 63 || c === 91 || c === 32 || c === 9 || c === 10
+    ) {
+      return undefined;
+    }
+  }
+  const inner = text.slice(open + 1, close);
+  const dot = inner.indexOf("..");
+  if (dot <= 0 || inner.indexOf("..", dot + 2) >= 0) return undefined;
+  const startStr = inner.slice(0, dot);
+  const endStr = inner.slice(dot + 2);
+  if (!isSimpleUnpaddedInt(startStr) || !isSimpleUnpaddedInt(endStr)) return undefined;
+  const start = Number(startStr);
+  const end = Number(endStr);
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return undefined;
+  const count = Math.abs(end - start) + 1;
+  if (count > 2048 || count > budget.limits.maxExpansionFields) return undefined;
+  const prefix = text.slice(0, open);
+  const suffix = text.slice(close + 1);
+  const prefixBytes = Buffer.byteLength(prefix);
+  const suffixBytes = Buffer.byteLength(suffix);
+  const maxTermBytes = prefixBytes + suffixBytes + Math.max(startStr.length, endStr.length);
+  if (count * maxTermBytes > budget.limits.maxExpansionBytes) return undefined;
+  budget.cpuCheckpoint();
+  const out = new Array<string>(count);
+  const step = start <= end ? 1 : -1;
+  let cur = start;
+  let totalCharLen = 0;
+  if (prefix.length === 0 && suffix.length === 0) {
+    for (let i = 0; i < count; i++, cur += step) {
+      const s = String(cur);
+      totalCharLen += s.length;
+      out[i] = s;
+    }
+  } else {
+    for (let i = 0; i < count; i++, cur += step) {
+      const s = `${prefix}${cur}${suffix}`;
+      totalCharLen += s.length;
+      out[i] = s;
+    }
+  }
+  reserveBytes?.(count * 32 + totalCharLen * 2, 0);
+  return out;
+}
+
 async function integer(text: string, checkpoint: () => Promise<void>): Promise<bigint | undefined> {
   let offset = text.startsWith("-") || text.startsWith("+") ? 1 : 0;
   if (offset === text.length) return undefined;

@@ -24,10 +24,10 @@ import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, She
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
-import { scopeFileSystem } from "@poe-code/safe-fs/core";
+import { scopeFileSystem, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
 import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncString, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
-import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
+import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, compilePatternBoundaries, matchesPattern } from "./pattern.js";
@@ -374,6 +374,10 @@ export class Budget {
   fileSystemCleanupOperation(): void {
     if (this.#fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
     this.#fileSystemOperations++;
+  }
+
+  canFileSystemOperation(): boolean {
+    return this.#fileSystemOperations < this.limits.maxFileSystemOperations;
   }
 
   reservePipelineStages(count: number): () => void {
@@ -1765,6 +1769,7 @@ function hasGlobOrEscape(text: string): boolean {
 }
 
 const fastSubScratchArgs: string[] = [];
+const fastRedirectScratchBytes = new Uint8Array(8192);
 
 export class Runtime {
   private readonly sourceFs: FileSystem;
@@ -3375,7 +3380,7 @@ export class Runtime {
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
     if (pipeline.commands.length !== 1) return undefined;
     const command = pipeline.commands[0]!;
-    if (command.kind !== "simple" || command.redirects.length !== 0) return undefined;
+    if (command.kind !== "simple" || command.redirects.length > 1) return undefined;
     const scope = io[invocationScope];
     if (scope.failures.length > 0) return undefined;
     const tracked = trackState(state, this.budget, scope);
@@ -3411,10 +3416,160 @@ export class Runtime {
     if (!elem0 || elem0.text.bytes !== 1) return undefined;
     const canMutatePipeStatus = existing.references === 1 && elem0.text.references === 1;
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
-    if (command.words.length === 1) {
+    if (command.redirects.length === 1) {
       if (!canMutatePipeStatus && elem0.text.shellValue !== "0") return undefined;
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;
+      if (
+        command.words.length === 0 ||
+        this.budget.limits.maxRedirects < 1 ||
+        this.fileWrites.size !== 0 ||
+        this.outputFiles.size !== 0 ||
+        this.backingFs.capabilitiesFor ||
+        this.sourceFs.capabilities.open !== true ||
+        this.sourceFs.capabilities.preferStreamingRedirection === true ||
+        this.sourceFs.capabilities.readOnly === true ||
+        this.sourceFs.capabilities.write === false ||
+        this.sourceFs.capabilities.append === false
+      ) {
+        return undefined;
+      }
+      const r0 = command.redirects[0]!;
+      const w0Plain = command.words[0]!.plain;
+      if (
+        r0.descriptor !== 1 ||
+        r0.move ||
+        r0.document ||
+        (r0.operator !== ">" && r0.operator !== ">>" && !(r0.operator === ">|" && rawState.noclobber)) ||
+        (r0.operator === ">" && rawState.noclobber) ||
+        (w0Plain !== "echo" && w0Plain !== "printf") ||
+        rawState.functions.has(w0Plain) ||
+        rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        return undefined;
+      }
+      const def = this.commands.get(w0Plain);
+      if (
+        !def ||
+        (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute)) ||
+        command.words.length > this.budget.limits.maxExpansionFields ||
+        !this.isPureArgWord(r0.target, rawState) ||
+        !command.words.every(w => this.isPureArgWord(w, rawState))
+      ) {
+        return undefined;
+      }
+      let targetVal: ShellValue | undefined;
+      let formatted: string | undefined;
+      try {
+        if (w0Plain === "echo" && command.words.length === 1) {
+          targetVal = this.fastValueWord(r0.target, tracked, io, true, false, false, true, undefined, diagnosticLine);
+          formatted = "\n";
+        } else if (w0Plain === "echo" && command.words.length === 2) {
+          const arg0 = this.fastValueWord(command.words[1]!, tracked, io, true, false, false, true, undefined, diagnosticLine);
+          if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
+            targetVal = this.fastValueWord(r0.target, tracked, io, true, false, false, true, undefined, diagnosticLine);
+            formatted = `${arg0}\n`;
+          }
+        } else {
+          fastSubScratchArgs.length = 0;
+          let allStrings = true;
+          for (let i = 1; i < command.words.length; i++) {
+            const v = this.fastValueWord(command.words[i]!, tracked, io, true, false, false, true, undefined, diagnosticLine);
+            if (typeof v !== "string") {
+              allStrings = false;
+              break;
+            }
+            fastSubScratchArgs.push(v);
+          }
+          if (allStrings) {
+            if (w0Plain === "printf") {
+              formatted = tryFastPrintf(fastSubScratchArgs);
+            } else if (!fastSubScratchArgs[0]?.startsWith("-")) {
+              const joined = `${fastSubScratchArgs.join(" ")}\n`;
+              if (!joined.includes("\0")) formatted = joined;
+            }
+            fastSubScratchArgs.length = 0;
+            if (formatted !== undefined) {
+              targetVal = this.fastValueWord(r0.target, tracked, io, true, false, false, true, undefined, diagnosticLine);
+            }
+          } else {
+            fastSubScratchArgs.length = 0;
+          }
+        }
+      } catch {
+        fastSubScratchArgs.length = 0;
+        return undefined;
+      }
+      if (formatted === undefined || typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) {
+        return undefined;
+      }
+      const path = pathOf(rawState, targetVal);
+      if (path.startsWith("/dev/") || path === "/dev") return undefined;
+      const encoded =
+        formatted.length * 3 <= fastRedirectScratchBytes.byteLength
+          ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
+          : Buffer.from(formatted, "utf8");
+      const byteLength = encoded.byteLength;
+      if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
+      if (!this.budget.canFileSystemOperation()) return undefined;
+      const mode = 0o666 & ~(rawState.umask ?? 0o022);
+      try {
+        if (!tryWriteMemoryFileSync(this.backingFs, path, encoded, r0.operator === ">>", mode, this.commandSignal)) {
+          return undefined;
+        }
+      } catch {
+        this.signal.throwIfAborted();
+        return undefined;
+      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) {
+        publishCommandSpelling(rawState, commandSpelling(command));
+      }
+      const owner = monitor.internalOwner();
+      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+      this.budget.tick();
+      this.budget.fileSystemOperation();
+      this.budget.bytes += byteLength;
+      rawState.substitutionStatus = 0;
+      if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+      elem0.text.shellValue = "0";
+      const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+      store.changed(psTickets, "PIPESTATUS");
+      const finalStatus = pipeline.negate ? 1 : 0;
+      rawState.status = finalStatus;
+      monitor.epoch = restEpoch;
+      store.epoch = restEpoch;
+      return finalStatus;
+    }
+    if (command.words.length === 1) {
       const w0 = command.words[0]!;
+      const w0Plain = w0.plain;
+      if (
+        (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") &&
+        !rawState.functions.has(w0Plain) &&
+        !rawState.extensions?.builtins.has(w0Plain)
+      ) {
+        const rawStatus = w0Plain === "false" ? 1 : 0;
+        const statusChar = rawStatus === 0 ? "0" : "1";
+        if (!canMutatePipeStatus && elem0.text.shellValue !== statusChar) return undefined;
+        const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+        if (finalStatus !== 0 && !ignored && rawState.errexit) return undefined;
+        if (rawState.extensions && !rawState.extensions.eventDepth) {
+          publishCommandSpelling(rawState, commandSpelling(command));
+        }
+        const owner = monitor.internalOwner();
+        const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+        this.budget.tick();
+        rawState.substitutionStatus = 0;
+        if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+        elem0.text.shellValue = statusChar;
+        const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+        store.changed(psTickets, "PIPESTATUS");
+        rawState.status = finalStatus;
+        monitor.epoch = restEpoch;
+        store.epoch = restEpoch;
+        return finalStatus;
+      }
+      if (!canMutatePipeStatus && elem0.text.shellValue !== "0") return undefined;
+      if (pipeline.negate && !ignored && rawState.errexit) return undefined;
       const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
       if (
         !assignment ||
@@ -4065,13 +4220,14 @@ export class Runtime {
       command.kind === "simple" &&
       command.redirects.length === 1 &&
       command.words.length >= 1 &&
+      this.budget.limits.maxRedirects >= 1 &&
       !fileShortcut &&
       !terminal &&
       !state.variableAttributes?.size &&
       !guestArrays(state) &&
       this.fileWrites.size === 0 &&
       this.outputFiles.size === 0 &&
-      !this.sourceFs.capabilitiesFor &&
+      !this.backingFs.capabilitiesFor &&
       this.sourceFs.capabilities.open === true &&
       this.sourceFs.capabilities.preferStreamingRedirection !== true &&
       this.sourceFs.capabilities.readOnly !== true &&
@@ -4098,54 +4254,96 @@ export class Runtime {
           this.isPureArgWord(r0.target, rawState) &&
           command.words.every(w => this.isPureArgWord(w, rawState))
         ) {
-          let wordValues: ShellValue[] | undefined;
           let targetVal: ShellValue | undefined;
+          let formatted: string | undefined;
           let fastFailed = false;
           try {
-            wordValues = this.fastValueWords(command.words, state, originalIO, false, false, diagnosticLine);
-            if (wordValues !== undefined && wordValues.every(v => typeof v === "string")) {
-              targetVal = this.fastValueWord(r0.target, state, originalIO, true, false, false, true, undefined, diagnosticLine);
+            if (command.words.length <= this.budget.limits.maxExpansionFields) {
+              if (w0Plain === "echo" && command.words.length === 1) {
+                targetVal = this.fastValueWord(r0.target, state, originalIO, true, false, false, true, undefined, diagnosticLine);
+                formatted = "\n";
+              } else if (w0Plain === "echo" && command.words.length === 2) {
+                const arg0 = this.fastValueWord(command.words[1]!, state, originalIO, true, false, false, true, undefined, diagnosticLine);
+                if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
+                  targetVal = this.fastValueWord(r0.target, state, originalIO, true, false, false, true, undefined, diagnosticLine);
+                  formatted = `${arg0}\n`;
+                }
+              } else {
+                fastSubScratchArgs.length = 0;
+                let allStrings = true;
+                for (let i = 1; i < command.words.length; i++) {
+                  const v = this.fastValueWord(command.words[i]!, state, originalIO, true, false, false, true, undefined, diagnosticLine);
+                  if (typeof v !== "string") {
+                    allStrings = false;
+                    break;
+                  }
+                  fastSubScratchArgs.push(v);
+                }
+                if (allStrings) {
+                  if (w0Plain === "printf") {
+                    formatted = tryFastPrintf(fastSubScratchArgs);
+                  } else if (!fastSubScratchArgs[0]?.startsWith("-")) {
+                    const joined = `${fastSubScratchArgs.join(" ")}\n`;
+                    if (!joined.includes("\0")) formatted = joined;
+                  }
+                  fastSubScratchArgs.length = 0;
+                  if (formatted !== undefined) {
+                    targetVal = this.fastValueWord(r0.target, state, originalIO, true, false, false, true, undefined, diagnosticLine);
+                  }
+                } else {
+                  fastSubScratchArgs.length = 0;
+                }
+              }
             }
           } catch {
+            fastSubScratchArgs.length = 0;
             fastFailed = true;
           }
-          if (!fastFailed && wordValues !== undefined && typeof targetVal === "string" && targetVal.length > 0 && !targetVal.includes("\0")) {
+          if (!fastFailed && formatted !== undefined && typeof targetVal === "string" && targetVal.length > 0 && !targetVal.includes("\0")) {
             const path = pathOf(state, targetVal);
-            if (!path.startsWith("/dev/")) {
-              const args = (wordValues as readonly string[]).slice(1);
-              let formatted: string | undefined;
-              if (w0Plain === "printf") {
-                formatted = tryFastPrintf(args);
-              } else if (!args[0]?.startsWith("-")) {
-                formatted = `${args.join(" ")}\n`;
-                if (formatted.includes("\0")) formatted = undefined;
-              }
-              if (formatted !== undefined) {
-                const byteLength = Buffer.byteLength(formatted);
-                if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
-                  const bytes = Buffer.from(formatted, "utf8");
-                  const resourceFs = creationFileSystem(this.sourceFs, state.umask ?? 0o022);
-                  const resumePathCache = this.budget.pathLookup.suspend();
-                  let writeSucceeded = false;
-                  try {
-                    this.budget.fileSystemOperation();
-                    if (r0.operator === ">>") {
-                      await interruptible(resourceFs.appendFile(path, bytes, { signal: this.commandSignal }), this.signal);
-                    } else {
-                      await interruptible(resourceFs.writeFile(path, bytes, { signal: this.commandSignal, flag: "w" }), this.signal);
+            if (!path.startsWith("/dev/") && path !== "/dev") {
+              const encoded =
+                formatted.length * 3 <= fastRedirectScratchBytes.byteLength
+                  ? fastRedirectScratchBytes.subarray(0, fastSharedTextEncoder.encodeInto(formatted, fastRedirectScratchBytes).written)
+                  : Buffer.from(formatted, "utf8");
+              const byteLength = encoded.byteLength;
+              if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+                let writeSucceeded = false;
+                const mode = 0o666 & ~(state.umask ?? 0o022);
+                try {
+                  this.budget.fileSystemOperation();
+                  if (
+                    !tryWriteMemoryFileSync(
+                      this.backingFs,
+                      path,
+                      encoded,
+                      r0.operator === ">>",
+                      mode,
+                      this.commandSignal,
+                    )
+                  ) {
+                    const bytes = encoded.buffer === fastRedirectScratchBytes.buffer ? Buffer.from(encoded) : encoded;
+                    const resourceFs = creationFileSystem(this.sourceFs, state.umask ?? 0o022);
+                    const resumePathCache = this.budget.pathLookup.suspend();
+                    try {
+                      if (r0.operator === ">>") {
+                        await interruptible(resourceFs.appendFile(path, bytes, { signal: this.commandSignal }), this.signal);
+                      } else {
+                        await interruptible(resourceFs.writeFile(path, bytes, { signal: this.commandSignal, flag: "w" }), this.signal);
+                      }
+                    } finally {
+                      resumePathCache();
                     }
-                    this.budget.bytes += byteLength;
-                    writeSucceeded = true;
-                  } catch {
-                    this.signal.throwIfAborted();
-                  } finally {
-                    resumePathCache();
                   }
-                  if (writeSucceeded) {
-                    state.substitutionStatus = 0;
-                    if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
-                    return 0;
-                  }
+                  this.budget.bytes += byteLength;
+                  writeSucceeded = true;
+                } catch {
+                  this.signal.throwIfAborted();
+                }
+                if (writeSucceeded) {
+                  state.substitutionStatus = 0;
+                  if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
+                  return 0;
                 }
               }
             }
@@ -7826,6 +8024,16 @@ export class Runtime {
           if (1 > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
           fields.push(fast);
           continue;
+        }
+        if (!scalarAssignment && state.braceexpand !== false && !state.variableAttributes?.size && !guestArrays(state)) {
+          const valScope = io[valueScope];
+          const fastBrace = tryFastExpandBraceRange(word, this.budget, valScope ? (b, o) => valScope.reserve(b, o) : undefined);
+          if (fastBrace !== undefined) {
+            if (fastBrace.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
+            if (fields.length === 0 && words.length === 1) return fastBrace;
+            for (let i = 0; i < fastBrace.length; i++) fields.push(fastBrace[i]!);
+            continue;
+          }
         }
         const values = await this.valueWord(word, state, io, split, false, false, false, undefined, false, true, assignmentStart);
         if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");

@@ -1313,6 +1313,11 @@ export function createMemoryFileSystem(options: MemoryFileSystemOptions | Readon
 const missingTargetMethodNames = ["realpath", "lstat", "resolve", "permission", "validatePath", "fail", "snapshot"] as const;
 const deviceFastMethodNames = ["lstat", "readlink", "resolve", "permission", "validatePath", "fail", "snapshot"] as const;
 const readFileFastMethodNames = ["readFile", "file", "resolve", "permission", "validatePath", "fail", "integer"] as const;
+const writeFileFastMethodNames = [
+  "writeFile", "appendFile", "writeData", "prepareWrite", "openWrite", "writeAt",
+  "addNode", "replaceData", "resolve", "permission", "validatePath", "mode",
+  "bytes", "allocate", "admitSize", "changed", "metadata", "fail",
+] as const;
 
 export function isCleanAbsolutePath(path: string): boolean {
   const len = path.length;
@@ -1425,4 +1430,35 @@ export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path
     current = next;
     start = slash + 1;
   }
+}
+
+export function tryWriteMemoryFileSync(
+  filesystem: FileSystem,
+  path: string,
+  data: Uint8Array,
+  append: boolean,
+  mode: number,
+  signal?: AbortSignal,
+): boolean {
+  const mem = filesystem as MemoryFileSystem;
+  const owner = ownedStores.get(mem);
+  if (
+    !owner ||
+    mem.symlinkCount !== 0 ||
+    mem.capabilities !== owner.capabilities ||
+    !isStockMemoryMethods(mem, writeFileFastMethodNames, false) ||
+    !isCleanAbsolutePath(path) ||
+    path === "/dev" ||
+    path.startsWith("/dev/")
+  ) {
+    return false;
+  }
+  signal?.throwIfAborted();
+  (mem as unknown as { writeData: (p: string, d: Uint8Array, o: WriteFileOptions, s: string) => void }).writeData(
+    path,
+    data,
+    { flag: append ? "a" : "w", mode },
+    append ? "appendFile" : "writeFile",
+  );
+  return true;
 }

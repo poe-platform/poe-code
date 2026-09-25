@@ -720,8 +720,9 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       if (force) parsed.flags.add("f"); else parsed.flags.delete("f");
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
       const recursive = parsed.flags.has("r") || parsed.flags.has("R");
-      const answers = lines(readBytes(context.stdin, context.signal));
+      let answers: AsyncGenerator<{ bytes: Uint8Array }> | undefined;
       const confirm = async (question: string): Promise<boolean> => {
+        answers ??= lines(readBytes(context.stdin, context.signal));
         await writeBytes(context.stderr, new TextEncoder().encode(`rm: ${question}? `), context.signal);
         const answer = await answers.next();
         const text = answer.done ? "" : new TextDecoder().decode(answer.value.bytes).trimStart();
@@ -775,7 +776,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           return true;
         };
         return await eachOperand(context, parsed.operands, async operand => { await remove(operand); });
-      } finally { await answers.return(undefined); }
+      } finally { if (answers) await answers.return(undefined); }
     }),
     define("rmdir", async context => {
       const parsed = options(context.args, "pv", { parents: "p", verbose: "v", "ignore-fail-on-non-empty": false });

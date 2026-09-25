@@ -287,7 +287,7 @@ describe("public safe-package verification", () => {
     expect(await context.files.readdir("/out")).toEqual([]);
   });
 
-  it.each(["safe-bash-command-example", "safe-bash-engine-pdf", "safe-bash-contracts"])("rejects an installed bare private requirement %s", async name => {
+  it.each(["safe-bash-command-example", "safe-bash-engine-pdf", "safe-bash-table-text-engine", "safe-bash-csv-engine", "safe-bash-contracts"])("rejects an installed bare private requirement %s", async name => {
     const context = fixture();
     const install = context.run.getMockImplementation()!;
     context.run.mockImplementation(async (command, args, options) => {
@@ -299,7 +299,7 @@ describe("public safe-package verification", () => {
     expect(context.run).toHaveBeenCalledTimes(1);
   });
 
-  it.each(["safe-bash-command-example", "@private/safe-bash-engine-pdf", "safe-bash-contracts"])("rejects a transitive private installation %s", async name => {
+  it.each(["safe-bash-command-example", "@private/safe-bash-engine-pdf", "safe-bash-table-text-engine", "safe-bash-csv-engine", "safe-bash-contracts"])("rejects a transitive private installation %s", async name => {
     const context = fixture();
     const install = context.run.getMockImplementation()!;
     context.run.mockImplementation(async (command, args, options) => {

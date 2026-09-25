@@ -2559,4 +2559,36 @@ describe("@poe-code/image-ast (sharp core)", () => {
         .toBuffer()
     ).rejects.toThrow(/extract_area: bad extract area/);
   });
+
+  it("validates resize(), trim(), negate(), and normalise() options matching sharp", async () => {
+    const png = await sharp({ create: { width: 8, height: 8, channels: 3, background: "red" } }).png().toBuffer();
+
+    expect(() => sharp(png).resize(4, 4, { fit: "bogus" as any })).toThrow(/Expected valid fit for fit/);
+    expect(() => sharp(png).resize(4, 4, { kernel: "bogus" as any })).toThrow(/Expected valid kernel name for kernel/);
+    expect(() => sharp(png).resize(4, 4, { position: "bogus" as any })).toThrow(
+      /Expected valid position\/gravity\/strategy for position/
+    );
+    expect(() => sharp(png).resize(4, 4, { position: 99 as any })).toThrow(
+      /Expected valid position\/gravity\/strategy for position/
+    );
+    expect(() => sharp(png).resize(4, 4, { withoutEnlargement: "yes" as any })).toThrow(
+      /Expected boolean for withoutEnlargement/
+    );
+    expect(() => sharp(png).resize(4, 4, { withoutReduction: "yes" as any })).toThrow(
+      /Expected boolean for withoutReduction/
+    );
+    expect(() => sharp(png).resize(4, 4, { fastShrinkOnLoad: "yes" as any } as any)).toThrow(
+      /Expected boolean for fastShrinkOnLoad/
+    );
+
+    expect(() => sharp(png).trim({ threshold: -1 })).toThrow(/Expected positive number for threshold/);
+    expect(() => sharp(png).trim({ threshold: "bad" as any })).toThrow(/Expected positive number for threshold/);
+    expect(() => sharp(png).trim({ lineArt: "yes" } as any)).toThrow(/Expected boolean for trimLineArt/);
+
+    expect(() => sharp(png).negate({ alpha: "yes" as any })).toThrow(/Expected should be boolean value for alpha/);
+
+    expect(() => sharp(png).normalise({ lower: 60, upper: 40 })).toThrow(/Expected lower to be less than upper for range/);
+    expect(() => sharp(png).normalise({ lower: -1 })).toThrow(/Expected number between 0 and 99 for lower/);
+    expect(() => sharp(png).normalise({ upper: 101 })).toThrow(/Expected number between 1 and 100 for upper/);
+  });
 });

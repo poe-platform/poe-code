@@ -810,7 +810,27 @@ export class SharpInstance extends Duplex {
   }
 
   trim(options?: number | { readonly threshold?: number; readonly background?: ColorInput }): this {
+    if (
+      options !== undefined &&
+      typeof options !== "number" &&
+      (typeof options !== "object" || options === null || Array.isArray(options))
+    ) {
+      throw new Error(`Expected object or number for trim but received ${options} of type ${typeof options}`);
+    }
+    if (
+      typeof options === "object" &&
+      options !== null &&
+      (options as Record<string, unknown>).lineArt !== undefined &&
+      typeof (options as Record<string, unknown>).lineArt !== "boolean"
+    ) {
+      throw new Error(
+        `Expected boolean for trimLineArt but received ${(options as Record<string, unknown>).lineArt} of type ${typeof (options as Record<string, unknown>).lineArt}`
+      );
+    }
     const threshold = typeof options === "number" ? options : (options?.threshold ?? 10);
+    if (typeof threshold !== "number" || Number.isNaN(threshold) || threshold < 0) {
+      throw new Error(`Expected positive number for threshold but received ${threshold} of type ${typeof threshold}`);
+    }
     const background =
       typeof options === "object" && options?.background
         ? parseColor(options.background)
@@ -857,6 +877,58 @@ export class SharpInstance extends Duplex {
     }
     if (h !== null && (!Number.isInteger(h) || h <= 0)) {
       throw new Error(`Expected positive integer for height but received ${h}`);
+    }
+    if (opts.fit !== undefined && !["contain", "cover", "fill", "inside", "outside"].includes(opts.fit)) {
+      throw new Error(`Expected valid fit for fit but received ${opts.fit} of type ${typeof opts.fit}`);
+    }
+    if (
+      opts.kernel !== undefined &&
+      !["nearest", "linear", "cubic", "mitchell", "lanczos2", "lanczos3", "mks2013", "mks2021"].includes(opts.kernel)
+    ) {
+      throw new Error(`Expected valid kernel name for kernel but received ${opts.kernel} of type ${typeof opts.kernel}`);
+    }
+    if (opts.position !== undefined) {
+      const validPosStrings = [
+        "top",
+        "right",
+        "bottom",
+        "left",
+        "right top",
+        "right bottom",
+        "left bottom",
+        "left top",
+        "north",
+        "northeast",
+        "east",
+        "southeast",
+        "south",
+        "southwest",
+        "west",
+        "northwest",
+        "center",
+        "centre",
+        "entropy",
+        "attention"
+      ];
+      const isValidPos =
+        typeof opts.position === "string"
+          ? validPosStrings.includes(opts.position)
+          : typeof opts.position === "number" &&
+            Number.isInteger(opts.position) &&
+            ((opts.position >= 0 && opts.position <= 8) || opts.position === 16 || opts.position === 17);
+      if (!isValidPos) {
+        throw new Error(
+          `Expected valid position/gravity/strategy for position but received ${opts.position} of type ${typeof opts.position}`
+        );
+      }
+    }
+    const anyResizeOpts = opts as Record<string, unknown>;
+    for (const boolKey of ["withoutEnlargement", "withoutReduction", "fastShrinkOnLoad"] as const) {
+      if (anyResizeOpts[boolKey] !== undefined && typeof anyResizeOpts[boolKey] !== "boolean") {
+        throw new Error(
+          `Expected boolean for ${boolKey} but received ${anyResizeOpts[boolKey]} of type ${typeof anyResizeOpts[boolKey]}`
+        );
+      }
     }
     const existingIdx = this.nodes.findIndex(n => n.kind === "resize");
     if (existingIdx !== -1) {
@@ -1021,6 +1093,9 @@ export class SharpInstance extends Duplex {
       if (idx !== -1) this.nodes.splice(idx, 1);
       return this;
     }
+    if (typeof options === "object" && options !== null && options.alpha !== undefined && typeof options.alpha !== "boolean") {
+      throw new Error(`Expected should be boolean value for alpha but received ${options.alpha} of type ${typeof options.alpha}`);
+    }
     const alpha = typeof options === "object" ? (options.alpha ?? true) : true;
     this.upsertNode({ kind: "negate", alpha });
     return this;
@@ -1105,17 +1180,18 @@ export class SharpInstance extends Duplex {
       this.upsertNode({ kind: "normalize", lower: 1, upper: 99 });
       return this;
     }
-    if (typeof lowerOrOptions === "number") {
-      this.upsertNode({ kind: "normalize",
-        lower: lowerOrOptions,
-        upper: upperArg ?? 99
-      });
-    } else {
-      this.upsertNode({ kind: "normalize",
-        lower: lowerOrOptions?.lower ?? 1,
-        upper: lowerOrOptions?.upper ?? 99
-      });
+    const lower = typeof lowerOrOptions === "number" ? lowerOrOptions : (lowerOrOptions?.lower ?? 1);
+    const upper = typeof lowerOrOptions === "number" ? (upperArg ?? 99) : (lowerOrOptions?.upper ?? 99);
+    if (typeof lower !== "number" || Number.isNaN(lower) || lower < 0 || lower > 99) {
+      throw new Error(`Expected number between 0 and 99 for lower but received ${lower} of type ${typeof lower}`);
     }
+    if (typeof upper !== "number" || Number.isNaN(upper) || upper < 1 || upper > 100) {
+      throw new Error(`Expected number between 1 and 100 for upper but received ${upper} of type ${typeof upper}`);
+    }
+    if (lower >= upper) {
+      throw new Error(`Expected lower to be less than upper for range but received ${lower} >= ${upper} of type string`);
+    }
+    this.upsertNode({ kind: "normalize", lower, upper });
     return this;
   }
 

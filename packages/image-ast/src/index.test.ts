@@ -3343,4 +3343,33 @@ describe("@poe-code/image-ast (sharp core)", () => {
         .toBuffer()
     ).rejects.toThrow("linear: vector must have 1 or 4 elements");
   });
+
+  it("executes autoOrient() before rotate(angle), flip(), flop(), and resize() regardless of call order (#1253)", async () => {
+    const raw = Buffer.alloc(12 * 8 * 3);
+    for (let i = 0; i < raw.length; i++) raw[i] = (i * 37 + 11) & 0xff;
+    const jpg6 = await sharp(raw, { raw: { width: 12, height: 8, channels: 3 } })
+      .withMetadata({ orientation: 6 })
+      .jpeg({ quality: 100 })
+      .toBuffer();
+
+    const flipThenAuto = await sharp(jpg6).flip().autoOrient().raw().toBuffer({ resolveWithObject: true });
+    const autoThenFlip = await sharp(jpg6).autoOrient().flip().raw().toBuffer({ resolveWithObject: true });
+    expect(flipThenAuto.info.width).toBe(8);
+    expect(flipThenAuto.info.height).toBe(12);
+    expect(Buffer.compare(flipThenAuto.data, autoThenFlip.data)).toBe(0);
+
+    const resThenAuto = await sharp(jpg6)
+      .resize(6, 10, { fit: "fill" })
+      .autoOrient()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const autoThenRes = await sharp(jpg6)
+      .autoOrient()
+      .resize(6, 10, { fit: "fill" })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(resThenAuto.info.width).toBe(6);
+    expect(resThenAuto.info.height).toBe(10);
+    expect(Buffer.compare(resThenAuto.data, autoThenRes.data)).toBe(0);
+  });
 });

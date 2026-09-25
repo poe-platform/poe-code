@@ -915,7 +915,16 @@ export class SharpInstance extends Duplex {
 
   rotate(angle?: number, options?: { readonly background?: ColorInput }): this {
     if (angle === undefined) {
-      this.nodes.push({ kind: "autoOrient" });
+      if (!this.nodes.some(n => n.kind === "autoOrient")) {
+        const insertIdx = this.nodes.findIndex(
+          n => n.kind === "rotate" || n.kind === "flip" || n.kind === "flop" || n.kind === "resize"
+        );
+        if (insertIdx !== -1) {
+          this.nodes.splice(insertIdx, 0, { kind: "autoOrient" });
+        } else {
+          this.nodes.push({ kind: "autoOrient" });
+        }
+      }
     } else {
       if (typeof angle !== "number" || Number.isNaN(angle)) {
         throw new Error(`Expected numeric for angle but received ${angle} of type ${typeof angle}`);

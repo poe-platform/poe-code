@@ -12,25 +12,68 @@ export function isGifBytes(bytes: Uint8Array): boolean {
   );
 }
 
-function countGifFrames(bytes: Uint8Array): number {
+function parseGifAnimationInfo(bytes: Uint8Array): {
+  readonly frames: number;
+  readonly delays: number[];
+  readonly loop: number | undefined;
+} {
   const packed = bytes[10]!;
   const hasGct = (packed & 0x80) !== 0;
   const gctSize = 1 << ((packed & 0x07) + 1);
   let pos = 13 + (hasGct ? gctSize * 3 : 0);
   let frames = 0;
+  const delays: number[] = [];
+  let pendingDelayMs = 100;
+  let loop: number | undefined;
   while (pos < bytes.length) {
     const intro = bytes[pos++]!;
     if (intro === 0x3b) break;
     if (intro === 0x21) {
-      pos++; // label
-      while (pos < bytes.length) {
-        const subLen = bytes[pos++]!;
-        if (subLen === 0) break;
-        pos += subLen;
+      const label = bytes[pos++]!;
+      if (label === 0xf9) {
+        const blockSize = bytes[pos++] ?? 0;
+        if (blockSize >= 4 && pos + blockSize <= bytes.length) {
+          const delayCs = (bytes[pos + 1] ?? 0) | ((bytes[pos + 2] ?? 0) << 8);
+          pendingDelayMs = delayCs * 10;
+        }
+        pos += blockSize;
+        while (pos < bytes.length) {
+          const subLen = bytes[pos++]!;
+          if (subLen === 0) break;
+          pos += subLen;
+        }
+      } else if (label === 0xff) {
+        const appLen = bytes[pos++] ?? 0;
+        const appName =
+          pos + appLen <= bytes.length
+            ? String.fromCharCode(...bytes.subarray(pos, pos + appLen))
+            : "";
+        pos += appLen;
+        while (pos < bytes.length) {
+          const subLen = bytes[pos++]!;
+          if (subLen === 0) break;
+          if (
+            (appName.startsWith("NETSCAPE") || appName.startsWith("ANIMEXTS")) &&
+            subLen >= 3 &&
+            bytes[pos] === 0x01
+          ) {
+            const rawLoop = (bytes[pos + 1] ?? 0) | ((bytes[pos + 2] ?? 0) << 8);
+            loop = rawLoop === 0 ? 0 : rawLoop + 1;
+          }
+          pos += subLen;
+        }
+      } else {
+        while (pos < bytes.length) {
+          const subLen = bytes[pos++]!;
+          if (subLen === 0) break;
+          pos += subLen;
+        }
       }
     } else if (intro === 0x2c) {
       if (pos + 9 > bytes.length) break;
       frames++;
+      delays.push(pendingDelayMs);
+      pendingDelayMs = 100;
       const imgFlags = bytes[pos + 8]!;
       pos += 9;
       if (imgFlags & 0x80) {
@@ -47,25 +90,43 @@ function countGifFrames(bytes: Uint8Array): number {
       break;
     }
   }
-  return Math.max(1, frames);
+  return { frames: Math.max(1, frames), delays, loop };
 }
 
-export function readGifMetadata(bytes: Uint8Array): ImageMetadata {
+export function readGifMetadata(
+  bytes: Uint8Array,
+  options?: { readonly animated?: boolean; readonly page?: number; readonly pages?: number }
+): ImageMetadata {
   if (!isGifBytes(bytes) || bytes.length < 13) {
     throw new Error("Invalid GIF header");
   }
   const width = bytes[6]! | (bytes[7]! << 8);
   const height = bytes[8]! | (bytes[9]! << 8);
+  const anim = parseGifAnimationInfo(bytes);
+  const totalPages = anim.frames;
+  const isMulti =
+    options?.animated === true ||
+    options?.pages === -1 ||
+    (options?.pages !== undefined && options.pages > 1);
+  const startPage = Math.max(0, options?.page ?? 0);
+  const numPages = isMulti
+    ? options?.pages !== undefined && options.pages > 0
+      ? Math.min(options.pages, Math.max(1, totalPages - startPage))
+      : Math.max(1, totalPages - startPage)
+    : 1;
   return {
     format: "gif",
     width,
-    height,
+    height: height * numPages,
     space: "srgb",
     channels: 4,
     depth: "uchar",
     density: 72,
     hasAlpha: true,
-    pages: countGifFrames(bytes),
+    pages: totalPages,
+    ...(isMulti && totalPages > 1 ? { pageHeight: height } : {}),
+    ...(anim.delays.length > 0 ? { delay: anim.delays } : {}),
+    ...(anim.loop !== undefined ? { loop: anim.loop } : totalPages > 1 ? { loop: 0 } : {}),
     size: bytes.byteLength
   };
 }
@@ -143,9 +204,25 @@ function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): U
   return out;
 }
 
-export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: number }): RgbaImage {
+export function decodeGifImage(
+  bytes: Uint8Array,
+  options?: { readonly page?: number; readonly pages?: number; readonly animated?: boolean }
+): RgbaImage {
   const meta = readGifMetadata(bytes);
   const { width, height } = meta;
+  const totalPages = meta.pages ?? 1;
+  const isMulti =
+    options?.animated === true ||
+    options?.pages === -1 ||
+    (options?.pages !== undefined && options.pages > 1);
+  const startPage = Math.max(0, options?.page ?? 0);
+  const numPages = isMulti
+    ? options?.pages !== undefined && options.pages > 0
+      ? Math.min(options.pages, Math.max(1, totalPages - startPage))
+      : Math.max(1, totalPages - startPage)
+    : 1;
+  const endPage = startPage + numPages - 1;
+
   const packed = bytes[10]!;
   const hasGct = (packed & 0x80) !== 0;
   const gctSize = 1 << ((packed & 0x07) + 1);
@@ -158,9 +235,11 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
 
   let transparentIdx = -1;
   let disposalMethod = 0;
-  const targetPage = Math.max(0, options?.page ?? 0);
   let currentFrame = 0;
-  const rgba = new Uint8Array(width * height * 4);
+  const framePixels = width * height * 4;
+  const rgba = new Uint8Array(framePixels);
+  const stackedRgba = numPages > 1 ? new Uint8Array(framePixels * numPages) : rgba;
+  let hasAnyAlpha = false;
 
   while (pos < bytes.length) {
     const intro = bytes[pos++]!;
@@ -246,7 +325,13 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
           }
         }
       }
-      if (currentFrame >= targetPage) {
+      if (transparentIdx !== -1) hasAnyAlpha = true;
+      if (currentFrame >= startPage && currentFrame <= endPage) {
+        if (numPages > 1) {
+          stackedRgba.set(rgba, (currentFrame - startPage) * framePixels);
+        }
+      }
+      if (currentFrame >= endPage) {
         break;
       }
       if (disposalMethod === 2) {
@@ -274,10 +359,11 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
     }
   }
 
-  let hasAlpha = transparentIdx !== -1;
+  const outData = numPages > 1 ? stackedRgba : rgba;
+  let hasAlpha = hasAnyAlpha;
   if (!hasAlpha) {
-    for (let i = 3; i < rgba.length; i += 4) {
-      if (rgba[i]! < 255) {
+    for (let i = 3; i < outData.length; i += 4) {
+      if (outData[i]! < 255) {
         hasAlpha = true;
         break;
       }
@@ -286,19 +372,39 @@ export function decodeGifImage(bytes: Uint8Array, options?: { readonly page?: nu
 
   return {
     width,
-    height,
-    data: rgba,
+    height: height * numPages,
+    data: outData,
     format: "gif",
     space: "srgb",
     channels: 4,
     depth: "uchar",
     density: 72,
-    hasAlpha
+    hasAlpha,
+    pages: numPages > 1 ? numPages : totalPages,
+    ...(numPages > 1 ? { pageHeight: height } : {}),
+    ...(meta.delay !== undefined ? { delay: meta.delay } : {}),
+    ...(meta.loop !== undefined ? { loop: meta.loop } : {})
   };
 }
 
-export function encodeGifImage(img: RgbaImage): Uint8Array {
+export function encodeGifImage(
+  img: RgbaImage,
+  options?: {
+    readonly pageHeight?: number;
+    readonly delay?: number | readonly number[];
+    readonly loop?: number;
+  }
+): Uint8Array {
   const { width, height, data } = img;
+  const rawPageHeight = options?.pageHeight ?? img.pageHeight;
+  const numFrames =
+    rawPageHeight !== undefined &&
+    rawPageHeight > 0 &&
+    rawPageHeight < height &&
+    height % rawPageHeight === 0
+      ? height / rawPageHeight
+      : 1;
+  const frameHeight = numFrames > 1 ? rawPageHeight! : height;
   // Build 256-color RGB332 base palette (0..253), pure white at 254, 255 = transparent,
   // and place any non-exact colors (when <= 254 unique colors) into unused palette slots.
   const palette = new Uint8Array(256 * 3);
@@ -369,63 +475,96 @@ export function encodeGifImage(img: RgbaImage): Uint8Array {
   const minCodeSize = 8;
   const clearCode = 256;
   const eoiCode = 257;
-  const bitBytes: number[] = [];
-  let bitBuf = 0;
-  let bitCount = 0;
-  const writeCode9 = (code: number) => {
-    bitBuf |= (code & 0x1ff) << bitCount;
-    bitCount += 9;
-    while (bitCount >= 8) {
-      bitBytes.push(bitBuf & 0xff);
-      bitBuf >>>= 8;
-      bitCount -= 8;
-    }
-  };
-
-  writeCode9(clearCode);
-  for (let i = 0; i < indices.length; i++) {
-    if (i > 0 && i % 120 === 0) {
-      writeCode9(clearCode);
-    }
-    writeCode9(indices[i]!);
-  }
-  writeCode9(eoiCode);
-  if (bitCount > 0) {
-    bitBytes.push(bitBuf & 0xff);
-  }
 
   const out: number[] = [
     0x47, 0x49, 0x46, 0x38, 0x39, 0x61, // GIF89a
     width & 0xff, (width >>> 8) & 0xff,
-    height & 0xff, (height >>> 8) & 0xff,
+    frameHeight & 0xff, (frameHeight >>> 8) & 0xff,
     0xf7, // GCT present, 8-bit color, 256 entries
     0x00,
     0x00
   ];
   for (let i = 0; i < palette.length; i++) out.push(palette[i]!);
 
-  if (hasTransparency) {
-    out.push(0x21, 0xf9, 0x04, 0x01, 0x00, 0x00, 255, 0x00);
+  const loopVal = options?.loop ?? img.loop ?? (numFrames > 1 ? 0 : undefined);
+  if (loopVal !== undefined) {
+    const netscapeLoop = loopVal === 0 ? 0 : Math.max(0, loopVal - 1);
+    out.push(
+      0x21, 0xff, 0x0b,
+      0x4e, 0x45, 0x54, 0x53, 0x43, 0x41, 0x50, 0x45, 0x32, 0x2e, 0x30, // NETSCAPE2.0
+      0x03, 0x01,
+      netscapeLoop & 0xff, (netscapeLoop >>> 8) & 0xff,
+      0x00
+    );
   }
 
-  // Image descriptor
-  out.push(
-    0x2c,
-    0x00, 0x00,
-    0x00, 0x00,
-    width & 0xff, (width >>> 8) & 0xff,
-    height & 0xff, (height >>> 8) & 0xff,
-    0x00,
-    minCodeSize
-  );
-
-  let bPos = 0;
-  while (bPos < bitBytes.length) {
-    const chunkLen = Math.min(255, bitBytes.length - bPos);
-    out.push(chunkLen);
-    for (let i = 0; i < chunkLen; i++) out.push(bitBytes[bPos + i]!);
-    bPos += chunkLen;
+  const framePixelCount = width * frameHeight;
+  for (let f = 0; f < numFrames; f++) {
+    const frameSlice = indices.subarray(f * framePixelCount, (f + 1) * framePixelCount);
+    let frameTransparent = false;
+    for (let i = 0; i < frameSlice.length; i++) {
+      if (frameSlice[i] === 255) {
+        frameTransparent = true;
+        break;
+      }
+    }
+    const delayMs = Array.isArray(options?.delay)
+      ? (options.delay[f] ?? options.delay[options.delay.length - 1] ?? 100)
+      : typeof options?.delay === "number"
+        ? options.delay
+        : (img.delay?.[f] ?? (numFrames > 1 ? 100 : 0));
+    const delayCs = Math.max(0, Math.round(delayMs / 10));
+    if (numFrames > 1 || frameTransparent || options?.delay !== undefined) {
+      const gceFlags = (numFrames > 1 ? 0x04 : 0x00) | 0x01;
+      out.push(
+        0x21, 0xf9, 0x04,
+        gceFlags,
+        delayCs & 0xff, (delayCs >>> 8) & 0xff,
+        255,
+        0x00
+      );
+    }
+    out.push(
+      0x2c,
+      0x00, 0x00,
+      0x00, 0x00,
+      width & 0xff, (width >>> 8) & 0xff,
+      frameHeight & 0xff, (frameHeight >>> 8) & 0xff,
+      0x00,
+      minCodeSize
+    );
+    const bitBytes: number[] = [];
+    let bitBuf = 0;
+    let bitCount = 0;
+    const writeCode9 = (code: number) => {
+      bitBuf |= (code & 0x1ff) << bitCount;
+      bitCount += 9;
+      while (bitCount >= 8) {
+        bitBytes.push(bitBuf & 0xff);
+        bitBuf >>>= 8;
+        bitCount -= 8;
+      }
+    };
+    writeCode9(clearCode);
+    for (let i = 0; i < frameSlice.length; i++) {
+      if (i > 0 && i % 120 === 0) {
+        writeCode9(clearCode);
+      }
+      writeCode9(frameSlice[i]!);
+    }
+    writeCode9(eoiCode);
+    if (bitCount > 0) {
+      bitBytes.push(bitBuf & 0xff);
+    }
+    let bPos = 0;
+    while (bPos < bitBytes.length) {
+      const chunkLen = Math.min(255, bitBytes.length - bPos);
+      out.push(chunkLen);
+      for (let i = 0; i < chunkLen; i++) out.push(bitBytes[bPos + i]!);
+      bPos += chunkLen;
+    }
+    out.push(0x00);
   }
-  out.push(0x00, 0x3b);
+  out.push(0x3b);
   return new Uint8Array(out);
 }

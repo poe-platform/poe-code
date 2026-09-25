@@ -797,4 +797,77 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(decWebp[0]).toBe(radial[0]);
     expect(decWebp[(32 * W + 32) * 4]).toBe(radial[(32 * W + 32) * 4]);
   });
+
+  it("supports 16-bit TIFF with Predictor=2 horizontal differencing (#61) and multi-page animated GIF decoding/encoding (#60)", async () => {
+    const strip16 = new Uint8Array([
+      0x00, 0xfa, 0x00, 0x00, 0xff, 0xfb,
+      0xff, 0x07, 0x00, 0xfc, 0x01, 0x06
+    ]);
+    const ifdOff = 8 + strip16.length;
+    const bpsOff = ifdOff + 2 + 10 * 12 + 4;
+    const tiff16 = new Uint8Array(bpsOff + 6);
+    const tv = new DataView(tiff16.buffer);
+    tiff16[0] = 0x49;
+    tiff16[1] = 0x49;
+    tv.setUint16(2, 42, true);
+    tv.setUint32(4, ifdOff, true);
+    tiff16.set(strip16, 8);
+    tv.setUint16(ifdOff, 10, true);
+    const writeEntry = (idx: number, tag: number, type: number, count: number, val: number) => {
+      const p = ifdOff + 2 + idx * 12;
+      tv.setUint16(p, tag, true);
+      tv.setUint16(p + 2, type, true);
+      tv.setUint32(p + 4, count, true);
+      if (type === 3 && count === 1) tv.setUint16(p + 8, val, true);
+      else tv.setUint32(p + 8, val, true);
+    };
+    writeEntry(0, 256, 4, 1, 2); // width = 2
+    writeEntry(1, 257, 4, 1, 1); // height = 1
+    writeEntry(2, 258, 3, 3, bpsOff); // BitsPerSample = [16, 16, 16]
+    writeEntry(3, 259, 3, 1, 1); // Compression = 1
+    writeEntry(4, 262, 3, 1, 2); // Photometric = RGB
+    writeEntry(5, 273, 4, 1, 8); // StripOffsets = 8
+    writeEntry(6, 277, 3, 1, 3); // SamplesPerPixel = 3
+    writeEntry(7, 278, 4, 1, 1); // RowsPerStrip = 1
+    writeEntry(8, 279, 4, 1, strip16.length); // StripByteCounts
+    writeEntry(9, 317, 3, 1, 2); // Predictor = 2
+    tv.setUint16(bpsOff, 16, true);
+    tv.setUint16(bpsOff + 2, 16, true);
+    tv.setUint16(bpsOff + 4, 16, true);
+
+    const meta16 = await sharp(tiff16).metadata();
+    expect(meta16.depth).toBe("ushort");
+    expect(meta16.space).toBe("rgb16");
+    const dec16 = await sharp(tiff16).raw().toBuffer();
+    expect(Array.from(dec16)).toEqual([250, 0, 251, 1, 252, 2]);
+
+    // 2. #60: Multi-frame animated GIF encoding & decoding (animated: true, pageHeight, delay, loop)
+    const framesRaw = new Uint8Array(8 * 24 * 4);
+    for (let p = 0; p < 3; p++) {
+      for (let i = 0; i < 8 * 8; i++) {
+        const off = (p * 64 + i) * 4;
+        framesRaw[off] = p === 0 ? 255 : 0;
+        framesRaw[off + 1] = p === 1 ? 255 : 0;
+        framesRaw[off + 2] = p === 2 ? 255 : 0;
+        framesRaw[off + 3] = 255;
+      }
+    }
+    const animGif = await sharp(framesRaw, {
+      raw: { width: 8, height: 24, channels: 4, pageHeight: 8 }
+    })
+      .gif({ delay: [80, 120, 160], loop: 3 })
+      .toBuffer();
+    const gifMeta = await sharp(animGif, { animated: true }).metadata();
+    expect(gifMeta.pages).toBe(3);
+    expect(gifMeta.pageHeight).toBe(8);
+    expect(gifMeta.height).toBe(24);
+    expect(gifMeta.delay).toEqual([80, 120, 160]);
+    expect(gifMeta.loop).toBe(3);
+    const stacked = await sharp(animGif, { animated: true }).raw().toBuffer({ resolveWithObject: true });
+    expect(stacked.info.height).toBe(24);
+    expect(stacked.info.pageHeight).toBe(8);
+    expect(stacked.data[0]).toBe(255);
+    expect(stacked.data[64 * 4 + 1]).toBe(255);
+    expect(stacked.data[128 * 4 + 2]).toBe(255);
+  });
 });

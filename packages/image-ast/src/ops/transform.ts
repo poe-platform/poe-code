@@ -1,6 +1,7 @@
 import type {
   BlendMode,
   ChannelStats,
+  ColorSpace,
   CompositeLayer,
   ImageStats,
   RgbaColor,
@@ -1336,8 +1337,8 @@ export function recombImage(
   return { ...img, data: out };
 }
 
-export function toColorspaceImage(img: RgbaImage, space: "srgb" | "b-w" | "cmyk"): RgbaImage {
-  if (space === "b-w") {
+export function toColorspaceImage(img: RgbaImage, space: ColorSpace): RgbaImage {
+  if (space === "b-w" || space === "grey16") {
     return grayscaleImage(img);
   }
   return {

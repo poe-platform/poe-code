@@ -710,8 +710,18 @@ export class SharpInstance {
     return this;
   }
 
-  gif(): this {
-    this.outputOptions = { ...this.outputOptions, format: "gif" };
+  gif(options?: {
+    readonly pageHeight?: number;
+    readonly delay?: number | readonly number[];
+    readonly loop?: number;
+  }): this {
+    this.outputOptions = {
+      ...this.outputOptions,
+      format: "gif",
+      ...(options?.pageHeight !== undefined ? { pageHeight: options.pageHeight } : {}),
+      ...(options?.delay !== undefined ? { delay: options.delay } : {}),
+      ...(options?.loop !== undefined ? { loop: options.loop } : {})
+    };
     return this;
   }
 
@@ -779,6 +789,8 @@ export class SharpInstance {
         height: img.height,
         channels: encoded.channels,
         premultiplied: false,
+        ...(img.pageHeight !== undefined ? { pageHeight: img.pageHeight } : {}),
+        ...(img.pages !== undefined ? { pages: img.pages } : {}),
         size: encoded.data.byteLength
       }
     };

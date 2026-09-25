@@ -116,7 +116,14 @@ export function readPngMetadata(bytes: Uint8Array): ImageMetadata {
               : 1;
 
   const hasAlpha = colorType === 6 || colorType === 4 || hasTrns;
-  const space = colorType === 0 || colorType === 4 ? "b-w" : "srgb";
+  const space =
+    colorType === 0 || colorType === 4
+      ? bitDepth === 16
+        ? "grey16"
+        : "b-w"
+      : bitDepth === 16
+        ? "rgb16"
+        : "srgb";
   const depth = bitDepth === 16 ? "ushort" : bitDepth < 8 ? "bit" : "uchar";
 
   return {
@@ -126,6 +133,7 @@ export function readPngMetadata(bytes: Uint8Array): ImageMetadata {
     space,
     channels,
     depth,
+    bitsPerSample: bitDepth,
     density,
     hasAlpha,
     ...(orientation !== undefined ? { orientation } : {}),

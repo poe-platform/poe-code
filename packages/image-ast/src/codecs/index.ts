@@ -82,7 +82,7 @@ export function readImageMetadata(
     };
   }
   if (options?.raw && bytes) {
-    const { width, height, channels } = options.raw;
+    const { width, height, channels, pageHeight } = options.raw;
     return {
       format: "raw",
       width,
@@ -92,6 +92,7 @@ export function readImageMetadata(
       depth: "uchar",
       density: options.density ?? 72,
       hasAlpha: channels === 2 || channels === 4,
+      ...(pageHeight !== undefined ? { pageHeight, pages: Math.max(1, Math.floor(height / pageHeight)) } : {}),
       size: bytes.byteLength
     };
   }
@@ -116,7 +117,7 @@ export function readImageMetadata(
       meta = readHeifMetadata(bytes);
       break;
     case "gif":
-      meta = readGifMetadata(bytes);
+      meta = readGifMetadata(bytes, options);
       break;
     case "ppm":
     case "pgm":
@@ -135,6 +136,7 @@ export function readImageMetadata(
         space: decoded.space,
         channels: decoded.channels,
         depth: decoded.depth,
+        ...(decoded.bitsPerSample !== undefined ? { bitsPerSample: decoded.bitsPerSample } : {}),
         density: decoded.density,
         hasAlpha: decoded.hasAlpha,
         ...(decoded.orientation !== undefined ? { orientation: decoded.orientation } : {}),
@@ -191,7 +193,7 @@ export function decodeImage(
     };
   }
   if (options?.raw && bytes) {
-    const { width, height, channels, premultiplied } = options.raw;
+    const { width, height, channels, premultiplied, pageHeight } = options.raw;
     const data = new Uint8Array(width * height * 4);
     for (let i = 0; i < width * height; i++) {
       if (channels === 4) {
@@ -238,7 +240,8 @@ export function decodeImage(
       channels,
       depth: "uchar",
       density: options.density ?? 72,
-      hasAlpha: channels === 2 || channels === 4
+      hasAlpha: channels === 2 || channels === 4,
+      ...(pageHeight !== undefined ? { pageHeight, pages: Math.max(1, Math.floor(height / pageHeight)) } : {})
     };
   }
   if (!bytes || bytes.length === 0) {
@@ -248,6 +251,7 @@ export function decodeImage(
     options?.density === undefined &&
     options?.page === undefined &&
     options?.pages === undefined &&
+    options?.animated === undefined &&
     options?.raw === undefined &&
     options?.create === undefined;
   if (canCache) {
@@ -357,7 +361,11 @@ export function encodeImage(
       return { data, format: fmt, channels: outChannels };
     }
     case "gif": {
-      const data = encodeGifImage(img);
+      const data = encodeGifImage(img, {
+        ...(options.pageHeight !== undefined ? { pageHeight: options.pageHeight } : {}),
+        ...(options.delay !== undefined ? { delay: options.delay } : {}),
+        ...(options.loop !== undefined ? { loop: options.loop } : {})
+      });
       return { data, format: "gif", channels: 4 };
     }
     case "ppm": {

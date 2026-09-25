@@ -15,7 +15,7 @@ export type ImageFormat =
   | "pdf"
   | "raw";
 
-export type ColorSpace = "srgb" | "b-w" | "cmyk";
+export type ColorSpace = "srgb" | "b-w" | "cmyk" | "rgb16" | "grey16";
 
 export interface RgbaColor {
   readonly r: number;
@@ -45,6 +45,10 @@ export interface RgbaImage {
   readonly hasAlpha: boolean;
   readonly orientation?: number;
   readonly pages?: number;
+  readonly pageHeight?: number;
+  readonly delay?: readonly number[];
+  readonly loop?: number;
+  readonly bitsPerSample?: number;
   readonly isProgressive?: boolean;
 }
 
@@ -60,7 +64,11 @@ export interface ImageMetadata {
   readonly compression?: "hevc" | "av1";
   readonly orientation?: number;
   readonly pages?: number;
+  readonly pageHeight?: number;
   readonly pagePrimary?: number;
+  readonly delay?: readonly number[];
+  readonly loop?: number;
+  readonly bitsPerSample?: number;
   readonly isProgressive?: boolean;
   readonly size?: number;
 }
@@ -92,6 +100,8 @@ export interface OutputInfo {
   readonly height: number;
   readonly channels: number;
   readonly premultiplied: boolean;
+  readonly pageHeight?: number;
+  readonly pages?: number;
   readonly size: number;
 }
 
@@ -188,6 +198,7 @@ export interface SharpInputOptions {
   readonly density?: number;
   readonly page?: number;
   readonly pages?: number;
+  readonly animated?: boolean;
   readonly limitInputPixels?: number | false;
   readonly failOn?: "none" | "truncated" | "error" | "warning";
   readonly raw?: {
@@ -195,6 +206,8 @@ export interface SharpInputOptions {
     readonly height: number;
     readonly channels: 1 | 2 | 3 | 4;
     readonly premultiplied?: boolean;
+    readonly pageHeight?: number;
+    readonly depth?: "uchar" | "ushort" | "bit";
   };
   readonly create?: {
     readonly width: number;
@@ -315,6 +328,9 @@ export interface OutputEncodeOptions {
   readonly lossless?: boolean;
   readonly density?: number;
   readonly orientation?: number;
+  readonly pageHeight?: number;
+  readonly delay?: number | readonly number[];
+  readonly loop?: number;
 }
 
 const NAMED_COLORS: Record<string, [number, number, number, number]> = {

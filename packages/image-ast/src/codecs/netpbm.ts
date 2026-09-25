@@ -648,6 +648,40 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     return rawSlice;
   };
 
+  const applyHorizontalPredictor = (buf: Uint8Array, rows: number, strideBytes: number) => {
+    if (bytesPerSample === 1) {
+      for (let ry = 0; ry < rows; ry++) {
+        const rStart = ry * strideBytes;
+        for (let rx = samplesPerPixel; rx < strideBytes && rStart + rx < buf.length; rx++) {
+          buf[rStart + rx] = ((buf[rStart + rx] ?? 0) + (buf[rStart + rx - samplesPerPixel] ?? 0)) & 0xff;
+        }
+      }
+    } else if (bytesPerSample === 2) {
+      const step = samplesPerPixel * 2;
+      for (let ry = 0; ry < rows; ry++) {
+        const rStart = ry * strideBytes;
+        for (let rx = step; rx + 1 < strideBytes && rStart + rx + 1 < buf.length; rx += 2) {
+          const prevOff = rStart + rx - step;
+          const curOff = rStart + rx;
+          const prev16 = le
+            ? (buf[prevOff] ?? 0) | ((buf[prevOff + 1] ?? 0) << 8)
+            : ((buf[prevOff] ?? 0) << 8) | (buf[prevOff + 1] ?? 0);
+          const cur16 = le
+            ? (buf[curOff] ?? 0) | ((buf[curOff + 1] ?? 0) << 8)
+            : ((buf[curOff] ?? 0) << 8) | (buf[curOff + 1] ?? 0);
+          const sum16 = (prev16 + cur16) & 0xffff;
+          if (le) {
+            buf[curOff] = sum16 & 0xff;
+            buf[curOff + 1] = (sum16 >>> 8) & 0xff;
+          } else {
+            buf[curOff] = (sum16 >>> 8) & 0xff;
+            buf[curOff + 1] = sum16 & 0xff;
+          }
+        }
+      }
+    }
+  };
+
   if (tileWidth > 0 && tileLength > 0 && tileOffsets.length > 0) {
     const tilesAcross = Math.max(1, Math.ceil(width / tileWidth));
     const tileRowByteWidth = tileWidth * bytesPerPixel;
@@ -656,15 +690,8 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
       const off = tileOffsets[t]!;
       const rawLen = tileByteCounts[t] ?? Math.max(0, bytes.length - off);
       const decodedTile = new Uint8Array(decompressChunk(off, rawLen, expectedTileBytes));
-      if (predictor === 2 && bytesPerSample === 1) {
-        for (let ry = 0; ry < tileLength; ry++) {
-          const rStart = ry * tileRowByteWidth;
-          for (let rx = samplesPerPixel; rx < tileRowByteWidth && rStart + rx < decodedTile.length; rx++) {
-            decodedTile[rStart + rx] =
-              ((decodedTile[rStart + rx] ?? 0) + (decodedTile[rStart + rx - samplesPerPixel] ?? 0)) &
-              0xff;
-          }
-        }
+      if (predictor === 2) {
+        applyHorizontalPredictor(decodedTile, tileLength, tileRowByteWidth);
       }
       const tx = (t % tilesAcross) * tileWidth;
       const ty = Math.floor(t / tilesAcross) * tileLength;
@@ -693,24 +720,15 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
       dstOff += copyLen;
     }
 
-    if (predictor === 2 && bytesPerSample === 1) {
-      for (let y = 0; y < height; y++) {
-        const rowStart = y * rowByteWidth;
-        for (let x = samplesPerPixel; x < rowByteWidth; x++) {
-          combined[rowStart + x] =
-            ((combined[rowStart + x] ?? 0) + (combined[rowStart + x - samplesPerPixel] ?? 0)) & 0xff;
-        }
-      }
+    if (predictor === 2) {
+      applyHorizontalPredictor(combined, height, rowByteWidth);
     }
   }
 
   const readSample8 = (pixelIdx: number, ch: number): number => {
     const base = (pixelIdx * samplesPerPixel + ch) * bytesPerSample;
     if (bytesPerSample === 2) {
-      const val16 = le
-        ? (combined[base] ?? 0) | ((combined[base + 1] ?? 0) << 8)
-        : ((combined[base] ?? 0) << 8) | (combined[base + 1] ?? 0);
-      return Math.round((val16 * 255) / 65535);
+      return le ? (combined[base + 1] ?? 0) : (combined[base] ?? 0);
     }
     return combined[base] ?? 0;
   };
@@ -744,9 +762,17 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     height,
     data: rgba,
     format: "tiff",
-    space: samplesPerPixel < 3 ? "b-w" : "srgb",
+    space:
+      samplesPerPixel < 3
+        ? bitsPerSample === 16
+          ? "grey16"
+          : "b-w"
+        : bitsPerSample === 16
+          ? "rgb16"
+          : "srgb",
     channels: samplesPerPixel === 4 ? 4 : samplesPerPixel === 1 ? 1 : 3,
     depth: bitsPerSample === 16 ? "ushort" : "uchar",
+    bitsPerSample,
     density,
     hasAlpha: samplesPerPixel === 2 || samplesPerPixel === 4,
     ...(orientation !== undefined ? { orientation } : {})

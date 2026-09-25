@@ -3062,4 +3062,33 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Array.from(rot.slice(0, 8))).toEqual([19, 39, 59, 128, 19, 39, 59, 128]);
   });
+  it("matches libvips vips_smartcrop_entropy and vips_smartcrop_attention in resize() (#1244)", async () => {
+    const makeImg = (w: number, h: number) => {
+      const rgb = Buffer.alloc(w * h * 3);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 3;
+          const dx = x - Math.floor(w * 0.7), dy = y - Math.floor(h * 0.3);
+          if (dx * dx + dy * dy <= 25) {
+            rgb[i] = (x * 97 + y * 53) & 255;
+            rgb[i + 1] = (x * 151 + y * 89) & 255;
+            rgb[i + 2] = (x * 211 + y * 37) & 255;
+          } else {
+            rgb[i] = 40; rgb[i + 1] = 45; rgb[i + 2] = 50;
+          }
+        }
+      }
+      return rgb;
+    };
+    const rEnt = await sharp(makeImg(32, 24), { raw: { width: 32, height: 24, channels: 3 } })
+      .resize(16, 16, { fit: "cover", position: "entropy" })
+      .raw()
+      .toBuffer();
+    expect(Array.from(rEnt.slice(48, 72))).toEqual([40,45,50,40,45,50,40,45,50,40,45,50,40,45,50,41,45,50,36,47,50,51,48,48]);
+    const rAtt = await sharp(makeImg(50, 40), { raw: { width: 50, height: 40, channels: 3 } })
+      .resize(24, 24, { fit: "cover", position: "attention" })
+      .raw()
+      .toBuffer();
+    expect(Array.from(rAtt.slice(72, 96))).toEqual([40,45,50,40,45,50,40,45,50,40,45,50,40,45,50,40,45,50,40,45,50,40,45,50]);
+  });
 });

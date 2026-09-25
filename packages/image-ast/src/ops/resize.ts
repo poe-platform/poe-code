@@ -108,23 +108,54 @@ function regionEntropy(
   rx: number,
   ry: number,
   rw: number,
-  rh: number
+  rh: number,
+  channels = 3,
+  hasAlpha = false
 ): number {
   const total = rw * rh;
   if (total <= 0) return 0;
-  const hist = new Int32Array(256);
+  const bands = hasAlpha ? 4 : channels === 1 ? 1 : 3;
+  const hR = new Int32Array(256);
+  const hG = new Int32Array(256);
+  const hB = new Int32Array(256);
+  const hA = new Int32Array(256);
   for (let y = ry; y < ry + rh; y++) {
     for (let x = rx; x < rx + rw; x++) {
       const idx = (y * imgW + x) * 4;
-      const lum = Math.round(0.299 * rgba[idx]! + 0.587 * rgba[idx + 1]! + 0.114 * rgba[idx + 2]!);
-      hist[lum < 0 ? 0 : lum > 255 ? 255 : lum]!++;
+      if (hasAlpha) {
+        const a = rgba[idx + 3]!;
+        const af = Math.fround(a / 255.0);
+        hR[Math.trunc(Math.fround(rgba[idx]! * af))]!++;
+        hG[Math.trunc(Math.fround(rgba[idx + 1]! * af))]!++;
+        hB[Math.trunc(Math.fround(rgba[idx + 2]! * af))]!++;
+        hA[a]!++;
+      } else {
+        hR[rgba[idx]!]!++;
+        if (bands >= 3) {
+          hG[rgba[idx + 1]!]!++;
+          hB[rgba[idx + 2]!]!++;
+        }
+      }
     }
   }
+  const bins = new Int32Array(256);
+  let sum = 0;
+  for (let i = 0; i < 256; i++) {
+    const b =
+      bands === 1
+        ? hR[i]!
+        : bands === 4
+          ? hR[i]! + hG[i]! + hB[i]! + hA[i]!
+          : hR[i]! + hG[i]! + hB[i]!;
+    bins[i] = b;
+    sum += b;
+  }
+  if (sum <= 0) return 0;
   let h = 0;
   for (let i = 0; i < 256; i++) {
-    const c = hist[i]!;
+    const c = bins[i]!;
     if (c > 0) {
-      const p = c / total;
+      const p = c / sum;
       h -= p * Math.log2(p);
     }
   }
@@ -136,31 +167,34 @@ function smartcropEntropy(
   srcW: number,
   srcH: number,
   dstW: number,
-  dstH: number
+  dstH: number,
+  channels = 3,
+  hasAlpha = false
 ): { readonly x: number; readonly y: number } {
   let left = 0;
   let top = 0;
   let width = srcW;
   let height = srcH;
-  const widthSlice = Math.max(1, Math.ceil((srcW - dstW) / 8));
-  const heightSlice = Math.max(1, Math.ceil((srcH - dstH) / 8));
-  while (width > dstW) {
-    const sliceW = Math.min(width - dstW, widthSlice);
-    const eLeft = regionEntropy(rgba, srcW, left, top, sliceW, height);
-    const eRight = regionEntropy(rgba, srcW, left + width - sliceW, top, sliceW, height);
-    if (eLeft < eRight) {
-      left += sliceW;
+  const maxSlice = Math.max(1, Math.max(Math.ceil((srcW - dstW) / 8), Math.ceil((srcH - dstH) / 8)));
+  while (width > dstW || height > dstH) {
+    const sliceW = Math.min(width - dstW, maxSlice);
+    const sliceH = Math.min(height - dstH, maxSlice);
+    if (sliceW > 0) {
+      const eLeft = regionEntropy(rgba, srcW, left, top, sliceW, height, channels, hasAlpha);
+      const eRight = regionEntropy(rgba, srcW, left + width - sliceW, top, sliceW, height, channels, hasAlpha);
+      width -= sliceW;
+      if (eLeft < eRight) {
+        left += sliceW;
+      }
     }
-    width -= sliceW;
-  }
-  while (height > dstH) {
-    const sliceH = Math.min(height - dstH, heightSlice);
-    const eTop = regionEntropy(rgba, srcW, left, top, width, sliceH);
-    const eBottom = regionEntropy(rgba, srcW, left, top + height - sliceH, width, sliceH);
-    if (eTop < eBottom) {
-      top += sliceH;
+    if (sliceH > 0) {
+      const eTop = regionEntropy(rgba, srcW, left, top, width, sliceH, channels, hasAlpha);
+      const eBottom = regionEntropy(rgba, srcW, left, top + height - sliceH, width, sliceH, channels, hasAlpha);
+      height -= sliceH;
+      if (eTop < eBottom) {
+        top += sliceH;
+      }
     }
-    height -= sliceH;
   }
   return { x: left, y: top };
 }
@@ -170,47 +204,115 @@ function smartcropAttention(
   srcW: number,
   srcH: number,
   dstW: number,
-  dstH: number
+  dstH: number,
+  hasAlpha = false
 ): { readonly x: number; readonly y: number } {
-  const att = new Float32Array(srcW * srcH);
-  for (let y = 0; y < srcH; y++) {
-    for (let x = 0; x < srcW; x++) {
-      const idx = (y * srcW + x) * 4;
-      const r = rgba[idx]!;
-      const g = rgba[idx + 1]!;
-      const b = rgba[idx + 2]!;
-      const a = rgba[idx + 3]! / 255;
-      const sat = Math.max(r, g, b) - Math.min(r, g, b);
-      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-      const lIdx = (y * srcW + Math.max(0, x - 1)) * 4;
-      const rIdx = (y * srcW + Math.min(srcW - 1, x + 1)) * 4;
-      const tIdx = (Math.max(0, y - 1) * srcW + x) * 4;
-      const bIdx = (Math.min(srcH - 1, y + 1) * srcW + x) * 4;
-      const edge =
-        Math.abs(4 * r - rgba[lIdx]! - rgba[rIdx]! - rgba[tIdx]! - rgba[bIdx]!) +
-        Math.abs(4 * g - rgba[lIdx + 1]! - rgba[rIdx + 1]! - rgba[tIdx + 1]! - rgba[bIdx + 1]!) +
-        Math.abs(4 * b - rgba[lIdx + 2]! - rgba[rIdx + 2]! - rgba[tIdx + 2]! - rgba[bIdx + 2]!);
-      att[y * srcW + x] = (sat * 2 + lum * 0.5 + edge) * a;
+  const hscale = 32.0 / srcW;
+  const vscale = 32.0 / srcH;
+  const rgba32 = resampleRawBitmap(rgba, srcW, srcH, 32, 32, "lanczos3", hscale, vscale);
+  const X = new Float32Array(32 * 32);
+  const Y = new Float32Array(32 * 32);
+  const Z = new Float32Array(32 * 32);
+  const lin = (c: number): number => {
+    const v = c / 255.0;
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  const fLab = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16.0 / 116.0);
+  for (let i = 0; i < 32 * 32; i++) {
+    const idx = i * 4;
+    let r = rgba32[idx]!;
+    let g = rgba32[idx + 1]!;
+    let b = rgba32[idx + 2]!;
+    if (hasAlpha) {
+      const af = Math.fround(rgba32[idx + 3]! / 255.0);
+      r = Math.trunc(Math.fround(r * af));
+      g = Math.trunc(Math.fround(g * af));
+      b = Math.trunc(Math.fround(b * af));
+    }
+    const rl = lin(r);
+    const gl = lin(g);
+    const bl = lin(b);
+    X[i] = 41.24 * rl + 35.76 * gl + 18.05 * bl;
+    Y[i] = 21.26 * rl + 71.52 * gl + 7.22 * bl;
+    Z[i] = 1.93 * rl + 11.92 * gl + 95.05 * bl;
+  }
+
+  const sumMap = new Float32Array(32 * 32);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      const i = y * 32 + x;
+      let conv = 8.0 * Y[i]!;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          if (kx === 0 && ky === 0) continue;
+          const sy = Math.max(0, Math.min(31, y + ky));
+          const sx = Math.max(0, Math.min(31, x + kx));
+          conv -= Y[sy * 32 + sx]!;
+        }
+      }
+      const edge = Math.abs(5.0 * conv);
+      const yVal = Y[i]!;
+      let skin = 0;
+      let sat = 0;
+      if (yVal > 5.0) {
+        const norm = Math.hypot(X[i]!, Y[i]!, Z[i]!);
+        const dx = (norm > 0 ? X[i]! / norm : 0) - 0.78;
+        const dy = (norm > 0 ? Y[i]! / norm : 0) - 0.57;
+        const dz = (norm > 0 ? Z[i]! / norm : 0) - 0.44;
+        skin = 100.0 - 100.0 * Math.hypot(dx, dy, dz);
+        sat = 500.0 * (fLab(X[i]! / 95.047) - fLab(Y[i]! / 100.0));
+      }
+      sumMap[i] = edge + skin + sat;
     }
   }
-  let bestX = 0;
-  let bestY = 0;
-  let bestScore = -1;
-  for (let cy = 0; cy <= srcH - dstH; cy++) {
-    for (let cx = 0; cx <= srcW - dstW; cx++) {
-      let sum = 0;
-      for (let y = cy; y < cy + dstH; y++) {
-        const row = y * srcW;
-        for (let x = cx; x < cx + dstW; x++) sum += att[row + x]!;
+
+  const sigma = Math.max(1.0, Math.hypot(hscale * dstW, vscale * dstH) / 10.0);
+  const twoSigmaSq = 2 * sigma * sigma;
+  let rIdx = 0;
+  while (rIdx < 50 && Math.exp(-(rIdx * rIdx) / twoSigmaSq) >= 0.2) rIdx++;
+  const radius = Math.max(1, rIdx) - 1;
+  const size = radius * 2 + 1;
+  const kernel = new Float64Array(size);
+  let kSum = 0;
+  for (let i = -radius; i <= radius; i++) {
+    const w = Math.round(20.0 * Math.exp(-(i * i) / twoSigmaSq));
+    kernel[i + radius] = w;
+    kSum += w;
+  }
+  const tmp = new Float32Array(32 * 32);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      let acc = 0;
+      for (let k = -radius; k <= radius; k++) {
+        const sx = Math.max(0, Math.min(31, x + k));
+        acc += sumMap[y * 32 + sx]! * kernel[k + radius]!;
       }
-      if (sum > bestScore) {
-        bestScore = sum;
-        bestX = cx;
-        bestY = cy;
+      tmp[y * 32 + x] = acc / kSum;
+    }
+  }
+  let maxVal = -Infinity;
+  let maxX = 0;
+  let maxY = 0;
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 32; x++) {
+      let acc = 0;
+      for (let k = -radius; k <= radius; k++) {
+        const sy = Math.max(0, Math.min(31, y + k));
+        acc += tmp[sy * 32 + x]! * kernel[k + radius]!;
+      }
+      const val = acc / kSum;
+      if (val > maxVal) {
+        maxVal = val;
+        maxX = x;
+        maxY = y;
       }
     }
   }
-  return { x: bestX, y: bestY };
+  const attX = Math.trunc(maxX / hscale);
+  const attY = Math.trunc(maxY / vscale);
+  const left = Math.max(0, Math.min(srcW - dstW, attX - (dstW >> 1)));
+  const top = Math.max(0, Math.min(srcH - dstH, attY - (dstH >> 1)));
+  return { x: left, y: top };
 }
 
 function fmaDouble(a: number, b: number, c: number): number {
@@ -811,9 +913,9 @@ export function resizeImage(
       const pos = typeof spec.position === "string" ? spec.position.toLowerCase() : spec.position;
       const offset =
         pos === "entropy" || pos === 16
-          ? smartcropEntropy(scaledData, scaledW, scaledH, cropW, cropH)
+          ? smartcropEntropy(scaledData, scaledW, scaledH, cropW, cropH, img.channels, img.hasAlpha)
           : pos === "attention" || pos === 17
-            ? smartcropAttention(scaledData, scaledW, scaledH, cropW, cropH)
+            ? smartcropAttention(scaledData, scaledW, scaledH, cropW, cropH, img.hasAlpha)
             : resolveGravityOffset(scaledW, scaledH, cropW, cropH, spec.position, true);
       const cropped = new Uint8Array(cropW * cropH * 4);
       for (let y = 0; y < cropH; y++) {

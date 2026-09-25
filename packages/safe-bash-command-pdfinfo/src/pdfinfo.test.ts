@@ -516,7 +516,7 @@ describe("safe-bash-command-pdfinfo", () => {
 
     const ordRes = inspectPdfBytes(pdfBytes, []);
     assert.equal(ordRes.exitCode, 0);
-    assert.match(ordRes.stdout, /CreationDate:\s+Mon Jan  1 21:34:05 2024 UTC/);
+    assert.match(ordRes.stdout, /CreationDate:\s+Mon Jan {2}1 21:34:05 2024 UTC/);
     assert.match(ordRes.stdout, /Subject:\s+\u02d8\u2022\u2020\u201c\ufffd\u20ac\ufffd/);
     assert.match(ordRes.stdout, /Author:\s+\ufffdA/);
 

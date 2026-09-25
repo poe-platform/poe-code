@@ -801,7 +801,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     // 2. pdfinfo verifies CreationDate timezone conversion
     const infoRes = await shell.exec("pdfinfo /work/with-csv.pdf");
     assert.equal(infoRes.exitCode, 0);
-    assert.match(infoRes.stdout, /CreationDate:\s+Mon Jan  1 21:34:05 2024 UTC/);
+    assert.match(infoRes.stdout, /CreationDate:\s+Mon Jan {2}1 21:34:05 2024 UTC/);
 
     // 3. qpdf --copy-attachments-from --prefix=CP_ and --remove-info
     const qpdfRes = await shell.exec(

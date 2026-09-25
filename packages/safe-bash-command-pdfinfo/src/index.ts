@@ -2767,9 +2767,9 @@ export async function runPdftocairoCli(
   let cropW = 0;
   let cropH = 0;
   let hasCrop = false;
-  let paperW = 0;
-  let paperH = 0;
-  let origPageSizes = false;
+  const paperW = 0;
+  const paperH = 0;
+  const origPageSizes = false;
   let password = "";
   const forwardedArgs: string[] = [];
   const positionals: string[] = [];

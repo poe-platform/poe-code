@@ -1,0 +1,2648 @@
+{
+  "distribution": "llm",
+  "version": "0.27.1",
+  "cliSourceSha256": "17f32b654bff9d725948a396b78bec6b1850182c1f27b9f5b2291fe57d839fcf",
+  "commands": [
+    {
+      "command": "llm",
+      "help": "\nAccess Large Language Models from the command-line\n\nDocumentation: https://llm.datasette.io/\n\nLLM can run models from many different providers. Consult the\nplugin directory for a list of available models:\n\nhttps://llm.datasette.io/en/stable/plugins/directory.html\n\nTo get started with OpenAI, obtain an API key from them and:\n\n\b\n    $ llm keys set openai\n    Enter key: ...\n\nThen execute a prompt like this:\n\n    llm 'Five outrageous names for a pet pelican'\n\nFor a full list of prompting options run:\n\n    llm prompt --help\n",
+      "parameters": [
+        {
+          "name": "version",
+          "flags": [
+            "--version"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli [OPTIONS] COMMAND [ARGS]...\n\n  Access Large Language Models from the command-line\n\n  Documentation: https://llm.datasette.io/\n\n  LLM can run models from many different providers. Consult the plugin directory\n  for a list of available models:\n\n  https://llm.datasette.io/en/stable/plugins/directory.html\n\n  To get started with OpenAI, obtain an API key from them and:\n\n      $ llm keys set openai\n      Enter key: ...\n\n  Then execute a prompt like this:\n\n      llm 'Five outrageous names for a pet pelican'\n\n  For a full list of prompting options run:\n\n      llm prompt --help\n\nOptions:\n  --version   Show the version and exit.\n  -h, --help  Show this message and exit.\n\nCommands:\n  prompt*       Execute a prompt\n  aliases       Manage model aliases\n  chat          Hold an ongoing chat with a model.\n  collections   View and manage collections of embeddings\n  embed         Embed text and store or return the result\n  embed-models  Manage available embedding models\n  embed-multi   Store embeddings for multiple strings at once in the...\n  fragments     Manage fragments that are stored in the database\n  install       Install packages from PyPI into the same environment as LLM\n  keys          Manage stored API keys for different models\n  logs          Tools for exploring logged prompts and responses\n  models        Manage available models\n  openai        Commands for working directly with the OpenAI API\n  plugins       List installed plugins\n  schemas       Manage stored schemas\n  similar       Return top N similar IDs from a collection using cosine...\n  templates     Manage stored prompt templates\n  tools         Manage tools that can be made available to LLMs\n  uninstall     Uninstall Python packages from the LLM environment\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm aliases",
+      "help": "Manage model aliases",
+      "parameters": [],
+      "helpOutput": "Usage: cli aliases [OPTIONS] COMMAND [ARGS]...\n\n  Manage model aliases\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   List current aliases\n  path    Output the path to the aliases.json file\n  remove  Remove an alias\n  set     Set an alias for a model\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm aliases list",
+      "help": "List current aliases",
+      "parameters": [
+        {
+          "name": "json_",
+          "flags": [
+            "--json"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli aliases list [OPTIONS]\n\n  List current aliases\n\nOptions:\n  --json      Output as JSON\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm aliases path",
+      "help": "Output the path to the aliases.json file",
+      "parameters": [],
+      "helpOutput": "Usage: cli aliases path [OPTIONS]\n\n  Output the path to the aliases.json file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm aliases remove",
+      "help": "\nRemove an alias\n\nExample usage:\n\n\b\n    $ llm aliases remove turbo\n",
+      "parameters": [
+        {
+          "name": "alias",
+          "flags": [
+            "alias"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli aliases remove [OPTIONS] ALIAS\n\n  Remove an alias\n\n  Example usage:\n\n      $ llm aliases remove turbo\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm aliases set",
+      "help": "\nSet an alias for a model\n\nExample usage:\n\n\b\n    llm aliases set mini gpt-4o-mini\n\nAlternatively you can omit the model ID and specify one or more -q options.\nThe first model matching all of those query strings will be used.\n\n\b\n    llm aliases set mini -q 4o -q mini\n",
+      "parameters": [
+        {
+          "name": "alias",
+          "flags": [
+            "alias"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "model_id",
+          "flags": [
+            "model_id"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "query",
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli aliases set [OPTIONS] ALIAS [MODEL_ID]\n\n  Set an alias for a model\n\n  Example usage:\n\n      llm aliases set mini gpt-4o-mini\n\n  Alternatively you can omit the model ID and specify one or more -q options.\n  The first model matching all of those query strings will be used.\n\n      llm aliases set mini -q 4o -q mini\n\nOptions:\n  -q, --query TEXT  Set alias for model matching these strings\n  -h, --help        Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm chat",
+      "help": "\nHold an ongoing chat with a model.\n",
+      "parameters": [
+        {
+          "name": "system",
+          "flags": [
+            "-s",
+            "--system"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "model_id",
+          "flags": [
+            "-m",
+            "--model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "_continue",
+          "flags": [
+            "-c",
+            "--continue"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "INT"
+        },
+        {
+          "name": "conversation_id",
+          "flags": [
+            "--cid",
+            "--conversation"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "fragments",
+          "flags": [
+            "-f",
+            "--fragment"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "system_fragments",
+          "flags": [
+            "--sf",
+            "--system-fragment"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "template",
+          "flags": [
+            "-t",
+            "--template"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "param",
+          "flags": [
+            "-p",
+            "--param"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 2,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Tuple object at 0x1032d9220>"
+        },
+        {
+          "name": "options",
+          "flags": [
+            "-o",
+            "--option"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 2,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Tuple object at 0x1032da780>"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1034b60d0>"
+        },
+        {
+          "name": "no_stream",
+          "flags": [
+            "--no-stream"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "key",
+          "flags": [
+            "--key"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "tools",
+          "flags": [
+            "-T",
+            "--tool"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "python_tools",
+          "flags": [
+            "--functions"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "tools_debug",
+          "flags": [
+            "--td",
+            "--tools-debug"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "tools_approve",
+          "flags": [
+            "--ta",
+            "--tools-approve"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "chain_limit",
+          "flags": [
+            "--cl",
+            "--chain-limit"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "5",
+          "type": "INT"
+        }
+      ],
+      "helpOutput": "Usage: cli chat [OPTIONS]\n\n  Hold an ongoing chat with a model.\n\nOptions:\n  -s, --system TEXT             System prompt to use\n  -m, --model TEXT              Model to use\n  -c, --continue                Continue the most recent conversation.\n  --cid, --conversation TEXT    Continue the conversation with the given ID.\n  -f, --fragment TEXT           Fragment (alias, URL, hash or file path) to add\n                                to the prompt\n  --sf, --system-fragment TEXT  Fragment to add to system prompt\n  -t, --template TEXT           Template to use\n  -p, --param <TEXT TEXT>...    Parameters for template\n  -o, --option <TEXT TEXT>...   key/value options for the model\n  -d, --database FILE           Path to log database\n  --no-stream                   Do not stream output\n  --key TEXT                    API key to use\n  -T, --tool TEXT               Name of a tool to make available to the model\n  --functions TEXT              Python code block or file path defining\n                                functions to register as tools\n  --td, --tools-debug           Show full details of tool executions\n  --ta, --tools-approve         Manually approve every tool execution\n  --cl, --chain-limit INTEGER   How many chained tool responses to allow,\n                                default 5, set 0 for unlimited\n  -h, --help                    Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm collections",
+      "help": "View and manage collections of embeddings",
+      "parameters": [],
+      "helpOutput": "Usage: cli collections [OPTIONS] COMMAND [ARGS]...\n\n  View and manage collections of embeddings\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   View a list of collections\n  delete  Delete the specified collection\n  path    Output the path to the embeddings database\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm collections delete",
+      "help": "\nDelete the specified collection\n\nExample usage:\n\n\b\n    llm collections delete my-collection\n",
+      "parameters": [
+        {
+          "name": "collection",
+          "flags": [
+            "collection"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1034b0680>"
+        }
+      ],
+      "helpOutput": "Usage: cli collections delete [OPTIONS] COLLECTION\n\n  Delete the specified collection\n\n  Example usage:\n\n      llm collections delete my-collection\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  -h, --help           Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm collections list",
+      "help": "View a list of collections",
+      "parameters": [
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1034b0520>"
+        },
+        {
+          "name": "json_",
+          "flags": [
+            "--json"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli collections list [OPTIONS]\n\n  View a list of collections\n\nOptions:\n  -d, --database FILE  Path to embeddings database\n  --json               Output as JSON\n  -h, --help           Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm collections path",
+      "help": "Output the path to the embeddings database",
+      "parameters": [],
+      "helpOutput": "Usage: cli collections path [OPTIONS]\n\n  Output the path to the embeddings database\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm embed",
+      "help": "Embed text and store or return the result",
+      "parameters": [
+        {
+          "name": "collection",
+          "flags": [
+            "collection"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "id",
+          "flags": [
+            "id"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "input",
+          "flags": [
+            "-i",
+            "--input"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1032e7a50>"
+        },
+        {
+          "name": "model",
+          "flags": [
+            "-m",
+            "--model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "store",
+          "flags": [
+            "--store"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1035675c0>"
+        },
+        {
+          "name": "content",
+          "flags": [
+            "-c",
+            "--content"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "binary",
+          "flags": [
+            "--binary"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "metadata",
+          "flags": [
+            "--metadata"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "format_",
+          "flags": [
+            "-f",
+            "--format"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "Choice(['json', 'blob', 'base64', 'hex'])"
+        }
+      ],
+      "helpOutput": "Usage: cli embed [OPTIONS] [COLLECTION] [ID]\n\n  Embed text and store or return the result\n\nOptions:\n  -i, --input PATH                File to embed\n  -m, --model TEXT                Embedding model to use\n  --store                         Store the text itself in the database\n  -d, --database FILE\n  -c, --content TEXT              Content to embed\n  --binary                        Treat input as binary data\n  --metadata TEXT                 JSON object metadata to store\n  -f, --format [json|blob|base64|hex]\n                                  Output format\n  -h, --help                      Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm embed-models",
+      "help": "Manage available embedding models",
+      "parameters": [],
+      "helpOutput": "Usage: cli embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm embed-models default",
+      "help": "Show or set the default embedding model",
+      "parameters": [
+        {
+          "name": "model",
+          "flags": [
+            "model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "remove_default",
+          "flags": [
+            "--remove-default"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli embed-models default [OPTIONS] [MODEL]\n\n  Show or set the default embedding model\n\nOptions:\n  --remove-default  Reset to specifying no default model\n  -h, --help        Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm embed-models list",
+      "help": "List available embedding models",
+      "parameters": [
+        {
+          "name": "query",
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli embed-models list [OPTIONS]\n\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm embed-multi",
+      "help": "\nStore embeddings for multiple strings at once in the specified collection.\n\nInput data can come from one of three sources:\n\n\b\n1. A CSV, TSV, JSON or JSONL file:\n   - CSV/TSV: First column is ID, remaining columns concatenated as content\n   - JSON: Array of objects with \"id\" field and content fields\n   - JSONL: Newline-delimited JSON objects\n\n\b\n   Examples:\n     llm embed-multi docs input.csv\n     cat data.json | llm embed-multi docs -\n     llm embed-multi docs input.json --format json\n\n\b\n2. A SQL query against a SQLite database:\n   - First column returned is used as ID\n   - Other columns concatenated to form content\n\n\b\n   Examples:\n     llm embed-multi docs --sql \"SELECT id, title, body FROM posts\"\n     llm embed-multi docs --attach blog blog.db --sql \"SELECT id, content FROM blog.posts\"\n\n\b\n3. Files in directories matching glob patterns:\n   - Each file becomes one embedding\n   - Relative file paths become IDs\n\n\b\n   Examples:\n     llm embed-multi docs --files docs '**/*.md'\n     llm embed-multi images --files photos '*.jpg' --binary\n     llm embed-multi texts --files texts '*.txt' --encoding utf-8 --encoding latin-1\n",
+      "parameters": [
+        {
+          "name": "collection",
+          "flags": [
+            "collection"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "input_path",
+          "flags": [
+            "input_path"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1035676b0>"
+        },
+        {
+          "name": "format",
+          "flags": [
+            "--format"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "Choice(['json', 'csv', 'tsv', 'nl'])"
+        },
+        {
+          "name": "files",
+          "flags": [
+            "--files"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 2,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Tuple object at 0x10332fce0>"
+        },
+        {
+          "name": "encodings",
+          "flags": [
+            "--encoding"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "binary",
+          "flags": [
+            "--binary"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "sql",
+          "flags": [
+            "--sql"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "attach",
+          "flags": [
+            "--attach"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 2,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Tuple object at 0x10347c830>"
+        },
+        {
+          "name": "batch_size",
+          "flags": [
+            "--batch-size"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "INT"
+        },
+        {
+          "name": "prefix",
+          "flags": [
+            "--prefix"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "",
+          "type": "STRING"
+        },
+        {
+          "name": "model",
+          "flags": [
+            "-m",
+            "--model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "prepend",
+          "flags": [
+            "--prepend"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "store",
+          "flags": [
+            "--store"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x103319b20>"
+        }
+      ],
+      "helpOutput": "Usage: cli embed-multi [OPTIONS] COLLECTION [INPUT_PATH]\n\n  Store embeddings for multiple strings at once in the specified collection.\n\n  Input data can come from one of three sources:\n\n  1. A CSV, TSV, JSON or JSONL file:\n     - CSV/TSV: First column is ID, remaining columns concatenated as content\n     - JSON: Array of objects with \"id\" field and content fields\n     - JSONL: Newline-delimited JSON objects\n\n     Examples:\n       llm embed-multi docs input.csv\n       cat data.json | llm embed-multi docs -\n       llm embed-multi docs input.json --format json\n\n  2. A SQL query against a SQLite database:\n     - First column returned is used as ID\n     - Other columns concatenated to form content\n\n     Examples:\n       llm embed-multi docs --sql \"SELECT id, title, body FROM posts\"\n       llm embed-multi docs --attach blog blog.db --sql \"SELECT id, content FROM blog.posts\"\n\n  3. Files in directories matching glob patterns:\n     - Each file becomes one embedding\n     - Relative file paths become IDs\n\n     Examples:\n       llm embed-multi docs --files docs '**/*.md'\n       llm embed-multi images --files photos '*.jpg' --binary\n       llm embed-multi texts --files texts '*.txt' --encoding utf-8 --encoding latin-1\n\nOptions:\n  --format [json|csv|tsv|nl]   Format of input file - defaults to auto-detect\n  --files <DIRECTORY TEXT>...  Embed files in this directory - specify directory\n                               and glob pattern\n  --encoding TEXT              Encodings to try when reading --files\n  --binary                     Treat --files as binary data\n  --sql TEXT                   Read input using this SQL query\n  --attach <TEXT FILE>...      Additional databases to attach - specify alias\n                               and file path\n  --batch-size INTEGER         Batch size to use when running embeddings\n  --prefix TEXT                Prefix to add to the IDs\n  -m, --model TEXT             Embedding model to use\n  --prepend TEXT               Prepend this string to all content before\n                               embedding\n  --store                      Store the text itself in the database\n  -d, --database FILE\n  -h, --help                   Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm fragments",
+      "help": "\nManage fragments that are stored in the database\n\nFragments are reusable snippets of text that are shared across multiple prompts.\n",
+      "parameters": [],
+      "helpOutput": "Usage: cli fragments [OPTIONS] COMMAND [ARGS]...\n\n  Manage fragments that are stored in the database\n\n  Fragments are reusable snippets of text that are shared across multiple\n  prompts.\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List current fragments\n  loaders  Show fragment loaders registered by plugins\n  remove   Remove a fragment alias\n  set      Set an alias for a fragment\n  show     Display the fragment stored under an alias or hash\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm fragments list",
+      "help": "List current fragments",
+      "parameters": [
+        {
+          "name": "queries",
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "aliases",
+          "flags": [
+            "--aliases"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "json_",
+          "flags": [
+            "--json"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli fragments list [OPTIONS]\n\n  List current fragments\n\nOptions:\n  -q, --query TEXT  Search for fragments matching these strings\n  --aliases         Show only fragments with aliases\n  --json            Output as JSON\n  -h, --help        Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm fragments loaders",
+      "help": "Show fragment loaders registered by plugins",
+      "parameters": [],
+      "helpOutput": "Usage: cli fragments loaders [OPTIONS]\n\n  Show fragment loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm fragments remove",
+      "help": "\nRemove a fragment alias\n\nExample usage:\n\n\b\n    llm fragments remove docs\n",
+      "parameters": [
+        {
+          "name": "alias",
+          "flags": [
+            "alias"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli fragments remove [OPTIONS] ALIAS\n\n  Remove a fragment alias\n\n  Example usage:\n\n      llm fragments remove docs\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm fragments set",
+      "help": "\nSet an alias for a fragment\n\nAccepts an alias and a file path, URL, hash or '-' for stdin\n\nExample usage:\n\n\b\n    llm fragments set mydocs ./docs.md\n",
+      "parameters": [
+        {
+          "name": "alias",
+          "flags": [
+            "alias"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "fragment",
+          "flags": [
+            "fragment"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli fragments set [OPTIONS] ALIAS FRAGMENT\n\n  Set an alias for a fragment\n\n  Accepts an alias and a file path, URL, hash or '-' for stdin\n\n  Example usage:\n\n      llm fragments set mydocs ./docs.md\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm fragments show",
+      "help": "\nDisplay the fragment stored under an alias or hash\n\n\b\n    llm fragments show mydocs\n",
+      "parameters": [
+        {
+          "name": "alias_or_hash",
+          "flags": [
+            "alias_or_hash"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli fragments show [OPTIONS] ALIAS_OR_HASH\n\n  Display the fragment stored under an alias or hash\n\n      llm fragments show mydocs\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm install",
+      "help": "Install packages from PyPI into the same environment as LLM",
+      "parameters": [
+        {
+          "name": "packages",
+          "flags": [
+            "packages"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": -1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "upgrade",
+          "flags": [
+            "-U",
+            "--upgrade"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "editable",
+          "flags": [
+            "-e",
+            "--editable"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "force_reinstall",
+          "flags": [
+            "--force-reinstall"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "no_cache_dir",
+          "flags": [
+            "--no-cache-dir"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "pre",
+          "flags": [
+            "--pre"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli install [OPTIONS] [PACKAGES]...\n\n  Install packages from PyPI into the same environment as LLM\n\nOptions:\n  -U, --upgrade        Upgrade packages to latest version\n  -e, --editable TEXT  Install a project in editable mode from this path\n  --force-reinstall    Reinstall all packages even if they are already up-to-\n                       date\n  --no-cache-dir       Disable the cache\n  --pre                Include pre-release and development versions\n  -h, --help           Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm keys",
+      "help": "Manage stored API keys for different models",
+      "parameters": [],
+      "helpOutput": "Usage: cli keys [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored API keys for different models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List names of all stored keys\n  get    Return the value of a stored key\n  path   Output the path to the keys.json file\n  set    Save a key in the keys.json file\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm keys get",
+      "help": "\nReturn the value of a stored key\n\nExample usage:\n\n\b\n    export OPENAI_API_KEY=$(llm keys get openai)\n",
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [
+            "name"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli keys get [OPTIONS] NAME\n\n  Return the value of a stored key\n\n  Example usage:\n\n      export OPENAI_API_KEY=$(llm keys get openai)\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm keys list",
+      "help": "List names of all stored keys",
+      "parameters": [],
+      "helpOutput": "Usage: cli keys list [OPTIONS]\n\n  List names of all stored keys\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm keys path",
+      "help": "Output the path to the keys.json file",
+      "parameters": [],
+      "helpOutput": "Usage: cli keys path [OPTIONS]\n\n  Output the path to the keys.json file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm keys set",
+      "help": "\nSave a key in the keys.json file\n\nExample usage:\n\n\b\n    $ llm keys set openai\n    Enter key: ...\n",
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [
+            "name"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "value",
+          "flags": [
+            "--value"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli keys set [OPTIONS] NAME\n\n  Save a key in the keys.json file\n\n  Example usage:\n\n      $ llm keys set openai\n      Enter key: ...\n\nOptions:\n  --value TEXT  Value to set\n  -h, --help    Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm logs",
+      "help": "Tools for exploring logged prompts and responses",
+      "parameters": [],
+      "helpOutput": "Usage: cli logs [OPTIONS] COMMAND [ARGS]...\n\n  Tools for exploring logged prompts and responses\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*   Show logged prompts and their responses\n  backup  Backup your logs database to this file\n  off     Turn off logging for all prompts\n  on      Turn on logging for all prompts\n  path    Output the path to the logs.db file\n  status  Show current status of database logging\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm logs backup",
+      "help": "Backup your logs database to this file",
+      "parameters": [
+        {
+          "name": "path",
+          "flags": [
+            "path"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1034b8050>"
+        }
+      ],
+      "helpOutput": "Usage: cli logs backup [OPTIONS] PATH\n\n  Backup your logs database to this file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm logs list",
+      "help": "Show logged prompts and their responses",
+      "parameters": [
+        {
+          "name": "count",
+          "flags": [
+            "-n",
+            "--count"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": null,
+          "type": "INT"
+        },
+        {
+          "name": "path",
+          "flags": [
+            "-p",
+            "--path"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1032db6f0>"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1032db820>"
+        },
+        {
+          "name": "model",
+          "flags": [
+            "-m",
+            "--model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "query",
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "fragments",
+          "flags": [
+            "--fragment",
+            "-f"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "tools",
+          "flags": [
+            "-T",
+            "--tool"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "any_tools",
+          "flags": [
+            "--tools"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "schema_input",
+          "flags": [
+            "--schema"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "schema_multi",
+          "flags": [
+            "--schema-multi"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "latest",
+          "flags": [
+            "-l",
+            "--latest"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "data",
+          "flags": [
+            "--data"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "data_array",
+          "flags": [
+            "--data-array"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "data_key",
+          "flags": [
+            "--data-key"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "data_ids",
+          "flags": [
+            "--data-ids"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "truncate",
+          "flags": [
+            "-t",
+            "--truncate"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "short",
+          "flags": [
+            "-s",
+            "--short"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "usage",
+          "flags": [
+            "-u",
+            "--usage"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "response",
+          "flags": [
+            "-r",
+            "--response"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "extract",
+          "flags": [
+            "-x",
+            "--extract"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "extract_last",
+          "flags": [
+            "--xl",
+            "--extract-last"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "current_conversation",
+          "flags": [
+            "-c",
+            "--current"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "INT"
+        },
+        {
+          "name": "conversation_id",
+          "flags": [
+            "--cid",
+            "--conversation"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "id_gt",
+          "flags": [
+            "--id-gt"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "id_gte",
+          "flags": [
+            "--id-gte"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "json_output",
+          "flags": [
+            "--json"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "expand",
+          "flags": [
+            "--expand",
+            "-e"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli logs list [OPTIONS]\n\n  Show logged prompts and their responses\n\nOptions:\n  -n, --count INTEGER         Number of entries to show - defaults to 3, use 0\n                              for all\n  -d, --database FILE         Path to log database\n  -m, --model TEXT            Filter by model or model alias\n  -q, --query TEXT            Search for logs matching this string\n  -f, --fragment TEXT         Filter for prompts using these fragments\n  -T, --tool TEXT             Filter for prompts with results from these tools\n  --tools                     Filter for prompts with results from any tools\n  --schema TEXT               JSON schema, filepath or ID\n  --schema-multi TEXT         JSON schema used for multiple results\n  -l, --latest                Return latest results matching search query\n  --data                      Output newline-delimited JSON data for schema\n  --data-array                Output JSON array of data for schema\n  --data-key TEXT             Return JSON objects from array in this key\n  --data-ids                  Attach corresponding IDs to JSON objects\n  -t, --truncate              Truncate long strings in output\n  -s, --short                 Shorter YAML output with truncated prompts\n  -u, --usage                 Include token usage\n  -r, --response              Just output the last response\n  -x, --extract               Extract first fenced code block\n  --xl, --extract-last        Extract last fenced code block\n  -c, --current               Show logs from the current conversation\n  --cid, --conversation TEXT  Show logs for this conversation ID\n  --id-gt TEXT                Return responses with ID > this\n  --id-gte TEXT               Return responses with ID >= this\n  --json                      Output logs as JSON\n  -e, --expand                Expand fragments to show their content\n  -h, --help                  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm logs off",
+      "help": "Turn off logging for all prompts",
+      "parameters": [],
+      "helpOutput": "Usage: cli logs off [OPTIONS]\n\n  Turn off logging for all prompts\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm logs on",
+      "help": "Turn on logging for all prompts",
+      "parameters": [],
+      "helpOutput": "Usage: cli logs on [OPTIONS]\n\n  Turn on logging for all prompts\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm logs path",
+      "help": "Output the path to the logs.db file",
+      "parameters": [],
+      "helpOutput": "Usage: cli logs path [OPTIONS]\n\n  Output the path to the logs.db file\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm logs status",
+      "help": "Show current status of database logging",
+      "parameters": [],
+      "helpOutput": "Usage: cli logs status [OPTIONS]\n\n  Show current status of database logging\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models",
+      "help": "Manage available models",
+      "parameters": [],
+      "helpOutput": "Usage: cli models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available models\n  default  Show or set the default model\n  options  Manage default options for models\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models default",
+      "help": "Show or set the default model",
+      "parameters": [
+        {
+          "name": "model",
+          "flags": [
+            "model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli models default [OPTIONS] [MODEL]\n\n  Show or set the default model\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models list",
+      "help": "List available models",
+      "parameters": [
+        {
+          "name": "options",
+          "flags": [
+            "--options"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "async_",
+          "flags": [
+            "--async"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "schemas",
+          "flags": [
+            "--schemas"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "tools",
+          "flags": [
+            "--tools"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "query",
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "model_ids",
+          "flags": [
+            "-m",
+            "--model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli models list [OPTIONS]\n\n  List available models\n\nOptions:\n  --options         Show options for each model, if available\n  --async           List async models\n  --schemas         List models that support schemas\n  --tools           List models that support tools\n  -q, --query TEXT  Search for models matching these strings\n  -m, --model TEXT  Specific model IDs\n  -h, --help        Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models options",
+      "help": "Manage default options for models",
+      "parameters": [],
+      "helpOutput": "Usage: cli models options [OPTIONS] COMMAND [ARGS]...\n\n  Manage default options for models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List default options for all models\n  clear  Clear default option(s) for a model\n  set    Set a default option for a model\n  show   List default options set for a specific model\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models options clear",
+      "help": "\nClear default option(s) for a model\n\nExample usage:\n\n\b\n    llm models options clear gpt-4o\n    # Or for a single option\n    llm models options clear gpt-4o temperature\n",
+      "parameters": [
+        {
+          "name": "model",
+          "flags": [
+            "model"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "key",
+          "flags": [
+            "key"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli models options clear [OPTIONS] MODEL [KEY]\n\n  Clear default option(s) for a model\n\n  Example usage:\n\n      llm models options clear gpt-4o\n      # Or for a single option\n      llm models options clear gpt-4o temperature\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models options list",
+      "help": "\nList default options for all models\n\nExample usage:\n\n\b\n    llm models options list\n",
+      "parameters": [],
+      "helpOutput": "Usage: cli models options list [OPTIONS]\n\n  List default options for all models\n\n  Example usage:\n\n      llm models options list\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models options set",
+      "help": "\nSet a default option for a model\n\nExample usage:\n\n\b\n    llm models options set gpt-4o temperature 0.5\n",
+      "parameters": [
+        {
+          "name": "model",
+          "flags": [
+            "model"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "key",
+          "flags": [
+            "key"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "value",
+          "flags": [
+            "value"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli models options set [OPTIONS] MODEL KEY VALUE\n\n  Set a default option for a model\n\n  Example usage:\n\n      llm models options set gpt-4o temperature 0.5\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm models options show",
+      "help": "\nList default options set for a specific model\n\nExample usage:\n\n\b\n    llm models options show gpt-4o\n",
+      "parameters": [
+        {
+          "name": "model",
+          "flags": [
+            "model"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli models options show [OPTIONS] MODEL\n\n  List default options set for a specific model\n\n  Example usage:\n\n      llm models options show gpt-4o\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm openai",
+      "help": "Commands for working directly with the OpenAI API",
+      "parameters": [],
+      "helpOutput": "Usage: cli openai [OPTIONS] COMMAND [ARGS]...\n\n  Commands for working directly with the OpenAI API\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  models  List models available to you from the OpenAI API\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm openai models",
+      "help": "List models available to you from the OpenAI API",
+      "parameters": [
+        {
+          "name": "json_",
+          "flags": [
+            "--json"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "key",
+          "flags": [
+            "--key"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli openai models [OPTIONS]\n\n  List models available to you from the OpenAI API\n\nOptions:\n  --json      Output as JSON\n  --key TEXT  OpenAI API key\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm plugins",
+      "help": "List installed plugins",
+      "parameters": [
+        {
+          "name": "all",
+          "flags": [
+            "--all"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "hooks",
+          "flags": [
+            "--hook"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli plugins [OPTIONS]\n\n  List installed plugins\n\nOptions:\n  --all        Include built-in default plugins\n  --hook TEXT  Filter for plugins that implement this hook\n  -h, --help   Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm prompt",
+      "help": "\nExecute a prompt\n\nDocumentation: https://llm.datasette.io/en/stable/usage.html\n\nExamples:\n\n\b\n    llm 'Capital of France?'\n    llm 'Capital of France?' -m gpt-4o\n    llm 'Capital of France?' -s 'answer in Spanish'\n\nMulti-modal models can be called with attachments like this:\n\n\b\n    llm 'Extract text from this image' -a image.jpg\n    llm 'Describe' -a https://static.simonwillison.net/static/2024/pelicans.jpg\n    cat image | llm 'describe image' -a -\n    # With an explicit mimetype:\n    cat image | llm 'describe image' --at - image/jpeg\n\nThe -x/--extract option returns just the content of the first ``` fenced code\nblock, if one is present. If none are present it returns the full response.\n\n\b\n    llm 'JavaScript function for reversing a string' -x\n",
+      "parameters": [
+        {
+          "name": "prompt",
+          "flags": [
+            "prompt"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "system",
+          "flags": [
+            "-s",
+            "--system"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "model_id",
+          "flags": [
+            "-m",
+            "--model"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x103346510>"
+        },
+        {
+          "name": "queries",
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "attachments",
+          "flags": [
+            "-a",
+            "--attachment"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<llm.cli.AttachmentType object at 0x103346660>"
+        },
+        {
+          "name": "attachment_types",
+          "flags": [
+            "--at",
+            "--attachment-type"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 2,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Tuple object at 0x1034b5950>"
+        },
+        {
+          "name": "tools",
+          "flags": [
+            "-T",
+            "--tool"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "python_tools",
+          "flags": [
+            "--functions"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "tools_debug",
+          "flags": [
+            "--td",
+            "--tools-debug"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "tools_approve",
+          "flags": [
+            "--ta",
+            "--tools-approve"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "chain_limit",
+          "flags": [
+            "--cl",
+            "--chain-limit"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "5",
+          "type": "INT"
+        },
+        {
+          "name": "options",
+          "flags": [
+            "-o",
+            "--option"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 2,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Tuple object at 0x1034b5090>"
+        },
+        {
+          "name": "schema_input",
+          "flags": [
+            "--schema"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "schema_multi",
+          "flags": [
+            "--schema-multi"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "fragments",
+          "flags": [
+            "-f",
+            "--fragment"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "system_fragments",
+          "flags": [
+            "--sf",
+            "--system-fragment"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "template",
+          "flags": [
+            "-t",
+            "--template"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "param",
+          "flags": [
+            "-p",
+            "--param"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 2,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Tuple object at 0x1033467b0>"
+        },
+        {
+          "name": "no_stream",
+          "flags": [
+            "--no-stream"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "no_log",
+          "flags": [
+            "-n",
+            "--no-log"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "log",
+          "flags": [
+            "--log"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "_continue",
+          "flags": [
+            "-c",
+            "--continue"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "INT"
+        },
+        {
+          "name": "conversation_id",
+          "flags": [
+            "--cid",
+            "--conversation"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "key",
+          "flags": [
+            "--key"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "save",
+          "flags": [
+            "--save"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "async_",
+          "flags": [
+            "--async"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "usage",
+          "flags": [
+            "-u",
+            "--usage"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "extract",
+          "flags": [
+            "-x",
+            "--extract"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "extract_last",
+          "flags": [
+            "--xl",
+            "--extract-last"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli prompt [OPTIONS] [PROMPT]\n\n  Execute a prompt\n\n  Documentation: https://llm.datasette.io/en/stable/usage.html\n\n  Examples:\n\n      llm 'Capital of France?'\n      llm 'Capital of France?' -m gpt-4o\n      llm 'Capital of France?' -s 'answer in Spanish'\n\n  Multi-modal models can be called with attachments like this:\n\n      llm 'Extract text from this image' -a image.jpg\n      llm 'Describe' -a https://static.simonwillison.net/static/2024/pelicans.jpg\n      cat image | llm 'describe image' -a -\n      # With an explicit mimetype:\n      cat image | llm 'describe image' --at - image/jpeg\n\n  The -x/--extract option returns just the content of the first ``` fenced code\n  block, if one is present. If none are present it returns the full response.\n\n      llm 'JavaScript function for reversing a string' -x\n\nOptions:\n  -s, --system TEXT               System prompt to use\n  -m, --model TEXT                Model to use\n  -d, --database FILE             Path to log database\n  -q, --query TEXT                Use first model matching these strings\n  -a, --attachment ATTACHMENT     Attachment path or URL or -\n  --at, --attachment-type <TEXT TEXT>...\n                                  Attachment with explicit mimetype,\n                                  --at image.jpg image/jpeg\n  -T, --tool TEXT                 Name of a tool to make available to the model\n  --functions TEXT                Python code block or file path defining\n                                  functions to register as tools\n  --td, --tools-debug             Show full details of tool executions\n  --ta, --tools-approve           Manually approve every tool execution\n  --cl, --chain-limit INTEGER     How many chained tool responses to allow,\n                                  default 5, set 0 for unlimited\n  -o, --option <TEXT TEXT>...     key/value options for the model\n  --schema TEXT                   JSON schema, filepath or ID\n  --schema-multi TEXT             JSON schema to use for multiple results\n  -f, --fragment TEXT             Fragment (alias, URL, hash or file path) to\n                                  add to the prompt\n  --sf, --system-fragment TEXT    Fragment to add to system prompt\n  -t, --template TEXT             Template to use\n  -p, --param <TEXT TEXT>...      Parameters for template\n  --no-stream                     Do not stream output\n  -n, --no-log                    Don't log to database\n  --log                           Log prompt and response to the database\n  -c, --continue                  Continue the most recent conversation.\n  --cid, --conversation TEXT      Continue the conversation with the given ID.\n  --key TEXT                      API key to use\n  --save TEXT                     Save prompt with this template name\n  --async                         Run prompt asynchronously\n  -u, --usage                     Show token usage\n  -x, --extract                   Extract first fenced code block\n  --xl, --extract-last            Extract last fenced code block\n  -h, --help                      Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm schemas",
+      "help": "Manage stored schemas",
+      "parameters": [],
+      "helpOutput": "Usage: cli schemas [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored schemas\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List stored schemas\n  dsl    Convert LLM's schema DSL to a JSON schema\n  show   Show a stored schema\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm schemas dsl",
+      "help": "\nConvert LLM's schema DSL to a JSON schema\n\n\b\n    llm schema dsl 'name, age int, bio: their bio'\n",
+      "parameters": [
+        {
+          "name": "input",
+          "flags": [
+            "input"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "multi",
+          "flags": [
+            "--multi"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli schemas dsl [OPTIONS] INPUT\n\n  Convert LLM's schema DSL to a JSON schema\n\n      llm schema dsl 'name, age int, bio: their bio'\n\nOptions:\n  --multi     Wrap in an array\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm schemas list",
+      "help": "List stored schemas",
+      "parameters": [
+        {
+          "name": "path",
+          "flags": [
+            "-p",
+            "--path"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x10347c710>"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x10332f680>"
+        },
+        {
+          "name": "queries",
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "full",
+          "flags": [
+            "--full"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "json_",
+          "flags": [
+            "--json"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "nl",
+          "flags": [
+            "--nl"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli schemas list [OPTIONS]\n\n  List stored schemas\n\nOptions:\n  -d, --database FILE  Path to log database\n  -q, --query TEXT     Search for schemas matching this string\n  --full               Output full schema contents\n  --json               Output as JSON\n  --nl                 Output as newline-delimited JSON\n  -h, --help           Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm schemas show",
+      "help": "Show a stored schema",
+      "parameters": [
+        {
+          "name": "schema_id",
+          "flags": [
+            "schema_id"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "path",
+          "flags": [
+            "-p",
+            "--path"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x10332f790>"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x1032e7750>"
+        }
+      ],
+      "helpOutput": "Usage: cli schemas show [OPTIONS] SCHEMA_ID\n\n  Show a stored schema\n\nOptions:\n  -d, --database FILE  Path to log database\n  -h, --help           Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm similar",
+      "help": "\nReturn top N similar IDs from a collection using cosine similarity.\n\nExample usage:\n\n\b\n    llm similar my-collection -c \"I like cats\"\n\nOr to find content similar to a specific stored ID:\n\n\b\n    llm similar my-collection 1234\n",
+      "parameters": [
+        {
+          "name": "collection",
+          "flags": [
+            "collection"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "id",
+          "flags": [
+            "id"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "input",
+          "flags": [
+            "-i",
+            "--input"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x10348ec90>"
+        },
+        {
+          "name": "content",
+          "flags": [
+            "-c",
+            "--content"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "binary",
+          "flags": [
+            "--binary"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "number",
+          "flags": [
+            "-n",
+            "--number"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "10",
+          "type": "INT"
+        },
+        {
+          "name": "plain",
+          "flags": [
+            "-p",
+            "--plain"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "database",
+          "flags": [
+            "-d",
+            "--database"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "<click.types.Path object at 0x10348ed50>"
+        },
+        {
+          "name": "prefix",
+          "flags": [
+            "--prefix"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli similar [OPTIONS] COLLECTION [ID]\n\n  Return top N similar IDs from a collection using cosine similarity.\n\n  Example usage:\n\n      llm similar my-collection -c \"I like cats\"\n\n  Or to find content similar to a specific stored ID:\n\n      llm similar my-collection 1234\n\nOptions:\n  -i, --input PATH      File to embed for comparison\n  -c, --content TEXT    Content to embed for comparison\n  --binary              Treat input as binary data\n  -n, --number INTEGER  Number of results to return\n  -p, --plain           Output in plain text format\n  -d, --database FILE\n  --prefix TEXT         Just IDs with this prefix\n  -h, --help            Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm templates",
+      "help": "Manage stored prompt templates",
+      "parameters": [],
+      "helpOutput": "Usage: cli templates [OPTIONS] COMMAND [ARGS]...\n\n  Manage stored prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available prompt templates\n  edit     Edit the specified prompt template using the default $EDITOR\n  loaders  Show template loaders registered by plugins\n  path     Output the path to the templates directory\n  show     Show the specified prompt template\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm templates edit",
+      "help": "Edit the specified prompt template using the default $EDITOR",
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [
+            "name"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli templates edit [OPTIONS] NAME\n\n  Edit the specified prompt template using the default $EDITOR\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm templates list",
+      "help": "List available prompt templates",
+      "parameters": [],
+      "helpOutput": "Usage: cli templates list [OPTIONS]\n\n  List available prompt templates\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm templates loaders",
+      "help": "Show template loaders registered by plugins",
+      "parameters": [],
+      "helpOutput": "Usage: cli templates loaders [OPTIONS]\n\n  Show template loaders registered by plugins\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm templates path",
+      "help": "Output the path to the templates directory",
+      "parameters": [],
+      "helpOutput": "Usage: cli templates path [OPTIONS]\n\n  Output the path to the templates directory\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm templates show",
+      "help": "Show the specified prompt template",
+      "parameters": [
+        {
+          "name": "name",
+          "flags": [
+            "name"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli templates show [OPTIONS] NAME\n\n  Show the specified prompt template\n\nOptions:\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm tools",
+      "help": "Manage tools that can be made available to LLMs",
+      "parameters": [],
+      "helpOutput": "Usage: cli tools [OPTIONS] COMMAND [ARGS]...\n\n  Manage tools that can be made available to LLMs\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*  List available tools that have been provided by plugins\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm tools list",
+      "help": "List available tools that have been provided by plugins",
+      "parameters": [
+        {
+          "name": "tool_defs",
+          "flags": [
+            "tool_defs"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": -1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "json_",
+          "flags": [
+            "--json"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        },
+        {
+          "name": "python_tools",
+          "flags": [
+            "--functions"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": true,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        }
+      ],
+      "helpOutput": "Usage: cli tools list [OPTIONS] [TOOL_DEFS]...\n\n  List available tools that have been provided by plugins\n\nOptions:\n  --json            Output as JSON\n  --functions TEXT  Python code block or file path defining functions to\n                    register as tools\n  -h, --help        Show this message and exit.\n",
+      "helpExitCode": 0
+    },
+    {
+      "command": "llm uninstall",
+      "help": "Uninstall Python packages from the LLM environment",
+      "parameters": [
+        {
+          "name": "packages",
+          "flags": [
+            "packages"
+          ],
+          "secondaryFlags": [],
+          "required": true,
+          "multiple": false,
+          "nargs": -1,
+          "default": "Sentinel.UNSET",
+          "type": "STRING"
+        },
+        {
+          "name": "yes",
+          "flags": [
+            "-y",
+            "--yes"
+          ],
+          "secondaryFlags": [],
+          "required": false,
+          "multiple": false,
+          "nargs": 1,
+          "default": "Sentinel.UNSET",
+          "type": "BOOL"
+        }
+      ],
+      "helpOutput": "Usage: cli uninstall [OPTIONS] PACKAGES...\n\n  Uninstall Python packages from the LLM environment\n\nOptions:\n  -y, --yes   Don't ask for confirmation\n  -h, --help  Show this message and exit.\n",
+      "helpExitCode": 0
+    }
+  ],
+  "oracleDependencies": {
+    "click": "8.5.0",
+    "jiter": "0.17.0",
+    "pydantic_core": "2.46.5",
+    "llm": "0.27.1",
+    "httpcore": "1.0.9",
+    "sqlite-migrate": "0.2",
+    "sqlite-utils": "4.2.1",
+    "pip": "26.2.1",
+    "setuptools": "84.0.0",
+    "condense-json": "1.1",
+    "h11": "0.16.0",
+    "pydantic": "2.13.5",
+    "puremagic": "2.2.0",
+    "sniffio": "1.3.1",
+    "python-dateutil": "2.9.0.post0",
+    "PyYAML": "6.0.3",
+    "click-default-group": "1.2.4",
+    "python-ulid": "4.0.1",
+    "certifi": "2026.7.22",
+    "annotated-types": "0.8.0",
+    "openai": "3.19.2",
+    "typing-inspection": "0.4.4",
+    "tabulate": "0.10.0",
+    "pluggy": "1.6.0",
+    "httpx": "0.28.1",
+    "typing_extensions": "4.16.0",
+    "httpx2": "2.13.1",
+    "sqlite-fts4": "1.0.3",
+    "truststore": "0.10.4",
+    "httpcore2": "2.13.1",
+    "anyio": "4.15.1",
+    "six": "1.17.0",
+    "idna": "3.20"
+  }
+}

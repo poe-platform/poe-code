@@ -1830,8 +1830,24 @@ export class SharpInstance extends Duplex {
     this.validateCompressionLevel(options?.compressionLevel);
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
+    for (const [k, label] of [
+      ["progressive", "pngProgressive"],
+      ["adaptiveFiltering", "pngAdaptiveFiltering"],
+      ["palette", "pngPalette"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
     if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 1 || (anyOpts.effort as number) > 10)) {
       throw new Error(`Expected integer between 1 and 10 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    const colours = anyOpts?.colours ?? anyOpts?.colors;
+    if (colours !== undefined && (!Number.isInteger(colours) || (colours as number) < 2 || (colours as number) > 256)) {
+      throw new Error(`Expected integer between 2 and 256 for colours but received ${colours} of type ${typeof colours}`);
+    }
+    if (anyOpts?.dither !== undefined && (typeof anyOpts.dither !== "number" || Number.isNaN(anyOpts.dither) || anyOpts.dither < 0 || anyOpts.dither > 1)) {
+      throw new Error(`Expected number between 0.0 and 1.0 for dither but received ${anyOpts.dither} of type ${typeof anyOpts.dither}`);
     }
     if (anyOpts?.bitdepth !== undefined && ![1, 2, 4, 8, 16].includes(anyOpts.bitdepth as number)) {
       throw new Error(`Expected 1, 2, 4, 8 or 16 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
@@ -1849,6 +1865,26 @@ export class SharpInstance extends Duplex {
 
   jpeg(options?: { readonly quality?: number; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
+    const anyOpts = options as Record<string, unknown> | undefined;
+    for (const [k, label] of [
+      ["progressive", "jpegProgressive"],
+      ["trellisQuantisation", "jpegTrellisQuantisation"],
+      ["overshootDeringing", "jpegOvershootDeringing"],
+      ["optimiseScans", "jpegOptimiseScans"],
+      ["optimiseCoding", "jpegOptimiseCoding"],
+      ["mozjpeg", "mozjpeg"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
+    if (anyOpts?.chromaSubsampling !== undefined && typeof anyOpts.chromaSubsampling !== "string") {
+      throw new Error(`Expected one of: 4:2:0, 4:4:4 for chromaSubsampling but received ${anyOpts.chromaSubsampling} of type ${typeof anyOpts.chromaSubsampling}`);
+    }
+    const qTable = anyOpts?.quantisationTable ?? anyOpts?.quantizationTable;
+    if (qTable !== undefined && (!Number.isInteger(qTable) || (qTable as number) < 0 || (qTable as number) > 8)) {
+      throw new Error(`Expected integer between 0 and 8 for quantisationTable but received ${qTable} of type ${typeof qTable}`);
+    }
     this.outputOptions = {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "jpeg" }),
@@ -1860,6 +1896,18 @@ export class SharpInstance extends Duplex {
   webp(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
+    for (const [k, label] of [
+      ["lossless", "webpLossless"],
+      ["nearLossless", "webpNearLossless"],
+      ["smartSubsample", "webpSmartSubsample"],
+      ["smartDeblock", "webpSmartDeblock"],
+      ["minSize", "webpMinSize"],
+      ["mixed", "webpMixed"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
     if (
       anyOpts?.alphaQuality !== undefined &&
       (!Number.isInteger(anyOpts.alphaQuality) || (anyOpts.alphaQuality as number) < 0 || (anyOpts.alphaQuality as number) > 100)
@@ -1896,6 +1944,15 @@ export class SharpInstance extends Duplex {
       throw new Error(`Expected one of: av1, hevc for compression but received ${options.compression} of type ${typeof options.compression}`);
     }
     const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.lossless !== undefined && typeof anyOpts.lossless !== "boolean") {
+      throw new Error(`Expected boolean for lossless but received ${anyOpts.lossless} of type ${typeof anyOpts.lossless}`);
+    }
+    if (anyOpts?.chromaSubsampling !== undefined && typeof anyOpts.chromaSubsampling !== "string") {
+      throw new Error(`Expected one of: 4:2:0, 4:4:4 for chromaSubsampling but received ${anyOpts.chromaSubsampling} of type ${typeof anyOpts.chromaSubsampling}`);
+    }
+    if (anyOpts?.bitdepth !== undefined && ![8, 10, 12].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 8, 10 or 12 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
     if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 9)) {
       throw new Error(`Expected integer between 0 and 9 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
     }
@@ -1929,6 +1986,15 @@ export class SharpInstance extends Duplex {
   avif(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.lossless !== undefined && typeof anyOpts.lossless !== "boolean") {
+      throw new Error(`Expected boolean for lossless but received ${anyOpts.lossless} of type ${typeof anyOpts.lossless}`);
+    }
+    if (anyOpts?.chromaSubsampling !== undefined && typeof anyOpts.chromaSubsampling !== "string") {
+      throw new Error(`Expected one of: 4:2:0, 4:4:4 for chromaSubsampling but received ${anyOpts.chromaSubsampling} of type ${typeof anyOpts.chromaSubsampling}`);
+    }
+    if (anyOpts?.bitdepth !== undefined && ![8, 10, 12].includes(anyOpts.bitdepth as number)) {
+      throw new Error(`Expected 8, 10 or 12 for bitdepth but received ${anyOpts.bitdepth} of type ${typeof anyOpts.bitdepth}`);
+    }
     if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 0 || (anyOpts.effort as number) > 9)) {
       throw new Error(`Expected integer between 0 and 9 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
     }
@@ -1948,6 +2014,36 @@ export class SharpInstance extends Duplex {
     readonly loop?: number;
     readonly force?: boolean;
   }): this {
+    const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.reuse !== undefined && typeof anyOpts.reuse !== "boolean") {
+      throw new Error(`Expected boolean for gifReuse but received ${anyOpts.reuse} of type ${typeof anyOpts.reuse}`);
+    }
+    const prog = anyOpts?.progressive;
+    if (prog !== undefined && typeof prog !== "boolean") {
+      throw new Error(`Expected boolean for gifProgressive but received ${prog} of type ${typeof prog}`);
+    }
+    const colours = anyOpts?.colours ?? anyOpts?.colors;
+    if (colours !== undefined && (!Number.isInteger(colours) || (colours as number) < 2 || (colours as number) > 256)) {
+      throw new Error(`Expected integer between 2 and 256 for colours but received ${colours} of type ${typeof colours}`);
+    }
+    if (anyOpts?.effort !== undefined && (!Number.isInteger(anyOpts.effort) || (anyOpts.effort as number) < 1 || (anyOpts.effort as number) > 10)) {
+      throw new Error(`Expected integer between 1 and 10 for effort but received ${anyOpts.effort} of type ${typeof anyOpts.effort}`);
+    }
+    if (anyOpts?.dither !== undefined && (typeof anyOpts.dither !== "number" || Number.isNaN(anyOpts.dither) || anyOpts.dither < 0 || anyOpts.dither > 1)) {
+      throw new Error(`Expected number between 0.0 and 1.0 for dither but received ${anyOpts.dither} of type ${typeof anyOpts.dither}`);
+    }
+    if (
+      anyOpts?.interFrameMaxError !== undefined &&
+      (typeof anyOpts.interFrameMaxError !== "number" || Number.isNaN(anyOpts.interFrameMaxError) || anyOpts.interFrameMaxError < 0 || anyOpts.interFrameMaxError > 32)
+    ) {
+      throw new Error(`Expected number between 0.0 and 32.0 for interFrameMaxError but received ${anyOpts.interFrameMaxError} of type ${typeof anyOpts.interFrameMaxError}`);
+    }
+    if (
+      anyOpts?.interPaletteMaxError !== undefined &&
+      (typeof anyOpts.interPaletteMaxError !== "number" || Number.isNaN(anyOpts.interPaletteMaxError) || anyOpts.interPaletteMaxError < 0 || anyOpts.interPaletteMaxError > 256)
+    ) {
+      throw new Error(`Expected number between 0.0 and 256.0 for interPaletteMaxError but received ${anyOpts.interPaletteMaxError} of type ${typeof anyOpts.interPaletteMaxError}`);
+    }
     if (options?.loop !== undefined && (!Number.isInteger(options.loop) || options.loop < 0 || options.loop > 65535)) {
       throw new Error(`Expected integer between 0 and 65535 for loop but received ${options.loop} of type ${typeof options.loop}`);
     }
@@ -1995,6 +2091,33 @@ export class SharpInstance extends Duplex {
   tiff(options?: { readonly quality?: number; readonly force?: boolean }): this {
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
+    if (anyOpts?.predictor !== undefined && !["none", "horizontal", "float"].includes(anyOpts.predictor as string)) {
+      throw new Error(`Expected one of: none, horizontal, float for predictor but received ${anyOpts.predictor} of type ${typeof anyOpts.predictor}`);
+    }
+    for (const [k, label] of [
+      ["pyramid", "tiffPyramid"],
+      ["tile", "tiffTile"],
+      ["miniswhite", "tiffMiniswhite"]
+    ] as const) {
+      if (anyOpts?.[k] !== undefined && typeof anyOpts[k] !== "boolean") {
+        throw new Error(`Expected boolean for ${label} but received ${anyOpts[k]} of type ${typeof anyOpts[k]}`);
+      }
+    }
+    if (anyOpts?.tileWidth !== undefined && (!Number.isInteger(anyOpts.tileWidth) || (anyOpts.tileWidth as number) <= 0)) {
+      throw new Error(`Expected integer greater than zero for tileWidth but received ${anyOpts.tileWidth} of type ${typeof anyOpts.tileWidth}`);
+    }
+    if (anyOpts?.tileHeight !== undefined && (!Number.isInteger(anyOpts.tileHeight) || (anyOpts.tileHeight as number) <= 0)) {
+      throw new Error(`Expected integer greater than zero for tileHeight but received ${anyOpts.tileHeight} of type ${typeof anyOpts.tileHeight}`);
+    }
+    if (anyOpts?.xres !== undefined && (typeof anyOpts.xres !== "number" || Number.isNaN(anyOpts.xres) || anyOpts.xres <= 0)) {
+      throw new Error(`Expected number greater than zero for xres but received ${anyOpts.xres} of type ${typeof anyOpts.xres}`);
+    }
+    if (anyOpts?.yres !== undefined && (typeof anyOpts.yres !== "number" || Number.isNaN(anyOpts.yres) || anyOpts.yres <= 0)) {
+      throw new Error(`Expected number greater than zero for yres but received ${anyOpts.yres} of type ${typeof anyOpts.yres}`);
+    }
+    if (anyOpts?.resolutionUnit !== undefined && !["inch", "cm"].includes(anyOpts.resolutionUnit as string)) {
+      throw new Error(`Expected one of: inch, cm for resolutionUnit but received ${anyOpts.resolutionUnit} of type ${typeof anyOpts.resolutionUnit}`);
+    }
     if (
       anyOpts?.compression !== undefined &&
       !["none", "jpeg", "deflate", "packbits", "ccittfax4", "lzw", "webp", "zstd", "jp2k"].includes(anyOpts.compression as string)

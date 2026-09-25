@@ -2816,4 +2816,50 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect([...overBlend.slice(0, 4)]).toEqual([0, 0, 0, 0]);
   });
+
+  it("validates jpeg, png, webp, gif, tiff, heif, and avif encoder options matching sharp", () => {
+    expect(() => sharp().jpeg({ progressive: "yes" as any })).toThrow(/Expected boolean for jpegProgressive/);
+    expect(() => sharp().jpeg({ chromaSubsampling: 123 as any })).toThrow(/Expected one of: 4:2:0, 4:4:4 for chromaSubsampling/);
+    expect(() => sharp().jpeg({ trellisQuantisation: "yes" as any })).toThrow(/Expected boolean for jpegTrellisQuantisation/);
+    expect(() => sharp().jpeg({ overshootDeringing: "yes" as any })).toThrow(/Expected boolean for jpegOvershootDeringing/);
+    expect(() => sharp().jpeg({ optimiseScans: "yes" as any })).toThrow(/Expected boolean for jpegOptimiseScans/);
+    expect(() => sharp().jpeg({ optimiseCoding: "yes" as any })).toThrow(/Expected boolean for jpegOptimiseCoding/);
+    expect(() => sharp().jpeg({ quantisationTable: 9 as any })).toThrow(/Expected integer between 0 and 8 for quantisationTable/);
+    expect(() => sharp().jpeg({ mozjpeg: "yes" as any })).toThrow(/Expected boolean for mozjpeg/);
+
+    expect(() => sharp().png({ progressive: "yes" as any })).toThrow(/Expected boolean for pngProgressive/);
+    expect(() => sharp().png({ adaptiveFiltering: "yes" as any })).toThrow(/Expected boolean for pngAdaptiveFiltering/);
+    expect(() => sharp().png({ palette: "yes" as any })).toThrow(/Expected boolean for pngPalette/);
+    expect(() => sharp().png({ colours: 1 as any })).toThrow(/Expected integer between 2 and 256 for colours/);
+    expect(() => sharp().png({ dither: 1.5 as any })).toThrow(/Expected number between 0.0 and 1.0 for dither/);
+
+    expect(() => sharp().webp({ lossless: "yes" as any })).toThrow(/Expected boolean for webpLossless/);
+    expect(() => sharp().webp({ nearLossless: "yes" as any })).toThrow(/Expected boolean for webpNearLossless/);
+    expect(() => sharp().webp({ smartSubsample: "yes" as any })).toThrow(/Expected boolean for webpSmartSubsample/);
+    expect(() => sharp().webp({ smartDeblock: "yes" as any })).toThrow(/Expected boolean for webpSmartDeblock/);
+    expect(() => sharp().webp({ minSize: "yes" as any })).toThrow(/Expected boolean for webpMinSize/);
+    expect(() => sharp().webp({ mixed: "yes" as any })).toThrow(/Expected boolean for webpMixed/);
+
+    expect(() => sharp().gif({ reuse: "yes" as any })).toThrow(/Expected boolean for gifReuse/);
+    expect(() => sharp().gif({ progressive: "yes" as any })).toThrow(/Expected boolean for gifProgressive/);
+    expect(() => sharp().gif({ colours: 257 as any })).toThrow(/Expected integer between 2 and 256 for colours/);
+    expect(() => sharp().gif({ effort: 0 as any })).toThrow(/Expected integer between 1 and 10 for effort/);
+    expect(() => sharp().gif({ dither: -0.1 as any })).toThrow(/Expected number between 0.0 and 1.0 for dither/);
+    expect(() => sharp().gif({ interFrameMaxError: 33 as any })).toThrow(/Expected number between 0.0 and 32.0 for interFrameMaxError/);
+    expect(() => sharp().gif({ interPaletteMaxError: 257 as any })).toThrow(/Expected number between 0.0 and 256.0 for interPaletteMaxError/);
+
+    expect(() => sharp().tiff({ predictor: "bogus" as any })).toThrow(/Expected one of: none, horizontal, float for predictor/);
+    expect(() => sharp().tiff({ pyramid: "yes" as any })).toThrow(/Expected boolean for tiffPyramid/);
+    expect(() => sharp().tiff({ tile: "yes" as any })).toThrow(/Expected boolean for tiffTile/);
+    expect(() => sharp().tiff({ tileWidth: 0 as any })).toThrow(/Expected integer greater than zero for tileWidth/);
+    expect(() => sharp().tiff({ tileHeight: 0 as any })).toThrow(/Expected integer greater than zero for tileHeight/);
+    expect(() => sharp().tiff({ xres: 0 as any })).toThrow(/Expected number greater than zero for xres/);
+    expect(() => sharp().tiff({ yres: -1 as any })).toThrow(/Expected number greater than zero for yres/);
+    expect(() => sharp().tiff({ resolutionUnit: "bogus" as any })).toThrow(/Expected one of: inch, cm for resolutionUnit/);
+    expect(() => sharp().tiff({ miniswhite: "yes" as any })).toThrow(/Expected boolean for tiffMiniswhite/);
+
+    expect(() => sharp().avif({ lossless: "yes" as any })).toThrow(/Expected boolean for lossless/);
+    expect(() => sharp().avif({ chromaSubsampling: 123 as any })).toThrow(/Expected one of: 4:2:0, 4:4:4 for chromaSubsampling/);
+    expect(() => sharp().avif({ bitdepth: 6 as any })).toThrow(/Expected 8, 10 or 12 for bitdepth/);
+  });
 });

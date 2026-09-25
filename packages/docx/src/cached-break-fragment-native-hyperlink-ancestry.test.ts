@@ -6,8 +6,13 @@ import { archiveSettings, type DocumentArchive } from "./archive.js";
 import { ModelStore } from "./model-store.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 
+import { nativeModule, nativeModuleLoader } from "../tests/fixtures/native-module.js";
+
+const source = `import {Volume} from 'memfs';import * as api from ${JSON.stringify(new URL("./index.ts", import.meta.url).href)};import {ModelStore} from ${JSON.stringify(new URL("./model-store.ts", import.meta.url).href)};import {archiveSettings} from ${JSON.stringify(new URL("./archive.ts", import.meta.url).href)};
+let data='';for await(const chunk of process.stdin)data+=chunk;const request=JSON.parse(data),memory=Volume.fromJSON(Object.fromEntries(request.members.map(m=>['/'+m.name,Buffer.from(m.bytes,'base64')]))),members=request.members.map(m=>({...m,modified:new Date(m.modified),bytes:new Uint8Array(memory.readFileSync('/'+m.name))})),context={...archiveSettings({limits:request.limits,signal:new AbortController().signal,budget:new api.DocumentBudget({xmlDepth:16384,retainedBytes:2**30,work:2**30})}),author:'',initials:''},store=new ModelStore({comment:new Uint8Array(),members},context,'/word/document.xml'),node=store.xml(store.mainPart).root.children[0].children[0],p=new api.Paragraph(store,store.ref(store.mainPart,node));let result;try{const cached=p.rendered_page_breaks[0],fragment=request.preceding?cached.preceding_paragraph_fragment:cached.following_paragraph_fragment;result={ok:true,fragmentText:fragment?.text,wholeBefore:new TextDecoder().decode(fragment.element.serialize()).includes('>LinkBefore</w:t>'),wholeAfter:new TextDecoder().decode(fragment.element.serialize()).includes('>LinkAfter</w:t>'),nativeLeft:new TextDecoder().decode(fragment.element.serialize()).includes('>Left</w:t>'),nativeRight:new TextDecoder().decode(fragment.element.serialize()).includes('>Right</w:t>'),noMarker:!new TextDecoder().decode(fragment.element.serialize()).includes('lastRenderedPageBreak'),fragmentKeep:fragment?.paragraph_format.keep_with_next,detached:fragment?.store!==p.store,text:p.text,keep:p.paragraph_format.keep_with_next,italic:p.runs[0].italic,exactParagraph:Buffer.from(p.element.serialize()).equals(Buffer.from(request.body))};}catch(error){result={ok:false,error:String(error),code:error.code??null};}const saved=store.snapshot();result.exactMembers=saved.members.length===members.length&&saved.members.every(m=>Buffer.from(m.bytes).equals(memory.readFileSync('/'+m.name)));console.log(JSON.stringify(result));`;
+let script: string;
 let original: DocumentArchive;
-beforeAll(async () => { original = await api.readArchive(await textFixture("<w:p/>"), textContext); });
+beforeAll(async () => { script = await nativeModule(source); original = await api.readArchive(await textFixture("<w:p/>"), textContext); });
 
 for (const strict of [false, true]) for (const depth of [32, 4096, 8192])
 for (const preceding of [false, true]) for (const host of ["worker", "main"] as const)
@@ -51,16 +56,16 @@ it(`extracts complete nested hyperlink with cached-break native ancestors; stric
     expect(snapshot.members.map(member => member.name).sort()).toEqual(members.map(member => member.name).sort());
     for (const member of snapshot.members) expect(Buffer.from(member.bytes).equals(memory.readFileSync("/" + member.name) as Buffer)).toBe(true);
   } else {
-    const script = `import {Volume} from 'memfs';import * as api from ${JSON.stringify(new URL("./index.ts", import.meta.url).href)};import {ModelStore} from ${JSON.stringify(new URL("./model-store.ts", import.meta.url).href)};import {archiveSettings} from ${JSON.stringify(new URL("./archive.ts", import.meta.url).href)};
-let data='';for await(const chunk of process.stdin)data+=chunk;const request=JSON.parse(data),memory=Volume.fromJSON(Object.fromEntries(request.members.map(m=>['/'+m.name,Buffer.from(m.bytes,'base64')]))),members=request.members.map(m=>({...m,modified:new Date(m.modified),bytes:new Uint8Array(memory.readFileSync('/'+m.name))})),context={...archiveSettings({limits:request.limits,signal:new AbortController().signal,budget:new api.DocumentBudget({xmlDepth:16384,retainedBytes:2**30,work:2**30})}),author:'',initials:''},store=new ModelStore({comment:new Uint8Array(),members},context,'/word/document.xml'),node=store.xml(store.mainPart).root.children[0].children[0],p=new api.Paragraph(store,store.ref(store.mainPart,node));let result;try{const cached=p.rendered_page_breaks[0],fragment=request.preceding?cached.preceding_paragraph_fragment:cached.following_paragraph_fragment;result={ok:true,fragmentText:fragment?.text,wholeBefore:new TextDecoder().decode(fragment.element.serialize()).includes('>LinkBefore</w:t>'),wholeAfter:new TextDecoder().decode(fragment.element.serialize()).includes('>LinkAfter</w:t>'),nativeLeft:new TextDecoder().decode(fragment.element.serialize()).includes('>Left</w:t>'),nativeRight:new TextDecoder().decode(fragment.element.serialize()).includes('>Right</w:t>'),noMarker:!new TextDecoder().decode(fragment.element.serialize()).includes('lastRenderedPageBreak'),fragmentKeep:fragment?.paragraph_format.keep_with_next,detached:fragment?.store!==p.store,text:p.text,keep:p.paragraph_format.keep_with_next,italic:p.runs[0].italic,exactParagraph:Buffer.from(p.element.serialize()).equals(Buffer.from(request.body))};}catch(error){result={ok:false,error:String(error),code:error.code??null};}const saved=store.snapshot();result.exactMembers=saved.members.length===members.length&&saved.members.every(m=>Buffer.from(m.bytes).equals(memory.readFileSync('/'+m.name)));console.log(JSON.stringify(result));`;
+
     const result = await new Promise<string>((resolve, reject) => {
-      const child = spawn(process.execPath, ["--import", "tsx", "--input-type=module", "-e", script], { stdio: ["pipe", "pipe", "pipe"] });
+      const child = spawn(process.execPath, ["--input-type=module", "-e", nativeModuleLoader], { stdio: ["pipe", "pipe", "pipe"] });
       let stdout = "", stderr = "";
       child.stdout.on("data", bytes => { stdout += String(bytes); });
       child.stderr.on("data", bytes => { stderr += String(bytes); });
       child.on("error", reject);
+      child.stdin.on("error", reject);
       child.on("close", code => { if (code !== 0) reject(new Error(stderr)); else resolve(stdout); });
-      child.stdin.end(JSON.stringify({ members: members.map(member => ({ ...member,
+      child.stdin.end(JSON.stringify(script) + "\n" + JSON.stringify({ members: members.map(member => ({ ...member,
         bytes: Buffer.from(member.bytes).toString("base64") })), limits: textContext.limits, body: standaloneParagraph, preceding }));
     });
     expect(JSON.parse(result)).toEqual({ ok: true, fragmentText: preceding ? "Before" : "After", wholeBefore: preceding, wholeAfter: preceding, nativeLeft: preceding, nativeRight: !preceding, noMarker: true, fragmentKeep: true, detached: true,

@@ -561,6 +561,35 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
     return { comp, pixels, stride: comp.blocksX * 8 };
   });
 
+  const samplePlane = (
+    plane: { readonly comp: ComponentSpec; readonly pixels: Uint8Array; readonly stride: number },
+    x: number,
+    y: number
+  ): number => {
+    const h = plane.comp.h;
+    const v = plane.comp.v;
+    if (h === maxH && v === maxV) {
+      return plane.pixels[y * plane.stride + x]!;
+    }
+    const maxCx = Math.max(0, Math.ceil((width * h) / maxH) - 1);
+    const maxCy = Math.max(0, Math.ceil((height * v) / maxV) - 1);
+    const sx = ((x + 0.5) * h) / maxH - 0.5;
+    const sy = ((y + 0.5) * v) / maxV - 0.5;
+    const x0 = Math.max(0, Math.min(maxCx, Math.floor(sx)));
+    const x1 = Math.max(0, Math.min(maxCx, x0 + 1));
+    const y0 = Math.max(0, Math.min(maxCy, Math.floor(sy)));
+    const y1 = Math.max(0, Math.min(maxCy, y0 + 1));
+    const fx = Math.max(0, Math.min(1, sx - Math.floor(sx)));
+    const fy = Math.max(0, Math.min(1, sy - Math.floor(sy)));
+    const p00 = plane.pixels[y0 * plane.stride + x0]!;
+    const p10 = plane.pixels[y0 * plane.stride + x1]!;
+    const p01 = plane.pixels[y1 * plane.stride + x0]!;
+    const p11 = plane.pixels[y1 * plane.stride + x1]!;
+    const top = p00 + (p10 - p00) * fx;
+    const bot = p01 + (p11 - p01) * fx;
+    return top + (bot - top) * fy;
+  };
+
   const rgba = new Uint8Array(width * height * 4);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -576,9 +605,9 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
         const cY = compPixels[0]!;
         const cCb = compPixels[1]!;
         const cCr = compPixels[2]!;
-        const yVal = cY.pixels[Math.floor((y * cY.comp.v) / maxV) * cY.stride + Math.floor((x * cY.comp.h) / maxH)]!;
-        const cbVal = cCb.pixels[Math.floor((y * cCb.comp.v) / maxV) * cCb.stride + Math.floor((x * cCb.comp.h) / maxH)]! - 128;
-        const crVal = cCr.pixels[Math.floor((y * cCr.comp.v) / maxV) * cCr.stride + Math.floor((x * cCr.comp.h) / maxH)]! - 128;
+        const yVal = samplePlane(cY, x, y);
+        const cbVal = samplePlane(cCb, x, y) - 128;
+        const crVal = samplePlane(cCr, x, y) - 128;
 
         let r = Math.round(yVal + 1.402 * crVal);
         let g = Math.round(yVal - 0.344136 * cbVal - 0.714136 * crVal);

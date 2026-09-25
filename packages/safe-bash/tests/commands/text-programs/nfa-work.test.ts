@@ -127,9 +127,9 @@ test("interleaved searches on one compiled pattern retain independent ledgers", 
   let reached!: () => void;
   const suspended = new Promise<void>(resolve => { reached = resolve; });
   const waiting = new Promise<void>(resolve => { resume = resolve; });
-  const checkpoint = budget.checkpoint.bind(budget);
+  const checkpoint = budget.checkpointSync.bind(budget);
   let checkpoints = 0;
-  context.mock.method(budget, "checkpoint", async () => {
+  context.mock.method(budget, "checkpointSync", async () => {
     if (++checkpoints === 2) { reached(); await waiting; }
     await checkpoint();
   });

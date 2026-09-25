@@ -52,7 +52,7 @@ export class Budget {
   checkpointSync(): Promise<void> | undefined {
     this.context.signal.throwIfAborted();
     const count = ++this.checkpoints;
-    if ((count & 255) === 0 || ((count & 31) === 0 && monotonicNow() - this.lastYield >= 25)) {
+    if ((count & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
       return yieldTurn(this.context.signal).then(() => {
         this.lastYield = monotonicNow();
         this.context.signal.throwIfAborted();

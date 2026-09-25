@@ -429,9 +429,9 @@ for (const tool of ["sed", "awk"] as const) {
     const controller = new AbortController();
     let closed = false;
     const input = (async function* () { try { yield Buffer.from(`${"a".repeat(1024)}\n`); } finally { closed = true; } })();
-    const checkpoint = Budget.prototype.checkpoint;
+    const checkpoint = Budget.prototype.checkpointSync;
     let calls = 0;
-    context.mock.method(Budget.prototype, "checkpoint", async function (this: Budget) {
+    context.mock.method(Budget.prototype, "checkpointSync", async function (this: Budget) {
       if (++calls === 3) {
         assert.equal(closed, false, "input must still be open when cancellation occurs");
         controller.abort(false);

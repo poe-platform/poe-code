@@ -5,7 +5,7 @@ import { Budget, ProgramError, byteString, bytes, command, input, lineRecordBatc
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 import { editInPlace, prepareInPlace } from "./inplace.js";
 
-type Address = { kind: "number"; number: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
+type Address = { kind: "number"; number: number } | { kind: "step"; first: number; step: number } | { kind: "plus"; count: number } | { kind: "tilde"; count: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
 interface Instruction {
   kind: string;
   first?: Address;
@@ -87,6 +87,15 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
       offset += number[0].length;
       const value = Number(number[0]);
       if (!Number.isSafeInteger(value)) throw new ProgramError("sed line address exceeds safe integer range");
+      if (source[offset] === "~") {
+        offset++;
+        const stepMatch = /^[0-9]+/u.exec(source.slice(offset));
+        if (!stepMatch) throw new ProgramError("invalid step address");
+        offset += stepMatch[0].length;
+        const step = Number(stepMatch[0]);
+        if (!Number.isSafeInteger(step)) throw new ProgramError("sed line address exceeds safe integer range");
+        return { kind: "step", first: value, step };
+      }
       return { kind: "number", number: value };
     }
     if (source[offset] === "$") { offset++; return { kind: "last" }; }
@@ -144,7 +153,22 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
     const first = await address();
     horizontal();
     let second: Address | undefined;
-    if (source[offset] === ",") { offset++; second = await address(); if (!first || !second) throw new ProgramError("invalid address range"); }
+    if (source[offset] === ",") {
+      offset++;
+      horizontal();
+      if (source[offset] === "+" || source[offset] === "~") {
+        const relKind = source[offset]!;
+        const relMatch = /^[0-9]+/u.exec(source.slice(offset + 1));
+        if (relMatch) {
+          offset += 1 + relMatch[0].length;
+          const count = Number(relMatch[0]);
+          if (!Number.isSafeInteger(count)) throw new ProgramError("sed line address exceeds safe integer range");
+          second = { kind: relKind === "+" ? "plus" : "tilde", count };
+        }
+      }
+      if (!second) second = await address();
+      if (!first || !second) throw new ProgramError("invalid address range");
+    }
     if (first?.kind === "number" && first.number === 0 && second?.kind !== "regex" || second?.kind === "number" && second.number === 0) throw new ProgramError("zero address requires a 0,/regex/ range");
     horizontal();
     const negate = source[offset] === "!";
@@ -201,7 +225,7 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
         if (!instruction.text || labels.has(instruction.text)) throw new ProgramError("empty or duplicate branch label");
         labels.set(instruction.text, result.length);
       }
-    } else if (kind === "q") {
+    } else if (kind === "q" || kind === "Q") {
       if (second) throw new ProgramError("quit accepts at most one address");
       horizontal();
       const status = /^[0-9]+/u.exec(source.slice(offset));
@@ -214,7 +238,7 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
       const to = decode(delimited(delimiter));
       if (from.length !== to.length) throw new ProgramError("translation sets have different lengths");
       instruction.translation = new Map([...from].map((character, index) => [character, to[index]!]));
-    } else if (!"pdDPhHgGxnN=l".includes(kind)) throw new ProgramError(`unsupported sed command '${kind}'`);
+    } else if (!"pdDPhHgGxnN=lzF".includes(kind)) throw new ProgramError(`unsupported sed command '${kind}'`);
     result.push(instruction);
     horizontal();
     if (offset < source.length && ![";", "\n", "}", "#"].includes(source[offset]!)) throw new ProgramError(`unexpected text after '${kind}' command`);
@@ -405,10 +429,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     return undefined;
   };
   let lastPattern: Pattern | undefined;
-  const active = new Set<number>();
+  const active = new Map<number, number>();
   for (let pc = 0; pc < program.length; pc++) {
     const first = program[pc]!.first;
-    if (first?.kind === "number" && first.number === 0) active.add(pc);
+    if (first?.kind === "number" && first.number === 0) active.set(pc, 0);
   }
   const getPattern = (pattern: Pattern | undefined) => {
     if (pattern) lastPattern = pattern;
@@ -491,6 +515,8 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   };
   const matches = (address: Address): boolean | Promise<boolean> => {
     if (address.kind === "number") return number === address.number;
+    if (address.kind === "step") return address.step === 0 ? number === address.first : number >= address.first && (number - address.first) % address.step === 0;
+    if (address.kind === "plus" || address.kind === "tilde") return false;
     if (address.kind === "last") {
       if (batchSource && batchIndex < currentBatchLen) return false;
       return peekNextRecord().then(next => next === undefined);
@@ -518,16 +544,22 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         if (instruction.first) {
           if (instruction.second) {
             if (active.has(pc)) {
+              const startLine = active.get(pc)!;
               if (instruction.second.kind === "number" && number > instruction.second.number) selected = false;
-              const endMatch = instruction.second.kind === "number" ? number >= instruction.second.number : matches(instruction.second);
+              const endMatch = instruction.second.kind === "number" ? number >= instruction.second.number
+                : instruction.second.kind === "plus" ? number >= startLine + instruction.second.count
+                : instruction.second.kind === "tilde" ? (instruction.second.count === 0 || (number > startLine && number % instruction.second.count === 0))
+                : matches(instruction.second);
               ending = endMatch instanceof Promise ? await endMatch : endMatch;
               if (ending) active.delete(pc);
             } else {
               const firstMatch = matches(instruction.first);
               selected = firstMatch instanceof Promise ? await firstMatch : firstMatch;
               if (selected) {
-                ending = instruction.second.kind === "number" && number >= instruction.second.number || instruction.second.kind === "last" && (await peekNextRecord()) === undefined;
-                if (!ending) active.add(pc);
+                ending = instruction.second.kind === "number" && number >= instruction.second.number
+                  || (instruction.second.kind === "plus" || instruction.second.kind === "tilde") && instruction.second.count === 0
+                  || instruction.second.kind === "last" && (await peekNextRecord()) === undefined;
+                if (!ending) active.set(pc, number);
               }
             }
           } else {
@@ -570,6 +602,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             continue;
           }
           case "q": quit = true; status = instruction.status ?? 0; pc = program.length; continue;
+          case "Q": deleted = true; quit = true; status = instruction.status ?? 0; pc = program.length; continue;
+          case "z": pattern = ""; break;
+          case "F": { const p = emit(`${record.file}${separator}`); if (p) await p; break; }
           case "a": append({ text: instruction.text! }); break;
           case "r": append({ file: instruction.file! }); break;
           case "w": await writeFile(instruction.file!); break;
@@ -652,7 +687,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           }
           case "n": case "N": {
             if (instruction.kind === "n") { const p = flush(); if (p) await p; }
-            else if (separator === "\0" && (await peekNextRecord()) !== undefined) { const p = flush(false); if (p) await p; }
+            else if ((await peekNextRecord()) !== undefined) { const p = flush(false); if (p) await p; }
             const next = await readNextRecord();
             if (next === undefined) { if (instruction.kind === "N") { const p = flush(); if (p) await p; } return { status: 0, quit: false }; }
             record = next.terminated || files.length < 2 ? next : await prepareRecord(next); number++;
@@ -703,7 +738,8 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (ended || argument === "-" || !argument.startsWith("-")) { files.push(argument); continue; }
       if (argument === "--") { ended = true; continue; }
       if (argument === "--null-data") { separator = "\0"; continue; }
-      if (argument === "--quiet") { quiet = true; continue; }
+      if (argument === "--quiet" || argument === "--silent") { quiet = true; continue; }
+      if (argument === "--unbuffered") continue;
       if (argument === "--regexp-extended") { extended = true; continue; }
       if (argument === "--in-place" || argument.startsWith("--in-place=")) {
         inPlace = argument === "--in-place" ? "" : argument.slice("--in-place=".length);
@@ -718,6 +754,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;
         if (flag === "n") quiet = true;
+        else if (flag === "u") { /* unbuffered */ }
         else if (flag === "z") separator = "\0";
         else if (flag === "E" || flag === "r") extended = true;
         else if (flag === "s") separate = true;

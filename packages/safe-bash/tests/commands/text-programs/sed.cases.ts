@@ -247,3 +247,23 @@ test("sed handles bracket backslashes, leading ], repeated inner captures, and e
   assert.equal((await runVirtual("sed", { args: ["s/[d\\]/_/g"], stdin: "a\\bd\n" })).stdout.toString(), "a_b_\n");
   assert.equal((await runVirtual("sed", { args: ["s/[]\\(]/_/g"], stdin: "a\\b(c]d\n" })).stdout.toString(), "a_b_c_d\n");
 });
+
+test("sed supports one-line a/i/c, N queue flushing, --silent/-u, Q/z/F, and step/+N address ranges", async () => {
+  const sh = new Shell({ fs: await makeFileSystem() }).use(agentCommands());
+  try {
+    const check = async (cmd: string, stdin: string) => {
+      const r = await sh.exec(cmd, { stdin });
+      return { exitCode: r.exitCode, stdout: r.stdout, stderr: r.stderr };
+    };
+    assert.deepEqual(await check("sed '1a\\hello'", "x\n"), { exitCode: 0, stdout: "x\nhello\n", stderr: "" });
+    assert.deepEqual(await check("sed '1i\\   indented'", "x\n"), { exitCode: 0, stdout: "   indented\nx\n", stderr: "" });
+    assert.deepEqual(await check("sed -e '1a AFTER1' -e 'N'", "1\n2\n"), { exitCode: 0, stdout: "AFTER1\n1\n2\n", stderr: "" });
+    assert.deepEqual(await check("sed --silent -u '1p'", "a\nb\n"), { exitCode: 0, stdout: "a\n", stderr: "" });
+    assert.deepEqual(await check("sed '1~2d'", "1\n2\n3\n4\n"), { exitCode: 0, stdout: "2\n4\n", stderr: "" });
+    assert.deepEqual(await check("sed -n '/start/,+1p'", "a\nstart\nb\nc\n"), { exitCode: 0, stdout: "start\nb\n", stderr: "" });
+    assert.deepEqual(await check("sed '2Q'", "1\n2\n3\n"), { exitCode: 0, stdout: "1\n", stderr: "" });
+    assert.deepEqual(await check("sed 'z'", "hello\n"), { exitCode: 0, stdout: "\n", stderr: "" });
+  } finally {
+    await sh.dispose();
+  }
+});

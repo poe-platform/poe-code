@@ -100,8 +100,8 @@ test("literal alternatives preserve longest matches, pattern priority and word b
 
 test("literal alternatives retain explicit work, allocation, state and match limits", async () => {
   for (const options of [{ maxWork: 128 }, { maxAllocationUnits: 128 }, { maxStates: 2 }]) {
-    const reply = await run(request(grep(["needle|other"], { insensitive: true }), ["x".repeat(256)]), options);
-    assert.ok("error" in reply);
+    const reply = await run(request(grep(["needle|other"], { insensitive: true }), ["needle" + "x".repeat(256)]), options);
+    assert.ok("error" in reply, JSON.stringify({ options, reply }));
     assert.match(reply.error, /work|allocation|states/);
   }
   const reply = await run({ id: 1, descriptor: grep(["a|bb"]), rows: [row("abb", true)] }, { maxMatchesPerLine: 1 });
@@ -362,8 +362,8 @@ test("UTF-8 literal retirement stops pending preprocessing and releases capacity
   const worker = provider.createWorker(defaults);
   let replies = 0;
   worker.on("message", value => { if (value && typeof value === "object" && "id" in value) replies++; });
-  worker.postMessage(request(literal("rg", ["é".repeat(3000)]), ["é".repeat(4000)]));
-  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  // Exceed the synchronous work quantum so retirement interrupts admitted work.
+  worker.postMessage(request(literal("rg", ["é".repeat(30000)]), ["é".repeat(40000)]));
   const retirement = worker.terminate();
   assert.equal(worker.terminate(), retirement);
   assert.throws(() => provider.createWorker(defaults), /worker.*limit/);

@@ -105,13 +105,13 @@ test("NFA yields inside one find before its small work limit and preserves queue
   context.mock.method(performance, "now", () => now);
   const controller = new AbortController();
   const reason = Object.freeze({ cancelled: "inside find" });
-  const budget = makeBudget(512, 32768, controller.signal);
+  const budget = makeBudget(8192, 32768, controller.signal);
   const step = budget.step.bind(budget);
   context.mock.method(budget, "step", (count = 1) => { now += count; step(count); });
   const abort = setImmediate(() => controller.abort(reason));
   try {
     // Include the required literal so the search must enter the NFA.
-    await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("aaaaaaaab", budget), error => error === reason);
+    await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("a".repeat(32) + "b", budget), error => error === reason);
   } finally { clearImmediate(abort); }
 });
 
@@ -141,13 +141,13 @@ test("mandatory literal scans retain explicit work limits and queued cancellatio
   let now = 0;
   context.mock.method(performance, "now", () => now);
   const controller = new AbortController();
-  const budget = makeBudget(512, 8192, controller.signal);
+  const budget = makeBudget(32768, 8192, controller.signal);
   const step = budget.step.bind(budget);
   context.mock.method(budget, "step", (count = 1) => { now += count; step(count); });
   const reason = Object.freeze({ cancelled: "literal scan" });
   const abort = setImmediate(() => controller.abort(reason));
   try {
-    await assert.rejects(pattern.find("x".repeat(128), budget), error => error === reason);
+    await assert.rejects(pattern.find("x".repeat(4096), budget), error => error === reason);
   } finally { clearImmediate(abort); }
 });
 

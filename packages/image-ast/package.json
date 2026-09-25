@@ -17,14 +17,23 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/image-ast",
     "test:unit": "cd ../.. && vitest run packages/image-ast"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@poe-code/pdf-ast": "*",
     "pako": "3.0.1"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./image-ast": ".",
+        "./sharp": "."
+      }
+    }
   }
 }

@@ -69,6 +69,18 @@
       "node": "./dist/safe-bash-media.js",
       "default": "./dist/safe-bash-media.js"
     },
+    "./safe-bash/pdf-ast": {
+      "types": "./packages/pdf-ast/dist/index.d.ts",
+      "import": "./packages/pdf-ast/dist/index.js"
+    },
+    "./safe-bash/image-ast": {
+      "types": "./packages/image-ast/dist/index.d.ts",
+      "import": "./packages/image-ast/dist/index.js"
+    },
+    "./safe-bash/sharp": {
+      "types": "./packages/image-ast/dist/index.d.ts",
+      "import": "./packages/image-ast/dist/index.js"
+    },
     "./media": {
       "types": "./dist/media.d.ts",
       "workerd": "./dist/media.js",
@@ -378,6 +390,13 @@
     "packages/safe-bash-command-fmt/dist",
     "packages/safe-bash-command-wkhtmltopdf/dist",
     "packages/safe-bash-command-mmdc/dist",
+    "packages/pdf-ast/dist",
+    "packages/image-ast/dist",
+    "packages/safe-bash-command-pdfinfo/dist",
+    "packages/safe-bash-command-pdftotext/dist",
+    "packages/safe-bash-command-qpdf/dist",
+    "packages/safe-bash-command-soffice/dist",
+    "packages/safe-bash-command-sips/dist",
     "packages/safe-js/dist",
     "packages/safe-fs/dist/**/*.d.ts",
     "!packages/safe-js/dist/package.json",

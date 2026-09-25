@@ -474,4 +474,9 @@ test("gzip/gunzip/zcat process valid operands past missing files, resolve foo.gz
     const ok = await run("gzip", [flag, "-d", "-c", "a.txt.gz"], undefined, { fs });
     assert.equal(ok.exitCode, 0, ok.stderr);
   }
+
+  const trailingForced = await run("gzip", ["-dc", "-f"], toByteSource(Buffer.concat([helloMember, Buffer.from("trailing\n")])));
+  assert.equal(trailingForced.exitCode, 2);
+  assert.equal(trailingForced.stdout.toString(), "hello\n");
+  assert.match(trailingForced.stderr, /trailing garbage ignored/u);
 });

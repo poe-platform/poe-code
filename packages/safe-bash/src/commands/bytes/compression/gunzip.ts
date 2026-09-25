@@ -84,7 +84,7 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
       }
       const second = await input.byte();
       if (first !== 31 || second !== 139) {
-        if (force) {
+        if (force && !members) {
           yield Uint8Array.from(second === undefined ? [first] : [first, second]);
           for (;;) { const chunk = await input.chunk(); if (!chunk) return; yield chunk; }
         }

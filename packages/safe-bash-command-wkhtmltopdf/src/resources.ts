@@ -50,7 +50,7 @@ const copyBytes = Uint8Array.prototype.set;
 export async function withResources<T>(options: ResourceOptions, run: (resources: Resources) => Promise<T>): Promise<T> {
   const limits = { ...options.limits };
   for (const key of ["maxInputBytes", "maxDecodedBytes", "maxRetainedBytes", "maxWork", "maxResources"] as const) {
-    if (!Number.isSafeInteger(limits[key]) || limits[key] < 1) {
+    if (limits[key] !== Infinity && (!Number.isSafeInteger(limits[key]) || limits[key] < 1)) {
       throw new WkhtmltopdfError("INVALID_VALUE", "Resource limits must be positive safe integers");
     }
   }

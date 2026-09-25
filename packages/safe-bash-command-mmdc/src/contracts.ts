@@ -118,16 +118,16 @@ export interface MmdcSettings {
 }
 
 export const defaultMermaidLimits: MermaidLimits = Object.freeze({
-  maxSourceBytes: 1_048_576,
-  maxTokens: 65_536,
-  maxDepth: 64,
-  maxNodes: 2_048,
-  maxEdges: 4_096,
-  maxLabelBytes: 16_384,
-  maxWork: 33_554_432,
-  maxPixels: 16_777_216,
-  maxMemoryBytes: 134_217_728,
-  maxOutputBytes: 33_554_432
+  maxSourceBytes: Infinity,
+  maxTokens: Infinity,
+  maxDepth: Infinity,
+  maxNodes: Infinity,
+  maxEdges: Infinity,
+  maxLabelBytes: Infinity,
+  maxWork: Infinity,
+  maxPixels: Infinity,
+  maxMemoryBytes: Infinity,
+  maxOutputBytes: Infinity
 });
 
 export function admitMermaidLimits(
@@ -139,7 +139,7 @@ export function admitMermaidLimits(
   for (const key of Object.keys(hostCeiling) as (keyof MermaidLimits)[]) {
     const value = overrides[key];
     if (value === undefined) continue;
-    if (!Number.isSafeInteger(value) || value < 1 || value > hostCeiling[key]) {
+    if ((value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) || value > hostCeiling[key]) {
       throw new MermaidError(
         "E_LIMIT",
         `Resource limit '${key}' must be a positive safe integer within host ceiling (${hostCeiling[key]})`,

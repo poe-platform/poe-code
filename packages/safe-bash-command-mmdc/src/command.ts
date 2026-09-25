@@ -364,7 +364,7 @@ async function readVfsBytes(
   signal: AbortSignal
 ): Promise<Uint8Array> {
   if (context.fs.readFile) {
-    return await context.fs.readFile(path, { signal, maxBytes });
+    return await context.fs.readFile(path, Number.isFinite(maxBytes) ? { signal, maxBytes } : { signal });
   }
   if (context.fs.readStream) {
     const chunks: Uint8Array[] = [];

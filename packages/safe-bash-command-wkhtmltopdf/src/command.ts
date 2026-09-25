@@ -39,9 +39,17 @@ export interface RenderedDocument extends Omit<ConversionCompletion, "mode"> {
   close(): Promise<void>;
 }
 
+export interface WkhtmltopdfLimitsOverrides {
+  readonly parse?: Partial<ParseLimits>;
+  readonly resources?: Partial<ResourceLimits>;
+  readonly maxOutputBytes?: number;
+  readonly maxOutputChunks?: number;
+  readonly maxBatchJobs?: number;
+}
+
 export interface WkhtmltopdfCommandOptions {
   readonly replace?: boolean;
-  readonly limits: WkhtmltopdfLimits;
+  readonly limits?: WkhtmltopdfLimitsOverrides;
   /** Explicit trusted binding only. No renderer is supplied by this package. */
   readonly renderer?: StaticRenderer;
 }
@@ -55,9 +63,9 @@ export type WkhtmltopdfResult =
   | { readonly kind: "rejected"; readonly exitCode: 1; readonly code: ErrorCode | ErrnoCode };
 
 export const wkhtmltopdfLimits: WkhtmltopdfLimits = Object.freeze({
-  parse: Object.freeze({ maxArguments: 1024, maxTextBytes: 65536, maxObjects: 64, maxWork: 1048576 }),
-  resources: Object.freeze({ maxInputBytes: 16777216, maxDecodedBytes: 16777216, maxRetainedBytes: 33554432, maxWork: 67108864, maxResources: 128 }),
-  maxOutputBytes: 16777216, maxOutputChunks: 65536, maxBatchJobs: 128,
+  parse: Object.freeze({ maxArguments: Infinity, maxTextBytes: Infinity, maxObjects: Infinity, maxWork: Infinity }),
+  resources: Object.freeze({ maxInputBytes: Infinity, maxDecodedBytes: Infinity, maxRetainedBytes: Infinity, maxWork: Infinity, maxResources: Infinity }),
+  maxOutputBytes: Infinity, maxOutputChunks: Infinity, maxBatchJobs: Infinity,
 });
 
 const encoder = new TextEncoder();
@@ -67,7 +75,7 @@ const byteType = Object.getOwnPropertyDescriptor(typedArrayPrototype, Symbol.toS
 const byteLength = Object.getOwnPropertyDescriptor(typedArrayPrototype, "byteLength")!.get!;
 
 /** The SDK uses exactly the CLI's literal argument model, signals and destinations. */
-export async function runWkhtmltopdf(context: WkhtmltopdfContext, options: WkhtmltopdfCommandOptions): Promise<WkhtmltopdfResult> {
+export async function runWkhtmltopdf(context: WkhtmltopdfContext, options: WkhtmltopdfCommandOptions = {}): Promise<WkhtmltopdfResult> {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const signal = controller.signal;
@@ -106,14 +114,26 @@ export async function runWkhtmltopdf(context: WkhtmltopdfContext, options: Wkhtm
     signal.throwIfAborted();
     stdout = createOutputOperation({ signal, registerCleanup: callback => context.registerCleanup?.(callback) }, context.stdout);
     stderr = createOutputOperation({ signal, registerCleanup: callback => context.registerCleanup?.(callback) }, context.stderr);
+    if (options.limits !== undefined && (typeof options.limits !== "object" || options.limits === null)) {
+      throw new WkhtmltopdfError("INVALID_VALUE", "Command limits must be positive safe integers");
+    }
+    if (options.limits?.parse !== undefined && (typeof options.limits.parse !== "object" || options.limits.parse === null)) {
+      throw new WkhtmltopdfError("INVALID_VALUE", "Parser limits must be positive safe integers");
+    }
+    if (options.limits?.resources !== undefined && (typeof options.limits.resources !== "object" || options.limits.resources === null)) {
+      throw new WkhtmltopdfError("INVALID_VALUE", "Resource limits must be positive safe integers");
+    }
     const limits: WkhtmltopdfLimits = Object.freeze({
-      ...options.limits, parse: Object.freeze({ ...options.limits.parse }), resources: Object.freeze({ ...options.limits.resources }),
+      ...wkhtmltopdfLimits,
+      ...options.limits,
+      parse: Object.freeze({ ...wkhtmltopdfLimits.parse, ...options.limits?.parse }),
+      resources: Object.freeze({ ...wkhtmltopdfLimits.resources, ...options.limits?.resources }),
     });
     for (const value of [limits.maxOutputBytes, limits.maxOutputChunks, limits.maxBatchJobs]) {
-      if (!Number.isSafeInteger(value) || value < 1) throw new WkhtmltopdfError("INVALID_VALUE", "Command limits must be positive safe integers");
+      if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new WkhtmltopdfError("INVALID_VALUE", "Command limits must be positive safe integers");
     }
     for (const key of ["maxInputBytes", "maxDecodedBytes", "maxRetainedBytes", "maxWork", "maxResources"] as const) {
-      if (!Number.isSafeInteger(limits.resources[key]) || limits.resources[key] < 1) {
+      if (limits.resources[key] !== Infinity && (!Number.isSafeInteger(limits.resources[key]) || limits.resources[key] < 1)) {
         throw new WkhtmltopdfError("INVALID_VALUE", "Resource limits must be positive safe integers");
       }
     }

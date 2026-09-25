@@ -210,14 +210,20 @@ function escaped(filename: string): { prefix: string; name: string } {
 }
 
 async function* manifestLines(input: ByteSource, signal: AbortSignal): AsyncGenerator<Uint8Array> {
-  const buffer = new Uint8Array(manifestLineBytes);
+  let buffer = new Uint8Array(4096);
   let size = 0;
   for await (const block of blocks(input, signal)) {
     let start = 0;
     for (let offset = 0; offset <= block.length; offset++) {
       if (offset !== block.length && block[offset] !== 10) continue;
       const added = offset - start;
-      if (size + added > buffer.length) throw new FsError("EFBIG", { message: "manifest line exceeds 65536 bytes" });
+      if (size + added > buffer.length) {
+        let nextLength = buffer.length;
+        while (nextLength < size + added) nextLength *= 2;
+        const next = new Uint8Array(nextLength);
+        next.set(buffer.subarray(0, size));
+        buffer = next;
+      }
       buffer.set(block.subarray(start, offset), size);
       size += added;
       if (offset < block.length) { yield buffer.subarray(0, size); size = 0; }

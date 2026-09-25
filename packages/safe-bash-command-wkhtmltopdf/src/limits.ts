@@ -31,7 +31,7 @@ export class ParseBudget {
       maxWork: options.limits?.maxWork,
     };
     for (const value of Object.values(this.limits)) {
-      if (!Number.isSafeInteger(value) || value < 1) {
+      if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {
         throw new WkhtmltopdfError("INVALID_VALUE", "Parser limits must be positive safe integers");
       }
     }

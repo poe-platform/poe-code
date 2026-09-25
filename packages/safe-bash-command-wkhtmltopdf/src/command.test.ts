@@ -250,7 +250,7 @@ test("information output respects the output byte limit before writing", async (
 
 test("resource limits are validated even for information-only invocations", async () => {
   for (const key of ["maxInputBytes", "maxDecodedBytes", "maxRetainedBytes", "maxWork", "maxResources"] as const) {
-    for (const value of [0, -1, NaN, Infinity, 1.5]) {
+    for (const value of [0, -1, NaN, -Infinity, 1.5]) {
       const f = fixture(["--help"]);
       const result = await runWkhtmltopdf(f.context, {
         limits: { ...limits, resources: { ...limits.resources, [key]: value } },

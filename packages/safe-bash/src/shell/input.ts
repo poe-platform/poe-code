@@ -505,7 +505,6 @@ class InputCursor {
   #onInitialConsumed: (() => void) | undefined;
   #ended = false;
   #closed = false;
-  #active = false;
   #consumers = 0;
   #produced = 0;
   #boundedReads = false;
@@ -605,9 +604,7 @@ class InputCursor {
       try { await interruptible(previous, signal); signal.throwIfAborted(); }
       catch (error) { if (signal.aborted && interrupted) return await interrupted(error); throw error; }
       if (this.#eof === "retryable") this.#ended = false;
-      this.#active = true;
-      try { return await operation(); }
-      finally { this.#active = false; }
+      return await operation();
     } finally { this.#consumers--; release(); }
   }
 

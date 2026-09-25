@@ -115,6 +115,29 @@ test("EOF review: zero-count read never retries the descriptor and append remain
   assert.equal(await subject.position(), 4);
 });
 
+test("EOF review: next cannot overtake a queued record over retained bytes", async context => {
+  const subject = await retained(Uint8Array.of(65, 10, 255, 10));
+  context.after(() => subject.close());
+  await record(subject.input, Uint8Array.of(65, 10), "delimiter");
+  assert.equal(subject.input.readiness(), "ready");
+  assert.equal(subject.input.bufferedBytes, 2);
+  const first = subject.input.record();
+  assert.equal(subject.input.readiness(), "blocked");
+  assert.equal(subject.input.bufferedBytes, 0);
+  const second = subject.input.next();
+  const result = await first;
+  try {
+    assert.equal(result.reason, "delimiter");
+    assert.deepEqual(shellValueBytes(result.shellValue), Uint8Array.of(255, 10));
+  } finally { await result.release(); }
+  assert.deepEqual(await second, { done: true, value: undefined });
+  assert.equal(subject.input.readiness(), "eof");
+  assert.equal(subject.input.bufferedBytes, 0);
+  assert.equal(await subject.position(), 4);
+  assert.equal(subject.opens, 1);
+  assert.equal(subject.reads, 2);
+});
+
 test("EOF review: unlink and replacement cannot redirect a retained reader or its alias", async context => {
   const subject = await retained();
   const alias = new ShellInput(subject.input, subject.budget);

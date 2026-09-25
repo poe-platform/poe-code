@@ -16,6 +16,21 @@ function fixture(root = "/repo") {
 }
 
 describe("content-addressed check cache", () => {
+  it("preserves compiler input identity when cached outputs already match", () => {
+    const state = fixture();
+    const root = "/repo/packages/alpha";
+    state.fileSystem.mkdirSync(root + "/dist", { recursive: true });
+    state.fileSystem.writeFileSync(root + "/dist/index.js", "export const value = 1", { mode: 0o644 });
+    const cache = createCheckCache({ directory: "/cache", fileSystem: state.fileSystem });
+    const records = cache.capture(root, ["dist/**"]);
+    const before = state.fileSystem.statSync(root + "/dist/index.js");
+    cache.restore(root, ["dist/**"], records);
+    const after = state.fileSystem.statSync(root + "/dist/index.js");
+    expect([after.ino, after.mtimeMs, after.ctimeMs]).toEqual([before.ino, before.mtimeMs, before.ctimeMs]);
+    state.fileSystem.mkdirSync(root + "/dist/stale-empty");
+    cache.restore(root, ["dist/**"], records);
+    expect(state.fileSystem.existsSync(root + "/dist/stale-empty")).toBe(false);
+  });
   it("reuses keys across checkout paths and invalidates source consumers without invalidating unrelated packages", () => {
     const first = fixture(), second = fixture("/other-checkout");
     const keys = state => createTaskFingerprints(state.plan, { files: state.files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test" });

@@ -293,6 +293,32 @@ export function createCheckCache({ directory = checkCacheDirectory(), fileSystem
           catch (error) { if (error.code !== "ENOENT") throw error; }
         }
       }
+      const remaining = new Map(records.map(record => [record.path, record]));
+      const directories = new Set(roots);
+      for (const record of records) {
+        let parent = path.posix.dirname(record.path);
+        while (parent !== ".") { directories.add(parent); parent = path.posix.dirname(parent); }
+      }
+      const pending = [...roots];
+      let unchanged = true;
+      while (pending.length && unchanged) {
+        const relative = pending.pop();
+        const absolute = path.join(root, relative);
+        let stat;
+        try { stat = fileSystem.lstatSync(absolute); }
+        catch (error) { if (error.code !== "ENOENT") throw error; unchanged = false; break; }
+        if (stat.isSymbolicLink()) unchanged = false;
+        else if (stat.isDirectory()) {
+          if (!directories.has(relative)) unchanged = false;
+          else for (const entry of fileSystem.readdirSync(absolute)) pending.push(relative + "/" + entry);
+        } else {
+          const record = remaining.get(relative);
+          unchanged = stat.isFile() && stat.nlink === 1 && record !== undefined && (stat.mode & 0o777) === record.mode
+            && fileSystem.readFileSync(absolute).equals(Buffer.from(record.bytes, "base64"));
+          remaining.delete(relative);
+        }
+      }
+      if (unchanged && remaining.size === 0) return;
       for (const relative of roots) fileSystem.rmSync(path.join(root, relative), { recursive: true, force: true });
       for (const record of records) {
         const absolute = path.join(root, record.path);

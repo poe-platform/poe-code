@@ -420,14 +420,28 @@ export default {
 					break;
 				}
 				case "/syntax": {
-					const shell = new Shell({ fs: new MemoryFileSystem() });
+					const fs = new MemoryFileSystem();
+					const shell = new Shell({ fs });
 					shell.use(createPlaywrightCli({ adapter: {
 						browsers: { chromium: { headed: false } },
 						async acquire() { return { context: f.context, executeCode: f.execute, onClosed() { return () => {}; }, async release() {} }; },
 					} }).plugin);
 					try {
 						assert.equal((await shell.exec('playwright-cli open')).exitCode, 0);
-						for (const source of ['const x = 1; x;', 'async page => { broken syntax ??? }']) {
+						for (const source of [
+							'await page.evaluate(() => { document.title = "bare statement"; }); return await page.title();',
+							'async (page) => { await page.evaluate(() => { document.title = "function expression"; }); return await page.title(); }',
+							'await page.title()',
+						]) {
+							const result = await shell.exec(`playwright-cli run-code '${source}'`);
+							assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+							assert.ok(result.stdout.includes(source.includes('bare statement') ? 'bare statement' : 'function expression'), result.stdout);
+						}
+						await fs.writeFile('/script.js', new TextEncoder().encode('const title = await page.title(); return { title };'));
+						const fromFile = await shell.exec('playwright-cli run-code --filename=/script.js');
+						assert.equal(fromFile.exitCode, 0, fromFile.stdout + fromFile.stderr);
+						assert.ok(fromFile.stdout.includes('function expression'), fromFile.stdout);
+						for (const source of ['const x = ;', 'async page => { broken syntax ??? }']) {
 							const result = await shell.exec(`playwright-cli run-code '${source}'`);
 							assert.equal(result.exitCode, 1);
 							assert.ok((result.stdout + result.stderr).includes('SyntaxError'), result.stdout + result.stderr);
@@ -435,12 +449,15 @@ export default {
 						}
 						const recovered = await shell.exec('playwright-cli run-code "async (page) => { return await page.title(); }"');
 						assert.equal(recovered.exitCode, 0, recovered.stderr);
-						for (const source of ['async page => { throw new Error("user failure"); }', 'async page => { throw new SyntaxError("user syntax failure"); }']) {
+						for (const source of ['async page => { throw new Error("user failure"); }', 'async page => { throw new SyntaxError("user syntax failure"); }', 'await page.evaluate(() => { document.title += "!"; }); throw new SyntaxError("bare user failure");']) {
 							const result = await shell.exec(`playwright-cli run-code '${source}'`);
 							assert.equal(result.exitCode, 1);
 							assert.ok((result.stdout + result.stderr).includes('failure'));
 							assert.ok(!(result.stdout + result.stderr).includes('async (page)'));
 						}
+						const exactlyOnce = await shell.exec('playwright-cli run-code "async page => page.title()"');
+						assert.ok(exactlyOnce.stdout.includes('function expression!'), exactlyOnce.stdout);
+						assert.ok(!exactlyOnce.stdout.includes('function expression!!'), exactlyOnce.stdout);
 						assert.equal((await shell.exec('playwright-cli run-code "async page => page.title()"')).exitCode, 0);
 					} finally { await shell.dispose(); }
 					assert.equal(f.retired(), false);

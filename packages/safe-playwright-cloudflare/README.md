@@ -24,8 +24,12 @@ in the Worker host. Enable `nodejs_compat` and a Worker Loader binding. The publ
 types target Worker projects using TypeScript's `Bundler` module resolution and
 Cloudflare Workers types. `run-code` reports an unavailable binding if no loader
 is supplied; other browser commands remain available.
-Pass one function accepting `page`, for example
-`playwright-cli run-code 'async (page) => { return await page.title(); }'`.
+Pass a function accepting `page`, for example
+`playwright-cli run-code 'async (page) => { return await page.title(); }'`, or
+bare statements such as `playwright-cli run-code 'await page.reload(); return await page.title();'`.
+Both forms also work with `--filename`. Statements run inside an async function
+with `page` available; use `return` to report a result. Syntax selection happens
+before browser access, so runtime errors never retry a script.
 Native page and context state transfers impose no default byte, page-count, or
 init-script-count cap. Script registrations survive reconnection and user-code
 errors; explicitly configured result and portable profile budgets still apply.

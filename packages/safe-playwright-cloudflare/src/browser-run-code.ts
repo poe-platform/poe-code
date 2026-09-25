@@ -252,15 +252,26 @@ async function prepareAndRun(
 		let result: unknown;
 		let disposeGuest: (() => void) | undefined;
 		try {
-			result = await runGuest(options, input, metadata, relay, signal, (dispose) => {
-				disposeGuest = dispose;
-			});
+			for (const statements of [false, true]) {
+				try {
+					result = await runGuest(options, input, metadata, relay, signal, (dispose) => {
+						disposeGuest = dispose;
+					}, statements);
+					break;
+				} catch (error) {
+					// Only retry compilation before the guest has connected. User code,
+					// including runtime SyntaxErrors, must never execute a second time.
+					if (statements || relay.opened() || signal.aborted || !String(error).includes("SyntaxError:")) throw error;
+					disposeGuest?.();
+					disposeGuest = undefined;
+				}
+			}
 		} catch (error) {
 			// Loader compilation can fail before any guest obtains browser access.
 			if (!relay.opened()) {
 				const detail = String(error);
 				executionFailure = { error: new RunCodeUserError(detail.includes("SyntaxError:")
-					? `${detail}\nplaywright-cli run-code expects one JavaScript function accepting page, for example: async (page) => { return await page.title(); }`
+					? `${detail}\nplaywright-cli run-code accepts JavaScript statements or a function accepting page, for example: async (page) => { return await page.title(); }`
 					: detail) };
 			} else {
 				executionFailure = { error };
@@ -300,15 +311,19 @@ async function runGuest(
 	relay: ReturnType<typeof createRunCodeRelay>,
 	signal: AbortSignal,
 	retainGuest: (dispose: () => void) => void,
+	statements: boolean,
 ) {
 	signal.throwIfAborted();
+	const source = statements
+		? `export default async (page) => {\n${input.source}\n};`
+		: `export default async (page) => {\nconst result = (${input.source}\n);\nreturn typeof result === "function" ? await result(page) : result;\n};`;
 	const worker = options.loader.load({
 		compatibilityDate: "2026-07-08",
 		compatibilityFlags: ["nodejs_compat"],
 		mainModule: "guest.js",
 		modules: {
 			"guest.js": options.guestSource,
-			"browser-user-code.js": `export default (${input.source}\n);`,
+			"browser-user-code.js": source,
 		},
 		limits: { cpuMs: 1000, subRequests: 4096 },
 	});

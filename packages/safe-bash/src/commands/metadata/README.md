@@ -50,7 +50,9 @@ report includes only the operand and backend type.
 Implemented directives: `%n`, `%N`, `%s`, `%a`, `%A`, `%f`, `%F`, `%i`, `%h`,
 `%u`, `%g`, `%d`, `%D`, `%x/%y/%z/%w`, `%X/%Y/%Z/%W`, and `%%`.
 Basic width, alignment, numeric zero/sign/alternate padding and epoch precision
-up to three decimal places are supported with bounded output allocation.
+supports nine-digit fractions, implicit nine-digit precision (`%.Y`), and
+zero padding beyond nine digits, with bounded output allocation. Epoch formatting
+scales the supplied decimal milliseconds exactly before truncating the fraction.
 Negative fractional epochs follow the pinned GNU coreutils 9.7 executable:
 fractional digits are truncated in magnitude, but a zero resulting fraction
 retains the floor-second integer (for example, -11 ms gives `-1.0` at precision
@@ -77,7 +79,7 @@ lost by a backend/Number. Real native nanoseconds not representable in the suppl
 numeric milliseconds remain a classified comparison gap, not an exact match.
 The prior three-digit human output is retained in the read-only original author
 test as historical evidence; its selected-GNU expectation conflict is reported,
-not silently rewritten. Epoch precision/rounding/width rules above are unchanged.
+not silently rewritten. Epoch rounding and width rules above apply to the expanded precision support.
 The default report is a concise virtual metadata report,
 not byte-identical GNU stat output. A missing birth timestamp renders `-` in
 `%w`/the default report; requesting an unavailable numeric birth timestamp or

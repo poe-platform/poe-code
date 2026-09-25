@@ -78,13 +78,18 @@ function timestamp(milliseconds: number): string {
 }
 
 function epoch(milliseconds: number, precision: number): string {
-  if (precision > 3) throw new FsError("ENOTSUP", { message: "stat timestamps support at most millisecond precision" });
   const value = available(milliseconds, "timestamp");
-  const scale = 10 ** precision;
-  const absolute = Math.floor(Math.abs(value) / (1000 / scale));
+  const [coefficient = "0", exponent = "0"] = Math.abs(value).toString().split("e");
+  const [integer = "0", decimal = ""] = coefficient.split(".");
+  const digits = BigInt(integer + decimal);
+  const places = Math.min(precision, 9);
+  const scale = 10n ** BigInt(places);
+  const power = Number(exponent) - decimal.length - 3 + places;
+  const absolute = power < 0 ? digits / (10n ** BigInt(-power)) : digits * 10n ** BigInt(power);
   const fraction = absolute % scale;
-  const seconds = value < 0 && fraction === 0 ? -Math.floor(value / 1000) : Math.floor(absolute / scale);
-  return `${value < 0 ? "-" : ""}${seconds}${precision ? "." + fraction.toString().padStart(precision, "0") : ""}`;
+  const seconds = value < 0 && fraction === 0n ? -Math.floor(value / 1000) : absolute / scale;
+  const suffix = precision ? "." + fraction.toString().padStart(places, "0") + "0".repeat(precision - places) : "";
+  return `${value < 0 ? "-" : ""}${seconds}${suffix}`;
 }
 
 function directive(format: string, start: number) {

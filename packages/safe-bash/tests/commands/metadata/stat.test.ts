@@ -165,7 +165,7 @@ test("stat missing fields fail rather than becoming zero; mutation capability do
     const member: unknown = Reflect.get(target, property, target);
     return typeof member === "function" ? member.bind(target) : member;
   } });
-  for (const format of ["%i", "%u", "%W", "%U", "%b", "%.9Y"]) {
+  for (const format of ["%i", "%u", "%W", "%U", "%b"]) {
     const result = await runMetadata("stat", ["-c", format, "file"], fs);
     assert.equal(result.exitCode, 1, format);
     assert.match(result.stderr, /ENOTSUP/u);
@@ -266,4 +266,17 @@ test("stat supports %B block size and escaped double quotes in --printf", async 
   const fs = await fixture();
   assert.equal((await runMetadata("stat", ["-c", "%B", "file"], fs)).stdout, "512\n");
   assert.equal((await runMetadata("stat", ["--printf", "\"%s\"", "file"], fs)).stdout, "\"4\"");
+});
+
+test("stat supports nine-digit and implicit epoch precision for every timestamp", async () => {
+  const backing = await fixture();
+  const fs: FileSystem = new Proxy(backing, { get(target, property) {
+    if (property === "lstat") return async () => ({ type: "file", size: 0, mode: 0o644,
+      atimeMs: -1, mtimeMs: 1700000000123.456, ctimeMs: 1234, birthtimeMs: 0 } satisfies FileStat);
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const result = await runMetadata("stat", ["-c", "%.9X|%.X|%.9Y|%.Y|%.9Z|%.Z|%.9W|%.W|%.12Y", "file"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "-0.001000000|-0.001000000|1700000000.123456000|1700000000.123456000|1.234000000|1.234000000|0.000000000|0.000000000|1700000000.123456000000\n");
 });

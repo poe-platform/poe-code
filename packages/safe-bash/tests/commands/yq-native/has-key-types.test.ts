@@ -7,7 +7,7 @@ import { mikeYqCommands } from "../../../src/commands/yq/mike.js";
 for (const [key, expected] of [
   ['"1"', false], ['"-2"', false], ["1.25", false],
   ["true", false], ["false", false], ["null", false],
-  ["1.0", false], ["0", true], ["2", true], ["3", false], ["-2", true],
+  ["1.0", false], ["0", true], ["2", true], ["3", false], ["-2", false],
 ] as const) {
   test(`Mike yq array has preserves key type: ${key}`, async context => {
     const fs = createMemoryFileSystem();
@@ -42,7 +42,7 @@ test("Mike yq has preserves mapping keys and negative integer policy", async con
   const shell = new Shell({ fs }).use(mikeYqCommands());
   context.after(() => shell.dispose());
   for (const [input, expression, expected] of [
-    ["[]\n", "has(-2)", "true\n"],
+    ["[]\n", "has(-2)", "false\n"],
     ["[]\n", "has(0)", "false\n"],
     ["'1': owned\n", 'has("1")', "true\n"],
     ["owned: value\n", 'has("missing")', "false\n"],

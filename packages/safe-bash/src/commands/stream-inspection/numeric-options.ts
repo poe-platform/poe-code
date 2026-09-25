@@ -7,7 +7,7 @@ export function numericOptions(
   const normalized: string[] = [], ordered: string[] = [], operands: string[] = [];
   let ended = false, legacyIndex: number | undefined, legacyFallback = "";
   for (let index = 0; index < args.length; index++) {
-    const argument = args[index]!;
+    let argument = args[index]!;
     normalized.push(argument);
     if (ended || argument === "-" || !argument.startsWith("-")) {
       operands.push(argument);
@@ -27,7 +27,25 @@ export function numericOptions(
       const option = argument[offset]!;
       if (option >= "0" && option <= "9") {
         if (key) {
-          normalized[normalized.length - 1] = `${argument.slice(0, offset)}${key}${argument.slice(offset)}`;
+          let end = offset;
+          while (
+            end < argument.length &&
+            ((argument[end]! >= "0" && argument[end]! <= "9") ||
+              argument[end] === "," ||
+              argument[end] === "+" ||
+              argument[end] === "/")
+          ) {
+            end++;
+          }
+          normalized.pop();
+          if (offset > 1) normalized.push(argument.slice(0, offset));
+          normalized.push(`-${key}${argument.slice(offset, end)}`);
+          if (end < argument.length) {
+            argument = `-${argument.slice(end)}`;
+            normalized.push(argument);
+            offset = 0;
+            continue;
+          }
           break;
         }
         legacyIndex = index - (offset === argument.length - 1 ? 0 : 1);

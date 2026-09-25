@@ -32,7 +32,13 @@ export function createFactorCommand(options: FactorCommandsOptions = {}): Comman
           else if (matched === "exponents") exponents = true;
           else { information = matched as "help" | "version"; break; }
         } else {
-          if (!optionsEnded && argument.length > 1 && argument.startsWith("-")) throw new FactorError(`invalid option -- '${argument[1]}'`, true);
+          if (!optionsEnded && argument.length > 1 && argument.startsWith("-")) {
+            for (let index = 1; index < argument.length; index++) {
+              if (argument[index] !== "h") throw new FactorError(`invalid option -- '${argument[index]}'`, true);
+              exponents = true;
+            }
+            continue;
+          }
           operands.push(argument);
           if (context.env.POSIXLY_CORRECT !== undefined) optionsEnded = true;
         }

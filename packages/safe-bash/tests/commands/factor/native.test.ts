@@ -7,7 +7,7 @@ import { extraNativeCases } from "./extra-fixtures.js";
 
 for (const fixture of [...nativeCases, ...extraNativeCases]) test(`${fixture.qualification ? "qualified cap" : "native"}: ${fixture.name}`, async () => {
   // This historical oracle predates GNU factor's --exponents support.
-  const exponentQualification = fixture.name === "unknown-option" && fixture.args[0] === "--exponents"
+  const exponentQualification = (fixture.name === "unknown-option" && fixture.args[0] === "--exponents") || (fixture.name === "short-h" && fixture.args[0] === "-h")
     ? { status: 0, stdoutBase64: Buffer.from("12: 2^2 3\n").toString("base64"), stderrBase64: "" }
     : undefined;
   const qualification = exponentQualification ?? fixture.qualification;

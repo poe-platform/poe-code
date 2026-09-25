@@ -49,6 +49,16 @@ describe("safe-bash imagemagick integration", () => {
     const frame01Meta = await sharp(await fs.readFile("/anim-01.png")).metadata();
     assert.ok(frame01Meta.width > 0);
 
+    const stressRes = await shell.exec(
+      [
+        "magick rose: -crop 2x2@ /rtile-%d.png",
+        "magick -size 16x16 'xc:rgb(40,40,40)' 'xc:rgb(160,160,160)' -evaluate-sequence Mean -color-matrix '1,0,0 0,0.5,0 0,0,1' /seq.png",
+        "identify -format '%[fx:w*h]|%[pixel:p{0,0}]' /seq.png"
+      ].join(" && ")
+    );
+    assert.equal(stressRes.exitCode, 0, stressRes.stderr);
+    assert.equal(stressRes.stdout.trim(), "256|srgb(100,50,100)");
+
     await shell.dispose();
   });
 });

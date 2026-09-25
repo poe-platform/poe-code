@@ -564,4 +564,191 @@ describe("safe-bash-command-imagemagick", () => {
     const mid1Raw = await sharp(files.get("/frame-01.png")!).raw().toBuffer();
     expect(mid1Raw[0]).toBeCloseTo(80, 2);
   });
+
+  it("survives hardcore stress testing: corrupted inputs, stack underflows, boundary geometries, and pathological -fx math", async () => {
+    const valid = await makeTestImage(24, 24, 120, 180, 240);
+    const garbage = new Uint8Array([0x00, 0xff, 0x13, 0x37, 0xde, 0xad, 0xbe, 0xef]);
+    const empty = new Uint8Array(0);
+    const files = new Map<string, Uint8Array>([
+      ["/valid.png", valid],
+      ["/garbage.png", garbage],
+      ["/empty.png", empty]
+    ]);
+
+    // 1. Corrupted & zero-byte inputs across all CLI entrypoints must never throw uncaught errors
+    const badConv = await runConvertCli(["/garbage.png", "/out.png"], files);
+    expect(badConv.exitCode).not.toBe(0);
+    const badId = await runMagickCli(["identify", "/empty.png"], files);
+    expect(badId.exitCode).not.toBe(0);
+    const badMog = await runMogrifyCli(["-resize", "50%", "/garbage.png"], files);
+    expect(badMog.exitCode).not.toBe(0);
+    const badMon = await runMontageCli(["/garbage.png", "/valid.png", "/mon.png"], files);
+    expect(badMon.exitCode).not.toBe(0);
+    const badCmp = await runCompareCli(["/garbage.png", "/valid.png", "null:"], files);
+    expect(badCmp.exitCode).not.toBe(0);
+
+    // 2. Stack underflow & unmatched parentheses resilience (+swap, -delete 999, -clone 999 on 1-item stack)
+    const underflowRes = await runMagickCli(
+      [
+        "/valid.png",
+        "+swap",
+        "-swap",
+        "99,-99",
+        "-delete",
+        "999",
+        "-clone",
+        "999",
+        "(",
+        "-negate",
+        "/survived-stack.png"
+      ],
+      files
+    );
+    expect(underflowRes.exitCode).toBe(0);
+    expect(files.has("/survived-stack.png")).toBe(true);
+
+    // 3. Extreme boundary geometries (0x0, negative crop/shave/chop/roll larger than image)
+    const extremeGeom = await runMagickCli(
+      [
+        "/valid.png",
+        "-crop",
+        "0x0+9999+9999",
+        "-shave",
+        "999x999",
+        "-chop",
+        "999x999+500+500",
+        "-roll",
+        "-999999-888888",
+        "-resize",
+        "0x0!",
+        "/one-by-one.png"
+      ],
+      files
+    );
+    expect(extremeGeom.exitCode).toBe(0);
+    const oneMeta = await sharp(files.get("/one-by-one.png")!).metadata();
+    expect(oneMeta.width).toBe(1);
+    expect(oneMeta.height).toBe(1);
+
+    // 4. Pathological -fx division by zero, NaN, out-of-bounds p{-999,999}, sqrt(-1), log(-5), singular Perspective
+    const pathFx = await runMagickCli(
+      [
+        "/valid.png",
+        "-fx",
+        "a = 1/0; b = 0/0; c = sqrt(-9) + log(-5) + p{-999,9999}.r + u[99].g; clamp(c, 0, 1) * 0 + 0.5",
+        "-distort",
+        "Perspective",
+        "0,0 0,0  0,0 0,0  0,0 0,0  0,0 0,0",
+        "/path-fx.png"
+      ],
+      files
+    );
+    expect(pathFx.exitCode).toBe(0);
+    const pathRaw = await sharp(files.get("/path-fx.png")!).raw().toBuffer();
+    expect(pathRaw[0]).toBeCloseTo(128, 1);
+  });
+
+  it("supports -floodfill, -evaluate-sequence, arbitrary -convolve/-morphology, -color-matrix, -equalize, -dither/-remap, -crop MxN@, rose:, txt:-, histogram:info:-, and %[fx:...]/%[pixel:...]", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. Built-in rose: image + -crop 2x2@ grid subdivision into 4 equal tiles
+    await runMagickCli(["rose:", "-crop", "2x2@", "/tile-%d.png"], files);
+    expect(files.has("/tile-0.png")).toBe(true);
+    expect(files.has("/tile-3.png")).toBe(true);
+    const tile0Meta = await sharp(files.get("/tile-0.png")!).metadata();
+    expect(tile0Meta.width).toBe(35);
+    expect(tile0Meta.height).toBe(23);
+
+    // 2. Seed -floodfill on a hollow box: exterior (0,0) becomes blue, interior (15,15) stays black
+    await runMagickCli(
+      [
+        "-size",
+        "30x30",
+        "xc:#000000",
+        "-fill",
+        "none",
+        "-stroke",
+        "#ffffff",
+        "-strokewidth",
+        "2",
+        "-draw",
+        "rectangle 8,8 22,22",
+        "-fuzz",
+        "5%",
+        "-fill",
+        "#0000ff",
+        "-floodfill",
+        "+0+0",
+        "#000000",
+        "/flood.png"
+      ],
+      files
+    );
+    const floodRaw = await sharp(files.get("/flood.png")!).raw().toBuffer();
+    // (0,0) exterior pixel was flood-filled with blue (#0000ff)
+    expect(floodRaw[0]).toBe(0);
+    expect(floodRaw[2]).toBe(255);
+    // (15,15) inside the white ring was protected from the floodfill -> still black (#000000)
+    const insideIdx = (15 * 30 + 15) * 4;
+    expect(floodRaw[insideIdx]).toBe(0);
+    expect(floodRaw[insideIdx + 1]).toBe(0);
+    expect(floodRaw[insideIdx + 2]).toBe(0);
+
+    // 3. -evaluate-sequence Mean across 3 images (30, 90, 180 -> 100)
+    await runMagickCli(
+      [
+        "-size",
+        "10x10",
+        "xc:rgb(30,30,30)",
+        "xc:rgb(90,90,90)",
+        "xc:rgb(180,180,180)",
+        "-evaluate-sequence",
+        "Mean",
+        "/seq-mean.png"
+      ],
+      files
+    );
+    const meanRaw = await sharp(files.get("/seq-mean.png")!).raw().toBuffer();
+    expect(meanRaw[0]).toBeCloseTo(100, 1);
+
+    // 4. Arbitrary -convolve / -morphology Convolve, -color-matrix, -equalize, -dither FloydSteinberg -remap
+    await runMagickCli(["-size", "4x1", "gradient:#000000-#ffffff", "/palette.png"], files);
+    await runMagickCli(
+      [
+        "rose:",
+        "-convolve",
+        "0,-1,0 -1,5,-1 0,-1,0",
+        "-color-matrix",
+        "0,1,0 0,0,1 1,0,0",
+        "-equalize",
+        "-dither",
+        "FloydSteinberg",
+        "-remap",
+        "/palette.png",
+        "/remapped.png"
+      ],
+      files
+    );
+    const remapRaw = await sharp(files.get("/remapped.png")!).raw().toBuffer();
+    // Every pixel in /remapped.png must be grayscale (R === G === B) because /palette.png is pure grayscale
+    expect(remapRaw[0]).toBe(remapRaw[1]);
+    expect(remapRaw[1]).toBe(remapRaw[2]);
+
+    // 5. Computed format escapes %[fx:...], %[pixel:p{0,0}], %[mean], txt:-, and histogram:info:-
+    const fmtRes = await runMagickCli(
+      ["-size", "20x10", "xc:#ff0000", "-format", "%[fx:w/h] %[pixel:p{0,0}]", "info:"],
+      files
+    );
+    expect(fmtRes.exitCode).toBe(0);
+    expect(fmtRes.stdout).toContain("2 ");
+    expect(fmtRes.stdout.toLowerCase()).toContain("255,0,0");
+
+    const txtRes = await runMagickCli(["-size", "2x2", "xc:#123456", "txt:-"], files);
+    expect(txtRes.stdout).toContain("# ImageMagick pixel enumeration: 2,2");
+    expect(txtRes.stdout.toUpperCase()).toContain("#123456");
+
+    const histRes = await runMagickCli(["-size", "4x4", "xc:#abcdef", "histogram:info:-"], files);
+    expect(histRes.stdout).toContain("16:");
+    expect(histRes.stdout.toUpperCase()).toContain("#ABCDEF");
+  });
 });

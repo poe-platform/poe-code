@@ -119,3 +119,16 @@ describe("profile-specific emitted workspace declarations", () => {
     }
   );
 });
+
+
+it("includes declarations for every private command and engine without shipping their runtime files", async () => {
+  const declarations = ["safe-bash-command-fixture", "safe-bash-fixture-engine"].map(name => `packages/${name}/dist/index.d.ts`);
+  const volume = Volume.fromJSON(Object.fromEntries(declarations.flatMap(filename => [[`/repo/${filename}`, "export {};"], [`/repo/${filename.slice(0, -5)}.js`, "export {};"]])));
+  const files = createFsFromVolume(volume).promises;
+  const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const { collectPackageFiles } = await import("../packages/package-lint/src/bundle-policy.js");
+  const packed = await collectPackageFiles("/repo", manifest.files.filter((entry: string) => !entry.startsWith("!")), {
+    readdir: directory => files.readdir(directory, { withFileTypes: true }), stat: filename => files.stat(filename),
+  });
+  expect([...packed].sort()).toEqual(declarations.sort());
+});

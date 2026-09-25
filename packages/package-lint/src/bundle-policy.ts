@@ -530,14 +530,25 @@ export async function collectPackageFiles(
   for (const entry of entries) {
     const declarationsOnly = entry.endsWith("/**/*.d.ts");
     const directory = declarationsOnly ? entry.slice(0, -"/**/*.d.ts".length) : entry;
-    if (
-      directory.includes("*") ||
-      directory.startsWith("/") ||
-      directory.split("/").includes("..")
-    ) {
+    const components = directory.split("/");
+    const wildcard = components.findIndex(component => component.includes("*"));
+    if (directory.startsWith("/") || components.includes("..") ||
+      wildcard !== -1 && (!declarationsOnly || components[wildcard]!.split("*").length !== 2 ||
+        components.slice(wildcard + 1).some(component => component.includes("*")))) {
       throw new Error(`Unsupported package files entry: ${entry}`);
     }
-    await visit(directory, declarationsOnly);
+    if (wildcard !== -1) {
+      const parent = components.slice(0, wildcard).join("/");
+      const [prefix, suffix] = components[wildcard]!.split("*");
+      const children = await files.readdir(path.join(rootDir, parent)).catch(error => {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+        throw error;
+      });
+      for (const child of children) {
+        if (child.isDirectory() && child.name.startsWith(prefix!) && child.name.endsWith(suffix!))
+          await visit(path.posix.join(parent, child.name, ...components.slice(wildcard + 1)), true);
+      }
+    } else await visit(directory, declarationsOnly);
   }
   return packed;
 }

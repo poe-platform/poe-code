@@ -412,8 +412,7 @@
     "packages/media-cli/NOTICE",
     "packages/media-cli/NOTICE.ImageMagick",
     "packages/remote-execution/README.md",
-    "packages/safe-bash-command-xmllint/dist/**/*.d.ts",
-    "packages/safe-bash-xml-engine/dist/**/*.d.ts"
+    "packages/safe-bash-*/dist/**/*.d.ts"
   ],
   "engines": {
     "node": ">=18.18"

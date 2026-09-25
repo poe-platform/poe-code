@@ -228,24 +228,29 @@ async function* inputSources(context: CommandContext, options: Pick<Options, "fi
   }
 }
 async function fileVariable(context: CommandContext, path: string, raw: boolean, budget: Budget): Promise<Json> {
-  // Resolve first so a literal '-' remains a file, never the command's stdin.
-  const sources = inputSources(context, { files: [pathOf(context, path)], rawInput: raw }, budget);
-  if (raw) {
-    for await (const value of rawValues(sources, budget, true)) return value;
-    return "";
-  }
-  const values: Json[] = [];
-  let bytes = 2;
-  for await (const source of sources) {
-    for await (const value of jsonValues(source, budget)) {
-      budget.collection(values.length + 1);
-      bytes += budget.value(value) + (values.length ? 1 : 0);
-      if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-      values.push(value);
+  const previousLocation = budget.inputLocation;
+  try {
+    // Resolve first so a literal '-' remains a file, never the command's stdin.
+    const sources = inputSources(context, { files: [pathOf(context, path)], rawInput: raw }, budget);
+    if (raw) {
+      for await (const value of rawValues(sources, budget, true)) return value;
+      return "";
     }
+    const values: Json[] = [];
+    let bytes = 2;
+    for await (const source of sources) {
+      for await (const value of jsonValues(source, budget)) {
+        budget.collection(values.length + 1);
+        bytes += budget.value(value) + (values.length ? 1 : 0);
+        if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+        values.push(value);
+      }
+    }
+    budget.value(values);
+    return values;
+  } finally {
+    budget.inputLocation = previousLocation;
   }
-  budget.value(values);
-  return values;
 }
 function inputs(
   context: CommandContext,

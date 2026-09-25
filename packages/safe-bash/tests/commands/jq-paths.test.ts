@@ -33,3 +33,17 @@ for (const [filter, stdin] of cases) test(`jq paths matches native: ${filter} ${
       { exitCode: native.status, stdout: native.stdout, stderr: native.stderr });
   } finally { await shell.dispose(); }
 });
+
+test("jq -n with --slurpfile or --rawfile preserves <unknown> inputLocation for runtime errors", async () => {
+  const vfs = createMemoryFileSystem();
+  await vfs.writeFile("/foo.json", new TextEncoder().encode("1\n2\n3\n"));
+  await vfs.writeFile("/foo.txt", new TextEncoder().encode("a\nb\n"));
+  const shell = new Shell({ fs: vfs, cwd: "/" }).use(agentCommands());
+  try {
+    for (const flag of ["--slurpfile x foo.json", "--rawfile x foo.txt"]) {
+      const res = await shell.exec(`jq -n ${flag} 'error("boom")'`);
+      assert.equal(res.exitCode, 5);
+      assert.equal(res.stderr, "jq: error (at <unknown>): boom\n");
+    }
+  } finally { await shell.dispose(); }
+});

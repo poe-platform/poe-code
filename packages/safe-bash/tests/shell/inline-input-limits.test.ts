@@ -75,3 +75,28 @@ test("inline-input loops, broken pipes, and timer cancellation have hard child d
   assert.equal(result.stderr.toString(), "");
   assert.match(result.stdout.toString(), /inline-input lifecycle passed/u);
 });
+
+test("synchronous while true; do :; done hits 10000 command/loop limits quickly and yields to timer cancellation", async () => {
+  const { shell } = setup();
+  const start = performance.now();
+  await assert.rejects(
+    shell.exec("while true; do :; done", { limits: { maxCommands: 10000, maxLoopIterations: 10000 } }),
+    error => error instanceof ShellLimitError && (error.limit === "maxCommands" || error.limit === "maxLoopIterations")
+  );
+  assert.ok(performance.now() - start < 2000);
+
+  const controller = new AbortController();
+  const reason = new Error("cancel synchronous while loop");
+  const timer = setTimeout(() => controller.abort(reason), 20);
+  try {
+    await assert.rejects(
+      shell.exec("while true; do :; done", {
+        signal: controller.signal,
+        limits: { maxCommands: 1000000, maxLoopIterations: 1000000 },
+      }),
+      error => error === reason
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+});

@@ -323,3 +323,28 @@ test("dash output/random-source names are VFS files rather than standard streams
   assert.equal(result.stdout.length, 0);
   assert.equal(Buffer.from(await fs.readFile("/-")).toString(), "b\na\nc\n");
 });
+
+test("shuf streams range permutations into stdout budget without prebuilding full sample array", async () => {
+  let writtenBytes = 0;
+  let writeCount = 0;
+  const budgetError = new Error("maxOutputBytes limit exceeded");
+  const context: CommandContext = {
+    command: "shuf",
+    args: ["-i1-1000000", "-n200000"],
+    cwd: "/",
+    env: {},
+    fs: createMemoryFileSystem(),
+    signal: new AbortController().signal,
+    stdin: (async function* () {})(),
+    stdout: {
+      async write(bytes) {
+        writeCount++;
+        writtenBytes += bytes.byteLength;
+        if (writtenBytes > 1024) throw budgetError;
+      },
+    },
+    stderr: { async write() {} },
+  };
+  await assert.rejects(() => createShufCommand().execute(context), error => error === budgetError);
+  assert.ok(writeCount < 512, `expected stdout budget to stop shuf early, got ${writeCount} writes`);
+});

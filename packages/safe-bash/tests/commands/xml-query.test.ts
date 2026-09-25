@@ -407,3 +407,21 @@ test("xmllint document arguments fail before consuming input and admit literal f
     assert.equal(result.exitCode, 0, result.stderr);
   } finally { await shell.dispose(); }
 });
+
+test("xmllint supports --noout before or after --xpath and validates default document output", async () => {
+  const fs = api.createMemoryFileSystem();
+  await fs.writeFile("/test.xml", Buffer.from("<root><item id=\"1\">hello</item><item id=\"2\">world</item></root>\n"));
+  const shell = new api.Shell({ fs, cwd: "/" }).use(xmlCommands());
+  const defaultOut = await shell.exec("xmllint test.xml");
+  assert.equal(defaultOut.exitCode, 0);
+  assert.equal(defaultOut.stdout, "<?xml version=\"1.0\"?>\n<root><item id=\"1\">hello</item><item id=\"2\">world</item></root>\n");
+
+  for (const command of [
+    "xmllint --noout --xpath \"//item/text()\" test.xml",
+    "xmllint --xpath \"//item/text()\" --noout test.xml",
+  ]) {
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "hello\nworld\n");
+  }
+});

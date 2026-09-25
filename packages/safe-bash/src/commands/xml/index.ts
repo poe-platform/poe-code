@@ -33,29 +33,45 @@ async function argumentsFor(context: CommandContext, budget: XmlBudget): Promise
     return decoded;
   }
   let index = 0;
-  if (context.command === "xmllint" && args[0] !== "--xpath") {
+  if (context.command === "xmllint") {
     let mode: DocumentMode | undefined;
     let noout = false;
     let format = false;
+    let xpathIndex: number | undefined;
     while (index < args.length) {
       const flag = args[index]!;
-      if (flag === "--noout") noout = true;
-      else if (flag === "--format") { mode ??= "format"; format = true; }
-      else if (flag === "--c14n") mode = "c14n";
-      else break;
-      index++;
+      if (flag === "--noout") {
+        noout = true;
+        index++;
+      } else if (flag === "--format") {
+        mode ??= "format";
+        format = true;
+        index++;
+      } else if (flag === "--c14n") {
+        mode = "c14n";
+        index++;
+      } else if (flag === "--xpath") {
+        if (xpathIndex !== undefined) throw new XmlQueryError("expected one --xpath QUERY", 2);
+        index++;
+        if (args[index] === "--") index++;
+        const source = args[index];
+        if (source === undefined || source.startsWith("-")) throw new XmlQueryError("expected QUERY [FILE|-]", 2);
+        xpathIndex = index++;
+      } else break;
     }
-    mode ??= "format";
     if (args[index] === "--") index++;
     const fileIndex = index++;
     const file = args[fileIndex];
     if (index < args.length || file !== undefined && file.startsWith("-") && file !== "-" && args[fileIndex - 1] !== "--") {
       throw new XmlQueryError("expected one XML input FILE or -", 2);
     }
+    if (xpathIndex !== undefined) {
+      if (mode !== undefined || format) throw new XmlQueryError("expected --xpath QUERY [FILE|-]", 2);
+      const query = await parseQuery(await admitted(xpathIndex, "maxSourceBytes"), budget);
+      return { query, file: file === undefined ? undefined : await admitted(fileIndex, "maxInputBytes") };
+    }
+    mode ??= "format";
     return { mode, format, noout, file: file === undefined ? undefined : await admitted(fileIndex, "maxInputBytes") };
-  }
-  if (context.command === "xmllint") {
-    if (args[index++] !== "--xpath") throw new XmlQueryError("expected --xpath QUERY [FILE|-]", 2);
   }
   if (args[index] === "--") index++;
   const sourceIndex = index++;

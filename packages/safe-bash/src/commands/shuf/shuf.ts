@@ -151,11 +151,15 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           size = BigInt(lines.length);
         }
         const ahead = parsed.repeat || parsed.count < size ? parsed.count : size;
-        const permutation: bigint[] = [];
-        diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
         if (!parsed.repeat) {
           if (Number.isFinite(limits.maxSampleSize) && ahead > BigInt(limits.maxSampleSize)) throw new Diagnostic("shuf: maxSampleSize limit exceeded\n");
-          const swaps = new Map<bigint, bigint>();
+          if (Number.isFinite(limits.maxInputBytes) && ahead * 8n > BigInt(limits.maxInputBytes)) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
+        }
+        const streamDirect = !parsed.repeat && parsed.output === undefined && parsed.random === undefined;
+        const permutation: bigint[] = [];
+        const swaps = new Map<bigint, bigint>();
+        diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
+        if (!parsed.repeat && !streamDirect) {
           for (let index = 0n; index < ahead; index++) {
             const chosen = index + await random.choose(size - index);
             permutation.push(swaps.get(chosen) ?? chosen);
@@ -175,7 +179,17 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         for (let index = 0n; index < ahead; index++) {
           context.signal.throwIfAborted();
           diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
-          const chosen = parsed.repeat ? await random.choose(size) : permutation[Number(index)]!;
+          let chosen: bigint;
+          if (parsed.repeat) {
+            chosen = await random.choose(size);
+          } else if (streamDirect) {
+            const pick = index + await random.choose(size - index);
+            chosen = swaps.get(pick) ?? pick;
+            swaps.set(pick, swaps.get(index) ?? index);
+            swaps.delete(index);
+          } else {
+            chosen = permutation[Number(index)]!;
+          }
           const line = parsed.range ? encoder.encode(`${parsed.range.low + chosen}${parsed.delimiter === 0 ? "\0" : "\n"}`) : lines[Number(chosen)]!;
           diagnostic = "write error";
           await writeBytes(sink, line, context.signal);

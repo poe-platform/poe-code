@@ -4518,8 +4518,13 @@ export class Runtime {
             !state.variableAttributes?.size &&
             !guestArrays(state) &&
             !arrayStore(state)?.get(command.name);
+          let loopTurn = 0;
           for (const value of values) {
             this.budget.loop();
+            if ((++loopTurn & 127) === 0) {
+              if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+              else runYieldCheckpoint(this.signal);
+            }
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             if (canFastAssignLoopVar && !state.readonlyVariables?.has(command.name) && !arrayStore(state)?.get(command.name)) {
               publishVariable(state, command.name, value);
@@ -4644,8 +4649,13 @@ export class Runtime {
         } else {
           const conditionIO = io.execution?.ignoreErrexit ? io : { ...io, execution: { ignoreErrexit: true } };
           const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
+          let loopTurn = 0;
           while (true) {
             this.budget.loop();
+            if ((++loopTurn & 127) === 0) {
+              if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
+              else runYieldCheckpoint(this.signal);
+            }
             const syncCond = this.trySyncScript(command.condition, state, conditionIO, true);
             const condition = typeof syncCond === "number"
               ? syncCond

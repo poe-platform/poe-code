@@ -1871,10 +1871,17 @@ export function affineImage(
 export function computeImageStats(img: RgbaImage): ImageStats {
   const { width, height, data } = img;
   const totalPixels = Math.max(1, width * height);
-  const numCh = img.hasAlpha ? 4 : img.channels === 1 ? 1 : 3;
+  const chIndices =
+    img.channels === 1
+      ? [0]
+      : img.channels === 2
+        ? [0, 3]
+        : img.hasAlpha
+          ? [0, 1, 2, 3]
+          : [0, 1, 2];
   const channels: ChannelStats[] = [];
 
-  for (let c = 0; c < numCh; c++) {
+  for (const c of chIndices) {
     let min = 255;
     let max = 0;
     let sum = 0;

@@ -867,7 +867,16 @@ export class SharpInstance {
   }
 
   toBufferWithObjectSync(): { readonly data: Uint8Array; readonly info: OutputInfo } {
-    const img = this.evaluateImage();
+    let img = this.evaluateImage();
+    if (
+      this.outputOptions.format === "raw" &&
+      img.channels === 2 &&
+      !this.nodes.some(
+        n => (n.kind === "toColorspace" && n.space === "b-w") || n.kind === "grayscale" || n.kind === "joinChannel"
+      )
+    ) {
+      img = { ...img, space: "srgb", channels: 4 };
+    }
     const encoded = encodeImage(img, this.outputOptions);
     return {
       data: encoded.data,

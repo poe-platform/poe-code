@@ -1363,4 +1363,25 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(solid.info.trimOffsetLeft).toBe(0);
     expect(solid.info.trimOffsetTop).toBe(0);
   });
+
+  it("returns 2-band [gray, alpha] in stats() and expands 2-channel inputs to 4-band srgb in default raw() (#78)", async () => {
+    const gaBuf = Buffer.from([10, 128, 20, 255, 30, 128, 40, 255]);
+    const pngCt4 = await sharp(gaBuf, { raw: { width: 2, height: 2, channels: 2 } })
+      .toColorspace("b-w")
+      .png()
+      .toBuffer();
+
+    const meta = await sharp(pngCt4).metadata();
+    expect(meta.channels).toBe(2);
+    expect(meta.space).toBe("b-w");
+
+    const st = await sharp(pngCt4).stats();
+    expect(st.channels).toHaveLength(2);
+    expect(st.channels[0]!.mean).toBe(25);
+    expect(st.channels[1]!.mean).toBe(191.5);
+
+    const rawOut = await sharp(pngCt4).raw().toBuffer({ resolveWithObject: true });
+    expect(rawOut.info.channels).toBe(4);
+    expect(Array.from(rawOut.data.slice(0, 4))).toEqual([10, 10, 10, 128]);
+  });
 });

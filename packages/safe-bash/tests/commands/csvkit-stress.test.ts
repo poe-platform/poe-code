@@ -516,8 +516,26 @@ test("csvkit pipeline settles after downstream closes without acquiring unrelate
   await fs.writeFile("/backpressure.csv", new TextEncoder().encode("a,b\n" + ("x".repeat(1024) + ",y\n").repeat(128)));
   const shell = new Shell({ fs }).use(csvkitCommands(options));
   let stages: readonly string[] | undefined;
+  let producerFinished = false;
+  let waitForProducer = false;
+  let producerDone = Promise.resolve();
+  let releaseProducer = () => {};
+  shell.use(async (context, next) => {
+    try { return await next(); }
+    finally {
+      if (context.command === "csvcut") {
+        producerFinished = true;
+        releaseProducer();
+      }
+    }
+  });
   shell.commands.register({ name: "one-chunk", execute: async context => {
-    for await (const bytes of context.stdin) { await context.stdout.write(bytes); break; }
+    for await (const bytes of context.stdin) {
+      await context.stdout.write(bytes);
+      if (waitForProducer) await producerDone;
+      assert.equal(producerFinished, waitForProducer);
+      break;
+    }
     return { exitCode: 0 };
   } });
   shell.commands.register({ name: "pipeline-stages", execute: async context => {
@@ -525,16 +543,19 @@ test("csvkit pipeline settles after downstream closes without acquiring unrelate
     return { exitCode: 0 };
   } });
   try {
-    // Small output may finish before the reader closes; backpressure exposes EPIPE.
+    // Hold the small-output reader open until producer cleanup finishes; backpressure closes early.
     for (const [path, expectedStages] of [["/input.csv", ["0", "0"]], ["/backpressure.csv", ["141", "0"]]] as const) {
       stages = undefined;
-      const result = await shell.exec(`csvcut ${path} | one-chunk; pipeline-stages "\${PIPESTATUS[@]}"`);
+      producerFinished = false;
+      waitForProducer = path === "/input.csv";
+      producerDone = new Promise(resolve => { releaseProducer = resolve; });
+      const result = await shell.exec(`csvcut ${path} | one-chunk; pipeline-stages "\${PIPESTATUS[@]}"`).finally(() => releaseProducer());
       assert.equal(result.exitCode, 0);
       assert.equal(result.stdout, "a,b\n");
       assert.equal(result.stderr, "");
       assert.deepEqual(stages, expectedStages, path);
     }
-  } finally { await shell.dispose(); }
+  } finally { releaseProducer(); await shell.dispose(); }
 });
 
 test("csvkit shell consumes owned byte arguments through literal command invocation", async () => {

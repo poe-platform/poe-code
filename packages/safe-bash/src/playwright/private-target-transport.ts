@@ -8,6 +8,8 @@ export interface PlaywrightCDPTransport {
 
 export interface PlaywrightPrivateTargetTransportLimits {
   maxMessageBytes?: number;
+  maxGraphNodes?: number;
+  maxGraphDepth?: number;
   /** Maximum commands sent upstream concurrently. Excess commands wait for replies. */
   maxPendingCommands?: number;
   /** Maximum commands waiting for upstream capacity. */
@@ -66,12 +68,137 @@ function identity(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= 1024 && !value.includes('\0');
 }
 
+interface GraphStats {
+  readonly bytes: number;
+  readonly nodes: number;
+  readonly depth: number;
+}
+
+const admittedGraphs = new WeakMap<object, GraphStats>();
+
+function preflightProtocolJson(
+  text: string,
+  maxBytes: number,
+  maxNodes = 100_000,
+  maxDepth = 64,
+  byteErrorMessage = 'CDP message byte limit exceeded',
+): GraphStats {
+  let bytes = 0;
+  let nodes = 0;
+  let depth = 0;
+  let maxSeenDepth = 0;
+  let inString = false;
+  let escaped = false;
+  let inToken = false;
+  const len = text.length;
+  for (let i = 0; i < len; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 0x80) {
+      bytes += 1;
+    } else if (code < 0x800) {
+      bytes += 2;
+    } else if (code >= 0xd800 && code <= 0xdbff && i + 1 < len) {
+      const next = text.charCodeAt(i + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        bytes += 4;
+        i++;
+      } else {
+        bytes += 3;
+      }
+    } else {
+      bytes += 3;
+    }
+    if (bytes > maxBytes) throw new Error(byteErrorMessage);
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (code === 92) {
+        escaped = true;
+      } else if (code === 34) {
+        inString = false;
+      }
+      continue;
+    }
+    if (code === 34) {
+      inToken = false;
+      inString = true;
+      if (++nodes > maxNodes) throw new Error('CDP message graph node limit exceeded');
+      continue;
+    }
+    if (code === 123 || code === 91) {
+      inToken = false;
+      if (++depth > maxDepth) throw new Error('CDP message graph depth limit exceeded');
+      if (depth > maxSeenDepth) maxSeenDepth = depth;
+      if (++nodes > maxNodes) throw new Error('CDP message graph node limit exceeded');
+      continue;
+    }
+    if (code === 125 || code === 93) {
+      inToken = false;
+      if (depth > 0) depth--;
+      continue;
+    }
+    if (code === 32 || code === 9 || code === 10 || code === 13 || code === 44 || code === 58) {
+      inToken = false;
+      continue;
+    }
+    if (!inToken) {
+      inToken = true;
+      if (++nodes > maxNodes) throw new Error('CDP message graph node limit exceeded');
+    }
+  }
+  return { bytes, nodes, depth: maxSeenDepth };
+}
+
+function freezeProtocolGraph(root: unknown): void {
+  if (typeof root !== 'object' || root === null) return;
+  const stack: object[] = [root];
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    if (Object.isFrozen(current)) continue;
+    Object.freeze(current);
+    if (Array.isArray(current)) {
+      for (let i = 0; i < current.length; i++) {
+        const item: unknown = current[i];
+        if (typeof item === 'object' && item !== null && !Object.isFrozen(item)) stack.push(item);
+      }
+    } else {
+      for (const value of Object.values(current)) {
+        if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) stack.push(value);
+      }
+    }
+  }
+}
+
+export function admitPlaywrightProtocolFrame(
+  data: unknown,
+  options: { maxBytes?: number; maxGraphNodes?: number; maxGraphDepth?: number } = {},
+): Record<string, unknown> {
+  const maxBytes = options.maxBytes ?? 16 * 1024 * 1024;
+  const maxGraphNodes = options.maxGraphNodes ?? 100_000;
+  const maxGraphDepth = options.maxGraphDepth ?? 64;
+  if (typeof data !== 'string') throw new Error('Private browser frame limit or type violation');
+  const stats = preflightProtocolJson(
+    data,
+    maxBytes,
+    maxGraphNodes,
+    maxGraphDepth,
+    'Private browser frame limit or type violation',
+  );
+  const value: unknown = JSON.parse(data);
+  if (!record(value)) throw new Error('Invalid private browser protocol frame');
+  freezeProtocolGraph(value);
+  admittedGraphs.set(value, stats);
+  return value;
+}
+
 export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTransport, options: PlaywrightPrivateTargetTransportLimits = {}): {
   transport: PlaywrightCDPTransport;
   beginCreation(): PlaywrightPrivateTargetCreation;
 } {
   const limits = {
     maxMessageBytes: 16 * 1024 * 1024,
+    maxGraphNodes: 100_000,
+    maxGraphDepth: 64,
     maxPendingCommands: 1024,
     maxQueuedCommands: 16384,
     maxPendingBytes: 4 * 1024 * 1024,
@@ -156,12 +283,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     try { upstream.close(); } catch {}
   }
 
-  function snapshot(input: object): { message: Message; bytes: number } {
-    const text = JSON.stringify(input);
-    if (typeof text !== 'string' || text.length > limits.maxMessageBytes) throw new Error('CDP message byte limit exceeded');
-    const bytes = encoder.encode(text).byteLength;
-    if (bytes > limits.maxMessageBytes) throw new Error('CDP message byte limit exceeded');
-    const message: unknown = JSON.parse(text);
+  function validateMessageEnvelope(message: unknown): asserts message is Message {
     if (!record(message) || (message.id !== undefined && !Number.isSafeInteger(message.id)) ||
       (message.sessionId !== undefined && !identity(message.sessionId)) ||
       (message.method !== undefined && (typeof message.method !== 'string' || !message.method || message.method.length > 256)) ||
@@ -169,7 +291,25 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     for (const key of ['params', 'result', 'error']) {
       if (message[key] !== undefined && !record(message[key])) throw new Error('Invalid CDP message payload');
     }
-    return { message: message as Message, bytes };
+  }
+
+  function snapshot(input: object): { message: Message; bytes: number } {
+    const existing = admittedGraphs.get(input);
+    if (existing) {
+      if (existing.bytes > limits.maxMessageBytes) throw new Error('CDP message byte limit exceeded');
+      if (existing.depth > limits.maxGraphDepth) throw new Error('CDP message graph depth limit exceeded');
+      if (existing.nodes > limits.maxGraphNodes) throw new Error('CDP message graph node limit exceeded');
+      validateMessageEnvelope(input);
+      return { message: input as Message, bytes: existing.bytes };
+    }
+    const text = JSON.stringify(input);
+    if (typeof text !== 'string' || text.length > limits.maxMessageBytes) throw new Error('CDP message byte limit exceeded');
+    const stats = preflightProtocolJson(text, limits.maxMessageBytes, limits.maxGraphNodes, limits.maxGraphDepth);
+    const message: unknown = JSON.parse(text);
+    validateMessageEnvelope(message);
+    freezeProtocolGraph(message);
+    admittedGraphs.set(message, stats);
+    return { message: message as Message, bytes: stats.bytes };
   }
 
   function deny(message: Message): void {
@@ -196,7 +336,23 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     try {
       if (sequence >= Number.MAX_SAFE_INTEGER) throw new Error('CDP command identity exhausted');
       const id = ++sequence;
-      const { message, bytes } = snapshot({ ...input, id });
+      const existing = admittedGraphs.get(input);
+      let message: Message;
+      let bytes: number;
+      if (existing) {
+        const prevIdLen = input.id === undefined ? 0 : String(input.id).length;
+        bytes = existing.bytes - prevIdLen + String(id).length;
+        if (bytes > limits.maxMessageBytes) throw new Error('CDP message byte limit exceeded');
+        if (existing.depth > limits.maxGraphDepth) throw new Error('CDP message graph depth limit exceeded');
+        if (existing.nodes > limits.maxGraphNodes) throw new Error('CDP message graph node limit exceeded');
+        message = Object.freeze({ ...input, id });
+        validateMessageEnvelope(message);
+        admittedGraphs.set(message, { bytes, nodes: existing.nodes, depth: existing.depth });
+      } else {
+        const snap = snapshot({ ...input, id });
+        message = snap.message;
+        bytes = snap.bytes;
+      }
       if (!message.method) throw new Error('Expected CDP command method');
       const clientKey = internal ? undefined : JSON.stringify([input.sessionId, input.id]);
       if (clientKey && clientKeys.has(clientKey)) throw new Error('Duplicate pending client CDP identity');

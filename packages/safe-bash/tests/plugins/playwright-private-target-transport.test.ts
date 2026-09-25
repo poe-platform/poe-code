@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createPlaywrightPrivateTargetTransport, type PlaywrightCDPTransport, type PlaywrightPrivateTargetTransportLimits } from '../../src/playwright/private-target-transport.js';
+import { admitPlaywrightProtocolFrame, createPlaywrightPrivateTargetTransport, type PlaywrightCDPTransport, type PlaywrightPrivateTargetTransportLimits } from '../../src/playwright/private-target-transport.js';
 
 type Message = { id?: number; method?: string; sessionId?: string; params?: Record<string, any>; result?: Record<string, any>; error?: Record<string, any> };
 
@@ -741,4 +741,40 @@ test('open is forwarded once and downstream callback failure retires', () => {
   state.transport.onmessage = () => { throw new Error('Client callback failed'); };
   state.receive(attached('public', 'session'));
   assert.equal(state.closes(), 1);
+});
+
+test('preflights dense 5 MiB protocol JSON graphs before JSON.parse and reuses admitted frozen graphs without re-cloning (#617)', () => {
+  const denseItems = Array.from({ length: 1_750_001 }, () => '{}').join(',');
+  const denseFrame = `{"method":"Runtime.consoleAPICalled","params":{"items":[${denseItems}]}}`;
+  assert.ok(denseFrame.length > 5_000_000);
+  let parseCalled = false;
+  const originalParse = JSON.parse;
+  try {
+    JSON.parse = ((...args: Parameters<typeof JSON.parse>) => {
+      parseCalled = true;
+      return originalParse(...args);
+    }) as typeof JSON.parse;
+    assert.throws(() => admitPlaywrightProtocolFrame(denseFrame), /graph node limit exceeded/);
+    assert.equal(parseCalled, false);
+  } finally {
+    JSON.parse = originalParse;
+  }
+
+  const state = fixture();
+  const admitted = admitPlaywrightProtocolFrame('{"method":"Runtime.consoleAPICalled","params":{"items":[{"ok":true}]}}');
+  assert.equal(Object.isFrozen(admitted), true);
+  let stringifyCalled = false;
+  const originalStringify = JSON.stringify;
+  try {
+    JSON.stringify = ((...args: Parameters<typeof JSON.stringify>) => {
+      stringifyCalled = true;
+      return originalStringify(...args);
+    }) as typeof JSON.stringify;
+    state.receive(admitted);
+    assert.equal(stringifyCalled, false);
+    assert.equal(state.received.length, 1);
+    assert.equal(state.received[0], admitted);
+  } finally {
+    JSON.stringify = originalStringify;
+  }
 });

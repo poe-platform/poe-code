@@ -459,3 +459,12 @@ test("trusted retirement before local delivery frees capacity and seeds recent r
 	expect(await Promise.all(receipts)).toEqual([[barrier], [barrier]]);
 	expect(() => privacy.beginCreation()).toThrow("active capacity");
 });
+
+test("rejects dense 5 MiB protocol JSON frames before JSON.parse (#617)", () => {
+	const privacy = coordinator();
+	const peer = client(privacy);
+	const denseItems = Array.from({ length: 1_750_001 }, () => "{}").join(",");
+	const denseFrame = `{"method":"Runtime.consoleAPICalled","params":{"items":[${denseItems}]}}`;
+	peer.server.send(denseFrame);
+	expect(peer.socket.closed).toBe(true);
+});

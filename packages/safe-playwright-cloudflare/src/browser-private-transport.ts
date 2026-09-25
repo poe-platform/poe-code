@@ -1,4 +1,5 @@
 import {
+	admitPlaywrightProtocolFrame,
 	createPlaywrightPrivateTargetTransport,
 	type PlaywrightCDPTransport,
 	type PlaywrightPrivateTargetCreation,
@@ -41,16 +42,17 @@ function targetIdentity(value: unknown): value is string {
 	);
 }
 
-function protocolObject(data: unknown, maxBytes: number): object {
-	if (
-		typeof data !== "string" ||
-		new TextEncoder().encode(data).length > maxBytes
-	)
-		throw new Error("Private browser frame limit or type violation");
-	const value: unknown = JSON.parse(data);
-	if (typeof value !== "object" || value === null || Array.isArray(value))
-		throw new Error("Invalid private browser protocol frame");
-	return value;
+function protocolObject(
+	data: unknown,
+	maxBytes: number,
+	maxGraphNodes?: number,
+	maxGraphDepth?: number,
+): object {
+	return admitPlaywrightProtocolFrame(data, {
+		maxBytes,
+		...(maxGraphNodes === undefined ? {} : { maxGraphNodes }),
+		...(maxGraphDepth === undefined ? {} : { maxGraphDepth }),
+	});
 }
 
 export function createBrowserPrivateTransport(
@@ -198,14 +200,14 @@ export function createBrowserPrivateTransport(
 		};
 		function incoming(event: MessageEvent) {
 			try {
-				upstream.onmessage?.(protocolObject(event.data, maxBytes));
+				upstream.onmessage?.(protocolObject(event.data, maxBytes, options.maxGraphNodes, options.maxGraphDepth));
 			} catch (error) {
 				client.stop(error);
 			}
 		}
 		function outgoing(event: MessageEvent) {
 			try {
-				guard.transport.send(protocolObject(event.data, maxBytes));
+				guard.transport.send(protocolObject(event.data, maxBytes, options.maxGraphNodes, options.maxGraphDepth));
 			} catch (error) {
 				client.stop(error);
 			}

@@ -54,11 +54,15 @@ for (const count of [8, 16]) {
   for (const command of ["lines", "sort", "sort -c"] as const) {
     test(`${command} directly finalizes ${count} complete short records without scratch segments`, async () => {
       const input = Buffer.from("a\n".repeat(count));
-      async function* source(): ByteSource {
-        try { yield input; }
-        finally { input.fill(0); }
-      }
       await withAllocations(async allocations => {
+        let inputAllocations: number[] | undefined;
+        async function* source(): ByteSource {
+          try { yield input; }
+          finally {
+            input.fill(0);
+            inputAllocations = allocations.slice();
+          }
+        }
         if (command === "lines") {
           const records = [];
           for await (const record of lines(source())) records.push(record);
@@ -72,7 +76,7 @@ for (const count of [8, 16]) {
           assert.equal(result.exitCode, 0, result.stderr);
           assert.equal(result.stdout, command === "sort" ? "a\n".repeat(count) : "");
         }
-        assert.deepEqual(allocations.filter(length => command !== "sort" || length !== 64 * 1024), Array<number>(count).fill(1));
+        assert.deepEqual(inputAllocations, Array<number>(count).fill(1));
       });
       assert.ok(input.every(byte => byte === 0));
     });

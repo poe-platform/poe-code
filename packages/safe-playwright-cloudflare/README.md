@@ -35,12 +35,10 @@ init-script-count cap. Script registrations survive reconnection and user-code
 errors; explicitly configured result and portable profile budgets still apply.
 Compilation syntax errors retain their original detail and include this example;
 corrected code can run in the same session.
-Worker `run-code` results are admitted before host JSON parsing: at most 1 Mi
-UTF-16 code units, 64 nesting levels, 10,000 containers, and 50,000 conservatively
-counted entries. Admission also bounds estimated allocation to 8 MiB and scan
-time to 100 ms. These host limits apply even with a 16 MiB command byte limit;
-return smaller summaries when a result exceeds them. Resource failures retire
-the browser session.
+Worker `run-code` results have no implicit host JSON size, nesting, container,
+entry, allocation, or parsing-time limits. The configured output byte budget
+is checked before host parsing, and cancellation is checked before and after
+parsing. Invalid JSON still fails syntax validation.
 
 The host constructs the trusted `ownerId` and scopes each CLI instance to one
 authenticated user/agent. Session aliases, `-s`, and `PLAYWRIGHT_CLI_SESSION`

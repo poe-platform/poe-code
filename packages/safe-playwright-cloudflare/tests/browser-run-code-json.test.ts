@@ -3,22 +3,17 @@ import { parseRunCodeJson } from "../src/browser-run-code-json.js";
 
 const signal = () => new AbortController().signal;
 
-test("rejects repeated guest references under the 16 MiB byte cap before native parsing", () => {
+test("accepts repeated guest references without an implicit allocation budget", () => {
   const json = JSON.stringify(Array(100_000).fill({}));
-  expect(new TextEncoder().encode(json).byteLength).toBeLessThan(16 * 1024 * 1024);
-  const parse = vi.spyOn(JSON, "parse");
-  try {
-    expect(() => parseRunCodeJson(json, signal())).toThrow("Run-code JSON structure limit exceeded");
-    expect(parse).not.toHaveBeenCalled();
-  } finally { parse.mockRestore(); }
+  expect(parseRunCodeJson(json, signal())).toEqual(Array(100_000).fill({}));
 });
 
 test.each([
   "[".repeat(65) + "0" + "]".repeat(65),
   JSON.stringify(Array(50_001).fill(null)),
   JSON.stringify("x".repeat(1024 * 1024)),
-])("rejects excessive nesting, slots or scan work", (json) => {
-  expect(() => parseRunCodeJson(json, signal())).toThrow("Run-code JSON");
+])("accepts large, wide and deeply nested JSON", (json) => {
+  expect(parseRunCodeJson(json, signal())).toEqual(JSON.parse(json));
 });
 
 test("keeps strings, escapes, scalar results and ordinary nested results intact", () => {
@@ -35,11 +30,22 @@ test("observes cancellation before parsing", () => {
   expect(() => parseRunCodeJson("[]", abort.signal)).toThrow("cancelled");
 });
 
-test("rejects a scan that exhausts its deadline before native parsing", () => {
+test("does not impose an implicit parsing deadline", () => {
   const clock = vi.spyOn(performance, "now").mockReturnValueOnce(0).mockReturnValue(101);
   const parse = vi.spyOn(JSON, "parse");
   try {
-    expect(() => parseRunCodeJson("[]", signal())).toThrow("Run-code JSON scan deadline exceeded");
-    expect(parse).not.toHaveBeenCalled();
+    expect(parseRunCodeJson("[]", signal())).toEqual([]);
+    expect(parse).toHaveBeenCalledOnce();
   } finally { clock.mockRestore(); parse.mockRestore(); }
+});
+
+test("observes cancellation after native parsing", () => {
+  const abort = new AbortController();
+  const parse = vi.spyOn(JSON, "parse").mockImplementationOnce(() => {
+    abort.abort(new Error("cancelled during parsing"));
+    return [];
+  });
+  try {
+    expect(() => parseRunCodeJson("[]", abort.signal)).toThrow("cancelled during parsing");
+  } finally { parse.mockRestore(); }
 });

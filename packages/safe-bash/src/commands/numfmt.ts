@@ -471,7 +471,7 @@ function fields(text: string, unicode: boolean): [bigint, bigint][] {
       }
     } else throw new NumfmtDiagnostic(`invalid field value ${quote(text.slice(offset), unicode)}`, 1, true);
   }
-  result.sort(([left], [right]) => Number(BigInt.asIntN(32, left)) - Number(BigInt.asIntN(32, right)));
+  result.sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
   const merged: [bigint, bigint][] = [];
   for (const range of result) {
     const previous = merged.at(-1);
@@ -529,7 +529,7 @@ function parse(context: CommandContext): Settings {
       const parsed = decimal(value ?? "1");
       if (!parsed.found || parsed.end !== (value ?? "1").length || parsed.overflow || parsed.value === 0n || (name === "header" ? parsed.value < 0n : parsed.value > signedMaximum || parsed.value < -signedMaximum - 1n)) throw new NumfmtDiagnostic(`invalid ${name} value ${quote(value!, settings.unicode)}`);
       if (name === "header") settings.header = parsed.value;
-      else { if (parsed.value < 0n) settings.left = true; settings.padding = parsed.value < 0n ? -parsed.value : parsed.value; }
+      else { settings.left = parsed.value < 0n; settings.padding = parsed.value < 0n ? -parsed.value : parsed.value; }
     } else if (name === "delimiter") {
       if (value!.length > 1) throw new NumfmtDiagnostic("the delimiter must be a single character");
       settings.delimiter = value || "\0";
@@ -635,7 +635,7 @@ class Converter {
       if (settings.debug && settings.padding && !(zero && width.value > 0n)) await this.warning("--format padding overriding --padding");
       if (width.value < 0n) { settings.padding = -width.value; settings.left = true; }
       else if (zero) settings.zeroPadding = width.value;
-      else settings.padding = width.value;
+      else { settings.padding = width.value; settings.left = false; }
     }
     offset = width.end;
     if (text[offset] === undefined) throw new NumfmtDiagnostic(`format ${quoted} ends in %`);

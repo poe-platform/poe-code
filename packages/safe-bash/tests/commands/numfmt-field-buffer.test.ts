@@ -110,3 +110,17 @@ test("numfmt keeps initialized storage invocation-local and operands independent
   assert.deepEqual(await format(["--from=auto", "-d,"], "1 "), expected);
   assert.deepEqual(await format(["--from=auto", "-d,", "12345", "1 "], ""), { ...expected, stdoutHex: Buffer.from("12345\n1\n").toString("hex") });
 });
+
+test("numfmt issue 940 preserves 64-bit field range sorting and resets left alignment on positive padding/format", async () => {
+  const fieldRes = await format(["--field=1-3,2147483648", "--to=si", "1000 2000 3000"], "");
+  assert.equal(fieldRes.status, 0);
+  assert.equal(Buffer.from(fieldRes.stdoutHex, "hex").toString(), "1.0k 2.0k 3.0k\n");
+
+  const padRes = await format(["--padding=-5", "--padding=5", "2"], "");
+  assert.equal(padRes.status, 0);
+  assert.equal(Buffer.from(padRes.stdoutHex, "hex").toString(), "    2\n");
+
+  const fmtRes = await format(["--padding=-10", "--format=%4f", "2"], "");
+  assert.equal(fmtRes.status, 0);
+  assert.equal(Buffer.from(fmtRes.stdoutHex, "hex").toString(), "   2\n");
+});

@@ -310,6 +310,7 @@ export type ImageAstNode =
       readonly kind: "trim";
       readonly threshold: number;
       readonly background?: RgbaColor;
+      readonly lineArt?: boolean;
     }
   | {
       readonly kind: "resize";

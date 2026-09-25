@@ -688,7 +688,8 @@ export class SharpInstance extends Duplex {
         case "trim":
           img = trimImage(img, {
             threshold: node.threshold,
-            ...(node.background !== undefined ? { background: node.background } : {})
+            ...(node.background !== undefined ? { background: node.background } : {}),
+            ...(node.lineArt !== undefined ? { lineArt: node.lineArt } : {})
           });
           break;
         case "resize":
@@ -1023,7 +1024,16 @@ export class SharpInstance extends Duplex {
       typeof options === "object" && options?.background
         ? parseColor(options.background)
         : undefined;
-    const nextNode: ImageAstNode = { kind: "trim", threshold, ...(background ? { background } : {}) };
+    const lineArt =
+      typeof options === "object" && typeof (options as Record<string, unknown>)?.lineArt === "boolean"
+        ? ((options as Record<string, unknown>).lineArt as boolean)
+        : undefined;
+    const nextNode: ImageAstNode = {
+      kind: "trim",
+      threshold,
+      ...(background ? { background } : {}),
+      ...(lineArt !== undefined ? { lineArt } : {})
+    };
     const existingIdx = this.nodes.findIndex(n => n.kind === "trim");
     if (existingIdx !== -1) {
       this.nodes[existingIdx] = nextNode;
@@ -2366,7 +2376,7 @@ export class SharpInstance extends Duplex {
     let img = this.evaluateImage();
     if (
       this.outputOptions.format === "raw" &&
-      (img.channels === 2 || (img.channels === 1 && this.nodes.some(n => n.kind === "removeAlpha"))) &&
+      (img.channels === 2 || (img.channels === 1 && this.nodes.some(n => n.kind === "removeAlpha" || n.kind === "flatten"))) &&
       !this.nodes.some(
         n =>
           (n.kind === "toColorspace" && n.space === "b-w") ||

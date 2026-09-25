@@ -3195,4 +3195,49 @@ describe("@poe-code/image-ast (sharp core)", () => {
       expect(Math.abs(p2.data[200 + i]! - ref2[i]!)).toBeLessThanOrEqual(1);
     }
   });
+
+  it("matches libvips vips_find_trim 3x3 median filtering (lineArt:false vs true) and 2-channel flatten() raw sRGB expansion (#1248)", async () => {
+    const w = 12;
+    const h = 12;
+    const buf = Buffer.alloc(w * h * 3, 255);
+    buf[(1 * w + 1) * 3] = 0;
+    for (let y = 4; y <= 7; y++) {
+      for (let x = 4; x <= 7; x++) {
+        const i = (y * w + x) * 3;
+        buf[i] = 10;
+        buf[i + 1] = 20;
+        buf[i + 2] = 30;
+      }
+    }
+    const rDefault = await sharp(buf, { raw: { width: w, height: h, channels: 3 } })
+      .trim()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(rDefault.info.width).toBe(4);
+    expect(rDefault.info.height).toBe(4);
+    expect(rDefault.info.trimOffsetLeft).toBe(-4);
+    expect(rDefault.info.trimOffsetTop).toBe(-4);
+
+    const rLineArt = await sharp(buf, { raw: { width: w, height: h, channels: 3 } })
+      .trim({ lineArt: true } as any)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(rLineArt.info.width).toBe(7);
+    expect(rLineArt.info.height).toBe(7);
+    expect(rLineArt.info.trimOffsetLeft).toBe(-1);
+    expect(rLineArt.info.trimOffsetTop).toBe(-1);
+
+    const ga = Buffer.from([100, 128, 200, 64, 50, 255, 0, 0]);
+    const flatGa = await sharp(ga, { raw: { width: 2, height: 2, channels: 2 } })
+      .flatten({ background: { r: 250, g: 100, b: 50 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(flatGa.info.channels).toBe(3);
+    expect(Array.from(flatGa.data)).toEqual([
+      174, 174, 174,
+      237, 237, 237,
+      50, 50, 50,
+      250, 250, 250
+    ]);
+  });
 });

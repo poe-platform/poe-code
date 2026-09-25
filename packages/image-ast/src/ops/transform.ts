@@ -194,17 +194,19 @@ export function extractImage(
 
 export function trimImage(
   img: RgbaImage,
-  options?: { readonly threshold?: number; readonly background?: RgbaColor }
+  options?: { readonly threshold?: number; readonly background?: RgbaColor; readonly lineArt?: boolean }
 ): RgbaImage {
   if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight) {
     throw new Error("Trim is not supported for multi-page images");
   }
   const threshold = options?.threshold ?? 10;
+  const detectImg =
+    options?.lineArt || img.width < 3 || img.height < 3 ? img : medianImage(img, 3);
   const ref: RgbaColor = options?.background ?? {
-    r: img.data[0] ?? 0,
-    g: img.data[1] ?? 0,
-    b: img.data[2] ?? 0,
-    a: img.data[3] ?? 255
+    r: detectImg.data[0] ?? 0,
+    g: detectImg.data[1] ?? 0,
+    b: detectImg.data[2] ?? 0,
+    a: detectImg.data[3] ?? 255
   };
   const refAlpha = ref.a / 255;
   const refRP = ref.r * refAlpha;
@@ -213,11 +215,11 @@ export function trimImage(
 
   const isBg = (x: number, y: number): boolean => {
     const idx = (y * img.width + x) * 4;
-    const pa = img.data[idx + 3]!;
+    const pa = detectImg.data[idx + 3]!;
     const pAlpha = pa / 255;
-    const dr = Math.abs(img.data[idx]! * pAlpha - refRP);
-    const dg = Math.abs(img.data[idx + 1]! * pAlpha - refGP);
-    const db = Math.abs(img.data[idx + 2]! * pAlpha - refBP);
+    const dr = Math.abs(detectImg.data[idx]! * pAlpha - refRP);
+    const dg = Math.abs(detectImg.data[idx + 1]! * pAlpha - refGP);
+    const db = Math.abs(detectImg.data[idx + 2]! * pAlpha - refBP);
     const da = Math.abs(pa - ref.a);
     return dr <= threshold && dg <= threshold && db <= threshold && da <= threshold;
   };
@@ -1015,12 +1017,14 @@ export function grayscaleImage(img: RgbaImage): RgbaImage {
 
 export function flattenImage(img: RgbaImage, background: RgbaColor): RgbaImage {
   const out = new Uint8Array(img.data.length);
+  const bgG = img.channels === 2 ? background.r : background.g;
+  const bgB = img.channels === 2 ? background.r : background.b;
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
     const a = img.data[idx + 3]! / 255;
     out[idx] = Math.floor(img.data[idx]! * a + background.r * (1 - a) + 1e-6);
-    out[idx + 1] = Math.floor(img.data[idx + 1]! * a + background.g * (1 - a) + 1e-6);
-    out[idx + 2] = Math.floor(img.data[idx + 2]! * a + background.b * (1 - a) + 1e-6);
+    out[idx + 1] = Math.floor(img.data[idx + 1]! * a + bgG * (1 - a) + 1e-6);
+    out[idx + 2] = Math.floor(img.data[idx + 2]! * a + bgB * (1 - a) + 1e-6);
     out[idx + 3] = 255;
   }
   return {

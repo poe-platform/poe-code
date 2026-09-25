@@ -127,7 +127,7 @@ jobs:
     needs:
       - validate
     concurrency:
-      queue: max
+      # Preserve the active run; retain only the newest pending run.
       group: release-${{ github.ref }}
       cancel-in-progress: false
     if: github.ref == 'refs/heads/main'
@@ -140,6 +140,6 @@ jobs:
       build_only: ${{ inputs.build_only || false }}
       cold_cache: ${{ inputs.cold_cache || false }}
     concurrency:
-      queue: max
+      # Preserve the active run; retain only the newest pending run.
       group: release-validation-${{ github.ref }}-${{ inputs.build_only && 'build-only' || 'full' }}
       cancel-in-progress: false

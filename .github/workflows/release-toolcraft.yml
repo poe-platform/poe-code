@@ -56,10 +56,6 @@ on:
       - packages/safe-playwright/**
       - packages/ssconvert/**
       - turbo.json
-concurrency:
-  queue: max
-  group: release-toolcraft
-  cancel-in-progress: false
 permissions:
   contents: read
   id-token: write
@@ -262,3 +258,7 @@ jobs:
           npm install "toolcraft@${{ steps.version.outputs.next }}"
           npm audit signatures --omit=optional
         if: steps.release-admission.outputs.publish == 'true'
+    concurrency:
+      # Serialize publication without delaying validation; keep the active publisher and newest pending run.
+      group: release-toolcraft
+      cancel-in-progress: false

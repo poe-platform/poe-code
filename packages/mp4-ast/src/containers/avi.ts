@@ -168,7 +168,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
       let allSps: Uint8Array[] = [];
       let allPps: Uint8Array[] = [];
-      let directAvcC = info.extradata && info.extradata.byteLength >= 7 && info.extradata[0] === 1
+      const directAvcC = info.extradata && info.extradata.byteLength >= 7 && info.extradata[0] === 1
         ? parseAvcC(info.extradata)
         : undefined;
       if (!directAvcC && info.extradata && info.extradata.byteLength >= 4) {

@@ -81,13 +81,20 @@ for (const request of requests) {
     for (const [name, target] of Object.entries(request.symlinks ?? {})) await fs.symlink!(target, `/${name}`);
     for (const [name, target] of Object.entries(request.hardlinks ?? {})) await fs.link!(`/${target}`, `/${name}`);
     const before = new Map(await Promise.all(Object.keys(expected.before).map(async name => [name, await fs.lstat(`/${name}`)] as const)));
-    assert.deepEqual(await run(request.args, "", { fs }), { status: expected.status, stdout: expected.stdout, stderr: expected.stderr });
-    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), Object.keys(expected.after).sort());
-    for (const [name, entry] of Object.entries(expected.after)) {
+    // Retain the native capture; the documented atomic-staging contract now
+    // refuses hardlinks and replaces the resolved symlink target's inode.
+    const hardlink = request.id === "hardlink";
+    assert.deepEqual(await run(request.args, "", { fs }), hardlink
+      ? { status: 1, stdout: "", stderr: "Error: in-place update requires a singly linked regular file\n" }
+      : { status: expected.status, stdout: expected.stdout, stderr: expected.stderr });
+    const afterEntries = hardlink ? expected.before : expected.after;
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), Object.keys(afterEntries).sort());
+    for (const [name, entry] of Object.entries(afterEntries)) {
       const actual = await fs.lstat(`/${name}`);
       assert.equal(actual.type, entry.type, name);
       assert.equal(actual.nlink, entry.nlink, name);
-      assert.equal(actual.ino === before.get(name)!.ino, entry.ino === expected.before[name]!.ino, `${name}: retained versus replaced identity`);
+      const retainedIdentity = request.id === "symlink" && entry.type === "file" ? false : entry.ino === expected.before[name]!.ino;
+      assert.equal(actual.ino === before.get(name)!.ino, retainedIdentity, `${name}: retained versus replaced identity`);
       if (entry.type === "file") {
         assert.equal(actual.mode & 0o7777, entry.mode & 0o7777, name);
         assert.equal(Buffer.from(await fs.readFile(`/${name}`)).toString("hex"), entry.bytesHex, name);
@@ -120,21 +127,16 @@ test("review: in-place output-limit refusal preserves the original and leaves no
 });
 
 for (const scenario of [
-  { name: "tiny Shell budget rejects staging", limit: 2, prefix: "", suffix: "", fallback: false, fails: true, published: false },
-  { name: "prior stdout shares staging budget", limit: 6, prefix: "review-stdout xx; ", suffix: "", fallback: false, fails: true, published: false },
-  { name: "prior stdout and staging fit their exact combined budget", limit: 7, prefix: "review-stdout xx; ", suffix: "", fallback: false, fails: false, published: true },
-  { name: "rename publishes exactly one five-byte staging write", limit: 5, prefix: "", suffix: "", fallback: false, fails: false, published: true },
-  { name: "published staging consumes the later stdout budget", limit: 5, prefix: "", suffix: "; review-stdout x", fallback: false, fails: true, published: true },
-  { name: "fallback admission preserves source when its second write exceeds budget", limit: 9, prefix: "", suffix: "", fallback: true, fails: true, published: false },
-  { name: "fallback succeeds with both five-byte writes budgeted", limit: 10, prefix: "", suffix: "", fallback: true, fails: false, published: true },
-  { name: "fallback charges both writes against later stdout", limit: 10, prefix: "", suffix: "; review-stdout x", fallback: true, fails: true, published: true },
+  { name: "tiny Shell budget rejects staging", limit: 2, prefix: "", suffix: "", fails: true, published: false },
+  { name: "prior stdout shares staging budget", limit: 6, prefix: "review-stdout xx; ", suffix: "", fails: true, published: false },
+  { name: "prior stdout and staging fit their exact combined budget", limit: 7, prefix: "review-stdout xx; ", suffix: "", fails: false, published: true },
+  { name: "atomic publication consumes exactly one five-byte staging write", limit: 5, prefix: "", suffix: "", fails: false, published: true },
+  { name: "published staging consumes the later stdout budget", limit: 5, prefix: "", suffix: "; review-stdout x", fails: true, published: true },
 ] as const) {
   test(`review: ${scenario.name}`, async context => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/input.yaml", Buffer.from("a: 1\n"), { mode: 0o640 });
     const original = await fs.stat("/input.yaml");
-    let renameAttempts = 0;
-    if (scenario.fallback) context.mock.method(fs, "rename", async () => { renameAttempts++; throw new FsError("EXDEV"); });
     const shell = new Shell({ fs, limits: { maxOutputBytes: scenario.limit } });
     context.after(() => shell.dispose());
     shell.use(mikeYqCommands({ replace: true }));
@@ -161,10 +163,31 @@ for (const scenario of [
       outcome: scenario.fails ? { limit: "maxOutputBytes" } : { exitCode: 0, stdout: scenario.prefix ? "xx" : "", stderr: "" },
       bytes: scenario.published ? "a: 2\n" : "a: 1\n",
       mode: 0o640,
-      retainedIdentity: scenario.fallback || !scenario.published,
+      retainedIdentity: !scenario.published,
       entries: ["input.yaml"],
     });
-    if (scenario.fallback) assert.equal(renameAttempts, 1);
+  });
+}
+
+for (const code of ["EXDEV", "EIO", "ENOENT"] as const) {
+  test(`review: failed ${code} atomic publication never falls back to a pathname write`, async context => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input.yaml", Buffer.from("a: 1\n"), { mode: 0o640 });
+    const original = await fs.stat("/input.yaml");
+    const publication = context.mock.method(fs, "publishStagedFile", async () => {
+      throw new FsError(code, { message: "publication refused" });
+    });
+    const writes = context.mock.method(fs, "writeFile", async () => { throw new Error("unexpected pathname write"); });
+    const renames = context.mock.method(fs, "rename", async () => { throw new Error("unexpected pathname rename"); });
+    assert.deepEqual(await run(["-i", ".a = 2", "/input.yaml"], "", { fs }), {
+      status: 1, stdout: "", stderr: `Error: ${code}: publication refused\n`,
+    });
+    assert.equal(publication.mock.callCount(), 1);
+    assert.equal(writes.mock.callCount(), 0);
+    assert.equal(renames.mock.callCount(), 0);
+    assert.equal((await fs.stat("/input.yaml")).ino, original.ino);
+    assert.equal(Buffer.from(await fs.readFile("/input.yaml")).toString(), "a: 1\n");
+    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input.yaml"]);
   });
 }
 

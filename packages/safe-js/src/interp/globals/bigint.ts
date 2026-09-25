@@ -1,6 +1,6 @@
 import type { Budget } from "../budget.js";
 import { primitiveReceiver } from "../boxed.js";
-import { installBoxedPrototype, materializeFunctionProperties } from "../object-model.js";
+import { createIntrinsicObject, installBoxedPrototype, materializeFunctionProperties } from "../object-model.js";
 import { objectToPrimitive, sandboxNumber } from "../string-coercion.js";
 import { createSandboxClosure, type SandboxCallContext, type SandboxValue } from "../values.js";
 import { formatNumberLocale } from "../number-locale.js";
@@ -29,7 +29,7 @@ export function createBigIntGlobal(budget: Budget) {
     construct: () => { throw new TypeError("BigInt cannot be constructed."); },
     call: ([value], context) => sandboxBigInt(value, budget, context, true)
   });
-  const prototype = Object.create(null);
+  const prototype = createIntrinsicObject();
   Object.defineProperties(prototype, {
     constructor: { value: constructor, writable: true, configurable: true },
     valueOf: {

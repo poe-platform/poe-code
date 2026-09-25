@@ -3,7 +3,7 @@ import { sandboxString } from "../string-coercion.js";
 import { createSandboxClosure, createSandboxMap } from "../values.js";
 import { wellKnownSymbols } from "../symbols.js";
 import { primitiveReceiver } from "../boxed.js";
-import { installBoxedPrototype, materializeFunctionProperties } from "../object-model.js";
+import { createIntrinsicObject, installBoxedPrototype, materializeFunctionProperties } from "../object-model.js";
 import { accessorAdapter } from "../accessors.js";
 import { symbolRegistries, symbolRegistryOrigins } from "../symbol-registry.js";
 
@@ -14,7 +14,7 @@ export function createSymbolGlobal(budget: Budget) {
     symbolRegistries.set(budget, registry);
   }
   const entries = registry.entries as Map<string, symbol>;
-  const prototype = Object.create(null);
+  const prototype = createIntrinsicObject();
   const valueOf = createSandboxClosure({
     sandbox: true,
     name: "valueOf",

@@ -6,7 +6,7 @@ import { releaseObjectPrototype } from "./object-model.js";
 import { measureSandboxData, type SandboxArray, type SandboxObject } from "./values.js";
 
 const paths = [
-  ...["Object", "Array", "Date", "DataView", "RegExp", "Map", "Set", "ArrayBuffer",
+  ...["Object", "Array", "Symbol", "BigInt", "Date", "DataView", "RegExp", "Map", "Set", "ArrayBuffer",
     "DisposableStack", "AsyncDisposableStack", "Error", "TypeError", "RangeError",
     "ReferenceError", "SyntaxError", "URIError", "EvalError", "AggregateError",
     "SuppressedError", "Promise"].map(name => [name, "prototype"]),
@@ -28,7 +28,7 @@ it.each(paths.map(path => [JSON.stringify(path)]))("reuses captures for %s while
     const descriptors = vi.spyOn(Object, "getOwnPropertyDescriptor");
     try {
       expect(measureSandboxData(budget.retainedValues())).toBe(before);
-      expect(descriptors.mock.calls.filter(([owner]) => owner === target)).toHaveLength(0);
+      expect(descriptors.mock.calls.filter(([owner]) => owner === target).length).toBe(0);
     } finally { descriptors.mockRestore(); }
     (target.extra as SandboxObject).text = "abcdef";
     expect(measureSandboxData(budget.retainedValues())).toBe(before + 3);

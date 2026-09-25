@@ -40,7 +40,7 @@ try {
     const wasm = join(temporary, name + '.wasm');
     const js = join(temporary, name + '.mjs');
     const exports = ['create', 'destroy', 'step', 'consumed', 'produced', 'input', 'output', 'used', 'peak'];
-    if (name === 'xz') exports.push('create_lzma', 'xz_adjusted_dictionary');
+    if (name === 'xz') exports.push('create_lzma', 'xz_adjusted_dictionary', 'create_filters', 'index_memusage', 'validate_filters');
     if (name === 'zstd') exports.push('zstd_config');
     execFileSync(zig, ['cc', '-target', 'wasm32-wasi', '-mexec-model=reactor', '-O2', '-fno-sanitize=all', '-Wl,-z,stack-size=1048576', ...exports.map(value => '-Wl,--export=bridge_' + value), '-D' + ({ bz2: 'BZ', xz: 'XZ', zstd: 'ZS' })[name], ...codec.defines.map(value => '-D' + value), ...codec.include_dirs.map(value => '-I' + join(root, value)), join(directory, 'bridge.c'), ...codec.sources.map(value => join(root, value)), '-o', wasm], { stdio: 'inherit' });
     execFileSync(process.execPath, [wasm2js, wasm, '-O2', '-o', js], { stdio: 'inherit' });

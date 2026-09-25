@@ -85,7 +85,7 @@ test('XZ single-stream does not truncate compression input', async () => {
 });
 
 test('XZ controls reject values on switches and unsupported forced formats', async () => {
-  for (const flag of ['--single-stream=1', '--quiet=1', '--no-warn=1', '--no-sparse=1', '--format=raw', '--format', '-F']) {
+  for (const flag of ['--single-stream=1', '--quiet=1', '--no-warn=1', '--no-sparse=1', '--format=unknown', '--format', '-F']) {
     const result = await run('xz', ['-dc', flag], chunks(first));
     assert.equal(result.exitCode, 2, flag);
     assert.equal(result.stdout.length, 0, flag);

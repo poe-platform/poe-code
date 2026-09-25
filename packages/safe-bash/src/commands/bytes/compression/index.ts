@@ -6,6 +6,7 @@ import { parseOptions, profiles } from "./options.js";
 import { DecodedBudget, transform, type CompressionCommandOptions } from "./stream.js";
 import { CompressedDataError } from "./errors.js";
 import { FileOperation } from "./file-operation.js";
+import { inspectXz, listingRatio, listingChecks, humanListing, type XzListing } from "./xz-list.js";
 
 export function createCompressionCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
   const maxDecodedBytes = config.maxDecodedBytes;
@@ -22,16 +23,45 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
       return { exitCode: 0 };
     }
     let plans;
-    try { plans = await planOperands(context, options); }
+    let planningFailed = false;
+    const listingNames: string[] = [];
+    try {
+      if (options.xzList) {
+        plans = [];
+        for (const name of options.operands) {
+          try {
+            plans.push(...await planOperands(context, { ...options, operands: [name] }));
+            listingNames.push(name);
+          } catch (error) {
+            context.signal.throwIfAborted();
+            planningFailed = true;
+            if (options.quiet < 2) await diagnostic(context, error);
+          }
+        }
+      } else plans = await planOperands(context, options);
+    }
     catch (error) {
       context.signal.throwIfAborted();
       if (options.quiet < 2) throw error;
       return { exitCode: 1 };
     }
     const decodedBudget = new DecodedBudget(maxDecodedBytes);
-    let exitCode = 0;
+    const totals: XzListing = { streams: 0, blocks: 0, compressed: 0, uncompressed: 0, padding: 0, checks: new Set() };
+    let listed = 0;
+    if (options.xzList && !options.xzRobot) await output(context, "Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
+    let exitCode = planningFailed ? 1 : 0;
     for (const plan of plans) {
       try {
+        if (options.xzList) {
+          const value = await inspectXz(context, plan, options);
+          const name = listingNames[plans.indexOf(plan)] ?? plan.source;
+          if (options.xzRobot) await output(context, `name\t${name}\nfile\t${value.streams}\t${value.blocks}\t${value.compressed}\t${value.uncompressed}\t${listingRatio(value)}\t${listingChecks(value)}\t${value.padding}\n`);
+          else await output(context, humanListing(value, name));
+          for (const key of ["streams", "blocks", "compressed", "uncompressed", "padding"] as const) totals[key] += value[key];
+          for (const check of value.checks) totals.checks.add(check);
+          listed++;
+          continue;
+        }
         let warned: boolean;
         if (plan.destination) warned = await writeFileOperand(context, plan, options, decodedBudget);
         else {
@@ -59,6 +89,8 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
         if (decodedBudget.exceeded) break;
       }
     }
+    if (options.xzList && options.xzRobot) await output(context, `totals\t${totals.streams}\t${totals.blocks}\t${totals.compressed}\t${totals.uncompressed}\t${listingRatio(totals)}\t${listingChecks(totals)}\t${totals.padding}\t${listed}\n`);
+    else if (options.xzList && listed > 1) await output(context, "-".repeat(79) + "\n" + humanListing(totals, `${listed} files`));
     return { exitCode };
   }));
 }

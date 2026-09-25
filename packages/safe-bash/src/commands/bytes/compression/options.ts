@@ -4,7 +4,13 @@ export interface CompressionOptions {
   format: CompressionFormat;
   xzCheck?: number;
   xzIgnoreCheck?: boolean;
-  xzFormat?: "auto" | "xz" | "lzma";
+  xzFormat?: "auto" | "xz" | "lzma" | "raw";
+  xzFilters?: string[];
+  xzBlockSize?: number;
+  xzBlockList?: number[];
+  xzFlushTimeout?: number;
+  xzList?: boolean;
+  xzRobot?: boolean;
   decompress: boolean;
   stdout: boolean;
   keep: boolean;
@@ -117,6 +123,33 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       continue;
     }
     if (profile.format === "xz") {
+      if (argument === "--list") { result.xzList = true; result.test = false; continue; }
+      if (argument === "--robot") { result.xzRobot = true; continue; }
+      if (["--block-size", "--block-list", "--flush-timeout"].some(name => argument === name || argument.startsWith(name + "="))) {
+        const equal = argument.indexOf("=");
+        const name = equal < 0 ? argument : argument.slice(0, equal);
+        const value = equal < 0 ? args[++index] : argument.slice(equal + 1);
+        if (name === "--block-list") {
+          result.xzBlockList = (value ?? "").split(",").map(parseXzMemory);
+          if (result.xzBlockList.slice(0, -1).includes(0)) throw new UsageError("0 can only be used as the last element in --block-list");
+        }
+        else if (name === "--block-size") {
+          result.xzBlockSize = parseXzMemory(value);
+        } else {
+          if (!value || ![...value].every(character => character >= "0" && character <= "9") || !Number.isSafeInteger(Number(value))) throw new UsageError("invalid flush timeout");
+          result.xzFlushTimeout = Number(value);
+        }
+        continue;
+      }
+      const equal = argument.indexOf("=");
+      const filter = argument.slice(2, equal < 0 ? undefined : equal);
+      if (argument.startsWith("--") && ["lzma1", "lzma2", "delta", "x86", "arm64"].includes(filter)) {
+        const value = equal < 0 ? "" : argument.slice(equal + 1);
+        if (value.includes("--") || [...value].some(character => character.charCodeAt(0) <= 32)) throw new UsageError("invalid filter options");
+        (result.xzFilters ??= []).push(filter + (value ? `:${value}` : ""));
+        if (result.xzFilters.length > 4) throw new UsageError("the maximum number of filters is four");
+        continue;
+      }
       if (argument === "--memlimit" || argument.startsWith("--memlimit=")
         || argument === "--memlimit-compress" || argument.startsWith("--memlimit-compress=")
         || argument === "--memlimit-decompress" || argument.startsWith("--memlimit-decompress=")
@@ -141,19 +174,19 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       if (argument === "--no-sparse" || argument === "--no-warn") continue;
       if (argument === "--format" || argument.startsWith("--format=")) {
         const format = argument === "--format" ? args[++index] : argument.slice("--format=".length);
-        if (format !== "auto" && format !== "xz" && format !== "lzma") throw new UsageError("only --format=auto, --format=xz and --format=lzma are supported by the XZ frontend");
+        if (format !== "auto" && format !== "xz" && format !== "lzma" && format !== "raw") throw new UsageError("unsupported XZ format");
         result.xzFormat = format;
         continue;
       }
-      if (argument === "--compress") { result.decompress = false; result.test = false; continue; }
-      if (argument === "--extreme") { result.extreme = true; continue; }
+      if (argument === "--compress") { result.decompress = false; result.test = false; delete result.xzList; continue; }
+      if (argument === "--extreme") { result.extreme = true; delete result.xzFilters; continue; }
       if (argument === "--threads" || argument.startsWith("--threads=")) {
         const threads = argument === "--threads" ? args[++index] : argument.slice("--threads=".length);
         if (threads !== "1") throw new UsageError("only --threads=1 is supported by the single-threaded XZ codec");
         continue;
       }
     }
-    if (profile.format === "gzip" && (argument === "--suffix" || argument.startsWith("--suffix="))) {
+    if ((profile.format === "gzip" || profile.format === "xz") && (argument === "--suffix" || argument.startsWith("--suffix="))) {
       const suffix = argument === "--suffix" ? args[++index] : argument.slice("--suffix=".length);
       if (suffix === undefined) throw new UsageError("option '--suffix' requires an argument");
       result.suffix = suffix;
@@ -182,7 +215,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         case "F": {
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           const format = flags.slice(offset + 1) || args[++index];
-          if (format !== "auto" && format !== "xz" && format !== "lzma") throw new UsageError("only --format=auto, --format=xz and --format=lzma are supported by the XZ frontend");
+          if (format !== "auto" && format !== "xz" && format !== "lzma" && format !== "raw") throw new UsageError("unsupported XZ format");
           result.xzFormat = format;
           offset = flags.length;
           break;
@@ -190,6 +223,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         case "e":
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           result.extreme = true;
+          delete result.xzFilters;
           break;
         case "T": {
           if (profile.format !== "xz" && profile.format !== "zstd") throw new UsageError(`invalid option -- '${flag}'`);
@@ -199,7 +233,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           break;
         }
         case "S": {
-          if (profile.format !== "gzip") throw new UsageError(`invalid option -- '${flag}'`);
+          if (profile.format !== "gzip" && profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           const suffix = flags.slice(offset + 1) || args[++index];
           if (suffix === undefined) throw new UsageError("option '-S' requires an argument");
           result.suffix = suffix;
@@ -207,7 +241,10 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           break;
         }
         case "c": result.stdout = true; break;
-        case "d": result.decompress = true; break;
+        case "l":
+          if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
+          result.xzList = true; result.test = false; break;
+        case "d": result.decompress = true; delete result.xzList; break;
         case "z":
           if (profile.format !== "bzip2") throw new UsageError(`invalid option -- '${flag}'`);
           result.decompress = false;
@@ -218,7 +255,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           break;
         case "k": result.keep = true; break;
         case "f": result.force = true; break;
-        case "t": result.test = true; result.decompress = true; break;
+        case "t": result.test = true; result.decompress = true; delete result.xzList; break;
         case "h": result.help = true; break;
         case "q":
           if (profile.format !== "zstd" && profile.format !== "gzip" && profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
@@ -232,7 +269,10 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           if (profile.format !== "gzip") throw new UsageError(`invalid option -- '${flag}'`);
           break;
         default:
-          if (flag >= String(profile.minimumLevel) && flag <= "9") result.level = Number(flag);
+          if (flag >= String(profile.minimumLevel) && flag <= "9") {
+            result.level = Number(flag);
+            if (profile.format === "xz") delete result.xzFilters;
+          }
           else throw new UsageError(`invalid option -- '${flag}'`);
       }
     }
@@ -246,6 +286,9 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     throw new UsageError("the LZMA format supports only --check=none");
   }
   if (!result.operands.length) result.operands.push("-");
+  if (result.xzList) result.stdout = true;
+  if (result.xzList && result.xzFormat !== undefined && result.xzFormat !== "auto" && result.xzFormat !== "xz") throw new UsageError("--list works only on .xz files (--format=xz or --format=auto)");
+  if (result.xzRobot && !result.xzList) throw new UsageError("robot mode is only supported for --list");
   return result;
 }
 

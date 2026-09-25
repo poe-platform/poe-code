@@ -46,8 +46,9 @@ async function existing(context: CommandContext, path: string): Promise<FileStat
 
 function outputPath(source: string, options: CompressionOptions): string {
   if (options.format !== "gzip") {
-    const suffix = options.format === "xz" && (options.decompress ? source.endsWith(".lzma") : options.xzFormat === "lzma")
-      ? ".lzma" : profiles.find(profile => profile.format === options.format)!.suffix;
+    if (options.xzFormat === "raw" && !options.suffix) throw new FsError("EINVAL", { path: source, message: "raw format requires a suffix (use -S or -c)" });
+    const suffix = options.suffix ?? (options.format === "xz" && (options.decompress ? source.endsWith(".lzma") : options.xzFormat === "lzma")
+      ? ".lzma" : profiles.find(profile => profile.format === options.format)!.suffix);
     if (options.decompress) {
       if (!source.endsWith(suffix)) throw new FsError("EINVAL", { path: source, message: `unknown ${options.format} suffix (use -c for stdout)` });
       const destination = source.slice(0, -suffix.length);

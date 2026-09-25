@@ -44,6 +44,16 @@ export async function createCodec(
     if (memory !== undefined && (options.format !== "xz" || !Number.isSafeInteger(memory) || memory < 0)) throw new RangeError("invalid XZ memory limit");
   }
   if (options.xzNoAdjust !== undefined && (options.format !== "xz" || typeof options.xzNoAdjust !== "boolean")) throw new RangeError("invalid XZ adjustment policy");
+  if (options.xzFormat !== undefined && (options.format !== "xz" || !["auto", "xz", "lzma", "raw"].includes(options.xzFormat))) throw new RangeError("invalid XZ format");
+  if (options.xzBlockSize !== undefined && (options.format !== "xz" || !Number.isSafeInteger(options.xzBlockSize) || options.xzBlockSize < 0)) throw new RangeError("invalid XZ block size");
+  if (options.xzFlushTimeout !== undefined && (options.format !== "xz" || !Number.isSafeInteger(options.xzFlushTimeout) || options.xzFlushTimeout < 0)) throw new RangeError("invalid XZ flush timeout");
+  if (options.xzBlockList !== undefined && (options.format !== "xz" || !Array.isArray(options.xzBlockList) || !options.xzBlockList.length || options.xzBlockList.some((size, index) => !Number.isSafeInteger(size) || size < 0 || size === 0 && index !== options.xzBlockList!.length - 1))) throw new RangeError("invalid XZ block list");
+  if (options.xzFilters !== undefined && (options.format !== "xz" || !Array.isArray(options.xzFilters) || options.xzFilters.length < 1 || options.xzFilters.length > 4
+    || options.xzFilters.some(value => typeof value !== "string" || !value || value.includes("--") || [...value].some(character => character.charCodeAt(0) <= 32)))) throw new RangeError("invalid XZ filters");
+  if (!options.decompress && options.xzFlushTimeout && (options.xzFormat === "lzma" || options.xzFilters?.some(filter => !["delta", "lzma2"].includes(filter.split(":")[0]!.split("=")[0]!)))) throw new PublicDiagnostic("filter chain is incompatible with --flush-timeout");
+  const filterSpec = options.xzFilters?.join(" ") ?? `${options.level}${options.extreme ? "e" : ""}`;
+  const filterBytes = new TextEncoder().encode(filterSpec + "\0");
+  if (filterBytes.length > 65536) throw new RangeError("XZ filter options exceed codec buffer");
   const requestedMemory = options.format === "xz" ? (options.decompress ? options.xzDecompressMemory : options.xzCompressMemory) ?? 0 : 0;
   const memoryLimit = requestedMemory;
   if (memoryLimit !== 0 && memoryLimit < 1024) throw new PublicDiagnostic("codec memory limit exceeded");
@@ -68,7 +78,11 @@ export async function createCodec(
   };
   try {
     module._initialize?.();
-    const initialized = lzma
+    const custom = options.format === "xz" && (options.xzFormat === "raw" || options.xzFilters !== undefined);
+    if (custom) new Uint8Array(module.memory.buffer, module.bridge_input(), filterBytes.length).set(filterBytes);
+    const initialized = custom
+      ? module.bridge_create_filters?.(Number(options.decompress), module.bridge_input(), Number(options.xzFormat === "raw"), Number(options.xzFormat === "lzma"), options.xzCheck ?? 4, memoryLimit >>> 0, Math.floor(memoryLimit / 0x100000000), Number(options.xzNoAdjust === true), Number(options.xzIgnoreCheck === true))
+      : lzma
       ? module.bridge_create_lzma?.(Number(options.decompress), options.level, memoryLimit >>> 0, lzma!.dictionary, lzma!.properties, Number(lzma!.eos), lzma!.size >>> 0, Math.floor(lzma!.size / 0x100000000), Math.floor(memoryLimit / 0x100000000))
       : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, memoryLimit >>> 0, 30, options.format === "xz" ? options.xzCheck ?? 4 : Number(options.small === true), Number(options.xzIgnoreCheck === true), Number(options.xzFormat === "lzma"), Math.floor(memoryLimit / 0x100000000), Number(options.xzNoAdjust === true));
     signal.throwIfAborted();
@@ -86,22 +100,22 @@ export async function createCodec(
     const inputPointer = module.bridge_input();
     const outputPointer = module.bridge_output();
     return {
-      step(input, output, finish) {
+      step(input, output, finish, flush) {
         signal.throwIfAborted();
         if (closed) throw new Error("codec is closed");
         if (input.length > 65536 || output.length < 1 || output.length > 65536) throw new RangeError("invalid codec buffer size");
         new Uint8Array(module.memory.buffer, inputPointer, input.length).set(input);
-        const status = module.bridge_step(inputPointer, input.length, outputPointer, output.length, Number(finish));
+        const status = module.bridge_step(inputPointer, input.length, outputPointer, output.length, flush === "block" ? 2 : flush === "sync" ? 3 : Number(finish));
         signal.throwIfAborted();
         if (status === -4) throw new CompressedDataError("unexpected end of file");
         if (status === -2 || status === -3) throw new CompressedDataError("invalid compressed data or codec memory limit exceeded");
-        if (status !== 1 && status !== 2 && status !== 3) throw new Error(`invalid codec status ${status}`);
+        if (status !== 1 && status !== 2 && status !== 3 && status !== 4) throw new Error(`invalid codec status ${status}`);
         const consumed = module.bridge_consumed();
         const produced = module.bridge_produced();
         if (!Number.isSafeInteger(consumed) || consumed < 0 || consumed > input.length ||
             !Number.isSafeInteger(produced) || produced < 0 || produced > output.length) throw new Error("invalid codec progress");
         output.set(new Uint8Array(module.memory.buffer, outputPointer, produced));
-        return { consumed, produced, status: status === 1 ? "end" : status === 3 ? "output" : "input" };
+        return { consumed, produced, status: status === 1 ? "end" : status === 4 ? "flushed" : status === 3 ? "output" : "input" };
       },
       close,
     };

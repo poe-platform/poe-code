@@ -150,10 +150,10 @@ export async function transform(
   let warned = false;
   if (options.format === "gzip" && options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
   const reader = options.format === "gzip" && options.decompress ? undefined : new CodecReader(prepared, signal);
-  const nativeTransform = options.decompress && !options.test && (options.passthrough || (options.force && options.stdout && options.passthrough !== false))
+  const nativeTransform = options.decompress && options.xzFormat !== "raw" && !options.test && (options.passthrough || (options.force && options.stdout && options.passthrough !== false))
     ? passthroughStream : options.format === "zstd" && options.decompress ? zstdDecode : boundedCodec;
   const transformed = options.format !== "gzip"
-    ? nativeTransform(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, xzFormat: options.xzFormat, xzCheck: options.xzCheck, xzIgnoreCheck: options.xzIgnoreCheck, xzDecompressMemory: options.xzDecompressMemory, xzCompressMemory: options.xzCompressMemory, xzNoAdjust: options.xzNoAdjust, onXzAdjust: options.onXzAdjust, small: options.small, zstd: options.zstd, singleMember: options.singleStream === true, onFailure: fail }, signal)
+    ? nativeTransform(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, xzFormat: options.xzFormat, xzFilters: options.xzFilters, xzBlockSize: options.xzBlockSize, xzBlockList: options.xzBlockList, xzFlushTimeout: options.xzFlushTimeout, xzCheck: options.xzCheck, xzIgnoreCheck: options.xzIgnoreCheck, xzDecompressMemory: options.xzDecompressMemory, xzCompressMemory: options.xzCompressMemory, xzNoAdjust: options.xzNoAdjust, onXzAdjust: options.onXzAdjust, small: options.small, zstd: options.zstd, singleMember: options.singleStream === true, onFailure: fail }, signal)
     : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
   let consumed = false;
   const output = (async function* (): AsyncGenerator<Uint8Array> {

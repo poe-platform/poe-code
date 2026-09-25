@@ -140,8 +140,19 @@ Errors still fail and are reported unless quiet is repeated.
 the encoded integrity check; CRC64 remains the default. `--ignore-check` skips
 data checksum verification during decompression and test mode while still
 validating stream headers and structure. Both controls apply to all XZ aliases.
-Raw format, custom filters, block
-controls and listing remain unsupported; these options do not lift codec limits.
+`--format=raw` selects unframed encoding/decoding; the same filter chain must be
+provided for both directions. Named raw output requires `-S SUFFIX`; `-c` needs
+no suffix. `--lzma1[=OPTIONS]`, `--lzma2[=OPTIONS]`, `--delta[=OPTIONS]`,
+`--x86[=OPTIONS]` and `--arm64[=OPTIONS]` build a chain of up to four filters
+using liblzma's native option syntax, for example `--delta=dist=2 --lzma2=dict=1MiB`.
+An encoding chain must end in a compatible LZMA filter. Selecting a preset or
+extreme mode resets the custom chain. Raw encoding never adjusts its dictionary.
+`--block-size=BYTES` splits XZ blocks; `--block-list=BYTES,...` specifies groups,
+repeating the final size (zero means unlimited). Block-size can split each group.
+`--flush-timeout=MILLISECONDS` flushes pending XZ output when input is idle.
+`--list` / `-l` inspect named XZ files without decompressing or changing them;
+`--robot --list` emits tab-separated metadata and totals. Listing validates stream
+headers, footers and indices, not payload checksums. These options retain codec limits.
 
 The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and
 `--compress` to select compression, including on decompression aliases. The last

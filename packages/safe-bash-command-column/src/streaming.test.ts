@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError } from "../../../../src/contracts/index.js";
-import { ColumnBudget } from "../../../../src/commands/column/internal.js";
-import { settings } from "../../../../src/commands/column/options.js";
-import { tableOutput } from "../../../../src/commands/column/table.js";
-import { deferred, run } from "../helpers.js";
+import { FsError } from "safe-bash-contracts";
+import { ColumnBudget } from "./internal.js";
+import { settings } from "./options.js";
+import { tableOutput } from "./table.js";
+import { deferred, run } from "./test-helpers.js";
 
 test("entire absent suffix is admitted before any padding is published", async () => {
   const result = await run(["-t", "-s:"], "x\na:bbb:c\n", { limits: { maxOutputBytes: 7 } });

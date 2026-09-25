@@ -6,6 +6,7 @@ import { FsError } from "./errors.js";
 
 export const outputFailure = Symbol("output failure");
 const syncResolved = Symbol.for("safe-bash.syncResolved");
+const ownedByteChunks = Symbol.for("safe-bash.ownedByteChunks");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 const sharedTextEncoder = new TextEncoder();
 const sharedTextDecoder = new TextDecoder();
@@ -309,7 +310,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     void Promise.allSettled(admittedWrites).then(closed);
     return endpoint.closing;
   };
-  const borrow = (endpoint: EndpointState): AsyncIterableIterator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined; syncReturn(): void } => {
+  const borrow = (endpoint: EndpointState): AsyncIterableIterator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined; syncReturn(): void; [ownedByteChunks]: true } => {
     const lease: ReadLease = { endpoint, pending: new Set(), done: false };
     const release = (): IteratorResult<Uint8Array> => {
       lease.done = true;
@@ -320,6 +321,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       return { done: true, value: undefined };
     };
     return {
+      [ownedByteChunks]: true,
       [Symbol.asyncIterator]() { return this; },
       tryNextSync(): IteratorResult<Uint8Array> | undefined {
         if (lease.done) return { done: true, value: undefined };

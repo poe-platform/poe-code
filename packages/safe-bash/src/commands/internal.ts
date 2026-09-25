@@ -145,11 +145,15 @@ export async function eachOperand(
   return { exitCode };
 }
 
-export async function* input(context: CommandContext, name = "-"): ByteSource {
+export function input(context: CommandContext, name = "-"): ByteSource {
   context.signal.throwIfAborted();
   if (name === "-") {
-    yield* readBytes(context.stdin, context.signal);
-  } else {
+    return readBytes(context.stdin, context.signal);
+  }
+  return fileInputSource(context, name);
+}
+
+async function* fileInputSource(context: CommandContext, name: string): ByteSource {
     await assertInputRequirements(context, [name]);
     const path = pathOf(context, name);
     const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
@@ -178,7 +182,6 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
         yield bytes;
       },
     }, context.signal);
-  }
 }
 
 export async function assertInputRequirements(context: CommandContext, names: readonly string[]): Promise<void> {

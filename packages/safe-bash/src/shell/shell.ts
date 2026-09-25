@@ -347,7 +347,7 @@ export class Shell implements PluginHost {
           stdin = new ShellInput(inline, budget, budget.signal, {
             provenance: "stream",
             poll: () => available ? "ready" : "eof",
-            ...(inlineBytes ? { initialChunk: inlineBytes, onInitialConsumed: () => { available = false; } } : { initialEof: true }),
+            ...(inlineBytes ? { initialChunk: inlineBytes, initialChunkOwned: true, onInitialConsumed: () => { available = false; } } : { initialEof: true }),
           });
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;

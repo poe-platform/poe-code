@@ -264,10 +264,17 @@ function inputs(
   if (options.rawInput) {
     return rawValues(inputSources(context, options, budget, convert), budget, options.slurp);
   }
-  async function* joined(): ByteSource {
-    for await (const source of inputSources(context, options, budget, convert)) yield* readBytes(source, context.signal);
+  let source: ByteSource;
+  if (!options.files.length && !convert) {
+    budget.inputLocation = { name: "<stdin>", line: 0, complete: false };
+    source = context.stdin;
+  } else {
+    async function* joined(): ByteSource {
+      for await (const s of inputSources(context, options, budget, convert)) yield* readBytes(s, context.signal);
+    }
+    source = joined();
   }
-  return jsonValues(joined(), budget, {
+  return jsonValues(source, budget, {
     stream: options.stream, streamErrors: options.streamErrors, sequence: options.sequence,
     ...(onValue ? { onValue } : {}),
     ...(onChunkEnd ? { onChunkEnd } : {}),

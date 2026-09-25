@@ -95,10 +95,13 @@ export class Limits {
   }
   async flush(): Promise<void> {
     if (this.outPos > 0 && this.outBuf) {
-      const slice = this.outBuf.slice(0, this.outPos);
+      const slice = this.outBuf.subarray(0, this.outPos);
       this.outPos = 0;
-      this.releaseOutBuf();
-      await this.write(slice);
+      try {
+        await this.write(slice);
+      } finally {
+        this.releaseOutBuf();
+      }
     } else {
       this.releaseOutBuf();
     }

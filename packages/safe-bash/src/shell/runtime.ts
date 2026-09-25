@@ -5571,9 +5571,7 @@ export class Runtime {
   }
 
   private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false): Promise<number> {
-    const { [invocationScope]: scope, ...publicIO } = io;
-    Reflect.deleteProperty(publicIO, valueScope);
-    Reflect.deleteProperty(publicIO, declarationArrays);
+    const { [invocationScope]: scope, [valueScope]: _vs, [declarationArrays]: _da, argumentValues: _av, ...publicIO } = io as IO & { argumentValues?: unknown };
     const allocation = this.budget.values.scope();
     scope.registerFinalizer(() => allocation.close());
     if (typeof nameValue !== "string") allocation.hold(nameValue);
@@ -5581,6 +5579,10 @@ export class Runtime {
     let currentName = nameValue;
     const readName = (): string => shellValueText(currentName);
     const argumentValues = this.admitArguments(values, allocation);
+    let allStrings = true;
+    for (let i = 0; i < argumentValues.values.length; i++) {
+      if (typeof argumentValues.values[i] !== "string") { allStrings = false; break; }
+    }
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const hasMiddleware = this.middleware.length > 0;
     const env = Object.create(null) as Record<string, string>;
@@ -5588,9 +5590,11 @@ export class Runtime {
       const value = state.variables[key];
       if (value !== undefined) env[key] = value;
     }
-    for (const key of state.exportedFunctions ?? []) {
-      const body = state.functions.get(key);
-      if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+    if (state.exportedFunctions) {
+      for (const key of state.exportedFunctions) {
+        const body = state.functions.get(key);
+        if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+      }
     }
     const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
@@ -5634,7 +5638,7 @@ export class Runtime {
       },
     });
     const context: ShellCommandContext = {
-      ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
+      ...publicIO, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd,
       get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); },
       set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; },
       get fs() { return getContextFs(); },
@@ -5663,7 +5667,6 @@ export class Runtime {
     });
     bindCommandIO(context, io);
     bindFileOutputBudget(context, sink => this.budget.sink(sink, getScopedSignal()), (chunk, write) => this.budget.writeCounted(chunk, write, getScopedSignal()));
-    if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
     const middleware = hasMiddleware ? this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();
       this.budget.pathLookup.suspendUntilClosed(scope);
@@ -5674,33 +5677,43 @@ export class Runtime {
       });
       return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
     }) : [];
-    const execute = composeMiddleware(middleware, (forwarded) => scope.run(async () => {
+    const terminalHandler = (forwarded: CommandContext): Promise<CommandResult> => scope.run(async () => {
       scope.assertOpen();
       const commandName = Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command;
       const forwardedValues = hasMiddleware ? getCommandArguments(forwarded) : argumentValues;
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
-      const runtimeProperties = {
-        args: admitted.args,
-        argumentValues: admitted,
-        [invocationScope]: scope,
-        ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
-      };
       const context = (hasMiddleware
         ? Object.create(Object.getPrototypeOf(forwarded), {
           ...Object.getOwnPropertyDescriptors(forwarded),
-          ...Object.getOwnPropertyDescriptors(runtimeProperties),
+          ...Object.getOwnPropertyDescriptors({
+            args: admitted.args,
+            argumentValues: admitted,
+            [invocationScope]: scope,
+            ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
+          }),
         })
-        : Object.assign(forwarded, runtimeProperties)) as ShellCommandContext & {
+        : forwarded) as ShellCommandContext & {
         args: readonly string[];
         argumentValues: CommandArguments;
         [invocationScope]: InvocationScope;
         [valueScope]?: ValueScope;
       };
-      const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
+      const ensureRuntimeContext = (): void => {
+        if (!hasMiddleware && context[invocationScope] === undefined) {
+          Object.assign(context, {
+            args: admitted.args,
+            argumentValues: admitted,
+            [invocationScope]: scope,
+            ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
+          });
+        }
+      };
+      const previous = hasMiddleware ? new Map<string, SavedVariable & { overlay: string | undefined }>() : undefined;
       const cwd = state.cwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
       let cwdRestoration: Restoration | undefined;
       if (hasMiddleware) {
+      const prevMap = previous!;
       const environmentKeys = new Set([...Object.keys(initialEnv), ...Object.keys(context.env)]);
       const typedEnvironment = [...environmentKeys].some(key => arrayStore(state)?.get(key) && initialEnv[key] !== context.env[key]);
       cwdRestoration = stateMonitor(state)?.restoration(true);
@@ -5721,18 +5734,18 @@ export class Runtime {
             const saved = { ...saveVariable(state, key), overlay: value };
             await this.prepareVariable(state, key, saved);
             if (value !== undefined) await textToken(store.owner, value, this.signal);
-            previous.set(key, saved);
+            prevMap.set(key, saved);
             publications.set(key, store.tickets(key));
           }
           const cwdPublication = store.tickets();
-          for (const [key, saved] of previous) {
+          for (const [key, saved] of prevMap) {
             if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
             if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
           }
           this.signal.throwIfAborted();
           stateMonitor(state)!.publish(cwdPublication, undefined, () => { state.cwd = resolvePath("/", context.cwd); });
           cwdPublication.release();
-          for (const [key, saved] of previous) {
+          for (const [key, saved] of prevMap) {
             const publication = publications.get(key)!;
             stateMonitor(state)!.publish(publication, key, () => {
               void store.remove(key, publication);
@@ -5744,7 +5757,7 @@ export class Runtime {
             publication.release();
           }
         } catch (error) {
-          for (const saved of previous.values()) await this.discardVariable(saved);
+          for (const saved of prevMap.values()) await this.discardVariable(saved);
           for (const publication of publications.values()) publication.release();
           cwdRestoration?.close();
           throw error;
@@ -5756,18 +5769,19 @@ export class Runtime {
         if (initialEnv[key] === context.env[key]) continue;
         const value = context.env[key];
         if (key.includes("\0") || key.includes("=") || (value !== undefined && (typeof value !== "string" || value.includes("\0")))) throw new TypeError("Invalid middleware environment value");
-        previous.set(key, { ...saveVariable(state, key), overlay: value });
+        prevMap.set(key, { ...saveVariable(state, key), overlay: value });
         if (value === undefined) { delete state.variables[key]; state.exported.delete(key); }
         else { publishVariable(state, key, value); state.exported.add(key); }
-        if (key === "OPTIND") this.reconcileGetopts(state, previous.get(key)!.value);
+        if (key === "OPTIND") this.reconcileGetopts(state, prevMap.get(key)!.value);
       }
       }
-      stateMonitor(state)?.openOverlay(previous);
+      stateMonitor(state)?.openOverlay(prevMap);
       }
       try {
-        const selected = this.internalDiscovery(context.command, state, bypassFunctions)[0];
-        const body = selected?.kind === "function" ? state.functions.get(context.command) : undefined;
+        const selectedKind = this.firstInternalDiscovery(context.command, state, bypassFunctions);
+        const body = selectedKind === "function" ? state.functions.get(context.command) : undefined;
         if (body) {
+          ensureRuntimeContext();
           if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
           const positional = state.positional;
           const savedPositionals = stateMonitor(state)!.positionals.clone();
@@ -5887,7 +5901,8 @@ export class Runtime {
           if (outcome.kind === "throw") throw outcome.reason;
           return outcome.value;
         }
-        if (selected?.kind === "builtin" && !(state.externalInvocation && this.commands.has(context.command))) {
+        if (selectedKind === "builtin" && !(state.externalInvocation && this.commands.has(context.command))) {
+          ensureRuntimeContext();
           const extensionBuiltin = state.extensions?.builtins.get(context.command);
           const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
           if (special) assignments.clear();
@@ -5908,14 +5923,16 @@ export class Runtime {
         }
         const definition = this.commands.get(context.command);
         if (context.command === "printf" && definition?.execute === printfCommand.execute && context.args[0]?.startsWith("-v")) {
+          ensureRuntimeContext();
           return { exitCode: await this.printfVariable(context, state, assignments) };
         }
         if (!definition) {
+          ensureRuntimeContext();
           if (context.command === "bash" || context.command === "sh") return { exitCode: await this.interpreter(context, state, io) };
           if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
           const [target] = await this.searchPaths(context.command, state, false, false, defaultPath);
           if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
-          const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous.has(key)
+          const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous?.has(key)
             ? temporaryEnvironment.get(key)!.value ?? "" : state.variables[key] ?? "";
           const displayed = diagnosticCommandName(commandName, byteLocale({
             LC_ALL: localeValue("LC_ALL"), LC_CTYPE: localeValue("LC_CTYPE"), LANG: localeValue("LANG"),
@@ -5924,11 +5941,6 @@ export class Runtime {
           return { exitCode: 127 };
         }
         this.budget.pathLookup.suspendUntilClosed(scope);
-        if (!hasMiddleware) {
-          Reflect.deleteProperty(forwarded, invocationScope);
-          if (io[valueScope] !== undefined) Reflect.deleteProperty(forwarded, valueScope);
-          if (admitted.values.every(value => typeof value === "string")) Reflect.deleteProperty(forwarded, "argumentValues");
-        }
         const executionContext = state.externalInvocation
           ? Object.create(Object.getPrototypeOf(forwarded), {
             ...Object.getOwnPropertyDescriptors(forwarded),
@@ -5940,6 +5952,7 @@ export class Runtime {
         return await interruptible(observed, this.signal);
       } finally {
         if (hasMiddleware) {
+        const prevMap = previous!;
         const restoreCwd = () => {
           if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
         };
@@ -5947,7 +5960,7 @@ export class Runtime {
           if (cwdRestoration) cwdRestoration.apply(restoreCwd, false);
           else restoreCwd();
         });
-        for (const [key, saved] of previous) await scope.cleanup(async () => {
+        for (const [key, saved] of prevMap) await scope.cleanup(async () => {
           const typed = typedSavedVariables.get(saved);
           if (typed) {
             const owned = typed.binding ? typed.watch.watch.version === typed.overlayVersion : state.variables[key] === saved.overlay && typed.watch.watch.typedVersion === typed.watch.typedVersion;
@@ -5958,11 +5971,12 @@ export class Runtime {
           if (saved.superseded || state.variables[key] !== saved.overlay) { await this.discardVariable(saved); return; }
           await restoreVariable(state, key, saved);
         });
-        await scope.cleanup(() => stateMonitor(state)?.closeOverlay(previous));
+        await scope.cleanup(() => stateMonitor(state)?.closeOverlay(prevMap));
         await scope.cleanup(() => cwdRestoration?.close());
         }
       }
-    }));
+    });
+    const execute = hasMiddleware ? composeMiddleware(middleware, terminalHandler) : terminalHandler;
     try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }
     catch (error) {
       if (builtinFailure && error === builtinFailure.error) throw new ExecutionFailure(error, io, builtinFailure.diagnostic);
@@ -5983,6 +5997,17 @@ export class Runtime {
     return matches;
   }
 
+  firstInternalDiscovery(name: string, state: State, bypassFunctions = false): Discovery["kind"] | undefined {
+    const isBuiltin = implementedBuiltins.has(name) || Boolean(state.extensions?.builtins.has(name));
+    if (isBuiltin && state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) {
+      return "builtin";
+    }
+    if (!bypassFunctions && state.functions.has(name)) return "function";
+    if (isBuiltin) return "builtin";
+    if (this.commands.has(name)) return "command";
+    if (name === "bash" || name === "sh") return "interpreter";
+    return undefined;
+  }
   async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>, inheritedDefaultPath = false): Promise<number> {
     const args = [...context.args];
     const command = context.command === "command";

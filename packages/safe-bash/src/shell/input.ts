@@ -415,12 +415,15 @@ export interface ShellInputOptions {
   readonly poll?: () => InputReadiness;
   readonly clock?: InputClock;
   readonly initialChunk?: Uint8Array;
+  readonly initialChunkOwned?: boolean;
   readonly initialEof?: boolean;
   readonly onInitialConsumed?: () => void;
 }
 const shellInputViewClosedError = new Error("Shell input view closed");
 const resolvedVoid = Promise.resolve();
-const resolvedDoneResult: Promise<IteratorResult<Uint8Array>> = Promise.resolve({ done: true, value: undefined });
+const doneResult: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
+const resolvedDoneResult: Promise<IteratorResult<Uint8Array>> = Promise.resolve(doneResult);
+const ownedByteChunks = Symbol.for("safe-bash.ownedByteChunks");
 
 const inputClock: InputClock = {
   now: monotonicNow,
@@ -483,6 +486,7 @@ class InputDeadline {
 class InputCursor {
   readonly identity: object = Object.freeze({});
   readonly #iterator: AsyncIterator<Uint8Array>;
+  readonly ownsChunks: boolean;
   readonly #provenance: "regular" | "stream" | "unknown";
   readonly #eof: "terminal" | "retryable";
   readonly #poll: (() => InputReadiness) | undefined;
@@ -521,6 +525,8 @@ class InputCursor {
     this.#poll = poll?.bind(options);
     this.#clock = clock === inputClock ? defaultFrozenInputClock : Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
     this.#iterator = source[Symbol.asyncIterator]();
+    this.ownsChunks = options.initialChunkOwned === true
+      || Boolean((this.#iterator as { [ownedByteChunks]?: boolean })[ownedByteChunks]);
     this.#readChunk = options.readChunk?.bind(options);
     this.#budget = budget;
     if (options.initialChunk) {
@@ -948,7 +954,7 @@ export class ShellInput implements ByteSource, CommandInput {
       if (ready !== undefined) {
         if (ready.done) return resolvedDoneResult;
         this.#cursor.position += ready.value.byteLength;
-        return Promise.resolve({ done: false, value: new Uint8Array(ready.value) });
+        return Promise.resolve({ done: false, value: this.#cursor.ownsChunks ? ready.value : new Uint8Array(ready.value) });
       }
     } catch (err) {
       return Promise.reject(err);
@@ -957,12 +963,27 @@ export class ShellInput implements ByteSource, CommandInput {
       const result = await this.#cursor.take(this.signal);
       if (result.done) return result;
       this.#cursor.position += result.value.byteLength;
-      return { done: false, value: new Uint8Array(result.value) };
+      return { done: false, value: this.#cursor.ownsChunks ? result.value : new Uint8Array(result.value) };
     });
   }
 
+  tryNextSync(): IteratorResult<Uint8Array> | undefined {
+    this.#throwIfAborted();
+    const ready = this.#cursor.tryTakeReadySync();
+    if (ready !== undefined) {
+      if (ready.done) return doneResult;
+      this.#cursor.position += ready.value.byteLength;
+      return { done: false, value: this.#cursor.ownsChunks ? ready.value : new Uint8Array(ready.value) };
+    }
+    return undefined;
+  }
+
   [Symbol.asyncIterator](): AsyncIterableIterator<Uint8Array> {
-    return { next: () => this.next(), [Symbol.asyncIterator]() { return this; } };
+    return {
+      next: () => this.next(),
+      tryNextSync: () => this.tryNextSync(),
+      [Symbol.asyncIterator]() { return this; },
+    } as AsyncIterableIterator<Uint8Array>;
   }
 
   sourceLine(): Promise<Uint8Array | undefined> {

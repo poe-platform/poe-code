@@ -39,14 +39,15 @@ export function decodeUtf8(bytes: string, budget: Budget): string {
   }
   return points.join("") + block;
 }
-const SHORT_JSON_STRINGS = new Array<string>(64);
+const SHORT_JSON_STRINGS = new Array<string>(512);
 function shortSliceString(fullText: string, start: number, end: number): string {
   const len = end - start;
   if (len === 0) return "";
-  if (len <= 12) {
+  if (len <= 16) {
     const first = fullText.charCodeAt(start);
     const last = fullText.charCodeAt(end - 1);
-    const slot = ((first * 31 + last * 17 + len * 13) & 63);
+    const mid = fullText.charCodeAt((start + end) >> 1);
+    const slot = ((first * 31 + mid * 131 + last * 17 + len * 13) & 511);
     const cached = SHORT_JSON_STRINGS[slot];
     if (cached !== undefined && cached.length === len && fullText.startsWith(cached, start)) {
       return cached;
@@ -110,16 +111,46 @@ class JsonParser {
         if (fullText.charCodeAt(pos) !== 34) return undefined;
         pos++;
         const keyStart = pos;
-        while (pos < end - 1) {
-          const c = fullText.charCodeAt(pos);
-          if (c === 34) break;
-          if (c < 32 || c >= 127 || c === 92) return undefined;
-          pos++;
-        }
-        if (pos >= end - 1) return undefined;
-        const key = shortSliceString(fullText, keyStart, pos);
-        if (shapeMatch) {
-          if (count >= rKeys.length || rKeys[count] !== key) {
+        let key: string;
+        if (shapeMatch && count < rKeys.length) {
+          const expectedKey = rKeys[count]!;
+          const expectedEnd = keyStart + expectedKey.length;
+          if (expectedEnd < end - 1 && fullText.charCodeAt(expectedEnd) === 34 && fullText.startsWith(expectedKey, keyStart)) {
+            key = expectedKey;
+            pos = expectedEnd;
+          } else {
+            while (pos < end - 1) {
+              const c = fullText.charCodeAt(pos);
+              if (c === 34) break;
+              if (c < 32 || c >= 127 || c === 92) return undefined;
+              pos++;
+            }
+            if (pos >= end - 1) return undefined;
+            key = shortSliceString(fullText, keyStart, pos);
+            if (expectedKey !== key) {
+              shapeMatch = false;
+              const fresh = object();
+              for (let k = 0; k < count; k++) {
+                const prevKey = rKeys[k]!;
+                fresh[prevKey] = obj[prevKey]!;
+              }
+              obj = fresh;
+              if (canReuse) {
+                this.reusableObj = obj;
+                rKeys.length = count;
+              }
+            }
+          }
+        } else {
+          while (pos < end - 1) {
+            const c = fullText.charCodeAt(pos);
+            if (c === 34) break;
+            if (c < 32 || c >= 127 || c === 92) return undefined;
+            pos++;
+          }
+          if (pos >= end - 1) return undefined;
+          key = shortSliceString(fullText, keyStart, pos);
+          if (shapeMatch) {
             shapeMatch = false;
             const fresh = object();
             for (let k = 0; k < count; k++) {

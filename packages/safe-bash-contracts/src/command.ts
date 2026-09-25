@@ -18,10 +18,101 @@ export interface CommandArguments {
 }
 
 const argumentCarriers = new WeakSet<CommandArguments>();
+const frozenStringCarrierCache = new WeakMap<readonly string[], CommandArguments>();
 
 export class CommandArgumentIdentityError extends TypeError {
   constructor() {
     super("Command argument identity does not match its carrier");
+  }
+}
+
+class OwnedCommandArguments implements CommandArguments {
+  readonly args: readonly string[];
+  readonly values: readonly ShellValue[];
+  readonly #allocation: ValueAllocation | undefined;
+
+  constructor(args: readonly string[], values: readonly ShellValue[], allocation: ValueAllocation | undefined) {
+    this.args = args;
+    this.values = values;
+    this.#allocation = allocation;
+    Object.freeze(this);
+  }
+
+  bytes(index: number): Uint8Array | undefined {
+    return Number.isInteger(index) && index >= 0 && index < this.values.length
+      ? shellValueBytes(this.values[index]!, this.#allocation)
+      : undefined;
+  }
+
+  slice(start = 0, end = this.values.length): CommandArguments {
+    const length = this.values.length;
+    const offset = (index: number): number => {
+      const integral = Math.trunc(index) || 0;
+      return integral < 0 ? Math.max(0, length + integral) : Math.min(length, integral);
+    };
+    const first = offset(start);
+    return ownedCommandArguments(Math.max(0, offset(end) - first), index => this.values[first + index]!, this.#allocation);
+  }
+
+  select(indices: readonly number[]): CommandArguments {
+    const length = this.values.length;
+    return ownedCommandArguments(() => {
+      if (!Array.isArray(indices)) throw new TypeError("Command argument selection must be an array");
+      return indices.length;
+    }, index => {
+      const selected = indices[index]!;
+      if (!Number.isInteger(selected) || selected < 0 || selected >= length) throw new RangeError("Command argument index is out of range");
+      return this.values[selected]!;
+    }, this.#allocation, () => indices.length);
+  }
+
+  concat(...others: readonly CommandArguments[]): CommandArguments {
+    const length = this.values.length;
+    let total = length;
+    for (const other of others) {
+      if (!argumentCarriers.has(other)) throw new TypeError("Expected owned command arguments");
+      total += other.values.length;
+    }
+    return ownedCommandArguments(total, index => {
+      if (index < length) return this.values[index]!;
+      let offset = index - length;
+      for (const other of others) {
+        if (offset < other.values.length) return other.values[offset]!;
+        offset -= other.values.length;
+      }
+      throw new RangeError("Command argument index is out of range");
+    }, this.#allocation);
+  }
+
+  withValues(incoming: readonly (ShellValue | Uint8Array)[]): CommandArguments {
+    return ownedCommandArguments(() => {
+      if (!Array.isArray(incoming)) throw new TypeError("Command arguments must be an array");
+      return incoming.length;
+    }, index => incoming[index]!, this.#allocation, () => incoming.length);
+  }
+
+  join(separator: ShellValue = ""): ShellValue {
+    const length = this.values.length;
+    this.#allocation?.assertOpen();
+    const count = Math.max(0, length * 2 - 1);
+    const bytes = 128 + count * 16;
+    if (!Number.isSafeInteger(bytes) || !Number.isSafeInteger(count + 1)) throw new RangeError("Command argument join allocation is too large");
+    const transaction = argumentAllocation(this.#allocation);
+    const scratch = transaction.allocation?.reserve(bytes, count + 1);
+    try {
+      const parts: ShellValue[] = [];
+      for (let index = 0; index < length; index++) {
+        if (index) parts.push(separator);
+        parts.push(this.values[index]!);
+      }
+      Object.freeze(parts);
+      scratch?.commit(parts);
+      const result = concatShellValues(parts, transaction.allocation);
+      scratch?.release();
+      return result;
+    } catch (error) {
+      return transaction.rollback(error);
+    }
   }
 }
 
@@ -85,74 +176,7 @@ function ownedCommandArguments(
     }
     Object.freeze(values);
     Object.freeze(args);
-    const carrier: CommandArguments = Object.freeze({
-      args, values,
-      bytes(index: number) {
-        return Number.isInteger(index) && index >= 0 && index < length ? shellValueBytes(values[index]!, allocation) : undefined;
-      },
-      slice(start = 0, end = length) {
-        const offset = (index: number): number => {
-          const integral = Math.trunc(index) || 0;
-          return integral < 0 ? Math.max(0, length + integral) : Math.min(length, integral);
-        };
-        const first = offset(start);
-        return ownedCommandArguments(Math.max(0, offset(end) - first), index => values[first + index]!, allocation);
-      },
-      select(indices: readonly number[]) {
-        return ownedCommandArguments(() => {
-          if (!Array.isArray(indices)) throw new TypeError("Command argument selection must be an array");
-          return indices.length;
-        }, index => {
-          const selected = indices[index]!;
-          if (!Number.isInteger(selected) || selected < 0 || selected >= length) throw new RangeError("Command argument index is out of range");
-          return values[selected]!;
-        }, allocation, () => indices.length);
-      },
-      concat(...others: readonly CommandArguments[]) {
-        let total = length;
-        for (const other of others) {
-          if (!argumentCarriers.has(other)) throw new TypeError("Expected owned command arguments");
-          total += other.values.length;
-        }
-        return ownedCommandArguments(total, index => {
-          if (index < length) return values[index]!;
-          let offset = index - length;
-          for (const other of others) {
-            if (offset < other.values.length) return other.values[offset]!;
-            offset -= other.values.length;
-          }
-          throw new RangeError("Command argument index is out of range");
-        }, allocation);
-      },
-      withValues(incoming: readonly (ShellValue | Uint8Array)[]) {
-        return ownedCommandArguments(() => {
-          if (!Array.isArray(incoming)) throw new TypeError("Command arguments must be an array");
-          return incoming.length;
-        }, index => incoming[index]!, allocation, () => incoming.length);
-      },
-      join(separator: ShellValue = "") {
-        allocation?.assertOpen();
-        const count = Math.max(0, length * 2 - 1);
-        const bytes = 128 + count * 16;
-        if (!Number.isSafeInteger(bytes) || !Number.isSafeInteger(count + 1)) throw new RangeError("Command argument join allocation is too large");
-        const transaction = argumentAllocation(allocation);
-        const scratch = transaction.allocation?.reserve(bytes, count + 1);
-        try {
-          const parts: ShellValue[] = [];
-          for (let index = 0; index < length; index++) {
-            if (index) parts.push(separator);
-            parts.push(values[index]!);
-          }
-          Object.freeze(parts);
-          scratch?.commit(parts);
-          const result = concatShellValues(parts, transaction.allocation);
-          scratch?.release();
-          return result;
-        } catch (error) {
-          return transaction.rollback(error);
-        }
-      },
-    });
+    const carrier: CommandArguments = new OwnedCommandArguments(args, values, allocation);
     reservation?.commit(carrier);
     argumentCarriers.add(carrier);
     return carrier;
@@ -162,6 +186,25 @@ function ownedCommandArguments(
 }
 
 export function createCommandArguments(values: readonly ShellValue[], allocation?: ValueAllocation): CommandArguments {
+  if (allocation === undefined && Array.isArray(values)) {
+    const cached = frozenStringCarrierCache.get(values as readonly string[]);
+    if (cached) return cached;
+    const length = values.length;
+    const copy = new Array<string>(length);
+    let allStr = true;
+    for (let i = 0; i < length; i++) {
+      const v = values[i];
+      if (typeof v !== "string") { allStr = false; break; }
+      copy[i] = v;
+    }
+    if (allStr && values.length === length) {
+      const frozen = Object.isFrozen(values) ? (values as readonly string[]) : Object.freeze(copy);
+      const carrier = new OwnedCommandArguments(frozen, frozen, undefined);
+      argumentCarriers.add(carrier);
+      frozenStringCarrierCache.set(frozen, carrier);
+      return carrier;
+    }
+  }
   return ownedCommandArguments(() => {
     if (!Array.isArray(values)) throw new TypeError("Command arguments must be an array");
     return values.length;

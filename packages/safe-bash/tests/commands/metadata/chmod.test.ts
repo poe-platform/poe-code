@@ -118,3 +118,18 @@ test("chmod capabilities, cancellation and traversal quotas remain explicit", as
   await assert.rejects(runMetadata("chmod", ["777", "tree/file"], fs, {}, controller.signal), error => error === reason);
   assert.deepEqual(await fs.readFile("/work/tree/file"), Uint8Array.of(7));
 });
+
+test("chmod -r removes read permissions from the reported two-file fixture", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/first", new Uint8Array(), { mode: 0o755 });
+  await fs.writeFile("/work/second", new Uint8Array(), { mode: 0o644 });
+  const result = await runMetadata("chmod", ["-r", "first", "second"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/work/first")).mode & 0o777, 0o311);
+  assert.equal((await fs.stat("/work/second")).mode & 0o777, 0o200);
+  const numeric = await runMetadata("chmod", ["-0777", "first", "second"], fs);
+  assert.equal(numeric.exitCode, 0, numeric.stderr);
+  assert.equal((await fs.stat("/work/first")).mode & 0o777, 0);
+  assert.equal((await fs.stat("/work/second")).mode & 0o777, 0);
+});

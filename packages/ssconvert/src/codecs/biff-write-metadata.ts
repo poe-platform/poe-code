@@ -22,6 +22,7 @@ export class BiffMetadataWriter {
   private work = 0;
   private readonly records = new Map<Sheet, { record: Sheet["unsupportedRecords"] extends readonly (infer T)[] | undefined ? T : never; node?: MetadataNode }[]>();
   private readonly comments = new Map<Sheet, MetadataNode[]>();
+  private readonly exported = new Set<UnsupportedRecord>();
   constructor(readonly book: Workbook, readonly context: CapabilityContext, readonly maxRows: number) {
     for (const sheet of book.sheets) {
       const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, ...(record.data === undefined ? {} : { node: metadataNode(record.data, amount => this.charge(amount))! }) }));
@@ -55,6 +56,7 @@ export class BiffMetadataWriter {
     const records: readonly UnsupportedRecord[] = sheet ? sheet.unsupportedRecords ?? [] : this.book.unsupportedRecords ?? [];
     for (const record of records) {
       this.charge();
+      if (this.exported.has(record)) continue;
       if (record.source === "biff" && record.data && typeof record.data === "object" && !Array.isArray(record.data)) {
         const data = record.data as Readonly<Record<string, unknown>>;
         if (typeof data.opcode === "number" && typeof data.bytes === "string" && emitted.get(data.opcode)?.has(data.bytes)) continue;
@@ -72,6 +74,30 @@ export class BiffMetadataWriter {
     const dgg = concat(dwords(last, groups.length + 1, counts.reduce((sum, count) => sum + count, 0), groups.length),
       ...counts.map((count, i) => dwords(i + 1, count)));
     output.record(0xeb, escher(0xf000, 0, 15, escher(0xf006, 0, 0, dgg)));
+  }
+  view(output: BiffOutput, sheet: Sheet, revision: 7 | 8, active: boolean): void {
+    const layouts = this.records.get(sheet)!.filter(r => r.record.kind === "SheetLayout");
+    const layout = layouts[0]?.node, freeze = layout?.children.find(n => n.name === "FreezePanes");
+    const position = (source: string) => {
+      const value = parseA1(source);
+      if (value.row >= this.maxRows || value.column >= 256)
+        throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF sheet layout position");
+      return value;
+    };
+    const scroll = position(layout?.attributes.TopLeft ?? "A1"), origin = freeze ? position(freeze.attributes.FrozenTopLeft ?? "A1") : scroll;
+    const end = freeze ? position(freeze.attributes.UnfrozenTopLeft ?? "A1") : origin;
+    const x = end.column - origin.column, y = end.row - origin.row;
+    if (x < 0 || y < 0) throw new SsconvertError("unsupported-feature", "Unsupported Excel BIFF reversed frozen layout");
+    const frozen = !!(x || y), zoom = Math.round(Number(sheet.view?.zoom ?? 1) * 100);
+    const flags = 0xb6 | (active ? 0x600 : 0) | (frozen ? 0x108 : 0);
+    const row = y ? origin.row : scroll.row, column = x ? origin.column : scroll.column;
+    output.record(0x23e, revision === 8 ? words(flags, row, column, 64, 0, 0, zoom, zoom, 0) :
+      words(flags, row, column, 64, 0));
+    output.record(0xa0, words(zoom, 100));
+    if (frozen) output.record(0x41, words(x, y, scroll.row, scroll.column, x ? y ? 0 : 1 : 2));
+    if (layouts.length === 1 && layout && !layout.text && Object.keys(layout.attributes).every(key => key === "TopLeft") &&
+      layout.children.length <= 1 && layout.children.every(node => node === freeze && !node.text && !node.children.length &&
+        Object.keys(node.attributes).every(key => key === "FrozenTopLeft" || key === "UnfrozenTopLeft"))) this.exported.add(layouts[0]!.record);
   }
   async sheet(output: BiffOutput, sheet: Sheet, revision: 7 | 8): Promise<void> {
     const records = this.records.get(sheet)!, print = records.find(r => r.record.kind === "PrintInformation")?.node;

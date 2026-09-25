@@ -34,6 +34,8 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
   let headerText = "&A", footerText = "Page &P", commentPlacement = "GNM_PRINT_COMMENTS_NONE", errorDisplay = "GNM_PRINT_ERRORS_AS_DISPLAYED";
   const objects: ImportedValue[] = [], breaks: ImportedValue[] = [], view: Record<string, ImportedValue> = {};
   let active = false, hasPrint = false;
+  let window: { row: number; column: number; frozen: boolean } | undefined;
+  let pane: { x: number; y: number; row: number; column: number } | undefined;
   const comments = new Map<number, string>(); let lastObject: number | undefined;
   let textBytes = 0;
   const accountText = (text: string): void => {
@@ -108,10 +110,15 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
       if (flags & 0x100) scale = { type: "fit", cols: 1, rows: 1 };
     } else if (opcode === 0x23e) {
       const flags = data.u16(0); active = !!(flags & 0x200);
+      window = { row: data.u16(2), column: data.u16(4), frozen: !!(flags & 8) };
+      if (window.column > 255 || window.row >= (revision >= 8 ? 65536 : 16384)) invalidBiff("invalid sheet layout position");
       view.gnumeric = { ...(view.gnumeric as Record<string, ImportedValue> | undefined), DisplayFormulas: flags & 1 ? "1" : "0",
         HideGrid: flags & 2 ? "0" : "1", HideColHeader: flags & 4 ? "0" : "1", HideRowHeader: flags & 4 ? "0" : "1",
         HideZero: flags & 0x10 ? "0" : "1", DisplayOutlines: flags & 0x80 ? "1" : "0" };
       if (revision >= 8 && data.bytes.length >= 14) view.zoom = data.u16(12) ? data.u16(12) / 100 : 1;
+    } else if (opcode === 0x41) {
+      data.check(0, revision >= 5 ? 10 : 9);
+      pane = { x: data.u16(0), y: data.u16(2), row: data.u16(4), column: data.u16(6) };
     } else if (opcode === 0xa0) { const denominator = data.u16(2); if (!denominator) invalidBiff("invalid sheet zoom"); view.zoom = data.u16(0) / denominator; }
     else if (opcode === 0x1a || opcode === 0x1b) {
       const count = data.u16(0), width = revision >= 8 ? 6 : 2; data.check(2, count * width);
@@ -120,6 +127,17 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
     }
   }
   const result: UnsupportedRecord[] = [];
+  if (window) {
+    const frozen = window.frozen && pane && (pane.x || pane.y) ? pane : undefined;
+    if (frozen && (frozen.column > 255 || window.column + frozen.x > 255 ||
+      frozen.row >= (revision >= 8 ? 65536 : 16384) || window.row + frozen.y >= (revision >= 8 ? 65536 : 16384)))
+      invalidBiff("invalid frozen sheet layout");
+    result.push({ source: "Gnumeric_XmlIO:sax", kind: "SheetLayout", disposition: "retained",
+      data: biffNode("SheetLayout", { TopLeft: formatA1(frozen?.y ? frozen.row : window.row, frozen?.x ? frozen.column : window.column) }, "", frozen ? [
+        biffNode("FreezePanes", { FrozenTopLeft: formatA1(frozen.y ? window.row : 0, frozen.x ? window.column : 0),
+          UnfrozenTopLeft: formatA1(frozen.y ? window.row + frozen.y : 0, frozen.x ? window.column + frozen.x : 0) })
+      ] : []) });
+  }
   if (hasPrint) result.push({ source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained",
     data: biffNode("PrintInformation", {}, "", [biffNode("Margins", {}, "", Object.entries(margins).map(([name, Points]) => biffNode(name, { Points, PrefUnit: "mm" }))),
       biffNode("Scale", scale), ...Object.entries(print).map(([name, value]) => biffNode(name, { value })), biffNode("order", {}, order),

@@ -215,9 +215,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       if (formulas.has(cell) && cached.kind === "string") stringCache(output, cached.value, revision, context);
     }
     await metadata.links(output, sheet, revision);
-    const zoom = Math.round(Number(sheet.view?.zoom ?? 1) * 100), flags = 0xb6 | (sheet === active ? 0x600 : 0);
-    output.record(0x23e, revision === 8 ? words(flags, 0, 0, 64, 0, 0, zoom, zoom, 0) : words(flags, 0, 0, 64, 0));
-    output.record(0xa0, words(zoom, 100));
+    metadata.view(output, sheet, revision, sheet === active);
     if (sheet.merges?.length) {
       const ranges = sheet.merges.filter(range => range.startRow < maxRows && range.startColumn < 256);
       const maximum = Math.floor((output.maximumRecord - 2) / 8);

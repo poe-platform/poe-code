@@ -121,6 +121,55 @@
         "7": "1f54fa8d7470711bf8deb4b888e3429218121e63537552715da95094eeb3ea5b",
         "8": "d92a2e532bb13c8ce17117902fc66aae85363c7915c7778cbc3b696e3f443ef0"
       }
+    },
+    "biffSheetLayout": {
+      "scope": "BIFF7/8 scroll positions and frozen rows/columns. WINDOW2 carries scroll coordinates for unfrozen axes; PANE carries coordinates for frozen axes. Unsplit freeze origins normalize to zero, as in Gnumeric.",
+      "source": "OpenOffice Excel File Format 1.42 sections 5.75 and 5.110; SHA-256 af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e. Independent Gnumeric 1.12.61 BIFF7/8 exports and XML readbacks.",
+      "reproduction": "Twelve initial failures reproduced absent import/export layout support. Native readback exposed four additional single-axis scrolling failures; corrected original-record controls cover both axes independently.",
+      "qualification": "All 51 BIFF files / 1124 tests pass after the single-axis correction. The preceding 415-file / 23741-test package run and two required posttest checks passed. Final lint/types and selected build pass. Six native-authored BIFF imports, eight compiled public SDK exports and XML replays, eight native layout readbacks with empty stderr, and eight compiled Shell conversions preserve the expected coordinates. The CLI conversion/recalculation screenshot was inspected.",
+      "remaining": "Unfrozen split panes, unknown layout fields, wider selection/view profiles, other format exports and print/protection metadata remain open. No family is closed.",
+      "outputs": [
+        {
+          "profile": "both",
+          "revision": 7,
+          "sha256": "170c714ac96a6402cea4f86ebd51f743f78f3b81f4632f1391d3c6ad28e37ed5"
+        },
+        {
+          "profile": "both",
+          "revision": 8,
+          "sha256": "fd27c30ec1e3a5a4f71057e60b2a67fba2dacfd90fc09256903268983c893ed5"
+        },
+        {
+          "profile": "columns",
+          "revision": 7,
+          "sha256": "cf8c4e863f5fddb5bb332625a165fd8801ad54c8e34b8d9b7313d81a3af95e0e"
+        },
+        {
+          "profile": "columns",
+          "revision": 8,
+          "sha256": "9a112c298b379c3f2237a0ced65d5df28c0951f7394def80b9e88b64a677d6eb"
+        },
+        {
+          "profile": "rows",
+          "revision": 7,
+          "sha256": "4a6fc513158a38add8c4882e102b884bbc9d2806987885e08d857263aade88f3"
+        },
+        {
+          "profile": "rows",
+          "revision": 8,
+          "sha256": "23a7f9dcc4bb4a7030703d87c15ba975ec5f8ad08d87861b84be48e355bbc9fa"
+        },
+        {
+          "profile": "scroll",
+          "revision": 7,
+          "sha256": "7e9821f5b43d74dc7d5c6803f127fe3216a362b7df532965b3901771a7f89ce0"
+        },
+        {
+          "profile": "scroll",
+          "revision": 8,
+          "sha256": "1bc99bc45841a06dc34a99cc24dd19d72564b0856d67b23f404198c3ccf6da97"
+        }
+      ]
     }
   },
   "cases": [

@@ -11,7 +11,7 @@ import {
   parseAvi,
   parseFlv,
   parseMkv,
-  parseMp4,
+  parseMp4, parseSubtitleDocument, serializeSubtitleDocument,
   parseMpegTs,
   parseY4m,
   probeMp4,
@@ -197,5 +197,31 @@ describe("@poe-code/mp4-ast", () => {
     expect(vTrack.codecDescriptions.length).toBe(2);
     expect(vTrack.samples[0]!.sampleDescriptionIndex).toBe(1);
     expect(vTrack.samples[3]!.sampleDescriptionIndex).toBe(2);
+  });
+
+  it("parses and muxes SubRip (.srt) and WebVTT (.vtt) subtitles into MP4 (tx3g) and MKV (S_TEXT/UTF8) with exact cue timing", () => {
+    const srtText = [
+      "1",
+      "00:00:00,200 --> 00:00:00,900",
+      "HELLO WORLD",
+      "",
+      "2",
+      "00:00:01,100 --> 00:00:01,800",
+      "SECOND CUE",
+      ""
+    ].join("\n");
+    const srtDoc = parseSubtitleDocument(new TextEncoder().encode(srtText), "srt");
+    const vttBytes = serializeSubtitleDocument(srtDoc, "webvtt");
+    expect(new TextDecoder().decode(vttBytes)).toContain("00:00:00.200 --> 00:00:00.900");
+
+    const baseVideo = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 10, frameCount: 20 }));
+    const muxedMp4 = serializeMp4(muxMp4([baseVideo, srtDoc]));
+    const reparsedMp4 = parseMp4(muxedMp4);
+    const subTrack = reparsedMp4.tracks.find((t) => t.type === "subtitle")!;
+    expect(subTrack.samples.length).toBe(2);
+    expect(subTrack.samples[0]!.pts).toBe(200);
+    expect(subTrack.samples[0]!.duration).toBe(700);
+    expect(subTrack.samples[1]!.pts).toBe(1100);
+    expect(subTrack.samples[1]!.duration).toBe(700);
   });
 });

@@ -330,4 +330,41 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     expect(vstackDoc.tracks[0]!.width).toBe(32);
     expect(vstackDoc.tracks[0]!.height).toBe(32);
   });
+
+  it("converts .srt/.vtt subtitles, muxes mov_text/S_TEXT, burns drawtext/subtitles, builds tile contact sheets, and resamples WAV (-ar 16000 -ac 1)", async () => {
+    const { ffmpeg, ffprobe } = createFfmpegCommands();
+    const video = createSyntheticMp4({ width: 32, height: 24, fps: 5, frameCount: 4, includeAudio: true });
+    const srt = "1\n00:00:00,100 --> 00:00:00,700\nTEST SUB\n";
+    const vfs = createTestVfs({ "/v.mp4": video, "/s.srt": srt });
+
+    // 1. .srt -> .vtt
+    const r1 = await runCmd(ffmpeg, ["-i", "/s.srt", "/s.vtt"], vfs);
+    expect(r1.exitCode).toBe(0);
+    expect(new TextDecoder().decode(vfs.store.get("/s.vtt")!)).toContain("WEBVTT");
+
+    // 2. Mux video + srt -> subbed.mp4 & extract back to .srt
+    const r2 = await runCmd(ffmpeg, ["-i", "/v.mp4", "-i", "/s.srt", "-c", "copy", "/subbed.mp4"], vfs);
+    expect(r2.exitCode).toBe(0);
+    const r2b = await runCmd(ffmpeg, ["-i", "/subbed.mp4", "/out.srt"], vfs);
+    expect(r2b.exitCode).toBe(0);
+    expect(new TextDecoder().decode(vfs.store.get("/out.srt")!)).toContain("00:00:00,100 --> 00:00:00,700");
+
+    // 3. drawtext + subtitles + tile=2x2 contact sheet
+    const r3 = await runCmd(
+      ffmpeg,
+      ["-i", "/v.mp4", "-vf", "drawtext=text='F%{n}':x=2:y=2:fontsize=8:box=1,subtitles=/s.srt,tile=2x2", "-frames:v", "1", "/sheet.png"],
+      vfs
+    );
+    expect(r3.exitCode).toBe(0);
+    const sheetProbe = JSON.parse((await runCmd(ffprobe, ["-v", "quiet", "-print_format", "json", "-show_streams", "/sheet.png"], vfs)).stdout);
+    expect(sheetProbe.streams[0].width).toBe(64);
+    expect(sheetProbe.streams[0].height).toBe(48);
+
+    // 4. Whisper audio resampling (-vn -ar 16000 -ac 1)
+    const r4 = await runCmd(ffmpeg, ["-i", "/v.mp4", "-vn", "-ar", "16000", "-ac", "1", "/audio.wav"], vfs);
+    expect(r4.exitCode).toBe(0);
+    const wavProbe = JSON.parse((await runCmd(ffprobe, ["-v", "quiet", "-print_format", "json", "-show_streams", "/audio.wav"], vfs)).stdout);
+    expect(wavProbe.streams[0].sample_rate).toBe("16000");
+    expect(wavProbe.streams[0].channels).toBe(1);
+  });
 });

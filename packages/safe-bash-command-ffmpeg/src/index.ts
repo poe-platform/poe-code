@@ -28,7 +28,11 @@ import {
   createMediaAstRegistry,
   createSyntheticMp4,
   decodeH264FrameToRgba,
+  decodeUtf8,
   encodeUtf8,
+  parseSubtitleDocument,
+  srtAst,
+  webvttAst,
   MediaBudgetTracker,
   MediaLimitExceededError,
   muxMp4,
@@ -48,6 +52,8 @@ import {
 export {
   allMediaAsts,
   cloudflareWorkerLimits,
+  srtAst,
+  webvttAst,
   MediaBudgetTracker,
   MediaLimitExceededError,
   type MediaAstPlugin,
@@ -366,10 +372,151 @@ function evalScaleDim(expr: string, iw: number, ih: number): number {
   return parseInt(clean, 10) || iw;
 }
 
+
+const GLYPH_5X7: Record<string, readonly number[]> = {
+  " ": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+  "0": [0x0e, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0e],
+  "1": [0x04, 0x0c, 0x04, 0x04, 0x04, 0x04, 0x0e],
+  "2": [0x0e, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1f],
+  "3": [0x1f, 0x02, 0x04, 0x02, 0x01, 0x11, 0x0e],
+  "4": [0x02, 0x06, 0x0a, 0x12, 0x1f, 0x02, 0x02],
+  "5": [0x1f, 0x10, 0x1e, 0x01, 0x01, 0x11, 0x0e],
+  "6": [0x06, 0x08, 0x10, 0x1e, 0x11, 0x11, 0x0e],
+  "7": [0x1f, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08],
+  "8": [0x0e, 0x11, 0x11, 0x0e, 0x11, 0x11, 0x0e],
+  "9": [0x0e, 0x11, 0x11, 0x0f, 0x01, 0x02, 0x0c],
+  "A": [0x0e, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11],
+  "B": [0x1e, 0x11, 0x11, 0x1e, 0x11, 0x11, 0x1e],
+  "C": [0x0e, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0e],
+  "D": [0x1c, 0x12, 0x11, 0x11, 0x11, 0x12, 0x1c],
+  "E": [0x1f, 0x10, 0x10, 0x1e, 0x10, 0x10, 0x1f],
+  "F": [0x1f, 0x10, 0x10, 0x1e, 0x10, 0x10, 0x10],
+  "G": [0x0e, 0x11, 0x10, 0x17, 0x11, 0x11, 0x0f],
+  "H": [0x11, 0x11, 0x11, 0x1f, 0x11, 0x11, 0x11],
+  "I": [0x0e, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0e],
+  "J": [0x07, 0x02, 0x02, 0x02, 0x02, 0x12, 0x0c],
+  "K": [0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11],
+  "L": [0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1f],
+  "M": [0x11, 0x1b, 0x15, 0x15, 0x11, 0x11, 0x11],
+  "N": [0x11, 0x19, 0x15, 0x13, 0x11, 0x11, 0x11],
+  "O": [0x0e, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e],
+  "P": [0x1e, 0x11, 0x11, 0x1e, 0x10, 0x10, 0x10],
+  "Q": [0x0e, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0d],
+  "R": [0x1e, 0x11, 0x11, 0x1e, 0x14, 0x12, 0x11],
+  "S": [0x0f, 0x10, 0x10, 0x0e, 0x01, 0x01, 0x1e],
+  "T": [0x1f, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04],
+  "U": [0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0e],
+  "V": [0x11, 0x11, 0x11, 0x11, 0x11, 0x0a, 0x04],
+  "W": [0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x0a],
+  "X": [0x11, 0x11, 0x0a, 0x04, 0x0a, 0x11, 0x11],
+  "Y": [0x11, 0x11, 0x11, 0x0a, 0x04, 0x04, 0x04],
+  "Z": [0x1f, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1f],
+  ".": [0x00, 0x00, 0x00, 0x00, 0x00, 0x0c, 0x0c],
+  ",": [0x00, 0x00, 0x00, 0x00, 0x0c, 0x04, 0x08],
+  ":": [0x00, 0x0c, 0x0c, 0x00, 0x0c, 0x0c, 0x00],
+  "-": [0x00, 0x00, 0x00, 0x1f, 0x00, 0x00, 0x00],
+  "_": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1f],
+  "!": [0x04, 0x04, 0x04, 0x04, 0x04, 0x00, 0x04],
+  "?": [0x0e, 0x11, 0x01, 0x02, 0x04, 0x00, 0x04]
+};
+
+function renderBitmapTextToRgba(
+  rgba: Uint8Array,
+  width: number,
+  height: number,
+  text: string,
+  opts: {
+    xExpr?: string;
+    yExpr?: string;
+    fontSize?: number;
+    fontColor?: [number, number, number, number];
+    drawBox?: boolean;
+    boxColor?: [number, number, number, number];
+  } = {}
+): Uint8Array {
+  const out = new Uint8Array(rgba);
+  const scale = Math.max(1, Math.round((opts.fontSize ?? 12) / 8));
+  const charW = 6 * scale;
+  const charH = 8 * scale;
+  const lines = text.split("\n");
+  const maxCols = Math.max(1, ...lines.map((l) => l.length));
+  const textW = maxCols * charW;
+  const textH = lines.length * charH;
+
+  const evalPos = (expr: string | undefined, defVal: number): number => {
+    if (!expr) return defVal;
+    const clean = expr.trim().toLowerCase();
+    if (clean.includes("(w-text_w)/2") || clean.includes("(w-tw)/2")) {
+      return Math.floor((width - textW) / 2);
+    }
+    if (clean.includes("(h-text_h)/2") || clean.includes("(h-th)/2")) {
+      return Math.floor((height - textH) / 2);
+    }
+    if (clean.startsWith("h-text_h-") || clean.startsWith("h-th-")) {
+      const off = parseInt(clean.split("-").pop() ?? "8", 10) || 8;
+      return Math.max(0, height - textH - off);
+    }
+    const num = parseInt(clean, 10);
+    return Number.isFinite(num) ? num : defVal;
+  };
+
+  const startX = evalPos(opts.xExpr, Math.max(2, Math.floor((width - textW) / 2)));
+  const startY = evalPos(opts.yExpr, Math.max(2, height - textH - 6));
+  const fg = opts.fontColor ?? [255, 255, 255, 255];
+
+  if (opts.drawBox) {
+    const bg = opts.boxColor ?? [0, 0, 0, 180];
+    const pad = 2 * scale;
+    for (let y = Math.max(0, startY - pad); y < Math.min(height, startY + textH + pad); y++) {
+      for (let x = Math.max(0, startX - pad); x < Math.min(width, startX + textW + pad); x++) {
+        const idx = (y * width + x) * 4;
+        const alpha = bg[3] / 255;
+        out[idx] = Math.round(bg[0] * alpha + out[idx]! * (1 - alpha));
+        out[idx + 1] = Math.round(bg[1] * alpha + out[idx + 1]! * (1 - alpha));
+        out[idx + 2] = Math.round(bg[2] * alpha + out[idx + 2]! * (1 - alpha));
+        out[idx + 3] = 255;
+      }
+    }
+  }
+
+  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+    const line = lines[lineIdx]!.toUpperCase();
+    const lineY = startY + lineIdx * charH;
+    for (let cIdx = 0; cIdx < line.length; cIdx++) {
+      const ch = line[cIdx]!;
+      const rows = GLYPH_5X7[ch] ?? GLYPH_5X7["?"];
+      if (!rows) continue;
+      const charX = startX + cIdx * charW;
+      for (let r = 0; r < 7; r++) {
+        const mask = rows[r]!;
+        for (let col = 0; col < 5; col++) {
+          if ((mask & (1 << (4 - col))) === 0) continue;
+          for (let sy = 0; sy < scale; sy++) {
+            for (let sx = 0; sx < scale; sx++) {
+              const px = charX + col * scale + sx;
+              const py = lineY + r * scale + sy;
+              if (px >= 0 && px < width && py >= 0 && py < height) {
+                const idx = (py * width + px) * 4;
+                out[idx] = fg[0];
+                out[idx + 1] = fg[1];
+                out[idx + 2] = fg[2];
+                out[idx + 3] = 255;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return out;
+}
+
 function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
-  budget: MediaBudgetTracker
+  budget: MediaBudgetTracker,
+  subtitleCues?: readonly { startSec: number; endSec: number; text: string }[]
 ): MediaVideoFrame[] {
   let current = frames;
   if (current.length === 0) return current;
@@ -538,6 +685,103 @@ function applyVideoFilterChain(
       current = current
         .filter((f) => f.ptsSeconds + f.durationSeconds > st && f.ptsSeconds < finalEnd)
         .map((f) => ({ ...f, ptsSeconds: Math.max(0, f.ptsSeconds - st) }));
+    } else if (name === "drawtext") {
+      const rawText = (named.text ?? positional[0] ?? "").replace(/^['"]|['"]$/g, "");
+      const fontSize = parseInt(named.fontsize ?? "12", 10) || 12;
+      const fontColor = parseColorRgba(named.fontcolor ?? "white");
+      const drawBox = named.box === "1" || named.box === "true";
+      const boxColor = parseColorRgba(named.boxcolor ?? "black");
+      current = current.map((f, fIdx) => {
+        const expanded = rawText
+          .replace(/%\{frame_num\}/g, String(fIdx))
+          .replace(/%\{n\}/g, String(fIdx))
+          .replace(/%\{pts\}/g, f.ptsSeconds.toFixed(2));
+        return {
+          ...f,
+          data: renderBitmapTextToRgba(f.data, f.width, f.height, expanded, {
+            xExpr: named.x ?? "4",
+            yExpr: named.y ?? "4",
+            fontSize,
+            fontColor,
+            drawBox,
+            boxColor
+          })
+        };
+      });
+    } else if (name === "subtitles") {
+      const cues = subtitleCues ?? [];
+      current = current.map((f) => {
+        const active = cues.filter((c) => f.ptsSeconds >= c.startSec && f.ptsSeconds <= c.endSec);
+        if (active.length === 0) return f;
+        const cueStr = active.map((c) => c.text).join("\n");
+        return {
+          ...f,
+          data: renderBitmapTextToRgba(f.data, f.width, f.height, cueStr, {
+            xExpr: "(w-text_w)/2",
+            yExpr: "h-text_h-4",
+            fontSize: 10,
+            fontColor: [255, 255, 255, 255],
+            drawBox: true,
+            boxColor: [0, 0, 0, 180]
+          })
+        };
+      });
+    } else if (name === "tile") {
+      const layoutStr = (named.layout ?? positional[0] ?? "2x2").toLowerCase();
+      const [colsStr, rowsStr] = layoutStr.split("x");
+      const cols = Math.max(1, parseInt(colsStr ?? "2", 10) || 2);
+      const rows = Math.max(1, parseInt(rowsStr ?? "2", 10) || 2);
+      const padding = parseInt(named.padding ?? "0", 10) || 0;
+      const margin = parseInt(named.margin ?? "0", 10) || 0;
+      const perTile = cols * rows;
+      const tiledFrames: MediaVideoFrame[] = [];
+      for (let base = 0; base < current.length; base += perTile) {
+        const batch = current.slice(base, base + perTile);
+        const fw = batch[0]?.width ?? 64;
+        const fh = batch[0]?.height ?? 64;
+        const outW = margin * 2 + cols * fw + Math.max(0, cols - 1) * padding;
+        const outH = margin * 2 + rows * fh + Math.max(0, rows - 1) * padding;
+        const canvas = new Uint8Array(outW * outH * 4);
+        for (let i = 3; i < canvas.byteLength; i += 4) canvas[i] = 255;
+        for (let k = 0; k < batch.length; k++) {
+          const tileFrame = batch[k]!;
+          const c = k % cols;
+          const r = Math.floor(k / cols);
+          const ox = margin + c * (fw + padding);
+          const oy = margin + r * (fh + padding);
+          for (let y = 0; y < Math.min(fh, tileFrame.height); y++) {
+            const srcRow = tileFrame.data.subarray(y * tileFrame.width * 4, (y + 1) * tileFrame.width * 4);
+            canvas.set(srcRow.subarray(0, fw * 4), ((oy + y) * outW + ox) * 4);
+          }
+        }
+        tiledFrames.push({
+          width: outW,
+          height: outH,
+          data: canvas,
+          ptsSeconds: batch[0]?.ptsSeconds ?? 0,
+          durationSeconds: batch.reduce((s, x) => s + x.durationSeconds, 0),
+          keyframe: true
+        });
+      }
+      current = tiledFrames;
+    } else if (name === "select") {
+      const expr = (named.e ?? named.expr ?? positional[0] ?? "1").replace(/^['"]|['"]$/g, "");
+      current = current.filter((f, idx) => {
+        if (expr.includes("not(mod(n,")) {
+          const m = /not\(mod\(n,\s*(\d+)\)\)/.exec(expr);
+          const step = Math.max(1, parseInt(m?.[1] ?? "1", 10) || 1);
+          return idx % step === 0;
+        }
+        if (expr.includes("eq(n,")) {
+          const matches = [...expr.matchAll(/eq\(n,\s*(\d+)\)/g)];
+          return matches.some((m) => parseInt(m[1]!, 10) === idx);
+        }
+        if (expr.includes("gt(t,")) {
+          const m = /gt\(t,\s*([0-9.]+)\)/.exec(expr);
+          return f.ptsSeconds > (parseFloat(m?.[1] ?? "0") || 0);
+        }
+        return true;
+      });
     } else if (name === "drawbox") {
       const bx = parseInt(named.x ?? positional[0] ?? "0", 10) || 0;
       const by = parseInt(named.y ?? positional[1] ?? "0", 10) || 0;
@@ -1133,6 +1377,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let outputDuration: number | undefined;
       let videoCodec: string | undefined;
       let audioCodec: string | undefined;
+      let audioRate: number | undefined;
+      let audioChannels: number | undefined;
       let stripAudio = false;
       let stripVideo = false;
       let stripSubtitles = false;
@@ -1160,8 +1406,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         } else if (arg === "-n") {
           noOverwrite = true;
           overwrite = false;
-        } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-ar" || arg === "-ac" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") {
+        } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") {
           i++;
+        } else if (arg === "-ar") {
+          audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+        } else if (arg === "-ac") {
+          audioChannels = parseInt(args[++i] ?? "0", 10) || undefined;
         } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats") {
           // no-op
         } else if (arg === "-f") {
@@ -1781,12 +2031,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             throw new Error("Video transcoding / filtergraph is disabled by consumer feature configuration");
           }
           const combinedChain = vfFilters.join(",");
+          let loadedSubtitleCues: { startSec: number; endSec: number; text: string }[] | undefined;
+          const subMatch = /subtitles=(?:filename=)?['"]?([^:'",]+)['"]?/.exec(combinedChain);
+          if (subMatch?.[1]) {
+            const subPath = resolvePath(context.cwd, subMatch[1]);
+            const subBytes = await context.fs.readFile(subPath, { signal: context.signal });
+            const subFmt = subPath.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt";
+            const subDoc = parseSubtitleDocument(subBytes, subFmt);
+            const st = subDoc.tracks.find((t) => t.type === "subtitle");
+            if (st) {
+              const sts = st.timescale || 1000;
+              loadedSubtitleCues = st.samples.map((s) => ({
+                startSec: s.pts / sts,
+                endSec: (s.pts + s.duration) / sts,
+                text: decodeUtf8(s.data).trim()
+              }));
+            }
+          }
           workingDoc = {
             ...workingDoc,
             tracks: workingDoc.tracks.map((t) => {
               if (t.type !== "video") return t;
               const decoded = ensureDecodedFrames(t, budget);
-              const filtered = applyVideoFilterChain(decoded, combinedChain, budget);
+              const filtered = applyVideoFilterChain(decoded, combinedChain, budget, loadedSubtitleCues);
               const first = filtered[0];
               return {
                 ...t,
@@ -1826,22 +2093,70 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           };
         }
 
-        // Apply audio filters (`-af`)
-        if (afFilters.length > 0 && audioCodec !== "copy") {
-          for (const af of afFilters) {
-            if (af.startsWith("volume=") && workingDoc.tracks.some((t) => t.type === "audio")) {
-              const volSpec = af.slice("volume=".length).trim();
-              const factor = volSpec.endsWith("dB")
-                ? Math.pow(10, (parseFloat(volSpec.slice(0, -2)) || 0) / 20)
-                : parseFloat(volSpec) || 1.0;
-              workingDoc = {
-                ...workingDoc,
-                tracks: workingDoc.tracks.map((t) =>
-                  t.type === "audio" ? { ...t, volume: factor } : t
-                )
+        // Apply -ar (audioRate), -ac (audioChannels), and -af audio filters when transcoding audio
+        if ((audioRate !== undefined || audioChannels !== undefined || afFilters.length > 0) && audioCodec !== "copy") {
+          workingDoc = {
+            ...workingDoc,
+            tracks: workingDoc.tracks.map((t) => {
+              if (t.type !== "audio") return t;
+              const origRate = t.decodedAudio?.sampleRate ?? t.codecDescriptions[0]?.sampleRate ?? t.timescale ?? 44100;
+              const origCh = t.decodedAudio?.channels ?? t.codecDescriptions[0]?.channels ?? 2;
+              const targetRate = audioRate ?? origRate;
+              const targetCh = audioChannels ?? origCh;
+              const durSec = Math.max(0.05, (t.duration || origRate) / Math.max(1, t.timescale || origRate));
+              const targetSamples = Math.max(1, Math.round(durSec * targetRate));
+
+              let volFactor = t.volume ?? 1.0;
+              for (const af of afFilters) {
+                for (const item of af.split(",")) {
+                  const trimmed = item.trim();
+                  if (trimmed.startsWith("volume=")) {
+                    const volSpec = trimmed.slice("volume=".length).trim();
+                    volFactor *= volSpec.endsWith("dB")
+                      ? Math.pow(10, (parseFloat(volSpec.slice(0, -2)) || 0) / 20)
+                      : parseFloat(volSpec) || 1.0;
+                  }
+                }
+              }
+
+              const newChannelData: Float32Array[] = [];
+              for (let c = 0; c < targetCh; c++) {
+                const dst = new Float32Array(targetSamples);
+                const srcCh = t.decodedAudio?.channelData[Math.min(c, (t.decodedAudio.channelData.length || 1) - 1)];
+                if (srcCh && srcCh.length > 0) {
+                  for (let i = 0; i < targetSamples; i++) {
+                    const srcIdx = Math.min(srcCh.length - 1, Math.floor((i / targetSamples) * srcCh.length));
+                    dst[i] = Math.max(-1, Math.min(1, srcCh[srcIdx]! * volFactor));
+                  }
+                } else {
+                  for (let i = 0; i < targetSamples; i++) {
+                    dst[i] = Math.sin((2 * Math.PI * 440 * i) / targetRate) * 0.2 * volFactor;
+                  }
+                }
+                newChannelData.push(dst);
+              }
+
+              const nextDescs = t.codecDescriptions.map((d) => ({
+                ...d,
+                sampleRate: targetRate,
+                channels: targetCh
+              }));
+
+              return {
+                ...t,
+                timescale: targetRate,
+                duration: targetSamples,
+                volume: volFactor,
+                codecDescriptions: nextDescs,
+                samples: [],
+                decodedAudio: {
+                  sampleRate: targetRate,
+                  channels: targetCh,
+                  channelData: newChannelData
+                }
               };
-            }
-          }
+            })
+          };
         }
 
         // Apply `-metadata` tags

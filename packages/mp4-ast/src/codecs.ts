@@ -659,7 +659,7 @@ export function annexBToAvcc(annexB: Uint8Array): {
   isKeyframe: boolean;
 } {
   const nalus: Uint8Array[] = [];
-  let i = 0;
+  const i = 0;
   const len = annexB.byteLength;
 
   function findStartCode(from: number): { pos: number; scLen: number } | null {
@@ -855,9 +855,9 @@ export function encodeH264IdrFrame(
   bits.writeUE(0); // first_mb_in_slice = 0
   bits.writeUE(7); // slice_type = 7 (I-slice)
   bits.writeUE(0); // pic_parameter_set_id = 0
-  bits.writeBits(frameIndex & 0x0f, 4); // frame_num (4 bits)
+  bits.writeBits(0, 4); // frame_num = 0 (ISO 14496-10 §7.4.3: IDR picture shall have frame_num = 0)
   bits.writeUE(frameIndex & 0x7fff); // idr_pic_id
-  bits.writeBits((frameIndex * 2) & 0x0f, 4); // pic_order_cnt_lsb (4 bits)
+  bits.writeBits(0, 4); // pic_order_cnt_lsb = 0
   bits.writeBit(0); // no_output_of_prior_pics_flag = 0
   bits.writeBit(0); // long_term_reference_flag = 0
   bits.writeSE(0); // slice_qp_delta = 0

@@ -840,13 +840,25 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 
           const safeStart = Math.max(0, Math.min(bytes.byteLength, byteCursor));
           const safeEnd = Math.max(safeStart, Math.min(bytes.byteLength, safeStart + size));
+          let samplePayload = bytes.subarray(safeStart, safeEnd);
+          if (type === "subtitle" && samplePayload.byteLength >= 2) {
+            const textLen = (samplePayload[0]! << 8) | samplePayload[1]!;
+            if (textLen === 0) {
+              byteCursor += size;
+              sampleIdx++;
+              continue;
+            }
+            if (2 + textLen <= samplePayload.byteLength) {
+              samplePayload = samplePayload.subarray(2, 2 + textLen);
+            }
+          }
           samples.push({
-            data: bytes.subarray(safeStart, safeEnd),
+            data: samplePayload,
             dts,
             pts,
             cts,
             duration: delta,
-            size: safeEnd - safeStart,
+            size: samplePayload.byteLength,
             isKeyframe,
             sampleDescriptionIndex: stscEntry.sampleDescriptionIndex
           });
@@ -1072,6 +1084,38 @@ function buildVisualStsdEntry(desc: MediaCodecDescription, width: number, height
   return makeBox(desc.formatFourCC || "avc1", writer.toUint8Array());
 }
 
+function buildSubtitleStsdEntry(desc: MediaCodecDescription): Uint8Array {
+  if (desc.rawStsdEntryBytes) return desc.rawStsdEntryBytes;
+  const ftabWriter = new BinaryWriter(16);
+  ftabWriter.writeU16BE(1); // entry_count = 1
+  ftabWriter.writeU16BE(1); // font_ID = 1
+  ftabWriter.writeU8(5);    // font_name_length = 5
+  ftabWriter.writeBytes(new TextEncoder().encode("Serif"));
+  const ftabBox = makeBox("ftab", ftabWriter.toUint8Array());
+
+  const w = new BinaryWriter(38 + ftabBox.byteLength);
+  w.writeZeros(6);          // reserved
+  w.writeU16BE(1);          // data_reference_index
+  w.writeU32BE(0);          // displayFlags
+  w.writeU8(1);             // horizontal-justification (center)
+  w.writeU8(0xff);          // vertical-justification (bottom)
+  w.writeU32BE(0x000000ff); // background-color-rgba
+  // BoxRecord (top, left, bottom, right)
+  w.writeU16BE(0);
+  w.writeU16BE(0);
+  w.writeU16BE(0);
+  w.writeU16BE(0);
+  // StyleRecord (startChar, endChar, fontID, faceStyleFlags, fontSize, textColorRGBA)
+  w.writeU16BE(0);
+  w.writeU16BE(0);
+  w.writeU16BE(1);
+  w.writeU8(0);
+  w.writeU8(16);
+  w.writeU32BE(0xffffffff);
+  w.writeBytes(ftabBox);
+  return makeBox("tx3g", w.toUint8Array());
+}
+
 function buildAudioStsdEntry(desc: MediaCodecDescription): Uint8Array {
   if (desc.rawStsdEntryBytes && desc.rawStsdEntryBytes.byteLength >= 36) {
     return desc.rawStsdEntryBytes;
@@ -1144,6 +1188,54 @@ function materializeTrackSamples(track: MediaTrack): {
   samples: readonly MediaSample[];
   codecDescriptions: readonly MediaCodecDescription[];
 } {
+  if (track.type === "subtitle" && track.samples.length > 0) {
+    const alreadyPacked = track.samples.every(
+      (s) => s.data.byteLength >= 2 && ((s.data[0]! << 8) | s.data[1]!) === s.data.byteLength - 2
+    );
+    const codecDescriptions: readonly MediaCodecDescription[] =
+      track.codecDescriptions.length > 0
+        ? track.codecDescriptions.map((d) => ({ ...d, formatFourCC: "tx3g", codecName: "mov_text" }))
+        : [{ formatFourCC: "tx3g", codecName: "mov_text" }];
+    if (alreadyPacked) {
+      return { samples: track.samples, codecDescriptions };
+    }
+    const tx3gSamples: MediaSample[] = [];
+    let cursor = 0;
+    for (const s of track.samples) {
+      const start = Math.max(cursor, Math.round(s.pts));
+      if (start > cursor) {
+        const emptyPayload = new Uint8Array([0, 0]);
+        tx3gSamples.push({
+          data: emptyPayload,
+          dts: cursor,
+          pts: cursor,
+          cts: 0,
+          duration: start - cursor,
+          size: 2,
+          isKeyframe: true,
+          sampleDescriptionIndex: 1
+        });
+        cursor = start;
+      }
+      const wrapped = new Uint8Array(2 + s.data.byteLength);
+      wrapped[0] = (s.data.byteLength >>> 8) & 0xff;
+      wrapped[1] = s.data.byteLength & 0xff;
+      wrapped.set(s.data, 2);
+      const dur = Math.max(1, Math.round(s.duration));
+      tx3gSamples.push({
+        ...s,
+        data: wrapped,
+        dts: cursor,
+        pts: cursor,
+        cts: 0,
+        duration: dur,
+        size: wrapped.byteLength,
+        isKeyframe: true
+      });
+      cursor += dur;
+    }
+    return { samples: tx3gSamples, codecDescriptions };
+  }
   if (track.samples.length > 0) {
     return {
       samples: track.samples,
@@ -1368,6 +1460,8 @@ function buildTrakBox(
       stsdEntries.push(buildVisualStsdEntry(desc, track.width ?? desc.width ?? 320, track.height ?? desc.height ?? 240));
     } else if (track.type === "audio") {
       stsdEntries.push(buildAudioStsdEntry(desc));
+    } else if (track.type === "subtitle") {
+      stsdEntries.push(buildSubtitleStsdEntry(desc));
     } else if (desc.rawStsdEntryBytes) {
       stsdEntries.push(desc.rawStsdEntryBytes);
     }

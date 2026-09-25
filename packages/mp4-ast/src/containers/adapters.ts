@@ -1170,6 +1170,242 @@ export function image2Ast(): MediaAstPlugin {
  * Returns all built-in MediaAstPlugin instances covering the most popular video, audio, and image containers:
  * MP4, MOV, Matroska (MKV), WebM, MPEG-TS, AVI, FLV, YUV4MPEG2 (Y4M), ADTS AAC, WAV, MP3, FLAC, OGG, GIF, and Image2.
  */
+
+// --- 9. SubRip (.srt) & WebVTT (.vtt) Subtitle ASTs ---
+
+function parseSubtitleTimecodeMs(raw: string): number {
+  const clean = raw.trim().replace(",", ".");
+  const parts = clean.split(":");
+  if (parts.length === 3) {
+    const h = parseInt(parts[0] ?? "0", 10) || 0;
+    const m = parseInt(parts[1] ?? "0", 10) || 0;
+    const sec = parseFloat(parts[2] ?? "0") || 0;
+    return Math.round((h * 3600 + m * 60 + sec) * 1000);
+  }
+  if (parts.length === 2) {
+    const m = parseInt(parts[0] ?? "0", 10) || 0;
+    const sec = parseFloat(parts[1] ?? "0") || 0;
+    return Math.round((m * 60 + sec) * 1000);
+  }
+  return Math.round((parseFloat(clean) || 0) * 1000);
+}
+
+function formatSubtitleTimecode(ms: number, sep: "," | "."): string {
+  const totalMs = Math.max(0, Math.round(ms));
+  const h = Math.floor(totalMs / 3600000);
+  const m = Math.floor((totalMs % 3600000) / 60000);
+  const s = Math.floor((totalMs % 60000) / 1000);
+  const milli = totalMs % 1000;
+  return (
+    String(h).padStart(2, "0") +
+    ":" +
+    String(m).padStart(2, "0") +
+    ":" +
+    String(s).padStart(2, "0") +
+    sep +
+    String(milli).padStart(3, "0")
+  );
+}
+
+export function isSrtSignature(bytes: Uint8Array, filename?: string): boolean {
+  if (filename && filename.toLowerCase().endsWith(".srt")) return true;
+  if (bytes.byteLength < 15) return false;
+  const head = decodeUtf8(bytes.subarray(0, Math.min(256, bytes.byteLength))).trimStart();
+  return /^\d+\r?\n\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}/.test(head);
+}
+
+export function isWebVttSignature(bytes: Uint8Array, filename?: string): boolean {
+  if (filename && /\.(vtt|webvtt)$/i.test(filename)) return true;
+  if (bytes.byteLength < 6) return false;
+  const head = decodeUtf8(bytes.subarray(0, Math.min(64, bytes.byteLength))).replace(/^\uFEFF/, "").trimStart();
+  return head.startsWith("WEBVTT");
+}
+
+export function parseSubtitleDocument(
+  bytes: Uint8Array,
+  format: "srt" | "webvtt"
+): MediaDocument {
+  const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+  const blocks = text.split(/\n\s*\n/);
+  const samples: MediaSample[] = [];
+  let maxEndMs = 0;
+
+  for (const rawBlock of blocks) {
+    const lines = rawBlock
+      .split("\n")
+      .map((l) => l.trimEnd())
+      .filter((l) => l.length > 0);
+    if (lines.length === 0) continue;
+    if (lines[0]!.startsWith("WEBVTT") || lines[0]!.startsWith("NOTE")) continue;
+
+    let arrowLineIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]!.includes("-->")) {
+        arrowLineIdx = i;
+        break;
+      }
+    }
+    if (arrowLineIdx < 0) continue;
+    const timingLine = lines[arrowLineIdx]!;
+    const [leftRaw, rightWithSettings] = timingLine.split("-->");
+    const rightRaw = (rightWithSettings ?? "").trim().split(/\s+/)[0] ?? "0";
+    const startMs = parseSubtitleTimecodeMs(leftRaw ?? "0");
+    const endMs = Math.max(startMs + 1, parseSubtitleTimecodeMs(rightRaw));
+    const cueText = lines.slice(arrowLineIdx + 1).join("\n").trim();
+    if (!cueText) continue;
+
+    const payload = encodeUtf8(cueText);
+    const duration = Math.max(1, endMs - startMs);
+    if (endMs > maxEndMs) maxEndMs = endMs;
+
+    samples.push({
+      data: payload,
+      dts: startMs,
+      pts: startMs,
+      cts: 0,
+      duration,
+      size: payload.byteLength,
+      isKeyframe: true,
+      sampleDescriptionIndex: 1
+    });
+  }
+
+  const codecName = format === "webvtt" ? "webvtt" : "subrip";
+  const formatFourCC = format === "webvtt" ? "wvtt" : "tx3g";
+
+  return {
+    containerFormat: format,
+    timescale: 1000,
+    duration: maxEndMs,
+    durationSeconds: maxEndMs / 1000,
+    tracks: [
+      {
+        id: 1,
+        type: "subtitle",
+        handlerType: "sbtl",
+        timescale: 1000,
+        duration: maxEndMs,
+        language: "und",
+        enabled: true,
+        codecDescriptions: [
+          {
+            formatFourCC,
+            codecName
+          }
+        ],
+        samples
+      }
+    ],
+    metadata: {},
+    byteLength: bytes.byteLength
+  };
+}
+
+export function serializeSubtitleDocument(
+  doc: MediaDocument,
+  format: "srt" | "webvtt"
+): Uint8Array {
+  const subTrack = doc.tracks.find((t) => t.type === "subtitle");
+  const ts = subTrack?.timescale || 1000;
+  const samples = subTrack?.samples ?? [];
+  const lines: string[] = [];
+
+  if (format === "webvtt") {
+    lines.push("WEBVTT", "");
+  }
+
+  let cueIndex = 1;
+  for (const s of samples) {
+    const cueText = decodeUtf8(s.data).trim();
+    if (!cueText) continue;
+    const startMs = Math.round((s.pts / ts) * 1000);
+    const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
+    const sep = format === "webvtt" ? "." : ",";
+    if (format === "srt") {
+      lines.push(String(cueIndex));
+    }
+    lines.push(`${formatSubtitleTimecode(startMs, sep)} --> ${formatSubtitleTimecode(endMs, sep)}`);
+    lines.push(cueText, "");
+    cueIndex++;
+  }
+
+  return encodeUtf8(lines.join("\n"));
+}
+
+export function srtAst(): MediaAstPlugin {
+  return {
+    id: "srt",
+    formatName: "srt",
+    formatLongName: "SubRip subtitle",
+    extensions: ["srt"],
+    mimeTypes: ["application/x-subrip", "text/srt"],
+    canDemux: true,
+    canMux: true,
+    supportedVideoCodecs: [],
+    supportedAudioCodecs: [],
+    detect(bytes, filename) {
+      return isSrtSignature(bytes, filename);
+    },
+    parse(bytes) {
+      return parseSubtitleDocument(bytes, "srt");
+    },
+    serialize(doc) {
+      return serializeSubtitleDocument(doc, "srt");
+    },
+    probe(bytes, options) {
+      const doc = parseSubtitleDocument(bytes, "srt");
+      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.srt", {
+        ...options,
+        formatName: "srt",
+        formatLongName: "SubRip subtitle"
+      });
+    },
+    concat(docs, options) {
+      return concatMp4(docs, options);
+    },
+    slice(doc, options) {
+      return sliceMp4(doc, options);
+    }
+  };
+}
+
+export function webvttAst(): MediaAstPlugin {
+  return {
+    id: "webvtt",
+    formatName: "webvtt",
+    formatLongName: "WebVTT subtitle",
+    extensions: ["vtt", "webvtt"],
+    mimeTypes: ["text/vtt"],
+    canDemux: true,
+    canMux: true,
+    supportedVideoCodecs: [],
+    supportedAudioCodecs: [],
+    detect(bytes, filename) {
+      return isWebVttSignature(bytes, filename);
+    },
+    parse(bytes) {
+      return parseSubtitleDocument(bytes, "webvtt");
+    },
+    serialize(doc) {
+      return serializeSubtitleDocument(doc, "webvtt");
+    },
+    probe(bytes, options) {
+      const doc = parseSubtitleDocument(bytes, "webvtt");
+      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.vtt", {
+        ...options,
+        formatName: "webvtt",
+        formatLongName: "WebVTT subtitle"
+      });
+    },
+    concat(docs, options) {
+      return concatMp4(docs, options);
+    },
+    slice(doc, options) {
+      return sliceMp4(doc, options);
+    }
+  };
+}
+
 export function allMediaAsts(): MediaAstPlugin[] {
   return [
     mp4Ast(),
@@ -1186,7 +1422,9 @@ export function allMediaAsts(): MediaAstPlugin[] {
     flacAst(),
     oggAst(),
     gifAst(),
-    image2Ast()
+    image2Ast(),
+    srtAst(),
+    webvttAst()
   ];
 }
 

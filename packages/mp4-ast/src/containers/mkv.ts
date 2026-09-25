@@ -407,7 +407,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     for (let i = 0; i < rawSamples.length; i++) {
       const cur = rawSamples[i]!;
       const next = rawSamples[i + 1];
-      const dur = next ? Math.max(1, next.dts - cur.dts) : (info.trackType === 1 ? 33 : 23);
+      const dur = cur.duration > 0 ? cur.duration : (next ? Math.max(1, next.dts - cur.dts) : (info.trackType === 1 ? 33 : 23));
       rawSamples[i] = { ...cur, duration: dur };
     }
 
@@ -471,6 +471,9 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     } else if (info.codecId.includes("A_PCM")) {
       codecName = "pcm_s16le";
       formatFourCC = "sowt";
+    } else if (info.trackType === 17 || info.codecId.startsWith("S_TEXT")) {
+      codecName = info.codecId.includes("WEBVTT") ? "webvtt" : "subrip";
+      formatFourCC = codecName === "webvtt" ? "wvtt" : "tx3g";
     }
 
     const totalTrackDur =
@@ -589,7 +592,7 @@ export function serializeMkv(
 
   // Prepare tracks and millisecond-normalized samples
   const trackEntries: Uint8Array[] = [];
-  const allBlocks: { ptsMs: number; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
+  const allBlocks: { ptsMs: number; durationMs: number; isSubtitle: boolean; trackNum: number; data: Uint8Array; isKeyframe: boolean }[] = [];
   let maxDurationMs = Math.round(doc.durationSeconds * 1000);
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
@@ -684,6 +687,9 @@ export function serializeMkv(
           desc?.esds?.decoderSpecificInfo ??
           buildAudioSpecificConfig(desc?.sampleRate ?? 44100, desc?.channels ?? 2, 2);
       }
+    } else if (trk.type === "subtitle") {
+      codecId = isWebm ? "S_TEXT/WEBVTT" : "S_TEXT/UTF8";
+      codecPrivate = undefined;
     }
 
     const entryParts: Uint8Array[] = [
@@ -727,8 +733,11 @@ export function serializeMkv(
       const ptsMs = Math.max(0, Math.round((s.pts / ts) * 1000));
       const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
       if (endMs > maxDurationMs) maxDurationMs = endMs;
+      const durationMs = Math.max(1, Math.round((s.duration / ts) * 1000));
       allBlocks.push({
         ptsMs,
+        durationMs,
+        isSubtitle: trk.type === "subtitle",
         trackNum,
         data: s.data,
         isKeyframe: s.isKeyframe
@@ -810,9 +819,17 @@ export function serializeMkv(
     const sbWriter = new BinaryWriter(4 + blk.data.byteLength);
     sbWriter.writeU8(0x80 | (blk.trackNum & 0x7f));
     sbWriter.writeI16BE(relTime);
-    sbWriter.writeU8(blk.isKeyframe ? 0x80 : 0x00);
-    sbWriter.writeBytes(blk.data);
-    currentClusterBlocks.push(makeEbmlElement(0xa3, sbWriter.toUint8Array()));
+    if (blk.isSubtitle) {
+      sbWriter.writeU8(0x00);
+      sbWriter.writeBytes(blk.data);
+      const blockElem = makeEbmlElement(0xa1, sbWriter.toUint8Array());
+      const durElem = makeEbmlUint(0x9b, blk.durationMs);
+      currentClusterBlocks.push(makeEbmlElement(0xa0, concatBytes([blockElem, durElem])));
+    } else {
+      sbWriter.writeU8(blk.isKeyframe ? 0x80 : 0x00);
+      sbWriter.writeBytes(blk.data);
+      currentClusterBlocks.push(makeEbmlElement(0xa3, sbWriter.toUint8Array()));
+    }
   }
   flushCluster();
 

@@ -569,3 +569,37 @@ test("copyCheckedSource preserves primary read failure when close also rejects",
   assert.match(result.stderr, /EIO.*primary read failure/u);
   assert.doesNotMatch(result.stderr, /secondary close failure/u);
 });
+
+for (const readFailure of [false, true]) for (const undefinedRead of [false, true]) for (const undefinedClose of [false, true]) {
+  if (!readFailure && undefinedRead) continue;
+  test(`copy preserves rejection identity through cleanup: read=${readFailure}, undefinedRead=${undefinedRead}, undefinedClose=${undefinedClose}`, async () => {
+    const fs = await fixture({ source: "payload" });
+    const { context } = await run("true", [], { fs });
+    const expected = await fs.stat("/work/source");
+    const primary = undefinedRead ? undefined : new Error("read failed");
+    const secondary = undefinedClose ? undefined : new Error("close failed");
+    let closes = 0;
+    let cleanup!: () => void | Promise<void>;
+    const view = new Proxy(fs, { get(target, property) {
+      if (property === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+        const reader = await fs.openReadFile(...args);
+        return { ...reader,
+          async read(...args: Parameters<typeof reader.read>) {
+            if (readFailure) throw primary;
+            return reader.read(...args);
+          },
+          async close() { closes++; await reader.close(); throw secondary; },
+        };
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    await copyCheckedSource({ ...context, fs: view, registerCleanup(close) { cleanup = close; } },
+      "/work/source", "/work/new", expected, true).then(
+        () => assert.fail("copy must reject"),
+        reason => assert.equal(reason, readFailure ? primary : secondary),
+      );
+    if (readFailure) await cleanup();
+    assert.equal(closes, 1);
+  });
+}

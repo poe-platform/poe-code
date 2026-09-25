@@ -9439,7 +9439,7 @@ export class Runtime {
             }
           }
           wildcardPrefix = true;
-        } else if (!state.nocaseglob && !/(?:^|[^\\])[*?[]/u.test(segment)) {
+        } else if (segment === "." || segment === ".." || !state.nocaseglob && !/(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment)) {
           const literal = segment.replace(/\\(.)/gu, "$1");
           const bytes = (await scanString(literal, work)).bytes;
           for (const candidate of candidates) add(make(candidate, literal, bytes, true, candidate.depth));
@@ -9486,7 +9486,7 @@ export class Runtime {
 
   async glob(value: string, pattern: string, state: State): Promise<string[]> {
     if (state.noglob) return [value];
-    if (!/(?:^|[^\\])[*?[]/u.test(pattern)) return [value];
+    if (!/(?:^|[^\\])(?:\\\\)*[*?[]/u.test(pattern)) return [value];
     if (state.globstar) {
       const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
       let start = 0;
@@ -9511,7 +9511,7 @@ export class Runtime {
         next.push(candidate);
         if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       };
-      if (!state.nocaseglob && !/(?:^|[^\\])[*?[]/u.test(segment)) {
+      if (segment === "." || segment === ".." || !state.nocaseglob && !/(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment)) {
         const literal = segment.replace(/\\(.)/gu, "$1");
         for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
       } else {
@@ -9543,7 +9543,8 @@ export class Runtime {
     const found: string[] = [];
     for (const candidate of candidates) {
       try {
-        const pending = this.fs.stat(pathOf(state, candidate), { signal: this.signal });
+        const path = pathOf(state, candidate);
+        const pending = value.endsWith("/") ? this.fs.stat(path, { signal: this.signal }) : this.fs.lstat(path, { signal: this.signal });
         const stat = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
         if (!value.endsWith("/") || stat.type === "directory") found.push(candidate + (value.endsWith("/") ? "/" : ""));
       } catch (error) {

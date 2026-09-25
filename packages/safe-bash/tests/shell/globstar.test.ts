@@ -45,7 +45,7 @@ test("unquoted URL glob retains its original argument when colon pathname probes
 
 const invalidProbeCases = [
   { name: "ordinary directory read", pattern: "bad:/*", method: "readdir" },
-  { name: "ordinary final stat", pattern: "bad?", method: "stat" },
+  { name: "ordinary final lstat", pattern: "bad?", method: "lstat" },
   { name: "recursive root stat", pattern: "bad:/**", method: "stat" },
   { name: "recursive directory walk", pattern: "**/leaf?", method: "readdir" },
   { name: "recursive wildcard segment", pattern: "**/bad:/*", method: "readdir" },
@@ -132,7 +132,7 @@ test("unmatched expansion does not relax actual file access restrictions", async
 
 const siblingProbeCases = [
   { name: "ordinary directory read", pattern: "*/leaf?", method: "readdir", sibling: "good/leaf1" },
-  { name: "ordinary final stat", pattern: "bad?", method: "stat", sibling: "bad1" },
+  { name: "ordinary final lstat", pattern: "bad?", method: "lstat", sibling: "bad1" },
   { name: "recursive root stat", pattern: "*/**/leaf?", method: "stat", sibling: "good/leaf1" },
   { name: "recursive directory walk", pattern: "**/leaf?", method: "readdir", sibling: "good/leaf1" },
   { name: "recursive wildcard segment", pattern: "**/bad:/*", method: "readdir", sibling: "good/bad:/leaf1" },

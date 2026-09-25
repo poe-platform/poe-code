@@ -510,6 +510,7 @@ function assertSource7Discovery(files) {
     "tests/shell/background-jobs.test.ts",
     "tests/shell/background-jobs-review.test.ts",
     "tests/shell/globstar.test.ts",
+    "tests/shell/pathname-globbing.test.ts",
     "tests/shell/shopt-matching.test.ts",
     "tests/shell/prefix-names.test.ts",
     "tests/shell/parameter-transforms.test.ts",

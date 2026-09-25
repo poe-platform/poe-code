@@ -2017,4 +2017,42 @@ describe("@poe-code/image-ast (sharp core)", () => {
       writeSpy.mockRestore();
     }
   });
+  it("supports callback overloads on toBuffer/metadata/stats and sharp.cache/concurrency/counters/simd/block (#104)", async () => {
+    expect(typeof (sharp as any).cache).toBe("function");
+    expect((sharp as any).cache()).toMatchObject({
+      memory: { max: expect.any(Number) },
+      files: { max: expect.any(Number) },
+      items: { max: expect.any(Number) }
+    });
+    expect((sharp as any).concurrency(4)).toBe(4);
+    expect((sharp as any).counters()).toEqual({ queue: 0, process: 0 });
+    expect((sharp as any).simd(true)).toBe(true);
+    expect(() => (sharp as any).block({ operation: ["VipsForeignLoadTiff"] })).not.toThrow();
+
+    const buf = Buffer.from([10, 20, 30]);
+    const cbBuf = await new Promise<{ data: Buffer; info: any }>((resolve, reject) => {
+      (sharp(buf, { raw: { width: 1, height: 1, channels: 3 } }).raw() as any).toBuffer(
+        (err: Error | null, data: Buffer, info: any) => {
+          if (err) reject(err);
+          else resolve({ data, info });
+        }
+      );
+    });
+    expect(Array.from(cbBuf.data)).toEqual([10, 20, 30]);
+    expect(cbBuf.info.width).toBe(1);
+
+    const cbMeta = await new Promise<any>((resolve, reject) => {
+      (sharp(buf, { raw: { width: 1, height: 1, channels: 3 } }) as any).metadata(
+        (err: Error | null, meta: any) => (err ? reject(err) : resolve(meta))
+      );
+    });
+    expect(cbMeta.width).toBe(1);
+
+    const cbStats = await new Promise<any>((resolve, reject) => {
+      (sharp(buf, { raw: { width: 1, height: 1, channels: 3 } }) as any).stats(
+        (err: Error | null, st: any) => (err ? reject(err) : resolve(st))
+      );
+    });
+    expect(cbStats.channels).toHaveLength(3);
+  });
 });

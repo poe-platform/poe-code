@@ -426,8 +426,15 @@ export class SharpInstance {
     };
   }
 
-  async metadata(): Promise<ImageMetadata> {
-    return this.metadataSync();
+  async metadata(callback?: (err: Error | null, metadata?: ImageMetadata) => void): Promise<ImageMetadata> {
+    try {
+      const res = this.metadataSync();
+      if (callback) callback(null, res);
+      return res;
+    } catch (err) {
+      if (callback) callback(err as Error);
+      throw err;
+    }
   }
 
   statsSync(): ImageStats {
@@ -435,8 +442,15 @@ export class SharpInstance {
     return computeImageStats(img);
   }
 
-  async stats(): Promise<ImageStats> {
-    return this.statsSync();
+  async stats(callback?: (err: Error | null, stats?: ImageStats) => void): Promise<ImageStats> {
+    try {
+      const res = this.statsSync();
+      if (callback) callback(null, res);
+      return res;
+    } catch (err) {
+      if (callback) callback(err as Error);
+      throw err;
+    }
   }
 
   autoOrient(): this {
@@ -1270,17 +1284,27 @@ export class SharpInstance {
     }
   }
 
-  toBuffer(): Promise<Uint8Array>;
+  toBuffer(callback?: (err: Error | null, data?: Uint8Array, info?: OutputInfo) => void): Promise<Uint8Array>;
   toBuffer(options: { readonly resolveWithObject: true }): Promise<{ readonly data: Uint8Array; readonly info: OutputInfo }>;
   toBuffer(options: { readonly resolveWithObject: false }): Promise<Uint8Array>;
-  async toBuffer(options?: { readonly resolveWithObject?: boolean }): Promise<
-    Uint8Array | { readonly data: Uint8Array; readonly info: OutputInfo }
-  > {
-    const res = this.toBufferWithObjectSync();
-    if (options?.resolveWithObject) {
-      return res;
+  async toBuffer(
+    optionsOrCallback?:
+      | { readonly resolveWithObject?: boolean }
+      | ((err: Error | null, data?: Uint8Array, info?: OutputInfo) => void)
+  ): Promise<Uint8Array | { readonly data: Uint8Array; readonly info: OutputInfo }> {
+    const cb = typeof optionsOrCallback === "function" ? optionsOrCallback : undefined;
+    const options = typeof optionsOrCallback === "object" && optionsOrCallback !== null ? optionsOrCallback : undefined;
+    try {
+      const res = this.toBufferWithObjectSync();
+      if (cb) cb(null, res.data, res.info);
+      if (options?.resolveWithObject) {
+        return res;
+      }
+      return res.data;
+    } catch (err) {
+      if (cb) cb(err as Error);
+      throw err;
     }
-    return res.data;
   }
 }
 
@@ -1377,6 +1401,48 @@ Object.assign(sharp, {
     "jpeg" | "png" | "webp" | "tiff" | "heif" | "heic" | "avif" | "gif" | "svg" | "pdf" | "ppm" | "pgm" | "pbm" | "bmp" | "raw",
     { readonly id: string; readonly input: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean }; readonly output: { readonly file: boolean; readonly buffer: boolean; readonly stream: boolean } }
   >,
+  cache: (() => {
+    let memMax = 50;
+    let filesMax = 20;
+    let itemsMax = 100;
+    return (options?: boolean | { readonly memory?: number; readonly files?: number; readonly items?: number }) => {
+      if (options === false) {
+        memMax = 0;
+        filesMax = 0;
+        itemsMax = 0;
+      } else if (options === true) {
+        memMax = 50;
+        filesMax = 20;
+        itemsMax = 100;
+      } else if (options && typeof options === "object") {
+        if (typeof options.memory === "number") memMax = options.memory;
+        if (typeof options.files === "number") filesMax = options.files;
+        if (typeof options.items === "number") itemsMax = options.items;
+      }
+      return {
+        memory: { current: 0, high: 0, max: memMax },
+        files: { current: 0, max: filesMax },
+        items: { current: 0, max: itemsMax }
+      };
+    };
+  })(),
+  concurrency: (() => {
+    let threads = 4;
+    return (n?: number) => {
+      if (typeof n === "number" && n > 0) threads = Math.floor(n);
+      return threads;
+    };
+  })(),
+  counters: () => ({ queue: 0, process: 0 }),
+  simd: (() => {
+    let enabled = true;
+    return (enable?: boolean) => {
+      if (typeof enable === "boolean") enabled = enable;
+      return enabled;
+    };
+  })(),
+  block: (_options?: { readonly operation?: readonly string[] }) => {},
+  unblock: (_options?: { readonly operation?: readonly string[] }) => {},
   versions: {
     vips: "8.16.1",
     sharp: "0.34.5"

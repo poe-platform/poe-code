@@ -89,3 +89,14 @@ test("jq module definitions keep CLI variables when the caller shadows them", as
   assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "42\n");
 });
+
+test("jq nested module filter arguments retain caller bindings across invocations", async () => {
+  const fs = await fixture({
+    "/modules/audit.jq": "def call(f): 99 as $item | f; def nested(f): call(f);",
+  });
+  const result = await run(["-L", "modules", "-nc",
+    'include "audit"; 7 as $item | [nested($item), nested(8), nested($item)]'], "", {}, { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "[7,8,7]\n");
+  assert.equal(result.stderr, "");
+});

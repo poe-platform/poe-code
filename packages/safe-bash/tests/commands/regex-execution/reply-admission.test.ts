@@ -157,28 +157,28 @@ for (const growing of [false, true]) {
       };
     } });
     const session = executor.open(signal());
-    if (growing) {
-      // Scheduling instrumentation only: the real worker mutates a genuine
-      // length-tracking shared view during copying, without reply accessors.
-      const requestSignal = Reflect.get(session, "requestSignal") as AbortSignal;
-      const previousCheck = Object.getOwnPropertyDescriptor(requestSignal, "throwIfAborted");
-      const check = requestSignal.throwIfAborted.bind(requestSignal);
-      requestSignal.throwIfAborted = () => {
-        check();
-        if (received && ++checks === 100) {
-          worker.postMessage({ grow: true });
-          assert.notEqual(Atomics.wait(synchronization, 0, 0, 2000), "timed-out", "worker growth must finish at the bounded copy barrier");
-          assert.equal(Atomics.load(synchronization, 0), 1);
-        }
-      };
-      context.after(() => {
-        if (previousCheck) Object.defineProperty(requestSignal, "throwIfAborted", previousCheck);
-        else Reflect.deleteProperty(requestSignal, "throwIfAborted");
-      });
-    }
     try {
       const request = session.run({ kind: "grep", patterns: [""], fixed: false, extended: true, insensitive: false, whole: false, word: false },
         [{ bytes: new Uint8Array(100_000), all: true, terminated: true }]);
+      if (growing) {
+        // Attach after admission creates the session-owned signal. The real
+        // worker grows a genuine shared view during copying, without accessors.
+        const requestSignal = Reflect.get(session, "requestSignal") as AbortSignal;
+        const previousCheck = Object.getOwnPropertyDescriptor(requestSignal, "throwIfAborted");
+        const check = requestSignal.throwIfAborted.bind(requestSignal);
+        requestSignal.throwIfAborted = () => {
+          check();
+          if (received && ++checks === 100) {
+            worker.postMessage({ grow: true });
+            assert.notEqual(Atomics.wait(synchronization, 0, 0, 2000), "timed-out", "worker growth must finish at the bounded copy barrier");
+            assert.equal(Atomics.load(synchronization, 0), 1);
+          }
+        };
+        context.after(() => {
+          if (previousCheck) Object.defineProperty(requestSignal, "throwIfAborted", previousCheck);
+          else Reflect.deleteProperty(requestSignal, "throwIfAborted");
+        });
+      }
       if (growing) await assert.rejects(request, { code: "PROTOCOL" });
       else assert.equal((await request)[0]!.length, 100_000);
     } finally { await session.close(); await executor.dispose(); }

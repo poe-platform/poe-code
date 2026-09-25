@@ -8,7 +8,6 @@ export { RegexExecutionError } from "./protocol.js";
 
 const resolvedVoid = Promise.resolve();
 const closedSessionError = new RegexExecutionError("CLOSED", "invocation is closed");
-const sharedEmptyRetirements = new Set<Promise<void>>();
 const idleProviderSlots = new WeakMap<object, Set<() => void>>();
 
 interface Pending {
@@ -282,6 +281,7 @@ export class RegexExecutor {
     if (this.slots.size === 0) return true;
     if (
       this.slots.size === 1 &&
+      inProcessRegexProviders.has(this.provider) &&
       this.cachedReadySlot !== undefined &&
       this.cachedReadySlot.inProcess &&
       !this.cachedReadySlot.busy &&
@@ -537,7 +537,7 @@ export class RegexExecutor {
 export class RegexSession {
   private closed: Promise<void> | undefined;
   private pending: Set<Promise<Match[][] | ExprMatchResult | BreSearchResult>> | undefined;
-  private retirements: Set<Promise<void>> = sharedEmptyRetirements;
+  private retirements: Set<Promise<void>> | undefined;
   private controller: AbortController | undefined;
   private requestSignal: AbortSignal;
   constructor(private readonly executor: RegexExecutor, private readonly signal: AbortSignal) {
@@ -563,7 +563,8 @@ export class RegexSession {
   runSync(descriptor: Descriptor, rows: readonly Row[]): Match[][] | Promise<Match[][]> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const result = this.executor.requestSyncOrAsync(descriptor, rows, this.requestSignal, this.retirements);
+    const signal = this.ensureAsyncState();
+    const result = this.executor.requestSyncOrAsync(descriptor, rows, signal, this.retirements!);
     if (!(result instanceof Promise)) return result;
     return this.trackPending(result);
   }
@@ -586,7 +587,7 @@ export class RegexSession {
     return this.trackPending(result);
   }
   canCloseSync(): boolean {
-    return !this.pending?.size && this.retirements.size === 0 && this.executor.canCloseSync();
+    return !this.pending?.size && !this.retirements?.size && this.executor.canCloseSync();
   }
   closeSync(): void {
     if (!this.closed) {
@@ -605,8 +606,7 @@ export class RegexSession {
       this.controller?.abort(this.signal.aborted ? this.signal.reason : closedSessionError);
       try { if (this.pending?.size) await Promise.allSettled([...this.pending]); }
       finally {
-        const rets = this.retirements.size ? [...this.retirements] : [];
-        if (this.retirements === sharedEmptyRetirements) this.retirements.clear();
+        const rets = this.retirements ? [...this.retirements] : [];
         await awaitRetirements([...rets, this.executor.close()]);
       }
     });

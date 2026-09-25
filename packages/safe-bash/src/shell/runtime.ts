@@ -1745,12 +1745,6 @@ const syncRestorationTickets = { generation: 0, version: 0, epoch: 0 };
 const syncPipeStatusCharge = { generation: true, version: true, epoch: true, work: 8 } as const;
 const syncPipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
 const predicateScratchWords: string[] = [];
-const syncRedirectScratchBuf = Buffer.allocUnsafe(4096);
-const syncRedirectSubarrays: Uint8Array[] = Array.from({ length: 129 }, (_, i) => syncRedirectScratchBuf.subarray(0, i));
-const syncRedirectWriteOpts: { signal?: AbortSignal; flag: "w" | "a"; mode?: number } = { flag: "w", mode: 0o644 };
-let lastSyncRedirectSourceFs: unknown;
-let lastSyncRedirectBackingFs: unknown;
-let lastSyncRedirectDir = "";
 const fastSharedTextEncoder = new TextEncoder();
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 const assignmentCache = new WeakMap<Word, { name: string; value: Word; append: boolean } | null>();
@@ -3374,7 +3368,7 @@ export class Runtime {
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
     if (pipeline.commands.length !== 1) return undefined;
     const command = pipeline.commands[0]!;
-    if (command.kind !== "simple" || command.redirects.length > 1) return undefined;
+    if (command.kind !== "simple" || command.redirects.length !== 0) return undefined;
     const scope = io[invocationScope];
     if (scope.failures.length > 0) return undefined;
     const tracked = trackState(state, this.budget, scope);
@@ -3410,180 +3404,6 @@ export class Runtime {
     if (!elem0 || elem0.text.bytes !== 1) return undefined;
     const canMutatePipeStatus = existing.references === 1 && elem0.text.references === 1;
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
-    if (command.redirects.length === 1) {
-      if (command.words.length === 0) return undefined;
-      if (!canMutatePipeStatus && elem0.text.shellValue !== "0") return undefined;
-      if (pipeline.negate && !ignored && rawState.errexit) return undefined;
-      const r0 = command.redirects[0]!;
-      const w0Plain = command.words[0]!.plain;
-      const memFs = this.backingFs as unknown as {
-        writeData?: (path: string, data: Uint8Array, options: { signal?: AbortSignal; flag?: string; mode?: number }, syscall: string) => void;
-      };
-      if (
-        typeof memFs.writeData !== "function" ||
-        this.fileWrites.size > 0 ||
-        this.outputFiles.size > 0 ||
-        this.backingFs.capabilitiesFor !== undefined ||
-        this.backingFs.capabilities.open !== true ||
-        this.backingFs.capabilities.preferStreamingRedirection === true ||
-        this.backingFs.capabilities.readOnly === true ||
-        this.backingFs.capabilities.write === false ||
-        this.backingFs.capabilities.append === false ||
-        r0.descriptor !== 1 ||
-        r0.move ||
-        r0.document ||
-        (r0.operator !== ">" && r0.operator !== ">>" && !(r0.operator === ">|" && rawState.noclobber)) ||
-        (r0.operator === ">" && rawState.noclobber) ||
-        !w0Plain ||
-        (w0Plain !== "echo" && w0Plain !== "printf") ||
-        rawState.functions.has(w0Plain) ||
-        rawState.extensions?.builtins.has(w0Plain)
-      ) {
-        return undefined;
-      }
-      const def = this.commands.get(w0Plain);
-      if (
-        !def ||
-        (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute)) ||
-        command.words.length > this.budget.limits.maxExpansionFields ||
-        !this.isPureArgWord(r0.target, rawState)
-      ) {
-        return undefined;
-      }
-      for (let i = 0; i < command.words.length; i++) {
-        if (!this.isPureArgWord(command.words[i]!, rawState)) return undefined;
-      }
-      predicateScratchWords.length = 0;
-      let targetVal: ShellValue | undefined;
-      try {
-        for (let i = 1; i < command.words.length; i++) {
-          const fast = this.fastValueWord(command.words[i]!, tracked, io, true, false, false, true, undefined, diagnosticLine);
-          if (typeof fast !== "string") {
-            predicateScratchWords.length = 0;
-            return undefined;
-          }
-          predicateScratchWords.push(fast);
-        }
-        targetVal = this.fastValueWord(r0.target, tracked, io, true, false, false, true, undefined, diagnosticLine);
-      } catch {
-        predicateScratchWords.length = 0;
-        return undefined;
-      }
-      if (typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) {
-        predicateScratchWords.length = 0;
-        return undefined;
-      }
-      const path = pathOf(rawState, targetVal);
-      if (path.startsWith("/dev/")) {
-        predicateScratchWords.length = 0;
-        return undefined;
-      }
-      const lastSlash = path.lastIndexOf("/");
-      const memSymlinks = (memFs as { symlinkCount?: number }).symlinkCount;
-      let canonicalTarget: string | undefined;
-      if (
-        memSymlinks === 0 &&
-        lastSlash > 0 &&
-        lastSyncRedirectSourceFs === this.sourceFs &&
-        lastSyncRedirectBackingFs === this.backingFs &&
-        lastSyncRedirectDir.length === lastSlash &&
-        path.startsWith(lastSyncRedirectDir) &&
-        path.length - lastSlash - 1 <= 85
-      ) {
-        const base = path.slice(lastSlash + 1);
-        if (base.length > 0 && base !== "." && base !== "..") {
-          this.commandSignal?.throwIfAborted();
-          canonicalTarget = path;
-        }
-      }
-      if (canonicalTarget === undefined) {
-        try {
-          canonicalTarget = this.sourceFs.canonicalizeMissingTarget?.(path, { signal: this.commandSignal });
-        } catch {
-          predicateScratchWords.length = 0;
-          return undefined;
-        }
-        if (!canonicalTarget || canonicalTarget === "/dev" || canonicalTarget.startsWith("/dev/")) {
-          predicateScratchWords.length = 0;
-          return undefined;
-        }
-        if (memSymlinks === 0 && canonicalTarget === path && lastSlash > 0) {
-          lastSyncRedirectSourceFs = this.sourceFs;
-          lastSyncRedirectBackingFs = this.backingFs;
-          lastSyncRedirectDir = path.slice(0, lastSlash);
-        }
-      }
-      let bytes: Uint8Array | undefined;
-      let byteLength = 0;
-      if (w0Plain !== "printf" && predicateScratchWords.length === 1) {
-        const w = predicateScratchWords[0]!;
-        predicateScratchWords.length = 0;
-        if (!w.startsWith("-") && !w.includes("\0") && w.length <= 1024) {
-          const written = syncRedirectScratchBuf.write(w, 0, "utf8");
-          syncRedirectScratchBuf[written] = 10;
-          byteLength = written + 1;
-          if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
-          bytes = byteLength <= 128 ? syncRedirectSubarrays[byteLength]! : syncRedirectScratchBuf.subarray(0, byteLength);
-        } else if (w.length > 1024 && !w.startsWith("-") && !w.includes("\0")) {
-          const formatted = `${w}\n`;
-          byteLength = Buffer.byteLength(formatted);
-          if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
-          bytes = Buffer.from(formatted, "utf8");
-        }
-      } else {
-        let formatted: string | undefined;
-        if (w0Plain === "printf") {
-          formatted = tryFastPrintf(predicateScratchWords);
-        } else if (!predicateScratchWords[0]?.startsWith("-")) {
-          formatted = `${predicateScratchWords.join(" ")}\n`;
-          if (formatted.includes("\0")) formatted = undefined;
-        }
-        predicateScratchWords.length = 0;
-        if (formatted !== undefined) {
-          byteLength = Buffer.byteLength(formatted);
-          if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
-          bytes = Buffer.from(formatted, "utf8");
-        }
-      }
-      if (bytes === undefined) return undefined;
-      const mode = this.backingFs.capabilities.permissions !== false ? 0o666 & ~(rawState.umask ?? 0o022) : undefined;
-      syncRedirectWriteOpts.signal = this.commandSignal;
-      syncRedirectWriteOpts.flag = r0.operator === ">>" ? "a" : "w";
-      if (mode === undefined) delete syncRedirectWriteOpts.mode;
-      else syncRedirectWriteOpts.mode = mode;
-      this.budget.pathLookup.invalidateSync();
-      try {
-        this.budget.fileSystemOperation();
-        memFs.writeData(
-          path,
-          bytes,
-          syncRedirectWriteOpts,
-          r0.operator === ">>" ? "appendFile" : "writeFile",
-        );
-      } catch {
-        this.signal.throwIfAborted();
-        return undefined;
-      } finally {
-        delete syncRedirectWriteOpts.signal;
-      }
-      this.budget.bytes += byteLength;
-      const owner = monitor.internalOwner();
-      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
-      this.budget.tick();
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        rawState.variables.BASH_COMMAND = commandSpelling(command);
-      }
-      rawState.substitutionStatus = 0;
-      if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-      elem0.text.shellValue = "0";
-      const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
-      store.changed(psTickets, "PIPESTATUS");
-      const finalStatus = pipeline.negate ? 1 : 0;
-      rawState.status = finalStatus;
-      monitor.epoch = restEpoch;
-      store.epoch = restEpoch;
-      return finalStatus;
-    }
     if (command.words.length === 1) {
       if (!canMutatePipeStatus && elem0.text.shellValue !== "0") return undefined;
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;

@@ -124,6 +124,24 @@ test("canonical open failure never falls back to pathname or streaming writes", 
   await assert.rejects(backing.stat("/out"), { code: "ENOENT" });
 });
 
+test("preceding commands cannot bypass a wrapped canonical open denial", async context => {
+  const backing = createMemoryFileSystem();
+  await backing.writeFile("/out", Buffer.from("preserved"));
+  let opens = 0;
+  const shell = setup(override<FileSystem>(backing, {
+    async open() { opens++; throw new FsError("EACCES"); },
+    async writeStream() { assert.fail("stream fallback"); },
+    async writeFile() { assert.fail("pathname fallback"); },
+    async appendFile() { assert.fail("pathname fallback"); },
+  }));
+  context.after(() => shell.dispose());
+  const result = await shell.exec("true; printf replacement >out");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(opens, 1);
+  assert.deepEqual(Buffer.from(await backing.readFile("/out")), Buffer.from("preserved"));
+});
+
 for (const route of ["printf b", "bash -c 'printf b'", "sh -c 'printf b'", "forward"]) test(`counted canonical output is not charged again through ${route}`, async context => {
   const fs = createMemoryFileSystem();
   const shell = setup(fs);

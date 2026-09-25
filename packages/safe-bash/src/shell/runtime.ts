@@ -3434,25 +3434,24 @@ export class Runtime {
       [1, { output: io.stdout }], [2, { output: io.stderr }],
     ]);
     if (io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed) return undefined;
-    const store = monitor.store;
-    const existing = store?.get("PIPESTATUS");
+    if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
+    let store = monitor.store;
+    let existing = store?.get("PIPESTATUS");
+    const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
+    if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
+    if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
     if (
-      !store ||
-      !existing ||
-      existing.associative ||
-      existing.values.size !== 1 ||
-      existing.maximum !== 0 ||
-      store.watches.has("PIPESTATUS") ||
-      monitor.hasOverlay("PIPESTATUS")
+      existing &&
+      (existing.associative || existing.values.size !== 1 || existing.maximum !== 0)
     ) {
       return undefined;
     }
-    const elem0 = existing.values.get(0);
-    if (!elem0 || elem0.text.bytes !== 1) return undefined;
-    const canMutatePipeStatus = existing.references === 1 && elem0.text.references === 1;
+    const elem0 = existing?.values.get(0);
+    if (existing && (!elem0 || elem0.text.bytes !== 1)) return undefined;
+    const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
     if (command.redirects.length === 1) {
-      if (!canMutatePipeStatus && elem0.text.shellValue !== "0") return undefined;
+      if (!canMutatePipeStatus && elem0!.text.shellValue !== "0") return undefined;
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;
       if (
         command.words.length === 0 ||
@@ -3565,13 +3564,17 @@ export class Runtime {
       this.budget.bytes += byteLength;
       rawState.substitutionStatus = 0;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-      elem0.text.shellValue = "0";
-      const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
-      store.changed(psTickets, "PIPESTATUS");
+      if (!existing) {
+        try { void publishPipelineStatus(tracked, [0], this.signal, scope); store = monitor.store; }
+        catch { return undefined; }
+      } else {
+        elem0!.text.shellValue = "0";
+        store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+      }
       const finalStatus = pipeline.negate ? 1 : 0;
       rawState.status = finalStatus;
       monitor.epoch = restEpoch;
-      store.epoch = restEpoch;
+      if (store) store.epoch = restEpoch;
       return finalStatus;
     }
     if (command.words.length === 1) {
@@ -3584,7 +3587,7 @@ export class Runtime {
       ) {
         const rawStatus = w0Plain === "false" ? 1 : 0;
         const statusChar = rawStatus === 0 ? "0" : "1";
-        if (!canMutatePipeStatus && elem0.text.shellValue !== statusChar) return undefined;
+        if (!canMutatePipeStatus && elem0!.text.shellValue !== statusChar) return undefined;
         const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
         if (finalStatus !== 0 && !ignored && rawState.errexit) return undefined;
         if (rawState.extensions && !rawState.extensions.eventDepth) {
@@ -3595,24 +3598,29 @@ export class Runtime {
         this.budget.tick();
         rawState.substitutionStatus = 0;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-        elem0.text.shellValue = statusChar;
-        const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
-        store.changed(psTickets, "PIPESTATUS");
+        if (!existing) {
+          try { void publishPipelineStatus(tracked, [rawStatus], this.signal, scope); store = monitor.store; }
+          catch { return undefined; }
+        } else {
+          elem0!.text.shellValue = statusChar;
+          store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        }
         rawState.status = finalStatus;
         monitor.epoch = restEpoch;
-        store.epoch = restEpoch;
+        if (store) store.epoch = restEpoch;
         return finalStatus;
       }
-      if (!canMutatePipeStatus && elem0.text.shellValue !== "0") return undefined;
+      if (!canMutatePipeStatus && elem0!.text.shellValue !== "0") return undefined;
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;
       const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
       if (
         !assignment ||
         assignment.append ||
         assignment.name === "OPTIND" ||
+        assignment.name === "PIPESTATUS" ||
         assignment.name.includes("[") ||
         rawState.readonlyVariables?.has(assignment.name) ||
-        store.get(assignment.name)
+        store?.get(assignment.name)
       ) {
         return undefined;
       }
@@ -3633,13 +3641,17 @@ export class Runtime {
       publishVariable(tracked, assignment.name, fastAssigned);
       if (rawState.allexport) tracked.exported.add(assignment.name);
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-      elem0.text.shellValue = "0";
-      const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
-      store.changed(psTickets, "PIPESTATUS");
+      if (!existing) {
+        try { void publishPipelineStatus(tracked, [0], this.signal, scope); store = monitor.store; }
+        catch { return undefined; }
+      } else {
+        elem0!.text.shellValue = "0";
+        store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+      }
       const finalStatus = pipeline.negate ? 1 : 0;
       rawState.status = finalStatus;
       monitor.epoch = restEpoch;
-      store.epoch = restEpoch;
+      if (store) store.epoch = restEpoch;
       return finalStatus;
     }
     if (command.words.length >= 2) {
@@ -3673,20 +3685,24 @@ export class Runtime {
           predicateScratchWords.length = 0;
           if (fastPred === undefined) return undefined;
           const statusChar = fastPred === 0 ? "0" : "1";
-          if (!canMutatePipeStatus && elem0.text.shellValue !== statusChar) return undefined;
+          if (!canMutatePipeStatus && elem0!.text.shellValue !== statusChar) return undefined;
           if (fastPred !== 0 && !ignored && rawState.errexit) return undefined;
           const owner = monitor.internalOwner();
           const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
           rawState.substitutionStatus = 0;
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-          elem0.text.shellValue = statusChar;
-          const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
-          store.changed(psTickets, "PIPESTATUS");
+          if (!existing) {
+            try { void publishPipelineStatus(tracked, [fastPred], this.signal, scope); store = monitor.store; }
+            catch { return undefined; }
+          } else {
+            elem0!.text.shellValue = statusChar;
+            store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+          }
           const finalStatus = pipeline.negate ? Number(fastPred === 0) : fastPred;
           rawState.status = finalStatus;
           monitor.epoch = restEpoch;
-          store.epoch = restEpoch;
+          if (store) store.epoch = restEpoch;
           return finalStatus;
         }
       }

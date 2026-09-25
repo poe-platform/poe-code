@@ -1032,4 +1032,16 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(bb.info.channels).toBe(3);
     expect(Array.from(bb.data)).toEqual([0, 0, 0, 16, 16, 16]);
   });
+
+  it("evaluates flip/flop prior to explicit rotate(angle) matching libvips pipeline order (#67)", async () => {
+    const raw4x2 = new Uint8Array([
+      10, 0, 0, 255, 20, 0, 0, 255, 30, 0, 0, 255, 40, 0, 0, 255,
+      50, 0, 0, 255, 60, 0, 0, 255, 70, 0, 0, 255, 80, 0, 0, 255
+    ]);
+    const opts = { raw: { width: 4, height: 2, channels: 4 as const } };
+    const r1 = await sharp(raw4x2, opts).rotate(90).flop().raw().toBuffer();
+    const r2 = await sharp(raw4x2, opts).flop().rotate(90).raw().toBuffer();
+    expect(Array.from(r1)).toEqual(Array.from(r2));
+    expect([r1[0], r1[4], r1[8], r1[12]]).toEqual([80, 40, 70, 30]);
+  });
 });

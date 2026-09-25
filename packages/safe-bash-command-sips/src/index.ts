@@ -326,7 +326,7 @@ export async function runSipsCli(
     -1
   );
   const hasResampleW = actions.some(act => act.kind === "resampleW");
-  const effectiveActions = actions.filter((act, idx) => {
+  const filteredActions = actions.filter((act, idx) => {
     if ((act.kind === "crop" || act.kind === "pad") && idx !== lastCropPadIdx) {
       return false;
     }
@@ -335,6 +335,12 @@ export async function runSipsCli(
     }
     return true;
   });
+  const isResample = (k: string) =>
+    k === "resampleMax" || k === "resampleHW" || k === "resampleW" || k === "resampleH";
+  const effectiveActions = [
+    ...filteredActions.filter(act => isResample(act.kind)),
+    ...filteredActions.filter(act => !isResample(act.kind))
+  ];
 
   for (const inPath of inputPaths) {
     const inBytes = files.get(inPath);

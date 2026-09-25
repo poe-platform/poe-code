@@ -260,12 +260,20 @@ export class SharpInstance {
   }
 
   flip(flip = true): this {
-    if (flip) this.nodes.push({ kind: "flip" });
+    if (flip) {
+      const rotIdx = this.nodes.findIndex(n => n.kind === "rotate");
+      if (rotIdx !== -1) this.nodes.splice(rotIdx, 0, { kind: "flip" });
+      else this.nodes.push({ kind: "flip" });
+    }
     return this;
   }
 
   flop(flop = true): this {
-    if (flop) this.nodes.push({ kind: "flop" });
+    if (flop) {
+      const rotIdx = this.nodes.findIndex(n => n.kind === "rotate");
+      if (rotIdx !== -1) this.nodes.splice(rotIdx, 0, { kind: "flop" });
+      else this.nodes.push({ kind: "flop" });
+    }
     return this;
   }
 

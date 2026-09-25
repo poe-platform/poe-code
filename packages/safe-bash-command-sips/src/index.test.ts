@@ -239,4 +239,27 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(singleRes.exitCode).toBe(0);
     expect(files.has("/work/out/a.webp")).toBe(true);
   });
+
+  it("executes resample operations before rotate (-r) matching /usr/bin/sips (#67)", async () => {
+    const png100x60 = await makeSamplePng(100, 60);
+    const files = new Map<string, Uint8Array>([["/work/in.png", png100x60]]);
+
+    const res1 = await runSipsCli(
+      ["-r", "90", "--resampleWidth", "40", "/work/in.png", "--out", "/work/out1.png"],
+      files
+    );
+    expect(res1.exitCode).toBe(0);
+    const meta1 = await sharp(files.get("/work/out1.png")!).metadata();
+    expect(meta1.width).toBe(24);
+    expect(meta1.height).toBe(40);
+
+    const res2 = await runSipsCli(
+      ["-r", "90", "-z", "30", "40", "/work/in.png", "--out", "/work/out2.png"],
+      files
+    );
+    expect(res2.exitCode).toBe(0);
+    const meta2 = await sharp(files.get("/work/out2.png")!).metadata();
+    expect(meta2.width).toBe(30);
+    expect(meta2.height).toBe(40);
+  });
 });

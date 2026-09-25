@@ -489,12 +489,9 @@ export class SharpInstance extends Duplex {
     const hasAlpha = anyAlpha || bg.a < 255;
     const channels = (hasAlpha ? 4 : 3) as 1 | 2 | 3 | 4;
     const out = new Uint8Array(outW * outH * 4);
-    for (let p = 0; p < outW * outH; p++) {
-      out[p * 4] = bg.r;
-      out[p * 4 + 1] = bg.g;
-      out[p * 4 + 2] = bg.b;
-      out[p * 4 + 3] = hasAlpha ? bg.a : 255;
-    }
+    const bgA = hasAlpha ? bg.a : 255;
+    const bgWord = ((bgA << 24) | (bg.b << 16) | (bg.g << 8) | bg.r) >>> 0;
+    new Uint32Array(out.buffer, out.byteOffset, outW * outH).fill(bgWord);
     const halign = joinOpts?.halign ?? "left";
     const valign = joinOpts?.valign ?? "top";
     for (let k = 0; k < n; k++) {
@@ -517,15 +514,9 @@ export class SharpInstance extends Duplex {
             : 0;
       for (let y = 0; y < im.height; y++) {
         const dstY = cellY + dy + y;
-        for (let x = 0; x < im.width; x++) {
-          const dstX = cellX + dx + x;
-          const sIdx = (y * im.width + x) * 4;
-          const dIdx = (dstY * outW + dstX) * 4;
-          out[dIdx] = im.data[sIdx]!;
-          out[dIdx + 1] = im.data[sIdx + 1]!;
-          out[dIdx + 2] = im.data[sIdx + 2]!;
-          out[dIdx + 3] = im.data[sIdx + 3]!;
-        }
+        const sRow = y * im.width * 4;
+        const dRow = (dstY * outW + cellX + dx) * 4;
+        out.set(im.data.subarray(sRow, sRow + im.width * 4), dRow);
       }
     }
     const animPageHeight = animated && n > 0 ? Math.floor(outH / n) : 0;

@@ -579,6 +579,13 @@ export function compositeImage(
     const ovData = overlay.data;
     const ovW = overlay.width;
     const ovH = overlay.height;
+    const xCount = Math.max(0, xEnd - xStart);
+    const sxTable = new Int32Array(xCount);
+    for (let i = 0; i < xCount; i++) {
+      const x = xStart + i;
+      const dx = layer.tile ? x : startX + x;
+      sxTable[i] = layer.tile ? (((dx - startX) % ovW) + ovW) % ovW : x;
+    }
 
     for (let ty = 0; ty < 1; ty++) {
       for (let tx = 0; tx < 1; tx++) {
@@ -589,11 +596,10 @@ export function compositeImage(
             : y;
           const syRow = sy * ovW;
           const dyRow = dy * baseW;
-          for (let x = xStart; x < xEnd; x++) {
+          for (let xi = 0; xi < xCount; xi++) {
+            const x = xStart + xi;
             const dx = layer.tile ? x : startX + x;
-            const sx = layer.tile
-              ? (((dx - startX) % ovW) + ovW) % ovW
-              : x;
+            const sx = sxTable[xi]!;
             const sIdx = (syRow + sx) * 4;
             const saByte = ovData[sIdx + 3]!;
             if (saByte === 0 && skipWhenSaZero) continue;
@@ -831,11 +837,10 @@ export function compositeImage(
       }
     }
   }
-  for (let p = 0; p < out.length; p += 4) {
-    if (out[p + 3] === 0) {
-      out[p] = 0;
-      out[p + 1] = 0;
-      out[p + 2] = 0;
+  const outU32 = new Uint32Array(out.buffer, out.byteOffset, baseW * baseH);
+  for (let i = 0; i < outU32.length; i++) {
+    if ((outU32[i]! >>> 24) === 0) {
+      outU32[i] = 0;
     }
   }
   return {

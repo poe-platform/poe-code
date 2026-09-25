@@ -252,6 +252,16 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/packages/safe-bash/src/**"
       ]
+    },
+    "safe-bash-command-xmllint#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-xml-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

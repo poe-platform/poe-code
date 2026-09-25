@@ -1355,3 +1355,32 @@ it.each(["@poe-code/safe-fs/core", "poe-code/safe-fs/core", "@poe-platform/safe-
   expect(result.outputFiles![0]!.text).toContain('from "@poe-platform/safe-fs/core"');
   expect(result.outputFiles![0]!.text).not.toContain("extends Error");
 });
+
+it('ships xmllint and its shared XML engine through the established XML export', async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  const names = ['safe-bash-command-xmllint', 'safe-bash-xml-engine'];
+  manifest.poeCode.integration.privateWorkspaces = Object.fromEntries(names.map(name => [name, bashManifest.poeCode.integration.privateWorkspaces[name as keyof typeof bashManifest.poeCode.integration.privateWorkspaces]])) as typeof manifest.poeCode.integration.privateWorkspaces;
+  volume.writeFileSync('/repo/packages/safe-bash/package.json', JSON.stringify(manifest));
+  for (const name of names) {
+    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), 'utf8'));
+    volume.writeFileSync(`/repo/packages/${name}/LICENSE`, 'MIT\n');
+  }
+  const limits = readFileSync(new URL('../packages/safe-bash-xml-engine/src/limits.ts', import.meta.url), 'utf8');
+  volume.writeFileSync('/repo/packages/safe-bash-xml-engine/dist/index.js', 'export * from "./limits.js";');
+  volume.writeFileSync('/repo/packages/safe-bash-xml-engine/dist/index.d.ts', 'export interface XmlQueryLimits { readonly maxNodes: number; }');
+  volume.writeFileSync('/repo/packages/safe-bash-xml-engine/dist/limits.js', ts.transpileModule(limits, { compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 } }).outputText);
+  volume.writeFileSync('/repo/packages/safe-bash-xml-engine/dist/limits.d.ts', 'export interface XmlQueryLimits { readonly maxNodes: number; }');
+  volume.writeFileSync('/repo/packages/safe-bash-command-xmllint/dist/index.js', 'export { resolveXmlQueryLimits } from "safe-bash-xml-engine/limits";');
+  volume.writeFileSync('/repo/packages/safe-bash-command-xmllint/dist/index.d.ts', 'export type { XmlQueryLimits } from "safe-bash-xml-engine/limits";');
+  for (const suffix of ['js', 'd.ts']) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/xml/index.${suffix}`, 'export * from "safe-bash-command-xmllint";');
+  await packageSafeLibraries({ ...options, outDir: '/output' });
+  const read = (path: string) => volume.readFileSync('/output/safe-bash/dist/' + path, 'utf8');
+  expect(read('safe-bash/commands/xml/index.js')).toContain('"../../../safe-bash-command-xmllint/index.js"');
+  expect(read('safe-bash-command-xmllint/index.js')).toContain('"../safe-bash-xml-engine/limits.js"');
+  expect(read('safe-bash-command-xmllint/index.d.ts')).toContain('"../safe-bash-xml-engine/limits.js"');
+  const consumer = await import('data:text/javascript;base64,' + Buffer.from(read('safe-bash-xml-engine/limits.js')).toString('base64'));
+  expect(consumer.resolveXmlQueryLimits().maxNodes).toBe(10_000);
+  expect(() => consumer.resolveXmlQueryLimits({ maxNodes: 0 })).toThrow(RangeError);
+});

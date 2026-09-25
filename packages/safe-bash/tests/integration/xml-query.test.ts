@@ -425,3 +425,9 @@ test("xmllint supports --noout before or after --xpath and validates default doc
     assert.equal(result.stdout, "hello\nworld\n");
   }
 });
+
+test("XML family captures one limits configuration for both commands", () => {
+  let reads = 0;
+  createXmlCommands({ get limits() { reads++; return { maxNodes: reads === 1 ? 100 : 1 }; } });
+  assert.equal(reads, 1);
+});

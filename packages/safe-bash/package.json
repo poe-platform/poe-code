@@ -591,7 +591,9 @@
     "safe-bash-command-qpdf": "*",
     "safe-bash-command-soffice": "*",
     "safe-bash-command-sips": "*",
-    "safe-bash-command-imagemagick": "*"
+    "safe-bash-command-imagemagick": "*",
+    "safe-bash-command-xmllint": "*",
+    "safe-bash-xml-engine": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -820,6 +822,23 @@
           "dependencies": {},
           "devDependencies": {
             "@poe-code/image-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-xmllint": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-xml-engine": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-xml-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
             "safe-bash-contracts": "*"
           }
         }

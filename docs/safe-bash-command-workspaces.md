@@ -3,7 +3,7 @@
 Every newly added command belongs in `packages/safe-bash-command-<name>` with
 manifest name `safe-bash-command-<name>` and `private: true`. Package-lint enforces
 privacy with `safe-bash-command-private`, regardless of publication wiring.
-Existing commands stay where they are. Creating a workspace does not register a
+Existing commands stay where they are unless an authorized issue explicitly requests extraction. Creating a workspace does not register a
 command or grant build admission. Each command retains one plan in `docs/plans`.
 
 ## Package contract

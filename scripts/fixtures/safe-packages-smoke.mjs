@@ -1,3 +1,4 @@
+import "./safe-packages-xmllint.mjs";
 import "./safe-packages-fmt.mjs";
 import "./safe-packages-unrtf.mjs";
 import "./safe-packages-htmlq.mjs";

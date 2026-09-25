@@ -411,7 +411,9 @@
     "packages/media-cli/COPYING.LGPLv2.1",
     "packages/media-cli/NOTICE",
     "packages/media-cli/NOTICE.ImageMagick",
-    "packages/remote-execution/README.md"
+    "packages/remote-execution/README.md",
+    "packages/safe-bash-command-xmllint/dist/**/*.d.ts",
+    "packages/safe-bash-xml-engine/dist/**/*.d.ts"
   ],
   "engines": {
     "node": ">=18.18"
@@ -595,7 +597,9 @@
     "@poe-code/image-ast": "0.0.1",
     "safe-bash-command-sips": "*",
     "safe-bash-command-imagemagick": "*",
-    "@poe-code/audio-ast": "*"
+    "@poe-code/audio-ast": "*",
+    "safe-bash-command-xmllint": "*",
+    "safe-bash-xml-engine": "*"
   },
   "repository": {
     "type": "git",

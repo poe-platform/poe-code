@@ -1682,4 +1682,33 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(extThenExtr.info.width).toBe(18);
     expect(extThenExtr.info.height).toBe(14);
   });
+
+  it("executes trim() before resize()/extend() and replaces existing trim node on repeated calls (#91)", async () => {
+    const buf = Buffer.alloc(10 * 10 * 3, 0);
+    for (let y = 2; y < 8; y++) {
+      for (let x = 2; x < 8; x++) {
+        const idx = (y * 10 + x) * 3;
+        buf[idx] = 255; buf[idx + 1] = 255; buf[idx + 2] = 255;
+      }
+    }
+    const raw = { raw: { width: 10, height: 10, channels: 3 as const } };
+
+    const resThenTrim = await sharp(buf, raw).resize(12, 12, { fit: "fill", kernel: "nearest" }).trim().raw().toBuffer({ resolveWithObject: true });
+    expect(resThenTrim.info.width).toBe(12);
+    expect(resThenTrim.info.height).toBe(12);
+    expect(resThenTrim.info.trimOffsetLeft).toBe(-2);
+    expect(resThenTrim.info.trimOffsetTop).toBe(-2);
+    expect(resThenTrim.data[0]).toBe(255);
+
+    const extThenTrim = await sharp(buf, raw).extend(4).trim().raw().toBuffer({ resolveWithObject: true });
+    expect(extThenTrim.info.width).toBe(14);
+    expect(extThenTrim.info.height).toBe(14);
+    expect(extThenTrim.info.trimOffsetLeft).toBe(-2);
+    expect(extThenTrim.info.trimOffsetTop).toBe(-2);
+    expect(extThenTrim.data[0]).toBe(0);
+
+    const repTrim = await sharp(buf, raw).trim({ threshold: 260 }).trim({ threshold: 5 }).raw().toBuffer({ resolveWithObject: true });
+    expect(repTrim.info.width).toBe(6);
+    expect(repTrim.info.height).toBe(6);
+  });
 });

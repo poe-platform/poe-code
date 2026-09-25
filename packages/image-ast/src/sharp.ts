@@ -334,7 +334,17 @@ export class SharpInstance {
       typeof options === "object" && options?.background
         ? parseColor(options.background)
         : undefined;
-    this.nodes.push({ kind: "trim", threshold, ...(background ? { background } : {}) });
+    const nextNode: ImageAstNode = { kind: "trim", threshold, ...(background ? { background } : {}) };
+    const existingIdx = this.nodes.findIndex(n => n.kind === "trim");
+    if (existingIdx !== -1) {
+      this.nodes[existingIdx] = nextNode;
+      return this;
+    }
+    const geomIdx = this.nodes.findIndex(
+      n => n.kind === "resize" || n.kind === "extend" || n.kind === "extract" || n.kind === "rotate"
+    );
+    if (geomIdx !== -1) this.nodes.splice(geomIdx, 0, nextNode);
+    else this.nodes.push(nextNode);
     return this;
   }
 

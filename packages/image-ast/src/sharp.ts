@@ -2417,7 +2417,9 @@ export class SharpInstance extends Duplex {
         ...(encoded.format === "raw" ? { depth: this.outputOptions.rawDepth ?? img.depth } : {}),
         premultiplied: Boolean(img.wasPremultiplied),
         ...(img.pageHeight !== undefined ? { pageHeight: img.pageHeight } : {}),
-        ...(img.pages !== undefined ? { pages: img.pages } : {}),
+        ...(img.pageHeight !== undefined && (img.sourcePages ?? img.pages) !== undefined
+          ? { pages: img.sourcePages ?? img.pages }
+          : {}),
         ...(img.trimOffsetLeft !== undefined ? { trimOffsetLeft: img.trimOffsetLeft } : {}),
         ...(img.trimOffsetTop !== undefined ? { trimOffsetTop: img.trimOffsetTop } : {}),
         ...(img.textAutofitDpi !== undefined ? { textAutofitDpi: img.textAutofitDpi } : {}),

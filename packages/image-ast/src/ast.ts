@@ -49,6 +49,7 @@ export interface RgbaImage {
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;
+  readonly sourcePages?: number;
   readonly pageHeight?: number;
   readonly delay?: readonly number[];
   readonly loop?: number;

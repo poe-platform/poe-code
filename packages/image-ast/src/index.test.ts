@@ -3372,4 +3372,25 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(resThenAuto.info.height).toBe(10);
     expect(Buffer.compare(resThenAuto.data, autoThenRes.data)).toBe(0);
   });
+
+  it("omits OutputInfo.pages on single-frame GIF extraction and reports total n-pages on { page, pages } slices (#1254)", async () => {
+    const f0 = await sharp({ create: { width: 4, height: 3, channels: 3, background: { r: 255, g: 0, b: 0 } } }).png().toBuffer();
+    const f1 = await sharp({ create: { width: 4, height: 3, channels: 3, background: { r: 0, g: 255, b: 0 } } }).png().toBuffer();
+    const f2 = await sharp({ create: { width: 4, height: 3, channels: 3, background: { r: 0, g: 0, b: 255 } } }).png().toBuffer();
+    const gif3 = await sharp([f0, f1, f2], { join: { animated: true } }).gif().toBuffer();
+
+    const single = await sharp(gif3, { page: 1 }).raw().toBuffer({ resolveWithObject: true });
+    expect(single.info.width).toBe(4);
+    expect(single.info.height).toBe(3);
+    expect(single.info.pages).toBeUndefined();
+    expect(single.info.pageHeight).toBeUndefined();
+    expect(Array.from(single.data.slice(0, 3))).toEqual([0, 255, 0]);
+
+    const slice = await sharp(gif3, { page: 1, pages: 2 }).raw().toBuffer({ resolveWithObject: true });
+    expect(slice.info.width).toBe(4);
+    expect(slice.info.height).toBe(6);
+    expect(slice.info.pageHeight).toBe(3);
+    expect(slice.info.pages).toBe(3);
+    expect(Array.from(slice.data.slice(0, 3))).toEqual([0, 255, 0]);
+  });
 });

@@ -380,7 +380,7 @@ export function decodeGifImage(
     depth: "uchar",
     density: 72,
     hasAlpha,
-    pages: numPages > 1 ? numPages : totalPages,
+    ...(numPages > 1 ? { pages: numPages, sourcePages: totalPages } : {}),
     ...(numPages > 1 ? { pageHeight: height } : {}),
     ...(meta.delay !== undefined ? { delay: meta.delay } : {}),
     ...(meta.loop !== undefined ? { loop: meta.loop } : {})

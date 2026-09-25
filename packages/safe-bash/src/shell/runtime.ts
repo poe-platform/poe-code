@@ -5908,7 +5908,7 @@ export class Runtime {
           const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
           if (special) assignments.clear();
           if (extensionBuiltin) {
-            const status = validateExitCode(await extensionBuiltin.execute(this.extensionContext(state, { ...io, ...context }, context.command, context.args, context.argumentValues.values)));
+            const status = validateExitCode(await interruptible(Promise.resolve(extensionBuiltin.execute(this.extensionContext(state, { ...io, ...context }, context.command, context.args, context.argumentValues.values))), this.signal));
             if (special && status !== 0) throw new Flow("exit", status);
             return { exitCode: status };
           }
@@ -5916,7 +5916,7 @@ export class Runtime {
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
           const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
-          const builtin = stateMonitor(state)?.store ? await interruptible(builtinWork, this.signal) : await builtinWork;
+          const builtin = await interruptible(builtinWork, this.signal);
           if (builtin !== undefined) {
             if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
             return { exitCode: builtin };

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { setTimeout as delay } from "node:timers/promises";
+import { setImmediate as turn, setTimeout as delay } from "node:timers/promises";
 import { Shell, ShellLimitError, agentCommands, createMemoryFileSystem, writeText } from "../../src/index.js";
 import { ArrayOwner, type Admission } from "../../src/shell/arrays/ledger.js";
-import { StateMonitor } from "../../src/shell/arrays/state.js";
+import { StateMonitor, type Restoration } from "../../src/shell/arrays/state.js";
 
 function setup() {
   const fs = createMemoryFileSystem();
@@ -59,16 +59,30 @@ test("pipeline succeeds at unchanged producer plus consumer byte budget", async 
   assert.equal(result.stdout, "1234"); assert.equal(result.exitCode, 0);
 });
 
-for (const [source, maxSubstitutionDepth] of [
-  ["f() { local value=x; f; }; f", 3],
-  ["seed=; f() { eval f; }; f", 3],
-  ["a=(owned); f() { local -a a; a[0]=nested; f; }; f", 3],
-  ['code=\'eval "$code"\'; eval "$code"', 4],
+for (const [source, maxSubstitutionDepth, arrayHold] of [
+  ["f() { local value=x; f; }; f", 3, false],
+  ["seed=; f() { eval f; }; f", 3, false],
+  ["a=(owned); f() { local -a a; a[0]=nested; f; }; f", 3, true],
+  ['code=\'eval "$code"\'; eval "$code"', 4, false],
 ] as const) test(`depth failure drains nested restoration: ${source}`, { timeout: 2000 }, async context => {
   const { shell } = setup();
   const holds: Admission[] = [], orderErrors: unknown[] = [];
+  const activeRestorations = new Set<Restoration>();
+  const restoration = StateMonitor.prototype.restoration, retire = StateMonitor.prototype.retire;
+  let acquired = 0, retired = 0;
   const hold = ArrayOwner.prototype.hold, openOverlay = StateMonitor.prototype.openOverlay, closeOverlay = StateMonitor.prototype.closeOverlay;
   let opened = 0, closed = 0;
+  context.mock.method(StateMonitor.prototype, "restoration", function (this: StateMonitor, ...args: Parameters<StateMonitor["restoration"]>) {
+    const permit = restoration.apply(this, args);
+    assert.equal(activeRestorations.has(permit), false, "restoration reused before retirement");
+    activeRestorations.add(permit); acquired++;
+    return permit;
+  });
+  context.mock.method(StateMonitor.prototype, "retire", function (this: StateMonitor, permit: Restoration) {
+    retire.call(this, permit);
+    assert.equal(activeRestorations.delete(permit), true, "unowned or duplicate restoration retirement");
+    retired++;
+  });
   context.mock.method(ArrayOwner.prototype, "hold", function (this: ArrayOwner) {
     const admission = hold.call(this); holds.push(admission); return admission;
   });
@@ -84,11 +98,55 @@ for (const [source, maxSubstitutionDepth] of [
       error => error instanceof ShellLimitError && error.limit === "maxSubstitutionDepth");
     assert.equal(closed, opened);
     assert.deepEqual(orderErrors, []);
-    assert.ok(holds.length > 0);
+    assert.ok(acquired > 0);
+    assert.equal(retired, acquired);
+    assert.equal(activeRestorations.size, 0);
+    if (arrayHold) assert.ok(holds.length > 0);
     assert.ok(holds.every(admission => admission.released));
     assert.equal((await shell.exec("true")).exitCode, 0);
   } finally { await shell.dispose(); }
 });
+
+for (const source of ["opaque", "a=(owned); opaque"]) for (const reason of [false, 0, "", null]) {
+  test(`extension builtin cancellation drains registered cleanup without waiting opaque work: ${source}, ${String(reason)}`, { timeout: 2000 }, async () => {
+    let enter!: () => void, startCleanup!: () => void, releaseCleanup!: () => void;
+    let rejectHandler!: (reason: unknown) => void;
+    const entered = new Promise<void>(resolve => { enter = resolve; });
+    const cleaning = new Promise<void>(resolve => { startCleanup = resolve; });
+    const cleanup = new Promise<void>(resolve => { releaseCleanup = resolve; });
+    const opaque = new Promise<number>((_resolve, reject) => { rejectHandler = reject; });
+    let cleaned = false, settled = false;
+    const controller = new AbortController();
+    const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [{ name: "opaque-cleanup", create: () => ({ builtins: [{
+      name: "opaque", execute(context) {
+        context.registerCleanup(async () => { startCleanup(); await cleanup; cleaned = true; });
+        enter();
+        return opaque;
+      },
+    }] }) }] });
+    const execution = shell.exec(source, { signal: controller.signal }).then(
+      () => { settled = true; assert.fail("expected caller cancellation"); },
+      error => { settled = true; assert.ok(Object.is(error, reason)); },
+    );
+    try {
+      await entered;
+      controller.abort(reason);
+      await cleaning;
+      await turn();
+      assert.equal(settled, false, "registered cleanup must finish before public settlement");
+      releaseCleanup();
+      await turn();
+      assert.equal(cleaned, true);
+      assert.equal(settled, true, "opaque builtin work must not delay caller cancellation");
+      await execution;
+    } finally {
+      releaseCleanup();
+      rejectHandler(new Error("late opaque builtin rejection"));
+      await execution;
+      await shell.dispose();
+    }
+  });
+}
 
 test("parent cancellation identity survives tested context", { timeout: 2000 }, async () => {
   const { shell } = setup(); const controller = new AbortController(); const reason = new Error("cancel-errexit");

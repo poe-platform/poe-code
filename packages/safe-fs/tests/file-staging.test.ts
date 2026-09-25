@@ -257,3 +257,11 @@ test("mount views withhold backend ancestry guarantees", async () => {
   assert.equal(fs.capabilities.atomicStagingAncestry, false);
   assert.equal((await fs.capabilitiesFor("/output", { create: true })).atomicStagingAncestry, false);
 });
+
+test("quota views clear unsupported ancestry-staging capabilities", async () => {
+  const fs = withFileSystemQuota(createMemoryFileSystem(), { maxBytes: 1024 });
+  assert.equal(fs.capabilities.atomicFileStaging, false);
+  assert.equal(fs.capabilities.atomicStagingAncestry, false);
+  assert.equal((await fs.capabilitiesFor!("/new", { create: true })).atomicFileStaging, false);
+  assert.equal((await fs.capabilitiesFor!("/new", { create: true })).atomicStagingAncestry, false);
+});

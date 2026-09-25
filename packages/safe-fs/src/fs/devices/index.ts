@@ -460,8 +460,10 @@ export class DeviceFileSystem implements FileSystem {
   }
 
   async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+    if (options.ancestors !== undefined) await requireOwnedMutation(this.#filesystem, destination, "atomicStagingAncestry", options, options.destination === null);
     for (const path of [staging.directory.path, staging.file.path, destination]) await this.#mutable(path, options, false);
     await requireOwnedMutation(this.#filesystem, staging.directory.path, "atomicFileStaging", options);
+    await requireOwnedMutation(this.#filesystem, destination, "atomicFileStaging", options, options.destination === null);
     if (!this.#filesystem.publishStagedFile) throw new FsError("ENOTSUP", { path: destination });
     await this.#filesystem.publishStagedFile(staging, destination, options);
   }

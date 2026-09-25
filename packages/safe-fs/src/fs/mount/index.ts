@@ -754,6 +754,7 @@ export class MountFileSystem implements FileSystem {
       if (local.mount !== target.mount) fail("EXDEV");
       this.mutable(target);
       await requireOwnedMutation(local.mount.backend, local.staging.directory.path, "atomicFileStaging", options);
+      await requireOwnedMutation(local.mount.backend, target.local, "atomicFileStaging", options, options.destination === null);
       if (!local.mount.backend.publishStagedFile) fail("ENOTSUP");
       await local.mount.backend.publishStagedFile(local.staging, target.local, options);
     }, destination);

@@ -116,7 +116,7 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, !capabilities.readOnly);
   const streamingAppend = requireCapabilities(capabilities.append, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
-  return Object.freeze({ ...rest, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+  return Object.freeze({ ...rest, atomicStagingAncestry: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),
     ...(streamingAppend === undefined ? {} : { streamingAppend }),
   });
@@ -130,6 +130,7 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
   if (capabilities.atomicFileMutation === true && (capabilities.readOnly === true || typeof filesystem.writeFileConditional !== "function" || typeof filesystem.removeFileConditional !== "function")) unavailable.atomicFileMutation = false;
   if (capabilities.atomicFileStaging === true && (capabilities.readOnly === true
     || typeof filesystem.createStagedFile !== "function" || typeof filesystem.publishStagedFile !== "function" || typeof filesystem.removeStagedFile !== "function")) unavailable.atomicFileStaging = false;
+  if (capabilities.atomicStagingAncestry === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.atomicStagingAncestry = false;
   if (capabilities.atomicDirectoryMetadata === true && (capabilities.readOnly === true || typeof filesystem.prepareDirectory !== "function")) unavailable.atomicDirectoryMetadata = false;
   if (capabilities.trustedOwnedStaging === true && (capabilities.readOnly === true
     || ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"].some(method => typeof filesystem[method as keyof FileSystem] !== "function"))) unavailable.trustedOwnedStaging = false;
@@ -137,9 +138,10 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
 }
 
 export async function requireOwnedMutation(filesystem: FileSystem, path: string,
-  capability: "atomicFilePublication" | "atomicEntryRemoval" | "atomicTreeRemoval" | "atomicFileMutation" | "atomicFileStaging" | "atomicDirectoryMetadata", options: FsOptions, create = false): Promise<void> {
+  capability: "atomicFilePublication" | "atomicEntryRemoval" | "atomicTreeRemoval" | "atomicFileMutation" | "atomicFileStaging" | "atomicStagingAncestry" | "atomicDirectoryMetadata", options: FsOptions, create = false): Promise<void> {
   options.signal?.throwIfAborted();
-  const capabilities = ownedMutationCapabilities(filesystem, await filesystem.capabilitiesFor?.(path, create ? { ...options, create: true } : options) ?? filesystem.capabilities);
+  const query = create ? { ...options, create: true } : options;
+  const capabilities = ownedMutationCapabilities(filesystem, await filesystem.capabilitiesFor?.(path, capability === "atomicStagingAncestry" ? { ...query, stagingAncestry: true } : query) ?? filesystem.capabilities);
   options.signal?.throwIfAborted();
   if (capabilities[capability] !== true && !(capabilities.trustedOwnedStaging === true && ["atomicFileStaging", "atomicFileMutation", "atomicDirectoryMetadata"].includes(capability))) throw new FsError("ENOTSUP", { path, syscall: capability });
 }

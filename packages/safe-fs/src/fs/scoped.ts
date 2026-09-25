@@ -1,4 +1,4 @@
-import type { FileStaging, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { FileStaging, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError } from "../contracts/errors.js";
 import type { ByteSource } from "../contracts/io.js";
@@ -187,6 +187,11 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const options = args[property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1] as FsOptions | undefined;
           const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
           await requireOwnedMutation(original, path, property === "publishFileConditional" ? "atomicFilePublication" : property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
+          if (property === "publishStagedFile") {
+            const publishOptions = (options ?? {}) as PublishStagedFileOptions;
+            await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
+            if (publishOptions.ancestors !== undefined) await requireOwnedMutation(original, args[1] as string, "atomicStagingAncestry", publishOptions, publishOptions.destination === null);
+          }
           assertOpen(options);
           if (property === "publishFileConditional") {
             args[1] = wrapStream(args[1] as ByteSource, options);

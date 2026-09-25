@@ -33,7 +33,8 @@ for (const kind of ["scope", "mount", "devices"] as const) test(`${kind} preserv
   const staging = await fs.createStagedFile!("/.stage", "payload", { type: "file", data: Uint8Array.of(2) }, { parent });
   await fs.publishStagedFile!(staging, "/published", { parent, destination: null });
   assert.deepEqual(await memory.readFile("/published"), Uint8Array.of(2));
-  for (const path of ["/file", "/directory", "/.stage"]) assert.ok(queries.some(query => query.path === path && query.create), path);
+  for (const path of ["/file", "/directory", "/.stage", "/published"]) assert.ok(queries.some(query => query.path === path && query.create), path);
+  assert.ok(queries.filter(query => query.path === "/published").every(query => query.create));
   queries.length = 0;
   await fs.removeFileConditional!("/file", { parent, expected: file });
   await fs.removeStagedFile!(staging);

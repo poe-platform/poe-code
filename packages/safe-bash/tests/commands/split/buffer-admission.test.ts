@@ -3,12 +3,21 @@ import { test } from "node:test";
 import { settings } from "../../../src/commands/split/options.js";
 import { chunks, files, run } from "./helpers.js";
 
-test("split has a finite default buffer cap and rejects larger windows before reading", async () => {
+test("split omits the buffer quota even when another quota is supplied", async () => {
+  for (const options of [{}, { limits: { maxFiles: 1 } }]) {
+    assert.equal(settings(options).maxBufferBytes, Infinity);
+    const result = await run(["-C", "16777216"], "a", options);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await files(result.fs), { xaa: "61" });
+  }
+});
+
+test("split rejects windows above an explicit buffer quota before reading", async () => {
   const limits = settings({});
-  assert.ok(Number.isSafeInteger(limits.maxBufferBytes));
+  assert.equal(limits.maxChunkBytes, 64 * 1024);
   let read = false;
   const input = (async function* () { read = true; yield Buffer.from("a"); })();
-  const result = await run(["-C", String(limits.maxBufferBytes + 1)], input);
+  const result = await run(["-C", "9"], input, { limits: { maxBufferBytes: 8 } });
   assert.equal(result.exitCode, 1);
   assert.ok(result.stderr.includes("buffer limit"));
   assert.equal(read, false);

@@ -26,10 +26,13 @@ test("BRE protocol accepts unlimited and larger explicit individual limits", () 
     limits: { ...exprMatchCeilings, maxSteps: 60_000_000 } };
   validateExprInput(descriptor, [{ bytes: new Uint8Array([97]), all: false, terminated: false }], new AbortController().signal);
 });
-test("text regex compilation has no hidden nesting, repetition or program quotas", () => {
-  assert.doesNotThrow(() => new Pattern("a".repeat(8193), true));
-  assert.doesNotThrow(() => new Pattern("(".repeat(70) + "a" + ")".repeat(70), true));
-  assert.doesNotThrow(() => new Pattern("a{17000}", true));
+test("text regex compilation retains documented host storage bounds independently of optional quotas", () => {
+  assert.doesNotThrow(() => new Pattern("a".repeat(8192), true));
+  assert.throws(() => new Pattern("a".repeat(8193), true), /regular expression source limit exceeded/);
+  assert.doesNotThrow(() => new Pattern("(".repeat(64) + "a" + ")".repeat(64), true));
+  assert.throws(() => new Pattern("(".repeat(65) + "a" + ")".repeat(65), true), /regular expression depth limit exceeded/);
+  assert.doesNotThrow(() => new Pattern("a{16383}", true));
+  assert.throws(() => new Pattern("a{16384}", true), /regular expression program limit exceeded/);
 });
 
 test("ERE compilation admits patterns beyond former grammar caps", async () => {

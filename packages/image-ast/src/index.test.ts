@@ -1774,4 +1774,28 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(outMeta.height).toBe(10);
     expect(outMeta.orientation).toBe(3);
   });
+
+  it("merges repeated withMetadata() options and supports keepExif/withExif/withExifMerge/keepIccProfile/withIccProfile/timeout (#95)", async () => {
+    const buf = Buffer.alloc(10 * 20 * 3, 128);
+    const raw = { raw: { width: 10, height: 20, channels: 3 as const } };
+
+    const meta = await sharp(buf, raw)
+      .withMetadata({ orientation: 3 })
+      .withMetadata({ density: 144 })
+      .metadata();
+    expect(meta.orientation).toBe(3);
+    expect(meta.density).toBe(144);
+
+    const out = await sharp(buf, raw)
+      .keepExif()
+      .withExif({ IFD0: { Orientation: "6" } })
+      .withExifMerge({ IFD0: { Artist: "Test" } })
+      .keepIccProfile()
+      .withIccProfile("srgb")
+      .timeout({ seconds: 10 })
+      .jpeg()
+      .toBuffer();
+    const outMeta = await sharp(out).metadata();
+    expect(outMeta.orientation).toBe(6);
+  });
 });

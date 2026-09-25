@@ -846,16 +846,46 @@ export class SharpInstance {
   }
 
   withMetadata(options?: { readonly density?: number; readonly orientation?: number }): this {
+    const existingIdx = this.nodes.findIndex(n => n.kind === "withMetadata");
+    const prev = existingIdx !== -1 ? (this.nodes[existingIdx] as Extract<ImageAstNode, { readonly kind: "withMetadata" }>) : undefined;
+    const density = options?.density ?? prev?.density;
+    const orientation = options?.orientation ?? prev?.orientation;
     this.upsertNode({
       kind: "withMetadata",
-      ...(options?.density !== undefined ? { density: options.density } : {}),
-      ...(options?.orientation !== undefined ? { orientation: options.orientation } : {})
+      ...(density !== undefined ? { density } : {}),
+      ...(orientation !== undefined ? { orientation } : {})
     });
     this.outputOptions = {
       ...this.outputOptions,
-      ...(options?.density !== undefined ? { density: options.density } : {}),
-      ...(options?.orientation !== undefined ? { orientation: options.orientation } : {})
+      ...(density !== undefined ? { density } : {}),
+      ...(orientation !== undefined ? { orientation } : {})
     };
+    return this;
+  }
+
+  keepExif(): this {
+    return this.withMetadata();
+  }
+
+  withExif(exif: Record<string, Record<string, string>>): this {
+    const orientStr = exif?.IFD0?.Orientation;
+    const orientNum = orientStr !== undefined ? Number(orientStr) : undefined;
+    return this.withMetadata(orientNum !== undefined && Number.isFinite(orientNum) ? { orientation: orientNum } : undefined);
+  }
+
+  withExifMerge(exif: Record<string, Record<string, string>>): this {
+    return this.withExif(exif);
+  }
+
+  keepIccProfile(): this {
+    return this;
+  }
+
+  withIccProfile(_profile: string, _options?: { readonly attach?: boolean }): this {
+    return this;
+  }
+
+  timeout(_options: { readonly seconds: number }): this {
     return this;
   }
 

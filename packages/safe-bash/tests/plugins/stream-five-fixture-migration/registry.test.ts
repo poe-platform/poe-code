@@ -14,7 +14,7 @@ test("current registry is frozen60 plus fifty independently declared delivered c
   assert.equal(baseline60.length, 60);
   assert.equal(new Set(baseline60).size, 60);
   assert.deepEqual(baseline60.slice(-4), ["tac", "expand", "fold", "strings"]);
-  const expected = [...baseline60.flatMap(name => name === "find" ? ["find", "cmp", "fmt", "shuf", "numfmt"] : name === "sha256sum" ? ["sha512sum", "sha384sum", "sha256sum", "sha224sum"] : name === "zcat" ? ["zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat"] : name === "mktemp" ? ["mktemp", "truncate"] : name === "tar" ? ["tar", "zip", "unzip"] : [name]), ...approved, "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos"];
+  const expected = [...baseline60.filter(name => name !== "rg").flatMap(name => name === "[" ? ["[", "cmp", "fmt", "shuf", "numfmt"] : name === "sha256sum" ? ["sha512sum", "sha384sum", "sha256sum", "sha224sum"] : name === "zcat" ? ["zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat"] : name === "mktemp" ? ["mktemp", "truncate"] : name === "tar" ? ["tar", "zip", "unzip"] : [name]), ...approved, "date", "sleep", "printenv", "tree", "file", "rg", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos"];
   assert.equal(expected.length, 110);
   assert.equal(new Set(expected).size, 110);
   assert.deepEqual(createAgentCommands().map(command => command.name), expected);

@@ -431,6 +431,24 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     if (name === "safe-bash") {
       for (const [workspaceName, profile] of Object.entries(source.poeCode?.integration?.privateWorkspaces ?? {})) {
         const workspace = workspaces.find(({ pkg }) => pkg.name === workspaceName);
+        // Public signatures can erase implementation types. Keep the admitted
+        // private entrypoints available to the bundled declaration graph too.
+        if (workspace) {
+          assertPrivateProfile(workspace, workspaceName);
+          for (const target of Object.values(workspace.pkg.exports ?? {})) {
+            let relative = target?.types;
+            while (relative && typeof relative === "object" && !Array.isArray(relative)) {
+              relative = Object.entries(relative).find(([condition]) => condition === "node" || condition === "import" || condition === "default")?.[1];
+            }
+            if (typeof relative !== "string" || !relative.startsWith("./dist/") ||
+                relative.includes("*") || !(relative.endsWith(".d.ts") || relative.endsWith(".d.mts"))) {
+              throw new Error("Invalid private declaration entrypoint: " + workspaceName);
+            }
+            const { filename, bytes } = await readPrivateAsset(workspace, relative);
+            bundled.set(filename, bytes);
+            pending.push(filename);
+          }
+        }
         for (const relative of profile.assets ?? []) {
           assertPrivateProfile(workspace, workspaceName);
           if (typeof relative !== "string" || !relative.startsWith("./dist/")) throw new Error("Private publication assets must belong to dist: " + relative);

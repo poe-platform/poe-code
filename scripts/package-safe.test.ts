@@ -618,6 +618,39 @@ it.each([false, true])("admits asset-only contract owners against the full priva
   });
 }
 
+it("retains admitted private declarations even when public signatures erase the implementation types", async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = {};
+  for (const name of ["safe-bash-command-fixture", "safe-bash-fixture-engine"]) {
+    const devDependencies = name === "safe-bash-command-fixture" ? { "safe-bash-fixture-engine": "*" } : {};
+    const exports = name === "safe-bash-command-fixture"
+      ? { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } }
+      : { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" }, "./internal": { types: "./dist/internal.d.ts", import: "./dist/internal.js" } };
+    manifest.poeCode.integration.privateWorkspaces[name] = { version: "0.0.1", dependencies: {}, devDependencies };
+    manifest.devDependencies[name] = "*";
+    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({ name, version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies, exports }));
+  }
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { run } from "safe-bash-command-fixture";');
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.d.ts", "export declare function run(): void;");
+  volume.writeFileSync("/repo/packages/safe-bash-command-fixture/dist/index.js", 'export { run } from "safe-bash-fixture-engine/internal";');
+  volume.writeFileSync("/repo/packages/safe-bash-command-fixture/dist/index.d.ts", 'export { run } from "safe-bash-fixture-engine/internal";');
+  volume.writeFileSync("/repo/packages/safe-bash-fixture-engine/dist/internal.js", "export function run() {}");
+  volume.writeFileSync("/repo/packages/safe-bash-fixture-engine/dist/internal.d.ts", "export declare function run(): void;");
+  volume.writeFileSync("/repo/packages/safe-bash-fixture-engine/dist/index.js", 'export { run } from "./internal.js";');
+  volume.writeFileSync("/repo/packages/safe-bash-fixture-engine/dist/index.d.ts", 'export { run } from "./internal.js";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-fixture/index.d.ts", "utf8"))
+    .toBe('export { run } from "../safe-bash-fixture-engine/internal.js";');
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-fixture-engine/index.d.ts", "utf8"))
+    .toBe('export { run } from "./internal.js";');
+  const shipped = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(shipped.dependencies).toEqual({});
+  expect(shipped.exports).not.toHaveProperty("./safe-bash-fixture-engine");
+});
+
 it.each(["wkhtmltopdf", "xz"])("packs %s and contract modules into one canonical relative graph", async command => {
   const commandName = `safe-bash-command-${command}`;
   const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${commandName}/package.json`, import.meta.url), "utf8"));
@@ -708,10 +741,13 @@ function optionalLeftovers() {
   // admission tests replace these profiles explicitly to exercise rejection.
   for (const [name, profile] of Object.entries(bashManifest.poeCode.integration.privateWorkspaces) as [string, { assets?: string[] }][]) {
     if (!profile.assets?.length) continue;
-    data[`/repo/packages/${name}/package.json`] = readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8");
+    const metadata = readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8");
+    data[`/repo/packages/${name}/package.json`] = metadata;
     data[`/repo/packages/${name}/LICENSE`] = "Fixture license\n";
-    data[`/repo/packages/${name}/dist/index.js`] = "export {};\n";
-    data[`/repo/packages/${name}/dist/index.d.ts`] = "export {};\n";
+    for (const target of Object.values(JSON.parse(metadata).exports) as { types: string; import: string }[]) {
+      data[`/repo/packages/${name}/` + target.import.slice(2)] = "export {};\n";
+      data[`/repo/packages/${name}/` + target.types.slice(2)] = "export {};\n";
+    }
     for (const asset of profile.assets) data[`/repo/packages/${name}/` + asset.slice(2)] = "Fixture asset\n";
   }
   const volume = Volume.fromJSON(data);
@@ -964,6 +1000,13 @@ describe("scoped safe package artifacts", () => {
     expected["/output/safe-bash/dist/safe-bash-compression-engine/LICENSE"] = data["/repo/packages/safe-bash-compression-engine/LICENSE"]!;
     for (const asset of ["sources.json", "LICENSES.txt", "generated/bz2.mjs", "generated/bz2.d.mts", "generated/xz.mjs", "generated/xz.d.mts", "generated/zstd.mjs", "generated/zstd.d.mts"]) {
       expected["/output/safe-bash/dist/safe-bash-compression-engine/native/" + asset] = data["/repo/packages/safe-bash-compression-engine/dist/native/" + asset]!;
+    }
+    for (const [name, entries] of [
+      ["safe-bash-command-fold", ["index"]],
+      ["safe-bash-command-dos2unix", ["index"]],
+      ["safe-bash-line-ending-engine", ["index", "internal", "io", "stage", "convert", "encoding", "info"]],
+    ] as const) {
+      for (const entry of entries) expected[`/output/safe-bash/dist/${name}/${entry}.d.ts`] = "export {};\n";
     }
     const actual = Object.fromEntries(Object.entries(volume.toJSON()).filter(([filename]) => filename.startsWith("/output/safe-bash/dist/")));
     expect(actual).toEqual(expected);
@@ -1653,7 +1696,11 @@ it('ships xmllint and its shared XML engine through the established XML export',
   volume.writeFileSync('/repo/packages/safe-bash/package.json', JSON.stringify(manifest));
   for (const name of names) {
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
-    volume.writeFileSync(`/repo/packages/${name}/package.json`, readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), 'utf8'));
+    const metadata = readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), 'utf8');
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, metadata);
+    for (const target of Object.values(JSON.parse(metadata).exports) as { types: string }[]) {
+      volume.writeFileSync(`/repo/packages/${name}/` + target.types.slice(2), 'export {};');
+    }
     volume.writeFileSync(`/repo/packages/${name}/LICENSE`, 'MIT\n');
   }
 

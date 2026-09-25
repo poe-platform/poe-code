@@ -1,6 +1,7 @@
 import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
+import { ProviderResolutionError } from "@poe-code/poe-agent";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config/core";
 import { createPoeAgentProgram, normalizePoeAgentArgv } from "./poe-agent-main.js";
 
@@ -65,13 +66,13 @@ async function runProgram(
 
 describe("poe-agent CLI integration", () => {
   it("surfaces ProviderResolutionError details for an unknown --model", async () => {
-    await expect(
-      runProgram(["--model", "nonexistent-model", "Test prompt"], {
-        agent: {
-          plugins: [{ name: "openai-responses" }]
-        }
-      })
-    ).rejects.toThrow(
+    const execution = runProgram(["--model", "nonexistent-model", "Test prompt"], {
+      agent: {
+        plugins: [{ name: "openai-responses" }]
+      }
+    });
+    await expect(execution).rejects.toBeInstanceOf(ProviderResolutionError);
+    await expect(execution).rejects.toThrow(
       'No provider supports model "nonexistent-model". Registered providers: openai-responses.'
     );
   });

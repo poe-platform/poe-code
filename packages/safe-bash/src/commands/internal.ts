@@ -167,28 +167,63 @@ export function input(context: CommandContext, name = "-"): ByteSource {
   if (name === "-") {
     return readBytes(context.stdin, context.signal);
   }
-  if (!context.fs.capabilitiesFor && context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
-    assertCommandRequirements(context, inputRequirements, FILE_REQUIREMENT_MODES);
-    const stream = context.fs.readStream(pathOf(context, name), { signal: context.signal });
-    const iterator = stream[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
-    if (typeof iterator.tryNextSync === "function") {
-      return readBytes({ [Symbol.asyncIterator]: () => iterator }, context.signal);
+  return readBytes({ [Symbol.asyncIterator]() {
+    context.signal.throwIfAborted();
+    if (!context.fs.capabilitiesFor && context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
+      assertCommandRequirements(context, inputRequirements, FILE_REQUIREMENT_MODES);
+      let iterator: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
+      try {
+        iterator = context.fs.readStream(pathOf(context, name), { signal: context.signal })[Symbol.asyncIterator]();
+        if (context.signal.aborted) {
+          void Promise.resolve().then(() => iterator.return?.()).catch(() => {});
+          context.signal.throwIfAborted();
+        }
+      } catch (error) {
+        return fileInputSource(context, name, { async *[Symbol.asyncIterator]() { throw error; } });
+      }
+      const source = { [Symbol.asyncIterator]: () => iterator };
+      const reader = readBytes(source, context.signal) as AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
+      let fallback: AsyncGenerator<Uint8Array> | undefined;
+      let emitted = false;
+      return {
+        abortSignal: context.signal,
+        tryNextSync() {
+          if (fallback) return undefined;
+          const result = reader.tryNextSync();
+          if (result && !result.done && result.value.byteLength) emitted = true;
+          return result;
+        },
+        async next() {
+          if (fallback) return fallback.next();
+          try {
+            const result = await reader.next();
+            if (!result.done && result.value.byteLength) emitted = true;
+            return result;
+          } catch (error) {
+            context.signal.throwIfAborted();
+            if (emitted || !(error instanceof FsError) || error.code !== "ENOTSUP") throw error;
+            fallback = fileInputSource(context, name, false);
+            return fallback.next();
+          }
+        },
+        return: (value?: unknown) => (fallback ?? reader).return(value),
+        throw: (error?: unknown) => (fallback ?? reader).throw(error),
+      };
     }
-    void iterator.return?.();
-  }
-  return fileInputSource(context, name);
+    return fileInputSource(context, name);
+  } }, context.signal);
 }
 
-async function* fileInputSource(context: CommandContext, name: string): ByteSource {
+async function* fileInputSource(context: CommandContext, name: string, stream?: ByteSource | false): AsyncGenerator<Uint8Array> {
     context.signal.throwIfAborted();
     await assertInputRequirements(context, [name]);
     const path = pathOf(context, name);
     const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
-    if (context.fs.readStream && capabilities.streamingRead !== false) {
+    if (stream !== false && context.fs.readStream && capabilities.streamingRead !== false) {
       let emitted = false;
       let reading = true;
       try {
-        for await (const chunk of readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal)) {
+        for await (const chunk of readBytes(stream ?? context.fs.readStream(path, { signal: context.signal }), context.signal)) {
           reading = false;
           if (chunk.byteLength) emitted = true;
           yield chunk;

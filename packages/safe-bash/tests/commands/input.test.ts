@@ -533,7 +533,7 @@ for (const reason of [false, 0, "", null]) {
       const fs: FileSystem = {
         ...backend,
         capabilities: { ...backend.capabilities, streamingRead: kind === "streaming" },
-        capabilitiesFor: unexpected,
+        ...(kind === "streaming" ? {} : { capabilitiesFor: unexpected }),
         readFile: unexpected,
         readStream: unexpected,
       };
@@ -549,6 +549,88 @@ for (const reason of [false, 0, "", null]) {
     });
   }
 }
+
+test("synchronous file input acquires one stream lazily and keeps synchronous reads", async () => {
+  const backend = await bufferedBackend();
+  let streams = 0;
+  let pulls = 0;
+  const fs = { ...backend, capabilities: {}, readStream() {
+    streams++;
+    return { [Symbol.asyncIterator]: () => ({
+      tryNextSync() { return ++pulls === 1 ? { done: false, value: Uint8Array.of(65) } : { done: true, value: undefined }; },
+      next: async () => assert.fail("synchronous input started an asynchronous read"),
+    }) };
+  } };
+  const source = input(context(fs), "/note");
+  assert.equal(streams, 0);
+  const iterator = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
+  assert.deepEqual(iterator.tryNextSync(), { done: false, value: Uint8Array.of(65) });
+  assert.deepEqual(iterator.tryNextSync(), { done: true, value: undefined });
+  assert.equal(streams, 1);
+});
+
+for (const synchronous of [false, true]) test(`file input closes an iterator acquired during cancellation with synchronous=${synchronous}`, async () => {
+  const backend = await bufferedBackend();
+  const controller = new AbortController();
+  let reads = 0;
+  let closes = 0;
+  const fs = { ...backend, capabilities: {}, readStream() {
+    return { [Symbol.asyncIterator]() {
+      controller.abort(false);
+      return {
+        ...(synchronous ? { tryNextSync() { reads++; return { done: false, value: Uint8Array.of(1) }; } } : {}),
+        async next() { reads++; return { done: false, value: Uint8Array.of(1) }; },
+        async return() { closes++; throw new Error("late cleanup failure"); },
+      };
+    } };
+  } };
+  await assert.rejects(input(context(fs, controller.signal), "/note")[Symbol.asyncIterator]().next(), error => error === false);
+  await Promise.resolve();
+  assert.equal(reads, 0);
+  assert.equal(closes, 1);
+});
+
+test("asynchronous file input keeps its first iterator and awaits early-return cleanup", async () => {
+  const backend = await bufferedBackend();
+  let streams = 0;
+  let closes = 0;
+  const fs = { ...backend, capabilities: {}, readStream() {
+    streams++;
+    return { [Symbol.asyncIterator]: () => ({
+      next: async () => ({ done: false, value: Uint8Array.of(65) }),
+      async return() { await Promise.resolve(); closes++; return { done: true, value: undefined }; },
+    }) };
+  } };
+  const source = input(context(fs), "/note");
+  assert.equal(streams, 0);
+  const iterator = source[Symbol.asyncIterator]();
+  await iterator.next();
+  await iterator.return!();
+  assert.equal(streams, 1);
+  assert.equal(closes, 1);
+});
+
+test("synchronous ENOTSUP before bytes falls back once after closing the stream", async () => {
+  const backend = await bufferedBackend();
+  let closes = 0;
+  let streams = 0;
+  const read = backend.readFile;
+  const fs = { ...backend, capabilities: {}, readStream() {
+    streams++;
+    return { [Symbol.asyncIterator]: () => ({
+      tryNextSync(): IteratorResult<Uint8Array> | undefined { throw new FsError("ENOTSUP"); },
+      next: async () => assert.fail("failed synchronous stream read again"),
+      async return() { await Promise.resolve(); closes++; return { done: true, value: undefined }; },
+    }) };
+  }, readFile(path: string, options?: ReadFileOptions) {
+    assert.equal(closes, 1);
+    return read(path, options);
+  } };
+  const source = input(context(fs), "/note");
+  const result = await collectBytes(source, { maxBytes: bufferLimit });
+  assert.equal(new TextDecoder().decode(result), "buffered\n");
+  assert.equal(streams, 1);
+});
 
 test("an ENOTSUP-shaped stream cancellation never starts fallback", async (suite) => {
   const backend = await bufferedBackend();

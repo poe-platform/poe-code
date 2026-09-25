@@ -28,6 +28,39 @@ describe("workspace test ownership", () => {
       expect(workspaceTestExclusions("/repo", fixture(script))).toEqual([]);
     });
   }
+  it("retains recursive Node glob ownership only when the shell leaves it quoted", () => {
+    expect(workspaceTestExclusions("/repo", fixture('node --test "src/**/*.test.ts"')))
+      .toEqual(["packages/example/src/**/*.test.ts"]);
+    expect(workspaceTestExclusions("/repo", fixture("node --test src/**/*.test.ts"))).toEqual([]);
+  });
+
+  it.each([
+    "node --test src/*.test.ts scripts/*.test.mjs",
+    "node --import tsx --test src/*.test.ts scripts/*.test.mjs",
+    'node --import tsx --test --test-concurrency=1 "src/*.test.ts" "scripts/*.test.mjs"'
+  ])("keeps declared Node suites in their native workspace task: %s", script => {
+    const fileSystem = fixture(script);
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([{
+      path: "packages/example", selectors: [],
+      exclusions: ["packages/example/src/*.test.ts", "packages/example/scripts/*.test.mjs"],
+      passWithNoTests: false, hasHooks: false, requiresNativePool: true
+    }]);
+  });
+
+  it.each([
+    "node --test src/*.test.ts && node after.mjs",
+    "node --test ../other/*.test.ts",
+    "node --test /repo/packages/other/*.test.ts",
+    "node --test ~/external.test.ts",
+    "node --test --test-name-pattern=selected src/*.test.ts",
+    "node --import unknown --test src/*.test.ts",
+    "node --test --test-concurrency=0 src/*.test.ts",
+    "node --test $TEST_PATH",
+    'node --test "src/[ab].test.ts"'
+  ])("retains root coverage for ambiguous Node ownership: %s", script => {
+    expect(workspaceTestExclusions("/repo", fixture(script))).toEqual([]);
+  });
+
   it("excludes package-local Vitest includes while retaining the native configuration route", () => {
     const fileSystem = fixture("vitest run --config vitest.config.ts", {
       "/repo/packages/example/vitest.config.ts": 'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });'

@@ -18,17 +18,28 @@ export function workspaceUnitSelections(root, fileSystem = fs) {
     const script = scripts["test:unit"];
     if (typeof script !== "string") continue;
     const tokens = parse(script, () => undefined);
-    const nodeOffset = tokens[0] === "node" && tokens[1] === "--import" && tokens[2] === "tsx" && tokens[3] === "--test"
-      ? 4 : tokens[0] === "node" && tokens[1] === "--test" ? 2 : undefined;
-    if (nodeOffset !== undefined && tokens.length > nodeOffset) {
-      const patterns = tokens.slice(nodeOffset).map(token => typeof token === "string" ? token : token?.op === "glob" ? token.pattern : undefined);
-      if (patterns.every(pattern => typeof pattern === "string" && pattern.includes(".test.")
-        && !path.isAbsolute(pattern) && !pattern.startsWith("!") && !pattern.includes("\\")
-        && pattern.split("/").every(segment => segment && segment !== "." && segment !== ".."))) {
-        selections.push({ path: prefix.slice(0, -1), selectors: [], exclusions: patterns.map(pattern => prefix + pattern),
-          passWithNoTests: false, hasHooks: scripts["pretest:unit"] !== undefined || scripts["posttest:unit"] !== undefined,
-          requiresNativePool: true });
+    if (tokens[0] === "node") {
+      let index = 1;
+      if (tokens[index] === "--import" && tokens[index + 1] === "tsx") index += 2;
+      if (tokens[index++] !== "--test") continue;
+      if (typeof tokens[index] === "string" && tokens[index].startsWith("--test-concurrency=")) {
+        const value = tokens[index++].slice("--test-concurrency=".length);
+        const concurrency = Number(value);
+        if (!Number.isSafeInteger(concurrency) || concurrency < 1 || String(concurrency) !== value) continue;
       }
+      const patterns = tokens.slice(index).map(token => typeof token === "string" ? token
+        : token?.op === "glob" && !token.pattern.includes("**") ? token.pattern : undefined);
+      if (!patterns.length || patterns.some(pattern => typeof pattern !== "string"
+        || path.isAbsolute(pattern) || pattern.startsWith("-") || pattern.startsWith("~")
+        || ["!", "?", "[", "]", "{", "}", "(", ")", "\\", "$"].some(character => pattern.includes(character))
+        || pattern.split("/").some(segment => !segment || segment === "." || segment === "..")
+        || ![".ts", ".mts", ".cts", ".js", ".mjs", ".cjs"].some(extension => pattern.endsWith(extension)))) continue;
+      selections.push({
+        path: prefix.slice(0, -1), selectors: [], exclusions: patterns.map(pattern => prefix + pattern),
+        passWithNoTests: false,
+        hasHooks: scripts["pretest:unit"] !== undefined || scripts["posttest:unit"] !== undefined,
+        requiresNativePool: true
+      });
       continue;
     }
     if (tokens.length === 4 && tokens[0] === "vitest" && tokens[1] === "run" && tokens[2] === "--config" && typeof tokens[3] === "string") {

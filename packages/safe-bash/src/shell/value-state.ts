@@ -308,20 +308,29 @@ export class ValueStore {
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
     const newBytes = value.length * 2;
     const held = this.#values?.get(name);
-    if (held) {
-      held.release();
-      this.#values!.delete(name);
-    }
     const oldStr = this.#strings?.get(name);
     const oldBytes = oldStr !== undefined ? oldStr.length * 2 : 0;
     const delta = newBytes - oldBytes;
+    const previousRecord = this.#stringRecord;
     if (this.#stringRecord) {
       if (delta !== 0) this.arena.resizeStringRecord(this.#stringRecord, this.#stringRecord.bytes + delta);
       else this.arena.assertOpen();
     } else {
       this.#stringRecord = this.arena.allocate(newBytes, 0);
     }
-    rawVariables[name] = value;
+    try { rawVariables[name] = value; }
+    catch (error) {
+      if (previousRecord) this.arena.shrinkStringRecord(previousRecord, delta);
+      else {
+        this.arena.release(this.#stringRecord!);
+        this.#stringRecord = undefined;
+      }
+      throw error;
+    }
+    if (held) {
+      held.release();
+      this.#values!.delete(name);
+    }
     if (this.#stringsShared && this.#strings) {
       this.#strings = new Map(this.#strings);
       this.#stringsShared = false;

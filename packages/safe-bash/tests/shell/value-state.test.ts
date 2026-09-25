@@ -74,6 +74,37 @@ test("failed publication releases staged ownership and preserves old binding", (
   arena.close();
 });
 
+test("failed optimized string admission preserves the prior raw binding", () => {
+  const { arena, store } = fixture(256);
+  const original = shellValueFromBytes(Uint8Array.of(255));
+  const variables = { value: shellValueText(original) };
+  store.publish("value", original, () => true);
+  const before = arena.usage;
+  assert.throws(() => store.publishString("value", "x".repeat(256), variables));
+  assert.equal(store.get("value", variables.value), original);
+  assert.equal(variables.value, shellValueText(original));
+  assert.deepEqual(arena.usage, before);
+  arena.close();
+});
+
+for (const kind of ["raw", "text"] as const) {
+  for (const replacement of ["", "longer replacement"]) {
+    test(`rejected optimized ${kind} replacement of length ${replacement.length} preserves ownership`, () => {
+      const { arena, store } = fixture();
+      const original = kind === "raw" ? shellValueFromBytes(Uint8Array.of(255)) : "prior";
+      const variables = Object.freeze({ value: shellValueText(original) });
+      store.publish("value", original, () => true);
+      const before = arena.usage;
+      assert.throws(() => store.publishString("value", replacement, variables), TypeError);
+      assert.equal(store.get("value", variables.value), original);
+      assert.deepEqual(arena.usage, before);
+      store.close();
+      assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+      arena.close();
+    });
+  }
+}
+
 test("clones retain bytes independently and mutations do not affect their parent", () => {
   const { arena, scope, store } = fixture();
   const value = shellValueFromBytes(Uint8Array.of(255), scope);

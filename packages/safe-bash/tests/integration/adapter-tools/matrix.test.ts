@@ -12,15 +12,18 @@ import { withRmdirFixture } from "./profiles/rmdir-fixtures.js";
 const digest = createHash("sha256").update(payload).digest("hex");
 const options = { timeout: 20_000 };
 const todoPipeline = "find src -type f -name '*.txt' | xargs rg --no-heading --no-filename '^TODO' | sed 's/^TODO //' | awk '{ print $1 \":\" $2 }' | jq -R '.' | jq -s '.'";
+const sedConditionalWriteError = "sed: ENOTSUP: in-place editing requires retained reads and atomic conditional writes '/work/old.txt'\n";
+const sedRetainedReadError = "sed: ENOTSUP: Inspect and conditionally rewrite retained files (-i) requires unavailable filesystem capabilities: retainedRead, sed\n";
+const sedAtomicMutationError = "sed: ENOTSUP: Inspect and conditionally rewrite retained files (-i) requires unavailable filesystem capabilities: atomicFileMutation, sed\n";
 // These are independently declared provider guarantees, not runtime capability
 // probes that could silently turn a regression into a passing unsupported case.
 const profiles = {
-  memory: { retainedReads: true, patchPublication: true },
-  real: { retainedReads: true, patchPublication: false },
-  s3: { retainedReads: false, patchPublication: false },
-  webdav: { retainedReads: false, patchPublication: false },
-  mount: { retainedReads: true, patchPublication: false },
-  overlay: { retainedReads: true, patchPublication: true },
+  memory: { retainedReads: true, patchPublication: true, sedInPlaceError: null },
+  real: { retainedReads: true, patchPublication: false, sedInPlaceError: sedConditionalWriteError },
+  s3: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
+  webdav: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
+  mount: { retainedReads: true, patchPublication: false, sedInPlaceError: sedConditionalWriteError },
+  overlay: { retainedReads: true, patchPublication: true, sedInPlaceError: sedAtomicMutationError },
 };
 const patchPublicationError = "patch: filesystem does not support race-safe patch publication\n";
 const diffReadError = "diff: diff input requires identity-checked retained reads\n";
@@ -196,9 +199,15 @@ for (const backend of writableAdapters) {
     await withFixture(backend, async ({ exec, fs }) => {
       const before = await snapshotTree(fs);
       const edited = await exec("sed -i 's/beta/BETA/' old.txt && diff -q old.txt new.txt");
-      if (profile.retainedReads) success(edited, "");
-      else refusal(edited, diffReadError);
-      assert.deepEqual(await snapshotTree(fs), { ...before, "/work/old.txt": new TextEncoder().encode(revised) }, "in-place sed changes only its target, even when named diff is unsupported");
+      if (profile.sedInPlaceError === null) {
+        success(edited, "");
+        assert.deepEqual(await snapshotTree(fs), { ...before, "/work/old.txt": new TextEncoder().encode(revised) }, "in-place sed changes only its target");
+      } else {
+        refusal(edited, profile.sedInPlaceError, 1);
+        assert.deepEqual(await snapshotTree(fs), before, "unsupported in-place editing preserves all namespace entries and bytes");
+        success(await exec("sed 's/beta/BETA/' old.txt > edited.txt"), "");
+        assert.deepEqual(await snapshotTree(fs), { ...before, "/work/edited.txt": new TextEncoder().encode(revised) }, "streaming sed can write a separate file without replacing the source");
+      }
       const beforePatch = await snapshotTree(fs);
       if (!profile.patchPublication) {
         for (const source of ["cat change.diff | patch", "patch -R -i change.diff", "patch -i change.diff"]) {
@@ -230,6 +239,23 @@ for (const backend of writableAdapters) {
           ...beforePatch, "/work/patch.log": new TextEncoder().encode("checking file target.txt\n"),
           "/work/reverse.log": new Uint8Array(), "/work/streamed.diff": new TextEncoder().encode(change),
         }, "dry-run consumes the complete stream without patch publication");
+      }
+    });
+  });
+
+  test(`${backend}: in-place backups follow the declared mutation capability`, options, async () => {
+    await withFixture(backend, async ({ exec, fs }) => {
+      const before = await snapshotTree(fs);
+      const edited = await exec("sed -i.bak 's/beta/BETA/' old.txt");
+      if (profile.sedInPlaceError === null) {
+        success(edited, "");
+        assert.deepEqual(await snapshotTree(fs), {
+          ...before, "/work/old.txt": new TextEncoder().encode(revised),
+          "/work/old.txt.bak": new TextEncoder().encode(original),
+        }, "successful editing preserves the complete original in its backup");
+      } else {
+        refusal(edited, profile.sedInPlaceError, 1);
+        assert.deepEqual(await snapshotTree(fs), before, "refused editing cannot create a backup or modify any file");
       }
     });
   });
@@ -449,11 +475,13 @@ test("mount: cross-backend pipelines, supported copy and explicit S3 source refu
 
 test("overlay: edit and remove lower files without changing the lower layer", options, async () => {
   await withFixture("overlay", async ({ exec, fs, lower }) => {
-    success(await exec("sed -i 's/beta/BETA/' target.txt && rm old.txt && diff -q target.txt new.txt && test ! -e old.txt"), "");
-    assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), revised);
     assert.ok(lower);
+    const before = await snapshotTree(lower);
+    success(await exec("patch -i change.diff > /dev/null && rm old.txt && diff -q target.txt new.txt && test ! -e old.txt"), "");
+    assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), revised);
     assert.equal(Buffer.from(await lower.readFile("/work/target.txt")).toString(), original);
     assert.equal(Buffer.from(await lower.readFile("/work/old.txt")).toString(), original);
+    assert.deepEqual(await snapshotTree(lower), before, "staged overlay publication and removal preserve the complete lower layer");
   });
 });
 
@@ -512,6 +540,10 @@ for (const source of [
           : () => fs.appendFile(path, Buffer.from("changed"));
         await assert.rejects(mutation, fsError("EROFS", path));
         assert.deepEqual(await snapshotTree(fs), before, "direct readonly rejection preserves namespace and bytes");
+      } else if (source === "sed -i 's/beta/BETA/' target.txt") {
+        refusal(result, sedAtomicMutationError, 1);
+        await assert.rejects(fs.writeFile("/work/target.txt", Buffer.from("changed")), fsError("EROFS", "/work/target.txt"));
+        assert.deepEqual(await snapshotTree(fs), before, "the readonly provider still enforces EROFS at its write boundary");
       } else if (source === "patch -i change.diff") {
         refusal(result, patchPublicationError);
         await assert.rejects(fs.writeFile("/work/target.txt", Buffer.from("changed")), fsError("EROFS", "/work/target.txt"));

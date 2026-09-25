@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
-import { copyCompressionAssets } from "./copy-compression-assets.mjs";
+import { copyCompressionAssets } from "./copy-assets.mjs";
 
-const directory = "src/commands/bytes/compression/native";
-const output = "/package/dist/commands/bytes/compression/native";
+const directory = "src/native";
+const output = "/package/dist/native";
 
 function fixture() {
   const volume = new Volume();

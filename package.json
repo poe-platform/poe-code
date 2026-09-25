@@ -420,7 +420,11 @@
     "packages/safe-bash-command-bc/dist",
     "packages/safe-bash-command-sponge/dist",
     "packages/safe-bash-command-fd/dist",
-    "packages/safe-bash-command-less/dist"
+    "packages/safe-bash-command-less/dist",
+    "packages/safe-bash-command-xz/dist",
+    "packages/safe-bash-command-xz/LICENSE",
+    "packages/safe-bash-compression-engine/dist",
+    "packages/safe-bash-compression-engine/LICENSE"
   ],
   "engines": {
     "node": ">=18.18"
@@ -615,7 +619,9 @@
     "safe-bash-command-fd": "*",
     "safe-bash-command-less": "*",
     "@poe-code/mp4-ast": "*",
-    "safe-bash-command-ffmpeg": "*"
+    "safe-bash-command-ffmpeg": "*",
+    "safe-bash-command-xz": "*",
+    "safe-bash-compression-engine": "*"
   },
   "repository": {
     "type": "git",

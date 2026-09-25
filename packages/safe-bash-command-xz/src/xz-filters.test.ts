@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chunks, run } from './helpers.js';
-import { parseOptions } from '../../../../src/commands/bytes/compression/options.js';
+import { parseOptions } from './options.js';
 
 const plain = Buffer.from('hello world');
 const delta = Buffer.from('fd377a585a000004e6d6b44602010301002101104c85a70701000a68fd070003b157f803faf80000da5223efcd7e03530001230bc21bfd091fb6f37d010000000004595a', 'hex');

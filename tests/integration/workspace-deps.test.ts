@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import rootUnitConfig from "../../vitest.root.config.js";
 import { createWorkspaceTestPlan } from "../../scripts/build-workspaces.mjs";
+import { sharedVitestStages } from "../../scripts/test-vitest-workspaces.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 const PACKAGES_DIR = path.join(ROOT, "packages");
@@ -45,6 +46,15 @@ function findTestFiles(dir: string): boolean {
 }
 
 describe("workspace dependency completeness", () => {
+  it.each(["safe-bash-command-xz", "safe-bash-compression-engine"])("runs %s only through its declared Node task", name => {
+    expect(rootUnitConfig.test?.exclude).toContain(`packages/${name}/src/*.test.ts`);
+    const stages = sharedVitestStages(createWorkspaceTestPlan(ROOT));
+    expect(stages.filter(stage => stage.name === name)).toEqual([
+      { id: `${name}#test:unit`, name, path: `packages/${name}`, event: "test:unit" }
+    ]);
+    expect(stages.find(stage => stage.event === "test:unit:shared")?.phases.some(phase => phase.name === name)).toBe(false);
+  });
+
   it("runs csvcut node:test files once through their declared workspace task", () => {
     expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-csvcut/src/*.test.ts");
     const plan = createWorkspaceTestPlan(ROOT);

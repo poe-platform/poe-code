@@ -292,7 +292,8 @@ it("bundles a real private command behind its packed subpath", async () => {
   volume.rmSync("/repo", { recursive: true });
   volume.mkdirSync("/consumer/node_modules/@poe-platform", { recursive: true });
   volume.writeFileSync("/consumer/index.mts", 'import { encodeJsonScalar } from "@poe-platform/safe-bash/commands/exiftool"; const result: string = encodeJsonScalar("1e999"); void result;');
-  const compilerOptions = { noEmit: true, strict: true, types: [], target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext };
+  // Check the packed declarations and consumer, not TypeScript's own libraries.
+  const compilerOptions = { noEmit: true, strict: true, skipDefaultLibCheck: true, types: [], target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext };
   const host = ts.createCompilerHost(compilerOptions);
   const packedPath = (filename: string) => filename.replace("/consumer/node_modules/@poe-platform/safe-bash", "/output/safe-bash");
   const toolRoot = path.dirname(ts.getDefaultLibFilePath(compilerOptions));
@@ -505,11 +506,18 @@ describe("isolated packed private command graph", () => {
   });
 });
 
-it("packs qualified private command and contract modules into one canonical relative graph", async () => {
+it.each(["wkhtmltopdf", "xz"])("packs %s and contract modules into one canonical relative graph", async command => {
+  const commandName = `safe-bash-command-${command}`;
+  const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${commandName}/package.json`, import.meta.url), "utf8"));
+  expect(commandManifest.private).toBe(true);
+  expect(bashManifest.poeCode.integration.privateWorkspaces[commandName]).toBeDefined();
+  const facade = ts.createSourceFile("index.ts", readFileSync(new URL(`../packages/safe-bash/src/commands/${command}/index.ts`, import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
+  expect(facade.statements.some(statement => ts.isExportDeclaration(statement)
+    && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === commandName)).toBe(true);
   const { volume, options } = optionalLeftovers();
   for (const [name, dependencies, devDependencies] of [
     ["safe-bash-contracts", {}, {}],
-    ["safe-bash-command-wkhtmltopdf", {}, { "safe-bash-contracts": "*" }],
+    [commandName, {}, { "safe-bash-contracts": "*" }],
   ] as const) {
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
     volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
@@ -524,26 +532,26 @@ it("packs qualified private command and contract modules into one canonical rela
   const manifest = structuredClone(bashManifest);
   manifest.poeCode.integration.privateWorkspaces = {
     "safe-bash-contracts": { version: "0.0.1", dependencies: {}, devDependencies: {} },
-    "safe-bash-command-wkhtmltopdf": { version: "0.0.1", dependencies: {}, devDependencies: { "safe-bash-contracts": "*" } },
+    [commandName]: { version: "0.0.1", dependencies: {}, devDependencies: { "safe-bash-contracts": "*" } },
   };
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { identity } from "safe-bash-contracts";');
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.d.ts", 'export { identity } from "safe-bash-contracts";');
-  volume.writeFileSync("/repo/packages/safe-bash/dist/commands/wkhtmltopdf/index.js", 'export * from "safe-bash-command-wkhtmltopdf";');
-  volume.writeFileSync("/repo/packages/safe-bash/dist/commands/wkhtmltopdf/index.d.ts", 'export * from "safe-bash-command-wkhtmltopdf";');
+  volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${command}/index.js`, `export * from "${commandName}";`);
+  volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${command}/index.d.ts`, `export * from "${commandName}";`);
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const read = (path: string) => volume.readFileSync("/output/safe-bash/dist/" + path, "utf8");
   expect(read("safe-bash/index.js")).toContain('"../safe-bash-contracts/index.js"');
-  expect(read("safe-bash/commands/wkhtmltopdf/index.js")).toContain('"../../../safe-bash-command-wkhtmltopdf/index.js"');
-  expect(read("safe-bash-command-wkhtmltopdf/index.js")).toContain('"../safe-bash-contracts/index.js"');
-  expect(read("safe-bash-command-wkhtmltopdf/index.d.ts")).toContain('"../safe-bash-contracts/index.js"');
+  expect(read(`safe-bash/commands/${command}/index.js`)).toContain(`"../../../${commandName}/index.js"`);
+  expect(read(`${commandName}/index.js`)).toContain('"../safe-bash-contracts/index.js"');
+  expect(read(`${commandName}/index.d.ts`)).toContain('"../safe-bash-contracts/index.js"');
   const shipped = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
   expect(shipped.dependencies).toEqual({});
-  expect(shipped.exports["./commands/wkhtmltopdf"]).toEqual({
-    types: "./dist/safe-bash/commands/wkhtmltopdf/index.d.ts", import: "./dist/safe-bash/commands/wkhtmltopdf/index.js",
+  expect(shipped.exports[`./commands/${command}`]).toEqual({
+    types: `./dist/safe-bash/commands/${command}/index.d.ts`, import: `./dist/safe-bash/commands/${command}/index.js`,
   });
-  volume.writeFileSync("/repo/packages/safe-bash-command-wkhtmltopdf/package.json", JSON.stringify({
-    name: "safe-bash-command-wkhtmltopdf", private: false, type: "module", version: "0.0.1",
+  volume.writeFileSync(`/repo/packages/${commandName}/package.json`, JSON.stringify({
+    name: commandName, private: false, type: "module", version: "0.0.1",
     dependencies: {}, devDependencies: { "safe-bash-contracts": "*" }, exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
   }));
   await expect(packageSafeLibraries({ ...options, outDir: "/invalid" })).rejects.toThrow("Qualified private workspace profile mismatch");
@@ -737,6 +745,10 @@ describe("scoped safe package artifacts", () => {
       "/output/safe-bash/dist/safe-bash-xml-engine/LICENSE": data["/repo/packages/safe-bash-xml-engine/LICENSE"],
       "/output/safe-bash/dist/safe-bash-xml-engine/index.d.ts": data["/repo/packages/safe-bash-xml-engine/dist/index.d.ts"],
     });
+    expected["/output/safe-bash/dist/safe-bash-compression-engine/LICENSE"] = data["/repo/packages/safe-bash-compression-engine/LICENSE"]!;
+    for (const asset of ["sources.json", "LICENSES.txt", "generated/bz2.mjs", "generated/bz2.d.mts", "generated/xz.mjs", "generated/xz.d.mts", "generated/zstd.mjs", "generated/zstd.d.mts"]) {
+      expected["/output/safe-bash/dist/safe-bash-compression-engine/native/" + asset] = data["/repo/packages/safe-bash-compression-engine/dist/native/" + asset]!;
+    }
     const actual = Object.fromEntries(Object.entries(volume.toJSON()).filter(([filename]) => filename.startsWith("/output/safe-bash/dist/")));
     expect(actual).toEqual(expected);
     const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());

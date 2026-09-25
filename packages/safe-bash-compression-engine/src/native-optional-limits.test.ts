@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createCodec } from "../../../../src/commands/bytes/compression/codec-loader.js";
-import type { RawCodecModule } from "../../../../src/commands/bytes/compression/native/types.js";
-import xz from "../../../../src/commands/bytes/compression/native/generated/xz.mjs";
-import zstd from "../../../../src/commands/bytes/compression/native/generated/zstd.mjs";
+import { createCodec } from "./codec-loader.js";
+import type { RawCodecModule } from "./native/types.js";
+import xz from "./native/generated/xz.mjs";
+import zstd from "./native/generated/zstd.mjs";
 
 function moduleWithRequests(requests: (number | undefined)[][]): RawCodecModule {
   return {

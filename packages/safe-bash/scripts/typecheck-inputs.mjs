@@ -126,11 +126,9 @@ export async function buildForTypecheck(root, compile, fileSystem) {
   if (compile("build", [join(root, "scripts/build.mjs")]).status !== 0) throw new Error("Production build failed; stale declarations will not be used for consumer checks.");
   if (!fileSystem) {
     const repositoryRoot = resolve(root, "../..");
-    const { copyCompressionAssets } = await import("./copy-compression-assets.mjs");
     const { buildPackage } = await import("./build.mjs");
     const { buildOptionalPackage } = await import("./build-optional.mjs");
     const { buildBrowserShellOutputs } = await import("../../../scripts/bundle-safe-bash.mjs");
-    await copyCompressionAssets({ root });
     if ((await buildOptionalPackage({ rootDir: repositoryRoot, compile: buildPackage })).status !== 0) {
       throw new Error("Optional package build failed; stale declarations will not be used for consumer checks.");
     }

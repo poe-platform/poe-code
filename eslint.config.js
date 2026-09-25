@@ -349,9 +349,9 @@ function policyConfig(safeBashInputs, compatibility = []) {
     // Keep the authenticated artifacts parsed and all other rules enabled.
     name: 'safe-bash/generated-compression-codecs',
     files: [
-      'packages/safe-bash/src/commands/bytes/compression/native/generated/bz2.mjs',
-      'packages/safe-bash/src/commands/bytes/compression/native/generated/xz.mjs',
-      'packages/safe-bash/src/commands/bytes/compression/native/generated/zstd.mjs',
+      'packages/safe-bash-compression-engine/src/native/generated/bz2.mjs',
+      'packages/safe-bash-compression-engine/src/native/generated/xz.mjs',
+      'packages/safe-bash-compression-engine/src/native/generated/zstd.mjs',
     ],
     rules: {
       'no-unused-vars': 'off',

@@ -1,0 +1,100 @@
+{
+  "name": "safe-bash-compression-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./bounded-codec": {
+      "types": "./dist/bounded-codec.d.ts",
+      "import": "./dist/bounded-codec.js"
+    },
+    "./codec-loader": {
+      "types": "./dist/codec-loader.d.ts",
+      "import": "./dist/codec-loader.js"
+    },
+    "./codec": {
+      "types": "./dist/codec.d.ts",
+      "import": "./dist/codec.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.js"
+    },
+    "./file-operation": {
+      "types": "./dist/file-operation.d.ts",
+      "import": "./dist/file-operation.js"
+    },
+    "./files": {
+      "types": "./dist/files.d.ts",
+      "import": "./dist/files.js"
+    },
+    "./gunzip": {
+      "types": "./dist/gunzip.d.ts",
+      "import": "./dist/gunzip.js"
+    },
+    "./stream": {
+      "types": "./dist/stream.d.ts",
+      "import": "./dist/stream.js"
+    },
+    "./zstd-decode": {
+      "types": "./dist/zstd-decode.d.ts",
+      "import": "./dist/zstd-decode.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
+    },
+    "./internal": {
+      "types": "./dist/internal.d.ts",
+      "import": "./dist/internal.js"
+    },
+    "./operand": {
+      "types": "./dist/operand.d.ts",
+      "import": "./dist/operand.js"
+    },
+    "./crc": {
+      "types": "./dist/crc.d.ts",
+      "import": "./dist/crc.js"
+    },
+    "./native/types": {
+      "types": "./dist/native/types.d.ts",
+      "import": "./dist/native/types.js"
+    },
+    "./native/generated/bz2": {
+      "types": "./dist/native/bz2.d.ts",
+      "import": "./dist/native/bz2.js"
+    },
+    "./native/generated/xz": {
+      "types": "./dist/native/xz.d.ts",
+      "import": "./dist/native/xz.js"
+    },
+    "./native/generated/zstd": {
+      "types": "./dist/native/zstd.d.ts",
+      "import": "./dist/native/zstd.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test --test-concurrency=1 src/*.test.ts scripts/*.test.mjs",
+    "test:unit": "node --import tsx --test --test-concurrency=1 src/*.test.ts scripts/*.test.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "@poe-code/office-package": "*"
+  }
+}

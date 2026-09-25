@@ -157,8 +157,27 @@ function builtWorkspacePrerequisiteFixture() {
   }
   const io = createFsFromVolume(Volume.fromJSON(source));
   io.mkdirSync("/snapshot");
-  return { workspaceMetadata, source, io };
+  return { manifest: fixture.manifest, workspaceMetadata, source, io };
 }
+
+test("workspace distribution retains declared codec assets with their private owner", () => {
+  const { manifest, workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
+  const name = "safe-bash-command-fmt";
+  manifest.poeCode.integration.privateWorkspaces[name].assets = ["./dist/native/LICENSES.txt"];
+  const directory = `/repository/packages/${name}/dist/native`;
+  io.mkdirSync(directory);
+  io.writeFileSync(`${directory}/LICENSES.txt`, "Codec notices\n");
+  io.writeFileSync(`${directory}/unlisted.txt`, "Not admitted\n");
+  const binding = distChecks.bindWorkspacePrerequisites("/repository", { manifest, workspaceMetadata }, io);
+  const files = new Map([["dist/index.js", Buffer.from(`export * from "${name}";\n`)]]);
+  const prepared = verifier.prepareWorkspaceDistribution(files, binding);
+  assert.equal(prepared.files.get(`dist/internal/workspaces/${name}/native/LICENSES.txt`)?.toString(), "Codec notices\n");
+  assert.ok([...prepared.files.keys()].every(path => !path.endsWith("unlisted.txt")));
+  io.unlinkSync(`${directory}/LICENSES.txt`);
+  assert.throws(() => distChecks.bindWorkspacePrerequisites("/repository", { manifest, workspaceMetadata }, io), /asset/);
+  io.symlinkSync("unlisted.txt", `${directory}/LICENSES.txt`);
+  assert.throws(() => distChecks.bindWorkspacePrerequisites("/repository", { manifest, workspaceMetadata }, io), /symlink/);
+});
 
 test("workspace prerequisites bind built files and reject staged byte or inventory drift", () => {
   const { workspaceMetadata, source, io } = builtWorkspacePrerequisiteFixture();
@@ -1558,21 +1577,9 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
     for (const name of ["@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
-    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", "scripts/copy-compression-assets.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
+    for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
       put(`${packagePrefix}/${path}`, readRegularInput(authority, path, 300000, undefined, boundaries));
     }
-    const native = "src/commands/bytes/compression/native";
-    const artifacts = [];
-    for (const name of ["bz2", "xz", "zstd"]) {
-      const path = `generated/${name}.mjs`;
-      const bytes = Buffer.from("export default function create() { throw new Error('synthetic codec must not execute'); }\n");
-      put(`${packagePrefix}/${native}/${path}`, bytes);
-      artifacts.push({ path, bytes: bytes.length, sha256: digest(bytes) });
-      put(`${packagePrefix}/${native}/generated/${name}.d.mts`, readRegularInput(authority, `${native}/generated/${name}.d.mts`, 32768));
-    }
-    put(`${packagePrefix}/${native}/types.ts`, readRegularInput(authority, `${native}/types.ts`, 32768));
-    put(`${packagePrefix}/${native}/sources.json`, JSON.stringify({ artifacts }));
-    put(`${packagePrefix}/${native}/LICENSES.txt`, "Synthetic archive admission fixtures; not native codec qualification.\n");
     put("scripts/guard-package-dist.mjs", readRegularInput(join(authority, "../.."), "scripts/guard-package-dist.mjs", 300000));
     put(`${packagePrefix}/README.md`, "Synthetic committed archive control, not a product qualification.\n");
     for (const path of boundaries.heldSourceFiles) put(`${packagePrefix}/${path}`, "SYNTHETIC_WITHHELD_SENTINEL\n");
@@ -1699,7 +1706,7 @@ test("committed admission batches exact object IDs while retaining raw admitted 
     };
     const candidate = inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute);
     assert.deepEqual(candidate.files.get(path), payload);
-    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", "scripts/copy-compression-assets.mjs"].map(input => `${packagePrefix}/${input}`)]) {
+    for (const input of ["scripts/guard-package-dist.mjs", ...["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs"].map(input => `${packagePrefix}/${input}`)]) {
       const expected = readRegularInput(resolve(authority, "../.."), input, 300000);
       const actual = candidate.files.get(input);
       assert.ok(Buffer.isBuffer(actual) && Buffer.isBuffer(expected), input);
@@ -1737,7 +1744,7 @@ test("committed archive requires the committed output guard and matching workspa
   });
 });
 
-for (const script of ["build.mjs", "copy-compression-assets.mjs"]) for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded ${script} rejects ${defect} before execution`, async () => {
+for (const script of ["build.mjs"]) for (const defect of ["missing", "drift", "symlink", "legacy-command"]) test(`committed guarded ${script} rejects ${defect} before execution`, async () => {
   const entrypoint = `${packagePrefix}/scripts/${script}`;
   for (const mutation of defect === "drift" ? ["same-length", "short"] : ["short"]) await withRepository(fixture => {
     if (defect === "missing") {
@@ -1750,9 +1757,7 @@ for (const script of ["build.mjs", "copy-compression-assets.mjs"]) for (const de
     } else if (defect === "symlink") {
       rmSync(join(fixture.repository, entrypoint));
       symlinkSync("integration-inputs.mjs", join(fixture.repository, entrypoint));
-    } else fixture.manifest.scripts.build = script === "build.mjs"
-      ? "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json"
-      : "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs";
+    } else fixture.manifest.scripts.build = "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json";
   }, fixture => {
     const tree = fixture.git(["ls-tree", "-rz", "--full-tree", "HEAD"], { raw: true });
     assert.equal(tree.at(-1), 0);
@@ -1935,18 +1940,7 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/build.mjs`));
     assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/generate-native-storage-sources.mjs`));
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/generate-native-storage-sources.mjs`));
-    const copy = report.steps.find(step => step.label === "isolated committed codec asset copy");
-    assert.ok(copy);
-    assert.deepEqual(copy.args, ["scripts/copy-compression-assets.mjs"]);
-    assert.ok(report.steps.indexOf(copy) > report.steps.indexOf(build));
-    assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/copy-compression-assets.mjs`));
-    assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/copy-compression-assets.mjs`));
-    for (const path of ["sources.json", "LICENSES.txt", ...["bz2", "xz", "zstd"].flatMap(name => [`generated/${name}.mjs`, `generated/${name}.d.mts`])]) {
-      const local = `commands/bytes/compression/native/${path}`;
-      assert.ok(report.package.files.includes(`dist/${local}`), `missing copied codec artifact: ${path}`);
-      const expected = digest(readRegularInput(fixture.repository, `${packagePrefix}/src/${local}`, 65536));
-      assert.equal(report.distBaseline.files.find(entry => entry.path === `dist/${local}`)?.sha256, expected, `copied codec artifact differs: ${path}`);
-    }
+    assert.ok(report.build.execution.includes("private workspace assets come from authenticated build prerequisites"));
     assert.equal(report.distBaseline.sourceCommit, report.sourceCommit);
     assert.equal(report.distBaseline.archiveSha256, report.archive.sha256);
     assert.deepEqual(report.distBaseline.files.map(entry => entry.path), report.package.files.filter(path => path.startsWith("dist/")));

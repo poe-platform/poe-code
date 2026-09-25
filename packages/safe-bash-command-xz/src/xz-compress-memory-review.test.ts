@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createCodec } from '../../../../src/commands/bytes/compression/codec-loader.js';
-import factory from '../../../../src/commands/bytes/compression/native/generated/xz.mjs';
+import { createCodec } from 'safe-bash-compression-engine/codec-loader';
+import factory from 'safe-bash-compression-engine/native/generated/xz';
 
 test('XZ no-adjust admits the precise bundled codec boundary and rejects one byte below', async () => {
   // liblzma memory estimates contain sizeof terms: this wasm32 boundary differs

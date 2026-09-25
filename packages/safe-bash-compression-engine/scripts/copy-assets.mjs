@@ -3,9 +3,9 @@ import { createHash } from "node:crypto";
 import * as fs from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readRegularInput } from "./typecheck-integration-inputs.mjs";
+import { readRegularInput } from "../../../scripts/regular-input.mjs";
 
-const sourceDirectory = "src/commands/bytes/compression/native";
+const sourceDirectory = "src/native";
 const names = ["bz2", "xz", "zstd"];
 
 export async function copyCompressionAssets({
@@ -29,7 +29,7 @@ export async function copyCompressionAssets({
   }
   for (const name of names) admitted.set(`generated/${name}.d.mts`, read(`generated/${name}.d.mts`, 32768));
 
-  const output = "dist/commands/bytes/compression/native";
+  const output = "dist/native";
   for (const path of admitted.keys()) {
     let directory = root;
     for (const component of `${output}/${path}`.split("/").slice(0, -1)) {

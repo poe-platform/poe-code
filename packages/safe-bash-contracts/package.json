@@ -58,6 +58,22 @@
     "./filesystem-output-budget": {
       "types": "./dist/filesystem-output-budget.d.ts",
       "import": "./dist/filesystem-output-budget.js"
+    },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.ts",
+      "import": "./dist/diagnostics.js"
+    },
+    "./escaping": {
+      "types": "./dist/escaping.d.ts",
+      "import": "./dist/escaping.js"
+    },
+    "./path": {
+      "types": "./dist/path.d.ts",
+      "import": "./dist/path.js"
+    },
+    "./filesystem-identity": {
+      "types": "./dist/filesystem-identity.d.ts",
+      "import": "./dist/filesystem-identity.js"
     }
   },
   "files": [

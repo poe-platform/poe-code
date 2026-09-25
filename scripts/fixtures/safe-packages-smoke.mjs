@@ -6,6 +6,8 @@ import "./safe-packages-fmt.mjs";
 import "./safe-packages-unrtf.mjs";
 import "./safe-packages-htmlq.mjs";
 import "./safe-packages-fold.mjs";
+import { verification as xzVerification } from "./safe-packages-xz.mjs";
+await xzVerification;
 import assert from "node:assert/strict";
 import { verification as privateCommandVerification } from "./safe-packages-private-command.mjs";
 await privateCommandVerification;

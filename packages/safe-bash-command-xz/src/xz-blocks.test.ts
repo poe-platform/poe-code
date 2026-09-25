@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chunks, run } from './helpers.js';
-import { parseOptions } from '../../../../src/commands/bytes/compression/options.js';
-import { createCodec } from '../../../../src/commands/bytes/compression/codec-loader.js';
+import { parseOptions } from './options.js';
+import { createCodec } from 'safe-bash-compression-engine/codec-loader';
 
 const plain = Buffer.from('hello world');
 const blocks = Buffer.from('fd377a585a000004e6d6b4460200210114000000ffe7ec0901000368656c6c00d010b07a302ff1a80200210114000000ffe7ec090100036f20776f00cb046b4a093f27c10200210114000000ffe7ec09010002726c6400008b1332c7ae5e3cfc00031c041c041b030f7ba7f8b1c467fb020000000004595a', 'hex');

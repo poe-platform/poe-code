@@ -295,6 +295,16 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-compression-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-xz#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

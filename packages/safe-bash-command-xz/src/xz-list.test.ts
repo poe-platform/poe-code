@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chunks, run } from './helpers.js';
-import { humanListing } from '../../../../src/commands/bytes/compression/xz-list.js';
-import { parseOptions } from '../../../../src/commands/bytes/compression/options.js';
+import { humanListing } from './xz-list.js';
+import { parseOptions } from './options.js';
 
 test('XZ human units and list mode selectors match native', () => {
   assert.match(humanListing({ streams: 1, blocks: 1, compressed: 76, uncompressed: 1024, padding: 0, checks: new Set([4]) }, 'data.xz'), /1024 B/);

@@ -1,12 +1,15 @@
-# Gzip-family commands
+# Streaming compression commands
 
-`index.ts` exports `createCompressionCommands(): readonly CommandDefinition[]`,
-returning definitions named `gzip`, `gunzip`, and `zcat`. This is the utility's
-source-module factory, not a claim about package-root exports or shell
-registration. All file access uses the injected `CommandContext.fs`; runtime
-code uses Node builtins and shared project contracts, not host filesystem APIs,
-subprocesses, evaluation, or third-party dependencies. Optional native-reference
-tests, unlike the commands themselves, spawn installed gzip executables.
+`createCompressionCommands()` composes the existing gzip, bzip2, XZ and Zstandard
+families and their decompression/cat aliases in the established order. Shared
+codecs and virtual-file operations live in the private compression engine; the
+private XZ command workspace owns `xz`, `unxz`, `xzcat`, and index listings.
+Existing source-module imports remain available through compatibility exports.
+
+Select XZ separately with `createXzCommands` from the public
+`@poe-platform/safe-bash/commands/xz` export. All file access uses the injected
+`CommandContext.fs`. The bundled codecs use no host filesystem, native process,
+or runtime network access. Native-reference tests use installed codec executables.
 
 ## Invocation and exact options
 

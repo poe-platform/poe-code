@@ -18,6 +18,20 @@ import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInp
 
 const owner = "fixture producer";
 
+test("extracted XZ and codec tests remain owned by their private workspaces", () => {
+  const root = fileURLToPath(new URL("../../../", import.meta.url));
+  for (const [workspace, names] of [
+    ["safe-bash-command-xz", ["xz-blocks", "xz-checks", "xz-compress-memory-review", "xz-compress-memory", "xz-filters", "xz-format", "xz-list", "xz-memory"]],
+    ["safe-bash-compression-engine", ["bounded-codec-single-member", "bounded-codec", "native-optional-limits"]],
+  ]) {
+    const directory = `packages/${workspace}`;
+    const manifest = JSON.parse(readRegularInput(root, directory + "/package.json", 65536));
+    assert.equal(manifest.private, true);
+    assert.ok(manifest.scripts["test:unit"].includes("src/*.test.ts"), "moved tests must remain in maintained unit discovery");
+    for (const name of names) assert.ok(readRegularInput(root, `${directory}/src/${name}.test.ts`, 65536).length > 0);
+  }
+});
+
 test("Pyodide real-runtime verification has explicit opt-in entries and a pinned runtime", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const manifest = JSON.parse(readRegularInput(root, "tests/integration/pyodide-runtime/package.json", 4096));
@@ -528,11 +542,7 @@ function assertSource7Discovery(files) {
     "tests/shell/associative-arrays.test.ts",
     "tests/commands/network/wget.test.ts",
     "tests/commands/bytes-stress/portable-compression.test.ts",
-    "tests/commands/bytes/compression/bounded-codec.test.ts",
     "tests/commands/bytes/compression/xz-stream-controls.test.ts",
-    "tests/commands/bytes/compression/xz-filters.test.ts",
-    "tests/commands/bytes/compression/xz-blocks.test.ts",
-    "tests/commands/bytes/compression/xz-list.test.ts",
     "tests/commands/bytes/compression/bzip2-options.test.ts",
     "tests/commands/bytes/compression/zstd-options.test.ts",
     "tests/commands/bytes/compression/checkpoint-propagation.test.ts",

@@ -1,9 +1,9 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { boundedCodec, type CodecStep, type BoundedCodec } from "../../../../src/commands/bytes/compression/bounded-codec.js";
-import { CodecReader } from "../../../../src/commands/bytes/compression/codec.js";
-import { createCodec } from "../../../../src/commands/bytes/compression/codec-loader.js";
-import type { RawCodecModule } from "../../../../src/commands/bytes/compression/native/types.js";
+import { boundedCodec, type CodecStep, type BoundedCodec } from "./bounded-codec.js";
+import { CodecReader } from "./codec.js";
+import { createCodec } from "./codec-loader.js";
+import type { RawCodecModule } from "./native/types.js";
 
 const options = { format: "xz", decompress: true, level: 1 } as const;
 const input = (...values: Uint8Array[]) => new CodecReader((async function* () { yield* values; })(), new AbortController().signal);

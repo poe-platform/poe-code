@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { boundedCodec } from "../../../../src/commands/bytes/compression/bounded-codec.js";
-import { CodecReader } from "../../../../src/commands/bytes/compression/codec.js";
+import { boundedCodec } from "./bounded-codec.js";
+import { CodecReader } from "./codec.js";
 
 // Independently generated with Python bz2.compress(..., compresslevel=9).
 const compressed = Uint8Array.from(Buffer.from("QlpoOTFBWSZTWV7/O+UAAAPfgMAQQAAQAAAgQBASIlAQAACgACIQ9IaZlCmAALXNmZ6fYpELIXxdyRThQkF7/O+U", "base64"));

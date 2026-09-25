@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chunks, run } from './helpers.js';
-import { parseOptions } from '../../../../src/commands/bytes/compression/options.js';
-import { createCodec } from '../../../../src/commands/bytes/compression/codec-loader.js';
+import { parseOptions } from './options.js';
+import { createCodec } from 'safe-bash-compression-engine/codec-loader';
 
 const plain = Buffer.from('bounded compression memory'.repeat(50));
 // XZ 5.8.3, single-thread preset 3, 16 MiB limit: adjusts only the dictionary.

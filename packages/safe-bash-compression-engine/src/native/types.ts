@@ -1,0 +1,21 @@
+export interface RawCodecModule {
+  readonly memory: { readonly buffer: ArrayBuffer };
+  _initialize?(): void;
+  bridge_create(decompress: number, level: number, memoryLimit: number, windowLog: number, smallOrCheck?: number, ignoreCheck?: number, alone?: number, memoryHigh?: number, noAdjust?: number): number;
+  bridge_xz_adjusted_dictionary?(): number;
+  bridge_validate_filters?(spec: number): number;
+  bridge_index_memusage?(streamsLow: number, streamsHigh: number, blocksLow: number, blocksHigh: number): number;
+  bridge_create_filters?(decode: number, spec: number, raw: number, alone: number, check: number, memoryLow: number, memoryHigh: number, noAdjust: number, ignoreCheck: number): number;
+  bridge_create_lzma?(decompress: number, level: number, memoryLimit: number, dictionary: number, properties: number, eos: number, sizeLow: number, sizeHigh: number, memoryHigh?: number): number;
+  bridge_step(input: number, inputLength: number, output: number, outputLength: number, finish: number): number;
+  bridge_destroy(): void;
+  bridge_zstd_config?(check: number, literals: number, row: number, window: number, sizeLow: number, sizeHigh: number, sizeKnown: number, sizeHint: number): number;
+  bridge_input(): number;
+  bridge_output(): number;
+  bridge_consumed(): number;
+  bridge_produced(): number;
+  bridge_used(): number;
+  bridge_peak(): number;
+}
+
+export type RawCodecFactory = (wasi: Readonly<Record<string, (...arguments_: number[]) => number>>) => RawCodecModule;

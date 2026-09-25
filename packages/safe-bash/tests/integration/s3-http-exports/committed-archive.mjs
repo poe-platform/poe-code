@@ -100,7 +100,16 @@ export function bindWorkspacePrerequisites(repository, candidate, fileSystem = {
     assertLiteralInputPath(metadata.name);
     assert.ok(metadata.name.startsWith("@") ? metadata.name.split("/").length === 2 : !metadata.name.includes("/"), "workspace prerequisite package name");
     if (["@poe-platform/safe-bash", "@poe-platform/op", sharedName].includes(metadata.name)) continue;
+    const declaredAssets = candidate.manifest?.poeCode?.integration?.privateWorkspaces?.[metadata.name]?.assets ?? [];
+    assert.ok(Array.isArray(declaredAssets), "workspace prerequisite asset list");
+    const assets = declaredAssets.map(asset => {
+      assert.ok(typeof asset === "string" && asset.startsWith("./dist/"), "workspace prerequisite asset must be built");
+      assertLiteralInputPath(asset.slice(2));
+      return asset.slice(2);
+    });
+    assert.equal(new Set(assets).size, assets.length, "duplicate workspace prerequisite asset");
     workspaces.push({ name: metadata.name, directory: path.slice(0, -"/package.json".length), metadata,
+      assets: Object.freeze(assets),
       files: [{ path: "package.json", bytes: Buffer.from(bytes), sha256: digest(bytes) }] });
   }
   let totalBytes = 0, entries = 0;
@@ -123,7 +132,7 @@ export function bindWorkspacePrerequisites(repository, candidate, fileSystem = {
         assert.ok(stat.isFile() && stat.nlink === 1, `workspace prerequisite must be regular single-link: ${absolute}`);
         const declaration = [".d.ts", ".d.mts", ".d.cts"].some(suffix => path.endsWith(suffix));
         const runtime = workspace.name !== "@poe-code/safe-fs" && [".js", ".mjs", ".cjs", ".json"].some(suffix => path.endsWith(suffix));
-        if (!declaration && !runtime) return;
+        if (!declaration && !runtime && !workspace.assets.includes(path)) return;
         assert.ok(Number.isSafeInteger(stat.size) && stat.size >= 0 && stat.size <= 16 * 1024 * 1024, `workspace prerequisite file budget: ${absolute}`);
         totalBytes += stat.size;
         assert.ok(totalBytes <= 128 * 1024 * 1024, "workspace prerequisite aggregate budget");
@@ -131,6 +140,8 @@ export function bindWorkspacePrerequisites(repository, candidate, fileSystem = {
       }
     };
     visit("dist");
+    for (const asset of workspace.assets)
+      assert.ok(pending.some(input => input.workspace === workspace && input.path === asset), `missing workspace prerequisite asset: ${asset}`);
   }
   for (const { workspace, path, size, identity: expected } of pending) {
     const absolute = join(repository, workspace.directory, path);
@@ -630,7 +641,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
     assert.match(entry.oid, hashAlgorithm === "sha1" ? /^[a-f0-9]{40}$/u : /^[a-f0-9]{64}$/u);
     if (!admitted.has(path)) admitted.set(path, { path, oid: entry.oid, maximum });
   };
-  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", "scripts/copy-compression-assets.mjs"];
+  const reviewed = ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs"];
   assert.ok(tree.has("scripts/guard-package-dist.mjs"), "missing committed root output guard");
   admit("scripts/guard-package-dist.mjs");
   for (const path of reviewed) admit(`${packagePrefix}/${path}`, 300000);
@@ -713,7 +724,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assertArchiveDependencyContract(manifest);
       for (const key of ["prepare", "prepublish", "prepublishOnly", "prepack", "postpack", "preinstall", "install", "postinstall", "prebuild"]) assert.ok(!Object.hasOwn(manifest.scripts, key), `unapproved package lifecycle: ${key}`);
       if (Object.hasOwn(manifest.scripts, "postbuild")) assert.equal(manifest.scripts.postbuild, "node scripts/build-optional-cli.mjs", "unapproved package lifecycle: postbuild");
-      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs", "unreviewed committed build command");
+      assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs", "unreviewed committed build command");
       assert.equal(rootManifest.name, "poe-code");
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
       const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";

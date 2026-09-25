@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chunks, run } from './helpers.js';
-import { parseOptions } from '../../../../src/commands/bytes/compression/options.js';
-import { createCodec } from '../../../../src/commands/bytes/compression/codec-loader.js';
+import { parseOptions } from './options.js';
+import { createCodec } from 'safe-bash-compression-engine/codec-loader';
 
 test('XZ memory settings preserve individual limits above the former ceiling', async () => {
   assert.equal(parseOptions('xz', ['--memlimit-decompress=1GiB']).xzDecompressMemory, 1024 ** 3);

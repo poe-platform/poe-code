@@ -145,6 +145,8 @@ export function prepareWorkspaceDistribution(distFiles, prerequisites, peer) {
   let totalBytes = 0;
   for (let index = 0; index < pending.length; index++) {
     const { source, path, record } = pending[index];
+    if (record.workspace) for (const asset of record.workspace.assets)
+      enqueue(`${record.workspace.directory}/${asset}`);
     assert.equal(digest(record.bytes), record.sha256, `workspace distribution captured input changed: ${source}`);
     const declaration = [".d.ts", ".d.mts", ".d.cts"].some(suffix => path.endsWith(suffix));
     let bytes = Buffer.from(record.bytes);
@@ -419,7 +421,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     }
     run("committed output guard", process.execPath, [join(snapshotRoot, "scripts/guard-package-dist.mjs")], snapshot);
     run("committed boundary owner authentication", process.execPath, ["--input-type=module", "-e", "const {loadBoundaries}=await import(process.argv[1]); loadBoundaries(process.cwd());", pathToFileURL(join(snapshot, "scripts/integration-inputs.mjs")).href], snapshot);
-    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint + committed codec asset copier; held filename census authenticated from Git tree metadata, never materialized", scope: "Core archive only; the declared optional postbuild hook is not executed and dist/opt-in is excluded" };
+    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint; private workspace assets come from authenticated build prerequisites; held filename census authenticated from Git tree metadata, never materialized", scope: "Core archive only; the declared optional postbuild hook is not executed and dist/opt-in is excluded" };
     run("isolated committed compiler build", process.execPath, ["scripts/build.mjs"], snapshot);
     if (bundleOp) {
       assert.ok(candidate.opManifest, "private op bundle requires committed source prerequisite");
@@ -442,7 +444,6 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       report.op.bundleInputs = metadata.inputs;
     }
     assertSnapshot(peer);
-    run("isolated committed codec asset copy", process.execPath, ["scripts/copy-compression-assets.mjs"], snapshot);
     const distribution = prepareWorkspaceDistribution(new Map(readDistInventory(snapshot).map(({ path, sha256 }) => {
       const bytes = readRegularInput(snapshot, path, 32 * 1024 * 1024);
       assert.equal(digest(bytes), sha256, `workspace distribution compiled input changed: ${path}`);

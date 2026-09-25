@@ -491,6 +491,10 @@
     "./commands/ffmpeg": {
       "types": "./dist/commands/ffmpeg/index.d.ts",
       "import": "./dist/commands/ffmpeg/index.js"
+    },
+    "./commands/xz": {
+      "types": "./dist/commands/xz/index.d.ts",
+      "import": "./dist/commands/xz/index.js"
     }
   },
   "files": [
@@ -558,7 +562,7 @@
   ],
   "scripts": {
     "benchmark": "node --import tsx benchmarks/run.ts",
-    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs",
+    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs",
     "build:optional": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.optional.json",
     "typecheck": "node scripts/typecheck.mjs",
     "typecheck:all": "node scripts/typecheck.mjs --build",
@@ -567,7 +571,7 @@
     "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
     "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
     "verify:release:whole": "node scripts/verify-whole-gate.mjs",
-    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/copy-compression-assets.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs",
+    "test:runner": "node scripts/test-reporting.mjs scripts/integration-inputs.test.mjs scripts/build.test.mjs scripts/test-reporting.test.mjs scripts/historical-type-models.test.mjs",
     "test:unit": "npm run test:runner && node scripts/test.mjs",
     "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
     "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public",
@@ -624,7 +628,9 @@
     "safe-bash-command-sponge": "*",
     "safe-bash-command-fd": "*",
     "safe-bash-command-less": "*",
-    "safe-bash-command-ffmpeg": "*"
+    "safe-bash-command-ffmpeg": "*",
+    "safe-bash-compression-engine": "*",
+    "safe-bash-command-xz": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -970,6 +976,34 @@
             "safe-bash-contracts": "*"
           },
           "portable": true
+        },
+        "safe-bash-compression-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/office-package": "*"
+          },
+          "assets": [
+            "./dist/native/sources.json",
+            "./dist/native/LICENSES.txt",
+            "./dist/native/generated/bz2.mjs",
+            "./dist/native/generated/bz2.d.mts",
+            "./dist/native/generated/xz.mjs",
+            "./dist/native/generated/xz.d.mts",
+            "./dist/native/generated/zstd.mjs",
+            "./dist/native/generated/zstd.d.mts"
+          ]
+        },
+        "safe-bash-command-xz": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-compression-engine": "*",
+            "@poe-code/safe-fs": "*"
+          }
         }
       }
     }

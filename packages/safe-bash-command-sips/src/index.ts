@@ -397,13 +397,16 @@ export async function runSipsCli(
     effectiveActions = [...filteredActions];
   } else {
     const beforeRotFlip = filteredActions.slice(0, firstRotFlipIdx);
+    const nonResamplesBefore = beforeRotFlip.filter(act => !isResample(act.kind));
+    const resamplesBefore = beforeRotFlip.filter(act => isResample(act.kind));
     const afterRotFlip = filteredActions.slice(firstRotFlipIdx).filter(act => !isRotFlip(act.kind));
     const resamplesAfter = afterRotFlip.filter(act => isResample(act.kind));
     const otherAfter = afterRotFlip.filter(act => !isResample(act.kind));
     effectiveActions = [
-      ...beforeRotFlip,
+      ...nonResamplesBefore,
       ...resamplesAfter,
       ...reversedRotFlips,
+      ...resamplesBefore,
       ...otherAfter
     ];
   }

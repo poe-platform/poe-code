@@ -367,4 +367,24 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     const row5 = Array.from({ length: 10 }, (_, x) => p10Raw[(5 * 10 + x) * 3]);
     expect(row5).toEqual([0, 0, 100, 200, 200, 200, 200, 100, 0, 0]);
   });
+
+  it("matches macOS /usr/bin/sips CGAffineTransform ordering when -z precedes -r vs follows -r (#88)", async () => {
+    const png50x40 = await makeSamplePng(50, 40);
+    const files = new Map<string, Uint8Array>([
+      ["/work/a.png", png50x40],
+      ["/work/b.png", png50x40]
+    ]);
+
+    // -z 80 120 -r 90 -> rotates 50x40 to 40x50 first, then scales by (120/50=2.4, 80/40=2.0) -> 96x100
+    await runSipsCli(["-z", "80", "120", "-r", "90", "/work/a.png"], files);
+    const metaA = await sharp(files.get("/work/a.png")!).metadata();
+    expect(metaA.width).toBe(96);
+    expect(metaA.height).toBe(100);
+
+    // -r 90 -z 80 120 -> scales 50x40 to 120x80 first, then rotates 90 -> 80x120
+    await runSipsCli(["-r", "90", "-z", "80", "120", "/work/b.png"], files);
+    const metaB = await sharp(files.get("/work/b.png")!).metadata();
+    expect(metaB.width).toBe(80);
+    expect(metaB.height).toBe(120);
+  });
 });

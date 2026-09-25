@@ -78,7 +78,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf, args.before === 0) : undefined;
   let syncIdx = 0;
   let asyncIter: AsyncIterator<Line[]> | undefined;
-  let failed = false;
+  let failure: { reason: unknown } | undefined;
   try {
   records: while (true) {
     let batch: Line[];
@@ -138,12 +138,11 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
     if (syncBatches === undefined && limits.outPos > 0) await limits.flush();
   }
   } catch (error) {
-    failed = true;
-    throw error;
-  } finally {
-    try { await asyncIter?.return?.(); }
-    catch (error) { if (!failed) throw error; }
+    failure = { reason: error };
   }
+  try { await asyncIter?.return?.(); }
+  catch (error) { if (!failure) throw error; }
+  if (failure) throw failure.reason;
   if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0 && !binaryPrinted) {
     await printer.binary(target.label, state.binaryOffset, filename);
   }

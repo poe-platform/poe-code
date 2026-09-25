@@ -82,6 +82,7 @@ const extractionStreamGuard = Symbol("extractionStreamGuard");
 type ConfinedWriteOptions = WriteFileOptions & { readonly [extractionStreamGuard]?: (node: FileNode) => void };
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
 const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; intact: () => boolean }>();
+const memoryPools = new WeakMap<MemoryLedger, { allocations: MemoryAllocation[]; files: FileNode[] }>();
 const registeredAuthorities = new WeakSet<FileSystem>();
 const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   options.signal?.throwIfAborted();
@@ -176,11 +177,10 @@ export class MemoryFileSystem implements FileSystem {
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
-  readonly #freeAlloc64: MemoryAllocation[] = [];
-  readonly #freeFileNodes: FileNode[] = [];
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));
+    memoryPools.set(this.ledger, { allocations: [], files: [] });
     this.ledger.reserve(0, 1, "mkdir", "/");
     this.root = this.directory(0o755);
     const root = this.root;
@@ -334,11 +334,12 @@ export class MemoryFileSystem implements FileSystem {
       this.totalBytes -= node.data.byteLength;
       const alloc = node.allocation;
       alloc.release();
-      if (alloc.isReleased64() && this.#freeAlloc64.length < 128) {
-        this.#freeAlloc64.push(alloc);
+      const pool = memoryPools.get(this.ledger)!;
+      if (alloc.isReleased64() && pool.allocations.length < 128) {
+        pool.allocations.push(alloc);
       }
-      if (this.#freeFileNodes.length < 128) {
-        this.#freeFileNodes.push(node);
+      if (pool.files.length < 128) {
+        pool.files.push(node);
       }
     } else if (node.type === "symlink") {
       this.symlinkCount--;
@@ -549,8 +550,9 @@ export class MemoryFileSystem implements FileSystem {
   private allocate(length: number, syscall: string, path: string): MemoryAllocation {
     this.ledger.fileSize(length, syscall, path);
     this.ledger.reserve(length, 0, syscall, path);
-    if (length === 64 && this.#freeAlloc64.length > 0) {
-      const pooled = this.#freeAlloc64.pop()!;
+    const allocations = memoryPools.get(this.ledger)!.allocations;
+    if (length === 64 && allocations.length > 0) {
+      const pooled = allocations.pop()!;
       pooled.reuse();
       return pooled;
     }
@@ -649,7 +651,7 @@ export class MemoryFileSystem implements FileSystem {
           const now = Date.now();
           const fileMode = typeModes.file | target.mode;
           const view = capacity === length ? allocation.data : allocation.data.subarray(0, length);
-          const pooled = this.#freeFileNodes.pop();
+          const pooled = memoryPools.get(this.ledger)!.files.pop();
           if (pooled) {
             pooled.mode = fileMode;
             pooled.ino = this.nextInode++;
@@ -769,7 +771,7 @@ export class MemoryFileSystem implements FileSystem {
           const now = Date.now();
           const fileMode = typeModes.file | mode;
           const view = capacity === length ? allocation.data : allocation.data.subarray(0, length);
-          let node = this.#freeFileNodes.pop();
+          let node = memoryPools.get(this.ledger)!.files.pop();
           if (node) {
             node.mode = fileMode;
             node.ino = this.nextInode++;

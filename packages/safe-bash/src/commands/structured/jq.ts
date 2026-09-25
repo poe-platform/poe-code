@@ -16,7 +16,7 @@ const JQ_LONG_FLAGS: Readonly<Record<string, string>> = {
 };
 const jqAstCache = new Map<string, Ast>();
 const OUT_BUF_SIZE = 16 * 1024;
-const sharedJqOutBuf = new Uint8Array(OUT_BUF_SIZE);
+let sharedJqOutBuf: Uint8Array | null = null;
 let sharedJqOutBufInUse = false;
 
 interface Options {
@@ -406,6 +406,8 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
   let outPos = 0;
   const releaseOutBuf = (): void => {
     if (usingSharedOutBuf) {
+      // Cancellation can finish writeBytes while the sink still borrows this buffer.
+      if (stdoutWriteFailed) sharedJqOutBuf = null;
       usingSharedOutBuf = false;
       sharedJqOutBufInUse = false;
       outBuf = null;
@@ -473,7 +475,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
         if (!sharedJqOutBufInUse) {
           sharedJqOutBufInUse = true;
           usingSharedOutBuf = true;
-          buf = outBuf = sharedJqOutBuf;
+          buf = outBuf = sharedJqOutBuf ??= new Uint8Array(OUT_BUF_SIZE);
         } else {
           buf = outBuf = new Uint8Array(OUT_BUF_SIZE);
         }

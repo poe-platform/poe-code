@@ -28,6 +28,27 @@ test("non-slurp emits before EOF and honors output backpressure", { timeout: 200
   assert.equal(input.closed(), true);
 });
 
+test("cancelled jq output remains stable until the pending sink releases its bytes", { timeout: 2000 }, async () => {
+  const controller = new AbortController(); const reason = new Error("abort borrowed output");
+  let emitted!: () => void; const outputReady = new Promise<void>(resolve => { emitted = resolve; });
+  let release!: () => void; const pendingWrite = new Promise<void>(resolve => { release = resolve; });
+  let borrowed!: Uint8Array;
+  const running = run(["-c", "."], '{"a":1}\n', {}, {
+    signal: controller.signal,
+    stdout: { write(chunk) { borrowed = chunk; emitted(); return pendingWrite; } },
+  });
+  const rejection = assert.rejects(running, error => error === reason);
+  try {
+    await outputReady;
+    assert.equal(Buffer.from(borrowed).toString(), '{"a":1}\n');
+    controller.abort(reason); await rejection;
+    const next = await run(["-c", "."], '{"b":2}\n');
+    assert.equal(next.exitCode, 0, next.stderr);
+    assert.equal(next.stdout, '{"b":2}\n');
+    assert.equal(Buffer.from(borrowed).toString(), '{"a":1}\n');
+  } finally { release(); }
+});
+
 test("slurp and exit-status wait for EOF rather than stopping at false", { timeout: 2000 }, async () => {
   for (const args of [["-sc", "."], ["-ec", "."]]) {
     const controller = new AbortController(); const reason = new Error("stop waiting");

@@ -19,6 +19,28 @@ const cases = [
   ["raw bytes before empty quoted fields", "IFS=' :'; x=$'a\\377 '; z=$':c\\376'; printf '<%s>\\n' $x\"\"$z"],
 ] as const;
 
+// Captured independently from Bash 5.2.37 and Darwin Bash 3.2.57, respectively.
+const versionedFields = new Map<string, { modern: readonly string[]; legacy: readonly string[] }>([
+  ["IFS boundaries and literal suffixes", {
+    modern: ["a", "b", "c", "a", "", "c", "a", "/end", "a", "", "b"],
+    legacy: ["a", "b", "c", "a", "c", "a", "/end", "a", "", "b"],
+  }],
+  ["protected home expansion", {
+    modern: ["/home/a b:*", "/home/a b:*/dir", "/home/a b:*/a:/home/a b:*/b"],
+    legacy: ["/home/a b:*", "/home/a", "b", "*/dir", "/home/a b:*/a:/home/a b:*/b"],
+  }],
+  ["empty quotes after IFS whitespace", { modern: ["a", "", "a", "", "c", "a"], legacy: ["a", "a", "c", "a"] }],
+  ["raw bytes before empty quoted fields", { modern: ["a\xff", "", "c\xfe"], legacy: ["a\xff", "c\xfe"] }],
+]);
+const version = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], { env, timeout: 2000 });
+assert.ifError(version.error);
+assert.equal(version.signal, null);
+assert.equal(version.status, 0);
+assert.equal(version.stderr.length, 0);
+const bashVersion = version.stdout.toString();
+const legacyOracle = bashVersion.startsWith("3.2.");
+assert.ok(legacyOracle || Number(bashVersion.split(".")[0]) >= 5, `Unsupported Bash oracle dialect: ${bashVersion}`);
+
 for (const [name, script] of cases) {
   test(`tilde and IFS: ${name}`, async context => {
     const source = `OLDPWD=/var/log; ${script}`;
@@ -26,10 +48,18 @@ for (const [name, script] of cases) {
     assert.equal(expected.error, undefined);
     assert.equal(expected.signal, null);
     assert.equal(expected.status, 0);
+    const contract = versionedFields.get(name);
+    let expectedStdout = expected.stdout.toString("hex");
+    if (contract) {
+      const oracleFields = legacyOracle ? contract.legacy : contract.modern;
+      assert.deepEqual(expected.stdout, Buffer.from(oracleFields.map(field => `<${field}>\n`).join(""), "latin1"), `Bash ${bashVersion}`);
+      assert.equal(expected.stderr.length, 0);
+      expectedStdout = Buffer.from(contract.modern.map(field => `<${field}>\n`).join(""), "latin1").toString("hex");
+    }
     const shell = new Shell({ fs: createMemoryFileSystem(), env }).use(agentCommands());
     context.after(() => shell.dispose());
     const actual = await shell.exec(source);
     assert.deepEqual({ stdout: Buffer.from(actual.stdoutBytes).toString("hex"), stderr: Buffer.from(actual.stderrBytes).toString("hex"), status: actual.exitCode },
-      { stdout: expected.stdout.toString("hex"), stderr: expected.stderr.toString("hex"), status: expected.status });
+      { stdout: expectedStdout, stderr: expected.stderr.toString("hex"), status: expected.status });
   });
 }

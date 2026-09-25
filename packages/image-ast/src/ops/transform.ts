@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import type {
   BlendMode,
   ChannelStats,
@@ -511,8 +512,11 @@ export function compositeImage(
   for (const layer of layers) {
     let overlay: RgbaImage;
     if (typeof layer.input === "string") {
+      const strBytes = layer.input.trimStart().startsWith("<")
+        ? new TextEncoder().encode(layer.input)
+        : new Uint8Array(fs.readFileSync(layer.input));
       overlay = decodeImage(
-        new TextEncoder().encode(layer.input),
+        strBytes,
         layer.density !== undefined ? { density: layer.density } : undefined
       );
     } else if (layer.input instanceof Uint8Array) {

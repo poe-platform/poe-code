@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
   parseColor,
   type ColorInput,
@@ -55,12 +57,57 @@ function toBytes(input: Uint8Array | ArrayBuffer | string | undefined): Uint8Arr
   if (!input) return undefined;
   if (input instanceof Uint8Array) return input;
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
-  if (typeof input === "string") return new TextEncoder().encode(input);
+  if (typeof input === "string") {
+    if (input.trimStart().startsWith("<")) {
+      return new TextEncoder().encode(input);
+    }
+    return new Uint8Array(fs.readFileSync(input));
+  }
   return undefined;
+}
+
+function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
+  const ext = path.extname(fileOut).toLowerCase().replace(/^\./, "");
+  switch (ext) {
+    case "png":
+      return "png";
+    case "jpg":
+    case "jpeg":
+    case "jpe":
+      return "jpeg";
+    case "webp":
+      return "webp";
+    case "gif":
+      return "gif";
+    case "tif":
+    case "tiff":
+      return "tiff";
+    case "avif":
+      return "avif";
+    case "heic":
+      return "heic";
+    case "heif":
+      return "heif";
+    case "pdf":
+      return "pdf";
+    case "ppm":
+      return "ppm";
+    case "pgm":
+      return "pgm";
+    case "pbm":
+      return "pbm";
+    case "bmp":
+      return "bmp";
+    case "raw":
+      return "raw";
+    default:
+      return undefined;
+  }
 }
 
 export class SharpInstance {
   private readonly inputBytes: Uint8Array | undefined;
+  private readonly inputFilePath: string | undefined;
   private readonly joinInputs: readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[] | undefined;
   private readonly inputOptions: SharpInputOptions | undefined;
   private readonly nodes: ImageAstNode[] = [];
@@ -87,6 +134,8 @@ export class SharpInstance {
       this.joinInputs = undefined;
       this.inputOptions = input as SharpInputOptions;
     } else {
+      this.inputFilePath =
+        typeof input === "string" && !input.trimStart().startsWith("<") ? input : undefined;
       this.inputBytes = toBytes(input as Uint8Array | ArrayBuffer | string | undefined);
       this.joinInputs = undefined;
       this.inputOptions = options;
@@ -1186,6 +1235,39 @@ export class SharpInstance {
 
   toBufferSync(): Uint8Array {
     return this.toBufferWithObjectSync().data;
+  }
+
+  async toFile(
+    fileOut: string,
+    callback?: (err: Error | null, info?: OutputInfo) => void
+  ): Promise<OutputInfo> {
+    try {
+      if (!fileOut || typeof fileOut !== "string") {
+        throw new Error("Missing output file path");
+      }
+      if (this.inputFilePath && path.resolve(fileOut) === path.resolve(this.inputFilePath)) {
+        throw new Error("Cannot use same file for input and output");
+      }
+      const prevFormat = this.outputOptions.format;
+      const inferred = prevFormat ?? inferFormatFromPath(fileOut);
+      if (!prevFormat && inferred) {
+        this.outputOptions = { ...this.outputOptions, format: inferred };
+      }
+      try {
+        const res = this.toBufferWithObjectSync();
+        fs.writeFileSync(fileOut, res.data);
+        if (callback) callback(null, res.info);
+        return res.info;
+      } finally {
+        if (!prevFormat && inferred) {
+          const { format: _omit, ...rest } = this.outputOptions;
+          this.outputOptions = rest;
+        }
+      }
+    } catch (err) {
+      if (callback) callback(err as Error);
+      throw err;
+    }
   }
 
   toBuffer(): Promise<Uint8Array>;

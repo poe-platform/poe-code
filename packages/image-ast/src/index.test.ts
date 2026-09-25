@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import fs from "node:fs";
+import { describe, expect, it, vi } from "vitest";
 import { PdfDocument, createStandardFontHandle } from "@poe-code/pdf-ast";
 import sharp, {
   decodeImage,
@@ -1978,5 +1979,42 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const joinedGray = await (sharp as any)([g1, g2]).raw().toBuffer({ resolveWithObject: true });
     expect(joinedGray.info.channels).toBe(3);
     expect(Array.from(joinedGray.data)).toEqual([50, 50, 50, 100, 100, 100, 150, 150, 150, 200, 200, 200]);
+  });
+  it("supports file path inputs in sharp()/composite() and .toFile(fileOut) with extension inference (#103)", async () => {
+    const virtualFs = new Map<string, Uint8Array>();
+    const readSpy = vi.spyOn(fs, "readFileSync").mockImplementation(((p: any) => {
+      const key = String(p);
+      const val = virtualFs.get(key);
+      if (!val) throw new Error(`ENOENT: ${key}`);
+      return Buffer.from(val);
+    }) as any);
+    const writeSpy = vi.spyOn(fs, "writeFileSync").mockImplementation(((p: any, data: any) => {
+      virtualFs.set(String(p), new Uint8Array(data));
+    }) as any);
+
+    try {
+      const info1 = await (sharp({
+        create: { width: 10, height: 8, channels: 3, background: { r: 200, g: 100, b: 50 } }
+      }) as any).toFile("/mem/input.png");
+      expect(info1.format).toBe("png");
+      expect(info1.width).toBe(10);
+      expect(info1.height).toBe(8);
+      expect(virtualFs.has("/mem/input.png")).toBe(true);
+
+      const info2 = await (sharp("/mem/input.png") as any)
+        .resize(5, 4)
+        .toFile("/mem/output.webp");
+      expect(info2.format).toBe("webp");
+      expect(info2.width).toBe(5);
+      expect(info2.height).toBe(4);
+      expect(virtualFs.has("/mem/output.webp")).toBe(true);
+
+      await expect((sharp("/mem/input.png") as any).toFile("/mem/input.png")).rejects.toThrow(
+        /Cannot use same file for input and output/i
+      );
+    } finally {
+      readSpy.mockRestore();
+      writeSpy.mockRestore();
+    }
   });
 });

@@ -213,3 +213,12 @@ When talking about agent harnesses, it's all of these
  - ralph
  - superintendent
  - ...
+
+
+## safe-bash commands
+
+When adding or implementing commands for `@poe-platform/safe-bash`:
+- Every command must live in its own dedicated private workspace package named `packages/safe-bash-command-<command>` (e.g. `packages/safe-bash-command-bc`, `packages/safe-bash-command-sponge`, `packages/safe-bash-command-fd`).
+- Never bundle commands into grab-bag directories (such as `src/commands/muscle-memory`) inside `packages/safe-bash`.
+- In `packages/safe-bash`, expose a thin adapter at `packages/safe-bash/src/commands/<command>/index.ts` (`export * from "safe-bash-command-<command>";`) and register the private workspace in `packages/safe-bash/package.json` (`devDependencies` and `poeCode.integration.privateWorkspaces`) and the root `package.json`.
+- Follow the standard command contract: export `create<Name>Command`, `create<Name>Commands`, `<name>Commands` plugin, `<Name>CommandsOptions`, and `<Name>Limits` with bounded resource accounting.

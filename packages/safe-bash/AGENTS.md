@@ -399,3 +399,10 @@
   suppression, not all style and not a broad semantic waiver/parity claim. Keep this
   separate from1217 archived-not-fixed diagnostics. Uncovered semantic findings
   remain blocking; these decisions do not establish an integrated/release gate pass.
+
+
+## Command Architecture (`safe-bash-command-<command>`)
+
+- Every command added to `@poe-platform/safe-bash` MUST be implemented in its own private workspace package at `packages/safe-bash-command-<command>` (for example `packages/safe-bash-command-bc`, `packages/safe-bash-command-sponge`, `packages/safe-bash-command-fd`, `packages/safe-bash-command-less`).
+- Never group unrelated commands into grab-bag folders (e.g. `src/commands/muscle-memory`).
+- Re-export each command in `packages/safe-bash/src/commands/<command>/index.ts` via `export * from "safe-bash-command-<command>";` and register it in `packages/safe-bash/package.json` (`devDependencies` and `poeCode.integration.privateWorkspaces`) and root `package.json`.

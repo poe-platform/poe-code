@@ -68,7 +68,7 @@ const databaseQuery: import("@poe-code/ssconvert").DatabaseQuery = (request, hos
   const sql: string = request.sql;
   if (!readOnly || !sql || host.context.signal.aborted) return { kind: "empty" };
   host.tick();
-  return { kind: "recordset", rows: [[{ kind: "number", value: 2 }, { kind: "blank" }]] };
+  return { kind: "recordset", rows: [[{ kind: "number", value: 45292, format: "yyyy-mm-dd" }, { kind: "blank" }]] };
 };
 const { createDatabaseFunctions } = await import("poe-code/ssconvert");
 const databaseConfig: EngineConfig = { ...config, runtimeFunctions: createDatabaseFunctions(databaseQuery) };

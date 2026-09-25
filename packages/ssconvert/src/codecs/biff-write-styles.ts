@@ -1,5 +1,6 @@
 import { SsconvertError, type CapabilityContext, type Diagnostic } from "../contracts.js";
 import type { Cell } from "../workbook.js";
+import { cellValueFormat } from "../workbook/value-format.js";
 import { metadataNode, type MetadataNode } from "./xlsx-write-support.js";
 import { BiffOutput, words } from "./biff-write-binary.js";
 import { biffString } from "./biff-write.js";
@@ -9,9 +10,10 @@ export class BiffStyles {
   private readonly styles: { format: string; node?: MetadataNode }[] = [{ format: "General" }];
   private readonly ids = new Map<string, number>();
   constructor(readonly context: CapabilityContext) {}
-  register(cell: Pick<Cell, "format" | "style">): number {
+  register(cell: Pick<Cell, "format" | "style"> & Partial<Pick<Cell, "value" | "cachedResult">>): number {
     const node = metadataNode(cell.style?.gnumeric, amount => this.charge(amount));
-    const entry = { format: cell.format ?? node?.attributes.Format ?? node?.children.find(n => n.name === "Format")?.text ?? "General",
+    const styleFormat = cell.format ?? node?.attributes.Format ?? node?.children.find(n => n.name === "Format")?.text ?? "General";
+    const entry = { format: styleFormat === "General" ? cellValueFormat(cell) ?? styleFormat : styleFormat,
       ...(node ? { node } : {}) };
     if (!node && entry.format === "General") return 15;
     const key = JSON.stringify(entry); this.charge(key.length);

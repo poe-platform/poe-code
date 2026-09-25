@@ -627,7 +627,8 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
         const info = rowInfo.get(row); let content = "";
         for (const cell of group) {
           charge(); const value = cell.formula ? cell.cachedResult ?? cell.value : cell.value;
-          const style = cell.style || cell.format ? styles.register(cell) : columnDefaultStyle;
+          const valueFormat = value.kind === "number" ? value.format : undefined;
+          const style = cell.style || cell.format ? styles.register(cell) : valueFormat !== undefined ? styles.register(cell, columnDefaultStyle) : columnDefaultStyle;
           const stringKey = value.kind === "string" ? JSON.stringify([value.value, cell.richText ?? []]) : "";
           let type: string | undefined, body = "";
           charge(sheet.formulaGroups?.length ?? 0);

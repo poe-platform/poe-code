@@ -4,7 +4,8 @@ export type CellValue =
   /** Native C-string bytes that are not valid UTF-8, in canonical lowercase hex.
    * Unicode consumers must explicitly qualify their interpretation. */
   | { readonly kind: "byte-string"; readonly value: string }
-  | { readonly kind: "number"; readonly value: number }
+  /** Value-owned number format, used when the cell style is General. */
+  | { readonly kind: "number"; readonly value: number; readonly format?: string }
   | { readonly kind: "boolean"; readonly value: boolean }
   | { readonly kind: "error"; readonly value: string };
 export interface FormulaSemantics {

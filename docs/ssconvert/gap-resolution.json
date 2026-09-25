@@ -302,6 +302,50 @@
         "lifecycle": "Worker terminated and object URL revoked; Playwright reports no remaining workers. Console has zero warnings/errors. All seven observed requests are owned localhost assets or the worker blob. Screenshot inspected.",
         "probeCorrection": "The first re-import comparison incorrectly expected leading apostrophes to remain. Four native controls established the actual contract before correcting the check. The first browser session closed; its process was confirmed gone before starting a fresh session and completing all checks."
       }
+    },
+    "databaseValueFormats": {
+      "status": "partial",
+      "nativeVersion": "Gnumeric 1.12.61",
+      "source": "plugins/gda/plugin-gda.c",
+      "sourceSha256": "41d41467cab8d10f56332d1bf76bb5dd15d74257712e8666d11e32260409f4e5",
+      "scope": "Value-owned date/time formats, formula selection and file interchange; this does not qualify a live GDA connection or complete GValue conversion.",
+      "api": "Numeric CellValue accepts optional format; explicit non-General cell styles take precedence.",
+      "nativeSelection": "References, IF and INDEX preserve date/time formats; addition and SUM return unformatted numbers.",
+      "independentExports": {
+        "count": 12,
+        "dateSystems": [
+          "1900",
+          "1904"
+        ],
+        "profiles": [
+          "Gnumeric XML",
+          "XLSX 2006",
+          "XLSX 2008",
+          "BIFF7",
+          "BIFF8",
+          "DSF"
+        ],
+        "result": "Compiled public SDK exports reopened by native Gnumeric; exact CSV dates, times and explicit numeric-style controls matched."
+      },
+      "sdk": "Imported XML value formats and an injected READDBTABLE recordset produced the exact native CSV control bytes.",
+      "regressions": "packages/ssconvert/src/formulas/database-formats.test.ts",
+      "remaining": [
+        "Successful native GDA connection/query execution",
+        "Complete database-type conversion",
+        "Connection and transaction lifecycle qualification",
+        "Registry-installed delivery and publication"
+      ],
+      "validation": {
+        "focusedTests": 11,
+        "packageFiles": 420,
+        "packageTests": 23980,
+        "requiredPostchecks": 2,
+        "build": "selected maintained workspace closure passed",
+        "lint": "package ESLint, source/test typechecks and public root/scoped consumer declarations passed",
+        "cli": "Public runCommand exact native CSV match; terminal screenshot inspected",
+        "publicConsumer": "Compiled root/scoped consumer executed successfully after workspace installation refresh."
+      },
+      "shell": "Actual Shell with compiled ssconvert package matched native CSV for imported value formats and the injected READDBTABLE recordset; zero diagnostics and owned shell disposal verified."
     }
   },
   "cases": [
@@ -358,7 +402,7 @@
     {
       "id": "database-functions",
       "status": "open",
-      "currentFinding": "EXECSQL/READDBTABLE use an explicit bounded cooperative host query port. Native successful connection/query behavior, formatted/date results and full lifecycle remain unqualified; headless native connection attempts fail."
+      "currentFinding": "EXECSQL/READDBTABLE use an explicit bounded cooperative host query port. Numeric results now carry value-owned date/time formats through formula selection and XML/XLSX/BIFF export. Native successful connections, complete database-type conversion and full lifecycle remain unqualified; native first connections require a GTK dialog."
     },
     {
       "id": "atl-last",

@@ -11,6 +11,7 @@ import { localReferenceRange } from "./local-references.js";
 import { translateFormulaGroup } from "./workbook.js";
 import { binary, blank, difference, error, numeric, numericResult, product, sum } from "./values.js";
 import { snapshotRecords } from "../workbook/model.js";
+import { cellValueFormat } from "../workbook/value-format.js";
 import type { ExternalFormulaRequest } from "../formulas.js";
 import type { Reference, Matrix, Value, FunctionHost } from "./functions/types.js";
 import { callFunction } from "./functions/registry.js";
@@ -423,7 +424,10 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     tick();
     const cached = results.get(cell); if (cached) return cached;
     if (cleared.has(cell)) return currentValues.get(cell) ?? cell.cachedResult ?? cell.value;
-    if (!cell.formula || !pending.has(cell) && !tablePending.has(cell)) return cell.cachedResult ?? cell.value;
+    if (!cell.formula || !pending.has(cell) && !tablePending.has(cell)) {
+      const value = cell.cachedResult ?? cell.value, format = cellValueFormat(cell);
+      return value.kind === "number" && format !== undefined ? { ...value, format } : value;
+    }
     if (visiting.has(cell)) {
       if (book.iteration?.enabled && !iterationRoot) { iterationRoot = cell; iterated.add(cell); }
       // dependent_eval clears NEEDS_RECALC even for a recursive cycle bottom.

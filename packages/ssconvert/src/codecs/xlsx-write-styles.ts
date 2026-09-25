@@ -1,4 +1,5 @@
 import type { Cell, ImportedValue } from "../workbook.js";
+import { cellValueFormat } from "../workbook/value-format.js";
 import { metadataNode, type ElementWriter, type MetadataNode } from "./xlsx-write-support.js";
 
 const builtinFormats = new Map<string, number>(Object.entries({ General: 0, "0": 1, "0.00": 2, "#,##0": 3, "#,##0.00": 4,
@@ -20,9 +21,10 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
   const dxfs: MetadataNode[] = [];
   const differentialIds = new Map<string, number>();
   const keys = new Map<string, number>(); keys.set(JSON.stringify(styles[0]), 0);
-  function register(cell: Pick<Cell, "format" | "style">): number {
-    charge(); const node = metadataNode(cell.style?.gnumeric, charge);
-    const format = cell.format ?? node?.attributes.Format ?? node?.children.find(n => n.name === "Format")?.text ?? "General";
+  function register(cell: Pick<Cell, "format" | "style"> & Partial<Pick<Cell, "value" | "cachedResult">>, inherited = 0): number {
+    charge(); const node = metadataNode(cell.style?.gnumeric, charge) ?? styles[inherited]?.node;
+    const styleFormat = cell.format ?? node?.attributes.Format ?? node?.children.find(n => n.name === "Format")?.text ?? styles[inherited]?.format ?? "General";
+    const format = styleFormat === "General" ? cellValueFormat(cell) ?? styleFormat : styleFormat;
     const entry = { format, ...(node ? { node: { ...node, children: node.children.filter(n => !["HyperLink", "Validation", "Condition", "Conditions", "InputMessage"].includes(n.name)) } } : {}) };
     const key = JSON.stringify(entry); const existing = keys.get(key); if (existing !== undefined) return existing;
     keys.set(key, styles.length); styles.push(entry); return styles.length - 1;

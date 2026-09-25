@@ -1,5 +1,6 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { Cell, CellValue, Workbook } from "../workbook.js";
+import { cellValueFormat } from "../workbook/value-format.js";
 import type { FormattingCapability, FormatOptions, TextFormatMode } from "../formatting.js";
 import { formatText, type FormatHost } from "./number-format.js";
 import { parseFormatSections, selectFormatSection } from "./sections.js";
@@ -48,7 +49,7 @@ export async function renderCellText(cell: Cell, book: Workbook, context: Capabi
   const options: FormatOptions = { ...(book.dateSystem === undefined ? {} : { dateSystem: book.dateSystem }), unicodeMinus: mode === "preserve" };
   const capability = context.formatting ?? formatting;
   const cellPattern = cell.format !== undefined && cell.format !== "General" ? cell.format :
-    typeof cell.style?.gnumericValueFormat === "string" ? cell.style.gnumericValueFormat : "General";
+    cellValueFormat(cell) ?? "General";
   if (mode === "preserve") return checkedText(await capability.format(value, cellPattern, context, options), context);
   if (value.kind !== "number") return checkedText(localizedValueText(value, formattingLocale(context.environment.locale)), context);
   admitPattern(cellPattern, context);

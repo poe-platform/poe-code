@@ -1,5 +1,6 @@
 import { parseXmlSteps, XmlLimitError, type XmlElement } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
+import { cellValueFormat } from "../workbook/value-format.js";
 import { DEFAULT_SHEET_SIZE, formatA1, parseA1, validSheetSize, type AxisMetadata, type Cell, type CellValue,
   type ImportedValue, type NamedExpression, type Range, type RichTextRun, type Sheet, type UnsupportedRecord, type Workbook } from "../workbook.js";
 import { gnumericChildren, gnumericAttributes, objectChildren } from "./gnumeric-schema.js";
@@ -764,7 +765,7 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
     if (array) { attrs.Rows = array.range.endRow - array.range.startRow + 1; attrs.Cols = array.range.endColumn - array.range.startColumn + 1; }
     if (repeated) { cells += writer.element("gnm:Cell", attrs, "", "", 2); continue; }
     attrs.ValueType = types[value.kind];
-    const format = cell.richText ? richFormat(cell.richText) : typeof cell.style?.gnumericValueFormat === "string" ? cell.style.gnumericValueFormat : undefined;
+    const format = cell.richText ? richFormat(cell.richText) : cellValueFormat(cell);
     if (format) attrs.ValueFormat = format;
     if (cell.formula && value.kind !== "byte-string") attrs.Value = valueText(value, context);
     cells += writer.element("gnm:Cell", attrs, cell.formula ?? valueText(value, context), "", 2, true);
@@ -882,7 +883,7 @@ export async function writeGnumeric(book: Workbook, _options: readonly string[],
       if (group) { cellAttrs.Rows = group.range.endRow - group.range.startRow + 1; cellAttrs.Cols = group.range.endColumn - group.range.startColumn + 1; }
       // Released normal writer deliberately omits formula caches.
       if (!cell.formula) { cellAttrs.ValueType = types[cell.value.kind];
-        const format = cell.richText ? richFormat(cell.richText) : typeof cell.style?.gnumericValueFormat === "string" ? cell.style.gnumericValueFormat : undefined;
+        const format = cell.richText ? richFormat(cell.richText) : cellValueFormat(cell);
         if (format) cellAttrs.ValueFormat = format;
       }
       cellXml += writer.element("gnm:Cell", cellAttrs, cell.formula ?? valueText(cell.value, context), "", 4);

@@ -324,6 +324,7 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
           invalid("Invalid cell value");
         if (value.kind === "byte-string" && byteStringValue(decodeByteString(value.value, tick), tick, budgets.textLimit).kind !== "byte-string")
           invalid("Valid UTF-8 must use an ordinary string value");
+        if (value.kind === "number") optionalType(value.format, "string", "Invalid number value format");
       }
       const boundaries = new Set<number>();
       for (const run of cell.richText ?? []) {

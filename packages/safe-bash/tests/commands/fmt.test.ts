@@ -3,10 +3,10 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { createCommandArguments, FsError, toByteSource, type ByteSource, type CommandContext, type FileSystem, type InvocationCleanup } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
-import { fmtCommand, defaultFmtLimits, type FmtProfile } from "../../src/commands/fmt/index.js";
+import { fmtCommand, type FmtLimits, type FmtProfile } from "../../src/commands/fmt/index.js";
 import { fixture } from "./helpers.js";
 
-async function format(args: readonly string[], input: string | Uint8Array | ByteSource = "", overrides: Partial<CommandContext> = {}, profile: FmtProfile = "gnu-coreutils-9.10-C-bytes") {
+async function format(args: readonly string[], input: string | Uint8Array | ByteSource = "", overrides: Partial<CommandContext> = {}, profile: FmtProfile = "gnu-coreutils-9.10-C-bytes", limits: Partial<FmtLimits> = {}) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   const context: CommandContext = {
@@ -16,7 +16,7 @@ async function format(args: readonly string[], input: string | Uint8Array | Byte
     stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } },
     signal: new AbortController().signal, ...overrides,
   };
-  const result = await fmtCommand({ profile }).execute(context);
+  const result = await fmtCommand({ profile, limits }).execute(context);
   return { exitCode: result.exitCode, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) };
 }
 
@@ -105,23 +105,31 @@ test("fmt owns producer bytes across buffer reuse and retirement", async () => {
 
 test("fmt admits input bytes before copying oversized producer chunks and closes ownership once", async () => {
   let retired = 0;
+  let pulls = 0;
   let cleanup: InvocationCleanup | undefined;
   const result = await format([], { [Symbol.asyncIterator]() { return {
-    async next() { return { done: false, value: new Uint8Array(32 * 1024 * 1024 + 1) }; },
+    async next() { assert.equal(++pulls, 1, "oversized input must be rejected before another pull"); return { done: false, value: new Uint8Array(5) }; },
     async return() { retired++; return { done: true, value: undefined }; },
-  }; } }, { registerCleanup(handler) { cleanup = handler; } });
+  }; } }, { registerCleanup(handler) { cleanup = handler; } }, undefined, { inputBytes: 4 });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr.toString(), "fmt: byte command input limit exceeded\n");
+  assert.equal(result.stdout.length, 0);
+  assert.equal(pulls, 1);
   await cleanup!();
   assert.equal(retired, 1);
 });
 
 test("fmt bounds unproductive empty input without limiting productive tiny chunks", async () => {
   let retired = 0;
-  const empty: ByteSource = { async *[Symbol.asyncIterator]() { try { while (true) yield new Uint8Array(); } finally { retired++; } } };
+  let pulls = 0;
+  const empty: ByteSource = { async *[Symbol.asyncIterator]() {
+    try { while (true) { assert.ok(++pulls <= 4097, "empty input must stop at its liveness guard"); yield new Uint8Array(); } }
+    finally { retired++; }
+  } };
   const result = await format([], empty);
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr.toString(), "fmt: empty input chunk limit exceeded\n");
+  assert.equal(pulls, 4097);
   assert.equal(retired, 1);
   const productive: ByteSource = { async *[Symbol.asyncIterator]() { for (let index = 0; index < 4097; index++) yield Uint8Array.of(97); } };
   assert.deepEqual((await format([], productive)).stdout, Buffer.from("a".repeat(4097) + "\n"));
@@ -233,7 +241,7 @@ test("fmt cleanup closes admission without awaiting opaque capabilities metadata
   }
 });
 
-test("fmt supports declared readFile fallback without metadata", async () => {
+for (const retainedBytes of [undefined, 12000]) test(`fmt supports declared readFile fallback without metadata with retained limit ${retainedBytes}`, async () => {
   const backing = await fixture({ file: "one two" });
   let maximum: number | undefined;
   const fs = new Proxy(backing, { get(target, key) {
@@ -243,8 +251,8 @@ test("fmt supports declared readFile fallback without metadata", async () => {
     const member: unknown = Reflect.get(target, key);
     return typeof member === "function" ? member.bind(target) : member;
   } });
-  assert.equal((await format(["file"], "", { fs })).stdout.toString(), "one two\n");
-  assert.equal(maximum, defaultFmtLimits.retainedBytes - 10120);
+  assert.equal((await format(["file"], "", { fs }, undefined, retainedBytes === undefined ? {} : { retainedBytes })).stdout.toString(), "one two\n");
+  assert.equal(maximum, retainedBytes === undefined ? undefined : retainedBytes - 10120);
 });
 
 test("fmt stops consuming and retires the producer on sink failure", async () => {

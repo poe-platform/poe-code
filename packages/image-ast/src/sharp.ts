@@ -987,6 +987,9 @@ export class SharpInstance {
   }
 
   ensureAlpha(alpha = 1): this {
+    if (typeof alpha !== "number" || Number.isNaN(alpha) || alpha < 0 || alpha > 1) {
+      throw new Error(`Expected number between 0 and 1 for alpha but received ${alpha}`);
+    }
     const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
     if (grayIdx !== -1) {
       this.nodes.splice(grayIdx, 0, { kind: "ensureAlpha", alpha });
@@ -1002,7 +1005,7 @@ export class SharpInstance {
   }
 
   extractChannel(channel: 0 | 1 | 2 | 3 | "red" | "green" | "blue" | "alpha"): this {
-    const ch: 0 | 1 | 2 | 3 =
+    const ch: number =
       channel === "red"
         ? 0
         : channel === "green"
@@ -1012,7 +1015,10 @@ export class SharpInstance {
             : channel === "alpha"
               ? 3
               : channel;
-    this.upsertNode({ kind: "extractChannel", channel: ch });
+    if (!Number.isInteger(ch) || ch < 0 || ch > 3) {
+      throw new Error(`Expected integer or one of: red, green, blue, alpha for channel but received ${channel}`);
+    }
+    this.upsertNode({ kind: "extractChannel", channel: ch as 0 | 1 | 2 | 3 });
     return this;
   }
 
@@ -1059,6 +1065,9 @@ export class SharpInstance {
   }
 
   bandbool(boolOp: "and" | "or" | "eor"): this {
+    if (boolOp !== "and" && boolOp !== "or" && boolOp !== "eor") {
+      throw new Error(`Expected one of: and, or, eor for boolOp but received ${boolOp}`);
+    }
     this.upsertNode({ kind: "bandbool", op: boolOp });
     return this;
   }
@@ -1068,6 +1077,9 @@ export class SharpInstance {
     op: "and" | "or" | "eor",
     options?: SharpInputOptions
   ): this {
+    if (op !== "and" && op !== "or" && op !== "eor") {
+      throw new Error(`Expected one of: and, or, eor for operator but received ${op}`);
+    }
     const data = toBytes(operand);
     if (data) {
       this.nodes.push({
@@ -1081,16 +1093,22 @@ export class SharpInstance {
   }
 
   joinChannel(
-    images: Uint8Array | ArrayBuffer | readonly (Uint8Array | ArrayBuffer)[],
+    images: Uint8Array | ArrayBuffer | ArrayBufferView | string | readonly (Uint8Array | ArrayBuffer | ArrayBufferView | string)[],
     options?: SharpInputOptions
   ): this {
     const list = Array.isArray(images) ? images : [images];
     this.nodes.push({
       kind: "joinChannel",
-      inputs: list.map(buf => ({
-        data: buf instanceof Uint8Array ? buf : new Uint8Array(buf),
-        ...(options !== undefined ? { options } : {})
-      }))
+      inputs: list.map(buf => {
+        const data = toBytes(buf as Uint8Array | ArrayBuffer | ArrayBufferView | string);
+        if (!data) {
+          throw new Error(`Unsupported joinChannel input: ${typeof buf}`);
+        }
+        return {
+          data,
+          ...(options !== undefined ? { options } : {})
+        };
+      })
     });
     return this;
   }
@@ -1100,6 +1118,18 @@ export class SharpInstance {
     readonly height: number;
     readonly maxSlope?: number;
   }): this {
+    if (!options || typeof options !== "object") {
+      throw new Error("Expected plain object for clahe options");
+    }
+    if (!Number.isInteger(options.width) || options.width <= 0) {
+      throw new Error(`Expected integer greater than zero for width but received ${options.width}`);
+    }
+    if (!Number.isInteger(options.height) || options.height <= 0) {
+      throw new Error(`Expected integer greater than zero for height but received ${options.height}`);
+    }
+    if (options.maxSlope !== undefined && (!Number.isInteger(options.maxSlope) || options.maxSlope < 0 || options.maxSlope > 100)) {
+      throw new Error(`Expected integer between 0 and 100 for maxSlope but received ${options.maxSlope}`);
+    }
     this.upsertNode({ kind: "clahe",
       width: options.width,
       height: options.height,

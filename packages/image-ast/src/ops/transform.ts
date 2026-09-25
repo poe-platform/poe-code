@@ -1603,6 +1603,10 @@ export function removeAlphaImage(img: RgbaImage): RgbaImage {
 }
 
 export function extractChannelImage(img: RgbaImage, channel: 0 | 1 | 2 | 3): RgbaImage {
+  const maxChannel = img.hasAlpha ? 3 : 2;
+  if (channel > maxChannel) {
+    throw new Error(`Cannot extract channel ${channel} from image with channels 0-${maxChannel}`);
+  }
   const out = new Uint8Array(img.data.length);
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;

@@ -2230,4 +2230,32 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const t128 = await inst().threshold(128, { greyscale: false }).raw().toBuffer();
     expect(Array.from(tTrue)).toEqual(Array.from(t128));
   });
+
+  it("validates extractChannel() against image channels, ensureAlpha()/bandbool()/boolean()/clahe() arguments, and supports joinChannel(filePath)", async () => {
+    const rgb = Buffer.from([10, 20, 30]);
+    const inst = () => sharp(rgb, { raw: { width: 1, height: 1, channels: 3 } });
+
+    await expect(inst().extractChannel(3).toBuffer()).rejects.toThrow(
+      /Cannot extract channel 3 from image with channels 0-2/
+    );
+    expect(() => inst().extractChannel(5 as any)).toThrow(/channel/);
+    expect(() => inst().ensureAlpha(1.5)).toThrow(/0 and 1/);
+    expect(() => inst().bandbool("xor" as any)).toThrow(/one of: and, or, eor/);
+    expect(() => inst().boolean(rgb, "xor" as any)).toThrow(/one of: and, or, eor/);
+    expect(() => inst().clahe({ width: 0, height: 4 })).toThrow(/width/);
+    expect(() => inst().clahe({ width: 4, height: 4, maxSlope: 150 })).toThrow(/maxSlope/);
+
+    const alphaPng = await sharp(Buffer.from([128]), { raw: { width: 1, height: 1, channels: 1 } }).png().toBuffer();
+    const origRead = fs.readFileSync;
+    const readSpy = vi.spyOn(fs, "readFileSync").mockImplementation(((p: any, ...rest: any[]) => {
+      if (String(p) === "/virtual/alpha.png") return Buffer.from(alphaPng);
+      return origRead.call(fs, p, ...rest);
+    }) as any);
+    try {
+      const joined = await inst().joinChannel("/virtual/alpha.png" as any).raw().toBuffer();
+      expect(Array.from(joined)).toEqual([10, 20, 30, 128]);
+    } finally {
+      readSpy.mockRestore();
+    }
+  });
 });

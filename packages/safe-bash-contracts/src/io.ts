@@ -310,6 +310,8 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
           }
           if (!writerReferences) {
             lease.done = true;
+            finished = true;
+            cleanup();
             return Promise.resolve({ done: true, value: undefined });
           }
         }
@@ -467,7 +469,14 @@ function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortS
   try {
     signal?.throwIfAborted();
     const pending = operation();
-    if (!signal || isSyncResolved(pending)) return Promise.resolve(pending);
+    const completed = !signal || isSyncResolved(pending);
+    if (signal?.aborted) {
+      // The host can abort during write(), before the listener is installed.
+      // Observe its completion even though cancellation settles this caller.
+      void Promise.resolve(pending).catch(() => {});
+      return Promise.reject(signal.reason);
+    }
+    if (completed) return Promise.resolve(pending);
     return new Promise<Result>((resolve, reject) => {
       const onAbort = (): void => {
         signal.removeEventListener("abort", onAbort);

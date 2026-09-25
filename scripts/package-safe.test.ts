@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 import path from "node:path";
@@ -6,7 +6,7 @@ import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
-import { build, transformSync, type BuildOptions } from "esbuild";
+import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
@@ -320,122 +320,133 @@ it.each([false, true])("admits asset-only contract owners against the full priva
   expect(volume.existsSync(`/output/safe-bash/dist/${name}/profile.bin`)).toBe(false);
 });
 
-it("admits Shell byte argv through an isolated packed private command graph", async () => {
-  const { volume, options } = optionalLeftovers();
-  const repository = fileURLToPath(new URL("../", import.meta.url));
-  const manifest = structuredClone(bashManifest);
-  manifest.poeCode.integration.privateWorkspaces = {};
-  for (const name of ["safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut"]) {
-    const directory = path.join(repository, "packages", name);
-    const pkg = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
-    manifest.poeCode.integration.privateWorkspaces[name] = {
-      version: pkg.version, dependencies: pkg.dependencies ?? {}, devDependencies: pkg.devDependencies ?? {},
-    };
-    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
-    volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
-    volume.writeFileSync(`/repo/packages/${name}/LICENSE`, readFileSync(path.join(directory, "LICENSE")));
-    for (const filename of readdirSync(path.join(directory, "src"))) {
-      if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
-      const source = readFileSync(path.join(directory, "src", filename), "utf8");
-      const compilerOptions = { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 };
-      volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, transformSync(source, { loader: "ts", format: "esm", target: "es2022" }).code);
-      const distDts = path.join(directory, "dist", `${filename.slice(0, -3)}.d.ts`);
-      const dtsText = getCachedDeclaration(distDts, source, compilerOptions);
-      volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);
-    }
-  }
-  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
-  const portable = resolveBrowserShellBuild(repository);
-  const shell = await build({ ...portable, splitting: false, sourcemap: false,
-    entryPoints: undefined,
-    stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
-    outdir: "/repo/packages/safe-bash/dist",
-    external: [...portable.external, "safe-bash-contracts", "@poe-platform/safe-fs"],
-  });
-  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", shell.outputFiles[0]!.contents);
-  // Both public routes share this fixture's Shell; package its source graph once.
-  volume.writeFileSync("/repo/packages/safe-bash/dist/core.browser.js", 'export * from "./index.js";');
-  const fs = await build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")], bundle: true,
-    write: false, platform: "browser", format: "esm", target: "es2022" });
-  const fsManifest = JSON.parse(volume.readFileSync("/repo/packages/safe-fs/package.json", "utf8").toString());
-  fsManifest.exports["./core"] = { types: "./dist/core.d.ts", import: "./dist/core.js" };
-  volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify(fsManifest));
-  volume.writeFileSync("/repo/packages/safe-fs/dist/core.js", fs.outputFiles[0]!.contents);
-  // The command type fixture models only its external filesystem contracts;
-  // complete published declarations are checked by the installed consumer.
-  volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", ['errors', 'filesystem', 'io'].map(name => `export * from "./contracts/${name}.js";`).join("\n"));
-  const declarationQueue = ["contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
-  while (declarationQueue.length) {
-    const relative = declarationQueue.pop()!;
-    if (declared.has(relative)) continue;
-    declared.add(relative);
-    const source = readFileSync(path.join(repository, "packages/safe-fs/src", relative), "utf8");
-    const destination = `/repo/packages/safe-fs/dist/${relative.slice(0, -3)}.d.ts`;
-    volume.mkdirSync(path.dirname(destination), { recursive: true });
-    const builtFsDts = path.join(repository, "packages/safe-fs/dist", `${relative.slice(0, -3)}.d.ts`);
-    const fsDtsText = getCachedDeclaration(builtFsDts, source, { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 });
-    volume.writeFileSync(destination, fsDtsText);
-    for (const entry of ts.preProcessFile(source).importedFiles) {
-      if (entry.fileName.startsWith(".")) {
-        const filename = path.posix.normalize(path.posix.join(path.posix.dirname(relative), entry.fileName));
-        declarationQueue.push(filename.endsWith(".js") ? filename.slice(0, -3) + ".ts" : filename + ".ts");
+describe("isolated packed private command graph", () => {
+  let volume: Volume;
+  let plugin: Plugin;
+
+  // Build the package fixture separately from its consumer type and runtime checks.
+  beforeAll(async () => {
+    const fixture = optionalLeftovers();
+    volume = fixture.volume;
+    const { options } = fixture;
+    const repository = fileURLToPath(new URL("../", import.meta.url));
+    const manifest = structuredClone(bashManifest);
+    manifest.poeCode.integration.privateWorkspaces = {};
+    for (const name of ["safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut"]) {
+      const directory = path.join(repository, "packages", name);
+      const pkg = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
+      manifest.poeCode.integration.privateWorkspaces[name] = {
+        version: pkg.version, dependencies: pkg.dependencies ?? {}, devDependencies: pkg.devDependencies ?? {},
+      };
+      volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+      volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
+      volume.writeFileSync(`/repo/packages/${name}/LICENSE`, readFileSync(path.join(directory, "LICENSE")));
+      for (const filename of readdirSync(path.join(directory, "src"))) {
+        if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
+        const source = readFileSync(path.join(directory, "src", filename), "utf8");
+        const compilerOptions = { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 };
+        volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, transformSync(source, { loader: "ts", format: "esm", target: "es2022" }).code);
+        const distDts = path.join(directory, "dist", `${filename.slice(0, -3)}.d.ts`);
+        const dtsText = getCachedDeclaration(distDts, source, compilerOptions);
+        volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);
       }
     }
-  }
-  for (const subpath of ["command", "value", "errors", "plugin"]) {
-    for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
-  }
-  for (const name of ["exiftool", "csvgrep", "csvcut"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
-  const plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
-    builder.onResolve({ filter: /.*/ }, args => {
-      if (builder.initialOptions.external?.some(name => args.path === name || args.path.startsWith(name + "/"))) return { path: args.path, external: true };
-      if (args.path.startsWith("node:")) throw new Error("Node dependency in portable command consumer: " + args.path);
-      let filename;
-      if (args.path.startsWith("@poe-platform/")) {
-        const [name, ...route] = args.path.slice("@poe-platform/".length).split("/");
-        const pkg = JSON.parse(volume.readFileSync(`/output/${name}/package.json`, "utf8").toString());
-        const key = route.length ? "./" + route.join("/") : ".";
-        const target = pkg.exports[key] ?? pkg.exports["./contracts/*"];
-        filename = `/output/${name}/` + (target.browser ?? target.import).replace("*", route.slice(1).join("/"));
-      } else filename = path.resolve(args.resolveDir, args.path);
-      if (!filename.startsWith("/output/") && !filename.startsWith("/repo/packages/safe-bash-command-")) throw new Error("Outside isolated consumer: " + filename);
-      return { path: path.normalize(filename), namespace: "packed" };
+    volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+    const portable = resolveBrowserShellBuild(repository);
+    const shell = await build({ ...portable, splitting: false, sourcemap: false,
+      entryPoints: undefined,
+      stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
+      outdir: "/repo/packages/safe-bash/dist",
+      external: [...portable.external, "safe-bash-contracts", "@poe-platform/safe-fs"],
     });
-    builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({ contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path) }));
-  } };
-  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
-    if (settings.outdir !== "/repo/packages") return options.bundle(settings);
-    return build({ ...settings, plugins: [plugin] });
-  } });
-  // Remove every workspace before resolving the consumer's public imports.
-  volume.rmSync("/repo", { recursive: true });
-  // Resolve the public declarations with no private workspace or package present.
-  volume.mkdirSync("/output/node_modules/@poe-platform", { recursive: true });
-  volume.symlinkSync("/output/safe-bash", "/output/node_modules/@poe-platform/safe-bash");
-  volume.symlinkSync("/output/safe-fs", "/output/node_modules/@poe-platform/safe-fs");
-  volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
-  // Check the packaged declarations without rechecking TypeScript's own library.
-  const compilerOptions = { module: ts.ModuleKind.NodeNext, target: ts.ScriptTarget.ES2022, strict: true, noEmit: true, skipDefaultLibCheck: true, types: [], customConditions: ["browser"] };
-  const host = ts.createCompilerHost(compilerOptions);
-  const nativeRead = host.readFile;
-  const nativeExists = host.fileExists;
-  const nativeDirectory = host.directoryExists;
-  host.readFile = filename => filename.startsWith("/output/") ? volume.existsSync(filename) ? volume.readFileSync(filename, "utf8").toString() : undefined : nativeRead(filename);
-  host.fileExists = filename => filename.startsWith("/output/") ? volume.existsSync(filename) : nativeExists(filename);
-  host.directoryExists = filename => filename.startsWith("/output") ? volume.existsSync(filename) && volume.statSync(filename).isDirectory() : nativeDirectory?.(filename) ?? false;
-  host.realpath = filename => filename.startsWith("/output/") ? volume.realpathSync(filename).toString() : filename;
-  host.getSourceFile = (filename, languageVersion) => {
-    const text = host.readFile(filename);
-    return text === undefined ? undefined : ts.createSourceFile(filename, text, languageVersion);
-  };
-  const program = ts.createProgram(["/output/csvcut-consumer.mts"], compilerOptions, host);
-  expect(ts.getPreEmitDiagnostics(program).map(diagnostic => `${diagnostic.file?.fileName ?? "compiler"}:${diagnostic.start ?? 0}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`)).toEqual([]);
-  const consumer = await build({ stdin: { contents: readFileSync(new URL("./fixtures/safe-packages-private-command.mjs", import.meta.url), "utf8"), resolveDir: "/output" },
-    bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022", plugins: [plugin] });
-  const sandbox = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
-  // Execute fixture top-level await in the Buffer-free isolated realm.
-  await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);
+    volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", shell.outputFiles[0]!.contents);
+    // Both public routes share this fixture's Shell; package its source graph once.
+    volume.writeFileSync("/repo/packages/safe-bash/dist/core.browser.js", 'export * from "./index.js";');
+    const fs = await build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")], bundle: true,
+      write: false, platform: "browser", format: "esm", target: "es2022" });
+    const fsManifest = JSON.parse(volume.readFileSync("/repo/packages/safe-fs/package.json", "utf8").toString());
+    fsManifest.exports["./core"] = { types: "./dist/core.d.ts", import: "./dist/core.js" };
+    volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify(fsManifest));
+    volume.writeFileSync("/repo/packages/safe-fs/dist/core.js", fs.outputFiles[0]!.contents);
+    // The command type fixture models only its external filesystem contracts;
+    // complete published declarations are checked by the installed consumer.
+    volume.writeFileSync("/repo/packages/safe-fs/dist/core.d.ts", ['errors', 'filesystem', 'io'].map(name => `export * from "./contracts/${name}.js";`).join("\n"));
+    const declarationQueue = ["contracts/errors.ts", "contracts/filesystem.ts", "contracts/io.ts", "platform/browser.ts", "platform/node.ts"], declared = new Set<string>();
+    while (declarationQueue.length) {
+      const relative = declarationQueue.pop()!;
+      if (declared.has(relative)) continue;
+      declared.add(relative);
+      const source = readFileSync(path.join(repository, "packages/safe-fs/src", relative), "utf8");
+      const destination = `/repo/packages/safe-fs/dist/${relative.slice(0, -3)}.d.ts`;
+      volume.mkdirSync(path.dirname(destination), { recursive: true });
+      const builtFsDts = path.join(repository, "packages/safe-fs/dist", `${relative.slice(0, -3)}.d.ts`);
+      const fsDtsText = getCachedDeclaration(builtFsDts, source, { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 });
+      volume.writeFileSync(destination, fsDtsText);
+      for (const entry of ts.preProcessFile(source).importedFiles) {
+        if (entry.fileName.startsWith(".")) {
+          const filename = path.posix.normalize(path.posix.join(path.posix.dirname(relative), entry.fileName));
+          declarationQueue.push(filename.endsWith(".js") ? filename.slice(0, -3) + ".ts" : filename + ".ts");
+        }
+      }
+    }
+    for (const subpath of ["command", "value", "errors", "plugin"]) {
+      for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
+    }
+    for (const name of ["exiftool", "csvgrep", "csvcut"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
+    plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        if (builder.initialOptions.external?.some(name => args.path === name || args.path.startsWith(name + "/"))) return { path: args.path, external: true };
+        if (args.path.startsWith("node:")) throw new Error("Node dependency in portable command consumer: " + args.path);
+        let filename;
+        if (args.path.startsWith("@poe-platform/")) {
+          const [name, ...route] = args.path.slice("@poe-platform/".length).split("/");
+          const pkg = JSON.parse(volume.readFileSync(`/output/${name}/package.json`, "utf8").toString());
+          const key = route.length ? "./" + route.join("/") : ".";
+          const target = pkg.exports[key] ?? pkg.exports["./contracts/*"];
+          filename = `/output/${name}/` + (target.browser ?? target.import).replace("*", route.slice(1).join("/"));
+        } else filename = path.resolve(args.resolveDir, args.path);
+        if (!filename.startsWith("/output/") && !filename.startsWith("/repo/packages/safe-bash-command-")) throw new Error("Outside isolated consumer: " + filename);
+        return { path: path.normalize(filename), namespace: "packed" };
+      });
+      builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({ contents: volume.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path) }));
+    } };
+    await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
+      if (settings.outdir !== "/repo/packages") return options.bundle(settings);
+      return build({ ...settings, plugins: [plugin] });
+    } });
+    // Remove every workspace before resolving the consumer's public imports.
+    volume.rmSync("/repo", { recursive: true });
+    // Resolve the public declarations with no private workspace or package present.
+    volume.mkdirSync("/output/node_modules/@poe-platform", { recursive: true });
+    volume.symlinkSync("/output/safe-bash", "/output/node_modules/@poe-platform/safe-bash");
+    volume.symlinkSync("/output/safe-fs", "/output/node_modules/@poe-platform/safe-fs");
+    volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
+  });
+
+  it("admits Shell byte argv through an isolated packed private command graph", async () => {
+    // Check the packaged declarations without rechecking TypeScript's own library.
+    const compilerOptions = { module: ts.ModuleKind.NodeNext, target: ts.ScriptTarget.ES2022, strict: true, noEmit: true, skipDefaultLibCheck: true, types: [], customConditions: ["browser"] };
+    const host = ts.createCompilerHost(compilerOptions);
+    const nativeRead = host.readFile;
+    const nativeExists = host.fileExists;
+    const nativeDirectory = host.directoryExists;
+    host.readFile = filename => filename.startsWith("/output/") ? volume.existsSync(filename) ? volume.readFileSync(filename, "utf8").toString() : undefined : nativeRead(filename);
+    host.fileExists = filename => filename.startsWith("/output/") ? volume.existsSync(filename) : nativeExists(filename);
+    host.directoryExists = filename => filename.startsWith("/output") ? volume.existsSync(filename) && volume.statSync(filename).isDirectory() : nativeDirectory?.(filename) ?? false;
+    host.realpath = filename => filename.startsWith("/output/") ? volume.realpathSync(filename).toString() : filename;
+    host.getSourceFile = (filename, languageVersion) => {
+      const text = host.readFile(filename);
+      return text === undefined ? undefined : ts.createSourceFile(filename, text, languageVersion);
+    };
+    const program = ts.createProgram(["/output/csvcut-consumer.mts"], compilerOptions, host);
+    expect(ts.getPreEmitDiagnostics(program).map(diagnostic => `${diagnostic.file?.fileName ?? "compiler"}:${diagnostic.start ?? 0}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`)).toEqual([]);
+    const consumer = await build({ stdin: { contents: readFileSync(new URL("./fixtures/safe-packages-private-command.mjs", import.meta.url), "utf8"), resolveDir: "/output" },
+      bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022", plugins: [plugin] });
+    const sandbox = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
+      AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
+    // Execute fixture top-level await in the Buffer-free isolated realm.
+    await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);
+  });
 });
 
 it("packs qualified private command and contract modules into one canonical relative graph", async () => {

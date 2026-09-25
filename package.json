@@ -609,7 +609,9 @@
     "safe-bash-command-bc": "*",
     "safe-bash-command-sponge": "*",
     "safe-bash-command-fd": "*",
-    "safe-bash-command-less": "*"
+    "safe-bash-command-less": "*",
+    "@poe-code/mp4-ast": "*",
+    "safe-bash-command-ffmpeg": "*"
   },
   "repository": {
     "type": "git",

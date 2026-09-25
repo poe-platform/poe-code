@@ -60,7 +60,7 @@ workbook, sheet, cell/range and defined-name identities, cached values and raw l
 Recalculation uses the explicit `externalReferences` host binding and otherwise
 returns `#REF!`; linked workbooks are never fetched automatically. External names
 retain their workbook or sheet scope without taking values from local names or
-on-file external-name expressions. BIFF external-reference export remains unsupported.
+on-file external-name expressions. BIFF8 exports preserve these external identities, including references in defined names and array formulas. BIFF7 external-reference export remains unsupported.
 BIFF7/8 exports resolve sheet references without regard to case and preserve the exact spelling and scope of defined names. Relative row references wrap at the format's row limit: 16,384 before BIFF8 and 65,536 in BIFF8.
 BIFF7/8 literal arrays retain their stored value types during recalculation. SDK cell, name and formula-group records can set `arrayStringLiterals: true` to preserve strings such as `"001"`, `"TRUE"` and `"#REF!"`. XML/XLSX exports carry an ignorable annotation for ssconvert readback; native Gnumeric's text import still coerces those strings.
 Safe Bash provides a separate,

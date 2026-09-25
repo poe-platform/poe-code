@@ -23,12 +23,46 @@ export interface CompiledBiffFormula {
 }
 
 export class BiffFormulaWriter {
-  readonly externalSheets: { first: number; last: number }[] = [];
+  readonly externalSheets: { book?: number; first: number; last: number }[] = [];
+  readonly externalBooks: { workbook: string; sheets: string[]; names: { name: string; sheet?: number }[] }[] = [];
   readonly externNames: string[] = [];
   readonly macroNames: string[] = [];
+  private readonly workbookIndices = new Map<string, number>();
+  private readonly linkIndices = new Map<string, number>();
   private uniqueNameId = 0;
   private readonly relocations: { tokens: Uint8Array; offset: number; index: number; kind: "sheet" | "name" }[] = [];
   constructor(readonly book: Workbook, readonly revision: 7 | 8, readonly context: CapabilityContext) {}
+  private externalBook(workbook: string): number {
+    if (this.revision < 8) throw new SsconvertError("unsupported-feature", "Excel BIFF7 external workbook formula is not implemented");
+    let index = this.workbookIndices.get(workbook);
+    if (index === undefined) {
+      index = this.externalBooks.length;
+      this.externalBooks.push({ workbook, sheets: [], names: [] });
+      this.workbookIndices.set(workbook, index);
+    }
+    return index;
+  }
+  private externalScope(book: number, sheet: string): number {
+    if (!sheet || sheet.length > 31) throw new SsconvertError("unsupported-feature", "Excel BIFF external sheet name exceeds version limits");
+    const sheets = this.externalBooks[book]!.sheets;
+    let index = sheets.indexOf(sheet);
+    if (index < 0) {
+      index = sheets.length;
+      if (index >= 0xfffe) throw new SsconvertError("unsupported-feature", "Excel BIFF external sheet index exceeds version limits");
+      sheets.push(sheet);
+    }
+    return index;
+  }
+  private sheetLink(book: number | undefined, first: number, last: number): number {
+    const key = `${book ?? -1}:${first}:${last}`;
+    let index = this.linkIndices.get(key);
+    if (index === undefined) {
+      index = this.externalSheets.length;
+      this.externalSheets.push({ ...(book === undefined ? {} : { book }), first, last });
+      this.linkIndices.set(key, index);
+    }
+    return index;
+  }
   /** Resolve indices only after all cell, array and defined-name expressions are compiled. */
   finalize(definitions: readonly CompiledBiffFormula[] = []): readonly number[] {
     const count = (this.book.names?.length ?? 0) + this.macroNames.length;
@@ -140,19 +174,27 @@ export class BiffFormulaWriter {
         const opcode = operators[node.op]; if (opcode === undefined) throw new SsconvertError("unsupported-feature", `Unsupported Excel operator '${node.op}'`);
         visit(node.left); visit(node.right); push([opcode]);
       } else if (node.kind === "reference") {
-        if (node.first.workbook || node.last?.workbook) throw new SsconvertError("unsupported-feature", "Excel BIFF external workbook formula is not implemented");
+        if (node.last?.workbook && node.last.workbook !== node.first.workbook)
+          throw new SsconvertError("unsupported-feature", "Excel BIFF range spans different workbooks");
         const endpoint = (ref: ReferenceEndpoint, end: boolean): ReferenceEndpoint => ({ ...ref,
           row: ref.row ?? { value: end ? this.revision === 8 ? 65535 : 16383 : 0, relative: false },
           column: ref.column ?? { value: end ? 255 : 0, relative: false } });
         const first = reference(endpoint(node.first, false)), last = node.last ? reference(endpoint(node.last, true)) : undefined;
-        const qualified = node.first.sheet !== undefined;
+        const qualified = node.first.sheet !== undefined || !!node.first.workbook;
         let index = 0, firstSheet = 0, lastSheet = 0;
         if (qualified) {
-          firstSheet = this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.first.sheet!));
-          lastSheet = node.last?.sheet !== undefined ? this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.last!.sheet!)) : firstSheet;
-          if (firstSheet < 0 || lastSheet < 0) throw new SsconvertError("unsupported-feature", "Excel BIFF detached sheet formula is not implemented");
-          index = this.externalSheets.findIndex(s => s.first === firstSheet && s.last === lastSheet);
-          if (index < 0) { index = this.externalSheets.length; this.externalSheets.push({ first: firstSheet, last: lastSheet }); }
+          if (node.first.workbook) {
+            if (node.first.sheet === undefined) throw new SsconvertError("unsupported-feature", "Excel BIFF external reference requires a sheet");
+            const book = this.externalBook(node.first.workbook);
+            firstSheet = this.externalScope(book, node.first.sheet);
+            lastSheet = node.last?.sheet === undefined ? firstSheet : this.externalScope(book, node.last.sheet);
+            index = this.sheetLink(book, firstSheet, lastSheet);
+          } else {
+            firstSheet = this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.first.sheet!));
+            lastSheet = node.last?.sheet !== undefined ? this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.last!.sheet!)) : firstSheet;
+            if (firstSheet < 0 || lastSheet < 0) throw new SsconvertError("unsupported-feature", "Excel BIFF detached sheet formula is not implemented");
+            index = this.sheetLink(undefined, firstSheet, lastSheet);
+          }
         }
         push([qualified ? last ? 0x5b : 0x5a : last ? relative ? 0x4d : 0x45 : relative ? 0x4c : 0x44]);
         if (qualified) {
@@ -163,6 +205,17 @@ export class BiffFormulaWriter {
         if (last) { push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2)); }
         else push(first);
       } else if (node.kind === "name") {
+        if (node.workbook) {
+          const bookIndex = this.externalBook(node.workbook), book = this.externalBooks[bookIndex]!;
+          const scope = node.sheet === undefined ? undefined : this.externalScope(bookIndex, node.sheet);
+          let index = book.names.findIndex(name => name.name === node.name && name.sheet === scope);
+          if (index < 0) { index = book.names.length; book.names.push({ name: node.name, ...(scope === undefined ? {} : { sheet: scope }) }); }
+          const link = this.sheetLink(bookIndex, scope ?? 0xfffe, scope ?? 0xfffe);
+          const data = new Uint8Array(7), view = new DataView(data.buffer);
+          data[0] = 0x59; view.setUint32(3, index + 1, true);
+          relocations.push({ offset: bytes.length + 1, index: link, kind: "sheet" }); push(data);
+          return;
+        }
         const current = this.book.sheets.find(s => s.id === sheet) ??
           this.book.sheets.find(s => foldSheetName(s.name) === foldSheetName(sheet));
         const scope = node.sheet === undefined ? current :
@@ -172,14 +225,13 @@ export class BiffFormulaWriter {
           n.sheet === scope.id) ?? -1;
         if (index < 0 && (node.sheet === undefined || scope !== undefined))
           index = this.book.names?.findIndex(n => matches(n) && n.sheet === undefined) ?? -1;
-        if (index < 0 || node.workbook) { push([28, 29]); return; }
+        if (index < 0) { push([28, 29]); return; }
         if (node.sheet !== undefined && scope !== undefined) {
           const data = new Uint8Array(this.revision === 8 ? 7 : 25), view = new DataView(data.buffer);
           data[0] = 0x59;
           const scopeIndex = this.book.sheets.indexOf(scope);
           if (this.revision === 8) {
-            let externalIndex = this.externalSheets.findIndex(s => s.first === scopeIndex && s.last === scopeIndex);
-            if (externalIndex < 0) { externalIndex = this.externalSheets.length; this.externalSheets.push({ first: scopeIndex, last: scopeIndex }); }
+            const externalIndex = this.sheetLink(undefined, scopeIndex, scopeIndex);
             relocations.push({ offset: bytes.length + 1, index: externalIndex, kind: "sheet" });
             view.setUint16(1, externalIndex, true); view.setUint16(3, index + 1, true);
           } else {

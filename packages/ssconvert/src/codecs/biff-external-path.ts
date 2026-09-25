@@ -1,4 +1,15 @@
 import { invalidBiff } from "./biff-binary.js";
+import { SsconvertError } from "../contracts.js";
+
+export function encodeBiffExternalPath(workbook: string): string {
+  if (workbook.length > 254) throw new SsconvertError("unsupported-feature", "Excel BIFF external workbook path is too long");
+  if (!workbook || Array.from(workbook).some(c => c.charCodeAt(0) < 32))
+    throw new SsconvertError("unsupported-feature", "Excel BIFF external workbook path contains control characters");
+  const raw = Array.from(workbook).some(c => "/\\:[]".includes(c));
+  const path = raw ? "\u0001\u0005" + String.fromCharCode(workbook.length) + workbook : "\u0001" + workbook;
+  if (path.length > 255) throw new SsconvertError("unsupported-feature", "Excel BIFF external workbook path is too long");
+  return path;
+}
 
 /** MS-XLS VirtualPath. Decode identity only; never resolve a path or open a link. */
 export function biffExternalPath(path: string): string | undefined {

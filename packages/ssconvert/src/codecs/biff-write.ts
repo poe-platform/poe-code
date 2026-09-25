@@ -7,6 +7,7 @@ import { BiffFormulaWriter, type CompiledBiffFormula } from "./biff-write-formul
 import { BiffStyles } from "./biff-write-styles.js";
 import { BiffMetadataWriter } from "./biff-write-metadata.js";
 import { singleByteTables } from "../encoding/tables.js";
+import { encodeBiffExternalPath } from "./biff-external-path.js";
 
 export function biffString(text: string, revision: 7 | 8, context: CapabilityContext, width: 1 | 2 = 2): Uint8Array {
   const legacy = singleByteTables["windows-1252"]!;
@@ -138,13 +139,28 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   if (revision === 8) {
     output.record(0x8c, words(1, 1));
     const addins = formulaWriter.externNames.length > 0;
+    if (formulaWriter.externalBooks.length + Number(addins) > 65535)
+      throw new SsconvertError("unsupported-feature", "Excel BIFF external workbook index exceeds version limits");
     if (addins) {
       output.record(0x1ae, new Uint8Array([1, 0, 1, 0x3a]));
       for (const name of formulaWriter.externNames) output.record(0x23, join(join(new Uint8Array(6), biffString(name, revision, context, 1)), new Uint8Array([2, 0, 28, 23])));
     }
     output.record(0x1ae, words(book.sheets.length, 0x401));
+    for (const external of formulaWriter.externalBooks) {
+      let data = join(words(external.sheets.length), biffString(encodeBiffExternalPath(external.workbook), revision, context));
+      for (const sheet of external.sheets) {
+        const text = biffString(sheet, revision, context);
+        if (data.length + text.length > output.maximumRecord) throw new SsconvertError("unsupported-feature", "Excel BIFF external workbook record is too large");
+        if (data.length + text.length + 4 > context.limits.outputBytes - output.length)
+          throw new SsconvertError("resource-limit", "ssconvert BIFF output bytes limit exceeded");
+        data = join(data, text);
+      }
+      output.record(0x1ae, data);
+      for (const name of external.names) output.record(0x23, join(join(words(0, name.sheet === undefined ? 0 : name.sheet + 1, 0),
+        biffString(name.name, revision, context, 1)), new Uint8Array([2, 0, 28, 23])));
+    }
     output.record(0x17, words(formulaWriter.externalSheets.length + Number(addins),
-      ...(addins ? [0, 0xfffe, 0xfffe] : []), ...formulaWriter.externalSheets.flatMap(s => [Number(addins), s.first, s.last])));
+      ...(addins ? [0, 0xfffe, 0xfffe] : []), ...formulaWriter.externalSheets.flatMap(s => [Number(addins) + (s.book === undefined ? 0 : s.book + 1), s.first, s.last])));
   }
   // Native imports NAME expressions immediately, so their NameX/3D links
   // must already be declared even though our reader resolves them afterward.

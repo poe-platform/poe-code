@@ -46,7 +46,26 @@
         "xelink.cxx": "e17006226c85f1bd31eebc366633dedab062ebd5ea4aee5971dad45cc7a95672",
         "xlconst.hxx": "f16b03cf859accff14d3b5bd4ced1ca99131c43602839e0c6a081379db7f76a2"
       },
-      "qualification": "Original memory fixtures cover all BIFF8 token classes, scoped names, encoded paths, Unicode/quotes, malformed names/paths, budgets, cancellation and explicit host resolution. Eight compiled poe-code/ssconvert XML/XLSX replays preserve identities; XML replay does not retain cached values. Native/application and compiled Shell qualification remain open. Maintained ssconvert tests pass 410 files / 23625 tests plus 2 posttest checks; package lint/types and selected four-workspace build pass. Compiled scoped Shell returns #REF! without a host and 84 with one explicit host call for the original BIFF8 cell record; stderr is empty."
+      "qualification": "Original memory fixtures cover all BIFF8 token classes, scoped names, encoded paths, Unicode/quotes, malformed names/paths, budgets, cancellation and explicit host resolution. Eight compiled poe-code/ssconvert XML/XLSX replays preserve identities; XML replay does not retain cached values. Native/application and compiled Shell qualification remain open. Maintained ssconvert tests pass 410 files / 23625 tests plus 2 posttest checks; package lint/types and selected four-workspace build pass. Compiled scoped Shell returns #REF! without a host and 84 with one explicit host call for the original BIFF8 cell record; stderr is empty.",
+      "exportQualification": {
+        "scope": "BIFF8 cell/range, global/sheet-scoped external names, defined-name expressions and array formulas. Local, add-in, macro and external link indexes stay separate regardless of discovery order.",
+        "profiles": [
+          "book.xls",
+          "dir/book.xls",
+          "https://example.test/a[b].xls",
+          "\u8868] book.xls"
+        ],
+        "outputSha256": [
+          "778b0666a30cff97240da6b0a04ecf3b9b7d9d3fdc47d7c8a4dc332f4d732d27",
+          "442fa46486b5137ef8a61617a58d58863b33d4a3d28b3af1e71e474caff46b3d",
+          "12a4a94291b49997ddca5c8d4cb43932d7dc19890d3118b4f8b2cde3cc5ff478",
+          "8bfce689c013337c6460630bb4a490d05e1fbf5d1dd92b60d742a1386ba5809f"
+        ],
+        "sdk": "Four compiled public SDK XLSX-to-BIFF8 files reopen and recalculate all seven first-row values to 42, making six explicit external-reference calls each. The array group is present and recalculates rather than using its cache.",
+        "shell": "Eight compiled scoped Shell import/export/recalc cases pass: without a host only the local control returns 42 and external expressions return #REF!; with a host all seven values return 42 and six explicit requests occur. No host call occurs during export.",
+        "native": "All four files open in Gnumeric 1.12.61 and preserve the local 42/41 controls. Each produces two external references not supported yet warnings and six #REF! cells. This is not native external-reference qualification.",
+        "tests": "411 files / 23643 tests and two maintained posttest checks passed before suppressing the misleading warning for decoded EXTERNNAME identities. Final focused BIFF regression, lint/types and build checks follow that diagnostic change. Final 47-file / 1022-test BIFF cohort, package lint/types and selected build pass. Compiled SDK/Shell rechecks pass with empty Shell diagnostics; screenshot inspected."
+      }
     }
   },
   "cases": [
@@ -63,7 +82,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF8 imports now retain external workbook, cell/range and global/sheet-scoped name identities through decoded SUPBOOK and EXTERNNAME tables. Import never resolves links; explicit externalReferences supplies recalculation values. Local placeholders and on-file external-name expressions cannot supply external values. Original records reproduce the prior losses in all token classes; 34 new regressions and eight compiled public SDK XML/XLSX replay cases pass. This extends Gnumeric behavior, which drops or locally rebinds these identities. Earlier name-index, relative-row, array and memory-area repairs remain. BIFF7 external imports, external BIFF exports, detached sheets, wider token/version semantics, metadata preservation and wider application/Shell qualification remain open."
+      "currentFinding": "BIFF8 imports now retain external workbook, cell/range and global/sheet-scoped name identities through decoded SUPBOOK and EXTERNNAME tables. Import never resolves links; explicit externalReferences supplies recalculation values. Local placeholders and on-file external-name expressions cannot supply external values. Original records reproduce the prior losses in all token classes; 34 new regressions and eight compiled public SDK XML/XLSX replay cases pass. This extends Gnumeric behavior, which drops or locally rebinds these identities. Earlier name-index, relative-row, array and memory-area repairs remain. BIFF8 export now writes distinct external workbook/name tables without implicit host resolution, including definitions and array formulas. Original writer regressions, namespace discovery-order controls and compiled SDK/Shell replays pass. Native Gnumeric opens all four files and retains the local control, but warns that external references are unsupported and evaluates them to #REF!. BIFF7 external imports/exports, detached sheets, wider token/version semantics, metadata preservation and wider application/Shell qualification remain open."
     },
     {
       "id": "encrypted-biff",

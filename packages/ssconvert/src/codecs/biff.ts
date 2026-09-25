@@ -260,7 +260,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       index = arrays.next;
       table.push({ name, sheetIndex: data.u16(2), tokens, arrays: arrays.parts, revision: ver, codepage, supported: flags === 0, record });
       const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : (sheet?.legacyAddinSheets ?? legacyAddinSheets).size > 0;
-      if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported);
+      const externalIdentity = ver >= 8 && supbooks.at(-1)?.workbook !== undefined && flags === 0;
+      if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported, !externalIdentity);
       continue;
     }
     if (opcode === 0x17 && ver >= 8) {

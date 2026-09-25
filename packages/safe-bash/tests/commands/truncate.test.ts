@@ -1128,3 +1128,30 @@ test("truncate preserves raw diagnostic bytes without Buffer and never aliases i
   } finally { Reflect.set(globalThis, "Buffer", original); }
   assert.equal(stderr, "truncate: cannot stat ''$'\\377': No such file or directory\n");
 });
+
+test("truncate -o uses ioBlockSize with preferredIoBlockSize fallback and supports R/Q suffixes", async () => {
+  const mem = new MemoryFileSystem();
+  await mem.mkdir("/work", { recursive: true });
+  await mem.writeFile("/work/f", new Uint8Array(10));
+  const commands = new CommandRegistry();
+  commands.register(truncateCommand());
+  const sh = new Shell({ fs: mem, cwd: "/work", commands });
+  try {
+    assert.equal((await mem.stat("/work/f")).ioBlockSize, 65536);
+    const ioRes = await sh.exec("truncate -o -s 1 /work/f");
+    assert.deepEqual([ioRes.exitCode, ioRes.stderr], [0, ""]);
+    assert.equal((await mem.stat("/work/f")).size, 65536);
+
+    for (const spec of ["0R", "0Q", "0RB", "0QB", "0RiB", "0QiB"]) {
+      await mem.writeFile("/work/f", new Uint8Array(10));
+      const res = await sh.exec(`truncate -s ${spec} /work/f`);
+      assert.deepEqual([res.exitCode, res.stderr], [0, ""], spec);
+      assert.equal((await mem.stat("/work/f")).size, 0, spec);
+    }
+    for (const spec of ["1R", "1Q"]) {
+      const res = await sh.exec(`truncate -s ${spec} /work/f`);
+      assert.equal(res.exitCode, 1, spec);
+      assert.match(res.stderr, /Value too large for defined data type/u, spec);
+    }
+  } finally { await sh.dispose(); }
+});

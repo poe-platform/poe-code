@@ -178,7 +178,7 @@ function number(text: string, unicode: boolean): bigint {
     value = value > -signedMinimum ? -signedMinimum + 1n : value * 10n + BigInt(text.charCodeAt(offset) - 48);
     offset++;
   }
-  const powers: Readonly<Record<string, number>> = { E: 6, g: 3, G: 3, k: 1, K: 1, m: 2, M: 2, P: 5, t: 4, T: 4, Y: 8, Z: 7 };
+  const powers: Readonly<Record<string, number>> = { E: 6, g: 3, G: 3, k: 1, K: 1, m: 2, M: 2, P: 5, Q: 10, R: 9, t: 4, T: 4, Y: 8, Z: 7 };
   let invalid = false;
   if (offset === start) {
     if (offset === 0 && Object.hasOwn(powers, text[0] ?? "")) value = 1n;
@@ -492,7 +492,7 @@ export function truncateCommand(options: MetadataCommandsOptions = {}): CommandD
               catch (error) { signal.throwIfAborted(); throw ioError(error, `cannot fstat ${label}`); }
             }
             if (settings.blocks) {
-              const hint = stat!.preferredIoBlockSize;
+              const hint = stat!.ioBlockSize ?? stat!.preferredIoBlockSize;
               if (hint === undefined || !Number.isSafeInteger(hint) || hint <= 0) throw new TruncateDiagnostic(`cannot get the I/O block size of ${label}: Operation not supported`);
               const block = BigInt(hint);
               if (size < signedMinimum / block || size > signedMaximum / block) throw new TruncateDiagnostic(`overflow in ${size} * ${block} byte blocks for file ${label}`);

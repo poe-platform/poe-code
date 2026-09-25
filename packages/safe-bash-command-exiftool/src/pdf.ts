@@ -323,7 +323,17 @@ function parsePdfStructure(bytes: Uint8Array): {
   }
 
   const info = new Map<string, string>();
+  const infoRefs = [...text.matchAll(/\/Info\s+(\d+)\s+\d+\s+R/g)];
+  let infoSourceText = text;
+  if (infoRefs.length > 0) {
+    const activeObjNum = infoRefs.at(-1)![1]!;
+    const objMatches = [...text.matchAll(new RegExp(`(?:^|[\\r\\n])\\s*${activeObjNum}\\s+0\\s+obj\\b([\\s\\S]*?)endobj`, "g"))];
+    if (objMatches.length > 0) {
+      infoSourceText = objMatches.at(-1)![1]!;
+    }
+  }
   let fullText = text;
+  let infoScanText = infoSourceText;
   const flateRe = /<<[\s\S]*?\/Filter\s*\/FlateDecode[\s\S]*?>>\s*stream\r?\n/g;
   let fm: RegExpExecArray | null;
   while ((fm = flateRe.exec(text)) !== null) {
@@ -336,7 +346,9 @@ function parsePdfStructure(bytes: Uint8Array): {
       const rawSlice = bytes.subarray(dataStart, end);
       const inflated = tryInflatePdfStream(rawSlice);
       if (inflated) {
-        fullText += "\n" + new TextDecoder("utf-8", { fatal: false }).decode(inflated);
+        const decodedInflated = new TextDecoder("utf-8", { fatal: false }).decode(inflated);
+        fullText += "\n" + decodedInflated;
+        infoScanText += "\n" + decodedInflated;
       }
     }
   }
@@ -344,23 +356,23 @@ function parsePdfStructure(bytes: Uint8Array): {
   const keyRegex =
     /\/(Title|Author|Subject|Keywords|Creator|Producer|Description|Comment|Copyright|ModifyDate|CreateDate|ModDate|CreationDate)\s*/g;
   let km: RegExpExecArray | null;
-  while ((km = keyRegex.exec(fullText)) !== null) {
+  while ((km = keyRegex.exec(infoScanText)) !== null) {
     const rawKey = km[1]!;
     const key = rawKey === "ModDate" ? "ModifyDate" : rawKey === "CreationDate" ? "CreateDate" : rawKey;
     const afterKey = keyRegex.lastIndex;
-    const nextChar = fullText[afterKey];
+    const nextChar = infoScanText[afterKey];
     if (nextChar === "(") {
-      const { raw, endIndex } = readBalancedLiteralString(fullText, afterKey);
+      const { raw, endIndex } = readBalancedLiteralString(infoScanText, afterKey);
       const decoded = decodePdfLiteralString(raw);
       info.set(
         key,
         key === "CreateDate" || key === "ModifyDate" ? normalizePdfDate(decoded) : decoded
       );
       keyRegex.lastIndex = endIndex;
-    } else if (nextChar === "<" && fullText[afterKey + 1] !== "<") {
-      const closeAngle = fullText.indexOf(">", afterKey + 1);
+    } else if (nextChar === "<" && infoScanText[afterKey + 1] !== "<") {
+      const closeAngle = infoScanText.indexOf(">", afterKey + 1);
       if (closeAngle > afterKey) {
-        const decoded = decodePdfHexString(fullText.slice(afterKey + 1, closeAngle));
+        const decoded = decodePdfHexString(infoScanText.slice(afterKey + 1, closeAngle));
         info.set(
           key,
           key === "CreateDate" || key === "ModifyDate" ? normalizePdfDate(decoded) : decoded

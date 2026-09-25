@@ -174,3 +174,17 @@ test("exiftool handles UTF-16BE Unicode metadata writes (pdf-lib #1291), ASN.1 P
   const rawUpdated = new TextDecoder("latin1").decode(await fs.readFile("/unicode-xmp.pdf"));
   assert.match(rawUpdated, /\/Title <FEFF/i);
 });
+
+test("PDF exiftool deleting a tag does not resurrect it from earlier revision (issue 1036)", async () => {
+  const fs = createMemoryFileSystem();
+  const pdfBytes = new TextEncoder().encode("%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Count 1 /Kids [] >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n");
+  await fs.writeFile("/del-test.pdf", pdfBytes);
+
+  await invoke(["-overwrite_original", "-Title=Original Title", "-Author=Café", "del-test.pdf"], fs);
+  await invoke(["-overwrite_original", "-Title=", "del-test.pdf"], fs);
+  const readRes = await invoke(["-j", "del-test.pdf"], fs);
+  assert.equal(readRes.exitCode, 0, readRes.stderr);
+  const meta = JSON.parse(readRes.stdout)[0];
+  assert.equal(meta.Title, undefined);
+  assert.equal(meta.Author, "Café");
+});

@@ -124,7 +124,7 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
       let matcher: "G" | "E" | "F" | undefined;
       let helpRequested = false;
       let ignoreCase = false;
-      let binaryFilesMode: "text" | "without-match" | "binary" = "text";
+      const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "text" };
       let directoriesAction: string | undefined;
       const filters: { key: string; pattern: string }[] = [];
       const normalizedArgs: string[] = [];
@@ -140,7 +140,7 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
         if (key === "d") directoriesAction = text;
         if (key === "binary-files") {
           if (text !== "text" && text !== "without-match" && text !== "binary") throw new UsageError(`unsupported binary-files mode '${text}'; use text`);
-          binaryFilesMode = text;
+          binaryFiles.mode = text;
         }
         if (!["A", "B", "C"].includes(key)) return;
         try {
@@ -158,8 +158,8 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
         if (key === "h" || key === "H") filenameOption = key;
         if (key === "i") ignoreCase = true;
         if (key === "no-ignore-case") ignoreCase = false;
-        if (key === "I") binaryFilesMode = "without-match";
-        if (key === "a") binaryFilesMode = "text";
+        if (key === "I") binaryFiles.mode = "without-match";
+        if (key === "a") binaryFiles.mode = "text";
         if (key === "r" || key === "R") directoriesAction = "recurse";
       });
       if (fileSelection) parsed.flags.delete(fileSelection === "l" ? "L" : "l");
@@ -339,7 +339,7 @@ inspect the resulting state before repeating the action.
         try {
           const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, limits.maxFileBytes ?? Infinity);
           records: if (maxCount > 0) for await (const batch of grepLineBatches(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches)) {
-            if (binaryFilesMode === "without-match" && batch.some(line => line.bytes.includes(0))) {
+            if (binaryFiles.mode === "without-match" && batch.some(line => line.bytes.includes(0))) {
               count = 0;
               break records;
             }

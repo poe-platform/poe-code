@@ -15,6 +15,36 @@ function deferred<Value = void>() {
 const turn = () => new Promise<void>((resolve) => setImmediate(resolve));
 const delay = () => new Promise<void>((resolve) => setTimeout(resolve, 15));
 
+test("public command signals propagate cancellation through native AbortSignal.any", { timeout: 2000 }, async () => {
+  const { shell, commands } = setup();
+  const caller = new AbortController();
+  const entered = deferred();
+  const completed = deferred<CommandResult>();
+  const reason = new Error("caller stopped");
+  let combined: AbortSignal | undefined;
+  let notifications = 0;
+  commands.register({ name: "native-signal", execute(context) {
+    combined = AbortSignal.any([context.signal, new AbortController().signal]);
+    combined.addEventListener("abort", () => { notifications++; }, { once: true });
+    entered.resolve();
+    return completed.promise;
+  } });
+  const execution = shell.exec("native-signal", { signal: caller.signal });
+  const outcome = execution.then(() => assert.fail("expected cancellation"), (error: unknown) => error);
+  try {
+    await entered.promise;
+    caller.abort(reason);
+    completed.resolve({ exitCode: 0 });
+    assert.equal(await outcome, reason);
+    assert.equal(combined?.aborted, true);
+    assert.equal(combined?.reason, reason);
+    assert.equal(notifications, 1);
+  } finally {
+    completed.resolve({ exitCode: 0 });
+    await shell.dispose();
+  }
+});
+
 test("a public cleanup promise marker cannot bypass its drain or failure", async () => {
   const scope = new InvocationScope();
   const gate = deferred();

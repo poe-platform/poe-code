@@ -135,15 +135,26 @@ interface HtmlBlock {
 }
 
 function decodeHtmlEntities(input: string): string {
-  return input
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, "\"")
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#([0-9]+);/g, (_, dec: string) => String.fromCodePoint(parseInt(dec, 10)));
+  return input.replace(/&(nbsp|amp|lt|gt|quot|apos|#39|#x([0-9a-f]+)|#([0-9]+));/gi, (full, entity: string, hex?: string, dec?: string) => {
+    if (hex !== undefined) {
+      const cp = parseInt(hex, 16);
+      return Number.isFinite(cp) && cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : "\uFFFD";
+    }
+    if (dec !== undefined) {
+      const cp = parseInt(dec, 10);
+      return Number.isFinite(cp) && cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : "\uFFFD";
+    }
+    switch (entity.toLowerCase()) {
+      case "nbsp": return " ";
+      case "amp": return "&";
+      case "lt": return "<";
+      case "gt": return ">";
+      case "quot": return "\"";
+      case "apos":
+      case "#39": return "'";
+      default: return full;
+    }
+  });
 }
 
 function stripTags(html: string): string {
@@ -324,7 +335,7 @@ function parseHtmlDocument(rawHtml: string, replacements: readonly [string, stri
         blocks.push({ kind: "table", rows });
       }
     } else {
-      if (/<(h[1-6]|p|pre|ul|ol|table|hr|img)\b/i.test(inner)) {
+      if (/<(h[1-6]|p|pre|ul|ol|dl|table|svg|hr|img|blockquote|div|section|article)\b/i.test(inner)) {
         const nested = parseHtmlDocument(inner, []);
         blocks.push(...nested.blocks);
       } else {
@@ -425,6 +436,7 @@ function layoutObjectPages(
       const lines = wrapTextLines(block.text ?? "", maxChars);
       ensureHeight(lines.length * lineHeight + 10);
       cursorY -= 4;
+      const blockTopY = cursorY;
       for (const line of lines) {
         const drawY = cursorY - fontSize;
         const x = box.marginLeft;
@@ -438,6 +450,18 @@ function layoutObjectPages(
           });
         });
         cursorY -= lineHeight;
+      }
+      if (block.links && block.links.length > 0 && settings.useExternalLinks) {
+        const rectBottom = cursorY;
+        const rectTop = blockTopY;
+        for (const link of block.links) {
+          currentActions.push((page) => {
+            page.addLinkAnnotation({
+              rect: [box.marginLeft, rectBottom, box.marginLeft + Math.min(contentWidth, 220), rectTop],
+              uri: link.href,
+            });
+          });
+        }
       }
       cursorY -= 6;
       continue;
@@ -466,15 +490,16 @@ function layoutObjectPages(
         cursorY -= lineHeight;
       }
       if (block.links && block.links.length > 0 && settings.useExternalLinks) {
-        const firstLink = block.links[0]!;
         const rectBottom = cursorY;
         const rectTop = blockTopY;
-        currentActions.push((page) => {
-          page.addLinkAnnotation({
-            rect: [box.marginLeft, rectBottom, box.marginLeft + Math.min(contentWidth, 220), rectTop],
-            uri: firstLink.href,
+        for (const link of block.links) {
+          currentActions.push((page) => {
+            page.addLinkAnnotation({
+              rect: [box.marginLeft, rectBottom, box.marginLeft + Math.min(contentWidth, 220), rectTop],
+              uri: link.href,
+            });
           });
-        });
+        }
       }
       cursorY -= 6;
       continue;

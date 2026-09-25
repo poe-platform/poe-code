@@ -150,3 +150,29 @@ test("createPdfAstRenderer renders inline <svg>, <blockquote>, <dl> definition l
   assert.ok(text.includes("Merged Table Header"));
   assert.ok(text.includes("Complex Elements Spec"));
 });
+
+test("wkhtmltopdf preserves &amp;lt; entities, recurses into nested containers, and emits all heading/paragraph links (issue 1037)", async () => {
+  const fs = new MemoryFileSystem();
+  const html = `<html><body>
+<h1><a href="https://example.com/heading-link">Heading Link</a></h1>
+<p>Literal entity: &amp;lt;tag&amp;gt; &#x110000; and <a href="https://example.com/first">First</a> and <a href="https://example.com/second">Second</a></p>
+<section><div style="page-break-before: always">Page 1 div</div><div style="page-break-before: always">Page 2 div</div></section>
+</body></html>`;
+  await fs.writeFile("/issue1037.html", new TextEncoder().encode(html));
+  const result = await runWkhtmltopdf(
+    {
+      args: ["/issue1037.html", "/issue1037.pdf"],
+      fs,
+      cwd: "/",
+      signal: new AbortController().signal,
+      stdin: toByteSource(""),
+      stdout: { async write() {} },
+      stderr: { async write() {} },
+    },
+    { limits: wkhtmltopdfLimits, renderer: createPdfAstRenderer() }
+  );
+  assert.equal(result.exitCode, 0);
+  const doc = PdfDocument.load(await fs.readFile("/issue1037.pdf"));
+  assert.ok(doc.getPageCount() >= 2);
+  assert.match(doc.extractText(0), /Literal entity: &lt;tag&gt;/);
+});

@@ -6,7 +6,7 @@ import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
 import { createPythonJspiExecutor } from '@poe-platform/safe-bash/commands/python';
-import { ObjectIoMetrics, delayObjectIoBackend, createObjectIoReadbackStream } from '../../../safe-fs/src/testing/object-io-metrics.ts';
+import { ObjectIoMetrics, delayObjectIoBackend, createObjectIoReadbackStream, measureObjectIoStore } from '../../../safe-fs/src/testing/object-io-metrics.ts';
 import { authorizeObjectIoRequest, cleanupObjectIoBucket } from '../../../safe-fs/src/testing/object-io-control.ts';
 import { createObjectFilePublicationConformanceCases } from '@poe-platform/safe-fs/testing/object-publication';
 import { createR2StagingFixture } from '../../../safe-fs/tests/integration/object-staging-workerd.fixture.mjs';
@@ -65,7 +65,7 @@ print(digest_file())
 _object_io_phase('pythonFinalization')
 `;
   await backend.fs.writeFile('/main.py', new TextEncoder().encode(program));
-  const filesystem = new PythonFileSystem(createDeviceFileSystem(withObjectFileDescriptors(backend.fs, backend.store, {
+  const filesystem = new PythonFileSystem(createDeviceFileSystem(withObjectFileDescriptors(backend.fs, measureObjectIoStore(backend.store, metrics), {
     chunkBytes, maxStagedBytes: chunkBytes * workingPages, maxStagedPages: workingPages, maxFileBytes: size,
   })), { cwd: '/', maxTransferBytes });
   const metadata = new PythonStatTranslator();

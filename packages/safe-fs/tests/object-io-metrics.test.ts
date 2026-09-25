@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { ObjectIoMetrics, delayObjectIoBackend, createObjectIoReadbackStream } from "../src/testing/object-io-metrics.js";
+import { ObjectIoMetrics, delayObjectIoBackend, createObjectIoReadbackStream, measureObjectIoStore } from "../src/testing/object-io-metrics.js";
 
 it("attributes overlapping operations to their admission phase and counts failures", async () => {
   let clock = 0;
@@ -77,4 +77,30 @@ it("backend read failures still dispose even when cancelling the errored reader 
     size: 1, metrics: new ObjectIoMetrics(), async dispose() { disposed++; }, summary: () => ({}) });
   await expect(stream.getReader().read()).rejects.toBe(reason);
   expect(disposed).toBe(1);
+});
+
+it("attributes injected backend latency through staging without treating inclusive timings as additive", async () => {
+  let clock = 0;
+  const metrics = new ObjectIoMetrics(() => clock);
+  const backend = delayObjectIoBackend({ async put() {} }, metrics, 7, async duration => { clock += duration; });
+  const store = measureObjectIoStore({
+    async acquire() { return undefined; },
+    async createStaging() {
+      return {
+        async readPage() { return undefined; },
+        async writePage() { await backend.put(); },
+        async truncate() {},
+        async close() {},
+      };
+    },
+  }, metrics);
+  const stage = await store.createStaging!('/latency', { chunkBytes: 4, maxFileBytes: 4 });
+  metrics.phase('guestWrite');
+  await stage.writePage(0, new Uint8Array(4));
+  expect(metrics.snapshot().guestWrite).toEqual({ elapsedMs: 7, operations: {
+    'staging.writePage': { count: 1, failed: 0, elapsedMs: 7 },
+    'backend.put': { count: 1, failed: 0, elapsedMs: 7 },
+  } });
+  expect(store.publish).toBeUndefined();
+  await stage.close();
 });

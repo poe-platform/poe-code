@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { createObjectFilePublicationConformanceCases } from "../src/testing/object-publication.js";
+import { ObjectIoMetrics, measureObjectIoStore } from "../src/testing/object-io-metrics.js";
 import { PythonStatTranslator } from "../src/python/stat.js";
 import { toByteSource } from "../src/contracts/io.js";
 import { createR2StagingFixture } from "./integration/object-staging-workerd.fixture.mjs";
@@ -88,5 +89,30 @@ it("keeps the acknowledged revision after a cancelled upload and drains orphaned
     });
     await expect(stage.writePage(0, new Uint8Array([5, 6, 7, 8]), { signal: controller.signal })).rejects.toBe(reason);
     expect(await stage.readPage(0)).toEqual(new Uint8Array([1, 2, 3, 4]));
+  } finally { await stage.close(); await backend.dispose(); }
+});
+
+it("separates descriptor page I/O, publication and retained version reads by phase", async () => {
+  const backend = fixture();
+  const metrics = new ObjectIoMetrics();
+  const store = measureObjectIoStore(backend.store, metrics);
+  const stage = await store.createStaging!('/measured', { chunkBytes: 4, maxFileBytes: 16 });
+  try {
+    metrics.phase("guestWrite");
+    await stage.writePage(0, new Uint8Array([1, 2, 3, 4]));
+    metrics.phase("publication");
+    const page = await stage.readPage(0);
+    const published = await store.publish!('/measured', null, toByteSource(page!), { size: 4, mode: 0o600 });
+    await published.close();
+    metrics.phase("guestReadback");
+    const retained = await store.acquire('/measured', { access: 'read' });
+    try { expect(await retained!.read(0, 4)).toEqual(page); }
+    finally { await retained!.close(); }
+    const phases = metrics.snapshot();
+    expect(phases.guestWrite!.operations["staging.writePage"]!.count).toBe(1);
+    expect(phases.publication!.operations["staging.readPage"]!.count).toBe(1);
+    expect(phases.publication!.operations["store.publish"]!.count).toBe(1);
+    expect(phases.guestReadback!.operations["version.read"]!.count).toBe(1);
+    expect(phases.guestReadback!.operations["store.acquire"]!.count).toBe(1);
   } finally { await stage.close(); await backend.dispose(); }
 });

@@ -1,3 +1,5 @@
+import type { ObjectFilePublicationStore, ObjectFileVersion } from "../fs/object-publication/index.js";
+
 export interface ObjectIoOperationMetrics {
   count: number;
   failed: number;
@@ -42,6 +44,36 @@ export class ObjectIoMetrics {
     result[this.current]!.elapsedMs += this.now() - this.started;
     return result;
   }
+}
+
+/** Timings are inclusive: store publication can contain staging reads and backend I/O. */
+export function measureObjectIoStore(store: ObjectFilePublicationStore, metrics: ObjectIoMetrics): ObjectFilePublicationStore {
+  const version = (head: ObjectFileVersion): ObjectFileVersion => ({
+    revision: head.revision, stat: head.stat,
+    ...(head.publicationToken === undefined ? {} : { publicationToken: head.publicationToken }),
+    read: (...args) => metrics.measure("version", "read", () => head.read(...args)),
+    close: () => metrics.measure("version", "close", () => head.close()),
+  });
+  const publish = store.publish;
+  const createStaging = store.createStaging;
+  return {
+    async acquire(...args) {
+      const head = await metrics.measure("store", "acquire", () => store.acquire(...args));
+      return head && version(head);
+    },
+    ...(publish ? { async publish(...args: Parameters<NonNullable<ObjectFilePublicationStore["publish"]>>) {
+      return version(await metrics.measure("store", "publish", () => publish.apply(store, args)));
+    } } : {}),
+    ...(createStaging ? { async createStaging(...args: Parameters<NonNullable<ObjectFilePublicationStore["createStaging"]>>) {
+      const staging = await metrics.measure("store", "createStaging", () => createStaging.apply(store, args));
+      return {
+        readPage: (...values: Parameters<typeof staging.readPage>) => metrics.measure("staging", "readPage", () => staging.readPage(...values)),
+        writePage: (...values: Parameters<typeof staging.writePage>) => metrics.measure("staging", "writePage", () => staging.writePage(...values)),
+        truncate: (...values: Parameters<typeof staging.truncate>) => metrics.measure("staging", "truncate", () => staging.truncate(...values)),
+        close: () => metrics.measure("staging", "close", () => staging.close()),
+      };
+    } } : {}),
+  };
 }
 
 export function delayObjectIoBackend<Backend extends object>(

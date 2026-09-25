@@ -3000,4 +3000,34 @@ describe("@poe-code/image-ast (sharp core)", () => {
       149, 94, 116
     ]);
   });
+
+  it("matches libvips vips_convf and vips_sharpen LABS pipeline in convolve() and sharpen() (#1242)", async () => {
+    const w = 12, h = 10;
+    const rgba = Buffer.alloc(w * h * 4);
+    for (let i = 0; i < w * h; i++) {
+      rgba[i * 4] = (i * 73 + 19) & 255;
+      rgba[i * 4 + 1] = (i * 151 + 53) & 255;
+      rgba[i * 4 + 2] = (i * 211 + 107) & 255;
+      rgba[i * 4 + 3] = (i * 37 + 100) & 255;
+    }
+    const rSharp = await sharp(rgba, { raw: { width: w, height: h, channels: 4 } }).sharpen().raw().toBuffer();
+    expect(Array.from(rSharp.slice(0, 24))).toEqual([
+      2, 29, 112, 103,
+      87, 225, 58, 145,
+      167, 77, 0, 182,
+      255, 255, 248, 219,
+      32, 144, 182, 255,
+      95, 255, 136, 0
+    ]);
+    const rConv = await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
+      .convolve({ width: 3, height: 3, kernel: [1, 2, 1, 2, 4, 2, 1, 2, 1], scale: 16, offset: 5 })
+      .raw()
+      .toBuffer();
+    expect(Array.from(rConv.slice(0, 16))).toEqual([
+      63, 110, 95, 97,
+      109, 149, 71, 125,
+      157, 156, 111, 162,
+      158, 169, 176, 199
+    ]);
+  });
 });

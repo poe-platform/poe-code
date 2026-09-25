@@ -1441,6 +1441,63 @@ export function blurImage(
   return { ...img, data: out };
 }
 
+function rintEven(x: number): number {
+  const r = Math.round(x);
+  if (Math.abs(x - r) === 0.5) return r % 2 === 0 ? r : r - 1;
+  return r;
+}
+
+function buildVipsGaussmat(
+  sigma: number,
+  minAmpl = 0.1
+): { readonly radius: number; readonly weights: Float64Array; readonly scale: number } {
+  const sig2 = 2.0 * sigma * sigma;
+  const maxX = Math.max(Math.min(Math.floor(Math.sqrt(-sig2 * Math.log(minAmpl))), 5000), 1);
+  const size = maxX * 2 + 1;
+  const weights = new Float64Array(size);
+  let scale = 0;
+  for (let i = 0; i < size; i++) {
+    const x = i - maxX;
+    const v = rintEven(20.0 * Math.exp(-(x * x) / sig2));
+    weights[i] = v;
+    scale += v;
+  }
+  return { radius: maxX, weights, scale };
+}
+
+function vipsSrgbToLabForSharpen(r: number, g: number, b: number): [number, number, number] {
+  const rl = SRGB_TO_LINEAR_LUT[r]!;
+  const gl = SRGB_TO_LINEAR_LUT[g]!;
+  const bl = SRGB_TO_LINEAR_LUT[b]!;
+  const X = (41.24 * rl + 35.76 * gl + 18.05 * bl) / 95.047;
+  const Y = (21.26 * rl + 71.52 * gl + 7.22 * bl) / 100.0;
+  const Z = (1.93 * rl + 11.92 * gl + 95.05 * bl) / 108.883;
+  const f = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16.0 / 116.0);
+  const fx = f(X);
+  const fy = f(Y);
+  const fz = f(Z);
+  return [
+    Math.fround(116.0 * fy - 16.0),
+    Math.fround(500.0 * (fx - fy)),
+    Math.fround(200.0 * (fy - fz))
+  ];
+}
+
+function vipsLabToSrgbForSharpen(L: number, a: number, b: number): [number, number, number] {
+  const fy = (L + 16.0) / 116.0;
+  const fx = fy + a / 500.0;
+  const fz = fy - b / 200.0;
+  const inv = (t: number): number =>
+    t > 0.20689655172413793 ? t * t * t : (t - 16.0 / 116.0) / 7.787;
+  const X = inv(fx) * 0.95047;
+  const Y = inv(fy) * 1.0;
+  const Z = inv(fz) * 1.08883;
+  const rl = 3.2406 * X - 1.5372 * Y - 0.4986 * Z;
+  const gl = -0.9689 * X + 1.8758 * Y + 0.0415 * Z;
+  const bl = 0.0557 * X - 0.204 * Y + 1.057 * Z;
+  return [linearToSrgbByte(rl), linearToSrgbByte(gl), linearToSrgbByte(bl)];
+}
+
 export function sharpenImage(
   img: RgbaImage,
   sigma = 1.0,
@@ -1460,59 +1517,90 @@ export function sharpenImage(
     });
   }
   const { width, height, data } = img;
-  const L = new Float64Array(width * height);
-  const A = new Float64Array(width * height);
-  const B = new Float64Array(width * height);
+  let hasSemiTransparentAlpha = false;
+  if (img.hasAlpha || img.channels === 4 || img.channels === 2) {
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i]! < 255) {
+        hasSemiTransparentAlpha = true;
+        break;
+      }
+    }
+  }
+  let cur = data;
+  if (hasSemiTransparentAlpha) {
+    const pre = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i += 4) {
+      const a = data[i + 3]!;
+      const af = Math.fround(a / 255.0);
+      pre[i] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[i]! * af))));
+      pre[i + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[i + 1]! * af))));
+      pre[i + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[i + 2]! * af))));
+      pre[i + 3] = a;
+    }
+    cur = pre;
+  }
+
+  const Ls = new Int16Array(width * height);
+  const As = new Int16Array(width * height);
+  const Bs = new Int16Array(width * height);
   for (let i = 0; i < width * height; i++) {
     const idx = i * 4;
-    const [lVal, aVal, bVal] = srgbToLab(data[idx]!, data[idx + 1]!, data[idx + 2]!);
-    L[i] = lVal;
-    A[i] = aVal;
-    B[i] = bVal;
+    const [lVal, aVal, bVal] = vipsSrgbToLabForSharpen(cur[idx]!, cur[idx + 1]!, cur[idx + 2]!);
+    Ls[i] = Math.trunc(lVal * 327.67);
+    As[i] = Math.trunc(aVal * 256.0);
+    Bs[i] = Math.trunc(bVal * 256.0);
   }
-  const radius = Math.max(1, Math.ceil(sigma * 3));
-  const kernel = new Float64Array(radius * 2 + 1);
-  let ksum = 0;
-  for (let k = -radius; k <= radius; k++) {
-    const v = Math.exp(-(k * k) / (2 * sigma * sigma));
-    kernel[k + radius] = v;
-    ksum += v;
-  }
-  for (let i = 0; i < kernel.length; i++) kernel[i]! /= ksum;
-  const tmpL = new Float64Array(width * height);
-  const blurL = new Float64Array(width * height);
+
+  const { radius, weights, scale } = buildVipsGaussmat(sigma, 0.1);
+  const roundAdd = Math.trunc(scale) >> 1;
+  const tmpL = new Int16Array(width * height);
+  const blurL = new Int16Array(width * height);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      let s = 0;
+      let sum = 0;
       for (let k = -radius; k <= radius; k++) {
-        s += L[y * width + Math.max(0, Math.min(width - 1, x + k))]! * kernel[k + radius]!;
+        sum += Ls[y * width + Math.max(0, Math.min(width - 1, x + k))]! * weights[k + radius]!;
       }
-      tmpL[y * width + x] = s;
+      tmpL[y * width + x] = Math.floor((sum + roundAdd) / scale);
     }
   }
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      let s = 0;
+      let sum = 0;
       for (let k = -radius; k <= radius; k++) {
-        s += tmpL[Math.max(0, Math.min(height - 1, y + k)) * width + x]! * kernel[k + radius]!;
+        sum += tmpL[Math.max(0, Math.min(height - 1, y + k)) * width + x]! * weights[k + radius]!;
       }
-      blurL[y * width + x] = s;
+      blurL[y * width + x] = Math.floor((sum + roundAdd) / scale);
     }
   }
+
   const out = new Uint8Array(img.data.length);
   for (let i = 0; i < width * height; i++) {
     const idx = i * 4;
-    const d = L[i]! - blurL[i]!;
-    const absD = Math.abs(d);
-    let boost = absD <= x1 ? d * m1 : Math.sign(d) * (x1 * m1 + (absD - x1) * m2);
-    if (boost > y2) boost = y2;
-    if (boost < -y3) boost = -y3;
-    const newL = Math.max(0, Math.min(100, L[i]! + boost));
-    const [nr, ng, nb] = labToSrgb(newL, A[i]!, B[i]!);
-    out[idx] = nr;
-    out[idx + 1] = ng;
-    out[idx + 2] = nb;
-    out[idx + 3] = data[idx + 3]!;
+    const diffIdx = Ls[i]! - blurL[i]!;
+    const d5 = diffIdx / 327.67;
+    let v: number;
+    if (d5 < -x1) v = (d5 + x1) * m2 - x1 * m1;
+    else if (d5 < x1) v = d5 * m1;
+    else v = (d5 - x1) * m2 + x1 * m1;
+    if (v < -y3) v = -y3;
+    if (v > y2) v = y2;
+    const boostS = rintEven(v * 327.67);
+    const newLS = Math.max(0, Math.min(32767, Ls[i]! + boostS));
+    const [nr, ng, nb] = vipsLabToSrgbForSharpen(newLS / 327.67, As[i]! / 256.0, Bs[i]! / 256.0);
+    if (hasSemiTransparentAlpha) {
+      const a = cur[idx + 3]!;
+      const factor = a === 0 ? 0 : Math.fround(255.0 / a);
+      out[idx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * nr))));
+      out[idx + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * ng))));
+      out[idx + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * nb))));
+      out[idx + 3] = a;
+    } else {
+      out[idx] = nr;
+      out[idx + 1] = ng;
+      out[idx + 2] = nb;
+      out[idx + 3] = cur[idx + 3]!;
+    }
   }
   return { ...img, data: out };
 }
@@ -1575,14 +1663,16 @@ export function convolveImage(
   const scale = spec.scale === 0 ? 1 : spec.scale;
   const out = new Uint8Array(data.length);
   const usePremul = img.hasAlpha || img.channels === 4 || img.channels === 2;
-  const premul = usePremul ? new Float64Array(width * height * 4) : undefined;
-  if (premul) {
+  let premul: Uint8Array | undefined;
+  if (usePremul) {
+    premul = new Uint8Array(width * height * 4);
     for (let i = 0; i < width * height; i++) {
       const idx = i * 4;
       const a = data[idx + 3]!;
-      premul[idx] = (data[idx]! * a) / 255;
-      premul[idx + 1] = (data[idx + 1]! * a) / 255;
-      premul[idx + 2] = (data[idx + 2]! * a) / 255;
+      const af = Math.fround(a / 255.0);
+      premul[idx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[idx]! * af))));
+      premul[idx + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[idx + 1]! * af))));
+      premul[idx + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(data[idx + 2]! * af))));
       premul[idx + 3] = a;
     }
   }
@@ -1612,19 +1702,20 @@ export function convolveImage(
         }
       }
       const dIdx = (y * width + x) * 4;
+      const fR = Math.fround(r / scale + spec.offset);
+      const fG = Math.fround(g / scale + spec.offset);
+      const fB = Math.fround(b / scale + spec.offset);
       if (premul) {
-        const fR = r / scale + spec.offset;
-        const fG = g / scale + spec.offset;
-        const fB = b / scale + spec.offset;
-        const fA = a / scale + spec.offset;
-        out[dIdx] = fA > 0 ? Math.max(0, Math.min(255, Math.floor((fR * 255) / fA + 1e-6))) : 0;
-        out[dIdx + 1] = fA > 0 ? Math.max(0, Math.min(255, Math.floor((fG * 255) / fA + 1e-6))) : 0;
-        out[dIdx + 2] = fA > 0 ? Math.max(0, Math.min(255, Math.floor((fB * 255) / fA + 1e-6))) : 0;
-        out[dIdx + 3] = Math.max(0, Math.min(255, Math.floor(fA + 1e-6)));
+        const fA = Math.fround(a / scale + spec.offset);
+        const factor = fA === 0 ? 0 : Math.fround(255.0 / fA);
+        out[dIdx] = fA === 0 ? 0 : Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fR))));
+        out[dIdx + 1] = fA === 0 ? 0 : Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fG))));
+        out[dIdx + 2] = fA === 0 ? 0 : Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fB))));
+        out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
       } else {
-        out[dIdx] = Math.max(0, Math.min(255, Math.floor(r / scale + spec.offset + 1e-6)));
-        out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor(g / scale + spec.offset + 1e-6)));
-        out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor(b / scale + spec.offset + 1e-6)));
+        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
+        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
+        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
         out[dIdx + 3] = data[dIdx + 3]!;
       }
     }

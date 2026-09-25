@@ -1,3 +1,5 @@
-// Keep the composition import visible when this adapter is a split bundle entry.
-export { createMdqCommand } from "safe-bash-command-mdq";
+// Named exports preserve the runtime API in externalized split browser bundles.
+export {
+  MdqError, parseMdqArguments, mdq, mdqCommand, createMdqCommand, createMdqCommands, mdqCommands,
+} from "safe-bash-command-mdq";
 export * from "safe-bash-command-mdq";

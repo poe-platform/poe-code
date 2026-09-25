@@ -207,6 +207,34 @@ it("preserves private mdq exports when the browser root and command entry share 
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect(imports.some(item => item.external && item.path === "safe-bash-command-mdq")).toBe(true);
   expect(result.outputFiles!.some(output => output.path.endsWith("/commands/mdq/index.browser.js"))).toBe(true);
+  const split = new Volume();
+  for (const output of result.outputFiles!) {
+    split.mkdirSync(path.dirname(output.path), { recursive: true });
+    split.writeFileSync(output.path, output.contents);
+  }
+  const names = ["MdqError", "parseMdqArguments", "mdq", "mdqCommand", "createMdqCommand", "createMdqCommands", "mdqCommands"];
+  const consumer = await build({
+    stdin: { contents: `
+      import { ${names.map(name => `${name} as root${name}`).join(",")} } from "@poe-platform/safe-bash";
+      import { ${names.map(name => `${name} as leaf${name}`).join(",")} } from "@poe-platform/safe-bash/commands/mdq";
+      export const identity = [${names.map(name => `root${name} === leaf${name}`).join(",")}];
+    `, resolveDir: root },
+    bundle: true, write: false, metafile: true, platform: "browser", format: "esm", target: "es2022",
+    external: [...options.external, ...Object.keys(manifest.poeCode.integration.privateWorkspaces)],
+    plugins: [{ name: "split-browser-consumer", setup(builder) {
+      builder.onResolve({ filter: /.*/ }, args => {
+        const entry = args.path === "@poe-platform/safe-bash" ? "core.browser.js"
+          : args.path === "@poe-platform/safe-bash/commands/mdq" ? "commands/mdq/index.browser.js" : undefined;
+        if (entry) return { path: path.join(options.outdir, entry), namespace: "split-browser" };
+        if (args.namespace === "split-browser" && args.path.startsWith(".")) return { path: path.resolve(args.resolveDir, args.path), namespace: "split-browser" };
+        return undefined;
+      });
+      builder.onLoad({ filter: /.*/, namespace: "split-browser" }, args => ({
+        contents: split.readFileSync(args.path, "utf8").toString(), resolveDir: path.dirname(args.path),
+      }));
+    } }],
+  });
+  expect(Object.values(consumer.metafile!.outputs).flatMap(output => output.exports)).toEqual(["identity"]);
 });
 
 it("bundles the opt-in op plugin with browser crypto and no Node implementation", async () => {

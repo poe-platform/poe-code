@@ -40,7 +40,8 @@ and the source entry point was exercised directly through `Shell.use`.
 
 - Two file/directory operands, with `-` for stdin; two `-` operands share one
   captured input. A file versus directory compares the file's basename inside
-  the directory. `--` terminates options.
+  the directory. `--from-file=FILE` and `--to-file=FILE` compare each operand
+  against the selected file or directory, in operand order. `--` terminates options.
 - Normal output is the default (`--normal`); unified output is selected by
   `-u` / `--unified`.
   `-U N`, `-UN`, and `--unified=N` set context, including zero context.
@@ -73,12 +74,19 @@ and the source entry point was exercised directly through `Shell.use`.
   `-l` / `--paginate` formats output with the virtual `pr` command.
 - `-s` / `--report-identical-files` reports equal comparisons. `-a` / `--text`
   admits arbitrary input bytes as text and preserves them in emitted changes.
-  Identical files containing NUL bytes compare equal without `-a`; differing
-  binary inputs still require `-a`.
+  NUL-containing files compare as binary without `-a`: identical bytes return 0;
+  differing bytes print `Binary files ... differ` and return 1 (`Files ... differ`
+  with `-q`). Non-UTF-8 input without NUL bytes is compared as byte-preserving lines.
+  `--strip-trailing-cr` removes CR immediately before LF for comparison and output.
   `-x PATTERN`, `-X FILE`, and `-S NAME` select directory entries using filename
   glob exclusions, an exclusion file, or a starting filename.
 - `-q` / `--brief`, `-r` / `--recursive`, and `-N` / `--new-file`;
-  short flags may be grouped. Directory entries are sorted by JavaScript's
+  `-P` / `--unidirectional-new-file` treats only missing left-side files as empty.
+  Short flags may be grouped. `--ignore-file-name-case` pairs directory entries
+  with ASCII case folding, retaining their real spellings; `--no-ignore-file-name-case`
+  restores exact matching. Exact spellings take priority within each folded group.
+  Exclusions capture the case mode active at each `-x` or `-X` option and match
+  filename bytes, with C-locale character classes. Directory entries are sorted by JavaScript's
   deterministic string ordering, not locale collation. Without recursion,
   common subdirectories are reported but not visited.
 - Up to two `--label NAME`, `--label=NAME`, or `-L NAME` labels.
@@ -89,9 +97,10 @@ and the source entry point was exercised directly through `Shell.use`.
   filenames, and explicit labels in place of operand paths. Unified/context
   file headers quote filenames the same way but print explicit labels verbatim.
 - Exit 0 means equal, 1 means different, and 2 means invalid input, unsupported
-  features, filesystem failures, or a resource limit. All comparisons finish
-  before the buffered stdout is written, so preprocessing failures emit no
-  partial diff. A sink can still fail after accepting bytes.
+  features, filesystem failures, or a resource limit. Missing operands, operand
+  metadata errors and recursive directory loops are diagnosed while remaining
+  comparisons continue with final status 2. Limit and retained-input identity
+  failures discard buffered output. A sink can still fail after accepting bytes.
 
 The deterministic algorithm trims common prefixes/suffixes and computes a
 longest-common-subsequence table for the remaining rectangle. Equal-length
@@ -266,8 +275,9 @@ change; the publication contract below distinguishes the two current modes.
 
 ## Text and path rules
 
-Both commands accept strictly valid UTF-8 text without NUL bytes. Invalid UTF-8
-and NUL-containing input are rejected, including identical binary files.
+Diff preserves arbitrary text bytes and reports NUL-containing binary differences;
+`-a` also compares NUL-containing input as text. Patch accepts strictly valid UTF-8
+text without NUL bytes and rejects binary patches.
 UTF-8 BOMs in file content, Unicode, CRLF content, and unterminated final lines
 are preserved byte-for-byte; Unicode and line endings are not normalized.
 Patch transport accepts LF framing or uniformly CRLF-framed physical lines.
@@ -298,13 +308,17 @@ an absolute virtual path.
 Diff operands may use absolute virtual paths. These commands impose no additional path length or depth quota.
 The filesystem provider still controls which paths it can represent.
 
-Both tools reject symlinks in inspected path components, including cwd
-ancestors, final targets, and patch-input paths. Patch also rejects hard-linked
+Diff follows symlinks through the configured virtual filesystem by default.
+`--no-dereference` compares final symlink target strings, including dangling
+links, while still following parent directory links. Recursive directory loops
+are reported without stopping sibling comparisons. Patch rejects symlinks in
+inspected path components, including cwd ancestors, final targets, and patch-input
+paths. Patch also rejects hard-linked
 targets and actual auxiliary outputs when `nlink` reports more than one link.
 Unused headers and stripped prefixes are not inspected for authorization;
 lexically unsafe automatic headers are still rejected. Directory targets are never
 overwritten. Diff reads operands and exclusion files through retained handles,
-checking the inspected file identity and ancestors before reading content.
+checking the inspected file identity and resolved ancestor identities before reading content.
 Backends without retained reads or authoritative file identity fail closed; stdin
 remains supported. Patch mutation requires an adapter with atomic staging ancestry
 verification and retained no-symlink confinement. Each file is staged privately,
@@ -398,8 +412,8 @@ The GNU versions above are targets, not a full-coverage claim. Ed patches,
 binary patches, renames/copies, mode-only patches, permission changes,
 empty-directory patches, and symlink patches are unsupported. `diff -N` treats
 absent content as empty and cannot express creation/deletion of a zero-byte
-file. Bounded UTF-8 processing and the quadratic unmatched diff matrix do not
-support arbitrary binary or huge-data workloads; there is no native fallback.
+file. Patch's UTF-8 requirement and the quadratic unmatched diff matrix limit
+patch inputs and large line comparisons; there is no native fallback.
 
 The flag lists above describe the implemented interface, not all GNU flags.
 Version-control acquisition still requires a native external process and is

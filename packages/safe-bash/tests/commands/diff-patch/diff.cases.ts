@@ -96,15 +96,154 @@ test("missing paths require -N; both missing remains an error", async () => {
   assert.equal((await run("diff", ["-N", "missing", "also-missing"])).exitCode, 2);
 });
 
-test("symlinks including ancestors are rejected without dereferencing", async () => {
-  const fs = await filesystem({ target: "old", "dir/item": "new" });
+test("diff dereferences symlinks including ancestors", async () => {
+  const fs = await filesystem({ target: "old\n", "dir/item": "new\n" });
   await fs.symlink("target", "/work/link");
   await fs.symlink("dir", "/work/alias");
-  for (const path of ["link", "alias/item"]) {
+  for (const [path, expected] of [["link", ""], ["alias/item", "1c1\n< new\n---\n> old\n"]] as const) {
     const result = await run("diff", [path, "target"], { fs });
-    assert.equal(result.exitCode, 2);
-    assert.match(result.stderr, /symlink/u);
+    assert.equal(result.exitCode, expected ? 1 : 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
   }
+});
+
+for (const flags of [[], ["-q"], ["--brief"], ["-u"], ["-y"], ["-D", "FLAG"]]) {
+  test(`NUL bytes select binary reporting on either side: ${flags.join(" ")}`, async () => {
+    for (const swapped of [false, true]) {
+      const result = await run("diff", [...flags, "-L", "café", "a", "b"], {
+        files: { a: swapped ? "text\n" : "a\0b", b: swapped ? "a\0b" : "text\n" },
+      });
+      assert.equal(result.exitCode, 1, result.stderr);
+      assert.equal(result.stdout, `${flags.includes("-q") || flags.includes("--brief") ? "Files" : "Binary files"} café and b differ\n`);
+      assert.equal(result.stderr, "");
+    }
+  });
+}
+
+for (const flags of [[], ["-a"], ["-U0"], ["-n"], ["-e"]]) {
+  test(`non-UTF-8 changes preserve distinct raw bytes: ${flags.join(" ")}`, async () => {
+    const output: Uint8Array[] = [];
+    const result = await run("diff", [...flags, "a", "b"], {
+      files: { a: Buffer.from([0xff, 10, 0x80, 10]), b: Buffer.from([0xfe, 10, 0x80, 10]) },
+      stdout: { async write(chunk) { output.push(chunk.slice()); } },
+    });
+    const body = flags.includes("-U0") ? "--- a\n+++ b\n@@ -1 +1 @@\n-\xff\n+\xfe\n"
+      : flags.includes("-n") ? "d1 1\na1 1\n\xfe\n"
+      : flags.includes("-e") ? "1c\n\xfe\n.\n" : "1c1\n< \xff\n---\n> \xfe\n";
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(Buffer.concat(output), Buffer.from(body, "latin1"));
+  });
+}
+
+test("byte-text comparison leaves identical invalid lines unchanged and honors stdin and whitespace", async () => {
+  const files = { b: Buffer.from([98, 10, 0x80, 10]) };
+  const result = await run("diff", ["-", "b"], { files, input: Buffer.from([97, 10, 0x80, 10]) });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, "1c1\n< a\n---\n> b\n");
+  const same = await run("diff", ["-ws", "-", "b"], { files, input: Buffer.from([98, 32, 10, 0x80, 10]) });
+  assert.equal(same.exitCode, 0, same.stderr);
+  assert.equal(same.stdout, "Files - and b are identical\n");
+});
+
+test("recursive binary differences continue to byte-text and UTF-8 siblings", async () => {
+  const output: Uint8Array[] = [];
+  const result = await run("diff", ["-r", "left", "right"], {
+    files: { "left/a": "x\0", "right/a": "y\0", "left/b": Buffer.from([0xff, 10]), "right/b": Buffer.from([0xfe, 10]), "left/café": "café\n", "right/café": "雪\n" },
+    stdout: { async write(chunk) { output.push(chunk.slice()); } },
+  });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(Buffer.concat(output), Buffer.concat([
+    Buffer.from("Binary files left/a and right/a differ\ndiff -r left/b right/b\n1c1\n< \xff\n---\n> \xfe\n", "latin1"),
+    Buffer.from('diff -r "left/caf\\303\\251" "right/caf\\303\\251"\n1c1\n< café\n---\n> 雪\n'),
+  ]));
+});
+
+test("--no-dereference compares link targets, including dangling links, and file types", async () => {
+  const fs = await filesystem({ file: "same\n" });
+  await fs.symlink("missing", "/work/left");
+  await fs.symlink("missing", "/work/right");
+  const same = await run("diff", ["--no-dereference", "-s", "left", "right"], { fs });
+  assert.equal(same.exitCode, 0, same.stderr);
+  assert.equal(same.stdout, "Files left and right are identical\n");
+  await fs.symlink("file", "/work/other");
+  for (const flags of [[], ["-q"], ["-a"]]) {
+    const different = await run("diff", ["--no-dereference", ...flags, "left", "other"], { fs });
+    assert.equal(different.exitCode, 1, different.stderr);
+    assert.equal(different.stdout, "Symbolic links left and other differ\n");
+  }
+  const mixed = await run("diff", ["--no-dereference", "left", "file"], { fs });
+  assert.equal(mixed.exitCode, 1, mixed.stderr);
+  assert.equal(mixed.stdout, "File left is a symbolic link while file file is a regular file\n");
+});
+
+test("recursive diff follows directory links, and no-dereference still follows parent links", async () => {
+  const fs = await filesystem({ "old/item": "old\n", "new/item": "new\n" });
+  await fs.symlink("old", "/work/left");
+  await fs.symlink("new", "/work/right");
+  const recursive = await run("diff", ["-r", "left", "right"], { fs });
+  assert.equal(recursive.exitCode, 1, recursive.stderr);
+  assert.equal(recursive.stdout, "diff -r left/item right/item\n1c1\n< old\n---\n> new\n");
+  const parent = await run("diff", ["--no-dereference", "left/item", "right/item"], { fs });
+  assert.equal(parent.exitCode, 1, parent.stderr);
+  assert.equal(parent.stdout, "1c1\n< old\n---\n> new\n");
+});
+
+test("recursive directory links detect ancestry cycles without suppressing siblings", async () => {
+  const fs = await filesystem({ "left/z": "old\n", "right/z": "new\n" });
+  await fs.symlink(".", "/work/left/loop");
+  await fs.symlink(".", "/work/right/loop");
+  const result = await run("diff", ["-r", "left", "right"], { fs });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /left\/loop: recursive directory loop/u);
+  assert.equal(result.stdout, "diff -r left/z right/z\n1c1\n< old\n---\n> new\n");
+  const links = await run("diff", ["-rq", "--no-dereference", "left", "right"], { fs });
+  assert.equal(links.exitCode, 1, links.stderr);
+  assert.equal(links.stdout, "Files left/z and right/z differ\n");
+});
+
+test("dangling symlinks respect new-file modes and recursive comparisons continue on errors", async () => {
+  const fs = await filesystem({ "left/z": "old\n", "right/z": "new\n", b: "new\n" });
+  for (const path of ["a", "left/a", "right/a"]) await fs.symlink("missing", `/work/${path}`);
+  for (const flag of ["-N", "-P"]) {
+    const empty = await run("diff", [flag, "a", "b"], { fs });
+    assert.equal(empty.exitCode, 1, empty.stderr);
+    assert.equal(empty.stdout, "0a1\n> new\n");
+    const link = await run("diff", ["--no-dereference", flag, "missing", "a"], { fs });
+    assert.equal(link.exitCode, 2);
+    assert.equal(link.stdout, "");
+  }
+  const recursive = await run("diff", ["-r", "left", "right"], { fs });
+  assert.equal(recursive.exitCode, 2);
+  assert.match(recursive.stderr, /left\/a/u);
+  assert.match(recursive.stderr, /right\/a/u);
+  assert.equal(recursive.stdout, "diff -r left/z right/z\n1c1\n< old\n---\n> new\n");
+});
+
+test("no-dereference reports unmatched directory links and uses actual link names", async () => {
+  const fs = await filesystem({ "left/z": "same\n", "right/z": "same\n", empty: "" });
+  await fs.symlink("missing", "/work/right/link");
+  await fs.symlink("other", "/work/other");
+  const only = await run("diff", ["-r", "--no-dereference", "left", "right"], { fs });
+  assert.equal(only.exitCode, 1, only.stderr);
+  assert.equal(only.stdout, "Only in right: link\n");
+  const labels = await run("diff", ["--no-dereference", "-L", "old label", "-L", "new label", "right/link", "other"], { fs });
+  assert.equal(labels.exitCode, 1, labels.stderr);
+  assert.equal(labels.stdout, "Symbolic links right/link and other differ\n");
+  const empty = await run("diff", ["--no-dereference", "right/link", "empty"], { fs });
+  assert.equal(empty.exitCode, 1, empty.stderr);
+  assert.equal(empty.stdout, "File right/link is a symbolic link while file empty is a regular empty file\n");
+});
+
+for (const flag of ["-N", "-P"]) test(`recursive ${flag} diagnoses an existing dangling entry`, async () => {
+  const fs = await filesystem({ "left/z": "same\n", "right/z": "same\n", "right/a": "new\n" });
+  await fs.symlink("missing", "/work/left/a");
+  const result = await run("diff", ["-r", flag, "left", "right"], { fs });
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /left\/a/u);
 });
 
 test("bounded seeded repeated-line diffs roundtrip in both directions", async () => {

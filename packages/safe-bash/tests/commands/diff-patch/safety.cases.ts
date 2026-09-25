@@ -70,20 +70,20 @@ test("identical binary comparisons preserve raw byte identity and input limits",
   assert.equal(same.stdout, "");
   assert.equal(same.stderr, "");
   const distinct = await run("diff", ["old", "new"], { files: { old: bytes, new: Buffer.from([0x61, 0, 0xfe]) } });
-  assert.equal(distinct.exitCode, 2);
-  assert.equal(distinct.stdout, "");
-  assert.match(distinct.stderr, /binary input/u);
+  assert.equal(distinct.exitCode, 1);
+  assert.equal(distinct.stdout, "Binary files old and new differ\n");
+  assert.equal(distinct.stderr, "");
   const limited = await run("diff", ["old", "new"], { files: { old: bytes, new: bytes }, options: { maxInputBytes: 5 } });
   assert.equal(limited.exitCode, 2);
   assert.equal(limited.stdout, "");
 });
 
 for (const binary of [Buffer.from([0, 65]), Buffer.from([0xff, 10]), Buffer.from([0xc3, 10])]) {
-  test(`binary rejection preserves bytes ${binary.toString("hex")}`, async () => {
+  test(`diff comparison and patch rejection preserve bytes ${binary.toString("hex")}`, async () => {
     const diff = await run("diff", ["old", "new"], { files: { old: binary, new: "text\n" } });
-    assert.equal(diff.exitCode, 2);
-    assert.match(diff.stderr, /binary input/u);
-    assert.equal(diff.stdout, "");
+    assert.equal(diff.exitCode, 1);
+    assert.equal(diff.stderr, "");
+    assert.deepEqual(Buffer.from(await diff.fs.readFile("/work/old")), binary);
     const patch = await run("patch", [], { files: { target: binary }, input: replacement });
     assert.equal(patch.exitCode, 2);
     assert.deepEqual(Buffer.from(await patch.fs.readFile("/work/target")), binary);

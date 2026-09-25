@@ -67,3 +67,25 @@ test("diff fails closed without retained read capability", async () => {
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /requires identity-checked retained reads/u);
 });
+
+test("directory loop detection also works without provider inode identities", async () => {
+  const fs = await filesystem();
+  await fs.mkdir("/work/left");
+  await fs.mkdir("/work/right");
+  await fs.symlink(".", "/work/left/loop");
+  await fs.symlink(".", "/work/right/loop");
+  const wrapped = new Proxy(fs, { get(target, key) {
+    if (key === "stat" || key === "lstat") return async (...args: Parameters<FileSystem["stat"]>) => {
+      const stat = { ...await target[key](...args) };
+      delete stat.identityScope;
+      delete stat.dev;
+      delete stat.ino;
+      return stat;
+    };
+    const value = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await run("diff", ["-r", "left", "right"], { fs: wrapped, options: { maxFiles: 8 } });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /left\/loop: recursive directory loop/u);
+});

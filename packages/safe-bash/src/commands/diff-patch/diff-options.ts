@@ -12,6 +12,9 @@ export interface DiffFlags extends DisplayOptions {
   unidirectionalNewFile: boolean;
   stripTrailingCr: boolean;
   ignoreFileNameCase: boolean;
+  noDereference?: boolean;
+  fromFile?: string;
+  toFile?: string;
   labels: string[];
   files: string[];
   optionArgs: string[];
@@ -24,8 +27,8 @@ export interface DiffFlags extends DisplayOptions {
   reportSame: boolean;
   text: boolean;
   paginate: boolean;
-  excludes: string[];
-  excludeFiles: string[];
+  excludes: { pattern: string; ignoreCase: boolean }[];
+  excludeFiles: { path: string; ignoreCase: boolean }[];
   startingFile?: string;
 }
 
@@ -38,8 +41,6 @@ function contextLength(value: string): number {
 
 export function flags(args: readonly string[]): DiffFlags {
   const result: DiffFlags = { format: "normal", whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, unidirectionalNewFile: false, stripTrailingCr: false, ignoreFileNameCase: false, labels: [], files: [], optionArgs: [], ignoreCase: false, ignoreBlank: false, ignoreTrailing: false, ignoreTabs: false, ignorePatterns: [], functions: [], reportSame: false, text: false, paginate: false, excludes: [], excludeFiles: [], width: 130, expand: false, initialTab: false, leftColumn: false, suppressCommon: false, symbol: "" };
-  let fromFile: string | undefined;
-  let toFile: string | undefined;
   let selectedFormat: DiffFlags["format"] | undefined;
   const selectFormat = (format: DiffFlags["format"]) => {
     if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
@@ -71,7 +72,7 @@ export function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--new-file") result.newFile = true;
     else if (arg === "--unidirectional-new-file") result.unidirectionalNewFile = true;
     else if (arg === "--strip-trailing-cr") result.stripTrailingCr = true;
-    else if (arg === "--no-dereference") { /* Symlinks are never dereferenced. */ }
+    else if (arg === "--no-dereference") result.noDereference = true;
     else if (arg === "--ignore-file-name-case") result.ignoreFileNameCase = true;
     else if (arg === "--no-ignore-file-name-case") result.ignoreFileNameCase = false;
     else if (arg === "--ignore-case") result.ignoreCase = true;
@@ -98,10 +99,10 @@ export function flags(args: readonly string[]): DiffFlags {
       else if (name === "--ifdef") { selectFormat("ifdef"); result.symbol = parameter; }
       else if (name === "--ignore-matching-lines") result.ignorePatterns.push(new Pattern(parameter, false));
       else if (name === "--show-function-line") result.functions.push(new Pattern(parameter, false));
-      else if (name === "--exclude") result.excludes.push(parameter);
-      else if (name === "--exclude-from") result.excludeFiles.push(parameter);
-      else if (name === "--from-file") fromFile = parameter;
-      else if (name === "--to-file") toFile = parameter;
+      else if (name === "--exclude") result.excludes.push({ pattern: parameter, ignoreCase: result.ignoreFileNameCase });
+      else if (name === "--exclude-from") result.excludeFiles.push({ path: parameter, ignoreCase: result.ignoreFileNameCase });
+      else if (name === "--from-file") result.fromFile = parameter;
+      else if (name === "--to-file") result.toFile = parameter;
       else result.startingFile = parameter;
     }
     else if (arg === "--ignore-all-space") result.whitespace = "all";
@@ -153,8 +154,8 @@ export function flags(args: readonly string[]): DiffFlags {
           else if (flag === "D") { selectFormat("ifdef"); result.symbol = parameter; }
           else if (flag === "I") result.ignorePatterns.push(new Pattern(parameter, false));
           else if (flag === "F") result.functions.push(new Pattern(parameter, false));
-          else if (flag === "x") result.excludes.push(parameter);
-          else if (flag === "X") result.excludeFiles.push(parameter);
+          else if (flag === "x") result.excludes.push({ pattern: parameter, ignoreCase: result.ignoreFileNameCase });
+          else if (flag === "X") result.excludeFiles.push({ path: parameter, ignoreCase: result.ignoreFileNameCase });
           else result.startingFile = parameter;
           break;
         } else throw new ToolError(`unsupported option: -${flag}`);
@@ -165,13 +166,12 @@ export function flags(args: readonly string[]): DiffFlags {
   if (legacyContext >= 0 && (result.format === "unified" || result.format === "context")) {
     result.context = explicitContext ? Math.max(result.context, legacyContext) : legacyContext;
   }
-  if (fromFile !== undefined && toFile !== undefined) throw new ToolError("--from-file and --to-file may not both be specified");
-  if (fromFile !== undefined && result.files.length === 1) result.files.unshift(fromFile);
-  if (toFile !== undefined && result.files.length === 1) result.files.push(toFile);
-  if (result.files.length !== 2) throw new ToolError("expected two files or directories");
+  if (result.fromFile !== undefined && result.toFile !== undefined) throw new ToolError("--from-file and --to-file may not both be specified");
+  const multiple = result.fromFile !== undefined || result.toFile !== undefined;
+  if (multiple ? result.files.length === 0 : result.files.length !== 2) throw new ToolError(multiple ? "expected at least one file or directory" : "expected two files or directories");
   if (selectedFormat === undefined && result.functions.length) { result.format = "context"; result.context = Math.max(3, result.context); }
   if (result.labels.length > 2) throw new ToolError("at most two labels are supported");
-  for (const name of result.files) {
+  for (const name of [...result.files, ...[result.fromFile, result.toFile].filter(name => name !== undefined)]) {
     if (!name || /[\0\r\n\t]/u.test(name)) throw new ToolError("empty names or control characters in filenames/labels are unsupported");
   }
   for (const label of result.labels) {

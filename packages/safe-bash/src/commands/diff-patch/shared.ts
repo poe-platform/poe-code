@@ -116,10 +116,6 @@ export class Budget {
   async readDiff(path: string, encoding: "utf8" | "latin1" = "utf8"): Promise<string> {
     const { fs, signal } = this.context;
     const expected = this.inspected.get(path);
-    const identity = (actual: FileStat, wanted: FileStat): boolean =>
-      wanted.identityScope !== undefined && wanted.dev !== undefined && wanted.ino !== undefined
-      && actual.identityScope === wanted.identityScope && actual.dev === wanted.dev && actual.ino === wanted.ino
-      && actual.type === wanted.type;
     const verifyAncestors = async () => {
       const parts = path.split("/").filter(Boolean);
       let current = "";
@@ -127,18 +123,18 @@ export class Budget {
         if (index >= 0) current += `/${parts[index]!}`;
         const ancestor = current || "/";
         const wanted = this.inspected.get(ancestor);
-        const actual = await fs.lstat(ancestor, { signal });
-        if (!wanted || !identity(actual, wanted)) throw new ToolError("diff input ancestry changed");
+        const actual = await fs.stat(ancestor, { signal });
+        if (!wanted || !sameIdentity(actual, wanted)) throw new ToolError("diff input ancestry changed");
       }
     };
     const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
-    if (!expected || !identity(expected, expected) || capabilities.retainedRead !== true || !fs.openReadFile)
+    if (!expected || !sameIdentity(expected, expected) || capabilities.retainedRead !== true || !fs.openReadFile)
       throw new ToolError("diff input requires identity-checked retained reads");
     await verifyAncestors();
     const handle = await fs.openReadFile(path, { signal });
     try {
       const stat = await handle.stat({ signal });
-      if (!identity(stat, expected) || stat.size !== expected.size || stat.revision !== expected.revision)
+      if (!sameIdentity(stat, expected) || stat.size !== expected.size || stat.revision !== expected.revision)
         throw new ToolError("diff input changed while opening");
       await verifyAncestors();
       const remaining = this.limits.maxInputBytes - this.inputBytes;
@@ -155,7 +151,7 @@ export class Budget {
         position += chunk.length;
       }
       const after = await handle.stat({ signal });
-      if (!identity(after, stat) || after.size !== stat.size || after.revision !== stat.revision)
+      if (!sameIdentity(after, stat) || after.size !== stat.size || after.revision !== stat.revision)
         throw new ToolError("diff input changed while reading");
       const bytes = Buffer.concat(chunks, position);
       this.inputBytes += position;
@@ -171,8 +167,8 @@ export class Budget {
     }
   }
 
-  output(text: string): void {
-    this.outputBytes += Buffer.byteLength(text);
+  output(text: string, encoding: "utf8" | "latin1" = "utf8"): void {
+    this.outputBytes += Buffer.byteLength(text, encoding);
     if (this.outputBytes > this.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
   }
 
@@ -194,7 +190,13 @@ export async function host<Result>(context: CommandContext, operation: () => Pro
   });
 }
 
-export async function inspect(budget: Budget, path: string): Promise<FileStat | undefined> {
+export function sameIdentity(actual: FileStat, wanted: FileStat): boolean {
+  return wanted.identityScope !== undefined && wanted.dev !== undefined && wanted.ino !== undefined
+    && actual.identityScope === wanted.identityScope && actual.dev === wanted.dev && actual.ino === wanted.ino
+    && actual.type === wanted.type;
+}
+
+export async function inspect(budget: Budget, path: string, symlinks: "reject" | "follow" | "compare" = "reject"): Promise<FileStat | undefined> {
   const context = budget.context;
   const absolute = pathOf(context, path);
   const parts = absolute.split("/").filter(Boolean);
@@ -206,8 +208,11 @@ export async function inspect(budget: Budget, path: string): Promise<FileStat | 
     let stat: FileStat;
     try { stat = await host(context, () => context.fs.lstat(current || "/", { signal: context.signal })); }
     catch (error) { if (isFsError(error, "ENOENT")) return undefined; throw error; }
+    if (stat.type === "symlink") {
+      if (symlinks === "reject") throw new ToolError(`symlink paths are unsupported: ${current}`);
+      if (symlinks === "follow" || index < parts.length - 1) stat = await host(context, () => context.fs.stat(current || "/", { signal: context.signal }));
+    }
     budget.inspected.set(current || "/", stat);
-    if (stat.type === "symlink") throw new ToolError(`symlink paths are unsupported: ${current}`);
     if (index < parts.length - 1 && stat.type !== "directory") throw new ToolError(`not a directory: ${current}`);
     if (index === parts.length - 1) return stat;
   }

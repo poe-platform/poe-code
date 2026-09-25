@@ -163,3 +163,93 @@ test("diff -P (--unidirectional-new-file), --strip-trailing-cr, and identical no
   assert.equal(identicalNonUtf8.exitCode, 0, identicalNonUtf8.stderr);
   assert.equal(identicalNonUtf8.stdout, "Files a and b are identical\n");
 });
+
+for (const option of ["-P", "--unidirectional-new-file"]) test(`${option} adds only missing left files recursively`, async () => {
+  const result = await run("diff", ["-r", option, "left", "right"], {
+    files: { "left/only": "old\n", "right/sub/added": "new\n" },
+  });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, `Only in left: only\ndiff -r ${option} left/sub/added right/sub/added\n0a1\n> new\n`);
+});
+
+test("strip-trailing-cr strips CRLF but preserves a CR at EOF", async () => {
+  const result = await run("diff", ["--strip-trailing-cr", "left", "right"], { files: { left: "hello\r", right: "hello" } });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, "1c1\n< hello\r\n\\ No newline at end of file\n---\n> hello\n\\ No newline at end of file\n");
+});
+
+test("filename case folding pairs real spellings and preserves colliding names", async () => {
+  const files = { "left/Foo": "old\n", "left/foo": "same\n", "right/FOO": "new\n", "right/foo": "same\n" };
+  const result = await run("diff", ["--ignore-file-name-case", "left", "right"], { files });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, "diff --ignore-file-name-case left/Foo right/FOO\n1c1\n< old\n---\n> new\n");
+  const exact = await run("diff", ["--ignore-file-name-case", "--no-ignore-file-name-case", "left", "right"], { files });
+  assert.equal(exact.exitCode, 1, exact.stderr);
+  assert.equal(exact.stdout, "Only in right: FOO\nOnly in left: Foo\n");
+});
+
+for (const option of ["--from-file", "--to-file"]) for (const attached of [false, true]) for (const count of [1, 2, 3]) {
+  test(`${option} compares every operand in order: attached=${attached}, count=${count}`, async () => {
+    const args = [...(attached ? [`${option}=base`] : [option, "base"]), ...["a", "b", "c"].slice(0, count)];
+    const result = await run("diff", args, { files: { base: "base\n", a: "A\n", b: "B\n", c: "C\n" } });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, ["A", "B", "C"].slice(0, count).map(value => option === "--from-file"
+      ? `1c1\n< base\n---\n> ${value}\n` : `1c1\n< ${value}\n---\n> base\n`).join(""));
+  });
+}
+
+test("filename folding keeps exact matches first and does not reuse their paths", async () => {
+  for (const reverse of [false, true]) {
+    const result = await run("diff", ["--ignore-file-name-case", ...(reverse ? ["right", "left"] : ["left", "right"])], {
+      files: { "left/foo": "same\n", "right/Foo": "extra\n", "right/foo": "same\n" },
+    });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.stdout, "Only in right: Foo\n");
+  }
+});
+
+test("folded comparisons emit paired files in left spelling order before unmatched entries", async () => {
+  const result = await run("diff", ["-q", "--ignore-file-name-case", "left", "right"], {
+    files: { "left/FOO": "old\n", "left/foo": "old\n", "right/Foo": "new\n", "right/foo": "new\n" },
+  });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, "Files left/FOO and right/Foo differ\nFiles left/foo and right/foo differ\n");
+});
+
+for (const fromFile of [false, true]) test(`exclusions capture filename case mode when parsed: file=${fromFile}`, async () => {
+  const exclusion = fromFile ? ["-X", "patterns"] : ["-x", "foo"];
+  const files = { patterns: "foo\n", "left/Foo": "old\n", "right/Foo": "new\n" };
+  const folded = await run("diff", ["--ignore-file-name-case", ...exclusion, "--no-ignore-file-name-case", "left", "right"], { files });
+  assert.equal(folded.exitCode, 0, folded.stderr);
+  assert.equal(folded.stdout, "");
+  const exact = await run("diff", [...exclusion, "--ignore-file-name-case", "left", "right"], { files });
+  assert.equal(exact.exitCode, 1, exact.stderr);
+  assert.match(exact.stdout, /< old\n---\n> new\n/u);
+});
+
+for (const option of ["--from-file", "--to-file"]) test(`${option} continues across missing operands`, async () => {
+  const result = await run("diff", [option, "base", "a", "missing", "b"], { files: { base: "base\n", a: "A\n", b: "B\n" } });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /missing/u);
+  assert.equal(result.stdout, ["A", "B"].map(value => option === "--from-file"
+    ? `1c1\n< base\n---\n> ${value}\n` : `1c1\n< ${value}\n---\n> base\n`).join(""));
+});
+
+for (const [pattern, expectedNames] of [["[A-Z]", ["É", "é"]], ["[[:upper:]]", ["a", "É", "é"]], ["É", ["A", "a", "é"]]] as const) {
+  test(`case-insensitive exclusions preserve C-locale classes: ${pattern}`, async () => {
+    const files = Object.fromEntries(["A", "a", "É", "é"].flatMap(name => [[`left/${name}`, "old\n"], [`right/${name}`, "new\n"]]));
+    const result = await run("diff", ["-q", "--ignore-file-name-case", "-x", pattern, "left", "right"], { files });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.stdout, expectedNames.map(name => `Files left/${name} and right/${name} differ\n`).join(""));
+  });
+}
+
+for (const [pattern, retained] of [["[A-]", ["_", "Z", "z"]], ["[a-]", ["_", "Z", "z"]], ["[A-a]", ["-", "_", "Z", "z"]], ["[Z-a]", ["-", "_", "A", "a", "Z", "z"]]] as const) {
+  test(`folded glob preserves range endpoints and literal hyphens: ${pattern}`, async () => {
+    const files = Object.fromEntries(["-", "_", "A", "a", "Z", "z"].flatMap(name => [[`left/${name}`, "old\n"], [`right/${name}`, "new\n"]]));
+    const result = await run("diff", ["-q", "--ignore-file-name-case", "-x", pattern, "left", "right"], { files });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.stdout, retained.map(name => `Files left/${name} and right/${name} differ\n`).join(""));
+  });
+}

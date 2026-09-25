@@ -30,9 +30,23 @@ test("ISO year digit presentation does not change signed year, week or calendar 
     assert.equal(result.exitCode, 0); assert.equal(result.stdout, expected + "\n");
   }
 });
-test("native negative-year witnesses do not expand accepted calendar grammar", async () => {
+test("negative-year epochs match the preserved native calendar and ISO year witnesses", async () => {
   for (const row of fixture.rows.filter(row => row.category === "native-negative-year-outside-product-domain")) {
-    const result = await run("date", row.args);
-    assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.notEqual(result.stderr, "");
+    const result = await run("date", row.args, {}, { env: { TZ: row.zone } });
+    assert.equal(row.gnu.status, 0);
+    assert.deepEqual({ status: result.exitCode, stdoutHex: result.stdoutHex, stderrHex: Buffer.from(result.stderr).toString("hex") }, row.gnu);
+  }
+});
+
+test("negative calendar years use absolute two-digit years in date presentations", async () => {
+  for (const [input, expected] of [
+    ["@-62167219201", "01|1| 1|12/31/01|12/31/01\n"],
+    ["@-62198755200", "01|1| 1|01/01/01|01/01/01\n"],
+    ["@-63113904000", "30|30|30|01/01/30|01/01/30\n"],
+  ] as const) {
+    const result = await run("date", ["-d", input, "+%y|%-y|%_y|%D|%x"], {}, { env: { TZ: "UTC" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
   }
 });

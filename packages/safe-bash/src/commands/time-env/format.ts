@@ -68,8 +68,8 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
       case "c": value = `${weekdayNames[weekday]!.slice(0, 3)} ${monthNames[fields.month - 1]!.slice(0, 3)} ${number(fields.day, 2, " ")} ${time} ${number(fields.year, 4)}`; break;
       case "C": value = String(Math.floor(fields.year / 100)); defaultWidth = 2; break;
       case "d": case "e": value = String(fields.day); defaultWidth = 2; if (code === "e") defaultPadding = " "; break;
-      case "D": value = `${number(fields.month)}/${number(fields.day)}/${number(fields.year % 100, 2, padding ?? "0")}`; break;
-      case "x": value = `${number(fields.month)}/${number(fields.day)}/${number(fields.year % 100)}`; break;
+      case "D": value = `${number(fields.month)}/${number(fields.day)}/${number(Math.abs(fields.year % 100), 2, padding ?? "0")}`; break;
+      case "x": value = `${number(fields.month)}/${number(fields.day)}/${number(Math.abs(fields.year % 100))}`; break;
       case "F": {
         const yearWidth = width === undefined && padding === undefined ? 4 : Math.max(0, (width ?? 0) - 6);
         const year = padding === "" ? String(fields.year) : number(fields.year, yearWidth, padding ?? "0");
@@ -109,7 +109,7 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
       case "V": value = String(isoWeek); defaultWidth = 2; break;
       case "w": value = String(weekday); defaultWidth = 1; break;
       case "W": value = String(Math.floor((ordinal - 1 + 7 - (weekday + 6) % 7) / 7)); defaultWidth = 2; break;
-      case "y": value = String(fields.year % 100); defaultWidth = 2; break;
+      case "y": value = String(Math.abs(fields.year % 100)); defaultWidth = 2; break;
       case "Y": value = String(fields.year); defaultWidth = 4; break;
       case "z": { const offset = offsetText(fields.offset, colons); value = offset.value; defaultWidth = offset.width; break; }
       case "Z": value = fields.zone; break;

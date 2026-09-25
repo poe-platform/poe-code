@@ -3,11 +3,11 @@ import { inheritYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { pathOf } from "../internal.js";
 import { acceptsMimeType, sniffMimeType } from "./mime.js";
-import type { LlmCommandsOptions, LlmModel, LlmProvider, LlmRequest } from "./types.js";
+import type { LlmCommandsOptions, LlmRequest } from "./types.js";
+import { createLlmService, type LlmService } from "./service.js";
 
 const maxBytes = 64 * 1024 * 1024;
 
-interface ModelEntry { provider: LlmProvider; model: LlmModel }
 interface Arguments {
   model?: string;
   system?: string;
@@ -45,28 +45,6 @@ async function parse(length: number, text: (index: number) => string, step: () =
   return parsed;
 }
 
-function modelsFor(providers: readonly LlmProvider[]): { models: ModelEntry[]; lookup: Map<string, ModelEntry> } {
-  const models: ModelEntry[] = [], lookup = new Map<string, ModelEntry>();
-  for (const provider of providers) {
-    if (!provider.name || typeof provider.complete !== "function") throw new TypeError("Providers require a name and complete function");
-    for (const declared of provider.models) {
-      if (!declared.id) throw new TypeError("Models require a nonempty id");
-      const model: LlmModel = Object.freeze({ ...declared,
-        ...(declared.aliases ? { aliases: Object.freeze([...declared.aliases]) } : {}),
-        ...(declared.attachmentTypes ? { attachmentTypes: Object.freeze([...declared.attachmentTypes]) } : {}),
-      });
-      const entry = { provider, model };
-      for (const name of new Set([model.id, `${provider.name}/${model.id}`, ...model.aliases ?? []])) {
-        if (!name) throw new TypeError("Model aliases must not be empty");
-        if (lookup.has(name)) throw new Error(`Duplicate model id or alias: ${name}`);
-        lookup.set(name, entry);
-      }
-      models.push(entry);
-    }
-  }
-  return { models, lookup };
-}
-
 async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signal: AbortSignal): Promise<Value> {
   signal.throwIfAborted();
   return new Promise<Value>((resolve, reject) => {
@@ -79,7 +57,7 @@ async function interrupted<Value>(start: () => Value | PromiseLike<Value>, signa
   });
 }
 
-async function execute(context: CommandContext, lookup: ReadonlyMap<string, ModelEntry>, models: readonly ModelEntry[], defaultModel: string | undefined) {
+async function execute(context: CommandContext, service: LlmService) {
   context.signal.throwIfAborted();
   const controller = new AbortController();
   const operation = createOutputOperation(context, context.stdout);
@@ -153,16 +131,13 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
     }
     const args = await parse(argumentsValue.args.length, argumentText, step);
     if (argumentsValue.args[0] === "models" && args.prompt === "models" && !args.attachments.length) {
-      for (const { provider, model } of models) {
+      for (const { provider, model } of service.models) {
         await step();
         await emitText(`${provider.name}/${model.id}	aliases: ${model.aliases?.join(", ") || "-"}	attachments: ${model.attachmentTypes?.join(", ") || "-"}	output: ${model.outputType ?? "text/plain"}\n`);
       }
       return { exitCode: 0 };
     }
-    const selected = args.model ?? defaultModel;
-    if (selected === undefined) throw new Error("No model selected; use --model or configure defaultModel");
-    const entry = lookup.get(selected);
-    if (!entry) throw new Error(`Unknown model: ${selected}`);
+    const entry = service.resolve(args.model);
     const fragments: string[] = [];
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
@@ -200,7 +175,7 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
       ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal,
     };
     signal.throwIfAborted();
-    iterator = entry.provider.complete(request)[Symbol.asyncIterator]();
+    iterator = service.complete(request)[Symbol.asyncIterator]();
     const text = (entry.model.outputType ?? "text/plain").toLowerCase().startsWith("text/");
     let pendingSurrogate = "";
     while (true) {
@@ -237,9 +212,8 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
 }
 
 export function createLlmCommands(options: LlmCommandsOptions): readonly CommandDefinition[] {
-  const { models, lookup } = modelsFor(options.providers);
-  const defaultModel = options.defaultModel;
-  return [{ name: "llm", description: "Query injected language and media models", execute: context => execute(context, lookup, models, defaultModel) }];
+  const service = createLlmService(options);
+  return [{ name: "llm", description: "Query injected language and media models", execute: context => execute(context, service) }];
 }
 
 export function llmCommands(options: LlmCommandsOptions): VirtualShellPlugin {

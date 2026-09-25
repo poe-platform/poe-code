@@ -1,9 +1,13 @@
-import { Shell, MemoryFileSystem, agentCommands, llmCommands as rootPlugin, createOpenAiProvider as rootOpenAi, createElevenLabsProvider as rootElevenLabs } from "@poe-platform/safe-bash";
-import { llmCommands } from "@poe-platform/safe-bash/commands/llm";
+import { Shell, MemoryFileSystem, agentCommands, createLlmService as rootService, llmCommands as rootPlugin, createOpenAiProvider as rootOpenAi, createElevenLabsProvider as rootElevenLabs } from "@poe-platform/safe-bash";
+import { llmCommands, createLlmService } from "@poe-platform/safe-bash/commands/llm";
 import { createOpenAiProvider, createElevenLabsProvider } from "@poe-platform/safe-bash/commands/llm/providers";
 
 export async function verifyLlmCommands() {
-  if (rootPlugin !== llmCommands || rootOpenAi !== createOpenAiProvider || rootElevenLabs !== createElevenLabsProvider) throw new Error("LLM root/subpath identity mismatch");
+  const service = createLlmService({ defaultModel: "echo", providers: [{ name: "test", models: [{ id: "echo" }], async *complete(request) { yield request.prompt; } }] });
+  const chunks = [];
+  for await (const chunk of service.complete({ prompt: "structured", attachments: [], options: {}, signal: new AbortController().signal })) chunks.push(chunk);
+  if (chunks.length !== 1 || chunks[0] !== "structured") throw new Error("LLM structured service adds shell formatting");
+  if (rootService !== createLlmService || rootPlugin !== llmCommands || rootOpenAi !== createOpenAiProvider || rootElevenLabs !== createElevenLabsProvider) throw new Error("LLM root/subpath identity mismatch");
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(llmCommands({
     defaultModel: "text", providers: [
       { name: "first", models: [{ id: "text" }], async *complete(request) { yield request.prompt; } },

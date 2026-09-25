@@ -22,7 +22,20 @@ safe-bash package-root exports. The distributable package name is
 | `replace` | Optional boolean, default `false`; replace an already registered `llm` command, not model conflicts |
 
 The command entry exports `LlmCommandsOptions`, `LlmProvider`, `LlmModel`, and
-`LlmRequest`. Reference factories `createOpenAiProvider` and
+`LlmRequest`. `createLlmService({ providers, defaultModel })` exposes the same
+model registry and provider dispatch to JavaScript callers through `models`,
+`resolve(model?)` and `complete(request)`. Requests contain prompt, optional
+model/system, attachments, string-valued provider options and an abort signal.
+The service validates model selection and attachment support; providers validate
+and translate their own options. Response chunks have no shell newline or terminal
+formatting. `complete()` returns the provider's iterable: direct callers own its
+iteration, closure, cancellation races, output-type checks and resource budgets.
+Providers receive the supplied abort signal. The shell command supplies those
+iteration policies; this initial service does not yet supply the Python bridge's
+stream lifecycle contract.
+This service currently supports single requests; conversations,
+embeddings and the remaining reference CLI workflows are not yet implemented.
+Reference factories `createOpenAiProvider` and
 `createElevenLabsProvider`, their `OpenAiModel`/`ElevenLabsModel` and
 `OpenAiProviderOptions`/`ElevenLabsProviderOptions` types, and
 `LlmProviderLimits` are also available through `commands/llm/providers`.

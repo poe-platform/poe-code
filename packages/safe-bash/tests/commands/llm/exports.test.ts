@@ -6,7 +6,7 @@ import * as entry from "../../../src/index.js";
 
 test("llm is an explicit portable capability exposed at the root and command subpath", () => {
   const manifest = createRequire(import.meta.url)("../../../package.json") as { exports: Record<string, unknown> };
-  for (const name of ["createLlmCommands", "llmCommands", "createOpenAiProvider", "createElevenLabsProvider"]) {
+  for (const name of ["createLlmService", "createLlmCommands", "llmCommands", "createOpenAiProvider", "createElevenLabsProvider"]) {
     assert.equal(typeof Reflect.get(core, name), "function", name);
   }
   assert.equal(core.createAgentCommands().some(command => command.name === "llm"), false);

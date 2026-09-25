@@ -2,7 +2,41 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
-import { createLlmCommands, llmCommands, type LlmRequest, type LlmProvider } from "../../../src/commands/llm/index.js";
+import { createLlmCommands, createLlmService, llmCommands, type LlmRequest, type LlmProvider } from "../../../src/commands/llm/index.js";
+
+test("structured LLM service resolves aliases and preserves provider options without shell formatting", async () => {
+  const requests: LlmRequest[] = [];
+  const service = createLlmService({ defaultModel: "short", providers: [{ name: "fake", models: [{ id: "text", aliases: ["short"] }], async *complete(request) {
+    requests.push(request);
+    yield "answer";
+  } }] });
+  const signal = new AbortController().signal;
+  const options = { temperature: "0.5" };
+  const chunks = [];
+  for await (const chunk of service.complete({ prompt: "hello", attachments: [], options, signal })) chunks.push(chunk);
+  assert.deepEqual(chunks, ["answer"]);
+  assert.equal(requests[0]!.model, "text");
+  assert.equal(requests[0]!.signal, signal);
+  assert.deepEqual(requests[0]!.options, options);
+  assert.equal(service.resolve("fake/text").model.id, "text");
+  assert.equal(service.models.length, 1);
+  await assert.rejects(async () => {
+    for await (const chunk of service.complete({ model: "missing", prompt: "", attachments: [], options: {}, signal })) assert.fail(`Unexpected response: ${String(chunk)}`);
+  }, /Unknown model: missing/u);
+  assert.equal(requests.length, 1);
+});
+
+test("structured LLM service checks cancellation and attachments before admitting provider work", async () => {
+  let calls = 0;
+  const service = createLlmService({ defaultModel: "text", providers: [{ name: "fake", models: [{ id: "text" }], async *complete() { calls++; yield "unexpected"; } }] });
+  const request = { prompt: "", options: {}, attachments: [{ mimeType: "image/png", bytes: new Uint8Array([1]) }], signal: new AbortController().signal };
+  await assert.rejects(async () => { for await (const chunk of service.complete(request)) assert.fail(`Unexpected response: ${String(chunk)}`); }, /does not accept image\/png/u);
+  const controller = new AbortController();
+  const reason = new Error("cancelled");
+  controller.abort(reason);
+  await assert.rejects(async () => { for await (const chunk of service.complete({ ...request, attachments: [], signal: controller.signal })) assert.fail(`Unexpected response: ${String(chunk)}`); }, error => error === reason);
+  assert.equal(calls, 0);
+});
 
 for (const limit of [0, 5, 6]) {
   test(`llm enforces the existing combined input allowance ${limit}`, async () => {

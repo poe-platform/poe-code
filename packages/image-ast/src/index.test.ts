@@ -2916,4 +2916,20 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const row7 = Array.from(out15.slice(7 * w + 5, 7 * w + 10));
     expect(row7).toEqual([9, 18, 23, 18, 9]);
   });
+
+  it("matches sharp StatsWorker::Execute on stats().sharpness (laplacian scale=9 + vips_deviate) and stats().entropy (#1142)", async () => {
+    const w = 63, h = 47, ch = 3;
+    const buf = Buffer.alloc(w * h * ch);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * ch;
+        buf[idx] = (x * 4 + y) & 255;
+        buf[idx + 1] = (y * 5 + x * 2) & 255;
+        buf[idx + 2] = ((x ^ y) * 3) & 255;
+      }
+    }
+    const st = await sharp(buf, { raw: { width: w, height: h, channels: ch } }).stats();
+    expect(Math.abs(st.entropy - 7.686896215425804)).toBeLessThan(1e-6);
+    expect(Math.abs(st.sharpness - 4.765222009223374)).toBeLessThan(1e-5);
+  });
 });

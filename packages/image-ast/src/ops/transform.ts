@@ -2105,6 +2105,7 @@ export function computeImageStats(img: RgbaImage): ImageStats {
 
   let isOpaque = true;
   const hist = new Uint32Array(256);
+  const bw = new Uint8Array(totalPixels);
   const colorBins = new Uint32Array(4096);
   const binSumR = new Float64Array(4096);
   const binSumG = new Float64Array(4096);
@@ -2117,7 +2118,8 @@ export function computeImageStats(img: RgbaImage): ImageStats {
     const b = data[idx + 2]!;
     const a = data[idx + 3]!;
     if (a < 255) isOpaque = false;
-    const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    const luma = img.channels <= 2 || img.space === "b-w" ? r : srgbToBwByte(r, g, b);
+    bw[i] = luma;
     hist[luma]!++;
     const bin = ((r >>> 4) << 8) | ((g >>> 4) << 4) | (b >>> 4);
     colorBins[bin]!++;
@@ -2152,25 +2154,31 @@ export function computeImageStats(img: RgbaImage): ImageStats {
         }
       : { r: 0, g: 0, b: 0 };
 
-  // Laplacian variance sharpness estimate
-  let lapSum = 0;
-  let lapSqSum = 0;
-  let lapCount = 0;
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const c = data[(y * width + x) * 4]!;
-      const n = data[((y - 1) * width + x) * 4]!;
-      const s = data[((y + 1) * width + x) * 4]!;
-      const w = data[(y * width + (x - 1)) * 4]!;
-      const e = data[(y * width + (x + 1)) * 4]!;
-      const lap = n + s + w + e - 4 * c;
-      lapSum += lap;
-      lapSqSum += lap * lap;
-      lapCount++;
+  let sharpness = 0;
+  if ((width > 1 || height > 1) && totalPixels > 1) {
+    let lapSum = 0;
+    let lapSqSum = 0;
+    for (let y = 0; y < height; y++) {
+      const ym = y > 0 ? y - 1 : 0;
+      const yp = y + 1 < height ? y + 1 : height - 1;
+      for (let x = 0; x < width; x++) {
+        const xm = x > 0 ? x - 1 : 0;
+        const xp = x + 1 < width ? x + 1 : width - 1;
+        const lap =
+          (bw[ym * width + x]! +
+            bw[yp * width + x]! +
+            bw[y * width + xm]! +
+            bw[y * width + xp]! -
+            4 * bw[y * width + x]!) /
+          9.0;
+        lapSum += lap;
+        lapSqSum += lap * lap;
+      }
     }
+    sharpness = Math.sqrt(
+      Math.max(0, (lapSqSum - (lapSum * lapSum) / totalPixels) / (totalPixels - 1))
+    );
   }
-  const lapMean = lapCount > 0 ? lapSum / lapCount : 0;
-  const sharpness = lapCount > 0 ? Math.sqrt(Math.max(0, lapSqSum / lapCount - lapMean * lapMean)) : 0;
 
   return {
     channels,

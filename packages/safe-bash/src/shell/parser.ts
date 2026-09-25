@@ -99,8 +99,29 @@ export interface Word {
   readonly printedNewlines?: number;
 }
 
-export const compoundEntryWords = new WeakMap<ArrayEntry, Word>();
-export const expansionSpellings = new WeakMap<WordPart, { source: string; start: number; end: number; ansi?: boolean }>();
+function createSymbolMap<K extends object, V>(name: string) {
+  const sym = Symbol(name);
+  let fallback: WeakMap<K, V> | undefined;
+  return {
+    get(key: K): V | undefined {
+      const val = (key as unknown as Record<symbol, V | undefined>)[sym];
+      return val !== undefined ? val : fallback?.get(key);
+    },
+    has(key: K): boolean {
+      return sym in key || Boolean(fallback?.has(key));
+    },
+    set(key: K, value: V): void {
+      if (Object.isExtensible(key)) {
+        (key as unknown as Record<symbol, V>)[sym] = value;
+      } else {
+        (fallback ??= new WeakMap()).set(key, value);
+      }
+    },
+  };
+}
+
+export const compoundEntryWords = createSymbolMap<ArrayEntry, Word>("safe-bash.compoundEntryWord");
+export const expansionSpellings = createSymbolMap<WordPart, { source: string; start: number; end: number; ansi?: boolean }>("safe-bash.expansionSpelling");
 const documentValues = new WeakMap<HereDocument, ReadonlyMap<number, ByteShellValue>>();
 const documentDelimiters = new WeakMap<HereDocument, Uint8Array>();
 
@@ -183,7 +204,7 @@ export interface Script {
 }
 
 const scriptSeparators = new WeakMap<readonly AndOr[], readonly boolean[]>();
-const functionLayouts = new WeakMap<Script, ReadonlyMap<Command, number> | undefined>();
+const functionLayouts = createSymbolMap<Script, ReadonlyMap<Command, number> | undefined>("safe-bash.functionLayouts");
 
 export function functionReprintedLines(script: Script): ReadonlyMap<Command, number> | undefined {
   if (functionLayouts.has(script)) return functionLayouts.get(script);
@@ -407,7 +428,8 @@ class Lexer {
       hereDocumentSyntax.set(document, this.syntax);
     }
     this.budget.admit();
-    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word: { ...word, spelling: this.source.slice(offset, this.position) }, ...(document ? { document } : {}) };
+    (word as { spelling?: string }).spelling = this.source.slice(offset, this.position);
+    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word, ...(document ? { document } : {}) };
   }
 
   readDocuments(): void {

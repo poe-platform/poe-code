@@ -4,10 +4,24 @@ import type { ByteSink } from "./io.js";
 
 export type CountedFileWrite = (chunk: Uint8Array, write: () => Promise<number>, preserveReceipt?: boolean) => Promise<number>;
 
-export const filesystemOutputBudgets = new WeakMap<NonNullable<CommandContext["registerCleanup"]>, {
+const fileOutputBudgetSymbol = Symbol("safe-bash.fileOutputBudget");
+const fallbackOutputBudgets = new WeakMap<NonNullable<CommandContext["registerCleanup"]>, {
   readonly sinkBudget: (sink: ByteSink) => ByteSink;
   readonly countedWrite?: CountedFileWrite;
 }>();
+
+export const filesystemOutputBudgets = {
+  get(key: NonNullable<CommandContext["registerCleanup"]>): { readonly sinkBudget: (sink: ByteSink) => ByteSink; readonly countedWrite?: CountedFileWrite } | undefined {
+    return (key as unknown as Record<symbol, { readonly sinkBudget: (sink: ByteSink) => ByteSink; readonly countedWrite?: CountedFileWrite } | undefined>)[fileOutputBudgetSymbol] ?? fallbackOutputBudgets.get(key);
+  },
+  set(key: NonNullable<CommandContext["registerCleanup"]>, value: { readonly sinkBudget: (sink: ByteSink) => ByteSink; readonly countedWrite?: CountedFileWrite }): void {
+    if (Object.isExtensible(key)) {
+      (key as unknown as Record<symbol, unknown>)[fileOutputBudgetSymbol] = value;
+    } else {
+      fallbackOutputBudgets.set(key, value);
+    }
+  },
+};
 
 export type FileOutputContext = Pick<CommandContext, "fs" | "signal" | "registerCleanup"> & {
   readonly cleanupFailurePrioritySignal?: AbortSignal | undefined;

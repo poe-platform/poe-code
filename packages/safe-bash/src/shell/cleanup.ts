@@ -80,7 +80,8 @@ export class InvocationScope {
 
   leaveWork(): void {
     if (--this.#activeWork === 0 && this.#workWaiters) {
-      const waiters = this.#workWaiters.splice(0);
+      const waiters = this.#workWaiters;
+      this.#workWaiters = undefined;
       for (const resolve of waiters) resolve();
     }
   }
@@ -135,7 +136,10 @@ export class InvocationScope {
       if (!this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         let asyncFinalizers: Promise<unknown>[] | undefined;
         if (this.#finalizers) {
-          for (const finalize of this.#finalizers.splice(0)) {
+          const finalizers = this.#finalizers;
+          this.#finalizers = undefined;
+          for (let i = 0; i < finalizers.length; i++) {
+            const finalize = finalizers[i]!;
             try {
               const res = finalize();
               if (res && !isSyncResolved(res)) {

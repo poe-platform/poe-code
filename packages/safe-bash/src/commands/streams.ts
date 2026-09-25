@@ -258,7 +258,8 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
     }, maxTailFollowHandles, (target, source) => positive
       ? prefix(target, source, Math.max(0, count - 1), bytes, true, delimiter)
       : suffix(target, source, count, bytes, false, delimiter));
-    await assertInputRequirements(context, names);
+    const req = assertInputRequirements(context, names);
+    if (req) await req;
     assertCommandRequirements(context, inspectedInputRequirements, [names.some(name => name !== "-") ? "file" : "stdin"]);
     let exitCode = 0;
     let headerWritten = false;
@@ -521,13 +522,58 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
     }),
     headTail("head"), headTail("tail", maxTailFollowHandles),
     define("wc", async context => {
+      if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
+        const countLines = context.args[0] === "-l";
+        const req = assertInputRequirements(context, ["-"]);
+        if (req) await req;
+        let count = 0;
+        try {
+          const iter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+            tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+            syncReturn?: () => void;
+          };
+          let done = false;
+          try {
+            while (true) {
+              let chunk: Uint8Array;
+              const syncRes = typeof iter.tryNextSync === "function" ? iter.tryNextSync() : undefined;
+              if (syncRes !== undefined) {
+                if (syncRes.done) { done = true; break; }
+                chunk = syncRes.value;
+              } else {
+                const asyncRes = await iter.next();
+                if (asyncRes.done) { done = true; break; }
+                chunk = asyncRes.value;
+              }
+              context.signal.throwIfAborted();
+              if (countLines) {
+                for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) count++;
+              } else {
+                count += chunk.length;
+              }
+            }
+          } finally {
+            if (!done) {
+              if (typeof iter.syncReturn === "function") iter.syncReturn();
+              else await iter.return?.();
+            }
+          }
+          const p = output(context, `${count}\n`);
+          if (!isSyncResolved(p)) await p;
+          return { exitCode: 0 };
+        } catch (error) {
+          await diagnostic(context, error);
+          return { exitCode: 1 };
+        }
+      }
       const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L", total: "total:" });
       const totalMode = value(parsed, "total") ?? "auto";
       if (!["auto", "always", "only", "never"].includes(totalMode)) throw new UsageError(`invalid argument '${totalMode}' for '--total'`);
       if (!["l", "w", "m", "c", "L"].some(flag => parsed.flags.has(flag))) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
       const selected = ["l", "w", "m", "c", "L"].filter(flag => parsed.flags.has(flag));
       const names = parsed.operands.length ? parsed.operands : ["-"];
-      await assertInputRequirements(context, names);
+      const req = assertInputRequirements(context, names);
+      if (req) await req;
       const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
       const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
       const singleByte = locale === "C" || locale === "POSIX";
@@ -547,7 +593,10 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         width = Math.max(width, totalSize.toString().length);
       }
       let exitCode = 0;
-      const print = async (counts: Record<string, number>, name?: string) => output(context, selected.map(flag => String(counts[flag]).padStart(width)).join(" ") + (name === undefined ? "" : ` ${name}`) + "\n");
+      const print = async (counts: Record<string, number>, name?: string) => {
+        const p = output(context, selected.map(flag => String(counts[flag]).padStart(width)).join(" ") + (name === undefined ? "" : ` ${name}`) + "\n");
+        if (!isSyncResolved(p)) await p;
+      };
       for (const name of names) {
         const counts: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
         let columns = 0;
@@ -568,11 +617,11 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         };
         const needsText = parsed.flags.has("w") || parsed.flags.has("m") || parsed.flags.has("L");
         const needsLines = parsed.flags.has("l");
-        const utf8 = wcUtf8(point => {
+        const utf8 = (needsText && !singleByte) ? wcUtf8(point => {
           if (point !== undefined) counts.m!++;
           word(point !== undefined && wcSpace(point, posix), point !== undefined && point >= 32 && !(point >= 127 && point < 160));
           if (parsed.flags.has("L") && point !== undefined) lineWidth(point);
-        });
+        }) : undefined;
         try {
           for await (const chunk of input(context, name)) {
             context.signal.throwIfAborted();
@@ -589,9 +638,9 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
               if (singleByte && parsed.flags.has("L")) lineWidth(byte);
             }
             if (singleByte) counts.m! += chunk.length;
-            else utf8.write(chunk);
+            else utf8!.write(chunk);
           }
-          if (needsText && !singleByte) utf8.finish();
+          if (needsText && !singleByte) utf8!.finish();
           counts.L = Math.max(counts.L!, columns);
           for (const field of ["l", "w", "m", "c"]) totals[field]! += counts[field]!;
           totals.L = Math.max(totals.L!, counts.L!);

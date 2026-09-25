@@ -273,11 +273,17 @@ function createEagerIdlePortableTrapExtensionState(): ShellExtensionState {
 
 class LazyIdlePortableTrapExtensionState implements ShellExtensionState {
   #materialized: ShellExtensionState | undefined;
+  #cleanup: (() => Promise<void>)[] | undefined;
   readonly syntax = EMPTY_EXTENSION_SYNTAX;
   readonly listTerminators = EMPTY_LIST_TERMINATORS;
   readonly specialParameters = EMPTY_SPECIAL_PARAMETERS;
   readonly checkpoints = EMPTY_CHECKPOINTS;
-  cleanup: (() => Promise<void>)[] = [];
+  get cleanup(): (() => Promise<void>)[] {
+    return this.#cleanup ??= [];
+  }
+  set cleanup(value: (() => Promise<void>)[]) {
+    this.#cleanup = value;
+  }
   started?: boolean;
   eventDepth?: number;
   exiting?: boolean;

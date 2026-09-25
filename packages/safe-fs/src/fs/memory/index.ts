@@ -39,13 +39,54 @@ interface Metadata {
 
 interface FileNode extends Metadata {
   type: "file";
+  byteLength: number;
+  view: Uint8Array | undefined;
   data: Uint8Array;
   allocation: MemoryAllocation;
+}
+
+class MemoryFileNode implements FileNode {
+  readonly type = "file" as const;
+  revision = 0;
+  mode: number;
+  ino: number;
+  nlink = 1;
+  atimeMs: number;
+  mtimeMs: number;
+  ctimeMs: number;
+  birthtimeMs: number;
+  references = 0;
+  byteLength: number;
+  view: Uint8Array | undefined;
+  allocation: MemoryAllocation;
+
+  constructor(mode: number, ino: number, now: number, byteLength: number, allocation: MemoryAllocation, view?: Uint8Array) {
+    this.mode = mode;
+    this.ino = ino;
+    this.atimeMs = now;
+    this.mtimeMs = now;
+    this.ctimeMs = now;
+    this.birthtimeMs = now;
+    this.byteLength = byteLength;
+    this.allocation = allocation;
+    this.view = view;
+  }
+
+  get data(): Uint8Array {
+    return this.view ??= (this.byteLength === this.allocation.data.byteLength ? this.allocation.data : this.allocation.data.subarray(0, this.byteLength));
+  }
+
+  set data(value: Uint8Array) {
+    this.view = value;
+    this.byteLength = value.byteLength;
+  }
 }
 
 interface DirectoryNode extends Metadata {
   type: "directory";
   entries: Map<string, MemoryNode>;
+  cachedNlink?: number;
+  cachedNlinkRev?: number;
 }
 
 interface SymlinkNode extends Metadata {
@@ -178,6 +219,10 @@ export class MemoryFileSystem implements FileSystem {
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
+  #lastFastDirPrefix = "";
+  #lastFastDirNode: DirectoryNode | undefined;
+  #lastFastFilePath = "";
+  #lastFastFileNode: FileNode | undefined;
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));
@@ -316,9 +361,9 @@ export class MemoryFileSystem implements FileSystem {
     this.ledger.reserve(bytes, 2, syscall, path);
     try {
       const node = create();
-      if (node.type === "file") this.admitSize(undefined, node.data.byteLength, syscall, path);
+      if (node.type === "file") this.admitSize(undefined, node.byteLength, syscall, path);
       parent.entries.set(name, node);
-      if (node.type === "file") this.totalBytes += node.data.byteLength;
+      if (node.type === "file") this.totalBytes += node.byteLength;
       else if (node.type === "symlink") this.symlinkCount++;
       this.changed(parent);
       return node;
@@ -332,8 +377,13 @@ export class MemoryFileSystem implements FileSystem {
     if (node.nlink !== 0 || node.references !== 0) return;
     this.ledger.release(node.type === "symlink" ? node.target.length * 2 : 0, 1);
     if (node.type === "file") {
-      this.totalBytes -= node.data.byteLength;
+      if (this.#lastFastFileNode === node) {
+        this.#lastFastFilePath = "";
+        this.#lastFastFileNode = undefined;
+      }
+      this.totalBytes -= node.byteLength;
       const alloc = node.allocation;
+      node.view = undefined;
       alloc.release();
       const pool = memoryPools.get(this.ledger)!;
       if (alloc.isReleased64() && pool.allocations.length < 128) {
@@ -344,6 +394,9 @@ export class MemoryFileSystem implements FileSystem {
       }
     } else if (node.type === "symlink") {
       this.symlinkCount--;
+    } else if (this.#lastFastDirNode === node) {
+      this.#lastFastDirPrefix = "";
+      this.#lastFastDirNode = undefined;
     }
   }
 
@@ -355,15 +408,16 @@ export class MemoryFileSystem implements FileSystem {
 
   private replaceData(node: FileNode, allocation: MemoryAllocation, length = allocation.data.byteLength): void {
     const previous = node.allocation;
-    this.totalBytes += length - node.data.byteLength;
-    node.data = allocation.data.subarray(0, length);
+    this.totalBytes += length - node.byteLength;
+    node.byteLength = length;
+    node.view = length === allocation.data.byteLength ? allocation.data : undefined;
     node.allocation = allocation;
     previous.release();
   }
 
   private admitSize(node: FileNode | undefined, length: number, syscall: string, path: string): void {
     this.ledger.fileSize(length, syscall, path);
-    if (length - (node?.data.byteLength ?? 0) > (this.ledger.limits.maxBytes ?? Number.MAX_SAFE_INTEGER) - this.totalBytes) {
+    if (length - (node?.byteLength ?? 0) > (this.ledger.limits.maxBytes ?? Number.MAX_SAFE_INTEGER) - this.totalBytes) {
       this.fail("ENOSPC", syscall, path);
     }
   }
@@ -513,10 +567,15 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private directoryNlink(node: DirectoryNode): number {
-    let nlink = 2;
-    for (const entry of node.entries.values()) {
-      if (entry.type === "directory") nlink++;
+    if (node.cachedNlinkRev === node.revision && node.cachedNlink !== undefined) {
+      return node.cachedNlink;
     }
+    let nlink = 2;
+    node.entries.forEach(entry => {
+      if (entry.type === "directory") nlink++;
+    });
+    node.cachedNlinkRev = node.revision;
+    node.cachedNlink = nlink;
     return nlink;
   }
 
@@ -527,7 +586,7 @@ export class MemoryFileSystem implements FileSystem {
       ioBlockSize: preferredIoBlockSize,
       ...(Number.isSafeInteger(node.revision) ? { revision: node.revision } : {}),
       preferredIoBlockSize: 4096,
-      size: node.type === "file" ? node.data.byteLength
+      size: node.type === "file" ? node.byteLength
         : node.type === "symlink" ? new TextEncoder().encode(node.target).byteLength : 0,
       mode: node.mode, ...(ownedStores.get(this)?.intact() ? { identityScope: this.identityScope } : {}),
       ino: node.ino, dev: 0, uid: 0, gid: 0,
@@ -624,7 +683,8 @@ export class MemoryFileSystem implements FileSystem {
     if (location.node) return location.node as FileNode;
     return this.addNode(location.parent, location.name, (): FileNode => {
       const allocation = new MemoryAllocation(new Uint8Array(), this.ledger);
-      return { ...this.metadata(typeModes.file | mode), type: "file", data: allocation.data, allocation };
+      const meta = this.metadata(typeModes.file | mode);
+      return new MemoryFileNode(meta.mode, meta.ino, meta.atimeMs, 0, allocation, allocation.data);
     }, syscall, path);
   }
 
@@ -632,12 +692,12 @@ export class MemoryFileSystem implements FileSystem {
     if (!(data instanceof Uint8Array)) throw new TypeError("Memory files require Uint8Array data");
     const target = this.prepareWrite(path, options, syscall);
     const current = target.location.node as FileNode | undefined;
-    const length = (target.append ? current?.data.byteLength ?? 0 : 0) + data.byteLength;
+    const length = (target.append ? current?.byteLength ?? 0 : 0) + data.byteLength;
     this.admitSize(current, length, syscall, path);
     const growth = target.append && length > (current?.allocation.data.byteLength ?? 0) ? length : 0;
     this.ledger.check(data.byteLength + growth + (current ? 0 : target.location.name.length * 2), current ? 0 : 2, syscall, path);
     if (current && target.append) {
-      this.writeAt(current, data, current.data.byteLength, syscall, path);
+      this.writeAt(current, data, current.byteLength, syscall, path);
       return current;
     }
     if (!current) {
@@ -651,7 +711,7 @@ export class MemoryFileSystem implements FileSystem {
         return this.addNode(target.location.parent, target.location.name, (): FileNode => {
           const now = Date.now();
           const fileMode = typeModes.file | target.mode;
-          const view = capacity === length ? allocation.data : allocation.data.subarray(0, length);
+          const view = capacity === length ? allocation.data : undefined;
           const pooled = memoryPools.get(this.ledger)!.files.pop();
           if (pooled) {
             pooled.mode = fileMode;
@@ -663,15 +723,12 @@ export class MemoryFileSystem implements FileSystem {
             pooled.mtimeMs = now;
             pooled.ctimeMs = now;
             pooled.birthtimeMs = now;
-            pooled.data = view;
+            pooled.byteLength = length;
+            pooled.view = view;
             pooled.allocation = allocation;
             return pooled;
           }
-          return {
-            mode: fileMode, ino: this.nextInode++, nlink: 1, references: 0, revision: 0,
-            atimeMs: now, mtimeMs: now, ctimeMs: now, birthtimeMs: now,
-            type: "file", data: view, allocation,
-          };
+          return new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view);
         }, syscall, path);
       } catch (error) {
         allocation.release();
@@ -696,19 +753,20 @@ export class MemoryFileSystem implements FileSystem {
     }
     const end = position + data.byteLength;
     this.ledger.fileSize(end, syscall, path);
-    const length = Math.max(node.data.byteLength, end);
+    const curLen = node.byteLength;
+    const length = Math.max(curLen, end);
     this.admitSize(node, length, syscall, path);
     let allocation = node.allocation;
     if (length > allocation.data.byteLength) {
       this.ledger.check(length, 0, syscall, path);
-      const capacity = Math.min(Math.max(length, node.data.byteLength * 2, 64),
+      const capacity = Math.min(Math.max(length, curLen * 2, 64),
         this.ledger.limits.maxFileBytes, this.ledger.availableBytes);
       allocation = this.allocate(capacity, syscall, path);
     }
     try {
       const storage = allocation.data;
-      if (allocation !== node.allocation) storage.set(node.data);
-      if (position > node.data.byteLength) storage.fill(0, node.data.byteLength, position);
+      if (allocation !== node.allocation) storage.set(node.view ?? (curLen === node.allocation.data.byteLength ? node.allocation.data : node.allocation.data.subarray(0, curLen)));
+      if (position > curLen) storage.fill(0, curLen, position);
       storage.set(data, position);
     } catch (error) {
       if (allocation !== node.allocation) allocation.release();
@@ -716,32 +774,70 @@ export class MemoryFileSystem implements FileSystem {
     }
     if (allocation !== node.allocation) this.replaceData(node, allocation, length);
     else {
-      this.totalBytes += length - node.data.byteLength;
-      node.data = length === allocation.data.byteLength ? allocation.data : allocation.data.subarray(0, length);
+      this.totalBytes += length - curLen;
+      node.byteLength = length;
+      node.view = length === allocation.data.byteLength ? allocation.data : undefined;
     }
     this.changed(node);
   }
 
   writeMemoryFileFast(path: string, data: Uint8Array, append: boolean, mode: number): void {
     const syscall = append ? "appendFile" : "writeFile";
+    if (
+      append &&
+      path === this.#lastFastFilePath &&
+      this.#lastFastFileNode !== undefined &&
+      this.#lastFastFileNode.nlink !== 0 &&
+      this.#lastFastDirNode !== undefined &&
+      this.#lastFastDirNode.nlink !== 0 &&
+      (this.#lastFastDirNode.mode & 1) !== 0 &&
+      (this.#lastFastFileNode.mode & 2) !== 0
+    ) {
+      const current = this.#lastFastFileNode;
+      const length = current.byteLength + data.byteLength;
+      this.admitSize(current, length, syscall, path);
+      const growth = length > current.allocation.data.byteLength ? length : 0;
+      this.ledger.check(data.byteLength + growth, 0, syscall, path);
+      this.writeAt(current, data, current.byteLength, syscall, path);
+      return;
+    }
     let parent: DirectoryNode = this.root;
     let start = 1;
     let name = "";
-    while (true) {
-      this.permission(parent, 1, syscall, path);
-      const slash = path.indexOf("/", start);
-      if (slash === -1) {
-        name = path.slice(start);
-        if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
-        break;
+    const cachedPrefix = this.#lastFastDirPrefix;
+    const cachedDir = this.#lastFastDirNode;
+    if (
+      cachedDir !== undefined &&
+      cachedDir.nlink !== 0 &&
+      (cachedDir.mode & 1) !== 0 &&
+      cachedPrefix.length > 1 &&
+      path.startsWith(cachedPrefix) &&
+      path.indexOf("/", cachedPrefix.length) === -1
+    ) {
+      parent = cachedDir;
+      name = path.slice(cachedPrefix.length);
+      if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+    } else {
+      while (true) {
+        this.permission(parent, 1, syscall, path);
+        const slash = path.indexOf("/", start);
+        if (slash === -1) {
+          name = path.slice(start);
+          if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+          if (start > 1 && (parent.mode & 1) !== 0) {
+            this.#lastFastDirPrefix = path.slice(0, start);
+            this.#lastFastDirNode = parent;
+          }
+          break;
+        }
+        const seg = path.slice(start, slash);
+        if (exceedsComponentByteLimit(seg)) this.fail("ENAMETOOLONG", syscall, path);
+        const next = parent.entries.get(seg);
+        if (!next) this.fail("ENOENT", syscall, path);
+        if (next.type !== "directory") this.fail("ENOTDIR", syscall, path);
+        parent = next;
+        start = slash + 1;
       }
-      const seg = path.slice(start, slash);
-      if (exceedsComponentByteLimit(seg)) this.fail("ENAMETOOLONG", syscall, path);
-      const next = parent.entries.get(seg);
-      if (!next) this.fail("ENOENT", syscall, path);
-      if (next.type !== "directory") this.fail("ENOTDIR", syscall, path);
-      parent = next;
-      start = slash + 1;
     }
     const existing = parent.entries.get(name);
     if (existing) {
@@ -751,13 +847,15 @@ export class MemoryFileSystem implements FileSystem {
       this.permission(parent, 3, syscall, path);
     }
     const current = existing as FileNode | undefined;
-    const length = (append ? current?.data.byteLength ?? 0 : 0) + data.byteLength;
+    const length = (append ? current?.byteLength ?? 0 : 0) + data.byteLength;
     this.admitSize(current, length, syscall, path);
     const growth = append && length > (current?.allocation.data.byteLength ?? 0) ? length : 0;
     const nameBytes = name.length * 2;
     this.ledger.check(data.byteLength + growth + (current ? 0 : nameBytes), current ? 0 : 2, syscall, path);
     if (current && append) {
-      this.writeAt(current, data, current.data.byteLength, syscall, path);
+      this.writeAt(current, data, current.byteLength, syscall, path);
+      this.#lastFastFilePath = path;
+      this.#lastFastFileNode = current;
       return;
     }
     if (!current) {
@@ -771,7 +869,7 @@ export class MemoryFileSystem implements FileSystem {
         try {
           const now = Date.now();
           const fileMode = typeModes.file | mode;
-          const view = capacity === length ? allocation.data : allocation.data.subarray(0, length);
+          const view = capacity === length ? allocation.data : undefined;
           let node = memoryPools.get(this.ledger)!.files.pop();
           if (node) {
             node.mode = fileMode;
@@ -783,19 +881,23 @@ export class MemoryFileSystem implements FileSystem {
             node.mtimeMs = now;
             node.ctimeMs = now;
             node.birthtimeMs = now;
-            node.data = view;
+            node.byteLength = length;
+            node.view = view;
             node.allocation = allocation;
           } else {
-            node = {
-              mode: fileMode, ino: this.nextInode++, nlink: 1, references: 0, revision: 0,
-              atimeMs: now, mtimeMs: now, ctimeMs: now, birthtimeMs: now,
-              type: "file", data: view, allocation,
-            };
+            node = new MemoryFileNode(fileMode, this.nextInode++, now, length, allocation, view);
           }
           this.admitSize(undefined, length, syscall, path);
+          const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
           parent.entries.set(name, node);
           this.totalBytes += length;
           this.changed(parent);
+          if (prevNlink !== undefined) {
+            parent.cachedNlink = prevNlink;
+            parent.cachedNlinkRev = parent.revision;
+          }
+          this.#lastFastFilePath = path;
+          this.#lastFastFileNode = node;
         } catch (error) {
           this.ledger.release(nameBytes, 2);
           throw error;
@@ -887,7 +989,7 @@ export class MemoryFileSystem implements FileSystem {
       if (content.type === "file") allocation = this.bytes(content.data, "createStagedFile", directoryPath);
       directory = this.directory(0o700);
       file = content.type === "file"
-        ? { ...this.metadata(typeModes.file | mode), type: "file", data: allocation!.data, allocation: allocation! }
+        ? (() => { const m = this.metadata(typeModes.file | mode); return new MemoryFileNode(m.mode, m.ino, m.atimeMs, allocation!.data.byteLength, allocation!, allocation!.data); })()
         : { ...this.metadata(typeModes.symlink | mode), type: "symlink", target: content.target };
       if (options.atimeMs !== undefined) file.atimeMs = options.atimeMs;
       if (options.mtimeMs !== undefined) file.mtimeMs = options.mtimeMs;
@@ -1095,6 +1197,10 @@ export class MemoryFileSystem implements FileSystem {
     this.permission(location.parent, 3, "removeEntryConditional", path);
     if (node.type === "directory" && node.entries.size > 0) this.fail("ENOTEMPTY", "removeEntryConditional", path);
     location.parent.entries.delete(location.name);
+    this.#lastFastDirPrefix = "";
+    this.#lastFastDirNode = undefined;
+    this.#lastFastFilePath = "";
+    this.#lastFastFileNode = undefined;
     this.ledger.release(location.name.length * 2, 1);
     node.nlink--;
     node.ctimeMs = Date.now();
@@ -1229,19 +1335,28 @@ export class MemoryFileSystem implements FileSystem {
     if (node === this.root) this.fail("EBUSY", syscall, path);
     this.permission(location.parent, 3, syscall, path);
     if (node.type === "directory" && !recursive) this.fail("EISDIR", syscall, path);
+    this.#lastFastDirPrefix = "";
+    this.#lastFastDirNode = undefined;
+    this.#lastFastFilePath = "";
+    this.#lastFastFileNode = undefined;
     const removed: MemoryNode[] = [node];
+    let keyChars = 0;
+    let keyEntries = 0;
     for (let index = 0; index < removed.length; index++) {
       const entry = removed[index]!;
       if (entry.type === "directory" && entry.entries.size > 0) {
         this.permission(entry, 7, syscall, path);
-        for (const child of entry.entries.values()) removed.push(child);
+        entry.entries.forEach((child, name) => {
+          removed.push(child);
+          keyChars += name.length;
+          keyEntries++;
+        });
       }
     }
     location.parent.entries.delete(location.name);
-    this.ledger.release(location.name.length * 2, 1);
+    this.ledger.release((location.name.length + keyChars) * 2, 1 + keyEntries);
     for (const entry of removed) {
       if (entry.type === "directory") {
-        for (const name of entry.entries.keys()) this.ledger.release(name.length * 2, 1);
         entry.entries.clear();
       }
       entry.nlink--;
@@ -1280,6 +1395,10 @@ export class MemoryFileSystem implements FileSystem {
       this.ledger.reserve(Math.max(0, nameGrowth), 0, "rename", source);
       try { target.parent.entries.set(target.name, node); }
       catch (error) { this.ledger.release(Math.max(0, nameGrowth), 0); throw error; }
+      this.#lastFastDirPrefix = "";
+      this.#lastFastDirNode = undefined;
+      this.#lastFastFilePath = "";
+      this.#lastFastFileNode = undefined;
       origin.parent.entries.delete(origin.name);
       if (target.node) {
         this.ledger.release(origin.name.length * 2, 1);

@@ -67,6 +67,9 @@ export interface BytePipeOptions {
   readonly signal?: AbortSignal;
 }
 
+const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
+const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
+
 export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   const highWaterMark = options.highWaterMark ?? 64 * 1024;
   const signal = options.signal;
@@ -75,13 +78,13 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   }
   interface EndpointState {
     readonly direction: "read" | "write";
-    readonly writes: Set<WriteRequest>;
+    writes: Set<WriteRequest> | undefined;
     open: boolean;
     closing: Promise<void> | undefined;
   }
   interface ReadLease {
     readonly endpoint: EndpointState;
-    readonly pending: Set<ReadRequest>;
+    pending: Set<ReadRequest> | undefined;
     done: boolean;
   }
   interface ReadRequest {
@@ -99,9 +102,9 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   interface ObservationWaiter { changed(): void; aborted(reason: unknown): void; }
   const maximumObservationWaiters = 64;
   const buffered = new Set<Uint8Array>();
-  const reads = new Set<ReadRequest>();
-  const writes = new Set<WriteRequest>();
-  const observers = new Set<ObservationWaiter>();
+  let reads: Set<ReadRequest> | undefined;
+  let writes: Set<WriteRequest> | undefined;
+  let observers: Set<ObservationWaiter> | undefined;
   let availableBytes = 0;
   let readerReferences = 0;
   let writerReferences = 0;
@@ -114,10 +117,12 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   let consumer: AbortController | undefined;
   let consumerAborted = false;
   let consumerReason: unknown;
+  let managedWaiters: Set<() => void> | undefined;
   const brokenPipe = (): FsError => new FsError("EPIPE", { syscall: "pipe" });
   const getConsumerSignal = (): AbortSignal => {
     if (!consumer) {
       consumer = new AbortController();
+      (consumer.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol] = true;
       if (consumerAborted) consumer.abort(consumerReason !== undefined ? consumerReason : brokenPipe());
     }
     return consumer.signal;
@@ -126,7 +131,15 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     if (!consumerAborted) {
       consumerAborted = true;
       consumerReason = reason;
-      if (consumer) consumer.abort(reason !== undefined ? reason : brokenPipe());
+      if (consumer) {
+        consumer.abort(reason !== undefined ? reason : brokenPipe());
+        const symSet = (consumer.signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol];
+        if (symSet && symSet.size > 0) {
+          const pending = [...symSet];
+          symSet.clear();
+          for (let i = 0; i < pending.length; i++) pending[i]!();
+        }
+      }
     }
   };
   const checkFailure = (): void => { if (failed) throw failure; };
@@ -137,23 +150,37 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   const changed = (): void => {
     revision++;
-    if (observers.size > 0) {
+    if (observers && observers.size > 0) {
       for (const observer of [...observers]) observer.changed();
     }
   };
   const removeRead = (request: ReadRequest): void => {
-    reads.delete(request);
-    request.lease.pending.delete(request);
+    reads?.delete(request);
+    request.lease.pending?.delete(request);
   };
   const removeWrite = (request: WriteRequest): void => {
-    writes.delete(request);
-    request.endpoint.writes.delete(request);
+    writes?.delete(request);
+    request.endpoint.writes?.delete(request);
   };
-  const cleanup = (): void => { if (!observers.size) signal?.removeEventListener("abort", onAbort); };
+  const attachSignal = (): void => {
+    if (!signal) return;
+    if ((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
+      managedWaiters = ((signal as unknown as Record<symbol, Set<() => void> | undefined>)[managedWaitersSymbol] ??= new Set());
+      managedWaiters.add(onAbort);
+    } else {
+      signal.addEventListener("abort", onAbort, { once: true });
+    }
+  };
+  const detachSignal = (): void => {
+    if (!signal) return;
+    if (managedWaiters) managedWaiters.delete(onAbort);
+    else signal.removeEventListener("abort", onAbort);
+  };
+  const cleanup = (): void => { if (!observers?.size) detachSignal(); };
   const pump = (): void => {
     if (failed) return;
     while (true) {
-      const reading = reads.values().next().value as ReadRequest | undefined;
+      const reading = reads?.values().next().value as ReadRequest | undefined;
       const chunk = buffered.values().next().value as Uint8Array | undefined;
       if (reading && chunk) {
         removeRead(reading);
@@ -163,7 +190,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
         changed();
         continue;
       }
-      const writing = writes.values().next().value as WriteRequest | undefined;
+      const writing = writes?.values().next().value as WriteRequest | undefined;
       if (writing && (reading || availableBytes < highWaterMark)) {
         removeWrite(writing);
         buffered.add(writing.chunk);
@@ -172,7 +199,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
         changed();
         continue;
       }
-      if (!writerReferences && !writes.size && !buffered.size && reads.size) {
+      if (!writerReferences && !writes?.size && !buffered.size && reads?.size) {
         finished = true;
         for (const request of reads) {
           removeRead(request);
@@ -187,7 +214,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   const fail = (reason: unknown): Promise<void> => {
     if (abortPromise) return abortPromise;
     if (finished) {
-      for (const observer of [...observers]) observer.aborted(reason);
+      if (observers) for (const observer of [...observers]) observer.aborted(reason);
       return Promise.resolve();
     }
     abortPromise = Promise.resolve();
@@ -195,12 +222,12 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     failure = reason;
     buffered.clear();
     availableBytes = 0;
-    for (const request of reads) {
+    if (reads) for (const request of reads) {
       removeRead(request);
       request.lease.done = true;
       request.reject(reason);
     }
-    for (const request of writes) {
+    if (writes) for (const request of writes) {
       removeWrite(request);
       request.reject(reason);
     }
@@ -230,14 +257,14 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       if (typeof previous !== "bigint" || previous < 0n || previous > revision) throw new RangeError("Invalid pipe observation revision");
       if (previous !== revision) return Promise.resolve(probe(endpoint));
       if (!timeoutMs) return Promise.resolve(undefined);
-      if (observers.size >= maximumObservationWaiters) throw new RangeError("Too many pending pipe endpoint observations");
+      if ((observers?.size ?? 0) >= maximumObservationWaiters) throw new RangeError("Too many pending pipe endpoint observations");
       return new Promise((resolve, reject) => {
         let settled = false;
         let timer: ReturnType<typeof setTimeout> | undefined;
         const retire = (): boolean => {
           if (settled) return false;
           settled = true;
-          observers.delete(observer);
+          observers?.delete(observer);
           if (timer !== undefined) clearTimeout(timer);
           localSignal?.removeEventListener("abort", interrupted);
           if (finished || failed || !readerReferences && !writerReferences) cleanup();
@@ -258,9 +285,9 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
           changed: () => settle(),
           aborted(reason) { if (retire()) reject(signal?.aborted ? signal.reason : reason); },
         };
-        observers.add(observer);
+        (observers ??= new Set()).add(observer);
         try {
-          signal?.addEventListener("abort", onAbort, { once: true });
+          attachSignal();
           localSignal?.addEventListener("abort", interrupted, { once: true });
           if (settled) {
             localSignal?.removeEventListener("abort", interrupted);
@@ -275,10 +302,10 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   const closeEndpoint = (endpoint: EndpointState): Promise<void> => {
     if (endpoint.closing) return endpoint.closing;
     endpoint.open = false;
-    const admittedWrites = endpoint.writes.size > 0 ? [...endpoint.writes].map(request => request.completion) : undefined;
+    const admittedWrites = endpoint.writes && endpoint.writes.size > 0 ? [...endpoint.writes].map(request => request.completion) : undefined;
     if (endpoint.direction === "read") {
       readerReferences--;
-      for (const request of reads) if (request.lease.endpoint === endpoint) {
+      if (reads) for (const request of reads) if (request.lease.endpoint === endpoint) {
         removeRead(request);
         request.lease.done = true;
         request.reject(failed ? failure : new FsError("EBADF", { syscall: "read" }));
@@ -286,7 +313,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       if (!readerReferences) {
         buffered.clear();
         availableBytes = 0;
-        if (writes.size > 0) {
+        if (writes && writes.size > 0) {
           const reason = failed ? failure : brokenPipe();
           for (const request of writes) {
             removeWrite(request);
@@ -311,10 +338,10 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     return endpoint.closing;
   };
   const borrow = (endpoint: EndpointState): AsyncIterableIterator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined; syncReturn(): void; [ownedByteChunks]: true } => {
-    const lease: ReadLease = { endpoint, pending: new Set(), done: false };
+    const lease: ReadLease = { endpoint, pending: undefined, done: false };
     const release = (): IteratorResult<Uint8Array> => {
       lease.done = true;
-      for (const request of lease.pending) {
+      if (lease.pending) for (const request of lease.pending) {
         removeRead(request);
         request.resolve({ done: true, value: undefined });
       }
@@ -326,13 +353,13 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       tryNextSync(): IteratorResult<Uint8Array> | undefined {
         if (lease.done) return { done: true, value: undefined };
         checkEndpoint(endpoint);
-        if (reads.size === 0) {
+        if (!reads || reads.size === 0) {
           const chunk = buffered.values().next().value as Uint8Array | undefined;
           if (chunk) {
             buffered.delete(chunk);
             availableBytes -= chunk.byteLength;
             changed();
-            if (writes.size > 0) pump();
+            if (writes && writes.size > 0) pump();
             return { done: false, value: chunk };
           }
           if (!writerReferences) {
@@ -351,13 +378,13 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
         if (lease.done) return Promise.resolve({ done: true, value: undefined });
         try { checkEndpoint(endpoint); }
         catch (reason) { lease.done = true; return Promise.reject(reason); }
-        if (reads.size === 0) {
+        if (!reads || reads.size === 0) {
           const chunk = buffered.values().next().value as Uint8Array | undefined;
           if (chunk) {
             buffered.delete(chunk);
             availableBytes -= chunk.byteLength;
             changed();
-            if (writes.size > 0) pump();
+            if (writes && writes.size > 0) pump();
             return Promise.resolve({ done: false, value: chunk });
           }
           if (!writerReferences) {
@@ -369,8 +396,8 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
         }
         return new Promise((resolve, reject) => {
           const request: ReadRequest = { lease, resolve, reject };
-          reads.add(request);
-          lease.pending.add(request);
+          (reads ??= new Set()).add(request);
+          (lease.pending ??= new Set()).add(request);
           pump();
         });
       },
@@ -387,8 +414,8 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sinks require Uint8Array chunks");
       if (!chunk.byteLength) return resolvedVoid;
       const owned = new Uint8Array(chunk);
-      if (writes.size === 0) {
-        const reading = reads.values().next().value as ReadRequest | undefined;
+      if (!writes || writes.size === 0) {
+        const reading = reads?.values().next().value as ReadRequest | undefined;
         if (reading && buffered.size === 0) {
           removeRead(reading);
           reading.resolve({ done: false, value: owned });
@@ -406,8 +433,8 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       let reject!: (reason: unknown) => void;
       const completion = new Promise<void>((accept, refuse) => { resolve = accept; reject = refuse; });
       const request: WriteRequest = { endpoint, chunk: owned, completion, resolve, reject };
-      endpoint.writes.add(request);
-      writes.add(request);
+      (endpoint.writes ??= new Set()).add(request);
+      (writes ??= new Set()).add(request);
       pump();
       return completion;
     } catch (reason) { return Promise.reject(reason); }
@@ -416,7 +443,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
     if (direction === "read") readerReferences++;
     else writerReferences++;
     changed();
-    return { direction, writes: new Set(), open: true, closing: undefined };
+    return { direction, writes: undefined, open: true, closing: undefined };
   };
   const createReadEndpoint = (state: EndpointState): PipeReadEndpoint => ({
     direction: "read",
@@ -487,13 +514,13 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   const legacyWrite = (chunk: Uint8Array): Promise<void> => write(writeState, chunk, true);
   if (signal?.aborted) onAbort();
-  else signal?.addEventListener("abort", onAbort, { once: true });
+  else attachSignal();
   return {
     readable,
     endpoints,
     readiness() {
       if (failed) throw failure;
-      return availableBytes > 0 ? "ready" : !writerReferences && !writes.size ? "eof" : "blocked";
+      return availableBytes > 0 ? "ready" : !writerReferences && !writes?.size ? "eof" : "blocked";
     },
     writable: {
       write: legacyWrite,
@@ -523,7 +550,7 @@ export function writeBytes(sink: ByteSink, chunk: Uint8Array, signal?: AbortSign
         void Promise.resolve(pending).catch(() => {});
         return Promise.reject(signal.reason);
       }
-      return pending === resolvedVoid ? resolvedVoid : Promise.resolve(pending);
+      return isSyncResolved(pending) ? resolvedVoid : Promise.resolve(pending);
     }
     if (signal.aborted) {
       void Promise.resolve(pending).catch(() => {});

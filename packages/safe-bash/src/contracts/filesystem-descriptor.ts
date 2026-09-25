@@ -2,6 +2,9 @@ import { FsError } from "@poe-code/safe-fs/core";
 import type { FileDescriptor, FileDescriptorCapabilities, FsOptions, OpenFileOptions } from "@poe-code/safe-fs/core";
 import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output-budget.js";
 
+const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
+const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
+
 export interface CommandFileDescriptor extends FileDescriptor {
   acknowledgeCloseFailure(reason: unknown): boolean;
 }
@@ -56,6 +59,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     acquisitionSettled?.();
   };
   let scope: AbortSignal | undefined;
+  let scopeWaiters: Set<(reason: unknown) => void> | undefined;
   const close = (): Promise<void> => {
     accepting = false;
     closing ??= (async () => {
@@ -69,7 +73,8 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
       try { await retained?.close(); }
       catch (reason) { closeFailure = { reason, acknowledged: false, drained: false }; throw reason; }
       finally {
-        scope?.removeEventListener("abort", aborted);
+        if (scopeWaiters) scopeWaiters.delete(aborted);
+        else scope?.removeEventListener("abort", aborted);
         if (closeFailure) closeFailure.drained = true;
       }
     })();
@@ -119,7 +124,12 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     });
     const request = { ...options };
     scope = request.signal ? AbortSignal.any([context.signal, request.signal]) : context.signal;
-    scope.addEventListener("abort", aborted, { once: true });
+    if ((scope as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
+      scopeWaiters = ((scope as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol] ??= new Set());
+      scopeWaiters.add(aborted);
+    } else {
+      scope.addEventListener("abort", aborted, { once: true });
+    }
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     if (request.access !== "read") assertCountedFileOutput(context);

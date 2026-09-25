@@ -16,8 +16,10 @@ interface Session {
   guestOwner: ArrayOwner | undefined;
 }
 
-const sessions = new WeakMap<object, Session>();
-const monitors = new WeakMap<State, StateMonitor>();
+const sessionSymbol = Symbol("safe-bash.arraySession");
+const monitorSymbol = Symbol("safe-bash.stateMonitor");
+const fallbackSessions = new WeakMap<object, Session>();
+const rawMonitors = new WeakMap<State, StateMonitor>();
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 
 function isSyncResolved(promise: unknown): boolean {
@@ -30,9 +32,9 @@ const guestMutationCharge = { epoch: true, work: 5 } as const;
 type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
 
 export function trackState(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
-  const existing = monitors.get(state);
+  const existing = stateMonitor(state);
   if (existing) return existing.proxy;
-  let session = sessions.get(budget);
+  let session = (budget as unknown as Record<symbol, Session | undefined>)[sessionSymbol] ?? fallbackSessions.get(budget);
   if (!session) {
     while (scope.parent) scope = scope.parent;
     const ledger = new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields);
@@ -48,26 +50,32 @@ export function trackState(state: State, budget: { readonly values?: ValueArena;
       }
       values.close();
     });
-    sessions.set(budget, session);
+    if (Object.isExtensible(budget)) {
+      (budget as unknown as Record<symbol, Session>)[sessionSymbol] = session;
+    } else {
+      fallbackSessions.set(budget, session);
+    }
   }
   return new StateMonitor(state, session).proxy;
 }
 
-export function stateMonitor(state: State): StateMonitor | undefined { return monitors.get(state); }
+export function stateMonitor(state: State): StateMonitor | undefined {
+  return (state as unknown as Record<symbol, StateMonitor | undefined>)[monitorSymbol] ?? rawMonitors.get(state);
+}
 
 export function arrayStore(state: State): BindingStore | undefined {
-  const monitor = monitors.get(state);
+  const monitor = stateMonitor(state);
   if (!monitor) return undefined;
   return monitor.store ?? (monitor.lazyPipeStatus !== undefined ? monitor.lazyStoreView : undefined);
 }
 
 export function guestArrays(state: State): BindingStore | undefined {
-  const monitor = monitors.get(state), store = monitor?.store;
+  const monitor = stateMonitor(state), store = monitor?.store;
   return store?.owner.ledger === monitor?.session.ledger ? store : undefined;
 }
 
 export function requireArrays(state: State): BindingStore {
-  const monitor = monitors.get(state);
+  const monitor = stateMonitor(state);
   if (!monitor) throw new Error("Indexed-array state was not enrolled");
   return monitor.activate();
 }
@@ -106,8 +114,11 @@ export class StateMonitor {
     catch (error) { this.values.close(); throw error; }
     this.#wrapperCount = 1;
     this.proxy = new Proxy(raw, new StateProxyHandler(this, "state", false)) as State;
-    monitors.set(raw, this);
-    monitors.set(this.proxy, this);
+    if (Object.isExtensible(raw)) {
+      Object.defineProperty(raw, monitorSymbol, { value: this, writable: true, configurable: true });
+    } else {
+      rawMonitors.set(raw, this);
+    }
     if (session.monitors) session.monitors.add(this);
     else this.#retireCleanup = session.scope.register(async () => { await session.scope.drainWork(); this.closeValues(); });
   }
@@ -460,6 +471,7 @@ class StateProxyHandler implements ProxyHandler<object> {
     private readonly named: boolean,
   ) {}
   get(target: object, key: PropertyKey, receiver: unknown): unknown {
+    if (key === monitorSymbol) return this.monitor;
     const entry: unknown = Reflect.get(target, key, receiver);
     if (typeof entry !== "object" || entry === null) return entry;
     if (this.field === "state" && key === "extensions") return entry;

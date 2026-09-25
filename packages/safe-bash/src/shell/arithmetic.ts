@@ -380,7 +380,7 @@ function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
     return false;
   }
   if (node.kind === "binary") {
-    if (node.operator === "=" && depth === 0) {
+    if ((node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=") && depth === 0) {
       return node.left.kind === "name" && node.left.subscript === undefined && canEvalSafeSmiTree(node.right, depth + 1);
     }
     if (
@@ -431,6 +431,17 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
       refs.write(ref, intToStr(r));
       return r;
     }
+    if (node.operator === "+=" || node.operator === "-=" || node.operator === "*=") {
+      const target = node.left as Extract<Arithmetic, { kind: "name" }>;
+      const ref = refs.resolve(target.name, undefined) as string;
+      const l = fastSafeInt(refs.read(ref) as string | undefined, budget);
+      if (l === undefined || l < -94906265 || l > 94906265) return undefined;
+      const r = evalSafeSmi(node.right, refs, budget);
+      if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+      const updated = node.operator === "+=" ? l + r : node.operator === "-=" ? l - r : l * r;
+      refs.write(ref, intToStr(updated));
+      return updated;
+    }
     const l = evalSafeSmi(node.left, refs, budget);
     if (l === undefined || l < -94906265 || l > 94906265) return undefined;
     const r = evalSafeSmi(node.right, refs, budget);
@@ -452,10 +463,34 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
   return undefined;
 }
 
-export function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
-  if (!program.error && program.tree && canEvalSafeSmiTree(program.tree)) {
+const safeSmiSymbol = Symbol("safe-bash.safeSmiTree");
+
+function isSafeSmiProgram(program: ArithmeticProgram): boolean {
+  if (program.error || !program.tree) return false;
+  let cached = (program as unknown as Record<symbol, boolean | undefined>)[safeSmiSymbol];
+  if (cached === undefined) {
+    cached = canEvalSafeSmiTree(program.tree);
+    if (Object.isExtensible(program)) {
+      (program as unknown as Record<symbol, boolean>)[safeSmiSymbol] = cached;
+    }
+  }
+  return cached;
+}
+
+export function evaluateArithmeticSyncNonZero(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): boolean {
+  if (isSafeSmiProgram(program)) {
     const savedBudget = budget.snapshot();
-    const smi = evalSafeSmi(program.tree, references, budget);
+    const smi = evalSafeSmi(program.tree!, references, budget);
+    if (smi !== undefined) return smi !== 0;
+    budget.restore(savedBudget);
+  }
+  return evaluateArithmeticSync(program, references, budget) !== 0n;
+}
+
+export function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
+  if (isSafeSmiProgram(program)) {
+    const savedBudget = budget.snapshot();
+    const smi = evalSafeSmi(program.tree!, references, budget);
     if (smi !== undefined) return smallBigInt(smi);
     budget.restore(savedBudget);
   }
@@ -556,9 +591,9 @@ export function evaluateArithmeticSync(program: ArithmeticProgram, references: A
 }
 
 export function evaluateArithmeticSyncString(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): string {
-  if (!program.error && program.tree && canEvalSafeSmiTree(program.tree)) {
+  if (isSafeSmiProgram(program)) {
     const savedBudget = budget.snapshot();
-    const smi = evalSafeSmi(program.tree, references, budget);
+    const smi = evalSafeSmi(program.tree!, references, budget);
     if (smi !== undefined) return intToStr(smi);
     budget.restore(savedBudget);
   }

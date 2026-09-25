@@ -9,6 +9,9 @@ import { openCommandFile, type CommandFileDescriptor } from "./filesystem-descri
 export { bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
 export type { CountedFileWrite, FileOutputContext } from "./filesystem-output-budget.js";
 
+const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
+const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
+
 
 export async function writeFileOutput(context: Pick<CommandContext, "signal" | "registerCleanup">, bytes: Uint8Array, write: (bytes: Uint8Array) => Promise<void>): Promise<void> {
   context.signal.throwIfAborted();
@@ -48,6 +51,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   const { cleanupFailurePrioritySignal } = context;
   if (flag !== "w" && flag !== "a" && flag !== "wx") throw new TypeError("Invalid descriptor output flag");
   const controller = new AbortController();
+  (controller.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol] = true;
   if (context.signal.aborted) controller.abort(context.signal.reason);
   const signal = controller.signal;
   let descriptor: CommandFileDescriptor | undefined;
@@ -63,6 +67,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   let aborting: Promise<void> | undefined;
   let acquired: (() => void) | undefined;
   let acquisition: Promise<void> | undefined;
+  let callerWaiters: Set<(reason: unknown) => void> | undefined;
   const settleAcquisition = (): void => {
     acquiring = false;
     acquired?.();
@@ -82,13 +87,24 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
       await writes;
       try { await descriptor?.close(); }
       catch (reason) { retirementFailure = { reason }; throw reason; }
-      finally { context.signal.removeEventListener("abort", interrupted); }
+      finally {
+        if (callerWaiters) callerWaiters.delete(interrupted);
+        else context.signal.removeEventListener("abort", interrupted);
+      }
     })();
     void closing.catch(() => {});
     return closing;
   };
   const interrupted = (): void => {
-    if (!controller.signal.aborted) controller.abort(context.signal.reason);
+    if (!controller.signal.aborted) {
+      controller.abort(context.signal.reason);
+      const symSet = (signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
+      if (symSet && symSet.size > 0) {
+        const pending = [...symSet];
+        symSet.clear();
+        for (let i = 0; i < pending.length; i++) pending[i]!(signal.reason);
+      }
+    }
     void retire().catch(() => {});
   };
   const cleanup = async (): Promise<void> => {
@@ -98,7 +114,12 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   };
   try {
     context.registerCleanup?.(cleanup);
-    context.signal.addEventListener("abort", interrupted, { once: true });
+    if ((context.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
+      callerWaiters = ((context.signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol] ??= new Set());
+      callerWaiters.add(interrupted);
+    } else {
+      context.signal.addEventListener("abort", interrupted, { once: true });
+    }
     check();
     const capabilities = await context.fs.capabilitiesFor?.(path, { signal, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? context.fs.capabilities;
     check();

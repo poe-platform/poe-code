@@ -3,7 +3,7 @@ import { modeChange } from "./metadata/chmod.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
-import { getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
+import { getRuntimeBackingFileSystem, isSyncResolved } from "../fs/creation-mask.js";
 import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
 import { escapeText } from "../escaping.js";
 import { createDirectoryReader } from "./directory-admission.js";
@@ -323,17 +323,22 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     if (useSharedPrintBuf) sharedFindPrintBufInUse = true;
     const printBuf = useSharedPrintBuf ? sharedFindPrintBuf : Buffer.allocUnsafe(8192);
     let printPos = 0;
-    const flushPrintBuffer = async (): Promise<void> => {
-      if (printPos === 0) return;
+    const flushPrintBuffer = (): Promise<void> | undefined => {
+      if (printPos === 0) return undefined;
       const chunk = Uint8Array.prototype.slice.call(printBuf, 0, printPos);
       printPos = 0;
-      await output(context, chunk);
+      const p = output(context, chunk);
+      return isSyncResolved(p) ? undefined : p;
     };
     const appendPrintLine = async (escaped: string): Promise<void> => {
       const maxNeed = escaped.length * 3 + 1;
-      if (printPos + maxNeed > printBuf.length) await flushPrintBuffer();
+      if (printPos + maxNeed > printBuf.length) {
+        const fp = flushPrintBuffer();
+        if (fp) await fp;
+      }
       if (maxNeed > printBuf.length) {
-        await output(context, `${escaped}\n`);
+        const p = output(context, `${escaped}\n`);
+        if (!isSyncResolved(p)) await p;
         return;
       }
       printPos += printBuf.write(escaped, printPos, "utf8");
@@ -349,9 +354,11 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         return;
       }
       return (async () => {
-        await flushPrintBuffer();
+        const fp = flushPrintBuffer();
+        if (fp) await fp;
         if (maxNeed > printBuf.length) {
-          await output(context, `${escapedParent}/${escapedChild}\n`);
+          const p = output(context, `${escapedParent}/${escapedChild}\n`);
+          if (!isSyncResolved(p)) await p;
           return;
         }
         printPos += printBuf.write(escapedParent, printPos, "utf8");
@@ -494,16 +501,22 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const ok = typeof res === "boolean" ? res : await res;
           if (ok && !explicitAction) await appendPrintLine(escapeText(display, "display"));
         }
+        if (depth === 0 && printPos > 0) {
+          const fp = flushPrintBuffer();
+          if (fp) await fp;
+        }
       } catch (error) {
         if (formatBudget.exhausted) throw error;
-        await flushPrintBuffer();
+        const fp = flushPrintBuffer();
+        if (fp) await fp;
         await diagnostic(context, error);
         exitCode = 1;
       }
     };
     try {
       for (const root of roots) { if (quitRequested) break; await visit(root, 0, new Set(), root, ""); }
-      await flushPrintBuffer();
+      const fp = flushPrintBuffer();
+      if (fp) await fp;
       for (const flush of flushes) await flush();
       return { exitCode };
     } finally {

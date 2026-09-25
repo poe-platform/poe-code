@@ -23,18 +23,46 @@ export type ArrayAssignment =
   | { readonly kind: "element"; readonly name: string; readonly index: LiteralIndex; readonly append: boolean; readonly value: Word }
   | { readonly kind: "compound"; readonly name: string; readonly append: boolean; readonly entries: readonly ArrayEntry[] };
 
-const assignments = new WeakMap<Word, ArrayAssignment>();
-const selectors = new WeakMap<WordPart, ArraySelector>();
-const quoteMarkers = new WeakSet<WordPart>();
-export const prefixNameQuoteGroups = new WeakMap<WordPart, object>();
+function createSymbolMap<K extends object, V>(name: string) {
+  const sym = Symbol(name);
+  let fallback: WeakMap<K, V> | undefined;
+  return {
+    get(key: K): V | undefined {
+      const val = (key as unknown as Record<symbol, V | undefined>)[sym];
+      return val !== undefined ? val : fallback?.get(key);
+    },
+    set(key: K, value: V): void {
+      if (Object.isExtensible(key)) {
+        Object.defineProperty(key, sym, { value, writable: true, configurable: true });
+      } else {
+        (fallback ??= new WeakMap()).set(key, value);
+      }
+    },
+  };
+}
+
+const assignments = createSymbolMap<Word, ArrayAssignment>("safe-bash.arrayAssignment");
+const selectors = createSymbolMap<WordPart, ArraySelector>("safe-bash.arraySelector");
+const quoteMarkerSymbol = Symbol("safe-bash.quoteMarker");
+let fallbackQuoteMarkers: WeakSet<WordPart> | undefined;
+export const prefixNameQuoteGroups = createSymbolMap<WordPart, object>("safe-bash.prefixNameQuoteGroup");
 
 export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
-  if (synthetic) quoteMarkers.add(part);
-  else quoteMarkers.delete(part);
+  if (Object.isExtensible(part)) {
+    if (synthetic) {
+      Object.defineProperty(part, quoteMarkerSymbol, { value: true, writable: true, configurable: true });
+    } else if (quoteMarkerSymbol in part) {
+      (part as unknown as Record<symbol, boolean | undefined>)[quoteMarkerSymbol] = false;
+    }
+  } else if (synthetic) {
+    (fallbackQuoteMarkers ??= new WeakSet()).add(part);
+  } else {
+    fallbackQuoteMarkers?.delete(part);
+  }
 }
 
 export function isQuoteMarker(part: WordPart): boolean {
-  return quoteMarkers.has(part);
+  return Boolean((part as unknown as Record<symbol, boolean | undefined>)[quoteMarkerSymbol]) || Boolean(fallbackQuoteMarkers?.has(part));
 }
 
 export function literalIndex(source: string, offset: number, budget = new ParseBudget()): LiteralIndex {

@@ -25,7 +25,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { scopeFileSystem, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
-import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncString, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -164,10 +164,10 @@ const unsupportedSetOptionNames = new Set([
 ]);
 const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
 type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
-const commandSpellingCache = new WeakMap<Command, string>();
+const commandSpellingSymbol = Symbol("safe-bash.commandSpelling");
 
 function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>): string {
-  const cached = commandSpellingCache.get(command);
+  const cached = (command as unknown as Record<symbol, string | undefined>)[commandSpellingSymbol];
   if (cached !== undefined) return cached;
   let computed: string;
   if (command.kind === "arithmetic") computed = `((${command.source}))`;
@@ -188,7 +188,9 @@ function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmeti
     });
     computed = [...command.words.map(word => word.spelling ?? word.plain ?? ""), ...redirects].join(" ");
   }
-  commandSpellingCache.set(command, computed);
+  if (Object.isExtensible(command)) {
+    (command as unknown as Record<symbol, string>)[commandSpellingSymbol] = computed;
+  }
   return computed;
 }
 
@@ -211,8 +213,28 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedS
   return { ...result, ...(commandLimits === undefined ? {} : { commandLimits }) };
 }
 
-const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
-const syncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
+const budgetedSinkSymbol = Symbol("safe-bash.budgetedSink");
+const syncSinkSymbol = Symbol("safe-bash.syncSink");
+const fallbackBudgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
+const fallbackSyncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
+const budgetedSinks = {
+  get(sink: ByteSink) {
+    return (sink as unknown as Record<symbol, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> } | undefined>)[budgetedSinkSymbol] ?? fallbackBudgetedSinks.get(sink);
+  },
+  set(sink: ByteSink, value: { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }) {
+    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, unknown>)[budgetedSinkSymbol] = value;
+    else fallbackBudgetedSinks.set(sink, value);
+  },
+};
+const syncSinks = {
+  get(sink: ByteSink) {
+    return (sink as unknown as Record<symbol, ((chunk: Uint8Array) => void) | undefined>)[syncSinkSymbol] ?? fallbackSyncSinks.get(sink);
+  },
+  set(sink: ByteSink, value: (chunk: Uint8Array) => void) {
+    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, unknown>)[syncSinkSymbol] = value;
+    else fallbackSyncSinks.set(sink, value);
+  },
+};
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 
@@ -315,6 +337,7 @@ class ExecutionCleanup {
 export class Budget {
   readonly executionScope = Object.freeze({});
   #pathLookup: PathLookup | undefined;
+  #pathLookupSuspensions = 0;
   readonly parsing: ParseBudget;
   readonly values: ValueArena;
   readonly executionCleanup = new ExecutionCleanup(this);
@@ -346,7 +369,21 @@ export class Budget {
   }
 
   get pathLookup(): PathLookup {
-    return this.#pathLookup ??= new PathLookup();
+    if (!this.#pathLookup) {
+      this.#pathLookup = new PathLookup();
+      for (let i = 0; i < this.#pathLookupSuspensions; i++) this.#pathLookup.beginSuspension();
+    }
+    return this.#pathLookup;
+  }
+
+  beginPathLookupSuspension(): void {
+    this.#pathLookupSuspensions++;
+    this.#pathLookup?.beginSuspension();
+  }
+
+  endPathLookupSuspension(): void {
+    this.#pathLookupSuspensions--;
+    this.#pathLookup?.endSuspension();
   }
 
   abort(reason: unknown): void {
@@ -458,21 +495,26 @@ export class Budget {
       ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
       ...(sink.ownedOutput ? { ownedOutput: {
         get consumerClosed() { return sink.ownedOutput!.consumerClosed; },
-        write: async (chunk: Uint8Array) => {
-          signal.throwIfAborted();
-          if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
-          if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
+        write: (chunk: Uint8Array): Promise<void> => {
           try {
+            signal.throwIfAborted();
+            if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+            if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
             const capability = sink.ownedOutput!;
             const write = capability.write;
             signal.throwIfAborted();
             if (chunk.byteLength > this.limits.maxOutputBytes - this.bytes) this.fail("maxOutputBytes");
             this.bytes += chunk.byteLength;
-            await Reflect.apply(write, capability, [chunk]);
+            const res = Reflect.apply(write, capability, [chunk]);
+            if (isSyncResolved(res)) return resolvedVoid;
+            return Promise.resolve(res).then(
+              () => undefined,
+              (error: unknown) => { signal.throwIfAborted(); throw error; },
+            );
+          } catch (error) {
+            signal.throwIfAborted();
+            return Promise.reject(error);
           }
-          catch (error) { signal.throwIfAborted(); throw error; }
-          // An enrolled destination's successful receipt survives cancellation
-          // while draining; the next admission still checks the signal.
         },
       } } : {}),
       write: countedSyncWrite
@@ -684,7 +726,7 @@ interface IO {
     readonly target: Command | Pipeline;
     readonly frame: PreparedDescriptorFrame;
     io?: IO;
-    beforeExit?(status: number, io: IO): Promise<void>;
+    beforeExit?(status: number, io: IO): Promise<void> | void;
     published?: number;
     completed?: boolean;
   } | undefined;
@@ -937,16 +979,22 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
     ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}),
     ...(sink.ownedOutput ? { ownedOutput: {
       get consumerClosed() { return sink.ownedOutput!.consumerClosed; },
-      async write(chunk: Uint8Array) {
-        signal.throwIfAborted();
+      write(chunk: Uint8Array): Promise<void> {
         try {
+          signal.throwIfAborted();
           const capability = sink.ownedOutput!;
           const write = capability.write;
           signal.throwIfAborted();
-          await Reflect.apply(write, capability, [chunk]);
+          const res = Reflect.apply(write, capability, [chunk]);
+          if (isSyncResolved(res)) return resolvedVoid;
+          return Promise.resolve(res).then(
+            () => undefined,
+            (error: unknown) => { signal.throwIfAborted(); throw error; },
+          );
+        } catch (error) {
+          signal.throwIfAborted();
+          return Promise.reject(error);
         }
-        catch (error) { signal.throwIfAborted(); throw error; }
-        // Preserve accepted effects so the caller can acknowledge their bytes.
       },
     } } : {}),
     write: signaledSyncWrite
@@ -978,18 +1026,22 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
 }
 
 const shellDescriptorAdmissions = new WeakSet<object>();
-const shellDescriptorAdmissionGetters = new WeakSet<() => unknown>();
+const admissionGetterSymbol = Symbol("safe-bash.descriptorAdmissionGetter");
 const descriptorByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "byteLength")!.get!;
 
 function bindCommandIO(context: CommandContext, io?: IO): void {
   const existingHandlesDesc = Object.getOwnPropertyDescriptor(context, "admittedHandles");
-  if (io?.descriptors && (!existingHandlesDesc || (existingHandlesDesc.get ? shellDescriptorAdmissionGetters.has(existingHandlesDesc.get) : (!existingHandlesDesc.value || shellDescriptorAdmissions.has(existingHandlesDesc.value))))) {
+  if (io?.descriptors && (!existingHandlesDesc || (existingHandlesDesc.get ? Boolean((existingHandlesDesc.get as unknown as Record<symbol, unknown>)[admissionGetterSymbol]) : (!existingHandlesDesc.value || shellDescriptorAdmissions.has(existingHandlesDesc.value))))) {
     let handleManager: CommandContext["admittedHandles"];
     let closed = false;
-    io[invocationScope].registerFinalizer(() => {
-      closed = true;
-    });
+    let finalizerRegistered = false;
     const getAdmittedHandles = (): CommandContext["admittedHandles"] => {
+      if (!finalizerRegistered) {
+        finalizerRegistered = true;
+        io[invocationScope].registerFinalizer(() => {
+          closed = true;
+        });
+      }
       if (!handleManager) {
         let leases: Set<() => Promise<void>> | undefined;
         let closing: Promise<void> | undefined;
@@ -1080,7 +1132,7 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
       }
       return handleManager;
     };
-    shellDescriptorAdmissionGetters.add(getAdmittedHandles);
+    (getAdmittedHandles as unknown as Record<symbol, boolean>)[admissionGetterSymbol] = true;
     Object.defineProperty(context, "admittedHandles", {
       configurable: true,
       enumerable: true,
@@ -1843,7 +1895,21 @@ const syncPipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
 const predicateScratchWords: string[] = [];
 const fastSharedTextEncoder = new TextEncoder();
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-const assignmentCache = new WeakMap<Word, { name: string; value: Word; append: boolean } | null>();
+const assignmentCacheSymbol = Symbol("safe-bash.assignmentCache");
+let fallbackAssignmentCache: WeakMap<Word, { name: string; value: Word; append: boolean } | null> | undefined;
+const assignmentCache = {
+  get(word: Word): { name: string; value: Word; append: boolean } | null | undefined {
+    const val = (word as unknown as Record<symbol, { name: string; value: Word; append: boolean } | null | undefined>)[assignmentCacheSymbol];
+    return val !== undefined ? val : fallbackAssignmentCache?.get(word);
+  },
+  set(word: Word, value: { name: string; value: Word; append: boolean } | null): void {
+    if (Object.isExtensible(word)) {
+      (word as unknown as Record<symbol, { name: string; value: Word; append: boolean } | null>)[assignmentCacheSymbol] = value;
+    } else {
+      (fallbackAssignmentCache ??= new WeakMap()).set(word, value);
+    }
+  },
+};
 
 function hasGlobOrEscape(text: string): boolean {
   for (let i = 0; i < text.length; i++) {
@@ -2298,6 +2364,17 @@ export class Runtime {
   }
 
   #syncArithState: State | undefined;
+  #canFastMemoryRedirect: boolean | undefined;
+  private get canFastMemoryRedirect(): boolean {
+    return this.#canFastMemoryRedirect ??= (
+      !this.backingFs.capabilitiesFor &&
+      this.sourceFs.capabilities.open === true &&
+      this.sourceFs.capabilities.preferStreamingRedirection !== true &&
+      this.sourceFs.capabilities.readOnly !== true &&
+      this.sourceFs.capabilities.write !== false &&
+      this.sourceFs.capabilities.append !== false
+    );
+  }
   #syncArithRawVars: Record<string, string | undefined> | undefined;
   #syncArithLine: number | undefined;
   #syncArithRefs: ArithmeticReferences | undefined;
@@ -2334,11 +2411,12 @@ export class Runtime {
   }
 
   private syncShellArithmetic(program: ArithmeticProgram, state: State, line: number | undefined): bigint {
+    const raw = stateMonitor(state)?.raw ?? state;
     const prevState = this.#syncArithState;
     const prevVars = this.#syncArithRawVars;
     const prevLine = this.#syncArithLine;
-    this.#syncArithState = state;
-    this.#syncArithRawVars = (stateMonitor(state)?.raw ?? state).variables;
+    this.#syncArithState = raw;
+    this.#syncArithRawVars = raw.variables;
     this.#syncArithLine = line;
     try {
       return evaluateArithmeticSync(program, this.syncArithRefs, this.budget.parsing);
@@ -2349,12 +2427,30 @@ export class Runtime {
     }
   }
 
-  private syncShellArithmeticString(program: ArithmeticProgram, state: State, line: number | undefined): string {
+  private syncShellArithmeticNonZero(program: ArithmeticProgram, state: State, line: number | undefined): boolean {
+    const raw = stateMonitor(state)?.raw ?? state;
     const prevState = this.#syncArithState;
     const prevVars = this.#syncArithRawVars;
     const prevLine = this.#syncArithLine;
-    this.#syncArithState = state;
-    this.#syncArithRawVars = (stateMonitor(state)?.raw ?? state).variables;
+    this.#syncArithState = raw;
+    this.#syncArithRawVars = raw.variables;
+    this.#syncArithLine = line;
+    try {
+      return evaluateArithmeticSyncNonZero(program, this.syncArithRefs, this.budget.parsing);
+    } finally {
+      this.#syncArithState = prevState;
+      this.#syncArithRawVars = prevVars;
+      this.#syncArithLine = prevLine;
+    }
+  }
+
+  private syncShellArithmeticString(program: ArithmeticProgram, state: State, line: number | undefined): string {
+    const raw = stateMonitor(state)?.raw ?? state;
+    const prevState = this.#syncArithState;
+    const prevVars = this.#syncArithRawVars;
+    const prevLine = this.#syncArithLine;
+    this.#syncArithState = raw;
+    this.#syncArithRawVars = raw.variables;
     this.#syncArithLine = line;
     try {
       return evaluateArithmeticSyncString(program, this.syncArithRefs, this.budget.parsing);
@@ -2531,7 +2627,7 @@ export class Runtime {
   }
 
   private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
-    if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
+    if (value === undefined && state.nounset) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
   }
 
   async assignVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
@@ -3411,10 +3507,20 @@ export class Runtime {
     for (const entry of frame.entries) if (entry.instance.start) await entry.instance.start(this.extensionContext(state, io));
   }
 
+  private tryStartExtensionsSync(state: State): boolean {
+    const frame = state.extensions;
+    if (!frame || frame.started) return true;
+    if ((frame as { isIdleTrapState?: boolean }).isIdleTrapState) {
+      frame.started = true;
+      return true;
+    }
+    return false;
+  }
+
   private async extensionEvent(event: ShellExtensionEvent, state: State, io: IO, status: number, command = ""): Promise<boolean> {
     if (!hasActiveExtensions(state)) return false;
     this.signal.throwIfAborted();
-    await this.startExtensions(state, io);
+    if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
     const previous = state.status;
     state.status = status;
     state.extensions.eventDepth = (state.extensions.eventDepth ?? 0) + 1;
@@ -3542,7 +3648,7 @@ export class Runtime {
     if (state.noexec) return { exitCode: 0, terminated: false };
     state = trackState(state, this.budget, io[invocationScope]);
     try {
-      await this.startExtensions(state, io);
+      if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
       return { exitCode: await this.inputUnit(script, state, io), terminated: false };
     }
     catch (error) {
@@ -3570,14 +3676,13 @@ export class Runtime {
     if (this.middleware.length > 0) return undefined;
     if (pipeline.commands.length !== 1) return undefined;
     const command = pipeline.commands[0]!;
-    if (command.kind !== "simple" || command.redirects.length > 1) return undefined;
+    if ((command.kind !== "simple" && command.kind !== "arithmetic") || command.redirects.length > 1) return undefined;
     const scope = io[invocationScope];
     if (scope.failures.length > 0) return undefined;
-    const tracked = trackState(state, this.budget, scope);
-    const monitor = stateMonitor(tracked);
+    const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
     if (!monitor) return undefined;
     const rawState = monitor.raw;
-    if (io.terminal || io.asyncDefaultInput || hasActiveExtensions(rawState) || rawState.variableAttributes?.size || guestArrays(tracked)) return undefined;
+    if (io.terminal || io.asyncDefaultInput || hasActiveExtensions(rawState) || rawState.variableAttributes?.size || guestArrays(rawState)) return undefined;
     if (((this.budget.commands + 1) & 127) === 0) {
       if (hasYieldCheckpoint(this.signal) || ((this.budget.commands + 1) & 2047) === 0) return undefined;
       runYieldCheckpoint(this.signal);
@@ -3592,7 +3697,7 @@ export class Runtime {
     if (rawState.readonlyVariables?.has("PIPESTATUS")) return undefined;
     const store = monitor.store;
     const existing = store?.get("PIPESTATUS");
-    const psTarget = existing ? "indexed" : pipelineStatusTarget(tracked);
+    const psTarget = existing ? "indexed" : pipelineStatusTarget(rawState);
     if (psTarget !== "indexed" && psTarget !== "absent") return undefined;
     if (store?.watches.has("PIPESTATUS") || monitor.hasOverlay("PIPESTATUS")) return undefined;
     if (
@@ -3605,6 +3710,46 @@ export class Runtime {
     if (existing && (!elem0 || elem0.text.bytes !== 1)) return undefined;
     const canMutatePipeStatus = !existing || (existing.references === 1 && elem0!.text.references === 1);
     const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
+    if (command.kind === "arithmetic") {
+      if (
+        command.redirects.length !== 0 ||
+        command.expression.error ||
+        command.expression.hasSubscript ||
+        !canMutatePipeStatus ||
+        (!ignored && rawState.errexit) ||
+        rawState.nounset ||
+        rawState.readonlyVariables?.size
+      ) {
+        return undefined;
+      }
+      let nonZero: boolean;
+      try {
+        nonZero = this.syncShellArithmeticNonZero(command.expression, rawState, diagnosticLine);
+      } catch {
+        this.signal.throwIfAborted();
+        return undefined;
+      }
+      if (rawState.extensions && !rawState.extensions.eventDepth) {
+        publishCommandSpelling(rawState, commandSpelling(command));
+      }
+      const owner = monitor.internalOwner();
+      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+      this.budget.tick();
+      if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
+      const rawStatus = nonZero ? 0 : 1;
+      const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
+      if (!existing) {
+        monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
+        owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+      } else {
+        elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
+        store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+      }
+      rawState.status = finalStatus;
+      monitor.epoch = restEpoch;
+      if (store) store.epoch = restEpoch;
+      return finalStatus;
+    }
     if (command.redirects.length === 1) {
       if (!canMutatePipeStatus && elem0!.text.shellValue !== "0") return undefined;
       if (pipeline.negate && !ignored && rawState.errexit) return undefined;
@@ -3613,12 +3758,7 @@ export class Runtime {
         this.budget.limits.maxRedirects < 1 ||
         this.fileWrites.size !== 0 ||
         this.outputFiles.size !== 0 ||
-        this.backingFs.capabilitiesFor ||
-        this.sourceFs.capabilities.open !== true ||
-        this.sourceFs.capabilities.preferStreamingRedirection === true ||
-        this.sourceFs.capabilities.readOnly === true ||
-        this.sourceFs.capabilities.write === false ||
-        this.sourceFs.capabilities.append === false
+        !this.canFastMemoryRedirect
       ) {
         return undefined;
       }
@@ -3651,12 +3791,12 @@ export class Runtime {
       let lastArg = w0Plain;
       try {
         if (w0Plain === "echo" && command.words.length === 1) {
-          targetVal = this.fastValueWord(r0.target, tracked, io, true, false, false, true, undefined, diagnosticLine);
+          targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
           formatted = "\n";
         } else if (w0Plain === "echo" && command.words.length === 2) {
-          const arg0 = this.fastValueWord(command.words[1]!, tracked, io, true, false, false, true, undefined, diagnosticLine);
+          const arg0 = this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
           if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
-            targetVal = this.fastValueWord(r0.target, tracked, io, true, false, false, true, undefined, diagnosticLine);
+            targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
             formatted = `${arg0}\n`;
             lastArg = arg0;
           }
@@ -3664,7 +3804,7 @@ export class Runtime {
           fastSubScratchArgs.length = 0;
           let allStrings = true;
           for (let i = 1; i < command.words.length; i++) {
-            const v = this.fastValueWord(command.words[i]!, tracked, io, true, false, false, true, undefined, diagnosticLine);
+            const v = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
             if (typeof v !== "string") {
               allStrings = false;
               break;
@@ -3681,7 +3821,7 @@ export class Runtime {
             }
             fastSubScratchArgs.length = 0;
             if (formatted !== undefined) {
-              targetVal = this.fastValueWord(r0.target, tracked, io, true, false, false, true, undefined, diagnosticLine);
+              targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
             }
           } else {
             fastSubScratchArgs.length = 0;
@@ -3791,7 +3931,7 @@ export class Runtime {
       }
       let fastAssigned: ShellValue | undefined;
       try {
-        fastAssigned = this.fastValueWord(assignment.value, tracked, io, false, false, false, false, 0, diagnosticLine);
+        fastAssigned = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
       } catch {
         return undefined;
       }
@@ -3802,8 +3942,8 @@ export class Runtime {
       rawState.substitutionStatus = 0;
       if (assignment.name !== "_") delete rawState.variables._;
       rawState.lastArgument = "";
-      publishVariable(tracked, assignment.name, fastAssigned);
-      if (rawState.allexport) tracked.exported.add(assignment.name);
+      monitor.publishStringVariable(assignment.name, fastAssigned as string);
+      if (rawState.allexport) monitor.proxy.exported.add(assignment.name);
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
         monitor.lazyPipeStatus = singleStatusZero;
@@ -3834,7 +3974,7 @@ export class Runtime {
           predicateScratchWords.length = 0;
           try {
             for (let i = 0; i < command.words.length; i++) {
-              const fast = this.fastValueWord(command.words[i]!, tracked, io, true, false, false, true, undefined, diagnosticLine);
+              const fast = this.fastValueWord(command.words[i]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
               if (typeof fast !== "string") {
                 predicateScratchWords.length = 0;
                 return undefined;
@@ -4118,21 +4258,20 @@ export class Runtime {
             childDepth, this.cancellationMaxDepth, frame, this.inputProfile,
           );
           let captured: CapturedCancellationOutcome<CommandResult>;
-          const preparationCleanup: (() => void | Promise<void>)[] = [];
+          let cleanupRefs: PipeDescriptorFrame | undefined;
+          let cleanupDescFrame: PreparedDescriptorFrame | undefined;
+          let cleanupInput: ShellInput | undefined;
           let stageOwnsCleanup = false;
           try {
-          const references = new PipeDescriptorFrame(io[invocationScope]);
-          preparationCleanup.push(() => references.close());
-          const descriptorFrame = new PreparedDescriptorFrame(references, this.budget);
-          preparationCleanup.push(() => descriptorFrame.close());
+          const references = (cleanupRefs = new PipeDescriptorFrame(io[invocationScope]));
+          const descriptorFrame = (cleanupDescFrame = new PreparedDescriptorFrame(references, this.budget));
           const reading = incoming?.endpoints?.read;
           const writing = outgoing?.endpoints?.write;
           const readReference = reading && references.open(reading, this.budget);
           const writeReference = writing && references.open(writing, this.budget);
-          const input = incoming
+          const input = (cleanupInput = incoming
             ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() }, true)
-            : new ShellInput(io.stdin, this.budget, signal, undefined, true);
-          preparationCleanup.push(() => input.close());
+            : new ShellInput(io.stdin, this.budget, signal, undefined, true));
           const writable = writing?.writable ?? outgoing?.writable;
           const failOutput = writable?.[outputFailure]?.bind(writable);
           const pipeOutput: ByteSink | undefined = outgoing && { ...(failOutput ? { [outputFailure]: failOutput } : {}), ownedOutput: writable!.ownedOutput!, write: (chunk) => {
@@ -4293,7 +4432,11 @@ export class Runtime {
           captured = { kind: "return", value: await executeStage() };
           } catch (reason) {
             rejectPreparation?.(reason);
-            if (!stageOwnsCleanup) await Promise.all(preparationCleanup.map(cleanup => io[invocationScope].cleanup(cleanup)));
+            if (!stageOwnsCleanup) {
+              if (cleanupRefs) await io[invocationScope].cleanup(() => cleanupRefs!.close());
+              if (cleanupDescFrame) await io[invocationScope].cleanup(() => cleanupDescFrame!.close());
+              if (cleanupInput) await io[invocationScope].cleanup(() => cleanupInput!.close());
+            }
             captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
               ? { kind: "throw", reason, report: frame.report }
               : { kind: "throw", reason };
@@ -4330,7 +4473,7 @@ export class Runtime {
 
   async runCommandIsolated(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {
     try {
-      await this.startExtensions(state, io);
+      if (!this.tryStartExtensionsSync(state)) await this.startExtensions(state, io);
       return await this.command(command, state, io, fileShortcut);
     }
     catch (error) {
@@ -4372,12 +4515,21 @@ export class Runtime {
     }
     const publishes = command.kind === "simple" || command.kind === "subshell" || command.kind === "arithmetic" || command.kind === "conditional";
     const terminal = io.terminal?.target === command ? io.terminal : undefined;
-    if (terminal) terminal.beforeExit = async (status, completionIO) => {
+    if (terminal) terminal.beforeExit = (status, completionIO): Promise<void> | void => {
       if (publishes) {
         const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
-        await this.publishStatus(state, [reported], completionIO);
-        terminal.published = status;
-        await this.errexit(status, state, completionIO);
+        const statuses = reported === 0 ? singleStatusZero : reported === 1 ? singleStatusOne : [reported];
+        const publishing = this.publishStatus(state, statuses, completionIO);
+        if (!publishing && (status === 0 || (!state.errexit && !hasActiveExtensions(state)) || completionIO.execution?.ignoreErrexit)) {
+          this.signal.throwIfAborted();
+          terminal.published = status;
+          return;
+        }
+        return (async () => {
+          if (publishing) await publishing;
+          terminal.published = status;
+          await this.errexit(status, state, completionIO);
+        })();
       }
     };
     const scope = io[invocationScope];
@@ -4504,12 +4656,7 @@ export class Runtime {
       !guestArrays(state) &&
       this.fileWrites.size === 0 &&
       this.outputFiles.size === 0 &&
-      !this.backingFs.capabilitiesFor &&
-      this.sourceFs.capabilities.open === true &&
-      this.sourceFs.capabilities.preferStreamingRedirection !== true &&
-      this.sourceFs.capabilities.readOnly !== true &&
-      this.sourceFs.capabilities.write !== false &&
-      this.sourceFs.capabilities.append !== false
+      this.canFastMemoryRedirect
     ) {
       const r0 = command.redirects[0]!;
       const w0Plain = command.words[0]!.plain;
@@ -4622,7 +4769,7 @@ export class Runtime {
     const hasRedirects = command.redirects.length > 0 || fileShortcut || command.kind === "subshell";
     const inputs = hasRedirects ? new Set<{ close(): void | Promise<void> }>() : emptyInputs;
     const outputs = hasRedirects ? new Set<OutputFinalizer>() : emptyOutputs;
-    const outputFailures: { descriptor: CommandFileDescriptor; reason: unknown }[] = [];
+    let outputFailures: { descriptor: CommandFileDescriptor; reason: unknown }[] | undefined;
     let outputStatus: number | undefined;
     const finishOutputs = async (status: number): Promise<void> => {
       if (outputs.size === 0) return;
@@ -4631,7 +4778,7 @@ export class Runtime {
       const settled = await Promise.allSettled(pending.map(close => close({ status })));
       for (const [index, result] of settled.entries()) {
         const descriptor = pending[index]?.descriptor;
-        if (result.status === "rejected" && descriptor) outputFailures.push({ descriptor, reason: result.reason });
+        if (result.status === "rejected" && descriptor) (outputFailures ??= []).push({ descriptor, reason: result.reason });
       }
       if (status !== 0) outputStatus = status;
       throwCleanupFailures(settled.filter(result => result.status === "rejected").map(result => result.reason));
@@ -4656,33 +4803,31 @@ export class Runtime {
     let snapshotScope: InvocationScope | undefined;
     let finishSnapshot: (() => void) | undefined;
     try {
-      const execute = async (): Promise<number> => {
+      let status = 0;
       if (command.kind === "function") {
         if (state.readonlyFunctions?.has(command.name)) {
           await this.diagnostic(io, `${command.name}: readonly function`);
-          return 1;
-        }
-        if (state.profile === "sh" && (specialBuiltinNames.has(command.name) || state.extensions?.builtins.get(command.name)?.special)) {
+          status = 1;
+        } else if (state.profile === "sh" && (specialBuiltinNames.has(command.name) || state.extensions?.builtins.get(command.name)?.special)) {
           await this.diagnostic(io, `\`${command.name}': is a special builtin`);
           throw new Flow("exit", 2);
+        } else {
+          const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
+          const offset = io.diagnosticOffset ?? 0;
+          const bodyLine = io.functionCommandLines?.get(command.body);
+          if (bodyLine !== undefined) body.line = bodyLine - offset;
+          functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
+          state.functions.set(command.name, body);
+          status = 0;
         }
-        const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
-        const offset = io.diagnosticOffset ?? 0;
-        const bodyLine = io.functionCommandLines?.get(command.body);
-        if (bodyLine !== undefined) body.line = bodyLine - offset;
-        functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
-        state.functions.set(command.name, body);
-        return 0;
-      }
-      if (command.kind === "simple") {
-        const status = await this.simple(command, state, originalIO, inputs, outputs, () => {
+      } else if (command.kind === "simple") {
+        status = await this.simple(command, state, originalIO, inputs, outputs, () => {
           snapshotScope = originalIO[invocationScope].child();
           void snapshotScope.run(() => new Promise<void>(resolve => { finishSnapshot = resolve; }));
           return snapshotScope;
         }, fileShortcut, terminal);
         if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
-        return status;
-      }
+      } else {
       io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
       if (terminal) {
         terminal.io = io;
@@ -4691,7 +4836,7 @@ export class Runtime {
       if (command.kind === "conditional") {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "[[";
         try {
-          return await evaluateConditional(command.expression, {
+          status = await evaluateConditional(command.expression, {
             fs: this.fs, cwd: state.cwd, signal: this.signal,
             predicateIdentity: io.capabilities?.predicateIdentity,
             reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
@@ -4711,30 +4856,27 @@ export class Runtime {
           if (error instanceof EreProfileLimitError) {
             try { await this.diagnostic(io, `[[ ${error.message}`); }
             catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
-            return 3;
-          }
-          if (error instanceof ConditionalUnsupported) {
+            status = 3;
+          } else if (error instanceof ConditionalUnsupported) {
             try { await this.diagnostic(io, error.message); }
             catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
-            return 2;
-          }
-          if (error instanceof PublicDiagnostic) {
+            status = 2;
+          } else if (error instanceof PublicDiagnostic) {
             await this.diagnostic(io, `[[: ${error.message}`);
-            return 1;
+            status = 1;
+          } else {
+            if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;
+            diagnosticFailure = new NounsetDiagnosticFailure(error);
+            throw diagnosticFailure;
           }
-          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;
-          diagnosticFailure = new NounsetDiagnosticFailure(error);
-          throw diagnosticFailure;
         }
-      }
-      if (command.kind === "arithmetic") {
+      } else if (command.kind === "arithmetic") {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
         try {
-          return Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
+          status = Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
         }
         catch (error) { this.rethrowArithmeticControl(error); throw new PublicDiagnostic(`((: ${message(error, this.budget.onInternalError)}`); }
-      }
-      if (command.kind === "subshell") {
+      } else if (command.kind === "subshell") {
         const child = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         child.extensions = undefined;
         let started = false;
@@ -4744,51 +4886,72 @@ export class Runtime {
           child.loopDepth = 0;
           if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("child-job-install", state, io);
           started = true;
-          return await this.run(command.body, child, io);
+          status = await this.run(command.body, child, io);
         } finally {
           try {
             if (!started && child.extensions?.cleanup.length) await io[invocationScope].cleanup(() => this.releaseExtensions(child));
           } finally { stateMonitor(child)?.closeValues(); }
         }
-      }
-      if (command.kind === "group") return await this.script(command.body, state, io);
-      if (command.kind === "if") {
+      } else if (command.kind === "group") {
+        status = await this.script(command.body, state, io);
+      } else if (command.kind === "if") {
+        let matchedBranch = false;
         for (const branch of command.branches) {
-          if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) return await this.script(branch.body, state, io);
+          if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) {
+            status = await this.script(branch.body, state, io);
+            matchedBranch = true;
+            break;
+          }
         }
-        return command.otherwise ? await this.script(command.otherwise, state, io) : 0;
-      }
-      if (command.kind === "case") {
+        if (!matchedBranch) status = command.otherwise ? await this.script(command.otherwise, state, io) : 0;
+      } else if (command.kind === "case") {
         if (hasActiveExtensions(state)) {
           const description = `case ${command.subject.spelling ?? command.subject.plain ?? ""} in `;
           if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
-          if (await this.extensionEvent("command", state, io, state.status, description)) return state.status;
-        }
-        const subject = (await this.word(command.subject, state, io, false)).join("");
-        const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation };
-        let status = 0;
-        let fallthrough = false;
-        let patterns = 0;
-        for (const clause of command.clauses) {
-          let matched = fallthrough;
-          if (!matched) for (const word of clause.patterns) {
-            if (++patterns % 128 === 0) await yieldTurn(this.signal);
-            const pattern = (await this.word(word, state, io, false, true)).join("");
-            if (await matchesPattern(pattern, subject, work, !!state.nocasematch)) { matched = true; break; }
+          if (await this.extensionEvent("command", state, io, state.status, description)) status = state.status;
+          else {
+            const subject = (await this.word(command.subject, state, io, false)).join("");
+            const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation };
+            let fallthrough = false;
+            let patterns = 0;
+            for (const clause of command.clauses) {
+              let matched = fallthrough;
+              if (!matched) for (const word of clause.patterns) {
+                if (++patterns % 128 === 0) await yieldTurn(this.signal);
+                const pattern = (await this.word(word, state, io, false, true)).join("");
+                if (await matchesPattern(pattern, subject, work, !!state.nocasematch)) { matched = true; break; }
+              }
+              if (!matched) continue;
+              if (clause.body.lists.length) status = await this.script(clause.body, state, io);
+              if (clause.terminator === ";;" || clause.terminator === "esac") break;
+              fallthrough = clause.terminator === ";&";
+            }
           }
-          if (!matched) continue;
-          if (clause.body.lists.length) status = await this.script(clause.body, state, io);
-          if (clause.terminator === ";;" || clause.terminator === "esac") break;
-          fallthrough = clause.terminator === ";&";
+        } else {
+          const subject = (await this.word(command.subject, state, io, false)).join("");
+          const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation };
+          let fallthrough = false;
+          let patterns = 0;
+          for (const clause of command.clauses) {
+            let matched = fallthrough;
+            if (!matched) for (const word of clause.patterns) {
+              if (++patterns % 128 === 0) await yieldTurn(this.signal);
+              const pattern = (await this.word(word, state, io, false, true)).join("");
+              if (await matchesPattern(pattern, subject, work, !!state.nocasematch)) { matched = true; break; }
+            }
+            if (!matched) continue;
+            if (clause.body.lists.length) status = await this.script(clause.body, state, io);
+            if (clause.terminator === ";;" || clause.terminator === "esac") break;
+            fallthrough = clause.terminator === ";&";
+          }
         }
-        return status;
-      }
-      let status = 0;
+      } else {
       const loopRestoration = stateMonitor(state)?.restoration();
       state.loopDepth++;
       try {
         if (command.kind === "for") {
-          const fastLoopWords = command.words?.length === 1 && state.braceexpand !== false && !state.variableAttributes?.size && !guestArrays(state)
+          const rawLoopState = stateMonitor(state)?.raw ?? state;
+          const fastLoopWords = command.words?.length === 1 && rawLoopState.braceexpand !== false && !rawLoopState.variableAttributes?.size && !guestArrays(rawLoopState)
             ? tryFastExpandBraceRange(command.words[0]!, this.budget, io[valueScope] ? (b, o) => io[valueScope]!.reserve(b, o) : undefined)
             : undefined;
           const values = fastLoopWords ?? (command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state));
@@ -4797,10 +4960,10 @@ export class Runtime {
             isShellIdentifier(command.name) &&
             command.name !== "OPTIND" &&
             !command.name.includes("[") &&
-            !state.readonlyVariables?.has(command.name) &&
-            !state.variableAttributes?.size &&
-            !guestArrays(state) &&
-            !arrayStore(state)?.get(command.name);
+            !rawLoopState.readonlyVariables?.has(command.name) &&
+            !rawLoopState.variableAttributes?.size &&
+            !guestArrays(rawLoopState) &&
+            !arrayStore(rawLoopState)?.get(command.name);
           let loopTurn = 0;
           for (const value of values) {
             this.budget.loop();
@@ -4809,19 +4972,19 @@ export class Runtime {
               else runYieldCheckpoint(this.signal);
             }
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-            if (canFastAssignLoopVar && !state.readonlyVariables?.has(command.name) && !arrayStore(state)?.get(command.name)) {
-              publishVariable(state, command.name, value);
-              if (state.allexport) state.exported.add(command.name);
+            if (canFastAssignLoopVar && !rawLoopState.readonlyVariables?.has(command.name) && !arrayStore(rawLoopState)?.get(command.name)) {
+              publishVariable(rawLoopState, command.name, value);
+              if (rawLoopState.allexport) state.exported.add(command.name);
             } else {
               await this.assignVariable(state, command.name, value, io);
             }
-            if (hasActiveExtensions(state)) {
+            if (hasActiveExtensions(rawLoopState)) {
               const description = `for ${command.name} in ${command.words?.map(word => word.spelling ?? word.plain ?? "").join(" ") ?? '"$@"'}`;
-              if (!state.extensions.eventDepth) publishCommandSpelling(state, description);
+              if (!rawLoopState.extensions?.eventDepth) publishCommandSpelling(state, description);
               if (await this.extensionEvent("command", state, io, state.status, description)) continue;
             }
-            if (!state.extensions?.checkpoints.length) {
-              const syncBody = this.trySyncScript(command.body, state, io, bodyIgnoreErrexit);
+            if (!rawLoopState.extensions?.checkpoints.length) {
+              const syncBody = this.trySyncScript(command.body, rawLoopState, io, bodyIgnoreErrexit);
               if (typeof syncBody === "number") {
                 status = syncBody;
                 continue;
@@ -4836,6 +4999,7 @@ export class Runtime {
             if (result.stop) break;
           }
         } else if (command.kind === "arithmetic-for") {
+          const rawArithState = stateMonitor(state)?.raw ?? state;
           const evaluate = async (program: ArithmeticProgram | undefined): Promise<bigint | undefined> => {
             if (!program) return 1n;
             try { return await this.expandedArithmeticValue(program, state, io); }
@@ -4845,10 +5009,10 @@ export class Runtime {
               return undefined;
             }
           };
-          const evaluateSync = (program: ArithmeticProgram | undefined): bigint | Promise<bigint | undefined> | undefined => {
-            if (!program) return 1n;
-            if (!program.error && !program.hasSubscript && !guestArrays(state) && !state.variableAttributes?.size) {
-              try { return this.syncShellArithmetic(program, state, io.diagnosticLine); }
+          const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
+            if (!program) return true;
+            if (!program.error && !program.hasSubscript && !guestArrays(rawArithState) && !rawArithState.variableAttributes?.size) {
+              try { return this.syncShellArithmeticNonZero(program, rawArithState, io.diagnosticLine); }
               catch (error) {
                 this.rethrowArithmeticControl(error);
                 return this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`).then(() => undefined);
@@ -4856,8 +5020,8 @@ export class Runtime {
             }
             return evaluate(program);
           };
-          const initOrPromise = evaluateSync(command.expressions[0]);
-          if ((typeof initOrPromise === "bigint" ? initOrPromise : await initOrPromise) === undefined) return 1;
+          const initOrPromise = evaluateSyncNonZero(command.expressions[0]);
+          if ((typeof initOrPromise === "boolean" ? initOrPromise : await initOrPromise) === undefined) return 1;
           const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           let loopTurn = 0;
           while (true) {
@@ -4866,12 +5030,16 @@ export class Runtime {
               if (hasYieldCheckpoint(this.signal) || (loopTurn & 2047) === 0) await yieldTurn(this.signal);
               else runYieldCheckpoint(this.signal);
             }
-            const condOrPromise = evaluateSync(command.expressions[1]);
-            const condition = typeof condOrPromise === "bigint" ? condOrPromise : await condOrPromise;
-            if (condition === undefined) return 1;
-            if (condition === 0n) break;
-            if (!state.extensions?.checkpoints.length) {
-              const syncBody = this.trySyncScript(command.body, state, io, bodyIgnoreErrexit);
+            const condOrPromise = evaluateSyncNonZero(command.expressions[1]);
+            if (typeof condOrPromise === "boolean") {
+              if (!condOrPromise) break;
+            } else {
+              const condition = await condOrPromise;
+              if (condition === undefined) return 1;
+              if (condition === 0n) break;
+            }
+            if (!rawArithState.extensions?.checkpoints.length) {
+              const syncBody = this.trySyncScript(command.body, rawArithState, io, bodyIgnoreErrexit);
               if (typeof syncBody === "number") {
                 status = syncBody;
               } else {
@@ -4884,12 +5052,12 @@ export class Runtime {
               status = result.status;
               if (result.stop) break;
             }
-            const stepOrPromise = evaluateSync(command.expressions[2]);
-            if ((typeof stepOrPromise === "bigint" ? stepOrPromise : await stepOrPromise) === undefined) return 1;
+            const stepOrPromise = evaluateSyncNonZero(command.expressions[2]);
+            if ((typeof stepOrPromise === "boolean" ? stepOrPromise : await stepOrPromise) === undefined) { status = 1; break; }
           }
         } else if (command.kind === "select") {
           const values = command.words ? await this.valueWords(command.words, state, io) : this.positionalValues(state);
-          if (!values.length) return 0;
+          if (values.length) {
           const input = io.stdin instanceof ShellInput ? io.stdin : new ShellInput(io.stdin, this.budget, this.signal);
           const work = { remaining: this.budget.limits.maxExpansionBytes * 8, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
           let showMenu = true;
@@ -4902,10 +5070,11 @@ export class Runtime {
             if (state.readonlyVariables?.has("REPLY")) {
               await this.diagnostic(io, "REPLY: readonly variable");
               await writeText(io.stdout, "\n");
-              return 1;
+              status = 1;
+              break;
             }
             await this.writeVariable(state, "REPLY", line.value, io);
-            if (!line.terminated) { await writeText(io.stdout, "\n"); return 1; }
+            if (!line.terminated) { await writeText(io.stdout, "\n"); status = 1; break; }
             const bytes = shellValueBytes(line.value, allocation);
             if (!bytes.length) { showMenu = true; continue; }
             let choice = 0;
@@ -4928,6 +5097,7 @@ export class Runtime {
             status = result.status;
             if (result.stop) break;
             showMenu = shellValueByteLength(stateMonitor(state)?.values.get("REPLY", state.variables.REPLY ?? "") ?? state.variables.REPLY ?? "") === 0;
+          }
           }
         } else {
           const conditionIO = io.execution?.ignoreErrexit ? io : { ...io, execution: { ignoreErrexit: true } };
@@ -4964,12 +5134,14 @@ export class Runtime {
         if (loopRestoration) loopRestoration.decrementLoopDepth();
         else state.loopDepth--;
       }
-      return status;
-      };
-      let status = await execute();
+      }
+      }
       if (terminal) {
-        await terminal.beforeExit?.(status, terminal.io ?? io);
-        status = await this.finishShell(state, terminal.io ?? io, status);
+        const before = terminal.beforeExit?.(status, terminal.io ?? io);
+        if (before) await before;
+        if (!this.tryFinishShellSync(state)) {
+          status = await this.finishShell(state, terminal.io ?? io, status);
+        }
         terminal.completed = true;
       }
       if (outputs.size > 0) await finishOutputs(status);
@@ -5002,7 +5174,7 @@ export class Runtime {
         }
         catch (reason) {
           this.signal.throwIfAborted();
-          if (!outputFailures.length) throw reason;
+          if (!outputFailures?.length) throw reason;
           await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${message(reason, this.budget.onInternalError)}\n`);
           for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
         }
@@ -5015,7 +5187,7 @@ export class Runtime {
         return 1;
       }
       if (errorCode(error) === "EPIPE") {
-        for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
+        if (outputFailures) for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
         if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(141, state, io);
         return 141;
       }
@@ -5039,7 +5211,7 @@ export class Runtime {
           const namedDeclaration = error instanceof DiscardCommandFailure && error.origin === "declaration" && origin?.name !== undefined;
           const detail = diagnostic ?? `${namedDeclaration ? `${origin.name}: ` : ""}${publicMessage}`;
           await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${detail}\n`);
-          for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
+          if (outputFailures) for (const failure of outputFailures) failure.descriptor.acknowledgeCloseFailure(failure.reason);
         }
         catch (failure) { this.signal.throwIfAborted(); publicDiagnosticMessage(failure, this.budget.onInternalError); }
       }
@@ -5338,11 +5510,11 @@ export class Runtime {
               });
             } };
           };
-          const resumePathCache = this.budget.pathLookup.suspend();
+          this.budget.beginPathLookupSuspension();
           const release = (): void => {
             if (closed) return;
             closed = true;
-            resumePathCache();
+            this.budget.endPathLookupSuspension();
             if (canonical) return;
             if (--file.references === 0 && this.outputFiles.get(key) === file) this.outputFiles.delete(key);
           };
@@ -5684,7 +5856,7 @@ export class Runtime {
   private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false): Promise<number> {
     const { [invocationScope]: scope, [valueScope]: _vs, [declarationArrays]: _da, argumentValues: _av, ...publicIO } = io as IO & { argumentValues?: unknown };
     const allocation = this.budget.values.scope();
-    scope.registerFinalizer(() => allocation.close());
+    try {
     if (typeof nameValue !== "string") allocation.hold(nameValue);
     const name = shellValueText(nameValue);
     let currentName = nameValue;
@@ -5790,7 +5962,7 @@ export class Runtime {
     }) : [];
     const terminalHandler = (forwarded: CommandContext): Promise<CommandResult> => scope.run(async () => {
       scope.assertOpen();
-      const commandName = Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command;
+      const commandName = !hasMiddleware && typeof nameValue === "string" ? name : (Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command);
       const forwardedValues = hasMiddleware ? getCommandArguments(forwarded) : argumentValues;
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
       const context = (hasMiddleware
@@ -5811,12 +5983,10 @@ export class Runtime {
       };
       const ensureRuntimeContext = (): void => {
         if (!hasMiddleware && context[invocationScope] === undefined) {
-          Object.assign(context, {
-            args: admitted.args,
-            argumentValues: admitted,
-            [invocationScope]: scope,
-            ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
-          });
+          context.args = admitted.args;
+          context.argumentValues = admitted;
+          context[invocationScope] = scope;
+          if (io[valueScope] !== undefined) context[valueScope] = io[valueScope];
         }
       };
       const previous = hasMiddleware ? new Map<string, SavedVariable & { overlay: string | undefined }>() : undefined;
@@ -6051,16 +6221,20 @@ export class Runtime {
           await this.diagnostic({ ...io, ...context }, concatShellValues([displayed, ": command not found"], allocation));
           return { exitCode: 127 };
         }
-        this.budget.pathLookup.suspendUntilClosed(scope);
+        this.budget.beginPathLookupSuspension();
         const executionContext = state.externalInvocation
           ? Object.create(Object.getPrototypeOf(forwarded), {
             ...Object.getOwnPropertyDescriptors(forwarded),
             externalInvocation: { value: true, configurable: true },
           }) as ShellCommandContext
           : forwarded;
-        const raw = definition.execute(executionContext);
-        const observed = this.observeRuntimeReturn(raw, runtimeFrame);
-        return await interruptible(observed, this.signal);
+        try {
+          const raw = definition.execute(executionContext);
+          const observed = this.observeRuntimeReturn(raw, runtimeFrame);
+          return await interruptible(observed, this.signal);
+        } finally {
+          this.budget.endPathLookupSuspension();
+        }
       } finally {
         if (hasMiddleware) {
         const prevMap = previous!;
@@ -6095,6 +6269,9 @@ export class Runtime {
         this.outcomeFrame.report = runtimeFrame.report;
       }
       throw error;
+    }
+    } finally {
+      allocation.close();
     }
   }
 

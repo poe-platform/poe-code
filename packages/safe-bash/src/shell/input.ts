@@ -17,13 +17,29 @@ export interface PreparedShellInput {
   close(): Promise<void>;
 }
 
-const inputBuffers = new WeakMap<Budget, Set<InputBufferLease>>();
+const inputBuffersSymbol = Symbol("safe-bash.inputBuffers");
+const fallbackInputBuffers = new WeakMap<Budget, Set<InputBufferLease>>();
+
+function getInputBufferLeases(budget: Budget): Set<InputBufferLease> | undefined {
+  return (budget as unknown as Record<symbol, Set<InputBufferLease> | undefined>)[inputBuffersSymbol] ?? fallbackInputBuffers.get(budget);
+}
+
+function setInputBufferLeases(budget: Budget, leases: Set<InputBufferLease> | undefined): void {
+  if (Object.isExtensible(budget)) {
+    (budget as unknown as Record<symbol, Set<InputBufferLease> | undefined>)[inputBuffersSymbol] = leases;
+  } else if (leases) {
+    fallbackInputBuffers.set(budget, leases);
+  } else {
+    fallbackInputBuffers.delete(budget);
+  }
+}
+
 const inputByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype) as object, "byteLength")!.get!;
 const ownedByteChunks = Symbol.for("safe-bash.ownedByteChunks");
 
 export function inputBufferUsage(budget: Budget): Readonly<{ bytes: number; buffers: number }> {
   let bytes = 0;
-  const leases = inputBuffers.get(budget);
+  const leases = getInputBufferLeases(budget);
   if (leases) for (const lease of leases) bytes += lease.capacity;
   return Object.freeze({ bytes, buffers: leases?.size ?? 0 });
 }
@@ -36,8 +52,8 @@ class InputBufferLease {
     if (!Number.isSafeInteger(capacity) || capacity <= 0 || capacity > Math.max(1, budget.limits.maxInputBytes)) {
       throw new FsError("EFBIG", { syscall: "read" });
     }
-    let leases = inputBuffers.get(budget);
-    if (!leases) { leases = new Set(); inputBuffers.set(budget, leases); }
+    let leases = getInputBufferLeases(budget);
+    if (!leases) { leases = new Set(); setInputBufferLeases(budget, leases); }
     leases.add(this);
     try {
       this.bytes = allocate();
@@ -47,9 +63,9 @@ class InputBufferLease {
 
   release(): void {
     this.bytes = undefined;
-    const leases = inputBuffers.get(this.budget);
+    const leases = getInputBufferLeases(this.budget);
     leases?.delete(this);
-    if (!leases?.size) inputBuffers.delete(this.budget);
+    if (!leases?.size) setInputBufferLeases(this.budget, undefined);
   }
 }
 
@@ -500,17 +516,22 @@ class InputDeadline {
 }
 
 class InputCursor {
-  readonly identity: object = Object.freeze({});
+  #identity: object | undefined;
   readonly #iterator: AsyncIterator<Uint8Array>;
   readonly ownsChunks: boolean;
   readonly #provenance: "regular" | "stream" | "unknown";
   readonly #eof: "terminal" | "retryable";
   readonly #poll: (() => InputReadiness) | undefined;
+  readonly #pollReceiver: unknown;
   readonly #clock: InputClock;
   readonly #readChunk: InputProvenance["readChunk"];
   readonly #budget: Budget;
   readonly stat?: FileStat;
   readonly seek?: CommandInput["seek"];
+
+  get identity(): object {
+    return this.#identity ??= Object.freeze({});
+  }
   position = 0;
   remainder: Uint8Array | undefined;
   #unread: Uint8Array[] | undefined;
@@ -539,7 +560,8 @@ class InputCursor {
     if (typeof now !== "function" || typeof schedule !== "function") throw new TypeError("Invalid input clock");
     this.#provenance = provenance;
     this.#eof = eof;
-    this.#poll = poll?.bind(options);
+    this.#poll = poll;
+    this.#pollReceiver = options;
     this.#clock = clock === inputClock ? defaultFrozenInputClock : Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
     this.#iterator = source[Symbol.asyncIterator]();
     this.ownsChunks = options.initialChunkOwned === true
@@ -594,7 +616,7 @@ class InputCursor {
     if (this.#readResult && this.#readResult.value.length) return "ready";
     if (this.#closed) throw new Error("Shell input cursor is closed");
     if (this.#provenance === "regular") return "ready";
-    const readiness = this.#poll?.() ?? "unknown";
+    const readiness = this.#poll ? this.#poll.call(this.#pollReceiver) : "unknown";
     if (!["ready", "eof", "blocked", "unknown"].includes(readiness)) throw new TypeError("Invalid input readiness");
     if (readiness === "eof" && this.#read && !this.#readSettled) return "unknown";
     return readiness;
@@ -978,7 +1000,7 @@ export class ShellInput implements ByteSource, CommandInput {
   #closeWaiter: ((reason: unknown) => void) | undefined;
   #closeWaiters: Set<(reason: unknown) => void> | undefined;
   readonly #cleanupSignal: AbortSignal;
-  readonly #reads = new Set<() => Promise<void>>();
+  #reads: Set<() => Promise<void>> | undefined;
   readonly stat?: FileStat;
   readonly seek?: NonNullable<CommandInput["seek"]>;
   #closing: Promise<void> | undefined;
@@ -1205,7 +1227,7 @@ export class ShellInput implements ByteSource, CommandInput {
     let resolve!: () => void;
     const finish = (): void => {
       if (!completion || active) return;
-      this.#reads.delete(release);
+      this.#reads?.delete(release);
       scope.close();
       resolve();
     };
@@ -1218,7 +1240,7 @@ export class ShellInput implements ByteSource, CommandInput {
     };
     try {
       scope.reserve(128, 2);
-      this.#reads.add(release);
+      (this.#reads ??= new Set()).add(release);
       const result = await this.#cursor.consume(this.signal, async () => {
         const buffer = new ReadBuffer(scope, this.budget.limits.maxOutputBytes);
         let chunk: Uint8Array = new Uint8Array();
@@ -1359,7 +1381,7 @@ export class ShellInput implements ByteSource, CommandInput {
       let resolve!: () => void;
       const finish = (): void => {
         if (!closed || active) return;
-        this.#reads.delete(release);
+        this.#reads?.delete(release);
         scope.close();
         resolve();
       };
@@ -1381,7 +1403,7 @@ export class ShellInput implements ByteSource, CommandInput {
       let deadline: InputDeadline | undefined;
       try {
         scope.reserve(256, 3);
-        this.#reads.add(release);
+        (this.#reads ??= new Set()).add(release);
         deadline = this.#cursor.deadline(timeoutMs, this.signal, scope);
         const read = async (): Promise<ReadLine> => {
         try {
@@ -1600,11 +1622,12 @@ export class ShellInput implements ByteSource, CommandInput {
         for (const reject of this.#closeWaiters) reject(shellInputViewClosedError);
         this.#closeWaiters.clear();
       }
-      if (this.#reads.size === 0 && !this.#owned) {
+      const readsSize = this.#reads?.size ?? 0;
+      if (readsSize === 0 && !this.#owned) {
         this.#closing = resolvedVoid;
         return resolvedVoid;
       }
-      if (this.#reads.size === 0 && this.#owned && this.#cursor.canCloseSync()) {
+      if (readsSize === 0 && this.#owned && this.#cursor.canCloseSync()) {
         try {
           this.#cursor.closeSync(this.#cleanupSignal);
           this.#closing = resolvedVoid;
@@ -1613,7 +1636,7 @@ export class ShellInput implements ByteSource, CommandInput {
         }
         return this.#closing;
       }
-      const pending = [...this.#reads].map(release => release());
+      const pending = this.#reads ? [...this.#reads].map(release => release()) : [];
       if (this.#owned) pending.push(this.#cursor.close(this.#cleanupSignal));
       this.#closing = Promise.all(pending).then(() => undefined);
     }

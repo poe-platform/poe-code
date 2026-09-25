@@ -32,7 +32,7 @@ export class EreLedger {
   private uCaptureSlots = 0;
   private poison: EreUsageUnknownError | undefined;
   private lastYield = 0;
-  private lastYieldMs = monotonicNow();
+  private lastYieldMs = 0;
 
   constructor(bounds: EreExpansionBounds, overrides?: Partial<EreLimits>, prevalidated?: EreLimits) {
     if (prevalidated !== undefined) {
@@ -67,7 +67,7 @@ export class EreLedger {
     this.uCaptureSlots = 0;
     this.poison = undefined;
     this.lastYield = 0;
-    this.lastYieldMs = monotonicNow();
+    this.lastYieldMs = 0;
     return this;
   }
 
@@ -161,6 +161,10 @@ export class EreLedger {
       // A supplied signal must remain observable at each work checkpoint.
       if (!hasExt && signal === undefined) {
         const now = monotonicNow();
+        if (this.lastYieldMs === 0) {
+          this.lastYieldMs = now;
+          return undefined;
+        }
         if (now - this.lastYieldMs < 25) return undefined;
         this.lastYieldMs = now;
       }

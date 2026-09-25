@@ -19,17 +19,27 @@ export class PathLookup {
     this.#generation++;
   }
 
-  suspend(): () => void {
-    this.#entries.clear();
-    this.#bytes = 0;
+  beginSuspension(): void {
+    if (this.#entries.size > 0) {
+      this.#entries.clear();
+      this.#bytes = 0;
+    }
     this.#generation++;
     this.#pending++;
+  }
+
+  endSuspension(): void {
+    this.#pending--;
+    this.#generation++;
+  }
+
+  suspend(): () => void {
+    this.beginSuspension();
     let closed = false;
     return () => {
       if (closed) return;
       closed = true;
-      this.#pending--;
-      this.#generation++;
+      this.endSuspension();
     };
   }
 

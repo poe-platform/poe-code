@@ -28,6 +28,18 @@ import type {
 const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
 const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const sharedUtf8Encoder = new TextEncoder();
+const SHARED_EMPTY_DONE = Promise.resolve({ done: true as const, value: undefined });
+const SHARED_EMPTY_ITERATOR: AsyncIterableIterator<Uint8Array> = {
+  next() { return SHARED_EMPTY_DONE; },
+  [Symbol.asyncIterator]() { return this; },
+};
+const SHARED_EMPTY_SOURCE = {
+  [Symbol.asyncIterator]() { return SHARED_EMPTY_ITERATOR; },
+};
+const EMPTY_STDIN_OPTIONS = Object.freeze({
+  provenance: "stream" as const,
+  initialEof: true,
+});
 interface CachedParsedUnit {
   readonly unit: ReturnType<typeof parseShellUnit>;
   readonly unitsCharged: number;
@@ -120,6 +132,7 @@ export class Shell implements PluginHost {
   #disposed = false;
   #disposal: Promise<void> | undefined;
   #defaultIoCapabilities: Readonly<Record<string, unknown>> | undefined;
+  #defaultRuntimeFs: ShellOptions["fs"] | undefined;
   #hasCustomCommands = false;
   readonly #active = new Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }>();
 
@@ -134,6 +147,11 @@ export class Shell implements PluginHost {
     }
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
+    if (options.env) {
+      for (const [name, value] of Object.entries(options.env)) {
+        if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+      }
+    }
     const resolvedLimits = resolveLimits(options.limits);
     const { commandLimits } = resolvedLimits;
     this.#resolvedLimits = resolvedLimits;
@@ -292,7 +310,7 @@ export class Shell implements PluginHost {
       [invocationScope]: scope,
       ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
       ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
-      stdin: toByteSource(""),
+      stdin: SHARED_EMPTY_SOURCE,
       stdinIsDefault: options.stdin === undefined,
       stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
     };
@@ -342,35 +360,26 @@ export class Shell implements PluginHost {
           const value = options.stdin ?? "";
           const inlineBytes = typeof value === "string"
             ? (value.length > 0 ? sharedUtf8Encoder.encode(value) : undefined)
-            : (value.byteLength > 0 ? new Uint8Array(value) : undefined);
-          let available = inlineBytes !== undefined;
-          const inline = {
-            [Symbol.asyncIterator]() {
-              return {
-                next() {
-                  if (!available) return Promise.resolve({ done: true as const, value: undefined });
-                  available = false;
-                  return Promise.resolve({ done: false as const, value: inlineBytes! });
-                },
-                [Symbol.asyncIterator]() { return this; },
-              };
-            },
-          };
-          stdin = new ShellInput(inline, budget, budget.signal, {
-            provenance: "stream",
-            poll: () => available ? "ready" : "eof",
-            ...(inlineBytes ? { initialChunk: inlineBytes, initialChunkOwned: true, onInitialConsumed: () => { available = false; } } : { initialEof: true }),
-          });
+            : (value.byteLength > 0 ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength) : undefined);
+          stdin = inlineBytes
+            ? new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, {
+                provenance: "stream",
+                initialChunk: inlineBytes,
+                initialChunkOwned: true,
+              })
+            : new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, EMPTY_STDIN_OPTIONS);
         } else stdin = new ShellInput(options.stdin, budget);
         io.stdin = stdin;
         await interruptible(this.#ready, budget.signal);
         io.capabilities = options.capabilities === undefined && options.limits === undefined
           ? (this.#defaultIoCapabilities ??= Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) }))
           : Object.freeze({ ...this.#capabilities, ...this.#options.capabilities, ...options.capabilities, ...(budget.limits.commandLimits === undefined ? {} : { commandLimits: budget.limits.commandLimits }) });
-        const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
+        const cwd = options.cwd !== undefined ? resolvePath("/", options.cwd) : (this.#options.cwd ?? "/");
         const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
-        for (const [name, value] of Object.entries(variables)) {
-          if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+        if (options.env !== undefined) {
+          for (const [name, value] of Object.entries(options.env)) {
+            if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+          }
         }
         const exported = new Set(Object.keys(variables));
         variables.OPTIND = "1";
@@ -385,8 +394,17 @@ export class Shell implements PluginHost {
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
         const filesystem = options.fs ?? this.#options.fs;
-        const runtimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
-        registerRuntimeBackingFileSystem(runtimeFs, filesystem);
+        let runtimeFs: typeof filesystem;
+        if (options.fs === undefined) {
+          if (!this.#defaultRuntimeFs) {
+            this.#defaultRuntimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
+            registerRuntimeBackingFileSystem(this.#defaultRuntimeFs, filesystem);
+          }
+          runtimeFs = this.#defaultRuntimeFs;
+        } else {
+          runtimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
+          registerRuntimeBackingFileSystem(runtimeFs, filesystem);
+        }
         runtime = new Runtime(
           runtimeFs,
           this.commands,

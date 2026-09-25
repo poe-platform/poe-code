@@ -40,7 +40,21 @@ interface CachedBraceRange {
   readonly totalCharLen: number;
   readonly maxTermBytes: number;
 }
-const braceRangeWordCache = new WeakMap<Word, CachedBraceRange | null>();
+const braceRangeSymbol = Symbol("safe-bash.braceRangeWordCache");
+let fallbackBraceRangeWordCache: WeakMap<Word, CachedBraceRange | null> | undefined;
+const braceRangeWordCache = {
+  get(word: Word): CachedBraceRange | null | undefined {
+    const val = (word as unknown as Record<symbol, CachedBraceRange | null | undefined>)[braceRangeSymbol];
+    return val !== undefined ? val : fallbackBraceRangeWordCache?.get(word);
+  },
+  set(word: Word, value: CachedBraceRange | null): void {
+    if (Object.isExtensible(word)) {
+      (word as unknown as Record<symbol, CachedBraceRange | null>)[braceRangeSymbol] = value;
+    } else {
+      (fallbackBraceRangeWordCache ??= new WeakMap()).set(word, value);
+    }
+  },
+};
 
 export function tryFastExpandBraceRange(
   word: Word,

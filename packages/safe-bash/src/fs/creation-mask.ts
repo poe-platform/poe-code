@@ -20,24 +20,25 @@ export function isSyncResolved(promise: unknown): promise is Promise<never> {
   return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
 
-const managedSignals = new WeakSet<AbortSignal>();
-const signalAbortWaiters = new WeakMap<AbortSignal, Set<(reason: unknown) => void>>();
+const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
+const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
 
 export function registerManagedAbortSignal(signal: AbortSignal): AbortSignal {
-  managedSignals.add(signal);
+  (signal as unknown as Record<symbol, unknown>)[managedSignalSymbol] = true;
   return signal;
 }
 
 export function isManagedAbortSignal(signal: AbortSignal): boolean {
-  return managedSignals.has(signal);
+  return Boolean((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]);
 }
 
 export function notifyAbortSignalWaiters(signal: AbortSignal, reason: unknown): void {
-  const set = signalAbortWaiters.get(signal);
-  if (!set || set.size === 0) return;
-  const pending = [...set];
-  set.clear();
-  for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+  const symSet = (signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
+  if (symSet && symSet.size > 0) {
+    const pending = [...symSet];
+    symSet.clear();
+    for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+  }
 }
 
 export function abortManagedController(controller: AbortController, reason?: unknown): void {
@@ -47,11 +48,11 @@ export function abortManagedController(controller: AbortController, reason?: unk
 }
 
 export function addAbortSignalWaiter(signal: AbortSignal, waiter: (reason: unknown) => void): Set<(reason: unknown) => void> {
-  let waiters = signalAbortWaiters.get(signal);
+  let waiters = (signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
   if (!waiters) {
     waiters = new Set();
-    signalAbortWaiters.set(signal, waiters);
-    if (!managedSignals.has(signal)) {
+    (signal as unknown as Record<symbol, Set<(reason: unknown) => void>>)[managedWaitersSymbol] = waiters;
+    if (!(signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
       const set = waiters;
       signal.addEventListener("abort", () => {
         const reason = signal.reason;

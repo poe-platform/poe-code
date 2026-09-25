@@ -28,6 +28,11 @@ try {
   } });
   const carried = await shell.exec('carrier -t "$(raw-column-byte)"');
   assert.equal(carried.exitCode, 0); assert.equal(carried.stdout, "a  1\n");
+  const pipedCarrier = await shell.exec('printf ignored | carrier -t "$(raw-column-byte)"');
+  assert.equal(pipedCarrier.exitCode, 0); assert.equal(pipedCarrier.stdout, "a  1\n");
+  await fs.writeFile('/carrier.sh', new TextEncoder().encode('printf ignored | carrier -t "$(raw-column-byte)"'));
+  const scriptedCarrier = await shell.exec('sh /carrier.sh');
+  assert.equal(scriptedCarrier.exitCode, 0); assert.equal(scriptedCarrier.stdout, "a  1\n");
   const failure = await shell.exec('column -t /missing');
   assert.equal(failure.exitCode, 1);
   assert.equal(failure.stderr, "column: ENOENT: no such file or directory, stat '/missing'\n");

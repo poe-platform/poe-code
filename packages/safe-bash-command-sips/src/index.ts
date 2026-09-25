@@ -621,6 +621,9 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
             case "format":
               out += meta.format.toUpperCase();
               break;
+            case "alpha":
+              out += String(meta.hasAlpha);
+              break;
             default:
               out += "";
               break;
@@ -675,6 +678,15 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
           break;
         case "e":
           out += ext;
+          break;
+        case "g":
+          out += `${meta.width}x${meta.height}+0+0`;
+          break;
+        case "G":
+          out += `${meta.width}x${meta.height}`;
+          break;
+        case "A":
+          out += meta.hasAlpha ? "Blend" : "Undefined";
           break;
         case "x":
         case "y":

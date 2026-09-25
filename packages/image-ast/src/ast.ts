@@ -137,7 +137,8 @@ export type GravityPosition =
   | "bottom"
   | "left bottom"
   | "left"
-  | "left top";
+  | "left top"
+  | number;
 
 export interface ResizeOptions {
   readonly width?: number | null;

@@ -326,4 +326,16 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(czMeta.width).toBe(4);
     expect(czMeta.height).toBe(3);
   });
+
+  it("expands %g, %G, %A, and %[alpha] in identify -format (#76)", async () => {
+    const png = await sharp({
+      create: { width: 12, height: 8, channels: 4, background: { r: 10, g: 20, b: 30, alpha: 0.5 } }
+    })
+      .png()
+      .toBuffer();
+    const files = new Map<string, Uint8Array>([["/work/badge.png", png]]);
+    const res = await runIdentifyCli(["-format", "%g %G %A %[alpha]", "/work/badge.png"], files);
+    expect(res.exitCode).toBe(0);
+    expect(res.stdout).toBe("12x8+0+0 12x8 Blend true");
+  });
 });

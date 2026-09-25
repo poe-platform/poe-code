@@ -1291,4 +1291,41 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer({ resolveWithObject: true });
     expect(grayEns.info.channels).toBe(1);
   });
+
+  it("exposes sharp static enums (gravity, fit, kernel, bool, strategy) and supports numeric gravity (0..8) (#76)", async () => {
+    expect((sharp as any).gravity).toEqual({
+      center: 0,
+      centre: 0,
+      north: 1,
+      east: 2,
+      south: 3,
+      west: 4,
+      northeast: 5,
+      southeast: 6,
+      southwest: 7,
+      northwest: 8
+    });
+    expect((sharp as any).fit.cover).toBe("cover");
+    expect((sharp as any).kernel.lanczos3).toBe("lanczos3");
+    expect((sharp as any).bool.eor).toBe("eor");
+
+    const base = Buffer.from([
+      10, 0, 0,   20, 0, 0,
+      30, 0, 0,   40, 0, 0
+    ]);
+    // Resize 2x2 -> 1x1 with position = sharp.gravity.southeast (6) picks bottom-right pixel (40,0,0)
+    const se = await sharp(base, { raw: { width: 2, height: 2, channels: 3 } })
+      .resize(1, 1, { fit: "cover", position: (sharp as any).gravity.southeast, kernel: "nearest" })
+      .raw()
+      .toBuffer();
+    expect(se[0]).toBe(40);
+
+    // Composite 1x1 onto 2x2 with gravity = sharp.gravity.northwest (8) places at (0,0)
+    const ov = await sharp(Buffer.from([99, 99, 99]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
+    const comp = await sharp(base, { raw: { width: 2, height: 2, channels: 3 } })
+      .composite([{ input: ov, gravity: (sharp as any).gravity.northwest }])
+      .raw()
+      .toBuffer();
+    expect(comp[0]).toBe(99);
+  });
 });

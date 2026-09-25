@@ -83,7 +83,13 @@ export function resolveGravityOffset(
 ): { readonly x: number; readonly y: number } {
   const dx = outerW - innerW;
   const dy = outerH - innerH;
-  const p = position.toLowerCase();
+  const posStr =
+    typeof position === "number"
+      ? (["center", "north", "east", "south", "west", "northeast", "southeast", "southwest", "northwest"][
+          position
+        ] ?? "center")
+      : position;
+  const p = posStr.toLowerCase();
   let x = isCrop ? Math.floor((dx + 1) / 2) : Math.floor(dx / 2);
   let y = isCrop ? Math.floor((dy + 1) / 2) : Math.floor(dy / 2);
 

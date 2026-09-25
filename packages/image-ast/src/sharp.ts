@@ -912,4 +912,49 @@ export function sharp(
   return new SharpInstance(input, options);
 }
 
+Object.assign(sharp, {
+  gravity: {
+    center: 0,
+    centre: 0,
+    north: 1,
+    east: 2,
+    south: 3,
+    west: 4,
+    northeast: 5,
+    southeast: 6,
+    southwest: 7,
+    northwest: 8
+  },
+  fit: {
+    contain: "contain",
+    cover: "cover",
+    fill: "fill",
+    inside: "inside",
+    outside: "outside"
+  },
+  kernel: {
+    nearest: "nearest",
+    linear: "linear",
+    cubic: "cubic",
+    mitchell: "mitchell",
+    lanczos2: "lanczos2",
+    lanczos3: "lanczos3",
+    mks2013: "mks2013",
+    mks2021: "mks2021"
+  },
+  bool: {
+    and: "and",
+    or: "or",
+    eor: "eor"
+  },
+  strategy: {
+    entropy: 16,
+    attention: 17
+  },
+  versions: {
+    vips: "8.16.1",
+    sharp: "0.34.5"
+  }
+});
+
 export default sharp;

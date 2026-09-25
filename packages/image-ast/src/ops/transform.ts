@@ -134,6 +134,9 @@ export function rotateImage(
 ): RgbaImage {
   const norm = ((angle % 360) + 360) % 360;
   if (Math.abs(norm) < 1e-6) return img;
+  if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight && Math.abs(norm - 180) >= 1e-6) {
+    throw new Error("Rotate is not supported for multi-page images");
+  }
   if (Math.abs(norm - 90) < 1e-6) return rotate90CW(img);
   if (Math.abs(norm - 180) < 1e-6) return rotate180(img);
   if (Math.abs(norm - 270) < 1e-6) return rotate270CW(img);
@@ -268,6 +271,9 @@ export function trimImage(
   img: RgbaImage,
   options?: { readonly threshold?: number; readonly background?: RgbaColor }
 ): RgbaImage {
+  if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight) {
+    throw new Error("Trim is not supported for multi-page images");
+  }
   const threshold = options?.threshold ?? 10;
   const ref: RgbaColor = options?.background ?? {
     r: img.data[0] ?? 0,

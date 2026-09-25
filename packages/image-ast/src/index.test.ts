@@ -1843,4 +1843,23 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(extrAnim.info.pages).toBe(2);
     expect(Array.from(extrAnim.data)).toEqual([255, 0, 0, 255, 0, 255, 0, 255]);
   });
+
+  it("rejects non-180 rotate() and trim() on multi-page animated images while supporting rotate(180) (#98)", async () => {
+    const rawFrames = Buffer.from([
+      255, 0, 0,  0, 0, 255,
+      255, 0, 0,  0, 0, 255,
+      0, 255, 0,  255, 255, 0,
+      0, 255, 0,  255, 255, 0
+    ]);
+    const gif = await sharp(rawFrames, { raw: { width: 2, height: 4, channels: 3, pageHeight: 2 } }).gif({ pageHeight: 2 }).toBuffer();
+
+    await expect(sharp(gif, { animated: true }).rotate(90).toBuffer()).rejects.toThrow("Rotate is not supported for multi-page images");
+    await expect(sharp(gif, { animated: true }).trim().toBuffer()).rejects.toThrow("Trim is not supported for multi-page images");
+
+    const rot180 = await sharp(gif, { animated: true }).rotate(180).raw().toBuffer({ resolveWithObject: true });
+    expect(rot180.info.width).toBe(2);
+    expect(rot180.info.height).toBe(4);
+    expect(rot180.info.pageHeight).toBe(2);
+    expect(rot180.info.pages).toBe(2);
+  });
 });

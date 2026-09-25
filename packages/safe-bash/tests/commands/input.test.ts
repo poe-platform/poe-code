@@ -524,6 +524,32 @@ test("pre-aborted input never starts a read", async (suite) => {
   assert.equal(read.mock.callCount(), 0);
 });
 
+for (const reason of [false, 0, "", null]) {
+  for (const kind of ["stdin", "buffered", "streaming"] as const) {
+    test(`${kind} input defers ${String(reason)} cancellation until iteration without touching its source`, async () => {
+      const backend = await bufferedBackend();
+      let accesses = 0;
+      const unexpected = (): never => { accesses++; throw new Error("cancelled input was accessed"); };
+      const fs: FileSystem = {
+        ...backend,
+        capabilities: { ...backend.capabilities, streamingRead: kind === "streaming" },
+        capabilitiesFor: unexpected,
+        readFile: unexpected,
+        readStream: unexpected,
+      };
+      for (const preAborted of [true, false]) {
+        const controller = new AbortController();
+        if (preAborted) controller.abort(reason);
+        const source = input({ ...context(fs, controller.signal), stdin: { [Symbol.asyncIterator]: unexpected } }, kind === "stdin" ? "-" : "/note");
+        assert.equal(accesses, 0);
+        if (!preAborted) controller.abort(reason);
+        await assert.rejects(source[Symbol.asyncIterator]().next(), error => error === reason);
+        assert.equal(accesses, 0);
+      }
+    });
+  }
+}
+
 test("an ENOTSUP-shaped stream cancellation never starts fallback", async (suite) => {
   const backend = await bufferedBackend();
   const controller = new AbortController();

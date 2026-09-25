@@ -164,7 +164,6 @@ export async function eachOperand(
 }
 
 export function input(context: CommandContext, name = "-"): ByteSource {
-  context.signal.throwIfAborted();
   if (name === "-") {
     return readBytes(context.stdin, context.signal);
   }
@@ -181,6 +180,7 @@ export function input(context: CommandContext, name = "-"): ByteSource {
 }
 
 async function* fileInputSource(context: CommandContext, name: string): ByteSource {
+    context.signal.throwIfAborted();
     await assertInputRequirements(context, [name]);
     const path = pathOf(context, name);
     const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;

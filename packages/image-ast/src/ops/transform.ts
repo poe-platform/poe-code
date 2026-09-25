@@ -427,7 +427,7 @@ function blendChannel(s: number, d: number, mode: BlendMode): number {
     case "soft-light":
       return s < 0.5
         ? d - (1 - 2 * s) * d * (1 - d)
-        : d + (2 * s - 1) * (d <= 0.25 ? ((16 * d - 12) * d + 4) * d : Math.sqrt(d) - d);
+        : d + (2 * s - 1) * (d <= 0.25 ? ((16 * d - 12) * d + 3) * d : Math.sqrt(d) - d);
     case "difference":
       return Math.abs(d - s);
     case "exclusion":

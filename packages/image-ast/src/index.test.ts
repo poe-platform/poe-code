@@ -687,5 +687,24 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Math.abs(normOut[midIdx]! - normOut[midIdx + 1]!)).toBeLessThanOrEqual(1);
     expect(Math.abs(normOut[midIdx + 1]! - normOut[midIdx + 2]!)).toBeLessThanOrEqual(1);
+
+    // 5. #53: soft-light blend mode when d <= 0.25 subtracts -d in D(d) - d = ((16d - 12)d + 3)d
+    const slBase = await sharp({
+      create: { width: 1, height: 1, channels: 4, background: { r: 24, g: 36, b: 58, alpha: 1 } }
+    })
+      .png()
+      .toBuffer();
+    const slOver = await sharp({
+      create: { width: 1, height: 1, channels: 4, background: { r: 220, g: 80, b: 40, alpha: 0.85 } }
+    })
+      .png()
+      .toBuffer();
+    const slOut = await sharp(slBase)
+      .composite([{ input: slOver, blend: "soft-light" }])
+      .raw()
+      .toBuffer();
+    expect(Math.abs(slOut[0]! - 43)).toBeLessThanOrEqual(1);
+    expect(Math.abs(slOut[1]! - 23)).toBeLessThanOrEqual(1);
+    expect(Math.abs(slOut[2]! - 30)).toBeLessThanOrEqual(1);
   });
 });

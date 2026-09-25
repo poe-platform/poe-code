@@ -192,7 +192,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const options = args.at(-1);
           admit(stagingSignal ? { signal: stagingSignal }
             : options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
-          if (typeof args[0] === "string") validatePath(args[0], maxPathComponents);
+          if (property !== "symlink" && typeof args[0] === "string") validatePath(args[0], maxPathComponents);
           if (["copyFile", "rename", "link", "compareEntry"].includes(String(property)) && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
           if (property === "symlink" && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
         }

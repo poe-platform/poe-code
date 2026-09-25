@@ -89,6 +89,58 @@ test("PATH cap counts consulted components, not unused trailing directories", as
   assert.equal((await shell.exec("command -v /dir0/tool", { limits: { maxPathComponents: 0 } })).exitCode, 0);
 });
 
+test("PATH search and pathname component quotas are independent", async context => {
+  assert.equal(resolveLimits().maxPathnameComponents, Infinity);
+  assert.equal(cloudflareWorkerLimits.maxPathnameComponents, 64);
+  for (const maximum of [-1, 0.5, NaN, Infinity]) assert.throws(() => resolveLimits({ maxPathnameComponents: maximum }), RangeError);
+  const { fs, shell } = fixture(context, "/nested/bin:/unused");
+  await fs.mkdir("/nested/bin", { recursive: true });
+  await fs.writeFile("/nested/bin/tool", script, { mode: 0o755 });
+  const result = await shell.exec("command -v tool", { limits: { maxPathComponents: 1, maxPathnameComponents: 3 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "/nested/bin/tool\n");
+  await assert.rejects(shell.exec("source missing", { limits: { maxPathComponents: 1, maxPathnameComponents: 3 } }), limitIs("maxPathComponents"));
+});
+
+for (const [source, target, rejectedStatus] of [
+  ["command -v /nested/tool", "/nested/tool", 126],
+  ["probe", "/nested/tool", 1],
+  [": > /nested/output", "/nested/output", 1],
+] as const) test(`pathname quota bounds filesystem admission independently of PATH: ${source}`, async context => {
+  const { fs, commands, shell } = fixture(context);
+  await fs.mkdir("/nested");
+  await fs.writeFile("/nested/tool", script, { mode: 0o755 });
+  commands.register({ name: "probe", async execute({ fs }) { await fs.stat("/nested/tool"); return { exitCode: 0 }; } });
+  const stat = context.mock.method(fs, "stat");
+  const open = context.mock.method(fs, "open");
+  const rejected = await shell.exec(source, { limits: { maxPathComponents: 8, maxPathnameComponents: 1 } });
+  assert.equal(rejected.exitCode, rejectedStatus);
+  assert.match(rejected.stderr, /name too long/i);
+  assert.equal(stat.mock.calls.filter(call => call.arguments[0] === target).length, 0);
+  assert.equal(open.mock.calls.filter(call => call.arguments[0] === target).length, 0);
+  const admitted = await shell.exec(source, { limits: { maxPathComponents: 0, maxPathnameComponents: 2 } });
+  assert.equal(admitted.exitCode, 0, admitted.stderr);
+});
+
+test("Worker pathname quota preserves its boundary and the hard filesystem ceiling", async context => {
+  const fs = new MemoryFileSystem();
+  const root = await fs.stat("/");
+  const stat = context.mock.method(fs, "stat", async () => root);
+  const shell = new Shell({ fs, deviceView: "provided", limits: cloudflareWorkerLimits });
+  context.after(() => shell.dispose());
+  shell.register({ name: "probe", async execute({ fs, args }) { await fs.stat(args[0]!); return { exitCode: 0 }; } });
+  const path = (components: number) => `/${Array.from({ length: components }, () => "d").join("/")}`;
+  const admitted = await shell.exec(`probe ${path(64)}`, { limits: { maxPathComponents: 0 } });
+  assert.equal(admitted.exitCode, 0, admitted.stderr);
+  assert.equal(stat.mock.callCount(), 1);
+  for (const [components, maximum] of [[65, 64], [2049, 4096]] as const) {
+    const rejected = await shell.exec(`probe ${path(components)}`, { limits: { maxPathnameComponents: maximum } });
+    assert.equal(rejected.exitCode, 1);
+    assert.match(rejected.stderr, /name too long/i);
+    assert.equal(stat.mock.callCount(), 1, "oversized paths must not reach the backend");
+  }
+});
+
 test("PATH lookup consumes the existing shared filesystem ledger, including cache-hit access", async context => {
   const { fs, commands, shell } = fixture(context);
   const stat = context.mock.method(fs, "stat");

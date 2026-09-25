@@ -22,6 +22,10 @@ describe("MemoryFileSystem resolution allocation budget", () => {
     await expect(fs.stat(`/${"./".repeat(32_768)}`)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
     await fs.symlink("loop", "/loop");
     await expect(fs.stat("/loop")).rejects.toMatchObject({ code: "ELOOP" });
-    expect((await fs.stat(`/${"./".repeat(32_767)}`)).type).toBe("directory");
+    await expect(fs.stat(`/${"./".repeat(32_767)}`)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
+    expect((await fs.stat("/".repeat(65_536))).type).toBe("directory");
+    await expect(fs.stat("/".repeat(65_537))).rejects.toMatchObject({ code: "ENAMETOOLONG" });
+    expect((await fs.stat(`/${"./".repeat(256)}`)).type).toBe("directory");
+    await expect(fs.stat(`/${"./".repeat(257)}`)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
   });
 });

@@ -879,8 +879,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       try {
         const result = await eachOperand(context, operands.slice(0, -1), async operand => {
           const destination = directory ? joinPath(target, basename(operand)) : target;
-          const sourcePath = pathOf(context, operand);
-          const source = !symbolic && logical ? await context.fs.realpath(sourcePath, { signal: context.signal }) : sourcePath;
+          const sourcePath = symbolic ? operand : pathOf(context, operand);
+          let source = !symbolic && logical ? await context.fs.realpath(sourcePath, { signal: context.signal }) : sourcePath;
           const linkTarget = parsed.flags.has("r")
             ? relativePath(
               await canonicalizeReadlinkMissing(context, dirname(destination)),
@@ -890,6 +890,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           const existing = await maybeStat(context, destination, false);
           let backup: string | undefined;
           if (existing && (interactive || parsed.flags.has("f") || backupMode !== "none")) {
+            if (symbolic) source = pathOf(context, operand);
             if (existing.type === "directory") throw new FsError("EISDIR", { path: destination });
             if (!symbolic) {
               if (logical) await context.fs.stat(source, { signal: context.signal });

@@ -9,7 +9,10 @@ test("provided-device Worker shell bounds cyclic memory symlink expansion", asyn
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs, deviceView: "provided", limits: cloudflareWorkerLimits }).use(standardCommands());
   context.after(() => shell.dispose());
-  const result = await shell.exec('x=a/; for ((i=0; i<16; i++)); do x="$x$x"; done; x="$x${x:0:65536}"; ln -s "l/$x" /l; cat /l');
+  const created = await shell.exec('x=a/; for ((i=0; i<16; i++)); do x="$x$x"; done; x="$x${x:0:65536}"; ln -s "l/$x" /l');
+  assert.deepEqual([created.exitCode, created.stdout, created.stderr], [0, "", ""]);
+  assert.equal((await fs.readlink("/l")).length, 196_610);
+  const result = await shell.exec("cat /l");
   assert.notEqual(result.exitCode, 0);
   assert.match(result.stderr, /ENAMETOOLONG/);
   assert.equal((await fs.readlink("/l")).length, 196_610);

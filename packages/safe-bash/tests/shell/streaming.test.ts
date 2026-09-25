@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { getEventListeners } from "node:events";
 import { test } from "node:test";
 import { FsError, writeText } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/index.js";
@@ -170,28 +171,30 @@ test("partial pipe creation releases admission and closes already-created pipes"
   let borrowedAbortedAtRelease: boolean | undefined;
   const phase: { value: "idle" | "building" | "cleanup" } = { value: "idle" };
   const events: string[] = [];
-  const listeners: { signal: AbortSignal; listener: Parameters<AbortSignal["addEventListener"]>[1] }[] = [];
+  let borrowedSignal: AbortSignal;
+  let subscriptionsBefore: unknown[] = [];
+  let subscriptionsAtRefusal: unknown[] = [];
+  let subscriptionsAtConsumerClose: unknown[] = [];
+  let subscriptionsAtRelease: unknown[] = [];
+  const subscriptions = (signal: AbortSignal): unknown[] => {
+    const record = signal as unknown as Record<symbol, unknown>;
+    return record[Symbol.for("safe-bash.managedSignal")]
+      ? [...(record[Symbol.for("safe-bash.managedWaiters")] as Set<unknown> | undefined ?? [])]
+      : getEventListeners(signal, "abort");
+  };
   const retired: AbortSignal[] = [];
-  const add = AbortSignal.prototype.addEventListener;
-  const remove = AbortSignal.prototype.removeEventListener;
   const abort = AbortController.prototype.abort;
+  const pipeline = Runtime.prototype.pipeline;
   const run = Runtime.prototype.runCommandIsolated;
-  context.mock.method(AbortSignal.prototype, "addEventListener", function (this: AbortSignal, ...args: Parameters<AbortSignal["addEventListener"]>) {
-    const result = add.apply(this, args);
-    if (phase.value === "building" && args[0] === "abort") {
-      listeners.push({ signal: this, listener: args[1] });
-      events.push("listener-added");
-    }
-    return result;
-  });
-  context.mock.method(AbortSignal.prototype, "removeEventListener", function (this: AbortSignal, ...args: Parameters<AbortSignal["removeEventListener"]>) {
-    const result = remove.apply(this, args);
-    if (args[0] === "abort" && listeners.some(entry => entry.signal === this && entry.listener === args[1])) events.push("listener-removed");
-    return result;
+  context.mock.method(Runtime.prototype, "pipeline", function (this: Runtime, ...args: Parameters<Runtime["pipeline"]>) {
+    borrowedSignal = this.signal;
+    subscriptionsBefore = subscriptions(borrowedSignal);
+    return pipeline.apply(this, args);
   });
   context.mock.method(AbortController.prototype, "abort", function (this: AbortController, ...args: Parameters<AbortController["abort"]>) {
     const result = abort.apply(this, args);
     if (phase.value === "cleanup") {
+      subscriptionsAtConsumerClose = subscriptions(borrowedSignal);
       retired.push(this.signal);
       events.push("consumer-closed");
     }
@@ -207,6 +210,7 @@ test("partial pipe creation releases admission and closes already-created pipes"
     let reads = 0;
     Object.defineProperty(this.limits, "pipeHighWaterMark", { configurable: true, get() {
       if (++reads === 2) {
+        subscriptionsAtRefusal = subscriptions(borrowedSignal);
         phase.value = "cleanup";
         events.push("construction-refused");
         throw null;
@@ -215,7 +219,8 @@ test("partial pipe creation releases admission and closes already-created pipes"
       return 1;
     } });
     return () => {
-      borrowedAbortedAtRelease = listeners[0]?.signal.aborted;
+      borrowedAbortedAtRelease = borrowedSignal.aborted;
+      subscriptionsAtRelease = subscriptions(borrowedSignal);
       events.push("admission-released");
       released++;
       phase.value = "idle";
@@ -226,21 +231,23 @@ test("partial pipe creation releases admission and closes already-created pipes"
     await assert.rejects(shell.exec("true | true | true"), error => Object.is(error, null));
     assert.equal(released, 1);
     assert.equal(stages, 0);
-    assert.equal(listeners.length, 1);
+    const added = subscriptionsAtRefusal.filter(subscription => !subscriptionsBefore.includes(subscription));
+    assert.equal(added.length, 1);
+    assert.ok(subscriptionsAtConsumerClose.includes(added[0]));
+    assert.deepEqual(subscriptionsAtRelease, subscriptionsBefore);
     assert.equal(borrowedAbortedAtRelease, false);
     assert.equal(retired.length, 1);
-    assert.notEqual(retired[0], listeners[0]!.signal);
+    assert.notEqual(retired[0], borrowedSignal!);
     assert.equal(retired[0]!.aborted, true);
     assert.ok(retired[0]!.reason instanceof FsError);
     assert.equal(retired[0]!.reason.code, "EPIPE");
-    assert.deepEqual(events, ["listener-added", "construction-refused", "consumer-closed", "listener-removed", "admission-released"]);
+    assert.deepEqual(events, ["construction-refused", "consumer-closed", "admission-released"]);
   } finally {
     context.mock.restoreAll();
     await shell.dispose();
   }
-  assert.equal(AbortSignal.prototype.addEventListener, add);
-  assert.equal(AbortSignal.prototype.removeEventListener, remove);
   assert.equal(AbortController.prototype.abort, abort);
+  assert.equal(Runtime.prototype.pipeline, pipeline);
   assert.equal(Runtime.prototype.runCommandIsolated, run);
   assert.equal(Budget.prototype.reservePipelineStages, reserve);
 });

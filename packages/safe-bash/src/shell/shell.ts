@@ -15,8 +15,9 @@ import { byteLocale } from "./locale.js";
 import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
 import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
 import type { State } from "./runtime.js";
+import { captureShellSessionState, restoreShellSessionState } from "./session-state.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
-import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
+import type { ShellExecOptions, ShellOptions, ShellResult, ShellSession, ShellSessionState } from "./types.js";
 import { InvocationScope, invocationScope, throwCleanupFailures } from "./cleanup.js";
 import {
   createRootCancellationLink, selectRuntimeCancellationOutcome, subscribeCancellation,
@@ -234,6 +235,29 @@ export class Shell implements PluginHost {
     return factory(options);
   }
 
+  createSession(initialState?: ShellSessionState): ShellSession {
+    let currentState = initialState;
+    return {
+      get state() {
+        return currentState;
+      },
+      set state(value: ShellSessionState | undefined) {
+        currentState = value;
+      },
+      exec: async (source: string, options: ShellExecOptions = {}): Promise<ShellResult> => {
+        const effectiveState = options.state ?? currentState;
+        return this.exec(source, {
+          ...options,
+          ...(effectiveState === undefined ? {} : { state: effectiveState }),
+          onState: async (nextState, result) => {
+            currentState = nextState;
+            await options.onState?.(nextState, result);
+          },
+        });
+      },
+    };
+  }
+
   async exec(source: string, options: ShellExecOptions = {}): Promise<ShellResult> {
     if (this.#disposed) throw new Error("Shell is disposed");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
@@ -402,6 +426,18 @@ export class Shell implements PluginHost {
           globstar: false,
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
+        const beforeExecHook = options.hooks?.beforeExec ?? this.#options.hooks?.beforeExec;
+        const restoredSnapshot = options.state ?? (beforeExecHook ? await beforeExecHook({ source, options }) : undefined);
+        if (restoredSnapshot) {
+          state = await restoreShellSessionState(
+            state,
+            restoredSnapshot,
+            { cwd: options.cwd, env: options.env },
+            budget,
+            scope,
+            extensions.syntax,
+          );
+        }
         const filesystem = options.fs ?? this.#options.fs;
         let runtimeFs: typeof filesystem;
         if (options.fs === undefined) {
@@ -491,11 +527,24 @@ export class Shell implements PluginHost {
     if (budget.hasExecutionCleanup) throwCleanupFailures(budget.executionCleanup.failures);
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();
-    return {
+    const afterExecHook = options.hooks?.afterExec ?? this.#options.hooks?.afterExec;
+    const shouldCaptureState = Boolean(
+      state && (options.state !== undefined || options.onState !== undefined || options.hooks !== undefined || this.#options.hooks !== undefined),
+    );
+    const capturedState = shouldCaptureState && state ? captureShellSessionState(state, exitCode) : undefined;
+    const result: ShellResult = {
       stdout: sharedUtf8Decoder.decode(stdoutBytes),
       stderr: sharedUtf8Decoder.decode(stderrBytes),
-      stdoutBytes, stderrBytes, exitCode,
+      stdoutBytes,
+      stderrBytes,
+      exitCode,
+      ...(capturedState === undefined ? {} : { state: capturedState }),
     };
+    if (capturedState) {
+      await options.onState?.(capturedState, result);
+      await afterExecHook?.(capturedState, result);
+    }
+    return result;
   }
 
   dispose(): Promise<void> {

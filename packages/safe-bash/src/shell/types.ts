@@ -70,6 +70,58 @@ export interface ShellParseOptions {
   readonly maxParseUnits?: number;
 }
 
+export interface ShellSessionArraySnapshot {
+  readonly kind: "indexed" | "associative";
+  readonly elements: Readonly<Record<string, string>>;
+  readonly assigned?: boolean | undefined;
+}
+
+export interface ShellSessionOptionsSnapshot {
+  readonly dotglob?: boolean | undefined;
+  readonly globstar?: boolean | undefined;
+  readonly nullglob?: boolean | undefined;
+  readonly nocaseglob?: boolean | undefined;
+  readonly nocasematch?: boolean | undefined;
+  readonly extglob?: boolean | undefined;
+  readonly braceexpand?: boolean | undefined;
+  readonly noglob?: boolean | undefined;
+  readonly noclobber?: boolean | undefined;
+  readonly allexport?: boolean | undefined;
+  readonly noexec?: boolean | undefined;
+  readonly pipefail?: boolean | undefined;
+  readonly errexit?: boolean | undefined;
+  readonly nounset?: boolean | undefined;
+}
+
+export interface ShellSessionState {
+  readonly cwd: string;
+  readonly umask?: number | undefined;
+  readonly variables?: Readonly<Record<string, string>> | undefined;
+  readonly exported?: readonly string[] | undefined;
+  readonly readonlyVariables?: readonly string[] | undefined;
+  readonly variableAttributes?: Readonly<Record<string, string>> | undefined;
+  readonly arrays?: Readonly<Record<string, ShellSessionArraySnapshot>> | undefined;
+  readonly functions?: Readonly<Record<string, string>> | undefined;
+  readonly exportedFunctions?: readonly string[] | undefined;
+  readonly readonlyFunctions?: readonly string[] | undefined;
+  readonly directoryStack?: readonly string[] | undefined;
+  readonly options?: ShellSessionOptionsSnapshot | undefined;
+  readonly status?: number | undefined;
+}
+
+export interface ShellSessionHooks {
+  readonly beforeExec?: ((context: {
+    readonly source: string;
+    readonly options: ShellExecOptions;
+  }) => ShellSessionState | undefined | Promise<ShellSessionState | undefined>) | undefined;
+  readonly afterExec?: ((state: ShellSessionState, result: ShellResult) => void | Promise<void>) | undefined;
+}
+
+export interface ShellSession {
+  state: ShellSessionState | undefined;
+  exec(source: string, options?: ShellExecOptions): Promise<ShellResult>;
+}
+
 export interface ShellOptions {
   readonly capabilities?: ShellCapabilities;
   readonly onInternalError?: InternalErrorHandler;
@@ -81,6 +133,7 @@ export interface ShellOptions {
   readonly env?: Readonly<Record<string, string>>;
   readonly limits?: ShellLimits;
   readonly extensions?: readonly ShellExtension[];
+  readonly hooks?: ShellSessionHooks | undefined;
 }
 
 export interface ShellExecOptions {
@@ -96,6 +149,9 @@ export interface ShellExecOptions {
   readonly stderr?: ByteSink;
   readonly signal?: AbortSignal;
   readonly limits?: ShellLimits;
+  readonly state?: ShellSessionState | undefined;
+  readonly onState?: ((state: ShellSessionState, result: ShellResult) => void | Promise<void>) | undefined;
+  readonly hooks?: ShellSessionHooks | undefined;
 }
 
 export interface ShellResult {
@@ -104,6 +160,7 @@ export interface ShellResult {
   readonly stdoutBytes: Uint8Array;
   readonly stderrBytes: Uint8Array;
   readonly exitCode: number;
+  readonly state?: ShellSessionState | undefined;
 }
 
 export class ShellSyntaxError extends SyntaxError {

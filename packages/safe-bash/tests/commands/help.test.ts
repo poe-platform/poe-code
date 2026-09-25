@@ -55,8 +55,16 @@ test("GNU information options respect terminators, option values and env child a
   try {
     assert.equal((await shell.exec("head -- --help")).stdout, "literal\n");
     assert.equal((await shell.exec("basename -s --help name--help")).stdout, "name\n");
-    assert.equal((await shell.exec("env echo --help")).stdout, "--help\n");
-    assert.equal((await shell.exec("env A=value echo --version")).stdout, "--version\n");
+    assert.equal((await shell.exec("echo --help")).stdout, "--help\n");
+    assert.equal((await shell.exec("echo --version")).stdout, "--version\n");
+    const childHelp = await shell.exec("env echo --help");
+    assert.equal(childHelp.exitCode, 0, childHelp.stderr);
+    assert.equal(childHelp.stderr, "");
+    assert.ok(childHelp.stdout.startsWith("Usage: echo "), childHelp.stdout);
+    const childVersion = await shell.exec("env A=value echo --version");
+    assert.equal(childVersion.exitCode, 0, childVersion.stderr);
+    assert.equal(childVersion.stderr, "");
+    assert.equal(childVersion.stdout, "echo (safe-bash virtual implementation)\n");
     assert.equal((await shell.exec("head -n 2 --help /missing")).exitCode, 0);
     assert.equal((await shell.exec("head --lines=2 --version /missing")).exitCode, 0);
     assert.equal((await shell.exec("mktemp --tmpdir --help")).exitCode, 0);

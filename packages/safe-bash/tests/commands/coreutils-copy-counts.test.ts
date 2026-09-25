@@ -73,7 +73,14 @@ test("head treats bare +N as a filename", async () => {
 });
 
 for (const command of ["head", "tail"]) {
-  for (const amount of ["1KBjunk", "9007199254740992", "9007199254740991K", "K", "+", "--2"]) {
+  test(`${command} accepts a byte multiplier without a numeric prefix`, async () => {
+    const stdin = "x".repeat(1100);
+    const result = await run(command, ["-c", "K"], { stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "x".repeat(1024));
+  });
+  for (const amount of ["1KBjunk", "9007199254740992", "9007199254740991K", "+", "--2"]) {
     test(`${command} rejects invalid or overflowing count ${amount}`, async () => {
       const result = await run(command, ["-c", amount], { stdin: "abc" });
       assert.equal(result.exitCode, 2);

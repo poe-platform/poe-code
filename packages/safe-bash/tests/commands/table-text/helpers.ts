@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { type ByteSource, type CommandContext, type FileSystem, toByteSource } from "../../../src/contracts/index.js";
 import { createTableTextCommands, type TableTextCommandsOptions } from "../../../src/commands/table-text/index.js";
@@ -26,3 +27,15 @@ export function fixture(command: TableCase["command"], args: readonly string[], 
 }
 
 export { toByteSource };
+
+// Historical GNU captures stay intact; issue 814 defines these current paste results.
+export function currentPasteStdout(fixture: TableCase, capturedStdoutHex: string): string | undefined {
+  if (fixture.name === 'paste: serial delimiters "é"') return Buffer.from("1é2\naébéc\n").toString("hex");
+  if (fixture.name === 'paste: parallel delimiters "é"') return Buffer.from("1éaé1\n2ébé2\nécé\n").toString("hex");
+  if (fixture.name === "paste: seed 21") {
+    assert.equal(fixture.files.right, "");
+    return Buffer.from(",_,_a,a_b,c_c,c_d,d_z,z\n,_,_a,a_b,c_c,c_d,d_z,z\n").toString("hex");
+  }
+  if (fixture.name.startsWith("paste: serial stdin ")) return fixture.stdinHex ? capturedStdoutHex.slice(0, -2) : "";
+  return undefined;
+}

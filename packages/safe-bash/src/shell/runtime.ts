@@ -4136,6 +4136,9 @@ export class Runtime {
       ) {
         return undefined;
       }
+      if (rawState.extensions && !rawState.extensions.eventDepth) {
+        publishCommandSpelling(rawState, commandSpelling(command));
+      }
       let targetVal: ShellValue | undefined;
       let formatted: string | undefined;
       let lastArg = w0Plain;
@@ -4198,9 +4201,6 @@ export class Runtime {
       } catch {
         this.signal.throwIfAborted();
         return undefined;
-      }
-      if (rawState.extensions && !rawState.extensions.eventDepth) {
-        publishCommandSpelling(rawState, commandSpelling(command));
       }
       const owner = monitor.internalOwner();
       const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
@@ -4324,6 +4324,9 @@ export class Runtime {
           (canMutatePipeStatus || elem0!.text.shellValue === "0") &&
           (!pipeline.negate || ignored || !rawState.errexit)
         ) {
+          if (rawState.extensions && !rawState.extensions.eventDepth) {
+            publishCommandSpelling(rawState, commandSpelling(command));
+          }
           let formatted: string | undefined;
           let lastArg = w0Plain;
           try {
@@ -4365,9 +4368,6 @@ export class Runtime {
             const encoded = encodeRedirectTextToScratch(formatted);
             const byteLength = encoded.byteLength;
             if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
-              if (rawState.extensions && !rawState.extensions.eventDepth) {
-                publishCommandSpelling(rawState, commandSpelling(command));
-              }
               const owner = monitor.internalOwner();
               const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();

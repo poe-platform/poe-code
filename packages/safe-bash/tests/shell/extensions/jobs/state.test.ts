@@ -590,7 +590,7 @@ test("wait subscriptions and the borrowed owner listener are removed after drain
 const nativeCases = [
   ['(exit 7)& child=$!; wait "$child"; printf "%s " "$?"; wait "$child"; printf "%s " "$?"; wait %1 2>/dev/null; printf "%s\\n" "$?"', "7 7 127\n"],
   ['(exit 7)& child=$!; wait %1; printf "%s " "$?"; wait %1; printf "%s " "$?"; wait -n; printf "%s\\n" "$?"', "7 7 127\n"],
-  ['(exit 7)& first=$!; (exit 9)& second=$!; wait; printf "%s " "$?"; wait "$first" 2>/dev/null; printf "%s " "$?"; wait "$second" 2>/dev/null; printf "%s\\n" "$?"', "0 127 127\n"],
+  ['(exit 7)& first=$!; (exit 9)& second=$!; wait "$second"; wait; printf "%s " "$?"; wait "$first" 2>/dev/null; printf "%s " "$?"; wait "$second" 2>/dev/null; printf "%s\\n" "$?"', "0 127 127\n"],
   ['(exit 7)& first=$!; (exit 9)& second=$!; wait "$second" "$first"; printf "%s " "$?"; wait "$second"; printf "%s\\n" "$?"', "7 9\n"],
   ['(exit 7)& child=$!; wait 999999 "$child" 2>/dev/null; printf "%s " "$?"; wait "$child" 999999 2>/dev/null; printf "%s\\n" "$?"', "7 127\n"],
   ['(exit 7)& first=$!; (exit 9)& second=$!; while kill -0 "$first" 2>/dev/null || kill -0 "$second" 2>/dev/null; do :; done; wait -n "$second" "$first"; printf "%s " "$?"; wait -n; printf "%s " "$?"; wait -n; printf "%s\\n" "$?"', "7 9 127\n"],
@@ -601,6 +601,15 @@ test("explicit pinned Bash 5.2.37 confirms foundation semantic decisions", nativ
     const result = runNative(script);
     assert.equal(result.status, 0); assert.equal(result.stdout.toString(), stdout); assert.equal(result.stderr.toString(), "");
   }
+});
+
+test("pinned Bash bare wait retains the latest unnotified already-completed child", nativeOptions(), () => {
+  // Bare wait only actively waits for running jobs. Complete both jobs first so
+  // the latest child cannot race into that selection and lose its saved status.
+  const result = runNative('(exit 7)& first=$!; (exit 9)& second=$!; while kill -0 "$first" 2>/dev/null || kill -0 "$second" 2>/dev/null; do :; done; wait; printf "%s " "$?"; wait "$first" 2>/dev/null; printf "%s " "$?"; wait "$second" 2>/dev/null; printf "%s\\n" "$?"');
+  assert.equal(result.status, 0);
+  assert.equal(result.stdout.toString(), "0 127 9\n");
+  assert.equal(result.stderr.toString(), "");
 });
 
 test("native EOF leaves a background child alive without replacing parent status", nativeOptions(), () => {

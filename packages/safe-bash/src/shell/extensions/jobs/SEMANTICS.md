@@ -122,6 +122,15 @@ Bare ordinary wait forgets collected records. Failed tasks are never converted
 to numeric saved statuses. Active and saved records share the existing bounded
 job admission limit; this does not emulate native CHILD_MAX pruning or PID reuse.
 
+Bare-wait retention remains a compatibility gap: non-interactive Bash 5.2.37
+retains the latest unnotified child when it has already completed before bare
+wait selects running jobs. A completion-controlled native case in
+`tests/shell/extensions/jobs/state.test.ts` observes `0 127 9` for bare wait,
+waiting an earlier child, then waiting the latest child; the current public
+Shell returns `0 127 127`. Explicitly waiting the latest child before bare wait
+makes the native result `0 127 127` too. An ungated native sample races between
+these two outcomes and must not serve as a fixed semantic expectation.
+
 Foreground retirement remains a concrete integration gap. Four authenticated
 Bash5.3 observations place an intervening colon, subshell, pipeline, or command
 substitution after ordinary wait. The colon leaves explicit next wait at127;

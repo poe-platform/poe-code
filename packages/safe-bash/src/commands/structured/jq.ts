@@ -3,7 +3,7 @@ import { pathOf } from "../internal.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
-import { jsonValues, parseJson, rawValues, stringify, type JsonFormat } from "./input.js";
+import { jsonValues, parseJson, rawValues, stringify, tryStringifyCompactSync, type JsonFormat } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
@@ -245,23 +245,33 @@ async function fileVariable(context: CommandContext, path: string, raw: boolean,
   budget.value(values);
   return values;
 }
-async function* inputs(context: CommandContext, options: Options, budget: Budget, convert?: FilterInput): AsyncGenerator<Json> {
+function inputs(
+  context: CommandContext,
+  options: Options,
+  budget: Budget,
+  convert?: FilterInput,
+  onValue?: (value: Json) => Promise<void> | void,
+  onChunkEnd?: () => Promise<void> | void,
+  hasPendingDiagnostics?: () => boolean,
+): AsyncGenerator<Json> {
   if (options.rawInput) {
-    yield* rawValues(inputSources(context, options, budget, convert), budget, options.slurp);
-  } else {
-    async function* joined(): ByteSource {
-      for await (const source of inputSources(context, options, budget, convert)) yield* readBytes(source, context.signal);
-    }
-    yield* jsonValues(joined(), budget, {
-      stream: options.stream, streamErrors: options.streamErrors, sequence: options.sequence,
-      warning: async message => {
-        const bytes = Buffer.byteLength(message) + 5;
-        budget.outputBytes += bytes;
-        if (budget.outputBytes > budget.limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
-        await writeDiagnostic(context.stderr, `jq: ${message}\n`, context.signal);
-      },
-    });
+    return rawValues(inputSources(context, options, budget, convert), budget, options.slurp);
   }
+  async function* joined(): ByteSource {
+    for await (const source of inputSources(context, options, budget, convert)) yield* readBytes(source, context.signal);
+  }
+  return jsonValues(joined(), budget, {
+    stream: options.stream, streamErrors: options.streamErrors, sequence: options.sequence,
+    ...(onValue ? { onValue } : {}),
+    ...(onChunkEnd ? { onChunkEnd } : {}),
+    ...(hasPendingDiagnostics ? { hasPendingDiagnostics } : {}),
+    warning: async message => {
+      const bytes = Buffer.byteLength(message) + 5;
+      budget.outputBytes += bytes;
+      if (budget.outputBytes > budget.limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
+      await writeDiagnostic(context.stderr, `jq: ${message}\n`, context.signal);
+    },
+  });
 }
 export async function executeJq(context: CommandContext, limits: JqLimits, convert?: FilterInput): Promise<{ exitCode: number }> {
   const budget = new Budget(limits, context.signal);
@@ -270,7 +280,19 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
   let diagnosticBytes = 0;
   let diagnosticWriteFailed = false;
   let stdoutWriteFailed = false;
+  const OUT_BUF_SIZE = 64 * 1024;
+  let outBuf: Uint8Array | null = null;
+  let outPos = 0;
+  const flushStdout = async (): Promise<void> => {
+    if (outPos > 0 && outBuf) {
+      const slice = outBuf.subarray(0, outPos);
+      outPos = 0;
+      try { await writeBytes(context.stdout, slice, context.signal); }
+      catch (error) { stdoutWriteFailed = true; throw error; }
+    }
+  };
   const flush = async (force = false): Promise<void> => {
+    if (outPos > 0) await flushStdout();
     if (!diagnostics.length) return;
     let written = 0;
     try {
@@ -294,6 +316,29 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     let last: Json | undefined;
     let status = 0;
     const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";
+    const isCompactPlain = options.format.indent === "" && !options.format.ascii && !options.format.color && !options.sortKeys && !options.sequence;
+    const tryPublishSync = (result: Json): boolean => {
+      if (!isCompactPlain || budget.needsYield()) return false;
+      budget.step();
+      budget.value(result);
+      if (budget.results + 1 > limits.maxResults) throw new JqLimitError("maxResults");
+      const remaining = limits.maxOutputBytes - budget.outputBytes;
+      const text = tryStringifyCompactSync(result, budget, Math.max(0, remaining - suffix.length), "maxOutputBytes");
+      if (text === undefined) return false;
+      const chunkLen = text.length + suffix.length;
+      if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
+      if (chunkLen > OUT_BUF_SIZE) return false;
+      let buf = outBuf;
+      if (!buf) buf = outBuf = new Uint8Array(OUT_BUF_SIZE);
+      if (outPos + chunkLen > OUT_BUF_SIZE) return false;
+      budget.results++;
+      budget.outputBytes += chunkLen;
+      let pos = outPos;
+      for (let i = 0; i < text.length; i++) buf[pos++] = text.charCodeAt(i);
+      for (let i = 0; i < suffix.length; i++) buf[pos++] = suffix.charCodeAt(i);
+      outPos = pos;
+      return true;
+    };
     const publishResult = async (result: Json): Promise<void> => {
       const pt = budget.tickSync();
       if (pt) await pt;
@@ -306,11 +351,44 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
       const format = rawString ? { ...options.format, color: false } : options.format;
       const text = rawString && !format.ascii ? output : await stringify(output, budget, format, Math.max(0, remaining - suffix.length - prefix.length), "maxOutputBytes");
       const chunkText = `${prefix}${text}${suffix}`;
-      const byteLen = Buffer.byteLength(chunkText);
+      const chunkBuf = Buffer.from(chunkText);
+      const byteLen = chunkBuf.byteLength;
       if (byteLen > remaining) throw new JqLimitError("maxOutputBytes");
       budget.outputBytes += byteLen;
-      try { await writeBytes(context.stdout, Buffer.from(chunkText), context.signal); }
+      await flushStdout();
+      try { await writeBytes(context.stdout, chunkBuf, context.signal); }
       catch (error) { stdoutWriteFailed = true; throw error; }
+    };
+    const emitSyncOrAsync = (input: Json): Promise<void> | void => {
+      if (!diagnostics.length && !options.rawOutput0) {
+        const syncResults = interpreter.tryRunSync(ast, input);
+        if (syncResults !== undefined) {
+          status = options.exitStatus ? last === undefined ? 4 : truth(last) ? 0 : 1 : 0;
+          let invocationLast: Json | undefined;
+          let idx = 0;
+          while (idx < syncResults.length) {
+            const result = syncResults[idx]!;
+            if (!tryPublishSync(result)) {
+              return (async () => {
+                for (; idx < syncResults.length; idx++) {
+                  const r = syncResults[idx]!;
+                  await publishResult(r);
+                  invocationLast = r;
+                  status = options.exitStatus ? truth(r) ? 0 : 1 : 0;
+                }
+                if (status < 2 && invocationLast !== undefined) last = invocationLast;
+                if (diagnostics.length) await flush();
+              })();
+            }
+            invocationLast = result;
+            status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
+            idx++;
+          }
+          if (status < 2 && invocationLast !== undefined) last = invocationLast;
+          return;
+        }
+      }
+      return emit(input);
     };
     const emit = async (input: Json): Promise<void> => {
       if (diagnostics.length) await flush();
@@ -321,7 +399,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
         if (syncResults !== undefined) {
           for (let i = 0; i < syncResults.length; i++) {
             const result = syncResults[i]!;
-            await publishResult(result);
+            if (!tryPublishSync(result)) await publishResult(result);
             invocationLast = result;
             status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
           }
@@ -376,7 +454,11 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
         values.push(value);
       }
       budget.value(values); await emit(values);
-    } else for await (const value of inputs(context, options, budget, convert)) await emit(value);
+    } else for await (const value of inputs(context, options, budget, convert, emitSyncOrAsync, flushStdout, () => diagnostics.length > 0)) {
+      const p = emitSyncOrAsync(value);
+      if (p) await p;
+    }
+    await flushStdout();
     await flush(true);
     return { exitCode: options.exitStatus && last === undefined && status === 0 ? 4 : status };
   } catch (error) {

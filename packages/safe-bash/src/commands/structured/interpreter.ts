@@ -1,5 +1,5 @@
 import { Budget, copyObject, isObject, JqHalt, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, remove as removeKey, truth, type Json } from "./limits.js";
-import { isNumber, numberValue, type Numeric } from "./numbers.js";
+import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast, BindingPattern } from "./parser.js";
 import { formatValue } from "./formats.js";
@@ -23,7 +23,7 @@ class UserError extends JqError {
 }
 function exactFiniteNumber(value: Json): number | undefined {
   if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
-  if (value instanceof Object && "double" in value && "digits" in value && "exponent" in value) {
+  if (value instanceof Decimal) {
     const d = value as Numeric & { digits: string; exponent: number; double: number };
     if (d.digits.length <= 15 && d.exponent === 0 && Number.isFinite(d.double)) return d.double;
   }

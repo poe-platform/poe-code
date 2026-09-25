@@ -1,5 +1,5 @@
 import { readBytes, type ByteSource } from "../../contracts/index.js";
-import { Budget, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
+import { Budget, hasCustomKeyOrder, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
 import { Decimal, numericToken, isNumber, SMALL_DECIMALS } from "./numbers.js";
 
 export class JqParseError extends JqError {
@@ -504,6 +504,9 @@ export interface JsonInputOptions {
   readonly streamErrors?: boolean;
   readonly sequence?: boolean;
   readonly warning?: (message: string) => Promise<void>;
+  readonly onValue?: (value: Json) => Promise<void> | void;
+  readonly onChunkEnd?: () => Promise<void> | void;
+  readonly hasPendingDiagnostics?: () => boolean;
 }
 export async function* jsonValues(source: ByteSource, budget: Budget, options: JsonInputOptions = {}): AsyncGenerator<Json> {
   let parser = new JsonParser(budget, options.stream);
@@ -534,7 +537,10 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
         : Buffer.from(rawChunk.buffer, rawChunk.byteOffset, rawChunk.byteLength).toString("latin1");
       let chunkOffset = 0;
       while (chunkOffset < fullText.length) {
-        if (budget.inputLocation.complete) budget.inputLocation = { ...budget.inputLocation, complete: false };
+        if (budget.inputLocation.complete) {
+          if (options.hasPendingDiagnostics?.()) budget.inputLocation = { ...budget.inputLocation, complete: false };
+          else budget.inputLocation.complete = false;
+        }
         const newline = fullText.indexOf("\n", chunkOffset);
         const segEnd = Math.min(newline < 0 ? fullText.length : newline + 1, chunkOffset + 16384);
         budget.step(Math.ceil((segEnd - chunkOffset) / 1024));
@@ -554,7 +560,12 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
                 const p = budget.tickSync();
                 if (p) await p;
               }
-              yield fastObj;
+              if (options.onValue) {
+                const pending = options.onValue(fastObj);
+                if (pending) await pending;
+              } else {
+                yield fastObj;
+              }
               chunkOffset = segEnd;
               continue;
             }
@@ -668,6 +679,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
         }
         chunkOffset = segEnd;
       }
+      if (options.onChunkEnd) await options.onChunkEnd();
     }
     budget.inputLocation.complete = true;
     if (active && !failed) {
@@ -833,6 +845,55 @@ export async function measureValue(value: Json, budget: Budget, depth = 0, maxBy
   return bytes;
 }
 
+export function tryStringifyCompactSync(
+  value: Json,
+  budget: Budget,
+  maxBytes: number,
+  limitName: "maxValueBytes" | "maxOutputBytes" = "maxOutputBytes",
+): string | undefined {
+  if (budget.needsYield()) return undefined;
+  if (value === null || typeof value !== "object" || Array.isArray(value) || isNumber(value) || budget.limits.maxDepth < 1) {
+    return undefined;
+  }
+  const obj = value as Record<string, Json>;
+  if (hasCustomKeyOrder(obj)) return undefined;
+  let out = "{";
+  let count = 0;
+  for (const key in obj) {
+    if (!Object.hasOwn(obj, key)) continue;
+    for (let i = 0; i < key.length; i++) {
+      const c = key.charCodeAt(i);
+      if (c < 32 || c >= 127 || c === 34 || c === 92) return undefined;
+    }
+    const v = obj[key]!;
+    let vStr: string;
+    if (typeof v === "number" && Number.isFinite(v)) {
+      vStr = Object.is(v, -0) ? "-0" : String(v);
+    } else if (isNumber(v) && typeof v === "object" && Number.isFinite(v.double)) {
+      vStr = v.text;
+    } else if (typeof v === "boolean") {
+      vStr = v ? "true" : "false";
+    } else if (v === null) {
+      vStr = "null";
+    } else if (typeof v === "string") {
+      for (let i = 0; i < v.length; i++) {
+        const c = v.charCodeAt(i);
+        if (c < 32 || c >= 127 || c === 34 || c === 92) return undefined;
+      }
+      vStr = `"${v}"`;
+    } else {
+      return undefined;
+    }
+    if (count++) out += ",";
+    out += `"${key}":${vStr}`;
+    budget.collection(count);
+  }
+  out += "}";
+  if (out.length > maxBytes) throw new JqLimitError(limitName);
+  budget.step(out.length * 2 + count * 12 + 2);
+  return out;
+}
+
 export async function stringify(value: Json, budget: Budget, format: boolean | JsonFormat = false, maxBytes = budget.limits.maxValueBytes, limitName: "maxValueBytes" | "maxOutputBytes" = "maxValueBytes", asStringValue = false): Promise<string> {
   const p0 = budget.tickSync(0);
   if (p0) await p0;
@@ -875,7 +936,7 @@ export async function stringify(value: Json, budget: Budget, format: boolean | J
     if (fastOk) {
       out += "}";
       if (out.length > maxBytes) throw new JqLimitError(limitName);
-      const pEnd = budget.tickSync(out.length + count * 4 + 2);
+      const pEnd = budget.tickSync(out.length * 2 + count * 12 + 2);
       if (pEnd) await pEnd;
       return out;
     }

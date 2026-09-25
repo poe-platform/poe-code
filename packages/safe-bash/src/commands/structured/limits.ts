@@ -105,15 +105,28 @@ export class Budget {
           bytes = this.visitValue(current[index]!, depth + 1, bytes);
         }
       } else {
-        const keys = keyOrders.get(current) ?? Object.keys(current);
-        this.collection(keys.length);
-        bytes += 2 + Math.max(0, keys.length - 1);
-        for (let index = 0; index < keys.length; index++) {
-          const key = keys[index]!;
-          this.text(key);
-          bytes += scalarJsonByteLength(key, this) + 1;
-          if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-          bytes = this.visitValue(current[key]!, depth + 1, bytes);
+        const keys = keyOrders.get(current);
+        if (keys !== undefined) {
+          this.collection(keys.length);
+          bytes += 2 + Math.max(0, keys.length - 1);
+          for (let index = 0; index < keys.length; index++) {
+            const key = keys[index]!;
+            this.text(key);
+            bytes += scalarJsonByteLength(key, this) + 1;
+            if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+            bytes = this.visitValue(current[key]!, depth + 1, bytes);
+          }
+        } else {
+          let count = 0;
+          for (const key in current) {
+            if (!Object.hasOwn(current, key)) continue;
+            this.collection(++count);
+            this.text(key);
+            bytes += scalarJsonByteLength(key, this) + 1 + (count > 1 ? 1 : 0);
+            if (bytes > this.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+            bytes = this.visitValue(current[key]!, depth + 1, bytes);
+          }
+          bytes += 2;
         }
       }
     } else {
@@ -125,10 +138,11 @@ export class Budget {
   }
 }
 const keyOrders = new WeakMap<Record<string, Json>, string[]>();
+export function hasCustomKeyOrder(value: Record<string, Json>): boolean {
+  return keyOrders.has(value);
+}
 export function object(): Record<string, Json> {
-  const result = Object.create(null) as Record<string, Json>;
-  keyOrders.set(result, []);
-  return result;
+  return {} as Record<string, Json>;
 }
 export function objectKeys(value: Record<string, Json>): string[] { return keyOrders.get(value)?.slice() ?? Object.keys(value); }
 export function* objectKeyIterator(value: Record<string, Json>): IterableIterator<string> {
@@ -138,13 +152,34 @@ export function* objectKeyIterator(value: Record<string, Json>): IterableIterato
 }
 export function objectSize(value: Record<string, Json>): number { return keyOrders.get(value)?.length ?? Object.keys(value).length; }
 export function put(value: Record<string, Json>, key: string, item: Json): void {
-  if (!Object.hasOwn(value, key)) keyOrders.get(value)?.push(key);
-  value[key] = item;
+  const existing = Object.hasOwn(value, key);
+  let keys = keyOrders.get(value);
+  if (keys !== undefined) {
+    if (!existing) keys.push(key);
+  } else if (!existing && key.length > 0) {
+    const first = key.charCodeAt(0);
+    if (first >= 48 && first <= 57) {
+      keys = Object.keys(value);
+      keys.push(key);
+      keyOrders.set(value, keys);
+    }
+  }
+  if (key === "__proto__") {
+    Object.defineProperty(value, "__proto__", { value: item, writable: true, enumerable: true, configurable: true });
+  } else {
+    value[key] = item;
+  }
 }
 export function remove(value: Record<string, Json>, key: string): void {
+  if (!Object.hasOwn(value, key)) return;
+  let keys = keyOrders.get(value);
+  if (!keys) {
+    keys = Object.keys(value);
+    keyOrders.set(value, keys);
+  }
   delete value[key];
-  const keys = keyOrders.get(value);
-  if (keys) { const index = keys.indexOf(key); if (index >= 0) keys.splice(index, 1); }
+  const index = keys.indexOf(key);
+  if (index >= 0) keys.splice(index, 1);
 }
 export function copyObject(...sources: (Record<string, Json> | null)[]): Record<string, Json> {
   const result = object();

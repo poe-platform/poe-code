@@ -521,9 +521,16 @@ export class Capture implements ByteSink {
   writeSync(chunk: Uint8Array): void {
     if (!chunk.byteLength) return;
     if (this.chunks.length === 0 && chunk.byteLength <= 4096) {
-      this.chunks.push(chunk.slice());
+      this.chunks.push(new Uint8Array(chunk));
       this.length = chunk.byteLength;
       return;
+    }
+    if (!this.#tail && this.chunks.length === 1 && this.chunks[0]!.byteLength < 4096) {
+      const first = this.chunks[0]!;
+      this.#tail = new Uint8Array(4096);
+      this.#tail.set(first);
+      this.#tailLength = first.byteLength;
+      this.chunks[0] = this.#tail.subarray(0, this.#tailLength);
     }
     let offset = 0;
     while (offset < chunk.byteLength) {

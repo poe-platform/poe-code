@@ -316,6 +316,22 @@ test("capture bytes retains independent live snapshots", async () => {
   assert.deepEqual(capture.bytes(), Uint8Array.of(65, 66, 67));
 });
 
+for (const length of [17, 4096]) {
+  test(`capture owns the first ${length}-byte Buffer before producer reuse`, async () => {
+    const capture = new Capture();
+    const producer = Buffer.alloc(length, 65);
+    await capture.write(producer);
+    producer.fill(90);
+    const extracted = capture.takeBytes();
+    assert.deepEqual(extracted, new Uint8Array(length).fill(65));
+    assert.equal(extracted.buffer.byteLength, length);
+    extracted.fill(88);
+    assert.ok(producer.every(byte => byte === 90));
+    assert.equal(capture.length, 0);
+    assert.deepEqual(capture.chunks, []);
+  });
+}
+
 for (const length of [0, 17, 4096, 4113, 8192]) {
   test(`capture terminal extraction owns ${length} bytes and releases storage`, async context => {
     const capture = new Capture();
@@ -330,11 +346,12 @@ for (const length of [0, 17, 4096, 4113, 8192]) {
     const extracted = capture.takeBytes();
     const copiedBytes = set.mock.calls.reduce((total, call) => total + (call.this === extracted ? call.arguments[0].length : 0), 0);
     set.mock.restore();
-    assert.equal(copiedBytes, length === 4096 ? 0 : length);
+    const transferred = length > 0 && length <= 4096;
+    assert.equal(copiedBytes, transferred ? 0 : length);
     assert.equal(extracted.byteLength, length);
     assert.equal(extracted.buffer.byteLength, length);
     assert.ok(extracted.every(byte => byte === 65));
-    assert.equal(previousChunks.some(chunk => chunk.buffer === extracted.buffer), length === 4096);
+    assert.equal(previousChunks.some(chunk => chunk.buffer === extracted.buffer), transferred);
     assert.equal(capture.length, 0);
     assert.deepEqual(capture.chunks, []);
     assert.deepEqual(capture.bytes(), new Uint8Array());

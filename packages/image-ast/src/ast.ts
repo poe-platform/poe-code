@@ -44,6 +44,8 @@ export interface RgbaImage {
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly density: number;
   readonly hasAlpha: boolean;
+  readonly isPremultiplied?: boolean;
+  readonly wasPremultiplied?: boolean;
   readonly orientation?: number;
   readonly autoOrient?: { readonly width: number; readonly height: number };
   readonly pages?: number;

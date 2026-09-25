@@ -1340,6 +1340,45 @@ export function thresholdImage(
   return { ...img, data: out, ...(grayscale ? { space: "b-w" as const } : {}) };
 }
 
+export function premultiplyRgbaImage(img: RgbaImage): RgbaImage {
+  if (img.isPremultiplied) return img;
+  const { width, height, data } = img;
+  const out = new Uint8Array(data.length);
+  for (let i = 0; i < width * height; i++) {
+    const idx = i * 4;
+    const a = data[idx + 3]!;
+    const af = Math.fround(a / 255.0);
+    out[idx] = Math.trunc(Math.fround(data[idx]! * af));
+    out[idx + 1] = Math.trunc(Math.fround(data[idx + 1]! * af));
+    out[idx + 2] = Math.trunc(Math.fround(data[idx + 2]! * af));
+    out[idx + 3] = a;
+  }
+  return { ...img, data: out, isPremultiplied: true };
+}
+
+export function unpremultiplyRgbaImage(img: RgbaImage): RgbaImage {
+  if (!img.isPremultiplied) return { ...img, wasPremultiplied: true };
+  const { width, height, data } = img;
+  const out = new Uint8Array(data.length);
+  for (let i = 0; i < width * height; i++) {
+    const idx = i * 4;
+    const a = data[idx + 3]!;
+    if (a === 0) {
+      out[idx] = 0;
+      out[idx + 1] = 0;
+      out[idx + 2] = 0;
+      out[idx + 3] = 0;
+    } else {
+      const factor = Math.fround(255.0 / a);
+      out[idx] = Math.min(255, Math.max(0, Math.trunc(Math.fround(factor * data[idx]!))));
+      out[idx + 1] = Math.min(255, Math.max(0, Math.trunc(Math.fround(factor * data[idx + 1]!))));
+      out[idx + 2] = Math.min(255, Math.max(0, Math.trunc(Math.fround(factor * data[idx + 2]!))));
+      out[idx + 3] = a;
+    }
+  }
+  return { ...img, data: out, isPremultiplied: false, wasPremultiplied: true };
+}
+
 export function blurImage(
   img: RgbaImage,
   sigma = 1.5,
@@ -1375,9 +1414,10 @@ export function blurImage(
 
   const { width, height, data } = img;
   const out = new Uint8Array(data.length);
-  const usePremul = img.hasAlpha || img.channels === 4 || img.channels === 2;
+  const alreadyPremultiplied = Boolean(img.isPremultiplied);
+  const usePremul = alreadyPremultiplied || img.hasAlpha || img.channels === 4 || img.channels === 2;
   const src = new Uint8Array(data.length);
-  if (usePremul) {
+  if (usePremul && !alreadyPremultiplied) {
     for (let i = 0; i < width * height; i++) {
       const idx = i * 4;
       const a = data[idx + 3]!;
@@ -1450,6 +1490,9 @@ export function blurImage(
         blurred[dIdx + 3] = usePremul ? Math.min(255, Math.max(0, (a + half) >> shift)) : 255;
       }
     }
+    if (alreadyPremultiplied) {
+      return { ...img, data: blurred };
+    }
     if (usePremul) {
       for (let i = 0; i < width * height; i++) {
         const idx = i * 4;
@@ -1519,7 +1562,12 @@ export function blurImage(
       const fG = Math.fround(g);
       const fB = Math.fround(b);
       const fA = Math.fround(a);
-      if (usePremul) {
+      if (alreadyPremultiplied) {
+        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
+        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
+        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
+        out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
+      } else if (usePremul) {
         if (fA === 0) {
           out[dIdx] = 0;
           out[dIdx + 1] = 0;
@@ -1619,8 +1667,9 @@ export function sharpenImage(
     });
   }
   const { width, height, data } = img;
+  const alreadyPremultiplied = Boolean(img.isPremultiplied);
   let hasSemiTransparentAlpha = false;
-  if (img.hasAlpha || img.channels === 4 || img.channels === 2) {
+  if (!alreadyPremultiplied && (img.hasAlpha || img.channels === 4 || img.channels === 2)) {
     for (let i = 3; i < data.length; i += 4) {
       if (data[i]! < 255) {
         hasSemiTransparentAlpha = true;
@@ -1690,7 +1739,7 @@ export function sharpenImage(
     const boostS = rintEven(v * 327.67);
     const newLS = Math.max(0, Math.min(32767, Ls[i]! + boostS));
     const [nr, ng, nb] = vipsLabToSrgbForSharpen(newLS / 327.67, As[i]! / 256.0, Bs[i]! / 256.0);
-    if (hasSemiTransparentAlpha) {
+    if (hasSemiTransparentAlpha && !alreadyPremultiplied) {
       const a = cur[idx + 3]!;
       const factor = a === 0 ? 0 : Math.fround(255.0 / a);
       out[idx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * nr))));
@@ -1764,9 +1813,12 @@ export function convolveImage(
   const ry = Math.floor(kh / 2);
   const scale = spec.scale === 0 ? 1 : spec.scale;
   const out = new Uint8Array(data.length);
-  const usePremul = img.hasAlpha || img.channels === 4 || img.channels === 2;
+  const alreadyPremultiplied = Boolean(img.isPremultiplied);
+  const usePremul = alreadyPremultiplied || img.hasAlpha || img.channels === 4 || img.channels === 2;
   let premul: Uint8Array | undefined;
-  if (usePremul) {
+  if (alreadyPremultiplied) {
+    premul = data;
+  } else if (usePremul) {
     premul = new Uint8Array(width * height * 4);
     for (let i = 0; i < width * height; i++) {
       const idx = i * 4;
@@ -1807,7 +1859,13 @@ export function convolveImage(
       const fR = Math.fround(r / scale + spec.offset);
       const fG = Math.fround(g / scale + spec.offset);
       const fB = Math.fround(b / scale + spec.offset);
-      if (premul) {
+      if (alreadyPremultiplied) {
+        const fA = Math.fround(a / scale + spec.offset);
+        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
+        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
+        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
+        out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
+      } else if (premul) {
         const fA = Math.fround(a / scale + spec.offset);
         const factor = fA === 0 ? 0 : Math.fround(255.0 / fA);
         out[dIdx] = fA === 0 ? 0 : Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fR))));

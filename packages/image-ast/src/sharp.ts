@@ -46,6 +46,7 @@ import {
   modulateImage,
   negateImage,
   normalizeImage,
+  premultiplyRgbaImage,
   recombImage,
   removeAlphaImage,
   rotateImage,
@@ -54,7 +55,8 @@ import {
   tintImage,
   toColorspaceImage,
   trimImage,
-  unflattenImage
+  unflattenImage,
+  unpremultiplyRgbaImage
 } from "./ops/transform.js";
 
 function inferTypedArrayDepth(input: unknown): "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | undefined {
@@ -564,11 +566,109 @@ export class SharpInstance extends Duplex {
 
   private evaluateImage(): RgbaImage {
     let img = this.decodeInitialImage();
-    const orderedNodes = [
-      ...this.nodes.filter(n => n.kind !== "withMetadata"),
-      ...this.nodes.filter(n => n.kind === "withMetadata")
-    ];
-    for (const node of orderedNodes) {
+    const resizeIdx = this.nodes.findIndex(n => n.kind === "resize");
+    const postScaleIndices = new Set<number>();
+    if (resizeIdx !== -1) {
+      for (let i = resizeIdx + 1; i < this.nodes.length; i++) {
+        const n = this.nodes[i]!;
+        if (n.kind === "flip" || n.kind === "flop" || (n.kind === "rotate" && n.angle % 90 === 0)) {
+          postScaleIndices.add(i);
+        }
+      }
+    }
+    const postScaleNodes = this.nodes.filter((_, idx) => postScaleIndices.has(idx));
+    const postScaleTransform =
+      postScaleNodes.length > 0
+        ? (scaled: RgbaImage): RgbaImage => {
+            let cur = scaled;
+            for (const pNode of postScaleNodes) {
+              if (pNode.kind === "rotate") {
+                cur = rotateImage(cur, pNode.angle, pNode.background);
+              } else if (pNode.kind === "flip") {
+                cur = flipImage(cur);
+              } else if (pNode.kind === "flop") {
+                cur = flopImage(cur);
+              }
+            }
+            return cur;
+          }
+        : undefined;
+
+    const gammaNode = this.nodes.find((n): n is Extract<ImageAstNode, { kind: "gamma" }> => n.kind === "gamma");
+    const splitGamma =
+      gammaNode !== undefined &&
+      this.nodes.some(
+        n =>
+          n.kind === "resize" ||
+          n.kind === "blur" ||
+          n.kind === "convolve" ||
+          n.kind === "recomb" ||
+          n.kind === "modulate" ||
+          n.kind === "sharpen" ||
+          n.kind === "composite"
+      );
+
+    const postStageRank: Record<string, number> = {
+      extend: 10,
+      median: 20,
+      threshold: 30,
+      dilate: 40,
+      erode: 50,
+      blur: 60,
+      unflatten: 70,
+      convolve: 80,
+      recomb: 90,
+      modulate: 100,
+      sharpen: 110,
+      composite: 120,
+      gamma: 130,
+      linear: 140,
+      normalize: 150,
+      clahe: 160,
+      negate: 170,
+      tint: 180,
+      grayscale: 190,
+      toColorspace: 200,
+      bandbool: 210,
+      boolean: 220,
+      joinChannel: 230,
+      extractChannel: 240,
+      withMetadata: 250
+    };
+    const activeNodes = this.nodes.filter((_, idx) => !postScaleIndices.has(idx));
+    const preNodes = activeNodes.filter(n => !(n.kind in postStageRank));
+    const postNodes = activeNodes
+      .filter(n => n.kind in postStageRank)
+      .sort((a, b) => (postStageRank[a.kind] ?? 999) - (postStageRank[b.kind] ?? 999));
+    const orderedNodes = [...preNodes, ...postNodes];
+
+    const isPremulStageKind = (kind: string): boolean =>
+      kind === "resize" || kind === "blur" || kind === "convolve" || kind === "sharpen";
+    const premulStageCount = orderedNodes.filter(n => isPremulStageKind(n.kind)).length;
+    const firstPremulIdx = orderedNodes.findIndex(n => isPremulStageKind(n.kind));
+    let lastPremulIdx = -1;
+    for (let i = orderedNodes.length - 1; i >= 0; i--) {
+      if (isPremulStageKind(orderedNodes[i]!.kind)) {
+        lastPremulIdx = i;
+        break;
+      }
+    }
+    let gammaInApplied = false;
+    let gammaOutApplied = false;
+
+    for (let i = 0; i < orderedNodes.length; i++) {
+      const node = orderedNodes[i]!;
+      if (splitGamma && gammaNode && !gammaInApplied && (i === firstPremulIdx || node.kind === "recomb" || node.kind === "modulate" || node.kind === "composite")) {
+        img = gammaImage(img, gammaNode.gamma, 1.0);
+        gammaInApplied = true;
+      }
+      if (i === firstPremulIdx && img.hasAlpha) {
+        if (premulStageCount > 1) {
+          img = premultiplyRgbaImage(img);
+        } else {
+          img = { ...img, wasPremultiplied: true };
+        }
+      }
       switch (node.kind) {
         case "autoOrient":
           img = applyExifOrientation(img);
@@ -592,7 +692,14 @@ export class SharpInstance extends Duplex {
           });
           break;
         case "resize":
-          img = resizeImage(img, node);
+          img = resizeImage(img, node, postScaleTransform);
+          if (img.hasAlpha && !img.isPremultiplied) {
+            if (i < lastPremulIdx) {
+              img = premultiplyRgbaImage(img);
+            } else {
+              img = { ...img, wasPremultiplied: true };
+            }
+          }
           break;
         case "extend":
           img = extendImage(img, node);
@@ -619,7 +726,12 @@ export class SharpInstance extends Duplex {
           img = tintImage(img, node.color);
           break;
         case "gamma":
-          img = gammaImage(img, node.gamma, node.gammaOut);
+          if (splitGamma) {
+            img = gammaImage(img, 1.0, node.gammaOut);
+            gammaOutApplied = true;
+          } else {
+            img = gammaImage(img, node.gamma, node.gammaOut);
+          }
           break;
         case "linear":
           img = linearImage(img, node.a, node.b);
@@ -702,6 +814,12 @@ export class SharpInstance extends Duplex {
           };
           break;
       }
+      if (i === lastPremulIdx && img.isPremultiplied) {
+        img = unpremultiplyRgbaImage(img);
+      }
+    }
+    if (splitGamma && gammaNode && gammaInApplied && !gammaOutApplied) {
+      img = gammaImage(img, 1.0, gammaNode.gammaOut);
     }
     return img;
   }
@@ -2271,7 +2389,7 @@ export class SharpInstance extends Duplex {
         height: img.height,
         channels: encoded.channels,
         ...(encoded.format === "raw" ? { depth: this.outputOptions.rawDepth ?? img.depth } : {}),
-        premultiplied: false,
+        premultiplied: Boolean(img.wasPremultiplied),
         ...(img.pageHeight !== undefined ? { pageHeight: img.pageHeight } : {}),
         ...(img.pages !== undefined ? { pages: img.pages } : {}),
         ...(img.trimOffsetLeft !== undefined ? { trimOffsetLeft: img.trimOffsetLeft } : {}),

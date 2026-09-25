@@ -546,17 +546,20 @@ export function resampleRawBitmap(
   dstH: number,
   kernel: ResizeKernel = "lanczos3",
   explicitHscale?: number,
-  explicitVscale?: number
+  explicitVscale?: number,
+  alreadyPremultiplied = false
 ): Uint8Array {
   if (srcW === dstW && srcH === dstH && (explicitHscale === undefined || explicitHscale === 1.0) && (explicitVscale === undefined || explicitVscale === 1.0)) {
     return new Uint8Array(src);
   }
 
   let hasSemiTransparentAlpha = false;
-  for (let i = 3; i < src.length; i += 4) {
-    if (src[i]! < 255) {
-      hasSemiTransparentAlpha = true;
-      break;
+  if (!alreadyPremultiplied) {
+    for (let i = 3; i < src.length; i += 4) {
+      if (src[i]! < 255) {
+        hasSemiTransparentAlpha = true;
+        break;
+      }
     }
   }
 
@@ -810,7 +813,8 @@ export function resizeImage(
     readonly background: RgbaColor;
     readonly withoutEnlargement: boolean;
     readonly withoutReduction: boolean;
-  }
+  },
+  postScaleTransform?: (scaled: RgbaImage) => RgbaImage
 ): RgbaImage {
   if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight) {
     const pages = img.pages;
@@ -825,7 +829,7 @@ export function resizeImage(
         pageHeight: pageH,
         data: img.data.subarray(p * pageBytes, (p + 1) * pageBytes)
       };
-      resizedPages.push(resizeImage(singlePage, spec));
+      resizedPages.push(resizeImage(singlePage, spec, postScaleTransform));
     }
     const first = resizedPages[0]!;
     const outW = first.width;
@@ -883,9 +887,9 @@ export function resizeImage(
 
   const hscale = 1.0 / xShrink;
   const vscale = 1.0 / yShrink;
-  const scaledW = Math.max(1, Math.trunc(fmaDouble(srcW, hscale, 0.5)));
-  const scaledH = Math.max(1, Math.trunc(fmaDouble(srcH, vscale, 0.5)));
-  const scaledData = resampleRawBitmap(
+  let scaledW = Math.max(1, Math.trunc(fmaDouble(srcW, hscale, 0.5)));
+  let scaledH = Math.max(1, Math.trunc(fmaDouble(srcH, vscale, 0.5)));
+  let scaledData = resampleRawBitmap(
     img.data,
     srcW,
     srcH,
@@ -893,8 +897,15 @@ export function resizeImage(
     scaledH,
     spec.kernel,
     hscale,
-    vscale
+    vscale,
+    Boolean(img.isPremultiplied)
   );
+  if (postScaleTransform) {
+    const transformed = postScaleTransform({ ...img, width: scaledW, height: scaledH, data: scaledData });
+    scaledW = transformed.width;
+    scaledH = transformed.height;
+    scaledData = transformed.data;
+  }
 
   if (reqW > 0 && reqH > 0 && spec.fit === "cover") {
     let targetCropW = reqW;
@@ -934,10 +945,13 @@ export function resizeImage(
     const nextHasAlpha = img.hasAlpha || bg.a < 255;
     if (embedW > scaledW || embedH > scaledH) {
       const canvas = new Uint8Array(embedW * embedH * 4);
+      const bgR = img.isPremultiplied ? Math.trunc(Math.fround(bg.r * Math.fround(bg.a / 255.0))) : bg.r;
+      const bgG = img.isPremultiplied ? Math.trunc(Math.fround(bg.g * Math.fround(bg.a / 255.0))) : bg.g;
+      const bgB = img.isPremultiplied ? Math.trunc(Math.fround(bg.b * Math.fround(bg.a / 255.0))) : bg.b;
       for (let i = 0; i < embedW * embedH; i++) {
-        canvas[i * 4] = bg.r;
-        canvas[i * 4 + 1] = bg.g;
-        canvas[i * 4 + 2] = bg.b;
+        canvas[i * 4] = bgR;
+        canvas[i * 4 + 1] = bgG;
+        canvas[i * 4 + 2] = bgB;
         canvas[i * 4 + 3] = bg.a;
       }
       const offset = resolveGravityOffset(embedW, embedH, scaledW, scaledH, spec.position, false);

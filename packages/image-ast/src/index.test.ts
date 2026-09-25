@@ -3150,4 +3150,49 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Array.from(satPremul.slice(4, 8))).toEqual([128, 150, 171, 178]);
   });
+  it("matches sharp PipelineWorker::Execute canonical operation order, gamma/premultiply bracketing, and post-scale rotate before crop/embed (#1247)", async () => {
+    const W = 32, H = 24;
+    const rgb = Buffer.alloc(W * H * 3);
+    const rgba = Buffer.alloc(W * H * 4);
+    for (let i = 0; i < W * H; i++) {
+      rgb[i * 3] = rgba[i * 4] = (i * 53 + 17) & 255;
+      rgb[i * 3 + 1] = rgba[i * 4 + 1] = (i * 97 + 43) & 255;
+      rgb[i * 3 + 2] = rgba[i * 4 + 2] = (i * 193 + 11) & 255;
+      rgba[i * 4 + 3] = (i * 37 + 80) & 255;
+    }
+    const p1 = await sharp(rgb, { raw: { width: W, height: H, channels: 3 } })
+      .extract({ left: 2, top: 2, width: 24, height: 18 })
+      .resize(16, 12)
+      .flip()
+      .flop()
+      .rotate(90)
+      .modulate({ brightness: 1.1, saturation: 0.9, hue: 20 })
+      .sharpen()
+      .extend({ top: 2, bottom: 2, left: 2, right: 2, background: "#112233" })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(p1.info.width).toBe(16);
+    expect(p1.info.height).toBe(16);
+    expect(p1.info.premultiplied).toBe(false);
+    const ref1 = [22, 45, 201, 223, 165, 103, 108, 35, 140, 121, 66, 222];
+    for (let i = 0; i < ref1.length; i++) {
+      expect(Math.abs(p1.data[100 + i]! - ref1[i]!)).toBeLessThanOrEqual(2);
+    }
+
+    const p2 = await sharp(rgba, { raw: { width: W, height: H, channels: 4 } })
+      .resize(20, 20, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .rotate(180)
+      .gamma(2.2)
+      .normalise()
+      .blur(1.2)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(p2.info.width).toBe(20);
+    expect(p2.info.height).toBe(20);
+    expect(p2.info.premultiplied).toBe(true);
+    const ref2 = [204, 240, 231, 84, 201, 236, 231, 87, 197, 220, 224, 87, 194, 205, 221, 87];
+    for (let i = 0; i < ref2.length; i++) {
+      expect(Math.abs(p2.data[200 + i]! - ref2[i]!)).toBeLessThanOrEqual(1);
+    }
+  });
 });

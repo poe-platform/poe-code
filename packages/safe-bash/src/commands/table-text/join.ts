@@ -27,16 +27,28 @@ function parse(context: CommandContext, budget: Budget): Options {
   const options: Options = { files: [], fields: [0, 0], unpaired: new Set(), paired: true, separator: 10, delimiter: undefined, whole: false, replacement: empty, format: undefined, fold: false, header: false, order: "default" };
   let literal = false;
   let delimiterChoice: number | undefined;
+  const explicitFields: [number | undefined, number | undefined] = [undefined, undefined];
+  let explicitReplacement: string | undefined;
+  const setField = (fileIndex: 0 | 1, field: number): void => {
+    const existing = explicitFields[fileIndex];
+    if (existing !== undefined && existing !== field) fail(`incompatible join fields ${existing}, ${field}`);
+    explicitFields[fileIndex] = field;
+    options.fields[fileIndex] = field;
+  };
   const apply = (flag: string, value: string): void => {
     if (flag === "1" || flag === "2" || flag === "j") {
       const field = number(value, "field") - 1;
-      if (flag !== "2") options.fields[0] = field;
-      if (flag !== "1") options.fields[1] = field;
+      if (flag !== "2") setField(0, field);
+      if (flag !== "1") setField(1, field);
     } else if (flag === "a" || flag === "v") {
       if (value !== "1" && value !== "2") fail(`invalid file number: ${value}`);
       options.unpaired.add(Number(value) - 1);
       if (flag === "v") options.paired = false;
-    } else if (flag === "e") options.replacement = encode(value);
+    } else if (flag === "e") {
+      if (explicitReplacement !== undefined && explicitReplacement !== value) fail("conflicting empty-field replacement strings");
+      explicitReplacement = value;
+      options.replacement = encode(value);
+    }
     else if (flag === "t") {
       const bytes = encode(value);
       const choice = value === "\\0" ? 0 : bytes.length ? bytes[0]! : -1;
@@ -75,8 +87,14 @@ function parse(context: CommandContext, budget: Budget): Options {
       if (flag === "i") options.fold = true;
       else if (flag === "z") options.separator = 0;
       else if ("12jaevto".includes(flag)) {
+        const rest = token.slice(offset + 1);
+        if (flag === "j" && (rest === "1" || rest === "2") && context.args.length - (index + 1) >= 3) {
+          let value: string;
+          [value, index] = argument(context.args, index, undefined, `-j${rest}`);
+          apply(rest, value); break;
+        }
         let value: string;
-        [value, index] = argument(context.args, index, token.slice(offset + 1) || undefined, `-${flag}`);
+        [value, index] = argument(context.args, index, rest || undefined, `-${flag}`);
         apply(flag, value); break;
       } else fail(`unsupported option -${flag}`);
     }

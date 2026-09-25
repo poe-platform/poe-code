@@ -51,3 +51,27 @@ test("join --zero-terminated preserves spacing through Shell and agentCommands",
     assert.equal(closed, true);
   } finally { await shell.dispose(); }
 });
+
+test("join issue 1039 supports -j1/-j2 FIELD syntax and rejects conflicting join fields and -e strings", async () => {
+  const j1 = await runTable(fixture("join", ["-j1", "2", "left", "right"], { left: "a 1\n", right: "1 b\n" }));
+  assert.equal(j1.exitCode, 0, j1.stderr);
+  assert.equal(Buffer.from(j1.stdoutHex, "hex").toString(), "1 a b\n");
+
+  const j2 = await runTable(fixture("join", ["-j2", "2", "left", "right"], { left: "1 a\n", right: "b 1\n" }));
+  assert.equal(j2.exitCode, 0, j2.stderr);
+  assert.equal(Buffer.from(j2.stdoutHex, "hex").toString(), "1 a b\n");
+
+  for (const args of [
+    ["-1", "1", "-1", "2", "left", "right"],
+    ["-2", "1", "-2", "2", "left", "right"],
+    ["-j", "1", "-1", "2", "left", "right"],
+  ]) {
+    const res = await runTable(fixture("join", args, { left: "a 1\n", right: "1 b\n" }));
+    assert.equal(res.exitCode, 1);
+    assert.match(res.stderr, /incompatible join fields 0, 1/u);
+  }
+
+  const conflictE = await runTable(fixture("join", ["-e", "A", "-e", "B", "left", "right"], { left: "a 1\n", right: "1 b\n" }));
+  assert.equal(conflictE.exitCode, 1);
+  assert.match(conflictE.stderr, /conflicting empty-field replacement strings/u);
+});

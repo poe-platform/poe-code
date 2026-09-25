@@ -211,6 +211,8 @@ export async function runSipsCli(
   let targetFormat: ImageFormat | undefined;
   let formatOptionsStr: string | undefined;
   let targetDpi: number | undefined;
+  let verifyMode = false;
+  let propertyMutated = false;
   const getProperties: string[] = [];
   const actions: SipsAction[] = [];
   const inputPaths: string[] = [];
@@ -344,6 +346,41 @@ export async function runSipsCli(
         };
       }
       actions.push({ kind: "flip", direction: dir });
+    } else if (arg === "--verify") {
+      verifyMode = true;
+    } else if (arg === "-d" || arg === "--deleteProperty") {
+      const key = argv[++i];
+      if (!key) {
+        return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -d\n" };
+      }
+      propertyMutated = true;
+    } else if (
+      arg === "--deleteColorManagementProperties" ||
+      arg === "--optimizeColorForSharing" ||
+      arg === "-i" ||
+      arg === "--addIcon"
+    ) {
+      propertyMutated = true;
+    } else if (
+      arg === "-m" ||
+      arg === "--matchTo" ||
+      arg === "-e" ||
+      arg === "--embedProfile" ||
+      arg === "-E" ||
+      arg === "--extractProfile"
+    ) {
+      const profile = argv[++i];
+      if (!profile) {
+        return { exitCode: 1, stdout: "", stderr: `sips: missing argument for ${arg}\n` };
+      }
+      propertyMutated = true;
+    } else if (arg === "-M" || arg === "--matchToWithIntent") {
+      const profile = argv[++i];
+      const intent = argv[++i];
+      if (!profile || !intent) {
+        return { exitCode: 1, stdout: "", stderr: `sips: missing arguments for ${arg}\n` };
+      }
+      propertyMutated = true;
     } else if (arg === "-o" || arg === "--out") {
       outTarget = argv[++i];
       if (!outTarget) {
@@ -365,6 +402,7 @@ export async function runSipsCli(
     targetFormat !== undefined ||
     formatOptionsStr !== undefined ||
     targetDpi !== undefined ||
+    propertyMutated ||
     outTarget !== undefined;
 
   const outLines: string[] = [];
@@ -610,6 +648,9 @@ export async function runSipsCli(
         }
       }
 
+      if (verifyMode && !hasMutation && getProperties.length === 0) {
+        outLines.push(inPath);
+      }
       if (getProperties.length > 0) {
         if (getProperties.includes("allxml")) {
           const xmlEntries = [
@@ -756,9 +797,29 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
           out += `DirectClass ${spaceLabel}`;
           break;
         case "b":
-        case "B":
           out += `${byteSize}B`;
           break;
+        case "B":
+          out += String(byteSize);
+          break;
+        case "C": {
+          const comp =
+            meta.format === "png"
+              ? "Zip"
+              : meta.format === "jpeg"
+                ? "JPEG"
+                : meta.format === "webp"
+                  ? "WebP"
+                  : meta.format === "gif" || meta.format === "tiff"
+                    ? "LZW"
+                    : meta.format === "heic" || meta.format === "heif"
+                      ? "HEVC"
+                      : meta.format === "avif"
+                        ? "AV1"
+                        : "None";
+          out += comp;
+          break;
+        }
         case "d":
           out += dirName;
           break;
@@ -831,7 +892,7 @@ export async function runIdentifyCli(
     if (arg === "-version" || arg === "--version") {
       return { exitCode: 0, stdout: "Version: ImageMagick 7.1.1-38 (safe-bash image-ast)\n", stderr: "" };
     }
-    if (arg === "-ping") {
+    if (arg === "-ping" || arg === "-quiet") {
       // metadata-only mode (default unless -verbose)
     } else if (arg === "-verbose") {
       verbose = true;

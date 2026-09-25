@@ -419,4 +419,39 @@ describe("safe-bash-command-sips (sips & identify)", () => {
       expect(outMeta.format).toBe(expectedFmt);
     }
   });
+
+  it("supports sips --verify, -d/--deleteProperty, --deleteColorManagementProperties, -m/--matchTo, and identify %B/%b/%C", async () => {
+    const png = await sharp({
+      create: { width: 8, height: 8, channels: 3, background: "red" }
+    })
+      .png()
+      .toBuffer();
+    const files = new Map<string, Uint8Array>([["/in.png", png]]);
+
+    const verifyRes = await runSipsCli(["--verify", "/in.png"], files);
+    expect(verifyRes.exitCode).toBe(0);
+    expect(verifyRes.stdout.trim()).toBe("/in.png");
+
+    const delPropRes = await runSipsCli(["-d", "profile", "/in.png", "-o", "/out_del.png"], files);
+    expect(delPropRes.exitCode).toBe(0);
+    expect(files.has("/out_del.png")).toBe(true);
+
+    const delCmRes = await runSipsCli(
+      ["--deleteColorManagementProperties", "/in.png", "-o", "/out_cm.png"],
+      files
+    );
+    expect(delCmRes.exitCode).toBe(0);
+    expect(files.has("/out_cm.png")).toBe(true);
+
+    const matchRes = await runSipsCli(
+      ["-m", "/System/Library/ColorSync/Profiles/sRGB Profile.icc", "/in.png", "-o", "/out_m.png"],
+      files
+    );
+    expect(matchRes.exitCode).toBe(0);
+    expect(files.has("/out_m.png")).toBe(true);
+
+    const idRes = await runIdentifyCli(["-format", "%B|%b|%C", "/in.png"], files);
+    expect(idRes.exitCode).toBe(0);
+    expect(idRes.stdout).toBe(`${png.byteLength}|${png.byteLength}B|Zip`);
+  });
 });

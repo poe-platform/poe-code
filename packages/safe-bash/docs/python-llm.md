@@ -104,7 +104,8 @@ with its own cleanup scope and the same borrowed bridge.
 
 The client defaults to an 8 MiB response payload limit and no timeout. Set
 `max_response_bytes` and `timeout` (seconds) on the client or individual completion
-and stream calls. Text is measured as UTF-8, binary as bytes; embeddings use eight
+and stream calls. Completion timeouts include request and response transforms;
+client cleanup cancels and awaits that work too. Text is measured as UTF-8, binary as bytes; embeddings use eight
 bytes per numeric element. Stream limits count emitted payload bytes and separately
 check a final complete response. These are guest payload checks, not bounds on
 interpreter memory, host transport buffers or provider billing. Host admission,

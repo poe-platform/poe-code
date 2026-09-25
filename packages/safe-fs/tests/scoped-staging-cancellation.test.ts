@@ -12,6 +12,25 @@ function view(base: FileSystem, methods: Partial<FileSystem>): FileSystem {
   } });
 }
 
+for (const phase of ["charge", "admission", "guard"] as const) {
+  test(`scoped ancestry ${phase} preserves the first caller cancellation`, async () => {
+    const memory = createMemoryFileSystem();
+    const caller = new AbortController(), ambient = new AbortController();
+    const cancel = () => { caller.abort(false); ambient.abort(null); };
+    const backing = view(memory, { capabilitiesFor: async () => {
+      if (phase === "admission") cancel();
+      return memory.capabilities;
+    } });
+    const fs = scopeFileSystem(backing, () => { if (phase === "charge") cancel(); }, ambient.signal);
+    const pending = fs.prepareDirectoryAncestry!([{ path: "/", stat: await memory.lstat("/") }], { signal: caller.signal });
+    if (phase === "guard") {
+      const guard = await pending;
+      cancel();
+      assert.throws(guard, error => error === false);
+    } else await assert.rejects(pending, error => error === false);
+  });
+}
+
 for (const phase of ["creation charge", "publication charge", "creation admission", "publication admission", "publication guard"] as const) {
   for (const first of ["caller", "scope"] as const) for (const reason of [false, null, new FsError("EXDEV")] as const) {
     test(`${phase} retains the first ${first} cancellation reason: ${String(reason)}`, async () => {

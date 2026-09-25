@@ -294,7 +294,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           controls.signal?.throwIfAborted();
           admit(controls);
           try {
-            const declared = await original.capabilitiesFor?.(path, { ...controls, stagingResolution: true }) ?? original.capabilities;
+            const declared = ownedMutationCapabilities(original,
+              await original.capabilitiesFor?.(path, { ...controls, stagingResolution: true }) ?? original.capabilities);
             controls.signal?.throwIfAborted();
             if (declared.synchronousStagingResolution !== true) throw new FsError("ENOTSUP", { path });
             const resolution = snapshotStagingResolution(await Reflect.apply(method, original, [path, controls]) as FileStagingResolution);
@@ -311,24 +312,27 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         : property === "prepareDirectoryAncestry"
         ? async (...args: unknown[]) => {
           const options = (args[1] ?? {}) as FsOptions;
-          admit(options);
           const controls = resizeOptions(options);
+          admit(controls);
+          controls.signal?.throwIfAborted();
           const entries = snapshotDirectoryAncestry(args[0] as readonly FileStagingEntry[]);
           try {
             for (const entry of entries) {
               const declared = await original.capabilitiesFor?.(entry.path, { ...controls, stagingAncestry: true }) ?? original.capabilities;
-              assertOpen(controls);
+              controls.signal?.throwIfAborted();
               if (declared.synchronousDirectoryValidation !== true) throw new FsError("ENOTSUP", { path: entry.path });
             }
             const guard: unknown = await Reflect.apply(method, original, [entries, controls]);
-            assertOpen(controls);
+            controls.signal?.throwIfAborted();
             if (typeof guard !== "function") throw new FsError("ENOTSUP", { syscall: "prepareDirectoryAncestry" });
             return () => {
+              controls.signal?.throwIfAborted();
               admit(controls);
+              controls.signal?.throwIfAborted();
               runStagingGuard(guard as () => true);
               return true as const;
             };
-          } catch (error) { assertOpen(controls); throw error; }
+          } catch (error) { controls.signal?.throwIfAborted(); throw error; }
         }
         : property === "confineExtraction"
         ? async (...args: unknown[]) => scopeFileSystem(await dispatch(...args) as FileSystem, charge, signal, cleanupCharge, options)

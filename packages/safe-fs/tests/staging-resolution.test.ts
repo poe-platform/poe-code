@@ -160,6 +160,30 @@ test("resolution admission withholds read-only and quota views", () => {
   }
 });
 
+for (const kind of ["scope", "mount"] as const) {
+  test(`${kind} resolution preparation refuses a read-only backend declaration`, async () => {
+    const memory = new MemoryFileSystem();
+    await memory.writeFile("/a", Uint8Array.of(1));
+    const capabilities = Object.freeze({ ...memory.capabilities, readOnly: true });
+    let preparations = 0;
+    const backend = new Proxy(memory, { get(target, property) {
+      if (property === "capabilities") return capabilities;
+      if (property === "capabilitiesFor") return async () => capabilities;
+      if (property === "prepareStagingResolution") return async (...args: Parameters<MemoryFileSystem["prepareStagingResolution"]>) => {
+        preparations++;
+        return target.prepareStagingResolution(...args);
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const fs = kind === "mount" ? new MountFileSystem({ root: backend })
+      : scopeFileSystem(backend, () => {}, new AbortController().signal);
+    assert.equal((await fs.capabilitiesFor!("/a", { stagingResolution: true })).synchronousStagingResolution, false);
+    await assert.rejects(fs.prepareStagingResolution!("/a"), { code: "ENOTSUP" });
+    assert.equal(preparations, 0);
+  });
+}
+
 test("Device resolution capability excludes traversed virtual ancestors", async () => {
   const memory = new MemoryFileSystem();
   await memory.mkdir("/dev");

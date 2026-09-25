@@ -280,7 +280,8 @@ export class MountFileSystem implements FileSystem {
       if (location.synthetic || !within(location.mount.path, path)) fail("ENOTSUP");
       const backend = location.mount.backend;
       const input = location.mount.path === "/" ? path : path.slice(location.mount.path.length) || "/";
-      const declared = await backend.capabilitiesFor?.(input, { ...controls, stagingResolution: true }) ?? backend.capabilities;
+      const declared = ownedMutationCapabilities(backend,
+        await backend.capabilitiesFor?.(input, { ...controls, stagingResolution: true }) ?? backend.capabilities);
       controls.signal?.throwIfAborted();
       if (declared.synchronousStagingResolution !== true || !backend.prepareStagingResolution) fail("ENOTSUP");
       const prefix = directoryAncestryPaths(location.mount.path).map(ancestor => {

@@ -1,4 +1,4 @@
-import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError, toFsError } from "../contracts/errors.js";
 import { validatePath } from "../contracts/virtual-path.js";
@@ -7,11 +7,11 @@ import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
-import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry } from "./staging-ancestry.js";
+import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
 
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
 const operations = new Set<keyof FileSystem>([
-  "prepareDirectoryAncestry",
+  "prepareDirectoryAncestry", "prepareStagingResolution",
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "confineExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
@@ -288,7 +288,27 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         })();
         return Reflect.apply(method, original, args);
       };
-      const scoped = property === "prepareDirectoryAncestry"
+      const scoped = property === "prepareStagingResolution"
+        ? async (path: string, options: FsOptions = {}) => {
+          const controls = resizeOptions({ ...options });
+          controls.signal?.throwIfAborted();
+          admit(controls);
+          try {
+            const declared = await original.capabilitiesFor?.(path, { ...controls, stagingResolution: true }) ?? original.capabilities;
+            controls.signal?.throwIfAborted();
+            if (declared.synchronousStagingResolution !== true) throw new FsError("ENOTSUP", { path });
+            const resolution = snapshotStagingResolution(await Reflect.apply(method, original, [path, controls]) as FileStagingResolution);
+            controls.signal?.throwIfAborted();
+            return snapshotStagingResolution({ ...resolution, validate: () => {
+              controls.signal?.throwIfAborted();
+              admit(controls);
+              controls.signal?.throwIfAborted();
+              runStagingGuard(resolution.validate);
+              return true;
+            } });
+          } catch (error) { controls.signal?.throwIfAborted(); throw error; }
+        }
+        : property === "prepareDirectoryAncestry"
         ? async (...args: unknown[]) => {
           const options = (args[1] ?? {}) as FsOptions;
           admit(options);

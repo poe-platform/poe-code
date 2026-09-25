@@ -1,4 +1,4 @@
-import type { FileStagingEntry, FileStat, PublishStagedFileOptions } from "../contracts/filesystem.js";
+import type { FileStagingEntry, FileStagingResolution, FileStat, PublishStagedFileOptions } from "../contracts/filesystem.js";
 import { FsError, toFsError } from "../contracts/errors.js";
 import { compareIdentity } from "./mount/identity.js";
 import { normalizePath, validatePath } from "../contracts/virtual-path.js";
@@ -31,6 +31,46 @@ export function runStagingGuard(guard: () => true): void {
     void Promise.resolve(result).catch(() => {});
     throw new FsError("ENOTSUP", { message: "staging validation must return true synchronously" });
   }
+}
+
+export function snapshotStagingResolution(resolution: FileStagingResolution): FileStagingResolution {
+  const path = resolution.path;
+  validatePath(path);
+  const ancestors = snapshotDirectoryAncestry(resolution.ancestors);
+  const validate = resolution.validate;
+  if (normalizePath(path) !== path || !path.startsWith("/") || path === "/"
+    || ancestors.at(-1)!.path !== (path.slice(0, path.lastIndexOf("/")) || "/")
+    || typeof validate !== "function") throw new FsError("EINVAL", { path });
+  const parent = Object.freeze({ ...resolution.parent });
+  if (parent.type !== "directory") throw new FsError("EINVAL", { path });
+  if (compareIdentity(parent, ancestors.at(-1)!.stat) !== "same") throw new FsError("ENOTSUP", { path });
+  const supplied = resolution.destination;
+  const destination = supplied === null ? null : Object.freeze({ ...supplied });
+  const requireSnapshot = (stat: FileStat): void => {
+    if (compareIdentity(stat, stat) !== "same" || stat.type !== "directory" && (!Number.isSafeInteger(stat.revision) || stat.revision! < 0)) {
+      throw new FsError("ENOTSUP", { path });
+    }
+  };
+  if (destination !== null) {
+    if (destination.type !== "file") throw new FsError("EINVAL", { path });
+    requireSnapshot(destination);
+  }
+  if (!resolution.traversed.length) throw new FsError("EINVAL", { path });
+  if (resolution.traversed.length > 4096) throw new FsError("EFBIG", { path });
+  let recordedUnits = 0;
+  const traversed = resolution.traversed.map(entry => {
+    const entryPath = entry.path, stat = Object.freeze({ ...entry.stat }), linkTarget = entry.linkTarget;
+    validatePath(entryPath);
+    if (!entryPath.startsWith("/") || normalizePath(entryPath) !== entryPath
+      || !["directory", "file", "symlink"].includes(stat.type)
+      || stat.type === "symlink" && typeof linkTarget !== "string"
+      || stat.type !== "symlink" && linkTarget !== undefined) throw new FsError("EINVAL", { path: entryPath });
+    requireSnapshot(stat);
+    recordedUnits += entryPath.length + (linkTarget?.length ?? 0);
+    if (recordedUnits > 1_048_576) throw new FsError("EFBIG", { path });
+    return Object.freeze({ path: entryPath, stat, ...(linkTarget === undefined ? {} : { linkTarget }) });
+  });
+  return Object.freeze({ path, parent, destination, ancestors, traversed: Object.freeze(traversed), validate });
 }
 
 

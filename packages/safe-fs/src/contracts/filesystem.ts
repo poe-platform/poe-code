@@ -84,6 +84,8 @@ export interface FileSystemCapabilities {
   readonly atomicStagingAncestry?: boolean;
   /** Prepares directory guards that validate without yielding or mutating state. */
   readonly synchronousDirectoryValidation?: boolean;
+  /** Captures a followed destination path with a synchronous commit validator. */
+  readonly synchronousStagingResolution?: boolean;
   /** Invokes commitGuard in the same synchronous section as staged replacement. */
   readonly guardedStagingPublication?: boolean;
   readonly atomicFilePublication?: boolean;
@@ -116,6 +118,7 @@ export interface CapabilityQueryOptions extends OpenReadFileOptions {
   /** Inspect complete ancestry for staged publication, including other mounts.
    * Omission retains the ordinary per-target query and its acquisition intent. */
   readonly stagingAncestry?: boolean;
+  readonly stagingResolution?: boolean;
   readonly create?: boolean;
   readonly creation?: OpenFileOptions["creation"];
 }
@@ -234,6 +237,19 @@ export interface FileStagingEntry {
   readonly stat: FileStat;
 }
 
+export interface FileResolutionStep extends FileStagingEntry {
+  readonly linkTarget?: string;
+}
+
+export interface FileStagingResolution {
+  readonly path: string;
+  readonly parent: FileStat;
+  readonly destination: FileStat | null;
+  readonly ancestors: readonly FileStagingEntry[];
+  readonly traversed: readonly FileResolutionStep[];
+  readonly validate: () => true;
+}
+
 /** Ownership acquired with staging creation. remove is one-shot with shared
  * completion; close drains admitted removal and releases without new mutation.
  * Both release retained resources even after a failed removal. Call close when
@@ -314,6 +330,7 @@ export interface FileSystem {
    * The returned guard checks current identities/search access synchronously;
    * preparation is not validation, and the guard's result is not an async lease. */
   prepareDirectoryAncestry?(ancestors: readonly FileStagingEntry[], options?: FsOptions): Promise<() => true>;
+  prepareStagingResolution?(path: string, options?: FsOptions): Promise<FileStagingResolution>;
   removeStagedFile?(staging: FileStaging, options?: FsOptions): Promise<void>;
   openReadFile?(path: string, options?: OpenReadFileOptions): Promise<FileReadHandle>;
   openResizeFile?(path: string, options?: OpenResizeFileOptions): Promise<FileResizeHandle>;

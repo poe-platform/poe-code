@@ -4,16 +4,18 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
+import { normalizePath } from "../../contracts/virtual-path.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import type { EntryAuthority } from "../mount/comparison.js";
 import { getOwnedS3Entry } from "../s3/registry.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { openFileDescriptor } from "../descriptor.js";
-import { runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
+import { directoryAncestryPaths, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "../staging-ancestry.js";
+import { compareIdentity } from "../mount/identity.js";
 import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { resolveMissingTarget } from "./missing-target.js";
 import { registerMemoryAtomicView } from "./atomic-view.js";
@@ -60,6 +62,7 @@ interface Location {
 }
 
 interface ResolveOptions {
+  resolutionSteps?: FileResolutionStep[];
   resizeCreate?: boolean;
   followFinal?: boolean;
   allowMissing?: boolean;
@@ -131,7 +134,7 @@ export class MemoryFileSystem implements FileSystem {
       timestamps: true,
       atomicRename: true,
       atomicFileStaging: true, retainedStagingCleanup: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
-      synchronousDirectoryValidation: true, guardedStagingPublication: true,
+      synchronousDirectoryValidation: true, synchronousStagingResolution: true, guardedStagingPublication: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
       retainedRead: true,
@@ -396,6 +399,14 @@ export class MemoryFileSystem implements FileSystem {
     let remainingComponents = 256 - pending.length;
     if (path.endsWith("/")) pending.push("");
     const stack: { node: MemoryNode; name: string }[] = [{ node: this.root, name: "" }];
+    let recordedUnits = 0;
+    const observe = (node: MemoryNode, entryPath: string): void => {
+      if (!options.resolutionSteps) return;
+      recordedUnits += entryPath.length + (node.type === "symlink" ? node.target.length : 0);
+      if (options.resolutionSteps.length >= 4096 || recordedUnits > 1_048_576) this.fail("EFBIG", syscall, path);
+      options.resolutionSteps.push({ path: entryPath, stat: this.snapshot(node), ...(node.type === "symlink" ? { linkTarget: node.target } : {}) });
+    };
+    observe(this.root, "/");
     let links = 0;
     while (pending.length > 0) {
       const component = pending.shift()!;
@@ -421,6 +432,7 @@ export class MemoryFileSystem implements FileSystem {
         }
         this.fail("ENOENT", syscall, path);
       }
+      if (options.resolutionSteps) observe(node, [...stack.map(entry => entry.name), component].join("/"));
       if (node.type === "symlink" && (options.followFinal !== false || pending.length > 0)) {
         if (++links > 40) this.fail("ELOOP", syscall, path);
         if (node.target.length > remainingPathUnits) this.fail("ENAMETOOLONG", syscall, path);
@@ -775,6 +787,45 @@ export class MemoryFileSystem implements FileSystem {
     const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
     controls.signal?.throwIfAborted();
     return () => this.verifyDirectoryAncestry(entries, controls);
+  }
+
+  async prepareStagingResolution(path: string, options: FsOptions = {}): Promise<FileStagingResolution> {
+    const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+    controls.signal?.throwIfAborted();
+    this.validatePath(path, "prepareStagingResolution");
+    if (!path.startsWith("/") || normalizePath(path) !== path) this.fail("EINVAL", "prepareStagingResolution", path);
+    const traversed: FileResolutionStep[] = [];
+    const location = this.resolve(path, "prepareStagingResolution", { followFinal: false, allowMissing: true, resolutionSteps: traversed });
+    if (location.node && location.node.type !== "file") this.fail("ENOTSUP", "prepareStagingResolution", path);
+    const parentPath = location.path.slice(0, location.path.lastIndexOf("/")) || "/";
+    const ancestors = snapshotDirectoryAncestry(directoryAncestryPaths(parentPath).map(entryPath => ({
+      path: entryPath, stat: this.snapshot(this.entry(entryPath, "prepareStagingResolution").node!),
+    })));
+    const steps = traversed.map(entry => ({ ...entry, stat: { ...entry.stat } }));
+    const canonical = location.path;
+    const destination = location.node ? this.snapshot(location.node) : null;
+    const validate = (): true => {
+      controls.signal?.throwIfAborted();
+      const currentSteps: FileResolutionStep[] = [];
+      let current: Location;
+      try { current = this.resolve(path, "verifyStagingResolution", { followFinal: false, allowMissing: true, resolutionSteps: currentSteps }); }
+      catch (error) {
+        if (error instanceof FsError && ["ENOENT", "ENOTDIR", "ELOOP"].includes(error.code)) this.fail("EAGAIN", "verifyStagingResolution", path);
+        throw error;
+      }
+      if (current.path !== canonical || steps.length !== currentSteps.length) this.fail("EAGAIN", "verifyStagingResolution", path);
+      for (const [index, before] of steps.entries()) {
+        const after = currentSteps[index]!;
+        if (before.path !== after.path || before.linkTarget !== after.linkTarget || before.stat.type !== after.stat.type
+          || compareIdentity(before.stat, after.stat) !== "same"
+          || before.stat.type !== "directory" && (["revision", "size", "mode", "nlink", "mtimeMs", "ctimeMs"] as const).some(field => before.stat[field] !== after.stat[field])) {
+          this.fail("EAGAIN", "verifyStagingResolution", before.path);
+        }
+      }
+      this.expectEntry(current.node, destination, path);
+      return this.verifyDirectoryAncestry(ancestors, controls);
+    };
+    return snapshotStagingResolution({ path: canonical, parent: this.snapshot(location.parent), destination, ancestors, traversed: steps, validate });
   }
 
   private verifyDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions): true {

@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
@@ -16,7 +16,7 @@ import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { pathNamespace } from "../path-namespace.js";
 import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
-import { directoryAncestryPaths, inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
+import { directoryAncestryPaths, inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "../staging-ancestry.js";
 import { compareIdentity } from "./identity.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
 
@@ -44,6 +44,7 @@ interface Component {
 }
 
 interface ResolveOptions {
+  readonly resolutionSteps?: FileResolutionStep[];
   readonly resizeCreate?: boolean;
   readonly followFinal?: boolean;
   readonly entry?: boolean;
@@ -182,6 +183,7 @@ export class MountFileSystem implements FileSystem {
       ...(append === undefined ? {} : { append }),
       ...semantics,
       // Real ancestry (including synthetic mount parents) is path-dependent.
+      synchronousStagingResolution: mounts.some(({ backend }) => typeof backend.prepareStagingResolution === "function") ? undefined : false,
       atomicStagingAncestry: mounts.some(({ backend }) => typeof backend.prepareDirectoryAncestry === "function"
         && typeof backend.publishStagedFile === "function" && (typeof backend.capabilitiesFor === "function"
           || backend.capabilities.guardedStagingPublication !== false && backend.capabilities.synchronousDirectoryValidation !== false)) ? undefined : false,
@@ -198,9 +200,10 @@ export class MountFileSystem implements FileSystem {
 
   async capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
     return this.operation("capabilitiesFor", path, options, async () => {
+      if (options.stagingResolution === true && normalizePath(globalPath(path)) !== path) fail("EINVAL");
       const location = await this.resolve(path, options, {
         allowMissing: options.create ?? true,
-        followFinal: options.create !== undefined || options.creation !== "exclusive",
+        followFinal: options.stagingResolution !== true && (options.create !== undefined || options.creation !== "exclusive"),
         ...(options.create === undefined ? {} : { resizeCreate: options.create }),
       });
       const observed = ownedMutationCapabilities(location.mount.backend, await location.mount.backend.capabilitiesFor?.(location.local, options)
@@ -214,8 +217,19 @@ export class MountFileSystem implements FileSystem {
         && await this.supportsStagingAncestry(location, resize, options);
       const validation = options.stagingAncestry === true ? location.stat?.type === "directory"
         && location.path === normalizePath(globalPath(path)) && await this.supportsDirectoryValidation(location.path, options) : undefined;
-      const { synchronousDirectoryValidation: ignoredValidation, ...ordinary } = resize;
-      const withOpen = { ...ordinary, ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      let resolution: boolean | undefined;
+      if (options.stagingResolution === true) {
+        resolution = false;
+        if (within(location.mount.path, path) && typeof location.mount.backend.prepareStagingResolution === "function") {
+          const input = location.mount.path === "/" ? path : path.slice(location.mount.path.length) || "/";
+          const declared = input === location.local ? resize : ownedMutationCapabilities(location.mount.backend,
+            await location.mount.backend.capabilitiesFor?.(input, options) ?? location.mount.backend.capabilities);
+          options.signal?.throwIfAborted();
+          resolution = declared.synchronousStagingResolution === true && await this.supportsStagingAncestry(location, resize, options);
+        }
+      }
+      const { synchronousDirectoryValidation: ignoredValidation, synchronousStagingResolution: ignoredResolution, ...ordinary } = resize;
+      const withOpen = { ...ordinary, ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);
@@ -255,6 +269,51 @@ export class MountFileSystem implements FileSystem {
   prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {
     return this.operation("prepareDirectoryAncestry", ancestors.at(-1)?.path ?? "/", options,
       () => this.prepareAncestry(ancestors, options));
+  }
+
+  prepareStagingResolution(path: string, options: FsOptions = {}): Promise<FileStagingResolution> {
+    const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+    return this.operation("prepareStagingResolution", path, controls, async () => {
+      if (normalizePath(globalPath(path)) !== path) fail("EINVAL");
+      const observed: FileResolutionStep[] = [];
+      const location = await this.resolve(path, controls, { followFinal: false, allowMissing: true, resolutionSteps: observed });
+      if (location.synthetic || !within(location.mount.path, path)) fail("ENOTSUP");
+      const backend = location.mount.backend;
+      const input = location.mount.path === "/" ? path : path.slice(location.mount.path.length) || "/";
+      const declared = await backend.capabilitiesFor?.(input, { ...controls, stagingResolution: true }) ?? backend.capabilities;
+      controls.signal?.throwIfAborted();
+      if (declared.synchronousStagingResolution !== true || !backend.prepareStagingResolution) fail("ENOTSUP");
+      const prefix = directoryAncestryPaths(location.mount.path).map(ancestor => {
+        const entry = observed.find(step => step.path === ancestor);
+        if (!entry) fail("ENOTSUP");
+        return entry;
+      });
+      const outerGuard = await this.prepareAncestry(prefix, controls);
+      const bound = snapshotStagingResolution(await backend.prepareStagingResolution(input, controls));
+      controls.signal?.throwIfAborted();
+      const mapPath = (local: string): string => location.mount.path === "/" ? local : `${location.mount.path}${local === "/" ? "" : local}`;
+      const map = <T extends FileStagingEntry>(entry: T): T => ({ ...entry, path: mapPath(entry.path) });
+      const traversed = bound.traversed.map(map);
+      const localObserved = observed.filter(entry => within(location.mount.path, entry.path));
+      if (mapPath(bound.path) !== location.path || localObserved.length !== traversed.length) fail("EAGAIN");
+      for (const [index, before] of localObserved.entries()) {
+        const after = traversed[index]!;
+        if (this.select(after.path) !== location.mount) fail("EACCES");
+        if (before.path !== after.path || before.linkTarget !== after.linkTarget || before.stat.type !== after.stat.type
+          || compareIdentity(before.stat, after.stat) !== "same"
+          || before.stat.type !== "directory" && (["revision", "size", "mode", "nlink", "mtimeMs", "ctimeMs"] as const).some(field => before.stat[field] !== after.stat[field])) fail("EAGAIN");
+      }
+      const validate = (): true => {
+        controls.signal?.throwIfAborted();
+        runStagingGuard(outerGuard);
+        runStagingGuard(bound.validate);
+        return true;
+      };
+      const result = snapshotStagingResolution({ ...bound, path: mapPath(bound.path),
+        ancestors: [...prefix.slice(0, -1), ...bound.ancestors.map(map)], traversed: [...prefix.slice(0, -1), ...traversed], validate });
+      runStagingGuard(validate);
+      return result;
+    });
   }
 
   private async prepareAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions): Promise<() => true> {
@@ -449,6 +508,14 @@ export class MountFileSystem implements FileSystem {
   private async resolve(path: string, options: FsOptions, settings: ResolveOptions = {}): Promise<Location> {
     let pending = this.components(path);
     const stack = [await this.lookup("/", options)];
+    let recordedUnits = 0;
+    const observe = (entry: Location, linkTarget?: string): void => {
+      if (!settings.resolutionSteps || !entry.stat) return;
+      recordedUnits += entry.path.length + (linkTarget?.length ?? 0);
+      if (settings.resolutionSteps.length >= 4096 || recordedUnits > 1_048_576) fail("EFBIG");
+      settings.resolutionSteps.push({ path: entry.path, stat: snapshotStat(entry.stat), ...(linkTarget === undefined ? {} : { linkTarget }) });
+    };
+    observe(stack[0]!);
     let boundary: Mount | undefined;
     let verification: { mount: Mount; path: string; finalName: string | undefined } | undefined;
     let creationVerification: typeof verification;
@@ -543,6 +610,7 @@ export class MountFileSystem implements FileSystem {
         }
         const readlink = this.optional(next, "readlink", "symlinks");
         const target = await readlink.call(next.mount.backend, next.local, options);
+        observe(next, target);
         const targetParts = this.components(target);
         if (settings.resizeCreate !== undefined && targetParts.at(-1)?.trailing && pending[0]?.trailing) targetParts.pop();
         if (settings.resizeCreate === true) {
@@ -564,6 +632,7 @@ export class MountFileSystem implements FileSystem {
         }
         pending = [...targetParts, ...pending];
       } else {
+        observe(next);
         stack.push(next);
       }
     }

@@ -186,7 +186,8 @@ mounts support this route. Source bytes are buffered under the input and
 collection limits; supported modes and timestamps are prepared before publication.
 Backends without these guarantees refuse the overwrite. Hardlinked destinations
 are replaced without changing the contents of their sibling links. Opaque
-destination identities and symlinked destination parents remain unsupported.
+destination identities remain unsupported. Backends with bound path resolution
+support symlinked destination parents and reject path changes before publication.
 Same-device replacement and cross-device moves to missing destinations remain supported.
 Directory moves with multiple source links to one inode require atomic unlink
 receipts to remove those links without accepting unrelated source changes.

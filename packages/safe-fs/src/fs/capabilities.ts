@@ -105,6 +105,7 @@ export function readOnlyCapabilities(capabilities: FileSystemCapabilities): File
   ].filter(name => capabilities[name] !== undefined).map(name => [name, capabilities[name]]));
   return Object.freeze({
     ...inspection, retainedStagingCleanup: false, readOnly: true, write: false, append: false, exclusiveCreate: false,
+    synchronousStagingResolution: false,
     mkdir: false, recursiveMkdir: false, remove: false, removeDirectory: false, recursiveRemove: false,
     rename: false, copy: false, exclusiveCopy: false, truncate: false, streamingAppend: false,
     randomAccessWrite: false, hardlinks: false, permissions: false, timestamps: false,
@@ -117,7 +118,7 @@ export function quotaCapabilities(capabilities: FileSystemCapabilities): FileSys
   const streamingWrite = requireCapabilities(capabilities.write, capabilities.append, !capabilities.readOnly);
   const streamingAppend = requireCapabilities(capabilities.append, !capabilities.readOnly);
   const { streamingWrite: ignoredWrite, streamingAppend: ignoredAppend, ...rest } = capabilities;
-  return Object.freeze({ ...rest, retainedStagingCleanup: false, atomicStagingAncestry: false, synchronousDirectoryValidation: false, guardedStagingPublication: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+  return Object.freeze({ ...rest, synchronousStagingResolution: false, retainedStagingCleanup: false, atomicStagingAncestry: false, synchronousDirectoryValidation: false, guardedStagingPublication: false, atomicFilePublication: false, descriptorWriteStream: false, atomicResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     ...(streamingWrite === undefined ? {} : { streamingWrite }),
     ...(streamingAppend === undefined ? {} : { streamingAppend }),
   });
@@ -135,6 +136,7 @@ export function ownedMutationCapabilities(filesystem: FileSystem, capabilities =
   if (capabilities.retainedStagingCleanup === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.retainedStagingCleanup = false;
   if (capabilities.atomicStagingAncestry === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.atomicStagingAncestry = false;
   if (capabilities.synchronousDirectoryValidation === true && typeof filesystem.prepareDirectoryAncestry !== "function") unavailable.synchronousDirectoryValidation = false;
+  if (capabilities.synchronousStagingResolution === true && (capabilities.readOnly === true || typeof filesystem.prepareStagingResolution !== "function")) unavailable.synchronousStagingResolution = false;
   if (capabilities.guardedStagingPublication === true && (capabilities.atomicFileStaging !== true || unavailable.atomicFileStaging === false)) unavailable.guardedStagingPublication = false;
   if (capabilities.atomicDirectoryMetadata === true && (capabilities.readOnly === true || typeof filesystem.prepareDirectory !== "function")) unavailable.atomicDirectoryMetadata = false;
   if (capabilities.trustedOwnedStaging === true && (capabilities.readOnly === true

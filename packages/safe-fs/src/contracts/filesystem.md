@@ -1367,6 +1367,40 @@ validation; Device refuses virtual
 device ancestors. Quota and read-only views withhold unsupported guarantees.
 Real's trusted staging is not promoted to either capability.
 
+`synchronousStagingResolution: true` adds
+`prepareStagingResolution(path, options?)` for a regular-file destination or a
+missing final entry. The final entry is not followed. The immutable result
+contains its canonical `path`, `parent` and `destination` snapshot (or null),
+canonical directory-only `ancestors`, and the ordered `traversed` resolution
+steps. Steps include directories later left by `..`, each followed symlink's
+identity, mutation snapshot and exact `linkTarget`, and the observed final file.
+The supplied path must be absolute and lexically canonical; symlink targets
+retain ordinary relative, absolute and `..` resolution semantics.
+
+`validate()` synchronously rechecks the original resolution, all traversed
+directory identities and current search permissions, symlink identity/content,
+the canonical ancestry, and the captured destination snapshot or absence. It
+returns literal true or refuses before publication. It must not yield or mutate
+filesystem state. It is not a lease: callers stage and publish using canonical
+paths and invoke the validator from `commitGuard` at the actual replacement
+point. Changes during asynchronous composition are rejected too. Preparation
+and validation preserve cancellation, including false-valued abort reasons.
+The result owns snapshots, not open handles; no close operation is needed.
+
+Memory implements this contract using its bounded path resolver, with an
+additional maximum of 4,096 recorded steps and 1,048,576 path/target UTF-16 units
+per capture or validation (`EFBIG` on overflow). Mount preserves its existing
+symlink confinement, binds the initial traversal to the backend receipt, and
+composes outer directory validators with the leaf validator. Query
+`capabilitiesFor(path, { stagingResolution: true })` for composed support;
+ordinary Mount queries do not claim it. Scope captures controls before charging
+and charges each validation; Device refuses traces involving virtual device
+ancestors. Read-only and quota views withhold the operation. Native/remote
+lookups do not gain synchronous validation from this interface.
+
+This is a separate optional contract. `prepareDirectoryAncestry` and
+`atomicStagingAncestry` continue to reject symlinks in their canonical lists.
+
 This protocol does not change cleanup ownership. A pathname staging receipt
 cannot locate a directory after an ancestor moves; ordinary cleanup still
 refuses stale paths and preserves replacements. Callers needing cleanup after

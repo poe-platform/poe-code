@@ -6,6 +6,8 @@ import { codeOf } from "./internal.js";
 import type { MoveBudget } from "./move.js";
 
 export interface MoveStagingPlan {
+  readonly target: string;
+  readonly resolutionGuard?: () => true;
   readonly parent: FileStat;
   readonly ancestors: readonly FileStagingEntry[];
   readonly metadata: Pick<CreateStagedFileOptions, "mode" | "atimeMs" | "mtimeMs">;
@@ -18,7 +20,35 @@ function authoritative(stat: FileStat): boolean {
 export async function prepareMoveStaging(context: CommandContext, source: string, sourceStat: FileStat,
   target: string, expected: FileStat, budget: MoveBudget): Promise<MoveStagingPlan> {
   checkSource(sourceStat, sourceStat, source);
-  const capabilities = await context.fs.capabilitiesFor?.(target, { signal: context.signal, stagingAncestry: true }) ?? context.fs.capabilities;
+  let canonicalTarget = target;
+  let boundAncestors: readonly FileStagingEntry[] | undefined;
+  let resolutionGuard: (() => true) | undefined;
+  if (context.fs.prepareStagingResolution) {
+    const declared = await context.fs.capabilitiesFor?.(target, { signal: context.signal, stagingResolution: true }) ?? context.fs.capabilities;
+    context.signal.throwIfAborted();
+    if (declared.synchronousStagingResolution === true) {
+      const resolution = await context.fs.prepareStagingResolution(target, { signal: context.signal });
+      context.signal.throwIfAborted();
+      const current = resolution.destination;
+      if (!current || current.type !== "file" || compareCopyIdentity(expected, current) !== "same"
+        || (["revision", "size", "mode", "nlink", "mtimeMs", "ctimeMs"] as const).some(field => expected[field] !== current[field])) {
+        throw new FsError("EAGAIN", { path: target, message: "move destination changed during resolution capture" });
+      }
+      resolutionGuard = () => {
+        context.signal.throwIfAborted();
+        const result: unknown = resolution.validate();
+        if (result !== true) {
+          void Promise.resolve(result).catch(() => {});
+          throw new FsError("ENOTSUP", { path: target, message: "move resolution validation must be synchronous" });
+        }
+        return true;
+      };
+      resolutionGuard();
+      canonicalTarget = resolution.path;
+      boundAncestors = resolution.ancestors;
+    }
+  }
+  const capabilities = await context.fs.capabilitiesFor?.(canonicalTarget, { signal: context.signal, stagingAncestry: true }) ?? context.fs.capabilities;
   context.signal.throwIfAborted();
   if (context.fs.capabilities.readOnly === true || capabilities.readOnly === true) throw new FsError("EROFS", { path: target });
   if (!context.fs.createStagedFile || !context.fs.publishStagedFile
@@ -31,20 +61,20 @@ export async function prepareMoveStaging(context: CommandContext, source: string
     path: target, message: "cross-device overwrite requires atomic destination and ancestry binding: move destination lacks authoritative snapshot",
   });
   const paths: string[] = [];
-  for (let path = dirname(target);; path = dirname(path)) {
+  for (let path = dirname(canonicalTarget);; path = dirname(path)) {
     await budget.step();
     paths.push(path);
     if (path === "/") break;
   }
-  const ancestors: FileStagingEntry[] = [];
-  for (const path of paths.reverse()) {
+  const ancestors: FileStagingEntry[] = boundAncestors ? [...boundAncestors] : [];
+  for (const path of boundAncestors ? [] : paths.reverse()) {
     const stat = await context.fs.lstat(path, { signal: context.signal });
     if (stat.type !== "directory" || compareCopyIdentity(stat, stat) !== "same") {
       throw new FsError("ENOTSUP", { path, message: "move destination ancestry lacks authoritative directory identity" });
     }
     ancestors.push({ path, stat });
   }
-  return { parent: ancestors[ancestors.length - 1]!.stat, ancestors, metadata: {
+  return { target: canonicalTarget, ...(resolutionGuard ? { resolutionGuard } : {}), parent: ancestors[ancestors.length - 1]!.stat, ancestors, metadata: {
     ...(capabilities.permissions === false ? {} : { mode: sourceStat.mode & 0o7777 }),
     ...(capabilities.timestamps === false ? {} : { atimeMs: sourceStat.atimeMs, mtimeMs: sourceStat.mtimeMs }),
   } };
@@ -62,6 +92,7 @@ function checkSource(expected: FileStat, current: FileStat, source: string): voi
 
 export async function stageMoveReplacement(context: CommandContext, source: string, target: string,
   expected: FileStat, destination: FileStat, plan: MoveStagingPlan, budget: MoveBudget): Promise<void> {
+  const publicationTarget = plan.target;
   let accepting = true;
   let reader: FileReadHandle | undefined;
   let staging: FileStaging | undefined;
@@ -100,6 +131,7 @@ export async function stageMoveReplacement(context: CommandContext, source: stri
   context.registerCleanup?.(close);
   let failed = false, failure: unknown;
   try {
+    plan.resolutionGuard?.();
     await operation(async () => { reader = await context.fs.openReadFile!(source, { signal: context.signal }); });
     checkSource(expected, await operation(() => reader!.stat({ signal: context.signal })), source);
     const size = expected.size, maxMemoryBytes = size * 3 + 64 * 1024;
@@ -127,8 +159,8 @@ export async function stageMoveReplacement(context: CommandContext, source: stri
     checkSource(expected, await operation(() => reader!.stat({ signal: context.signal })), source);
     for (let attempt = 0; attempt < 128; attempt++) {
       await budget.step();
-      const candidate = joinPath(dirname(target), `.mv-${attempt + 1}`);
-      if (candidate === target) continue;
+      const candidate = joinPath(dirname(publicationTarget), `.mv-${attempt + 1}`);
+      if (candidate === publicationTarget) continue;
       try {
         await operation(async () => {
           staging = await context.fs.createStagedFile!(candidate, "entry", { type: "file", data }, {
@@ -144,8 +176,12 @@ export async function stageMoveReplacement(context: CommandContext, source: stri
     // conditional removal still protects the source after publication.
     checkSource(expected, await operation(() => reader!.stat({ signal: context.signal })), source);
     checkSource(expected, await operation(() => context.fs.lstat(source, { signal: context.signal })), source);
-    await operation(() => context.fs.publishStagedFile!(staging!, target, {
-      parent: plan.parent, destination, ancestors: plan.ancestors, commitGuard: assertOpen, signal: context.signal,
+    await operation(() => context.fs.publishStagedFile!(staging!, publicationTarget, {
+      parent: plan.parent, destination, ancestors: plan.ancestors, commitGuard: () => {
+        assertOpen();
+        plan.resolutionGuard?.();
+        return true;
+      }, signal: context.signal,
     }));
   } catch (error) { failed = true; failure = error; }
   finally {

@@ -23,7 +23,7 @@ export function lexicalDevicePath(path: string): string {
   return `/${parts.join("/")}`;
 }
 
-async function resolveResizeDevicePath(filesystem: FileSystem, path: string, options: FsOptions, create: boolean, namespace: ((path: string) => string) | undefined): Promise<string> {
+async function resolveResizeDevicePath(filesystem: FileSystem, path: string, options: FsOptions, create: boolean, namespace: ((path: string) => string) | undefined, traversal?: { virtual: boolean }): Promise<string> {
   validatePath(path);
   const components = (value: string) => {
     const result = value.split("/").filter(Boolean);
@@ -65,6 +65,7 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
     const candidate = `/${[...parts, component].join("/")}`;
     const selected = namespace === undefined ? undefined : candidate === deviceDirectory || candidate === nullPath ? "/" : namespace(candidate);
     if (boundary !== undefined && selected !== boundary) throw new FsError("EACCES", { path });
+    if (traversal && (candidate === deviceDirectory || candidate === nullPath)) traversal.virtual = true;
     if (create && pending.length === 1 && pending[0] === "") throw new FsError("EISDIR", { path });
     if (candidate !== deviceDirectory && candidate !== nullPath) {
       let stat: FileStat | undefined;
@@ -119,14 +120,14 @@ function exceedsComponentByteLimit(value: string): boolean {
   return value.length > 85 && (value.length > 255 || utf8ByteLength(value) > 255);
 }
 
-export async function resolveDevicePath(filesystem: FileSystem, path: string, options: FsOptions, followFinal = true, resizeCreate?: boolean): Promise<string> {
+export async function resolveDevicePath(filesystem: FileSystem, path: string, options: FsOptions, followFinal = true, resizeCreate?: boolean, traversal?: { virtual: boolean }): Promise<string> {
   options.signal?.throwIfAborted();
   if (resizeCreate === undefined && Reflect.get(filesystem, pathNamespace) === undefined) {
     const fast = tryResolveMemoryDevicePath(filesystem, path);
     if (fast !== undefined) return fast;
   }
   const namespace = capturePathNamespace(filesystem, options);
-  if (resizeCreate !== undefined) return resolveResizeDevicePath(filesystem, path, options, resizeCreate, namespace);
+  if (resizeCreate !== undefined) return resolveResizeDevicePath(filesystem, path, options, resizeCreate, namespace, traversal);
   const lexical = lexicalDevicePath(path);
   const lstat = filesystem.lstat;
   options.signal?.throwIfAborted();
@@ -159,6 +160,7 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
     const candidate = `/${[...parts, component].join("/")}`;
     const selected = namespace === undefined ? undefined : candidate === deviceDirectory || candidate === nullPath ? "/" : namespace(candidate);
     if (boundary !== undefined && selected !== boundary) throw new FsError("EACCES", { path });
+    if (traversal && (candidate === deviceDirectory || candidate === nullPath)) traversal.virtual = true;
     if (parts.length < failedDepth && candidate !== deviceDirectory && candidate !== nullPath && ((followFinal && aliases) || pending.length)) {
       const lookup = absolute ? candidate : candidate.slice(1);
       let stat: FileStat | undefined;

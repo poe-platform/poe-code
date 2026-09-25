@@ -7,6 +7,56 @@ const bytes = (text: string) => new TextEncoder().encode(text);
 
 const script = "mv /source/input/a /destination/output/a";
 
+for (const race of ["retarget", "recreate", "intermediate", "permission", "ancestor", "capture"] as const) {
+  test(`cross-device mv preserves both sides after symlink resolution ${race}`, async () => {
+    const { source, destination } = await fixture();
+    await destination.mkdir("/links");
+    await destination.symlink("../output", "/links/via");
+    await destination.symlink("links/via", "/alias");
+    await destination.mkdir("/other");
+    await destination.writeFile("/other/a", bytes("competitor"));
+    let capturing = false, mutations = 0;
+    const replaceLink = async (path: string, value: string) => { await destination.rm(path); await destination.symlink(value, path); mutations++; };
+    const backend = new Proxy(destination, { get(target, property) {
+      if (property === "readlink" && race === "capture") return async (...args: Parameters<typeof destination.readlink>) => {
+        const value = await destination.readlink(...args);
+        if (capturing && args[0] === "/alias" && mutations === 0) await replaceLink("/alias", "links/via");
+        return value;
+      };
+      if (property === "publishStagedFile") return async (...args: Parameters<typeof destination.publishStagedFile>) => {
+        if (race === "retarget") await replaceLink("/alias", "other");
+        else if (race === "recreate") await replaceLink("/alias", "links/via");
+        else if (race === "intermediate") await replaceLink("/links/via", "../other");
+        else if (race === "permission") { await destination.chmod("/links", 0o600); mutations++; }
+        else if (race === "ancestor") { await destination.rename("/output", "/held"); await destination.mkdir("/output"); await destination.writeFile("/output/a", bytes("replacement")); mutations++; }
+        return destination.publishStagedFile(...args);
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const base = mounted(source, backend);
+    const fs = new Proxy(base, { get(target, property) {
+      if (property === "prepareStagingResolution") return async (...args: Parameters<NonNullable<FileSystem["prepareStagingResolution"]>>) => {
+        capturing = true;
+        return base.prepareStagingResolution(...args);
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec("mv /source/input/a /destination/alias/a");
+      assert.equal(result.exitCode, 1, result.stderr);
+      assert.match(result.stderr, race === "permission" ? /EACCES/u : /EAGAIN/u);
+      assert.equal(mutations, 1);
+      assert.deepEqual(await source.readFile("/input/a"), bytes("source"));
+      assert.deepEqual(await destination.readFile(race === "ancestor" ? "/held/a" : "/output/a"), bytes("previous"));
+      assert.deepEqual(await destination.readFile("/other/a"), bytes("competitor"));
+      assert.deepEqual((await destination.readdir(race === "ancestor" ? "/held" : "/output")).map(entry => entry.name), ["a"]);
+    } finally { await shell.dispose(); }
+  });
+}
+
 async function fixture(shared = false, data = bytes("source")) {
   const source = createMemoryFileSystem(), destination = shared ? source : createMemoryFileSystem();
   await source.mkdir("/input");
@@ -20,6 +70,30 @@ async function fixture(shared = false, data = bytes("source")) {
 
 function mounted(source: FileSystem, destination: FileSystem) {
   return createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/source": source, "/destination": destination } });
+}
+
+for (const shared of [false, true]) for (const shape of ["absolute", "relative", "chain"] as const) {
+  test(`cross-device mv replaces through a symlink destination parent, shared=${shared}, shape=${shape}`, async () => {
+    const { source, destination } = await fixture(shared);
+    if (shape === "chain") {
+      await destination.mkdir("/links");
+      await destination.symlink("../output", "/links/via");
+    }
+    const link = shape === "absolute" ? "/output" : shape === "relative" ? "output" : "links/via";
+    await destination.symlink(link, "/alias");
+    const shell = new Shell({ fs: mounted(source, destination) }).use(agentCommands());
+    try {
+      const result = await shell.exec("mv /source/input/a /destination/alias/a");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(await destination.readFile("/output/a"), bytes("source"));
+      assert.equal(await destination.readlink("/alias"), link);
+      const stat = await destination.stat("/output/a");
+      assert.equal(stat.mode & 0o7777, 0o640);
+      assert.equal(stat.mtimeMs, 5678);
+      await assert.rejects(source.lstat("/input/a"), { code: "ENOENT" });
+      assert.deepEqual((await destination.readdir("/output")).map(entry => entry.name), ["a"]);
+    } finally { await shell.dispose(); }
+  });
 }
 
 for (const shared of [false, true]) for (const length of [0, 150_001]) {

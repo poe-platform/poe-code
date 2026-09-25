@@ -16,6 +16,18 @@ function fixture(script?: string, files: Record<string, string> = {}) {
 }
 
 describe("workspace test ownership", () => {
+  it("retains declared Node test ownership without absorbing it into shared Vitest", () => {
+    const fileSystem = fixture("node --import tsx --test src/*.test.ts");
+    expect(workspaceTestExclusions("/repo", fileSystem)).toEqual(["packages/example/src/*.test.ts"]);
+    expect(workspaceUnitSelections("/repo", fileSystem)).toEqual([
+      { path: "packages/example", selectors: [], exclusions: ["packages/example/src/*.test.ts"], passWithNoTests: false, hasHooks: false, requiresNativePool: true }
+    ]);
+  });
+  for (const script of ["node --test ../foreign.test.ts", "node --import tsx --test src/*.test.ts && node other.mjs", "node --test '$TESTS'"]) {
+    it(`retains root discovery for ambiguous Node ownership: ${script}`, () => {
+      expect(workspaceTestExclusions("/repo", fixture(script))).toEqual([]);
+    });
+  }
   it("excludes package-local Vitest includes while retaining the native configuration route", () => {
     const fileSystem = fixture("vitest run --config vitest.config.ts", {
       "/repo/packages/example/vitest.config.ts": 'import { defineConfig } from "vitest/config"; export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });'

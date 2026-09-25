@@ -18,6 +18,19 @@ export function workspaceUnitSelections(root, fileSystem = fs) {
     const script = scripts["test:unit"];
     if (typeof script !== "string") continue;
     const tokens = parse(script, () => undefined);
+    const nodeOffset = tokens[0] === "node" && tokens[1] === "--import" && tokens[2] === "tsx" && tokens[3] === "--test"
+      ? 4 : tokens[0] === "node" && tokens[1] === "--test" ? 2 : undefined;
+    if (nodeOffset !== undefined && tokens.length > nodeOffset) {
+      const patterns = tokens.slice(nodeOffset).map(token => typeof token === "string" ? token : token?.op === "glob" ? token.pattern : undefined);
+      if (patterns.every(pattern => typeof pattern === "string" && pattern.includes(".test.")
+        && !path.isAbsolute(pattern) && !pattern.startsWith("!") && !pattern.includes("\\")
+        && pattern.split("/").every(segment => segment && segment !== "." && segment !== ".."))) {
+        selections.push({ path: prefix.slice(0, -1), selectors: [], exclusions: patterns.map(pattern => prefix + pattern),
+          passWithNoTests: false, hasHooks: scripts["pretest:unit"] !== undefined || scripts["posttest:unit"] !== undefined,
+          requiresNativePool: true });
+      }
+      continue;
+    }
     if (tokens.length === 4 && tokens[0] === "vitest" && tokens[1] === "run" && tokens[2] === "--config" && typeof tokens[3] === "string") {
       const config = tokens[3];
       if (path.isAbsolute(config) || config.split("/").some(segment => segment === ".." || !segment)) continue;

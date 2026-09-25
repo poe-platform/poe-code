@@ -173,3 +173,11 @@ test("relative operands do not introduce a new double-leading-slash namespace", 
     assert.equal((await run([".", "data.yaml"], "", { fs, cwd: cwd! })).status, 0);
   }
 });
+
+test("yq parser handles empty block scalars before siblings, compact nested sequences, >1-space sequence mappings, and trailing marker spaces", async () => {
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "a: |\nb: 1\n"), { status: 0, stdout: "{\"a\":\"\",\"b\":1}\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "- - a\n"), { status: 0, stdout: "[[\"a\"]]\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "- - a\n  - b\n"), { status: 0, stdout: "[[\"a\",\"b\"]]\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "-   a: 1\n    b: 2\n"), { status: 0, stdout: "[{\"a\":1,\"b\":2}]\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "a: 1\n--- \nb: 2\n... \n"), { status: 0, stdout: "{\"a\":1}\n{\"b\":2}\n", stderr: "" });
+});

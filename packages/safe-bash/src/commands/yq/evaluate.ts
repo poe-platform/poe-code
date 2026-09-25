@@ -672,7 +672,7 @@ export class Evaluator {
                 if (yaml.isScalar(pair.key) && value(pair.key, yaml) === requested) node.items.push(new yaml.Pair(await cloneNode(pair.key, yaml, this.work), await cloneNode(pair.value as Node, yaml, this.work)));
               }
             } else if (yaml.isSeq(base.node) && yaml.isSeq(node)) {
-              const index = Number(requested);
+              const index = nodeTag(key as Node, yaml) === "!!int" ? Number(requested) : NaN;
               if (Number.isSafeInteger(index) && index >= 0 && index < base.node.items.length) node.items.push(await cloneNode(base.node.items[index] as Node, yaml, this.work));
             }
           }
@@ -794,7 +794,7 @@ export class Evaluator {
       else if (name === "has") {
         const key = (await next(expression.args[0]!, [input], false))[0]!;
         const keyNode = dereference(key, yaml, this.work).node;
-        result = yaml.isMap(base.node) ? base.node.items.some(pair => yaml.isScalar(pair.key) && String(pair.key.value) === String(value(key.node, yaml))) : yaml.isSeq(base.node) && nodeTag(keyNode, yaml) === "!!int" && Number(value(keyNode, yaml)) < base.node.items.length;
+        result = yaml.isMap(base.node) ? base.node.items.some(pair => yaml.isScalar(pair.key) && String(pair.key.value) === String(value(key.node, yaml))) : yaml.isSeq(base.node) && nodeTag(keyNode, yaml) === "!!int" && Number(value(keyNode, yaml)) >= 0 && Number(value(keyNode, yaml)) < base.node.items.length;
       } else if (name === "keys") {
         if (!yaml.isMap(base.node) && !yaml.isSeq(base.node)) {
           throw new MikeError(`cannot get keys of ${nodeTag(base.node, yaml)}, keys only works for maps and arrays`);

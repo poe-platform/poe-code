@@ -905,14 +905,19 @@ class BlockParser {
         this.composer.member(result.length + 1);
         this.#index++;
         const rest = content.slice(1).trimStart();
+        const childIndent = indent + (content.length - rest.length);
         let item: ParsedNode;
         if (rest.length === 0) {
           this.#skip();
           const next = this.lines[this.#index];
           item = next && indentation(next.text) > indent ? await this.#node(indentation(next.text)) : { value: null, style: "plain" };
           if (!next || indentation(next.text) <= indent) await this.composer.scalar("", null);
+        } else if (/^-(?:[ \t]|$)/u.test(rest)) {
+          this.lines[this.#index - 1] = { ...line, text: `${" ".repeat(childIndent)}${rest}` };
+          this.#index--;
+          item = await this.#sequence(childIndent);
         } else if (mappingColon(rest) >= 0) {
-          item = await this.#inlineMappingItem(rest, indent + 2, line.number);
+          item = await this.#inlineMappingItem(rest, childIndent, line.number);
         } else item = await this.#inlineOrBlock(rest, indent, line.number);
         result.push(item.value);
       }
@@ -1057,7 +1062,7 @@ class BlockParser {
     if (contentIndent < 0) {
       for (let cursor = this.#index; cursor < this.lines.length; cursor++) {
         if (this.lines[cursor]!.text.trim().length > 0) {
-          contentIndent = indentation(this.lines[cursor]!.text);
+          contentIndent = Math.max(parentIndent + 1, indentation(this.lines[cursor]!.text));
           break;
         }
       }
@@ -1152,7 +1157,7 @@ async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): Asyn
       directives++;
       continue;
     }
-    if (/^---(?:[ \t]+#.*)?$/u.test(line.text)) {
+    if (/^---[ \t]*(?:#.*)?$/u.test(line.text)) {
       if (sawContent || explicit) {
         const document = take(false);
         if (document) yield document;
@@ -1161,7 +1166,7 @@ async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): Asyn
       ended = false;
       continue;
     }
-    if (/^\.\.\.(?:[ \t]+#.*)?$/u.test(line.text)) {
+    if (/^\.\.\.[ \t]*(?:#.*)?$/u.test(line.text)) {
       if (!sawContent && !explicit) {
         ended = true;
         continue;

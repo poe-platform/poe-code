@@ -121,3 +121,12 @@ test("collection operators retain quota enforcement", async () => {
     assert.match(result.stderr, /yq limit exceeded: maxNodes/u);
   }
 });
+
+test("Mike yq evaluator handles read-only/del out-of-bounds indices, deduplicated/unordered del, has(-1), and non-integer array pick", async () => {
+  assert.deepEqual(await run(["-o", "json", "select(.[5] == null)"], "[1, 2]\n"), { status: 0, stdout: "[\n  1,\n  2\n]\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "del(.[5])"], "[1, 2]\n"), { status: 0, stdout: "[\n  1,\n  2\n]\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "del(.[1], .[0])"], "[\"a\", \"b\", \"c\"]\n"), { status: 0, stdout: "[\n  \"c\"\n]\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "del(.[0], .[0])"], "[\"a\", \"b\", \"c\"]\n"), { status: 0, stdout: "[\n  \"b\",\n  \"c\"\n]\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "has(-1)"], "[10, 20]\n"), { status: 0, stdout: "false\n", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "pick([false, null, true])"], "[10, 20]\n"), { status: 0, stdout: "[]\n", stderr: "" });
+});

@@ -108,8 +108,8 @@ class RawDocumentFramer {
 
   #finishLine(end: number): void {
     const line = this.#line.replace(/[\r\n]+$/u, "");
-    const marker = /^---(?:[ \t]+#.*)?$/u.test(line);
-    const endMarker = /^\.\.\.(?:[ \t]+#.*)?$/u.test(line);
+    const marker = /^---[ \t]*(?:#.*)?$/u.test(line);
+    const endMarker = /^\.\.\.[ \t]*(?:#.*)?$/u.test(line);
     if (marker && this.#hasContent && this.#lineStart > this.#frameStart) {
       this.#ranges.push({ start: this.#frameStart, end: this.#lineStart, lineOffset: this.#frameLine });
       this.#frameStart = this.#lineStart;

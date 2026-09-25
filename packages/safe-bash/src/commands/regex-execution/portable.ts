@@ -573,7 +573,8 @@ export class RegexSession {
   runSync(descriptor: Descriptor, rows: readonly Row[]): Match[][] | Promise<Match[][]> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    const signal = this.controller ? this.requestSignal : this.signal;
+    // Dispatch may become asynchronous, so its first signal must already belong to this session.
+    const signal = this.ensureAsyncState();
     const result = this.executor.requestSyncOrAsync(descriptor, rows, signal, this.getRetirementsBound);
     if (!(result instanceof Promise)) return result;
     return this.trackPending(result);

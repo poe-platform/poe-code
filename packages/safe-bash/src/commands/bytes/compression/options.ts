@@ -19,6 +19,9 @@ export interface CompressionOptions {
   extreme?: boolean;
   singleStream?: boolean;
   xzDecompressMemory?: number;
+  xzCompressMemory?: number;
+  xzNoAdjust?: boolean;
+  onXzAdjust?: (dictionary: number) => void | Promise<void>;
   suffix?: string;
   zstd?: ZstdOptions;
   excludeCompressed?: boolean;
@@ -114,16 +117,20 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       continue;
     }
     if (profile.format === "xz") {
-      if (argument === "--memlimit-decompress" || argument.startsWith("--memlimit-decompress=")
+      if (argument === "--memlimit" || argument.startsWith("--memlimit=")
+        || argument === "--memlimit-compress" || argument.startsWith("--memlimit-compress=")
+        || argument === "--memlimit-decompress" || argument.startsWith("--memlimit-decompress=")
         || argument === "--memlimit-mt-decompress" || argument.startsWith("--memlimit-mt-decompress=")) {
         const equal = argument.indexOf("=");
         const name = equal < 0 ? argument.slice(2) : argument.slice(2, equal);
         const value = equal < 0 ? args[++index] : argument.slice(equal + 1);
         const memory = parseXzMemory(value);
         // The codec is single-threaded: the MT soft limit never applies.
-        if (name === "memlimit-decompress") result.xzDecompressMemory = memory;
+        if (name === "memlimit-decompress" || name === "memlimit") result.xzDecompressMemory = memory;
+        if (name === "memlimit-compress" || name === "memlimit") result.xzCompressMemory = memory;
         continue;
       }
+      if (argument === "--no-adjust") { result.xzNoAdjust = true; continue; }
       if (argument === "--ignore-check") { result.xzIgnoreCheck = true; continue; }
       if (argument === "--check" || argument.startsWith("--check=")) {
         result.xzCheck = parseXzCheck(argument === "--check" ? args[++index] : argument.slice("--check=".length));

@@ -40,8 +40,11 @@ export async function createCodec(
       || !Number.isInteger(value.sizeHint) || value.sizeHint < 0 || value.sizeHint > 0x7fffffff
       || value.streamSize !== undefined && (!Number.isSafeInteger(value.streamSize) || value.streamSize < 0)) throw new RangeError("invalid Zstandard codec parameters");
   }
-  const requestedMemory = options.format === "xz" && options.decompress ? options.xzDecompressMemory ?? 0 : 0;
-  if (!Number.isSafeInteger(requestedMemory) || requestedMemory < 0) throw new RangeError("invalid XZ decompression memory limit");
+  for (const memory of [options.xzDecompressMemory, options.xzCompressMemory]) {
+    if (memory !== undefined && (options.format !== "xz" || !Number.isSafeInteger(memory) || memory < 0)) throw new RangeError("invalid XZ memory limit");
+  }
+  if (options.xzNoAdjust !== undefined && (options.format !== "xz" || typeof options.xzNoAdjust !== "boolean")) throw new RangeError("invalid XZ adjustment policy");
+  const requestedMemory = options.format === "xz" ? (options.decompress ? options.xzDecompressMemory : options.xzCompressMemory) ?? 0 : 0;
   const memoryLimit = requestedMemory;
   if (memoryLimit !== 0 && memoryLimit < 1024) throw new PublicDiagnostic("codec memory limit exceeded");
   if (options.xzCheck !== undefined && (options.format !== "xz" || ![0, 1, 4, 10].includes(options.xzCheck))) throw new RangeError("invalid XZ integrity check");
@@ -67,9 +70,14 @@ export async function createCodec(
     module._initialize?.();
     const initialized = lzma
       ? module.bridge_create_lzma?.(Number(options.decompress), options.level, memoryLimit >>> 0, lzma!.dictionary, lzma!.properties, Number(lzma!.eos), lzma!.size >>> 0, Math.floor(lzma!.size / 0x100000000), Math.floor(memoryLimit / 0x100000000))
-      : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, memoryLimit >>> 0, 30, options.format === "xz" ? options.xzCheck ?? 4 : Number(options.small === true), Number(options.xzIgnoreCheck === true), Number(options.xzFormat === "lzma"), Math.floor(memoryLimit / 0x100000000));
+      : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, memoryLimit >>> 0, 30, options.format === "xz" ? options.xzCheck ?? 4 : Number(options.small === true), Number(options.xzIgnoreCheck === true), Number(options.xzFormat === "lzma"), Math.floor(memoryLimit / 0x100000000), Number(options.xzNoAdjust === true));
     signal.throwIfAborted();
     if (initialized !== 0) throw new PublicDiagnostic("codec initialization failed or memory limit exceeded");
+    if (options.format === "xz" && !options.decompress && !lzma) {
+      const adjusted = module.bridge_xz_adjusted_dictionary?.() ?? 0;
+      if (adjusted) await options.onXzAdjust?.(adjusted);
+      signal.throwIfAborted();
+    }
     if (options.zstd) {
       const value = options.zstd;
       const size = value.streamSize ?? 0;

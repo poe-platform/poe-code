@@ -24,6 +24,9 @@ export interface BoundedCodecOptions {
   readonly level: number;
   readonly extreme?: boolean;
   readonly xzDecompressMemory?: number | undefined;
+  readonly xzCompressMemory?: number | undefined;
+  readonly xzNoAdjust?: boolean | undefined;
+  readonly onXzAdjust?: ((dictionary: number) => void | Promise<void>) | undefined;
   readonly xzCheck?: number | undefined;
   readonly xzIgnoreCheck?: boolean | undefined;
   readonly xzFormat?: "auto" | "xz" | "lzma" | undefined;

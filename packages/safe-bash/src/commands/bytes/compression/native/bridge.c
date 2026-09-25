@@ -32,6 +32,7 @@ static uint32_t buffered,flush_remaining;static int flushing;
 static void *bzalloc(void *p,int n,int size){if(n<0||size<0||(size&&((size_t)n)>SIZE_MAX/(size_t)size))return NULL;return allocate(p,(size_t)n*size);}
 #elif defined(XZ)
 static lzma_stream s;
+static uint32_t adjusted_dictionary;
 static void *xzalloc(void*p,size_t n,size_t size){if(size&&n>SIZE_MAX/size)return NULL;return allocate(p,n*size);}
 static const lzma_allocator allocator={xzalloc,release,NULL};
 #else
@@ -48,7 +49,7 @@ API void bridge_destroy(void) {
 #endif
  active=0;
 }
-API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_log,int small_or_check,int ignore_check,int alone,uint32_t memory_high) {
+API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_log,int small_or_check,int ignore_check,int alone,uint32_t memory_high,int no_adjust) {
  uint64_t memory_limit=((uint64_t)memory_high<<32)|memory_low;
  if(memory_limit==0)memory_limit=UINT64_MAX;
 #if defined(BZ)
@@ -60,7 +61,7 @@ API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_l
  if(small!=0&&small!=1)return -1;
 #endif
 #if defined(XZ)
- if(((uint32_t)level & ~LZMA_PRESET_EXTREME)>9||!lzma_check_is_supported(check)||(ignore_check!=0&&ignore_check!=1)||(alone!=0&&alone!=1))return -1;
+ if(((uint32_t)level & ~LZMA_PRESET_EXTREME)>9||!lzma_check_is_supported(check)||(ignore_check!=0&&ignore_check!=1)||(alone!=0&&alone!=1)||(no_adjust!=0&&no_adjust!=1))return -1;
 #else
  if(level<1)return -1;
 #endif
@@ -71,12 +72,20 @@ API int bridge_create(int decode,int level,uint32_t memory_low,uint32_t window_l
  ok=(decode?BZ2_bzDecompressInit(&s,0,small):BZ2_bzCompressInit(&s,level,0,30))==BZ_OK;
 #elif defined(XZ)
  s=(lzma_stream)LZMA_STREAM_INIT;s.allocator=&allocator;
- if(!decode&&lzma_easy_encoder_memusage((uint32_t)level)>memory_limit){bridge_destroy();return -2;}
- if(alone){
+ adjusted_dictionary=0;
+ if(!decode){
   lzma_options_lzma options;
   if(lzma_lzma_preset(&options,level)){bridge_destroy();return -2;}
-  ok=(decode?lzma_alone_decoder(&s,memory_limit):lzma_alone_encoder(&s,&options))==LZMA_OK;
- }else ok=(decode?lzma_auto_decoder(&s,memory_limit,ignore_check?LZMA_IGNORE_CHECK:0):lzma_easy_encoder(&s,level,check))==LZMA_OK;
+  lzma_filter filters[2]={{alone?LZMA_FILTER_LZMA1:LZMA_FILTER_LZMA2,&options},{LZMA_VLI_UNKNOWN,NULL}};
+  const uint32_t original=options.dict_size;
+  /* Like single-thread xz: keep the preset, reduce only the dictionary in MiB steps. */
+  while(lzma_raw_encoder_memusage(filters)>memory_limit){
+   if(no_adjust||options.dict_size<=1048576){bridge_destroy();return -2;}
+   options.dict_size=(options.dict_size-1)&~(1048576U-1);
+  }
+  if(options.dict_size!=original)adjusted_dictionary=options.dict_size;
+  ok=(alone?lzma_alone_encoder(&s,&options):lzma_stream_encoder(&s,filters,check))==LZMA_OK;
+ }else ok=(alone?lzma_alone_decoder(&s,memory_limit):lzma_auto_decoder(&s,memory_limit,ignore_check?LZMA_IGNORE_CHECK:0))==LZMA_OK;
 #else
  ZSTD_customMem mem={allocate,release,NULL};
  if(decode){dec=ZSTD_createDCtx_advanced(mem);ok=dec&&!ZSTD_isError(ZSTD_DCtx_setParameter(dec,ZSTD_d_windowLogMax,window_log));}
@@ -95,6 +104,7 @@ API int bridge_zstd_config(int check,int literals,int row,int window,uint32_t si
 }
 #endif
 #if defined(XZ)
+API uint32_t bridge_xz_adjusted_dictionary(void){return adjusted_dictionary;}
 /* ZIP method 14 is raw LZMA1, never an XZ stream. Admit before allocation. */
 API int bridge_create_lzma(int decode,int level,uint32_t memory_low,uint32_t dictionary,uint32_t properties,int eos,uint32_t size_low,uint32_t size_high,uint32_t memory_high) {
  uint64_t memory_limit=((uint64_t)memory_high<<32)|memory_low;

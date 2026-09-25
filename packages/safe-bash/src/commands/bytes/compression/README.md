@@ -125,12 +125,22 @@ additional host headroom.
 `--memlimit-mt-decompress` validates the same absolute values but has no effect
 on the single-threaded decoder, matching native XZ's soft MT limit behavior.
 Host-RAM percentages remain unsupported.
+`--memlimit-compress=BYTES` limits encoder admission and allocations;
+`--memlimit=BYTES` sets both compression and decompression limits. Later options
+override only their selected direction. Compression reduces only the preset's
+dictionary in whole MiB steps when needed, retaining its match finder and other
+settings; adjustments are reported unless quiet is selected. `--no-adjust`
+rejects a preset that cannot fit unchanged. Limits below the minimum encoder
+memory fail without publishing output or removing input files. These controls
+also apply to legacy LZMA encoding and the decompression aliases in compress mode.
+Admission uses liblzma's memory estimate for the generated 32-bit codec; exact
+byte thresholds can differ from a native 64-bit build's structure sizes.
 Errors still fail and are reported unless quiet is repeated.
 `--check=none|crc32|crc64|sha256` (also `-C` or a separate argument) selects
 the encoded integrity check; CRC64 remains the default. `--ignore-check` skips
 data checksum verification during decompression and test mode while still
 validating stream headers and structure. Both controls apply to all XZ aliases.
-Raw format, memory adjustment, custom filters, block
+Raw format, custom filters, block
 controls and listing remain unsupported; these options do not lift codec limits.
 
 The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and

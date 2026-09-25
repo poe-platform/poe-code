@@ -14,6 +14,9 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
   }
   return profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {
     const options = parseOptions(name, context.args);
+    options.onXzAdjust = async dictionary => {
+      if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`Adjusted LZMA${options.xzFormat === "lzma" ? "1" : "2"} dictionary size to ${dictionary / 1024 ** 2} MiB to not exceed the memory usage limit`));
+    };
     if (options.help) {
       await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n${options.format === "zstd" ? "-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n" : "-1..-9, --fast, --best\n"}${options.format === "zstd" ? "-q, --quiet (repeat to suppress errors)\n" : ""}${options.format === "gzip" ? "-q, --quiet (suppress warnings)\n-r, --recursive (traverse directories without following symlinks)\n-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
       return { exitCode: 0 };

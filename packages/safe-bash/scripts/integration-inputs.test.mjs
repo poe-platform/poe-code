@@ -400,8 +400,13 @@ test("optional scripting leaves stay outside the default build and package expor
   const metadata = JSON.parse(readRegularInput(root, "package.json", 65536, fs, boundaries));
   assert.equal(metadata.peerDependencies.yaml, "2.9.0");
   assert.equal(metadata.peerDependenciesMeta.yaml.optional, true);
+  assert.deepEqual(metadata.exports["./jobs"], {
+    types: "./dist/shell/extensions/jobs/index.d.ts",
+    import: "./dist/shell/extensions/jobs/index.js",
+  });
   for (const path of ["src/shell/extensions/jobs/index.ts", "src/shell/extensions/jobs/state.ts"]) {
     assert.equal(configuration.exclude.includes(path), false, "core Shell requires jobs sources");
+    assert.ok(!metadata.poeCode.packageLint.sourceExclude.includes(path), `core background jobs must be linted: ${path}`);
   }
   assert.equal(metadata.files.includes("!dist/shell/extensions/jobs"), false, "core Shell requires packaged jobs output");
   for (const path of [

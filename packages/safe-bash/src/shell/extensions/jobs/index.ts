@@ -3,12 +3,8 @@ import { signalName } from "../../../commands/timeout/signal.js";
 import { writeText } from "../../../contracts/io.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes } from "../../../contracts/value.js";
 import type { ShellValue } from "../../../contracts/value.js";
-import type { ShellBindingReference, ShellExtension, ShellExtensionBuiltin, ShellExtensionContext, ShellExtensionInstance } from "../../extensions.js";
+import type { ShellBindingReference, ShellExtension, ShellExtensionContext, ShellExtensionInstance } from "../../extensions.js";
 
-const jobsDisownBuiltins = new WeakMap<ShellExtensionInstance, ShellExtensionBuiltin>();
-export function getJobsDisownBuiltin(instance: ShellExtensionInstance): ShellExtensionBuiltin | undefined {
-  return jobsDisownBuiltins.get(instance);
-}
 import { createJobState } from "./state.js";
 import type { JobHandle, JobOutcome, JobState, JobTarget } from "./state.js";
 
@@ -335,7 +331,7 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
     return result;
   };
   const extInstance: ShellExtensionInstance = {
-    builtins: [{ name: "wait", execute: wait }, { name: "jobs", execute: list }, { name: "kill", execute: kill }],
+    builtins: [{ name: "wait", execute: wait }, { name: "jobs", execute: list }, { name: "kill", execute: kill }, { name: "disown", execute: disown }],
     start(context) {
       const registerExecutionCleanup = context.registerExecutionCleanup;
       if (typeof registerExecutionCleanup !== "function") throw new TypeError("Jobs require execution-scoped cleanup ownership");
@@ -387,7 +383,6 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
     } }],
     specialParameters: [{ name: "!", lookup: () => latest === undefined ? undefined : String(latest) }],
   };
-  jobsDisownBuiltins.set(extInstance, { name: "disown", execute: disown });
   return extInstance;
 }
 

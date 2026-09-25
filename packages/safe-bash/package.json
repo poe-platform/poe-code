@@ -347,8 +347,8 @@
       "import": "./dist/opt-in/entrypoints/arrays.js"
     },
     "./jobs": {
-      "types": "./dist/opt-in/entrypoints/jobs.d.ts",
-      "import": "./dist/opt-in/entrypoints/jobs.js"
+      "types": "./dist/shell/extensions/jobs/index.d.ts",
+      "import": "./dist/shell/extensions/jobs/index.js"
     },
     "./mapfile": {
       "types": "./dist/opt-in/entrypoints/mapfile.d.ts",

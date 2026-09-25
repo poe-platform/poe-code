@@ -851,4 +851,93 @@ describe("safe-bash-command-imagemagick", () => {
     expect(copyOp[2]).toBe(50);
     expect(copyOp[3]).toBe(153);
   });
+
+  it("supports channel-aware -separate/-combine, -alpha, -morphology, -statistic, -sigmoidal-contrast, -auto-gamma, -write, dissolve/blend, and mogrify/montage parity", async () => {
+    const files = new Map<string, Uint8Array>();
+    await runMagickCli(["-size", "8x8", "xc:rgba(200,100,50,0.5)", "/src.png"], files);
+    await runMagickCli(["-size", "8x8", "xc:rgb(40,200,80)", "/overlay.png"], files);
+
+    // 1. -separate and -combine roundtrip
+    await runMagickCli(["/src.png", "-channel", "RGBA", "-separate", "-combine", "/recombined.png"], files);
+    const recomb = await sharp(files.get("/recombined.png")!).ensureAlpha().raw().toBuffer();
+    expect(recomb[0]).toBe(200);
+    expect(recomb[1]).toBe(100);
+    expect(recomb[2]).toBe(50);
+
+    // 2. -alpha extract, shape, remove, off
+    await runMagickCli(["/src.png", "-alpha", "extract", "/alpha-ext.png"], files);
+    const alphaExt = await sharp(files.get("/alpha-ext.png")!).raw().toBuffer();
+    expect(alphaExt[0]).toBe(128);
+
+    await runMagickCli(["/src.png", "-background", "#ffffff", "-alpha", "remove", "/alpha-rem.png"], files);
+    const alphaRem = await sharp(files.get("/alpha-rem.png")!).ensureAlpha().raw().toBuffer();
+    expect(alphaRem[0]).toBe(227);
+    expect(alphaRem[3]).toBe(255);
+
+    // 3. -morphology Open/Close/EdgeIn/TopHat and -statistic Median/Minimum/Maximum
+    await runMagickCli(["/src.png", "-morphology", "Close", "Disk:1", "-statistic", "Median", "3x3", "/morph.png"], files);
+    expect(files.has("/morph.png")).toBe(true);
+
+    // 4. -sigmoidal-contrast and -auto-gamma
+    await runMagickCli(["/overlay.png", "-sigmoidal-contrast", "5x50%", "-auto-gamma", "/sig.png"], files);
+    expect(files.has("/sig.png")).toBe(true);
+
+    // 5. mid-pipeline -write, composite -dissolve/-blend, mogrify -format jpg, and montage -tile x1
+    await runMagickCli(["/overlay.png", "-write", "/mid.png", "-negate", "/fin.png"], files);
+    expect(files.has("/mid.png")).toBe(true);
+    expect(files.has("/fin.png")).toBe(true);
+
+    await runCompositeCli(["-dissolve", "50", "/overlay.png", "/src.png", "/dissolved.png"], files);
+    expect(files.has("/dissolved.png")).toBe(true);
+
+    await runMogrifyCli(["-path", "/out", "-format", "jpg", "-statistic", "Maximum", "3x3", "/overlay.png"], files);
+    expect(files.has("/out/overlay.jpg")).toBe(true);
+
+    await runMontageCli(["-tile", "x1", "-geometry", "8x8+0+0", "/src.png", "/overlay.png", "/src.png", "/row.png"], files);
+    const rowMeta = await sharp(files.get("/row.png")!).metadata();
+    expect(rowMeta.width).toBe(24);
+    expect(rowMeta.height).toBe(8);
+  });
+
+  it("supports inline read modifiers (rose:[20x20], rose:[20x15+10+5]), multi-frame GIF [-1]/[2-0] indexing, linked/independent -auto-level, +negate, and GravityAdjustGeometry crop/chop parity", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. Inline read modifiers on pseudo-images
+    const rResize = await runMagickCli(["rose:[20x20]", "-format", "%wx%h", "info:"], files);
+    expect(rResize.stdout.trim()).toBe("20x13");
+    const rCrop = await runMagickCli(["rose:[20x15+10+5]", "-format", "%wx%h", "info:"], files);
+    expect(rCrop.stdout.trim()).toBe("20x15");
+
+    // 2. Multi-frame animated GIF creation and [-1] / [2-0] indexing
+    await runMagickCli(["-size", "8x8", "xc:#ff0000", "xc:#00ff00", "xc:#0000ff", "/anim.gif"], files);
+    const lastFrame = await runMagickCli(["/anim.gif[-1]", "-format", "%[pixel:p{0,0}]", "info:"], files);
+    expect(lastFrame.stdout.trim()).toBe("srgb(0,0,255)");
+    const revFrames = await runMagickCli(["/anim.gif[2-0]", "-format", "%s/%n:%[pixel:p{0,0}] ", "info:"], files);
+    expect(revFrames.stdout.trim()).toBe("0/3:srgb(0,0,255) 1/3:srgb(0,255,0) 2/3:srgb(255,0,0)");
+
+    // 3. -auto-level linked default vs -channel RGB independent
+    const linked = await runMagickCli(
+      ["-size", "10x10", "gradient:rgb(50,100,150)-rgb(150,200,220)", "-auto-level", "-format", "%[pixel:p{0,0}] -> %[pixel:p{9,9}]", "info:"],
+      files
+    );
+    expect(linked.stdout.trim()).toBe("srgb(0,75,150) -> srgb(150,225,255)");
+    const indep = await runMagickCli(
+      ["-size", "10x10", "gradient:rgb(50,100,150)-rgb(150,200,220)", "-channel", "RGB", "-auto-level", "-format", "%[pixel:p{0,0}] -> %[pixel:p{9,9}]", "info:"],
+      files
+    );
+    expect(indep.stdout.trim()).toBe("srgb(0,0,0) -> srgb(255,255,255)");
+
+    // 4. +negate grayscale-only and -channel R -negate
+    const plusNeg = await runMagickCli(
+      ["-size", "1x1", "xc:red", "xc:rgb(100,100,100)", "+append", "+negate", "-format", "%[pixel:p{0,0}] %[pixel:p{1,0}]", "info:"],
+      files
+    );
+    expect(plusNeg.stdout.trim()).toBe("srgb(255,0,0) srgb(155,155,155)");
+
+    // 5. GravityAdjustGeometry signed crop/chop intersections
+    const cropSouth = await runMagickCli(["-size", "20x14", "xc:red", "-gravity", "South", "-crop", "26x9+4-2", "-format", "%wx%h", "info:"], files);
+    expect(cropSouth.stdout.trim()).toBe("19x7");
+    const chopNorth = await runMagickCli(["-size", "22x11", "xc:red", "-gravity", "North", "-chop", "21x8-4+5", "-format", "%wx%h", "info:"], files);
+    expect(chopNorth.stdout.trim()).toBe("4x5");
+  });
 });

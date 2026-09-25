@@ -488,4 +488,32 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(idRes.exitCode).toBe(0);
     expect(idRes.stdout).toBe("12x8|12|8|PixelsPerInch|96");
   });
+
+  it("persists sips -s properties (description, independent dpiWidth/dpiHeight, --deleteColorManagementProperties) and supports identify %q, %[type], %[resolution.x/y], %[fx:max/min]", async () => {
+    const png = await sharp({
+      create: { width: 40, height: 100, channels: 3, background: "#cc6633" }
+    })
+      .png()
+      .toBuffer();
+    const files = new Map<string, Uint8Array>([["/in.png", png]]);
+
+    await runSipsCli(["-s", "description", "Hello World", "/in.png"], files);
+    const descRes = await runSipsCli(["-g", "description", "/in.png"], files);
+    expect(descRes.stdout).toBe("/in.png\n  description: Hello World\n");
+
+    await runSipsCli(["--deleteColorManagementProperties", "/in.png"], files);
+    const profRes = await runSipsCli(["-g", "profile", "/in.png"], files);
+    expect(profRes.stdout).toBe("/in.png\n  profile: sRGB IEC61966-2.1\n");
+
+    await runSipsCli(["-s", "dpiWidth", "300", "-s", "dpiHeight", "150", "/in.png"], files);
+    const dpiRes = await runSipsCli(["-g", "dpiWidth", "-g", "dpiHeight", "/in.png"], files);
+    expect(dpiRes.stdout).toBe("/in.png\n  dpiWidth: 300.000\n  dpiHeight: 150.000\n");
+
+    const idRes = await runIdentifyCli(
+      ["-format", "%q|%[type]|%[resolution.x]x%[resolution.y]|%[fx:max(w,h)]|%[fx:min(w,h)]", "/in.png"],
+      files
+    );
+    expect(idRes.exitCode).toBe(0);
+    expect(idRes.stdout).toBe("8|TrueColor|150x150|100|40");
+  });
 });

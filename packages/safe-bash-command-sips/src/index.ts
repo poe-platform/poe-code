@@ -34,6 +34,8 @@ type SipsAction =
   | { readonly kind: "resampleH"; readonly height: number }
   | { readonly kind: "pad"; readonly height: number; readonly width: number };
 
+const SIPS_BUFFER_PROPS = new WeakMap<Uint8Array, Map<string, string | null>>();
+
 function formatToTypeIdentifier(fmt: ImageFormat): string {
   switch (fmt) {
     case "png":
@@ -67,7 +69,15 @@ function formatToTypeIdentifier(fmt: ImageFormat): string {
   }
 }
 
-function formatSipsPropertyValue(meta: ImageMetadata, key: string): string | undefined {
+function formatSipsPropertyValue(
+  meta: ImageMetadata,
+  key: string,
+  customProps?: ReadonlyMap<string, string | null>
+): string | undefined {
+  if (customProps?.has(key)) {
+    const v = customProps.get(key);
+    return v === null ? undefined : v;
+  }
   switch (key) {
     case "pixelWidth":
       return String(meta.width);
@@ -211,6 +221,7 @@ export async function runSipsCli(
   let targetFormat: ImageFormat | undefined;
   let formatOptionsStr: string | undefined;
   let targetDpi: number | undefined;
+  const customSetProps = new Map<string, string | null>();
   let verifyMode = false;
   let propertyMutated = false;
   const getProperties: string[] = [];
@@ -296,9 +307,20 @@ export async function runSipsCli(
         targetFormat = parsed;
       } else if (key === "formatOptions") {
         formatOptionsStr = val;
-      } else if (key === "dpiWidth" || key === "dpiHeight") {
+      } else if (key === "dpiWidth") {
         const num = Number(val);
-        if (Number.isFinite(num) && num > 0) targetDpi = Math.round(num);
+        if (Number.isFinite(num) && num > 0) {
+          targetDpi = Math.round(num);
+          customSetProps.set("dpiWidth", num.toFixed(3));
+        }
+      } else if (key === "dpiHeight") {
+        const num = Number(val);
+        if (Number.isFinite(num) && num > 0) {
+          targetDpi = Math.round(num);
+          customSetProps.set("dpiHeight", num.toFixed(3));
+        }
+      } else {
+        customSetProps.set(key, val);
       }
       propertyMutated = true;
     } else if (arg === "-Z" || arg === "--resampleHeightWidthMax") {
@@ -373,6 +395,7 @@ export async function runSipsCli(
       if (!key) {
         return { exitCode: 1, stdout: "", stderr: "sips: missing argument for -d\n" };
       }
+      customSetProps.set(key, null);
       propertyMutated = true;
     } else if (
       arg === "--deleteColorManagementProperties" ||
@@ -382,6 +405,9 @@ export async function runSipsCli(
       arg === "--repair" ||
       arg === "--debug"
     ) {
+      if (arg === "--deleteColorManagementProperties") {
+        customSetProps.set("profile", "sRGB IEC61966-2.1");
+      }
       propertyMutated = true;
     } else if (arg === "-x" || arg === "--extractProfile") {
       const profile = argv[++i];
@@ -494,6 +520,10 @@ export async function runSipsCli(
     }
 
     try {
+      const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? []);
+      for (const [k, v] of customSetProps) {
+        mergedProps.set(k, v);
+      }
       let inst: SharpInstance = sharp(inBytes);
       let meta = await inst.metadata();
       let curW = meta.width;
@@ -676,6 +706,9 @@ export async function runSipsCli(
           }
         }
         files.set(finalOutPath, outBytes);
+        if (mergedProps.size > 0) {
+          SIPS_BUFFER_PROPS.set(outBytes, mergedProps);
+        }
         meta = await sharp(outBytes).metadata();
 
         if (getProperties.length === 0) {
@@ -692,18 +725,18 @@ export async function runSipsCli(
           const xmlEntries = [
             ...ALL_SIPS_KEYS.map(k => {
               if (k === "pixelWidth" || k === "pixelHeight" || k === "samplesPerPixel" || k === "bitsPerSample") {
-                const intVal = formatSipsPropertyValue(meta, k) ?? "0";
+                const intVal = formatSipsPropertyValue(meta, k, mergedProps) ?? "0";
                 return `  <key>${k}</key>\n  <integer>${intVal}</integer>`;
               }
               if (k === "dpiWidth" || k === "dpiHeight") {
-                const dpiNum = Number(meta.density ?? 72);
+                const dpiNum = Number(formatSipsPropertyValue(meta, k, mergedProps) ?? meta.density ?? 72);
                 const dpiStr = Number.isInteger(dpiNum) ? String(dpiNum) : dpiNum.toFixed(3);
                 return `  <key>${k}</key>\n  <real>${dpiStr}</real>`;
               }
               if (k === "hasAlpha") {
                 return `  <key>${k}</key>\n  <${meta.hasAlpha ? "true" : "false"}/>`;
               }
-              const val = formatSipsPropertyValue(meta, k) ?? "";
+              const val = formatSipsPropertyValue(meta, k, mergedProps) ?? "";
               return `  <key>${k}</key>\n  <string>${val}</string>`;
             }),
             `  <key>path</key>\n  <string>${inPath}</string>`
@@ -719,7 +752,7 @@ export async function runSipsCli(
           }
           const propLines: string[] = [inPath];
           for (const k of expandedKeys) {
-            const val = formatSipsPropertyValue(meta, k);
+            const val = formatSipsPropertyValue(meta, k, mergedProps);
             if (val !== undefined) {
               propLines.push(singleLine ? `${k}: ${val}` : `  ${k}: ${val}`);
             } else {
@@ -802,6 +835,20 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
             case "alpha":
               out += String(meta.hasAlpha);
               break;
+            case "type":
+              out +=
+                meta.space === "b-w"
+                  ? meta.hasAlpha
+                    ? "GrayscaleAlpha"
+                    : "Grayscale"
+                  : meta.hasAlpha
+                    ? "TrueColorAlpha"
+                    : "TrueColor";
+              break;
+            case "resolution.x":
+            case "resolution.y":
+              out += String(meta.density ?? 72);
+              break;
             default:
               if (expr.startsWith("fx:")) {
                 const fxExpr = expr.slice(3).trim();
@@ -813,6 +860,14 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
                   out += String(meta.width + meta.height);
                 } else if (fxExpr === "w-h") {
                   out += String(meta.width - meta.height);
+                } else if (fxExpr === "max(w,h)" || fxExpr === "max(h,w)") {
+                  out += String(Math.max(meta.width, meta.height));
+                } else if (fxExpr === "min(w,h)" || fxExpr === "min(h,w)") {
+                  out += String(Math.min(meta.width, meta.height));
+                } else if (fxExpr === "w/2") {
+                  out += String(meta.width / 2);
+                } else if (fxExpr === "h/2") {
+                  out += String(meta.height / 2);
                 } else {
                   out += "";
                 }
@@ -839,6 +894,7 @@ function formatIdentifyCustom(fmt: string, filePath: string, meta: ImageMetadata
           out += meta.format.toUpperCase();
           break;
         case "z":
+        case "q":
           out += bitDepth;
           break;
         case "k":

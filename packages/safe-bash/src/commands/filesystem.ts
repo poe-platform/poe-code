@@ -1,3 +1,4 @@
+import { bindConditionalMutation } from "@poe-code/safe-fs/core";
 import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
   readBytes, writeBytes, type CommandContext, type CommandDefinition, type FileStat,
@@ -783,7 +784,28 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
               if (!parsed.flags.has("f") || codeOf(error) !== "ENOENT") throw error;
             }
           } else {
-            await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
+            const parentDir = await context.fs.realpath(dirname(path), { signal: context.signal });
+            const canonicalPath = parentDir === "/" ? `/${basename(path)}` : `${parentDir}/${basename(path)}`;
+            const currentStat = await maybeStat(context, canonicalPath, false);
+            if (!currentStat || currentStat.type !== stat.type || (stat.ino !== undefined && currentStat.ino !== stat.ino) || (stat.dev !== undefined && currentStat.dev !== stat.dev)) {
+              throw new FsError("EAGAIN", { syscall: "rm", path });
+            }
+            const ancestorPaths: string[] = ["/"];
+            if (parentDir !== "/") {
+              let prefix = "";
+              for (const part of parentDir.split("/").filter(Boolean)) {
+                prefix += `/${part}`;
+                ancestorPaths.push(prefix);
+              }
+            }
+            const ancestors = await Promise.all(ancestorPaths.map(async entryPath => ({
+              path: entryPath,
+              stat: await context.fs.lstat(entryPath, { signal: context.signal }),
+            })));
+            const parentStat = ancestors.at(-1)!.stat;
+            await bindConditionalMutation(currentStat.identityScope, { path: canonicalPath, parent: parentStat, expected: currentStat, ancestors }, () =>
+              context.fs.rm(canonicalPath, { recursive, force: parsed.flags.has("f"), signal: context.signal, parent: parentStat, expected: currentStat, ancestors } as never),
+            );
           }
           if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
           return true;

@@ -26,3 +26,5 @@ export type { XmlName, XmlAttribute, XmlContent, XmlElement, XmlLimits } from ".
 
 export * from "./contracts/object.js";
 export { ObjectAuthority } from "./fs/object-authority.js";
+
+export { bindConditionalMutation, type ConditionalMutationBinding } from "./fs/memory/index.js";

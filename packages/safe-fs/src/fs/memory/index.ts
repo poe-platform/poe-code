@@ -118,6 +118,32 @@ const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   return qualified ? "distinct" : "unknown";
 };
 
+
+export interface ConditionalMutationBinding {
+  readonly path: string;
+  readonly parent: FileStat;
+  readonly expected: FileStat;
+  readonly ancestors: readonly FileStagingEntry[];
+}
+
+const activeConditionalMutations = new Map<object | symbol, ConditionalMutationBinding>();
+
+export async function bindConditionalMutation<Result>(
+  identityScope: object | symbol | undefined,
+  binding: ConditionalMutationBinding,
+  action: () => Promise<Result>,
+): Promise<Result> {
+  if (identityScope === undefined || identityScope === null) return action();
+  activeConditionalMutations.set(identityScope, binding);
+  try {
+    return await action();
+  } finally {
+    if (activeConditionalMutations.get(identityScope) === binding) {
+      activeConditionalMutations.delete(identityScope);
+    }
+  }
+}
+
 export class MemoryFileSystem implements FileSystem {
   capabilitiesFor?: NonNullable<FileSystem["capabilitiesFor"]>;
   readonly capabilities: FileSystemCapabilities = ((filesystem: MemoryFileSystem) => {
@@ -1042,14 +1068,25 @@ export class MemoryFileSystem implements FileSystem {
     this.changed(location.parent);
   }
 
-  async rm(path: string, options: RemoveOptions = {}): Promise<void> {
+  async rm(path: string, options: RemoveOptions & Partial<ConditionalMutationBinding> = {}): Promise<void> {
     options.signal?.throwIfAborted();
+    const bound = activeConditionalMutations.get(this.identityScope);
+    const active = bound?.path === path ? bound : undefined;
+    const ancestors = options.ancestors ?? active?.ancestors;
+    const expectedParent = options.parent ?? active?.parent;
+    const expectedNode = options.expected ?? active?.expected;
+    if (ancestors !== undefined) this.verifyDirectoryAncestry(ancestors, options);
     let location: Location;
     try {
-      location = this.entry(path, "rm");
+      location = this.entry(path, "rm", expectedNode !== undefined || expectedParent !== undefined);
     } catch (error) {
       if (options.force && error instanceof FsError && error.code === "ENOENT") return;
       throw error;
+    }
+    if (expectedParent !== undefined) this.expectEntry(location.parent, expectedParent, path, false);
+    if (expectedNode !== undefined) {
+      if (options.force && !location.node) return;
+      this.expectEntry(location.node, expectedNode, path, location.node?.type !== "directory");
     }
     this.removeLocation(location, path, "rm", options.recursive === true);
   }
@@ -1191,10 +1228,21 @@ export class MemoryFileSystem implements FileSystem {
     this.changed(target.parent);
   }
 
-  async chmod(path: string, mode: number, options: FsOptions = {}): Promise<void> {
+  async chmod(path: string, mode: number, options: FsOptions & Partial<ConditionalMutationBinding> = {}): Promise<void> {
     options.signal?.throwIfAborted();
     const permissions = this.mode(mode, 0, "chmod", path);
-    const node = this.resolve(path, "chmod").node!;
+    const bound = activeConditionalMutations.get(this.identityScope);
+    const active = bound?.path === path ? bound : undefined;
+    const ancestors = options.ancestors ?? active?.ancestors;
+    const expectedParent = options.parent ?? active?.parent;
+    const expectedNode = options.expected ?? active?.expected;
+    if (ancestors !== undefined) this.verifyDirectoryAncestry(ancestors, options);
+    const location = expectedNode !== undefined || expectedParent !== undefined
+      ? this.entry(path, "chmod", true)
+      : this.resolve(path, "chmod");
+    if (expectedParent !== undefined) this.expectEntry(location.parent, expectedParent, path, false);
+    if (expectedNode !== undefined) this.expectEntry(location.node, expectedNode, path, location.node?.type !== "directory");
+    const node = location.node!;
     node.mode = typeModes[node.type] | permissions;
     node.ctimeMs = Date.now();
     node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);

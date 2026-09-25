@@ -1,3 +1,4 @@
+import { bindConditionalMutation } from "@poe-code/safe-fs/core";
 import { creationUmask } from "../../fs/creation-mask.js";
 import { FsError, type FileStat } from "../../contracts/index.js";
 import { codeOf, diagnostic, options, pathOf, requireOperands, UsageError, value } from "../internal.js";
@@ -95,11 +96,30 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
       const stat = link.type === "symlink" ? await context.fs.stat(target, { signal: context.signal }) : link;
       const mode = referenceMode ?? change!(stat);
       if (parsed.flags.has("R") && stat.type === "directory" && await context.fs.realpath(target, { signal: context.signal }) === "/") throw new FsError("EBUSY", { syscall: "chmod", path, message: "refusing recursive mode changes at virtual root" });
+      const canonicalTarget = await context.fs.realpath(target, { signal: context.signal });
       const apply = async () => {
         context.signal.throwIfAborted();
-        const fresh = await context.fs.lstat(target, { signal: context.signal });
+        const currentCanonical = await context.fs.realpath(target, { signal: context.signal });
+        if (currentCanonical !== canonicalTarget) throw new FsError("EIO", { syscall: "chmod", path, message: "path changed during permission update" });
+        const fresh = await context.fs.lstat(canonicalTarget, { signal: context.signal });
         if (fresh.type === "symlink" || fresh.type !== stat.type || stat.ino !== undefined && fresh.ino !== stat.ino || stat.dev !== undefined && fresh.dev !== stat.dev) throw new FsError("EIO", { syscall: "chmod", path, message: "path changed during permission update" });
-        await context.fs.chmod!(target, mode, { signal: context.signal });
+        const parentPath = canonicalTarget.slice(0, canonicalTarget.lastIndexOf("/")) || "/";
+        const ancestorPaths: string[] = ["/"];
+        if (parentPath !== "/") {
+          let prefix = "";
+          for (const part of parentPath.split("/").filter(Boolean)) {
+            prefix += `/${part}`;
+            ancestorPaths.push(prefix);
+          }
+        }
+        const ancestors = await Promise.all(ancestorPaths.map(async entryPath => ({
+          path: entryPath,
+          stat: await context.fs.lstat(entryPath, { signal: context.signal }),
+        })));
+        const parentStat = ancestors.at(-1)!.stat;
+        await bindConditionalMutation(fresh.identityScope, { path: canonicalTarget, parent: parentStat, expected: fresh, ancestors }, () =>
+          context.fs.chmod!(canonicalTarget, mode, { signal: context.signal, parent: parentStat, expected: fresh, ancestors } as never),
+        );
         if (parsed.flags.has("v") || parsed.flags.has("c") && mode !== (stat.mode & 0o7777)) {
           await budget.output(`mode of '${display}' ${mode === (stat.mode & 0o7777) ? "retained as" : "changed from " + (stat.mode & 0o7777).toString(8).padStart(4, "0") + " (" + permissionString(stat.mode, stat.type).slice(1) + ") to"} ${mode.toString(8).padStart(4, "0")} (${permissionString(mode, stat.type).slice(1)})\n`);
         }

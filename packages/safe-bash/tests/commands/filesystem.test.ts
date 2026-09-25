@@ -1334,3 +1334,65 @@ test("readlink -v/-q/-s, realpath -s -P ordering, and ls --file-type/-B/--sort=n
   assert.doesNotMatch((await run("ls", ["-B"], { fs: vfs })).stdout, /backup~/u);
   assert.equal((await run("ls", ["--sort=extension", "a.txt", "b.md"], { fs: vfs })).stdout, "b.md\na.txt\n");
 });
+
+test("#630: chmod rejects parent symlink swap between inspection and mutation", async () => {
+  const fs = await fixture({});
+  await fs.mkdir("/work/sub", { recursive: true });
+  await fs.mkdir("/private", { recursive: true });
+  await fs.writeFile("/work/sub/a", new Uint8Array(), { mode: 0o644 });
+  await fs.writeFile("/private/a", new Uint8Array(), { mode: 0o600 });
+  const origChmod = fs.chmod.bind(fs);
+  fs.chmod = async (path, mode, options) => {
+    if (path === "/work/sub/a") {
+      await fs.rename("/work/sub", "/work/held");
+      await fs.symlink("/private", "/work/sub");
+      try {
+        return await origChmod(path, mode, options);
+      } finally {
+        await fs.rm("/work/sub");
+        await fs.rename("/work/held", "/work/sub");
+      }
+    }
+    return origChmod(path, mode, options);
+  };
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("chmod 777 sub/a");
+    assert.notEqual(result.exitCode, 0);
+    assert.equal((await fs.lstat("/private/a")).mode & 0o777, 0o600);
+    assert.equal((await fs.lstat("/work/sub/a")).mode & 0o777, 0o644);
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("#701: rm -r rejects parent symlink swap between inspection and deletion", async () => {
+  const fs = await fixture({});
+  await fs.mkdir("/work/sub/tree", { recursive: true });
+  await fs.mkdir("/private/tree", { recursive: true });
+  await fs.writeFile("/work/sub/tree/a", Buffer.from("safe"));
+  await fs.writeFile("/private/tree/a", Buffer.from("secret"));
+  const origRm = fs.rm.bind(fs);
+  fs.rm = async (path, options) => {
+    if (path === "/work/sub/tree") {
+      await fs.rename("/work/sub", "/work/held");
+      await fs.symlink("/private", "/work/sub");
+      try {
+        return await origRm(path, options);
+      } finally {
+        await fs.rm("/work/sub");
+        await fs.rename("/work/held", "/work/sub");
+      }
+    }
+    return origRm(path, options);
+  };
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("rm -r sub/tree");
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(Buffer.from(await fs.readFile("/private/tree/a")).toString(), "secret");
+    assert.equal(Buffer.from(await fs.readFile("/work/sub/tree/a")).toString(), "safe");
+  } finally {
+    await shell.dispose();
+  }
+});

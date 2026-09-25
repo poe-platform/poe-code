@@ -1,6 +1,19 @@
 import type { InterpreterValue } from "./interpreter.js";
 import type { SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
 
+// Readers can materialize a projection already checked by the current pass.
+// A fresh identity avoids overflow and lets nested walks observe independently,
+// without keeping any materialized guest value alive.
+let deferredMaterializationRevision: object = {};
+
+export function getDeferredMaterializationRevision(): object {
+  return deferredMaterializationRevision;
+}
+
+export function recordDeferredMaterialization(): void {
+  deferredMaterializationRevision = {};
+}
+
 export type DeferredArgumentsData = {
   readonly read: () => SandboxObject | undefined;
   readonly capture: () => {

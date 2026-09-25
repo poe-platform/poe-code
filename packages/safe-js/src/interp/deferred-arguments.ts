@@ -1,5 +1,5 @@
 import { createSandboxArguments, type SandboxArguments } from "./arguments.js";
-import { scopeDataRoots } from "./scope-data-roots.js";
+import { recordDeferredMaterialization, scopeDataRoots } from "./scope-data-roots.js";
 import type { SandboxObject, SandboxValue } from "./values.js";
 
 const freeze = Object.freeze;
@@ -66,6 +66,7 @@ export class DeferredArguments {
       if (value.length !== snapshot.length) value.length = snapshot.length;
       this.#value = value;
       this.#snapshot = undefined;
+      recordDeferredMaterialization();
       return value;
     } finally {
       this.#resolving = false;

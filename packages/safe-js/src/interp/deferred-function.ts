@@ -1,4 +1,4 @@
-import { scopeDataRoots } from "./scope-data-roots.js";
+import { recordDeferredMaterialization, scopeDataRoots } from "./scope-data-roots.js";
 import {
   registerDeferredClosureChargeIdentity,
   type SandboxClosure,
@@ -46,6 +46,7 @@ export class DeferredFunction {
       registerDeferredClosureChargeIdentity(value, this.root);
       this.#value = value;
       this.#initialization = undefined;
+      recordDeferredMaterialization();
       return this.#value;
     } finally {
       this.#resolving = false;

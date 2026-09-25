@@ -2,6 +2,9 @@ import { expect, it, vi } from "vitest";
 import { Budget } from "./budget.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { Scope } from "./scope.js";
+import { scopeDataRoots } from "./scope-data-roots.js";
+import { DeferredArguments } from "./deferred-arguments.js";
+import { deferFunctionProperties, materializeFunctionProperties } from "./object-model.js";
 import { createSandboxClosure, measureSandboxData, reconcileCompiledValues } from "./values.js";
 import { createWeakCollection, setWeakEntry } from "./weak-collection.js";
 
@@ -161,3 +164,78 @@ it("reconciles pending functions discovered while visiting a materialized functi
   expect(during).toBeGreaterThan(1000);
   expect(during).toBe(measureSandboxData(roots));
 });
+
+for (const kind of ["function", "arguments", "properties", "restored properties"] as const) {
+  it.each([
+    [false, false],
+    [true, false],
+    [false, true],
+    [true, true]
+  ])(
+    `rechecks earlier ${kind} materialized by a later pending reader (held=%s, nested=%s)`,
+    (held, nested) => {
+      let earlier: unknown[];
+      let force: () => void;
+      if (kind === "function") {
+        const scope = new Scope();
+        scope.declareDeferredFunction(
+          "earlier",
+          "let",
+          () =>
+            createSandboxClosure({
+              call: () => undefined,
+              properties: { payload: "x".repeat(1000) }
+            }),
+          () => {}
+        );
+        earlier = scope.retainedDataRoots();
+        force = () => {
+          scope.lookup("earlier");
+        };
+      } else if (kind === "arguments") {
+        const args = new DeferredArguments([]);
+        earlier = [args.root];
+        force = () => {
+          args.resolve().payload = "x".repeat(1000);
+        };
+      } else {
+        const method = createSandboxClosure({ guest: true, name: "read", call: () => undefined });
+        expect(deferFunctionProperties(method)).toBe(true);
+        earlier = [method];
+        force = () => {
+          if (kind === "restored properties")
+            materializeFunctionProperties(method, { payload: "x".repeat(1000) });
+          else materializeFunctionProperties(method).payload = "x".repeat(1000);
+        };
+      }
+      const later = {};
+      let reads = 0;
+      scopeDataRoots.set(later, {
+        deferred: {
+          chargeIdentity: later,
+          read() {
+            if (++reads >= 3) {
+              force();
+              // An inner measurement must not consume the outer walk's notification.
+              if (nested) expect(measureSandboxData(earlier)).toBeGreaterThan(1000);
+            }
+            return undefined;
+          },
+          collect() {}
+        }
+      });
+      const roots = [...earlier, later];
+      const budget = new Budget({ dataSize: 500 });
+      const release = held ? budget.deferReconciliation() : () => {};
+      try {
+        expect(() => reconcileCompiledValues(budget, roots)).toThrowError(
+          expect.objectContaining({ code: "budgetExceeded", budget: "dataSize" })
+        );
+      } finally {
+        release();
+      }
+      expect(reads).toBeGreaterThanOrEqual(3);
+      expect(measureSandboxData(roots)).toBeGreaterThan(1000);
+    }
+  );
+}

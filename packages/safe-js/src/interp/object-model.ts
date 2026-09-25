@@ -19,7 +19,7 @@ import { isSandboxTemporalZonedDateTime } from "./temporal-zoned-date-time.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
-import { scopeDataRoots } from "./scope-data-roots.js";
+import { recordDeferredMaterialization, scopeDataRoots } from "./scope-data-roots.js";
 import { getHostObjectOwnMember, noHostObjectMember, getHostObjectPrototype, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
 import { errorPrototypes } from "./error-prototypes.js";
@@ -318,6 +318,7 @@ export function materializeFunctionProperties(closure: SandboxClosure, initialPr
     descriptorObjects.add(initialProperties);
     if (!isGuestClosure(closure)) hostFunctionPropertyTables.add(initialProperties);
     functionProperties.set(closure, initialProperties);
+    if (hasDeferredFunctionProperties(closure)) recordDeferredMaterialization();
     return initialProperties;
   }
   const properties = nativePropertyCreate(null) as SandboxObject;
@@ -341,6 +342,7 @@ export function materializeFunctionProperties(closure: SandboxClosure, initialPr
   descriptorObjects.add(tracked);
   if (!isGuestClosure(closure)) hostFunctionPropertyTables.add(tracked);
   functionProperties.set(closure, tracked);
+  if (hasDeferredFunctionProperties(closure)) recordDeferredMaterialization();
   return tracked;
 }
 

@@ -5,7 +5,7 @@ import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
-import { scopeDataRoots, type DeferredArgumentsData, type DeferredFunctionData } from "./scope-data-roots.js";
+import { getDeferredMaterializationRevision, scopeDataRoots, type DeferredArgumentsData, type DeferredFunctionData } from "./scope-data-roots.js";
 import { getGeneratorOrigin, getGeneratorSourceReference } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
@@ -1894,6 +1894,7 @@ function measureSandboxDataWithSeen(
     let primitiveIndex = 0;
     let materialized: boolean;
     do {
+      const revision = getDeferredMaterializationRevision();
       materialized = false;
       for (; readyIndex < (ready?.length ?? 0); readyIndex++) {
         const contribution = ready![readyIndex]!;
@@ -1938,6 +1939,9 @@ function measureSandboxDataWithSeen(
       // Primitive conversion hooks can also force an earlier pending binding.
       if ((pendingArguments !== undefined || pendingFunctions !== undefined) && primitiveIndex !== previousPrimitiveIndex)
         materialized = true;
+      // A later reader may return undefined after materializing an earlier
+      // projection. Nested measurements must not consume that notification.
+      if (getDeferredMaterializationRevision() !== revision) materialized = true;
       // Visiting a materialized object may force an earlier binding or expose
       // another weak key. Drain those additions before returning the charge.
     } while ((pendingArguments !== undefined || pendingFunctions !== undefined) &&

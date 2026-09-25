@@ -1,7 +1,7 @@
 import { FsError } from "./errors.js";
 
 export const MAX_PATH_BYTES = 65_536;
-export const MAX_PATH_COMPONENTS = 256;
+export const MAX_PATH_COMPONENTS = 2048;
 
 export function validatePath(path: string, maxComponents = MAX_PATH_COMPONENTS): void {
   if (typeof path !== "string" || path.includes("\0")) {

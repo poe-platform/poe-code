@@ -2329,4 +2329,26 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => inst().withIccProfile(123 as any)).toThrow(/icc/);
     expect(() => inst().withXmp("")).toThrow(/xmp/);
   });
+
+  it("preserves input format when force: false is passed to format methods and validates quality/compressionLevel/timeout", async () => {
+    const pngIn = await sharp({ create: { width: 4, height: 4, channels: 3, background: "red" } }).png().toBuffer();
+    const jpegIn = await sharp({ create: { width: 4, height: 4, channels: 3, background: "blue" } }).jpeg().toBuffer();
+
+    const pngOut = await sharp(pngIn)
+      .jpeg({ quality: 85, force: false } as any)
+      .webp({ quality: 80, force: false } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(pngOut.info.format).toBe("png");
+
+    const jpegOut = await sharp(jpegIn)
+      .png({ compressionLevel: 9, force: false } as any)
+      .webp({ quality: 80, force: false } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(jpegOut.info.format).toBe("jpeg");
+
+    expect(() => sharp(pngIn).jpeg({ quality: 105 })).toThrow(/quality/);
+    expect(() => sharp(pngIn).png({ compressionLevel: 12 })).toThrow(/compressionLevel/);
+    expect(() => sharp(pngIn).timeout({ seconds: 4000 })).toThrow(/seconds/);
+    expect(() => sharp(pngIn).timeout(10 as any)).toThrow(/options/);
+  });
 });

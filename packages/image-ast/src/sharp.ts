@@ -1308,7 +1308,13 @@ export class SharpInstance {
     return this;
   }
 
-  timeout(_options?: { readonly seconds?: number }): this {
+  timeout(options?: { readonly seconds?: number }): this {
+    if (!options || typeof options !== "object" || Array.isArray(options)) {
+      throw new Error(`Expected object for options but received ${options}`);
+    }
+    if (!Number.isInteger(options.seconds) || options.seconds! < 0 || options.seconds! > 3600) {
+      throw new Error(`Expected integer between 0 and 3600 for seconds but received ${options.seconds}`);
+    }
     return this;
   }
 
@@ -1327,22 +1333,38 @@ export class SharpInstance {
     return this.withMetadata();
   }
 
-  jp2(_options?: { readonly quality?: number; readonly lossless?: boolean }): this {
-    return this.png();
+  private validateQuality(q?: number): void {
+    if (q !== undefined && (!Number.isInteger(q) || q < 1 || q > 100)) {
+      throw new Error(`Expected integer between 1 and 100 for quality but received ${q}`);
+    }
   }
 
-  jxl(_options?: { readonly quality?: number; readonly lossless?: boolean }): this {
-    return this.png();
+  private validateCompressionLevel(level?: number): void {
+    if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 9)) {
+      throw new Error(`Expected integer between 0 and 9 for compressionLevel but received ${level}`);
+    }
+  }
+
+  jp2(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
+    return this.png(options);
+  }
+
+  jxl(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
+    return this.png(options);
   }
 
   tile(_options?: Record<string, unknown>): this {
     return this;
   }
 
-  png(options?: { readonly compressionLevel?: number; readonly palette?: boolean }): this {
+  png(options?: { readonly compressionLevel?: number; readonly palette?: boolean; readonly quality?: number; readonly force?: boolean }): this {
+    this.validateCompressionLevel(options?.compressionLevel);
+    this.validateQuality(options?.quality);
     this.outputOptions = {
       ...this.outputOptions,
-      format: "png",
+      ...(options?.force === false ? {} : { format: "png" }),
       ...(options?.compressionLevel !== undefined
         ? { compressionLevel: options.compressionLevel }
         : {}),
@@ -1351,19 +1373,21 @@ export class SharpInstance {
     return this;
   }
 
-  jpeg(options?: { readonly quality?: number }): this {
+  jpeg(options?: { readonly quality?: number; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
     this.outputOptions = {
       ...this.outputOptions,
-      format: "jpeg",
+      ...(options?.force === false ? {} : { format: "jpeg" }),
       ...(options?.quality !== undefined ? { quality: options.quality } : {})
     };
     return this;
   }
 
-  webp(options?: { readonly quality?: number; readonly lossless?: boolean }): this {
+  webp(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
     this.outputOptions = {
       ...this.outputOptions,
-      format: "webp",
+      ...(options?.force === false ? {} : { format: "webp" }),
       ...(options?.quality !== undefined ? { quality: options.quality } : {}),
       ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
     };
@@ -1374,10 +1398,12 @@ export class SharpInstance {
     readonly quality?: number;
     readonly compression?: "hevc" | "av1";
     readonly lossless?: boolean;
+    readonly force?: boolean;
   }): this {
+    this.validateQuality(options?.quality);
     this.outputOptions = {
       ...this.outputOptions,
-      format: "heif",
+      ...(options?.force === false ? {} : { format: "heif" }),
       ...(options?.quality !== undefined ? { quality: options.quality } : {}),
       ...(options?.compression !== undefined ? { compression: options.compression } : {}),
       ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
@@ -1389,10 +1415,12 @@ export class SharpInstance {
     readonly quality?: number;
     readonly compression?: "hevc" | "av1";
     readonly lossless?: boolean;
+    readonly force?: boolean;
   }): this {
+    this.validateQuality(options?.quality);
     this.outputOptions = {
       ...this.outputOptions,
-      format: "heic",
+      ...(options?.force === false ? {} : { format: "heic" }),
       compression: options?.compression ?? "hevc",
       ...(options?.quality !== undefined ? { quality: options.quality } : {}),
       ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
@@ -1400,10 +1428,11 @@ export class SharpInstance {
     return this;
   }
 
-  avif(options?: { readonly quality?: number; readonly lossless?: boolean }): this {
+  avif(options?: { readonly quality?: number; readonly lossless?: boolean; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
     this.outputOptions = {
       ...this.outputOptions,
-      format: "avif",
+      ...(options?.force === false ? {} : { format: "avif" }),
       compression: "av1",
       ...(options?.quality !== undefined ? { quality: options.quality } : {}),
       ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
@@ -1415,10 +1444,11 @@ export class SharpInstance {
     readonly pageHeight?: number;
     readonly delay?: number | readonly number[];
     readonly loop?: number;
+    readonly force?: boolean;
   }): this {
     this.outputOptions = {
       ...this.outputOptions,
-      format: "gif",
+      ...(options?.force === false ? {} : { format: "gif" }),
       ...(options?.pageHeight !== undefined ? { pageHeight: options.pageHeight } : {}),
       ...(options?.delay !== undefined ? { delay: options.delay } : {}),
       ...(options?.loop !== undefined ? { loop: options.loop } : {})
@@ -1446,8 +1476,13 @@ export class SharpInstance {
     return this;
   }
 
-  tiff(): this {
-    this.outputOptions = { ...this.outputOptions, format: "tiff" };
+  tiff(options?: { readonly quality?: number; readonly force?: boolean }): this {
+    this.validateQuality(options?.quality);
+    this.outputOptions = {
+      ...this.outputOptions,
+      ...(options?.force === false ? {} : { format: "tiff" }),
+      ...(options?.quality !== undefined ? { quality: options.quality } : {})
+    };
     return this;
   }
 
@@ -1477,9 +1512,11 @@ export class SharpInstance {
         : lower === "tif"
           ? "tiff"
           : (lower as ImageFormat);
+    this.validateQuality(options?.quality);
+    this.validateCompressionLevel(options?.compressionLevel);
     this.outputOptions = {
       ...this.outputOptions,
-      format: norm,
+      ...((options as any)?.force === false ? {} : { format: norm }),
       ...(options?.quality !== undefined ? { quality: options.quality } : {}),
       ...(options?.compression !== undefined ? { compression: options.compression } : {}),
       ...(options?.compressionLevel !== undefined

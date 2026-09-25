@@ -5,7 +5,7 @@ import {interpret, type InterpretOptions} from "../interp/interpreter.js";
 import {Scope} from "../interp/scope.js";
 import {createModuleNamespace} from "../interp/module-namespace.js";
 import {setSandboxPrototype} from "../interp/object-model.js";
-import type {SandboxObject} from "../interp/values.js";
+import type {SandboxObject, SandboxValue} from "../interp/values.js";
 import {awaitWithSignal} from "../interp/cancel.js";
 import {SandboxJobQueue} from "../interp/jobs.js";
 import {SandboxError} from "../interp/budget.js";
@@ -39,6 +39,14 @@ type RecordEntry = {
 type Binding = {record: RecordEntry; name: string} | {namespace: SandboxObject; name: string; whole?: true};
 const ambiguous = Symbol("ambiguous module export");
 const sourceRecords = new WeakSet<object>();
+const retainedRecordValues = Function.prototype.call.bind(Map.prototype.values) as (
+  records: Map<string, RecordEntry>
+) => MapIterator<RecordEntry>;
+const retainedRecordNext = Function.prototype.call.bind(
+  Object.getPrototypeOf(new Map().values()).next
+) as (iterator: MapIterator<RecordEntry>) => IteratorResult<RecordEntry>;
+const retainedArrayPrototype = Array.prototype;
+const setRetainedArrayPrototype = Object.setPrototypeOf;
 
 /** Owns one realm's canonical source identities. The resolver is the only source authority. */
 export class SourceModuleGraph {
@@ -64,8 +72,27 @@ export class SourceModuleGraph {
   }) {
     this.jobs = options.jobs ?? new SandboxJobQueue();
     attachSourceLoader(options.modules, this.import.bind(this), { preserveImmutableNamespaces: true });
-    options.budget?.setRetainedValues(this, () => [...this.records.values()].flatMap(record =>
-      [record.id,record.source,...record.parsed.requests,...record.scope.retainedDataRoots()]));
+    options.budget?.setRetainedValues(this, () => {
+      // Snapshot private records before any scope reader can admit another module.
+      // Native iteration/array hooks must not receive or replace these records.
+      const records: RecordEntry[] = setRetainedArrayPrototype([], null);
+      const iterator = retainedRecordValues(this.records);
+      for (let next = retainedRecordNext(iterator); !next.done; next = retainedRecordNext(iterator))
+        records[records.length] = next.value;
+      const roots: SandboxValue[] = setRetainedArrayPrototype([], null);
+      for (let index = 0; index < records.length; index++) {
+        const record = records[index]!;
+        roots[roots.length] = record.id;
+        roots[roots.length] = record.source;
+        const requests = record.parsed.requests;
+        for (let request = 0; request < requests.length; request++)
+          roots[roots.length] = requests[request]!;
+        // Keep foreign scope readers/iterables live and capture the complete
+        // ordered result before measurement visits any retained callbacks.
+        for (const root of record.scope.retainedDataRoots()) roots[roots.length] = root;
+      }
+      return setRetainedArrayPrototype(roots, retainedArrayPrototype);
+    });
   }
 
   close(): void {

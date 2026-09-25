@@ -94,7 +94,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (token === "-maxdepth") maxDepth = number; else minDepth = number;
         return () => true;
       }
-      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-regex", "-iregex", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-newer"].includes(token)) {
+      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-regex", "-iregex", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-amin", "-cmin", "-newer"].includes(token)) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
         if (token === "-regex" || token === "-iregex") {
@@ -109,7 +109,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           references.set(operand, 0);
           return entry => entry.stat.mtimeMs > references.get(operand)!;
         }
-        if (token === "-mtime" || token === "-mmin") {
+        if (token === "-mtime" || token === "-mmin" || token === "-amin" || token === "-cmin") {
           needsStat = true;
           const match = /^([+-]?)([0-9]+)$/u.exec(operand);
           if (!match) throw new UsageError(`invalid time '${operand}'`);
@@ -121,7 +121,8 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
             throw new UsageError(`invalid time '${operand}': comparison is out of range`);
           }
           return async entry => {
-            const delta = entry.stat.mtimeMs - reference;
+            const stamp = token === "-amin" ? (entry.stat.atimeMs ?? entry.stat.mtimeMs) : token === "-cmin" ? (entry.stat.ctimeMs ?? entry.stat.mtimeMs) : entry.stat.mtimeMs;
+            const delta = stamp - reference;
             return match[1] === "+" ? delta < 0 : match[1] === "-" ? delta > 0 : delta > 0 && delta <= unit;
           };
         }
@@ -140,12 +141,14 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         }
         if (token === "-perm") {
           needsStat = true;
-          const comparison = operand[0] === "-" || operand[0] === "/" ? operand[0] : "";
-          const bits = modeChange(comparison ? operand.slice(1) : operand, 0)({ mode: 0, type: "file" });
+          const comparison = operand[0] === "-" || operand[0] === "/" || (operand[0] === "+" && /^[0-7]/u.test(operand.slice(1))) ? operand[0] : "";
+          const spec = comparison ? operand.slice(1) : operand;
+          const evalMode = modeChange(spec, 0);
           return async entry => {
+            const bits = evalMode({ mode: 0, type: entry.stat.type });
             const permissions = entry.stat.mode & 0o7777;
             return comparison === "-" ? (permissions & bits) === bits
-              : comparison === "/" ? bits === 0 || (permissions & bits) !== 0 : permissions === bits;
+              : (comparison === "/" || comparison === "+") ? bits === 0 || (permissions & bits) !== 0 : permissions === bits;
           };
         }
         if (token === "-links") {
@@ -255,7 +258,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     };
     const conjunction = (): Expression => {
       let predicate = primary();
-      while (offset < args.length && !["-o", "-or", ")"].includes(args[offset]!)) {
+      while (offset < args.length && !["-o", "-or", ",", ")"].includes(args[offset]!)) {
         if (args[offset] === "-a" || args[offset] === "-and") offset++;
         const left = predicate;
         const right = primary();
@@ -278,6 +281,16 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           return typeof l === "boolean" ? (l ? true : right(entry)) : l.then(lv => lv ? true : right(entry));
         };
         if (debugTree) trees.set(predicate, `OR(${trees.get(left)}, ${trees.get(right)})`);
+      }
+      while (args[offset] === ",") {
+        offset++;
+        const left = predicate;
+        const right = conjunction();
+        predicate = entry => {
+          const l = left(entry);
+          return typeof l === "boolean" ? right(entry) : l.then(() => right(entry));
+        };
+        if (debugTree) trees.set(predicate, `LIST(${trees.get(left)}, ${trees.get(right)})`);
       }
       return predicate;
     };

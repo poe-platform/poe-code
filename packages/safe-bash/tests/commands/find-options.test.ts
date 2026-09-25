@@ -107,3 +107,14 @@ test("find supports -regex, -iregex, and -quit", async () => {
   assert.equal(r3.exitCode, 0);
   assert.equal(r3.stdout, "/work/foo\n");
 });
+
+test("find supports comma operator and -perm X on directories", async () => {
+  const fs = await fixture({ foo: "hi" });
+  const r1 = await run("find", ["/work/foo", "-name", "foo", ",", "-name", "foo"], { fs });
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "/work/foo\n");
+
+  const r2 = await run("find", ["/work", "-maxdepth", "0", "-perm", "/a+X"], { fs });
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "/work\n");
+});

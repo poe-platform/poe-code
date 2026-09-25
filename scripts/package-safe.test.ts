@@ -699,6 +699,10 @@ describe("scoped safe package artifacts", () => {
       "/output/safe-bash/dist/safe-bash-command-fold/COPYING": data["/repo/packages/safe-bash-command-fold/dist/COPYING"],
       "/output/safe-bash/dist/safe-bash-command-fold/COPYING.LESSER": data["/repo/packages/safe-bash-command-fold/dist/COPYING.LESSER"],
       "/output/safe-bash/dist/safe-bash-command-fold/width-data.ts": data["/repo/packages/safe-bash-command-fold/dist/width-data.ts"],
+      "/output/safe-bash/dist/safe-bash-command-xmllint/LICENSE": data["/repo/packages/safe-bash-command-xmllint/LICENSE"],
+      "/output/safe-bash/dist/safe-bash-command-xmllint/index.d.ts": data["/repo/packages/safe-bash-command-xmllint/dist/index.d.ts"],
+      "/output/safe-bash/dist/safe-bash-xml-engine/LICENSE": data["/repo/packages/safe-bash-xml-engine/LICENSE"],
+      "/output/safe-bash/dist/safe-bash-xml-engine/index.d.ts": data["/repo/packages/safe-bash-xml-engine/dist/index.d.ts"],
     });
     const actual = Object.fromEntries(Object.entries(volume.toJSON()).filter(([filename]) => filename.startsWith("/output/safe-bash/dist/")));
     expect(actual).toEqual(expected);

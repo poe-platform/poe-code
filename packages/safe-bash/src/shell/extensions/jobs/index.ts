@@ -1,5 +1,5 @@
 import { commandRuntimeIdentity } from "../../../contracts/command.js";
-import { constants } from "node:os";
+import { signalName } from "../../../commands/timeout/signal.js";
 import { writeText } from "../../../contracts/io.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes } from "../../../contracts/value.js";
 import type { ShellValue } from "../../../contracts/value.js";
@@ -89,7 +89,7 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
     return result;
   };
   const kill = async (context: ShellExtensionContext): Promise<number> => {
-    const signals: Readonly<Record<string, number>> = constants.signals;
+    const signals: Readonly<Record<string, number>> = Object.fromEntries(Array.from({ length: 31 }, (_, index) => [`SIG${signalName(index + 1)}`, index + 1]));
     const signalNumber = (name: string): number | undefined => {
       const numeric = waitProcessId(name);
       if (numeric !== undefined) return numeric === 0 || Object.values(signals).includes(numeric) ? numeric : undefined;

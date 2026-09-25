@@ -1862,4 +1862,22 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(rot180.info.pageHeight).toBe(2);
     expect(rot180.info.pages).toBe(2);
   });
+  it("returns Node Buffer from toBuffer() and truncates premultiplied raw input matching libvips (#99)", async () => {
+    const premul = Buffer.from([100, 50, 25, 128, 0, 0, 0, 0]);
+    const rawBuf = await sharp(premul, {
+      raw: { width: 2, height: 1, channels: 4, premultiplied: true }
+    })
+      .raw()
+      .toBuffer();
+    expect(Buffer.isBuffer(rawBuf)).toBe(true);
+    expect(Array.from(rawBuf)).toEqual([199, 99, 49, 128, 0, 0, 0, 0]);
+
+    const pngObj = await sharp(premul, {
+      raw: { width: 2, height: 1, channels: 4, premultiplied: true }
+    })
+      .png()
+      .toBuffer({ resolveWithObject: true });
+    expect(Buffer.isBuffer(pngObj.data)).toBe(true);
+    expect(pngObj.data.toString("hex").slice(0, 8)).toBe("89504e47");
+  });
 });

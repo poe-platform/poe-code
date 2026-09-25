@@ -220,9 +220,9 @@ export function decodeImage(
         const a = bytes[i * 4 + 3] ?? 255;
         if (premultiplied && a > 0 && a < 255) {
           const scale = 255 / a;
-          data[i * 4] = Math.min(255, Math.round(r * scale));
-          data[i * 4 + 1] = Math.min(255, Math.round(g * scale));
-          data[i * 4 + 2] = Math.min(255, Math.round(b * scale));
+          data[i * 4] = Math.min(255, Math.floor(r * scale));
+          data[i * 4 + 1] = Math.min(255, Math.floor(g * scale));
+          data[i * 4 + 2] = Math.min(255, Math.floor(b * scale));
         } else {
           data[i * 4] = r;
           data[i * 4 + 1] = g;
@@ -235,11 +235,13 @@ export function decodeImage(
         data[i * 4 + 2] = bytes[i * 3 + 2] ?? 0;
         data[i * 4 + 3] = 255;
       } else if (channels === 2) {
-        const g = bytes[i * 2] ?? 0;
+        const rawG = bytes[i * 2] ?? 0;
+        const a = bytes[i * 2 + 1] ?? 255;
+        const g = premultiplied && a > 0 && a < 255 ? Math.min(255, Math.floor((rawG * 255) / a)) : rawG;
         data[i * 4] = g;
         data[i * 4 + 1] = g;
         data[i * 4 + 2] = g;
-        data[i * 4 + 3] = bytes[i * 2 + 1] ?? 255;
+        data[i * 4 + 3] = a;
       } else {
         const g = bytes[i] ?? 0;
         data[i * 4] = g;

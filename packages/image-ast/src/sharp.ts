@@ -1052,8 +1052,11 @@ export class SharpInstance {
       img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
     }
     const encoded = encodeImage(img, this.outputOptions);
+    const outBuf = Buffer.isBuffer(encoded.data)
+      ? encoded.data
+      : Buffer.from(encoded.data.buffer, encoded.data.byteOffset, encoded.data.byteLength);
     return {
-      data: encoded.data,
+      data: outBuf,
       info: {
         format: encoded.format,
         width: img.width,

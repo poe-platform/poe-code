@@ -387,4 +387,36 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(metaB.width).toBe(80);
     expect(metaB.height).toBe(120);
   });
+  it("emits typed plist elements (<integer>, <real>, <true/>/<false/>, path) in -g allxml and accepts UTI strings in -s format (#102)", async () => {
+    const png = await sharp({
+      create: { width: 40, height: 30, channels: 4, background: { r: 200, g: 100, b: 50, alpha: 0.5 } }
+    })
+      .withMetadata({ density: 144 })
+      .png()
+      .toBuffer();
+    const files = new Map<string, Uint8Array>([["/work/photo.png", png]]);
+
+    const xmlRes = await runSipsCli(["-g", "allxml", "/work/photo.png"], files);
+    expect(xmlRes.exitCode).toBe(0);
+    expect(xmlRes.stdout).toContain("<key>pixelWidth</key>\n  <integer>40</integer>");
+    expect(xmlRes.stdout).toContain("<key>pixelHeight</key>\n  <integer>30</integer>");
+    expect(xmlRes.stdout).toContain("<key>dpiWidth</key>\n  <real>144</real>");
+    expect(xmlRes.stdout).toContain("<key>hasAlpha</key>\n  <true/>");
+    expect(xmlRes.stdout).toContain("<key>path</key>\n  <string>/work/photo.png</string>");
+
+    for (const [uti, expectedFmt] of [
+      ["public.jpeg", "jpeg"],
+      ["public.png", "png"],
+      ["public.tiff", "tiff"],
+      ["com.compuserve.gif", "gif"],
+      ["com.microsoft.bmp", "bmp"],
+      ["org.webmproject.webp", "webp"]
+    ] as const) {
+      const outPath = `/work/out.${expectedFmt}`;
+      const conv = await runSipsCli(["-s", "format", uti, "/work/photo.png", "--out", outPath], files);
+      expect(conv.exitCode).toBe(0);
+      const outMeta = await sharp(files.get(outPath)!).metadata();
+      expect(outMeta.format).toBe(expectedFmt);
+    }
+  });
 });

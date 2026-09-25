@@ -125,18 +125,18 @@ function resolveQualityOption(opt: string | undefined): number {
 
 function normalizeTargetFormat(fmt: string): ImageFormat | undefined {
   const lower = fmt.toLowerCase().trim();
-  if (lower === "png") return "png";
-  if (lower === "jpeg" || lower === "jpg") return "jpeg";
-  if (lower === "webp") return "webp";
+  if (lower === "png" || lower === "public.png") return "png";
+  if (lower === "jpeg" || lower === "jpg" || lower === "public.jpeg") return "jpeg";
+  if (lower === "webp" || lower === "org.webmproject.webp") return "webp";
   if (lower === "heic" || lower === "public.heic") return "heic";
   if (lower === "heif" || lower === "public.heif") return "heif";
   if (lower === "avif" || lower === "public.avif") return "avif";
-  if (lower === "gif") return "gif";
+  if (lower === "gif" || lower === "com.compuserve.gif") return "gif";
   if (lower === "ppm") return "ppm";
   if (lower === "pgm") return "pgm";
-  if (lower === "pbm") return "pbm";
-  if (lower === "bmp") return "bmp";
-  if (lower === "tiff" || lower === "tif") return "tiff";
+  if (lower === "pbm" || lower === "public.pbm") return "pbm";
+  if (lower === "bmp" || lower === "com.microsoft.bmp") return "bmp";
+  if (lower === "tiff" || lower === "tif" || lower === "public.tiff") return "tiff";
   if (lower === "pdf" || lower === "com.adobe.pdf") return "pdf";
   return undefined;
 }
@@ -612,10 +612,25 @@ export async function runSipsCli(
 
       if (getProperties.length > 0) {
         if (getProperties.includes("allxml")) {
-          const xmlEntries = ALL_SIPS_KEYS.map(k => {
-            const val = formatSipsPropertyValue(meta, k) ?? "";
-            return `  <key>${k}</key>\n  <string>${val}</string>`;
-          }).join("\n");
+          const xmlEntries = [
+            ...ALL_SIPS_KEYS.map(k => {
+              if (k === "pixelWidth" || k === "pixelHeight" || k === "samplesPerPixel" || k === "bitsPerSample") {
+                const intVal = formatSipsPropertyValue(meta, k) ?? "0";
+                return `  <key>${k}</key>\n  <integer>${intVal}</integer>`;
+              }
+              if (k === "dpiWidth" || k === "dpiHeight") {
+                const dpiNum = Number(meta.density ?? 72);
+                const dpiStr = Number.isInteger(dpiNum) ? String(dpiNum) : dpiNum.toFixed(3);
+                return `  <key>${k}</key>\n  <real>${dpiStr}</real>`;
+              }
+              if (k === "hasAlpha") {
+                return `  <key>${k}</key>\n  <${meta.hasAlpha ? "true" : "false"}/>`;
+              }
+              const val = formatSipsPropertyValue(meta, k) ?? "";
+              return `  <key>${k}</key>\n  <string>${val}</string>`;
+            }),
+            `  <key>path</key>\n  <string>${inPath}</string>`
+          ].join("\n");
           outLines.push(
             `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n${xmlEntries}\n</dict>\n</plist>`
           );

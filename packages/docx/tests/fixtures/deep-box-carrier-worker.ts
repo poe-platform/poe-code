@@ -14,7 +14,7 @@ const input = supplied ? new Uint8Array(Buffer.from(supplied.input, "base64")) :
 const textContext = { signal: new AbortController().signal, limits: supplied?.limits ?? (await import("./text.js")).textContext.limits };
 const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "", "/destination": "Retain destination" });
 const documentLimits = { xmlDepth: depth + 16, retainedBytes: 4294967296, work: 4294967296 };
-const context = () => ({ ...textContext, budget: new DocumentBudget(documentLimits, textContext.signal) });
+const context = () => ({ ...textContext, budget: new DocumentBudget(documentLimits, textContext.signal, async () => {}) });
 const sink = { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } };
 if (route === "sdk") {
   assert.equal((await extractDocumentText(input, context(), { scope: "body" })).text, "");

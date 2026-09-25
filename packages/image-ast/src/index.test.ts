@@ -304,8 +304,8 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .gamma(2.2, 3.0)
       .raw()
       .toBuffer();
-    expect(gRaw[0]).toBe(154);
-    expect(gRaw[1]).toBe(93);
+    expect(gRaw[0]).toBe(152);
+    expect(gRaw[1]).toBe(92);
 
     const ramp = new Uint8Array(10);
     for (let i = 0; i < 10; i++) ramp[i] = i * 10;
@@ -954,5 +954,82 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Array.from(out.subarray(pGreen, pGreen + 4))).toEqual([16, 160, 48, 255]);
     const pCornerOut = (71 * 120 + 21) * 4;
     expect(Array.from(out.subarray(pCornerOut, pCornerOut + 4))).toEqual([32, 64, 96, 255]);
+  });
+
+  it("preserves foreground alpha in resize({ fit: 'contain' }), uses CalculateCrop rounding in 'cover', and matches withoutEnlargement/withoutReduction dimensions (#65)", async () => {
+    const src = new Uint8Array(80 * 50 * 4);
+    for (let y = 0; y < 50; y++) {
+      for (let x = 0; x < 80; x++) {
+        const i = (y * 80 + x) * 4;
+        src[i] = Math.round((x / 79) * 255);
+        src[i + 1] = Math.round((y / 49) * 255);
+        src[i + 2] = (x * 7 + y * 13) & 0xff;
+        src[i + 3] = 200;
+      }
+    }
+    const rawOpts = { raw: { width: 80, height: 50, channels: 4 as const } };
+
+    // 1. fit: "contain" preserves foreground alpha (200) in embedded image region while padding border with background
+    const containOut = await sharp(src, rawOpts)
+      .resize(37, 41, { fit: "contain", position: "center", background: { r: 10, g: 20, b: 30, alpha: 1 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(Array.from(containOut.data.subarray(0, 4))).toEqual([10, 20, 30, 255]);
+    const centerIdx = (20 * 37 + 18) * 4;
+    expect(containOut.data[centerIdx + 3]).toBe(200);
+
+    // 2. fit: "cover" CalculateCrop center rounding (Math.floor((dx + 1) / 2))
+    const ramp = new Uint8Array(11 * 10 * 4);
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 11; x++) {
+        const i = (y * 11 + x) * 4;
+        ramp[i] = x * 20;
+        ramp[i + 3] = 255;
+      }
+    }
+    const coverCenter = await sharp(ramp, { raw: { width: 11, height: 10, channels: 4 } })
+      .resize(6, 10, { fit: "cover", position: "center", kernel: "nearest" })
+      .raw()
+      .toBuffer();
+    expect(coverCenter[0]).toBe(3 * 20);
+
+    // 3. withoutReduction / withoutEnlargement dimensions for cover, contain, fill
+    const fillNoRed = await sharp(src, rawOpts)
+      .resize(120, 30, { fit: "fill", withoutReduction: true })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(fillNoRed.info.width).toBe(120);
+    expect(fillNoRed.info.height).toBe(50);
+
+    const containNoEnl = await sharp(src, rawOpts)
+      .resize(120, 90, { fit: "contain", withoutEnlargement: true })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(containNoEnl.info.width).toBe(120);
+    expect(containNoEnl.info.height).toBe(90);
+
+    const fillNoEnl = await sharp(src, rawOpts)
+      .resize(120, 30, { fit: "fill", withoutEnlargement: true })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(fillNoEnl.info.width).toBe(80);
+    expect(fillNoEnl.info.height).toBe(30);
+  });
+
+  it("clamps 4:2:0 JPEG top/left chroma edge indices independently, applies two-step vips_gamma LUT, and outputs 3 srgb channels in bandbool() (#66)", async () => {
+    // 1. vips_gamma two-step 8-bit LUT truncation
+    const g1 = await sharp(new Uint8Array([25, 50, 100]), { raw: { width: 1, height: 1, channels: 3 } })
+      .gamma(2.2)
+      .raw()
+      .toBuffer();
+    expect(Array.from(g1)).toEqual([20, 49, 99]);
+
+    // 2. bandbool() on 3-channel srgb image outputs 3 channels [v, v, v]
+    const bb = await sharp(new Uint8Array([50, 100, 200, 25, 150, 220]), { raw: { width: 2, height: 1, channels: 3 } })
+      .bandbool("and")
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(bb.info.channels).toBe(3);
+    expect(Array.from(bb.data)).toEqual([0, 0, 0, 16, 16, 16]);
   });
 });

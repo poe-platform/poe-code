@@ -67,13 +67,14 @@ export function resolveGravityOffset(
   outerH: number,
   innerW: number,
   innerH: number,
-  position: GravityPosition = "center"
+  position: GravityPosition = "center",
+  isCrop = false
 ): { readonly x: number; readonly y: number } {
   const dx = outerW - innerW;
   const dy = outerH - innerH;
   const p = position.toLowerCase();
-  let x = Math.floor(dx / 2);
-  let y = Math.floor(dy / 2);
+  let x = isCrop ? Math.floor((dx + 1) / 2) : Math.floor(dx / 2);
+  let y = isCrop ? Math.floor((dy + 1) / 2) : Math.floor(dy / 2);
 
   if (p.includes("west") || p.includes("left")) x = 0;
   else if (p.includes("east") || p.includes("right")) x = dx;
@@ -257,7 +258,16 @@ export function resizeImage(
   };
 
   if (fit === "fill") {
-    const [rw, rh] = clampScale(targetW, targetH);
+    let rw = targetW;
+    let rh = targetH;
+    if (spec.withoutEnlargement) {
+      rw = Math.min(rw, srcW);
+      rh = Math.min(rh, srcH);
+    }
+    if (spec.withoutReduction) {
+      rw = Math.max(rw, srcW);
+      rh = Math.max(rh, srcH);
+    }
     const data = resampleRawBitmap(img.data, srcW, srcH, rw, rh, spec.kernel);
     return { ...img, width: rw, height: rh, data };
   }
@@ -283,11 +293,13 @@ export function resizeImage(
       targetW = Math.max(targetW, srcW);
       targetH = Math.max(targetH, srcH);
     }
-    const scale = Math.max(targetW / srcW, targetH / srcH);
+    let scale = Math.max(targetW / srcW, targetH / srcH);
+    if (spec.withoutEnlargement) scale = Math.min(1, scale);
+    if (spec.withoutReduction) scale = Math.max(1, scale);
     const scaledW = Math.max(targetW, Math.round(srcW * scale));
     const scaledH = Math.max(targetH, Math.round(srcH * scale));
     const scaledData = resampleRawBitmap(img.data, srcW, srcH, scaledW, scaledH, spec.kernel);
-    const offset = resolveGravityOffset(scaledW, scaledH, targetW, targetH, spec.position);
+    const offset = resolveGravityOffset(scaledW, scaledH, targetW, targetH, spec.position, true);
     const cropped = new Uint8Array(targetW * targetH * 4);
     for (let y = 0; y < targetH; y++) {
       const srcRow = ((offset.y + y) * scaledW + offset.x) * 4;
@@ -297,19 +309,15 @@ export function resizeImage(
   }
 
   // fit === "contain"
-  if (spec.withoutEnlargement && (targetW > srcW || targetH > srcH)) {
-    targetW = Math.min(targetW, srcW);
-    targetH = Math.min(targetH, srcH);
-  }
   if (spec.withoutReduction && (targetW < srcW || targetH < srcH)) {
     targetW = Math.max(targetW, srcW);
     targetH = Math.max(targetH, srcH);
   }
-  const scale = Math.min(targetW / srcW, targetH / srcH);
-  const [innerW, innerH] = clampScale(
-    Math.max(1, Math.round(srcW * scale)),
-    Math.max(1, Math.round(srcH * scale))
-  );
+  let scale = Math.min(targetW / srcW, targetH / srcH);
+  if (spec.withoutEnlargement) scale = Math.min(1, scale);
+  if (spec.withoutReduction) scale = Math.max(1, scale);
+  const innerW = Math.min(targetW, Math.max(1, Math.round(srcW * scale)));
+  const innerH = Math.min(targetH, Math.max(1, Math.round(srcH * scale)));
   const scaledData = resampleRawBitmap(img.data, srcW, srcH, innerW, innerH, spec.kernel);
   const canvas = new Uint8Array(targetW * targetH * 4);
   const bg = spec.background;
@@ -321,25 +329,9 @@ export function resizeImage(
   }
   const offset = resolveGravityOffset(targetW, targetH, innerW, innerH, spec.position);
   for (let y = 0; y < innerH; y++) {
-    for (let x = 0; x < innerW; x++) {
-      const sIdx = (y * innerW + x) * 4;
-      const dIdx = ((offset.y + y) * targetW + (offset.x + x)) * 4;
-      const srcA = scaledData[sIdx + 3]! / 255;
-      const dstA = canvas[dIdx + 3]! / 255;
-      const outA = srcA + dstA * (1 - srcA);
-      if (outA > 0) {
-        canvas[dIdx] = Math.round(
-          (scaledData[sIdx]! * srcA + canvas[dIdx]! * dstA * (1 - srcA)) / outA
-        );
-        canvas[dIdx + 1] = Math.round(
-          (scaledData[sIdx + 1]! * srcA + canvas[dIdx + 1]! * dstA * (1 - srcA)) / outA
-        );
-        canvas[dIdx + 2] = Math.round(
-          (scaledData[sIdx + 2]! * srcA + canvas[dIdx + 2]! * dstA * (1 - srcA)) / outA
-        );
-        canvas[dIdx + 3] = Math.round(outA * 255);
-      }
-    }
+    const srcRow = y * innerW * 4;
+    const dstRow = ((offset.y + y) * targetW + offset.x) * 4;
+    canvas.set(scaledData.subarray(srcRow, srcRow + innerW * 4), dstRow);
   }
   return {
     ...img,

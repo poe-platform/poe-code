@@ -1013,10 +1013,12 @@ export function tintImage(img: RgbaImage, color: RgbaColor): RgbaImage {
 
 export function gammaImage(img: RgbaImage, gamma = 2.2, gammaOut = gamma): RgbaImage {
   const out = new Uint8Array(img.data.length);
-  const exp = gamma / gammaOut;
+  const gIn = Math.max(0.1, gamma);
+  const gOut = Math.max(0.1, gammaOut);
   const lut = new Uint8Array(256);
   for (let i = 0; i < 256; i++) {
-    lut[i] = Math.max(0, Math.min(255, Math.round(Math.pow(i / 255, exp) * 255)));
+    const v1 = Math.min(255, Math.max(0, Math.floor(255 * Math.pow(i / 255, gIn))));
+    lut[i] = Math.min(255, Math.max(0, Math.floor(255 * Math.pow(v1 / 255, 1 / gOut))));
   }
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
@@ -1472,7 +1474,14 @@ export function bandboolImage(img: RgbaImage, op: "and" | "or" | "eor"): RgbaIma
     out[idx + 2] = acc;
     out[idx + 3] = 255;
   }
-  return { ...img, data: out, space: "b-w", channels: 1, hasAlpha: false };
+  const outChannels = img.channels === 1 ? 1 : 3;
+  return {
+    ...img,
+    data: out,
+    space: outChannels === 1 ? "b-w" : "srgb",
+    channels: outChannels,
+    hasAlpha: false
+  };
 }
 
 export function joinChannelImage(img: RgbaImage, extraImages: readonly RgbaImage[]): RgbaImage {

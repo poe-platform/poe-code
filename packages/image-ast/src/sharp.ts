@@ -272,19 +272,27 @@ export class SharpInstance {
   }
 
   flip(flip = true): this {
+    const existingIdx = this.nodes.findIndex(n => n.kind === "flip");
     if (flip) {
+      if (existingIdx !== -1) return this;
       const rotIdx = this.nodes.findIndex(n => n.kind === "rotate");
       if (rotIdx !== -1) this.nodes.splice(rotIdx, 0, { kind: "flip" });
       else this.nodes.push({ kind: "flip" });
+    } else if (existingIdx !== -1) {
+      this.nodes.splice(existingIdx, 1);
     }
     return this;
   }
 
   flop(flop = true): this {
+    const existingIdx = this.nodes.findIndex(n => n.kind === "flop");
     if (flop) {
+      if (existingIdx !== -1) return this;
       const rotIdx = this.nodes.findIndex(n => n.kind === "rotate");
       if (rotIdx !== -1) this.nodes.splice(rotIdx, 0, { kind: "flop" });
       else this.nodes.push({ kind: "flop" });
+    } else if (existingIdx !== -1) {
+      this.nodes.splice(existingIdx, 1);
     }
     return this;
   }

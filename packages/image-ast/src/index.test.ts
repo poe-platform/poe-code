@@ -1536,4 +1536,24 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(mergedRes.info.width).toBe(12);
     expect(mergedRes.info.height).toBe(6);
   });
+
+  it("makes flip()/flop() idempotent on repeated calls and supports flip(false)/flop(false) cancellation (#84)", async () => {
+    const raw2x2 = Buffer.from([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]);
+    const flip1 = await sharp(raw2x2, { raw: { width: 2, height: 2, channels: 3 } }).flip().raw().toBuffer();
+    const flip2 = await sharp(raw2x2, { raw: { width: 2, height: 2, channels: 3 } }).flip().flip().raw().toBuffer();
+    expect(Array.from(flip2)).toEqual(Array.from(flip1));
+
+    const flop1 = await sharp(raw2x2, { raw: { width: 2, height: 2, channels: 3 } }).flop().raw().toBuffer();
+    const flop2 = await sharp(raw2x2, { raw: { width: 2, height: 2, channels: 3 } }).flop().flop().raw().toBuffer();
+    expect(Array.from(flop2)).toEqual(Array.from(flop1));
+
+    const flipCanceled = await sharp(raw2x2, { raw: { width: 2, height: 2, channels: 3 } })
+      .flip()
+      .flip(false)
+      .flop()
+      .flop(false)
+      .raw()
+      .toBuffer();
+    expect(Array.from(flipCanceled)).toEqual(Array.from(raw2x2));
+  });
 });

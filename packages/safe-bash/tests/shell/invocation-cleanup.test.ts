@@ -37,7 +37,7 @@ for (const externalInvocation of [false, true]) test(`frozen middleware contexts
     assert.equal(Object.getOwnPropertyDescriptor(invocation, metadata)?.get, getMetadata);
     assert.equal(Reflect.get(invocation, metadata), value);
     assert.deepEqual(invocation.args, ["replacement"]);
-    assert.equal(invocation.externalInvocation === true, externalInvocation);
+    assert.equal(Reflect.get(invocation, "externalInvocation") === true, externalInvocation);
     return { exitCode: 7 };
   } });
   commands.register({ name: "driver", execute(invocation) {

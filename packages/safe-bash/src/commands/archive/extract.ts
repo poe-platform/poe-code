@@ -268,7 +268,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       }
       if (options.mode === "t") {
         let baseName = entry.name;
-        if (options.showTransformedNames && options.strip > 0) {
+        if (options.strip > 0) {
           const stripped = relativeName(entry.name, options.strip);
           if (stripped === undefined) {
             await reader.discard(entry.size); await reader.padding(entry.size); continue;
@@ -279,7 +279,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
           ...entry,
           name: await transformedNames.apply(baseName),
           linkname: entry.linkname ? await transformedNames.apply(entry.linkname) : entry.linkname,
-        } : entry;
+        } : { ...entry, name: baseName };
         await budget.output(options.verbose ? verbose(shown, options) : `${quoteName(shown.name, options.quotingStyle)}\n`);
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }

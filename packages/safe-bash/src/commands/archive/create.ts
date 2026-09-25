@@ -7,7 +7,7 @@ import { quoteName } from "./listing.js";
 import { recordPadding } from "./stream.js";
 import { TransformedNames } from "./transform.js";
 
-interface SourceEntry { readonly path: string; readonly stat: FileStat; readonly entry: Entry }
+interface SourceEntry { readonly path: string; readonly stat: FileStat; readonly entry: Entry; readonly sourceLink?: string }
 
 function safeName(name: string): string {
   const relative = name.replace(/^\/+/u, "");
@@ -61,10 +61,12 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       mtime: options.format === "ustar" ? Math.floor(options.metadata.mtime ?? stat.mtimeMs / 1000) : options.metadata.mtime ?? stat.mtimeMs / 1000,
     };
     if (options.format === "pax") entry.atime = stat.atimeMs / 1000;
+    let sourceLink: string | undefined;
     if (stat.type === "symlink") {
       if ((stat.nlink ?? 1) > 1) fail("hardlinked symbolic-link sources are unsupported");
       if (!context.fs.readlink) fail("filesystem does not support readlink");
       entry.linkname = await operation(context, () => context.fs.readlink!(path, { signal: context.signal }));
+      sourceLink = entry.linkname;
       if (options.transforms.length) entry.linkname = await transformedNames.apply(entry.linkname);
       checkPath(entry.linkname, budget.limits);
     }
@@ -102,7 +104,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     const headers = encodeEntry(entry, budget.limits);
     archiveBytes += headers.reduce((size, header) => size + header.length, 0) + Math.ceil(entry.size / 512) * 512;
     if (options.format === "ustar" && headers.length > 1) fail(`metadata requires PAX format: ${display(name)}`);
-    entries.push({ path, stat, entry });
+    entries.push({ path, stat, entry, ...(sourceLink === undefined ? {} : { sourceLink }) });
     if (stat.type === "directory" && options.recursion) {
       const maxEntries = budget.limits.maxMembers - budget.members;
       const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal,
@@ -151,7 +153,7 @@ async function unchanged(context: CommandContext, source: SourceEntry): Promise<
   checkSource(source, await operation(context, () => context.fs.lstat(source.path, { signal: context.signal })));
   if (source.stat.type === "symlink") {
     const target = await operation(context, () => context.fs.readlink!(source.path, { signal: context.signal }));
-    if (target !== source.entry.linkname) fail("source symlink changed while archiving");
+    if (target !== source.sourceLink) fail("source symlink changed while archiving");
   }
 }
 

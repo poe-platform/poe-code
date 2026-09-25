@@ -400,7 +400,7 @@ test("strip-components uses original names for selectors/excludes, including ./"
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(await fs.readFile("/out/keep"), binary);
     assert.equal((await fs.readdir("/out")).length, 1);
-    assert.equal((await shell.exec("tar tf - --strip-components=2", { stdin: bytes })).stdout, "./tree/keep\n./tree/drop\n");
+    assert.equal((await shell.exec("tar tf - --strip-components=2", { stdin: bytes })).stdout, "keep\ndrop\n");
   } finally { await shell.dispose(); }
 });
 
@@ -579,5 +579,53 @@ test("tar supports --no-recursion, --transform in -c/-x, --strip-components with
     const trExtract = await shell.exec("tar -xvf tr.tar -C /out/tr --strip-components=1 --show-transformed-names");
     assert.equal(trExtract.exitCode, 0, trExtract.stderr);
     assert.equal(trExtract.stdout, "file\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const [stored, operand] of [["./a", "a"], ["a", "././a"], ["./dir/a", "dir"], ["dir/a", "./dir/"]] as const) {
+  test(`tar selects ${stored} with ${operand} for listing and extraction`, async () => {
+    const { fs, shell } = await fixture();
+    try {
+      const bytes = archive(member(stored, binary));
+      const listed = await shell.exec(`tar -tf - ${operand}`, { stdin: bytes });
+      assert.equal(listed.exitCode, 0, listed.stderr);
+      assert.equal(listed.stdout, `${stored}\n`);
+      const extracted = await shell.exec(`tar -xf - -C /out ${operand}`, { stdin: bytes });
+      assert.equal(extracted.exitCode, 0, extracted.stderr);
+      assert.deepEqual(await fs.readFile(`/out/${stored}`), binary);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("tar strips listed names and skips members with too few components", async () => {
+  const { shell } = await fixture();
+  try {
+    const bytes = archive(member("a", binary), member("sub/", new Uint8Array(), "5"), member("sub/b", binary));
+    for (const flags of ["", "-v"]) {
+      const result = await shell.exec(`tar -tf - --strip-components=1 ${flags}`, { stdin: bytes });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(result.stdout.endsWith("b\n"), result.stdout);
+      assert.equal(result.stdout.split("\n").length, 2);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("tar transforms creation and extraction names while selecting original names", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.mkdir("/work/dir");
+    await fs.writeFile("/work/dir/a", binary);
+    await fs.symlink("a", "/work/dir/link");
+    await fs.link("/work/dir/a", "/work/dir/hard");
+    const created = await shell.exec("tar -cf names.tar --sort=name --transform='s/dir/new/;s/^a$/renamed/' dir");
+    assert.equal(created.exitCode, 0, created.stderr);
+    const listed = await shell.exec("tar -tf names.tar");
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.equal(listed.stdout, "new/\nnew/a\nnew/hard\nnew/link\n");
+    const extracted = await shell.exec("tar -xf names.tar -C /out --xform='s/new/final/;s/renamed/a/' new");
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.deepEqual(await fs.readFile("/out/final/a"), binary);
+    assert.deepEqual(await fs.readFile("/out/final/hard"), binary);
+    assert.equal(await fs.readlink("/out/final/link"), "a");
   } finally { await shell.dispose(); }
 });

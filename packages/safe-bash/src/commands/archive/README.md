@@ -90,8 +90,8 @@ missing filesystem metadata capabilities. Supported common options:
 | `-v`, `--verbose` | Names for creation/extraction; metadata listing for `-t`. Repeated `-v` is the same boolean setting. |
 | `-O`, `--to-stdout` | Extract selected regular-file contents to stdout in archive order without publishing members or restoring metadata. Verbose names go to stderr; directories and links contribute no payload. |
 | `-C`, `--directory` | Position-sensitive, VFS-resolved directory changes. Relative changes are relative to the previous directory. Archive and file-list filenames remain relative to the invocation cwd. |
-| `--strip-components=N` | Extract after removing N original nonempty slash components, including leading `.` components. A name entirely removed is skipped. Listing keeps original names, as in the frozen GNU observation. |
-| `--transform=EXPR`, `--xform=EXPR` | Listing-only name substitutions: `s/old/new/` with basic regular expressions, `g` (global), `i` (ignore case), or `x` (extended expressions). Repeated options and semicolon-separated substitutions apply in order; replacement `&` and capture references are supported. Empty patterns, occurrence/scope/case-conversion flags, and creation/extraction transforms are unsupported. |
+| `--strip-components=N` | List or extract after removing N nonempty slash components, including leading `.` components. A name entirely removed is skipped. Extraction transforms apply before stripping; listing strips before applying display transforms. |
+| `--transform=EXPR`, `--xform=EXPR` | Creation, extraction, and optional listing name substitutions: `s/old/new/` with basic regular expressions, `g` (global), `i` (ignore case), or `x` (extended expressions). Repeated options and semicolon-separated substitutions apply in order; replacement `&` and capture references are supported. Empty patterns, occurrence/scope/case-conversion flags are unsupported. Member names and symbolic/hard link targets are transformed; extraction retains its path safety checks. |
 | `--show-transformed-names` | Show substituted member and link names in listings, including verbose listings. Without this flag listings retain original names. Selection and exclusions always use original names. |
 | `--exclude=PATTERN` | Component-start, unanchored glob exclusions; `*`, `?`, bracket ranges/negation, and backslash escaping outside brackets. Wildcards can match `/`. Excluding a directory excludes descendants. |
 | `-T`, `--files-from` | Names from a VFS file or `-` stdin; repeated file lists supported. |
@@ -141,7 +141,7 @@ creating without any operands or file list fails. Archive stdin and file-list
 stdin cannot be shared during list/extract, and a stdin file list is single-use.
 
 Append/update/delete/compare, `-O`, sparse/device/FIFO handling, additional
-compression, dereferencing, ownership restoration, creation/extraction transforms, wildcard selection,
+compression, dereferencing, ownership restoration, wildcard selection,
 ACL/xattr switches, POSIX named bracket classes, and all other options are
 unsupported and produce failure. No option or archive data executes code.
 

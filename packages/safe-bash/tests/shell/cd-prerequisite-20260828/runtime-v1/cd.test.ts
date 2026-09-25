@@ -211,16 +211,16 @@ test("absolute 65536-byte target admitted, next byte refused", async () => {
 
 test("local helper-work failure has ordinary status and leaves subsequent command usable", async () => {
   const { fs, calls } = await fixture();
-  const metadataCalls: string[] = [];
   fs.stat = async path => { calls.push(path); throw new FsError("ENOENT", { path }); };
-  fs.lstat = async path => { metadataCalls.push(path); throw new FsError("ENOENT", { path }); };
+  fs.lstat = async path => { assert.equal(path, "/work"); throw new FsError("ENOENT", { path }); };
+  fs.access = async () => { assert.fail("missing CDPATH candidates must not request access"); };
   const target = "x".repeat(60_000);
   const result = await execute(fs, 'cd "$DEST"; printf "%s" "$?"', { env: { DEST: target, CDPATH: ":".repeat(100) } });
+  assert.equal(result.exitCode, 0);
   assert.equal(result.stdout, "1");
   assert.match(result.stderr, /cd: helper work limit exceeded/);
   assert.equal(calls.length, 46);
   assert.ok(calls.every(path => path === `/work/${target}`));
-  assert.ok(metadataCalls.includes(`/work/${target}`));
 });
 
 for (const script of ["unset HOME; cd", "unset OLDPWD; cd -", "cd one two"]) test(`argument/missing-variable precedence ${script}`, async () => {
@@ -278,11 +278,10 @@ for (const adapter of ["memory", "real", "readonly", "s3", "webdav"] as const) t
     if (adapter === "webdav") assert.deepEqual(requests, [
       "PROPFIND:0:/dav/absent",
       "PROPFIND:0:/dav/absent/target", "PROPFIND:0:/dav/absent",
-      "PROPFIND:0:/dav/absent/target", "PROPFIND:0:/dav/absent",
       "PROPFIND:0:/dav/one",
-      "PROPFIND:0:/dav/one/target", "PROPFIND:0:/dav/one/target",
+      "PROPFIND:0:/dav/one/target",
       "PROPFIND:0:/dav/one",
-      "PROPFIND:0:/dav/one/target", "PROPFIND:0:/dav/one/target",
+      "PROPFIND:0:/dav/one/target",
     ]);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

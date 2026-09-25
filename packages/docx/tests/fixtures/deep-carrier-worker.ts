@@ -13,13 +13,13 @@ const input = supplied ? new Uint8Array(Buffer.from(supplied.input, "base64")) :
 const textContext = { signal: new AbortController().signal, limits: supplied?.limits ?? (await import("./text.js")).textContext.limits };
 const memory = Volume.fromJSON({ "/input": Buffer.from(input) });
 const result = await extractDocumentText(new Uint8Array(memory.readFileSync("/input") as Buffer), {
-  ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8 }, textContext.signal)
+  ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8 }, textContext.signal, async () => {})
 });
 assert.equal(result.text, text);
 assert.ok(result.segments.some(segment => segment.text === text && segment.formatting.rtl === true));
 assert.deepEqual(new Uint8Array(memory.readFileSync("/input") as Buffer), input);
 if (route) {
-  const context = () => ({ ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8, retainedBytes: 4294967296, work: 4294967296 }, textContext.signal) });
+  const context = () => ({ ...textContext, budget: new DocumentBudget({ xmlDepth: depth + 8, retainedBytes: 4294967296, work: 4294967296 }, textContext.signal, async () => {}) });
   const ref = (resultHandle: string, index?: number) => ({ resultHandle, ...(index === undefined ? {} : { index }) });
   const operations: Record<string, unknown>[] = [
     { operation: "model.document.Document.paragraphs.get", receiver: ref("document"), arguments: {}, resultHandle: "paragraphs" },

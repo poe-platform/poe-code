@@ -526,7 +526,7 @@ export function evaluateArithmeticSync(program: ArithmeticProgram, references: A
           }
           if (node.operator === ",") {
             evalNode(node.left, depth + 1);
-            return BigInt.asIntN(64, evalNode(node.right, depth + 1));
+            return evalNode(node.right, depth + 1);
           }
           if (node.operator === "=") {
             const right = evalNode(node.right, depth + 1);

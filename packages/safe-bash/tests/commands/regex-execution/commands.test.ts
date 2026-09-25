@@ -154,11 +154,13 @@ for (const tool of ["grep", "rg"] as const) {
     await delay(1);
     assert.equal(getEventListeners(controller.signal, "abort").length, 0);
   });
-  test(`${tool} quiet closes source without reading another chunk`, { timeout: 5000 }, async () => {
+  for (const flag of ["-q", "-m1"]) test(`${tool} ${flag} closes source without reading another chunk`, { timeout: 5000 }, async () => {
     let reads = 0;
     let closed = false;
     const source = (async function* () { try { reads++; yield Buffer.from("a\na\n"); reads++; throw new Error("must not read"); } finally { closed = true; } })();
-    assert.equal((await run(command(tool), ["-q", "a", "-"], source)).code, 0);
+    const result = await run(command(tool), [flag, "a", "-"], source);
+    assert.equal(result.code, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), flag === "-q" ? "" : "a\n");
     assert.equal(reads, 1);
     assert.equal(closed, true);
   });

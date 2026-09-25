@@ -388,6 +388,7 @@ inspect the resulting state before repeating the action.
                       for (let i = lStart; i < lEnd; i++) outBuffer[dst++] = c[i]!;
                       outBuffer[dst++] = delimiterByte;
                       outUsed = dst;
+                      if (count >= maxCount && remainingAfter === 0) break records;
                       continue;
                     }
                   }

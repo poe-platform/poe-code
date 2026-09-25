@@ -34,6 +34,25 @@ export class Reader {
     return this.ended && this.buffered === 0;
   }
 
+  private retain(chunk: Uint8Array): void {
+    const length = chunk.byteLength;
+    if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
+    if (length === 0) return;
+    this.retention.admit(0, length);
+    try {
+      const block = Buffer.from(chunk);
+      const batch = getCachedLatin1Batch(block);
+      this.blocks.push(block);
+      this.blockStrings.push(batch?.text);
+      this.blockEnds.push(batch?.ends);
+    } catch (error) {
+      this.retention.release(length);
+      throw error;
+    }
+    this.buffered += length;
+    this.ownedBytes += length;
+  }
+
   private tryFillSync(): boolean {
     const syncIter = this.iterator as AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
     if (typeof syncIter.tryNextSync !== "function") return false;
@@ -43,18 +62,8 @@ export class Reader {
       if (next === undefined) return false;
       this.budget.context.signal.throwIfAborted();
       if (next.done) { this.ended = true; return true; }
-      const length = next.value.byteLength;
-      if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
-      if (length === 0) continue;
-      this.retention.admit(0, length);
-      const owned = Buffer.from(next.value);
-      try { this.blocks.push(owned); }
-      catch (error) { this.retention.release(length); throw error; }
-      const batch = getCachedLatin1Batch(next.value);
-      this.blockStrings.push(batch?.text);
-      this.blockEnds.push(batch?.ends);
-      this.buffered += length;
-      this.ownedBytes += length;
+      if (next.value.byteLength === 0) continue;
+      this.retain(next.value);
       return true;
     }
     return true;
@@ -66,18 +75,7 @@ export class Reader {
     this.budget.context.signal.throwIfAborted();
     if (this.closed) return;
     if (next.done) { this.ended = true; return; }
-    const length = next.value.byteLength;
-    if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
-    if (length === 0) return;
-    this.retention.admit(0, length);
-    const block = Buffer.from(next.value);
-    try { this.blocks.push(block); }
-    catch (error) { this.retention.release(length); throw error; }
-    const batch = getCachedLatin1Batch(next.value);
-    this.blockStrings.push(batch?.text);
-    this.blockEnds.push(batch?.ends);
-    this.buffered += length;
-    this.ownedBytes += length;
+    this.retain(next.value);
   }
 
   private consume(length: number): void {

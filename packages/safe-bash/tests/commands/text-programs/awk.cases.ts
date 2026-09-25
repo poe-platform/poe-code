@@ -348,6 +348,47 @@ test("awk reader retains owned raw bytes across producer reuse and unterminated 
   assert.deepEqual(result.stdout, Buffer.from([0xff, 0xc3, 0xa9, 0, 10]));
 });
 
+for (const synchronous of [false, true]) for (const buffer of [false, true]) {
+  if (!synchronous && !buffer) continue;
+  test(`awk reader owns reused chunks: synchronous=${synchronous}, Buffer=${buffer}`, async () => {
+    const chunk = buffer ? Buffer.from([0xff, 0xc3]) : Uint8Array.of(0xff, 0xc3);
+    let step = 0;
+    const advance = (): IteratorResult<Uint8Array> => {
+      if (step++ === 0) return { done: false, value: chunk };
+      if (step === 2) {
+        chunk.set([0xa9, 0]);
+        return { done: false, value: chunk };
+      }
+      chunk.fill(120);
+      return { done: true, value: undefined };
+    };
+    const source = {
+      [Symbol.asyncIterator]() {
+        return { next: async () => advance(), ...(synchronous ? { tryNextSync: advance } : {}) };
+      },
+    };
+    const result = await runVirtual("awk", { args: ['{ print }'] }, { maxBufferBytes: 128 }, source);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.stdout, Buffer.from([0xff, 0xc3, 0xa9, 0, 10]));
+  });
+}
+
+test("awk reader refreshes cached text when a producer reuses a large chunk", async () => {
+  const chunk = Buffer.alloc(512, 97);
+  chunk[511] = 10;
+  const first = Buffer.from(chunk);
+  const second = Buffer.from(chunk);
+  second[17] = 98;
+  const source = (async function* () {
+    yield chunk;
+    chunk[17] = 98;
+    yield chunk;
+  })();
+  const result = await runVirtual("awk", { args: ['{ print }'] }, {}, source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.stdout, Buffer.concat([first, second]));
+});
+
 for (const [name, program, expected] of [
   ["empty program", "", ""],
   ["only repeated mixed separators", "\n;;\n;\n", ""],

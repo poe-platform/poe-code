@@ -52,10 +52,10 @@ for (const [command, args, expected] of [
 
 for (const command of ["head", "tail"]) for (const [suffix, count] of [["b", 512], ["kB", 1000], ["K", 1024], ["M", 1048576], ["G", 1073741824]] as const) {
   test(`${command} accepts byte multiplier ${suffix}`, async () => {
-    const stdin = "x".repeat(1100);
+    const stdin = "a".repeat(1024) + "b".repeat(1024);
     const result = await run(command, ["-c", `1${suffix}`], { stdin });
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdout.length, Math.min(count, stdin.length));
+    assert.equal(result.stdout, command === "head" ? stdin.slice(0, count) : stdin.slice(-count));
   });
 }
 

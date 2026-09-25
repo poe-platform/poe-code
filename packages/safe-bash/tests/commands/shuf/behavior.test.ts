@@ -345,6 +345,6 @@ test("shuf streams range permutations into stdout budget without prebuilding ful
     },
     stderr: { async write() {} },
   };
-  await assert.rejects(() => createShufCommand().execute(context), error => error === budgetError);
+  await assert.rejects(async () => createShufCommand().execute(context), error => error === budgetError);
   assert.ok(writeCount < 512, `expected stdout budget to stop shuf early, got ${writeCount} writes`);
 });

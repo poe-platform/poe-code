@@ -17,7 +17,7 @@ export type { MikeLimits as YqLimits } from "./commands/yq/native-work.js";
 export { createDeviceFileSystem } from "./fs/devices/index.js";
 export type { DeviceFileSystem } from "./fs/devices/index.js";
 export { arraysExtension } from "./shell/extensions/arrays/index.js";
-export { jobsExtension } from "./shell/extensions/jobs/index.js";
+export { jobsExtension } from "@poe-platform/safe-bash/jobs";
 export { mapfileExtension } from "./shell/extensions/mapfile/index.js";
 export { readExtension } from "./shell/extensions/read/index.js";
 export type { ReadExtensionOptions } from "./shell/extensions/read/index.js";

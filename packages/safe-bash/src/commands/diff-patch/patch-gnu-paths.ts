@@ -111,19 +111,25 @@ export async function backupName(path: string, budget: Budget, options: BackupOp
   if (!await inspect(budget, parent)) return options.versionControl === "numbered" ? `${path}.~1~` : simple;
   const prefix = `${basename(path)}.~`;
   const entries = await host(budget.context, () => budget.context.fs.readdir(parent, { signal: budget.context.signal }));
-  let maximum = 0n;
+  let maximum = "0";
   for (const entry of entries) {
     budget.file();
     await budget.checkpoint();
     if (!entry.name || /[/\0]/u.test(entry.name) || entry.name === "." || entry.name === "..") throw new ToolError("unsafe directory entry in backup directory");
     if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
     const version = entry.name.slice(prefix.length, -1);
-    if (version.length > 4096) throw new ToolError("backup version length limit exceeded");
+    budget.step(version.length);
+    await budget.checkpoint();
     if (!/^[1-9]\d*$/u.test(version)) continue;
-    const number = BigInt(version);
-    if (number > maximum) maximum = number;
+    if (version.length > maximum.length || version.length === maximum.length && version > maximum) maximum = version;
   }
-  return maximum || options.versionControl === "numbered" ? `${path}.~${maximum + 1n}~` : simple;
+  if (maximum === "0" && options.versionControl !== "numbered") return simple;
+  // Decimal increment avoids converting arbitrarily long versions to BigInt.
+  let position = maximum.length - 1;
+  while (position >= 0 && maximum[position] === "9") position--;
+  const next = position < 0 ? `1${"0".repeat(maximum.length)}`
+    : `${maximum.slice(0, position)}${Number(maximum[position]) + 1}${"0".repeat(maximum.length - position - 1)}`;
+  return `${path}.~${next}~`;
 }
 
 export async function authorizeOutputs(paths: readonly (string | undefined)[], targets: ReadonlySet<string>, input: string | undefined, budget: Budget): Promise<void> {

@@ -39,9 +39,14 @@ function header(source: string): Readonly<Record<string, string>> {
 export function readXlsxMetadata(sheet: XmlElement, comments?: XmlElement): readonly UnsupportedRecord[] {
   const records: UnsupportedRecord[] = [];
   const margins = element(sheet, "pageMargins"), setup = element(sheet, "pageSetup"), hf = element(sheet, "headerFooter");
+  const options = element(sheet, "printOptions");
   const rowBreaks = element(sheet, "rowBreaks"), colBreaks = element(sheet, "colBreaks");
-  if (margins || setup || hf || rowBreaks || colBreaks) {
+  if (margins || setup || hf || rowBreaks || colBreaks || options) {
     const print: ImportedValue[] = [];
+    for (const [source, target] of [["headings", "titles"], ["gridLines", "grid"], ["horizontalCentered", "hcenter"], ["verticalCentered", "vcenter"]] as const) {
+      const value = attribute(options, source);
+      if (value !== undefined) print.push(gnode(target, { value: value === "1" || value === "true" ? 1 : 0 }));
+    }
     if (margins) print.push(gnode("Margins", {}, ["top", "bottom", "left", "right", "header", "footer"].flatMap(name => {
       const value = attribute(margins, name);
       return value === undefined ? [] : [gnode(name, { Points: gnumericNumber(numeric(value, 0) * 72, false, 4), PrefUnit: "mm" })];

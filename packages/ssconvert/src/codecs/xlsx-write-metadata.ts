@@ -34,7 +34,12 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   for (const node of margins?.children ?? []) if (node.name in marginAttrs) marginAttrs[node.name] = Number(node.attributes.Points) / 72;
   const comments: Readonly<Record<string, string>> = { GNM_PRINT_COMMENTS_IN_PLACE: "asDisplayed", GNM_PRINT_COMMENTS_AT_END: "atEnd", GNM_PRINT_COMMENTS_NONE: "none" };
   const errors: Readonly<Record<string, string>> = { GNM_PRINT_ERRORS_AS_BLANK: "blank", GNM_PRINT_ERRORS_AS_DASHES: "dash", GNM_PRINT_ERRORS_AS_NA: "NA", GNM_PRINT_ERRORS_AS_DISPLAYED: "displayed" };
-  let print = xml("printOptions") + xml("pageMargins", marginAttrs) + xml("pageSetup", {
+  let print = xml("printOptions", {
+    headings: Number(child(pi, "titles")?.attributes.value ?? 0) ? 1 : undefined,
+    gridLines: Number(child(pi, "grid")?.attributes.value ?? 0) ? 1 : undefined,
+    horizontalCentered: Number(child(pi, "hcenter")?.attributes.value ?? 0) ? 1 : undefined,
+    verticalCentered: Number(child(pi, "vcenter")?.attributes.value ?? 0) ? 1 : undefined
+  }) + xml("pageMargins", marginAttrs) + xml("pageSetup", {
     blackAndWhite: Number(child(pi, "monochrome")?.attributes.value ?? 0), cellComments: comments[child(pi, "comments")?.attributes.placement ?? ""] ?? "asDisplayed",
     draft: Number(child(pi, "draft")?.attributes.value ?? 0), errors: errors[child(pi, "errors")?.attributes.PrintErrorsAs ?? ""] ?? "displayed",
     fitToHeight: fitToPage ? Number(scale?.attributes.rows ?? 0) : 0, fitToWidth: fitToPage ? Number(scale?.attributes.cols ?? 0) : 0,

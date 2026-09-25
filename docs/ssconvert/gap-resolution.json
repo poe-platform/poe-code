@@ -189,6 +189,16 @@
       "outputBindingsSha256": "785a11cd1231987b7686bd2d55fcb083f82956b36e797a8b9d0f7c8fbc5656fc",
       "outputBindingRule": "UTF-8 compact JSON array: placement order none,in_place,at_end; error order displayed,blank,dashes,na; revision 7 then 8; keys profile,revision,sha256. Each digest covers the complete compiled SDK XLS file.",
       "remaining": "These checks qualify stored settings, not printed page content. BIFF7 format limitations remain explicit; other metadata and rendering/application profiles are open. No family is closed."
+    },
+    "xlsxPrintOptions": {
+      "scope": "XLSX print headings, gridlines and horizontal/vertical centering import into normalized print metadata and export through both XLSX editions and BIFF7/8. Standalone printOptions is recognized. BIFF loss diagnostics skip a raw printOptions record only when every admitted field matches its emitted flag; unknown fields and mismatches still warn.",
+      "source": "LibreOffice PageSettings::importPrintOptions at eb239f1a15f3bd8481ee5c5cf72bdb52c347efae, sc/source/filter/oox/pagesettings.cxx SHA-256 5cd1782cafdc7574611b3bfba072079434b9f7b308a2dc3d61c1a9162b4439ec. openpyxl 3.1.5 worksheet/page.py SHA-256 e2379245c0c4d12d913f3200980dc187eb97472ab48676cee61e6925d1876db4.",
+      "reproduction": "31 regressions failed and five default/unknown-record controls passed. All 36 cases and the 71-test focused cohort pass.",
+      "qualification": "418 files / 23824 package tests, two required posttest checks, package lint/types and selected build pass. Sixteen independently authored XLSX inputs cover every flag combination. Thirty-two compiled SDK XLSX-to-BIFF7/8-to-XLSX replays preserve flags; native Gnumeric reads all BIFF flags with empty stderr and openpyxl reads all reexported XLSX flags correctly. Eight compiled Shell conversions pass, retaining unrelated metadata warnings. The CLI screenshot was inspected.",
+      "nativeLimitation": "Gnumeric 1.12.61 writes an empty XLSX printOptions element and ignores an independently populated element on import; this is a format-correctness extension, not native XLSX parity.",
+      "remaining": "openpyxl reports a missing default style for every reexported XLSX; the warning is retained in evidence, not qualified as fixed. Unrelated BIFF/XLSX raw metadata warnings, other printOptions attributes and rendered output remain open. No family is closed.",
+      "outputBindingsSha256": "6059b8cef336e245c73bd64fcb02304f7ef446a9b8313746a5e25e9caf2778c2",
+      "outputBindingRule": "UTF-8 compact JSON array in bits 0..15 order, then revision 7/8; keys bits,revision,biffSha256,xlsxSha256. Bits select headings,gridLines,horizontalCentered,verticalCentered. Digests cover complete compiled SDK artifacts."
     }
   },
   "cases": [

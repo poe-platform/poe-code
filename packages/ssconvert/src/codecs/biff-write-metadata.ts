@@ -54,6 +54,7 @@ export class BiffMetadataWriter {
       const values = emitted.get(opcode) ?? new Set<string>(); values.add(encoded); emitted.set(opcode, values); at += length + 4;
     }
     const records: readonly UnsupportedRecord[] = sheet ? sheet.unsupportedRecords ?? [] : this.book.unsupportedRecords ?? [];
+    const printFlags: Readonly<Record<string, number>> = { headings: 0x2a, gridLines: 0x2b, horizontalCentered: 0x83, verticalCentered: 0x84 };
     for (const record of records) {
       this.charge();
       if (this.exported.has(record)) continue;
@@ -63,6 +64,10 @@ export class BiffMetadataWriter {
       }
       if (["PrintInformation", "Styles", "Rows", "Cols"].includes(record.kind)) continue;
       const node = sheet ? this.records.get(sheet)?.find(r => r.record === record)?.node : undefined;
+      if (record.kind === "printOptions" && node?.namespace === "http://schemas.openxmlformats.org/spreadsheetml/2006/main" &&
+        !node.text.trim() && !node.children.length && Object.entries(node.attributes).every(([name, value]) =>
+          Object.hasOwn(printFlags, name) && ["0", "1", "false", "true"].includes(value) &&
+          emitted.get(printFlags[name]!)?.has(value === "1" || value === "true" ? "0100" : "0000"))) continue;
       if (record.kind === "Objects" && node?.children.every(n => ["CellComment", "GnmCellComment"].includes(n.name))) continue;
       await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: `Unsupported Excel BIFF export metadata: ${record.kind}` });
     }

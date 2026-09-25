@@ -1,5 +1,5 @@
 import { decodeFoldUnit, type FoldUnit } from "./units.js";
-import { FoldError, validateLimits, type FoldLimits, type FoldOptions } from './contracts.js';
+import { FoldError, defaultFoldLimits, validateLimits, type FoldLimits, type FoldOptions } from './contracts.js';
 import { adjustFoldColumn } from './column.js';
 // Inspect intrinsic slots across realms; producer properties must not change
 // byte admission, accounting or iteration (Buffer is also a Uint8Array).
@@ -26,7 +26,8 @@ export interface FoldEngine {
   /** Immutable invocation counters, also available after disposal or failure. */
   accounting(): Readonly<FoldAccounting>;
 }
-export function createFoldEngine(options: FoldOptions, locale: string, limits: FoldLimits, signal?: AbortSignal): FoldEngine {
+export function createFoldEngine(options: FoldOptions, locale: string, configuration: Partial<FoldLimits> = {}, signal?: AbortSignal): FoldEngine {
+  const limits = { ...defaultFoldLimits, ...configuration };
   validateLimits(limits);
   if (locale !== 'C' && locale !== 'UTF-8/Unicode-17.0.0') throw new FoldError('LOCALE', `Unavailable locale profile: ${locale}`);
   if (!Number.isSafeInteger(options.width) || options.width < 1) throw new FoldError('WIDTH', 'Width must be a positive safe integer');
@@ -34,7 +35,7 @@ export function createFoldEngine(options: FoldOptions, locale: string, limits: F
   // Snapshot borrowed configuration before allocating invocation state.
   const { width, mode, spaces } = options;
   const { inputBytes, outputBytes, work } = limits;
-  const decodedLimit = limits.decodedBytes ?? inputBytes;
+  const decodedLimit = limits.decodedBytes ?? Infinity;
   const line = new Uint8Array(8192), pending: number[] = [];
   let used = 0, column = 0, lastWidth = 0, input = 0, decoded = 0, output = 0, steps = 0, closed = false;
   // One byte offset identifies the last candidate; no per-glyph retained objects.

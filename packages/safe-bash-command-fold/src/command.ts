@@ -5,7 +5,7 @@ import { createOutputOperation, type OutputOperation } from 'safe-bash-contracts
 import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';
 import { shellValueByteLength } from 'safe-bash-contracts/value';
 import { parseFoldArguments } from './arguments.js';
-import { FoldError, type FoldLimits, type FoldOptions } from './contracts.js';
+import { FoldError, defaultFoldLimits, type FoldLimits, type FoldOptions } from './contracts.js';
 import { createFoldEngine, type FoldAccounting, type FoldEngine } from './engine.js';
 import type { FoldLocale } from './column.js';
 
@@ -27,10 +27,9 @@ export interface FoldResult {
   readonly filesFailed: number;
   readonly accounting: Readonly<FoldAccounting>;
 }
-const defaultLimits: FoldLimits = Object.freeze({ inputBytes: 16_777_216, outputBytes: 33_554_432, retainedBytes: 1_048_576, work: 268_435_456, argumentBytes: 65_536 });
 
 async function executeFold(context: CommandContext, configuration: FoldCommandOptions, invocation?: FoldOptions): Promise<FoldResult> {
-  const limits = { ...defaultLimits, ...configuration.limits };
+  const limits = { ...defaultFoldLimits, ...configuration.limits };
   const locale = configuration.locale ?? 'UTF-8/Unicode-17.0.0';
   const controller = new AbortController();
   const signal = controller.signal;
@@ -184,7 +183,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
           if (context.fs.readStream) source = context.fs.readStream(path, { signal });
           else {
             const maxBytes = Math.min(limits.inputBytes - engine.accounting().inputBytes, limits.retainedBytes - 8196 - argumentRetention);
-            const bytes = await context.fs.readFile(path, { signal, maxBytes });
+            const bytes = await context.fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
             signal.throwIfAborted();
             if (byteKind.call(bytes) !== 'Uint8Array') throw new FoldError('INPUT', 'Input must be byte storage');
             const length = byteExtent.call(bytes) as number;

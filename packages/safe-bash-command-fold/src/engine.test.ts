@@ -144,7 +144,7 @@ test('pinned width primitive covers controls, combining, Jamo, wide and ambiguou
 });
 test('every resource gate fails explicitly and borrowed limits cannot change admission', () => {
   const options = parseFoldArguments([], limits);
-  assert.throws(() => createFoldEngine(options, 'C', {} as typeof limits), FoldError);
+  const unlimited = createFoldEngine(options, 'C'); unlimited.dispose();
   for (const constrained of [{ ...limits, outputBytes: 0 }, { ...limits, work: 1 }]) {
     const engine = createFoldEngine(options, 'C', constrained);
     assert.throws(() => { engine.push(expected('x')); engine.endFile(); }, (e: unknown) => e instanceof FoldError && e.code === 'LIMIT');

@@ -1,5 +1,6 @@
-import { FoldError, validateLimits, type FoldLimits, type FoldOptions, type FoldMode } from './contracts.js';
-export function parseFoldArguments(args: readonly string[], limits: FoldLimits): FoldOptions {
+import { FoldError, defaultFoldLimits, validateLimits, type FoldLimits, type FoldOptions, type FoldMode } from './contracts.js';
+export function parseFoldArguments(args: readonly string[], configuration: Partial<FoldLimits> = {}): FoldOptions {
+  const limits = { ...defaultFoldLimits, ...configuration };
   validateLimits(limits);
   let size = 0;
   // Admission precedes encoder allocation, including astral and lone-surrogate strings.

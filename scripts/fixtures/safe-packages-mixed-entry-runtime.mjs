@@ -5,6 +5,7 @@ import { createTsortCommand as createSubpathTsortCommand, createTsortCommands as
 import { createFactorCommand as createSubpathFactorCommand, createFactorCommands as createSubpathFactorCommands, factorCommands as subpathFactorCommands } from "@poe-platform/safe-bash/commands/factor";
 import { createGetoptCommand as createSubpathGetoptCommand, createGetoptCommands as createSubpathGetoptCommands, getoptCommands as subpathGetoptCommands } from "@poe-platform/safe-bash/commands/getopt";
 import { createHexdumpCommand as createSubpathHexdumpCommand, createHdCommand as createSubpathHdCommand, createHexdumpCommands as createSubpathHexdumpCommands, hexdumpCommands as subpathHexdumpCommands } from "@poe-platform/safe-bash/commands/hexdump";
+import { createMdqCommand as createSubpathMdqCommand, mdq as subpathMdq, mdqCommands as subpathMdqCommands } from "@poe-platform/safe-bash/commands/mdq";
 import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs/core";
 
 export const expectedAgentCommandNames = Object.freeze([
@@ -14,7 +15,7 @@ export const expectedAgentCommandNames = Object.freeze([
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq",
 ].sort());
 
 export const checksumWorkflows = Object.freeze([
@@ -634,6 +635,28 @@ export async function verifyHexdumpCommands(entry = defaultEntry) {
     for (const [name, bytes] of [["canonical.txt", expected], ["alias.txt", expected], ["input.bin", input], ["saved.sh", source]]) {
       const actual = await filesystem.readFile(`/hexdump-work/${name}`);
       if (actual.length !== bytes.length || actual.some((value, index) => value !== bytes[index])) throw new Error(`Public hexdump ${name} bytes differ`);
+    }
+  } finally { await shell.dispose(); }
+}
+
+export async function verifyMdqCommands(entry = defaultEntry) {
+  if (entry.createMdqCommand !== createSubpathMdqCommand || entry.mdq !== subpathMdq || entry.mdqCommands !== subpathMdqCommands) throw new Error("mdq public command identity differs");
+  const fs = new entry.MemoryFileSystem(), encoder = new TextEncoder();
+  await fs.mkdir("/mdq-work");
+  const input = encoder.encode("# Authentication\n\nUse a token.\n\n## Token expiry\n\nExpires after an hour.\n\n# Other\n\nUnrelated.\n");
+  const script = encoder.encode("mdq '# Authentication' < \"$1\" > chapter.md || exit \"$?\"\ncat chapter.md | mdq '# Token expiry' > expiry.md || exit \"$?\"\nmdq -o json '# Token expiry' expiry.md | jq -r '.items[0].section.title'\n");
+  await fs.writeFile("/mdq-work/SPEC.md", input);
+  await fs.writeFile("/mdq-work/extract.sh", script);
+  const shell = new entry.Shell({ fs, cwd: "/mdq-work" }).use(entry.agentCommands());
+  shell.commands.register({ name: "sdk-mdq", execute: context => subpathMdq(context, { selectors: "# Authentication | # Token expiry", files: ["SPEC.md"], output: "plain" }) });
+  try {
+    const result = await shell.exec("sh extract.sh SPEC.md");
+    if (result.exitCode !== 0 || result.stdout !== "Token expiry\n" || result.stderr !== "") throw new Error(`Public mdq script failed: ${JSON.stringify(result)}`);
+    const sdk = await shell.exec("sdk-mdq");
+    if (sdk.exitCode !== 0 || sdk.stdout !== "Token expiry\nExpires after an hour.\n" || sdk.stderr !== "") throw new Error(`Public mdq SDK failed: ${JSON.stringify(sdk)}`);
+    for (const [filename, bytes] of [["SPEC.md", input], ["extract.sh", script], ["expiry.md", encoder.encode("## Token expiry\n\nExpires after an hour.\n")]]) {
+      const actual = await fs.readFile("/mdq-work/" + filename);
+      if (actual.length !== bytes.length || actual.some((value, index) => value !== bytes[index])) throw new Error(`Public mdq ${filename} bytes differ`);
     }
   } finally { await shell.dispose(); }
 }

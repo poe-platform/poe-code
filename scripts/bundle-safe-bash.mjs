@@ -181,6 +181,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
       "commands/hexdump/index.browser": path.join(directory, "src/commands/hexdump/index.ts"),
       "commands/iconv/index.browser": path.join(directory, "src/commands/iconv/index.ts"),
       "commands/line-endings/index.browser": path.join(directory, "src/commands/line-endings/index.ts"),
+      "commands/mdq/index.browser": path.join(directory, "src/commands/mdq/index.ts"),
     },
     outdir: path.join(directory, "dist"),
     splitting: true,

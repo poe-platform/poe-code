@@ -55,7 +55,8 @@
     "@poe-code/pdf-ast": "*",
     "citeproc": "2.4.63",
     "docx": "*",
-    "safe-bash-command-ssconvert": "*"
+    "safe-bash-command-ssconvert": "*",
+    "safe-bash-markdown-engine": "*"
   },
   "devDependencies": {
     "safe-bash-contracts": "*",

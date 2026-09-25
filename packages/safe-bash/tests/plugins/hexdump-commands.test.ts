@@ -56,9 +56,9 @@ test("the standalone util-linux plugin distinguishes decimal and binary size suf
 
 test("the default preset appends hexdump and hd and exposes their public factories", () => {
   const names = entry.createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 110);
-  assert.deepEqual(names.slice(-6), ["getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos"]);
-  assert.equal(new Set(names).size, 110);
+  assert.equal(names.length, 111);
+  assert.deepEqual(names.slice(-7), ["getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq"]);
+  assert.equal(new Set(names).size, 111);
   for (const name of ["createHexdumpCommand", "createHdCommand", "createHexdumpCommands", "hexdumpCommands"]) {
     assert.ok(name in entry, `Missing public export: ${name}`);
   }

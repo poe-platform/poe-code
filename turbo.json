@@ -387,6 +387,16 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-markdown-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-mdq#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

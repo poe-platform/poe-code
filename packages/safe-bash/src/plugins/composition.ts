@@ -58,6 +58,7 @@ import { createGetconfCommands } from "../commands/getconf/index.js";
 import { createLocaleCommands } from "../commands/locale/index.js";
 import { createDfCommands } from "../commands/df/index.js";
 import { createSqlite3Commands, type Sqlite3CommandsOptions } from "../commands/sqlite3/index.js";
+import { createMdqCommand, type MdqCommandOptions } from "../commands/mdq/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
@@ -95,6 +96,7 @@ export interface AgentCommandsOptions {
   readonly less?: Omit<LessCommandsOptions, "replace">;
   readonly sqlite3?: Omit<Sqlite3CommandsOptions, "replace">;
   readonly muscleMemory?: boolean;
+  readonly mdq?: Omit<MdqCommandOptions, "replace">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -180,6 +182,7 @@ function getDefaultStatelessFamilies() {
       ...createHexdumpCommands({}),
       ...createIconvCommands({}),
       ...createLineEndingCommands({}),
+      createMdqCommand(),
     ]),
   };
 }
@@ -218,7 +221,8 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
     options.fd !== undefined ||
     options.less !== undefined ||
     options.sqlite3 !== undefined ||
-    options.muscleMemory !== undefined
+    options.muscleMemory !== undefined ||
+    options.mdq !== undefined
   );
 }
 
@@ -295,6 +299,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
     ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
     ...(options.muscleMemory ? createExtraAgentCommands(options) : options.sqlite3 ? createSqlite3Commands(options.sqlite3) : []),
+    createMdqCommand(options.mdq),
   );
   return commands;
 }

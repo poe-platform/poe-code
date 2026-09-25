@@ -679,7 +679,9 @@
     "safe-bash-command-sqlite3": "*",
     "safe-bash-command-git": "*",
     "safe-bash-command-dos2unix": "*",
-    "safe-bash-line-ending-engine": "*"
+    "safe-bash-line-ending-engine": "*",
+    "safe-bash-markdown-engine": "*",
+    "safe-bash-command-mdq": "*"
   },
   "repository": {
     "type": "git",

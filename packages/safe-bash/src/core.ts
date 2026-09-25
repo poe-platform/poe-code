@@ -107,3 +107,4 @@ export { wkhtmltopdfCommands, createWkhtmltopdfCommands, createWkhtmltopdfComman
 export { xzCommands, createXzCommands, createXzCommand, type XzCommandsOptions } from "./commands/xz/index.js";
 export { ssconvertCommands, createSsconvertCommands, createSsconvertCommand, type SsconvertCommandsOptions } from "./commands/ssconvert/index.js";
 export * from "./commands/op/index.js";
+export * from "./commands/mdq/index.js";

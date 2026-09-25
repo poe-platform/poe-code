@@ -592,6 +592,7 @@ function assertSource7Discovery(files) {
     "tests/contracts/runtime-identity.test.ts",
     "tests/plugins/agent-commands.test.ts",
     "tests/plugins/htmlq-boundaries.test.ts",
+    "tests/plugins/mdq.test.ts",
     "tests/plugins/optional-runtime.test.ts",
     "tests/plugins/optional-host.test.ts",
     "tests/shell/standard-redirections.test.ts",

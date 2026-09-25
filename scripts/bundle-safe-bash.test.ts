@@ -52,7 +52,7 @@ async function bundlePublicConsumer(contents: string) {
       name: "public-built-shell-entries",
       setup(builder) {
         builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/ }, () => ({ path: "@poe-platform/safe-fs/core", external: true }));
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|llm(?:\/providers)?))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -85,7 +85,7 @@ function createBrowserProbes(): typeof import("./fixtures/safe-packages-browser-
   return runInContext(`(function(){ const module = { exports: {} }; ${browserProbeBundle}; return module.exports; })()`, sandbox);
 }
 
-const commandFactories = [["node", "nodeCommands"], ["node", "createNodeCommands"], ["node", "createNodeCommand"], ["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"]];
+const commandFactories = [["node", "nodeCommands"], ["node", "createNodeCommands"], ["node", "createNodeCommand"], ["xml", "createXmlCommands"], ["yq", "createYqCommands"], ["network", "createNetworkCommands"], ["llm", "createLlmCommands"], ["llm", "llmCommands"], ["llm", "createOpenAiProvider"], ["llm", "createElevenLabsProvider"], ["csplit", "createCsplitCommands"], ["pr", "createPrCommands"], ["tsort", "createTsortCommands"], ["factor", "createFactorCommands"], ["getopt", "createGetoptCommands"], ["hexdump", "createHexdumpCommands"], ["iconv", "createIconvCommands"], ["line-endings", "createDos2unixCommand"], ["line-endings", "createUnix2dosCommand"], ["line-endings", "createLineEndingCommands"], ["line-endings", "lineEndingCommands"], ["mdq", "createMdqCommand"], ["mdq", "createMdqCommands"], ["mdq", "mdqCommands"], ["mdq", "mdq"]];
 let factoryIdentity: boolean[];
 
 it.each(commandFactories.map(([command, factory], index) => [command, factory, index] as const))("shares the public %s command factory across portable root and subpath entries", async (command, _factory, index) => {
@@ -149,7 +149,7 @@ it("runs nested env/xargs through the public default browser entry", async () =>
   expect(Array.from(entry.createCommandArguments(bytesFromBrowser.values).bytes(0))).toEqual([255, 0]);
 });
 
-it.each(["verifyTruncateCommands", "verifyCsplitCommands", "verifyPrCommands", "verifyTsortCommands", "verifyFactorCommands", "verifyGetoptCommands", "verifyHexdumpCommands"] as const)("executes %s through the public default browser entry", async verify => {
+it.each(["verifyTruncateCommands", "verifyCsplitCommands", "verifyPrCommands", "verifyTsortCommands", "verifyFactorCommands", "verifyGetoptCommands", "verifyHexdumpCommands", "verifyMdqCommands"] as const)("executes %s through the public default browser entry", async verify => {
   await mixedConsumer[verify](mixedConsumer.defaultEntry);
 });
 
@@ -209,6 +209,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/hexdump/index.browser": path.join(root, "packages/safe-bash/src/commands/hexdump/index.ts"),
     "commands/iconv/index.browser": path.join(root, "packages/safe-bash/src/commands/iconv/index.ts"),
     "commands/line-endings/index.browser": path.join(root, "packages/safe-bash/src/commands/line-endings/index.ts"),
+    "commands/mdq/index.browser": path.join(root, "packages/safe-bash/src/commands/mdq/index.ts"),
   });
   const result = portableBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
@@ -218,7 +219,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   expect(browser.posixPath).toBe(filesystem.posixPath);
   expect(browser.posixPath.join("/a", "..", "b")).toBe("/b");
   const names = browser.createAgentCommands().map(command => command.name).sort();
-  expect(names).toHaveLength(110);
+  expect(names).toHaveLength(111);
   expect(names).toEqual([
     "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
@@ -226,7 +227,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
     "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
+    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq",
   ].sort());
   const commands = new browser.CommandRegistry();
   const plugin = browser.agentCommands({ regexExecutor: browser.createBoundedRegexProvider() });

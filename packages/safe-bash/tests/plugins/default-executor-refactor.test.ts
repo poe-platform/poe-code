@@ -24,7 +24,7 @@ const expectedNames = [
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq",
 ].sort();
 
 type Installation = readonly CommandDefinition[] | VirtualShellPlugin;
@@ -77,7 +77,7 @@ for (const [name, factory] of routes.slice(0, 2)) {
   test(`${name} defaults to the full bounded inventory with expr matching`, async () => {
     const shell = install(factory({}));
     try {
-      assert.equal(expectedNames.length, 110);
+      assert.equal(expectedNames.length, 111);
       const result = await shell.exec("printf 'aa\\nbb\\n' | egrep 'a+' | fgrep aa | rg -F aa; expr aa : 'a*'; env expr 2 + 3");
       assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expectedNames);
       assert.equal(result.exitCode, 0, result.stderr);

@@ -1,0 +1,1549 @@
+[
+  {
+    "id": "bad_queries/start with string",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "\"hello\""
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:1\n  |\n1 | \"hello\"\n  | ^---\n  |\n  = expected valid query\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/double quote isn't closed",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# \"hello"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:9\n  |\n1 | # \"hello\n  |         ^---\n  |\n  = expected character in quoted string\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/single quote isn't closed",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# 'hello"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:9\n  |\n1 | # 'hello\n  |         ^---\n  |\n  = expected character in quoted string\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/regex isn't closed",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# /hello"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:9\n  |\n1 | # /hello\n  |         ^---\n  |\n  = expected regex character\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/invalid regex",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# /\\P{/"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:4\n  |\n1 | # /\\P{/\n  |    ^\n  |\n  = regex parse error: Unicode escape not closed\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/bareword isn't closed",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "[](http"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:8\n  |\n1 | [](http\n  |        ^---\n  |\n  = expected \"$\"\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/quoted string bad escape",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# \"\\x\""
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:5\n  |\n1 | # \"\\x\"\n  |     ^---\n  |\n  = expected \", ', `, \\, n, r, or t\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/quoted string bad unicode: not hex",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# \"\\u{snowman}\""
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:7\n  |\n1 | # \"\\u{snowman}\"\n  |       ^---\n  |\n  = expected 1 - 6 hex characters\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/quoted string bad unicode: no chars",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# \"\\u{}\""
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:7\n  |\n1 | # \"\\u{}\"\n  |       ^---\n  |\n  = expected 1 - 6 hex characters\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/quoted string bad unicode: too many chars",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# \"\\u{1234567}\""
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:5\n  |\n1 | # \"\\u{1234567}\"\n  |     ^---\n  |\n  = expected \", ', `, \\, n, r, or t\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/invalid unicode: invalid codepoint",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# \"\\u{FFFFFF}\""
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:7\n  |\n1 | # \"\\u{FFFFFF}\"\n  |       ^----^\n  |\n  = invalid unicode sequence: FFFFFF\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/no space after selector",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "#foo"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:2\n  |\n1 | #foo\n  |  ^---\n  |\n  = expected end of input, space, or section options\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/anchors in incorrect order",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# $hello^"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:3\n  |\n1 | # $hello^\n  |   ^---\n  |\n  = expected end of input, \"*\", unquoted string, regex, quoted string, or \"^\"\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/invalid selector",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "~"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:1\n  |\n1 | ~\n  | ^---\n  |\n  = expected valid query\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/invalid task",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "- [*]"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:4\n  |\n1 | - [*]\n  |    ^---\n  |\n  = expected \"[x]\", \"[x]\", or \"[?]\"\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/numbered list not 1",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "2. hello"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:1\n  |\n1 | 2. hello\n  | ^---\n  |\n  = expected valid query\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/table missing explicit column matcher",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      ":-: :-: row"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:5\n  |\n1 | :-: :-: row\n  |     ^\n  |\n  = table column matcher cannot empty; use an explicit \"*\"\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/table missing second delimiter",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      ":-: *"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:1\n  |\n1 | :-: *\n  | ^---\n  |\n  = expected valid query\n",
+    "exitCode": 1
+  },
+  {
+    "id": "bad_queries/invalid selector after valid one",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "# * | :-: *"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:7\n  |\n1 | # * | :-: *\n  |       ^---\n  |\n  = expected end of input or selector\n",
+    "exitCode": 1
+  },
+  {
+    "id": "file_args/read one file",
+    "stdin": "- from stdin\n",
+    "files": {
+      "one.txt": "- from one.txt\n",
+      "two.txt": "- from two.txt\n"
+    },
+    "argv": [
+      "-",
+      "-oplain",
+      "one.txt"
+    ],
+    "stdout": "from one.txt\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "file_args/read two files",
+    "stdin": "- from stdin\n",
+    "files": {
+      "one.txt": "- from one.txt\n",
+      "two.txt": "- from two.txt\n"
+    },
+    "argv": [
+      "-",
+      "-oplain",
+      "one.txt",
+      "two.txt"
+    ],
+    "stdout": "from one.txt\nfrom two.txt\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "file_args/read a file twice",
+    "stdin": "- from stdin\n",
+    "files": {
+      "one.txt": "- from one.txt\n",
+      "two.txt": "- from two.txt\n"
+    },
+    "argv": [
+      "-",
+      "-oplain",
+      "one.txt",
+      "one.txt"
+    ],
+    "stdout": "from one.txt\nfrom one.txt\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "file_args/explicitly read stdin",
+    "stdin": "- from stdin\n",
+    "files": {
+      "one.txt": "- from one.txt\n",
+      "two.txt": "- from two.txt\n"
+    },
+    "argv": [
+      "-",
+      "-oplain",
+      "-"
+    ],
+    "stdout": "from stdin\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "file_args/explicitly read stdin twice",
+    "stdin": "- from stdin\n",
+    "files": {
+      "one.txt": "- from one.txt\n",
+      "two.txt": "- from two.txt\n"
+    },
+    "argv": [
+      "-",
+      "-oplain",
+      "-",
+      "-"
+    ],
+    "stdout": "from stdin\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "file_args/file is missing",
+    "stdin": "- from stdin\n",
+    "files": {
+      "one.txt": "- from one.txt\n",
+      "two.txt": "- from two.txt\n"
+    },
+    "argv": [
+      "-",
+      "-oplain",
+      "missing-err.txt"
+    ],
+    "stdout": "",
+    "stderr": "entity not found while reading file \"missing-err.txt\"\n",
+    "exitCode": 1
+  },
+  {
+    "id": "footnote_renumbering/default",
+    "stdin": "hello, world[^3] [^a] [^1] [^shortcut] [^collapsed][].\n\n[^a]: a footnote\n[^3]: three footnote\n[^1]: one footnote\n[^shortcut]: shortcut footnote\n[^collapsed]: collapsed footnote\n",
+    "files": {},
+    "argv": [],
+    "stdout": "hello, world[^1] [^2] [^3] [^4] [^5][].\n\n[^1]: three footnote\n[^2]: a footnote\n[^3]: one footnote\n[^4]: shortcut footnote\n[^5]: collapsed footnote\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "footnote_renumbering/without renumbering",
+    "stdin": "hello, world[^3] [^a] [^1] [^shortcut] [^collapsed][].\n\n[^a]: a footnote\n[^3]: three footnote\n[^1]: one footnote\n[^shortcut]: shortcut footnote\n[^collapsed]: collapsed footnote\n",
+    "files": {},
+    "argv": [
+      "--renumber-footnotes",
+      "false"
+    ],
+    "stdout": "hello, world[^3] [^a] [^1] [^shortcut] [^collapsed][].\n\n[^1]: one footnote\n[^3]: three footnote\n[^a]: a footnote\n[^collapsed]: collapsed footnote\n[^shortcut]: shortcut footnote\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "footnotes_in_footnotes/just footnote contains footnote",
+    "stdin": "- AAA: (footnotes in links don't work: see https://gist.github.com/yshavit/6af0a784e338dc32e66717aa6f495ffe )\n- BBB: footnote contains footnote[^2]\n- CCC: footnote contains link[^3]\n- DDD: footnote contains cycle[^cycle]\n\n[^1]: the link's footnote text\n[^2]: this footnote contains[^a] a footnote\n[^3]: this footnote contains a [link][3a]\n[^a]: this is the footnote's footnote\n[^cycle]: this footnote references itself[^cycle]\n\n[3a]: https://example.com/3a\n",
+    "files": {},
+    "argv": [
+      "- BBB"
+    ],
+    "stdout": "- BBB: footnote contains footnote[^1]\n\n[^1]: this footnote contains[^2] a footnote\n[^2]: this is the footnote's footnote\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "footnotes_in_footnotes/just footnote contains footnote: json",
+    "stdin": "- AAA: (footnotes in links don't work: see https://gist.github.com/yshavit/6af0a784e338dc32e66717aa6f495ffe )\n- BBB: footnote contains footnote[^2]\n- CCC: footnote contains link[^3]\n- DDD: footnote contains cycle[^cycle]\n\n[^1]: the link's footnote text\n[^2]: this footnote contains[^a] a footnote\n[^3]: this footnote contains a [link][3a]\n[^a]: this is the footnote's footnote\n[^cycle]: this footnote references itself[^cycle]\n\n[3a]: https://example.com/3a\n",
+    "files": {},
+    "argv": [
+      "- BBB | P: *",
+      "--output",
+      "json"
+    ],
+    "stdout": "{\"items\":[{\"paragraph\":\"BBB: footnote contains footnote[^1]\"}],\"footnotes\":{\"2\":[{\"paragraph\":\"this is the footnote's footnote\"}],\"1\":[{\"paragraph\":\"this footnote contains[^2] a footnote\"}]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "footnotes_in_footnotes/just footnote contains link",
+    "stdin": "- AAA: (footnotes in links don't work: see https://gist.github.com/yshavit/6af0a784e338dc32e66717aa6f495ffe )\n- BBB: footnote contains footnote[^2]\n- CCC: footnote contains link[^3]\n- DDD: footnote contains cycle[^cycle]\n\n[^1]: the link's footnote text\n[^2]: this footnote contains[^a] a footnote\n[^3]: this footnote contains a [link][3a]\n[^a]: this is the footnote's footnote\n[^cycle]: this footnote references itself[^cycle]\n\n[3a]: https://example.com/3a\n",
+    "files": {},
+    "argv": [
+      "- CCC"
+    ],
+    "stdout": "- CCC: footnote contains link[^1]\n\n[3a]: https://example.com/3a\n[^1]: this footnote contains a [link][3a]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "footnotes_in_footnotes/just footnote contains link: json",
+    "stdin": "- AAA: (footnotes in links don't work: see https://gist.github.com/yshavit/6af0a784e338dc32e66717aa6f495ffe )\n- BBB: footnote contains footnote[^2]\n- CCC: footnote contains link[^3]\n- DDD: footnote contains cycle[^cycle]\n\n[^1]: the link's footnote text\n[^2]: this footnote contains[^a] a footnote\n[^3]: this footnote contains a [link][3a]\n[^a]: this is the footnote's footnote\n[^cycle]: this footnote references itself[^cycle]\n\n[3a]: https://example.com/3a\n",
+    "files": {},
+    "argv": [
+      "- CCC | P: *",
+      "--output",
+      "json"
+    ],
+    "stdout": "{\"items\":[{\"paragraph\":\"CCC: footnote contains link[^1]\"}],\"links\":{\"3a\":{\"url\":\"https://example.com/3a\"}},\"footnotes\":{\"1\":[{\"paragraph\":\"this footnote contains a [link][3a]\"}]}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "footnotes_in_footnotes/cyclic reference doesn't cause infinite loop",
+    "stdin": "- AAA: (footnotes in links don't work: see https://gist.github.com/yshavit/6af0a784e338dc32e66717aa6f495ffe )\n- BBB: footnote contains footnote[^2]\n- CCC: footnote contains link[^3]\n- DDD: footnote contains cycle[^cycle]\n\n[^1]: the link's footnote text\n[^2]: this footnote contains[^a] a footnote\n[^3]: this footnote contains a [link][3a]\n[^a]: this is the footnote's footnote\n[^cycle]: this footnote references itself[^cycle]\n\n[3a]: https://example.com/3a\n",
+    "files": {},
+    "argv": [
+      "- DDD | P: *"
+    ],
+    "stdout": "DDD: footnote contains cycle[^1]\n\n[^1]: this footnote references itself[^1]\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "footnotes_in_footnotes/look for elements within a footnote",
+    "stdin": "- AAA: (footnotes in links don't work: see https://gist.github.com/yshavit/6af0a784e338dc32e66717aa6f495ffe )\n- BBB: footnote contains footnote[^2]\n- CCC: footnote contains link[^3]\n- DDD: footnote contains cycle[^cycle]\n\n[^1]: the link's footnote text\n[^2]: this footnote contains[^a] a footnote\n[^3]: this footnote contains a [link][3a]\n[^a]: this is the footnote's footnote\n[^cycle]: this footnote references itself[^cycle]\n\n[3a]: https://example.com/3a\n",
+    "files": {},
+    "argv": [
+      "[](\"/3a\"$)"
+    ],
+    "stdout": "[link][3a]\n\n[3a]: https://example.com/3a\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "link_placement/standard link placement",
+    "stdin": "# First Section\n\nThis is [an interesting link][1].\n\n# Second section\n\nSome section text with [another link][2].\n\n[1]: https://example.com/interesting\n[2]: https://example.com/another\n",
+    "files": {},
+    "argv": [],
+    "stdout": "# First Section\n\nThis is [an interesting link][1].\n\n[1]: https://example.com/interesting\n\n# Second section\n\nSome section text with [another link][2].\n\n[2]: https://example.com/another\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "link_placement/links at bottom of doc",
+    "stdin": "# First Section\n\nThis is [an interesting link][1].\n\n# Second section\n\nSome section text with [another link][2].\n\n[1]: https://example.com/interesting\n[2]: https://example.com/another\n",
+    "files": {},
+    "argv": [
+      "--link-pos",
+      "doc"
+    ],
+    "stdout": "# First Section\n\nThis is [an interesting link][1].\n\n# Second section\n\nSome section text with [another link][2].\n\n[1]: https://example.com/interesting\n[2]: https://example.com/another\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "link_placement/separate links positioned by section",
+    "stdin": "# First Section\n\nThis is [an interesting link][1].\n\n# Second section\n\nSome section text with [another link][2].\n\n[1]: https://example.com/interesting\n[2]: https://example.com/another\n",
+    "files": {},
+    "argv": [
+      "[]()",
+      "--link-pos",
+      "section"
+    ],
+    "stdout": "[an interesting link][1]\n\n[1]: https://example.com/interesting\n\n   -----\n\n[another link][2]\n\n[2]: https://example.com/another\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "link_placement/separate links positioned by doc",
+    "stdin": "# First Section\n\nThis is [an interesting link][1].\n\n# Second section\n\nSome section text with [another link][2].\n\n[1]: https://example.com/interesting\n[2]: https://example.com/another\n",
+    "files": {},
+    "argv": [
+      "[]()",
+      "--link-pos",
+      "doc"
+    ],
+    "stdout": "[an interesting link][1]\n\n   -----\n\n[another link][2]\n\n   -----\n\n[1]: https://example.com/interesting\n[2]: https://example.com/another\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "links_references/default (never inline)",
+    "stdin": "- an [inline link](https://example.com)\n- a [standard reference link][1]\n- a [link with a non-numeric reference id][a]\n- a [link with a non-sequential reference id][456]\n- a [collapsed link][]\n- a [shortcut link]\n- a [link with a title](https://example.com \"my title\")\n- a [link with a title that contains double-quotes](https://example.com 'my \"alleged\" title')\n\n[1]: https://example.com/1\n[a]: https://example.com/a \"with a title\"\n[456]: https://example.com/non-sequential\n[collapsed link]: https://example.com/collapsed\n[shortcut link]: https://example.com/shortcut\n",
+    "files": {},
+    "argv": [],
+    "stdout": "- an [inline link][1]\n- a [standard reference link][2]\n- a [link with a non-numeric reference id][a]\n- a [link with a non-sequential reference id][3]\n- a [collapsed link][]\n- a [shortcut link]\n- a [link with a title][4]\n- a [link with a title that contains double-quotes][5]\n\n[1]: https://example.com\n[2]: https://example.com/1\n[3]: https://example.com/non-sequential\n[4]: https://example.com \"my title\"\n[5]: https://example.com 'my \"alleged\" title'\n[a]: https://example.com/a \"with a title\"\n[collapsed link]: https://example.com/collapsed\n[shortcut link]: https://example.com/shortcut\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "links_references/never inline",
+    "stdin": "- an [inline link](https://example.com)\n- a [standard reference link][1]\n- a [link with a non-numeric reference id][a]\n- a [link with a non-sequential reference id][456]\n- a [collapsed link][]\n- a [shortcut link]\n- a [link with a title](https://example.com \"my title\")\n- a [link with a title that contains double-quotes](https://example.com 'my \"alleged\" title')\n\n[1]: https://example.com/1\n[a]: https://example.com/a \"with a title\"\n[456]: https://example.com/non-sequential\n[collapsed link]: https://example.com/collapsed\n[shortcut link]: https://example.com/shortcut\n",
+    "files": {},
+    "argv": [
+      "--link-format",
+      "never-inline"
+    ],
+    "stdout": "- an [inline link][1]\n- a [standard reference link][2]\n- a [link with a non-numeric reference id][a]\n- a [link with a non-sequential reference id][3]\n- a [collapsed link][]\n- a [shortcut link]\n- a [link with a title][4]\n- a [link with a title that contains double-quotes][5]\n\n[1]: https://example.com\n[2]: https://example.com/1\n[3]: https://example.com/non-sequential\n[4]: https://example.com \"my title\"\n[5]: https://example.com 'my \"alleged\" title'\n[a]: https://example.com/a \"with a title\"\n[collapsed link]: https://example.com/collapsed\n[shortcut link]: https://example.com/shortcut\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "links_references/keep original",
+    "stdin": "- an [inline link](https://example.com)\n- a [standard reference link][1]\n- a [link with a non-numeric reference id][a]\n- a [link with a non-sequential reference id][456]\n- a [collapsed link][]\n- a [shortcut link]\n- a [link with a title](https://example.com \"my title\")\n- a [link with a title that contains double-quotes](https://example.com 'my \"alleged\" title')\n\n[1]: https://example.com/1\n[a]: https://example.com/a \"with a title\"\n[456]: https://example.com/non-sequential\n[collapsed link]: https://example.com/collapsed\n[shortcut link]: https://example.com/shortcut\n",
+    "files": {},
+    "argv": [
+      "--link-format",
+      "keep"
+    ],
+    "stdout": "- an [inline link](https://example.com)\n- a [standard reference link][1]\n- a [link with a non-numeric reference id][a]\n- a [link with a non-sequential reference id][456]\n- a [collapsed link][]\n- a [shortcut link]\n- a [link with a title](https://example.com \"my title\")\n- a [link with a title that contains double-quotes](https://example.com 'my \"alleged\" title')\n\n[1]: https://example.com/1\n[456]: https://example.com/non-sequential\n[a]: https://example.com/a \"with a title\"\n[collapsed link]: https://example.com/collapsed\n[shortcut link]: https://example.com/shortcut\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "links_references/inline all",
+    "stdin": "- an [inline link](https://example.com)\n- a [standard reference link][1]\n- a [link with a non-numeric reference id][a]\n- a [link with a non-sequential reference id][456]\n- a [collapsed link][]\n- a [shortcut link]\n- a [link with a title](https://example.com \"my title\")\n- a [link with a title that contains double-quotes](https://example.com 'my \"alleged\" title')\n\n[1]: https://example.com/1\n[a]: https://example.com/a \"with a title\"\n[456]: https://example.com/non-sequential\n[collapsed link]: https://example.com/collapsed\n[shortcut link]: https://example.com/shortcut\n",
+    "files": {},
+    "argv": [
+      "--link-format",
+      "inline"
+    ],
+    "stdout": "- an [inline link](https://example.com)\n- a [standard reference link](https://example.com/1)\n- a [link with a non-numeric reference id](https://example.com/a \"with a title\")\n- a [link with a non-sequential reference id](https://example.com/non-sequential)\n- a [collapsed link](https://example.com/collapsed)\n- a [shortcut link](https://example.com/shortcut)\n- a [link with a title](https://example.com \"my title\")\n- a [link with a title that contains double-quotes](https://example.com 'my \"alleged\" title')\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "matchers/bareword",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- world "
+    ],
+    "stdout": "- hello world\n\n   -----\n\n- the world is my oyster\n\n   -----\n\n- worldly possessions\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "matchers/bareword with start anchor",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- ^world"
+    ],
+    "stdout": "- worldly possessions\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "matchers/bareword with end anchor",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- world$"
+    ],
+    "stdout": "- hello world\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "matchers/quoted",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- \"world \""
+    ],
+    "stdout": "- the world is my oyster\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "matchers/quoted with anchor",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- \"world \"$"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 1
+  },
+  {
+    "id": "matchers/regex",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- /wor.d$/"
+    ],
+    "stdout": "- hello world\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "matchers/bareword is case-insensitive",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- OYSTER"
+    ],
+    "stdout": "- the world is my oyster\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "matchers/quoted is case-sensitive",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- \"OYSTER\""
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 1
+  },
+  {
+    "id": "matchers/regex is case-sensitive",
+    "stdin": "- hello world\n- the world is my oyster\n- worldly possessions\n- lorem ipsum dolor sit amet.\n",
+    "files": {},
+    "argv": [
+      "- /OYSTER/"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 1
+  },
+  {
+    "id": "output_format/default",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [],
+    "stdout": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/default codes",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "```"
+    ],
+    "stdout": "```rust\nsome_markdown(\"rust\");\n```\n\n   -----\n\n```bash\necho 'some bash'\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/codes with no breaks",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "--no-br",
+      "```"
+    ],
+    "stdout": "```rust\nsome_markdown(\"rust\");\n```\n\n```bash\necho 'some bash'\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/md",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "md"
+    ],
+    "stdout": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/md codes",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "--output",
+      "md",
+      "```"
+    ],
+    "stdout": "```rust\nsome_markdown(\"rust\");\n```\n\n   -----\n\n```bash\necho 'some bash'\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/md with no breaks",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "--no-br",
+      "--output",
+      "md",
+      "```"
+    ],
+    "stdout": "```rust\nsome_markdown(\"rust\");\n```\n\n```bash\necho 'some bash'\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/markdown",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "--output",
+      "markdown"
+    ],
+    "stdout": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/markdown codes",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "--output",
+      "markdown",
+      "```"
+    ],
+    "stdout": "```rust\nsome_markdown(\"rust\");\n```\n\n   -----\n\n```bash\necho 'some bash'\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/markdown with no breaks",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "--no-br",
+      "--output",
+      "markdown",
+      "```"
+    ],
+    "stdout": "```rust\nsome_markdown(\"rust\");\n```\n\n```bash\necho 'some bash'\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/json",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "--output",
+      "json"
+    ],
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"Test _one_ [two][1] three.\"},{\"list\":[{\"item\":[{\"paragraph\":\"alpha 1\"}]},{\"item\":[{\"paragraph\":\"alpha 2\"}]}]},{\"code_block\":{\"code\":\"some_markdown(\\\"rust\\\");\",\"type\":\"code\",\"language\":\"rust\"}},{\"list\":[{\"item\":[{\"paragraph\":\"bravo\"}]}]},{\"code_block\":{\"code\":\"echo 'some bash'\",\"type\":\"code\",\"language\":\"bash\"}}]}],\"links\":{\"1\":{\"url\":\"https://example.com/1\"}}}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/json items",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "- *",
+      "--output",
+      "json"
+    ],
+    "stdout": "{\"items\":[{\"list\":[{\"item\":[{\"paragraph\":\"alpha 1\"}]}]},{\"list\":[{\"item\":[{\"paragraph\":\"alpha 2\"}]}]},{\"list\":[{\"item\":[{\"paragraph\":\"bravo\"}]}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/plain",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "plain"
+    ],
+    "stdout": "Test one two three.\nalpha 1\nalpha 2\nsome_markdown(\"rust\");\nbravo\necho 'some bash'\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "output_format/plain with breaks",
+    "stdin": "Test _one_ [two][1] three.\n\n- alpha 1\n- alpha 2\n\n```rust\nsome_markdown(\"rust\");\n```\n\n- bravo\n\n```bash\necho 'some bash'\n```\n\n[1]: https://example.com/1\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "plain",
+      "--br"
+    ],
+    "stdout": "Test one two three.\n\nalpha 1\n\nalpha 2\n\nsome_markdown(\"rust\");\n\nbravo\n\necho 'some bash'\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "paragraph_spans/echo",
+    "stdin": "Hello, _world_\n**in one** paragraph.\n(Note also plaintext behavior.)\n\n\nSecond paragraph\n",
+    "files": {},
+    "argv": [],
+    "stdout": "Hello, _world_\n**in one** paragraph.\n(Note also plaintext behavior.)\n\nSecond paragraph\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "paragraph_spans/paragraphs",
+    "stdin": "Hello, _world_\n**in one** paragraph.\n(Note also plaintext behavior.)\n\n\nSecond paragraph\n",
+    "files": {},
+    "argv": [
+      "P: *"
+    ],
+    "stdout": "Hello, _world_\n**in one** paragraph.\n(Note also plaintext behavior.)\n\n   -----\n\nSecond paragraph\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace section title",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "--link-format",
+      "keep",
+      "# !s/Original/New/"
+    ],
+    "stdout": "# New Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace code block language",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "```!s/original-.*/python/"
+    ],
+    "stdout": "```python\noriginal code content here\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace code block contents",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "``` !s/original/new/"
+    ],
+    "stdout": "```original-language\nnew code content here\n```\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace image alt text",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "![ !s/original/new/ ]()"
+    ],
+    "stdout": "![new image alt][1]\n\n[1]: https://example.com/original/image.png\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace image alt text with non-matching",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "![ !s/BOGUS/new/ ]()"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 1
+  },
+  {
+    "id": "search_replace/search-replace image url",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "![](!s/original/new/)"
+    ],
+    "stdout": "![original image alt][1]\n\n[1]: https://example.com/new/image.png\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace link text",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "[ !s/original/new/ ]()"
+    ],
+    "stdout": "[new link text][1]\n\n[1]: https://example.com/original/page.html\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace link url",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "[]( !s/original/new/ )"
+    ],
+    "stdout": "[original link text][1]\n\n[1]: https://example.com/new/page.html\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace straightforward formatting",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "- !s/bold/strong/"
+    ],
+    "stdout": "- Item with **strong text** formatting\n\n   -----\n\n- Item with _emphasis and **nested strong**_ formatting\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace nested formatting",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "- !s/and nested /and formerly /"
+    ],
+    "stdout": "- Item with _emphasis and formerly **bold**_ formatting\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "search_replace/search-replace paragraph text",
+    "stdin": "# Original Title\n\nThis is a paragraph with text.\n\n```original-language\noriginal code content here\n```\n\nHere are some list items:\n\n- Item with **bold text** formatting\n- Item with _emphasis and **nested bold**_ formatting\n- ![original image alt](https://example.com/original/image.png) description\n- [original link text](https://example.com/original/page.html) description\n",
+    "files": {},
+    "argv": [
+      "P: !s/paragraph/text/"
+    ],
+    "stdout": "This is a text with text.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_block_quote/select all block quotes",
+    "stdin": "One\n\n> Two\n\nThree\n\n> - Four\n",
+    "files": {},
+    "argv": [
+      ">"
+    ],
+    "stdout": "> Two\n\n   -----\n\n> - Four\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_block_quote/select block quote with text",
+    "stdin": "One\n\n> Two\n\nThree\n\n> - Four\n",
+    "files": {},
+    "argv": [
+      "> two"
+    ],
+    "stdout": "> Two\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_block_quote/select block quote then list",
+    "stdin": "One\n\n> Two\n\nThree\n\n> - Four\n",
+    "files": {},
+    "argv": [
+      "> | - *"
+    ],
+    "stdout": "- Four\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_block_quote/chained",
+    "stdin": "One\n\n> Two\n\nThree\n\n> - Four\n",
+    "files": {},
+    "argv": [
+      "> two | > two"
+    ],
+    "stdout": "> Two\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_exit_code/match and output",
+    "stdin": "[fizz](https://example.com/buzz)\n",
+    "files": {},
+    "argv": [
+      "--link-format",
+      "keep",
+      "[]()"
+    ],
+    "stdout": "[fizz](https://example.com/buzz)",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_exit_code/match quiet",
+    "stdin": "[fizz](https://example.com/buzz)\n",
+    "files": {},
+    "argv": [
+      "--link-format",
+      "keep",
+      "[]()",
+      "-q"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_exit_code/no match",
+    "stdin": "[fizz](https://example.com/buzz)\n",
+    "files": {},
+    "argv": [
+      "--link-format",
+      "keep",
+      "[no match]()"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 1
+  },
+  {
+    "id": "select_front_matter/select any front matter",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "+++"
+    ],
+    "stdout": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_front_matter/select toml matter",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "+++toml"
+    ],
+    "stdout": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_front_matter/select yaml matter",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "+++yaml"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 1
+  },
+  {
+    "id": "select_front_matter/select other matter",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "+++other"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:4\n  |\n1 | +++other\n  |    ^---^\n  |\n  = front matter language must be \"toml\" or \"yaml\". Found \"other\".\n",
+    "exitCode": 1
+  },
+  {
+    "id": "select_front_matter/select front matter with text matcher",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "+++ title: Test Front Matter"
+    ],
+    "stdout": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_front_matter/select front matter with regex matcher",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "+++ /author: .*/"
+    ],
+    "stdout": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_front_matter/select front matter with no match",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "+++ non-existent"
+    ],
+    "stdout": "",
+    "stderr": "",
+    "exitCode": 1
+  },
+  {
+    "id": "select_front_matter/plain output",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "plain"
+    ],
+    "stdout": "title: Test Front Matter\nauthor: Me\nMy Document\nThis is the document body.\nit has: a block that looks like front matter\nbut: isn't\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_front_matter/select a paragraph that looks like front matter",
+    "stdin": "+++\ntitle: Test Front Matter\nauthor: Me\n+++\n\n# My Document\n\nThis is the document body.\n\n---\nit has: a block that looks like front matter\nbut: isn't\n---\n\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json"
+    ],
+    "stdout": "{\"items\":[{\"document\":[{\"front_matter\":{\"body\":\"title: Test Front Matter\\nauthor: Me\",\"variant\":\"toml\"}},{\"section\":{\"depth\":1,\"title\":\"My Document\",\"body\":[{\"paragraph\":\"This is the document body.\"},{\"thematic_break\":null},{\"section\":{\"depth\":2,\"title\":\"it has: a block that looks like front matter\\nbut: isn't\",\"body\":[]}}]}}]}]}",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_html/select all",
+    "stdin": "Text with <span>inline html</span>.\n\n<div\nclass=\"block>\n\nand a div block\n\n</div>\n",
+    "files": {},
+    "argv": [
+      "</>"
+    ],
+    "stdout": "<span>\n\n   -----\n\n</span>\n\n   -----\n\n<div\nclass=\"block>\n\n   -----\n\n</div>\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_html/inline with matcher",
+    "stdin": "Text with <span>inline html</span>.\n\n<div\nclass=\"block>\n\nand a div block\n\n</div>\n",
+    "files": {},
+    "argv": [
+      "</> span"
+    ],
+    "stdout": "<span>\n\n   -----\n\n</span>\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_html/inline with matcher tag",
+    "stdin": "Text with <span>inline html</span>.\n\n<div\nclass=\"block>\n\nand a div block\n\n</div>\n",
+    "files": {},
+    "argv": [
+      "</> \"<span>\""
+    ],
+    "stdout": "<span>\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_html/unquoted tag",
+    "stdin": "Text with <span>inline html</span>.\n\n<div\nclass=\"block>\n\nand a div block\n\n</div>\n",
+    "files": {},
+    "argv": [
+      "</> <span>"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:5\n  |\n1 | </> <span>\n  |     ^---\n  |\n  = expected end of input, \"*\", unquoted string, regex, quoted string, or \"^\"\n",
+    "exitCode": 1
+  },
+  {
+    "id": "select_html/block with matcher",
+    "stdin": "Text with <span>inline html</span>.\n\n<div\nclass=\"block>\n\nand a div block\n\n</div>\n",
+    "files": {},
+    "argv": [
+      "</> class"
+    ],
+    "stdout": "<div\nclass=\"block>\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_html/chained",
+    "stdin": "Text with <span>inline html</span>.\n\n<div\nclass=\"block>\n\nand a div block\n\n</div>\n",
+    "files": {},
+    "argv": [
+      "</> span | </> \"<span>\""
+    ],
+    "stdout": "<span>\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_link/select all",
+    "stdin": "This text has both [an inline link](https://example.com/inline) and a [referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n[1]: https://example.com/referenced\n",
+    "files": {},
+    "argv": [
+      "[]()",
+      "--link-format=inline"
+    ],
+    "stdout": "[an inline link](https://example.com/inline)\n\n   -----\n\n[referenced link](https://example.com/referenced)",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_link/select link by text",
+    "stdin": "This text has both [an inline link](https://example.com/inline) and a [referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n[1]: https://example.com/referenced\n",
+    "files": {},
+    "argv": [
+      "[an inline]()",
+      "--link-format=inline"
+    ],
+    "stdout": "[an inline link](https://example.com/inline)",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_link/select link by url",
+    "stdin": "This text has both [an inline link](https://example.com/inline) and a [referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n[1]: https://example.com/referenced\n",
+    "files": {},
+    "argv": [
+      "[](\"/referenced\")",
+      "--link-format=inline"
+    ],
+    "stdout": "[referenced link](https://example.com/referenced)",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_link/select image",
+    "stdin": "This text has both [an inline link](https://example.com/inline) and a [referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n[1]: https://example.com/referenced\n",
+    "files": {},
+    "argv": [
+      "![]()",
+      "--link-format=inline"
+    ],
+    "stdout": "![image alt text](https://example.com/hylas-and-nymphs.png)",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_link/chained",
+    "stdin": "This text has both [an inline link](https://example.com/inline) and a [referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n[1]: https://example.com/referenced\n",
+    "files": {},
+    "argv": [
+      "[inline]() | [](example.com)"
+    ],
+    "stdout": "[an inline link][1]\n\n[1]: https://example.com/inline\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/select ordered",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "1."
+    ],
+    "stdout": "2. two (note: starting count at 2!)\n\n   -----\n\n3. three\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/select unordered",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "-"
+    ],
+    "stdout": "- a point\n\n   -----\n\n- another point\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/select all ordered tasks",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "- [?]"
+    ],
+    "stdout": "- [ ] an incomplete task\n\n   -----\n\n- [x] a completed task\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/select ordered task by text",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "- [?] incomplete"
+    ],
+    "stdout": "- [ ] an incomplete task\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/select incomplete ordered tasks",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "- [ ]"
+    ],
+    "stdout": "- [ ] an incomplete task\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/select completed ordered tasks",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "- [x]"
+    ],
+    "stdout": "- [x] a completed task\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/select unordered tasks",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "1. [?]"
+    ],
+    "stdout": "1. [ ] ordered tasks are possible, too\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_lists/chained",
+    "stdin": "# Ordered\n\n2. two (note: starting count at 2!)\n3. three\n\n# Unordered\n\n- a point\n- another point\n\n# Tasks\n\n- [ ] an incomplete task\n- [x] a completed task\n\n1. [ ] ordered tasks are possible, too\n",
+    "files": {},
+    "argv": [
+      "- a point | - a point"
+    ],
+    "stdout": "- a point\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_paragraphs/all",
+    "stdin": "Hello, world.\n\n> Paragraph within a block quote.\n\nThis paragraph has _inline_ **formatting**.\n",
+    "files": {},
+    "argv": [
+      "P:"
+    ],
+    "stdout": "Hello, world.\n\n   -----\n\nParagraph within a block quote.\n\n   -----\n\nThis paragraph has _inline_ **formatting**.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_paragraphs/all but with explicit all-matcher",
+    "stdin": "Hello, world.\n\n> Paragraph within a block quote.\n\nThis paragraph has _inline_ **formatting**.\n",
+    "files": {},
+    "argv": [
+      "P: *"
+    ],
+    "stdout": "Hello, world.\n\n   -----\n\nParagraph within a block quote.\n\n   -----\n\nThis paragraph has _inline_ **formatting**.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_paragraphs/select within a block quote",
+    "stdin": "Hello, world.\n\n> Paragraph within a block quote.\n\nThis paragraph has _inline_ **formatting**.\n",
+    "files": {},
+    "argv": [
+      "P: block"
+    ],
+    "stdout": "Paragraph within a block quote.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_paragraphs/matcher ignores inline formatting",
+    "stdin": "Hello, world.\n\n> Paragraph within a block quote.\n\nThis paragraph has _inline_ **formatting**.\n",
+    "files": {},
+    "argv": [
+      "P: has inline"
+    ],
+    "stdout": "This paragraph has _inline_ **formatting**.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_paragraphs/no colon after p",
+    "stdin": "Hello, world.\n\n> Paragraph within a block quote.\n\nThis paragraph has _inline_ **formatting**.\n",
+    "files": {},
+    "argv": [
+      "P *"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:1\n  |\n1 | P *\n  | ^---\n  |\n  = expected valid query\n",
+    "exitCode": 1
+  },
+  {
+    "id": "select_paragraphs/space before colon",
+    "stdin": "Hello, world.\n\n> Paragraph within a block quote.\n\nThis paragraph has _inline_ **formatting**.\n",
+    "files": {},
+    "argv": [
+      "P : *"
+    ],
+    "stdout": "",
+    "stderr": "Syntax error in select specifier:\n --> 1:1\n  |\n1 | P : *\n  | ^---\n  |\n  = expected valid query\n",
+    "exitCode": 1
+  },
+  {
+    "id": "select_paragraphs/chained",
+    "stdin": "Hello, world.\n\n> Paragraph within a block quote.\n\nThis paragraph has _inline_ **formatting**.\n",
+    "files": {},
+    "argv": [
+      "P: hello | P: world"
+    ],
+    "stdout": "Hello, world.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_sections/select top-level section",
+    "stdin": "### Preamble A\n\nStarts with H3.\n\n## Preamble B\n\nStarts with H2.\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n# Bravo\n\nMy second section.\n",
+    "files": {},
+    "argv": [
+      "# alpha"
+    ],
+    "stdout": "# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_sections/select subsection",
+    "stdin": "### Preamble A\n\nStarts with H3.\n\n## Preamble B\n\nStarts with H2.\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n# Bravo\n\nMy second section.\n",
+    "files": {},
+    "argv": [
+      "# sub"
+    ],
+    "stdout": "## Sub-section\n\nHello, world.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_sections/select all sections",
+    "stdin": "### Preamble A\n\nStarts with H3.\n\n## Preamble B\n\nStarts with H2.\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n# Bravo\n\nMy second section.\n",
+    "files": {},
+    "argv": [
+      "#"
+    ],
+    "stdout": "### Preamble A\n\nStarts with H3.\n\n   -----\n\n## Preamble B\n\nStarts with H2.\n\n   -----\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n   -----\n\n# Bravo\n\nMy second section.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_sections/chained",
+    "stdin": "### Preamble A\n\nStarts with H3.\n\n## Preamble B\n\nStarts with H2.\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n# Bravo\n\nMy second section.\n",
+    "files": {},
+    "argv": [
+      "# bravo | # bravo"
+    ],
+    "stdout": "# Bravo\n\nMy second section.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_sections/section minimum level",
+    "stdin": "### Preamble A\n\nStarts with H3.\n\n## Preamble B\n\nStarts with H2.\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n# Bravo\n\nMy second section.\n",
+    "files": {},
+    "argv": [
+      "#{2,}"
+    ],
+    "stdout": "### Preamble A\n\nStarts with H3.\n\n   -----\n\n## Preamble B\n\nStarts with H2.\n\n   -----\n\n## Sub-section\n\nHello, world.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_sections/section maximum level",
+    "stdin": "### Preamble A\n\nStarts with H3.\n\n## Preamble B\n\nStarts with H2.\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n# Bravo\n\nMy second section.\n",
+    "files": {},
+    "argv": [
+      "#{,2}"
+    ],
+    "stdout": "## Preamble B\n\nStarts with H2.\n\n   -----\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n   -----\n\n# Bravo\n\nMy second section.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_sections/section exact level",
+    "stdin": "### Preamble A\n\nStarts with H3.\n\n## Preamble B\n\nStarts with H2.\n\n# Alpha\n\nMy first section.\n\n## Sub-section\n\nHello, world.\n\n# Bravo\n\nMy second section.\n",
+    "files": {},
+    "argv": [
+      "#{2}"
+    ],
+    "stdout": "## Preamble B\n\nStarts with H2.\n\n   -----\n\n## Sub-section\n\nHello, world.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/table not normalized by default",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      ""
+    ],
+    "stdout": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/select all table cells normalizes",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      ":-: * :-:"
+    ],
+    "stdout": "| Name | Description |                             |\n|:----:|-------------|-----------------------------|\n| Foo  | Not a fizz  |                             |\n| Bar  | Not a buzz  |                             |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |             |                             |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/select only name",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      ":-: a :-:"
+    ],
+    "stdout": "| Name |\n|:----:|\n| Foo  |\n| Bar  |\n| Barn |\n| Fuzz |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/select only description",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      ":-: description :-:"
+    ],
+    "stdout": "| Description |\n|-------------|\n| Not a fizz  |\n| Not a buzz  |\n| Big, red.   |\n|             |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/select only description by regex",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      ":-: /Description/ :-:"
+    ],
+    "stdout": "| Description |\n|-------------|\n| Not a fizz  |\n| Not a buzz  |\n| Big, red.   |\n|             |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/select only the big red row",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      ":-: * :-: 'Big, red' "
+    ],
+    "stdout": "| Name | Description |                             |\n|:----:|-------------|-----------------------------|\n| Barn | Big, red.   | And this is an extra column |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/chained",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      ":-: * :-: * | :-: * :-: * | "
+    ],
+    "stdout": "| Name | Description |                             |\n|:----:|-------------|-----------------------------|\n| Foo  | Not a fizz  |                             |\n| Bar  | Not a buzz  |                             |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |             |                             |",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "select_tables/output plain",
+    "stdin": "Are you ready for a table?\n\n| Name | Description |\n|:----:|-------------|\n| Foo  | Not a fizz  |\n| Bar  | Not a buzz  |\n| Barn | Big, red.   | And this is an extra column |\n| Fuzz |\n\nNote that the \"Barn\" row has an extra column, and the \"Fuzz\" row is missing one.\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "plain",
+      ":-: * :-: *"
+    ],
+    "stdout": "Name Description\nFoo Not a fizz\nBar Not a buzz\nBarn Big, red. And this is an extra column\nFuzz\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  {
+    "id": "wrapping/wrapping at 50",
+    "stdin": "This text has both [an inline link](https://example.com/inline) and a [referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n[1]: https://example.com/referenced\n\n> We can also have text that wraps within quoted text.\n\n- Or we can have text that wraps within ordered lists\n  - including sublists, which should take the indentation into account\n  - and even if there are multiple items that are in there\n",
+    "files": {},
+    "argv": [
+      "--wrap-width=50",
+      "--link-format=keep"
+    ],
+    "stdout": "This text has both\n[an inline link](https://example.com/inline) and a\n[referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n> We can also have text that wraps within quoted\n> text.\n\n- Or we can have text that wraps within ordered\n  lists\n\n  - including sublists, which should take the\n    indentation into account\n  - and even if there are multiple items that are\n    in there\n\n[1]: https://example.com/referenced\n",
+    "stderr": "",
+    "exitCode": 0
+  }
+]

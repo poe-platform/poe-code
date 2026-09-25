@@ -17,10 +17,10 @@ async function direct(definition: CommandDefinition, args: string[], overrides: 
   finally { await Promise.all(cleanups.flatMap(cleanup => [cleanup(), cleanup()])); }
 }
 
-test("public110 inventory retains frozen expr76 plus which, timeout, apply_patch, three SHA-2 commands, cmp, fmt, shuf, numfmt, truncate, XML queries, nine native compression commands, zip, unzip, csplit, pr, tsort, factor, getopt, hexdump, hd, iconv, dos2unix and unix2dos", async () => {
+test("public111 inventory retains frozen expr76 plus which, timeout, apply_patch, three SHA-2 commands, cmp, fmt, shuf, numfmt, truncate, XML queries, nine native compression commands, zip, unzip, csplit, pr, tsort, factor, getopt, hexdump, hd, iconv, dos2unix and unix2dos", async () => {
   assert.equal(expected.names76.length, 76); assert.equal(new Set(expected.names76).size, 76);
-  const names107 = [...expected.names76, "which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "cmp", "fmt", "shuf", "numfmt", "truncate", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos"].sort();
-  assert.equal(names107.length, 110); assert.equal(new Set(names107).size, 110);
+  const names107 = [...expected.names76, "which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "cmp", "fmt", "shuf", "numfmt", "truncate", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq"].sort();
+  assert.equal(names107.length, 111); assert.equal(new Set(names107).size, 111);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), names107);
   const target = host(); await agentCommands().setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name).sort(), names107);

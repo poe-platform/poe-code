@@ -1,0 +1,68 @@
+{
+  "name": "safe-bash-markdown-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./commonmark-blocks": {
+      "types": "./dist/commonmark-blocks.d.ts",
+      "import": "./dist/commonmark-blocks.js"
+    },
+    "./commonmark-inlines": {
+      "types": "./dist/commonmark-inlines.d.ts",
+      "import": "./dist/commonmark-inlines.js"
+    },
+    "./commonmark-syntax": {
+      "types": "./dist/commonmark-syntax.d.ts",
+      "import": "./dist/commonmark-syntax.js"
+    },
+    "./commonmark-case-fold": {
+      "types": "./dist/commonmark-case-fold.d.ts",
+      "import": "./dist/commonmark-case-fold.js"
+    },
+    "./commonmark-characters": {
+      "types": "./dist/commonmark-characters.d.ts",
+      "import": "./dist/commonmark-characters.js"
+    },
+    "./gfm-syntax": {
+      "types": "./dist/gfm-syntax.d.ts",
+      "import": "./dist/gfm-syntax.js"
+    },
+    "./ast-types": {
+      "types": "./dist/ast-types.d.ts",
+      "import": "./dist/ast-types.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    },
+    "./entities": {
+      "types": "./dist/entities.d.ts",
+      "import": "./dist/entities.js"
+    },
+    "./entity-data": {
+      "types": "./dist/entity-data.d.ts",
+      "import": "./dist/entity-data.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

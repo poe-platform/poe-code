@@ -592,6 +592,12 @@
     "./commands/git": {
       "types": "./dist/commands/git/index.d.ts",
       "import": "./dist/commands/git/index.js"
+    },
+    "./commands/mdq": {
+      "types": "./dist/commands/mdq/index.d.ts",
+      "workerd": "./dist/commands/mdq/index.browser.js",
+      "browser": "./dist/commands/mdq/index.browser.js",
+      "import": "./dist/commands/mdq/index.js"
     }
   },
   "files": [
@@ -750,7 +756,9 @@
     "safe-bash-command-sqlite3": "*",
     "safe-bash-command-git": "*",
     "safe-bash-command-dos2unix": "*",
-    "safe-bash-line-ending-engine": "*"
+    "safe-bash-line-ending-engine": "*",
+    "safe-bash-command-mdq": "*",
+    "safe-bash-markdown-engine": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -902,7 +910,8 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "safe-bash-markdown-engine": "*"
           },
           "portable": true
         },
@@ -1437,6 +1446,23 @@
           "assets": [
             "./dist/LICENSE"
           ]
+        },
+        "safe-bash-command-mdq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-markdown-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-markdown-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {},
+          "portable": true
         }
       }
     }

@@ -3,6 +3,7 @@ import "./safe-packages-ffmpeg-types.mjs";
 import "./safe-packages-fmt-types.mjs";
 import "./safe-packages-unrtf-types.mjs";
 import "./safe-packages-htmlq-types.mjs";
+import "./safe-packages-mdq-types.mjs";
 import "./safe-packages-fold-types.mjs";
 import "./safe-packages-xz-types.mjs";
 import "./safe-packages-csvcut-types.mjs";

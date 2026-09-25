@@ -1,7 +1,7 @@
 import { Budget, ProgramError } from "./budget.js";
 import { ReplacementBuffer } from "./replacement-buffer.js";
-
-type BoundaryKind = "word" | "nonWord" | "wordStart" | "wordEnd";
+import type { RegexNode as Node } from "./regex-syntax.js";
+import { parseRustPattern } from "./rust-syntax.js";
 
 function isWordChar(ch: string | undefined): boolean {
   if (ch === undefined) return false;
@@ -9,29 +9,23 @@ function isWordChar(ch: string | undefined): boolean {
   return (code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95;
 }
 
-function matchesBoundary(boundary: BoundaryKind, text: string, position: number): boolean {
-  const prevWord = position > 0 && isWordChar(text[position - 1]);
-  const nextWord = position < text.length && isWordChar(text[position]);
-  if (boundary === "word") return prevWord !== nextWord;
-  if (boundary === "nonWord") return prevWord === nextWord;
-  if (boundary === "wordStart") return !prevWord && nextWord;
-  return prevWord && !nextWord;
+function matchesBoundary(instruction: Extract<Instruction, { kind: "boundary" }>, text: string, position: number): boolean {
+  const before = position > 0 && instruction.accepts(text[position - 1]!);
+  const after = position < text.length && instruction.accepts(text[position]!);
+  const boundary = instruction.edge === "start" ? !before && after : instruction.edge === "end" ? before && !after : before !== after;
+  return boundary === instruction.positive;
 }
 
-type Node = { type: "empty" | "begin" | "end" }
-  | { type: "boundary"; boundary: BoundaryKind }
-  | { type: "backreference"; index: number }
-  | { type: "assertion"; node: Node; positive: boolean; behind: boolean }
-  | { type: "character"; literal?: string; accepts: (character: string) => boolean }
-  | { type: "sequence" | "alternate"; nodes: Node[] }
-  | { type: "repeat"; node: Node; minimum: number; maximum: number; lazy?: boolean }
-  | { type: "group"; node: Node; index: number; lastCapture: number };
-
 type Instruction = { kind: "character"; literal?: string; accepts: (character: string) => boolean }
-  | { kind: "backreference"; index: number; ignoreCase: boolean }
+  | { kind: "backreference"; index: number; ignoreCase: boolean; fold?: (text: string) => string }
   | { kind: "assertion"; first: number; next: number; positive: boolean; behind: boolean }
-  | { kind: "boundary"; boundary: BoundaryKind }
-  | { kind: "begin" | "end" | "match" }
+  | { kind: "atomic"; first: number; next: number }
+  | { kind: "conditional"; first: number; yes: number; no: number }
+  | { kind: "captureSet"; index: number }
+  | { kind: "continue" }
+  | { kind: "boundary"; accepts: (character: string) => boolean; positive: boolean; edge?: "start" | "end" }
+  | { kind: "begin" | "end"; multiline?: boolean; strict?: boolean; trailingNewlines?: boolean }
+  | { kind: "match" }
   | { kind: "save"; slot: number; clearUntil?: number }
   | { kind: "jump"; target: number }
   | { kind: "split"; first: number; second: number };
@@ -43,8 +37,11 @@ function instructionCounts(root: Node): Map<Node, number> {
     const { node, visited } = pending.pop()!;
     if (!visited) {
       pending.push({ node, visited: true });
-      if (node.type === "group" || node.type === "assertion" || node.type === "repeat")
+      if (node.type === "group" || node.type === "assertion" || node.type === "repeat" || node.type === "atomic")
         pending.push({ node: node.node, visited: false });
+      else if (node.type === "conditional") {
+        pending.push({ node: node.no, visited: false }, { node: node.yes, visited: false }, { node: node.condition, visited: false });
+      }
       else if (node.type === "sequence" || node.type === "alternate")
         for (let index = node.nodes.length - 1; index >= 0; index--)
           pending.push({ node: node.nodes[index]!, visited: false });
@@ -52,7 +49,8 @@ function instructionCounts(root: Node): Map<Node, number> {
     }
     let size: number;
     if (node.type === "empty") size = 0;
-    else if (node.type === "group" || node.type === "assertion") size = 2 + counts.get(node.node)!;
+    else if (node.type === "group" || node.type === "assertion" || node.type === "atomic") size = 2 + counts.get(node.node)!;
+    else if (node.type === "conditional") size = 3 + counts.get(node.condition)! + counts.get(node.yes)! + counts.get(node.no)!;
     else if (node.type === "sequence" || node.type === "alternate") {
       size = node.type === "alternate" ? 2 * (node.nodes.length - 1) : 0;
       for (const child of node.nodes) size += counts.get(child)!;
@@ -72,7 +70,7 @@ function instructionCounts(root: Node): Map<Node, number> {
 function* compileProgram(root: Node, counts: Map<Node, number>, ignoreCase: boolean): Generator<void, Instruction[]> {
   const code: Instruction[] = [];
   const emit = (instruction: Instruction): number => code.push(instruction) - 1;
-  interface Frame { node: Node; index: number; start?: number | undefined; awaiting?: boolean; jumps?: number[] }
+  interface Frame { node: Node; index: number; start?: number | undefined; awaiting?: boolean; jumps?: number[]; jump?: number }
   const pending: Frame[] = [{ node: root, index: 0 }];
   while (pending.length) {
     const frame = pending[pending.length - 1]!;
@@ -88,13 +86,34 @@ function* compileProgram(root: Node, counts: Map<Node, number>, ignoreCase: bool
           ...(node.lastCapture > node.index ? { clearUntil: (node.lastCapture + 1) * 2 } : {}) });
         pending.push({ node: node.node, index: 0 });
       } else { emit({ kind: "save", slot: node.index * 2 + 1 }); pending.pop(); }
-    } else if (node.type === "assertion") {
+    } else if (node.type === "conditional") {
+      if (frame.index === 0) {
+        frame.start = emit({ kind: "conditional", first: code.length + 1, yes: 0, no: 0 });
+        frame.index = 1;
+        pending.push({ node: node.condition, index: 0 });
+      } else if (frame.index === 1) {
+        emit({ kind: "match" });
+        (code[frame.start!] as Extract<Instruction, { kind: "conditional" }>).yes = code.length;
+        frame.index = 2;
+        pending.push({ node: node.yes, index: 0 });
+      } else if (frame.index === 2) {
+        frame.jump = emit({ kind: "jump", target: 0 });
+        (code[frame.start!] as Extract<Instruction, { kind: "conditional" }>).no = code.length;
+        frame.index = 3;
+        pending.push({ node: node.no, index: 0 });
+      } else {
+        (code[frame.jump!] as Extract<Instruction, { kind: "jump" }>).target = code.length;
+        pending.pop();
+      }
+    } else if (node.type === "assertion" || node.type === "atomic") {
       if (frame.index++ === 0) {
-        frame.start = emit({ kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind });
+        frame.start = emit(node.type === "assertion"
+          ? { kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind }
+          : { kind: "atomic", first: code.length + 1, next: 0 });
         pending.push({ node: node.node, index: 0 });
       } else {
         emit({ kind: "match" });
-        (code[frame.start!] as Extract<Instruction, { kind: "assertion" }>).next = code.length;
+        (code[frame.start!] as Extract<Instruction, { kind: "assertion" | "atomic" }>).next = code.length;
         pending.pop();
       }
     } else if (node.type === "alternate") {
@@ -133,9 +152,12 @@ function* compileProgram(root: Node, counts: Map<Node, number>, ignoreCase: bool
       } else pending.pop();
     } else {
       if (node.type === "character") emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), accepts: node.accepts });
-      else if (node.type === "backreference") emit({ kind: "backreference", index: node.index, ignoreCase });
-      else if (node.type === "boundary") emit({ kind: "boundary", boundary: node.boundary });
-      else if (node.type === "begin" || node.type === "end") emit({ kind: node.type });
+      else if (node.type === "backreference") emit({ kind: "backreference", index: node.index, ignoreCase: node.ignoreCase ?? ignoreCase, ...(node.fold ? { fold: node.fold } : {}) });
+      else if (node.type === "boundary") emit({ kind: "boundary", accepts: node.accepts, positive: node.positive, ...(node.edge ? { edge: node.edge } : {}) });
+      else if (node.type === "continue") emit({ kind: "continue" });
+      else if (node.type === "reset") emit({ kind: "save", slot: 0 });
+      else if (node.type === "captureSet") emit({ kind: "captureSet", index: node.index });
+      else if (node.type === "begin" || node.type === "end") emit({ kind: node.type, ...(node.multiline === undefined ? {} : { multiline: node.multiline }), ...(node.strict === undefined ? {} : { strict: node.strict }), ...(node.trailingNewlines ? { trailingNewlines: true } : {}) });
       else throw new ProgramError("invalid internal regular expression node");
       pending.pop();
     }
@@ -388,12 +410,23 @@ export class Pattern {
   } | undefined;
   private chainMatch: ChainMatch | undefined;
   private backreferences = false;
+  private trailingNewlineAnchor = false;
   private fastPrefixInfo: { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined;
 
-  constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "", limits: PatternLimits = {}) {
-    const prefix = dialect === "jq" ? "jq " : "";
+  constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" | "rust" = "sed", private readonly modifiers = "", limits: PatternLimits = {}) {
+    const prefix = dialect === "jq" || dialect === "rust" ? dialect + " " : "";
     const maximumInstructions = limits.maxPatternInstructions ?? Infinity;
     if (maximumInstructions !== Infinity && (!Number.isSafeInteger(maximumInstructions) || maximumInstructions < 1)) throw new ProgramError("limits must be positive safe integers");
+    if (dialect === "rust") {
+      if (source.length > 8192) throw new ProgramError(`${prefix}regular expression source limit exceeded`);
+      const parsed = parseRustPattern(source, ignoreCase), counts = instructionCounts(parsed.root);
+      if (!Number.isSafeInteger(counts.get(parsed.root)! + 1) || counts.get(parsed.root)! + 1 > maximumInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
+      this.groupCount = parsed.groupCount;
+      for (const [name, index] of parsed.groupNames) this.groupNames.set(name, index);
+      this.anchored = false;
+      this.parsed = { root: parsed.root, counts };
+      return;
+    }
     if (!extended) source = extendedSource(source);
     let offset = 0;
     let groups = 0;
@@ -478,10 +511,8 @@ export class Pattern {
           if (dialect === "awk" && reference === "b") {
             return characterNode("\b");
           }
-          const boundary: BoundaryKind = (reference === "b" || reference === "y") ? "word"
-            : (reference === "B" || reference === "Y") ? "nonWord"
-            : reference === "<" ? "wordStart" : "wordEnd";
-          return { type: "boundary", boundary };
+          return { type: "boundary", accepts: isWordChar, positive: reference !== "B" && reference !== "Y",
+            ...(reference === "<" ? { edge: "start" as const } : reference === ">" ? { edge: "end" as const } : {}) };
         }
         if ((dialect === "jq" || dialect === "sed" || dialect === "awk") && reference !== undefined && "dDsSwW".includes(reference)) {
           offset++;
@@ -640,7 +671,7 @@ export class Pattern {
 
   private finalizeCompiledCode(code: Instruction[], root: Node): void {
     this.linear = code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
-    if (this.linear && !this.ignoreCase && this.dialect !== "jq") {
+    if (this.linear && !this.ignoreCase && this.dialect !== "jq" && this.dialect !== "rust") {
       let validLiteral = true;
       let anchoredStart = false;
       let anchoredEnd = false;
@@ -664,7 +695,7 @@ export class Pattern {
         this.literalMatch = { value: literalValue, anchoredStart, anchoredEnd, groups: [literalValue] };
         this.fastPrefixInfo = { anchoredStart, anchoredEnd, prefix: literalValue };
       }
-    } else if (!this.ignoreCase && this.dialect !== "jq" && root.type === "sequence" && this.groupCount <= 1) {
+    } else if (!this.ignoreCase && this.dialect !== "jq" && this.dialect !== "rust" && root.type === "sequence" && this.groupCount <= 1) {
       let startIdx = 0;
       let endIdx = root.nodes.length;
       let anchoredStart = false;
@@ -721,7 +752,7 @@ export class Pattern {
         }
       }
     }
-    if (!this.ignoreCase && this.dialect !== "jq" && !this.literalMatch && !this.simpleRepeatMatch) {
+    if (!this.ignoreCase && this.dialect !== "jq" && this.dialect !== "rust" && !this.literalMatch && !this.simpleRepeatMatch) {
       const cm = buildChainMatch(root, this.groupCount);
       if (cm) {
         this.chainMatch = cm;
@@ -729,12 +760,19 @@ export class Pattern {
       }
     }
     this.backreferences = code.some(instruction => instruction.kind === "backreference");
+    this.trailingNewlineAnchor = code.some(instruction => instruction.kind === "end" && instruction.trailingNewlines);
     this.code = code;
     this.parsed = undefined;
   }
 
   private async findJq(text: string, budget: PatternBudget, from: number,
-    options: { pc: number; exact?: boolean; end?: number; captures?: number[] } = { pc: 0 }): Promise<{ match: Match; captures: number[] } | undefined> {
+    options: { pc: number; exact?: boolean; end?: number; captures?: number[]; continuation?: number } = { pc: 0 }): Promise<{ match: Match; captures: number[] } | undefined> {
+    const continuation = options.continuation ?? from;
+    let trailingStart = text.length;
+    if (this.trailingNewlineAnchor) while (trailingStart > 0 && text[trailingStart - 1] === "\n") {
+      budget.step(); trailingStart--;
+      if (trailingStart % 64 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    }
     // Prioritized traversal gives jq's leftmost-first (rather than POSIX longest) match.
     for (let start = from; start <= (options.end ?? text.length) && (!options.exact || start === from); start += (text.codePointAt(start) ?? 0) > 0xffff ? 2 : 1) {
       const pending = [{ pc: options.pc, position: start, captures: options.captures ?? [] }];
@@ -760,17 +798,27 @@ export class Pattern {
         if (instruction.kind === "match") {
           if (options.end !== undefined && position !== options.end) continue;
           if (this.modifiers.includes("n") && position === start) continue;
-          const groups: (string | undefined)[] = [text.slice(start, position)];
+          const matchStart = captures[0] ?? start;
+          const groups: (string | undefined)[] = [text.slice(matchStart, position)];
           for (let index = 1; index <= this.groupCount; index++) {
             budget.step();
             groups.push(captures[index * 2] === undefined ? undefined : text.slice(captures[index * 2], captures[index * 2 + 1]));
           }
-          return { match: { start, end: position, groups }, captures };
+          return { match: { start: matchStart, end: position, groups }, captures };
         }
-        if (instruction.kind === "assertion") {
+        if (instruction.kind === "conditional") {
+          const result = await this.findJq(text, budget, position, { pc: instruction.first, exact: true, captures, continuation });
+          if (result) push(instruction.yes, result.match.end, result.captures);
+          else push(instruction.no);
+        }
+        else if (instruction.kind === "atomic") {
+          const result = await this.findJq(text, budget, position, { pc: instruction.first, exact: true, captures, continuation });
+          if (result) push(instruction.next, result.match.end, result.captures);
+        }
+        else if (instruction.kind === "assertion") {
           const result = await this.findJq(text, budget, instruction.behind ? 0 : position,
-            instruction.behind ? { pc: instruction.first, end: position, captures }
-              : { pc: instruction.first, exact: true, captures });
+            instruction.behind ? { pc: instruction.first, end: position, captures, continuation }
+              : { pc: instruction.first, exact: true, captures, continuation });
           if (Boolean(result) === instruction.positive) push(instruction.next, position, result?.captures ?? captures);
         }
         else if (instruction.kind === "jump") push(instruction.target);
@@ -781,9 +829,17 @@ export class Pattern {
           saved[instruction.slot] = position;
           push(state.pc + 1, position, saved);
         }
-        else if (instruction.kind === "begin") { if (position === 0) push(state.pc + 1); }
-        else if (instruction.kind === "boundary") { if (matchesBoundary(instruction.boundary, text, position)) push(state.pc + 1); }
-        else if (instruction.kind === "end") { if (position === text.length || position === text.length - 1 && text[position] === "\n") push(state.pc + 1); }
+        else if (instruction.kind === "continue") { if (position === continuation) push(state.pc + 1); }
+        else if (instruction.kind === "captureSet") { if (captures[instruction.index * 2] !== undefined) push(state.pc + 1); }
+        else if (instruction.kind === "begin") { if (position === 0 || instruction.multiline && text[position - 1] === "\n") push(state.pc + 1); }
+        else if (instruction.kind === "end") { if (position === text.length || instruction.trailingNewlines && position >= trailingStart || (instruction.multiline || !instruction.strict && position === text.length - 1) && text[position] === "\n") push(state.pc + 1); }
+        else if (instruction.kind === "boundary") {
+          const previous = position > 1 && text.codePointAt(position - 2)! > 0xffff ? text.slice(position - 2, position) : text.slice(position - 1, position);
+          const next = text.codePointAt(position), current = next === undefined ? "" : String.fromCodePoint(next);
+          const before = position > 0 && instruction.accepts(previous), after = Boolean(current) && instruction.accepts(current);
+          const boundary = instruction.edge === "start" ? !before && after : instruction.edge === "end" ? before && !after : before !== after;
+          if (boundary === instruction.positive) push(state.pc + 1);
+        }
         else if (instruction.kind === "character") {
           const code = text.codePointAt(position);
           if (code !== undefined) { const character = String.fromCodePoint(code); if (instruction.accepts(character)) push(state.pc + 1, position + character.length); }
@@ -795,7 +851,7 @@ export class Pattern {
             budget.step(length);
             const expected = text.slice(begin, end);
             const actual = text.slice(position, position + length);
-            if (instruction.ignoreCase ? expected.toLowerCase() === actual.toLowerCase() : expected === actual) push(state.pc + 1, position + length);
+            if (instruction.ignoreCase ? instruction.fold ? instruction.fold(expected) === instruction.fold(actual) : expected.toLowerCase() === actual.toLowerCase() : expected === actual) push(state.pc + 1, position + length);
           }
         } else throw new ProgramError("unsupported jq regular expression instruction");
       }
@@ -804,7 +860,7 @@ export class Pattern {
   }
 
   canFindSync(): boolean {
-    return this.code.length > 0 && this.dialect !== "jq" && Boolean(this.literalMatch || this.simpleRepeatMatch || this.chainMatch);
+    return this.code.length > 0 && this.dialect !== "jq" && this.dialect !== "rust" && Boolean(this.literalMatch || this.simpleRepeatMatch || this.chainMatch);
   }
 
   getFastPrefixInfo(): { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined {
@@ -1035,7 +1091,7 @@ export class Pattern {
 
   tryFindSync(text: string, budget: PatternBudget, from = 0): Match | undefined | Promise<Match | undefined> {
     this.assertInstructionLimit(budget);
-    if (this.code.length && this.chainMatch && this.dialect !== "jq") {
+    if (this.code.length && this.chainMatch && this.dialect !== "jq" && this.dialect !== "rust") {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
       if (!this.findSyncFastInto(text, budget, from, FAST_MATCH_OFFSETS)) return undefined;
@@ -1050,12 +1106,12 @@ export class Pattern {
       }
       return { start, end, groups };
     }
-    if (this.code.length && this.simpleRepeatMatch && this.dialect !== "jq") {
+    if (this.code.length && this.simpleRepeatMatch && this.dialect !== "jq" && this.dialect !== "rust") {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
       return this.execSimpleRepeat(text, budget, from);
     }
-    if (!this.code.length || !this.literalMatch || this.dialect === "jq") {
+    if (!this.code.length || !this.literalMatch || this.dialect === "jq" || this.dialect === "rust") {
       return this.find(text, budget, from);
     }
     const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
@@ -1177,10 +1233,10 @@ export class Pattern {
     return { start: found, end: matchEnd, groups };
   }
 
-  async find(text: string, budget: PatternBudget, from = 0): Promise<Match | undefined> {
+  async find(text: string, budget: PatternBudget, from = 0, continuation = from): Promise<Match | undefined> {
     this.assertInstructionLimit(budget);
     if (!this.code.length) await this.prepare(budget);
-    if (this.dialect === "jq") return (await this.findJq(text, budget, from))?.match;
+    if (this.dialect === "jq" || this.dialect === "rust") return (await this.findJq(text, budget, from, { pc: 0, continuation }))?.match;
     if (this.simpleRepeatMatch) {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (initialCheck) await initialCheck;
@@ -1378,7 +1434,7 @@ export class Pattern {
               if (copied) await copied;
               enqueue(position, thread.pc + 1, thread.start, thread.captures, instruction.slot, instruction.clearUntil);
             } else if (instruction.kind === "boundary") {
-              if (matchesBoundary(instruction.boundary, text, position)) enqueue(position, thread.pc + 1, thread.start, thread.captures);
+              if (matchesBoundary(instruction, text, position)) enqueue(position, thread.pc + 1, thread.start, thread.captures);
             } else if (instruction.kind === "begin" ? position === 0 : position === text.length) enqueue(position, thread.pc + 1, thread.start, thread.captures);
           } finally { storage.release(thread.bytes); }
         }

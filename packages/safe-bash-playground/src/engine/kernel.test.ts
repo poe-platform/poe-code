@@ -285,7 +285,7 @@ describe("real safe-bash browser kernel", () => {
     const { shell } = await fixture();
     try {
       const oversized = await shell.exec("printf '%999999999999s' x");
-      expect(oversized.exitCode).toBe(2);
+      expect(oversized.exitCode).toBe(1);
       expect(oversized.stdout).toBe("");
       expect(oversized.stderr).toContain("format width or precision is too large");
       await expect(shell.exec("recurse(){ recurse; }; recurse")).rejects.toThrow(

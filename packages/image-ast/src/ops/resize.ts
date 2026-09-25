@@ -369,6 +369,37 @@ export function resizeImage(
     readonly withoutReduction: boolean;
   }
 ): RgbaImage {
+  if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight) {
+    const pages = img.pages;
+    const pageH = img.pageHeight;
+    const pageBytes = img.width * pageH * 4;
+    const resizedPages: RgbaImage[] = [];
+    for (let p = 0; p < pages; p++) {
+      const singlePage: RgbaImage = {
+        ...img,
+        height: pageH,
+        pages: 1,
+        pageHeight: pageH,
+        data: img.data.subarray(p * pageBytes, (p + 1) * pageBytes)
+      };
+      resizedPages.push(resizeImage(singlePage, spec));
+    }
+    const first = resizedPages[0]!;
+    const outW = first.width;
+    const outPageH = first.height;
+    const outData = new Uint8Array(outW * outPageH * pages * 4);
+    for (let p = 0; p < pages; p++) {
+      outData.set(resizedPages[p]!.data, p * outW * outPageH * 4);
+    }
+    return {
+      ...first,
+      width: outW,
+      height: outPageH * pages,
+      pages,
+      pageHeight: outPageH,
+      data: outData
+    };
+  }
   const srcW = img.width;
   const srcH = img.height;
   if (spec.width === null && spec.height === null) {

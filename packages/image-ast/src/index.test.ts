@@ -1798,4 +1798,26 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const outMeta = await sharp(out).metadata();
     expect(outMeta.orientation).toBe(6);
   });
+
+  it("resizes multi-page animated images per frame and replaces extractChannel/bandbool/boolean slots on repeated calls (#96)", async () => {
+    // 1. Multi-page animated resize()
+    const f0 = Buffer.from([255, 0, 0,  255, 0, 0,  0, 255, 0,  0, 255, 0]);
+    const gif2 = await sharp(f0, { raw: { width: 2, height: 2, channels: 3, pageHeight: 1 } }).gif({ pageHeight: 1 }).toBuffer();
+    const resAnim = await sharp(gif2, { animated: true }).resize(4, 3, { fit: "fill", kernel: "nearest" }).raw().toBuffer({ resolveWithObject: true });
+    expect(resAnim.info.width).toBe(4);
+    expect(resAnim.info.height).toBe(6);
+    expect(resAnim.info.pageHeight).toBe(3);
+    expect(resAnim.info.pages).toBe(2);
+    expect(Array.from(resAnim.data.slice(0, 4))).toEqual([255, 0, 0, 255]);
+    expect(Array.from(resAnim.data.slice(3 * 4 * 4, 3 * 4 * 4 + 4))).toEqual([0, 255, 0, 255]);
+
+    // 2. Repeated extractChannel() and bandbool()
+    const buf = Buffer.from([200, 100, 50, 120, 240, 60]);
+    const raw = { raw: { width: 2, height: 1, channels: 3 as const } };
+    const extCh = await sharp(buf, raw).extractChannel("red").extractChannel("blue").raw().toBuffer();
+    expect(Array.from(extCh)).toEqual([50, 60]);
+
+    const bb = await sharp(buf, raw).bandbool("and").bandbool("or").raw().toBuffer();
+    expect(Array.from(bb)).toEqual([254, 254, 254, 252, 252, 252]);
+  });
 });

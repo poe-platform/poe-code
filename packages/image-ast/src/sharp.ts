@@ -724,7 +724,7 @@ export class SharpInstance {
             : channel === "alpha"
               ? 3
               : channel;
-    this.nodes.push({ kind: "extractChannel", channel: ch });
+    this.upsertNode({ kind: "extractChannel", channel: ch });
     return this;
   }
 
@@ -760,7 +760,7 @@ export class SharpInstance {
   }
 
   bandbool(boolOp: "and" | "or" | "eor"): this {
-    this.nodes.push({ kind: "bandbool", op: boolOp });
+    this.upsertNode({ kind: "bandbool", op: boolOp });
     return this;
   }
 

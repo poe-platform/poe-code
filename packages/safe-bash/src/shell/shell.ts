@@ -365,7 +365,7 @@ export class Shell implements PluginHost {
           const value = options.stdin ?? "";
           const inlineBytes = typeof value === "string"
             ? (value.length > 0 ? sharedUtf8Encoder.encode(value) : undefined)
-            : (value.byteLength > 0 ? value : undefined);
+            : (value.byteLength > 0 ? new Uint8Array(value) : undefined);
           stdin = inlineBytes
             ? new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, {
                 provenance: "stream",

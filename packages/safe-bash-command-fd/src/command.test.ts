@@ -30,3 +30,17 @@ test('standalone fd factory provides the shared glob and ignore matcher',async()
   const result=await createFdCommand().execute(context);
   assert.equal(result.exitCode,0,stderr);assert.equal(stdout,'a.ts\n');
 });
+test('legacy nested SDK limits reject invalid values and remain opt-in',async()=>{
+  const {createFdCommand}=await import('./index.js');
+  assert.throws(()=>createFdCommand({limits:{maxEntries:0}}),/limit|positive/iu);
+  assert.throws(()=>createFdCommand({limits:{maxDepth:-1}}),/limit|positive/iu);
+});
+test('SDK execution fallback receives literal command arguments',async()=>{
+  const {createFdCommand,createFdCommands}=await import('./index.js');
+  const fs=new MemoryFileSystem();await fs.mkdir('/work');await fs.writeFile('/work/a b.ts',new Uint8Array());
+  let stderr='';const calls: string[][]=[];
+  const context={command:'fd',args:['-I','-x','inspect','{}',';'],cwd:'/work',env:{},fs,signal:new AbortController().signal,stdin:(async function*(){})(),stdout:{async write(){}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}} satisfies CommandContext;
+  assert.equal(createFdCommands().length,1);
+  const result=await createFdCommand({execute:async child=>{calls.push([child.command!,...child.args]);return {exitCode:0};}}).execute(context);
+  assert.equal(result.exitCode,0,stderr);assert.deepEqual(calls,[['inspect','./a b.ts']]);
+});

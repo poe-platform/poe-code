@@ -2,13 +2,14 @@ import { FdUsageError } from './errors.js';
 import { assertCommandRequirements } from 'safe-bash-contracts/command-requirements';
 import { fdTemplate, formatFdPath } from './templates.js';
 export { formatFdPath } from './templates.js';
-import { commandRuntimeIdentity, getCommandArguments, writeBytes, FsError, type CommandContext, type CommandDefinition, type CommandResult } from 'safe-bash-contracts';
+import { commandRuntimeIdentity, getCommandArguments, writeBytes, FsError, type CommandHandler, type CommandContext, type CommandDefinition, type CommandResult } from 'safe-bash-contracts';
 import { resolvePath, posixPath, type FileStat } from '@poe-code/safe-fs/core';
 import { parseFdArguments, type FdArguments } from './arguments.js';
 
 export interface FdLimits { readonly maxDepth: number; readonly maxEntries: number }
 export interface FdCommandOptions {
   readonly limits?: Partial<FdLimits>;
+  readonly execute?: CommandHandler;
   readonly maxDepth?: number;
   readonly maxEntries?: number;
   readonly maxIgnoreFileBytes?: number;
@@ -46,7 +47,7 @@ function timestamp(source: string, now: number): number {
 }
 export function createFdCommandWithMatcher(scope: FdMatchingScope, options: FdCommandOptions = {}): CommandDefinition {
   const maxEntries=options.limits?.maxEntries ?? options.maxEntries ?? Infinity;
-  for (const [name,value] of Object.entries(options)) if (name.startsWith('max') && value!==undefined && value!==Infinity && (typeof value!=='number' || !Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
+  for (const [name,value] of Object.entries({...options,...options.limits})) if (name.startsWith('max') && value!==undefined && value!==Infinity && (typeof value!=='number' || !Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
   return { name:'fd', runtimeIdentity:commandRuntimeIdentity, filesystemRequirements:requirements, description:'Find files and directories in the virtual filesystem', async execute(context) {
     try {
       const carrier=getCommandArguments(context);
@@ -57,7 +58,8 @@ export function createFdCommandWithMatcher(scope: FdMatchingScope, options: FdCo
         await writeBytes(context.stdout,new TextEncoder().encode(args.version ? 'fd (safe-bash)\n' : 'Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE, --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -0, -a, -l, --format FORMAT, -x COMMAND ... ;, -X COMMAND ... ;\n'),context.signal);
         return {exitCode:0};
       }
-      return await scope(context, matcher => find(context,args,matcher,maxEntries,options.maxIgnoreFileBytes ?? Infinity, options.limits?.maxDepth ?? options.maxDepth ?? Infinity));
+      const searchContext=args.baseDirectory===undefined ? context : {...context,cwd:resolvePath(context.cwd,args.baseDirectory)};
+      return await scope(searchContext, matcher => find(searchContext,args,matcher,maxEntries,options.maxIgnoreFileBytes ?? Infinity, options.limits?.maxDepth ?? options.maxDepth ?? Infinity, options.execute));
     } catch(error) {
       context.signal.throwIfAborted();
       await writeBytes(context.stderr,new TextEncoder().encode(`fd: ${error instanceof Error ? error.message : 'internal error'}\n`),context.signal);
@@ -65,7 +67,7 @@ export function createFdCommandWithMatcher(scope: FdMatchingScope, options: FdCo
     }
   }};
 }
-async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher, maximum: number,maxIgnoreFileBytes: number,maxDepth: number): Promise<CommandResult> {
+async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher, maximum: number,maxIgnoreFileBytes: number,maxDepth: number,execute?: CommandHandler): Promise<CommandResult> {
   const signal=context.signal, fs=context.fs, io={signal};
   const sizes=a.sizes.map(sizeFilter), now=Date.now(), within=a.within===undefined ? -Infinity : timestamp(a.within,now), before=a.before===undefined ? Infinity : timestamp(a.before,now);
   const admit=async(path: string,modes: readonly string[]) => {
@@ -78,14 +80,13 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
   const emit=async (text: string) => writeBytes(context.stdout,new TextEncoder().encode(text),signal);
   const report=async (error: unknown) => { signal.throwIfAborted(); failed=true; await writeBytes(context.stderr,new TextEncoder().encode(`fd: ${error instanceof Error ? error.message : 'filesystem error'}\n`),signal); };
   const invoke=async (paths: string[]) => {
-    if (!context.invoke) throw new Error('command invocation is unavailable');
     const command: string[]=[]; let placeholder=false;
     for (const token of a.exec) {
       const has=fdTemplate(token).count>0; placeholder ||= has;
       if (has) for (const path of paths) command.push(formatFdPath(token,path)); else command.push(formatFdPath(token,''));
     }
     if (!placeholder) command.push(...paths);
-    const result=await context.invoke(command[0]!,command.slice(1),{stdin:(async function*(){})(),stdinIsDefault:true,signal});
+    const result=context.invoke ? await context.invoke(command[0]!,command.slice(1),{stdin:(async function*(){})(),stdinIsDefault:true,signal}) : execute ? await execute({...context,command:command[0]!,args:command.slice(1),stdin:(async function*(){})()}) : (()=>{throw new Error('command invocation is unavailable');})();
     executionFailed ||= result.exitCode!==0;
   };
   const load=async (dir: string, inherited: Rule[]): Promise<Rule[]> => {
@@ -145,7 +146,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
         const directory=stat.type==='directory';
         if (!await accepted(path,entry.name,directory,local,searchRoot)) continue;
         if (await selected(path,entry.name,stat,depth+1)) {
-          found++; const out=a.absolute ? path : prefixCwd && (a.exec.length || a.print0 || a.details) && !display.startsWith('/') && rootPrefixNeeded(display) ? './'+display : display;
+          found++; const out=a.absolute ? path : !a.stripCwdPrefix && prefixCwd && (a.exec.length || a.print0 || a.details) && !display.startsWith('/') && rootPrefixNeeded(display) ? './'+display : display;
           if (!a.quiet) {
             if (a.exec.length) { if (a.batch) matches.push(out); else await invoke([out]); }
             else if (a.format!==undefined) await emit(formatFdPath(a.format,out)+(a.print0 ? '\0' : '\n'));

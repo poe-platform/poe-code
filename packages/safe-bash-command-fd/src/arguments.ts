@@ -6,12 +6,12 @@ export interface FdArguments {
   fullPath: boolean; absolute: boolean; print0: boolean; quiet: boolean; details: boolean;
   minDepth: number; maxDepth: number; maxResults: number; extensions: string[]; types: string[]; excludes: string[];
   sizes: string[]; within: string | undefined; before: string | undefined; format: string | undefined;
-  exec: string[]; batch: boolean; help: boolean; version: boolean;
+  baseDirectory: string | undefined; stripCwdPrefix: boolean; exec: string[]; batch: boolean; help: boolean; version: boolean;
 }
-const aliases: Record<string, string> = { H:'hidden', I:'no-ignore', u:'unrestricted', L:'follow', g:'glob', F:'fixed-strings', s:'case-sensitive', i:'ignore-case', p:'full-path', a:'absolute-path', '0':'print0', q:'quiet', l:'list-details', d:'max-depth', e:'extension', t:'type', E:'exclude', S:'size', '1':'one', h:'help', V:'version', x:'exec', X:'exec-batch' };
-const values = new Set(['and','extension','type','exclude','max-depth','min-depth','exact-depth','max-results','size','changed-within','changed-before','format','color']);
+const aliases: Record<string, string> = { C:'base-directory', H:'hidden', I:'no-ignore', u:'unrestricted', L:'follow', g:'glob', F:'fixed-strings', s:'case-sensitive', i:'ignore-case', p:'full-path', a:'absolute-path', '0':'print0', q:'quiet', l:'list-details', d:'max-depth', e:'extension', t:'type', E:'exclude', S:'size', '1':'one', h:'help', V:'version', x:'exec', X:'exec-batch' };
+const values = new Set(['and','extension','type','exclude','max-depth','min-depth','exact-depth','max-results','size','changed-within','changed-before','format','color','base-directory']);
 export function parseFdArguments(argv: readonly string[]): FdArguments {
-  const a: FdArguments = { patterns:[], roots:[], mode:'regex', caseMode:'smart', hidden:false, ignore:true, ignoreVcs:true, ignoreParent:true, follow:false, fullPath:false, absolute:false, print0:false, quiet:false, details:false, minDepth:1, maxDepth:Infinity, maxResults:Infinity, extensions:[], types:[], excludes:[], sizes:[], within:undefined, before:undefined, format:undefined, exec:[], batch:false, help:false, version:false };
+  const a: FdArguments = { patterns:[], roots:[], mode:'regex', caseMode:'smart', hidden:false, ignore:true, ignoreVcs:true, ignoreParent:true, follow:false, fullPath:false, absolute:false, print0:false, quiet:false, details:false, minDepth:1, maxDepth:Infinity, maxResults:Infinity, extensions:[], types:[], excludes:[], sizes:[], within:undefined, before:undefined, format:undefined, baseDirectory:undefined, stripCwdPrefix:false, exec:[], batch:false, help:false, version:false };
   const operands: string[] = []; let ended = false;
   const number = (value: string): number => { if (!value || [...value].some(c => c < '0' || c > '9') || !Number.isSafeInteger(Number(value))) throw new FdUsageError(`invalid count '${value}'`); return Number(value); };
   for (let i=0;i<argv.length;i++) {
@@ -47,6 +47,8 @@ export function parseFdArguments(argv: readonly string[]): FdArguments {
         case 'case-sensitive': a.caseMode='sensitive'; break;
         case 'ignore-case': a.caseMode='insensitive'; break;
         case 'full-path': a.fullPath=true; break;
+        case 'base-directory': a.baseDirectory=value; break;
+        case 'strip-cwd-prefix': a.stripCwdPrefix=true; break;
         case 'absolute-path': a.absolute=true; break;
         case 'print0': a.print0=true; break;
         case 'quiet': case 'has-results': a.quiet=true; break;

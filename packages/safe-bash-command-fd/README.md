@@ -21,6 +21,7 @@ For explicit registration, import `fdCommands` or `createFdCommand` from
 | Task | Example |
 | --- | --- |
 | Smart-case regex, glob, or literal names | `fd 'test.*'`, `fd -g '*.ts'`, `fd -F 'a.b'` |
+| Search from another virtual directory | `fd -C /project --strip-cwd-prefix` |
 | Match absolute paths and multiple patterns | `fd -p src --and test` |
 | Select extensions and types | `fd -e ts -e js -t f`, `fd -t d`, `fd -t l`, `fd -t x`, `fd -t e` |
 | Exclude paths and bound depth | `fd -E vendor --min-depth 2 -d 4`, `fd --exact-depth 2` |
@@ -60,7 +61,9 @@ Command failures and filesystem errors return a nonzero status.
 Traversal, ignore-file reads, and matching have no finite default resource
 budgets. The SDK factory accepts explicit `maxEntries`, `maxIgnoreFileBytes`,
 `maxRegexSteps`, and `maxRegexBufferBytes` ceilings; exhaustion is an error, never
-silent truncation. Regexes use Safe Bash's cooperative text engine; ignore/glob
+silent truncation. Legacy `limits: {maxEntries, maxDepth}` and top-level `maxDepth`
+remain available as explicit SDK resource ceilings, along with the `execute`
+callback for standalone command dispatch. Regexes use Safe Bash's cooperative text engine; ignore/glob
 matching uses its bounded glob engine. Supported regex syntax includes literals, classes,
 anchors, groups, alternatives, repetitions, and shorthand classes. This is not
 Rust regex syntax certification. Unsupported syntax fails explicitly.

@@ -45,6 +45,7 @@ export interface JobState {
   snapshot(): readonly JobSnapshot[];
   retireNotified(): void;
   savedStatus(handle: JobHandle): number | undefined;
+  disown(handle: JobHandle): boolean;
   signal(handle: JobHandle, signal: number): boolean;
   wait(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
   waitNext(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
@@ -228,6 +229,15 @@ class JobRegistry implements JobState {
   savedStatus(handle: JobHandle): number | undefined {
     const record = this.#records.get(handle);
     return record?.saved && record.outcome?.kind === "status" ? record.outcome.status : undefined;
+  }
+
+  disown(handle: JobHandle): boolean {
+    const record = this.#records.get(handle);
+    if (!record || !record.listed) return false;
+    this.#unlist(record);
+    record.saved = true;
+    this.#notify();
+    return true;
   }
 
   signal(handle: JobHandle, signal: number): boolean {

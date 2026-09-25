@@ -33,23 +33,24 @@ function waitProcessId(operand: string, flexible = false): number | undefined {
   return negative ? -value : value;
 }
 
-function instance(inherited?: number): ShellExtensionInstance {
+function instance(inherited?: number, getParent?: () => { jobs: JobState | undefined; children: ReadonlyMap<number, JobHandle> }): ShellExtensionInstance {
   let latest = inherited;
   let jobs: JobState | undefined;
   let failure: { reason: unknown } | undefined;
   const children = new Map<number, JobHandle>();
-  const resolve = (operand: string, flexible = false): JobHandle | undefined => {
+  const resolveFrom = (activeJobs: JobState, activeChildren: ReadonlyMap<number, JobHandle>, operand: string, flexible = false): JobHandle | undefined => {
     if (!operand.startsWith("%")) {
       const processId = waitProcessId(operand, flexible);
-      return processId === undefined ? undefined : children.get(processId);
+      return processId === undefined ? undefined : activeChildren.get(processId);
     }
-    const listed = jobs!.snapshot().filter(entry => entry.listed);
+    const listed = activeJobs.snapshot().filter(entry => entry.listed);
     const spec = operand.slice(1);
     if (spec === "" || spec === "%" || spec === "+") return listed.at(-1)?.handle;
     if (spec === "-") return listed.at(-2)?.handle;
     const jobId = waitProcessId(spec);
     return listed.find(entry => entry.handle.jobId === jobId)?.handle;
   };
+  const resolve = (operand: string, flexible = false): JobHandle | undefined => resolveFrom(jobs!, children, operand, flexible);
   const list = async (context: ShellExtensionContext): Promise<number> => {
     let mode = "", offset = 0;
     for (; offset < context.args.length; offset++) {
@@ -59,15 +60,25 @@ function instance(inherited?: number): ShellExtensionInstance {
       if (option === "-p" || option === "-l" || option === "-r" || option === "-s") mode = option;
       else { await context.diagnostic(`jobs: ${option}: invalid option`); return 2; }
     }
-    const listed = jobs!.snapshot().filter(entry => entry.listed);
+    let activeJobs = jobs!;
+    let activeChildren: ReadonlyMap<number, JobHandle> = children;
+    let listed = activeJobs.snapshot().filter(entry => entry.listed);
+    if (listed.length === 0 && getParent) {
+      const parent = getParent();
+      if (parent.jobs) {
+        activeJobs = parent.jobs;
+        activeChildren = parent.children;
+        listed = activeJobs.snapshot().filter(entry => entry.listed);
+      }
+    }
     let result = 0;
     const selected = offset === context.args.length ? listed.map(entry => entry.handle)
-      : context.args.slice(offset).map(operand => resolve(operand.startsWith("%") ? operand : `%${operand}`));
+      : context.args.slice(offset).map(operand => resolveFrom(activeJobs, activeChildren, operand.startsWith("%") ? operand : `%${operand}`));
     for (const [index, handle] of selected.entries()) {
       if (!handle) { await context.diagnostic(`jobs: ${context.args[offset + index]}: no such job`); result = 1; continue; }
       const entry = listed.find(entry => entry.handle === handle);
       if (!entry || mode === "-s" || mode === "-r" && entry.state === "done") continue;
-      const pid = [...children].find(([, child]) => child === handle)?.[0];
+      const pid = [...activeChildren].find(([, child]) => child === handle)?.[0];
       if (mode === "-p") await writeText(context.stdout, `${pid}\n`);
       else {
         const marker = handle === listed.at(-1)?.handle ? "+" : handle === listed.at(-2)?.handle ? "-" : " ";
@@ -119,6 +130,63 @@ function instance(inherited?: number): ShellExtensionInstance {
       if (!handle || !jobs!.signal(handle, signal)) { await context.diagnostic(`kill: ${operand}: no such ${operand.startsWith("%") ? "job" : "process"}`); result = 1; }
     }
     return result;
+  };
+  const disown = async (context: ShellExtensionContext): Promise<number> => {
+    let all = false;
+    let runningOnly = false;
+    let nohupOnly = false;
+    let offset = 0;
+    for (; offset < context.args.length; offset++) {
+      const arg = context.args[offset]!;
+      if (arg === "--") { offset++; break; }
+      if (!arg.startsWith("-") || arg === "-") break;
+      for (let i = 1; i < arg.length; i++) {
+        const ch = arg[i]!;
+        if (ch === "a") all = true;
+        else if (ch === "r") runningOnly = true;
+        else if (ch === "h") nohupOnly = true;
+        else {
+          await context.diagnostic(`disown: -${ch}: invalid option`);
+          return 2;
+        }
+      }
+    }
+    const listed = jobs!.snapshot().filter(entry => entry.listed);
+    const removeHandle = (handle: JobHandle): void => {
+      if (nohupOnly) return;
+      jobs!.disown(handle);
+      for (const [pid, child] of children) {
+        if (child === handle) children.delete(pid);
+      }
+    };
+    if (offset === context.args.length) {
+      if (all || runningOnly) {
+        for (const entry of listed) {
+          if (runningOnly && entry.state === "done") continue;
+          removeHandle(entry.handle);
+        }
+        return 0;
+      }
+      const current = listed.at(-1)?.handle;
+      if (!current) {
+        await context.diagnostic("disown: current: no such job");
+        return 1;
+      }
+      removeHandle(current);
+      return 0;
+    }
+    let statusCode = 0;
+    for (let i = offset; i < context.args.length; i++) {
+      const operand = context.args[i]!;
+      const handle = resolve(operand) ?? resolve(operand.startsWith("%") ? operand : `%${operand}`);
+      if (!handle) {
+        await context.diagnostic(`disown: ${operand}: no such job`);
+        statusCode = 1;
+        continue;
+      }
+      removeHandle(handle);
+    }
+    return statusCode;
   };
   const status = (outcome: JobOutcome): number => {
     if (outcome.kind === "failure") {
@@ -262,7 +330,7 @@ function instance(inherited?: number): ShellExtensionInstance {
     return result;
   };
   return {
-    builtins: [{ name: "wait", execute: wait }, { name: "jobs", execute: list }, { name: "kill", execute: kill }],
+    builtins: [{ name: "wait", execute: wait }, { name: "jobs", execute: list }, { name: "kill", execute: kill }, { name: "disown", execute: disown }],
     start(context) {
       const registerExecutionCleanup = context.registerExecutionCleanup;
       if (typeof registerExecutionCleanup !== "function") throw new TypeError("Jobs require execution-scoped cleanup ownership");
@@ -299,7 +367,7 @@ function instance(inherited?: number): ShellExtensionInstance {
         jobs = createJobState({ signal: ownerSignal });
       } catch (reason) { void finish(); throw reason; }
     },
-    fork: () => instance(latest),
+    fork: () => instance(latest, () => ({ jobs, children })),
     checkpoint() { jobs!.retireNotified(); },
     listTerminators: [{ operator: "&", async execute(context) {
       let processId: number | undefined;

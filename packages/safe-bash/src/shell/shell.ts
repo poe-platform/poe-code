@@ -8,6 +8,7 @@ import type {
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
 import { defaultPortableTrapExtension } from "./trap.js";
+import { jobsExtension } from "./extensions/jobs/index.js";
 import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
@@ -198,7 +199,11 @@ export class Shell implements PluginHost {
     const resolvedLimits = resolveLimits(options.limits);
     const { commandLimits } = resolvedLimits;
     this.#resolvedLimits = resolvedLimits;
-    this.#options = { ...options, extensions: [...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
+    const extensions = [...options.extensions ?? []];
+    if (options.backgroundJobs && !extensions.some(ext => ext.name === "jobs")) {
+      extensions.push(jobsExtension());
+    }
+    this.#options = { ...options, extensions, cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
     this.commands = commands;
   }
 

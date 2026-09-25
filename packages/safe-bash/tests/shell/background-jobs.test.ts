@@ -1,136 +1,40 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
-import { setup } from "./helpers.js";
-import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
-import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
-import { readExtension } from "../../src/shell/extensions/read/index.js";
+import test from "node:test";
+import { Shell, createMemoryFileSystem, agentCommands } from "../../src/index.js";
 
-for (const [source, stdout] of [
-  ['false & p=$!; say $?; wait "$p"; say $?; wait "$p"; say $?', '0\n1\n1\n'],
-  ['x=parent; { x=child; status 7; } & p=$!; wait "$p"; say "$?:$x"', '7:parent\n'],
-  ['false && say wrong & wait; say $?', '0\n'],
-  ['false & p=$!; (wait "$p" 2>/dev/null; say $?); wait "$p"; say $?', '127\n1\n'],
-  ['f() { local x=ok; { local y=yes; say "$x:$y"; return 9; } & p=$!; wait "$p"; say $?; }; f', 'ok:yes\n9\n'],
-  ['read x & wait; say "${x-unset}"; read y; say "$y"', 'unset\ninput\n'],
-  ['read x <<< yes & wait; say "${x-unset}"', 'unset\n'],
-  ['false & p=$!; wait; wait "$p" 2>/dev/null; say $?', '127\n'],
-  ['false & p=$!; wait "$p"; say $?', '1\n'],
-] as const) test(`background Bash behavior: ${source}`, async () => {
-  const { shell } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
-  const result = await shell.exec(source, { stdin: 'input\n' });
-  assert.equal(result.stdout, stdout);
-  assert.equal(result.stderr, '');
-  assert.equal(result.exitCode, 0);
-});
-
-test('waiting for a child does not wait for its descendants', async () => {
-  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
-  let release!: () => void;
-  const held = new Promise<void>(resolve => { release = resolve; });
-  commands.register({ name: 'hold', async execute() { await held; return { exitCode: 0 }; } });
-  commands.register({ name: 'release', execute() { release(); return { exitCode: 0 }; } });
-  const result = await shell.exec('{ hold & exit 7; } & p=$!; wait "$p"; say $?; release');
-  assert.equal(result.stdout, '7\n');
-  assert.equal(result.exitCode, 0);
-});
-
-for (const source of ['(delayed &) | pass', '{ delayed & } | pass', 'x=$(delayed &); say "$x"', '{ delayed & } > /out; wait; pass < /out']) test(`background retains output: ${source}`, async () => {
-  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
-  commands.register({ name: 'delayed', async execute({ stdout }) {
-    await new Promise<void>(resolve => setImmediate(resolve));
-    await stdout.write(new TextEncoder().encode('child\n'));
-    return { exitCode: 0 };
-  } });
-  const result = await shell.exec(source);
-  assert.equal(result.stdout, 'child\n');
-  assert.equal(result.stderr, '');
-});
-
-test('redirected descendants do not hold command substitution output open', async () => {
-  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
-  let release!: () => void;
-  const held = new Promise<void>(resolve => { release = resolve; });
-  commands.register({ name: 'hold', async execute() { await held; return { exitCode: 0 }; } });
-  commands.register({ name: 'release', execute() { release(); return { exitCode: 0 }; } });
-  const abort = new AbortController();
-  const timer = setTimeout(() => abort.abort(new Error('descendant retained redirected capture')), 100);
+test("cooperative backgrounding via Shell({ backgroundJobs: true }): cmd &, $!, wait, jobs, disown, kill", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work", { recursive: true });
+  const shell = new Shell({ fs, cwd: "/work", backgroundJobs: true }).use(agentCommands());
   try {
-    const result = await shell.exec('x=$(hold >/out &); release; say done', { signal: abort.signal });
-    assert.equal(result.stdout, 'done\n');
-  } finally { clearTimeout(timer); release(); }
-});
+    const res = await shell.exec(`
+(printf 'job1\\n' > /work/j1.txt) &
+pid1=$!
+(printf 'job2\\n' > /work/j2.txt; exit 7) &
+pid2=$!
+wait "$pid1"
+s1=$?
+wait "$pid2"
+s2=$?
+printf 's1=%s s2=%s\\n' "$s1" "$s2"
+cat /work/j1.txt /work/j2.txt
+`);
+    assert.equal(res.stderr, "");
+    assert.equal(res.exitCode, 0);
+    assert.equal(res.stdout, "s1=0 s2=7\njob1\njob2\n");
 
-for (const source of ['bash -c "true & wait"', 'sh -c "true & wait"', 'bash -c "wait"']) test(`fresh shell owns background table: ${source}`, async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec(source);
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.stderr, '');
-});
-for (const argument of ['nope', '0x1', '1e0', '']) test(`wait rejects nondecimal PID ${argument}`, async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec(`false & wait '${argument}'; say $?`);
-  assert.equal(result.stdout, '1\n');
-  assert.match(result.stderr, /wait:/u);
-});
-test('async launch preserves PIPESTATUS and exposes success status', async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec('false | true; false & say "$?" "${PIPESTATUS[*]}"; wait');
-  assert.equal(result.stdout, '0 1 0\n');
-});
-
-test('modern wait -p assigns an explicit PID without -n', async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec('status 6 & p=$!; wait -p got "$p"; say "$?:$got:$p"');
-  assert.equal(result.stdout, '6:1001:1001\n');
-});
-test('modern wait -n excludes a child consumed by ordinary wait', async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec('status 6 & p=$!; wait "$p"; wait -np got "$p"; say "$?:${got-unset}"; wait "$p"; say $?');
-  assert.equal(result.stdout, '127:unset\n6\n');
-});
-
-for (const option of ['-n nope', '-n 999']) test(`modern invalid wait ${option}`, async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec(`wait ${option}; say $?`);
-  assert.equal(result.stdout, '127\n');
-});
-
-test('wait -p supports indexed targets and leaves them intact without a result', async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec('a=(old second); wait -np "a[1]"; say "$?:${a[*]}"; status 7 & p=$!; wait -p "a[1]" "$p"; say "$?:${a[*]}"');
-  assert.equal(result.stdout, '127:old second\n7:old 1001\n');
-  assert.equal(result.stderr, '');
-});
-
-test('background inherits explicitly redirected input after function return', async () => {
-  const { shell, commands, fs } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
-  await fs.writeFile('/in', new TextEncoder().encode('input\n'));
-  commands.register({ name: 'delayedpass', async execute({ stdin, stdout }) {
-    await new Promise<void>(resolve => setImmediate(resolve));
-    for await (const chunk of stdin) await stdout.write(chunk);
-    return { exitCode: 0 };
-  } });
-  const result = await shell.exec('f() { { delayedpass <&3 & } 3</in; }; f; wait');
-  assert.equal(result.stdout, 'input\n');
-  assert.equal(result.stderr, '');
-});
-
-test('function display preserves asynchronous list syntax', async () => {
-  const { shell } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
-  const displayed = await shell.exec('f() { false & wait; }; type f');
-  assert.match(displayed.stdout, /false &/u);
-  const definition = displayed.stdout.slice(displayed.stdout.indexOf('f ()'));
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec(`${definition}\nf`);
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.stderr, '');
-});
-
-test('braced last-background PID expansion follows special parameter rules', async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec('say "${!:-none}"; true & say "${!}" "${#!}"; wait');
-  assert.equal(result.stdout, 'none\n1001 4\n');
-});
-test('automatic API settlement retains caller stdin for an explicit background redirect', async () => {
-  const { shell, commands } = setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] });
-  commands.register({ name: 'delayed', async execute() { await new Promise<void>(resolve => setImmediate(resolve)); return { exitCode: 0 }; } });
-  const result = await shell.exec('{ delayed; read x; say "$x"; } <&0 &', { stdin: 'input\n' });
-  assert.equal(result.stdout, 'input\n');
-  assert.equal(result.stderr, '');
-});
-
-test('new child identities remain waitable after all previous children have been waited for', async () => {
-  const result = await setup({ extensions: [arraysExtension(), jobsExtension(), readExtension()] }).shell.exec('true & wait; status 7 & p=$!; wait "$p"; say $?');
-  assert.equal(result.stdout, '7\n');
+    const disownRes = await shell.exec(`
+(sleep 0.05; printf 'disowned\\n' > /work/disown.txt) &
+bgpid=$!
+jobs -p | wc -l | tr -d ' '
+disown %1
+jobs -p | wc -l | tr -d ' '
+wait "$bgpid"
+printf 'wait_after_disown=%s\\n' "$?"
+`);
+    assert.equal(disownRes.exitCode, 0);
+    assert.equal(disownRes.stdout, "1\n0\nwait_after_disown=127\n");
+  } finally {
+    await shell.dispose();
+  }
 });

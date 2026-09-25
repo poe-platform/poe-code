@@ -133,6 +133,7 @@ export interface ShellOptions {
   readonly env?: Readonly<Record<string, string>>;
   readonly limits?: ShellLimits;
   readonly extensions?: readonly ShellExtension[];
+  readonly backgroundJobs?: boolean;
   readonly hooks?: ShellSessionHooks | undefined;
 }
 

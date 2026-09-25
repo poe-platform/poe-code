@@ -46,7 +46,7 @@ describe("compiled optional background jobs", { skip: selected === undefined ? "
     assert.equal(subject.extension.runtimeIdentity, subject.published.commandRuntimeIdentity);
     assert.deepEqual(subject.extension.syntax?.listTerminators, [{ operator: "&" }]);
     assert.deepEqual(subject.extension.syntax?.specialParameters, [{ name: "!" }]);
-    assert.deepEqual(subject.extension.create().builtins.map(builtin => builtin.name), ["wait"]);
+    assert.deepEqual(subject.extension.create().builtins.map(builtin => builtin.name), ["wait", "jobs", "kill", "disown"]);
     const result = await subject.shell.exec("type -t wait");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "builtin\n");

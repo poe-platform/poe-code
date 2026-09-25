@@ -60,7 +60,7 @@ jobs:
         run: npm run build
       - uses: ./.github/actions/setup-bash-oracle
       - name: Run the complete @poe-platform/safe-bash unit suite serially
-        run: npm run test:unit --workspace @poe-platform/safe-bash -- --test-concurrency=1
+        run: npm run test:unit --workspace @poe-platform/safe-bash -- --test-concurrency=1 --test-timeout=600000
   bun-public-imports:
     name: Packed public APIs (Bun 1.3.11 and Node22)
     runs-on: ubuntu-latest

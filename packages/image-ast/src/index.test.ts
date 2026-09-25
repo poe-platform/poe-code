@@ -2173,4 +2173,32 @@ describe("@poe-code/image-ast (sharp core)", () => {
       sharp(rawPages, { raw: { width: 2, height: 5, channels: 3, pageHeight: 2 } })
     ).toThrow(/Expected raw\.height 5 to be a multiple of raw\.pageHeight 2/);
   });
+
+  it("supports autoOrient: true on composite() layers and requires both left and top when either is set", async () => {
+    const raw4x2 = Buffer.alloc(4 * 2 * 3);
+    for (let i = 0; i < 4 * 2; i++) {
+      raw4x2[i * 3] = i < 4 ? 255 : 0;
+      raw4x2[i * 3 + 2] = i < 4 ? 0 : 255;
+    }
+    const exifTiff = await sharp(raw4x2, { raw: { width: 4, height: 2, channels: 3 } })
+      .withMetadata({ orientation: 6 })
+      .tiff()
+      .toBuffer();
+
+    const base = { create: { width: 6, height: 6, channels: 3 as const, background: { r: 0, g: 255, b: 0 } } };
+    const compRaw = await sharp(base)
+      .composite([{ input: exifTiff, autoOrient: true, top: 0, left: 0 } as any])
+      .raw()
+      .toBuffer();
+    // Auto-oriented 4x2 (orientation 6 = 90 CW) becomes 2x4, so (x=0, y=3) is blue [0, 0, 255, 255] and (x=3, y=0) is green base [0, 255, 0, 255]
+    expect(Array.from(compRaw.subarray((3 * 6 + 0) * 4, (3 * 6 + 1) * 4))).toEqual([0, 0, 255, 255]);
+    expect(Array.from(compRaw.subarray((0 * 6 + 3) * 4, (0 * 6 + 4) * 4))).toEqual([0, 255, 0, 255]);
+
+    expect(() =>
+      sharp(base).composite([{ input: exifTiff, top: 1 } as any])
+    ).toThrow(/Expected both left and top to be set/);
+    expect(() =>
+      sharp(base).composite([{ input: exifTiff, left: 1 } as any])
+    ).toThrow(/Expected both left and top to be set/);
+  });
 });

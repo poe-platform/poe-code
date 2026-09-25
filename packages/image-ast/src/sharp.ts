@@ -683,6 +683,23 @@ export class SharpInstance {
   }
 
   composite(images: readonly CompositeLayer[]): this {
+    if (!Array.isArray(images)) {
+      throw new Error("Expected array for images to composite");
+    }
+    for (const img of images) {
+      if (!img || typeof img !== "object") {
+        throw new Error("Expected object for image to composite");
+      }
+      if ((img.top !== undefined) !== (img.left !== undefined)) {
+        throw new Error("Expected both left and top to be set");
+      }
+      if (img.top !== undefined && !Number.isInteger(img.top)) {
+        throw new Error(`Expected integer for top but received ${img.top}`);
+      }
+      if (img.left !== undefined && !Number.isInteger(img.left)) {
+        throw new Error(`Expected integer for left but received ${img.left}`);
+      }
+    }
     const existingIdx = this.nodes.findIndex(n => n.kind === "composite");
     if (existingIdx !== -1) {
       this.nodes[existingIdx] = { kind: "composite", layers: [...images] };

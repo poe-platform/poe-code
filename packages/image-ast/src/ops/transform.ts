@@ -511,26 +511,33 @@ export function compositeImage(
 
   for (const layer of layers) {
     let overlay: RgbaImage;
+    const layerOpts = {
+      ...(layer.density !== undefined ? { density: layer.density } : {}),
+      ...(layer.page !== undefined ? { page: layer.page } : {}),
+      ...(layer.pages !== undefined ? { pages: layer.pages } : {}),
+      ...(layer.animated !== undefined ? { animated: layer.animated } : {}),
+      ...(layer.raw !== undefined
+        ? {
+            raw: {
+              ...layer.raw,
+              ...(layer.premultiplied !== undefined ? { premultiplied: layer.premultiplied } : {})
+            }
+          }
+        : {})
+    };
     if (typeof layer.input === "string") {
       const strBytes = layer.input.trimStart().startsWith("<")
         ? new TextEncoder().encode(layer.input)
         : new Uint8Array(fs.readFileSync(layer.input));
-      overlay = decodeImage(
-        strBytes,
-        layer.density !== undefined ? { density: layer.density } : undefined
-      );
-    } else if (layer.input instanceof Uint8Array) {
-      overlay = decodeImage(layer.input, {
-        ...(layer.density !== undefined ? { density: layer.density } : {}),
-        ...(layer.raw !== undefined
-          ? {
-              raw: {
-                ...layer.raw,
-                ...(layer.premultiplied !== undefined ? { premultiplied: layer.premultiplied } : {})
-              }
-            }
-          : {})
-      });
+      overlay = decodeImage(strBytes, layerOpts);
+    } else if (layer.input instanceof Uint8Array || ArrayBuffer.isView(layer.input) || layer.input instanceof ArrayBuffer) {
+      const bufBytes =
+        layer.input instanceof Uint8Array
+          ? layer.input
+          : ArrayBuffer.isView(layer.input)
+            ? new Uint8Array(layer.input.buffer, layer.input.byteOffset, layer.input.byteLength)
+            : new Uint8Array(layer.input);
+      overlay = decodeImage(bufBytes, layerOpts);
       if (layer.premultiplied && !layer.raw) {
         const unpremul = new Uint8Array(overlay.data.length);
         for (let i = 0; i < overlay.width * overlay.height; i++) {
@@ -557,6 +564,9 @@ export function compositeImage(
       });
     }
 
+    if (layer.autoOrient && overlay.orientation && overlay.orientation > 1) {
+      overlay = applyExifOrientation(overlay);
+    }
     if (overlay.width > baseW || overlay.height > baseH) {
       throw new Error("Image to composite must have same dimensions or smaller");
     }

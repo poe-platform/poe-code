@@ -226,6 +226,10 @@ export interface CompositeLayer {
   readonly tile?: boolean;
   readonly premultiplied?: boolean;
   readonly density?: number;
+  readonly autoOrient?: boolean;
+  readonly page?: number;
+  readonly pages?: number;
+  readonly animated?: boolean;
   readonly raw?: {
     readonly width: number;
     readonly height: number;

@@ -98,11 +98,8 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   const interrupted = (): void => {
     if (!controller.signal.aborted) {
       controller.abort(context.signal.reason);
-      const symSet = (signal as unknown as Record<symbol, ((reason: unknown) => void) | Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
-      if (typeof symSet === "function") {
-        (signal as unknown as Record<symbol, unknown>)[managedWaitersSymbol] = undefined;
-        symSet(signal.reason);
-      } else if (symSet && symSet.size > 0) {
+      const symSet = (signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
+      if (symSet && symSet.size > 0) {
         const pending = [...symSet];
         symSet.clear();
         for (let i = 0; i < pending.length; i++) pending[i]!(signal.reason);
@@ -118,9 +115,8 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   try {
     context.registerCleanup?.(cleanup);
     if ((context.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      const rec = context.signal as unknown as Record<symbol, ((reason: unknown) => void) | Set<(reason: unknown) => void> | undefined>;
-      const cur = rec[managedWaitersSymbol];
-      callerWaiters = typeof cur === "function" ? (rec[managedWaitersSymbol] = new Set([cur])) : (cur ?? (rec[managedWaitersSymbol] = new Set()));
+      const rec = context.signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>;
+      callerWaiters = rec[managedWaitersSymbol] ??= new Set();
       callerWaiters.add(interrupted);
     } else {
       context.signal.addEventListener("abort", interrupted, { once: true });

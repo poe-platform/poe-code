@@ -125,9 +125,8 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     const request = { ...options };
     scope = request.signal ? AbortSignal.any([context.signal, request.signal]) : context.signal;
     if ((scope as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      const rec = scope as unknown as Record<symbol, ((reason: unknown) => void) | Set<(reason: unknown) => void> | undefined>;
-      const cur = rec[managedWaitersSymbol];
-      scopeWaiters = typeof cur === "function" ? (rec[managedWaitersSymbol] = new Set([cur])) : (cur ?? (rec[managedWaitersSymbol] = new Set()));
+      const rec = scope as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>;
+      scopeWaiters = rec[managedWaitersSymbol] ??= new Set();
       scopeWaiters.add(aborted);
     } else {
       scope.addEventListener("abort", aborted, { once: true });

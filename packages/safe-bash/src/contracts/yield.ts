@@ -1,3 +1,5 @@
+import { addAbortSignalWaiter, isManagedAbortSignal } from "../fs/creation-mask.js";
+
 type ImmediateHost = typeof globalThis & {
   setImmediate?: (callback: () => void) => unknown;
   clearImmediate?: (handle: unknown) => void;
@@ -20,8 +22,6 @@ interface SignalYieldState {
 }
 
 const signalYieldStates = new WeakMap<AbortSignal, SignalYieldState>();
-const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
-const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
 
 function getCheckpoint(signal: AbortSignal): (() => void) | undefined {
   return (signal as unknown as Record<symbol, (() => void) | undefined>)[checkpointSymbol] ?? checkpoints.get(signal);
@@ -66,9 +66,8 @@ function getSignalYieldState(signal: AbortSignal): SignalYieldState {
         for (const fn of overflow) fn();
       }
     };
-    if ((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      const record = signal as unknown as Record<symbol, Set<() => void> | undefined>;
-      (record[managedWaitersSymbol] ??= new Set()).add(onSignalAbort);
+    if (isManagedAbortSignal(signal)) {
+      addAbortSignalWaiter(signal, onSignalAbort);
     } else {
       signal.addEventListener("abort", onSignalAbort, { once: true });
     }

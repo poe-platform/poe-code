@@ -4,6 +4,20 @@ import { createMemoryFileSystem, FsError, type FileSystem, type FsOptions } from
 import type { InvocationCleanup } from "../../src/contracts/command.js";
 import type { CommandFileDescriptor } from "../../src/contracts/filesystem-descriptor.js";
 import { bindFileOutputBudget, openFileOutput } from "../../src/contracts/filesystem-output.js";
+import { addAbortSignalWaiter, createManagedControlController } from "../../src/fs/creation-mask.js";
+
+test("descriptor output forwards managed cancellation and preserves sibling waiters", async () => {
+  const controller = createManagedControlController();
+  const observed: unknown[] = [];
+  addAbortSignalWaiter(controller.signal, reason => observed.push(reason));
+  const output = await openFileOutput({ fs: createMemoryFileSystem(), signal: controller.signal }, "/out", { flag: "w", descriptor: true });
+  const forwarded: unknown[] = [];
+  addAbortSignalWaiter(output.signal, reason => forwarded.push(reason));
+  controller.abort(false);
+  await assert.rejects(output.finish(), reason => reason === false);
+  assert.deepEqual(observed, [false]);
+  assert.deepEqual(forwarded, [false]);
+});
 
 function deferred<Value = void>() {
   let resolve!: (value: Value) => void;

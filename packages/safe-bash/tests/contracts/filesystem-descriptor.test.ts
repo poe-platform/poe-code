@@ -6,6 +6,19 @@ import { bindFileOutputBudget, writeFileOutputCounted, type CountedFileWrite } f
 import { openCommandFile } from "../../src/contracts/filesystem-descriptor.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
+import { addAbortSignalWaiter, createManagedControlController } from "../../src/fs/creation-mask.js";
+
+test("descriptor retirement preserves another managed cancellation waiter", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Uint8Array.of(1));
+  const controller = createManagedControlController();
+  const observed: unknown[] = [];
+  addAbortSignalWaiter(controller.signal, reason => observed.push(reason));
+  const descriptor = await openCommandFile({ fs, signal: controller.signal }, "/input", { access: "read" });
+  await descriptor.close();
+  controller.abort(false);
+  assert.deepEqual(observed, [false]);
+});
 
 function deferred<Value = void>() {
   let resolve!: (value: Value) => void;

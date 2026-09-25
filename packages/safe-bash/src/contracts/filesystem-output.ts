@@ -3,14 +3,12 @@ import type { CommandContext } from "./command.js";
 import type { FsOptions } from "./filesystem.js";
 import { createBytePipe, outputFailure, type BytePipe, type ByteSink, type ByteSource } from "./io.js";
 import { createOutputOperation } from "./output.js";
+import { abortManagedController, addAbortSignalWaiter, isManagedAbortSignal, registerManagedAbortSignal, removeAbortSignalWaiter } from "../fs/creation-mask.js";
 
 import { filesystemOutputBudgets, type FileOutputContext } from "./filesystem-output-budget.js";
 import { openCommandFile, type CommandFileDescriptor } from "./filesystem-descriptor.js";
 export { bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
 export type { CountedFileWrite, FileOutputContext } from "./filesystem-output-budget.js";
-
-const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
-const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
 
 
 export async function writeFileOutput(context: Pick<CommandContext, "signal" | "registerCleanup">, bytes: Uint8Array, write: (bytes: Uint8Array) => Promise<void>): Promise<void> {
@@ -51,8 +49,8 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   const { cleanupFailurePrioritySignal } = context;
   if (flag !== "w" && flag !== "a" && flag !== "wx") throw new TypeError("Invalid descriptor output flag");
   const controller = new AbortController();
-  (controller.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol] = true;
-  if (context.signal.aborted) controller.abort(context.signal.reason);
+  registerManagedAbortSignal(controller.signal);
+  if (context.signal.aborted) abortManagedController(controller, context.signal.reason);
   const signal = controller.signal;
   let descriptor: CommandFileDescriptor | undefined;
   let accepting = true;
@@ -67,7 +65,6 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   let aborting: Promise<void> | undefined;
   let acquired: (() => void) | undefined;
   let acquisition: Promise<void> | undefined;
-  let callerWaiters: Set<(reason: unknown) => void> | undefined;
   const settleAcquisition = (): void => {
     acquiring = false;
     acquired?.();
@@ -88,7 +85,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
       try { await descriptor?.close(); }
       catch (reason) { retirementFailure = { reason }; throw reason; }
       finally {
-        if (callerWaiters) callerWaiters.delete(interrupted);
+        if (isManagedAbortSignal(context.signal)) removeAbortSignalWaiter(context.signal, interrupted);
         else context.signal.removeEventListener("abort", interrupted);
       }
     })();
@@ -97,13 +94,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   };
   const interrupted = (): void => {
     if (!controller.signal.aborted) {
-      controller.abort(context.signal.reason);
-      const symSet = (signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>)[managedWaitersSymbol];
-      if (symSet && symSet.size > 0) {
-        const pending = [...symSet];
-        symSet.clear();
-        for (let i = 0; i < pending.length; i++) pending[i]!(signal.reason);
-      }
+      abortManagedController(controller, context.signal.reason);
     }
     void retire().catch(() => {});
   };
@@ -114,10 +105,8 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   };
   try {
     context.registerCleanup?.(cleanup);
-    if ((context.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      const rec = context.signal as unknown as Record<symbol, Set<(reason: unknown) => void> | undefined>;
-      callerWaiters = rec[managedWaitersSymbol] ??= new Set();
-      callerWaiters.add(interrupted);
+    if (isManagedAbortSignal(context.signal)) {
+      addAbortSignalWaiter(context.signal, interrupted);
     } else {
       context.signal.addEventListener("abort", interrupted, { once: true });
     }
@@ -182,7 +171,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
           }
         } catch (reason) {
           failure ??= { reason: context.signal.aborted ? context.signal.reason : reason, cancellation: context.signal.aborted };
-          controller.abort(failure.reason);
+          abortManagedController(controller, failure.reason);
           check();
         }
       });
@@ -192,7 +181,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     const abort = (reason: unknown): Promise<void> => {
       if (!completed && !retirementFailure) {
         failure ??= { reason, cancellation: context.signal.aborted };
-        controller.abort(failure.reason);
+        abortManagedController(controller, failure.reason);
       }
       return aborting ??= cleanup();
     };

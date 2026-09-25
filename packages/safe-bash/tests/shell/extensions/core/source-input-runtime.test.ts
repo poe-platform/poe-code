@@ -46,8 +46,12 @@ for (const [label, stdin, hex] of [
   assert.equal(result.stderr, "");
 });
 
-test("Shell finite input owns its admitted bytes before extension startup mutates the caller buffer", async context => {
-  const bytes = Uint8Array.of(255, 10);
+for (const [label, makeBytes] of [
+  ["Uint8Array", () => Uint8Array.of(255, 10)],
+  ["Buffer", () => Buffer.from([255, 10])],
+  ["subarray", () => Uint8Array.of(1, 255, 10, 2).subarray(1, 3)],
+] as const) test(`Shell finite input owns its admitted bytes before extension startup mutates the caller buffer: ${label}`, async context => {
+  const bytes = makeBytes();
   const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [{ name: "ownership", create: () => ({
     start() { bytes.fill(65); }, builtins: [{ name: "probe", async execute(command) {
       const lease = command.input.borrow(0);

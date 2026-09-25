@@ -329,7 +329,7 @@ export class Shell implements PluginHost {
           const value = options.stdin ?? "";
           const inlineBytes = typeof value === "string"
             ? (value.length > 0 ? Buffer.from(value, "utf8") : undefined)
-            : (value.byteLength > 0 ? value : undefined);
+            : (value.byteLength > 0 ? new Uint8Array(value) : undefined);
           let available = inlineBytes !== undefined;
           const inline = {
             [Symbol.asyncIterator]() {

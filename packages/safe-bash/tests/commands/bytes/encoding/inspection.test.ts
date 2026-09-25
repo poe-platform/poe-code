@@ -135,7 +135,7 @@ test("xxd: issue 420 native reverse lexical inputs across chunk boundaries", asy
   }
 });
 
-test("xxd: normal reversal retains address and line bounds", async () => {
+test("xxd: normal reversal validates addresses and data", async () => {
   assert.equal((await run("xxd", ["-rp"], " 61\t62\r\n63 ")).stdout, "abc");
   for (const text of ["garbage", "00000000: 6g", "00000001: 61", "00000000: 61\n00000000: 62", "00000000: 6", "x".repeat(4097)]) {
     assert.equal((await run("xxd", ["-r"], text)).exitCode, 1, text.slice(0, 30));
@@ -151,7 +151,7 @@ test("xxd: unsupported flags/output operands preserve every VFS file", async () 
   await fs.writeFile("/output", Buffer.from("preserved"));
   await fs.symlink("/input", "/alias");
   await fs.link("/input", "/hardlink");
-  for (const args of [["-r", "input", "output"], ["-r", "input", "alias"], ["-r", "input", "hardlink"], ["-s-1"], ["-c257"], ["-c0"], ["-r", "-s1"], ["-r", "-l1"], ["-r", "-d"], ["-g257"], ["-g257", "-g1"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
+  for (const args of [["-r", "input", "output"], ["-r", "input", "alias"], ["-r", "input", "hardlink"], ["-s-1"], ["-c0"], ["-r", "-s1"], ["-r", "-l1"], ["-r", "-d"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
     assert.equal((await run("xxd", args, "!!", { fs })).exitCode, 2, args.join(" "));
   }
   assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "original");
@@ -302,10 +302,10 @@ test("options: every supplied value validates before input is read", async () =>
   const cases: readonly [string, readonly string[]][] = [
     ["base64", ["--wrap=bad", "--wrap=0"]],
     ["base32", ["-d", "-w-1", "-w0"]],
-    ["xxd", ["-c257", "-c16"]],
+    ["xxd", ["-c9007199254740992", "-c16"]],
     ["xxd", ["-c0", "-c16"]],
-    ["xxd", ["-p", "-c4097", "-c0"]],
-    ["xxd", ["-g257", "-g0"]],
+    ["xxd", ["-p", "-c-1", "-c0"]],
+    ["xxd", ["-g-1", "-g0"]],
     ["xxd", ["-sbad", "-s0"]],
     ["xxd", ["-l-1", "-l0"]],
     ["xxd", ["-o9007199254740992", "-o0"]],
@@ -493,4 +493,31 @@ for (const [group, hex] of [
   const result = await run("xxd", ["-e", `-g${group}`], sliced(Buffer.from("0123456789abcdef")));
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, `00000000: ${hex}  0123456789abcdef\n`);
+});
+
+
+test("encoding: explicit widths and groups have no implicit quota", async () => {
+  const input = new Uint8Array(5000).fill(65);
+  for (const args of [["-c5000", "-g512"], ["-p", "-c5000"]]) {
+    const encoded = await run("xxd", args, sliced(input, 2000));
+    assert.equal(encoded.exitCode, 0, encoded.stderr);
+    const decoded = await run("xxd", args.includes("-p") ? ["-rp"] : ["-r", "-c5000"], sliced(encoded.bytes, 1000));
+    assert.equal(decoded.exitCode, 0, decoded.stderr);
+    assert.deepEqual(decoded.bytes, Buffer.from(input));
+  }
+  const od = await run("od", ["-An", "-tx1", "-w5000"], input);
+  assert.equal(od.exitCode, 0, od.stderr);
+  assert.equal(od.stdout, " 41".repeat(input.length) + "\n");
+});
+
+test("xxd: reverse lines accept long ignored trailers", async () => {
+  const result = await run("xxd", ["-r"], sliced(Buffer.from("00000000: 61  " + "x".repeat(5000) + "\n"), 1000));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "a");
+});
+
+test("od: output type selections have no implicit quota", async () => {
+  const result = await run("od", ["-An", ...Array(17).fill("-tx1")], Uint8Array.of(65));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, " 41\n".repeat(17));
 });

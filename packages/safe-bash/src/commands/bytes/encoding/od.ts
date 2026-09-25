@@ -136,10 +136,9 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
       return text;
     }, "little");
     const selected = (parsed.values.get("t") ?? ["o2"]).flatMap(formats);
-    if (selected.length > 16) throw new UsageError("at most 16 output types are supported");
     const width = validatedOption(parsed, "w", text => {
       const number = numeric(text);
-      if (number < 1 || number > 4096 || selected.some(format => number % format.size !== 0)) throw new UsageError("width must be 1..4096 and a multiple of each output type size");
+      if (number < 1 || selected.some(format => number % format.size !== 0)) throw new UsageError("width must be positive and a multiple of each output type size");
       return number;
     }, 16);
     const skip = validatedOption(parsed, "j", text => numeric(text, true), 0);

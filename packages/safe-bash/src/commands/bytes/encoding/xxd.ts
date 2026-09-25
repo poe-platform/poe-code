@@ -69,7 +69,6 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
     for (const byte of chunk) {
       if (byte === 10) await emitLine();
       else {
-        if (line.length >= 4096) throw new PublicDiagnostic("invalid input: reverse line exceeds 4096 bytes");
         line += String.fromCharCode(byte);
       }
     }
@@ -99,15 +98,14 @@ export function createXxdCommand(maxInputBytes: number): CommandDefinition {
     if (reverse && (binary || include || littleEndian)) throw new UsageError("cannot revert this type of hexdump");
     const columns = validatedOption(parsed, "c", text => {
       const number = numeric(text);
-      if ((!plain && (number < 1 || number > 256)) || (plain && number > 4096)) throw new UsageError("columns must be 1..256 (plain: 0..4096)");
+      if (!plain && number < 1) throw new UsageError("columns must be positive (plain: nonnegative)");
       return number;
     }, plain ? 30 : include ? 12 : binary ? 6 : 16);
     const group = validatedOption(parsed, "g", text => {
       const number = numeric(text);
-      if (number > 256) throw new UsageError("group size must be 0..256");
       return number;
     }, littleEndian ? 4 : binary ? 1 : 2);
-    if (littleEndian && group && (group & (group - 1)) !== 0) throw new UsageError("number of octets per group must be a power of 2 with -e");
+    if (littleEndian && group && !Number.isInteger(Math.log2(group))) throw new UsageError("number of octets per group must be a power of 2 with -e");
     const skip = validatedOption(parsed, "s", numeric, 0);
     const count = validatedOption(parsed, "l", numeric, Infinity);
     const displacement = validatedOption(parsed, "o", numeric, 0);

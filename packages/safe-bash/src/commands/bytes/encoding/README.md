@@ -86,8 +86,8 @@ or writing files, even when it aliases the input.
 | `-r` | Strict reversal to bytes, normal or with `-p`. |
 | `-u` | Uppercase hex data in forward output; addresses remain lowercase. |
 | `-d` | Decimal rather than hexadecimal forward addresses. |
-| `-c N` | Normal columns 1..256, default 16; plain columns 0..4096. Plain zero emits one continuous line and a final LF for nonempty input. |
-| `-g N` | Normal grouping 0..256 bytes, default 2; zero disables grouping. Ignored in plain/reverse modes but still validated. |
+| `-c N` | Positive normal columns, default 16; nonnegative plain columns. Plain zero emits one continuous line and a final LF for nonempty input. |
+| `-g N` | Nonnegative normal grouping in bytes, default 2; zero disables grouping. Ignored in plain/reverse modes but still validated. |
 | `-l N` | Maximum input bytes after skip; default unlimited. |
 | `-s N` | Nonnegative bytes to discard from the stream; default zero. |
 | `-o N` | Nonnegative displacement added to displayed addresses; default zero. |
@@ -115,8 +115,8 @@ ASCII bytes 32..126; other bytes display as `.`. Plain output has no addresses.
   a tab end the data field; the following display/comment field is ignored and
   is not validated against the bytes. A terminal CR and blank lines are accepted.
 - Addresses must be contiguous, starting at zero. Each data field may contain
-  at most `-c` bytes. Lines may be short, and a final LF is optional. Each normal
-  input line is limited to 4096 bytes, excluding LF but including any CR/trailer.
+  at most `-c` bytes. Lines may be short, and a final LF is optional. Normal
+  input lines have no application byte limit.
 - `-s`, `-l`, `-o`, and `-d` are rejected in reverse mode even with zero values.
   `-u` has no effect on reversal; either hex case is accepted.
 - Normal reverse has no garbage recovery, autoskip markers, sparse output,
@@ -137,8 +137,8 @@ Syntax: `od [options] [file ...]`. Defaults are octal addresses, `o2` data,
 | `-A R`, `--address-radix=R` | `d`, `o`, `x` addresses, or `n` to omit them and the final address. |
 | `-j N`, `--skip-bytes=N` | Discard N bytes across concatenated inputs. |
 | `-N N`, `--read-bytes=N` | Read at most N bytes after skipping. |
-| `-t T`, `--format=T`, `--type=T` | Append output types, with at most 16 total. |
-| `-w N`, `--width=N` | Required value 1..4096, divisible by every selected type size. |
+| `-t T`, `--format=T`, `--type=T` | Append output types. |
+| `-w N`, `--width=N` | Required positive value, divisible by every selected type size. |
 | `--endian=little`, `--endian=big` | Explicit byte order, independent of the host. |
 | `-v`, `--output-duplicates` | Show every row rather than suppressing repeated rows. |
 
@@ -179,12 +179,12 @@ zero admits only empty input.
 Input chunks, including a huge single chunk, are processed in views of at most
 8192 bytes. Each nonempty block yields to the event loop before CPU processing;
 empty-only input yields every 64 empty chunks. Commands await each output write
-before continuing and retain bounded codec state, rows, or reverse lines rather
-than accumulating the complete stream. Width and line limits are described
-above. Author tests check output writes no larger than 32768 bytes for their
+before continuing. Codec state stays bounded; rows use caller-selected widths
+and reverse mode retains the current line without an implicit quota. Author
+tests check output writes no larger than 32768 bytes for their
 large-input configurations, plus exact decoded byte output.
 
-These are command-owned working-buffer limits, not a whole-process memory cap:
+These streaming block sizes do not impose a whole-process memory cap:
 a source's huge backing allocation remains referenced while its chunk is being
 processed, and filesystem adapters or output sinks may allocate or collect
 unbounded data themselves. There is no command-level total input/output cap or

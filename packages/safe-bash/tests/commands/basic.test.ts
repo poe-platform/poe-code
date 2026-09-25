@@ -64,11 +64,11 @@ test("printf bounds directive work and diagnostic size without limiting literal 
     assert.equal(valid.exitCode, 0);
     assert.equal(valid.stdout.toString(), "x");
     const oversized = await execute(rejected);
-    assert.equal(oversized.exitCode, 2);
+    assert.equal(oversized.exitCode, 1);
     assert.equal(oversized.stdout.length, 0);
     assert.match(oversized.stderr.toString(), /format directive.*limit/);
     const invalid = await execute("%" + "0".repeat(8192) + "!");
-    assert.equal(invalid.exitCode, 2);
+    assert.equal(invalid.exitCode, 1);
     assert.equal(invalid.stdout.length, 0);
     assert.match(invalid.stderr.toString(), /invalid format/);
     assert.ok(invalid.stderr.length < 256);
@@ -101,7 +101,7 @@ test("printf scans directive grammar consistently for text and opaque byte forma
   for (const format of ["%", "% ", "%8-2s", "%*3s", "%.**s", "%1.2.3s", "%hhhd", "%llld", "%jzd", "%Hs", "%.", "%..s", "%α"]) {
     for (const raw of [false, true]) {
       const result = await runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format]);
-      assert.equal(result.exitCode, 2, format);
+      assert.equal(result.exitCode, 1, format);
       assert.equal(result.stdout.length, 0, format);
       assert.match(result.stderr.toString(), /invalid format/, format);
     }
@@ -572,8 +572,8 @@ test("printf formats common numbers, padding, precision, and byte escapes", asyn
   const invalid = await run("printf", ["%d", "oops"]);
   assert.equal(invalid.exitCode, 1);
   assert.match(invalid.stderr, /invalid number/u);
-  assert.equal((await run("printf", ["%99999999s", "x"])).exitCode, 2);
-  assert.equal((await run("printf", ["%j", "x"])).exitCode, 2);
+  assert.equal((await run("printf", ["%99999999s", "x"])).exitCode, 1);
+  assert.equal((await run("printf", ["%j", "x"])).exitCode, 1);
 });
 
 test("pwd logical and physical paths stay inside virtual filesystem", async () => {
@@ -763,7 +763,54 @@ test("external invoke isolates unexported functions, dispatches external pwd/tru
 });
 
 test("printf supports grouping flag (%\x27d)", async () => {
-  const res = await run("printf", ["%\x27d\n", "1234"]);
+  const res = await run("printf", ["%\x27d|%\x27f\n", "1234", "1234"], { env: { LC_ALL: "C" } });
   assert.equal(res.exitCode, 0);
-  assert.equal(res.stdout, "1234\n");
+  assert.equal(res.stdout, "1234|1234.000000\n");
+});
+
+test("printf preserves Bash string conversion flags", async () => {
+  const result = await run("printf", ["<%05s>|<%05b>|<%05c>|<%05q>", "hi", "hi", "hi", "hi"]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "<   hi>|<   hi>|<    h>|<   hi>");
+  assert.equal(result.stderr, "");
+});
+
+
+test("printf invalid conversions match native Bash status and retain partial output", async () => {
+  for (const format of ["%1$s %1$s", "%2$*1$d", "prefix%Z", "prefix%", "%8-2s"]) {
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", 'printf -- "$@"', "printf", format, "hello"], {
+      env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+    });
+    assert.ifError(native.error);
+    assert.equal(native.signal, null);
+    assert.equal(native.status, 1, format);
+    for (const raw of [false, true]) {
+      const result = await runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format, "hello"]);
+      assert.equal(result.exitCode, native.status, format);
+      assert.deepEqual(result.stdout, native.stdout, format);
+      assert.ok(result.stderr.length > 0, format);
+    }
+  }
+});
+
+test("printf reports invalid options with status one", async () => {
+  const result = await run("printf", ["--invalid"]);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /invalid option/);
+});
+
+test("printf format failures propagate through shell invocation routes", async () => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    for (const prefix of ["", "command ", "builtin ", "env "]) {
+      const result = await shell.exec(`${prefix}printf 'prefix%Z'; status=$?; printf ':STATUS:%s' "$status"; exit "$status"`);
+      assert.equal(result.exitCode, 1, prefix);
+      assert.equal(result.stdout, "prefix:STATUS:1", prefix);
+      assert.match(result.stderr, /invalid format/, prefix);
+    }
+    const result = await shell.exec("set -e; printf 'prefix%Z'; printf unreachable");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "prefix");
+  } finally { await shell.dispose(); }
 });

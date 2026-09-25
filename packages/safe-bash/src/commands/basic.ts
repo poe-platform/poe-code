@@ -325,4 +325,4 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
   return result;
 }
 
-export const printfCommand = define("printf", formatPrintf);
+export const printfCommand = define("printf", formatPrintf, 1, 1);

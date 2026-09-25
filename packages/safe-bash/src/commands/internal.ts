@@ -129,7 +129,7 @@ export async function diagnostic(context: CommandContext, error: unknown): Promi
   await writeDiagnostic(context.stderr, `${context.command}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
 }
 
-export function define(name: string, handler: CommandHandler, failureCode = 1): CommandDefinition {
+export function define(name: string, handler: CommandHandler, failureCode = 1, usageFailureCode = 2): CommandDefinition {
   return {
     name,
     async execute(context) {
@@ -145,7 +145,7 @@ export function define(name: string, handler: CommandHandler, failureCode = 1): 
       catch (error) {
         context.signal.throwIfAborted();
         await diagnostic(context, error);
-        return { exitCode: error instanceof UsageError ? 2 : failureCode };
+        return { exitCode: error instanceof UsageError ? usageFailureCode : failureCode };
       }
     },
   };

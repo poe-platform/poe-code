@@ -183,7 +183,7 @@ test("standalone printf still refuses -v without shell-state capability", async 
       stdout: { write: async chunk => { stdout.push(...chunk); } },
       stderr: { write: async chunk => { stderr.push(...chunk); } },
     });
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, 1);
     assert.deepEqual(stdout, []);
     assert.match(new TextDecoder().decode(Uint8Array.from(stderr)), /invalid option/u);
     assert.deepEqual(env, { value: "old" });

@@ -143,8 +143,16 @@ export async function* lineBatches(
       return;
     }
     let start = 0;
-    for (let end = 0; end < chunk.length; end++) {
-      if (chunk[end] !== delimiter && chunk[end] !== extraDelimiter) continue;
+    let next = extraDelimiter === -1
+      ? chunk.indexOf(delimiter, 0)
+      : (() => {
+          for (let scan = 0; scan < chunk.length; scan++) {
+            if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) return scan;
+          }
+          return -1;
+        })();
+    while (next >= 0) {
+      const end = next;
       if (pending.length + end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
       let content: Buffer;
       let bytes: Buffer;
@@ -161,13 +169,14 @@ export async function* lineBatches(
       offset += bytes.length;
       pending = emptyBuffer;
       start = end + 1;
-      let next = -1;
-      for (let scan = start; scan < chunk.length; scan++) {
-        if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) {
-          next = scan;
-          break;
-        }
-      }
+      next = extraDelimiter === -1
+        ? chunk.indexOf(delimiter, start)
+        : (() => {
+            for (let scan = start; scan < chunk.length; scan++) {
+              if (chunk[scan] === delimiter || chunk[scan] === extraDelimiter) return scan;
+            }
+            return -1;
+          })();
       if (
         batch.length >= maxRecords() ||
         batchBytes >= 64 * 1024 ||

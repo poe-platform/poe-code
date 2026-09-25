@@ -382,7 +382,44 @@ async function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: Abor
   return { bytes, fallback, insensitive };
 }
 
-async function literalStart(program: LiteralProgram, subject: Uint8Array, whole: boolean, word: boolean, ledger: EreLedger, signal: AbortSignal, from = 0): Promise<number> {
+function literalStart(program: LiteralProgram, subject: Uint8Array, whole: boolean, word: boolean, ledger: EreLedger, signal: AbortSignal, from = 0): number | Promise<number> {
+  const { bytes, fallback } = program;
+  const patLen = bytes.length;
+  const subLen = subject.length;
+  if (!program.insensitive && patLen > 0 && ledger.workAllowanceUntilCheckpoint(signal) >= (subLen - from) * 2 + 2) {
+    ledger.chargeWork(1, signal);
+    if (whole && (from !== 0 || patLen !== subLen) || patLen > subLen - from) return -1;
+    const firstByte = bytes[0]!;
+    for (let index = from, prefix = 0; index < subLen;) {
+      if (prefix === 0) {
+        let scan = index;
+        while (scan < subLen && subject[scan] !== firstByte) scan++;
+        if (scan > index) {
+          ledger.chargeWork(scan - index, signal);
+          index = scan;
+          if (index >= subLen) break;
+        }
+      }
+      ledger.chargeWork(1, signal);
+      if (subject[index] === bytes[prefix]) {
+        index++;
+        if (++prefix === patLen) {
+          const start = index - prefix;
+          if (!word || !isAsciiWord(subject[start - 1] ?? -1) && !isAsciiWord(subject[index] ?? -1)) return start;
+          prefix = fallback[prefix - 1]!;
+        }
+      } else if (prefix > 0) {
+        prefix = fallback[prefix - 1]!;
+      } else {
+        index++;
+      }
+    }
+    return -1;
+  }
+  return literalStartAsync(program, subject, whole, word, ledger, signal, from);
+}
+
+async function literalStartAsync(program: LiteralProgram, subject: Uint8Array, whole: boolean, word: boolean, ledger: EreLedger, signal: AbortSignal, from = 0): Promise<number> {
   const { bytes, fallback } = program;
   ledger.charge("work", 1, signal);
   await ledger.checkpoint(signal);
@@ -493,8 +530,10 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
   for (const row of rows) {
-    if (selected.kind === "rg") await validateUtf8(row.bytes, ledger, signal);
-    else {
+    if (selected.kind === "rg") {
+      const pendingUtf8 = validateUtf8(row.bytes, ledger, signal);
+      if (pendingUtf8) await pendingUtf8;
+    } else {
       // Retain subject admission work and cooperative cancellation for raw bytes.
       for (let index = 0; index < row.bytes.length; index++) {
         ledger.charge("work", 1, signal);
@@ -516,7 +555,8 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
     let start = -1;
     let end = -1;
     for (const program of programs) {
-      const candidate = await literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
+      const candidateOrPromise = literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
+      const candidate = typeof candidateOrPromise === "number" ? candidateOrPromise : await candidateOrPromise;
       if (candidate < 0) continue;
       if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; }
       if (selected.kind === "grep") break;

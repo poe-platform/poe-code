@@ -4,7 +4,7 @@ import { platform } from "#safe-fs-platform";
 
 export type ByteSource = AsyncIterable<Uint8Array>;
 
-let sharedTextEncoder: TextEncoder | undefined;
+let sharedTextEncoder: InstanceType<typeof TextEncoder> | undefined;
 const EMPTY_BYTES = new Uint8Array(0);
 const DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
 const RESOLVED_DONE: Promise<IteratorResult<Uint8Array>> = Promise.resolve(DONE_RESULT);

@@ -1997,52 +1997,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   : t
               )
             };
-          } else if (filterComplex.includes("vstack") && loadedDocs.length >= 2) {
-            const f0 = ensureDecodedFrames(
-              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
-              budget
-            );
-            const f1 = ensureDecodedFrames(
-              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
-              budget
-            );
-            const count = Math.min(f0.length, f1.length);
-            const stacked: MediaVideoFrame[] = [];
-            for (let i = 0; i < count; i++) {
-              const a = f0[i]!;
-              const b = f1[i]!;
-              const w = Math.max(a.width, b.width);
-              const h = a.height + b.height;
-              const outData = new Uint8Array(w * h * 4);
-              for (let y = 0; y < a.height; y++) {
-                outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);
-              }
-              for (let y = 0; y < b.height; y++) {
-                outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (a.height + y) * w * 4);
-              }
-              stacked.push({
-                width: w,
-                height: h,
-                data: outData,
-                ptsSeconds: a.ptsSeconds,
-                durationSeconds: a.durationSeconds,
-                keyframe: true
-              });
-            }
-            workingDoc = {
-              ...loadedDocs[0]!,
-              tracks: loadedDocs[0]!.tracks.map((t) =>
-                t.type === "video"
-                  ? {
-                      ...t,
-                      width: stacked[0]?.width ?? t.width,
-                      height: stacked[0]?.height ?? t.height,
-                      samples: [],
-                      decodedVideoFrames: stacked
-                    }
-                  : t
-              )
-            };
           } else if (filterComplex.includes("overlay") && loadedDocs.length >= 2) {
             const f0 = ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,

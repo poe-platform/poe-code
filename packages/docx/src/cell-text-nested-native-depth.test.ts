@@ -38,19 +38,23 @@ describe(`nested native fixture; ${strict}; ${kind}; levels=${levels}`, () => {
   await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("2026-01-02T03:04:06Z") })) }, sink("/input"), { order: "input", compression: "store" }, context());
   input = new Uint8Array(memory.readFileSync("/input") as Buffer); original = input.slice();
   });
-  for (const route of ["model", "direct"] as const)
+  for (const route of ["model", "direct"] as const) describe(route, () => {
+  const outputPath = `/output-${route}`;
   it(`whole cell text honors admitted nested native blocks; ${strict}; ${kind}; levels=${levels}; ${route}`, async () => {
   memory.writeFileSync("/output", "");
-  const outside = '<w:p><w:r><w:t>Outside 日本 עברית é 🌊</w:t></w:r></w:p>';
   const response = await execute({ input: Buffer.from(input).toString("base64"), value, route, host, limits }) as { ok: boolean; output: string; error?: string; stack?: string };
   expect(response, response.stack ?? response.error).toMatchObject({ ok: true });
-  memory.writeFileSync("/output", new Uint8Array(Buffer.from(response.output, "base64")));
-  const output = new Uint8Array(memory.readFileSync("/output") as Buffer), after = readPackage(output), xml = new TextDecoder().decode(after.get("word/document.xml"));
+  memory.writeFileSync(outputPath, new Uint8Array(Buffer.from(response.output, "base64")));
+  });
+  it(`retains archive and public model after ${route} cell edit`, async () => {
+  const outside = '<w:p><w:r><w:t>Outside 日本 עברית é 🌊</w:t></w:r></w:p>';
+  const output = new Uint8Array(memory.readFileSync(outputPath) as Buffer), after = readPackage(output), xml = new TextDecoder().decode(after.get("word/document.xml"));
   expect(xml).toContain('w:id="71"'); expect(xml).toContain('w:name="NestedAnchor"'); expect(xml).toContain("<!--nested-native-retain-->"); expect(xml).toContain("<?nested retain?>"); expect(xml).toContain(outside);
   for (const [name, bytes] of parts) if (name !== "word/document.xml") expect(after.get(name), name).toEqual(bytes);
   const doc = await api.Document(output, context()), cell = doc.tables[0]!.cell(0, 0);
   expect(cell.text).toBe(value); expect(cell.width!.inches).toBe(1); expect(cell.tables.length).toBe(0); expect(cell.paragraphs.length).toBe(1); expect(cell.paragraphs[0]!.runs.length).toBe(1); expect(cell.paragraphs[0]!.runs[0]!.bold).toBe(null); expect(doc.paragraphs[0]!.text).toBe("Outside 日本 עברית é 🌊");
   expect(Buffer.from(input).equals(Buffer.from(original))).toBe(true);
   expect((memory.readFileSync("/input") as Buffer).equals(Buffer.from(original))).toBe(true);
+});
 });
 });

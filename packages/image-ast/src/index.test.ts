@@ -1384,4 +1384,46 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(rawOut.info.channels).toBe(4);
     expect(Array.from(rawOut.data.slice(0, 4))).toEqual([10, 10, 10, 128]);
   });
+
+  it("matches libvips vips_affine on idx/idy/odx/ody translation offsets (#80)", async () => {
+    const raw3x3 = Buffer.alloc(3 * 3 * 3);
+    for (let y = 0; y < 3; y++) {
+      for (let x = 0; x < 3; x++) {
+        const idx = (y * 3 + x) * 3;
+        raw3x3[idx] = (x + 1) * 20;
+        raw3x3[idx + 1] = (y + 1) * 30;
+        raw3x3[idx + 2] = 50;
+      }
+    }
+    const outOdx = await sharp(raw3x3, { raw: { width: 3, height: 3, channels: 3 } })
+      .affine(
+        [
+          [1, 0],
+          [0, 1]
+        ],
+        { odx: 1, ody: 1, background: { r: 9, g: 8, b: 7 } }
+      )
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(outOdx.info.width).toBe(3);
+    expect(outOdx.info.height).toBe(3);
+    // (0,0) is background [9,8,7], (1,1) is shifted source (0,0) = [20,30,50]
+    expect(Array.from(outOdx.data.slice(0, 3))).toEqual([9, 8, 7]);
+    expect(Array.from(outOdx.data.slice((1 * 3 + 1) * 3, (1 * 3 + 1) * 3 + 3))).toEqual([20, 30, 50]);
+
+    const outIdx = await sharp(raw3x3, { raw: { width: 3, height: 3, channels: 3 } })
+      .affine(
+        [
+          [2, 0],
+          [0, 2]
+        ],
+        { idx: 1, idy: 1, background: { r: 0, g: 0, b: 0 } }
+      )
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(outIdx.info.width).toBe(6);
+    expect(outIdx.info.height).toBe(6);
+    expect(Array.from(outIdx.data.slice(0, 3))).toEqual([0, 0, 0]);
+    expect(Array.from(outIdx.data.slice((2 * 6 + 2) * 3, (2 * 6 + 2) * 3 + 3))).toEqual([20, 30, 50]);
+  });
 });

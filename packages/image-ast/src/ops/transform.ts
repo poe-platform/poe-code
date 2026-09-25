@@ -1799,8 +1799,8 @@ export function affineImage(
   let minY = Infinity;
   let maxY = -Infinity;
   for (const [cx, cy] of corners) {
-    const x = a * (cx - idx) + b * (cy - idy) + idx + odx;
-    const y = c * (cx - idx) + d * (cy - idy) + idy + ody;
+    const x = a * cx + b * cy;
+    const y = c * cx + d * cy;
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
@@ -1823,10 +1823,10 @@ export function affineImage(
 
   for (let y = 0; y < dstH; y++) {
     for (let x = 0; x < dstW; x++) {
-      const ox = x + iMinX - idx - odx;
-      const oy = y + iMinY - idy - ody;
-      const sx = (d * ox - b * oy) / det + idx;
-      const sy = (-c * ox + a * oy) / det + idy;
+      const ox = x + iMinX - odx;
+      const oy = y + iMinY - ody;
+      const sx = (d * ox - b * oy) / det - idx;
+      const sy = (-c * ox + a * oy) / det - idy;
       const dIdx = (y * dstW + x) * 4;
       if (sx <= -1 || sx >= img.width || sy <= -1 || sy >= img.height) {
         if (spec.background.a > 0) {

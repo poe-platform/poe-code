@@ -5,6 +5,7 @@ import type { InputReadiness, RawRecord, RawRecordOptions, ReadLine, ReadLineOpt
 import { captureShellSyntax } from "./parser.js";
 import type { CapturedShellSyntax, ShellSyntaxDeclarations } from "./parser.js";
 import { defaultPortableTrapExtension, isIdlePortableTrapInstance } from "./trap.js";
+import { getJobsDisownBuiltin } from "./extensions/jobs/index.js";
 
 export interface ShellBindingDescription {
   readonly kind: "unset" | "scalar" | "indexed";
@@ -383,6 +384,10 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
       if (expansion !== undefined && expansion !== "ordinary" && expansion !== "declaration") throw new TypeError("Invalid extension builtin expansion metadata");
       if (replace !== undefined && typeof replace !== "boolean") throw new TypeError("Invalid extension builtin replacement metadata");
       builtins.set(name, Object.freeze({ name, ...(replace === undefined ? {} : { replace }), ...(special === undefined ? {} : { special }), ...(expansion === undefined ? {} : { expansion }), execute: execute.bind(builtin) }));
+    }
+    const disownBuiltin = getJobsDisownBuiltin(instance);
+    if (disownBuiltin && !builtins.has("disown")) {
+      builtins.set("disown", Object.freeze({ name: "disown", execute: disownBuiltin.execute.bind(disownBuiltin) }));
     }
     for (const option of instance.options ?? []) {
       if (!option.name || ["errexit", "nounset", "noglob", "pipefail"].includes(option.name) || options.has(option.name) || typeof option.enabled !== "boolean" || option.flag !== undefined && (option.flag.length !== 1 || flags.has(option.flag))) throw new TypeError("Invalid or duplicate extension shell option");

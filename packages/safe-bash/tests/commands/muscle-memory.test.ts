@@ -143,3 +143,35 @@ test("muscleMemoryCommands plugin and agentCommands({ muscleMemory: true }) regi
     await shell.dispose();
   }
 });
+
+test("fd -q, -S, -C, --strip-cwd-prefix, --and, and bc -e / less -p parity", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work/pkg/sub", { recursive: true });
+  await fs.writeFile("/work/pkg/small.ts", new TextEncoder().encode("const x = 1;\n"));
+  await fs.writeFile("/work/pkg/large.ts", new TextEncoder().encode("x".repeat(500) + "\n"));
+  await fs.writeFile("/work/pkg/sub/match_target.ts", new TextEncoder().encode("alpha\nbeta_marker\ngamma\n"));
+
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+
+  // fd -q / --has-results
+  const qHit = await shell.exec("fd -q large");
+  assert.equal(qHit.exitCode, 0);
+  assert.equal(qHit.stdout, "");
+  const qMiss = await shell.exec("fd -q nonexistent_xyz");
+  assert.equal(qMiss.exitCode, 1);
+
+  // fd -S size filtering + -C base directory + --strip-cwd-prefix + --and
+  const sizeRes = await shell.exec("fd -C /work/pkg --strip-cwd-prefix -S +100b --and large .");
+  assert.equal(sizeRes.exitCode, 0);
+  assert.equal(sizeRes.stdout.trim(), "large.ts");
+
+  // bc -e / --expression
+  const bcRes = await shell.exec("bc -l -e 'scale=3; 22/7' -e '2^10'");
+  assert.equal(bcRes.exitCode, 0);
+  assert.deepEqual(bcRes.stdout.trim().split("\n"), ["3.142", "1024"]);
+
+  // less -RFX -p pattern
+  const lessRes = await shell.exec("less -RFX -p beta_marker /work/pkg/sub/match_target.ts");
+  assert.equal(lessRes.exitCode, 0);
+  assert.equal(lessRes.stdout, "beta_marker\ngamma\n");
+});

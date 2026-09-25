@@ -718,8 +718,10 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       try {
     let mathlib = false;
     const files: string[] = [];
+    const expressions: string[] = [];
     let ended = false;
-    for (const arg of context.args) {
+    for (let idx = 0; idx < context.args.length; idx++) {
+      const arg = context.args[idx]!;
       if (ended) {
         files.push(arg);
         continue;
@@ -732,6 +734,14 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         mathlib = true;
         continue;
       }
+      if (arg === "--expression") {
+        expressions.push(context.args[++idx] ?? "");
+        continue;
+      }
+      if (arg.startsWith("--expression=")) {
+        expressions.push(arg.slice("--expression=".length));
+        continue;
+      }
       if (arg === "--quiet" || arg === "--interactive" || arg === "--warn" || arg === "--standard") {
         continue;
       }
@@ -739,7 +749,11 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         for (let i = 1; i < arg.length; i++) {
           const f = arg[i]!;
           if (f === "l") mathlib = true;
-          else if (f === "q" || f === "i" || f === "w" || f === "s") continue;
+          else if (f === "e") {
+            const rest = i < arg.length - 1 ? arg.slice(i + 1) : (context.args[++idx] ?? "");
+            expressions.push(rest);
+            break;
+          } else if (f === "q" || f === "i" || f === "w" || f === "s") continue;
           else throw new UsageError(`invalid option -- '${f}'`);
         }
         continue;
@@ -747,10 +761,10 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       files.push(arg);
     }
 
-    const sources: string[] = [];
-    if (files.length === 0) {
+    const sources: string[] = [...expressions];
+    if (files.length === 0 && expressions.length === 0) {
       sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes)));
-    } else {
+    } else if (files.length > 0) {
       for (const file of files) {
         if (file === "-") {
           sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes)));

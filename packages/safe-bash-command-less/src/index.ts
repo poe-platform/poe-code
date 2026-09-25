@@ -130,9 +130,13 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
         if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
           for (let j = 1; j < arg.length; j++) {
             const ch = arg[j]!;
-            if (ch === "N" || ch === "n") lineNumbers = ch === "N";
+            if (ch === "N") lineNumbers = true;
+            else if (ch === "n") lineNumbers = false;
             else if (ch === "s") squeezeBlank = true;
-            else if ("Ppxzbn".includes(ch)) {
+            else if (ch === "p") {
+              startSearch = j < arg.length - 1 ? arg.slice(j + 1) : (args[++i] ?? "");
+              break;
+            } else if ("Pxz".includes(ch)) {
               if (j === arg.length - 1 && i + 1 < args.length && !args[i + 1]!.startsWith("-")) {
                 i++;
               }

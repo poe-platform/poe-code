@@ -27,3 +27,7 @@ export function parseSignal(value: string): number | undefined {
   }
   return undefined;
 }
+
+export function signalName(number: number): string | undefined {
+  return signalNames[number - 1];
+}

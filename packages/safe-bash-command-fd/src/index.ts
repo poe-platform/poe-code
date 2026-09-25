@@ -65,6 +65,42 @@ export function settings(options: FdCommandsOptions = {}): FdLimits {
   return Object.freeze(limits);
 }
 
+
+function parseSizeFilter(spec: string): ((bytes: number) => boolean) | undefined {
+  const m = /^([+-]?)(\d+)(b|k|kb|ki|kib|m|mb|mi|mib|g|gb|gi|gib)?$/iu.exec(spec.trim());
+  if (!m) return undefined;
+  const op = m[1] ?? "";
+  const num = Number.parseInt(m[2]!, 10);
+  const unit = (m[3] ?? "b").toLowerCase();
+  const mult =
+    unit === "b" ? 1 :
+    unit === "k" || unit === "kb" ? 1000 :
+    unit === "ki" || unit === "kib" ? 1024 :
+    unit === "m" || unit === "mb" ? 1_000_000 :
+    unit === "mi" || unit === "mib" ? 1024 * 1024 :
+    unit === "g" || unit === "gb" ? 1_000_000_000 :
+    1024 * 1024 * 1024;
+  const target = num * mult;
+  if (op === "+") return (bytes: number) => bytes >= target;
+  if (op === "-") return (bytes: number) => bytes <= target;
+  return (bytes: number) => bytes === target;
+}
+
+function normalizeErgonomicFdPattern(pat: string): { source: string; forceInsensitive: boolean; forceSensitive: boolean } {
+  let forceInsensitive = false;
+  let forceSensitive = false;
+  let s = pat;
+  if (s.startsWith("(?i)")) {
+    forceInsensitive = true;
+    s = s.slice(4);
+  } else if (s.startsWith("(?-i)")) {
+    forceSensitive = true;
+    s = s.slice(5);
+  }
+  s = s.replace(/\\</g, "\\b").replace(/\\>/g, "\\b");
+  return { source: s, forceInsensitive, forceSensitive };
+}
+
 function globToRegExp(glob: string, caseInsensitive: boolean): RegExp {
   let out = "^";
   for (let i = 0; i < glob.length; i++) {
@@ -124,6 +160,12 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
       const args = context.args;
 
       let hidden = false;
+      let quiet = false;
+      let stripCwdPrefix = false;
+      let baseDirectory: string | undefined;
+      let pathSeparator = "/";
+      const andPatterns: string[] = [];
+      const sizeFilters: Array<(bytes: number) => boolean> = [];
       let caseSensitive: boolean | undefined;
       let globMode = false;
       let fixedStrings = false;
@@ -166,6 +208,23 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
         }
         if (!endOfOptions && arg.startsWith("--")) {
           if (arg === "--hidden") hidden = true;
+          else if (arg === "--quiet" || arg === "--has-results") quiet = true;
+          else if (arg === "--strip-cwd-prefix") stripCwdPrefix = true;
+          else if (arg === "--base-directory") baseDirectory = args[++i] ?? "";
+          else if (arg.startsWith("--base-directory=")) baseDirectory = arg.slice("--base-directory=".length);
+          else if (arg === "--path-separator") pathSeparator = args[++i] ?? "/";
+          else if (arg.startsWith("--path-separator=")) pathSeparator = arg.slice("--path-separator=".length);
+          else if (arg === "--and") andPatterns.push(args[++i] ?? "");
+          else if (arg.startsWith("--and=")) andPatterns.push(arg.slice("--and=".length));
+          else if (arg === "--size") {
+            const sf = parseSizeFilter(args[++i] ?? "");
+            if (!sf) { await writeText(context.stderr, "fd: invalid size filter\n"); return { exitCode: 2 }; }
+            sizeFilters.push(sf);
+          } else if (arg.startsWith("--size=")) {
+            const sf = parseSizeFilter(arg.slice("--size=".length));
+            if (!sf) { await writeText(context.stderr, "fd: invalid size filter\n"); return { exitCode: 2 }; }
+            sizeFilters.push(sf);
+          }
           else if (arg === "--ignore-case") caseSensitive = false;
           else if (arg === "--case-sensitive") caseSensitive = true;
           else if (arg === "--glob") globMode = true;
@@ -207,6 +266,17 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
           for (let j = 1; j < arg.length; j++) {
             const ch = arg[j]!;
             if (ch === "H") hidden = true;
+            else if (ch === "q") quiet = true;
+            else if (ch === "C") {
+              baseDirectory = j < arg.length - 1 ? arg.slice(j + 1) : (args[++i] ?? "");
+              break;
+            } else if (ch === "S") {
+              const val = j < arg.length - 1 ? arg.slice(j + 1) : (args[++i] ?? "");
+              const sf = parseSizeFilter(val);
+              if (!sf) { await writeText(context.stderr, "fd: invalid size filter\n"); return { exitCode: 2 }; }
+              sizeFilters.push(sf);
+              break;
+            }
             else if (ch === "I" || ch === "u" || ch === "L") {
               // Accepted for compatibility
             } else if (ch === "i") caseSensitive = false;
@@ -253,28 +323,42 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
       const pattern = positionals[0] ?? "";
       const rawPaths = positionals.length > 1 ? positionals.slice(1) : ["."];
 
-      const effectiveCaseSensitive =
-        caseSensitive !== undefined ? caseSensitive : /[A-Z]/.test(pattern);
-
-      let matcher: (candidate: string) => boolean;
-      if (!pattern) {
-        matcher = () => true;
-      } else if (fixedStrings) {
-        const needle = effectiveCaseSensitive ? pattern : pattern.toLowerCase();
-        matcher = candidate => (effectiveCaseSensitive ? candidate : candidate.toLowerCase()).includes(needle);
-      } else if (globMode) {
-        const re = globToRegExp(pattern, !effectiveCaseSensitive);
-        matcher = candidate => re.test(candidate);
-      } else {
+      const buildSingleMatcher = (pat: string): ((candidate: string) => boolean) | Error => {
+        if (!pat) return () => true;
+        const norm = normalizeErgonomicFdPattern(pat);
+        const effCase = norm.forceInsensitive ? false : norm.forceSensitive ? true : (caseSensitive !== undefined ? caseSensitive : /[A-Z]/.test(norm.source));
+        if (fixedStrings) {
+          const needle = effCase ? norm.source : norm.source.toLowerCase();
+          return candidate => (effCase ? candidate : candidate.toLowerCase()).includes(needle);
+        }
+        if (globMode) {
+          const re = globToRegExp(norm.source, !effCase);
+          return candidate => re.test(candidate);
+        }
         try {
-          const re = new RegExp(pattern, effectiveCaseSensitive ? "u" : "iu");
-          matcher = candidate => re.test(candidate);
+          const re = new RegExp(norm.source, effCase ? "u" : "iu");
+          return candidate => re.test(candidate);
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          await writeText(context.stderr, `fd: invalid regex: ${msg}\n`);
+          return err instanceof Error ? err : new Error(String(err));
+        }
+      };
+      const primaryMatcher = buildSingleMatcher(pattern);
+      if (primaryMatcher instanceof Error) {
+        await writeText(context.stderr, `fd: invalid regex: ${primaryMatcher.message}\n`);
+        return { exitCode: 2 };
+      }
+      const extraMatchers: Array<(candidate: string) => boolean> = [];
+      for (const ap of andPatterns) {
+        const m = buildSingleMatcher(ap);
+        if (m instanceof Error) {
+          await writeText(context.stderr, `fd: invalid regex: ${m.message}\n`);
           return { exitCode: 2 };
         }
+        extraMatchers.push(m);
       }
+      const matcher = extraMatchers.length === 0
+        ? primaryMatcher
+        : (candidate: string) => primaryMatcher(candidate) && extraMatchers.every(fn => fn(candidate));
 
       const matches: string[] = [];
       let visited = 0;
@@ -314,23 +398,18 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
         if (depth > maxDepth) return;
         if (maxResults !== undefined && matches.length >= maxResults) return;
 
-        let entries: Array<{ name: string; type?: "file" | "directory" | "symlink" }>;
+        let entries: Array<{ name: string; type?: "file" | "directory" | "symlink" | undefined }>;
         try {
-          const raw = await context.fs.readdir(absDir, { withFileTypes: true } as never);
-          entries = raw.map((item: unknown) => {
-            if (typeof item === "string") return { name: item };
-            const obj = item as { name: string; isDirectory?: () => boolean; isSymbolicLink?: () => boolean; type?: "file" | "directory" | "symlink" };
-            let entryType: "file" | "directory" | "symlink" | undefined = obj.type;
-            if (!entryType && typeof obj.isSymbolicLink === "function" && obj.isSymbolicLink()) entryType = "symlink";
-            else if (!entryType && typeof obj.isDirectory === "function" && obj.isDirectory()) entryType = "directory";
-            else if (!entryType) entryType = "file";
-            return { name: obj.name, type: entryType };
-          });
+          const raw = await context.fs.readdir(absDir);
+          if (raw.length > 0 && typeof raw[0] === "object" && raw[0] !== null && "name" in raw[0] && "type" in raw[0]) {
+            entries = raw as Array<{ name: string; type?: "file" | "directory" | "symlink" | undefined }>;
+          } else {
+            entries = (raw as unknown[]).map((item: unknown) => typeof item === "string" ? { name: item } : { name: (item as { name: string }).name, type: (item as { type?: "file" | "directory" | "symlink" }).type });
+            entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+          }
         } catch {
           return;
         }
-
-        entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 
         for (const entry of entries) {
           context.signal.throwIfAborted();
@@ -375,9 +454,25 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
           if (matched) {
             matched = await matchesTypeFilter(childAbs, entryType);
           }
+          if (matched && sizeFilters.length > 0) {
+            if (entryType !== "file") {
+              matched = false;
+            } else {
+              try {
+                const st = await context.fs.stat(childAbs);
+                matched = sizeFilters.every(sf => sf(st.size));
+              } catch {
+                matched = false;
+              }
+            }
+          }
 
           if (matched) {
-            matches.push(absolutePath ? childAbs : childDisplay);
+            let formatted = absolutePath ? childAbs : childDisplay;
+            if (stripCwdPrefix && formatted.startsWith("./")) formatted = formatted.slice(2);
+            if (pathSeparator !== "/") formatted = formatted.replaceAll("/", pathSeparator);
+            matches.push(formatted);
+            if (quiet) return;
           }
 
           if (entryType === "directory" && depth < maxDepth) {
@@ -387,10 +482,12 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
       };
 
       try {
+        const effectiveCwd = baseDirectory ? pathPosix.resolve(context.cwd, baseDirectory) : context.cwd;
         for (const rawPath of rawPaths) {
-          const absRoot = pathPosix.resolve(context.cwd, rawPath);
+          const absRoot = pathPosix.resolve(effectiveCwd, rawPath);
           const displayRoot = absolutePath ? absRoot : rawPath;
           await walk(absRoot, displayRoot, 1);
+          if (quiet && matches.length > 0) break;
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -459,6 +556,9 @@ export function createFdCommand(options: FdCommandsOptions = {}): CommandDefinit
         return { exitCode };
       }
 
+      if (quiet) {
+        return { exitCode: matches.length > 0 ? 0 : 1 };
+      }
       if (matches.length > 0) {
         const sep = print0 ? "\0" : "\n";
         await writeText(context.stdout, matches.join(sep) + sep);

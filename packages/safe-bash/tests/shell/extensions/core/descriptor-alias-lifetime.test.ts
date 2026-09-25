@@ -221,6 +221,24 @@ test("owned endpoint close enrolls idempotent drain before provider reentry", as
   }
 });
 
+test("FD frame cleanup preserves reference order for mixed asynchronous and synchronous failures", async () => {
+  const scope = new InvocationScope();
+  const pipe = createBytePipe();
+  const frame = new PipeDescriptorFrame(scope);
+  frame.acquire({ endpoint: pipe.endpoints!.write, acquire() { return this; }, close() { return Promise.reject("first"); } });
+  frame.acquire({ endpoint: pipe.endpoints!.write, acquire() { return this; }, close() { throw null; } });
+  try {
+    await assert.rejects(frame.close(), error => {
+      assert.ok(error instanceof AggregateError);
+      assert.deepEqual(error.errors, ["first", null]);
+      return true;
+    });
+  } finally {
+    await scope.close();
+    await pipe.abort();
+  }
+});
+
 test("FD frame cleanup joins the admitted endpoint retirement and closes admission", async () => {
   const budget = new Budget(defaultLimits);
   const scope = new InvocationScope(budget.signal);

@@ -1066,7 +1066,7 @@ export class AwkRuntime {
   private executeSync(statement: Statement): void | Promise<void> {
     if (!this.inspection) {
       const count = ++this.recordChecks;
-      const p = (count <= 2 || (count & 31) === 0 || this.phase !== "record")
+      const p = (count <= 2 || (count & 31) === 0)
         ? this.budget.checkpointSync()
         : undefined;
       if (!p) {
@@ -1206,15 +1206,27 @@ export class AwkRuntime {
         return;
       }
       case "while": case "do": case "for": {
-        if (statement.kind === "for" && statement.initial) await this.evaluate(statement.initial);
+        if (statement.kind === "for" && statement.initial) {
+          const initial = this.evaluate(statement.initial);
+          if (initial instanceof Promise) await initial;
+        }
         let first = true;
         while (true) {
           this.budget.step();
-          if (!(statement.kind === "do" && first) && statement.condition && !truth(await this.scalarExpression(statement.condition))) break;
+          if (!(statement.kind === "do" && first) && statement.condition) {
+            const condition = this.scalarExpression(statement.condition);
+            if (!truth(condition instanceof Promise ? await condition : condition)) break;
+          }
           first = false;
-          try { await this.execute(statement.body); }
+          try {
+            const body = this.executeSync(statement.body);
+            if (body instanceof Promise) await body;
+          }
           catch (error) { if (error instanceof Flow && error.kind === "break") break; if (!(error instanceof Flow && error.kind === "continue")) throw error; }
-          if (statement.kind === "for" && statement.update) await this.evaluate(statement.update);
+          if (statement.kind === "for" && statement.update) {
+            const update = this.evaluate(statement.update);
+            if (update instanceof Promise) await update;
+          }
         }
         return;
       }

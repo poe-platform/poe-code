@@ -1015,6 +1015,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/text-programs/awk-gettext.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-inspection.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-format-work-budget.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-scheduling-budget.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/format-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/substitution-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/nfa-work.test.ts"));

@@ -118,8 +118,8 @@ function sqrtDec(x: DecimalValue, currentScale: number): DecimalValue {
   const shift = 2 * resScale - x.scale;
   const target = shift >= 0 ? x.coeff * pow10(shift) : x.coeff / pow10(-shift);
   if (target === 0n) return { coeff: 0n, scale: resScale };
-  let low = 1n;
-  let high = target;
+  const low = 1n;
+  const high = target;
   let guess = 1n << BigInt(Math.ceil(target.toString(2).length / 2));
   while (true) {
     const next = (guess + target / guess) >> 1n;
@@ -389,10 +389,10 @@ class BcParser {
   parseProgram(): Stmt[] {
     const stmts: Stmt[] = [];
     while (this.pos < this.tokens.length) {
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       if (this.pos >= this.tokens.length) break;
       stmts.push(this.parseStmt());
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
     }
     return stmts;
   }
@@ -401,10 +401,10 @@ class BcParser {
     if (this.matchPunct("{")) {
       const stmts: Stmt[] = [];
       while (this.pos < this.tokens.length && !this.matchPunct("}")) {
-        while (this.matchPunct(";")) {}
+        while (this.matchPunct(";")) { /* Consume statement separators. */ }
         if (this.matchPunct("}")) break;
         stmts.push(this.parseStmt());
-        while (this.matchPunct(";")) {}
+        while (this.matchPunct(";")) { /* Consume statement separators. */ }
       }
       return { kind: "block", stmts };
     }
@@ -422,7 +422,7 @@ class BcParser {
           if (!this.matchPunct(",")) throw new PublicDiagnostic("expected ',' or ')' in parameter list");
         }
       }
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return { kind: "define", name: nameTok.name, params, body };
     }
@@ -443,12 +443,12 @@ class BcParser {
       if (!this.matchPunct("(")) throw new PublicDiagnostic("expected '(' after if");
       const cond = this.parseExpr();
       if (!this.matchPunct(")")) throw new PublicDiagnostic("expected ')' after if condition");
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const thenBranch = this.parseStmt();
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       let elseBranch: Stmt | undefined;
       if (this.matchId("else")) {
-        while (this.matchPunct(";")) {}
+        while (this.matchPunct(";")) { /* Consume statement separators. */ }
         elseBranch = this.parseStmt();
       }
       return { kind: "if", cond, thenBranch, ...(elseBranch ? { elseBranch } : {}) };
@@ -457,19 +457,22 @@ class BcParser {
       if (!this.matchPunct("(")) throw new PublicDiagnostic("expected '(' after while");
       const cond = this.parseExpr();
       if (!this.matchPunct(")")) throw new PublicDiagnostic("expected ')' after while condition");
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return { kind: "while", cond, body };
     }
     if (this.matchId("for")) {
       if (!this.matchPunct("(")) throw new PublicDiagnostic("expected '(' after for");
-      const init = this.peek()?.type === "punct" && this.peek()?.value === ";" ? undefined : this.parseExpr();
+      const initToken = this.peek();
+      const init = initToken?.type === "punct" && initToken.value === ";" ? undefined : this.parseExpr();
       if (!this.matchPunct(";")) throw new PublicDiagnostic("expected ';' in for");
-      const cond = this.peek()?.type === "punct" && this.peek()?.value === ";" ? undefined : this.parseExpr();
+      const condToken = this.peek();
+      const cond = condToken?.type === "punct" && condToken.value === ";" ? undefined : this.parseExpr();
       if (!this.matchPunct(";")) throw new PublicDiagnostic("expected ';' in for");
-      const update = this.peek()?.type === "punct" && this.peek()?.value === ")" ? undefined : this.parseExpr();
+      const updateToken = this.peek();
+      const update = updateToken?.type === "punct" && updateToken.value === ")" ? undefined : this.parseExpr();
       if (!this.matchPunct(")")) throw new PublicDiagnostic("expected ')' after for clauses");
-      while (this.matchPunct(";")) {}
+      while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return {
         kind: "for",
@@ -517,8 +520,11 @@ class BcParser {
 
   private parseOr(): Expr {
     let left = this.parseAnd();
-    while (this.peek()?.type === "op" && this.peek()?.value === "||") {
-      const op = this.next()!.value as string;
+    while (true) {
+      const token = this.peek();
+      if (!(token?.type === "op" && token.value === "||")) break;
+      this.pos++;
+      const op = token.value;
       left = { kind: "binary", op, left, right: this.parseAnd() };
     }
     return left;
@@ -526,8 +532,11 @@ class BcParser {
 
   private parseAnd(): Expr {
     let left = this.parseRel();
-    while (this.peek()?.type === "op" && this.peek()?.value === "&&") {
-      const op = this.next()!.value as string;
+    while (true) {
+      const token = this.peek();
+      if (!(token?.type === "op" && token.value === "&&")) break;
+      this.pos++;
+      const op = token.value;
       left = { kind: "binary", op, left, right: this.parseRel() };
     }
     return left;
@@ -545,8 +554,11 @@ class BcParser {
 
   private parseAdd(): Expr {
     let left = this.parseMul();
-    while (this.peek()?.type === "op" && (this.peek()?.value === "+" || this.peek()?.value === "-")) {
-      const op = this.next()!.value as string;
+    while (true) {
+      const token = this.peek();
+      if (!(token?.type === "op" && (token.value === "+" || token.value === "-"))) break;
+      this.pos++;
+      const op = token.value;
       left = { kind: "binary", op, left, right: this.parseMul() };
     }
     return left;
@@ -554,8 +566,11 @@ class BcParser {
 
   private parseMul(): Expr {
     let left = this.parsePow();
-    while (this.peek()?.type === "op" && ["*", "/", "%"].includes(this.peek()?.value ?? "")) {
-      const op = this.next()!.value as string;
+    while (true) {
+      const token = this.peek();
+      if (!(token?.type === "op" && ["*", "/", "%"].includes(token.value ?? ""))) break;
+      this.pos++;
+      const op = token.value;
       left = { kind: "binary", op, left, right: this.parsePow() };
     }
     return left;
@@ -563,7 +578,8 @@ class BcParser {
 
   private parsePow(): Expr {
     const left = this.parseUnary();
-    if (this.peek()?.type === "op" && this.peek()?.value === "^") {
+    const token = this.peek();
+    if (token?.type === "op" && token.value === "^") {
       this.pos++;
       return { kind: "binary", op: "^", left, right: this.parsePow() };
     }
@@ -619,7 +635,7 @@ class BcParser {
       }
       return { kind: "var", name: t.name };
     }
-    throw new PublicDiagnostic(`unexpected token '${"value" in t ? t.value : "raw" in t ? t.raw : t.name}'`);
+    throw new PublicDiagnostic(`unexpected token '${t.value}'`);
   }
 }
 

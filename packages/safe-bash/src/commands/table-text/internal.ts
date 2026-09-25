@@ -49,14 +49,6 @@ export function command(name: string, handler: CommandHandler): CommandDefinitio
   } };
 }
 
-export function requireCLocale(context: CommandContext): void {
-  const locale = context.env.LC_ALL || context.env.LC_COLLATE || context.env.LANG || "C";
-  const ctype = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
-  if (![locale, ctype].every(value => value === "C" || value === "POSIX")) {
-    throw new FsError("ENOTSUP", { message: "table ordering supports only the C/POSIX byte locale; set LC_ALL=C" });
-  }
-}
-
 export function compare(left: Uint8Array, right: Uint8Array, fold = false): number {
   for (let offset = 0; offset < Math.min(left.length, right.length); offset++) {
     let first = left[offset]!, second = right[offset]!;

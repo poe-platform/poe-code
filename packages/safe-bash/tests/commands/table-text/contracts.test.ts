@@ -58,10 +58,9 @@ for (const command of ["paste", "comm", "join"] as const) {
     assert.equal(reported[0], failure);
   });
 
-  test(`${command}: unsupported locale is explicit where ordering is required`, async () => {
+  test(`${command}: UTF-8 locale accepts byte ordering`, async () => {
     const result = await runTable(fixture(command, ["left", "right"], { left: "a x\n", right: "a y\n" }), {}, { env: { LC_ALL: "en_US.UTF-8" } });
-    assert.equal(result.exitCode, command === "paste" ? 0 : 1);
-    if (command !== "paste") assert.match(result.stderr, /C\/POSIX/u);
+    assert.equal(result.exitCode, 0, result.stderr);
   });
 }
 
@@ -238,3 +237,30 @@ test("join projection handles varying fields, folded keys and already emitted ou
   assert.match(rejected.stderr, /output limit/u);
   assert.equal(rejected.stdoutHex, Buffer.from(expected.slice(0, expected.lastIndexOf("b four"))).toString("hex"));
 });
+
+for (const [list, expected] of [["│", "a│b│c│d\n"], ["😀│", "a😀b│c😀d\n"], ["│\\t\\0\\\\", "a│b\tcd\\e│f\n"], ["\\😀", "a😀b😀c😀d\n"]] as const) {
+  test(`paste preserves Unicode delimiter list ${list}`, async () => {
+    const input = list.includes("0") ? "a\nb\nc\nd\ne\nf\n" : "a\nb\nc\nd\n";
+    const result = await runTable(fixture("paste", ["-s", "-d", list, "-"], {}, input));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
+  });
+}
+for (const args of [["-s", "-"], ["-sz", "-"], ["-s", "empty", "full", "empty"]]) {
+  test(`paste skips empty serial input ${args.join(" ")}`, async () => {
+    const result = await runTable(fixture("paste", args, { empty: "", full: "x\n" }));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdoutHex, args.includes("full") ? "780a" : "");
+  });
+}
+for (const command of ["join", "comm"] as const) {
+  for (const variable of ["LANG", "LC_ALL", "LC_COLLATE", "LC_CTYPE"]) {
+    for (const locale of ["C.UTF-8", "en_US.UTF-8"]) {
+      test(`${command} accepts ${variable}=${locale}`, async () => {
+        const result = await runTable(fixture(command, ["left", "right"], { left: "a\n", right: "a\n" }), {}, { env: { [variable]: locale } });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdoutHex, Buffer.from(command === "join" ? "a\n" : "\t\ta\n").toString("hex"));
+      });
+    }
+  }
+}

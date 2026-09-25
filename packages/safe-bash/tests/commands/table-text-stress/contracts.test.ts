@@ -93,11 +93,10 @@ for (const [limit, maximum, message] of [["maxGroupBytes", 4, "group byte"], ["m
     assert.equal(actual.exitCode, 1); assert.match(actual.stderr, new RegExp(`${message} limit`, "u"));
   });
 }
-test("C/POSIX locale accepted while non-C ordering is explicit", async () => {
+test("Byte ordering accepts C/POSIX and UTF-8 locales", async () => {
   for (const locale of ["C", "POSIX", "en_US.UTF-8"]) {
     const actual = await execute("join", ["-", "right"], bytes("a left\n"), { right: "a right\n" }, {}, { env: { LC_ALL: locale } });
-    assert.equal(actual.exitCode, locale === "en_US.UTF-8" ? 1 : 0);
-    if (locale === "en_US.UTF-8") assert.match(actual.stderr, /C\/POSIX/u);
-    else assert.equal(actual.stdout, "a left right\n");
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.equal(actual.stdout, "a left right\n");
   }
 });

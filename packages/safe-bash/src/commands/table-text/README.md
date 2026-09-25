@@ -17,8 +17,10 @@ and NUL records; join configurable fields, duplicate-key Cartesian products,
 outer/unpaired output, output field lists/auto, headers, ASCII case folding,
 single-byte/NUL/whole-record delimiters and order checking. Unknown flags,
 including help/version and legacy join syntax, are rejected, not silently
-implemented. comm/join require C/POSIX ordering; non-C locale requests fail
-explicitly. Data is bytes, not decoded or locale-folded Unicode.
+implemented. comm/join use C/POSIX byte ordering regardless of locale environment
+variables, including UTF-8 locales. Data is bytes, not decoded or locale-folded
+Unicode. Paste delimiter lists use Unicode code points and preserve UTF-8
+characters; serial paste emits no terminator for an empty input.
 
 Byte-source reads and output writes are awaited; stdin has one shared record
 cursor. comm finalizes each operand in order before emitting totals. A repeated

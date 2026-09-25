@@ -3,17 +3,17 @@ import { diagnostic } from "../internal.js";
 import { argument, Budget, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "./internal.js";
 
 function delimiters(text: string): readonly Uint8Array[] {
-  const bytes = encode(text), result: Uint8Array[] = [];
-  const escapes: Record<number, number> = { 98: 8, 102: 12, 110: 10, 114: 13, 116: 9, 118: 11 };
-  for (let offset = 0; offset < bytes.length; offset++) {
-    let byte = bytes[offset]!;
-    if (byte === 92) {
-      byte = bytes[++offset]!;
-      if (byte === undefined) fail("delimiter list ends in an unescaped backslash");
-      if (byte === 48) { result.push(empty); continue; }
-      byte = escapes[byte] ?? byte;
+  const characters = Array.from(text), result: Uint8Array[] = [];
+  const escapes: Record<string, string> = { b: "\b", f: "\f", n: "\n", r: "\r", t: "\t", v: "\v" };
+  for (let offset = 0; offset < characters.length; offset++) {
+    let character = characters[offset]!;
+    if (character === "\\") {
+      const escaped = characters[++offset];
+      if (escaped === undefined) fail("delimiter list ends in an unescaped backslash");
+      if (escaped === "0") { result.push(empty); continue; }
+      character = escapes[escaped] ?? escaped;
     }
-    result.push(Uint8Array.of(byte));
+    result.push(encode(character));
   }
   return result.length ? result : [empty];
 }
@@ -65,7 +65,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
             else await budget.output([record]);
             count++; record = await reader.next();
           }
-          await budget.output([terminator]);
+          if (count) await budget.output([terminator]);
         }
         return { exitCode: status };
       }

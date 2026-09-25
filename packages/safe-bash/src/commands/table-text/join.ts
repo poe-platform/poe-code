@@ -1,5 +1,5 @@
 import type { CommandDefinition, CommandContext } from "../../contracts/index.js";
-import { argument, Budget, command, compare, empty, encode, fail, Inputs, OrderCheck, requireCLocale, settings, type OrderMode, type TableTextCommandsOptions } from "./internal.js";
+import { argument, Budget, command, compare, empty, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "./internal.js";
 
 interface Field { readonly file: number; readonly index: number }
 interface Row { readonly bytes: Uint8Array; readonly fields: readonly Uint8Array[]; readonly key: Uint8Array }
@@ -116,7 +116,6 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
   const limits = settings(factory);
   return command("join", async context => {
     const budget = new Budget(context, limits), options = parse(context, budget);
-    requireCLocale(context);
     const inputs = new Inputs(context, budget, options.separator), order = new OrderCheck(options.order, context);
     const terminator = Uint8Array.of(options.separator), delimiter = Uint8Array.of(options.delimiter ?? 32);
     try {

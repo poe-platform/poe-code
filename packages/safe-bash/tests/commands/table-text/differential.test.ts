@@ -14,7 +14,19 @@ for (const [index, fixture] of tableCases.entries()) {
     assert.equal(expected.name, fixture.name);
     assert.equal(expected.caseSha256, caseHash(fixture));
     const actual = await runTable(fixture);
-    assert.equal(actual.stdoutHex, expected.stdoutHex);
+    // Preserve the GNU byte-delimiter/empty-stream evidence while checking
+    // the Unicode delimiter and empty serial stream behavior from issue 814.
+    let stdoutHex = expected.stdoutHex;
+    if (fixture.name === 'paste: serial delimiters "é"') stdoutHex = Buffer.from("1é2\naébéc\n").toString("hex");
+    if (fixture.name === 'paste: parallel delimiters "é"') stdoutHex = Buffer.from("1éaé1\n2ébé2\nécé\n").toString("hex");
+    if (fixture.name === "paste: seed 21") {
+      assert.equal(fixture.files.right, "");
+      stdoutHex = Buffer.from(",_,_a,a_b,c_c,c_d,d_z,z\n,_,_a,a_b,c_c,c_d,d_z,z\n").toString("hex");
+    }
+    if (fixture.name.startsWith("paste: serial stdin ")) {
+      stdoutHex = fixture.stdinHex ? stdoutHex.slice(0, -2) : "";
+    }
+    assert.equal(actual.stdoutHex, stdoutHex);
     if (sharedStdinArtifact) {
       assert.equal(expected.exitCode, 1);
       assert.equal(Buffer.from(expected.stderrHex, "hex").toString(), "comm: -: Bad file descriptor\n");

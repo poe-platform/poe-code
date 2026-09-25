@@ -1,5 +1,5 @@
 import type { CommandDefinition } from "../../contracts/index.js";
-import { argument, Budget, command, compare, encode, fail, Inputs, OrderCheck, requireCLocale, settings, type OrderMode, type TableTextCommandsOptions } from "./internal.js";
+import { argument, Budget, command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "./internal.js";
 
 export function createCommCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
@@ -27,7 +27,6 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
       } else fail(`unsupported option ${token}`);
     }
     if (files.length !== 2) fail("comm requires exactly two files");
-    requireCLocale(context);
     const inputs = new Inputs(context, budget, separator), order = new OrderCheck(mode, context), terminator = Uint8Array.of(separator);
     try {
       const readers = [await inputs.open(files[0]!), await inputs.open(files[1]!)];

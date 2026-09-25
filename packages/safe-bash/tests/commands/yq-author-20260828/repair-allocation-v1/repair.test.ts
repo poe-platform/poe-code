@@ -10,7 +10,8 @@ import { encodeYaml } from "../../../../src/commands/yq/encoder.js";
 import { createYqCommand, type YqLimits } from "../../../../src/commands/yq/index.js";
 import { parseYamlDocuments } from "../../../../src/commands/yq/parser.js";
 
-const root = new URL("../../../../", import.meta.url);
+// Inspect the owning implementations, not safe-bash's compatibility re-exports.
+const root = new URL("../../../../../", import.meta.url);
 
 async function source(path: string): Promise<string> {
   return readFile(new URL(path, root), "utf8");
@@ -68,35 +69,35 @@ async function run(input: string, limits?: Partial<YqLimits>): Promise<{ status:
 }
 
 test("WRK-06 raw document admission precedes retained copy and decode", async () => {
-  const text = await source("src/commands/yq/index.ts");
+  const text = await source("safe-bash-command-yq/src/index.ts");
   ordered(text, "framer?.admit(chunk)", "new Uint8Array(chunk)");
   ordered(text, 'inputFormat === "toml" && chunk.byteLength > yqCaps.maxDocumentBytes - size', "new Uint8Array(chunk)");
   ordered(text, "ledger.admitDocumentBytes(frame.rawBytes)", "decodeDocument(frame.bytes, options.inputFormat)");
 });
 
 test("WRK-07 scalar projection/admission precedes scalar construction", async () => {
-  const text = await source("src/commands/yq/parser.ts");
+  const text = await source("safe-bash-command-yq/src/parser.ts");
   ordered(text, "this.composer.admitScalar(projectedBytes)", "decodeDouble(raw)");
   ordered(text, "this.composer.admitScalar(projectedBytes)", "decodeSingle(raw)");
   ordered(text, "this.composer.admitScalar(projectedBytes)", "buildBlockScalar(values, style, chomping)");
 });
 
 test("WRK-13 prospective collection member admission precedes child parsing", async () => {
-  const text = await source("src/commands/yq/parser.ts");
+  const text = await source("safe-bash-command-yq/src/parser.ts");
   ordered(text, "this.composer.member(result.length + 1)", "let value = await this.#node()" );
   ordered(text, "this.composer.member(result.length + 1)", "item = next && indentation(next.text) > indent");
 });
 
 test("WRK-17 escaped-fragment byte admission precedes escaped construction", async () => {
-  const yaml = await source("src/commands/yq/encoder.ts");
-  const json = await source("src/commands/structured/query-core.ts");
+  const yaml = await source("safe-bash-command-yq/src/encoder.ts");
+  const json = await source("safe-bash-query-engine/src/query-core.ts");
   ordered(yaml, "output.reserve(projectedBytes)", "fragment += yamlEscape");
   ordered(json, "reserveFragment(projectedBytes)", "fragment += jsonEscape");
 });
 
 test("omitted public caps remain unlimited rather than proof thresholds", async () => {
-  const accounting = await source("src/commands/yq/accounting.ts");
-  const query = await source("src/commands/structured/query-core.ts");
+  const accounting = await source("safe-bash-command-yq/src/accounting.ts");
+  const query = await source("safe-bash-query-engine/src/query-core.ts");
   assert.match(accounting, /maxDocumentBytes:\s*Infinity/u);
   assert.match(accounting, /maxScalarBytes:\s*Infinity/u);
   assert.match(accounting, /maxCollectionSize:\s*Infinity/u);

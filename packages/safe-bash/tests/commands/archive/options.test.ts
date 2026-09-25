@@ -549,3 +549,35 @@ test("full-time leaves nonverbose listing bytes unchanged", async () => {
     assert.equal(result.stdout, "dir/file\n");
   } finally { await shell.dispose(); }
 });
+
+test("tar supports --no-recursion, --transform in -c/-x, --strip-components with --show-transformed-names, and ./ member matching", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.mkdir("/work/dir", { recursive: true });
+    await fs.writeFile("/work/dir/file", binary);
+    const noRec = await shell.exec("tar --no-recursion -cf nr.tar dir && tar -tf nr.tar");
+    assert.equal(noRec.exitCode, 0, noRec.stderr);
+    assert.equal(noRec.stdout, "dir/\n");
+
+    const trCreate = await shell.exec("tar -cf tr.tar --transform='s,^dir/,pkg/,' dir/file && tar -tf tr.tar");
+    assert.equal(trCreate.exitCode, 0, trCreate.stderr);
+    assert.equal(trCreate.stdout, "pkg/file\n");
+
+    const stripShown = await shell.exec("tar -tf tr.tar --strip-components=1 --show-transformed-names");
+    assert.equal(stripShown.exitCode, 0, stripShown.stderr);
+    assert.equal(stripShown.stdout, "file\n");
+
+    const dotArchive = await shell.exec("tar -cf dot.tar -C dir . && tar -tf dot.tar file");
+    assert.equal(dotArchive.exitCode, 0, dotArchive.stderr);
+    assert.equal(dotArchive.stdout, "./file\n");
+
+    const plainArchive = await shell.exec("tar -cf plain.tar -C dir file && tar -tf plain.tar ./file");
+    assert.equal(plainArchive.exitCode, 0, plainArchive.stderr);
+    assert.equal(plainArchive.stdout, "file\n");
+
+    await fs.mkdir("/out/tr", { recursive: true });
+    const trExtract = await shell.exec("tar -xvf tr.tar -C /out/tr --strip-components=1 --show-transformed-names");
+    assert.equal(trExtract.exitCode, 0, trExtract.stderr);
+    assert.equal(trExtract.stdout, "file\n");
+  } finally { await shell.dispose(); }
+});

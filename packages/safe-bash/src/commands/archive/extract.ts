@@ -228,14 +228,22 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       if (entry.size > budget.limits.maxTotalBytes - budget.totalBytes) fail("total payload byte limit exceeded");
       budget.totalBytes += entry.size;
       let relative: string | undefined;
-      if (options.mode === "x") relative = relativeName(entry.name, options.strip);
+      const effectiveEntryName = options.mode === "x" && options.transforms.length ? await transformedNames.apply(entry.name) : entry.name;
+      if (options.mode === "x" && options.transforms.length && entry.linkname) entry.linkname = await transformedNames.apply(entry.linkname);
+      if (options.mode === "x") relative = relativeName(effectiveEntryName, options.strip);
       const name = entry.name.replace(/^\/+/u, "");
+      const normalizedName = name.replace(/^(?:\.\/)+/u, "");
       let selected = options.operands.length === 0;
       let root = resolvePath(options.cwd);
       for (let index = 0; index < options.operands.length; index++) {
         const operand = options.operands[index]!;
         const wanted = operand.name.replace(/^\/+/u, "").replace(/\/+$/u, "");
-        if (options.wildcards ? selectors[index]!.matches(name.replace(/\/+$/u, "")) : name.replace(/\/+$/u, "") === wanted || name.startsWith(`${wanted}/`)) {
+        const normalizedWanted = wanted.replace(/^(?:\.\/)+/u, "");
+        const plainName = name.replace(/\/+$/u, "");
+        const plainNormalized = normalizedName.replace(/\/+$/u, "");
+        if (options.wildcards
+          ? selectors[index]!.matches(plainName) || selectors[index]!.matches(plainNormalized)
+          : plainName === wanted || name.startsWith(`${wanted}/`) || (normalizedWanted !== "" && (plainNormalized === normalizedWanted || normalizedName.startsWith(`${normalizedWanted}/`)))) {
           if (options.occurrence !== undefined) {
             const count = (occurrences.get(index) ?? 0) + 1;
             occurrences.set(index, count);
@@ -259,9 +267,17 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }
       if (options.mode === "t") {
+        let baseName = entry.name;
+        if (options.showTransformedNames && options.strip > 0) {
+          const stripped = relativeName(entry.name, options.strip);
+          if (stripped === undefined) {
+            await reader.discard(entry.size); await reader.padding(entry.size); continue;
+          }
+          baseName = entry.name.endsWith("/") && stripped ? `${stripped}/` : stripped;
+        }
         const shown = options.showTransformedNames ? {
           ...entry,
-          name: await transformedNames.apply(entry.name),
+          name: await transformedNames.apply(baseName),
           linkname: entry.linkname ? await transformedNames.apply(entry.linkname) : entry.linkname,
         } : entry;
         await budget.output(options.verbose ? verbose(shown, options) : `${quoteName(shown.name, options.quotingStyle)}\n`);
@@ -347,7 +363,10 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         published.set(path, await operation(context, () => context.fs.lstat(path, { signal: context.signal })));
       }
       await reader.padding(entry.size);
-      if (options.verbose) await budget.output(`${quoteName(entry.name, options.quotingStyle)}\n`);
+      const shownExtractName = options.showTransformedNames
+        ? (options.strip > 0 && relative !== undefined ? (effectiveEntryName.endsWith("/") && relative ? `${relative}/` : relative) : effectiveEntryName)
+        : entry.name;
+      if (options.verbose) await budget.output(`${quoteName(shownExtractName, options.quotingStyle)}\n`);
     }
     for (let index = 0; index < options.operands.length; index++) if (!matched.has(index)) fail(`member not found: ${display(options.operands[index]!.name)}`);
     for (const [path, value] of [...directories].sort(([first], [second]) => second.length - first.length)) {

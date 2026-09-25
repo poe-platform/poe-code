@@ -24,6 +24,7 @@ export interface TarOptions {
   sort: "none" | "name";
   dereference: boolean;
   excludeCaches: boolean;
+  recursion: boolean;
   wildcards: boolean;
   occurrence?: number;
   metadata: { mtime?: number; uid?: number; gid?: number; mode?: number; touch?: boolean; permissions?: boolean; fullTime?: boolean; delayDirectories?: boolean; preserveAtime?: boolean };
@@ -46,6 +47,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let sort: TarOptions["sort"] = "none";
   let dereference = false;
   let excludeCaches = false;
+  let recursion = true;
   let showTransformedNames = false;
   const transforms: NameTransform[] = [];
   let overwrite: TarOptions["overwrite"] = "replace";
@@ -151,6 +153,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     }
     else if (flag === "h" || flag === "dereference") dereference = true;
     else if (flag === "exclude-caches") excludeCaches = true;
+    else if (flag === "no-recursion") recursion = false;
+    else if (flag === "recursion") recursion = true;
     else if (flag === "show-transformed-names") showTransformedNames = true;
     else if (flag === "transform") transforms.push(...parseTransform(value!));
     else if (flag === "atime-preserve") {
@@ -252,7 +256,6 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   if (!mode) fail("exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)");
   const creating = mode === "c" || mode === "r" || mode === "u";
   if (occurrence !== undefined && (creating || mode === "A" || !operands.length)) fail("--occurrence requires member operands when reading archives");
-  if (mode !== "t" && transforms.length) fail("--transform is currently supported only when listing archives");
   if (mode !== "c" && archive === "-" && stdinUsed) fail("archive and file list cannot both use standard input");
   if (mode !== "t" && mode !== "x" && strip !== 0) fail("--strip-components is only supported when listing or extracting archives");
   if (creating && lateExclude) fail("--exclude after source operands is unsupported; place exclusions before operands");
@@ -263,7 +266,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }
 
 function unquoteFileName(name: string): string {

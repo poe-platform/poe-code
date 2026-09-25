@@ -5,6 +5,7 @@ import { Budget, checkPath, display, fail, fileSource, hasIdentity, maybeStat, o
 import { Exclusions, type TarOptions } from "./options.js";
 import { quoteName } from "./listing.js";
 import { recordPadding } from "./stream.js";
+import { TransformedNames } from "./transform.js";
 
 interface SourceEntry { readonly path: string; readonly stat: FileStat; readonly entry: Entry }
 
@@ -16,6 +17,7 @@ function safeName(name: string): string {
 
 export async function manifest(context: CommandContext, options: TarOptions, budget: Budget): Promise<{ entries: SourceEntry[]; output?: string; outputStat?: FileStat }> {
   const exclusions = new Exclusions(options.excludes, budget.limits.maxPatternSteps);
+  const transformedNames = new TransformedNames(context, options.transforms, budget.limits);
   const entries: SourceEntry[] = [];
   let archiveBytes = 1024;
   let output: string | undefined;
@@ -48,8 +50,11 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       return;
     }
     if (stat.type !== "file" && stat.type !== "directory" && stat.type !== "symlink") fail(`unsupported source type: ${display(name)}`);
+    const rawName = stat.type === "directory" && !name.endsWith("/") ? `${name}/` : name;
+    const transformedName = options.transforms.length ? await transformedNames.apply(rawName) : rawName;
+    if (!transformedName || transformedName.split("/").includes("..")) fail(`unsafe transformed member name: ${display(transformedName)}`);
     const entry: Entry = {
-      name: stat.type === "directory" && !name.endsWith("/") ? `${name}/` : name,
+      name: stat.type === "directory" && !transformedName.endsWith("/") ? `${transformedName}/` : transformedName,
       type: stat.type === "directory" ? "5" : stat.type === "symlink" ? "2" : "0",
       linkname: "", size: stat.type === "file" ? stat.size : 0,
       mode: options.metadata.mode ?? (stat.mode & 0o7777), uid: options.metadata.uid ?? stat.uid ?? 0, gid: options.metadata.gid ?? stat.gid ?? 0,
@@ -60,6 +65,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       if ((stat.nlink ?? 1) > 1) fail("hardlinked symbolic-link sources are unsupported");
       if (!context.fs.readlink) fail("filesystem does not support readlink");
       entry.linkname = await operation(context, () => context.fs.readlink!(path, { signal: context.signal }));
+      if (options.transforms.length) entry.linkname = await transformedNames.apply(entry.linkname);
       checkPath(entry.linkname, budget.limits);
     }
     const archivePath = resolvePath("/", entry.name);
@@ -97,7 +103,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     archiveBytes += headers.reduce((size, header) => size + header.length, 0) + Math.ceil(entry.size / 512) * 512;
     if (options.format === "ustar" && headers.length > 1) fail(`metadata requires PAX format: ${display(name)}`);
     entries.push({ path, stat, entry });
-    if (stat.type === "directory") {
+    if (stat.type === "directory" && options.recursion) {
       const maxEntries = budget.limits.maxMembers - budget.members;
       const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal,
         ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
@@ -121,7 +127,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       for (const child of children) {
         if (!child.name || child.name === "." || child.name === ".." || /[/\0]/u.test(child.name)) fail("invalid filesystem directory entry");
         if (cache && child.name !== "CACHEDIR.TAG") continue;
-        await visit(resolvePath(canonical, child.name), `${entry.name}${child.name}`, depth + 1, false, [...ancestors, canonical]);
+        await visit(resolvePath(canonical, child.name), `${rawName}${child.name}`, depth + 1, false, [...ancestors, canonical]);
       }
     }
   };

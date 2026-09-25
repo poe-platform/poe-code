@@ -4,6 +4,7 @@ import { PlaywrightResourceLimitError } from './resource-limit.js';
 import { parsePlaywrightStorageState } from './storage-state.js';
 import { parsePlaywrightSessionConfiguration, type PlaywrightSessionConfiguration } from './session-configuration.js';
 import { parsePlaywrightIniConfig } from './config-ini.js';
+import { parsePlaywrightConfigJSON, playwrightConfigMaxBytes } from './config-json.js';
 
 const contextKeys = new Set(['storageState', 'userAgent', 'viewport', 'screen', 'deviceScaleFactor', 'isMobile', 'hasTouch', 'locale', 'timezoneId', 'colorScheme', 'reducedMotion', 'forcedColors', 'javaScriptEnabled', 'ignoreHTTPSErrors', 'acceptDownloads', 'permissions', 'geolocation', 'extraHTTPHeaders', 'baseURL', 'offline', 'strictSelectors', 'bypassCSP', 'httpCredentials', 'serviceWorkers']);
 function object(value: unknown, name: string): Record<string, unknown> {
@@ -59,11 +60,12 @@ export async function resolvePlaywrightOpenOptions(options: Readonly<Record<stri
   const read = async (filename: string, configuration = false): Promise<unknown> => {
     if (!invocation.readArtifact) throw new Error('Artifact byte source unsupported');
     invocation.signal.throwIfAborted();
-    const bytes = await invocation.readArtifact(filename, maxBytes);
+    const byteLimit = configuration ? Math.min(maxBytes, playwrightConfigMaxBytes) : maxBytes;
+    const bytes = await invocation.readArtifact(filename, byteLimit);
     invocation.signal.throwIfAborted();
-    if (!(bytes instanceof Uint8Array) || bytes.byteLength > maxBytes) throw new PlaywrightResourceLimitError('Playwright configuration byte limit exceeded');
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength > byteLimit) throw new PlaywrightResourceLimitError('Playwright configuration byte limit exceeded');
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    return configuration && filename.endsWith('.ini') ? parsePlaywrightIniConfig(text) : JSON.parse(text);
+    return configuration ? filename.endsWith('.ini') ? parsePlaywrightIniConfig(text) : parsePlaywrightConfigJSON(text) : JSON.parse(text);
   };
   let selectedConfig = typeof options.config === 'string' ? options.config : stringEnv('PLAYWRIGHT_MCP_CONFIG');
   let filename = selectedConfig ?? '.playwright/cli.config.json';

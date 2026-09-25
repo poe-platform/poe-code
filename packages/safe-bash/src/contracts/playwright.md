@@ -9,6 +9,15 @@ registration, VFS and streams. Creating that package and its README is deferred.
 
 ## Host configuration and authorization
 
+Open configuration files (explicit, environment, default and global, including
+INI) are limited to 128 KiB or the caller's smaller artifact/command limit.
+JSON configuration is scanned before constructing its object graph: maximum
+nesting is 32 and the aggregate value/property budget is 4096, including duplicate
+properties and array elements. Unknown top-level keys and arrays outside supported
+list settings or embedded storage state are rejected during admission. Oversized
+or over-budget configuration fails before browser acquisition. Separate storage
+state and init-script files retain their own artifact limits.
+
 `PlaywrightInjectionOptions` accepts an adapter and optional `billing` hooks.
 When present, billing requires a caller-selected `intervalMs` and awaited
 `onUsage`; `beforeAcquire` is optional and awaited. The host must validate that

@@ -56,6 +56,43 @@ const adapter: PlaywrightAdapter = { browsers: { chromium: { headed: false } }, 
 const signal = new AbortController().signal;
 const invocation = { args: [], env: {}, signal, async write() {} };
 
+test('open rejects compact config graphs before native object parsing', async () => {
+  const original = JSON.parse;
+  let graphs = 0;
+  JSON.parse = (source, reviver) => {
+    if (source.trimStart().startsWith('{') || source.trimStart().startsWith('[')) graphs++;
+    return original(source, reviver);
+  };
+  try {
+    for (const source of [
+      '{"junk":[' + '{},'.repeat(1_900_000) + '{}]}',
+      '{"junk":[]}',
+      '{"browser":[]}',
+      '{"browser":{"contextOptions":{"permissions":[' + '"x",'.repeat(4096) + '"x"]}}}',
+      '{"browser":{"contextOptions":{"storageState":' + '['.repeat(33) + '0' + ']'.repeat(33) + '}}}',
+    ]) {
+      await assert.rejects(resolvePlaywrightOpenOptions({ config: 'config.json' }, {
+        ...invocation, async readArtifact() { return new TextEncoder().encode(source); },
+      }, adapter, 16 * 1024 * 1024));
+    }
+    assert.equal(graphs, 0, 'invalid config must not allocate a native graph');
+  } finally { JSON.parse = original; }
+});
+
+test('all config sources receive the smaller byte budget', async () => {
+  for (const [options, env] of [
+    [{ config: 'explicit.json' }, {}], [{}, {}], [{}, { PLAYWRIGHT_MCP_CONFIG: 'env.json' }],
+    [{}, { PWTEST_CLI_GLOBAL_CONFIG: '/global' }], [{ config: 'explicit.ini' }, {}],
+  ] as const) {
+    const budgets: number[] = [];
+    await resolvePlaywrightOpenOptions(options, { ...invocation, env, async readArtifact(path, budget) {
+      budgets.push(budget); return new TextEncoder().encode(path.endsWith('.ini') ? '' : '{}');
+    } }, adapter, 16 * 1024 * 1024);
+    assert.ok(budgets.length > 0);
+    assert.ok(budgets.every(budget => budget === 128 * 1024));
+  }
+});
+
 test('open resolves native device context options, standard defaults, and explicit idle override', async () => {
   const resolved = await resolvePlaywrightOpenOptions({ device: 'Pixel 7', 'idle-timeout': '0' }, invocation, adapter, 4096);
   assert.deepEqual(resolved, { browser: 'chromium', headless: true, idleTimeoutMs: 0, contextOptions: {

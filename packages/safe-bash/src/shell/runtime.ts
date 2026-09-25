@@ -1227,6 +1227,17 @@ class FastShellCommandContext {
     if (io.scriptName !== undefined) this.scriptName = io.scriptName;
     this.registerCleanup = cleanup => { scope.register(cleanup); };
     this.invoke = (cmdName, cmdArgs, options) => runtime.invokeFromFastContext(cmdName, cmdArgs, options, this as unknown as ShellCommandContext, state, scope);
+    // Command adapters forward contexts with spread or copied descriptors.
+    // Keep lazy fields enumerable and bind their private state to this instance.
+    for (const [key, descriptor] of fastShellCommandAccessors) {
+      Object.defineProperty(this, key, {
+        ...descriptor,
+        enumerable: true,
+        configurable: key !== "stdinInput" && key !== "stdoutFile",
+        get: descriptor.get!.bind(this),
+        ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
+      });
+    }
     bindFileOutputBudget(
       this as unknown as Pick<CommandContext, "registerCleanup">,
       sink => runtime.budget.sink(sink, this.#getScopedSignal()),
@@ -1294,6 +1305,10 @@ class FastShellCommandContext {
     this.#admittedHandles = v;
   }
 }
+
+const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "stdinInput", "stdoutFile", "admittedHandles"].map(
+  key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
+);
 
 function cloneRawState(raw: State, hasLocals: boolean): State {
   const cloned: State = {

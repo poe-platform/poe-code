@@ -112,7 +112,11 @@ export class SharpInstance {
 
   private evaluateImage(): RgbaImage {
     let img = decodeImage(this.inputBytes, this.inputOptions);
-    for (const node of this.nodes) {
+    const orderedNodes = [
+      ...this.nodes.filter(n => n.kind !== "withMetadata"),
+      ...this.nodes.filter(n => n.kind === "withMetadata")
+    ];
+    for (const node of orderedNodes) {
       switch (node.kind) {
         case "autoOrient":
           img = applyExifOrientation(img);
@@ -842,7 +846,7 @@ export class SharpInstance {
   }
 
   withMetadata(options?: { readonly density?: number; readonly orientation?: number }): this {
-    this.nodes.push({
+    this.upsertNode({
       kind: "withMetadata",
       ...(options?.density !== undefined ? { density: options.density } : {}),
       ...(options?.orientation !== undefined ? { orientation: options.orientation } : {})

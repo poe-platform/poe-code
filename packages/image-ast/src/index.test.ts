@@ -1760,4 +1760,18 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(typeof sharp(buf, raw).pipelineColourspace).toBe("function");
     expect(typeof sharp(buf, raw).pipelineColorspace).toBe("function");
   });
+
+  it("evaluates withMetadata() after autoOrient() so input EXIF orientation is used for pixel rotation (#94)", async () => {
+    const buf = Buffer.alloc(10 * 20 * 3, 128);
+    const srcJpg = await sharp(buf, { raw: { width: 10, height: 20, channels: 3 } })
+      .withMetadata({ density: 300, orientation: 6 })
+      .jpeg()
+      .toBuffer();
+
+    const outJpg = await sharp(srcJpg).withMetadata({ orientation: 3 }).rotate().jpeg().toBuffer();
+    const outMeta = await sharp(outJpg).metadata();
+    expect(outMeta.width).toBe(20);
+    expect(outMeta.height).toBe(10);
+    expect(outMeta.orientation).toBe(3);
+  });
 });

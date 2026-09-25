@@ -1,0 +1,86 @@
+{
+  "oracle": "shuf (GNU coreutils) 9.12",
+  "reason": "Issue 942: strict counts and random-source admission supersede GNU 8.30 expectations.",
+  "cases": {
+    "native:27": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnMiAnCg==",
+      "files": {}
+    },
+    "native:28": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnMWsnCg==",
+      "files": {}
+    },
+    "native:31": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnMTg0NDY3NDQwNzM3MDk1NTE2MTZ4Jwo=",
+      "files": {}
+    },
+    "native:86": {
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {}
+    },
+    "native:96": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogbWlzc2luZzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+      "files": {}
+    },
+    "native:97": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogbWlzc2luZzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQo=",
+      "files": {}
+    },
+    "independent:27": {
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "out": ""
+      }
+    },
+    "independent:29": {
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "files": {}
+    },
+    "independent:58": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogbWlzc2luZy1ybmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+      "files": {}
+    },
+    "diagnostics:2": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnMTg0NDY3NDQwNzM3MDk1NTE2MTZ4Jwo=",
+      "files": {}
+    },
+    "diagnostics:3": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnMHgxJwo=",
+      "files": {}
+    },
+    "diagnostics:4": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnMXgnCg==",
+      "files": {}
+    },
+    "diagnostics:5": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c2h1ZjogaW52YWxpZCBsaW5lIGNvdW50OiAnMVxueCcK",
+      "files": {}
+    }
+  }
+}

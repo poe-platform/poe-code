@@ -171,7 +171,7 @@ function decimal(text: string, count: boolean, unicode: boolean): bigint {
     value = value > unsignedMaximum ? unsignedMaximum + 1n : value * 10n + BigInt(text.charCodeAt(offset) - 48);
     offset++;
   }
-  if (offset === start || !count && offset !== text.length || !count && value > unsignedMaximum) {
+  if (offset === start || offset !== text.length || !count && value > unsignedMaximum) {
     throw new ShufDiagnostic(`invalid ${count ? "line count" : "input range"}: ${quote(text, false, unicode)}${!count && offset === text.length && value > unsignedMaximum ? ": Value too large for defined data type" : ""}`);
   }
   return value;
@@ -182,6 +182,7 @@ interface Settings {
   repeat: boolean;
   separator: number;
   count: bigint;
+  hasCount: boolean;
   operands: string[];
   range?: { low: bigint; length: bigint };
   output?: string;
@@ -198,14 +199,14 @@ function parse(context: CommandContext): Settings {
   total = 0;
   for (const value of carrier.values) { total += shellValueByteLength(value); if (total > 65536) throw new PublicDiagnostic("argument limit exceeded"); }
   const args = context.args.map((_argument, index) => Array.from(carrier.bytes(index)!, byte => String.fromCharCode(byte)).join(""));
-  const settings: Settings = { echo: false, repeat: false, separator: 10, count: unsignedMaximum, operands: [] };
+  const settings: Settings = { echo: false, repeat: false, separator: 10, count: unsignedMaximum, hasCount: false, operands: [] };
   const long: Readonly<Record<string, string>> = { echo: "e", "input-range": "i", "head-count": "n", output: "o", "random-source": "random", repeat: "r", "zero-terminated": "z", help: "help", version: "version" };
   const apply = (key: string, value = ""): void => {
     if (key === "e") settings.echo = true;
     else if (key === "r") settings.repeat = true;
     else if (key === "z") settings.separator = 0;
     else if (key === "help" || key === "version") settings.information = key;
-    else if (key === "n") { const number = decimal(value, true, unicode); if (number < settings.count) settings.count = number; }
+    else if (key === "n") { const number = decimal(value, true, unicode); settings.hasCount = true; if (number < settings.count) settings.count = number; }
     else if (key === "i") {
       if (settings.range) throw new ShufDiagnostic("multiple -i options specified");
       const dash = value.indexOf("-");
@@ -526,7 +527,7 @@ export function shufCommand(): CommandDefinition {
           await writeBytes(operation.output, new TextEncoder().encode(settings.information === "version" ? "shuf (virtual-bash)\n" : "Usage: shuf [OPTION]... [FILE]\n  or: shuf -e [OPTION]... [ARG]...\n  or: shuf -i LO-HI [OPTION]...\n  -e, --echo                 shuffle arguments\n  -i, --input-range=LO-HI    shuffle an inclusive range\n  -n, --head-count=COUNT     output at most COUNT records\n  -o, --output=FILE          write to a VFS file\n      --random-source=FILE   read random bytes from a VFS file\n  -r, --repeat               sample with replacement (requires -n)\n  -z, --zero-terminated      delimit records with NUL\n      --help                 display help\n      --version              display virtual command identity\n"), signal);
           return { exitCode: 0 };
         }
-        if (settings.repeat && settings.count === unsignedMaximum) throw new PublicDiagnostic("repeat requires a bounded head count (-n)");
+        if (settings.repeat && !settings.hasCount) throw new PublicDiagnostic("repeat requires a bounded head count (-n)");
         if (settings.count !== 0n && settings.range && settings.range.length > BigInt(maximumLines)) throw new PublicDiagnostic("input range limit exceeded");
         if (settings.repeat && settings.count > BigInt(maximumLines)) throw new PublicDiagnostic("output line limit exceeded");
         const budget = new ByteInputBudget(bufferLimit);
@@ -544,13 +545,13 @@ export function shufCommand(): CommandDefinition {
         let length = settings.range ? Number(settings.range.length) : lines.length;
         let count = Number(settings.count > BigInt(maximumLines) ? BigInt(maximumLines) : settings.count);
         if (!settings.repeat && !reservoir) count = Math.min(count, length);
-        const needsRandom = reservoir || settings.repeat || count > 0 && length > 1;
+        const needsRandom = settings.repeat || count > 0 && (reservoir || length > 0);
         let randomInput: Input | undefined;
         if (settings.random !== undefined && needsRandom) {
           randomInput = new Input(context, operation, new ByteInputBudget(bufferLimit), `${quote(settings.random, false, unicode)}: read error`);
           await randomInput.open(settings.random);
         }
-        const random = new Random(randomInput, settings.random, signal, unicode, needsRandom);
+        const random = new Random(randomInput, settings.random, signal, unicode, reservoir && count > 0 || settings.repeat || count > 0 && length > 1);
         if (reservoir && count > 0) {
           const iterator = records(input!, settings.separator);
           try {

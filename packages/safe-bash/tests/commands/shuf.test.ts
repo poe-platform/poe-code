@@ -40,18 +40,47 @@ async function shuffle(args: readonly string[], input: string | Uint8Array = "",
   return { exitCode: result.exitCode, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) };
 }
 
+const modern = JSON.parse(readFileSync(new URL("./shuf-modern.snapshot.json", import.meta.url), "utf8")) as {
+  cases: Record<string, { status: number; stdout: string; stderr: string; files?: Record<string, string> }>;
+};
+
+// Issue 942 targets modern GNU semantics rather than the historical 8.30 oracle.
+for (const args of [["-n", "1abc"], ["--head-count=0foo"], ["-n", "1 "], ["-n", "18446744073709551616x"]]) test(`shuf rejects trailing count garbage: ${args.join(" ")}`, async () => {
+  const result = await shuffle([...args, "-e", "a", "b"]);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr.toString(), /invalid line count/);
+});
+for (const args of [["-e", "only_one"], ["-i", "5-5"], ["input"]]) test(`shuf opens random source for one record: ${args.join(" ")}`, async () => {
+  const { fs } = fixture({ input: "one\n" });
+  const result = await shuffle([...args, "--random-source=missing"], "", { fs });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr.toString(), "shuf: missing: No such file or directory\n");
+});
+for (const args of [["input"], ["-e", "one"], ["-i", "5-5"]]) test(`shuf zero count skips random source: ${args.join(" ")}`, async () => {
+  const result = await shuffle(["-n0", ...args, "--random-source=missing"]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout.length, 0);
+});
+for (const count of ["18446744073709551615", "18446744073709551616"]) test(`shuf treats explicit huge count as bounded: ${count}`, async () => {
+  const result = await shuffle(["-r", "-n", count, "-e"]);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr.toString(), "shuf: output line limit exceeded\n");
+  assert.equal((await shuffle(["-r", "-n", count, "-n1", "-e", "one"])).stdout.toString(), "one\n");
+});
+
 test("shuf preserves a single unterminated input record", async () => {
   assert.deepEqual(await shuffle([], "hello"), {exitCode:0,stdout:Buffer.from("hello\n"),stderr:Buffer.alloc(0)});
 });
 
-test("shuf matches GNU 8.30 immutable byte snapshots with the same random-source bytes", async () => {
+test("shuf matches historical byte snapshots with explicit modern GNU overrides with the same random-source bytes", async () => {
   const snapshot = JSON.parse(readFileSync(new URL("./shuf-native.snapshot.json", import.meta.url), "utf8")) as {
     cases: {args:string[];stdin:string;files:Record<string,string>;env:Record<string,string>;expected:{exitCode:number;stdout:string;stderr:string;files:Record<string,string>}}[];
   };
   for (const [index, entry] of snapshot.cases.entries()) {
     const {fs,volume} = fixture(Object.fromEntries(Object.entries(entry.files).map(([name,bytes]) => [name,Buffer.from(bytes,"base64")])));
+    const expected = modern.cases[`native:${index}`] ?? { ...entry.expected, status: entry.expected.exitCode };
     assert.deepEqual(await shuffle(entry.args,Buffer.from(entry.stdin,"base64"),{fs,env:{LC_ALL:"C",...entry.env}}), {
-      exitCode:entry.expected.exitCode,stdout:Buffer.from(entry.expected.stdout,"base64"),stderr:Buffer.from(entry.expected.stderr,"base64"),
+      exitCode:expected.status,stdout:Buffer.from(expected.stdout,"base64"),stderr:Buffer.from(expected.stderr,"base64"),
     }, `case ${index}: ${JSON.stringify(entry.args)}`);
     for(const [name,bytes] of Object.entries(entry.expected.files)) assert.deepEqual(volume.readFileSync(`/work/${name}`),Buffer.from(bytes,"base64"),`case ${index} file ${name}`);
   }
@@ -154,12 +183,12 @@ test("shuf detects oversized and empty producer input and retires once", async (
   }
 });
 
-test("shuf opens the random source before reservoir reads, including zero-count file bypass", async () => {
+test("shuf opens the random source before reservoir reads, while zero-count file bypass skips it", async () => {
   const {fs}=fixture(); let reads=0;
   const stdin:ByteSource={ [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { reads++; throw new FsError("EIO"); } }; } };
   for(const args of [["-n0","missing"],["-n1"]]) {
     const result=await shuffle([...args,"--random-source=missing"],"",{fs,stdin});
-    assert.equal(result.stderr.toString(),"shuf: missing: No such file or directory\n");
+    assert.equal(result.stderr.toString(), args[0] === "-n0" ? "" : "shuf: missing: No such file or directory\n");
   }
   assert.equal(reads,0);
 });
@@ -217,7 +246,9 @@ interface NativeCase {
 
 const independent = JSON.parse(readFileSync(new URL("./shuf-independent.snapshot.json", import.meta.url), "utf8")) as { cases: NativeCase[] };
 const zeroRange = JSON.parse(readFileSync(new URL("./shuf-zero-range.snapshot.json", import.meta.url), "utf8")) as { cases: NativeCase[] };
-for (const entry of [...independent.cases, ...zeroRange.cases]) test(`shuf GNU 8.30: ${entry.name}`, async () => {
+for (const entry of [...independent.cases, ...zeroRange.cases]) test(`shuf native compatibility: ${entry.name}`, async () => {
+  const key = independent.cases.includes(entry) ? `independent:${independent.cases.indexOf(entry)}` : `zero-range:${zeroRange.cases.indexOf(entry)}`;
+  const expected = modern.cases[key] ?? entry.expected;
   for (const chunkSize of [1, 65536]) {
     const { fs, volume } = fixture(Object.fromEntries(Object.entries(entry.files).map(([name, bytes]) => [name, Buffer.from(bytes, "base64")])));
     for (const [name, target] of Object.entries(entry.links)) volume.linkSync(`/work/${target}`, `/work/${name}`);
@@ -244,8 +275,8 @@ for (const entry of [...independent.cases, ...zeroRange.cases]) test(`shuf GNU 8
     } : undefined;
     const argumentValues = createCommandArguments(entry.args.map(bytes => shellValueFromBytes(Buffer.from(bytes, "base64"))));
     const actual = await shuffle(argumentValues.args, "", { fs, stdin, ...(stdinInput ? { stdinInput } : {}), argumentValues, env: { LC_ALL: entry.locale } });
-    assert.deepEqual(actual, { exitCode: entry.expected.status, stdout: Buffer.from(entry.expected.stdout, "base64"), stderr: Buffer.from(entry.expected.stderr, "base64") }, `producer chunk size ${chunkSize}`);
-    for (const [name, bytes] of Object.entries(entry.expected.files)) assert.deepEqual(volume.readFileSync(`/work/${name}`), Buffer.from(bytes, "base64"));
+    assert.deepEqual(actual, { exitCode: expected.status, stdout: Buffer.from(expected.stdout, "base64"), stderr: Buffer.from(expected.stderr, "base64") }, `producer chunk size ${chunkSize}`);
+    for (const [name, bytes] of Object.entries({ ...entry.expected.files, ...("files" in expected ? expected.files : {}) })) assert.deepEqual(volume.readFileSync(`/work/${name}`), Buffer.from(bytes as string, "base64"));
     if (zeroRange.cases.includes(entry)) assert.deepEqual(volume.readdirSync("/work").sort(), Object.keys(entry.expected.files).sort());
     if (entry.name.startsWith("zero-")) assert.equal(entry.stdinKind === "directory" ? null : input.subarray(position).toString("base64"), entry.expected.stdinRemaining);
   }
@@ -295,8 +326,9 @@ for (const profile of [
 const diagnostics = JSON.parse(readFileSync(new URL("./shuf-diagnostics.snapshot.json", import.meta.url), "utf8")) as {
   results: { args: string[]; expected: { status: number; stdout: string; stderr: string } }[];
 };
-for (const entry of diagnostics.results) test(`shuf native diagnostic ${JSON.stringify(entry.args)}`, async () => {
-  assert.deepEqual(await shuffle(entry.args), { exitCode: entry.expected.status, stdout: Buffer.from(entry.expected.stdout, "base64"), stderr: Buffer.from(entry.expected.stderr, "base64") });
+for (const [index, entry] of diagnostics.results.entries()) test(`shuf native diagnostic ${JSON.stringify(entry.args)}`, async () => {
+  const expected = modern.cases[`diagnostics:${index}`] ?? entry.expected;
+  assert.deepEqual(await shuffle(entry.args), { exitCode: expected.status, stdout: Buffer.from(expected.stdout, "base64"), stderr: Buffer.from(expected.stderr, "base64") });
 });
 
 for (const [args, expected] of [

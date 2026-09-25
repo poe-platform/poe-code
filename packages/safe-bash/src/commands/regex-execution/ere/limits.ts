@@ -158,7 +158,8 @@ export class EreLedger {
     const interval = hasExt ? 256 : 16384;
     if (this.uWork - this.lastYield >= interval) {
       this.lastYield = this.uWork;
-      if (!hasExt) {
+      // A supplied signal must remain observable at each work checkpoint.
+      if (!hasExt && signal === undefined) {
         const now = monotonicNow();
         if (now - this.lastYieldMs < 25) return undefined;
         this.lastYieldMs = now;

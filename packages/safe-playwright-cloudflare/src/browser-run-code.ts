@@ -26,7 +26,6 @@ import { parseRunCodeJson } from "./browser-run-code-json.js";
 const activeOwners = new Set<string>();
 
 class RunCodeUserError extends Error {}
-class RunCodeOutputLimitError extends PlaywrightResourceLimitError {}
 
 function validate(input: BrowserRunCodeInput) {
 	input.signal.throwIfAborted();
@@ -136,7 +135,7 @@ async function execute(
 		]);
 	} catch (error) {
 		executionFailure = { error };
-		if (!(error instanceof RunCodeUserError) && !(error instanceof RunCodeOutputLimitError)) fail(error);
+		if (!(error instanceof RunCodeUserError)) fail(error);
 	} finally {
 		clearTimeout(timer);
 		input.signal.removeEventListener("abort", onAbort);
@@ -336,9 +335,7 @@ async function runGuest(
 	try {
 		const response = await result;
 		signal.throwIfAborted();
-		const userError = response.ok ? undefined : response.outputLimit
-			? new RunCodeOutputLimitError(response.message)
-			: new RunCodeUserError(response.message);
+		const userError = response.ok ? undefined : new RunCodeUserError(response.message);
 		try {
 			const state = parseRunCodeState(response.stateJson);
 			if (state.pages.length > (input.maxPages ?? Infinity))
@@ -354,7 +351,8 @@ async function runGuest(
 		const json = response.json;
 		if (typeof json !== "string") throw new TypeError("Invalid run-code output");
 		if (Number.isFinite(input.maxOutputBytes) && frameByteLength(json) > input.maxOutputBytes!)
-			throw new RunCodeOutputLimitError("Run-code output limit exceeded");
+			// This completed refusal follows the same restoration path as a guest error.
+			throw new RunCodeUserError("Run-code output limit exceeded");
 		return parseRunCodeJson(json, signal);
 	} finally {
 		signal.removeEventListener("abort", dispose);

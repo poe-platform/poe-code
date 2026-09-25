@@ -15,8 +15,6 @@ import {
 import { serializeRunCodeState } from "./browser-run-code-state.js";
 import { prepareBrowserScreenshots } from './browser-screenshot.js';
 
-class RunCodeOutputLimitError extends Error {}
-
 async function selectedPage(
 	browser: Browser,
 	metadata: BrowserRunCodeMetadata,
@@ -87,13 +85,12 @@ export default class BrowserRunCodeGuest extends WorkerEntrypoint {
 					throw new Error("Run-code source must be a function");
 				json = serializeResult(await userCode(page));
 				if (Number.isFinite(metadata.maxOutputBytes) && new TextEncoder().encode(json).byteLength > metadata.maxOutputBytes!)
-					throw new RunCodeOutputLimitError("Run-code output limit exceeded");
+					throw new Error("Run-code output limit exceeded");
 			} catch (error) {
 				userFailure = { error };
 				return {
 					ok: false as const,
 					message: String(error),
-					...(error instanceof RunCodeOutputLimitError ? { outputLimit: true as const } : {}),
 					stateJson: serializeRunCodeState(
 						captureRunCodeState(browser, page.context())
 					)

@@ -533,6 +533,31 @@ export default {
 					assert.equal(await f.run("async page => page.title()"), "Output recovered");
 					break;
 				}
+				case "/output-cli": {
+					const shell = new Shell({ fs: new MemoryFileSystem() });
+					let releases = 0;
+					shell.use(createPlaywrightCli({ limits: { maxCommandBytes: 1024 }, adapter: {
+						browsers: { chromium: { headed: false } },
+						async acquire() { return { context: f.context, executeCode: f.execute,
+							onClosed() { return () => {}; }, async release() { releases++; } }; },
+					} }).plugin);
+					try {
+						assert.equal((await shell.exec('playwright-cli open')).exitCode, 0);
+						const result = await shell.exec(`playwright-cli run-code 'async page => {
+              await page.evaluate(() => { document.title = "CLI output retained"; });
+              return "x".repeat(2048);
+            }'`);
+						assert.equal(result.exitCode, 1);
+						assert.ok((result.stdout + result.stderr).includes('output limit'), result.stdout + result.stderr);
+						assert.equal(releases, 0, 'A completed output refusal must not release the CLI session');
+						assert.equal(f.retired(), false);
+						assert.equal((await shell.exec('playwright-cli tab-list')).exitCode, 0);
+						const recovered = await shell.exec(`playwright-cli run-code 'async page => page.title()'`);
+						assert.equal(recovered.exitCode, 0, recovered.stdout + recovered.stderr);
+						assert.ok(recovered.stdout.includes('CLI output retained'), recovered.stdout);
+					} finally { await shell.dispose(); }
+					break;
+				}
 				case "/unlimited-source-output": {
 					const result = await f.execute({
 						page: f.page, signal: new AbortController().signal,

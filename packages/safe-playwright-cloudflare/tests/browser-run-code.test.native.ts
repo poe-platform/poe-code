@@ -72,6 +72,7 @@ for (const scenario of [
 	"loader-error",
 	"cancel",
 	"output",
+	"output-cli",
 	"unlimited-source-output",
 	"unlimited-contexts",
 ]) {

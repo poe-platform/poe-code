@@ -38,8 +38,10 @@ it.each(["xlsx", "xlsx2"])("exports %s through the actual SDK with distinct prof
     expect(parts.get("xl/worksheets/sheet1.xml")).toContain('<v>yes</v>');
     expect(parts.get("xl/worksheets/sheet1.xml")).toContain('ref="A3:B4"');
     expect(parts.get("xl/styles.xml")).toContain('formatCode="0.000"');
+    expect(parts.get("xl/styles.xml")).toContain('<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>');
     expect(parts.get("xl/styles.xml")).toContain(profile === "xlsx" ? '<left style="none">' : '<start style="none">');
     const reopened = await engine.readWorkbook({ kind: "stream", source: output }, {}, context);
+    expect(reopened.sheets[0]!.cells[0]!.format).toBe("0.000");
     expect(reopened.sheets[0]!.cells[1]).toMatchObject({ formula: "=1+2", cachedResult: { kind: "number", value: 3 } });
   } finally { await engine.dispose(); }
 });

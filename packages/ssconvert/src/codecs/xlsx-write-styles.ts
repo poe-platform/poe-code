@@ -63,6 +63,7 @@ export function createXlsxStyles(xml: ElementWriter, edition: "2006" | "2008", n
     return xml("styleSheet", { xmlns: namespace }, (custom.size ? xml("numFmts", { count: custom.size }, [...custom].map(([formatCode, numFmtId]) => xml("numFmt", { formatCode, numFmtId })).join("")) : "") +
       xml("fonts", { count: fonts.length }, fonts.join("")) + xml("fills", { count: fills.length }, fills.join("")) + xml("borders", { count: borders.length }, borders.join("")) +
       xml("cellStyleXfs", { count: 1 }, defaultXf) + xml("cellXfs", { count: xfs.length }, xfs.join("")) +
+      xml("cellStyles", { count: 1 }, xml("cellStyle", { name: "Normal", xfId: 0, builtinId: 0 })) +
       (dxfs.length ? xml("dxfs", { count: dxfs.length }, dxfs.map(node => {
         const a = node.attributes; let content = "";
         if (a.Back !== undefined || a.Shade !== undefined) content += xml("fill", {}, xml("patternFill", { patternType: patterns[Number(a.Shade ?? 1)] ?? "solid" }, xml("bgColor", { rgb: rgb(a.Back, "FFFFFFFF") })));

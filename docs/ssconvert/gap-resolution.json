@@ -196,9 +196,18 @@
       "reproduction": "31 regressions failed and five default/unknown-record controls passed. All 36 cases and the 71-test focused cohort pass.",
       "qualification": "418 files / 23824 package tests, two required posttest checks, package lint/types and selected build pass. Sixteen independently authored XLSX inputs cover every flag combination. Thirty-two compiled SDK XLSX-to-BIFF7/8-to-XLSX replays preserve flags; native Gnumeric reads all BIFF flags with empty stderr and openpyxl reads all reexported XLSX flags correctly. Eight compiled Shell conversions pass, retaining unrelated metadata warnings. The CLI screenshot was inspected.",
       "nativeLimitation": "Gnumeric 1.12.61 writes an empty XLSX printOptions element and ignores an independently populated element on import; this is a format-correctness extension, not native XLSX parity.",
-      "remaining": "openpyxl reports a missing default style for every reexported XLSX; the warning is retained in evidence, not qualified as fixed. Unrelated BIFF/XLSX raw metadata warnings, other printOptions attributes and rendered output remain open. No family is closed.",
+      "remaining": "The missing default-style warning recorded by this qualification was subsequently fixed and independently checked under xlsxDefaultStyle. Unrelated BIFF/XLSX raw metadata warnings, other printOptions attributes and rendered output remain open. No family is closed.",
       "outputBindingsSha256": "6059b8cef336e245c73bd64fcb02304f7ef446a9b8313746a5e25e9caf2778c2",
       "outputBindingRule": "UTF-8 compact JSON array in bits 0..15 order, then revision 7/8; keys bits,revision,biffSha256,xlsxSha256. Bits select headings,gridLines,horizontalCentered,verticalCentered. Digests cover complete compiled SDK artifacts."
+    },
+    "xlsxDefaultStyle": {
+      "scope": "Both XLSX editions declare the built-in Normal cell style, linked to the existing default style XF. Cell formats and parent style references are unchanged; named-style preservation beyond this default remains outside this fix.",
+      "source": "openpyxl 3.1.5 styles/stylesheet.py SHA-256 ee4669cf26af2eb38971d66a6739775994f233ad02a963fc8bf390d09ff5c72d; workbook/workbook.py SHA-256 a1a12bbd21f5a94a615003ce6530878f6507c8a783aac8f60f270a083720a3b3. Independently authored XLSX declares Normal with xfId=0 and builtinId=0.",
+      "reproduction": "Both public SDK edition regressions failed because exported styles.xml omitted cellStyles. openpyxl reproduced its missing-default-style warning on prior export SHA-256 d5d9f572a605a50a2d4119f1c3756cfc77447319c9fc4960024fe1a720585775.",
+      "qualification": "13 focused tests, 418 files / 23824 package tests, two required posttest checks, package lint/types and the selected workspace build pass. Thirty-six compiled SDK outputs cover both editions, all sixteen print-flag combinations, empty worksheets and custom numeric formatting. openpyxl independently reads every output without warnings, preserves values/formats/print flags and resolves Normal to the exported default font and General format. XML inspection confirms style ordering and parent references.",
+      "outputBindingsSha256": "5dd9f504d3f5cbf37302284df142bfb62c0af0f2ac2ffa1e6b5ce0a280f70280",
+      "outputBindingRule": "UTF-8 compact JSON array, label order 0..15,empty,custom; profile order xlsx,xlsx2; keys label,profile,sha256. Each digest covers the complete compiled SDK XLSX artifact.",
+      "remaining": "Other named styles, raw metadata diagnostics, rendered appearance, broader application qualification and release publication remain open. No family is closed."
     }
   },
   "cases": [

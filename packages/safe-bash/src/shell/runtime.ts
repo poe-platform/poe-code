@@ -1267,8 +1267,8 @@ class FastShellCommandContext {
   processSignals?: CommandContext["processSignals"] | undefined;
   diagnosticLine?: number | undefined;
   scriptName?: string | undefined;
-  [invocationScope]?: InvocationScope;
-  [valueScope]?: ValueScope;
+  declare [invocationScope]?: InvocationScope;
+  declare [valueScope]?: ValueScope;
   readonly _self: FastShellCommandContext;
   private readonly _runtime: Runtime;
   private readonly _state: State;

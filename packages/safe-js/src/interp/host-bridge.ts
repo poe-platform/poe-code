@@ -25,9 +25,11 @@ import { createSandboxTemporalPlainDate, hostTemporalPlainDateFields } from "./t
 import { createSandboxTemporalPlainMonthDay, hostTemporalPlainMonthDayFields } from "./temporal-plain-month-day.js";
 import { createSandboxTemporalPlainYearMonth, hostTemporalPlainYearMonthFields } from "./temporal-plain-year-month.js";
 import { createSandboxTemporalZonedDateTime, hostTemporalZonedDateTimeFields } from "./temporal-zoned-date-time.js";
-import { createIntrinsicObject, hasExplicitSandboxPrototype, hasNullObjectPrototype, setSandboxPrototype } from "./object-model.js";
+import { createIntrinsicObject, hasExplicitSandboxPrototype, hasNullObjectPrototype, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { boxedDataProperties, createSandboxBox, nativeBoxedValue } from "./boxed.js";
-import { exportHostCapability, importHostCapability, isLiveCapability } from "./host-capabilities.js";
+import { exportHostCapability, importHostCapability, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
+import { activeCancellation } from "./cancel.js";
+import { ordinaryHasInstance } from "./instanceof.js";
 import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
 import { SandboxError, type Budget, type CompileOwner } from "./budget.js";
 import { CompileScope } from "./regex/compile-guard.js";
@@ -88,6 +90,8 @@ import { encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
 import type { RunLifecycle } from "../snapshot/dump.js";
 
 const AsyncFunction = (async () => undefined).constructor;
+const constructorPromiseThen = Promise.prototype.then;
+const nativeHostConstructors = new WeakSet<SandboxClosure>();
 const domExceptionDiagnostics = {
   name: Object.getOwnPropertyDescriptor(DOMException.prototype, "name")?.get,
   message: Object.getOwnPropertyDescriptor(DOMException.prototype, "message")?.get
@@ -224,11 +228,97 @@ export function wrapCallerInjectedBindings(
   }
 }
 
+export function wrapHostConstructor(
+  name: string,
+  construct: CallerInjectedFunction,
+  options: HostBridgeOptions,
+  definition: { parent?: SandboxValue; hasInstance?: CallerInjectedFunction; constants: Record<string, number> }
+): SandboxClosure {
+  if (options.realm === undefined || options.hostCalls !== undefined)
+    throw new TypeError("Host constructors require a persistent realm without replay.");
+  const parent = definition.parent;
+  if (parent !== undefined && (!isSandboxClosure(parent) || !nativeHostConstructors.has(parent)))
+    throw new TypeError("Host constructor parent must be a native constructor from this realm.");
+  const invocation = wrapCallerInjectedFunction(name, construct, options, { seen: new WeakMap() }, result => {
+    if (types.isPromise(result)) {
+      try {
+        Reflect.apply(constructorPromiseThen, result, [undefined, () => undefined]);
+      } catch {
+        // An exotic species hook must not replace the constructor contract error.
+      }
+    }
+    if (typeof result !== "object" || result === null || !isLiveCapability(result))
+      throw new TypeError("Host constructors must synchronously return a live host object.");
+    const guest = importHostCapability(result, options.realm!.owner);
+    if (!isGuestHostObject(guest) || exportHostCapability(guest, options.realm!.owner) !== result)
+      throw new TypeError("Host constructors must synchronously return a live host object.");
+    return result;
+  }) as SandboxClosure;
+  const constructor = createSandboxClosure({
+    guest: true,
+    name,
+    length: 0,
+    cancellationSignal: options.signal,
+    call: () => { throw new TypeError("Host constructor requires new."); },
+    construct: (args, context) => {
+      options.realm!.assertActive();
+      if (activeCancellation.getStore()?.signal !== options.signal)
+        throw new TypeError("Host constructors require their owning realm.");
+      return invocation.call(args, context);
+    },
+    retainedValues: () => [invocation]
+  });
+  const properties = materializeFunctionProperties(constructor);
+  const prototype = properties.prototype as SandboxObject;
+  if (parent !== undefined) {
+    const parentPrototype = materializeFunctionProperties(parent as SandboxClosure).prototype;
+    if (typeof parentPrototype !== "object" || parentPrototype === null)
+      throw new TypeError("Host constructor parent must have an object prototype.");
+    setSandboxPrototype(constructor, parent as SandboxClosure, options.budget);
+    setSandboxPrototype(prototype, parentPrototype, options.budget);
+  }
+  for (const [key, value] of Object.entries(definition.constants)) {
+    Object.defineProperty(properties, key, { value, enumerable: true });
+    Object.defineProperty(prototype, key, { value, enumerable: true });
+  }
+  if (definition.hasInstance !== undefined) {
+    const check = wrapCallerInjectedFunction("[Symbol.hasInstance]", definition.hasInstance, options, { seen: new WeakMap() }, result => {
+      if (types.isPromise(result)) {
+        try { Reflect.apply(constructorPromiseThen, result, [undefined, () => undefined]); }
+        catch { /* Preserve the synchronous result contract if a species hook fails. */ }
+      }
+      if (typeof result !== "boolean") throw new TypeError("Host instance checks must synchronously return a boolean.");
+      return result;
+    }) as SandboxClosure;
+    Object.defineProperty(properties, Symbol.hasInstance, { value: createSandboxClosure({
+      guest: true,
+      sandbox: true,
+      name: "[Symbol.hasInstance]",
+      length: 1,
+      cancellationSignal: options.signal,
+      call: ([value], context) => {
+        options.realm!.assertActive();
+        if (context?.thisValue !== constructor)
+          return ordinaryHasInstance(value, context?.thisValue, options.budget, context).catch(error => {
+            if (error instanceof TypeError && error.message === "Live host object descriptors are not supported.") return false;
+            throw error;
+          });
+        return isGuestHostObject(value) ? check.call([value], context) : false;
+      },
+      retainedValues: () => [constructor, check]
+    }) });
+    Object.defineProperty(prototype, Symbol.toStringTag, { value: name, configurable: true });
+  }
+  nativeHostConstructors.add(constructor);
+  return constructor;
+}
+
 function wrapCallerInjectedFunction(
   name: string,
   value: CallerInjectedFunction,
   options: HostBridgeOptions,
-  state: { seen: WeakMap<object, SandboxValue> }
+  state: { seen: WeakMap<object, SandboxValue> },
+  validateResult?: (result: unknown) => unknown
 ): SandboxValue {
   const existing = state.seen.get(value) ?? options.hostCalls?.nativeClosures.get(value);
   if (existing !== undefined) return existing;
@@ -278,9 +368,12 @@ function wrapCallerInjectedFunction(
         const hostArgs = captured?.args ?? copyArguments(args);
 
         const budgetedOperation = budgetedHostOperations.get(callable);
-        const callOperation = () => budgetedOperation === undefined
-          ? Reflect.apply(callable, undefined, hostArgs)
-          : budgetedOperation(hostArgs, options.budget);
+        const callOperation = () => {
+          const result = budgetedOperation === undefined
+            ? Reflect.apply(callable, undefined, hostArgs)
+            : budgetedOperation(hostArgs, options.budget);
+          return validateResult === undefined ? result : validateResult(result);
+        };
 
         const hostCalls = options.hostCalls;
         const operation = options.operation ?? bindingName;
@@ -419,6 +512,8 @@ function wrapCallerInjectedFunction(
     name: bindingName,
     properties: (closure) => {
       state.seen.set(value, closure);
+      // Constructor callbacks are operations, not host function property sources.
+      if (validateResult !== undefined) return {};
       if (options.registerCapabilities) {
         if (options.moduleCapabilities !== undefined && options.moduleId !== undefined) {
           const origin = { module: options.moduleId, path: [...(options.capabilityPath ?? [bindingName])] };

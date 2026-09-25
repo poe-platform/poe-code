@@ -24,6 +24,7 @@ import {
 import {
   copyHostValueToSandbox,
   schedulesHostCallbacks,
+  wrapHostConstructor,
   wrapCallerInjectedBindings,
   type CallerInjectedBinding,
   type HostBridgeOptions,
@@ -398,15 +399,58 @@ class RealmState {
       throw new TypeError(
         "Live buffer references require a fixed, attached, plain ArrayBuffer without metadata.",
       );
-    let reference: GuestReference | undefined;
     try {
       this.budget.allocateArrayLength(arrayBufferLength(buffer));
+      return this.retainGuestValue(buffer);
+    } catch (error) {
+      if (error instanceof SandboxError) this.poison(error);
+      throw error;
+    }
+  };
+
+  createHostConstructor: ExtensionContext["createHostConstructor"] = (name, construct, options) => {
+    this.assertOpen();
+    if (typeof name !== "string" || name.length === 0 || name.length > 1024)
+      throw new TypeError("Host constructor names require 1 to 1024 code units.");
+    if (typeof construct !== "function" || types.isProxy(construct) ||
+        types.isAsyncFunction(construct) || types.isGeneratorFunction(construct))
+      throw new TypeError("Host constructors require a synchronous non-proxy callback.");
+    const definition = readDataRecord(options ?? {}, "Host constructor options");
+    if (Object.keys(definition).some(key => !["parent", "hasInstance", "constants"].includes(key)))
+      throw new TypeError("Unknown host constructor option.");
+    const hasInstance = definition.hasInstance;
+    if (hasInstance !== undefined && (typeof hasInstance !== "function" || types.isProxy(hasInstance) ||
+        types.isAsyncFunction(hasInstance) || types.isGeneratorFunction(hasInstance)))
+      throw new TypeError("Host instance checks require a synchronous non-proxy callback.");
+    const constants = readDataRecord(definition.constants ?? {}, "Host constructor constants");
+    for (const [key, value] of Object.entries(constants)) {
+      if (["prototype", "constructor", "name", "length"].includes(key) || typeof value !== "number" || !Number.isFinite(value))
+        throw new TypeError("Host constructor constants require unreserved names and finite numbers.");
+    }
+    const parent = definition.parent === undefined ? undefined : readGuestReference(definition.parent, this);
+    try {
+      this.budget.allocateString(name);
+      for (const key of Object.keys(constants)) this.budget.allocateString(key);
+      return this.retainGuestValue(wrapHostConstructor(name, construct, this.bridgeOptions(), {
+        parent,
+        hasInstance: hasInstance as HostOperation | undefined,
+        constants: constants as Record<string, number>
+      }));
+    } catch (error) {
+      if (error instanceof SandboxError) this.poison(error);
+      throw error;
+    }
+  };
+
+  private retainGuestValue(value: SandboxValue): GuestReference {
+    let reference: GuestReference | undefined;
+    try {
       this.checkCollection(
         this.guestReferences.size + 1,
         this.limits.guestReferences,
         "guest reference",
       );
-      const root: [SandboxValue] = [buffer];
+      const root: [SandboxValue] = [value];
       reference = createGuestReference(root, this, this.assertOpen);
       this.guestReferences.set(reference, root);
       this.budget.reconcileDataUsage(
@@ -425,7 +469,7 @@ class RealmState {
       if (error instanceof SandboxError) this.poison(error);
       throw error;
     }
-  };
+  }
 
   releaseGuestReference = (reference: unknown): void => {
     readGuestReference(reference, this);
@@ -810,6 +854,7 @@ class RealmState {
         onCleanup: cleanup => { this.onCleanup(cleanup); },
         chargeWork: this.chargeWork,
         createHostObject: this.createHostObject,
+        createHostConstructor: this.createHostConstructor,
         createArrayBufferReference: buffer => {
           this.assertOpen();
           if (!extension.manifest.capabilities?.includes("array-buffer:share"))

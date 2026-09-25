@@ -20,11 +20,26 @@ export type ExtensionExports = {
   globals?: Record<string, CallerInjectedBinding>;
   modules?: ModuleRegistry;
 };
+export type HostConstructorOptions = {
+  /** Another native constructor handle from this realm. */
+  parent?: GuestReference;
+  /** Native interface brand. Only live host objects reach this synchronous check.
+   * Also installs the interface name as its prototype's Symbol.toStringTag.
+   */
+  hasInstance?: (value: HostObject) => boolean;
+  /** Read-only enumerable numeric constants on the constructor and prototype. */
+  constants?: Readonly<Record<string, number>>;
+};
 export type ExtensionContext = {
   readonly signal: AbortSignal;
   onCleanup(cleanup: () => void | Promise<void>): void;
   chargeWork(units?: number): void;
   createHostObject(definition: HostObjectDefinition): HostObject;
+  /** A realm-owned constructor that synchronously returns a live host object.
+   * Release the opaque handle with releaseGuestReference when no longer needed.
+   * Returned objects keep their existing identity and prototype, including with newTarget.
+   */
+  createHostConstructor(name: string, construct: (...args: readonly unknown[]) => HostObject, options?: HostConstructorOptions): GuestReference;
   /** Explicit realm-owned live fixed buffer; default host ingress still copies. */
   createArrayBufferReference(buffer: ArrayBuffer): GuestReference;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;

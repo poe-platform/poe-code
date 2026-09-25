@@ -72,13 +72,16 @@ function formatToTypeIdentifier(fmt: ImageFormat): string {
 function formatSipsPropertyValue(
   meta: ImageMetadata,
   key: string,
-  customProps?: ReadonlyMap<string, string | null>
+  customProps?: ReadonlyMap<string, string | null>,
+  inPath?: string
 ): string | undefined {
   if (customProps?.has(key)) {
     const v = customProps.get(key);
     return v === null ? undefined : v;
   }
   switch (key) {
+    case "path":
+      return inPath;
     case "pixelWidth":
       return String(meta.width);
     case "pixelHeight":
@@ -467,6 +470,16 @@ export async function runSipsCli(
     propertyMutated ||
     outTarget !== undefined;
 
+  if (getProperties.length > 0 && hasMutation) {
+    return {
+      exitCode: 6,
+      stdout: "",
+      stderr:
+        "Error 6: cannot get properties and modify file in the same invocation\n" +
+        "Try 'sips --help' for help using this tool\n"
+    };
+  }
+
   const outLines: string[] = [];
   const errLines: string[] = [];
   let exitCode = 0;
@@ -591,6 +604,34 @@ export async function runSipsCli(
               );
               curW = act.width;
               curH = act.height;
+              continue;
+            }
+            if (cropOffsetX !== undefined || cropOffsetY !== undefined) {
+              const ox = cropOffsetX ?? Math.floor((curW - act.width) / 2);
+              const oy = cropOffsetY ?? Math.floor((curH - act.height) / 2);
+              const srcLeft = Math.max(0, Math.min(curW - 1, ox));
+              const srcTop = Math.max(0, Math.min(curH - 1, oy));
+              const srcRight = Math.max(srcLeft + 1, Math.min(curW, ox + act.width));
+              const srcBottom = Math.max(srcTop + 1, Math.min(curH, oy + act.height));
+              const cw = srcRight - srcLeft;
+              const ch = srcBottom - srcTop;
+              inst = inst.extract({ left: srcLeft, top: srcTop, width: cw, height: ch });
+              const padLeft = Math.max(0, srcLeft - ox);
+              const padTop = Math.max(0, srcTop - oy);
+              const padRight = Math.max(0, act.width - cw - padLeft);
+              const padBottom = Math.max(0, act.height - ch - padTop);
+              if (padLeft > 0 || padTop > 0 || padRight > 0 || padBottom > 0) {
+                inst = inst.extend({
+                  top: padTop,
+                  bottom: padBottom,
+                  left: padLeft,
+                  right: padRight,
+                  background: effectivePadColor
+                });
+              }
+              curW = act.width;
+              curH = act.height;
+              inst = sharp(await inst.toBuffer());
               continue;
             }
             const cw = Math.min(curW, act.width);
@@ -752,7 +793,7 @@ export async function runSipsCli(
           }
           const propLines: string[] = [inPath];
           for (const k of expandedKeys) {
-            const val = formatSipsPropertyValue(meta, k, mergedProps);
+            const val = formatSipsPropertyValue(meta, k, mergedProps, inPath);
             if (val !== undefined) {
               propLines.push(singleLine ? `${k}: ${val}` : `  ${k}: ${val}`);
             } else {

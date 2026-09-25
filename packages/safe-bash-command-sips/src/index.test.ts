@@ -516,4 +516,40 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(idRes.exitCode).toBe(0);
     expect(idRes.stdout).toBe("8|TrueColor|150x150|100|40");
   });
+
+  it("supports sips -g path, rejects -g combined with file mutation (Error 6), and pads out-of-bounds --cropOffset regions (#1249)", async () => {
+    const png = await sharp(Buffer.alloc(10 * 10 * 3, 200), {
+      raw: { width: 10, height: 10, channels: 3 }
+    })
+      .png()
+      .toBuffer();
+    const files = new Map<string, Uint8Array>([["/work/sample.png", png]]);
+
+    // 1. sips -g path <file>
+    const pathRes = await runSipsCli(["-g", "path", "/work/sample.png"], files);
+    expect(pathRes.exitCode).toBe(0);
+    expect(pathRes.stdout).toBe("/work/sample.png\n  path: /work/sample.png\n");
+
+    // 2. sips -g combined with modifying flag -> Error 6
+    const errRes = await runSipsCli(
+      ["-z", "5", "5", "-g", "pixelWidth", "/work/sample.png"],
+      files
+    );
+    expect(errRes.exitCode).toBe(6);
+    expect(errRes.stderr).toContain("Error 6: cannot get properties and modify file in the same invocation");
+
+    // 3. sips -c <h> <w> --cropOffset <offsetY> <offsetX> pads out-of-bounds right/bottom canvas with --padColor
+    const cropRes = await runSipsCli(
+      ["-c", "6", "8", "--cropOffset", "6", "5", "--padColor", "FF0000", "/work/sample.png", "--out", "/work/cropped.png"],
+      files
+    );
+    expect(cropRes.exitCode).toBe(0);
+    const cropRaw = await sharp(files.get("/work/cropped.png")!).raw().toBuffer({ resolveWithObject: true });
+    expect(cropRaw.info.width).toBe(8);
+    expect(cropRaw.info.height).toBe(6);
+    // top-left pixel (row 0, col 0 -> source y=6, x=5) is [200, 200, 200]
+    expect(Array.from(cropRaw.data.slice(0, 3))).toEqual([200, 200, 200]);
+    // bottom-right pixel (row 5, col 7 -> source y=11, x=12, out-of-bounds) is padded with FF0000 [255, 0, 0]
+    expect(Array.from(cropRaw.data.slice(-3))).toEqual([255, 0, 0]);
+  });
 });

@@ -353,8 +353,7 @@ for (const failedPreparation of [2, 1]) test(`without observers mixed preparatio
   assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
 });
 
-test("pipeline child source-input checkpoint keeps falsey failure over extension cleanup failure", async context => {
-  const primary = false;
+for (const primary of [undefined, null, false, 0, ""]) test(`pipeline child source-input checkpoint keeps ${String(primary)} over extension cleanup failure`, async context => {
   const secondary = new Error("secondary child extension cleanup failure");
   let cleanups = 0;
   const { shell, observed } = setup(context, { checkpoint(point, command) {
@@ -425,11 +424,23 @@ function stageCleanupFault(context: TestContext, point: StageCleanupPoint | unde
     if (this === observed.scope) observed.scopeClosing = true;
     return closeScope.call(this);
   });
-  function track(name: StageCleanupPoint, resource: { close(): Promise<void> }) {
+  function track(name: StageCleanupPoint, resource: { close(): Promise<void>; closeSyncIfIdle?(): boolean }) {
     const original = resource.close;
+    const closeSync = resource.closeSyncIfIdle;
+    let asynchronous = false;
+    if (closeSync) context.mock.method(resource, "closeSyncIfIdle", function() {
+      const closed = closeSync.call(resource);
+      if (closed && !asynchronous) {
+        observed.closes[name]++;
+        observed.starts.push({ point: name, duringScopeClose: observed.scopeClosing });
+        observed.completed.add(name);
+      }
+      return closed;
+    });
     let closing: Promise<void> | undefined;
     context.mock.method(resource, "close", function() {
       return closing ??= (async () => {
+        asynchronous = true;
         observed.closes[name]++;
         observed.starts.push({ point: name, duringScopeClose: observed.scopeClosing });
         await original.call(resource);
@@ -503,6 +514,33 @@ for (const point of ["input", "descriptors", "references"] as const) test(`start
   assert.deepEqual(fault.closes, { input: 1, descriptors: 1, references: 1 });
   assert.equal(fault.completed.size, 3);
   assert.ok(fault.starts.every(start => !start.duringScopeClose), JSON.stringify(fault.starts));
+});
+
+for (const secondary of [undefined, null, false, 0, ""]) test(`stage extension cleanup preserves ${String(secondary)} over ordinary execution failure`, async context => {
+  const primary = new Error("ordinary stage execution failure");
+  const run = Runtime.prototype.runCommandIsolated;
+  let injected = false;
+  let cleanups = 0;
+  context.mock.method(Runtime.prototype, "runCommandIsolated", function(this: Runtime, ...args: Parameters<Runtime["runCommandIsolated"]>) {
+    const [, child, io] = args;
+    if (!injected && io.terminal) {
+      injected = true;
+      assert.ok(child.extensions);
+      child.extensions.cleanup.push(async () => { cleanups++; throw secondary; });
+      return Promise.reject(primary);
+    }
+    return run.apply(this, args);
+  });
+  const { shell, observed } = setup(context);
+  const outcome = await bounded(shell.exec(": | :").then(
+    () => ({ rejected: false, reason: undefined as unknown }),
+    reason => ({ rejected: true, reason: reason as unknown }),
+  ), "stage extension cleanup precedence");
+  assert.equal(injected, true);
+  assert.equal(cleanups, 1);
+  assert.equal(outcome.rejected, true);
+  assert.ok(Object.is(outcome.reason, secondary));
+  assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
 });
 
 test("started stage ordinary host failure retains existing cleanup-error precedence", async context => {

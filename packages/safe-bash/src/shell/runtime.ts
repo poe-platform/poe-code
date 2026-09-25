@@ -4200,27 +4200,29 @@ export class Runtime {
                   signal.throwIfAborted();
                 }
                 const runStageWork = async (): Promise<number> => {
+                  let stageOutcome: CapturedCancellationOutcome<number>;
                   try {
                     let stageStatus = await runtime.runCommandIsolated(command, child, childIO);
                     if (!runtime.tryFinishShellSync(child)) {
                       stageStatus = await runtime.finishShell(child, childIO, stageStatus);
                     }
-                    return stageStatus;
+                    stageOutcome = { kind: "return", value: stageStatus };
                   } catch (reason) {
                     if (reason instanceof ExtensionCheckpointFailure) checkpointFailure = reason;
-                    throw reason;
-                  } finally {
-                    try {
-                      if (!runtime.releaseExtensionsSyncIfEmpty(child)) {
-                        await runtime.releaseExtensions(child);
-                      }
-                    } catch (cleanup) {
-                      if (checkpointFailure) io[invocationScope].failures.push(cleanup);
-                      else throw cleanup;
-                    } finally {
-                      stateMonitor(child)?.closeValues();
-                    }
+                    stageOutcome = { kind: "throw", reason };
                   }
+                  try {
+                    if (!runtime.releaseExtensionsSyncIfEmpty(child)) {
+                      await runtime.releaseExtensions(child);
+                    }
+                  } catch (cleanup) {
+                    if (checkpointFailure) io[invocationScope].failures.push(cleanup);
+                    else stageOutcome = { kind: "throw", reason: cleanup };
+                  } finally {
+                    stateMonitor(child)?.closeValues();
+                  }
+                  if (stageOutcome.kind === "throw") throw stageOutcome.reason;
+                  return stageOutcome.value;
                 };
                 const work = runStageWork();
                 preparedChild = undefined;

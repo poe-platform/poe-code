@@ -351,6 +351,8 @@ export type ImageAstNode =
       readonly y3?: number;
     }
   | { readonly kind: "median"; readonly size: number }
+  | { readonly kind: "dilate"; readonly width: number }
+  | { readonly kind: "erode"; readonly width: number }
   | {
       readonly kind: "convolve";
       readonly width: number;

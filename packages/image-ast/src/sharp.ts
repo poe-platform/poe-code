@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import path from "node:path";
 import {
@@ -27,6 +28,8 @@ import {
   compositeImage,
   computeImageStats,
   convolveImage,
+  dilateImage,
+  erodeImage,
   ensureAlphaImage,
   extendImage,
   extractChannelImage,
@@ -328,6 +331,12 @@ export class SharpInstance {
           break;
         case "median":
           img = medianImage(img, node.size);
+          break;
+        case "dilate":
+          img = dilateImage(img, node.width);
+          break;
+        case "erode":
+          img = erodeImage(img, node.width);
           break;
         case "convolve":
           img = convolveImage(img, node);
@@ -853,6 +862,22 @@ export class SharpInstance {
     return this;
   }
 
+  dilate(width = 1): this {
+    if (!Number.isInteger(width) || width <= 0) {
+      throw new Error(`Expected positive integer for dilate but received ${width}`);
+    }
+    this.upsertNode({ kind: "dilate", width });
+    return this;
+  }
+
+  erode(width = 1): this {
+    if (!Number.isInteger(width) || width <= 0) {
+      throw new Error(`Expected positive integer for erode but received ${width}`);
+    }
+    this.upsertNode({ kind: "erode", width });
+    return this;
+  }
+
   convolve(kernelSpec: {
     readonly width: number;
     readonly height: number;
@@ -1058,7 +1083,31 @@ export class SharpInstance {
     return this;
   }
 
-  timeout(_options: { readonly seconds: number }): this {
+  timeout(_options?: { readonly seconds?: number }): this {
+    return this;
+  }
+
+  keepXmp(): this {
+    return this;
+  }
+
+  withXmp(_xmp: string): this {
+    return this;
+  }
+
+  keepMetadata(): this {
+    return this.withMetadata();
+  }
+
+  jp2(_options?: { readonly quality?: number; readonly lossless?: boolean }): this {
+    return this.png();
+  }
+
+  jxl(_options?: { readonly quality?: number; readonly lossless?: boolean }): this {
+    return this.png();
+  }
+
+  tile(_options?: Record<string, unknown>): this {
     return this;
   }
 
@@ -1326,6 +1375,46 @@ Object.assign(sharp, {
     bottom: "high",
     high: "high"
   },
+  position: {
+    top: 1,
+    right: 2,
+    bottom: 3,
+    left: 4,
+    "right top": 5,
+    "right bottom": 6,
+    "left bottom": 7,
+    "left top": 8
+  },
+  blend: {
+    clear: "clear",
+    source: "source",
+    over: "over",
+    in: "in",
+    out: "out",
+    atop: "atop",
+    dest: "dest",
+    "dest-over": "dest-over",
+    "dest-in": "dest-in",
+    "dest-out": "dest-out",
+    "dest-atop": "dest-atop",
+    xor: "xor",
+    add: "add",
+    saturate: "saturate",
+    multiply: "multiply",
+    screen: "screen",
+    overlay: "overlay",
+    darken: "darken",
+    lighten: "lighten",
+    "colour-dodge": "colour-dodge",
+    "color-dodge": "colour-dodge",
+    "colour-burn": "colour-burn",
+    "color-burn": "colour-burn",
+    "hard-light": "hard-light",
+    "soft-light": "soft-light",
+    difference: "difference",
+    exclusion: "exclusion"
+  },
+  queue: new EventEmitter(),
   gravity: {
     center: 0,
     centre: 0,

@@ -2090,3 +2090,72 @@ export function computeImageStats(img: RgbaImage): ImageStats {
     dominant
   };
 }
+
+
+export function dilateImage(img: RgbaImage, width = 1): RgbaImage {
+  const w = img.width;
+  const h = img.height;
+  const radius = Math.max(1, Math.round(width));
+  const out = new Uint8Array(img.data.length);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let r = 255, g = 255, b = 255, a = 255;
+      for (let dy = -radius; dy <= radius; dy++) {
+        const sy = Math.max(0, Math.min(h - 1, y + dy));
+        for (let dx = -radius; dx <= radius; dx++) {
+          const sx = Math.max(0, Math.min(w - 1, x + dx));
+          const sIdx = (sy * w + sx) * 4;
+          r &= img.data[sIdx]!;
+          g &= img.data[sIdx + 1]!;
+          b &= img.data[sIdx + 2]!;
+          a &= img.data[sIdx + 3]!;
+        }
+      }
+      const dIdx = (y * w + x) * 4;
+      out[dIdx] = r;
+      out[dIdx + 1] = g;
+      out[dIdx + 2] = b;
+      out[dIdx + 3] = img.hasAlpha ? a : 255;
+    }
+  }
+  return {
+    ...img,
+    data: out,
+    space: "srgb",
+    channels: img.hasAlpha ? 4 : 3
+  };
+}
+
+export function erodeImage(img: RgbaImage, width = 1): RgbaImage {
+  const w = img.width;
+  const h = img.height;
+  const radius = Math.max(1, Math.round(width));
+  const out = new Uint8Array(img.data.length);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let r = 0, g = 0, b = 0, a = 0;
+      for (let dy = -radius; dy <= radius; dy++) {
+        const sy = Math.max(0, Math.min(h - 1, y + dy));
+        for (let dx = -radius; dx <= radius; dx++) {
+          const sx = Math.max(0, Math.min(w - 1, x + dx));
+          const sIdx = (sy * w + sx) * 4;
+          r |= img.data[sIdx]!;
+          g |= img.data[sIdx + 1]!;
+          b |= img.data[sIdx + 2]!;
+          a |= img.data[sIdx + 3]!;
+        }
+      }
+      const dIdx = (y * w + x) * 4;
+      out[dIdx] = r;
+      out[dIdx + 1] = g;
+      out[dIdx + 2] = b;
+      out[dIdx + 3] = img.hasAlpha ? a : 255;
+    }
+  }
+  return {
+    ...img,
+    data: out,
+    space: "srgb",
+    channels: img.hasAlpha ? 4 : 3
+  };
+}

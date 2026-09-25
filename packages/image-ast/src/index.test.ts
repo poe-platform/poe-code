@@ -2078,4 +2078,33 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(rOptsOnly.info.width).toBe(10);
     expect(rOptsOnly.info.height).toBe(5);
   });
+  it("implements dilate(), erode(), keepXmp(), withXmp(), keepMetadata(), jp2(), jxl(), and tile() matching sharp", async () => {
+    const buf = Buffer.from([
+      10, 20, 30,   10, 20, 30,   10, 20, 30,
+      10, 20, 30,  200,100, 50,   10, 20, 30,
+      10, 20, 30,   10, 20, 30,   10, 20, 30
+    ]);
+    const dil = await (sharp(buf, { raw: { width: 3, height: 3, channels: 3 } }) as any)
+      .dilate(1)
+      .raw()
+      .toBuffer();
+    expect(Array.from(dil.subarray(4 * 3, 5 * 3))).toEqual([8, 4, 18]);
+
+    const ero = await (sharp(buf, { raw: { width: 3, height: 3, channels: 3 } }) as any)
+      .erode(1)
+      .raw()
+      .toBuffer();
+    expect(Array.from(ero.subarray(4 * 3, 5 * 3))).toEqual([202, 116, 62]);
+
+    const inst = sharp(buf, { raw: { width: 3, height: 3, channels: 3 } }) as any;
+    expect(inst.keepXmp()).toBe(inst);
+    expect(inst.withXmp("<x:xmpmeta/>")).toBe(inst);
+    expect(inst.keepMetadata()).toBe(inst);
+    expect(inst.jp2({ quality: 80 })).toBe(inst);
+    expect(inst.jxl({ quality: 80 })).toBe(inst);
+    expect(inst.tile({ size: 256 })).toBe(inst);
+    expect((sharp as any).position.top).toBe(1);
+    expect((sharp as any).blend.over).toBe("over");
+    expect(typeof (sharp as any).queue.on).toBe("function");
+  });
 });

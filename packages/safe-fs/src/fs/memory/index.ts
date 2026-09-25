@@ -2,7 +2,7 @@ import { FsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
-  FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
+  FsOptions, ChmodOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
   ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
@@ -19,6 +19,7 @@ import { compareIdentity } from "../mount/identity.js";
 import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { resolveMissingTarget } from "./missing-target.js";
 import { registerMemoryAtomicView } from "./atomic-view.js";
+import { snapshotConditionalChmod } from "../conditional-chmod.js";
 import { MemoryAllocation, MemoryLedger } from "./ledger.js";
 import { normalizeMemoryFileSystemLimits, type MemoryFileSystemOptions } from "./limits.js";
 
@@ -155,7 +156,7 @@ export class MemoryFileSystem implements FileSystem {
       rename: true, atomicRenameNoReplace: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
       streamingAppend: true, randomAccessWrite: true,
       readOnly: false,
-      symlinks: true,
+      symlinks: true, conditionalChmod: true,
       hardlinks: true,
       permissions: true,
       timestamps: true,
@@ -1359,15 +1360,19 @@ export class MemoryFileSystem implements FileSystem {
     this.changed(target.parent);
   }
 
-  async chmod(path: string, mode: number, options: FsOptions & Partial<ConditionalMutationBinding> = {}): Promise<void> {
+  async chmod(path: string, mode: number, options: ChmodOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     const permissions = this.mode(mode, 0, "chmod", path);
     const bound = activeConditionalMutations.get(this.identityScope);
     const active = bound?.path === path ? bound : undefined;
-    const ancestors = options.ancestors ?? active?.ancestors;
-    const expectedParent = options.parent ?? active?.parent;
-    const expectedNode = options.expected ?? active?.expected;
-    if (ancestors !== undefined) this.verifyDirectoryAncestry(ancestors, options);
+    const conditional = snapshotConditionalChmod(path, active ? { ...active, ...options } : options);
+    const controls = conditional ?? options;
+    const ancestors = conditional?.ancestors;
+    const expectedParent = conditional?.parent;
+    const expectedNode = conditional?.expected;
+    if (conditional?.commitGuard) runStagingGuard(conditional.commitGuard);
+    controls.signal?.throwIfAborted();
+    if (ancestors !== undefined) this.verifyDirectoryAncestry(ancestors, controls);
     const location = expectedNode !== undefined || expectedParent !== undefined
       ? this.entry(path, "chmod", true)
       : this.resolve(path, "chmod");

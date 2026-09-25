@@ -1,11 +1,13 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type {
   CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStat, FileSystem,
-  FsOptions, MkdirOptions, PublishStagedFileOptions, RemoveOptions, StagedFileContent,
+  FsOptions, ChmodOptions, MkdirOptions, PublishStagedFileOptions, RemoveOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import { dirname, isPathWithin, validatePath } from "../../contracts/virtual-path.js";
 import { memoryAtomicView, type MemoryAtomicView } from "../memory/atomic-view.js";
 import { compareIdentity } from "../mount/identity.js";
+import { snapshotConditionalChmod } from "../conditional-chmod.js";
+import { runStagingGuard } from "../staging-ancestry.js";
 
 interface Observation {
   path: string;
@@ -29,11 +31,11 @@ export class OverlayMemoryPublication {
     private readonly hidden: Set<string>,
   ) {}
 
-  supported(): boolean { return !!memoryAtomicView(this.upper) && !!memoryAtomicView(this.lower); }
+  supported(): boolean { return this.upper.capabilities.readOnly !== true && !!memoryAtomicView(this.upper) && !!memoryAtomicView(this.lower); }
 
   private stores(): { upper: MemoryAtomicView; lower: MemoryAtomicView } {
     const upper = memoryAtomicView(this.upper), lower = memoryAtomicView(this.lower);
-    if (!upper || !lower) throw new FsError("ENOTSUP", { syscall: "overlayPublication" });
+    if (!upper || !lower || this.upper.capabilities.readOnly === true) throw new FsError("ENOTSUP", { syscall: "overlayPublication" });
     return { upper, lower };
   }
 
@@ -140,6 +142,37 @@ export class OverlayMemoryPublication {
       this.expect(entry.path, entry.stat);
       if (this.inspect(entry.path)?.type !== "directory") throw new FsError("ENOTDIR", { path: entry.path });
     }
+  }
+
+  prepareChmod(path: string, options: ChmodOptions): (() => true) | undefined {
+    const { signal, parent, expected, ancestors, commitGuard } = options;
+    const sources = ancestors?.map(entry => ({ path: entry.path, stat: entry.stat }));
+    const captured = snapshotConditionalChmod(path, {
+      ...(signal === undefined ? {} : { signal }), ...(parent === undefined ? {} : { parent }),
+      ...(expected === undefined ? {} : { expected }), ...(sources === undefined ? {} : { ancestors: sources }),
+      ...(commitGuard === undefined ? {} : { commitGuard }),
+    });
+    if (!captured) return undefined;
+    this.stores();
+    this.path(path);
+    const retain = (source: FileStat, snapshot: FileStat): void => {
+      const receipt = this.receipts.get(source);
+      if (!receipt) throw new FsError("ENOTSUP", { path, message: "unowned overlay chmod receipt" });
+      this.receipts.set(snapshot, receipt);
+    };
+    retain(parent!, captured.parent);
+    retain(expected!, captured.expected);
+    for (const [index, entry] of captured.ancestors.entries()) retain(sources![index]!.stat, entry.stat);
+    return () => {
+      signal?.throwIfAborted();
+      if (captured.commitGuard) runStagingGuard(captured.commitGuard);
+      this.stores();
+      this.check(captured.ancestors);
+      this.expect(dirname(path), captured.parent);
+      this.expect(path, captured.expected, captured.expected.type !== "directory");
+      if (this.inspect(path)?.type !== captured.expected.type) throw new FsError("EAGAIN", { path });
+      return true;
+    };
   }
 
   private async copyParents(entries: readonly FileStagingEntry[], options: FsOptions): Promise<void> {

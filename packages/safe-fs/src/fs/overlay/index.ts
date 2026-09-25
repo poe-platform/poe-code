@@ -14,7 +14,7 @@ import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor
 import type {
   CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, StagedFileContent,
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
-  FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions,
+  FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, FsOptions, ChmodOptions, RenameOptions, MkdirOptions,
   ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 
@@ -175,6 +175,7 @@ export class OverlayFileSystem implements FileSystem {
     this.capabilities = Object.freeze({
       ...semantics,
       open: false,
+      conditionalChmod: this.publication.supported(),
       atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), atomicDirectoryMetadata: false, trustedOwnedStaging: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
@@ -667,12 +668,13 @@ export class OverlayFileSystem implements FileSystem {
     return location;
   }
 
-  private async replace(location: Location, options: FsOptions, operation: (temporary: string) => Promise<void>, streaming = false): Promise<void> {
+  private async replace(location: Location, options: FsOptions, operation: (temporary: string) => Promise<void>, streaming = false, commitGuard?: () => true): Promise<void> {
     await this.parent(location.path, options);
     await this.staged(options, async (temporary) => {
       if (location.entry) await this.clone(location.entry, temporary, options, streaming);
       await operation(temporary);
       options.signal?.throwIfAborted();
+      commitGuard?.();
       await this.#upper.rename(temporary, location.path, options);
       this.linkMetadata.delete(location.path);
       this.linkOrigins.delete(location.path);
@@ -937,10 +939,28 @@ export class OverlayFileSystem implements FileSystem {
     });
   }
 
-  async chmod(path: string, permissions: number, options: FsOptions = {}): Promise<void> {
+  async chmod(path: string, permissions: number, options: ChmodOptions = {}): Promise<void> {
     options.signal?.throwIfAborted();
     if (permissions === undefined) fail("EINVAL", path);
     mode(permissions, path);
+    const guard = this.publication.prepareChmod(path, options);
+    if (guard) {
+      const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+      return this.run(controls, async () => {
+        this.writable(path);
+        guard();
+        const entry = await this.required(path, controls, false);
+        guard();
+        if (entry.stat.type === "directory") {
+          await this.copyUp(entry, controls);
+          guard();
+          await this.#upper.chmod!(entry.path, permissions, controls);
+        } else {
+          await this.replace({ path: entry.path, entry }, controls,
+            temporary => this.#upper.chmod!(temporary, permissions, controls), false, guard);
+        }
+      });
+    }
     return this.metadata(path, "permissions", options, (target) => this.#upper.chmod!(target, permissions, options));
   }
 

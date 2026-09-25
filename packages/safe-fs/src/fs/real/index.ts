@@ -1,4 +1,6 @@
 import { snapshotStagingCreation } from "../staging-cleanup.js";
+import { snapshotConditionalChmod } from "../conditional-chmod.js";
+import { runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
 import { constants, type Stats, type BigIntStats } from "node:fs";
 import * as immediate from "node:fs";
 import * as native from "node:fs/promises";
@@ -14,7 +16,7 @@ import {
 } from "../../contracts/index.js";
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileStat,
-  FileSystem, FileSystemCapabilities, FileType, FsOptions, RenameOptions, MkdirOptions,
+  FileSystem, FileSystemCapabilities, FileType, FsOptions, RenameOptions, MkdirOptions, ChmodOptions, FileStagingEntry,
   ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
   OpenReadFileOptions, OpenResizeFileOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/index.js";
@@ -117,6 +119,9 @@ function nativeError(error: unknown): FsError {
  * concurrent renames, mount changes, and preexisting hardlinks cannot be made
  * safe by these APIs. This is NOT a race-proof sandbox or an isolation boundary
  * against another process modifying the tree. Use an OS sandbox for that.
+ * Conditional chmod and synchronous ancestry validation use the same trusted,
+ * externally isolated tree boundary as owned staging. Their final checks and
+ * metadata commit do not yield to JavaScript; they do not prevent OS races.
  *
  * Only regular files, directories, and symlinks are represented. Permissions,
  * ownership, timestamp precision, case sensitivity, umask, and rename behavior
@@ -136,6 +141,7 @@ export class RealFileSystem implements FileSystem {
     rename: true, atomicRenameNoReplace: false, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
     streamingAppend: true, randomAccessWrite: true,
     readOnly: false, symlinks: true, hardlinks: true, permissions: true,
+    conditionalChmod: true,
     timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true, retainedRead: true, retainedResize: true, trustedOwnedStaging: true,
   });
 
@@ -316,6 +322,28 @@ export class RealFileSystem implements FileSystem {
   private stagingMetadata(options: { mode?: number; atimeMs?: number; mtimeMs?: number }): void {
     if (options.mode !== undefined) integer(options.mode);
     for (const time of [options.atimeMs, options.mtimeMs]) if (time !== undefined && (!Number.isFinite(time) || Math.abs(time) > 8.64e15)) throw new FsError("EINVAL");
+  }
+
+  async prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {
+    const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+    controls.signal?.throwIfAborted();
+    const entries = snapshotDirectoryAncestry(ancestors);
+    const path = entries.at(-1)!.path;
+    return this.operation("prepareDirectoryAncestry", path, controls, async () => {
+      const root = await this.root(controls);
+      const validate = (): true => {
+        controls.signal?.throwIfAborted();
+        try {
+          for (const entry of entries) this.expectStaging(join(root, entry.path.slice(1)), entry.stat, true);
+          return true;
+        } catch (error) {
+          controls.signal?.throwIfAborted();
+          throw new FsError(nativeError(error).code, { syscall: "prepareDirectoryAncestry", path });
+        }
+      };
+      validate();
+      return validate;
+    });
   }
 
   async createStagedFile(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
@@ -739,9 +767,29 @@ export class RealFileSystem implements FileSystem {
     }, newPath);
   }
 
-  async chmod(path: string, mode: number, options: FsOptions = {}): Promise<void> {
+  async chmod(path: string, mode: number, options: ChmodOptions = {}): Promise<void> {
     return this.operation("chmod", path, options, async () => {
       integer(mode);
+      const conditional = snapshotConditionalChmod(path, options);
+      if (conditional) {
+        const target = await this.path(path, { ...conditional, followFinal: false });
+        const root = await this.root(conditional);
+        if ((target === root ? "/" : `/${relative(root, target)}`) !== path) throw new FsError("EAGAIN");
+        if (conditional.expected.type !== "file" && conditional.expected.type !== "directory") throw new FsError("ENOTSUP");
+        const parent = target === root ? root : dirname(target);
+        const validate = (): void => {
+          conditional.signal?.throwIfAborted();
+          for (const entry of conditional.ancestors) this.expectStaging(join(root, entry.path.slice(1)), entry.stat, true);
+          this.expectStaging(parent, conditional.parent, true);
+          const current = this.expectStaging(target, conditional.expected, conditional.expected.type === "directory");
+          if (current?.mode !== conditional.expected.mode) throw new FsError("EAGAIN");
+        };
+        validate();
+        if (conditional.commitGuard) runStagingGuard(conditional.commitGuard);
+        validate();
+        immediate.chmodSync(target, mode);
+        return;
+      }
       const target = await this.path(path, options);
       options.signal?.throwIfAborted();
       await native.chmod(target, mode);

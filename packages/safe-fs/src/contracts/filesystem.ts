@@ -73,6 +73,9 @@ export interface FileSystemCapabilities {
   readonly symlinks?: boolean;
   readonly hardlinks?: boolean;
   readonly permissions?: boolean;
+  /** Enforces chmod target/ancestry receipts and a synchronous guard at the metadata commit.
+   * Host adapters retain their documented external-filesystem isolation requirements. */
+  readonly conditionalChmod?: boolean;
   readonly timestamps?: boolean;
   readonly atomicRename?: boolean;
   /** Owned staging serialized within a trusted host; requires external tree isolation. */
@@ -110,11 +113,22 @@ export interface FsOptions {
   readonly signal?: AbortSignal;
 }
 
+export interface ChmodOptions extends FsOptions {
+  /** Conditional fields require conditionalChmod and a complete parent/target/ancestry receipt. */
+  readonly parent?: FileStat;
+  readonly expected?: FileStat;
+  readonly ancestors?: readonly FileStagingEntry[];
+  /** Trusted, mutation-free validation; must return literal true synchronously. */
+  readonly commitGuard?: () => true;
+}
+
 export interface OpenReadFileOptions extends FsOptions {
   readonly allowDirectory?: boolean;
 }
 
 export interface CapabilityQueryOptions extends OpenReadFileOptions {
+  /** Include complete wrapper ancestry when checking conditional chmod support. */
+  readonly conditionalChmod?: boolean;
   /** Inspect complete ancestry for staged publication, including other mounts.
    * Omission retains the ordinary per-target query and its acquisition intent. */
   readonly stagingAncestry?: boolean;
@@ -359,7 +373,7 @@ export interface FileSystem {
   readlink?(path: string, options?: FsOptions): Promise<string>;
   symlink?(target: string, path: string, options?: FsOptions): Promise<void>;
   link?(existingPath: string, newPath: string, options?: FsOptions): Promise<void>;
-  chmod?(path: string, mode: number, options?: FsOptions): Promise<void>;
+  chmod?(path: string, mode: number, options?: ChmodOptions): Promise<void>;
   utimes?(path: string, atimeMs: number, mtimeMs: number, options?: FsOptions): Promise<void>;
   truncate?(path: string, length?: number, options?: FsOptions): Promise<void>;
   readStream?(path: string, options?: ReadStreamOptions): ByteSource;

@@ -58,6 +58,25 @@ original cancellation reason, even when that close also fails.
 
 ## Byte and metadata operations
 
+Pathname `chmod(path, mode, options)` accepts ordinary `FsOptions`. Conditional
+permission updates require `conditionalChmod: true`, queried with
+`capabilitiesFor(path, { conditionalChmod: true })` where available. Their
+`ChmodOptions` must contain `parent`, `expected`, and a complete ordered
+root-to-parent `ancestors` receipt. Partial receipts reject `EINVAL`; changed
+target or directory identities reject `EAGAIN`. Unsupported providers must not
+be given conditional options as a substitute for checking this capability.
+The optional `commitGuard` is trusted, mutation-free validation and must return
+literal `true` synchronously; a promise, `void`, or false result is refusal.
+Providers snapshot receipts before invoking the guard and enforce the guard and
+receipt checks in the metadata commit's critical section. Wrappers preserve
+logical ancestry while translating backend paths and receipts. Read-only views
+remain read-only; only intact stock Memory read views can participate in the
+supported Overlay conditional path. Real retains its externally isolated host
+tree requirement: its final checks and chmod do not yield to JavaScript, but
+provide no atomicity against another process changing the host tree. This
+capability does not imply atomic staging ancestry or change direct chmod
+behavior when conditional options are absent.
+
 `stat(options?)` reports the retained object's current `FileStat`.
 `read(buffer, position, options?)` and `write(buffer, position, options?)` operate
 on exactly the supplied Uint8Array view, respecting byteOffset and byteLength.

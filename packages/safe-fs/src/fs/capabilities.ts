@@ -108,7 +108,7 @@ export function readOnlyCapabilities(capabilities: FileSystemCapabilities): File
     synchronousStagingResolution: false,
     mkdir: false, recursiveMkdir: false, remove: false, removeDirectory: false, recursiveRemove: false,
     rename: false, copy: false, exclusiveCopy: false, truncate: false, streamingAppend: false,
-    randomAccessWrite: false, hardlinks: false, permissions: false, timestamps: false,
+    randomAccessWrite: false, hardlinks: false, permissions: false, conditionalChmod: false, timestamps: false,
     descriptorWriteStream: false, atomicResize: false, retainedResize: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicTreeRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     atomicFilePublication: false, atomicRename: false, atomicRenameNoReplace: false, streamingWrite: false,
   });

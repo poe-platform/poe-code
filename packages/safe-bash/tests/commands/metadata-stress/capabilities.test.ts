@@ -82,3 +82,16 @@ test("MemoryFS enforces owner bits but does not implement host identities", asyn
   assert.equal((await run("chmod", ["600", "file"], fs)).exitCode, 0);
   assert.deepEqual(await fs.readFile("/work/file"), Uint8Array.of(1));
 });
+
+test("recursive chmod refuses a protected mount root before adding permissions", async () => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/file", Uint8Array.of(17), { mode: 0o640 });
+  const root = new MemoryFileSystem();
+  const fs = new MountFileSystem({ root, mounts: { "/work": backing } });
+  const result = await run("chmod", ["-R", "777", "/work"], fs);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /EBUSY/u);
+  assert.equal((await backing.stat("/")).mode & 0o777, 0o755);
+  assert.equal((await backing.stat("/file")).mode & 0o777, 0o640);
+  assert.equal((await root.stat("/")).mode & 0o777, 0o755);
+});

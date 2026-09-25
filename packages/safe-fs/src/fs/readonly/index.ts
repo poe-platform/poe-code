@@ -14,6 +14,7 @@ import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admissi
 import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { pathNamespace, readOnlyPathNamespace } from "../path-namespace.js";
+import { memoryAtomicView, registerMemoryAtomicView } from "../memory/atomic-view.js";
 
 function readOnly(syscall: string, path: string, dest?: string): never {
   throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
@@ -49,6 +50,15 @@ export class ReadOnlyFileSystem implements FileSystem {
 
   constructor(filesystem: FileSystem) {
     this.#filesystem = filesystem;
+    const atomic = memoryAtomicView(filesystem);
+    if (atomic) registerMemoryAtomicView(this, atomic, () => {
+      if (Object.getPrototypeOf(this) !== ReadOnlyFileSystem.prototype || memoryAtomicView(filesystem) !== atomic) return false;
+      return Object.entries(readOnlyImplementation).every(([name, expected]) => {
+        const actual = Object.getOwnPropertyDescriptor(this, name)
+          ?? Object.getOwnPropertyDescriptor(ReadOnlyFileSystem.prototype, name);
+        return actual?.value === expected.value && actual?.get === expected.get && actual?.set === expected.set;
+      });
+    });
     if (Reflect.has(filesystem, pathNamespace)) Object.defineProperty(this, pathNamespace, {
       get: () => readOnlyPathNamespace(Reflect.get(filesystem, pathNamespace)),
     });
@@ -223,6 +233,8 @@ export class ReadOnlyFileSystem implements FileSystem {
     readOnly("openResizeFile", path);
   }
 }
+
+const readOnlyImplementation = Object.getOwnPropertyDescriptors(ReadOnlyFileSystem.prototype);
 
 export function createReadOnlyFileSystem(filesystem: FileSystem): ReadOnlyFileSystem {
   return new ReadOnlyFileSystem(filesystem);

@@ -2,7 +2,7 @@ import { FsError, isFsError, toFsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
-  FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
+  FileSystemCapabilities, FsOptions, ChmodOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
   ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
@@ -18,6 +18,7 @@ import { pathNamespace } from "../path-namespace.js";
 import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { directoryAncestryPaths, inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "../staging-ancestry.js";
 import { compareIdentity } from "./identity.js";
+import { snapshotConditionalChmod } from "../conditional-chmod.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
 
 export interface MountFileSystemOptions {
@@ -188,6 +189,7 @@ export class MountFileSystem implements FileSystem {
         && typeof backend.publishStagedFile === "function" && (typeof backend.capabilitiesFor === "function"
           || backend.capabilities.guardedStagingPublication !== false && backend.capabilities.synchronousDirectoryValidation !== false)) ? undefined : false,
       atomicRename: mounts.length === 1 && all("atomicRename"),
+      conditionalChmod: all("conditionalChmod", ["chmod", "prepareDirectoryAncestry"]),
       ...(streamingRead === undefined ? {} : { streamingRead }),
       ...(streamingWrite === undefined ? {} : { streamingWrite }),
       ...(retainedRead === undefined ? {} : { retainedRead }),
@@ -228,8 +230,12 @@ export class MountFileSystem implements FileSystem {
           resolution = declared.synchronousStagingResolution === true && await this.supportsStagingAncestry(location, resize, options);
         }
       }
+      const conditionalChmod = options.conditionalChmod === true
+        ? resize.conditionalChmod === true && typeof location.mount.backend.chmod === "function"
+          && await this.supportsDirectoryValidation(location.path.slice(0, location.path.lastIndexOf("/")) || "/", options, true)
+        : this.capabilities.conditionalChmod;
       const { synchronousDirectoryValidation: ignoredValidation, synchronousStagingResolution: ignoredResolution, ...ordinary } = resize;
-      const withOpen = { ...ordinary, ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      const withOpen = { ...ordinary, conditionalChmod, ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);
@@ -253,7 +259,7 @@ export class MountFileSystem implements FileSystem {
     return this.supportsDirectoryValidation(parent, options);
   }
 
-  private async supportsDirectoryValidation(directory: string, options: FsOptions): Promise<boolean> {
+  private async supportsDirectoryValidation(directory: string, options: FsOptions, conditionalChmod = false): Promise<boolean> {
     const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
     for (const path of directoryAncestryPaths(directory)) {
       const entry = await this.lookup(path, controls);
@@ -261,7 +267,8 @@ export class MountFileSystem implements FileSystem {
       const backend = entry.mount.backend;
       const declared = await backend.capabilitiesFor?.(entry.local, { ...controls, stagingAncestry: true }) ?? backend.capabilities;
       options.signal?.throwIfAborted();
-      if (declared.synchronousDirectoryValidation !== true || typeof backend.prepareDirectoryAncestry !== "function") return false;
+      if (declared.synchronousDirectoryValidation !== true && !(conditionalChmod && declared.conditionalChmod === true)
+        || typeof backend.prepareDirectoryAncestry !== "function") return false;
     }
     return true;
   }
@@ -317,7 +324,7 @@ export class MountFileSystem implements FileSystem {
     });
   }
 
-  private async prepareAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions): Promise<() => true> {
+  private async prepareAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions, conditionalChmod = false): Promise<() => true> {
     options.signal?.throwIfAborted();
     try {
       const entries = snapshotDirectoryAncestry(ancestors);
@@ -348,7 +355,7 @@ export class MountFileSystem implements FileSystem {
           if (identity !== "same") fail("EAGAIN");
           const declared = await backend.capabilitiesFor?.(entry.path, { ...controls, stagingAncestry: true }) ?? backend.capabilities;
           controls.signal?.throwIfAborted();
-          if (declared.synchronousDirectoryValidation !== true) fail("ENOTSUP");
+          if (declared.synchronousDirectoryValidation !== true && !(conditionalChmod && declared.conditionalChmod === true)) fail("ENOTSUP");
         }
         if (typeof backend.prepareDirectoryAncestry !== "function") fail("ENOTSUP");
         const guard = await backend.prepareDirectoryAncestry(group.entries, controls);
@@ -1124,11 +1131,27 @@ export class MountFileSystem implements FileSystem {
     }, newPath);
   }
 
-  chmod(path: string, mode: number, options: FsOptions = {}): Promise<void> {
+  chmod(path: string, mode: number, options: ChmodOptions = {}): Promise<void> {
     return this.operation("chmod", path, options, async () => {
-      const location = await this.resolve(path, options);
+      const conditional = snapshotConditionalChmod(path, options);
+      const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+      const location = await this.resolve(path, controls, conditional ? { followFinal: false } : {});
       this.mutable(location);
-      await this.optional(location, "chmod", "permissions").call(location.mount.backend, location.local, mode, options);
+      const chmod = this.optional(location, "chmod", "permissions");
+      if (!conditional) return chmod.call(location.mount.backend, location.local, mode, controls);
+      if (location.path !== path) fail("EAGAIN");
+      const backend = location.mount.backend;
+      const capabilities = await backend.capabilitiesFor?.(location.local, { ...controls, conditionalChmod: true }) ?? backend.capabilities;
+      if (capabilities.conditionalChmod !== true) fail("ENOTSUP");
+      const guard = await this.prepareAncestry(conditional.ancestors, controls, true);
+      const ancestors = conditional.ancestors.filter(entry => this.select(entry.path) === location.mount).map(entry => ({
+        path: location.mount.path === "/" ? entry.path : entry.path.slice(location.mount.path.length) || "/", stat: entry.stat,
+      }));
+      await chmod.call(backend, location.local, mode, { ...conditional, ancestors, commitGuard: () => {
+        if (conditional.commitGuard) runStagingGuard(conditional.commitGuard);
+        runStagingGuard(guard);
+        return true;
+      } });
     });
   }
 

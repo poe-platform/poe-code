@@ -937,4 +937,22 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(st.channels[0]!.stdev).toBeCloseTo(75.199667, 4);
     expect(st.dominant).toEqual({ r: 8, g: 8, b: 24 });
   });
+
+  it("rasterizes SVG <g transform>, <path d='M/H/V/L/C/Q/Z'> with fill-opacity, and <rect rx/ry> rounded corners (#64)", async () => {
+    const svgComplex = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+      <rect x="0" y="0" width="120" height="120" fill="#204060"/>
+      <g transform="translate(10, 10) scale(2)">
+        <rect x="5" y="5" width="20" height="20" fill="#ff0000"/>
+      </g>
+      <path d="M 70 20 H 110 V 60 H 70 Z" fill="#00ff00" fill-opacity="0.5"/>
+      <rect x="20" y="70" width="80" height="40" rx="10" ry="10" fill="#ffcc00" opacity="0.75"/>
+    </svg>`;
+    const out = await sharp(new TextEncoder().encode(svgComplex)).raw().toBuffer();
+    const pRed = (40 * 120 + 40) * 4;
+    expect(Array.from(out.subarray(pRed, pRed + 4))).toEqual([255, 0, 0, 255]);
+    const pGreen = (40 * 120 + 90) * 4;
+    expect(Array.from(out.subarray(pGreen, pGreen + 4))).toEqual([16, 160, 48, 255]);
+    const pCornerOut = (71 * 120 + 21) * 4;
+    expect(Array.from(out.subarray(pCornerOut, pCornerOut + 4))).toEqual([32, 64, 96, 255]);
+  });
 });

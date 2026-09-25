@@ -675,7 +675,7 @@ interface IO {
   readonly functionCommandLines?: ReadonlyMap<Command, number> | undefined;
   readonly diagnosticCommandLines?: ReadonlyMap<Command, number> | undefined;
   readonly substitutionDiagnosticLine?: number;
-  readonly processSubstitutions?: (() => Promise<void>)[];
+  readonly processSubstitutions?: (() => Promise<void>)[] | undefined;
   readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number> | undefined;
   readonly scriptName?: string;
   readonly terminal?: {

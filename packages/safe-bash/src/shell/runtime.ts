@@ -1179,6 +1179,142 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
   });
 }
 
+class FastShellCommandContext {
+  stdin: ByteSource;
+  stdout: ByteSink;
+  stderr: ByteSink;
+  descriptors: ReadonlyMap<number, Descriptor> | undefined;
+  command: string;
+  args: readonly string[];
+  argumentValues?: CommandArguments;
+  env: Record<string, string>;
+  cwd: string;
+  signal: AbortSignal;
+  executionScope: CommandContext["executionScope"];
+  onInternalError: CommandContext["onInternalError"];
+  registerCleanup: NonNullable<CommandContext["registerCleanup"]>;
+  invoke: ShellCommandContext["invoke"];
+  argv0?: string;
+  capabilities?: import("./types.js").ShellCapabilities;
+  processSignals?: CommandContext["processSignals"];
+  diagnosticLine?: number;
+  scriptName?: string;
+  [invocationScope]?: InvocationScope;
+  [valueScope]?: ValueScope;
+  readonly #runtime: Runtime;
+  readonly #state: State;
+  readonly #io: IO;
+  readonly #scope: InvocationScope;
+  #scopedSignal: AbortSignal | undefined;
+  #contextFs: FileSystem | undefined;
+  #cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
+  #cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
+  #admittedHandles: CommandContext["admittedHandles"] | undefined;
+  #admittedHandlesInitialized = false;
+
+  constructor(
+    runtime: Runtime,
+    state: State,
+    io: IO,
+    scope: InvocationScope,
+    name: string,
+    argumentValues: CommandArguments,
+    allStrings: boolean,
+    env: Record<string, string>,
+    signalIsScoped: boolean,
+  ) {
+    this.#runtime = runtime;
+    this.#state = state;
+    this.#io = io;
+    this.#scope = scope;
+    this.#scopedSignal = signalIsScoped ? runtime.signal : undefined;
+    this.stdin = io.stdin;
+    this.stdout = io.stdout;
+    this.stderr = io.stderr;
+    this.descriptors = io.descriptors;
+    this.command = name;
+    this.args = argumentValues.args;
+    if (!allStrings) this.argumentValues = argumentValues;
+    this.env = env;
+    this.cwd = state.cwd;
+    this.signal = runtime.commandSignal;
+    this.executionScope = runtime.budget.executionScope;
+    this.onInternalError = runtime.budget.onInternalError;
+    if (io.argv0 !== undefined) this.argv0 = io.argv0;
+    if (io.capabilities !== undefined) this.capabilities = io.capabilities;
+    if (io.processSignals !== undefined) this.processSignals = io.processSignals;
+    if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
+    if (io.scriptName !== undefined) this.scriptName = io.scriptName;
+    this.registerCleanup = cleanup => { scope.register(cleanup); };
+    this.invoke = (cmdName, cmdArgs, options) => runtime.invokeFromFastContext(cmdName, cmdArgs, options, this as unknown as ShellCommandContext, state, scope);
+    bindFileOutputBudget(
+      this as unknown as Pick<CommandContext, "registerCleanup">,
+      sink => runtime.budget.sink(sink, this.#getScopedSignal()),
+      (chunk, write) => runtime.budget.writeCounted(chunk, write, this.#getScopedSignal()),
+    );
+  }
+
+  #getScopedSignal(): AbortSignal {
+    return this.#scopedSignal ??= AbortSignal.any([this.#runtime.signal, this.#scope.signal]);
+  }
+
+  get fs(): FileSystem {
+    if (!this.#contextFs) {
+      this.#contextFs = this.#runtime.getContextFsForFast(this.#state.umask ?? 0o022, this.#getScopedSignal());
+    }
+    return this.#contextFs;
+  }
+
+  set fs(replacement: FileSystem) {
+    this.#contextFs = replacement;
+  }
+
+  get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
+    if (!this.#cachedPredicates) {
+      this.#cachedPredicates = this.#runtime.createShellPredicatesForFast(this.#state, this.#io);
+    }
+    return this.#cachedPredicates;
+  }
+
+  set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) {
+    this.#cachedPredicates = replacement;
+  }
+
+  get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
+    return this.#cachedInputBudget ??= this.#runtime.createInputBudgetForFast();
+  }
+
+  set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) {
+    this.#cachedInputBudget = replacement;
+  }
+
+  get stdinInput(): ShellInput | undefined {
+    return this.stdin instanceof ShellInput ? this.stdin : undefined;
+  }
+
+  get stdoutFile(): CommandContext["stdoutFile"] {
+    const ownership = budgetedSinks.get(this.stdout);
+    return ownership?.write === this.stdout.write ? ownership.file : undefined;
+  }
+
+  get admittedHandles(): CommandContext["admittedHandles"] {
+    if (!this.#admittedHandlesInitialized) {
+      this.#admittedHandlesInitialized = true;
+      if (this.#io.descriptors) {
+        const temp: Record<string, unknown> = { signal: this.signal, registerCleanup: this.registerCleanup };
+        bindCommandIO(temp as unknown as CommandContext, { ...this.#io, [invocationScope]: this.#scope });
+        this.#admittedHandles = (temp as unknown as CommandContext).admittedHandles;
+      }
+    }
+    return this.#admittedHandles;
+  }
+
+  set admittedHandles(v: CommandContext["admittedHandles"]) {
+    this.#admittedHandlesInitialized = true;
+    this.#admittedHandles = v;
+  }
+}
+
 function cloneRawState(raw: State, hasLocals: boolean): State {
   const cloned: State = {
     ...raw,
@@ -6499,6 +6635,105 @@ export class Runtime {
     }
   }
 
+  getContextFsForFast(umask: number, signal: AbortSignal): FileSystem {
+    return this.getContextFsFor(umask, signal);
+  }
+
+  createShellPredicatesForFast(state: State, io: IO): NonNullable<CommandContext["shellPredicates"]> {
+    const predicates: NonNullable<CommandContext["shellPredicates"]> = {
+      variable: name => this.variable(state, name) !== undefined,
+      reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
+      option: name => {
+        const extension = state.extensions?.options.get(name);
+        if (extension) return extension.enabled;
+        if (name === "braceexpand") return state.braceexpand !== false;
+        if (name === "allexport") return !!state.allexport;
+        if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+        return false;
+      },
+      terminal: () => false,
+    };
+    variablePresence.set(predicates, name => this.variablePresent(state, name, io));
+    return predicates;
+  }
+
+  createInputBudgetForFast(): NonNullable<CommandContext["inputBudget"]> {
+    return {
+      maxBytes: this.budget.limits.maxInputBytes,
+      check: totalBytes => {
+        this.commandSignal.throwIfAborted();
+        if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+        if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
+      },
+    };
+  }
+
+  invokeFromFastContext(
+    name: string,
+    args: readonly string[],
+    options: Parameters<ShellCommandContext["invoke"]>[2],
+    context: ShellCommandContext,
+    state: State,
+    scope: InvocationScope,
+  ): Promise<CommandResult> {
+    const invRuntime = new Runtime(
+      this.sourceFs, this.commands, this.middleware, this.budget,
+      this.signal, this.fileWrites, this.outputFiles, this.commandSignal,
+      this.cancellation, this.cancellationState, this.cancellationOwner,
+      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
+    );
+    const invocation = invRuntime.invoke(name, args, options, context, state, scope);
+    void invocation.catch(() => undefined);
+    return invocation;
+  }
+
+  private async dispatchFastCommand(
+    name: string,
+    definition: NonNullable<ReturnType<CommandRegistry["get"]>>,
+    values: readonly ShellValue[],
+    state: State,
+    io: IO,
+    scope: InvocationScope,
+  ): Promise<number> {
+    const allocation = this.budget.values.scope();
+    const argumentValues = this.admitArguments(values, allocation);
+    let allStrings = true;
+    for (let i = 0; i < argumentValues.values.length; i++) {
+      if (typeof argumentValues.values[i] !== "string") { allStrings = false; break; }
+    }
+    const env = Object.create(null) as Record<string, string>;
+    for (const key of state.exported) {
+      const value = state.variables[key];
+      if (value !== undefined) env[key] = value;
+    }
+    if (state.exportedFunctions) {
+      for (const key of state.exportedFunctions) {
+        const body = state.functions.get(key);
+        if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+      }
+    }
+    const context = new FastShellCommandContext(this, state, io, scope, name, argumentValues, allStrings, env, this.#isMemoryBackingFs);
+    const runtimeFrame: RuntimeOutcomeFrame = {};
+    scope.enterWork();
+    this.budget.beginPathLookupSuspension();
+    try {
+      scope.assertOpen();
+      const raw = definition.execute(context as unknown as ShellCommandContext);
+      const observed = this.observeRuntimeReturn(raw, runtimeFrame);
+      const res = await interruptible(observed, this.signal);
+      return validateExitCode(res.exitCode);
+    } catch (error) {
+      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) {
+        this.outcomeFrame.report = runtimeFrame.report;
+      }
+      throw error;
+    } finally {
+      this.budget.endPathLookupSuspension();
+      scope.leaveWork();
+      allocation.close();
+    }
+  }
+
   async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
     if (
       !state.externalInvocation &&
@@ -6541,6 +6776,18 @@ export class Runtime {
       !(!bypassFunctions && state.functions.has(name)) &&
       !state.extensions?.builtins.has(name) &&
       name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
+    if (
+      fastInline &&
+      externalDef !== undefined &&
+      !implementedBuiltins.has(name) &&
+      !(name === "printf" && externalDef.execute === printfCommand.execute && args[0]?.startsWith("-v"))
+    ) {
+      try {
+        return await this.dispatchFastCommand(name, externalDef, values, state, io, scope);
+      } finally {
+        await scope.close();
+      }
+    }
     const runtime = fastInline
       ? this
       : new Runtime(

@@ -11,7 +11,9 @@ function isSyncResolved(promise: unknown): boolean {
 
 export class InvocationScope {
   #children: Set<InvocationScope> | undefined;
-  #callbacks: Map<symbol, InvocationCleanup> | undefined;
+  #singleCallback: InvocationCleanup | undefined;
+  #regCount = 0;
+  #callbacks: Map<number, InvocationCleanup> | undefined;
   #finalizers: (() => void | Promise<void>)[] | undefined;
   #activeWork = 0;
   #workWaiters: (() => void)[] | undefined;
@@ -70,10 +72,16 @@ export class InvocationScope {
   register(cleanup: InvocationCleanup): () => void {
     this.assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
-    const registration = Symbol();
+    const id = this.#regCount++;
+    if (id === 0) {
+      this.#singleCallback = cleanup;
+      return () => {
+        this.#singleCallback = undefined;
+      };
+    }
     const callbacks = this.#callbacks ??= new Map();
-    callbacks.set(registration, cleanup);
-    return () => { callbacks.delete(registration); };
+    callbacks.set(id, cleanup);
+    return () => { callbacks.delete(id); };
   }
 
   enterWork(): void {
@@ -134,7 +142,7 @@ export class InvocationScope {
       return this.#drain;
     }
     if (!this.#drain) {
-      if (!this.#controller && !this.#finalizers?.length && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
+      if (!this.#controller && !this.#finalizers?.length && !this.#singleCallback && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         this.#drain = resolvedVoid;
         this.#seal();
         if (this.parent) this.parent.#children?.delete(this);
@@ -143,6 +151,20 @@ export class InvocationScope {
       this.#closingSync = true;
       this.#seal();
       if (!this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
+        let singleCbAsync: Promise<unknown> | undefined;
+        if (this.#singleCallback) {
+          const cb = this.#singleCallback;
+          this.#singleCallback = undefined;
+          try {
+            const res = cb();
+            if (res && !isSyncResolved(res)) {
+              singleCbAsync = Promise.resolve(res).catch(error => { this.failures.push(error); });
+            }
+          } catch (error) {
+            this.failures.push(error);
+          }
+        }
+        if (!singleCbAsync && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         let asyncFinalizers: Promise<unknown>[] | undefined;
         if (this.#finalizers) {
           const finalizers = this.#finalizers;
@@ -178,11 +200,47 @@ export class InvocationScope {
         }
         this.#drain = resolvedVoid;
         return resolvedVoid;
-      }
-      this.#closingSync = false;
-      const done = Promise.resolve().then(async () => {
+        }
+        this.#closingSync = false;
         const callbacks = this.#callbacks ? [...this.#callbacks.values()] : [];
         this.#callbacks?.clear();
+        const done = Promise.resolve().then(async () => {
+          try {
+            await Promise.all([
+              ...(singleCbAsync ? [singleCbAsync] : []),
+              ...callbacks.map((cleanup) => this.cleanup(cleanup)),
+              ...(this.#children ? [...this.#children].map((child) => child.close()) : []),
+              ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
+            ]);
+          } finally {
+            if (this.#finalizers) {
+              for (const finalize of this.#finalizers.splice(0)) {
+                try {
+                  const res = finalize();
+                  if (res && !isSyncResolved(res)) await res;
+                }
+                catch (error) { this.failures.push(error); }
+              }
+            }
+            if (this.parent) this.parent.#children?.delete(this);
+          }
+        });
+        if (this.#drain) {
+          void done.then(this.#reentrantResolve, this.#reentrantReject);
+        } else {
+          this.#drain = done;
+        }
+        return this.#drain;
+      }
+      this.#closingSync = false;
+      const singleCb = this.#singleCallback;
+      this.#singleCallback = undefined;
+      const callbacks = [
+        ...(singleCb ? [singleCb] : []),
+        ...(this.#callbacks ? [...this.#callbacks.values()] : []),
+      ];
+      this.#callbacks?.clear();
+      const done = Promise.resolve().then(async () => {
         try {
           await Promise.all([
             ...callbacks.map((cleanup) => this.cleanup(cleanup)),

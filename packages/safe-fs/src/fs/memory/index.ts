@@ -237,6 +237,8 @@ export class MemoryFileSystem implements FileSystem {
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
+  #lastFastDirPrefix = "";
+  #lastFastDirNode: DirectoryNode | undefined;
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));

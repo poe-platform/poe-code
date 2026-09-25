@@ -42,6 +42,12 @@ class PooledGrepLine implements GrepLine {
   }
 }
 const grepLinePool: PooledGrepLine[] = Array.from({ length: 128 }, () => new PooledGrepLine());
+const grepBatchSlices: GrepLine[][] = Array.from({ length: 129 }, (_, k) => {
+  const arr = grepLinePool.slice(0, k);
+  trustedInputRows.add(arr);
+  reusableBatchRows.add(arr);
+  return arr;
+});
 const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
 trustedInputRows.add(EMPTY_GREP_ROWS);
 const sharedGrepOutBuffer = new Uint8Array(16 * 1024);
@@ -72,10 +78,9 @@ async function forEachGrepLineBatch(
   onBatch: (batch: GrepLine[], endOfChunk: boolean) => Promise<boolean> | boolean,
 ): Promise<void> {
   const lineLimit = Math.min(internalBufferLimit, maxLineBytes);
-  const pending = new RecordBuffer(lineLimit);
-  const batch: GrepLine[] = [];
-  trustedInputRows.add(batch);
-  reusableBatchRows.add(batch);
+  let pending: RecordBuffer | undefined;
+  let fallbackBatch: GrepLine[] | undefined;
+  let poolCount = 0;
   let bytes = 0;
   try {
     for await (const rawChunk of source) {
@@ -84,55 +89,87 @@ async function forEachGrepLineBatch(
       while (start < chunk.length) {
         const end = chunk.indexOf(separator, start);
         if (end < 0) break;
-        let line: GrepLine;
         let lineLen: number;
-        if (pending.size === 0) {
+        const maxRec = maxRecords();
+        if ((!pending || pending.size === 0) && !fallbackBatch && poolCount < 128 && maxRec <= 128) {
           const tailLength = end - start;
           if (tailLength > lineLimit) {
             throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
           }
           lineLen = tailLength;
-          line = batch.length < 128
-            ? grepLinePool[batch.length]!.reset(chunk, start, end, all, true)
-            : { bytes: chunk.subarray(start, end), all, terminated: true };
+          grepLinePool[poolCount++]!.reset(chunk, start, end, all, true);
         } else {
-          const finished = pending.finish(undefined, chunk, start, end);
-          lineLen = finished.length;
-          line = {
-            bytes: finished,
-            all,
-            terminated: true,
-          };
+          if (!fallbackBatch) {
+            fallbackBatch = [];
+            trustedInputRows.add(fallbackBatch);
+            reusableBatchRows.add(fallbackBatch);
+            for (let i = 0; i < poolCount; i++) fallbackBatch.push(grepLinePool[i]!);
+            poolCount = 0;
+          }
+          let line: GrepLine;
+          if (!pending || pending.size === 0) {
+            const tailLength = end - start;
+            if (tailLength > lineLimit) {
+              throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+            }
+            lineLen = tailLength;
+            line = fallbackBatch.length < 128
+              ? grepLinePool[fallbackBatch.length]!.reset(chunk, start, end, all, true)
+              : { bytes: chunk.subarray(start, end), all, terminated: true };
+          } else {
+            const finished = pending.finish(undefined, chunk, start, end);
+            lineLen = finished.length;
+            line = {
+              bytes: finished,
+              all,
+              terminated: true,
+            };
+          }
+          fallbackBatch.push(line);
         }
         start = end + 1;
-        batch.push(line);
         bytes += lineLen;
         const next = chunk.indexOf(separator, start);
+        const currentCount = fallbackBatch ? fallbackBatch.length : poolCount;
         if (
-          batch.length >= maxRecords() ||
+          currentCount >= maxRec ||
           bytes >= 64 * 1024 ||
           next < 0 ||
           bytes + next - start > 64 * 1024 ||
           next - start > maxLineBytes
         ) {
-          const cont = onBatch(batch, next < 0);
+          const activeBatch = fallbackBatch ?? grepBatchSlices[poolCount]!;
+          const cont = onBatch(activeBatch, next < 0);
           const keepGoing = cont instanceof Promise ? await cont : cont;
-          batch.length = 0;
+          if (fallbackBatch) fallbackBatch.length = 0;
+          else poolCount = 0;
           bytes = 0;
           if (!keepGoing) return;
         }
       }
-      pending.append(chunk, start);
+      if (start < chunk.length) {
+        (pending ??= new RecordBuffer(lineLimit)).append(chunk, start);
+      }
     }
-    if (pending.size) {
-      batch.push({ bytes: pending.finish(), all, terminated: false });
+    if (pending && pending.size) {
+      if (!fallbackBatch) {
+        fallbackBatch = [];
+        trustedInputRows.add(fallbackBatch);
+        reusableBatchRows.add(fallbackBatch);
+        for (let i = 0; i < poolCount; i++) fallbackBatch.push(grepLinePool[i]!);
+        poolCount = 0;
+      }
+      fallbackBatch.push({ bytes: pending.finish(), all, terminated: false });
     }
-    if (batch.length) {
-      const cont = onBatch(batch, true);
+    const finalBatch = fallbackBatch && fallbackBatch.length > 0
+      ? fallbackBatch
+      : poolCount > 0 ? grepBatchSlices[poolCount]! : undefined;
+    if (finalBatch) {
+      const cont = onBatch(finalBatch, true);
       if (cont instanceof Promise) await cont;
     }
   } finally {
-    pending.clear();
+    pending?.clear();
   }
 }
 

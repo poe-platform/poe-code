@@ -15,7 +15,7 @@ GitHub.
 
 ## Release Queues
 
-Release workflows and Pages publishing use GitHub's native concurrency queue:
+Release workflows use GitHub's native concurrency queue:
 
 ```yaml
 concurrency:
@@ -38,6 +38,11 @@ publishing an older commit over an already published newer commit.
 Failed runs release their concurrency slot; inspect their errors and rerun them
 when appropriate. New pushes do not cancel running or queued releases. GitHub's
 ordinary workflow and job time limits still apply.
+
+Pages publishing uses `queue: single` in the stable `pages` group with
+`cancel-in-progress: false`. The active deployment finishes while newer pushes
+replace obsolete pending builds, leaving only the latest pending deployment.
+Pages publishes a current site snapshot rather than retaining every release.
 
 Run `npm run lint:workflows` after editing a queue. Until actionlint supports
 the new key, this route validates queue values and requires cancellation to be

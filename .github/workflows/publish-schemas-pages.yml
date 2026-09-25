@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  queue: max
+  # Keep the active deployment; replace obsolete pending builds with the latest push.
+  queue: single
   group: pages
   cancel-in-progress: false
 

@@ -11,13 +11,18 @@ Pages publishing also explicitly cancels running deployments.
 
 Use GitHub's documented `concurrency.queue: max`, retaining each publisher's
 existing group name. Apply it to root validation and publication, every dedicated
-package publisher, and Pages; disable Pages cancellation. Keep all existing
+package publisher; disable Pages cancellation. Keep all existing
 validation, source identity, artifact verification, and publication guards.
 
 The native queue retains up to 100 pending runs and serves arrivals at the group
 in FIFO order. This is bounded and does not promise commit-order execution.
 It directly supports queued releases without adding a scheduler, polling
 workflow, third-party queue action, or mutable release branch for scheduling.
+
+Pages exception (issue #1767): use `queue: single` with
+`cancel-in-progress: false`. A full historical Pages queue rejected new schema
+deployments. Preserve the active deployment and coalesce obsolete pending site
+snapshots into the latest pending build instead of retaining every push.
 
 ## Verification and delivery
 

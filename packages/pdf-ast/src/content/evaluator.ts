@@ -16,6 +16,7 @@ import {
 } from "../ast.js";
 import type { ParsedCosDocument } from "../cos/parser.js";
 import { parseToUnicodeCMap, type ParsedToUnicodeCMap } from "../fonts/cmap.js";
+import { parseTrueTypeFont, type ParsedTrueTypeFont } from "../fonts/truetype.js";
 import { parseContentStream } from "./parser.js";
 import {
   buildFontEncodingDifferencesMap,
@@ -55,6 +56,7 @@ interface ResolvedPageFont {
   readonly fontMatrix?: Matrix6 | undefined;
   readonly charProcs?: PdfCosDict | undefined;
   readonly fontResources?: PdfCosDict | undefined;
+  readonly embeddedTrueType?: ParsedTrueTypeFont | undefined;
 }
 
 function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: PdfCosDict | undefined): Map<string, ResolvedPageFont> {
@@ -178,6 +180,18 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       }
     }
 
+    let embeddedTrueType: ParsedTrueTypeFont | undefined;
+    const fDescDirect = doc.resolveDict(dictGet(fObj, "FontDescriptor"));
+    const descArrForTt = subtype === "Type0" ? doc.resolveArray(dictGet(fObj, "DescendantFonts")) : undefined;
+    const cidDictForTt = descArrForTt && descArrForTt.items[0] ? doc.resolveDict(descArrForTt.items[0]) : undefined;
+    const fDesc = fDescDirect ?? (cidDictForTt ? doc.resolveDict(dictGet(cidDictForTt, "FontDescriptor")) : undefined);
+    if (fDesc) {
+      const ff2Node = doc.resolve(dictGet(fDesc, "FontFile2")) ?? doc.resolve(dictGet(fDesc, "FontFile3"));
+      if (ff2Node?.kind === "stream") {
+        embeddedTrueType = parseTrueTypeFont(doc.decodeStream(ff2Node));
+      }
+    }
+
     fonts.set(fName, {
       name: fName,
       baseFont,
@@ -191,6 +205,7 @@ function resolvePageFonts(doc: ParsedCosDocument | undefined, resourcesDict: Pdf
       fontMatrix,
       charProcs,
       fontResources,
+      embeddedTrueType,
     });
   }
 
@@ -221,6 +236,7 @@ interface GraphicsState {
   dashArray?: readonly number[] | undefined;
   dashPhase?: number | undefined;
   fillPatternName?: string | undefined;
+  blendMode?: string | undefined;
 }
 
 function evaluateType4PostScriptTokens(tokens: readonly string[], initialStack: readonly number[]): number[] {
@@ -777,6 +793,237 @@ function convertColorSpaceComponentsToRgb(
   return shadingComponentsToRgb(csNameFallback, comps);
 }
 
+function renderMeshShadingToImage(
+  doc: ParsedCosDocument,
+  shDict: PdfCosDict,
+  shStream: import("../ast.js").PdfCosStream,
+  shType: number,
+  effectiveCtm: Matrix6,
+  targetBox: [number, number, number, number],
+  fillAlpha: number,
+  name: string,
+  clipRect?: [number, number, number, number],
+  blendMode?: string
+): PdfEvaluatedImage | undefined {
+  const bytes = doc.decodeStream(shStream);
+  if (bytes.length === 0) return undefined;
+  const bpcCoordNode = doc.resolve(dictGet(shDict, "BitsPerCoordinate"));
+  const bpcCompNode = doc.resolve(dictGet(shDict, "BitsPerComponent"));
+  const bpcFlagNode = doc.resolve(dictGet(shDict, "BitsPerFlag"));
+  const vPerRowNode = doc.resolve(dictGet(shDict, "VerticesPerRow"));
+  const bpcCoord = bpcCoordNode?.kind === "number" ? bpcCoordNode.value : 16;
+  const bpcComp = bpcCompNode?.kind === "number" ? bpcCompNode.value : 8;
+  const bpcFlag = bpcFlagNode?.kind === "number" ? bpcFlagNode.value : 8;
+  const vPerRow = vPerRowNode?.kind === "number" ? Math.max(2, Math.floor(vPerRowNode.value)) : 2;
+  const decodeArrNode = doc.resolveArray(dictGet(shDict, "Decode"));
+  if (!decodeArrNode || decodeArrNode.items.length < 6) return undefined;
+  const decodeNums = decodeArrNode.items.map(it => {
+    const r = doc.resolve(it);
+    return r?.kind === "number" ? r.value : 0;
+  });
+  const xmin = decodeNums[0]!, xmax = decodeNums[1]!, ymin = decodeNums[2]!, ymax = decodeNums[3]!;
+  const numColorParams = Math.max(1, Math.floor((decodeNums.length - 4) / 2));
+  const fnNode = dictGet(shDict, "Function");
+  const csNode = doc.resolve(dictGet(shDict, "ColorSpace"));
+  const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
+
+  let bitPos = 0;
+  const totalBits = bytes.length * 8;
+  const readBits = (n: number): number => {
+    let val = 0;
+    for (let i = 0; i < n; i++) {
+      if (bitPos >= totalBits) return val;
+      const byteIdx = bitPos >> 3;
+      const bitIdx = 7 - (bitPos & 7);
+      val = val * 2 + ((bytes[byteIdx]! >> bitIdx) & 1);
+      bitPos++;
+    }
+    return val;
+  };
+  const coordMax = Math.pow(2, bpcCoord) - 1 || 1;
+  const compMax = Math.pow(2, bpcComp) - 1 || 1;
+  const readCoord = (): [number, number] => {
+    const rx = readBits(bpcCoord) / coordMax;
+    const ry = readBits(bpcCoord) / coordMax;
+    return [xmin + rx * (xmax - xmin), ymin + ry * (ymax - ymin)];
+  };
+  const readColorRgb = (): [number, number, number] => {
+    const params: number[] = [];
+    for (let c = 0; c < numColorParams; c++) {
+      const rc = readBits(bpcComp) / compMax;
+      const cMin = decodeNums[4 + c * 2] ?? 0;
+      const cMax = decodeNums[4 + c * 2 + 1] ?? 1;
+      params.push(cMin + rc * (cMax - cMin));
+    }
+    const comps = fnNode ? evalShadingFunctionToComponents(doc, fnNode, params) : params;
+    return convertColorSpaceComponentsToRgb(doc, csNode, csName, comps);
+  };
+
+  interface MeshVertex {
+    x: number;
+    y: number;
+    rgb: [number, number, number];
+  }
+  const triangles: Array<[MeshVertex, MeshVertex, MeshVertex]> = [];
+
+  if (shType === 4) {
+    const minBitsPerVert = bpcFlag + 2 * bpcCoord + numColorParams * bpcComp;
+    let triVerts: [MeshVertex, MeshVertex, MeshVertex] | undefined;
+    while (bitPos + minBitsPerVert <= totalBits) {
+      const flag = readBits(bpcFlag) & 3;
+      const [x, y] = readCoord();
+      const rgb = readColorRgb();
+      const vNew: MeshVertex = { x, y, rgb };
+      if (flag === 0 || !triVerts) {
+        if (bitPos + 2 * minBitsPerVert > totalBits) break;
+        readBits(bpcFlag);
+        const [x1, y1] = readCoord();
+        const rgb1 = readColorRgb();
+        readBits(bpcFlag);
+        const [x2, y2] = readCoord();
+        const rgb2 = readColorRgb();
+        triVerts = [vNew, { x: x1, y: y1, rgb: rgb1 }, { x: x2, y: y2, rgb: rgb2 }];
+        triangles.push(triVerts);
+      } else if (flag === 1) {
+        triVerts = [triVerts[1], triVerts[2], vNew];
+        triangles.push(triVerts);
+      } else if (flag === 2) {
+        triVerts = [triVerts[0], triVerts[2], vNew];
+        triangles.push(triVerts);
+      }
+    }
+  } else if (shType === 5) {
+    const minBitsPerVert = 2 * bpcCoord + numColorParams * bpcComp;
+    const verts: MeshVertex[] = [];
+    while (bitPos + minBitsPerVert <= totalBits) {
+      const [x, y] = readCoord();
+      const rgb = readColorRgb();
+      verts.push({ x, y, rgb });
+    }
+    const numRows = Math.floor(verts.length / vPerRow);
+    for (let r = 0; r + 1 < numRows; r++) {
+      for (let c = 0; c + 1 < vPerRow; c++) {
+        const v00 = verts[r * vPerRow + c]!;
+        const v01 = verts[r * vPerRow + c + 1]!;
+        const v11 = verts[(r + 1) * vPerRow + c + 1]!;
+        const v10 = verts[(r + 1) * vPerRow + c]!;
+        triangles.push([v00, v01, v11], [v00, v11, v10]);
+      }
+    }
+  } else if (shType === 6 || shType === 7) {
+    const numCtrl = shType === 6 ? 12 : 16;
+    const minBitsPatch = bpcFlag + (numCtrl - 4) * 2 * bpcCoord + 2 * numColorParams * bpcComp;
+    let prevPts: Array<[number, number]> | undefined;
+    let prevColors: Array<[number, number, number]> | undefined;
+    while (bitPos + minBitsPatch <= totalBits) {
+      const flag = readBits(bpcFlag) & 3;
+      let pts: Array<[number, number]> = [];
+      let cols: Array<[number, number, number]> = [];
+      if (flag === 0 || !prevPts || !prevColors) {
+        for (let i = 0; i < numCtrl; i++) pts.push(readCoord());
+        for (let i = 0; i < 4; i++) cols.push(readColorRgb());
+      } else {
+        const extraCtrl = numCtrl - 4;
+        const readExtra: Array<[number, number]> = [];
+        for (let i = 0; i < extraCtrl; i++) readExtra.push(readCoord());
+        const c2 = readColorRgb();
+        const c3 = readColorRgb();
+        pts = [prevPts[3]!, prevPts[4]!, prevPts[5]!, prevPts[6]!, ...readExtra];
+        cols = [prevColors[1]!, prevColors[2]!, c2, c3];
+      }
+      prevPts = pts;
+      prevColors = cols;
+      const p00 = pts[0]!;
+      const p03 = pts[3]!;
+      const p33 = pts[6]!;
+      const p30 = pts[9]!;
+      const c00 = cols[0]!, c03 = cols[1]!, c33 = cols[2]!, c30 = cols[3]!;
+      const steps = 4;
+      const grid: MeshVertex[][] = [];
+      for (let iu = 0; iu <= steps; iu++) {
+        const u = iu / steps;
+        const row: MeshVertex[] = [];
+        for (let iv = 0; iv <= steps; iv++) {
+          const v = iv / steps;
+          const x = (1 - u) * (1 - v) * p00[0] + (1 - u) * v * p03[0] + u * v * p33[0] + u * (1 - v) * p30[0];
+          const y = (1 - u) * (1 - v) * p00[1] + (1 - u) * v * p03[1] + u * v * p33[1] + u * (1 - v) * p30[1];
+          const r = (1 - u) * (1 - v) * c00[0] + (1 - u) * v * c03[0] + u * v * c33[0] + u * (1 - v) * c30[0];
+          const g = (1 - u) * (1 - v) * c00[1] + (1 - u) * v * c03[1] + u * v * c33[1] + u * (1 - v) * c30[1];
+          const b = (1 - u) * (1 - v) * c00[2] + (1 - u) * v * c03[2] + u * v * c33[2] + u * (1 - v) * c30[2];
+          row.push({ x, y, rgb: [r, g, b] });
+        }
+        grid.push(row);
+      }
+      for (let iu = 0; iu < steps; iu++) {
+        for (let iv = 0; iv < steps; iv++) {
+          const g00 = grid[iu]![iv]!;
+          const g01 = grid[iu]![iv + 1]!;
+          const g11 = grid[iu + 1]![iv + 1]!;
+          const g10 = grid[iu + 1]![iv]!;
+          triangles.push([g00, g01, g11], [g00, g11, g10]);
+        }
+      }
+    }
+  }
+
+  if (triangles.length === 0) return undefined;
+  const [bx0, by0, bx1, by1] = targetBox;
+  const boxW = Math.max(1, bx1 - bx0);
+  const boxH = Math.max(1, by1 - by0);
+  const imgW = Math.max(1, Math.min(256, Math.ceil(boxW)));
+  const imgH = Math.max(1, Math.min(256, Math.ceil(boxH)));
+  const rgba = new Uint8Array(imgW * imgH * 4);
+  const a8 = Math.round(fillAlpha * 255);
+
+  const toImgCoords = (vx: number, vy: number): [number, number] => {
+    const [px, py] = transformPoint(effectiveCtm, vx, vy);
+    return [((px - bx0) / boxW) * imgW, ((by1 - py) / boxH) * imgH];
+  };
+
+  for (const [v0, v1, v2] of triangles) {
+    const [x0, y0] = toImgCoords(v0.x, v0.y);
+    const [x1, y1] = toImgCoords(v1.x, v1.y);
+    const [x2, y2] = toImgCoords(v2.x, v2.y);
+    const denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2);
+    if (Math.abs(denom) < 1e-6) continue;
+    const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
+    const maxX = Math.min(imgW - 1, Math.ceil(Math.max(x0, x1, x2)));
+    const minY = Math.max(0, Math.floor(Math.min(y0, y1, y2)));
+    const maxY = Math.min(imgH - 1, Math.ceil(Math.max(y0, y1, y2)));
+    for (let iy = minY; iy <= maxY; iy++) {
+      const py = iy + 0.5;
+      for (let ix = minX; ix <= maxX; ix++) {
+        const px = ix + 0.5;
+        const w0 = ((y1 - y2) * (px - x2) + (x2 - x1) * (py - y2)) / denom;
+        const w1 = ((y2 - y0) * (px - x2) + (x0 - x2) * (py - y2)) / denom;
+        const w2 = 1 - w0 - w1;
+        if (w0 >= -1e-4 && w1 >= -1e-4 && w2 >= -1e-4) {
+          const r = w0 * v0.rgb[0] + w1 * v1.rgb[0] + w2 * v2.rgb[0];
+          const g = w0 * v0.rgb[1] + w1 * v1.rgb[1] + w2 * v2.rgb[1];
+          const b = w0 * v0.rgb[2] + w1 * v1.rgb[2] + w2 * v2.rgb[2];
+          const pIdx = (iy * imgW + ix) * 4;
+          rgba[pIdx] = Math.round(Math.max(0, Math.min(1, r)) * 255);
+          rgba[pIdx + 1] = Math.round(Math.max(0, Math.min(1, g)) * 255);
+          rgba[pIdx + 2] = Math.round(Math.max(0, Math.min(1, b)) * 255);
+          rgba[pIdx + 3] = a8;
+        }
+      }
+    }
+  }
+
+  return {
+    name,
+    matrix: [boxW, 0, 0, boxH, bx0, by0],
+    width: imgW,
+    height: imgH,
+    colorSpace: "rgb",
+    bitsPerComponent: 8,
+    decodedRgba: rgba,
+    ...(blendMode && blendMode !== "Normal" ? { blendMode } : {}),
+    ...(clipRect ? { clipRect: [...clipRect] as [number, number, number, number] } : {}),
+  };
+}
+
 function renderShadingDictToImage(
   doc: ParsedCosDocument,
   shDict: PdfCosDict,
@@ -784,10 +1031,15 @@ function renderShadingDictToImage(
   targetBox: [number, number, number, number],
   fillAlpha: number,
   name: string,
-  clipRect?: [number, number, number, number]
+  clipRect?: [number, number, number, number],
+  shStream?: import("../ast.js").PdfCosStream,
+  blendMode?: string
 ): PdfEvaluatedImage | undefined {
   const stTypeNode = doc.resolve(dictGet(shDict, "ShadingType"));
   const shType = stTypeNode?.kind === "number" ? stTypeNode.value : 0;
+  if ((shType === 4 || shType === 5 || shType === 6 || shType === 7) && shStream) {
+    return renderMeshShadingToImage(doc, shDict, shStream, shType, shadingCtm, targetBox, fillAlpha, name, clipRect, blendMode);
+  }
   const fnNode = dictGet(shDict, "Function");
   if ((shType !== 1 && shType !== 2 && shType !== 3) || !fnNode) return undefined;
 
@@ -967,6 +1219,7 @@ function renderShadingDictToImage(
     colorSpace: "rgb",
     bitsPerComponent: 8,
     decodedRgba: rgba,
+    ...(blendMode && blendMode !== "Normal" ? { blendMode } : {}),
     ...(clipRect ? { clipRect: [...clipRect] as [number, number, number, number] } : {}),
   };
 }
@@ -1184,7 +1437,9 @@ export function evaluateContentStreamToDisplayList(params: {
       }
     } else if (operator === "sh" && params.cosDoc && activeResources && ops[0]?.kind === "name") {
       const shMap = params.cosDoc.resolveDict(dictGet(activeResources, "Shading"));
-      const shDict = shMap ? params.cosDoc.resolveDict(dictGet(shMap, ops[0].decoded)) : undefined;
+      const shNode = shMap ? params.cosDoc.resolve(dictGet(shMap, ops[0].decoded)) : undefined;
+      const shDict = shNode?.kind === "dict" ? shNode : shNode?.kind === "stream" ? shNode.dict : undefined;
+      const shStream = shNode?.kind === "stream" ? shNode : undefined;
       if (shDict) {
         const targetBox: [number, number, number, number] = st.clipRect ?? [0, 0, params.width, params.height];
         const img = renderShadingDictToImage(
@@ -1194,7 +1449,9 @@ export function evaluateContentStreamToDisplayList(params: {
           targetBox,
           st.fillAlpha,
           "Shading_" + ops[0].decoded,
-          st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined
+          st.clipRect ? ([...st.clipRect] as [number, number, number, number]) : undefined,
+          shStream,
+          st.blendMode
         );
         if (img) images.push(img);
       }
@@ -1233,6 +1490,15 @@ export function evaluateContentStreamToDisplayList(params: {
       const extDict = params.cosDoc.resolveDict(dictGet(activeResources, "ExtGState"));
       const gsDict = extDict ? params.cosDoc.resolveDict(dictGet(extDict, ops[0].decoded)) : undefined;
       if (gsDict) {
+        const bmNode = params.cosDoc.resolve(dictGet(gsDict, "BM"));
+        if (bmNode?.kind === "name") {
+          st.blendMode = bmNode.decoded === "Compatible" ? "Normal" : bmNode.decoded;
+        } else if (bmNode?.kind === "array" && bmNode.items.length > 0) {
+          const firstBm = params.cosDoc.resolve(bmNode.items[0]);
+          if (firstBm?.kind === "name") {
+            st.blendMode = firstBm.decoded === "Compatible" ? "Normal" : firstBm.decoded;
+          }
+        }
         const caNode = params.cosDoc.resolve(dictGet(gsDict, "ca"));
         if (caNode?.kind === "number") st.fillAlpha = Math.max(0, Math.min(1, caNode.value));
         const CANode = params.cosDoc.resolve(dictGet(gsDict, "CA"));
@@ -1593,6 +1859,7 @@ export function evaluateContentStreamToDisplayList(params: {
             ...(st.lineJoin !== 0 ? { lineJoin: st.lineJoin } : {}),
             ...(st.miterLimit !== 10 ? { miterLimit: st.miterLimit } : {}),
             fillRule,
+            ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
             ...(st.dashArray ? { dashArray: [...st.dashArray] } : {}),
             ...(st.dashPhase !== undefined ? { dashPhase: st.dashPhase } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
@@ -1631,6 +1898,7 @@ export function evaluateContentStreamToDisplayList(params: {
                   colorSpace: decoded.colorSpace,
                   bitsPerComponent: decoded.bitsPerComponent,
                   decodedRgba: decoded.rgba,
+                  ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                   ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 });
               } else if (sub === "Form" && depth < 8) {
@@ -1711,6 +1979,7 @@ export function evaluateContentStreamToDisplayList(params: {
             colorSpace: decoded.colorSpace,
             bitsPerComponent: decoded.bitsPerComponent,
             decodedRgba: decoded.rgba,
+            ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
             ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
           });
           break;
@@ -1770,6 +2039,54 @@ export function evaluateContentStreamToDisplayList(params: {
                     evaluatedType3 = true;
                   }
                 }
+              } else if (font?.embeddedTrueType && st.textRenderMode !== 3) {
+                const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
+                let glyphOutline = cp !== undefined ? font.embeddedTrueType.getGlyphOutline(cp) : [];
+                if (glyphOutline.length === 0) {
+                  glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(item.charCode);
+                }
+                if (!font.widths.has(item.charCode)) {
+                  const ttAdv = cp !== undefined ? font.embeddedTrueType.getAdvanceWidth1000(cp) : undefined;
+                  if (ttAdv !== undefined) advance1000 = ttAdv;
+                }
+                if (glyphOutline.length > 0) {
+                  const textSpaceMatrix = multiplyMatrices(
+                    [st.fontSize * scaleH, 0, 0, st.fontSize, 0, st.rise],
+                    totalMatrix
+                  );
+                  const transformedGlyphSegs: PdfPathSegment[] = [];
+                  for (const seg of glyphOutline) {
+                    if (seg.kind === "move") {
+                      const [gx, gy] = transformPoint(textSpaceMatrix, seg.x, seg.y);
+                      transformedGlyphSegs.push({ kind: "move", x: gx, y: gy });
+                    } else if (seg.kind === "line") {
+                      const [gx, gy] = transformPoint(textSpaceMatrix, seg.x, seg.y);
+                      transformedGlyphSegs.push({ kind: "line", x: gx, y: gy });
+                    } else if (seg.kind === "cubic") {
+                      const [gx1, gy1] = transformPoint(textSpaceMatrix, seg.x1, seg.y1);
+                      const [gx2, gy2] = transformPoint(textSpaceMatrix, seg.x2, seg.y2);
+                      const [gx, gy] = transformPoint(textSpaceMatrix, seg.x, seg.y);
+                      transformedGlyphSegs.push({ kind: "cubic", x1: gx1, y1: gy1, x2: gx2, y2: gy2, x: gx, y: gy });
+                    } else {
+                      transformedGlyphSegs.push(seg);
+                    }
+                  }
+                  const isFillGlyph = st.textRenderMode === 0 || st.textRenderMode === 2 || st.textRenderMode === 4 || st.textRenderMode === 6;
+                  const isStrokeGlyph = st.textRenderMode === 1 || st.textRenderMode === 2 || st.textRenderMode === 5 || st.textRenderMode === 6;
+                  const ctmScale = Math.max(1e-6, Math.hypot(st.ctm[0], st.ctm[1]));
+                  paths.push({
+                    segments: transformedGlyphSegs,
+                    fillColor: isFillGlyph ? st.fillColor : undefined,
+                    fillAlpha: isFillGlyph ? st.fillAlpha : undefined,
+                    strokeColor: isStrokeGlyph ? st.strokeColor : undefined,
+                    strokeAlpha: isStrokeGlyph ? st.strokeAlpha : undefined,
+                    strokeWidth: isStrokeGlyph ? st.strokeWidth * ctmScale : 0,
+                    fillRule: "nonzero",
+                    ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
+                    ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
+                  });
+                  evaluatedType3 = true;
+                }
               }
               const advUser = ((advance1000 * st.fontSize) / 1000 + st.charSpace + (item.unicode === " " ? st.wordSpace : 0)) * scaleH;
               const [nextX, nextY] = transformPoint(totalMatrix, advUser, 0);
@@ -1788,6 +2105,7 @@ export function evaluateContentStreamToDisplayList(params: {
                 matrix: totalMatrix,
                 color: st.textRenderMode === 1 ? st.strokeColor : st.fillColor,
                 ...(evaluatedType3 ? { renderMode: 3 } : st.textRenderMode !== 0 ? { renderMode: st.textRenderMode } : {}),
+                ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                 ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 mcid,
                 actualText,

@@ -29,6 +29,7 @@ export interface ParsedTrueTypeFont {
   measureTextWidth(text: string, fontSize: number): number;
   encodeTextToCidHex(text: string): { hexBytes: Uint8Array; usedGlyphs: Map<number, string> };
   getGlyphOutline(codePoint: number): PdfPathSegment[];
+  getGlyphOutlineByGid(glyphId: number): PdfPathSegment[];
 }
 
 function readU16(view: DataView, offset: number): number {
@@ -212,9 +213,8 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
   const loca = tables.get("loca");
   const glyf = tables.get("glyf");
 
-  const getGlyphOutline = (codePoint: number): PdfPathSegment[] => {
-    const gid = codePointToGlyph.get(codePoint) ?? 0;
-    if (!loca || !glyf || gid <= 0 || gid >= numGlyphs) return [];
+  const getGlyphOutlineByGid = (gid: number, depth = 0): PdfPathSegment[] => {
+    if (!loca || !glyf || gid <= 0 || gid >= numGlyphs || depth > 6) return [];
     let gOff = 0;
     let gNext = 0;
     if (indexToLocFormat === 0) {
@@ -227,6 +227,70 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     if (gOff >= gNext || glyf.offset + gNext > bytes.byteLength) return [];
     const glyphStart = glyf.offset + gOff;
     const numberOfContours = readI16(view, glyphStart);
+    if (numberOfContours < 0) {
+      const compSegments: PdfPathSegment[] = [];
+      let cPos = glyphStart + 10;
+      let compFlags = 0x0020;
+      while ((compFlags & 0x0020) !== 0 && cPos + 4 <= glyf.offset + gNext) {
+        compFlags = readU16(view, cPos);
+        const subGid = readU16(view, cPos + 2);
+        cPos += 4;
+        let dx = 0;
+        let dy = 0;
+        if (compFlags & 0x0001) {
+          if (compFlags & 0x0002) {
+            dx = readI16(view, cPos);
+            dy = readI16(view, cPos + 2);
+          }
+          cPos += 4;
+        } else {
+          if (compFlags & 0x0002) {
+            dx = (bytes[cPos]! << 24) >> 24;
+            dy = (bytes[cPos + 1]! << 24) >> 24;
+          }
+          cPos += 2;
+        }
+        let m00 = 1, m01 = 0, m10 = 0, m11 = 1;
+        if (compFlags & 0x0008) {
+          m00 = m11 = readI16(view, cPos) / 16384;
+          cPos += 2;
+        } else if (compFlags & 0x0040) {
+          m00 = readI16(view, cPos) / 16384;
+          m11 = readI16(view, cPos + 2) / 16384;
+          cPos += 4;
+        } else if (compFlags & 0x0080) {
+          m00 = readI16(view, cPos) / 16384;
+          m01 = readI16(view, cPos + 2) / 16384;
+          m10 = readI16(view, cPos + 4) / 16384;
+          m11 = readI16(view, cPos + 6) / 16384;
+          cPos += 8;
+        }
+        const tx = dx / unitsPerEm;
+        const ty = dy / unitsPerEm;
+        for (const seg of getGlyphOutlineByGid(subGid, depth + 1)) {
+          if (seg.kind === "move" || seg.kind === "line") {
+            compSegments.push({
+              kind: seg.kind,
+              x: seg.x * m00 + seg.y * m10 + tx,
+              y: seg.x * m01 + seg.y * m11 + ty,
+            });
+          } else if (seg.kind === "cubic") {
+            compSegments.push({
+              kind: "cubic",
+              x1: seg.x1 * m00 + seg.y1 * m10 + tx,
+              y1: seg.x1 * m01 + seg.y1 * m11 + ty,
+              x2: seg.x2 * m00 + seg.y2 * m10 + tx,
+              y2: seg.x2 * m01 + seg.y2 * m11 + ty,
+              x: seg.x * m00 + seg.y * m10 + tx,
+              y: seg.x * m01 + seg.y * m11 + ty,
+            });
+          } else {
+            compSegments.push(seg);
+          }
+        }
+      }
+      return compSegments;
+    }
     if (numberOfContours <= 0) return [];
 
     const endPts: number[] = [];
@@ -280,15 +344,68 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
     let startPt = 0;
     for (const endPt of endPts) {
       if (endPt >= startPt) {
-        segments.push({ kind: "move", x: xs[startPt]! / unitsPerEm, y: ys[startPt]! / unitsPerEm });
-        for (let p = startPt + 1; p <= endPt; p++) {
-          segments.push({ kind: "line", x: xs[p]! / unitsPerEm, y: ys[p]! / unitsPerEm });
+        const contourPts: Array<{ x: number; y: number; onCurve: boolean }> = [];
+        for (let p = startPt; p <= endPt; p++) {
+          contourPts.push({
+            x: xs[p]! / unitsPerEm,
+            y: ys[p]! / unitsPerEm,
+            onCurve: (flags[p]! & 0x01) !== 0,
+          });
+        }
+        const n = contourPts.length;
+        if (n > 0) {
+          const first = contourPts[0]!;
+          const last = contourPts[n - 1]!;
+          const startX = first.onCurve
+            ? first.x
+            : last.onCurve
+              ? last.x
+              : (first.x + last.x) * 0.5;
+          const startY = first.onCurve
+            ? first.y
+            : last.onCurve
+              ? last.y
+              : (first.y + last.y) * 0.5;
+          segments.push({ kind: "move", x: startX, y: startY });
+          let curOnX = startX;
+          let curOnY = startY;
+          let idx = first.onCurve ? 1 : 0;
+          while (idx < n) {
+            const pt = contourPts[idx]!;
+            if (pt.onCurve) {
+              segments.push({ kind: "line", x: pt.x, y: pt.y });
+              curOnX = pt.x;
+              curOnY = pt.y;
+              idx++;
+            } else {
+              const nextPt = contourPts[(idx + 1) % n]!;
+              const endX = nextPt.onCurve ? nextPt.x : (pt.x + nextPt.x) * 0.5;
+              const endY = nextPt.onCurve ? nextPt.y : (pt.y + nextPt.y) * 0.5;
+              segments.push({
+                kind: "cubic",
+                x1: curOnX + (2 / 3) * (pt.x - curOnX),
+                y1: curOnY + (2 / 3) * (pt.y - curOnY),
+                x2: endX + (2 / 3) * (pt.x - endX),
+                y2: endY + (2 / 3) * (pt.y - endY),
+                x: endX,
+                y: endY,
+              });
+              curOnX = endX;
+              curOnY = endY;
+              idx += nextPt.onCurve ? 2 : 1;
+            }
+          }
         }
         segments.push({ kind: "close" });
       }
       startPt = endPt + 1;
     }
     return segments;
+  };
+
+  const getGlyphOutline = (codePoint: number): PdfPathSegment[] => {
+    const gid = codePointToGlyph.get(codePoint) ?? 0;
+    return getGlyphOutlineByGid(gid);
   };
 
   return {
@@ -333,6 +450,7 @@ export function parseTrueTypeFont(bytes: Uint8Array): ParsedTrueTypeFont {
       return { hexBytes: Uint8Array.from(out), usedGlyphs };
     },
     getGlyphOutline,
+    getGlyphOutlineByGid,
   };
 }
 

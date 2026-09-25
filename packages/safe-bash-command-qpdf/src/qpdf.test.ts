@@ -1081,4 +1081,20 @@ describe("safe-bash-command-qpdf", () => {
     assert.equal(mergedShow.exitCode, 0);
     assert.equal(mergedShow.stdout, "unix-payload-content");
   });
+
+  it("qpdf --linearize produces byte-accurate /Linearized header and passes --show-linearization", async () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage({ width: 200, height: 100 });
+    page.drawText("Linearized via qpdf", { x: 20, y: 50, size: 12 });
+    const files = new Map<string, Uint8Array>([["in.pdf", doc.save()]]);
+    const res = await runQpdfCli(["--linearize", "in.pdf", "out.pdf"], files);
+    assert.equal(res.exitCode, 0);
+    const outBytes = files.get("out.pdf")!;
+    assert.ok(outBytes && outBytes.length > 0);
+    const showRes = await runQpdfCli(["--show-linearization", "out.pdf"], files);
+    assert.equal(showRes.exitCode, 0);
+    assert.match(showRes.stdout, /linearized/);
+    assert.match(showRes.stdout, new RegExp(`L=${outBytes.length}`));
+    assert.match(showRes.stdout, /no linearization errors/);
+  });
 });

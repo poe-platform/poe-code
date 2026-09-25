@@ -200,6 +200,7 @@ export interface PdfPlacedGlyph {
   readonly renderMode?: number | undefined;
   readonly mcid?: number | undefined;
   readonly actualText?: string | undefined;
+  readonly blendMode?: string | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 
@@ -216,6 +217,7 @@ export interface PdfEvaluatedPath {
   readonly fillRule?: "nonzero" | "evenodd" | undefined;
   readonly dashArray?: readonly number[] | undefined;
   readonly dashPhase?: number | undefined;
+  readonly blendMode?: string | undefined;
   readonly isClip?: boolean | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
@@ -228,6 +230,7 @@ export interface PdfEvaluatedImage {
   readonly colorSpace: string;
   readonly bitsPerComponent: number;
   readonly decodedRgba?: Uint8Array | undefined;
+  readonly blendMode?: string | undefined;
   readonly clipRect?: readonly [number, number, number, number] | undefined;
 }
 

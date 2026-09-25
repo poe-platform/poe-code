@@ -518,3 +518,245 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
     expect(afterDl.images[0]!.matrix[4]).toBeCloseTo(120, 1);
   });
 });
+
+
+describe("Advanced PDF Gaps: Blend Modes, SOF2 Progressive JPEG, Mesh Shadings, TrueType Outlines, Linearization, JBIG2/JPX", () => {
+  it("evaluates and renders PDF /BM transparency blend modes (Multiply, Screen, Difference)", () => {
+    const rawPdf = `%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100]
+   /Resources <<
+     /ExtGState <<
+       /GSMult << /Type /ExtGState /BM /Multiply >>
+       /GSDiff << /Type /ExtGState /BM /Difference >>
+     >>
+   >>
+   /Contents 4 0 R
+>>
+endobj
+4 0 obj
+<< /Length 125 >>
+stream
+1 0.5 0.5 rg
+0 0 100 100 re f
+/GSMult gs
+0.5 1 0.5 rg
+0 0 50 100 re f
+/GSDiff gs
+1 1 1 rg
+50 0 50 100 re f
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000310 00000 n 
+trailer
+<< /Size 5 /Root 1 0 R >>
+startxref
+485
+%%EOF`;
+    const doc = PdfDocument.load(new TextEncoder().encode(rawPdf));
+    const dl = doc.getPage(0).evaluateDisplayList();
+    expect(dl.paths.some(p => p.blendMode === "Multiply")).toBe(true);
+    expect(dl.paths.some(p => p.blendMode === "Difference")).toBe(true);
+    const bmp = doc.getPage(0).renderToBitmap({ dpi: 72 });
+    const leftIdx = (50 * bmp.width + 25) * 4;
+    expect(bmp.data[leftIdx]).toBeGreaterThan(115);
+    expect(bmp.data[leftIdx]).toBeLessThan(140);
+    expect(bmp.data[leftIdx + 1]).toBeGreaterThan(115);
+    expect(bmp.data[leftIdx + 1]).toBeLessThan(140);
+    expect(bmp.data[leftIdx + 2]).toBeGreaterThan(55);
+    expect(bmp.data[leftIdx + 2]).toBeLessThan(75);
+    const rightIdx = (50 * bmp.width + 75) * 4;
+    expect(bmp.data[rightIdx]).toBeLessThan(15);
+    expect(bmp.data[rightIdx + 1]).toBeGreaterThan(115);
+    expect(bmp.data[rightIdx + 2]).toBeGreaterThan(115);
+  });
+
+  it("decodes SOF2 progressive multi-scan JPEGs (DC first + DC refinement + AC spectral selection)", async () => {
+    const { decodeJpegToRgba } = await import("./index.js");
+    const dhtDcAndAc = [
+      0xff, 0xc4, 0x00, 0x15,
+      0x00,
+      0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0x00,
+      0xff, 0xc4, 0x00, 0x15,
+      0x10,
+      0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0x00,
+    ];
+    const sof2Bytes = new Uint8Array([
+      0xff, 0xd8,
+      0xff, 0xdb, 0x00, 0x43, 0x00, ...new Array(64).fill(8),
+      0xff, 0xc2, 0x00, 0x0b, 0x08, 0x00, 0x08, 0x00, 0x08, 0x01, 0x01, 0x11, 0x00,
+      ...dhtDcAndAc,
+      0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00,
+      0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x00, 0x10, 0x80,
+      0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x01, 0x3f, 0x00, 0x00,
+      0xff, 0xd9,
+    ]);
+    const res = decodeJpegToRgba(sof2Bytes, 8, 8);
+    expect(res.width).toBe(8);
+    expect(res.height).toBe(8);
+    expect(res.data[0]).toBeGreaterThanOrEqual(128);
+    expect(res.data[0]).toBeLessThanOrEqual(131);
+  });
+
+  it("renders ShadingType 4 (Free-Form Gouraud Triangle Mesh)", () => {
+    const meshBytes = new Uint8Array([
+      0, 0, 0, 255, 0, 0,
+      0, 255, 0, 0, 255, 0,
+      0, 0, 255, 0, 0, 255,
+    ]);
+    let hexStream = "";
+    for (const b of meshBytes) hexStream += b.toString(16).padStart(2, "0");
+    const rawPdf = `%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100]
+   /Resources << /Shading << /Sh4 5 0 R >> >>
+   /Contents 4 0 R
+>>
+endobj
+4 0 obj
+<< /Length 8 >>
+stream
+/Sh4 sh
+endstream
+endobj
+5 0 obj
+<< /ShadingType 4 /ColorSpace /DeviceRGB /BitsPerCoordinate 8 /BitsPerComponent 8 /BitsPerFlag 8
+   /Decode [0 100 0 100 0 1 0 1 0 1] /Filter /ASCIIHexDecode /Length ${hexStream.length} >>
+stream
+${hexStream}>
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+trailer
+<< /Size 6 /Root 1 0 R >>
+%%EOF`;
+    const doc = PdfDocument.load(new TextEncoder().encode(rawPdf));
+    const dl = doc.getPage(0).evaluateDisplayList();
+    expect(dl.images.length).toBe(1);
+    expect(dl.images[0]!.decodedRgba).toBeDefined();
+    const bmp = doc.getPage(0).renderToBitmap({ dpi: 72 });
+    const blIdx = (85 * bmp.width + 10) * 4;
+    expect(bmp.data[blIdx]!).toBeGreaterThan(150);
+  });
+
+  it("extracts and renders embedded TrueType (/FontFile2) glyph outlines into Bezier paths", async () => {
+    const { parseTrueTypeFont } = await import("./index.js");
+    const buf = new ArrayBuffer(512);
+    const dv = new DataView(buf);
+    const u8 = new Uint8Array(buf);
+    dv.setUint32(0, 0x00010000);
+    dv.setUint16(4, 7);
+    const writeTag = (off: number, tag: string, tOff: number, tLen: number) => {
+      for (let i = 0; i < 4; i++) u8[off + i] = tag.charCodeAt(i);
+      dv.setUint32(off + 8, tOff);
+      dv.setUint32(off + 12, tLen);
+    };
+    writeTag(12, "head", 140, 54);
+    writeTag(28, "maxp", 196, 6);
+    writeTag(44, "hhea", 204, 36);
+    writeTag(60, "hmtx", 240, 8);
+    writeTag(76, "loca", 248, 6);
+    writeTag(92, "glyf", 256, 32);
+    writeTag(108, "cmap", 300, 44);
+    dv.setUint16(140 + 18, 1000);
+    dv.setInt16(140 + 50, 0);
+    dv.setUint16(196 + 4, 2);
+    dv.setInt16(204 + 4, 800);
+    dv.setInt16(204 + 6, -200);
+    dv.setUint16(204 + 34, 2);
+    dv.setUint16(240, 500);
+    dv.setUint16(244, 700);
+    dv.setUint16(248, 0);
+    dv.setUint16(250, 0);
+    dv.setUint16(252, 12);
+    dv.setInt16(256, 1);
+    dv.setInt16(258, 100);
+    dv.setInt16(260, 0);
+    dv.setInt16(262, 600);
+    dv.setInt16(264, 700);
+    dv.setUint16(266, 2);
+    dv.setUint16(268, 0);
+    u8[270] = 0x01 | 0x02 | 0x20;
+    u8[271] = 0x01 | 0x02 | 0x04 | 0x10;
+    u8[272] = 0x01 | 0x02 | 0x04;
+    u8[273] = 100;
+    u8[274] = 250;
+    u8[275] = 250;
+    u8[276] = 250;
+    u8[277] = 250;
+    dv.setUint16(300, 0);
+    dv.setUint16(302, 1);
+    dv.setUint16(304, 3);
+    dv.setUint16(306, 1);
+    dv.setUint32(308, 12);
+    const f4 = 312;
+    dv.setUint16(f4, 4);
+    dv.setUint16(f4 + 2, 32);
+    dv.setUint16(f4 + 6, 4);
+    dv.setUint16(f4 + 14, 0x0041);
+    dv.setUint16(f4 + 16, 0xffff);
+    dv.setUint16(f4 + 18, 0);
+    dv.setUint16(f4 + 20, 0x0041);
+    dv.setUint16(f4 + 22, 0xffff);
+    dv.setInt16(f4 + 24, -64);
+    dv.setInt16(f4 + 26, 1);
+    dv.setUint16(f4 + 28, 0);
+    dv.setUint16(f4 + 30, 0);
+
+    const parsedTt = parseTrueTypeFont(u8);
+    expect(parsedTt).toBeDefined();
+    const outline = parsedTt!.getGlyphOutline(0x41);
+    expect(outline.length).toBeGreaterThanOrEqual(4);
+    expect(outline[0]!.kind).toBe("move");
+  });
+
+  it("serializes byte-accurate linearized PDFs and decodes JBIG2/JPX streams", async () => {
+    const { decodeJbig2ToRgba, decodeJpxToRgba, dictGet } = await import("./index.js");
+    const doc = PdfDocument.create();
+    const p = doc.addPage({ width: 200, height: 100 });
+    p.drawText("Linearized PDF Test", { x: 20, y: 50, size: 14 });
+    const linBytes = doc.save({ linearize: true });
+    const linText = new TextDecoder("latin1").decode(linBytes);
+    expect(linText.indexOf("/Linearized 1")).toBeGreaterThan(0);
+    expect(linText.indexOf("/Linearized 1")).toBeLessThan(120);
+    const reloaded = PdfDocument.load(linBytes);
+    let foundLinL = 0;
+    for (const o of reloaded.cos.objects.values()) {
+      if (o.value.kind === "dict") {
+        const lNode = dictGet(o.value, "L");
+        if (lNode?.kind === "number") foundLinL = lNode.value;
+      }
+    }
+    expect(foundLinL).toBe(linBytes.length);
+
+    const jbig2Rgba = decodeJbig2ToRgba(new Uint8Array([0xaa, 0x55]), 8, 2);
+    expect(jbig2Rgba.length).toBe(8 * 2 * 4);
+    const jpxRgba = decodeJpxToRgba(new Uint8Array([0xff, 0x4f, 0xff, 0x93, 200, 100, 50]), 4, 4);
+    expect(jpxRgba.length).toBe(4 * 4 * 4);
+    expect(jpxRgba[0]).toBe(200);
+    expect(jpxRgba[1]).toBe(100);
+    expect(jpxRgba[2]).toBe(50);
+  });
+});

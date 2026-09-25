@@ -26,6 +26,7 @@ export interface SerializeCosOptions {
   readonly version?: string | undefined;
   readonly normalizeContent?: boolean | undefined;
   readonly objectStreams?: "preserve" | "disable" | "generate" | undefined;
+  readonly linearize?: boolean | undefined;
   readonly maxOutputBytes?: number | undefined;
   readonly maxObjects?: number | undefined;
 }
@@ -168,7 +169,7 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     throw new PdfError("E_LIMIT", "PDF object limit exceeded");
   }
 
-  const maxObjectNumber = sorted.length > 0 ? sorted[sorted.length - 1]!.objectNumber : 0;
+  let maxObjectNumber = sorted.length > 0 ? sorted[sorted.length - 1]!.objectNumber : 0;
   if (maxObjectNumber > maxObjects) {
     throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
   }
@@ -284,6 +285,102 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     }
   }
 
+  const hasLinearizedObj = sorted.some(
+    o => o.value.kind === "dict" && dictGet(o.value, "Linearized") !== undefined
+  );
+  if (options.linearize || hasLinearizedObj) {
+    let linObj = sorted.find(
+      o => o.value.kind === "dict" && dictGet(o.value, "Linearized") !== undefined
+    );
+    let hintObj = sorted.find(
+      o =>
+        o.value.kind === "stream" &&
+        dictGet(o.value.dict, "Type")?.kind === "name" &&
+        (dictGet(o.value.dict, "Type") as any)?.decoded === "Hint"
+    );
+    let nextObjNum = maxObjectNumber + 1;
+    if (!linObj) {
+      linObj = {
+        objectNumber: nextObjNum++,
+        generationNumber: 0,
+        value: cosDict({ Linearized: cosNumber(1) }),
+      };
+      sorted.push(linObj);
+    }
+    if (!hintObj) {
+      const hintRaw = encodeFlate(new Uint8Array(64));
+      hintObj = {
+        objectNumber: nextObjNum++,
+        generationNumber: 0,
+        value: cosStream(hintRaw, {
+          dict: cosDict({
+            Type: cosName("Hint"),
+            S: cosNumber(32),
+            Filter: cosName("FlateDecode"),
+            Length: cosNumber(hintRaw.length),
+          }),
+          compress: false,
+        }),
+      };
+      sorted.push(hintObj);
+    }
+    if (nextObjNum - 1 > maxObjectNumber) {
+      maxObjectNumber = nextObjNum - 1;
+    }
+
+    // Find first Page object and total Page count
+    let pageCount = 0;
+    let firstPageObjNum = options.rootRef.objectNumber;
+    for (const o of sorted) {
+      if (o.value.kind === "dict") {
+        const t = dictGet(o.value, "Type");
+        if (t?.kind === "name" && t.decoded === "Page") {
+          if (pageCount === 0) firstPageObjNum = o.objectNumber;
+          pageCount++;
+        }
+      }
+    }
+    if (pageCount === 0) pageCount = 1;
+
+    // Order: linObj first, hintObj second, rootRef third, firstPageObj fourth, then the rest
+    const priorityNums = [
+      linObj.objectNumber,
+      hintObj.objectNumber,
+      options.rootRef.objectNumber,
+      firstPageObjNum,
+    ];
+    sorted.sort((a, b) => {
+      const pa = priorityNums.indexOf(a.objectNumber);
+      const pb = priorityNums.indexOf(b.objectNumber);
+      if (pa >= 0 && pb >= 0) return pa - pb;
+      if (pa >= 0) return -1;
+      if (pb >= 0) return 1;
+      return a.objectNumber - b.objectNumber;
+    });
+
+    const fixedNum = (n: number): import("../ast.js").PdfCosNumber => ({
+      kind: "number",
+      value: n,
+      isInteger: true,
+      raw: String(n).padStart(10, "0"),
+    });
+    const linIdx = sorted.indexOf(linObj);
+    if (linIdx >= 0) {
+      sorted[linIdx] = {
+        ...linObj,
+        value: cosDict({
+          Linearized: cosNumber(1),
+          L: fixedNum(0),
+          H: cosArray([fixedNum(0), fixedNum(0)]),
+          O: cosNumber(firstPageObjNum),
+          E: fixedNum(0),
+          N: cosNumber(pageCount),
+          T: fixedNum(0),
+        }),
+      };
+    }
+  }
+
   const objectOffsets = new Map<number, { offset: number; generation: number }>();
 
   for (const obj of sorted) {
@@ -341,7 +438,56 @@ export function serializeCosDocument(options: SerializeCosOptions): Uint8Array {
     throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
   }
   chunks.push(trailerBytes);
-  return concatByteArrays(chunks);
+  const fullBytes = concatByteArrays(chunks);
+  const linObjAfter = sorted.find(
+    o => o.value.kind === "dict" && dictGet(o.value, "Linearized") !== undefined
+  );
+  const hintObjAfter = sorted.find(
+    o =>
+      o.value.kind === "stream" &&
+      dictGet(o.value.dict, "Type")?.kind === "name" &&
+      (dictGet(o.value.dict, "Type") as any)?.decoded === "Hint"
+  );
+  if (linObjAfter && hintObjAfter) {
+    const linEntry = objectOffsets.get(linObjAfter.objectNumber);
+    const hintEntry = objectOffsets.get(hintObjAfter.objectNumber);
+    const oNode = dictGet(linObjAfter.value as PdfCosDict, "O");
+    const firstPageNum = oNode?.kind === "number" ? oNode.value : options.rootRef.objectNumber;
+    let hintLength = 120;
+    let endFirstPage = xrefOffset;
+    const sortedOffsets = [...objectOffsets.entries()].sort((a, b) => a[1].offset - b[1].offset);
+    for (let i = 0; i < sortedOffsets.length; i++) {
+      const [objNum, info] = sortedOffsets[i]!;
+      const nextOff = sortedOffsets[i + 1]?.[1].offset ?? xrefOffset;
+      if (objNum === hintObjAfter.objectNumber) {
+        hintLength = nextOff - info.offset;
+      }
+      if (objNum === firstPageNum) {
+        endFirstPage = nextOff;
+      }
+    }
+    const fixedNum = (n: number): import("../ast.js").PdfCosNumber => ({
+      kind: "number",
+      value: n,
+      isInteger: true,
+      raw: String(n).padStart(10, "0"),
+    });
+    const updatedLinDict = cosDict({
+      Linearized: cosNumber(1),
+      L: fixedNum(fullBytes.length),
+      H: cosArray([fixedNum(hintEntry?.offset ?? 0), fixedNum(hintLength)]),
+      O: cosNumber(firstPageNum),
+      E: fixedNum(endFirstPage),
+      N: dictGet(linObjAfter.value as PdfCosDict, "N") ?? cosNumber(1),
+      T: fixedNum(xrefOffset),
+    });
+    const prefix = textEncoder.encode(`${linObjAfter.objectNumber} ${linObjAfter.generationNumber} obj\n`);
+    const updatedBody = serializeCosNodeBytes(updatedLinDict);
+    if (linEntry) {
+      fullBytes.set(updatedBody, linEntry.offset + prefix.length);
+    }
+  }
+  return fullBytes;
 }
 
 export function appendIncrementalRevision(

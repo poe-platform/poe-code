@@ -36,7 +36,7 @@ import {
   type Standard14FontName,
 } from "./fonts/standard14.js";
 import { embedTrueTypeFontInCos, type ParsedTrueTypeFont } from "./fonts/truetype.js";
-import { renderDisplayListToPng, type RenderToPngOptions } from "./render/raster.js";
+import { renderDisplayListToBitmap, renderDisplayListToPng, type RenderToPngOptions, type RgbaBitmap } from "./render/raster.js";
 
 export function rgb(r: number, g: number, b: number): PdfRgbColor {
   return { r, g, b };
@@ -925,6 +925,10 @@ export class PdfPage {
 
   extractTables(): PdfExtractedTable[] {
     return extractTablesFromDisplayList(this.evaluateDisplayList());
+  }
+
+  renderToBitmap(options?: RenderToPngOptions): RgbaBitmap {
+    return renderDisplayListToBitmap(this.evaluateDisplayList(), options);
   }
 
   renderToPng(options?: RenderToPngOptions): Uint8Array {

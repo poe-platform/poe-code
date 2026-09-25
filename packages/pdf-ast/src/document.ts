@@ -36,9 +36,10 @@ import { formatExtractedPageText, type ExtractTextOptions } from "./extract/text
 import type { Standard14FontName } from "./fonts/standard14.js";
 import { decodePng } from "./render/raster.js";
 import { parseTrueTypeFont } from "./fonts/truetype.js";
-import { renderDisplayListToPng, type RenderToPngOptions } from "./render/raster.js";
+import { renderDisplayListToBitmap, renderDisplayListToPng, type RenderToPngOptions, type RgbaBitmap } from "./render/raster.js";
 
 export interface SavePdfOptions {
+  readonly linearize?: boolean | undefined;
   readonly normalizeContent?: boolean | undefined;
   readonly objectStreams?: "preserve" | "disable" | "generate" | undefined;
   readonly incremental?: boolean | undefined;
@@ -658,6 +659,7 @@ export class PdfDocument {
       version: this.cos.version,
       normalizeContent: options.normalizeContent,
       objectStreams: options.objectStreams,
+      linearize: options.linearize,
     });
   }
 }

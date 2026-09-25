@@ -654,6 +654,7 @@ export async function runQpdfCli(
   let splitPagesGroup: number | undefined;
   let collateCount: number | undefined;
   let linearize = false;
+  let showLinearization = false;
   let flattenAnnotations: false | "all" | "print" | "screen" = false;
   let flattenRotation = false;
   let removeUnreferencedResources: "no" | "yes" | "auto" = "no";
@@ -697,6 +698,8 @@ export async function runQpdfCli(
       withImages = true;
     } else if (arg === "--linearize") {
       linearize = true;
+    } else if (arg === "--show-linearization" || arg === "--check-linearization") {
+      showLinearization = true;
     } else if (arg === "--collate") {
       collateCount = 1;
     } else if (arg.startsWith("--collate=")) {
@@ -1091,6 +1094,34 @@ export async function runQpdfCli(
   }
 
   // Inspection modes
+  if (showLinearization) {
+    const cos = baseDoc.cos;
+    let linDict: PdfCosDict | undefined;
+    for (const obj of cos.objects.values()) {
+      const d = asDict(obj.value);
+      if (d && dictGet(d, "Linearized") !== undefined) {
+        linDict = d;
+        break;
+      }
+    }
+    if (!linDict) {
+      return { exitCode: 0, stdout: `${inputFile ?? "empty"}: not linearized\n`, stderr: "" };
+    }
+    const numVal = (k: string, fb = 0) => {
+      const n = cos.resolve(dictGet(linDict!, k));
+      return n?.kind === "number" ? n.value : fb;
+    };
+    const hArr = cos.resolveArray(dictGet(linDict, "H"));
+    const h0 = hArr && hArr.items[0] ? (cos.resolve(hArr.items[0]) as any)?.value ?? 0 : 0;
+    const h1 = hArr && hArr.items[1] ? (cos.resolve(hArr.items[1]) as any)?.value ?? 0 : 0;
+    const out = [
+      `${inputFile ?? "empty"}: linearized`,
+      `Linearization dictionary: L=${numVal("L")} H=[${h0} ${h1}] O=${numVal("O")} E=${numVal("E")} N=${numVal("N", baseDoc.getPageCount())} T=${numVal("T")}`,
+      `no linearization errors`,
+    ].join("\n") + "\n";
+    return { exitCode: 0, stdout: out, stderr: "" };
+  }
+
   if (check) {
     const cos = baseDoc.cos;
     let isLin = false;

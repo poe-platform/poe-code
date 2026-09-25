@@ -767,6 +767,122 @@ export function encodeRgbaToPng(width: number, height: number, rgba: Uint8Array)
   return out;
 }
 
+function blendChannelSeparable(cb: number, cs: number, mode: string): number {
+  switch (mode) {
+    case "Multiply":
+      return cb * cs;
+    case "Screen":
+      return cb + cs - cb * cs;
+    case "Overlay":
+      return cb <= 0.5 ? 2 * cb * cs : 1 - 2 * (1 - cb) * (1 - cs);
+    case "Darken":
+      return Math.min(cb, cs);
+    case "Lighten":
+      return Math.max(cb, cs);
+    case "ColorDodge":
+      return cb === 0 ? 0 : cs >= 1 ? 1 : Math.min(1, cb / (1 - cs));
+    case "ColorBurn":
+      return cb === 1 ? 1 : cs <= 0 ? 0 : 1 - Math.min(1, (1 - cb) / cs);
+    case "HardLight":
+      return cs <= 0.5 ? 2 * cb * cs : 1 - 2 * (1 - cb) * (1 - cs);
+    case "SoftLight": {
+      if (cs <= 0.5) {
+        return cb - (1 - 2 * cs) * cb * (1 - cb);
+      }
+      const d = cb <= 0.25 ? ((16 * cb - 12) * cb + 4) * cb : Math.sqrt(cb);
+      return cb + (2 * cs - 1) * (d - cb);
+    }
+    case "Difference":
+      return Math.abs(cb - cs);
+    case "Exclusion":
+      return cb + cs - 2 * cb * cs;
+    default:
+      return cs;
+  }
+}
+
+function pdfLum(r: number, g: number, b: number): number {
+  return 0.3 * r + 0.59 * g + 0.11 * b;
+}
+
+function pdfClipColor(r: number, g: number, b: number): [number, number, number] {
+  const l = pdfLum(r, g, b);
+  const n = Math.min(r, g, b);
+  const x = Math.max(r, g, b);
+  let cr = r, cg = g, cb = b;
+  if (n < 0 && l - n > 1e-7) {
+    cr = l + ((cr - l) * l) / (l - n);
+    cg = l + ((cg - l) * l) / (l - n);
+    cb = l + ((cb - l) * l) / (l - n);
+  }
+  if (x > 1 && x - l > 1e-7) {
+    cr = l + ((cr - l) * (1 - l)) / (x - l);
+    cg = l + ((cg - l) * (1 - l)) / (x - l);
+    cb = l + ((cb - l) * (1 - l)) / (x - l);
+  }
+  return [Math.max(0, Math.min(1, cr)), Math.max(0, Math.min(1, cg)), Math.max(0, Math.min(1, cb))];
+}
+
+function pdfSetLum(r: number, g: number, b: number, l: number): [number, number, number] {
+  const d = l - pdfLum(r, g, b);
+  return pdfClipColor(r + d, g + d, b + d);
+}
+
+function pdfSat(r: number, g: number, b: number): number {
+  return Math.max(r, g, b) - Math.min(r, g, b);
+}
+
+function pdfSetSat(r: number, g: number, b: number, s: number): [number, number, number] {
+  const arr: Array<{ idx: number; val: number }> = [
+    { idx: 0, val: r },
+    { idx: 1, val: g },
+    { idx: 2, val: b },
+  ].sort((a, b2) => a.val - b2.val);
+  const cMin = arr[0]!.val;
+  const cMid = arr[1]!.val;
+  const cMax = arr[2]!.val;
+  const out = [0, 0, 0];
+  if (cMax > cMin) {
+    out[arr[1]!.idx] = ((cMid - cMin) * s) / (cMax - cMin);
+    out[arr[2]!.idx] = s;
+  }
+  out[arr[0]!.idx] = 0;
+  return [out[0]!, out[1]!, out[2]!];
+}
+
+function computePdfBlendRgb(
+  cbR: number,
+  cbG: number,
+  cbB: number,
+  csR: number,
+  csG: number,
+  csB: number,
+  mode?: string
+): [number, number, number] {
+  if (!mode || mode === "Normal" || mode === "Compatible") {
+    return [csR, csG, csB];
+  }
+  if (mode === "Hue") {
+    const [sr, sg, sb] = pdfSetSat(csR, csG, csB, pdfSat(cbR, cbG, cbB));
+    return pdfSetLum(sr, sg, sb, pdfLum(cbR, cbG, cbB));
+  }
+  if (mode === "Saturation") {
+    const [sr, sg, sb] = pdfSetSat(cbR, cbG, cbB, pdfSat(csR, csG, csB));
+    return pdfSetLum(sr, sg, sb, pdfLum(cbR, cbG, cbB));
+  }
+  if (mode === "Color") {
+    return pdfSetLum(csR, csG, csB, pdfLum(cbR, cbG, cbB));
+  }
+  if (mode === "Luminosity") {
+    return pdfSetLum(cbR, cbG, cbB, pdfLum(csR, csG, csB));
+  }
+  return [
+    blendChannelSeparable(cbR, csR, mode),
+    blendChannelSeparable(cbG, csG, mode),
+    blendChannelSeparable(cbB, csB, mode),
+  ];
+}
+
 function blendPixel(
   rgba: Uint8Array,
   width: number,
@@ -774,20 +890,28 @@ function blendPixel(
   px: number,
   py: number,
   color: PdfRgbColor,
-  alpha: number
+  alpha: number,
+  blendMode?: string
 ): void {
   if (px < 0 || py < 0 || px >= width || py >= height || alpha <= 0) return;
   const a = Math.min(1, Math.max(0, alpha));
   const idx = (py * width + px) * 4;
-  const srcR = Math.round(Math.min(1, Math.max(0, color.r)) * 255);
-  const srcG = Math.round(Math.min(1, Math.max(0, color.g)) * 255);
-  const srcB = Math.round(Math.min(1, Math.max(0, color.b)) * 255);
+  const csR = Math.min(1, Math.max(0, color.r));
+  const csG = Math.min(1, Math.max(0, color.g));
+  const csB = Math.min(1, Math.max(0, color.b));
   const dstA = rgba[idx + 3]! / 255;
   const outA = a + dstA * (1 - a);
   if (outA <= 0) return;
-  rgba[idx] = Math.round((srcR * a + rgba[idx]! * dstA * (1 - a)) / outA);
-  rgba[idx + 1] = Math.round((srcG * a + rgba[idx + 1]! * dstA * (1 - a)) / outA);
-  rgba[idx + 2] = Math.round((srcB * a + rgba[idx + 2]! * dstA * (1 - a)) / outA);
+  const cbR = rgba[idx]! / 255;
+  const cbG = rgba[idx + 1]! / 255;
+  const cbB = rgba[idx + 2]! / 255;
+  const [bR, bG, bB] = computePdfBlendRgb(cbR, cbG, cbB, csR, csG, csB, blendMode);
+  const effR = (1 - dstA) * csR + dstA * bR;
+  const effG = (1 - dstA) * csG + dstA * bG;
+  const effB = (1 - dstA) * csB + dstA * bB;
+  rgba[idx] = Math.round(((effR * a + cbR * dstA * (1 - a)) / outA) * 255);
+  rgba[idx + 1] = Math.round(((effG * a + cbG * dstA * (1 - a)) / outA) * 255);
+  rgba[idx + 2] = Math.round(((effB * a + cbB * dstA * (1 - a)) / outA) * 255);
   rgba[idx + 3] = Math.round(outA * 255);
 }
 
@@ -803,7 +927,8 @@ function drawAntiAliasedSegment(
   color: PdfRgbColor,
   alpha = 1,
   lineCap: 0 | 1 | 2 = 0,
-  antialias = true
+  antialias = true,
+  blendMode?: string
 ): void {
   const halfW = Math.max(0.6, strokeWidth * 0.5);
   const dx = x1 - x0;
@@ -831,7 +956,7 @@ function drawAntiAliasedSegment(
         const dist = overAlong > 0 ? Math.max(perp, halfW + overAlong) : perp;
         if (dist <= halfW + 0.75) {
           const cov = antialias ? Math.max(0, Math.min(1, halfW + 0.5 - dist)) : dist <= halfW + 0.25 ? 1 : 0;
-          blendPixel(rgba, width, height, px, py, color, cov * alpha);
+          blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode);
         }
         continue;
       }
@@ -842,7 +967,7 @@ function drawAntiAliasedSegment(
       const dist = Math.hypot(cx - projX, cy - projY);
       if (dist <= halfW + 0.75) {
         const cov = antialias ? Math.max(0, Math.min(1, halfW + 0.5 - dist)) : dist <= halfW + 0.25 ? 1 : 0;
-        blendPixel(rgba, width, height, px, py, color, cov * alpha);
+        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode);
       }
     }
   }
@@ -949,7 +1074,8 @@ function fillEdgesScanline4x4(
   alpha = 1,
   fillRule: "nonzero" | "evenodd" = "nonzero",
   clipScreen?: readonly [number, number, number, number],
-  antialias = true
+  antialias = true,
+  blendMode?: string
 ): void {
   if (edges.length === 0) return;
   let minY = Infinity;
@@ -1017,7 +1143,7 @@ function fillEdgesScanline4x4(
       const count = rowCounts[px]!;
       if (count > 0) {
         const cov = antialias ? count / 16 : count >= 8 ? 1 : 0;
-        blendPixel(rgba, width, height, px, py, color, cov * alpha);
+        blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode);
       }
     }
   }
@@ -1116,7 +1242,7 @@ export function renderDisplayListToBitmap(
     if (path.fillColor) {
       const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, true);
       const clipScreen: [number, number, number, number] | undefined = path.clipRect ? [path.clipRect[0] * scale, (displayList.height - path.clipRect[3]) * scale, path.clipRect[2] * scale, (displayList.height - path.clipRect[1]) * scale] : undefined;
-      fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, aaVec);
+      fillEdgesScanline4x4(rgba, width, height, edges, path.fillColor, path.fillAlpha ?? 1, path.fillRule ?? "nonzero", clipScreen, aaVec, path.blendMode);
     }
     if (path.strokeColor) {
       const edges = segmentsToScreenEdges(path.segments, displayList.height, scale, false);
@@ -1136,7 +1262,7 @@ export function renderDisplayListToBitmap(
 
       for (const e of edges) {
         if (!dashArr || dashCycle <= 1e-4) {
-          drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor, strokeAlpha, path.lineCap ?? 0, aaVec);
+          drawAntiAliasedSegment(rgba, width, height, e.x0, e.y0, e.x1, e.y1, sw, path.strokeColor, strokeAlpha, path.lineCap ?? 0, aaVec, path.blendMode);
         } else {
           const dx = e.x1 - e.x0;
           const dy = e.y1 - e.y0;
@@ -1167,7 +1293,8 @@ export function renderDisplayListToBitmap(
                 path.strokeColor,
                 strokeAlpha,
                 path.lineCap ?? 0,
-                aaVec
+                aaVec,
+                path.blendMode
               );
             }
             pos += step;
@@ -1222,7 +1349,8 @@ export function renderDisplayListToBitmap(
             g: img.decodedRgba[sIdx + 1]! / 255,
             b: img.decodedRgba[sIdx + 2]! / 255,
           },
-          img.decodedRgba[sIdx + 3]! / 255
+          img.decodedRgba[sIdx + 3]! / 255,
+          img.blendMode
         );
       }
     }
@@ -1262,7 +1390,8 @@ export function renderDisplayListToBitmap(
         g.color,
         1,
         0,
-        aaTxt
+        aaTxt,
+        g.blendMode
       );
     }
   }
@@ -1299,6 +1428,28 @@ export function renderDisplayListToPng(
 ): Uint8Array {
   const bmp = renderDisplayListToBitmap(displayList, options);
   return encodeRgbaToPng(bmp.width, bmp.height, bmp.data);
+}
+
+function pdfBlendModeToCss(mode?: string): string | undefined {
+  if (!mode || mode === "Normal" || mode === "Compatible") return undefined;
+  const map: Record<string, string> = {
+    Multiply: "multiply",
+    Screen: "screen",
+    Overlay: "overlay",
+    Darken: "darken",
+    Lighten: "lighten",
+    ColorDodge: "color-dodge",
+    ColorBurn: "color-burn",
+    HardLight: "hard-light",
+    SoftLight: "soft-light",
+    Difference: "difference",
+    Exclusion: "exclusion",
+    Hue: "hue",
+    Saturation: "saturation",
+    Color: "color",
+    Luminosity: "luminosity",
+  };
+  return map[mode];
 }
 
 function escapeXmlText(str: string): string {

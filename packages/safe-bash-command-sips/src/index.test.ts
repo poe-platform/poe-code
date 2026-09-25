@@ -338,4 +338,33 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(res.exitCode).toBe(0);
     expect(res.stdout).toBe("12x8+0+0 12x8 Blend true");
   });
+
+  it("matches /usr/bin/sips CoreGraphics half-pixel bilinear centering on odd-delta crop (-c) and pad (-p) (#79)", async () => {
+    // 1. 10x10 gradient R=x*10, G=y*10, B=50 cropped to 5x5 (-c 5 5) -> TL is [25, 25, 50]
+    const raw10x10 = Buffer.alloc(10 * 10 * 3);
+    for (let y = 0; y < 10; y++) {
+      for (let x = 0; x < 10; x++) {
+        const idx = (y * 10 + x) * 3;
+        raw10x10[idx] = x * 10;
+        raw10x10[idx + 1] = y * 10;
+        raw10x10[idx + 2] = 50;
+      }
+    }
+    const png10x10 = await sharp(raw10x10, { raw: { width: 10, height: 10, channels: 3 } }).png().toBuffer();
+    const png5x5 = await sharp(Buffer.alloc(5 * 5 * 3, 200), { raw: { width: 5, height: 5, channels: 3 } }).png().toBuffer();
+    const files = new Map<string, Uint8Array>([
+      ["/work/g10.png", png10x10],
+      ["/work/s5.png", png5x5]
+    ]);
+
+    await runSipsCli(["-c", "5", "5", "/work/g10.png", "--out", "/work/c5.png"], files);
+    const c5Raw = await sharp(files.get("/work/c5.png")!).raw().toBuffer();
+    expect(Array.from(c5Raw.slice(0, 3))).toEqual([25, 25, 50]);
+
+    // 2. 5x5 solid 200 padded to 10x10 (-p 10 10) -> row 5 has [0, 0, 100, 200, 200, 200, 200, 100, 0, 0]
+    await runSipsCli(["-p", "10", "10", "/work/s5.png", "--out", "/work/p10.png"], files);
+    const p10Raw = await sharp(files.get("/work/p10.png")!).raw().toBuffer();
+    const row5 = Array.from({ length: 10 }, (_, x) => p10Raw[(5 * 10 + x) * 3]);
+    expect(row5).toEqual([0, 0, 100, 200, 200, 200, 200, 100, 0, 0]);
+  });
 });

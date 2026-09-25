@@ -8,6 +8,7 @@ import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import sharp, {
+  parseColor,
   type ImageFormat,
   type ImageMetadata,
   type SharpInstance
@@ -138,6 +139,56 @@ function normalizeTargetFormat(fmt: string): ImageFormat | undefined {
   if (lower === "tiff" || lower === "tif") return "tiff";
   if (lower === "pdf" || lower === "com.adobe.pdf") return "pdf";
   return undefined;
+}
+
+async function applySipsOddCanvasCropOrPad(
+  inst: SharpInstance,
+  curW: number,
+  curH: number,
+  dstW: number,
+  dstH: number,
+  padColorInput: { readonly r: number; readonly g: number; readonly b: number; readonly alpha?: number } | string
+): Promise<SharpInstance> {
+  const rawObj = await inst.raw().toBuffer({ resolveWithObject: true });
+  const ch = rawObj.info.channels as 1 | 2 | 3 | 4;
+  const src = rawObj.data;
+  const pad = parseColor(padColorInput, ch === 4 || ch === 2 ? 0 : 255);
+  const bg = [pad.r, pad.g, pad.b, pad.a];
+  const offsetX = (dstW - curW) / 2;
+  const offsetY = (dstH - curH) / 2;
+  const out = new Uint8Array(dstW * dstH * ch);
+
+  const sampleCh = (ix: number, iy: number, c: number): number => {
+    if (ix < 0 || ix >= curW || iy < 0 || iy >= curH) {
+      return bg[c] ?? 0;
+    }
+    return src[(iy * curW + ix) * ch + c]!;
+  };
+
+  for (let y = 0; y < dstH; y++) {
+    const sy = y - offsetY;
+    const iy0 = Math.floor(sy);
+    const wy1 = sy - iy0;
+    const wy0 = 1 - wy1;
+    const iy1 = iy0 + 1;
+    for (let x = 0; x < dstW; x++) {
+      const sx = x - offsetX;
+      const ix0 = Math.floor(sx);
+      const wx1 = sx - ix0;
+      const wx0 = 1 - wx1;
+      const ix1 = ix0 + 1;
+      const dIdx = (y * dstW + x) * ch;
+      for (let c = 0; c < ch; c++) {
+        const v =
+          sampleCh(ix0, iy0, c) * wx0 * wy0 +
+          sampleCh(ix1, iy0, c) * wx1 * wy0 +
+          sampleCh(ix0, iy1, c) * wx0 * wy1 +
+          sampleCh(ix1, iy1, c) * wx1 * wy1;
+        out[dIdx + c] = Math.max(0, Math.min(255, Math.round(v)));
+      }
+    }
+  }
+  return sharp(out, { raw: { width: dstW, height: dstH, channels: ch } });
 }
 
 export async function runSipsCli(
@@ -418,6 +469,23 @@ export async function runSipsCli(
             curW = nw;
             curH = nh;
           } else if (act.kind === "crop") {
+            if (
+              cropOffsetX === undefined &&
+              cropOffsetY === undefined &&
+              ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0)
+            ) {
+              inst = await applySipsOddCanvasCropOrPad(
+                inst,
+                curW,
+                curH,
+                act.width,
+                act.height,
+                effectivePadColor
+              );
+              curW = act.width;
+              curH = act.height;
+              continue;
+            }
             const cw = Math.min(curW, act.width);
             const ch = Math.min(curH, act.height);
             const left =
@@ -449,6 +517,19 @@ export async function runSipsCli(
               curH = act.height;
             }
           } else if (act.kind === "pad") {
+            if ((act.width - curW) % 2 !== 0 || (act.height - curH) % 2 !== 0) {
+              inst = await applySipsOddCanvasCropOrPad(
+                inst,
+                curW,
+                curH,
+                act.width,
+                act.height,
+                effectivePadColor
+              );
+              curW = act.width;
+              curH = act.height;
+              continue;
+            }
             if (act.width < curW || act.height < curH) {
               const cw = Math.min(curW, act.width);
               const ch = Math.min(curH, act.height);

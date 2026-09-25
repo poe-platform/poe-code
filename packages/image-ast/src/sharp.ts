@@ -556,13 +556,13 @@ export class SharpInstance {
       w = opts.width ?? null;
       h = opts.height ?? null;
       wProvided = opts.width !== undefined;
-      hProvided = opts.height !== undefined;
+      hProvided = true;
     } else {
       opts = options ?? {};
       w = widthOrOptions !== undefined ? widthOrOptions : (opts.width ?? null);
       h = height !== undefined ? height : (opts.height ?? null);
-      wProvided = widthOrOptions !== undefined || opts.width !== undefined;
-      hProvided = height !== undefined || opts.height !== undefined;
+      wProvided = true;
+      hProvided = true;
     }
     const existingIdx = this.nodes.findIndex(n => n.kind === "resize");
     if (existingIdx !== -1) {

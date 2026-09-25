@@ -2055,4 +2055,27 @@ describe("@poe-code/image-ast (sharp core)", () => {
     });
     expect(cbStats.channels).toHaveLength(3);
   });
+  it("resets omitted width/height on repeated resize() calls matching sharp lib/resize.js", async () => {
+    const png20x10 = await sharp({
+      create: { width: 20, height: 10, channels: 3, background: { r: 120, g: 80, b: 200 } }
+    })
+      .png()
+      .toBuffer();
+
+    const rEmpty = await sharp(png20x10).resize(10, 8).resize().raw().toBuffer({ resolveWithObject: true });
+    expect(rEmpty.info.width).toBe(20);
+    expect(rEmpty.info.height).toBe(10);
+
+    const rWidthOnly = await sharp(png20x10).resize(10, 8).resize(6).raw().toBuffer({ resolveWithObject: true });
+    expect(rWidthOnly.info.width).toBe(6);
+    expect(rWidthOnly.info.height).toBe(3);
+
+    const rOptsOnly = await sharp(png20x10)
+      .resize(10, 8)
+      .resize({ fit: "contain" })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(rOptsOnly.info.width).toBe(10);
+    expect(rOptsOnly.info.height).toBe(5);
+  });
 });

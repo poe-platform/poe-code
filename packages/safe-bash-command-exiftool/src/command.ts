@@ -41,7 +41,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
     name: "exiftool", runtimeIdentity: commandRuntimeIdentity,
     description: "Inspect and edit admitted PNG metadata through virtual files",
     async execute(context) {
-      const publication = new Publication(context);
+      const publication = new Publication(context, limits.maxStagingAttempts);
       let stdout: OutputOperation | undefined, stderr: OutputOperation | undefined;
       let failed = false, failure: unknown;
       let closing: Promise<void> | undefined;

@@ -97,11 +97,12 @@ combined with JSON, binary output, assignments or trailing-`#` selectors.
 `-api StructFormat=JSONQ` controls JSON serialization; it does not change stored
 metadata or make CSV an import format.
 
-Default cumulative limits per invocation are 16,777,216 input bytes,
-8,388,608 decoded bytes, 33,554,432 retained bytes, 16,777,216 output bytes and
-268,435,456 work units. At most 64 file operands and 4096 expanded arguments
-are admitted. Override byte/work limits with `exiftoolCommands({ limits })` or
-`createExiftoolCommand({ limits })`; limits must be nonnegative safe integers.
+Resource quotas are unlimited by default. Set independent byte/work limits with
+`exiftoolCommands({ limits })` or `createExiftoolCommand({ limits })`.
+`maxArguments`, `maxFiles`, `maxArgfileDepth` and `maxStagingAttempts` explicitly
+limit expanded arguments, file operands, argument-file nesting and staging
+collision attempts. Explicit limits must be nonnegative safe integers; setting
+one quota leaves all others unlimited. Argument-file cycles remain rejected.
 
 XML emits RDF descriptions with PNG namespaces and escaped values; `-T` emits
 one tab-separated row per file with `-` for missing selected tags.

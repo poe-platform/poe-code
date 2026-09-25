@@ -4,10 +4,15 @@ export interface ResourceLimits {
   readonly maxRetainedBytes: number;
   readonly maxOutputBytes: number;
   readonly maxWork: number;
+  readonly maxArguments?: number;
+  readonly maxFiles?: number;
+  readonly maxArgfileDepth?: number;
+  readonly maxStagingAttempts?: number;
 }
-export const exiftoolLimits: ResourceLimits = Object.freeze({
-  maxInputBytes: 16_777_216, maxDecodedBytes: 8_388_608,
-  maxRetainedBytes: 33_554_432, maxOutputBytes: 16_777_216, maxWork: 268_435_456,
+export const exiftoolLimits: Required<ResourceLimits> = Object.freeze({
+  maxInputBytes: Infinity, maxDecodedBytes: Infinity,
+  maxRetainedBytes: Infinity, maxOutputBytes: Infinity, maxWork: Infinity,
+  maxArguments: Infinity, maxFiles: Infinity, maxArgfileDepth: Infinity, maxStagingAttempts: Infinity,
 });
 export type EngineOptions = Partial<ResourceLimits> & { readonly signal: AbortSignal };
 
@@ -15,7 +20,7 @@ export class ResourceLimitError extends RangeError {}
 
 /** Cumulative admission for a single operation. No recursive parser is admitted. */
 export class Resources {
-  readonly limits: ResourceLimits;
+  readonly limits: Required<ResourceLimits>;
   readonly signal: AbortSignal;
   readonly usage = { input: 0, decoded: 0, retained: 0, output: 0, work: 0 };
   constructor(options: EngineOptions) {
@@ -23,7 +28,7 @@ export class Resources {
     this.signal.throwIfAborted();
     this.limits = Object.freeze({ ...exiftoolLimits, ...options });
     for (const key of Object.keys(exiftoolLimits) as (keyof ResourceLimits)[]) {
-      if (!Number.isSafeInteger(this.limits[key]) || this.limits[key] < 0) throw new RangeError("Invalid resource limit: " + key);
+      if (this.limits[key] !== Infinity && (!Number.isSafeInteger(this.limits[key]) || this.limits[key] < 0)) throw new RangeError("Invalid resource limit: " + key);
     }
   }
   admit(kind: keyof Resources["usage"], amount: number): void {

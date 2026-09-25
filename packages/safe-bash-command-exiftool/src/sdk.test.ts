@@ -48,7 +48,7 @@ test("typed SDK refuses option injection, unsupported combinations, cancellation
   assert.throws(() => createExiftoolArguments({ files: ["image.png"], stay_open: true } as Parameters<typeof createExiftoolArguments>[0], { signal }), /Unsupported ExifTool SDK option/);
   assert.throws(() => createExiftoolArguments({ files: ["-"] , assignments: [{ name: "Title", operation: "set", value: "x" }] }, { signal }), /stdin/);
   assert.throws(() => createExiftoolArguments({ files: ["image.png"], assignments: [{ name: "Title", operation: "set", value: "x".repeat(1000) }] }, { signal, maxRetainedBytes: 4000 }), /retained budget/);
-  assert.throws(() => createExiftoolArguments({ files: Array(4097).fill("image.png") }, { signal }), /argument count/);
+  assert.throws(() => createExiftoolArguments({ files: Array(4097).fill("image.png") }, { signal, maxArguments: 4096 }), /argument count/);
   const controller = new AbortController(); const reason = new Error("cancel SDK"); controller.abort(reason);
   assert.throws(() => createExiftoolArguments({ files: ["image.png"] }, { signal: controller.signal }), error => error === reason);
 });

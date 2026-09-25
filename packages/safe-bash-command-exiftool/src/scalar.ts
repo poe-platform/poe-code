@@ -11,8 +11,8 @@ const jsonEscapes: Readonly<Record<number, string>> = Object.freeze({ 9: "\\t", 
 
 function admit(value: string, options: ScalarOptions): void {
   options.signal?.throwIfAborted();
-  const limits = [options.maxDecodedBytes ?? 2_097_152, options.maxOutputBytes ?? 6_291_458, options.maxWork ?? 4_194_304, options.maxRetainedBytes ?? 14_680_068];
-  if (limits.some(limit => !Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid scalar limit");
+  const limits = [options.maxDecodedBytes ?? Infinity, options.maxOutputBytes ?? Infinity, options.maxWork ?? Infinity, options.maxRetainedBytes ?? Infinity];
+  if (limits.some(limit => limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0))) throw new RangeError("Invalid scalar limit");
   if (value.length * 2 > limits[0]!) throw new RangeError("Scalar decoded bytes exceeded");
   if (value.length * 4 > limits[2]!) throw new RangeError("Scalar work exceeded");
   if (4 + value.length * 14 > limits[3]!) throw new RangeError("Scalar retained bytes exceeded");
@@ -45,7 +45,7 @@ function numericSpelling(value: string): boolean {
 /** ExifTool 13.59 scalar JSON policy. Never converts lexical numbers to Number. */
 export function encodeJsonScalar(value: string, options: ScalarOptions = {}): string {
   admit(value, options);
-  const limit = options.maxOutputBytes ?? 6_291_458;
+  const limit = options.maxOutputBytes ?? Infinity;
   if (!options.quoteScalars) {
     const lower = value.toLowerCase();
     const boolean = lower.endsWith("\n") ? lower.slice(0, -1) : lower;
@@ -79,7 +79,7 @@ export function encodeJsonScalar(value: string, options: ScalarOptions = {}): st
 /** Plain text display only; do not use to reconstruct stored metadata. */
 export function printable(value: string, options: ScalarOptions = {}): string {
   admit(value, options);
-  if (value.length * 3 > (options.maxOutputBytes ?? 6_291_458)) throw new RangeError("Scalar output bytes exceeded");
+  if (value.length * 3 > (options.maxOutputBytes ?? Infinity)) throw new RangeError("Scalar output bytes exceeded");
   let end = value.length;
   // NUL disappears; other controls become dots and therefore survive trimming.
   while (end && (value.charCodeAt(end - 1) === 0 || value[end - 1] === " ")) end--;

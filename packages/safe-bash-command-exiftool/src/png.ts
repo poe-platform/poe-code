@@ -69,8 +69,8 @@ function encodePngTime(value: string, resources: Resources): Uint8Array {
 }
 
 /** Chunk constructor has its own explicit extent bound for SDK callers. */
-export function pngChunk(type: string, data: Uint8Array, maxBytes = 16_777_216): Uint8Array {
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0 || data.length + 12 > maxBytes) throw new RangeError("PNG output budget exceeded");
+export function pngChunk(type: string, data: Uint8Array, maxBytes = Infinity): Uint8Array {
+  if ((maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) || data.length > 0x7fffffff || data.length + 12 > maxBytes) throw new RangeError("PNG output budget exceeded");
   if (type.length !== 4 || [...type].some(character => !((character >= "A" && character <= "Z") || (character >= "a" && character <= "z")))) throw new TypeError("Invalid PNG chunk type");
   const bytes = new Uint8Array(data.length + 12);
   const view = new DataView(bytes.buffer);

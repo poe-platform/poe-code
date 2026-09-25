@@ -11,7 +11,7 @@ export interface Invocation {
   xml: boolean; tabular: boolean; template: string | undefined;
 }
 export function parseArguments(args: readonly string[], limits: ResourceLimits): Invocation {
-  if (args.length > 4096) throw new RangeError("ExifTool argument count exceeded");
+  if (args.length > (limits.maxArguments ?? Infinity)) throw new RangeError("ExifTool argument count exceeded");
   let extent = 0;
   for (const arg of args) { extent += arg.length * 2; if (extent > limits.maxDecodedBytes) throw new RangeError("ExifTool argument decoded budget exceeded"); }
   const result: Invocation = { files: [], tags: [], assignments: [], json: false, csv: false, quoteScalars: false, duplicates: false,
@@ -66,7 +66,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
   if (!result.files.length) throw new Error("No file specified");
   if (result.files.filter(file => file === "-").length > 1) throw new Error("Repeated stdin operands are not supported");
   if (result.files.includes("-") && writing) throw new Error("Writing stdin metadata is not yet supported");
-  if (result.files.length > 64) throw new RangeError("ExifTool file count exceeded");
+  if (result.files.length > (limits.maxFiles ?? Infinity)) throw new RangeError("ExifTool file count exceeded");
   if (result.destination !== undefined && (result.files.length !== 1 || !writing)) throw new Error("-o requires a single file with tag assignments in this profile");
   if (result.json && result.binary) throw new Error("JSON binary policy not yet supported");
   if (result.csv && (result.json || result.binary || writing)) throw new Error("CSV combined output/import policy not yet supported");

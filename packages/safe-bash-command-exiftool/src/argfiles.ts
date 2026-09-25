@@ -72,7 +72,7 @@ export async function expandArgfiles(args: readonly string[], context: CommandCo
       if (input === "-" || input.includes("\0")) throw new Error("Argument-file stdin/invalid paths are not supported");
       const path = virtualPath(context.cwd, input, resources);
       if (frames.some(active => active.path === path)) throw new Error("Argument-file cycle is not supported");
-      if (frames.length >= 16) throw new Error("Argument-file nesting limit exceeded");
+      if (frames.length >= resources.limits.maxArgfileDepth) throw new Error("Argument-file nesting limit exceeded");
       const stat = await publication.track(() => context.fs.lstat(path, { signal: context.signal }));
       if (stat.type !== "file") throw new Error("Only regular VFS argument files are admitted");
       resources.admit("input", stat.size);
@@ -109,7 +109,7 @@ export async function expandArgfiles(args: readonly string[], context: CommandCo
         start = index + 1;
         if (value !== undefined) {
           resources.admit("retained", value.length * 2 + 128);
-          if (expanded.length >= 4096) throw new Error("Argument-file argument count exceeded");
+          if (expanded.length >= resources.limits.maxArguments) throw new Error("Argument-file argument count exceeded");
           expanded.push(value);
         }
       }
@@ -120,7 +120,7 @@ export async function expandArgfiles(args: readonly string[], context: CommandCo
     const wasValue: boolean = takesValue;
     takesValue = !literal && !wasValue && ["-config", "-charset", "-api", "-o", "-if", "-p", "-stay_open", "-tagsfromfile"].includes(option);
     resources.admit("retained", arg.length * 2 + 128);
-    if (result.length >= 4096) throw new Error("ExifTool argument count exceeded");
+    if (result.length >= resources.limits.maxArguments) throw new Error("ExifTool argument count exceeded");
     result.push(arg);
   }
   return result;

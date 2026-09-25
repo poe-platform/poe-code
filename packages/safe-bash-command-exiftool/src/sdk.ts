@@ -38,11 +38,11 @@ export function createExiftoolArguments(options: ExiftoolInvocationOptions, engi
     if (!supported.includes(key)) throw new TypeError("Unsupported ExifTool SDK option: " + key);
   }
   const count = options.files.length + (options.tags?.length ?? 0) + (options.assignments?.length ?? 0);
-  if (!Number.isSafeInteger(count) || count > 4096) throw new RangeError("ExifTool argument count exceeded");
+  if (!Number.isSafeInteger(count) || count > resources.limits.maxArguments) throw new RangeError("ExifTool argument count exceeded");
   resources.admit("retained", 256);
   const args: string[] = [];
   const append = (...parts: readonly string[]): void => {
-    if (args.length >= 4096) throw new RangeError("ExifTool argument count exceeded");
+    if (args.length >= resources.limits.maxArguments) throw new RangeError("ExifTool argument count exceeded");
     let length = 0;
     for (const part of parts) {
       if (typeof part !== "string") throw new TypeError("ExifTool option values must be strings");

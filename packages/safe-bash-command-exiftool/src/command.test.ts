@@ -203,10 +203,10 @@ test("argument files reject malformed UTF-8 and excessive depth without image ac
   const invalid = await invoke(["-@", "invalid.args"], fs);
   assert.equal(invalid.exitCode, 1); assert.match(invalid.stderr, /UTF-8 argument files/);
   for (let index = 0; index < 17; index++) await fs.writeFile("/depth" + index, new TextEncoder().encode("-@\ndepth" + (index + 1) + "\n"));
-  const deep = await invoke(["-@", "depth0"], fs);
+  const deep = await invoke(["-@", "depth0"], fs, new AbortController().signal, undefined, { limits: { maxArgfileDepth: 16 } });
   assert.equal(deep.exitCode, 1); assert.match(deep.stderr, /nesting limit/);
   await fs.writeFile("/large.args", new TextEncoder().encode("-Title\n".repeat(4097)));
-  const many = await invoke(["-@", "large.args"], fs);
+  const many = await invoke(["-@", "large.args"], fs, new AbortController().signal, undefined, { limits: { maxArguments: 4096 } });
   assert.equal(many.exitCode, 1); assert.match(many.stderr, /argument count/);
 });
 
@@ -685,4 +685,15 @@ test("copy source option values stay literal during argument-file expansion", as
   const result = await invoke(["-tagsFromFile", "-@", "-Title", "-overwrite_original", "input.png"], fs);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal((await invoke(["-s3", "-Title", "input.png"], fs)).stdout, "copied\n");
+});
+
+test("omitted argument-file quotas admit deep nesting and many arguments", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/image.png", fixture("old"));
+  for (let index = 0; index < 20; index++) await fs.writeFile("/deep" + index, new TextEncoder().encode(index === 19 ? "-Title\nimage.png\n" : "-@\ndeep" + (index + 1) + "\n"));
+  const deep = await invoke(["-@", "deep0"], fs);
+  assert.equal(deep.exitCode, 0, deep.stderr);
+  await fs.writeFile("/many.args", new TextEncoder().encode("-Title\n".repeat(4097) + "image.png\n"));
+  const many = await invoke(["-@", "many.args"], fs);
+  assert.equal(many.exitCode, 0, many.stderr);
 });

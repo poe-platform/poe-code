@@ -9,7 +9,7 @@ export class Publication {
   #closed = false;
   #closing: Promise<void> | undefined;
   #serial = 0;
-  constructor(context: CommandContext) { this.#context = context; }
+  constructor(context: CommandContext, readonly maxStagingAttempts = Infinity) { if (maxStagingAttempts !== Infinity && (!Number.isSafeInteger(maxStagingAttempts) || maxStagingAttempts < 0)) throw new RangeError("Invalid staging attempt limit"); this.#context = context; }
   async track<T>(operation: () => Promise<T>): Promise<T> {
     if (this.#closed) throw new Error("ExifTool invocation closed");
     this.#context.signal.throwIfAborted();
@@ -48,7 +48,7 @@ export class Publication {
     if (expected && expected.nlink !== 1) throw new Error("VFS hardlink replacement is not yet supported");
     if (!fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile || !capabilities.atomicFileStaging) throw new Error("VFS atomic replacement publication not supported");
     let stage: FileStaging | undefined;
-    for (let attempt = 0; attempt < 32; attempt++) {
+    for (let attempt = 0; attempt < this.maxStagingAttempts; attempt++) {
       try {
         stage = await this.track(async () => {
           const owned = await fs.createStagedFile!(directory + (directory === "/" ? "" : "/") + ".exiftool-" + ++this.#serial,

@@ -1250,7 +1250,7 @@ class FastShellCommandContext {
         ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
       });
     }
-    bindCommandIO(this as unknown as CommandContext, io);
+    bindCommandIO(this as unknown as CommandContext, { ...io, [invocationScope]: scope });
     void this.registerCleanup;
   }
 

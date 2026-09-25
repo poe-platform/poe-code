@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createProcessSignalChannel } from "safe-bash-contracts/process";
 import { test } from "node:test";
 import { toByteSource, writeText } from "../../src/contracts/index.js";
+import type { CommandContext } from "../../src/contracts/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import type { ShellCommandContext } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
@@ -44,6 +45,30 @@ test("plugin command contexts retain own enumerable capabilities through object 
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(checked, true);
     assert.equal(new TextDecoder().decode(await fs.readFile("/copied")), "yes");
+  } finally { await shell.dispose(); }
+});
+
+for (const middleware of [false, true]) test(`plugin descriptor admission retires with its command before the first lease with middleware=${middleware}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  if (middleware) shell.use((_context, next) => next());
+  let retained: CommandContext["admittedHandles"];
+  let checked = false;
+  shell.use({ name: "retired-descriptor-admission", setup(host) {
+    host.commands.register({ name: "retain-admission", execute(context) {
+      retained = context.admittedHandles;
+      return { exitCode: 0 };
+    } });
+    host.commands.register({ name: "acquire-late", async execute(context) {
+      assert.ok(retained);
+      await assert.rejects(retained.acquire(0, ["read"], context.signal), { code: "EBADF" });
+      checked = true;
+      return { exitCode: 0 };
+    } });
+  } });
+  try {
+    const result = await shell.exec("retain-admission; acquire-late");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(checked, true);
   } finally { await shell.dispose(); }
 });
 

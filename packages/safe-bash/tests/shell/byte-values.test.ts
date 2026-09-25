@@ -1,10 +1,26 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
+import { standardCommands } from "../../src/commands/index.js";
 import { createCommandArguments, getCommandArguments } from "../../src/contracts/command.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
+
+test("plugin file commands receive admitted string paths for byte-valued arguments", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands());
+  const bytes = Uint8Array.of(0, 255, 65);
+  await fs.writeFile("/�", bytes);
+  try {
+    const result = await shell.exec("cat $'\\377'");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, bytes);
+  } finally { await shell.dispose(); }
+});
 
 for (const [expression, expected] of [
   ["$@", "COUNT:2\n<Changed\xff A>\n<Last Value>\n"],

@@ -6827,6 +6827,7 @@ export class Runtime {
     if (
       fastInline &&
       externalDef !== undefined &&
+      values.every(value => typeof value === "string") &&
       !implementedBuiltins.has(name) &&
       !(name === "printf" && externalDef.execute === printfCommand.execute && args[0]?.startsWith("-v"))
     ) {

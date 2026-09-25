@@ -1,7 +1,7 @@
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { Pattern, substitute, trySubstituteSync } from "./regex.js";
-import { Budget, ProgramError, byteString, bytes, command, input, lineRecordBatches, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
+import { Budget, ProgramError, byteString, bytes, command, input, lineRecordBatches, readProgram, virtualPath, write, type LineRecordBatch, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 import { editInPlace, prepareInPlace } from "./inplace.js";
 
@@ -248,16 +248,45 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   const useBatches = separator !== "\0";
   const batchSource = useBatches ? lineRecordBatches(context, files, budget) : undefined;
   const singleSource = useBatches ? undefined : nullRecords(context, files, budget);
-  let currentBatch: RecordLine[] = [];
+  let currentBatch: LineRecordBatch | undefined;
+  let currentBatchLen = 0;
   let batchIndex = 0;
+  const sharedBatchRecord: { text: string; terminated: boolean; file: string; fileIndex: number } = {
+    text: "",
+    terminated: true,
+    file: "",
+    fileIndex: 0,
+  };
+  const fillFromBatch = (
+    batch: LineRecordBatch,
+    idx: number,
+    target: { text: string; terminated: boolean; file: string; fileIndex: number },
+  ): RecordLine => {
+    if (idx < batch.ends.length) {
+      const start = idx === 0 ? 0 : batch.ends[idx - 1]! + 1;
+      const end = batch.ends[idx]!;
+      const slice = batch.text.slice(start, end);
+      target.text = idx === 0 && batch.firstLinePrefix ? batch.firstLinePrefix + slice : slice;
+      target.terminated = true;
+    } else {
+      target.text = batch.trailingText!;
+      target.terminated = false;
+    }
+    target.file = batch.file;
+    target.fileIndex = batch.fileIndex;
+    return target;
+  };
   let currentRecord: RecordLine | undefined;
   let followingRecord: RecordLine | null | undefined;
   if (batchSource) {
     const firstBatch = await batchSource.next();
-    if (!firstBatch.done && firstBatch.value.length > 0) {
+    if (!firstBatch.done) {
       currentBatch = firstBatch.value;
-      currentRecord = currentBatch[0];
-      batchIndex = 1;
+      currentBatchLen = currentBatch.ends.length + (currentBatch.trailingText !== undefined ? 1 : 0);
+      if (currentBatchLen > 0) {
+        currentRecord = fillFromBatch(currentBatch, 0, sharedBatchRecord);
+        batchIndex = 1;
+      }
     }
   } else {
     const first = await singleSource!.next();
@@ -266,18 +295,23 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   const peekNextRecord = async (): Promise<RecordLine | undefined> => {
     if (followingRecord !== undefined) return followingRecord ?? undefined;
     if (batchSource) {
-      if (batchIndex < currentBatch.length) {
-        followingRecord = currentBatch[batchIndex]!;
+      if (currentBatch && batchIndex < currentBatchLen) {
+        followingRecord = fillFromBatch(currentBatch, batchIndex, { text: "", terminated: true, file: "", fileIndex: 0 });
         return followingRecord;
       }
       const nextBatch = await batchSource.next();
-      if (nextBatch.done || nextBatch.value.length === 0) {
+      if (nextBatch.done) {
         followingRecord = null;
         return undefined;
       }
       currentBatch = nextBatch.value;
+      currentBatchLen = currentBatch.ends.length + (currentBatch.trailingText !== undefined ? 1 : 0);
+      if (currentBatchLen === 0) {
+        followingRecord = null;
+        return undefined;
+      }
       batchIndex = 0;
-      followingRecord = currentBatch[0]!;
+      followingRecord = fillFromBatch(currentBatch, 0, { text: "", terminated: true, file: "", fileIndex: 0 });
       return followingRecord;
     }
     const next = await singleSource!.next();
@@ -288,18 +322,22 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     if (followingRecord !== undefined) {
       const next = followingRecord ?? undefined;
       followingRecord = undefined;
-      if (batchSource && next !== undefined && batchIndex < currentBatch.length && currentBatch[batchIndex] === next) {
+      if (batchSource && next !== undefined && currentBatch && batchIndex < currentBatchLen) {
         batchIndex++;
       }
       return next;
     }
     if (batchSource) {
-      if (batchIndex < currentBatch.length) return currentBatch[batchIndex++]!;
+      if (currentBatch && batchIndex < currentBatchLen) {
+        return fillFromBatch(currentBatch, batchIndex++, sharedBatchRecord);
+      }
       const nextBatch = await batchSource.next();
-      if (nextBatch.done || nextBatch.value.length === 0) return undefined;
+      if (nextBatch.done) return undefined;
       currentBatch = nextBatch.value;
+      currentBatchLen = currentBatch.ends.length + (currentBatch.trailingText !== undefined ? 1 : 0);
+      if (currentBatchLen === 0) return undefined;
       batchIndex = 1;
-      return currentBatch[0]!;
+      return fillFromBatch(currentBatch, 0, sharedBatchRecord);
     }
     const next = await singleSource!.next();
     return next.done ? undefined : next.value;
@@ -325,9 +363,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     return left + separator + right;
   };
   const emit = (text: string, terminated = true): Promise<void> | undefined => {
-    stdoutBuffer += (outputState.stdoutUnterminated ? separator : "") + text;
+    if (outputState.stdoutUnterminated) stdoutBuffer += separator;
+    stdoutBuffer += text;
     outputState.stdoutUnterminated = !terminated;
-    if (stdoutBuffer.length >= 16384) return flushStdout();
+    if (!useBatches || stdoutBuffer.length >= 16384) return flushStdout();
     return undefined;
   };
   let lastPattern: Pattern | undefined;
@@ -354,7 +393,14 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   let deleted = false;
   let quit = false;
   let status = 0;
-  const print = (): Promise<void> | undefined => emit(pattern + (record.terminated ? separator : ""), record.terminated);
+  const print = (): Promise<void> | undefined => {
+    if (outputState.stdoutUnterminated) stdoutBuffer += separator;
+    stdoutBuffer += pattern;
+    if (record.terminated) stdoutBuffer += separator;
+    outputState.stdoutUnterminated = !record.terminated;
+    if (!useBatches || stdoutBuffer.length >= 16384) return flushStdout();
+    return undefined;
+  };
   const flushSlow = async (printPattern: boolean): Promise<void> => {
     if (appended.length > 0) {
       await assertPathRequirements(context, sedRequirements, ["script-read"], appended.flatMap(item => item.file === undefined ? [] : [item.file]));
@@ -393,13 +439,14 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     appendedSize = 0;
   };
   const flush = (printPattern = true): Promise<void> | undefined => {
-    if (appended.length === 0 && (!outputState.stdoutUnterminated || !quit)) {
+    if (appended.length === 0 && !quit) {
       if (printPattern && !quiet && !deleted) return print();
       return undefined;
     }
     return flushSlow(printPattern);
   };
   const writeFile = async (file: string): Promise<void> => {
+    if (stdoutBuffer.length > 0) await flushStdout();
     const path = virtualPath(context, file);
     const terminated = record.terminated || separator === "\n";
     const text = (outputState.unterminatedFiles.has(path) ? separator : "") + pattern + (terminated ? separator : "");
@@ -410,7 +457,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   const matches = (address: Address): boolean | Promise<boolean> => {
     if (address.kind === "number") return number === address.number;
     if (address.kind === "last") {
-      if (batchSource && batchIndex < currentBatch.length) return false;
+      if (batchSource && batchIndex < currentBatchLen) return false;
       return peekNextRecord().then(next => next === undefined);
     }
     const found = getPattern(address.pattern).tryFindSync(pattern, budget);
@@ -555,8 +602,8 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       const flushPending = flush();
       if (flushPending) await flushPending;
       if (quit) return { status, quit: true };
-      currentRecord = followingRecord === undefined && batchSource && batchIndex < currentBatch.length
-        ? currentBatch[batchIndex++]!
+      currentRecord = followingRecord === undefined && batchSource && currentBatch && batchIndex < currentBatchLen
+        ? fillFromBatch(currentBatch, batchIndex++, sharedBatchRecord)
         : await readNextRecord();
     }
     return { status: 0, quit: false };

@@ -479,14 +479,15 @@ export class Pattern {
     return this.code.length > 0 && this.dialect !== "jq" && Boolean(this.literalMatch || this.simpleRepeatMatch);
   }
 
-  findSyncFast(
+  findSyncFastInto(
     text: string,
     budget: Pick<Budget, "step" | "maxBufferBytes">,
-    from = 0,
-  ): Match | undefined {
+    from: number,
+    outOffsets: Int32Array,
+  ): boolean {
     if (this.simpleRepeatMatch) {
       const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts } = this.simpleRepeatMatch;
-      if (from > text.length || (anchoredStart && from > 0)) return undefined;
+      if (from > text.length || (anchoredStart && from > 0)) return false;
       let found = -1;
       let matchEnd = -1;
       let groupStart = -1;
@@ -524,15 +525,17 @@ export class Pattern {
       const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
       const len = found >= 0 ? matchEnd - found : 0;
       budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
-      if (found < 0) return undefined;
+      if (found < 0) return false;
       if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-      const full = text.slice(found, matchEnd);
-      const groups = captured ? [full, text.slice(groupStart, groupEnd)] : [full];
-      return { start: found, end: matchEnd, groups };
+      outOffsets[0] = found;
+      outOffsets[1] = matchEnd;
+      outOffsets[2] = captured ? groupStart : -1;
+      outOffsets[3] = captured ? groupEnd : -1;
+      return true;
     }
-    const { value, anchoredStart, anchoredEnd, groups } = this.literalMatch!;
+    const { value, anchoredStart, anchoredEnd } = this.literalMatch!;
     const len = value.length;
-    if (from > text.length || (anchoredStart && from > 0)) return undefined;
+    if (from > text.length || (anchoredStart && from > 0)) return false;
     let found = -1;
     if (anchoredStart && anchoredEnd) {
       if (from === 0 && text.length === len && text === value) found = 0;
@@ -546,9 +549,13 @@ export class Pattern {
     }
     const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
     budget.step(positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0));
-    if (found < 0) return undefined;
+    if (found < 0) return false;
     if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-    return { start: found, end: found + len, groups };
+    outOffsets[0] = found;
+    outOffsets[1] = found + len;
+    outOffsets[2] = -1;
+    outOffsets[3] = -1;
+    return true;
   }
 
   tryFindSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Match | undefined | Promise<Match | undefined> {
@@ -948,42 +955,67 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
   await buffer.append(replacement, literal);
 }
 
-function expandReplacementSync(
+const FAST_MATCH_OFFSETS = new Int32Array(4);
+const SYNC_SUB_RESULT = { text: "", count: 0 };
+
+function appendReplacementFromOffsetsSync(
+  out: string,
   replacement: string,
-  match: Match,
+  text: string,
+  matchStart: number,
+  matchEnd: number,
+  group1Start: number,
+  group1End: number,
   budget: Budget,
-  available: number,
+  maxBufferBytes: number,
   syntax: ReplacementSyntax,
 ): string {
   if (!replacement.includes("&") && !replacement.includes("\\")) {
     budget.step(replacement.length * 2 + 1);
-    if (replacement.length > available) throw new ProgramError("text buffer limit exceeded");
-    return replacement;
+    if (out.length + replacement.length > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    return out ? out + replacement : replacement;
   }
-  let out = "";
+  const initialOutLen = out.length;
+  let literalStart = 0;
   for (let index = 0; index < replacement.length; index++) {
     budget.step();
     const character = replacement[index]!;
-    let piece = character;
+    if (character !== "&" && (character !== "\\" || index + 1 >= replacement.length)) continue;
+    if (index > literalStart) {
+      const litLen = index - literalStart;
+      if (out.length + litLen > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      const span = literalStart === 0 && index === replacement.length ? replacement : replacement.slice(literalStart, index);
+      out = out ? out + span : span;
+    }
+    let piece = "";
     if (character === "&") {
       budget.step();
-      piece = match.groups[0] ?? "";
-    } else if (character === "\\" && index + 1 < replacement.length) {
+      piece = matchEnd > matchStart ? text.slice(matchStart, matchEnd) : "";
+    } else {
       budget.step();
       const next = replacement[++index]!;
       if (syntax === "awk") {
         piece = next === "&" || next === "\\" ? next : `\\${next}`;
       } else if (next >= "0" && next <= "9") {
         budget.step();
-        piece = match.groups[Number(next)] ?? "";
+        const g = next.charCodeAt(0) - 48;
+        if (g === 0) piece = matchEnd > matchStart ? text.slice(matchStart, matchEnd) : "";
+        else if (g === 1 && group1Start >= 0) piece = group1End > group1Start ? text.slice(group1Start, group1End) : "";
       } else {
         piece = next === "n" ? "\n" : next === "t" ? "\t" : next;
       }
     }
-    if (piece.length > available - out.length) throw new ProgramError("text buffer limit exceeded");
-    out += piece;
+    if (out.length + piece.length > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    if (piece) out = out ? out + piece : piece;
+    literalStart = index + 1;
   }
-  budget.step(out.length + 1);
+  if (literalStart < replacement.length) {
+    const tailLen = replacement.length - literalStart;
+    if (out.length + tailLen > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    const span = literalStart === 0 ? replacement : replacement.slice(literalStart);
+    out = out ? out + span : span;
+  }
+  budget.step((out.length - initialOutLen) + 1);
   return out;
 }
 
@@ -1007,40 +1039,50 @@ export function trySubstituteSync(
     let out = "";
     while (search <= text.length) {
       budget.step();
-      const match = pattern.findSyncFast(text, budget, search);
-      if (!match) break;
-      if (match.start === match.end && match.start === previousEnd) {
-        search = match.end + 1;
+      if (!pattern.findSyncFastInto(text, budget, search, FAST_MATCH_OFFSETS)) break;
+      const matchStart = FAST_MATCH_OFFSETS[0]!;
+      const matchEnd = FAST_MATCH_OFFSETS[1]!;
+      const group1Start = FAST_MATCH_OFFSETS[2]!;
+      const group1End = FAST_MATCH_OFFSETS[3]!;
+      if (matchStart === matchEnd && matchStart === previousEnd) {
+        search = matchEnd + 1;
         continue;
       }
       encountered++;
       if (encountered >= occurrence) {
-        const prefixLen = match.start - consumed;
+        const prefixLen = matchStart - consumed;
         if (out.length + prefixLen > budget.maxBufferBytes) {
           throw new ProgramError("text buffer limit exceeded");
         }
-        if (prefixLen > 0) out += text.slice(consumed, match.start);
-        const rep = expandReplacementSync(replacement, match, budget, budget.maxBufferBytes - out.length, syntax);
-        out += rep;
-        consumed = match.end;
+        if (prefixLen > 0) {
+          const pref = text.slice(consumed, matchStart);
+          out = out ? out + pref : pref;
+        }
+        out = appendReplacementFromOffsetsSync(out, replacement, text, matchStart, matchEnd, group1Start, group1End, budget, budget.maxBufferBytes, syntax);
+        consumed = matchEnd;
         count++;
         if (!global) break;
       }
-      previousEnd = match.end;
-      search = match.end === match.start ? match.end + 1 : match.end;
+      previousEnd = matchEnd;
+      search = matchEnd === matchStart ? matchEnd + 1 : matchEnd;
     }
     if (count > 0) {
       const tailLen = text.length - consumed;
       if (out.length + tailLen > budget.maxBufferBytes) {
         throw new ProgramError("text buffer limit exceeded");
       }
-      if (tailLen > 0) out += text.slice(consumed);
+      if (tailLen > 0) {
+        const tail = consumed === 0 ? text : text.slice(consumed);
+        out = out ? out + tail : tail;
+      }
     } else {
       out = budget.check(text);
     }
     const postCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     if (postCheck) return postCheck.then(() => ({ text: out, count }));
-    return { text: out, count };
+    SYNC_SUB_RESULT.text = out;
+    SYNC_SUB_RESULT.count = count;
+    return SYNC_SUB_RESULT;
   }
   if (!global && occurrence === 1 && !replacement.includes("&") && !replacement.includes("\\")) {
     const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());

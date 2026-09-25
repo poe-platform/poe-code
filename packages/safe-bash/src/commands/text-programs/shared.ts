@@ -111,7 +111,16 @@ export async function* lineRecords(context: CommandContext, files: readonly stri
   }
 }
 
-export async function* lineRecordBatches(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<RecordLine[]> {
+export interface LineRecordBatch {
+  readonly text: string;
+  readonly firstLinePrefix: string;
+  readonly ends: readonly number[];
+  readonly trailingText: string | undefined;
+  readonly file: string;
+  readonly fileIndex: number;
+}
+
+export async function* lineRecordBatches(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<LineRecordBatch> {
   const names = files.length ? files : ["-"];
   for (let fileIndex = 0; fileIndex < names.length; fileIndex++) {
     const file = names[fileIndex]!;
@@ -121,17 +130,28 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
       const text = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
       let start = 0;
       let end: number;
-      const batch: RecordLine[] = [];
+      const ends: number[] = [];
+      let firstLinePrefix = "";
       while ((end = text.indexOf("\n", start)) >= 0) {
-        const slice = pending ? pending + text.slice(start, end) : text.slice(start, end);
-        batch.push({ text: budget.check(slice), terminated: true, file, fileIndex });
-        pending = "";
+        const len = (ends.length === 0 ? pending.length : 0) + (end - start);
+        if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+        if (ends.length === 0 && pending) {
+          firstLinePrefix = pending;
+          pending = "";
+        }
+        ends.push(end);
         start = end + 1;
       }
-      pending = budget.check(pending ? pending + text.slice(start) : text.slice(start));
-      if (batch.length > 0) yield batch;
+      if (start < text.length) {
+        pending = budget.check(pending ? pending + text.slice(start) : text.slice(start));
+      }
+      if (ends.length > 0) {
+        yield { text, firstLinePrefix, ends, trailingText: undefined, file, fileIndex };
+      }
     }
-    if (pending) yield [{ text: pending, terminated: false, file, fileIndex }];
+    if (pending) {
+      yield { text: "", firstLinePrefix: "", ends: [], trailingText: pending, file, fileIndex };
+    }
   }
 }
 

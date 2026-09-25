@@ -235,7 +235,7 @@ export class MountFileSystem implements FileSystem {
           && await this.supportsDirectoryValidation(location.path.slice(0, location.path.lastIndexOf("/")) || "/", options, true)
         : this.capabilities.conditionalChmod;
       const { synchronousDirectoryValidation: ignoredValidation, synchronousStagingResolution: ignoredResolution, ...ordinary } = resize;
-      const withOpen = { ...ordinary, conditionalChmod, ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      const withOpen = { ...ordinary, ...(conditionalChmod === undefined ? {} : { conditionalChmod }), ...(resolution === undefined ? {} : { synchronousStagingResolution: resolution }), ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);

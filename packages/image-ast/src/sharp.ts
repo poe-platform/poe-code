@@ -128,7 +128,7 @@ export class SharpInstance {
     const anyAlpha = imgs.some(i => i.hasAlpha);
     const bg = parseColor(joinOpts?.background ?? { r: 0, g: 0, b: 0, alpha: 1 }, 255);
     const hasAlpha = anyAlpha || bg.a < 255;
-    const channels = (hasAlpha ? 4 : Math.max(...imgs.map(i => i.channels))) as 1 | 2 | 3 | 4;
+    const channels = (hasAlpha ? 4 : 3) as 1 | 2 | 3 | 4;
     const out = new Uint8Array(outW * outH * 4);
     for (let p = 0; p < outW * outH; p++) {
       out[p * 4] = bg.r;
@@ -1178,6 +1178,7 @@ export class SharpInstance {
         ...(img.pages !== undefined ? { pages: img.pages } : {}),
         ...(img.trimOffsetLeft !== undefined ? { trimOffsetLeft: img.trimOffsetLeft } : {}),
         ...(img.trimOffsetTop !== undefined ? { trimOffsetTop: img.trimOffsetTop } : {}),
+        ...(img.textAutofitDpi !== undefined ? { textAutofitDpi: img.textAutofitDpi } : {}),
         size: encoded.data.byteLength
       }
     };

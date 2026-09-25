@@ -53,6 +53,7 @@ export interface RgbaImage {
   readonly isProgressive?: boolean;
   readonly trimOffsetLeft?: number;
   readonly trimOffsetTop?: number;
+  readonly textAutofitDpi?: number;
 }
 
 export interface ImageMetadata {
@@ -109,6 +110,7 @@ export interface OutputInfo {
   readonly pages?: number;
   readonly trimOffsetLeft?: number;
   readonly trimOffsetTop?: number;
+  readonly textAutofitDpi?: number;
   readonly size: number;
 }
 
@@ -190,11 +192,30 @@ export interface CompositeLayer {
     | Uint8Array
     | string
     | {
-        readonly create: {
+        readonly create?: {
           readonly width: number;
           readonly height: number;
-          readonly channels: 3 | 4;
-          readonly background: ColorInput;
+          readonly channels: 1 | 2 | 3 | 4;
+          readonly pageHeight?: number;
+          readonly background?: ColorInput;
+          readonly noise?: {
+            readonly type?: "gaussian";
+            readonly mean?: number;
+            readonly sigma?: number;
+          };
+        };
+        readonly text?: {
+          readonly text: string;
+          readonly font?: string;
+          readonly fontfile?: string;
+          readonly width?: number;
+          readonly height?: number;
+          readonly align?: string;
+          readonly justify?: boolean;
+          readonly dpi?: number;
+          readonly rgba?: boolean;
+          readonly spacing?: number;
+          readonly wrap?: string;
         };
       };
   readonly top?: number;
@@ -238,6 +259,19 @@ export interface SharpInputOptions {
       readonly mean?: number;
       readonly sigma?: number;
     };
+  };
+  readonly text?: {
+    readonly text: string;
+    readonly font?: string;
+    readonly fontfile?: string;
+    readonly width?: number;
+    readonly height?: number;
+    readonly align?: string;
+    readonly justify?: boolean;
+    readonly dpi?: number;
+    readonly rgba?: boolean;
+    readonly spacing?: number;
+    readonly wrap?: string;
   };
   readonly join?: {
     readonly across?: number;

@@ -547,7 +547,8 @@ export function compositeImage(
       }
     } else {
       overlay = decodeImage(undefined, {
-        create: layer.input.create,
+        ...(layer.input.create !== undefined ? { create: layer.input.create } : {}),
+        ...(layer.input.text !== undefined ? { text: layer.input.text } : {}),
         ...(layer.density !== undefined ? { density: layer.density } : {})
       });
     }

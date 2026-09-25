@@ -1938,4 +1938,45 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(autoOriented.info.width).toBe(2);
     expect(autoOriented.info.height).toBe(4);
   });
+  it("supports sharp({ text }) / composite({ input: { text } }) and promotes grayscale arrayjoin to srgb (#101)", async () => {
+    const txtRes = await (sharp as any)({
+      text: {
+        text: "<span foreground=\"red\">Hello</span>",
+        width: 80,
+        height: 24,
+        rgba: true
+      }
+    })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(txtRes.info.channels).toBe(4);
+    expect(txtRes.info.width).toBeGreaterThan(0);
+    expect(txtRes.info.height).toBeGreaterThan(0);
+    expect(typeof txtRes.info.textAutofitDpi).toBe("number");
+    let redPixels = 0;
+    for (let i = 0; i < txtRes.data.length; i += 4) {
+      if (txtRes.data[i] === 255 && txtRes.data[i + 1] === 0 && txtRes.data[i + 2] === 0 && txtRes.data[i + 3] > 0) {
+        redPixels++;
+      }
+    }
+    expect(redPixels).toBeGreaterThan(10);
+
+    // composite({ input: { text } })
+    const base = await sharp({ create: { width: 40, height: 20, channels: 4, background: { r: 0, g: 0, b: 255, alpha: 1 } } })
+      .composite([{ input: { text: { text: "HI", dpi: 72, rgba: true } } as any, gravity: "centre" }])
+      .raw()
+      .toBuffer();
+    let whiteCount = 0;
+    for (let i = 0; i < base.length; i += 4) {
+      if (base[i] === 255 && base[i + 1] === 255 && base[i + 2] === 255) whiteCount++;
+    }
+    expect(whiteCount).toBeGreaterThan(5);
+
+    // grayscale arrayjoin promotes to 3ch srgb
+    const g1 = await sharp(Buffer.from([50, 100]), { raw: { width: 2, height: 1, channels: 1 } }).png().toBuffer();
+    const g2 = await sharp(Buffer.from([150, 200]), { raw: { width: 2, height: 1, channels: 1 } }).png().toBuffer();
+    const joinedGray = await (sharp as any)([g1, g2]).raw().toBuffer({ resolveWithObject: true });
+    expect(joinedGray.info.channels).toBe(3);
+    expect(Array.from(joinedGray.data)).toEqual([50, 50, 50, 100, 100, 100, 150, 150, 150, 200, 200, 200]);
+  });
 });

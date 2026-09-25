@@ -117,13 +117,26 @@ for (const entry of native) {
 }
 const current = new Map((JSON.parse(readFileSync(new URL("./numfmt-coreutils910.snapshot.json", import.meta.url), "utf8")) as { cases: Pick<NativeCase, "name" | "stdoutHex" | "stderrHex" | "exitCode">[] }).cases.map(entry => [entry.name, entry]));
 const compatibility = new Map((JSON.parse(readFileSync(new URL("./numfmt-compatibility.snapshot.json", import.meta.url), "utf8")) as { cases: (Partial<NativeCase> & { name: string })[] }).cases.map(entry => [entry.name, entry]));
-for (const entry of native) Object.assign(entry, current.get(entry.name), compatibility.get(entry.name));
-for (const entry of native) test(`numfmt ${compatibility.has(entry.name) ? "compatibility" : "native"} ${entry.name}`, async () => {
+// GNU 9.11 confirms issue 940's full-width field ordering and last padding
+// alignment. Preserve the GNU 8.30 captures and share these exact current
+// expectations across ordinary and partitioned input (public diagnostic name).
+const current911 = new Map<string, Pick<NativeCase, "stdoutHex" | "stderrHex" | "exitCode">>([
+  ['fields "4294967296,1"', {
+    stdoutHex: Buffer.from("  1.0k  2000   3000 \n4.0k\n\t\n").toString("hex"),
+    stderrHex: Buffer.from("numfmt: invalid number: ''\n").toString("hex"),
+    exitCode: 2,
+  }],
+  ["options --padding=-8 --padding=8", {
+    stdoutHex: Buffer.from("    1000\n").toString("hex"), stderrHex: "", exitCode: 0,
+  }],
+]);
+for (const entry of native) Object.assign(entry, current.get(entry.name), compatibility.get(entry.name), current911.get(entry.name));
+for (const entry of native) test(`numfmt ${current911.has(entry.name) ? "GNU 9.11" : compatibility.has(entry.name) ? "compatibility" : "native"} ${entry.name}`, async () => {
   const result = await format(entry.args, Buffer.from(entry.stdinHex, "hex"), { env: { LC_ALL: entry.locale, ...entry.extraEnv } });
   assert.deepEqual(result, { stdoutHex: entry.stdoutHex, stderrHex: entry.stderrHex, exitCode: entry.exitCode });
 });
 
-for (const entry of native.filter(entry => entry.stdinHex && entry.args.length < 20)) test(`numfmt partitioned ${entry.name}`, async () => {
+for (const entry of native.filter(entry => entry.stdinHex && entry.args.length < 20)) test(`numfmt partitioned ${current911.has(entry.name) ? "GNU 9.11 " : ""}${entry.name}`, async () => {
   const bytes = Buffer.from(entry.stdinHex, "hex");
   const source: ByteSource = { async *[Symbol.asyncIterator]() {
     const reusable = Buffer.alloc(3);

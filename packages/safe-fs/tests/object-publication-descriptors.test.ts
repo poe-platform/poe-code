@@ -8,6 +8,8 @@ import { dirname } from "../src/contracts/virtual-path.js";
 import type { FileStat } from "../src/contracts/filesystem.js";
 import { withObjectFileDescriptors, type ObjectFilePublicationStore, type ObjectFileVersion } from "../src/fs/object-publication/index.js";
 import { createObjectFilePublicationConformanceCases } from "../src/testing/object-publication.js";
+import { Shell } from "../../safe-bash/src/shell/shell.js";
+import { createArchiveCommands } from "../../safe-bash/src/commands/archive/index.js";
 
 function publicationStore(storage: MemoryFileSystem) {
   const bindings = new Map<string, { parent: FileStat; expected: FileStat }>();
@@ -350,5 +352,54 @@ it("forwards the exact retained publication token without changing namespace rev
     await second.close();
     await expect(first.close()).rejects.toMatchObject({ code: "EAGAIN" });
   }
+  expect(events.released).toBe(events.acquired);
+});
+
+it("projects immutable retained read handles through openReadFile with replacement/unlink survival, oversized request bounds, draining close, and archive round trips (#1112)", async () => {
+  const storage = new MemoryFileSystem();
+  await storage.writeFile("/file", new TextEncoder().encode("hello world"));
+  const { store, events } = publicationStore(storage);
+  const fs = withObjectFileDescriptors(storage, store, { chunkBytes: 4, maxFileBytes: 64, maxOpenFiles: 2 });
+
+  expect(fs.capabilities.retainedRead).toBe(true);
+  expect((await fs.capabilitiesFor!("/file")).retainedRead).toBe(true);
+
+  const lstatBefore = await fs.lstat("/file");
+  const handle = await fs.openReadFile!("/file");
+  const statBefore = await handle.stat();
+  expect(statBefore.identityScope).toBe(lstatBefore.identityScope);
+  expect(statBefore.ino).toBe(lstatBefore.ino);
+  expect(statBefore.size).toBe(11);
+  expect(await handle.seekEnd!()).toBe(11n);
+
+  // Replace and unlink /file after acquisition; handle still reads the pinned version without reopening by pathname.
+  await storage.writeFile("/file", new TextEncoder().encode("replaced"));
+  await storage.unlink("/file");
+  expect(await handle.stat()).toEqual(statBefore);
+  expect(new TextDecoder().decode(await handle.read(0, 5))).toBe("hello");
+  // Overflowing position + maxBytes rejects with EINVAL; valid oversized maxBytes clamps to remaining file size.
+  await expect(handle.read(6, Number.MAX_SAFE_INTEGER)).rejects.toMatchObject({ code: "EINVAL" });
+  expect(new TextDecoder().decode(await handle.read(6, Number.MAX_SAFE_INTEGER - 6))).toBe("world");
+  expect(await handle.read(11, 16)).toEqual(new Uint8Array());
+
+  await handle.close();
+  await expect(handle.stat()).rejects.toMatchObject({ code: "EBADF" });
+  await expect(handle.read(0, 1)).rejects.toMatchObject({ code: "EBADF" });
+  expect(events.released).toBe(events.acquired);
+});
+
+it("supports zip and tar creation round trips through withObjectFileDescriptors (#1112)", async () => {
+  const storage = new MemoryFileSystem();
+  await storage.writeFile("/hello.txt", new TextEncoder().encode("archive payload"));
+  const { store, events } = publicationStore(storage);
+  const fs = withObjectFileDescriptors(storage, store, { chunkBytes: 4, maxFileBytes: 4096 });
+  const shell = new Shell({ fs });
+  for (const command of createArchiveCommands()) shell.commands.register(command);
+
+  const zipRes = await shell.exec("zip /archive.zip hello.txt && tar -cf /archive.tar hello.txt");
+  expect(zipRes.stderr).toBe("");
+  expect(zipRes.exitCode).toBe(0);
+  expect((await storage.stat("/archive.zip")).size).toBeGreaterThan(0);
+  expect((await storage.stat("/archive.tar")).size).toBeGreaterThan(0);
   expect(events.released).toBe(events.acquired);
 });

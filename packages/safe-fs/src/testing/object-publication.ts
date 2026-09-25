@@ -3,18 +3,20 @@ import type { FileSystem } from "../contracts/filesystem.js";
 import { toByteSource } from "../contracts/io.js";
 import { validatePath } from "../contracts/virtual-path.js";
 import { withObjectFileDescriptors } from "../fs/object-publication/index.js";
-import type { ObjectFilePublicationStore, ObjectFileVersion } from "../fs/object-publication/index.js";
+import type { ObjectFileDescriptorOptions, ObjectFilePublicationStore, ObjectFileVersion } from "../fs/object-publication/index.js";
 
 export interface ObjectFilePublicationConformanceFixture {
   readonly fs: FileSystem;
   readonly store: ObjectFilePublicationStore;
   readonly root: string;
+  readonly descriptorOptions?: ObjectFileDescriptorOptions;
   dispose(): void | Promise<void>;
 }
 
 export interface ObjectFilePublicationConformanceOptions {
   readonly createFixture: () => ObjectFilePublicationConformanceFixture | Promise<ObjectFilePublicationConformanceFixture>;
   readonly requireStaging?: boolean;
+  readonly descriptorOptions?: ObjectFileDescriptorOptions;
 }
 
 export interface ObjectFilePublicationConformanceCase {
@@ -117,7 +119,7 @@ export function createObjectFilePublicationConformanceCases(options: ObjectFileP
       async run({ fixture, path, track, publish }) {
         const name = path("descriptor");
         await publish(name, null, new Uint8Array([1, 2, 3, 4]));
-        const fs = withObjectFileDescriptors(fixture.fs, fixture.store, { chunkBytes: 4, maxStagedBytes: 16 });
+        const fs = withObjectFileDescriptors(fixture.fs, fixture.store, { chunkBytes: 4, maxStagedBytes: 16, maxFileBytes: 16, ...options.descriptorOptions, ...fixture.descriptorOptions });
         const descriptor = track(await fs.open!(name, { access: "readwrite" }));
         check(descriptor.capabilities.publication === "conditional", "descriptor publication profile was lost");
         await descriptor.write(new Uint8Array([7]), 1);
@@ -177,7 +179,7 @@ export function createObjectFilePublicationConformanceCases(options: ObjectFileP
       async run({ fixture, path, track, publish }) {
         const name = path("stage-descriptor");
         await publish(name, null, new Uint8Array([1, 2, 3, 4]));
-        const fs = withObjectFileDescriptors(fixture.fs, fixture.store, { chunkBytes: 4, maxStagedBytes: 4, maxStagedPages: 1, maxFileBytes: 16 });
+        const fs = withObjectFileDescriptors(fixture.fs, fixture.store, { chunkBytes: 4, maxStagedBytes: 4, maxStagedPages: 1, maxFileBytes: 16, ...options.descriptorOptions, ...fixture.descriptorOptions });
         const descriptor = track(await fs.open!(name, { access: "readwrite" }));
         const content = new Uint8Array([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
         await descriptor.write(content, 0);

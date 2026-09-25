@@ -515,3 +515,33 @@ it("rejects a spill budget smaller than one page instead of enlarging it", async
   expect(host.events.closed).toBe(host.events.created);
   expect(host.events.released).toBe(host.events.acquired);
 });
+
+it("qualifies conformance against a staging provider that requires finite maxFileBytes (#1111)", async () => {
+  for (const conformance of createObjectFilePublicationConformanceCases({
+    requireStaging: true,
+    createFixture() {
+      const host = fixture(4);
+      const createStaging = host.store.createStaging!;
+      const store: ObjectFilePublicationStore = {
+        ...host.store,
+        async createStaging(path, options) {
+          if (!Number.isSafeInteger(options.maxFileBytes) || options.maxFileBytes <= 0) {
+            throw new FsError("EINVAL", { path, message: "finite maxFileBytes required" });
+          }
+          return createStaging(path, options);
+        },
+      };
+      return {
+        fs: host.namespace,
+        store,
+        root: "/",
+        dispose() {
+          expect(host.events.closed).toBe(host.events.created);
+          expect(host.events.released).toBe(host.events.acquired);
+        },
+      };
+    },
+  })) {
+    await conformance.run();
+  }
+});

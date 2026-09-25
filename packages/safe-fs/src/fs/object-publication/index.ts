@@ -1,7 +1,7 @@
 import { composeAbortSignals } from "../../contracts/abort.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
 import { FsError } from "../../contracts/errors.js";
-import type { CapabilityQueryOptions, FileDescriptor, FileStat, FileSystem, FsOptions, OpenFileOptions } from "../../contracts/filesystem.js";
+import type { CapabilityQueryOptions, FileDescriptor, FileReadHandle, FileStat, FileSystem, FsOptions, OpenFileOptions, OpenReadFileOptions } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { validatePath } from "../../contracts/virtual-path.js";
 import { openFileDescriptor } from "../descriptor.js";
@@ -76,6 +76,8 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
     || store.publish !== undefined && typeof store.publish !== "function"
     || store.createStaging !== undefined && typeof store.createStaging !== "function") throw new TypeError("Invalid object descriptor configuration");
   const createStaging = store.createStaging?.bind(store);
+  const defaultIdentityScope = Symbol("object-file-descriptors");
+  const withIdentity = (stat: FileStat): FileStat => stat.type === "file" && stat.identityScope === undefined ? { ...stat, identityScope: defaultIdentityScope } : stat;
   let stagedBytes = 0;
   let openFiles = 0;
   const stagingWaiters = new Set<() => void>();
@@ -115,7 +117,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
       || ![value.stat.mtimeMs, value.stat.atimeMs, value.stat.ctimeMs].every(Number.isFinite)
       || typeof value.read !== "function" || typeof value.close !== "function") throw new FsError("EIO", { message: "Invalid immutable object version" });
     if (value.stat.size > maxFileBytes) throw new FsError("EFBIG", { message: "Object descriptor file limit exceeded" });
-    return Object.freeze({ revision: value.revision, ...(value.publicationToken === undefined ? {} : { publicationToken: value.publicationToken }), stat: Object.freeze({ ...value.stat }), read: value.read.bind(value), close: value.close.bind(value) });
+    return Object.freeze({ revision: value.revision, ...(value.publicationToken === undefined ? {} : { publicationToken: value.publicationToken }), stat: Object.freeze(withIdentity(value.stat)), read: value.read.bind(value), close: value.close.bind(value) });
   };
   const clearPages = (state: ObjectFileState): void => {
     stagedBytes -= state.pages.size * chunkBytes;
@@ -394,14 +396,84 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
       throw error;
     }
   });
+  const openReadFile = async (path: string, readOptions: OpenReadFileOptions = {}): Promise<FileReadHandle> => {
+    if (!readOptions || typeof readOptions !== "object"
+      || Object.keys(readOptions).some(key => key !== "signal" && key !== "allowDirectory")
+      || readOptions.allowDirectory !== undefined && typeof readOptions.allowDirectory !== "boolean") {
+      throw new FsError("EINVAL", { syscall: "openReadFile", path });
+    }
+    readOptions.signal?.throwIfAborted();
+    if (readOptions.allowDirectory === true) throw new FsError("ENOTSUP", { syscall: "openReadFile", path });
+    const descriptor = await open(path, {
+      access: "read",
+      ...(readOptions.signal === undefined ? {} : { signal: readOptions.signal }),
+    });
+    let retainedStat: FileStat;
+    try {
+      retainedStat = await descriptor.stat(readOptions.signal === undefined ? {} : { signal: readOptions.signal });
+    } catch (error) {
+      await finishCleanup(() => descriptor.close(), true);
+      throw error;
+    }
+    let closed = false;
+    let closing: Promise<void> | undefined;
+    const assertOpen = (forwarded: FsOptions, syscall: string): void => {
+      forwarded.signal?.throwIfAborted();
+      if (closed) throw new FsError("EBADF", { syscall, path });
+    };
+    return {
+      async stat(forwarded = {}) {
+        assertOpen(forwarded, "fstat");
+        return descriptor.stat(forwarded);
+      },
+      async seekEnd(forwarded = {}) {
+        assertOpen(forwarded, "lseek");
+        const stat = await descriptor.stat(forwarded);
+        return BigInt(stat.size);
+      },
+      async read(position, maxBytes, forwarded = {}) {
+        assertOpen(forwarded, "read");
+        if (!Number.isSafeInteger(position) || position < 0
+          || !Number.isSafeInteger(maxBytes) || maxBytes <= 0
+          || maxBytes > Number.MAX_SAFE_INTEGER - position) {
+          throw new FsError("EINVAL", { syscall: "read", path });
+        }
+        const length = Math.min(maxBytes, Math.max(0, retainedStat.size - position));
+        if (length === 0) {
+          await descriptor.stat(forwarded);
+          return new Uint8Array();
+        }
+        const buffer = new Uint8Array(length);
+        const count = await descriptor.read(buffer, position, forwarded);
+        return count === buffer.byteLength ? buffer : buffer.subarray(0, count);
+      },
+      close() {
+        closed = true;
+        return closing ??= descriptor.close();
+      },
+    };
+  };
   return new Proxy(Object.create(filesystem) as FileSystem, {
     get(_target, property) {
       if (property === "open") return open;
-      if (property === "capabilities") return { ...filesystem.capabilities, open: true, versionedDescriptors: true };
+      if (property === "openReadFile") return openReadFile;
+      if (property === "stat" || property === "lstat") return async (path: string, statOptions?: FsOptions) =>
+        withIdentity(await filesystem[property](path, statOptions));
+      if (property === "capabilities") return {
+        ...filesystem.capabilities,
+        open: true,
+        versionedDescriptors: true,
+        retainedRead: filesystem.capabilities.read !== false,
+      };
       if (property === "capabilitiesFor") return async (path: string, query?: CapabilityQueryOptions) => {
         const capabilities = await filesystem.capabilitiesFor?.(path, query) ?? filesystem.capabilities;
         query?.signal?.throwIfAborted();
-        return { ...capabilities, open: true, versionedDescriptors: true };
+        return {
+          ...capabilities,
+          open: true,
+          versionedDescriptors: true,
+          ...(query?.allowDirectory ? {} : { retainedRead: capabilities.read !== false }),
+        };
       };
       const value: unknown = Reflect.get(filesystem, property, filesystem);
       return typeof value === "function" ? value.bind(filesystem) : value;

@@ -2,7 +2,7 @@ import type { PlaywrightSnapshotJSONNode } from "@poe-platform/safe-bash/playwri
 
 export type SnapshotNode = {
 	-readonly [Key in keyof PlaywrightSnapshotJSONNode]: Key extends "children"
-		? SnapshotNode[]
+		? (SnapshotNode | string)[]
 		: PlaywrightSnapshotJSONNode[Key];
 };
 
@@ -35,17 +35,18 @@ export function serializeNativeSnapshot(
 	injected: NativeSnapshotScript,
 	options: { maxBytes: number; boxes: boolean },
 ) {
-	const MAX_SNAPSHOT_NODES = 20000;
 	const snapshot = injected._lastAriaSnapshotForQuery;
 	if (!snapshot) throw new Error("Native browser snapshot is unavailable");
 	const encoder = new TextEncoder();
+	const limited = Number.isFinite(options.maxBytes);
 	let bytes = 2;
-	let count = 0;
-	const account = (node: SnapshotNode) => {
-		// Reserve array/property separators while counting each shallow node once.
-		bytes += encoder.encode(JSON.stringify(node)).byteLength + 16;
-		if (bytes > options.maxBytes || ++count > MAX_SNAPSHOT_NODES)
-			throw new Error("Browser snapshot JSON limit exceeded");
+	if (bytes > options.maxBytes) throw new Error("Browser snapshot JSON limit exceeded");
+	const account = (node: SnapshotNode | string, parent: (SnapshotNode | string)[]) => {
+		if (!limited) return;
+		// Empty child arrays are counted with their parent; descendants add only
+		// their own shallow encoding and the comma preceding each later sibling.
+		bytes += encoder.encode(JSON.stringify(node)).byteLength + Number(parent.length > 0);
+		if (bytes > options.maxBytes) throw new Error("Browser snapshot JSON limit exceeded");
 	};
 	const rectangle = (node: NativeAriaNode) => {
 		const symbol = Object.getOwnPropertySymbols(node).find(
@@ -82,31 +83,28 @@ export function serializeNativeSnapshot(
 		if (options.boxes) result.box = rectangle(node);
 		return result;
 	};
-	const convert = (node: NativeAriaNode | string): SnapshotNode =>
-		typeof node === "string"
-			? { role: "text", text: node }
-			: convertElement(node);
 	const nodes: SnapshotNode[] = [];
-	if (snapshot.root.children.length > MAX_SNAPSHOT_NODES)
-		throw new Error("Browser snapshot JSON limit exceeded");
 	const pending = snapshot.root.children.map((node) => ({
 		node,
-		parent: nodes,
+		parent: nodes as (SnapshotNode | string)[],
 	}));
-	const visit = (entry: (typeof pending)[number]) => {
-		const result = convert(entry.node);
-		account(result);
+	for (const entry of pending) {
+		if (typeof entry.node === "string") {
+			const text = entry.parent === nodes ? { role: "text", text: entry.node } : entry.node;
+			account(text, entry.parent);
+			entry.parent.push(text);
+			continue;
+		}
+		const result = convertElement(entry.node);
+		if (entry.node.children.length === 1 && typeof entry.node.children[0] === "string")
+			result.text = entry.node.children[0];
+		if (entry.node.children.length && result.text === undefined) result.children = [];
+		account(result, entry.parent);
 		entry.parent.push(result);
-		if (typeof entry.node === "string" || !entry.node.children.length) return;
-		result.children = [];
-		if (pending.length + entry.node.children.length > MAX_SNAPSHOT_NODES)
-			throw new Error("Browser snapshot JSON limit exceeded");
+		if (!result.children) continue;
 		for (const child of entry.node.children)
 			pending.push({ node: child, parent: result.children });
-	};
-	for (const entry of pending) visit(entry);
+	}
 	const result = { nodes, iframeRefs: snapshot.iframeRefs };
-	if (encoder.encode(JSON.stringify(result)).byteLength > options.maxBytes)
-		throw new Error("Browser snapshot JSON limit exceeded");
 	return result;
 }

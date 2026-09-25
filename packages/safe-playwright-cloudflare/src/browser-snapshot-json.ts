@@ -4,8 +4,6 @@ import {
 	serializeNativeSnapshot,
 } from "./browser-snapshot-json-injected.js";
 
-const MAX_SNAPSHOT_FRAMES = 128;
-
 interface NativeFrame {
 	_utilityContext(): Promise<{
 		injectedScript(): Promise<{
@@ -23,7 +21,6 @@ interface NativeFrame {
 	};
 }
 interface NativeSnapshotPage {
-	frames(): readonly unknown[];
 	_snapshotForAI(options: { timeout: number }): Promise<{ full: string }>;
 	_connection: {
 		toImpl(page: NativeSnapshotPage): { mainFrame(): NativeFrame };
@@ -63,10 +60,6 @@ async function capture(
 	page: NativeSnapshotPage,
 	options: Parameters<PlaywrightSnapshotJSONCapture>[1],
 ) {
-	// Native snapshot initializes every frame concurrently. Admit the tree first
-	// so oversized pages cannot exhaust the owned transport before classification.
-	if (page.frames().length > MAX_SNAPSHOT_FRAMES)
-		throw new Error("Browser snapshot frame limit exceeded");
 	await page._snapshotForAI({ timeout: options.timeoutMs });
 	options.signal.throwIfAborted();
 	const root = page._connection.toImpl(page).mainFrame();
@@ -74,23 +67,20 @@ async function capture(
 	let remaining = options.maxBytes;
 	const forest: SnapshotNode[] = [];
 	const pending = [{ frame: root, target: forest }];
-	const visit = async (index: number): Promise<void> => {
+	for (let index = 0; index < pending.length; index++) {
 		options.signal.throwIfAborted();
 		const entry = pending[index];
-		if (!entry) return;
-		if (index >= MAX_SNAPSHOT_FRAMES)
-			throw new Error("Browser snapshot frame limit exceeded");
+		if (!entry) continue;
 		const context = await entry.frame._utilityContext();
 		const injected = await context.injectedScript();
 		const result = await injected.evaluate(serializeNativeSnapshot, {
 			maxBytes: remaining,
 			boxes: options.boxes ?? false,
 		});
-		remaining -= encoder.encode(JSON.stringify(result.nodes)).byteLength;
-		entry.target.push(...result.nodes);
+		if (Number.isFinite(remaining))
+			remaining -= encoder.encode(JSON.stringify(result.nodes)).byteLength;
+		for (const node of result.nodes) entry.target.push(node);
 		const byRef = indexNodes(result.nodes);
-		if (pending.length + result.iframeRefs.length > MAX_SNAPSHOT_FRAMES)
-			throw new Error("Browser snapshot frame limit exceeded");
 		const children = await Promise.all(
 			result.iframeRefs.map(async (ref) => {
 				options.signal.throwIfAborted();
@@ -102,28 +92,25 @@ async function capture(
 				);
 				if (!resolved) return;
 				target.children ??= [];
-				return { frame: resolved.frame, target: target.children };
+				return { frame: resolved.frame, target: target.children as SnapshotNode[] };
 			}),
 		);
-		pending.push(...children.filter((child) => child !== undefined));
-		// Frame serialization shares one byte budget, so admit transfers in order.
-		await visit(index + 1);
-	};
-	await visit(0);
-	if (encoder.encode(JSON.stringify(forest)).byteLength > options.maxBytes)
+		for (const child of children) if (child) pending.push(child);
+	}
+	if (Number.isFinite(options.maxBytes) && encoder.encode(JSON.stringify(forest)).byteLength > options.maxBytes)
 		throw new Error("Browser snapshot JSON limit exceeded");
 	return forest;
 }
 
-/** O(nodes), bounded by the renderer's byte and 20,000-node admission. */
+/** O(nodes), sharing the optional renderer byte budget. */
 function indexNodes(nodes: SnapshotNode[]) {
 	const byRef = new Map<string, SnapshotNode>();
-	const pending = [...nodes];
+	const pending: (SnapshotNode | string)[] = [...nodes];
 	for (let index = 0; index < pending.length; index++) {
 		const node = pending[index];
-		if (!node) continue;
+		if (!node || typeof node === "string") continue;
 		if (node.ref) byRef.set(node.ref, node);
-		if (node.children) pending.push(...node.children);
+		if (node.children) for (const child of node.children) pending.push(child);
 	}
 	return byRef;
 }

@@ -17,7 +17,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --external:safe-bash-contracts/* --outfile=dist/index.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/safe-bash-command-pdfimages",

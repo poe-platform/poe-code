@@ -421,20 +421,22 @@ test("printf -v output is storage, not external stdout budget", async () => {
 for (const format of ["%10000s", "\\000%10000s"]) {
   test(`printf -v enforces expansion budget before publication: ${format}`, async context => {
     const { shell } = fixture({ limits: { maxExpansionBytes: 2048 } });
-    const writes = context.mock.method(Runtime.prototype, "writeVariable");
+    const strings = context.mock.method(ValueStore.prototype, "publishString");
+    const values = context.mock.method(ValueStore.prototype, "publish");
     try {
       await assert.rejects(shell.exec(`value=old; printf -v value '${format}' x`), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
-      assert.equal(writes.mock.calls.filter(call => call.arguments[1] === "value").length, 1);
+      assert.deepEqual([...strings.mock.calls, ...values.mock.calls].filter(call => call.arguments[0] === "value").map(call => call.arguments[1]), ["old"]);
     } finally { await shell.dispose(); }
   });
 }
 
 test("printf -v capture shares the existing value-slot budget", async context => {
   const { shell } = fixture({ limits: { maxExpansionFields: 8 } });
-  const writes = context.mock.method(Runtime.prototype, "writeVariable");
+  const strings = context.mock.method(ValueStore.prototype, "publishString");
+  const values = context.mock.method(ValueStore.prototype, "publish");
   try {
     await assert.rejects(shell.exec('value=old; printf -v value "a%%b%%c%%d%%e%%f"'), error => error instanceof ShellLimitError && error.limit === "maxExpansionFields");
-    assert.equal(writes.mock.calls.filter(call => call.arguments[1] === "value").length, 1);
+    assert.deepEqual([...strings.mock.calls, ...values.mock.calls].filter(call => call.arguments[0] === "value").map(call => call.arguments[1]), ["old"]);
   } finally { await shell.dispose(); }
 });
 
@@ -456,14 +458,15 @@ test("printf -v releases intermediate ownership across repeated local calls", as
 
 for (const reason of [false, 0, null, ""]) test(`printf -v cancellation prevents publication: ${String(reason)}`, async context => {
   const controller = new AbortController();
-  const writes = context.mock.method(Runtime.prototype, "writeVariable");
+  const strings = context.mock.method(ValueStore.prototype, "publishString");
+  const values = context.mock.method(ValueStore.prototype, "publish");
   const { shell } = fixture();
   try {
     await assert.rejects(shell.exec('value=old; printf -v value "%s%d" partial invalid', {
       signal: controller.signal,
       stderr: { write: async () => { controller.abort(reason); } },
     }), error => error === reason);
-    assert.equal(writes.mock.calls.filter(call => call.arguments[1] === "value").length, 1);
+    assert.deepEqual([...strings.mock.calls, ...values.mock.calls].filter(call => call.arguments[0] === "value").map(call => call.arguments[1]), ["old"]);
   } finally { await shell.dispose(); }
 });
 

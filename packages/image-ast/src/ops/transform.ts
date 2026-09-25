@@ -947,9 +947,9 @@ export function flattenImage(img: RgbaImage, background: RgbaColor): RgbaImage {
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
     const a = img.data[idx + 3]! / 255;
-    out[idx] = Math.round(img.data[idx]! * a + background.r * (1 - a));
-    out[idx + 1] = Math.round(img.data[idx + 1]! * a + background.g * (1 - a));
-    out[idx + 2] = Math.round(img.data[idx + 2]! * a + background.b * (1 - a));
+    out[idx] = Math.floor(img.data[idx]! * a + background.r * (1 - a) + 1e-6);
+    out[idx + 1] = Math.floor(img.data[idx + 1]! * a + background.g * (1 - a) + 1e-6);
+    out[idx + 2] = Math.floor(img.data[idx + 2]! * a + background.b * (1 - a) + 1e-6);
     out[idx + 3] = 255;
   }
   return {
@@ -1120,13 +1120,13 @@ export function linearImage(
     for (let c = 0; c < 3; c++) {
       const mul = a[c] ?? a[0] ?? 1;
       const off = b[c] ?? b[0] ?? 0;
-      const v = Math.round(img.data[idx + c]! * mul + off);
+      const v = Math.floor(img.data[idx + c]! * mul + off + 1e-6);
       out[idx + c] = v < 0 ? 0 : v > 255 ? 255 : v;
     }
     if (applyAlpha) {
       const mulA = a[3] ?? 1;
       const offA = b[3] ?? 0;
-      const va = Math.round(img.data[idx + 3]! * mulA + offA);
+      const va = Math.floor(img.data[idx + 3]! * mulA + offA + 1e-6);
       out[idx + 3] = va < 0 ? 0 : va > 255 ? 255 : va;
     } else {
       out[idx + 3] = img.data[idx + 3]!;
@@ -1509,14 +1509,14 @@ export function convolveImage(
         const fG = g / scale + spec.offset;
         const fB = b / scale + spec.offset;
         const fA = a / scale + spec.offset;
-        out[dIdx] = fA > 0 ? Math.max(0, Math.min(255, Math.round((fR * 255) / fA))) : 0;
-        out[dIdx + 1] = fA > 0 ? Math.max(0, Math.min(255, Math.round((fG * 255) / fA))) : 0;
-        out[dIdx + 2] = fA > 0 ? Math.max(0, Math.min(255, Math.round((fB * 255) / fA))) : 0;
-        out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(fA)));
+        out[dIdx] = fA > 0 ? Math.max(0, Math.min(255, Math.floor((fR * 255) / fA + 1e-6))) : 0;
+        out[dIdx + 1] = fA > 0 ? Math.max(0, Math.min(255, Math.floor((fG * 255) / fA + 1e-6))) : 0;
+        out[dIdx + 2] = fA > 0 ? Math.max(0, Math.min(255, Math.floor((fB * 255) / fA + 1e-6))) : 0;
+        out[dIdx + 3] = Math.max(0, Math.min(255, Math.floor(fA + 1e-6)));
       } else {
-        out[dIdx] = Math.max(0, Math.min(255, Math.round(r / scale + spec.offset)));
-        out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(g / scale + spec.offset)));
-        out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(b / scale + spec.offset)));
+        out[dIdx] = Math.max(0, Math.min(255, Math.floor(r / scale + spec.offset + 1e-6)));
+        out[dIdx + 1] = Math.max(0, Math.min(255, Math.floor(g / scale + spec.offset + 1e-6)));
+        out[dIdx + 2] = Math.max(0, Math.min(255, Math.floor(b / scale + spec.offset + 1e-6)));
         out[dIdx + 3] = data[dIdx + 3]!;
       }
     }

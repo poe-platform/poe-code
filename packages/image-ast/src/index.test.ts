@@ -1636,4 +1636,37 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const screenOut = await sharp(bd, rOpts).composite([{ input: ovPng, blend: "screen" }]).raw().toBuffer();
     expect(Array.from(screenOut)).toEqual([170, 148, 112, 238, 89, 175, 107, 227, 202, 80, 133, 255, 215, 113, 36, 207]);
   });
+
+  it("matches libvips vips_cast_uchar truncation in convolve(), linear(), and flatten() (#89)", async () => {
+    // 1. convolve() truncation
+    const ramp3x3 = Buffer.from([
+      10, 20, 30,   40, 50, 60,   70, 80, 90,
+      100,110,120,  130,140,150,  160,170,180,
+      190,200,210,  220,230,240,  250,15, 25
+    ]);
+    const convOut = await sharp(ramp3x3, { raw: { width: 3, height: 3, channels: 3 } })
+      .convolve({ width: 3, height: 3, kernel: [1, 2, 3, 0, 1, 0, -1, -2, -3], scale: 4, offset: 50 })
+      .raw()
+      .toBuffer();
+    expect(Array.from(convOut)).toEqual([
+      0, 0, 0,  0, 0, 0,  0, 0, 0,
+      0, 0, 0,  0, 0, 1,  0, 128, 131,
+      0, 0, 0,  0, 156, 158,  0, 225, 227
+    ]);
+
+    // 2. linear() truncation
+    const linOut = await sharp(Buffer.from([101, 102, 103, 104]), { raw: { width: 4, height: 1, channels: 1 } })
+      .toColorspace("b-w")
+      .linear(0.25, 10)
+      .raw()
+      .toBuffer();
+    expect(Array.from(linOut)).toEqual([35, 35, 35, 36]);
+
+    // 3. flatten() truncation
+    const flatOut = await sharp(Buffer.from([200, 50, 25, 128, 120, 180, 60, 200]), { raw: { width: 2, height: 1, channels: 4 } })
+      .flatten({ background: { r: 50, g: 100, b: 150 } })
+      .raw()
+      .toBuffer();
+    expect(Array.from(flatOut)).toEqual([125, 74, 87, 104, 162, 79]);
+  });
 });

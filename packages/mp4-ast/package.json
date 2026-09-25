@@ -1,0 +1,32 @@
+{
+  "name": "@poe-code/mp4-ast",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Pure TypeScript MP4/ISOBMFF, MKV/WebM, MPEG-TS, AVI, FLV, Y4M and multimedia container AST engine",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --metafile=dist/metafile.json",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "cd ../.. && vitest run packages/mp4-ast",
+    "test:unit": "cd ../.. && vitest run packages/mp4-ast"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@poe-code/audio-ast": "*",
+    "@poe-code/image-ast": "*"
+  }
+}

@@ -117,6 +117,22 @@ interface WriteTarget {
   append: boolean;
 }
 
+class MemoryCache {
+  readonly allocations: MemoryAllocation[] = [];
+  readonly files: FileNode[] = [];
+  lastFastDirPrefix = "";
+  lastFastDirNode: DirectoryNode | undefined;
+  lastFastFilePath = "";
+  lastFastFileNode: FileNode | undefined;
+
+  clearWrites(): void {
+    this.lastFastDirPrefix = "";
+    this.lastFastDirNode = undefined;
+    this.lastFastFilePath = "";
+    this.lastFastFileNode = undefined;
+  }
+}
+
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const preferredIoBlockSize = 64 * 1024;
 const ext4HtreeEof64 = (1n << 63n) - 1n;
@@ -124,7 +140,8 @@ const extractionStreamGuard = Symbol("extractionStreamGuard");
 type ConfinedWriteOptions = WriteFileOptions & { readonly [extractionStreamGuard]?: (node: FileNode) => void };
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
 const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; intact: () => boolean }>();
-const memoryPools = new WeakMap<MemoryLedger, { allocations: MemoryAllocation[]; files: FileNode[] }>();
+// Forwarded receivers share the ledger, so mutations invalidate the owner's cache.
+const memoryCaches = new WeakMap<MemoryLedger, MemoryCache>();
 const registeredAuthorities = new WeakSet<FileSystem>();
 const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   options.signal?.throwIfAborted();
@@ -219,14 +236,10 @@ export class MemoryFileSystem implements FileSystem {
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
-  #lastFastDirPrefix = "";
-  #lastFastDirNode: DirectoryNode | undefined;
-  #lastFastFilePath = "";
-  #lastFastFileNode: FileNode | undefined;
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));
-    memoryPools.set(this.ledger, { allocations: [], files: [] });
+    memoryCaches.set(this.ledger, new MemoryCache());
     this.ledger.reserve(0, 1, "mkdir", "/");
     this.root = this.directory(0o755);
     const root = this.root;
@@ -375,28 +388,28 @@ export class MemoryFileSystem implements FileSystem {
 
   private releaseNode(node: MemoryNode): void {
     if (node.nlink !== 0 || node.references !== 0) return;
+    const cache = memoryCaches.get(this.ledger)!;
     this.ledger.release(node.type === "symlink" ? node.target.length * 2 : 0, 1);
     if (node.type === "file") {
-      if (this.#lastFastFileNode === node) {
-        this.#lastFastFilePath = "";
-        this.#lastFastFileNode = undefined;
+      if (cache.lastFastFileNode === node) {
+        cache.lastFastFilePath = "";
+        cache.lastFastFileNode = undefined;
       }
       this.totalBytes -= node.byteLength;
       const alloc = node.allocation;
       node.view = undefined;
       alloc.release();
-      const pool = memoryPools.get(this.ledger)!;
-      if (alloc.isReleased64() && pool.allocations.length < 128) {
-        pool.allocations.push(alloc);
+      if (alloc.isReleased64() && cache.allocations.length < 128) {
+        cache.allocations.push(alloc);
       }
-      if (pool.files.length < 128) {
-        pool.files.push(node);
+      if (cache.files.length < 128) {
+        cache.files.push(node);
       }
     } else if (node.type === "symlink") {
       this.symlinkCount--;
-    } else if (this.#lastFastDirNode === node) {
-      this.#lastFastDirPrefix = "";
-      this.#lastFastDirNode = undefined;
+    } else if (cache.lastFastDirNode === node) {
+      cache.lastFastDirPrefix = "";
+      cache.lastFastDirNode = undefined;
     }
   }
 
@@ -610,7 +623,7 @@ export class MemoryFileSystem implements FileSystem {
   private allocate(length: number, syscall: string, path: string): MemoryAllocation {
     this.ledger.fileSize(length, syscall, path);
     this.ledger.reserve(length, 0, syscall, path);
-    const allocations = memoryPools.get(this.ledger)!.allocations;
+    const allocations = memoryCaches.get(this.ledger)!.allocations;
     if (length === 64 && allocations.length > 0) {
       const pooled = allocations.pop()!;
       pooled.reuse();
@@ -712,7 +725,7 @@ export class MemoryFileSystem implements FileSystem {
           const now = Date.now();
           const fileMode = typeModes.file | target.mode;
           const view = capacity === length ? allocation.data : undefined;
-          const pooled = memoryPools.get(this.ledger)!.files.pop();
+          const pooled = memoryCaches.get(this.ledger)!.files.pop();
           if (pooled) {
             pooled.mode = fileMode;
             pooled.ino = this.nextInode++;
@@ -782,18 +795,19 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   writeMemoryFileFast(path: string, data: Uint8Array, append: boolean, mode: number): void {
+    const cache = memoryCaches.get(this.ledger)!;
     const syscall = append ? "appendFile" : "writeFile";
     if (
       append &&
-      path === this.#lastFastFilePath &&
-      this.#lastFastFileNode !== undefined &&
-      this.#lastFastFileNode.nlink !== 0 &&
-      this.#lastFastDirNode !== undefined &&
-      this.#lastFastDirNode.nlink !== 0 &&
-      (this.#lastFastDirNode.mode & 1) !== 0 &&
-      (this.#lastFastFileNode.mode & 2) !== 0
+      path === cache.lastFastFilePath &&
+      cache.lastFastFileNode !== undefined &&
+      cache.lastFastFileNode.nlink !== 0 &&
+      cache.lastFastDirNode !== undefined &&
+      cache.lastFastDirNode.nlink !== 0 &&
+      (cache.lastFastDirNode.mode & 1) !== 0 &&
+      (cache.lastFastFileNode.mode & 2) !== 0
     ) {
-      const current = this.#lastFastFileNode;
+      const current = cache.lastFastFileNode;
       const length = current.byteLength + data.byteLength;
       this.admitSize(current, length, syscall, path);
       const growth = length > current.allocation.data.byteLength ? length : 0;
@@ -804,8 +818,8 @@ export class MemoryFileSystem implements FileSystem {
     let parent: DirectoryNode = this.root;
     let start = 1;
     let name = "";
-    const cachedPrefix = this.#lastFastDirPrefix;
-    const cachedDir = this.#lastFastDirNode;
+    const cachedPrefix = cache.lastFastDirPrefix;
+    const cachedDir = cache.lastFastDirNode;
     if (
       cachedDir !== undefined &&
       cachedDir.nlink !== 0 &&
@@ -825,8 +839,8 @@ export class MemoryFileSystem implements FileSystem {
           name = path.slice(start);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
           if (start > 1 && (parent.mode & 1) !== 0) {
-            this.#lastFastDirPrefix = path.slice(0, start);
-            this.#lastFastDirNode = parent;
+            cache.lastFastDirPrefix = path.slice(0, start);
+            cache.lastFastDirNode = parent;
           }
           break;
         }
@@ -854,8 +868,8 @@ export class MemoryFileSystem implements FileSystem {
     this.ledger.check(data.byteLength + growth + (current ? 0 : nameBytes), current ? 0 : 2, syscall, path);
     if (current && append) {
       this.writeAt(current, data, current.byteLength, syscall, path);
-      this.#lastFastFilePath = path;
-      this.#lastFastFileNode = current;
+      cache.lastFastFilePath = path;
+      cache.lastFastFileNode = current;
       return;
     }
     if (!current) {
@@ -870,7 +884,7 @@ export class MemoryFileSystem implements FileSystem {
           const now = Date.now();
           const fileMode = typeModes.file | mode;
           const view = capacity === length ? allocation.data : undefined;
-          let node = memoryPools.get(this.ledger)!.files.pop();
+          let node = cache.files.pop();
           if (node) {
             node.mode = fileMode;
             node.ino = this.nextInode++;
@@ -896,8 +910,8 @@ export class MemoryFileSystem implements FileSystem {
             parent.cachedNlink = prevNlink;
             parent.cachedNlinkRev = parent.revision;
           }
-          this.#lastFastFilePath = path;
-          this.#lastFastFileNode = node;
+          cache.lastFastFilePath = path;
+          cache.lastFastFileNode = node;
         } catch (error) {
           this.ledger.release(nameBytes, 2);
           throw error;
@@ -1197,10 +1211,7 @@ export class MemoryFileSystem implements FileSystem {
     this.permission(location.parent, 3, "removeEntryConditional", path);
     if (node.type === "directory" && node.entries.size > 0) this.fail("ENOTEMPTY", "removeEntryConditional", path);
     location.parent.entries.delete(location.name);
-    this.#lastFastDirPrefix = "";
-    this.#lastFastDirNode = undefined;
-    this.#lastFastFilePath = "";
-    this.#lastFastFileNode = undefined;
+    memoryCaches.get(this.ledger)!.clearWrites();
     this.ledger.release(location.name.length * 2, 1);
     node.nlink--;
     node.ctimeMs = Date.now();
@@ -1335,10 +1346,7 @@ export class MemoryFileSystem implements FileSystem {
     if (node === this.root) this.fail("EBUSY", syscall, path);
     this.permission(location.parent, 3, syscall, path);
     if (node.type === "directory" && !recursive) this.fail("EISDIR", syscall, path);
-    this.#lastFastDirPrefix = "";
-    this.#lastFastDirNode = undefined;
-    this.#lastFastFilePath = "";
-    this.#lastFastFileNode = undefined;
+    memoryCaches.get(this.ledger)!.clearWrites();
     const removed: MemoryNode[] = [node];
     let keyChars = 0;
     let keyEntries = 0;
@@ -1395,10 +1403,7 @@ export class MemoryFileSystem implements FileSystem {
       this.ledger.reserve(Math.max(0, nameGrowth), 0, "rename", source);
       try { target.parent.entries.set(target.name, node); }
       catch (error) { this.ledger.release(Math.max(0, nameGrowth), 0); throw error; }
-      this.#lastFastDirPrefix = "";
-      this.#lastFastDirNode = undefined;
-      this.#lastFastFilePath = "";
-      this.#lastFastFileNode = undefined;
+      memoryCaches.get(this.ledger)!.clearWrites();
       origin.parent.entries.delete(origin.name);
       if (target.node) {
         this.ledger.release(origin.name.length * 2, 1);

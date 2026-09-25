@@ -11,45 +11,65 @@ function isSyncResolved(promise: unknown): boolean {
 }
 
 export class InvocationScope {
-  #children: Set<InvocationScope> | undefined;
-  #singleCallback: InvocationCleanup | undefined;
-  #regCount = 0;
-  #callbacks: Map<number, InvocationCleanup> | undefined;
-  #finalizers: (() => void | Promise<void>)[] | undefined;
-  #activeWork = 0;
-  #workWaiters: (() => void)[] | undefined;
-  #controller: ManagedControlController | undefined;
-  #closed = false;
-  #drain: Promise<void> | undefined;
-  #closingSync = false;
-  #reentrantResolve: (() => void) | undefined;
-  #reentrantReject: ((reason: unknown) => void) | undefined;
+  declare readonly callerSignal: AbortSignal | undefined;
+  declare readonly failures: unknown[];
+  declare readonly parent: InvocationScope | undefined;
+  declare private _children: Set<InvocationScope> | undefined;
+  declare private _singleCallback: InvocationCleanup | undefined;
+  declare private _regCount: number;
+  declare private _callbacks: Map<number, InvocationCleanup> | undefined;
+  declare private _finalizers: (() => void | Promise<void>)[] | undefined;
+  declare private _activeWork: number;
+  declare private _workWaiters: (() => void)[] | undefined;
+  declare private _controller: ManagedControlController | undefined;
+  declare private _closed: boolean;
+  declare private _drain: Promise<void> | undefined;
+  declare private _closingSync: boolean;
+  declare private _reentrantResolve: (() => void) | undefined;
+  declare private _reentrantReject: ((reason: unknown) => void) | undefined;
 
   constructor(
-    readonly callerSignal?: AbortSignal,
-    readonly failures: unknown[] = [],
-    readonly parent?: InvocationScope,
-  ) {}
+    callerSignal?: AbortSignal,
+    failures: unknown[] = [],
+    parent?: InvocationScope,
+  ) {
+    this.callerSignal = callerSignal;
+    this.failures = failures;
+    this.parent = parent;
+    this._children = undefined;
+    this._singleCallback = undefined;
+    this._regCount = 0;
+    this._callbacks = undefined;
+    this._finalizers = undefined;
+    this._activeWork = 0;
+    this._workWaiters = undefined;
+    this._controller = undefined;
+    this._closed = false;
+    this._drain = undefined;
+    this._closingSync = false;
+    this._reentrantResolve = undefined;
+    this._reentrantReject = undefined;
+  }
 
   get signal(): AbortSignal {
-    if (!this.#controller) {
-      this.#controller = createManagedControlController();
-      if (this.#closed) this.#controller.abort(invocationClosedError);
+    if (!this._controller) {
+      this._controller = createManagedControlController();
+      if (this._closed) this._controller.abort(invocationClosedError);
     }
-    return this.#controller.signal;
+    return this._controller.signal;
   }
 
   registerFinalizer(finalize: () => void | Promise<void>): void {
     this.assertOpen();
-    (this.#finalizers ??= []).push(finalize);
+    (this._finalizers ??= []).push(finalize);
   }
 
   onSeal(callback: () => void): () => void {
-    if (this.#closed) {
+    if (this._closed) {
       callback();
       return () => {};
     }
-    const list = (this.#finalizers ??= []);
+    const list = (this._finalizers ??= []);
     list.push(callback);
     return () => {
       const idx = list.indexOf(callback);
@@ -59,41 +79,41 @@ export class InvocationScope {
 
   assertOpen(): void {
     this.callerSignal?.throwIfAborted();
-    if (this.#closed) throw this.#controller ? this.#controller.signal.reason : invocationClosedError;
+    if (this._closed) throw this._controller ? this._controller.signal.reason : invocationClosedError;
     this.parent?.assertOpen();
   }
 
   child(): InvocationScope {
     this.assertOpen();
     const child = new InvocationScope(this.callerSignal, this.failures, this);
-    (this.#children ??= new Set()).add(child);
+    (this._children ??= new Set()).add(child);
     return child;
   }
 
   register(cleanup: InvocationCleanup): () => void {
     this.assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
-    const id = this.#regCount++;
+    const id = this._regCount++;
     if (id === 0) {
-      this.#singleCallback = cleanup;
+      this._singleCallback = cleanup;
       return () => {
-        this.#singleCallback = undefined;
+        this._singleCallback = undefined;
       };
     }
-    const callbacks = this.#callbacks ??= new Map();
+    const callbacks = this._callbacks ??= new Map();
     callbacks.set(id, cleanup);
     return () => { callbacks.delete(id); };
   }
 
   enterWork(): void {
     this.assertOpen();
-    this.#activeWork++;
+    this._activeWork++;
   }
 
   leaveWork(): void {
-    if (--this.#activeWork === 0 && this.#workWaiters) {
-      const waiters = this.#workWaiters;
-      this.#workWaiters = undefined;
+    if (--this._activeWork === 0 && this._workWaiters) {
+      const waiters = this._workWaiters;
+      this._workWaiters = undefined;
       for (const resolve of waiters) resolve();
     }
   }
@@ -117,45 +137,45 @@ export class InvocationScope {
   }
 
   async drainWork(): Promise<void> {
-    if (this.#activeWork === 0 && !this.#children?.size) return;
+    if (this._activeWork === 0 && !this._children?.size) return;
     await Promise.all([
-      ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
-      ...(this.#children ? [...this.#children].map(child => child.drainWork()) : []),
+      ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
+      ...(this._children ? [...this._children].map(child => child.drainWork()) : []),
     ]);
   }
 
-  #seal(): void {
-    if (this.#closed) return;
-    this.#closed = true;
-    if (this.#children) {
-      for (const child of this.#children) child.#seal();
+  private _seal(): void {
+    if (this._closed) return;
+    this._closed = true;
+    if (this._children) {
+      for (const child of this._children) child._seal();
     }
-    this.#controller?.abort(invocationClosedError);
+    this._controller?.abort(invocationClosedError);
   }
 
   close(): Promise<void> {
-    if (this.#drain) return this.#drain;
-    if (this.#closingSync) {
-      this.#drain = new Promise<void>((accept, refuse) => {
-        this.#reentrantResolve = accept;
-        this.#reentrantReject = refuse;
+    if (this._drain) return this._drain;
+    if (this._closingSync) {
+      this._drain = new Promise<void>((accept, refuse) => {
+        this._reentrantResolve = accept;
+        this._reentrantReject = refuse;
       });
-      return this.#drain;
+      return this._drain;
     }
-    if (!this.#drain) {
-      if (!this.#finalizers?.length && !this.#singleCallback && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
-        this.#drain = resolvedVoid;
-        this.#seal();
-        if (this.parent) this.parent.#children?.delete(this);
+    if (!this._drain) {
+      if (!this._finalizers?.length && !this._singleCallback && !this._callbacks?.size && !this._children?.size && this._activeWork === 0) {
+        this._drain = resolvedVoid;
+        this._seal();
+        if (this.parent) this.parent._children?.delete(this);
         return resolvedVoid;
       }
-      this.#closingSync = true;
-      this.#seal();
-      if (!this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
+      this._closingSync = true;
+      this._seal();
+      if (!this._callbacks?.size && !this._children?.size && this._activeWork === 0) {
         let singleCbAsync: Promise<unknown> | undefined;
-        if (this.#singleCallback) {
-          const cb = this.#singleCallback;
-          this.#singleCallback = undefined;
+        if (this._singleCallback) {
+          const cb = this._singleCallback;
+          this._singleCallback = undefined;
           try {
             const res = cb();
             // Public callbacks can return promises carrying arbitrary markers.
@@ -166,11 +186,11 @@ export class InvocationScope {
             this.failures.push(error);
           }
         }
-        if (!singleCbAsync && !this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
+        if (!singleCbAsync && !this._callbacks?.size && !this._children?.size && this._activeWork === 0) {
         let asyncFinalizers: Promise<unknown>[] | undefined;
-        if (this.#finalizers) {
-          const finalizers = this.#finalizers;
-          this.#finalizers = undefined;
+        if (this._finalizers) {
+          const finalizers = this._finalizers;
+          this._finalizers = undefined;
           for (let i = 0; i < finalizers.length; i++) {
             const finalize = finalizers[i]!;
             try {
@@ -182,41 +202,41 @@ export class InvocationScope {
             catch (error) { this.failures.push(error); }
           }
         }
-        this.#closingSync = false;
+        this._closingSync = false;
         if (asyncFinalizers) {
           const done = Promise.all(asyncFinalizers).then(() => {
-            if (this.parent) this.parent.#children?.delete(this);
+            if (this.parent) this.parent._children?.delete(this);
           });
-          if (this.#drain) {
-            void done.then(this.#reentrantResolve, this.#reentrantReject);
+          if (this._drain) {
+            void done.then(this._reentrantResolve, this._reentrantReject);
           } else {
-            this.#drain = done;
+            this._drain = done;
           }
-          return this.#drain;
+          return this._drain;
         }
-        if (this.parent) this.parent.#children?.delete(this);
-        if (this.#drain) {
-          this.#reentrantResolve?.();
-          Object.defineProperty(this.#drain, syncResolved, { value: true });
-          return this.#drain;
+        if (this.parent) this.parent._children?.delete(this);
+        if (this._drain) {
+          this._reentrantResolve?.();
+          Object.defineProperty(this._drain, syncResolved, { value: true });
+          return this._drain;
         }
-        this.#drain = resolvedVoid;
+        this._drain = resolvedVoid;
         return resolvedVoid;
         }
-        this.#closingSync = false;
-        const callbacks = this.#callbacks ? [...this.#callbacks.values()] : [];
-        this.#callbacks?.clear();
+        this._closingSync = false;
+        const callbacks = this._callbacks ? [...this._callbacks.values()] : [];
+        this._callbacks?.clear();
         const done = Promise.resolve().then(async () => {
           try {
             await Promise.all([
               ...(singleCbAsync ? [singleCbAsync] : []),
               ...callbacks.map((cleanup) => this.cleanup(cleanup)),
-              ...(this.#children ? [...this.#children].map((child) => child.close()) : []),
-              ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
+              ...(this._children ? [...this._children].map((child) => child.close()) : []),
+              ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
             ]);
           } finally {
-            if (this.#finalizers) {
-              for (const finalize of this.#finalizers.splice(0)) {
+            if (this._finalizers) {
+              for (const finalize of this._finalizers.splice(0)) {
                 try {
                   const res = finalize();
                   if (res && !isSyncResolved(res)) await res;
@@ -224,34 +244,34 @@ export class InvocationScope {
                 catch (error) { this.failures.push(error); }
               }
             }
-            if (this.parent) this.parent.#children?.delete(this);
+            if (this.parent) this.parent._children?.delete(this);
           }
         });
-        if (this.#drain) {
-          void done.then(this.#reentrantResolve, this.#reentrantReject);
+        if (this._drain) {
+          void done.then(this._reentrantResolve, this._reentrantReject);
         } else {
-          this.#drain = done;
+          this._drain = done;
         }
-        return this.#drain;
+        return this._drain;
       }
-      this.#closingSync = false;
-      const singleCb = this.#singleCallback;
-      this.#singleCallback = undefined;
+      this._closingSync = false;
+      const singleCb = this._singleCallback;
+      this._singleCallback = undefined;
       const callbacks = [
         ...(singleCb ? [singleCb] : []),
-        ...(this.#callbacks ? [...this.#callbacks.values()] : []),
+        ...(this._callbacks ? [...this._callbacks.values()] : []),
       ];
-      this.#callbacks?.clear();
+      this._callbacks?.clear();
       const done = Promise.resolve().then(async () => {
         try {
           await Promise.all([
             ...callbacks.map((cleanup) => this.cleanup(cleanup)),
-            ...(this.#children ? [...this.#children].map((child) => child.close()) : []),
-            ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
+            ...(this._children ? [...this._children].map((child) => child.close()) : []),
+            ...(this._activeWork > 0 ? [new Promise<void>(resolve => (this._workWaiters ??= []).push(resolve))] : []),
           ]);
         } finally {
-          if (this.#finalizers) {
-            for (const finalize of this.#finalizers.splice(0)) {
+          if (this._finalizers) {
+            for (const finalize of this._finalizers.splice(0)) {
               try {
                 const res = finalize();
                 if (res && !isSyncResolved(res)) await res;
@@ -259,16 +279,16 @@ export class InvocationScope {
               catch (error) { this.failures.push(error); }
             }
           }
-          if (this.parent) this.parent.#children?.delete(this);
+          if (this.parent) this.parent._children?.delete(this);
         }
       });
-      if (this.#drain) {
-        void done.then(this.#reentrantResolve, this.#reentrantReject);
+      if (this._drain) {
+        void done.then(this._reentrantResolve, this._reentrantReject);
       } else {
-        this.#drain = done;
+        this._drain = done;
       }
     }
-    return this.#drain;
+    return this._drain;
   }
 }
 

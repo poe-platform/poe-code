@@ -13,12 +13,13 @@ export type PipelineStatusTarget = "indexed" | "scalar" | "readonly-absent" | "l
 export function pipelineStatusTarget(state: State): PipelineStatusTarget {
   const monitor = stateMonitor(state);
   if (monitor?.lazyPipeStatus !== undefined || monitor?.store?.get(name)) return "indexed";
-  if (Object.hasOwn(state.variables, name)) return "scalar";
-  if (state.readonlyVariables?.has(name)) return "readonly-absent";
-  for (let index = state.locals.length - 1; index >= 0; index--) {
-    if (state.locals[index]!.has(name)) return "local-tombstone";
+  const raw = monitor ? monitor.raw : state;
+  if (Object.hasOwn(raw.variables, name)) return "scalar";
+  if (raw.readonlyVariables?.has(name)) return "readonly-absent";
+  for (let index = raw.locals.length - 1; index >= 0; index--) {
+    if (raw.locals[index]!.has(name)) return "local-tombstone";
   }
-  if (state.exported.has(name)) return "exported-absent";
+  if (raw.exported.has(name)) return "exported-absent";
   return "absent";
 }
 

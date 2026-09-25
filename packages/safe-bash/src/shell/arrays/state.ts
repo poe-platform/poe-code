@@ -102,38 +102,61 @@ export function requireArrays(state: State): BindingStore {
 }
 
 export class StateMonitor {
-  readonly proxy: State;
-  readonly values: ValueStore;
-  #positionals: ValueStore | undefined;
-  store: BindingStore | undefined;
-  lazyPipeStatus: readonly number[] | undefined;
-  #lazyStoreView: BindingStore | undefined;
-  epoch = 0;
-  #publication = false;
-  #wrapped: WeakMap<object, object> | undefined;
-  #variablesProxy: object | undefined;
-  #functionsProxy: object | undefined;
-  #exportedProxy: object | undefined;
-  #positionalProxy: object | undefined;
-  #localsProxy: object | undefined;
-  #wrapperCount = 0;
-  #enrollment: Admission | undefined;
-  #internalEnrollment: Admission | undefined;
-  snapshotOwner: ArrayOwner | undefined;
-  #restorations: Restoration | undefined;
-  #freeRestorations: Restoration | undefined;
-  #overlays: OverlayMap | undefined;
-  #positionalRevision: object | undefined;
-  #getoptsInput: { input: GetoptsInput; allocation: ValueScope } | undefined;
+  declare readonly raw: State;
+  declare readonly session: Session;
+  declare readonly proxy: State;
+  declare readonly values: ValueStore;
+  declare private _positionals: ValueStore | undefined;
+  declare store: BindingStore | undefined;
+  declare lazyPipeStatus: readonly number[] | undefined;
+  declare private _lazyStoreView: BindingStore | undefined;
+  declare epoch: number;
+  declare private _publication: boolean;
+  declare private _wrapped: WeakMap<object, object> | undefined;
+  declare private _variablesProxy: object | undefined;
+  declare private _functionsProxy: object | undefined;
+  declare private _exportedProxy: object | undefined;
+  declare private _positionalProxy: object | undefined;
+  declare private _localsProxy: object | undefined;
+  declare private _wrapperCount: number;
+  declare private _enrollment: Admission | undefined;
+  declare private _internalEnrollment: Admission | undefined;
+  declare snapshotOwner: ArrayOwner | undefined;
+  declare private _restorations: Restoration | undefined;
+  declare private _freeRestorations: Restoration | undefined;
+  declare private _overlays: OverlayMap | undefined;
+  declare private _positionalRevision: object | undefined;
+  declare private _getoptsInput: { input: GetoptsInput; allocation: ValueScope } | undefined;
 
-  constructor(readonly raw: State, readonly session: Session, source?: StateMonitor) {
+  constructor(raw: State, session: Session, source?: StateMonitor) {
+    this.raw = raw;
+    this.session = session;
     this.values = source ? source.values.clone() : session.values.createStore();
-    if (source?.lazyPipeStatus !== undefined) this.lazyPipeStatus = source.lazyPipeStatus;
-    if (source && source.#positionals) {
-      try { this.#positionals = source.#positionals.clone(); }
+    this._positionals = undefined;
+    this.store = undefined;
+    this.lazyPipeStatus = source?.lazyPipeStatus;
+    this._lazyStoreView = undefined;
+    this.epoch = 0;
+    this._publication = false;
+    this._wrapped = undefined;
+    this._variablesProxy = undefined;
+    this._functionsProxy = undefined;
+    this._exportedProxy = undefined;
+    this._positionalProxy = undefined;
+    this._localsProxy = undefined;
+    this._wrapperCount = 1;
+    this._enrollment = undefined;
+    this._internalEnrollment = undefined;
+    this.snapshotOwner = undefined;
+    this._restorations = undefined;
+    this._freeRestorations = undefined;
+    this._overlays = undefined;
+    this._positionalRevision = undefined;
+    this._getoptsInput = undefined;
+    if (source && source._positionals) {
+      try { this._positionals = source._positionals.clone(); }
       catch (error) { this.values.close(); throw error; }
     }
-    this.#wrapperCount = 1;
     this.proxy = new Proxy(raw, new StateProxyHandler(this, "state", false)) as State;
     if (Object.isExtensible(raw)) {
       Object.defineProperty(raw, monitorSymbol, { value: this, writable: true, configurable: true });
@@ -151,12 +174,12 @@ export class StateMonitor {
   }
 
   get positionals(): ValueStore {
-    return this.#positionals ??= this.session.values.createStore();
+    return this._positionals ??= this.session.values.createStore();
   }
 
   closeValues(): void {
     this.values.close();
-    this.#positionals?.close();
+    this._positionals?.close();
     this.lazyPipeStatus = undefined;
     this.invalidateGetoptsInput();
     if (this.store) {
@@ -164,10 +187,10 @@ export class StateMonitor {
         void this.store.remove(name, { generation: 0, version: 0, epoch: 0 });
       }
     }
-    this.#internalEnrollment?.release();
-    this.#internalEnrollment = undefined;
-    this.#enrollment?.release();
-    this.#enrollment = undefined;
+    this._internalEnrollment?.release();
+    this._internalEnrollment = undefined;
+    this._enrollment?.release();
+    this._enrollment = undefined;
     if (this.snapshotOwner) {
       void this.snapshotOwner.close();
       this.snapshotOwner = undefined;
@@ -176,37 +199,37 @@ export class StateMonitor {
     else if (this.session.firstMonitor === this) this.session.firstMonitor = undefined;
   }
 
-  get positionalRevision(): object { return this.#positionalRevision ??= {}; }
-  get getoptsInput(): GetoptsInput | undefined { return this.#getoptsInput?.input; }
+  get positionalRevision(): object { return this._positionalRevision ??= {}; }
+  get getoptsInput(): GetoptsInput | undefined { return this._getoptsInput?.input; }
   get lazyStoreView(): BindingStore {
-    return this.#lazyStoreView ??= new LazyPipeStatusStoreView(this) as unknown as BindingStore;
+    return this._lazyStoreView ??= new LazyPipeStatusStoreView(this) as unknown as BindingStore;
   }
 
   retainGetoptsInput(revision: object, input: GetoptsInput, allocation: ValueScope): boolean {
     this.session.scope.assertOpen();
-    if (revision !== (this.#positionalRevision ??= {})) return false;
-    this.#getoptsInput?.allocation.close();
-    this.#getoptsInput = { input, allocation };
+    if (revision !== (this._positionalRevision ??= {})) return false;
+    this._getoptsInput?.allocation.close();
+    this._getoptsInput = { input, allocation };
     return true;
   }
 
   private invalidateGetoptsInput(): void {
-    this.#getoptsInput?.allocation.close();
-    this.#getoptsInput = undefined;
-    this.#positionalRevision = undefined;
+    this._getoptsInput?.allocation.close();
+    this._getoptsInput = undefined;
+    this._positionalRevision = undefined;
   }
 
   changedValue(target: object, field: string, key: PropertyKey): void {
     if (field === "state") {
-      if (key === "variables") { this.#variablesProxy = undefined; this.values.invalidate(); }
-      if (key === "positional") { this.#positionalProxy = undefined; this.#positionals?.invalidate(); this.invalidateGetoptsInput(); }
-      if (key === "functions") this.#functionsProxy = undefined;
-      if (key === "exported") this.#exportedProxy = undefined;
-      if (key === "locals") this.#localsProxy = undefined;
-    } else if (field === "variables" && (this.raw.variables === target || this.#variablesProxy === target || this.raw.variables === this.#wrapped?.get(target))) {
+      if (key === "variables") { this._variablesProxy = undefined; this.values.invalidate(); }
+      if (key === "positional") { this._positionalProxy = undefined; this._positionals?.invalidate(); this.invalidateGetoptsInput(); }
+      if (key === "functions") this._functionsProxy = undefined;
+      if (key === "exported") this._exportedProxy = undefined;
+      if (key === "locals") this._localsProxy = undefined;
+    } else if (field === "variables" && (this.raw.variables === target || this._variablesProxy === target || this.raw.variables === this._wrapped?.get(target))) {
       this.values.invalidate(String(key));
-    } else if (field === "positional" && (this.raw.positional === target || this.#positionalProxy === target || this.raw.positional === this.#wrapped?.get(target))) {
-      this.#positionals?.invalidate();
+    } else if (field === "positional" && (this.raw.positional === target || this._positionalProxy === target || this.raw.positional === this._wrapped?.get(target))) {
+      this._positionals?.invalidate();
       this.invalidateGetoptsInput();
     }
   }
@@ -217,31 +240,31 @@ export class StateMonitor {
   }
 
   activate(internal = false): BindingStore {
-    if (this.store && (internal || this.#enrollment)) return this.store;
+    if (this.store && (internal || this._enrollment)) return this.store;
     const root = this.internalOwner();
     const existingGuestOwner = this.session.guestOwner;
     const owner = internal ? root : existingGuestOwner ?? ArrayOwner.create(this.session.ledger, root);
     let enrollment: Admission;
     try {
-      enrollment = owner.reserve({ slots: this.#wrapperCount * 2 + 2, metadata: 128 + this.#wrapperCount * 128, work: this.#wrapperCount * 8 + 8 });
+      enrollment = owner.reserve({ slots: this._wrapperCount * 2 + 2, metadata: 128 + this._wrapperCount * 128, work: this._wrapperCount * 8 + 8 });
     } catch (error) {
       if (!internal && !existingGuestOwner) void owner.close();
       throw error;
     }
-    if (internal) this.#internalEnrollment = enrollment;
+    if (internal) this._internalEnrollment = enrollment;
     else {
       this.session.guestOwner = owner;
-      this.#enrollment = enrollment;
+      this._enrollment = enrollment;
     }
     let pending = 0;
-    for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) pending++;
+    for (let entry = this._restorations; entry; entry = entry.next) if (!entry.epoch) pending++;
     if (pending) {
       const admission = owner.reserve({ epoch: pending, metadata: pending * 64, work: pending * 8 });
       admission.restorationReferences = pending;
       let ticket = admission.epoch - pending;
-      for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) { entry.epoch = ++ticket; entry.admission = admission; }
+      for (let entry = this._restorations; entry; entry = entry.next) if (!entry.epoch) { entry.epoch = ++ticket; entry.admission = admission; }
     }
-    for (let entry = this.#restorations; entry; entry = entry.next) if (entry.resource && !entry.holding) entry.holding = owner.hold();
+    for (let entry = this._restorations; entry; entry = entry.next) if (entry.resource && !entry.holding) entry.holding = owner.hold();
     if (this.store) this.store.owner = owner;
     else this.store = BindingStore.create(owner);
     this.store.epoch = this.epoch;
@@ -261,14 +284,14 @@ export class StateMonitor {
           try { staged.insert(i, token); }
           catch (error) { token.release(); throw error; }
         }
-        const savedPublication = this.#publication;
-        this.#publication = false;
+        const savedPublication = this._publication;
+        this._publication = false;
         try {
           this.publish(tickets, "PIPESTATUS", () => {
             void this.store!.publish("PIPESTATUS", staged, tickets, prepared, false, root);
           });
         } finally {
-          this.#publication = savedPublication;
+          this._publication = savedPublication;
         }
         this.epoch = savedEpoch;
         this.store.epoch = savedEpoch;
@@ -288,9 +311,9 @@ export class StateMonitor {
     const owner = this.store?.owner ?? this.session.guestOwner;
     const admission = owner?.reserve({ epoch: true, metadata: 64, work: 8 });
     if (admission) admission.restorationReferences = 1;
-    let permit = this.#freeRestorations;
+    let permit = this._freeRestorations;
     if (permit) {
-      this.#freeRestorations = permit.next;
+      this._freeRestorations = permit.next;
       permit._reset(admission, resource);
     } else {
       permit = new Restoration(this, admission, resource);
@@ -298,32 +321,32 @@ export class StateMonitor {
     try {
       if (resource && owner) permit.holding = owner.hold();
     } catch (error) { admission?.release(); throw error; }
-    permit.next = this.#restorations;
-    if (this.#restorations) this.#restorations.previous = permit;
-    this.#restorations = permit;
+    permit.next = this._restorations;
+    if (this._restorations) this._restorations.previous = permit;
+    this._restorations = permit;
     return permit;
   }
 
   openOverlay(frame: OverlayMap): void {
-    if (this.#overlays) frame[overlayNext] = this.#overlays;
-    this.#overlays = frame;
+    if (this._overlays) frame[overlayNext] = this._overlays;
+    this._overlays = frame;
   }
 
   closeOverlay(frame: OverlayMap): void {
-    if (this.#overlays !== frame) throw new Error("Indexed-array overlay dependency order violated");
-    this.#overlays = frame[overlayNext];
+    if (this._overlays !== frame) throw new Error("Indexed-array overlay dependency order violated");
+    this._overlays = frame[overlayNext];
     delete frame[overlayNext];
   }
 
   hasOverlay(name: string): boolean {
-    for (let frame = this.#overlays; frame; frame = frame[overlayNext]) {
+    for (let frame = this._overlays; frame; frame = frame[overlayNext]) {
       if (frame.has(name)) return true;
     }
     return false;
   }
 
   *overlayFrames(): Iterable<OverlayMap> {
-    for (let frame = this.#overlays; frame; frame = frame[overlayNext]) yield frame;
+    for (let frame = this._overlays; frame; frame = frame[overlayNext]) yield frame;
   }
 
   prepareCollection<Value extends object>(value: Value, field: string): Value {
@@ -333,7 +356,7 @@ export class StateMonitor {
   async prepareTypedPublication(name: string, owner: ArrayOwner, signal: AbortSignal): Promise<() => void> {
     owner.reserve({ metadata: 128, work: 7 });
     const saved: { superseded?: boolean }[] = [];
-    for (let frame = this.#overlays; frame; frame = frame[overlayNext]) {
+    for (let frame = this._overlays; frame; frame = frame[overlayNext]) {
       owner.chargeWork(2);
       const entry = frame.get(name);
       if (entry) {
@@ -348,17 +371,17 @@ export class StateMonitor {
 
   retire(permit: Restoration): void {
     if (permit.previous) permit.previous.next = permit.next;
-    else this.#restorations = permit.next;
+    else this._restorations = permit.next;
     if (permit.next) permit.next.previous = permit.previous;
     permit.previous = undefined;
-    permit.next = this.#freeRestorations;
-    this.#freeRestorations = permit;
+    permit.next = this._freeRestorations;
+    this._freeRestorations = permit;
   }
 
   restore(permit: Restoration, action: () => void): void {
-    this.#publication = true;
+    this._publication = true;
     try { action(); }
-    finally { this.#publication = false; }
+    finally { this._publication = false; }
     if (permit.epoch) {
       this.epoch = permit.epoch;
       if (this.store) this.store.epoch = permit.epoch;
@@ -366,7 +389,7 @@ export class StateMonitor {
   }
 
   mutation(name?: string): Tickets | undefined {
-    if (this.#publication) return undefined;
+    if (this._publication) return undefined;
     if (this.store) {
       const guarded = name !== undefined && (this.store.bindings.has(name) || this.store.watches.has(name));
       return this.store.owner.charge(guarded ? guardedMutationCharge : unguardedMutationCharge, SHARED_MUTATION_TICKETS);
@@ -387,63 +410,63 @@ export class StateMonitor {
   }
 
   publish(tickets: Tickets, name: string | undefined, action: () => void): void {
-    if (this.#publication) throw new Error("Nested indexed-array publication");
-    this.#publication = true;
+    if (this._publication) throw new Error("Nested indexed-array publication");
+    this._publication = true;
     try { action(); }
-    finally { this.#publication = false; }
+    finally { this._publication = false; }
     this.epoch = tickets.epoch;
     this.store?.changed(tickets, name);
   }
 
-  #reserveWrapSlot(): void {
-    if (this.#enrollment || this.#internalEnrollment) {
-      (this.#enrollment ? this.session.guestOwner! : this.session.owner!).reserve({ slots: 2, metadata: 128, work: 8 });
+  private _reserveWrapSlot(): void {
+    if (this._enrollment || this._internalEnrollment) {
+      (this._enrollment ? this.session.guestOwner! : this.session.owner!).reserve({ slots: 2, metadata: 128, work: 8 });
     }
-    this.#wrapperCount++;
+    this._wrapperCount++;
   }
 
   wrap(value: object, field: string): object {
     if (value === this.raw || value === this.proxy) return this.proxy;
-    if (field === "variables" && (value === this.raw.variables || value === this.#variablesProxy)) {
-      if (this.#variablesProxy) return this.#variablesProxy;
-      this.#reserveWrapSlot();
-      return this.#variablesProxy = new Proxy(this.raw.variables, new StateProxyHandler(this, "variables", true));
+    if (field === "variables" && (value === this.raw.variables || value === this._variablesProxy)) {
+      if (this._variablesProxy) return this._variablesProxy;
+      this._reserveWrapSlot();
+      return this._variablesProxy = new Proxy(this.raw.variables, new StateProxyHandler(this, "variables", true));
     }
-    if (field === "functions" && (value === this.raw.functions || value === this.#functionsProxy)) {
-      if (this.#functionsProxy) return this.#functionsProxy;
-      this.#reserveWrapSlot();
+    if (field === "functions" && (value === this.raw.functions || value === this._functionsProxy)) {
+      if (this._functionsProxy) return this._functionsProxy;
+      this._reserveWrapSlot();
       const handler = new CollectionProxyHandler(this, false);
       const proxy = new Proxy(this.raw.functions, handler);
       handler.proxy = proxy;
-      return this.#functionsProxy = proxy;
+      return this._functionsProxy = proxy;
     }
-    if (field === "exported" && (value === this.raw.exported || value === this.#exportedProxy)) {
-      if (this.#exportedProxy) return this.#exportedProxy;
-      this.#reserveWrapSlot();
+    if (field === "exported" && (value === this.raw.exported || value === this._exportedProxy)) {
+      if (this._exportedProxy) return this._exportedProxy;
+      this._reserveWrapSlot();
       const handler = new CollectionProxyHandler(this, true);
       const proxy = new Proxy(this.raw.exported, handler);
       handler.proxy = proxy;
-      return this.#exportedProxy = proxy;
+      return this._exportedProxy = proxy;
     }
-    if (field === "positional" && (value === this.raw.positional || value === this.#positionalProxy)) {
-      if (this.#positionalProxy) return this.#positionalProxy;
-      this.#reserveWrapSlot();
-      return this.#positionalProxy = new Proxy(this.raw.positional, new StateProxyHandler(this, "positional", false));
+    if (field === "positional" && (value === this.raw.positional || value === this._positionalProxy)) {
+      if (this._positionalProxy) return this._positionalProxy;
+      this._reserveWrapSlot();
+      return this._positionalProxy = new Proxy(this.raw.positional, new StateProxyHandler(this, "positional", false));
     }
-    if (field === "locals" && (value === this.raw.locals || value === this.#localsProxy)) {
-      if (this.#localsProxy) return this.#localsProxy;
-      this.#reserveWrapSlot();
-      return this.#localsProxy = new Proxy(this.raw.locals, new StateProxyHandler(this, "locals", false));
+    if (field === "locals" && (value === this.raw.locals || value === this._localsProxy)) {
+      if (this._localsProxy) return this._localsProxy;
+      this._reserveWrapSlot();
+      return this._localsProxy = new Proxy(this.raw.locals, new StateProxyHandler(this, "locals", false));
     }
-    let wrapped = this.#wrapped;
+    let wrapped = this._wrapped;
     if (wrapped) {
       const previous = wrapped.get(value);
       if (previous) return previous;
     } else {
       wrapped = new WeakMap();
-      this.#wrapped = wrapped;
+      this._wrapped = wrapped;
     }
-    this.#reserveWrapSlot();
+    this._reserveWrapSlot();
     const named = field === "variables" || field === "exported" || field === "readonlyVariables";
     let proxy: object;
     if (value instanceof Map || value instanceof Set) {

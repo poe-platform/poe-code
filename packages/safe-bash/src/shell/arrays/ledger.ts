@@ -340,28 +340,48 @@ const resolvedPromise: Promise<void> = Object.defineProperty(Promise.resolve(), 
 const sharedDiscardTickets = { generation: 0, version: 0, epoch: 0 };
 
 export class ArrayOwner {
-  #head: Admission | undefined;
-  #firstChild: ArrayOwner | undefined;
-  #nextSibling: ArrayOwner | undefined;
-  #previousSibling: ArrayOwner | undefined;
-  #closed = false;
-  #started = false;
-  #resolve: (() => void) | undefined;
-  #reject: ((error: unknown) => void) | undefined;
-  #holds = 0;
-  #resolveIdle: (() => void) | undefined;
-  #idle: Promise<void> | undefined;
-  #releasing = false;
-  #completion: Promise<void> | undefined;
+  declare readonly ledger: ArrayLedger;
+  declare readonly parent: ArrayOwner | undefined;
+  declare readonly header: Admission;
+  declare private _head: Admission | undefined;
+  declare private _firstChild: ArrayOwner | undefined;
+  declare private _nextSibling: ArrayOwner | undefined;
+  declare private _previousSibling: ArrayOwner | undefined;
+  declare private _closed: boolean;
+  declare private _started: boolean;
+  declare private _resolve: (() => void) | undefined;
+  declare private _reject: ((error: unknown) => void) | undefined;
+  declare private _holds: number;
+  declare private _resolveIdle: (() => void) | undefined;
+  declare private _idle: Promise<void> | undefined;
+  declare private _releasing: boolean;
+  declare private _completion: Promise<void> | undefined;
 
-  private constructor(readonly ledger: ArrayLedger, readonly parent: ArrayOwner | undefined, readonly header: Admission) {}
+  private constructor(ledger: ArrayLedger, parent: ArrayOwner | undefined, header: Admission) {
+    this.ledger = ledger;
+    this.parent = parent;
+    this.header = header;
+    this._head = undefined;
+    this._firstChild = undefined;
+    this._nextSibling = undefined;
+    this._previousSibling = undefined;
+    this._closed = false;
+    this._started = false;
+    this._resolve = undefined;
+    this._reject = undefined;
+    this._holds = 0;
+    this._resolveIdle = undefined;
+    this._idle = undefined;
+    this._releasing = false;
+    this._completion = undefined;
+  }
 
   get completion(): Promise<void> {
-    if (!this.#completion) {
-      this.#completion = new Promise<void>((resolve, reject) => { this.#resolve = resolve; this.#reject = reject; });
-      void this.#completion.catch(() => undefined);
+    if (!this._completion) {
+      this._completion = new Promise<void>((resolve, reject) => { this._resolve = resolve; this._reject = reject; });
+      void this._completion.catch(() => undefined);
     }
-    return this.#completion;
+    return this._completion;
   }
 
   static create(ledger: ArrayLedger, parent?: ArrayOwner): ArrayOwner {
@@ -369,15 +389,15 @@ export class ArrayOwner {
     const header = ledger.reserve({ metadata: 64, work: 9 });
     const owner = new ArrayOwner(ledger, parent, header);
     if (parent) {
-      owner.#nextSibling = parent.#firstChild;
-      if (parent.#firstChild) parent.#firstChild.#previousSibling = owner;
-      parent.#firstChild = owner;
+      owner._nextSibling = parent._firstChild;
+      if (parent._firstChild) parent._firstChild._previousSibling = owner;
+      parent._firstChild = owner;
     }
     return owner;
   }
 
   assertOpen(): void {
-    if (this.#closed) throw new ArrayFailure("ownership admission is closed");
+    if (this._closed) throw new ArrayFailure("ownership admission is closed");
     this.parent?.assertOpen();
   }
 
@@ -398,14 +418,14 @@ export class ArrayOwner {
 
   adopt(admission: Admission, prepaid = false): Admission {
     const root = this.root();
-    if (!prepaid || !root.#holds || root.#releasing) this.assertOpen();
+    if (!prepaid || !root._holds || root._releasing) this.assertOpen();
     if (admission.released || admission.ledger !== this.ledger) throw new Error("Invalid indexed-array ownership transfer");
     admission.owner?.detach(admission);
     admission.owner = this;
     admission.previous = undefined;
-    admission.next = this.#head;
-    if (this.#head) this.#head.previous = admission;
-    this.#head = admission;
+    admission.next = this._head;
+    if (this._head) this._head.previous = admission;
+    this._head = admission;
     return admission;
   }
 
@@ -437,19 +457,19 @@ export class ArrayOwner {
   hold(): Admission {
     this.assertOpen();
     const root = this.root();
-    if (root.#holds === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("resource capacity exhausted");
+    if (root._holds === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("resource capacity exhausted");
     const admission = this.reserve({ metadata: 64, work: 5 });
-    root.#holds++;
+    root._holds++;
     admission.cleanup = () => {
-      root.#holds--;
-      if (!root.#holds && root.#closed) root.#resolveIdle?.();
+      root._holds--;
+      if (!root._holds && root._closed) root._resolveIdle?.();
     };
     return admission;
   }
 
   detach(admission: Admission): void {
     if (admission.previous) admission.previous.next = admission.next;
-    else this.#head = admission.next;
+    else this._head = admission.next;
     if (admission.next) admission.next.previous = admission.previous;
     admission.owner = undefined;
     admission.previous = undefined;
@@ -457,81 +477,81 @@ export class ArrayOwner {
   }
 
   close(): Promise<void> {
-    if (!this.#started) {
-      this.#started = true;
-      this.#closed = true;
-      const syncPending = this.#drainSync();
+    if (!this._started) {
+      this._started = true;
+      this._closed = true;
+      const syncPending = this._drainSync();
       if (!syncPending) {
-        if (this.#resolve) this.#resolve();
-        else this.#completion = resolvedPromise;
+        if (this._resolve) this._resolve();
+        else this._completion = resolvedPromise;
       } else {
         const p = syncPending.then(
-          () => { this.#resolve?.(); },
+          () => { this._resolve?.(); },
           error => {
-            if (this.#reject) this.#reject(error);
+            if (this._reject) this._reject(error);
             else throw error;
           },
         );
-        if (!this.#completion) {
-          this.#completion = p;
-          void this.#completion.catch(() => undefined);
+        if (!this._completion) {
+          this._completion = p;
+          void this._completion.catch(() => undefined);
         }
       }
     }
     return this.completion;
   }
 
-  #drainSync(): Promise<void> | undefined {
+  private _drainSync(): Promise<void> | undefined {
     if (!this.parent) {
-      if (this.#holds) {
-        this.#idle ??= new Promise<void>(resolve => { this.#resolveIdle = resolve; });
-        return this.#drainAsync(this.#idle);
+      if (this._holds) {
+        this._idle ??= new Promise<void>(resolve => { this._resolveIdle = resolve; });
+        return this._drainAsync(this._idle);
       }
-      this.#releasing = true;
+      this._releasing = true;
     }
-    while (this.#firstChild) {
-      const childClose = this.#firstChild.close();
-      if (childClose !== resolvedPromise) return this.#drainAsync(childClose, true);
+    while (this._firstChild) {
+      const childClose = this._firstChild.close();
+      if (childClose !== resolvedPromise) return this._drainAsync(childClose, true);
       const checkpoint = this.ledger.checkpoint();
-      if (checkpoint) return this.#drainAsync(checkpoint);
+      if (checkpoint) return this._drainAsync(checkpoint);
     }
-    while (this.#head) {
-      this.#head.release();
+    while (this._head) {
+      this._head.release();
       const checkpoint = this.ledger.checkpoint();
-      if (checkpoint) return this.#drainAsync(checkpoint);
+      if (checkpoint) return this._drainAsync(checkpoint);
     }
-    this.#finishDrain();
+    this._finishDrain();
     return undefined;
   }
 
-  #finishDrain(): void {
+  private _finishDrain(): void {
     if (this.parent) {
-      if (this.#previousSibling) this.#previousSibling.#nextSibling = this.#nextSibling;
-      else this.parent.#firstChild = this.#nextSibling;
-      if (this.#nextSibling) this.#nextSibling.#previousSibling = this.#previousSibling;
+      if (this._previousSibling) this._previousSibling._nextSibling = this._nextSibling;
+      else this.parent._firstChild = this._nextSibling;
+      if (this._nextSibling) this._nextSibling._previousSibling = this._previousSibling;
     }
     this.header.release();
   }
 
-  async #drainAsync(firstAwait: Promise<void>, awaitedChild = false): Promise<void> {
+  private async _drainAsync(firstAwait: Promise<void>, awaitedChild = false): Promise<void> {
     await firstAwait;
     if (!this.parent) {
-      if (!this.#releasing) this.#releasing = true;
+      if (!this._releasing) this._releasing = true;
     }
     if (awaitedChild) {
       const checkpoint = this.ledger.checkpoint();
       if (checkpoint) await checkpoint;
     }
-    while (this.#firstChild) {
-      await this.#firstChild.close();
+    while (this._firstChild) {
+      await this._firstChild.close();
       const checkpoint = this.ledger.checkpoint();
       if (checkpoint) await checkpoint;
     }
-    while (this.#head) {
-      this.#head.release();
+    while (this._head) {
+      this._head.release();
       const checkpoint = this.ledger.checkpoint();
       if (checkpoint) await checkpoint;
     }
-    this.#finishDrain();
+    this._finishDrain();
   }
 }

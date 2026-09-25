@@ -2032,7 +2032,7 @@ function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
   return true;
 }
 
-const fastShellCommandAccessors = ["env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
+const fastShellCommandAccessors = ["env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
 );
 

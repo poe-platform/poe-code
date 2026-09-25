@@ -7,6 +7,30 @@ const bytes = (text: string) => new TextEncoder().encode(text);
 
 const script = "mv /source/input/a /destination/output/a";
 
+test("cross-device mv omits staging metadata when support is unknown", async () => {
+  const { source, destination } = await fixture();
+  let creations = 0;
+  const view = new Proxy(destination, { get(target, property) {
+    if (property === "capabilities") return { ...destination.capabilities, permissions: undefined, timestamps: undefined };
+    if (property === "createStagedFile") return async (...args: Parameters<typeof destination.createStagedFile>) => {
+      creations++;
+      const options = args[3];
+      if (options.mode !== undefined || options.atimeMs !== undefined || options.mtimeMs !== undefined) {
+        throw new FsError("ENOTSUP", { message: "destination does not support creation metadata" });
+      }
+      return destination.createStagedFile(...args);
+    };
+    const member = Reflect.get(target, property);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const result = await run("mv", ["/source/input/a", "/destination/output/a"], { fs: mounted(source, view) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(creations, 1);
+  assert.deepEqual(await destination.readFile("/output/a"), bytes("source"));
+  await assert.rejects(source.stat("/input/a"), { code: "ENOENT" });
+  assert.deepEqual((await destination.readdir("/output")).map(entry => entry.name), ["a"]);
+});
+
 for (const race of ["retarget", "recreate", "intermediate", "permission", "ancestor", "capture"] as const) {
   test(`cross-device mv preserves both sides after symlink resolution ${race}`, async () => {
     const { source, destination } = await fixture();

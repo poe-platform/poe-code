@@ -75,8 +75,8 @@ export async function prepareMoveStaging(context: CommandContext, source: string
     ancestors.push({ path, stat });
   }
   return { target: canonicalTarget, ...(resolutionGuard ? { resolutionGuard } : {}), parent: ancestors[ancestors.length - 1]!.stat, ancestors, metadata: {
-    ...(capabilities.permissions === false ? {} : { mode: sourceStat.mode & 0o7777 }),
-    ...(capabilities.timestamps === false ? {} : { atimeMs: sourceStat.atimeMs, mtimeMs: sourceStat.mtimeMs }),
+    ...(capabilities.permissions === true ? { mode: sourceStat.mode & 0o7777 } : {}),
+    ...(capabilities.timestamps === true ? { atimeMs: sourceStat.atimeMs, mtimeMs: sourceStat.mtimeMs } : {}),
   } };
 }
 

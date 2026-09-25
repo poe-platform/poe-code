@@ -64,6 +64,13 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
   with self.assertRaises(LlmError):
    await client.complete('retired')
 
+ async def test_integer_options_do_not_silently_lose_precision_in_javascript(self):
+  bridge = FakeBridge()
+  async with Client(bridge=bridge) as client:
+   with self.assertRaises(ValueError):
+    await client.complete('hello', options={'seed': 9007199254740993})
+   self.assertEqual(bridge.calls, [])
+
  async def test_response_embedding_and_conversation(self):
   bridge = FakeBridge()
   async with Client(bridge=bridge, model='provider/model') as client:
@@ -246,8 +253,8 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
   async with Client(bridge=bridge, request_transform=transform) as client:
    calling = asyncio.create_task(client.complete('hello', timeout=0.01))
    try:
-    await asyncio.sleep(0.03)
-    self.assertTrue(calling.done(), 'Timeout must include customization work')
+    completed, pending = await asyncio.wait({calling}, timeout=1.0)
+    self.assertIn(calling, completed, 'Timeout must include customization work')
     with self.assertRaises(asyncio.TimeoutError):
      await calling
     self.assertTrue(finished.is_set())

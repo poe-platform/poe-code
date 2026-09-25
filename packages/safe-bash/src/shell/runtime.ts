@@ -1750,8 +1750,7 @@ const assignmentCache = new WeakMap<Word, { name: string; value: Word; append: b
 function hasGlobOrEscape(text: string): boolean {
   for (let i = 0; i < text.length; i++) {
     const code = text.charCodeAt(i);
-    if (code === 42 || code === 63 || code === 92) return true;
-    if (code === 91 && text.indexOf("]", i + 2) !== -1) return true;
+    if (code === 42 || code === 63 || code === 91 || code === 92) return true;
   }
   return false;
 }

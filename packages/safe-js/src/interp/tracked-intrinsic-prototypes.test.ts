@@ -3,10 +3,10 @@ import { Budget } from "./budget.js";
 import { createBuiltinBindings } from "./globals.js";
 import { resolveIntrinsicIdentity } from "./intrinsics.js";
 import { releaseObjectPrototype } from "./object-model.js";
-import { measureSandboxData, type SandboxObject } from "./values.js";
+import { measureSandboxData, type SandboxArray, type SandboxObject } from "./values.js";
 
 const paths = [
-  ...["Object", "Date", "DataView", "RegExp", "Map", "Set", "ArrayBuffer",
+  ...["Object", "Array", "Date", "DataView", "RegExp", "Map", "Set", "ArrayBuffer",
     "DisposableStack", "AsyncDisposableStack", "Error", "TypeError", "RangeError",
     "ReferenceError", "SyntaxError", "URIError", "EvalError", "AggregateError",
     "SuppressedError", "Promise"].map(name => [name, "prototype"]),
@@ -39,5 +39,27 @@ it.each(paths.map(path => [JSON.stringify(path)]))("reuses captures for %s while
     expect([...budget.retainedValues()]).toContain("hidden");
     Reflect.deleteProperty(target, key);
     expect([...budget.retainedValues()]).not.toContain("hidden");
+  } finally { releaseObjectPrototype(budget); }
+});
+
+it("refreshes Array prototype captures after a partially rejected length shrink", () => {
+  const budget = new Budget();
+  createBuiltinBindings({budget});
+  const target = resolveIntrinsicIdentity(budget, '["Array","prototype"]') as SandboxArray;
+  const kept = {text: "kept"};
+  const removed = {text: "removed"};
+  try {
+    expect(Array.isArray(target)).toBe(true);
+    Object.defineProperty(target, "1", {value: kept, configurable: false});
+    target[2] = removed;
+    expect([...budget.retainedValues()]).toContain(removed);
+    expect(Reflect.defineProperty(target, "length", {value: 0})).toBe(false);
+    expect(target.length).toBe(2);
+    const roots = [...budget.retainedValues()];
+    expect(roots).toContain(kept);
+    expect(roots).not.toContain(removed);
+    const before = measureSandboxData(budget.retainedValues());
+    kept.text += "more";
+    expect(measureSandboxData(budget.retainedValues())).toBe(before + 4);
   } finally { releaseObjectPrototype(budget); }
 });

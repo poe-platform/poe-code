@@ -38,6 +38,7 @@ import { createNumericParsers } from "./numeric-parsers.js";
 import { createPrimitiveConstructor } from "./primitives.js";
 import { arrayMethodLengths, arrayMethodNames, callArrayMethod } from "../methods/array.js";
 import {
+  createIntrinsicArray,
   createIntrinsicObject,
   getSandboxDataProperty,
   getSandboxPropertyDescriptor,
@@ -503,7 +504,7 @@ export function createObjectArrayGlobals(options: {
 }
 
 function createArrayGlobal(budget: Budget): SandboxClosure {
-  const prototype: SandboxArray = [];
+  const prototype = createIntrinsicArray();
   const objectToString = Object.getOwnPropertyDescriptor(getSandboxPrototype(Object.create(null), budget)!, "toString")!.value as SandboxClosure;
   const constructor = createSandboxClosure({
     guest: true,

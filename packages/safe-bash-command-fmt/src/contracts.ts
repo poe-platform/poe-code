@@ -13,10 +13,11 @@ export interface FmtLimits {
   readonly retainedBytes: number;
   readonly work: number;
   readonly argumentBytes: number;
+  readonly maxArguments?: number;
 }
 export const defaultFmtLimits: FmtLimits = Object.freeze({
-  inputBytes: 32 * 1024 * 1024, outputBytes: 32 * 1024 * 1024,
-  retainedBytes: 80 * 1024, work: 128 * 1024 * 1024, argumentBytes: 65536,
+  inputBytes: Infinity, outputBytes: Infinity,
+  retainedBytes: Infinity, work: Infinity, argumentBytes: Infinity, maxArguments: Infinity,
 });
 export interface FmtOptions {
   readonly profile: FmtProfile;
@@ -37,7 +38,7 @@ export class FmtError extends Error {
   constructor(readonly code: FmtErrorCode, message: string, readonly usage = false) { super(message); this.name = 'FmtError'; }
 }
 export function validateFmtLimits(limits: FmtLimits): void {
-  for (const value of Object.values(limits)) if (!Number.isSafeInteger(value) || value < 0) throw new FmtError('LIMIT', 'Limits must be nonnegative safe integers');
+  for (const value of Object.values(limits)) if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new FmtError('LIMIT', 'Limits must be nonnegative safe integers');
   for (const key of ['inputBytes', 'outputBytes', 'retainedBytes', 'work', 'argumentBytes'] as const) if (limits[key] === undefined) throw new FmtError('LIMIT', `Missing ${key} limit`);
 }
 export function validateFmtProfile(profile: FmtProfile): void {

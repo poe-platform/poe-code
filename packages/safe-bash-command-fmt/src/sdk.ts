@@ -21,7 +21,7 @@ export function captureFmtArguments(options: FmtFormattingOptions & { readonly a
   const args: Uint8Array[] = [];
   let extent = 0;
   const append = (value: string | Uint8Array): void => {
-    if (args.length >= 4096) throw new FmtError('LIMIT', 'argument count limit exceeded');
+    if (args.length >= (limits.maxArguments ?? Infinity)) throw new FmtError('LIMIT', 'argument count limit exceeded');
     let bytes: Uint8Array;
     if (typeof value === 'string') {
       if (value.length > limits.argumentBytes - extent || shellValueByteLength(value) > limits.argumentBytes - extent) throw new FmtError('LIMIT', 'Argument byte limit exceeded');
@@ -31,7 +31,7 @@ export function captureFmtArguments(options: FmtFormattingOptions & { readonly a
     args.push(bytes);
   };
   if (options.arguments !== undefined) {
-    if (options.arguments.length > 4096) throw new FmtError('LIMIT', 'argument count limit exceeded');
+    if (options.arguments.length > (limits.maxArguments ?? Infinity)) throw new FmtError('LIMIT', 'argument count limit exceeded');
     for (const argument of options.arguments) append(argument);
   } else {
     for (const key of ['width', 'goal'] as const) {
@@ -49,7 +49,7 @@ export function captureFmtArguments(options: FmtFormattingOptions & { readonly a
     if (options.prefix !== undefined) { append('-p'); append(options.prefix); }
     append('--');
     if (options.files !== undefined) {
-      if (options.files.length > 4096) throw new FmtError('LIMIT', 'argument count limit exceeded');
+      if (options.files.length > (limits.maxArguments ?? Infinity)) throw new FmtError('LIMIT', 'argument count limit exceeded');
       for (const file of options.files) {
         if (typeof file !== 'string') throw new FmtError('OPTION', 'SDK files must be literal VFS paths');
         append(file);

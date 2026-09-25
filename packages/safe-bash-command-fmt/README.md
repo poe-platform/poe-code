@@ -102,14 +102,9 @@ Parsing/prefix capture and diagnostic decoding are bounded by argument limits.
 `accounting()` returns immutable counters; `decodedBytes` is zero, and failures
 close the engine.
 
-Default invocation limits (overridable through `limits`):
-
-| Resource | Limit |
-| --- | --- |
-| Input / formatting output | 32 MiB each, cumulative across file operands |
-| Retained byte buffers | 80 KiB |
-| Work | 128 Mi units |
-| Arguments | 64 KiB total, at most 4096 arguments |
+All resource quotas are unlimited by default. Set independent input/output,
+retained-byte, work, argument-byte and `maxArguments` quotas through `limits`.
+Explicit quotas must be nonnegative safe integers.
 
 Caller-owned argument/output memory is outside engine retention accounting;
 diagnostics are outside formatting-output accounting. Source chunks and fallback

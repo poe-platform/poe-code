@@ -1,7 +1,7 @@
 import { FmtError, defaultFmtLimits, fmtBaseline, validateFmtLimits, validateFmtProfile, type FmtOptions, type FmtLimits, type FmtProfile } from './contracts.js';
 import { ownedBytes } from './bytes.js';
 import { quote } from './quoting.js';
-export interface FmtArgumentOptions { readonly limits?: FmtLimits; readonly profile?: FmtProfile; readonly posixlyCorrect?: boolean; readonly unicodeQuotes?: boolean }
+export interface FmtArgumentOptions { readonly limits?: Partial<FmtLimits>; readonly profile?: FmtProfile; readonly posixlyCorrect?: boolean; readonly unicodeQuotes?: boolean }
 type Settings = { -readonly [Key in keyof FmtOptions]: FmtOptions[Key] } & { files: { name: string; bytes: Uint8Array }[] };
 function optionError(message: string): never { throw new FmtError('OPTION', message, true); }
 
@@ -23,11 +23,11 @@ function widthValue(text: string, maximum: number, unicode: boolean, profile: Fm
 }
 
 export function parseFmtArguments(input: readonly Uint8Array[], configuration: FmtArgumentOptions = {}): FmtOptions {
-  const limits = configuration.limits ?? defaultFmtLimits;
+  const limits = { ...defaultFmtLimits, ...configuration.limits };
   validateFmtLimits(limits);
   const profile = configuration.profile ?? fmtBaseline.profile;
   validateFmtProfile(profile);
-  if (input.length > 4096) throw new FmtError("LIMIT", "argument count limit exceeded");
+  if (input.length > (limits.maxArguments ?? Infinity)) throw new FmtError("LIMIT", "argument count limit exceeded");
   let size = 0;
   const bytes = input.map(value => {
     const copy = ownedBytes(value, limits.argumentBytes - size); size += copy.length; return copy;

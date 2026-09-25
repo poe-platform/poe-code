@@ -196,7 +196,7 @@ test('file boundaries reset tab state and keep stdin separate, with identical CL
       async readFile(path: string, options: { signal: AbortSignal; maxBytes: number }) {
         options.signal.throwIfAborted(); reads.push(path);
         const bytes = files.get(path)!;
-        assert.ok(bytes.length <= options.maxBytes);
+        assert.equal(options.maxBytes, undefined);
         return bytes.slice();
       },
     } } as unknown as CommandContext;

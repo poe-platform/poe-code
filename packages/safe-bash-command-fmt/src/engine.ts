@@ -1,4 +1,4 @@
-import { FmtError, validateFmtLimits, validateFmtProfile, type FmtLimits, type FmtOptions } from './contracts.js';
+import { FmtError, defaultFmtLimits, validateFmtLimits, validateFmtProfile, type FmtLimits, type FmtOptions } from './contracts.js';
 import { byteView, ownedBytes } from './bytes.js';
 
 export interface FmtAccounting {
@@ -336,7 +336,8 @@ class Formatter {
 }
 
 
-export function createFmtEngine(options: FmtOptions, limits: FmtLimits, signal: AbortSignal): FmtEngine {
+export function createFmtEngine(options: FmtOptions, configuration: Partial<FmtLimits>, signal: AbortSignal): FmtEngine {
+  const limits = { ...defaultFmtLimits, ...configuration };
   if (signal.aborted) throw new FmtError('CANCELLED', 'fmt engine cancelled');
   validateFmtLimits(limits); validateFmtProfile(options.profile);
   for (const [value, maximum] of [[options.width, 2500], [options.goal, options.width], [options.leading, limits.argumentBytes], [options.fullPrefix, limits.argumentBytes]]) {

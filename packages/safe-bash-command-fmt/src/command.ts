@@ -99,7 +99,7 @@ class InputScope {
         else {
           if (capabilities.read === false) throw new FsError("ENOTSUP", { path, syscall: "readFile" });
           const maximum = this.budget.maxReadBytes;
-          source = { async *[Symbol.asyncIterator]() { yield await context.fs.readFile(path, { signal: context.signal, maxBytes: maximum }); } };
+          source = { async *[Symbol.asyncIterator]() { yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {}) }); } };
         }
       }
       context.signal.throwIfAborted();
@@ -192,7 +192,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
         if (argumentFailure) throw argumentFailure.error;
         const argumentsWithBytes = getCommandArguments(context);
         let extent = 0;
-        if (argumentsWithBytes.values.length > 4096) throw new FmtError('LIMIT', 'argument count limit exceeded');
+        if (argumentsWithBytes.values.length > (limits.maxArguments ?? Infinity)) throw new FmtError('LIMIT', 'argument count limit exceeded');
         const bytes = sdkArguments ?? argumentsWithBytes.values.map((value, index) => {
           if (typeof value === 'string' && value.length > limits.argumentBytes - extent) throw new FmtError('LIMIT', 'argument limit exceeded');
           const size = shellValueByteLength(value);

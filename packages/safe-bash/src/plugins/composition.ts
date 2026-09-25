@@ -181,12 +181,13 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
 
 export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors): readonly CommandDefinition[] {
   const commands: CommandDefinition[] = [];
-  const grep = createGrepCommands(executors.grep);
+  const useErgonomicGrep = options.regexExecutor === undefined;
+  const grep = createGrepCommands(executors.grep, { ergonomicRegex: useErgonomicGrep });
   const exprLimits = options.expr?.limits;
   const csplitLimits = options.csplit?.limits;
   if (!hasCustomFamilyOptions(options)) {
     const defaults = getDefaultStatelessFamilies();
-    const aliasesGrep = executors.aliases === executors.grep ? grep[0]! : createGrepCommands(executors.aliases)[0]!;
+    const aliasesGrep = executors.aliases === executors.grep ? grep[0]! : createGrepCommands(executors.aliases, { ergonomicRegex: useErgonomicGrep })[0]!;
     commands.push(
       ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep),
       ...defaults.beforeAliases,
@@ -230,7 +231,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createTimeEnvCommands({ ...options.timeEnv }),
     ...createTreeCommands({ ...options.tree }),
     ...createFileCommands({ ...options.file }),
-    ...createGrepAliases(createGrepCommands(executors.aliases)[0]!),
+    ...createGrepAliases(createGrepCommands(executors.aliases, { ergonomicRegex: useErgonomicGrep })[0]!),
     ...createColumnCommands({ ...options.column }),
     ...createHtmlToMarkdownCommands({ ...options.htmlToMarkdown }),
     ...createDuCommands({ ...options.du }),

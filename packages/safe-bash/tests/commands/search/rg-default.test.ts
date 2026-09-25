@@ -134,7 +134,7 @@ test("default rg applies dot-ignore rules and explicit files bypass size filteri
 test("rg rejects unsupported profiles and malformed new options before input", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
-    for (const command of ["rg --max-filesize=1T alpha -", "rg --threads=-1 alpha -", "rg -r '$1' alpha -", "rg --multiline 'a\nb' -"]) {
+    for (const command of ["rg --max-filesize=1T alpha -", "rg --threads=-1 alpha -", "rg -r '$1' alpha -"]) {
       let consumed = false;
       const stdin = (async function* () { consumed = true; yield Buffer.from("alpha\n"); })();
       const result = await shell.exec(command, { stdin });
@@ -148,7 +148,7 @@ test("rg rejects unsupported profiles and malformed new options before input", a
 test("default rg validates unsupported and malformed regex before reading files", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
-    for (const pattern of ["[", "(?=a)", "(a)\\1", "a+?"]) {
+    for (const pattern of ["[", "(?=a)", "(a)\\1"]) {
       const result = await shell.exec(`rg '${pattern}' /missing`);
       assert.equal(result.exitCode, 2);
       assert.equal(result.stdout, "");

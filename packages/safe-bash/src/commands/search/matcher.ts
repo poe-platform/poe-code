@@ -1,15 +1,43 @@
 import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
 import { trustedInputRows, type Match, type Row, type SearchDescriptor } from "../regex-execution/protocol.js";
+import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
 import { SearchError, type Arguments } from "./options.js";
 
 export type { Match } from "../regex-execution/protocol.js";
 
 export class Matcher {
   private readonly descriptor: SearchDescriptor;
-  constructor(patterns: readonly string[], args: Arguments, private readonly session: RegexSession) {
-    this.descriptor = { kind: "rg", patterns: [...patterns], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };
+  private readonly vm: ErgonomicVmMatcher | undefined;
+  readonly crossLine: boolean;
+  constructor(patterns: readonly string[], args: Arguments, private readonly session: RegexSession, ergonomic = true) {
+    const prepared = ergonomic
+      ? prepareErgonomicRegex(patterns, {
+          kind: "rg",
+          fixed: args.fixed,
+          caseMode: args.case,
+          whole: args.whole,
+          word: args.word,
+          nullData: args.nullData,
+          multiline: args.multiline,
+          multilineDotall: args.multilineDotall,
+        })
+      : undefined;
+    if (prepared?.mode === "vm") {
+      this.vm = prepared.vm;
+      this.crossLine = prepared.crossLine;
+      this.descriptor = { kind: "rg", patterns: [], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };
+    } else {
+      this.vm = undefined;
+      this.crossLine = false;
+      this.descriptor = { kind: "rg", patterns: prepared ? [...prepared.patterns] : [...patterns], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };
+    }
+  }
+  matchBuffer(bytes: Uint8Array, all = true): Match[] {
+    if (this.vm) return this.vm.matchBytes(bytes, all);
+    return [];
   }
   batchSync(rows: readonly Row[]): Match[][] | Promise<Match[][]> {
+    if (this.vm && rows.length > 0) return this.vm.batchSync(rows);
     trustedInputRows.add(rows);
     try {
       const res = this.session.runSync(this.descriptor, rows);

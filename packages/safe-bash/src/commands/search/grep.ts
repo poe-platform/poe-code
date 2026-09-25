@@ -3,6 +3,8 @@ import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { reusableBatchRows, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
+import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
+import { SearchError } from "./options.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
 import { grepFiles } from "./grep-files.js";
 
@@ -12,6 +14,7 @@ export interface GrepLimits {
   readonly maxLineBytes?: number;
   readonly maxContextBytes?: number;
   readonly maxFileBytes?: number;
+  readonly ergonomicRegex?: boolean;
 }
 
 
@@ -58,7 +61,7 @@ const SINGLE_STDIN_FILE: readonly { name: string; nested: boolean }[] = Object.f
 const GREP_LONG_OPTIONS: Readonly<Record<string, string | false>> = Object.freeze({
   color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false,
   label: "label:", "initial-tab": "T", "group-separator": "group-separator:", help: false,
-  "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i",
+  "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "perl-regexp": "P", "ignore-case": "i",
   "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l",
   "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H",
   "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f",
@@ -174,7 +177,8 @@ async function forEachGrepLineBatch(
 }
 
 export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits = {}): CommandDefinition[] {
-  for (const value of Object.values(limits)) {
+  for (const [key, value] of Object.entries(limits)) {
+    if (key === "ergonomicRegex") continue;
     if (!Number.isSafeInteger(value) || value < 1) throw new RangeError("grep limits must be positive safe integers");
   }
   const maxPatternCount = limits.maxPatterns ?? Infinity;
@@ -185,7 +189,7 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
       let beforeContext = 0;
       let fileSelection: "l" | "L" | undefined;
       let filenameOption: "h" | "H" | undefined;
-      let matcher: "G" | "E" | "F" | undefined;
+      let matcher: "G" | "E" | "F" | "P" | undefined;
       let helpRequested = false;
       let ignoreCase = false;
       const binaryFiles: { mode: "text" | "without-match" | "binary" } = { mode: "text" };
@@ -207,7 +211,7 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
           break;
         }
       }
-      const parsed = parseOptions(normalizedArgs, "GEFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT", GREP_LONG_OPTIONS, false, undefined, (key, index, offset) => {
+      const parsed = parseOptions(normalizedArgs, "GEFPivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT", GREP_LONG_OPTIONS, false, undefined, (key, index, offset) => {
         const text = normalizedArgs[index]!.slice(offset);
         if (["include", "exclude", "exclude-from"].includes(key)) filters.push({ key, pattern: text });
         if (key === "d") directoriesAction = text;
@@ -224,7 +228,7 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
         catch { throw new UsageError(`${text}: invalid context length argument`); }
       }, key => {
         if (key === "help") helpRequested = true;
-        if (!helpRequested && (key === "G" || key === "E" || key === "F")) {
+        if (!helpRequested && (key === "G" || key === "E" || key === "F" || key === "P")) {
           if (matcher !== undefined && matcher !== key) throw new UsageError("conflicting matchers specified");
           matcher = key;
         }
@@ -362,12 +366,39 @@ inspect the resulting state before repeating the action.
         for await (const line of lines(admitted(source))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
       }
       if (positionalPattern !== undefined) addArgument(positionalPattern);
+      let vmMatcher: ErgonomicVmMatcher | undefined;
+      let effectivePatterns = patterns;
+      let effectiveExtended = parsed.flags.has("E") || parsed.flags.has("P");
+      if ((limits.ergonomicRegex || parsed.flags.has("P")) && !parsed.flags.has("F")) {
+        try {
+          const prepared = prepareErgonomicRegex(patterns, {
+            kind: "grep",
+            fixed: false,
+            extended: effectiveExtended,
+            caseMode: ignoreCase ? "insensitive" : "sensitive",
+            whole: parsed.flags.has("x"),
+            word: parsed.flags.has("w"),
+            nullData: parsed.flags.has("z"),
+          });
+          if (prepared.mode === "vm") {
+            vmMatcher = prepared.vm;
+            effectivePatterns = [];
+          } else {
+            effectivePatterns = [...prepared.patterns];
+            effectiveExtended = prepared.extended;
+          }
+        } catch (err) {
+          if (err instanceof SearchError) throw new UsageError(err.message);
+          throw err;
+        }
+      }
       const descriptor: GrepDescriptor = {
-        kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
+        kind: "grep", patterns: effectivePatterns, fixed: parsed.flags.has("F"), extended: effectiveExtended,
         insensitive: ignoreCase, whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
       };
       const initRes = session.runSync(descriptor, EMPTY_GREP_ROWS);
       if (initRes instanceof Promise) await initRes;
+      const runGrepBatch = (batch: GrepLine[]) => vmMatcher ? vmMatcher.batchSync(batch) : session.runSync(descriptor, batch);
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
@@ -531,7 +562,7 @@ inspect the resulting state before repeating the action.
               count = 0;
               return false;
             }
-            const resOrPromise = session.runSync(descriptor, batch);
+            const resOrPromise = runGrepBatch(batch);
             if (resOrPromise instanceof Promise || !canFastBufferLines) {
               return resOrPromise instanceof Promise
                 ? processBatchSlow(batch, endOfChunk, resOrPromise)

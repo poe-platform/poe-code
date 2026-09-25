@@ -21,6 +21,12 @@ const cases: readonly [string, string, string, number][] = [
   ["grep -io '[^+a-c]*'", "AbC+DEé😀\n", "DEé😀\n", 0],
   ["grep 'a+b'", "aaab\n", "", 1],
   ["grep -Eo 'a+b'", "aaab\n", "aaab\n", 0],
+  ["grep '\\(a\\)'", "aa\n", "aa\n", 0],
+  ["grep 'a\\{2\\}'", "aa\n", "aa\n", 0],
+  ["grep 'a\\+'", "aa\n", "aa\n", 0],
+  ["grep 'a\\?'", "aa\n", "aa\n", 0],
+  ["grep 'a\\|b'", "aa\n", "aa\n", 0],
+  ["grep '\\w'", "aa\n", "aa\n", 0],
 ];
 
 for (const [source, input, output, status] of cases) test(`bounded BRE literals: ${source}`, async () => {
@@ -33,7 +39,7 @@ for (const [source, input, output, status] of cases) test(`bounded BRE literals:
   } finally { await shell.dispose(); }
 });
 
-for (const pattern of ["\\(a\\)", "a\\{2\\}", "a\\+", "a\\?", "a\\|b", "\\1", "\\w"]) {
+for (const pattern of ["\\1"]) {
   test(`bounded BRE retains unsupported ${pattern}`, async () => {
     const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
     try {

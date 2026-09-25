@@ -31,7 +31,7 @@ function trySearchFileSync(
   totals: Stats,
   admittedBacking: ReturnType<typeof getRuntimeBackingFileSystem>,
 ): boolean | Promise<boolean> | undefined {
-  if (args.mode === "json") return undefined;
+  if (args.mode === "json" || matcher.crossLine) return undefined;
   const selectedOutput = !args.quiet && args.mode === "lines";
   if (selectedOutput || args.before > 0 || args.after > 0 || target.path === "-") return undefined;
   const backing = target.canonicalPath ? admittedBacking : undefined;
@@ -157,6 +157,52 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   } else {
     source = requiredFileInput(context, searchRequirements, "file", target.path, limits.maxFileBytes);
   }
+  let crossLineMatches: Match[] | undefined;
+  if (matcher.crossLine) {
+    const rawBytes = source instanceof Uint8Array
+      ? source
+      : await collectBytes(source, { maxBytes: limits.maxFileBytes, signal: context.signal });
+    source = rawBytes;
+    crossLineMatches = matcher.matchBuffer(rawBytes, true);
+    if (args.onlyMatching && !args.invert && args.mode === "lines") {
+      state.bytesRead = rawBytes.length;
+      state.bytesSearched = rawBytes.length;
+      const selectedOutput = !args.quiet;
+      for (const m of crossLineMatches) {
+        if (totals.matched_lines >= args.maxCount) break;
+        totals.matched_lines++;
+        totals.matches++;
+        if (args.quiet) break;
+        if (selectedOutput) {
+          let lineNum = 1;
+          let lineStart = 0;
+          for (let i = 0; i < m.start; i++) {
+            if (rawBytes[i] === 10) {
+              lineNum++;
+              lineStart = i + 1;
+            }
+          }
+          const rawBuf = Buffer.from(rawBytes);
+          const syntheticLine: Line = {
+            number: lineNum,
+            offset: lineStart,
+            rawBytes: rawBuf.subarray(m.start, m.end),
+            rawLength: m.end - m.start,
+            content: rawBuf,
+            bytes: rawBuf,
+            all: true,
+            terminated: true,
+          };
+          await printer.record(target.label, syntheticLine, [{ start: m.start, end: m.end }], true, filename);
+        }
+      }
+      if (limits.outPos > 0) await limits.flush();
+      const matched = totals.matched_lines > 0;
+      totals.searches_with_match = matched ? 1 : 0;
+      totals.bytes_searched = state.bytesSearched;
+      return { found: matched, stats: totals };
+    }
+  }
   let before: { line: Line; matches: Match[] }[] | undefined;
   let beforeBytes = 0;
   let lastPrinted = 0;
@@ -190,7 +236,23 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       if (next.done) { asyncIter = undefined; break; }
       batch = next.value;
     }
-    const batchRes = matcher.batchSync(batch); const results = batchRes instanceof Promise ? await batchRes : batchRes;
+    const batchRes = crossLineMatches !== undefined
+      ? batch.map(line => {
+          const lineStart = line.offset;
+          const lineEnd = line.offset + line.content.length;
+          const lineMatches: Match[] = [];
+          for (const m of crossLineMatches!) {
+            if (m.end > m.start ? (m.start <= lineEnd && m.end > lineStart) : (m.start >= lineStart && m.start <= lineEnd)) {
+              lineMatches.push({
+                start: Math.max(0, m.start - lineStart),
+                end: Math.min(line.content.length, m.end - lineStart),
+              });
+            }
+          }
+          return lineMatches;
+        })
+      : matcher.batchSync(batch);
+    const results = batchRes instanceof Promise ? await batchRes : batchRes;
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
       state.bytesSearched = line.offset + line.rawLength;
@@ -364,7 +426,7 @@ Unicode selection and extended regex syntax require a configured executor.
           };
           const walker = new Walker(context, args, limits, report, session);
           await walker.validate();
-          const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args, limits), args, session);
+          const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args, limits), args, session, options.regexExecutor === undefined);
           if (args.mode !== "files") {
             const initBatch = matcher.batchSync(EMPTY_RG_LINES);
             if (initBatch instanceof Promise) await initBatch;

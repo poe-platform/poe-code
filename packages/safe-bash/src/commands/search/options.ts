@@ -60,6 +60,8 @@ export interface Arguments {
   maxFileSize: number;
   replacement?: string;
   trim: boolean;
+  multiline?: boolean;
+  multilineDotall?: boolean;
   globs: { source: string; insensitive: boolean }[];
   types: { name: string; include: boolean }[];
 }
@@ -84,7 +86,7 @@ export function parse(args: readonly string[]): Arguments {
     onlyMatching: false, quiet: false, hidden: false, follow: false, ignore: true, ignoreVcs: true,
     ignoreDot: true, ignoreParent: true, ignoreFiles: true, ignorePaths: [], requireGit: true, binary: "auto", nullPath: false, nullData: false,
     crlf: false, includeZero: false, messages: true, heading: false, before: 0, after: 0, separator: "--",
-    maxCount: Infinity, maxDepth: Infinity, maxFileSize: Infinity, trim: false, globs: [], types: [],
+    maxCount: Infinity, maxDepth: Infinity, maxFileSize: Infinity, trim: false, multiline: false, multilineDotall: false, globs: [], types: [],
   };
   const operands: string[] = [];
   let unrestricted = 0;
@@ -191,7 +193,11 @@ export function parse(args: readonly string[]): Arguments {
         case "r": case "replace": result.replacement = value(); break;
         case "trim": result.trim = true; break;
         case "no-trim": result.trim = false; break;
-        case "U": case "multiline": case "no-multiline": break;
+        case "U": case "multiline": result.multiline = true; break;
+        case "no-multiline": result.multiline = false; break;
+        case "multiline-dotall": result.multilineDotall = true; break;
+        case "no-multiline-dotall": result.multilineDotall = false; break;
+        case "P": case "pcre2": case "no-pcre2": break;
         case "j": case "threads": count(value(), flag); break;
         case "sort": if (value() !== "path") throw new SearchError("only --sort=path is supported"); break;
         case "color": if (value() !== "never") throw new SearchError("only --color=never is supported"); break;

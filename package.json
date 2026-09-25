@@ -485,6 +485,7 @@
     "@poe-code/experiment-loop": "*",
     "@poe-code/frontmatter": "*",
     "@poe-code/github-workflows": "*",
+    "@poe-code/graphviz-ast": "*",
     "@poe-code/maestro": "*",
     "@poe-code/maestro-tui": "*",
     "@poe-code/markdown-reader": "*",

@@ -43,6 +43,9 @@ export interface DirectoryEntry {
 export interface FileSystemCapabilities {
   readonly open?: boolean;
   readonly versionedDescriptors?: boolean;
+  /** Prefer pathname streaming for shell > / >> when supported, retaining open for explicit handles.
+   * The host owns stream atomicity; this does not provide retained descriptor identity for redirected output. */
+  readonly preferStreamingRedirection?: boolean;
   readonly readOnly?: boolean;
   readonly read?: boolean;
   readonly stat?: boolean;

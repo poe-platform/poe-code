@@ -40,6 +40,14 @@ const uninitialized = Symbol("uninitialized");
 const freezeAccountingRoot = Object.freeze;
 const isScopeRootArray = Array.isArray;
 
+// Each synchronous capture reserves its own segment. Native callbacks can reenter
+// without sharing pending ancestors; all slots are cleared on success or failure.
+const captureAncestors: Array<Scope | undefined> = Object.setPrototypeOf([], null);
+let captureAncestorCount = 0;
+const MAX_CAPTURE_ANCESTORS = 65536;
+const MAX_REUSABLE_CAPTURE_ANCESTORS = 64;
+
+
 export type BindingReference =
   | {kind: "unresolvable"; name: string}
   | {kind: "binding"; name: string; scope: Scope}
@@ -326,64 +334,86 @@ export class Scope {
   }
 
   #visitRetainedDataRoots(append: (value: InterpreterValue) => void): void {
-    // Every ancestor and metadata field is read before descendants are visited.
-    // Foreign providers keep their own collectors and their observable reads.
-    const parent = this.parent;
-    if (parent != null) {
-      const read = parent.retainedDataRoots;
-      if (#bindings in parent && read === ownScopeDataRoots) parent.#visitRetainedDataRoots(append);
-      else {
-        const captured = callScopeDataRoots(read, parent);
-        visitCapturedScopeRoots(captured, append);
-      }
-    }
-    if (this.#globalVarNames !== undefined) append(this.#globalVarNameValues ??= [...this.#globalVarNames]);
-    if (this.withEnvironment && this.objectEnvironment !== undefined) append(this.objectEnvironment);
-    if (this.moduleEnvironment !== undefined) {
-      const environment = this.moduleEnvironment;
-      if (!hasImmutableEmptyModuleEnvironment(environment)) {
-        const namespaces = Object.values(environment.namespaces);
-        for (let key = 0; key < namespaces.length; key++) append(namespaces[key]);
-      }
-    }
-    if (this.resourceState !== undefined) append(this.resourceState);
-    if (this.options.chargeData !== false) {
-      if (this.importMeta !== undefined) append(this.importMeta);
-      if (this.privateNames !== undefined)
-        for (const name of this.privateNames.values()) append(name);
-    }
-    if (this.#bindingDataRoot === undefined) {
-      const roots = new ScopeDataRootList();
-      const bindings = this.options.chargeData === false ? this.#replacedBindings : this.#bindings.values();
-      for (const binding of bindings) {
-        if (binding.deferred !== undefined) {
-          roots.append(binding.deferred.root);
-          continue;
+    const floor = captureAncestorCount;
+    if (floor === MAX_CAPTURE_ANCESTORS) throw new RangeError("Too many captured scope ancestors.");
+    captureAncestors[captureAncestorCount++] = this;
+    try {
+      // Read links and foreign readers in the same order as recursive descent.
+      // A native callback can replace a link; this pass keeps the already-read one.
+      let current = captureAncestors[floor]!;
+      while (true) {
+        const parent = current.parent;
+        if (parent == null) break;
+        const read = parent.retainedDataRoots;
+        if (#bindings in parent && read === ownScopeDataRoots) {
+          if (captureAncestorCount === MAX_CAPTURE_ANCESTORS)
+            throw new RangeError("Too many captured scope ancestors.");
+          captureAncestors[captureAncestorCount++] = parent;
+          current = parent;
+        } else {
+          const captured = callScopeDataRoots(read, parent);
+          visitCapturedScopeRoots(captured, append);
+          break;
         }
-        const value = binding.value;
-        if (!isChargedBindingValue(value)) continue;
-        // Objects and symbols already have measurement identities. Only strings
-        // and bigints need cell roots to preserve independent primitive charges.
-        if (typeof value === "object" || typeof value === "symbol") {
-          roots.append(value);
-          continue;
-        }
-        if (binding.accounting === undefined) {
-          const root = freezeAccountingRoot({});
-          scopeDataRoots.set(root, {value});
-          binding.accounting = {value, root};
-        }
-        roots.append(binding.accounting.root);
       }
-      const snapshot = roots.snapshot();
-      this.#bindingDataRoot = null;
-      if (snapshot.length > 0) {
-        const group = freezeAccountingRoot({});
-        scopeDataRoots.set(group, {values: snapshot});
-        this.#bindingDataRoot = group;
+      // Every scope's metadata remains fresh, including shared ancestors visited
+      // by earlier closures. Only the temporary traversal storage is reused.
+      while (captureAncestorCount > floor) {
+        current = captureAncestors[--captureAncestorCount]!;
+        captureAncestors[captureAncestorCount] = undefined;
+        if (current.#globalVarNames !== undefined) append(current.#globalVarNameValues ??= [...current.#globalVarNames]);
+        if (current.withEnvironment && current.objectEnvironment !== undefined) append(current.objectEnvironment);
+        if (current.moduleEnvironment !== undefined) {
+          const environment = current.moduleEnvironment;
+          if (!hasImmutableEmptyModuleEnvironment(environment)) {
+            const namespaces = Object.values(environment.namespaces);
+            for (let key = 0; key < namespaces.length; key++) append(namespaces[key]);
+          }
+        }
+        if (current.resourceState !== undefined) append(current.resourceState);
+        if (current.options.chargeData !== false) {
+          if (current.importMeta !== undefined) append(current.importMeta);
+          if (current.privateNames !== undefined)
+            for (const name of current.privateNames.values()) append(name);
+        }
+        if (current.#bindingDataRoot === undefined) {
+          const roots = new ScopeDataRootList();
+          const bindings = current.options.chargeData === false ? current.#replacedBindings : current.#bindings.values();
+          for (const binding of bindings) {
+            if (binding.deferred !== undefined) {
+              roots.append(binding.deferred.root);
+              continue;
+            }
+            const value = binding.value;
+            if (!isChargedBindingValue(value)) continue;
+            // Objects and symbols already have measurement identities. Only strings
+            // and bigints need cell roots to preserve independent primitive charges.
+            if (typeof value === "object" || typeof value === "symbol") {
+              roots.append(value);
+              continue;
+            }
+            if (binding.accounting === undefined) {
+              const root = freezeAccountingRoot({});
+              scopeDataRoots.set(root, {value});
+              binding.accounting = {value, root};
+            }
+            roots.append(binding.accounting.root);
+          }
+          const snapshot = roots.snapshot();
+          current.#bindingDataRoot = null;
+          if (snapshot.length > 0) {
+            const group = freezeAccountingRoot({});
+            scopeDataRoots.set(group, {values: snapshot});
+            current.#bindingDataRoot = group;
+          }
+        }
+        if (current.#bindingDataRoot !== null) append(current.#bindingDataRoot);
       }
+    } finally {
+      while (captureAncestorCount > floor) captureAncestors[--captureAncestorCount] = undefined;
+      if (captureAncestorCount === 0 && captureAncestors.length > MAX_REUSABLE_CAPTURE_ANCESTORS)
+        captureAncestors.length = MAX_REUSABLE_CAPTURE_ANCESTORS;
     }
-    if (this.#bindingDataRoot !== null) append(this.#bindingDataRoot);
   }
 
   declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue,

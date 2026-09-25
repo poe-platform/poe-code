@@ -587,3 +587,43 @@ test('exclusive command acquisition does not follow final symlinks in a capabili
   await assert.rejects(openCommandFile({ fs, signal: new AbortController().signal }, '/self', { access: 'write', creation: 'exclusive' }), { code: 'EEXIST' });
   assert.equal(await fs.readlink('/self'), 'self');
 });
+
+for (const phase of ["open", "read"] as const) {
+  test(`managed command cancellation interrupts a pending descriptor ${phase} scope`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", Uint8Array.of(1));
+    const command = createManagedControlController();
+    const local = new AbortController();
+    const entered = deferred();
+    const completion = deferred();
+    const reason = new Error("cancel descriptor");
+    const open = fs.open!.bind(fs);
+    fs.open = async (...args) => {
+      const descriptor = await open(...args);
+      descriptor.read = async (ignoredBytes, ignoredPosition, options) => {
+        entered.resolve();
+        await new Promise<void>((resolve, reject) => {
+          const aborted = () => reject(options!.signal!.reason);
+          options!.signal!.addEventListener("abort", aborted, { once: true });
+          completion.promise.then(resolve).finally(() => options!.signal!.removeEventListener("abort", aborted));
+        });
+        return 0;
+      };
+      return descriptor;
+    };
+    const descriptor = await openCommandFile({ fs, signal: command.signal }, "/input", {
+      access: "read", ...(phase === "open" ? { signal: local.signal } : {}),
+    });
+    const reading = descriptor.read(new Uint8Array(1), null, phase === "read" ? { signal: local.signal } : {});
+    const outcome = reading.then(() => undefined, error => error);
+    try {
+      await entered.promise;
+      command.abort(reason);
+      assert.equal(await Promise.race([outcome, new Promise(resolve => setTimeout(() => resolve("not cancelled"), 30))]), reason);
+    } finally {
+      completion.resolve();
+      await outcome;
+      await descriptor.close();
+    }
+  });
+}

@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { setImmediate as tick } from "node:timers/promises";
 import { Budget, ExprError, type ExprLimits } from "../../../src/commands/expr/internal.js";
 import { RegexExecutor, RegexExecutionError, RegexSession } from "../../../src/commands/regex-execution/portable.js";
+import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
 import type { InvocationCleanup } from "../../../src/contracts/command.js";
 import { deferred, run } from "./helpers.js";
 
@@ -113,7 +114,7 @@ for (const channel of ["stdout", "normal-stderr", "emergency-stderr"] as const) 
 
 for (const channel of ["stdout", "normal-stderr", "emergency-stderr"] as const) {
   test(`${channel} awaits sink and overlapping registered cleanup`, { timeout: 10000 }, async context => {
-    const entered = deferred(), gate = deferred(), retirement = deferred();
+    const entered = deferred(), gate = deferred(), retiring = deferred(), retirement = deferred();
     const cleanups: InvocationCleanup[] = [];
     const events: string[] = [];
     const open = RegexExecutor.prototype.open;
@@ -121,17 +122,26 @@ for (const channel of ["stdout", "normal-stderr", "emergency-stderr"] as const) 
       events.push("open");
       return open.call(this, signal);
     });
-    const close = RegexSession.prototype.close;
     let closes = 0;
-    context.mock.method(RegexSession.prototype, "close", async function (this: RegexSession) {
-      closes++;
-      await retirement.promise;
-      await close.call(this);
-    });
+    const provider = createBoundedRegexProvider();
     let attempts = 0, settled = false;
     const sink = { async write() { attempts++; entered.resolve(); await gate.promise; } };
-    const invocation = run(channel === "stdout" ? ["1"] : ["1", "/", "0"], {
+    const invocation = run(channel === "stdout" ? ["a", ":", "a"] : ["(", "a", ":", "a", ")", "/", "0"], {
       limits: { maxOutputBytes: channel === "stdout" ? 2 : channel === "normal-stderr" ? 23 : 1 },
+      regexExecutor: { createWorker(options) {
+        const worker = provider.createWorker(options);
+        return {
+          postMessage: worker.postMessage.bind(worker),
+          on: worker.on.bind(worker),
+          off: worker.off.bind(worker),
+          async terminate() {
+            closes++;
+            retiring.resolve();
+            await retirement.promise;
+            await worker.terminate();
+          },
+        };
+      } },
     }, {
       registerCleanup(cleanup) { events.push("register"); cleanups.push(cleanup); },
       ...(channel === "stdout" ? { stdout: sink } : { stderr: sink }),
@@ -142,6 +152,8 @@ for (const channel of ["stdout", "normal-stderr", "emergency-stderr"] as const) 
       assert.equal(settled, false);
       const first = cleanups[0]!(), second = cleanups[0]!();
       assert.equal(first, second);
+      await retiring.promise;
+      assert.equal(closes, 1);
       gate.resolve();
       await tick();
       assert.equal(settled, false);

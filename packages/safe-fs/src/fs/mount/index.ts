@@ -955,7 +955,7 @@ export class MountFileSystem implements FileSystem {
       await requireOwnedMutation(local.mount.backend, local.staging.directory.path, "atomicFileStaging", options);
       await requireOwnedMutation(local.mount.backend, target.local, "atomicFileStaging", options, options.destination === null);
       if (!local.mount.backend.publishStagedFile) fail("ENOTSUP");
-      if (ancestors || callerGuard !== undefined) await requireOwnedMutation(local.mount.backend, target.local, "guardedStagingPublication", options);
+      if (ancestors || callerGuard !== undefined) await requireOwnedMutation(local.mount.backend, target.local, "guardedStagingPublication", options, options.destination === null);
       if (!ancestors) {
         await local.mount.backend.publishStagedFile(local.staging, target.local, options);
         return;
@@ -963,7 +963,7 @@ export class MountFileSystem implements FileSystem {
       const parent = target.path.slice(0, target.path.lastIndexOf("/")) || "/";
       if (target.path !== normalizePath(globalPath(destination)) || ancestors.at(-1)?.path !== parent) fail("EINVAL");
       try {
-        const declared = await local.mount.backend.capabilitiesFor?.(target.local, { ...options, stagingAncestry: true }) ?? local.mount.backend.capabilities;
+        const declared = await local.mount.backend.capabilitiesFor?.(target.local, { ...options, stagingAncestry: true, ...(options.destination === null ? { create: true } : {}) }) ?? local.mount.backend.capabilities;
         if (!await this.supportsStagingAncestry(target, declared, options)) fail("ENOTSUP");
       } catch (error) {
         options.signal?.throwIfAborted();

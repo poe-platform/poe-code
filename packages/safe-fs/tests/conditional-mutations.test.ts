@@ -9,7 +9,7 @@ import { retainFileSystemCleanup, scopeFileSystem } from "../src/fs/scoped.js";
 import type { FileSystem } from "../src/contracts/filesystem.js";
 import { FsError } from "../src/contracts/errors.js";
 
-for (const kind of ["scope", "mount", "devices"] as const) test(`${kind} preserves create intent for owned mutations without marking deletion as creation`, async () => {
+for (const kind of ["scope", "mount", "devices"] as const) for (const guarded of [false, true]) test(`${kind} preserves create intent for owned mutations without marking deletion as creation: guarded=${guarded}`, async () => {
   const memory = new MemoryFileSystem();
   const queries: { path: string; create: boolean }[] = [];
   const backend = new Proxy(memory, { get(target, property) {
@@ -31,7 +31,9 @@ for (const kind of ["scope", "mount", "devices"] as const) test(`${kind} preserv
   const file = await fs.writeFileConditional!("/file", Uint8Array.of(1), { parent, expected: null });
   await fs.prepareDirectory!("/directory", { parent, expected: null });
   const staging = await fs.createStagedFile!("/.stage", "payload", { type: "file", data: Uint8Array.of(2) }, { parent });
-  await fs.publishStagedFile!(staging, "/published", { parent, destination: null });
+  await fs.publishStagedFile!(staging, "/published", { parent, destination: null,
+    ...(guarded ? { ancestors: [{ path: "/", stat: parent }], commitGuard: () => true as const } : {}),
+  });
   assert.deepEqual(await memory.readFile("/published"), Uint8Array.of(2));
   for (const path of ["/file", "/directory", "/.stage", "/published"]) assert.ok(queries.some(query => query.path === path && query.create), path);
   assert.ok(queries.filter(query => query.path === "/published").every(query => query.create));

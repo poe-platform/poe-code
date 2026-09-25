@@ -222,7 +222,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
             if (property === "publishStagedFile") {
               const publishOptions = (options ?? {}) as PublishStagedFileOptions;
               await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
-              const declared = ownedMutationCapabilities(original, await original.capabilitiesFor?.(args[1] as string, options) ?? original.capabilities);
+              const query = (options as PublishStagedFileOptions).destination === null ? { ...options, create: true } : options;
+              const declared = ownedMutationCapabilities(original, await original.capabilitiesFor?.(args[1] as string, query) ?? original.capabilities);
               assertReady();
               if (callerGuard !== undefined && declared.guardedStagingPublication !== true) throw new FsError("ENOTSUP", { path: args[1] as string, syscall: "guardedStagingPublication" });
               // Guarded publication preserves the caller signal and observes scope

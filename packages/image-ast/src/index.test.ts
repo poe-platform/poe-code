@@ -1328,4 +1328,39 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(comp[0]).toBe(99);
   });
+
+  it("implements vips_smartcrop (entropy & attention) in resize() and preserves dimensions on solid trim() (#77)", async () => {
+    // 1. 32x16 image with subject at x=24..31, empty black at x=0..23
+    const w = 32, h = 16;
+    const smartBuf = Buffer.alloc(w * h * 3);
+    for (let y = 0; y < h; y++) {
+      for (let x = 24; x < 32; x++) {
+        const idx = (y * w + x) * 3;
+        smartBuf[idx] = ((x * 53 + y * 97) & 127) + 128;
+        smartBuf[idx + 1] = ((x * 89 + y * 31) & 127);
+        smartBuf[idx + 2] = ((x * 19 + y * 73) & 127) + 100;
+      }
+    }
+    const entCrop = await sharp(smartBuf, { raw: { width: w, height: h, channels: 3 } })
+      .resize(8, 16, { fit: "cover", position: "entropy" })
+      .raw()
+      .toBuffer();
+    expect(entCrop.reduce((a, b) => a + b, 0)).toBe(52992);
+
+    const attCrop = await sharp(smartBuf, { raw: { width: w, height: h, channels: 3 } })
+      .resize(8, 16, { fit: "cover", position: (sharp as any).strategy.attention })
+      .raw()
+      .toBuffer();
+    expect(attCrop.reduce((a, b) => a + b, 0)).toBe(52992);
+
+    // 2. Solid color image .trim() preserves 10x10 dimensions with trimOffsetLeft: 0, trimOffsetTop: 0
+    const solid = await sharp(Buffer.alloc(10 * 10 * 3, 50), { raw: { width: 10, height: 10, channels: 3 } })
+      .trim()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(solid.info.width).toBe(10);
+    expect(solid.info.height).toBe(10);
+    expect(solid.info.trimOffsetLeft).toBe(0);
+    expect(solid.info.trimOffsetTop).toBe(0);
+  });
 });

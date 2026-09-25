@@ -293,7 +293,7 @@ export function trimImage(
   }
   if (top >= img.height) {
     return {
-      ...extractImage(img, { left: 0, top: 0, width: 1, height: 1 }),
+      ...img,
       trimOffsetLeft: 0,
       trimOffsetTop: 0
     };

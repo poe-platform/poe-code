@@ -102,6 +102,117 @@ export function resolveGravityOffset(
   return { x, y };
 }
 
+function regionEntropy(
+  rgba: Uint8Array,
+  imgW: number,
+  rx: number,
+  ry: number,
+  rw: number,
+  rh: number
+): number {
+  const total = rw * rh;
+  if (total <= 0) return 0;
+  const hist = new Int32Array(256);
+  for (let y = ry; y < ry + rh; y++) {
+    for (let x = rx; x < rx + rw; x++) {
+      const idx = (y * imgW + x) * 4;
+      const lum = Math.round(0.299 * rgba[idx]! + 0.587 * rgba[idx + 1]! + 0.114 * rgba[idx + 2]!);
+      hist[lum < 0 ? 0 : lum > 255 ? 255 : lum]!++;
+    }
+  }
+  let h = 0;
+  for (let i = 0; i < 256; i++) {
+    const c = hist[i]!;
+    if (c > 0) {
+      const p = c / total;
+      h -= p * Math.log2(p);
+    }
+  }
+  return h;
+}
+
+function smartcropEntropy(
+  rgba: Uint8Array,
+  srcW: number,
+  srcH: number,
+  dstW: number,
+  dstH: number
+): { readonly x: number; readonly y: number } {
+  let left = 0;
+  let top = 0;
+  let width = srcW;
+  let height = srcH;
+  const widthSlice = Math.max(1, Math.ceil((srcW - dstW) / 8));
+  const heightSlice = Math.max(1, Math.ceil((srcH - dstH) / 8));
+  while (width > dstW) {
+    const sliceW = Math.min(width - dstW, widthSlice);
+    const eLeft = regionEntropy(rgba, srcW, left, top, sliceW, height);
+    const eRight = regionEntropy(rgba, srcW, left + width - sliceW, top, sliceW, height);
+    if (eLeft < eRight) {
+      left += sliceW;
+    }
+    width -= sliceW;
+  }
+  while (height > dstH) {
+    const sliceH = Math.min(height - dstH, heightSlice);
+    const eTop = regionEntropy(rgba, srcW, left, top, width, sliceH);
+    const eBottom = regionEntropy(rgba, srcW, left, top + height - sliceH, width, sliceH);
+    if (eTop < eBottom) {
+      top += sliceH;
+    }
+    height -= sliceH;
+  }
+  return { x: left, y: top };
+}
+
+function smartcropAttention(
+  rgba: Uint8Array,
+  srcW: number,
+  srcH: number,
+  dstW: number,
+  dstH: number
+): { readonly x: number; readonly y: number } {
+  const att = new Float32Array(srcW * srcH);
+  for (let y = 0; y < srcH; y++) {
+    for (let x = 0; x < srcW; x++) {
+      const idx = (y * srcW + x) * 4;
+      const r = rgba[idx]!;
+      const g = rgba[idx + 1]!;
+      const b = rgba[idx + 2]!;
+      const a = rgba[idx + 3]! / 255;
+      const sat = Math.max(r, g, b) - Math.min(r, g, b);
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      const lIdx = (y * srcW + Math.max(0, x - 1)) * 4;
+      const rIdx = (y * srcW + Math.min(srcW - 1, x + 1)) * 4;
+      const tIdx = (Math.max(0, y - 1) * srcW + x) * 4;
+      const bIdx = (Math.min(srcH - 1, y + 1) * srcW + x) * 4;
+      const edge =
+        Math.abs(4 * r - rgba[lIdx]! - rgba[rIdx]! - rgba[tIdx]! - rgba[bIdx]!) +
+        Math.abs(4 * g - rgba[lIdx + 1]! - rgba[rIdx + 1]! - rgba[tIdx + 1]! - rgba[bIdx + 1]!) +
+        Math.abs(4 * b - rgba[lIdx + 2]! - rgba[rIdx + 2]! - rgba[tIdx + 2]! - rgba[bIdx + 2]!);
+      att[y * srcW + x] = (sat * 2 + lum * 0.5 + edge) * a;
+    }
+  }
+  let bestX = 0;
+  let bestY = 0;
+  let bestScore = -1;
+  for (let cy = 0; cy <= srcH - dstH; cy++) {
+    for (let cx = 0; cx <= srcW - dstW; cx++) {
+      let sum = 0;
+      for (let y = cy; y < cy + dstH; y++) {
+        const row = y * srcW;
+        for (let x = cx; x < cx + dstW; x++) sum += att[row + x]!;
+      }
+      if (sum > bestScore) {
+        bestScore = sum;
+        bestX = cx;
+        bestY = cy;
+      }
+    }
+  }
+  return { x: bestX, y: bestY };
+}
+
 export function resampleRawBitmap(
   src: Uint8Array,
   srcW: number,
@@ -330,7 +441,13 @@ export function resizeImage(
     const scaledW = Math.max(targetW, Math.round(srcW * scale));
     const scaledH = Math.max(targetH, Math.round(srcH * scale));
     const scaledData = resampleRawBitmap(img.data, srcW, srcH, scaledW, scaledH, spec.kernel);
-    const offset = resolveGravityOffset(scaledW, scaledH, targetW, targetH, spec.position, true);
+    const pos = typeof spec.position === "string" ? spec.position.toLowerCase() : spec.position;
+    const offset =
+      pos === "entropy" || pos === 16
+        ? smartcropEntropy(scaledData, scaledW, scaledH, targetW, targetH)
+        : pos === "attention" || pos === 17
+          ? smartcropAttention(scaledData, scaledW, scaledH, targetW, targetH)
+          : resolveGravityOffset(scaledW, scaledH, targetW, targetH, spec.position, true);
     const cropped = new Uint8Array(targetW * targetH * 4);
     for (let y = 0; y < targetH; y++) {
       const srcRow = ((offset.y + y) * scaledW + offset.x) * 4;

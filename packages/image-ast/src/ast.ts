@@ -138,6 +138,8 @@ export type GravityPosition =
   | "left bottom"
   | "left"
   | "left top"
+  | "entropy"
+  | "attention"
   | number;
 
 export interface ResizeOptions {

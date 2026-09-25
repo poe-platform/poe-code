@@ -1159,7 +1159,7 @@ export function thresholdImage(
       out[idx + 1] = img.data[idx + 1]! >= value ? 255 : 0;
       out[idx + 2] = img.data[idx + 2]! >= value ? 255 : 0;
     }
-    out[idx + 3] = img.data[idx + 3]!;
+    out[idx + 3] = img.hasAlpha ? (img.data[idx + 3]! >= value ? 255 : 0) : 255;
   }
   return { ...img, data: out, ...(grayscale ? { space: "b-w" as const } : {}) };
 }

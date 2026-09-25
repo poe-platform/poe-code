@@ -450,6 +450,7 @@ export function decodeSvgImage(
       const cRy = Math.min(rh / 2, rawCornerRy > 0 ? rawCornerRy : rawCornerRx);
       for (let y = Math.max(0, ry); y < Math.min(height, ry + rh); y++) {
         for (let x = Math.max(0, rx); x < Math.min(width, rx + rw); x++) {
+          let pixAlpha = effAlpha;
           if (cRx > 0 && cRy > 0) {
             const px = x + 0.5;
             const py = y + 0.5;
@@ -462,18 +463,21 @@ export function decodeSvgImage(
             if (cx !== px && cy !== py) {
               const dx = (px - cx) / cRx;
               const dy = (py - cy) / cRy;
-              if (dx * dx + dy * dy > 1) continue;
+              const d = Math.hypot(dx, dy);
+              const cov = Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(cRx, cRy)));
+              if (cov <= 0) continue;
+              pixAlpha = Math.round(effAlpha * cov);
             }
           }
-          blendPixel(x, y, fill.r, fill.g, fill.b, effAlpha);
+          blendPixel(x, y, fill.r, fill.g, fill.b, pixAlpha);
         }
       }
     } else if (tag === "circle" && effAlpha > 0) {
       const cx = mapX(parseSvgCoord(getAttr(attrs, "cx"), 0, vbW));
       const cy = mapY(parseSvgCoord(getAttr(attrs, "cy"), 0, vbH));
       const r = parseSvgCoord(getAttr(attrs, "r"), 0, (vbW + vbH) / 2);
-      const rx = Math.max(0.5, r * scaleX);
-      const ry = Math.max(0.5, r * scaleY);
+      const rx = Math.max(0.5, r * effScaleX);
+      const ry = Math.max(0.5, r * effScaleY);
       const minY = Math.max(0, Math.floor(cy - ry));
       const maxY = Math.min(height - 1, Math.ceil(cy + ry));
       const minX = Math.max(0, Math.floor(cx - rx));
@@ -482,16 +486,18 @@ export function decodeSvgImage(
         for (let x = minX; x <= maxX; x++) {
           const dx = (x + 0.5 - cx) / rx;
           const dy = (y + 0.5 - cy) / ry;
-          if (dx * dx + dy * dy <= 1) {
-            blendPixel(x, y, fill.r, fill.g, fill.b, effAlpha);
+          const d = Math.hypot(dx, dy);
+          const cov = Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(rx, ry)));
+          if (cov > 0) {
+            blendPixel(x, y, fill.r, fill.g, fill.b, Math.round(effAlpha * cov));
           }
         }
       }
     } else if (tag === "ellipse" && effAlpha > 0) {
       const cx = mapX(parseSvgCoord(getAttr(attrs, "cx"), 0, vbW));
       const cy = mapY(parseSvgCoord(getAttr(attrs, "cy"), 0, vbH));
-      const rx = Math.max(0.5, parseSvgCoord(getAttr(attrs, "rx"), 0, vbW) * scaleX);
-      const ry = Math.max(0.5, parseSvgCoord(getAttr(attrs, "ry"), 0, vbH) * scaleY);
+      const rx = Math.max(0.5, parseSvgCoord(getAttr(attrs, "rx"), 0, vbW) * effScaleX);
+      const ry = Math.max(0.5, parseSvgCoord(getAttr(attrs, "ry"), 0, vbH) * effScaleY);
       const minY = Math.max(0, Math.floor(cy - ry));
       const maxY = Math.min(height - 1, Math.ceil(cy + ry));
       const minX = Math.max(0, Math.floor(cx - rx));
@@ -500,8 +506,10 @@ export function decodeSvgImage(
         for (let x = minX; x <= maxX; x++) {
           const dx = (x + 0.5 - cx) / rx;
           const dy = (y + 0.5 - cy) / ry;
-          if (dx * dx + dy * dy <= 1) {
-            blendPixel(x, y, fill.r, fill.g, fill.b, effAlpha);
+          const d = Math.hypot(dx, dy);
+          const cov = Math.max(0, Math.min(1, 0.5 - (d - 1) * Math.min(rx, ry)));
+          if (cov > 0) {
+            blendPixel(x, y, fill.r, fill.g, fill.b, Math.round(effAlpha * cov));
           }
         }
       }

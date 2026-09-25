@@ -1044,4 +1044,22 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Array.from(r1)).toEqual(Array.from(r2));
     expect([r1[0], r1[4], r1[8], r1[12]]).toEqual([80, 40, 70, 30]);
   });
+
+  it("thresholds all 4 RGBA channels in threshold() matching libvips vips_moreeq_const1 and scales SVG <circle> inside <g transform> (#68)", async () => {
+    const rgba = new Uint8Array([50, 180, 220, 200, 200, 50, 10, 100]);
+    const opts = { raw: { width: 2, height: 1, channels: 4 as const } };
+    const thTrue = await sharp(rgba, opts).threshold(128, { greyscale: true }).raw().toBuffer();
+    expect(Array.from(thTrue)).toEqual([255, 255, 255, 255, 0, 0, 0, 0]);
+    const thFalse = await sharp(rgba, opts).threshold(128, { greyscale: false }).raw().toBuffer();
+    expect(Array.from(thFalse)).toEqual([0, 255, 255, 255, 255, 0, 0, 0]);
+
+    const svgCircle = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+      <g transform="translate(40, 40) scale(2)">
+        <circle cx="0" cy="0" r="15" fill="#ff0000"/>
+      </g>
+    </svg>`;
+    const cBuf = await sharp(new TextEncoder().encode(svgCircle)).raw().toBuffer();
+    const edgeInside = (40 * 80 + 65) * 4; // distance 25 from (40,40), inside scaled radius 30 (15*2)
+    expect(Array.from(cBuf.subarray(edgeInside, edgeInside + 4))).toEqual([255, 0, 0, 255]);
+  });
 });

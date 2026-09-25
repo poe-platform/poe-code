@@ -870,4 +870,46 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(stacked.data[64 * 4 + 1]).toBe(255);
     expect(stacked.data[128 * 4 + 2]).toBe(255);
   });
+
+  it("premultiplies and convolves all 4 bands in convolve() on RGBA and uses rounded origin + bilinear interpolation in affine() (#62)", async () => {
+    // 1. convolve() on 8x8 RGBA with alpha=128 and emboss kernel (offset=128)
+    const W = 8, H = 8;
+    const srcRgba = new Uint8Array(W * H * 4);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        srcRgba[i] = x * 20;
+        srcRgba[i + 1] = y * 20;
+        srcRgba[i + 2] = (x + y) * 10;
+        srcRgba[i + 3] = 128;
+      }
+    }
+    const convOut = await sharp(srcRgba, { raw: { width: W, height: H, channels: 4 } })
+      .convolve({ width: 3, height: 3, kernel: [-2, -1, 0, -1, 1, 1, 0, 1, 2], scale: 1, offset: 128 })
+      .raw()
+      .toBuffer();
+    const p22 = (2 * W + 2) * 4;
+    expect(convOut[p22 + 3]).toBe(255);
+    expect(Math.abs(convOut[p22]! - 208)).toBeLessThanOrEqual(1);
+
+    // 2. affine() with rounded oarea origin + bilinear boundary interpolation
+    const AW = 64, AH = 64;
+    const srcRgb = new Uint8Array(AW * AH * 3);
+    for (let y = 0; y < AH; y++) {
+      for (let x = 0; x < AW; x++) {
+        const i = (y * AW + x) * 3;
+        srcRgb[i] = (x * 4) & 255;
+        srcRgb[i + 1] = (y * 4) & 255;
+        srcRgb[i + 2] = ((x + y) * 2) & 255;
+      }
+    }
+    const affOut = await sharp(srcRgb, { raw: { width: AW, height: AH, channels: 3 } })
+      .affine([[1.2, 0.15], [-0.1, 0.9]], { background: "#112233" })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const aIdx = (30 * affOut.info.width + 40) * 3;
+    expect(affOut.data[aIdx]).toBe(118);
+    expect(affOut.data[aIdx + 1]).toBe(120);
+    expect(affOut.data[aIdx + 2]).toBe(119);
+  });
 });

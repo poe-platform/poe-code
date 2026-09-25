@@ -1234,28 +1234,59 @@ export function convolveImage(
   const ry = Math.floor(kh / 2);
   const scale = spec.scale === 0 ? 1 : spec.scale;
   const out = new Uint8Array(data.length);
+  const usePremul = img.hasAlpha || img.channels === 4 || img.channels === 2;
+  const premul = usePremul ? new Float64Array(width * height * 4) : undefined;
+  if (premul) {
+    for (let i = 0; i < width * height; i++) {
+      const idx = i * 4;
+      const a = data[idx + 3]!;
+      premul[idx] = (data[idx]! * a) / 255;
+      premul[idx + 1] = (data[idx + 1]! * a) / 255;
+      premul[idx + 2] = (data[idx + 2]! * a) / 255;
+      premul[idx + 3] = a;
+    }
+  }
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       let r = 0;
       let g = 0;
       let b = 0;
+      let a = 0;
       for (let ky = 0; ky < kh; ky++) {
         const sy = Math.max(0, Math.min(height - 1, y + ky - ry));
         for (let kx = 0; kx < kw; kx++) {
           const sx = Math.max(0, Math.min(width - 1, x + kx - rx));
           const w = spec.kernel[ky * kw + kx] ?? 0;
           const sIdx = (sy * width + sx) * 4;
-          r += data[sIdx]! * w;
-          g += data[sIdx + 1]! * w;
-          b += data[sIdx + 2]! * w;
+          if (premul) {
+            r += premul[sIdx]! * w;
+            g += premul[sIdx + 1]! * w;
+            b += premul[sIdx + 2]! * w;
+            a += premul[sIdx + 3]! * w;
+          } else {
+            r += data[sIdx]! * w;
+            g += data[sIdx + 1]! * w;
+            b += data[sIdx + 2]! * w;
+          }
         }
       }
       const dIdx = (y * width + x) * 4;
-      out[dIdx] = Math.max(0, Math.min(255, Math.round(r / scale + spec.offset)));
-      out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(g / scale + spec.offset)));
-      out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(b / scale + spec.offset)));
-      out[dIdx + 3] = data[dIdx + 3]!;
+      if (premul) {
+        const fR = r / scale + spec.offset;
+        const fG = g / scale + spec.offset;
+        const fB = b / scale + spec.offset;
+        const fA = a / scale + spec.offset;
+        out[dIdx] = fA > 0 ? Math.max(0, Math.min(255, Math.round((fR * 255) / fA))) : 0;
+        out[dIdx + 1] = fA > 0 ? Math.max(0, Math.min(255, Math.round((fG * 255) / fA))) : 0;
+        out[dIdx + 2] = fA > 0 ? Math.max(0, Math.min(255, Math.round((fB * 255) / fA))) : 0;
+        out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(fA)));
+      } else {
+        out[dIdx] = Math.max(0, Math.min(255, Math.round(r / scale + spec.offset)));
+        out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(g / scale + spec.offset)));
+        out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(b / scale + spec.offset)));
+        out[dIdx + 3] = data[dIdx + 3]!;
+      }
     }
   }
   return { ...img, data: out };
@@ -1493,27 +1524,53 @@ export function affineImage(
   }
   const dstW = Math.max(1, Math.round(maxX - minX));
   const dstH = Math.max(1, Math.round(maxY - minY));
+  const iMinX = Math.round(minX);
+  const iMinY = Math.round(minY);
   const out = new Uint8Array(dstW * dstH * 4);
+  const samplePremul = (ix: number, iy: number): [number, number, number, number] => {
+    if (ix < 0 || ix >= img.width || iy < 0 || iy >= img.height) {
+      const ba = spec.background.a;
+      return [(spec.background.r * ba) / 255, (spec.background.g * ba) / 255, (spec.background.b * ba) / 255, ba];
+    }
+    const sIdx = (iy * img.width + ix) * 4;
+    const sa = img.data[sIdx + 3]!;
+    return [(img.data[sIdx]! * sa) / 255, (img.data[sIdx + 1]! * sa) / 255, (img.data[sIdx + 2]! * sa) / 255, sa];
+  };
+
   for (let y = 0; y < dstH; y++) {
     for (let x = 0; x < dstW; x++) {
-      const ox = x + minX - spec.odx;
-      const oy = y + minY - spec.ody;
+      const ox = x + iMinX - spec.odx;
+      const oy = y + iMinY - spec.ody;
       const sx = (d * ox - b * oy) / det + spec.idx;
       const sy = (-c * ox + a * oy) / det + spec.idy;
       const dIdx = (y * dstW + x) * 4;
-      const ix = Math.round(sx);
-      const iy = Math.round(sy);
-      if (ix >= 0 && ix < img.width && iy >= 0 && iy < img.height) {
-        const sIdx = (iy * img.width + ix) * 4;
-        out[dIdx] = img.data[sIdx]!;
-        out[dIdx + 1] = img.data[sIdx + 1]!;
-        out[dIdx + 2] = img.data[sIdx + 2]!;
-        out[dIdx + 3] = img.data[sIdx + 3]!;
-      } else {
+      if (sx <= -1 || sx >= img.width || sy <= -1 || sy >= img.height) {
         out[dIdx] = spec.background.r;
         out[dIdx + 1] = spec.background.g;
         out[dIdx + 2] = spec.background.b;
         out[dIdx + 3] = spec.background.a;
+      } else {
+        const x0 = Math.floor(sx);
+        const y0 = Math.floor(sy);
+        const fx = sx - x0;
+        const fy = sy - y0;
+        const w00 = (1 - fx) * (1 - fy);
+        const w10 = fx * (1 - fy);
+        const w01 = (1 - fx) * fy;
+        const w11 = fx * fy;
+        const p00 = samplePremul(x0, y0);
+        const p10 = samplePremul(x0 + 1, y0);
+        const p01 = samplePremul(x0, y0 + 1);
+        const p11 = samplePremul(x0 + 1, y0 + 1);
+        const pa = p00[3] * w00 + p10[3] * w10 + p01[3] * w01 + p11[3] * w11;
+        const pr = p00[0] * w00 + p10[0] * w10 + p01[0] * w01 + p11[0] * w11;
+        const pg = p00[1] * w00 + p10[1] * w10 + p01[1] * w01 + p11[1] * w11;
+        const pb = p00[2] * w00 + p10[2] * w10 + p01[2] * w01 + p11[2] * w11;
+        const outA = Math.max(0, Math.min(255, Math.round(pa)));
+        out[dIdx] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pr * 255) / pa))) : 0;
+        out[dIdx + 1] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pg * 255) / pa))) : 0;
+        out[dIdx + 2] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pb * 255) / pa))) : 0;
+        out[dIdx + 3] = outA;
       }
     }
   }

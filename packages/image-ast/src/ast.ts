@@ -457,8 +457,14 @@ function clampByte(n: number): number {
 }
 
 export function parseColor(input?: ColorInput, defaultAlpha = 255): RgbaColor {
-  if (!input) {
+  if (input === undefined) {
     return { r: 0, g: 0, b: 0, a: defaultAlpha };
+  }
+  if (
+    input === null ||
+    (typeof input !== "object" && (typeof input !== "string" || input.length < 3 || input.length > 200))
+  ) {
+    throw new Error(`Expected object or string for background but received ${input} of type ${typeof input}`);
   }
   if (typeof input === "object") {
     const alpha =
@@ -526,5 +532,37 @@ export function parseColor(input?: ColorInput, defaultAlpha = 255): RgbaColor {
           : clampByte(alphaRaw);
     return { r, g, b, a };
   }
-  throw new Error(`Unsupported color value: ${input}`);
+  const hslMatch =
+    /^hsla?\(\s*([+-]?[\d.]+)\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?(?:\s*,\s*([\d.]+))?\s*\)$/.exec(trimmed);
+  if (hslMatch) {
+    const h = ((Number(hslMatch[1]) % 360) + 360) % 360;
+    const s = Math.max(0, Math.min(100, Number(hslMatch[2]))) / 100;
+    const l = Math.max(0, Math.min(100, Number(hslMatch[3]))) / 100;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - c / 2;
+    let r1 = 0;
+    let g1 = 0;
+    let b1 = 0;
+    if (h < 60) [r1, g1, b1] = [c, x, 0];
+    else if (h < 120) [r1, g1, b1] = [x, c, 0];
+    else if (h < 180) [r1, g1, b1] = [0, c, x];
+    else if (h < 240) [r1, g1, b1] = [0, x, c];
+    else if (h < 300) [r1, g1, b1] = [x, 0, c];
+    else [r1, g1, b1] = [c, 0, x];
+    const alphaRaw = hslMatch[4] !== undefined ? Number(hslMatch[4]) : undefined;
+    const a =
+      alphaRaw === undefined
+        ? defaultAlpha
+        : alphaRaw <= 1
+          ? clampByte(alphaRaw * 255)
+          : clampByte(alphaRaw);
+    return {
+      r: clampByte((r1 + m) * 255),
+      g: clampByte((g1 + m) * 255),
+      b: clampByte((b1 + m) * 255),
+      a
+    };
+  }
+  throw new Error(`Unable to parse color from string: ${input}`);
 }

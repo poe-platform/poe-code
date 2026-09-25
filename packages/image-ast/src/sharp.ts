@@ -728,10 +728,11 @@ export class SharpInstance extends Duplex {
       if (typeof angle !== "number" || Number.isNaN(angle)) {
         throw new Error(`Expected numeric for angle but received ${angle} of type ${typeof angle}`);
       }
+      const isOrthogonal = Number.isInteger(angle) && angle % 90 === 0;
       const nextNode: ImageAstNode = {
         kind: "rotate",
         angle,
-        background: parseColor(options?.background, 255)
+        background: isOrthogonal ? { r: 0, g: 0, b: 0, a: 255 } : parseColor(options?.background, 255)
       };
       const existingIdx = this.nodes.findIndex(n => n.kind === "rotate");
       if (existingIdx !== -1) {

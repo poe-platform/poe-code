@@ -2612,4 +2612,24 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => sharp(png).affine([1, 0, 0, 1], { idx: "bad" as any })).toThrow(/Expected number for options.idx/);
     expect(() => sharp(png).affine([1, 0, 0, 1], { odx: "bad" as any })).toThrow(/Expected number for options.odx/);
   });
+
+  it("supports hsl/hsla colors, rejects invalid color types/strings matching sharp, and ignores background on 90-degree rotate()", async () => {
+    const png = await sharp({ create: { width: 4, height: 4, channels: 3, background: "red" } }).png().toBuffer();
+
+    const hslTint = await sharp(png).tint("hsl(120, 100%, 50%)").raw().toBuffer();
+    expect([hslTint[0], hslTint[1], hslTint[2]]).toEqual([0, 155, 0]);
+
+    const hslaTint = await sharp(png).tint("hsla(240, 100%, 50%, 0.5)").raw().toBuffer();
+    expect([hslaTint[0], hslaTint[1], hslaTint[2]]).toEqual([125, 74, 255]);
+
+    expect(() => sharp(png).tint(123 as any)).toThrow(/Expected object or string for background/);
+    expect(() => sharp(png).tint("")).toThrow(/Expected object or string for background/);
+    expect(() => sharp(png).tint("not-a-color")).toThrow(/Unable to parse color from string: not-a-color/);
+    expect(() => sharp(png).flatten({ background: "not-a-color" })).toThrow(
+      /Unable to parse color from string: not-a-color/
+    );
+
+    const rot90 = await sharp(png).rotate(90, { background: "not-a-color" }).raw().toBuffer();
+    expect([rot90[0], rot90[1], rot90[2]]).toEqual([255, 0, 0]);
+  });
 });

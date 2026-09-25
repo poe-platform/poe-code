@@ -4,9 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const compiler = vi.hoisted(() => vi.fn());
 const stage = vi.hoisted(() => vi.fn());
+const browserBuild = vi.hoisted(() => vi.fn());
 const lifecycleURL = new URL("../packages/safe-bash/scripts/build-optional-cli.mjs", import.meta.url).href;
 vi.mock("../packages/safe-bash/scripts/build.mjs", () => ({ buildPackage: compiler }));
 vi.mock("../packages/safe-bash/scripts/build-optional.mjs", () => ({ buildOptionalPackage: stage }));
+vi.mock("./bundle-safe-bash.mjs", () => ({ buildBrowserShellOutputs: browserBuild }));
 
 describe("optional distribution production lifecycle", () => {
   let argv: string[];
@@ -20,6 +22,7 @@ describe("optional distribution production lifecycle", () => {
     vi.resetModules();
     compiler.mockReset();
     stage.mockReset();
+    browserBuild.mockReset();
   });
 
   afterEach(() => {
@@ -36,6 +39,7 @@ describe("optional distribution production lifecycle", () => {
       compile: compiler
     });
     expect(compiler).not.toHaveBeenCalled();
+    expect(browserBuild).toHaveBeenCalledExactlyOnceWith(fileURLToPath(new URL("..", import.meta.url)));
     expect(process.exitCode).toBe(0);
   });
 
@@ -43,7 +47,20 @@ describe("optional distribution production lifecycle", () => {
     stage.mockResolvedValue({ status: 2 });
     await import(lifecycleURL);
     expect(stage).toHaveBeenCalledTimes(1);
+    expect(browserBuild).not.toHaveBeenCalled();
     expect(process.exitCode).toBe(2);
+  });
+
+  it("reports browser build failure without claiming publication success", async () => {
+    const reason = new Error("browser build failed");
+    stage.mockResolvedValue({ status: 0 });
+    browserBuild.mockRejectedValue(reason);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    await import(lifecycleURL);
+    expect(stage).toHaveBeenCalledTimes(1);
+    expect(browserBuild).toHaveBeenCalledTimes(1);
+    expect(process.exitCode).toBe(1);
+    expect(error).toHaveBeenCalledExactlyOnceWith(reason);
   });
 
   it("refuses caller options before compilation or materialization", async () => {
@@ -51,6 +68,7 @@ describe("optional distribution production lifecycle", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     await import(lifecycleURL);
     expect(stage).not.toHaveBeenCalled();
+    expect(browserBuild).not.toHaveBeenCalled();
     expect(compiler).not.toHaveBeenCalled();
     expect(process.exitCode).toBe(1);
     expect(error).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ message: "Optional workspace build accepts no arguments" }));
@@ -62,6 +80,7 @@ describe("optional distribution production lifecycle", () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
       await import(lifecycleURL);
       expect(stage).toHaveBeenCalledTimes(1);
+      expect(browserBuild).not.toHaveBeenCalled();
       expect(compiler).not.toHaveBeenCalled();
       expect(process.exitCode).toBe(1);
       expect(error).toHaveBeenCalledExactlyOnceWith(reason);

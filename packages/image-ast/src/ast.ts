@@ -404,6 +404,7 @@ export type ImageAstNode =
 
 export interface OutputEncodeOptions {
   readonly format?: ImageFormat;
+  readonly rawDepth?: string;
   readonly quality?: number;
   readonly compression?: "hevc" | "av1";
   readonly compressionLevel?: number;

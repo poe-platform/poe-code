@@ -1650,8 +1650,25 @@ export function recombImage(
 }
 
 export function toColorspaceImage(img: RgbaImage, space: ColorSpace): RgbaImage {
-  if (space === "b-w" || space === "grey16") {
+  if (space === "b-w") {
     return grayscaleImage(img);
+  }
+  if (space === "grey16") {
+    const g = grayscaleImage(img);
+    return {
+      ...g,
+      space: "grey16",
+      depth: "ushort",
+      channels: img.hasAlpha ? 2 : 1
+    };
+  }
+  if (space === "rgb16") {
+    return {
+      ...img,
+      space: "rgb16",
+      depth: "ushort",
+      channels: img.hasAlpha ? 4 : 3
+    };
   }
   return {
     ...img,

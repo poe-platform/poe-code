@@ -592,31 +592,76 @@ export function encodeImage(
       return { data, format: "pdf", channels: img.hasAlpha ? 4 : 3 };
     }
     case "raw": {
+      let rawU8: Uint8Array;
+      let outCh: 1 | 2 | 3 | 4 = img.channels;
       if (img.channels === 4) {
-        return { data: new Uint8Array(img.data), format: "raw", channels: 4 };
-      }
-      if (img.channels === 3) {
-        const rgb = new Uint8Array(img.width * img.height * 3);
+        rawU8 = new Uint8Array(img.data);
+        outCh = 4;
+      } else if (img.channels === 3) {
+        rawU8 = new Uint8Array(img.width * img.height * 3);
         for (let i = 0; i < img.width * img.height; i++) {
-          rgb[i * 3] = img.data[i * 4]!;
-          rgb[i * 3 + 1] = img.data[i * 4 + 1]!;
-          rgb[i * 3 + 2] = img.data[i * 4 + 2]!;
+          rawU8[i * 3] = img.data[i * 4]!;
+          rawU8[i * 3 + 1] = img.data[i * 4 + 1]!;
+          rawU8[i * 3 + 2] = img.data[i * 4 + 2]!;
         }
-        return { data: rgb, format: "raw", channels: 3 };
-      }
-      if (img.channels === 2) {
-        const ga = new Uint8Array(img.width * img.height * 2);
+        outCh = 3;
+      } else if (img.channels === 2) {
+        rawU8 = new Uint8Array(img.width * img.height * 2);
         for (let i = 0; i < img.width * img.height; i++) {
-          ga[i * 2] = img.data[i * 4]!;
-          ga[i * 2 + 1] = img.data[i * 4 + 3]!;
+          rawU8[i * 2] = img.data[i * 4]!;
+          rawU8[i * 2 + 1] = img.data[i * 4 + 3]!;
         }
-        return { data: ga, format: "raw", channels: 2 };
+        outCh = 2;
+      } else {
+        rawU8 = new Uint8Array(img.width * img.height);
+        for (let i = 0; i < img.width * img.height; i++) {
+          rawU8[i] = img.data[i * 4]!;
+        }
+        outCh = 1;
       }
-      const gray = new Uint8Array(img.width * img.height);
-      for (let i = 0; i < img.width * img.height; i++) {
-        gray[i] = img.data[i * 4]!;
+      const depth = options.rawDepth ?? "uchar";
+      if (depth === "uchar") {
+        return { data: rawU8, format: "raw", channels: outCh };
       }
-      return { data: gray, format: "raw", channels: 1 };
+      const is16Bit = img.space === "rgb16" || img.space === "grey16";
+      const mapVal = (v: number): number => (is16Bit ? (v === 255 ? 65535 : v === 1 ? 511 : v * 256) : v);
+      const len = rawU8.length;
+      if (depth === "char") {
+        const arr = new Int8Array(len);
+        for (let i = 0; i < len; i++) arr[i] = Math.min(127, rawU8[i]!);
+        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      }
+      if (depth === "ushort") {
+        const arr = new Uint16Array(len);
+        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!);
+        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      }
+      if (depth === "short") {
+        const arr = new Int16Array(len);
+        for (let i = 0; i < len; i++) arr[i] = Math.min(32767, mapVal(rawU8[i]!));
+        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      }
+      if (depth === "uint") {
+        const arr = new Uint32Array(len);
+        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!);
+        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      }
+      if (depth === "int") {
+        const arr = new Int32Array(len);
+        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!);
+        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      }
+      if (depth === "float") {
+        const arr = new Float32Array(len);
+        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!);
+        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      }
+      if (depth === "double") {
+        const arr = new Float64Array(len);
+        for (let i = 0; i < len; i++) arr[i] = mapVal(rawU8[i]!);
+        return { data: new Uint8Array(arr.buffer), format: "raw", channels: outCh };
+      }
+      return { data: rawU8, format: "raw", channels: outCh };
     }
     default:
       throw new Error(`Unsupported output format: ${fmt}`);

@@ -936,11 +936,15 @@ export class SharpInstance {
   toColorspace(colorspace: string): this {
     const norm = colorspace.toLowerCase();
     const space: ColorSpace =
-      norm === "b-w" || norm === "bw" || norm === "grey16" || norm === "gray"
-        ? "b-w"
-        : norm === "cmyk"
-          ? "cmyk"
-          : "srgb";
+      norm === "grey16"
+        ? "grey16"
+        : norm === "rgb16"
+          ? "rgb16"
+          : norm === "b-w" || norm === "bw" || norm === "gray"
+            ? "b-w"
+            : norm === "cmyk"
+              ? "cmyk"
+              : "srgb";
     this.upsertNode({ kind: "toColorspace", space });
     return this;
   }
@@ -1223,8 +1227,12 @@ export class SharpInstance {
     return this;
   }
 
-  raw(): this {
-    this.outputOptions = { ...this.outputOptions, format: "raw" };
+  raw(options?: { readonly depth?: string }): this {
+    this.outputOptions = {
+      ...this.outputOptions,
+      format: "raw",
+      ...(options?.depth !== undefined ? { rawDepth: options.depth } : {})
+    };
     return this;
   }
 
@@ -1284,7 +1292,7 @@ export class SharpInstance {
         width: img.width,
         height: img.height,
         channels: encoded.channels,
-        ...(encoded.format === "raw" ? { depth: img.depth } : {}),
+        ...(encoded.format === "raw" ? { depth: this.outputOptions.rawDepth ?? img.depth } : {}),
         premultiplied: false,
         ...(img.pageHeight !== undefined ? { pageHeight: img.pageHeight } : {}),
         ...(img.pages !== undefined ? { pages: img.pages } : {}),

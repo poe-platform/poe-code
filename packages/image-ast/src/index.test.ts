@@ -2107,4 +2107,42 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect((sharp as any).blend.over).toBe("over");
     expect(typeof (sharp as any).queue.on).toBe("function");
   });
+  it("supports raw({ depth }) across uchar/char/ushort/short/uint/int/float/double and rgb16/grey16 colorspaces", async () => {
+    const buf = Buffer.from([0, 128, 255]);
+    const ushortRes = await sharp(buf, { raw: { width: 1, height: 1, channels: 3 } })
+      .raw({ depth: "ushort" } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(ushortRes.info.depth).toBe("ushort");
+    expect(ushortRes.info.size).toBe(6);
+    expect(Array.from(new Uint16Array(new Uint8Array(ushortRes.data).buffer))).toEqual([0, 128, 255]);
+
+    const floatRes = await sharp(buf, { raw: { width: 1, height: 1, channels: 3 } })
+      .raw({ depth: "float" } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(floatRes.info.depth).toBe("float");
+    expect(floatRes.info.size).toBe(12);
+    expect(Array.from(new Float32Array(new Uint8Array(floatRes.data).buffer))).toEqual([0, 128, 255]);
+
+    const charRes = await sharp(buf, { raw: { width: 1, height: 1, channels: 3 } })
+      .raw({ depth: "char" } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(charRes.info.depth).toBe("char");
+    expect(Array.from(new Int8Array(new Uint8Array(charRes.data).buffer))).toEqual([0, 127, 127]);
+
+    const rgb16Res = await sharp(buf, { raw: { width: 1, height: 1, channels: 3 } })
+      .toColorspace("rgb16" as any)
+      .raw({ depth: "ushort" } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(rgb16Res.info.depth).toBe("ushort");
+    expect(rgb16Res.info.channels).toBe(3);
+    expect(Array.from(new Uint16Array(new Uint8Array(rgb16Res.data).buffer))).toEqual([0, 32768, 65535]);
+
+    const grey16Res = await sharp(buf, { raw: { width: 1, height: 1, channels: 3 } })
+      .toColorspace("grey16" as any)
+      .raw({ depth: "ushort" } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(grey16Res.info.depth).toBe("ushort");
+    expect(grey16Res.info.channels).toBe(1);
+    expect(grey16Res.info.size).toBe(2);
+  });
 });

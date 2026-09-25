@@ -247,6 +247,24 @@ test("stdout target follows descriptors and transparent invokes, not replacement
   } finally { await shell.dispose(); }
 });
 
+test("transparent output forwarding retains a single shared output budget", async () => {
+  const { shell, commands } = fixture();
+  commands.register({ name: "emit-byte", async execute(context) {
+    await writeText(context.stdout, "x");
+    return { exitCode: 0 };
+  } });
+  commands.register({ name: "forward-bytes", async execute(context) {
+    await context.invoke!("emit-byte", []);
+    return context.invoke!("emit-byte", [], { stdout: context.stdout });
+  } });
+  try {
+    const result = await shell.exec("forward-bytes > /dev/null", { limits: { maxOutputBytes: 2 } });
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""]);
+    await assert.rejects(shell.exec("forward-bytes > /dev/null", { limits: { maxOutputBytes: 1 } }),
+      error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+  } finally { await shell.dispose(); }
+});
+
 test("empty-chunk producers yield to cancellation inside bounded read", { timeout: 2000 }, async () => {
   const { shell } = fixture();
   const controller = new AbortController();

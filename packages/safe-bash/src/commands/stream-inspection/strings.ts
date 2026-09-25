@@ -36,23 +36,6 @@ export function createStringsCommand(limits: StreamInspectionLimits): CommandDef
       if (!/^(?:0[0-7]*|[1-9][0-9]*)$/u.test(specification)) throw new UsageError(`invalid number '${specification}'`);
       minimum = Number.parseInt(specification, specification.startsWith("0") ? 8 : 10);
       if (minimum < 1 || minimum >= 4294967295) throw new UsageError(`invalid number '${specification}'`);
-      for (let i = 0; i < session.context.args.length; i++) {
-        const arg = session.context.args[i]!;
-        if (arg === "--" || arg === "-" || !arg.startsWith("-")) break;
-        if (arg === "-n" || arg === "--bytes") {
-          if (i + 1 < session.context.args.length) minimum = integer(session.context.args[++i]!, 1);
-        } else if (arg.startsWith("--bytes=")) {
-          minimum = integer(arg.slice(8), 1);
-        } else if (/^-[adfoeUTwst]*n.+/u.test(arg) && !arg.startsWith("--")) {
-          const nIdx = arg.indexOf("n", 1);
-          minimum = integer(arg.slice(nIdx + 1), 1);
-        } else if (/^-[0-9]+$/u.test(arg)) {
-          const spec = arg.slice(1);
-          minimum = Number.parseInt(spec, spec.startsWith("0") ? 8 : 10);
-        } else if (["-s", "-t", "-e", "-U", "-T", "--output-separator", "--radix", "--encoding", "--unicode", "--target"].includes(arg)) {
-          i++;
-        }
-      }
     }
     const files = parsed.operands.filter(name => name !== "-");
     if (parsed.operands.length && !files.length) throw new UsageError("missing file operand after '-' (use no operands for stdin)");

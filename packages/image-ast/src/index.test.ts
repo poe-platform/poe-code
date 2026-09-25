@@ -1820,4 +1820,27 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const bb = await sharp(buf, raw).bandbool("and").bandbool("or").raw().toBuffer();
     expect(Array.from(bb)).toEqual([254, 254, 254, 252, 252, 252]);
   });
+
+  it("applies extend() and extract() per frame on multi-page animated images (#97)", async () => {
+    const rawFrames = Buffer.from([
+      255, 0, 0,  255, 0, 0,
+      0, 0, 255,  0, 0, 255,
+      0, 255, 0,  0, 255, 0,
+      255, 255, 0,  255, 255, 0
+    ]);
+    const gif = await sharp(rawFrames, { raw: { width: 2, height: 4, channels: 3, pageHeight: 2 } }).gif({ pageHeight: 2 }).toBuffer();
+
+    const extAnim = await sharp(gif, { animated: true }).extend(1).raw().toBuffer({ resolveWithObject: true });
+    expect(extAnim.info.width).toBe(4);
+    expect(extAnim.info.height).toBe(8);
+    expect(extAnim.info.pageHeight).toBe(4);
+    expect(extAnim.info.pages).toBe(2);
+
+    const extrAnim = await sharp(gif, { animated: true }).extract({ left: 0, top: 0, width: 1, height: 1 }).raw().toBuffer({ resolveWithObject: true });
+    expect(extrAnim.info.width).toBe(1);
+    expect(extrAnim.info.height).toBe(2);
+    expect(extrAnim.info.pageHeight).toBe(1);
+    expect(extrAnim.info.pages).toBe(2);
+    expect(Array.from(extrAnim.data)).toEqual([255, 0, 0, 255, 0, 255, 0, 255]);
+  });
 });

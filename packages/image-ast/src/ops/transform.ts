@@ -244,6 +244,18 @@ export function extractImage(
       `extract_area: bad extract area (left=${left}, top=${top}, width=${width}, height=${height} on ${img.width}x${img.height})`
     );
   }
+  if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight && top + height <= img.pageHeight) {
+    const pages = img.pages;
+    const pageH = img.pageHeight;
+    const out = new Uint8Array(width * height * pages * 4);
+    for (let p = 0; p < pages; p++) {
+      for (let y = 0; y < height; y++) {
+        const srcStart = ((p * pageH + top + y) * img.width + left) * 4;
+        out.set(img.data.subarray(srcStart, srcStart + width * 4), (p * height + y) * width * 4);
+      }
+    }
+    return { ...img, width, height: height * pages, pageHeight: height, pages, data: out };
+  }
   const out = new Uint8Array(width * height * 4);
   for (let y = 0; y < height; y++) {
     const srcStart = ((top + y) * img.width + left) * 4;
@@ -362,6 +374,28 @@ export function extendImage(
     readonly extendWith: "background" | "copy" | "repeat" | "mirror";
   }
 ): RgbaImage {
+  if (img.pages && img.pages > 1 && img.pageHeight && img.height === img.pages * img.pageHeight) {
+    const pages = img.pages;
+    const pageH = img.pageHeight;
+    const pageBytes = img.width * pageH * 4;
+    const extendedPages: RgbaImage[] = [];
+    for (let p = 0; p < pages; p++) {
+      extendedPages.push(
+        extendImage(
+          { ...img, height: pageH, pages: 1, pageHeight: pageH, data: img.data.subarray(p * pageBytes, (p + 1) * pageBytes) },
+          spec
+        )
+      );
+    }
+    const first = extendedPages[0]!;
+    const outW = first.width;
+    const outPageH = first.height;
+    const outData = new Uint8Array(outW * outPageH * pages * 4);
+    for (let p = 0; p < pages; p++) {
+      outData.set(extendedPages[p]!.data, p * outW * outPageH * 4);
+    }
+    return { ...first, width: outW, height: outPageH * pages, pages, pageHeight: outPageH, data: outData };
+  }
   const top = Math.max(0, Math.round(spec.top));
   const bottom = Math.max(0, Math.round(spec.bottom));
   const left = Math.max(0, Math.round(spec.left));

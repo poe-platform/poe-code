@@ -7,20 +7,20 @@ const bufferLimit = Infinity;
 
 interface GrepFile { name: string; nested: boolean }
 
-export async function* grepFiles(context: CommandContext, parsed: ParsedOptions, filters: readonly { key: string; pattern: string }[], report: () => void): AsyncGenerator<GrepFile> {
-  const directories = value(parsed, "d") ?? (parsed.flags.has("r") || parsed.flags.has("R") ? "recurse" : "read");
+export async function* grepFiles(context: CommandContext, parsed: ParsedOptions, filters: readonly { key: string; pattern: string }[], report: () => void, directoriesOverride?: string): AsyncGenerator<GrepFile> {
+  const directories = directoriesOverride ?? value(parsed, "d") ?? (parsed.flags.has("r") || parsed.flags.has("R") ? "recurse" : "read");
   const devices = value(parsed, "D") ?? "read";
   if (!["read", "skip", "recurse"].includes(directories)) throw new UsageError(`invalid argument '${directories}' for 'directories'`);
   if (!["read", "skip"].includes(devices)) throw new UsageError(`invalid argument '${devices}' for 'devices'`);
   const work = { signal: context.signal, remaining: Infinity, exhausted() { throw new UsageError("file filter work limit exceeded"); } };
   const rules: { pattern: string; include: boolean }[] = [];
   for (const { key, pattern } of filters) {
-    if (key === "I" || key === "X") rules.push({ pattern, include: key === "I" });
-    if (key === "Y") {
+    if (key === "include" || key === "exclude") rules.push({ pattern, include: key === "include" });
+    if (key === "exclude-from") {
       for await (const line of lines(requiredFileInput(context, grepRequirements, "pattern-file", pattern, bufferLimit))) rules.push({ pattern: Buffer.from(line.bytes).toString(), include: false });
     }
   }
-  const excludedDirectories = parsed.values.get("T") ?? [];
+  const excludedDirectories = parsed.values.get("exclude-dir") ?? [];
   const initialInclude = !rules.some(rule => rule.include);
   async function* visit(name: string, ancestors: Set<string>, depth: number, explicit: boolean): AsyncGenerator<GrepFile> {
     context.signal.throwIfAborted();

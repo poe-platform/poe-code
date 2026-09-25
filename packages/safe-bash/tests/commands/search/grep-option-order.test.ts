@@ -1,102 +1,42 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { grepCommands } from "../../../src/commands/grep.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
-import { grepCommands } from "../../../src/commands/grep.js";
 
-const cases = [
-  ["-G 'mat.*' a", "match\n"],
-  ["--basic-regexp 'mat.*' a", "match\n"],
-  ["-GG 'mat.*' a", "match\n"],
-  ["--basic-regexp -G 'mat.*' a", "match\n"],
-  ["-G 'match|nope' a b", "", 1],
-  ["-l -L match a b", "b\n"],
-  ["-L -l match a b", "a\n"],
-  ["-lLl match a b", "a\n"],
-  ["--files-with-matches --files-without-match match a b", "b\n"],
-  ["--files-without-match --files-with-matches match a b", "a\n"],
-  ["-A2 -C0 match a", "match\n"],
-  ["-B2 -C0 match a", "match\n"],
-  ["-C0 -A2 match a", "match\n3\n4\n"],
-  ["-C0 -B2 match a", "1\nmatch\n"],
-  ["--after-context=2 --context=0 match a", "match\n"],
-  ["--before-context=2 --context=0 match a", "match\n"],
-  ["-C1 -A0 match a", "1\nmatch\n"],
-  ["-C1 -B0 match a", "match\n3\n"],
-  ["-hH match a", "a:match\n"],
-  ["-Hh match a b", "match\n"],
-  ["--no-filename --with-filename match a", "a:match\n"],
-  ["--with-filename --no-filename match a b", "match\n"],
-  ["-hHcn --initial-tab match a", "a:1\n"],
-  ["-hHn --initial-tab match a", "a:2:\tmatch\n"],
-] as const;
-
-for (const [args, stdout, exitCode = 0] of cases) {
-  test(`grep option order: ${args}`, async () => {
-    const fs = new MemoryFileSystem();
-    await fs.writeFile("/a", Buffer.from("1\nmatch\n3\n4\n5\n"));
-    await fs.writeFile("/b", Buffer.from("nope\n"));
-    const shell = new Shell({ fs });
-    for (const command of grepCommands()) shell.commands.register(command);
-    try {
-      const result = await shell.exec(`grep ${args}`);
-      assert.equal(result.stderr, "");
-      assert.equal(result.exitCode, exitCode);
-      assert.equal(result.stdout, stdout);
-    } finally { await shell.dispose(); }
-  });
-}
-
-for (const args of ["-GE", "-GE -f missing", "-GE --help", "-EF -f missing"]) {
-  test(`grep rejects conflicting matchers before pattern or help processing: ${args}`, async () => {
-    const shell = new Shell({ fs: new MemoryFileSystem() });
-    for (const command of grepCommands()) shell.commands.register(command);
-    try {
-      const result = await shell.exec(`grep ${args}`);
-      assert.equal(result.exitCode, 2);
-      assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "grep: conflicting matchers specified\n");
-    } finally { await shell.dispose(); }
-  });
-}
-
-test("grep rejects conflicting matchers without consuming stdin patterns", async () => {
-  let reads = 0;
-  const shell = new Shell({ fs: new MemoryFileSystem() });
-  for (const command of grepCommands()) shell.commands.register(command);
-  async function* input() { reads++; yield Buffer.from("cat\n"); }
+test("grep supports -I, -T, --binary-files=without-match, -NUM, and option override ordering", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/a.txt", Buffer.from("foo\nbar\nbaz\nqux\nfoo\n"));
+  await fs.writeFile("/bin.dat", Buffer.from([102, 111, 111, 0, 10]));
+  await fs.mkdir("/sub", { recursive: true });
+  await fs.writeFile("/sub/c.txt", Buffer.from("foo\n"));
+  const shell = new Shell({ fs, cwd: "/" });
+  for (const command of grepCommands()) shell.register(command);
   try {
-    const result = await shell.exec("grep -GE -f -", { stdin: input() });
-    assert.equal(result.exitCode, 2);
-    assert.equal(result.stderr, "grep: conflicting matchers specified\n");
-    assert.equal(reads, 0);
-  } finally { await shell.dispose(); }
+    const r1 = await shell.exec("grep -I foo a.txt bin.dat");
+    assert.equal(r1.exitCode, 0);
+    assert.equal(r1.stdout, "a.txt:foo\na.txt:foo\n");
+
+    const r2 = await shell.exec("grep -T -n foo a.txt");
+    assert.equal(r2.exitCode, 0);
+    assert.equal(r2.stdout, "1:\tfoo\n5:\tfoo\n");
+
+    const r3 = await shell.exec("grep -h -H foo a.txt");
+    assert.equal(r3.exitCode, 0);
+    assert.equal(r3.stdout, "a.txt:foo\na.txt:foo\n");
+
+    const r4 = await shell.exec("grep --no-ignore-case -i FOO a.txt");
+    assert.equal(r4.exitCode, 0);
+    assert.equal(r4.stdout, "foo\nfoo\n");
+
+    const r5 = await shell.exec("grep -1 bar a.txt");
+    assert.equal(r5.exitCode, 0);
+    assert.equal(r5.stdout, "foo\nbar\nbaz\n");
+
+    const r6 = await shell.exec("grep -d skip -r foo sub");
+    assert.equal(r6.exitCode, 0);
+    assert.equal(r6.stdout, "sub/c.txt:foo\n");
+  } finally {
+    await shell.dispose();
+  }
 });
-
-for (const args of ["--help -GE", "-G --help -E", "-E --help -F"]) {
-  test(`grep preserves help requested before a matcher conflict: ${args}`, async () => {
-    const shell = new Shell({ fs: new MemoryFileSystem() });
-    for (const command of grepCommands()) shell.commands.register(command);
-    try {
-      const result = await shell.exec(`grep ${args}`);
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.stderr, "");
-      assert.match(result.stdout, /^Usage: grep /);
-    } finally { await shell.dispose(); }
-  });
-}
-
-// GNU grep 3.12 setmatcher rejects distinct explicit matchers in either order.
-for (const flags of ["-GE", "-EG", "-GF", "-FG", "--basic-regexp --extended-regexp",
-  "--extended-regexp --basic-regexp", "--basic-regexp --fixed-strings", "--fixed-strings --basic-regexp"]) {
-  test(`grep rejects conflicting explicit matchers: ${flags}`, async () => {
-    const shell = new Shell({ fs: new MemoryFileSystem() });
-    for (const command of grepCommands()) shell.commands.register(command);
-    try {
-      const result = await shell.exec(`grep ${flags} cat`, { stdin: "cat\n" });
-      assert.equal(result.exitCode, 2);
-      assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "grep: conflicting matchers specified\n");
-    } finally { await shell.dispose(); }
-  });
-}

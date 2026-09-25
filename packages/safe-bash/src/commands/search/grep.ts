@@ -123,10 +123,25 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
       let filenameOption: "h" | "H" | undefined;
       let matcher: "G" | "E" | "F" | undefined;
       let helpRequested = false;
+      let ignoreCase = false;
+      let binaryFilesMode: "text" | "without-match" | "binary" = "text";
+      let directoriesAction: string | undefined;
       const filters: { key: string; pattern: string }[] = [];
-      const parsed = parseOptions(context.args, "GEFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:I:X:Y:T:", { color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false, label: "label:", "initial-tab": false, "group-separator": "group-separator:", help: false, "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "I", exclude: "X", "exclude-from": "Y", "exclude-dir": "T" }, false, undefined, (key, index, offset) => {
-        const text = context.args[index]!.slice(offset);
-        if (["I", "X", "Y"].includes(key)) filters.push({ key, pattern: text });
+      const normalizedArgs: string[] = [];
+      let optionsEnded = false;
+      for (const arg of context.args) {
+        if (!optionsEnded && arg === "--") { optionsEnded = true; normalizedArgs.push(arg); continue; }
+        if (!optionsEnded && /^-[0-9]+$/u.test(arg)) { normalizedArgs.push(`-C${arg.slice(1)}`); continue; }
+        normalizedArgs.push(arg);
+      }
+      const parsed = parseOptions(normalizedArgs, "GEFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:IT", { color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false, label: "label:", "initial-tab": "T", "group-separator": "group-separator:", help: false, "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "include:", exclude: "exclude:", "exclude-from": "exclude-from:", "exclude-dir": "exclude-dir:" }, false, undefined, (key, index, offset) => {
+        const text = normalizedArgs[index]!.slice(offset);
+        if (["include", "exclude", "exclude-from"].includes(key)) filters.push({ key, pattern: text });
+        if (key === "d") directoriesAction = text;
+        if (key === "binary-files") {
+          if (text !== "text" && text !== "without-match" && text !== "binary") throw new UsageError(`unsupported binary-files mode '${text}'; use text`);
+          binaryFilesMode = text;
+        }
         if (!["A", "B", "C"].includes(key)) return;
         try {
           const length = integer(text);
@@ -141,6 +156,11 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
         }
         if (key === "l" || key === "L") fileSelection = key;
         if (key === "h" || key === "H") filenameOption = key;
+        if (key === "i") ignoreCase = true;
+        if (key === "no-ignore-case") ignoreCase = false;
+        if (key === "I") binaryFilesMode = "without-match";
+        if (key === "a") binaryFilesMode = "text";
+        if (key === "r" || key === "R") directoriesAction = "recurse";
       });
       if (fileSelection) parsed.flags.delete(fileSelection === "l" ? "L" : "l");
       if (filenameOption) parsed.flags.delete(filenameOption === "h" ? "H" : "h");
@@ -207,8 +227,6 @@ inspect the resulting state before repeating the action.
       let positionalPattern: string | undefined;
       const color = value(parsed, "color");
       if (color !== undefined && color !== "never" && color !== "auto") throw new UsageError(`unsupported color mode '${color}'; use never or auto (non-terminal output)`);
-      const binaryMode = value(parsed, "binary-files");
-      if (binaryMode !== undefined && binaryMode !== "text") throw new UsageError(`unsupported binary-files mode '${binaryMode}'; use text`);
       if (!parsed.flags.has("e") && !parsed.flags.has("f")) {
         if (!parsed.operands.length) throw new UsageError("missing pattern");
         positionalPattern = parsed.operands.shift()!;
@@ -257,7 +275,7 @@ inspect the resulting state before repeating the action.
       if (positionalPattern !== undefined) await addArgument(positionalPattern);
       const descriptor: GrepDescriptor = {
         kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
-        insensitive: parsed.flags.has("i") && !parsed.flags.has("no-ignore-case"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
+        insensitive: ignoreCase, whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
       };
       const initRes = session.runSync(descriptor, EMPTY_GREP_ROWS);
       if (initRes instanceof Promise) await initRes;
@@ -297,7 +315,7 @@ inspect the resulting state before repeating the action.
       let emittedGroup = false;
       let anySelected = false;
       let failed = false;
-      for await (const { name, nested } of grepFiles(context, parsed, filters, () => { failed = true; })) {
+      for await (const { name, nested } of grepFiles(context, parsed, filters, () => { failed = true; }, directoriesAction)) {
         let count = 0;
         let number = 0;
         let byteOffset = 0;
@@ -309,7 +327,7 @@ inspect the resulting state before repeating the action.
         const named = name === "-" ? value(parsed, "label") ?? "(standard input)" : name;
         const hasLinePrefix = (!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) || parsed.flags.has("n") || parsed.flags.has("b");
         const delimiterByte = delimiterBytes[0]!;
-        const prefix = (lineNumber = false, position = number, separator = ":", offset = byteOffset) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested) ? `${named}${parsed.flags.has("Z") ? "\0" : separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}${lineNumber && parsed.flags.has("b") ? `${offset}${separator}` : ""}${lineNumber && parsed.flags.has("initial-tab") && (parsed.flags.has("n") || parsed.flags.has("b") || !parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) ? "\t" : ""}`;
+        const prefix = (lineNumber = false, position = number, separator = ":", offset = byteOffset) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested) ? `${named}${parsed.flags.has("Z") ? "\0" : separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}${lineNumber && parsed.flags.has("b") ? `${offset}${separator}` : ""}${lineNumber && parsed.flags.has("T") && (parsed.flags.has("n") || parsed.flags.has("b") || !parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) ? "\t" : ""}`;
         const emitContext = async (line: Line, position: number, offset = byteOffset) => {
           if (!parsed.flags.has("o")) {
             await writeOut(prefix(true, position, "-", offset));
@@ -321,6 +339,10 @@ inspect the resulting state before repeating the action.
         try {
           const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, limits.maxFileBytes ?? Infinity);
           records: if (maxCount > 0) for await (const batch of grepLineBatches(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches)) {
+            if (binaryFilesMode === "without-match" && batch.some(line => line.bytes.includes(0))) {
+              count = 0;
+              break records;
+            }
             trustedInputRows.add(batch);
             const resOrPromise = session.runSync(descriptor, batch); const results = resOrPromise instanceof Promise ? await resOrPromise : resOrPromise;
             for (let index = 0; index < batch.length; index++) {

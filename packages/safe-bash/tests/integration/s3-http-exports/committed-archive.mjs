@@ -706,7 +706,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         ...["js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/expression.${extension}`),
         ...["nodes", "evaluate", "native-work", "inplace", "arguments", "mike", "formats", "native-encoder"]
           .flatMap(name => ["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/${name}.${extension}`)),
-        "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs",
+        "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap",
         "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read", "!dist/opt-in",
       ], "committed dist packaging contract drift");
       assertArchiveDependencyContract(manifest);

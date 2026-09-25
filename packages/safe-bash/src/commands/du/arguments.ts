@@ -45,7 +45,9 @@ export function parse(budget: Budget): Arguments {
     if (flag === "X" || flag === "exclude-from") { excludeFiles.push(value); return; }
     if (flag === "t" || flag === "threshold") {
       const negative = value.startsWith("-");
-      const size = negative ? value.slice(1) : value;
+      const positive = value.startsWith("+");
+      const size = negative || positive ? value.slice(1) : value;
+      if (size.startsWith("+") || size.startsWith("-")) throw new UsageError(`invalid --threshold argument '${value}'`);
       const parsed = blockSize(size, true);
       if (parsed.human || negative && parsed.unit === 0n) throw new UsageError(`invalid --threshold argument '${value}'`);
       threshold = Number(parsed.unit) * (negative ? -1 : 1);

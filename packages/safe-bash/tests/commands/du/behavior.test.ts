@@ -308,3 +308,19 @@ test("typed listing errors propagate meaning and preserve known unrelated operan
   assert.equal(result.stdout, "3\ttree/a\n");
   assert.match(result.stderr, /permission denied.*readdir.*tree/u);
 });
+
+test("accepts +SIZE thresholds and rejects double signs", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/dir");
+  await fs.mkdir("/dir/sub");
+  await fs.writeFile("/dir/sub/f", new TextEncoder().encode("hello"));
+  await fs.writeFile("/dir/empty", new Uint8Array());
+
+  const plusThreshold = await shellRun(fs, ["-b", "-a", "-t", "+5", "/dir"]);
+  assert.equal(plusThreshold.exitCode, 0, plusThreshold.stderr);
+  assert.equal(plusThreshold.stdout, "5\t/dir/sub/f\n5\t/dir/sub\n5\t/dir\n");
+
+  const doublePlus = await shellRun(fs, ["-b", "-a", "-t", "++5", "/dir"]);
+  assert.equal(doublePlus.exitCode, 1);
+  assert.match(doublePlus.stderr, /invalid --threshold argument/u);
+});

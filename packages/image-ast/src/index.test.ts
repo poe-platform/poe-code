@@ -3091,4 +3091,32 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Array.from(rAtt.slice(72, 96))).toEqual([40,45,50,40,45,50,40,45,50,40,45,50,40,45,50,40,45,50,40,45,50,40,45,50]);
   });
+  it("matches libvips 4-band vips_hist_local in clahe() and unclamped _vips_col_Lab2XYZ in normalise() (#1245)", async () => {
+    const W = 24, H = 18;
+    const rgba = Buffer.alloc(W * H * 4);
+    const rgb = Buffer.alloc(W * H * 3);
+    const bw = Buffer.alloc(W * H);
+    for (let i = 0; i < W * H; i++) {
+      rgb[i * 3] = rgba[i * 4] = bw[i] = (i * 53 + 17) & 255;
+      rgb[i * 3 + 1] = rgba[i * 4 + 1] = (i * 97 + 43) & 255;
+      rgb[i * 3 + 2] = rgba[i * 4 + 2] = (i * 193 + 11) & 255;
+      rgba[i * 4 + 3] = (i * 37 + 80) & 255;
+    }
+    const claheRgba = await sharp(rgba, { raw: { width: W, height: H, channels: 4 } })
+      .clahe({ width: 8, height: 8, maxSlope: 3 })
+      .raw()
+      .toBuffer();
+    expect(Array.from(claheRgba.slice(0, 16))).toEqual([39, 43, 11, 91, 95, 143, 207, 123, 159, 243, 155, 151, 203, 83, 95, 199]);
+    const normRgb = await sharp(rgb, { raw: { width: W, height: H, channels: 3 } })
+      .normalise({ lower: 2, upper: 98 })
+      .raw()
+      .toBuffer();
+    expect(Array.from(normRgb.slice(450, 456))).toEqual([0, 0, 0, 64, 85, 210]);
+    const normBw = await sharp(bw, { raw: { width: W, height: H, channels: 1 } })
+      .toColorspace("b-w")
+      .normalise({ lower: 2, upper: 98 })
+      .raw()
+      .toBuffer();
+    expect(Array.from(normBw.slice(0, 12))).toEqual([15, 70, 125, 179, 234, 24, 79, 134, 189, 243, 34, 88]);
+  });
 });

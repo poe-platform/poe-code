@@ -933,16 +933,22 @@ function srgbToLab(r: number, g: number, b: number): [number, number, number] {
 }
 
 function labToSrgb(L: number, a: number, b: number): [number, number, number] {
-  const fy = (Math.max(0, L) + 16) / 116;
-  const fx = a / 500 + fy;
-  const fz = fy - b / 200;
-  const finv = (t: number): number => {
-    const t3 = t * t * t;
-    return t3 > 0.008856 ? t3 : Math.max(0, (t - 16 / 116) / 7.787);
-  };
-  const x = finv(fx) * 0.95047;
-  const y = L <= 0 ? 0 : finv(fy) * 1.0;
-  const z = finv(fz) * 1.08883;
+  let Y: number;
+  let fy: number;
+  if (L < 8.0) {
+    Y = Math.fround((L * 100.0) / 903.3);
+    fy = (Y / 100.0) * 7.787 + 16.0 / 116.0;
+  } else {
+    fy = (L + 16.0) / 116.0;
+    Y = Math.fround(fy * fy * fy * 100.0);
+  }
+  const fx = a / 500.0 + fy;
+  const X = Math.fround(95.047 * (fx > 0.206893 ? fx * fx * fx : (fx - 16.0 / 116.0) / 7.787));
+  const fz = fy - b / 200.0;
+  const Z = Math.fround(108.883 * (fz > 0.206893 ? fz * fz * fz : (fz - 16.0 / 116.0) / 7.787));
+  const x = X / 100.0;
+  const y = Y / 100.0;
+  const z = Z / 100.0;
   const lr = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z;
   const lg = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
   const lb = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
@@ -1164,7 +1170,7 @@ export function normalizeImage(
   const numPixels = img.width * img.height;
   if (numPixels === 0) return img;
 
-  if (img.channels >= 3 && img.space !== "b-w") {
+  if (numPixels > 0) {
     const Lvals = new Float32Array(numPixels);
     const aVals = new Float32Array(numPixels);
     const bVals = new Float32Array(numPixels);
@@ -1977,7 +1983,14 @@ export function claheImage(
   const halfH = Math.floor(winH / 2);
   const nPixels = winW * winH;
   const threshold = maxSlope;
-  const numCh = img.channels === 1 || img.space === "b-w" ? 1 : 3;
+  const activeChannels =
+    img.channels === 1
+      ? [0]
+      : img.channels === 2 || (img.space === "b-w" && img.channels > 1)
+        ? [0, 3]
+        : img.channels === 4
+          ? [0, 1, 2, 3]
+          : [0, 1, 2];
 
   const mirrorCoord = (c: number, max: number): number => {
     if (max <= 1) return 0;
@@ -1993,7 +2006,7 @@ export function claheImage(
   }
 
   const hist = new Int32Array(256);
-  for (let ch = 0; ch < numCh; ch++) {
+  for (const ch of activeChannels) {
     for (let y = 0; y < height; y++) {
       for (let dy = 0; dy < winH; dy++) {
         syTable[dy] = mirrorCoord(y + dy - halfH, height) * width * 4 + ch;
@@ -2026,7 +2039,7 @@ export function claheImage(
           for (let i = 0; i <= target; i++) sum += hist[i]!;
         }
         const outVal = Math.max(0, Math.min(255, Math.floor((255 * sum) / nPixels)));
-        if (numCh === 1) {
+        if (ch === 0 && (img.channels <= 2 || img.space === "b-w")) {
           out[pIdx] = outVal;
           out[pIdx + 1] = outVal;
           out[pIdx + 2] = outVal;

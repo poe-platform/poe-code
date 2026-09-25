@@ -10,7 +10,7 @@ import { validateUtf8 } from "./utf8.js";
 import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -97,7 +97,20 @@ function options(input: BoundedRegexProviderOptions): Required<BoundedRegexProvi
   return Object.freeze(result);
 }
 
-function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions>): SelectionDescriptor | GlobDescriptor {
+function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions>, trusted = false): SelectionDescriptor | GlobDescriptor {
+  if (trusted && value !== null && typeof value === "object") {
+    const d = value as SelectionDescriptor | GlobDescriptor;
+    if (d.kind === "rg" || d.kind === "grep") {
+      if (d.patterns.length > limits.maxPatterns) fail("limit", "pattern count limit exceeded");
+      let bytes = 0;
+      for (let index = 0; index < d.patterns.length; index++) {
+        const pattern = d.patterns[index]!;
+        if (pattern.length > limits.maxPatternBytes - bytes) fail("limit", "aggregate pattern byte limit exceeded");
+        bytes += pattern.length;
+      }
+      return d;
+    }
+  }
   if (value === null || typeof value !== "object") fail("protocol", "invalid descriptor");
   const kind = Object.getOwnPropertyDescriptor(value, "kind");
   if (!kind || !("value" in kind)) fail("protocol", "invalid descriptor kind");
@@ -137,7 +150,7 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
 function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedRequest | OwnedGlobRequest {
   const trusted = trustedWorkerRequests.has(input);
   if (!trusted) record(input, ["id", "descriptor", "rows"]);
-  const selected = descriptor(input.descriptor, limits);
+  const selected = descriptor(input.descriptor, limits, trusted);
   if (trusted && Array.isArray(input.rows)) {
     if (input.rows.length > limits.maxRows) fail("limit", "row count limit exceeded");
   } else {
@@ -384,7 +397,7 @@ async function literalStart(program: LiteralProgram, subject: Uint8Array, whole:
   }
   for (let index = from, prefix = 0; index < subject.length;) {
     if (prefix === 0 && !program.insensitive) {
-      const allowance = ledger.workAllowanceUntilCheckpoint();
+      const allowance = ledger.workAllowanceUntilCheckpoint(signal);
       if (allowance > 1) {
         const firstByte = bytes[0]!;
         const maxRun = Math.min(subject.length, index + allowance);
@@ -643,6 +656,9 @@ class CooperativeWorker implements RegexWorker {
         reply = owned ? "subject" in owned ? await executeExpr(owned, this.#controller.signal)
           : owned.descriptor.kind === "glob" ? await executeBoundedGlobs(owned as OwnedGlobRequest, this.#controller.signal)
           : await execute(owned as OwnedRequest, this.#controller.signal) : { id, error: failure! };
+        if (owned && !("subject" in owned) && !("error" in reply)) {
+          trustedWorkerReplies.add(reply);
+        }
       } catch (error) {
         if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) {
           owned = undefined;

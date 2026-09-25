@@ -1,6 +1,6 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
 import { assertPathRequirements, searchRequirements } from "./requirements.js";
@@ -38,7 +38,8 @@ export class Limits {
   }
   tick(): Promise<void> | undefined {
     this.context.signal.throwIfAborted();
-    if (++this.ticks % 128 === 0) return yieldTurn(this.context.signal);
+    const interval = hasYieldCheckpoint(this.context.signal) ? 128 : 2048;
+    if (++this.ticks % interval === 0) return yieldTurn(this.context.signal);
     return undefined;
   }
   private async write(chunk: Uint8Array): Promise<void> {

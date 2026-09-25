@@ -1,5 +1,5 @@
 import { RegexExecutionError, type RegexSession } from "../regex-execution/portable.js";
-import type { Match, Row, SearchDescriptor } from "../regex-execution/protocol.js";
+import { trustedInputRows, type Match, type Row, type SearchDescriptor } from "../regex-execution/protocol.js";
 import { SearchError, type Arguments } from "./options.js";
 
 export type { Match } from "../regex-execution/protocol.js";
@@ -10,6 +10,7 @@ export class Matcher {
     this.descriptor = { kind: "rg", patterns: [...patterns], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };
   }
   async batch(rows: readonly Row[]): Promise<Match[][]> {
+    trustedInputRows.add(rows);
     try { return await this.session.run(this.descriptor, rows); }
     catch (error) {
       if (error instanceof RegexExecutionError && error.code === "MATCH") throw new SearchError(error.message);

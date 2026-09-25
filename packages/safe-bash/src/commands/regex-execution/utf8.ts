@@ -8,7 +8,7 @@ function invalidUtf8(): never {
 export async function validateUtf8(input: Uint8Array | string, ledger: EreLedger, signal?: AbortSignal): Promise<void> {
   for (let index = 0; index < input.length;) {
     if (typeof input !== "string") {
-      const allowance = ledger.workAllowanceUntilCheckpoint();
+      const allowance = ledger.workAllowanceUntilCheckpoint(signal);
       if (allowance > 1) {
         const maxRun = Math.min(input.length, index + allowance);
         let scan = index;

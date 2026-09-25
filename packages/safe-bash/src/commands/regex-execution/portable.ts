@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { inputBytes, policy, RegexExecutionError, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inputBytes, policy, RegexExecutionError, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -177,7 +177,9 @@ export class RegexExecutor {
       const globOptions = ownedDescriptor.globOptions.map(options => { signal.throwIfAborted(); return { ...options }; });
       Object.assign(ownedDescriptor, { globOptions });
     }
-    const ownedRows = rows.map(row => { signal.throwIfAborted(); return { ...row, bytes: new Uint8Array(row.bytes) }; });
+    const ownedRows = trustedInputRows.has(rows)
+      ? rows
+      : rows.map(row => { signal.throwIfAborted(); return { ...row, bytes: new Uint8Array(row.bytes) }; });
     return new Promise((resolve, reject) => {
       const pending: Pending = {
         descriptor: ownedDescriptor, rows: ownedRows, signal, bytes, resolve, reject, retirements,

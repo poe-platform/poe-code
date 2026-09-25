@@ -56,6 +56,8 @@ export interface Row { readonly bytes: Uint8Array; readonly all: boolean; readon
 export interface Match { readonly start: number; readonly end: number }
 export const matchRangeLimits = Object.freeze({ perRow: Infinity, perReply: Infinity });
 export const trustedWorkerRequests = new WeakSet<object>();
+export const trustedWorkerReplies = new WeakSet<object>();
+export const trustedInputRows = new WeakSet<readonly Row[]>();
 export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
 export type Reply = { readonly id: number; readonly results: readonly Float64Array[] } | { readonly id: number; readonly error: string };
 
@@ -285,6 +287,30 @@ export function validateReply(value: unknown, id: number, rows: readonly Row[], 
     throw new RegexExecutionError("MATCH", reply.error);
   }
   if (!("results" in reply) || !Array.isArray(reply.results) || reply.results.length !== rows.length) throw new RegexExecutionError("PROTOCOL", "invalid reply rows");
+  if (trustedWorkerReplies.has(reply)) {
+    const resultCount = reply.results.length;
+    const results: Match[][] = new Array(resultCount);
+    let total = 0;
+    for (let index = 0; index < resultCount; index++) {
+      const ranges = reply.results[index]!;
+      const length = ranges.length;
+      if (length === 0) {
+        results[index] = emptyMatches;
+        continue;
+      }
+      const count = length >> 1;
+      if (count > matchRangeLimits.perRow || count > matchRangeLimits.perReply - total) {
+        throw new RegexExecutionError("PROTOCOL", "match range limit exceeded");
+      }
+      total += count;
+      const result: Match[] = new Array(count);
+      for (let offset = 0, out = 0; offset < length; offset += 2, out++) {
+        result[out] = { start: ranges[offset]!, end: ranges[offset + 1]! };
+      }
+      results[index] = result;
+    }
+    return results;
+  }
   let total = 0;
   const resultCount = reply.results.length;
   const lengths: number[] = new Array(resultCount);

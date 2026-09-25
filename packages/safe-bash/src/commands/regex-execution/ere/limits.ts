@@ -1,4 +1,4 @@
-import { yieldTurn } from "../../../contracts/yield.js";
+import { hasYieldCheckpoint, yieldTurn } from "../../../contracts/yield.js";
 import { EreProfileLimitError, EreUsageUnknownError } from "./errors.js";
 import type { EreExpansionBounds, EreLimits, EreResource, EreUsage } from "./types.js";
 
@@ -66,9 +66,10 @@ export class EreLedger {
     this.#usage.work += amount;
   }
 
-  workAllowanceUntilCheckpoint(): number {
+  workAllowanceUntilCheckpoint(signal?: AbortSignal): number {
     const untilLimit = this.limits.work - this.#usage.work;
-    const untilYield = 256 - (this.#usage.work - this.#lastYield);
+    const interval = hasYieldCheckpoint(signal) ? 256 : 16384;
+    const untilYield = interval - (this.#usage.work - this.#lastYield);
     const min = untilLimit < untilYield ? untilLimit : untilYield;
     return min > 0 ? min : 0;
   }
@@ -82,7 +83,8 @@ export class EreLedger {
 
   checkpoint(signal?: AbortSignal): Promise<void> | undefined {
     this.check(signal);
-    if (this.#usage.work - this.#lastYield >= 256) {
+    const interval = hasYieldCheckpoint(signal) ? 256 : 16384;
+    if (this.#usage.work - this.#lastYield >= interval) {
       this.#lastYield = this.#usage.work;
       return yieldTurn(signal).then(() => {
         this.check(signal);

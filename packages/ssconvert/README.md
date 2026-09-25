@@ -55,7 +55,7 @@ left/right/center alignment, regular or bold, sizes
 share one invocation byte budget. This profile uses the captured native 96-DPI
 scale and print insets, so size 10 paints at 7.5 points. Cell alignment, fit and glyph placement
 use shaped advances and offsets. Exact native rendering remains unqualified. Other styles,
-merges and text layouts retain explicit refusals. BIFF8 imports preserve external
+merges and text layouts retain explicit refusals. BIFF7/8 imports preserve external
 workbook, sheet, cell/range and defined-name identities, cached values and raw link records.
 Recalculation uses the explicit `externalReferences` host binding and otherwise
 returns `#REF!`; linked workbooks are never fetched automatically. External names

@@ -1,6 +1,18 @@
 import { invalidBiff } from "./biff-binary.js";
 import { SsconvertError } from "../contracts.js";
 
+/** BIFF5/7 EXTERNSHEET combines the workbook URL and an optional [file]sheet. */
+export function biffLegacyExternalPath(path: string): { workbook: string; sheet?: string } | undefined {
+  const decoded = biffExternalPath(path);
+  if (decoded === undefined) return undefined;
+  const first = decoded.indexOf("["), last = decoded.indexOf("]");
+  if (first < 0) return last < 0 ? { workbook: decoded } : undefined;
+  if (last <= first + 1 || decoded.indexOf("[", first + 1) >= 0 || decoded.indexOf("]", last + 1) >= 0) return undefined;
+  const workbook = decoded.slice(0, first) + decoded.slice(first + 1, last), sheet = decoded.slice(last + 1);
+  if (!sheet || Array.from(sheet).some(c => c.charCodeAt(0) < 32)) return undefined;
+  return { workbook, sheet };
+}
+
 export function encodeBiffExternalPath(workbook: string): string {
   if (workbook.length > 254) throw new SsconvertError("unsupported-feature", "Excel BIFF external workbook path is too long");
   if (!workbook || Array.from(workbook).some(c => c.charCodeAt(0) < 32))

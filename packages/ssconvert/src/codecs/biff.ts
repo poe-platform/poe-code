@@ -7,7 +7,7 @@ import { encryptBiffXorStreams } from "./biff-xor-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext, type BiffExternalName } from "./biff-formulas.js";
-import { biffExternalPath } from "./biff-external-path.js";
+import { biffExternalPath, biffLegacyExternalPath } from "./biff-external-path.js";
 import { biffFormulaExtras } from "./biff-formula-extras.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
 import { biffOpcodes } from "./biff-source.js";
@@ -59,13 +59,14 @@ const ignoredOpcodes = new Set([0xb, 0x20b, 0xd7, 0xff, 0x16, 0x1f, 0x5b, 0x5c, 
   0x80, 0x82, 0x8d, 0x5f, 0x8b, 0x8e, 0x42e, 0x1af, 0xe, 0x293, 0x1b7, 0x1bc]);
 interface PendingCell { cell: Cell; xf: number; tokens?: Uint8Array; arrays?: readonly Binary[]; revision: number; codepage: number; }
 interface PendingExternalName { name: string; sheetIndex: number; tokens: Uint8Array; arrays?: readonly Binary[]; revision: number; codepage: number; supported: boolean; record: BiffRecord; }
+interface LegacyExternalLink { workbook?: string; sheet?: string; addin: boolean; names: PendingExternalName[]; }
 interface PendingSheet {
   id: string; name: string; offset: number; visibility: "visible" | "hidden" | "very-hidden";
   cells: PendingCell[]; merges: Range[]; rows: AxisMetadata[]; columns: AxisMetadata[];
   unsupportedRecords: UnsupportedRecord[]; view: Record<string, ImportedValue>;
   records: BiffRecord[]; revision: number; codepage: number;
   legacyExternalSheets: (string | null | undefined)[];
-  legacyExternalNames: PendingExternalName[]; legacyAddinSheets: Set<number>;
+  legacyExternalLinks: Map<number, LegacyExternalLink>;
   groups: { id: string; kind: "shared" | "array"; range: Range; tokens: Uint8Array; arrays: readonly Binary[]; keyRow: number; keyColumn: number }[];
 }
 interface BoundSheet { offset: number; name: string; visibility: PendingSheet["visibility"]; type: number; }
@@ -105,7 +106,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
   const names: { name: string; flags: number; tokens: Uint8Array; arrays: readonly Binary[]; sheetIndex: number; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
   const legacyExternalSheets: (string | null | undefined)[] = [];
-  const legacyExternalNames: PendingExternalName[] = [], legacyAddinSheets = new Set<number>();
+  const legacyExternalLinks = new Map<number, LegacyExternalLink>();
   const supbooks: { kind: "local" | "addin" | "external"; names: PendingExternalName[]; workbook?: string; sheets: string[] }[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
   const fontTable: Font[] = [], xfTable: { data: Binary; revision: number }[] = [], palette = [...defaultPalette];
   const formatTable = new Map<number, string>(Object.entries(formats).map(([id, code]) => [Number(id), code]));
@@ -161,7 +162,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
         const name = accountText(bound?.name ?? (sheets.length ? `Worksheet${sheets.length + 1}` : "Worksheet"));
         if (sheets.some(sheet => sheet.name === name)) invalidBiff("duplicate worksheet name");
         sheet = { id: name, name, offset: record.offset, visibility: bound?.visibility ?? "visible", cells: [],
-          merges: [], rows: [], columns: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalNames: [], legacyAddinSheets: new Set() }; sheets.push(sheet);
+          merges: [], rows: [], columns: [], unsupportedRecords: [], view: {}, records: [], revision: ver, codepage, groups: [], legacyExternalSheets: [], legacyExternalLinks: new Map() }; sheets.push(sheet);
       }
       scopes.push({ type, ...(sheet ? { sheet } : {}), revision: ver }); lastFormula = undefined;
       if (![5, 0x10, 0x40, 0x100].includes(type)) await retain(record, sheet?.unsupportedRecords ?? unsupported);
@@ -254,13 +255,14 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       const end = 7 + cursor.consumedBytes;
       const tokenLength = end + 2 <= data.bytes.length ? data.u16(end) : 0;
       const tokens = tokenLength ? data.slice(end + 2, tokenLength) : new Uint8Array();
-      const table = ver >= 8 ? supbooks.at(-1)?.names : sheet?.legacyExternalNames ?? legacyExternalNames;
-      if (!table) invalidBiff("EXTERNNAME without SUPBOOK");
+      const legacyLink = (sheet?.legacyExternalLinks ?? legacyExternalLinks).get((sheet?.legacyExternalSheets ?? legacyExternalSheets).length - 1);
+      const table = ver >= 8 ? supbooks.at(-1)?.names : legacyLink?.names;
+      if (!table) invalidBiff("EXTERNNAME without workbook link");
       const arrays = tokenLength ? stringParts(index, end + 2 + tokenLength) : { parts: [], next: index };
       index = arrays.next;
       table.push({ name, sheetIndex: data.u16(2), tokens, arrays: arrays.parts, revision: ver, codepage, supported: flags === 0, record });
-      const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : (sheet?.legacyAddinSheets ?? legacyAddinSheets).size > 0;
-      const externalIdentity = ver >= 8 && supbooks.at(-1)?.workbook !== undefined && flags === 0;
+      const addin = ver >= 8 ? supbooks.at(-1)?.kind === "addin" : legacyLink?.addin;
+      const externalIdentity = (ver >= 8 ? supbooks.at(-1)?.workbook : legacyLink?.workbook) !== undefined && flags === 0;
       if (!addin || flags !== 0) await retain(record, sheet?.unsupportedRecords ?? unsupported, !externalIdentity);
       continue;
     }
@@ -275,12 +277,12 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       if (kind === 3) links.push(accountText(biffDecode(data.slice(2, Math.min(length, data.bytes.length - 2)), codepage)));
       else if (kind === 2) links.push(sheet?.name);
       else if (kind === 4) links.push(null);
-      else if (kind === 0x3a && length === 1 && data.bytes.length === 2) {
-        (sheet?.legacyAddinSheets ?? legacyAddinSheets).add(links.length); links.push(undefined);
-      }
       else {
+        const addin = kind === 0x3a && length === 1 && data.bytes.length === 2;
+        const identity = addin ? undefined : biffLegacyExternalPath(accountText(biffDecode(data.slice(1, length), codepage)));
+        (sheet?.legacyExternalLinks ?? legacyExternalLinks).set(links.length, { ...identity, addin, names: [] });
         links.push(undefined);
-        await retain(record, sheet?.unsupportedRecords ?? unsupported);
+        if (!addin) await retain(record, sheet?.unsupportedRecords ?? unsupported, identity === undefined);
       }
       continue;
     }
@@ -459,13 +461,14 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     ...biffFormulaExtras(arrays ?? [], revision, cp, { ...context,
       limits: { ...context.limits, workbookTextBytes: (context.limits.workbookTextBytes ?? context.limits.inputBytes) - textBytes }
     }, accountFormulaWork), names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
-    ...(owner ? { currentSheet: owner.name } : {}), shared, globalNameDefinition, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets, externalWorkbooks,
+    ...(owner ? { currentSheet: owner.name } : {}), shared, globalNameDefinition, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
+    externalWorkbooks: revision >= 8 ? externalWorkbooks : legacyWorkbookBindings.get(owner)!,
     externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
   const externalTables = [
     ...supbooks.filter(book => book.kind !== "local").map(book => book.names),
-    ...(legacyAddinSheets.size ? [legacyExternalNames] : []),
-    ...sheets.filter(sheet => sheet.legacyAddinSheets.size > 0).map(sheet => sheet.legacyExternalNames)
+    ...[legacyExternalLinks, ...sheets.map(sheet => sheet.legacyExternalLinks)].flatMap(links =>
+      [...links.values()].filter(link => link.addin).map(link => link.names))
   ];
   const globals = new Map(names.filter(name => name.sheetIndex === 0).map(name => [name.name, name]));
   const externalBooks = new Map(supbooks.filter(book => book.kind === "external").map(book => [book.names, book]));
@@ -501,10 +504,25 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     return book ? externalNameTables.get(book.names) : undefined;
   });
   const legacyNameBindings = new Map<PendingSheet | undefined, NonNullable<BiffFormulaContext["externalNames"]>>();
+  const legacyWorkbookBindings = new Map<PendingSheet | undefined, NonNullable<BiffFormulaContext["externalWorkbooks"]>>();
   for (const owner of [undefined, ...sheets]) {
-    const namespaces = owner?.legacyAddinSheets ?? legacyAddinSheets;
-    const table = externalNameTables.get(owner?.legacyExternalNames ?? legacyExternalNames);
-    legacyNameBindings.set(owner, (owner?.legacyExternalSheets ?? legacyExternalSheets).map((_, at) => namespaces.has(at) ? table : undefined));
+    const links = owner?.legacyExternalLinks ?? legacyExternalLinks;
+    const scopes = owner?.legacyExternalSheets ?? legacyExternalSheets;
+    legacyWorkbookBindings.set(owner, scopes.map((_, at) => {
+      const link = links.get(at);
+      return link?.workbook !== undefined && link.sheet !== undefined ? { workbook: link.workbook, first: link.sheet, last: link.sheet } : undefined;
+    }));
+    legacyNameBindings.set(owner, scopes.map((_, at) => {
+      const link = links.get(at);
+      if (!link) return undefined;
+      if (link.addin) return externalNameTables.get(link.names);
+      return link.names.map(name => {
+        if (!name.supported || link.workbook === undefined || link.sheet !== undefined) return { name: name.name };
+        const scoped = name.sheetIndex ? links.get(name.sheetIndex - 1) : undefined;
+        if (name.sheetIndex && (name.sheetIndex > at || scoped?.workbook !== link.workbook || scoped?.sheet === undefined)) return undefined;
+        return { name: name.name, workbook: link.workbook, ...(scoped?.sheet === undefined ? {} : { sheet: scoped.sheet }) };
+      });
+    }));
   }
   const materializedNames: NamedExpression[] = [];
   for (const [at, name] of names.entries()) {

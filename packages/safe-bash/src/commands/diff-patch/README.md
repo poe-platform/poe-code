@@ -7,7 +7,8 @@ There are zero runtime dependencies and no host-process or host-filesystem
 fallback. An adapter may provide host storage, but commands use only the VFS.
 
 The selected compatibility targets are **GNU Diffutils 3.12 (`diff`) and GNU
-patch 2.8**, not an interchangeable GNU/BSD profile. This is a bounded
+patch 2.8**, with the explicit context-option policy requested in issue #1088
+described below. This is a bounded
 implementation in progress, not full GNU coverage. The default patch policy is
 noninteractive, with GNU `--batch`-style reversal decisions; `--atomic` is a
 separate library extension. Local source defines the implemented behavior.
@@ -46,11 +47,17 @@ and the source entry point was exercised directly through `Shell.use`.
   `-u` / `--unified`.
   `-U N`, `-UN`, and `--unified=N` set context, including zero context.
 - Context output uses `-c`, `-C N`, or `--context[=N]`.
-- Bare unified/context selectors contribute three lines; repeated explicit
-  widths select the greatest width, rather than the last one. Legacy numeric
-  options such as `-0` are also parsed; their interaction with bare short versus
-  long selectors is documented in [GNU-DIFF.md](GNU-DIFF.md). Conflicting output
-  styles are rejected, including when brief output is requested.
+- Bare unified/context selectors default to three lines. An explicit width
+  overrides that default in either order; repeated equal widths are accepted,
+  and differing explicit widths fail with `conflicting output style options`.
+  This issue #1088 policy differs from GNU Diffutils 3.10 and 3.12, which select
+  the maximum width. Legacy numeric options such as `-0` are also parsed.
+  Conflicting output styles are rejected, including with brief output.
+- `--color[=WHEN]` accepts `auto`, `never`, and `always`. Bare `--color` means
+  `auto`. Byte sinks have no terminal capability, so `auto` emits plain output;
+  `always` emits GNU-style ANSI colors in normal, unified, context, and
+  side-by-side formats. Other output formats remain plain. Color bytes count
+  toward the same output limit.
 - `-b` / `--ignore-space-change` and `-w` / `--ignore-all-space` affect
   comparison rather than rewriting emitted file content.
 - `-i` / `--ignore-case` folds ASCII case in the C locale. `-E` ignores

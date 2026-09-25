@@ -1,6 +1,26 @@
 # GNU diff option target
 
-## Decision and scope
+## Current context policy — issue #1088
+
+The newer issue #1088 requirements supersede the maximum-width policy recorded
+below: explicit `-U`/`-C`/`--unified=N`/`--context=N` widths override bare
+selectors in either order. Equal explicit widths may repeat; differing widths
+are rejected. Bare selectors supply three lines only when no width is given.
+Legacy numeric selectors remain supported.
+
+Fresh GNU Diffutils 3.10 and 3.12 source and native pipe-input probes on
+2026-09-25 confirmed that both versions use the maximum, including
+`-u -U0`, `-U0 -u`, `-u -U1`, `-c -C0`, and `-U3 -U1`.
+Consequently this requested policy is an intentional difference from those
+GNU versions, not a corrected GNU parity claim. The source's `specify_value`
+does not govern context widths. The earlier evidence below remains historical.
+
+Color now accepts `--color[=auto|never|always]`; byte sinks are nonterminal,
+so bare/auto/never remain plain. Forced-color rendering was compared with
+fresh GNU 3.12 normal, unified, context and side-by-side output, including
+missing final newlines. No runtime native-command dependency is introduced.
+
+## Historical 2026-08-26 decision and scope
 
 On 2026-08-26 the user explicitly selected GNU as the project utility target.
 GNU mismatches are defects to resolve, not an unsupported alternate profile.

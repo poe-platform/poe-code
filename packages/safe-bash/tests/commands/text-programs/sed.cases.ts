@@ -261,6 +261,12 @@ test("sed supports one-line a/i/c, N queue flushing, --silent/-u, Q/z/F, and ste
     assert.deepEqual(await check("sed --silent -u '1p'", "a\nb\n"), { exitCode: 0, stdout: "a\n", stderr: "" });
     assert.deepEqual(await check("sed '1~2d'", "1\n2\n3\n4\n"), { exitCode: 0, stdout: "2\n4\n", stderr: "" });
     assert.deepEqual(await check("sed -n '/start/,+1p'", "a\nstart\nb\nc\n"), { exitCode: 0, stdout: "start\nb\n", stderr: "" });
+    assert.deepEqual(await check("sed -e '/a/,+1d'", "a\nb\nc\n"), { exitCode: 0, stdout: "c\n", stderr: "" });
+    assert.deepEqual(await check("sed -n '/b/,~2p'", "a\nb\nc\nd\ne\n"), { exitCode: 0, stdout: "b\nc\nd\n", stderr: "" });
+    assert.deepEqual(await check("sed -e '1~2p' -n", "a\nb\nc\n"), { exitCode: 0, stdout: "a\nc\n", stderr: "" });
+    for (const flag of ["-u", "--unbuffered", "--posix"]) {
+      assert.deepEqual(await check(`sed ${flag} 's/a/A/'`, "a\nb\n"), { exitCode: 0, stdout: "A\nb\n", stderr: "" });
+    }
     assert.deepEqual(await check("sed '2Q'", "1\n2\n3\n"), { exitCode: 0, stdout: "1\n", stderr: "" });
     assert.deepEqual(await check("sed 'z'", "hello\n"), { exitCode: 0, stdout: "\n", stderr: "" });
   } finally {

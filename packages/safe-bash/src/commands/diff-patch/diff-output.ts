@@ -2,12 +2,19 @@ import { ToolError, type Budget } from "./shared.js";
 import type { Edit } from "./diff-format.js";
 
 export interface DisplayOptions {
+  color?: boolean;
   width: number;
   expand: boolean;
   initialTab: boolean;
   leftColumn: boolean;
   suppressCommon: boolean;
   symbol: string;
+}
+
+export function colorText(text: string, code: 1 | 31 | 32 | 36, options?: DisplayOptions): string {
+  if (!options?.color) return text;
+  const newline = text.endsWith("\n");
+  return `\u001b[${code}m${newline ? text.slice(0, -1) : text}\u001b[0m${newline ? "\n" : ""}`;
 }
 
 /** GNU C-locale filename quoting, also used for labels in directory sections. */
@@ -103,7 +110,9 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
       const second = clipped(right, half, options.expand);
       text += padding(column, rightStart, options.expand) + second.text;
     }
-    append(text + (left?.endsWith("\n") || right?.endsWith("\n") ? "\n" : ""));
+    text += left?.endsWith("\n") || right?.endsWith("\n") ? "\n" : "";
+    append(options.color && (marker === "<" || marker === ">")
+      ? `\u001b[${marker === "<" ? 31 : 32}m${text}\u001b[0m` : text);
   };
   let scan = 0;
   while (scan < changes.length) {

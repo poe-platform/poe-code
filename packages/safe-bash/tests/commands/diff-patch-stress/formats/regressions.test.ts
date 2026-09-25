@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contents, labels, run } from "./helpers.js";
 
-test("GNU selector regression: -C0 followed by -c resets to three lines", async () => {
+test("context selector regression: -C0 followed by -c retains zero lines", async () => {
   const files = { old: "a\nb\nc\n", new: "a\nB\nc\n" };
   const args = ["-C0", "-c", ...labels, "old", "new"];
-  const expected = "*** target\n--- target\n***************\n*** 1,3 ****\n  a\n! b\n  c\n--- 1,3 ----\n  a\n! B\n  c\n";
+  const expected = "*** target\n--- target\n***************\n*** 2 ****\n! b\n--- 2 ----\n! B\n";
   const result = await run("diff", args, { files });
   assert.equal(result.exitCode, 1, result.stderr);
-  assert.equal(result.stdout, expected, "GNU profile gate; Apple-compatible current behavior is a dialect divergence, not universal invalidity");
+  assert.equal(result.stdout, expected);
 });
 
 test("empty native diff is a successful explicit-target patch no-op", async () => {

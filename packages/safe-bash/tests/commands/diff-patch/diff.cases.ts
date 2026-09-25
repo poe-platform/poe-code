@@ -74,7 +74,7 @@ test("literal option-like filenames and labels with spaces", async () => {
   assert.match(result.stdout, /^--- old name\n\+\+\+ new name\n/u);
 });
 
-for (const args of [["-x", "a", "b"], ["--color", "a", "b"], ["-U-1", "a", "b"], ["-U"], ["a"], ["--label=a\nb", "a", "b"]]) {
+for (const args of [["-x", "a", "b"], ["--color=invalid", "a", "b"], ["-U-1", "a", "b"], ["-U"], ["a"], ["--label=a\nb", "a", "b"]]) {
   test(`diff rejects invalid arguments ${JSON.stringify(args)}`, async () => {
     const result = await run("diff", args, { files: { a: "a", b: "b" } });
     assert.equal(result.exitCode, 2);

@@ -121,11 +121,11 @@ for (const gap of [0, 1, 2, 3, 5, 6, 7]) for (const context of [0, 1, 3]) {
   });
 }
 
-for (const flags of [["-C0", "-c"], ["-C0", "--context"], ["--context=1", "-rc"], ["-C", "0", "-crc", "--context"], ["-c", "-C0"], ["--context", "--context=1"], ["-C0", "-c", "-C1", "--context"]]) {
-  test(`GNU context selectors retain maximum requested width: ${JSON.stringify(flags)}`, async () => {
+for (const flags of [["-C0", "-c"], ["-C0", "--context"], ["--context=0", "-rc"], ["-C", "0", "-crc", "--context"], ["-c", "-C0"], ["--context", "--context=0"], ["-C0", "-c", "-C0", "--context"]]) {
+  test(`context selectors preserve explicit zero width: ${JSON.stringify(flags)}`, async () => {
     const files = { old: "a\nb\nc\nd\ne\nf\ng\n", new: "A\nb\nc\nd\ne\nf\nG\n" };
     const args = [...flags, "-L", "OLD", "-L", "NEW", "old", "new"];
-    const expected = { exitCode: 1, stdout: "*** OLD\n--- NEW\n***************\n*** 1,7 ****\n! a\n  b\n  c\n  d\n  e\n  f\n! g\n--- 1,7 ----\n! A\n  b\n  c\n  d\n  e\n  f\n! G\n", stderr: "" };
+    const expected = { exitCode: 1, stdout: "*** OLD\n--- NEW\n***************\n*** 1 ****\n! a\n--- 1 ----\n! A\n***************\n*** 7 ****\n! g\n--- 7 ----\n! G\n", stderr: "" };
     for (const actual of [await run("diff", args, { files })]) {
       assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
     }

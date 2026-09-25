@@ -6,12 +6,11 @@ const files = { left: "a\nb\nc\nd\ne\nf\ng\n", right: "A\nb\nc\nd\ne\nf\nG\n" };
 const labels = ["-L", "target", "-L", "target"];
 const zeroContext = "--- target\n+++ target\n@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g\n+G\n";
 const oneContext = "--- target\n+++ target\n@@ -1,2 +1,2 @@\n-a\n+A\n b\n@@ -6,2 +6,2 @@\n f\n-g\n+G\n";
-const threeContext = "--- target\n+++ target\n@@ -1,7 +1,7 @@\n-a\n+A\n b\n c\n d\n e\n f\n-g\n+G\n";
 const flagCases = [
-  { name: "short explicit context then short format", flags: ["-U0", "-u"], output: threeContext },
-  { name: "short explicit context then long format", flags: ["-U0", "--unified"], output: threeContext },
-  { name: "long explicit context then grouped format", flags: ["--unified=1", "-ru"], output: threeContext },
-  { name: "format then explicit context control", flags: ["-u", "-U", "0"], output: threeContext },
+  { name: "short explicit context then short format", flags: ["-U0", "-u"], output: zeroContext },
+  { name: "short explicit context then long format", flags: ["-U0", "--unified"], output: zeroContext },
+  { name: "long explicit context then grouped format", flags: ["--unified=1", "-ru"], output: oneContext },
+  { name: "format then explicit context control", flags: ["-u", "-U", "0"], output: zeroContext },
   { name: "zero context without a competing format control", flags: ["-U0"], output: zeroContext },
   { name: "long explicit context control", flags: ["--unified=1"], output: oneContext },
   { name: "brief uses both labels", flags: ["-q"], output: "Files target and target differ\n" },

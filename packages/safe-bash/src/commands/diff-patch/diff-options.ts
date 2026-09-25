@@ -46,13 +46,16 @@ export function flags(args: readonly string[]): DiffFlags {
     if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
     selectedFormat = result.format = format;
   };
-  let explicitContext = false;
+  let explicitWidth: number | undefined;
   let legacyContext = -1;
   let previousDigit = false;
   const selectContext = (format: "unified" | "context", width: number, explicit: boolean) => {
     selectFormat(format);
-    result.context = Math.max(result.context, width);
-    explicitContext ||= explicit;
+    if (explicit) {
+      if (explicitWidth !== undefined && explicitWidth !== width) throw new ToolError("conflicting output style options");
+      explicitWidth = width;
+    }
+    result.context = explicitWidth ?? width;
   };
   let operands = false;
   for (let index = 0; index < args.length; index++) {
@@ -90,6 +93,12 @@ export function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--left-column") result.leftColumn = true;
     else if (arg === "--suppress-common-lines") result.suppressCommon = true;
     else if (arg === "--paginate") result.paginate = true;
+    else if (arg === "--color" || arg.startsWith("--color=")) {
+      const mode = arg === "--color" ? "auto" : arg.slice(8);
+      if (mode !== "auto" && mode !== "always" && mode !== "never") throw new ToolError(`invalid color: ${mode}`);
+      // Command sinks are byte streams, with no terminal capability.
+      result.color = mode === "always";
+    }
     else if (arg === "--show-c-function") result.functions.push(new Pattern("^[A-Za-z_$]", false));
     else if (["--width", "--ifdef", "--ignore-matching-lines", "--show-function-line", "--exclude", "--exclude-from", "--starting-file", "--from-file", "--to-file"].some(name => arg === name || arg.startsWith(`${name}=`))) {
       const equal = arg.indexOf("=");
@@ -108,9 +117,9 @@ export function flags(args: readonly string[]): DiffFlags {
     else if (arg === "--ignore-all-space") result.whitespace = "all";
     else if (arg === "--ignore-space-change") { if (result.whitespace !== "all") result.whitespace = "change"; }
     else if (arg === "--normal") selectFormat("normal");
-    else if (arg === "--unified") selectContext("unified", 3, true);
+    else if (arg === "--unified") selectContext("unified", 3, false);
     else if (arg.startsWith("--unified=")) selectContext("unified", contextLength(arg.slice(10)), true);
-    else if (arg === "--context") selectContext("context", 3, true);
+    else if (arg === "--context") selectContext("context", 3, false);
     else if (arg.startsWith("--context=")) selectContext("context", contextLength(arg.slice(10)), true);
     else if (arg === "--label" || arg.startsWith("--label=")) result.labels.push(value(arg.includes("=") ? arg.slice(8) : undefined, "--label"));
     else if (arg.startsWith("--")) throw new ToolError(`unsupported option: ${arg}`);
@@ -164,7 +173,7 @@ export function flags(args: readonly string[]): DiffFlags {
     if (isOption) result.optionArgs.push(...args.slice(optionStart, index + 1));
   }
   if (legacyContext >= 0 && (result.format === "unified" || result.format === "context")) {
-    result.context = explicitContext ? Math.max(result.context, legacyContext) : legacyContext;
+    result.context = explicitWidth !== undefined ? Math.max(result.context, legacyContext) : legacyContext;
   }
   if (result.fromFile !== undefined && result.toFile !== undefined) throw new ToolError("--from-file and --to-file may not both be specified");
   const multiple = result.fromFile !== undefined || result.toFile !== undefined;

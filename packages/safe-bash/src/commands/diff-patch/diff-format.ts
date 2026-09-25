@@ -1,5 +1,5 @@
 import type { Budget } from "./shared.js";
-import { expandTabs, type DisplayOptions } from "./diff-output.js";
+import { colorText, expandTabs, type DisplayOptions } from "./diff-output.js";
 
 export interface Edit { readonly kind: " " | "+" | "-"; readonly line: string; readonly newLine?: string; readonly ignored?: boolean }
 
@@ -7,10 +7,12 @@ function range(start: number, count: number): string {
   return count === 0 ? `${start}` : count === 1 ? `${start + 1}` : `${start + 1},${start + count}`;
 }
 
-function outputLine(prefix: string, line: string, options?: DisplayOptions): string {
+function outputLine(prefix: string, line: string, options?: DisplayOptions, color?: 31 | 32): string {
   if (options?.initialTab) prefix = (prefix.length === 2 ? prefix.slice(0, -1) : prefix.trimEnd()) + "\t";
   if (options?.expand) line = expandTabs(line);
-  return `${prefix}${line}${line.endsWith("\n") ? "" : "\n\\ No newline at end of file\n"}`;
+  const text = `${prefix}${line.endsWith("\n") ? line : line + "\n"}`;
+  return (color === undefined ? text : colorText(text, color, options))
+    + (line.endsWith("\n") ? "" : "\\ No newline at end of file\n");
 }
 
 export async function normal(changes: readonly Edit[], budget: Budget, append: (text: string) => void, options?: DisplayOptions): Promise<void> {
@@ -37,12 +39,12 @@ export async function normal(changes: readonly Edit[], budget: Budget, append: (
     }
     budget.hunk();
     if (changes[start]!.ignored) { oldPosition += oldCount; newPosition += newCount; continue; }
-    append(`${range(oldPosition, oldCount)}${oldCount === 0 ? "a" : newCount === 0 ? "d" : "c"}${range(newPosition, newCount)}\n`);
+    append(colorText(`${range(oldPosition, oldCount)}${oldCount === 0 ? "a" : newCount === 0 ? "d" : "c"}${range(newPosition, newCount)}\n`, 36, options));
     for (const kind of ["-", "+"] as const) {
       if (kind === "+" && oldCount && newCount) append("---\n");
       for (let index = start; index < scan; index++) {
         const edit = changes[index]!;
-        if (edit.kind === kind) append(outputLine(kind === "-" ? "< " : "> ", edit.line, options));
+        if (edit.kind === kind) append(outputLine(kind === "-" ? "< " : "> ", edit.line, options, kind === "-" ? 31 : 32));
         budget.step();
         await budget.checkpoint();
       }
@@ -63,7 +65,7 @@ async function contextSide(changes: readonly Edit[], start: number, end: number,
     await budget.checkpoint();
     if (changes[scan]!.kind === " ") {
       const edit = changes[scan++]!;
-      append(outputLine("  ", kind === "+" ? edit.newLine ?? edit.line : edit.line, options));
+      append(outputLine("  ", kind === "+" ? edit.newLine ?? edit.line : edit.line, options, kind === "-" ? 31 : 32));
       continue;
     }
     let groupEnd = scan;
@@ -77,7 +79,7 @@ async function contextSide(changes: readonly Edit[], start: number, end: number,
     }
     while (scan < groupEnd) {
       const edit = changes[scan++]!;
-      if (edit.kind === kind) append(outputLine(removed && added ? "! " : `${kind} `, edit.line, options));
+      if (edit.kind === kind) append(outputLine(removed && added ? "! " : `${kind} `, edit.line, options, kind === "-" ? 31 : 32));
       budget.step();
       await budget.checkpoint();
     }
@@ -86,7 +88,8 @@ async function contextSide(changes: readonly Edit[], start: number, end: number,
 
 export async function contextual(changes: readonly Edit[], format: "unified" | "context", oldLabel: string, newLabel: string, context: number, budget: Budget, append: (text: string) => void, options?: DisplayOptions, heading?: (position: number) => Promise<string>): Promise<void> {
   context = Math.min(context, changes.length);
-  append(format === "unified" ? `--- ${oldLabel}\n+++ ${newLabel}\n` : `*** ${oldLabel}\n--- ${newLabel}\n`);
+  append(colorText(`${format === "unified" ? "---" : "***"} ${oldLabel}\n`, 1, options));
+  append(colorText(`${format === "unified" ? "+++" : "---"} ${newLabel}\n`, 1, options));
   let scan = 0;
   let oldPosition = 0;
   let newPosition = 0;
@@ -149,17 +152,17 @@ export async function contextual(changes: readonly Edit[], format: "unified" | "
     budget.hunk();
     const functionLine = heading ? await heading(oldPosition) : "";
     if (format === "unified") {
-      append(`@@ -${unifiedRange(oldPosition, oldCount)} +${unifiedRange(newPosition, newCount)} @@${functionLine ? ` ${functionLine}` : ""}\n`);
+      append(colorText(`@@ -${unifiedRange(oldPosition, oldCount)} +${unifiedRange(newPosition, newCount)} @@`, 36, options) + `${functionLine ? ` ${functionLine}` : ""}\n`);
       for (let index = start; index < end; index++) {
         const edit = changes[index]!;
-        append(outputLine(edit.kind, edit.line, options));
+        append(outputLine(edit.kind, edit.line, options, edit.kind === " " ? undefined : edit.kind === "-" ? 31 : 32));
         budget.step();
         await budget.checkpoint();
       }
     } else {
-      append(`***************${functionLine ? ` ${functionLine}` : ""}\n*** ${range(oldPosition, oldCount)} ****\n`);
+      append(`***************${functionLine ? ` ${functionLine}` : ""}\n` + colorText(`*** ${range(oldPosition, oldCount)} ****\n`, 36, options));
       if (removed) await contextSide(changes, start, end, "-", budget, append, options);
-      append(`--- ${range(newPosition, newCount)} ----\n`);
+      append(colorText(`--- ${range(newPosition, newCount)} ----\n`, 36, options));
       if (added) await contextSide(changes, start, end, "+", budget, append, options);
     }
     scan = end;

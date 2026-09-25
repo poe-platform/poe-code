@@ -8,14 +8,64 @@ const zeroContext = "--- BEFORE\n+++ AFTER\n@@ -1 +1 @@\n-a\n+A\n@@ -7 +7 @@\n-g
 const oneContext = "--- BEFORE\n+++ AFTER\n@@ -1,2 +1,2 @@\n-a\n+A\n b\n@@ -6,2 +6,2 @@\n f\n-g\n+G\n";
 const defaultContext = "--- BEFORE\n+++ AFTER\n@@ -1,7 +1,7 @@\n-a\n+A\n b\n c\n d\n e\n f\n-g\n+G\n";
 
+for (const color of ["--color", "--color=auto", "--color=never"]) {
+  test(`diff accepts ${color} on its nonterminal byte sink`, async () => {
+    const result = await run("diff", [color, "-u", ...labels, "left", "right"], { files });
+    assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr },
+      { exitCode: 1, stdout: defaultContext, stderr: "" });
+  });
+}
+
+test("diff forced color preserves GNU unified output bytes", async () => {
+  const result = await run("diff", ["--color=always", "-U0", ...labels, "left", "right"], { files });
+  const paint = (code: number, text: string) => `\u001b[${code}m${text}\u001b[0m\n`;
+  assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
+    exitCode: 1, stderr: "",
+    stdout: paint(1, "--- BEFORE") + paint(1, "+++ AFTER") + paint(36, "@@ -1 +1 @@")
+      + paint(31, "-a") + paint(32, "+A") + paint(36, "@@ -7 +7 @@") + paint(31, "-g") + paint(32, "+G"),
+  });
+});
+
+test("diff rejects invalid color modes", async () => {
+  const result = await run("diff", ["--color=rainbow", "left", "right"], { files });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /invalid color/u);
+});
+
+for (const format of [[], ["-u"], ["-c"]]) {
+  test(`diff color resets before missing-newline diagnostics: ${JSON.stringify(format)}`, async () => {
+    const result = await run("diff", ["--color=always", ...format, ...labels, "left", "right"], { files: { left: "old", right: "new" } });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.match(result.stdout, /old\u001b\[0m\n\\ No newline at end of file\n/u);
+    assert.match(result.stdout, /new\u001b\[0m\n\\ No newline at end of file\n/u);
+  });
+}
+
+test("diff side-by-side colors an inserted row including its newline", async () => {
+  const result = await run("diff", ["--color=always", "-y", "left", "right"], { files: { left: "", right: "new\n" } });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.match(result.stdout, /^\u001b\[32m.*>.*new\n\u001b\[0m$/u);
+});
+
+test("diff color modes use the last mode and account for escape bytes", async () => {
+  const plain = await run("diff", ["--color=always", "--color=never", "-u", ...labels, "left", "right"], { files });
+  assert.equal(plain.stdout, defaultContext);
+  const limited = await run("diff", ["--color=always", "-u", ...labels, "left", "right"], {
+    files, options: { maxOutputBytes: Buffer.byteLength(defaultContext) },
+  });
+  assert.equal(limited.exitCode, 2);
+  assert.equal(limited.stdout, "");
+  assert.match(limited.stderr, /output byte limit/u);
+});
+
 const contextCases = [
-  { flags: ["-U0", "-u"], expected: defaultContext },
-  { flags: ["-U0", "--unified"], expected: defaultContext },
-  { flags: ["--unified=1", "-ru"], expected: defaultContext },
-  { flags: ["-U", "0", "-uru", "--unified"], expected: defaultContext },
-  { flags: ["-u", "-U0"], expected: defaultContext },
-  { flags: ["--unified", "--unified=1"], expected: defaultContext },
-  { flags: ["-U0", "-u", "-U1", "--unified"], expected: defaultContext },
+  { flags: ["-U0", "-u"], expected: zeroContext },
+  { flags: ["-U0", "--unified"], expected: zeroContext },
+  { flags: ["--unified=1", "-ru"], expected: oneContext },
+  { flags: ["-U", "0", "-uru", "--unified"], expected: zeroContext },
+  { flags: ["-u", "-U0"], expected: zeroContext },
+  { flags: ["--unified", "--unified=1"], expected: oneContext },
+  { flags: ["-U0", "-u", "-U0", "--unified"], expected: zeroContext },
   { flags: ["-U0"], expected: zeroContext },
   { flags: ["--unified=1"], expected: oneContext },
   { flags: [], expected: "1c1\n< a\n---\n> A\n7c7\n< g\n---\n> G\n" },
@@ -31,6 +81,15 @@ for (const fixture of contextCases) {
       { exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr },
       { exitCode: 1, stdout: fixture.expected, stderr: "" },
     );
+  });
+}
+
+for (const flags of [["-U3", "-U1"], ["-U1", "-U3"], ["-U0", "-u", "-U1"], ["-C3", "--context=0"]]) {
+  test(`diff rejects conflicting explicit widths: ${JSON.stringify(flags)}`, async () => {
+    const result = await run("diff", [...flags, ...labels, "left", "right"], { files });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /conflicting output style options/u);
   });
 }
 
@@ -63,8 +122,8 @@ const identicalInputs: { name: string; files: Files }[] = [
 ];
 
 for (const fixture of [
-  { flags: ["-wC0", "-c"], expected: "*** OLD\n--- NEW\n***************\n*** 1,2 ****\n  a b\n! old\n--- 1,2 ----\n  ab\n! new\n" },
-  { flags: ["-bU0", "-uw"], expected: "--- OLD\n+++ NEW\n@@ -1,2 +1,2 @@\n a b\n-old\n+new\n" },
+  { flags: ["-wC0", "-c"], expected: "*** OLD\n--- NEW\n***************\n*** 2 ****\n! old\n--- 2 ----\n! new\n" },
+  { flags: ["-bU0", "-uw"], expected: "--- OLD\n+++ NEW\n@@ -2 +2 @@\n-old\n+new\n" },
 ]) {
   test(`explicit-count regression with whitespace: ${JSON.stringify(fixture.flags)}`, async () => {
     const args = [...fixture.flags, "-L", "OLD", "-L", "NEW", "old", "new"];
@@ -101,7 +160,9 @@ test("patch suffixFuzz multi-hunk cursor, -l trailing whitespace, --posix -E, an
   assert.equal(r3.exitCode, 0, r3.stderr);
   await assert.rejects(() => r3.fs.stat("/work/emptyme.txt"));
 
-  const r4 = await run("diff", ["-u", "-L", "", "-L", "", "left", "right"], { files: { left: "a\n", right: "b\n" } });
-  assert.equal(r4.exitCode, 1, r4.stderr);
-  assert.match(r4.stdout, /^--- \n\+\+\+ \n/u);
+  for (const labelFlags of [["-L", "", "-L", ""], ["--label=", "--label="], ["--label", "", "--label", ""]]) {
+    const r4 = await run("diff", ["-u", ...labelFlags, "left", "right"], { files: { left: "a\n", right: "b\n" } });
+    assert.equal(r4.exitCode, 1, r4.stderr);
+    assert.equal(r4.stdout, "--- \n+++ \n@@ -1 +1 @@\n-a\n+b\n");
+  }
 });

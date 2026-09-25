@@ -34,9 +34,9 @@ test("Shell+Memory multi-hunk pipeline preserves expected target bytes", async (
 
 });
 
-test("Shell+Memory repeated format options retain GNU maximum context", async () => {
+test("Shell+Memory repeated format options preserve explicit context", async () => {
   const workspace = await shell({ left: "old\ncontext\n", right: "new\ncontext\n" });
   const result = await workspace.shell.exec("diff -U0 -u -L target -L target left right >changes", { signal: AbortSignal.timeout(5000) });
   assert.equal(result.exitCode, 1, result.stderr);
-  assert.deepEqual(await snapshot(workspace.fs, ["changes"]), expectedFiles({ changes: "--- target\n+++ target\n@@ -1,2 +1,2 @@\n-old\n+new\n context\n" }));
+  assert.deepEqual(await snapshot(workspace.fs, ["changes"]), expectedFiles({ changes: "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n" }));
 });

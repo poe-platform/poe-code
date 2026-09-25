@@ -29,6 +29,9 @@ export interface StandardCommandsOptions {
   readonly maxTailFollowHandles?: number;
 }
 
+let defaultBaseStandardCommands: readonly CommandDefinition[] | undefined;
+let defaultTailStandardCommands: readonly CommandDefinition[] | undefined;
+
 export function createStandardCommandsWithGrep(options: StandardCommandsOptions, grep: readonly CommandDefinition[]): readonly CommandDefinition[] {
   const commands: CommandDefinition[] = [];
   const execute = directExecutor(options.execute ?? (async context => {
@@ -37,6 +40,34 @@ export function createStandardCommandsWithGrep(options: StandardCommandsOptions,
     await diagnostic(context, new PublicDiagnostic("command not found"));
     return { exitCode: 127 };
   }));
+  if (
+    options.maxDirectoryEntries === undefined &&
+    options.maxTeeTargets === undefined &&
+    options.maxTailFollowHandles === undefined &&
+    options.predicateIdentity === undefined
+  ) {
+    defaultBaseStandardCommands ??= Object.freeze([
+      ...basicCommands(),
+      ...filesystemCommands(undefined),
+      ...streamCommands(undefined, undefined),
+      ...textCommands(),
+    ]);
+    defaultTailStandardCommands ??= Object.freeze([
+      ...predicateCommands(undefined),
+      cmpCommand(),
+      fmtCommand(),
+      shufCommand(),
+      numfmtCommand(),
+    ]);
+    commands.push(
+      ...defaultBaseStandardCommands,
+      ...grep,
+      ...defaultTailStandardCommands,
+      ...executionCommands(execute, options.execution),
+      ...findCommands(execute, undefined),
+    );
+    return commands;
+  }
   commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(), ...grep, ...predicateCommands(options.predicateIdentity), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
   commands.push(cmpCommand(), fmtCommand(), shufCommand(), numfmtCommand());
   return commands;

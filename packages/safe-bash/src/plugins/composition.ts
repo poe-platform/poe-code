@@ -100,11 +100,106 @@ export interface AgentRegexExecutors {
   readonly search: RegexExecutor;
 }
 
-export function composeAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors): readonly CommandDefinition[] {
+let cachedDefaultStatelessFamilies: {
+  readonly beforeAliases: readonly CommandDefinition[];
+  readonly beforeExpr: readonly CommandDefinition[];
+  readonly beforeCsplit: readonly CommandDefinition[];
+  readonly afterCsplit: readonly CommandDefinition[];
+} | undefined;
+
+function getDefaultStatelessFamilies() {
+  return cachedDefaultStatelessFamilies ??= {
+    beforeAliases: Object.freeze([
+      ...createTextProgramCommands({}),
+      ...createStructuredCommands({}),
+      ...createByteCommands(undefined),
+      ...createDiffPatchCommands({}),
+      ...createMetadataCommands({}),
+      ...createArchiveCommands({}),
+      ...createTableTextCommands({}),
+      ...createStreamInspectionCommands({}),
+      ...createStreamFormatCommands({}),
+      ...createSplitCommands({}),
+      ...createTimeEnvCommands({}),
+      ...createTreeCommands({}),
+      ...createFileCommands({}),
+    ]),
+    beforeExpr: Object.freeze([
+      ...createColumnCommands({}),
+      ...createHtmlToMarkdownCommands({}),
+      ...createDuCommands({}),
+    ]),
+    beforeCsplit: Object.freeze([
+      ...createWhichCommands({}),
+      ...createTimeoutCommands(undefined),
+      ...createApplyPatchCommands({}),
+      ...createXmlCommands({}),
+    ]),
+    afterCsplit: Object.freeze([
+      ...createPrCommands({}),
+      ...createTsortCommands({}),
+      ...createFactorCommands({}),
+      ...createGetoptCommands({}),
+      ...createHexdumpCommands({}),
+      ...createIconvCommands({}),
+      ...createLineEndingCommands({}),
+    ]),
+  };
+}
+
+function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
+  return (
+    options.text !== undefined ||
+    options.structured !== undefined ||
+    options.bytes !== undefined ||
+    options.diffPatch !== undefined ||
+    options.metadata !== undefined ||
+    options.archive !== undefined ||
+    options.tableText !== undefined ||
+    options.streamInspection !== undefined ||
+    options.streamFormat !== undefined ||
+    options.split !== undefined ||
+    options.timeEnv !== undefined ||
+    options.tree !== undefined ||
+    options.file !== undefined ||
+    options.column !== undefined ||
+    options.htmlToMarkdown !== undefined ||
+    options.du !== undefined ||
+    options.which !== undefined ||
+    options.timeout !== undefined ||
+    options.applyPatch !== undefined ||
+    options.xml !== undefined ||
+    options.pr !== undefined ||
+    options.tsort !== undefined ||
+    options.factor !== undefined ||
+    options.getopt !== undefined ||
+    options.hexdump !== undefined ||
+    options.iconv !== undefined ||
+    options.lineEndings !== undefined
+  );
+}
+
+export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors): readonly CommandDefinition[] {
   const commands: CommandDefinition[] = [];
   const grep = createGrepCommands(executors.grep);
   const exprLimits = options.expr?.limits;
   const csplitLimits = options.csplit?.limits;
+  if (!hasCustomFamilyOptions(options)) {
+    const defaults = getDefaultStatelessFamilies();
+    const aliasesGrep = executors.aliases === executors.grep ? grep[0]! : createGrepCommands(executors.aliases)[0]!;
+    commands.push(
+      ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep),
+      ...defaults.beforeAliases,
+      createRgCommand(executors.search, options.search),
+      ...createGrepAliases(aliasesGrep),
+      ...defaults.beforeExpr,
+      createExprCommandWithExecutor(executors.expr, exprLimits === undefined ? {} : { limits: exprLimits }),
+      ...defaults.beforeCsplit,
+      createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
+      ...defaults.afterCsplit,
+    );
+    return commands;
+  }
   const prOptions = options.pr;
   const prLimits = prOptions?.limits;
   const prClock = prOptions?.clock;
@@ -157,5 +252,9 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
     ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
   );
-  return new CommandRegistry(commands).list();
+  return commands;
+}
+
+export function composeAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors): readonly CommandDefinition[] {
+  return new CommandRegistry(composeRawAgentCommands(options, executors)).list();
 }

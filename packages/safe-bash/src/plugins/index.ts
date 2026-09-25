@@ -1,7 +1,7 @@
 import type { CommandDefinition } from "../contracts/index.js";
 import { RegexExecutor } from "../commands/regex-execution/portable.js";
 import { createBoundedRegexProvider } from "../commands/regex-execution/bounded-provider.js";
-import { commandExecutor, composeAgentCommands, type AgentCommandsOptions, type AgentRegexExecutors } from "./composition.js";
+import { commandExecutor, composeAgentCommands, composeRawAgentCommands, type AgentCommandsOptions, type AgentRegexExecutors } from "./composition.js";
 import type { VirtualShellPlugin } from "../contracts/index.js";
 
 export type { AgentCommandsOptions } from "./composition.js";
@@ -27,7 +27,7 @@ export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellP
     setup(host) {
       if (disposal) throw new Error("Agent commands are disposed");
       host.provideCapabilities?.({ regex: { executor: executors.grep.provider, limits: regex } });
-      const definitions = composeAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors);
+      const definitions = composeRawAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors);
       if (!options.replace) for (const definition of definitions) {
         if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
       }

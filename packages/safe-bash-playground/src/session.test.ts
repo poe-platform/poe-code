@@ -435,7 +435,9 @@ describe("PlaygroundSession", () => {
     await session.remove(".");
     expect(session.cwd).toBe("/home");
     expect((await session.run("pwd")).stdout).toBe("/home\n");
-    await session.run("mkdir temporary; cd temporary; rm -rf ../temporary");
+    expect(await session.run("mkdir temporary; cd temporary; rm -rf ../temporary")).toMatchObject({
+      exitCode: 0, stdout: "", stderr: ""
+    });
     expect(session.cwd).toBe("/home");
     expect((await session.run("pwd")).stdout).toBe("/home\n");
   });

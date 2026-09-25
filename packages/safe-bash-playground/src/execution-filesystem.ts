@@ -48,6 +48,22 @@ type Descriptor = {
   closing?: Promise<void>;
 };
 
+type FileStat = Awaited<ReturnType<FileSystem["stat"]>>;
+
+function mapConditionalStats(options: object, convert: (stat: FileStat) => unknown): object {
+  const { parent, expected, ancestors } = options as {
+    parent?: FileStat;
+    expected?: FileStat;
+    ancestors?: readonly { path: string; stat: FileStat }[];
+  };
+  return {
+    ...options,
+    ...(parent === undefined ? {} : { parent: convert(parent) }),
+    ...(expected === undefined ? {} : { expected: convert(expected) }),
+    ...(ancestors === undefined ? {} : { ancestors: ancestors.map(entry => ({ ...entry, stat: convert(entry.stat) })) })
+  };
+}
+
 function tracked<Value>(pending: Set<Promise<unknown>>, callback: () => Value | PromiseLike<Value>): Promise<Value> {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
   let reject!: (reason: unknown) => void;
@@ -74,6 +90,7 @@ export function hostFileSystem(fs: FileSystem, signal: AbortSignal) {
   const streams = new Map<number, Stream>();
   const descriptors = new Map<number, Descriptor>();
   const scopes = new Map<object | symbol, number>();
+  const identities = new Map<number, object | symbol>();
   const pending = new Set<Promise<unknown>>();
   const admitted = new Set<Promise<unknown>>();
   let nextStream = 0;
@@ -100,8 +117,16 @@ export function hostFileSystem(fs: FileSystem, signal: AbortSignal) {
       if (scopes.size >= 10_000) throw new Error("Filesystem identity limit exceeded");
       identity = scopes.size + 1;
       scopes.set(identityScope, identity);
+      identities.set(identity, identityScope);
     }
     return { ...stat, identity };
+  }
+  function decodeStat(result: FileStat): FileStat {
+    const { identity, identityScope, ...stat } = result as FileStat & { identity?: number };
+    if (identityScope !== undefined || identity !== undefined && !identities.has(identity)) {
+      throw new FsError("ENOTSUP", { syscall: "fileStaging" });
+    }
+    return identity === undefined ? stat : { ...stat, identityScope: identities.get(identity)! };
   }
   function closeDescriptor(identity: number, descriptor: Descriptor): Promise<void> {
     return descriptor.closing ??= Promise.resolve().then(async () => {
@@ -128,6 +153,7 @@ export function hostFileSystem(fs: FileSystem, signal: AbortSignal) {
       await Promise.allSettled(admitted);
       streams.clear();
       scopes.clear();
+      identities.clear();
       if (cleanupFailure) throw cleanupFailure.error;
     });
   }
@@ -234,7 +260,7 @@ export function hostFileSystem(fs: FileSystem, signal: AbortSignal) {
     }
     const optionIndex = methods[method as keyof typeof methods];
     const parameters = args.slice(0, optionIndex);
-    parameters[optionIndex] = { ...args[optionIndex] as object, signal };
+    parameters[optionIndex] = { ...mapConditionalStats((args[optionIndex] ?? {}) as object, decodeStat), signal };
     const callback = Reflect.get(fs, method);
     signal.throwIfAborted();
     const result: unknown = await Reflect.apply(callback, fs, parameters);
@@ -268,6 +294,7 @@ export function remoteFileSystem(
   request: (method: string, args: unknown[]) => Promise<unknown>
 ): FileSystem {
   const scopes = new Map<number, object>();
+  const identities = new WeakMap<object, number>();
   const pending = new Set<Promise<unknown>>();
   let handles = 0;
   async function send(method: string, args: unknown[], cleanup = false): Promise<unknown> {
@@ -281,9 +308,19 @@ export function remoteFileSystem(
     if (identity === undefined) return stat;
     if (!scopes.has(identity)) {
       if (scopes.size >= 10_000) throw new Error("Filesystem identity limit exceeded");
-      scopes.set(identity, Object.freeze({}));
+      const scope = Object.freeze({});
+      scopes.set(identity, scope);
+      identities.set(scope, identity);
     }
     return { ...stat, identityScope: scopes.get(identity)! };
+  }
+  function encodeStat(result: FileStat): object {
+    if (Object.hasOwn(result, "identity")) throw new FsError("ENOTSUP", { syscall: "fileStaging" });
+    const { identityScope, ...stat } = result;
+    if (identityScope === undefined) return stat;
+    const identity = typeof identityScope === "object" ? identities.get(identityScope) : undefined;
+    if (identity === undefined) throw new FsError("ENOTSUP", { syscall: "fileStaging" });
+    return { ...stat, identity };
   }
   const fs = { capabilities: Object.freeze(retainedCapabilities(description.capabilities, description.methods)) } as FileSystem;
   for (const method of ["openReadFile", "openResizeFile"] as const) {
@@ -334,7 +371,7 @@ export function remoteFileSystem(
     Reflect.set(fs, method, async (...args: unknown[]) => {
       const { signal, ...options } = (args[optionIndex] ?? {}) as { signal?: AbortSignal };
       signal?.throwIfAborted();
-      args[optionIndex] = options;
+      args[optionIndex] = mapConditionalStats(options, encodeStat);
       const result = await send(method, args);
       signal?.throwIfAborted();
       if (method === "capabilitiesFor") return retainedCapabilities(result as FileSystem["capabilities"], description.methods);

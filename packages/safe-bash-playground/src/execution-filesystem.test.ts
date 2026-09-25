@@ -451,6 +451,62 @@ describe("retained execution descriptors", () => {
 });
 
 describe("execution filesystem bridge", () => {
+  for (const method of ["rm", "chmod"] as const) {
+    it(`roundtrips conditional ${method} receipt identities through structured cloning`, async () => {
+      const { filesystem, host, remote } = fixture();
+      try {
+        await filesystem.mkdir("/home");
+        await filesystem.mkdir("/home/temporary");
+        const parent = await remote.lstat("/home");
+        const expected = await remote.lstat("/home/temporary");
+        const options = { parent, expected, ancestors: [{ path: "/", stat: await remote.lstat("/") }, { path: "/home", stat: parent }] };
+        if (method === "rm") {
+          await remote.rm("/home/temporary", { ...options, recursive: true });
+          await expect(filesystem.stat("/home/temporary")).rejects.toMatchObject({ code: "ENOENT" });
+        } else {
+          await remote.chmod!("/home/temporary", 0o700, options);
+          expect((await filesystem.stat("/home/temporary")).mode & 0o777).toBe(0o700);
+        }
+      } finally { await host.close(); }
+    });
+  }
+
+  for (const replaced of ["target", "ancestor"] as const) {
+    it(`preserves stale ${replaced} rejection for conditional removals`, async () => {
+      const { filesystem, host, remote } = fixture();
+      try {
+        await filesystem.mkdir("/home");
+        await filesystem.mkdir("/home/temporary");
+        const parent = await remote.lstat("/home");
+        const expected = await remote.lstat("/home/temporary");
+        const options = { recursive: true, parent, expected, ancestors: [{ path: "/", stat: await remote.lstat("/") }, { path: "/home", stat: parent }] };
+        await filesystem.rm(replaced === "target" ? "/home/temporary" : "/home", { recursive: true });
+        if (replaced === "ancestor") await filesystem.mkdir("/home");
+        await filesystem.mkdir("/home/temporary");
+        await expect(remote.rm("/home/temporary", options)).rejects.toMatchObject({ code: "EAGAIN" });
+        expect((await filesystem.stat("/home/temporary")).type).toBe("directory");
+      } finally { await host.close(); }
+    });
+  }
+
+  it("rejects foreign receipt scopes and unknown wire identities before dispatch", async () => {
+    const { filesystem, host, remote } = fixture();
+    const foreign = fixture();
+    try {
+      await filesystem.mkdir("/target");
+      const expected = await remote.lstat("/target");
+      const foreignScope = (await foreign.remote.lstat("/")).identityScope;
+      const remove = vi.spyOn(filesystem, "rm");
+      const options = { recursive: true, expected: { ...expected, identityScope: foreignScope } };
+      await expect(remote.rm("/target", options)).rejects.toMatchObject({ code: "ENOTSUP" });
+      const injected = { recursive: true, expected: { ...expected, identityScope: undefined, identity: 1 } };
+      await expect(remote.rm("/target", injected)).rejects.toMatchObject({ code: "ENOTSUP" });
+      await expect(host.dispatch("rm", ["/target", { recursive: true, expected: { ...expected, identityScope: undefined, identity: 10001 } }])).rejects.toMatchObject({ code: "ENOTSUP" });
+      expect(remove).not.toHaveBeenCalled();
+      expect((await filesystem.stat("/target")).type).toBe("directory");
+    } finally { await host.close(); await foreign.host.close(); }
+  });
+
   it("preserves filesystem error context as well as the errno code", () => {
     const error = new FsError("ENOENT", { syscall: "rename", path: "/source", dest: "/destination" });
     expect(decodeError(structuredClone(encodeError(error)))).toMatchObject({

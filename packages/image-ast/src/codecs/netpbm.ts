@@ -1,5 +1,6 @@
 import { inflate } from "pako";
 import type { ImageFormat, ImageMetadata, RgbaImage } from "../ast.js";
+import { decodeJpegImage } from "./jpeg.js";
 
 export function isNetpbmBytes(bytes: Uint8Array): boolean {
   if (bytes.length < 7 || bytes[0] !== 0x50) return false; // 'P'
@@ -376,9 +377,9 @@ export function encodeTiffImage(
   const pixelBytes = width * height * 4;
   const density = Math.max(1, Math.round(options?.density ?? img.density ?? 72));
   const orientation = options?.orientation ?? img.orientation ?? 1;
-  // Little-endian baseline RGBA TIFF: 8-byte header + pixel data + IFD (12 entries) + extras
+  // Little-endian baseline RGBA TIFF: 8-byte header + pixel data + IFD (15 entries) + extras
   const ifdOffset = 8 + pixelBytes;
-  const numEntries = 12;
+  const numEntries = 15;
   const bpsOffset = ifdOffset + 2 + numEntries * 12 + 4;
   const xResOffset = bpsOffset + 8;
   const yResOffset = xResOffset + 8;
@@ -410,10 +411,13 @@ export function encodeTiffImage(
   writeEntry(5, 273, 4, 1, 8); // StripOffsets
   writeEntry(6, 274, 3, 1, orientation); // Orientation
   writeEntry(7, 277, 3, 1, 4); // SamplesPerPixel = 4
-  writeEntry(8, 279, 4, 1, pixelBytes); // StripByteCounts
-  writeEntry(9, 282, 5, 1, xResOffset); // XResolution
-  writeEntry(10, 283, 5, 1, yResOffset); // YResolution
-  writeEntry(11, 296, 3, 1, 2); // ResolutionUnit = Inch
+  writeEntry(8, 278, 4, 1, height); // RowsPerStrip
+  writeEntry(9, 279, 4, 1, pixelBytes); // StripByteCounts
+  writeEntry(10, 282, 5, 1, xResOffset); // XResolution
+  writeEntry(11, 283, 5, 1, yResOffset); // YResolution
+  writeEntry(12, 284, 3, 1, 1); // PlanarConfiguration = Chunky
+  writeEntry(13, 296, 3, 1, 2); // ResolutionUnit = Inch
+  writeEntry(14, 338, 3, 1, 2); // ExtraSamples = Unassociated Alpha
   view.setUint32(ifdOffset + 2 + numEntries * 12, 0, true);
   view.setUint16(bpsOffset, 8, true);
   view.setUint16(bpsOffset + 2, 8, true);
@@ -564,6 +568,7 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
   let xRes = 72;
   let resUnit = 2;
   let orientation: number | undefined;
+  let jpegTables: Uint8Array | undefined;
   for (let i = 0; i < numEntries; i++) {
     const p = ifdOffset + 2 + i * 12;
     const tag = view.getUint16(p, le);
@@ -586,6 +591,13 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
     else if (tag === 323 && first > 0) tileLength = first;
     else if (tag === 324 && vals.length > 0) tileOffsets = vals;
     else if (tag === 325 && vals.length > 0) tileByteCounts = vals;
+    else if (tag === 347) {
+      const count = view.getUint32(p + 4, le);
+      const valOff = count <= 4 ? p + 8 : view.getUint32(p + 8, le);
+      if (valOff + count <= bytes.length) {
+        jpegTables = bytes.subarray(valOff, valOff + count);
+      }
+    }
   }
 
   const bytesPerSample = Math.max(1, bitsPerSample >>> 3);
@@ -596,6 +608,34 @@ export function decodeTiffImage(bytes: Uint8Array): RgbaImage {
 
   const decompressChunk = (off: number, rawLen: number, expectedBytes: number): Uint8Array => {
     const rawSlice = bytes.subarray(off, Math.min(bytes.length, off + rawLen));
+    if (compression === 7 || compression === 6) {
+      let fullJpeg = rawSlice;
+      if (
+        jpegTables &&
+        jpegTables.length > 4 &&
+        jpegTables[0] === 0xff &&
+        jpegTables[1] === 0xd8 &&
+        rawSlice.length > 2 &&
+        rawSlice[0] === 0xff &&
+        rawSlice[1] === 0xd8
+      ) {
+        const tablesBody = jpegTables.subarray(2, jpegTables.length - 2);
+        fullJpeg = new Uint8Array(tablesBody.length + rawSlice.length);
+        fullJpeg[0] = 0xff;
+        fullJpeg[1] = 0xd8;
+        fullJpeg.set(tablesBody, 2);
+        fullJpeg.set(rawSlice.subarray(2), 2 + tablesBody.length);
+      }
+      const decJpeg = decodeJpegImage(fullJpeg);
+      const outChunk = new Uint8Array(expectedBytes);
+      const numPx = Math.min(decJpeg.width * decJpeg.height, Math.floor(expectedBytes / samplesPerPixel));
+      for (let p = 0; p < numPx; p++) {
+        for (let c = 0; c < samplesPerPixel; c++) {
+          outChunk[p * samplesPerPixel + c] = decJpeg.data[p * 4 + Math.min(3, c)] ?? 255;
+        }
+      }
+      return outChunk;
+    }
     if (compression === 8 || compression === 32946) {
       try {
         return inflate(rawSlice);

@@ -707,4 +707,76 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Math.abs(slOut[1]! - 23)).toBeLessThanOrEqual(1);
     expect(Math.abs(slOut[2]! - 30)).toBeLessThanOrEqual(1);
   });
+
+  it("writes libtiff-compliant ExtraSamples/RowsPerStrip/PlanarConfiguration tags, decodes JPEG-in-TIFF (Compression=7 + JPEGTables 347), and preserves omitted dimension on resize(fit:fill) (#54, #55, #56)", async () => {
+    // 1. #54: encodeTiffImage writes ExtraSamples (338 = 2), RowsPerStrip (278 = height), PlanarConfiguration (284 = 1)
+    const tiffBuf = await sharp({
+      create: { width: 16, height: 12, channels: 4, background: { r: 200, g: 100, b: 50, alpha: 0.5 } }
+    })
+      .tiff()
+      .toBuffer();
+    const view = new DataView(tiffBuf.buffer, tiffBuf.byteOffset, tiffBuf.byteLength);
+    const ifdOff = view.getUint32(4, true);
+    const numEntries = view.getUint16(ifdOff, true);
+    const tags = new Map<number, number>();
+    for (let i = 0; i < numEntries; i++) {
+      const p = ifdOff + 2 + i * 12;
+      const tag = view.getUint16(p, true);
+      const type = view.getUint16(p + 2, true);
+      const val = type === 3 ? view.getUint16(p + 8, true) : view.getUint32(p + 8, true);
+      tags.set(tag, val);
+    }
+    expect(tags.get(278)).toBe(12); // RowsPerStrip
+    expect(tags.get(284)).toBe(1);  // PlanarConfiguration
+    expect(tags.get(338)).toBe(2);  // ExtraSamples = Unassociated Alpha
+
+    // 2. #55: decodeTiffImage decodes Compression=7 (JPEG-in-TIFF) with JPEGTables (tag 347)
+    const jpegBytes = await sharp({
+      create: { width: 8, height: 8, channels: 3, background: { r: 220, g: 40, b: 60 } }
+    })
+      .jpeg({ quality: 95 })
+      .toBuffer();
+    // Build a minimal Little-Endian TIFF with Compression=7 and StripOffsets pointing to jpegBytes
+    const tiffJpeg = new Uint8Array(8 + jpegBytes.length + 2 + 8 * 12 + 4);
+    const tv = new DataView(tiffJpeg.buffer);
+    tiffJpeg[0] = 0x49;
+    tiffJpeg[1] = 0x49;
+    tv.setUint16(2, 42, true);
+    const jIfdOff = 8 + jpegBytes.length;
+    tv.setUint32(4, jIfdOff, true);
+    tiffJpeg.set(jpegBytes, 8);
+    tv.setUint16(jIfdOff, 8, true);
+    const writeTag = (idx: number, tag: number, type: number, count: number, val: number) => {
+      const p = jIfdOff + 2 + idx * 12;
+      tv.setUint16(p, tag, true);
+      tv.setUint16(p + 2, type, true);
+      tv.setUint32(p + 4, count, true);
+      if (type === 3) tv.setUint16(p + 8, val, true);
+      else tv.setUint32(p + 8, val, true);
+    };
+    writeTag(0, 256, 4, 1, 8);
+    writeTag(1, 257, 4, 1, 8);
+    writeTag(2, 259, 3, 1, 7); // Compression = 7 (JPEG)
+    writeTag(3, 262, 3, 1, 6); // Photometric = YCbCr
+    writeTag(4, 273, 4, 1, 8); // StripOffsets = 8
+    writeTag(5, 277, 3, 1, 3); // SamplesPerPixel = 3
+    writeTag(6, 278, 4, 1, 8); // RowsPerStrip = 8
+    writeTag(7, 279, 4, 1, jpegBytes.length); // StripByteCounts
+    const decJpegTiff = await sharp(tiffJpeg).raw().toBuffer();
+    expect(decJpegTiff[0]).toBeGreaterThan(200);
+    expect(decJpegTiff[1]).toBeLessThan(60);
+
+    // 3. #56: resize(w, null, { fit: "fill" }) and resize(null, h, { fit: "fill" }) preserve omitted dimension
+    const src40x24 = await sharp({
+      create: { width: 40, height: 24, channels: 3, background: "#336699" }
+    })
+      .png()
+      .toBuffer();
+    const fillW = await sharp(src40x24).resize(20, null, { fit: "fill" }).metadata();
+    expect(fillW.width).toBe(20);
+    expect(fillW.height).toBe(24);
+    const fillH = await sharp(src40x24).resize(null, 12, { fit: "fill" }).metadata();
+    expect(fillH.width).toBe(40);
+    expect(fillH.height).toBe(12);
+  });
 });

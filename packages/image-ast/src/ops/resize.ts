@@ -232,9 +232,12 @@ export function resizeImage(
     return img;
   }
 
-  let targetW = spec.width ?? Math.max(1, Math.round((srcW * spec.height!) / srcH));
-  let targetH = spec.height ?? Math.max(1, Math.round((srcH * spec.width!) / srcW));
-  const bothSpecified = spec.width !== null && spec.height !== null;
+  const isFill = spec.fit === "fill";
+  let targetW =
+    spec.width ?? (isFill ? srcW : Math.max(1, Math.round((srcW * spec.height!) / srcH)));
+  let targetH =
+    spec.height ?? (isFill ? srcH : Math.max(1, Math.round((srcH * spec.width!) / srcW)));
+  const bothSpecified = (spec.width !== null && spec.height !== null) || isFill;
   const fit: ResizeFit = bothSpecified ? spec.fit : "inside";
 
   const clampScale = (w: number, h: number): [number, number] => {

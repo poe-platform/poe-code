@@ -2,11 +2,10 @@ import assert from "node:assert/strict";
 import { setImmediate } from "node:timers/promises";
 import test from "node:test";
 import {
-  collectBytes, collectText, createBytePipe, isFsError, pipeBytes, toByteSource, writeText,
+  collectBytes, collectText, createBytePipe, createOutputOperation, isFsError, pipeBytes, toByteSource, writeText,
   type ByteSink, type ByteSource,
 } from "../../src/contracts/index.js";
-import { createOutputOperation } from "../../src/contracts/output.js";
-import { addAbortSignalWaiter } from "../../src/fs/creation-mask.js";
+import { addAbortSignalWaiter, createManagedControlController, removeAbortSignalWaiter } from "../../src/fs/creation-mask.js";
 
 for (const reason of [false, null, 0, ""]) {
   for (const first of [true, false]) {
@@ -23,6 +22,61 @@ for (const reason of [false, null, 0, ""]) {
         await upstream.abort(reason);
         await rejected;
         assert.deepEqual(received, [reason]);
+      } finally { await pipe.abort(reason); await upstream.close(); }
+    });
+  }
+}
+
+for (const reason of [false, null, 0, ""]) {
+  for (const origin of ["contracts", "shell"] as const) {
+    test(`${origin} cancellation shares pipe and shell subscribers: ${String(reason)}`, async () => {
+      const source = origin === "contracts"
+        ? createOutputOperation({ signal: new AbortController().signal }, { async write() {} })
+        : createManagedControlController();
+      const received: unknown[] = [];
+      const peer = (value: unknown): void => { received.push(value); };
+      if (origin === "shell") addAbortSignalWaiter(source.signal, peer);
+      const pipe = createBytePipe({ signal: source.signal });
+      try {
+        if (origin === "contracts") addAbortSignalWaiter(source.signal, peer);
+        const waiters: unknown = Reflect.get(source.signal, Symbol.for("safe-bash.managedWaiters"));
+        assert.ok(waiters instanceof Set);
+        assert.equal(waiters.size, 2);
+        const rejected = assert.rejects(pipe.endpoints!.read.readable[Symbol.asyncIterator]().next(), error => Object.is(error, reason));
+        await source.abort(reason);
+        await rejected;
+        assert.deepEqual(received, [reason]);
+        assert.equal(waiters.size, 0);
+      } finally { await pipe.abort(reason); await source.abort(reason); }
+    });
+  }
+
+  for (const removed of ["pipe", "shell"] as const) {
+    test(`removing the ${removed} subscription preserves its peer: ${String(reason)}`, async () => {
+      const upstream = createOutputOperation({ signal: new AbortController().signal }, { async write() {} });
+      const pipe = createBytePipe({ signal: upstream.signal });
+      const received: unknown[] = [];
+      const peer = (value: unknown): void => { received.push(value); };
+      addAbortSignalWaiter(upstream.signal, peer);
+      try {
+        const waiters: unknown = Reflect.get(upstream.signal, Symbol.for("safe-bash.managedWaiters"));
+        assert.ok(waiters instanceof Set);
+        assert.equal(waiters.size, 2);
+        let rejected: Promise<void> | undefined;
+        if (removed === "pipe") {
+          await pipe.endpoints!.read.close();
+          await pipe.close();
+          assert.deepEqual([...waiters], [peer]);
+        } else {
+          removeAbortSignalWaiter(upstream.signal, peer);
+          assert.equal(waiters.size, 1);
+          assert.equal(waiters.has(peer), false);
+          rejected = assert.rejects(pipe.endpoints!.read.readable[Symbol.asyncIterator]().next(), error => Object.is(error, reason));
+        }
+        await upstream.abort(reason);
+        await rejected;
+        assert.deepEqual(received, removed === "pipe" ? [reason] : []);
+        assert.equal(waiters.size, 0);
       } finally { await pipe.abort(reason); await upstream.close(); }
     });
   }

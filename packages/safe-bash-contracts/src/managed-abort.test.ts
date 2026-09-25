@@ -22,6 +22,7 @@ for (const reason of [false, null, 0, ""]) {
       addManagedAbortWaiter(upstream.signal, value => { received.push(value); });
       const waiters: unknown = Reflect.get(upstream.signal, waitersSymbol);
       assert.ok(waiters instanceof Set, "a second listener shares the waiter Set");
+      assert.equal(waiters.size, 2);
       const rejected = assert.rejects(reading, error => Object.is(error, reason));
       await upstream.abort(reason);
       await rejected;

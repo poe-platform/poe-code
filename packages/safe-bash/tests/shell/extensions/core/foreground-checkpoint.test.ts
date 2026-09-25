@@ -428,7 +428,7 @@ function stageCleanupFault(context: TestContext, point: StageCleanupPoint | unde
     const original = resource.close;
     const closeSync = resource.closeSyncIfIdle;
     let asynchronous = false;
-    if (closeSync) context.mock.method(resource, "closeSyncIfIdle", function() {
+    if (closeSync) context.mock.method(resource as { closeSyncIfIdle(): boolean }, "closeSyncIfIdle", function() {
       const closed = closeSync.call(resource);
       if (closed && !asynchronous) {
         observed.closes[name]++;

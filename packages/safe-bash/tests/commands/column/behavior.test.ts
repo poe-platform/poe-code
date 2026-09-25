@@ -299,3 +299,18 @@ test("read errors are fatal before table publication", async () => {
   assert.equal(result.stdout, "");
   assert.match(result.stderr, /source/);
 });
+
+test("JSON rejects unnamed -C columns, allows unnamed columns hidden by number, and accumulates repeated selector flags", async () => {
+  const unnamedC = await run(["-J", "-C", "name=col1", "-C", "right"], "a b\n");
+  assert.equal(unnamedC.exitCode, 1);
+  assert.equal(unnamedC.stdout, "");
+  assert.match(unnamedC.stderr, /line 1: for JSON the name of the column 2 is required/);
+
+  const hiddenByNumber = await run(["-J", "-N", "col1", "-H", "2"], "a b\n");
+  assert.equal(hiddenByNumber.exitCode, 0, hiddenByNumber.stderr);
+  assert.deepEqual(JSON.parse(hiddenByNumber.stdout), { table: [{ col1: "a" }] });
+
+  const repeatedHide = await run(["-t", "-N", "col1,col2,col3", "-H", "col1", "-H", "col2"], "a b c\n");
+  assert.equal(repeatedHide.exitCode, 0, repeatedHide.stderr);
+  assert.equal(repeatedHide.stdout, "col3\nc\n");
+});

@@ -41,7 +41,30 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
         const budget = inputs.budget;
         if (parsed.help) await budget.text(helpText);
         else {
-          const hideUnnamed = parsed.selectors.hide.split(",").includes("-");
+          const hideTokens = parsed.selectors.hide ? parsed.selectors.hide.split(",") : [];
+          const isColumnHidden = (index: number, count: number): boolean => {
+            if (parsed.definitions[index]?.flags.includes("hide")) return true;
+            const col = index + 1;
+            let lastVisible = count - 1;
+            while (lastVisible >= 0 && parsed.definitions[lastVisible]?.flags.includes("hide")) lastVisible--;
+            for (const token of hideTokens) {
+              if (token === "-" || token === "0") return true;
+              if (token === "-1" && index === lastVisible) return true;
+              if (token && Array.from(token).every(ch => ch >= "0" && ch <= "9") && Number(token) === col) return true;
+              const dash = token.indexOf("-", 1);
+              if (dash >= 0) {
+                const startPart = token.slice(0, dash), endPart = token.slice(dash + 1);
+                if (startPart && endPart && [startPart, endPart].every(p => Array.from(p).every(ch => ch >= "0" && ch <= "9"))) {
+                  const firstCol = Number(startPart), lastCol = Number(endPart);
+                  if (col >= firstCol && col <= lastCol) return true;
+                }
+              }
+            }
+            return false;
+          };
+          const isColumnNamed = (index: number): boolean => parsed.definitions.length
+            ? Boolean(parsed.definitions[index]?.named && parsed.definitions[index]?.name)
+            : index < parsed.names.length;
           for (const character of parsed.outputSeparator) { await budget.step(); validateScalar(character); }
           if (parsed.separator) for (const character of parsed.separator) { await budget.step(); validateScalar(character, true); }
           const rows: Cell[][] = [], widths: number[] = [];
@@ -98,8 +121,13 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
               }
               budget.check(values.length, limits.maxCells - cellCount, "cells");
               if (!parsed.table) budget.retain(text.length);
-              if (parsed.json && values.length > parsed.names.length && !hideUnnamed) {
-                usage(`line ${rows.length + 1}: for JSON the name of the column ${parsed.names.length + 1} is required`);
+              if (parsed.json) {
+                const count = Math.max(values.length, parsed.names.length);
+                for (let index = 0; index < values.length; index++) {
+                  if (!isColumnNamed(index) && !isColumnHidden(index, count)) {
+                    usage(`line ${rows.length + 1}: for JSON the name of the column ${index + 1} is required`);
+                  }
+                }
               }
               cellCount += values.length;
               const row: Cell[] = [];

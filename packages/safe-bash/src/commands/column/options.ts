@@ -108,12 +108,12 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
     } else if (option === "n") {
       if (!value || value.includes("\0")) usage("table name must be nonempty and contain no NUL");
       tableName = value;
-    } else if (option === "O") order = value;
-    else if (option === "H") selectors.hide = value;
-    else if (option === "R") selectors.right = value;
-    else if (option === "T") selectors.truncate = value;
-    else if (option === "W") selectors.wrap = value;
-    else if (option === "E") selectors.noextreme = value;
+    } else if (option === "O") order = order ? `${order},${value}` : value;
+    else if (option === "H") selectors.hide = selectors.hide ? `${selectors.hide},${value}` : value;
+    else if (option === "R") selectors.right = selectors.right ? `${selectors.right},${value}` : value;
+    else if (option === "T") selectors.truncate = selectors.truncate ? `${selectors.truncate},${value}` : value;
+    else if (option === "W") selectors.wrap = selectors.wrap ? `${selectors.wrap},${value}` : value;
+    else if (option === "E") selectors.noextreme = selectors.noextreme ? `${selectors.noextreme},${value}` : value;
     else if (option === "l") {
       if (!value || Array.from(value).some(character => character < "0" || character > "9")) usage("invalid columns limit");
       columnLimit = Number(value);
@@ -193,7 +193,7 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
   if (definitions.length && names.length) usage("--table-columns and --table-column are mutually exclusive");
   if (definitions.length) names = definitions.map(definition => definition.name);
   if (!table && (names.length || order || tableName !== "table" || Object.values(selectors).some(value => value))) usage("table options require -t/--table");
-  if (json && !names.length && !help) usage("JSON output requires --table-columns");
+  if (json && (!names.length || (definitions.length && !definitions.some(definition => definition.named && definition.name))) && !help) usage("JSON output requires --table-columns");
   if (!table && (separator !== undefined || outputSet)) usage("input/output separators require -t/--table");
   if (!table && width > limits.maxWidth) width = limits.maxWidth;
   return { table, json, names, tableName, across, separator, outputSeparator, width, files: files.length ? files : ["-"], help,

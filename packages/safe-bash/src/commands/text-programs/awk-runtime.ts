@@ -1359,13 +1359,24 @@ export class AwkRuntime {
     catch (error) { if (error instanceof Flow && error.kind === "exit") { this.exit(error); stopped = true; } else throw error; }
     this.phase = "record";
     let ranges: Set<number> | undefined;
-    if (!stopped && (this.program.rules.length || this.program.end.length)) while (true) {
+    if (!stopped && (this.program.rules.length || this.program.end.length)) {
+      if (!this.mainReader && this.argument >= number(this.getScalar("ARGC")) && !this.sawFile && !this.defaultUsed) {
+        this.defaultUsed = true;
+        this.set("FILENAME", string("-"));
+        this.set("FNR", numeric(0));
+        this.mainReader = new Reader(input(this.context, "-"), this.budget, this.retention);
+      }
+      while (true) {
       this.budget.step();
       if (this.mainReader && this.mainReader.readSliceSync(this.varText("RS"), this.sliceBox)) {
         this.incrementCounter("NR");
         this.incrementCounter("FNR");
         const setRecPromise = this.setRecordSliceSync(this.sliceBox.source, this.sliceBox.start, this.sliceBox.end);
         if (setRecPromise instanceof Promise) await setRecPromise;
+      } else if (this.mainReader && this.mainReader.isEnded && this.argument >= number(this.getScalar("ARGC"))) {
+        void this.mainReader.close();
+        this.mainReader = undefined;
+        break;
       } else {
         const recOrPromise = this.readMainRecordSync();
         const record = recOrPromise instanceof Promise ? await recOrPromise : recOrPromise;
@@ -1395,6 +1406,7 @@ export class AwkRuntime {
         if (error.kind === "exit") { this.exit(error); break; }
         if (error.kind === "nextfile") { await this.mainReader?.close(); this.mainReader = undefined; }
         else if (error.kind !== "next") throw error;
+      }
       }
     }
     if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {

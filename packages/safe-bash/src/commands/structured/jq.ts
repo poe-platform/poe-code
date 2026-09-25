@@ -9,6 +9,12 @@ import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
 
 const DEFAULT_INTERPRETER_RUN = Interpreter.prototype.run;
+const JQ_LONG_FLAGS: Readonly<Record<string, string>> = {
+  "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c",
+  "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e",
+  "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M",
+};
+const jqAstCache = new Map<string, Ast>();
 
 interface Options {
   stream: boolean;
@@ -30,7 +36,105 @@ interface Options {
   moduleDirectories: string[];
   variables: Map<string, Json>;
 }
-async function argumentsFor(context: CommandContext, budget: Budget): Promise<Options> {
+function argumentsFor(context: CommandContext, budget: Budget): Options | Promise<Options> {
+  const args = context.args;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (a === "--rawfile" || a === "--slurpfile") return argumentsForAsync(context, budget);
+  }
+  budget.collection(args.length);
+  let argumentBytes = 0;
+  for (const argument of args) {
+    argumentBytes += Buffer.byteLength(argument);
+    if (argumentBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
+  }
+  const options: Options = { stream: false, streamErrors: false, sequence: false, raw: false, rawInput: false, joinOutput: false, rawOutput0: false, monochrome: false, format: { indent: "  ", ascii: false, color: false }, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], moduleDirectories: [], variables: new Map() };
+  let named: ReturnType<typeof object> | undefined;
+  const positional: Json[] = [];
+  let positionalMode: "--args" | "--jsonargs" | undefined;
+  let ended = false;
+  let variableBytes = 0;
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index]!;
+    const operand = (): string => { const value = args[++index]; if (value === undefined) throw new JqError(`${argument} requires an operand`, 2); return value; };
+    if (!ended && argument === "--") { ended = true; continue; }
+    if (!ended && (argument === "--args" || argument === "--jsonargs")) { positionalMode = argument; continue; }
+    if (!ended && argument.startsWith("-L")) {
+      options.moduleDirectories.push(argument === "-L" ? operand() : argument.slice(2));
+      continue;
+    }
+    if (!ended && (argument === "--arg" || argument === "--argjson")) {
+      const name = operand(); const text = operand();
+      budget.text(name); budget.text(text);
+      let value: Json;
+      try { value = argument === "--arg" ? text : parseJson(text, budget); }
+      catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError(`invalid JSON for --argjson ${name}`, 2); }
+      if (!wellFormed(name) || (typeof value === "string" && !wellFormed(value))) throw new JqError("arguments must contain well-formed Unicode", 2);
+      variableBytes += Buffer.byteLength(name) + budget.value(value);
+      if (variableBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      if (!options.variables.has(name)) { options.variables.set(name, value); put((named ??= object()), name, value); }
+      continue;
+    }
+    if (!ended && (argument === "-f" || argument === "--from-file")) {
+      if (options.programFile !== undefined || options.source !== undefined) throw new JqError("provide exactly one filter program", 2);
+      options.programFile = operand(); continue;
+    }
+    if (!ended && (argument === "--stream" || argument === "--stream-errors" || argument === "--seq")) {
+      if (argument === "--seq") options.sequence = true;
+      else { options.stream = true; options.streamErrors ||= argument === "--stream-errors"; }
+      continue;
+    }
+    if (!ended && argument === "--indent") {
+      const value = Number.parseInt(operand(), 10) || 0;
+      if (value < -1 || value > 7) throw new JqError("--indent takes a number between -1 and 7", 2);
+      options.format.indent = value === -1 ? "\t" : " ".repeat(value);
+      continue;
+    }
+    if (!ended && argument === "--tab") { options.format.indent = "\t"; continue; }
+    if (!ended && argument === "--raw-output0") { options.rawOutput0 = true; options.raw = true; continue; }
+    if (!ended && argument === "--unbuffered") continue;
+    const flagStart = argument[1] ?? "";
+    const positionalOperand = positionalMode !== undefined && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
+    if (!ended && argument.startsWith("-") && argument !== "-" && !positionalOperand) {
+      const flags = Object.hasOwn(JQ_LONG_FLAGS, argument) ? JQ_LONG_FLAGS[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
+      if (!flags || [...flags].some(flag => !"rRjcSsneaCM".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
+      for (const flag of flags) {
+        if (flag === "r") options.raw = true;
+        else if (flag === "R") options.rawInput = true;
+        else if (flag === "j") { options.joinOutput = true; options.raw = true; }
+        else if (flag === "c") options.format.indent = "";
+        else if (flag === "a") options.format.ascii = true;
+        else if (flag === "C") options.format.color = true;
+        else if (flag === "M") options.monochrome = true;
+        else if (flag === "S") options.sortKeys = true;
+        else if (flag === "s") options.slurp = true;
+        else if (flag === "n") options.nullInput = true;
+        else options.exitStatus = true;
+      }
+      continue;
+    }
+    if (options.source === undefined && options.programFile === undefined) options.source = argument;
+    else if (positionalMode !== undefined) {
+      budget.text(argument);
+      let value: Json;
+      try { value = positionalMode === "--args" ? argument : parseJson(argument, budget); }
+      catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError("invalid JSON text passed to --jsonargs", 2); }
+      if (typeof value === "string" && !wellFormed(value)) throw new JqError("arguments must contain well-formed Unicode", 2);
+      variableBytes += budget.value(value) + (positional.length ? 1 : 2);
+      if (variableBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      positional.push(value);
+    }
+    else options.files.push(argument);
+  }
+  options.format.color &&= !options.monochrome;
+  if (positional.length) budget.value(positional);
+  options.source ??= options.programFile === undefined ? "." : undefined;
+  if (positional.length > 0 || named !== undefined || options.programFile !== undefined || options.source?.includes("ARGS")) {
+    options.variables.set("ARGS", copyObject({ positional, named: named ?? object() }));
+  }
+  return options;
+}
+async function argumentsForAsync(context: CommandContext, budget: Budget): Promise<Options> {
   const args = context.args;
   budget.collection(args.length);
   let argumentBytes = 0;
@@ -323,9 +427,22 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     }
   };
   try {
-    const options = await argumentsFor(context, budget);
+    const optionsOrPromise = argumentsFor(context, budget);
+    const options = optionsOrPromise instanceof Promise ? await optionsOrPromise : optionsOrPromise;
     const source = options.programFile === undefined ? options.source! : await readProgram(context, options.programFile, limits);
-    const ast = await compileProgram(context, options, source, budget);
+    let ast: Ast;
+    if (!options.moduleDirectories.length && options.variables.size === 0 && !source.includes("$") && budget.limits.maxSourceBytes >= source.length * 4 && budget.limits.maxAstDepth >= 256 && budget.limits.maxSteps >= 1000) {
+      let cachedAst = jqAstCache.get(source);
+      if (!cachedAst) {
+        cachedAst = parse(source, options.variables, budget);
+        if (jqAstCache.size < 64) jqAstCache.set(source, cachedAst);
+      }
+      ast = cachedAst;
+    } else if (!options.moduleDirectories.length) {
+      ast = parse(source, options.variables, budget);
+    } else {
+      ast = await compileProgram(context, options, source, budget);
+    }
     const interpreter = new Interpreter(budget, options.variables);
     let lastTruth: boolean | undefined;
     let status = 0;

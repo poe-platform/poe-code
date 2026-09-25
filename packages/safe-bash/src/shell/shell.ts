@@ -256,19 +256,21 @@ export class Shell implements PluginHost {
     const unseal = scope.onSeal(() => budget.controller.abort(new Error("Invocation is closed")));
     const stdout = new Capture();
     const stderr = new Capture();
-    const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
-      ...(external?.ownedOutput ? { ownedOutput: {
-        get consumerClosed() { return external.ownedOutput!.consumerClosed; },
-        write: async (chunk: Uint8Array) => {
-          await capture.write(chunk);
-          await external.ownedOutput!.write(chunk);
-        },
-      } } : {}),
-      write: async (chunk) => {
-        await capture.write(chunk);
-        if (external) await external.write(chunk);
-      },
-    });
+    const sink = (capture: Capture, external?: ByteSink): ByteSink => external === undefined
+      ? budget.sink(capture)
+      : budget.sink({
+          ...(external.ownedOutput ? { ownedOutput: {
+            get consumerClosed() { return external.ownedOutput!.consumerClosed; },
+            write: async (chunk: Uint8Array) => {
+              await capture.write(chunk);
+              await external.ownedOutput!.write(chunk);
+            },
+          } } : {}),
+          write: async (chunk) => {
+            await capture.write(chunk);
+            await external.write(chunk);
+          },
+        });
     let stdin: ShellInput | undefined;
     scope.register(async () => {
       try { await stdin?.close(); }

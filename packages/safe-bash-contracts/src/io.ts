@@ -515,7 +515,24 @@ export function writeText(sink: ByteSink, text: string): Promise<void> {
 
 export function writeBytes(sink: ByteSink, chunk: Uint8Array, signal?: AbortSignal): Promise<void> {
   if (!(chunk instanceof Uint8Array)) return Promise.reject(new TypeError("Byte sinks require Uint8Array chunks"));
-  return abortable(() => sink.write(chunk), signal);
+  try {
+    signal?.throwIfAborted();
+    const pending = sink.write(chunk);
+    if (!signal || isSyncResolved(pending)) {
+      if (signal?.aborted) {
+        void Promise.resolve(pending).catch(() => {});
+        return Promise.reject(signal.reason);
+      }
+      return pending === resolvedVoid ? resolvedVoid : Promise.resolve(pending);
+    }
+    if (signal.aborted) {
+      void Promise.resolve(pending).catch(() => {});
+      return Promise.reject(signal.reason);
+    }
+    return waitAbortable(pending, signal);
+  } catch (error) {
+    return Promise.reject(error);
+  }
 }
 
 export async function pipeBytes(source: ByteSource, sink: ByteSink, signal?: AbortSignal): Promise<void> {
@@ -542,24 +559,28 @@ function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortS
       return Promise.reject(signal.reason);
     }
     if (completed) return Promise.resolve(pending);
-    return new Promise<Result>((resolve, reject) => {
-      const onAbort = (): void => {
-        signal.removeEventListener("abort", onAbort);
-        reject(signal.reason);
-      };
-      signal.addEventListener("abort", onAbort, { once: true });
-      Promise.resolve(pending).then(
-        (result) => {
-          signal.removeEventListener("abort", onAbort);
-          resolve(result);
-        },
-        (error: unknown) => {
-          signal.removeEventListener("abort", onAbort);
-          reject(error);
-        },
-      );
-    });
+    return waitAbortable(pending, signal);
   } catch (error) {
     return Promise.reject(error);
   }
+}
+
+function waitAbortable<Result>(pending: PromiseLike<Result>, signal: AbortSignal): Promise<Result> {
+  return new Promise<Result>((resolve, reject) => {
+    const onAbort = (): void => {
+      signal.removeEventListener("abort", onAbort);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    Promise.resolve(pending).then(
+      (result) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(result);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(error);
+      },
+    );
+  });
 }

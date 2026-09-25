@@ -420,6 +420,7 @@ export interface ShellInputOptions {
   readonly initialChunkOwned?: boolean;
   readonly initialEof?: boolean;
   readonly onInitialConsumed?: () => void;
+  readonly signalIncludesBudget?: boolean;
 }
 const shellInputViewClosedError = new Error("Shell input view closed");
 const resolvedVoid = Promise.resolve();
@@ -969,13 +970,13 @@ export class ShellInput implements ByteSource, CommandInput {
   readonly seek?: NonNullable<CommandInput["seek"]>;
   #closing: Promise<void> | undefined;
 
-  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal, options?: ShellInputOptions & InputProvenance) {
+  constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal, options?: ShellInputOptions & InputProvenance, signalIncludesBudget?: boolean) {
     this.#owned = !(source instanceof ShellInput);
     if (!this.#owned && options !== undefined) throw new TypeError("Borrowed input cannot replace cursor capabilities");
     this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options ?? {}, budget);
     this.descriptor = source instanceof ShellInput ? source.descriptor : options?.descriptor;
     this.#cleanupSignal = signal;
-    this.#signalIncludesBudget = signal === budget.signal || hasRegisteredYieldCheckpoint(signal);
+    this.#signalIncludesBudget = signalIncludesBudget ?? options?.signalIncludesBudget ?? (signal === budget.signal || hasRegisteredYieldCheckpoint(signal));
     if (this.#cursor.stat) this.stat = this.#cursor.stat;
     if (this.#cursor.seek) this.seek = (position, callerSignal) => {
       const signal = AbortSignal.any([this.signal, callerSignal]);

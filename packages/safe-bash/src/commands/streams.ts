@@ -12,6 +12,11 @@ import {
   lines, options, output, pathOf, UsageError, value,
 } from "./internal.js";
 
+const syncResolved = Symbol.for("safe-bash.syncResolved");
+function isSyncResolved(promise: unknown): boolean {
+  return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
+}
+
 const inspectedInputRequirements: readonly CommandFileSystemRequirement[] = inputRequirements.map(mode => mode.id === "file" ? { ...mode, capabilities: ["stat", "access"] } : mode);
 const countRequirements: readonly CommandFileSystemRequirement[] = [
   ...inputRequirements,
@@ -412,7 +417,8 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
 `);
         return { exitCode: 0 };
       }
-      await assertInputRequirements(context, parsed.operands);
+      const reqPromise = assertInputRequirements(context, parsed.operands);
+      if (reqPromise) await reqPromise;
       if (parsed.flags.has("A")) for (const flag of ["v", "E", "T"]) parsed.flags.add(flag);
       if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }
       if (parsed.flags.has("t")) { parsed.flags.add("v"); parsed.flags.add("T"); }
@@ -421,6 +427,44 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       if (operation) context = { ...context, signal: operation.signal, stdout: operation.output };
       try {
         const state = { exitCode: 0 };
+        if (parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u"))) {
+          for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
+            try {
+              const iter = input(context, name)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+                tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+              };
+              if (typeof iter.tryNextSync === "function") {
+                let done = false;
+                try {
+                  while (true) {
+                    const syncRes = iter.tryNextSync();
+                    if (syncRes !== undefined) {
+                      if (syncRes.done) { done = true; break; }
+                      const p = output(context, syncRes.value);
+                      if (!isSyncResolved(p)) await p;
+                      continue;
+                    }
+                    const asyncRes = await iter.next();
+                    if (asyncRes.done) { done = true; break; }
+                    const p = output(context, asyncRes.value);
+                    if (!isSyncResolved(p)) await p;
+                  }
+                } finally {
+                  if (!done) await iter.return?.();
+                }
+              } else {
+                for await (const chunk of { [Symbol.asyncIterator]: () => iter }) {
+                  const p = output(context, chunk);
+                  if (!isSyncResolved(p)) await p;
+                }
+              }
+            } catch (error) {
+              await diagnostic(context, error);
+              state.exitCode = 1;
+            }
+          }
+          return state;
+        }
         const source = combinedInput(context, parsed.operands, state);
         operation?.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });
         if (![...parsed.flags].some(flag => flag !== "u")) {

@@ -10,6 +10,8 @@ interface Scan {
   paragraphEnd: number;
 }
 
+const resolvedVoid = Promise.resolve();
+
 export class Reader {
   private readonly iterator: AsyncIterator<Uint8Array>;
   private blocks: (Buffer | undefined)[] = [];
@@ -22,8 +24,37 @@ export class Reader {
   private closed = false;
   private closing?: Promise<void>;
 
-  constructor(source: ByteSource, private readonly budget: Budget, private readonly retention: Pick<AwkRetention, "replace" | "release">) {
+  constructor(source: ByteSource, private readonly budget: Budget, private readonly retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
     this.iterator = readBytes(source, budget.context.signal)[Symbol.asyncIterator]();
+  }
+
+  get isEnded(): boolean {
+    return this.ended && this.buffered === 0;
+  }
+
+  private tryFillSync(): boolean {
+    const syncIter = this.iterator as AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
+    if (typeof syncIter.tryNextSync !== "function") return false;
+    while (!this.ended && !this.closed) {
+      this.budget.step();
+      const next = syncIter.tryNextSync();
+      if (next === undefined) return false;
+      this.budget.context.signal.throwIfAborted();
+      if (next.done) { this.ended = true; return true; }
+      const length = next.value.byteLength;
+      if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
+      if (length === 0) continue;
+      this.retention.admit(0, length);
+      const owned = Buffer.allocUnsafe(length);
+      owned.set(next.value);
+      try { this.blocks.push(owned); }
+      catch (error) { this.retention.release(length); throw error; }
+      this.blockStrings.push(undefined);
+      this.buffered += length;
+      this.ownedBytes += length;
+      return true;
+    }
+    return true;
   }
 
   private async fill(): Promise<void> {
@@ -35,11 +66,9 @@ export class Reader {
     const length = next.value.byteLength;
     if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
     if (length === 0) return;
-    const block = this.retention.replace(0, length, () => {
-      const owned = Buffer.allocUnsafe(length);
-      owned.set(next.value);
-      return owned;
-    });
+    this.retention.admit(0, length);
+    const block = Buffer.allocUnsafe(length);
+    block.set(next.value);
     try { this.blocks.push(block); }
     catch (error) { this.retention.release(length); throw error; }
     this.blockStrings.push(undefined);
@@ -143,16 +172,30 @@ export class Reader {
 
   readSliceSync(separator: string, out: { source: string; start: number; end: number }): boolean {
     if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
-    if (separator.length === 1 && !this.closed && this.head < this.blocks.length) {
-      const headBlock = this.blocks[this.head]!;
-      const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
-      if (idx >= 0 && idx - this.offset < 4096) {
-        this.budget.step();
-        out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
-        out.start = this.offset;
-        out.end = idx;
-        this.consume(idx - this.offset + 1);
-        return true;
+    if (separator.length === 1 && !this.closed) {
+      if (this.head >= this.blocks.length && !this.ended) {
+        this.tryFillSync();
+      }
+      if (this.head < this.blocks.length) {
+        const headBlock = this.blocks[this.head]!;
+        const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+        if (idx >= 0 && idx - this.offset < 4096) {
+          out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+          out.start = this.offset;
+          out.end = idx;
+          this.consume(idx - this.offset + 1);
+          return true;
+        }
+        if (idx < 0 && this.head + 1 === this.blocks.length && !this.ended) {
+          this.tryFillSync();
+          if (this.head + 1 === this.blocks.length && this.ended && headBlock.length - this.offset < 4096) {
+            out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
+            out.start = this.offset;
+            out.end = headBlock.length;
+            this.consume(headBlock.length - this.offset);
+            return true;
+          }
+        }
       }
     }
     return false;
@@ -204,12 +247,17 @@ export class Reader {
 
   close(): Promise<void> {
     if (this.closing) return this.closing;
+    const wasEnded = this.ended;
     this.closed = true;
     this.ended = true;
     this.blocks = [];
     this.head = this.offset = this.buffered = 0;
     this.retention.release(this.ownedBytes);
     this.ownedBytes = 0;
+    if (wasEnded || !this.iterator.return) {
+      this.closing = resolvedVoid;
+      return resolvedVoid;
+    }
     this.closing = Promise.resolve().then(async () => { await this.iterator.return?.(); });
     return this.closing;
   }

@@ -643,9 +643,18 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let line = 1;
   let column = 0;
   let nulTail: string | undefined;
+  const iter = readBytes(source, budget.signal)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+    tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+  };
+  let done = false;
   try {
-    for await (const rawChunk of readBytes(source, budget.signal)) {
-      await budget.tick();
+    while (true) {
+      const syncRes = typeof iter.tryNextSync === "function" ? iter.tryNextSync() : undefined;
+      const res = syncRes ?? await iter.next();
+      if (res.done) { done = true; break; }
+      const rawChunk = res.value;
+      const pt = budget.tickSync();
+      if (pt) await pt;
       budget.inputBytes += rawChunk.byteLength;
       if (budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
       const fullText = Buffer.isBuffer(rawChunk)
@@ -802,6 +811,10 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
       }
       if (options.onChunkEnd) await options.onChunkEnd();
     }
+  } finally {
+    if (!done) await iter.return?.();
+  }
+  try {
     budget.inputLocation.complete = true;
     if (active && !failed) {
       try { yield* values(parser.finish(options.sequence ? { line, column, eof: true } : undefined)); } catch (error) { yield* failure(error, true); }

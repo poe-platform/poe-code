@@ -8,6 +8,7 @@ let sharedTextEncoder: TextEncoder | undefined;
 const EMPTY_BYTES = new Uint8Array(0);
 const DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
 const RESOLVED_DONE: Promise<IteratorResult<Uint8Array>> = Promise.resolve(DONE_RESULT);
+const readBytesSignal = Symbol.for("safe-fs.readBytesSignal");
 const EMPTY_BYTE_ITERATOR: AsyncIterableIterator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> } = Object.freeze({
   [Symbol.asyncIterator]() { return this; },
   tryNextSync() { return DONE_RESULT; },
@@ -142,35 +143,97 @@ async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: 
   });
 }
 
-export async function* readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
-  signal?.throwIfAborted();
-  const iterator = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+export function readBytes(source: ByteSource, signal?: AbortSignal): AsyncGenerator<Uint8Array> {
+  if (signal !== undefined && (source as { readonly [readBytesSignal]?: AbortSignal })[readBytesSignal] === signal) {
+    return source as AsyncGenerator<Uint8Array>;
+  }
+  let iterator: (AsyncIterator<Uint8Array> & {
     tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
     abortSignal?: AbortSignal | undefined;
-  };
-  const nativeAbort = signal !== undefined && iterator.abortSignal === signal;
+  }) | undefined;
+  let nativeAbort = false;
   let finished = false;
-  let failed = false;
-  try {
-    while (true) {
+  const ensureIterator = () => {
+    if (!iterator) {
       signal?.throwIfAborted();
-      const syncResult = typeof iterator.tryNextSync === "function" ? iterator.tryNextSync() : undefined;
-      const result = syncResult ?? (nativeAbort ? await iterator.next() : await abortable(() => iterator.next(), signal));
-      if (result.done) {
-        finished = true;
-        return;
-      }
-      if (!(result.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
-      yield result.value;
+      iterator = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+        tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+        abortSignal?: AbortSignal | undefined;
+      };
+      nativeAbort = signal !== undefined && iterator.abortSignal === signal;
     }
-  } catch (error) {
-    failed = true;
-    throw error;
-  } finally {
-    if (!finished && iterator.return) {
-      const cleanup = Promise.resolve().then(() => iterator.return!());
+    return iterator;
+  };
+  const cleanupIterator = async (failed: boolean): Promise<IteratorResult<Uint8Array>> => {
+    if (!finished && iterator?.return) {
+      finished = true;
+      const cleanup = Promise.resolve().then(() => iterator!.return!());
       if (signal?.aborted) void cleanup.catch(() => {});
       else await finishCleanup(() => abortable(() => cleanup, signal), failed);
+    } else {
+      finished = true;
     }
-  }
+    return DONE_RESULT;
+  };
+  const tryNextSync = (): IteratorResult<Uint8Array> | undefined => {
+    if (finished) return DONE_RESULT;
+    const it = ensureIterator();
+    if (typeof it.tryNextSync !== "function") return undefined;
+    try {
+      signal?.throwIfAborted();
+      const syncResult = it.tryNextSync();
+      if (syncResult === undefined) return undefined;
+      if (syncResult.done) {
+        finished = true;
+        return DONE_RESULT;
+      }
+      if (!(syncResult.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
+      return syncResult;
+    } catch (error) {
+      if (!finished && it.return) {
+        finished = true;
+        void Promise.resolve().then(() => it.return!()).catch(() => {});
+      } else {
+        finished = true;
+      }
+      throw error;
+    }
+  };
+  const gen = {
+    [readBytesSignal]: signal,
+    abortSignal: signal,
+    [Symbol.asyncIterator]() { return this; },
+    tryNextSync,
+    async next(): Promise<IteratorResult<Uint8Array>> {
+      if (finished) return DONE_RESULT;
+      try {
+        const it = ensureIterator();
+        signal?.throwIfAborted();
+        const syncResult = typeof it.tryNextSync === "function" ? it.tryNextSync() : undefined;
+        const result = syncResult ?? (nativeAbort ? await it.next() : await abortable(() => it.next(), signal));
+        signal?.throwIfAborted();
+        if (result.done) {
+          finished = true;
+          return DONE_RESULT;
+        }
+        if (!(result.value instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
+        return result;
+      } catch (error) {
+        await cleanupIterator(true);
+        throw error;
+      }
+    },
+    return(): Promise<IteratorResult<Uint8Array>> {
+      if (finished || !iterator?.return) {
+        finished = true;
+        return RESOLVED_DONE;
+      }
+      return cleanupIterator(false);
+    },
+    async throw(error: unknown): Promise<IteratorResult<Uint8Array>> {
+      await cleanupIterator(true);
+      throw error;
+    },
+  };
+  return gen as unknown as AsyncGenerator<Uint8Array>;
 }

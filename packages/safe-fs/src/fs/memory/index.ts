@@ -1520,36 +1520,89 @@ export class MemoryFileSystem implements FileSystem {
     };
   }
 
-  async *readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
-    options.signal?.throwIfAborted();
-    const start = options.start ?? 0;
-    const chunkSize = options.chunkSize ?? preferredIoBlockSize;
-    this.integer(start, "readStream", path);
-    this.integer(chunkSize, "readStream", path);
-    if (chunkSize === 0) this.fail("EINVAL", "readStream", path);
-    if (options.endExclusive !== undefined) {
-      this.integer(options.endExclusive, "readStream", path);
-      if (options.endExclusive < start) this.fail("EINVAL", "readStream", path);
-    }
-    const node = this.file(path, "readStream");
-    this.permission(node, 4, "readStream", path);
-    this.ledger.reserve(path.length * 2, 1, "readStream", path);
-    node.references++;
-    const allocation = node.allocation;
-    allocation.retain();
-    const data = node.data;
-    try {
-      const end = Math.min(options.endExclusive ?? data.byteLength, data.byteLength);
-      node.atimeMs = Date.now();
-      for (let offset = start; offset < end; offset += chunkSize) {
-        options.signal?.throwIfAborted();
-        yield data.slice(offset, Math.min(offset + chunkSize, end));
-      }
-      options.signal?.throwIfAborted();
-    } finally {
-      allocation.release();
-      this.releaseReference(node, path);
-    }
+  readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
+    return {
+      [Symbol.asyncIterator]: (): AsyncIterableIterator<Uint8Array> & {
+        tryNextSync(): IteratorResult<Uint8Array>;
+        abortSignal?: AbortSignal | undefined;
+      } => {
+        let initialized = false;
+        let finished = false;
+        let offset = 0;
+        let end = 0;
+        let chunkSize = preferredIoBlockSize;
+        let node: FileNode | undefined;
+        let allocation: FileNode["allocation"] | undefined;
+        let data: Uint8Array | undefined;
+        const release = (): void => {
+          if (finished) return;
+          finished = true;
+          if (allocation) {
+            allocation.release();
+            allocation = undefined;
+          }
+          if (node) {
+            const releasedNode = node;
+            node = undefined;
+            this.releaseReference(releasedNode, path);
+          }
+          data = undefined;
+        };
+        const step = (): IteratorResult<Uint8Array> => {
+          if (finished) return { done: true, value: undefined };
+          try {
+            options.signal?.throwIfAborted();
+            if (!initialized) {
+              initialized = true;
+              const start = options.start ?? 0;
+              chunkSize = options.chunkSize ?? preferredIoBlockSize;
+              this.integer(start, "readStream", path);
+              this.integer(chunkSize, "readStream", path);
+              if (chunkSize === 0) this.fail("EINVAL", "readStream", path);
+              if (options.endExclusive !== undefined) {
+                this.integer(options.endExclusive, "readStream", path);
+                if (options.endExclusive < start) this.fail("EINVAL", "readStream", path);
+              }
+              const target = this.file(path, "readStream");
+              this.permission(target, 4, "readStream", path);
+              this.ledger.reserve(path.length * 2, 1, "readStream", path);
+              target.references++;
+              node = target;
+              allocation = target.allocation;
+              allocation.retain();
+              data = target.data;
+              offset = start;
+              end = Math.min(options.endExclusive ?? data.byteLength, data.byteLength);
+              target.atimeMs = Date.now();
+            }
+            if (offset < end) {
+              const nextEnd = Math.min(offset + chunkSize, end);
+              const chunk = data!.slice(offset, nextEnd);
+              offset = nextEnd;
+              return { done: false, value: chunk };
+            }
+            release();
+            return { done: true, value: undefined };
+          } catch (error) {
+            release();
+            throw error;
+          }
+        };
+        return {
+          abortSignal: options.signal,
+          [Symbol.asyncIterator]() { return this; },
+          tryNextSync: step,
+          next() {
+            try { return Promise.resolve(step()); }
+            catch (error) { return Promise.reject(error); }
+          },
+          return() {
+            release();
+            return Promise.resolve({ done: true, value: undefined });
+          },
+        };
+      },
+    };
   }
 
   async writeStream(path: string, source: ByteSource, options: WriteFileOptions = {}): Promise<void> {

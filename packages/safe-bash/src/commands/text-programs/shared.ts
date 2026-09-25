@@ -1,6 +1,6 @@
 import { PublicDiagnostic, publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
-import { monotonicNow, yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { inputRequirements } from "../portable-requirements.js";
 import { requiredFileInput } from "../search/requirements.js";
@@ -70,7 +70,11 @@ export class Budget {
   checkpointSync(): Promise<void> | undefined {
     if (this.signal.aborted) this.signal.throwIfAborted();
     const count = ++this.checkpoints;
-    if ((count & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
+    if ((count & 255) === 0) {
+      if (!hasYieldCheckpoint(this.signal) && monotonicNow() - this.lastYield < 25) {
+        runYieldCheckpoint(this.signal);
+        return undefined;
+      }
       return this.yieldCheckpointAsync();
     }
     return undefined;
@@ -91,9 +95,9 @@ export function virtualPath(context: CommandContext, path: string): string {
   return path.startsWith("/") ? path : `${context.cwd.replace(/\/$/u, "")}/${path}`;
 }
 
-export async function write(context: CommandContext, text: string): Promise<void> {
+export function write(context: CommandContext, text: string): Promise<void> {
   context.signal.throwIfAborted();
-  await writeBytes(context.stdout, bytes(text), context.signal);
+  return writeBytes(context.stdout, bytes(text), context.signal);
 }
 
 export function input(context: CommandContext, file = "-"): ByteSource {
@@ -138,17 +142,29 @@ export interface LineRecordBatch {
   readonly fileIndex: number;
 }
 
+const sharedBatchEnds: number[] = [];
+
 export async function* lineRecordBatches(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<LineRecordBatch> {
   const names = files.length ? files : ["-"];
   for (let fileIndex = 0; fileIndex < names.length; fileIndex++) {
     const file = names[fileIndex]!;
     let pending = "";
-    for await (const chunk of input(context, file)) {
+    const iter = input(context, file)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
+      tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
+    };
+    let done = false;
+    try {
+    while (true) {
+      const syncRes = typeof iter.tryNextSync === "function" ? iter.tryNextSync() : undefined;
+      const res = syncRes ?? await iter.next();
+      if (res.done) { done = true; break; }
+      const chunk = res.value;
       budget.step();
       const text = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
       let start = 0;
       let end: number;
-      const ends: number[] = [];
+      const ends = sharedBatchEnds;
+      ends.length = 0;
       let firstLinePrefix = "";
       while ((end = text.indexOf("\n", start)) >= 0) {
         const len = (ends.length === 0 ? pending.length : 0) + (end - start);
@@ -166,6 +182,9 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
       if (ends.length > 0) {
         yield { text, firstLinePrefix, ends, trailingText: undefined, file, fileIndex };
       }
+    }
+    } finally {
+      if (!done) await iter.return?.();
     }
     if (pending) {
       yield { text: "", firstLinePrefix: "", ends: [], trailingText: pending, file, fileIndex };

@@ -119,9 +119,9 @@ export function codeOf(error: unknown): string | undefined {
   return error instanceof Error && "code" in error ? String(error.code) : undefined;
 }
 
-export async function output(context: CommandContext, text: string | Uint8Array): Promise<void> {
+export function output(context: CommandContext, text: string | Uint8Array): Promise<void> {
   context.signal.throwIfAborted();
-  await writeBytes(context.stdout, typeof text === "string" ? encoder.encode(text) : text, context.signal);
+  return writeBytes(context.stdout, typeof text === "string" ? encoder.encode(text) : text, context.signal);
 }
 
 export async function diagnostic(context: CommandContext, error: unknown): Promise<void> {
@@ -168,6 +168,15 @@ export function input(context: CommandContext, name = "-"): ByteSource {
   if (name === "-") {
     return readBytes(context.stdin, context.signal);
   }
+  if (!context.fs.capabilitiesFor && context.fs.readStream && context.fs.capabilities.streamingRead !== false) {
+    assertCommandRequirements(context, inputRequirements, FILE_REQUIREMENT_MODES);
+    const stream = context.fs.readStream(pathOf(context, name), { signal: context.signal });
+    const iterator = stream[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
+    if (typeof iterator.tryNextSync === "function") {
+      return readBytes({ [Symbol.asyncIterator]: () => iterator }, context.signal);
+    }
+    void iterator.return?.();
+  }
   return fileInputSource(context, name);
 }
 
@@ -202,11 +211,23 @@ async function* fileInputSource(context: CommandContext, name: string): ByteSour
     }, context.signal);
 }
 
-export async function assertInputRequirements(context: CommandContext, names: readonly string[]): Promise<void> {
-  const files = names.filter(name => name !== "-");
-  assertCommandRequirements(context, inputRequirements, [files.length ? "file" : "stdin"]);
-  if (!files.length || !context.fs.capabilitiesFor) return;
-  for (const name of files) {
+const FILE_REQUIREMENT_MODES = ["file"] as const;
+const STDIN_REQUIREMENT_MODES = ["stdin"] as const;
+
+export function assertInputRequirements(context: CommandContext, names: readonly string[]): Promise<void> | void {
+  let hasFile = false;
+  for (let i = 0; i < names.length; i++) {
+    if (names[i] !== "-") { hasFile = true; break; }
+  }
+  assertCommandRequirements(context, inputRequirements, hasFile ? FILE_REQUIREMENT_MODES : STDIN_REQUIREMENT_MODES);
+  if (!hasFile || !context.fs.capabilitiesFor) return;
+  return assertInputRequirementsAsync(context, names);
+}
+
+async function assertInputRequirementsAsync(context: CommandContext, names: readonly string[]): Promise<void> {
+  if (!context.fs.capabilitiesFor) return;
+  for (const name of names) {
+    if (name === "-") continue;
     try {
       const capabilities = await context.fs.capabilitiesFor(pathOf(context, name), { signal: context.signal });
       assertCommandRequirements(context, inputRequirements, ["file"], capabilities);

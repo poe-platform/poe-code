@@ -4005,8 +4005,8 @@ export class Runtime {
           const readReference = reading && references.open(reading, this.budget);
           const writeReference = writing && references.open(writing, this.budget);
           const input = incoming
-            ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() })
-            : new ShellInput(io.stdin, this.budget, signal);
+            ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, signal, { provenance: "stream", poll: () => incoming.readiness() }, true)
+            : new ShellInput(io.stdin, this.budget, signal, undefined, true);
           preparationCleanup.push(() => input.close());
           const writable = writing?.writable ?? outgoing?.writable;
           const failOutput = writable?.[outputFailure]?.bind(writable);

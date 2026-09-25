@@ -4,6 +4,7 @@ import {
   allMediaAsts,
   cloudflareWorkerLimits,
   createFfmpegCommand,
+  createFfmpegCommands,
   createFfprobeCommand,
   type FfmpegCommandsOptions
 } from "./index.js";
@@ -295,5 +296,38 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     const optOutRes = await runCmd(remuxOnlyFfmpeg, ["-i", "/clip.mp4", "-vf", "scale=32:32", "/scaled.mp4"], vfs);
     expect(optOutRes.exitCode).toBe(1);
     expect(optOutRes.stderr).toContain("disabled by consumer feature configuration");
+  });
+
+  it("supports vstack and stream-selective concat=n=2:v=1:a=0 in -filter_complex and .ffmpeg/.ffprobe properties", async () => {
+    const { ffmpeg, ffprobe } = createFfmpegCommands();
+    const clip1 = createSyntheticMp4({ width: 32, height: 16, fps: 5, frameCount: 2, includeAudio: true });
+    const clip2 = createSyntheticMp4({ width: 32, height: 16, fps: 5, frameCount: 2, includeAudio: true });
+    const vfs = createTestVfs({ "/c1.mp4": clip1, "/c2.mp4": clip2 });
+
+    const concatRes = await runCmd(
+      ffmpeg,
+      ["-i", "/c1.mp4", "-i", "/c2.mp4", "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]", "-map", "[v]", "/video_only.mp4"],
+      vfs
+    );
+    expect(concatRes.exitCode).toBe(0);
+    const probeRes = await runCmd(
+      ffprobe,
+      ["-v", "quiet", "-print_format", "json", "-show_streams", "/video_only.mp4"],
+      vfs
+    );
+    const parsed = JSON.parse(probeRes.stdout);
+    expect(parsed.streams.length).toBe(1);
+    expect(parsed.streams[0].codec_type).toBe("video");
+    expect(parsed.streams[0].nb_frames).toBe("4");
+
+    const vstackRes = await runCmd(
+      ffmpeg,
+      ["-i", "/c1.mp4", "-i", "/c2.mp4", "-filter_complex", "[0:v][1:v]vstack=inputs=2", "/vstacked.mp4"],
+      vfs
+    );
+    expect(vstackRes.exitCode).toBe(0);
+    const vstackDoc = parseMp4(vfs.store.get("/vstacked.mp4")!);
+    expect(vstackDoc.tracks[0]!.width).toBe(32);
+    expect(vstackDoc.tracks[0]!.height).toBe(32);
   });
 });

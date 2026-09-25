@@ -181,4 +181,21 @@ describe("@poe-code/mp4-ast", () => {
     expect(fullRegistry.findByFilename("audio.aac")).toBeDefined();
     expect(fullRegistry.findByFilename("audio.wav")).toBeDefined();
   });
+
+  it("merges multi-resolution MP4 clips using multiple stsd entries without re-encoding", () => {
+    const clip1 = parseMp4(
+      createSyntheticMp4({ width: 64, height: 48, fps: 10, frameCount: 3, includeAudio: true })
+    );
+    const clip2 = parseMp4(
+      createSyntheticMp4({ width: 32, height: 32, fps: 10, frameCount: 4, includeAudio: true })
+    );
+    const merged = concatMp4([clip1, clip2]);
+    const serialized = serializeMp4(merged, { faststart: true });
+    const reparsed = parseMp4(serialized);
+    const vTrack = reparsed.tracks.find((t) => t.type === "video")!;
+    expect(vTrack.samples.length).toBe(7);
+    expect(vTrack.codecDescriptions.length).toBe(2);
+    expect(vTrack.samples[0]!.sampleDescriptionIndex).toBe(1);
+    expect(vTrack.samples[3]!.sampleDescriptionIndex).toBe(2);
+  });
 });

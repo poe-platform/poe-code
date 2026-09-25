@@ -79,6 +79,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     channels?: number;
     bitsPerSample?: number;
     formatTag?: number;
+    extradata?: Uint8Array;
   }
 
   const streamInfos: AviStreamInfo[] = [];
@@ -115,11 +116,17 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
           cur.height = Math.abs(view.getInt32(payloadStart - pos + 8, true)) || height;
           const compFourcc = decodeFourCC(bytes, payloadStart + 16);
           if (compFourcc.trim()) cur.fccHandler = compFourcc;
+          if (chunkSize > 40) {
+            cur.extradata = bytes.subarray(payloadStart + 40, payloadEnd);
+          }
         } else if (cur.fccType === "auds" && chunkSize >= 14) {
           cur.formatTag = view.getUint16(payloadStart - pos + 0, true);
           cur.channels = view.getUint16(payloadStart - pos + 2, true) || 2;
           cur.sampleRate = view.getUint32(payloadStart - pos + 4, true) || 44100;
           cur.bitsPerSample = view.getUint16(payloadStart - pos + 14, true) || 16;
+          if (chunkSize > 18) {
+            cur.extradata = bytes.subarray(payloadStart + 18, payloadEnd);
+          }
         }
       } else if (/^\d\d(dc|db|wb)$/.test(fourcc)) {
         const streamIdx = parseInt(fourcc.slice(0, 2), 10);
@@ -161,34 +168,76 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
       let allSps: Uint8Array[] = [];
       let allPps: Uint8Array[] = [];
-      const convertedSamples: MediaSample[] = [];
+      let directAvcC = info.extradata && info.extradata.byteLength >= 7 && info.extradata[0] === 1
+        ? parseAvcC(info.extradata)
+        : undefined;
+      if (!directAvcC && info.extradata && info.extradata.byteLength >= 4) {
+        const extConv = annexBToAvcc(info.extradata);
+        if (extConv.sps.length > 0) allSps = extConv.sps;
+        if (extConv.pps.length > 0) allPps = extConv.pps;
+      }
 
+      const isAnnexB = (buf: Uint8Array): boolean =>
+        buf.byteLength >= 4 &&
+        ((buf[0] === 0 && buf[1] === 0 && buf[2] === 0 && buf[3] === 1) ||
+          (buf[0] === 0 && buf[1] === 0 && buf[2] === 1));
+
+      const hasIdrInAvcc = (buf: Uint8Array): boolean => {
+        let off = 0;
+        while (off + 4 <= buf.byteLength) {
+          const len = ((buf[off]! << 24) | (buf[off + 1]! << 16) | (buf[off + 2]! << 8) | buf[off + 3]!) >>> 0;
+          if (len === 0 || off + 4 + len > buf.byteLength) break;
+          const nalType = buf[off + 4]! & 0x1f;
+          if (nalType === 5) return true;
+          off += 4 + len;
+        }
+        return false;
+      };
+
+      const convertedSamples: MediaSample[] = [];
+      let curDts = 0;
       for (let sIdx = 0; sIdx < rawSamples.length; sIdx++) {
         const s = rawSamples[sIdx]!;
-        const conv = annexBToAvcc(s.data);
-        if (conv.sps.length > 0) allSps = conv.sps;
-        if (conv.pps.length > 0) allPps = conv.pps;
-        const data = conv.avccData.byteLength > 0 ? conv.avccData : s.data;
+        if (s.data.byteLength === 0) {
+          if (convertedSamples.length > 0) {
+            const prev = convertedSamples[convertedSamples.length - 1]!;
+            convertedSamples[convertedSamples.length - 1] = { ...prev, duration: prev.duration + frameDur };
+            curDts += frameDur;
+          }
+          continue;
+        }
+        let data = s.data;
+        let isKey = s.isKeyframe || convertedSamples.length === 0;
+        if (isAnnexB(s.data)) {
+          const conv = annexBToAvcc(s.data);
+          if (conv.sps.length > 0) allSps = conv.sps;
+          if (conv.pps.length > 0) allPps = conv.pps;
+          if (conv.avccData.byteLength > 0) data = conv.avccData;
+          if (conv.isKeyframe) isKey = true;
+        } else {
+          if (hasIdrInAvcc(data)) isKey = true;
+        }
+        if (data.byteLength === 0) continue;
         convertedSamples.push({
           data,
-          dts: sIdx * frameDur,
-          pts: sIdx * frameDur,
+          dts: curDts,
+          pts: curDts,
           cts: 0,
           duration: frameDur,
           size: data.byteLength,
-          isKeyframe: conv.isKeyframe || s.isKeyframe || sIdx === 0,
+          isKeyframe: isKey,
           sampleDescriptionIndex: 1
         });
+        curDts += frameDur;
       }
 
-      if (allSps.length === 0) {
+      if (!directAvcC && allSps.length === 0) {
         const gen = buildH264SpsPps(w, h, fps);
         allSps = [gen.sps];
         allPps = [gen.pps];
       }
 
-      const avcCBytes = buildAvcC(allSps, allPps);
-      const avcC = parseAvcC(avcCBytes);
+      const avcC = directAvcC ?? parseAvcC(buildAvcC(allSps, allPps));
       const fccUpper = info.fccHandler.toUpperCase();
       const codecName =
         fccUpper.includes("MJPG") || fccUpper.includes("JPEG")
@@ -232,18 +281,33 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     } else if (info.fccType === "auds") {
       const sampleRate = info.sampleRate ?? 44100;
       const channels = info.channels ?? 2;
-      const samples = rawSamples.map((s, idx) => ({
-        ...s,
-        dts: idx * 1024,
-        pts: idx * 1024,
-        duration: 1024
-      }));
       const codecName =
         info.formatTag === 0x0055
           ? "mp3"
           : info.formatTag === 0x00ff
             ? "aac"
             : "pcm_s16le";
+      const nonEmptyAudio = rawSamples.filter((s) => s.data.byteLength > 0);
+      const samples = nonEmptyAudio.map((s, idx) => {
+        let payload = s.data;
+        if (
+          codecName === "aac" &&
+          payload.byteLength > 7 &&
+          payload[0] === 0xff &&
+          (payload[1]! & 0xf0) === 0xf0
+        ) {
+          const hdrLen = (payload[1]! & 0x01) === 0 ? 9 : 7;
+          if (payload.byteLength > hdrLen) payload = payload.subarray(hdrLen);
+        }
+        return {
+          ...s,
+          data: payload,
+          size: payload.byteLength,
+          dts: idx * 1024,
+          pts: idx * 1024,
+          duration: 1024
+        };
+      });
       tracks.push({
         id: i + 1,
         type: "audio",

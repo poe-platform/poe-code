@@ -1506,6 +1506,64 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
           if (filterComplex.includes("concat=")) {
             workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
+            if (/concat=[^;\[]*\ba=0\b/.test(filterComplex)) {
+              workingDoc = {
+                ...workingDoc,
+                tracks: workingDoc.tracks.filter((t) => t.type !== "audio")
+              };
+            }
+            if (/concat=[^;\[]*\bv=0\b/.test(filterComplex)) {
+              workingDoc = {
+                ...workingDoc,
+                tracks: workingDoc.tracks.filter((t) => t.type !== "video")
+              };
+            }
+          } else if (filterComplex.includes("vstack") && loadedDocs.length >= 2) {
+            const f0 = ensureDecodedFrames(
+              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
+              budget
+            );
+            const f1 = ensureDecodedFrames(
+              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
+              budget
+            );
+            const count = Math.min(f0.length, f1.length);
+            const stacked: MediaVideoFrame[] = [];
+            for (let i = 0; i < count; i++) {
+              const a = f0[i]!;
+              const b = f1[i]!;
+              const w = Math.max(a.width, b.width);
+              const h = a.height + b.height;
+              const outData = new Uint8Array(w * h * 4);
+              for (let y = 0; y < a.height; y++) {
+                outData.set(a.data.subarray(y * a.width * 4, (y + 1) * a.width * 4), y * w * 4);
+              }
+              for (let y = 0; y < b.height; y++) {
+                outData.set(b.data.subarray(y * b.width * 4, (y + 1) * b.width * 4), (a.height + y) * w * 4);
+              }
+              stacked.push({
+                width: w,
+                height: h,
+                data: outData,
+                ptsSeconds: a.ptsSeconds,
+                durationSeconds: a.durationSeconds,
+                keyframe: true
+              });
+            }
+            workingDoc = {
+              ...loadedDocs[0]!,
+              tracks: loadedDocs[0]!.tracks.map((t) =>
+                t.type === "video"
+                  ? {
+                      ...t,
+                      width: stacked[0]?.width ?? t.width,
+                      height: stacked[0]?.height ?? t.height,
+                      samples: [],
+                      decodedVideoFrames: stacked
+                    }
+                  : t
+              )
+            };
           } else if (filterComplex.includes("hstack") && loadedDocs.length >= 2) {
             const f0 = ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
@@ -1885,10 +1943,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
   };
 }
 
+export type FfmpegCommandPair = readonly [CommandDefinition, CommandDefinition] & {
+  readonly ffmpeg: CommandDefinition;
+  readonly ffprobe: CommandDefinition;
+};
+
 export function createFfmpegCommands(
   options: FfmpegCommandsOptions = {}
-): readonly CommandDefinition[] {
-  return [createFfmpegCommand(options), createFfprobeCommand(options)];
+): FfmpegCommandPair {
+  const ffmpeg = createFfmpegCommand(options);
+  const ffprobe = createFfprobeCommand(options);
+  return Object.assign([ffmpeg, ffprobe] as const, { ffmpeg, ffprobe });
 }
 
 export function ffmpegCommands(options: FfmpegCommandsOptions = {}): VirtualShellPlugin {

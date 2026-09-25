@@ -60,7 +60,6 @@ test('distinguishes drained native descriptor close failures from incomplete ter
 
   try {
     let runCount = 0;
-    let hangPromise: Promise<void> | undefined;
     let releaseHang: (() => void) | undefined;
 
     const makeExecutor = (onOpenAndClose: (native: any) => Promise<void>) => createPythonJspiExecutor({
@@ -231,7 +230,7 @@ test('distinguishes drained native descriptor close failures from incomplete ter
     assert.equal(pool.inspect().active, 0);
 
     // 3. Third run: hanging native close continues to hold pool admission until close drains.
-    hangPromise = new Promise<void>(resolve => { releaseHang = resolve; });
+    const hangPromise = new Promise<void>(resolve => { releaseHang = resolve; });
     const third = pool.createExecutor();
     let thirdSettled = false;
     const thirdRun = third.run({

@@ -169,7 +169,7 @@ test("case modification cooperates with live cancellation", async () => {
   finally { clearTimeout(timer); }
 });
 
-for (const operator of ["P", "A", "a", "Q:-x"]) test(`unimplemented parameter transform remains refused: @${operator}`, async () => {
+for (const operator of ["Z", "Q:-x"]) test(`unimplemented parameter transform remains refused: @${operator}`, async () => {
   const { shell } = setup();
   try { assert.equal((await shell.exec(`value=x; args "\${value@${operator}}"`)).exitCode, 2); }
   finally { await shell.dispose(); }

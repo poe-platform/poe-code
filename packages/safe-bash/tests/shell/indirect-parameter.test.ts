@@ -75,3 +75,27 @@ for (const env of [{ name: "x", x: "a".repeat(256) }, { name: "x".repeat(256) }]
     await assert.rejects(shell.exec('args "${!name}"'), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
   } finally { await shell.dispose(); }
 });
+
+test("indirect array element and special parameter expansion and @a/@A/@K/@u/@U/@L transforms", async () => {
+  const { shell } = setup();
+  shell.register(printfCommand);
+  try {
+    const r1 = await shell.exec('arr=(x y); x=hello; printf "%s\\n" "${!arr[0]}"');
+    assert.equal(r1.exitCode, 0, r1.stderr);
+    assert.equal(r1.stdout, "hello\n");
+
+    const r2 = await shell.exec('arr=(a b c); ref="arr[1]"; printf "%s\\n" "${!ref}"; ref="arr[@]"; args "${!ref}"');
+    assert.equal(r2.exitCode, 0, r2.stderr);
+    assert.equal(r2.stdout, 'b\n["a","b","c"]');
+
+    const r3 = await shell.exec('set -- p q r; ref="#"; printf "%s\\n" "${!ref}"; ref="@"; args "${!ref}"');
+    assert.equal(r3.exitCode, 0, r3.stderr);
+    assert.equal(r3.stdout, '3\n["p","q","r"]');
+
+    const r4 = await shell.exec('declare -i n=42; s=hElLo; arr=(u v); printf "%s,%s,%s,%s,%s,%s\\n" "${n@a}" "${n@A}" "${s@u}" "${s@U}" "${s@L}" "${arr[@]@K}"');
+    assert.equal(r4.exitCode, 0, r4.stderr);
+    assert.equal(r4.stdout, 'i,declare -i n="42",HElLo,HELLO,hello,0 "u" 1 "v"\n');
+  } finally {
+    await shell.dispose();
+  }
+});

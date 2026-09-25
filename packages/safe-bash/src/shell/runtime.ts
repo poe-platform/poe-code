@@ -8361,6 +8361,27 @@ export class Runtime {
   }
 
   private async resolveParameter<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
+    if (part.kind === "variable" && part.indirect) {
+      const referencePart: Extract<WordPart, { kind: "variable" }> = { kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) };
+      copyArraySelector(part, referencePart);
+      const reference = await this.valuePart(referencePart, state, io);
+      if (shellValueByteLength(reference) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+      const name = shellValueText(reference);
+      const target = this.variableTarget(name);
+      if (target && target.subscript !== undefined && target.subscript.length > 0) {
+        const resolved = { ...part, name: target.name, indirect: false };
+        if (target.subscript === "@" || target.subscript === "*") {
+          setArraySelector(resolved, { kind: "members", separator: target.subscript });
+        } else {
+          setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)) });
+        }
+        part = resolved;
+      } else if (/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#$!_-])$/u.test(name)) {
+        part = { ...part, name, indirect: false };
+      } else {
+        throw new ExpansionFailure(`${name || part.name}: invalid variable name`, io.diagnosticLine ?? part.line);
+      }
+    }
     if (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
       const target = this.variableTarget(this.referenceName(state, part.name))!;
       const resolved = { ...part, name: target.name };
@@ -8397,21 +8418,6 @@ export class Runtime {
   }
 
   private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false, split = false, hereDocument = false): Promise<ShellValue> {
-    if (part.kind === "variable" && part.indirect) {
-      const reference = await this.valuePart({ kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) }, state, io);
-      if (shellValueByteLength(reference) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-      const name = shellValueText(reference);
-      let valid = name.length > 0;
-      const positional = name.length > 0 && name.charCodeAt(0) >= 48 && name.charCodeAt(0) <= 57;
-      for (let index = 0; index < name.length; index++) {
-        this.signal.throwIfAborted();
-        const code = name.charCodeAt(index);
-        if (!(code >= 48 && code <= 57 && (positional || index > 0)
-          || !positional && (code === 95 || code >= 65 && code <= 90 || code >= 97 && code <= 122))) { valid = false; break; }
-      }
-      if (!valid) throw new ExpansionFailure(`${name || part.name}: invalid variable name`, io.diagnosticLine ?? part.line);
-      return this.valuePart({ ...part, name, indirect: false }, state, io, hereString, split, hereDocument);
-    }
     part = await this.resolveParameter(part, state, io);
     if (part.kind === "variable" && part.length && (part.name === "@" || part.name === "*")) return String(state.positional.length);
     const memberSelector = getArraySelector(part);
@@ -8457,9 +8463,12 @@ export class Runtime {
       this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
       if (part.length) return this.valueLength(value ?? "", state, io);
       if (part.substring) return this.substring(part, value === undefined ? undefined : shellValueText(value), state, io);
-      if (part.transform) return value === undefined ? "" : this.transformValue(value, part.transform, state, io);
+      if (part.transform) return part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k" ? this.variableMetaTransform(part, state, io) : value === undefined ? "" : this.transformValue(value, part.transform, state, io);
       if (part.operator) return this.parameterPattern(part, value ?? "", state, io, hereString);
       return value ?? "";
+    }
+    if (part.kind === "variable" && (part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k")) {
+      return this.variableMetaTransform(part, state, io);
     }
     if (part.kind === "variable" && (part.transform || memberPatternOperators.includes(part.operator ?? ""))) {
       const selector = getArraySelector(part);
@@ -8548,10 +8557,86 @@ export class Runtime {
     return { ...io, parameterDepth };
   }
 
-  private async transformValue(value: ShellValue, operator: "Q" | "E", state: State, io: IO): Promise<ShellValue> {
+  private async variableMetaTransform(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO): Promise<ShellValue> {
+    const name = this.referenceName(state, part.name);
+    const binding = arrayStore(state)?.get(name);
+    const attributes = state.variableAttributes?.get(name) ?? "";
+    const flags = [..."aAilnrux"].filter(flag =>
+      flag === "a" ? Boolean(binding && !binding.associative)
+      : flag === "A" ? Boolean(binding?.associative)
+      : flag === "r" ? Boolean(state.readonlyVariables?.has(name))
+      : flag === "x" ? Boolean(state.exported.has(name))
+      : attributes.includes(flag)
+    ).join("");
+    const hasBindingOrVar = Boolean(binding) || Object.hasOwn(state.variables, name) || state.variableAttributes?.has(name) || state.exported.has(name) || state.readonlyVariables?.has(name);
+    if (part.transform === "a") {
+      return hasBindingOrVar ? flags : "";
+    }
+    if (part.transform === "A") {
+      if (!hasBindingOrVar) return "";
+      if (binding) {
+        const pairs: string[] = [];
+        for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
+          const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
+          const v = shellValueText(binding.getValue(idx) ?? "");
+          pairs.push(`[${binding.associative ? JSON.stringify(k) : k}]=${JSON.stringify(v)}`);
+        }
+        return `declare -${flags || "a"} ${name}=(${pairs.join(" ")})`;
+      }
+      const rawVal = state.variables[name];
+      if (flags) return rawVal === undefined ? `declare -${flags} ${name}` : `declare -${flags} ${name}=${JSON.stringify(rawVal)}`;
+      if (rawVal === undefined) return "";
+      const quoted = shellValueText(await this.transformValue(rawVal, "Q", state, io));
+      return `${name}=${quoted}`;
+    }
+    const selector = getArraySelector(part);
+    if (binding) {
+      const pairs: string[] = [];
+      for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
+        const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
+        const v = shellValueText(binding.getValue(idx) ?? "");
+        if (part.transform === "K") {
+          const qk = binding.associative ? shellValueText(await this.transformValue(k, "Q", state, io)) : k;
+          pairs.push(`${qk} ${JSON.stringify(v)}`);
+        } else {
+          pairs.push(k, v);
+        }
+      }
+      return pairs.join(" ");
+    }
+    const rawVal = this.variable(state, name);
+    if (rawVal === undefined) return "";
+    if (selector?.kind === "members") {
+      return part.transform === "K" ? `0 ${JSON.stringify(rawVal)}` : `0 ${rawVal}`;
+    }
+    return part.transform === "K" ? this.transformValue(rawVal, "Q", state, io) : rawVal;
+  }
+
+  private async transformValue(value: ShellValue, operator: NonNullable<Extract<WordPart, { kind: "variable" }>["transform"]>, state: State, io: IO): Promise<ShellValue> {
+    if (operator === "u" || operator === "U" || operator === "L") {
+      const text = shellValueText(value);
+      if (operator === "U") return text.toUpperCase();
+      if (operator === "L") return text.toLowerCase();
+      if (!text.length) return "";
+      const first = [...text][0]!;
+      return first.toUpperCase() + text.slice(first.length);
+    }
+    if (operator === "P") {
+      const text = shellValueText(value)
+        .replace(/\\n/gu, "\n")
+        .replace(/\\r/gu, "\r")
+        .replace(/\\t/gu, "\t")
+        .replace(/\\[eE]/gu, "\x1b")
+        .replace(/\\a/gu, "\x07")
+        .replace(/\\\$/gu, "$")
+        .replace(/\\\\/gu, "\\");
+      const word = parseArithmeticExpansion(text, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
+      const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false, false, true);
+      return concatShellValues(fields, io[valueScope]);
+    }
     const allocation = io[valueScope] ?? this.budget.values.scope();
     try {
-      return await transformParameter(value, operator, {
+      return await transformParameter(value, operator === "E" ? "E" : "Q", {
         maximumBytes: this.budget.limits.maxExpansionBytes, byteLocale: byteLocale(state.variables), allocation,
         work: { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 8 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") },
       });
@@ -9344,6 +9429,29 @@ export class Runtime {
           io[valueScope]?.reserve(32, 0);
           emptyNameGroups ??= new Set<object>();
           emptyNameGroups.add(quoteGroup);
+        }
+      } else if (part.kind === "variable" && (part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k")) {
+        if (part.transform === "k" && selector?.kind === "members" && split && (part.quoted && selector.separator === "@" || !part.quoted)) {
+          const name = this.referenceName(state, part.name);
+          const binding = arrayStore(state)?.get(name);
+          const tokens: string[] = [];
+          if (binding) {
+            for (const idx of [...binding.values.keys()].sort((l, r) => l - r)) {
+              const k = binding.associative ? binding.keys.get(binding.keyByIndex.get(idx)!)!.text.value : String(idx);
+              const v = shellValueText(binding.getValue(idx) ?? "");
+              tokens.push(k, v);
+            }
+          } else if (state.variables[name] !== undefined) {
+            tokens.push("0", state.variables[name]!);
+          }
+          for (let pos = 0; pos < tokens.length; pos++) {
+            if (pos > 0) addField();
+            append(tokens[pos]!, !part.quoted, true);
+          }
+        } else {
+          const value = await this.variableMetaTransform(part, state, partIO);
+          if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
+          else await appendSplit(value);
         }
       } else if (part.kind === "variable" && split && expandMembers && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);

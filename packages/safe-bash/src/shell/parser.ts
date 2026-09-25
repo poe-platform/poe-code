@@ -881,17 +881,17 @@ class Lexer {
         if (this.source[end] !== "]") this.error("Unterminated indexed-array subscript");
         selector = arraySelector(this.source.slice(start, end), start, this.budget, keyWord);
         this.position = end + 1;
-        if (listing && this.source[this.position] !== "}" && this.source[this.position] !== "@") this.error("Unsupported array-key operator");
+        if (listing && selector.kind === "members" && this.source[this.position] !== "}" && this.source[this.position] !== "@") this.error("Unsupported array-key operator");
       }
-      if (listing && selector?.kind === "element") this.error("Unsupported indirect parameter expansion");
+      if (listing && selector?.kind === "element") indirect = true;
       if (listing && selector?.kind === "members" && this.syntax.arrayKeys) {
         this.budget.admit();
         selector = { kind: "keys", separator: selector.separator };
       }
-      let transform: "Q" | "E" | undefined;
+      let transform: "Q" | "E" | "a" | "A" | "K" | "k" | "P" | "u" | "U" | "L" | undefined;
       if (this.source[this.position] === "@") {
-        const operation = this.source[this.position + 1];
-        if (length || prefixNames || (operation !== "Q" && operation !== "E") || this.source[this.position + 2] !== "}") this.error("Unsupported parameter transform");
+        const operation = this.source[this.position + 1] as typeof transform;
+        if (length || prefixNames || !["Q", "E", "a", "A", "K", "k", "P", "u", "U", "L"].includes(operation ?? "") || this.source[this.position + 2] !== "}") this.error("Unsupported parameter transform");
         transform = operation;
         this.position += 2;
       }

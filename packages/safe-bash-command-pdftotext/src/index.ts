@@ -9,7 +9,15 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   PdfDocument,
+  decodePdfString,
+  dictGet,
+  encodeJpeg,
+  encodePng,
+  extractDocumentImages,
+  extractPageAnnotations,
   formatExtractedPageText,
+  resolveDestinationPageIndex,
+  type PdfCosDict,
   type PdfExtractedPage,
   type PdfTextBlock,
   type PdfTextLine,
@@ -52,6 +60,13 @@ interface ParsedArgs {
   tsv: boolean;
   htmlmeta: boolean;
   nopgbrk: boolean;
+  nodiag: boolean;
+  cropbox: boolean;
+  clip: boolean;
+  urls: boolean;
+  removeHyphens: boolean;
+  fixed?: number;
+  linespacing?: number;
   eol: "unix" | "dos" | "mac";
   invalidEolWarning: boolean;
   colspacing: number;
@@ -66,6 +81,47 @@ interface ParsedArgs {
   outputFile?: string;
   error?: string;
   errorExitCode?: number;
+  earlyErrorIgnoreQuiet?: boolean;
+}
+
+function parseStrictIntArg(raw: string | undefined): number | undefined {
+  if (!raw || raw.length === 0) return undefined;
+  let start = 0;
+  if (raw[0] === "-" || raw[0] === "+") {
+    if (raw.length === 1) return undefined;
+    start = 1;
+  }
+  for (let i = start; i < raw.length; i++) {
+    const c = raw.charCodeAt(i);
+    if (c < 0x30 || c > 0x39) return undefined;
+  }
+  const val = Number.parseInt(raw, 10);
+  return Number.isSafeInteger(val) ? val : undefined;
+}
+
+function parseStrictFloatArg(raw: string | undefined): number | undefined {
+  if (!raw || raw.length === 0) return undefined;
+  let start = 0;
+  if (raw[0] === "-" || raw[0] === "+") {
+    if (raw.length === 1) return undefined;
+    start = 1;
+  }
+  let dotCount = 0;
+  let digitCount = 0;
+  for (let i = start; i < raw.length; i++) {
+    const ch = raw[i]!;
+    if (ch === ".") {
+      dotCount++;
+      if (dotCount > 1) return undefined;
+    } else {
+      const c = ch.charCodeAt(0);
+      if (c < 0x30 || c > 0x39) return undefined;
+      digitCount++;
+    }
+  }
+  if (digitCount === 0) return undefined;
+  const val = Number.parseFloat(raw);
+  return Number.isFinite(val) ? val : undefined;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -81,6 +137,11 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     tsv: false,
     htmlmeta: false,
     nopgbrk: false,
+    nodiag: false,
+    cropbox: false,
+    clip: false,
+    urls: false,
+    removeHyphens: true,
     eol: "unix",
     invalidEolWarning: false,
     colspacing: 0.7,
@@ -91,20 +152,31 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     help: false
   };
 
+  let invalidColspacing = false;
+  let invalidRemoveHyphens = false;
   const positional: string[] = [];
+  let afterDoubleDash = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (afterDoubleDash) {
+      positional.push(arg);
+      continue;
+    }
+    if (arg === "--") {
+      afterDoubleDash = true;
+      continue;
+    }
     if (arg === "-f") {
-      const val = Number.parseInt(argv[++i] ?? "", 10);
-      if (!Number.isFinite(val)) {
+      const val = parseStrictIntArg(argv[++i]);
+      if (val === undefined) {
         res.error = "Invalid -f page number\n";
         res.errorExitCode = 99;
         return res;
       }
       res.firstPage = val;
     } else if (arg === "-l") {
-      const val = Number.parseInt(argv[++i] ?? "", 10);
-      if (!Number.isFinite(val)) {
+      const val = parseStrictIntArg(argv[++i]);
+      if (val === undefined) {
         res.error = "Invalid -l page number\n";
         res.errorExitCode = 99;
         return res;
@@ -112,8 +184,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       res.lastPage = val;
       res.lastPageExplicit = true;
     } else if (arg === "-r") {
-      const val = Number.parseFloat(argv[++i] ?? "");
-      if (!Number.isFinite(val) || val <= 0) {
+      const val = parseStrictFloatArg(argv[++i]);
+      if (val === undefined || val <= 0) {
         res.error = "Invalid -r resolution\n";
         res.errorExitCode = 99;
         return res;
@@ -132,6 +204,31 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       else res.cropH = val;
     } else if (arg === "-layout") {
       res.layout = true;
+    } else if (arg === "-table") {
+      res.layout = true;
+      res.colspacing = 0.5;
+    } else if (arg === "-lineprinter") {
+      res.layout = true;
+      if (res.fixed === undefined) res.fixed = 12;
+      if (res.linespacing === undefined) res.linespacing = 24;
+    } else if (arg === "-clip") {
+      res.clip = true;
+    } else if (arg === "-urls") {
+      res.urls = true;
+    } else if (arg === "-remove-hyphens") {
+      const next = argv[i + 1];
+      if (next !== undefined && !next.startsWith("-")) {
+        i++;
+        if (next === "yes" || next === "auto") {
+          res.removeHyphens = true;
+        } else if (next === "no") {
+          res.removeHyphens = false;
+        } else {
+          invalidRemoveHyphens = true;
+        }
+      } else {
+        res.removeHyphens = true;
+      }
     } else if (arg === "-raw") {
       res.raw = true;
     } else if (arg === "-bbox") {
@@ -145,6 +242,20 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       res.htmlmeta = true;
     } else if (arg === "-nopgbrk") {
       res.nopgbrk = true;
+    } else if (arg === "-nodiag") {
+      res.nodiag = true;
+    } else if (arg === "-cropbox") {
+      res.cropbox = true;
+    } else if (arg === "-fixed") {
+      const val = Number.parseFloat(argv[++i] ?? "0");
+      if (Number.isFinite(val) && val > 0) {
+        res.fixed = val;
+      }
+    } else if (arg === "-linespacing") {
+      const val = Number.parseFloat(argv[++i] ?? "0");
+      if (Number.isFinite(val) && val > 0) {
+        res.linespacing = val;
+      }
     } else if (arg === "-eol") {
       const val = argv[++i] ?? "";
       if (val === "unix" || val === "dos" || val === "mac") {
@@ -153,13 +264,12 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
         res.invalidEolWarning = true;
       }
     } else if (arg === "-colspacing") {
-      const val = Number.parseFloat(argv[++i] ?? "");
-      if (!Number.isFinite(val) || val <= 0 || val > 10) {
-        res.error = "Command Line Error: Invalid column spacing\n";
-        res.errorExitCode = 99;
-        return res;
+      const val = parseStrictFloatArg(argv[++i]);
+      if (val === undefined || val <= 0 || val > 10) {
+        invalidColspacing = true;
+      } else {
+        res.colspacing = val;
       }
-      res.colspacing = val;
     } else if (arg === "-enc") {
       const next = argv[++i];
       if (!next || !SUPPORTED_ENCODINGS.has(next)) {
@@ -189,6 +299,25 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     }
   }
 
+  // Early checks BEFORE help/version and BEFORE quiet installation:
+  if (invalidColspacing) {
+    res.error = "Command Line Error: Invalid column spacing\n";
+    res.errorExitCode = 99;
+    res.earlyErrorIgnoreQuiet = true;
+    return res;
+  }
+  if (res.urls && (res.htmlmeta || res.bbox || res.tsv)) {
+    res.error = "Command Line Error: '-urls' is not supported with HTML or TSV output\n";
+    res.errorExitCode = 99;
+    res.earlyErrorIgnoreQuiet = true;
+    return res;
+  }
+  if (invalidRemoveHyphens && !res.help && !res.version && !res.listenc) {
+    res.error = "Bad '-remove-hyphens' value on command line\n";
+    res.errorExitCode = 99;
+    return res;
+  }
+
   if (positional.length > 2) {
     res.error = "Usage: pdftotext [options] [PDF-file [text-file]]\n";
     res.errorExitCode = 99;
@@ -201,47 +330,126 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     res.outputFile = "-";
   } else {
     const ext = res.bbox || res.htmlmeta ? ".html" : res.tsv ? ".tsv" : ".txt";
-    res.outputFile = res.inputFile.replace(/\.pdf$/i, "") + ext;
+    const stem = res.inputFile.toLowerCase().endsWith(".pdf")
+      ? res.inputFile.slice(0, -4)
+      : res.inputFile;
+    res.outputFile = stem + ext;
   }
   return res;
 }
 
+
+const ASCII7_COMPAT_MAP: Readonly<Record<string, string>> = {
+  "\uFB00": "ff",
+  "\uFB01": "fi",
+  "\uFB02": "fl",
+  "\uFB03": "ffi",
+  "\uFB04": "ffl",
+  "\u2018": "'",
+  "\u2019": "'",
+  "\u201C": "\"",
+  "\u201D": "\"",
+  "\u2013": "-",
+  "\u2014": "--",
+  "\u2026": "...",
+  "\u00A0": " "
+};
+
+function applyPopplerOutputEncoding(text: string, encoding: string): string {
+  if (!encoding || encoding === "UTF-8" || encoding === "UCS-2") return text;
+  if (encoding === "ASCII7") {
+    let out = "";
+    const normalized = text.normalize("NFKD");
+    for (let i = 0; i < normalized.length; i++) {
+      const ch = normalized[i]!;
+      const mapped = ASCII7_COMPAT_MAP[ch];
+      if (mapped !== undefined) {
+        out += mapped;
+        continue;
+      }
+      const code = ch.charCodeAt(0);
+      if (code >= 0x0300 && code <= 0x036f) continue;
+      if (code <= 0x7f) out += ch;
+    }
+    return out;
+  }
+  if (encoding === "Latin1") {
+    let out = "";
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i]!;
+      const mapped = ASCII7_COMPAT_MAP[ch];
+      if (mapped !== undefined) {
+        out += mapped;
+        continue;
+      }
+      const code = ch.charCodeAt(0);
+      if (code <= 0xff) out += ch;
+    }
+    return out;
+  }
+  return text;
+}
+
 function escapeXml(text: string): string {
   return text
-    .replace(/&/g, "&amp;")
-    .replace(/'/g, "&apos;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("'", "&apos;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 function filterExtractedPageByCrop(
   extracted: PdfExtractedPage,
-  args: ParsedArgs
+  args: ParsedArgs,
+  pageCropBoxPt?: readonly [number, number, number, number]
 ): PdfExtractedPage {
   if (
     args.cropX === undefined &&
     args.cropY === undefined &&
     args.cropW === undefined &&
-    args.cropH === undefined
+    args.cropH === undefined &&
+    pageCropBoxPt === undefined
   ) {
     return extracted;
   }
   const scale = args.resolution / 72;
-  const minX = (args.cropX ?? 0) / scale;
-  const minTopY = (args.cropY ?? 0) / scale;
-  const maxX = args.cropW !== undefined && args.cropW > 0 ? minX + args.cropW / scale : extracted.width;
+  const cbX0 = pageCropBoxPt ? Math.min(pageCropBoxPt[0], pageCropBoxPt[2]) : 0;
+  const cbY0 = pageCropBoxPt ? Math.min(pageCropBoxPt[1], pageCropBoxPt[3]) : 0;
+  const cbX1 = pageCropBoxPt ? Math.max(pageCropBoxPt[0], pageCropBoxPt[2]) : extracted.width;
+  const cbY1 = pageCropBoxPt ? Math.max(pageCropBoxPt[1], pageCropBoxPt[3]) : extracted.height;
+
+  const minX = cbX0 + (args.cropX ?? 0) / scale;
+  const minTopY = (extracted.height - cbY1) + (args.cropY ?? 0) / scale;
+  const maxX =
+    args.cropW !== undefined && args.cropW > 0 ? minX + args.cropW / scale : cbX1;
   const maxTopY =
-    args.cropH !== undefined && args.cropH > 0 ? minTopY + args.cropH / scale : extracted.height;
+    args.cropH !== undefined && args.cropH > 0
+      ? minTopY + args.cropH / scale
+      : extracted.height - cbY0;
 
   const filterWords = (words: readonly PdfTextWord[]): PdfTextWord[] =>
-    words.filter((w) => {
-      const topY = extracted.height - w.bbox[3];
-      const bottomY = extracted.height - w.bbox[1];
-      const cx = (w.bbox[0] + w.bbox[2]) / 2;
-      const cy = (topY + bottomY) / 2;
-      return cx >= minX && cx <= maxX && cy >= minTopY && cy <= maxTopY;
-    });
+    words
+      .filter((w) => {
+        const topY = extracted.height - w.bbox[3];
+        const bottomY = extracted.height - w.bbox[1];
+        const cx = (w.bbox[0] + w.bbox[2]) / 2;
+        const cy = (topY + bottomY) / 2;
+        return cx >= minX && cx <= maxX && cy >= minTopY && cy <= maxTopY;
+      })
+      .map((w) =>
+        pageCropBoxPt
+          ? {
+              ...w,
+              bbox: [
+                w.bbox[0] - cbX0,
+                w.bbox[1] - cbY0,
+                w.bbox[2] - cbX0,
+                w.bbox[3] - cbY0
+              ] as const
+            }
+          : w
+      );
 
   const blocks: PdfTextBlock[] = [];
   for (const b of extracted.blocks) {
@@ -281,6 +489,8 @@ function filterExtractedPageByCrop(
 
   return {
     ...extracted,
+    width: pageCropBoxPt ? Math.max(1, cbX1 - cbX0) : extracted.width,
+    height: pageCropBoxPt ? Math.max(1, cbY1 - cbY0) : extracted.height,
     blocks
   };
 }
@@ -402,6 +612,7 @@ export function extractPdfToTextBytes(
 ): PdftotextCliResult {
   const args = parseArgs(argv);
   const stderrParts: string[] = [];
+  // Invalid -eol prints direct stderr and continues default platform EOL, even with -q
   if (args.invalidEolWarning) {
     stderrParts.push("Bad '-eol' value on command line\n");
   }
@@ -409,7 +620,10 @@ export function extractPdfToTextBytes(
     return {
       exitCode: args.errorExitCode ?? 99,
       output: "",
-      stderr: args.quiet ? "" : stderrParts.join("") + args.error,
+      stderr:
+        args.quiet && !args.earlyErrorIgnoreQuiet
+          ? stderrParts.join("")
+          : stderrParts.join("") + args.error,
       outputPath: args.outputFile ?? "-"
     };
   }
@@ -454,7 +668,9 @@ export function extractPdfToTextBytes(
     doc = PdfDocument.load(bytes, password !== undefined ? { password } : {});
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    const errText = /password|encrypted/i.test(msg)
+    const lowerMsg = msg.toLowerCase();
+    const errText =
+      lowerMsg.includes("password") || lowerMsg.includes("encrypted")
       ? "Command Line Error: Incorrect password\n"
       : `Syntax Error: ${msg}\n`;
     return {
@@ -488,13 +704,36 @@ export function extractPdfToTextBytes(
   const pages: Array<{ pageNumber: number; extracted: PdfExtractedPage }> = [];
   for (let p = firstPage; p <= lastPage; p++) {
     const page = doc.getPage(p - 1);
+    let pageCropBoxPt: [number, number, number, number] | undefined;
+    if (args.cropbox) {
+      let cur: PdfCosDict | undefined = page.pageDict;
+      const visited = new Set<PdfCosDict>();
+      while (cur && !visited.has(cur)) {
+        visited.add(cur);
+        const cb = doc.cos.resolveArray(dictGet(cur, "CropBox"));
+        if (cb && cb.items.length >= 4) {
+          const nums = cb.items.slice(0, 4).map(it => {
+            const r = doc.cos.resolve(it);
+            return r?.kind === "number" ? r.value : 0;
+          });
+          pageCropBoxPt = [nums[0]!, nums[1]!, nums[2]!, nums[3]!];
+          break;
+        }
+        cur = doc.cos.resolveDict(dictGet(cur, "Parent"));
+      }
+    }
     const rawExtracted = page.extractPage({
       mode,
-      rejoinHyphens: mode === "logical"
+      rejoinHyphens: mode === "logical" && args.removeHyphens,
+      discardDiagonal: args.nodiag,
+      clipText: args.clip,
+      colSpacing: args.colspacing,
+      fixedPitch: args.fixed,
+      lineSpacing: args.linespacing
     });
     pages.push({
       pageNumber: p,
-      extracted: filterExtractedPageByCrop(rawExtracted, args)
+      extracted: filterExtractedPageByCrop(rawExtracted, args, pageCropBoxPt)
     });
   }
 
@@ -512,9 +751,27 @@ export function extractPdfToTextBytes(
   }
 
   if (args.tsv) {
+    const tsvText = renderTsv(pages, args);
+    if (args.htmlmeta) {
+      const meta = doc.getMetadata();
+      let html =
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">\n<head>\n';
+      html += `<title>${escapeXml(meta.title ?? "")}</title>\n`;
+      if (meta.author) html += `<meta name="Author" content="${escapeXml(meta.author)}"/>\n`;
+      if (meta.subject) html += `<meta name="Subject" content="${escapeXml(meta.subject)}"/>\n`;
+      if (meta.creator) html += `<meta name="Creator" content="${escapeXml(meta.creator)}"/>\n`;
+      if (meta.producer) html += `<meta name="Producer" content="${escapeXml(meta.producer)}"/>\n`;
+      html += `</head>\n<body>\n<pre>\n${escapeXml(tsvText)}</pre>\n</body>\n</html>\n`;
+      return {
+        exitCode: 0,
+        output: html,
+        stderr: stderrParts.join(""),
+        outputPath: args.outputFile ?? "-"
+      };
+    }
     return {
       exitCode: 0,
-      output: renderTsv(pages, args),
+      output: tsvText,
       stderr: stderrParts.join(""),
       outputPath: args.outputFile ?? "-"
     };
@@ -522,13 +779,31 @@ export function extractPdfToTextBytes(
 
   const eolChar = args.eol === "dos" ? "\r\n" : args.eol === "mac" ? "\r" : "\n";
   let textOut = "";
-  for (const { extracted } of pages) {
+  for (const { pageNumber, extracted } of pages) {
     let pageText = formatExtractedPageText(extracted, {
       mode,
-      rejoinHyphens: mode === "logical"
+      rejoinHyphens: mode === "logical" && args.removeHyphens,
+      colSpacing: args.colspacing,
+      fixedPitch: args.fixed,
+      lineSpacing: args.linespacing
     });
+    if (args.urls) {
+      const annots = extractPageAnnotations(doc.cos, doc.getPage(pageNumber - 1).pageDict);
+      const uris: string[] = [];
+      for (const ann of annots) {
+        if (ann.uri && !pageText.includes(ann.uri) && !uris.includes(ann.uri)) {
+          uris.push(ann.uri);
+        }
+      }
+      if (uris.length > 0) {
+        if (pageText.length > 0 && !pageText.endsWith("\n")) {
+          pageText += "\n";
+        }
+        pageText += uris.join("\n") + "\n";
+      }
+    }
     if (eolChar !== "\n") {
-      pageText = pageText.replace(/\n/g, eolChar);
+      pageText = pageText.replaceAll("\n", eolChar);
     }
     if (pageText.length > 0 && !pageText.endsWith(eolChar)) {
       pageText += eolChar;
@@ -557,7 +832,7 @@ export function extractPdfToTextBytes(
 
   return {
     exitCode: 0,
-    output: textOut,
+    output: applyPopplerOutputEncoding(textOut, args.encoding),
     stderr: stderrParts.join(""),
     outputPath: args.outputFile ?? "-"
   };
@@ -611,12 +886,20 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
 
     const inputTarget = parsed.inputFile ?? "-";
     let pdfBytes: Uint8Array;
+    let accountedBytes = 0;
+    const chargeBytes = (delta: number) => {
+      if (delta > 0) {
+        accountedBytes += delta;
+        context.inputBudget?.check(accountedBytes);
+      }
+    };
     if (inputTarget === "-") {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
         chunks.push(chunk);
         total += chunk.byteLength;
+        chargeBytes(chunk.byteLength);
       }
       pdfBytes = new Uint8Array(total);
       let offset = 0;
@@ -630,6 +913,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
         : `${context.cwd === "/" ? "" : context.cwd}/${inputTarget}`;
       try {
         pdfBytes = await context.fs.readFile(resolvedPath, { signal: invocation.signal });
+        chargeBytes(pdfBytes.byteLength);
       } catch {
         if (!parsed.quiet) {
           const msg = `I/O Error: Couldn't open file '${inputTarget}': No such file or directory.\n`;
@@ -648,6 +932,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
     }
 
     const outBytes = new TextEncoder().encode(res.output);
+    chargeBytes(outBytes.byteLength);
     if (res.outputPath === "-") {
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, outBytes, invocation.signal);
@@ -687,10 +972,27 @@ export const pdftotextCommand: CommandDefinition = createPdftotextCommand();
 
 function escapeHtmlXml(str: string): string {
   return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;");
+}
+
+const BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let out = "";
+  for (let i = 0; i < bytes.length; i += 3) {
+    const b0 = bytes[i]!;
+    const b1 = i + 1 < bytes.length ? bytes[i + 1]! : 0;
+    const b2 = i + 2 < bytes.length ? bytes[i + 2]! : 0;
+    const triple = (b0 << 16) | (b1 << 8) | b2;
+    out += BASE64_ALPHABET[(triple >>> 18) & 0x3f]!;
+    out += BASE64_ALPHABET[(triple >>> 12) & 0x3f]!;
+    out += i + 1 < bytes.length ? BASE64_ALPHABET[(triple >>> 6) & 0x3f]! : "=";
+    out += i + 2 < bytes.length ? BASE64_ALPHABET[triple & 0x3f]! : "=";
+  }
+  return out;
 }
 
 export async function runPdftohtmlCli(
@@ -699,8 +1001,13 @@ export async function runPdftohtmlCli(
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   let xmlMode = false;
   let toStdout = false;
+  let ignoreImages = false;
+  let dataUrls = false;
   let firstPage = 1;
   let lastPage = 0;
+  let zoom = 1;
+  let imageFmt: "png" | "jpg" = "png";
+  let encoding = "UTF-8";
   let password = "";
   const positionals: string[] = [];
 
@@ -718,17 +1025,45 @@ export async function runPdftohtmlCli(
     }
     if (arg === "-xml") xmlMode = true;
     else if (arg === "-stdout") toStdout = true;
+    else if (arg === "-i") ignoreImages = true;
+    else if (arg === "-dataurls") dataUrls = true;
     else if (arg === "-f") firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
     else if (arg === "-l") lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
+    else if (arg === "-zoom") {
+      const z = Number.parseFloat(argv[++i] ?? "1");
+      if (Number.isFinite(z) && z > 0) zoom = z;
+    } else if (arg === "-fmt") {
+      const fmtVal = (argv[++i] ?? "").toLowerCase();
+      if (fmtVal === "png") imageFmt = "png";
+      else if (fmtVal === "jpg" || fmtVal === "jpeg") imageFmt = "jpg";
+      else {
+        return { exitCode: 99, stdout: "", stderr: `Command Line Error: Invalid image format '${fmtVal}'\n` };
+      }
+    } else if (arg === "-enc") {
+      const nextEnc = argv[++i] ?? "";
+      if (!SUPPORTED_ENCODINGS.has(nextEnc)) {
+        return { exitCode: 99, stdout: "", stderr: `Command Line Error: Unknown encoding '${nextEnc}'\n` };
+      }
+      encoding = nextEnc;
+    }
     else if (arg === "-upw" || arg === "-opw") password = argv[++i] ?? "";
-    else if (arg === "-s" || arg === "-i" || arg === "-noframes" || arg === "-c" || arg === "-p" || arg === "-q") {
+    else if (
+      arg === "-s" ||
+      arg === "-noframes" ||
+      arg === "-c" ||
+      arg === "-p" ||
+      arg === "-q" ||
+      arg === "-hidden" ||
+      arg === "-nomerge" ||
+      arg === "-nodrm"
+    ) {
       // Flag options
-    } else if (!arg.startsWith("-")) {
+    } else if (!arg.startsWith("-") || arg === "-") {
       positionals.push(arg);
     }
   }
 
-  const inputPath = positionals[0];
+  const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
   if (!inputPath) {
     return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
   }
@@ -746,6 +1081,51 @@ export async function runPdftohtmlCli(
 
   const totalPages = Math.max(1, doc.pageCount);
   const endPage = lastPage > 0 ? Math.min(totalPages, lastPage) : totalPages;
+  if (firstPage > totalPages || (lastPage > 0 && firstPage > endPage)) {
+    return {
+      exitCode: 99,
+      stdout: "",
+      stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
+    };
+  }
+
+  interface OutlineItem {
+    readonly title: string;
+    readonly pageNumber: number;
+    readonly children: OutlineItem[];
+  }
+  const pageRefToNum = new Map<number, number>();
+  for (let i = 0; i < doc.pageCount; i++) {
+    pageRefToNum.set(doc.getPage(i).ref.objectNumber, i + 1);
+  }
+  const resolveOutlineDestPage = (itemDict: PdfCosDict): number => {
+    const idx = resolveDestinationPageIndex(doc, dictGet(itemDict, "Dest") ?? dictGet(itemDict, "A"));
+    return idx !== undefined ? idx + 1 : 1;
+  };
+  const collectOutlines = (firstNode: import("@poe-code/pdf-ast").PdfCosNode | undefined, visited = new Set<number>()): OutlineItem[] => {
+    const items: OutlineItem[] = [];
+    let cur = firstNode;
+    while (cur) {
+      if (cur.kind === "ref") {
+        if (visited.has(cur.objectNumber)) break;
+        visited.add(cur.objectNumber);
+      }
+      const dict = doc.cos.resolveDict(cur);
+      if (!dict) break;
+      const tNode = doc.cos.resolve(dictGet(dict, "Title"));
+      const title = tNode?.kind === "string" ? decodePdfString(tNode) : "";
+      const pageNumber = resolveOutlineDestPage(dict);
+      const children = collectOutlines(dictGet(dict, "First"), visited);
+      if (title.length > 0) {
+        items.push({ title, pageNumber, children });
+      }
+      cur = dictGet(dict, "Next");
+    }
+    return items;
+  };
+  const catalog = doc.cos.resolveDict(doc.cos.rootRef);
+  const outlinesRoot = catalog ? doc.cos.resolveDict(dictGet(catalog, "Outlines")) : undefined;
+  const outlineTree = outlinesRoot ? collectOutlines(dictGet(outlinesRoot, "First")) : [];
 
   let outputText = "";
   if (xmlMode) {
@@ -758,19 +1138,97 @@ export async function runPdftohtmlCli(
       const page = doc.getPage(p - 1);
       const { width, height } = page.getSize();
       const extracted = page.extractPage();
-      lines.push(`  <page number="${p}" position="absolute" top="0" left="0" height="${Math.round(height)}" width="${Math.round(width)}">`);
-      lines.push(`    <fontspec id="0" size="12" family="Helvetica" color="#000000"/>`);
+      const annots = extractPageAnnotations(doc.cos, page.pageDict);
+      const pageImages = ignoreImages ? [] : extractDocumentImages(doc.cos, { firstPage: p, lastPage: p });
+      const fontKeyToBaseFont = new Map<string, string>();
+      const resDict = page.getResourcesDict();
+      const fontSubDict = resDict ? doc.cos.resolveDict(dictGet(resDict, "Font")) : undefined;
+      if (fontSubDict) {
+        for (const entry of fontSubDict.entries) {
+          const fDict = doc.cos.resolveDict(entry.value);
+          const bfNode = fDict ? doc.cos.resolve(dictGet(fDict, "BaseFont") ?? dictGet(fDict, "Name")) : undefined;
+          if (bfNode?.kind === "name") {
+            fontKeyToBaseFont.set(entry.key.decoded, bfNode.decoded);
+          } else if (bfNode?.kind === "string") {
+            fontKeyToBaseFont.set(entry.key.decoded, decodePdfString(bfNode));
+          }
+        }
+      }
+      const defaultSize = Math.round(12 * zoom);
+      const fontSpecIdByKey = new Map<string, number>([[`Helvetica:${defaultSize}`, 0]]);
+      const fontSpecLines: string[] = [
+        `    <fontspec id="0" size="${defaultSize}" family="Helvetica" color="#000000"/>`
+      ];
+      lines.push(`  <page number="${p}" position="absolute" top="0" left="0" height="${Math.round(height * zoom)}" width="${Math.round(width * zoom)}">`);
+      const imageLines: string[] = [];
+      for (let imgIdx = 0; imgIdx < pageImages.length; imgIdx++) {
+        const img = pageImages[imgIdx]!;
+        const imgBytes = imageFmt === "jpg" ? encodeJpeg(img.bitmap) : encodePng(img.bitmap);
+        const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
+        if (!dataUrls) {
+          files.set(imgFile, imgBytes);
+        }
+        const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
+        const src = dataUrls ? `data:${mime};base64,${bytesToBase64(imgBytes)}` : imgFile;
+        imageLines.push(`    <image top="0" left="0" width="${img.width}" height="${img.height}" src="${src}"/>`);
+      }
+      const textLines: string[] = [];
       for (const block of extracted.blocks) {
         for (const line of block.lines) {
           const [x0, y0, x1, y1] = line.bbox;
-          const top = Math.max(0, Math.round(height - y1));
-          const left = Math.max(0, Math.round(x0));
-          const w = Math.max(1, Math.round(x1 - x0));
-          const h = Math.max(1, Math.round(y1 - y0));
-          lines.push(`    <text top="${top}" left="${left}" width="${w}" height="${h}" font="0">${escapeHtmlXml(line.text)}</text>`);
+          const top = Math.max(0, Math.round((height - y1) * zoom));
+          const left = Math.max(0, Math.round(x0 * zoom));
+          const w = Math.max(1, Math.round((x1 - x0) * zoom));
+          const h = Math.max(1, Math.round((y1 - y0) * zoom));
+          const firstWord = line.words[0];
+          const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
+          const family = fontKeyToBaseFont.get(rawFontName) ?? rawFontName;
+          const rawFontSize = firstWord?.fontSize ?? firstWord?.glyphs[0]?.fontSize ?? 12;
+          const scaledSize = Math.max(1, Math.round(rawFontSize * zoom));
+          const specKey = `${family}:${scaledSize}`;
+          let specId = fontSpecIdByKey.get(specKey);
+          if (specId === undefined) {
+            specId = fontSpecIdByKey.size;
+            fontSpecIdByKey.set(specKey, specId);
+            fontSpecLines.push(
+              `    <fontspec id="${specId}" size="${scaledSize}" family="${escapeHtmlXml(family)}" color="#000000"/>`
+            );
+          }
+          const matchingLink = annots.find(
+            a =>
+              a.uri &&
+              Math.min(x1, Math.max(a.rect[0], a.rect[2])) > Math.max(x0, Math.min(a.rect[0], a.rect[2])) &&
+              Math.min(y1, Math.max(a.rect[1], a.rect[3])) > Math.max(y0, Math.min(a.rect[1], a.rect[3]))
+          );
+          let styledText = escapeHtmlXml(line.text);
+          const lowerFam = family.toLowerCase();
+          if (lowerFam.includes("italic") || lowerFam.includes("oblique")) {
+            styledText = `<i>${styledText}</i>`;
+          }
+          if (lowerFam.includes("bold")) {
+            styledText = `<b>${styledText}</b>`;
+          }
+          const innerXmlText = matchingLink?.uri
+            ? `<a href="${escapeHtmlXml(matchingLink.uri)}">${styledText}</a>`
+            : styledText;
+          textLines.push(`    <text top="${top}" left="${left}" width="${w}" height="${h}" font="${specId}">${innerXmlText}</text>`);
         }
       }
+      lines.push(...fontSpecLines, ...imageLines, ...textLines);
       lines.push(`  </page>`);
+    }
+    if (outlineTree.length > 0) {
+      const emitXmlOutline = (items: readonly OutlineItem[], indent: string): void => {
+        lines.push(`${indent}<outline>`);
+        for (const it of items) {
+          lines.push(`${indent}  <item page="${it.pageNumber}">${escapeHtmlXml(it.title)}</item>`);
+          if (it.children.length > 0) {
+            emitXmlOutline(it.children, `${indent}  `);
+          }
+        }
+        lines.push(`${indent}</outline>`);
+      };
+      emitXmlOutline(outlineTree, "  ");
     }
     lines.push(`</pdf2xml>`);
     outputText = lines.join("\n") + "\n";
@@ -787,31 +1245,93 @@ export async function runPdftohtmlCli(
       const page = doc.getPage(p - 1);
       const { width, height } = page.getSize();
       const extracted = page.extractPage();
-      lines.push(`<div class="page" id="page${p}" style="position:relative;width:${Math.round(width)}pt;height:${Math.round(height)}pt;">`);
+      const annots = extractPageAnnotations(doc.cos, page.pageDict);
+      const pageImages = ignoreImages ? [] : extractDocumentImages(doc.cos, { firstPage: p, lastPage: p });
+      lines.push(`<div class="page" id="page${p}" style="position:relative;width:${Math.round(width * zoom)}pt;height:${Math.round(height * zoom)}pt;">`);
+      for (let imgIdx = 0; imgIdx < pageImages.length; imgIdx++) {
+        const img = pageImages[imgIdx]!;
+        const imgBytes = imageFmt === "jpg" ? encodeJpeg(img.bitmap) : encodePng(img.bitmap);
+        const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
+        if (!dataUrls) {
+          files.set(imgFile, imgBytes);
+        }
+        const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
+        const src = dataUrls
+          ? `data:${mime};base64,${bytesToBase64(imgBytes)}`
+          : imgFile;
+        lines.push(`  <img src="${src}" width="${img.width}" height="${img.height}"/>`);
+      }
       for (const block of extracted.blocks) {
         for (const line of block.lines) {
-          const [x0, , , y1] = line.bbox;
-          const top = Math.max(0, Math.round(height - y1));
-          const left = Math.max(0, Math.round(x0));
-          lines.push(`  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">${escapeHtmlXml(line.text)}</p>`);
+          const [x0, y0, x1, y1] = line.bbox;
+          const top = Math.max(0, Math.round((height - y1) * zoom));
+          const left = Math.max(0, Math.round(x0 * zoom));
+          const matchingLink = annots.find(
+            a =>
+              a.uri &&
+              Math.min(x1, Math.max(a.rect[0], a.rect[2])) > Math.max(x0, Math.min(a.rect[0], a.rect[2])) &&
+              Math.min(y1, Math.max(a.rect[1], a.rect[3])) > Math.max(y0, Math.min(a.rect[1], a.rect[3]))
+          );
+              const firstWord = line.words[0];
+          const rawFontName = firstWord?.fontName ?? firstWord?.glyphs[0]?.fontName ?? "Helvetica";
+          const cleanFontKey = rawFontName.startsWith("/") ? rawFontName.slice(1) : rawFontName;
+          const resDict = page.getResourcesDict();
+          const fontSubDict = resDict ? doc.cos.resolveDict(dictGet(resDict, "Font")) : undefined;
+          const fDict = fontSubDict ? doc.cos.resolveDict(dictGet(fontSubDict, cleanFontKey)) : undefined;
+          const bfNode = fDict ? doc.cos.resolve(dictGet(fDict, "BaseFont") ?? dictGet(fDict, "Name")) : undefined;
+          const family =
+            bfNode?.kind === "name"
+              ? bfNode.decoded
+              : bfNode?.kind === "string"
+                ? decodePdfString(bfNode)
+                : cleanFontKey;
+          const lowerFont = family.toLowerCase();
+          let styledHtmlText = escapeHtmlXml(line.text);
+          if (lowerFont.includes("italic") || lowerFont.includes("oblique")) {
+            styledHtmlText = `<i>${styledHtmlText}</i>`;
+          }
+          if (lowerFont.includes("bold")) {
+            styledHtmlText = `<b>${styledHtmlText}</b>`;
+          }
+          const innerText = matchingLink?.uri
+            ? `<a href="${escapeHtmlXml(matchingLink.uri)}">${styledHtmlText}</a>`
+            : styledHtmlText;
+          lines.push(`  <p style="position:absolute;top:${top}pt;left:${left}pt;margin:0;">${innerText}</p>`);
         }
       }
       lines.push(`</div>`);
+    }
+    if (outlineTree.length > 0) {
+      lines.push(`<hr/>`, `<a name="outline"></a><h1>Document Outline</h1>`);
+      const emitHtmlOutline = (items: readonly OutlineItem[]): void => {
+        lines.push(`<ul>`);
+        for (const it of items) {
+          lines.push(`<li><a href="#page${it.pageNumber}">${escapeHtmlXml(it.title)}</a>`);
+          if (it.children.length > 0) {
+            emitHtmlOutline(it.children);
+          }
+          lines.push(`</li>`);
+        }
+        lines.push(`</ul>`);
+      };
+      emitHtmlOutline(outlineTree);
     }
     lines.push(`</body>`, `</html>`);
     outputText = lines.join("\n") + "\n";
   }
 
+  outputText = applyPopplerOutputEncoding(outputText, encoding);
   const explicitOut = positionals[1];
-  if (toStdout || explicitOut === "-") {
+  if (toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut)) {
     return { exitCode: 0, stdout: outputText, stderr: "" };
   }
   const defaultExt = xmlMode ? ".xml" : ".html";
+  const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
   const outPath = explicitOut
     ? explicitOut.endsWith(".html") || explicitOut.endsWith(".xml")
       ? explicitOut
       : `${explicitOut}${defaultExt}`
-    : inputPath.replace(/\.pdf$/i, "") + defaultExt;
+    : inputStem + defaultExt;
   files.set(outPath, new TextEncoder().encode(outputText));
   return { exitCode: 0, stdout: "", stderr: "" };
 }
@@ -824,11 +1344,38 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
     const vfsFiles = new Map<string, Uint8Array>();
     const resolveVfsPath = (p: string) =>
       p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
+    let accountedBytes = 0;
+    const chargeBytes = (delta: number) => {
+      if (delta > 0) {
+        accountedBytes += delta;
+        context.inputBudget?.check(accountedBytes);
+      }
+    };
+
+    if (argv.includes("-")) {
+      const chunks: Uint8Array[] = [];
+      let total = 0;
+      for await (const chunk of readBytes(context.stdin, invocation.signal)) {
+        chunks.push(chunk);
+        total += chunk.byteLength;
+        chargeBytes(chunk.byteLength);
+      }
+      if (total > 0) {
+        const buf = new Uint8Array(total);
+        let off = 0;
+        for (const c of chunks) {
+          buf.set(c, off);
+          off += c.byteLength;
+        }
+        vfsFiles.set("-", buf);
+      }
+    }
 
     for (const token of argv) {
-      if (token.startsWith("-")) continue;
+      if (token.startsWith("-") && token !== "-") continue;
       try {
         const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+        chargeBytes(bytes.byteLength);
         vfsFiles.set(token, bytes);
       } catch {
         // Non-existing output path
@@ -840,11 +1387,14 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
     if (res.stdout) {
+      const outBytes = new TextEncoder().encode(res.stdout);
+      chargeBytes(outBytes.byteLength);
       const stdout = invocation.child(context.stdout);
-      await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
+      await writeBytes(stdout.output, outBytes, invocation.signal);
     }
     for (const [key, val] of vfsFiles.entries()) {
       if (existingSnap.get(key) !== val) {
+        chargeBytes(val.byteLength);
         const abs = resolveVfsPath(key);
         await context.fs.writeFile(abs, val, { signal: invocation.signal });
       }

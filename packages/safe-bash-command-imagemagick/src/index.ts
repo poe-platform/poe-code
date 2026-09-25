@@ -1113,8 +1113,11 @@ function applyMagickChop(
   const cy1 = Math.max(cy0, Math.min(img.height, y0 + ch));
   const choppedW = cx1 - cx0;
   const choppedH = cy1 - cy0;
-  const outW = Math.max(1, img.width - choppedW);
-  const outH = Math.max(1, img.height - choppedH);
+  if (choppedW >= img.width || choppedH >= img.height) {
+    return img;
+  }
+  const outW = img.width - choppedW;
+  const outH = img.height - choppedH;
   const out = new Uint8Array(outW * outH * 4);
 
   for (let y = 0; y < outH; y++) {
@@ -2895,6 +2898,9 @@ function applyMagickCropToStack(
     : Math.max(1, Math.round(g.height ?? img.height));
 
   const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height, rawW, rawH, g.x, g.y, gravity);
+  if (x0 === img.width || y0 === img.height) {
+    return [img];
+  }
   const ix0 = Math.max(0, x0);
   const iy0 = Math.max(0, y0);
   const ix1 = Math.min(img.width, x0 + rawW);
@@ -3814,7 +3820,7 @@ function evaluatePipelineTokens(
       const c = g.height ?? 0;
       const slope = 1 + c / 100;
       const offset = (b / 100) * 255;
-      stack = stack.map((im) => linearImage(im, [slope, slope, slope], [offset, offset, offset]));
+      stack = stack.map((im) => linearImage(im, [slope], [offset]));
     } else if (t === "-gamma") {
       const gammaVal = Math.max(0.1, Number(tokens[++i] ?? 1.0));
       stack = stack.map((im) => gammaImage(im, gammaVal, gammaVal));
@@ -3894,7 +3900,7 @@ function evaluatePipelineTokens(
     } else if (t === "-contrast" || t === "+contrast") {
       const slope = t === "-contrast" ? 1.15 : 0.87;
       const offset = 128 * (1 - slope);
-      stack = stack.map((im) => linearImage(im, [slope, slope, slope], [offset, offset, offset]));
+      stack = stack.map((im) => linearImage(im, [slope], [offset]));
     } else if (t === "-raise" || t === "+raise") {
       const g = parseMagickGeometry(tokens[++i] ?? "4");
       const bw = Math.max(1, Math.round(g.width ?? 4));

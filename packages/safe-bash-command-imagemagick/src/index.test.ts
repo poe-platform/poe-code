@@ -968,4 +968,36 @@ describe("safe-bash-command-imagemagick", () => {
     const dupRes = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-duplicate", "2,0", "-format", "%[pixel:p{0,0}] ", "info:"], files);
     expect(dupRes.stdout.trim()).toBe("srgb(255,0,0) srgb(0,255,0) srgb(0,0,255) srgb(255,0,0) srgb(255,0,0)");
   });
+
+  it("handles 1-channel -contrast/-brightness-contrast after -alpha extract and matches ChopImage/247 and CropImage/599/653 boundaries", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. 1-channel image from -alpha extract followed by -contrast and -brightness-contrast
+    const oneCh = await runMagickCli(
+      ["-size", "12x12", "xc:rgba(100,150,200,0.6)", "-alpha", "extract", "-contrast", "+contrast", "-brightness-contrast", "10x20", "/onech.png"],
+      files
+    );
+    expect(oneCh.exitCode).toBe(0);
+    expect(files.has("/onech.png")).toBe(true);
+
+    // 2. ChopImage/247: chopping >= 100% of width or height leaves original dimensions intact
+    const fullChop = await runMagickCli(
+      ["-size", "10x13", "xc:red", "-gravity", "SouthWest", "-chop", "17x17-6+2", "-format", "%wx%h", "info:"],
+      files
+    );
+    expect(fullChop.stdout.trim()).toBe("10x13");
+
+    // 3. CropImage/599 (x0 > width -> 1x1) vs CropImage/653 (x0 === width -> original image)
+    const crop599 = await runMagickCli(
+      ["-size", "10x16", "xc:red", "-gravity", "East", "-crop", "4x6-5+2", "-format", "%wx%h", "info:"],
+      files
+    );
+    expect(crop599.stdout.trim()).toBe("1x1");
+
+    const crop653 = await runMagickCli(
+      ["-size", "6x31", "xc:red", "-gravity", "NorthWest", "-crop", "13x12+6+5", "-format", "%wx%h", "info:"],
+      files
+    );
+    expect(crop653.stdout.trim()).toBe("6x31");
+  });
 });

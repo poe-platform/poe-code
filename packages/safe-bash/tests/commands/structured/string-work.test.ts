@@ -274,7 +274,7 @@ test("string work does not recalibrate object keys or non-string addition", asyn
   const signal = new AbortController().signal;
   const key = "x".repeat(40);
   assert.equal(new Budget(resolveJqLimits({ maxSteps: 2 }), signal).value({ [key]: null }), 49);
-  const merged = Object.assign(Object.create(null) as Record<string, Json>, { key: 2 });
+  const merged = { key: 2 };
   const cases: [Json, Json, Json][] = [[1, 2, 3], [null, "abc", "abc"], ["abc", null, "abc"], [[1], [2], [1, 2]], [{ key: 1 }, { key: 2 }, merged]];
   for (const [left, right, expected] of cases) {
     assert.deepEqual(await binary("+", left, right, new Budget(resolveJqLimits({ maxSteps: 1 }), signal)), expected);

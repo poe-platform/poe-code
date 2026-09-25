@@ -38,8 +38,16 @@ import { createGetoptCommands, type GetoptCommandsOptions } from "../commands/ge
 import { createHexdumpCommands, type HexdumpCommandsOptions } from "../commands/hexdump/index.js";
 import { createIconvCommands, type IconvCommandsOptions } from "../commands/iconv/index.js";
 import { createLineEndingCommands, type LineEndingCommandsOptions } from "../commands/line-endings/index.js";
+import { createMuscleMemoryCommands, type MuscleMemoryCommandsOptions } from "../commands/muscle-memory/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
+
+let defaultMuscleMemoryLookup: ReadonlyMap<string, CommandDefinition> | undefined;
+
+function getMuscleMemoryCommand(name: string): CommandDefinition | undefined {
+  defaultMuscleMemoryLookup ??= new Map(createMuscleMemoryCommands().map(cmd => [cmd.name, cmd]));
+  return defaultMuscleMemoryLookup.get(name);
+}
 
 export interface AgentCommandsOptions {
   readonly predicateIdentity?: StandardCommandsOptions["predicateIdentity"];
@@ -58,6 +66,7 @@ export interface AgentCommandsOptions {
   readonly hexdump?: Omit<HexdumpCommandsOptions, "replace">;
   readonly iconv?: Omit<IconvCommandsOptions, "replace">;
   readonly lineEndings?: Omit<LineEndingCommandsOptions, "replace">;
+  readonly muscleMemory?: boolean | Omit<MuscleMemoryCommandsOptions, "replace">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -85,7 +94,7 @@ export interface AgentCommandsOptions {
 
 export function commandExecutor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
   return async context => {
-    const command = lookup(context.command);
+    const command = lookup(context.command) ?? getMuscleMemoryCommand(context.command);
     if (command) return command.execute(context);
     await diagnostic(context, new PublicDiagnostic("command not found"));
     return { exitCode: 127 };
@@ -175,7 +184,8 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
     options.getopt !== undefined ||
     options.hexdump !== undefined ||
     options.iconv !== undefined ||
-    options.lineEndings !== undefined
+    options.lineEndings !== undefined ||
+    options.muscleMemory !== undefined
   );
 }
 
@@ -252,6 +262,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createHexdumpCommands({ ...(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }), ...(hexdumpDialect === undefined ? {} : { dialect: hexdumpDialect }) }),
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
     ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
+    ...(options.muscleMemory ? createMuscleMemoryCommands(typeof options.muscleMemory === "object" ? options.muscleMemory : {}) : []),
   );
   return commands;
 }

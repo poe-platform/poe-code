@@ -6,8 +6,9 @@ import {
   ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText,
 } from "../contracts/index.js";
 import type {
-  ByteSink, ByteSource, CommandContext, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
+  ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
 } from "../contracts/index.js";
+import { createMuscleMemoryCommands } from "../commands/muscle-memory/index.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
@@ -2238,6 +2239,12 @@ function hasGlobOrEscape(text: string, extglob = false): boolean {
 }
 
 let nextProcessSubstitutionId = 0;
+let defaultRuntimeMuscleMemoryMap: ReadonlyMap<string, CommandDefinition> | undefined;
+
+function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefined {
+  defaultRuntimeMuscleMemoryMap ??= new Map(createMuscleMemoryCommands().map(cmd => [cmd.name, cmd]));
+  return defaultRuntimeMuscleMemoryMap.get(name);
+}
 const fastSubScratchArgs: string[] = [];
 const fastRedirectScratchBytes = new Uint8Array(8192);
 const fastRedirectScratchViews: Uint8Array[] = Array.from({ length: 129 }, (_, len) => fastRedirectScratchBytes.subarray(0, len));
@@ -7533,7 +7540,7 @@ export class Runtime {
       }
     }
     const scope = io[invocationScope].child();
-    const externalDef = typeof name === "string" ? this.commands.get(name) : undefined;
+    const externalDef = typeof name === "string" ? this.getExternalCommand(name) : undefined;
     const fastInline =
       !state.externalInvocation &&
       this.middleware.length === 0 &&
@@ -7916,7 +7923,7 @@ export class Runtime {
             return { exitCode: builtin };
           }
         }
-        const definition = this.commands.get(context.command);
+        const definition = this.getExternalCommand(context.command);
         if (context.command === "printf" && definition?.execute === printfCommand.execute && context.args[0]?.startsWith("-v")) {
           ensureRuntimeContext();
           return { exitCode: await this.printfVariable(context, state, assignments) };
@@ -7993,7 +8000,7 @@ export class Runtime {
     const matches: Discovery[] = [];
     if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
     if (implementedBuiltins.has(name) || state.extensions?.builtins.has(name)) matches.push({ kind: "builtin", name });
-    else if (this.commands.has(name)) matches.push({ kind: "command", name });
+    else if (this.hasExternalCommand(name)) matches.push({ kind: "command", name });
     else if (name === "bash" || name === "sh") matches.push({ kind: "interpreter", name });
     if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
@@ -8006,9 +8013,22 @@ export class Runtime {
     }
     if (!bypassFunctions && state.functions.has(name)) return "function";
     if (isBuiltin) return "builtin";
-    if (this.commands.has(name)) return "command";
+    if (this.hasExternalCommand(name)) return "command";
     if (name === "bash" || name === "sh") return "interpreter";
     return undefined;
+  }
+
+  private getExternalCommand(name: string): CommandDefinition | undefined {
+    const direct = this.commands.get(name);
+    if (direct) return direct;
+    if (this.commands.has("rg") || this.commands.has("grep")) {
+      return getRuntimeMuscleMemoryCommand(name);
+    }
+    return undefined;
+  }
+
+  private hasExternalCommand(name: string): boolean {
+    return this.getExternalCommand(name) !== undefined;
   }
   async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>, inheritedDefaultPath = false): Promise<number> {
     const args = [...context.args];

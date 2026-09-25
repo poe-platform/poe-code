@@ -1376,3 +1376,15 @@ preserving its cancellation, readonly policy and retained-object behavior.
 It does not synthesize unlink from rm. Overlay and remote adapters have no new unlink
 support. The Python filesystem service requires this operation for guest unlink;
 it never falls back to lstat followed by rm.
+
+## Confined extraction views
+
+`confineExtraction(roots, options)` optionally returns a filesystem view whose
+mutations stay within retained extraction roots. The backend must check root
+and ancestor identity and reject symlink traversal atomically with mutation;
+an additional pre-write stat is insufficient. Metadata checks the leaf too,
+and hardlinks check both paths. MemoryFS checks every streamed chunk against
+the retained roots and the current file binding, so a renamed or replaced
+stream destination stops further writes. Accepted earlier chunks and members
+remain; this is not a transaction or rollback. Unsupported backends refuse
+filesystem extraction, while archive listing and stdout extraction still work.

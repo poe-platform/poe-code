@@ -70,8 +70,8 @@ export function gate() {
 
 export function wrapped(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
   return new Proxy(fs, { get(target, property) {
-    if (property === "confineExtraction" && fs.confineExtraction) return async (roots: readonly string[], options?: Parameters<NonNullable<FileSystem["confineExtraction"]>>[1]) => wrapped(await fs.confineExtraction!(roots, options), overrides);
     if (Object.hasOwn(overrides, property)) return Reflect.get(overrides, property);
+    if (property === "confineExtraction" && fs.confineExtraction) return async (roots: readonly string[], options?: Parameters<NonNullable<FileSystem["confineExtraction"]>>[1]) => wrapped(await fs.confineExtraction!(roots, options), overrides);
     const value: unknown = Reflect.get(target, property);
     return typeof value === "function" ? value.bind(target) : value;
   } });

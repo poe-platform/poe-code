@@ -281,10 +281,13 @@ Tests check these effects, rather than claiming atomic publication.
 
 Source type/identity/size/mtime/ctime are checked around file reads; short/long
 reads and observed changes fail. This is not a snapshot, file lease, ABA
-defense, or race-proof filesystem sandbox. Shared FS contracts do not expose
-descriptor-relative atomic containment or unlink/link transactions. Host or
-remote actors changing the namespace concurrently remain an adapter/OS
-isolation concern; RealFS's existing race limitations are not fixed here.
+defense, or race-proof filesystem sandbox. Filesystem extraction requires a
+backend `confineExtraction` view that retains the extraction roots and checks
+each mutation atomically against them. MemoryFS supports this contract,
+including metadata, both hardlink paths and each streamed chunk. Moving a
+streamed file outside its original path stops further writes. Backends without
+this guarantee refuse filesystem extraction; listing and extraction to stdout
+remain available. This does not change RealFS's general path-race limits.
 
 ## Streaming, cancellation, and bounds
 

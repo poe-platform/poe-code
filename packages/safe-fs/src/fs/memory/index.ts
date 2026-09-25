@@ -73,6 +73,8 @@ interface WriteTarget {
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const preferredIoBlockSize = 64 * 1024;
 const ext4HtreeEof64 = (1n << 63n) - 1n;
+const extractionStreamGuard = Symbol("extractionStreamGuard");
+type ConfinedWriteOptions = WriteFileOptions & { readonly [extractionStreamGuard]?: (node: FileNode) => void };
 const ownedStats = new WeakMap<FileStat, { filesystem: FileSystem; path: string; root: DirectoryNode }>();
 const ownedStores = new WeakMap<FileSystem, { root: DirectoryNode; ledger: MemoryLedger; capabilities: FileSystem["capabilities"]; intact: () => boolean }>();
 const registeredAuthorities = new WeakSet<FileSystem>();
@@ -243,12 +245,19 @@ export class MemoryFileSystem implements FileSystem {
         if (reads.has(String(property))) return value.bind(target);
         return (...args: unknown[]) => {
           if (!allowed.has(String(property))) throw new FsError("ENOTSUP", { syscall: String(property) });
-          // Stock mutations resolve and commit synchronously; writeStream retains
-          // its file node before its first await, so later chunks cannot redirect.
+          // Stock mutations resolve and commit synchronously. Streamed writes
+          // repeat the boundary and file-binding check at each backend mutation.
           const paths = property === "symlink" ? [args[1]] : property === "link" || property === "rename" ? args.slice(0, 2) : [args[0]];
           for (const path of paths) {
             if (typeof path !== "string") throw new FsError("EINVAL");
             check(path, ["chmod", "utimes", "appendFile", "writeFile", "writeStream", "writeFileConditional", "link"].includes(String(property)));
+          }
+          if (property === "writeStream") {
+            const path = args[0] as string;
+            args[2] = { ...(args[2] as WriteFileOptions | undefined), [extractionStreamGuard]: (node: FileNode) => {
+              check(path, true);
+              if (this.resolve(path, "writeStream").node !== node) this.fail("EPERM", "writeStream", path);
+            } } satisfies ConfinedWriteOptions;
           }
           return Reflect.apply(value, target, args);
         };
@@ -1223,7 +1232,9 @@ export class MemoryFileSystem implements FileSystem {
     let node: FileNode | undefined;
     try {
       node = this.openWrite(path, options, "writeStream");
+      const guard = (options as ConfinedWriteOptions)[extractionStreamGuard];
       node.references++;
+      guard?.(node);
       const append = options.flag === "a" || options.flag === "ax";
       let position = 0;
       if (!append) {
@@ -1232,6 +1243,7 @@ export class MemoryFileSystem implements FileSystem {
       }
       for await (const chunk of source) {
         options.signal?.throwIfAborted();
+        guard?.(node);
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Memory files require Uint8Array data");
         this.writeAt(node, chunk, append ? node.data.byteLength : position, "writeStream", path);
         if (!append) position += chunk.byteLength;

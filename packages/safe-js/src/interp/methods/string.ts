@@ -408,11 +408,17 @@ function callReplaceLikeMethod(
     );
   }
   if (typeof replacement === "string") {
-    return budget.allocateString(
-      methodName === "replace"
+    const length = literalReplacementLength(value, search, replacement, methodName === "replaceAll", budget);
+    const release = budget.reserveString(length);
+    try {
+      const result = methodName === "replace"
         ? value.replace(search, replacement)
-        : value.replaceAll(search, replacement)
-    );
+        : value.replaceAll(search, replacement);
+      budget.visitNode();
+      return budget.allocateString(result);
+    } finally {
+      release();
+    }
   }
   return replaceWithClosure(
     value,
@@ -423,6 +429,54 @@ function callReplaceLikeMethod(
     callClosure,
     context
   );
+}
+
+function literalReplacementLength(
+  value: string,
+  search: string,
+  replacement: string,
+  all: boolean,
+  budget: Budget
+): number {
+  let count = 0;
+  let positions = 0;
+  if (search === "") {
+    count = all ? value.length + 1 : 1;
+    positions = all ? value.length * (value.length + 1) / 2 : 0;
+  } else {
+    for (let offset = value.indexOf(search); offset !== -1; offset = value.indexOf(search, offset + search.length)) {
+      budget.visitNode();
+      count += 1;
+      positions += offset;
+      if (!all) break;
+    }
+  }
+  if (count === 0) return value.length;
+
+  // Literal searches have no captures: only these four substitution tokens expand.
+  let literal = 0;
+  let matches = 0;
+  let prefixes = 0;
+  let suffixes = 0;
+  for (let index = 0; index < replacement.length; index += 1) {
+    budget.visitNode();
+    if (replacement[index] === "$") {
+      const token = replacement[index + 1];
+      if (token === "$" || token === "&" || token === "`" || token === "'") {
+        if (token === "$") literal += 1;
+        else if (token === "&") matches += 1;
+        else if (token === "`") prefixes += 1;
+        else suffixes += 1;
+        index += 1;
+        continue;
+      }
+    }
+    literal += 1;
+  }
+  return value.length - count * search.length
+    + count * (literal + matches * search.length)
+    + prefixes * positions
+    + suffixes * (count * (value.length - search.length) - positions);
 }
 
 async function replaceRegex(

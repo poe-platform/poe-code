@@ -273,6 +273,17 @@ export class Budget {
     }
   }
 
+  reserveString(length: number): () => void {
+    if (!Number.isSafeInteger(length) || length < 0) {
+      throw new RangeError("string length must be a nonnegative safe integer");
+    }
+    if (this.accounting.allChecksSuspended === 0 && this.accounting.limits.stringLength !== undefined
+      && length > this.accounting.limits.stringLength) {
+      throw new SandboxError({ budget: "stringLength", current: length, limit: this.accounting.limits.stringLength });
+    }
+    return this.provisionDataUsage(length);
+  }
+
   allocateArrayLength(length: number): void {
     if (
       this.accounting.allChecksSuspended === 0 &&

@@ -180,6 +180,15 @@
       "outputBindingsSha256": "3fcc289a89d879d370003381ecb73606ac1eab18aee94b4f226db25c656ba9a0",
       "outputBindingRule": "UTF-8 compact JSON array in profile order both,width-auto,height-auto,percentage; revision order 7,8; route order xml,xlsx; object keys profile,route,revision,sha256. Each sha256 covers the complete compiled SDK XLS file.",
       "remaining": "This qualifies print settings, not rendered pagination. Other print/protection settings, raw XLSX metadata warnings and broader application/rendering profiles remain open; no family is closed."
+    },
+    "biffPrintModes": {
+      "scope": "BIFF8 prints comments in place, at the end, or not at all; errors display unchanged, blank, as dashes, or as #N/A. BIFF7 supports only in-place/no comments and displayed errors. Its exporter emits explicit fallback warnings, and its importer ignores BIFF8-only reserved mode bits.",
+      "source": "OpenOffice Excel File Format 1.42 section 5.73 PAGESETUP, flags 0x20, 0x200 and 0x0c00. Independent Gnumeric 1.12.61 BIFF8 original files and BIFF7/8 readbacks.",
+      "reproduction": "23 failures and two default controls reproduced missing mode flags, absent BIFF7 fallback warnings and interpretation of BIFF8-only bits in BIFF7. All 25 regressions and 92 focused tests pass.",
+      "qualification": "417 files / 23788 package tests and both posttest checks pass. Final package lint/types and selected build pass. Twelve native-authored BIFF8 imports and 24 compiled SDK exports retain the expected supported/fallback modes on SDK and native readback; native stderr is empty. Eight compiled Shell profiles confirm settings and precise BIFF7 diagnostics. The CLI screenshot was inspected.",
+      "outputBindingsSha256": "785a11cd1231987b7686bd2d55fcb083f82956b36e797a8b9d0f7c8fbc5656fc",
+      "outputBindingRule": "UTF-8 compact JSON array: placement order none,in_place,at_end; error order displayed,blank,dashes,na; revision 7 then 8; keys profile,revision,sha256. Each digest covers the complete compiled SDK XLS file.",
+      "remaining": "These checks qualify stored settings, not printed page content. BIFF7 format limitations remain explicit; other metadata and rendering/application profiles are open. No family is closed."
     }
   },
   "cases": [

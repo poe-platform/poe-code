@@ -114,7 +114,16 @@ export class BiffMetadataWriter {
     view.setUint16(0, ({ na_letter: 1, na_legal: 5, iso_a3: 8, iso_a4: 9, iso_a5: 11 } as Record<string, number>)[child("paper")?.text ?? "iso_a4"] ?? 9, true);
     view.setUint16(2, Number(scale?.percentage ?? 100), true); view.setUint16(4, 1, true);
     view.setUint16(6, Number(scale?.cols ?? 1), true); view.setUint16(8, Number(scale?.rows ?? 1), true);
-    view.setUint16(10, (child("orientation")?.text === "landscape" ? 0 : 2) | (child("order")?.text === "r_then_d" ? 1 : 0) | (flag("monochrome") ? 8 : 0) | (flag("draft") ? 16 : 0), true);
+    const placement = child("comments")?.attributes.placement;
+    const errorMode = Math.max(0, ["GNM_PRINT_ERRORS_AS_DISPLAYED", "GNM_PRINT_ERRORS_AS_BLANK", "GNM_PRINT_ERRORS_AS_DASHES", "GNM_PRINT_ERRORS_AS_NA"]
+      .indexOf(child("errors")?.attributes.PrintErrorsAs ?? "GNM_PRINT_ERRORS_AS_DISPLAYED"));
+    if (revision === 7 && placement === "GNM_PRINT_COMMENTS_AT_END") await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
+      message: "Excel BIFF7 cannot print comments at the end; using in-place comments" });
+    if (revision === 7 && errorMode) await this.context.diagnostic?.({ code: "biff-loss-warning", severity: "warning",
+      message: "Excel BIFF7 cannot change printed error values; using displayed errors" });
+    view.setUint16(10, (child("orientation")?.text === "landscape" ? 0 : 2) | (child("order")?.text === "r_then_d" ? 1 : 0) | (flag("monochrome") ? 8 : 0) | (flag("draft") ? 16 : 0) |
+      (["GNM_PRINT_COMMENTS_IN_PLACE", "GNM_PRINT_COMMENTS_AT_END"].includes(placement ?? "") ? 0x20 : 0) |
+      (revision === 8 ? (placement === "GNM_PRINT_COMMENTS_AT_END" ? 0x200 : 0) | errorMode << 10 : 0), true);
     view.setUint16(12, 600, true); view.setUint16(14, 600, true);
     view.setFloat64(16, Number(child("Margins")?.children.find(n => n.name === "header")?.attributes.Points ?? 72) / 72, true);
     view.setFloat64(24, Number(child("Margins")?.children.find(n => n.name === "footer")?.attributes.Points ?? 72) / 72, true); view.setUint16(32, 1, true); output.record(0xa1, setup);

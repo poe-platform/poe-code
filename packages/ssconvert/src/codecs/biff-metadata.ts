@@ -98,8 +98,8 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
       fitColumns = data.u16(6); fitRows = data.u16(8);
       print.monochrome = flags & 8 ? 1 : 0; print.draft = flags & 16 ? 1 : 0;
       orientation = flags & 2 ? "portrait" : "landscape"; order = flags & 1 ? "r_then_d" : "d_then_r";
-      commentPlacement = flags & 0x20 ? flags & 0x200 ? "GNM_PRINT_COMMENTS_AT_END" : "GNM_PRINT_COMMENTS_IN_PLACE" : "GNM_PRINT_COMMENTS_NONE";
-      errorDisplay = ["GNM_PRINT_ERRORS_AS_DISPLAYED", "GNM_PRINT_ERRORS_AS_BLANK", "GNM_PRINT_ERRORS_AS_DASHES", "GNM_PRINT_ERRORS_AS_NA"][flags >> 10 & 3]!;
+      commentPlacement = flags & 0x20 ? revision >= 8 && flags & 0x200 ? "GNM_PRINT_COMMENTS_AT_END" : "GNM_PRINT_COMMENTS_IN_PLACE" : "GNM_PRINT_COMMENTS_NONE";
+      errorDisplay = ["GNM_PRINT_ERRORS_AS_DISPLAYED", "GNM_PRINT_ERRORS_AS_BLANK", "GNM_PRINT_ERRORS_AS_DASHES", "GNM_PRINT_ERRORS_AS_NA"][revision >= 8 ? flags >> 10 & 3 : 0]!;
       if (!(flags & 4)) {
         paper = ({ 1: "na_letter", 5: "na_legal", 8: "iso_a3", 9: "iso_a4", 11: "iso_a5" } as Record<number, string>)[data.u16(0)] ?? `biff-paper-${data.u16(0)}`;
         const percentage = data.u16(2); scale = { type: "percentage", percentage: percentage >= 1 && percentage <= 1000 ? percentage : 100 };

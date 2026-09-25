@@ -103,6 +103,7 @@ export class BiffMetadataWriter {
     const records = this.records.get(sheet)!, print = records.find(r => r.record.kind === "PrintInformation")?.node;
     const child = (name: string) => print?.children.find(n => n.name === name);
     const flag = (name: string) => Number(child(name)?.attributes.value ?? 0);
+    output.record(0x81, words(0x4c1 | (["fit", "size_fit"].includes(child("Scale")?.attributes.type ?? "") ? 0x100 : 0)));
     output.record(0x2a, words(flag("titles"))); output.record(0x2b, words(flag("grid")));
     output.record(0x83, words(flag("hcenter"))); output.record(0x84, words(flag("vcenter")));
     for (const [name, opcode, fallback] of [["left", 0x26, 72], ["right", 0x27, 72], ["top", 0x28, 120], ["bottom", 0x29, 120]] as const) {

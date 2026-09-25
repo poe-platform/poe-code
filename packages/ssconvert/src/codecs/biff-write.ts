@@ -193,7 +193,6 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     if (revision === 7) legacyLinks(output, formulaWriter, context);
     output.record(0x5f, words(1)); output.record(0x82, words(1));
     output.record(0x80, words(0, 0, 0, 0)); output.record(0x225, words(0, 255));
-    output.record(0x81, words(0x4c1));
     const cells = sheet.cells.filter(cell => cell.row < maxRows && cell.column < 256).sort((a, b) => a.row - b.row || a.column - b.column);
     let endRow = 0, endColumn = 0;
     for (const cell of cells) { endRow = Math.max(endRow, cell.row + 1); endColumn = Math.max(endColumn, cell.column + 1); }

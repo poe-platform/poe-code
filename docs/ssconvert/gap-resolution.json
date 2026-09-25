@@ -170,6 +170,16 @@
           "sha256": "1bc99bc45841a06dc34a99cc24dd19d72564b0856d67b23f404198c3ccf6da97"
         }
       ]
+    },
+    "biffPrintFit": {
+      "scope": "BIFF7/8 fit-to-page mode and width/height page limits, independent of SHEETPR/PAGESETUP ordering. BIFF and XLSX writers accept both the normalized fit name and native Gnumeric size_fit spelling. Zero means an unrestricted dimension; percentage scaling remains separate.",
+      "source": "OpenOffice Excel File Format 1.42 sections 5.73 and 5.97; Gnumeric GNUMERIC_1_12_61 xml_sax_print_scale in src/xml-sax-read.c (SHA-256 05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3).",
+      "reproduction": "Ten initial fit-mode/count regressions failed while two percentage controls passed. Six native size_fit spelling regressions then failed independently in BIFF and XLSX export.",
+      "qualification": "Eighteen focused regressions and the final 61-file / 1308-test BIFF/XLSX cohort pass. The preceding package run passed 416 files / 23757 tests and two required posttest checks. Final package lint/types and selected build pass. Eight native-authored BIFF files import correctly; 16 compiled SDK exports through XML/XLSX preserve fit counts on SDK and native readback with empty native stderr. Eight compiled Shell exports and the CLI screenshot pass.",
+      "probeCorrection": "Initial minimal native XML controls omitted margins, leaving native print defaults uninitialized and resetting scale values. Controls now include margins before Scale and independently round-trip their settings. Native XML serializes the mode as size_fit.",
+      "outputBindingsSha256": "3fcc289a89d879d370003381ecb73606ac1eab18aee94b4f226db25c656ba9a0",
+      "outputBindingRule": "UTF-8 compact JSON array in profile order both,width-auto,height-auto,percentage; revision order 7,8; route order xml,xlsx; object keys profile,route,revision,sha256. Each sha256 covers the complete compiled SDK XLS file.",
+      "remaining": "This qualifies print settings, not rendered pagination. Other print/protection settings, raw XLSX metadata warnings and broader application/rendering profiles remain open; no family is closed."
     }
   },
   "cases": [

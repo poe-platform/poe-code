@@ -29,7 +29,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
   const records = (sheet.unsupportedRecords ?? []).map(record => ({ record, node: metadataNode(record.data, charge) }));
   const pi = records.find(r => r.record.kind === "PrintInformation")?.node;
   const scale = child(pi, "Scale"), margins = child(pi, "Margins");
-  const fitToPage = scale?.attributes.type === "fit";
+  const fitToPage = ["fit", "size_fit"].includes(scale?.attributes.type ?? "");
   const marginAttrs: Record<string, number> = { left: 1, right: 1, top: 120 / 72, bottom: 120 / 72, header: 1, footer: 1 };
   for (const node of margins?.children ?? []) if (node.name in marginAttrs) marginAttrs[node.name] = Number(node.attributes.Points) / 72;
   const comments: Readonly<Record<string, string>> = { GNM_PRINT_COMMENTS_IN_PLACE: "asDisplayed", GNM_PRINT_COMMENTS_AT_END: "atEnd", GNM_PRINT_COMMENTS_NONE: "none" };

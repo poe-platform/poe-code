@@ -31,6 +31,7 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
   const print: Record<string, ImportedValue> = { vcenter: 0, hcenter: 0, grid: 0, titles: 0, monochrome: 0, draft: 0 };
   const margins: Record<string, number> = { top: 120, bottom: 120, left: 72, right: 72, header: 72, footer: 72 };
   let scale: Record<string, ImportedValue> = { type: "percentage", percentage: 100 }, orientation = "portrait", paper = "iso_a4", order = "d_then_r";
+  let fitToPage = false, fitColumns = 1, fitRows = 1;
   let headerText = "&A", footerText = "Page &P", commentPlacement = "GNM_PRINT_COMMENTS_NONE", errorDisplay = "GNM_PRINT_ERRORS_AS_DISPLAYED";
   const objects: ImportedValue[] = [], breaks: ImportedValue[] = [], view: Record<string, ImportedValue> = {};
   let active = false, hasPrint = false;
@@ -94,6 +95,7 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
       print[opcode === 0x2a ? "titles" : opcode === 0x2b ? "grid" : opcode === 0x83 ? "hcenter" : "vcenter"] = data.u16(0) ? 1 : 0; hasPrint = true;
     } else if (opcode === 0xa1) {
       data.check(0, revision > 4 ? 34 : 12); const flags = data.u16(10);
+      fitColumns = data.u16(6); fitRows = data.u16(8);
       print.monochrome = flags & 8 ? 1 : 0; print.draft = flags & 16 ? 1 : 0;
       orientation = flags & 2 ? "portrait" : "landscape"; order = flags & 1 ? "r_then_d" : "d_then_r";
       commentPlacement = flags & 0x20 ? flags & 0x200 ? "GNM_PRINT_COMMENTS_AT_END" : "GNM_PRINT_COMMENTS_IN_PLACE" : "GNM_PRINT_COMMENTS_NONE";
@@ -107,7 +109,7 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
       hasPrint = true;
     } else if (opcode === 0x81) {
       const flags = data.u16(0); view.gnumeric = { OutlineSymbolsBelow: flags & 0x40 ? "1" : "0", OutlineSymbolsRight: flags & 0x80 ? "1" : "0" };
-      if (flags & 0x100) scale = { type: "fit", cols: 1, rows: 1 };
+      fitToPage = !!(flags & 0x100);
     } else if (opcode === 0x23e) {
       const flags = data.u16(0); active = !!(flags & 0x200);
       window = { row: data.u16(2), column: data.u16(4), frozen: !!(flags & 8) };
@@ -140,7 +142,7 @@ export function readBiffMetadata(records: readonly BiffRecord[], revision: numbe
   }
   if (hasPrint) result.push({ source: "Gnumeric_XmlIO:sax", kind: "PrintInformation", disposition: "retained",
     data: biffNode("PrintInformation", {}, "", [biffNode("Margins", {}, "", Object.entries(margins).map(([name, Points]) => biffNode(name, { Points, PrefUnit: "mm" }))),
-      biffNode("Scale", scale), ...Object.entries(print).map(([name, value]) => biffNode(name, { value })), biffNode("order", {}, order),
+      biffNode("Scale", fitToPage ? { type: "fit", cols: fitColumns, rows: fitRows } : scale), ...Object.entries(print).map(([name, value]) => biffNode(name, { value })), biffNode("order", {}, order),
       biffNode("orientation", {}, orientation), biffNode("Header", header(headerText)), biffNode("Footer", header(footerText)),
       biffNode("paper", {}, paper), biffNode("comments", { placement: commentPlacement }), biffNode("errors", { PrintErrorsAs: errorDisplay }), ...breaks]) });
   if (objects.length) result.push({ source: "Gnumeric_XmlIO:sax", kind: "Objects", disposition: "retained", data: biffNode("Objects", {}, "", objects) });

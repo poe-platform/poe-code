@@ -210,6 +210,52 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
    await reading
   self.assertEqual(bridge.calls, [])
 
+ async def test_completion_transforms_are_owned_until_finished(self):
+  for phase in ('request', 'response'):
+   entered, finished = asyncio.Event(), asyncio.Event()
+   async def transform(value):
+    try:
+     entered.set()
+     await asyncio.sleep(3600)
+     return value
+    finally:
+     finished.set()
+   bridge = FakeBridge()
+   client = Client(bridge=bridge, model='provider/model', **{phase + '_transform': transform})
+   calling = asyncio.create_task(client.complete('hello'))
+   try:
+    await entered.wait()
+    await client.aclose()
+    self.assertTrue(finished.is_set(), phase)
+    with self.assertRaises(asyncio.CancelledError):
+     await calling
+    self.assertEqual(len(bridge.calls), 0 if phase == 'request' else 1)
+   finally:
+    calling.cancel()
+    await asyncio.gather(calling, return_exceptions=True)
+
+ async def test_completion_timeout_includes_request_transformation(self):
+  finished = asyncio.Event()
+  async def transform(request):
+   try:
+    await asyncio.sleep(3600)
+    return request
+   finally:
+    finished.set()
+  bridge = FakeBridge()
+  async with Client(bridge=bridge, request_transform=transform) as client:
+   calling = asyncio.create_task(client.complete('hello', timeout=0.01))
+   try:
+    await asyncio.sleep(0.03)
+    self.assertTrue(calling.done(), 'Timeout must include customization work')
+    with self.assertRaises(asyncio.TimeoutError):
+     await calling
+    self.assertTrue(finished.is_set())
+    self.assertEqual(bridge.calls, [])
+   finally:
+    calling.cancel()
+    await asyncio.gather(calling, return_exceptions=True)
+
 unittest.main(argv=['python-llm'], verbosity=2)
 `;
   const globals = new Map<string, unknown>();

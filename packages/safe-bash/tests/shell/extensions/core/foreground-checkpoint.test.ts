@@ -408,6 +408,7 @@ function stageCleanupFault(context: TestContext, point: StageCleanupPoint | unde
     input: undefined as ShellInput | undefined,
     scope: undefined as InvocationScope | undefined,
     scopeClosing: false,
+    injected: 0,
     closes: { input: 0, descriptors: 0, references: 0 },
     completed: new Set<StageCleanupPoint>(),
     starts: [] as { point: StageCleanupPoint; duringScopeClose: boolean }[],
@@ -429,6 +430,8 @@ function stageCleanupFault(context: TestContext, point: StageCleanupPoint | unde
     const closeSync = resource.closeSyncIfIdle;
     let asynchronous = false;
     if (closeSync) context.mock.method(resource as { closeSyncIfIdle(): boolean }, "closeSyncIfIdle", function() {
+      // Keep the selected fault on its asynchronous close path until injected.
+      if (name === point && !asynchronous) return false;
       const closed = closeSync.call(resource);
       if (closed && !asynchronous) {
         observed.closes[name]++;
@@ -447,6 +450,7 @@ function stageCleanupFault(context: TestContext, point: StageCleanupPoint | unde
         observed.completed.add(name);
         if (name === point) {
           await options.afterClose?.();
+          observed.injected++;
           throw reason;
         }
       })();
@@ -494,6 +498,7 @@ for (const point of ["input", "descriptors", "references"] as const) {
     assert.equal(cleanups, 1);
     assert.deepEqual(fault.closes, { input: 1, descriptors: 1, references: 1 });
     assert.equal(fault.completed.size, 3);
+    assert.equal(fault.injected, 1);
     assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
     assert.equal(outcome.rejected, true);
     assert.ok(Object.is(outcome.reason, primary));
@@ -513,6 +518,7 @@ for (const point of ["input", "descriptors", "references"] as const) test(`start
   assert.equal(outcome.reason, secondary);
   assert.deepEqual(fault.closes, { input: 1, descriptors: 1, references: 1 });
   assert.equal(fault.completed.size, 3);
+  assert.equal(fault.injected, 1);
   assert.ok(fault.starts.every(start => !start.duringScopeClose), JSON.stringify(fault.starts));
 });
 

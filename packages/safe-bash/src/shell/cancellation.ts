@@ -445,7 +445,10 @@ function finalizeClose(state: LinkState): void {
     state.subscribers.clear();
   }
   state.resourcesUsed = 0;
-  if (state.failures && state.failures.length > 0) {
+  if (state.closeResult) {
+    Object.freeze(state.closeResult.failures);
+    Object.freeze(state.closeResult);
+  } else if (state.failures && state.failures.length > 0) {
     Object.freeze(state.failures);
     state.closeResult = Object.freeze({ failures: state.failures });
   } else {
@@ -456,8 +459,10 @@ function finalizeClose(state: LinkState): void {
 function closeLink(state: LinkState): CancellationCloseResult {
   if (state.closeResult) return state.closeResult;
   state.closed = true;
+  if (state.notifying > 0 || state.signalDetachers.length > 0) {
+    state.closeResult = { failures: (state.failures ??= []) };
+  }
   if (state.notifying === 0) finalizeClose(state);
-  else state.closeResult = { failures: (state.failures ??= []) };
   return state.closeResult!;
 }
 

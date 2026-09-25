@@ -413,6 +413,41 @@ test("callback failures are exact, detached, and separate from outcome selection
   undefinedParent.close();
 });
 
+for (const failDetach of [false, true]) test(`cancellation close publishes its report before listener detachment with failure=${failDetach}`, () => {
+  const caller = new AbortController();
+  const parent = root({ callerSignal: caller.signal });
+  const remove = caller.signal.removeEventListener.bind(caller.signal);
+  let reentrant: ReturnType<typeof parent.close> | undefined;
+  caller.signal.removeEventListener = (...args) => {
+    reentrant = parent.close();
+    remove(...args);
+    if (failDetach) throw null;
+  };
+  const closed = parent.close();
+  assert.strictEqual(reentrant, closed);
+  assert.ok(Object.isFrozen(closed));
+  assert.ok(Object.isFrozen(closed.failures));
+  assert.deepEqual(closed.failures, failDetach ? [null] : []);
+});
+
+for (const failSubscriber of [false, true]) test(`reentrant cancellation close retains its final report with subscriber failure=${failSubscriber}`, () => {
+  const caller = new AbortController();
+  const parent = root({ callerSignal: caller.signal });
+  let initial: ReturnType<typeof parent.close> | undefined;
+  subscribeCancellation(parent, () => {
+    initial = parent.close();
+    assert.strictEqual(parent.close(), initial);
+    if (failSubscriber) throw null;
+  });
+  caller.abort(false);
+  assert.ok(initial);
+  assert.strictEqual(parent.close(), initial);
+  assert.ok(Object.isFrozen(initial));
+  assert.ok(Object.isFrozen(initial.failures));
+  assert.deepEqual(initial.failures, failSubscriber ? [null] : []);
+  assert.equal(getEventListeners(caller.signal, "abort").length, 0);
+});
+
 test("owned listeners detach and repeated close returns the same report", () => {
   const caller = new AbortController();
   const control = new AbortController();

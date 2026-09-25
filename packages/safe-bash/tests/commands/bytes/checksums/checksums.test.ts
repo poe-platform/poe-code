@@ -146,7 +146,7 @@ for (const [name, [empty, abc]] of Object.entries(vectors)) {
     assert.equal((await run(name, ["--tag", "-z", ...names], { fs })).stdout,
       names.map(filename => `${algorithm} (${filename}) = ${abc}\0`).join(""));
     assert.equal((await run(name, ["--tag"], { stdin: "abc" })).stdout, `${algorithm} (-) = ${abc}\n`);
-    for (const flags of [["-t", "--tag"], ["--tag", "-b"], ["-b", "--tag"], ["--tag", "-t", "--tag"]]) {
+    for (const flags of [["--tag", "-b"], ["-b", "--tag"], ["-t", "-b", "--tag"]]) {
       assert.equal((await run(name, [...flags, "data"], { fs })).stdout, `${algorithm} (data) = ${abc}\n`);
     }
     await fs.writeFile("/work/data", encoder.encode("changed"));
@@ -182,7 +182,7 @@ for (const [name, [empty, abc]] of Object.entries(vectors)) {
     const fs = await fixture();
     fs.readStream = () => { assert.fail("invalid flags acquired a file"); };
     const stdin = { [Symbol.asyncIterator]() { assert.fail("invalid flags acquired stdin"); } };
-    for (const flags of [["--tag", "-c"], ["-c", "--tag"], ["--tag", "-t"], ["--tag", "--text", "-z"]]) {
+    for (const flags of [["--tag", "-c"], ["-c", "--tag"], ["--tag", "-t"], ["-t", "--tag"], ["--tag", "-t", "--tag"], ["--tag", "--text", "-z"]]) {
       const result = await run(name, [...flags, "missing"], { fs, stdin });
       assert.equal(result.exitCode, 2);
       assert.match(result.stderr, /--tag/u);
@@ -324,5 +324,25 @@ test("manual Shell registration: streaming checksum pipelines and VFS redirectio
   assert.equal(checked.stdout, "data: OK\n");
   assert.equal((await shell.exec("md5sum data > manifest; md5sum -c manifest")).stdout, "data: OK\n");
   assert.equal((await shell.exec("cksum < data")).stdout, "1219131554 3\n");
+  await shell.dispose();
+});
+
+test("checksums issue 1041: cksum -c flags whitespace-only and indented # lines, md5sum rejects -t --tag, and cksum --tag --untagged honors last flag", async () => {
+  const fs = await fixture({ f: "hello\n" });
+  const shell = new Shell({ fs, commands: registry, cwd: "/work" });
+  const sum = (await shell.exec("cksum -a sha256 f")).stdout.trim();
+  await fs.writeFile("/work/m", new TextEncoder().encode(`${sum}\n   # indented\n   \n`));
+
+  const checkRes = await shell.exec("cksum -c -w --strict m");
+  assert.equal(checkRes.exitCode, 1);
+  assert.match(checkRes.stderr, /WARNING: 2 improperly formatted checksum line\(s\)/u);
+
+  const textTagRes = await shell.exec("md5sum -t --tag f");
+  assert.equal(textTagRes.exitCode, 2);
+  assert.match(textTagRes.stderr, /--tag does not support --text mode/u);
+
+  const untaggedRes = await shell.exec("cksum -a sha256 --tag --untagged f");
+  assert.equal(untaggedRes.exitCode, 0, untaggedRes.stderr);
+  assert.equal(untaggedRes.stdout, "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03  f\n");
   await shell.dispose();
 });

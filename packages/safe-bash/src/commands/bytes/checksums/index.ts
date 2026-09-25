@@ -41,10 +41,13 @@ interface Entry { digest: string; filename: string; algorithm: Algorithm }
 
 function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: Settings } {
   let report: ReportMode = "normal";
+  let lastTag: boolean | undefined;
   const parsed = options(args, "a:l:bczw", { length: "l", check: "c", warn: "w", quiet: false, status: false, strict: false, "ignore-missing": false, algorithm: "a", binary: "b", tag: false, zero: "z", untagged: false, raw: false, base64: false },
     false, undefined, undefined, key => {
       if (key === "quiet" || key === "status") report = key;
       if (key === "w") report = "warn";
+      if (key === "tag") lastTag = true;
+      if (key === "untagged") lastTag = false;
     });
   let algorithm = value(parsed, "a") ?? "crc";
   if (!["crc", "bsd", "sysv", "crc32b", "sm3", "blake2b", "sha2", "sha3", ...Object.keys(hashes)].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
@@ -67,7 +70,7 @@ function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: 
   return { algorithm: algorithm as Algorithm, settings: {
     length: bits, label,
     operands: parsed.operands, binary: parsed.flags.has("b"), check,
-    zero: parsed.flags.has("z"), tag: !parsed.flags.has("untagged") || parsed.flags.has("tag"),
+    zero: parsed.flags.has("z"), tag: lastTag ?? true,
     strict: parsed.flags.has("strict"), ignoreMissing: parsed.flags.has("ignore-missing"), report,
     ...(parsed.flags.has("raw") ? { encoding: "raw" as const } : parsed.flags.has("base64") ? { encoding: "base64" as const } : {}),
   } };
@@ -87,6 +90,7 @@ function parse(args: readonly string[], algorithm: Algorithm): Settings {
   };
   let ended = false;
   let explicitMode = false;
+  let explicitText = false;
   let checkOnly = false;
   for (const argument of args) {
     if (ended || argument === "-" || !argument.startsWith("-")) { settings.operands.push(argument); continue; }
@@ -94,11 +98,11 @@ function parse(args: readonly string[], algorithm: Algorithm): Settings {
     const keys = argument.startsWith("--") ? [aliases[argument.slice(2)] ?? ""] : [...argument.slice(1)];
     for (const key of keys) {
       switch (key) {
-        case "b": settings.binary = true; explicitMode = true; break;
-        case "t": settings.binary = false; explicitMode = true; break;
+        case "b": settings.binary = true; explicitMode = true; explicitText = false; break;
+        case "t": settings.binary = false; explicitMode = true; explicitText = true; break;
         case "c": settings.check = true; break;
         case "z": settings.zero = true; break;
-        case "tag": settings.tag = true; settings.binary = true; break;
+        case "tag": settings.tag = true; if (!explicitText) settings.binary = true; break;
         case "w": settings.report = "warn"; checkOnly = true; break;
         case "quiet": case "status": settings.report = key; checkOnly = true; break;
         case "strict": settings.strict = true; checkOnly = true; break;
@@ -226,13 +230,15 @@ async function* manifestLines(input: ByteSource, signal: AbortSignal): AsyncGene
 function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | undefined {
   if (algorithm === "crc") {
     // The default cksum verifier accepts tagged records only, selecting a hash per line.
-    let text: string;
-    try { text = utf8.decode(bytes).trimStart(); } catch { return undefined; }
+    let rawText: string;
+    try { rawText = utf8.decode(bytes); } catch { return undefined; }
+    if (rawText.endsWith("\r")) rawText = rawText.slice(0, -1);
+    if (rawText === "" || rawText.startsWith("#")) return "skip";
+    let text = rawText.trimStart();
     if (text.startsWith("\\")) text = text.slice(1);
     for (const candidate of Object.keys(hashes) as (keyof typeof hashes)[]) {
       if (text.startsWith(`${candidate.toUpperCase()} (`) || text.startsWith(`${candidate.toUpperCase()}(`)) return parseEntry(bytes, candidate);
     }
-    if (text === "" || text.startsWith("#")) return "skip";
     return undefined;
   }
   let line: string;

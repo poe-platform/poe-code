@@ -60,13 +60,13 @@ export function createBrowserPrivateTransport(
 ) {
 	const { maxClients = 8, ...guardOptions } = options;
 	const maxTargets = options.maxPrivateTargets ?? 256;
-	const maxBytes = options.maxMessageBytes ?? 16 * 1024 * 1024;
+	const maxBytes = options.maxMessageBytes ?? Infinity;
 	const creationTimeoutMs = options.creationTimeoutMs ?? 10000;
 	for (const [name, value] of Object.entries({
 		...guardOptions,
 		maxClients,
 		maxTargets,
-		maxBytes,
+		...(options.maxMessageBytes === undefined ? {} : { maxBytes }),
 		creationTimeoutMs,
 	})) {
 		if (

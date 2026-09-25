@@ -173,7 +173,7 @@ export function admitPlaywrightProtocolFrame(
   data: unknown,
   options: { maxBytes?: number; maxGraphNodes?: number; maxGraphDepth?: number } = {},
 ): Record<string, unknown> {
-  const maxBytes = options.maxBytes ?? 16 * 1024 * 1024;
+  const maxBytes = options.maxBytes ?? Infinity;
   const maxGraphNodes = options.maxGraphNodes ?? 100_000;
   const maxGraphDepth = options.maxGraphDepth ?? 64;
   if (typeof data !== 'string') throw new Error('Private browser frame limit or type violation');
@@ -196,22 +196,22 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   beginCreation(): PlaywrightPrivateTargetCreation;
 } {
   const limits = {
-    maxMessageBytes: 16 * 1024 * 1024,
     maxGraphNodes: 100_000,
     maxGraphDepth: 64,
     maxQueuedCommands: 16384,
-    maxPendingBytes: 4 * 1024 * 1024,
     maxBufferedMessages: 512,
-    maxBufferedBytes: 16 * 1024 * 1024,
     maxPrivateTargets: 256,
     maxPrivateSessions: 1024,
     creationTimeoutMs: 2000,
     commandTimeoutMs: 10000,
     ...options,
+    maxMessageBytes: options.maxMessageBytes ?? Infinity,
+    maxPendingBytes: options.maxPendingBytes ?? Infinity,
+    maxBufferedBytes: options.maxBufferedBytes ?? Infinity,
     maxPendingCommands: options.maxPendingCommands ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (name === 'maxPendingCommands' && options.maxPendingCommands === undefined) continue;
+    if (['maxPendingCommands', 'maxMessageBytes', 'maxPendingBytes', 'maxBufferedBytes'].includes(name) && (options as Record<string, unknown>)[name] === undefined) continue;
     if (!Number.isSafeInteger(value) || value <= 0 || (name.endsWith('TimeoutMs') && value > 2147483647)) {
       throw new TypeError(`Invalid private transport limit: ${name}`);
     }

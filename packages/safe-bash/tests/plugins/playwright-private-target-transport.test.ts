@@ -795,3 +795,28 @@ for (const options of [undefined, { maxMessageBytes: 1024 }]) test(`pending comm
     assert.equal(state.closes(), 0);
   } finally { state.transport.close(); }
 });
+
+test('#731: default private transport accepts 33 MiB messages in both directions and concurrent 17 MiB commands/replies', () => {
+  const state = fixture();
+  try {
+    const payload17 = 'x'.repeat(17 * 1024 * 1024);
+    state.transport.send({ id: 1, method: 'Runtime.evaluate', params: { expression: payload17 } });
+    state.transport.send({ id: 2, method: 'Runtime.evaluate', params: { expression: payload17 } });
+    assert.equal(state.sent.length, 2);
+    state.receive({ id: state.sent[0]!.id, result: { result: { type: 'string', value: payload17 } } });
+    state.receive({ id: state.sent[1]!.id, result: { result: { type: 'string', value: payload17 } } });
+    assert.equal(state.received.length, 2);
+
+    const payload33 = 'x'.repeat(33 * 1024 * 1024);
+    const frame33 = JSON.stringify({ id: 3, method: 'Runtime.evaluate', params: { expression: payload33 } });
+    const admitted33 = admitPlaywrightProtocolFrame(frame33);
+    state.transport.send(admitted33);
+    assert.equal(state.sent.length, 3);
+    const reply33 = admitPlaywrightProtocolFrame(JSON.stringify({ id: state.sent[2]!.id, result: { result: { type: 'string', value: payload33 } } }));
+    state.receive(reply33);
+    assert.equal(state.received.length, 3);
+    assert.equal(state.closes(), 0);
+  } finally {
+    state.transport.close();
+  }
+});

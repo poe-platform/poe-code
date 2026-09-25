@@ -208,6 +208,35 @@ test("built scope accounting records retain fast fields without inherited metada
   assert.equal(result.status, 0, result.stderr || String(result.error));
 });
 
+test("built deferred function identities keep fast storage and private construction", () => {
+  const entry = name => JSON.stringify(new URL(`../dist/interp/${name}.js`, import.meta.url).href);
+  const source = `
+    import assert from "node:assert/strict";
+    import { DeferredFunction } from ${entry("deferred-function")};
+    import { createSandboxClosure, measureSandboxData } from ${entry("values")};
+    const setPrototypeOf = Object.setPrototypeOf;
+    const payload = { text: "retained" };
+    try {
+      Object.setPrototypeOf = () => { throw new Error("Private identity escaped"); };
+      const pending = new DeferredFunction(
+        () => createSandboxClosure({ call: () => undefined, retainedValues: () => [payload] }),
+        append => append(payload)
+      );
+      const root = pending.root;
+      assert.equal(Object.getPrototypeOf(root), null);
+      assert.equal(Object.isFrozen(root), true);
+      assert.deepEqual(Reflect.ownKeys(root), []);
+      assert.ok(%HasFastProperties(root), "Deferred identity uses dictionary storage");
+      const charge = measureSandboxData([root]);
+      const closure = pending.resolve();
+      assert.equal(pending.root, root);
+      assert.equal(measureSandboxData([root, closure]), charge);
+    } finally { Object.setPrototypeOf = setPrototypeOf; }
+  `;
+  const result = spawnSync(process.execPath, ["--allow-natives-syntax", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+  assert.equal(result.status, 0, result.stderr || String(result.error));
+});
+
 for (const edge of ["target", "handler"]) {
   test(`built Proxy accounting handles a cold ${edge} chain through the data-depth limit`, async () => {
     const entry = name => JSON.stringify(new URL(`../dist/${name}.js`, import.meta.url).href);

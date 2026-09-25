@@ -7,12 +7,15 @@ import {
 } from "./values.js";
 
 const freeze = Object.freeze;
+const setPrototypeOf = Object.setPrototypeOf;
 
 // A pending binding retains its initializer and lexical roots, without creating
 // a guest function carrier. Its accounting identity survives materialization so
 // an older captured scope group can still retain the same function.
 export class DeferredFunction {
-  readonly root: SandboxObject = freeze({ __proto__: null });
+  // Preserve the empty, frozen null-prototype identity while keeping V8's fast
+  // storage for its repeated visited-registry and scope-metadata lookups.
+  readonly root: SandboxObject = freeze(setPrototypeOf({}, null));
   #value?: SandboxClosure;
   #initialization?: {
     create: () => SandboxClosure;

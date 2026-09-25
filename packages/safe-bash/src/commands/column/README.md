@@ -1,20 +1,18 @@
-# Bounded column (author module, not publicly integrated)
+# Format tables with column
 
 This dependency-free TypeScript ESM module registers the virtual `column`
 command. It reads only supplied ByteIO/VFS objects. It does not spawn processes,
 inspect host files, discover terminals, load locale databases, or use network.
 It is not full BSD/util-linux compatibility, and `column` is not a GNU utility.
-No root export, package subpath, or default command registration is added here.
+The command is available through the existing Safe Bash public exports and command inventory.
 
 ## Inspected API
 
-Import from `src/commands/column/index.ts` in repository development, or from its
-direct built module `dist/commands/column/index.js` after the build. A published
-`virtual-bash/commands/column` subpath is **not** present or promised.
+Use the public Safe Bash exports; the implementation workspace is internal and bundled.
 
 ```ts
 import { columnCommands, createColumnCommand, createColumnCommands }
-  from "./src/commands/column/index.js";
+  from "@poe-platform/safe-bash/commands/column";
 
 shell.use(columnCommands({ limits: { maxInputBytes: 1024 * 1024 } }));
 const definition = createColumnCommand();

@@ -1,0 +1,55 @@
+{
+  "name": "safe-bash-command-column",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./internal": {
+      "types": "./dist/internal.d.ts",
+      "import": "./dist/internal.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
+    },
+    "./table": {
+      "types": "./dist/table.d.ts",
+      "import": "./dist/table.js"
+    },
+    "./display": {
+      "types": "./dist/display.d.ts",
+      "import": "./dist/display.js"
+    },
+    "./layout": {
+      "types": "./dist/layout.d.ts",
+      "import": "./dist/layout.js"
+    },
+    "./column": {
+      "types": "./dist/column.d.ts",
+      "import": "./dist/column.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "safe-bash-table-text-engine": "*"
+  }
+}

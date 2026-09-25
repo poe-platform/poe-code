@@ -1268,6 +1268,11 @@ class FastShellCommandContext {
     env: Record<string, string>,
     signalIsScoped: boolean,
   ) {
+    const directContext = FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"));
+    if (!directContext) {
+      const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
+      Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));
+    }
     this._self = this;
     this.#runtime = runtime;
     this.#state = state;
@@ -1290,11 +1295,9 @@ class FastShellCommandContext {
     this.processSignals = io.processSignals;
     this.diagnosticLine = io.diagnosticLine;
     this.scriptName = io.scriptName;
-    if (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"))) {
+    if (directContext) {
       return;
     }
-    const { [invocationScope]: _scope, [valueScope]: _allocation, [declarationArrays]: _arrays, argumentValues: _arguments, ...publicIO } = io as IO & { argumentValues?: unknown };
-    Object.assign(this, publicIO);
     for (const [key, descriptor] of fastShellCommandAccessors) {
       Object.defineProperty(this, key, {
         ...descriptor,
@@ -1400,7 +1403,7 @@ const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
   "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc",
 ]);
 
-const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "registerCleanup", "invoke", "argumentValues"].map(
+const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
 );
 

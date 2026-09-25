@@ -170,6 +170,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
       "commands/llm/providers/index.browser": path.join(directory, "src/commands/llm/providers/index.ts"),
       "core.browser": path.join(directory, "src/core.browser.ts"),
       "jobs.browser": path.join(directory, "src/jobs.ts"),
+      "optional-host.browser": path.join(directory, "src/optional-host.ts"),
       "commands/xml/index.browser": path.join(directory, "src/commands/xml/index.ts"),
       "commands/yq/index.browser": path.join(directory, "src/commands/yq/index.ts"),
       "commands/network/index.browser": path.join(directory, "src/commands/network/public.ts"),

@@ -48,6 +48,8 @@
     },
     "./optional-host": {
       "types": "./dist/optional-host.d.ts",
+      "workerd": "./dist/optional-host.browser.js",
+      "browser": "./dist/optional-host.browser.js",
       "import": "./dist/optional-host.js"
     },
     "./contracts": {

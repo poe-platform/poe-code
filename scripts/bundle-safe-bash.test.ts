@@ -52,7 +52,7 @@ async function bundlePublicConsumer(contents: string) {
       name: "public-built-shell-entries",
       setup(builder) {
         builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/ }, () => ({ path: "@poe-platform/safe-fs/core", external: true }));
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/jobs|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:jobs|optional-host)|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -95,18 +95,20 @@ it.each(commandFactories.map(([command, factory], index) => [command, factory, i
   expect(factoryIdentity[index]).toBe(true);
 });
 
-it("shares disown state between default jobs and the public browser jobs extension", async () => {
+it("shares disown state across default, public, and optional-host browser jobs", async () => {
   const compiled = await bundlePublicConsumer(`
     import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
     import { jobsExtension } from "@poe-platform/safe-bash/jobs";
+    import { jobsExtension as hostJobsExtension } from "@poe-platform/safe-bash/optional-host";
+    export const sameJobsExtension = jobsExtension === hostJobsExtension;
     export async function run() {
       const results = [];
-      for (const explicit of [false, true]) {
+      for (const createJobs of [undefined, jobsExtension, hostJobsExtension]) {
         let release;
         const held = new Promise(resolve => { release = resolve; });
         const shell = new Shell({
           fs: createMemoryFileSystem(), backgroundJobs: true,
-          ...(explicit ? { extensions: [jobsExtension()] } : {}),
+          ...(createJobs ? { extensions: [createJobs()] } : {}),
         });
         shell.register({ name: "hold", async execute() { await held; return { exitCode: 0 }; } });
         shell.register({ name: "release", execute() { release(); return { exitCode: 0 }; } });
@@ -125,7 +127,9 @@ it("shares disown state between default jobs and the public browser jobs extensi
     },
   });
   const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
+  expect(consumer.sameJobsExtension).toBe(true);
   expect(await consumer.run()).toMatchObject([
+    { exitCode: 0, stdout: "", stderr: "" },
     { exitCode: 0, stdout: "", stderr: "" },
     { exitCode: 0, stdout: "", stderr: "" },
   ]);
@@ -250,6 +254,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/llm/providers/index.browser": path.join(root, "packages/safe-bash/src/commands/llm/providers/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
     "jobs.browser": path.join(root, "packages/safe-bash/src/jobs.ts"),
+    "optional-host.browser": path.join(root, "packages/safe-bash/src/optional-host.ts"),
     "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),
     "commands/yq/index.browser": path.join(root, "packages/safe-bash/src/commands/yq/index.ts"),
     "commands/network/index.browser": path.join(root, "packages/safe-bash/src/commands/network/public.ts"),

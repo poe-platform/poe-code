@@ -199,22 +199,20 @@ for (const action of ["rename", "mv"] as const) test(`positive same-mount memory
     source: "/source", target: "/target", action });
 });
 
-test("shared memory mounted twice refuses cross-mount mv overwrite without atomic binding", async context => {
+test("shared memory mounted twice supports atomically bound cross-mount mv overwrite", async context => {
   const backing = createMemoryFileSystem();
   await seed(backing, backing, true);
   await exercise(context, { filesystem: mounted(backing, backing), left: backing, right: backing,
-    source: "/left/source", target: "/right/target", action: "mv",
-    expectedError: "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n" });
+    source: "/left/source", target: "/right/target", action: "mv" });
 });
 
 for (const existing of [false, true]) {
-  test(`cross-mount memory mv ${existing ? "refuses existing target" : "publishes missing target"}`, async context => {
+  test(`cross-mount memory mv ${existing ? "replaces existing target" : "publishes missing target"}`, async context => {
     const left = createMemoryFileSystem();
     const right = createMemoryFileSystem();
     await seed(left, right, existing);
     await exercise(context, { filesystem: mounted(left, right), left, right,
-      source: "/left/source", target: "/right/target", action: "mv",
-      ...(existing ? { expectedError: "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n" } : {}) });
+      source: "/left/source", target: "/right/target", action: "mv" });
   });
 }
 
@@ -250,7 +248,7 @@ for (const kind of ["s3", "webdav"] as const) {
       await seed(pair.left, pair.right, existing);
       await exercise(context, { filesystem: mounted(pair.left, pair.right), ...pair,
         source: "/left/source", target: "/right/target", action: "mv", expectedError: existing
-          ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n"
+          ? "mv: ENOTSUP: move source lacks authoritative snapshot '/left/source'\n"
           : "mv: ENOTSUP: operation not supported, removeEntryConditional '/left/source'\n" });
     });
   }

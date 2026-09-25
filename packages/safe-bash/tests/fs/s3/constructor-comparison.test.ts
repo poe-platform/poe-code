@@ -84,7 +84,7 @@ for (const command of ["cp", "mv"] as const) test(`constructor authority does no
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, command === "cp"
       ? "cp: ENOTSUP: copy requires retained reads '/first/nested/source'\n"
-      : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/first/nested/source' -> '/second/target'\n");
+      : "mv: ENOTSUP: move source lacks authoritative snapshot '/first/nested/source'\n");
   } finally { await shell.dispose(); }
   metadataOnly(example.service, offset);
   assert.deepEqual(await example.bytes("target"), oldBytes);

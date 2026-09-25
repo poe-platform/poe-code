@@ -334,6 +334,7 @@ test("capabilities are immutable, detached, conservative, and omit unknown exten
     readOnly: true, append: false, symlinks: true, hardlinks: false, permissions: false, timestamps: false,
     atomicRename: false, atomicRenameNoReplace: false, streamingRead: true, streamingWrite: false, retainedRead: false, open: false,
     descriptorWriteStream: false, retainedResize: false, atomicResize: false,
+    retainedStagingCleanup: false, synchronousStagingResolution: false, atomicEntryRemovalReceipt: false,
     atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicTreeRemoval: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     write: false, exclusiveCreate: false, mkdir: false, recursiveMkdir: false,
     remove: false, removeDirectory: false, recursiveRemove: false, rename: false,

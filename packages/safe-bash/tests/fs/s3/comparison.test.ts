@@ -154,7 +154,7 @@ for (const action of ["copy", "mv"] as const) test(`qualified shared-service exi
       const result = await shell.exec("mv /left/source /right/target");
       assert.equal(result.exitCode, 1);
       assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n");
+      assert.equal(result.stderr, "mv: ENOTSUP: move source lacks authoritative snapshot '/left/source'\n");
     } finally { await shell.dispose(); }
     metadataOnly(service, start);
   }

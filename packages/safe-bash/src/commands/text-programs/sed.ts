@@ -1,6 +1,6 @@
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { Pattern, substitute, trySubstituteSync, trySubstitutePairSync } from "./regex.js";
+import { Pattern, substitute, trySubstituteSync, trySubstitutePairSync, trySubstitutePairToBufferSync } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, command, input, lineRecordBatches, readProgram, virtualPath, write, type LineRecordBatch, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 import { editInPlace, prepareInPlace } from "./inplace.js";
@@ -637,6 +637,44 @@ async function execute(program: readonly Instruction[], context: CommandContext,
               if (nextInst.kind === "s" && !nextInst.first && !nextInst.second && !nextInst.negate && !nextInst.print && !nextInst.file && nextInst.pattern) {
                 const nextExpr = nextInst.pattern;
                 if (nextInst.replacementGroupCount! <= nextExpr.groupCount) {
+                  if (
+                    pc === 0 &&
+                    program.length === 2 &&
+                    !quiet &&
+                    !deleted &&
+                    appended.length === 0 &&
+                    record.terminated &&
+                    !outputState.stdoutUnterminated
+                  ) {
+                    if (!stdoutBuf) stdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+                    const newPosOrPromise = trySubstitutePairToBufferSync(
+                      pattern,
+                      expression,
+                      instruction.replacement!,
+                      instruction.global ?? false,
+                      instruction.occurrence ?? 1,
+                      nextExpr,
+                      nextInst.replacement!,
+                      nextInst.global ?? false,
+                      nextInst.occurrence ?? 1,
+                      budget,
+                      stdoutBuf,
+                      stdoutLen,
+                      sepCode,
+                    );
+                    const newPos = typeof newPosOrPromise === "number" ? newPosOrPromise : await newPosOrPromise;
+                    if (newPos >= 0) {
+                      lastPattern = nextExpr;
+                      stdoutLen = newPos;
+                      budget.step();
+                      if (!useBatches || stdoutLen >= 24576) {
+                        await flushStdout();
+                      }
+                      deleted = true;
+                      pc += 2;
+                      continue;
+                    }
+                  }
                   const pairedOrPromise = trySubstitutePairSync(
                     pattern,
                     expression,

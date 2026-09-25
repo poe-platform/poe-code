@@ -136,6 +136,7 @@ export class Pattern {
     readonly ascii: Uint8Array;
   } | undefined;
   private backreferences = false;
+  private fastPrefixInfo: { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined;
 
   constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
     const prefix = dialect === "jq" ? "jq " : "";
@@ -404,6 +405,7 @@ export class Pattern {
       }
       if (validLiteral) {
         this.literalMatch = { value: literalValue, anchoredStart, anchoredEnd, groups: [literalValue] };
+        this.fastPrefixInfo = { anchoredStart, anchoredEnd, prefix: literalValue };
       }
     } else if (!this.ignoreCase && this.dialect !== "jq" && root.type === "sequence" && this.groupCount <= 1) {
       let startIdx = 0;
@@ -457,6 +459,7 @@ export class Pattern {
             accepts: acceptsFn,
             ascii,
           };
+          this.fastPrefixInfo = { anchoredStart, anchoredEnd, prefix };
         }
       }
     }
@@ -533,22 +536,8 @@ export class Pattern {
     return this.code.length > 0 && this.dialect !== "jq" && Boolean(this.literalMatch || this.simpleRepeatMatch);
   }
 
-  getFastPrefixInfo(): { anchoredStart: boolean; anchoredEnd: boolean; prefix: string } | undefined {
-    if (this.simpleRepeatMatch) {
-      return {
-        anchoredStart: this.simpleRepeatMatch.anchoredStart,
-        anchoredEnd: this.simpleRepeatMatch.anchoredEnd,
-        prefix: this.simpleRepeatMatch.prefix,
-      };
-    }
-    if (this.literalMatch) {
-      return {
-        anchoredStart: this.literalMatch.anchoredStart,
-        anchoredEnd: this.literalMatch.anchoredEnd,
-        prefix: this.literalMatch.value,
-      };
-    }
-    return undefined;
+  getFastPrefixInfo(): { readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly prefix: string } | undefined {
+    return this.fastPrefixInfo;
   }
 
   findSyncFastInto(
@@ -638,17 +627,40 @@ export class Pattern {
     return true;
   }
 
+  private findAfterCheck(
+    check: Promise<void>,
+    text: string,
+    budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>,
+    from: number,
+  ): Promise<Match | undefined> {
+    return check.then(() => this.find(text, budget, from));
+  }
+
+  private finishLiteralAfterCheck(
+    check: Promise<void>,
+    found: number,
+    len: number,
+    maxBufferBytes: number,
+    groups: readonly [string],
+  ): Promise<Match | undefined> {
+    if (found < 0) return check.then(RETURN_UNDEFINED);
+    return check.then(() => {
+      if (len > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      return { start: found, end: found + len, groups };
+    });
+  }
+
   tryFindSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Match | undefined | Promise<Match | undefined> {
     if (this.code.length && this.simpleRepeatMatch && this.dialect !== "jq") {
       const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-      if (initialCheck) return initialCheck.then(() => this.find(text, budget, from));
+      if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
       return this.execSimpleRepeat(text, budget, from);
     }
     if (!this.code.length || !this.literalMatch || this.dialect === "jq") {
       return this.find(text, budget, from);
     }
     const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (initialCheck) return initialCheck.then(() => this.find(text, budget, from));
+    if (initialCheck) return this.findAfterCheck(initialCheck, text, budget, from);
     const { value, anchoredStart, anchoredEnd, groups } = this.literalMatch;
     const len = value.length;
     if (from > text.length || (anchoredStart && from > 0)) return undefined;
@@ -668,18 +680,12 @@ export class Pattern {
     budget.step(stepCount);
     if (stepCount >= 64) {
       const midCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-      if (midCheck) {
-        if (found < 0) return midCheck.then(() => undefined);
-        return midCheck.then(() => {
-          if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
-          return { start: found, end: found + len, groups };
-        });
-      }
+      if (midCheck) return this.finishLiteralAfterCheck(midCheck, found, len, budget.maxBufferBytes, groups);
     }
     if (found < 0) return undefined;
     if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     const endCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (endCheck) return endCheck.then(() => ({ start: found, end: found + len, groups }));
+    if (endCheck) return this.finishLiteralAfterCheck(endCheck, found, len, budget.maxBufferBytes, groups);
     return { start: found, end: found + len, groups };
   }
 
@@ -1042,6 +1048,8 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
   await buffer.append(replacement, literal);
 }
 
+const RETURN_UNDEFINED = (): undefined => undefined;
+const RETURN_MINUS_ONE = (): -1 => -1;
 const FAST_MATCH_OFFSETS = new Int32Array(4);
 const SYNC_SUB_RESULT = { text: "", count: 0 };
 interface SimpleReplacement {
@@ -1192,6 +1200,27 @@ function appendReplacementFromOffsetsSync(
   return out;
 }
 
+function substituteAfterCheck(
+  check: Promise<void>,
+  text: string,
+  pattern: Pattern,
+  replacement: string,
+  budget: Budget,
+  global: boolean,
+  occurrence: number,
+  syntax: ReplacementSyntax,
+): Promise<{ text: string; count: number }> {
+  return check.then(() => substitute(text, pattern, replacement, budget, global, occurrence, syntax));
+}
+
+function resolveSubAfterCheck(
+  check: Promise<void>,
+  out: string,
+  count: number,
+): Promise<{ text: string; count: number }> {
+  return check.then(() => ({ text: out, count }));
+}
+
 export function trySubstituteSync(
   text: string,
   pattern: Pattern,
@@ -1203,7 +1232,7 @@ export function trySubstituteSync(
 ): { text: string; count: number } | Promise<{ text: string; count: number }> {
   if (pattern.canFindSync() && text.length <= 4096 && replacement.length <= 256) {
     const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (check) return check.then(() => substitute(text, pattern, replacement, budget, global, occurrence, syntax));
+    if (check) return substituteAfterCheck(check, text, pattern, replacement, budget, global, occurrence, syntax);
     let search = 0;
     let consumed = 0;
     let previousEnd = -1;
@@ -1252,7 +1281,7 @@ export function trySubstituteSync(
       out = budget.check(text);
     }
     const postCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
-    if (postCheck) return postCheck.then(() => ({ text: out, count }));
+    if (postCheck) return resolveSubAfterCheck(postCheck, out, count);
     SYNC_SUB_RESULT.text = out;
     SYNC_SUB_RESULT.count = count;
     return SYNC_SUB_RESULT;
@@ -1405,7 +1434,7 @@ export function trySubstitutePairSync(
   const sr2 = getSimpleReplacement(rep2, "sed");
   if (!sr1 || !sr2) return undefined;
   const checkpoint = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
-  if (checkpoint) return checkpoint.then(() => undefined);
+  if (checkpoint) return checkpoint.then(RETURN_UNDEFINED);
   budget.step();
   if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return undefined;
   const e1 = PAIR_OFFSETS_1[1]!;
@@ -1444,4 +1473,75 @@ export function trySubstitutePairSync(
   SYNC_PAIR_RESULT.text = exp1 + mid + exp2 + tail;
   SYNC_PAIR_RESULT.substituted = true;
   return SYNC_PAIR_RESULT;
+}
+
+export function trySubstitutePairToBufferSync(
+  text: string,
+  pat1: Pattern,
+  rep1: string,
+  global1: boolean,
+  occ1: number,
+  pat2: Pattern,
+  rep2: string,
+  global2: boolean,
+  occ2: number,
+  budget: Budget,
+  outBuf: Uint8Array,
+  outPos: number,
+  sepCode: number,
+): number | Promise<-1> {
+  if (occ1 !== 1 || occ2 !== 1 || global1 || text.length > 4096) return -1;
+  if (!pat1.canFindSync() || !pat2.canFindSync()) return -1;
+  const info1 = pat1.getFastPrefixInfo();
+  const info2 = pat2.getFastPrefixInfo();
+  if (!info1 || !info2 || !info1.anchoredStart || info2.anchoredStart || info2.prefix.length === 0) return -1;
+  const sr1 = getSimpleReplacement(rep1, "sed");
+  const sr2 = getSimpleReplacement(rep2, "sed");
+  if (!sr1 || !sr2) return -1;
+  const checkpoint = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
+  if (checkpoint) return checkpoint.then(RETURN_MINUS_ONE);
+  budget.step();
+  if (!pat1.findSyncFastInto(text, budget, 0, PAIR_OFFSETS_1)) return -1;
+  const e1 = PAIR_OFFSETS_1[1]!;
+  if (e1 === 0) return -1;
+  const exp1 = expandSimpleFromOffsets(sr1, text, 0, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+  const firstChar2 = info2.prefix.charCodeAt(0);
+  for (let i = 0; i < exp1.length; i++) {
+    if (exp1.charCodeAt(i) === firstChar2) return -1;
+  }
+  budget.step();
+  if (!pat2.findSyncFastInto(text, budget, e1, PAIR_OFFSETS_2)) {
+    const outLen = exp1.length + (text.length - e1);
+    if (outLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    if (outPos + outLen + 1 > outBuf.length) return -1;
+    budget.step(text.length - e1 + 1);
+    let pos = outPos;
+    for (let i = 0; i < exp1.length; i++) outBuf[pos++] = exp1.charCodeAt(i);
+    for (let i = e1; i < text.length; i++) outBuf[pos++] = text.charCodeAt(i);
+    outBuf[pos++] = sepCode;
+    return pos;
+  }
+  const s2 = PAIR_OFFSETS_2[0]!;
+  const e2 = PAIR_OFFSETS_2[1]!;
+  if (s2 < e1 || e2 === s2) return -1;
+  const g2s = PAIR_OFFSETS_2[2]!;
+  const g2e = PAIR_OFFSETS_2[3]!;
+  if (global2 && e2 <= text.length) {
+    budget.step();
+    if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1)) return -1;
+  }
+  const exp2 = expandSimpleFromOffsets(sr2, text, s2, e2, g2s, g2e, budget);
+  const midLen = s2 - e1;
+  const tailLen = text.length - e2;
+  const totalLen = exp1.length + midLen + exp2.length + tailLen;
+  if (totalLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+  if (outPos + totalLen + 1 > outBuf.length) return -1;
+  budget.step(midLen + tailLen + 2);
+  let pos = outPos;
+  for (let i = 0; i < exp1.length; i++) outBuf[pos++] = exp1.charCodeAt(i);
+  for (let i = e1; i < s2; i++) outBuf[pos++] = text.charCodeAt(i);
+  for (let i = 0; i < exp2.length; i++) outBuf[pos++] = exp2.charCodeAt(i);
+  for (let i = e2; i < text.length; i++) outBuf[pos++] = text.charCodeAt(i);
+  outBuf[pos++] = sepCode;
+  return pos;
 }

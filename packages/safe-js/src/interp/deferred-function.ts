@@ -13,7 +13,6 @@ const freeze = Object.freeze;
 // an older captured scope group can still retain the same function.
 export class DeferredFunction {
   readonly root: SandboxObject = freeze({ __proto__: null });
-  readonly #chargeIdentity: object = freeze({ __proto__: null });
   #value?: SandboxClosure;
   #initialization?: {
     create: () => SandboxClosure;
@@ -28,7 +27,7 @@ export class DeferredFunction {
     this.#initialization = { create, collect };
     scopeDataRoots.set(this.root, {
       deferred: {
-        chargeIdentity: this.#chargeIdentity,
+        chargeIdentity: this.root,
         read: () => this.#value,
         collect: (append) => this.#initialization?.collect(append)
       }
@@ -41,7 +40,7 @@ export class DeferredFunction {
     this.#resolving = true;
     try {
       const value = this.#initialization!.create();
-      registerDeferredClosureChargeIdentity(value, this.#chargeIdentity);
+      registerDeferredClosureChargeIdentity(value, this.root);
       this.#value = value;
       this.#initialization = undefined;
       return this.#value;

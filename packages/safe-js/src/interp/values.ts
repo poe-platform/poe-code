@@ -1134,13 +1134,18 @@ function measureSandboxDataWithSeen(
           }
           if ("deferred" in bindingRoot) {
             const deferred = bindingRoot.deferred;
+            // An owned pending function uses its root as the charge identity.
+            // This first root visit already marked it; charge before following
+            // a materialized carrier, whose alias must not charge it again.
+            const rootOwnsCharge = deferred.chargeIdentity === value;
+            if (rootOwnsCharge) usage++;
             const current = deferred.read();
             if (current !== undefined) {
               value = current;
               continue walk;
             }
             assertSandboxDataDepth(depth);
-            if (!seen.has(deferred.chargeIdentity)) {
+            if (!rootOwnsCharge && !seen.has(deferred.chargeIdentity)) {
               seen.add(deferred.chargeIdentity);
               usage++;
             }

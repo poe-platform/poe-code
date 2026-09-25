@@ -2,6 +2,7 @@ import { setImmediate } from "node:timers/promises";
 import { expect, it } from "vitest";
 import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
+import { DeferredFunction } from "./deferred-function.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
 import { createSandboxClosure, measureSandboxData, type SandboxValue } from "./values.js";
 
@@ -76,4 +77,44 @@ it.skipIf(typeof global.gc !== "function")("does not retain values sent through 
   await collect();
   expect(reference.deref()).toBeUndefined();
   expect(() => append("still callable")).not.toThrow();
+});
+
+function emptyDeferredClosure() {
+  // Keep the returned call callback outside the initializer payload's lexical
+  // scope, so only the pending collector can retain that payload.
+  return createSandboxClosure({ call: () => undefined });
+}
+
+function resolvedDeferredFixture() {
+  const payload = { text: "initializer capture" };
+  const pending = new DeferredFunction(
+    emptyDeferredClosure,
+    append => append(payload)
+  );
+  return { closure: pending.resolve(), reference: new WeakRef(payload) };
+}
+
+it.skipIf(typeof global.gc !== "function")("releases initializer captures while a materialized function stays live", async () => {
+  const { closure, reference } = resolvedDeferredFixture();
+  await collect();
+  expect(reference.deref()).toBeUndefined();
+  expect(measureSandboxData([closure])).toBe(1);
+});
+
+function deferredReferences(resolved: boolean) {
+  const pending = new DeferredFunction(
+    () => createSandboxClosure({ call: () => undefined }),
+    () => {}
+  );
+  const reference = new WeakRef(pending.root);
+  const closure = resolved ? new WeakRef(pending.resolve()) : undefined;
+  measureSandboxData([pending.root]);
+  return { reference, closure };
+}
+
+it.skipIf(typeof global.gc !== "function").each([false, true])("releases deferred roots and function carriers (resolved=%s)", async resolved => {
+  const { reference, closure } = deferredReferences(resolved);
+  await collect();
+  expect(reference.deref()).toBeUndefined();
+  expect(closure?.deref()).toBeUndefined();
 });

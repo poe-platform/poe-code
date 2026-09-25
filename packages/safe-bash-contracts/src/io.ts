@@ -3,6 +3,7 @@ import type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
 export { collectBytes, readBytes, toByteSource } from "@poe-code/safe-fs/core";
 export type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
 import { FsError } from "./errors.js";
+import { addManagedAbortWaiter, managedSignalSymbol, notifyManagedAbortWaiters, removeManagedAbortWaiter } from "./managed-abort.js";
 
 export const outputFailure = Symbol("output failure");
 const syncResolved = Symbol.for("safe-bash.syncResolved");
@@ -67,8 +68,6 @@ export interface BytePipeOptions {
   readonly signal?: AbortSignal;
 }
 
-const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
-const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
 const defaultAbortController = AbortController;
 const defaultAbortControllerAbort = AbortController.prototype.abort;
 
@@ -119,7 +118,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   let consumer: AbortController | undefined;
   let consumerAborted = false;
   let consumerReason: unknown;
-  let managedWaiters: Set<() => void> | undefined;
+  const managedSignal = Boolean(signal && (signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]);
   const brokenPipe = (): FsError => new FsError("EPIPE", { syscall: "pipe" });
   const getConsumerSignal = (): AbortSignal => {
     if (!consumer) {
@@ -144,15 +143,7 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
       consumerReason = reason;
       if (consumer) {
         consumer.abort(reason !== undefined ? reason : brokenPipe());
-        const symSet = (consumer.signal as unknown as Record<symbol, (() => void) | Set<() => void> | undefined>)[managedWaitersSymbol];
-        if (typeof symSet === "function") {
-          (consumer.signal as unknown as Record<symbol, unknown>)[managedWaitersSymbol] = undefined;
-          symSet();
-        } else if (symSet && symSet.size > 0) {
-          const pending = [...symSet];
-          symSet.clear();
-          for (let i = 0; i < pending.length; i++) pending[i]!();
-        }
+        notifyManagedAbortWaiters(consumer.signal);
       }
     }
   };
@@ -178,18 +169,15 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   const attachSignal = (): void => {
     if (!signal) return;
-    if ((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      const rec = signal as unknown as Record<symbol, (() => void) | Set<() => void> | undefined>;
-      const cur = rec[managedWaitersSymbol];
-      managedWaiters = typeof cur === "function" ? (rec[managedWaitersSymbol] = new Set([cur])) : (cur ?? (rec[managedWaitersSymbol] = new Set()));
-      managedWaiters.add(onAbort);
+    if (managedSignal) {
+      addManagedAbortWaiter(signal, onAbort);
     } else {
       signal.addEventListener("abort", onAbort, { once: true });
     }
   };
   const detachSignal = (): void => {
     if (!signal) return;
-    if (managedWaiters) managedWaiters.delete(onAbort);
+    if (managedSignal) removeManagedAbortWaiter(signal, onAbort);
     else signal.removeEventListener("abort", onAbort);
   };
   const cleanup = (): void => { if (!observers?.size) detachSignal(); };

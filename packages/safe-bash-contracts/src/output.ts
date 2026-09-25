@@ -1,21 +1,9 @@
 import type { CommandContext, InvocationCleanup } from "./command.js";
 import { outputFailure, writeBytes, type ByteSink } from "./io.js";
+import { addManagedAbortWaiter, managedSignalSymbol, notifyManagedAbortWaiters, removeManagedAbortWaiter } from "./managed-abort.js";
 
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
-const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
-const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
-
-function ensureWaiterSet(target: unknown): Set<() => void> {
-  const rec = target as Record<symbol, (() => void) | Set<() => void> | undefined>;
-  const cur = rec[managedWaitersSymbol];
-  if (typeof cur === "function") {
-    const set = new Set<() => void>([cur]);
-    rec[managedWaitersSymbol] = set;
-    return set;
-  }
-  return (rec[managedWaitersSymbol] = cur ?? new Set<() => void>());
-}
 
 function isSyncResolved(promise: unknown): promise is Promise<never> {
   return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
@@ -36,25 +24,26 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   const signal = controller.signal;
   (signal as unknown as Record<symbol, unknown>)[managedSignalSymbol] = true;
   const capability = destination.ownedOutput;
+  const consumerClosed = capability?.consumerClosed;
+  const callerManaged = Boolean((context.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]);
+  const outputManaged = Boolean(consumerClosed && (consumerClosed as unknown as Record<symbol, unknown>)[managedSignalSymbol]);
   let callbacks: InvocationCleanup[] | undefined;
   let children: OutputOperation[] | undefined;
   let writes: Set<Promise<void>> | undefined;
   const closedReason = new Error("Output operation is closed");
   let accepting = true;
   let drain: Promise<void> | undefined;
-  let callerWaiters: Set<() => void> | undefined;
-  let outputWaiters: Set<() => void> | undefined;
   const assertOpen = (): void => {
     context.signal.throwIfAborted();
     signal.throwIfAborted();
     if (!accepting) throw closedReason;
   };
   const detachListeners = (): void => {
-    if (callerWaiters) callerWaiters.delete(callerAbort);
+    if (callerManaged) removeManagedAbortWaiter(context.signal, callerAbort);
     else context.signal.removeEventListener("abort", callerAbort);
-    if (capability) {
-      if (outputWaiters) outputWaiters.delete(outputAbort);
-      else capability.consumerClosed.removeEventListener("abort", outputAbort);
+    if (consumerClosed) {
+      if (outputManaged) removeManagedAbortWaiter(consumerClosed, outputAbort);
+      else consumerClosed.removeEventListener("abort", outputAbort);
     }
   };
   const close = (): Promise<void> => {
@@ -84,19 +73,11 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   };
   const abort = (reason: unknown): void => {
     controller.abort(reason);
-    const symSet = (signal as unknown as Record<symbol, (() => void) | Set<() => void> | undefined>)[managedWaitersSymbol];
-    if (typeof symSet === "function") {
-      (signal as unknown as Record<symbol, unknown>)[managedWaitersSymbol] = undefined;
-      symSet();
-    } else if (symSet && symSet.size > 0) {
-      const pending = [...symSet];
-      symSet.clear();
-      for (let i = 0; i < pending.length; i++) pending[i]!();
-    }
+    notifyManagedAbortWaiters(signal);
     void close().catch(() => {});
   };
   const callerAbort = (): void => abort(context.signal.reason);
-  const outputAbort = (): void => abort(capability?.consumerClosed.reason);
+  const outputAbort = (): void => abort(consumerClosed?.reason);
   const registerCleanup = (cleanup: InvocationCleanup): void => {
     assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
@@ -105,31 +86,27 @@ export function createOutputOperation(context: Pick<CommandContext, "signal" | "
   const wait = <Value>(pending: Promise<Value>): Promise<Value> => new Promise((resolve, reject) => {
     const aborted = (): void => reject(signal.reason);
     if (signal.aborted) aborted();
-    const symSet = ensureWaiterSet(signal);
-    if (!signal.aborted) symSet.add(aborted);
+    if (!signal.aborted) addManagedAbortWaiter(signal, aborted);
     pending.then(value => {
-      symSet.delete(aborted);
+      removeManagedAbortWaiter(signal, aborted);
       resolve(value);
     }, error => {
-      symSet.delete(aborted);
+      removeManagedAbortWaiter(signal, aborted);
       reject(error);
     });
   });
   context.registerCleanup?.(close);
   if (context.signal.aborted) callerAbort();
-  else if (capability?.consumerClosed.aborted) outputAbort();
+  else if (consumerClosed?.aborted) outputAbort();
   else {
-    if ((context.signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-      callerWaiters = ensureWaiterSet(context.signal);
-      callerWaiters.add(callerAbort);
+    if (callerManaged) {
+      addManagedAbortWaiter(context.signal, callerAbort);
     } else {
       context.signal.addEventListener("abort", callerAbort, { once: true });
     }
-    if (capability) {
-      const consumerClosed = capability.consumerClosed;
-      if ((consumerClosed as unknown as Record<symbol, unknown>)[managedSignalSymbol]) {
-        outputWaiters = ensureWaiterSet(consumerClosed);
-        outputWaiters.add(outputAbort);
+    if (consumerClosed) {
+      if (outputManaged) {
+        addManagedAbortWaiter(consumerClosed, outputAbort);
       } else {
         consumerClosed.addEventListener("abort", outputAbort, { once: true });
       }

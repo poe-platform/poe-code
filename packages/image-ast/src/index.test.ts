@@ -2862,4 +2862,31 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => sharp().avif({ chromaSubsampling: 123 as any })).toThrow(/Expected one of: 4:2:0, 4:4:4 for chromaSubsampling/);
     expect(() => sharp().avif({ bitdepth: 6 as any })).toThrow(/Expected 8, 10 or 12 for bitdepth/);
   });
+
+  it("matches libvips vips_percent in normalise() and vips_Y2v_8 interpolation in threshold() / toColorspace('b-w') (#1140)", async () => {
+    const px = Buffer.from([220, 15, 174]);
+    const bw = await sharp(px, { raw: { width: 1, height: 1, channels: 3 } }).toColorspace("b-w").raw().toBuffer();
+    expect(bw[0]).toBe(119);
+    const thr = await sharp(px, { raw: { width: 1, height: 1, channels: 3 } }).threshold(120).raw().toBuffer();
+    expect(Array.from(thr)).toEqual([0, 0, 0]);
+
+    const w = 128, h = 96;
+    const buf = Buffer.alloc(w * h * 3);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 3;
+        buf[idx] = Math.round(((x + y) * 255) / (w + h));
+        buf[idx + 1] = Math.round((x * 200) / w + 20);
+        buf[idx + 2] = Math.round((y * 180) / h + 30);
+      }
+    }
+    const norm1_99 = await sharp(buf, { raw: { width: w, height: h, channels: 3 } })
+      .normalise({ lower: 1, upper: 99 })
+      .raw()
+      .toBuffer();
+    const pIdx = (90 * w + 120) * 3;
+    expect(norm1_99[pIdx]).toBe(255);
+    expect(Math.abs(norm1_99[pIdx + 1]! - 233)).toBeLessThanOrEqual(1);
+    expect(Math.abs(norm1_99[pIdx + 2]! - 224)).toBeLessThanOrEqual(1);
+  });
 });

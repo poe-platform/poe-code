@@ -99,11 +99,17 @@ test("awk reader concurrent close prevents late input publication", async () => 
   assert.equal(retention.retainedBytes, 0); assert.equal(returns, 1);
 });
 
-test("awk reader copies borrowed views before producer reuse without eager pulls", async () => {
-  const retention = new AwkRetention(16), backing = Uint8Array.of(255, 195);
+for (const sync of [false, true]) for (const buffer of [false, true]) test(`awk reader copies borrowed views before producer reuse: sync=${sync}, buffer=${buffer}`, async () => {
+  const retention = new AwkRetention(16), backing = buffer ? Buffer.from([255, 195]) : Uint8Array.of(255, 195);
   let pulls = 0;
-  const input = (async function* () { pulls++; yield backing; backing.set([169, 0]); pulls++; yield backing; backing.fill(120); })();
+  const producer = (function* () { pulls++; yield backing; backing.set([169, 0]); pulls++; yield backing; backing.fill(120); })();
+  const input: ByteSource = { [Symbol.asyncIterator]() { return {
+    next: async () => producer.next(),
+    ...(sync ? { tryNextSync: () => producer.next() } : {}),
+  }; } };
   const reader = new Reader(input, budget(), retention);
+  const slice = { source: "", start: 0, end: 0 };
+  assert.equal(reader.readSliceSync("\n", slice), false);
   assert.equal(await reader.read("\n"), "\xff\xc3\xa9\0");
   assert.equal(pulls, 2); assert.equal(retention.retainedBytes, 0);
   await reader.close();

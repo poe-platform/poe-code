@@ -152,7 +152,7 @@ for (const [input, expected] of [
 for (const args of [
   ["-d2023-02-29"], ["-d1900-02-29"], ["-d2024-13-01"], ["-d2024-04-31"], ["-d2024-01-00"],
   ["-d2024-02-29T24:00:00Z"], ["-d2024-02-29T23:59:60Z"], ["-d2024-01-01T00:00:00+25:00"],
-  ["-d@0.1234567890"], ["-d@NaN"], ["-d@1e3"], ["-d@99999999999999999"], ["-d"], ["--date="],
+  ["-d@NaN"], ["-d@1e3"], ["-d@99999999999999999"], ["-d"],
   ["--date", "next Friday"], ["--date", "01/02/03"], ["--date", "Fri, 29 Feb 2024 12:34:56 GMT"],
   ["-s", "2024-01-01"], ["--set=2024-01-01"], ["082712002026"], ["--file=/etc/passwd"],
   ["--debug"], ["--utc=yes"], ["-r", "file", "-d@0"], ["-I", "+%s"], ["-Iinvalid"], ["--rfc-3339=hours"],
@@ -220,4 +220,18 @@ test("date file output uses a cumulative quota and bounds input lines", async ()
   await assert.rejects(run("date", ["-f/input", "+%s"], { limits: { maxOutputBytes: 3 } }, { fs }), { code: "EFBIG" });
   await fs.writeFile("/input", Buffer.from("@0000000000000000000000"));
   await assert.rejects(run("date", ["-f/input"], { limits: { maxArgumentBytes: 16 } }, { fs }), { code: "EFBIG" });
+});
+
+test("date supports ISO/RFC3339 precision prefixes, --rfc-822, >9 fractional digits, empty -d, and negative-year epochs", async () => {
+  assert.equal((await run("date", ["-u", "-d", "@0", "-Is"])).stdout, "1970-01-01T00:00:00+00:00\n");
+  assert.equal((await run("date", ["-u", "-d", "@0", "-Isec"])).stdout, "1970-01-01T00:00:00+00:00\n");
+  assert.equal((await run("date", ["-u", "-d", "@0", "-Im"])).stdout, "1970-01-01T00:00+00:00\n");
+  assert.equal((await run("date", ["-u", "-d", "@0", "-Ih"])).stdout, "1970-01-01T00+00:00\n");
+  assert.equal((await run("date", ["-u", "-d", "@0", "-Id"])).stdout, "1970-01-01\n");
+  assert.equal((await run("date", ["-u", "-d", "@0", "-In"])).stdout, "1970-01-01T00:00:00,000000000+00:00\n");
+  assert.equal((await run("date", ["-u", "-d", "@0", "--rfc-3339=s"])).stdout, "1970-01-01 00:00:00+00:00\n");
+  assert.equal((await run("date", ["-u", "-d", "@0", "--rfc-822"])).stdout, "Thu, 01 Jan 1970 00:00:00 +0000\n");
+  assert.equal((await run("date", ["-u", "-d", "@0.1234567899", "+%N"])).stdout, "123456789\n");
+  assert.equal((await run("date", ["-u", "-d", "", "+%T"])).stdout, "00:00:00\n");
+  assert.equal((await run("date", ["-u", "-d", "@-63745056000", "+%F"])).stdout, "-050-01-01\n");
 });

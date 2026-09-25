@@ -23,14 +23,14 @@ function parseArguments(args: readonly string[]): DateArguments {
     style = value;
   };
   const iso = (value: string): string => {
-    switch (value) {
-      case "date": return "%F";
-      case "hours": return "%FT%H%:z";
-      case "minutes": return "%FT%H:%M%:z";
-      case "seconds": return "%FT%T%:z";
-      case "ns": return "%FT%T,%N%:z";
-      default: throw new CommandFailure(`unsupported ISO precision: ${value}`);
+    if (value) {
+      if ("date".startsWith(value)) return "%F";
+      if ("hours".startsWith(value)) return "%FT%H%:z";
+      if ("minutes".startsWith(value)) return "%FT%H:%M%:z";
+      if ("seconds".startsWith(value)) return "%FT%T%:z";
+      if ("ns".startsWith(value)) return "%FT%T,%N%:z";
     }
+    throw new CommandFailure(`unsupported ISO precision: ${value}`);
   };
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -44,7 +44,7 @@ function parseArguments(args: readonly string[]): DateArguments {
         if (value === undefined) throw new CommandFailure(`option requires an argument: ${name}`);
         return value;
       };
-      if (["--help", "--version", "--utc", "--universal", "--rfc-email", "--rfc-2822"].includes(name) && attached !== undefined) {
+      if (["--help", "--version", "--utc", "--universal", "--rfc-email", "--rfc-2822", "--rfc-822"].includes(name) && attached !== undefined) {
         throw new CommandFailure(`option does not allow an argument: ${name}`);
       }
       switch (name) {
@@ -55,11 +55,13 @@ function parseArguments(args: readonly string[]): DateArguments {
         case "--reference": reference = required(); break;
         case "--file": file = required(); break;
         case "--iso-8601": formatted(iso(attached ?? "date")); break;
-        case "--rfc-email": case "--rfc-2822": formatted("%a, %d %b %Y %T %z"); break;
+        case "--rfc-email": case "--rfc-2822": case "--rfc-822": formatted("%a, %d %b %Y %T %z"); break;
         case "--rfc-3339": {
           const precision = required();
-          if (!["date", "seconds", "ns"].includes(precision)) throw new CommandFailure(`unsupported RFC3339 precision: ${precision}`);
-          formatted(precision === "date" ? "%F" : precision === "ns" ? "%F %T.%N%:z" : "%F %T%:z");
+          if (!precision || !["date", "seconds", "ns"].some(item => item.startsWith(precision))) {
+            throw new CommandFailure(`unsupported RFC3339 precision: ${precision}`);
+          }
+          formatted("date".startsWith(precision) ? "%F" : "ns".startsWith(precision) ? "%F %T.%N%:z" : "%F %T%:z");
           break;
         }
         case "--set": throw new CommandFailure("setting clocks is unsupported");

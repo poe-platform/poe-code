@@ -130,25 +130,11 @@ function definition(configuration: Settings): CommandDefinition {
         if (token === "--help") return status(context, records.help, 0, true);
         if (token === "--version") return status(context, records.version, 0, true);
         if (token === "-" || !token.startsWith("-")) break;
-        if (token === "-v" || token === "--verbose") {
-          verbose = true;
-          offset++;
-          continue;
-        }
-        // Virtual invocation already runs without a separate POSIX process group.
-        if (token === "--foreground" || token === "-f") {
-          foreground = true;
-          offset++;
-          continue;
-        }
-        if (token === "--preserve-status" || token === "-p") {
-          preserveStatus = true;
-          offset++;
-          continue;
-        }
-        if (token === "--kill-after" || token.startsWith("--kill-after=") || token.startsWith("-k")) {
-          const duration = token === "--kill-after" ? originalArgs[++offset]
-            : token.startsWith("--kill-after=") ? token.slice(13) : token.slice(2) || originalArgs[++offset];
+        if (token === "--verbose") { verbose = true; offset++; continue; }
+        if (token === "--foreground") { foreground = true; offset++; continue; }
+        if (token === "--preserve-status") { preserveStatus = true; offset++; continue; }
+        if (token === "--kill-after" || token.startsWith("--kill-after=")) {
+          const duration = token === "--kill-after" ? originalArgs[++offset] : token.slice(13);
           if (duration === undefined) return status(context, records.missingDuration, 125);
           const killAfter = parseDuration(duration);
           if (killAfter.kind === "invalid") return status(context, records.invalidDuration, 125);
@@ -157,14 +143,41 @@ function definition(configuration: Settings): CommandDefinition {
           offset++;
           continue;
         }
-        let signalToken: string | undefined;
-        if (token === "--signal") signalToken = originalArgs[++offset];
-        else if (token.startsWith("--signal=")) signalToken = token.slice(9);
-        else if (token.startsWith("-s")) signalToken = token.slice(2) || originalArgs[++offset];
-        if (signalToken !== undefined) {
+        if (token === "--signal" || token.startsWith("--signal=")) {
+          const signalToken = token === "--signal" ? originalArgs[++offset] : token.slice(9);
+          if (signalToken === undefined) return status(context, records.invalidSignal, 125);
           const parsedSignal = parseSignal(signalToken);
           if (parsedSignal === undefined) return status(context, records.invalidSignal, 125);
           signalNumber = parsedSignal;
+          offset++;
+          continue;
+        }
+        if (!token.startsWith("--")) {
+          let position = 1;
+          while (position < token.length) {
+            const flag = token[position]!;
+            if (flag === "v") { verbose = true; position++; continue; }
+            if (flag === "f") { foreground = true; position++; continue; }
+            if (flag === "p") { preserveStatus = true; position++; continue; }
+            if (flag === "k") {
+              const duration = token.slice(position + 1) || originalArgs[++offset];
+              if (duration === undefined) return status(context, records.missingDuration, 125);
+              const killAfter = parseDuration(duration);
+              if (killAfter.kind === "invalid") return status(context, records.invalidDuration, 125);
+              if (killAfter.kind === "overflow") return status(context, records.durationOverflow, 125);
+              killAfterMilliseconds = killAfter.milliseconds;
+              break;
+            }
+            if (flag === "s") {
+              const signalToken = token.slice(position + 1) || originalArgs[++offset];
+              if (signalToken === undefined) return status(context, records.invalidSignal, 125);
+              const parsedSignal = parseSignal(signalToken);
+              if (parsedSignal === undefined) return status(context, records.invalidSignal, 125);
+              signalNumber = parsedSignal;
+              break;
+            }
+            return status(context, records.invalidOption, 125);
+          }
           offset++;
           continue;
         }

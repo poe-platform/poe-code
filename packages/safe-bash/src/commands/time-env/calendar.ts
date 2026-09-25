@@ -59,7 +59,7 @@ function sameFields(left: CalendarFields, right: CalendarFields): boolean {
 }
 
 function checkCalendar(fields: CalendarFields, restrictYear = true): void {
-  if ((restrictYear && (fields.year < 0 || fields.year > 9999)) || fields.month < 1 || fields.month > 12 || fields.day < 1 || fields.day > 31
+  if ((restrictYear && (fields.year < -9999 || fields.year > 9999)) || fields.month < 1 || fields.month > 12 || fields.day < 1 || fields.day > 31
     || fields.hour < 0 || fields.hour > 23 || fields.minute < 0 || fields.minute > 59 || fields.second < 0 || fields.second > 59
     || !sameFields(fields, utcFields(utcMilliseconds(fields)))) throw new CommandFailure("invalid calendar date or time");
 }
@@ -139,10 +139,10 @@ export class TimeZone {
 }
 
 function decimalEpoch(text: string): bigint | undefined {
-  const match = /^@([+-]?)(\d+)(?:[.,](\d{1,9}))?$/.exec(text);
+  const match = /^@([+-]?)(\d+)(?:[.,](\d+))?$/.exec(text);
   if (!match) return undefined;
   if (match[2]!.replace(/^0+/, "").length > 13) throw new CommandFailure("date is outside the supported range");
-  const magnitude = BigInt(match[2]!) * nanosecondsPerSecond + BigInt((match[3] ?? "").padEnd(9, "0"));
+  const magnitude = BigInt(match[2]!) * nanosecondsPerSecond + BigInt((match[3] ?? "").slice(0, 9).padEnd(9, "0"));
   return boundedInstant(match[1] === "-" ? -magnitude : magnitude);
 }
 
@@ -153,6 +153,10 @@ function parsedZone(text: string | undefined, fallback: TimeZone): TimeZone {
 
 export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigint {
   const value = text.trim();
+  if (value === "") {
+    const fields = zone.fields(now());
+    return zone.instant({ ...fields, hour: 0, minute: 0, second: 0 }, 0n);
+  }
   const epoch = decimalEpoch(value);
   if (epoch !== undefined) return epoch;
   if (value === "now") return now();
@@ -163,12 +167,13 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
     const changed = utcFields(utcMilliseconds(fields) + (value === "yesterday" ? -86400000 : 86400000));
     return zone.instant(changed, current - floorDivide(current, nanosecondsPerSecond) * nanosecondsPerSecond);
   }
-  const relative = /^(?:(.*?)\s+)?([+-]?\d+)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)(?:\s+(ago))?$/.exec(value);
+  const relative = /^(?:(.*?)\s+)?([+-]?\s*\d+)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)(?:\s+(ago))?$/.exec(value);
   if (relative) {
-    if (relative[2]!.replace(/^[+-]?0*/, "").length > 13) throw new CommandFailure("relative date is outside the supported range");
+    const rawAmount = relative[2]!.replace(/\s+/g, "");
+    if (rawAmount.replace(/^[+-]?0*/, "").length > 13) throw new CommandFailure("relative date is outside the supported range");
     const base = relative[1] === undefined || relative[1] === "now"
       ? { instant: now(), zone } : parseAbsoluteDate(relative[1], zone);
-    const amount = BigInt(relative[2]!) * (relative[4] ? -1n : 1n);
+    const amount = BigInt(rawAmount) * (relative[4] ? -1n : 1n);
     const unit = relative[3]!;
     if (["second", "minute", "hour"].some(name => unit.startsWith(name))) {
       const scale = unit.startsWith("hour") ? 3600n : unit.startsWith("minute") ? 60n : 1n;
@@ -187,12 +192,12 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
 function parseAbsoluteDate(value: string, zone: TimeZone): { instant: bigint; zone: TimeZone } {
   const epoch = decimalEpoch(value);
   if (epoch !== undefined) return { instant: epoch, zone };
-  const iso = /^(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{4})(\d{2})(\d{2}))(?:[Tt ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d{1,9}))?)?)?(?:\s*(Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
+  const iso = /^(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{4})(\d{2})(\d{2}))(?:[Tt ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?(?:\s*(Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value);
   if (iso) {
     const fields: CalendarFields = { year: Number(iso[1] ?? iso[4]), month: Number(iso[2] ?? iso[5]), day: Number(iso[3] ?? iso[6]), hour: Number(iso[7] ?? 0),
       minute: Number(iso[8] ?? 0), second: Number(iso[9] ?? 0) };
     const sourceZone = parsedZone(iso[11], zone);
-    return { instant: sourceZone.instant(fields, BigInt((iso[10] ?? "").padEnd(9, "0"))), zone: sourceZone };
+    return { instant: sourceZone.instant(fields, BigInt((iso[10] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
   }
   const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+(GMT|UTC|[+-]\d{4})$/.exec(value);
   if (rfc) {

@@ -5,7 +5,8 @@ function duration(arguments_: readonly string[]): number {
   const base = 1000000000n;
   const maximum = BigInt(Number.MAX_SAFE_INTEGER);
   const columns = new Map<bigint, bigint>();
-  for (const value of arguments_) {
+  for (const rawValue of arguments_) {
+    const value = /^[ \t\n\r\v\f]*-0[smhd]?$/.test(rawValue) ? rawValue.replace("-", "+") : rawValue;
     const match = /^[ \t\n\r\v\f]*\+?((?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?|0[xX](?:[\da-fA-F]+(?:\.[\da-fA-F]*)?|\.[\da-fA-F]+)(?:[pP][+-]?\d+)?)([smhd]?)$/.exec(value);
     if (!match) throw new CommandFailure(`invalid time interval: ${value}`);
     const hexadecimal = /^0[xX]([\da-fA-F]*)(?:\.([\da-fA-F]*))?(?:[pP]([+-]?\d+))?$/.exec(match[1]!);

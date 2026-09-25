@@ -22,7 +22,7 @@ export function formatDate(format: string, instant: bigint, zone: TimeZone, limi
   const isoYear = thursday.getUTCFullYear();
   const isoWeek = 1 + Math.floor((thursday.getTime() - utcMilliseconds({ year: isoYear, month: 1, day: 1, hour: 0, minute: 0, second: 0 })) / 604800000);
   const nano = (instant - floorDivide(instant, nanosecondsPerSecond) * nanosecondsPerSecond).toString().padStart(9, "0");
-  const number = (value: number, width = 2, padding = "0"): string => value.toString().padStart(width, padding);
+  const number = (value: number, width = 2, padding = "0"): string => value < 0 && padding === "0" ? `-${Math.abs(value).toString().padStart(Math.max(0, width - 1), padding)}` : value.toString().padStart(width, padding);
   const time = `${number(fields.hour)}:${number(fields.minute)}:${number(fields.second)}`;
   const hour12 = fields.hour % 12 || 12;
   const meridian = fields.hour < 12 ? "AM" : "PM";

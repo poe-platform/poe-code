@@ -246,6 +246,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
           rows[file] = await next(file);
         }
       }
+      await order.finish();
       return { exitCode: order.failed ? 1 : 0 };
     } finally { await inputs.close(); }
   });

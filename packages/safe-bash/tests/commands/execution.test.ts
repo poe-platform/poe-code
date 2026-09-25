@@ -232,3 +232,13 @@ test("xargs supports -i[R], -l[MAX], and -e[EOF] short options", async () => {
   assert.equal((await run("xargs", ["-eEND", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a\n");
   assert.equal((await run("xargs", ["-eEND", "-e", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a END b\n");
 });
+
+test("env exits 125 on usage/chdir errors, rejects -u A=B, and accepts =value", async () => {
+  assert.equal((await run("env", ["-0", "true"])).exitCode, 125);
+  assert.equal((await run("env", ["--invalid"])).exitCode, 125);
+  assert.equal((await run("env", ["-u", "A=B"])).exitCode, 125);
+  assert.equal((await run("env", ["-C", "/no-such-dir", "true"])).exitCode, 125);
+  const eqVal = await run("env", ["-i", "=foo"]);
+  assert.equal(eqVal.exitCode, 0);
+  assert.equal(eqVal.stdout, "=foo\n");
+});

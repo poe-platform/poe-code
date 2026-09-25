@@ -197,4 +197,7 @@ export class OrderCheck {
       await diagnostic(this.context, new PublicDiagnostic(message));
     }
   }
+  async finish(): Promise<void> {
+    if (this.failed) await diagnostic(this.context, new PublicDiagnostic("input is not in sorted order"));
+  }
 }

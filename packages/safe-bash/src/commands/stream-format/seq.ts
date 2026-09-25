@@ -156,19 +156,43 @@ async function floatingSequence(first: number, increment: number, last: number, 
   await session.text("\n");
 }
 
-function parseFormat(text: string, session: Session): Format {
+async function parseFormat(text: string, session: Session): Promise<Format> {
+  session.check(Buffer.byteLength(text), session.limits.maxRecordBytes, "format");
   let literal = "", result: Format | undefined;
   for (let offset = 0; offset < text.length; offset++) {
+    if ((offset & 127) === 0) await session.step();
     if (text[offset] !== "%") { literal += text[offset]; continue; }
     if (text[offset + 1] === "%") { literal += "%"; offset++; continue; }
     if (result) throw new UsageError(`format '${text}' has too many % directives`);
-    const match = /^%([-+ #0]*)(\d*)(?:\.(\d*))?L?([fFeEgGaA])/u.exec(text.slice(offset));
-    if (!match) throw new UsageError("format requires one f, e, g or a conversion");
-    const width = Number(match[2] || 0), precision = match[3] === undefined ? (match[4]!.toLowerCase() === "a" ? -1 : 6) : Number(match[3]);
+    let cursor = offset + 1;
+    let flags = "";
+    while (cursor < text.length && "-+ #0".includes(text[cursor]!)) {
+      if ((cursor & 127) === 0) await session.step();
+      flags += text[cursor++]!;
+    }
+    let widthDigits = "";
+    while (cursor < text.length && text[cursor]! >= "0" && text[cursor]! <= "9") {
+      if ((cursor & 127) === 0) await session.step();
+      widthDigits += text[cursor++]!;
+    }
+    let precisionDigits: string | undefined;
+    if (text[cursor] === ".") {
+      cursor++;
+      precisionDigits = "";
+      while (cursor < text.length && text[cursor]! >= "0" && text[cursor]! <= "9") {
+        if ((cursor & 127) === 0) await session.step();
+        precisionDigits += text[cursor++]!;
+      }
+    }
+    if (text[cursor] === "L") cursor++;
+    const kind = text[cursor];
+    if (!kind || !"fFeEgGaA".includes(kind)) throw new UsageError("format requires one f, e, g or a conversion");
+    const width = Number(widthDigits || 0);
+    const precision = precisionDigits === undefined ? (kind.toLowerCase() === "a" ? -1 : 6) : Number(precisionDigits || 0);
     session.check(width, session.limits.maxRecordBytes, "format width");
     session.check(Math.max(0, precision), session.limits.maxNumericDigits, "format precision");
-    result = { prefix: literal, suffix: "", flags: match[1]!, width, precision, kind: match[4]! };
-    literal = ""; offset += match[0].length - 1;
+    result = { prefix: literal, suffix: "", flags, width, precision, kind };
+    literal = ""; offset = cursor;
   }
   if (!result) throw new UsageError("format must contain exactly one conversion");
   return { ...result, suffix: literal };
@@ -219,7 +243,7 @@ export function createSeqCommand(limits: StreamFormatLimits): CommandDefinition 
     let current = align(first);
     const step = align(increment), finish = align(last);
     const precision = Math.max(first.precision, increment.precision);
-    const format = formatText === undefined ? undefined : parseFormat(formatText, session);
+    const format = formatText === undefined ? undefined : await parseFormat(formatText, session);
     if (format) {
       await floatingSequence(Number(first.negativeZero ? "-0" : fixed(first.coefficient, first.scale, Math.max(0, first.scale))), Number(fixed(increment.coefficient, increment.scale, Math.max(0, increment.scale))), Number(fixed(last.coefficient, last.scale, Math.max(0, last.scale))), format, separator, session);
       return;

@@ -2351,4 +2351,27 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => sharp(pngIn).timeout({ seconds: 4000 })).toThrow(/seconds/);
     expect(() => sharp(pngIn).timeout(10 as any)).toThrow(/options/);
   });
+
+  it("preserves 3ch RGB in extend() when extendWith is copy/repeat/mirror even if background has alpha<1 and validates extendWith", async () => {
+    const rgb3x3 = Buffer.alloc(3 * 3 * 3, 100);
+    for (const extendWith of ["copy", "repeat", "mirror"] as const) {
+      const res = await sharp(rgb3x3, { raw: { width: 3, height: 3, channels: 3 } })
+        .extend({ top: 1, bottom: 2, left: 1, right: 2, extendWith, background: { r: 10, g: 20, b: 30, alpha: 0.5 } })
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      expect(res.info.channels).toBe(3);
+      expect(res.info.size).toBe(6 * 6 * 3);
+    }
+
+    const resBg = await sharp(rgb3x3, { raw: { width: 3, height: 3, channels: 3 } })
+      .extend({ top: 1, bottom: 2, left: 1, right: 2, extendWith: "background", background: { r: 10, g: 20, b: 30, alpha: 0.5 } })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(resBg.info.channels).toBe(4);
+    expect(resBg.info.size).toBe(6 * 6 * 4);
+
+    expect(() =>
+      sharp(rgb3x3, { raw: { width: 3, height: 3, channels: 3 } }).extend({ top: 1, extendWith: "invalid" as any })
+    ).toThrow(/one of: background, copy, repeat, mirror/);
+  });
 });

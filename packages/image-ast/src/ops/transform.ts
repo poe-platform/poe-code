@@ -451,9 +451,13 @@ export function extendImage(
     width: dstW,
     height: dstH,
     data: out,
-    hasAlpha: img.hasAlpha || spec.background.a < 255,
+    hasAlpha: img.hasAlpha || (spec.extendWith === "background" && spec.background.a < 255),
     channels:
-      img.hasAlpha || spec.background.a < 255 ? (img.channels < 3 ? 2 : 4) : img.channels
+      img.hasAlpha || (spec.extendWith === "background" && spec.background.a < 255)
+        ? img.channels < 3
+          ? 2
+          : 4
+        : img.channels
   };
 }
 

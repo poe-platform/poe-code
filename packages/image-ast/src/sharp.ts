@@ -694,6 +694,15 @@ export class SharpInstance {
           throw new Error(`Expected positive integer for ${side} but received ${val}`);
         }
       }
+      if (
+        edges.extendWith !== undefined &&
+        edges.extendWith !== "background" &&
+        edges.extendWith !== "copy" &&
+        edges.extendWith !== "repeat" &&
+        edges.extendWith !== "mirror"
+      ) {
+        throw new Error(`Expected one of: background, copy, repeat, mirror for extendWith but received ${edges.extendWith}`);
+      }
     } else {
       throw new Error(`Expected integer or object for extend but received ${edges}`);
     }

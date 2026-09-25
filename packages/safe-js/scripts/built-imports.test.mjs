@@ -6,6 +6,25 @@ import test from "node:test";
 import { build } from "esbuild";
 
 // Bound native startup and cold imports consistently on busy build hosts.
+for (const exceeds of [false, true]) {
+  test(`built closure-property accounting enforces depth on a cold stack (exceeds=${exceeds})`, () => {
+    const entry = name => JSON.stringify(new URL(`../dist/${name}.js`, import.meta.url).href);
+    const source = `
+      import assert from "node:assert/strict";
+      import { createSandboxClosure, measureSandboxData } from ${entry("interp/values")};
+      import { MAX_DATA_DEPTH } from ${entry("graph-depth")};
+      const count = MAX_DATA_DEPTH / 2 + ${exceeds ? 1 : 0};
+      let root;
+      for (let index = 0; index < count; index++)
+        root = createSandboxClosure({ call: () => undefined, properties: { next: root } });
+      ${exceeds
+        ? 'assert.throws(() => measureSandboxData([root]), { code: "budgetExceeded", budget: "dataDepth", current: MAX_DATA_DEPTH + 1 });'
+        : 'assert.equal(measureSandboxData([root]), count * 7);'}
+    `;
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", source], { encoding: "utf8", timeout: 5000 });
+    assert.equal(result.status, 0, result.stderr || String(result.error));
+  });
+}
 
 test("Workerd public entry bundles without native filesystem authority", async () => {
   const result = await build({

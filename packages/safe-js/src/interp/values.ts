@@ -878,10 +878,14 @@ interface DataContinuation {
   capture: CaptureBuffer | undefined;
   proxy: { handler: SandboxValue } | undefined;
   host: SandboxObject | undefined;
+  closure: SandboxClosure | undefined;
 }
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
 const MAX_REUSABLE_CAPTURE_LENGTH = 64;
+// Shallow property walks avoid an extra continuation for each method table.
+// Bound recursion well below the native stack limit, even before JIT warmup.
+const MAX_RECURSIVE_PROPERTY_DEPTH = 32;
 const NativeMeasurementSet = Set;
 let retainedMeasurementCode: ((value: unknown, depth?: number) => void) | undefined;
 
@@ -941,11 +945,11 @@ function measureSandboxDataWithSeen(
   // the segment above their entry count; completed frames release guest roots.
   let pending: DataContinuation[] | undefined;
   let pendingCount = 0;
-  const appendContinuation = (values: readonly unknown[] | undefined, depth: number, capture?: CaptureBuffer, proxy?: { handler: SandboxValue }, host?: SandboxObject): void => {
+  const appendContinuation = (values: readonly unknown[] | undefined, depth: number, capture?: CaptureBuffer, proxy?: { handler: SandboxValue }, host?: SandboxObject, closure?: SandboxClosure): void => {
     const frames = pending ??= nativeDataArraySetPrototype([], null) as DataContinuation[];
     let frame = frames[pendingCount];
     if (frame === undefined) {
-      frame = { values, index: 1, depth, capture, proxy, host };
+      frame = { values, index: 1, depth, capture, proxy, host, closure };
       nativeDataArrayAppend(frames, frame);
     } else {
       frame.values = values;
@@ -954,6 +958,7 @@ function measureSandboxDataWithSeen(
       frame.capture = capture;
       frame.proxy = proxy;
       frame.host = host;
+      frame.closure = closure;
     }
     pendingCount++;
   };
@@ -1042,6 +1047,27 @@ function measureSandboxDataWithSeen(
     captures = appendCapture(captures, value);
   };
   const collector = createMeasurementCollector(appendNativeCapture);
+
+  // Read the collector only after the closure's properties have been visited:
+  // those descendants can replace it or change its retained values.
+  const collectClosureCaptures = (closure: SandboxClosure, depth: number): CaptureBuffer | undefined => {
+    if (options.ignoreClosureCaptures) return;
+    const collect = readIndexedClosureCaptures(closure);
+    if (collect !== undefined) {
+      let roots: CaptureBuffer | undefined;
+      try {
+        collect(collector.append);
+        roots = captures;
+        return roots;
+      } finally {
+        if (roots === undefined && captures !== undefined) releaseCaptures(captures);
+        captures = undefined;
+      }
+    }
+    const roots = closure[sandboxRetainedValues]?.();
+    if (roots !== undefined && roots !== null)
+      for (const root of roots) visit(root, depth + 1);
+  };
 
   // Keep this classification block small enough to optimize independently.
   // Every membership/state read remains fresh and in its original visit order.
@@ -1436,33 +1462,22 @@ function measureSandboxDataWithSeen(
                 if ("value" in descriptor) visit(descriptor.value, depth + 1);
                 else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
               }
-            } else visit(readClosureProperties(closure, closureData), depth + 1);
-          }
-          if (!options.ignoreClosureCaptures) {
-            const collect = readIndexedClosureCaptures(closure);
-            if (collect !== undefined) {
-              let roots: CaptureBuffer | undefined;
-              try {
-                collect(collector.append);
-                roots = captures;
-              } finally {
-                if (roots === undefined && captures !== undefined) releaseCaptures(captures);
-                // Descendants may collect their own native captures on this walk.
-                captures = undefined;
-              }
-              if (roots !== undefined && roots.length > 0) {
-                value = roots.values[0];
-                if (roots.length > 1)
-                  appendContinuation(roots.values, depth + 1, roots);
-                else releaseCaptures(roots);
-                depth++;
-                continue walk;
-              }
+            } else if (depth < MAX_RECURSIVE_PROPERTY_DEPTH) {
+              visit(readClosureProperties(closure, closureData), depth + 1);
             } else {
-              const roots = closure[sandboxRetainedValues]?.();
-              if (roots !== undefined && roots !== null)
-                for (const root of roots) visit(root, depth + 1);
+              appendContinuation(undefined, depth, undefined, undefined, undefined, closure);
+              value = readClosureProperties(closure, closureData);
+              depth++;
+              continue walk;
             }
+          }
+          const roots = collectClosureCaptures(closure, depth);
+          if (roots !== undefined && roots.length > 0) {
+            value = roots.values[0];
+            if (roots.length > 1) appendContinuation(roots.values, depth + 1, roots);
+            else releaseCaptures(roots);
+            depth++;
+            continue walk;
           }
           break entry;
         }
@@ -1850,6 +1865,19 @@ function measureSandboxDataWithSeen(
       while (pendingCount > floor) {
         const frame = pending![pendingCount - 1]!;
         const references = frame.values;
+        if (frame.closure !== undefined) {
+          const closure = frame.closure;
+          depth = frame.depth;
+          frame.closure = undefined;
+          pendingCount--;
+          const roots = collectClosureCaptures(closure, depth);
+          if (roots === undefined || roots.length === 0) continue;
+          value = roots.values[0];
+          if (roots.length > 1) appendContinuation(roots.values, depth + 1, roots);
+          else releaseCaptures(roots);
+          depth++;
+          continue walk;
+        }
         if (references === undefined) {
           const proxy = frame.proxy;
           const host = frame.host;
@@ -1972,6 +2000,7 @@ function measureSandboxDataWithSeen(
       frame.values = undefined;
       frame.proxy = undefined;
       frame.host = undefined;
+      frame.closure = undefined;
     }
   }
 }

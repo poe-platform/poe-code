@@ -56,7 +56,7 @@ message contains only fixed phase names, without session IDs or protocol data.
 An optional second argument supplies `loadState(session, signal)`. Explicit
 `contextOptions.storageState`, including an empty state, overrides that callback.
 The fourth argument bounds storage restoration bytes; its default is 2 MiB.
-Portable profile APIs always require explicit host byte and tab limits.
+Portable profile byte, tab, and traversal limits are independently optional and default to unlimited; `Infinity` is also accepted. Explicit positive finite limits remain enforced. Storage structure and provider limits still apply.
 
 The trusted storage control channel has no default frame-byte, pending-command,
 pending-byte, subscription, late-reply, or command-time limit. Individual control
@@ -71,7 +71,7 @@ import {
   restoreBrowserProfile
 } from "@poe-platform/safe-bash/playwright";
 
-const limits = { maxBytes: 2 * 1024 * 1024, maxTabs: 8 };
+const limits = {}; // Optional: set maxBytes, maxTabs, or maxTraversalBytes.
 const persistence = {
   async restore({ name, signal }) {
     const bytes = await hostProfiles.load(name, signal);

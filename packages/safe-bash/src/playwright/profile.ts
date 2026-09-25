@@ -25,8 +25,8 @@ export interface BrowserProfileContext extends PlaywrightContext {
 }
 
 /** Validate persisted JSON before it can allocate or navigate a browser. */
-export function parseBrowserProfile(bytes: Uint8Array, limits: BrowserProfileLimits): BrowserProfile {
-	validateProfileLimits(limits);
+export function parseBrowserProfile(bytes: Uint8Array, limitOptions: BrowserProfileLimits = {}): BrowserProfile {
+	const limits = validateProfileLimits(limitOptions);
 	if (bytes.byteLength > limits.maxBytes) throw new Error("Browser profile byte limit exceeded");
 	const value: unknown = JSON.parse(
 		new TextDecoder("utf-8", { fatal: true }).decode(bytes),
@@ -90,14 +90,20 @@ function timing(value: unknown) {
 	return value;
 }
 
-export interface BrowserProfileLimits { readonly maxBytes: number; readonly maxTabs: number; readonly maxTraversalBytes?: number; }
-
-function validateProfileLimits(limits: BrowserProfileLimits) {
- if (!limits || !Number.isSafeInteger(limits.maxBytes) || limits.maxBytes <= 0 || !Number.isSafeInteger(limits.maxTabs) || limits.maxTabs <= 0 || (limits.maxTraversalBytes !== undefined && (!Number.isSafeInteger(limits.maxTraversalBytes) || limits.maxTraversalBytes <= 0))) throw new TypeError("Invalid browser profile limits");
+/** Omitted limits and Infinity are unlimited; finite limits must be positive safe integers. */
+export interface BrowserProfileLimits {
+  readonly maxBytes?: number;
+  readonly maxTabs?: number;
+  readonly maxTraversalBytes?: number;
 }
 
-export function encodeBrowserProfile(profile: BrowserProfile, limits: BrowserProfileLimits): Uint8Array {
- validateProfileLimits(limits);
+function validateProfileLimits(limits: BrowserProfileLimits = {}): Required<BrowserProfileLimits> {
+  if (!limits || ![limits.maxBytes, limits.maxTabs, limits.maxTraversalBytes].every(limit => limit === undefined || limit === Infinity || (Number.isSafeInteger(limit) && limit! > 0))) throw new TypeError("Invalid browser profile limits");
+  return { maxBytes: limits.maxBytes ?? Infinity, maxTabs: limits.maxTabs ?? Infinity, maxTraversalBytes: limits.maxTraversalBytes ?? Infinity };
+}
+
+export function encodeBrowserProfile(profile: BrowserProfile, limitOptions: BrowserProfileLimits = {}): Uint8Array {
+ const limits = validateProfileLimits(limitOptions);
  const tabs = Object.getOwnPropertyDescriptor(profile, 'tabs')?.value;
  if (Array.isArray(tabs) && tabs.length > limits.maxTabs) throw new Error('Browser profile tab limit exceeded');
  const serialized = JSON.stringify(profile);
@@ -114,14 +120,15 @@ export function encodeBrowserProfile(profile: BrowserProfile, limits: BrowserPro
 
 /** Restore blank tabs by default; the controller installs configuration before initialization. */
 export async function restoreBrowserProfile(options: {
-  adapter: PlaywrightAdapter; profile: BrowserProfile; limits: BrowserProfileLimits;
+  adapter: PlaywrightAdapter; profile: BrowserProfile; limits?: BrowserProfileLimits;
   name: string; signal: AbortSignal;
   /** Saved URLs may repeat actions. Navigation requires explicit host authorization. */
   tabRestoration?: 'blank' | 'navigate';
   /** Interrupted-owner recovery: storage only, one blank page, no script or URL replay. */
   recovery?: boolean;
 }): Promise<NonNullable<Awaited<ReturnType<PlaywrightSessionPersistence['restore']>>>> {
-  const { adapter, limits, name, signal, tabRestoration } = options;
+  const { adapter, name, signal, tabRestoration } = options;
+  const limits = validateProfileLimits(options.limits);
   signal.throwIfAborted();
   const profile = parseBrowserProfile(encodeBrowserProfile(options.profile, limits), limits);
   const lease = await adapter.acquire({
@@ -174,8 +181,8 @@ export async function restoreBrowserProfile(options: {
 }
 
 /** Read closed-origin IndexedDB using isolated targets and settle every registered reader cleanup. */
-export async function checkpointBrowserProfile(session: PlaywrightSessionCheckpoint, limits: BrowserProfileLimits, signal: AbortSignal): Promise<Uint8Array> {
-  validateProfileLimits(limits);
+export async function checkpointBrowserProfile(session: PlaywrightSessionCheckpoint, limitOptions: BrowserProfileLimits | undefined, signal: AbortSignal): Promise<Uint8Array> {
+  const limits = validateProfileLimits(limitOptions);
   signal.throwIfAborted();
   checkpointPages(session, limits);
   const cleanups: (() => Promise<void>)[] = [];
@@ -204,7 +211,7 @@ export async function checkpointBrowserProfile(session: PlaywrightSessionCheckpo
   }, limits);
 }
 
-function checkpointPages(session: PlaywrightSessionCheckpoint, limits: BrowserProfileLimits) {
+function checkpointPages(session: PlaywrightSessionCheckpoint, limits: Required<BrowserProfileLimits>) {
   const pages = session.context.pages();
   if (pages.length > limits.maxTabs) throw new Error('Browser profile tab limit exceeded');
   const selected = session.selectedPage === undefined ? 0 : pages.indexOf(session.selectedPage);

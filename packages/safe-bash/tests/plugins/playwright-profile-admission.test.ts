@@ -161,8 +161,8 @@ test('checkpoint preserves storage and provider-capture failure identity', async
 
 const invalidLimits = [
   { maxBytes: 0, maxTabs: 2 }, { maxBytes: 4096, maxTabs: 0 },
-  { maxBytes: Infinity, maxTabs: 2 }, { maxBytes: 4096, maxTabs: 0.5 },
-  undefined as unknown as BrowserProfileLimits,
+  { maxBytes: NaN, maxTabs: 2 }, { maxBytes: 4096, maxTabs: 0.5 },
+  null as unknown as BrowserProfileLimits,
 ];
 for (const [index, invalid] of invalidLimits.entries()) {
   test(`encoder rejects invalid limits ${index} before serialization or UTF-8 output`, () => {
@@ -444,4 +444,38 @@ test('storage recovery applies routing, timeouts and test ids without running in
     assert.deepEqual(checkpoints.at(-1)?.configuration, configuration);
     assert.equal(item.navigations[0]!.mock.callCount(), 0);
   } finally { await controller.dispose(); }
+});
+
+for (const unlimited of [{}, { maxBytes: Infinity, maxTabs: Infinity, maxTraversalBytes: Infinity }]) {
+  test(`profile lifecycle accepts unlimited individual limits ${JSON.stringify(unlimited)}`, async () => {
+    const largeState: PlaywrightStorageState = { cookies: [], origins: [{ origin: 'https://large.example', localStorage: [{ name: 'large', value: 'x'.repeat(2 * 1024 * 1024 + 1) }] }] };
+    const saved: BrowserProfile = { state: largeState, tabs: Array(1005).fill('about:blank'), selected: 1004 };
+    const bytes = encodeBrowserProfile(saved, unlimited);
+    assert.deepEqual(parseBrowserProfile(bytes, unlimited), saved);
+    const item = host();
+    item.read.mock.mockImplementation(async () => largeState);
+    const restored = await restoreBrowserProfile({ ...item.options, profile: saved, limits: unlimited });
+    assert.equal(item.pages.length, 1005);
+    assert.equal(restored.selectedPage, item.pages[1004]);
+    const checkpoint = await checkpointBrowserProfile({ ...item.session, selectedPage: restored.selectedPage! }, unlimited, item.controller.signal);
+    assert.deepEqual(parseBrowserProfile(checkpoint, unlimited), { ...saved, contextOptions: {} });
+    await restored.lease.release();
+  });
+}
+
+test('omitted profile limits and independent finite limits preserve admission', async () => {
+  const bytes = encodeBrowserProfile(profile);
+  assert.deepEqual(parseBrowserProfile(bytes), profile);
+  assert.deepEqual(parseBrowserProfile(bytes, { maxTabs: 2 }), profile);
+  assert.deepEqual(parseBrowserProfile(bytes, { maxBytes: bytes.length }), profile);
+  assert.throws(() => parseBrowserProfile(bytes, { maxTabs: 1 }));
+  assert.throws(() => encodeBrowserProfile(profile, { maxBytes: bytes.length - 1 }));
+  assert.throws(() => parseBrowserProfile(bytes, { maxTraversalBytes: 1 }));
+  const item = host();
+  const { limits: ignored, ...options } = item.options;
+  const restored = await restoreBrowserProfile(options);
+  assert.equal(item.pages.length, 2);
+  const checkpoint = await checkpointBrowserProfile(item.session, undefined, item.controller.signal);
+  assert.equal(parseBrowserProfile(checkpoint).tabs.length, 2);
+  await restored.lease.release();
 });

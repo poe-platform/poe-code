@@ -47,9 +47,7 @@ export class Reader {
       if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
       if (length === 0) continue;
       this.retention.admit(0, length);
-      const owned = Buffer.isBuffer(next.value)
-        ? next.value
-        : Buffer.from(next.value.buffer, next.value.byteOffset, length);
+      const owned = Buffer.from(next.value);
       try { this.blocks.push(owned); }
       catch (error) { this.retention.release(length); throw error; }
       const batch = getCachedLatin1Batch(next.value);
@@ -72,9 +70,7 @@ export class Reader {
     if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
     if (length === 0) return;
     this.retention.admit(0, length);
-    const block = Buffer.isBuffer(next.value)
-      ? next.value
-      : Buffer.from(next.value.buffer, next.value.byteOffset, length);
+    const block = Buffer.from(next.value);
     try { this.blocks.push(block); }
     catch (error) { this.retention.release(length); throw error; }
     const batch = getCachedLatin1Batch(next.value);

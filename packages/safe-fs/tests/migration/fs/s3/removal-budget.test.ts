@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 import { MockS3Client } from "../../../../src/fs/s3/mock.js";
 import { S3FileSystem } from "../../../../src/fs/s3/filesystem.ts";
 import { scopeFileSystem } from "../../../../src/fs/scoped.js";
+import { ReadOnlyFileSystem } from "../../../../src/fs/readonly/index.js";
 
 async function fixture(count: number, pageSize = 1000) {
   const transport = new MockS3Client({ buckets: ["test"], pageSize });
@@ -107,4 +108,68 @@ test("#709: S3FileSystem maxRequests and scopeFileSystem budget S3 transport cal
   await expect(scoped.stat("/dir/0")).resolves.toMatchObject({ type: "file" });
   await expect(scoped.stat("/dir/1")).rejects.toThrow("maxFileSystemOperations");
   expect(transport.requests.length - beforeScoped).toBeLessThanOrEqual(5);
+});
+
+for (const limited of ["none", "outer", "inner"]) test(`nested scoped lazy S3 reads preserve ${limited} transport budget`, async () => {
+  const transport = await fixture(1);
+  const raw = new S3FileSystem({ transport, bucket: "test" });
+  const failure = new Error(`${limited} transport limit`);
+  let outerCharges = 0;
+  let innerCharges = 0;
+  const signal = new AbortController().signal;
+  const inner = scopeFileSystem(raw, () => {
+    if (++innerCharges > 2 && limited === "inner") throw failure;
+  }, signal);
+  const outer = scopeFileSystem(new ReadOnlyFileSystem(inner), () => {
+    if (++outerCharges > 2 && limited === "outer") throw failure;
+  }, signal);
+  const before = transport.requests.length;
+  const source = outer.readStream!("/dir/0");
+  expect(transport.requests.length).toBe(before);
+  const read = async () => {
+    const bytes: number[] = [];
+    for await (const chunk of source) bytes.push(...chunk);
+    return bytes;
+  };
+  if (limited === "none") {
+    await expect(read()).resolves.toEqual([1]);
+    const requests = transport.requests.length - before;
+    expect(requests).toBeGreaterThan(2);
+    expect(outerCharges).toBe(requests);
+    expect(innerCharges).toBe(requests);
+  } else {
+    await expect(read()).rejects.toBe(failure);
+    expect(transport.requests.length - before).toBe(2);
+    expect(transport.requests.slice(before).some(request => request.operation === "getObject")).toBe(false);
+  }
+});
+
+test("concurrent S3 scopes isolate paused request contexts", async () => {
+  const transport = await fixture(2);
+  const raw = new S3FileSystem({ transport, bucket: "test" });
+  const head = transport.headObject.bind(transport);
+  let enter!: () => void;
+  let release!: () => void;
+  const entered = new Promise<void>(resolve => { enter = resolve; });
+  const paused = new Promise<void>(resolve => { release = resolve; });
+  transport.headObject = async (input, options) => {
+    if (input.Key === "dir/0") { enter(); await paused; }
+    return head(input, options);
+  };
+  let leftCharges = 0;
+  let rightCharges = 0;
+  const failure = new Error("left scope limit");
+  const signal = new AbortController().signal;
+  const left = scopeFileSystem(raw, () => { if (++leftCharges > 3) throw failure; }, signal);
+  const right = scopeFileSystem(raw, () => { rightCharges++; }, signal);
+  const pending = expect(left.readFile("/dir/0")).rejects.toBe(failure);
+  await entered;
+  try {
+    const before = transport.requests.length;
+    await expect(right.stat("/dir/1")).resolves.toMatchObject({ type: "file", size: 1 });
+    expect(leftCharges).toBe(3);
+    expect(rightCharges).toBe(transport.requests.length - before);
+    expect(rightCharges).toBeGreaterThan(3);
+  } finally { release(); await pending; }
+  expect(leftCharges).toBe(4);
 });

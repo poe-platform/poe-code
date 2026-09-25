@@ -1,5 +1,6 @@
 import { FsError } from "../contracts/errors.js";
 import type { FsOptions } from "../contracts/filesystem.js";
+import type { ScopedTransportBudgetFrame } from "./transport-budget.js";
 
 export type PlatformErrno = number | undefined;
 export type PlatformComparisonCallback<Callback> = Callback & never;
@@ -44,3 +45,30 @@ export const comparisonContext = Object.freeze({
     }
   }
 });
+
+// Scoped browser filesystems charge logical operations directly. S3 remains
+// Node-only; never pretend to provide its async transport budget context here.
+export function getScopedTransportBudget(): readonly ScopedTransportBudgetFrame[] | undefined {
+  return undefined;
+}
+
+export function withScopedTransportBudget<Result>(
+  frames: readonly ScopedTransportBudgetFrame[] | undefined,
+  action: () => Result,
+): Result {
+  if (frames !== undefined) throw new FsError("ENOTSUP", { message: "S3 transport budget contexts require Node" });
+  return action();
+}
+
+export function runScopedTransportBudget<Result>(
+  _admit: (options?: FsOptions) => void,
+  action: () => Result,
+  _credit = 1,
+): Result {
+  return action();
+}
+
+export function chargeScopedTransportCall(options?: FsOptions): never {
+  options?.signal?.throwIfAborted();
+  throw new FsError("ENOTSUP", { message: "S3 transport budget contexts require Node" });
+}

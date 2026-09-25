@@ -49,17 +49,21 @@ test("creation masks remain advisory on S3 and preserve existing metadata modes"
 
 test("scoped view retains S3 and Memory authority in both directions and nested views", async () => {
   const memory = new MemoryFileSystem();
-  const remote = new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
+  const transport = new MockS3Client({ buckets: ["bucket"] });
+  const remote = new S3FileSystem({ transport, bucket: "bucket" });
   await memory.writeFile("/one", new Uint8Array([1]));
   await remote.writeFile("/two", new Uint8Array([2]));
   let charges = 0;
   const scoped = scopeFileSystem(memory, () => { charges++; }, new AbortController().signal);
   assert.equal(await remote.compareEntry("/two", memory, "/one"), "distinct");
+  const before = transport.requests.length;
   assert.equal(await scoped.compareEntry!("/one", remote, "/two"), "distinct");
-  assert.equal(charges, 1);
+  const scopedRequests = transport.requests.length - before;
+  assert.ok(scopedRequests > 1);
+  assert.equal(charges, scopedRequests);
   assert.equal(await remote.compareEntry("/two", scoped, "/one"), "distinct");
   assert.equal(await new ReadOnlyFileSystem(scoped).compareEntry("/one", remote, "/two"), "distinct");
-  assert.equal(charges, 1);
+  assert.equal(charges, scopedRequests);
 });
 
 test("entry-view resolution respects falsey scope cancellation", async () => {

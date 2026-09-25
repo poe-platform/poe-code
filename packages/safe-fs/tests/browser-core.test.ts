@@ -4,13 +4,13 @@ import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
 import { describe, expect, it } from "vitest";
 
-describe("browser-selected actual filesystem graph", () => {
+for (const condition of ["browser", "workerd"]) describe(`${condition}-selected actual filesystem graph`, () => {
   it("bundles without Node externals and runs identity, authority and wrapper checks", async () => {
     const output = await build({
       entryPoints: [fileURLToPath(new URL("./helpers/browser-checks.ts", import.meta.url))],
       bundle: true,
       platform: "browser",
-      conditions: ["browser"],
+      conditions: [condition],
       format: "iife",
       globalName: "safeFsBrowserChecks",
       target: "es2022",
@@ -21,6 +21,7 @@ describe("browser-selected actual filesystem graph", () => {
     expect(Object.values(output.metafile!.inputs).flatMap(input => input.imports).filter(input => input.external)).toEqual([]);
     expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("platform/browser.ts"))).toBe(true);
     expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("platform/node.ts"))).toBe(false);
+    expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("/fs/s3/authority.ts") || input.endsWith("/fs/s3/filesystem.ts"))).toBe(false);
     const context = createContext({
       AbortController, AbortSignal, Headers, Response, Request, URL, TextEncoder, TextDecoder,
       ReadableStream, Uint8Array, crypto: webcrypto, setTimeout, clearTimeout, DOMException
@@ -29,6 +30,8 @@ describe("browser-selected actual filesystem graph", () => {
     const checks = await runInContext("safeFsBrowserChecks.runBrowserChecks()", context) as string[];
     expect(checks).toContain("one constructor graph");
     expect(checks).toContain("discarded-options callback refused");
+    expect(checks).toContain("scoped browser operations retain their budget");
+    expect(checks).toContain("S3 transport charging is explicitly unsupported");
     expect(checks).toContain("overlay whiteouts and recreated directories never expose lower descendants");
   });
 });

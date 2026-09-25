@@ -3,7 +3,7 @@ import { FsError as DirectFsError } from "../../src/contracts/errors.js";
 import { MemoryFileSystem as DirectMemory } from "../../src/fs/memory/index.js";
 import { compareResolvedEntries, registerEntryAuthority } from "../../src/fs/mount/comparison.js";
 import type { EntryView } from "../../src/fs/mount/comparison.js";
-import { platform, comparisonContext } from "#safe-fs-platform";
+import { platform, comparisonContext, chargeScopedTransportCall, withScopedTransportBudget } from "#safe-fs-platform";
 import { wrapperScenarios } from "./wrapper-scenarios.js";
 import { proofScenarios } from "./proof-scenarios.js";
 
@@ -29,6 +29,20 @@ export async function runBrowserChecks(): Promise<string[]> {
   check("fixed policy operations", Object.isFrozen(platform) && Object.isFrozen(comparisonContext));
   check("no exposed policy tables", [...Object.values(platform), ...Object.values(comparisonContext)].every(value => !(value instanceof Map) && !(value instanceof WeakMap)));
   check("policy replacement refused", !Reflect.set(platform, "errno", () => 0) && !Reflect.set(comparisonContext, "active", () => false));
+
+  const budgetMemory = new core.MemoryFileSystem();
+  await budgetMemory.writeFile("/file", Uint8Array.of(7));
+  const budgetFailure = new Error("scoped operation limit");
+  let charges = 0;
+  const scoped = core.scopeFileSystem(budgetMemory, () => { if (++charges > 2) throw budgetFailure; }, new AbortController().signal);
+  check("scoped browser stat", (await scoped.stat("/file")).size === 1);
+  for await (const chunk of scoped.readStream!("/file")) check("scoped browser stream bytes", chunk[0] === 7);
+  try { await scoped.stat("/file"); throw new Error("expected scope budget failure"); }
+  catch (failure) { check("scoped browser operations retain their budget", failure === budgetFailure && charges === 3); }
+  try { chargeScopedTransportCall(); throw new Error("expected unsupported S3 transport charge"); }
+  catch (failure) { check("S3 transport charging is explicitly unsupported", failure instanceof core.FsError && failure.code === "ENOTSUP"); }
+  try { withScopedTransportBudget([], () => { throw new Error("unsupported transport callback ran"); }); }
+  catch (failure) { check("foreign S3 transport frames are refused", failure instanceof core.FsError && failure.code === "ENOTSUP"); }
 
   const own = view();
   const peer = view();

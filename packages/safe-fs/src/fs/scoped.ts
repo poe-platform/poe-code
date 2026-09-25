@@ -5,7 +5,7 @@ import { validatePath } from "../contracts/virtual-path.js";
 import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
-import { getScopedTransportBudget, runScopedTransportBudget, withScopedTransportBudget } from "./s3/authority.js";
+import { getScopedTransportBudget, runScopedTransportBudget, withScopedTransportBudget } from "#safe-fs-platform";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
@@ -291,7 +291,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           });
           return Reflect.apply(method, original, args);
         })();
-        return Reflect.apply(method, original, args);
+        const result: unknown = Reflect.apply(method, original, args);
+        return property === "readStream" ? wrapStream(result as ByteSource, args[1] as FsOptions | undefined) : result;
       }, operations.has(property as keyof FileSystem) ? 1 : 0);
       const scoped = property === "prepareStagingResolution"
         ? async (path: string, options: FsOptions = {}) => {
@@ -366,9 +367,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           ? async (...args: unknown[]) => ownedMutationCapabilities(original, retainedResizeCapabilities(original, await dispatch(...args) as FileSystem["capabilities"]))
           : property === "openReadFile"
             ? async (...args: unknown[]) => wrapHandle(await dispatch(...args) as FileReadHandle)
-            : property === "readStream"
-              ? (...args: unknown[]) => wrapStream(dispatch(...args) as ByteSource, args[1] as FsOptions | undefined)
-              : operations.has(property as keyof FileSystem) && property !== "canonicalizeMissingTarget"
+            : operations.has(property as keyof FileSystem) && property !== "canonicalizeMissingTarget" && property !== "readStream"
                 ? async (...args: unknown[]) => dispatch(...args)
                 : dispatch;
       methods.set(property, { original: method, scoped });

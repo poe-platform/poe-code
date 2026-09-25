@@ -9,7 +9,8 @@ import type {
 import { collectBytes, readBytes } from "../../contracts/io.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { compareEntries, registerEntryAuthority } from "../mount/comparison.js";
-import { chargeScopedTransportCall, compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
+import { chargeScopedTransportCall } from "#safe-fs-platform";
+import { compareOwnedS3Entries, queryS3Head, recordS3Stat, registerS3EntryOwner } from "./authority.js";
 import { encodeCopySource } from "./transport.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";

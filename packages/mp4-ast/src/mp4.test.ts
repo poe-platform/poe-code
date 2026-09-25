@@ -11,7 +11,7 @@ import {
   parseAvi,
   parseFlv,
   parseMkv,
-  parseMp4, parseSubtitleDocument, serializeSubtitleDocument,
+  parseMp4, parseFfmetadata, serializeFfmetadata, parseSubtitleDocument, serializeSubtitleDocument,
   parseMpegTs,
   parseY4m,
   probeMp4,
@@ -223,5 +223,38 @@ describe("@poe-code/mp4-ast", () => {
     expect(subTrack.samples[0]!.duration).toBe(700);
     expect(subTrack.samples[1]!.pts).toBe(1100);
     expect(subTrack.samples[1]!.duration).toBe(700);
+  });
+
+  it("parses and serializes Nero chpl chapters in MP4 and FFmetadata (;FFMETADATA1) documents", () => {
+    const ffmetaText = [
+      ";FFMETADATA1",
+      "title=ChapterTest",
+      "[CHAPTER]",
+      "TIMEBASE=1/1000",
+      "START=0",
+      "END=1000",
+      "title=Chapter One",
+      "[CHAPTER]",
+      "TIMEBASE=1/1000",
+      "START=1000",
+      "END=2000",
+      "title=Chapter Two",
+      ""
+    ].join("\n");
+    const metaDoc = parseFfmetadata(new TextEncoder().encode(ffmetaText));
+    expect(metaDoc.chapters?.length).toBe(2);
+
+    const videoDoc = parseMp4(createSyntheticMp4({ width: 32, height: 32, fps: 10, frameCount: 20 }));
+    const muxed = muxMp4([videoDoc, metaDoc]);
+    const mp4Bytes = serializeMp4(muxed);
+    const reparsed = parseMp4(mp4Bytes);
+    expect(reparsed.chapters?.length).toBe(2);
+    expect(reparsed.chapters?.[0]?.title).toBe("Chapter One");
+    expect(reparsed.chapters?.[1]?.title).toBe("Chapter Two");
+    expect(reparsed.chapters?.[1]?.startTimeSeconds).toBeCloseTo(1.0, 3);
+
+    const reserializedFfmeta = new TextDecoder().decode(serializeFfmetadata(reparsed));
+    expect(reserializedFfmeta).toContain("title=Chapter One");
+    expect(reserializedFfmeta).toContain("title=Chapter Two");
   });
 });

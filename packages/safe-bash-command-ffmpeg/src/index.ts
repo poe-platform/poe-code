@@ -33,6 +33,9 @@ import {
   parseSubtitleDocument,
   srtAst,
   webvttAst,
+  ffmetadataAst,
+  hlsAst,
+  dashAst,
   MediaBudgetTracker,
   MediaLimitExceededError,
   muxMp4,
@@ -54,6 +57,9 @@ export {
   cloudflareWorkerLimits,
   srtAst,
   webvttAst,
+  ffmetadataAst,
+  hlsAst,
+  dashAst,
   MediaBudgetTracker,
   MediaLimitExceededError,
   type MediaAstPlugin,
@@ -782,6 +788,31 @@ function applyVideoFilterChain(
         }
         return true;
       });
+    } else if (name === "reverse") {
+      const totalDur = current.reduce((acc, f) => acc + f.durationSeconds, 0);
+      let cursor = 0;
+      current = [...current].reverse().map((f) => {
+        const out = { ...f, ptsSeconds: cursor };
+        cursor += f.durationSeconds;
+        return out;
+      });
+      void totalDur;
+    } else if (name === "setpts") {
+      const expr = (named.expr ?? positional[0] ?? "PTS").toUpperCase();
+      const mulMatch = /([0-9.]+)\s*\*\s*PTS/.exec(expr);
+      const divMatch = /PTS\s*\/\s*([0-9.]+)/.exec(expr);
+      const factor = mulMatch
+        ? parseFloat(mulMatch[1]!) || 1
+        : divMatch
+          ? 1 / (parseFloat(divMatch[1]!) || 1)
+          : 1;
+      let cursor = 0;
+      current = current.map((f) => {
+        const dur = Math.max(0.001, f.durationSeconds * factor);
+        const out = { ...f, ptsSeconds: cursor, durationSeconds: dur };
+        cursor += dur;
+        return out;
+      });
     } else if (name === "drawbox") {
       const bx = parseInt(named.x ?? positional[0] ?? "0", 10) || 0;
       const by = parseInt(named.y ?? positional[1] ?? "0", 10) || 0;
@@ -1121,6 +1152,21 @@ function formatFfprobeResult(
     }
   }
 
+  if (includeChapters && probe.chapters.length > 0) {
+    for (const ch of probe.chapters) {
+      if (!noWrappers) lines.push("[CHAPTER]");
+      lines.push(noKey ? String(ch.id) : `id=${ch.id}`);
+      lines.push(noKey ? ch.time_base : `time_base=${ch.time_base}`);
+      lines.push(noKey ? String(ch.start) : `start=${ch.start}`);
+      lines.push(noKey ? ch.start_time : `start_time=${ch.start_time}`);
+      lines.push(noKey ? String(ch.end) : `end=${ch.end}`);
+      lines.push(noKey ? ch.end_time : `end_time=${ch.end_time}`);
+      for (const [tk, tv] of Object.entries(ch.tags)) {
+        lines.push(noKey ? String(tv) : `TAG:${tk}=${tv}`);
+      }
+      if (!noWrappers) lines.push("[/CHAPTER]");
+    }
+  }
   if (finalFormat) {
     if (!noWrappers) lines.push("[FORMAT]");
     for (const [k, v] of Object.entries(finalFormat)) {
@@ -1379,6 +1425,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let audioCodec: string | undefined;
       let audioRate: number | undefined;
       let audioChannels: number | undefined;
+      let hlsTime = 2;
+      let hlsSegmentFilename: string | undefined;
+      let hlsSegmentType: string | undefined;
       let stripAudio = false;
       let stripVideo = false;
       let stripSubtitles = false;
@@ -1407,6 +1456,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           noOverwrite = true;
           overwrite = false;
         } else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-preset" || arg === "-crf" || arg === "-b:v" || arg === "-b:a" || arg === "-bsf:v" || arg === "-bsf:a" || arg === "-tag:v" || arg === "-tag:a" || arg === "-vsync" || arg === "-fps_mode") {
+          i++;
+        } else if (arg === "-hls_time" || arg === "-seg_duration") {
+          hlsTime = parseFloat(args[++i] ?? "2") || 2;
+        } else if (arg === "-hls_segment_filename") {
+          hlsSegmentFilename = args[++i];
+        } else if (arg === "-hls_segment_type") {
+          hlsSegmentType = args[++i];
+        } else if (arg === "-hls_list_size" || arg === "-hls_flags" || arg === "-map_metadata" || arg === "-map_chapters" || arg === "-start_number") {
           i++;
         } else if (arg === "-ar") {
           audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
@@ -1578,6 +1635,30 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               throw new Error("lavfi synthetic sources are disabled by consumer feature configuration");
             }
             return parseLavfiSource(filePath, budget, outputDuration);
+          }
+
+          if (/\.m3u8?$/i.test(filePath) || explicitFormat === "hls") {
+            const m3uResolved = resolvePath(context.cwd, filePath);
+            const m3uBytes = await context.fs.readFile(m3uResolved, { signal: context.signal });
+            const m3uText = decodeUtf8(m3uBytes).replace(/\r\n/g, "\n");
+            const baseDir = m3uResolved.includes("/")
+              ? m3uResolved.slice(0, m3uResolved.lastIndexOf("/")) || "/"
+              : "/";
+            const segDocs: MediaDocument[] = [];
+            for (const rawLine of m3uText.split("\n")) {
+              const line = rawLine.trim();
+              if (!line || line.startsWith("#")) continue;
+              const segPath = resolvePath(baseDir, line);
+              try {
+                const segDoc = await loadSingleDocument(segPath);
+                segDocs.push(segDoc);
+              } catch {
+                // ignore missing optional segment
+              }
+            }
+            if (segDocs.length > 0) {
+              return concatMp4(segDocs, { limits: options.limits, budget });
+            }
           }
 
           if (filePath.startsWith("concat:")) {
@@ -1756,18 +1837,74 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           }
           if (filterComplex.includes("concat=")) {
             workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
-            if (/concat=[^;\[]*\ba=0\b/.test(filterComplex)) {
+            if (/concat=[^;[]*\ba=0\b/.test(filterComplex)) {
               workingDoc = {
                 ...workingDoc,
                 tracks: workingDoc.tracks.filter((t) => t.type !== "audio")
               };
             }
-            if (/concat=[^;\[]*\bv=0\b/.test(filterComplex)) {
+            if (/concat=[^;[]*\bv=0\b/.test(filterComplex)) {
               workingDoc = {
                 ...workingDoc,
                 tracks: workingDoc.tracks.filter((t) => t.type !== "video")
               };
             }
+          } else if (filterComplex.includes("xfade") && loadedDocs.length >= 2) {
+            const f0 = ensureDecodedFrames(
+              loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
+              budget
+            );
+            const f1 = ensureDecodedFrames(
+              loadedDocs[1]!.tracks.find((t) => t.type === "video")!,
+              budget
+            );
+            const durMatch = /duration=([0-9.]+)/.exec(filterComplex);
+            const offMatch = /offset=([0-9.]+)/.exec(filterComplex);
+            const fadeDur = parseFloat(durMatch?.[1] ?? "0.5") || 0.5;
+            const fps = f0[0]?.durationSeconds ? Math.round(1 / f0[0].durationSeconds) : 25;
+            const overlapFrames = Math.max(1, Math.min(f0.length, f1.length, Math.round(fadeDur * fps)));
+            const offsetSec = offMatch ? parseFloat(offMatch[1]!) : Math.max(0, (f0.length - overlapFrames) / fps);
+            const preCount = Math.max(0, Math.min(f0.length - overlapFrames, Math.round(offsetSec * fps)));
+            const outFrames: MediaVideoFrame[] = [];
+            let cursor = 0;
+            for (let i = 0; i < preCount; i++) {
+              const f = f0[i]!;
+              outFrames.push({ ...f, ptsSeconds: cursor });
+              cursor += f.durationSeconds;
+            }
+            for (let k = 0; k < overlapFrames; k++) {
+              const a = f0[Math.min(f0.length - 1, preCount + k)]!;
+              const b = f1[Math.min(f1.length - 1, k)]!;
+              const alpha = (k + 1) / (overlapFrames + 1);
+              const blended = new Uint8Array(a.data.byteLength);
+              for (let pIdx = 0; pIdx < blended.byteLength; pIdx += 4) {
+                blended[pIdx] = Math.round(a.data[pIdx]! * (1 - alpha) + b.data[pIdx]! * alpha);
+                blended[pIdx + 1] = Math.round(a.data[pIdx + 1]! * (1 - alpha) + b.data[pIdx + 1]! * alpha);
+                blended[pIdx + 2] = Math.round(a.data[pIdx + 2]! * (1 - alpha) + b.data[pIdx + 2]! * alpha);
+                blended[pIdx + 3] = 255;
+              }
+              outFrames.push({
+                width: a.width,
+                height: a.height,
+                data: blended,
+                ptsSeconds: cursor,
+                durationSeconds: a.durationSeconds,
+                keyframe: true
+              });
+              cursor += a.durationSeconds;
+            }
+            for (let j = overlapFrames; j < f1.length; j++) {
+              const b = f1[j]!;
+              outFrames.push({ ...b, ptsSeconds: cursor });
+              cursor += b.durationSeconds;
+            }
+            workingDoc = {
+              ...loadedDocs[0]!,
+              durationSeconds: cursor,
+              tracks: loadedDocs[0]!.tracks.map((t) =>
+                t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
+              )
+            };
           } else if (filterComplex.includes("vstack") && loadedDocs.length >= 2) {
             const f0 = ensureDecodedFrames(
               loadedDocs[0]!.tracks.find((t) => t.type === "video")!,
@@ -2104,9 +2241,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const targetRate = audioRate ?? origRate;
               const targetCh = audioChannels ?? origCh;
               const durSec = Math.max(0.05, (t.duration || origRate) / Math.max(1, t.timescale || origRate));
-              const targetSamples = Math.max(1, Math.round(durSec * targetRate));
-
               let volFactor = t.volume ?? 1.0;
+              let tempoFactor = 1.0;
+              let reverseAudio = false;
               for (const af of afFilters) {
                 for (const item of af.split(",")) {
                   const trimmed = item.trim();
@@ -2115,10 +2252,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     volFactor *= volSpec.endsWith("dB")
                       ? Math.pow(10, (parseFloat(volSpec.slice(0, -2)) || 0) / 20)
                       : parseFloat(volSpec) || 1.0;
+                  } else if (trimmed.startsWith("atempo=")) {
+                    tempoFactor *= Math.max(0.25, Math.min(4.0, parseFloat(trimmed.slice(7)) || 1.0));
+                  } else if (trimmed === "areverse") {
+                    reverseAudio = true;
                   }
                 }
               }
 
+              const targetSamples = Math.max(1, Math.round((durSec / tempoFactor) * targetRate));
               const newChannelData: Float32Array[] = [];
               for (let c = 0; c < targetCh; c++) {
                 const dst = new Float32Array(targetSamples);
@@ -2133,6 +2275,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     dst[i] = Math.sin((2 * Math.PI * 440 * i) / targetRate) * 0.2 * volFactor;
                   }
                 }
+                if (reverseAudio) dst.reverse();
                 newChannelData.push(dst);
               }
 
@@ -2178,6 +2321,65 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         // Null muxer (`-f null -`)
         if (outputFormat === "null" || outputTarget === "/dev/null") {
+          options.onMetrics?.(budget.getStats());
+          return { exitCode: 0 };
+        }
+
+        // Handle HLS (.m3u8 / -f hls) multi-segment muxing
+        if (outputFormat === "hls" || /\.m3u8?$/i.test(outputTarget)) {
+          const outResolved = resolvePath(context.cwd, outputTarget);
+          const outDir = outResolved.includes("/")
+            ? outResolved.slice(0, outResolved.lastIndexOf("/")) || "/"
+            : "/";
+          const isFmp4 = hlsSegmentType === "fmp4";
+          const segExt = isFmp4 ? "m4s" : "ts";
+          const segPlugin = registry.findByFormatName(isFmp4 ? "mp4" : "mpegts");
+          if (!segPlugin) {
+            throw new Error(`HLS segment format AST (${isFmp4 ? "mp4" : "mpegts"}) is not registered`);
+          }
+          const vTrk = workingDoc.tracks.find((t) => t.type === "video");
+          const totalSec = Math.max(
+            0.1,
+            vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
+          );
+          const segDur = Math.max(0.2, hlsTime);
+          const numSegs = Math.max(1, Math.ceil((totalSec - 1e-6) / segDur));
+          const playlistLines: string[] = [
+            "#EXTM3U",
+            "#EXT-X-VERSION:3",
+            `#EXT-X-TARGETDURATION:${Math.ceil(segDur)}`,
+            "#EXT-X-MEDIA-SEQUENCE:0"
+          ];
+
+          for (let sIdx = 0; sIdx < numSegs; sIdx++) {
+            const st = sIdx * segDur;
+            const en = Math.min(totalSec, (sIdx + 1) * segDur);
+            const actualDur = Math.max(0.04, en - st);
+            const sliced = sliceMp4(workingDoc, { startSeconds: st, endSeconds: en });
+            const segBytes = segPlugin.serialize(sliced, {
+              fragmented: isFmp4,
+              limits: options.limits,
+              budget
+            });
+
+            const segPattern = hlsSegmentFilename ?? `seg_%03d.${segExt}`;
+            const formattedSeg = segPattern.replace(/%0?(\d*)d/, (_, widthDigits: string) => {
+              const padLen = parseInt(widthDigits || "0", 10) || 0;
+              return String(sIdx).padStart(padLen, "0");
+            });
+            const fullSegPath = resolvePath(outDir, formattedSeg);
+            const relSegName = fullSegPath.startsWith(outDir === "/" ? "/" : `${outDir}/`)
+              ? fullSegPath.slice(outDir === "/" ? 1 : outDir.length + 1)
+              : formattedSeg;
+
+            budget.checkOutputBytes(segBytes.byteLength);
+            await context.fs.writeFile(fullSegPath, segBytes, { signal: context.signal });
+            playlistLines.push(`#EXTINF:${actualDur.toFixed(6)},`, relSegName);
+          }
+
+          playlistLines.push("#EXT-X-ENDLIST", "");
+          const m3u8Bytes = encodeUtf8(playlistLines.join("\n"));
+          await context.fs.writeFile(outResolved, m3u8Bytes, { signal: context.signal });
           options.onMetrics?.(budget.getStats());
           return { exitCode: 0 };
         }

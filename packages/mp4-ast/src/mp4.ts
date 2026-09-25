@@ -492,6 +492,37 @@ function parseMetadataTags(moov: Mp4Box): Mp4MetadataTags {
   return tags;
 }
 
+
+function parseMp4Chapters(moovBox: Mp4Box, durationSeconds: number): Mp4Chapter[] {
+  const udta = findBox(moovBox.children, "udta");
+  const chpl = findBox(udta?.children, "chpl");
+  if (!chpl || chpl.payload.byteLength < 9) return [];
+  const r = new BinaryReader(chpl.payload);
+  r.skip(4); // version + flags
+  r.skip(4); // reserved
+  let count = r.readU8();
+  if (count === 0 && r.remaining >= 4) {
+    count = r.readU32BE();
+  }
+  const rawList: { id: number; startTimeSeconds: number; title: string }[] = [];
+  for (let i = 0; i < count && r.remaining >= 9; i++) {
+    const start100ns = r.readU64BE();
+    const titleLen = r.readU8();
+    const title = decodeUtf8(r.readSlice(Math.min(titleLen, r.remaining)));
+    rawList.push({
+      id: i,
+      startTimeSeconds: start100ns / 10_000_000,
+      title
+    });
+  }
+  return rawList.map((item, idx) => ({
+    id: item.id,
+    startTimeSeconds: item.startTimeSeconds,
+    endTimeSeconds: rawList[idx + 1]?.startTimeSeconds ?? Math.max(item.startTimeSeconds, durationSeconds),
+    title: item.title
+  }));
+}
+
 export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp4Document {
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.byteLength);
@@ -1025,6 +1056,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 
   const isMov = majorBrand === "qt  " || compatibleBrands.includes("qt  ");
   const metadata = parseMetadataTags(moovBox);
+  const chapters = parseMp4Chapters(moovBox, maxTrackSeconds);
 
   return {
     containerFormat: isMov ? "mov" : "mp4",
@@ -1040,6 +1072,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
     faststart,
     tracks,
     metadata,
+    chapters: chapters.length > 0 ? chapters : undefined,
     boxes: topBoxes,
     byteLength: bytes.byteLength
   };
@@ -1157,7 +1190,28 @@ function buildIlstTagBox(fourcc: string, value: string): Uint8Array {
   return makeBox(fourcc, dataBox);
 }
 
-function buildUdtaMetadataBox(tags: Mp4MetadataTags): Uint8Array | undefined {
+function buildUdtaMetadataBox(
+  tags: Mp4MetadataTags,
+  chapters?: readonly Mp4Chapter[]
+): Uint8Array | undefined {
+  const udtaChildren: Uint8Array[] = [];
+
+  if (chapters && chapters.length > 0) {
+    const chplWriter = new BinaryWriter(16 + chapters.length * 64);
+    chplWriter.writeU32BE(0); // 4 bytes reserved
+    const count = Math.min(255, chapters.length);
+    chplWriter.writeU8(count);
+    for (let i = 0; i < count; i++) {
+      const ch = chapters[i]!;
+      const start100ns = Math.max(0, Math.round(ch.startTimeSeconds * 10_000_000));
+      chplWriter.writeU64BE(start100ns);
+      const titleBytes = encodeUtf8(ch.title).subarray(0, 255);
+      chplWriter.writeU8(titleBytes.byteLength);
+      chplWriter.writeBytes(titleBytes);
+    }
+    udtaChildren.push(makeFullBox("chpl", 1, 0, chplWriter.toUint8Array()));
+  }
+
   const ilstItems: Uint8Array[] = [];
   if (tags.title) ilstItems.push(buildIlstTagBox("\xa9nam", tags.title));
   if (tags.artist) ilstItems.push(buildIlstTagBox("\xa9ART", tags.artist));
@@ -1170,18 +1224,21 @@ function buildUdtaMetadataBox(tags: Mp4MetadataTags): Uint8Array | undefined {
   if (tags.description) ilstItems.push(buildIlstTagBox("desc", tags.description));
   if (tags.copyright) ilstItems.push(buildIlstTagBox("cprt", tags.copyright));
 
-  if (ilstItems.length === 0) return undefined;
+  if (ilstItems.length > 0) {
+    const hdlrWriter = new BinaryWriter(32);
+    hdlrWriter.writeU32BE(0);
+    hdlrWriter.writeFourCC("mdir");
+    hdlrWriter.writeFourCC("appl");
+    hdlrWriter.writeZeros(8);
+    hdlrWriter.writeU8(0);
+    const metaHdlr = makeFullBox("hdlr", 0, 0, hdlrWriter.toUint8Array());
+    const ilstBox = makeBox("ilst", concatBytes(ilstItems));
+    const metaBox = makeFullBox("meta", 0, 0, concatBytes([metaHdlr, ilstBox]));
+    udtaChildren.push(metaBox);
+  }
 
-  const hdlrWriter = new BinaryWriter(32);
-  hdlrWriter.writeU32BE(0); // pre_defined
-  hdlrWriter.writeFourCC("mdir");
-  hdlrWriter.writeFourCC("appl");
-  hdlrWriter.writeZeros(8);
-  hdlrWriter.writeU8(0);
-  const metaHdlr = makeFullBox("hdlr", 0, 0, hdlrWriter.toUint8Array());
-  const ilstBox = makeBox("ilst", concatBytes(ilstItems));
-  const metaBox = makeFullBox("meta", 0, 0, concatBytes([metaHdlr, ilstBox]));
-  return makeBox("udta", metaBox);
+  if (udtaChildren.length === 0) return undefined;
+  return makeBox("udta", concatBytes(udtaChildren));
 }
 
 function materializeTrackSamples(track: MediaTrack): {
@@ -1634,7 +1691,7 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     ...doc.metadata,
     ...(options.metadata ?? {})
   };
-  const udtaBox = buildUdtaMetadataBox(mergedMetadata);
+  const udtaBox = buildUdtaMetadataBox(mergedMetadata, doc.chapters);
 
   // Fragmented MP4 mode (`ftyp` + `moov(mvex)` + `moof` + `mdat`)
   if (options.fragmented) {
@@ -2000,7 +2057,7 @@ export function sliceMp4(doc: MediaDocument, options: SliceMediaOptions = {}): M
     const endTick = Math.round(endSec * ts);
 
     // Find first sample covering or after startTick
-    let firstIdx = 0;
+    let firstIdx = materialized.samples.length;
     for (let i = 0; i < materialized.samples.length; i++) {
       const s = materialized.samples[i]!;
       if (s.dts + s.duration > startTick) {
@@ -2150,10 +2207,8 @@ export function muxMp4(
     duration: Math.round(targetDurationSec * (base.timescale || 1000)),
     durationSeconds: targetDurationSec,
     tracks: finalTracks,
-    metadata: {
-      ...base.metadata,
-      ...(options.metadata ?? {})
-    }
+    chapters: sources.flatMap((src) => src.chapters ?? []),
+    metadata: Object.assign({}, ...sources.map((src) => src.metadata), options.metadata ?? {})
   };
 }
 

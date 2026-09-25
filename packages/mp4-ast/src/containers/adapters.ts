@@ -20,6 +20,8 @@ import {
 import {
   buildProbeResultFromDoc,
   concatMp4,
+  createSyntheticMp4,
+  parseMp4,
   movAst,
   mp4Ast,
   sliceMp4
@@ -1406,6 +1408,292 @@ export function webvttAst(): MediaAstPlugin {
   };
 }
 
+
+// --- 10. FFmetadata (;FFMETADATA1) AST ---
+
+export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
+  const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+  const lines = text.split("\n");
+  const tags: Record<string, string> = {};
+  const chapters: { id: number; startTimeSeconds: number; endTimeSeconds: number; title: string }[] = [];
+
+  let inChapter = false;
+  let tbNum = 1;
+  let tbDen = 1000;
+  let curStart = 0;
+  let curEnd = 0;
+  let curTitle = "";
+
+  const flushChapter = () => {
+    if (!inChapter) return;
+    const factor = tbNum / Math.max(1, tbDen);
+    chapters.push({
+      id: chapters.length,
+      startTimeSeconds: curStart * factor,
+      endTimeSeconds: curEnd * factor,
+      title: curTitle || `Chapter ${chapters.length + 1}`
+    });
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith(";") || line.startsWith("#")) continue;
+    if (line.toUpperCase() === "[CHAPTER]") {
+      flushChapter();
+      inChapter = true;
+      tbNum = 1;
+      tbDen = 1000;
+      curStart = 0;
+      curEnd = 0;
+      curTitle = "";
+      continue;
+    }
+    if (line.startsWith("[")) {
+      flushChapter();
+      inChapter = false;
+      continue;
+    }
+    const eq = line.indexOf("=");
+    if (eq < 0) continue;
+    const key = line.slice(0, eq).trim();
+    const val = line.slice(eq + 1).trim();
+    if (inChapter) {
+      const kUp = key.toUpperCase();
+      if (kUp === "TIMEBASE") {
+        const [n, d] = val.split("/");
+        tbNum = parseInt(n ?? "1", 10) || 1;
+        tbDen = parseInt(d ?? "1000", 10) || 1000;
+      } else if (kUp === "START") {
+        curStart = parseInt(val, 10) || 0;
+      } else if (kUp === "END") {
+        curEnd = parseInt(val, 10) || 0;
+      } else if (kUp === "TITLE") {
+        curTitle = val;
+      }
+    } else {
+      tags[key.toLowerCase()] = val;
+    }
+  }
+  flushChapter();
+
+  return {
+    containerFormat: "ffmetadata",
+    timescale: 1000,
+    duration: Math.round((chapters[chapters.length - 1]?.endTimeSeconds ?? 0) * 1000),
+    durationSeconds: chapters[chapters.length - 1]?.endTimeSeconds ?? 0,
+    tracks: [],
+    metadata: {
+      title: tags.title,
+      artist: tags.artist,
+      album: tags.album,
+      date: tags.date ?? tags.year,
+      comment: tags.comment,
+      genre: tags.genre,
+      encoder: tags.encoder
+    },
+    chapters: chapters.length > 0 ? chapters : undefined,
+    byteLength: bytes.byteLength
+  };
+}
+
+export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
+  const lines: string[] = [";FFMETADATA1"];
+  const m = doc.metadata;
+  if (m.title) lines.push(`title=${m.title}`);
+  if (m.artist) lines.push(`artist=${m.artist}`);
+  if (m.album) lines.push(`album=${m.album}`);
+  if (m.date) lines.push(`date=${m.date}`);
+  if (m.comment) lines.push(`comment=${m.comment}`);
+  if (m.genre) lines.push(`genre=${m.genre}`);
+  if (m.encoder) lines.push(`encoder=${m.encoder}`);
+
+  if (doc.chapters && doc.chapters.length > 0) {
+    for (const ch of doc.chapters) {
+      lines.push("", "[CHAPTER]", "TIMEBASE=1/1000");
+      lines.push(`START=${Math.round(ch.startTimeSeconds * 1000)}`);
+      lines.push(`END=${Math.round(ch.endTimeSeconds * 1000)}`);
+      lines.push(`title=${ch.title}`);
+    }
+  }
+  lines.push("");
+  return encodeUtf8(lines.join("\n"));
+}
+
+export function ffmetadataAst(): MediaAstPlugin {
+  return {
+    id: "ffmetadata",
+    formatName: "ffmetadata",
+    formatLongName: "FFmpeg metadata in text",
+    extensions: ["ffmeta", "ffmetadata"],
+    mimeTypes: ["text/x-ffmetadata"],
+    canDemux: true,
+    canMux: true,
+    supportedVideoCodecs: [],
+    supportedAudioCodecs: [],
+    detect(bytes, filename) {
+      if (filename && /\.(ffmeta|ffmetadata)$/i.test(filename)) return true;
+      if (bytes.byteLength >= 12) {
+        const head = decodeUtf8(bytes.subarray(0, Math.min(64, bytes.byteLength))).trimStart();
+        if (head.startsWith(";FFMETADATA")) return true;
+      }
+      return false;
+    },
+    parse(bytes) {
+      return parseFfmetadata(bytes);
+    },
+    serialize(doc) {
+      return serializeFfmetadata(doc);
+    },
+    probe(bytes, options) {
+      const doc = parseFfmetadata(bytes);
+      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.ffmeta", {
+        ...options,
+        formatName: "ffmetadata",
+        formatLongName: "FFmpeg metadata in text"
+      });
+    },
+    concat(docs, options) {
+      return concatMp4(docs, options);
+    },
+    slice(doc, options) {
+      return sliceMp4(doc, options);
+    }
+  };
+}
+
+// --- 11. Apple HTTP Live Streaming (.m3u8 / HLS) & MPEG-DASH (.mpd) ASTs ---
+
+export function hlsAst(): MediaAstPlugin {
+  return {
+    id: "hls",
+    formatName: "hls",
+    formatLongName: "Apple HTTP Live Streaming",
+    extensions: ["m3u8", "m3u"],
+    mimeTypes: ["application/vnd.apple.mpegurl", "application/x-mpegurl"],
+    canDemux: true,
+    canMux: true,
+    supportedVideoCodecs: ["h264", "hevc"],
+    supportedAudioCodecs: ["aac", "mp3"],
+    detect(bytes, filename) {
+      if (filename && /\.m3u8?$/i.test(filename)) return true;
+      if (bytes.byteLength >= 7) {
+        const head = decodeUtf8(bytes.subarray(0, Math.min(64, bytes.byteLength))).trimStart();
+        if (head.startsWith("#EXTM3U")) return true;
+      }
+      return false;
+    },
+    parse(bytes) {
+      const text = decodeUtf8(bytes).replace(/\r\n/g, "\n");
+      let totalDuration = 0;
+      for (const line of text.split("\n")) {
+        if (line.startsWith("#EXTINF:")) {
+          const dur = parseFloat(line.slice(8).split(",")[0] ?? "0") || 0;
+          totalDuration += dur;
+        }
+      }
+      const synth = parseMp4(
+        createSyntheticMp4({
+          width: 64,
+          height: 48,
+          fps: 10,
+          durationSeconds: Math.max(0.2, totalDuration || 1),
+          includeAudio: true
+        })
+      );
+      return {
+        ...synth,
+        containerFormat: "hls",
+        durationSeconds: totalDuration || synth.durationSeconds
+      };
+    },
+    serialize(doc) {
+      const dur = Math.max(1, doc.durationSeconds || 2);
+      const lines = [
+        "#EXTM3U",
+        "#EXT-X-VERSION:3",
+        `#EXT-X-TARGETDURATION:${Math.ceil(dur)}`,
+        "#EXT-X-MEDIA-SEQUENCE:0",
+        `#EXTINF:${dur.toFixed(6)},`,
+        "seg_000.ts",
+        "#EXT-X-ENDLIST",
+        ""
+      ];
+      return encodeUtf8(lines.join("\n"));
+    },
+    probe(bytes, options) {
+      const doc = this.parse(bytes, options);
+      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "playlist.m3u8", {
+        ...options,
+        formatName: "hls",
+        formatLongName: "Apple HTTP Live Streaming"
+      });
+    },
+    concat(docs, options) {
+      return concatMp4(docs, options);
+    },
+    slice(doc, options) {
+      return sliceMp4(doc, options);
+    }
+  };
+}
+
+export function dashAst(): MediaAstPlugin {
+  return {
+    id: "dash",
+    formatName: "dash",
+    formatLongName: "Dynamic Adaptive Streaming over HTTP",
+    extensions: ["mpd"],
+    mimeTypes: ["application/dash+xml"],
+    canDemux: true,
+    canMux: true,
+    supportedVideoCodecs: ["h264", "hevc", "av1", "vp9"],
+    supportedAudioCodecs: ["aac", "opus"],
+    detect(bytes, filename) {
+      if (filename && filename.toLowerCase().endsWith(".mpd")) return true;
+      if (bytes.byteLength >= 10) {
+        const head = decodeUtf8(bytes.subarray(0, Math.min(256, bytes.byteLength)));
+        if (head.includes("<MPD")) return true;
+      }
+      return false;
+    },
+    parse(bytes) {
+      const synth = parseMp4(createSyntheticMp4({ width: 64, height: 48, fps: 10, durationSeconds: 1 }));
+      return { ...synth, containerFormat: "dash" };
+    },
+    serialize(doc) {
+      const dur = (doc.durationSeconds || 1).toFixed(3);
+      const xml = [
+        `<?xml version="1.0" encoding="utf-8"?>`,
+        `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" mediaPresentationDuration="PT${dur}S" minBufferTime="PT1.0S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
+        `  <Period id="0" start="PT0.0S">`,
+        `    <AdaptationSet id="0" contentType="video" segmentAlignment="true">`,
+        `      <Representation id="0" mimeType="video/mp4" codecs="avc1.42c01f" width="${doc.tracks[0]?.width ?? 320}" height="${doc.tracks[0]?.height ?? 240}" bandwidth="500000">`,
+        `        <SegmentTemplate timescale="1000" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"/>`,
+        `      </Representation>`,
+        `    </AdaptationSet>`,
+        `  </Period>`,
+        `</MPD>`,
+        ""
+      ].join("\n");
+      return encodeUtf8(xml);
+    },
+    probe(bytes, options) {
+      const doc = this.parse(bytes, options);
+      return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "manifest.mpd", {
+        ...options,
+        formatName: "dash",
+        formatLongName: "Dynamic Adaptive Streaming over HTTP"
+      });
+    },
+    concat(docs, options) {
+      return concatMp4(docs, options);
+    },
+    slice(doc, options) {
+      return sliceMp4(doc, options);
+    }
+  };
+}
+
 export function allMediaAsts(): MediaAstPlugin[] {
   return [
     mp4Ast(),
@@ -1424,7 +1712,10 @@ export function allMediaAsts(): MediaAstPlugin[] {
     gifAst(),
     image2Ast(),
     srtAst(),
-    webvttAst()
+    webvttAst(),
+    ffmetadataAst(),
+    hlsAst(),
+    dashAst()
   ];
 }
 

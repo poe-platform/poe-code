@@ -367,4 +367,44 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     expect(wavProbe.streams[0].sample_rate).toBe("16000");
     expect(wavProbe.streams[0].channels).toBe(1);
   });
+
+  it("segments MP4 into HLS (.m3u8 + .ts) and rejoins back to MP4, probes chapters, and applies xfade/setpts/reverse/atempo", async () => {
+    const { ffmpeg, ffprobe } = createFfmpegCommands();
+    const video = createSyntheticMp4({ width: 32, height: 24, fps: 10, durationSeconds: 2, includeAudio: true });
+    const ffmeta = ";FFMETADATA1\ntitle=Demo\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=1000\ntitle=Intro\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=1000\nEND=2000\ntitle=Outro\n";
+    const vfs = createTestVfs({ "/v.mp4": video, "/m.ffmeta": ffmeta });
+
+    // 1. HLS segmenting & re-joining
+    const hlsRes = await runCmd(
+      ffmpeg,
+      ["-i", "/v.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_filename", "/seg_%03d.ts", "/index.m3u8"],
+      vfs
+    );
+    expect(hlsRes.exitCode).toBe(0);
+    expect(vfs.store.has("/seg_000.ts")).toBe(true);
+    expect(vfs.store.has("/seg_001.ts")).toBe(true);
+
+    const rejoinRes = await runCmd(ffmpeg, ["-i", "/index.m3u8", "-c", "copy", "/rejoined.mp4"], vfs);
+    expect(rejoinRes.exitCode).toBe(0);
+    const rejoinDoc = parseMp4(vfs.store.get("/rejoined.mp4")!);
+    expect(rejoinDoc.tracks.find((t) => t.type === "video")!.samples.length).toBe(20);
+
+    // 2. Chapters muxing & ffprobe -show_chapters
+    const chMux = await runCmd(ffmpeg, ["-i", "/v.mp4", "-i", "/m.ffmeta", "-c", "copy", "/ch.mp4"], vfs);
+    expect(chMux.exitCode).toBe(0);
+    const chProbe = JSON.parse((await runCmd(ffprobe, ["-v", "quiet", "-print_format", "json", "-show_chapters", "/ch.mp4"], vfs)).stdout);
+    expect(chProbe.chapters.length).toBe(2);
+    expect(chProbe.chapters[0].tags.title).toBe("Intro");
+    expect(chProbe.chapters[1].tags.title).toBe("Outro");
+
+    // 3. xfade + setpts + reverse + atempo
+    const xfRes = await runCmd(
+      ffmpeg,
+      ["-i", "/v.mp4", "-i", "/v.mp4", "-filter_complex", "[0:v][1:v]xfade=transition=fade:duration=0.4:offset=1.6", "-vf", "setpts=0.5*PTS,reverse", "-af", "atempo=2.0,areverse", "/xf.mp4"],
+      vfs
+    );
+    expect(xfRes.exitCode).toBe(0);
+    const xfDoc = parseMp4(vfs.store.get("/xf.mp4")!);
+    expect(xfDoc.tracks.find((t) => t.type === "video")!.samples.length).toBe(36);
+  });
 });

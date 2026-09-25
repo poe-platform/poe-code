@@ -12,7 +12,7 @@ const cases = [
 ] as const;
 
 test("chmod treats leading minus permissions as a mode for every operand", async () => {
-  for (const [mode, expected] of [["-r", [0o333, 0o200]], ["-rx", [0o222, 0o200]], ["-r,u+x", [0o333, 0o300]]] as const) {
+  for (const [mode, expected] of [["-r", [0o333, 0o200]], ["-x", [0o666, 0o600]], ["-w", [0o577, 0o400]], ["-X", [0o666, 0o600]], ["-s", [0o777, 0o600]], ["-t", [0o777, 0o600]], ["-rwx", [0o022, 0]], ["-755", [0o022, 0]], ["-rx", [0o222, 0o200]], ["-r,u+x", [0o333, 0o300]]] as const) {
     const fs = new MemoryFileSystem();
     await fs.mkdir("/work");
     await fs.writeFile("/work/first", new Uint8Array(), { mode: 0o777 });

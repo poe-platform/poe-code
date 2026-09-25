@@ -1198,7 +1198,36 @@ export function linearImage(
   a: readonly number[],
   b: readonly number[]
 ): RgbaImage {
+  const vecLen = Math.max(a.length, b.length);
+  if (vecLen > img.channels) {
+    throw new Error("Band expansion using linear is unsupported");
+  }
+  if (vecLen !== 1 && vecLen !== img.channels && !(img.channels === 4 && vecLen === 3)) {
+    throw new Error(`linear: vector must have 1 or ${img.channels} elements`);
+  }
   const out = new Uint8Array(img.data.length);
+  if (img.channels === 2) {
+    const mulG = a[0] ?? 1;
+    const offG = b[0] ?? 0;
+    const applyAlpha = vecLen >= 2;
+    const mulA = a[1] ?? 1;
+    const offA = b[1] ?? 0;
+    for (let i = 0; i < img.width * img.height; i++) {
+      const idx = i * 4;
+      const vg = Math.floor(img.data[idx]! * mulG + offG + 1e-6);
+      const cg = vg < 0 ? 0 : vg > 255 ? 255 : vg;
+      out[idx] = cg;
+      out[idx + 1] = cg;
+      out[idx + 2] = cg;
+      if (applyAlpha) {
+        const va = Math.floor(img.data[idx + 3]! * mulA + offA + 1e-6);
+        out[idx + 3] = va < 0 ? 0 : va > 255 ? 255 : va;
+      } else {
+        out[idx + 3] = img.data[idx + 3]!;
+      }
+    }
+    return { ...img, data: out };
+  }
   const applyAlpha = a.length >= 4 || b.length >= 4;
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;

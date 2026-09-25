@@ -3301,4 +3301,46 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(mod1.info.channels).toBe(3);
     expect(Array.from(mod1.data)).toEqual([154, 154, 154, 255, 255, 255]);
   });
+
+  it("matches sharp linear() 2-channel [grey, alpha] vector mapping and band-expansion validation (#1252)", async () => {
+    const g1 = Buffer.from([100, 200]);
+    const ga2 = Buffer.from([100, 128, 200, 64]);
+    const rgb = Buffer.from([100, 150, 200, 50, 80, 120]);
+    const rgba = Buffer.from([100, 150, 200, 128, 50, 80, 120, 64]);
+
+    const linGa2 = await sharp(ga2, { raw: { width: 2, height: 1, channels: 2 } })
+      .linear([0.5, 1], [10, 20])
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(linGa2.info.channels).toBe(4);
+    expect(Array.from(linGa2.data)).toEqual([60, 60, 60, 148, 110, 110, 110, 84]);
+
+    await expect(
+      sharp(g1, { raw: { width: 2, height: 1, channels: 1 } })
+        .linear([0.5, 1, 1.5], [10, 20, 30])
+        .raw()
+        .toBuffer()
+    ).rejects.toThrow("Band expansion using linear is unsupported");
+
+    await expect(
+      sharp(rgb, { raw: { width: 2, height: 1, channels: 3 } })
+        .linear([0.5, 1, 1.5, 2], [10, 20, 30, 40])
+        .raw()
+        .toBuffer()
+    ).rejects.toThrow("Band expansion using linear is unsupported");
+
+    await expect(
+      sharp(rgb, { raw: { width: 2, height: 1, channels: 3 } })
+        .linear([0.5, 1], [10, 20])
+        .raw()
+        .toBuffer()
+    ).rejects.toThrow("linear: vector must have 1 or 3 elements");
+
+    await expect(
+      sharp(rgba, { raw: { width: 2, height: 1, channels: 4 } })
+        .linear([0.5, 1], [10, 20])
+        .raw()
+        .toBuffer()
+    ).rejects.toThrow("linear: vector must have 1 or 4 elements");
+  });
 });

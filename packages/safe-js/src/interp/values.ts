@@ -114,6 +114,7 @@ type FrozenClosureData = {
   readonly closure: boolean;
   readonly propertiesGetter: PropertyDescriptor["get"];
   readonly chargeIdentity?: object;
+  readonly propertiesRoot?: SandboxObject;
 };
 const frozenClosureData = new WeakMap<object, FrozenClosureData>();
 const readFrozenClosureData = WeakMap.prototype.get.bind(frozenClosureData);
@@ -143,6 +144,7 @@ function readClosureProperties(
   closure: SandboxClosure,
   data?: FrozenClosureData
 ): SandboxObject | undefined {
+  if (data?.propertiesRoot !== undefined) return data.propertiesRoot;
   const getter = data?.propertiesGetter;
   return getter === undefined
     ? closure.properties
@@ -418,6 +420,13 @@ export function createSandboxClosure(input: {
     })
   );
   return closure;
+}
+
+export function registerDeferredClosureProperties(closure: SandboxClosure, root: SandboxObject): void {
+  const data = readFrozenClosureData(closure);
+  if (data?.closure !== true || data.propertiesRoot !== undefined)
+    throw new TypeError("Deferred properties require a fresh SDK-created function.");
+  writeFrozenClosureData(closure, freezeValueShape({ ...data, propertiesRoot: root }));
 }
 
 export function registerDeferredClosureChargeIdentity(closure: SandboxClosure, identity: object): void {
@@ -921,7 +930,7 @@ function measureSandboxDataWithSeen(
   const seenSymbols = retainCode ? new NativeMeasurementSet<symbol>() : new Set<symbol>();
   let usage = 0;
   const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];
-  let pendingArguments: Array<{ state: DeferredArgumentsData; units: number | undefined; depth: number }> | undefined;
+  let pendingArguments: Array<{ state: Pick<DeferredArgumentsData, "read">; units: number | undefined; depth: number }> | undefined;
   let pendingFunctions: Array<DeferredFunctionData | undefined> | undefined;
   let pendingFunctionDepths: number[] | undefined;
   type WeakContribution = { value: unknown; depth: number };
@@ -1188,6 +1197,18 @@ function measureSandboxDataWithSeen(
               depth++;
               continue walk;
             }
+            break entry;
+          }
+          if ("properties" in bindingRoot) {
+            const state = bindingRoot.properties;
+            const current = state.read();
+            // Preserve the existence check and fresh second table observation.
+            if (current !== undefined) { value = state.read(); continue walk; }
+            assertSandboxDataDepth(depth);
+            const units = state.units;
+            usage += units;
+            pendingArguments ??= nativeDataArraySetPrototype([], null);
+            nativeDataArrayAppend(pendingArguments, { state, units, depth });
             break entry;
           }
           if ("value" in bindingRoot) value = bindingRoot.value;
@@ -1879,7 +1900,7 @@ function measureSandboxDataWithSeen(
         usage += 1;
         visit(contribution.value, contribution.depth);
       }
-      // A native retained callback can force a previously captured binding.
+      // A native retained callback can force an argument or function-property table.
       // Replace its initial scalar/layout charge with the real object's fresh
       // descriptors, without double-charging aliases or dropping new fields.
       for (let index = 0; index < (pendingArguments?.length ?? 0); index++) {

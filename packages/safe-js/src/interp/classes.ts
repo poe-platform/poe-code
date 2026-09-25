@@ -6,7 +6,7 @@ import { dynamicNodeSources, dynamicValueSources } from "../parse/function-sourc
 import { accessorAdapter } from "./accessors.js";
 import { createInterpretedClosure, executeClosure, type AsyncEvaluationContext, type AsyncEvaluationResult, type EvaluateAsyncNode } from "./async.js";
 import { retainValues } from "./resources.js";
-import { getSandboxPrototype, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { deferFunctionProperties, getSandboxPrototype, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { defineDataProperty } from "./globals/object-array.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
 import { captureScopeDataRoots, visitScopeDataRoots, type Scope } from "./scope.js";
@@ -81,11 +81,11 @@ export async function evaluateClass(
         (element.static ? statics : fields).push({ element, key, ...(privateName === undefined ? {} : { privateName }) });
       } else {
         const home = element.static ? constructor : prototype;
-        const method = createInterpretedClosure(element.value, classContext, evaluateNode, home);
         const accessor = element.kind === "get" || element.kind === "set" ? element.kind : undefined;
-        Object.defineProperty(materializeFunctionProperties(method), "name", {
-          value: accessor === undefined ? propertyFunctionName(key) : `${accessor} ${propertyFunctionName(key)}`
-        });
+        const name = accessor === undefined ? propertyFunctionName(key) : `${accessor} ${propertyFunctionName(key)}`;
+        const method = createInterpretedClosure(element.value, { ...classContext, inferredName: name }, evaluateNode, home);
+        if (!deferFunctionProperties(method))
+          Object.defineProperty(materializeFunctionProperties(method), "name", { value: name });
         if (privateName !== undefined) {
           const entries = element.static ? staticPrivate : instancePrivate;
           if (accessor === undefined) entries.set(privateName, { kind: "method", value: method });

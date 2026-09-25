@@ -19,6 +19,7 @@ import { isSandboxTemporalZonedDateTime } from "./temporal-zoned-date-time.js";
 import { retainedAccessorClosures } from "./accessors.js";
 import { internalSymbols } from "./internal-symbols.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
+import { scopeDataRoots } from "./scope-data-roots.js";
 import { getHostObjectOwnMember, noHostObjectMember, getHostObjectPrototype, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget } from "./budget.js";
 import { errorPrototypes } from "./error-prototypes.js";
@@ -31,6 +32,7 @@ import { sandboxErrorTypes } from "../error/shape.js";
 import { boxedValue, isSandboxBox, type BoxedKind, type BoxedPrimitive } from "./boxed.js";
 import {
   isSandboxClosure,
+  registerDeferredClosureProperties,
   isSandboxGenerator,
   isSandboxMap,
   isSandboxPromise,
@@ -47,6 +49,9 @@ import {
 
 const guestClosures = new WeakSet<object>();
 const functionProperties = new WeakMap<object, SandboxObject>();
+const deferredFunctionProperties = new WeakSet<object>();
+const hasDeferredFunctionProperties = WeakSet.prototype.has.bind(deferredFunctionProperties);
+const addDeferredFunctionProperties = WeakSet.prototype.add.bind(deferredFunctionProperties);
 export const hostFunctionPropertyTables = new WeakSet<object>();
 type TrackedPropertyState = {
   revision: number;
@@ -272,7 +277,24 @@ export function trackedPropertyStringData(value: object, includeNonEnumerable: b
 }
 
 export function getGuestFunctionProperties(closure: SandboxClosure): SandboxObject | undefined {
-  return functionProperties.get(closure);
+  const properties = functionProperties.get(closure);
+  return properties ?? (hasDeferredFunctionProperties(closure) ? materializeFunctionProperties(closure) : undefined);
+}
+
+// A nonconstructible method's default name/length table has no references.
+// Charge its full layout immediately; only reflection needs the physical table.
+// The accounting projection rereads materialization and reconciles late writes.
+export function deferFunctionProperties(closure: SandboxClosure): boolean {
+  if (!isGuestClosure(closure) || closure.construct !== undefined || closure.generator === true ||
+      functionProperties.has(closure) || hasDeferredFunctionProperties(closure)) return false;
+  const root = nativePropertyFreeze(nativePropertySetPrototype({}, null)) as SandboxObject;
+  scopeDataRoots.set(root, { properties: {
+    read: () => functionProperties.get(closure),
+    units: 13 + (closure.name?.length ?? 0)
+  } });
+  registerDeferredClosureProperties(closure, root);
+  addDeferredFunctionProperties(closure);
+  return true;
 }
 
 export function intrinsicFunctionDataDescriptors(properties: SandboxObject): Array<[string, PropertyDescriptor]> {

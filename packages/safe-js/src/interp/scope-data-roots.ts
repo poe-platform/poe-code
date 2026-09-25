@@ -16,11 +16,16 @@ export type DeferredFunctionData = {
   readonly collect: (append: (value: SandboxValue) => void) => void;
 };
 
+export type DeferredPropertyData = {
+  readonly read: () => SandboxObject | undefined;
+  readonly units: number;
+};
+
 // Accounting-only snapshots: never guest objects or serialized frame cells.
 type ScopeDataRoot =
   { readonly value: InterpreterValue } | { readonly values: readonly InterpreterValue[] } |
   { readonly arguments: DeferredArgumentsData } |
-  { readonly deferred: DeferredFunctionData };
+  { readonly deferred: DeferredFunctionData } | { readonly properties: DeferredPropertyData };
 const freeze = Object.freeze;
 const setPrototypeOf = Object.setPrototypeOf;
 const defineProperty = Reflect.defineProperty;
@@ -65,6 +70,8 @@ export const scopeDataRoots = Object.freeze({
         ? freeze(setPrototypeOf({ arguments: freeze((data as Extract<ScopeDataRoot, {arguments: unknown}>).arguments) }, null))
       : hasOwn(data, "deferred")
         ? freeze(setPrototypeOf({ deferred: freeze((data as Extract<ScopeDataRoot, {deferred: unknown}>).deferred) }, null))
+      : hasOwn(data, "properties")
+        ? freeze(setPrototypeOf({ properties: freeze((data as Extract<ScopeDataRoot, {properties: unknown}>).properties) }, null))
       : freeze(setPrototypeOf({ values: freeze((data as { values: readonly InterpreterValue[] }).values) }, null));
     nativeSet(root, snapshot);
   }

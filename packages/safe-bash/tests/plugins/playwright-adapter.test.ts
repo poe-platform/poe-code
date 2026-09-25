@@ -56,6 +56,50 @@ test('lease release drains a pending witness resolution and disposes its late ha
   assert.deepEqual(f.calls, ['newContext', 'handle.dispose', 'context.close', 'resource.release']);
 });
 
+for (const action of ['connected', 'resolve'] as const) test(`lease forwards per-call cancellation to witness ${action}`, async () => {
+  const f = fixture();
+  const abort = new AbortController();
+  const reason = new Error('cancel witness operation');
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  let finish!: () => void;
+  const wait = async (controls?: { readonly signal: AbortSignal }) => {
+    let onAbort = () => {};
+    try {
+      await new Promise<void>((resolve, reject) => {
+        finish = resolve;
+        onAbort = () => reject(controls!.signal.reason);
+        controls?.signal.addEventListener('abort', onAbort, { once: true });
+        entered();
+      });
+    } finally {
+      controls?.signal.removeEventListener('abort', onAbort);
+      f.calls.push('witness.settled');
+    }
+  };
+  const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
+    return { browser: f.browser, async release() { f.calls.push('resource.release'); }, async captureSnapshotReferences() {
+      return {
+        identities: [],
+        async connected(controls) { await wait(controls); return []; },
+        async resolve(_index, controls) { await wait(controls); return null; },
+      };
+    } };
+  } } });
+  const lease = await adapter.acquire(request());
+  const batch = await lease.captureSnapshotReferences!({} as PlaywrightPage, ['e1'], { signal: new AbortController().signal, timeoutMs: 5000 });
+  const operation = action === 'connected' ? batch.connected({ signal: abort.signal }) : batch.resolve(0, { signal: abort.signal });
+  const result = operation.then(() => 'fulfilled', error => error);
+  await started;
+  abort.abort(reason);
+  const outcome = await Promise.race([result, new Promise(resolve => setTimeout(() => resolve('pending'), 30))]);
+  finish();
+  await result;
+  await lease.release();
+  assert.equal(outcome, reason);
+  assert.deepEqual(f.calls, ['newContext', 'witness.settled', 'context.close', 'resource.release']);
+});
+
 test("unsupported engines and headed mode fail before host acquisition", async () => {
   const f = fixture();
   await assert.rejects(f.adapter.acquire({ ...request(), browser: "firefox" }), /Unsupported browser/);

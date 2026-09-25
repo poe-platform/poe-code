@@ -521,9 +521,9 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
               ownedOptions.signal.throwIfAborted();
               return {
                 identities: batch.identities,
-                connected: () => track(() => batch.connected()),
-                resolve: (index: number) => track(async () => {
-                  const handle = await batch.resolve(index);
+                connected: (controls?: { readonly signal: AbortSignal }) => track(() => batch.connected(controls)),
+                resolve: (index: number, controls?: { readonly signal: AbortSignal }) => track(async () => {
+                  const handle = await batch.resolve(index, controls);
                   if (closed || releasing) { await handle?.dispose(); throw new Error('Playwright lease is closed'); }
                   return handle;
                 }),

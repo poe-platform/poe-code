@@ -6,6 +6,25 @@ import { arrayStore, snapshotState, stateMonitor, trackState } from "../../src/s
 import { InvocationScope } from "../../src/shell/cleanup.js";
 import type { State } from "../../src/shell/runtime.js";
 import { Capture } from "../../src/shell/runtime.js";
+import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
+import { setup } from "./helpers.js";
+
+test("refused initial array enrollment leaves later commands and invocations healthy", async () => {
+  const { shell } = setup({ extensions: [arraysExtension()] });
+  try {
+    const result = await shell.exec("a=(); true", { limits: { maxExpansionFields: 2 } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "shell: line 1: indexed array: private Map slot limit exceeded\n");
+
+    const healthy = await shell.exec('a=(x y); args "${a[@]}"');
+    assert.equal(healthy.exitCode, 0);
+    assert.equal(healthy.stdout, '["x","y"]');
+    assert.equal(healthy.stderr, "");
+  } finally {
+    await shell.dispose();
+  }
+});
 
 function fixture(bytes = 4096, fields = 64) {
   const arena = new ValueArena(bytes, fields, () => {});

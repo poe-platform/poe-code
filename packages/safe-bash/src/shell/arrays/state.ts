@@ -157,10 +157,20 @@ export class StateMonitor {
   activate(internal = false): BindingStore {
     if (this.store && (internal || this.#enrollment)) return this.store;
     const root = this.internalOwner();
-    const owner = internal ? root : this.session.guestOwner ??= ArrayOwner.create(this.session.ledger, root);
-    const enrollment = owner.reserve({ slots: this.#wrapperCount * 2 + 2, metadata: 128 + this.#wrapperCount * 128, work: this.#wrapperCount * 8 + 8 });
+    const existingGuestOwner = this.session.guestOwner;
+    const owner = internal ? root : existingGuestOwner ?? ArrayOwner.create(this.session.ledger, root);
+    let enrollment: Admission;
+    try {
+      enrollment = owner.reserve({ slots: this.#wrapperCount * 2 + 2, metadata: 128 + this.#wrapperCount * 128, work: this.#wrapperCount * 8 + 8 });
+    } catch (error) {
+      if (!internal && !existingGuestOwner) void owner.close();
+      throw error;
+    }
     if (internal) this.#internalEnrollment = enrollment;
-    else this.#enrollment = enrollment;
+    else {
+      this.session.guestOwner = owner;
+      this.#enrollment = enrollment;
+    }
     let pending = 0;
     for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) pending++;
     if (pending) {

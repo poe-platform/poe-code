@@ -48,6 +48,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     let explicitDepth = false;
     let offset = 0;
     let explicitAction = false;
+    let quitRequested = false;
     let exitCode = 0;
     let deletes = false;
     let prunes = false;
@@ -93,9 +94,16 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (token === "-maxdepth") maxDepth = number; else minDepth = number;
         return () => true;
       }
-      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-newer"].includes(token)) {
+      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-regex", "-iregex", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-newer"].includes(token)) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
+        if (token === "-regex" || token === "-iregex") {
+          needsDisplay = true;
+          let regex: RegExp;
+          try { regex = new RegExp(`^(?:${operand})$`, token === "-iregex" ? "iu" : "u"); }
+          catch { throw new UsageError(`invalid regular expression '${operand}'`); }
+          return entry => regex.test(entry.display);
+        }
         if (token === "-newer") {
           needsStat = true;
           references.set(operand, 0);
@@ -178,6 +186,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       if (token === "-true" || token === "-false") return () => token === "-true";
       if (token === "-empty") { needsStat = true; return async entry => entry.stat.type === "directory" ? !(await readDirectory(context, entry.path)).length : entry.stat.type === "file" && entry.stat.size === 0; }
       if (token === "-prune") { prunes = true; return entry => { entry.prune = true; return true; }; }
+      if (token === "-quit") { explicitAction = true; return () => { quitRequested = true; return true; }; }
       if (token === "-delete") {
         explicitAction = true;
         depthFirst = true;
@@ -326,6 +335,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     const canSkipChildStat = !needsStat && !explicitAction && follow !== "-L";
     const scratchChildEntry: Entry = { path: "", display: "", name: "", stat: SYNTHETIC_FILE_STAT, symlink: false, depth: 0, root: "", relative: "", prune: false };
     const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string, knownName?: string, knownType?: FileStat["type"]): Promise<void> => {
+      if (quitRequested) return;
       context.signal.throwIfAborted();
       const path = pathOf(context, display);
       try {
@@ -348,6 +358,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const res = evaluate(entry);
           const ok = typeof res === "boolean" ? res : await res;
           if (ok && !explicitAction) await appendPrintLine(escapeText(display, "display"));
+          if (quitRequested) return;
         }
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
           const physical = await context.fs.realpath(path, { signal: context.signal });
@@ -359,6 +370,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const escapedParent = canSkipChildStat && !needsDisplay ? escapeText(parent, "display") : "";
           const childDepth = depth + 1;
           for (const child of children) {
+            if (quitRequested) return;
             if (canSkipChildStat && child.type === "file" && childDepth <= 1024) {
               if (childDepth >= minDepth) {
                 scratchChildEntry.name = child.name;
@@ -397,7 +409,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         exitCode = 1;
       }
     };
-    for (const root of roots) await visit(root, 0, new Set(), root, "");
+    for (const root of roots) { if (quitRequested) break; await visit(root, 0, new Set(), root, ""); }
     await flushPrintBuffer();
     for (const flush of flushes) await flush();
     return { exitCode };

@@ -92,3 +92,18 @@ test("find -links reports unavailable metadata instead of guessing", async conte
   assert.equal(result.stdout, "");
   assert.ok(result.stderr.includes("link count unavailable"));
 });
+
+test("find supports -regex, -iregex, and -quit", async () => {
+  const fs = await fixture({ foo: "hi", bar: "lo" });
+  const r1 = await run("find", ["/work", "-regex", ".*foo"], { fs });
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "/work/foo\n");
+
+  const r2 = await run("find", ["/work", "-iregex", ".*FOO"], { fs });
+  assert.equal(r2.exitCode, 0);
+  assert.equal(r2.stdout, "/work/foo\n");
+
+  const r3 = await run("find", ["/work/foo", "/work/bar", "-print", "-quit"], { fs });
+  assert.equal(r3.exitCode, 0);
+  assert.equal(r3.stdout, "/work/foo\n");
+});

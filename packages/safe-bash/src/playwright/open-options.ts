@@ -16,7 +16,7 @@ function keys(value: Record<string, unknown>, allowed: ReadonlySet<string>, name
 }
 
 /** Provider-safe context settings shared by config and persisted session restoration. */
-export function parsePlaywrightContextOptions(value: unknown, maxBytes = 8 * 1024 * 1024): PlaywrightContextOptions {
+export function parsePlaywrightContextOptions(value: unknown, maxBytes = Infinity): PlaywrightContextOptions {
   const context = { ...object(value, 'browser context options') };
   keys(context, contextKeys, 'browser context option');
   const encoded = JSON.stringify(context);

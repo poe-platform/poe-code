@@ -75,7 +75,7 @@ export function createPlaywrightCli(options: PlaywrightCliOptions = {}) {
               readArtifact: async (filename, maxBytes) => {
                 context.signal.throwIfAborted();
                 const path = resolvePath(context.cwd, filename);
-                const bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes });
+                const bytes = await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
                 if (bytes.byteLength > maxBytes) throw new Error('Artifact byte limit exceeded');
                 return bytes;
               },

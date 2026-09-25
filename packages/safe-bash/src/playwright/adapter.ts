@@ -555,7 +555,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
           ...(resource.captureTrace ? { captureTrace: ((traceContext, captureOptions) => {
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             captureOptions.signal.throwIfAborted();
-            if (!Number.isSafeInteger(captureOptions.maxBytes) || captureOptions.maxBytes < 1) return Promise.reject(new TypeError('Invalid Playwright trace capture options'));
+            if (captureOptions.maxBytes !== Infinity && (!Number.isSafeInteger(captureOptions.maxBytes) || captureOptions.maxBytes < 1)) return Promise.reject(new TypeError('Invalid Playwright trace capture options'));
             const ownedOptions = Object.freeze({ ...captureOptions });
             const operation = Promise.resolve().then(async () => {
               ownedOptions.signal.throwIfAborted();
@@ -570,7 +570,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
           ...(resource.captureDownload ? { captureDownload: ((download, captureOptions) => {
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             captureOptions.signal.throwIfAborted();
-            if (!Number.isSafeInteger(captureOptions.maxBytes) || captureOptions.maxBytes <= 0) return Promise.reject(new TypeError('Invalid Playwright download capture options'));
+            if (captureOptions.maxBytes !== Infinity && (!Number.isSafeInteger(captureOptions.maxBytes) || captureOptions.maxBytes <= 0)) return Promise.reject(new TypeError('Invalid Playwright download capture options'));
             const ownedOptions = Object.freeze({ ...captureOptions });
             const operation = Promise.resolve().then(async () => {
               ownedOptions.signal.throwIfAborted();
@@ -587,7 +587,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             executionOptions.signal.throwIfAborted();
             if (typeof executionOptions.source !== 'string' || !executionOptions.source.trim()
-              || ![executionOptions.timeoutMs, executionOptions.maxOutputBytes].every(value => Number.isSafeInteger(value) && value > 0)
+              || !Number.isSafeInteger(executionOptions.timeoutMs) || executionOptions.timeoutMs <= 0 || (executionOptions.maxOutputBytes !== Infinity && (!Number.isSafeInteger(executionOptions.maxOutputBytes) || executionOptions.maxOutputBytes <= 0))
               || (executionOptions.maxPages !== Infinity && (!Number.isSafeInteger(executionOptions.maxPages) || executionOptions.maxPages < 1))) return Promise.reject(new TypeError('Invalid Playwright code execution options'));
             const ownedOptions = Object.freeze({ ...executionOptions });
             const operation = Promise.resolve().then(async () => {
@@ -609,7 +609,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
           ...(resource.captureArtifact ? { captureArtifact: (produce: (path: string) => Promise<void>, captureOptions: PlaywrightArtifactCaptureOptions): Promise<Uint8Array> => {
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             captureOptions.signal.throwIfAborted();
-            if (!Number.isSafeInteger(captureOptions.maxBytes) || captureOptions.maxBytes <= 0 || !captureOptions.extension || [...captureOptions.extension].some(character => !'abcdefghijklmnopqrstuvwxyz0123456789'.includes(character))) throw new Error('Invalid Playwright artifact capture options');
+            if ((captureOptions.maxBytes !== Infinity && (!Number.isSafeInteger(captureOptions.maxBytes) || captureOptions.maxBytes <= 0)) || !captureOptions.extension || [...captureOptions.extension].some(character => !'abcdefghijklmnopqrstuvwxyz0123456789'.includes(character))) throw new Error('Invalid Playwright artifact capture options');
             const operation = Promise.resolve().then(async () => {
               let active = true, invoked = false, settled = false;
               let pending: Promise<void> | undefined;

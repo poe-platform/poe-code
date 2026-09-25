@@ -40,9 +40,10 @@ export function createCloudflarePlaywrightAdapter(
 		): Promise<BrowserStorageState | undefined>;
 	},
   runtime?: BrowserCodeRuntime,
-  limits: { maxStorageBytes: number } = { maxStorageBytes: 2 * 1024 * 1024 },
+  limits: { maxStorageBytes?: number } = {},
 ): PlaywrightAdapter {
-  if (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1) throw new TypeError('Invalid Cloudflare storage byte limit');
+  if (limits.maxStorageBytes !== undefined && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
+	const maxStorageBytes = limits.maxStorageBytes ?? Infinity;
 	const adapter = createPlaywrightAdapter({
 		chromium: {
 			headed: false,
@@ -95,7 +96,7 @@ export function createCloudflarePlaywrightAdapter(
       if (!state) return lease;
       const cleanups: (() => Promise<void>)[] = [];
       const [result] = await Promise.allSettled([replacePlaywrightStorageState(lease.context, state, {
-        signal: options.signal, maxBytes: limits.maxStorageBytes, registerCleanup: cleanup => cleanups.push(cleanup),
+        signal: options.signal, maxBytes: maxStorageBytes, registerCleanup: cleanup => cleanups.push(cleanup),
       })]);
       const outcomes = await Promise.allSettled(cleanups.map(cleanup => Promise.resolve().then(cleanup)));
       const failures = outcomes.filter((outcome): outcome is PromiseRejectedResult => outcome.status === 'rejected').map(outcome => outcome.reason);

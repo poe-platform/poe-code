@@ -12,6 +12,7 @@ for (const failingCommand of ['ps', 'lsof']) for (const failures of [1, 50]) tes
   vi.spyOn(process, 'on').mockImplementation((event, listener) => { handlers.set(event, listener); return process; });
   vi.spyOn(process, 'kill').mockReturnValue(true);
   const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+  vi.spyOn(console, 'error').mockImplementation((_message, error) => { throw error; });
   let remaining = failures;
   const failure = Object.assign(new Error('process inspection timed out'), { code: 'ETIMEDOUT' });
   mocks.inspect.mockImplementation((command: string) => {

@@ -35,7 +35,7 @@ async function cleanup(pid) {
   // Crashpad double-forks into another process group. Its inherited private
   // cwd remains an ownership witness after reparenting; other Chrome is excluded.
   for (let attempt = 0; attempt < 50; attempt++) {
-    const candidates = (await browserProcessInventory())
+    const candidates = (await browserProcessInventory(50))
       .split('\n').filter(line => line.includes('chrome_crashpad_handler'))
       .map(line => line.trim().split(' ')[0]);
     if (!candidates.length) break;

@@ -5,8 +5,8 @@ const storageMaxNodes = 100000;
 const storageMaxDepth = 64;
 
 /** Count JSON values without allocating their graph. JSON.parse still checks syntax. */
-export function parsePlaywrightStorageStateJson(source: string, maxBytes: number, options: { maxTraversalBytes?: number; maxNodes?: number; maxDepth?: number } = {}): PlaywrightStorageState {
-  if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) throw new TypeError("Invalid storage state limits");
+export function parsePlaywrightStorageStateJson(source: string, maxBytes = Infinity, options: { maxTraversalBytes?: number; maxNodes?: number; maxDepth?: number } = {}): PlaywrightStorageState {
+  if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes <= 0)) throw new TypeError("Invalid storage state limits");
   if (new TextEncoder().encode(source).byteLength > maxBytes) throw new PlaywrightResourceLimitError("Browser storage state byte limit exceeded");
   let nodes = 0, depth = 0;
   const whitespace = (char: string | undefined): boolean => char === ' ' || char === '\n' || char === '\r' || char === '\t';
@@ -35,11 +35,11 @@ export function parsePlaywrightStorageStateJson(source: string, maxBytes: number
 
 /** Validate the portable native storage-state format before handing it to a browser. */
 export function parsePlaywrightStorageState(value: unknown, options: { maxBytes?: number; maxTraversalBytes?: number; maxNodes?: number; maxDepth?: number } = {}): PlaywrightStorageState {
-  const maxBytes = options.maxBytes ?? 8 * 1024 * 1024;
-  const maxTraversalBytes = options.maxTraversalBytes ?? Math.min(Number.MAX_SAFE_INTEGER, maxBytes * 4 + 65536);
+  const maxBytes = options.maxBytes ?? Infinity;
+  const maxTraversalBytes = options.maxTraversalBytes ?? (Number.isFinite(maxBytes) ? Math.min(Number.MAX_SAFE_INTEGER, maxBytes * 4 + 65536) : Infinity);
   const maxNodes = options.maxNodes ?? storageMaxNodes;
   const maxDepth = options.maxDepth ?? storageMaxDepth;
-  if (![maxBytes, maxTraversalBytes, maxNodes, maxDepth].every(limit => Number.isSafeInteger(limit) && limit > 0)) throw new TypeError('Invalid storage state limits');
+  if (![maxBytes, maxTraversalBytes, maxNodes, maxDepth].every(limit => limit === Infinity || (Number.isSafeInteger(limit) && limit > 0))) throw new TypeError('Invalid storage state limits');
   const encoder = new TextEncoder();
   const checkByteLimits = () => {
     if (serializedBytes > maxBytes || traversalBytes > maxTraversalBytes) {

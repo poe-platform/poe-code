@@ -169,7 +169,7 @@ async function censusState(context: PlaywrightContext, binding: Binding, options
     signal.throwIfAborted();
     const remainingBytes = options.maxBytes - new TextEncoder().encode(JSON.stringify({ ...census, origins: census.origins.filter(item => item.origin !== origin) })).length;
     if (remainingBytes <= 0) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
-    const result = await inOrigin(binding, context, origin, signal, `(${collectStorageOriginSource})(${JSON.stringify({ origin, indexedDB, maxBytes: remainingBytes })})`);
+    const result = await inOrigin(binding, context, origin, signal, `(${collectStorageOriginSource})(${JSON.stringify({ origin, indexedDB, ...(Number.isFinite(remainingBytes) ? { maxBytes: remainingBytes } : {}) })})`);
     if (result === false) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
     if (typeof result !== 'string') throw new Error('Invalid native storage readback');
     const current = parsePlaywrightStorageState({ cookies: [], origins: [JSON.parse(result)] }, { maxBytes: options.maxBytes }).origins[0]!;

@@ -18,7 +18,7 @@ export interface PlaywrightSessionConfiguration {
 }
 
 /** Shared validation for user configuration and owner-persisted restore data. */
-export function parsePlaywrightSessionConfiguration(value: unknown, maxBytes = 8 * 1024 * 1024): PlaywrightSessionConfiguration {
+export function parsePlaywrightSessionConfiguration(value: unknown, maxBytes = Infinity): PlaywrightSessionConfiguration {
   if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !['browserName', 'headless', 'timeouts', 'initScripts', 'initScriptFiles', 'initPages', 'testIdAttribute', 'network', 'console', 'snapshot', 'outputDir', 'outputMaxSize', 'configFile', 'codegen'].includes(key))) throw new Error('Invalid Playwright session configuration');
   const candidate = value as Record<string, unknown>;
   if (candidate.browserName !== undefined && !['chromium', 'firefox', 'webkit'].includes(candidate.browserName as string)) throw new Error('Invalid configured browser');

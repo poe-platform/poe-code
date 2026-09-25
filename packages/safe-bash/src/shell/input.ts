@@ -506,7 +506,7 @@ class InputCursor {
   #ended = false;
   #closed = false;
   #active = false;
-  #hasWaiters = false;
+  #consumers = 0;
   #produced = 0;
   #boundedReads = false;
 
@@ -559,13 +559,13 @@ class InputCursor {
   }
 
   get bufferedBytes(): number {
-    if (this.#active) return 0;
+    if (this.#consumers) return 0;
     return (this.remainder?.length ?? 0) + (this.#initialChunk?.length ?? 0) + (this.#unread ? this.#unread.reduce((length, chunk) => length + chunk.length, 0) : 0)
       + (this.#readResult && !this.#readResult.done ? this.#readResult.value.length : 0);
   }
 
   readiness(): InputReadiness {
-    if (this.#active) return "blocked";
+    if (this.#consumers) return "blocked";
     if (this.remainder?.length || this.#initialChunk?.length || (this.#unread?.some(chunk => chunk.length) ?? false)) return "ready";
     if (this.#readError) throw this.#readError.reason;
     if (this.#ended || this.#readResult?.done) return "eof";
@@ -600,6 +600,7 @@ class InputCursor {
     let release!: () => void;
     const completed = new Promise<void>((resolve) => { release = resolve; });
     this.#turn = previous.then(() => completed);
+    this.#consumers++;
     try {
       try { await interruptible(previous, signal); signal.throwIfAborted(); }
       catch (error) { if (signal.aborted && interrupted) return await interrupted(error); throw error; }
@@ -607,11 +608,11 @@ class InputCursor {
       this.#active = true;
       try { return await operation(); }
       finally { this.#active = false; }
-    } finally { release(); }
+    } finally { this.#consumers--; release(); }
   }
 
   tryTakeReadySync(): IteratorResult<Uint8Array> | undefined {
-    if (this.#active || this.#hasWaiters) return undefined;
+    if (this.#consumers) return undefined;
     if (this.remainder) {
       const value = this.remainder;
       this.remainder = undefined;
@@ -628,6 +629,7 @@ class InputCursor {
       this.#ended = true;
       return { value: chunk, done: false };
     }
+    if (this.#ended && this.#eof === "retryable" && !this.#closed) return undefined;
     if (this.#ended || this.#closed) return { value: undefined, done: true };
     if (!this.#read && !this.#readChunk) {
       const syncIter = this.#iterator as { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };

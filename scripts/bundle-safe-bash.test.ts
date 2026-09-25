@@ -153,6 +153,22 @@ it.each(["verifyTruncateCommands", "verifyCsplitCommands", "verifyPrCommands", "
   await mixedConsumer[verify](mixedConsumer.defaultEntry);
 });
 
+it("preserves private mdq exports when the browser root and command entry share canonical packages", async () => {
+  const options = resolveBrowserShellBuild(root);
+  const manifest = JSON.parse(await readFile(path.join(root, "packages/safe-bash/package.json"), "utf8"));
+  const result = await build({
+    ...options,
+    entryPoints: {
+      "core.browser": options.entryPoints["core.browser"],
+      "commands/mdq/index.browser": options.entryPoints["commands/mdq/index.browser"],
+    },
+    external: [...options.external, ...Object.keys(manifest.poeCode.integration.privateWorkspaces)],
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect(imports.some(item => item.external && item.path === "safe-bash-command-mdq")).toBe(true);
+  expect(result.outputFiles!.some(output => output.path.endsWith("/commands/mdq/index.browser.js"))).toBe(true);
+});
+
 it("bundles the opt-in op plugin with browser crypto and no Node implementation", async () => {
   const result = await build(resolveBrowserOpBuild(root));
   expect(result.outputFiles!.some(output => output.path.endsWith("/commands/op/index.browser.js"))).toBe(true);

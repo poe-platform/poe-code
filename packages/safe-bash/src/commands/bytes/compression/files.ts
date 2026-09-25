@@ -13,6 +13,7 @@ export interface Operand {
   readonly source: string;
   readonly realSource?: string;
   readonly sourceStat?: FileStat;
+  readonly sourceParent?: FileStat;
   readonly destination?: string;
   readonly destinationStat?: FileStat;
 }
@@ -149,6 +150,16 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     if (!options.keep && !options.force && (sourceStat.nlink ?? 1) > 1) {
       throw new FsError("EINVAL", { path: source, message: "input has multiple links (use -k or -f)" });
     }
+    let sourceParent: FileStat | undefined;
+    if (!options.keep) {
+      if (sourceCapabilities.atomicFileMutation !== true || !context.fs.removeFileConditional) {
+        throw new FsError("ENOTSUP", { path: source, message: "atomic source removal unavailable (use -k or -c)" });
+      }
+      sourceParent = await context.fs.lstat(dirname(realSource), { signal: context.signal });
+      if (sourceParent.type !== "directory" || !identified(sourceParent) || !Number.isSafeInteger(sourceStat.revision)) {
+        throw new FsError("ENOTSUP", { path: source, message: "atomic source removal requires parent identity and source revision (use -k or -c)" });
+      }
+    }
     const destination = outputPath(realSource, options);
     const capabilities = await context.fs.capabilitiesFor?.(destination, { signal: context.signal }) ?? context.fs.capabilities;
     if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: context.command, path: destination });
@@ -174,7 +185,7 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
         throw new FsError("ENOTSUP", { path: destination, message: "forced replacement requires VFS atomicRename" });
       }
     }
-    plans.push({ source, sourceStat, realSource, destination, ...(destinationStat ? { destinationStat } : {}) });
+    plans.push({ source, sourceStat, ...(sourceParent ? { sourceParent } : {}), realSource, destination, ...(destinationStat ? { destinationStat } : {}) });
   }
   const destinations = new Set<string>();
   for (const plan of plans) {
@@ -318,7 +329,9 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     operation.check();
     if (!options.keep) {
       await operation.run(() => unchangedSource(active, plan));
-      await operation.run(() => fs.rm(plan.source, { signal }));
+      await operation.run(() => fs.removeFileConditional!(plan.realSource!, {
+        parent: plan.sourceParent!, expected: plan.sourceStat!, signal,
+      }));
     }
   } catch (error) { failed = true; failure = error; }
   try {

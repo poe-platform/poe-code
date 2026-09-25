@@ -265,23 +265,23 @@ require `-k` or `-f` only when file output would otherwise remove the input.
 Each file output is first written to `data` in a randomly named, exclusively
 created sibling `.virtual-bash-gzip-*` directory. Source snapshots/realpaths and
 destination snapshots are checked again before publication; stage identity is
-also checked. A previously absent destination uses `copyFile` with
-`exclusive: true`. Replacing an existing regular destination requires `-f` and
+also checked. A previously absent destination uses atomic `rename` with
+`noReplace: true` and requires `capabilities.atomicRenameNoReplace === true`. Replacing an existing regular destination requires `-f` and
 `capabilities.atomicRename === true`, and uses `rename` from the stage. Without
 that capability, forced replacement is refused, not implemented as unlink/copy.
-Only successful publication and cleanup permit source removal (unless `-k`),
-after another source snapshot check.
+Only successful publication and cleanup permit source removal (unless `-k`).
+Removal uses the VFS atomic conditional-delete operation, bound to the checked
+parent identity and source identity/revision. An ancestor symlink swap, source
+replacement, or content revision change causes cleanup to fail while retaining
+the changed source and unrelated files. Backends without this capability, parent
+identity, or source revision are refused before output publication; use `-k` or
+`-c` to retain the input instead.
 
-These are defensive checks, **not a filesystem transaction or conditional
-unlink guarantee**. The VFS has no compare-and-swap, handle-relative no-follow,
-or conditional-remove primitive. A hostile external mutation can race between
-any check and use, including source removal, target replacement, and cleanup.
-Missing/reused inode identifiers and coarse or unreliable metadata further
-weaken identity checks. Parent-directory symlink races are not eliminated.
+Output publication and staging cleanup remain defensive pathname checks rather
+than a filesystem transaction. Hostile mutations can still race with target
+replacement and staging cleanup; conditional source deletion does not strengthen
+those separate operations.
 
-Exclusive copy need not be atomic: a backend may expose partial destination
-bytes or leave a partial file after copy failure/cancellation. The command does
-not delete that destination, since it cannot prove it still owns the entry.
 Atomic rename is trusted only as advertised; publication may already have
 occurred when cancellation or a later error is observed. Existing targets are
 preserved on validation/codec failure before publication, not unconditionally

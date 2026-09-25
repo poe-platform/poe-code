@@ -540,6 +540,7 @@ function assertSource7Discovery(files) {
     "tests/commands/bytes/compression/planning.test.ts",
     "tests/commands/bytes/compression/capabilities.test.ts",
     "tests/commands/bytes/compression/snapshot-rmdir.test.ts",
+    "tests/commands/bytes/compression/source-removal.test.ts",
     "tests/commands/bytes/compression/opaque-next.test.ts",
     "tests/commands/bytes/compression/native-codecs.test.ts",
     "tests/source-census.test.ts",

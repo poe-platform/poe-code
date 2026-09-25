@@ -200,6 +200,9 @@ during decompression. `--exclude-compressed` skips compressed file suffixes.
 Single-thread execution, I/O read-ahead, literal compression, row matching,
 size hints and bounded long-distance matching are configurable; see the
 [compression options](src/commands/bytes/compression/README.md).
+Named compression removes its source only through an atomic identity- and
+ancestry-bound conditional delete. Backends without that guarantee refuse before
+publishing output; use `--keep` or `--stdout` to retain the source.
 Zstandard presets are parsed as whole numbers; the bounded codec supports levels
 1–9. Higher presets and `--fast[=NUM]` fail explicitly instead of selecting a
 different level. Native codecs enforce a 64 MiB allocation ceiling for encoding

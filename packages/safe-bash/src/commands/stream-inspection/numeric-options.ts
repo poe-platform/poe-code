@@ -1,7 +1,7 @@
 import { options, type ParsedOptions } from "../internal.js";
 
 export function numericOptions(
-  args: readonly string[], short: string, long: Readonly<Record<string, string>>, key?: string,
+  args: readonly string[], short: string, long: Readonly<Record<string, string | false>>, key?: string,
   onOption?: (key: string, value: string | undefined) => void,
 ): ParsedOptions & { readonly legacyValue?: string } {
   const normalized: string[] = [], ordered: string[] = [], operands: string[] = [];

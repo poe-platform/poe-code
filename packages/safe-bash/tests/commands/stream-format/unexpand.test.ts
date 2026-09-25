@@ -2,12 +2,29 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { shell, type NativeCase } from "./helpers.js";
 
-test("unexpand rejects the undocumented -F option", async context => {
+test("unexpand rejects the undocumented -F option and supports clustered numeric, ordered -t/-N, and +0//0/+/N tab specs", async context => {
   const instance = shell();
   context.after(() => instance.dispose());
-  const result = await instance.exec("unexpand -F", { stdin: "        a       b\n" });
-  assert.equal(result.exitCode, 1);
-  assert.equal(result.stdout, "");
+  for (const bad of ["unexpand -F", "unexpand -F4", "unexpand -t 8 -4", "unexpand -t /4,8"]) {
+    const result = await instance.exec(bad, { stdin: "    a   b\n" });
+    assert.equal(result.exitCode, 1, bad);
+    assert.equal(result.stdout, "", bad);
+  }
+  for (const [cmd, input, expected] of [
+    ["unexpand -t 4 -8", "    a   b       c\n", "\ta\tb       c\n"],
+    ["unexpand -a4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t 4,/0", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t 4,+0", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t /0", "    a   b       c\n", "    a\tb\tc\n"],
+    ["unexpand -t +0", "    a   b       c\n", "    a\tb\tc\n"],
+    ["unexpand -t +,4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t /,4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -t +/4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+  ] as const) {
+    const result = await instance.exec(cmd, { stdin: input });
+    assert.equal(result.exitCode, 0, `${cmd}: ${result.stderr}`);
+    assert.equal(result.stdout, expected, cmd);
+  }
 });
 
 const blanks = "        a        b\n1234567  X\n1234567 X\n1234567 \tX\n\t  \t\n";

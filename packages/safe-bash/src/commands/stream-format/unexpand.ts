@@ -1,22 +1,36 @@
 import type { CommandDefinition } from "../../contracts/index.js";
-import { integer, options, UsageError } from "../internal.js";
+import { integer, UsageError } from "../internal.js";
+import { numericOptions } from "../stream-inspection/numeric-options.js";
 import { ByteOutput, command, type Session, type StreamFormatLimits } from "./shared.js";
 
 function tabStops(specifications: readonly string[], session: Session): (column: number) => number | undefined {
   const stops: number[] = [];
-  let repeat = 0, relative = false;
+  let absoluteRepeat = 0, relativeRepeat = 0;
   for (const specification of specifications) {
-    for (const entry of specification.split(/[, \t]+/u).filter(Boolean)) {
-      if (repeat) throw new UsageError("repeating tab stop must be last");
-      const marker = entry[0] === "+" || entry[0] === "/" ? entry[0] : "";
-      const number = integer(entry.slice(marker.length), 1);
-      if (marker) { repeat = number; relative = marker === "+"; }
-      else {
-        if (number <= (stops.at(-1) ?? 0)) throw new UsageError("tab stops must be ascending");
-        stops.push(number);
+    const entries = specification.split(/[, \t]+/u);
+    let marker = "";
+    for (const entry of entries) {
+      if (!entry) continue;
+      const prefix = entry.match(/^[+/]+/u)?.[0] ?? "";
+      if (prefix) marker = prefix.at(-1)!;
+      const number = entry.slice(prefix.length);
+      if (!number) continue;
+      const stop = integer(number, marker ? 0 : 1);
+      if (marker === "+") {
+        if (relativeRepeat) throw new UsageError("repeating tab stop must be last");
+        relativeRepeat = stop;
+      } else if (marker === "/") {
+        if (absoluteRepeat) throw new UsageError("repeating tab stop must be last");
+        absoluteRepeat = stop;
+      } else {
+        if (stop <= (stops.at(-1) ?? 0)) throw new UsageError("tab stops must be ascending");
+        stops.push(stop);
       }
     }
   }
+  if (absoluteRepeat && relativeRepeat) throw new UsageError("'/' specifier is mutually exclusive with '+'");
+  let repeat = absoluteRepeat || relativeRepeat;
+  const relative = relativeRepeat !== 0;
   if (!stops.length && !repeat) repeat = 8;
   if (stops.length === 1 && !repeat) repeat = stops.pop()!;
   return column => {
@@ -37,19 +51,8 @@ function tabStops(specifications: readonly string[], session: Session): (column:
 
 export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefinition {
   return command("unexpand", limits, async session => {
-    const normalized: string[] = [], obsolete: string[] = [];
-    let ended = false;
-    for (let index = 0; index < session.context.args.length; index++) {
-      const argument = session.context.args[index]!;
-      if (!ended && /^-\d[\d,]*$/u.test(argument)) obsolete.push(argument.slice(1));
-      else {
-        normalized.push(argument);
-        if (argument === "--") ended = true;
-        if (!ended && (argument === "-t" || argument === "--tabs") && index + 1 < session.context.args.length) normalized.push(session.context.args[++index]!);
-      }
-    }
-    const parsed = options(normalized, "at:", { all: "a", tabs: "t", "first-only": false });
-    const nextTab = tabStops([...obsolete, ...parsed.values.get("t") ?? []], session);
+    const parsed = numericOptions(session.context.args, "at:", { all: "a", tabs: "t", "first-only": false }, "t");
+    const nextTab = tabStops(parsed.values.get("t") ?? [], session);
     const all = !parsed.flags.has("first-only") && (parsed.flags.has("a") || parsed.flags.has("t"));
     const output = new ByteOutput(session);
     let column = 0, initial = true, active = true;

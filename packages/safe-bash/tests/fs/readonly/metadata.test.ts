@@ -41,7 +41,8 @@ function requiredStat(): Mutable<FileStat> {
   return { type: "file", size: 4, mode: 0o100755, mtimeMs: 11, atimeMs: 12, ctimeMs: 13 };
 }
 
-function fullStat(): Mutable<Required<FileStat>> {
+// Read receipts are opaque optional capabilities, covered by retained-read tests.
+function fullStat(): Mutable<Required<Omit<FileStat, "readSnapshot">>> {
   return { ...requiredStat(), filesystemType: "fixture", revision: 7, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), opaqueIdentity: "file-identity", opaqueVersion: "file-version", ino: 21, dev: 22, rdevMajor: 0, rdevMinor: 0, nlink: 2, uid: 0, gid: 0 };
 }
 

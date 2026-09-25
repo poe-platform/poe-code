@@ -6,20 +6,22 @@ type Same<Actual, Expected> =
   (<Value>() => Value extends Actual ? 1 : 2) extends
   (<Value>() => Value extends Expected ? 1 : 2) ? true : false;
 
-test("rmdir is an additive optional signal-only filesystem method", () => {
+test("rmdir is an additive optional filesystem method with signal options", () => {
   const absent: Pick<FileSystem, "rmdir"> = {};
   const signature: Same<FileSystem["rmdir"],
     ((path: string, options?: FsOptions) => Promise<void>) | undefined> = true;
-  const signalOnly: Same<keyof FsOptions, "signal"> = true;
+  const signalOnly: Same<Pick<FsOptions, "signal">, Readonly<{ signal?: AbortSignal }>> = true;
+  const optional: FsOptions = {};
   assert.equal(absent.rmdir, undefined);
   assert.equal(signature, true);
   assert.equal(signalOnly, true);
+  assert.equal(optional.signal, undefined);
 });
 
 test("adding rmdir does not change the required rm contract", () => {
   const signature: Same<FileSystem["rm"],
     (path: string, options?: RemoveOptions) => Promise<void>> = true;
-  const removeOptions: Same<keyof RemoveOptions, "recursive" | "force" | "signal"> = true;
+  const removeOptions: Same<Omit<RemoveOptions, keyof FsOptions>, Readonly<{ recursive?: boolean; force?: boolean }>> = true;
   assert.equal(signature, true);
   assert.equal(removeOptions, true);
 });

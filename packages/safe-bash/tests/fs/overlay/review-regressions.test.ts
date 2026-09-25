@@ -6,7 +6,8 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { OverlayFileSystem } from "../../../src/fs/overlay/index.js";
 import { decode, encode, errno, immutable, snapshot, wrapped } from "./helpers.js";
 
-type FixtureStat = Required<FileStat>;
+// Read receipts are opaque optional capabilities, covered by retained-read tests.
+type FixtureStat = Required<Omit<FileStat, "readSnapshot">>;
 type MutableStat = { -readonly [Field in keyof FixtureStat]: FixtureStat[Field] };
 
 class GetterStat implements FileStat {

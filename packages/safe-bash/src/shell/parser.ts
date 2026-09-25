@@ -88,7 +88,8 @@ export type WordPart =
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "failed-parameter"; source: string; line: number; quoted: boolean }
   | { kind: "compound-substitution-eof"; line: number; quoted: boolean }
-  | { kind: "substitution"; form?: "backtick" | "dollar-parenthesis"; script: Script; line: number; sourceLine?: number; quoted: boolean };
+  | { kind: "substitution"; form?: "backtick" | "dollar-parenthesis"; script: Script; line: number; sourceLine?: number; quoted: boolean }
+  | { kind: "process-substitution"; direction: "<" | ">"; script: Script; line: number; sourceLine?: number; quoted: boolean };
 
 export interface Word {
   readonly parts: WordPart[];
@@ -378,7 +379,7 @@ class Lexer {
       logical += this.source[cursor++]!;
       ends.push(cursor);
     }
-    const operator = this.conditionalPattern ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|<>|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
+    const operator = this.conditionalPattern || logical.startsWith("<(") || logical.startsWith(">(") ? undefined : /^(?:;;&|<<<|<<-|&>>|;&|&&|\|\||\|&|<>|>>|>&|<&|>\||<<|;;|&>|[;\n|&()<>])/u.exec(logical)?.[0];
     if (operator) {
       if (operator === "&" && !this.syntax.listTerminators.length) this.error(`Unsupported operator ${operator}`);
       this.position = ends[operator.length - 1]!;
@@ -623,7 +624,34 @@ class Lexer {
           if (++patternParentheses > 64) this.error("Conditional syntax nesting exceeds 64");
         } else if (current === ")" && patternParentheses > 0) patternParentheses--;
         else if (/[()<>]/u.test(current) || patternParentheses === 0 && (this.source.startsWith("&&", this.position) || this.source.startsWith("||", this.position))) break;
-      } else if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : !this.braceReplay && /[ \t\n;|&()<>]/u.test(current)) break;
+      } else if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : !this.braceReplay && /[ \t\n;|&()<>]/u.test(current) && !(!enclosingQuoted && !literal && (current === "<" || current === ">") && this.source[this.position + 1] === "(")) break;
+      if ((current === "<" || current === ">") && this.source[this.position + 1] === "(" && !enclosingQuoted && !literal) {
+        plain = false;
+        const direction = current;
+        const line = this.documentLine ?? this.lineAt(this.position);
+        const start = this.position + 2;
+        let nested: Parser;
+        let script: Script;
+        try {
+          this.budget.admit();
+          nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues, this.byteSource, this.syntax);
+          script = nested.script(new Set([")"]));
+        } catch (error) {
+          if (this.documentLine !== undefined && error instanceof ShellSyntaxError && !/nesting|exceeds/u.test(error.reason)) throw this.documentSubstitutionError(this.source.slice(start), error);
+          if (error instanceof ShellSyntaxError && !/Unterminated|nesting|exceeds/u.test(error.reason)) throw new ShellSyntaxError(error.reason, start + error.offset, 127);
+          throw error;
+        }
+        if (nested.current.value !== ")") {
+          if (this.documentLine !== undefined) throw this.documentSubstitutionError(this.source.slice(start), new ShellSyntaxError("Unterminated process substitution", nested.current.offset));
+          this.error("Unterminated process substitution");
+        }
+        if (nested.lexer.documents.length) this.error("Here-document requires a newline before closing process substitution");
+        this.position = start + nested.current.end;
+        if (script.printedNewlines === undefined) this.unprintedWords++;
+        else this.printedNewlineReduction += this.source.slice(start, this.position - 1).split("\n").length - 1 - script.printedNewlines;
+        parts.push({ kind: "process-substitution", direction, script, line, sourceLine: script.line ?? line, quoted: true });
+        continue;
+      }
       if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
         plain = false;
         this.unprintedWords++;

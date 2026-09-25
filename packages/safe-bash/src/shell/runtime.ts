@@ -673,6 +673,7 @@ interface IO {
   readonly functionCommandLines?: ReadonlyMap<Command, number> | undefined;
   readonly diagnosticCommandLines?: ReadonlyMap<Command, number> | undefined;
   readonly substitutionDiagnosticLine?: number;
+  readonly processSubstitutions?: (() => Promise<void>)[];
   readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number> | undefined;
   readonly scriptName?: string;
   readonly terminal?: {
@@ -1798,6 +1799,7 @@ function hasGlobOrEscape(text: string): boolean {
   return false;
 }
 
+let nextProcessSubstitutionId = 0;
 const fastSubScratchArgs: string[] = [];
 const fastRedirectScratchBytes = new Uint8Array(8192);
 
@@ -4449,6 +4451,12 @@ export class Runtime {
       if (status !== 0) outputStatus = status;
       throwCleanupFailures(settled.filter(result => result.status === "rejected").map(result => result.reason));
     };
+    const processSubstitutions: (() => Promise<void>)[] = [];
+    const finishProcessSubstitutions = async (): Promise<void> => {
+      if (processSubstitutions.length === 0) return;
+      const pending = processSubstitutions.splice(0);
+      for (const callback of pending) await callback();
+    };
     const allocation = this.budget.values.scope();
     originalIO = {
       ...originalIO,
@@ -4456,6 +4464,7 @@ export class Runtime {
       diagnosticLine,
       substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine,
       [valueScope]: allocation,
+      processSubstitutions,
     };
     let io = originalIO;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
@@ -4776,6 +4785,12 @@ export class Runtime {
         terminal.completed = true;
       }
       if (outputs.size > 0) await finishOutputs(status);
+      if (inputs.size > 0) {
+        const pendingInputs = [...inputs];
+        inputs.clear();
+        await Promise.allSettled(pendingInputs.map(input => input.close()));
+      }
+      if (processSubstitutions.length > 0) await finishProcessSubstitutions();
       return status;
     } catch (caught) {
       const diagnostic = caught instanceof ExecutionFailure ? caught.diagnostic : undefined;
@@ -4788,7 +4803,15 @@ export class Runtime {
           await this.finishShell(state, terminal.io ?? io, error.status);
           terminal.completed = true;
         }
-        try { await finishOutputs(error.status); }
+        try {
+          await finishOutputs(error.status);
+          if (inputs.size > 0) {
+            const pendingInputs = [...inputs];
+            inputs.clear();
+            await Promise.allSettled(pendingInputs.map(input => input.close()));
+          }
+          if (processSubstitutions.length > 0) await finishProcessSubstitutions();
+        }
         catch (reason) {
           this.signal.throwIfAborted();
           if (!outputFailures.length) throw reason;
@@ -4840,14 +4863,15 @@ export class Runtime {
       return status;
     } finally {
       try {
-        if (!references && outputs.size === 0 && inputs.size === 0) {
+        if (!references && outputs.size === 0 && inputs.size === 0 && processSubstitutions.length === 0) {
           allocation.close();
         } else {
           await Promise.allSettled([
             ...(references ? [references.close()] : []),
             ...[...outputs].map(async close => close({ reason: new FsError("ECANCELED", { syscall: "redirect" }) })),
             ...[...inputs].map(async input => input.close()),
-          ]).then(results => {
+          ]).then(async results => {
+            if (processSubstitutions.length > 0) await Promise.allSettled(processSubstitutions.splice(0).map(callback => callback()));
             const failures = results.filter(result => result.status === "rejected").map(result => result.reason);
             if (diagnosticFailure) io[invocationScope].failures.push(...failures);
             else throwCleanupFailures(failures);
@@ -4973,6 +4997,7 @@ export class Runtime {
         ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }),
         ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }),
         ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }),
+        ...(io.processSubstitutions === undefined ? {} : { processSubstitutions: io.processSubstitutions }),
         stdin: descriptor?.input ?? closedSource,
         ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),
         stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,
@@ -8659,6 +8684,91 @@ export class Runtime {
     if (part.kind === "arithmetic") {
       try { return String(await this.expandedArithmeticValue(part.expression, state, { ...io, diagnosticLine: io.diagnosticLine ?? part.line })); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine ?? part.line); }
+    }
+    if (part.kind === "process-substitution") {
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+      this.signal.throwIfAborted();
+      const tempPath = `/.procsub-${++nextProcessSubstitutionId}`;
+      io[invocationScope].register(async () => {
+        try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
+      });
+      if (part.direction === "<") {
+        const capture = new Capture();
+        const child = await cloneState(state, this.signal);
+        child.isolated = true;
+        child.extensions = forkExtensions(state.extensions, "substitution");
+        if (state.profile !== "sh") child.errexit = false;
+        delete child.redirectAssignments;
+        child.depth++;
+        child.loopDepth = 0;
+        const references = new PipeDescriptorFrame(io[invocationScope]);
+        const lifetime = new DescriptorLifetime();
+        const captureIO = isolateIO({
+          ...io,
+          stdout: this.budget.sink(capture, this.signal),
+          processSubstitutions: undefined,
+        }, references);
+        (captureIO.descriptors as Map<number, Descriptor>).set(1, { output: captureIO.stdout, lifetime });
+        try {
+          await this.run(part.script, child, captureIO);
+        } finally {
+          try {
+            if (!references.closeSyncIfEmpty()) await references.close();
+            if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
+          } finally {
+            stateMonitor(child)?.closeValues();
+          }
+        }
+        const pendingCapture = lifetime.settled();
+        if (pendingCapture) await pendingCapture;
+        await this.sourceFs.writeFile(tempPath, capture.bytes());
+        io.processSubstitutions?.push(async () => {
+          try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
+        });
+        return tempPath;
+      }
+      await this.sourceFs.writeFile(tempPath, new Uint8Array(0));
+      io.processSubstitutions?.push(async () => {
+        let bytes: Uint8Array = new Uint8Array(0);
+        try {
+          bytes = await this.sourceFs.readFile(tempPath);
+        } catch {}
+        finally {
+          try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}
+        }
+        const child = await cloneState(state, this.signal);
+        child.isolated = true;
+        child.extensions = forkExtensions(state.extensions, "substitution");
+        if (state.profile !== "sh") child.errexit = false;
+        delete child.redirectAssignments;
+        child.depth++;
+        child.loopDepth = 0;
+        const prepared = prepareBytesInput(bytes, this.budget);
+        const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
+        const lifetime = new DescriptorLifetime(async () => {
+          try { await input.close(); }
+          finally { await prepared.close(); }
+        });
+        const references = new PipeDescriptorFrame(io[invocationScope]);
+        const childIO = isolateIO({
+          ...io,
+          stdin: input,
+          stdinIsDefault: false,
+          processSubstitutions: undefined,
+        }, references);
+        (childIO.descriptors as Map<number, Descriptor>).set(0, { input, stdinIsDefault: false, lifetime });
+        try {
+          await this.run(part.script, child, childIO);
+        } finally {
+          try {
+            if (!references.closeSyncIfEmpty()) await references.close();
+            if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
+          } finally {
+            stateMonitor(child)?.closeValues();
+          }
+        }
+      });
+      return tempPath;
     }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");

@@ -2591,4 +2591,25 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(() => sharp(png).normalise({ lower: -1 })).toThrow(/Expected number between 0 and 99 for lower/);
     expect(() => sharp(png).normalise({ upper: 101 })).toThrow(/Expected number between 1 and 100 for upper/);
   });
+
+  it("validates modulate(), rotate(), and affine() arguments matching sharp", async () => {
+    const png = await sharp({ create: { width: 8, height: 8, channels: 3, background: "red" } }).png().toBuffer();
+
+    expect(() => sharp(png).modulate({ brightness: -1 })).toThrow(/Expected number above zero for brightness/);
+    expect(() => sharp(png).modulate({ brightness: "bad" as any })).toThrow(/Expected number above zero for brightness/);
+    expect(() => sharp(png).modulate({ saturation: -0.5 })).toThrow(/Expected number above zero for saturation/);
+    expect(() => sharp(png).modulate({ saturation: "bad" as any })).toThrow(/Expected number above zero for saturation/);
+    expect(() => sharp(png).modulate({ hue: "bad" as any })).toThrow(/Expected number for hue/);
+    expect(() => sharp(png).modulate({ lightness: "bad" as any })).toThrow(/Expected number for lightness/);
+
+    expect(() => sharp(png).rotate("bad" as any)).toThrow(/Expected numeric for angle/);
+
+    expect(() => sharp(png).affine([1, 0, 0] as any)).toThrow(/Expected 1x4 or 2x2 array for matrix/);
+    expect(() => sharp(png).affine([1, 0, "bad" as any, 1])).toThrow(/Expected 1x4 or 2x2 array for matrix/);
+    expect(() => sharp(png).affine([1, 0, 0, 1], { interpolator: "bogus" })).toThrow(
+      /Expected valid interpolator name for options.interpolator/
+    );
+    expect(() => sharp(png).affine([1, 0, 0, 1], { idx: "bad" as any })).toThrow(/Expected number for options.idx/);
+    expect(() => sharp(png).affine([1, 0, 0, 1], { odx: "bad" as any })).toThrow(/Expected number for options.odx/);
+  });
 });

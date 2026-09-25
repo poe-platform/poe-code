@@ -725,6 +725,9 @@ export class SharpInstance extends Duplex {
     if (angle === undefined) {
       this.nodes.push({ kind: "autoOrient" });
     } else {
+      if (typeof angle !== "number" || Number.isNaN(angle)) {
+        throw new Error(`Expected numeric for angle but received ${angle} of type ${typeof angle}`);
+      }
       const nextNode: ImageAstNode = {
         kind: "rotate",
         angle,
@@ -1107,6 +1110,21 @@ export class SharpInstance extends Duplex {
     readonly hue?: number;
     readonly lightness?: number;
   }): this {
+    if (!options || typeof options !== "object") {
+      throw new Error(`Expected plain object for modulate options but received ${options}`);
+    }
+    if (options.brightness !== undefined && (typeof options.brightness !== "number" || Number.isNaN(options.brightness) || options.brightness < 0)) {
+      throw new Error(`Expected number above zero for brightness but received ${options.brightness} of type ${typeof options.brightness}`);
+    }
+    if (options.saturation !== undefined && (typeof options.saturation !== "number" || Number.isNaN(options.saturation) || options.saturation < 0)) {
+      throw new Error(`Expected number above zero for saturation but received ${options.saturation} of type ${typeof options.saturation}`);
+    }
+    if (options.hue !== undefined && (typeof options.hue !== "number" || Number.isNaN(options.hue))) {
+      throw new Error(`Expected number for hue but received ${options.hue} of type ${typeof options.hue}`);
+    }
+    if (options.lightness !== undefined && (typeof options.lightness !== "number" || Number.isNaN(options.lightness))) {
+      throw new Error(`Expected number for lightness but received ${options.lightness} of type ${typeof options.lightness}`);
+    }
     const idx = this.nodes.findIndex(n => n.kind === "modulate");
     if (idx !== -1) {
       const prev = this.nodes[idx] as Extract<ImageAstNode, { readonly kind: "modulate" }>;
@@ -1534,19 +1552,29 @@ export class SharpInstance extends Duplex {
       readonly interpolator?: string;
     }
   ): this {
-    const flat: [number, number, number, number] = Array.isArray(matrix[0])
-      ? [
-          (matrix as readonly (readonly number[])[])[0]?.[0] ?? 1,
-          (matrix as readonly (readonly number[])[])[0]?.[1] ?? 0,
-          (matrix as readonly (readonly number[])[])[1]?.[0] ?? 0,
-          (matrix as readonly (readonly number[])[])[1]?.[1] ?? 1
-        ]
-      : [
-          (matrix as readonly number[])[0] ?? 1,
-          (matrix as readonly number[])[1] ?? 0,
-          (matrix as readonly number[])[2] ?? 0,
-          (matrix as readonly number[])[3] ?? 1
-        ];
+    const rawFlat = Array.isArray(matrix)
+      ? Array.isArray(matrix[0])
+        ? [...(matrix[0] as readonly number[]), ...((matrix[1] as readonly number[]) ?? [])]
+        : [...(matrix as readonly number[])]
+      : [];
+    if (rawFlat.length !== 4 || rawFlat.some(v => typeof v !== "number" || Number.isNaN(v))) {
+      throw new Error(`Expected 1x4 or 2x2 array for matrix but received ${matrix} of type ${typeof matrix}`);
+    }
+    if (
+      options?.interpolator !== undefined &&
+      !["nearest", "bilinear", "bicubic", "lbb", "nohalo", "vsqbs"].includes(options.interpolator)
+    ) {
+      throw new Error(
+        `Expected valid interpolator name for options.interpolator but received ${options.interpolator} of type ${typeof options.interpolator}`
+      );
+    }
+    for (const key of ["idx", "idy", "odx", "ody"] as const) {
+      const val = options?.[key];
+      if (val !== undefined && (typeof val !== "number" || Number.isNaN(val))) {
+        throw new Error(`Expected number for options.${key} but received ${val} of type ${typeof val}`);
+      }
+    }
+    const flat: [number, number, number, number] = [rawFlat[0]!, rawFlat[1]!, rawFlat[2]!, rawFlat[3]!];
     this.upsertNode({ kind: "affine",
       matrix: flat,
       background: parseColor(options?.background ?? "#000000", 255),

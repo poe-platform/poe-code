@@ -1,3 +1,4 @@
+import { combineManagedSignals } from '../../fs/creation-mask.js';
 import { createPythonNativeSyscalls } from '@poe-code/safe-fs/core';
 import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
 import { PythonFailure } from './diagnostics.js';
@@ -46,7 +47,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
   const originals: Record<string, (...args: any[]) => number> = {};
 
   const execute = async (start: PythonExecutorStart): Promise<number> => {
-    const signal = AbortSignal.any([start.signal, controller.signal]);
+    const signal = combineManagedSignals(start.signal, controller.signal);
     const configuration = parsePythonInvocation(start.invocation.args, start.invocation.env);
     let guestMask = 0o22;
     let qualified = false;

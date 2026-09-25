@@ -189,6 +189,7 @@ class Stream:
                     if self._iterator is None:
                         payload = await self._client._payload(self._request)
                         payload["timeout"] = self._timeout
+                        payload["max_response_bytes"] = self._limit
                         self._iterator = self._client._bridge.stream(payload).__aiter__()
                     return await self._iterator.__anext__()
                 remaining = None if self._deadline is None else max(0, self._deadline - asyncio.get_running_loop().time())
@@ -341,6 +342,7 @@ class Client:
         async def execute():
             payload = await self._payload(request)
             payload["timeout"] = timeout
+            payload["max_response_bytes"] = limit
             response = Response.from_payload(await self._bridge.call("complete", payload))
             _check_size(response, limit)
             return await _transform(self._response_transform, response)
@@ -357,7 +359,8 @@ class Client:
             raise TypeError("Embedding inputs must be a sequence of strings")
         payload = {"model": model if model is not None else self._defaults["model"], "inputs": list(inputs),
                    "options": _options({**self._defaults["options"], **(options or {})})}
-        result = await self._run(lambda: self._bridge.call("embed", payload), self._timeout if timeout is None else _timeout(timeout))
+        payload["timeout"] = self._timeout if timeout is None else _timeout(timeout)
+        result = await self._run(lambda: self._bridge.call("embed", payload), payload["timeout"])
         vectors = tuple(tuple(vector) for vector in result["vectors"])
         if len(vectors) != len(inputs) or any(type(value) not in (int, float) or not math.isfinite(value) for vector in vectors for value in vector):
             raise LlmError("protocol", "Invalid embedding result")

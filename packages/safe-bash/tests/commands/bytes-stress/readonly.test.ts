@@ -32,14 +32,16 @@ for (const [command, args] of [
   for (const [name, value] of Object.entries(data)) assert.deepEqual(Buffer.from(await backing.readFile(`/work/${name}`)), value);
 });
 
-test("readonly named preflight prevents earlier stdin operand from producing output", async () => {
+for (const args of [["-", "payload.bin"], ["payload.bin", "-"], ["-q", "-", "payload.bin"], ["-q", "payload.bin", "-"]]) test(`readonly named preflight prevents stdin output: ${args.join(" ")}`, async () => {
   const fs = new ReadOnlyFileSystem(await memory({ files: { "payload.bin": payload } }));
   let consumed = false;
-  const result = await run("gzip", ["-", "payload.bin"], { async *[Symbol.asyncIterator]() { consumed = true; yield payload; } }, {}, { fs });
+  const result = await run("gzip", args, { async *[Symbol.asyncIterator]() { consumed = true; yield payload; } }, {}, { fs });
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr.toString(), /EROFS/u);
   assert.equal(consumed, false);
   assert.equal(result.stdout.length, 0);
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["payload.bin"]);
+  assert.deepEqual(Buffer.from(await fs.readFile("/work/payload.bin")), payload);
 });
 
 test("readonly policy is not inferred merely from missing streaming writes", async () => {

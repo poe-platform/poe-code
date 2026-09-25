@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { readBytes, writeBytes, type CommandDefinition } from "../../../contracts/index.js";
-import { define, diagnostic, output } from "../../internal.js";
+import { codeOf, define, diagnostic, output } from "../../internal.js";
 import { planOperands, sourceBytes, unchangedSource, verifyOperandDestinations, writeFileOperand } from "./files.js";
 import { parseOptions, profiles } from "./options.js";
 import { DecodedBudget, transform, type CompressionCommandOptions } from "./stream.js";
@@ -34,6 +34,7 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
             listingNames.push(name);
           } catch (error) {
             context.signal.throwIfAborted();
+            if (codeOf(error) === "EROFS") throw error;
             planningFailed = true;
             if (options.quiet < 2) await diagnostic(context, error);
           }

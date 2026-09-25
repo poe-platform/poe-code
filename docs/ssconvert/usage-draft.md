@@ -228,7 +228,11 @@ native CSV bytes but exposes an unresolved native loader shutdown failure.
 `pythonSampleFunctions.PY_CAPWORDS` normalizes Python whitespace and capitalizes
 whole words using frozen CPython 3.14.2 Unicode 16.0.0 data, including titlecase
 expansions and contextual Greek sigma. Enable `pythonSampleFunctions` through
-`runtimeFunctions`. Non-ASCII command option values also need a UTF-8
+`runtimeFunctions`. To match Unicode 15, use
+`runtimeFunctions: createPythonSampleFunctions({ unicodeVersion: "15.0.0" })`;
+`"16.0.0"` explicitly selects the existing default. Both `PY_CAPWORDS` casing and
+`PY_PRINTF` printable-character rules use the selected version. The same binding
+works with the SDK and `ssconvertCommands`. Non-ASCII command option values also need a UTF-8
 `CommandProfile.argumentEncoding`. The binding also includes `PY_PRINTF` for
 Python percent formatting of scalar values and column-major arrays, with exact
 binary64 decimal rounding and frozen Unicode printability for `%r`/`%a`.

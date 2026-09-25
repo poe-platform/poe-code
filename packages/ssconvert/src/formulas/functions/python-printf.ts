@@ -3,20 +3,11 @@ import type { CellValue } from "../../workbook.js";
 import { boundedText } from "./common.js";
 import type { FunctionHost, Value } from "./types.js";
 import { nonPrintable } from "./python-printf-profile.js";
+import { inUnicodeRanges, type PythonUnicodeProfile } from "./python-unicode-profile.js";
 
 type PythonValue = string | number | boolean | null | { readonly columns: readonly (readonly PythonValue[])[] } | { readonly range: true };
 class PythonFormatError extends Error {
   constructor(readonly type: "TypeError" | "ValueError", message: string) { super(message); }
-}
-function printable(code: number): boolean {
-  let lo = 0, hi = nonPrintable.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >>> 1, range = nonPrintable[mid]!;
-    if (code < range[0]) hi = mid;
-    else if (code > range[1]) lo = mid + 1;
-    else return false;
-  }
-  return true;
 }
 function floatText(value: number): string {
   if (Object.is(value, -0)) return "-0.0";
@@ -27,7 +18,7 @@ function floatText(value: number): string {
   const text = String(value);
   return text.includes(".") ? text : text + ".0";
 }
-function pythonText(value: PythonValue, repr: boolean, ascii: boolean, host: FunctionHost, precision?: number): string {
+function pythonText(profile: PythonUnicodeProfile, value: PythonValue, repr: boolean, ascii: boolean, host: FunctionHost, precision?: number): string {
   host.tick();
   if (value === null) return "None";
   if (typeof value === "number") return floatText(value);
@@ -40,7 +31,7 @@ function pythonText(value: PythonValue, repr: boolean, ascii: boolean, host: Fun
       if (precision !== undefined && precision <= prefix.length) return prefix.slice(0, precision);
       throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Python RangeRef object representation");
     }
-    return "[" + value.columns.map(column => "[" + column.map(cell => pythonText(cell, true, ascii, host)).join(", ") + "]").join(", ") + "]";
+    return "[" + value.columns.map(column => "[" + column.map(cell => pythonText(profile, cell, true, ascii, host)).join(", ") + "]").join(", ") + "]";
   }
   if (!repr) return value;
   const quote = value.includes("'") && !value.includes('"') ? '"' : "'";
@@ -51,7 +42,7 @@ function pythonText(value: PythonValue, repr: boolean, ascii: boolean, host: Fun
     else if (char === "\n") result += "\\n";
     else if (char === "\r") result += "\\r";
     else if (char === "\t") result += "\\t";
-    else if (ascii && code > 127 || !printable(code))
+    else if (ascii && code > 127 || inUnicodeRanges(code, nonPrintable) || inUnicodeRanges(code, profile.nonPrintable))
       result += code <= 255 ? "\\x" + code.toString(16).padStart(2, "0") : code <= 65535 ?
         "\\u" + code.toString(16).padStart(4, "0") : "\\U" + code.toString(16).padStart(8, "0");
     else result += char;
@@ -127,7 +118,7 @@ function decimalFloat(value: number, kind: string, precision: number, alternate:
 }
 
 /** Bounded Python Unicode percent formatting, from the released PY_PRINTF sample. */
-export function pythonPrintf(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
+export function pythonPrintf(profile: PythonUnicodeProfile, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
   if (!args.length) return { kind: "error", value: "Python exception (<class 'TypeError'>: func_printf() missing 1 required positional argument: 'format')" };
   const values = args.map(value => pythonValue(value, host)), format = values[0];
   // Activated 1.12.61 loaders on CPython 3.12 and 3.14 wrap the sample's
@@ -183,7 +174,7 @@ export function pythonPrintf(args: readonly (Value | undefined)[], host: Functio
       const value = take();
       let text: string, sign = "", prefix = "", numeric = false;
       if ("sra".includes(conversion)) {
-        text = pythonText(value, conversion !== "s", conversion === "a", host, precision);
+        text = pythonText(profile, value, conversion !== "s", conversion === "a", host, precision);
         if (precision !== undefined) {
           let count = 0, truncated = "";
           for (const char of text) { host.tick(); if (count++ >= precision) break; truncated += char; }

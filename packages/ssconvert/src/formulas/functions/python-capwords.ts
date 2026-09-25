@@ -3,22 +3,12 @@ import { SsconvertError } from "../../contracts.js";
 import { boundedText, scalarArg } from "./common.js";
 import { simpleUnicodeCase } from "./unicode.js";
 import { cased, caseIgnorable, whitespace, titleDeltas, lowerDeltas } from "./python-capwords-profile.js";
+import { inUnicodeRanges as within, type PythonUnicodeProfile } from "./python-unicode-profile.js";
 import type { FunctionHost, Value } from "./types.js";
 import type { CellValue } from "../../workbook.js";
 
-function within(code: number, ranges: readonly (readonly [number, number])[]): boolean {
-  let lo = 0, hi = ranges.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >>> 1, range = ranges[mid]!;
-    if (code < range[0]) hi = mid;
-    else if (code > range[1]) lo = mid + 1;
-    else return true;
-  }
-  return false;
-}
-
 /** Python string.capwords: whitespace words, full initial titlecase and contextual lowercase. */
-export function pythonCapwords(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
+export function pythonCapwords(profile: PythonUnicodeProfile, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
   const value = scalarArg(args, 0, host);
   if (value.kind === "error") return value;
   if (value.kind !== "string" && value.kind !== "byte-string") {
@@ -26,6 +16,8 @@ export function pythonCapwords(args: readonly (Value | undefined)[], host: Funct
     return { kind: "error", value: `Python exception (<class 'AttributeError'>: '${type}' object has no attribute 'split')` };
   }
   const source = rendered(value), output: string[] = [];
+  const isCased = (code: number) => !within(code, profile.uncased) && within(code, cased);
+  const isIgnorable = (code: number) => within(code, profile.ignorable) || !within(code, profile.notIgnorable) && within(code, caseIgnorable);
   let word: number[] = [], bytes = 0;
   const emit = (text: string) => {
     for (const char of text) {
@@ -46,16 +38,16 @@ export function pythonCapwords(args: readonly (Value | undefined)[], host: Funct
       host.tick();
       const code = word[i]!;
       following[i] = nextCased;
-      if (!within(code, caseIgnorable)) nextCased = within(code, cased);
+      if (!isIgnorable(code)) nextCased = isCased(code);
     }
     let previousCased = false;
     for (let i = 0; i < word.length; i++) {
       host.tick();
       const code = word[i]!;
-      emit(i === 0 ? titleDeltas.get(code) ?? simpleUnicodeCase(code, true) :
+      emit(i === 0 ? within(code, profile.titleIdentity) ? String.fromCodePoint(code) : titleDeltas.get(code) ?? simpleUnicodeCase(code, true) :
         code === 0x3a3 ? previousCased && !following[i] ? "ς" : "σ" :
-          lowerDeltas.get(code) ?? simpleUnicodeCase(code, false));
-      if (!within(code, caseIgnorable)) previousCased = within(code, cased);
+          within(code, profile.lowerIdentity) ? String.fromCodePoint(code) : lowerDeltas.get(code) ?? simpleUnicodeCase(code, false));
+      if (!isIgnorable(code)) previousCased = isCased(code);
     }
     word = [];
   };

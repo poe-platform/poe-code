@@ -208,6 +208,33 @@
       "outputBindingsSha256": "5dd9f504d3f5cbf37302284df142bfb62c0af0f2ac2ffa1e6b5ce0a280f70280",
       "outputBindingRule": "UTF-8 compact JSON array, label order 0..15,empty,custom; profile order xlsx,xlsx2; keys label,profile,sha256. Each digest covers the complete compiled SDK XLSX artifact.",
       "remaining": "Other named styles, raw metadata diagnostics, rendered appearance, broader application qualification and release publication remain open. No family is closed."
+    },
+    "pythonUnicodeProfiles": {
+      "scope": "createPythonSampleFunctions({ unicodeVersion: \"15.0.0\" | \"16.0.0\" }) selects frozen casing/context and printable-character rules for PY_CAPWORDS and PY_PRINTF. pythonSampleFunctions retains the Unicode 16 default. SDK and Shell share the binding; no Python interpreter or ambient module loading is added.",
+      "source": "CPython 3.12.13 / Unicode 15.0.0 and CPython 3.14.7 / Unicode 16.0.0. Full-domain public string-property extraction matches the Python 3.12 C API over all 1,114,112 code points. The override has 27 title and 27 lowercase identities, 52 cased removals, 43 case-ignorable removals and one addition, and 5812 newly nonprintable code points under Unicode 15. Whitespace is unchanged.",
+      "dataSha256": "cfaa04eb0329bf3d770e72b396a267e47d1a5e434b1da6d534584c7fe12e6d27",
+      "reproduction": "All 139 retained native Unicode 15 CAPWORDS differences reproduce against the previous Unicode 16-only binding. A NUL control initially used UNICHAR(0), which produces an empty string; it was corrected to supply an actual embedded NUL. The first Shell probe passed text instead of Uint8Array to the filesystem and was corrected without a product change.",
+      "qualification": "1048 focused checks, 419 files / 23969 package tests, both required postchecks, package lint/types, public root/scoped consumer declarations and the selected build pass. Each compiled SDK and Shell profile matches 439 independent reference cases, covering 2935 casing code points, 7061 context-property code points and 5905 printable-property points including neighbors. CSV outputs match byte-for-byte across SDK and Shell with no diagnostics. Invalid profile names, unchanged defaults, binding snapshots, typed errors, NUL and resource limits are covered.",
+      "outputs": [
+        {
+          "unicodeVersion": "15.0.0",
+          "cases": 439,
+          "mismatches": [],
+          "csvSha256": "67ccf4f0a92bdc0dadfc9c6aebb5889087d857aa6d66d0fbc5c5b2cfebf8562e",
+          "expectedSha256": "2e8b0dba8e22e8decb6baa6bafdfd71e9aa249f241bc7995f23aaf6515c3673a",
+          "stringSourceSha256": "24aeae1f0526250f442022022bf98df9a823b1cb330543ee79e70e44907462e9"
+        },
+        {
+          "unicodeVersion": "16.0.0",
+          "cases": 439,
+          "mismatches": [],
+          "csvSha256": "d20d4f83f9d27a76f81acea705e249d13ca2f04b2a0e787ad29978086c44e33c",
+          "expectedSha256": "a8958cd78dd477e58f426debd6a745f8e70e35715a3dc9049406b3088be64002",
+          "stringSourceSha256": "8c9751e6ae9776b4e94c1c9850b53c0d24e8407196901aeaebffbb1a11a64e05"
+        }
+      ],
+      "visual": "CLI screenshot inspected: ordinary Latin/Greek output is readable; the terminal font lacks the Ahom combining glyph in the context probe. No complete glyph-fidelity pass is claimed.",
+      "remaining": "These are direct CPython language-reference and current SDK/Shell checks. Complete activated Gnumeric plugin/environment closure, the declared optional Linux profiles, browser/worker and installed-package requalification, wider loader/service diagnostics and containing publication remain open. No family is closed."
     }
   },
   "cases": [
@@ -254,12 +281,12 @@
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "Bounded formatting, arrays and precision-limited reference formats are implemented. Address-bearing representations, raw reference/sheet APIs and wider language conversion remain open. Native array/range/axis controls pass; combined sheet/tuple probes crash and must not be counted as passes."
+      "currentFinding": "Bounded formatting, arrays and precision-limited reference formats are implemented. The explicit Unicode 15/16 selector now controls printable-character rules for %r while preserving %s/%a semantics; current compiled SDK/Shell results match CPython reference cases. Address-bearing representations, raw reference/sheet APIs and wider language conversion remain open. Native array/range/axis controls pass; combined sheet/tuple probes crash and must not be counted as passes."
     },
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "Unicode 16 capitalization, typed split errors and NUL boundaries are implemented. Unicode 15 differences, exact optional runtime profiles and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
+      "currentFinding": "Explicit frozen Unicode 15/16 selection now covers the 139 recorded version differences while retaining Unicode 16 by default. Both compiled SDK/Shell profiles match independent CPython casing/context cases; typed split errors, NUL and malformed-host boundaries remain covered. Exact activated optional runtime profiles, browser/worker and installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
     },
     {
       "id": "database-functions",

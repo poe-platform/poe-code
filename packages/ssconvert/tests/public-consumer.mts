@@ -1,6 +1,6 @@
-import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd,
-  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type WorkingDirectoryFileSystem } from "@poe-code/ssconvert";
-import { readXlsx as rootReadXlsx } from "poe-code/ssconvert";
+import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd, createPythonSampleFunctions,
+  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type WorkingDirectoryFileSystem, type PythonUnicodeVersion } from "@poe-code/ssconvert";
+import { readXlsx as rootReadXlsx, createPythonSampleFunctions as rootPythonFunctions } from "poe-code/ssconvert";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 1000000, outputBytes: 1000000, cells: 10, sheets: 2, operations: 30 } };
@@ -73,3 +73,8 @@ const databaseQuery: import("@poe-code/ssconvert").DatabaseQuery = (request, hos
 const { createDatabaseFunctions } = await import("poe-code/ssconvert");
 const databaseConfig: EngineConfig = { ...config, runtimeFunctions: createDatabaseFunctions(databaseQuery) };
 void databaseConfig;
+
+const unicodeVersion: PythonUnicodeVersion = "15.0.0";
+const pythonConfig: EngineConfig = { ...config, runtimeFunctions: createPythonSampleFunctions({ unicodeVersion }) };
+if (rootPythonFunctions !== createPythonSampleFunctions || !pythonConfig.runtimeFunctions?.PY_CAPWORDS)
+  throw new Error("Invalid public Python Unicode profile consumer");

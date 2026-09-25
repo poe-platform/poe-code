@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createBytePipe } from "./io.js";
+import { addManagedAbortWaiter } from "./managed-abort.js";
 import { createOutputOperation } from "./output.js";
 
 const waitersSymbol = Symbol.for("safe-bash.managedWaiters");
@@ -11,15 +12,16 @@ function seed(signal: AbortSignal, waiter: (reason: unknown) => void, multiple =
 }
 
 for (const reason of [false, null, 0, ""]) {
-  test(`the first pipe listener shares Set storage with shell waiters: ${String(reason)}`, async () => {
+  test(`active pipe listener shares cancellation storage with shell waiters: ${String(reason)}`, async () => {
     const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
     const pipe = createBytePipe({ signal: upstream.signal });
     try {
-      const waiters: unknown = Reflect.get(upstream.signal, waitersSymbol);
-      assert.ok(waiters instanceof Set, "shell adapters append directly to the shared waiter Set");
-      const received: unknown[] = [];
-      waiters.add((value: unknown) => { received.push(value); });
       const reading = pipe.endpoints!.read.readable[Symbol.asyncIterator]().next();
+      assert.equal(typeof Reflect.get(upstream.signal, waitersSymbol), "function", "first pipe waiter uses singleton storage");
+      const received: unknown[] = [];
+      addManagedAbortWaiter(upstream.signal, value => { received.push(value); });
+      const waiters: unknown = Reflect.get(upstream.signal, waitersSymbol);
+      assert.ok(waiters instanceof Set, "a second listener shares the waiter Set");
       const rejected = assert.rejects(reading, error => Object.is(error, reason));
       await upstream.abort(reason);
       await rejected;

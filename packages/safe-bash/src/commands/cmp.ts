@@ -10,7 +10,9 @@ import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js"
 const blockBytes = 4096;
 const maxEmptyChunks = 65536;
 
-function byteCount(text: string, option = "bytes"): number {
+const maxCount = 18446744073709551616n;
+
+function byteCount(text: string, option = "bytes"): bigint {
   const invalid = (): never => { throw new UsageError(`invalid --${option} value '${text}'`); };
   let position = 0;
   while (text[position] === " " || text.charCodeAt(position) >= 9 && text.charCodeAt(position) <= 13) position++;
@@ -37,17 +39,17 @@ function byteCount(text: string, option = "bytes"): number {
   }
   if (suffix) {
     const power = "KMGTPEZY".indexOf(suffix[0] === "k" ? "K" : suffix[0]!) + 1;
-    if (!power || !["", "B", "iB"].includes(suffix.slice(1))) invalid();
-    count *= (suffix.endsWith("B") && !suffix.endsWith("iB") ? 1000n : 1024n) ** BigInt(power);
+    if (!power || !["", "B", "D", "iB"].includes(suffix.slice(1))) invalid();
+    count *= (suffix.endsWith("B") && !suffix.endsWith("iB") || suffix.endsWith("D") ? 1000n : 1024n) ** BigInt(power);
   }
   if (count > maximum) invalid();
-  return Number(count);
+  return count;
 }
 
 interface CmpOptions {
   names: string[];
-  skips: [number, number];
-  limit: number;
+  skips: [bigint, bigint];
+  limit: bigint;
   silent: boolean;
   verbose: boolean;
   printBytes: boolean;
@@ -55,7 +57,7 @@ interface CmpOptions {
 }
 
 function parse(context: CommandContext): CmpOptions {
-  const parsed: CmpOptions = { names: [], skips: [0, 0], limit: Infinity, silent: false, verbose: false, printBytes: false };
+  const parsed: CmpOptions = { names: [], skips: [0n, 0n], limit: maxCount, silent: false, verbose: false, printBytes: false };
   const long: Readonly<Record<string, string>> = { "print-bytes": "b", "print-chars": "c", "ignore-initial": "i", verbose: "l", bytes: "n", silent: "s", quiet: "s", version: "v", help: "help" };
   const operands: string[] = [];
   const argumentsWithBytes = getCommandArguments(context);
@@ -73,13 +75,18 @@ function parse(context: CommandContext): CmpOptions {
       if (key === "s") parsed.silent = true;
       else parsed.verbose = true;
     } else if (key === "b" || key === "c") parsed.printBytes = true;
-    else if (key === "n") parsed.limit = Math.min(parsed.limit, byteCount(argument!));
-    else if (key === "i") {
+    else if (key === "n") {
+      const next = byteCount(argument!);
+      if (next < parsed.limit) parsed.limit = next;
+    } else if (key === "i") {
       const delimiter = argument!.indexOf(":");
       const first = delimiter < 0 ? argument! : argument!.slice(0, delimiter);
-      try { parsed.skips[0] = Math.max(parsed.skips[0], byteCount(first, "ignore-initial")); }
+      let firstSkip: bigint;
+      try { firstSkip = byteCount(first, "ignore-initial"); }
       catch { throw new UsageError(`invalid --ignore-initial value '${argument}'`); }
-      parsed.skips[1] = Math.max(parsed.skips[1], delimiter < 0 ? parsed.skips[0] : byteCount(argument!.slice(delimiter + 1), "ignore-initial"));
+      if (firstSkip > parsed.skips[0]) parsed.skips[0] = firstSkip;
+      const secondSkip = delimiter < 0 ? firstSkip : byteCount(argument!.slice(delimiter + 1), "ignore-initial");
+      if (secondSkip > parsed.skips[1]) parsed.skips[1] = secondSkip;
     } else parsed.information = key === "v" ? "version" : "help";
   };
   for (let index = 0; index < args.length; index++) {
@@ -123,7 +130,10 @@ function parse(context: CommandContext): CmpOptions {
   if (!operands.length) throw new UsageError(`missing operand after '${args.at(-1) ?? "cmp"}'`);
   parsed.names = [operands[0]!, operands[1] ?? "-"];
   for (const index of [0, 1] as const) {
-    if (operands[index + 2] !== undefined) parsed.skips[index] = Math.max(parsed.skips[index], byteCount(operands[index + 2]!, "ignore-initial"));
+    if (operands[index + 2] !== undefined) {
+      const next = byteCount(operands[index + 2]!, "ignore-initial");
+      if (next > parsed.skips[index]) parsed.skips[index] = next;
+    }
   }
   if (operands.length > 4) throw new UsageError(`extra operand '${operands[4]}'`);
   return parsed;
@@ -175,7 +185,7 @@ class Cursor {
   offset = 0;
   size = Infinity;
   stat: FileStat | undefined;
-  position = 0;
+  position = 0n;
   private skip = 0;
   private requestBytes = blockBytes;
   private reader: AsyncIterator<Uint8Array> | undefined;
@@ -191,14 +201,18 @@ class Cursor {
   constructor(readonly name: string, private readonly context: CommandContext, private readonly budget: ByteInputBudget,
     private readonly signal: AbortSignal, private readonly chargeChunk: (size: number) => Promise<void>) {}
 
-  async open(limit: number, skip: number): Promise<void> {
+  async open(limit: number, skip: bigint): Promise<void> {
     this.signal.throwIfAborted();
-    this.skip = skip;
+    const numericSkip = skip > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(skip);
+    this.skip = numericSkip;
     if (this.name === "-") {
       const input = this.context.stdinInput;
       this.stat = input?.stat;
-      this.position = input?.position ?? 0;
-      if (this.stat?.type === "file" && Number.isSafeInteger(this.stat.size) && this.stat.size >= 0) this.size = Math.max(0, this.stat.size - this.position - skip);
+      this.position = BigInt(input?.position ?? 0);
+      if (this.stat?.type === "file" && Number.isSafeInteger(this.stat.size) && this.stat.size >= 0) {
+        const remaining = BigInt(this.stat.size) - this.position - skip;
+        this.size = remaining > 0n ? Number(remaining) : 0;
+      }
       this.source = input ? () => ({ [Symbol.asyncIterator]: () => ({ next: () => input.read(this.requestBytes, this.signal) }) }) : () => this.context.stdin;
     }
     else {
@@ -234,14 +248,17 @@ class Cursor {
       if (!stat && limit === 0) throw new FsError("ENOTSUP", { path, message: "zero-byte comparison requires metadata admission" });
       this.stat = stat;
       this.position = skip;
-      if (stat?.type === "file" && Number.isSafeInteger(stat.size) && stat.size >= 0) this.size = Math.max(0, stat.size - skip);
+      if (stat?.type === "file" && Number.isSafeInteger(stat.size) && stat.size >= 0) {
+        const remaining = BigInt(stat.size) - skip;
+        this.size = remaining > 0n ? Number(remaining) : 0;
+      }
       if (limit === 0 && (this.handle || Number.isFinite(this.size) || this.skip === 0)) {
         this.skip = 0;
         return;
       }
       if (this.handle) {
         const handle = this.handle;
-        let position = Number.isFinite(this.size) ? Math.min(skip, stat!.size) : Math.min(skip, Number.MAX_SAFE_INTEGER);
+        let position = Number.isFinite(this.size) ? Math.min(numericSkip, stat!.size) : numericSkip;
         this.skip = 0;
         this.source = () => ({ [Symbol.asyncIterator]: () => ({ next: async () => {
           const bytes = await this.work(() => handle.read(position, this.requestBytes, { signal: this.signal }));
@@ -250,7 +267,7 @@ class Cursor {
           return bytes.length ? { done: false, value: bytes } : { done: true, value: undefined };
         } }) });
       } else if (this.context.fs.readStream && capabilities.streamingRead !== false) {
-        const start = Number.isFinite(this.size) ? Math.min(skip, stat!.size) : 0;
+        const start = Number.isFinite(this.size) ? Math.min(numericSkip, stat!.size) : 0;
         if (Number.isFinite(this.size)) this.skip = 0;
         this.source = () => this.context.fs.readStream!(path, { signal: this.signal, chunkSize: Math.min(blockBytes, limit || this.skip),
           ...(start ? { start } : {}),
@@ -270,14 +287,18 @@ class Cursor {
     const input = this.name === "-" ? this.context.stdinInput : undefined;
     if (input?.seek) {
       this.signal.throwIfAborted();
-      this.position = Math.min(Number.MAX_SAFE_INTEGER, input.position + this.skip);
+      const targetPosition = Math.min(Number.MAX_SAFE_INTEGER, input.position + this.skip);
+      this.position = BigInt(input.position) + BigInt(this.skip);
       if (this.skip) {
-        try { await input.seek(this.position, this.signal); }
+        try { await input.seek(targetPosition, this.signal); }
         catch (error) { throw inputError(error, this.name); }
       }
       this.signal.throwIfAborted();
       this.skip = 0;
-      if (this.stat?.type === "file") this.size = Math.max(0, this.stat.size - this.position);
+      if (this.stat?.type === "file") {
+        const remaining = BigInt(this.stat.size) - this.position;
+        this.size = remaining > 0n ? Number(remaining) : 0;
+      }
     }
   }
 
@@ -346,7 +367,8 @@ class Cursor {
 }
 
 async function compare(context: CommandContext, parsed: CmpOptions): Promise<number> {
-  const { names, skips, limit, silent, verbose, printBytes } = parsed;
+  const { names, skips, silent, verbose, printBytes } = parsed;
+  const limit = parsed.limit >= maxCount ? Infinity : parsed.limit > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(parsed.limit);
   const controller = new AbortController();
   const signal = AbortSignal.any([context.signal, controller.signal]);
   const budget = new ByteInputBudget(bufferLimit);

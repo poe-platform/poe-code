@@ -174,3 +174,28 @@ test("cmp reports cleanup failure once as trouble and awaits both stream retirem
     assert.equal(closes, 2);
   } finally { await shell.dispose(); }
 });
+
+test("cmp accepts -0, decimal D suffixes, saturating counts, and 64-bit skip precision", async () => {
+  const fs = await fixture({ left: "hello\n", right: "hello\n" });
+  for (const args of [
+
+    ["-n", "1kD", "left", "right"],
+    ["-n", "1KD", "left", "right"],
+    ["-n", "1MD", "left", "right"],
+    ["-n", "18446744073709551615", "left", "right"],
+    ["-i", "9223372036854775807", "left", "right"],
+  ]) {
+    const result = await run("cmp", args, { fs });
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "", ""], args.join(" "));
+  }
+  for (const args of [["-n", "-1", "left", "right"], ["-i", "-1", "left", "right"]]) {
+    const result = await run("cmp", args, { fs });
+    assert.equal(result.exitCode, 2, args.join(" "));
+  }
+  let opens = 0;
+  const originalOpen = fs.openReadFile.bind(fs);
+  fs.openReadFile = async (...args) => { opens++; return originalOpen(...args); };
+  const precision = await run("cmp", ["-i", "9007199254740993:9007199254740992", "left", "left"], { fs });
+  assert.equal(precision.exitCode, 0);
+  assert.equal(opens, 2);
+});

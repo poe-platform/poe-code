@@ -49,7 +49,7 @@ function isSyncResolved(promise: unknown): boolean {
 }
 
 export class PipeDescriptorFrame {
-  readonly references = new Set<PipeDescriptorReference>();
+  #references: Set<PipeDescriptorReference> | undefined;
   #closing: Promise<void> | undefined;
   #closingSync = false;
   #reentrantResolve: (() => void) | undefined;
@@ -58,12 +58,16 @@ export class PipeDescriptorFrame {
 
   constructor(readonly scope: InvocationScope) {}
 
+  get references(): Set<PipeDescriptorReference> {
+    return this.#references ??= new Set();
+  }
+
   open(endpoint: PipeReadEndpoint | PipeWriteEndpoint, budget: Budget): PipeDescriptorReference {
     if (this.#closing) throw new FsError("EBADF", { syscall: "open" });
     this.scope.assertOpen();
     this.#retireCleanup ??= this.scope.register(() => this.close());
     const reference = ownPipeDescriptor(endpoint, budget);
-    this.references.add(reference);
+    (this.#references ??= new Set()).add(reference);
     return reference;
   }
 
@@ -72,13 +76,13 @@ export class PipeDescriptorFrame {
     this.scope.assertOpen();
     this.#retireCleanup ??= this.scope.register(() => this.close());
     const reference = source.acquire();
-    this.references.add(reference);
+    (this.#references ??= new Set()).add(reference);
     return reference;
   }
 
   closeSyncIfEmpty(): boolean {
     if (this.#closing) return false;
-    if (this.references.size !== 0) return false;
+    if (this.#references && this.#references.size !== 0) return false;
     this.#closing = resolvedVoid;
     this.#retireCleanup?.();
     return true;
@@ -94,11 +98,12 @@ export class PipeDescriptorFrame {
       return this.#closing;
     }
     if (this.closeSyncIfEmpty()) return resolvedVoid;
+    const references = this.#references!;
     this.#closingSync = true;
     let asyncWork: Promise<void>[] | undefined;
     let failures: { reason: unknown }[] | undefined;
     let position = 0;
-    for (const reference of this.references) {
+    for (const reference of references) {
       const index = position++;
       try {
         const pending = reference.close();
@@ -111,7 +116,7 @@ export class PipeDescriptorFrame {
     }
     this.#closingSync = false;
     if (!asyncWork) {
-      this.references.clear();
+      references.clear();
       this.#retireCleanup?.();
       if (failures && failures.length > 0) {
         try { throwCleanupFailures(failures.flatMap(failure => [failure.reason])); }
@@ -133,7 +138,7 @@ export class PipeDescriptorFrame {
       return resolvedVoid;
     }
     const done = Promise.all(asyncWork).then(() => {
-      this.references.clear();
+      references.clear();
       if (failures) throwCleanupFailures(failures.flatMap(failure => [failure.reason]));
       this.#retireCleanup?.();
     });
@@ -146,77 +151,89 @@ export class PipeDescriptorFrame {
   }
 }
 
+class OwnedPipeDescriptor implements PipeDescriptorReference {
+  readonly endpoint: PipeReadEndpoint | PipeWriteEndpoint;
+  readonly #budget: Budget;
+  readonly #root: OwnedPipeDescriptor;
+  readonly #record: ReturnType<Budget["values"]["allocate"]>;
+  #references = 1;
+  #closing: Promise<void> | undefined;
+  #closingSync = false;
+  #reentrantResolve: (() => void) | undefined;
+  #reentrantReject: ((reason: unknown) => void) | undefined;
+
+  constructor(endpoint: PipeReadEndpoint | PipeWriteEndpoint, budget: Budget, root?: OwnedPipeDescriptor) {
+    this.#record = budget.values.allocate(96, 1);
+    this.endpoint = endpoint;
+    this.#budget = budget;
+    if (root) {
+      this.#root = root;
+      root.#references++;
+    } else {
+      this.#root = this;
+    }
+  }
+
+  acquire(): PipeDescriptorReference {
+    if (this.#closing || this.#closingSync) throw new FsError("EBADF", { syscall: "dup" });
+    return new OwnedPipeDescriptor(this.endpoint, this.#budget, this.#root);
+  }
+
+  close(): Promise<void> {
+    if (this.#closing) return this.#closing;
+    if (this.#closingSync) {
+      this.#closing = new Promise<void>((accept, refuse) => {
+        this.#reentrantResolve = accept;
+        this.#reentrantReject = refuse;
+      });
+      return this.#closing;
+    }
+    const root = this.#root;
+    if (--root.#references > 0) {
+      this.#closing = resolvedVoid;
+      this.#budget.values.release(this.#record);
+      return resolvedVoid;
+    }
+    this.#closingSync = true;
+    let pending: Promise<void>;
+    try {
+      pending = this.endpoint.close();
+    } catch (reason) {
+      this.#closingSync = false;
+      this.#budget.values.release(this.#record);
+      if (this.#closing) {
+        this.#reentrantReject?.(reason);
+        return this.#closing;
+      }
+      this.#closing = Promise.reject(reason);
+      return this.#closing;
+    }
+    this.#closingSync = false;
+    if (isSyncResolved(pending)) {
+      this.#budget.values.release(this.#record);
+      if (this.#closing) {
+        this.#reentrantResolve?.();
+        Object.defineProperty(this.#closing, syncResolved, { value: true });
+        return this.#closing;
+      }
+      this.#closing = resolvedVoid;
+      return resolvedVoid;
+    }
+    const done = pending.then(
+      () => { this.#budget.values.release(this.#record); },
+      reason => { this.#budget.values.release(this.#record); throw reason; },
+    );
+    if (this.#closing) {
+      void done.then(this.#reentrantResolve, this.#reentrantReject);
+    } else {
+      this.#closing = done;
+    }
+    return this.#closing;
+  }
+}
+
 export function ownPipeDescriptor(endpoint: PipeReadEndpoint | PipeWriteEndpoint, budget: Budget): PipeDescriptorReference {
-  let references = 0;
-  const acquire = (): PipeDescriptorReference => {
-    const allocation = budget.values.scope();
-    try { allocation.reserve(96, 1); }
-    catch (reason) { allocation.close(); throw reason; }
-    references++;
-    let closing: Promise<void> | undefined;
-    let closingSync = false;
-    let reentrantResolve: (() => void) | undefined;
-    let reentrantReject: ((reason: unknown) => void) | undefined;
-    return {
-      endpoint,
-      acquire() {
-        if (closing || closingSync) throw new FsError("EBADF", { syscall: "dup" });
-        return acquire();
-      },
-      close() {
-        if (closing) return closing;
-        if (closingSync) {
-          closing = new Promise<void>((accept, refuse) => {
-            reentrantResolve = accept;
-            reentrantReject = refuse;
-          });
-          return closing;
-        }
-        references--;
-        if (references > 0) {
-          closing = resolvedVoid;
-          allocation.close();
-          return resolvedVoid;
-        }
-        closingSync = true;
-        let pending: Promise<void>;
-        try {
-          pending = endpoint.close();
-        } catch (reason) {
-          closingSync = false;
-          allocation.close();
-          if (closing) {
-            reentrantReject?.(reason);
-            return closing;
-          }
-          closing = Promise.reject(reason);
-          return closing;
-        }
-        closingSync = false;
-        if (isSyncResolved(pending)) {
-          allocation.close();
-          if (closing) {
-            reentrantResolve?.();
-            Object.defineProperty(closing, syncResolved, { value: true });
-            return closing;
-          }
-          closing = resolvedVoid;
-          return resolvedVoid;
-        }
-        const done = pending.then(
-          () => { allocation.close(); },
-          reason => { allocation.close(); throw reason; },
-        );
-        if (closing) {
-          void done.then(reentrantResolve, reentrantReject);
-        } else {
-          closing = done;
-        }
-        return closing;
-      },
-    };
-  };
-  return acquire();
+  return new OwnedPipeDescriptor(endpoint, budget);
 }
 
 export function observeDescriptor(source: DescriptorObservationSource, scope: InvocationScope, budget: Budget, signal: AbortSignal): ShellInputObserver {

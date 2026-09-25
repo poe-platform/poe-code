@@ -12,6 +12,7 @@ import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
+import { tryResolveMemoryDevicePath } from "../memory/index.js";
 import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
@@ -108,6 +109,14 @@ export class DeviceFileSystem implements FileSystem {
 
   #resolve(path: string, options: FsOptions, followFinal = true, resizeCreate?: boolean, traversal?: { virtual: boolean }) {
     return resolveDevicePath(this.#filesystem, path, options, followFinal, resizeCreate, traversal);
+  }
+
+  #tryResolveSync(path: string, options: FsOptions): string | undefined {
+    if (options.signal?.aborted) return undefined;
+    if (Reflect.get(this.#filesystem, pathNamespace) === undefined) {
+      return tryResolveMemoryDevicePath(this.#filesystem, path);
+    }
+    return undefined;
   }
 
   async #mutable(path: string, options: FsOptions, followFinal = true): Promise<void> {
@@ -212,7 +221,14 @@ export class DeviceFileSystem implements FileSystem {
     return result;
   }
 
-  async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
+  stat(path: string, options: FsOptions = {}): Promise<FileStat> {
+    if (this.#tryResolveSync(path, options) !== undefined) {
+      return this.#filesystem.stat(path, options);
+    }
+    return this.#statSlow(path, options);
+  }
+
+  async #statSlow(path: string, options: FsOptions): Promise<FileStat> {
     const resolved = await this.#resolve(path, options);
     options.signal?.throwIfAborted();
     if (resolved === nullPath) return { ...this.#nullStat };
@@ -224,7 +240,14 @@ export class DeviceFileSystem implements FileSystem {
     return result;
   }
 
-  async lstat(path: string, options: FsOptions = {}): Promise<FileStat> {
+  lstat(path: string, options: FsOptions = {}): Promise<FileStat> {
+    if (this.#tryResolveSync(path, options) !== undefined) {
+      return this.#filesystem.lstat(path, options);
+    }
+    return this.#lstatSlow(path, options);
+  }
+
+  async #lstatSlow(path: string, options: FsOptions): Promise<FileStat> {
     const resolved = await this.#resolve(path, options, false);
     options.signal?.throwIfAborted();
     if (resolved === nullPath) return { ...this.#nullStat };
@@ -240,12 +263,26 @@ export class DeviceFileSystem implements FileSystem {
     return compareEntries(this, path, peer, peerPath, options);
   }
 
-  async realpath(path: string, options: FsOptions = {}): Promise<string> {
+  realpath(path: string, options: FsOptions = {}): Promise<string> {
+    if (this.#tryResolveSync(path, options) !== undefined) {
+      return this.#filesystem.realpath(path, options);
+    }
+    return this.#realpathSlow(path, options);
+  }
+
+  async #realpathSlow(path: string, options: FsOptions): Promise<string> {
     const resolved = await this.#resolve(path, options);
     return reserved(resolved) ? resolved : this.#filesystem.realpath(path, options);
   }
 
-  async readFile(path: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
+  readFile(path: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
+    if (this.#tryResolveSync(path, options) !== undefined) {
+      return this.#filesystem.readFile(path, options);
+    }
+    return this.#readFileSlow(path, options);
+  }
+
+  async #readFileSlow(path: string, options: ReadFileOptions): Promise<Uint8Array> {
     const resolved = await this.#resolve(path, options);
     if (resolved === nullPath) { nonnegative(options.maxBytes, path); return new Uint8Array(); }
     if (resolved === deviceDirectory) throw new FsError("EISDIR", { path });
@@ -396,7 +433,15 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.writeStream(path, source, options);
   }
 
-  async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
+  readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
+    const fast = this.#tryResolveSync(path, options);
+    if (fast !== undefined && fast !== "/") {
+      return this.#filesystem.readdir(path, options);
+    }
+    return this.#readdirSlow(path, options);
+  }
+
+  async #readdirSlow(path: string, options: ReadDirectoryOptions): Promise<DirectoryEntry[]> {
     const resolved = await this.#resolve(path, options);
     if (resolved === nullPath) throw new FsError("ENOTDIR", { path });
     if (resolved !== "/" && resolved !== deviceDirectory) return this.#filesystem.readdir(path, options);
@@ -422,7 +467,14 @@ export class DeviceFileSystem implements FileSystem {
     return [...merged.values()];
   }
 
-  async mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
+  mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
+    if (this.#tryResolveSync(path, options) !== undefined) {
+      return this.#filesystem.mkdir(path, options);
+    }
+    return this.#mkdirSlow(path, options);
+  }
+
+  async #mkdirSlow(path: string, options: MkdirOptions): Promise<void> {
     const resolved = await this.#resolve(path, options);
     if (reserved(resolved)) {
       if (resolved !== nullPath && options.recursive) return;
@@ -431,7 +483,14 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.mkdir(path, options);
   }
 
-  async rm(path: string, options: RemoveOptions = {}): Promise<void> {
+  rm(path: string, options: RemoveOptions = {}): Promise<void> {
+    if (this.#tryResolveSync(path, options) !== undefined) {
+      return this.#filesystem.rm(path, options);
+    }
+    return this.#rmSlow(path, options);
+  }
+
+  async #rmSlow(path: string, options: RemoveOptions): Promise<void> {
     await this.#mutable(path, options, false);
     await this.#filesystem.rm(path, options);
   }
@@ -615,7 +674,14 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.writeFile(destination, new Uint8Array(), { ...options, flag: options.exclusive ? "wx" : "w" });
   }
 
-  async access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
+  access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
+    if (this.#tryResolveSync(path, options) !== undefined) {
+      return this.#filesystem.access(path, mode, options);
+    }
+    return this.#accessSlow(path, mode, options);
+  }
+
+  async #accessSlow(path: string, mode: number, options: FsOptions): Promise<void> {
     const resolved = await this.#resolve(path, options);
     if (resolved === nullPath || resolved === deviceDirectory) {
       if (!Number.isInteger(mode) || mode < 0 || mode > 7) throw new FsError("EINVAL", { path });

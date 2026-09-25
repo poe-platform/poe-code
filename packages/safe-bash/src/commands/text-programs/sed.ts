@@ -886,7 +886,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       for (const target of targets) {
         const result = await editInPlace(context, target, inPlace, budget, async stdin => {
           let rewritten = "";
-          const child = { ...context, stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } };
+          const child = Object.assign(Object.create(Object.getPrototypeOf(context)), context, { stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } }) as CommandContext;
           outputState.stdoutUnterminated = false;
           const result = await execute(program, child, ["-"], quiet, budget, separator, outputState, lineLength);
           return { result, data: bytes(rewritten) };

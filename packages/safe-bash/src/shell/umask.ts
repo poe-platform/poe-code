@@ -29,13 +29,35 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
       const creation = typeof key === "string" && creationKeys.has(key);
       const wrapped = !creation
         ? method.bind(target)
-        : async (...args: unknown[]) => {
-            const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-            const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
-            options.signal?.throwIfAborted();
-            if (key === "createStagedFile" && (args[2] as StagedFileContent).type === "symlink") return Reflect.apply(method, target, args);
-            if (key === "open" && options.creation !== "ifMissing" && options.creation !== "exclusive") return Reflect.apply(method, target, args);
-            if (options.mode === undefined) {
+        : (...args: unknown[]) => {
+            try {
+              const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
+              const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
+              options.signal?.throwIfAborted();
+              if (key === "createStagedFile" && (args[2] as StagedFileContent).type === "symlink") return Reflect.apply(method, target, args);
+              if (key === "open" && options.creation !== "ifMissing" && options.creation !== "exclusive") return Reflect.apply(method, target, args);
+              if (options.mode !== undefined) {
+                return Reflect.apply(method, target, args);
+              }
+              const path = args[0] as string;
+              const backing = getRuntimeBackingFileSystem(target);
+              const skipCapabilitiesQuery = backing !== undefined && backing.capabilitiesFor === undefined
+                && tryResolveMemoryDevicePath(backing, path) !== undefined;
+              if (
+                !(key === "mkdir" && options.recursive === true) &&
+                (skipCapabilitiesQuery || !target.capabilitiesFor || (key === "open" && options.noFollow))
+              ) {
+                if (target.capabilities.permissions !== false) {
+                  args[index] = { ...options, mode: (key === "mkdir" ? 0o777 : 0o666) & ~mask };
+                }
+                return Reflect.apply(method, target, args);
+              }
+            } catch (error) {
+              return Promise.reject(error);
+            }
+            return (async () => {
+              const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
+              const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
               let path = args[0] as string;
               if (key === "mkdir" && options.recursive === true) {
                 let statExisting;
@@ -51,7 +73,6 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
               const backing = getRuntimeBackingFileSystem(target);
               const skipCapabilitiesQuery = backing !== undefined && backing.capabilitiesFor === undefined
                 && tryResolveMemoryDevicePath(backing, path) !== undefined;
-              // Atomic final-symlink admission must precede any following path query.
               while (!skipCapabilitiesQuery && target.capabilitiesFor && !(key === "open" && options.noFollow)) {
                 try {
                   capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true }
@@ -66,8 +87,8 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
               }
               options.signal?.throwIfAborted();
               if (capabilities.permissions !== false) args[index] = { ...options, mode: (key === "mkdir" ? 0o777 : 0o666) & ~mask };
-            }
-            return Reflect.apply(method, target, args);
+              return Reflect.apply(method, target, args);
+            })();
           };
       methods.set(key, { raw: method, wrapped });
       return wrapped;

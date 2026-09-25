@@ -27,9 +27,9 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
   return [define("find", async context => {
     const startedAt = Date.now();
-    const argumentValues = getCommandArguments(context);
-    const args = [...argumentValues.args];
-    const values = [...argumentValues.values];
+    const rawArgumentValues = context.argumentValues ? getCommandArguments(context) : undefined;
+    const args = rawArgumentValues ? [...rawArgumentValues.args] : [...context.args];
+    const values = rawArgumentValues ? [...rawArgumentValues.values] : [...context.args];
     let follow = "-P";
     let debugTree = false;
     while (["-P", "-L", "-H", "-D"].includes(args[0] ?? "")) {
@@ -233,7 +233,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         const command: string[] = [];
         const start = offset;
         while (args[offset] !== undefined && args[offset] !== ";" && !(args[offset] === "+" && args[offset - 1] === "{}")) command.push(args[offset++]!);
-        const commandArguments = argumentValues.withValues(values.slice(start, offset));
+        const commandArguments = (rawArgumentValues ?? getCommandArguments(context)).withValues(values.slice(start, offset));
         const terminator = args[offset++];
         if (!command.length || terminator === undefined) throw new UsageError("-exec requires a command terminated by ';' or '+'");
         if (terminator === ";") return async entry => {

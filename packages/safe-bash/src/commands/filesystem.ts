@@ -1,7 +1,7 @@
-import { bindConditionalMutation } from "@poe-code/safe-fs/core";
+import { bindConditionalMutation, tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
 import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
-  readBytes, writeBytes, type CommandContext, type CommandDefinition, type FileStat,
+  readBytes, writeBytes, type CommandContext, type CommandDefinition, type FileStat, type FileSystem,
 } from "../contracts/index.js";
 import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { escapeText, quoteShellOperand } from "../escaping.js";
@@ -17,17 +17,35 @@ import { touchTarget } from "./touch-target.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
 import { canonicalizeExistingParent } from "./canonicalize-existing-parent.js";
 import { modeChange } from "./metadata/chmod.js";
-import { creationUmask } from "../fs/creation-mask.js";
+import { creationUmask, getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 import { backupCopyTarget, copyOptions, matchBackupMode, normalizeBackupSuffix } from "./copy-backup.js";
 import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from "./copy-preserve.js";
 
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
 const MAX_RECURSIVE_DIRECTORY_DEPTH = 1024;
+const MKDIR_LONG_OPTIONS = Object.freeze({ parents: "p", mode: "m", verbose: "v" } as const);
+const TOUCH_LONG_OPTIONS = Object.freeze({ "no-create": "c", "no-dereference": "h", reference: "r", date: "d", time: "time:" } as const);
+const MV_LONG_OPTIONS = Object.freeze({
+  force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", backup: "backup:", suffix: "S",
+  "no-target-directory": "T", "target-directory": "t",
+} as const);
+const RM_LONG_OPTIONS = Object.freeze({ recursive: "r", force: "f", dir: "d", verbose: "v" } as const);
+const RMDIR_LONG_OPTIONS = Object.freeze({ parents: "p", verbose: "v", "ignore-fail-on-non-empty": false } as const);
 
 async function preflightOperands(
   context: CommandContext, operands: readonly string[], check: (operand: string) => Promise<void>,
 ): Promise<void> {
+  if (
+    operands.length <= 1 &&
+    !context.fs.capabilitiesFor &&
+    context.fs.capabilities.readOnly !== true &&
+    context.fs.capabilities.write !== false &&
+    context.fs.capabilities.delete !== false &&
+    context.fs.capabilities.mkdir !== false
+  ) {
+    return;
+  }
   for (const operand of operands) {
     try { await check(operand); }
     catch (error) {
@@ -39,6 +57,16 @@ async function preflightOperands(
 }
 
 async function maybeStat(context: CommandContext, path: string, follow = true, allowNonDirectory = false): Promise<FileStat | undefined> {
+  if (!allowNonDirectory && path !== "/" && path !== "/dev" && !path.startsWith("/dev/")) {
+    const backing = getRuntimeBackingFileSystem(context.fs) as (FileSystem & { symlinkCount?: number }) | undefined;
+    if (backing && backing.symlinkCount === 0) {
+      const parentEntries = tryGetMemoryDirectoryEntryNamesSync(backing, dirname(path));
+      if (parentEntries !== undefined && !parentEntries.has(basename(path))) {
+        context.fs.canonicalizeMissingTarget?.(path, { signal: context.signal });
+        return undefined;
+      }
+    }
+  }
   try { return await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
   catch (error) {
     context.signal.throwIfAborted();
@@ -422,7 +450,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
   return [
     define("mkdir", async context => {
-      const parsed = options(context.args, "pm:v", { parents: "p", mode: "m", verbose: "v" });
+      const parsed = options(context.args, "pm:v", MKDIR_LONG_OPTIONS);
       requireOperands(parsed.operands);
       const mode = value(parsed, "m");
       const mask: unknown = Reflect.get(context.fs, creationUmask);
@@ -458,7 +486,14 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           if (recursive && !stat && (directoryMode !== undefined || (umask & 0o300) !== 0)) {
             await context.fs.mkdir(dirname(path), { recursive: true, mode: (0o777 & ~umask) | 0o300, signal: context.signal });
           }
-          await context.fs.mkdir(path, { recursive, ...(stat || directoryMode === undefined ? {} : { mode: directoryMode }), signal: context.signal });
+          const effectiveMode = stat
+            ? undefined
+            : directoryMode !== undefined
+              ? directoryMode
+              : !context.fs.capabilitiesFor && context.fs.capabilities.permissions !== false
+                ? 0o777 & ~umask
+                : undefined;
+          await context.fs.mkdir(path, { recursive, ...(effectiveMode === undefined ? {} : { mode: effectiveMode }), signal: context.signal });
           for (const directory of created) await output(context, `mkdir: created directory '${escapeText(directory, "display")}'\n`);
         }
       };
@@ -466,7 +501,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
     }),
     define("touch", async context => {
-      const parsed = options(context.args, "cafhmr:d:t:", { "no-create": "c", "no-dereference": "h", reference: "r", date: "d", time: "time:" });
+      const parsed = options(context.args, "cafhmr:d:t:", TOUCH_LONG_OPTIONS);
       const selection = value(parsed, "time");
       if (selection !== undefined) {
         if (["atime", "access", "use"].includes(selection)) parsed.flags.add("a");
@@ -580,10 +615,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (argument === "--suffix" || argument === "--target-directory") optionValue = true;
         return argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "finuvbS:Tt:", {
-        force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", backup: "backup:", suffix: "S",
-        "no-target-directory": "T", "target-directory": "t",
-      });
+      const parsed = options(args, "finuvbS:Tt:", MV_LONG_OPTIONS);
       for (const flag of ["f", "i", "n"]) if (flag !== overwrite) parsed.flags.delete(flag);
       const control = value(parsed, "backup") ?? (parsed.flags.has("b") || parsed.flags.has("S") ? context.env.VERSION_CONTROL || "existing" : "none");
       const backupMode = matchBackupMode(control);
@@ -730,7 +762,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         args.push(argument);
       }
-      const parsed = options(args, "rRfdviI", { recursive: "r", force: "f", dir: "d", verbose: "v" });
+      const parsed = options(args, "rRfdviI", RM_LONG_OPTIONS);
       if (force) parsed.flags.add("f"); else parsed.flags.delete("f");
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
       const recursive = parsed.flags.has("r") || parsed.flags.has("R");
@@ -786,7 +818,9 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           } else {
             const parentDir = await context.fs.realpath(dirname(path), { signal: context.signal });
             const canonicalPath = parentDir === "/" ? `/${basename(path)}` : `${parentDir}/${basename(path)}`;
-            const currentStat = await maybeStat(context, canonicalPath, false);
+            const currentStat = canonicalPath === path && (getRuntimeBackingFileSystem(context.fs) as { symlinkCount?: number } | undefined)?.symlinkCount === 0
+              ? stat
+              : await maybeStat(context, canonicalPath, false);
             if (!currentStat || currentStat.type !== stat.type || (stat.ino !== undefined && currentStat.ino !== stat.ino) || (stat.dev !== undefined && currentStat.dev !== stat.dev)) {
               throw new FsError("EAGAIN", { syscall: "rm", path });
             }
@@ -814,7 +848,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       } finally { if (answers) await answers.return(undefined); }
     }),
     define("rmdir", async context => {
-      const parsed = options(context.args, "pv", { parents: "p", verbose: "v", "ignore-fail-on-non-empty": false });
+      const parsed = options(context.args, "pv", RMDIR_LONG_OPTIONS);
       requireOperands(parsed.operands);
       await preflightOperands(context, parsed.operands, async operand => {
         let path = pathOf(context, operand);

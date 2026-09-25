@@ -213,10 +213,32 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedS
   return { ...result, ...(commandLimits === undefined ? {} : { commandLimits }) };
 }
 
-// Accounting exemptions and synchronous writers belong to exact sink identities.
-// Properties would also expose them through unknown proxies and inherited sinks.
-const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
-const syncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
+const budgetedSinkSymbol = Symbol("safe-bash.budgetedSink");
+const syncSinkSymbol = Symbol("safe-bash.syncSink");
+type BudgetedSinkEntry = { self: ByteSink; budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> };
+type SyncSinkEntry = { self: ByteSink; fn: (chunk: Uint8Array) => void };
+const fallbackBudgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
+const fallbackSyncSinks = new WeakMap<ByteSink, (chunk: Uint8Array) => void>();
+const budgetedSinks = {
+  get(sink: ByteSink) {
+    const entry = (sink as unknown as Record<symbol, BudgetedSinkEntry | undefined>)[budgetedSinkSymbol];
+    return entry?.self === sink ? entry : fallbackBudgetedSinks.get(sink);
+  },
+  set(sink: ByteSink, value: { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }) {
+    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, BudgetedSinkEntry>)[budgetedSinkSymbol] = { self: sink, ...value };
+    else fallbackBudgetedSinks.set(sink, value);
+  },
+};
+const syncSinks = {
+  get(sink: ByteSink) {
+    const entry = (sink as unknown as Record<symbol, SyncSinkEntry | undefined>)[syncSinkSymbol];
+    return entry?.self === sink ? entry.fn : fallbackSyncSinks.get(sink);
+  },
+  set(sink: ByteSink, fn: (chunk: Uint8Array) => void) {
+    if (Object.isExtensible(sink)) (sink as unknown as Record<symbol, SyncSinkEntry>)[syncSinkSymbol] = { self: sink, fn };
+    else fallbackSyncSinks.set(sink, fn);
+  },
+};
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
 
@@ -1166,14 +1188,11 @@ class FastShellCommandContext {
   descriptors: ReadonlyMap<number, Descriptor> | undefined;
   command: string;
   args: readonly string[];
-  argumentValues?: CommandArguments;
   env: Record<string, string>;
   cwd: string;
   signal: AbortSignal;
   executionScope: CommandContext["executionScope"];
   onInternalError: CommandContext["onInternalError"];
-  registerCleanup: NonNullable<CommandContext["registerCleanup"]>;
-  invoke: ShellCommandContext["invoke"];
   argv0?: string;
   capabilities?: import("./types.js").ShellCapabilities;
   processSignals?: CommandContext["processSignals"];
@@ -1181,6 +1200,7 @@ class FastShellCommandContext {
   scriptName?: string;
   [invocationScope]?: InvocationScope;
   [valueScope]?: ValueScope;
+  readonly _self: FastShellCommandContext;
   readonly #runtime: Runtime;
   readonly #state: State;
   readonly #io: IO;
@@ -1191,6 +1211,9 @@ class FastShellCommandContext {
   #cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
   #admittedHandles: CommandContext["admittedHandles"] | undefined;
   #admittedHandlesInitialized = false;
+  #argumentValues: CommandArguments | undefined;
+  #registerCleanup: NonNullable<CommandContext["registerCleanup"]> | undefined;
+  #invoke: ShellCommandContext["invoke"] | undefined;
 
   constructor(
     runtime: Runtime,
@@ -1198,11 +1221,12 @@ class FastShellCommandContext {
     io: IO,
     scope: InvocationScope,
     name: string,
-    argumentValues: CommandArguments,
-    allStrings: boolean,
+    args: readonly string[],
+    argumentValues: CommandArguments | undefined,
     env: Record<string, string>,
     signalIsScoped: boolean,
   ) {
+    this._self = this;
     this.#runtime = runtime;
     this.#state = state;
     this.#io = io;
@@ -1213,8 +1237,8 @@ class FastShellCommandContext {
     this.stderr = io.stderr;
     this.descriptors = io.descriptors;
     this.command = name;
-    this.args = argumentValues.args;
-    if (!allStrings) this.argumentValues = argumentValues;
+    this.args = args;
+    this.#argumentValues = argumentValues;
     this.env = env;
     this.cwd = state.cwd;
     this.signal = runtime.commandSignal;
@@ -1225,24 +1249,55 @@ class FastShellCommandContext {
     if (io.processSignals !== undefined) this.processSignals = io.processSignals;
     if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
     if (io.scriptName !== undefined) this.scriptName = io.scriptName;
-    this.registerCleanup = cleanup => { scope.register(cleanup); };
-    this.invoke = (cmdName, cmdArgs, options) => runtime.invokeFromFastContext(cmdName, cmdArgs, options, this as unknown as ShellCommandContext, state, scope);
-    // Command adapters forward contexts with spread or copied descriptors.
-    // Keep lazy fields enumerable and bind their private state to this instance.
-    for (const [key, descriptor] of fastShellCommandAccessors) {
-      Object.defineProperty(this, key, {
-        ...descriptor,
-        enumerable: true,
-        configurable: key !== "stdinInput" && key !== "stdoutFile",
-        get: descriptor.get!.bind(this),
-        ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
-      });
+    if (!FAST_PROTOTYPE_CONTEXT_COMMANDS.has(name)) {
+      for (const [key, descriptor] of fastShellCommandAccessors) {
+        Object.defineProperty(this, key, {
+          ...descriptor,
+          enumerable: true,
+          configurable: key !== "stdinInput" && key !== "stdoutFile",
+          get: descriptor.get!.bind(this),
+          ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}),
+        });
+      }
+      void this.registerCleanup;
     }
-    bindFileOutputBudget(
-      this as unknown as Pick<CommandContext, "registerCleanup">,
-      sink => runtime.budget.sink(sink, this.#getScopedSignal()),
-      (chunk, write) => runtime.budget.writeCounted(chunk, write, this.#getScopedSignal()),
-    );
+  }
+
+  get argumentValues(): CommandArguments | undefined {
+    return this._self.#argumentValues;
+  }
+
+  set argumentValues(replacement: CommandArguments | undefined) {
+    this._self.#argumentValues = replacement;
+  }
+
+  get registerCleanup(): NonNullable<CommandContext["registerCleanup"]> {
+    const self = this._self;
+    if (!self.#registerCleanup) {
+      const scope = self.#scope;
+      const runtime = self.#runtime;
+      self.#registerCleanup = cleanup => scope.register(cleanup);
+      bindFileOutputBudget(
+        self as unknown as Pick<CommandContext, "registerCleanup">,
+        sink => runtime.budget.sink(sink, self.#getScopedSignal()),
+        (chunk, write) => runtime.budget.writeCounted(chunk, write, self.#getScopedSignal()),
+      );
+    }
+    return self.#registerCleanup;
+  }
+
+  set registerCleanup(replacement: NonNullable<CommandContext["registerCleanup"]>) {
+    this._self.#registerCleanup = replacement;
+  }
+
+  get invoke(): ShellCommandContext["invoke"] {
+    const self = this._self;
+    return self.#invoke ??= (cmdName, cmdArgs, options) =>
+      self.#runtime.invokeFromFastContext(cmdName, cmdArgs, options, self as unknown as ShellCommandContext, self.#state, self.#scope);
+  }
+
+  set invoke(replacement: ShellCommandContext["invoke"]) {
+    this._self.#invoke = replacement;
   }
 
   #getScopedSignal(): AbortSignal {
@@ -1250,33 +1305,36 @@ class FastShellCommandContext {
   }
 
   get fs(): FileSystem {
-    if (!this.#contextFs) {
-      this.#contextFs = this.#runtime.getContextFsForFast(this.#state.umask ?? 0o022, this.#getScopedSignal());
+    const self = this._self;
+    if (!self.#contextFs) {
+      self.#contextFs = self.#runtime.getContextFsForFast(self.#state.umask ?? 0o022, self.#getScopedSignal());
     }
-    return this.#contextFs;
+    return self.#contextFs;
   }
 
   set fs(replacement: FileSystem) {
-    this.#contextFs = replacement;
+    this._self.#contextFs = replacement;
   }
 
   get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
-    if (!this.#cachedPredicates) {
-      this.#cachedPredicates = this.#runtime.createShellPredicatesForFast(this.#state, this.#io);
+    const self = this._self;
+    if (!self.#cachedPredicates) {
+      self.#cachedPredicates = self.#runtime.createShellPredicatesForFast(self.#state, self.#io);
     }
-    return this.#cachedPredicates;
+    return self.#cachedPredicates;
   }
 
   set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) {
-    this.#cachedPredicates = replacement;
+    this._self.#cachedPredicates = replacement;
   }
 
   get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
-    return this.#cachedInputBudget ??= this.#runtime.createInputBudgetForFast();
+    const self = this._self;
+    return self.#cachedInputBudget ??= self.#runtime.createInputBudgetForFast();
   }
 
   set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) {
-    this.#cachedInputBudget = replacement;
+    this._self.#cachedInputBudget = replacement;
   }
 
   get stdinInput(): ShellInput | undefined {
@@ -1289,24 +1347,37 @@ class FastShellCommandContext {
   }
 
   get admittedHandles(): CommandContext["admittedHandles"] {
-    if (!this.#admittedHandlesInitialized) {
-      this.#admittedHandlesInitialized = true;
-      if (this.#io.descriptors) {
-        const temp: Record<string, unknown> = { signal: this.signal, registerCleanup: this.registerCleanup };
-        bindCommandIO(temp as unknown as CommandContext, { ...this.#io, [invocationScope]: this.#scope });
-        this.#admittedHandles = (temp as unknown as CommandContext).admittedHandles;
+    const self = this._self;
+    if (!self.#admittedHandlesInitialized) {
+      self.#admittedHandlesInitialized = true;
+      if (self.#io.descriptors) {
+        const temp: Record<string, unknown> = { signal: self.signal, registerCleanup: self.registerCleanup };
+        bindCommandIO(temp as unknown as CommandContext, { ...self.#io, [invocationScope]: self.#scope });
+        self.#admittedHandles = (temp as unknown as CommandContext).admittedHandles;
       }
     }
-    return this.#admittedHandles;
+    return self.#admittedHandles;
   }
 
   set admittedHandles(v: CommandContext["admittedHandles"]) {
-    this.#admittedHandlesInitialized = true;
-    this.#admittedHandles = v;
+    const self = this._self;
+    self.#admittedHandlesInitialized = true;
+    self.#admittedHandles = v;
   }
 }
 
-const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "stdinInput", "stdoutFile", "admittedHandles"].map(
+const FAST_PROTOTYPE_CONTEXT_COMMANDS = new Set([
+  "mkdir", "rm", "rmdir", "touch", "mv", "cp", "chmod", "ls", "stat", "realpath",
+  "find", "grep", "egrep", "fgrep", "rg", "awk", "jq", "sort", "cut", "head", "tail",
+  "wc", "cat", "tr", "uniq", "nl", "paste", "join", "comm", "fold", "expand", "unexpand",
+  "fmt", "rev", "tac", "od", "hexdump", "xxd", "base64", "base32", "md5sum", "sha1sum",
+  "sha256sum", "sha512sum", "cksum", "b2sum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2",
+  "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "tar", "zip", "unzip",
+  "date", "seq", "expr", "basename", "dirname", "mktemp", "sleep", "uname", "whoami",
+  "id", "hostname", "nproc", "arch", "printenv", "yes", "sed",
+]);
+
+const fastShellCommandAccessors = ["fs", "shellPredicates", "inputBudget", "stdinInput", "stdoutFile", "admittedHandles", "registerCleanup", "invoke", "argumentValues"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
 );
 
@@ -6690,12 +6761,7 @@ export class Runtime {
     io: IO,
     scope: InvocationScope,
   ): Promise<number> {
-    const allocation = this.budget.values.scope();
-    const argumentValues = this.admitArguments(values, allocation);
-    let allStrings = true;
-    for (let i = 0; i < argumentValues.values.length; i++) {
-      if (typeof argumentValues.values[i] !== "string") { allStrings = false; break; }
-    }
+    this.budget.values.assertOpen();
     const env = Object.create(null) as Record<string, string>;
     for (const key of state.exported) {
       const value = state.variables[key];
@@ -6707,7 +6773,7 @@ export class Runtime {
         if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
       }
     }
-    const context = new FastShellCommandContext(this, state, io, scope, name, argumentValues, allStrings, env, this.#isMemoryBackingFs);
+    const context = new FastShellCommandContext(this, state, io, scope, name, values as readonly string[], undefined, env, this.#isMemoryBackingFs);
     const runtimeFrame: RuntimeOutcomeFrame = {};
     scope.enterWork();
     this.budget.beginPathLookupSuspension();
@@ -6725,7 +6791,6 @@ export class Runtime {
     } finally {
       this.budget.endPathLookupSuspension();
       scope.leaveWork();
-      allocation.close();
     }
   }
 

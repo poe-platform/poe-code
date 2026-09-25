@@ -69,6 +69,8 @@ export interface BytePipeOptions {
 
 const managedSignalSymbol = Symbol.for("safe-bash.managedSignal");
 const managedWaitersSymbol = Symbol.for("safe-bash.managedWaiters");
+const defaultAbortController = AbortController;
+const defaultAbortControllerAbort = AbortController.prototype.abort;
 
 export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   const highWaterMark = options.highWaterMark ?? 64 * 1024;
@@ -129,8 +131,15 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   const abortConsumer = (reason?: unknown): void => {
     if (!consumerAborted) {
-      // Retire the consumer before releasing the borrowed caller signal.
-      getConsumerSignal();
+      if (
+        !consumer &&
+        (AbortController !== defaultAbortController ||
+          AbortController.prototype.abort !== defaultAbortControllerAbort ||
+          (signal !== undefined && !(signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]))
+      ) {
+        // Retire the consumer before releasing the borrowed caller signal.
+        getConsumerSignal();
+      }
       consumerAborted = true;
       consumerReason = reason;
       if (consumer) {

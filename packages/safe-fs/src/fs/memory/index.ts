@@ -135,6 +135,8 @@ class MemoryCache {
 
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const emptyResolveOptions: ResolveOptions = Object.freeze({});
+const noFollowResolveOptions: ResolveOptions = Object.freeze({ followFinal: false });
+const resolvedVoid = Promise.resolve();
 const preferredIoBlockSize = 64 * 1024;
 const ext4HtreeEof64 = (1n << 63n) - 1n;
 const extractionStreamGuard = Symbol("extractionStreamGuard");
@@ -475,6 +477,48 @@ export class MemoryFileSystem implements FileSystem {
   private changed(node: MemoryNode): void {
     node.revision = node.revision < 1073741823 ? (node.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     node.mtimeMs = node.ctimeMs = Date.now();
+  }
+
+  private resolveNode(path: string, syscall: string, followFinal = true): MemoryNode {
+    const cache = memoryCaches.get(this.ledger)!;
+    if (this.symlinkCount === 0 && isCleanAbsolutePath(path)) {
+      const fastDir = cache.lastFastDirNode;
+      const fastPrefix = cache.lastFastDirPrefix;
+      if (fastDir !== undefined && fastDir.nlink !== 0 && fastPrefix.length > 0 && path.startsWith(fastPrefix)) {
+        const name = path.slice(fastPrefix.length);
+        if (name.length > 0 && !name.includes("/")) {
+          this.permission(fastDir, 1, syscall, path);
+          if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+          const node = fastDir.entries.get(name);
+          if (!node) this.fail("ENOENT", syscall, path);
+          return node;
+        }
+      }
+      let current: DirectoryNode = this.root;
+      let start = 1;
+      while (true) {
+        this.permission(current, 1, syscall, path);
+        const slash = path.indexOf("/", start);
+        if (slash === -1) {
+          cache.clearWrites();
+          cache.lastFastDirPrefix = path.slice(0, start);
+          cache.lastFastDirNode = current;
+          const name = path.slice(start);
+          if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+          const node = current.entries.get(name);
+          if (!node) this.fail("ENOENT", syscall, path);
+          return node;
+        }
+        const name = path.slice(start, slash);
+        if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
+        const next = current.entries.get(name);
+        if (!next) this.fail("ENOENT", syscall, path);
+        if (next.type !== "directory") this.fail("ENOTDIR", syscall, path);
+        current = next;
+        start = slash + 1;
+      }
+    }
+    return this.resolve(path, syscall, followFinal ? emptyResolveOptions : noFollowResolveOptions).node!;
   }
 
   private resolve(path: string, syscall: string, options: ResolveOptions = emptyResolveOptions): Location {
@@ -1343,19 +1387,19 @@ export class MemoryFileSystem implements FileSystem {
 
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
     options.signal?.throwIfAborted();
-    return this.snapshot(this.resolve(path, "stat").node!);
+    return this.snapshot(this.resolveNode(path, "stat", true));
   }
 
   async lstat(path: string, options: FsOptions = {}): Promise<FileStat> {
     options.signal?.throwIfAborted();
-    const stat = this.snapshot(this.resolve(path, "lstat", { followFinal: false }).node!);
+    const stat = this.snapshot(this.resolveNode(path, "lstat", false));
     ownedStats.set(stat, { filesystem: this, path, root: this.root });
     return stat;
   }
 
   async readdir(path: string, options: ReadDirectoryOptions = {}): Promise<DirectoryEntry[]> {
     const limit = directoryEntryLimit(options, path);
-    const node = this.resolve(path, "readdir").node!;
+    const node = this.resolveNode(path, "readdir", true);
     if (node.type !== "directory") this.fail("ENOTDIR", "readdir", path);
     this.permission(node, 4, "readdir", path);
     admitDirectoryEntries(node.entries.size, limit, path);
@@ -1368,19 +1412,24 @@ export class MemoryFileSystem implements FileSystem {
     return result.sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);
   }
 
-  async mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
-    options.signal?.throwIfAborted();
-    this.validatePath(path, "mkdir");
-    const mode = this.mode(options.mode, 0o777, "mkdir", path);
-    if (options.recursive) {
-      const node = this.resolve(path, "mkdir", { createDirectories: mode }).node!;
-      if (node.type !== "directory") this.fail("EEXIST", "mkdir", path);
-      return;
+  mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
+    try {
+      options.signal?.throwIfAborted();
+      this.validatePath(path, "mkdir");
+      const mode = this.mode(options.mode, 0o777, "mkdir", path);
+      if (options.recursive) {
+        const node = this.resolve(path, "mkdir", { createDirectories: mode }).node!;
+        if (node.type !== "directory") this.fail("EEXIST", "mkdir", path);
+        return resolvedVoid;
+      }
+      const location = this.resolve(path.replace(/\/+$/, "") || "/", "mkdir", { allowMissing: true, followFinal: false });
+      if (location.node) this.fail("EEXIST", "mkdir", path);
+      this.permission(location.parent, 3, "mkdir", path);
+      this.addNode(location.parent, location.name, () => this.directory(mode), "mkdir", path);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
     }
-    const location = this.resolve(path.replace(/\/+$/, "") || "/", "mkdir", { allowMissing: true, followFinal: false });
-    if (location.node) this.fail("EEXIST", "mkdir", path);
-    this.permission(location.parent, 3, "mkdir", path);
-    this.addNode(location.parent, location.name, () => this.directory(mode), "mkdir", path);
   }
 
   async rmdir(path: string, options: FsOptions = {}): Promise<void> {
@@ -1401,27 +1450,32 @@ export class MemoryFileSystem implements FileSystem {
     this.changed(location.parent);
   }
 
-  async rm(path: string, options: RemoveOptions & Partial<ConditionalMutationBinding> = {}): Promise<void> {
-    options.signal?.throwIfAborted();
-    const bound = activeConditionalMutations.get(this.identityScope);
-    const active = bound?.path === path ? bound : undefined;
-    const ancestors = options.ancestors ?? active?.ancestors;
-    const expectedParent = options.parent ?? active?.parent;
-    const expectedNode = options.expected ?? active?.expected;
-    if (ancestors !== undefined) this.verifyDirectoryAncestry(ancestors, options);
-    let location: Location;
+  rm(path: string, options: RemoveOptions & Partial<ConditionalMutationBinding> = {}): Promise<void> {
     try {
-      location = this.entry(path, "rm", expectedNode !== undefined || expectedParent !== undefined);
+      options.signal?.throwIfAborted();
+      const bound = activeConditionalMutations.get(this.identityScope);
+      const active = bound?.path === path ? bound : undefined;
+      const ancestors = options.ancestors ?? active?.ancestors;
+      const expectedParent = options.parent ?? active?.parent;
+      const expectedNode = options.expected ?? active?.expected;
+      if (ancestors !== undefined) this.verifyDirectoryAncestry(ancestors, options);
+      let location: Location;
+      try {
+        location = this.entry(path, "rm", expectedNode !== undefined || expectedParent !== undefined);
+      } catch (error) {
+        if (options.force && error instanceof FsError && error.code === "ENOENT") return resolvedVoid;
+        throw error;
+      }
+      if (expectedParent !== undefined) this.expectEntry(location.parent, expectedParent, path, false);
+      if (expectedNode !== undefined) {
+        if (options.force && !location.node) return resolvedVoid;
+        this.expectEntry(location.node, expectedNode, path, location.node?.type !== "directory");
+      }
+      this.removeLocation(location, path, "rm", options.recursive === true);
+      return resolvedVoid;
     } catch (error) {
-      if (options.force && error instanceof FsError && error.code === "ENOENT") return;
-      throw error;
+      return Promise.reject(error);
     }
-    if (expectedParent !== undefined) this.expectEntry(location.parent, expectedParent, path, false);
-    if (expectedNode !== undefined) {
-      if (options.force && !location.node) return;
-      this.expectEntry(location.node, expectedNode, path, location.node?.type !== "directory");
-    }
-    this.removeLocation(location, path, "rm", options.recursive === true);
   }
 
   private removeLocation(location: Location, path: string, syscall: string, recursive: boolean): void {
@@ -1528,10 +1582,15 @@ export class MemoryFileSystem implements FileSystem {
     return this.resolve(path, "realpath").path;
   }
 
-  async access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
-    options.signal?.throwIfAborted();
-    if (!Number.isInteger(mode) || mode < 0 || mode > 7) this.fail("EINVAL", "access", path);
-    this.permission(this.resolve(path, "access").node!, mode, "access", path);
+  access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
+    try {
+      options.signal?.throwIfAborted();
+      if (!Number.isInteger(mode) || mode < 0 || mode > 7) this.fail("EINVAL", "access", path);
+      this.permission(this.resolveNode(path, "access", true), mode, "access", path);
+      return resolvedVoid;
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   async readlink(path: string, options: FsOptions = {}): Promise<string> {

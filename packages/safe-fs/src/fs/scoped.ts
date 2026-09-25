@@ -173,12 +173,33 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
     },
   };
   };
+  let cachedRawCaps: FileSystem["capabilities"] | undefined;
+  let cachedCreateStaged: unknown;
+  let cachedOpenResize: unknown;
+  let cachedComputedCaps: FileSystem["capabilities"] | undefined;
   const view = new Proxy(Object.create(original) as FileSystem, {
     set(_target, property, value) {
+      cachedComputedCaps = undefined;
       return Reflect.set(original, property, value, original);
     },
     get(_target, property) {
-      if (property === "capabilities") return ownedMutationCapabilities(original, retainedResizeCapabilities(original));
+      if (property === "capabilities") {
+        const rawCaps = original.capabilities;
+        if (
+          cachedComputedCaps !== undefined &&
+          cachedRawCaps === rawCaps &&
+          cachedCreateStaged === original.createStagedFile &&
+          cachedOpenResize === original.openResizeFile
+        ) {
+          return cachedComputedCaps;
+        }
+        const computed = ownedMutationCapabilities(original, retainedResizeCapabilities(original, rawCaps));
+        cachedRawCaps = rawCaps;
+        cachedCreateStaged = original.createStagedFile;
+        cachedOpenResize = original.openResizeFile;
+        cachedComputedCaps = computed;
+        return computed;
+      }
       const method: unknown = Reflect.get(original, property, original);
       if (typeof method !== "function") return method;
       const cached = methods.get(property);
@@ -374,7 +395,14 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           : property === "openReadFile"
             ? async (...args: unknown[]) => wrapHandle(await dispatch(...args) as FileReadHandle)
             : operations.has(property as keyof FileSystem) && property !== "canonicalizeMissingTarget" && property !== "readStream"
-                ? async (...args: unknown[]) => dispatch(...args)
+                ? (...args: unknown[]) => {
+                    try {
+                      const res = dispatch(...args);
+                      return res instanceof Promise ? res : Promise.resolve(res);
+                    } catch (error) {
+                      return Promise.reject(error);
+                    }
+                  }
                 : dispatch;
       methods.set(property, { original: method, scoped });
       return scoped;

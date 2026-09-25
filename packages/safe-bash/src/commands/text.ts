@@ -263,6 +263,8 @@ async function cutFieldBoundarySlow(record: Buffer, separator: Uint8Array, start
 }
 
 const emptySortRecord = new Uint8Array(0);
+const defaultSortAdmit = SortRecordBudget.prototype.admit;
+const defaultUint8Array = Uint8Array;
 
 async function resolveAfterCheckpoint(checkpoint: Promise<void>, value: number): Promise<number> {
   await checkpoint;
@@ -842,6 +844,11 @@ async function collectSortRecords(
   try {
     for await (const chunk of source) {
       let start = 0;
+      let ownedChunk: Uint8Array | undefined;
+      const canShareChunk =
+        SortRecordBudget.prototype.admit === defaultSortAdmit &&
+        Uint8Array === defaultUint8Array &&
+        budget.canAdmitChunk(chunk.length);
       while (start < chunk.length) {
         const offset = chunk.indexOf(delimiter, start);
         if (offset < 0) break;
@@ -853,6 +860,9 @@ async function collectSortRecords(
           if (tailLength > bufferLimit * 2) throw new FsError("EFBIG", { message: "line finalization buffer limit exceeded" });
           if (tailLength === 0) {
             record = emptySortRecord;
+          } else if (canShareChunk) {
+            ownedChunk ??= new Uint8Array(chunk);
+            record = ownedChunk.subarray(start, offset);
           } else {
             // Later records in this chunk have not passed admission yet.
             record = new Uint8Array(tailLength);

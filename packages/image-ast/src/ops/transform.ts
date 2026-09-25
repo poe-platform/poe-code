@@ -1844,6 +1844,35 @@ export function affineImage(
         out[dIdx + 1] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[1] * 255) / pa))) : 0;
         out[dIdx + 2] = pa > 0 ? Math.max(0, Math.min(255, Math.round((p[2] * 255) / pa))) : 0;
         out[dIdx + 3] = outA;
+      } else if (spec.interpolator === "bicubic") {
+        const catmull = (v: number): number => {
+          const av = Math.abs(v);
+          if (av < 1) return 1.5 * av * av * av - 2.5 * av * av + 1;
+          if (av < 2) return -0.5 * av * av * av + 2.5 * av * av - 4 * av + 2;
+          return 0;
+        };
+        const x0 = Math.floor(sx);
+        const y0 = Math.floor(sy);
+        let pr = 0;
+        let pg = 0;
+        let pb = 0;
+        let pa = 0;
+        for (let ky = -1; ky <= 2; ky++) {
+          const wy = catmull(sy - (y0 + ky));
+          for (let kx = -1; kx <= 2; kx++) {
+            const w = wy * catmull(sx - (x0 + kx));
+            const p = samplePremul(x0 + kx, y0 + ky);
+            pr += p[0] * w;
+            pg += p[1] * w;
+            pb += p[2] * w;
+            pa += p[3] * w;
+          }
+        }
+        const outA = Math.max(0, Math.min(255, Math.round(pa)));
+        out[dIdx] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pr * 255) / pa))) : 0;
+        out[dIdx + 1] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pg * 255) / pa))) : 0;
+        out[dIdx + 2] = pa > 0 ? Math.max(0, Math.min(255, Math.round((pb * 255) / pa))) : 0;
+        out[dIdx + 3] = outA;
       } else {
         const x0 = Math.floor(sx);
         const y0 = Math.floor(sy);

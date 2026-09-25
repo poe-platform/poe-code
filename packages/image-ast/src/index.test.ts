@@ -1466,4 +1466,35 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(Array.from(canceled)).toEqual(Array.from(raw2x2));
   });
+
+  it("supports 4x4 Catmull-Rom bicubic interpolation in affine() and false cancellation in flatten()/normalise() (#82)", async () => {
+    const raw4x1 = Buffer.from([0, 0, 0, 100, 100, 100, 200, 200, 200, 50, 50, 50]);
+    const bic = await sharp(raw4x1, { raw: { width: 4, height: 1, channels: 3 } })
+      .affine(
+        [
+          [2, 0],
+          [0, 1]
+        ],
+        { interpolator: "bicubic" }
+      )
+      .raw()
+      .toBuffer();
+    expect(Array.from({ length: 8 }, (_, x) => bic[x * 3])).toEqual([0, 44, 100, 166, 200, 134, 50, 16]);
+
+    const rgba = Buffer.from([100, 150, 200, 128]);
+    const flatCanceled = await sharp(rgba, { raw: { width: 1, height: 1, channels: 4 } })
+      .flatten()
+      .flatten(false as any)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(flatCanceled.info.channels).toBe(4);
+    expect(Array.from(flatCanceled.data)).toEqual([100, 150, 200, 128]);
+
+    const normCanceled = await sharp(raw4x1, { raw: { width: 4, height: 1, channels: 3 } })
+      .normalise()
+      .normalise(false as any)
+      .raw()
+      .toBuffer();
+    expect(Array.from(normCanceled)).toEqual(Array.from(raw4x1));
+  });
 });

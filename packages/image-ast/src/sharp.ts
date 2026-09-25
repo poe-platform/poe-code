@@ -400,10 +400,16 @@ export class SharpInstance {
     return this.grayscale(greyscale);
   }
 
-  flatten(options?: { readonly background?: ColorInput }): this {
+  flatten(options?: boolean | { readonly background?: ColorInput }): this {
+    if (options === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "flatten");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    const bg = typeof options === "object" ? options?.background : undefined;
     this.nodes.push({
       kind: "flatten",
-      background: parseColor(options?.background ?? "#000000", 255)
+      background: parseColor(bg ?? "#000000", 255)
     });
     return this;
   }
@@ -458,9 +464,18 @@ export class SharpInstance {
   }
 
   normalize(
-    lowerOrOptions?: number | { readonly lower?: number; readonly upper?: number },
+    lowerOrOptions?: number | boolean | { readonly lower?: number; readonly upper?: number },
     upperArg?: number
   ): this {
+    if (lowerOrOptions === false) {
+      const idx = this.nodes.findIndex(n => n.kind === "normalize");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    if (lowerOrOptions === true) {
+      this.nodes.push({ kind: "normalize", lower: 1, upper: 99 });
+      return this;
+    }
     if (typeof lowerOrOptions === "number") {
       this.nodes.push({
         kind: "normalize",
@@ -478,7 +493,7 @@ export class SharpInstance {
   }
 
   normalise(
-    lowerOrOptions?: number | { readonly lower?: number; readonly upper?: number },
+    lowerOrOptions?: number | boolean | { readonly lower?: number; readonly upper?: number },
     upperArg?: number
   ): this {
     return this.normalize(lowerOrOptions, upperArg);

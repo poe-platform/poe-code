@@ -129,6 +129,8 @@ export function createBytePipe(options: BytePipeOptions = {}): BytePipe {
   };
   const abortConsumer = (reason?: unknown): void => {
     if (!consumerAborted) {
+      // Retire the consumer before releasing the borrowed caller signal.
+      getConsumerSignal();
       consumerAborted = true;
       consumerReason = reason;
       if (consumer) {

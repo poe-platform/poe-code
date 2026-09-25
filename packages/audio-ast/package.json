@@ -1,0 +1,28 @@
+{
+  "name": "@poe-code/audio-ast",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Pure TypeScript audio containers, metadata and PCM DSP",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=neutral --format=esm --target=es2022 --outfile=dist/index.js --metafile=dist/metafile.json",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "cd ../.. && vitest run packages/audio-ast",
+    "test:unit": "cd ../.. && vitest run packages/audio-ast"
+  },
+  "dependencies": {}
+}

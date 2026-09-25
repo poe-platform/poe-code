@@ -7,7 +7,7 @@ import { createYqQuerySession, type YqOwnedWork } from "../../../../src/commands
 import { JqLimitError, type Json } from "../../../../src/commands/structured/limits.js";
 import { YqLedger } from "../../../../src/commands/yq/accounting.js";
 import { encodeYaml } from "../../../../src/commands/yq/encoder.js";
-import { createYqCommand } from "../../../../src/commands/yq/index.js";
+import { createYqCommand, type YqLimits } from "../../../../src/commands/yq/index.js";
 import { parseYamlDocuments } from "../../../../src/commands/yq/parser.js";
 
 const root = new URL("../../../../", import.meta.url);
@@ -56,14 +56,14 @@ function sink(): ByteSink & { readonly chunks: Uint8Array[] } {
   return { chunks, async write(chunk) { chunks.push(new Uint8Array(chunk)); } };
 }
 
-async function run(input: string): Promise<{ status: number; stderr: string }> {
+async function run(input: string, limits?: Partial<YqLimits>): Promise<{ status: number; stderr: string }> {
   const stdout = sink();
   const stderr = sink();
   const context: CommandContext = {
     command: "yq", args: [], stdin: toByteSource(input), stdout, stderr, cwd: "/", env: {},
     fs: createMemoryFileSystem(), signal: new AbortController().signal,
   };
-  const result = await createYqCommand().execute(context);
+  const result = await createYqCommand({ limits }).execute(context);
   return { status: result.exitCode, stderr: new TextDecoder().decode(Buffer.concat(stderr.chunks)) };
 }
 
@@ -105,10 +105,13 @@ test("omitted public caps remain unlimited rather than proof thresholds", async 
   assert.match(query, /maxOutputBytes:\s*Infinity/u);
 });
 
-test("WRK-06 CRLF documents above the former raw byte ceiling are accepted", async () => {
+test("WRK-06 CRLF documents above the former raw byte ceiling honor independent work admission", async () => {
   const overByCr = `#${"x".repeat(8_388_608 - 2)}\r\n`;
   assert.equal(Buffer.byteLength(overByCr), 8_388_609);
-  const result = await run(overByCr);
+  const bounded = await run(overByCr);
+  assert.equal(bounded.status, 5);
+  assert.match(bounded.stderr, /LIMIT_MAX_STEPS/);
+  const result = await run(overByCr, { maxSteps: 32 * 1024 * 1024 });
   assert.equal(result.status, 0);
   assert.equal(result.stderr, "");
 

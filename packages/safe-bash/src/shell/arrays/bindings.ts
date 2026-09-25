@@ -32,8 +32,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
   if (typeof value !== "string") {
     const bytes = shellValueByteLength(value);
     const metadata = exactSum(32, shellValueRetainedBytes(value) - bytes);
-    const pending = owner.ledger.checkpoint(signal, 4);
-    if (pending) await pending;
+    await owner.ledger.checkpoint(signal, 4);
     signal.throwIfAborted();
     const admission = owner.reserve({ payload: bytes, metadata, work: 4 });
     return new OwnedText(value, bytes, admission);
@@ -51,6 +50,7 @@ export async function textToken(owner: ArrayOwner, value: ShellValue, signal: Ab
     const pending = owner.ledger.checkpoint(signal, step);
     if (pending) await pending;
   }
+  await owner.ledger.checkpoint(signal, 0);
   signal.throwIfAborted();
   const admission = owner.reserve({ payload: bytes, metadata: 32, work: 4 });
   return new OwnedText(value, bytes, admission);

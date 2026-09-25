@@ -68,8 +68,10 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     const operands = [...options.operands];
     if (expression === undefined && operands.length && operands[0] !== "-") {
       let exists = false;
-      try { exists = (await work.track(context.fs.stat(pathOf(context, operands[0]!), { signal: work.signal }))).type !== "directory"; }
-      catch (error) { work.assertOpen(); if (!(error instanceof FsError)) throw error; }
+      if (!options.nullInput && !options.inplace && operands.length === 1) {
+        try { exists = (await work.track(context.fs.stat(pathOf(context, operands[0]!), { signal: work.signal }))).type !== "directory"; }
+        catch (error) { work.assertOpen(); if (!(error instanceof FsError)) throw error; }
+      }
       if (!exists) expression = operands.shift();
     }
     expression ??= ".";

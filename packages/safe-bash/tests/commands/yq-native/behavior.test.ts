@@ -566,3 +566,25 @@ test('Mike yq issue 302 no-doc suppresses front matter opening separator', async
     assert.equal(result.stdout, 'a: 1\n');
   } finally { await shell.dispose(); }
 });
+
+test('Mike yq issue 1031 treats first operand as expression when -n, -i, eval/eval-all, or file operands are present even if matching file exists', async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/keys', Buffer.from('unrelated: file\n'));
+  await fs.writeFile('/data.yaml', Buffer.from('a: 1\nb: 2\n'));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    await fs.writeFile('/length', Buffer.from('unrelated: file\n'));
+    const nullInput = await shell.exec('yq -n length');
+    assert.equal(nullInput.exitCode, 0, nullInput.stderr);
+    assert.equal(nullInput.stdout, '0\n');
+
+    const multiOperand = await shell.exec('yq keys data.yaml');
+    assert.equal(multiOperand.exitCode, 0, multiOperand.stderr);
+    assert.equal(multiOperand.stdout, '- a\n- b\n');
+
+    const inplace = await shell.exec('yq -i keys data.yaml');
+    assert.equal(inplace.exitCode, 0, inplace.stderr);
+    assert.equal(Buffer.from(await fs.readFile('/keys')).toString(), 'unrelated: file\n');
+    assert.equal(Buffer.from(await fs.readFile('/data.yaml')).toString(), '- a\n- b\n');
+  } finally { await shell.dispose(); }
+});

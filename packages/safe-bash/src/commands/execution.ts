@@ -15,7 +15,7 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
     const argumentValues = getCommandArguments(context);
     const invoke = context.invoke;
     if (invoke) return invoke(context.command, argumentValues.args, {
-      argumentValues,
+      argumentValues, externalInvocation: true,
       ...(context.argv0 === undefined ? {} : { argv0: context.argv0 }),
       stdin: context.stdin, cwd: context.cwd, env: context.env, stdout: context.stdout, stderr: context.stderr,
       ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
@@ -128,7 +128,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         const childArguments = parsed.operandValues!.slice(offset + 1);
         const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));
         if (context.invoke) return context.invoke(parsed.operands[offset]!, childArguments.args, {
-          argumentValues: childArguments,
+          argumentValues: childArguments, externalInvocation: true,
           ...(argv0 === undefined ? {} : { argv0 }),
           env: childEnv, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,
           ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
@@ -277,7 +277,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
           childSignal.throwIfAborted();
           const env = { ...context.env, ...(slotVariable === undefined ? {} : { [slotVariable]: String(slot) }) };
           if (context.invoke) return context.invoke(command, args, {
-            argumentValues: childArguments, stdin: childInput, ...(childInputIsDefault === undefined ? {} : { stdinIsDefault: childInputIsDefault }),
+            argumentValues: childArguments, externalInvocation: true, stdin: childInput, ...(childInputIsDefault === undefined ? {} : { stdinIsDefault: childInputIsDefault }),
             cwd: context.cwd, env, stdout: context.stdout, stderr: context.stderr, signal: childSignal,
           });
           return execute({ ...context, command, args, argumentValues: childArguments, stdin: childInput, ...(childInputIsDefault === undefined ? {} : { stdinIsDefault: childInputIsDefault }), env, signal: childSignal });

@@ -177,6 +177,14 @@ export attributes and function locals must remain unchanged on success, error
 or cancellation. Cwd resolution remains independent. A child Bash interpreter's
 own initialization is separate from the environment passed to it.
 
+`CommandInvokeOptions.externalInvocation?: boolean` selects external command
+dispatch explicitly. True prefers registered command variants over matching
+shell builtins and excludes unexported shell functions. Exported function syntax
+is retained only when its matching environment entry survives. Omitted or false
+preserves generic literal invocation, including shell functions and the inherited
+shell profile. Each invocation selects its own mode; an external parent does not
+make a nested generic invocation external. `replaceEnv` does not select this mode.
+
 Literal argv, middleware, shared execution/output/depth budgets,
 stdout/stderr transfer and stdin cursor/origin rules are unchanged. Do not
 implement replacement with a new Shell, new budget or a callback-only bypass.
@@ -184,7 +192,8 @@ implement replacement with a new Shell, new budget or a callback-only bypass.
 Core `env COMMAND` explicitly requests replacement for its already-computed
 environment, including plain assignments and `-u`, not just `-i`. With no invoke
 hook, its existing registry/callback fallback still receives that exact map.
-Generic directExecutor/xargs/find callers retain their existing default behavior.
+`env`, `xargs` and `directExecutor` (used by find) explicitly request external dispatch.
+Direct executor callers retain the existing environment merge behavior.
 
 # Child cancellation
 

@@ -605,6 +605,7 @@ export interface State {
   sourceDepth?: number;
   arg0?: string;
   profile?: "bash" | "sh";
+  externalInvocation?: boolean;
   readonlyVariables?: Set<string>;
   readonlyFunctions?: Set<string>;
   pathUnset?: boolean;
@@ -5318,7 +5319,7 @@ export class Runtime {
 
   async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
     if (
-      !(state as { externalInvocation?: boolean }).externalInvocation &&
+      !state.externalInvocation &&
       this.middleware.length === 0 &&
       !state.extensions &&
       typeof name === "string" &&
@@ -5648,7 +5649,7 @@ export class Runtime {
           if (outcome.kind === "throw") throw outcome.reason;
           return outcome.value;
         }
-        if (selected?.kind === "builtin" && !((state as { externalInvocation?: boolean }).externalInvocation && this.commands.has(context.command))) {
+        if (selected?.kind === "builtin" && !(state.externalInvocation && this.commands.has(context.command))) {
           const extensionBuiltin = state.extensions?.builtins.get(context.command);
           const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
           if (special) assignments.clear();
@@ -5685,7 +5686,7 @@ export class Runtime {
           return { exitCode: 127 };
         }
         this.budget.pathLookup.suspendUntilClosed(scope);
-        if ((state as { externalInvocation?: boolean }).externalInvocation) {
+        if (state.externalInvocation) {
           Object.defineProperty(forwarded, "externalInvocation", { value: true, configurable: true });
         }
         const raw = definition.execute(forwarded);
@@ -6546,13 +6547,14 @@ export class Runtime {
     }
     child.exported = new Set(Object.keys(env));
     }
-    for (const [key, body] of child.functions) {
-      if (!child.exportedFunctions?.has(key) || (options.replaceEnv && env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd())) {
-        child.functions.delete(key);
-        child.exportedFunctions?.delete(key);
-      }
+    for (const key of child.exportedFunctions ?? []) {
+      const body = child.functions.get(key);
+      if (!body || env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
     }
-    (child as { externalInvocation?: boolean }).externalInvocation = true;
+    child.externalInvocation = options.externalInvocation === true;
+    if (child.externalInvocation) {
+      for (const key of child.functions.keys()) if (!child.exportedFunctions?.has(key)) child.functions.delete(key);
+    }
     this.reconcileGetopts(child, state.variables.OPTIND);
     child.depth++;
     child.loopDepth = 0;

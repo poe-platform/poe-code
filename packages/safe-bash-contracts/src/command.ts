@@ -197,6 +197,8 @@ export interface CommandInvokeOptions {
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly replaceEnv?: boolean;
+  /** Prefer registered external command variants and exclude unexported shell functions. */
+  readonly externalInvocation?: boolean;
 }
 
 export type CommandInvoker = (

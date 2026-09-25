@@ -100,9 +100,10 @@ for (const env of [{ "bad=name": "value" }, { "bad\0name": "value" }, { GOOD: "b
 
 test("parent function locals, exports, cwd survive replacement and child status", async () => {
   const { shell, fs } = await setup();
+  shell.register({ name: "forward", execute: context => context.invoke!("child", [], { replaceEnv: true }) });
   await fs.writeFile("/work/lib", Buffer.from("SECRET=sourced; export PUBLIC=changed; cd /other; false\n"));
   try {
-    const result = await shell.exec("SECRET=outer; child() { . /work/lib; }; outer() { local SECRET=local; env -i child; printf '%s|%s|%s|%s\\n' \"$?\" \"$SECRET\" \"$PUBLIC\" \"$PWD\"; }; outer; printf '%s|%s|%s\\n' \"$SECRET\" \"$PUBLIC\" \"$PWD\"; report");
+    const result = await shell.exec("SECRET=outer; child() { . /work/lib; }; outer() { local SECRET=local; forward; printf '%s|%s|%s|%s\\n' \"$?\" \"$SECRET\" \"$PUBLIC\" \"$PWD\"; }; outer; printf '%s|%s|%s\\n' \"$SECRET\" \"$PUBLIC\" \"$PWD\"; report");
     const lines = result.stdout.trimEnd().split("\n");
     assert.equal(lines[0], "1|local|parent|/work"); assert.equal(lines[1], "outer|parent|/work");
     assert.deepEqual(JSON.parse(lines[2]!).env, { PUBLIC: "parent", A: "ancestor", PWD: "/work" });
@@ -112,8 +113,9 @@ test("parent function locals, exports, cwd survive replacement and child status"
 
 test("private clone remains private until explicit export; no global lineage reset", async () => {
   const { shell } = await setup();
+  shell.register({ name: "forward", execute: context => context.invoke!("child", [], { replaceEnv: true }) });
   try {
-    const result = await shell.exec("SECRET=private; child() { report; export SECRET; report; }; env -i child");
+    const result = await shell.exec("SECRET=private; child() { report; export SECRET; report; }; forward");
     const rows = result.stdout.trimEnd().split("\n").map(line => JSON.parse(line));
     assert.deepEqual(rows.map(row => row.env), [{}, { SECRET: "private" }]);
     assert.equal(result.stderr, "");

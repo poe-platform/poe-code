@@ -39,13 +39,14 @@ test("direct invocation snapshots legacy argv before asynchronous dispatch", asy
 });
 
 test("shared invocation types structurally match the existing shell hook", () => {
-  const shared: CommandInvokeOptions = { cwd: "/", env: { KEY: "value" }, stdin: toByteSource(""), stdinIsDefault: false };
+  const shared: CommandInvokeOptions = { cwd: "/", env: { KEY: "value" }, stdin: toByteSource(""), stdinIsDefault: false, externalInvocation: false };
   const shell: ShellInvokeOptions = shared;
   const roundtrip: CommandInvokeOptions = shell;
   const invoke: ShellCommandContext["invoke"] = async () => ({ exitCode: 0 });
   const contract: CommandInvoker = invoke;
   assert.equal(roundtrip, shared);
   assert.equal(roundtrip.stdinIsDefault, false);
+  assert.equal(roundtrip.externalInvocation, false);
   assert.equal(contract, invoke);
 });
 

@@ -29,6 +29,7 @@ for (const vector of cases) test(`env requests exact exported environment: ${vec
     assert.equal(name, vector.args.includes("child") ? "child" : "env");
     assert.deepEqual(args, vector.args.includes("a;b") ? ["a;b"] : name === "env" ? ["-u", "A"] : []);
     assert.equal(options?.replaceEnv, true);
+    assert.equal(options?.externalInvocation, true);
     assert.deepEqual({ ...options.env }, vector.expected);
     assert.notEqual(options.env, parent.env);
     assert.equal(options.stdin, parent.stdin);
@@ -58,10 +59,11 @@ for (const origin of [true, false, undefined]) test(`env replacement retains std
   assert.equal((await executionCommands(() => { throw new Error("fallback"); })[0]!.execute(supplied)).exitCode, 0);
 });
 
-test("generic direct execution does not request replacement", async () => {
+test("direct execution requests external dispatch without environment replacement", async () => {
   const parent = context([]);
   const supplied = { ...parent, command: "child", invoke: async (_name: string, _args: readonly string[], options?: CommandInvokeOptions) => {
     assert.equal(Object.hasOwn(options!, "replaceEnv"), false);
+    assert.equal(options?.externalInvocation, true);
     assert.equal(options?.env, parent.env);
     return { exitCode: 0 };
   } };

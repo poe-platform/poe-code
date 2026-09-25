@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { CommandRegistry, writeText } from "../../src/contracts/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { fixture } from "./helpers.js";
@@ -23,16 +24,27 @@ test("filesystem tools combine with find -print0 and xargs without reparsing fil
   assert.equal(result.stderr, "");
 });
 
-test("xargs and env invoke shell functions while retaining literal argv and isolated environment", async () => {
+test("xargs and env invoke registered commands while retaining literal argv and isolated environment", async () => {
   const fs = await fixture();
   const visited: string[] = [];
-  const shell = new Shell({ fs, cwd: "/work", env: { VALUE: "parent" } }).use(standardCommands());
+  const commands = new CommandRegistry([{ name: "report", async execute(context) {
+    await writeText(context.stdout, `${context.env.VALUE}|${context.args[0]}\n`);
+    return { exitCode: 0 };
+  } }]);
+  const shell = new Shell({ fs, commands, cwd: "/work", env: { VALUE: "parent" } }).use(standardCommands());
   shell.use(async (context, next) => { visited.push(context.command); return next(); });
-  const result = await shell.exec("report() { printf '%s|%s\\n' \"$VALUE\" \"$1\"; }; printf 'literal;*\\n' | xargs -I '{}' env VALUE=child report '{}'; printf '%s\\n' \"$VALUE\"");
+  const result = await shell.exec("printf 'literal;*\\n' | xargs -I '{}' env VALUE=child report '{}'; printf '%s\\n' \"$VALUE\"");
   assert.equal(result.stdout, "child|literal;*\nparent\n");
   assert.equal(result.exitCode, 0);
   assert(visited.includes("env"));
   assert(visited.includes("report"));
+  for (const source of ["hidden() { printf unexpected; }; env hidden", "hidden() { printf unexpected; }; printf argument | xargs hidden"]) {
+    const refused = await shell.exec(source);
+    assert.notEqual(refused.exitCode, 0);
+    assert.equal(refused.stdout, "");
+    assert.match(refused.stderr, /hidden: command not found/u);
+  }
+  await shell.dispose();
 });
 
 test("find -exec passes command option-looking arguments literally through the shell hook", async () => {

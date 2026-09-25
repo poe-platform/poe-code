@@ -1,5 +1,5 @@
 import { acceptsMimeType } from "./mime.js";
-import type { LlmModel, LlmProvider, LlmRequest } from "./types.js";
+import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingResponse } from "./types.js";
 
 export interface LlmServiceOptions {
   readonly providers: readonly LlmProvider[];
@@ -20,6 +20,7 @@ export interface LlmService {
   readonly models: readonly LlmServiceModel[];
   resolve(model?: string): LlmServiceModel;
   complete(request: LlmServiceRequest): AsyncIterable<string | Uint8Array>;
+  embed(request: Omit<LlmEmbeddingRequest, "model"> & {readonly model?: string}): Promise<LlmEmbeddingResponse>;
 }
 
 export function createLlmService(options: LlmServiceOptions): LlmService {
@@ -52,12 +53,27 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       if (!entry) throw new Error(`Unknown model: ${selected}`);
       return entry;
     },
+    async embed(request: Omit<LlmEmbeddingRequest, "model"> & {readonly model?: string}): Promise<LlmEmbeddingResponse> {
+      request.signal.throwIfAborted();
+      if (!Array.isArray(request.inputs) || request.inputs.some(value => typeof value !== 'string')) throw new TypeError('Embedding inputs must be strings');
+      for (const [key,value] of Object.entries(request.options)) {
+        if (!key || value !== null && !['string','number','boolean'].includes(typeof value) || typeof value === 'number' && !Number.isFinite(value)) throw new TypeError('Invalid embedding option');
+      }
+      const entry = this.resolve(request.model);
+      if (!entry.provider.embed) throw new Error(`Model ${entry.model.id} does not support embeddings`);
+      const result = await entry.provider.embed({...request,model:entry.model.id});
+      request.signal.throwIfAborted();
+      if (result.model !== entry.model.id || !Array.isArray(result.vectors) || result.vectors.length !== request.inputs.length || result.vectors.some(vector => !Array.isArray(vector) || vector.some(value => typeof value !== 'number' || !Number.isFinite(value)))) throw new TypeError('Invalid embedding response');
+      return result;
+    },
     complete(request: LlmServiceRequest): AsyncIterable<string | Uint8Array> {
       request.signal.throwIfAborted();
       for (const [key, value] of Object.entries(request.options)) {
         if (!key || value !== null && !['string', 'number', 'boolean'].includes(typeof value)) throw new TypeError('LLM options require nonempty names and scalar values');
         if (typeof value === 'number' && !Number.isFinite(value)) throw new TypeError('LLM numeric options must be finite');
       }
+      if (request.messages?.some(message => !['system','user','assistant'].includes(message.role) || typeof message.content !== 'string')) throw new TypeError('Invalid LLM message');
+      if (request.schema !== undefined && (request.schema === null || typeof request.schema !== 'object' || Array.isArray(request.schema))) throw new TypeError('Invalid LLM schema');
       const entry = this.resolve(request.model);
       for (const attachment of request.attachments) {
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) {

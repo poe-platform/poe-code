@@ -167,6 +167,16 @@ export { WebAssembly, fetch, location };
       assert.ok(result.requests.some(request => request.op === 'open' && request.path === '/work/local_module.py'));
       assert.ok(result.requests.some(request => request.op === 'stdin'));
     });
+    await check('ordinary Python subprocess and shell capability', async () => {
+      const response = await miniflare.dispatchFetch('http://fixture/python-shell');
+      const shell = await response.json();
+      assert.equal(response.status, 200, JSON.stringify(shell));
+      assert.equal(shell.exitCode, 0, JSON.stringify(shell));
+      assert.equal(shell.stdout, 'shell-ok\n');
+      assert.equal(shell.stderr, '');
+      assert.deepEqual(shell.failures, []);
+      assert.ok(shell.ticks > 0);
+    });
     await check('asynchronous interpreter finalization', async () => {
       const finalizationResponse = await miniflare.dispatchFetch('http://fixture/finalization');
       finalization = await finalizationResponse.json();

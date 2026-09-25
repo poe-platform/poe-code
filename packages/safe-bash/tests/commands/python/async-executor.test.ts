@@ -133,3 +133,48 @@ test('async package transport failures keep the safe package diagnostic without 
     assert.deepEqual(diagnostics, ['runtime-assets']);
   } finally { await shell.dispose(); }
 });
+
+test('explicit host capability is invocation-owned, typed and retired before reuse', async () => {
+  const seen: unknown[] = [];
+  const retired: string[] = [];
+  let captured: PythonExecutorStart | undefined;
+  let identity = 0;
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({
+    createCapabilities(context) {
+      const id = String(++identity);
+      assert.equal(context.cwd, '/');
+      return {
+        async request(operation, payload) {
+          seen.push({ id, operation, payload });
+          return { options: payload, model: 'fake/model' };
+        },
+        close() { retired.push(id); },
+      };
+    },
+    createExecutor: () => ({
+      async run(start) {
+        captured = start;
+        assert.equal(start.hasCapabilities, true);
+        const payload = { temperature: 0.25, cache: true, count: 2 };
+        assert.deepEqual(await start.dispatch({ op: 'capability', args: ['complete', payload] }), { options: payload, model: 'fake/model' });
+        return 0;
+      },
+      terminate() {},
+    }),
+  }));
+  try {
+    assert.equal((await shell.exec('python -c pass')).exitCode, 0);
+    assert.deepEqual(retired, ['1']);
+    await assert.rejects(captured!.dispatch({ op: 'capability', args: ['models', {}] }));
+    assert.equal((await shell.exec('python -c pass')).exitCode, 0);
+    assert.deepEqual(retired, ['1', '2']);
+    assert.equal(seen.length, 2);
+  } finally { await shell.dispose(); }
+});
+
+test('host capabilities never fall back to the shared-memory worker transport', () => {
+  assert.throws(() => pythonCommands({
+    createWorker: () => ({} as never),
+    createCapabilities: () => ({async request() { return {}; },close() {}}),
+  }), /capabilities require an asynchronous executor/u);
+});

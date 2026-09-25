@@ -198,3 +198,15 @@ test('shared LLM service rejects invalid scalar options before provider admissio
   }
   assert.equal(calls, 0);
 });
+
+test('shared service validates conversation messages and delegates structured embeddings', async () => {
+  let calls = 0;
+  const provider: LlmProvider = {name:'shared',models:[{id:'model'}],async *complete() {calls++;yield 'answer';},
+    async embed(request) { return {model:request.model,vectors:request.inputs.map(value => [value.length]),usage:{inputs:request.inputs.length}}; },
+  };
+  const service = createLlmService({providers:[provider],defaultModel:'model'});
+  const signal = new AbortController().signal;
+  assert.deepEqual(await service.embed({inputs:['hello','hi'],options:{dimensions:1},signal}),{model:'model',vectors:[[5],[2]],usage:{inputs:2}});
+  assert.throws(() => service.complete({prompt:'',attachments:[],options:{},messages:[{role:'unsupported',content:'x'}],signal}),/message/u);
+  assert.equal(calls,0);
+});

@@ -24,7 +24,14 @@ export interface PythonInitializationProgress {
   readonly phase: 'initializing' | 'ready' | 'finished';
   readonly command: string;
 }
+export interface PythonInvocationCapabilities {
+  request(operation: string, payload: Readonly<Record<string, unknown>>): Promise<unknown>;
+  close(): void | Promise<void>;
+}
+
 export interface PythonCommandsOptions {
+  /** Explicit invocation-owned host API. Only JSON data crosses into Python. */
+  readonly createCapabilities?: (context: CommandContext) => PythonInvocationCapabilities;
   readonly createWorker?: () => PythonWorkerEndpoint;
   readonly createExecutor?: () => PythonAsyncExecutor;
   /** Explicit distribution requirements; no import scanning or implicit package downloads. */
@@ -49,6 +56,7 @@ export interface PythonCommandsOptions {
 }
 export interface PythonWorkerStart {
   readonly type: 'start';
+  readonly hasCapabilities?: boolean;
   readonly packages?: PythonPackageStart;
   readonly installOnly?: boolean;
   readonly shared: SharedArrayBuffer;
@@ -72,6 +80,8 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')
     || options.createWorker !== undefined && typeof options.createWorker !== 'function'
     || options.createExecutor !== undefined && typeof options.createExecutor !== 'function') throw new PythonFailure('executor-unavailable');
+  if (options.createCapabilities !== undefined && typeof options.createCapabilities !== 'function') throw new TypeError('Python createCapabilities must be a function');
+  if (options.createWorker && options.createCapabilities) throw new TypeError('Python host capabilities require an asynchronous executor');
   if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
   if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const maxTransferBytes = options.maxTransferBytes ?? 65536;
@@ -81,6 +91,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   if (options.maxConcurrentWorkers !== undefined && (!Number.isSafeInteger(maxConcurrentWorkers) || maxConcurrentWorkers < 1)) throw new RangeError('Invalid Python worker concurrency limit');
   if (options.maxInputChunkBytes !== undefined && (!Number.isSafeInteger(maxInputChunkBytes) || maxInputChunkBytes < 1)) throw new RangeError('Invalid Python input chunk limit');
   let activeWorkers = 0;
+  const capabilityScopes = new WeakSet<object>();
   for (const size of [maxTransferBytes, maxOpenFiles, options.maxDirectoryEntries]) if (size !== undefined && (!Number.isSafeInteger(size) || size < 1)) throw new RangeError('Invalid Python resource limit');
   const runtimeMount = options.runtimeMount ?? '/.pyodide-runtime';
   if (!runtimeMount.startsWith('/') || runtimeMount === '/' || runtimeMount.slice(1).includes('/') || runtimeMount.includes('\0') || runtimeMount.split('/').some(part => part === '..' || part === '.')) throw new TypeError('Python runtime mount must be an absolute top-level canonical path');
@@ -100,7 +111,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       return { exitCode: 0 };
     }
     context.signal.throwIfAborted();
-    if (activeWorkers >= maxConcurrentWorkers) {
+    if (activeWorkers >= maxConcurrentWorkers || options.createCapabilities && context.executionScope && capabilityScopes.has(context.executionScope)) {
       const failure = reportPythonFailure('capacity', undefined, options.onDiagnostic);
       await writeBytes(context.stderr, new TextEncoder().encode('python: ' + failure.message + '\n'), context.signal);
       return { exitCode: 1 };
@@ -118,6 +129,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     let stderrOperation: OutputOperation | undefined;
     let endpoint: PythonWorkerEndpoint | undefined;
     let executor: PythonAsyncExecutor | undefined;
+    let capabilities: PythonInvocationCapabilities | undefined;
     let packages: PythonPackageStart | undefined;
     let unsubscribe: (() => void) | undefined;
     let admitted = false;
@@ -141,13 +153,17 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         const subscription = Promise.resolve().then(() => unsubscribe?.());
         const termination = Promise.resolve().then(() => executor ? executor.terminate() : endpoint?.terminate());
         const filesystemRetirement = termination.finally(() => service.close());
-        const results = await Promise.allSettled([subscription, termination, filesystemRetirement, stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
+        const capabilityRetirement = termination.finally(() => capabilities?.close());
+        const results = await Promise.allSettled([subscription, termination, filesystemRetirement, capabilityRetirement, stdoutOperation?.close(), stderrOperation?.close(), ...pending]);
         await input.return?.(undefined);
         fragment = undefined;
         if (packages) environment.finish(packages);
         for (const result of results) if (result.status === 'rejected') throw result.reason;
       })().then(() => {
-        if (admitted) { activeWorkers--; admitted = false; }
+        if (admitted) {
+          activeWorkers--; admitted = false;
+          if (options.createCapabilities && context.executionScope) capabilityScopes.delete(context.executionScope);
+        }
         finish();
       }, reason => {
         // A failed termination cannot establish retirement: retain its capacity slot.
@@ -165,6 +181,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       signal.throwIfAborted();
       activeWorkers++;
       admitted = true;
+      if (options.createCapabilities && context.executionScope) capabilityScopes.add(context.executionScope);
       const outputContext = { signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) };
       stdoutOperation = createOutputOperation(outputContext, context.stdout);
       stderrOperation = createOutputOperation(outputContext, context.stderr);
@@ -183,6 +200,12 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
         if (request.op === 'close') return service.dispatch(request);
         signal.throwIfAborted();
+        if (request.op === 'capability') {
+          if (!capabilities) throw new TypeError('Python invocation has no host capabilities');
+          const [operation, payload] = request.args;
+          if (typeof operation !== 'string' || !payload || typeof payload !== 'object' || Array.isArray(payload)) throw new TypeError('Invalid host capability request');
+          return capabilities.request(operation, payload as Record<string, unknown>);
+        }
         if (request.op.startsWith('package-')) return environment.dispatch(request.op, request.args, {fs:context.fs, cwd:context.cwd, signal});
         if (request.op === 'stdin') {
           const length = request.args[0];
@@ -215,6 +238,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         return request.op === 'stat' || request.op === 'lstat' || request.op === 'fstat'
           ? metadata.translate(value as FileStat) : value;
       };
+      capabilities = options.createCapabilities?.({ ...context, signal });
       options.onProgress?.({ phase: 'initializing', command: context.command });
       const preparation = environment.prepare({ fs: context.fs, cwd: context.cwd, signal,
         requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.packages ?? [])],
@@ -231,7 +255,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         let running = true;
         const start: PythonExecutorStart = {
           invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } },
-          runtimeMount, maxTransferBytes, signal, ...(packages ? { packages } : {}), installOnly: !!installation,
+          runtimeMount, maxTransferBytes, signal, hasCapabilities: capabilities !== undefined, ...(packages ? { packages } : {}), installOnly: !!installation,
           onReady() {
             if (closed || !running || signal.aborted || ready) return;
             ready = true;
@@ -355,7 +379,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         }, transportFailure); }
         catch (reason) { transportFailure(reason); }
         if (settled) return;
-        const start: PythonWorkerStart = { type: 'start', shared, invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
+        const start: PythonWorkerStart = { type: 'start', shared, hasCapabilities: capabilities !== undefined, invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
         signal.throwIfAborted();
         try { endpoint!.postMessage(start); }
         catch (reason) { transportFailure(reason); }
@@ -412,3 +436,7 @@ export type { PythonJspiAssetsOptions } from './jspi-assets.js';
 export { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from './jspi-trampoline.js';
 export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
 export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';
+
+export { createPythonShellCapability } from './shell-capability.js';
+
+export { createPythonLlmCapability } from './llm-capability.js';

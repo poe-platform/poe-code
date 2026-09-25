@@ -25,6 +25,7 @@ import type {
 } from "./cancellation.js";
 
 const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
+const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 interface CachedParsedUnit {
   readonly unit: ReturnType<typeof parseShellUnit>;
   readonly unitsCharged: number;
@@ -108,6 +109,7 @@ export class Shell implements PluginHost {
   readonly #plugins: VirtualShellPlugin[] = [];
   readonly #capabilities: Record<string, unknown> = {};
   readonly #options: ShellOptions;
+  readonly #resolvedLimits: ReturnType<typeof resolveLimits>;
   #ready: Promise<void> = Promise.resolve();
   #disposed = false;
   #disposal: Promise<void> | undefined;
@@ -120,7 +122,9 @@ export class Shell implements PluginHost {
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
-    const { commandLimits } = resolveLimits(options.limits);
+    const resolvedLimits = resolveLimits(options.limits);
+    const { commandLimits } = resolvedLimits;
+    this.#resolvedLimits = resolvedLimits;
     this.#options = { ...options, extensions: [...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
     this.commands = commands;
   }
@@ -184,7 +188,8 @@ export class Shell implements PluginHost {
     if (this.#disposed) throw new Error("Shell is disposed");
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
-    const budget = new Budget(resolveLimits(this.#options.limits, options.limits), options.signal, options.onInternalError ?? this.#options.onInternalError);
+    const limits = options.limits === undefined ? this.#resolvedLimits : resolveLimits(this.#options.limits, options.limits);
+    const budget = new Budget(limits, options.signal, options.onInternalError ?? this.#options.onInternalError);
     const scope = new InvocationScope(options.signal);
     const cancellationState = new RuntimeCancellationState();
     const owner = new RootInvocationCancellationOwner(scope);
@@ -306,7 +311,7 @@ export class Shell implements PluginHost {
           const value = options.stdin ?? "";
           const inlineBytes = typeof value === "string"
             ? (value.length > 0 ? Buffer.from(value, "utf8") : undefined)
-            : (value.byteLength > 0 ? new Uint8Array(value) : undefined);
+            : (value.byteLength > 0 ? value : undefined);
           let available = inlineBytes !== undefined;
           const inline = {
             [Symbol.asyncIterator]() {
@@ -408,8 +413,8 @@ export class Shell implements PluginHost {
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();
     return {
-      stdout: new TextDecoder("utf-8", { ignoreBOM: true }).decode(stdoutBytes),
-      stderr: new TextDecoder("utf-8", { ignoreBOM: true }).decode(stderrBytes),
+      stdout: sharedUtf8Decoder.decode(stdoutBytes),
+      stderr: sharedUtf8Decoder.decode(stderrBytes),
       stdoutBytes, stderrBytes, exitCode,
     };
   }

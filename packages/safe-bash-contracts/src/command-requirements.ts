@@ -86,9 +86,10 @@ export function assertCommandRequirements(
   context: Pick<CommandContext, "fs" | "command" | "signal">,
   requirements: readonly CommandFileSystemRequirement[],
   selected: readonly string[],
-  capabilities: FileSystemCapabilities = context.fs.capabilities,
+  capabilities?: FileSystemCapabilities,
 ): void {
   context.signal.throwIfAborted();
+  let resolvedCapabilities = capabilities;
   for (let i = 0; i < selected.length; i++) {
     const id = selected[i]!;
     let requirement: CommandFileSystemRequirement | undefined;
@@ -99,8 +100,12 @@ export function assertCommandRequirements(
       }
     }
     if (!requirement) throw new TypeError(`Unknown filesystem requirement mode: ${id}`);
-    if (isModeUnsupported(requirement, capabilities)) {
-      const support = evaluateMode(requirement, capabilities);
+    if (!requirement.mutates && requirement.capabilities.length === 0 && (!requirement.anyOf || requirement.anyOf.length === 0)) {
+      continue;
+    }
+    resolvedCapabilities ??= context.fs.capabilities;
+    if (isModeUnsupported(requirement, resolvedCapabilities)) {
+      const support = evaluateMode(requirement, resolvedCapabilities);
       throw new FsError(support.missing.includes("readOnly") ? "EROFS" : "ENOTSUP", {
         syscall: context.command,
         message: `${requirement.description} requires unavailable filesystem capabilities: ${support.missing.join(", ")}`,

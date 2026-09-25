@@ -184,7 +184,7 @@ export async function* input(context: CommandContext, name = "-"): ByteSource {
 export async function assertInputRequirements(context: CommandContext, names: readonly string[]): Promise<void> {
   const files = names.filter(name => name !== "-");
   assertCommandRequirements(context, inputRequirements, [files.length ? "file" : "stdin"]);
-  if (!context.fs.capabilitiesFor) return;
+  if (!files.length || !context.fs.capabilitiesFor) return;
   for (const name of files) {
     try {
       const capabilities = await context.fs.capabilitiesFor(pathOf(context, name), { signal: context.signal });

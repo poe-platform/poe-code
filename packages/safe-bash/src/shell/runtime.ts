@@ -81,6 +81,7 @@ import { isIdlePortableTrapInstance } from "./trap.js";
 function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
   const ext = state.extensions;
   if (!ext) return false;
+  if ((ext as { isIdleTrapState?: boolean }).isIdleTrapState) return false;
   if (ext.entries.length > 1 || ext.checkpoints.length > 0) return true;
   const first = ext.entries[0];
   return first ? !isIdlePortableTrapInstance(first.instance) : false;
@@ -254,7 +255,7 @@ async function sortExpansionStrings(values: string[], work: StringWork, utf8 = f
 }
 
 class ExecutionCleanup {
-  readonly controller = new AbortController();
+  #controller: AbortController | undefined;
   readonly failures: unknown[] = [];
   readonly #pending: { readonly cleanup: () => void | Promise<void>; readonly allocation: ValueScope }[] = [];
   #closed = false;
@@ -262,6 +263,10 @@ class ExecutionCleanup {
   #failure: { reason: unknown } | undefined;
 
   constructor(private readonly budget: Budget) {}
+
+  get controller(): AbortController {
+    return (this.#controller ??= new AbortController());
+  }
 
   register(cleanup: () => void | Promise<void>): void {
     this.budget.signal.throwIfAborted();
@@ -282,6 +287,11 @@ class ExecutionCleanup {
   }
 
   drain(): Promise<void> {
+    if (!this.#drain && this.#pending.length === 0) {
+      this.#closed = true;
+      this.#drain = resolvedVoid;
+      return resolvedVoid;
+    }
     return this.#drain ??= Promise.resolve().then(async () => {
       const retained: ValueScope[] = [];
       try {
@@ -949,100 +959,115 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
 }
 
 const shellDescriptorAdmissions = new WeakSet<object>();
+const shellDescriptorAdmissionGetters = new WeakSet<() => unknown>();
 const descriptorByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "byteLength")!.get!;
 
 function bindCommandIO(context: CommandContext, io?: IO): void {
-  if (io?.descriptors && (!context.admittedHandles || shellDescriptorAdmissions.has(context.admittedHandles))) {
-    let leases: Set<() => Promise<void>> | undefined;
+  const existingHandlesDesc = Object.getOwnPropertyDescriptor(context, "admittedHandles");
+  if (io?.descriptors && (!existingHandlesDesc || (existingHandlesDesc.get ? shellDescriptorAdmissionGetters.has(existingHandlesDesc.get) : (!existingHandlesDesc.value || shellDescriptorAdmissions.has(existingHandlesDesc.value))))) {
+    let handleManager: CommandContext["admittedHandles"];
     let closed = false;
-    let closing: Promise<void> | undefined;
-    let cleanupRegistered = false;
     io[invocationScope].registerFinalizer(() => {
       closed = true;
     });
-    Object.defineProperty(context, "admittedHandles", { enumerable: true, value: {
-      async acquire(fd: number, requestedRights: readonly import("../contracts/command.js").DescriptorRight[], signal: AbortSignal) {
-        signal.throwIfAborted(); context.signal.throwIfAborted();
-        if (closed || !Number.isSafeInteger(fd) || fd < 0) throw new FsError("EBADF");
-        io[invocationScope].assertOpen();
-        if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
-        if (!Array.isArray(requestedRights) || !requestedRights.length || requestedRights.length > 4) throw new FsError("EINVAL");
-        const rights = Array.from({ length: requestedRights.length }, (_, index) => requestedRights[index]!);
-        if (new Set(rights).size !== rights.length || rights.some(right => !["read", "write", "seek", "stat"].includes(right))) throw new FsError("EINVAL");
-        // Accessors may retire the frame or acquire more leases while read.
-        signal.throwIfAborted(); context.signal.throwIfAborted();
-        if (closed) throw new FsError("EBADF");
-        io[invocationScope].assertOpen();
-        if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
-        const descriptor = io.descriptors!.get(fd);
-        if (!descriptor || descriptor.closed) throw new FsError("EBADF");
-        const input = descriptor.input instanceof ShellInput ? descriptor.input : undefined;
-        const file = descriptor.file ?? input?.descriptor;
-        if (rights.includes("read") && !input || rights.includes("write") && !descriptor.output) throw new FsError("EBADF");
-        if (rights.includes("seek") && !input?.seek) throw new FsError(input && input.stat?.type !== "file" ? "ESPIPE" : "ENOTSUP");
-        if (rights.includes("stat") && !file) throw new FsError("ENOTSUP");
-        const lifetime = new AbortController();
-        let ended = false;
-        let completion: Promise<void> | undefined;
-        const pending = new Set<Promise<unknown>>();
-        leases ??= new Set();
-        if (!cleanupRegistered) {
-          cleanupRegistered = true;
-          context.registerCleanup?.(() => {
-            closed = true;
-            closing ??= Promise.allSettled([...leases!].map(close => close())).then(results => {
-              const failures = results.filter(result => result.status === "rejected");
-              if (failures.length) throw new AggregateError(failures.map(result => result.reason), "Descriptor lease cleanup failed");
-            });
-            return closing;
-          });
-        }
-        const close = () => {
-          ended = true;
-          lifetime.abort(new FsError("EBADF"));
-          completion ??= Promise.allSettled([...pending]).then(() => { leases!.delete(close); });
-          return completion;
+    const getAdmittedHandles = (): CommandContext["admittedHandles"] => {
+      if (!handleManager) {
+        let leases: Set<() => Promise<void>> | undefined;
+        let closing: Promise<void> | undefined;
+        let cleanupRegistered = false;
+        handleManager = {
+          async acquire(fd: number, requestedRights: readonly import("../contracts/command.js").DescriptorRight[], signal: AbortSignal) {
+            signal.throwIfAborted(); context.signal.throwIfAborted();
+            if (closed || !Number.isSafeInteger(fd) || fd < 0) throw new FsError("EBADF");
+            io[invocationScope].assertOpen();
+            if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
+            if (!Array.isArray(requestedRights) || !requestedRights.length || requestedRights.length > 4) throw new FsError("EINVAL");
+            const rights = Array.from({ length: requestedRights.length }, (_, index) => requestedRights[index]!);
+            if (new Set(rights).size !== rights.length || rights.some(right => !["read", "write", "seek", "stat"].includes(right))) throw new FsError("EINVAL");
+            // Accessors may retire the frame or acquire more leases while read.
+            signal.throwIfAborted(); context.signal.throwIfAborted();
+            if (closed) throw new FsError("EBADF");
+            io[invocationScope].assertOpen();
+            if ((leases?.size ?? 0) >= 64) throw new FsError("EMFILE");
+            const descriptor = io.descriptors!.get(fd);
+            if (!descriptor || descriptor.closed) throw new FsError("EBADF");
+            const input = descriptor.input instanceof ShellInput ? descriptor.input : undefined;
+            const file = descriptor.file ?? input?.descriptor;
+            if (rights.includes("read") && !input || rights.includes("write") && !descriptor.output) throw new FsError("EBADF");
+            if (rights.includes("seek") && !input?.seek) throw new FsError(input && input.stat?.type !== "file" ? "ESPIPE" : "ENOTSUP");
+            if (rights.includes("stat") && !file) throw new FsError("ENOTSUP");
+            const lifetime = new AbortController();
+            let ended = false;
+            let completion: Promise<void> | undefined;
+            const pending = new Set<Promise<unknown>>();
+            leases ??= new Set();
+            if (!cleanupRegistered) {
+              cleanupRegistered = true;
+              context.registerCleanup?.(() => {
+                closed = true;
+                closing ??= Promise.allSettled([...leases!].map(close => close())).then(results => {
+                  const failures = results.filter(result => result.status === "rejected");
+                  if (failures.length) throw new AggregateError(failures.map(result => result.reason), "Descriptor lease cleanup failed");
+                });
+                return closing;
+              });
+            }
+            const close = () => {
+              ended = true;
+              lifetime.abort(new FsError("EBADF"));
+              completion ??= Promise.allSettled([...pending]).then(() => { leases!.delete(close); });
+              return completion;
+            };
+            leases.add(close);
+            async function work<T>(callerSignal: AbortSignal, operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
+              callerSignal.throwIfAborted(); context.signal.throwIfAborted();
+              if (closed || ended) throw new FsError("EBADF");
+              if (pending.size >= 16) throw new FsError("EAGAIN");
+              const combined = AbortSignal.any([callerSignal, context.signal, lifetime.signal]);
+              const task = Promise.resolve().then(() => operation(combined));
+              pending.add(task);
+              void task.finally(() => pending.delete(task)).catch(() => {});
+              return task;
+            }
+            const lease = {
+              identity: input?.identity ?? file ?? descriptor.output!,
+              ...(rights.includes("write") && descriptor.output?.ownedOutput ? { consumerClosed: descriptor.output.ownedOutput.consumerClosed } : {}),
+              ...(rights.includes("read") ? { read: (count: number, caller: AbortSignal) => work(caller, async combined => {
+                if (!Number.isSafeInteger(count) || count < 0 || count > 65536) throw new FsError("EINVAL");
+                return input!.readAvailable(count, combined);
+              }) } : {}),
+              ...(rights.includes("write") ? { write: async (bytes: Uint8Array, caller: AbortSignal) => {
+                if (!(bytes instanceof Uint8Array) || descriptorByteLength.call(bytes) > 65536) throw new FsError("EINVAL");
+                const owned = new Uint8Array(bytes);
+                return work(caller, async combined => {
+                  const output = descriptor.output!;
+                  if (output.ownedOutput) {
+                    combined.throwIfAborted();
+                    output.ownedOutput.consumerClosed.throwIfAborted();
+                    await output.ownedOutput.write(owned);
+                  } else await writeBytes(output, owned, combined);
+                  return owned.byteLength;
+                });
+              } } : {}),
+              ...(rights.includes("seek") ? { seek: (position: number, caller: AbortSignal) => work(caller, combined => input!.seek!(position, combined)) } : {}),
+              ...(rights.includes("stat") ? { stat: (caller: AbortSignal) => work(caller, combined => file!.stat({ signal: combined })) } : {}),
+              close,
+            };
+            if (input) Object.defineProperty(lease, "position", { enumerable: true, get: () => input.position });
+            return lease;
+          },
         };
-        leases.add(close);
-        async function work<T>(callerSignal: AbortSignal, operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
-          callerSignal.throwIfAborted(); context.signal.throwIfAborted();
-          if (closed || ended) throw new FsError("EBADF");
-          if (pending.size >= 16) throw new FsError("EAGAIN");
-          const combined = AbortSignal.any([callerSignal, context.signal, lifetime.signal]);
-          const task = Promise.resolve().then(() => operation(combined));
-          pending.add(task);
-          void task.finally(() => pending.delete(task)).catch(() => {});
-          return task;
-        }
-        const lease = {
-          identity: input?.identity ?? file ?? descriptor.output!,
-          ...(rights.includes("write") && descriptor.output?.ownedOutput ? { consumerClosed: descriptor.output.ownedOutput.consumerClosed } : {}),
-          ...(rights.includes("read") ? { read: (count: number, caller: AbortSignal) => work(caller, async combined => {
-            if (!Number.isSafeInteger(count) || count < 0 || count > 65536) throw new FsError("EINVAL");
-            return input!.readAvailable(count, combined);
-          }) } : {}),
-          ...(rights.includes("write") ? { write: async (bytes: Uint8Array, caller: AbortSignal) => {
-            if (!(bytes instanceof Uint8Array) || descriptorByteLength.call(bytes) > 65536) throw new FsError("EINVAL");
-            const owned = new Uint8Array(bytes);
-            return work(caller, async combined => {
-              const output = descriptor.output!;
-              if (output.ownedOutput) {
-                combined.throwIfAborted();
-                output.ownedOutput.consumerClosed.throwIfAborted();
-                await output.ownedOutput.write(owned);
-              } else await writeBytes(output, owned, combined);
-              return owned.byteLength;
-            });
-          } } : {}),
-          ...(rights.includes("seek") ? { seek: (position: number, caller: AbortSignal) => work(caller, combined => input!.seek!(position, combined)) } : {}),
-          ...(rights.includes("stat") ? { stat: (caller: AbortSignal) => work(caller, combined => file!.stat({ signal: combined })) } : {}),
-          close,
-        };
-        if (input) Object.defineProperty(lease, "position", { enumerable: true, get: () => input.position });
-        return lease;
-      },
-    } });
-    shellDescriptorAdmissions.add(context.admittedHandles!);
+        shellDescriptorAdmissions.add(handleManager);
+      }
+      return handleManager;
+    };
+    shellDescriptorAdmissionGetters.add(getAdmittedHandles);
+    Object.defineProperty(context, "admittedHandles", {
+      configurable: true,
+      enumerable: true,
+      get: getAdmittedHandles,
+      set(v: CommandContext["admittedHandles"]) { handleManager = v; },
+    });
   }
   Object.defineProperties(context, {
     stdinInput: { enumerable: true, get: () => context.stdin instanceof ShellInput ? context.stdin : undefined },
@@ -3247,6 +3272,7 @@ export class Runtime {
     const frame = state.extensions;
     if (!frame || frame.started) return;
     frame.started = true;
+    if ((frame as { isIdleTrapState?: boolean }).isIdleTrapState) return;
     for (const [name, builtin] of frame.builtins) if (shellBuiltinNames.has(name) && builtin.replace !== true) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
     for (const entry of frame.entries) if (entry.instance.start) await entry.instance.start(this.extensionContext(state, io));
   }
@@ -5407,35 +5433,48 @@ export class Runtime {
       }
       return contextFs;
     };
+    const self = this;
+    let cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
+    let cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
-      shellPredicates: {
-        variable: name => this.variable(state, name) !== undefined,
-        reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
-        option: name => {
-          const extension = state.extensions?.options.get(name);
-          if (extension) return extension.enabled;
-          if (name === "braceexpand") return state.braceexpand !== false;
-          if (name === "allexport") return !!state.allexport;
-          if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
-          return false;
-        },
-        // Shell byte streams and virtual descriptors have no terminal capability.
-        terminal: () => false,
+      get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
+        if (!cachedPredicates) {
+          cachedPredicates = {
+            variable: name => self.variable(state, name) !== undefined,
+            reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
+            option: name => {
+              const extension = state.extensions?.options.get(name);
+              if (extension) return extension.enabled;
+              if (name === "braceexpand") return state.braceexpand !== false;
+              if (name === "allexport") return !!state.allexport;
+              if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+              return false;
+            },
+            // Shell byte streams and virtual descriptors have no terminal capability.
+            terminal: () => false,
+          };
+          variablePresence.set(cachedPredicates, name => self.variablePresent(state, name, io));
+        }
+        return cachedPredicates;
       },
+      set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; },
       get fs() { return getContextFs(); },
       set fs(replacement: FileSystem) { contextFs = replacement; },
       signal: this.commandSignal,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
-      inputBudget: {
-        maxBytes: this.budget.limits.maxInputBytes,
-        check: totalBytes => {
-          this.commandSignal.throwIfAborted();
-          if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
-          if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
-        },
+      get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
+        return (cachedInputBudget ??= {
+          maxBytes: self.budget.limits.maxInputBytes,
+          check: totalBytes => {
+            self.commandSignal.throwIfAborted();
+            if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+            if (totalBytes > self.budget.limits.maxInputBytes) self.budget.fail("maxInputBytes");
+          },
+        });
       },
+      set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; },
       registerCleanup: (cleanup) => { scope.register(cleanup); },
       invoke: (name, args, options) => {
         const invRuntime = new Runtime(
@@ -5453,11 +5492,10 @@ export class Runtime {
       configurable: true, enumerable: true, get: readName,
       set(replacement: string) { currentName = replacement; },
     });
-    variablePresence.set(context.shellPredicates!, name => this.variablePresent(state, name, io));
     bindCommandIO(context, io);
     bindFileOutputBudget(context, sink => this.budget.sink(sink, getScopedSignal()), (chunk, write) => this.budget.writeCounted(chunk, write, getScopedSignal()));
     if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
-    const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
+    const middleware = hasMiddleware ? this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();
       this.budget.pathLookup.suspendUntilClosed(scope);
       let downstream: Promise<CommandResult> | undefined;
@@ -5466,14 +5504,29 @@ export class Runtime {
         return downstream;
       });
       return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
-    });
+    }) : [];
     const execute = composeMiddleware(middleware, (forwarded) => scope.run(async () => {
       scope.assertOpen();
       const commandName = Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command;
       const forwardedValues = hasMiddleware ? getCommandArguments(forwarded) : argumentValues;
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
-      const context = { ...forwarded, args: admitted.args, argumentValues: admitted, [invocationScope]: scope,
-        ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }) };
+      const targetContext = !hasMiddleware
+        ? forwarded
+        : Object.defineProperties(
+          Object.create(Object.getPrototypeOf(forwarded)),
+          Object.getOwnPropertyDescriptors(forwarded),
+        );
+      const context = Object.assign(targetContext, {
+        args: admitted.args,
+        argumentValues: admitted,
+        [invocationScope]: scope,
+        ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
+      }) as ShellCommandContext & {
+        args: readonly string[];
+        argumentValues: CommandArguments;
+        [invocationScope]: InvocationScope;
+        [valueScope]?: ValueScope;
+      };
       const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
       const cwd = state.cwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
@@ -5697,6 +5750,11 @@ export class Runtime {
           return { exitCode: 127 };
         }
         this.budget.pathLookup.suspendUntilClosed(scope);
+        if (!hasMiddleware) {
+          Reflect.deleteProperty(forwarded, invocationScope);
+          if (io[valueScope] !== undefined) Reflect.deleteProperty(forwarded, valueScope);
+          if (admitted.values.every(value => typeof value === "string")) Reflect.deleteProperty(forwarded, "argumentValues");
+        }
         if (state.externalInvocation) {
           Object.defineProperty(forwarded, "externalInvocation", { value: true, configurable: true });
         }

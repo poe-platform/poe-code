@@ -243,7 +243,7 @@ const EMPTY_LIST_TERMINATORS = new Map<string, ShellListTerminatorHook>();
 const EMPTY_SPECIAL_PARAMETERS = new Map<string, ShellSpecialParameterHook>();
 const EMPTY_CHECKPOINTS: readonly NonNullable<ShellExtensionInstance["checkpoint"]>[] = Object.freeze([]);
 
-function createIdlePortableTrapExtensionState(): ShellExtensionState {
+function createEagerIdlePortableTrapExtensionState(): ShellExtensionState {
   const instance = defaultPortableTrapExtension.create();
   const builtin = instance.builtins[0]!;
   const builtins = new Map<string, ShellExtensionBuiltin>([
@@ -269,6 +269,61 @@ function createIdlePortableTrapExtensionState(): ShellExtensionState {
     checkpoints: EMPTY_CHECKPOINTS,
     cleanup: [],
   };
+}
+
+class LazyIdlePortableTrapExtensionState implements ShellExtensionState {
+  #materialized: ShellExtensionState | undefined;
+  readonly syntax = EMPTY_EXTENSION_SYNTAX;
+  readonly listTerminators = EMPTY_LIST_TERMINATORS;
+  readonly specialParameters = EMPTY_SPECIAL_PARAMETERS;
+  readonly checkpoints = EMPTY_CHECKPOINTS;
+  cleanup: (() => Promise<void>)[] = [];
+  started?: boolean;
+  eventDepth?: number;
+  exiting?: boolean;
+  exitStatus?: number;
+  waiting?: (status: number) => boolean;
+
+  get isIdleTrapState(): boolean {
+    if (!this.#materialized) return true;
+    const e0 = this.#materialized.entries[0];
+    return this.#materialized.entries.length === 1 &&
+      e0?.definition === defaultPortableTrapExtension &&
+      isIdlePortableTrapInstance(e0.instance) &&
+      !this.#materialized.options.get("errtrace")?.enabled &&
+      !this.#materialized.options.get("functrace")?.enabled &&
+      !this.#materialized.shoptOptions.get("extdebug")?.enabled;
+  }
+
+  #materialize(): ShellExtensionState {
+    if (!this.#materialized) {
+      this.#materialized = createEagerIdlePortableTrapExtensionState();
+      if (this.started) this.#materialized.started = this.started;
+    }
+    return this.#materialized;
+  }
+
+  get entries() { return this.#materialize().entries; }
+  get builtins(): ReadonlyMap<string, ShellExtensionBuiltin> {
+    return this.#materialized ? this.#materialized.builtins : (this as unknown as ReadonlyMap<string, ShellExtensionBuiltin>);
+  }
+  has(name: string): boolean {
+    return this.#materialized ? this.#materialized.builtins.has(name) : name === "trap";
+  }
+  get(name: string): ShellExtensionBuiltin | undefined {
+    if (this.#materialized) return this.#materialized.builtins.get(name);
+    if (name !== "trap") return undefined;
+    return this.#materialize().builtins.get(name);
+  }
+  [Symbol.iterator]() {
+    return this.#materialize().builtins[Symbol.iterator]();
+  }
+  get options() { return this.#materialize().options; }
+  get shoptOptions() { return this.#materialize().shoptOptions; }
+}
+
+function createIdlePortableTrapExtensionState(): ShellExtensionState {
+  return new LazyIdlePortableTrapExtensionState();
 }
 
 export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope, fallback?: ShellExtension): ShellExtensionState | undefined {
@@ -338,6 +393,9 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
 }
 
 export function forkExtensions(parent: ShellExtensionState | undefined, scope: ShellExtensionScope): ShellExtensionState | undefined {
+  if (parent && (parent as { isIdleTrapState?: boolean }).isIdleTrapState) {
+    return new LazyIdlePortableTrapExtensionState();
+  }
   if (
     parent &&
     parent.entries.length === 1 &&

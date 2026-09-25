@@ -593,6 +593,39 @@ function decodeVp8lStream(payload: Uint8Array, width: number, height: number): U
         };
         const avg2 = (p1: number, p2: number) =>
           ((((p1 ^ p2) & 0xfefefefe) >>> 1) + (p1 & p2)) >>> 0;
+        const clamp255 = (v: number) => (v < 0 ? 0 : v > 255 ? 255 : v);
+        const clampAddSubtractFull = (L: number, T: number, TL: number) => {
+          const a = clamp255(((L >>> 24) & 0xff) + ((T >>> 24) & 0xff) - ((TL >>> 24) & 0xff));
+          const r = clamp255(((L >>> 16) & 0xff) + ((T >>> 16) & 0xff) - ((TL >>> 16) & 0xff));
+          const g = clamp255(((L >>> 8) & 0xff) + ((T >>> 8) & 0xff) - ((TL >>> 8) & 0xff));
+          const b = clamp255((L & 0xff) + (T & 0xff) - (TL & 0xff));
+          return ((a << 24) | (r << 16) | (g << 8) | b) >>> 0;
+        };
+        const clampAddSubtractHalf = (L: number, T: number, TL: number) => {
+          const avg = avg2(L, T);
+          const aa = (avg >>> 24) & 0xff;
+          const ar = (avg >>> 16) & 0xff;
+          const ag = (avg >>> 8) & 0xff;
+          const ab = avg & 0xff;
+          const a = clamp255(aa + (((aa - ((TL >>> 24) & 0xff)) / 2) | 0));
+          const r = clamp255(ar + (((ar - ((TL >>> 16) & 0xff)) / 2) | 0));
+          const g = clamp255(ag + (((ag - ((TL >>> 8) & 0xff)) / 2) | 0));
+          const b = clamp255(ab + (((ab - (TL & 0xff)) / 2) | 0));
+          return ((a << 24) | (r << 16) | (g << 8) | b) >>> 0;
+        };
+        const selectPred = (L: number, T: number, TL: number) => {
+          const pa =
+            Math.abs(((L >>> 24) & 0xff) - ((TL >>> 24) & 0xff)) +
+            Math.abs(((L >>> 16) & 0xff) - ((TL >>> 16) & 0xff)) +
+            Math.abs(((L >>> 8) & 0xff) - ((TL >>> 8) & 0xff)) +
+            Math.abs((L & 0xff) - (TL & 0xff));
+          const pb =
+            Math.abs(((T >>> 24) & 0xff) - ((TL >>> 24) & 0xff)) +
+            Math.abs(((T >>> 16) & 0xff) - ((TL >>> 16) & 0xff)) +
+            Math.abs(((T >>> 8) & 0xff) - ((TL >>> 8) & 0xff)) +
+            Math.abs((T & 0xff) - (TL & 0xff));
+          return pb <= pa ? L : T;
+        };
         for (let y = 0; y < subH; y++) {
           for (let x = 0; x < curW; x++) {
             const idx = y * curW + x;
@@ -609,7 +642,7 @@ function decodeVp8lStream(payload: Uint8Array, width: number, height: number): U
               const L = outPixels[idx - 1]!;
               const T = outPixels[idx - curW]!;
               const TL = outPixels[idx - curW - 1]!;
-              const TR = x + 1 < curW ? outPixels[idx - curW + 1]! : outPixels[(y - 1) * curW]!;
+              const TR = outPixels[idx - curW + 1]!;
               switch (mode) {
                 case 0:
                   pred = 0xff000000;
@@ -643,6 +676,15 @@ function decodeVp8lStream(payload: Uint8Array, width: number, height: number): U
                   break;
                 case 10:
                   pred = avg2(avg2(L, TL), avg2(T, TR));
+                  break;
+                case 11:
+                  pred = selectPred(L, T, TL);
+                  break;
+                case 12:
+                  pred = clampAddSubtractFull(L, T, TL);
+                  break;
+                case 13:
+                  pred = clampAddSubtractHalf(L, T, TL);
                   break;
                 default:
                   pred = L;

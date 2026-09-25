@@ -778,5 +778,23 @@ describe("@poe-code/image-ast (sharp core)", () => {
     const fillH = await sharp(src40x24).resize(null, 12, { fit: "fill" }).metadata();
     expect(fillH.width).toBe(40);
     expect(fillH.height).toBe(12);
+
+    // 4. #58: VP8L lossless round-trip on 64x64 radial RGBA gradient
+    const W = 64, H = 64;
+    const radial = new Uint8Array(W * H * 4);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        const dist = Math.round(Math.hypot(x - 32, y - 32));
+        radial[i] = (x + dist * 3) & 255;
+        radial[i + 1] = (y * 2 - dist) & 255;
+        radial[i + 2] = (dist * 5 ^ x) & 255;
+        radial[i + 3] = dist < 24 ? 255 : dist < 28 ? 128 : 0;
+      }
+    }
+    const webpBuf = await sharp(radial, { raw: { width: W, height: H, channels: 4 } }).webp().toBuffer();
+    const decWebp = await sharp(webpBuf).raw().toBuffer();
+    expect(decWebp[0]).toBe(radial[0]);
+    expect(decWebp[(32 * W + 32) * 4]).toBe(radial[(32 * W + 32) * 4]);
   });
 });

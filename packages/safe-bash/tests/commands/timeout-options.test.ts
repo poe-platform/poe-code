@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell, CommandRegistry, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
-import { parseSignal } from "../../src/commands/timeout/signal.js";
+import { parseSignal, signalName } from "../../src/commands/timeout/signal.js";
 import { captureContext, ManualScheduler } from "./timeout-author-20260828/fixtures.js";
 
 test("timeout foreground options preserve file bytes and child status through Shell", async () => {
@@ -187,4 +187,14 @@ test("timeout options preserve byte streams and cancellation status through the 
       assert.equal(scheduler.pending, false);
     } finally { await shell.dispose(); }
   }
+});
+
+test("virtual signal names round-trip standard catalog numbers for jobs", () => {
+  assert.equal(signalName(9), "KILL");
+  assert.equal(signalName(15), "TERM");
+  assert.equal(signalName(17), "CHLD");
+  for (let number = 1; number <= 31; number++) {
+    assert.equal(parseSignal(signalName(number)!), number);
+  }
+  for (const number of [0, 32, -1, 1.5, NaN]) assert.equal(signalName(number), undefined);
 });

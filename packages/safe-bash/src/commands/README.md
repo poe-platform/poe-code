@@ -139,8 +139,7 @@ options. Invalid options and malformed operands produce diagnostics and status
   copies retain symbolic links but skip their timestamps; explicit timestamp
   preservation on symbolic links fails with `ENOTSUP`. Cross-device move
   fallback and atomic recursive operations are absent.
-  `readlink -f`/`realpath -m` do not yet resolve
-  dangling symlink chains as fully as native canonicalization utilities.
+  `realpath -m` missing-target canonicalization remains adapter-dependent.
 - The filesystem contract has no atomic empty-directory removal method.
   `rmdir` and `rm -d` check emptiness and then use recursive removal; another
   concurrent writer can race that check. Parent removal stops at its relative

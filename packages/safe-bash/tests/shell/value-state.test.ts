@@ -192,6 +192,24 @@ function tracked() {
   return { raw, scope, state, monitor };
 }
 
+for (const field of ["functions", "exported", "locals"] as const) {
+  test(`replacing ${field} retires its cached state proxy`, async () => {
+    const { state, scope } = tracked();
+    try {
+      state.functions = new Map();
+      state.exported = new Set(["before"]);
+      state.locals = [];
+      const previous = state[field];
+      if (field === "functions") state.functions = new Map();
+      if (field === "exported") state.exported = new Set(["after"]);
+      if (field === "locals") state.locals = [];
+      assert.notEqual(state[field], previous);
+      assert.equal(state[field], state[field], "unchanged collection reuses its proxy");
+      if (field === "exported") assert.deepEqual([...state.exported], ["after"]);
+    } finally { await scope.close(); }
+  });
+}
+
 for (const mutation of ["set", "delete", "define", "replace"] as const) {
   test(`scalar ownership invalidates on successful ${mutation} without array activation`, async () => {
     const { state, scope, monitor } = tracked();

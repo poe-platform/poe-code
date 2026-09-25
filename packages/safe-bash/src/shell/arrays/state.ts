@@ -159,6 +159,9 @@ export class StateMonitor {
     if (field === "state") {
       if (key === "variables") { this.#variablesProxy = undefined; this.values.invalidate(); }
       if (key === "positional") { this.#positionalProxy = undefined; this.positionals.invalidate(); this.invalidateGetoptsInput(); }
+      if (key === "functions") this.#functionsProxy = undefined;
+      if (key === "exported") this.#exportedProxy = undefined;
+      if (key === "locals") this.#localsProxy = undefined;
     } else if (field === "variables" && (this.raw.variables === target || this.#variablesProxy === target || this.raw.variables === this.#wrapped?.get(target))) {
       this.values.invalidate(String(key));
     } else if (field === "positional" && (this.raw.positional === target || this.#positionalProxy === target || this.raw.positional === this.#wrapped?.get(target))) {

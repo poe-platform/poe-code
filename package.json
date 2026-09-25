@@ -400,6 +400,7 @@
     "packages/safe-bash-command-qpdf/dist",
     "packages/safe-bash-command-soffice/dist",
     "packages/safe-bash-command-sips/dist",
+    "packages/safe-bash-command-imagemagick/dist",
     "packages/safe-js/dist",
     "packages/safe-fs/dist/**/*.d.ts",
     "!packages/safe-js/dist/package.json",
@@ -593,6 +594,7 @@
     "safe-bash-command-mmdc": "*",
     "@poe-code/image-ast": "0.0.1",
     "safe-bash-command-sips": "*",
+    "safe-bash-command-imagemagick": "*",
     "@poe-code/audio-ast": "*"
   },
   "repository": {

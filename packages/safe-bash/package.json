@@ -467,6 +467,10 @@
     "./commands/sips": {
       "types": "./dist/commands/sips/index.d.ts",
       "import": "./dist/commands/sips/index.js"
+    },
+    "./commands/imagemagick": {
+      "types": "./dist/commands/imagemagick/index.d.ts",
+      "import": "./dist/commands/imagemagick/index.js"
     }
   },
   "files": [
@@ -586,7 +590,8 @@
     "safe-bash-command-pdftk": "*",
     "safe-bash-command-qpdf": "*",
     "safe-bash-command-soffice": "*",
-    "safe-bash-command-sips": "*"
+    "safe-bash-command-sips": "*",
+    "safe-bash-command-imagemagick": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -803,6 +808,14 @@
           }
         },
         "safe-bash-command-sips": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/image-ast": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-imagemagick": {
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {

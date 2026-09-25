@@ -16,7 +16,7 @@ const equation = `<w:p xmlns:m="${mathNamespace}"><m:oMath>${"<m:rad><m:deg/><m:
 let input = await textFixture(`<w:p><w:r><w:t>${text}</w:t></w:r></w:p>` + equation, {}, strict);
 const kind = args[4] ?? "docx";
 if (kind === "dotx" && !args[5]) {
-  const archive = await readDocumentArchive(input, { ...textContext, budget: new DocumentBudget({ xmlDepth: radicals * 2 + 16, work: 4294967296, retainedBytes: 4294967296 }, textContext.signal) });
+  const archive = await readDocumentArchive(input, { ...textContext, budget: new DocumentBudget({ xmlDepth: radicals * 2 + 16, work: 4294967296, retainedBytes: 4294967296 }, textContext.signal, async () => {}) });
   const staging = Volume.fromJSON({ "/template": "" });
   await writeArchive({ comment: archive.comment, members: archive.members.map(member => ({ ...member, bytes: member.name === "[Content_Types].xml" ? new TextEncoder().encode(new TextDecoder().decode(member.bytes).replace("wordprocessingml.document.main+xml", "wordprocessingml.template.main+xml")) : member.bytes })) }, { async write(bytes) { staging.appendFileSync("/template", bytes); } }, { order: "input", compression: "store" }, textContext);
   input = new Uint8Array(staging.readFileSync("/template") as Buffer);
@@ -27,7 +27,7 @@ const archiveLimits = variant ? nativeMathVariantArchiveLimits : textContext.lim
 const decode = (bytes: Uint8Array): string => new TextDecoder(bytes[0] === 255 && bytes[1] === 254 ? "utf-16le" : bytes[0] === 254 && bytes[1] === 255 ? "utf-16be" : "utf-8").decode(bytes);
 const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/output": "", "/destination": "Retain destination" });
 const host = radicals > 100 ? { xmlDepth: radicals * 2 + 16, work: 4294967296, retainedBytes: 4294967296 } : {};
-const context = () => ({ ...textContext, limits: archiveLimits, budget: new DocumentBudget(host, textContext.signal) });
+const context = () => ({ ...textContext, limits: archiveLimits, budget: new DocumentBudget(host, textContext.signal, async () => {}) });
 const route = args[2] ?? "sdk", dryRun = args[3] === "dry";
 const stdout = { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } };
 const operations = [{ operation: "lists.add" as const, arguments: { kind: "decimal" as const, text: "Added" } }];

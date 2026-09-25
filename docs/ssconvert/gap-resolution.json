@@ -234,7 +234,74 @@
         }
       ],
       "visual": "CLI screenshot inspected: ordinary Latin/Greek output is readable; the terminal font lacks the Ahom combining glyph in the context probe. No complete glyph-fidelity pass is claimed.",
-      "remaining": "These are direct CPython language-reference and current SDK/Shell checks. Complete activated Gnumeric plugin/environment closure, the declared optional Linux profiles, browser/worker and installed-package requalification, wider loader/service diagnostics and containing publication remain open. No family is closed."
+      "remaining": "Complete activated Gnumeric plugin/environment closure, the declared optional Linux profiles, packed/installed-package requalification, wider loader/service diagnostics and containing publication remain open. Browser evidence is scoped to Chrome 154 page and module-worker execution. No family is closed.",
+      "browserWorker": {
+        "candidate": "8e3c4cec994a1c301c138849671c286ea50a0d0a",
+        "browser": "154.0.8037.58",
+        "driver": "Playwright CLI 0.1.21",
+        "bundleSha256": "514df66e220091f3e9918ce965ad62ee3049062743e96c07b5cd59f0c1e418a1",
+        "corpusSha256": "09a2a4d30fddff873d80a72c7c650c307148753e64c5d9ec119545567199fbc8",
+        "scope": "Current public entry bundled for ES2022 browsers. A Chrome page and a real module Web Worker each execute both selected profiles through createEngine, then re-import their CSV. Each context has process, require and Buffer globals absent.",
+        "profiles": [
+          {
+            "unicodeVersion": "15.0.0",
+            "cases": 439,
+            "csvLiteralPrefixes": 187,
+            "sha256": "67ccf4f0a92bdc0dadfc9c6aebb5889087d857aa6d66d0fbc5c5b2cfebf8562e",
+            "diagnostics": 0,
+            "preAbort": true,
+            "outputLimit": true,
+            "workLimit": true,
+            "refusedWrites": 0
+          },
+          {
+            "unicodeVersion": "16.0.0",
+            "cases": 439,
+            "csvLiteralPrefixes": 187,
+            "sha256": "d20d4f83f9d27a76f81acea705e249d13ca2f04b2a0e787ad29978086c44e33c",
+            "diagnostics": 0,
+            "preAbort": true,
+            "outputLimit": true,
+            "workLimit": true,
+            "refusedWrites": 0
+          }
+        ],
+        "guards": "In each context all three bindings are absent without opt-in; three unknown/inherited profile names refuse. Each Unicode profile preserves pre-abort reason identity, enforces output/work limits and publishes zero bytes on refusal.",
+        "nativeCsvControl": {
+          "input": [
+            "'abc'",
+            "'123",
+            "''",
+            "plain"
+          ],
+          "nativeCells": [
+            {
+              "row": "0",
+              "type": "60",
+              "text": "abc'"
+            },
+            {
+              "row": "1",
+              "type": "60",
+              "text": "123"
+            },
+            {
+              "row": "2",
+              "type": "60",
+              "text": "'"
+            },
+            {
+              "row": "3",
+              "type": "60",
+              "text": "plain"
+            }
+          ],
+          "stderr": ""
+        },
+        "csvNote": "CSV import consumes one leading apostrophe as a text-entry marker, matching native Gnumeric 1.12.61. Complete emitted CSV hashes match independent CPython/Node/Shell receipts without normalization; only re-import expectations apply that native rule to 187 rows per profile.",
+        "lifecycle": "Worker terminated and object URL revoked; Playwright reports no remaining workers. Console has zero warnings/errors. All seven observed requests are owned localhost assets or the worker blob. Screenshot inspected.",
+        "probeCorrection": "The first re-import comparison incorrectly expected leading apostrophes to remain. Four native controls established the actual contract before correcting the check. The first browser session closed; its process was confirmed gone before starting a fresh session and completing all checks."
+      }
     }
   },
   "cases": [
@@ -286,7 +353,7 @@
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "Explicit frozen Unicode 15/16 selection now covers the 139 recorded version differences while retaining Unicode 16 by default. Both compiled SDK/Shell profiles match independent CPython casing/context cases; typed split errors, NUL and malformed-host boundaries remain covered. Exact activated optional runtime profiles, browser/worker and installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
+      "currentFinding": "Explicit frozen Unicode 15/16 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell and Chrome page/module-worker profiles match independent CPython casing/context cases; typed split errors, NUL, malformed-host and resource boundaries remain covered. Exact activated optional runtime profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
     },
     {
       "id": "database-functions",

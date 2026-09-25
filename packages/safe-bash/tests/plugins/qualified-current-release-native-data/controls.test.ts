@@ -117,6 +117,9 @@ function approvedCompilerConfiguration(): CompilerConfiguration {
     compilerOptions: {
       ...before.before.config.compilerOptions,
       paths: {
+        "poe-code/safe-bash": [
+          "./dist/index.d.ts"
+        ],
         "virtual-bash": [
           "./dist/index.d.ts"
         ],

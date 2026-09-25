@@ -68,7 +68,7 @@ async function project(bytes: Uint8Array, work: StringWork): Promise<Projection>
   return { bytes: binary, text, offsets, invalid };
 }
 
-export async function trimParameter(value: ShellValue, parts: readonly { value: ShellValue; literal: boolean }[], operator: string, byteMode: boolean, work: StringWork, allocation?: ValueAllocation, maximumBytes = Number.MAX_SAFE_INTEGER): Promise<ShellValue> {
+export async function trimParameter(value: ShellValue, parts: readonly { value: ShellValue; literal: boolean }[], operator: string, byteMode: boolean, work: StringWork, allocation?: ValueAllocation, maximumBytes = Number.MAX_SAFE_INTEGER, extglob = false): Promise<ShellValue> {
   if (typeof value === "string" && (operator === "#" || operator === "##" || operator === "%" || operator === "%%") && isWellFormedString(value, byteMode)) {
     let fastOk = true;
     let prefixStar = false;
@@ -91,8 +91,9 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
       } else {
         for (let i = 0; i < text.length; i++) {
           const ch = text[i]!;
-          if (ch === "\\" || ch === "?" || ch === "[") { fastOk = false; break; }
+          if (ch === "\\" || ch === "?" || ch === "[" || (extglob && "()|+!@".includes(ch))) { fastOk = false; break; }
           if (ch === "*") {
+            if (extglob && text[i + 1] === "(") { fastOk = false; break; }
             if (!seenLiteral) prefixStar = true;
             else suffixStar = true;
           } else {
@@ -158,7 +159,7 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
       const pending = stringCheckpoint(work);
       if (pending) await pending;
       const character = String.fromCharCode(byte);
-      if (part.literal && "\\*?[]-^!:".includes(character)) bytePattern += "\\";
+      if (part.literal && (extglob ? "\\*?[]-^()|+!@:" : "\\*?[]-^!:").includes(character)) bytePattern += "\\";
       bytePattern += character;
     }
   }
@@ -173,7 +174,7 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
   const unicodePattern = projectedPattern.text;
   const patternInvalid = projectedPattern.invalid.at(-1)! > 0;
   if (["^", "^^", ",", ",,"].includes(operator)) {
-    const match = await compilePattern((byteMode ? bytePattern : unicodePattern) || "?", work);
+    const match = await compilePattern((byteMode ? bytePattern : unicodePattern) || "?", work, false, extglob);
     let output: Uint8Array | undefined = undefined;
     let size = 0;
     const encoder = new TextEncoder();
@@ -220,7 +221,7 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
   let cut: number | undefined;
   if (byteMode || !subject.invalid.at(-1)) {
     const text = byteMode ? subject.bytes : subject.text;
-    const boundaries = await compilePatternBoundaries(byteMode ? bytePattern : unicodePattern, work);
+    const boundaries = await compilePatternBoundaries(byteMode ? bytePattern : unicodePattern, work, false, extglob);
     const ends = await boundaries(text, !longest && prefix, !prefix);
     let boundary = longest === prefix ? text.length : 0;
     while (true) {
@@ -239,8 +240,8 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
       boundary = longest === prefix ? previousCodePointOffset(text, boundary) : nextCodePointOffset(text, boundary);
     }
   } else {
-    const byteMatch = await compilePattern(bytePattern, work);
-    const unicodeMatch = await compilePattern(unicodePattern, work);
+    const byteMatch = await compilePattern(bytePattern, work, false, extglob);
+    const unicodeMatch = await compilePattern(unicodePattern, work, false, extglob);
     for (let length = longest ? bytes.length : 0; longest ? length >= 0 : length <= bytes.length; length += longest ? -1 : 1) {
       const pending = stringCheckpoint(work);
       if (pending) await pending;

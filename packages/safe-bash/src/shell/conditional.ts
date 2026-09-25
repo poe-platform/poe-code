@@ -29,6 +29,7 @@ interface ConditionalContext {
   readonly characterLocale?: string;
   readonly work: StringWork;
   readonly ignoreCase?: boolean;
+  readonly extglob?: boolean;
   readonly predicateIdentity?: PredicateIdentity | undefined;
   expand(word: Word, pattern?: boolean): Promise<string>;
   arithmetic(value: string): bigint | Promise<bigint>;
@@ -64,7 +65,7 @@ async function patternAdmission(pattern: string, context: ConditionalContext): P
     const character = pattern[index]!;
     if (character === "\\") { if (++index < pattern.length) await charge(context); continue; }
     if (bracket && character === "-" && index > bracketStart + 1 && pattern[index + 1] !== "]") cLocale(context);
-    if (!bracket && "?*+@!".includes(character) && pattern[index + 1] === "(") unsupported("extglob");
+    if (!bracket && !context.extglob && "?*+@!".includes(character) && pattern[index + 1] === "(") unsupported("extglob");
     if (character === "[" && !bracket) {
       bracket = true;
       bracketStart = index + (["!", "^"].includes(pattern[index + 1] ?? "") ? 1 : 0);
@@ -149,7 +150,7 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
   }
   if (pattern) {
     await patternAdmission(right, context);
-    const match = await matchesPattern(right, left, context.work, context.ignoreCase);
+    const match = await matchesPattern(right, left, context.work, context.ignoreCase, !!context.extglob);
     return node.operator === "!=" ? !match : match;
   }
   if (node.operator === "<" || node.operator === ">") {

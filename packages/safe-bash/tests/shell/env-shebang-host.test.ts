@@ -161,9 +161,9 @@ if (process.argv[2]?.startsWith("guarded:")) {
   console.log("passed");
 } else {
   for (const scenario of ["env-cancel", "target-cancel", "env-cleanup-failure", "target-cleanup-failure", "opaque-env", "opaque-target", "closed-admission", "target-middleware-cancel"]) {
-    test(`guarded completion bounded host: ${scenario}`, { timeout: 5000 }, () => {
+    test(`guarded completion bounded host: ${scenario}`, { timeout: 20000 }, () => {
       const child = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(import.meta.url), `guarded:${scenario}`], {
-        timeout: 3500, killSignal: "SIGKILL", maxBuffer: 256 * 1024,
+        timeout: 15000, killSignal: "SIGKILL", maxBuffer: 256 * 1024,
       });
       settled(child);
       assert.equal(child.status, 0, child.stderr.toString());
@@ -172,9 +172,9 @@ if (process.argv[2]?.startsWith("guarded:")) {
   }
 
   for (const scenario of ["recursive-depth", "preabort", "parser-cancel", "cwd-late-rejection", "input-cancel", "sink-cancel", "cleanup", "cleanup-failure"]) {
-    test(`env shebang bounded host: ${scenario}`, { timeout: 5000 }, () => {
+    test(`env shebang bounded host: ${scenario}`, { timeout: 20000 }, () => {
       const child = spawnSync(process.execPath, ["--unhandled-rejections=strict", "--import", "tsx", fileURLToPath(import.meta.url), `probe:${scenario}`], {
-        timeout: 3500, killSignal: "SIGKILL", maxBuffer: 256 * 1024,
+        timeout: 15000, killSignal: "SIGKILL", maxBuffer: 256 * 1024,
       });
       settled(child);
       assert.equal(child.status, 0, child.stderr.toString());

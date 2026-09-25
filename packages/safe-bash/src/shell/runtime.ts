@@ -2224,10 +2224,14 @@ const assignmentCache = {
   },
 };
 
-function hasGlobOrEscape(text: string): boolean {
+function hasGlobOrEscape(text: string, extglob = false): boolean {
   for (let i = 0; i < text.length; i++) {
     const code = text.charCodeAt(i);
     if (code === 42 || code === 63 || code === 91 || code === 92) return true;
+    if (extglob && code === 40 && i > 0) {
+      const prev = text.charCodeAt(i - 1);
+      if (prev === 63 || prev === 42 || prev === 43 || prev === 64 || prev === 33) return true;
+    }
   }
   return false;
 }
@@ -4693,7 +4697,7 @@ export class Runtime {
               if (part.kind === "text" && !part.quoted && (
                 rawState.braceexpand !== false && part.value.includes("{") ||
                 i === 0 && part.value.startsWith("~") ||
-                !rawState.noglob && hasGlobOrEscape(part.value)
+                !rawState.noglob && hasGlobOrEscape(part.value, !!rawState.extglob)
               )) return false;
             }
           }
@@ -6385,6 +6389,7 @@ export class Runtime {
             locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
             characterLocale: state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C",
             ignoreCase: !!state.nocasematch,
+            extglob: true,
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
             expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),
             arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io),
@@ -6461,7 +6466,7 @@ export class Runtime {
               if (!matched) for (const word of clause.patterns) {
                 if (++patterns % 128 === 0) await yieldTurn(this.signal);
                 const pattern = (await this.word(word, state, io, false, true)).join("");
-                if (await matchesPattern(pattern, subject, work, !!state.nocasematch)) { matched = true; break; }
+                if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
               }
               if (!matched) continue;
               if (clause.body.lists.length) status = await this.script(clause.body, state, io);
@@ -6479,7 +6484,7 @@ export class Runtime {
             if (!matched) for (const word of clause.patterns) {
               if (++patterns % 128 === 0) await yieldTurn(this.signal);
               const pattern = (await this.word(word, state, io, false, true)).join("");
-              if (await matchesPattern(pattern, subject, work, !!state.nocasematch)) { matched = true; break; }
+              if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
             }
             if (!matched) continue;
             if (clause.body.lists.length) status = await this.script(clause.body, state, io);
@@ -9288,8 +9293,8 @@ export class Runtime {
     const options = new Map<string, { enabled: boolean }>();
     for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"] as const) {
       options.set(name, {
-        get enabled() { return name === "extglob" ? false : name === "braceexpand" ? state.braceexpand !== false : !!state[name]; },
-        set enabled(value) { if (name !== "extglob") state[name] = value; },
+        get enabled() { return name === "braceexpand" ? state.braceexpand !== false : !!state[name]; },
+        set enabled(value) { state[name] = value; },
       });
     }
     for (const [name, option] of (setNamespace ? state.extensions?.options : state.extensions?.shoptOptions) ?? []) options.set(name, option);
@@ -9307,9 +9312,6 @@ export class Runtime {
       const option = options.get(name);
       if (!option) {
         await this.diagnostic(context, `shopt: ${name}: unsupported shell option name (supported: ${[...options.keys()].join(", ")})`);
-        status = 1;
-      } else if (!setNamespace && name === "extglob" && set) {
-        await this.diagnostic(context, "shopt: extglob: extended glob matching is unsupported");
         status = 1;
       } else if (set || unset) option.enabled = set;
       else {
@@ -11155,7 +11157,7 @@ export class Runtime {
         scratch.reserveBytes(64);
         parts.push({ value: original, literal });
       });
-      return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit);
+      return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit, !!state.extglob);
     }
     const text = shellValueText(value);
     const patternFields = await this.word(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString);
@@ -11168,7 +11170,7 @@ export class Runtime {
     scratch.reserve(patternUnits * 2, 0);
     const pattern = patternFields.join("");
     await scanString(text, work);
-    const boundaries = await compilePatternBoundaries(pattern, work, !!state.nocasematch);
+    const boundaries = await compilePatternBoundaries(pattern, work, !!state.nocasematch, !!state.extglob);
     const operator = part.operator!;
     scratch.reserve(64, 0);
     const replacements: { value: string; quoted: boolean }[] = [];
@@ -11276,7 +11278,7 @@ export class Runtime {
         if (!part.quoted) {
           if (braces && rawState.braceexpand !== false && part.value.includes("{")) return undefined;
           if (!hereDocument && (i === 0 && part.value.startsWith("~") || assignmentStart !== undefined && part.value.includes("~"))) return undefined;
-          if (split && !rawState.noglob && hasGlobOrEscape(part.value)) return undefined;
+          if (split && !rawState.noglob && hasGlobOrEscape(part.value, !!rawState.extglob)) return undefined;
         }
         out += part.value;
       } else if (part.kind === "variable") {
@@ -11293,7 +11295,7 @@ export class Runtime {
           ) {
             const patPart = part.alternate.parts[0]!;
             const pat = patPart.value;
-            if (!patPart.quoted && hasGlobOrEscape(pat)) return undefined;
+            if (!patPart.quoted && hasGlobOrEscape(pat, !!rawState.extglob)) return undefined;
             const raw = rawVars[part.name];
             this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
             if (raw === undefined) continue;
@@ -11553,7 +11555,7 @@ export class Runtime {
       const field = fields.at(-1)!;
       let escapes = 0;
       if (!glob) {
-        const special = conditionalPattern ? "\\*?[]-^()|+!@:" : "\\*?[]-^!:";
+        const special = (conditionalPattern || state.extglob) ? "\\*?[]-^()|+!@:" : "\\*?[]-^!:";
         for (const character of text) if (special.includes(character)) escapes++;
       }
       scratch?.reserve(32, 0);
@@ -11561,7 +11563,7 @@ export class Runtime {
       if (escapes) {
         scratch?.reserve((field.patterns ? 32 : 32 * (field.fragments.length + 1)) + (text.length + escapes) * 2, 0);
         field.patterns ??= field.fragments.map(shellValueText);
-        field.patterns.push(text.replace(conditionalPattern ? /[\\*?[\]\-^()|+!@:]/gu : /[\\*?[\]\-^!:]/gu, "\\$&"));
+        field.patterns.push(text.replace((conditionalPattern || state.extglob) ? /[\\*?[\]\-^()|+!@:]/gu : /[\\*?[\]\-^!:]/gu, "\\$&"));
       } else if (field.patterns) {
         scratch?.reserve(32, 0);
         field.patterns.push(text);
@@ -12082,12 +12084,12 @@ export class Runtime {
             }
           }
           wildcardPrefix = true;
-        } else if (segment === "." || segment === ".." || !state.nocaseglob && !/(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment)) {
+        } else if (segment === "." || segment === ".." || !state.nocaseglob && !(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment))) {
           const literal = segment.replace(/\\(.)/gu, "$1");
           const bytes = (await scanString(literal, work)).bytes;
           for (const candidate of candidates) add(make(candidate, literal, bytes, true, candidate.depth));
         } else {
-          const matches = await compilePattern(segment, work, !!state.nocaseglob);
+          const matches = await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob);
           for (const candidate of candidates) {
             let entries;
             try { entries = await read(candidate); }
@@ -12129,7 +12131,7 @@ export class Runtime {
 
   async glob(value: string, pattern: string, state: State): Promise<string[]> {
     if (state.noglob) return [value];
-    if (!/(?:^|[^\\])(?:\\\\)*[*?[]/u.test(pattern)) return [value];
+    if (!(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(pattern) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(pattern))) return [value];
     if (state.globstar) {
       const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
       let start = 0;
@@ -12154,14 +12156,14 @@ export class Runtime {
         next.push(candidate);
         if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       };
-      if (segment === "." || segment === ".." || !state.nocaseglob && !/(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment)) {
+      if (segment === "." || segment === ".." || !state.nocaseglob && !(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment))) {
         const literal = segment.replace(/\\(.)/gu, "$1");
         for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
       } else {
         const scratch = this.budget.values.scope();
         work.allocation = scratch;
         try {
-          const matches = await compilePattern(segment, work, !!state.nocaseglob);
+          const matches = await compilePattern(segment, work, !!state.nocaseglob, !!state.extglob);
           for (const candidate of candidates) {
             let entries;
             try {

@@ -612,7 +612,7 @@ class Lexer {
       const opaque = this.braceReplay?.get(this.position) ?? this.sourceValues?.get(this.sourceOffset + this.position);
       if (opaque !== undefined) { plain = false; text(opaque, enclosingQuoted); this.position++; continue; }
       if (conditionalPattern) {
-        if (/[ \t\n;]/u.test(current)) break;
+        if (patternParentheses === 0 ? /[ \t\n;]/u.test(current) : current === "\n") break;
         const bracketMaterial = conditionalPattern === "regex" && (regexBracket || current === "[");
         if (bracketMaterial) {
           if (!regexBracket) { regexBracket = true; regexBracketFirst = true; regexBracketNegation = true; }
@@ -626,7 +626,25 @@ class Lexer {
           if (++patternParentheses > 64) this.error("Conditional syntax nesting exceeds 64");
         } else if (current === ")" && patternParentheses > 0) patternParentheses--;
         else if (/[()<>]/u.test(current) || patternParentheses === 0 && (this.source.startsWith("&&", this.position) || this.source.startsWith("||", this.position))) break;
-      } else if (terminator ? terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0) : !this.braceReplay && /[ \t\n;|&()<>]/u.test(current) && !(!enclosingQuoted && !literal && (current === "<" || current === ">") && this.source[this.position + 1] === "(")) break;
+      } else if (terminator) {
+        if (terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0)) break;
+      } else if (!this.braceReplay) {
+        if (!enclosingQuoted && !literal && current === "(" && (patternParentheses > 0 || (
+          this.position > offset
+          && "?*+@!".includes(this.source[this.position - 1] ?? " ")
+          && (this.position - 1 === offset || this.source[this.position - 2] !== "\\")
+          && !(this.source[this.position + 1] === ")" && /^\(\)\s*(?:\{|\(|if\b|case\b|while\b|until\b|for\b|select\b|\[\[)/u.test(this.source.slice(this.position)))
+          && this.hasClosingExtglobParen(this.position)
+        ))) {
+          if (++patternParentheses > 64) this.error("Syntax nesting exceeds 64");
+        } else if (!enclosingQuoted && !literal && current === ")" && patternParentheses > 0) {
+          patternParentheses--;
+        } else if (patternParentheses > 0) {
+          if (current === "\n") break;
+        } else if (/[ \t\n;|&()<>]/u.test(current) && !(!enclosingQuoted && !literal && (current === "<" || current === ">") && this.source[this.position + 1] === "(")) {
+          break;
+        }
+      }
       if ((current === "<" || current === ">") && this.source[this.position + 1] === "(" && !enclosingQuoted && !literal) {
         plain = false;
         const direction = current;
@@ -754,6 +772,38 @@ class Lexer {
     if (conditionalPattern === "regex" && patternParentheses > 0) this.error("Unterminated conditional regular expression group");
     const printedNewlines = this.source.slice(offset, this.position).split("\n").length - 1 - (this.printedNewlineReduction - reduction);
     return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === "text" ? part.value : "").join("") } : {}) };
+  }
+
+  hasClosingExtglobParen(openIndex: number): boolean {
+    let depth = 0;
+    for (let i = openIndex; i < this.source.length; i++) {
+      const ch = this.source[i]!;
+      if (ch === "\n") return false;
+      if (ch === "\\") {
+        i++;
+        continue;
+      }
+      if (ch === "'") {
+        const end = this.source.indexOf("'", i + 1);
+        if (end < 0) return false;
+        i = end;
+        continue;
+      }
+      if (ch === '"') {
+        i++;
+        while (i < this.source.length && this.source[i] !== '"') {
+          if (this.source[i] === "\\") i++;
+          i++;
+        }
+        continue;
+      }
+      if (ch === "(") {
+        if (++depth > 64) return false;
+      } else if (ch === ")") {
+        if (--depth === 0) return true;
+      }
+    }
+    return false;
   }
 
   ansiWord(): ShellValue {

@@ -2,7 +2,13 @@ import { yieldTurn } from "../contracts/yield.js";
 import type { ValueReservation } from "../contracts/value.js";
 import { nextCodePointOffset, previousCodePointOffset, stringCheckpoint } from "./string-operations.js";
 import type { StringWork } from "./string-operations.js";
-type PatternToken = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string } | { kind: "class"; expression: RegExp };
+type ExtglobOperator = "?" | "*" | "+" | "@" | "!";
+type PatternToken =
+  | { kind: "star" }
+  | { kind: "any" }
+  | { kind: "literal"; value: string }
+  | { kind: "class"; expression: RegExp }
+  | { kind: "extglob"; operator: ExtglobOperator; branches: PatternToken[][] };
 
 const characterClasses: Readonly<Record<string, string>> = {
   alnum: "a-zA-Z0-9", alpha: "a-zA-Z", ascii: "\\x00-\\x7f", blank: " \\t",
@@ -11,10 +17,50 @@ const characterClasses: Readonly<Record<string, string>> = {
   space: " \\t\\r\\n\\v\\f", upper: "A-Z", word: "a-zA-Z0-9_", xdigit: "a-fA-F0-9",
 };
 
-async function tokens(pattern: string, work: StringWork, ignoreCase = false): Promise<{ patternTokens: PatternToken[]; reservation: ValueReservation | undefined }> {
+function findExtglobClose(characters: readonly string[], openParenIndex: number): { closeIndex: number; splits: number[] } | undefined {
+  let depth = 1;
+  let inBracket = false;
+  let bracketStart = -1;
+  const splits: number[] = [];
+  for (let cursor = openParenIndex + 1; cursor < characters.length; cursor++) {
+    const ch = characters[cursor]!;
+    if (ch === "\\" && cursor + 1 < characters.length) {
+      cursor++;
+      continue;
+    }
+    if (inBracket) {
+      if (ch === "[" && characters[cursor + 1] === ":") {
+        let end = cursor + 2;
+        while (end + 1 < characters.length && !(characters[end] === ":" && characters[end + 1] === "]")) end++;
+        if (end + 1 < characters.length) cursor = end + 1;
+      } else if (ch === "]" && cursor > bracketStart + 1) {
+        inBracket = false;
+      }
+    } else {
+      if (ch === "[") {
+        inBracket = true;
+        bracketStart = cursor + (["!", "^"].includes(characters[cursor + 1] ?? "") ? 1 : 0);
+      } else if (ch === "(") {
+        depth++;
+      } else if (ch === ")") {
+        depth--;
+        if (depth === 0) return { closeIndex: cursor, splits };
+      } else if (ch === "|" && depth === 1) {
+        splits.push(cursor);
+      }
+    }
+  }
+  return undefined;
+}
+
+function hasExtglobTokens(patternTokens: readonly PatternToken[]): boolean {
+  return patternTokens.some(t => t.kind === "extglob");
+}
+
+async function tokens(pattern: string, work: StringWork, ignoreCase = false, extglob = false, reserveTop = true): Promise<{ patternTokens: PatternToken[]; reservation: ValueReservation | undefined }> {
   const admission = stringCheckpoint(work, pattern.length);
   if (admission) await admission;
-  const reservation = work.allocation?.reserve(128 + pattern.length * 64, 0);
+  const reservation = reserveTop ? work.allocation?.reserve(128 + pattern.length * 64, 0) : undefined;
   const result: PatternToken[] = [];
   const characters = Array.from(pattern);
   const lastClosingBracket = characters.lastIndexOf("]");
@@ -29,6 +75,26 @@ async function tokens(pattern: string, work: StringWork, ignoreCase = false): Pr
     if (pending) await pending;
     const character = characters[index]!;
     if (character === "\\" && index + 1 < characters.length) result.push({ kind: "literal", value: characters[++index]! });
+    else if (extglob && "?*+@!".includes(character) && characters[index + 1] === "(") {
+      const closed = findExtglobClose(characters, index + 1);
+      if (closed) {
+        const branches: PatternToken[][] = [];
+        let start = index + 2;
+        for (const splitIndex of [...closed.splits, closed.closeIndex]) {
+          const subPattern = characters.slice(start, splitIndex).join("");
+          const sub = await tokens(subPattern, work, ignoreCase, true, false);
+          branches.push(sub.patternTokens);
+          start = splitIndex + 1;
+        }
+        result.push({ kind: "extglob", operator: character as ExtglobOperator, branches });
+        index = closed.closeIndex;
+        continue;
+      }
+      if (character === "*") {
+        if (result.at(-1)?.kind !== "star") result.push({ kind: "star" });
+      } else if (character === "?") result.push({ kind: "any" });
+      else result.push({ kind: "literal", value: character });
+    }
     else if (character === "*") {
       if (result.at(-1)?.kind !== "star") result.push({ kind: "star" });
     } else if (character === "?") result.push({ kind: "any" });
@@ -71,21 +137,167 @@ async function tokens(pattern: string, work: StringWork, ignoreCase = false): Pr
   return { patternTokens: result, reservation };
 }
 
-export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false): Promise<(value: string, start?: number, end?: number) => boolean | Promise<boolean>> {
+function acceptsSingleChar(token: Exclude<PatternToken, { kind: "star" | "extglob" }>, ch: string, ignoreCase: boolean): boolean {
+  if (token.kind === "any") return true;
+  if (token.kind === "literal") {
+    return token.value === ch || (ignoreCase && token.value.toLowerCase() === ch.toLowerCase());
+  }
+  return token.expression.test(ch);
+}
+
+function createExtglobEvaluator(chars: readonly string[], work: StringWork, ignoreCase: boolean) {
+  const N = chars.length;
+  const branchMemo = new Map<PatternToken, Map<number, Uint8Array>>();
+
+  const chargeStep = (amount = 1): void => {
+    work.signal.throwIfAborted();
+    work.remaining -= amount;
+    if (work.remaining < 0) work.exhausted();
+  };
+
+  const unionBranchesAt = (token: Extract<PatternToken, { kind: "extglob" }>, p: number): Uint8Array => {
+    let byPos = branchMemo.get(token);
+    if (!byPos) {
+      byPos = new Map();
+      branchMemo.set(token, byPos);
+    }
+    const cached = byPos.get(p);
+    if (cached) return cached;
+    const union = new Uint8Array(N + 1);
+    for (const branch of token.branches) {
+      const branchReach = allEnds(branch, p);
+      for (let q = p; q <= N; q++) {
+        if (branchReach[q]) union[q] = 1;
+      }
+    }
+    byPos.set(p, union);
+    return union;
+  };
+
+  const allEnds = (seq: readonly PatternToken[], startCp: number): Uint8Array => {
+    chargeStep(seq.length + 1);
+    let cur = new Uint8Array(N + 1);
+    cur[startCp] = 1;
+    for (let tIdx = 0; tIdx < seq.length; tIdx++) {
+      const token = seq[tIdx]!;
+      const next = new Uint8Array(N + 1);
+      if (token.kind === "star") {
+        let seen = 0;
+        for (let p = startCp; p <= N; p++) {
+          if (cur[p]) seen = 1;
+          if (seen) next[p] = 1;
+        }
+      } else if (token.kind === "extglob") {
+        for (let p = startCp; p <= N; p++) {
+          if (!cur[p]) continue;
+          chargeStep(N - p + 1);
+          const u = unionBranchesAt(token, p);
+          if (token.operator === "@") {
+            for (let q = p; q <= N; q++) if (u[q]) next[q] = 1;
+          } else if (token.operator === "?") {
+            next[p] = 1;
+            for (let q = p; q <= N; q++) if (u[q]) next[q] = 1;
+          } else if (token.operator === "+" || token.operator === "*") {
+            const plus = u.slice();
+            for (let q = p + 1; q <= N; q++) {
+              if (!plus[q]) continue;
+              const more = unionBranchesAt(token, q);
+              for (let r = q + 1; r <= N; r++) if (more[r]) plus[r] = 1;
+            }
+            if (token.operator === "*") next[p] = 1;
+            for (let q = p; q <= N; q++) if (plus[q]) next[q] = 1;
+          } else if (token.operator === "!") {
+            for (let q = p; q <= N; q++) if (!u[q]) next[q] = 1;
+          }
+        }
+      } else {
+        for (let p = startCp; p < N; p++) {
+          if (cur[p] && acceptsSingleChar(token, chars[p]!, ignoreCase)) {
+            next[p + 1] = 1;
+          }
+        }
+      }
+      cur = next;
+    }
+    return cur;
+  };
+
+  return { allEnds, N };
+}
+
+export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false, extglob = false): Promise<(value: string, start?: number, end?: number) => boolean | Promise<boolean>> {
   work.signal.throwIfAborted();
-  const { patternTokens } = await tokens(pattern, work, ignoreCase);
+  const { patternTokens } = await tokens(pattern, work, ignoreCase, extglob);
+  if (hasExtglobTokens(patternTokens)) {
+    return (value, start = 0, end = value.length) => {
+      const chars = Array.from(value.slice(start, end));
+      const evaluator = createExtglobEvaluator(chars, work, ignoreCase);
+      return evaluator.allEnds(patternTokens, 0)[evaluator.N] === 1;
+    };
+  }
   return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase);
 }
 
-export async function matchesPattern(pattern: string, value: string, work: StringWork, ignoreCase = false): Promise<boolean> {
-  const { patternTokens, reservation } = await tokens(pattern, work, ignoreCase);
-  try { return await matchTokens(patternTokens, value, work, 0, value.length, ignoreCase); }
+export async function matchesPattern(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): Promise<boolean> {
+  const { patternTokens, reservation } = await tokens(pattern, work, ignoreCase, extglob);
+  try {
+    if (hasExtglobTokens(patternTokens)) {
+      const chars = Array.from(value);
+      const evaluator = createExtglobEvaluator(chars, work, ignoreCase);
+      return evaluator.allEnds(patternTokens, 0)[evaluator.N] === 1;
+    }
+    return await matchTokens(patternTokens, value, work, 0, value.length, ignoreCase);
+  }
   finally { reservation?.release(); }
 }
 
-export async function compilePatternBoundaries(pattern: string, work: StringWork, ignoreCase = false): Promise<(value: string, shortest?: boolean, suffix?: boolean) => Promise<Float64Array>> {
+export async function compilePatternBoundaries(pattern: string, work: StringWork, ignoreCase = false, extglob = false): Promise<(value: string, shortest?: boolean, suffix?: boolean) => Promise<Float64Array>> {
   work.signal.throwIfAborted();
-  const { patternTokens } = await tokens(pattern, work, ignoreCase);
+  const { patternTokens } = await tokens(pattern, work, ignoreCase, extglob);
+  if (hasExtglobTokens(patternTokens)) {
+    return async (value, shortest = false, suffix = false) => {
+      const resultSize = value.length + 1;
+      const initialized = stringCheckpoint(work, resultSize);
+      if (initialized) await initialized;
+      const ends = new Float64Array(resultSize).fill(-1);
+      const chars: string[] = [];
+      const utf16Offsets: number[] = [];
+      for (let pos = 0; pos < value.length;) {
+        utf16Offsets.push(pos);
+        const cp = value.codePointAt(pos)!;
+        const ch = String.fromCodePoint(cp);
+        chars.push(ch);
+        pos += ch.length;
+      }
+      utf16Offsets.push(value.length);
+      const evaluator = createExtglobEvaluator(chars, work, ignoreCase);
+      const N = evaluator.N;
+      for (let startCp = 0; startCp <= N; startCp++) {
+        const pending = stringCheckpoint(work);
+        if (pending) await pending;
+        const reach = evaluator.allEnds(patternTokens, startCp);
+        const startOffset = utf16Offsets[startCp]!;
+        if (suffix) {
+          ends[startOffset] = reach[N] === 1 ? value.length : -1;
+        } else if (shortest) {
+          for (let endCp = startCp; endCp <= N; endCp++) {
+            if (reach[endCp] === 1) {
+              ends[startOffset] = utf16Offsets[endCp]!;
+              break;
+            }
+          }
+        } else {
+          for (let endCp = N; endCp >= startCp; endCp--) {
+            if (reach[endCp] === 1) {
+              ends[startOffset] = utf16Offsets[endCp]!;
+              break;
+            }
+          }
+        }
+      }
+      return ends;
+    };
+  }
   return async (value, shortest = false, suffix = false) => {
     let rowReservation: ValueReservation | undefined;
     let resultReservation: ValueReservation | undefined;

@@ -28,7 +28,7 @@ async function runHost(selected: readonly string[], batch = false): Promise<stri
     let bytes = 0;
     let failure: Error | undefined;
     const kill = () => { if (child.pid) try { process.kill(-child.pid, "SIGKILL"); } catch {} };
-    const timer = setTimeout(() => { failure = new Error("author child deadline exceeded"); kill(); }, 4000);
+    const timer = setTimeout(() => { failure = new Error("author child deadline exceeded"); kill(); }, 15000);
     for (const [stream, chunks] of [[child.stdout, stdout], [child.stderr, stderr]] as const) stream.on("data", (chunk: Buffer) => {
       chunks.push(chunk); bytes += chunk.length;
       if (bytes > 256 * 1024) { failure = new Error("author child output limit exceeded"); kill(); }

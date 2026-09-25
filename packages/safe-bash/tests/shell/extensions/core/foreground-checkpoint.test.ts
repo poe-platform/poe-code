@@ -141,27 +141,29 @@ for (const scenario of [
   assert.deepEqual(observed.events, []);
 });
 
-test("the four forms need neither a checkpoint consumer nor optional/default plugins", async context => {
+for (const withPositionals of [false, true]) test(`the four forms need neither a checkpoint consumer nor optional/default plugins, positionals=${withPositionals}`, async context => {
   const { shell, observed } = setup(context, { omitCheckpoint: true });
   const owner: { shell?: Shell } = {};
   context.after(async () => { if (owner.shell) await bounded(owner.shell.dispose(), "plain shell disposal"); });
   const plain = new Shell({ fs: createMemoryFileSystem() });
   owner.shell = plain;
   for (const scenario of [{ source: ":", children: 0 }, ...foreground]) {
-    const baseline: ShellResult = await bounded(plain.exec(scenario.source), "plain execution");
+    const source = withPositionals ? `set -- retained; ${scenario.source.replaceAll(":", 'case "$1" in retained) : ;; *) exit 42 ;; esac')}` : scenario.source;
+    const baseline: ShellResult = await bounded(plain.exec(source), "plain execution");
     observed.events.length = 0;
     observed.copies.length = 0;
     observed.closed.clear();
     observed.forks = 0;
     observed.childRuns = 0;
-    const result = await bounded(shell.exec(scenario.source), "hook-free observer execution");
+    const result = await bounded(shell.exec(source), "hook-free observer execution");
     assert.equal(baseline.exitCode, 0);
     assert.equal(baseline.stdout, "");
     assert.equal(baseline.stderr, "");
     assert.deepEqual(result, baseline);
     assert.equal(observed.forks, scenario.children);
     assert.equal(observed.childRuns, scenario.children);
-    assert.equal(observed.copies.length, 2 * scenario.children);
+    // Positional stores are cloned only after a positional value materializes them.
+    assert.equal(observed.copies.length, (withPositionals ? 2 : 1) * scenario.children);
     assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
     assert.deepEqual(observed.callbacks, []);
   }
@@ -268,7 +270,7 @@ test("pipeline failure-finally admission sentinels are not successful aggregate 
   assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
 });
 
-for (const failedPreparation of [2, 1]) test(`enrolled observer blocks a prepared pipeline peer when preparation ${failedPreparation} fails`, async context => {
+for (const withPositionals of [false, true]) for (const failedPreparation of [2, 1]) test(`enrolled observer blocks a prepared pipeline peer when preparation ${failedPreparation} fails, positionals=${withPositionals}`, async context => {
   const reason = new Error(`injected mixed pipeline preparation failure ${failedPreparation}`);
   let preparations = 0;
   const prepared: number[] = [];
@@ -277,7 +279,7 @@ for (const failedPreparation of [2, 1]) test(`enrolled observer blocks a prepare
     if (preparations === failedPreparation) throw reason;
     prepared.push(preparations);
   } });
-  const outcome = await bounded(shell.exec(": | :").then(
+  const outcome = await bounded(shell.exec(withPositionals ? "set -- retained; : | :" : ": | :").then(
     () => ({ rejected: false, reason: undefined as unknown }),
     failure => ({ rejected: true, reason: failure as unknown }),
   ), "mixed pipeline preparation cleanup");
@@ -286,7 +288,7 @@ for (const failedPreparation of [2, 1]) test(`enrolled observer blocks a prepare
   assert.equal(observed.forks, 2);
   assert.deepEqual(prepared, [3 - failedPreparation]);
   assert.deepEqual(observed.callbacks, []);
-  assert.equal(observed.copies.length, 4);
+  assert.equal(observed.copies.length, withPositionals ? 4 : 2);
   assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
   assert.equal(observed.childRuns, 0, JSON.stringify(observed.events));
 });

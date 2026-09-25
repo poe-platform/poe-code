@@ -66,7 +66,7 @@ export function createChmodCommand(configuration: MetadataCommandsOptions = {}) 
       if (argument === "--") ended = true;
       if (ended) return [argument];
       if (argument === "--reference") referenceValue = true;
-      if (argument.startsWith("-") && argument.length > 1 && "rwxXstugo".includes(argument[1]!)) {
+      if (argument.startsWith("-") && argument.length > 1 && "rwxXstugo01234567".includes(argument[1]!)) {
         modeOptions.push(argument);
         return [];
       }

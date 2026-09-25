@@ -458,6 +458,7 @@ function assertSource7Discovery(files) {
   ];
   for (const path of [
     "tests/commands/archive/options.test.ts",
+    "tests/commands/metadata/chmod-minus.test.ts",
     "tests/commands/archive/records-display.test.ts",
     "tests/commands/archive/modes.test.ts",
     "tests/commands/cp-interactive.test.ts",

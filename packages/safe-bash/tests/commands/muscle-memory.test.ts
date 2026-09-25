@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Shell, createMemoryFileSystem, agentCommands, createAgentCommands, muscleMemoryCommands } from "../../src/index.js";
+import { Shell, createMemoryFileSystem, agentCommands, createAgentCommands, bcCommands, spongeCommands, fdCommands, lessCommands } from "../../src/index.js";
 
 test("xxd and od hex/byte inspection and roundtrip reversal", async () => {
   const fs = createMemoryFileSystem();
@@ -135,7 +135,7 @@ test("muscleMemoryCommands plugin and agentCommands({ muscleMemory: true }) regi
     assert.ok(explicit.includes(name), `expected ${name} in createAgentCommands({ muscleMemory: true })`);
   }
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(muscleMemoryCommands());
+  const shell = new Shell({ fs }).use(bcCommands()).use(spongeCommands()).use(fdCommands()).use(lessCommands());
   try {
     const res = await shell.exec(`bc <<< "6 * 7"`);
     assert.equal(res.stdout, "42\n");

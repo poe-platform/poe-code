@@ -1,15 +1,92 @@
-import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { decoder, define, input, output, UsageError } from "../internal.js";
-import { collectSourceBytes } from "./sponge.js";
-import { PublicDiagnostic } from "../../diagnostics.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import {
+  commandRuntimeIdentity,
+  readBytes,
+  writeText,
+  type ByteSource,
+  type CommandContext,
+  type CommandDefinition,
+  type CommandResult,
+  type VirtualShellPlugin,
+} from "safe-bash-contracts";
 
-export interface BcCommandOptions {
+const decoder = new TextDecoder("utf-8", { fatal: false });
+const encoder = new TextEncoder();
+async function yieldTurn(signal: AbortSignal): Promise<void> {
+  signal.throwIfAborted();
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  signal.throwIfAborted();
+}
+
+const pathPosix = {
+  resolve(cwd: string, target: string): string {
+    const raw = target.startsWith("/") ? target : (cwd.endsWith("/") ? cwd + target : cwd + "/" + target);
+    const parts = raw.split("/");
+    const stack: string[] = [];
+    for (const part of parts) {
+      if (!part || part === ".") continue;
+      if (part === "..") stack.pop();
+      else stack.push(part);
+    }
+    return "/" + stack.join("/");
+  },
+};
+
+class UsageError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+async function collectSourceBytes(source: ByteSource, signal: AbortSignal, maxBytes: number): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for await (const chunk of readBytes(source, signal)) {
+    total += chunk.byteLength;
+    if (total > maxBytes) throw new Error(`input exceeds maximum size (${maxBytes} bytes)`);
+    chunks.push(chunk);
+  }
+  if (chunks.length === 1) return chunks[0]!;
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    out.set(c, offset);
+    offset += c.byteLength;
+  }
+  return out;
+}
+
+export interface BcLimits {
+  readonly maxInputBytes: number;
+  readonly maxOutputBytes: number;
+  readonly maxSteps: number;
+  readonly maxScale: number;
+}
+
+export interface BcCommandsOptions {
+  readonly replace?: boolean;
+  readonly limits?: Partial<BcLimits>;
+  readonly maxInputBytes?: number;
+  readonly maxOutputBytes?: number;
   readonly maxSteps?: number;
   readonly maxScale?: number;
-  readonly maxInputBytes?: number;
-  readonly replace?: boolean;
 }
+
+export type BcCommandOptions = BcCommandsOptions;
+export type BcOptions = BcCommandsOptions;
+
+export function settings(options: BcCommandsOptions = {}): BcLimits {
+  const limits: BcLimits = {
+    maxInputBytes: options.limits?.maxInputBytes ?? options.maxInputBytes ?? 8 * 1024 * 1024,
+    maxOutputBytes: options.limits?.maxOutputBytes ?? options.maxOutputBytes ?? 16 * 1024 * 1024,
+    maxSteps: options.limits?.maxSteps ?? options.maxSteps ?? 250_000,
+    maxScale: options.limits?.maxScale ?? options.maxScale ?? 2_000,
+  };
+  for (const [name, value] of Object.entries(limits)) {
+    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid bc limit: ${name}`);
+  }
+  return Object.freeze(limits);
+}
+
 
 interface DecimalValue {
   readonly coeff: bigint;
@@ -53,7 +130,7 @@ function mulDec(a: DecimalValue, b: DecimalValue, currentScale: number): Decimal
 }
 
 function divDec(a: DecimalValue, b: DecimalValue, currentScale: number): DecimalValue {
-  if (b.coeff === 0n) throw new PublicDiagnostic("Runtime error (func=(main), adr=0): Divide by zero");
+  if (b.coeff === 0n) throw new Error("Runtime error (func=(main), adr=0): Divide by zero");
   const shift = currentScale + b.scale - a.scale;
   const num = shift >= 0 ? a.coeff * pow10(shift) : a.coeff / pow10(-shift);
   return { coeff: num / b.coeff, scale: currentScale };
@@ -84,7 +161,7 @@ function powDec(base: DecimalValue, exp: DecimalValue, currentScale: number): De
   if (n === 0n) return ONE;
   const neg = n < 0n;
   if (neg) n = -n;
-  if (n > 10000n) throw new PublicDiagnostic("exponent exceeds maximum limit (10000)");
+  if (n > 10000n) throw new Error("exponent exceeds maximum limit (10000)");
   let result: DecimalValue = ONE;
   let cur: DecimalValue = base;
   const workScale = neg ? currentScale : Math.min(base.scale * Number(n), Math.max(currentScale, base.scale));
@@ -112,14 +189,14 @@ function isNonZero(d: DecimalValue): boolean {
 }
 
 function sqrtDec(x: DecimalValue, currentScale: number): DecimalValue {
-  if (x.coeff < 0n) throw new PublicDiagnostic("Runtime error: Square root of a negative number");
+  if (x.coeff < 0n) throw new Error("Runtime error: Square root of a negative number");
   if (x.coeff === 0n) return { coeff: 0n, scale: 0 };
   const resScale = Math.max(currentScale, x.scale);
   const shift = 2 * resScale - x.scale;
   const target = shift >= 0 ? x.coeff * pow10(shift) : x.coeff / pow10(-shift);
   if (target === 0n) return { coeff: 0n, scale: resScale };
-  const low = 1n;
-  const high = target;
+  let low = 1n;
+  let high = target;
   let guess = 1n << BigInt(Math.ceil(target.toString(2).length / 2));
   while (true) {
     const next = (guess + target / guess) >> 1n;
@@ -215,7 +292,7 @@ function formatDecimalInBase(val: DecimalValue, obase: number): string {
 }
 
 function fromNumber(num: number, scale: number): DecimalValue {
-  if (!Number.isFinite(num)) throw new PublicDiagnostic("math domain/range error");
+  if (!Number.isFinite(num)) throw new Error("math domain/range error");
   const clampedScale = Math.min(scale, 30);
   const fixed = num.toFixed(Math.min(clampedScale + 4, 20));
   const dot = fixed.indexOf(".");
@@ -235,12 +312,12 @@ function toNumber(val: DecimalValue): number {
   return Number(formatDecimalInBase(val, 10));
 }
 
-type Token =
-  | { type: "number"; raw: string }
-  | { type: "string"; value: string }
-  | { type: "id"; name: string }
-  | { type: "op"; value: string }
-  | { type: "punct"; value: string };
+interface Token {
+  type: "number" | "string" | "id" | "op" | "punct" | "semi" | "eof";
+  raw?: string;
+  value?: string;
+  name?: string;
+}
 
 function tokenizeBc(source: string): Token[] {
   const clean = source.replace(/\\\r?\n/gu, "");
@@ -254,7 +331,7 @@ function tokenizeBc(source: string): Token[] {
     }
     if (ch === "/" && clean[i + 1] === "*") {
       const end = clean.indexOf("*/", i + 2);
-      if (end < 0) throw new PublicDiagnostic("unterminated comment");
+      if (end < 0) throw new Error("unterminated comment");
       i = end + 2;
       continue;
     }
@@ -328,7 +405,7 @@ function tokenizeBc(source: string): Token[] {
       i++;
       continue;
     }
-    throw new PublicDiagnostic(`syntax error near '${ch}'`);
+    throw new Error(`syntax error near '${ch}'`);
   }
   return tokens;
 }
@@ -370,7 +447,7 @@ class BcParser {
 
   private matchPunct(v: string): boolean {
     const t = this.peek();
-    if (t?.type === "punct" && t.value === v) {
+    if (t?.type === "punct" && (t.value ?? "") === v) {
       this.pos++;
       return true;
     }
@@ -379,7 +456,7 @@ class BcParser {
 
   private matchId(name: string): boolean {
     const t = this.peek();
-    if (t?.type === "id" && t.name === name) {
+    if (t?.type === "id" && (t.name ?? "") === name) {
       this.pos++;
       return true;
     }
@@ -389,10 +466,10 @@ class BcParser {
   parseProgram(): Stmt[] {
     const stmts: Stmt[] = [];
     while (this.pos < this.tokens.length) {
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      while (this.matchPunct(";")) {}
       if (this.pos >= this.tokens.length) break;
       stmts.push(this.parseStmt());
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      while (this.matchPunct(";")) {}
     }
     return stmts;
   }
@@ -401,78 +478,75 @@ class BcParser {
     if (this.matchPunct("{")) {
       const stmts: Stmt[] = [];
       while (this.pos < this.tokens.length && !this.matchPunct("}")) {
-        while (this.matchPunct(";")) { /* Consume statement separators. */ }
+        while (this.matchPunct(";")) {}
         if (this.matchPunct("}")) break;
         stmts.push(this.parseStmt());
-        while (this.matchPunct(";")) { /* Consume statement separators. */ }
+        while (this.matchPunct(";")) {}
       }
       return { kind: "block", stmts };
     }
     if (this.matchId("define")) {
       const nameTok = this.next();
-      if (nameTok?.type !== "id") throw new PublicDiagnostic("expected function name after define");
-      if (!this.matchPunct("(")) throw new PublicDiagnostic("expected '(' after function name");
+      if (nameTok?.type !== "id") throw new Error("expected function name after define");
+      if (!this.matchPunct("(")) throw new Error("expected '(' after function name");
       const params: string[] = [];
       if (!this.matchPunct(")")) {
         while (true) {
           const p = this.next();
-          if (p?.type !== "id") throw new PublicDiagnostic("expected parameter name");
-          params.push(p.name);
+          if (p?.type !== "id") throw new Error("expected parameter name");
+          params.push(p.name ?? "");
           if (this.matchPunct(")")) break;
-          if (!this.matchPunct(",")) throw new PublicDiagnostic("expected ',' or ')' in parameter list");
+          if (!this.matchPunct(",")) throw new Error("expected ',' or ')' in parameter list");
         }
       }
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      while (this.matchPunct(";")) {}
       const body = this.parseStmt();
-      return { kind: "define", name: nameTok.name, params, body };
+      return { kind: "define", name: nameTok.name ?? "", params, body };
     }
     if (this.matchId("auto")) {
       const names: string[] = [];
       while (true) {
         const p = this.next();
-        if (p?.type !== "id") throw new PublicDiagnostic("expected variable name in auto");
+        if (p?.type !== "id") throw new Error("expected variable name in auto");
         if (this.matchPunct("[")) {
           this.matchPunct("]");
         }
-        names.push(p.name);
+        names.push(p.name ?? "");
         if (!this.matchPunct(",")) break;
       }
       return { kind: "auto", names };
     }
     if (this.matchId("if")) {
-      if (!this.matchPunct("(")) throw new PublicDiagnostic("expected '(' after if");
+      if (!this.matchPunct("(")) throw new Error("expected '(' after if");
       const cond = this.parseExpr();
-      if (!this.matchPunct(")")) throw new PublicDiagnostic("expected ')' after if condition");
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      if (!this.matchPunct(")")) throw new Error("expected ')' after if condition");
+      while (this.matchPunct(";")) {}
       const thenBranch = this.parseStmt();
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      while (this.matchPunct(";")) {}
       let elseBranch: Stmt | undefined;
       if (this.matchId("else")) {
-        while (this.matchPunct(";")) { /* Consume statement separators. */ }
+        while (this.matchPunct(";")) {}
         elseBranch = this.parseStmt();
       }
       return { kind: "if", cond, thenBranch, ...(elseBranch ? { elseBranch } : {}) };
     }
     if (this.matchId("while")) {
-      if (!this.matchPunct("(")) throw new PublicDiagnostic("expected '(' after while");
+      if (!this.matchPunct("(")) throw new Error("expected '(' after while");
       const cond = this.parseExpr();
-      if (!this.matchPunct(")")) throw new PublicDiagnostic("expected ')' after while condition");
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      if (!this.matchPunct(")")) throw new Error("expected ')' after while condition");
+      while (this.matchPunct(";")) {}
       const body = this.parseStmt();
       return { kind: "while", cond, body };
     }
     if (this.matchId("for")) {
-      if (!this.matchPunct("(")) throw new PublicDiagnostic("expected '(' after for");
-      const initToken = this.peek();
-      const init = initToken?.type === "punct" && initToken.value === ";" ? undefined : this.parseExpr();
-      if (!this.matchPunct(";")) throw new PublicDiagnostic("expected ';' in for");
-      const condToken = this.peek();
-      const cond = condToken?.type === "punct" && condToken.value === ";" ? undefined : this.parseExpr();
-      if (!this.matchPunct(";")) throw new PublicDiagnostic("expected ';' in for");
-      const updateToken = this.peek();
-      const update = updateToken?.type === "punct" && updateToken.value === ")" ? undefined : this.parseExpr();
-      if (!this.matchPunct(")")) throw new PublicDiagnostic("expected ')' after for clauses");
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      if (!this.matchPunct("(")) throw new Error("expected '(' after for");
+      const init = this.peek()?.type === "punct" && this.peek()?.value === ";" ? undefined : this.parseExpr();
+      if (!this.matchPunct(";")) throw new Error("expected ';' in for");
+      const cond = this.peek()?.type === "punct" && this.peek()?.value === ";" ? undefined : this.parseExpr();
+      if (!this.matchPunct(";")) throw new Error("expected ';' in for");
+      const update = this.peek()?.type === "punct" && this.peek()?.value === ")" ? undefined : this.parseExpr();
+      if (!this.matchPunct(")")) throw new Error("expected ')' after for clauses");
+      while (this.matchPunct(";")) {}
       const body = this.parseStmt();
       return {
         kind: "for",
@@ -484,7 +558,7 @@ class BcParser {
     }
     if (this.matchId("return")) {
       const next = this.peek();
-      if (!next || (next.type === "punct" && (next.value === ";" || next.value === "}"))) {
+      if (!next || (next.type === "punct" && ((next.value ?? "") === ";" || (next.value ?? "") === "}"))) {
         return { kind: "return" };
       }
       return { kind: "return", value: this.parseExpr() };
@@ -509,22 +583,19 @@ class BcParser {
   private parseAssign(): Expr {
     const left = this.parseOr();
     const t = this.peek();
-    if (t?.type === "op" && ["=", "+=", "-=", "*=", "/=", "%=", "^="].includes(t.value)) {
-      if (left.kind !== "var") throw new PublicDiagnostic("invalid assignment target");
+    if (t?.type === "op" && ["=", "+=", "-=", "*=", "/=", "%=", "^="].includes((t.value ?? ""))) {
+      if (left.kind !== "var") throw new Error("invalid assignment target");
       this.pos++;
       const right = this.parseAssign();
-      return { kind: "assign", op: t.value, target: { name: left.name, ...(left.index ? { index: left.index } : {}) }, right };
+      return { kind: "assign", op: (t.value ?? ""), target: { name: ("name" in left ? left.name : ""), ...(left.index ? { index: left.index } : {}) }, right };
     }
     return left;
   }
 
   private parseOr(): Expr {
     let left = this.parseAnd();
-    while (true) {
-      const token = this.peek();
-      if (!(token?.type === "op" && token.value === "||")) break;
-      this.pos++;
-      const op = token.value;
+    while (this.peek()?.type === "op" && this.peek()?.value === "||") {
+      const op = this.next()!.value as string;
       left = { kind: "binary", op, left, right: this.parseAnd() };
     }
     return left;
@@ -532,11 +603,8 @@ class BcParser {
 
   private parseAnd(): Expr {
     let left = this.parseRel();
-    while (true) {
-      const token = this.peek();
-      if (!(token?.type === "op" && token.value === "&&")) break;
-      this.pos++;
-      const op = token.value;
+    while (this.peek()?.type === "op" && this.peek()?.value === "&&") {
+      const op = this.next()!.value as string;
       left = { kind: "binary", op, left, right: this.parseRel() };
     }
     return left;
@@ -545,20 +613,17 @@ class BcParser {
   private parseRel(): Expr {
     let left = this.parseAdd();
     const t = this.peek();
-    if (t?.type === "op" && ["==", "!=", "<=", ">=", "<", ">"].includes(t.value)) {
+    if (t?.type === "op" && ["==", "!=", "<=", ">=", "<", ">"].includes((t.value ?? ""))) {
       this.pos++;
-      left = { kind: "binary", op: t.value, left, right: this.parseAdd() };
+      left = { kind: "binary", op: (t.value ?? ""), left, right: this.parseAdd() };
     }
     return left;
   }
 
   private parseAdd(): Expr {
     let left = this.parseMul();
-    while (true) {
-      const token = this.peek();
-      if (!(token?.type === "op" && (token.value === "+" || token.value === "-"))) break;
-      this.pos++;
-      const op = token.value;
+    while (this.peek()?.type === "op" && (this.peek()?.value === "+" || this.peek()?.value === "-")) {
+      const op = this.next()!.value as string;
       left = { kind: "binary", op, left, right: this.parseMul() };
     }
     return left;
@@ -566,11 +631,8 @@ class BcParser {
 
   private parseMul(): Expr {
     let left = this.parsePow();
-    while (true) {
-      const token = this.peek();
-      if (!(token?.type === "op" && ["*", "/", "%"].includes(token.value ?? ""))) break;
-      this.pos++;
-      const op = token.value;
+    while (this.peek()?.type === "op" && ["*", "/", "%"].includes(this.peek()?.value ?? "")) {
+      const op = this.next()!.value as string;
       left = { kind: "binary", op, left, right: this.parsePow() };
     }
     return left;
@@ -578,8 +640,7 @@ class BcParser {
 
   private parsePow(): Expr {
     const left = this.parseUnary();
-    const token = this.peek();
-    if (token?.type === "op" && token.value === "^") {
+    if (this.peek()?.type === "op" && this.peek()?.value === "^") {
       this.pos++;
       return { kind: "binary", op: "^", left, right: this.parsePow() };
     }
@@ -588,9 +649,9 @@ class BcParser {
 
   private parseUnary(): Expr {
     const t = this.peek();
-    if (t?.type === "op" && ["-", "+", "!", "++", "--"].includes(t.value)) {
+    if (t?.type === "op" && ["-", "+", "!", "++", "--"].includes((t.value ?? ""))) {
       this.pos++;
-      return { kind: "unary", op: t.value, arg: this.parseUnary(), prefix: true };
+      return { kind: "unary", op: (t.value ?? ""), arg: this.parseUnary(), prefix: true };
     }
     return this.parsePostfix();
   }
@@ -598,22 +659,22 @@ class BcParser {
   private parsePostfix(): Expr {
     let expr = this.parsePrimary();
     const t = this.peek();
-    if (t?.type === "op" && (t.value === "++" || t.value === "--")) {
+    if (t?.type === "op" && ((t.value ?? "") === "++" || (t.value ?? "") === "--")) {
       this.pos++;
-      expr = { kind: "unary", op: t.value, arg: expr, prefix: false };
+      expr = { kind: "unary", op: (t.value ?? ""), arg: expr, prefix: false };
     }
     return expr;
   }
 
   private parsePrimary(): Expr {
     const t = this.next();
-    if (!t) throw new PublicDiagnostic("unexpected end of expression");
-    if (t.type === "number") return { kind: "num", raw: t.raw };
-    if (t.type === "string") return { kind: "str", value: t.value };
-    if (t.type === "punct" && t.value === ".") return { kind: "var", name: "last" };
-    if (t.type === "punct" && t.value === "(") {
+    if (!t) throw new Error("unexpected end of expression");
+    if (t.type === "number") return { kind: "num", raw: (t.raw ?? "") };
+    if (t.type === "string") return { kind: "str", value: (t.value ?? "") };
+    if (t.type === "punct" && (t.value ?? "") === ".") return { kind: "var", name: "last" };
+    if (t.type === "punct" && (t.value ?? "") === "(") {
       const expr = this.parseExpr();
-      if (!this.matchPunct(")")) throw new PublicDiagnostic("expected ')'");
+      if (!this.matchPunct(")")) throw new Error("expected ')'");
       return expr;
     }
     if (t.type === "id") {
@@ -623,19 +684,19 @@ class BcParser {
           while (true) {
             args.push(this.parseExpr());
             if (this.matchPunct(")")) break;
-            if (!this.matchPunct(",")) throw new PublicDiagnostic("expected ',' or ')' in function call");
+            if (!this.matchPunct(",")) throw new Error("expected ',' or ')' in function call");
           }
         }
-        return { kind: "call", name: t.name, args };
+        return { kind: "call", name: (t.name ?? ""), args };
       }
       if (this.matchPunct("[")) {
         const index = this.parseExpr();
-        if (!this.matchPunct("]")) throw new PublicDiagnostic("expected ']'");
-        return { kind: "var", name: t.name, index };
+        if (!this.matchPunct("]")) throw new Error("expected ']'");
+        return { kind: "var", name: (t.name ?? ""), index };
       }
-      return { kind: "var", name: t.name };
+      return { kind: "var", name: (t.name ?? "") };
     }
-    throw new PublicDiagnostic(`unexpected token '${t.value}'`);
+    throw new Error(`unexpected token '${"value" in t ? (t.value ?? "") : "raw" in t ? (t.raw ?? "") : (t.name ?? "")}'`);
   }
 }
 
@@ -643,12 +704,18 @@ class FlowSignal {
   constructor(readonly kind: "break" | "continue" | "return" | "halt", readonly value?: DecimalValue) {}
 }
 
-export function createBcCommand(options: BcCommandOptions = {}): CommandDefinition {
-  const maxSteps = options.maxSteps ?? 250_000;
-  const maxScale = options.maxScale ?? 2_000;
-  const maxInputBytes = options.maxInputBytes ?? 8 * 1024 * 1024;
+export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinition {
+  const limits = settings(options);
+  const maxSteps = limits.maxSteps;
+  const maxScale = limits.maxScale;
+  const maxInputBytes = limits.maxInputBytes;
 
-  return define("bc", async context => {
+  return {
+    name: "bc",
+    description: "Arbitrary-precision calculator language",
+    runtimeIdentity: commandRuntimeIdentity,
+    async execute(context: CommandContext): Promise<CommandResult> {
+      try {
     let mathlib = false;
     const files: string[] = [];
     let ended = false;
@@ -682,15 +749,21 @@ export function createBcCommand(options: BcCommandOptions = {}): CommandDefiniti
 
     const sources: string[] = [];
     if (files.length === 0) {
-      sources.push(decoder.decode(await collectSourceBytes(input(context, "-"), context.signal, maxInputBytes)));
+      sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes)));
     } else {
       for (const file of files) {
-        sources.push(decoder.decode(await collectSourceBytes(input(context, file), context.signal, maxInputBytes)));
+        if (file === "-") {
+          sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes)));
+        } else {
+          const raw = await context.fs.readFile(pathPosix.resolve(context.cwd, file));
+          if (raw.byteLength > maxInputBytes) throw new Error(`bc program exceeds maximum input size (${maxInputBytes} bytes)`);
+          sources.push(decoder.decode(raw));
+        }
       }
     }
     const fullProgram = sources.join("\n");
-    if (Buffer.byteLength(fullProgram) > maxInputBytes) {
-      throw new PublicDiagnostic(`bc program exceeds maximum input size (${maxInputBytes} bytes)`);
+    if (encoder.encode(fullProgram).byteLength > maxInputBytes) {
+      throw new Error(`bc program exceeds maximum input size (${maxInputBytes} bytes)`);
     }
 
     const stmts = new BcParser(tokenizeBc(fullProgram)).parseProgram();
@@ -706,9 +779,9 @@ export function createBcCommand(options: BcCommandOptions = {}): CommandDefiniti
     let outBuffer = "";
 
     const tick = async (): Promise<void> => {
-      if (++steps > maxSteps) throw new PublicDiagnostic(`bc execution exceeded maximum step limit (${maxSteps})`);
+      if (++steps > maxSteps) throw new Error(`bc execution exceeded maximum step limit (${maxSteps})`);
       if ((steps & 1023) === 0) {
-        await yieldTurn();
+        await yieldTurn(context.signal);
         context.signal.throwIfAborted();
       }
     };
@@ -744,19 +817,19 @@ export function createBcCommand(options: BcCommandOptions = {}): CommandDefiniti
       }
       if (name === "scale") {
         const s = Number(truncToInt(val));
-        if (s < 0 || s > maxScale) throw new PublicDiagnostic(`scale (${s}) out of bounds [0, ${maxScale}]`);
+        if (s < 0 || s > maxScale) throw new Error(`scale (${s}) out of bounds [0, ${maxScale}]`);
         scale = s;
         return { coeff: BigInt(scale), scale: 0 };
       }
       if (name === "ibase") {
         const b = Number(truncToInt(val));
-        if (b < 2 || b > 16) throw new PublicDiagnostic(`ibase (${b}) must be between 2 and 16`);
+        if (b < 2 || b > 16) throw new Error(`ibase (${b}) must be between 2 and 16`);
         ibase = b;
         return { coeff: BigInt(ibase), scale: 0 };
       }
       if (name === "obase") {
         const b = Number(truncToInt(val));
-        if (b < 2 || b > 1000) throw new PublicDiagnostic(`obase (${b}) out of bounds`);
+        if (b < 2 || b > 1000) throw new Error(`obase (${b}) out of bounds`);
         obase = b;
         return { coeff: BigInt(obase), scale: 0 };
       }
@@ -800,7 +873,7 @@ export function createBcCommand(options: BcCommandOptions = {}): CommandDefiniti
         }
         case "unary": {
           if (expr.op === "++" || expr.op === "--") {
-            if (expr.arg.kind !== "var") throw new PublicDiagnostic("invalid increment/decrement target");
+            if (expr.arg.kind !== "var") throw new Error("invalid increment/decrement target");
             const cur = await getVar(expr.arg.name, expr.arg.index);
             const next = expr.op === "++" ? addDec(cur, ONE) : subDec(cur, ONE);
             await setVar(expr.arg.name, expr.arg.index, next);
@@ -857,14 +930,14 @@ export function createBcCommand(options: BcCommandOptions = {}): CommandDefiniti
             if (expr.name === "a") return fromNumber(Math.atan(toNumber(arg0)), scale);
             if (expr.name === "l") {
               const x = toNumber(arg0);
-              if (x <= 0) throw new PublicDiagnostic("Runtime error: l(x) domain error");
+              if (x <= 0) throw new Error("Runtime error: l(x) domain error");
               return fromNumber(Math.log(x), scale);
             }
             if (expr.name === "e") return fromNumber(Math.exp(toNumber(arg0)), scale);
           }
           const fn = funcs.get(expr.name);
-          if (!fn) throw new PublicDiagnostic(`Function ${expr.name} not defined.`);
-          if (callStack.length >= 64) throw new PublicDiagnostic("bc function recursion depth exceeded (64)");
+          if (!fn) throw new Error(`Function ${expr.name} not defined.`);
+          if (callStack.length >= 64) throw new Error("bc function recursion depth exceeded (64)");
           const frame = new Map<string, DecimalValue>();
           for (let i = 0; i < fn.params.length; i++) {
             frame.set(fn.params[i]!, args[i] ?? ZERO);
@@ -986,10 +1059,21 @@ export function createBcCommand(options: BcCommandOptions = {}): CommandDefiniti
     }
 
     if (outBuffer.length > 0) {
-      await output(context, outBuffer);
+      await writeText(context.stdout, outBuffer);
     }
     return { exitCode: 0 };
-  });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const code = err instanceof UsageError ? 2 : 1;
+        await writeText(context.stderr, `bc: ${msg}\n`);
+        return { exitCode: code };
+      }
+    },
+  };
+}
+
+export function createBcCommands(options: BcCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createBcCommand(options)];
 }
 
 export function bcCommands(options: BcCommandOptions = {}): VirtualShellPlugin {

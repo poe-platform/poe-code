@@ -412,7 +412,11 @@
     "packages/media-cli/NOTICE",
     "packages/media-cli/NOTICE.ImageMagick",
     "packages/remote-execution/README.md",
-    "packages/safe-bash-*/dist/**/*.d.ts"
+    "packages/safe-bash-*/dist/**/*.d.ts",
+    "packages/safe-bash-command-bc/dist",
+    "packages/safe-bash-command-sponge/dist",
+    "packages/safe-bash-command-fd/dist",
+    "packages/safe-bash-command-less/dist"
   ],
   "engines": {
     "node": ">=18.18"
@@ -601,7 +605,11 @@
     "safe-bash-xml-engine": "*",
     "safe-bash-command-yq": "*",
     "safe-bash-query-engine": "*",
-    "safe-bash-regex-engine": "*"
+    "safe-bash-regex-engine": "*",
+    "safe-bash-command-bc": "*",
+    "safe-bash-command-sponge": "*",
+    "safe-bash-command-fd": "*",
+    "safe-bash-command-less": "*"
   },
   "repository": {
     "type": "git",

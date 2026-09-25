@@ -38,15 +38,22 @@ import { createGetoptCommands, type GetoptCommandsOptions } from "../commands/ge
 import { createHexdumpCommands, type HexdumpCommandsOptions } from "../commands/hexdump/index.js";
 import { createIconvCommands, type IconvCommandsOptions } from "../commands/iconv/index.js";
 import { createLineEndingCommands, type LineEndingCommandsOptions } from "../commands/line-endings/index.js";
-import { createMuscleMemoryCommands, type MuscleMemoryCommandsOptions } from "../commands/muscle-memory/index.js";
+import { createBcCommands, type BcCommandsOptions } from "../commands/bc/index.js";
+import { createSpongeCommands, type SpongeCommandsOptions } from "../commands/sponge/index.js";
+import { createFdCommands, type FdCommandsOptions } from "../commands/fd/index.js";
+import { createLessCommands, type LessCommandsOptions } from "../commands/less/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
 let defaultMuscleMemoryLookup: ReadonlyMap<string, CommandDefinition> | undefined;
 
-function getMuscleMemoryCommand(name: string): CommandDefinition | undefined {
-  defaultMuscleMemoryLookup ??= new Map(createMuscleMemoryCommands().map(cmd => [cmd.name, cmd]));
+function getExtraAgentCommand(name: string): CommandDefinition | undefined {
+  defaultMuscleMemoryLookup ??= new Map(createExtraAgentCommands().map(cmd => [cmd.name, cmd]));
   return defaultMuscleMemoryLookup.get(name);
+}
+
+function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "replace">; sponge?: Omit<SpongeCommandsOptions, "replace">; fd?: Omit<FdCommandsOptions, "replace">; less?: Omit<LessCommandsOptions, "replace"> }): readonly CommandDefinition[] {
+  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createFdCommands(options?.fd), ...createLessCommands(options?.less)];
 }
 
 export interface AgentCommandsOptions {
@@ -66,7 +73,11 @@ export interface AgentCommandsOptions {
   readonly hexdump?: Omit<HexdumpCommandsOptions, "replace">;
   readonly iconv?: Omit<IconvCommandsOptions, "replace">;
   readonly lineEndings?: Omit<LineEndingCommandsOptions, "replace">;
-  readonly muscleMemory?: boolean | Omit<MuscleMemoryCommandsOptions, "replace">;
+  readonly bc?: Omit<BcCommandsOptions, "replace">;
+  readonly sponge?: Omit<SpongeCommandsOptions, "replace">;
+  readonly fd?: Omit<FdCommandsOptions, "replace">;
+  readonly less?: Omit<LessCommandsOptions, "replace">;
+  readonly muscleMemory?: boolean;
   readonly du?: Omit<DuCommandsOptions, "replace">;
   readonly htmlToMarkdown?: Omit<HtmlToMarkdownCommandsOptions, "replace">;
   readonly replace?: boolean;
@@ -94,7 +105,7 @@ export interface AgentCommandsOptions {
 
 export function commandExecutor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
   return async context => {
-    const command = lookup(context.command) ?? getMuscleMemoryCommand(context.command);
+    const command = lookup(context.command) ?? getExtraAgentCommand(context.command);
     if (command) return command.execute(context);
     await diagnostic(context, new PublicDiagnostic("command not found"));
     return { exitCode: 127 };
@@ -262,7 +273,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createHexdumpCommands({ ...(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }), ...(hexdumpDialect === undefined ? {} : { dialect: hexdumpDialect }) }),
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
     ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
-    ...(options.muscleMemory ? createMuscleMemoryCommands(typeof options.muscleMemory === "object" ? options.muscleMemory : {}) : []),
+    ...(options.muscleMemory ? createExtraAgentCommands(options) : []),
   );
   return commands;
 }

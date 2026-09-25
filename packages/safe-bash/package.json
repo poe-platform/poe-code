@@ -471,6 +471,22 @@
     "./commands/imagemagick": {
       "types": "./dist/commands/imagemagick/index.d.ts",
       "import": "./dist/commands/imagemagick/index.js"
+    },
+    "./commands/bc": {
+      "types": "./dist/commands/bc/index.d.ts",
+      "import": "./dist/commands/bc/index.js"
+    },
+    "./commands/sponge": {
+      "types": "./dist/commands/sponge/index.d.ts",
+      "import": "./dist/commands/sponge/index.js"
+    },
+    "./commands/fd": {
+      "types": "./dist/commands/fd/index.d.ts",
+      "import": "./dist/commands/fd/index.js"
+    },
+    "./commands/less": {
+      "types": "./dist/commands/less/index.d.ts",
+      "import": "./dist/commands/less/index.js"
     }
   },
   "files": [
@@ -596,7 +612,11 @@
     "safe-bash-command-imagemagick": "*",
     "safe-bash-command-yq": "*",
     "safe-bash-query-engine": "*",
-    "safe-bash-regex-engine": "*"
+    "safe-bash-regex-engine": "*",
+    "safe-bash-command-bc": "*",
+    "safe-bash-command-sponge": "*",
+    "safe-bash-command-fd": "*",
+    "safe-bash-command-less": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -900,6 +920,38 @@
             "safe-bash-contracts": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-bc": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-sponge": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-fd": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-less": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
         }
       }
     }

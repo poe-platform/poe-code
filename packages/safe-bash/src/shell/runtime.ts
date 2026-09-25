@@ -8,7 +8,10 @@ import {
 import type {
   ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
 } from "../contracts/index.js";
-import { createMuscleMemoryCommands } from "../commands/muscle-memory/index.js";
+import { createBcCommands } from "../commands/bc/index.js";
+import { createSpongeCommands } from "../commands/sponge/index.js";
+import { createFdCommands } from "../commands/fd/index.js";
+import { createLessCommands } from "../commands/less/index.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
@@ -2245,7 +2248,7 @@ let nextProcessSubstitutionId = 0;
 let defaultRuntimeMuscleMemoryMap: ReadonlyMap<string, CommandDefinition> | undefined;
 
 function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefined {
-  defaultRuntimeMuscleMemoryMap ??= new Map(createMuscleMemoryCommands().map(cmd => [cmd.name, cmd]));
+  defaultRuntimeMuscleMemoryMap ??= new Map([...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands()].map(cmd => [cmd.name, cmd]));
   return defaultRuntimeMuscleMemoryMap.get(name);
 }
 const fastSubScratchArgs: string[] = [];

@@ -692,16 +692,46 @@ function decodeUtf8Subject(bytes: Uint8Array): DecodedSubject {
   return { cps, offsets, length: count };
 }
 
+function extractLeadingLiteral(node: AstNode): { cp: number; insensitive: boolean } | undefined {
+  if (node.type === "literal") {
+    return { cp: node.cp, insensitive: node.insensitive };
+  }
+  if (node.type === "seq") {
+    for (const child of node.children) {
+      if (child.type === "empty" || child.type === "assert") continue;
+      return extractLeadingLiteral(child);
+    }
+  }
+  if (node.type === "rep" && node.min >= 1) {
+    return extractLeadingLiteral(node.child);
+  }
+  return undefined;
+}
+
 export class ErgonomicVmMatcher {
   private readonly insts: readonly NfaInst[];
   private readonly multiline: boolean;
   private readonly visited: Int32Array;
+  private readonly clistStates: Int32Array;
+  private readonly clistStarts: Int32Array;
+  private readonly nlistStates: Int32Array;
+  private readonly nlistStarts: Int32Array;
+  private readonly leadingLiteral: { cp: number; foldedCp: number; insensitive: boolean } | undefined;
   private stepStamp = 1;
 
   constructor(rootAst: AstNode, multiline: boolean) {
     this.insts = compileAstToNfa(rootAst);
     this.multiline = multiline;
-    this.visited = new Int32Array(this.insts.length);
+    const n = this.insts.length;
+    this.visited = new Int32Array(n);
+    this.clistStates = new Int32Array(n);
+    this.clistStarts = new Int32Array(n);
+    this.nlistStates = new Int32Array(n);
+    this.nlistStarts = new Int32Array(n);
+    const lead = extractLeadingLiteral(rootAst);
+    this.leadingLiteral = lead
+      ? { cp: lead.cp, foldedCp: foldAsciiCp(lead.cp), insensitive: lead.insensitive }
+      : undefined;
   }
 
   private evalAssertion(
@@ -746,10 +776,13 @@ export class ErgonomicVmMatcher {
     const { cps, length } = subject;
     const insts = this.insts;
     const visited = this.visited;
-    let clistStates: number[] = [];
-    let clistStarts: number[] = [];
-    let nlistStates: number[] = [];
-    let nlistStarts: number[] = [];
+    const clistStates = this.clistStates;
+    const clistStarts = this.clistStarts;
+    const nlistStates = this.nlistStates;
+    const nlistStarts = this.nlistStarts;
+    let clistLen = 0;
+    let nlistLen = 0;
+    const lead = this.leadingLiteral;
 
     let matchedStart = -1;
     let matchedEnd = -1;
@@ -759,22 +792,20 @@ export class ErgonomicVmMatcher {
       startPos: number,
       pos: number,
       stamp: number,
-      listStates: number[],
-      listStarts: number[],
     ): boolean => {
       if (visited[stateId] === stamp) return false;
       visited[stateId] = stamp;
       const inst = insts[stateId]!;
       if (inst.op === "jump") {
-        return addThread(inst.out, startPos, pos, stamp, listStates, listStarts);
+        return addThread(inst.out, startPos, pos, stamp);
       }
       if (inst.op === "split") {
-        if (addThread(inst.out1, startPos, pos, stamp, listStates, listStarts)) return true;
-        return addThread(inst.out2, startPos, pos, stamp, listStates, listStarts);
+        if (addThread(inst.out1, startPos, pos, stamp)) return true;
+        return addThread(inst.out2, startPos, pos, stamp);
       }
       if (inst.op === "assert") {
         if (this.evalAssertion(inst.kind, cps, length, pos)) {
-          return addThread(inst.out, startPos, pos, stamp, listStates, listStarts);
+          return addThread(inst.out, startPos, pos, stamp);
         }
         return false;
       }
@@ -786,41 +817,48 @@ export class ErgonomicVmMatcher {
         matchedEnd = pos;
         return true;
       }
-      listStates.push(stateId);
-      listStarts.push(startPos);
+      nlistStates[nlistLen] = stateId;
+      nlistStarts[nlistLen] = startPos;
+      nlistLen++;
       return false;
     };
 
     for (let pos = fromCp; pos <= length; pos++) {
+      if (clistLen === 0 && matchedStart < 0 && lead !== undefined && pos < length) {
+        if (!lead.insensitive) {
+          while (pos < length && cps[pos] !== lead.cp) pos++;
+        } else {
+          while (pos < length && cps[pos] !== lead.cp && foldAsciiCp(cps[pos]!) !== lead.foldedCp) pos++;
+        }
+        if (pos > length) break;
+      }
       const stamp = ++this.stepStamp;
       if (this.stepStamp >= 0x7ffffff0) {
         visited.fill(0);
         this.stepStamp = 1;
       }
-      nlistStates = [];
-      nlistStarts = [];
+      nlistLen = 0;
 
       let acceptedAtPos = false;
-      for (let i = 0; i < clistStates.length; i++) {
-        if (addThread(clistStates[i]!, clistStarts[i]!, pos, stamp, nlistStates, nlistStarts)) {
+      for (let i = 0; i < clistLen; i++) {
+        if (addThread(clistStates[i]!, clistStarts[i]!, pos, stamp)) {
           acceptedAtPos = true;
           break;
         }
       }
 
       if (!acceptedAtPos && matchedStart < 0) {
-        addThread(0, pos, pos, stamp, nlistStates, nlistStarts);
+        addThread(0, pos, pos, stamp);
       }
 
-      if (matchedStart >= 0 && nlistStates.length === 0) {
+      if (matchedStart >= 0 && nlistLen === 0) {
         return { start: matchedStart, end: matchedEnd };
       }
       if (pos === length) break;
 
       const cp = cps[pos]!;
-      const nextStates: number[] = [];
-      const nextStarts: number[] = [];
-      for (let i = 0; i < nlistStates.length; i++) {
+      clistLen = 0;
+      for (let i = 0; i < nlistLen; i++) {
         const st = nlistStates[i]!;
         const startPos = nlistStarts[i]!;
         const inst = insts[st]!;
@@ -833,13 +871,12 @@ export class ErgonomicVmMatcher {
           if (evalClassNode(inst.node, cp)) nextOut = inst.out;
         }
         if (nextOut >= 0) {
-          nextStates.push(nextOut);
-          nextStarts.push(startPos);
+          clistStates[clistLen] = nextOut;
+          clistStarts[clistLen] = startPos;
+          clistLen++;
         }
       }
-      clistStates = nextStates;
-      clistStarts = nextStarts;
-      if (matchedStart >= 0 && clistStates.length === 0) {
+      if (matchedStart >= 0 && clistLen === 0) {
         return { start: matchedStart, end: matchedEnd };
       }
     }
@@ -889,10 +926,17 @@ function buildFixedAst(pattern: string, insensitive: boolean): AstNode {
   return { type: "seq", children };
 }
 
+const preparedRegexCache = new Map<string, PreparedErgonomicRegex>();
+const MAX_PREPARED_REGEX_CACHE = 256;
+
 export function prepareErgonomicRegex(
   patterns: readonly string[],
   config: ErgonomicRegexConfig,
 ): PreparedErgonomicRegex {
+  const cacheKey = `${config.kind}\0${config.extended ? 1 : 0}\0${config.fixed ? 1 : 0}\0${config.caseMode}\0${config.multiline ? 1 : 0}\0${config.multilineDotall ? 1 : 0}\0${config.word ? 1 : 0}\0${config.whole ? 1 : 0}\0${config.nullData ? 1 : 0}\0${patterns.join("\u0001")}`;
+  const cached = preparedRegexCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
   const multiline = Boolean(config.multiline);
   const dotall = Boolean(config.multilineDotall);
   const bre = config.kind === "grep" && !config.extended;
@@ -941,23 +985,30 @@ export function prepareErgonomicRegex(
     if (outcome.hasCrossLinePotential) anyCrossLine = true;
   }
 
+  let result: PreparedErgonomicRegex;
   if (!anyNeedsVm) {
-    return {
+    result = {
       mode: "delegated",
       patterns: translated,
       extended: true,
     };
+  } else {
+    let root: AstNode = branches.length === 1 ? branches[0]! : { type: "alt", branches };
+    if (config.whole) {
+      root = { type: "seq", children: [{ type: "assert", kind: "bol" }, root, { type: "assert", kind: "eol" }] };
+    } else if (config.word) {
+      root = { type: "seq", children: [{ type: "assert", kind: "bow" }, root, { type: "assert", kind: "eow" }] };
+    }
+    result = {
+      mode: "vm",
+      vm: new ErgonomicVmMatcher(root, multiline),
+      crossLine: multiline && anyCrossLine,
+    };
   }
-
-  let root: AstNode = branches.length === 1 ? branches[0]! : { type: "alt", branches };
-  if (config.whole) {
-    root = { type: "seq", children: [{ type: "assert", kind: "bol" }, root, { type: "assert", kind: "eol" }] };
-  } else if (config.word) {
-    root = { type: "seq", children: [{ type: "assert", kind: "bow" }, root, { type: "assert", kind: "eow" }] };
+  if (preparedRegexCache.size >= MAX_PREPARED_REGEX_CACHE) {
+    const firstKey = preparedRegexCache.keys().next().value;
+    if (firstKey !== undefined) preparedRegexCache.delete(firstKey);
   }
-  return {
-    mode: "vm",
-    vm: new ErgonomicVmMatcher(root, multiline),
-    crossLine: multiline && anyCrossLine,
-  };
+  preparedRegexCache.set(cacheKey, result);
+  return result;
 }

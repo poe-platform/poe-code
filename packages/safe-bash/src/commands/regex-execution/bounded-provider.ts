@@ -11,7 +11,7 @@ import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
 import { ExprMatchError, exprMatchCeilings, inProcessRegexProviders,
-  inProcessRegexWorkers, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+  inProcessRegexWorkers, reusableBatchRows, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -58,6 +58,14 @@ const byteBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, "buffer"
 const emptyFloat64 = new Float64Array(0);
 const emptyFloat64Results: readonly Float64Array[] = [];
 const emptyMatchRow: Match[] = [];
+const reusableDirectMatchesPool: Match[] = new Array(128).fill(emptyMatchRow);
+const reusableDirectMatchesByLength: Match[][][] = Array.from({ length: 129 }, (_, k) => reusableDirectMatchesPool.slice(0, k) as unknown as Match[][]);
+const reusableTrustedReply: { id: number; results: readonly Float64Array[]; directMatches: Match[][] } = {
+  id: 0,
+  results: emptyFloat64Results,
+  directMatches: [],
+};
+trustedWorkerReplies.add(reusableTrustedReply);
 
 function fail(kind: "protocol" | "unsupported" | "limit", message: string): never {
   throw new PublicDiagnostic(`bounded regex ${kind}: ${message}`);
@@ -193,7 +201,12 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
   if (allowSharedLedger && knownTrustedRows) {
     const ledger = sharedSyncLedger.resetWithLimits(getPrevalidatedEreLimits(limits, selected.fixed));
     ledger.charge("allocationUnits", bytes + input.rows.length * 12 + selected.patterns.length * 2 + 16, signal);
-    return { id: input.id, descriptor: selected, rows: input.rows, ledger, limits } as OwnedRequest;
+    sharedOwnedRequest.id = input.id;
+    sharedOwnedRequest.descriptor = selected as SelectionDescriptor;
+    sharedOwnedRequest.rows = input.rows;
+    sharedOwnedRequest.ledger = ledger;
+    sharedOwnedRequest.limits = limits;
+    return sharedOwnedRequest;
   }
   const ledger = selected.kind !== "glob"
     ? EreLedger.withPrevalidatedLimits(getPrevalidatedEreLimits(limits, selected.fixed))
@@ -645,9 +658,13 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
   runYieldCheckpoint(signal);
   if (rows.length === 0) {
     signal.throwIfAborted();
-    return { id: input.id, results: emptyFloat64Results, directMatches: [] };
+    reusableTrustedReply.id = input.id;
+    reusableTrustedReply.directMatches = reusableDirectMatchesByLength[0]!;
+    return reusableTrustedReply;
   }
-  const directMatches: Match[][] = new Array(rows.length);
+  const directMatches: Match[][] = reusableBatchRows.has(rows) && rows.length <= 128
+    ? reusableDirectMatchesByLength[rows.length]!
+    : new Array(rows.length);
   let matchCount = 0;
   const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
   const leftmostFirst = selected.kind === "rg";
@@ -679,12 +696,27 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     }
   }
   signal.throwIfAborted();
-  return { id: input.id, results: emptyFloat64Results, directMatches };
+  reusableTrustedReply.id = input.id;
+  reusableTrustedReply.directMatches = directMatches;
+  return reusableTrustedReply;
 }
 const sharedSyncLedger = EreLedger.withPrevalidatedLimits(Object.freeze({
   patternBytes: Infinity, subjectBytes: Infinity, work: Infinity,
   states: Infinity, allocationUnits: Infinity, captureBytes: Infinity, captureSlots: Infinity,
 }));
+const sharedOwnedRequest: {
+  id: number;
+  descriptor: SelectionDescriptor;
+  rows: readonly Row[];
+  ledger: EreLedger;
+  limits: Required<BoundedRegexProviderOptions>;
+} = {
+  id: 0,
+  descriptor: undefined as unknown as SelectionDescriptor,
+  rows: [],
+  ledger: sharedSyncLedger,
+  limits: undefined as unknown as Required<BoundedRegexProviderOptions>,
+};
 let cachedWorkerLimitsRef: Required<BoundedRegexProviderOptions> | undefined;
 let cachedFixedEreLimits: any;
 let cachedRegexEreLimits: any;
@@ -793,7 +825,9 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   runYieldCheckpoint(signal);
   const programs = lastLiteralCache.programs;
   ledger.charge("allocationUnits", 3, signal);
-  const directMatches: Match[][] = new Array(rows.length);
+  const directMatches: Match[][] = reusableBatchRows.has(rows) && rows.length <= 128
+    ? reusableDirectMatchesByLength[rows.length]!
+    : new Array(rows.length);
   let matchCount = 0;
   const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
   for (let r = 0; r < rows.length; r++) {
@@ -843,7 +877,9 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
     }
   }
   signal.throwIfAborted();
-  return { id: input.id, results: emptyFloat64Results, directMatches };
+  reusableTrustedReply.id = input.id;
+  reusableTrustedReply.directMatches = directMatches;
+  return reusableTrustedReply;
 }
 
 function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undefined {
@@ -853,11 +889,21 @@ function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undef
   let literal = selected.fixed;
   if (!literal) {
     literal = true;
-    patterns: for (const pattern of selected.patterns) {
+    patterns: for (let pIdx = 0; pIdx < selected.patterns.length; pIdx++) {
+      const pattern = selected.patterns[pIdx]!;
       if (ledger.workAllowanceUntilCheckpoint(signal) < pattern.length) return undefined;
       ledger.charge("work", pattern.length, signal);
-      for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)
-        || selected.kind === "grep" && character.charCodeAt(0) >= 128) { literal = false; break patterns; }
+      for (let cIdx = 0; cIdx < pattern.length; cIdx++) {
+        const ch = pattern.charCodeAt(cIdx);
+        if (
+          ch === 92 || ch === 46 || ch === 94 || ch === 36 || ch === 91 || ch === 93 ||
+          ch === 40 || ch === 41 || ch === 124 || ch === 42 || ch === 43 || ch === 63 ||
+          ch === 123 || ch === 125 || (selected.kind === "grep" && ch >= 128)
+        ) {
+          literal = false;
+          break patterns;
+        }
+      }
     }
   }
   if (!literal) return tryExecuteEreSync(input, signal, foldOrPromise);
@@ -1061,6 +1107,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
 class CooperativeWorker implements RegexWorker {
   readonly controller = new AbortController();
   readonly listeners = new Map<WorkerEvent, Set<Listener>>();
+  private singleMessageListener: ((message: unknown) => void) | undefined;
   readonly tasks = new Set<Promise<void>>();
   busy = false;
   closing: Promise<void> | undefined;
@@ -1075,23 +1122,47 @@ class CooperativeWorker implements RegexWorker {
     let listeners = this.listeners.get(event);
     if (!listeners) { listeners = new Set(); this.listeners.set(event, listeners); }
     listeners.add(listener);
+    if (event === "message") {
+      this.singleMessageListener = listeners.size === 1 ? (listener as (message: unknown) => void) : undefined;
+    }
   }
 
-  off(event: WorkerEvent, listener: Listener): void { this.listeners.get(event)?.delete(listener); }
+  off(event: WorkerEvent, listener: Listener): void {
+    const listeners = this.listeners.get(event);
+    listeners?.delete(listener);
+    if (event === "message") {
+      this.singleMessageListener = listeners?.size === 1 ? (listeners.values().next().value as (message: unknown) => void) : undefined;
+    }
+  }
 
   private emit(value: unknown): void {
-    for (const listener of this.listeners.get("message") ?? []) (listener as (message: unknown) => void)(value);
+    if (this.singleMessageListener !== undefined) {
+      this.singleMessageListener(value);
+      return;
+    }
+    const listeners = this.listeners.get("message");
+    if (listeners) for (const listener of listeners) (listener as (message: unknown) => void)(value);
   }
 
   postMessage(input: RegexWorkerRequest): void {
     if (this.closing) throw new Error("bounded regex worker is closed");
     if (this.busy) throw new Error("bounded regex worker is busy");
-    const identity = input !== null && typeof input === "object" ? Object.getOwnPropertyDescriptor(input, "id") : undefined;
-    if (!identity || !("value" in identity) || !Number.isSafeInteger(identity.value) || identity.value < 1) fail("protocol", "invalid request identity");
-    const id = identity.value as number;
-    const submitted = Object.getOwnPropertyDescriptor(input, "descriptor")?.value as unknown;
-    const operation: unknown = submitted !== null && typeof submitted === "object" ? Object.getOwnPropertyDescriptor(submitted, "kind")?.value : undefined;
-    const expression = operation === "expr-match" || operation === "bre-search";
+    const isTrusted = trustedWorkerRequests.has(input);
+    let id: number;
+    let operation: unknown;
+    let expression: boolean;
+    if (isTrusted) {
+      id = input.id;
+      operation = (input.descriptor as { kind?: unknown })?.kind;
+      expression = operation === "expr-match" || operation === "bre-search";
+    } else {
+      const identity = input !== null && typeof input === "object" ? Object.getOwnPropertyDescriptor(input, "id") : undefined;
+      if (!identity || !("value" in identity) || !Number.isSafeInteger(identity.value) || identity.value < 1) fail("protocol", "invalid request identity");
+      id = identity.value as number;
+      const submitted = Object.getOwnPropertyDescriptor(input, "descriptor")?.value as unknown;
+      operation = submitted !== null && typeof submitted === "object" ? Object.getOwnPropertyDescriptor(submitted, "kind")?.value : undefined;
+      expression = operation === "expr-match" || operation === "bre-search";
+    }
     let owned: OwnedRequest | OwnedGlobRequest | OwnedExprRequest | undefined;
     let failure: string | undefined;
     let category: ExprMatchError["category"] = "unsupported";
@@ -1105,12 +1176,11 @@ class CooperativeWorker implements RegexWorker {
     }
     // Only the in-process executor consumes private direct-match replies.
     // Public worker requests retain the wire protocol's owned span arrays.
-    if (trustedWorkerRequests.has(input) && owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
+    if (isTrusted && owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
       try {
         this.controller.signal.throwIfAborted();
         const syncReply = tryExecuteSync(owned as OwnedRequest, this.controller.signal);
         if (syncReply !== undefined) {
-          trustedWorkerReplies.add(syncReply);
           owned = undefined;
           if (!this.closing) this.emit(syncReply);
           return;
@@ -1133,6 +1203,17 @@ class CooperativeWorker implements RegexWorker {
         } else throw error;
       }
     }
+    this.scheduleAsyncTask(id, operation, expression, owned, failure, category);
+  }
+
+  private scheduleAsyncTask(
+    id: number,
+    operation: unknown,
+    expression: boolean,
+    owned: OwnedRequest | OwnedGlobRequest | OwnedExprRequest | undefined,
+    failure: string | undefined,
+    category: ExprMatchError["category"],
+  ): void {
     this.busy = true;
     const task = Promise.resolve().then(async () => {
       let reply: Reply | ExprMatchReply | BreSearchReply;

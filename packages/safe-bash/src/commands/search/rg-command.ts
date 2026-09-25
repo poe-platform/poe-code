@@ -1,5 +1,6 @@
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { hasYieldCheckpoint } from "../../contracts/yield.js";
 import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
 import { Matcher, type Match } from "./matcher.js";
 import { parse, SearchError, type Arguments, type SearchOptions } from "./options.js";
@@ -10,6 +11,95 @@ import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-e
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "./requirements.js";
 
 const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
+const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
+const BATCH_SIZE_1: () => number = () => 1;
+const BATCH_SIZE_128: () => number = () => 128;
+
+function trySearchFileSync(
+  context: CommandContext,
+  args: Arguments,
+  limits: Limits,
+  matcher: Matcher,
+  printer: Printer,
+  target: FileTarget,
+  filename: boolean,
+  totals: Stats,
+): boolean | Promise<boolean> | undefined {
+  if (args.mode === "json") return undefined;
+  const selectedOutput = !args.quiet && args.mode === "lines";
+  if (selectedOutput || args.before > 0 || args.after > 0 || target.path === "-") return undefined;
+  const backing = target.canonicalPath ? getRuntimeBackingFileSystem(context.fs) : undefined;
+  if (!target.canonicalPath || !backing || backing.capabilitiesFor !== undefined || context.fs.capabilities.read === false || backing.capabilities.read === false) {
+    return undefined;
+  }
+  assertCommandRequirements(context, searchRequirements, ["file"]);
+  const maxBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
+  const view = tryReadMemoryFileViewSync(backing, target.canonicalPath, maxBytes, context.signal);
+  if (view === undefined) return undefined;
+  if (args.maxCount === 0) {
+    totals.searches++;
+    return false;
+  }
+  sharedReadState.bytesRead = 0;
+  sharedReadState.bytesSearched = 0;
+  sharedReadState.binaryOffset = null;
+  sharedReadState.skipped = false;
+  const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
+  const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "matches";
+  const batchSizeFn = Number.isFinite(args.maxCount) || args.quiet || args.mode === "with" || args.mode === "without" ? BATCH_SIZE_1 : BATCH_SIZE_128;
+  const syncBatches = trySyncLineBatches(view, limits, sharedReadState, binary, args.nullData, batchSizeFn, needAll, args.crlf, true);
+  if (syncBatches === undefined) return undefined;
+  const hasExtYield = hasYieldCheckpoint(context.signal);
+  let pendingTick: Promise<void> | undefined;
+  let matchedLines = 0;
+  let matchesCount = 0;
+  let lastSelectedEnd = 0;
+  records: for (let bIdx = 0; bIdx < syncBatches.length; bIdx++) {
+    const batch = syncBatches[bIdx]!;
+    const batchRes = matcher.batchSync(batch);
+    if (batchRes instanceof Promise) return undefined;
+    for (let index = 0; index < batch.length; index++) {
+      const line = batch[index]!;
+      sharedReadState.bytesSearched = line.offset + line.rawLength;
+      const t = limits.tick();
+      if (t !== undefined) {
+        if (hasExtYield) return undefined;
+        pendingTick ??= t;
+      }
+      const matches = batchRes[index]!;
+      const selected = (matches.length > 0) !== args.invert;
+      if (selected) lastSelectedEnd = line.offset + line.rawLength;
+      if (selected && matchedLines < args.maxCount) {
+        matchedLines++;
+        matchesCount += args.invert ? 0 : matches.length;
+        if (args.quiet || args.mode === "with" || args.mode === "without") break records;
+      }
+      if (matchedLines >= args.maxCount) {
+        sharedReadState.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.rawLength === line.content.length ? line.offset : 0);
+        break records;
+      }
+    }
+  }
+  const matched = matchedLines > 0;
+  const found = args.mode === "without" ? !matched && !sharedReadState.skipped : matched;
+  totals.searches++;
+  if (matched) totals.searches_with_match++;
+  totals.bytes_searched += sharedReadState.bytesSearched;
+  totals.matched_lines += matchedLines;
+  totals.matches += matchesCount;
+  if (!args.quiet) {
+    if ((args.mode === "with" || args.mode === "without") && found) {
+      const p = printer.filenameSyncOrAsync(target.label);
+      if (p) return pendingTick ? Promise.all([pendingTick, p]).then(() => found) : p.then(() => found);
+    }
+    if ((args.mode === "count" || args.mode === "matches") && (matched || args.includeZero) && !sharedReadState.skipped) {
+      const amount = !args.invert && (args.mode === "matches" || args.onlyMatching) ? matchesCount : matchedLines;
+      const p = printer.countSyncOrAsync(target.label, amount, filename);
+      if (p) return pendingTick ? Promise.all([pendingTick, p]).then(() => found) : p.then(() => found);
+    }
+  }
+  return pendingTick ? pendingTick.then(() => found) : found;
+}
 
 interface InputSelection { readonly paths: readonly string[]; readonly implicit: boolean }
 
@@ -273,16 +363,11 @@ Unicode selection and extended regex syntax require a configured executor.
           if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
           const printer = new Printer(args, limits);
           const totals = stats();
-          for (const p of selection.paths) {
-            if (p !== "-") await assertPathRequirements(context, searchRequirements, ["metadata"], [p]);
-            await walker.walkTargets([p], selection.implicit, async target => {
-            if (args!.mode === "files") {
-              found = true;
-              if (!args!.quiet) { await printer.filename(target.label); return true; }
-              return false;
-            }
+          const multiPaths = selection.paths.length > 1;
+          const runTargetSlow = async (target: FileTarget, showFilename: boolean): Promise<boolean> => {
+            const snapshotTarget: FileTarget = { path: target.path, label: target.label, explicit: target.explicit, recursive: target.recursive, ...(target.canonicalPath !== undefined ? { canonicalPath: target.canonicalPath } : {}) };
             try {
-              const result = await searchFile(context, args!, limits!, matcher, printer, target, context.stdin, args!.filename ?? (target.recursive || selection.paths.length > 1));
+              const result = await searchFile(context, args!, limits!, matcher, printer, snapshotTarget, context.stdin, showFilename);
               found ||= result.found;
               totals.searches += result.stats.searches;
               totals.searches_with_match += result.stats.searches_with_match;
@@ -293,6 +378,41 @@ Unicode selection and extended regex syntax require a configured executor.
               if (args!.quiet && found && args!.mode !== "json") return false;
             } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
             return true;
+          };
+          for (const p of selection.paths) {
+            if (p !== "-") await assertPathRequirements(context, searchRequirements, ["metadata"], [p]);
+            await walker.walkTargets([p], selection.implicit, target => {
+              if (args!.mode === "files") {
+                found = true;
+                if (!args!.quiet) {
+                  const fRes = printer.filenameSyncOrAsync(target.label);
+                  return fRes ? fRes.then(() => true) : true;
+                }
+                return false;
+              }
+              const showFilename = args!.filename ?? (target.recursive || multiPaths);
+              try {
+                const syncOut = trySearchFileSync(context, args!, limits!, matcher, printer, target, showFilename, totals);
+                if (typeof syncOut === "boolean") {
+                  found ||= syncOut;
+                  if (args!.quiet && found && args!.mode !== "json") return false;
+                  return true;
+                }
+                if (syncOut instanceof Promise) {
+                  return syncOut.then(f => {
+                    found ||= f;
+                    return !(args!.quiet && found && args!.mode !== "json");
+                  }, async error => {
+                    if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+                    await report(error);
+                    return true;
+                  });
+                }
+              } catch (error) {
+                if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
+                return report(error).then(() => true);
+              }
+              return runTargetSlow(target, showFilename);
             });
             if (args.quiet && found && args.mode !== "json" || args.mode === "files" && args.quiet && found) break;
           }

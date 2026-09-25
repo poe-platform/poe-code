@@ -1400,3 +1400,29 @@ export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, 
   node.atimeMs = Date.now();
   return node.data;
 }
+
+export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path: string): ReadonlyMap<string, { readonly type: "file" | "directory" | "symlink" }> | undefined {
+  const mem = filesystem as MemoryFileSystem;
+  if (!ownedStores.has(mem) || mem.symlinkCount !== 0 || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
+  const root: DirectoryNode = (mem as unknown as { root: DirectoryNode }).root;
+  if (path === "/") {
+    if (((root.mode >> 6) & 4) !== 4) return undefined;
+    return root.entries;
+  }
+  if (!isCleanAbsolutePath(path) || path === "/dev" || path.startsWith("/dev/")) return undefined;
+  let current: DirectoryNode = root;
+  let start = 1;
+  while (true) {
+    if (((current.mode >> 6) & 1) !== 1) return undefined;
+    const slash = path.indexOf("/", start);
+    if (slash === -1) {
+      const next = current.entries.get(path.slice(start));
+      if (!next || next.type !== "directory" || ((next.mode >> 6) & 4) !== 4) return undefined;
+      return next.entries;
+    }
+    const next = current.entries.get(path.slice(start, slash));
+    if (!next || next.type !== "directory") return undefined;
+    current = next;
+    start = slash + 1;
+  }
+}

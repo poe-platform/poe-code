@@ -60,6 +60,13 @@ export const trustedWorkerReplies = new WeakSet<object>();
 export const inProcessRegexWorkers = new WeakSet<object>();
 export const inProcessRegexProviders = new WeakSet<object>();
 export const trustedInputRows = new WeakSet<readonly Row[]>();
+export const reusableBatchRows = new WeakSet<readonly Row[]>();
+export const reusableTrustedRequest: { id: number; descriptor: Descriptor; rows: readonly Row[] } = {
+  id: 0,
+  descriptor: undefined as unknown as Descriptor,
+  rows: [],
+};
+trustedWorkerRequests.add(reusableTrustedRequest);
 export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
 export type Reply = { readonly id: number; readonly results: readonly Float64Array[]; readonly directMatches?: Match[][] } | { readonly id: number; readonly error: string };
 

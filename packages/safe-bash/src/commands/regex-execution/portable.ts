@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, reusableTrustedRequest, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -63,6 +63,23 @@ class Slot {
   idleTimer: ReturnType<typeof setTimeout> | undefined;
   private receiver: ((value: unknown) => void) | undefined;
   private failure: ((error: unknown) => void) | undefined;
+  private static readonly syncResultBox: { sync: true; value: unknown } = { sync: true, value: undefined };
+  private syncSettled = false;
+  private syncRejected = false;
+  private syncValue: unknown;
+  private readonly syncReceiver = (value: unknown) => {
+    this.syncSettled = true;
+    this.syncRejected = false;
+    this.syncValue = value;
+  };
+  private readonly syncFailure = (error: unknown) => {
+    this.syncSettled = true;
+    this.syncRejected = true;
+    this.syncValue = error;
+  };
+  private readonly onIdleTimeout = () => {
+    if (!this.busy) void this.retire();
+  };
   terminal: unknown;
   private exited = false;
   private readonly message = (value: unknown) => {
@@ -131,6 +148,62 @@ class Slot {
       }),
     };
   }
+  armIdleTimer(idleTimeoutMs: number): void {
+    if (this.idleTimer === undefined && idleTimeoutMs !== Infinity) {
+      this.idleTimer = setTimeout(this.onIdleTimeout, idleTimeoutMs);
+      this.idleTimer?.unref?.();
+    }
+  }
+  postInProcessSync(message: { id: number; descriptor: Descriptor; rows: readonly Row[] }, timeout: number, signal: AbortSignal): { sync: true; value: unknown } | { sync: false; promise: Promise<unknown> } {
+    signal.throwIfAborted();
+    if (this.terminal !== undefined) return { sync: false, promise: Promise.reject(this.terminal) };
+    this.syncSettled = false;
+    this.syncRejected = false;
+    this.syncValue = undefined;
+    this.receiver = this.syncReceiver;
+    this.failure = this.syncFailure;
+    try {
+      this.worker.postMessage(message);
+    } catch (error) {
+      this.syncSettled = true;
+      this.syncRejected = true;
+      this.syncValue = error;
+    }
+    if (this.syncSettled) {
+      this.receiver = undefined;
+      this.failure = undefined;
+      const val = this.syncValue;
+      this.syncValue = undefined;
+      if (this.syncRejected) return { sync: false, promise: Promise.reject(val) };
+      Slot.syncResultBox.value = val;
+      return Slot.syncResultBox;
+    }
+    return this.awaitInProcessAsync(timeout, signal);
+  }
+  private awaitInProcessAsync(timeout: number, signal: AbortSignal): { sync: false; promise: Promise<unknown> } {
+    return {
+      sync: false,
+      promise: new Promise((resolve, reject) => {
+        const timer = timeout === Infinity ? undefined : setTimeout(() => {
+          this.receiver = undefined;
+          this.failure = undefined;
+          reject(new RegexExecutionError("REQUEST_TIMEOUT", `active request exceeded ${timeout}ms`));
+        }, timeout);
+        this.receiver = value => {
+          if (timer !== undefined) clearTimeout(timer);
+          this.receiver = undefined;
+          this.failure = undefined;
+          resolve(value);
+        };
+        this.failure = error => {
+          if (timer !== undefined) clearTimeout(timer);
+          this.receiver = undefined;
+          this.failure = undefined;
+          reject(error);
+        };
+      }),
+    };
+  }
   exchange(timeout: number, startup: boolean, signal: AbortSignal, send?: () => void): Promise<unknown> {
     const res = this.exchangeSyncOrAsync(timeout, startup, signal, send);
     return res.sync ? Promise.resolve(res.value) : res.promise;
@@ -158,6 +231,7 @@ class Slot {
 export class RegexExecutor {
   readonly options: Required<RegexExecutionOptions>;
   private readonly slots = new Set<Slot>();
+  private cachedReadySlot: Slot | undefined;
   private readonly queue: Pending[] = [];
   private queuedBytes = 0;
   private sessions = 0;
@@ -189,34 +263,83 @@ export class RegexExecutor {
     await Promise.all([...this.slots].map(slot => slot.retire()));
   }
   retired(slot: Slot): void {
+    if (this.cachedReadySlot === slot) this.cachedReadySlot = undefined;
     this.slots.delete(slot);
     this.pump();
+  }
+  private findReadySlot(): Slot | undefined {
+    const cached = this.cachedReadySlot;
+    if (cached !== undefined && !cached.busy && !cached.retired && cached.ready && cached.terminal === undefined) {
+      return cached;
+    }
+    for (const candidate of this.slots) {
+      if (!candidate.busy && !candidate.retired && candidate.ready && candidate.terminal === undefined) {
+        this.cachedReadySlot = candidate;
+        return candidate;
+      }
+    }
+    if (this.slots.size < this.options.maxWorkers && inProcessRegexProviders.has(this.provider)) {
+      const candidate = new Slot(this);
+      this.slots.add(candidate);
+      if (!candidate.busy && candidate.ready && candidate.terminal === undefined) {
+        this.cachedReadySlot = candidate;
+        return candidate;
+      }
+    }
+    return undefined;
+  }
+  private exchangeOutOfProcessSyncOrAsync(readySlot: Slot, id: number, descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal) {
+    const workerRows = rows.map(row => ({ bytes: row.bytes, all: row.all, terminated: row.terminated, ...(row.directory !== undefined ? { directory: row.directory } : {}), ...(row.ancestors !== undefined ? { ancestors: row.ancestors } : {}) }));
+    const message = { id, descriptor, rows: workerRows };
+    trustedWorkerRequests.add(message);
+    return readySlot.exchangeSyncOrAsync(this.options.requestTimeoutMs, false, signal, () => readySlot.worker.postMessage(message));
+  }
+  private finishSyncRequestAsync(readySlot: Slot, promise: Promise<unknown>, id: number, rows: readonly Row[], signal: AbortSignal, retirements: Set<Promise<void>>): Promise<Match[][]> {
+    clearTimeout(readySlot.idleTimer);
+    readySlot.idleTimer = undefined;
+    readySlot.worker.ref?.();
+    const onAbort = () => readySlot.fail(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+    return promise.then(
+      reply => {
+        const validated = validateReply(reply, id, rows, signal);
+        signal.throwIfAborted();
+        return validated;
+      },
+      async error => {
+        const retirement = readySlot.retire();
+        retirements.add(retirement);
+        try { await retirement; } catch {}
+        throw signal.aborted ? signal.reason : error;
+      },
+    ).finally(() => {
+      signal.removeEventListener("abort", onAbort);
+      readySlot.busy = false;
+      if (readySlot.retired) this.retired(readySlot);
+      else {
+        readySlot.worker.unref?.();
+        readySlot.armIdleTimer(this.options.idleTimeoutMs);
+      }
+      this.pump();
+    });
   }
   requestSyncOrAsync(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements: Set<Promise<void>>): Match[][] | Promise<Match[][]> {
     signal.throwIfAborted();
     if (this.disposed) return Promise.reject(new RegexExecutionError("CLOSED", "executor is disposed"));
     if (this.queue.length === 0 && trustedInputRows.has(rows)) {
-      let readySlot: Slot | undefined;
-      for (const candidate of this.slots) {
-        if (!candidate.busy && !candidate.retired && candidate.ready && candidate.terminal === undefined) {
-          readySlot = candidate;
-          break;
-        }
-      }
-      if (!readySlot && this.slots.size < this.options.maxWorkers && inProcessRegexProviders.has(this.provider)) {
-        const candidate = new Slot(this);
-        this.slots.add(candidate);
-        if (!candidate.busy && candidate.ready && candidate.terminal === undefined) {
-          readySlot = candidate;
-        }
-      }
+      const readySlot = this.findReadySlot();
       if (readySlot) {
         const id = ++this.sequence;
-        const workerRows = readySlot.inProcess ? rows : rows.map(row => ({ bytes: row.bytes, all: row.all, terminated: row.terminated, ...(row.directory !== undefined ? { directory: row.directory } : {}), ...(row.ancestors !== undefined ? { ancestors: row.ancestors } : {}) }));
-        const message = { id, descriptor, rows: workerRows };
-        trustedWorkerRequests.add(message);
         readySlot.busy = true;
-        const ex = readySlot.exchangeSyncOrAsync(this.options.requestTimeoutMs, false, signal, () => readySlot!.worker.postMessage(message));
+        let ex: { sync: true; value: unknown } | { sync: false; promise: Promise<unknown> };
+        if (readySlot.inProcess) {
+          reusableTrustedRequest.id = id;
+          reusableTrustedRequest.descriptor = descriptor;
+          reusableTrustedRequest.rows = rows;
+          ex = readySlot.postInProcessSync(reusableTrustedRequest, this.options.requestTimeoutMs, signal);
+        } else {
+          ex = this.exchangeOutOfProcessSyncOrAsync(readySlot, id, descriptor, rows, signal);
+        }
         if (ex.sync) {
           try {
             const validated = validateReply(ex.value, id, rows, signal);
@@ -229,41 +352,11 @@ export class RegexExecutor {
           } finally {
             readySlot.busy = false;
             if (readySlot.retired) this.retired(readySlot);
-            else if (readySlot.idleTimer === undefined && this.options.idleTimeoutMs !== Infinity) {
-              readySlot.idleTimer = setTimeout(() => { if (!readySlot!.busy) void readySlot!.retire(); }, this.options.idleTimeoutMs);
-              readySlot.idleTimer?.unref?.();
-            }
+            else readySlot.armIdleTimer(this.options.idleTimeoutMs);
             if (this.queue.length > 0) this.pump();
           }
         }
-        clearTimeout(readySlot.idleTimer);
-        readySlot.idleTimer = undefined;
-        readySlot.worker.ref?.();
-        const onAbort = () => readySlot!.fail(signal.reason);
-        signal.addEventListener("abort", onAbort, { once: true });
-        return ex.promise.then(
-          reply => {
-            const validated = validateReply(reply, id, rows, signal);
-            signal.throwIfAborted();
-            return validated;
-          },
-          async error => {
-            const retirement = readySlot!.retire();
-            retirements.add(retirement);
-            try { await retirement; } catch {}
-            throw signal.aborted ? signal.reason : error;
-          },
-        ).finally(() => {
-          signal.removeEventListener("abort", onAbort);
-          readySlot!.busy = false;
-          if (readySlot!.retired) this.retired(readySlot!);
-          else {
-            readySlot!.worker.unref?.();
-            readySlot!.idleTimer = this.options.idleTimeoutMs === Infinity ? undefined : setTimeout(() => { if (!readySlot!.busy) void readySlot!.retire(); }, this.options.idleTimeoutMs);
-            readySlot!.idleTimer?.unref?.();
-          }
-          this.pump();
-        });
+        return this.finishSyncRequestAsync(readySlot, ex.promise, id, rows, signal, retirements);
       }
     }
     return this.request(descriptor, rows, signal, retirements);
@@ -382,14 +475,18 @@ export class RegexSession {
   constructor(private readonly executor: RegexExecutor, private readonly signal: AbortSignal) {
     this.requestSignal = AbortSignal.any([signal, this.controller.signal]);
   }
+  private trackPending<T extends Match[][] | ExprMatchResult | BreSearchResult>(result: Promise<T>): Promise<T> {
+    this.pending.add(result);
+    const cleanup = () => this.pending.delete(result);
+    void result.then(cleanup, cleanup);
+    return result;
+  }
   runSync(descriptor: Descriptor, rows: readonly Row[]): Match[][] | Promise<Match[][]> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
     const result = this.executor.requestSyncOrAsync(descriptor, rows, this.requestSignal, this.retirements);
     if (!(result instanceof Promise)) return result;
-    this.pending.add(result);
-    void result.then(() => this.pending.delete(result), () => this.pending.delete(result));
-    return result;
+    return this.trackPending(result);
   }
   run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]> {
     const res = this.runSync(descriptor, rows);

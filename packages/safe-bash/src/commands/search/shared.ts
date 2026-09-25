@@ -1,7 +1,7 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { hasYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
-import { trustedInputRows } from "../regex-execution/protocol.js";
+import { reusableBatchRows, trustedInputRows } from "../regex-execution/protocol.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
 import { assertPathRequirements, searchRequirements } from "./requirements.js";
@@ -62,6 +62,30 @@ export class Limits {
       this.outPos = 0;
       await this.write(slice);
     }
+  }
+  outputSyncOrAsync(value: string | Uint8Array): Promise<void> | undefined {
+    if (typeof value === "string") {
+      const len = value.length;
+      let ascii = true;
+      for (let i = 0; i < len; i++) {
+        if (value.charCodeAt(i) >= 0x80) { ascii = false; break; }
+      }
+      if (ascii && len <= OUT_BUFFER_SIZE) {
+        if (this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+        let buf = this.outBuf;
+        if (!buf) buf = this.outBuf = new Uint8Array(OUT_BUFFER_SIZE);
+        if (this.outPos + len <= OUT_BUFFER_SIZE) {
+          const pos = this.outPos;
+          for (let i = 0; i < len; i++) {
+            buf[pos + i] = value.charCodeAt(i);
+          }
+          this.outPos = pos + len;
+          this.outputBytes += len;
+          return undefined;
+        }
+      }
+    }
+    return this.output(value);
   }
   async output(value: string | Uint8Array): Promise<void> {
     if (typeof value === "string") {
@@ -206,6 +230,7 @@ const reusableLines: SlicedLine[] = Array.from({ length: 128 }, () => new Sliced
 const reusableBatchSlices: Line[][] = Array.from({ length: 129 }, (_, k) => {
   const arr = reusableLines.slice(0, k);
   trustedInputRows.add(arr);
+  reusableBatchRows.add(arr);
   return arr;
 });
 const reusableSingleBatchWrapper: Line[][] = [[]];

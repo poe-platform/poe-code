@@ -20,9 +20,13 @@ export class Printer {
       ? Object.fromEntries(Object.entries(input).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0).map(([key, item]) => [key, ordered(item)])) : input;
     await this.limits.output(`${JSON.stringify(type === "summary" ? ordered({ type, data: value }) : { type, data: value })}\n`);
   }
-  async filename(label: string): Promise<void> { await this.limits.output(label + (this.args.nullPath ? "\0" : "\n")); }
+  filenameSyncOrAsync(label: string): Promise<void> | undefined { return this.limits.outputSyncOrAsync(label + (this.args.nullPath ? "\0" : "\n")); }
+  async filename(label: string): Promise<void> { await this.filenameSyncOrAsync(label); }
+  countSyncOrAsync(label: string, amount: number, filename: boolean): Promise<void> | undefined {
+    return this.limits.outputSyncOrAsync(`${filename ? label + (this.args.nullPath ? "\0" : ":") : ""}${amount}\n`);
+  }
   async count(label: string, amount: number, filename: boolean): Promise<void> {
-    await this.limits.output(`${filename ? label + (this.args.nullPath ? "\0" : ":") : ""}${amount}\n`);
+    await this.countSyncOrAsync(label, amount, filename);
   }
   async binary(label: string, offset: number, filename: boolean): Promise<void> {
     await this.limits.output(`${filename ? label + ": " : ""}binary file matches (found "\\0" byte around offset ${offset})\n`);

@@ -1,8 +1,4 @@
-import { addManagedAbortWaiter as addAbortSignalWaiter, managedSignalSymbol } from "./managed-abort.js";
-
-function isManagedAbortSignal(signal: AbortSignal): boolean {
-  return Boolean((signal as unknown as Record<symbol, unknown>)[managedSignalSymbol]);
-}
+import { addAbortSignalWaiter, isManagedAbortSignal } from "./signals.js";
 
 type ImmediateHost = typeof globalThis & {
   setImmediate?: (callback: () => void) => unknown;

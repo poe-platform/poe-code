@@ -472,12 +472,12 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     const repository = fileURLToPath(new URL("../", import.meta.url));
     const manifest = structuredClone(bashManifest);
     manifest.poeCode.integration.privateWorkspaces = {};
-    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut"].includes(route)));
+    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut", "./commands/line-endings"].includes(route)));
     volume.rmSync("/repo/packages/safe-bash/dist", { recursive: true });
     volume.mkdirSync("/repo/packages/safe-bash/dist", { recursive: true });
     for (const filename of ["index.d.ts", "core.d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${filename}`, "export {};\n");
     const modules: Promise<void>[] = [];
-    for (const name of ["safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut"]) {
+    for (const name of ["safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-line-ending-engine"]) {
       const directory = path.join(repository, "packages", name);
       const pkg = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
       manifest.poeCode.integration.privateWorkspaces[name] = {
@@ -551,6 +551,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
     }
     for (const name of ["exiftool", "csvgrep", "csvcut"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
+    for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/line-endings/index.${suffix}`, 'export * from "safe-bash-command-dos2unix";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/commands/line-endings/index.browser.js", 'export * from "./index.js";');
     const plugin: Plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
       builder.onResolve({ filter: /.*/ }, args => {
         if (builder.initialOptions.external?.some(name => args.path === name || args.path.startsWith(name + "/"))) return { path: args.path, external: true };
@@ -584,6 +586,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.mkdirSync("/output/node_modules/@poe-platform", { recursive: true });
     volume.symlinkSync("/output/safe-bash", "/output/node_modules/@poe-platform/safe-bash");
     volume.symlinkSync("/output/safe-fs", "/output/node_modules/@poe-platform/safe-fs");
+    volume.writeFileSync("/output/safe-packages-dos2unix.mjs", readFileSync(new URL("./fixtures/safe-packages-dos2unix.mjs", import.meta.url)));
     volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
 
   it("checks packed Shell byte argv declarations without Node types", () => {
@@ -601,7 +604,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       const text = host.readFile(filename);
       return text === undefined ? undefined : ts.createSourceFile(filename, text, languageVersion);
     };
-    const program = ts.createProgram(["/output/csvcut-consumer.mts"], compilerOptions, host);
+    volume.writeFileSync("/output/dos2unix-consumer.mts", 'import { createDos2unixCommand, createUnix2dosCommand, type LineEndingCommandsOptions } from "@poe-platform/safe-bash/commands/line-endings"; import type { CommandDefinition } from "@poe-platform/safe-bash/contracts/command"; const options: LineEndingCommandsOptions = { limits: { maxInputBytes: 1024 } }; const commands: CommandDefinition[] = [createDos2unixCommand(options), createUnix2dosCommand(options)]; void commands;');
+    const program = ts.createProgram(["/output/csvcut-consumer.mts", "/output/dos2unix-consumer.mts"], compilerOptions, host);
     expect(ts.getPreEmitDiagnostics(program).map(diagnostic => `${diagnostic.file?.fileName ?? "compiler"}:${diagnostic.start ?? 0}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`)).toEqual([]);
   });
   it("admits Shell byte argv through an isolated packed private command graph", async () => {
@@ -954,6 +958,8 @@ describe("scoped safe package artifacts", () => {
       "/output/safe-bash/dist/safe-bash-command-xmllint/index.d.ts": data["/repo/packages/safe-bash-command-xmllint/dist/index.d.ts"],
       "/output/safe-bash/dist/safe-bash-xml-engine/LICENSE": data["/repo/packages/safe-bash-xml-engine/LICENSE"],
       "/output/safe-bash/dist/safe-bash-xml-engine/index.d.ts": data["/repo/packages/safe-bash-xml-engine/dist/index.d.ts"],
+      "/output/safe-bash/dist/safe-bash-command-dos2unix/LICENSE": data["/repo/packages/safe-bash-command-dos2unix/LICENSE"],
+      "/output/safe-bash/dist/safe-bash-line-ending-engine/LICENSE": data["/repo/packages/safe-bash-line-ending-engine/LICENSE"],
     });
     expected["/output/safe-bash/dist/safe-bash-compression-engine/LICENSE"] = data["/repo/packages/safe-bash-compression-engine/LICENSE"]!;
     for (const asset of ["sources.json", "LICENSES.txt", "generated/bz2.mjs", "generated/bz2.d.mts", "generated/xz.mjs", "generated/xz.d.mts", "generated/zstd.mjs", "generated/zstd.d.mts"]) {

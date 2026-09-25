@@ -453,7 +453,9 @@
     "packages/safe-bash-command-locale/dist",
     "packages/safe-bash-command-df/dist",
     "packages/safe-bash-command-sqlite3/dist",
-    "packages/safe-bash-command-git/dist"
+    "packages/safe-bash-command-git/dist",
+    "packages/safe-bash-command-dos2unix/dist",
+    "packages/safe-bash-line-ending-engine/dist"
   ],
   "engines": {
     "node": ">=18.18"
@@ -675,7 +677,9 @@
     "safe-bash-command-locale": "*",
     "safe-bash-command-df": "*",
     "safe-bash-command-sqlite3": "*",
-    "safe-bash-command-git": "*"
+    "safe-bash-command-git": "*",
+    "safe-bash-command-dos2unix": "*",
+    "safe-bash-line-ending-engine": "*"
   },
   "repository": {
     "type": "git",

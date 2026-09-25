@@ -748,7 +748,9 @@
     "safe-bash-command-locale": "*",
     "safe-bash-command-df": "*",
     "safe-bash-command-sqlite3": "*",
-    "safe-bash-command-git": "*"
+    "safe-bash-command-git": "*",
+    "safe-bash-command-dos2unix": "*",
+    "safe-bash-line-ending-engine": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -1412,6 +1414,29 @@
             "@poe-code/safe-fs": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-dos2unix": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-line-ending-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "assets": [
+            "./dist/LICENSE"
+          ]
+        },
+        "safe-bash-line-ending-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "assets": [
+            "./dist/LICENSE"
+          ]
         }
       }
     }

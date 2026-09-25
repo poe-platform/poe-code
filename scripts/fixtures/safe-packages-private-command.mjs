@@ -1,3 +1,4 @@
+import { verifyDos2unix } from "./safe-packages-dos2unix.mjs";
 import { csvgrep, createCsvgrepCommand, csvgrepCommands, CsvError as CsvgrepError } from "@poe-platform/safe-bash/commands/csvgrep";
 import { csvcut, csvcutCommand, createCsvcutCommand, csvcutCommands, cutCsv, parseCsvRecords, resolveColumns, CsvBudget, CsvParser, CsvError } from "@poe-platform/safe-bash/commands/csvcut";
 import * as root from "@poe-platform/safe-bash";
@@ -145,4 +146,4 @@ export const csvcutWiringVerification = (async () => {
     await Promise.all(cleanups.map(cleanup => cleanup()));
   } finally { await shell.dispose(); }
 })();
-export const verification = Promise.all([baseVerification, csvcutWiringVerification]);
+export const verification = Promise.all([baseVerification, csvcutWiringVerification, verifyDos2unix()]);

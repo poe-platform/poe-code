@@ -160,6 +160,8 @@ export default defineConfig({
       "packages/safe-bash-command-csvgrep/src/*.test.ts",
       "packages/safe-bash-command-csvcut/src/*.test.ts",
       "packages/safe-bash-csv-engine/src/*.test.ts",
+      "packages/safe-bash-command-dos2unix/src/*.test.ts",
+      "packages/safe-bash-line-ending-engine/src/*.test.ts",
       "packages/safe-bash-command-diff3/src/*.test.ts",
       "packages/safe-bash-command-unrtf/src/*.test.ts",
       "packages/safe-bash-command-mmdc/src/*.test.ts",

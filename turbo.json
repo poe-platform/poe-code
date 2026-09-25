@@ -375,6 +375,18 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-dos2unix#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "safe-bash-line-ending-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

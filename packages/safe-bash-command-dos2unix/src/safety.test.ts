@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { toByteSource, type CommandContext, type FileSystem } from "../../../src/contracts/index.js";
-import { createDos2unixCommand, createUnix2dosCommand, type LineEndingLimits } from "../../../src/commands/line-endings/index.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { toByteSource, type CommandContext, type FileSystem } from "safe-bash-contracts";
+import { createDos2unixCommand, createUnix2dosCommand, type LineEndingLimits } from "./index.js";
 
 function deferred() {
   let resolve!: () => void;

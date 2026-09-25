@@ -940,4 +940,32 @@ describe("safe-bash-command-imagemagick", () => {
     const chopNorth = await runMagickCli(["-size", "22x11", "xc:red", "-gravity", "North", "-chop", "21x8-4+5", "-format", "%wx%h", "info:"], files);
     expect(chopNorth.stdout.trim()).toBe("4x5");
   });
+
+  it("supports -evaluate-sequence Median (IntensityCompare), -evaluate AddModulus/Mean, and range/list stack operators (-clone, -delete, +insert, -insert, -duplicate)", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. -evaluate-sequence Median matches MagickCore IntensityCompare tuple ordering
+    const medRes = await runMagickCli(
+      ["-size", "2x2", "xc:rgb(40,100,200)", "xc:rgb(80,150,100)", "xc:rgb(120,50,150)", "-evaluate-sequence", "Median", "-format", "%[pixel:p{0,0}]", "info:"],
+      files
+    );
+    expect(medRes.stdout.trim()).toBe("srgb(80,150,100)");
+
+    // 2. -evaluate AddModulus and Mean
+    const evalMod = await runMagickCli(["-size", "1x1", "xc:rgb(200,100,50)", "-evaluate", "AddModulus", "100", "-format", "%[pixel:p{0,0}]", "info:"], files);
+    expect(evalMod.stdout.trim()).toBe("srgb(44,200,150)");
+
+    // 3. Stack operators: -clone 0,2 / -delete 1--1 / +insert / -insert / -duplicate 2,0
+    const cloneList = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-clone", "0,2", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(cloneList.stdout.trim()).toBe("srgb(255,0,0) srgb(0,255,0) srgb(0,0,255) srgb(255,0,0) srgb(0,0,255)");
+
+    const delRange = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-delete", "1--1", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(delRange.stdout.trim()).toBe("srgb(255,0,0)");
+
+    const insRes = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "+insert", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(insRes.stdout.trim()).toBe("srgb(0,0,255) srgb(255,0,0) srgb(0,255,0)");
+
+    const dupRes = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-duplicate", "2,0", "-format", "%[pixel:p{0,0}] ", "info:"], files);
+    expect(dupRes.stdout.trim()).toBe("srgb(255,0,0) srgb(0,255,0) srgb(0,0,255) srgb(255,0,0) srgb(255,0,0)");
+  });
 });

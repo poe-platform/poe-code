@@ -729,8 +729,15 @@ function applyMagickEvaluateSequence(stack: readonly RgbaImage[], opRaw: string)
       for (let k = 0; k < n; k++) s += vals[k]!;
       res = s / n;
     } else if (op === "median") {
-      const sorted = Array.from(vals).sort((a, b) => a - b);
-      res = sorted[Math.floor(n / 2)]!;
+      const baseOff = i & ~3;
+      const order = Array.from({ length: n }, (_, k) => k).sort((a, b) => {
+        const da = normalized[a]!.data;
+        const db = normalized[b]!.data;
+        const sumA = da[baseOff]! + da[baseOff + 1]! + da[baseOff + 2]! + da[baseOff + 3]!;
+        const sumB = db[baseOff]! + db[baseOff + 1]! + db[baseOff + 2]! + db[baseOff + 3]!;
+        return sumA - sumB;
+      });
+      res = vals[order[Math.floor(n / 2)]!]!;
     } else if (op === "min") {
       res = Math.min(...vals);
     } else if (op === "max") {
@@ -1286,6 +1293,12 @@ function applyMagickEvaluate(
       switch (op) {
         case "add":
           next = cur + vByte;
+          break;
+        case "addmodulus":
+          next = (((cur + Math.round(vByte)) % 256) + 256) % 256;
+          break;
+        case "mean":
+          next = (cur + vByte) / 2;
           break;
         case "subtract":
           next = cur - vByte;
@@ -3438,6 +3451,34 @@ export async function runIdentifyCli(
   };
 }
 
+function parseMagickIndexSpec(spec: string, length: number): number[] {
+  if (length <= 0) return [];
+  const resolve = (n: number): number =>
+    n < 0 ? Math.max(0, length + n) : Math.min(Math.max(0, n), length - 1);
+  const out: number[] = [];
+  for (const part of spec.split(",")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const rangeMatch = /^(-?\d+)-(-?\d+)$/.exec(trimmed);
+    if (rangeMatch) {
+      const s = resolve(parseInt(rangeMatch[1]!, 10));
+      const e = resolve(parseInt(rangeMatch[2]!, 10));
+      if (s <= e) {
+        for (let k = s; k <= e; k++) out.push(k);
+      } else {
+        for (let k = s; k >= e; k--) out.push(k);
+      }
+    } else {
+      const num = parseInt(trimmed, 10);
+      if (!Number.isNaN(num)) {
+        const idx = num < 0 ? length + num : num;
+        if (idx >= 0 && idx < length) out.push(idx);
+      }
+    }
+  }
+  return out;
+}
+
 function evaluatePipelineTokens(
   tokens: readonly string[],
   files: Map<string, Uint8Array>,
@@ -4099,29 +4140,41 @@ function evaluatePipelineTokens(
       stack = stack.map((im) => applyMagickAnnotate(im, offset, text, state));
     } else if (t === "+clone" || t === "-clone") {
       const sourcePool = stack.length > 0 ? stack : parentStack;
-      if (t === "+clone") {
-        const last = sourcePool[sourcePool.length - 1];
-        if (last) stack.push({ ...last, data: new Uint8Array(last.data) });
-      } else {
-        const idxSpec = tokens[++i] ?? "-1";
-        const idx = Number(idxSpec);
-        const resolved = idx < 0 ? sourcePool.length + idx : idx;
-        const chosen = sourcePool[resolved];
+      const spec = t === "+clone" ? "-1" : (tokens[++i] ?? "-1");
+      for (const idx of parseMagickIndexSpec(spec, sourcePool.length)) {
+        const chosen = sourcePool[idx];
         if (chosen) stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
       }
-    } else if (t === "-duplicate") {
-      const nextTok = tokens[i + 1];
+    } else if (t === "-duplicate" || t === "+duplicate") {
       let count = 1;
-      if (nextTok && /^\d+/.test(nextTok)) {
-        count = Math.max(0, parseInt(nextTok, 10));
-        i++;
+      let idxSpec = "-1";
+      if (t === "-duplicate") {
+        const nextTok = tokens[i + 1];
+        if (nextTok && /^\d+/.test(nextTok)) {
+          i++;
+          const commaIdx = nextTok.indexOf(",");
+          if (commaIdx >= 0) {
+            count = Math.max(0, parseInt(nextTok.slice(0, commaIdx), 10));
+            idxSpec = nextTok.slice(commaIdx + 1) || "-1";
+          } else {
+            count = Math.max(0, parseInt(nextTok, 10));
+          }
+        }
       }
       const sourcePool = stack.length > 0 ? stack : parentStack;
-      const last = sourcePool[sourcePool.length - 1];
-      if (last) {
-        for (let k = 0; k < count; k++) {
-          stack.push({ ...last, data: new Uint8Array(last.data) });
+      const indices = parseMagickIndexSpec(idxSpec, sourcePool.length);
+      for (let k = 0; k < count; k++) {
+        for (const idx of indices) {
+          const chosen = sourcePool[idx];
+          if (chosen) stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
         }
+      }
+    } else if (t === "+insert" || t === "-insert") {
+      const rawIdx = t === "+insert" ? 0 : Number(tokens[++i] ?? 0);
+      if (stack.length > 1) {
+        const last = stack.pop()!;
+        const target = rawIdx < 0 ? Math.max(0, stack.length + 1 + rawIdx) : Math.min(stack.length, Math.max(0, rawIdx));
+        stack.splice(target, 0, last);
       }
     } else if (t === "+swap" || t === "-swap") {
       let i1 = stack.length - 2;
@@ -4140,11 +4193,8 @@ function evaluatePipelineTokens(
       if (t === "+delete") {
         stack.pop();
       } else {
-        const idx = Number(tokens[++i] ?? -1);
-        const resolved = idx < 0 ? stack.length + idx : idx;
-        if (resolved >= 0 && resolved < stack.length) {
-          stack.splice(resolved, 1);
-        }
+        const toDelete = new Set(parseMagickIndexSpec(tokens[++i] ?? "-1", stack.length));
+        stack = stack.filter((_, idx) => !toDelete.has(idx));
       }
     } else if (t === "-reverse") {
       stack.reverse();

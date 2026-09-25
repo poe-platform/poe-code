@@ -16,11 +16,11 @@ const declarationPath = "packages/safe-fs/dist/index.d.ts";
 const expectedCurrentCommands = [
   "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
-  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
-  "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
+  "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "cmp", "fmt", "shuf", "numfmt", "env", "xargs", "find",
+  "sed", "awk", "jq", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown",
+  "date", "sleep", "printenv", "tree", "file", "rg", "egrep", "fgrep", "column", "html-to-markdown",
   "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos",
 ];
 

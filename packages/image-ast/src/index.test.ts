@@ -2201,4 +2201,33 @@ describe("@poe-code/image-ast (sharp core)", () => {
       sharp(base).composite([{ input: exifTiff, left: 1 } as any])
     ).toThrow(/Expected both left and top to be set/);
   });
+
+  it("validates linear() array lengths, recomb() matrix dimensions/channels, convolve() kernel bounds, gamma() range, and threshold(true)", async () => {
+    const rgb = Buffer.from([50, 150, 200]);
+    const inst = () => sharp(rgb, { raw: { width: 1, height: 1, channels: 3 } });
+
+    expect(() => inst().linear([1, 2], [1, 2, 3])).toThrow(/Expected a and b to be arrays of the same length/);
+    expect(() => inst().linear([1, 2, 3] as any)).toThrow(/Expected a and b to be arrays of the same length/);
+
+    expect(() => inst().recomb([[1, 2], [3, 4]] as any)).toThrow(/3x3 or 4x4/);
+    await expect(
+      inst()
+        .recomb([
+          [1, 0, 0, 0],
+          [0, 1, 0, 0],
+          [0, 0, 1, 0],
+          [0, 0, 0, 1]
+        ])
+        .toBuffer()
+    ).rejects.toThrow(/recomb: bands in must equal matrix width/);
+
+    expect(() => inst().convolve({ width: 2, height: 2, kernel: [1, 1, 1, 1] })).toThrow(/Invalid convolution kernel/);
+    expect(() => inst().gamma(0.5)).toThrow(/1\.0 and 3\.0/);
+    expect(() => inst().gamma(2.2, 4.0)).toThrow(/1\.0 and 3\.0/);
+    expect(() => inst().threshold(300)).toThrow(/0 and 255/);
+
+    const tTrue = await inst().threshold(true as any, { greyscale: false }).raw().toBuffer();
+    const t128 = await inst().threshold(128, { greyscale: false }).raw().toBuffer();
+    expect(Array.from(tTrue)).toEqual(Array.from(t128));
+  });
 });

@@ -1627,8 +1627,11 @@ export function recombImage(
   img: RgbaImage,
   matrix: readonly (readonly number[])[]
 ): RgbaImage {
-  const out = new Uint8Array(img.data.length);
   const is4x4 = matrix.length >= 4 && (matrix[0]?.length ?? 0) >= 4;
+  if (is4x4 && img.channels < 4) {
+    throw new Error("recomb: bands in must equal matrix width");
+  }
+  const out = new Uint8Array(img.data.length);
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
     const r = img.data[idx]!;

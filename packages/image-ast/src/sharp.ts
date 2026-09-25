@@ -787,13 +787,34 @@ export class SharpInstance {
   }
 
   gamma(gamma = 2.2, gammaOut = gamma): this {
+    if (typeof gamma !== "number" || Number.isNaN(gamma) || gamma < 1 || gamma > 3) {
+      throw new Error(`Expected number between 1.0 and 3.0 for gamma but received ${gamma}`);
+    }
+    if (typeof gammaOut !== "number" || Number.isNaN(gammaOut) || gammaOut < 1 || gammaOut > 3) {
+      throw new Error(`Expected number between 1.0 and 3.0 for gammaOut but received ${gammaOut}`);
+    }
     this.upsertNode({ kind: "gamma", gamma, gammaOut });
     return this;
   }
 
-  linear(a: number | readonly number[] = 1, b: number | readonly number[] = 0): this {
-    const aArr = typeof a === "number" ? [a] : [...a];
-    const bArr = typeof b === "number" ? [b] : [...b];
+  linear(a?: number | readonly number[] | null, b?: number | readonly number[] | null): this {
+    if (a == null && b == null) {
+      const idx = this.nodes.findIndex(n => n.kind === "linear");
+      if (idx !== -1) this.nodes.splice(idx, 1);
+      return this;
+    }
+    let effA = a;
+    let effB = b;
+    if (effA == null && typeof effB === "number") {
+      effA = 1.0;
+    } else if (typeof effA === "number" && effB == null) {
+      effB = 0.0;
+    }
+    const aArr = effA == null ? [] : typeof effA === "number" ? [effA] : Array.isArray(effA) ? [...effA] : [];
+    const bArr = effB == null ? [] : typeof effB === "number" ? [effB] : Array.isArray(effB) ? [...effB] : [];
+    if (aArr.length !== bArr.length) {
+      throw new Error("Expected a and b to be arrays of the same length");
+    }
     this.upsertNode({ kind: "linear", a: aArr, b: bArr });
     return this;
   }
@@ -840,6 +861,9 @@ export class SharpInstance {
       const idx = this.nodes.findIndex(n => n.kind === "threshold");
       if (idx !== -1) this.nodes.splice(idx, 1);
       return this;
+    }
+    if (typeof threshold === "number" && (!Number.isInteger(threshold) || threshold < 0 || threshold > 255)) {
+      throw new Error(`Expected integer between 0 and 255 for threshold but received ${threshold}`);
     }
     const val = typeof threshold === "number" ? threshold : 128;
     const gs = options?.grayscale ?? options?.greyscale ?? true;
@@ -937,6 +961,20 @@ export class SharpInstance {
     readonly scale?: number;
     readonly offset?: number;
   }): this {
+    if (
+      !kernelSpec ||
+      typeof kernelSpec !== "object" ||
+      !Array.isArray(kernelSpec.kernel) ||
+      !Number.isInteger(kernelSpec.width) ||
+      !Number.isInteger(kernelSpec.height) ||
+      kernelSpec.width < 3 ||
+      kernelSpec.width > 1001 ||
+      kernelSpec.height < 3 ||
+      kernelSpec.height > 1001 ||
+      kernelSpec.width * kernelSpec.height !== kernelSpec.kernel.length
+    ) {
+      throw new Error("Invalid convolution kernel");
+    }
     const defaultScale = kernelSpec.kernel.reduce((s, v) => s + v, 0) || 1;
     this.upsertNode({ kind: "convolve",
       width: kernelSpec.width,
@@ -979,6 +1017,13 @@ export class SharpInstance {
   }
 
   recomb(matrix: readonly (readonly number[])[]): this {
+    if (!Array.isArray(matrix) || (matrix.length !== 3 && matrix.length !== 4)) {
+      throw new Error(`Expected 3x3 or 4x4 array for inputMatrix but received ${matrix?.length}`);
+    }
+    const flatLen = matrix.reduce((acc, row) => acc + (Array.isArray(row) ? row.length : 0), 0);
+    if (flatLen !== 9 && flatLen !== 16) {
+      throw new Error(`Expected 3x3 or 4x4 array with cardinality of 9 or 16 for inputMatrix`);
+    }
     this.upsertNode({ kind: "recomb",
       matrix: matrix.map(row => [...row])
     });

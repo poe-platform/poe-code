@@ -151,18 +151,26 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
     define("xargs", async context => {
       const rawArgumentValues = getCommandArguments(context);
       const normalizedValues = [...rawArgumentValues.values];
+      const shortOptions = "0rn:s:I:d:tP:xE:a:L:";
       let expectOptionValue = false;
       for (let i = 0; i < normalizedValues.length; i++) {
         const arg = rawArgumentValues.args[i]!;
         if (expectOptionValue) { expectOptionValue = false; continue; }
         if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
-        if (arg === "-i") { normalizedValues[i] = "-I{}"; continue; }
+        if (arg === "-i" || arg === "--replace") { normalizedValues[i] = "-I{}"; continue; }
         if (arg.startsWith("-i") && !arg.startsWith("--")) { normalizedValues[i] = "-I" + arg.slice(2); continue; }
-        if (arg === "-l") { normalizedValues[i] = "-L1"; continue; }
+        if (arg === "-l" || arg === "--max-lines") { normalizedValues[i] = "-L1"; continue; }
         if (arg.startsWith("-l") && !arg.startsWith("--")) { normalizedValues[i] = "-L" + arg.slice(2); continue; }
-        if (arg === "-e") { normalizedValues[i] = "--eof="; continue; }
+        if (arg === "-e" || arg === "--eof") { normalizedValues[i] = "--eof="; continue; }
         if (arg.startsWith("-e") && !arg.startsWith("--")) { normalizedValues[i] = "-E" + arg.slice(2); continue; }
-        if (["-n", "-s", "-I", "-d", "-P", "-E", "-a", "-L", "--arg-file", "--max-lines", "--max-args", "--max-chars", "--replace", "--delimiter", "--max-procs", "--eof", "--process-slot-var"].includes(arg)) {
+        if (!arg.startsWith("--")) {
+          for (let offset = 1; offset < arg.length; offset++) {
+            const specification = shortOptions.indexOf(arg[offset]!);
+            if (specification < 0 || shortOptions[specification + 1] !== ":") continue;
+            expectOptionValue = offset + 1 === arg.length;
+            break;
+          }
+        } else if (["--arg-file", "--max-args", "--max-chars", "--delimiter", "--max-procs", "--process-slot-var"].includes(arg)) {
           expectOptionValue = true;
         }
       }
@@ -171,7 +179,6 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       let replacementOrigin: { index: number; offset: number } | undefined;
       let batching: string | undefined;
       let lastDelimMode: "0" | "d" | undefined;
-      const shortOptions = "0rn:s:I:d:tP:xE:a:L:";
       const longOptions = { "arg-file": "a", "max-lines": "L", null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E", "process-slot-var": "process-slot-var:" };
       const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
         (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; },

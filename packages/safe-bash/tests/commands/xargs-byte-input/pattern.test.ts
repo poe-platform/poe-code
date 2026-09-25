@@ -7,14 +7,14 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { agentCommands } from "../../../src/plugins/index.js";
 
-for (const form of ["separate", "attached", "cluster", "long", "long-equals", "last"]) {
+for (const form of ["separate", "attached", "cluster", "long-default", "long-equals", "last"]) {
   for (const template of [[128], [239, 191, 189], [255]]) {
     test(`GNU raw replacement pattern ${form}, template=${template.join(",")}`, async () => {
       const pattern = shellValueFromBytes(Uint8Array.of(128));
       const option: ShellValue[] = form === "separate" ? ["-I", pattern]
         : form === "attached" ? [shellValueFromBytes(Uint8Array.of(45, 73, 128))]
         : form === "cluster" ? [shellValueFromBytes(Uint8Array.of(45, 114, 73, 128))]
-        : form === "long" ? ["--replace", pattern]
+        : form === "long-default" ? ["--replace"]
         : form === "long-equals" ? [shellValueFromBytes(Uint8Array.from([...Buffer.from("--replace="), 128]))]
         : ["-I", "unused", "-I", pattern];
       const incoming = createCommandArguments(["-0", ...option, "capture", shellValueFromBytes(Uint8Array.from(template))]);
@@ -27,7 +27,7 @@ for (const form of ["separate", "attached", "cluster", "long", "long-equals", "l
         return { exitCode: 0 };
       }).find(command => command.name === "xargs")!.execute(context);
       assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
-      assert.deepEqual(captured, [template[0] === 128 ? [255] : template]);
+      assert.deepEqual(captured, [form !== "long-default" && template[0] === 128 ? [255] : template]);
       assert.equal(Buffer.concat(errors).length, 0);
     });
   }

@@ -18,6 +18,7 @@ for (const entry of [
   { name: "env unquoted split separator", command: "env", values: ["-S", [99, 97, 112, 116, 117, 114, 101, 32, 255, 92, 95, 254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
   { name: "xargs batching", command: "xargs", values: ["-n", "1", "capture", [255]], stdin: "one two", invoke: true, expected: [[[255], [111, 110, 101]], [[255], [116, 119, 111]]] },
   { name: "xargs literal replacement", command: "xargs", values: ["-I", "{}", "capture", [255, 123, 125, 254]], stdin: "A", invoke: false, expected: [[[255, 65, 254]]] },
+  { name: "xargs optional long replacement", command: "xargs", values: ["--replace", "capture", [255, 123, 125, 254]], stdin: "A", invoke: true, expected: [[[255, 65, 254]]] },
   { name: "find semicolon replacement", command: "find", values: [".", "-type", "f", "-exec", "capture", [255, 123, 125, 254], ";"], stdin: "", invoke: false, expected: [[[255, 46, 47, 102, 105, 108, 101, 254]]] },
   { name: "find batched arguments", command: "find", values: [".", "-type", "f", "-exec", "capture", [255], "{}", "+"], stdin: "", invoke: true, expected: [[[255], [46, 47, 102, 105, 108, 101]]] },
   { name: "timeout zero deadline", command: "timeout", values: ["--", "0", "capture", [255], [254]], stdin: "", invoke: true, expected: [[[255], [254]]] },
@@ -231,6 +232,32 @@ test("xargs supports -i[R], -l[MAX], and -e[EOF] short options", async () => {
   assert.equal((await run("xargs", ["-l2", "echo"], { stdin: "a\nb\nc\n" })).stdout, "a b\nc\n");
   assert.equal((await run("xargs", ["-eEND", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a\n");
   assert.equal((await run("xargs", ["-eEND", "-e", "echo"], { stdin: "a\nEND\nb\n" })).stdout, "a END b\n");
+});
+
+for (const entry of [
+  { args: ["--replace", "echo", "[{}]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["--replace=%", "echo", "[%]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["--max-lines", "echo"], stdin: "a b\nc d\n", stdout: "a b\nc d\n" },
+  { args: ["--max-lines=2", "echo"], stdin: "a\nb\nc\n", stdout: "a b\nc\n" },
+  { args: ["--max-lines"], stdin: "a b\nc d\n", stdout: "a b\nc d\n" },
+  { args: ["--eof", "echo"], stdin: "a\nEND\nb\n", stdout: "a END b\n" },
+  { args: ["--eof", "printf", "<%s>\n"], stdin: "printf\nEND\nb\n", stdout: "<printf>\n<END>\n<b>\n" },
+  { args: ["--eof=END", "echo"], stdin: "a\nEND\nb\n", stdout: "a\n" },
+  { args: ["-E", "END", "--eof", "echo"], stdin: "a\nEND\nb\n", stdout: "a END b\n" },
+  { args: ["--eof", "-E", "END", "echo"], stdin: "a\nEND\nb\n", stdout: "a\n" },
+  { args: ["--replace=%", "--replace", "echo", "[{}]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["-n2", "--max-lines", "echo"], stdin: "a b\nc d\n", stdout: "a b\nc d\n" },
+  { args: ["--max-lines", "-n3", "echo"], stdin: "a b\nc d\n", stdout: "a b c\nd\n" },
+  { args: ["--replace", "-n2", "echo"], stdin: "a\nb\nc\n", stdout: "a b\nc\n" },
+  { args: ["-n2", "--replace", "echo", "[{}]"], stdin: "a b\nc d\n", stdout: "[a b]\n[c d]\n" },
+  { args: ["-I", "--replace", "echo", "[--replace]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["-rI", "--replace", "echo", "[--replace]"], stdin: "a\nb\n", stdout: "[a]\n[b]\n" },
+  { args: ["--", "echo", "--replace"], stdin: "a b\n", stdout: "--replace a b\n" },
+  { args: ["echo", "--eof"], stdin: "a b\n", stdout: "--eof a b\n" },
+]) test(`xargs optional long options: ${entry.args.join(" ")}`, async () => {
+  const result = await run("xargs", entry.args, { stdin: chunks(entry.stdin) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, entry.stdout);
 });
 
 test("env exits 125 on usage/chdir errors, rejects -u A=B, and accepts =value", async () => {

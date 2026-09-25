@@ -52,6 +52,13 @@ With `-0` or `-d`, each delimited item counts as a line. Line batching implies
 failure when a batch exceeds the command size bound. Child cwd/environment
 changes do not change the parent Shell.
 
+`-i[TEXT]` / `--replace[=TEXT]` defaults to `{}`; `-l[LINES]` /
+`--max-lines[=LINES]` defaults to one line. `-e[TEXT]` / `--eof[=TEXT]`
+disables logical EOF processing when TEXT is omitted or empty. Optional values
+must be attached; a following utility operand is never consumed as that value.
+The last replacement, line-count or argument-count option selects batching.
+The last `-E` / `-e` / `--eof` option selects the logical EOF marker.
+
 ## Output and outcomes
 
 Output streams directly into the existing destinations with awaited writes and

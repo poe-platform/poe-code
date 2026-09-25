@@ -32,7 +32,7 @@ for (const fixture of [
   } finally { await shell.dispose(); }
 });
 
-for (const args of ["-L0", "-L-1", "--max-lines=1.5", "--max-lines=9007199254740992", "--max-lines", "--arg-file"]) test(`xargs rejects invalid option ${args}`, async () => {
+for (const args of ["-L0", "-L-1", "--max-lines=", "--max-lines=1.5", "--max-lines=9007199254740992", "--arg-file"]) test(`xargs rejects invalid option ${args}`, async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try { assert.equal((await shell.exec(`xargs ${args}`)).exitCode, 2); }
   finally { await shell.dispose(); }

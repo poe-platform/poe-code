@@ -46,7 +46,9 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
       if (character === "\\") {
         const next = source[offset++];
         if (next === undefined) break;
-        text += next === "\n" || regex && !extended && next === delimiter && "()|+?{}".includes(next) ? next : `\\${next}`;
+        text += next === "\n"
+          || (!bracket && next === delimiter && (regex ? (!extended && "()|+?{}".includes(next)) || "ntrfva".includes(next) : (next === "n" || next === "t" || (next >= "0" && next <= "9"))))
+          ? next : `\\${next}`;
         if (bracket) first = 0;
       } else {
         if (character === "\n") throw new ProgramError("unterminated delimited expression");

@@ -13,7 +13,7 @@ type Instruction = { kind: "character"; literal?: string; accepts: (character: s
   | { kind: "backreference"; index: number; ignoreCase: boolean }
   | { kind: "assertion"; first: number; next: number; positive: boolean; behind: boolean }
   | { kind: "begin" | "end" | "match" }
-  | { kind: "save"; slot: number }
+  | { kind: "save"; slot: number; clear?: readonly number[] }
   | { kind: "jump"; target: number }
   | { kind: "split"; first: number; second: number };
 
@@ -63,15 +63,37 @@ const classes: Record<string, (character: string) => boolean> = {
 function extendedSource(source: string): string {
   let result = "";
   let bracket = false;
+  let bracketFirst = false;
   for (let offset = 0; offset < source.length; offset++) {
     const character = source[offset]!;
-    if (character === "\\" && offset + 1 < source.length) {
+    if (!bracket && character === "\\" && offset + 1 < source.length) {
       const next = source[++offset]!;
-      result += !bracket && "()|+?{}".includes(next) ? next : `\\${next}`;
-    } else {
-      if (character === "[") bracket = true;
+      result += "()|+?{}".includes(next) ? next : `\\${next}`;
+    } else if (bracket) {
+      if (bracketFirst && character === "^") {
+        result += character;
+        continue;
+      }
+      if (bracketFirst && character === "]") {
+        result += character;
+        bracketFirst = false;
+        continue;
+      }
+      bracketFirst = false;
+      if (character === "[" && (source[offset + 1] === ":" || source[offset + 1] === "." || source[offset + 1] === "=")) {
+        const kind = source[offset + 1]!;
+        const close = source.indexOf(`${kind}]`, offset + 2);
+        if (close >= 0) {
+          result += source.slice(offset, close + 2);
+          offset = close + 1;
+          continue;
+        }
+      }
       if (character === "]") bracket = false;
-      result += !bracket && "()|+?{}".includes(character) ? `\\${character}` : character;
+      result += character;
+    } else {
+      if (character === "[") { bracket = true; bracketFirst = true; }
+      result += "()|+?{}".includes(character) ? `\\${character}` : character;
     }
   }
   return result;
@@ -159,10 +181,23 @@ export class Pattern {
           tests.push(classes[name]!); offset = end + 2; continue;
         }
         if (source.startsWith("[.", offset) || source.startsWith("[=", offset)) throw new ProgramError("collating and equivalence classes are not supported");
-        const start = source[offset++] === "\\" ? escaped() : source[offset - 1]!;
+        const readBracketChar = (): string => {
+          const ch = source[offset++]!;
+          if (ch !== "\\") return ch;
+          if (dialect === "sed") {
+            const next = source[offset];
+            if (next !== undefined && "ntrfva".includes(next)) return escaped();
+            return "\\";
+          }
+          if (dialect === "awk" && source[offset] !== undefined && /^[1-9]$/u.test(source[offset]!)) {
+            return escaped();
+          }
+          return escaped();
+        };
+        const start = readBracketChar();
         if (source[offset] === "-" && source[offset + 1] !== "]" && source[offset + 1] !== undefined) {
           offset++;
-          const end = source[offset++] === "\\" ? escaped() : source[offset - 1]!;
+          const end = readBracketChar();
           if (start > end) throw new ProgramError("reversed character range");
           tests.push(character => character >= start && character <= end);
         } else tests.push(character => character === start);
@@ -296,7 +331,19 @@ export class Pattern {
       }
       if (node.type === "begin" || node.type === "end") { emit({ kind: node.type }); return; }
       if (node.type === "sequence") { for (const child of node.nodes) yield* compile(child); return; }
-      if (node.type === "group") { emit({ kind: "save", slot: node.index * 2 }); yield* compile(node.node); emit({ kind: "save", slot: node.index * 2 + 1 }); return; }
+      if (node.type === "group") {
+        const clear: number[] = [];
+        const collect = (current: Node): void => {
+          if (current.type === "group") { clear.push(current.index * 2, current.index * 2 + 1); collect(current.node); }
+          else if (current.type === "assertion" || current.type === "repeat") collect(current.node);
+          else if (current.type === "sequence" || current.type === "alternate") for (const child of current.nodes) collect(child);
+        };
+        collect(node.node);
+        emit({ kind: "save", slot: node.index * 2, ...(clear.length ? { clear } : {}) });
+        yield* compile(node.node);
+        emit({ kind: "save", slot: node.index * 2 + 1 });
+        return;
+      }
       if (node.type === "alternate") {
         const jumps: number[] = [];
         for (let index = 0; index < node.nodes.length; index++) {
@@ -460,7 +507,7 @@ export class Pattern {
         }
         else if (instruction.kind === "jump") push(instruction.target);
         else if (instruction.kind === "split") { push(instruction.second); push(instruction.first); }
-        else if (instruction.kind === "save") { const saved = [...captures]; saved[instruction.slot] = position; push(state.pc + 1, position, saved); }
+        else if (instruction.kind === "save") { const saved = [...captures]; if (instruction.clear) for (const slot of instruction.clear) delete saved[slot]; saved[instruction.slot] = position; push(state.pc + 1, position, saved); }
         else if (instruction.kind === "begin") { if (position === 0) push(state.pc + 1); }
         else if (instruction.kind === "end") { if (position === text.length || position === text.length - 1 && text[position] === "\n") push(state.pc + 1); }
         else if (instruction.kind === "character") {
@@ -805,12 +852,13 @@ export class Pattern {
         positions.delete(position);
         const visited = new Map<string | number, number>();
         let stateBytes = 0;
-        const enqueue = (destination: number, pc: number, start: number, captures: number[], saveSlot?: number): void => {
+        const enqueue = (destination: number, pc: number, start: number, captures: number[], saveSlot?: number, clearSlots?: readonly number[]): void => {
           const length = saveSlot === undefined ? captures.length : Math.max(captures.length, saveSlot + 1);
           const bytes = 72 + length * 8;
           const waiting = destination === position ? pending : positions.get(destination);
           storage.reserve(bytes + (waiting ? 0 : 64));
-          const saved = saveSlot === undefined ? captures : [...captures];
+          const saved = saveSlot === undefined && !clearSlots?.length ? captures : [...captures];
+          if (clearSlots) for (const slot of clearSlots) delete saved[slot];
           if (saveSlot !== undefined) saved[saveSlot] = position;
           const thread = { pc, start, captures: saved, bytes };
           if (waiting) waiting.push(thread);
@@ -896,7 +944,7 @@ export class Pattern {
             else if (instruction.kind === "save") {
               const copied = work(Math.max(thread.captures.length, instruction.slot + 1));
               if (copied) await copied;
-              enqueue(position, thread.pc + 1, thread.start, thread.captures, instruction.slot);
+              enqueue(position, thread.pc + 1, thread.start, thread.captures, instruction.slot, instruction.clear);
             } else if (instruction.kind === "begin" ? position === 0 : position === text.length) enqueue(position, thread.pc + 1, thread.start, thread.captures);
           } finally { storage.release(thread.bytes); }
         }

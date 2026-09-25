@@ -233,3 +233,12 @@ test("sed accepts one-byte input chunks and composes with the virtual shell", as
   assert.equal(result.stdout, "apple\npear\n");
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/result")), result.stdout);
 });
+
+test("sed handles bracket backslashes, leading ], repeated inner captures, and escaped control delimiters", async () => {
+  assert.equal((await runVirtual("sed", { args: ["s/[\\d]/X/g"], stdin: "\\d\n" })).stdout.toString(), "XX\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[\\1]/X/g"], stdin: "\\1\n" })).stdout.toString(), "XX\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[]\\(]/X/g"], stdin: "\\\n" })).stdout.toString(), "X\n");
+  assert.equal((await runVirtual("sed", { args: ["-E", "s/((a)|b)+/\\2/"], stdin: "ab\n" })).stdout.toString(), "\n");
+  assert.equal((await runVirtual("sed", { args: ["-E", "s/((a)|b)+\\2/X/"], stdin: "aba\n" })).stdout.toString(), "aba\n");
+  assert.equal((await runVirtual("sed", { args: ["sn\\nnXn"], stdin: "anb\n" })).stdout.toString(), "aXb\n");
+});

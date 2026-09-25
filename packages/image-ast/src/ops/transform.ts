@@ -831,6 +831,13 @@ export function compositeImage(
       }
     }
   }
+  for (let p = 0; p < out.length; p += 4) {
+    if (out[p + 3] === 0) {
+      out[p] = 0;
+      out[p + 1] = 0;
+      out[p + 2] = 0;
+    }
+  }
   return {
     ...base,
     data: out,

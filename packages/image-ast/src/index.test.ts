@@ -2764,4 +2764,56 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(clahe1Bw.info.channels).toBe(1);
     expect([...clahe1Bw.data]).toEqual([56, 141, 141, 170, 113, 141, 141, 198, 113, 141, 141, 198, 113, 170, 170, 226]);
   });
+
+  it("honors across and shim with join.animated:true and zeroes RGB when alpha=0 in composite() matching vips_composite", async () => {
+    const img3x2 = await sharp(Buffer.alloc(3 * 2 * 3, 200), { raw: { width: 3, height: 2, channels: 3 } }).png().toBuffer();
+    const img6x5 = await sharp(Buffer.alloc(6 * 5 * 3, 100), { raw: { width: 6, height: 5, channels: 3 } }).png().toBuffer();
+    const img4x4a = await sharp(Buffer.alloc(4 * 4 * 4, 150), { raw: { width: 4, height: 4, channels: 4 } }).png().toBuffer();
+
+    const animGrid = await sharp([img3x2, img6x5, img4x4a], {
+      join: { animated: true, shim: 2, across: 2 }
+    })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(animGrid.info.width).toBe(14);
+    expect(animGrid.info.height).toBe(12);
+    expect((animGrid.info as any).pageHeight).toBe(4);
+    expect((animGrid.info as any).pages).toBe(3);
+
+    const animNonDiv = await sharp([img3x2, img6x5, img4x4a], {
+      join: { animated: true, shim: 2 }
+    })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(animNonDiv.info.width).toBe(6);
+    expect(animNonDiv.info.height).toBe(19);
+    expect((animNonDiv.info as any).pageHeight).toBeUndefined();
+
+    const base3 = Buffer.from([
+      20, 100, 220, 80, 160, 40,
+      150, 30, 210, 240, 120, 70
+    ]);
+    const over3 = Buffer.from([250, 20, 80]);
+    const outBlend = await sharp(base3, { raw: { width: 2, height: 2, channels: 3 } })
+      .composite([{ input: over3, raw: { width: 1, height: 1, channels: 3 }, left: 0, top: 0, blend: "out" }])
+      .raw()
+      .toBuffer();
+    expect([...outBlend.slice(0, 4)]).toEqual([0, 0, 0, 0]);
+
+    const destOutBlend = await sharp(base3, { raw: { width: 2, height: 2, channels: 3 } })
+      .composite([{ input: over3, raw: { width: 1, height: 1, channels: 3 }, left: 0, top: 0, blend: "dest-out" }])
+      .raw()
+      .toBuffer();
+    expect([...destOutBlend.slice(0, 4)]).toEqual([0, 0, 0, 0]);
+
+    const base4ZeroAlpha = Buffer.from([
+      20, 100, 220, 0, 80, 160, 40, 255,
+      150, 30, 210, 255, 240, 120, 70, 255
+    ]);
+    const overBlend = await sharp(base4ZeroAlpha, { raw: { width: 2, height: 2, channels: 4 } })
+      .composite([{ input: over3, raw: { width: 1, height: 1, channels: 3 }, left: 1, top: 1, blend: "over" }])
+      .raw()
+      .toBuffer();
+    expect([...overBlend.slice(0, 4)]).toEqual([0, 0, 0, 0]);
+  });
 });

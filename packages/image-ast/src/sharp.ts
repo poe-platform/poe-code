@@ -478,10 +478,10 @@ export class SharpInstance extends Duplex {
     const cellH = Math.max(...imgs.map(i => i.height));
     const joinOpts = this.inputOptions?.join;
     const animated = Boolean(joinOpts?.animated);
-    const across = animated ? 1 : Math.max(1, joinOpts?.across ?? 1);
+    const across = Math.max(1, joinOpts?.across ?? 1);
     const cols = Math.min(n, across);
     const rows = Math.ceil(n / cols);
-    const shim = animated ? 0 : Math.max(0, joinOpts?.shim ?? 0);
+    const shim = Math.max(0, joinOpts?.shim ?? 0);
     const outW = cols * cellW + (cols - 1) * shim;
     const outH = rows * cellH + (rows - 1) * shim;
     const anyAlpha = imgs.some(i => i.hasAlpha);
@@ -528,6 +528,8 @@ export class SharpInstance extends Duplex {
         }
       }
     }
+    const animPageHeight = animated && n > 0 ? Math.floor(outH / n) : 0;
+    const validAnim = animated && animPageHeight > 0 && outH % animPageHeight === 0 && outH / animPageHeight === n;
     return {
       width: outW,
       height: outH,
@@ -538,7 +540,7 @@ export class SharpInstance extends Duplex {
       depth: "uchar",
       density: this.inputOptions?.density ?? 72,
       hasAlpha,
-      ...(animated ? { pages: n, pageHeight: cellH } : {})
+      ...(validAnim ? { pages: n, pageHeight: animPageHeight } : {})
     };
   }
 

@@ -3,6 +3,32 @@ import { expect, it } from "vitest";
 import { run } from "../run.js";
 import { dump } from "../dump.js";
 
+it.each(["null", "undefined"])("short-circuits the reported default-export reproduction with %s", async value => {
+  expect(await run(`export default () => { const a = ${value}; return a?.b.c; };`, { entryPointArgs: [] }))
+    .toMatchObject({ ok: true, returnValue: undefined });
+});
+
+it.each(["null", "undefined", "({b:{c:7,get(value){return this.c+value}}})"])(
+  "matches native continuous property and method chains with %s", async value => {
+    const expressions = [
+      "a?.b.c",
+      "a?.b[effects++ ? 'unused' : 'c']",
+      "a?.b.get(++effects)",
+      "a?.b.get?.(++effects).toString()",
+      "a?.b?.get(++effects)?.toString()",
+      "(a?.b).c",
+      "(a?.b).get(++effects)"
+    ];
+    for (const expression of expressions) {
+      const source = `const a=${value};let effects=0,value;
+        try{value=${expression}}catch(error){value=error.name}
+        return [value,effects];`;
+      expect(await run(`export default () => {${source}}`, { entryPointArgs: [] }), expression)
+        .toMatchObject({ ok: true, returnValue: runInNewContext(`(()=>{${source}})()`) });
+    }
+  }
+);
+
 it.each([
   "missing?.a.b(++effects).c",
   "missing?.[effects++].b",

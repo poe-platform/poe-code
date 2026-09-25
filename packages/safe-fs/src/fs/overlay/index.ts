@@ -175,7 +175,7 @@ export class OverlayFileSystem implements FileSystem {
     this.capabilities = Object.freeze({
       ...semantics,
       open: false,
-      atomicFilePublication: false, atomicFileMutation: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+      atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), atomicDirectoryMetadata: false, trustedOwnedStaging: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,

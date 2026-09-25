@@ -226,7 +226,7 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
   const filesystem: FileSystem = {
     capabilities: Object.freeze({ read: true, write: true, append: true, stat: true, readdir: true, realpath: true, access: true,
       mkdir: true, recursiveMkdir: true, explicitDirectories: true, implicitDirectories: false, exclusiveCreate: true,
-      remove: true, removeDirectory: true, recursiveRemove: true, atomicTreeRemoval: true, atomicEntryRemoval: true,
+      remove: true, removeDirectory: true, recursiveRemove: true, atomicTreeRemoval: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: false,
       rename: true, atomicRename: true, atomicRenameNoReplace: true, copy: true, exclusiveCopy: true,
       readOnly: false, symlinks: false, hardlinks: false, permissions: false, timestamps: false }),
     stat: observe,
@@ -278,7 +278,12 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
     async unlink(input, forwarded = {}) { entryPath(input); await mutate(forwarded, value => remove(value, resolveName(value, input), false, 'file')); },
     async rmdir(input, forwarded = {}) { entryPath(input); await mutate(forwarded, value => remove(value, resolveName(value, input), false, 'directory')); },
     async removeTreeConditional(input, forwarded) { entryPath(input); return conditionalRemove(input, forwarded, true); },
-    async removeEntryConditional(input, forwarded) { entryPath(input); return conditionalRemove(input, forwarded, false); },
+    async removeEntryConditional(input, forwarded) {
+      forwarded.signal?.throwIfAborted();
+      if (forwarded.returnRemainingStat === true) throw new FsError('ENOTSUP');
+      entryPath(input);
+      return conditionalRemove(input, forwarded, false);
+    },
     async rename(source, destination, forwarded = {}) {
       entryPath(source); entryPath(destination);
       await mutate(forwarded, value => {

@@ -1,4 +1,4 @@
-import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError, toFsError } from "../contracts/errors.js";
 import { validatePath } from "../contracts/virtual-path.js";
@@ -179,6 +179,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       const cached = methods.get(property);
       if (cached?.original === method) return cached.scoped;
       const dispatch = (...args: unknown[]): unknown => {
+        if (property === "removeEntryConditional") args[1] = resizeOptions({ ...args[1] as FsOptions });
         let stagingSignal: AbortSignal | undefined;
         if (property === "createStagedFile" || property === "publishStagedFile") {
           signal.throwIfAborted();
@@ -203,8 +204,9 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
           const optionIndex = property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1;
           const supplied = args[optionIndex] as FsOptions | undefined;
+          const removalReceipt = property === "removeEntryConditional" && supplied !== undefined && "returnRemainingStat" in supplied && supplied.returnRemainingStat === true;
           const options = stagingSignal ? { ...supplied, signal: stagingSignal } : supplied;
-          if (property === "createStagedFile") args[optionIndex] = options;
+          if (property === "createStagedFile" || property === "removeEntryConditional") args[optionIndex] = options;
           const assertReady = (): void => {
             if (property === "createStagedFile" || property === "publishStagedFile") options?.signal?.throwIfAborted();
             assertOpen(options);
@@ -213,6 +215,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           try {
             const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
             await requireOwnedMutation(original, path, property === "publishFileConditional" ? "atomicFilePublication" : property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
+            if (removalReceipt) await requireOwnedMutation(original, path, "atomicEntryRemovalReceipt", options!);
             if (property === "createStagedFile" && options && "retainCleanup" in options && options.retainCleanup === true) {
               await requireOwnedMutation(original, path, "retainedStagingCleanup", options, true);
             }
@@ -248,6 +251,10 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
               await inspectStagingBindings(path => original.lstat(path, options), args[1] as string, options as PublishStagedFileOptions);
             }
             throw error;
+          }
+          if (property === "removeEntryConditional") {
+            const receipt: FileStat | void = await Reflect.apply(method, original, args);
+            return removalReceipt && receipt !== undefined ? Object.freeze({ ...receipt }) : undefined;
           }
           if (property !== "createStagedFile") return Reflect.apply(method, original, args);
           const staging: FileStaging = await Reflect.apply(method, original, args);

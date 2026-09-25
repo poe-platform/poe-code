@@ -17,6 +17,44 @@ interface MoveEntry {
   readonly staging: MoveStagingPlan | undefined;
 }
 
+interface MoveRemovalGroup {
+  expected: FileStat;
+  remaining: number;
+}
+
+function removalGroups(plan: readonly MoveEntry[]): Map<MoveEntry, MoveRemovalGroup> {
+  const scopes = new Map<object | symbol, Map<string, MoveRemovalGroup>>();
+  const groups = new Map<MoveEntry, MoveRemovalGroup>();
+  for (const entry of plan) {
+    const stat = entry.stat;
+    if (stat.type === "directory" || compareCopyIdentity(stat, stat) !== "same") continue;
+    let identities = scopes.get(stat.identityScope!);
+    if (!identities) scopes.set(stat.identityScope!, identities = new Map());
+    const key = `${stat.dev}:${stat.ino}`;
+    let group = identities.get(key);
+    if (group) {
+      const before = group.expected;
+      if (!unchanged(before, stat, true) || before.nlink !== stat.nlink || before.revision !== stat.revision || before.ctimeMs !== stat.ctimeMs) {
+        throw new FsError("EBUSY", { path: entry.source, message: "move source aliases changed during planning" });
+      }
+      group.remaining++;
+    } else identities.set(key, group = { expected: stat, remaining: 1 });
+    groups.set(entry, group);
+  }
+  return groups;
+}
+
+function acceptRemovalReceipt(expected: FileStat, receipt: void | FileStat, path: string): FileStat {
+  if (!receipt || compareCopyIdentity(expected, receipt) !== "same" || !unchanged(expected, receipt, true)
+    || !Number.isSafeInteger(receipt.revision) || receipt.revision! < 0 || receipt.revision === expected.revision
+    || !Number.isFinite(receipt.ctimeMs)
+    || expected.uid !== undefined && receipt.uid !== expected.uid || expected.gid !== undefined && receipt.gid !== expected.gid
+    || !Number.isSafeInteger(receipt.nlink) || receipt.nlink !== expected.nlink! - 1) {
+    throw new FsError("EIO", { path, message: "conditional removal omitted a valid inode receipt" });
+  }
+  return receipt;
+}
+
 export class MoveBudget {
   private steps = 0;
   constructor(readonly signal: AbortSignal) {}
@@ -137,13 +175,25 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   };
   await visit(source, target, sourceStat, targetStat, 0);
   if (!context.fs.removeEntryConditional) throw new FsError("ENOTSUP", { syscall: "removeEntryConditional", path: source });
+  const groups = removalGroups(plan);
   for (const entry of plan) {
+    const group = groups.get(entry);
+    if (group && group.remaining > 1) {
+      if (!Number.isSafeInteger(group.expected.nlink) || group.expected.nlink! < group.remaining
+        || !Number.isSafeInteger(group.expected.revision) || group.expected.revision! < 0) {
+        throw new FsError("ENOTSUP", { path: entry.source, message: "move source aliases lack authoritative link snapshots" });
+      }
+      await admitFilesystemModes(context, "mv", ["cross-linked-source"], [entry.source]);
+    }
     const sourceMode = entry.stat.type === "directory" ? "cross-directory-source"
       : entry.stat.type === "symlink" ? "cross-link-source" : "cross-source";
     await admitFilesystemModes(context, "mv", [sourceMode], [entry.source]);
     const capabilities = await context.fs.capabilitiesFor?.(entry.source, { signal: context.signal }) ?? context.fs.capabilities;
     context.signal.throwIfAborted();
     if (capabilities.atomicEntryRemoval !== true) throw new FsError("ENOTSUP", { syscall: "removeEntryConditional", path: entry.source });
+    if (group && group.remaining > 1 && capabilities.atomicEntryRemovalReceipt !== true) {
+      throw new FsError("ENOTSUP", { syscall: "atomicEntryRemovalReceipt", path: entry.source });
+    }
     if (entry.stat.type === "directory") {
       if (!entry.targetStat) await admitFilesystemModes(context, "mv", ["cross-directory"], [entry.target]);
     } else if (entry.stat.type === "symlink") {
@@ -202,9 +252,17 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
     // Child cleanup changes directory metadata; retain the planned identity and
     // parent while comparing the directory snapshot atomically at removal.
     const current = await recheck(context, entry, entry.stat.type !== "directory");
-    await context.fs.removeEntryConditional(entry.source, {
-      parent: entry.parent, expected: entry.stat.type === "directory" ? current : entry.stat, signal: context.signal,
+    const group = groups.get(entry), returnRemainingStat = group !== undefined && group.remaining > 1;
+    const expected = entry.stat.type === "directory" ? current : group?.expected ?? entry.stat;
+    const receipt = await context.fs.removeEntryConditional(entry.source, {
+      parent: entry.parent, expected, signal: context.signal, ...(returnRemainingStat ? { returnRemainingStat: true } : {}),
     });
+    // Only the backend's atomic unlink receipt may advance sibling snapshots.
+    // A subsequent lstat would also accept uncopied concurrent source changes.
+    if (group) {
+      if (returnRemainingStat) group.expected = acceptRemovalReceipt(expected, receipt, entry.source);
+      group.remaining--;
+    }
   }
   return true;
 }

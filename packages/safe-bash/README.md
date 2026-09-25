@@ -188,6 +188,8 @@ Backends without these guarantees refuse the overwrite. Hardlinked destinations
 are replaced without changing the contents of their sibling links. Opaque
 destination identities and symlinked destination parents remain unsupported.
 Same-device replacement and cross-device moves to missing destinations remain supported.
+Directory moves with multiple source links to one inode require atomic unlink
+receipts to remove those links without accepting unrelated source changes.
 `cp -i` / `--interactive` prompts on stderr before overwriting each existing file
 and reads one response from stdin. Responses beginning with `y` or `Y` allow
 replacement; refusal or EOF preserves the destination and returns status 1.

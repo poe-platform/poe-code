@@ -1437,6 +1437,28 @@ mount and device views enforce the advertised capability and mutation boundaries
 Read-only and quota views neither expose nor advertise the operation. Retained
 cleanup does not gain this general source-removal operation.
 
+`atomicEntryRemovalReceipt: true` additionally permits
+`removeEntryConditional(path, { parent, expected, returnRemainingStat: true })`.
+It requires `atomicEntryRemoval` and returns an immutable `FileStat` of the same
+inode immediately after this unlink, including its resulting link count and
+revision. A final unlink returns a snapshot with `nlink: 0`; it does not omit the
+receipt. The observation and removal share the same atomic section. A later
+`stat` of another pathname cannot implement this contract. A successful unlink
+returns its receipt even if cancellation occurs after commit but before promise
+settlement. Pre-commit cancellation and failed conditions still prevent removal.
+Without the explicit request, the existing void result and legacy
+`Promise<void>` overload are unchanged. Receipt-requesting calls admit both
+results so existing void-returning providers remain assignable to the interface.
+Providers that cannot supply a requested receipt reject `ENOTSUP` before mutation.
+The regular-file and tree-removal interfaces do not accept this additional option.
+
+Receipts let a consumer update expectations for known remaining hardlinked
+aliases after its own unlink. They do not authorize later external changes or
+replacement paths, nor do they make a sequence of removals one transaction.
+Memory implements receipts; mount, device and scope views forward the result and
+enforce the capability. Read-only and quota views withhold it. Providers without
+hardlinks need not implement it for ordinary conditional source removal.
+
 ## Atomic conditional tree removal
 
 `atomicTreeRemoval: true` requires `removeTreeConditional(path, { parent,

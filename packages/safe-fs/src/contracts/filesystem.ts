@@ -89,6 +89,8 @@ export interface FileSystemCapabilities {
   readonly atomicFilePublication?: boolean;
   readonly atomicFileMutation?: boolean;
   readonly atomicEntryRemoval?: boolean;
+  /** Returns an atomic post-unlink inode snapshot when explicitly requested. */
+  readonly atomicEntryRemovalReceipt?: boolean;
   readonly atomicTreeRemoval?: boolean;
   readonly atomicDirectoryMetadata?: boolean;
   readonly atomicRenameNoReplace?: boolean;
@@ -221,6 +223,10 @@ export interface ConditionalRemoveEntryOptions extends FsOptions {
   readonly expected: FileStat;
 }
 
+export interface ConditionalRemoveEntryReceiptOptions extends ConditionalRemoveEntryOptions {
+  readonly returnRemainingStat?: boolean | undefined;
+}
+
 export type ConditionalRemoveFileOptions = ConditionalRemoveEntryOptions;
 
 export interface FileStagingEntry {
@@ -295,7 +301,8 @@ export interface FileSystem {
    * Failures before commit preserve the destination. No stat/write fallback. */
   publishFileConditional?(path: string, source: ByteSource, options: ConditionalFilePublicationOptions): Promise<FileStat>;
   writeFileConditional?(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat>;
-  removeEntryConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;
+  removeEntryConditional?(path: string, options: ConditionalRemoveEntryOptions & { readonly returnRemainingStat?: false | undefined }): Promise<void>;
+  removeEntryConditional?(path: string, options: ConditionalRemoveEntryReceiptOptions): Promise<void | FileStat>;
   removeTreeConditional?(path: string, options: ConditionalRemoveEntryOptions): Promise<void>;
   removeFileConditional?(path: string, options: ConditionalRemoveFileOptions): Promise<void>;
   readonly capabilities: FileSystemCapabilities;

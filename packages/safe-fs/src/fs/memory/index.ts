@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
@@ -130,7 +130,7 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
-      atomicFileStaging: true, retainedStagingCleanup: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
+      atomicFileStaging: true, retainedStagingCleanup: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
       synchronousDirectoryValidation: true, guardedStagingPublication: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
@@ -877,8 +877,11 @@ export class MemoryFileSystem implements FileSystem {
     return Object.freeze(this.snapshot(location.parent.entries.get(location.name)!));
   }
 
-  async removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+  removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions & { readonly returnRemainingStat?: false | undefined }): Promise<void>;
+  removeEntryConditional(path: string, options: ConditionalRemoveEntryReceiptOptions): Promise<void | FileStat>;
+  async removeEntryConditional(path: string, options: ConditionalRemoveEntryReceiptOptions): Promise<void | FileStat> {
     options.signal?.throwIfAborted();
+    const returnRemainingStat = options.returnRemainingStat === true;
     const location = this.entry(path, "removeEntryConditional", true);
     this.expectEntry(location.parent, options.parent, path, false);
     this.expectEntry(location.node, options.expected, path);
@@ -895,6 +898,7 @@ export class MemoryFileSystem implements FileSystem {
     node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
     this.releaseNode(node);
     this.changed(location.parent);
+    if (returnRemainingStat) return Object.freeze(this.snapshot(node));
   }
 
   async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {

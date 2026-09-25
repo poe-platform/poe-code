@@ -24,15 +24,16 @@ function trySearchFileSync(
   target: FileTarget,
   filename: boolean,
   totals: Stats,
+  admittedBacking: ReturnType<typeof getRuntimeBackingFileSystem>,
 ): boolean | Promise<boolean> | undefined {
   if (args.mode === "json") return undefined;
   const selectedOutput = !args.quiet && args.mode === "lines";
   if (selectedOutput || args.before > 0 || args.after > 0 || target.path === "-") return undefined;
-  const backing = target.canonicalPath ? getRuntimeBackingFileSystem(context.fs) : undefined;
-  if (!target.canonicalPath || !backing || backing.capabilitiesFor !== undefined || context.fs.capabilities.read === false || backing.capabilities.read === false) {
+  const backing = target.canonicalPath ? admittedBacking : undefined;
+  if (!target.canonicalPath || !backing) {
     return undefined;
   }
-  assertCommandRequirements(context, searchRequirements, ["file"]);
+  context.signal.throwIfAborted();
   const maxBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
   const view = tryReadMemoryFileViewSync(backing, target.canonicalPath, maxBytes, context.signal);
   if (view === undefined) return undefined;
@@ -364,6 +365,8 @@ Unicode selection and extended regex syntax require a configured executor.
           const printer = new Printer(args, limits);
           const totals = stats();
           const multiPaths = selection.paths.length > 1;
+          let fastReadState: 0 | 1 | -1 = 0;
+          let fastReadBacking: ReturnType<typeof getRuntimeBackingFileSystem>;
           const runTargetSlow = async (target: FileTarget, showFilename: boolean): Promise<boolean> => {
             const snapshotTarget: FileTarget = { path: target.path, label: target.label, explicit: target.explicit, recursive: target.recursive, ...(target.canonicalPath !== undefined ? { canonicalPath: target.canonicalPath } : {}) };
             try {
@@ -392,7 +395,17 @@ Unicode selection and extended regex syntax require a configured executor.
               }
               const showFilename = args!.filename ?? (target.recursive || multiPaths);
               try {
-                const syncOut = trySearchFileSync(context, args!, limits!, matcher, printer, target, showFilename, totals);
+                if (fastReadState === 0 && target.canonicalPath) {
+                  const b = getRuntimeBackingFileSystem(context.fs);
+                  if (!b || b.capabilitiesFor !== undefined || context.fs.capabilities.read === false || b.capabilities.read === false) {
+                    fastReadState = -1;
+                  } else {
+                    assertCommandRequirements(context, searchRequirements, ["file"]);
+                    fastReadBacking = b;
+                    fastReadState = 1;
+                  }
+                }
+                const syncOut = fastReadState === 1 ? trySearchFileSync(context, args!, limits!, matcher, printer, target, showFilename, totals, fastReadBacking) : undefined;
                 if (typeof syncOut === "boolean") {
                   found ||= syncOut;
                   if (args!.quiet && found && args!.mode !== "json") return false;

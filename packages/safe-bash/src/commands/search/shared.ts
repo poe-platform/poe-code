@@ -15,6 +15,8 @@ export class OutputClosed extends SearchError {}
 
 const emptyBuffer = Buffer.alloc(0);
 const OUT_BUFFER_SIZE = 64 * 1024;
+const sharedOutBuf = new Uint8Array(OUT_BUFFER_SIZE);
+let sharedOutBufInUse = false;
 
 export class Limits {
   readonly maxOutputBytes: number;
@@ -25,19 +27,52 @@ export class Limits {
   outputBytes = 0;
   files = 0;
   private ticks = 0;
-  private readonly stopped = new AbortController();
-  readonly signal: AbortSignal;
+  private stopped: AbortController | undefined;
+  private _signal: AbortSignal | undefined;
   private outBuf: Uint8Array | null = null;
+  private usingSharedBuf = false;
   outPos = 0;
   constructor(readonly context: CommandContext, options: SearchOptions) {
-    this.signal = AbortSignal.any([context.signal, this.stopped.signal]);
     this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
     this.maxLineBytes = options.maxLineBytes ?? Infinity;
     this.maxFileBytes = options.maxFileBytes ?? Infinity;
     this.maxFiles = options.maxFiles ?? Infinity;
     this.maxPatternBytes = options.maxPatternBytes ?? Infinity;
-    for (const limit of [this.maxOutputBytes, this.maxLineBytes, this.maxFileBytes, this.maxFiles, this.maxPatternBytes]) {
-      if ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1) throw new SearchError("search limits must be positive safe integers");
+    if (
+      (this.maxOutputBytes !== Infinity && !Number.isSafeInteger(this.maxOutputBytes)) || this.maxOutputBytes < 1 ||
+      (this.maxLineBytes !== Infinity && !Number.isSafeInteger(this.maxLineBytes)) || this.maxLineBytes < 1 ||
+      (this.maxFileBytes !== Infinity && !Number.isSafeInteger(this.maxFileBytes)) || this.maxFileBytes < 1 ||
+      (this.maxFiles !== Infinity && !Number.isSafeInteger(this.maxFiles)) || this.maxFiles < 1 ||
+      (this.maxPatternBytes !== Infinity && !Number.isSafeInteger(this.maxPatternBytes)) || this.maxPatternBytes < 1
+    ) {
+      throw new SearchError("search limits must be positive safe integers");
+    }
+  }
+  get signal(): AbortSignal {
+    if (!this._signal) {
+      this.stopped ??= new AbortController();
+      this._signal = AbortSignal.any([this.context.signal, this.stopped.signal]);
+    }
+    return this._signal;
+  }
+  private ensureOutBuf(): Uint8Array {
+    let buf = this.outBuf;
+    if (!buf) {
+      if (!sharedOutBufInUse) {
+        sharedOutBufInUse = true;
+        this.usingSharedBuf = true;
+        buf = this.outBuf = sharedOutBuf;
+      } else {
+        buf = this.outBuf = new Uint8Array(OUT_BUFFER_SIZE);
+      }
+    }
+    return buf;
+  }
+  private releaseOutBuf(): void {
+    if (this.usingSharedBuf) {
+      this.usingSharedBuf = false;
+      sharedOutBufInUse = false;
+      this.outBuf = null;
     }
   }
   tick(): Promise<void> | undefined {
@@ -47,20 +82,25 @@ export class Limits {
     return undefined;
   }
   private async write(chunk: Uint8Array): Promise<void> {
-    try { await writeBytes(this.context.stdout, chunk, this.signal); }
+    try { await writeBytes(this.context.stdout, chunk, this._signal ?? this.context.signal); }
     catch (error) {
       this.context.signal.throwIfAborted();
       if ((error as { code?: string }).code === "EPIPE") {
-        const closed = new OutputClosed("stdout closed"); this.stopped.abort(closed); throw closed;
+        const closed = new OutputClosed("stdout closed");
+        this.stopped?.abort(closed);
+        throw closed;
       }
       throw error;
     }
   }
   async flush(): Promise<void> {
     if (this.outPos > 0 && this.outBuf) {
-      const slice = this.outBuf.subarray(0, this.outPos);
+      const slice = this.outBuf.slice(0, this.outPos);
       this.outPos = 0;
+      this.releaseOutBuf();
       await this.write(slice);
+    } else {
+      this.releaseOutBuf();
     }
   }
   outputSyncOrAsync(value: string | Uint8Array): Promise<void> | undefined {
@@ -72,8 +112,7 @@ export class Limits {
       }
       if (ascii && len <= OUT_BUFFER_SIZE) {
         if (this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
-        let buf = this.outBuf;
-        if (!buf) buf = this.outBuf = new Uint8Array(OUT_BUFFER_SIZE);
+        const buf = this.ensureOutBuf();
         if (this.outPos + len <= OUT_BUFFER_SIZE) {
           const pos = this.outPos;
           for (let i = 0; i < len; i++) {
@@ -96,11 +135,10 @@ export class Limits {
       }
       if (ascii && len <= OUT_BUFFER_SIZE) {
         if (this.outputBytes + len > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
-        let buf = this.outBuf;
-        if (!buf) buf = this.outBuf = new Uint8Array(OUT_BUFFER_SIZE);
         if (this.outPos + len > OUT_BUFFER_SIZE) {
           await this.flush();
         }
+        const buf = this.ensureOutBuf();
         const pos = this.outPos;
         for (let i = 0; i < len; i++) {
           buf[pos + i] = value.charCodeAt(i);
@@ -118,11 +156,10 @@ export class Limits {
       this.outputBytes += chunk.byteLength;
       return;
     }
-    let buf = this.outBuf;
-    if (!buf) buf = this.outBuf = new Uint8Array(OUT_BUFFER_SIZE);
     if (this.outPos + chunk.byteLength > OUT_BUFFER_SIZE) {
       await this.flush();
     }
+    const buf = this.ensureOutBuf();
     buf.set(chunk, this.outPos);
     this.outPos += chunk.byteLength;
     this.outputBytes += chunk.byteLength;
@@ -160,7 +197,7 @@ class SlicedLine implements Line {
   private _content: Buffer | undefined;
   private _rawBytes: Buffer | undefined;
   constructor(
-    public chunk: Buffer,
+    public chunk: Uint8Array,
     public start: number,
     public contentEnd: number,
     public rawEnd: number,
@@ -178,7 +215,7 @@ class SlicedLine implements Line {
     this.offset = offset;
   }
   reset(
-    chunk: Buffer,
+    chunk: Uint8Array,
     start: number,
     contentEnd: number,
     rawEnd: number,
@@ -212,11 +249,14 @@ class SlicedLine implements Line {
     return this._bytes ??= new Uint8Array(this.chunk.buffer, this.chunk.byteOffset + this.start, this.searchEnd - this.start);
   }
   get content(): Buffer {
-    return this._content ??= this.chunk.subarray(this.start, this.contentEnd);
+    if (this._content) return this._content;
+    const buf = Buffer.isBuffer(this.chunk) ? this.chunk : Buffer.from(this.chunk.buffer, this.chunk.byteOffset, this.chunk.byteLength);
+    return this._content = buf.subarray(this.start, this.contentEnd);
   }
   get rawBytes(): Buffer {
     if (this._rawBytes) return this._rawBytes;
-    const content = this.chunk.subarray(this.start, this.rawEnd);
+    const buf = Buffer.isBuffer(this.chunk) ? this.chunk : Buffer.from(this.chunk.buffer, this.chunk.byteOffset, this.chunk.byteLength);
+    const content = buf.subarray(this.start, this.rawEnd);
     return this._rawBytes = this.delimiterBuffer ? Buffer.concat([content, this.delimiterBuffer]) : content;
   }
 }
@@ -247,7 +287,7 @@ export function trySyncLineBatches(
   reusePool = false,
 ): Line[][] | undefined {
   if (limits.tick() !== undefined) return undefined;
-  const chunk = Buffer.isBuffer(source) ? source : Buffer.from(source.buffer, source.byteOffset, source.byteLength);
+  const chunk = source;
   if (state.bytesRead + chunk.length > limits.maxFileBytes) throw new SearchError("input file byte limit exceeded");
   const delimiter = nullData ? 0 : 10;
   const extraDelimiter = binary === "binary" ? 0 : -1;

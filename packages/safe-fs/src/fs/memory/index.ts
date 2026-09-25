@@ -1279,31 +1279,28 @@ export class MemoryFileSystem implements FileSystem {
 
 const memoryImplementation = Object.getOwnPropertyDescriptors(MemoryFileSystem.prototype);
 
+const stockDescriptorWriteMethodNames = [
+  "writeStream", "writeFile", "appendFile", "access", "stat", "lstat", "realpath",
+  "openWrite", "prepareWrite", "writeData", "addNode", "replaceData", "releaseReference", "releaseNode",
+  "resolve", "permission", "validatePath", "mode", "bytes", "allocate", "admitSize", "changed", "metadata", "integer", "writeAt", "fail",
+] as const;
+
+const stockRetainedResizeMethodNames = [
+  "openResizeFile", "truncate", "resizeNode", "snapshot",
+] as const;
+
 function stockDescriptorWrite(filesystem: MemoryFileSystem): boolean {
-  if (Object.getPrototypeOf(filesystem) !== MemoryFileSystem.prototype) return false;
-  const owner = ownedStores.get(filesystem);
-  if (!owner || Object.getOwnPropertyDescriptor(filesystem, "root")?.value !== owner.root
-    || Object.getOwnPropertyDescriptor(filesystem, "capabilities")?.value !== owner.capabilities) return false;
-  for (const name of ["writeStream", "writeFile", "appendFile", "access", "stat", "lstat", "realpath",
-    "openWrite", "prepareWrite", "writeData", "addNode", "replaceData", "releaseReference", "releaseNode",
-    "resolve", "permission", "validatePath", "mode", "bytes", "allocate", "admitSize", "changed", "metadata", "integer", "writeAt", "fail"]) {
-    const descriptor = Object.getOwnPropertyDescriptor(filesystem, name)
-      ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
-    if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return false;
-  }
-  return true;
+  if (!isStockMemoryMethods(filesystem, stockDescriptorWriteMethodNames, true)) return false;
+  const owner = ownedStores.get(filesystem)!;
+  const capDesc = Object.getOwnPropertyDescriptor(filesystem, "capabilities");
+  return !!capDesc && "value" in capDesc && capDesc.value === owner.capabilities;
 }
 
 function stockRetainedResize(filesystem: MemoryFileSystem): boolean {
-  if (!stockDescriptorWrite(filesystem)) return false;
-  const owner = ownedStores.get(filesystem);
-  if (!owner || Object.getOwnPropertyDescriptor(filesystem, "ledger")?.value !== owner.ledger) return false;
-  for (const name of ["openResizeFile", "truncate", "resizeNode", "snapshot"]) {
-    const descriptor = Object.getOwnPropertyDescriptor(filesystem, name)
-      ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
-    if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return false;
-  }
-  return true;
+  if (!stockDescriptorWrite(filesystem) || !isStockMemoryMethods(filesystem, stockRetainedResizeMethodNames, false)) return false;
+  const owner = ownedStores.get(filesystem)!;
+  const ledgerDesc = Object.getOwnPropertyDescriptor(filesystem, "ledger");
+  return !!ledgerDesc && "value" in ledgerDesc && ledgerDesc.value === owner.ledger;
 }
 
 export function createMemoryFileSystem(options: MemoryFileSystemOptions | Readonly<Record<string, unknown>> = {}): MemoryFileSystem {

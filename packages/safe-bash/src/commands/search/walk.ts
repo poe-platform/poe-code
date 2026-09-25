@@ -33,6 +33,10 @@ export class Walker {
   private readonly hasPositiveType: boolean;
   private readonly cache = new Map<string, { rules: IgnoreRule[]; repository: boolean; root: boolean }>();
   private readonly explicitRules: IgnoreRule[] = [];
+  private uniformDirAdmitted = false;
+  private uniformCanonicalAdmitted: boolean | undefined;
+  private uniformReaddirAdmitted: boolean | undefined;
+  private uniformIgnoreAdmitted = false;
   constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>, private readonly session: RegexSession) {
     this.globs = args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }));
     this.hasPositive = this.globs.some(rule => rule.include);
@@ -166,23 +170,29 @@ export class Walker {
     if (depth >= this.args.maxDepth) return true;
     const backing = getRuntimeBackingFileSystem(this.context.fs);
     const uniformNonDevPath = backing !== undefined && backing.capabilitiesFor === undefined && path !== "/dev" && !path.startsWith("/dev/");
-    if (uniformNonDevPath) assertCommandRequirements(this.context, searchRequirements, ["directory"]);
-    else await assertPathRequirements(this.context, searchRequirements, ["directory"], [path]);
-    const memDirEntries = uniformNonDevPath && this.context.fs.capabilities.realpath !== false && backing.capabilities.realpath !== false
-      ? tryGetMemoryDirectoryEntryNamesSync(backing, path)
-      : undefined;
+    if (uniformNonDevPath) {
+      if (!this.uniformDirAdmitted) {
+        assertCommandRequirements(this.context, searchRequirements, ["directory"]);
+        this.uniformDirAdmitted = true;
+      } else {
+        this.context.signal.throwIfAborted();
+      }
+    } else await assertPathRequirements(this.context, searchRequirements, ["directory"], [path]);
+    const canTryMemDir = uniformNonDevPath && (this.uniformCanonicalAdmitted ??= (this.context.fs.capabilities.realpath !== false && backing.capabilities.realpath !== false && (assertCommandRequirements(this.context, searchRequirements, ["canonical"]), true)));
+    const memDirEntries = canTryMemDir ? tryGetMemoryDirectoryEntryNamesSync(backing, path) : undefined;
     const canonical = memDirEntries !== undefined
-      ? (assertCommandRequirements(this.context, searchRequirements, ["canonical"]), path)
+      ? path
       : await this.context.fs.realpath(path, { signal: this.context.signal });
     const uniformCanonical = backing !== undefined && backing.capabilitiesFor === undefined && canonical !== "/dev" && !canonical.startsWith("/dev/");
     if (ancestors.has(canonical)) { await this.report(new SearchError(`File system loop found: ${label} points to an ancestor ${ancestors.get(canonical)}`)); return true; }
     ancestors.set(canonical, label || ".");
     try {
-    const canFastMemReaddir = memDirEntries !== undefined && uniformCanonical && this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false;
+    const canFastMemReaddir = memDirEntries !== undefined && uniformCanonical && (this.uniformReaddirAdmitted ??= (this.context.fs.capabilities.readdir !== false && backing.capabilities.readdir !== false));
     const admittedSync = canFastMemReaddir && (!this.args.ignore || (!memDirEntries.has(".git") && !memDirEntries.has(".gitignore") && !memDirEntries.has(".ignore") && !memDirEntries.has(".rgignore")))
       ? (() => {
-          if (this.args.ignore) {
+          if (this.args.ignore && !this.uniformIgnoreAdmitted) {
             assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
+            this.uniformIgnoreAdmitted = true;
           }
           return { repository, rules: rules as IgnoreRule[] };
         })()

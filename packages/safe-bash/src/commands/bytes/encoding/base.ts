@@ -72,8 +72,8 @@ async function decode(context: CommandContext, files: readonly string[], alphabe
     for (const byte of chunk) {
       const symbol = lookup[byte]!;
       if (ignore && symbol === -2) continue;
-      lastByte = byte;
       if (byte === 10) continue;
+      lastByte = byte;
       quantum.push(symbol);
       if (quantum.length === alphabet.quantum) {
         const decoded = decodeQuantum(quantum, alphabet);

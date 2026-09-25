@@ -37,7 +37,7 @@ interface Settings {
 interface InputState { stdinUsed: boolean; budget: ByteInputBudget }
 interface ReadProgress { hasData: boolean }
 interface Digest { hex: string; length: bigint }
-interface Entry { digest: string; filename: string; algorithm: Algorithm }
+interface Entry { digest: string; filename: string; algorithm: Algorithm; bits?: number }
 
 function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: Settings } {
   let report: ReportMode = "normal";
@@ -236,6 +236,8 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | u
     if (rawText === "" || rawText.startsWith("#")) return "skip";
     let text = rawText.trimStart();
     if (text.startsWith("\\")) text = text.slice(1);
+    if (/^BLAKE2b(?:-\d+)? ?\(/u.test(text)) return parseEntry(bytes, "blake2b");
+    if (/^SHA3-(?:224|256|384|512) ?\(/u.test(text)) return parseEntry(bytes, "sha3");
     for (const candidate of Object.keys(hashes) as (keyof typeof hashes)[]) {
       if (text.startsWith(`${candidate.toUpperCase()} (`) || text.startsWith(`${candidate.toUpperCase()}(`)) return parseEntry(bytes, candidate);
     }
@@ -246,8 +248,10 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | u
   if (line.endsWith("\r")) line = line.slice(0, -1);
   if (line === "" || line.startsWith("#")) return "skip";
   const digits = { sha512: 128, sha384: 96, sha256: 64, sha224: 56, sha1: 40, md5: 32, crc: 0, bsd: 0, sysv: 0, crc32b: 0, sm3: 64, blake2b: 128, sha3: 128 }[algorithm];
-  const tagged = new RegExp(`^[ \\t]*(\\\\?)${algorithm.toUpperCase()} ?\\((.*)\\)[ \\t]*=[ \\t]*([a-fA-F0-9]{${digits}})$`, "su").exec(line);
-  const match = tagged ? null : new RegExp(`^[ \\t]*(\\\\?)([a-fA-F0-9]{${digits}})[ \\t][ *](.+)$`, "su").exec(line);
+  const tagPrefix = algorithm === "blake2b" ? "BLAKE2b(?:-[0-9]+)?" : algorithm === "sha3" ? "SHA3-(?:224|256|384|512)" : algorithm.toUpperCase();
+  const hexCount = algorithm === "blake2b" || algorithm === "sha3" ? "2,128" : String(digits);
+  const tagged = new RegExp(`^[ \\t]*(\\\\?)${tagPrefix} ?\\((.*)\\)[ \\t]*=[ \\t]*([a-fA-F0-9]{${hexCount}})$`, "su").exec(line);
+  const match = tagged ? null : new RegExp(`^[ \\t]*(\\\\?)([a-fA-F0-9]{${hexCount}})[ \\t][ *](.+)$`, "su").exec(line);
   if (!tagged && !match) return undefined;
   let filename = tagged ? tagged[2]! : match![3]!;
   if (tagged ? tagged[1] : match![1]) {
@@ -262,7 +266,8 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | u
     if (invalid) return undefined;
   }
   try { validateFilename(filename); } catch { return undefined; }
-  return { digest: (tagged ? tagged[3]! : match![2]!).toLowerCase(), filename, algorithm };
+  const hex = (tagged ? tagged[3]! : match![2]!).toLowerCase();
+  return { digest: hex, filename, algorithm, bits: hex.length * 4 };
 }
 
 async function report(context: CommandContext, filename: string, status: string): Promise<void> {
@@ -289,7 +294,7 @@ async function verify(context: CommandContext, manifest: string, algorithm: Algo
     valid = true;
     let actual: Digest;
     const progress: ReadProgress = { hasData: false };
-    try { actual = await digest(source(context, entry.filename, state), entry.algorithm, context.signal, progress); }
+    try { actual = await digest(source(context, entry.filename, state), entry.algorithm, context.signal, progress, entry.bits ?? settings.length ?? 512); }
     catch (error) {
       state.budget.assertOpen(context.signal);
       if (settings.ignoreMissing && entry.filename !== "-" && !progress.hasData && codeOf(error) === "ENOENT") continue;

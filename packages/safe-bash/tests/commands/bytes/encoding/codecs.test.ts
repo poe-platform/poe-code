@@ -72,3 +72,12 @@ for (const [name, column] of [["base64", 1], ["base32", 2]] as const) {
     assert.equal((await run(name, ["-d"], vectors[1][column] + vectors[2][column])).stdout, "ffo");
   });
 }
+
+test("base64 and base32 reject incomplete = padding before trailing newline", async () => {
+  const b64 = await run("base64", ["-d"], "YQ=\n");
+  assert.equal(b64.exitCode, 1);
+  assert.match(b64.stderr, /invalid input/u);
+  const b32 = await run("base32", ["-d"], "MY=\n");
+  assert.equal(b32.exitCode, 1);
+  assert.match(b32.stderr, /invalid input/u);
+});

@@ -521,3 +521,11 @@ test("od: output type selections have no implicit quota", async () => {
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, " 41\n".repeat(17));
 });
+
+test("od: supports size-less/symbolic -t types, z printable suffix, optional -w, and uppercase aliases", async () => {
+  assert.equal((await run("od", ["-An", "-t", "xC"], "AB")).stdout, " 41 42\n");
+  assert.equal((await run("od", ["-An", "-tx1z"], "AB")).stdout, " 41 42  >AB<\n");
+  assert.equal((await run("od", ["-An", "-t", "x"], "ABCD")).stdout, " 44434241\n");
+  assert.equal((await run("od", ["-An", "-X"], "ABCD")).stdout, " 44434241\n");
+  assert.equal((await run("od", ["-An", "-tx1", "-w"], "ABCD")).stdout, " 41 42 43 44\n");
+});

@@ -2,20 +2,32 @@ import type { CommandDefinition } from "../../../contracts/index.js";
 import { define, options, output, UsageError } from "../../internal.js";
 import { addOffset, numeric, range, rows, sources, validatedOption } from "./shared.js";
 
-interface Format { readonly kind: string; readonly size: number }
+interface Format { readonly kind: string; readonly size: number; readonly printable?: boolean }
 
 function formats(text: string): Format[] {
   const result: Format[] = [];
+  const sizeMap: Record<string, number> = { C: 1, S: 2, I: 4, L: 8, F: 4, D: 8 };
   for (let offset = 0; offset < text.length;) {
     const kind = text[offset++]!;
     let size = 1;
     if (kind !== "a" && kind !== "c") {
-      size = Number(text[offset++]);
-      if ((!"doux".includes(kind) && kind !== "f") || !(kind === "f" ? [4, 8] : [1, 2, 4, 8]).includes(size)) {
+      if (!"doux".includes(kind) && kind !== "f") {
+        throw new UsageError(`unsupported type '${text}': use a, c, f4/f8 or d/o/u/x with size 1, 2, 4, or 8`);
+      }
+      const next = text[offset];
+      if (next !== undefined && ((next >= "0" && next <= "9") || Object.hasOwn(sizeMap, next))) {
+        size = sizeMap[next] ?? Number(next);
+        offset++;
+      } else {
+        size = 4;
+      }
+      if (!(kind === "f" ? [4, 8] : [1, 2, 4, 8]).includes(size)) {
         throw new UsageError(`unsupported type '${text}': use a, c, f4/f8 or d/o/u/x with size 1, 2, 4, or 8`);
       }
     }
-    result.push({ kind, size });
+    let printable = false;
+    if (text[offset] === "z") { printable = true; offset++; }
+    result.push({ kind, size, ...(printable ? { printable: true } : {}) });
     if (result.length > 16) throw new UsageError("at most 16 output types are supported");
   }
   if (!result.length) throw new UsageError("empty output type");
@@ -82,12 +94,17 @@ function formatRow(row: Uint8Array, format: Format, bigEndian: boolean): string 
       : format.kind === "d" ? (1n << BigInt(bits - 1)).toString().length + 1 : ((1n << BigInt(bits)) - 1n).toString().length;
     text += ` ${number.toString(base).padStart(width, base === 10 ? " " : "0")}`;
   }
+  if (format.printable) {
+    let ascii = "";
+    for (const byte of row) ascii += byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : ".";
+    text += `  >${ascii}<`;
+  }
   return text;
 }
 
 export function createOdCommand(maxInputBytes: number): CommandDefinition {
   return define("od", async context => {
-    const aliases: Record<string, string> = { a: "a", b: "o1", c: "c", d: "u2", f: "f4", i: "d4", l: "d8", o: "o2", s: "d2", x: "x2" };
+    const aliases: Record<string, string> = { a: "a", b: "o1", B: "o2", c: "c", d: "u2", D: "u4", e: "f8", f: "f4", F: "f8", h: "x2", i: "d4", I: "d8", l: "d8", L: "d8", o: "o2", O: "o4", s: "d2", x: "x2", X: "x4" };
     const rewritten: string[] = [];
     let ended = false;
     for (let index = 0; index < context.args.length; index++) {
@@ -96,8 +113,13 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
       if (argument === "--") { ended = true; rewritten.push(argument); continue; }
       if (argument.startsWith("--")) {
         if (argument === "--strings") { rewritten.push("-S3"); continue; }
+        if (argument === "--width") {
+          const next = context.args[index + 1];
+          if (next && [...next].every(c => c >= "0" && c <= "9")) { rewritten.push(`-w${next}`); index++; } else rewritten.push("-w32");
+          continue;
+        }
         rewritten.push(argument);
-        if (!argument.includes("=") && ["--address-radix", "--skip-bytes", "--read-bytes", "--format", "--type", "--width", "--endian"].includes(argument)) {
+        if (!argument.includes("=") && ["--address-radix", "--skip-bytes", "--read-bytes", "--format", "--type", "--endian"].includes(argument)) {
           const parameter = context.args[++index];
           if (parameter === undefined) throw new UsageError(`option '${argument}' requires an argument`);
           rewritten.push(parameter);
@@ -116,9 +138,16 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
           rewritten.push(`-S${parameter || "3"}`);
           break;
         }
-        if (flag === "e") throw new UsageError("use --endian=little or --endian=big; -e is unsupported");
+        if (flag === "e" && (argument.slice(offset + 1) === "big" || argument.slice(offset + 1) === "little" || context.args[index + 1] === "big" || context.args[index + 1] === "little")) throw new UsageError("use --endian=little or --endian=big; -e is unsupported");
+        if (flag === "w") {
+          let parameter = argument.slice(offset + 1);
+          const next = context.args[index + 1];
+          if (!parameter && next && [...next].every(character => character >= "0" && character <= "9")) { parameter = next; index++; }
+          rewritten.push(`-w${parameter || "32"}`);
+          break;
+        }
         if (aliases[flag]) rewritten.push(`-t${aliases[flag]}`);
-        else if ("AjNtw".includes(flag)) {
+        else if ("AjNt".includes(flag)) {
           const parameter = argument.slice(offset + 1) || context.args[++index];
           if (parameter === undefined) throw new UsageError(`option '-${flag}' requires an argument`);
           rewritten.push(`-${flag}`, parameter);

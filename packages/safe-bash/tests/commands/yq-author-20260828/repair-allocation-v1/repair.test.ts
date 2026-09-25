@@ -63,7 +63,7 @@ async function run(input: string, limits?: Partial<YqLimits>): Promise<{ status:
     command: "yq", args: [], stdin: toByteSource(input), stdout, stderr, cwd: "/", env: {},
     fs: createMemoryFileSystem(), signal: new AbortController().signal,
   };
-  const result = await createYqCommand({ limits }).execute(context);
+  const result = await createYqCommand(limits === undefined ? {} : { limits }).execute(context);
   return { status: result.exitCode, stderr: new TextDecoder().decode(Buffer.concat(stderr.chunks)) };
 }
 

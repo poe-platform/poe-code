@@ -30,7 +30,8 @@ export interface ManagedControlController {
 }
 
 type AbortSignalWaiter = (reason: unknown) => void;
-type AbortSignalWaiterStore = AbortSignalWaiter | Set<AbortSignalWaiter> | undefined;
+// Pipe, output, descriptor, and yield adapters share this Set-valued protocol.
+type AbortSignalWaiterStore = Set<AbortSignalWaiter> | undefined;
 
 class ManagedControlSignalImpl implements ManagedControlController {
   readonly [managedSignalSymbol] = true;
@@ -75,11 +76,6 @@ export function notifyAbortSignalWaiters(signal: AbortSignal, reason: unknown): 
   const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
   const current = record[managedWaitersSymbol];
   if (!current) return;
-  if (typeof current === "function") {
-    record[managedWaitersSymbol] = undefined;
-    current(reason);
-    return;
-  }
   if (current.size > 0) {
     const pending = [...current];
     current.clear();
@@ -101,27 +97,17 @@ export function addAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignalWai
   const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
   const current = record[managedWaitersSymbol];
   if (!current) {
-    if (record[managedSignalSymbol]) {
-      record[managedWaitersSymbol] = waiter;
-      return;
+    const set = new Set<AbortSignalWaiter>();
+    set.add(waiter);
+    record[managedWaitersSymbol] = set;
+    if (!record[managedSignalSymbol]) {
+      signal.addEventListener("abort", () => {
+        const reason = signal.reason;
+        const pending = [...set];
+        set.clear();
+        for (let i = 0; i < pending.length; i++) pending[i]!(reason);
+      }, { once: true });
     }
-    const set = new Set<AbortSignalWaiter>();
-    set.add(waiter);
-    record[managedWaitersSymbol] = set;
-    signal.addEventListener("abort", () => {
-      const reason = signal.reason;
-      const pending = [...set];
-      set.clear();
-      for (let i = 0; i < pending.length; i++) pending[i]!(reason);
-    }, { once: true });
-    return;
-  }
-  if (typeof current === "function") {
-    if (current === waiter) return;
-    const set = new Set<AbortSignalWaiter>();
-    set.add(current);
-    set.add(waiter);
-    record[managedWaitersSymbol] = set;
     return;
   }
   current.add(waiter);
@@ -131,10 +117,6 @@ export function removeAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignal
   const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
   const current = record[managedWaitersSymbol];
   if (!current) return;
-  if (typeof current === "function") {
-    if (current === waiter) record[managedWaitersSymbol] = undefined;
-    return;
-  }
   current.delete(waiter);
 }
 

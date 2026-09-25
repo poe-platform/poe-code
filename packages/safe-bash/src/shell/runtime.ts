@@ -2478,7 +2478,7 @@ export class Runtime {
   }
 
   private getSharedMemoryFsEntry(sig: AbortSignal): SharedMemoryFsEntry {
-    let entry = sharedMemoryFsCache.get(this.sourceFs);
+    const entry = sharedMemoryFsCache.get(this.sourceFs);
     const maxPathComponents = this.budget.limits.maxPathnameComponents;
     if (!entry || entry.maxPathComponents !== maxPathComponents) {
       const signal = new DynamicFsSignal(sig);

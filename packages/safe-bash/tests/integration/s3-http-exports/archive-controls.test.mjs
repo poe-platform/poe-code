@@ -160,6 +160,44 @@ function builtWorkspacePrerequisiteFixture() {
   return { manifest: fixture.manifest, workspaceMetadata, source, io };
 }
 
+function optionalWorkspacePeerFixture() {
+  const fixture = workspacePrerequisiteFixture();
+  const name = "safe-bash-command-fmt";
+  const path = `packages/${name}/package.json`;
+  const metadata = JSON.parse(fixture.files.get(path));
+  const profile = fixture.manifest.poeCode.integration.privateWorkspaces[name];
+  const peer = { yaml: "2.9.0" }, optional = { yaml: { optional: true } };
+  for (const declaration of [metadata, profile, fixture.manifest]) {
+    declaration.peerDependencies = structuredClone(peer);
+    declaration.peerDependenciesMeta = structuredClone(optional);
+  }
+  return { ...fixture, metadata, profile, path };
+}
+
+for (const defect of [null, "profile-peer", "profile-metadata", "parent-peer", "parent-optional", "required-peer", "lock-metadata", "optional-dependency"]) {
+  test(`workspace prerequisites authenticate explicitly admitted optional peers: ${defect ?? "valid"}`, () => {
+    const fixture = optionalWorkspacePeerFixture();
+    if (defect === "profile-peer") delete fixture.profile.peerDependencies;
+    if (defect === "profile-metadata") delete fixture.profile.peerDependenciesMeta;
+    if (defect === "parent-peer") fixture.manifest.peerDependencies.yaml = "3.0.0";
+    if (defect === "parent-optional") fixture.manifest.peerDependenciesMeta.yaml.optional = false;
+    if (defect === "required-peer") {
+      fixture.metadata.peerDependenciesMeta.yaml.optional = false;
+      fixture.profile.peerDependenciesMeta.yaml.optional = false;
+    }
+    if (defect === "optional-dependency") fixture.metadata.optionalDependencies = { unadmitted: "1.0.0" };
+    const locked = fixture.lock.packages[fixture.path.slice(0, -"/package.json".length)];
+    for (const field of ["peerDependencies", "peerDependenciesMeta", "optionalDependencies"]) {
+      if (fixture.metadata[field]) locked[field] = structuredClone(fixture.metadata[field]);
+    }
+    if (defect === "lock-metadata") locked.peerDependenciesMeta.yaml.optional = false;
+    fixture.files.set(fixture.path, Buffer.from(JSON.stringify(fixture.metadata)));
+    const capture = () => distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read);
+    if (defect) assert.throws(capture, /private workspace|workspace prerequisite lock drift/);
+    else assert.deepEqual(JSON.parse(capture().get(fixture.path)), fixture.metadata);
+  });
+}
+
 test("workspace distribution retains declared codec assets with their private owner", () => {
   const { manifest, workspaceMetadata, io } = builtWorkspacePrerequisiteFixture();
   const name = "safe-bash-command-fmt";

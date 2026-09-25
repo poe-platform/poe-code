@@ -86,10 +86,24 @@ test("version sort preserves native leading-zero and long-number ordering", asyn
   assert.deepEqual(JSON.parse(result.stdout)[0].contents.map((entry: { name: string }) => entry.name), names);
 });
 
-test("version comparison handles numeric suffixes after leading zeros", () => {
+test("version comparison compares fractional leading-zero runs lexicographically and preserves strict weak ordering", async () => {
   const bytes = (name: string): Uint8Array => new TextEncoder().encode(name);
-  assert.ok(compareVersions(bytes("v-0029."), bytes("v-00210")) < 0);
-  assert.ok(compareVersions(bytes("v02143a"), bytes("v029.02")) > 0);
+  assert.ok(compareVersions(bytes("v-0029."), bytes("v-00210")) > 0);
+  assert.ok(compareVersions(bytes("v02143a"), bytes("v029.02")) < 0);
+  assert.ok(compareVersions(bytes("file011"), bytes("file0110")) < 0);
+  assert.ok(compareVersions(bytes("file0110"), bytes("file012")) < 0);
+  assert.ok(compareVersions(bytes("01100"), bytes("01200")) < 0);
+  assert.ok(compareVersions(bytes("01200"), bytes("0129")) < 0);
+  assert.ok(compareVersions(bytes("01100"), bytes("0129")) < 0);
+
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/d");
+  for (const name of ["file012", "file0110", "file011", "0129", "01200", "01100"]) {
+    await fs.writeFile(`/d/${name}`, new Uint8Array());
+  }
+  const result = await shellRun(fs, ["-v", "--noreport", "d"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "d\n|-- 01100\n|-- 01200\n|-- 0129\n|-- file011\n|-- file0110\n`-- file012\n");
 });
 
 test("files, missing operands, option-like names, repeat roots and valid error JSON", async () => {

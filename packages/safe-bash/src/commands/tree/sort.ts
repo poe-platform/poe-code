@@ -21,7 +21,7 @@ export function compareVersions(left: Uint8Array, right: Uint8Array): number {
     if (digit(a) && !digit(b)) return 1;
     if (!digit(a) && digit(b)) return -1;
   }
-  if (digit(a) && digit(b) && (state === "integer" || (state !== "zeros" && a !== 48 && b !== 48))) {
+  if (digit(a) && digit(b) && (state === "integer" || (state === "normal" && a !== 48 && b !== 48))) {
     let endA = index + 1;
     let endB = index + 1;
     while (digit(left[endA])) endA++;

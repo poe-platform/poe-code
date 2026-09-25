@@ -7,7 +7,7 @@ test("adversarial repeated-line unmatched rectangle rejects before oversized LCS
   const before = `old-start\n${"same\n".repeat(2100)}old-end\n`;
   const after = `new-start\n${"same\n".repeat(2100)}new-end\n`;
   const started = performance.now();
-  const result = await run("diff", ["-u", "old", "next"], await memory({ old: before, next: after }));
+  const result = await run("diff", ["-u", "old", "next"], await memory({ old: before, next: after }), "", { maxMatrixCells: 4_000_000 });
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /matrix cell limit/u);
   assert.equal(result.stdout, "");

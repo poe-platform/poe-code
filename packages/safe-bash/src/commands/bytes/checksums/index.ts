@@ -51,10 +51,11 @@ function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: 
   let algorithm = value(parsed, "a") ?? "crc";
   if (!["crc", "bsd", "sysv", "crc32b", "sm3", "blake2b", "sha2", "sha3", ...Object.keys(hashes)].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
   const requestedLength = value(parsed, "l");
+  const check = parsed.flags.has("c");
   const length = requestedLength === undefined ? 0 : Number(requestedLength);
   if (requestedLength !== undefined && (!requestedLength.length || ![...requestedLength].every(c => c >= "0" && c <= "9") || !Number.isSafeInteger(length))) throw new UsageError(`invalid length '${requestedLength}'`);
   const family = algorithm === "sha2" || algorithm === "sha3";
-  if (family && ![224, 256, 384, 512].includes(length)) throw new UsageError(`${algorithm} requires --length 224, 256, 384 or 512`);
+  if (family && !(check && requestedLength === undefined && algorithm === "sha3") && ![224, 256, 384, 512].includes(length)) throw new UsageError(`${algorithm} requires --length 224, 256, 384 or 512`);
   if (length && (family ? ![224, 256, 384, 512].includes(length) : algorithm === "blake2b" ? length > 512 || length % 8 !== 0 : true)) throw new UsageError(`invalid length '${requestedLength}' for ${algorithm}`);
   const bits = length || 512;
   if (algorithm === "sha2") algorithm = `sha${bits}`;
@@ -62,8 +63,7 @@ function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: 
   if (parsed.flags.has("raw") && (numericAlgorithms.has(algorithm as Algorithm) || ["tag", "untagged", "base64", "z"].some(flag => parsed.flags.has(flag)))) {
     throw new UsageError("--raw requires a hash algorithm and cannot be combined with --tag, --untagged, --base64 or --zero");
   }
-  const check = parsed.flags.has("c");
-  if (check && algorithm !== "crc" && !(algorithm in hashes)) throw new UsageError(`verification is not supported for '${algorithm}'`);
+  if (check && numericAlgorithms.has(algorithm as Algorithm) && algorithm !== "crc") throw new UsageError(`verification is not supported for '${algorithm}'`);
   if (!check && (report !== "normal" || parsed.flags.has("strict") || parsed.flags.has("ignore-missing"))) throw new UsageError("verification options require --check");
   if (check && ["b", "z", "tag", "raw", "base64"].some(flag => parsed.flags.has(flag))) throw new UsageError("output options are not supported with --check");
   return { algorithm: algorithm as Algorithm, settings: {

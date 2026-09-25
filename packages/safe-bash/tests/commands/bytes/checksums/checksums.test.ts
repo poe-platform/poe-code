@@ -84,8 +84,35 @@ test("cksum invalid lengths fail before input acquisition", async () => {
 
 test("cksum refuses unsupported verification engines before consuming a manifest", async () => {
   const stdin = { [Symbol.asyncIterator]() { assert.fail("unsupported verification acquired input"); } };
-  for (const algorithm of ["bsd", "sysv", "crc32b", "blake2b", "sha3"]) {
-    assert.equal((await run("cksum", ["-c", "-a", algorithm, ...(algorithm === "sha3" ? ["-l", "256"] : [])], { stdin })).exitCode, 2);
+  for (const algorithm of ["bsd", "sysv", "crc32b"]) {
+    assert.equal((await run("cksum", ["-c", "-a", algorithm], { stdin })).exitCode, 2);
+  }
+});
+
+test("cksum issue 1081: explicit BLAKE2b and SHA3 verification accepts tagged and untagged manifests", async () => {
+  const fs = await fixture({ data: "abc" });
+  for (const algorithm of ["blake2b", "sha3"]) {
+    const widths = algorithm === "sha3" ? [224, 256, 384, 512] : [8, 224, 256, 384, 512];
+    for (const bits of widths) {
+      for (const format of ["--tag", "--untagged"]) {
+        const generated = await run("cksum", ["-a", algorithm, "-l", String(bits), format, "data"], { fs });
+        assert.equal(generated.exitCode, 0, generated.stderr);
+        for (const length of [[], ["-l", String(bits)]]) {
+          const args = ["-a", algorithm, ...length, "-c"];
+          const checked = await run("cksum", args, { fs, stdin: chunks(encoder.encode(generated.stdout), 1) });
+          assert.deepEqual(checked, { exitCode: 0, stdout: "data: OK\n", stderr: "" });
+          await fs.writeFile("/work/data", encoder.encode("changed"));
+          const mismatch = await run("cksum", args, { fs, stdin: generated.stdout });
+          assert.equal(mismatch.exitCode, 1);
+          assert.equal(mismatch.stdout, "data: FAILED\n");
+          await fs.writeFile("/work/data", encoder.encode("abc"));
+        }
+        if (format === "--tag") {
+          assert.deepEqual(await run("cksum", ["-c"], { fs, stdin: generated.stdout }),
+            { exitCode: 0, stdout: "data: OK\n", stderr: "" });
+        }
+      }
+    }
   }
 });
 

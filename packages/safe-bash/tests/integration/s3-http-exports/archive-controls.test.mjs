@@ -67,6 +67,60 @@ test("workspace prerequisites capture the declared transitive metadata graph as 
   assert.equal(JSON.parse(captured.values().next().value).name, "safe-bash-command-fmt");
 });
 
+function optionalPeerFixture() {
+  const fixture = workspacePrerequisiteFixture();
+  const name = "safe-bash-command-fmt", path = `packages/${name}/package.json`;
+  const metadata = JSON.parse(fixture.files.get(path));
+  metadata.peerDependencies = { yaml: "2.9.0" };
+  metadata.peerDependenciesMeta = { yaml: { optional: true } };
+  const profile = fixture.manifest.poeCode.integration.privateWorkspaces[name];
+  for (const field of ["peerDependencies", "peerDependenciesMeta"]) {
+    profile[field] = structuredClone(metadata[field]);
+    fixture.manifest[field] = structuredClone(metadata[field]);
+    fixture.lock.packages[`packages/${name}`][field] = structuredClone(metadata[field]);
+  }
+  fixture.files.set(path, Buffer.from(JSON.stringify(metadata)));
+  return fixture;
+}
+
+test("workspace prerequisites authenticate explicitly bound optional peers", () => {
+  const fixture = optionalPeerFixture();
+  const captured = distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read);
+  assert.deepEqual([...captured.keys()], [...fixture.files.keys()]);
+});
+
+test("workspace prerequisites capture linked optional peer metadata", () => {
+  const fixture = optionalPeerFixture();
+  const metadata = { name: "yaml", version: "2.9.0", type: "module", dependencies: {}, devDependencies: {} };
+  fixture.files.set("packages/yaml/package.json", Buffer.from(JSON.stringify(metadata)));
+  fixture.lock.packages["node_modules/yaml"] = { link: true, resolved: "packages/yaml" };
+  fixture.lock.packages["packages/yaml"] = { version: metadata.version, dependencies: {}, devDependencies: {} };
+  const captured = distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read);
+  assert.deepEqual([...captured.keys()], [...fixture.files.keys()]);
+  assert.ok(fixture.reads.includes("packages/yaml/package.json"));
+});
+
+for (const defect of ["undeclared-peer", "required-peer", "parent-range", "parent-required", "peer-lock-drift", "optional-dependency"]) test(`workspace prerequisites reject optional peer ${defect}`, () => {
+  const fixture = optionalPeerFixture();
+  const name = "safe-bash-command-fmt", path = `packages/${name}/package.json`;
+  const metadata = JSON.parse(fixture.files.get(path));
+  const profile = fixture.manifest.poeCode.integration.privateWorkspaces[name];
+  if (defect === "undeclared-peer") delete profile.peerDependencies;
+  if (defect === "required-peer") {
+    metadata.peerDependenciesMeta.yaml.optional = false;
+    profile.peerDependenciesMeta.yaml.optional = false;
+  }
+  if (defect === "parent-range") fixture.manifest.peerDependencies.yaml = "3.0.0";
+  if (defect === "parent-required") fixture.manifest.peerDependenciesMeta.yaml.optional = false;
+  if (defect === "optional-dependency") metadata.optionalDependencies = { unbound: "*" };
+  for (const field of ["peerDependencies", "peerDependenciesMeta", "optionalDependencies"]) {
+    if (metadata[field]) fixture.lock.packages[`packages/${name}`][field] = structuredClone(metadata[field]);
+  }
+  if (defect === "peer-lock-drift") fixture.lock.packages[`packages/${name}`].peerDependenciesMeta.yaml.optional = false;
+  fixture.files.set(path, Buffer.from(JSON.stringify(metadata)));
+  assert.throws(() => distChecks.captureWorkspaceMetadata(fixture.manifest, fixture.lock, fixture.read), /workspace|peer/);
+});
+
 for (const defect of ["missing-link", "traversal-link", "identity", "public-package", "version", "runtime-closure", "build-closure", "lock-drift"]) test(`workspace prerequisites reject ${defect}`, () => {
   const fixture = workspacePrerequisiteFixture();
   const name = "safe-bash-command-fmt", path = `packages/${name}/package.json`;

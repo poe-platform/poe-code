@@ -61,7 +61,7 @@ export function captureWorkspaceMetadata(manifest, lock, read) {
       assert.equal(metadata.name, name, `workspace prerequisite identity: ${name}`);
       const locked = lock.packages[path.slice(0, -"/package.json".length)];
       assert.ok(locked, `workspace prerequisite lock metadata: ${name}`);
-      for (const field of ["version", "dependencies", "devDependencies", "peerDependencies", "optionalDependencies"])
+      for (const field of ["version", "dependencies", "devDependencies", "peerDependencies", "peerDependenciesMeta", "optionalDependencies"])
         assert.deepEqual(locked[field] ?? (field === "version" ? undefined : {}), metadata[field] ?? (field === "version" ? undefined : {}), `workspace prerequisite lock drift: ${name} ${field}`);
       if (Object.hasOwn(profiles, name)) {
         const profile = profiles[name];
@@ -70,10 +70,17 @@ export function captureWorkspaceMetadata(manifest, lock, read) {
         assert.equal(metadata.type, "module", `private workspace module type: ${name}`);
         assert.equal(metadata.version, profile.version, `private workspace version: ${name}`);
         for (const field of ["dependencies", "devDependencies"]) assert.deepEqual(metadata[field] ?? {}, profile[field], `private workspace closure: ${name} ${field}`);
-        for (const field of ["peerDependencies", "optionalDependencies"]) assert.deepEqual(metadata[field] ?? {}, {}, `private workspace implicit closure: ${name}`);
+        for (const field of ["peerDependencies", "peerDependenciesMeta"]) assert.deepEqual(metadata[field] ?? {}, profile[field] ?? {}, `private workspace peer closure: ${name} ${field}`);
+        for (const [peer, range] of Object.entries(metadata.peerDependencies ?? {})) {
+          assert.equal(typeof range, "string", `private workspace peer range: ${name} ${peer}`);
+          assert.equal(metadata.peerDependenciesMeta?.[peer]?.optional, true, `private workspace peer must be optional: ${name} ${peer}`);
+          assert.equal(manifest.peerDependencies?.[peer], range, `private workspace parent peer binding: ${name} ${peer}`);
+          assert.equal(manifest.peerDependenciesMeta?.[peer]?.optional, true, `private workspace parent peer must be optional: ${name} ${peer}`);
+        }
+        assert.deepEqual(metadata.optionalDependencies ?? {}, {}, `private workspace implicit closure: ${name}`);
       }
       captured.set(path, Buffer.from(bytes));
-      for (const dependency of Object.keys({ ...metadata.dependencies, ...metadata.devDependencies })) if (!visited.has(dependency)) pending.add(dependency);
+      for (const dependency of Object.keys({ ...metadata.dependencies, ...metadata.devDependencies, ...metadata.peerDependencies })) if (!visited.has(dependency)) pending.add(dependency);
     }
   }
   return captured;

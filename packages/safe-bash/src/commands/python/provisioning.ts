@@ -1,3 +1,4 @@
+import { combineManagedSignals } from '../../fs/creation-mask.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import type { FileSystem } from '../../contracts/filesystem.js';
 import { resolvePath as resolve, dirname } from '../../contracts/path.js';
@@ -114,7 +115,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  let committing = Promise.resolve();
  async function prepare(input: PythonPackagePrepareContext): Promise<PythonPackageStart> {
   const invocation = new AbortController();
-  const signal = AbortSignal.any([input.signal, controller.signal, invocation.signal]);
+  const signal = combineManagedSignals(input.signal, controller.signal, invocation.signal);
   inheritYieldCheckpoint(input.signal, signal);
   const context = { ...input, signal };
   context.signal.throwIfAborted();

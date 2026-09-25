@@ -260,21 +260,37 @@ describe("poe-agent-plugin-shell", () => {
       allowedPaths: [cwd]
     });
 
-    let message = "";
-    try {
-      await callTool(plugin.tools, "run_command", {
-        command: createNodeCommand(
-          "process.stdout.write('partial stdout\\n'); process.stderr.write('partial stderr\\n'); setTimeout(() => {}, 5_000);"
-        ),
-        timeout: 0.5
-      });
-    } catch (error) {
-      message = error instanceof Error ? error.message : String(error);
-    }
+    const controller = new AbortController();
+    const received = new Set<string>();
+    let outputReady!: () => void;
+    const ready = new Promise<void>((resolve) => { outputReady = resolve; });
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const pending = callTool(plugin.tools, "run_command", {
+      command: createNodeCommand(
+        "process.stdout.write('partial stdout\\n'); process.stderr.write('partial stderr\\n'); setTimeout(() => {}, 5_000);"
+      ),
+      timeout: 0.5
+    }, controller.signal, {
+      notify: async (notification) => {
+        received.add(notification.event);
+        if (received.has("shell.stdout") && received.has("shell.stderr")) outputReady();
+      }
+    }).then(String, (error: unknown) => error instanceof Error ? error.message : String(error));
 
-    expect(message).toContain("Command timed out after 0.5 seconds");
-    expect(message).toContain("partial stdout");
-    expect(message).toContain("partial stderr");
+    try {
+      // Start the timeout clock after both streams have produced output, so
+      // process startup under load cannot consume the capture assertion's window.
+      await Promise.race([ready, pending]);
+      await vi.advanceTimersByTimeAsync(500);
+      const message = await pending;
+      expect(message).toContain("Command timed out after 0.5 seconds");
+      expect(message).toContain("partial stdout");
+      expect(message).toContain("partial stderr");
+    } finally {
+      controller.abort();
+      await pending;
+      vi.useRealTimers();
+    }
   });
 
   it("aborts foreground commands when the tool signal is aborted", async () => {

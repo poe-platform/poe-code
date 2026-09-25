@@ -1,3 +1,31 @@
+/** Track guest timers in Python so cancellation does not destroy live proxies. */
+export const pythonJspiTimers = `
+import asyncio as _safe_timer_asyncio
+_safe_timer_loop = _safe_timer_asyncio.get_event_loop()
+_safe_original_call_later = _safe_timer_loop.call_later
+_safe_guest_timers = set()
+_safe_guest_finished = False
+def _safe_call_later(delay, callback, *args, context=None):
+ if delay <= 0 or _safe_guest_finished:
+  return _safe_original_call_later(delay, callback, *args, context=context)
+ retained = []
+ def invoke():
+  if retained:
+   _safe_guest_timers.discard(retained[0])
+  callback(*args)
+ handle = _safe_original_call_later(delay, invoke, context=context)
+ retained.append(handle)
+ _safe_guest_timers.add(handle)
+ return handle
+def _safe_guest_complete():
+ global _safe_guest_finished
+ _safe_guest_finished = True
+ for handle in tuple(_safe_guest_timers):
+  handle.cancel()
+ _safe_guest_timers.clear()
+_safe_timer_loop.call_later = _safe_call_later
+`;
+
 export const pythonRuntimeRelocation = `
 import sys, zipimport, importlib.machinery
 

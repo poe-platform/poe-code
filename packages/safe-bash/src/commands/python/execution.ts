@@ -162,7 +162,12 @@ def _safe_launch():
  return 0
 
 try:
- _safe_exit = _safe_launch() or 0
+ try:
+  _safe_exit = _safe_launch() or 0
+ finally:
+  _safe_complete = globals().get('_safe_guest_complete')
+  if _safe_complete is not None:
+   _safe_complete()
 except SystemExit as _error:
  _safe_exit = _safe_system_exit(_error)
 except _SafeOptionError as _error:

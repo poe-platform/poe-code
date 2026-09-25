@@ -3273,4 +3273,32 @@ describe("@poe-code/image-ast (sharp core)", () => {
     // 4. sharp({ join: ... }) without array input -> throws "Expected input to be an array of images to join"
     expect(() => sharp({ join: { across: 2 } } as any)).toThrow("Expected input to be an array of images to join");
   });
+
+  it("promotes 1-ch/2-ch inputs to 3/4-band sRGB in recomb() and modulate() matching libvips (#1251)", async () => {
+    const g1 = Buffer.from([100, 200]);
+    const ga2 = Buffer.from([100, 128, 200, 64]);
+    const m3 = [[0.5, 0.25, 0.25], [0, 0.5, 0.5], [1, 0, 0]];
+    const m4 = [[0.5, 0.5, 0, 0.25], [0, 0.5, 0.5, 0], [0.5, 0, 0.5, 0], [0, 0, 0.5, 0.5]];
+
+    const rec1 = await sharp(g1, { raw: { width: 2, height: 1, channels: 1 } })
+      .recomb(m3)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(rec1.info.channels).toBe(3);
+    expect(Array.from(rec1.data)).toEqual([100, 100, 100, 200, 200, 200]);
+
+    const rec2 = await sharp(ga2, { raw: { width: 2, height: 1, channels: 2 } })
+      .recomb(m4)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(rec2.info.channels).toBe(4);
+    expect(Array.from(rec2.data)).toEqual([132, 100, 100, 114, 216, 200, 200, 132]);
+
+    const mod1 = await sharp(g1, { raw: { width: 2, height: 1, channels: 1 } })
+      .modulate({ brightness: 1.5 })
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(mod1.info.channels).toBe(3);
+    expect(Array.from(mod1.data)).toEqual([154, 154, 154, 255, 255, 255]);
+  });
 });

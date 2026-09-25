@@ -1142,7 +1142,12 @@ export function modulateImage(
     out[idx + 2] = b;
     out[idx + 3] = img.data[idx + 3]!;
   }
-  return { ...img, data: out };
+  return {
+    ...img,
+    data: out,
+    channels: img.hasAlpha ? 4 : 3,
+    space: "srgb"
+  };
 }
 
 export function tintImage(img: RgbaImage, color: RgbaColor): RgbaImage {
@@ -1945,7 +1950,7 @@ export function recombImage(
   matrix: readonly (readonly number[])[]
 ): RgbaImage {
   const is4x4 = matrix.length >= 4 && (matrix[0]?.length ?? 0) >= 4;
-  if (is4x4 && img.channels < 4) {
+  if (is4x4 && !img.hasAlpha) {
     throw new Error("recomb: bands in must equal matrix width");
   }
   const out = new Uint8Array(img.data.length);
@@ -1976,7 +1981,12 @@ export function recombImage(
       out[idx + 3] = a;
     }
   }
-  return { ...img, data: out };
+  return {
+    ...img,
+    data: out,
+    channels: img.hasAlpha ? 4 : 3,
+    space: "srgb"
+  };
 }
 
 export function toColorspaceImage(img: RgbaImage, space: ColorSpace): RgbaImage {

@@ -6,7 +6,18 @@ import {
 } from "../budget.js";
 import type { RegexNode, RegexPattern } from "./parse.js";
 
-const compiledData = new WeakMap<RegexPattern, { units: number; ticket?: CompileTicket }>();
+type CompiledData = Readonly<{ units: number; ticket: CompileTicket | undefined }>;
+const compiledData = new WeakMap<RegexPattern, CompiledData>();
+const readCompiledData: typeof compiledData.get = WeakMap.prototype.get.bind(compiledData);
+const writeCompiledData: typeof compiledData.set = WeakMap.prototype.set.bind(compiledData);
+const freezeCompiledData = Object.freeze;
+const setCompiledDataPrototype = Object.setPrototypeOf;
+
+function compileData(units: number, ticket: CompileTicket | undefined): CompiledData {
+  // Own fields keep the hot accounting layout uniform and cannot inherit hooks.
+  // Captured operations must not reveal or replace the private charge record.
+  return freezeCompiledData(setCompiledDataPrototype({ units, ticket }, null));
+}
 
 export class CompileScope {
   readonly tickets = new Set<CompileTicket>();
@@ -131,7 +142,7 @@ export class RegexCompileGuard {
     if (this.ticket !== undefined) {
       this.ticket.owner.budget.resizeCompileTicket(this.ticket, units + valueUnits);
     }
-    compiledData.set(pattern, { units, ticket: this.ticket });
+    writeCompiledData(pattern, compileData(units, this.ticket));
     this.retained = true;
   }
 
@@ -146,13 +157,8 @@ export class RegexCompileGuard {
   }
 }
 
-export function regexCompiledData(pattern: RegexPattern): {
-  units: number;
-  ticket?: CompileTicket;
-} {
-  return (
-    compiledData.get(pattern) ?? { units: measurePattern(pattern) }
-  );
+export function regexCompiledData(pattern: RegexPattern): CompiledData {
+  return readCompiledData(pattern) ?? compileData(measurePattern(pattern), undefined);
 }
 
 function measurePattern(pattern: RegexPattern): number {

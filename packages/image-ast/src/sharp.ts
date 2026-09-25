@@ -1,6 +1,7 @@
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import path from "node:path";
+import { Duplex } from "node:stream";
 import {
   parseColor,
   type ColorInput,
@@ -70,9 +71,24 @@ function inferTypedArrayDepth(input: unknown): "uchar" | "char" | "ushort" | "sh
 
 function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined): Uint8Array | undefined {
   if (!input) return undefined;
-  if (input instanceof Uint8Array) return input;
-  if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
-  if (input instanceof ArrayBuffer) return new Uint8Array(input);
+  if (Buffer.isBuffer(input)) {
+    if (input.length === 0) {
+      throw new Error("Input Buffer is empty");
+    }
+    return input;
+  }
+  if (ArrayBuffer.isView(input)) {
+    if (input.byteLength === 0) {
+      throw new Error("Input Bit Array is empty");
+    }
+    return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+  }
+  if (input instanceof ArrayBuffer) {
+    if (input.byteLength === 0) {
+      throw new Error("Input bit Array is empty");
+    }
+    return new Uint8Array(input);
+  }
   if (typeof input === "string") {
     if (input.trimStart().startsWith("<")) {
       return new TextEncoder().encode(input);
@@ -121,18 +137,24 @@ function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
   }
 }
 
-export class SharpInstance {
-  private readonly inputBytes: Uint8Array | undefined;
-  private readonly inputFilePath: string | undefined;
+export class SharpInstance extends Duplex {
+  private inputBytes: Uint8Array | undefined;
+  private inputFilePath: string | undefined;
   private readonly joinInputs: readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[] | undefined;
   private readonly inputOptions: SharpInputOptions | undefined;
   private readonly nodes: ImageAstNode[] = [];
   private outputOptions: OutputEncodeOptions = {};
+  private streamIn = false;
+  private streamInFinished = false;
+  private readonly streamChunks: Buffer[] = [];
+  private readonly clonedStreams: SharpInstance[] = [];
+  private streamOutStarted = false;
 
   constructor(
     input?: Uint8Array | ArrayBuffer | string | SharpInputOptions | readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[],
     options?: SharpInputOptions
   ) {
+    super();
     if (Array.isArray(input)) {
       if (input.length < 2) {
         throw new Error("Expected at least two images to join");
@@ -149,6 +171,9 @@ export class SharpInstance {
       this.inputBytes = undefined;
       this.joinInputs = undefined;
       this.inputOptions = input as SharpInputOptions;
+      if (!this.inputOptions.create && !this.inputOptions.text && Object.keys(this.inputOptions).length > 0) {
+        this.streamIn = true;
+      }
     } else {
       this.inputFilePath =
         typeof input === "string" && !input.trimStart().startsWith("<") ? input : undefined;
@@ -177,14 +202,112 @@ export class SharpInstance {
       this.inputBytes = toBytes(input as Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined);
       this.joinInputs = undefined;
       this.inputOptions = effectiveOptions;
+      if (input === undefined && (!effectiveOptions || (!effectiveOptions.create && !effectiveOptions.text))) {
+        this.streamIn = true;
+      }
+    }
+    if (this.streamIn) {
+      this.on("finish", () => {
+        this.flattenStreamInput();
+      });
     }
     if (this.inputOptions?.autoOrient) {
       this.nodes.push({ kind: "autoOrient" });
     }
   }
 
+  private flattenStreamInput(): void {
+    if (this.streamIn && !this.streamInFinished) {
+      const merged = Buffer.concat(this.streamChunks);
+      this.receiveStreamInput(merged);
+    }
+  }
+
+  private receiveStreamInput(merged: Uint8Array): void {
+    this.inputBytes = merged;
+    this.streamInFinished = true;
+    for (const child of this.clonedStreams) {
+      child.receiveStreamInput(merged);
+    }
+    this.emit("streamReady");
+  }
+
+  private async waitForStreamInput(): Promise<void> {
+    if (!this.streamIn || this.streamInFinished) {
+      return;
+    }
+    if (this.writableFinished) {
+      this.flattenStreamInput();
+      if (this.streamInFinished) return;
+    }
+    await new Promise<void>((resolve, reject) => {
+      const onReady = () => {
+        this.removeListener("finish", onReady);
+        this.removeListener("streamReady", onReady);
+        this.removeListener("error", onError);
+        this.flattenStreamInput();
+        resolve();
+      };
+      const onError = (err: Error) => {
+        this.removeListener("finish", onReady);
+        this.removeListener("streamReady", onReady);
+        reject(err);
+      };
+      this.once("finish", onReady);
+      this.once("streamReady", onReady);
+      this.once("error", onError);
+    });
+  }
+
+  override _write(chunk: unknown, _encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
+    if (this.streamIn && !this.streamInFinished) {
+      if (Buffer.isBuffer(chunk) || chunk instanceof Uint8Array) {
+        const buf = Buffer.isBuffer(chunk)
+          ? chunk
+          : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+        this.streamChunks.push(buf);
+        callback();
+      } else {
+        callback(new Error("Non-Buffer data on Writable Stream"));
+      }
+    } else {
+      callback(new Error("Unexpected data on Writable Stream"));
+    }
+  }
+
+  override _read(): void {
+    if (!this.streamOutStarted) {
+      this.streamOutStarted = true;
+      this.waitForStreamInput()
+        .then(() => {
+          const res = this.toBufferWithObjectSync();
+          this.emit("info", res.info);
+          this.push(res.data);
+          this.push(null);
+        })
+        .catch(err => {
+          this.emit("error", err);
+          this.push(null);
+        });
+    }
+  }
+
   clone(): SharpInstance {
-    const copy = new SharpInstance(this.joinInputs ?? this.inputBytes, this.inputOptions);
+    if (this.streamIn && !this.streamInFinished) {
+      const copy = new SharpInstance(undefined, this.inputOptions);
+      copy.nodes.length = 0;
+      copy.nodes.push(...this.nodes);
+      copy.outputOptions = { ...this.outputOptions };
+      this.clonedStreams.push(copy);
+      return copy;
+    }
+    const copy =
+      this.joinInputs !== undefined
+        ? new SharpInstance(this.joinInputs, this.inputOptions)
+        : this.inputBytes !== undefined
+          ? new SharpInstance(this.inputBytes, this.inputOptions)
+          : new SharpInstance(this.inputOptions);
+    copy.inputFilePath = this.inputFilePath;
     copy.nodes.length = 0;
     copy.nodes.push(...this.nodes);
     copy.outputOptions = { ...this.outputOptions };
@@ -472,6 +595,7 @@ export class SharpInstance {
 
   async metadata(callback?: (err: Error | null, metadata?: ImageMetadata) => void): Promise<ImageMetadata> {
     try {
+      await this.waitForStreamInput();
       const res = this.metadataSync();
       if (callback) callback(null, res);
       return res;
@@ -488,6 +612,7 @@ export class SharpInstance {
 
   async stats(callback?: (err: Error | null, stats?: ImageStats) => void): Promise<ImageStats> {
     try {
+      await this.waitForStreamInput();
       const res = this.statsSync();
       if (callback) callback(null, res);
       return res;
@@ -1595,6 +1720,7 @@ export class SharpInstance {
         this.outputOptions = { ...this.outputOptions, format: inferred };
       }
       try {
+        await this.waitForStreamInput();
         const res = this.toBufferWithObjectSync();
         fs.writeFileSync(fileOut, res.data);
         if (callback) callback(null, res.info);
@@ -1622,6 +1748,7 @@ export class SharpInstance {
     const cb = typeof optionsOrCallback === "function" ? optionsOrCallback : undefined;
     const options = typeof optionsOrCallback === "object" && optionsOrCallback !== null ? optionsOrCallback : undefined;
     try {
+      await this.waitForStreamInput();
       const res = this.toBufferWithObjectSync();
       if (cb) cb(null, res.data, res.info);
       if (options?.resolveWithObject) {

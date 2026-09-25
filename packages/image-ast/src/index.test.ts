@@ -2374,4 +2374,73 @@ describe("@poe-code/image-ast (sharp core)", () => {
       sharp(rgb3x3, { raw: { width: 3, height: 3, channels: 3 } }).extend({ top: 1, extendWith: "invalid" as any })
     ).toThrow(/one of: background, copy, repeat, mirror/);
   });
+
+  it("supports Duplex stream interface (.write, .end, .pipe, info event, async iteration, clone fan-out) and empty buffer validation", async () => {
+    const { Duplex, PassThrough, Writable } = await import("node:stream");
+    const pngBuf = await sharp({
+      create: { width: 8, height: 6, channels: 3, background: { r: 20, g: 40, b: 60 } }
+    })
+      .png()
+      .toBuffer();
+
+    expect(sharp() instanceof Duplex).toBe(true);
+
+    const s1 = sharp().resize(4, 3);
+    const p1 = s1.toBuffer({ resolveWithObject: true });
+    s1.write(pngBuf.subarray(0, 12));
+    s1.end(pngBuf.subarray(12));
+    const out1 = await p1;
+    expect(out1.info.width).toBe(4);
+    expect(out1.info.height).toBe(3);
+
+    const pt = new PassThrough();
+    const s2 = sharp().resize(4, 3).png();
+    let infoObj: any = null;
+    s2.on("info", i => {
+      infoObj = i;
+    });
+    const chunks: Buffer[] = [];
+    await new Promise<void>((resolve, reject) => {
+      const dest = new Writable({
+        write(chunk, _enc, cb) {
+          chunks.push(Buffer.from(chunk));
+          cb();
+        }
+      });
+      dest.on("finish", resolve);
+      dest.on("error", reject);
+      s2.on("error", reject);
+      pt.pipe(s2).pipe(dest);
+      pt.write(pngBuf.subarray(0, 15));
+      pt.end(pngBuf.subarray(15));
+    });
+    expect(infoObj).toMatchObject({ format: "png", width: 4, height: 3, channels: 3 });
+    expect(Buffer.concat(chunks).length).toBe(infoObj.size);
+
+    const parent = sharp();
+    const child1 = parent.clone().resize(2, 2);
+    parent.write(pngBuf.subarray(0, 20));
+    const child2 = parent.clone().resize(4, 4);
+    parent.end(pngBuf.subarray(20));
+    const [r1, r2] = await Promise.all([
+      child1.toBuffer({ resolveWithObject: true }),
+      child2.toBuffer({ resolveWithObject: true })
+    ]);
+    expect(r1.info.width).toBe(2);
+    expect(r2.info.width).toBe(4);
+
+    const rawStream = sharp({ raw: { width: 2, height: 2, channels: 3 } });
+    rawStream.end(Buffer.alloc(12, 180));
+    const rawOut = await rawStream.png().toBuffer({ resolveWithObject: true });
+    expect(rawOut.info.width).toBe(2);
+    expect(rawOut.info.height).toBe(2);
+
+    expect(() => sharp(Buffer.alloc(0))).toThrow(/Input Buffer is empty/);
+    expect(() => sharp(new Uint8Array(0))).toThrow(/Input Bit Array is empty/);
+    expect(() => sharp(new ArrayBuffer(0))).toThrow(/Input bit Array is empty/);
+
+    const emptyStream = sharp();
+    emptyStream.end();
+    await expect(emptyStream.toBuffer()).rejects.toThrow(/Input buffer contains unsupported image format/);
+  });
 });

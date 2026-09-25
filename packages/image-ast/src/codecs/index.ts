@@ -240,7 +240,7 @@ export function readImageMetadata(
     };
   }
   if (!bytes || bytes.length === 0) {
-    throw new Error("Empty image input");
+    throw new Error(!bytes ? "Input file is missing:" : "Input buffer contains unsupported image format");
   }
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
@@ -519,7 +519,7 @@ export function decodeImage(
     };
   }
   if (!bytes || bytes.length === 0) {
-    throw new Error("Empty image input");
+    throw new Error(!bytes ? "Input file is missing:" : "Input buffer contains unsupported image format");
   }
   const canCache =
     options?.density === undefined &&

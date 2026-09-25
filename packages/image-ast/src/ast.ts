@@ -111,7 +111,14 @@ export interface OutputInfo {
 }
 
 export type ResizeFit = "cover" | "contain" | "fill" | "inside" | "outside";
-export type ResizeKernel = "nearest" | "bilinear" | "cubic" | "mitchell" | "lanczos2" | "lanczos3";
+export type ResizeKernel =
+  | "nearest"
+  | "linear"
+  | "bilinear"
+  | "cubic"
+  | "mitchell"
+  | "lanczos2"
+  | "lanczos3";
 export type GravityPosition =
   | "center"
   | "centre"

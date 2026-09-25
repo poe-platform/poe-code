@@ -1114,6 +1114,7 @@ export function linearImage(
   b: readonly number[]
 ): RgbaImage {
   const out = new Uint8Array(img.data.length);
+  const applyAlpha = a.length >= 4 || b.length >= 4;
   for (let i = 0; i < img.width * img.height; i++) {
     const idx = i * 4;
     for (let c = 0; c < 3; c++) {
@@ -1122,7 +1123,14 @@ export function linearImage(
       const v = Math.round(img.data[idx + c]! * mul + off);
       out[idx + c] = v < 0 ? 0 : v > 255 ? 255 : v;
     }
-    out[idx + 3] = img.data[idx + 3]!;
+    if (applyAlpha) {
+      const mulA = a[3] ?? 1;
+      const offA = b[3] ?? 0;
+      const va = Math.round(img.data[idx + 3]! * mulA + offA);
+      out[idx + 3] = va < 0 ? 0 : va > 255 ? 255 : va;
+    } else {
+      out[idx + 3] = img.data[idx + 3]!;
+    }
   }
   return { ...img, data: out };
 }
@@ -1518,7 +1526,7 @@ export function convolveImage(
 
 export function ensureAlphaImage(img: RgbaImage, alpha = 1): RgbaImage {
   if (img.hasAlpha) return img;
-  const aByte = alpha <= 1 ? Math.round(alpha * 255) : Math.round(alpha);
+  const aByte = alpha <= 1 ? Math.floor(alpha * 255) : Math.floor(alpha);
   const out = new Uint8Array(img.data);
   for (let i = 3; i < out.length; i += 4) {
     out[i] = aByte;

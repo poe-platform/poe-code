@@ -1251,4 +1251,44 @@ describe("@poe-code/image-ast (sharp core)", () => {
       /Image to composite must have same dimensions or smaller/
     );
   });
+
+  it("matches libvips resize upscaling/edge-clamping, linear kernel, 4-band linear(), and ensureAlpha() (#75)", async () => {
+    // 1. 1D ramp 4->8 upscaling with linear and lanczos3 (Catmull-Rom in libvips)
+    const src4 = Buffer.from([0, 0, 0, 100, 100, 100, 200, 200, 200, 50, 50, 50]);
+    const upLin = await sharp(src4, { raw: { width: 4, height: 1, channels: 3 } })
+      .resize(8, 1, { fit: "fill", kernel: "linear" })
+      .raw()
+      .toBuffer();
+    expect(Array.from({ length: 8 }, (_, i) => upLin[i * 3])).toEqual([0, 0, 50, 100, 150, 200, 125, 50]);
+
+    const upLan = await sharp(src4, { raw: { width: 4, height: 1, channels: 3 } })
+      .resize(8, 1, { fit: "fill", kernel: "lanczos3" })
+      .raw()
+      .toBuffer();
+    expect(Array.from({ length: 8 }, (_, i) => upLan[i * 3])).toEqual([0, 0, 44, 100, 166, 200, 131, 50]);
+
+    // 2. 4-band linear(a, b) transforms alpha when 4 coefficients are provided
+    const rgba = Buffer.from([100, 150, 200, 128]);
+    const lin4 = await sharp(rgba, { raw: { width: 1, height: 1, channels: 4 } })
+      .linear([0.5, 1.0, 0.5, 0.5], [10, -10, 5, 20])
+      .raw()
+      .toBuffer();
+    expect(Array.from(lin4)).toEqual([60, 140, 105, 84]);
+
+    // 3. ensureAlpha(0.5) quantizes to 127 and .grayscale().ensureAlpha(0.5) stays 1-channel b-w
+    const rgb = Buffer.from([100, 150, 200]);
+    const ens = await sharp(rgb, { raw: { width: 1, height: 1, channels: 3 } })
+      .ensureAlpha(0.5)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(ens.info.channels).toBe(4);
+    expect(ens.data[3]).toBe(127);
+
+    const grayEns = await sharp(rgb, { raw: { width: 1, height: 1, channels: 3 } })
+      .grayscale()
+      .ensureAlpha(0.5)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(grayEns.info.channels).toBe(1);
+  });
 });

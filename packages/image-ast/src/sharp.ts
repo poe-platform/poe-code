@@ -565,7 +565,12 @@ export class SharpInstance {
   }
 
   ensureAlpha(alpha = 1): this {
-    this.nodes.push({ kind: "ensureAlpha", alpha });
+    const grayIdx = this.nodes.findIndex(n => n.kind === "grayscale");
+    if (grayIdx !== -1) {
+      this.nodes.splice(grayIdx, 0, { kind: "ensureAlpha", alpha });
+    } else {
+      this.nodes.push({ kind: "ensureAlpha", alpha });
+    }
     return this;
   }
 

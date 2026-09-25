@@ -17,9 +17,19 @@ function kernelWeight(x: number, kernel: ResizeKernel): number {
   switch (kernel) {
     case "nearest":
       return ax < 0.5 ? 1 : 0;
+    case "linear":
     case "bilinear":
       return ax < 1 ? 1 - ax : 0;
-    case "cubic":
+    case "cubic": {
+      // Catmull-Rom (B = 0, C = 0.5)
+      if (ax < 1) {
+        return 1.5 * ax * ax * ax - 2.5 * ax * ax + 1;
+      }
+      if (ax < 2) {
+        return -0.5 * ax * ax * ax + 2.5 * ax * ax - 4 * ax + 2;
+      }
+      return 0;
+    }
     case "mitchell": {
       // Mitchell-Netravali (B = 1/3, C = 1/3)
       const B = 1 / 3;
@@ -50,6 +60,7 @@ function kernelRadius(kernel: ResizeKernel): number {
   switch (kernel) {
     case "nearest":
       return 0.5;
+    case "linear":
     case "bilinear":
       return 1;
     case "cubic":
@@ -117,18 +128,24 @@ export function resampleRawBitmap(
   // Pass 1: Horizontal resample (srcW x srcH -> dstW x srcH) in premultiplied float
   const temp = new Float32Array(dstW * srcH * 4);
   const scaleX = srcW / dstW;
+  const isUpscaleX = dstW > srcW;
+  const effKernelX: ResizeKernel =
+    isUpscaleX && (kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos3")
+      ? "cubic"
+      : kernel;
+  const radiusX = kernelRadius(effKernelX);
   const filterScaleX = Math.max(1, scaleX);
-  const supportX = radius * filterScaleX;
+  const supportX = radiusX * filterScaleX;
 
   for (let x = 0; x < dstW; x++) {
-    const center = (x + 0.5) * scaleX - 0.5;
-    const left = Math.max(0, Math.floor(center - supportX));
-    const right = Math.min(srcW - 1, Math.ceil(center + supportX));
+    const center = isUpscaleX ? x * scaleX - 0.5 : (x + 0.5) * scaleX - 0.5;
+    const left = Math.floor(center - supportX);
+    const right = Math.ceil(center + supportX);
     const count = right - left + 1;
     const weights = new Float32Array(count);
     let wSum = 0;
     for (let i = 0; i < count; i++) {
-      const w = kernelWeight((left + i - center) / filterScaleX, kernel);
+      const w = kernelWeight((left + i - center) / filterScaleX, effKernelX);
       weights[i] = w;
       wSum += w;
     }
@@ -143,7 +160,8 @@ export function resampleRawBitmap(
       const rowBase = y * srcW;
       for (let i = 0; i < count; i++) {
         const w = weights[i]!;
-        const sIdx = (rowBase + left + i) * 4;
+        const sx = Math.max(0, Math.min(srcW - 1, left + i));
+        const sIdx = (rowBase + sx) * 4;
         const a = src[sIdx + 3]! / 255;
         pr += src[sIdx]! * a * w;
         pg += src[sIdx + 1]! * a * w;
@@ -161,18 +179,24 @@ export function resampleRawBitmap(
   // Pass 2: Vertical resample (dstW x srcH -> dstW x dstH)
   const out = new Uint8Array(dstW * dstH * 4);
   const scaleY = srcH / dstH;
+  const isUpscaleY = dstH > srcH;
+  const effKernelY: ResizeKernel =
+    isUpscaleY && (kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos3")
+      ? "cubic"
+      : kernel;
+  const radiusY = kernelRadius(effKernelY);
   const filterScaleY = Math.max(1, scaleY);
-  const supportY = radius * filterScaleY;
+  const supportY = radiusY * filterScaleY;
 
   for (let y = 0; y < dstH; y++) {
-    const center = (y + 0.5) * scaleY - 0.5;
-    const top = Math.max(0, Math.floor(center - supportY));
-    const bottom = Math.min(srcH - 1, Math.ceil(center + supportY));
+    const center = isUpscaleY ? y * scaleY - 0.5 : (y + 0.5) * scaleY - 0.5;
+    const top = Math.floor(center - supportY);
+    const bottom = Math.ceil(center + supportY);
     const count = bottom - top + 1;
     const weights = new Float32Array(count);
     let wSum = 0;
     for (let i = 0; i < count; i++) {
-      const w = kernelWeight((top + i - center) / filterScaleY, kernel);
+      const w = kernelWeight((top + i - center) / filterScaleY, effKernelY);
       weights[i] = w;
       wSum += w;
     }
@@ -186,7 +210,8 @@ export function resampleRawBitmap(
       let pa = 0;
       for (let i = 0; i < count; i++) {
         const w = weights[i]!;
-        const tIdx = ((top + i) * dstW + x) * 4;
+        const sy = Math.max(0, Math.min(srcH - 1, top + i));
+        const tIdx = (sy * dstW + x) * 4;
         pr += temp[tIdx]! * w;
         pg += temp[tIdx + 1]! * w;
         pb += temp[tIdx + 2]! * w;

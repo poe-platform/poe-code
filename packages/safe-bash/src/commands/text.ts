@@ -611,8 +611,9 @@ async function collectSortRecords(
   try {
     for await (const chunk of source) {
       let start = 0;
-      for (let offset = 0; offset < chunk.length; offset++) {
-        if (chunk[offset] !== delimiter) continue;
+      while (start < chunk.length) {
+        const offset = chunk.indexOf(delimiter, start);
+        if (offset < 0) break;
         const accepted = accept(pending.finish(admit, chunk, start, offset));
         if ((accepted instanceof Promise ? await accepted : accepted) === false) return false;
         start = offset + 1;

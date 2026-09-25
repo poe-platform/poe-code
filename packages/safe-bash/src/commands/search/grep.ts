@@ -1,7 +1,8 @@
-import { toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
-import { diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
+import { FsError, toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
+import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
+import { RecordBuffer } from "../record-buffer.js";
 import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
-import type { GrepDescriptor } from "../regex-execution/protocol.js";
+import { trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
 import { grepFiles } from "./grep-files.js";
 
@@ -13,6 +14,70 @@ export interface GrepLimits {
   readonly maxFileBytes?: number;
 }
 
+
+interface GrepLine extends Line {
+  readonly raw?: Uint8Array;
+}
+
+async function* grepLineBatches(
+  source: ByteSource,
+  separator: number,
+  maxLineBytes: number,
+  maxRecords: () => number,
+): AsyncGenerator<GrepLine[]> {
+  const pending = new RecordBuffer(internalBufferLimit);
+  let batch: GrepLine[] = [];
+  let bytes = 0;
+  try {
+    for await (const rawChunk of source) {
+      const chunk = Uint8Array.from(rawChunk);
+      let start = 0;
+      while (start < chunk.length) {
+        const end = chunk.indexOf(separator, start);
+        if (end < 0) break;
+        let line: GrepLine;
+        if (pending.size === 0) {
+          const tailLength = end - start;
+          if (tailLength > internalBufferLimit) {
+            throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+          }
+          line = {
+            bytes: chunk.subarray(start, end),
+            raw: chunk.subarray(start, end + 1),
+            terminated: true,
+          };
+        } else {
+          line = {
+            bytes: pending.finish(undefined, chunk, start, end),
+            terminated: true,
+          };
+        }
+        start = end + 1;
+        batch.push(line);
+        bytes += line.bytes.length;
+        const next = chunk.indexOf(separator, start);
+        if (
+          batch.length >= maxRecords() ||
+          bytes >= 64 * 1024 ||
+          next < 0 ||
+          bytes + next - start > 64 * 1024 ||
+          next - start > maxLineBytes
+        ) {
+          yield batch;
+          batch = [];
+          bytes = 0;
+        }
+      }
+      pending.append(chunk, start);
+    }
+    if (pending.size) {
+      batch.push({ bytes: pending.finish(), terminated: false });
+    }
+    if (batch.length) yield batch;
+  } finally {
+    pending.clear();
+  }
+}
 
 export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits = {}): CommandDefinition[] {
   for (const value of Object.values(limits)) {
@@ -161,6 +226,31 @@ inspect the resulting state before repeating the action.
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
+      const delimiterBytes = encoder.encode(delimiter);
+      const lineBuffered = parsed.flags.has("line-buffered");
+      let outBuffer: Uint8Array | undefined;
+      let outUsed = 0;
+      const flushOut = async () => {
+        if (!outBuffer || outUsed === 0) return;
+        const view = outBuffer.subarray(0, outUsed);
+        outUsed = 0;
+        await output(context, view);
+      };
+      const writeOut = async (chunk: string | Uint8Array) => {
+        const bytes = typeof chunk === "string" ? (chunk.length === 0 ? undefined : encoder.encode(chunk)) : (chunk.length === 0 ? undefined : chunk);
+        if (!bytes) return;
+        if (lineBuffered || bytes.length > 64 * 1024) {
+          await flushOut();
+          await output(context, bytes);
+          return;
+        }
+        outBuffer ??= new Uint8Array(64 * 1024);
+        if (outUsed + bytes.length > outBuffer.length) {
+          await flushOut();
+        }
+        outBuffer.set(bytes, outUsed);
+        outUsed += bytes.length;
+      };
       const extractMatches = parsed.flags.has("o") && !["c", "q", "l", "L", "v"].some(flag => parsed.flags.has(flag));
       const displayLines = !["c", "q", "l", "L"].some(flag => parsed.flags.has(flag));
       const withContext = [...contextLengths.values()].some(length => length > 0) && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
@@ -182,17 +272,18 @@ inspect the resulting state before repeating the action.
         const prefix = (lineNumber = false, position = number, separator = ":", offset = byteOffset) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested) ? `${named}${parsed.flags.has("Z") ? "\0" : separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}${lineNumber && parsed.flags.has("b") ? `${offset}${separator}` : ""}${lineNumber && parsed.flags.has("initial-tab") && (parsed.flags.has("n") || parsed.flags.has("b") || !parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) ? "\t" : ""}`;
         const emitContext = async (line: Line, position: number, offset = byteOffset) => {
           if (!parsed.flags.has("o")) {
-            await output(context, prefix(true, position, "-", offset));
-            await output(context, line.bytes);
-            await output(context, delimiter);
+            await writeOut(prefix(true, position, "-", offset));
+            await writeOut(line.bytes);
+            await writeOut(delimiterBytes);
           }
           lastCovered = position;
         };
         try {
-          const available = new AvailableRecords(parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity);
           const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, limits.maxFileBytes ?? Infinity);
-          records: if (maxCount > 0) for await (const batch of available.batches(lines(available.source(source), parsed.flags.has("z") ? 0 : 10), line => line.bytes.length, () => batchSize)) {
-            const results = await session.run(descriptor, batch.map(line => ({ bytes: line.bytes, all: extractMatches, terminated: line.terminated })));
+          records: if (maxCount > 0) for await (const batch of grepLineBatches(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize)) {
+            const rows = batch.map(line => ({ bytes: line.bytes, all: extractMatches, terminated: line.terminated }));
+            trustedInputRows.add(rows);
+            const results = await session.run(descriptor, rows);
             for (let index = 0; index < batch.length; index++) {
               const line = batch[index]!;
               context.signal.throwIfAborted();
@@ -226,7 +317,7 @@ inspect the resulting state before repeating the action.
               if (!parsed.flags.has("c")) {
                 if (withContext) {
                   const first = pending.keys().next().value ?? number;
-                  if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, (value(parsed, "group-separator") ?? "--") + delimiter);
+                  if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await writeOut((value(parsed, "group-separator") ?? "--") + delimiter);
                   for (const [position, previous] of pending) await emitContext(previous, position, previous.offset);
                   pending.clear();
                   pendingBytes = 0;
@@ -239,24 +330,29 @@ inspect the resulting state before repeating the action.
                     let end = -1;
                     for (const match of found) {
                       if (match.start === match.end || match.start < end) continue;
-                      await output(context, prefix(true, number, ":", byteOffset + match.start));
-                      await output(context, line.bytes.subarray(match.start, match.end));
-                      await output(context, delimiter);
+                      await writeOut(prefix(true, number, ":", byteOffset + match.start));
+                      await writeOut(line.bytes.subarray(match.start, match.end));
+                      await writeOut(delimiterBytes);
                       end = match.end;
                     }
                   }
                 } else {
-                  await output(context, prefix(true)); await output(context, line.bytes); await output(context, delimiter);
+                  const p = prefix(true);
+                  if (p) await writeOut(p);
+                  if (line.raw) await writeOut(line.raw);
+                  else { await writeOut(line.bytes); await writeOut(delimiterBytes); }
                 }
               }
               if (count >= maxCount && remainingAfter === 0) break records;
             }
           }
+          await flushOut();
           if (parsed.flags.has("q")) continue;
           if (parsed.flags.has("l") && count > 0 || parsed.flags.has("L") && count === 0) {
             await output(context, named + (parsed.flags.has("Z") ? "\0" : "\n"));
           } else if (parsed.flags.has("c") && !parsed.flags.has("l") && !parsed.flags.has("L")) await output(context, prefix() + count + delimiter);
         } catch (error) {
+          await flushOut();
           context.signal.throwIfAborted();
           if (error instanceof RegexExecutionError) throw error;
           failed = true;

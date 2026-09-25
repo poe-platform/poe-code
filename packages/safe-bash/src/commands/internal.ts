@@ -222,8 +222,9 @@ export async function* lines(source: ByteSource, separator = 10, admit?: (size: 
   try {
     for await (const chunk of source) {
       let start = 0;
-      for (let offset = 0; offset < chunk.length; offset++) {
-        if (chunk[offset] !== separator) continue;
+      while (start < chunk.length) {
+        const offset = chunk.indexOf(separator, start);
+        if (offset < 0) break;
         yield { bytes: pending.finish(admit, chunk, start, offset), terminated: true };
         start = offset + 1;
       }

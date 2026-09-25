@@ -44,7 +44,9 @@ export class RecordBuffer {
       throw new FsError("EFBIG", { message: "line finalization buffer limit exceeded" });
     }
     if (this.#size === 0) {
-      return bytes && tailLength > 0 ? bytes.slice(start, end) : new Uint8Array(0);
+      const result = new Uint8Array(tailLength);
+      if (bytes && tailLength > 0) result.set(bytes.subarray(start, end));
+      return result;
     }
     const result = new Uint8Array(size);
     let offset = 0;

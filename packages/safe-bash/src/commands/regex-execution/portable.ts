@@ -322,6 +322,9 @@ export class AvailableRecords {
     }
   }
   private end(): number {
+    if (this.extraDelimiter === -1) {
+      return this.chunk.indexOf(this.delimiter, this.offset);
+    }
     for (let offset = this.offset; offset < this.chunk.length; offset++) {
       if (this.chunk[offset] === this.delimiter || this.chunk[offset] === this.extraDelimiter) return offset;
     }

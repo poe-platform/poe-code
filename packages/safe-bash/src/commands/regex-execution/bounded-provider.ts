@@ -533,6 +533,8 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
     if (selected.kind === "rg") {
       const pendingUtf8 = validateUtf8(row.bytes, ledger, signal);
       if (pendingUtf8) await pendingUtf8;
+    } else if (ledger.workAllowanceUntilCheckpoint(signal) >= row.bytes.length) {
+      ledger.charge("work", row.bytes.length, signal);
     } else {
       // Retain subject admission work and cooperative cancellation for raw bytes.
       for (let index = 0; index < row.bytes.length; index++) {

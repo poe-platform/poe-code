@@ -9,7 +9,7 @@ import { assertCommandRequirements } from "../contracts/command-requirements.js"
 import { filesystemCommandRequirements } from "./filesystem-requirements.js";
 import { compileFindFormat, FindFormatBudget, type FindFormatEntry } from "./find-format.js";
 
-interface Entry extends FindFormatEntry { path: string; name: string; symlink: boolean; prune: boolean }
+interface Entry extends FindFormatEntry { path: string; display: string; relative: string; depth: number; root: string; name: string; symlink: boolean; prune: boolean }
 type Expression = (entry: Entry) => boolean | Promise<boolean>;
 const SYNTHETIC_FILE_STAT: FileStat = Object.freeze({ type: "file", size: 0, mode: 0o644, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
 const SYNTHETIC_DIR_STAT: FileStat = Object.freeze({ type: "directory", size: 0, mode: 0o755, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
@@ -52,6 +52,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     let deletes = false;
     let prunes = false;
     let needsStat = false;
+    let needsDisplay = false;
     const references = new Map<string, number>();
     const flushes: (() => Promise<void>)[] = [];
     const formats: (() => Promise<void>)[] = [];
@@ -171,6 +172,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         let compiledMatcher: ((value: string) => boolean | Promise<boolean>) | undefined;
         formats.push(async () => { compiledMatcher = await matcherPromise; });
         const useName = token === "-name" || token === "-iname";
+        if (!useName) needsDisplay = true;
         return entry => compiledMatcher!(useName ? entry.name : entry.display);
       }
       if (token === "-true" || token === "-false") return () => token === "-true";
@@ -291,14 +293,38 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       context.signal.throwIfAborted();
       references.set(reference, stat.mtimeMs);
     }
-    let printBuffer = "";
+    const printBuf = Buffer.allocUnsafe(8192);
+    let printPos = 0;
     const flushPrintBuffer = async (): Promise<void> => {
-      if (!printBuffer) return;
-      const out = printBuffer;
-      printBuffer = "";
-      await output(context, out);
+      if (printPos === 0) return;
+      const chunk = printBuf.subarray(0, printPos);
+      printPos = 0;
+      await output(context, chunk);
+    };
+    const appendPrintLine = async (escaped: string): Promise<void> => {
+      const maxNeed = escaped.length * 3 + 1;
+      if (printPos + maxNeed > printBuf.length) await flushPrintBuffer();
+      if (maxNeed > printBuf.length) {
+        await output(context, `${escaped}\n`);
+        return;
+      }
+      printPos += printBuf.write(escaped, printPos, "utf8");
+      printBuf[printPos++] = 10;
+    };
+    const appendPrintChild = async (escapedParent: string, escapedChild: string): Promise<void> => {
+      const maxNeed = (escapedParent.length + escapedChild.length) * 3 + 2;
+      if (printPos + maxNeed > printBuf.length) await flushPrintBuffer();
+      if (maxNeed > printBuf.length) {
+        await output(context, `${escapedParent}/${escapedChild}\n`);
+        return;
+      }
+      printPos += printBuf.write(escapedParent, printPos, "utf8");
+      printBuf[printPos++] = 47;
+      printPos += printBuf.write(escapedChild, printPos, "utf8");
+      printBuf[printPos++] = 10;
     };
     const canSkipChildStat = !needsStat && !explicitAction && follow !== "-L";
+    const scratchChildEntry: Entry = { path: "", display: "", name: "", stat: SYNTHETIC_FILE_STAT, symlink: false, depth: 0, root: "", relative: "", prune: false };
     const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string, knownName?: string, knownType?: FileStat["type"]): Promise<void> => {
       context.signal.throwIfAborted();
       const path = pathOf(context, display);
@@ -321,10 +347,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (!depthFirst && depth >= minDepth) {
           const res = evaluate(entry);
           const ok = typeof res === "boolean" ? res : await res;
-          if (ok && !explicitAction) {
-            printBuffer += `${escapeText(display, "display")}\n`;
-            if (printBuffer.length >= 4096) await flushPrintBuffer();
-          }
+          if (ok && !explicitAction) await appendPrintLine(escapeText(display, "display"));
         }
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
           const physical = await context.fs.realpath(path, { signal: context.signal });
@@ -333,32 +356,39 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const children = await readDirectory(context, path, true);
           let parent = display;
           while (parent.endsWith("/")) parent = parent.slice(0, -1);
+          const escapedParent = canSkipChildStat && !needsDisplay ? escapeText(parent, "display") : "";
           const childDepth = depth + 1;
           for (const child of children) {
-            const childDisplay = `${parent}/${child.name}`;
-            const childRel = relative ? `${relative}/${child.name}` : child.name;
             if (canSkipChildStat && child.type === "file" && childDepth <= 1024) {
               if (childDepth >= minDepth) {
-                const childEntry: Entry = { path: pathOf(context, childDisplay), display: childDisplay, name: child.name, stat: SYNTHETIC_FILE_STAT, symlink: false, depth: childDepth, root, relative: childRel, prune: false };
-                const res = evaluate(childEntry);
+                scratchChildEntry.name = child.name;
+                scratchChildEntry.depth = childDepth;
+                scratchChildEntry.root = root;
+                scratchChildEntry.prune = false;
+                if (needsDisplay) {
+                  const childDisplay = `${parent}/${child.name}`;
+                  scratchChildEntry.display = childDisplay;
+                  scratchChildEntry.path = pathOf(context, childDisplay);
+                  scratchChildEntry.relative = relative ? `${relative}/${child.name}` : child.name;
+                }
+                const res = evaluate(scratchChildEntry);
                 const ok = typeof res === "boolean" ? res : await res;
                 if (ok) {
-                  printBuffer += `${escapeText(childDisplay, "display")}\n`;
-                  if (printBuffer.length >= 4096) await flushPrintBuffer();
+                  if (needsDisplay) await appendPrintLine(escapeText(scratchChildEntry.display, "display"));
+                  else await appendPrintChild(escapedParent, escapeText(child.name, "display"));
                 }
               }
               continue;
             }
+            const childDisplay = `${parent}/${child.name}`;
+            const childRel = relative ? `${relative}/${child.name}` : child.name;
             await visit(childDisplay, childDepth, next, root, childRel, child.name, child.type);
           }
         }
         if (depthFirst && depth >= minDepth) {
           const res = evaluate(entry);
           const ok = typeof res === "boolean" ? res : await res;
-          if (ok && !explicitAction) {
-            printBuffer += `${escapeText(display, "display")}\n`;
-            if (printBuffer.length >= 4096) await flushPrintBuffer();
-          }
+          if (ok && !explicitAction) await appendPrintLine(escapeText(display, "display"));
         }
       } catch (error) {
         if (formatBudget.exhausted) throw error;

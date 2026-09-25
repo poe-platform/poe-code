@@ -7,6 +7,7 @@ export type TurnHandle =
   | { kind: "immediate"; value: unknown }
   | { kind: "timeout"; value: ReturnType<typeof setTimeout> };
 const checkpoints = new WeakMap<AbortSignal, () => void>();
+const externalCheckpoints = new WeakSet<AbortSignal>();
 
 interface SignalYieldState {
   currentAbort: (() => void) | null;
@@ -44,15 +45,34 @@ export function monotonicNow(): number {
 
 export function registerYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
   checkpoints.set(signal, checkpoint);
+  externalCheckpoints.add(signal);
+}
+
+export function registerInternalYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
+  const existing = checkpoints.get(signal);
+  if (existing && externalCheckpoints.has(signal)) {
+    checkpoints.set(signal, () => {
+      checkpoint();
+      existing();
+    });
+  } else if (!existing) {
+    checkpoints.set(signal, checkpoint);
+  }
+}
+
+export function runYieldCheckpoint(signal?: AbortSignal): void {
+  signal?.throwIfAborted();
+  if (signal) checkpoints.get(signal)?.();
 }
 
 export function hasYieldCheckpoint(signal?: AbortSignal): boolean {
-  return signal !== undefined && checkpoints.has(signal);
+  return signal !== undefined && externalCheckpoints.has(signal);
 }
 
 export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal): void {
   const checkpoint = checkpoints.get(parent);
   if (checkpoint) checkpoints.set(child, checkpoint);
+  if (externalCheckpoints.has(parent)) externalCheckpoints.add(child);
 }
 
 export function scheduleTurn(callback: () => void): TurnHandle {

@@ -1,3 +1,4 @@
+import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { getRuntimeBackingFileSystem } from "../../shell/runtime.js";
 import { Matcher, type Match } from "./matcher.js";
@@ -49,11 +50,13 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
     source = stdin;
   } else if (target.canonicalPath && backing && backing.capabilitiesFor === undefined && context.fs.capabilities.read !== false && backing.capabilities.read !== false) {
     assertCommandRequirements(context, searchRequirements, ["file"]);
-    source = await backing.readFile(target.canonicalPath, { signal: context.signal, ...(Number.isFinite(limits.maxFileBytes) ? { maxBytes: limits.maxFileBytes } : {}) });
+    const maxBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
+    const view = tryReadMemoryFileViewSync(backing, target.canonicalPath, maxBytes, context.signal);
+    source = view ?? await backing.readFile(target.canonicalPath, { signal: context.signal, ...(maxBytes !== undefined ? { maxBytes } : {}) });
   } else {
     source = requiredFileInput(context, searchRequirements, "file", target.path, limits.maxFileBytes);
   }
-  const before: { line: Line; matches: Match[] }[] = [];
+  let before: { line: Line; matches: Match[] }[] | undefined;
   let beforeBytes = 0;
   let lastPrinted = 0;
   let after = 0;
@@ -70,9 +73,20 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
   const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches";
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
-  const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf) : undefined;
-  const batches = syncBatches ?? lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf);
-  records: for await (const batch of batches) {
+  const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf, args.before === 0) : undefined;
+  let syncIdx = 0;
+  let asyncIter: AsyncIterator<Line[]> | undefined;
+  records: while (true) {
+    let batch: Line[];
+    if (syncBatches !== undefined) {
+      if (syncIdx >= syncBatches.length) break;
+      batch = syncBatches[syncIdx++]!;
+    } else {
+      asyncIter ??= lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf)[Symbol.asyncIterator]();
+      const next = await asyncIter.next();
+      if (next.done) { asyncIter = undefined; break; }
+      batch = next.value;
+    }
     const batchRes = matcher.batchSync(batch); const results = batchRes instanceof Promise ? await batchRes : batchRes;
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
@@ -95,7 +109,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
             if (!binaryPrinted) { await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; }
             break records;
           }
-          for (const previous of before) if (previous.line.number > lastPrinted) {
+          if (before) for (const previous of before) if (previous.line.number > lastPrinted) {
             await printer.record(target.label, previous.line, previous.matches, false, filename); lastPrinted = previous.line.number;
           }
           await printer.record(target.label, line, args.invert ? [] : matches, true, filename); lastPrinted = line.number;
@@ -111,6 +125,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
         break records;
       }
       if (args.before > 0) {
+        before ??= [];
         before.push({ line, matches }); beforeBytes += line.rawLength;
         while (before.length > args.before) beforeBytes -= before.shift()!.line.rawLength;
         if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");

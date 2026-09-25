@@ -1,6 +1,7 @@
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { hasYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
+import { trustedInputRows } from "../regex-execution/protocol.js";
 import { readBytes, writeBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { SearchError, type SearchOptions } from "./options.js";
 import { assertPathRequirements, searchRequirements } from "./requirements.js";
@@ -126,32 +127,65 @@ export interface Line {
 }
 
 class SlicedLine implements Line {
-  readonly bytes: Uint8Array;
-  readonly rawLength: number;
-  readonly all: boolean;
-  readonly terminated: boolean;
-  readonly number: number;
-  readonly offset: number;
+  rawLength: number;
+  all: boolean;
+  terminated: boolean;
+  number: number;
+  offset: number;
+  private _bytes: Uint8Array | undefined;
   private _content: Buffer | undefined;
   private _rawBytes: Buffer | undefined;
   constructor(
-    private readonly chunk: Buffer,
-    private readonly start: number,
-    private readonly contentEnd: number,
-    private readonly rawEnd: number,
-    private readonly delimiterBuffer: Buffer | undefined,
-    searchEnd: number,
+    public chunk: Buffer,
+    public start: number,
+    public contentEnd: number,
+    public rawEnd: number,
+    public delimiterBuffer: Buffer | undefined,
+    public searchEnd: number,
     all: boolean,
     terminated: boolean,
     number: number,
     offset: number,
   ) {
-    this.bytes = new Uint8Array(chunk.buffer, chunk.byteOffset + start, searchEnd - start);
     this.rawLength = rawEnd - start + (delimiterBuffer ? 1 : 0);
     this.all = all;
     this.terminated = terminated;
     this.number = number;
     this.offset = offset;
+  }
+  reset(
+    chunk: Buffer,
+    start: number,
+    contentEnd: number,
+    rawEnd: number,
+    delimiterBuffer: Buffer | undefined,
+    searchEnd: number,
+    all: boolean,
+    terminated: boolean,
+    number: number,
+    offset: number,
+  ): this {
+    this.chunk = chunk;
+    this.start = start;
+    this.contentEnd = contentEnd;
+    this.rawEnd = rawEnd;
+    this.delimiterBuffer = delimiterBuffer;
+    this.searchEnd = searchEnd;
+    this.rawLength = rawEnd - start + (delimiterBuffer ? 1 : 0);
+    this.all = all;
+    this.terminated = terminated;
+    this.number = number;
+    this.offset = offset;
+    this._bytes = undefined;
+    this._content = undefined;
+    this._rawBytes = undefined;
+    return this;
+  }
+  clone(): SlicedLine {
+    return new SlicedLine(this.chunk, this.start, this.contentEnd, this.rawEnd, this.delimiterBuffer, this.searchEnd, this.all, this.terminated, this.number, this.offset);
+  }
+  get bytes(): Uint8Array {
+    return this._bytes ??= new Uint8Array(this.chunk.buffer, this.chunk.byteOffset + this.start, this.searchEnd - this.start);
   }
   get content(): Buffer {
     return this._content ??= this.chunk.subarray(this.start, this.contentEnd);
@@ -167,6 +201,14 @@ export interface ReadState { bytesRead: number; bytesSearched: number; binaryOff
 
 const LF_DELIMITER_BUFFER = Buffer.from([10]);
 const NUL_DELIMITER_BUFFER = Buffer.from([0]);
+const EMPTY_BATCHES: Line[][] = [];
+const reusableLines: SlicedLine[] = Array.from({ length: 128 }, () => new SlicedLine(Buffer.alloc(0), 0, 0, 0, undefined, 0, false, true, 0, 0));
+const reusableBatchSlices: Line[][] = Array.from({ length: 129 }, (_, k) => {
+  const arr = reusableLines.slice(0, k);
+  trustedInputRows.add(arr);
+  return arr;
+});
+const reusableSingleBatchWrapper: Line[][] = [[]];
 
 export function trySyncLineBatches(
   source: Uint8Array,
@@ -177,6 +219,7 @@ export function trySyncLineBatches(
   maxRecords: () => number,
   needAll = false,
   crlf = false,
+  reusePool = false,
 ): Line[][] | undefined {
   if (limits.tick() !== undefined) return undefined;
   const chunk = Buffer.isBuffer(source) ? source : Buffer.from(source.buffer, source.byteOffset, source.byteLength);
@@ -189,10 +232,12 @@ export function trySyncLineBatches(
   state.bytesRead += chunk.length;
   if (nul >= 0 && binary === "skip") {
     state.skipped = true;
-    return [];
+    return EMPTY_BATCHES;
   }
-  const batches: Line[][] = [];
-  let batch: Line[] = [];
+  let usingPool = reusePool && maxRecords() === 128;
+  let poolCount = 0;
+  let batches: Line[][] | undefined;
+  let batch: Line[] | undefined;
   let batchBytes = 0;
   let offset = 0;
   let number = 0;
@@ -210,20 +255,13 @@ export function trySyncLineBatches(
     if (end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
     const searchEnd = crlf && end > start && chunk[end - 1] === 13 ? end - 1 : end;
     const isNormalDelimiter = chunk[end] === delimiter;
-    const line = new SlicedLine(
-      chunk,
-      start,
-      end,
-      isNormalDelimiter ? end + 1 : end,
-      isNormalDelimiter ? undefined : delimiterBuffer,
-      searchEnd,
-      needAll,
-      true,
-      ++number,
-      offset,
-    );
+    const rawEnd = isNormalDelimiter ? end + 1 : end;
+    const delimBuf = isNormalDelimiter ? undefined : delimiterBuffer;
+    const line = usingPool
+      ? reusableLines[poolCount++]!.reset(chunk, start, end, rawEnd, delimBuf, searchEnd, needAll, true, ++number, offset)
+      : new SlicedLine(chunk, start, end, rawEnd, delimBuf, searchEnd, needAll, true, ++number, offset);
     state.bytesSearched = offset + line.rawLength;
-    batch.push(line);
+    if (!usingPool) batch!.push(line);
     batchBytes += end - start;
     offset += line.rawLength;
     start = end + 1;
@@ -235,21 +273,54 @@ export function trySyncLineBatches(
           }
           return -1;
         })();
-    if (batch.length >= maxRecords() || batchBytes >= 64 * 1024 || next < 0 || batchBytes + next - start > 64 * 1024 || next - start > limits.maxLineBytes) {
-      batches.push(batch);
-      batch = [];
+    const currentLen = usingPool ? poolCount : batch!.length;
+    if (currentLen >= maxRecords() || batchBytes >= 64 * 1024 || next < 0 || batchBytes + next - start > 64 * 1024 || next - start > limits.maxLineBytes) {
+      if (usingPool) {
+        if (next < 0 && start >= chunk.length) {
+          reusableSingleBatchWrapper[0] = reusableBatchSlices[poolCount]!;
+          return reusableSingleBatchWrapper;
+        }
+        batches = [];
+        const cloned: Line[] = new Array(poolCount);
+        for (let i = 0; i < poolCount; i++) cloned[i] = reusableLines[i]!.clone();
+        batches.push(cloned);
+        batch = [];
+        usingPool = false;
+      } else {
+        batches!.push(batch!);
+        batch = [];
+      }
       batchBytes = 0;
     }
   }
   if (start < chunk.length) {
     if (chunk.length - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
     const searchEnd = crlf && chunk.length > start && chunk[chunk.length - 1] === 13 ? chunk.length - 1 : chunk.length;
+    if (usingPool && poolCount < 128) {
+      const line = reusableLines[poolCount++]!.reset(chunk, start, chunk.length, chunk.length, undefined, searchEnd, needAll, false, ++number, offset);
+      state.bytesSearched = offset + line.rawLength;
+      reusableSingleBatchWrapper[0] = reusableBatchSlices[poolCount]!;
+      return reusableSingleBatchWrapper;
+    }
+    if (usingPool) {
+      batches = [];
+      const cloned: Line[] = new Array(poolCount);
+      for (let i = 0; i < poolCount; i++) cloned[i] = reusableLines[i]!.clone();
+      batches.push(cloned);
+      batch = [];
+      usingPool = false;
+    }
     const line = new SlicedLine(chunk, start, chunk.length, chunk.length, undefined, searchEnd, needAll, false, ++number, offset);
     state.bytesSearched = offset + line.rawLength;
-    batch.push(line);
+    batch!.push(line);
   }
-  if (batch.length) batches.push(batch);
-  return batches;
+  if (usingPool) {
+    if (poolCount === 0) return EMPTY_BATCHES;
+    reusableSingleBatchWrapper[0] = reusableBatchSlices[poolCount]!;
+    return reusableSingleBatchWrapper;
+  }
+  if (batch && batch.length) batches!.push(batch);
+  return batches ?? EMPTY_BATCHES;
 }
 
 export async function* lineBatches(

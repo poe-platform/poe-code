@@ -1,7 +1,7 @@
 import type { InternalErrorHandler } from "../contracts/command.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
-import { cancelTurn, monotonicNow, registerYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
+import { cancelTurn, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
   ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText,
 } from "../contracts/index.js";
@@ -319,6 +319,7 @@ export class Budget {
 
   constructor(readonly limits: ResolvedShellLimits, signal?: AbortSignal, readonly onInternalError?: InternalErrorHandler) {
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
+    if (signal) inheritYieldCheckpoint(signal, this.signal);
     this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, error => this.controller.abort(error));
     this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, () => this.signal.throwIfAborted(), limit => this.fail(limit));
     this.#wallClockDeadline = Date.now() + limits.maxWallClockMs;
@@ -1743,6 +1744,12 @@ const syncRestorationTickets = { generation: 0, version: 0, epoch: 0 };
 const syncPipeStatusCharge = { generation: true, version: true, epoch: true, work: 8 } as const;
 const syncPipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
 const predicateScratchWords: string[] = [];
+const syncRedirectScratchBuf = Buffer.allocUnsafe(4096);
+const syncRedirectSubarrays: Uint8Array[] = Array.from({ length: 129 }, (_, i) => syncRedirectScratchBuf.subarray(0, i));
+const syncRedirectWriteOpts: { signal?: AbortSignal; flag: "w" | "a"; mode?: number } = { flag: "w", mode: 0o644 };
+let lastSyncRedirectSourceFs: unknown;
+let lastSyncRedirectBackingFs: unknown;
+let lastSyncRedirectDir = "";
 const fastSharedTextEncoder = new TextEncoder();
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 const assignmentCache = new WeakMap<Word, { name: string; value: Word; append: boolean } | null>();
@@ -1780,8 +1787,11 @@ export class Runtime {
     this.#rawFs = fs;
     this.sourceFs = runtimeFileSystems.get(fs) ?? fs;
     this.backingFs = runtimeBackingFileSystems.get(this.sourceFs) ?? this.sourceFs;
-    registerYieldCheckpoint(signal, budget.yieldCheckpoint);
-    if (commandSignal !== signal) registerYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
+    registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
+    if (commandSignal !== signal) {
+      inheritYieldCheckpoint(signal, commandSignal);
+      registerInternalYieldCheckpoint(commandSignal, budget.yieldCheckpoint);
+    }
   }
 
   get fs(): FileSystem {
@@ -3446,44 +3456,93 @@ export class Runtime {
         predicateScratchWords.length = 0;
         return undefined;
       }
+      const lastSlash = path.lastIndexOf("/");
+      const memSymlinks = (memFs as { symlinkCount?: number }).symlinkCount;
       let canonicalTarget: string | undefined;
-      try {
-        canonicalTarget = this.sourceFs.canonicalizeMissingTarget?.(path, { signal: this.commandSignal });
-      } catch {
+      if (
+        memSymlinks === 0 &&
+        lastSlash > 0 &&
+        lastSyncRedirectSourceFs === this.sourceFs &&
+        lastSyncRedirectBackingFs === this.backingFs &&
+        lastSyncRedirectDir.length === lastSlash &&
+        path.startsWith(lastSyncRedirectDir) &&
+        path.length - lastSlash - 1 <= 85
+      ) {
+        const base = path.slice(lastSlash + 1);
+        if (base.length > 0 && base !== "." && base !== "..") {
+          this.commandSignal?.throwIfAborted();
+          canonicalTarget = path;
+        }
+      }
+      if (canonicalTarget === undefined) {
+        try {
+          canonicalTarget = this.sourceFs.canonicalizeMissingTarget?.(path, { signal: this.commandSignal });
+        } catch {
+          predicateScratchWords.length = 0;
+          return undefined;
+        }
+        if (!canonicalTarget || canonicalTarget === "/dev" || canonicalTarget.startsWith("/dev/")) {
+          predicateScratchWords.length = 0;
+          return undefined;
+        }
+        if (memSymlinks === 0 && canonicalTarget === path && lastSlash > 0) {
+          lastSyncRedirectSourceFs = this.sourceFs;
+          lastSyncRedirectBackingFs = this.backingFs;
+          lastSyncRedirectDir = path.slice(0, lastSlash);
+        }
+      }
+      let bytes: Uint8Array | undefined;
+      let byteLength = 0;
+      if (w0Plain !== "printf" && predicateScratchWords.length === 1) {
+        const w = predicateScratchWords[0]!;
         predicateScratchWords.length = 0;
-        return undefined;
-      }
-      if (!canonicalTarget || canonicalTarget === "/dev" || canonicalTarget.startsWith("/dev/")) {
+        if (!w.startsWith("-") && !w.includes("\0") && w.length <= 1024) {
+          const written = syncRedirectScratchBuf.write(w, 0, "utf8");
+          syncRedirectScratchBuf[written] = 10;
+          byteLength = written + 1;
+          if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
+          bytes = byteLength <= 128 ? syncRedirectSubarrays[byteLength]! : syncRedirectScratchBuf.subarray(0, byteLength);
+        } else if (w.length > 1024 && !w.startsWith("-") && !w.includes("\0")) {
+          const formatted = `${w}\n`;
+          byteLength = Buffer.byteLength(formatted);
+          if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
+          bytes = Buffer.from(formatted, "utf8");
+        }
+      } else {
+        let formatted: string | undefined;
+        if (w0Plain === "printf") {
+          formatted = tryFastPrintf(predicateScratchWords);
+        } else if (!predicateScratchWords[0]?.startsWith("-")) {
+          formatted = `${predicateScratchWords.join(" ")}\n`;
+          if (formatted.includes("\0")) formatted = undefined;
+        }
         predicateScratchWords.length = 0;
-        return undefined;
+        if (formatted !== undefined) {
+          byteLength = Buffer.byteLength(formatted);
+          if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
+          bytes = Buffer.from(formatted, "utf8");
+        }
       }
-      let formatted: string | undefined;
-      if (w0Plain === "printf") {
-        formatted = tryFastPrintf(predicateScratchWords);
-      } else if (!predicateScratchWords[0]?.startsWith("-")) {
-        formatted = `${predicateScratchWords.join(" ")}\n`;
-        if (formatted.includes("\0")) formatted = undefined;
-      }
-      predicateScratchWords.length = 0;
-      if (formatted === undefined) return undefined;
-      const byteLength = Buffer.byteLength(formatted);
-      if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;
-      const bytes = Buffer.from(formatted, "utf8");
+      if (bytes === undefined) return undefined;
       const mode = this.backingFs.capabilities.permissions !== false ? 0o666 & ~(rawState.umask ?? 0o022) : undefined;
-      const resumePathCache = this.budget.pathLookup.suspend();
+      syncRedirectWriteOpts.signal = this.commandSignal;
+      syncRedirectWriteOpts.flag = r0.operator === ">>" ? "a" : "w";
+      if (mode === undefined) delete syncRedirectWriteOpts.mode;
+      else syncRedirectWriteOpts.mode = mode;
+      this.budget.pathLookup.invalidateSync();
       try {
         this.budget.fileSystemOperation();
         memFs.writeData(
           path,
           bytes,
-          { signal: this.commandSignal, flag: r0.operator === ">>" ? "a" : "w", ...(mode === undefined ? {} : { mode }) },
+          syncRedirectWriteOpts,
           r0.operator === ">>" ? "appendFile" : "writeFile",
         );
       } catch {
         this.signal.throwIfAborted();
         return undefined;
       } finally {
-        resumePathCache();
+        delete syncRedirectWriteOpts.signal;
       }
       this.budget.bytes += byteLength;
       const owner = monitor.internalOwner();

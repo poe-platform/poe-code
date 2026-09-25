@@ -11,6 +11,14 @@ export class PathLookup {
   #pending = 0;
   #generation = 0;
 
+  invalidateSync(): void {
+    if (this.#entries.size > 0) {
+      this.#entries.clear();
+      this.#bytes = 0;
+    }
+    this.#generation++;
+  }
+
   suspend(): () => void {
     this.#entries.clear();
     this.#bytes = 0;

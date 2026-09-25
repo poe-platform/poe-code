@@ -1,6 +1,6 @@
 import { PublicDiagnostic } from "../../public-diagnostic.js";
 import { foldAscii, isAsciiWord } from "./ascii.js";
-import { yieldTurn } from "../../contracts/yield.js";
+import { runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
 import { EreLedger } from "./ere/limits.js";
@@ -10,7 +10,7 @@ import { validateUtf8 } from "./utf8.js";
 import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, inProcessRegexWorkers, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -149,7 +149,7 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
   return value as unknown as SelectionDescriptor;
 }
 
-function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedRequest | OwnedGlobRequest {
+function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal, allowSharedLedger = true): OwnedRequest | OwnedGlobRequest {
   const trusted = trustedWorkerRequests.has(input);
   if (!trusted) record(input, ["id", "descriptor", "rows"]);
   const selected = descriptor(input.descriptor, limits, trusted);
@@ -165,7 +165,8 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
   let allTrustedRows = trusted && selected.kind !== "glob";
   if (knownTrustedRows) {
     for (let index = 0; index < input.rows.length; index++) {
-      const length = input.rows[index]!.bytes.byteLength;
+      const r = input.rows[index]! as Row & { start?: number; searchEnd?: number };
+      const length = typeof r.searchEnd === "number" ? r.searchEnd - r.start! : r.bytes.byteLength;
       if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
       bytes += length;
     }
@@ -188,12 +189,17 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
     bytes += length;
   }
-  const ledger = new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity }, {
-    // Glob source bytes were admitted above; generated ERE bytes are governed
-    // by the explicit work and allocation budgets.
-    patternBytes: selected.kind === "glob" ? Infinity : limits.maxPatternBytes + (selected.fixed ? 0 : 4), subjectBytes: limits.maxInputBytes,
-    work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
-  });
+  if (allowSharedLedger && knownTrustedRows) {
+    const ledger = sharedSyncLedger.resetWithLimits(getPrevalidatedEreLimits(limits, selected.fixed));
+    ledger.charge("allocationUnits", bytes + input.rows.length * 12 + selected.patterns.length * 2 + 16, signal);
+    return { id: input.id, descriptor: selected, rows: input.rows, ledger, limits } as OwnedRequest;
+  }
+  const ledger = selected.kind !== "glob"
+    ? EreLedger.withPrevalidatedLimits(getPrevalidatedEreLimits(limits, selected.fixed))
+    : new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity }, {
+      patternBytes: Infinity, subjectBytes: limits.maxInputBytes,
+      work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
+    });
   // Include snapshots, row/result metadata and worst-case match storage before copying.
   ledger.charge("allocationUnits", bytes + input.rows.length * 12 + selected.patterns.length * 2 + 16, signal);
   const patterns: string[] = [];
@@ -598,6 +604,66 @@ interface CachedLiteralPrograms {
   readonly allocationUnits: number;
 }
 let lastLiteralCache: CachedLiteralPrograms | undefined;
+const sharedSyncLedger = EreLedger.withPrevalidatedLimits(Object.freeze({
+  patternBytes: Infinity, subjectBytes: Infinity, work: Infinity,
+  states: Infinity, allocationUnits: Infinity, captureBytes: Infinity, captureSlots: Infinity,
+}));
+let cachedWorkerLimitsRef: Required<BoundedRegexProviderOptions> | undefined;
+let cachedFixedEreLimits: any;
+let cachedRegexEreLimits: any;
+function getPrevalidatedEreLimits(limits: Required<BoundedRegexProviderOptions>, fixed: boolean): any {
+  if (cachedWorkerLimitsRef !== limits) {
+    cachedWorkerLimitsRef = limits;
+    cachedFixedEreLimits = Object.freeze({
+      patternBytes: limits.maxPatternBytes, subjectBytes: limits.maxInputBytes,
+      work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
+      captureBytes: Infinity, captureSlots: Infinity,
+    });
+    cachedRegexEreLimits = Object.freeze({
+      patternBytes: limits.maxPatternBytes + 4, subjectBytes: limits.maxInputBytes,
+      work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
+      captureBytes: Infinity, captureSlots: Infinity,
+    });
+  }
+  return fixed ? cachedFixedEreLimits : cachedRegexEreLimits;
+}
+
+function literalStartRangeSync(program: LiteralProgram, buf: Uint8Array, rStart: number, rEnd: number, whole: boolean, word: boolean, ledger: EreLedger, signal: AbortSignal): number | undefined {
+  const { bytes, fallback } = program;
+  const patLen = bytes.length;
+  const subLen = rEnd - rStart;
+  if (program.insensitive || patLen === 0) return undefined;
+  ledger.chargeWork(1, signal);
+  if (whole && patLen !== subLen || patLen > subLen) return -1;
+  const firstByte = bytes[0]!;
+  for (let index = rStart, prefix = 0; index < rEnd;) {
+    if (prefix === 0) {
+      let scan = index;
+      while (scan < rEnd && buf[scan] !== firstByte) scan++;
+      if (scan > index) {
+        ledger.chargeWork(scan - index, signal);
+        index = scan;
+        if (index >= rEnd) break;
+      }
+    }
+    ledger.chargeWork(1, signal);
+    if (buf[index] === bytes[prefix]) {
+      index++;
+      if (++prefix === patLen) {
+        const matchAbs = index - prefix;
+        if (!word || !isAsciiWord(matchAbs > rStart ? buf[matchAbs - 1]! : -1) && !isAsciiWord(index < rEnd ? buf[index]! : -1)) {
+          return matchAbs - rStart;
+        }
+        prefix = fallback[prefix - 1]!;
+      }
+    } else if (prefix > 0) {
+      prefix = fallback[prefix - 1]!;
+    } else {
+      index++;
+    }
+  }
+  return -1;
+}
 
 function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: boolean): Reply | undefined {
   const { descriptor: selected, rows, ledger } = input;
@@ -607,52 +673,88 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   const cacheKey = selected.patterns.length === 1 && selected.patterns[0]!.length <= 128
     ? `${selected.kind}:${fold ? 1 : 0}:${selected.kind === "rg" && selected.nullData ? 1 : 0}:${selected.patterns[0]}`
     : undefined;
-  if (
-    cacheKey === undefined ||
-    lastLiteralCache?.key !== cacheKey ||
-    ledger.workAllowanceUntilCheckpoint(signal) < lastLiteralCache.work
-  ) {
-    return undefined;
+  if (cacheKey === undefined) return undefined;
+  if (lastLiteralCache?.key !== cacheKey) {
+    const snapBefore = ledger.usage;
+    const compiled: LiteralProgram[] = [];
+    for (const pattern of selected.patterns) {
+      const bytesOrPromise = literalBytes(pattern, selected, ledger, signal);
+      if (!(bytesOrPromise instanceof Uint8Array)) return undefined;
+      if (fold && selected.kind === "rg" && bytesOrPromise.some(byte => byte >= 128)) fail("unsupported", "rg case folding supports ASCII patterns only");
+      const progOrPromise = compileLiteral(bytesOrPromise, ledger, signal, fold);
+      if (!("bytes" in progOrPromise)) return undefined;
+      compiled.push(progOrPromise);
+    }
+    const snapAfter = ledger.usage;
+    lastLiteralCache = {
+      key: cacheKey,
+      fold,
+      programs: compiled,
+      work: snapAfter.work - snapBefore.work,
+      patternBytes: snapAfter.patternBytes - snapBefore.patternBytes,
+      states: snapAfter.states - snapBefore.states,
+      allocationUnits: snapAfter.allocationUnits - snapBefore.allocationUnits,
+    };
+  } else {
+    if (ledger.workAllowanceUntilCheckpoint(signal) < lastLiteralCache.work) return undefined;
+    ledger.charge("work", lastLiteralCache.work, signal);
+    ledger.charge("patternBytes", lastLiteralCache.patternBytes, signal);
+    ledger.charge("states", lastLiteralCache.states, signal);
+    ledger.charge("allocationUnits", lastLiteralCache.allocationUnits, signal);
   }
   // Check if total row work fits within workAllowanceUntilCheckpoint
   const workPerByte = selected.kind === "grep" ? 2 : 3;
-  let estimatedWork = lastLiteralCache.work + 3;
+  let estimatedWork = 3;
   for (let i = 0; i < rows.length; i++) {
-    estimatedWork += rows[i]!.bytes.length * workPerByte + 2;
+    const r = rows[i]! as Row & { start?: number; searchEnd?: number };
+    const rLen = typeof r.searchEnd === "number" ? r.searchEnd - r.start! : r.bytes.length;
+    estimatedWork += rLen * workPerByte + 2;
   }
   if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
     return undefined;
   }
-  ledger.charge("work", lastLiteralCache.work, signal);
-  ledger.charge("patternBytes", lastLiteralCache.patternBytes, signal);
-  ledger.charge("states", lastLiteralCache.states, signal);
-  ledger.charge("allocationUnits", lastLiteralCache.allocationUnits, signal);
+  runYieldCheckpoint(signal);
   const programs = lastLiteralCache.programs;
   ledger.charge("allocationUnits", 3, signal);
   const directMatches: Match[][] = new Array(rows.length);
   let matchCount = 0;
   const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
   for (let r = 0; r < rows.length; r++) {
-    const row = rows[r]!;
+    const row = rows[r]! as Row & { chunk?: Uint8Array; start?: number; searchEnd?: number };
+    const hasRange = row.chunk !== undefined && typeof row.start === "number" && typeof row.searchEnd === "number";
+    const buf = hasRange ? row.chunk! : row.bytes;
+    const rStart = hasRange ? row.start! : 0;
+    const rEnd = hasRange ? row.searchEnd! : buf.length;
+    const rLen = rEnd - rStart;
     if (selected.kind === "rg") {
-      const pendingUtf8 = validateUtf8(row.bytes, ledger, signal);
-      if (pendingUtf8) return undefined;
-      if ((selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
+      let ascii = true;
+      for (let i = rStart; i < rEnd; i++) {
+        const b = buf[i]!;
+        if (b === 0 || b >= 0x80) { ascii = false; break; }
+      }
+      if (!ascii) {
+        const pendingUtf8 = validateUtf8(row.bytes, ledger, signal);
+        if (pendingUtf8) return undefined;
+        if ((selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
+      } else {
+        ledger.chargeWork(rLen, signal);
+      }
     } else {
-      ledger.charge("work", row.bytes.length, signal);
+      ledger.chargeWork(rLen, signal);
     }
     let start = -1;
     let end = -1;
     let matchedProg: LiteralProgram | undefined;
     for (let p = 0; p < programs.length; p++) {
       const program = programs[p]!;
-      const candidate = literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
+      const candidate = hasRange && !program.insensitive && program.bytes.length > 0
+        ? literalStartRangeSync(program, buf, rStart, rEnd, selected.whole, selected.word, ledger, signal)
+        : literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
       if (typeof candidate !== "number") return undefined;
       if (candidate < 0) continue;
       if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; matchedProg = program; }
       if (selected.kind === "grep") break;
     }
-    signal.throwIfAborted();
     if (start >= 0) {
       if (matchCount >= maxMatches) fail("limit", "total match or result byte limit exceeded");
       matchCount++;
@@ -663,6 +765,7 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
       directMatches[r] = emptyMatchRow;
     }
   }
+  signal.throwIfAborted();
   return { id: input.id, results: emptyFloat64Results, directMatches };
 }
 
@@ -863,32 +966,33 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
 }
 
 class CooperativeWorker implements RegexWorker {
-  readonly #controller = new AbortController();
-  readonly #listeners = new Map<WorkerEvent, Set<Listener>>();
-  readonly #tasks = new Set<Promise<void>>();
-  #busy = false;
-  #closing: Promise<void> | undefined;
+  readonly controller = new AbortController();
+  readonly listeners = new Map<WorkerEvent, Set<Listener>>();
+  readonly tasks = new Set<Promise<void>>();
+  busy = false;
+  closing: Promise<void> | undefined;
 
   constructor(private readonly limits: Required<BoundedRegexProviderOptions>, private readonly release: () => void) {
-    queueMicrotask(() => { if (!this.#closing) this.emit({ ready: true }); });
+    inProcessRegexWorkers.add(this);
+    queueMicrotask(() => { if (!this.closing) this.emit({ ready: true }); });
   }
 
   on(event: WorkerEvent, listener: Listener): void {
-    if (this.#closing) return;
-    let listeners = this.#listeners.get(event);
-    if (!listeners) { listeners = new Set(); this.#listeners.set(event, listeners); }
+    if (this.closing) return;
+    let listeners = this.listeners.get(event);
+    if (!listeners) { listeners = new Set(); this.listeners.set(event, listeners); }
     listeners.add(listener);
   }
 
-  off(event: WorkerEvent, listener: Listener): void { this.#listeners.get(event)?.delete(listener); }
+  off(event: WorkerEvent, listener: Listener): void { this.listeners.get(event)?.delete(listener); }
 
   private emit(value: unknown): void {
-    for (const listener of this.#listeners.get("message") ?? []) (listener as (message: unknown) => void)(value);
+    for (const listener of this.listeners.get("message") ?? []) (listener as (message: unknown) => void)(value);
   }
 
   postMessage(input: RegexWorkerRequest): void {
-    if (this.#closing) throw new Error("bounded regex worker is closed");
-    if (this.#busy) throw new Error("bounded regex worker is busy");
+    if (this.closing) throw new Error("bounded regex worker is closed");
+    if (this.busy) throw new Error("bounded regex worker is busy");
     const identity = input !== null && typeof input === "object" ? Object.getOwnPropertyDescriptor(input, "id") : undefined;
     if (!identity || !("value" in identity) || !Number.isSafeInteger(identity.value) || identity.value < 1) fail("protocol", "invalid request identity");
     const id = identity.value as number;
@@ -899,7 +1003,7 @@ class CooperativeWorker implements RegexWorker {
     let failure: string | undefined;
     let category: ExprMatchError["category"] = "unsupported";
     try {
-      owned = expression ? admitExpr(input, this.limits, this.#controller.signal) : admit(input, this.limits, this.#controller.signal);
+      owned = expression ? admitExpr(input, this.limits, this.controller.signal) : admit(input, this.limits, this.controller.signal);
     }
     catch (error) {
       if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) throw error;
@@ -908,25 +1012,25 @@ class CooperativeWorker implements RegexWorker {
     }
     if (owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
       try {
-        this.#controller.signal.throwIfAborted();
-        const syncReply = tryExecuteSync(owned as OwnedRequest, this.#controller.signal);
+        this.controller.signal.throwIfAborted();
+        const syncReply = tryExecuteSync(owned as OwnedRequest, this.controller.signal);
         if (syncReply !== undefined) {
           trustedWorkerReplies.add(syncReply);
           owned = undefined;
-          if (!this.#closing) this.emit(syncReply);
+          if (!this.closing) this.emit(syncReply);
           return;
         }
       } catch (error) {
         if (error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError) {
           const errReply: Reply = { id, error: error.message.slice(0, 512) };
           owned = undefined;
-          if (!this.#closing) this.emit(errReply);
+          if (!this.closing) this.emit(errReply);
           return;
         }
       }
       // Re-admit with fresh ledger if tryExecuteSync partially charged before bailing out
       try {
-        owned = admit(input, this.limits, this.#controller.signal);
+        owned = admit(input, this.limits, this.controller.signal, false);
       } catch (error) {
         if (error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError) {
           failure = error.message.slice(0, 512);
@@ -934,22 +1038,22 @@ class CooperativeWorker implements RegexWorker {
         } else throw error;
       }
     }
-    this.#busy = true;
+    this.busy = true;
     const task = Promise.resolve().then(async () => {
       let reply: Reply | ExprMatchReply | BreSearchReply;
       try {
-        this.#controller.signal.throwIfAborted();
-        reply = owned ? "subject" in owned ? await executeExpr(owned, this.#controller.signal)
-          : owned.descriptor.kind === "glob" ? await executeBoundedGlobs(owned as OwnedGlobRequest, this.#controller.signal)
-          : await execute(owned as OwnedRequest, this.#controller.signal) : { id, error: failure! };
+        this.controller.signal.throwIfAborted();
+        reply = owned ? "subject" in owned ? await executeExpr(owned, this.controller.signal)
+          : owned.descriptor.kind === "glob" ? await executeBoundedGlobs(owned as OwnedGlobRequest, this.controller.signal)
+          : await execute(owned as OwnedRequest, this.controller.signal) : { id, error: failure! };
         if (owned && !("subject" in owned) && !("error" in reply)) {
           trustedWorkerReplies.add(reply);
         }
       } catch (error) {
         if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) {
           owned = undefined;
-          this.#busy = false;
-          for (const listener of this.#listeners.get("error") ?? []) (listener as (reason: unknown) => void)(error);
+          this.busy = false;
+          for (const listener of this.listeners.get("error") ?? []) (listener as (reason: unknown) => void)(error);
           return;
         }
         if (error instanceof ExprMatchError) category = error.category;
@@ -958,23 +1062,23 @@ class CooperativeWorker implements RegexWorker {
       if (expression && "error" in reply) reply = { id, operation: operation === "bre-search" ? "bre-search" : "expr-match", category, error: reply.error };
       // Clear request-owned payloads before notifying the consumer or allowing reuse.
       owned = undefined;
-      this.#busy = false;
-      if (!this.#closing) this.emit(reply);
+      this.busy = false;
+      if (!this.closing) this.emit(reply);
     });
-    this.#tasks.add(task);
-    void task.then(() => this.#tasks.delete(task), () => this.#tasks.delete(task));
+    this.tasks.add(task);
+    void task.then(() => this.tasks.delete(task), () => this.tasks.delete(task));
   }
 
   terminate(): Promise<void> {
-    if (!this.#closing) {
-      this.#closing = Promise.allSettled([...this.#tasks]).then(() => {
-        this.#listeners.clear();
-        this.#tasks.clear();
+    if (!this.closing) {
+      this.closing = Promise.allSettled([...this.tasks]).then(() => {
+        this.listeners.clear();
+        this.tasks.clear();
         this.release();
       });
-      this.#controller.abort(new Error("bounded regex worker terminated"));
+      this.controller.abort(new Error("bounded regex worker terminated"));
     }
-    return this.#closing;
+    return this.closing;
   }
 }
 

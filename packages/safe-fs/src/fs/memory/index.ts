@@ -142,6 +142,7 @@ export class MemoryFileSystem implements FileSystem {
   private readonly ledger: MemoryLedger;
   private readonly root: DirectoryNode;
   private totalBytes = 0;
+  symlinkCount = 0;
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));
@@ -195,14 +196,8 @@ export class MemoryFileSystem implements FileSystem {
 
   canonicalizeMissingTarget(path: string, options: FsOptions = {}): string | undefined {
     options.signal?.throwIfAborted();
-    const owner = ownedStores.get(this);
-    if (!owner || Object.getPrototypeOf(this) !== MemoryFileSystem.prototype
-      || Object.getOwnPropertyDescriptor(this, "root")?.value !== owner.root) return undefined;
-    for (const name of ["realpath", "lstat", "resolve", "permission", "validatePath", "fail", "snapshot"]) {
-      const descriptor = Object.getOwnPropertyDescriptor(this, name)
-        ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
-      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return undefined;
-    }
+    if (!isStockMemoryMethods(this, missingTargetMethodNames)) return undefined;
+    const owner = ownedStores.get(this)!;
     if (path !== "") this.validatePath(path, "realpath");
     return resolveMissingTarget(owner.root, path || ".", options.signal);
   }
@@ -286,6 +281,7 @@ export class MemoryFileSystem implements FileSystem {
       if (node.type === "file") this.admitSize(undefined, node.data.byteLength, syscall, path);
       parent.entries.set(name, node);
       if (node.type === "file") this.totalBytes += node.data.byteLength;
+      else if (node.type === "symlink") this.symlinkCount++;
       this.changed(parent);
       return node;
     } catch (error) {
@@ -300,6 +296,8 @@ export class MemoryFileSystem implements FileSystem {
     if (node.type === "file") {
       this.totalBytes -= node.data.byteLength;
       node.allocation.release();
+    } else if (node.type === "symlink") {
+      this.symlinkCount--;
     }
   }
 
@@ -354,6 +352,28 @@ export class MemoryFileSystem implements FileSystem {
 
   private resolve(path: string, syscall: string, options: ResolveOptions = {}): Location {
     this.validatePath(path, syscall);
+    if (this.symlinkCount === 0 && options.createDirectories === undefined && options.resizeCreate === undefined && isCleanAbsolutePath(path)) {
+      let current: DirectoryNode = this.root;
+      let start = 1;
+      while (true) {
+        this.permission(current, 1, syscall, path);
+        const slash = path.indexOf("/", start);
+        if (slash === -1) {
+          const name = path.slice(start);
+          if (name.length > 85 && Buffer.byteLength(name) > 255) this.fail("ENAMETOOLONG", syscall, path);
+          const node = current.entries.get(name);
+          if (!node && !options.allowMissing) this.fail("ENOENT", syscall, path);
+          return { node, parent: current, name, path };
+        }
+        const name = path.slice(start, slash);
+        if (name.length > 85 && Buffer.byteLength(name) > 255) this.fail("ENAMETOOLONG", syscall, path);
+        const next = current.entries.get(name);
+        if (!next) this.fail("ENOENT", syscall, path);
+        if (next.type !== "directory") this.fail("ENOTDIR", syscall, path);
+        current = next;
+        start = slash + 1;
+      }
+    }
     // Bound all component arrays allocated by this resolution, including cycles.
     let remainingPathUnits = 65_536 - path.length;
     if (remainingPathUnits < 0) this.fail("ENAMETOOLONG", syscall, path);
@@ -371,7 +391,7 @@ export class MemoryFileSystem implements FileSystem {
         if (stack.length > 1) stack.pop();
         continue;
       }
-      if (new TextEncoder().encode(component).byteLength > 255) this.fail("ENAMETOOLONG", syscall, path);
+      if (component.length > 85 && Buffer.byteLength(component) > 255) this.fail("ENAMETOOLONG", syscall, path);
       if (options.resizeCreate === true && pending.length === 1 && pending[0] === "") this.fail("EISDIR", syscall, path);
       let node = current.entries.get(component);
       if (!node && options.createDirectories !== undefined) {
@@ -558,34 +578,35 @@ export class MemoryFileSystem implements FileSystem {
     this.admitSize(current, length, syscall, path);
     const growth = target.append && length > (current?.allocation.data.byteLength ?? 0) ? length : 0;
     this.ledger.check(data.byteLength + growth + (current ? 0 : target.location.name.length * 2), current ? 0 : 2, syscall, path);
-    const copied = this.bytes(data, syscall, path);
-    let allocation = copied;
-    let transferred = false;
-    try {
-      if (!current) {
-        if (target.append && length > 0) {
-          const capacity = Math.min(Math.max(length, 64), this.ledger.limits.maxFileBytes,
-            this.ledger.availableBytes - target.location.name.length * 2);
-          allocation = this.allocate(capacity, syscall, path);
-          allocation.data.set(copied.data);
-        }
-        const node = this.addNode(target.location.parent, target.location.name, (): FileNode => ({
+    if (current && target.append) {
+      this.writeAt(current, data, current.data.byteLength, syscall, path);
+      return current;
+    }
+    if (!current) {
+      const capacity = target.append && length > 0
+        ? Math.min(Math.max(length, 64), this.ledger.limits.maxFileBytes,
+          this.ledger.availableBytes - target.location.name.length * 2)
+        : length;
+      const allocation = this.allocate(capacity, syscall, path);
+      try {
+        allocation.data.set(data);
+        return this.addNode(target.location.parent, target.location.name, (): FileNode => ({
           ...this.metadata(typeModes.file | target.mode), type: "file",
           data: allocation.data.subarray(0, length), allocation,
         }), syscall, path);
-        transferred = true;
-        return node;
+      } catch (error) {
+        allocation.release();
+        throw error;
       }
-      if (target.append) this.writeAt(current, copied.data, current.data.byteLength, syscall, path);
-      else {
-        this.replaceData(current, copied);
-        transferred = true;
-        this.changed(current);
-      }
+    }
+    const copied = this.bytes(data, syscall, path);
+    try {
+      this.replaceData(current, copied);
+      this.changed(current);
       return current;
-    } finally {
-      if (allocation !== copied && !transferred) allocation.release();
-      if (!transferred || allocation !== copied) copied.release();
+    } catch (error) {
+      copied.release();
+      throw error;
     }
   }
 
@@ -1287,4 +1308,95 @@ function stockRetainedResize(filesystem: MemoryFileSystem): boolean {
 
 export function createMemoryFileSystem(options: MemoryFileSystemOptions | Readonly<Record<string, unknown>> = {}): MemoryFileSystem {
   return new MemoryFileSystem(options);
+}
+
+const missingTargetMethodNames = ["realpath", "lstat", "resolve", "permission", "validatePath", "fail", "snapshot"] as const;
+const deviceFastMethodNames = ["lstat", "readlink", "resolve", "permission", "validatePath", "fail", "snapshot"] as const;
+const readFileFastMethodNames = ["readFile", "file", "resolve", "permission", "validatePath", "fail", "integer"] as const;
+
+export function isCleanAbsolutePath(path: string): boolean {
+  const len = path.length;
+  if (len <= 1 || len > 65536 || path.charCodeAt(0) !== 47 || path.charCodeAt(len - 1) === 47) return false;
+  let segStart = 1;
+  for (let i = 1; i < len; i++) {
+    const c = path.charCodeAt(i);
+    if (c === 0) return false;
+    if (c === 47) {
+      const segLen = i - segStart;
+      if (segLen === 0) return false;
+      if (segLen === 1 && path.charCodeAt(segStart) === 46) return false;
+      if (segLen === 2 && path.charCodeAt(segStart) === 46 && path.charCodeAt(segStart + 1) === 46) return false;
+      segStart = i + 1;
+    }
+  }
+  const lastLen = len - segStart;
+  if (lastLen === 1 && path.charCodeAt(segStart) === 46) return false;
+  if (lastLen === 2 && path.charCodeAt(segStart) === 46 && path.charCodeAt(segStart + 1) === 46) return false;
+  return true;
+}
+
+export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string): string | undefined {
+  const mem = filesystem as MemoryFileSystem;
+  if (!ownedStores.has(mem) || mem.symlinkCount !== 0 || !isStockMemoryMethods(mem, deviceFastMethodNames, false)) return undefined;
+  if (!isCleanAbsolutePath(path) || path === "/dev" || path.startsWith("/dev/")) return undefined;
+  let current: DirectoryNode = (mem as unknown as { root: DirectoryNode }).root;
+  let start = 1;
+  while (true) {
+    if (((current.mode >> 6) & 1) !== 1) return undefined;
+    const slash = path.indexOf("/", start);
+    if (slash === -1) {
+      const name = path.slice(start);
+      if (name.length > 85 && Buffer.byteLength(name) > 255) return undefined;
+      return path;
+    }
+    const name = path.slice(start, slash);
+    if (name.length > 85 && Buffer.byteLength(name) > 255) return undefined;
+    const next = current.entries.get(name);
+    if (!next) {
+      let remStart = slash + 1;
+      while (true) {
+        const nextSlash = path.indexOf("/", remStart);
+        const seg = nextSlash === -1 ? path.slice(remStart) : path.slice(remStart, nextSlash);
+        if (seg.length > 85 && Buffer.byteLength(seg) > 255) return undefined;
+        if (nextSlash === -1) return path;
+        remStart = nextSlash + 1;
+      }
+    }
+    if (next.type !== "directory") return undefined;
+    current = next;
+    start = slash + 1;
+  }
+}
+
+function isStockMemoryMethods(mem: MemoryFileSystem, names: readonly string[], checkRootAccessor = true): boolean {
+  const owner = ownedStores.get(mem);
+  if (!owner || Object.getPrototypeOf(mem) !== MemoryFileSystem.prototype) return false;
+  if (checkRootAccessor) {
+    const rootDesc = Object.getOwnPropertyDescriptor(mem, "root");
+    if (!rootDesc || !("value" in rootDesc) || rootDesc.value !== owner.root) return false;
+  } else if ((mem as unknown as { root: unknown }).root !== owner.root) {
+    return false;
+  }
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i]!;
+    if (Object.prototype.hasOwnProperty.call(mem, name)) {
+      const descriptor = Object.getOwnPropertyDescriptor(mem, name);
+      if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) return false;
+    } else if ((MemoryFileSystem.prototype as unknown as Record<string, unknown>)[name] !== memoryImplementation[name]?.value) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, maxBytes?: number, signal?: AbortSignal): Uint8Array | undefined {
+  const mem = filesystem as MemoryFileSystem;
+  if (!ownedStores.has(mem) || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
+  signal?.throwIfAborted();
+  if (maxBytes !== undefined) (mem as unknown as { integer: (v: number, s: string, p: string) => void }).integer(maxBytes, "readFile", path);
+  const node = (mem as unknown as { file: (p: string, s: string) => FileNode }).file(path, "readFile");
+  (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 4, "readFile", path);
+  if (maxBytes !== undefined && node.data.byteLength > maxBytes) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EFBIG", "readFile", path);
+  node.atimeMs = Date.now();
+  return node.data;
 }

@@ -58,7 +58,7 @@ export function resolveMissingTarget(root: Node, path: string, signal?: AbortSig
       const name = component.name;
       if (name === ".") { first = false; continue; }
       if (name === "..") { position = position.parent ?? initial; first = false; continue; }
-      if (new TextEncoder().encode(name).byteLength > 255) return fail("ENAMETOOLONG");
+      if (name.length > 85 && Buffer.byteLength(name) > 255) return fail("ENAMETOOLONG");
       const node = current.entries.get(name);
       if (!node) { found = false; break; }
       if (first) originLink = node.type === "symlink";

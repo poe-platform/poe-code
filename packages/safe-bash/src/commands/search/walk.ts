@@ -196,7 +196,7 @@ export class Walker {
             await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
             if ((await this.context.fs.stat(child, { signal: this.context.signal })).size > this.args.maxFileSize) continue;
           }
-          if (!await onTarget({ path: child, label: display, explicit: false, recursive: true, ...(uniformCanonical && entry.type === "file" ? { canonicalPath: `${canonical === "/" ? "" : canonical}/${entry.name}` } : {}) })) return false;
+          if (!await onTarget({ path: child, label: display, explicit: false, recursive: true, ...(uniformCanonical && entry.type === "file" ? { canonicalPath: canonical === path ? child : `${canonical === "/" ? "" : canonical}/${entry.name}` } : {}) })) return false;
         }
       } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }

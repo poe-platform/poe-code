@@ -1,13 +1,15 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import { validatePath } from "../../contracts/virtual-path.js";
-import { capturePathNamespace } from "../path-namespace.js";
+import { capturePathNamespace, pathNamespace } from "../path-namespace.js";
+import { isCleanAbsolutePath, tryResolveMemoryDevicePath } from "../memory/index.js";
 
 export const nullPath = "/dev/null";
 export const deviceDirectory = "/dev";
 
 export function lexicalDevicePath(path: string): string {
   validatePath(path);
+  if (isCleanAbsolutePath(path) && !path.startsWith("/dev/null/")) return path;
   const parts: string[] = [];
   for (const component of path.split("/")) {
     if (`/${parts.join("/")}` === nullPath) throw new FsError("ENOTDIR", { path });
@@ -53,7 +55,7 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
       parts.pop();
       continue;
     }
-    if (new TextEncoder().encode(component).byteLength > 255) throw new FsError("ENAMETOOLONG", { path });
+    if (component.length > 85 && Buffer.byteLength(component) > 255) throw new FsError("ENAMETOOLONG", { path });
     const candidate = `/${[...parts, component].join("/")}`;
     const selected = namespace === undefined ? undefined : candidate === deviceDirectory || candidate === nullPath ? "/" : namespace(candidate);
     if (boundary !== undefined && selected !== boundary) throw new FsError("EACCES", { path });
@@ -93,6 +95,10 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
 
 export async function resolveDevicePath(filesystem: FileSystem, path: string, options: FsOptions, followFinal = true, resizeCreate?: boolean): Promise<string> {
   options.signal?.throwIfAborted();
+  if (resizeCreate === undefined && Reflect.get(filesystem, pathNamespace) === undefined) {
+    const fast = tryResolveMemoryDevicePath(filesystem, path);
+    if (fast !== undefined) return fast;
+  }
   const namespace = capturePathNamespace(filesystem, options);
   if (resizeCreate !== undefined) return resolveResizeDevicePath(filesystem, path, options, resizeCreate, namespace);
   const lexical = lexicalDevicePath(path);

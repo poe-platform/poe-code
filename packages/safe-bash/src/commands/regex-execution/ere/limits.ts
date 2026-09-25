@@ -1,4 +1,4 @@
-import { hasYieldCheckpoint, yieldTurn } from "../../../contracts/yield.js";
+import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../../../contracts/yield.js";
 import { EreProfileLimitError, EreUsageUnknownError } from "./errors.js";
 import type { EreExpansionBounds, EreLimits, EreResource, EreUsage } from "./types.js";
 
@@ -22,54 +22,121 @@ export function deriveEreLimits(bounds: EreExpansionBounds): EreLimits {
 
 export class EreLedger {
   readonly limits: EreLimits;
-  #usage: Record<EreResource, number> = {
-    patternBytes: 0, subjectBytes: 0, work: 0, states: 0, allocationUnits: 0, captureBytes: 0, captureSlots: 0,
-  };
-  #poison: EreUsageUnknownError | undefined;
-  #lastYield = 0;
+  private readonly limitWorkSmi: number;
+  private uPatternBytes = 0;
+  private uSubjectBytes = 0;
+  private uWork = 0;
+  private uStates = 0;
+  private uAllocationUnits = 0;
+  private uCaptureBytes = 0;
+  private uCaptureSlots = 0;
+  private poison: EreUsageUnknownError | undefined;
+  private lastYield = 0;
 
-  constructor(bounds: EreExpansionBounds, overrides: Partial<EreLimits> = {}) {
+  constructor(bounds: EreExpansionBounds, overrides?: Partial<EreLimits>, prevalidated?: EreLimits) {
+    if (prevalidated !== undefined) {
+      this.limits = prevalidated;
+      this.limitWorkSmi = prevalidated.work > 0x3fffffff ? 0x3fffffff : prevalidated.work;
+      return;
+    }
     const limits = { ...deriveEreLimits(bounds) };
-    for (const resource of Object.keys(overrides)) {
-      if (!resources.includes(resource as EreResource)) throw new TypeError("unknown ERE limit");
-      const key = resource as EreResource;
-      const value = overrides[key];
-      if (value === undefined) throw new TypeError("undefined ERE limit");
-      if (value !== Infinity) integer(value);
-      limits[key] = value;
+    if (overrides !== undefined) {
+      for (const resource of Object.keys(overrides)) {
+        if (!resources.includes(resource as EreResource)) throw new TypeError("unknown ERE limit");
+        const key = resource as EreResource;
+        const value = overrides[key];
+        if (value === undefined) throw new TypeError("undefined ERE limit");
+        if (value !== Infinity) integer(value);
+        limits[key] = value;
+      }
     }
     this.limits = Object.freeze(limits);
+    this.limitWorkSmi = limits.work > 0x3fffffff ? 0x3fffffff : limits.work;
   }
 
-  get usage(): EreUsage { return Object.freeze({ ...this.#usage }); }
+  resetWithLimits(limits: EreLimits): this {
+    (this as { limits: EreLimits }).limits = limits;
+    (this as unknown as { limitWorkSmi: number }).limitWorkSmi = limits.work > 0x3fffffff ? 0x3fffffff : limits.work;
+    this.uPatternBytes = 0;
+    this.uSubjectBytes = 0;
+    this.uWork = 0;
+    this.uStates = 0;
+    this.uAllocationUnits = 0;
+    this.uCaptureBytes = 0;
+    this.uCaptureSlots = 0;
+    this.poison = undefined;
+    this.lastYield = 0;
+    return this;
+  }
+
+  static withPrevalidatedLimits(limits: EreLimits): EreLedger {
+    return new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity }, undefined, limits);
+  }
+
+  get usage(): EreUsage {
+    return Object.freeze({
+      patternBytes: this.uPatternBytes,
+      subjectBytes: this.uSubjectBytes,
+      work: this.uWork,
+      states: this.uStates,
+      allocationUnits: this.uAllocationUnits,
+      captureBytes: this.uCaptureBytes,
+      captureSlots: this.uCaptureSlots,
+    });
+  }
+
+  private getResource(resource: EreResource): number {
+    switch (resource) {
+      case "patternBytes": return this.uPatternBytes;
+      case "subjectBytes": return this.uSubjectBytes;
+      case "work": return this.uWork;
+      case "states": return this.uStates;
+      case "allocationUnits": return this.uAllocationUnits;
+      case "captureBytes": return this.uCaptureBytes;
+      case "captureSlots": return this.uCaptureSlots;
+    }
+  }
+
+  private addResource(resource: EreResource, amount: number): void {
+    switch (resource) {
+      case "patternBytes": this.uPatternBytes += amount; break;
+      case "subjectBytes": this.uSubjectBytes += amount; break;
+      case "work": this.uWork += amount; break;
+      case "states": this.uStates += amount; break;
+      case "allocationUnits": this.uAllocationUnits += amount; break;
+      case "captureBytes": this.uCaptureBytes += amount; break;
+      case "captureSlots": this.uCaptureSlots += amount; break;
+    }
+  }
 
   check(signal?: AbortSignal): void {
     if (signal?.aborted) throw signal.reason;
-    if (this.#poison) throw this.#poison;
+    if (this.poison) throw this.poison;
   }
 
   charge(resource: EreResource, amount: number, signal?: AbortSignal): void {
     this.check(signal);
     integer(amount);
-    if (amount > this.limits[resource] - this.#usage[resource]) {
+    const current = this.getResource(resource);
+    if (amount > this.limits[resource] - current) {
       throw new EreProfileLimitError(resource, this.limits[resource]);
     }
-    this.#usage[resource] += amount;
+    this.addResource(resource, amount);
   }
 
   chargeWork(amount: number, signal?: AbortSignal): void {
     if (signal?.aborted) throw signal.reason;
-    if (this.#poison) throw this.#poison;
-    if (amount > this.limits.work - this.#usage.work) {
+    if (this.poison) throw this.poison;
+    if (amount > this.limitWorkSmi - this.uWork && amount > this.limits.work - this.uWork) {
       throw new EreProfileLimitError("work", this.limits.work);
     }
-    this.#usage.work += amount;
+    this.uWork += amount;
   }
 
   workAllowanceUntilCheckpoint(signal?: AbortSignal): number {
-    const untilLimit = this.limits.work - this.#usage.work;
+    const untilLimit = this.limitWorkSmi - this.uWork;
     const interval = hasYieldCheckpoint(signal) ? 256 : 16384;
-    const untilYield = interval - (this.#usage.work - this.#lastYield);
+    const untilYield = interval - (this.uWork - this.lastYield);
     const min = untilLimit < untilYield ? untilLimit : untilYield;
     return min > 0 ? min : 0;
   }
@@ -78,14 +145,16 @@ export class EreLedger {
     this.check(signal);
     integer(length);
     if (length > this.limits[resource]) throw new EreProfileLimitError(resource, this.limits[resource]);
-    this.#usage[resource] = Math.max(this.#usage[resource], length);
+    if (resource === "patternBytes") this.uPatternBytes = Math.max(this.uPatternBytes, length);
+    else this.uSubjectBytes = Math.max(this.uSubjectBytes, length);
   }
 
   checkpoint(signal?: AbortSignal): Promise<void> | undefined {
+    runYieldCheckpoint(signal);
     this.check(signal);
     const interval = hasYieldCheckpoint(signal) ? 256 : 16384;
-    if (this.#usage.work - this.#lastYield >= interval) {
-      this.#lastYield = this.#usage.work;
+    if (this.uWork - this.lastYield >= interval) {
+      this.lastYield = this.uWork;
       return yieldTurn(signal).then(() => {
         this.check(signal);
       });
@@ -94,6 +163,6 @@ export class EreLedger {
   }
 
   markUnknownUsage(reason: unknown): void {
-    this.#poison ??= new EreUsageUnknownError(reason);
+    this.poison ??= new EreUsageUnknownError(reason);
   }
 }

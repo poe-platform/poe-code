@@ -17,7 +17,31 @@ export interface GrepLimits {
 
 interface GrepLine extends Line {
   readonly all: boolean;
+  chunk?: Uint8Array;
+  start?: number;
+  searchEnd?: number;
 }
+class PooledGrepLine implements GrepLine {
+  chunk!: Uint8Array;
+  start = 0;
+  searchEnd = 0;
+  all = false;
+  terminated = true;
+  private _bytes: Uint8Array | undefined;
+  reset(chunk: Uint8Array, start: number, searchEnd: number, all: boolean, terminated: boolean): this {
+    this.chunk = chunk;
+    this.start = start;
+    this.searchEnd = searchEnd;
+    this.all = all;
+    this.terminated = terminated;
+    this._bytes = undefined;
+    return this;
+  }
+  get bytes(): Uint8Array {
+    return this._bytes ??= this.chunk.subarray(this.start, this.searchEnd);
+  }
+}
+const grepLinePool: PooledGrepLine[] = Array.from({ length: 128 }, () => new PooledGrepLine());
 
 async function* grepLineBatches(
   source: ByteSource,
@@ -38,26 +62,28 @@ async function* grepLineBatches(
         const end = chunk.indexOf(separator, start);
         if (end < 0) break;
         let line: GrepLine;
+        let lineLen: number;
         if (pending.size === 0) {
           const tailLength = end - start;
           if (tailLength > lineLimit) {
             throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
           }
-          line = {
-            bytes: chunk.subarray(start, end),
-            all,
-            terminated: true,
-          };
+          lineLen = tailLength;
+          line = batch.length < 128
+            ? grepLinePool[batch.length]!.reset(chunk, start, end, all, true)
+            : { bytes: chunk.subarray(start, end), all, terminated: true };
         } else {
+          const finished = pending.finish(undefined, chunk, start, end);
+          lineLen = finished.length;
           line = {
-            bytes: pending.finish(undefined, chunk, start, end),
+            bytes: finished,
             all,
             terminated: true,
           };
         }
         start = end + 1;
         batch.push(line);
-        bytes += line.bytes.length;
+        bytes += lineLen;
         const next = chunk.indexOf(separator, start);
         if (
           batch.length >= maxRecords() ||
@@ -236,7 +262,7 @@ inspect the resulting state before repeating the action.
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
       const delimiterBytes = encoder.encode(delimiter);
-      const lineBuffered = parsed.flags.has("line-buffered");
+      const lineBuffered = parsed.flags.has("line-buffered") || parsed.flags.has("o");
       let outBuffer: Uint8Array | undefined;
       let outUsed = 0;
       const flushOut = async () => {
@@ -248,12 +274,12 @@ inspect the resulting state before repeating the action.
       const writeOut = async (chunk: string | Uint8Array) => {
         const bytes = typeof chunk === "string" ? (chunk.length === 0 ? undefined : encoder.encode(chunk)) : (chunk.length === 0 ? undefined : chunk);
         if (!bytes) return;
-        if (lineBuffered || parsed.flags.has("o") || bytes.length > 64 * 1024) {
+        if (lineBuffered || parsed.flags.has("o") || bytes.length > 16 * 1024) {
           await flushOut();
           await output(context, bytes);
           return;
         }
-        outBuffer ??= new Uint8Array(64 * 1024);
+        outBuffer ??= new Uint8Array(16 * 1024);
         if (outUsed + bytes.length > outBuffer.length) {
           await flushOut();
         }
@@ -297,7 +323,8 @@ inspect the resulting state before repeating the action.
               context.signal.throwIfAborted();
               number++;
               byteOffset = nextOffset;
-              nextOffset += line.bytes.length + (line.terminated ? 1 : 0);
+              const curLineLen = line.searchEnd !== undefined ? line.searchEnd - line.start! : line.bytes.length;
+              nextOffset += curLineLen + (line.terminated ? 1 : 0);
               const found = results[index]!;
               const selected = count < maxCount && (found.length > 0) !== parsed.flags.has("v");
               if (!selected) {

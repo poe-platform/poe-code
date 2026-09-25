@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { inputBytes, policy, RegexExecutionError, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -56,6 +56,7 @@ export async function withRegexSession(
 
 class Slot {
   readonly worker: RegexWorker;
+  readonly inProcess: boolean;
   busy = true;
   ready = false;
   retired: Promise<void> | undefined;
@@ -76,6 +77,7 @@ class Slot {
   };
   constructor(private readonly owner: RegexExecutor) {
     this.worker = owner.provider.createWorker(owner.options);
+    this.inProcess = inProcessRegexWorkers.has(this.worker);
     this.worker.on("message", this.message);
     this.worker.on("messageerror", this.messageerror);
     this.worker.on("error", this.error);
@@ -197,13 +199,11 @@ export class RegexExecutor {
         }
       }
       if (readySlot) {
-        inputBytes(descriptor, rows, signal);
         const id = ++this.sequence;
-        const message = { id, descriptor, rows };
+        const workerRows = readySlot.inProcess ? rows : rows.map(row => ({ bytes: row.bytes, all: row.all, terminated: row.terminated, ...(row.directory !== undefined ? { directory: row.directory } : {}), ...(row.ancestors !== undefined ? { ancestors: row.ancestors } : {}) }));
+        const message = { id, descriptor, rows: workerRows };
         trustedWorkerRequests.add(message);
         readySlot.busy = true;
-        clearTimeout(readySlot.idleTimer);
-        readySlot.idleTimer = undefined;
         const ex = readySlot.exchangeSyncOrAsync(this.options.requestTimeoutMs, false, signal, () => readySlot!.worker.postMessage(message));
         if (ex.sync) {
           try {
@@ -217,13 +217,15 @@ export class RegexExecutor {
           } finally {
             readySlot.busy = false;
             if (readySlot.retired) this.retired(readySlot);
-            else if (this.options.idleTimeoutMs !== Infinity) {
+            else if (readySlot.idleTimer === undefined && this.options.idleTimeoutMs !== Infinity) {
               readySlot.idleTimer = setTimeout(() => { if (!readySlot!.busy) void readySlot!.retire(); }, this.options.idleTimeoutMs);
               readySlot.idleTimer?.unref?.();
             }
-            this.pump();
+            if (this.queue.length > 0) this.pump();
           }
         }
+        clearTimeout(readySlot.idleTimer);
+        readySlot.idleTimer = undefined;
         readySlot.worker.ref?.();
         const onAbort = () => readySlot!.fail(signal.reason);
         signal.addEventListener("abort", onAbort, { once: true });
@@ -272,9 +274,7 @@ export class RegexExecutor {
       const globOptions = ownedDescriptor.globOptions.map(options => { signal.throwIfAborted(); return { ...options }; });
       Object.assign(ownedDescriptor, { globOptions });
     }
-    const ownedRows = trustedInputRows.has(rows)
-      ? rows
-      : rows.map(row => { signal.throwIfAborted(); return { ...row, bytes: new Uint8Array(row.bytes) }; });
+    const ownedRows = rows.map(row => { signal.throwIfAborted(); return { bytes: new Uint8Array(row.bytes), all: row.all, terminated: row.terminated, ...(row.directory !== undefined ? { directory: row.directory } : {}), ...(row.ancestors !== undefined ? { ancestors: row.ancestors } : {}) }; });
     return new Promise((resolve, reject) => {
       const pending: Pending = {
         descriptor: ownedDescriptor, rows: ownedRows, signal, bytes, resolve, reject, retirements,

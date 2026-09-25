@@ -141,3 +141,26 @@ it("keeps device-view cancellation primary over a backing acquisition failure", 
   const devices = new DeviceFileSystem(memory);
   await expect(devices.open("/file", { access: "read", signal: controller.signal })).rejects.toBe(false);
 });
+
+it('retained descriptors use the caller signal composer and preserve it when rescoped', async () => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile('/file', Uint8Array.of(65));
+  const scope = new AbortController().signal;
+  const caller = new AbortController().signal;
+  const seen: [AbortSignal, AbortSignal][] = [];
+  const scoped = scopeFileSystem(backing, () => {}, scope, () => {}, {
+    combineSignals(first, second) {
+      seen.push([first, second]);
+      return AbortSignal.any([first, second]);
+    },
+  });
+  const handle = await scoped.openResizeFile!('/file', {signal:caller});
+  await handle.close();
+  expect(seen.some(([first,second]) => first === scope && second === caller)).toBe(true);
+  seen.length = 0;
+  const replacement = new AbortController().signal;
+  const rescoped = scopeFileSystem(scoped, () => {}, replacement);
+  const second = await rescoped.openResizeFile!('/file', {signal:caller});
+  await second.close();
+  expect(seen.some(([first,second]) => first === replacement && second === caller)).toBe(true);
+});

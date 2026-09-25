@@ -11,7 +11,7 @@ import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabi
 import { createStagingCleanup, snapshotStagingCreation } from "./staging-cleanup.js";
 import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "./staging-ancestry.js";
 
-const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
+const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined; combineSignals: ((first: AbortSignal, second: AbortSignal) => AbortSignal) | undefined }>();
 const retargeters = new WeakMap<
   FileSystem,
   (charge: () => void, signal: AbortSignal, cleanupCharge: () => void, maxPathComponents?: number) => void
@@ -39,10 +39,11 @@ const operations = new Set<keyof FileSystem>([
 ]);
 
 export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge,
-  options: { readonly preserveDescriptorWriteReceipt?: boolean; readonly creationMask?: number; readonly maxPathComponents?: number } = {}): FileSystem {
+  options: { readonly preserveDescriptorWriteReceipt?: boolean; readonly creationMask?: number; readonly maxPathComponents?: number; readonly combineSignals?: (first: AbortSignal, second: AbortSignal) => AbortSignal } = {}): FileSystem {
   const original = originals.get(filesystem)?.filesystem ?? filesystem;
   const creationMask = options.creationMask ?? originals.get(filesystem)?.creationMask;
   let maxPathComponents = options.maxPathComponents ?? originals.get(filesystem)?.maxPathComponents;
+  const combineSignals = options.combineSignals ?? originals.get(filesystem)?.combineSignals;
   if (creationMask !== undefined && (!Number.isInteger(creationMask) || creationMask < 0 || creationMask > 0o777)) throw new RangeError("creationMask must be a permission mask between 0 and 0777");
   const creationOptions = <Options extends FsOptions & { readonly mode?: number }>(settings: Options, directory = false): Options => {
     // Explicit directory modes (mkdir -m) are independent of the shell mask.
@@ -88,7 +89,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
   };
   const resizeOptions = <Options extends FsOptions>(options: Options): Options => {
     const scopedOptions = {
-      ...options, signal: options.signal ? AbortSignal.any([signal, options.signal]) : signal,
+      ...options, signal: options.signal && options.signal !== signal
+        ? combineSignals ? combineSignals(signal, options.signal) : AbortSignal.any([signal, options.signal]) : signal,
     };
     scopedOptions.signal.throwIfAborted();
     return scopedOptions;
@@ -229,7 +231,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           signal.throwIfAborted();
           if (property === "createStagedFile") args[3] = snapshotStagingCreation(args[3] as CreateStagedFileOptions, args[0] as string);
           const callerSignal = (args[property === "createStagedFile" ? 3 : 2] as FsOptions | undefined)?.signal;
-          stagingSignal = callerSignal && callerSignal !== signal ? AbortSignal.any([signal, callerSignal]) : signal;
+          stagingSignal = callerSignal && callerSignal !== signal
+            ? combineSignals ? combineSignals(signal, callerSignal) : AbortSignal.any([signal, callerSignal]) : signal;
           stagingSignal.throwIfAborted();
         }
         if (operations.has(property as keyof FileSystem)) {
@@ -436,7 +439,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return scoped;
     },
   });
-  const originalRecord = { filesystem: original, signal, cleanupCharge, creationMask, maxPathComponents };
+  const originalRecord = { filesystem: original, signal, cleanupCharge, creationMask, maxPathComponents, combineSignals };
   originals.set(view, originalRecord);
   retargeters.set(view, (nextCharge, nextSignal, nextCleanupCharge, nextMaxPathComponents) => {
     charge = nextCharge;

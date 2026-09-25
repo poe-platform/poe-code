@@ -563,7 +563,7 @@ function closeLink(state: LinkState): CancellationCloseResult {
     return state.closeResult = { failures: (state.failures ??= []) };
   }
   state.closed = true;
-  if (state.notifying > 0) {
+  if (state.notifying > 0 || state.signalDetachers.length > 0) {
     state.closeResult = { failures: (state.failures ??= []) };
   }
   if (state.notifying === 0) finalizeClose(state);

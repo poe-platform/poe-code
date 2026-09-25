@@ -356,4 +356,60 @@ describe("safe-bash-command-imagemagick", () => {
     );
     expect(Number((withFuzz.stderr || withFuzz.stdout).trim())).toBe(0);
   });
+
+  it("supports -opaque, +opaque, -transparent, -evaluate, -function, -clut, and -fx pixel expressions", async () => {
+    const src = await makeTestImage(10, 10, 250, 10, 10);
+    const files = new Map<string, Uint8Array>([["/red.png", src]]);
+
+    // 1. -fuzz 10% -fill #00ff00 -opaque #ff0000 replaces near-red (250,10,10) with green
+    await runMagickCli(
+      ["/red.png", "-fuzz", "10%", "-fill", "#00ff00", "-opaque", "#ff0000", "/green.png"],
+      files
+    );
+    const greenRaw = await sharp(files.get("/green.png")!).raw().toBuffer();
+    expect(greenRaw[0]).toBe(0);
+    expect(greenRaw[1]).toBe(255);
+    expect(greenRaw[2]).toBe(0);
+
+    // 2. -transparent #00ff00 makes green pixels transparent (alpha = 0)
+    await runMagickCli(["/green.png", "-fuzz", "5%", "-transparent", "#00ff00", "/trans.png"], files);
+    const transRaw = await sharp(files.get("/trans.png")!).raw().toBuffer();
+    expect(transRaw[3]).toBe(0);
+
+    // 3. -evaluate Multiply 0.5 halves pixel values
+    const gray = await makeTestImage(8, 8, 200, 100, 50);
+    files.set("/gray.png", gray);
+    await runMagickCli(["/gray.png", "-evaluate", "Multiply", "0.5", "/half.png"], files);
+    const halfRaw = await sharp(files.get("/half.png")!).raw().toBuffer();
+    expect(halfRaw[0]).toBeCloseTo(100, 0);
+    expect(halfRaw[1]).toBeCloseTo(50, 0);
+    expect(halfRaw[2]).toBeCloseTo(25, 0);
+
+    // 4. -function Polynomial "-1,1" inverts normalized values (1 - x)
+    await runMagickCli(["/gray.png", "-function", "Polynomial", "-1,1", "/poly.png"], files);
+    const polyRaw = await sharp(files.get("/poly.png")!).raw().toBuffer();
+    expect(polyRaw[0]).toBeCloseTo(55, 0);
+    expect(polyRaw[1]).toBeCloseTo(155, 0);
+    expect(polyRaw[2]).toBeCloseTo(205, 0);
+
+    // 5. -clut maps grayscale values through a lookup table image
+    const lut = await makeTestImage(256, 1, 12, 34, 56);
+    files.set("/lut.png", lut);
+    await runMagickCli(["/gray.png", "/lut.png", "-clut", "/clut-out.png"], files);
+    const clutRaw = await sharp(files.get("/clut-out.png")!).raw().toBuffer();
+    expect(clutRaw[0]).toBe(12);
+    expect(clutRaw[1]).toBe(34);
+    expect(clutRaw[2]).toBe(56);
+
+    // 6. -fx evaluates per-pixel math expressions with u, v, i, j, w, h, and variables
+    const imgU = await makeTestImage(10, 10, 100, 200, 50);
+    const imgV = await makeTestImage(10, 10, 50, 40, 150);
+    files.set("/u.png", imgU);
+    files.set("/v.png", imgV);
+    await runMagickCli(["/u.png", "/v.png", "-fx", "(u + v) / 2", "/fx-avg.png"], files);
+    const fxRaw = await sharp(files.get("/fx-avg.png")!).raw().toBuffer();
+    expect(fxRaw[0]).toBeCloseTo(75, 1);
+    expect(fxRaw[1]).toBeCloseTo(120, 1);
+    expect(fxRaw[2]).toBeCloseTo(100, 1);
+  });
 });

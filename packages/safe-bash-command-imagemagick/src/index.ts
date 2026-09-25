@@ -197,6 +197,7 @@ interface MagickState {
   geometry: string | undefined;
   tile: string | undefined;
   strip: boolean;
+  channels: { r: boolean; g: boolean; b: boolean; a: boolean };
 }
 
 function createDefaultState(): MagickState {
@@ -218,8 +219,675 @@ function createDefaultState(): MagickState {
     compose: "over",
     geometry: undefined,
     tile: undefined,
-    strip: false
+    strip: false,
+    channels: { r: true, g: true, b: true, a: false }
   };
+}
+
+function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean } {
+  const s = spec.toLowerCase().trim();
+  if (s === "all" || s === "rgba" || s === "sync,rgba") {
+    return { r: true, g: true, b: true, a: true };
+  }
+  if (s === "rgb" || s === "default") {
+    return { r: true, g: true, b: true, a: false };
+  }
+  if (s === "alpha" || s === "opacity" || s === "a") {
+    return { r: false, g: false, b: false, a: true };
+  }
+  const r = s.includes("r") || s.includes("red");
+  const g = s.includes("g") || s.includes("green");
+  const b = s.includes("b") || s.includes("blue");
+  const a = s.includes("a") || s.includes("alpha") || s.includes("opacity");
+  if (!r && !g && !b && !a) {
+    return { r: true, g: true, b: true, a: false };
+  }
+  return { r, g, b, a };
+}
+
+function clampByteVal(n: number): number {
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(255, Math.round(n)));
+}
+
+function applyMagickOpaque(
+  img: RgbaImage,
+  target: RgbaColor,
+  replacement: RgbaColor,
+  fuzz: number,
+  invert: boolean
+): RgbaImage {
+  const out = new Uint8Array(img.data);
+  for (let i = 0; i < out.length; i += 4) {
+    const dr = Math.abs(out[i]! - target.r);
+    const dg = Math.abs(out[i + 1]! - target.g);
+    const db = Math.abs(out[i + 2]! - target.b);
+    const matched = Math.max(dr, dg, db) <= fuzz;
+    if (invert ? !matched : matched) {
+      out[i] = replacement.r;
+      out[i + 1] = replacement.g;
+      out[i + 2] = replacement.b;
+      out[i + 3] = replacement.a;
+    }
+  }
+  return { ...img, data: out, hasAlpha: true };
+}
+
+function applyMagickTransparent(
+  img: RgbaImage,
+  target: RgbaColor,
+  fuzz: number,
+  invert: boolean
+): RgbaImage {
+  const out = new Uint8Array(img.data);
+  for (let i = 0; i < out.length; i += 4) {
+    const dr = Math.abs(out[i]! - target.r);
+    const dg = Math.abs(out[i + 1]! - target.g);
+    const db = Math.abs(out[i + 2]! - target.b);
+    const matched = Math.max(dr, dg, db) <= fuzz;
+    if (invert ? !matched : matched) {
+      out[i + 3] = 0;
+    }
+  }
+  return { ...img, data: out, hasAlpha: true };
+}
+
+function applyMagickEvaluate(
+  img: RgbaImage,
+  opRaw: string,
+  valStr: string,
+  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
+): RgbaImage {
+  const op = opRaw.toLowerCase().replace(/[-_]/g, "");
+  const isPct = valStr.trim().endsWith("%");
+  const rawNum = parseFloat(valStr);
+  const vByte = isPct
+    ? (rawNum / 100) * 255
+    : rawNum <= 1 && valStr.includes(".")
+      ? rawNum * 255
+      : rawNum > 255
+        ? rawNum / 257
+        : rawNum;
+  const vFactor = isPct ? rawNum / 100 : rawNum;
+
+  const out = new Uint8Array(img.data);
+  const mask = [channels.r, channels.g, channels.b, channels.a];
+
+  for (let i = 0; i < out.length; i += 4) {
+    for (let c = 0; c < 4; c++) {
+      if (!mask[c]) continue;
+      const cur = out[i + c]!;
+      let next = cur;
+      switch (op) {
+        case "add":
+          next = cur + vByte;
+          break;
+        case "subtract":
+          next = cur - vByte;
+          break;
+        case "multiply":
+          next = cur * vFactor;
+          break;
+        case "divide":
+          next = cur / (vFactor || 1);
+          break;
+        case "pow":
+          next = 255 * Math.pow(cur / 255, vFactor);
+          break;
+        case "log":
+          next = 255 * (Math.log(1 + Math.max(1e-6, vFactor) * (cur / 255)) / Math.log(1 + Math.max(1e-6, vFactor)));
+          break;
+        case "set":
+          next = vByte;
+          break;
+        case "min":
+          next = Math.min(cur, vByte);
+          break;
+        case "max":
+          next = Math.max(cur, vByte);
+          break;
+        case "and":
+          next = cur & Math.round(vByte);
+          break;
+        case "or":
+          next = cur | Math.round(vByte);
+          break;
+        case "xor":
+          next = cur ^ Math.round(vByte);
+          break;
+        case "leftshift":
+          next = (cur << Math.round(vFactor)) & 0xff;
+          break;
+        case "rightshift":
+          next = cur >> Math.round(vFactor);
+          break;
+        case "abs":
+          next = Math.abs(cur + vByte);
+          break;
+        case "sine":
+          next = 255 * (0.5 + 0.5 * Math.sin(2 * Math.PI * vFactor * (cur / 255)));
+          break;
+        case "cosine":
+          next = 255 * (0.5 + 0.5 * Math.cos(2 * Math.PI * vFactor * (cur / 255)));
+          break;
+        case "threshold":
+          next = cur >= vByte ? 255 : 0;
+          break;
+        case "thresholdblack":
+          next = cur < vByte ? 0 : cur;
+          break;
+        case "thresholdwhite":
+          next = cur > vByte ? 255 : cur;
+          break;
+        default:
+          break;
+      }
+      out[i + c] = clampByteVal(next);
+    }
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickFunction(
+  img: RgbaImage,
+  funcRaw: string,
+  paramsRaw: string,
+  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
+): RgbaImage {
+  const fn = funcRaw.toLowerCase();
+  const params = paramsRaw.split(",").map((s) => Number(s.trim()));
+  const out = new Uint8Array(img.data);
+  const mask = [channels.r, channels.g, channels.b, channels.a];
+
+  for (let i = 0; i < out.length; i += 4) {
+    for (let c = 0; c < 4; c++) {
+      if (!mask[c]) continue;
+      const x = out[i + c]! / 255;
+      let y = x;
+      if (fn === "polynomial") {
+        y = params.reduce((acc, coeff) => acc * x + coeff, 0);
+      } else if (fn === "sinusoid") {
+        const freq = params[0] ?? 1;
+        const phase = params[1] ?? 0;
+        const amp = params[2] ?? 0.5;
+        const bias = params[3] ?? 0.5;
+        y = amp * Math.sin(2 * Math.PI * (freq * x + phase / 360)) + bias;
+      } else if (fn === "arcsin") {
+        const w = params[0] ?? 1;
+        const center = params[1] ?? 0.5;
+        const range = params[2] ?? 1;
+        const bias = params[3] ?? 0.5;
+        const arg = Math.max(-1, Math.min(1, (2 / w) * (x - center)));
+        y = (range / Math.PI) * Math.asin(arg) + bias;
+      } else if (fn === "arctan") {
+        const slope = params[0] ?? 1;
+        const center = params[1] ?? 0.5;
+        const range = params[2] ?? 1;
+        const bias = params[3] ?? 0.5;
+        y = (range / Math.PI) * Math.atan(slope * Math.PI * (x - center)) + bias;
+      }
+      out[i + c] = clampByteVal(y * 255);
+    }
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickClut(
+  baseImg: RgbaImage,
+  lutImg: RgbaImage,
+  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
+): RgbaImage {
+  const out = new Uint8Array(baseImg.data);
+  const horiz = lutImg.width >= lutImg.height;
+  const len = Math.max(1, horiz ? lutImg.width : lutImg.height);
+  const mask = [channels.r, channels.g, channels.b, channels.a];
+
+  for (let i = 0; i < out.length; i += 4) {
+    for (let c = 0; c < 4; c++) {
+      if (!mask[c]) continue;
+      const t = out[i + c]! / 255;
+      const pos = Math.max(0, Math.min(len - 1, Math.round(t * (len - 1))));
+      const lx = horiz ? pos : 0;
+      const ly = horiz ? 0 : pos;
+      const lutIdx = (ly * lutImg.width + lx) * 4;
+      out[i + c] = lutImg.data[lutIdx + c]!;
+    }
+  }
+  return { ...baseImg, data: out };
+}
+
+interface FxEvalContext {
+  readonly stack: readonly RgbaImage[];
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+  readonly ch: number;
+  readonly vars: Map<string, number>;
+}
+
+function sampleFxImage(
+  img: RgbaImage | undefined,
+  px: number,
+  py: number,
+  ch: number
+): number {
+  if (!img) return 0;
+  const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
+  const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
+  const idx = (cy * img.width + cx) * 4;
+  if (ch === 4) {
+    // intensity / luma
+    return (0.299 * img.data[idx]! + 0.587 * img.data[idx + 1]! + 0.114 * img.data[idx + 2]!) / 255;
+  }
+  return img.data[idx + (ch & 3)]! / 255;
+}
+
+function propToChannel(prop: string, defaultCh: number): number {
+  const p = prop.toLowerCase();
+  if (p === "r" || p === "red") return 0;
+  if (p === "g" || p === "green") return 1;
+  if (p === "b" || p === "blue") return 2;
+  if (p === "a" || p === "alpha" || p === "opacity") return 3;
+  if (p === "intensity" || p === "luma" || p === "lightness") return 4;
+  return defaultCh;
+}
+
+function compileFxExpression(exprStr: string): (ctx: FxEvalContext) => number {
+  const statements = exprStr
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  const compiledStmts = statements.map((stmt) => {
+    const assignMatch = /^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^=].*)$/.exec(stmt);
+    if (assignMatch) {
+      const varName = assignMatch[1]!.toLowerCase();
+      const rhsFn = compileSingleFxExpr(assignMatch[2]!);
+      return (ctx: FxEvalContext) => {
+        const val = rhsFn(ctx);
+        ctx.vars.set(varName, val);
+        return val;
+      };
+    }
+    return compileSingleFxExpr(stmt);
+  });
+
+  return (ctx: FxEvalContext) => {
+    let last = 0;
+    for (const fn of compiledStmts) {
+      last = fn(ctx);
+    }
+    return last;
+  };
+}
+
+function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
+  type Tok = { type: "num" | "id" | "op" | "punc"; val: string };
+  const tokens: Tok[] = [];
+  let k = 0;
+  while (k < src.length) {
+    const ch = src[k]!;
+    if (/\s/.test(ch)) {
+      k++;
+      continue;
+    }
+    if (/\d/.test(ch) || (ch === "." && /\d/.test(src[k + 1] ?? ""))) {
+      let numStr = "";
+      while (k < src.length && /[\d.eE+-]/.test(src[k]!)) {
+        if ((src[k] === "+" || src[k] === "-") && !/[eE]/.test(src[k - 1] ?? "")) break;
+        numStr += src[k++]!;
+      }
+      tokens.push({ type: "num", val: numStr });
+      continue;
+    }
+    if (/[a-zA-Z_]/.test(ch)) {
+      let idStr = "";
+      while (k < src.length && /[a-zA-Z0-9_]/.test(src[k]!)) {
+        idStr += src[k++]!;
+      }
+      tokens.push({ type: "id", val: idStr });
+      continue;
+    }
+    const two = src.slice(k, k + 2);
+    if (two === "==" || two === "!=" || two === "<=" || two === ">=" || two === "&&" || two === "||" || two === "**") {
+      tokens.push({ type: "op", val: two });
+      k += 2;
+      continue;
+    }
+    if ("+-*/%^<>!?".includes(ch)) {
+      tokens.push({ type: "op", val: ch });
+      k++;
+      continue;
+    }
+    if ("(),.{}:[]".includes(ch)) {
+      tokens.push({ type: "punc", val: ch });
+      k++;
+      continue;
+    }
+    k++;
+  }
+
+  let pos = 0;
+  const peek = () => tokens[pos];
+  const next = () => tokens[pos++];
+
+  function parseTernary(): (ctx: FxEvalContext) => number {
+    const cond = parseOr();
+    if (peek()?.val === "?") {
+      next();
+      const tBranch = parseTernary();
+      if (peek()?.val === ":") next();
+      const fBranch = parseTernary();
+      return (ctx) => (cond(ctx) !== 0 ? tBranch(ctx) : fBranch(ctx));
+    }
+    return cond;
+  }
+
+  function parseOr(): (ctx: FxEvalContext) => number {
+    let left = parseAnd();
+    while (peek()?.val === "||") {
+      next();
+      const right = parseAnd();
+      const prev = left;
+      left = (ctx) => (prev(ctx) !== 0 || right(ctx) !== 0 ? 1 : 0);
+    }
+    return left;
+  }
+
+  function parseAnd(): (ctx: FxEvalContext) => number {
+    let left = parseEquality();
+    while (peek()?.val === "&&") {
+      next();
+      const right = parseEquality();
+      const prev = left;
+      left = (ctx) => (prev(ctx) !== 0 && right(ctx) !== 0 ? 1 : 0);
+    }
+    return left;
+  }
+
+  function parseEquality(): (ctx: FxEvalContext) => number {
+    let left = parseRelational();
+    while (peek()?.val === "==" || peek()?.val === "!=") {
+      const op = next()!.val;
+      const right = parseRelational();
+      const prev = left;
+      left =
+        op === "=="
+          ? (ctx) => (Math.abs(prev(ctx) - right(ctx)) < 1e-6 ? 1 : 0)
+          : (ctx) => (Math.abs(prev(ctx) - right(ctx)) >= 1e-6 ? 1 : 0);
+    }
+    return left;
+  }
+
+  function parseRelational(): (ctx: FxEvalContext) => number {
+    let left = parseAdditive();
+    while (
+      peek()?.val === "<" ||
+      peek()?.val === "<=" ||
+      peek()?.val === ">" ||
+      peek()?.val === ">="
+    ) {
+      const op = next()!.val;
+      const right = parseAdditive();
+      const prev = left;
+      if (op === "<") left = (ctx) => (prev(ctx) < right(ctx) ? 1 : 0);
+      else if (op === "<=") left = (ctx) => (prev(ctx) <= right(ctx) ? 1 : 0);
+      else if (op === ">") left = (ctx) => (prev(ctx) > right(ctx) ? 1 : 0);
+      else left = (ctx) => (prev(ctx) >= right(ctx) ? 1 : 0);
+    }
+    return left;
+  }
+
+  function parseAdditive(): (ctx: FxEvalContext) => number {
+    let left = parseMultiplicative();
+    while (peek()?.val === "+" || peek()?.val === "-") {
+      const op = next()!.val;
+      const right = parseMultiplicative();
+      const prev = left;
+      left = op === "+" ? (ctx) => prev(ctx) + right(ctx) : (ctx) => prev(ctx) - right(ctx);
+    }
+    return left;
+  }
+
+  function parseMultiplicative(): (ctx: FxEvalContext) => number {
+    let left = parsePower();
+    while (peek()?.val === "*" || peek()?.val === "/" || peek()?.val === "%") {
+      const op = next()!.val;
+      const right = parsePower();
+      const prev = left;
+      if (op === "*") left = (ctx) => prev(ctx) * right(ctx);
+      else if (op === "/") left = (ctx) => {
+        const d = right(ctx);
+        return d === 0 ? 0 : prev(ctx) / d;
+      };
+      else left = (ctx) => {
+        const d = right(ctx);
+        return d === 0 ? 0 : prev(ctx) % d;
+      };
+    }
+    return left;
+  }
+
+  function parsePower(): (ctx: FxEvalContext) => number {
+    const base = parseUnary();
+    if (peek()?.val === "^" || peek()?.val === "**") {
+      next();
+      const exp = parsePower();
+      return (ctx) => Math.pow(base(ctx), exp(ctx));
+    }
+    return base;
+  }
+
+  function parseUnary(): (ctx: FxEvalContext) => number {
+    if (peek()?.val === "-") {
+      next();
+      const u = parseUnary();
+      return (ctx) => -u(ctx);
+    }
+    if (peek()?.val === "+") {
+      next();
+      return parseUnary();
+    }
+    if (peek()?.val === "!") {
+      next();
+      const u = parseUnary();
+      return (ctx) => (u(ctx) === 0 ? 1 : 0);
+    }
+    return parsePrimary();
+  }
+
+  function parsePrimary(): (ctx: FxEvalContext) => number {
+    const tok = peek();
+    if (!tok) return () => 0;
+    if (tok.type === "num") {
+      next();
+      const val = Number(tok.val);
+      return () => val;
+    }
+    if (tok.val === "(") {
+      next();
+      const inner = parseTernary();
+      if (peek()?.val === ")") next();
+      return inner;
+    }
+    if (tok.type === "id") {
+      next();
+      const name = tok.val.toLowerCase();
+      if (peek()?.val === "(") {
+        next();
+        const args: Array<(ctx: FxEvalContext) => number> = [];
+        if (peek()?.val !== ")") {
+          args.push(parseTernary());
+          while (peek()?.val === ",") {
+            next();
+            args.push(parseTernary());
+          }
+        }
+        if (peek()?.val === ")") next();
+        return (ctx) => {
+          const vals = args.map((a) => a(ctx));
+          const a0 = vals[0] ?? 0;
+          const a1 = vals[1] ?? 0;
+          const a2 = vals[2] ?? 1;
+          switch (name) {
+            case "sin":
+              return Math.sin(a0);
+            case "cos":
+              return Math.cos(a0);
+            case "tan":
+              return Math.tan(a0);
+            case "asin":
+              return Math.asin(a0);
+            case "acos":
+              return Math.acos(a0);
+            case "atan":
+              return Math.atan(a0);
+            case "atan2":
+              return Math.atan2(a0, a1);
+            case "sqrt":
+              return Math.sqrt(Math.max(0, a0));
+            case "pow":
+              return Math.pow(a0, a1);
+            case "exp":
+              return Math.exp(a0);
+            case "log":
+              return Math.log10(Math.max(1e-12, a0));
+            case "ln":
+              return Math.log(Math.max(1e-12, a0));
+            case "abs":
+              return Math.abs(a0);
+            case "min":
+              return Math.min(...vals);
+            case "max":
+              return Math.max(...vals);
+            case "floor":
+              return Math.floor(a0);
+            case "ceil":
+              return Math.ceil(a0);
+            case "round":
+              return Math.round(a0);
+            case "int":
+              return Math.trunc(a0);
+            case "sign":
+              return Math.sign(a0);
+            case "hypot":
+              return Math.hypot(a0, a1);
+            case "mod":
+              return a1 === 0 ? 0 : a0 % a1;
+            case "clamp":
+              return Math.max(a1, Math.min(a2, a0));
+            case "rand":
+              return 0.5;
+            default:
+              return a0;
+          }
+        };
+      }
+
+      // Check for array index e.g. u[1]
+      let imgIndex: ((ctx: FxEvalContext) => number) | undefined;
+      if (name === "u" && peek()?.val === "[") {
+        next();
+        imgIndex = parseTernary();
+        if (peek()?.val === "]") next();
+      }
+
+      // Check for p{x,y} or .p{x,y} or .r/.g/.b/.a/.w/.h/.intensity
+      let coordX: ((ctx: FxEvalContext) => number) | undefined;
+      let coordY: ((ctx: FxEvalContext) => number) | undefined;
+      let propName: string | undefined;
+
+      if (name === "p" && peek()?.val === "{") {
+        next();
+        coordX = parseTernary();
+        if (peek()?.val === ",") next();
+        coordY = parseTernary();
+        if (peek()?.val === "}") next();
+      }
+      while (peek()?.val === ".") {
+        next();
+        const sub = next()?.val.toLowerCase() ?? "";
+        if (sub === "p" && peek()?.val === "{") {
+          next();
+          coordX = parseTernary();
+          if (peek()?.val === ",") next();
+          coordY = parseTernary();
+          if (peek()?.val === "}") next();
+        } else {
+          propName = sub;
+        }
+      }
+
+      return (ctx) => {
+        if (ctx.vars.has(name) && !propName && !coordX) {
+          return ctx.vars.get(name)!;
+        }
+        if (name === "i") return ctx.x;
+        if (name === "j") return ctx.y;
+        if (name === "w") return ctx.w;
+        if (name === "h") return ctx.h;
+        if (name === "pi") return Math.PI;
+        if (name === "e") return Math.E;
+
+        const targetIdx = imgIndex ? Math.round(imgIndex(ctx)) : name === "v" ? 1 : 0;
+        const targetImg = ctx.stack[targetIdx] ?? ctx.stack[0];
+        if (propName === "w") return targetImg?.width ?? ctx.w;
+        if (propName === "h") return targetImg?.height ?? ctx.h;
+
+        const px = coordX ? coordX(ctx) : ctx.x;
+        const py = coordY ? coordY(ctx) : ctx.y;
+
+        if (name === "r" || name === "red") return sampleFxImage(targetImg, px, py, 0);
+        if (name === "g" || name === "green") return sampleFxImage(targetImg, px, py, 1);
+        if (name === "b" || name === "blue") return sampleFxImage(targetImg, px, py, 2);
+        if (name === "a" || name === "alpha" || name === "opacity") return sampleFxImage(targetImg, px, py, 3);
+        if (name === "intensity" || name === "luma" || name === "lightness") {
+          return sampleFxImage(targetImg, px, py, 4);
+        }
+
+        const ch = propName ? propToChannel(propName, ctx.ch) : ctx.ch;
+        return sampleFxImage(targetImg, px, py, ch);
+      };
+    }
+    next();
+    return () => 0;
+  }
+
+  return parseTernary();
+}
+
+function applyMagickFx(
+  stack: readonly RgbaImage[],
+  exprStr: string,
+  channels: { r: boolean; g: boolean; b: boolean; a: boolean }
+): RgbaImage {
+  const base = stack[0]!;
+  const out = new Uint8Array(base.data);
+  const evalFn = compileFxExpression(exprStr);
+  const mask = [channels.r, channels.g, channels.b, channels.a];
+  const vars = new Map<string, number>();
+
+  for (let y = 0; y < base.height; y++) {
+    for (let x = 0; x < base.width; x++) {
+      const idx = (y * base.width + x) * 4;
+      for (let c = 0; c < 4; c++) {
+        if (!mask[c]) continue;
+        vars.clear();
+        const val = evalFn({
+          stack,
+          x,
+          y,
+          w: base.width,
+          h: base.height,
+          ch: c,
+          vars
+        });
+        out[idx + c] = clampByteVal(val * 255);
+      }
+    }
+  }
+  return { ...base, data: out };
 }
 
 function resolveGravityOffset(
@@ -967,6 +1635,37 @@ function evaluatePipelineTokens(
       state.tile = tokens[++i];
     } else if (t === "-strip") {
       state.strip = true;
+    } else if (t === "-channel") {
+      state.channels = parseChannelMask(tokens[++i] ?? "rgb");
+    } else if (t === "+channel") {
+      state.channels = { r: true, g: true, b: true, a: false };
+    } else if (t === "-opaque" || t === "+opaque") {
+      const targetColor = parseColor(tokens[++i] ?? "#000000");
+      const invert = t === "+opaque";
+      stack = stack.map((im) => applyMagickOpaque(im, targetColor, state.fill, state.fuzz, invert));
+    } else if (t === "-transparent" || t === "+transparent") {
+      const targetColor = parseColor(tokens[++i] ?? "#ffffff");
+      const invert = t === "+transparent";
+      stack = stack.map((im) => applyMagickTransparent(im, targetColor, state.fuzz, invert));
+    } else if (t === "-evaluate") {
+      const op = tokens[++i] ?? "Add";
+      const val = tokens[++i] ?? "0";
+      stack = stack.map((im) => applyMagickEvaluate(im, op, val, state.channels));
+    } else if (t === "-function") {
+      const fn = tokens[++i] ?? "Polynomial";
+      const params = tokens[++i] ?? "1,0";
+      stack = stack.map((im) => applyMagickFunction(im, fn, params, state.channels));
+    } else if (t === "-clut" || t === "-hald-clut") {
+      if (stack.length >= 2) {
+        const lut = stack[stack.length - 1]!;
+        const mapped = stack.slice(0, -1).map((im) => applyMagickClut(im, lut, state.channels));
+        stack = mapped;
+      }
+    } else if (t === "-fx") {
+      const expr = tokens[++i] ?? "u";
+      if (stack.length > 0) {
+        stack = [applyMagickFx(stack, expr, state.channels)];
+      }
     } else if (t === "+repage" || t === "-repage") {
       if (t === "-repage") i++;
     } else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
@@ -1314,7 +2013,13 @@ export async function runMogrifyCli(
     "-unsharp",
     "-median",
     "-alpha",
-    "-draw"
+    "-draw",
+    "-channel",
+    "-opaque",
+    "+opaque",
+    "-transparent",
+    "+transparent",
+    "-fx"
   ]);
 
   for (let i = 0; i < argv.length; i++) {
@@ -1330,6 +2035,8 @@ export async function runMogrifyCli(
       } else {
         opTokens.push("-annotate", a1);
       }
+    } else if (t === "-evaluate" || t === "-function" || t === "-morphology") {
+      opTokens.push(t, argv[++i] ?? "", argv[++i] ?? "");
     } else if (flagsWithOneArg.has(t)) {
       opTokens.push(t, argv[++i] ?? "");
     } else if (t.startsWith("-") || t.startsWith("+")) {

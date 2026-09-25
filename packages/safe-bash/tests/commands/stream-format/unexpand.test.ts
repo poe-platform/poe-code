@@ -13,6 +13,8 @@ test("unexpand rejects the undocumented -F option and supports clustered numeric
   for (const [cmd, input, expected] of [
     ["unexpand -t 4 -8", "    a   b       c\n", "\ta\tb       c\n"],
     ["unexpand -a4", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -4a", "    a   b       c\n", "\ta\tb\t\tc\n"],
+    ["unexpand -4,8a", "    a   b       c\n", "\ta\tb       c\n"],
     ["unexpand -t 4,/0", "    a   b       c\n", "\ta\tb\t\tc\n"],
     ["unexpand -t 4,+0", "    a   b       c\n", "\ta\tb\t\tc\n"],
     ["unexpand -t /0", "    a   b       c\n", "    a\tb\tc\n"],

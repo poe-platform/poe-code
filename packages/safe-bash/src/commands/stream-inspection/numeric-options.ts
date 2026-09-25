@@ -3,6 +3,7 @@ import { options, type ParsedOptions } from "../internal.js";
 export function numericOptions(
   args: readonly string[], short: string, long: Readonly<Record<string, string | false>>, key?: string,
   onOption?: (key: string, value: string | undefined) => void,
+  allowNumericSuffixOptions = false,
 ): ParsedOptions & { readonly legacyValue?: string } {
   const normalized: string[] = [], ordered: string[] = [], operands: string[] = [];
   let ended = false, legacyIndex: number | undefined, legacyFallback = "";
@@ -27,6 +28,10 @@ export function numericOptions(
       const option = argument[offset]!;
       if (option >= "0" && option <= "9") {
         if (key) {
+          if (!allowNumericSuffixOptions) {
+            normalized[normalized.length - 1] = `${argument.slice(0, offset)}${key}${argument.slice(offset)}`;
+            break;
+          }
           let end = offset;
           while (
             end < argument.length &&

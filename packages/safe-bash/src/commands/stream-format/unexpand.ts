@@ -51,7 +51,7 @@ function tabStops(specifications: readonly string[], session: Session): (column:
 
 export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefinition {
   return command("unexpand", limits, async session => {
-    const parsed = numericOptions(session.context.args, "at:", { all: "a", tabs: "t", "first-only": false }, "t");
+    const parsed = numericOptions(session.context.args, "at:", { all: "a", tabs: "t", "first-only": false }, "t", undefined, true);
     const nextTab = tabStops(parsed.values.get("t") ?? [], session);
     const all = !parsed.flags.has("first-only") && (parsed.flags.has("a") || parsed.flags.has("t"));
     const output = new ByteOutput(session);

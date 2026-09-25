@@ -3,8 +3,7 @@ import type {
 	PlaywrightStorageControlEvent,
 } from "@poe-platform/safe-bash/playwright";
 
-export const DEFAULT_BROWSER_STORAGE_COMMAND_TIMEOUT_MS = 10000;
-
+/** Omitted limits are unlimited. Positive safe integers opt into individual budgets. */
 export interface BrowserStorageControlLimits {
 	maxMessageBytes?: number;
 	maxPendingCommands?: number;
@@ -23,8 +22,8 @@ interface ControlMessage extends PlaywrightStorageControlEvent {
 interface PendingCommand {
 	sessionId: string | undefined;
 	bytes: number;
-	deadline: AbortSignal;
-	expire(): void;
+	method: string;
+	started: number;
 	resolve(result: Record<string, unknown>): void;
 	reject(error: unknown): void;
 }
@@ -37,7 +36,6 @@ function identifier(value: unknown): value is string {
 	return (
 		typeof value === "string" &&
 		value.length > 0 &&
-		value.length <= 1024 &&
 		!value.includes("\0")
 	);
 }
@@ -45,7 +43,7 @@ function identifier(value: unknown): value is string {
 function parseMessage(data: unknown, maxBytes: number): ControlMessage {
 	if (
 		typeof data !== "string" ||
-		new TextEncoder().encode(data).length > maxBytes
+		(Number.isFinite(maxBytes) && new TextEncoder().encode(data).length > maxBytes)
 	)
 		throw new Error("Owned storage control frame limit or type violation");
 	const value: unknown = JSON.parse(data);
@@ -98,23 +96,18 @@ export function createBrowserStorageControl(options: {
 	onEvent?(event: PlaywrightStorageControlEvent): void;
 	limits?: BrowserStorageControlLimits;
 }): PlaywrightStorageControl & { close(): Promise<void> } {
-	const limits = {
-		maxMessageBytes: 16 * 1024 * 1024,
-		maxPendingCommands: 128,
-		maxPendingBytes: 4 * 1024 * 1024,
-		maxLateReplies: 128,
-		maxSubscriptions: 128,
-		commandTimeoutMs: DEFAULT_BROWSER_STORAGE_COMMAND_TIMEOUT_MS,
-		...options.limits,
-	};
-	for (const [name, value] of Object.entries(limits)) {
-		if (
-			!Number.isSafeInteger(value) ||
-			value <= 0 ||
-			(name.endsWith("TimeoutMs") && value > 2147483647)
-		)
+	for (const [name, value] of Object.entries(options.limits ?? {})) {
+		if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value <= 0))
 			throw new TypeError(`Invalid storage control limit: ${name}`);
 	}
+	const limits = {
+		maxMessageBytes: options.limits?.maxMessageBytes ?? Infinity,
+		maxPendingCommands: options.limits?.maxPendingCommands ?? Infinity,
+		maxPendingBytes: options.limits?.maxPendingBytes ?? Infinity,
+		maxLateReplies: options.limits?.maxLateReplies ?? Infinity,
+		maxSubscriptions: options.limits?.maxSubscriptions ?? Infinity,
+		commandTimeoutMs: options.limits?.commandTimeoutMs ?? Infinity,
+	};
 	const { socket } = options;
 	const pending = new Map<number, PendingCommand>();
 	const lateReplies = new Map<number, string | undefined>();
@@ -124,6 +117,29 @@ export function createBrowserStorageControl(options: {
 	let sequence = 0;
 	let closed: Error | undefined;
 	let closing: Promise<void> | undefined;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	let timedCommandId: number | undefined;
+
+	function scheduleDeadline() {
+		if (!Number.isFinite(limits.commandTimeoutMs) || closed) return;
+		// One clock follows the oldest command; all commands share the selected timeout.
+		const first = pending.entries().next().value;
+		if (first?.[0] === timedCommandId) return;
+		clearTimeout(timer);
+		timer = undefined;
+		timedCommandId = first?.[0];
+		if (!first) return;
+		const [id, command] = first;
+		const remaining = limits.commandTimeoutMs - (performance.now() - command.started);
+		timer = setTimeout(() => {
+			timer = undefined;
+			timedCommandId = undefined;
+			if (performance.now() - command.started >= limits.commandTimeoutMs)
+				expireCommand(id, command.method);
+			// Long deadlines are chunked to avoid the native timer's signed-int overflow.
+			scheduleDeadline();
+		}, Math.min(Math.max(0, remaining), 2147483647));
+	}
 
 	function notifyDetached(reason: Error) {
 		const event: PlaywrightStorageControlEvent = {
@@ -141,12 +157,14 @@ export function createBrowserStorageControl(options: {
 	function shutdown(reason: Error) {
 		if (closed) return;
 		closed = reason;
+		clearTimeout(timer);
+		timer = undefined;
+		timedCommandId = undefined;
 		socket.removeEventListener("message", receive);
 		socket.removeEventListener("close", disconnected);
 		socket.removeEventListener("error", failed);
 		notifyDetached(reason);
 		for (const command of pending.values()) {
-			command.deadline.removeEventListener("abort", command.expire);
 			command.reject(reason);
 		}
 		pending.clear();
@@ -208,7 +226,7 @@ export function createBrowserStorageControl(options: {
 			throw new Error("Unexpected owned storage control reply identity");
 		pending.delete(message.id!);
 		pendingBytes -= command.bytes;
-		command.deadline.removeEventListener("abort", command.expire);
+		scheduleDeadline();
 		if (message.error) command.reject(new Error(message.error.message));
 		else command.resolve(message.result!);
 	}
@@ -237,24 +255,23 @@ export function createBrowserStorageControl(options: {
 			throw new Error("Storage control ID capacity exceeded");
 		const id = ++sequence;
 		const data = JSON.stringify({ id, method, params, sessionId });
-		const bytes = new TextEncoder().encode(data).length;
+		const bytes = Number.isFinite(limits.maxMessageBytes) || Number.isFinite(limits.maxPendingBytes)
+			? new TextEncoder().encode(data).length : 0;
 		return { id, data, bytes };
 	}
 	function admitCommand(bytes: number) {
-		if (
-			bytes > limits.maxMessageBytes ||
-			pending.size >= limits.maxPendingCommands ||
-			bytes > limits.maxPendingBytes - pendingBytes
-		)
-			throw new Error(
-				"Owned storage control pending or frame capacity exceeded",
-			);
+		if (bytes > limits.maxMessageBytes)
+			throw new Error(`Owned storage control frame capacity exceeded (maxMessageBytes: ${limits.maxMessageBytes})`);
+		if (pending.size >= limits.maxPendingCommands)
+			throw new Error(`Owned storage control pending command capacity exceeded (maxPendingCommands: ${limits.maxPendingCommands})`);
+		if (bytes > limits.maxPendingBytes - pendingBytes)
+			throw new Error(`Owned storage control pending byte capacity exceeded (maxPendingBytes: ${limits.maxPendingBytes})`);
 	}
 	function expireCommand(id: number, method: string) {
 		const command = pending.get(id);
 		if (!command) return;
 		const reason = new Error(
-			`Owned storage control command timed out: ${method}`,
+			`Owned storage control command timed out: ${method} (${limits.commandTimeoutMs}ms)`,
 		);
 		if (
 			method === "Target.createTarget" ||
@@ -263,13 +280,12 @@ export function createBrowserStorageControl(options: {
 			fail(
 				method === "Target.createTarget"
 					? reason
-					: new Error("Owned storage control late reply capacity exceeded"),
+					: new Error(`Owned storage control late reply capacity exceeded (maxLateReplies: ${limits.maxLateReplies})`),
 			);
 			return;
 		}
 		pending.delete(id);
 		pendingBytes -= command.bytes;
-		command.deadline.removeEventListener("abort", command.expire);
 		lateReplies.set(id, command.sessionId);
 		command.reject(reason);
 	}
@@ -280,17 +296,15 @@ export function createBrowserStorageControl(options: {
 			const { id, data, bytes } = encodeCommand(method, params, sessionId);
 			admitCommand(bytes);
 			const response = Promise.withResolvers<Record<string, unknown>>();
-			const deadline = AbortSignal.timeout(limits.commandTimeoutMs);
-			const expire = () => expireCommand(id, method);
 			pending.set(id, {
 				...response,
 				bytes,
 				sessionId,
-				deadline,
-				expire,
+				method,
+				started: performance.now(),
 			});
-			deadline.addEventListener("abort", expire, { once: true });
 			pendingBytes += bytes;
+			scheduleDeadline();
 			try {
 				socket.send(data);
 			} catch (error) {
@@ -301,7 +315,7 @@ export function createBrowserStorageControl(options: {
 		subscribe(listener) {
 			if (closed) throw closed;
 			if (listeners.size >= limits.maxSubscriptions)
-				throw new Error("Owned storage control subscription capacity exceeded");
+				throw new Error(`Owned storage control subscription capacity exceeded (maxSubscriptions: ${limits.maxSubscriptions})`);
 			listeners.add(listener);
 			return () => {
 				listeners.delete(listener);

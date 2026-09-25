@@ -171,7 +171,6 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
 		control = createBrowserStorageControl({
 			socket: await rawSocket(signal),
 			onEvent: privacy.observe,
-			limits: protocolLimits,
 		});
 		await control.send("Browser.getVersion");
 		signal.throwIfAborted();

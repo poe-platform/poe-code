@@ -58,6 +58,12 @@ An optional second argument supplies `loadState(session, signal)`. Explicit
 The fourth argument bounds storage restoration bytes; its default is 2 MiB.
 Portable profile APIs always require explicit host byte and tab limits.
 
+The trusted storage control channel has no default frame-byte, pending-command,
+pending-byte, subscription, late-reply, or command-time limit. Individual control
+budgets remain available, and outgoing budget refusals leave the channel usable.
+Configured deadlines share one timer; exact late-reply identities remain tracked.
+Unknown target creation outcomes and invalid native replies still fail closed.
+
 ```ts
 import {
   parseBrowserProfile,

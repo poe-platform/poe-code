@@ -3588,7 +3588,7 @@ export class Runtime {
 
   get fs(): FileSystem {
     if (!this._fs) {
-      this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
+      this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents, combineSignals: combineManagedSignals });
       runtimeFileSystems.set(this._fs, this.sourceFs);
       registerRuntimeBackingFileSystem(this._fs, this.backingFs);
     }
@@ -3616,7 +3616,7 @@ export class Runtime {
       this.budget.chargeFs,
       sig,
       this.budget.cleanupChargeFs,
-      { maxPathComponents: this.budget.limits.maxPathnameComponents },
+      { maxPathComponents: this.budget.limits.maxPathnameComponents, combineSignals: combineManagedSignals },
     );
     runtimeFileSystems.set(created, this.sourceFs);
     registerRuntimeBackingFileSystem(created, this.backingFs);
@@ -3634,7 +3634,7 @@ export class Runtime {
       this.budget.chargeFs,
       this.commandSignal,
       this.budget.cleanupChargeFs,
-      { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathnameComponents },
+      { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathnameComponents, combineSignals: combineManagedSignals },
     ));
   }
 

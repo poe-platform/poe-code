@@ -30,7 +30,7 @@ import sharp, {
   modulateImage,
   negateImage,
   normalizeImage,
-  parseColor,
+  parseColor as baseParseColor,
   removeAlphaImage,
   resizeImage,
   rotateImage,
@@ -47,6 +47,237 @@ import sharp, {
   type RgbaColor,
   type RgbaImage
 } from "@poe-code/image-ast";
+
+const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
+  aliceblue: [240, 248, 255, 255],
+  antiquewhite: [250, 235, 215, 255],
+  aqua: [0, 255, 255, 255],
+  aquamarine: [127, 255, 212, 255],
+  azure: [240, 255, 255, 255],
+  beige: [245, 245, 220, 255],
+  bisque: [255, 228, 196, 255],
+  black: [0, 0, 0, 255],
+  blanchedalmond: [255, 235, 205, 255],
+  blue: [0, 0, 255, 255],
+  blueviolet: [138, 43, 226, 255],
+  brown: [165, 42, 42, 255],
+  burlywood: [222, 184, 135, 255],
+  cadetblue: [95, 158, 160, 255],
+  chartreuse: [127, 255, 0, 255],
+  chocolate: [210, 105, 30, 255],
+  coral: [255, 127, 80, 255],
+  cornflowerblue: [100, 149, 237, 255],
+  cornsilk: [255, 248, 220, 255],
+  crimson: [220, 20, 60, 255],
+  cyan: [0, 255, 255, 255],
+  darkblue: [0, 0, 139, 255],
+  darkcyan: [0, 139, 139, 255],
+  darkgoldenrod: [184, 134, 11, 255],
+  darkgray: [169, 169, 169, 255],
+  darkgreen: [0, 100, 0, 255],
+  darkgrey: [169, 169, 169, 255],
+  darkkhaki: [189, 183, 107, 255],
+  darkmagenta: [139, 0, 139, 255],
+  darkolivegreen: [85, 107, 47, 255],
+  darkorange: [255, 140, 0, 255],
+  darkorchid: [153, 50, 204, 255],
+  darkred: [139, 0, 0, 255],
+  darksalmon: [233, 150, 122, 255],
+  darkseagreen: [143, 188, 143, 255],
+  darkslateblue: [72, 61, 139, 255],
+  darkslategray: [47, 79, 79, 255],
+  darkslategrey: [47, 79, 79, 255],
+  darkturquoise: [0, 206, 209, 255],
+  darkviolet: [148, 0, 211, 255],
+  deeppink: [255, 20, 147, 255],
+  deepskyblue: [0, 191, 255, 255],
+  dimgray: [105, 105, 105, 255],
+  dimgrey: [105, 105, 105, 255],
+  dodgerblue: [30, 144, 255, 255],
+  firebrick: [178, 34, 34, 255],
+  floralwhite: [255, 250, 240, 255],
+  forestgreen: [34, 139, 34, 255],
+  fractal: [128, 128, 128, 255],
+  fuchsia: [255, 0, 255, 255],
+  gainsboro: [220, 220, 220, 255],
+  ghostwhite: [248, 248, 255, 255],
+  gold: [255, 215, 0, 255],
+  goldenrod: [218, 165, 32, 255],
+  gray: [126, 126, 126, 255],
+  grey: [126, 126, 126, 255],
+  green: [0, 128, 0, 255],
+  greenyellow: [173, 255, 47, 255],
+  honeydew: [240, 255, 240, 255],
+  hotpink: [255, 105, 180, 255],
+  indianred: [205, 92, 92, 255],
+  indigo: [75, 0, 130, 255],
+  ivory: [255, 255, 240, 255],
+  khaki: [240, 230, 140, 255],
+  lavender: [230, 230, 250, 255],
+  lavenderblush: [255, 240, 245, 255],
+  lawngreen: [124, 252, 0, 255],
+  lemonchiffon: [255, 250, 205, 255],
+  lightblue: [173, 216, 230, 255],
+  lightcoral: [240, 128, 128, 255],
+  lightcyan: [224, 255, 255, 255],
+  lightgoldenrodyellow: [250, 250, 210, 255],
+  lightgray: [211, 211, 211, 255],
+  lightgreen: [144, 238, 144, 255],
+  lightgrey: [211, 211, 211, 255],
+  lightpink: [255, 182, 193, 255],
+  lightsalmon: [255, 160, 122, 255],
+  lightseagreen: [32, 178, 170, 255],
+  lightskyblue: [135, 206, 250, 255],
+  lightslategray: [119, 136, 153, 255],
+  lightslategrey: [119, 136, 153, 255],
+  lightsteelblue: [176, 196, 222, 255],
+  lightyellow: [255, 255, 224, 255],
+  lime: [0, 255, 0, 255],
+  limegreen: [50, 205, 50, 255],
+  linen: [250, 240, 230, 255],
+  magenta: [255, 0, 255, 255],
+  maroon: [128, 0, 0, 255],
+  mediumaquamarine: [102, 205, 170, 255],
+  mediumblue: [0, 0, 205, 255],
+  mediumorchid: [186, 85, 211, 255],
+  mediumpurple: [147, 112, 219, 255],
+  mediumseagreen: [60, 179, 113, 255],
+  mediumslateblue: [123, 104, 238, 255],
+  mediumspringgreen: [0, 250, 154, 255],
+  mediumturquoise: [72, 209, 204, 255],
+  mediumvioletred: [199, 21, 133, 255],
+  midnightblue: [25, 25, 112, 255],
+  mintcream: [245, 255, 250, 255],
+  mistyrose: [255, 228, 225, 255],
+  moccasin: [255, 228, 181, 255],
+  navajowhite: [255, 222, 173, 255],
+  navy: [0, 0, 128, 255],
+  none: [0, 0, 0, 0],
+  oldlace: [253, 245, 230, 255],
+  olive: [128, 128, 0, 255],
+  olivedrab: [107, 142, 35, 255],
+  orange: [255, 165, 0, 255],
+  orangered: [255, 69, 0, 255],
+  orchid: [218, 112, 214, 255],
+  palegoldenrod: [238, 232, 170, 255],
+  palegreen: [152, 251, 152, 255],
+  paleturquoise: [175, 238, 238, 255],
+  palevioletred: [219, 112, 147, 255],
+  papayawhip: [255, 239, 213, 255],
+  peachpuff: [255, 218, 185, 255],
+  peru: [205, 133, 63, 255],
+  pink: [255, 192, 203, 255],
+  plum: [221, 160, 221, 255],
+  powderblue: [176, 224, 230, 255],
+  purple: [128, 0, 128, 255],
+  rebeccapurple: [102, 51, 153, 255],
+  red: [255, 0, 0, 255],
+  rosybrown: [188, 143, 143, 255],
+  royalblue: [65, 105, 225, 255],
+  saddlebrown: [139, 69, 19, 255],
+  salmon: [250, 128, 114, 255],
+  sandybrown: [244, 164, 96, 255],
+  seagreen: [46, 139, 87, 255],
+  seashell: [255, 245, 238, 255],
+  sienna: [160, 82, 45, 255],
+  silver: [192, 192, 192, 255],
+  skyblue: [135, 206, 235, 255],
+  slateblue: [106, 90, 205, 255],
+  slategray: [112, 128, 144, 255],
+  slategrey: [112, 128, 144, 255],
+  snow: [255, 250, 250, 255],
+  springgreen: [0, 255, 127, 255],
+  steelblue: [70, 130, 180, 255],
+  tan: [210, 180, 140, 255],
+  teal: [0, 128, 128, 255],
+  thistle: [216, 191, 216, 255],
+  tomato: [255, 99, 71, 255],
+  transparent: [0, 0, 0, 0],
+  turquoise: [64, 224, 208, 255],
+  violet: [238, 130, 238, 255],
+  wheat: [245, 222, 179, 255],
+  white: [255, 255, 255, 255],
+  whitesmoke: [245, 245, 245, 255],
+  yellow: [255, 255, 0, 255],
+  yellowgreen: [154, 205, 50, 255]
+};
+
+function parseColor(raw: string): RgbaColor {
+  const s = raw.trim();
+  const low = s.toLowerCase();
+  if (X11_NAMED_COLORS[low]) {
+    const [r, g, b, a] = X11_NAMED_COLORS[low]!;
+    return { r, g, b, a };
+  }
+  const grayMatch = /^gr[ae]y(\d{1,3})$/.exec(low);
+  if (grayMatch) {
+    const v = Math.max(0, Math.min(255, Math.round((Number(grayMatch[1]) / 100) * 255)));
+    return { r: v, g: v, b: v, a: 255 };
+  }
+  if (/^#[0-9a-f]{12}$/i.test(s)) {
+    const r = Math.round((parseInt(s.slice(1, 5), 16) / 65535) * 255);
+    const g = Math.round((parseInt(s.slice(5, 9), 16) / 65535) * 255);
+    const b = Math.round((parseInt(s.slice(9, 13), 16) / 65535) * 255);
+    return { r, g, b, a: 255 };
+  }
+  if (/^#[0-9a-f]{16}$/i.test(s)) {
+    const r = Math.round((parseInt(s.slice(1, 5), 16) / 65535) * 255);
+    const g = Math.round((parseInt(s.slice(5, 9), 16) / 65535) * 255);
+    const b = Math.round((parseInt(s.slice(9, 13), 16) / 65535) * 255);
+    const a = Math.round((parseInt(s.slice(13, 17), 16) / 65535) * 255);
+    return { r, g, b, a };
+  }
+  const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?)\(\s*([^)]+)\s*\)$/i.exec(s);
+  if (fnMatch) {
+    const kind = fnMatch[1]!.toLowerCase();
+    const parts = fnMatch[2]!.split(/[\s,]+/).filter(Boolean);
+    const parseChanByte = (p: string | undefined, def = 0) => {
+      if (!p) return def;
+      if (p.endsWith("%")) {
+        return Math.max(0, Math.min(255, Math.round((parseFloat(p) / 100) * 255)));
+      }
+      return Math.max(0, Math.min(255, Math.round(parseFloat(p))));
+    };
+    const parseAlphaByte = (p: string | undefined) => {
+      if (!p) return 255;
+      if (p.endsWith("%")) {
+        return Math.max(0, Math.min(255, Math.round((parseFloat(p) / 100) * 255)));
+      }
+      const num = parseFloat(p);
+      return num <= 1 ? Math.max(0, Math.min(255, Math.round(num * 255))) : Math.max(0, Math.min(255, Math.round(num)));
+    };
+    if (kind.startsWith("gray") || kind.startsWith("grey")) {
+      const v = parseChanByte(parts[0], 0);
+      const a = parseAlphaByte(parts[1]);
+      return { r: v, g: v, b: v, a };
+    }
+    if (kind.startsWith("cmyk")) {
+      const parseUnit = (p: string | undefined) => {
+        if (!p) return 0;
+        if (p.endsWith("%")) return Math.max(0, Math.min(1, parseFloat(p) / 100));
+        const num = parseFloat(p);
+        return num <= 1 ? Math.max(0, Math.min(1, num)) : Math.max(0, Math.min(1, num / 255));
+      };
+      const c = parseUnit(parts[0]);
+      const m = parseUnit(parts[1]);
+      const y = parseUnit(parts[2]);
+      const k = parseUnit(parts[3]);
+      const a = parseAlphaByte(parts[4]);
+      return {
+        r: Math.round(255 * (1 - c) * (1 - k)),
+        g: Math.round(255 * (1 - m) * (1 - k)),
+        b: Math.round(255 * (1 - y) * (1 - k)),
+        a
+      };
+    }
+    const r = parseChanByte(parts[0], 0);
+    const g = parseChanByte(parts[1], 0);
+    const b = parseChanByte(parts[2], 0);
+    const a = parseAlphaByte(parts[3]);
+    return { r, g, b, a };
+  }
+  return baseParseColor(s);
+}
 
 export interface ImageMagickCommandOptions {
   readonly replace?: boolean;
@@ -121,6 +352,31 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
     hasOffset = true;
   }
 
+  while (s.length > 0) {
+    const last = s[s.length - 1]!;
+    if (last === "!") {
+      forceExact = true;
+      s = s.slice(0, -1);
+    } else if (last === ">") {
+      shrinkOnly = true;
+      s = s.slice(0, -1);
+    } else if (last === "<") {
+      enlargeOnly = true;
+      s = s.slice(0, -1);
+    } else if (last === "^") {
+      fillArea = true;
+      s = s.slice(0, -1);
+    } else if (last === "%") {
+      isPercent = true;
+      s = s.slice(0, -1);
+    } else if (last === "@") {
+      isArea = true;
+      s = s.slice(0, -1);
+    } else {
+      break;
+    }
+  }
+
   if (isArea) {
     if (s.includes("x") || s.includes("X")) {
       const [wStr, hStr] = s.split(/[xX]/);
@@ -155,7 +411,15 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   let width: number | undefined;
   let height: number | undefined;
   if (s.includes("x") || s.includes("X")) {
-    const [wStr, hStr] = s.split(/[xX]/);
+    let [wStr, hStr] = s.split(/[xX]/);
+    if (wStr?.endsWith("%")) {
+      isPercent = true;
+      wStr = wStr.slice(0, -1);
+    }
+    if (hStr?.endsWith("%")) {
+      isPercent = true;
+      hStr = hStr.slice(0, -1);
+    }
     if (wStr && wStr.length > 0) width = Number(wStr);
     if (hStr && hStr.length > 0) height = Number(hStr);
   } else if (s.length > 0) {
@@ -211,6 +475,7 @@ interface MagickState {
   fuzz: number;
   kernel: ResizeKernel;
   compose: BlendMode;
+  composeRaw: string;
   geometry: string | undefined;
   tile: string | undefined;
   strip: boolean;
@@ -237,6 +502,7 @@ function createDefaultState(): MagickState {
     fuzz: 10,
     kernel: "lanczos3",
     compose: "over",
+    composeRaw: "Over",
     geometry: undefined,
     tile: undefined,
     strip: false,
@@ -687,12 +953,20 @@ function createCheckerboardImage(width: number, height: number): RgbaImage {
   };
 }
 
-function applyMagickSplice(img: RgbaImage, geomStr: string, bg: RgbaColor): RgbaImage {
+function applyMagickSplice(
+  img: RgbaImage,
+  geomStr: string,
+  bg: RgbaColor,
+  gravity: GravityPosition = "northwest"
+): RgbaImage {
   const g = parseMagickGeometry(geomStr);
   const sw = Math.max(0, Math.round(g.width ?? 0));
   const sh = Math.max(0, Math.round(g.height ?? 0));
-  const sx = Math.max(0, Math.min(img.width, Math.round(g.x)));
-  const sy = Math.max(0, Math.min(img.height, Math.round(g.y)));
+  const base = resolveGravityOffset(img.width, img.height, gravity);
+  const isEast = gravity === "east" || gravity === "northeast" || gravity === "southeast";
+  const isSouth = gravity === "south" || gravity === "southwest" || gravity === "southeast";
+  const sx = Math.max(0, Math.min(img.width, Math.round(base.left + (isEast ? -g.x : g.x))));
+  const sy = Math.max(0, Math.min(img.height, Math.round(base.top + (isSouth ? -g.y : g.y))));
   const outW = img.width + sw;
   const outH = img.height + sh;
   const out = new Uint8Array(outW * outH * 4);
@@ -719,12 +993,19 @@ function applyMagickSplice(img: RgbaImage, geomStr: string, bg: RgbaColor): Rgba
   return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
 }
 
-function applyMagickChop(img: RgbaImage, geomStr: string): RgbaImage {
+function applyMagickChop(
+  img: RgbaImage,
+  geomStr: string,
+  gravity: GravityPosition = "northwest"
+): RgbaImage {
   const g = parseMagickGeometry(geomStr);
   const cw = Math.max(0, Math.round(g.width ?? 0));
   const ch = Math.max(0, Math.round(g.height ?? 0));
-  const cx = Math.max(0, Math.round(g.x));
-  const cy = Math.max(0, Math.round(g.y));
+  const base = resolveGravityOffset(img.width - cw, img.height - ch, gravity);
+  const isEast = gravity === "east" || gravity === "northeast" || gravity === "southeast";
+  const isSouth = gravity === "south" || gravity === "southwest" || gravity === "southeast";
+  const cx = Math.max(0, Math.round(base.left + (isEast ? -g.x : g.x)));
+  const cy = Math.max(0, Math.round(base.top + (isSouth ? -g.y : g.y)));
   const outW = Math.max(1, img.width - Math.min(cw, Math.max(0, img.width - cx)));
   const outH = Math.max(1, img.height - Math.min(ch, Math.max(0, img.height - cy)));
   const out = new Uint8Array(outW * outH * 4);
@@ -1060,9 +1341,28 @@ function sampleFxImage(
   const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
   const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
   const idx = (cy * img.width + cx) * 4;
+  const r = img.data[idx]! / 255;
+  const g = img.data[idx + 1]! / 255;
+  const b = img.data[idx + 2]! / 255;
   if (ch === 4) {
-    // intensity / luma
-    return (0.299 * img.data[idx]! + 0.587 * img.data[idx + 1]! + 0.114 * img.data[idx + 2]!) / 255;
+    // Rec.709 intensity / luma
+    return 0.212656 * r + 0.715158 * g + 0.072186 * b;
+  }
+  if (ch === 5 || ch === 6 || ch === 7) {
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    if (ch === 7) return l;
+    const d = max - min;
+    if (d < 1e-7) return 0;
+    if (ch === 6) {
+      return l > 0.5 ? d / Math.max(1e-7, 2 - max - min) : d / Math.max(1e-7, max + min);
+    }
+    let h = 0;
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    return h / 6;
   }
   return img.data[idx + (ch & 3)]! / 255;
 }
@@ -1073,7 +1373,10 @@ function propToChannel(prop: string, defaultCh: number): number {
   if (p === "g" || p === "green") return 1;
   if (p === "b" || p === "blue") return 2;
   if (p === "a" || p === "alpha" || p === "opacity") return 3;
-  if (p === "intensity" || p === "luma" || p === "lightness") return 4;
+  if (p === "intensity" || p === "luma" || p === "luminance") return 4;
+  if (p === "hue") return 5;
+  if (p === "saturation") return 6;
+  if (p === "lightness") return 7;
   return defaultCh;
 }
 
@@ -1329,6 +1632,12 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
               return Math.atan(a0);
             case "atan2":
               return Math.atan2(a0, a1);
+            case "sinh":
+              return Math.sinh(a0);
+            case "cosh":
+              return Math.cosh(a0);
+            case "tanh":
+              return Math.tanh(a0);
             case "sqrt":
               return Math.sqrt(Math.max(0, a0));
             case "pow":
@@ -1336,6 +1645,7 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
             case "exp":
               return Math.exp(a0);
             case "log":
+            case "log10":
               return Math.log10(Math.max(1e-12, a0));
             case "ln":
               return Math.log(Math.max(1e-12, a0));
@@ -1352,6 +1662,7 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
             case "round":
               return Math.round(a0);
             case "int":
+            case "trunc":
               return Math.trunc(a0);
             case "sign":
               return Math.sign(a0);
@@ -1361,6 +1672,8 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
               return a1 === 0 ? 0 : a0 % a1;
             case "clamp":
               return Math.max(a1, Math.min(a2, a0));
+            case "if":
+              return a0 !== 0 ? a1 : a2;
             case "rand":
               return 0.5;
             default:
@@ -1414,7 +1727,9 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
         if (name === "pi") return Math.PI;
         if (name === "e") return Math.E;
 
-        const targetIdx = imgIndex ? Math.round(imgIndex(ctx)) : name === "v" ? 1 : 0;
+        const rawIdx = imgIndex ? Math.round(imgIndex(ctx)) : name === "v" ? 1 : 0;
+        const len = Math.max(1, ctx.stack.length);
+        const targetIdx = rawIdx < 0 ? ((rawIdx % len) + len) % len : rawIdx;
         const targetImg = ctx.stack[targetIdx] ?? ctx.stack[0];
         if (propName === "w") return targetImg?.width ?? ctx.w;
         if (propName === "h") return targetImg?.height ?? ctx.h;
@@ -1426,9 +1741,12 @@ function compileSingleFxExpr(src: string): (ctx: FxEvalContext) => number {
         if (name === "g" || name === "green") return sampleFxImage(targetImg, px, py, 1);
         if (name === "b" || name === "blue") return sampleFxImage(targetImg, px, py, 2);
         if (name === "a" || name === "alpha" || name === "opacity") return sampleFxImage(targetImg, px, py, 3);
-        if (name === "intensity" || name === "luma" || name === "lightness") {
+        if (name === "intensity" || name === "luma" || name === "luminance") {
           return sampleFxImage(targetImg, px, py, 4);
         }
+        if (name === "hue") return sampleFxImage(targetImg, px, py, 5);
+        if (name === "saturation") return sampleFxImage(targetImg, px, py, 6);
+        if (name === "lightness") return sampleFxImage(targetImg, px, py, 7);
 
         const ch = propName ? propToChannel(propName, ctx.ch) : ctx.ch;
         return sampleFxImage(targetImg, px, py, ch);
@@ -1982,6 +2300,7 @@ function parseCompose(raw: string): BlendMode {
   switch (norm) {
     case "clear":
       return "clear";
+    case "src":
     case "source":
     case "copy":
       return "source";
@@ -2045,6 +2364,191 @@ function parseCompose(raw: string): BlendMode {
     default:
       return "over";
   }
+}
+
+function applyMagickCompositeLayer(
+  dst: RgbaImage,
+  src: RgbaImage,
+  modeRaw: string,
+  left: number,
+  top: number
+): RgbaImage {
+  const norm = modeRaw.toLowerCase().replace(/[-_\s]/g, "");
+  const out = new Uint8Array(dst.data);
+  const dw = dst.width;
+  const dh = dst.height;
+  const sw = src.width;
+  const sh = src.height;
+
+  for (let sy = 0; sy < sh; sy++) {
+    const dy = top + sy;
+    if (dy < 0 || dy >= dh) continue;
+    for (let sx = 0; sx < sw; sx++) {
+      const dx = left + sx;
+      if (dx < 0 || dx >= dw) continue;
+      const sIdx = (sy * sw + sx) * 4;
+      const dIdx = (dy * dw + dx) * 4;
+      const sr = src.data[sIdx]!;
+      const sg = src.data[sIdx + 1]!;
+      const sb = src.data[sIdx + 2]!;
+      const saByte = src.data[sIdx + 3]!;
+      const dr = dst.data[dIdx]!;
+      const dg = dst.data[dIdx + 1]!;
+      const db = dst.data[dIdx + 2]!;
+      const daByte = dst.data[dIdx + 3]!;
+      const sa = saByte / 255;
+      const da = daByte / 255;
+
+      if (norm === "src" || norm === "source" || norm === "copy") {
+        out[dIdx] = sr;
+        out[dIdx + 1] = sg;
+        out[dIdx + 2] = sb;
+        out[dIdx + 3] = saByte;
+        continue;
+      }
+      if (norm === "dst" || norm === "dest") {
+        continue;
+      }
+      if (norm === "clear") {
+        out[dIdx] = 0;
+        out[dIdx + 1] = 0;
+        out[dIdx + 2] = 0;
+        out[dIdx + 3] = 0;
+        continue;
+      }
+      if (norm === "copyopacity" || norm === "copyalpha") {
+        out[dIdx + 3] = saByte;
+        continue;
+      }
+      if (norm === "copyred") {
+        out[dIdx] = sr;
+        continue;
+      }
+      if (norm === "copygreen") {
+        out[dIdx + 1] = sg;
+        continue;
+      }
+      if (norm === "copyblue") {
+        out[dIdx + 2] = sb;
+        continue;
+      }
+      if (norm === "difference") {
+        out[dIdx] = Math.abs(sr - dr);
+        out[dIdx + 1] = Math.abs(sg - dg);
+        out[dIdx + 2] = Math.abs(sb - db);
+        out[dIdx + 3] = Math.abs(saByte - daByte);
+        continue;
+      }
+      if (norm === "in" || norm === "srcin") {
+        const factor = sa * da;
+        out[dIdx] = clampByteVal(sr * factor);
+        out[dIdx + 1] = clampByteVal(sg * factor);
+        out[dIdx + 2] = clampByteVal(sb * factor);
+        out[dIdx + 3] = clampByteVal(factor * 255);
+        continue;
+      }
+      if (norm === "out" || norm === "srcout") {
+        const factor = sa * (1 - da);
+        out[dIdx] = clampByteVal(sr * factor);
+        out[dIdx + 1] = clampByteVal(sg * factor);
+        out[dIdx + 2] = clampByteVal(sb * factor);
+        out[dIdx + 3] = clampByteVal(factor * 255);
+        continue;
+      }
+      if (norm === "dstin" || norm === "destin") {
+        const factor = sa * da;
+        out[dIdx] = dr;
+        out[dIdx + 1] = dg;
+        out[dIdx + 2] = db;
+        out[dIdx + 3] = clampByteVal(factor * 255);
+        continue;
+      }
+      if (norm === "dstout" || norm === "destout") {
+        const factor = da * (1 - sa);
+        out[dIdx] = dr;
+        out[dIdx + 1] = dg;
+        out[dIdx + 2] = db;
+        out[dIdx + 3] = clampByteVal(factor * 255);
+        continue;
+      }
+      if (norm === "atop" || norm === "srcatop") {
+        out[dIdx] = clampByteVal(sr * sa * da + dr * da * (1 - sa));
+        out[dIdx + 1] = clampByteVal(sg * sa * da + dg * da * (1 - sa));
+        out[dIdx + 2] = clampByteVal(sb * sa * da + db * da * (1 - sa));
+        out[dIdx + 3] = daByte;
+        continue;
+      }
+      if (norm === "dstatop" || norm === "destatop") {
+        out[dIdx] = clampByteVal(dr * da * sa + sr * sa * (1 - da));
+        out[dIdx + 1] = clampByteVal(dg * da * sa + sg * sa * (1 - da));
+        out[dIdx + 2] = clampByteVal(db * da * sa + sb * sa * (1 - da));
+        out[dIdx + 3] = saByte;
+        continue;
+      }
+      if (norm === "xor") {
+        const outA = sa * (1 - da) + da * (1 - sa);
+        out[dIdx] = clampByteVal(sr * sa * (1 - da) + dr * da * (1 - sa));
+        out[dIdx + 1] = clampByteVal(sg * sa * (1 - da) + dg * da * (1 - sa));
+        out[dIdx + 2] = clampByteVal(sb * sa * (1 - da) + db * da * (1 - sa));
+        out[dIdx + 3] = clampByteVal(outA * 255);
+        continue;
+      }
+      if (
+        norm === "multiply" ||
+        norm === "screen" ||
+        norm === "overlay" ||
+        norm === "darken" ||
+        norm === "lighten" ||
+        norm === "exclusion"
+      ) {
+        const gamma = sa + da - sa * da;
+        const sChan = [sr / 255, sg / 255, sb / 255];
+        const dChan = [dr / 255, dg / 255, db / 255];
+        for (let c = 0; c < 3; c++) {
+          const sc = sChan[c]!;
+          const dc = dChan[c]!;
+          if (norm === "darken") {
+            const comp = Math.min(sc * sa, dc * da) + sc * sa * (1 - da) + dc * da * (1 - sa);
+            out[dIdx + c] = clampByteVal(comp * 255);
+          } else if (norm === "lighten") {
+            const comp = Math.max(sc, dc) * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
+            out[dIdx + c] = clampByteVal(comp * 255);
+          } else if (norm === "exclusion") {
+            const comp = gamma * (sc * sa + dc - 2 * sc * dc * sa);
+            out[dIdx + c] = clampByteVal(comp * 255);
+          } else {
+            let f = 0;
+            if (norm === "multiply") f = sc * dc;
+            else if (norm === "screen") f = sc + dc - sc * dc;
+            else f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
+            const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
+            const unpremul = gamma > 1e-6 && norm === "overlay" ? comp / gamma : comp;
+            out[dIdx + c] = clampByteVal(unpremul * 255);
+          }
+        }
+        out[dIdx + 3] = clampByteVal(gamma * 255);
+        continue;
+      }
+    }
+  }
+
+  if (
+    norm === "over" ||
+    norm === "srcover" ||
+    norm === "dstover" ||
+    norm === "destover" ||
+    norm === "plus" ||
+    norm === "add" ||
+    norm === "lineardodge" ||
+    norm === "colordodge" ||
+    norm === "colorburn" ||
+    norm === "hardlight" ||
+    norm === "softlight" ||
+    norm === "saturate"
+  ) {
+    return compositeImage(dst, [rgbaToCompositeLayer(src, left, top, parseCompose(modeRaw))]);
+  }
+  return { ...dst, data: out, hasAlpha: true };
 }
 
 function rgbaToCss(c: RgbaColor): string {
@@ -2201,15 +2705,15 @@ function applyMagickCropToStack(
   if (g.isSubdivide) {
     const cols = Math.max(1, Math.round(g.width ?? 1));
     const rows = Math.max(1, Math.round(g.height ?? 1));
-    const tileW = Math.max(1, Math.floor(img.width / cols));
-    const tileH = Math.max(1, Math.floor(img.height / rows));
     const tiles: RgbaImage[] = [];
     for (let r = 0; r < rows; r++) {
+      const top = Math.min(img.height - 1, Math.round((r * img.height) / rows));
+      const nextTop = Math.max(top + 1, Math.min(img.height, Math.round(((r + 1) * img.height) / rows)));
+      const h = nextTop - top;
       for (let c = 0; c < cols; c++) {
-        const left = Math.min(img.width - 1, c * tileW);
-        const top = Math.min(img.height - 1, r * tileH);
-        const w = c === cols - 1 ? Math.max(1, img.width - left) : Math.max(1, Math.min(tileW, img.width - left));
-        const h = r === rows - 1 ? Math.max(1, img.height - top) : Math.max(1, Math.min(tileH, img.height - top));
+        const left = Math.min(img.width - 1, Math.round((c * img.width) / cols));
+        const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * img.width) / cols)));
+        const w = nextLeft - left;
         tiles.push(extractImage(img, { left, top, width: w, height: h }));
       }
     }
@@ -2226,14 +2730,27 @@ function applyMagickCropToStack(
   let top = g.y;
   if (!g.hasOffset || gravity !== "northwest") {
     const base = resolveGravityOffset(img.width - cropW, img.height - cropH, gravity);
-    left = base.left + g.x;
-    top = base.top + g.y;
+    const isEast = gravity === "east" || gravity === "northeast" || gravity === "southeast";
+    const isSouth = gravity === "south" || gravity === "southwest" || gravity === "southeast";
+    left = base.left + (isEast ? -g.x : g.x);
+    top = base.top + (isSouth ? -g.y : g.y);
   }
-  const clampedLeft = Math.max(0, Math.min(img.width - 1, Math.round(left)));
-  const clampedTop = Math.max(0, Math.min(img.height - 1, Math.round(top)));
-  const finalW = Math.max(1, Math.min(cropW, img.width - clampedLeft));
-  const finalH = Math.max(1, Math.min(cropH, img.height - clampedTop));
-  return [extractImage(img, { left: clampedLeft, top: clampedTop, width: finalW, height: finalH })];
+  const x0 = Math.round(left);
+  const y0 = Math.round(top);
+  const x1 = x0 + cropW;
+  const y1 = y0 + cropH;
+  const clampedLeft = Math.max(0, Math.min(img.width - 1, x0));
+  const clampedTop = Math.max(0, Math.min(img.height - 1, y0));
+  const clampedRight = Math.max(clampedLeft + 1, Math.min(img.width, x1));
+  const clampedBottom = Math.max(clampedTop + 1, Math.min(img.height, y1));
+  return [
+    extractImage(img, {
+      left: clampedLeft,
+      top: clampedTop,
+      width: clampedRight - clampedLeft,
+      height: clampedBottom - clampedTop
+    })
+  ];
 }
 
 function applyMagickExtent(img: RgbaImage, geomStr: string, state: MagickState): RgbaImage {
@@ -2242,9 +2759,24 @@ function applyMagickExtent(img: RgbaImage, geomStr: string, state: MagickState):
   const targetH = Math.max(1, Math.round(g.height ?? img.height));
   const canvas = createSolidRgbaImage(targetW, targetH, state.background);
   const offset = resolveGravityOffset(targetW - img.width, targetH - img.height, state.gravity);
-  const left = offset.left + g.x;
-  const top = offset.top + g.y;
-  return compositeImage(canvas, [rgbaToCompositeLayer(img, left, top, "over")]);
+  const isEast = state.gravity === "east" || state.gravity === "northeast" || state.gravity === "southeast";
+  const isSouth = state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast";
+  const left = Math.round(offset.left - (isEast ? -g.x : g.x));
+  const top = Math.round(offset.top - (isSouth ? -g.y : g.y));
+  const dstX0 = Math.max(0, left);
+  const dstY0 = Math.max(0, top);
+  const dstX1 = Math.min(targetW, left + img.width);
+  const dstY1 = Math.min(targetH, top + img.height);
+  if (dstX1 <= dstX0 || dstY1 <= dstY0) {
+    return canvas;
+  }
+  const subImg = extractImage(img, {
+    left: dstX0 - left,
+    top: dstY0 - top,
+    width: dstX1 - dstX0,
+    height: dstY1 - dstY0
+  });
+  return compositeImage(canvas, [rgbaToCompositeLayer(subImg, dstX0, dstY0, "over")]);
 }
 
 function applyMagickDraw(img: RgbaImage, drawCmd: string, state: MagickState): RgbaImage {
@@ -2774,6 +3306,8 @@ function evaluatePipelineTokens(
       state.pointsize = Math.max(1, Number(tokens[++i] ?? 12));
     } else if (t === "-gravity") {
       state.gravity = parseGravity(tokens[++i] ?? "center");
+    } else if (t === "+gravity") {
+      state.gravity = "northwest";
     } else if (t === "-quality") {
       state.quality = Math.max(1, Math.min(100, Number(tokens[++i] ?? 92)));
     } else if (t === "-density") {
@@ -2787,7 +3321,9 @@ function evaluatePipelineTokens(
     } else if (t === "-filter") {
       state.kernel = parseKernel(tokens[++i] ?? "lanczos");
     } else if (t === "-compose") {
-      state.compose = parseCompose(tokens[++i] ?? "over");
+      const cRaw = tokens[++i] ?? "over";
+      state.composeRaw = cRaw;
+      state.compose = parseCompose(cRaw);
     } else if (t === "-geometry") {
       state.geometry = tokens[++i] ?? "+0+0";
     } else if (t === "-tile") {
@@ -2806,10 +3342,10 @@ function evaluatePipelineTokens(
       // Coalesces frames in-place
     } else if (t === "-splice") {
       const geom = tokens[++i] ?? "0x0";
-      stack = stack.map((im) => applyMagickSplice(im, geom, state.background));
+      stack = stack.map((im) => applyMagickSplice(im, geom, state.background, state.gravity));
     } else if (t === "-chop") {
       const geom = tokens[++i] ?? "0x0";
-      stack = stack.map((im) => applyMagickChop(im, geom));
+      stack = stack.map((im) => applyMagickChop(im, geom, state.gravity));
     } else if (t === "-roll") {
       const geom = tokens[++i] ?? "+0+0";
       stack = stack.map((im) => applyMagickRoll(im, geom));
@@ -3020,23 +3556,64 @@ function evaluatePipelineTokens(
     } else if (t === "-normalize" || t === "-auto-level" || t === "-contrast-stretch") {
       if (t === "-contrast-stretch") i++;
       stack = stack.map((im) => normalizeImage(im));
-    } else if (t === "-level") {
+    } else if (t === "-level" || t === "+level") {
       const raw = tokens[++i] ?? "0,100%";
-      const isPct = raw.endsWith("%");
-      const clean = raw.replace(/%/g, "");
-      const [bStr, wStr] = clean.split(",");
-      const black = isPct ? (Number(bStr ?? 0) / 100) * 255 : Number(bStr ?? 0);
-      const white = isPct ? (Number(wStr ?? 100) / 100) * 255 : Number(wStr ?? 255);
-      const span = Math.max(1, white - black);
-      const slope = 255 / span;
-      const offset = -black * slope;
-      stack = stack.map((im) => linearImage(im, [slope, slope, slope], [offset, offset, offset]));
+      const parts = raw.split(",");
+      const anyPct = raw.includes("%");
+      const parsePt = (p: string | undefined, def: number) => {
+        if (!p || p.length === 0) return def;
+        if (p.endsWith("%") || anyPct) {
+          return (parseFloat(p) / 100) * 255;
+        }
+        return parseFloat(p);
+      };
+      const black = parsePt(parts[0], 0);
+      const white = parsePt(parts[1], 255);
+      const gamma = parts[2] !== undefined ? Math.max(0.01, parseFloat(parts[2])) : 1.0;
+      const inverse = t === "+level";
+      stack = stack.map((im) => {
+        const out = new Uint8Array(im.data);
+        const span = Math.max(1e-6, white - black);
+        for (let idx = 0; idx < out.length; idx += 4) {
+          for (let c = 0; c < 3; c++) {
+            const v = out[idx + c]!;
+            if (inverse) {
+              const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), 1 / gamma);
+              out[idx + c] = clampByteVal(black + gVal * span);
+            } else {
+              const norm = Math.max(0, Math.min(1, (v - black) / span));
+              out[idx + c] = clampByteVal(Math.pow(norm, 1 / gamma) * 255);
+            }
+          }
+        }
+        return { ...im, data: out };
+      });
     } else if (t === "-threshold") {
       const raw = tokens[++i] ?? "50%";
       const val = raw.endsWith("%")
         ? Math.round((parseFloat(raw) / 100) * 255)
         : Math.round(parseFloat(raw));
       stack = stack.map((im) => thresholdImage(im, val, true));
+    } else if (t === "-black-threshold" || t === "-white-threshold") {
+      const raw = tokens[++i] ?? "50%";
+      const thresh = raw.endsWith("%") ? (parseFloat(raw) / 100) * 255 : parseFloat(raw);
+      const isBlack = t === "-black-threshold";
+      stack = stack.map((im) => {
+        const out = new Uint8Array(im.data);
+        for (let idx = 0; idx < out.length; idx += 4) {
+          const intensity = 0.212656 * out[idx]! + 0.715158 * out[idx + 1]! + 0.072186 * out[idx + 2]!;
+          if (isBlack && intensity <= thresh) {
+            out[idx] = 0;
+            out[idx + 1] = 0;
+            out[idx + 2] = 0;
+          } else if (!isBlack && intensity > thresh) {
+            out[idx] = 255;
+            out[idx + 1] = 255;
+            out[idx + 2] = 255;
+          }
+        }
+        return { ...im, data: out };
+      });
     } else if (t === "-tint" || t === "-colorize") {
       i++;
       stack = stack.map((im) => tintImage(im, state.fill));
@@ -3111,6 +3688,20 @@ function evaluatePipelineTokens(
         const chosen = sourcePool[resolved];
         if (chosen) stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
       }
+    } else if (t === "-duplicate") {
+      const nextTok = tokens[i + 1];
+      let count = 1;
+      if (nextTok && /^\d+/.test(nextTok)) {
+        count = Math.max(0, parseInt(nextTok, 10));
+        i++;
+      }
+      const sourcePool = stack.length > 0 ? stack : parentStack;
+      const last = sourcePool[sourcePool.length - 1];
+      if (last) {
+        for (let k = 0; k < count; k++) {
+          stack.push({ ...last, data: new Uint8Array(last.data) });
+        }
+      }
     } else if (t === "+swap" || t === "-swap") {
       let i1 = stack.length - 2;
       let i2 = stack.length - 1;
@@ -3162,9 +3753,7 @@ function evaluatePipelineTokens(
           gy = g.y;
         }
         const grav = resolveGravityOffset(base.width - overlay.width, base.height - overlay.height, state.gravity);
-        const composed = compositeImage(base, [
-          rgbaToCompositeLayer(overlay, grav.left + gx, grav.top + gy, state.compose)
-        ]);
+        const composed = applyMagickCompositeLayer(base, overlay, state.composeRaw, grav.left + gx, grav.top + gy);
         stack = [composed, ...stack.slice(2)];
       }
     } else {
@@ -3568,7 +4157,13 @@ export async function runCompareCli(
       const dg = Math.abs(gA - gB);
       const db = Math.abs(bA - bB);
       const da = Math.abs(aA - aB);
-      const maxDelta = Math.max(dr, dg, db, da);
+      const alphaA = aA / 255;
+      const alphaB = aB / 255;
+      const pdr = Math.abs(rA * alphaA - rB * alphaB);
+      const pdg = Math.abs(gA * alphaA - gB * alphaB);
+      const pdb = Math.abs(bA * alphaA - bB * alphaB);
+      const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
+      const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
 
       if (!inBoundsA || !inBoundsB || maxDelta > state.fuzz) {
         aeCount++;
@@ -3593,8 +4188,13 @@ export async function runCompareCli(
         diffData[outOff + 3] = 255;
       }
 
-      sumAbs += dr + dg + db;
-      sumSq += dr * dr + dg * dg + db * db;
+      if (hasAlpha) {
+        sumAbs += pdr + pdg + pdb + da;
+        sumSq += pdr * pdr + pdg * pdg + pdb * pdb + da * da;
+      } else {
+        sumAbs += dr + dg + db;
+        sumSq += dr * dr + dg * dg + db * db;
+      }
       if (maxDelta > maxAbs) maxAbs = maxDelta;
 
       const lA = (0.299 * rA + 0.587 * gA + 0.114 * bA) / 255;
@@ -3606,8 +4206,9 @@ export async function runCompareCli(
     }
   }
 
-  const maeNorm = sumAbs / (totalPixels * 3 * 255);
-  const mseNorm = sumSq / (totalPixels * 3 * 255 * 255);
+  const numCh = imgA.hasAlpha || imgB.hasAlpha ? 4 : 3;
+  const maeNorm = sumAbs / (totalPixels * numCh * 255);
+  const mseNorm = sumSq / (totalPixels * numCh * 255 * 255);
   const rmseNorm = Math.sqrt(mseNorm);
   const paeNorm = maxAbs / 255;
 

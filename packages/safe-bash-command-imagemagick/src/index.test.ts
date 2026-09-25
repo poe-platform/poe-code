@@ -751,4 +751,104 @@ describe("safe-bash-command-imagemagick", () => {
     expect(histRes.stdout).toContain("16:");
     expect(histRes.stdout.toUpperCase()).toContain("#ABCDEF");
   });
+
+  it("matches native ImageMagick 7 differential behavior for gravity offsets, 16-bit/CMYK/X11 colors, -level/+level gamma, -fx HSL/Rec709, -duplicate, and 22 -compose blend modes", async () => {
+    const files = new Map<string, Uint8Array>();
+
+    // 1. 16-bit hex, CMYK, gray(50%), percentage RGB, and X11 named colors
+    await runMagickCli(["-size", "4x4", "xc:#ffff80804040", "/c16.png"], files);
+    const c16 = await sharp(files.get("/c16.png")!).raw().toBuffer();
+    expect(c16[0]).toBe(255);
+    expect(c16[1]).toBe(128);
+    expect(c16[2]).toBe(64);
+
+    await runMagickCli(["-size", "4x4", "xc:cmyk(100%,0%,100%,0%)", "/cmyk.png"], files);
+    const cmyk = await sharp(files.get("/cmyk.png")!).raw().toBuffer();
+    expect(cmyk[0]).toBe(0);
+    expect(cmyk[1]).toBe(255);
+    expect(cmyk[2]).toBe(0);
+
+    await runMagickCli(["-size", "4x4", "xc:crimson", "/crimson.png"], files);
+    const crim = await sharp(files.get("/crimson.png")!).raw().toBuffer();
+    expect(crim[0]).toBe(220);
+    expect(crim[1]).toBe(20);
+    expect(crim[2]).toBe(60);
+
+    // 2. Shrinking -extent, negative-offset -crop, SouthEast gravity -crop/-chop/-splice, and -duplicate
+    await runMagickCli(
+      [
+        "-size",
+        "60x40",
+        "xc:#204080",
+        "-gravity",
+        "Center",
+        "-extent",
+        "30x20",
+        "+gravity",
+        "-crop",
+        "20x15-5-5",
+        "-duplicate",
+        "2",
+        "+append",
+        "/geom.png"
+      ],
+      files
+    );
+    const geomMeta = await sharp(files.get("/geom.png")!).metadata();
+    expect(geomMeta.width).toBe(45); // 15 * 3
+    expect(geomMeta.height).toBe(10);
+
+    // 3. -level with gamma, +level inverse, and -black-threshold intensity
+    await runMagickCli(
+      [
+        "-size",
+        "4x4",
+        "xc:rgb(100,150,200)",
+        "-level",
+        "10%,90%,2.0",
+        "/lvl.png"
+      ],
+      files
+    );
+    const lvlRaw = await sharp(files.get("/lvl.png")!).raw().toBuffer();
+    expect(lvlRaw[0]).toBeCloseTo(154, 1);
+    expect(lvlRaw[1]).toBeCloseTo(199, 1);
+    expect(lvlRaw[2]).toBeCloseTo(236, 1);
+
+    // 4. -fx Rec.709 intensity, hue, saturation, lightness, u[-1], trunc, and if()
+    await runMagickCli(
+      [
+        "-size",
+        "4x4",
+        "xc:rgb(255,64,32)",
+        "xc:rgb(0,128,64)",
+        "-fx",
+        "if(u[-1].g > 0.4, u.intensity, u.lightness)",
+        "/fx-rec.png"
+      ],
+      files
+    );
+    const fxRec = await sharp(files.get("/fx-rec.png")!).raw().toBuffer();
+    expect(fxRec[0]).toBeCloseTo(102, 1);
+
+    // 5. -compose CopyOpacity, CopyRed, Difference, Overlay, Exclusion, Darken, Lighten
+    await runMagickCli(
+      [
+        "-size",
+        "8x8",
+        "xc:rgba(200,100,50,0.8)",
+        "xc:rgba(50,150,250,0.6)",
+        "-compose",
+        "CopyOpacity",
+        "-composite",
+        "/copyop.png"
+      ],
+      files
+    );
+    const copyOp = await sharp(files.get("/copyop.png")!).ensureAlpha().raw().toBuffer();
+    expect(copyOp[0]).toBe(200);
+    expect(copyOp[1]).toBe(100);
+    expect(copyOp[2]).toBe(50);
+    expect(copyOp[3]).toBe(153);
+  });
 });

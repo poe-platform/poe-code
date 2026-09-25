@@ -58,11 +58,19 @@ test("sort checkpoints continue after numeric descriptors are fully warmed", asy
     for (const reason of [false, null]) {
       const controller = new AbortController();
       const probe = sortProbe(args, stdin, controller.signal, await fixture());
-      const from = testContext.mock.method(Buffer, "from");
+      const cachedRecords = new Set<Uint8Array>();
+      let insertions = 0;
+      const set = Map.prototype.set;
+      const cache = testContext.mock.method(Map.prototype, "set", function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
+        if (key instanceof Uint8Array && value !== null && typeof value === "object" && "whole" in value && "fraction" in value && "suffixRank" in value) {
+          cachedRecords.add(key);
+          insertions++;
+        }
+        return set.call(this, key, value);
+      });
       let warmed = false;
       registerYieldCheckpoint(controller.signal, () => {
-        const parsed = from.mock.calls.filter(call => call.arguments[0] instanceof Uint8Array);
-        if (parsed.length === 256) {
+        if (cachedRecords.size === 256) {
           warmed = true;
           queueMicrotask(() => controller.abort(reason));
         }
@@ -70,10 +78,11 @@ test("sort checkpoints continue after numeric descriptors are fully warmed", asy
       try {
         await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute(probe.context)), failure => failure === reason);
         assert.equal(warmed, true);
-        assert.equal(from.mock.calls.filter(call => call.arguments[0] instanceof Uint8Array).length, 256);
+        assert.equal(cachedRecords.size, 256);
+        assert.equal(insertions, 256);
         assert.equal(probe.stdout.length, 0);
         assert.equal(probe.stderr.length, 0);
-      } finally { from.mock.restore(); }
+      } finally { cache.mock.restore(); }
     }
   }
 });

@@ -265,8 +265,8 @@ test("sort comparison and numeric parsing paths preserve queued cancellation", a
   }
 });
 
-for (const key of ["1,1h", "1,1n", "1,1hr"]) {
-  for (const longSide of ["left", "right"]) test(`sort key ${key} awaits the original ${longSide} numeric-key checkpoint`, async () => {
+for (const args of [["-h"], ["-n"], ["-k", "1,1"], ["-k", "1,1h"], ["-k", "1,1n"], ["-k", "1,1hr"]]) {
+  for (const longSide of ["left", "right"]) test(`sort ${args.join(" ")} awaits the original ${longSide} key checkpoint`, async () => {
     for (const reason of [false, null]) {
       const controller = new AbortController();
       const fs = await fixture({ kept: "unchanged" });
@@ -274,23 +274,31 @@ for (const key of ["1,1h", "1,1n", "1,1hr"]) {
       const stdin = longSide === "left" ? `${long}\n2M\n` : `2M\n${long}\n`;
       let checkpoints = 0;
       registerYieldCheckpoint(controller.signal, () => { checkpoints++; scheduleTurn(() => controller.abort(reason)); });
-      await assert.rejects(run("sort", ["-k", key, "-o", "kept"], { fs, stdin, signal: controller.signal }), error => error === reason);
+      await assert.rejects(run("sort", [...args, "-o", "kept"], { fs, stdin, signal: controller.signal }), error => error === reason);
       assert.equal(checkpoints, 1);
       assert.equal(Buffer.from(await fs.readFile("/work/kept")).toString(), "unchanged");
     }
   });
 }
 
-test("sort human numeric warmed descriptors keep yielding without reparsing retained keys", async testContext => {
+test("sort human numeric warmed descriptors keep yielding without replacing cached keys", async testContext => {
   const stdin = Array.from({ length: 128 }, (_, index) => `${String(index * 73 % 128).padStart(3, "0")}K`).join("\n") + "\n";
   for (const args of [["-h"], ["-k1,1h"]]) {
     const controller = new AbortController();
     const reason = new Error("cancel warmed human keys");
-    const from = testContext.mock.method(Buffer, "from");
+    const cachedRecords = new Set<Uint8Array>();
+    let insertions = 0;
+    const set = Map.prototype.set;
+    const cache = testContext.mock.method(Map.prototype, "set", function(this: Map<unknown, unknown>, key: unknown, value: unknown) {
+      if (key instanceof Uint8Array && value !== null && typeof value === "object" && "whole" in value && "fraction" in value && "suffixRank" in value) {
+        cachedRecords.add(key);
+        insertions++;
+      }
+      return set.call(this, key, value);
+    });
     let warmed = false;
     registerYieldCheckpoint(controller.signal, () => {
-      const parsed = from.mock.calls.filter(call => call.arguments[0] instanceof Uint8Array);
-      if (parsed.length === 128) {
+      if (cachedRecords.size === 128) {
         warmed = true;
         queueMicrotask(() => controller.abort(reason));
       }
@@ -298,7 +306,8 @@ test("sort human numeric warmed descriptors keep yielding without reparsing reta
     try {
       await assert.rejects(run("sort", args, { stdin, signal: controller.signal }), failure => failure === reason);
       assert.equal(warmed, true);
-      assert.equal(from.mock.calls.filter(call => call.arguments[0] instanceof Uint8Array).length, 128);
-    } finally { from.mock.restore(); }
+      assert.equal(cachedRecords.size, 128);
+      assert.equal(insertions, 128);
+    } finally { cache.mock.restore(); }
   }
 });

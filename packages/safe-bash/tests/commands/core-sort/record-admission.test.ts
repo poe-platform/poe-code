@@ -8,6 +8,25 @@ import { SortRecordBudget } from "../../../src/commands/sort-admission.js";
 const originalAdmit = SortRecordBudget.prototype.admit;
 const originalUint8Array = Uint8Array;
 
+for (const args of [[], ["-c"]]) test(`sort ${args.join(" ")} does not copy later refused payload from an admitted record's chunk`, async context => {
+  const input = Buffer.from("a\n" + "b".repeat(113) + "\n");
+  const copied: number[] = [];
+  const set = Uint8Array.prototype.set;
+  context.mock.method(Uint8Array.prototype, "set", function(this: Uint8Array, source: ArrayLike<number>, offset?: number) {
+    if (source instanceof Uint8Array && source.buffer === input.buffer) copied.push(source.length);
+    return set.call(this, source, offset);
+  });
+  context.mock.method(SortRecordBudget.prototype, "admit", function(this: SortRecordBudget, length: number) {
+    if (length === 113) throw new FsError("EFBIG", { message: "sort buffer limit exceeded" });
+    originalAdmit.call(this, length);
+  });
+  const result = await execute(args, { async *[Symbol.asyncIterator]() { yield input; } });
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stdout.length, 0);
+  assert.deepEqual(copied, [1], "only the first admitted record may be copied");
+  assert.equal(Uint8Array, originalUint8Array);
+});
+
 async function execute(args: readonly string[], stdin: ByteSource, fs = new MemoryFileSystem(), signal = new AbortController().signal) {
   const stdout: Buffer[] = [], stderr: Buffer[] = [];
   const definition = textCommands().find(command => command.name === "sort")!;

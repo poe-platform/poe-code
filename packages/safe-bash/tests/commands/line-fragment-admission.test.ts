@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { bufferLimit, lines } from "../../src/commands/internal.js";
 import { RecordBuffer } from "../../src/commands/record-buffer.js";
+import { SortRecordBudget } from "../../src/commands/sort-admission.js";
 import { FsError, type ByteSource } from "../../src/contracts/index.js";
 import { run } from "./helpers.js";
 
@@ -302,23 +303,19 @@ for (const reason of [0, false, "", null]) {
 
 for (const args of [[], ["-c"]]) {
   for (const specimen of [
-    { name: "exact capacity with no extra EOF record", records: [[10], [10]], materialized: [0, 0], exitCode: 0 },
-    { name: "separator alone exceeds capacity", records: [[10], [10], [10]], materialized: [0, 0], exitCode: 2 },
-    { name: "unterminated record still charges separator", records: [[10], [65]], materialized: [0], exitCode: 2 },
+    { name: "exact capacity with no extra EOF record", records: [[10], [10]], admitted: [0, 0], exitCode: 0 },
+    { name: "separator alone exceeds capacity", records: [[10], [10], [10]], admitted: [0, 0], exitCode: 2 },
+    { name: "unterminated record still charges separator", records: [[10], [65]], admitted: [0], exitCode: 2 },
   ]) {
-    test(`sort ${args.join(" ")} admits before materialization: ${specimen.name} (synthetic prior charge)`, async context => {
-      const finish = RecordBuffer.prototype.finish;
-      const materialized: number[] = [];
+    test(`sort ${args.join(" ")} retains delimiter admission: ${specimen.name} (synthetic prior charge)`, async context => {
+      const admit = SortRecordBudget.prototype.admit;
+      const admitted: number[] = [];
       let calls = 0;
       let closed = false;
       let reads = 0;
-      context.mock.method(RecordBuffer.prototype, "finish", function(
-        this: RecordBuffer, admit?: (size: number) => void, bytes?: Uint8Array, start?: number, end?: number,
-      ) {
-        assert.ok(admit);
-        const result = finish.call(this, size => { admit(calls++ === 0 ? bufferLimit - 2 : size); }, bytes, start, end);
-        materialized.push(result.length);
-        return result;
+      context.mock.method(SortRecordBudget.prototype, "admit", function(this: SortRecordBudget, size: number) {
+        admit.call(this, calls++ === 0 ? bufferLimit - 2 : size);
+        admitted.push(size);
       });
       async function* source(): ByteSource {
         try {
@@ -329,7 +326,7 @@ for (const args of [[], ["-c"]]) {
       assert.equal(result.exitCode, specimen.exitCode, result.stderr);
       assert.equal(result.stderr, specimen.exitCode ? "sort: EFBIG: sort buffer limit exceeded\n" : "");
       assert.equal(result.stdout, !specimen.exitCode && !args.length ? "\n\n" : "");
-      assert.deepEqual(materialized, specimen.materialized);
+      assert.deepEqual(admitted, specimen.admitted);
       assert.equal(reads, specimen.records.length);
       assert.equal(closed, true);
     });

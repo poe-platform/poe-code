@@ -50,6 +50,8 @@ export interface RgbaImage {
   readonly loop?: number;
   readonly bitsPerSample?: number;
   readonly isProgressive?: boolean;
+  readonly trimOffsetLeft?: number;
+  readonly trimOffsetTop?: number;
 }
 
 export interface ImageMetadata {
@@ -103,6 +105,8 @@ export interface OutputInfo {
   readonly premultiplied: boolean;
   readonly pageHeight?: number;
   readonly pages?: number;
+  readonly trimOffsetLeft?: number;
+  readonly trimOffsetTop?: number;
   readonly size: number;
 }
 
@@ -276,7 +280,15 @@ export type ImageAstNode =
   | { readonly kind: "normalize"; readonly lower: number; readonly upper: number }
   | { readonly kind: "threshold"; readonly value: number; readonly grayscale: boolean }
   | { readonly kind: "blur"; readonly sigma: number }
-  | { readonly kind: "sharpen"; readonly sigma: number; readonly m1: number; readonly m2: number }
+  | {
+      readonly kind: "sharpen";
+      readonly sigma: number;
+      readonly m1: number;
+      readonly m2: number;
+      readonly x1?: number;
+      readonly y2?: number;
+      readonly y3?: number;
+    }
   | { readonly kind: "median"; readonly size: number }
   | {
       readonly kind: "convolve";

@@ -1147,4 +1147,71 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(grayRaw.info.depth).toBe("uchar");
     expect(grayRaw.data.length).toBe(64);
   });
+
+  it("matches libvips on 4-band RGBA median(), Lab sharpen() & mild sharpen/blur defaults, positional normalise(lower, upper), and trimOffsetLeft/Top (#72)", async () => {
+    // 1. median(3) filters all 4 channels including alpha
+    const medIn = new Uint8Array(4 * 4 * 4);
+    for (let i = 0; i < 16; i++) {
+      medIn[i * 4] = (i * 37) & 255;
+      medIn[i * 4 + 1] = (i * 53) & 255;
+      medIn[i * 4 + 2] = (i * 71) & 255;
+      medIn[i * 4 + 3] = i % 2 === 0 ? 255 : 40;
+    }
+    const medOut = await sharp(medIn, { raw: { width: 4, height: 4, channels: 4 } })
+      .median(3)
+      .raw()
+      .toBuffer();
+    expect(medOut[3]).toBe(255);
+    expect(medOut[7]).toBe(255);
+    expect(medOut[11]).toBe(40);
+
+    // 2. blur() with no args applies 3x3 box blur (/9) and sharpen({ sigma, m1, m2 }) works in Lab space
+    const grid = new Uint8Array(16 * 16 * 3);
+    for (let i = 0; i < grid.length; i++) grid[i] = 40 + ((i * 29) % 160);
+    const blurNoArg = await sharp(grid, { raw: { width: 16, height: 16, channels: 3 } }).blur().raw().toBuffer();
+    const boxConv = await sharp(grid, { raw: { width: 16, height: 16, channels: 3 } })
+      .convolve({ width: 3, height: 3, kernel: [1, 1, 1, 1, 1, 1, 1, 1, 1], scale: 9 })
+      .raw()
+      .toBuffer();
+    expect(Array.from(blurNoArg)).toEqual(Array.from(boxConv));
+
+    const sharpNoArg = await sharp(grid, { raw: { width: 16, height: 16, channels: 3 } }).sharpen().raw().toBuffer();
+    const sharpConv = await sharp(grid, { raw: { width: 16, height: 16, channels: 3 } })
+      .convolve({ width: 3, height: 3, kernel: [-1, -1, -1, -1, 32, -1, -1, -1, -1], scale: 24 })
+      .raw()
+      .toBuffer();
+    expect(Array.from(sharpNoArg)).toEqual(Array.from(sharpConv));
+
+    const sharpObj = await sharp(grid, { raw: { width: 16, height: 16, channels: 3 } })
+      .sharpen({ sigma: 1.5, m1: 1.2, m2: 2.5 })
+      .raw()
+      .toBuffer();
+    expect(sharpObj[1]).toBe(26);
+    expect(sharpObj[3]).toBe(154);
+
+    // 3. normalise(10, 90) positional overload matches normalise({ lower: 10, upper: 90 })
+    const normPos = await sharp(grid, { raw: { width: 16, height: 16, channels: 3 } }).normalise(10, 90).raw().toBuffer();
+    const normObj = await sharp(grid, { raw: { width: 16, height: 16, channels: 3 } }).normalise({ lower: 10, upper: 90 }).raw().toBuffer();
+    expect(Array.from(normPos)).toEqual(Array.from(normObj));
+
+    // 4. trim() populates trimOffsetLeft and trimOffsetTop in OutputInfo
+    const trimIn = new Uint8Array(20 * 20 * 4).fill(255);
+    for (let y = 7; y < 15; y++) {
+      for (let x = 5; x < 11; x++) {
+        const idx = (y * 20 + x) * 4;
+        trimIn[idx] = 255;
+        trimIn[idx + 1] = 0;
+        trimIn[idx + 2] = 0;
+        trimIn[idx + 3] = 255;
+      }
+    }
+    const trimmed = await sharp(trimIn, { raw: { width: 20, height: 20, channels: 4 } })
+      .trim()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(trimmed.info.width).toBe(6);
+    expect(trimmed.info.height).toBe(8);
+    expect(trimmed.info.trimOffsetLeft).toBe(-5);
+    expect(trimmed.info.trimOffsetTop).toBe(-7);
+  });
 });

@@ -162,7 +162,7 @@ export class SharpInstance {
           img = blurImage(img, node.sigma);
           break;
         case "sharpen":
-          img = sharpenImage(img, node.sigma, node.m1);
+          img = sharpenImage(img, node.sigma, node.m1, node.m2, node.x1, node.y2, node.y3);
           break;
         case "median":
           img = medianImage(img, node.size);
@@ -443,17 +443,31 @@ export class SharpInstance {
     return this;
   }
 
-  normalize(options?: { readonly lower?: number; readonly upper?: number }): this {
-    this.nodes.push({
-      kind: "normalize",
-      lower: options?.lower ?? 1,
-      upper: options?.upper ?? 99
-    });
+  normalize(
+    lowerOrOptions?: number | { readonly lower?: number; readonly upper?: number },
+    upperArg?: number
+  ): this {
+    if (typeof lowerOrOptions === "number") {
+      this.nodes.push({
+        kind: "normalize",
+        lower: lowerOrOptions,
+        upper: upperArg ?? 99
+      });
+    } else {
+      this.nodes.push({
+        kind: "normalize",
+        lower: lowerOrOptions?.lower ?? 1,
+        upper: lowerOrOptions?.upper ?? 99
+      });
+    }
     return this;
   }
 
-  normalise(options?: { readonly lower?: number; readonly upper?: number }): this {
-    return this.normalize(options);
+  normalise(
+    lowerOrOptions?: number | { readonly lower?: number; readonly upper?: number },
+    upperArg?: number
+  ): this {
+    return this.normalize(lowerOrOptions, upperArg);
   }
 
   threshold(
@@ -465,9 +479,14 @@ export class SharpInstance {
     return this;
   }
 
-  blur(sigma: number | boolean = 1.5): this {
+  blur(sigma?: number | boolean | { readonly sigma?: number }): this {
     if (sigma === false) return this;
-    const s = sigma === true ? 1.5 : sigma;
+    const s =
+      sigma === undefined || sigma === true
+        ? -1
+        : typeof sigma === "number"
+          ? sigma
+          : (sigma.sigma ?? -1);
     this.nodes.push({ kind: "blur", sigma: s });
     return this;
   }
@@ -475,16 +494,44 @@ export class SharpInstance {
   sharpen(
     options?:
       | number
+      | boolean
       | {
           readonly sigma?: number;
           readonly m1?: number;
           readonly m2?: number;
-        }
+          readonly x1?: number;
+          readonly y2?: number;
+          readonly y3?: number;
+        },
+    flat?: number,
+    jagged?: number
   ): this {
-    const sigma = typeof options === "number" ? options : (options?.sigma ?? 1.0);
-    const m1 = typeof options === "object" ? (options?.m1 ?? 1.0) : 1.0;
-    const m2 = typeof options === "object" ? (options?.m2 ?? 2.0) : 2.0;
-    this.nodes.push({ kind: "sharpen", sigma, m1, m2 });
+    if (options === false) return this;
+    if (options === undefined || options === true) {
+      this.nodes.push({ kind: "sharpen", sigma: -1, m1: 1.0, m2: 2.0, x1: 2.0, y2: 10.0, y3: 20.0 });
+      return this;
+    }
+    if (typeof options === "number") {
+      this.nodes.push({
+        kind: "sharpen",
+        sigma: options,
+        m1: flat ?? 1.0,
+        m2: jagged ?? 2.0,
+        x1: 2.0,
+        y2: 10.0,
+        y3: 20.0
+      });
+      return this;
+    }
+    this.nodes.push({
+      kind: "sharpen",
+      sigma: options.sigma ?? -1,
+      m1: options.m1 ?? 1.0,
+      m2: options.m2 ?? 2.0,
+      x1: options.x1 ?? 2.0,
+      y2: options.y2 ?? 10.0,
+      y3: options.y3 ?? 20.0
+    });
     return this;
   }
 
@@ -823,6 +870,8 @@ export class SharpInstance {
         premultiplied: false,
         ...(img.pageHeight !== undefined ? { pageHeight: img.pageHeight } : {}),
         ...(img.pages !== undefined ? { pages: img.pages } : {}),
+        ...(img.trimOffsetLeft !== undefined ? { trimOffsetLeft: img.trimOffsetLeft } : {}),
+        ...(img.trimOffsetTop !== undefined ? { trimOffsetTop: img.trimOffsetTop } : {}),
         size: encoded.data.byteLength
       }
     };

@@ -292,7 +292,11 @@ export function trimImage(
     top++;
   }
   if (top >= img.height) {
-    return extractImage(img, { left: 0, top: 0, width: 1, height: 1 });
+    return {
+      ...extractImage(img, { left: 0, top: 0, width: 1, height: 1 }),
+      trimOffsetLeft: 0,
+      trimOffsetTop: 0
+    };
   }
 
   let bottom = img.height - 1;
@@ -334,12 +338,17 @@ export function trimImage(
     right--;
   }
 
-  return extractImage(img, {
+  const extracted = extractImage(img, {
     left,
     top,
     width: right - left + 1,
     height: bottom - top + 1
   });
+  return {
+    ...extracted,
+    trimOffsetLeft: -left,
+    trimOffsetTop: -top
+  };
 }
 
 export function extendImage(
@@ -1231,6 +1240,15 @@ export function thresholdImage(
 }
 
 export function blurImage(img: RgbaImage, sigma = 1.5): RgbaImage {
+  if (sigma < 0) {
+    return convolveImage(img, {
+      width: 3,
+      height: 3,
+      kernel: [1, 1, 1, 1, 1, 1, 1, 1, 1],
+      scale: 9,
+      offset: 0
+    });
+  }
   if (sigma <= 0.3) return img;
   const radius = Math.max(1, Math.min(25, Math.ceil(sigma * 3)));
   const size = radius * 2 + 1;
@@ -1307,19 +1325,75 @@ export function blurImage(img: RgbaImage, sigma = 1.5): RgbaImage {
 export function sharpenImage(
   img: RgbaImage,
   sigma = 1.0,
-  amount = 1.0
+  m1 = 1.0,
+  m2 = 2.0,
+  x1 = 2.0,
+  y2 = 10.0,
+  y3 = 20.0
 ): RgbaImage {
-  const blurred = blurImage(img, sigma);
-  const out = new Uint8Array(img.data.length);
-  for (let i = 0; i < img.width * img.height; i++) {
+  if (sigma < 0) {
+    return convolveImage(img, {
+      width: 3,
+      height: 3,
+      kernel: [-1, -1, -1, -1, 32, -1, -1, -1, -1],
+      scale: 24,
+      offset: 0
+    });
+  }
+  const { width, height, data } = img;
+  const L = new Float64Array(width * height);
+  const A = new Float64Array(width * height);
+  const B = new Float64Array(width * height);
+  for (let i = 0; i < width * height; i++) {
     const idx = i * 4;
-    for (let c = 0; c < 3; c++) {
-      const orig = img.data[idx + c]!;
-      const blur = blurred.data[idx + c]!;
-      const val = Math.round(orig + amount * (orig - blur));
-      out[idx + c] = val < 0 ? 0 : val > 255 ? 255 : val;
+    const [lVal, aVal, bVal] = srgbToLab(data[idx]!, data[idx + 1]!, data[idx + 2]!);
+    L[i] = lVal;
+    A[i] = aVal;
+    B[i] = bVal;
+  }
+  const radius = Math.max(1, Math.ceil(sigma * 3));
+  const kernel = new Float64Array(radius * 2 + 1);
+  let ksum = 0;
+  for (let k = -radius; k <= radius; k++) {
+    const v = Math.exp(-(k * k) / (2 * sigma * sigma));
+    kernel[k + radius] = v;
+    ksum += v;
+  }
+  for (let i = 0; i < kernel.length; i++) kernel[i]! /= ksum;
+  const tmpL = new Float64Array(width * height);
+  const blurL = new Float64Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let s = 0;
+      for (let k = -radius; k <= radius; k++) {
+        s += L[y * width + Math.max(0, Math.min(width - 1, x + k))]! * kernel[k + radius]!;
+      }
+      tmpL[y * width + x] = s;
     }
-    out[idx + 3] = img.data[idx + 3]!;
+  }
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let s = 0;
+      for (let k = -radius; k <= radius; k++) {
+        s += tmpL[Math.max(0, Math.min(height - 1, y + k)) * width + x]! * kernel[k + radius]!;
+      }
+      blurL[y * width + x] = s;
+    }
+  }
+  const out = new Uint8Array(img.data.length);
+  for (let i = 0; i < width * height; i++) {
+    const idx = i * 4;
+    const d = L[i]! - blurL[i]!;
+    const absD = Math.abs(d);
+    let boost = absD <= x1 ? d * m1 : Math.sign(d) * (x1 * m1 + (absD - x1) * m2);
+    if (boost > y2) boost = y2;
+    if (boost < -y3) boost = -y3;
+    const newL = Math.max(0, Math.min(100, L[i]! + boost));
+    const [nr, ng, nb] = labToSrgb(newL, A[i]!, B[i]!);
+    out[idx] = nr;
+    out[idx + 1] = ng;
+    out[idx + 2] = nb;
+    out[idx + 3] = data[idx + 3]!;
   }
   return { ...img, data: out };
 }
@@ -1332,6 +1406,7 @@ export function medianImage(img: RgbaImage, size = 3): RgbaImage {
   const rWin = new Uint8Array(windowLen);
   const gWin = new Uint8Array(windowLen);
   const bWin = new Uint8Array(windowLen);
+  const aWin = new Uint8Array(windowLen);
   const mid = windowLen >>> 1;
 
   for (let y = 0; y < height; y++) {
@@ -1345,17 +1420,19 @@ export function medianImage(img: RgbaImage, size = 3): RgbaImage {
           rWin[p] = data[sIdx]!;
           gWin[p] = data[sIdx + 1]!;
           bWin[p] = data[sIdx + 2]!;
+          aWin[p] = data[sIdx + 3]!;
           p++;
         }
       }
       rWin.sort();
       gWin.sort();
       bWin.sort();
+      aWin.sort();
       const dIdx = (y * width + x) * 4;
       out[dIdx] = rWin[mid]!;
       out[dIdx + 1] = gWin[mid]!;
       out[dIdx + 2] = bWin[mid]!;
-      out[dIdx + 3] = data[dIdx + 3]!;
+      out[dIdx + 3] = aWin[mid]!;
     }
   }
   return { ...img, data: out };

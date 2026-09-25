@@ -25,7 +25,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { scopeFileSystem, tryGetMemoryDirectoryEntryNamesSync, tryWriteMemoryFileSync } from "@poe-code/safe-fs/core";
-import { collectPureReadOnlySmiNames, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, isSafeSmiProgram, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { collectPureReadOnlySmiNames, evalPureSmiWithInts, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -2193,6 +2193,31 @@ function encodeRedirectTextToScratch(formatted: string): Uint8Array {
     : Buffer.from(formatted, "utf8");
 }
 
+interface IntLoopStep {
+  readonly name: string;
+  readonly program: ArithmeticProgram;
+  readonly isSub: boolean;
+  readonly extraNewlineByte: number;
+}
+
+function intDecimalLength(n: number): number {
+  let v = n;
+  let len = 0;
+  if (v < 0) {
+    len = 1;
+    v = -v;
+  }
+  if (v < 10) return len + 1;
+  if (v < 100) return len + 2;
+  if (v < 1000) return len + 3;
+  if (v < 10000) return len + 4;
+  if (v < 100000) return len + 5;
+  if (v < 1000000) return len + 6;
+  if (v < 10000000) return len + 7;
+  if (v < 100000000) return len + 8;
+  return len + 9;
+}
+
 export class Runtime {
   private readonly sourceFs: FileSystem;
   private readonly backingFs: FileSystem;
@@ -2650,6 +2675,9 @@ export class Runtime {
   #syncArithRawWriteOnly = false;
   #syncArithTouched: Set<string> | undefined;
   #syncArithRefs: ArithmeticReferences | undefined;
+  readonly #syncLoopTouched = new Set<string>();
+  readonly #syncLoopArithNames = new Set<string>();
+  readonly #syncLoopIntVars: Record<string, number> = Object.create(null);
   private get syncArithRefs(): ArithmeticReferences {
     return this.#syncArithRefs ??= this.createSyncArithRefs();
   }
@@ -4583,6 +4611,42 @@ export class Runtime {
     return true;
   }
 
+  private extractIntLoopStep(
+    step: {
+      readonly name: string | undefined;
+      readonly value: Word | undefined;
+      readonly targetWord: Word | undefined;
+    },
+    rawState: State,
+  ): IntLoopStep | undefined {
+    if (step.targetWord !== undefined || step.name === undefined || step.value === undefined || step.value.parts.length !== 1) {
+      return undefined;
+    }
+    const p0 = step.value.parts[0]!;
+    if (p0.kind === "arithmetic") {
+      return { name: step.name, program: p0.expression, isSub: false, extraNewlineByte: 0 };
+    }
+    if (p0.kind === "substitution") {
+      if (this.middleware.length > 0 || rawState.depth >= this.budget.maxSubstitutionDepthSmi) return undefined;
+      const cmd = p0.script.lists[0]?.pipelines[0]?.commands[0];
+      if (!cmd || cmd.kind !== "simple" || cmd.redirects.length > 0) return undefined;
+      const w0Plain = cmd.words[0]?.plain;
+      if (w0Plain === "echo" && cmd.words.length === 2 && cmd.words[1]!.parts.length === 1 && cmd.words[1]!.parts[0]!.kind === "arithmetic") {
+        return { name: step.name, program: cmd.words[1]!.parts[0]!.expression, isSub: true, extraNewlineByte: 1 };
+      }
+      if (
+        w0Plain === "printf" &&
+        cmd.words.length === 3 &&
+        cmd.words[1]!.plain === "%d" &&
+        cmd.words[2]!.parts.length === 1 &&
+        cmd.words[2]!.parts[0]!.kind === "arithmetic"
+      ) {
+        return { name: step.name, program: cmd.words[2]!.parts[0]!.expression, isSub: true, extraNewlineByte: 0 };
+      }
+    }
+    return undefined;
+  }
+
   private trySyncLoop(
     command: Extract<Command, { kind: "arithmetic-for" | "for" }>,
     pipeline: Pipeline,
@@ -4633,7 +4697,9 @@ export class Runtime {
         }
       }
     }
-    const touched = new Set<string>();
+    if (bodyAssignments.length > 30) return undefined;
+    const touched = this.#syncLoopTouched;
+    touched.clear();
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
     let lastArg = "";
     const mode = 0o666 & ~(rawState.umask ?? 0o022);
@@ -4669,36 +4735,83 @@ export class Runtime {
       // Synchronous admission must prove progress. Arithmetic values can mutate
       // the induction variable indirectly through another variable's contents.
       const inductionName = e0.tree.left.name;
-      let arithNames: Set<string> | undefined;
-      for (const step of bodyAssignments) {
+      const arithNames = this.#syncLoopArithNames;
+      arithNames.clear();
+      const intSteps = new Array<IntLoopStep | undefined>(bodyAssignments.length);
+      for (let b = 0; b < bodyAssignments.length; b++) {
+        const step = bodyAssignments[b]!;
         if (step.name === inductionName) return undefined;
         if (step.targetWord?.parts.some(part => part.kind !== "text" && part.kind !== "variable")) {
           return undefined;
+        }
+        const intStep = this.extractIntLoopStep(step, rawState);
+        if (intStep) {
+          if (!collectPureReadOnlySmiNames(intStep.program, arithNames)) return undefined;
+          intSteps[b] = intStep;
+          continue;
         }
         if (step.value) {
           for (let i = 0; i < step.value.parts.length; i++) {
             const part = step.value.parts[i]!;
             if (part.kind === "text" || part.kind === "variable") continue;
             if (part.kind === "arithmetic") {
-              if (!collectPureReadOnlySmiNames(part.expression, arithNames ??= new Set())) return undefined;
+              if (!collectPureReadOnlySmiNames(part.expression, arithNames)) return undefined;
               continue;
             }
             return undefined;
           }
         }
       }
-      if (arithNames) {
+      if (arithNames.size > 0) {
         for (const refName of arithNames) {
           if (refName === inductionName) continue;
           const initial = rawState.variables[refName];
           if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
-          for (const step of bodyAssignments) {
+          for (let b = 0; b < bodyAssignments.length; b++) {
+            const step = bodyAssignments[b]!;
             if (
               step.name === refName &&
+              !intSteps[b] &&
               (!step.value || !step.value.parts.some(p => p.kind === "arithmetic") || step.value.parts.some(p => p.kind !== "arithmetic" && (p.kind !== "text" || p.value !== "")))
             ) {
               return undefined;
             }
+          }
+        }
+      }
+      let hasDeferredSteps = false;
+      let deferredMask = 0;
+      for (let b = 0; b < bodyAssignments.length; b++) {
+        const step = bodyAssignments[b]!;
+        if (
+          step.targetWord === undefined &&
+          step.name !== undefined &&
+          step.value !== undefined &&
+          step.name !== inductionName &&
+          !arithNames.has(step.name) &&
+          step.value.parts.every(p => p.kind === "text" || p.kind === "variable")
+        ) {
+          let readAnywhere = false;
+          for (let b2 = 0; b2 < bodyAssignments.length; b2++) {
+            const other = bodyAssignments[b2]!;
+            if (other.value?.parts.some(p => p.kind === "variable" && p.name === step.name) ||
+                other.targetWord?.parts.some(p => p.kind === "variable" && p.name === step.name)) {
+              readAnywhere = true;
+              break;
+            }
+          }
+          if (readAnywhere) continue;
+          let overwrittenLater = false;
+          for (let b2 = b + 1; b2 < bodyAssignments.length; b2++) {
+            const nextName = bodyAssignments[b2]!.name;
+            if (nextName === step.name || (nextName !== undefined && step.value.parts.some(p => p.kind === "variable" && p.name === nextName))) {
+              overwrittenLater = true;
+              break;
+            }
+          }
+          if (!overwrittenLater) {
+            deferredMask |= (1 << b);
+            hasDeferredSteps = true;
           }
         }
       }
@@ -4711,35 +4824,154 @@ export class Runtime {
       this.#syncArithRawWriteOnly = true;
       this.#syncArithTouched = touched;
       try {
-        this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
-        let loopTurn = 0;
-        while (true) {
-          this.budget.loop();
-          if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
-          if (!this.syncShellArithmeticNonZero(e1, rawState, diagnosticLine)) break;
-          for (let b = 0; b < bodyAssignments.length; b++) {
-            const step = bodyAssignments[b]!;
-            lastCmd = step.cmd;
-            this.budget.tick();
-            if (step.targetWord !== undefined && step.value !== undefined) {
-              const arg0 = this.fastValueWord(step.value, rawState, io, true, false, false, true, undefined, step.line) as string;
-              const targetVal = this.fastValueWord(step.targetWord, rawState, io, true, false, false, true, undefined, step.line) as string;
-              const formatted = `${arg0}\n`;
-              const encoded = encodeRedirectTextToScratch(formatted);
-              tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, step.append, mode, this.commandSignal);
-              this.budget.fileSystemOperation();
-              this.budget.bytes += encoded.byteLength;
-              lastArg = arg0;
-            } else if (step.name !== undefined && step.value !== undefined) {
-              const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-              rawState.variables[step.name] = val;
-              touched.add(step.name);
-              lastArg = "";
-            } else {
-              lastArg = step.cmd.words[0]!.plain!;
+        let lastInductionVal: string | undefined;
+        let canUseIntRegisters =
+          this.budget.maxExpansionFieldsSmi >= 1 &&
+          this.budget.maxExpansionBytesSmi >= 32 &&
+          !store?.get(inductionName) &&
+          inductionName !== "LINENO" &&
+          inductionName !== "_" &&
+          inductionName !== "FUNCNAME";
+        if (canUseIntRegisters && arithNames.size > 0) {
+          for (const refName of arithNames) {
+            if (
+              store?.get(refName) ||
+              refName === "LINENO" ||
+              refName === "_" ||
+              refName === "FUNCNAME" ||
+              (rawState.nounset && refName !== inductionName && rawState.variables[refName] === undefined)
+            ) {
+              canUseIntRegisters = false;
+              break;
             }
           }
-          this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
+        }
+        if (canUseIntRegisters) {
+          for (let b = 0; b < bodyAssignments.length; b++) {
+            if (deferredMask & (1 << b)) continue;
+            if (!intSteps[b]) {
+              canUseIntRegisters = false;
+              break;
+            }
+          }
+        }
+        const intVars = this.#syncLoopIntVars;
+        if (canUseIntRegisters && arithNames.size > 0) {
+          for (const refName of arithNames) {
+            if (refName === inductionName) continue;
+            const parsed = fastSafeInt(rawState.variables[refName], this.budget.parsing);
+            if (parsed === undefined) {
+              canUseIntRegisters = false;
+              break;
+            }
+            intVars[refName] = parsed;
+          }
+        }
+        if (canUseIntRegisters) {
+          let iVal = Number(e0.tree.right.value);
+          const limitVal = Number(e1.tree.right.value);
+          const isLe = e1.tree.operator === "<=";
+          intVars[inductionName] = iVal;
+          touched.add(inductionName);
+          this.budget.parsing.admit(0);
+          let loopTurn = 0;
+          let lastInductionInt: number | undefined;
+          while (true) {
+            this.budget.loop();
+            if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
+            this.budget.parsing.admit(iVal < 0 ? 4 : 2);
+            if (isLe ? iVal > limitVal : iVal >= limitVal) break;
+            if (hasDeferredSteps) lastInductionInt = iVal;
+            for (let b = 0; b < bodyAssignments.length; b++) {
+              const step = bodyAssignments[b]!;
+              lastCmd = step.cmd;
+              this.budget.tick();
+              if (deferredMask & (1 << b)) {
+                lastArg = "";
+                continue;
+              }
+              const intStep = intSteps[b]!;
+              const res = evalPureSmiWithInts(intStep.program.tree!, intVars, this.budget.parsing)!;
+              if (intStep.isSub) {
+                if (((this.budget.commands + 1) & 127) === 0) runYieldCheckpoint(this.signal);
+                const byteLen = intDecimalLength(res) + intStep.extraNewlineByte;
+                const nextBytes = this.budget.bytes + byteLen;
+                if (nextBytes > this.budget.maxOutputBytesSmi && byteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) {
+                  this.budget.fail("maxOutputBytes");
+                }
+                this.budget.bytes = nextBytes;
+                this.budget.tick();
+                rawState.substitutionStatus = 0;
+                rawState.status = 0;
+              }
+              intVars[intStep.name] = res;
+              touched.add(intStep.name);
+              lastArg = "";
+            }
+            this.budget.parsing.admit(iVal < 0 ? 4 : 2);
+            iVal++;
+            intVars[inductionName] = iVal;
+          }
+          for (const k in intVars) {
+            rawState.variables[k] = intToStr(intVars[k]!);
+            delete intVars[k];
+          }
+          if (hasDeferredSteps && lastInductionInt !== undefined) {
+            lastInductionVal = intToStr(lastInductionInt);
+          }
+        } else {
+          for (const k in intVars) delete intVars[k];
+          this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
+          let loopTurn = 0;
+          while (true) {
+            this.budget.loop();
+            if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
+            if (!this.syncShellArithmeticNonZero(e1, rawState, diagnosticLine)) break;
+            if (hasDeferredSteps) lastInductionVal = rawState.variables[inductionName];
+            for (let b = 0; b < bodyAssignments.length; b++) {
+              const step = bodyAssignments[b]!;
+              lastCmd = step.cmd;
+              this.budget.tick();
+              if (deferredMask & (1 << b)) {
+                lastArg = "";
+                continue;
+              }
+              if (step.targetWord !== undefined && step.value !== undefined) {
+                const arg0 = this.fastValueWord(step.value, rawState, io, true, false, false, true, undefined, step.line) as string;
+                const targetVal = this.fastValueWord(step.targetWord, rawState, io, true, false, false, true, undefined, step.line) as string;
+                const formatted = `${arg0}\n`;
+                const encoded = encodeRedirectTextToScratch(formatted);
+                tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, step.append, mode, this.commandSignal);
+                this.budget.fileSystemOperation();
+                this.budget.bytes += encoded.byteLength;
+                lastArg = arg0;
+              } else if (step.name !== undefined && step.value !== undefined) {
+                const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
+                rawState.variables[step.name] = val;
+                touched.add(step.name);
+                lastArg = "";
+              } else {
+                lastArg = step.cmd.words[0]!.plain!;
+              }
+            }
+            this.syncShellArithmeticNonZero(e2, rawState, diagnosticLine);
+          }
+        }
+        if (hasDeferredSteps && lastInductionVal !== undefined) {
+          const finalInductionVal = rawState.variables[inductionName];
+          rawState.variables[inductionName] = lastInductionVal;
+          try {
+            for (let b = 0; b < bodyAssignments.length; b++) {
+              if (!(deferredMask & (1 << b))) continue;
+              const step = bodyAssignments[b]!;
+              const val = this.fastValueWord(step.value!, rawState, io, false, false, false, false, 0, step.line) as string;
+              rawState.variables[step.name!] = val;
+              touched.add(step.name!);
+            }
+          } finally {
+            if (finalInductionVal !== undefined) rawState.variables[inductionName] = finalInductionVal;
+            else delete rawState.variables[inductionName];
+          }
         }
       } finally {
         this.#syncArithRawWriteOnly = prevRawWrite;
@@ -4807,7 +5039,95 @@ export class Runtime {
     this.budget.tick();
     rawState.loopDepth++;
     touched.add(command.name);
+    const prevRawWrite = this.#syncArithRawWriteOnly;
+    const prevTouched = this.#syncArithTouched;
+    this.#syncArithRawWriteOnly = true;
+    this.#syncArithTouched = touched;
     try {
+      const arithNames = this.#syncLoopArithNames;
+      arithNames.clear();
+      let canUseIntRegisters =
+        this.budget.maxExpansionFieldsSmi >= 1 &&
+        this.budget.maxExpansionBytesSmi >= 32 &&
+        command.name !== "LINENO" &&
+        command.name !== "_" &&
+        command.name !== "FUNCNAME";
+      const intSteps = canUseIntRegisters ? new Array<IntLoopStep | undefined>(bodyAssignments.length) : undefined;
+      if (canUseIntRegisters && intSteps) {
+        for (let b = 0; b < bodyAssignments.length; b++) {
+          const intStep = this.extractIntLoopStep(bodyAssignments[b]!, rawState);
+          if (!intStep || !collectPureReadOnlySmiNames(intStep.program, arithNames)) {
+            canUseIntRegisters = false;
+            break;
+          }
+          intSteps[b] = intStep;
+        }
+      }
+      const intVars = this.#syncLoopIntVars;
+      if (canUseIntRegisters) {
+        for (const refName of arithNames) {
+          if (refName === command.name) continue;
+          if (
+            store?.get(refName) ||
+            refName === "LINENO" ||
+            refName === "_" ||
+            refName === "FUNCNAME" ||
+            (rawState.nounset && rawState.variables[refName] === undefined)
+          ) {
+            canUseIntRegisters = false;
+            break;
+          }
+          const parsed = fastSafeInt(rawState.variables[refName], this.budget.parsing);
+          if (parsed === undefined) {
+            canUseIntRegisters = false;
+            break;
+          }
+          intVars[refName] = parsed;
+        }
+      }
+      if (canUseIntRegisters && intSteps) {
+        let loopTurn = 0;
+        for (let idx = 0; idx < fastLoopWords.length; idx++) {
+          this.budget.loop();
+          if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
+          const iVal = fastSafeInt(fastLoopWords[idx]!, this.budget.parsing);
+          if (iVal === undefined) {
+            canUseIntRegisters = false;
+            break;
+          }
+          intVars[command.name] = iVal;
+          for (let b = 0; b < bodyAssignments.length; b++) {
+            const step = bodyAssignments[b]!;
+            lastCmd = step.cmd;
+            this.budget.tick();
+            const intStep = intSteps[b]!;
+            const res = evalPureSmiWithInts(intStep.program.tree!, intVars, this.budget.parsing)!;
+            if (intStep.isSub) {
+              if (((this.budget.commands + 1) & 127) === 0) runYieldCheckpoint(this.signal);
+              const byteLen = intDecimalLength(res) + intStep.extraNewlineByte;
+              const nextBytes = this.budget.bytes + byteLen;
+              if (nextBytes > this.budget.maxOutputBytesSmi && byteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) {
+                this.budget.fail("maxOutputBytes");
+              }
+              this.budget.bytes = nextBytes;
+              this.budget.tick();
+              rawState.substitutionStatus = 0;
+              rawState.status = 0;
+            }
+            intVars[intStep.name] = res;
+            touched.add(intStep.name);
+            lastArg = "";
+          }
+        }
+        if (canUseIntRegisters) {
+          for (const k in intVars) {
+            rawState.variables[k] = intToStr(intVars[k]!);
+            delete intVars[k];
+          }
+        }
+      }
+      if (!canUseIntRegisters) {
+        for (const k in intVars) delete intVars[k];
       let loopTurn = 0;
       for (let idx = 0; idx < fastLoopWords.length; idx++) {
         this.budget.loop();
@@ -4836,7 +5156,10 @@ export class Runtime {
           }
         }
       }
+      }
     } finally {
+      this.#syncArithRawWriteOnly = prevRawWrite;
+      this.#syncArithTouched = prevTouched;
       rawState.loopDepth--;
       for (const varName of touched) {
         const finalVal = rawState.variables[varName];
@@ -10810,6 +11133,19 @@ export class Runtime {
       while (end > 0 && val.charCodeAt(end - 1) === 10) end--;
       return end === val.length ? val : val.slice(0, end);
     }
+    if (w0Plain === "printf" && cmd.words.length === 3 && cmd.words[1]!.plain === "%d" && cmd.words[2]!.parts.length === 1 && cmd.words[2]!.parts[0]!.kind === "arithmetic") {
+      const val = this.fastValueWord(cmd.words[2]!, state, io, true, false, false, true, undefined, part.line);
+      if (typeof val !== "string") return undefined;
+      const nextBytes = this.budget.bytes + val.length;
+      if (nextBytes > this.budget.maxOutputBytesSmi && val.length > this.budget.limits.maxOutputBytes - this.budget.bytes) {
+        this.budget.fail("maxOutputBytes");
+      }
+      this.budget.bytes = nextBytes;
+      this.budget.tick();
+      rawState.substitutionStatus = 0;
+      rawState.status = 0;
+      return val;
+    }
     fastSubScratchArgs.length = 0;
     for (let i = 1; i < cmd.words.length; i++) {
       const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
@@ -10832,9 +11168,12 @@ export class Runtime {
     }
     fastSubScratchArgs.length = 0;
     if (formatted === undefined) return undefined;
-    const byteLength = Buffer.byteLength(formatted);
-    if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
-    this.budget.bytes += byteLength;
+    const byteLength = formatted.length * 3 > 127 ? Buffer.byteLength(formatted) : formatted.length;
+    const nextBytes = this.budget.bytes + byteLength;
+    if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) {
+      this.budget.fail("maxOutputBytes");
+    }
+    this.budget.bytes = nextBytes;
     this.budget.tick();
     rawState.substitutionStatus = 0;
     rawState.status = 0;

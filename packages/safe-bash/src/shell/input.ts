@@ -989,7 +989,9 @@ function displayWidth(bytes: Uint8Array, offset: number): number {
 
 export class ShellInput implements ByteSource, CommandInput {
   readonly descriptor: CommandFileDescriptor | undefined;
-  readonly #cursor: InputCursor;
+  #lazyCursor: InputCursor | undefined;
+  readonly #source: ByteSource;
+  readonly #options: (ShellInputOptions & InputProvenance) | undefined;
   readonly #owned: boolean;
   #lifetime: AbortController | undefined;
   #signal: AbortSignal | undefined;
@@ -1006,18 +1008,35 @@ export class ShellInput implements ByteSource, CommandInput {
   constructor(source: ByteSource, readonly budget: Budget, signal = budget.signal, options?: ShellInputOptions & InputProvenance, signalIncludesBudget?: boolean) {
     this.#owned = !(source instanceof ShellInput);
     if (!this.#owned && options !== undefined) throw new TypeError("Borrowed input cannot replace cursor capabilities");
-    this.#cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options ?? {}, budget);
+    this.#source = source;
+    this.#options = options;
     this.descriptor = source instanceof ShellInput ? source.descriptor : options?.descriptor;
     this.#cleanupSignal = signal;
     this.#signalIncludesBudget = signalIncludesBudget ?? options?.signalIncludesBudget ?? (signal === budget.signal || hasRegisteredYieldCheckpoint(signal));
-    if (this.#cursor.stat) this.stat = this.#cursor.stat;
-    if (this.#cursor.seek) this.seek = (position, callerSignal) => {
-      const signal = AbortSignal.any([this.signal, callerSignal]);
-      return this.#cursor.consume(signal, async () => {
-        if (!Number.isSafeInteger(position) || position < 0) throw new RangeError("Input position must be a nonnegative safe integer");
-        await this.#cursor.seek!(position, signal);
-      });
-    };
+    const canDeferCursor = source instanceof ShellInput
+      ? (source.#lazyCursor === undefined)
+      : (options !== undefined && options.initialEof === true && options.stat === undefined && options.seek === undefined && options.poll === undefined && options.clock === undefined && options.initialChunk === undefined && (options.provenance === undefined || options.provenance === "unknown" || options.provenance === "regular" || options.provenance === "stream") && (options.eof === undefined || options.eof === "terminal"));
+    if (!canDeferCursor) {
+      const cursor = source instanceof ShellInput ? source.#cursor : new InputCursor(source, options ?? {}, budget);
+      this.#lazyCursor = cursor;
+      if (cursor.stat) this.stat = cursor.stat;
+      if (cursor.seek) this.seek = (position, callerSignal) => {
+        const signal = AbortSignal.any([this.signal, callerSignal]);
+        return cursor.consume(signal, async () => {
+          if (!Number.isSafeInteger(position) || position < 0) throw new RangeError("Input position must be a nonnegative safe integer");
+          await cursor.seek!(position, signal);
+        });
+      };
+    }
+  }
+
+  get #cursor(): InputCursor {
+    let c = this.#lazyCursor;
+    if (!c) {
+      c = this.#source instanceof ShellInput ? this.#source.#cursor : new InputCursor(this.#source, this.#options ?? {}, this.budget);
+      this.#lazyCursor = c;
+    }
+    return c;
   }
 
   get signal(): AbortSignal {
@@ -1621,7 +1640,7 @@ export class ShellInput implements ByteSource, CommandInput {
         this.#closeWaiters.clear();
       }
       const readsSize = this.#reads?.size ?? 0;
-      if (readsSize === 0 && !this.#owned) {
+      if (readsSize === 0 && (!this.#owned || !this.#lazyCursor)) {
         this.#closing = resolvedVoid;
         return resolvedVoid;
       }

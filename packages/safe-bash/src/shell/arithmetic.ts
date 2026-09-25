@@ -334,18 +334,22 @@ function formatArithmeticError(program: ArithmeticProgram, error: unknown): neve
   throw error;
 }
 
-const SMALL_INT_STRINGS: string[] = Array.from({ length: 4097 }, (_, i) => String(i));
+const SMALL_INT_STRINGS: string[] = new Array(65537);
+for (let i = 0; i <= 4096; i++) SMALL_INT_STRINGS[i] = String(i);
 const SMALL_BIGINTS: bigint[] = Array.from({ length: 4097 }, (_, i) => BigInt(i));
 
 function smallBigInt(n: number): bigint {
   return n >= 0 && n <= 4096 ? SMALL_BIGINTS[n]! : BigInt(n);
 }
 
-function intToStr(n: number): string {
-  return n >= 0 && n <= 4096 ? SMALL_INT_STRINGS[n]! : String(n);
+export function intToStr(n: number): string {
+  if (n >= 0 && n <= 65536) {
+    return SMALL_INT_STRINGS[n] ??= String(n);
+  }
+  return String(n);
 }
 
-function fastSafeInt(text: string | undefined, budget: ParseBudget): number | undefined {
+export function fastSafeInt(text: string | undefined, budget: ParseBudget): number | undefined {
   if (text === undefined || text === "0") { budget.admit(2); return 0; }
   if (text === "") { budget.admit(1); return 0; }
   const len = text.length;
@@ -497,6 +501,45 @@ function collectPureSmiTreeNames(node: Arithmetic, names: Set<string>, depth = 1
 export function collectPureReadOnlySmiNames(program: ArithmeticProgram, names: Set<string>): boolean {
   if (program.error || program.hasSubscript || !program.tree) return false;
   return collectPureSmiTreeNames(program.tree, names, 1);
+}
+
+export function evalPureSmiWithInts(node: Arithmetic, intVars: Record<string, number>, budget: ParseBudget): number | undefined {
+  budget.admit(0);
+  if (node.kind === "literal") return Number(node.value);
+  if (node.kind === "name") {
+    const val = intVars[node.name];
+    if (val === undefined) return undefined;
+    budget.admit(val < 0 ? 4 : 2);
+    return val;
+  }
+  if (node.kind === "unary") {
+    const v = evalPureSmiWithInts(node.operand, intVars, budget);
+    if (v === undefined || v < -94906265 || v > 94906265) return undefined;
+    if (node.operator === "+") return v;
+    if (node.operator === "-") return -v;
+    if (node.operator === "!") return v === 0 ? 1 : 0;
+    return undefined;
+  }
+  if (node.kind === "binary") {
+    const l = evalPureSmiWithInts(node.left, intVars, budget);
+    if (l === undefined || l < -94906265 || l > 94906265) return undefined;
+    const r = evalPureSmiWithInts(node.right, intVars, budget);
+    if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+    switch (node.operator) {
+      case "+": return l + r;
+      case "-": return l - r;
+      case "*": return l * r;
+      case "/": return Math.trunc(l / r);
+      case "%": return (l % r) | 0;
+      case "<": return l < r ? 1 : 0;
+      case "<=": return l <= r ? 1 : 0;
+      case ">": return l > r ? 1 : 0;
+      case ">=": return l >= r ? 1 : 0;
+      case "==": return l === r ? 1 : 0;
+      case "!=": return l !== r ? 1 : 0;
+    }
+  }
+  return undefined;
 }
 
 export function isSafeSmiProgram(program: ArithmeticProgram): boolean {

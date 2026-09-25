@@ -5,6 +5,7 @@ import type { Word, WordPart } from "./parser.js";
 import { expansionSpellings, parseBraceWord } from "./parser.js";
 import { ShellSyntaxError } from "./types.js";
 import type { Budget } from "./runtime.js";
+import { intToStr } from "./arithmetic.js";
 
 type Node = { count: number; bytes: number } & (
   | { kind: "part"; part: WordPart }
@@ -136,7 +137,7 @@ export function tryFastExpandBraceRange(
   let totalCharLen = 0;
   if (prefix.length === 0 && suffix.length === 0) {
     for (let i = 0; i < count; i++, cur += step) {
-      const s = String(cur);
+      const s = intToStr(cur);
       totalCharLen += s.length;
       out[i] = s;
     }

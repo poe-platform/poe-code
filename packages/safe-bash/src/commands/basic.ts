@@ -310,7 +310,11 @@ export function tryFastPrintf(args: readonly string[]): string | undefined {
           const d = val.charCodeAt(i);
           if (d < 48 || d > 57) return undefined;
         }
-        result += String(BigInt(val));
+        if (first !== 43 && (val === "0" || (first === 45 ? val.charCodeAt(1) !== 48 : first !== 48))) {
+          result += val;
+        } else {
+          result += String(BigInt(val));
+        }
         offset += 2;
         continue;
       }

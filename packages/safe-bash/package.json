@@ -832,7 +832,10 @@
             "safe-bash-contracts": "*",
             "safe-bash-xml-engine": "*",
             "@poe-code/safe-fs": "*"
-          }
+          },
+          "assets": [
+            "./dist/index.d.ts"
+          ]
         },
         "safe-bash-xml-engine": {
           "version": "0.0.1",
@@ -840,7 +843,10 @@
           "devDependencies": {
             "@poe-code/safe-fs": "*",
             "safe-bash-contracts": "*"
-          }
+          },
+          "assets": [
+            "./dist/index.d.ts"
+          ]
         }
       }
     }

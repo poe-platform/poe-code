@@ -154,6 +154,13 @@ export interface CachedLatin1Batch {
 
 const latin1BatchCache = new WeakMap<Uint8Array, CachedLatin1Batch>();
 
+function matchesLatin1Bytes(chunk: Uint8Array, text: string): boolean {
+  for (let index = 0; index < chunk.byteLength; index++) {
+    if (chunk[index] !== text.charCodeAt(index)) return false;
+  }
+  return true;
+}
+
 export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | undefined {
   const cLen = chunk.byteLength;
   if (cLen < 256) return undefined;
@@ -163,7 +170,8 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
     cached.byteLength !== cLen ||
     cached.b0 !== chunk[0] ||
     cached.bMid !== chunk[cLen >> 1] ||
-    cached.bEnd !== chunk[cLen - 1]
+    cached.bEnd !== chunk[cLen - 1] ||
+    !matchesLatin1Bytes(chunk, cached.text)
   ) {
     const cText = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, cLen).toString("latin1");
     let cStart = 0;

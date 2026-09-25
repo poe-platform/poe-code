@@ -3,7 +3,7 @@ import test from "node:test";
 import type { ByteSource, CommandContext } from "../../../src/contracts/index.js";
 import { Reader } from "../../../src/commands/text-programs/awk-reader.js";
 import { AwkRetention } from "../../../src/commands/text-programs/awk-retention.js";
-import { Budget } from "../../../src/commands/text-programs/shared.js";
+import { Budget, getCachedLatin1Batch } from "../../../src/commands/text-programs/shared.js";
 
 const originalSet = Uint8Array.prototype.set;
 
@@ -113,6 +113,22 @@ for (const sync of [false, true]) for (const buffer of [false, true]) test(`awk 
   assert.equal(await reader.read("\n"), "\xff\xc3\xa9\0");
   assert.equal(pulls, 2); assert.equal(retention.retainedBytes, 0);
   await reader.close();
+});
+
+test("Latin1 batches refresh content and record boundaries after interior producer reuse", () => {
+  const chunk = Buffer.alloc(256, 120);
+  chunk[63] = chunk[255] = 10;
+  const first = getCachedLatin1Batch(chunk)!;
+  assert.equal(getCachedLatin1Batch(chunk), first);
+  chunk[1] = 255;
+  chunk[63] = 120;
+  chunk[64] = 10;
+  const second = getCachedLatin1Batch(chunk)!;
+  assert.equal(second.text, chunk.toString("latin1"));
+  assert.deepEqual([...second.ends], [64, 255]);
+  assert.equal(second.maxLineLen, 190);
+  assert.deepEqual([...first.ends], [63, 255]);
+  assert.equal(first.text.charCodeAt(1), 120);
 });
 
 test("awk reader keeps per-reader admission independent of aggregate room", async context => {

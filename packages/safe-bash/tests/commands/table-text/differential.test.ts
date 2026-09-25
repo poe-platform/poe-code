@@ -15,6 +15,13 @@ for (const [index, fixture] of tableCases.entries()) {
     assert.equal(expected.name, fixture.name);
     assert.equal(expected.caseSha256, caseHash(fixture));
     const actual = await runTable(fixture);
+    // Issue 1079 requires rejecting mixed formats; retain the native capture.
+    if (["join: auto then output list", "join: output list then auto"].includes(fixture.name)) {
+      assert.equal(actual.exitCode, 1);
+      assert.equal(actual.stdoutHex, "");
+      assert.match(actual.stderr, /conflicting output format specifications/u);
+      return;
+    }
     assert.equal(actual.stdoutHex, currentStdoutHex ?? expected.stdoutHex);
     if (sharedStdinArtifact) {
       assert.equal(expected.exitCode, 1);

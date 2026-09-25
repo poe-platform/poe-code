@@ -281,3 +281,20 @@ for (const [args, files, expected] of [
     assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
   });
 }
+
+test("join rejects auto mixed with explicit output formats in either order", async () => {
+  for (const args of [["-o", "auto", "-o", "1.1"], ["-o", "1.1", "-o", "auto"]]) {
+    const result = await runTable(fixture("join", [...args, "left", "right"], { left: "a x\n", right: "a y\n" }));
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /conflicting output format specifications/u);
+    assert.equal(result.stdoutHex, "");
+  }
+});
+
+test("join -j1 and -j2 select a separate field operand", async () => {
+  for (const [flag, files] of [["-j1", { left: "x a\n", right: "a y\n" }], ["-j2", { left: "a x\n", right: "y a\n" }]] as const) {
+    const result = await runTable(fixture("join", [flag, "2", "left", "right"], files));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(Buffer.from(result.stdoutHex, "hex").toString(), "a x y\n");
+  }
+});

@@ -103,3 +103,5 @@ Focused cancellation/ownership/lifecycle checks pass 17/17. Exact native pins,
 initial red bytes, final observations, launcher controls and limits are in that
 subtree. These are author-fix results awaiting a different verifier, not an
 upgrade of the earlier independent 104/311 or full GNU compatibility evidence.
+
+`join` rejects combining `-o auto` with an explicit output field list.

@@ -62,7 +62,12 @@ function parse(context: CommandContext, budget: Budget): Options {
       else if (bytes.length !== 1) fail("join delimiter must be one byte in the C locale");
       else { options.delimiter = bytes[0]; options.whole = false; }
     } else if (flag === "o") {
-      if (value === "auto") { if (!Array.isArray(options.format)) options.format = "auto"; return; }
+      if (value === "auto") {
+        if (Array.isArray(options.format)) fail("conflicting output format specifications");
+        options.format = "auto";
+        return;
+      }
+      if (options.format === "auto") fail("conflicting output format specifications");
       const values = value.split(/[, \t]+/u);
       budget.check(values.length, budget.limits.maxFields, "field");
       const fields = values.map(specification => {

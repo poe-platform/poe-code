@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, trustedInputRows, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -66,6 +66,7 @@ class Slot {
   terminal: unknown;
   private exited = false;
   private readonly message = (value: unknown) => {
+    if (this.inProcess && value !== null && typeof value === "object" && (value as { ready?: unknown }).ready === true) return;
     if (this.receiver) this.receiver(value);
     else this.fail(new RegexExecutionError("PROTOCOL", "unexpected idle message"));
   };
@@ -78,6 +79,10 @@ class Slot {
   constructor(private readonly owner: RegexExecutor) {
     this.worker = owner.provider.createWorker(owner.options);
     this.inProcess = inProcessRegexWorkers.has(this.worker);
+    if (this.inProcess) {
+      this.ready = true;
+      this.busy = false;
+    }
     this.worker.on("message", this.message);
     this.worker.on("messageerror", this.messageerror);
     this.worker.on("error", this.error);
@@ -196,6 +201,13 @@ export class RegexExecutor {
         if (!candidate.busy && !candidate.retired && candidate.ready && candidate.terminal === undefined) {
           readySlot = candidate;
           break;
+        }
+      }
+      if (!readySlot && this.slots.size < this.options.maxWorkers && inProcessRegexProviders.has(this.provider)) {
+        const candidate = new Slot(this);
+        this.slots.add(candidate);
+        if (!candidate.busy && candidate.ready && candidate.terminal === undefined) {
+          readySlot = candidate;
         }
       }
       if (readySlot) {

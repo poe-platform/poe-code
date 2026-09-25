@@ -423,6 +423,10 @@ const inputClock: InputClock = {
     return () => clearTimeout(timer);
   },
 };
+const defaultFrozenInputClock: InputClock = Object.freeze({
+  now: inputClock.now.bind(inputClock),
+  schedule: inputClock.schedule.bind(inputClock),
+});
 
 class InputDeadline {
   readonly #controller = new AbortController();
@@ -483,7 +487,7 @@ class InputCursor {
   readonly seek?: CommandInput["seek"];
   position = 0;
   remainder: Uint8Array | undefined;
-  readonly #unread: Uint8Array[] = [];
+  #unread: Uint8Array[] | undefined;
   #read: Promise<IteratorResult<Uint8Array>> | undefined;
   #readResult: IteratorResult<Uint8Array> | undefined;
   #readError: { reason: unknown } | undefined;
@@ -507,7 +511,7 @@ class InputCursor {
     this.#provenance = provenance;
     this.#eof = eof;
     this.#poll = poll?.bind(options);
-    this.#clock = Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
+    this.#clock = clock === inputClock ? defaultFrozenInputClock : Object.freeze({ now: now.bind(clock), schedule: schedule.bind(clock) });
     this.#iterator = source[Symbol.asyncIterator]();
     this.#readChunk = options.readChunk?.bind(options);
     this.#budget = budget;
@@ -517,7 +521,7 @@ class InputCursor {
       signal.throwIfAborted();
       await options.seek!(position, signal);
       this.remainder = undefined;
-      this.#unread.length = 0;
+      if (this.#unread) this.#unread.length = 0;
       this.#read = undefined;
       this.#readResult = undefined;
       this.#readError = undefined;
@@ -528,9 +532,10 @@ class InputCursor {
   }
 
   restore(chunks: readonly Uint8Array[]): void {
-    if (this.remainder) this.#unread.push(this.remainder);
+    if (this.remainder || chunks.length) this.#unread ??= [];
+    if (this.remainder) this.#unread!.push(this.remainder);
     this.remainder = undefined;
-    for (let index = chunks.length - 1; index >= 0; index--) this.#unread.push(chunks[index]!);
+    for (let index = chunks.length - 1; index >= 0; index--) this.#unread!.push(chunks[index]!);
   }
 
   admitBoundedRead(): void {
@@ -540,13 +545,13 @@ class InputCursor {
 
   get bufferedBytes(): number {
     if (this.#active) return 0;
-    return (this.remainder?.length ?? 0) + this.#unread.reduce((length, chunk) => length + chunk.length, 0)
+    return (this.remainder?.length ?? 0) + (this.#unread ? this.#unread.reduce((length, chunk) => length + chunk.length, 0) : 0)
       + (this.#readResult && !this.#readResult.done ? this.#readResult.value.length : 0);
   }
 
   readiness(): InputReadiness {
     if (this.#active) return "blocked";
-    if (this.remainder?.length || this.#unread.some(chunk => chunk.length)) return "ready";
+    if (this.remainder?.length || (this.#unread?.some(chunk => chunk.length) ?? false)) return "ready";
     if (this.#readError) throw this.#readError.reason;
     if (this.#ended || this.#readResult?.done) return "eof";
     if (this.#readResult && this.#readResult.value.length) return "ready";
@@ -597,7 +602,7 @@ class InputCursor {
       this.remainder = undefined;
       return { value, done: false };
     }
-    const unread = this.#unread.pop();
+    const unread = this.#unread?.pop();
     if (unread) return { value: unread, done: false };
     if (this.#ended || this.#closed) return { value: undefined, done: true };
     if (!this.#read) {
@@ -629,7 +634,7 @@ class InputCursor {
     if (this.#ended && this.#eof === "terminal" && !this.seek) { signal.throwIfAborted(); return; }
     this.#closed = true;
     this.remainder = undefined;
-    this.#unread.length = 0;
+    if (this.#unread) this.#unread.length = 0;
     this.#returned ??= Promise.resolve().then(() => this.#iterator.return?.()).then(() => undefined);
     void this.#returned.catch(() => undefined);
     try { await interruptible(this.#returned, signal); }

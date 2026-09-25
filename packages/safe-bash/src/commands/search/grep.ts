@@ -42,6 +42,8 @@ class PooledGrepLine implements GrepLine {
   }
 }
 const grepLinePool: PooledGrepLine[] = Array.from({ length: 128 }, () => new PooledGrepLine());
+const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
+trustedInputRows.add(EMPTY_GREP_ROWS);
 
 async function* grepLineBatches(
   source: ByteSource,
@@ -52,7 +54,7 @@ async function* grepLineBatches(
 ): AsyncGenerator<GrepLine[]> {
   const lineLimit = Math.min(internalBufferLimit, maxLineBytes);
   const pending = new RecordBuffer(lineLimit);
-  let batch: GrepLine[] = [];
+  const batch: GrepLine[] = [];
   let bytes = 0;
   try {
     for await (const rawChunk of source) {
@@ -93,7 +95,7 @@ async function* grepLineBatches(
           next - start > maxLineBytes
         ) {
           yield batch;
-          batch = [];
+          batch.length = 0;
           bytes = 0;
         }
       }
@@ -257,7 +259,8 @@ inspect the resulting state before repeating the action.
         kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
         insensitive: parsed.flags.has("i") && !parsed.flags.has("no-ignore-case"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
       };
-      await session.run(descriptor, []);
+      const initRes = session.runSync(descriptor, EMPTY_GREP_ROWS);
+      if (initRes instanceof Promise) await initRes;
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
@@ -304,6 +307,8 @@ inspect the resulting state before repeating the action.
         let pendingBytes = 0;
         const pending = new Map<number, Line & { offset: number }>();
         const named = name === "-" ? value(parsed, "label") ?? "(standard input)" : name;
+        const hasLinePrefix = (!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) || parsed.flags.has("n") || parsed.flags.has("b");
+        const delimiterByte = delimiterBytes[0]!;
         const prefix = (lineNumber = false, position = number, separator = ":", offset = byteOffset) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested) ? `${named}${parsed.flags.has("Z") ? "\0" : separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}${lineNumber && parsed.flags.has("b") ? `${offset}${separator}` : ""}${lineNumber && parsed.flags.has("initial-tab") && (parsed.flags.has("n") || parsed.flags.has("b") || !parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) ? "\t" : ""}`;
         const emitContext = async (line: Line, position: number, offset = byteOffset) => {
           if (!parsed.flags.has("o")) {
@@ -372,7 +377,21 @@ inspect the resulting state before repeating the action.
                     }
                   }
                 } else {
-                  const p = prefix(true);
+                  if (!hasLinePrefix && !lineBuffered && line.chunk !== undefined && line.start !== undefined && line.searchEnd !== undefined) {
+                    const lStart = line.start;
+                    const lEnd = line.searchEnd;
+                    const lLen = lEnd - lStart;
+                    outBuffer ??= new Uint8Array(16 * 1024);
+                    if (outUsed + lLen + 1 <= outBuffer.length) {
+                      const c = line.chunk;
+                      let dst = outUsed;
+                      for (let i = lStart; i < lEnd; i++) outBuffer[dst++] = c[i]!;
+                      outBuffer[dst++] = delimiterByte;
+                      outUsed = dst;
+                      continue;
+                    }
+                  }
+                  const p = hasLinePrefix ? prefix(true) : "";
                   if (p) await writeOut(p);
                   await writeOut(line.bytes);
                   await writeOut(delimiterBytes);

@@ -258,3 +258,9 @@ export function resolveEreProgram(program: EreProgram, ledger: EreLedger): EreNo
   if (!entry || entry.ledger !== ledger) throw new TypeError("ERE program is not bound to this invocation ledger");
   return entry.root;
 }
+
+export function resolveEreProgramUnchecked(program: EreProgram): EreNode {
+  const entry = programs.get(program);
+  if (!entry) throw new TypeError("ERE program is not bound to this invocation ledger");
+  return entry.root;
+}

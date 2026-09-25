@@ -4,6 +4,7 @@ import { commandRuntimeIdentity } from "../contracts/command.js";
 import type { InputReadiness, RawRecord, RawRecordOptions, ReadLine, ReadLineOptions } from "./input.js";
 import { captureShellSyntax } from "./parser.js";
 import type { CapturedShellSyntax, ShellSyntaxDeclarations } from "./parser.js";
+import { defaultPortableTrapExtension, isIdlePortableTrapInstance } from "./trap.js";
 
 export interface ShellBindingDescription {
   readonly kind: "unset" | "scalar" | "indexed";
@@ -237,8 +238,44 @@ function captureHooks(instance: ShellExtensionInstance, field: "listTerminators"
   });
 }
 
+const EMPTY_EXTENSION_SYNTAX = captureShellSyntax();
+const EMPTY_LIST_TERMINATORS = new Map<string, ShellListTerminatorHook>();
+const EMPTY_SPECIAL_PARAMETERS = new Map<string, ShellSpecialParameterHook>();
+const EMPTY_CHECKPOINTS: readonly NonNullable<ShellExtensionInstance["checkpoint"]>[] = Object.freeze([]);
+
+function createIdlePortableTrapExtensionState(): ShellExtensionState {
+  const instance = defaultPortableTrapExtension.create();
+  const builtin = instance.builtins[0]!;
+  const builtins = new Map<string, ShellExtensionBuiltin>([
+    [builtin.name, Object.freeze({ name: builtin.name, special: true, execute: builtin.execute })],
+  ]);
+  const opts = instance.options!;
+  const options = new Map<string, ShellExtensionOption>([
+    [opts[0]!.name, opts[0]!],
+    [opts[1]!.name, opts[1]!],
+  ]);
+  const shopts = instance.shoptOptions!;
+  const shoptOptions = new Map<string, ShellExtensionOption>([
+    [shopts[0]!.name, shopts[0]!],
+  ]);
+  return {
+    entries: [{ definition: defaultPortableTrapExtension, instance }],
+    syntax: EMPTY_EXTENSION_SYNTAX,
+    builtins,
+    options,
+    shoptOptions,
+    listTerminators: EMPTY_LIST_TERMINATORS,
+    specialParameters: EMPTY_SPECIAL_PARAMETERS,
+    checkpoints: EMPTY_CHECKPOINTS,
+    cleanup: [],
+  };
+}
+
 export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope, fallback?: ShellExtension): ShellExtensionState | undefined {
   if (!definitions.length && !fallback) return undefined;
+  if (!definitions.length && !parent && fallback === defaultPortableTrapExtension) {
+    return createIdlePortableTrapExtensionState();
+  }
   const captured = captureShellExtensions(definitions);
   const names = new Set<string>();
   const snapshots = captured.definitions.map((definition, index) => {
@@ -301,5 +338,16 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
 }
 
 export function forkExtensions(parent: ShellExtensionState | undefined, scope: ShellExtensionScope): ShellExtensionState | undefined {
+  if (
+    parent &&
+    parent.entries.length === 1 &&
+    parent.entries[0]!.definition === defaultPortableTrapExtension &&
+    isIdlePortableTrapInstance(parent.entries[0]!.instance) &&
+    !parent.options.get("errtrace")?.enabled &&
+    !parent.options.get("functrace")?.enabled &&
+    !parent.shoptOptions.get("extdebug")?.enabled
+  ) {
+    return createIdlePortableTrapExtensionState();
+  }
   return parent && extensionState(parent.entries.map(entry => entry.definition), parent, scope);
 }

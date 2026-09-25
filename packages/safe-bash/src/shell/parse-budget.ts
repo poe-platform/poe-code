@@ -5,6 +5,7 @@ export const defaultMaxParseUnits = Infinity;
 export class ParseBudget {
   private remainingSmi: number;
   private remainingNum: number;
+  private totalAdmitted = 0;
   private readonly unlimited: boolean;
   private failure: ShellLimitError | undefined;
 
@@ -14,6 +15,10 @@ export class ParseBudget {
     this.unlimited = rem === Infinity;
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
+  }
+
+  get admittedUnits(): number {
+    return this.totalAdmitted;
   }
 
   snapshot(): number {
@@ -33,6 +38,7 @@ export class ParseBudget {
     if ((units | 0) !== units || units < 0) {
       if (!Number.isSafeInteger(units) || units < 0) throw new RangeError("Parse admission must be a nonnegative safe integer");
     }
+    this.totalAdmitted += units;
     if (this.unlimited) return;
     if (units <= this.remainingSmi && (units | 0) === units) {
       this.remainingSmi = (this.remainingSmi - (units | 0)) | 0;

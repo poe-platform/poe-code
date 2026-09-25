@@ -9,6 +9,8 @@ import { Walker, type FileTarget } from "./walk.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "./requirements.js";
 
+const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
+
 interface InputSelection { readonly paths: readonly string[]; readonly implicit: boolean }
 
 function selectInput(context: CommandContext, args: Arguments, options: SearchOptions): InputSelection {
@@ -265,7 +267,10 @@ Unicode selection and extended regex syntax require a configured executor.
           const walker = new Walker(context, args, limits, report, session);
           await walker.validate();
           const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args, limits), args, session);
-          if (args.mode !== "files") await matcher.batch([]);
+          if (args.mode !== "files") {
+            const initBatch = matcher.batchSync(EMPTY_RG_LINES);
+            if (initBatch instanceof Promise) await initBatch;
+          }
           if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
           const printer = new Printer(args, limits);
           const totals = stats();

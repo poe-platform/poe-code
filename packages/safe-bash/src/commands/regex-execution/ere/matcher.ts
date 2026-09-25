@@ -1,7 +1,7 @@
 import { validateUtf8 } from "../utf8.js";
 import { foldAscii, isAsciiWord } from "../ascii.js";
 import { EreLedger } from "./limits.js";
-import { admitAscii, resolveEreProgram } from "./syntax.js";
+import { admitAscii, resolveEreProgram, resolveEreProgramUnchecked } from "./syntax.js";
 import type { EreNode, EreProgram, EreResult, EreSpan } from "./types.js";
 
 interface History {
@@ -23,6 +23,189 @@ interface State {
 }
 
 const initialCharacters = new WeakMap<EreNode, readonly boolean[]>();
+const sequenceNullNextTasks = new WeakMap<EreNode, Task>();
+const SINGLE_NULL_CAPTURES: readonly (EreSpan | null)[] = Object.freeze([null]);
+const SINGLE_NULL_HISTORIES: readonly (History | null)[] = Object.freeze([null]);
+
+function getSequenceNullNextTask(node: Extract<EreNode, { readonly children: readonly EreNode[] }>): Task {
+  let cached = sequenceNullNextTasks.get(node);
+  if (!cached) {
+    let next: Task | null = null;
+    for (let index = node.children.length - 1; index >= 0; index--) {
+      next = { kind: "node", node: node.children[index]!, next };
+    }
+    cached = next!;
+    sequenceNullNextTasks.set(node, cached);
+  }
+  return cached;
+}
+
+const warmLedger = EreLedger.withPrevalidatedLimits({
+  patternBytes: Infinity,
+  subjectBytes: Infinity,
+  work: Infinity,
+  states: Infinity,
+  allocationUnits: Infinity,
+  captureBytes: Infinity,
+  captureSlots: Infinity,
+});
+
+export async function warmEreProgram(program: EreProgram): Promise<void> {
+  const root = resolveEreProgramUnchecked(program);
+  await prepareInitialCharacters(root, warmLedger);
+}
+
+export function tryMatchEreAsciiRangeSync(
+  program: EreProgram,
+  buf: Uint8Array,
+  rStart: number,
+  rEnd: number,
+  ledger: EreLedger,
+  signal: AbortSignal | undefined,
+  leftmostFirst = false,
+  word = false,
+): EreSpan | undefined | null {
+  if (program.groups !== 0) return null;
+  const root = resolveEreProgramUnchecked(program);
+  const initial = root.nullable ? undefined : initialCharacters.get(root);
+  if (!root.nullable && !initial) return null;
+  const rLen = rEnd - rStart;
+  ledger.check(signal);
+  ledger.admitInput("subjectBytes", rLen, signal);
+  ledger.charge("allocationUnits", rLen * 11 + 16, signal);
+  ledger.chargeWork(rLen * 4 + 4, signal);
+  ledger.charge("allocationUnits", 7, signal);
+  let secondLitCode = -1;
+  let rootSeqLen = 0;
+  if (root.kind === "sequence" && root.children.length >= 2) {
+    const c0 = root.children[0]!;
+    const c1 = root.children[1]!;
+    if (c0.kind === "literal" && !c0.insensitive && c1.kind === "literal" && !c1.insensitive) {
+      secondLitCode = c1.code;
+      rootSeqLen = root.children.length;
+    }
+  }
+  const pending: State[] = [];
+  const push = (position: number, next: Task | null): void => {
+    ledger.charge("states", 1, signal);
+    ledger.charge("allocationUnits", 5, signal);
+    pending.push({ position, task: next, captures: SINGLE_NULL_CAPTURES, histories: SINGLE_NULL_HISTORIES });
+  };
+  const rootTask: Task = root.kind === "sequence"
+    ? getSequenceNullNextTask(root)
+    : { kind: "node", node: root, next: null };
+  for (let start = 0; start <= rLen; start++) {
+    if (initial) {
+      ledger.chargeWork(1, signal);
+      const firstCode = start < rLen ? buf[rStart + start]! : -1;
+      if (firstCode < 0 || !initial[firstCode]) continue;
+    }
+    if (word) {
+      ledger.chargeWork(1, signal);
+      if (start > 0 && isAsciiWord(buf[rStart + start - 1]!)) continue;
+    }
+    if (secondLitCode >= 0) {
+      if (start + 1 >= rLen || buf[rStart + start + 1] !== secondLitCode) {
+        ledger.chargeWork(3 + rootSeqLen, signal);
+        ledger.charge("states", 3, signal);
+        ledger.charge("allocationUnits", (rootSeqLen + 1) * 5 + 15, signal);
+        continue;
+      }
+    }
+    if (root.kind === "sequence") {
+      ledger.charge("allocationUnits", 5, signal);
+      ledger.charge("states", 1, signal);
+      ledger.charge("allocationUnits", 5, signal);
+      ledger.chargeWork(1 + root.children.length, signal);
+      ledger.charge("allocationUnits", root.children.length * 5, signal);
+      push(start, rootTask);
+    } else {
+      ledger.charge("allocationUnits", 5, signal);
+      push(start, rootTask);
+    }
+    let bestPos = -1;
+    while (pending.length > 0) {
+      if (ledger.workAllowanceUntilCheckpoint(signal) < 64) return null;
+      ledger.chargeWork(1, signal);
+      const state = pending.pop()!;
+      const current = state.task;
+      if (current === null) {
+        if (word && state.position < rLen && isAsciiWord(buf[rStart + state.position]!)) continue;
+        if (leftmostFirst) { bestPos = state.position; pending.length = 0; break; }
+        if (state.position > bestPos) bestPos = state.position;
+        continue;
+      }
+      if (current.kind === "repeat") {
+        const { node, count } = current;
+        if (count >= node.min) push(state.position, current.next);
+        const noProgress = count > 0 && state.position === current.previous;
+        if (count < node.max && (!noProgress || count < node.min)) {
+          ledger.charge("allocationUnits", 10, signal);
+          const repeat: Task = { kind: "repeat", node, count: count + 1, previous: state.position, next: current.next };
+          push(state.position, { kind: "node", node: node.child, next: repeat });
+        }
+        continue;
+      }
+      if (current.kind === "close") return null;
+      const node = current.node;
+      switch (node.kind) {
+        case "empty": push(state.position, current.next); break;
+        case "start": if (state.position === 0) push(state.position, current.next); break;
+        case "end": if (state.position === rLen) push(state.position, current.next); break;
+        case "dot":
+        case "literal":
+        case "set": {
+          if (state.position < rLen) {
+            const code = buf[rStart + state.position]!;
+            if (
+              (node.kind === "dot" && (!leftmostFirst || code !== 10)) ||
+              (node.kind === "literal" && (node.insensitive ? foldAscii(node.code) === foldAscii(code) : node.code === code)) ||
+              (node.kind === "set" && (code < 128 ? node.members[code] : node.nonAscii))
+            ) {
+              push(state.position + 1, current.next);
+            }
+          }
+          break;
+        }
+        case "sequence": {
+          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4) return null;
+          ledger.chargeWork(node.children.length, signal);
+          ledger.charge("allocationUnits", node.children.length * 5, signal);
+          if (current.next === null) {
+            push(state.position, getSequenceNullNextTask(node));
+          } else {
+            let next = current.next;
+            for (let index = node.children.length - 1; index >= 0; index--) {
+              next = { kind: "node", node: node.children[index]!, next };
+            }
+            push(state.position, next);
+          }
+          break;
+        }
+        case "alternative":
+          if (ledger.workAllowanceUntilCheckpoint(signal) < node.children.length + 4) return null;
+          for (let index = node.children.length - 1; index >= 0; index--) {
+            ledger.chargeWork(1, signal);
+            ledger.charge("allocationUnits", 5, signal);
+            push(state.position, { kind: "node", node: node.children[index]!, next: current.next });
+          }
+          break;
+        case "group":
+          return null;
+        case "repeat":
+          ledger.charge("allocationUnits", 5, signal);
+          push(state.position, { kind: "repeat", node, count: 0, previous: -1, next: current.next });
+          break;
+      }
+    }
+    if (bestPos >= 0) {
+      ledger.charge("allocationUnits", 4, signal);
+      ledger.check(signal);
+      return { start, end: bestPos };
+    }
+  }
+  return undefined;
+}
 
 async function prepareInitialCharacters(root: EreNode, ledger: EreLedger, signal?: AbortSignal): Promise<readonly boolean[] | undefined> {
   // Nullable patterns must still try every cursor, including end of input.

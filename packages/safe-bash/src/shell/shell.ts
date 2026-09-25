@@ -24,6 +24,13 @@ import type {
   CancellationBoundary, CancellationOrigin, CancellationSelection, CapturedCancellationOutcome,
 } from "./cancellation.js";
 
+const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
+interface CachedParsedUnit {
+  readonly unit: ReturnType<typeof parseShellUnit>;
+  readonly unitsCharged: number;
+}
+const parsedUnitCache = new Map<string, CachedParsedUnit>();
+
 class RootInvocationCancellationOwner {
   readonly finalized: Promise<void>;
   #resolveFinalized!: () => void;
@@ -261,9 +268,40 @@ export class Shell implements PluginHost {
     let failed = false;
     try {
       try {
-        const extensions = captureShellExtensions(this.#options.extensions ?? []);
-        const lineIndex = new SourceLineIndex(source, budget.parsing);
-        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }), budget.parsing, lineIndex, undefined, false, extensions.syntax);
+        const rawExtensions = this.#options.extensions;
+        const extensions = !rawExtensions || rawExtensions.length === 0
+          ? EMPTY_CAPTURED_EXTENSIONS
+          : captureShellExtensions(rawExtensions);
+        const locale = byteLocale({ ...this.#options.env, ...options.env });
+        const canCacheParse = extensions === EMPTY_CAPTURED_EXTENSIONS && source.length <= 16384;
+        let lineIndex: SourceLineIndex | undefined;
+        let lineIndexUnits = 0;
+        const getOrParseUnit = (offset: number, unitLocale: boolean): ReturnType<typeof parseShellUnit> => {
+          const cacheKey = canCacheParse ? `${unitLocale ? 1 : 0}:${offset}:${source}` : undefined;
+          const cached = cacheKey !== undefined ? parsedUnitCache.get(cacheKey) : undefined;
+          if (cached) {
+            budget.parsing.admit(cached.unitsCharged);
+            return cached.unit;
+          }
+          const beforeLineIdx = budget.parsing.admittedUnits;
+          if (!lineIndex) {
+            lineIndex = new SourceLineIndex(source, budget.parsing);
+            lineIndexUnits = budget.parsing.admittedUnits - beforeLineIdx;
+          }
+          const beforeParse = budget.parsing.admittedUnits;
+          const parsed = parseShellUnit(source, offset, unitLocale, budget.parsing, lineIndex, undefined, false, extensions.syntax);
+          const parseUnits = budget.parsing.admittedUnits - beforeParse;
+          const unitsCharged = (offset === 0 ? lineIndexUnits : 0) + parseUnits;
+          if (cacheKey !== undefined && (!parsed.script.warnings || parsed.script.warnings.length === 0)) {
+            if (parsedUnitCache.size >= 128) {
+              const oldest = parsedUnitCache.keys().next().value;
+              if (oldest !== undefined) parsedUnitCache.delete(oldest);
+            }
+            parsedUnitCache.set(cacheKey, { unit: parsed, unitsCharged });
+          }
+          return parsed;
+        };
+        let unit = getOrParseUnit(0, locale);
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
           const value = options.stdin ?? "";
           const source = toByteSource(value);
@@ -324,7 +362,7 @@ export class Shell implements PluginHost {
           }
           if (unit.next >= source.length) break;
           budget.signal.throwIfAborted();
-          unit = parseShellUnit(source, unit.next, byteLocale(state.variables), budget.parsing, lineIndex, undefined, false, extensions.syntax);
+          unit = getOrParseUnit(unit.next, byteLocale(state.variables));
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;

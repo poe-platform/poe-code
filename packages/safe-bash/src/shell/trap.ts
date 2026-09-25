@@ -53,16 +53,18 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
     return names.has(number) ? number : undefined;
   };
 
-  function instance(actions = new Map<number, Action>(), errorTrace = false, functionTrace = false, inheritedIgnored: ReadonlySet<number> = new Set(), extendedDebug = false): ShellExtensionInstance {
+  const emptyIgnored: ReadonlySet<number> = Object.freeze(new Set<number>());
+  function instance(actions?: Map<number, Action>, errorTrace = false, functionTrace = false, inheritedIgnored: ReadonlySet<number> = emptyIgnored, extendedDebug = false): ShellExtensionInstance {
     const options: ShellExtensionOption[] = [{ name: "errtrace", flag: "E", enabled: errorTrace }, { name: "functrace", flag: "T", enabled: functionTrace }];
-    const running = new Set<number>();
-    const pending = new Set<number>();
-    const functions: Map<number, Action>[] = [];
-    const sources: (Action | undefined)[] = [];
+    let running: Set<number> | undefined;
+    let pending: Set<number> | undefined;
+    let functions: Map<number, Action>[] | undefined;
+    let sources: (Action | undefined)[] | undefined;
     const run = async (number: number, context: ShellExtensionContext): Promise<number | undefined> => {
       context.signal.throwIfAborted();
-      const action = actions.get(number);
-      if (!action?.active || !shellValueByteLength(action.source) || running.has(number)) return;
+      const action = actions?.get(number);
+      if (!action?.active || !shellValueByteLength(action.source) || running?.has(number)) return;
+      running ??= new Set<number>();
       running.add(number);
       try { return await context.evaluate(action.source, { name: number === 0 ? "exit trap" : "trap" }); }
       finally { running.delete(number); }
@@ -74,14 +76,15 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
         if (!configuration.signalHost) return;
         let open = true;
         const subscription: { close?: () => void | Promise<void> } = {};
-        context.registerCleanup(async () => { open = false; pending.clear(); await subscription.close?.(); });
+        context.registerCleanup(async () => { open = false; pending?.clear(); await subscription.close?.(); });
         subscription.close = configuration.signalHost.subscribe(signal => {
           if (!open || context.signal.aborted) return false;
           const number = resolve(signal);
           if (number === undefined || number === 0 || number >= pseudoBase || names.get(number) === "SIGKILL" || names.get(number) === "SIGSTOP") return false;
-          const action = actions.get(number);
+          const action = actions?.get(number);
           if (!action?.active) return false;
           if (shellValueByteLength(action.source)) {
+            pending ??= new Set<number>();
             pending.add(number);
             context.interruptWait?.((128 + number) % 256);
           }
@@ -118,53 +121,56 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
           if (!print && args.length > 1 && !numericReset) { action = context.argumentValues[context.args.length - args.length]; args.shift(); }
           if (!print && args.length === 1 && args[0] === "-") { await context.stderr.write(new TextEncoder().encode("trap: usage: trap [-lp] [arg signal_spec ...]\n")); return 2; }
           if (action !== undefined && shellValueText(action) !== "-") context.accountSource(action);
-          const targets = args.length ? args : [...actions.keys()].sort((left, right) => left - right).map(String);
+          const targets = args.length ? args : actions ? [...actions.keys()].sort((left, right) => left - right).map(String) : [];
           let status = 0;
           for (const target of targets) {
             const number = resolve(target);
             if (number === undefined) { await context.diagnostic(`trap: ${target}: invalid signal specification`); status = 1; continue; }
             if (print) {
-              const current = actions.get(number);
+              const current = actions?.get(number);
               if (current) await context.stdout.write(Buffer.concat([Buffer.from("trap -- "), quote(current.source), Buffer.from(` ${names.get(number)}\n`)]));
             } else if (inheritedIgnored.has(number)) continue;
-            else if (action === undefined || shellValueText(action) === "-") actions.delete(number);
-            else actions.set(number, { source: action, active: true });
+            else if (action === undefined || shellValueText(action) === "-") actions?.delete(number);
+            else { actions ??= new Map<number, Action>(); actions.set(number, { source: action, active: true }); }
           }
           return status;
         },
       }],
       fork(scope: ShellExtensionScope) {
+        if (!actions?.size && !options[0]!.enabled && !options[1]!.enabled && inheritedIgnored.size === 0 && !extendedDebug) {
+          return instance(undefined, false, false, emptyIgnored, false);
+        }
         const inherited = new Map<number, Action>();
-        for (const [number, action] of actions) {
+        for (const [number, action] of actions ?? []) {
           if (scope === "process") { if (number > 0 && number < pseudoBase && !shellValueByteLength(action.source)) inherited.set(number, action); }
           else inherited.set(number, { source: action.source, active: !shellValueByteLength(action.source) || names.get(number) === "ERR" && options[0]!.enabled || ["DEBUG", "RETURN"].includes(names.get(number)!) && options[1]!.enabled });
         }
         return instance(inherited, scope !== "process" && options[0]!.enabled, scope !== "process" && options[1]!.enabled, scope === "process" ? new Set(inherited.keys()) : inheritedIgnored, scope !== "process" && extendedDebug);
       },
       async event(event, context) {
-        if (event === "function-enter") { functions.push(new Map(actions)); return; }
-        if (event === "function-leave") { functions.pop(); return; }
-        if (event === "source-enter") { sources.push(actions.get(aliases.get("DEBUG")!)); return; }
+        if (event === "function-enter") { functions ??= []; functions.push(new Map(actions)); return; }
+        if (event === "function-leave") { functions?.pop(); return; }
+        if (event === "source-enter") { sources ??= []; sources.push(actions?.get(aliases.get("DEBUG")!)); return; }
         if (event === "source-leave") {
-          const previous = sources.pop();
-          if (previous && !actions.has(aliases.get("DEBUG")!)) actions.set(aliases.get("DEBUG")!, previous);
+          const previous = sources?.pop();
+          if (previous && !actions?.has(aliases.get("DEBUG")!)) { actions ??= new Map<number, Action>(); actions.set(aliases.get("DEBUG")!, previous); }
           return;
         }
-        for (const number of pending) {
-          if (running.has(number)) continue;
+        if (pending) for (const number of pending) {
+          if (running?.has(number)) continue;
           pending.delete(number);
           await run(number, context);
         }
         const name = event === "exit" ? "EXIT" : event === "error" ? "ERR" : event === "command" ? "DEBUG" : "RETURN";
-        if (name === "DEBUG" && context.sourceDepth > 0 && sources.at(-1) === actions.get(aliases.get(name)!) && !options[1]!.enabled) return;
-        const inherited = functions.at(-1)?.get(aliases.get(name)!) === actions.get(aliases.get(name)!);
+        if (name === "DEBUG" && context.sourceDepth > 0 && sources?.at(-1) === actions?.get(aliases.get(name)!) && !options[1]!.enabled) return;
+        const inherited = functions?.at(-1)?.get(aliases.get(name)!) === actions?.get(aliases.get(name)!);
         if (context.functionDepth > 0 && inherited && (name === "ERR" && !options[0]!.enabled || (name === "DEBUG" || name === "RETURN") && !options[1]!.enabled)) return;
         const status = await run(aliases.get(name)!, context);
         if (name === "DEBUG" && extendedDebug && status) return status === 2 && (context.functionDepth > 0 || context.sourceDepth > 0) ? { action: "return", status } : { action: "skip" };
       },
     };
     if (!configuration.signalHost) {
-      idlePortableTrapInstances.set(created, () => actions.size === 0 && pending.size === 0 && functions.length === 0 && sources.length === 0);
+      idlePortableTrapInstances.set(created, () => (actions?.size ?? 0) === 0 && (pending?.size ?? 0) === 0 && (functions?.length ?? 0) === 0 && (sources?.length ?? 0) === 0);
     }
     return created;
   }

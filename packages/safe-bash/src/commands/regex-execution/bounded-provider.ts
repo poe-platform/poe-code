@@ -5,12 +5,13 @@ import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
 import { EreLedger } from "./ere/limits.js";
 import { compileEre } from "./ere/syntax.js";
-import { prepareUtf8EreSubject } from "./ere/matcher.js";
+import { prepareUtf8EreSubject, tryMatchEreAsciiRangeSync, warmEreProgram } from "./ere/matcher.js";
 import { validateUtf8 } from "./utf8.js";
 import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, inProcessRegexWorkers, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, inProcessRegexProviders,
+  inProcessRegexWorkers, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -604,6 +605,82 @@ interface CachedLiteralPrograms {
   readonly allocationUnits: number;
 }
 let lastLiteralCache: CachedLiteralPrograms | undefined;
+interface EreCacheEntry {
+  readonly key: string;
+  readonly programs: readonly EreProgram[];
+  readonly work: number;
+  readonly patternBytes: number;
+  readonly states: number;
+  readonly allocationUnits: number;
+}
+let lastEreCache: EreCacheEntry | undefined;
+
+function ereCacheKeyFor(selected: SelectionDescriptor, fold: boolean): string | undefined {
+  if (selected.patterns.length !== 1 || selected.patterns[0]!.length > 128) return undefined;
+  return `${selected.kind}:${fold ? 1 : 0}:${selected.kind === "rg" && selected.nullData ? 1 : 0}:${selected.kind === "grep" && !selected.extended ? 1 : 0}:${selected.whole ? 1 : 0}:${selected.patterns[0]}`;
+}
+
+function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boolean): Reply | undefined {
+  const { descriptor: selected, rows, ledger } = input;
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i]!.all) return undefined;
+  }
+  const cacheKey = ereCacheKeyFor(selected, fold);
+  if (cacheKey === undefined || lastEreCache?.key !== cacheKey) return undefined;
+  const programs = lastEreCache.programs;
+  for (let p = 0; p < programs.length; p++) {
+    if (programs[p]!.groups !== 0) return undefined;
+  }
+  let estimatedWork = lastEreCache.work + 256;
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i]! as Row & { start?: number; searchEnd?: number };
+    const rLen = typeof r.searchEnd === "number" ? r.searchEnd - r.start! : r.bytes.length;
+    estimatedWork += rLen * 6 + 8;
+  }
+  if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) return undefined;
+  ledger.charge("work", lastEreCache.work, signal);
+  ledger.charge("patternBytes", lastEreCache.patternBytes, signal);
+  ledger.charge("states", lastEreCache.states, signal);
+  ledger.charge("allocationUnits", lastEreCache.allocationUnits + 3, signal);
+  runYieldCheckpoint(signal);
+  if (rows.length === 0) {
+    signal.throwIfAborted();
+    return { id: input.id, results: emptyFloat64Results, directMatches: [] };
+  }
+  const directMatches: Match[][] = new Array(rows.length);
+  let matchCount = 0;
+  const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
+  const leftmostFirst = selected.kind === "rg";
+  const word = selected.word;
+  for (let r = 0; r < rows.length; r++) {
+    const row = rows[r]! as Row & { chunk?: Uint8Array; start?: number; searchEnd?: number };
+    const hasRange = row.chunk !== undefined && typeof row.start === "number" && typeof row.searchEnd === "number";
+    const buf = hasRange ? row.chunk! : row.bytes;
+    const rStart = hasRange ? row.start! : 0;
+    const rEnd = hasRange ? row.searchEnd! : buf.length;
+    for (let i = rStart; i < rEnd; i++) {
+      const b = buf[i]!;
+      if (b === 0 || b >= 0x80) return undefined;
+    }
+    let bestSpan: { readonly start: number; readonly end: number } | undefined;
+    for (let p = 0; p < programs.length; p++) {
+      const candidate = tryMatchEreAsciiRangeSync(programs[p]!, buf, rStart, rEnd, ledger, signal, leftmostFirst, word);
+      if (candidate === null) return undefined;
+      if (!candidate) continue;
+      if (selected.kind === "grep") { bestSpan = candidate; break; }
+      if (!bestSpan || candidate.start < bestSpan.start) bestSpan = candidate;
+    }
+    if (bestSpan) {
+      if (matchCount >= maxMatches) fail("limit", "total match or result byte limit exceeded");
+      matchCount++;
+      directMatches[r] = [{ start: bestSpan.start, end: bestSpan.end }];
+    } else {
+      directMatches[r] = emptyMatchRow;
+    }
+  }
+  signal.throwIfAborted();
+  return { id: input.id, results: emptyFloat64Results, directMatches };
+}
 const sharedSyncLedger = EreLedger.withPrevalidatedLimits(Object.freeze({
   patternBytes: Infinity, subjectBytes: Infinity, work: Infinity,
   states: Infinity, allocationUnits: Infinity, captureBytes: Infinity, captureSlots: Infinity,
@@ -783,7 +860,7 @@ function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undef
         || selected.kind === "grep" && character.charCodeAt(0) >= 128) { literal = false; break patterns; }
     }
   }
-  if (!literal) return undefined;
+  if (!literal) return tryExecuteEreSync(input, signal, foldOrPromise);
   return tryExecuteLiteralSync(input, signal, foldOrPromise);
 }
 
@@ -919,6 +996,8 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
     }
   }
   if (literal) return executeLiteral(input, signal, fold);
+  const ereKey = ereCacheKeyFor(selected, fold);
+  const snapBeforeEre = ledger.usage;
   const programs: EreProgram[] = [];
   for (const pattern of selected.patterns) {
     if (selected.kind === "rg" && !selected.nullData && pattern.includes("\n")) fail("unsupported", "rg multiline matching is unsupported");
@@ -934,6 +1013,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
     }
     programs.push(await compileEre(fragments, ledger, signal, fold));
   }
+  const snapAfterEre = ereKey !== undefined ? ledger.usage : undefined;
   ledger.charge("allocationUnits", 3, signal);
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
@@ -961,6 +1041,19 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
       usage.count++;
     }
     results.push(span ? new Float64Array([span.start, span.end]) : emptyFloat64);
+  }
+  if (ereKey !== undefined && snapAfterEre !== undefined) {
+    for (const prog of programs) {
+      if (prog.groups === 0) await warmEreProgram(prog);
+    }
+    lastEreCache = {
+      key: ereKey,
+      programs,
+      work: snapAfterEre.work - snapBeforeEre.work,
+      patternBytes: snapAfterEre.patternBytes - snapBeforeEre.patternBytes,
+      states: snapAfterEre.states - snapBeforeEre.states,
+      allocationUnits: snapAfterEre.allocationUnits - snapBeforeEre.allocationUnits,
+    };
   }
   return { id: input.id, results };
 }
@@ -1088,11 +1181,13 @@ class CooperativeWorker implements RegexWorker {
 export function createBoundedRegexProvider(input: BoundedRegexProviderOptions = {}): BoundedRegexProvider {
   const limits = options(input);
   let active = 0;
-  return Object.freeze({
+  const provider: BoundedRegexProvider = Object.freeze({
     createWorker(): RegexWorker {
       if (active >= limits.maxWorkers) fail("limit", "worker count limit exceeded");
       active++;
       return new CooperativeWorker(limits, () => { active--; });
     },
   });
+  inProcessRegexProviders.add(provider);
+  return provider;
 }

@@ -58,6 +58,7 @@ export const matchRangeLimits = Object.freeze({ perRow: Infinity, perReply: Infi
 export const trustedWorkerRequests = new WeakSet<object>();
 export const trustedWorkerReplies = new WeakSet<object>();
 export const inProcessRegexWorkers = new WeakSet<object>();
+export const inProcessRegexProviders = new WeakSet<object>();
 export const trustedInputRows = new WeakSet<readonly Row[]>();
 export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
 export type Reply = { readonly id: number; readonly results: readonly Float64Array[]; readonly directMatches?: Match[][] } | { readonly id: number; readonly error: string };

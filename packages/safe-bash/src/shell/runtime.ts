@@ -1763,6 +1763,8 @@ function hasGlobOrEscape(text: string): boolean {
   return false;
 }
 
+const fastSubScratchArgs: string[] = [];
+
 export class Runtime {
   private readonly sourceFs: FileSystem;
   private readonly backingFs: FileSystem;
@@ -8769,10 +8771,13 @@ export class Runtime {
       rawState.extensions?.checkpoints.length ||
       rawState.variableAttributes?.size ||
       guestArrays(state) ||
-      rawState.redirectAssignments?.size ||
-      (this.budget.commands + 1) % 128 === 0
+      rawState.redirectAssignments?.size
     ) {
       return undefined;
+    }
+    if (((this.budget.commands + 1) & 127) === 0) {
+      if (hasYieldCheckpoint(this.signal) || ((this.budget.commands + 1) & 2047) === 0) return undefined;
+      runYieldCheckpoint(this.signal);
     }
     if (part.script.lists.length !== 1) return undefined;
     const list = part.script.lists[0]!;
@@ -8792,20 +8797,27 @@ export class Runtime {
     for (let i = 0; i < cmd.words.length; i++) {
       if (!this.isPureArgWord(cmd.words[i]!, rawState)) return undefined;
     }
-    const args: string[] = [];
+    fastSubScratchArgs.length = 0;
     for (let i = 1; i < cmd.words.length; i++) {
       const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
-      if (typeof val !== "string") return undefined;
-      args.push(val);
+      if (typeof val !== "string") {
+        fastSubScratchArgs.length = 0;
+        return undefined;
+      }
+      fastSubScratchArgs.push(val);
     }
     let formatted: string | undefined;
     if (w0Plain === "printf") {
-      formatted = tryFastPrintf(args);
+      formatted = tryFastPrintf(fastSubScratchArgs);
     } else {
-      if (args[0]?.startsWith("-")) return undefined;
-      formatted = `${args.join(" ")}\n`;
+      if (fastSubScratchArgs[0]?.startsWith("-")) {
+        fastSubScratchArgs.length = 0;
+        return undefined;
+      }
+      formatted = `${fastSubScratchArgs.join(" ")}\n`;
       if (formatted.includes("\0")) return undefined;
     }
+    fastSubScratchArgs.length = 0;
     if (formatted === undefined) return undefined;
     const byteLength = Buffer.byteLength(formatted);
     if (byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");

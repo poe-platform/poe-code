@@ -34,6 +34,9 @@ test("env debug listing needs no command and verbose remains invalid", async () 
   const result = await shell.exec("env -iv ADDED=value");
   assert.equal(result.stdout, "ADDED=value\n");
   assert.equal(result.stderr, "cleaning environ\nsetenv:   ADDED=value\n");
-  assert.equal((await shell.exec("env --verbose printf SYNTHETIC")).exitCode, 2);
+  const invalid = await shell.exec("env --verbose printf SYNTHETIC");
+  assert.equal(invalid.exitCode, 125);
+  assert.equal(invalid.stdout, "");
+  assert.equal(invalid.stderr, "env: unrecognized option '--verbose'\n");
   assert.equal((await shell.exec("env -i printf SYNTHETIC")).stderr, "");
 });

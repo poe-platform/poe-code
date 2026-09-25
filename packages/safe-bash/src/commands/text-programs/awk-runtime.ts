@@ -15,7 +15,7 @@ function textSize(value: Value | undefined): number {
 
 function ownScalar(value: Scalar): Scalar {
   return value.kind === "string" || value.kind === "numeric"
-    ? { ...value, text: Buffer.from(value.text, "latin1").toString("latin1") } : value;
+    ? { ...value, text: value.text.length < 13 ? value.text : Buffer.from(value.text, "latin1").toString("latin1") } : value;
 }
 
 class Flow {
@@ -59,7 +59,11 @@ export class AwkRuntime {
   private store(name: string): Map<string, Value> { return this.frames.at(-1)?.has(name) ? this.frames.at(-1)! : this.variables; }
   private get(name: string): Value { return this.store(name).get(name) ?? unset; }
   private getScalar(name: string): Scalar { return scalar(this.get(name)); }
-  private asText(value: Scalar): string { return text(value, text(this.getScalar("CONVFMT"), undefined, this.budget), this.budget); }
+  private asText(value: Scalar): string {
+    if (value.kind === "string" || value.kind === "numeric") return value.text;
+    if (value.kind === "unset") return "";
+    return text(value, text(this.getScalar("CONVFMT"), undefined, this.budget), this.budget);
+  }
   private varText(name: string): string { return this.asText(this.getScalar(name)); }
   private retainName(path: string): string {
     this.context.signal.throwIfAborted();
@@ -67,8 +71,8 @@ export class AwkRuntime {
   }
   private storeScalar(store: Map<string, Value>, name: string, value: Scalar): void {
     if (value.kind === "string" || value.kind === "numeric") this.budget.check(value.text);
-    const owned = this.retention.replace(textSize(store.get(name)), textSize(value), () => ownScalar(value));
-    store.set(name, owned);
+    this.retention.admit(textSize(store.get(name)), textSize(value));
+    store.set(name, ownScalar(value));
   }
   private bindArray(store: Map<string, Value>, name: string, array: AwkArray): void {
     let allocation = this.arrays.get(array);
@@ -109,13 +113,13 @@ export class AwkRuntime {
   private arraySet(array: AwkArray, key: string, value: Scalar): void {
     this.budget.check(key);
     if (value.kind === "string" || value.kind === "numeric") this.budget.check(value.text);
-    const existing = array.entries.has(key);
+    const existingValue = array.entries.get(key);
+    const existing = existingValue !== undefined || array.entries.has(key);
     if (!existing && this.entries >= (this.budget.options.maxArrayEntries ?? Infinity)) throw new ProgramError("array entry limit exceeded");
-    const previous = textSize(array.entries.get(key)), next = textSize(value) + (existing ? 0 : key.length);
-    const owned = this.retention.replace(previous, next, () => ({
-      key: existing ? key : Buffer.from(key, "latin1").toString("latin1"), value: ownScalar(value),
-    }));
-    array.entries.set(owned.key, owned.value);
+    const previous = textSize(existingValue), next = textSize(value) + (existing ? 0 : key.length);
+    this.retention.admit(previous, next);
+    const ownedKey = existing || key.length < 13 ? key : Buffer.from(key, "latin1").toString("latin1");
+    array.entries.set(ownedKey, ownScalar(value));
     this.arrays.get(array)!.bytes += next - previous;
     if (!existing) this.entries++;
   }
@@ -129,6 +133,44 @@ export class AwkRuntime {
     return pattern;
   }
   private async regex(expression: Expression): Promise<Pattern> { return expression.kind === "regex" ? expression.pattern : this.pattern(this.asText(await this.scalarExpression(expression))); }
+  private splitSync(value: string, separator: string, paragraph: boolean): Scalar[] | Promise<Scalar[]> {
+    if (!paragraph && value.length < 256 && (separator === " " || separator.length === 1)) {
+      this.budget.step(value.length);
+      const maxFields = this.budget.options.maxFields ?? Infinity;
+      const parts: Scalar[] = [];
+      if (separator === " ") {
+        let start = -1;
+        for (let index = 0; index < value.length; index++) {
+          const ch = value.charCodeAt(index);
+          if (ch === 32 || ch === 9 || ch === 10) {
+            if (start >= 0) {
+              if (parts.length >= maxFields) throw new ProgramError("field count limit exceeded");
+              parts.push(inputValue(value.slice(start, index)));
+              start = -1;
+            }
+          } else if (start < 0) start = index;
+        }
+        if (start >= 0) {
+          if (parts.length >= maxFields) throw new ProgramError("field count limit exceeded");
+          parts.push(inputValue(value.slice(start, value.length)));
+        }
+        return parts;
+      }
+      if (value !== "") {
+        let start = 0;
+        let idx: number;
+        while ((idx = value.indexOf(separator, start)) >= 0) {
+          if (parts.length >= maxFields) throw new ProgramError("field count limit exceeded");
+          parts.push(inputValue(value.slice(start, idx)));
+          start = idx + 1;
+        }
+        if (parts.length >= maxFields) throw new ProgramError("field count limit exceeded");
+        parts.push(inputValue(value.slice(start, value.length)));
+      }
+      return parts;
+    }
+    return this.split(value, separator, paragraph);
+  }
   private async split(value: string, separator: string | Pattern, paragraph = false): Promise<Scalar[]> {
     // Admit the byte scan/copy before building fields; regex matching charges its own work.
     this.budget.step(value.length);
@@ -140,7 +182,7 @@ export class AwkRuntime {
     if (separator === " ") {
       let start = -1;
       for (let index = 0; index < value.length; index++) {
-        if (index % 256 === 0) await this.budget.checkpoint();
+        if (index % 256 === 0) await this.budget.checkpointSync();
         if (" \t\n".includes(value[index]!)) {
           if (start >= 0) { append(start, index); start = -1; }
         } else if (start < 0) start = index;
@@ -149,13 +191,28 @@ export class AwkRuntime {
     } else if (separator === "") {
       if (value.length > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("field count limit exceeded");
       for (let index = 0; index < value.length; index++) {
-        if (index % 256 === 0) await this.budget.checkpoint();
+        if (index % 256 === 0) await this.budget.checkpointSync();
         append(index, index + 1);
       }
     } else if (typeof separator === "string" && separator.length === 1) {
+      if (!paragraph && value.length < 256) {
+        if (value !== "") {
+          let start = 0;
+          let idx: number;
+          while ((idx = value.indexOf(separator, start)) >= 0) {
+            append(start, idx);
+            start = idx + 1;
+          }
+          append(start, value.length);
+        }
+        return parts;
+      }
       let start = 0;
       for (let index = 0; index < value.length; index++) {
-        if (index % 256 === 0) await this.budget.checkpoint();
+        if (index > 0 && index % 256 === 0) {
+          const p = this.budget.checkpointSync();
+          if (p) await p;
+        }
         if (value[index] === separator || paragraph && value[index] === "\n") {
           append(start, index); start = index + 1;
         }
@@ -165,7 +222,7 @@ export class AwkRuntime {
       const matcher = typeof separator === "string" ? this.pattern(separator) : separator;
       const segment = async (start: number, end: number): Promise<void> => {
         if (paragraph) for (let index = start; index < end; index++) {
-          if (index % 256 === 0) await this.budget.checkpoint();
+          if (index % 256 === 0) await this.budget.checkpointSync();
           if (value[index] === "\n") { append(start, index); start = index + 1; }
         }
         append(start, end);
@@ -173,7 +230,7 @@ export class AwkRuntime {
       let consumed = 0;
       let search = 0;
       while (search <= value.length) {
-        await this.budget.checkpoint();
+        await this.budget.checkpointSync();
         const match = await matcher.find(value, this.budget, search);
         if (!match) break;
         if (match.start === match.end) { search = match.end + 1; continue; }
@@ -183,10 +240,17 @@ export class AwkRuntime {
     }
     return parts;
   }
-  private async setRecord(record: string, value: Scalar = inputValue(record)): Promise<void> {
+  private setRecordSync(record: string, value: Scalar = inputValue(record)): void | Promise<void> {
     this.budget.check(record);
-    const fields = await this.split(record, this.varText("FS"), this.varText("RS") === "");
-    this.replaceRecord(record, fields, value);
+    const fields = this.splitSync(record, this.varText("FS"), this.varText("RS") === "");
+    if (!(fields instanceof Promise)) {
+      this.replaceRecord(record, fields, value);
+      return;
+    }
+    return fields.then(resolved => { this.replaceRecord(record, resolved, value); });
+  }
+  private async setRecord(record: string, value: Scalar = inputValue(record)): Promise<void> {
+    await this.setRecordSync(record, value);
   }
   private replaceRecord(record: string, fields: Scalar[], value: Scalar = string(record)): void {
     let fieldBytes = 0;
@@ -194,11 +258,8 @@ export class AwkRuntime {
       if (field.kind === "string" || field.kind === "numeric") this.budget.check(field.text);
       fieldBytes += textSize(field);
     }
-    const owned = this.retention.replace(this.record.length + this.fieldBytes, record.length + fieldBytes, () => ({
-      record: Buffer.from(record, "latin1").toString("latin1"),
-      fields: fields.map((field, index) => field === this.fields[index] ? field : ownScalar(field)),
-    }));
-    this.record = owned.record; this.fields = owned.fields; this.fieldBytes = fieldBytes;
+    this.retention.admit(this.record.length + this.fieldBytes, record.length + fieldBytes);
+    this.record = record; this.fields = fields; this.fieldBytes = fieldBytes;
     this.recordValue = value.kind === "string" || value.kind === "numeric" ? { ...value, text: this.record } : value;
     this.variables.set("NF", numeric(fields.length));
   }
@@ -222,7 +283,20 @@ export class AwkRuntime {
     const record = this.join(fields.map(value => this.asText(value)), this.varText("OFS"));
     this.replaceRecord(record, fields);
   }
-  private async key(items: readonly Expression[]): Promise<string> {
+  private key(items: readonly Expression[]): string | Promise<string> {
+    if (items.length === 1) {
+      const first = this.scalarExpression(items[0]!);
+      if (!(first instanceof Promise)) {
+        const k = this.asText(first);
+        this.budget.step(2);
+        if (k.length > this.budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+        this.budget.step(k.length);
+        return k;
+      }
+    }
+    return this.keySlow(items);
+  }
+  private async keySlow(items: readonly Expression[]): Promise<string> {
     const pieces: string[] = [];
     for (const item of items) pieces.push(this.asText(await this.scalarExpression(item)));
     return this.join(pieces, this.varText("SUBSEP"));
@@ -255,21 +329,197 @@ export class AwkRuntime {
     if (!Number.isFinite(result)) throw new ProgramError("non-finite arithmetic result");
     return result;
   }
-  private async scalarExpression(expression: Expression): Promise<Scalar> { return scalar(await this.evaluate(expression)); }
+  private scalarExpression(expression: Expression): Scalar | Promise<Scalar> {
+    const val = this.evaluate(expression);
+    return val instanceof Promise ? val.then(scalar) : scalar(val);
+  }
 
-  private async evaluate(expression: Expression): Promise<Value> {
+  private evaluate(expression: Expression): Value | Promise<Value> {
     this.budget.step();
     switch (expression.kind) {
       case "number": return numeric(expression.value);
       case "string": return string(expression.value);
-      case "regex": return numeric((await expression.pattern.find(this.record, this.budget)) ? 1 : 0);
+      case "regex": return expression.pattern.find(this.record, this.budget).then(m => numeric(m ? 1 : 0));
       case "variable": return this.get(expression.name);
-      case "field": case "array": return (await this.reference(expression)).get();
+      case "field": {
+        const idxVal = this.scalarExpression(expression.index);
+        if (!(idxVal instanceof Promise)) {
+          const index = Math.trunc(number(idxVal));
+          if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
+          return index === 0 ? this.recordValue : this.fields[index - 1] ?? unset;
+        }
+        return idxVal.then(resolved => {
+          const index = Math.trunc(number(resolved));
+          if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
+          return index === 0 ? this.recordValue : this.fields[index - 1] ?? unset;
+        });
+      }
+      case "array": {
+        const array = this.array(expression.name);
+        const k = this.key(expression.indexes);
+        if (!(k instanceof Promise)) {
+          let existing = array.entries.get(k);
+          if (existing === undefined && !array.entries.has(k)) {
+            this.arraySet(array, k, unset);
+            existing = unset;
+          }
+          return existing!;
+        }
+        return k.then(resolvedKey => {
+          let existing = array.entries.get(resolvedKey);
+          if (existing === undefined && !array.entries.has(resolvedKey)) {
+            this.arraySet(array, resolvedKey, unset);
+            existing = unset;
+          }
+          return existing!;
+        });
+      }
       case "getline": return this.getline(expression);
       case "tuple": throw new ProgramError("tuple is only valid as an array membership key");
-      case "conditional": return this.evaluate(truth(await this.scalarExpression(expression.condition)) ? expression.yes : expression.no);
+      case "conditional": {
+        const cond = this.scalarExpression(expression.condition);
+        return cond instanceof Promise ? cond.then(c => this.evaluate(truth(c) ? expression.yes : expression.no)) : this.evaluate(truth(cond) ? expression.yes : expression.no);
+      }
       case "unary": {
         if (expression.operator === "++" || expression.operator === "--") {
+          if (expression.operand.kind === "variable") {
+            const name = expression.operand.name;
+            const previous = number(scalar(this.get(name)));
+            const next = previous + (expression.operator === "++" ? 1 : -1);
+            this.set(name, numeric(next));
+            return numeric(expression.postfix ? previous : next);
+          }
+          if (expression.operand.kind === "array") {
+            const array = this.array(expression.operand.name);
+            const k = this.key(expression.operand.indexes);
+            if (!(k instanceof Promise)) {
+              let current = array.entries.get(k);
+              if (current === undefined && !array.entries.has(k)) {
+                this.arraySet(array, k, unset);
+                current = unset;
+              }
+              const previous = number(scalar(current!));
+              const next = previous + (expression.operator === "++" ? 1 : -1);
+              this.arraySet(array, k, numeric(next));
+              return numeric(expression.postfix ? previous : next);
+            }
+            return k.then(resolvedKey => {
+              let current = array.entries.get(resolvedKey);
+              if (current === undefined && !array.entries.has(resolvedKey)) {
+                this.arraySet(array, resolvedKey, unset);
+                current = unset;
+              }
+              const previous = number(scalar(current!));
+              const next = previous + (expression.operator === "++" ? 1 : -1);
+              this.arraySet(array, resolvedKey, numeric(next));
+              return numeric(expression.postfix ? previous : next);
+            });
+          }
+          return this.evaluateUnarySlow(expression);
+        }
+        const operand = this.scalarExpression(expression.operand);
+        if (!(operand instanceof Promise)) {
+          return numeric(expression.operator === "!" ? truth(operand) ? 0 : 1 : expression.operator === "-" ? -number(operand) : number(operand));
+        }
+        return operand.then(op => numeric(expression.operator === "!" ? truth(op) ? 0 : 1 : expression.operator === "-" ? -number(op) : number(op)));
+      }
+      case "binary": {
+        const operator = expression.operator;
+        if (operator === "=" || operator === "+=" || operator === "-=" || operator === "*=" || operator === "/=" || operator === "%=" || operator === "^=") {
+          if (expression.left.kind === "variable") {
+            const name = expression.left.name;
+            const previous = operator === "=" ? unset : scalar(this.get(name));
+            const rightVal = this.scalarExpression(expression.right);
+            if (!(rightVal instanceof Promise)) {
+              const value = operator === "=" ? rightVal : numeric(this.arithmetic(operator[0]!, number(previous), number(rightVal)));
+              this.set(name, value);
+              return value;
+            }
+            return rightVal.then(resolved => {
+              const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
+              this.set(name, value);
+              return value;
+            });
+          } else if (expression.left.kind === "array") {
+            const array = this.array(expression.left.name);
+            const k = this.key(expression.left.indexes);
+            if (!(k instanceof Promise)) {
+              let current = operator === "=" ? unset : array.entries.get(k);
+              if (operator !== "=" && current === undefined && !array.entries.has(k)) {
+                this.arraySet(array, k, unset);
+                current = unset;
+              }
+              const previous = scalar(current!);
+              const rightVal = this.scalarExpression(expression.right);
+              if (!(rightVal instanceof Promise)) {
+                const value = operator === "=" ? rightVal : numeric(this.arithmetic(operator[0]!, number(previous), number(rightVal)));
+                this.arraySet(array, k, value);
+                return value;
+              }
+              return rightVal.then(resolved => {
+                const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
+                this.arraySet(array, k, value);
+                return value;
+              });
+            }
+            return k.then(async resolvedKey => {
+              let current = operator === "=" ? unset : array.entries.get(resolvedKey);
+              if (operator !== "=" && current === undefined && !array.entries.has(resolvedKey)) {
+                this.arraySet(array, resolvedKey, unset);
+                current = unset;
+              }
+              const previous = scalar(current!);
+              const resolved = await this.scalarExpression(expression.right);
+              const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
+              this.arraySet(array, resolvedKey, value);
+              return value;
+            });
+          }
+          return this.evaluateBinarySlow(expression);
+        }
+        if (operator === "in" || operator === "~" || operator === "!~") {
+          return this.evaluateBinarySlow(expression);
+        }
+        const left = this.scalarExpression(expression.left);
+        if (left instanceof Promise) return this.evaluateBinaryWithLeftPromise(expression, left);
+        if (operator === "&&" && !truth(left)) return numeric(0);
+        if (operator === "||" && truth(left)) return numeric(1);
+        const right = this.scalarExpression(expression.right);
+        if (right instanceof Promise) return right.then(r => this.evaluateBinarySyncOperands(operator, left, r));
+        return this.evaluateBinarySyncOperands(operator, left, right);
+      }
+      case "call": return this.call(expression.name, expression.args);
+    }
+  }
+
+  private evaluateBinarySyncOperands(operator: string, left: Scalar, right: Scalar): Scalar {
+    if (operator === "&&" || operator === "||") return numeric(truth(right) ? 1 : 0);
+    if (operator === "concat") {
+      const leftText = this.asText(left);
+      const rightText = this.asText(right);
+      this.budget.step(0);
+      if (rightText.length > this.budget.maxBufferBytes - leftText.length) throw new ProgramError("text buffer limit exceeded");
+      this.budget.step(leftText.length + rightText.length);
+      return string(leftText + rightText);
+    }
+    if (operator === "==" || operator === "!=" || operator === "<" || operator === "<=" || operator === ">" || operator === ">=") {
+      const order = compare(left, right, this.varText("CONVFMT"), this.budget);
+      return numeric((operator === "==" ? order === 0 : operator === "!=" ? order !== 0 : operator === "<" ? order < 0 : operator === "<=" ? order <= 0 : operator === ">" ? order > 0 : order >= 0) ? 1 : 0);
+    }
+    return numeric(this.arithmetic(operator, number(left), number(right)));
+  }
+
+  private async evaluateBinaryWithLeftPromise(expression: Extract<Expression, { kind: "binary" }>, leftPromise: Promise<Scalar>): Promise<Scalar> {
+    const operator = expression.operator;
+    const left = await leftPromise;
+    if (operator === "&&" && !truth(left)) return numeric(0);
+    if (operator === "||" && truth(left)) return numeric(1);
+    const right = await this.scalarExpression(expression.right);
+    return this.evaluateBinarySyncOperands(operator, left, right);
+  }
+
+  private async evaluateUnarySlow(expression: Extract<Expression, { kind: "unary" }>): Promise<Scalar> {
+    if (expression.operator === "++" || expression.operator === "--") {
           const reference = await this.reference(expression.operand);
           const previous = number(scalar(reference.get()));
           const next = previous + (expression.operator === "++" ? 1 : -1);
@@ -277,8 +527,9 @@ export class AwkRuntime {
         }
         const operand = await this.scalarExpression(expression.operand);
         return numeric(expression.operator === "!" ? truth(operand) ? 0 : 1 : expression.operator === "-" ? -number(operand) : number(operand));
-      }
-      case "binary": {
+  }
+
+  private async evaluateBinarySlow(expression: Extract<Expression, { kind: "binary" }>): Promise<Scalar> {
         const operator = expression.operator;
         if (["=", "+=", "-=", "*=", "/=", "%=", "^="].includes(operator)) {
           const reference = await this.reference(expression.left);
@@ -293,30 +544,12 @@ export class AwkRuntime {
           return numeric(array.entries.has(key) ? 1 : 0);
         }
         const left = await this.scalarExpression(expression.left);
-        if (operator === "&&" && !truth(left)) return numeric(0);
-        if (operator === "||" && truth(left)) return numeric(1);
         if (operator === "~" || operator === "!~") {
           const matched = (await (await this.regex(expression.right)).find(this.asText(left), this.budget)) !== undefined;
           return numeric((operator === "~" ? matched : !matched) ? 1 : 0);
         }
         const right = await this.scalarExpression(expression.right);
-        if (operator === "&&" || operator === "||") return numeric(truth(right) ? 1 : 0);
-        if (operator === "concat") {
-          const leftText = this.asText(left);
-          const rightText = this.asText(right);
-          this.budget.step(0);
-          if (rightText.length > this.budget.maxBufferBytes - leftText.length) throw new ProgramError("text buffer limit exceeded");
-          this.budget.step(leftText.length + rightText.length);
-          return string(leftText + rightText);
-        }
-        if (["==", "!=", "<", "<=", ">", ">="].includes(operator)) {
-          const order = compare(left, right, this.varText("CONVFMT"), this.budget);
-          return numeric((operator === "==" ? order === 0 : operator === "!=" ? order !== 0 : operator === "<" ? order < 0 : operator === "<=" ? order <= 0 : operator === ">" ? order > 0 : order >= 0) ? 1 : 0);
-        }
-        return numeric(this.arithmetic(operator, number(left), number(right)));
-      }
-      case "call": return this.call(expression.name, expression.args);
-    }
+        return this.evaluateBinarySyncOperands(operator, left, right);
   }
 
   private async getline(expression: Extract<Expression, { kind: "getline" }>): Promise<Scalar> {
@@ -348,7 +581,7 @@ export class AwkRuntime {
         if (useStdin) yield* context.stdin;
         else {
           budget.step();
-          await budget.checkpoint();
+          await budget.checkpointSync();
           const capabilities = await context.fs.capabilitiesFor?.(name, { signal: context.signal }) ?? context.fs.capabilities;
           context.signal.throwIfAborted();
           if (context.fs.readStream && capabilities.streamingRead !== false) yield* context.fs.readStream(name, { signal: context.signal });
@@ -486,10 +719,51 @@ export class AwkRuntime {
     return numeric(result);
   }
 
+  private executeSync(statement: Statement): void | Promise<void> {
+    if (!this.inspection) {
+      const p = this.budget.checkpointSync();
+      if (!p) {
+        if (statement.kind === "expression") {
+          this.budget.step();
+          const val = this.evaluate(statement.expression);
+          return val instanceof Promise ? val.then(() => undefined) : undefined;
+        }
+        if (statement.kind === "block") {
+          this.budget.step();
+          for (let i = 0; i < statement.body.length; i++) {
+            const res = this.executeSync(statement.body[i]!);
+            if (res instanceof Promise) {
+              return this.executeBlockRemainder(statement.body, i + 1, res);
+            }
+          }
+          return undefined;
+        }
+        if (statement.kind === "if") {
+          this.budget.step();
+          const cond = this.scalarExpression(statement.condition);
+          if (!(cond instanceof Promise)) {
+            const branch = truth(cond) ? statement.yes : statement.no;
+            return branch ? this.executeSync(branch) : undefined;
+          }
+        }
+      }
+    }
+    return this.execute(statement);
+  }
+
+  private async executeBlockRemainder(body: readonly Statement[], startIndex: number, current: Promise<void>): Promise<void> {
+    await current;
+    for (let i = startIndex; i < body.length; i++) {
+      const res = this.executeSync(body[i]!);
+      if (res instanceof Promise) await res;
+    }
+  }
+
   private async execute(statement: Statement): Promise<void> {
     this.budget.step();
     if (this.inspection) await this.inspection.observe(statement, this.phase);
-    await this.budget.checkpoint();
+    const p = this.budget.checkpointSync();
+    if (p) await p;
     switch (statement.kind) {
       case "block": for (const child of statement.body) await this.execute(child); return;
       case "expression": await this.evaluate(statement.expression); return;
@@ -600,6 +874,51 @@ export class AwkRuntime {
   }
 
   private async readMainRecord(): Promise<string | undefined> {
+    const syncRes = this.readMainRecordSync();
+    return syncRes instanceof Promise ? await syncRes : syncRes;
+  }
+
+  private incrementCounter(name: string): void {
+    const current = this.variables.get(name);
+    if (current && !(current instanceof AwkArray) && current.kind === "number" && !this.frames.at(-1)?.has(name)) {
+      this.retention.admit(0, 0);
+      this.variables.set(name, numeric(current.number + 1));
+      return;
+    }
+    this.set(name, numeric(number(this.getScalar(name)) + 1));
+  }
+
+  private readMainRecordSync(): string | undefined | Promise<string | undefined> {
+    if (this.mainReader) {
+      this.budget.step();
+      const record = this.mainReader.readSync(this.varText("RS"));
+      if (typeof record === "string") {
+        this.incrementCounter("NR");
+        this.incrementCounter("FNR");
+        return record;
+      }
+      if (record instanceof Promise) {
+        return record.then(resolved => {
+          if (resolved !== undefined) {
+            this.incrementCounter("NR");
+            this.incrementCounter("FNR");
+            return resolved;
+          }
+          return this.readMainRecordSlowAfterEof();
+        });
+      }
+      return this.readMainRecordSlowAfterEof();
+    }
+    return this.readMainRecordSlow();
+  }
+
+  private async readMainRecordSlowAfterEof(): Promise<string | undefined> {
+    await this.mainReader?.close();
+    this.mainReader = undefined;
+    return this.readMainRecordSlow();
+  }
+
+  private async readMainRecordSlow(): Promise<string | undefined> {
     while (true) {
       this.budget.step();
       if (!this.mainReader) {
@@ -608,7 +927,8 @@ export class AwkRuntime {
           this.budget.step();
           const argumentOptions = (this.budget as Budget & { readonly options?: { readonly maxArguments?: number } }).options;
           if (this.argument > (argumentOptions?.maxArguments ?? Infinity)) throw new ProgramError("argument count limit exceeded");
-          await this.budget.checkpoint();
+          const p = this.budget.checkpointSync();
+          if (p) await p;
           const next = this.asText(this.array("ARGV").entries.get(String(this.argument++)) ?? unset);
           if (!next) continue;
           if (this.operandAssignments && /^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) { this.assignment(next); continue; }
@@ -621,8 +941,8 @@ export class AwkRuntime {
       }
       const record = await this.mainReader.read(this.varText("RS"));
       if (record === undefined) { await this.mainReader.close(); this.mainReader = undefined; continue; }
-      this.set("NR", numeric(number(this.getScalar("NR")) + 1));
-      this.set("FNR", numeric(number(this.getScalar("FNR")) + 1));
+      this.incrementCounter("NR");
+      this.incrementCounter("FNR");
       return record;
     }
   }
@@ -635,19 +955,27 @@ export class AwkRuntime {
     const ranges = new Set<number>();
     if (!stopped && (this.program.rules.length || this.program.end.length)) while (true) {
       this.budget.step();
-      const record = await this.readMainRecord();
+      const recOrPromise = this.readMainRecordSync();
+      const record = recOrPromise instanceof Promise ? await recOrPromise : recOrPromise;
       if (record === undefined) break;
-      await this.setRecord(record);
+      const setRecPromise = this.setRecordSync(record);
+      if (setRecPromise instanceof Promise) await setRecPromise;
       try {
         for (let index = 0; index < this.program.rules.length; index++) {
           const rule = this.program.rules[index]!;
-          const selected = !rule.pattern || ranges.has(index) || truth(await this.scalarExpression(rule.pattern));
+          let selected = !rule.pattern || ranges.has(index);
+          if (!selected) {
+            const patVal = this.scalarExpression(rule.pattern!);
+            selected = truth(patVal instanceof Promise ? await patVal : patVal);
+          }
           if (!selected) continue;
           if (rule.end) {
-            if (truth(await this.scalarExpression(rule.end))) ranges.delete(index);
+            const endVal = this.scalarExpression(rule.end);
+            if (truth(endVal instanceof Promise ? await endVal : endVal)) ranges.delete(index);
             else ranges.add(index);
           }
-          await this.execute(rule.action);
+          const execRes = this.executeSync(rule.action);
+          if (execRes instanceof Promise) await execRes;
         }
       } catch (error) {
         if (!(error instanceof Flow)) throw error;

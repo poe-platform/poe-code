@@ -8,6 +8,14 @@ export class AwkRetention {
   }
   get retainedBytes(): number { return this.retained; }
 
+  admit(previousBytes: number, nextBytes: number): void {
+    this.signal?.throwIfAborted();
+    if (!Number.isSafeInteger(previousBytes) || previousBytes < 0 || previousBytes > this.retained
+      || !Number.isSafeInteger(nextBytes) || nextBytes < 0) throw new ProgramError("invalid retained text accounting");
+    if (nextBytes > this.capacity - this.retained + previousBytes) throw new ProgramError("awk retained text limit exceeded");
+    this.retained += nextBytes - previousBytes;
+  }
+
   replace<T>(previousBytes: number, nextBytes: number, create: () => T): T {
     this.signal?.throwIfAborted();
     if (!Number.isSafeInteger(previousBytes) || previousBytes < 0 || previousBytes > this.retained

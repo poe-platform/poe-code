@@ -46,8 +46,19 @@ export class Budget {
     if ((++this.checkpoints & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
       await yieldTurn(this.context.signal);
       this.lastYield = monotonicNow();
+      this.context.signal.throwIfAborted();
     }
+  }
+  checkpointSync(): Promise<void> | undefined {
     this.context.signal.throwIfAborted();
+    const count = ++this.checkpoints;
+    if ((count & 255) === 0 || ((count & 31) === 0 && monotonicNow() - this.lastYield >= 25)) {
+      return yieldTurn(this.context.signal).then(() => {
+        this.lastYield = monotonicNow();
+        this.context.signal.throwIfAborted();
+      });
+    }
+    return undefined;
   }
 }
 
@@ -97,6 +108,30 @@ export async function* lineRecords(context: CommandContext, files: readonly stri
       pending = budget.check(pending + text.slice(start));
     }
     if (pending) yield { text: pending, terminated: false, file, fileIndex };
+  }
+}
+
+export async function* lineRecordBatches(context: CommandContext, files: readonly string[], budget: Budget): AsyncGenerator<RecordLine[]> {
+  const names = files.length ? files : ["-"];
+  for (let fileIndex = 0; fileIndex < names.length; fileIndex++) {
+    const file = names[fileIndex]!;
+    let pending = "";
+    for await (const chunk of input(context, file)) {
+      budget.step();
+      const text = Buffer.isBuffer(chunk) ? chunk.toString("latin1") : Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength).toString("latin1");
+      let start = 0;
+      let end: number;
+      const batch: RecordLine[] = [];
+      while ((end = text.indexOf("\n", start)) >= 0) {
+        const slice = pending ? pending + text.slice(start, end) : text.slice(start, end);
+        batch.push({ text: budget.check(slice), terminated: true, file, fileIndex });
+        pending = "";
+        start = end + 1;
+      }
+      pending = budget.check(pending ? pending + text.slice(start) : text.slice(start));
+      if (batch.length > 0) yield batch;
+    }
+    if (pending) yield [{ text: pending, terminated: false, file, fileIndex }];
   }
 }
 

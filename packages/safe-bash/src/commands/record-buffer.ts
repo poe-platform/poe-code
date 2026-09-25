@@ -36,11 +36,15 @@ export class RecordBuffer {
   }
 
   finish(admit?: (size: number) => void, bytes?: Uint8Array, start = 0, end = bytes?.length ?? 0): Uint8Array {
-    this.#admit(end - start);
-    const size = this.#size + end - start;
+    const tailLength = end - start;
+    this.#admit(tailLength);
+    const size = this.#size + tailLength;
     admit?.(size);
     if (size > this.finalizationCapacity - this.#allocated) {
       throw new FsError("EFBIG", { message: "line finalization buffer limit exceeded" });
+    }
+    if (this.#size === 0) {
+      return bytes && tailLength > 0 ? bytes.slice(start, end) : new Uint8Array(0);
     }
     const result = new Uint8Array(size);
     let offset = 0;
@@ -49,13 +53,13 @@ export class RecordBuffer {
       result.set(segment.subarray(0, length), offset);
       offset += length;
     }
-    if (bytes && end > start) result.set(bytes.subarray(start, end), offset);
+    if (bytes && tailLength > 0) result.set(bytes.subarray(start, end), offset);
     this.clear();
     return result;
   }
 
   clear(): void {
-    this.#segments = [];
+    if (this.#segments.length) this.#segments.length = 0;
     this.#size = 0;
     this.#allocated = 0;
   }

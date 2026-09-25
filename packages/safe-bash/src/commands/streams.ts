@@ -5,6 +5,7 @@ import { assertCommandRequirements, type CommandFileSystemRequirement } from "..
 import { inputRequirements } from "./portable-requirements.js";
 import { followTail, parseTailFollow } from "./tail-follow.js";
 import { wcDisplayWidth } from "./wc-width.js";
+import { RecordBuffer } from "./record-buffer.js";
 import {
   assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, input,
   lines, options, output, pathOf, UsageError, value,
@@ -58,10 +59,10 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
     let pendingLines: { bytes: Uint8Array; terminated: boolean }[] = [];
     let start = 0;
     let size = 0;
-    for await (const line of lines(source, delimiter)) {
-      context.signal.throwIfAborted();
-      const lineLength = line.bytes.length + (line.terminated ? 1 : 0);
-      pendingLines.push(line);
+    const pending = new RecordBuffer(bufferLimit);
+    const pushLine = async (lineBytes: Uint8Array, terminated: boolean): Promise<void> => {
+      const lineLength = lineBytes.length + (terminated ? 1 : 0);
+      pendingLines.push({ bytes: lineBytes, terminated });
       size += lineLength;
       while (pendingLines.length - start > count) {
         const first = pendingLines[start++]!;
@@ -70,6 +71,23 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
       }
       if (size > bufferLimit) throw new FsError("EFBIG", { message: "tail buffer limit exceeded" });
       if (start > 1024) { pendingLines = pendingLines.slice(start); start = 0; }
+    };
+    try {
+      for await (const chunk of source) {
+        context.signal.throwIfAborted();
+        let lineStart = 0;
+        for (let offset = chunk.indexOf(delimiter); offset !== -1; offset = chunk.indexOf(delimiter, lineStart)) {
+          await pushLine(pending.finish(undefined, chunk, lineStart, offset), true);
+          lineStart = offset + 1;
+        }
+        if (lineStart < chunk.length) pending.append(chunk, lineStart);
+      }
+      if (pending.size) {
+        context.signal.throwIfAborted();
+        await pushLine(pending.finish(), false);
+      }
+    } finally {
+      pending.clear();
     }
     if (!omit) {
       for (let index = start; index < pendingLines.length; index++) {
@@ -466,6 +484,8 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
             inWord = true;
           }
         };
+        const needsText = parsed.flags.has("w") || parsed.flags.has("m") || parsed.flags.has("L");
+        const needsLines = parsed.flags.has("l");
         const utf8 = wcUtf8(point => {
           if (point !== undefined) counts.m!++;
           word(point !== undefined && wcSpace(point, posix), point !== undefined && point >= 32 && !(point >= 127 && point < 160));
@@ -475,6 +495,12 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
           for await (const chunk of input(context, name)) {
             context.signal.throwIfAborted();
             counts.c! += chunk.length;
+            if (!needsText) {
+              if (needsLines) {
+                for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) counts.l!++;
+              }
+              continue;
+            }
             for (const byte of chunk) {
               if (byte === 10) counts.l!++;
               if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13, byte >= 32 && byte < 127);
@@ -483,7 +509,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
             if (singleByte) counts.m! += chunk.length;
             else utf8.write(chunk);
           }
-          if (!singleByte) utf8.finish();
+          if (needsText && !singleByte) utf8.finish();
           counts.L = Math.max(counts.L!, columns);
           for (const field of ["l", "w", "m", "c"]) totals[field]! += counts[field]!;
           totals.L = Math.max(totals.L!, counts.L!);
@@ -578,19 +604,27 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       const second = parsed.operands[1] === undefined ? [] : characterSet(parsed.operands[1], translating ? first.length : 0);
       if (translating && parsed.flags.has("t")) first = first.slice(0, second.length);
       if (translating && !second.length && !parsed.flags.has("t")) throw new UsageError("second character set must not be empty");
-      const mapping = Array.from({ length: 256 }, (_, offset) => offset);
+      const mapping = new Uint8Array(256);
+      for (let offset = 0; offset < 256; offset++) mapping[offset] = offset;
       if (translating) first.forEach((byte, index) => { mapping[byte] = second[Math.min(index, second.length - 1)]!; });
-      const removed = new Set(deleting ? first : []);
-      const squeezed = new Set(squeezing ? parsed.operands.length === 2 ? second : first : []);
+      const removed = new Uint8Array(256);
+      if (deleting) for (const byte of first) removed[byte] = 1;
+      const squeezed = new Uint8Array(256);
+      if (squeezing) for (const byte of (parsed.operands.length === 2 ? second : first)) squeezed[byte] = 1;
       let previous = -1;
       for await (const chunk of input(context)) {
         context.signal.throwIfAborted();
         const transformed = new Uint8Array(chunk.length);
+        if (!deleting && !squeezing) {
+          for (let index = 0; index < chunk.length; index++) transformed[index] = mapping[chunk[index]!]!;
+          if (chunk.length) await output(context, transformed);
+          continue;
+        }
         let count = 0;
         for (const byte of chunk) {
-          if (removed.has(byte)) continue;
+          if (removed[byte]) continue;
           const translated = mapping[byte]!;
-          if (translated === previous && squeezed.has(translated)) continue;
+          if (translated === previous && squeezed[translated]) continue;
           transformed[count++] = translated; previous = translated;
         }
         if (count) await output(context, transformed.subarray(0, count));

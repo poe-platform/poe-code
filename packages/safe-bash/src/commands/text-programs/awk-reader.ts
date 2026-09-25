@@ -12,7 +12,7 @@ interface Scan {
 
 export class Reader {
   private readonly iterator: AsyncIterator<Uint8Array>;
-  private blocks: (Uint8Array | undefined)[] = [];
+  private blocks: (Buffer | undefined)[] = [];
   private head = 0;
   private offset = 0;
   private buffered = 0;
@@ -35,7 +35,7 @@ export class Reader {
     if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
     if (length === 0) return;
     const block = this.retention.replace(0, length, () => {
-      const owned = new Uint8Array(length);
+      const owned = Buffer.allocUnsafe(length);
       owned.set(next.value);
       return owned;
     });
@@ -65,8 +65,14 @@ export class Reader {
   }
 
   private finish(length: number, consumed: number): string {
+    const firstBlock = this.blocks[this.head]!;
+    if (length <= firstBlock.length - this.offset) {
+      const record = firstBlock.toString("latin1", this.offset, this.offset + length);
+      this.consume(consumed);
+      return record;
+    }
     // The returned record is a bounded transient; runtime slots own its charge.
-    const bytes = new Uint8Array(length);
+    const bytes = Buffer.allocUnsafe(length);
     let written = 0;
     for (let index = this.head; written < length; index++) {
       const block = this.blocks[index]!;
@@ -75,7 +81,7 @@ export class Reader {
       bytes.set(block.subarray(start, start + count), written);
       written += count;
     }
-    const record = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("latin1");
+    const record = bytes.toString("latin1");
     this.consume(consumed);
     return record;
   }
@@ -112,9 +118,35 @@ export class Reader {
     return undefined;
   }
 
+  readSync(separator: string): string | undefined | Promise<string | undefined> {
+    this.budget.context.signal.throwIfAborted();
+    if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+    if (separator.length === 1 && !this.closed && this.head < this.blocks.length) {
+      const headBlock = this.blocks[this.head]!;
+      const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+      if (idx >= 0 && idx - this.offset < 4096) {
+        this.budget.step();
+        const record = headBlock.toString("latin1", this.offset, idx);
+        this.consume(idx - this.offset + 1);
+        return record;
+      }
+    }
+    return this.read(separator);
+  }
+
   async read(separator: string): Promise<string | undefined> {
     this.budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+    if (separator.length === 1 && !this.closed && this.head < this.blocks.length) {
+      const headBlock = this.blocks[this.head]!;
+      const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+      if (idx >= 0 && idx - this.offset < 4096) {
+        this.budget.step();
+        const record = headBlock.toString("latin1", this.offset, idx);
+        this.consume(idx - this.offset + 1);
+        return record;
+      }
+    }
     if (separator === "") {
       while (!this.closed) {
         this.budget.step();
@@ -123,7 +155,8 @@ export class Reader {
           if (this.ended) return undefined;
           await this.fill();
         }
-        await this.budget.checkpoint();
+        const pendingCheck = this.budget.checkpointSync();
+        if (pendingCheck) await pendingCheck;
       }
     }
     const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
@@ -141,7 +174,8 @@ export class Reader {
         }
         await this.fill();
       }
-      await this.budget.checkpoint();
+      const pendingCheck = this.budget.checkpointSync();
+      if (pendingCheck) await pendingCheck;
     }
   }
 

@@ -11,6 +11,25 @@ export const numeric = (number: number): Scalar => ({ kind: "number", number });
 export const string = (text: string): Scalar => ({ kind: "string", text });
 
 export function inputValue(text: string): Scalar {
+  const len = text.length;
+  if (len === 0) return string(text);
+  const first = text.charCodeAt(0);
+  if (first >= 48 && first <= 57 && len <= 15) {
+    let num = first - 48;
+    let allDigits = true;
+    for (let i = 1; i < len; i++) {
+      const c = text.charCodeAt(i);
+      if (c < 48 || c > 57) {
+        allDigits = false;
+        break;
+      }
+      num = num * 10 + (c - 48);
+    }
+    if (allDigits) return { kind: "numeric", text, number: num };
+  }
+  if (first > 57 || (first < 48 && first !== 32 && first !== 9 && first !== 10 && first !== 13 && first !== 43 && first !== 45 && first !== 46)) {
+    return string(text);
+  }
   return /^[ \t\r\n]*[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?[ \t\r\n]*$/u.test(text)
     ? { kind: "numeric", text, number: Number(text) } : string(text);
 }

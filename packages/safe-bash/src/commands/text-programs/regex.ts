@@ -4,12 +4,12 @@ import { ReplacementBuffer } from "./replacement-buffer.js";
 type Node = { type: "empty" | "begin" | "end" }
   | { type: "backreference"; index: number }
   | { type: "assertion"; node: Node; positive: boolean; behind: boolean }
-  | { type: "character"; accepts: (character: string) => boolean }
+  | { type: "character"; literal?: string; accepts: (character: string) => boolean }
   | { type: "sequence" | "alternate"; nodes: Node[] }
   | { type: "repeat"; node: Node; minimum: number; maximum: number; lazy?: boolean }
   | { type: "group"; node: Node; index: number };
 
-type Instruction = { kind: "character"; accepts: (character: string) => boolean }
+type Instruction = { kind: "character"; literal?: string; accepts: (character: string) => boolean }
   | { kind: "backreference"; index: number; ignoreCase: boolean }
   | { kind: "assertion"; first: number; next: number; positive: boolean; behind: boolean }
   | { kind: "begin" | "end" | "match" }
@@ -81,7 +81,7 @@ export interface Match { readonly start: number; readonly end: number; readonly 
 
 class NfaStorage {
   private used = 0;
-  constructor(private readonly budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">) {}
+  constructor(private readonly budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>) {}
   reserve(bytes: number): void {
     this.budget.step(0);
     if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.budget.maxBufferBytes - this.used) {
@@ -103,6 +103,7 @@ export class Pattern {
   private parsed: { root: Node; counts: Map<Node, number> } | undefined;
   private readonly anchored: boolean;
   private linear = false;
+  private literalMatch: { readonly value: string; readonly anchoredStart: boolean; readonly anchoredEnd: boolean; readonly groups: readonly [string] } | undefined;
   private backreferences = false;
 
   constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
@@ -113,7 +114,11 @@ export class Pattern {
     let groups = 0;
     let depth = 0;
     const closedGroups = new Set<number>();
-    const characterNode = (character: string): Node => ({ type: "character", accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character });
+    const characterNode = (character: string): Node => ({
+      type: "character",
+      ...(ignoreCase ? {} : { literal: character }),
+      accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character,
+    });
     const escaped = (): string => {
       const character = source[offset++];
       if (character === undefined) throw new ProgramError("trailing backslash in regular expression");
@@ -257,11 +262,11 @@ export class Pattern {
     this.parsed = { root, counts };
   }
 
-  async prepare(budget: Pick<Budget, "step" | "checkpoint">): Promise<void> {
+  async prepare(budget: Pick<Budget, "step" | "checkpoint"> & Partial<Pick<Budget, "checkpointSync">>): Promise<void> {
     if (!this.parsed) return;
     const { root, counts } = this.parsed;
     budget.step(counts.get(root)! + 1);
-    await budget.checkpoint();
+    await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     // Publish only a finished program. Cancelled or concurrent preparations own
     // separate arrays, so a failed caller cannot leave a partially patched NFA.
     const code: Instruction[] = [];
@@ -272,7 +277,7 @@ export class Pattern {
     const compile = function* (node: Node): Generator<void> {
       if (counts.get(node) === 0) return;
       yield;
-      if (node.type === "character") { emit({ kind: "character", accepts: node.accepts }); return; }
+      if (node.type === "character") { emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), accepts: node.accepts }); return; }
       if (node.type === "backreference") { emit({ kind: "backreference", index: node.index, ignoreCase }); return; }
       if (node.type === "assertion") {
         const index = emit({ kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind });
@@ -315,18 +320,42 @@ export class Pattern {
     };
     let work = 0;
     for (const ignored of compile(root)) {
-      if (++work % 64 === 0) { await budget.checkpoint(); budget.step(0); }
+      if (++work % 64 === 0) { await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint()); budget.step(0); }
     }
     emit({ kind: "match" });
-    await budget.checkpoint();
+    await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     budget.step(0);
     this.linear = code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
+    if (this.linear && !this.ignoreCase && this.dialect !== "jq") {
+      let validLiteral = true;
+      let anchoredStart = false;
+      let anchoredEnd = false;
+      let literalValue = "";
+      for (let i = 0; i < code.length - 1; i++) {
+        const inst = code[i]!;
+        if (inst.kind === "begin") {
+          if (i === 0) anchoredStart = true;
+          else { validLiteral = false; break; }
+        } else if (inst.kind === "end") {
+          if (i === code.length - 2) anchoredEnd = true;
+          else { validLiteral = false; break; }
+        } else if (inst.kind === "character" && inst.literal !== undefined) {
+          literalValue += inst.literal;
+        } else {
+          validLiteral = false;
+          break;
+        }
+      }
+      if (validLiteral) {
+        this.literalMatch = { value: literalValue, anchoredStart, anchoredEnd, groups: [literalValue] };
+      }
+    }
     this.backreferences = code.some(instruction => instruction.kind === "backreference");
     this.code = code;
     this.parsed = undefined;
   }
 
-  private async findJq(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from: number,
+  private async findJq(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from: number,
     options: { pc: number; exact?: boolean; end?: number; captures?: number[] } = { pc: 0 }): Promise<{ match: Match; captures: number[] } | undefined> {
     // Prioritized traversal gives jq's leftmost-first (rather than POSIX longest) match.
     for (let start = from; start <= (options.end ?? text.length) && (!options.exact || start === from); start += (text.codePointAt(start) ?? 0) > 0xffff ? 2 : 1) {
@@ -335,7 +364,7 @@ export class Pattern {
       let storage = 0;
       let checkpoints = 0;
       while (pending.length) {
-        if (++checkpoints % 64 === 1) await budget.checkpoint();
+        if (++checkpoints % 64 === 1) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
         budget.step();
         const state = pending.pop()!;
         if (options.end !== undefined && state.position > options.end) continue;
@@ -390,17 +419,84 @@ export class Pattern {
     return undefined;
   }
 
-  async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from = 0): Promise<Match | undefined> {
+  tryFindSync(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Match | undefined | Promise<Match | undefined> {
+    if (!this.code.length || !this.literalMatch || this.dialect === "jq") {
+      return this.find(text, budget, from);
+    }
+    const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (initialCheck) return initialCheck.then(() => this.find(text, budget, from));
+    const { value, anchoredStart, anchoredEnd, groups } = this.literalMatch;
+    const len = value.length;
+    if (from > text.length || (anchoredStart && from > 0)) return undefined;
+    let found = -1;
+    if (anchoredStart && anchoredEnd) {
+      if (from === 0 && text.length === len && text === value) found = 0;
+    } else if (anchoredStart) {
+      if (from === 0 && text.startsWith(value)) found = 0;
+    } else if (anchoredEnd) {
+      const candidate = text.length - len;
+      if (candidate >= from && text.endsWith(value)) found = candidate;
+    } else {
+      found = text.indexOf(value, from);
+    }
+    const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
+    const stepCount = positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0);
+    budget.step(stepCount);
+    if (stepCount >= 64) {
+      const midCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      if (midCheck) {
+        if (found < 0) return midCheck.then(() => undefined);
+        if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+        return midCheck.then(() => ({ start: found, end: found + len, groups }));
+      }
+    }
+    if (found < 0) return undefined;
+    if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    const endCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (endCheck) return endCheck.then(() => ({ start: found, end: found + len, groups }));
+    return { start: found, end: found + len, groups };
+  }
+
+  async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes"> & Partial<Pick<Budget, "checkpointSync">>, from = 0): Promise<Match | undefined> {
     if (!this.code.length) await this.prepare(budget);
     if (this.dialect === "jq") return (await this.findJq(text, budget, from))?.match;
-    await budget.checkpoint();
+    const initialCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (initialCheck) await initialCheck;
+    if (this.literalMatch) {
+      const { value, anchoredStart, anchoredEnd, groups } = this.literalMatch;
+      const len = value.length;
+      if (from > text.length || (anchoredStart && from > 0)) return undefined;
+      let found = -1;
+      if (anchoredStart && anchoredEnd) {
+        if (from === 0 && text.length === len && text === value) found = 0;
+      } else if (anchoredStart) {
+        if (from === 0 && text.startsWith(value)) found = 0;
+      } else if (anchoredEnd) {
+        const candidate = text.length - len;
+        if (candidate >= from && text.endsWith(value)) found = candidate;
+      } else {
+        found = text.indexOf(value, from);
+      }
+      const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
+      const stepCount = positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0);
+      budget.step(stepCount);
+      if (stepCount >= 64) {
+        const midCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+        if (midCheck) await midCheck;
+      }
+      if (found < 0) return undefined;
+      if (len > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      const endCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      if (endCheck) await endCheck;
+      return { start: found, end: found + len, groups };
+    }
     let units = 0;
     const work = (count = 1): Promise<void> | undefined => {
       budget.step(count);
       units += count;
       if (units < 64) return undefined;
       units %= 64;
-      return budget.checkpoint();
+      return (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     };
     if (this.linear) {
       for (let start = from; start <= text.length && (!this.anchored || start === 0); start++) {
@@ -417,7 +513,7 @@ export class Pattern {
             const copied = work(position - start);
             if (copied) await copied;
             const match = { start, end: position, groups: [text.slice(start, position)] };
-            await budget.checkpoint();
+            await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
             return match;
           }
         }
@@ -585,7 +681,7 @@ export class Pattern {
           const end = bestCaptures[index * 2 + 1];
           groups.push(begin === undefined || end === undefined ? undefined : text.slice(begin, end));
         }
-        await budget.checkpoint();
+        await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
         return { start: bestStart, end: bestEnd, groups };
       }
       return undefined;
@@ -599,7 +695,7 @@ async function replacementLength(replacement: string, match: Match, budget: Budg
   let length = 0;
   let tokens = 0;
   for (let index = 0; index < replacement.length; index++) {
-    if (tokens++ % 256 === 0) await budget.checkpoint();
+    if (tokens++ % 256 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     budget.step();
     const character = replacement[index]!;
     let size = 1;
@@ -626,7 +722,7 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
   let literal = 0;
   let tokens = 0;
   for (let index = 0; index < replacement.length; index++) {
-    if (tokens++ % 256 === 0) await budget.checkpoint();
+    if (tokens++ % 256 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     budget.step();
     const character = replacement[index]!;
     if (character !== "&" && (character !== "\\" || index + 1 === replacement.length)) continue;
@@ -649,7 +745,69 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
   await buffer.append(replacement, literal);
 }
 
+export function trySubstituteSync(
+  text: string,
+  pattern: Pattern,
+  replacement: string,
+  budget: Budget,
+  global: boolean,
+  occurrence = 1,
+  syntax: ReplacementSyntax = "sed",
+): { text: string; count: number } | Promise<{ text: string; count: number }> {
+  if (!global && occurrence === 1 && !replacement.includes("&") && !replacement.includes("\\")) {
+    const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (check) return substitute(text, pattern, replacement, budget, global, occurrence, syntax);
+    budget.step();
+    const matchOrPromise = pattern.tryFindSync(text, budget, 0);
+    if (matchOrPromise instanceof Promise) {
+      return matchOrPromise.then(match => {
+        if (!match) {
+          budget.step(0);
+          return { text: budget.check(text), count: 0 };
+        }
+        const newLen = text.length - (match.end - match.start) + replacement.length;
+        if (newLen > budget.maxBufferBytes || match.start + replacement.length > budget.maxBufferBytes) {
+          throw new ProgramError("text buffer limit exceeded");
+        }
+        budget.step(replacement.length * 2 + 1);
+        const out = (match.start === 0 ? "" : text.slice(0, match.start)) + replacement + (match.end === text.length ? "" : text.slice(match.end));
+        return { text: budget.check(out), count: 1 };
+      });
+    }
+    const match = matchOrPromise;
+    if (!match) {
+      budget.step(0);
+      return { text: budget.check(text), count: 0 };
+    }
+    const newLen = text.length - (match.end - match.start) + replacement.length;
+    if (newLen > budget.maxBufferBytes || match.start + replacement.length > budget.maxBufferBytes) {
+      throw new ProgramError("text buffer limit exceeded");
+    }
+    budget.step(replacement.length * 2 + 1);
+    const out = (match.start === 0 ? "" : text.slice(0, match.start)) + replacement + (match.end === text.length ? "" : text.slice(match.end));
+    return { text: budget.check(out), count: 1 };
+  }
+  return substitute(text, pattern, replacement, budget, global, occurrence, syntax);
+}
+
 export async function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1, syntax: ReplacementSyntax = "sed"): Promise<{ text: string; count: number }> {
+  if (!global && occurrence === 1 && !replacement.includes("&") && !replacement.includes("\\")) {
+    const check = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+    if (check) await check;
+    budget.step();
+    const match = await pattern.find(text, budget, 0);
+    if (!match) {
+      budget.step(0);
+      return { text: budget.check(text), count: 0 };
+    }
+    const newLen = text.length - (match.end - match.start) + replacement.length;
+    if (newLen > budget.maxBufferBytes || match.start + replacement.length > budget.maxBufferBytes) {
+      throw new ProgramError("text buffer limit exceeded");
+    }
+    budget.step(replacement.length * 2 + 1);
+    const out = (match.start === 0 ? "" : text.slice(0, match.start)) + replacement + (match.end === text.length ? "" : text.slice(match.end));
+    return { text: budget.check(out), count: 1 };
+  }
   let search = 0;
   let consumed = 0;
   let previousEnd = -1;
@@ -658,7 +816,7 @@ export async function substitute(text: string, pattern: Pattern, replacement: st
   const result = new ReplacementBuffer(budget);
   try {
     while (search <= text.length) {
-      await budget.checkpoint();
+      await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       budget.step();
       const match = await pattern.find(text, budget, search);
       if (!match) break;

@@ -1,7 +1,7 @@
 import { FsError, writeBytes, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
-import { Pattern, substitute } from "./regex.js";
-import { Budget, ProgramError, byteString, bytes, command, input, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
+import { Pattern, substitute, trySubstituteSync } from "./regex.js";
+import { Budget, ProgramError, byteString, bytes, command, input, lineRecordBatches, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
 import { editInPlace, prepareInPlace } from "./inplace.js";
 
@@ -245,30 +245,90 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
 }
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
-  const source = separator === "\0" ? nullRecords(context, files, budget) : lineRecords(context, files, budget);
-  let current = await source.next();
-  let following: IteratorResult<RecordLine, void> | undefined;
-  const peekNext = async (): Promise<IteratorResult<RecordLine, void>> => following ??= await source.next();
-  const readNext = async (): Promise<IteratorResult<RecordLine, void>> => {
-    const next = await peekNext();
-    following = undefined;
-    return next;
+  const useBatches = separator !== "\0";
+  const batchSource = useBatches ? lineRecordBatches(context, files, budget) : undefined;
+  const singleSource = useBatches ? undefined : nullRecords(context, files, budget);
+  let currentBatch: RecordLine[] = [];
+  let batchIndex = 0;
+  let currentRecord: RecordLine | undefined;
+  let followingRecord: RecordLine | null | undefined;
+  if (batchSource) {
+    const firstBatch = await batchSource.next();
+    if (!firstBatch.done && firstBatch.value.length > 0) {
+      currentBatch = firstBatch.value;
+      currentRecord = currentBatch[0];
+      batchIndex = 1;
+    }
+  } else {
+    const first = await singleSource!.next();
+    if (!first.done) currentRecord = first.value;
+  }
+  const peekNextRecord = async (): Promise<RecordLine | undefined> => {
+    if (followingRecord !== undefined) return followingRecord ?? undefined;
+    if (batchSource) {
+      if (batchIndex < currentBatch.length) {
+        followingRecord = currentBatch[batchIndex]!;
+        return followingRecord;
+      }
+      const nextBatch = await batchSource.next();
+      if (nextBatch.done || nextBatch.value.length === 0) {
+        followingRecord = null;
+        return undefined;
+      }
+      currentBatch = nextBatch.value;
+      batchIndex = 0;
+      followingRecord = currentBatch[0]!;
+      return followingRecord;
+    }
+    const next = await singleSource!.next();
+    followingRecord = next.done ? null : next.value;
+    return followingRecord ?? undefined;
+  };
+  const readNextRecord = async (): Promise<RecordLine | undefined> => {
+    if (followingRecord !== undefined) {
+      const next = followingRecord ?? undefined;
+      followingRecord = undefined;
+      if (batchSource && next !== undefined && batchIndex < currentBatch.length && currentBatch[batchIndex] === next) {
+        batchIndex++;
+      }
+      return next;
+    }
+    if (batchSource) {
+      if (batchIndex < currentBatch.length) return currentBatch[batchIndex++]!;
+      const nextBatch = await batchSource.next();
+      if (nextBatch.done || nextBatch.value.length === 0) return undefined;
+      currentBatch = nextBatch.value;
+      batchIndex = 1;
+      return currentBatch[0]!;
+    }
+    const next = await singleSource!.next();
+    return next.done ? undefined : next.value;
   };
   const prepareRecord = async (record: RecordLine): Promise<RecordLine> => {
     if (record.terminated || files.length < 2) return record;
-    const next = await peekNext();
-    return !next.done && next.value.fileIndex !== record.fileIndex ? { ...record, terminated: true } : record;
+    const next = await peekNextRecord();
+    return next !== undefined && next.fileIndex !== record.fileIndex ? { ...record, terminated: true } : record;
   };
   let number = 0;
   let hold = "";
   let holdTerminated = true;
+  let stdoutBuffer = "";
+  const flushStdout = async (): Promise<void> => {
+    if (stdoutBuffer.length > 0) {
+      const chunk = stdoutBuffer;
+      stdoutBuffer = "";
+      await write(context, chunk);
+    }
+  };
   const joinSpace = (left: string, right: string): string => {
     if (left.length + separator.length + right.length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     return left + separator + right;
   };
-  const emit = async (text: string, terminated = true): Promise<void> => {
-    await write(context, (outputState.stdoutUnterminated ? separator : "") + text);
+  const emit = (text: string, terminated = true): Promise<void> | undefined => {
+    stdoutBuffer += (outputState.stdoutUnterminated ? separator : "") + text;
     outputState.stdoutUnterminated = !terminated;
+    if (stdoutBuffer.length >= 16384) return flushStdout();
+    return undefined;
   };
   let lastPattern: Pattern | undefined;
   const active = new Set<number>();
@@ -281,57 +341,95 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     if (!lastPattern) throw new ProgramError("no previous regular expression");
     return lastPattern;
   };
+  const appended: { text?: string; file?: string }[] = [];
+  let appendedSize = 0;
+  const append = (item: { text?: string; file?: string }): void => {
+    appendedSize += (item.text ?? item.file ?? "").length + 32;
+    if (appendedSize > budget.maxBufferBytes) throw new ProgramError("append queue buffer limit exceeded");
+    appended.push(item);
+  };
+  let record!: RecordLine;
+  let pattern = "";
+  let substituted = false;
+  let deleted = false;
+  let quit = false;
+  let status = 0;
+  const print = (): Promise<void> | undefined => emit(pattern + (record.terminated ? separator : ""), record.terminated);
+  const flushSlow = async (printPattern: boolean): Promise<void> => {
+    if (appended.length > 0) {
+      await assertPathRequirements(context, sedRequirements, ["script-read"], appended.flatMap(item => item.file === undefined ? [] : [item.file]));
+    }
+    if (printPattern && !quiet && !deleted) {
+      const p = print();
+      if (p) await p;
+    }
+    if (outputState.stdoutUnterminated && (appended.length || quit)) {
+      stdoutBuffer += separator;
+      if (stdoutBuffer.length >= 16384) await flushStdout();
+      outputState.stdoutUnterminated = false;
+    }
+    for (const item of appended) {
+      if (item.text !== undefined) {
+        stdoutBuffer += item.text;
+        if (stdoutBuffer.length >= 16384) await flushStdout();
+        continue;
+      }
+      await flushStdout();
+      const path = virtualPath(context, item.file!);
+      try {
+        for await (const chunk of requiredFileInput(context, sedRequirements, "script-read", path, budget.maxBufferBytes)) {
+          budget.step();
+          const pendingCheck = budget.checkpointSync();
+          if (pendingCheck) await pendingCheck;
+          if (chunk.byteLength > budget.maxBufferBytes) throw new ProgramError("read buffer limit exceeded");
+          await writeBytes(context.stdout, chunk, context.signal);
+        }
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (!(error instanceof FsError) || !["ENOENT", "EACCES", "EPERM", "EISDIR", "ENOTDIR"].includes(error.code)) throw error;
+      }
+    }
+    appended.length = 0;
+    appendedSize = 0;
+  };
+  const flush = (printPattern = true): Promise<void> | undefined => {
+    if (appended.length === 0 && (!outputState.stdoutUnterminated || !quit)) {
+      if (printPattern && !quiet && !deleted) return print();
+      return undefined;
+    }
+    return flushSlow(printPattern);
+  };
+  const writeFile = async (file: string): Promise<void> => {
+    const path = virtualPath(context, file);
+    const terminated = record.terminated || separator === "\n";
+    const text = (outputState.unterminatedFiles.has(path) ? separator : "") + pattern + (terminated ? separator : "");
+    await writeFileOutput(context, bytes(text), chunk => context.fs.appendFile(path, chunk, { signal: context.signal }));
+    if (terminated) outputState.unterminatedFiles.delete(path);
+    else outputState.unterminatedFiles.add(path);
+  };
+  const matches = (address: Address): boolean | Promise<boolean> => {
+    if (address.kind === "number") return number === address.number;
+    if (address.kind === "last") {
+      if (batchSource && batchIndex < currentBatch.length) return false;
+      return peekNextRecord().then(next => next === undefined);
+    }
+    const found = getPattern(address.pattern).tryFindSync(pattern, budget);
+    if (found instanceof Promise) return found.then(res => res !== undefined);
+    return found !== undefined;
+  };
   try {
-    while (!current.done) {
+    while (currentRecord !== undefined) {
       budget.step(); number++;
-      let record = await prepareRecord(current.value);
-      let pattern = record.text;
-      const appended: { text?: string; file?: string }[] = [];
-      let appendedSize = 0;
-      const append = (item: { text?: string; file?: string }): void => {
-        appendedSize += (item.text ?? item.file ?? "").length + 32;
-        if (appendedSize > budget.maxBufferBytes) throw new ProgramError("append queue buffer limit exceeded");
-        appended.push(item);
-      };
-      let substituted = false;
-      let deleted = false;
-      let quit = false;
-      let status = 0;
-      const print = () => emit(pattern + (record.terminated ? separator : ""), record.terminated);
-      const flush = async (printPattern = true) => {
-        await assertPathRequirements(context, sedRequirements, ["script-read"], appended.flatMap(item => item.file === undefined ? [] : [item.file]));
-        if (printPattern && !quiet && !deleted) await print();
-        if (outputState.stdoutUnterminated && (appended.length || quit)) {
-          await write(context, separator);
-          outputState.stdoutUnterminated = false;
-        }
-        for (const item of appended) {
-          if (item.text !== undefined) { await write(context, item.text); continue; }
-          const path = virtualPath(context, item.file!);
-          try {
-            for await (const chunk of requiredFileInput(context, sedRequirements, "script-read", path, budget.maxBufferBytes)) {
-              budget.step(); await budget.checkpoint();
-              if (chunk.byteLength > budget.maxBufferBytes) throw new ProgramError("read buffer limit exceeded");
-              await writeBytes(context.stdout, chunk, context.signal);
-            }
-          } catch (error) {
-            context.signal.throwIfAborted();
-            if (!(error instanceof FsError) || !["ENOENT", "EACCES", "EPERM", "EISDIR", "ENOTDIR"].includes(error.code)) throw error;
-          }
-        }
-        appended.length = 0; appendedSize = 0;
-      };
-      const writeFile = async (file: string): Promise<void> => {
-        const path = virtualPath(context, file);
-        const terminated = record.terminated || separator === "\n";
-        const text = (outputState.unterminatedFiles.has(path) ? separator : "") + pattern + (terminated ? separator : "");
-        await writeFileOutput(context, bytes(text), chunk => context.fs.appendFile(path, chunk, { signal: context.signal }));
-        if (terminated) outputState.unterminatedFiles.delete(path);
-        else outputState.unterminatedFiles.add(path);
-      };
-      const matches = async (address: Address): Promise<boolean> => address.kind === "number" ? number === address.number : address.kind === "last" ? (await peekNext()).done === true : (await getPattern(address.pattern).find(pattern, budget)) !== undefined;
+      record = currentRecord.terminated || files.length < 2 ? currentRecord : await prepareRecord(currentRecord);
+      pattern = record.text;
+      substituted = false;
+      deleted = false;
+      quit = false;
+      status = 0;
       for (let pc = 0; pc < program.length;) {
-        budget.step(); await budget.checkpoint();
+        budget.step();
+        const pendingCheck = budget.checkpointSync();
+        if (pendingCheck) await pendingCheck;
         const instruction = program[pc]!;
         let selected = true;
         let ending = false;
@@ -339,31 +437,38 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           if (instruction.second) {
             if (active.has(pc)) {
               if (instruction.second.kind === "number" && number > instruction.second.number) selected = false;
-              ending = instruction.second.kind === "number" ? number >= instruction.second.number : await matches(instruction.second);
+              const endMatch = instruction.second.kind === "number" ? number >= instruction.second.number : matches(instruction.second);
+              ending = endMatch instanceof Promise ? await endMatch : endMatch;
               if (ending) active.delete(pc);
             } else {
-              selected = await matches(instruction.first);
+              const firstMatch = matches(instruction.first);
+              selected = firstMatch instanceof Promise ? await firstMatch : firstMatch;
               if (selected) {
-                ending = instruction.second.kind === "number" && number >= instruction.second.number || instruction.second.kind === "last" && (await peekNext()).done === true;
+                ending = instruction.second.kind === "number" && number >= instruction.second.number || instruction.second.kind === "last" && (await peekNextRecord()) === undefined;
                 if (!ending) active.add(pc);
               }
             }
-          } else selected = await matches(instruction.first);
+          } else {
+            const firstMatch = matches(instruction.first);
+            selected = firstMatch instanceof Promise ? await firstMatch : firstMatch;
+          }
         }
         if (instruction.negate) selected = !selected;
         if (!selected) { pc = instruction.kind === "{" ? instruction.jump! : pc + 1; continue; }
         switch (instruction.kind) {
-          case "p": await print(); break;
+          case "p": { const p = print(); if (p) await p; break; }
           case "P": {
             const end = pattern.indexOf(separator);
-            await emit(end < 0 ? pattern + (record.terminated ? separator : "") : pattern.slice(0, end + 1), end >= 0 || record.terminated); break;
+            const p = emit(end < 0 ? pattern + (record.terminated ? separator : "") : pattern.slice(0, end + 1), end >= 0 || record.terminated);
+            if (p) await p;
+            break;
           }
-          case "=": await emit(`${number}${separator}`); break;
+          case "=": { const p = emit(`${number}${separator}`); if (p) await p; break; }
           case "l": {
             const escapes: Record<string, string> = { "\x07": "\\a", "\b": "\\b", "\f": "\\f", "\n": "\\n", "\r": "\\r", "\t": "\\t", "\v": "\\v", "\\": "\\\\" };
             let line = "";
             for (let offset = 0; offset <= pattern.length; offset++) {
-              budget.step(); await budget.checkpoint();
+              budget.step(); await budget.checkpointSync();
               const character = pattern[offset];
               const lineEnd = character === "\n" && separator === "\n";
               const token = character === undefined || lineEnd ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
@@ -388,7 +493,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "w": await writeFile(instruction.file!); break;
           case "i": await emit(instruction.text!); break;
           case "c":
-            if (!instruction.second || ending || instruction.negate || (await peekNext()).done) await emit(instruction.text!);
+            if (!instruction.second || ending || instruction.negate || (await peekNextRecord()) === undefined) await emit(instruction.text!);
             deleted = true; pc = program.length; continue;
           case "h": hold = pattern; holdTerminated = record.terminated; break;
           case "H": hold = joinSpace(hold, pattern); holdTerminated = record.terminated; break;
@@ -410,9 +515,10 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "s": {
             const expression = getPattern(instruction.pattern);
             if (instruction.replacementGroupCount! > expression.groupCount) throw new ProgramError("replacement references an undefined capture group");
-            const changed = await substitute(pattern, expression, instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
+            const changedOrPromise = trySubstituteSync(pattern, expression, instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
+            const changed = changedOrPromise instanceof Promise ? await changedOrPromise : changedOrPromise;
             pattern = changed.text;
-            if (changed.count) { substituted = true; if (instruction.print) await print(); if (instruction.file) await writeFile(instruction.file); }
+            if (changed.count) { substituted = true; if (instruction.print) { const p = print(); if (p) await p; } if (instruction.file) await writeFile(instruction.file); }
             break;
           }
           case "y": {
@@ -420,7 +526,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             budget.step(pattern.length);
             const translated = Buffer.allocUnsafe(pattern.length);
             for (let index = 0; index < pattern.length; index++) {
-              if (index % 256 === 0) await budget.checkpoint();
+              if (index % 256 === 0) await budget.checkpointSync();
               translated[index] = (instruction.translation!.get(pattern[index]!) ?? pattern[index]!).charCodeAt(0);
             }
             pattern = translated.toString("latin1");
@@ -434,11 +540,11 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             break;
           }
           case "n": case "N": {
-            if (instruction.kind === "n") await flush();
-            else if (separator === "\0" && !(await peekNext()).done) await flush(false);
-            const next = await readNext();
-            if (next.done) { if (instruction.kind === "N") await flush(); return { status: 0, quit: false }; }
-            record = await prepareRecord(next.value); number++;
+            if (instruction.kind === "n") { const p = flush(); if (p) await p; }
+            else if (separator === "\0" && (await peekNextRecord()) !== undefined) { const p = flush(false); if (p) await p; }
+            const next = await readNextRecord();
+            if (next === undefined) { if (instruction.kind === "N") { const p = flush(); if (p) await p; } return { status: 0, quit: false }; }
+            record = next.terminated || files.length < 2 ? next : await prepareRecord(next); number++;
             pattern = instruction.kind === "N" ? joinSpace(pattern, record.text) : record.text;
             substituted = false;
             break;
@@ -446,12 +552,19 @@ async function execute(program: readonly Instruction[], context: CommandContext,
         }
         pc++;
       }
-      await flush();
+      const flushPending = flush();
+      if (flushPending) await flushPending;
       if (quit) return { status, quit: true };
-      current = await readNext();
+      currentRecord = followingRecord === undefined && batchSource && batchIndex < currentBatch.length
+        ? currentBatch[batchIndex++]!
+        : await readNextRecord();
     }
     return { status: 0, quit: false };
-  } finally { await source.return(undefined); }
+  } finally {
+    if (stdoutBuffer.length > 0) await flushStdout();
+    if (batchSource) await batchSource.return(undefined);
+    else if (singleSource) await singleSource.return(undefined);
+  }
 }
 
 export function sedCommand(options: TextProgramOptions = {}): CommandDefinition {

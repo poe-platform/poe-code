@@ -148,20 +148,31 @@ test("rg uses enumerated file types without requiring unused child stat operatio
   assert.equal(result.stdout, "tree/file:match\n");
 });
 
-test("unknown filesystem declarations remain compatible without claiming proven support", async () => {
-  const backing = await fixture({ file: "match\n" });
-  const fs = profile(backing, Object.fromEntries(Object.keys(backing.capabilities).map(name => [name, undefined])));
-  for (const [name, args] of [["grep", ["match", "file"]], ["rg", ["match", "file"]], ["sed", ["-i", "s/match/new/", "file"]]] as const) {
+test("unknown filesystem declarations permit streaming search but refuse in-place writes", async () => {
+  const backing = await fixture({ file: "match\n", output: "keep" });
+  const calls: string[] = [];
+  const fs = profile(backing, Object.fromEntries(Object.keys(backing.capabilities).map(name => [name, undefined])), calls);
+  for (const [name, args, stdout] of [["grep", ["match", "file"], "match\n"], ["rg", ["match", "file"], "match\n"], ["sed", ["s/match/new/", "file"], "new\n"]] as const) {
     const result = await run(name, args, fs);
     assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, stdout);
   }
-  assert.equal(new TextDecoder().decode(await backing.readFile("/work/file")), "new\n");
+  calls.length = 0;
+  const refused = await run("sed", ["-i.bak", "s/match/new/;w output", "file"], fs);
+  assert.equal(refused.exitCode, 1);
+  assert.equal(refused.stderr, "sed: ENOTSUP: in-place editing requires retained reads and atomic conditional writes '/work/file'\n");
+  assert.equal(refused.stdout, "");
+  assert.equal(refused.pulls, 0);
+  assert.equal(calls.some(call => ["writeFile:", "appendFile:", "writeFileConditional:", "createStagedFile:"].some(method => call.startsWith(method))), false);
+  assert.deepEqual((await backing.readdir("/work")).map(entry => entry.name).sort(), ["file", "output"]);
+  assert.equal(new TextDecoder().decode(await backing.readFile("/work/file")), "match\n");
+  assert.equal(new TextDecoder().decode(await backing.readFile("/work/output")), "keep");
 });
 
 test("sed mutation modes reject before output initialization, input consumption, or backups", async () => {
   for (const [args, capabilities] of [
     [["-i", "s/match/new/", "file"], { readOnly: true }],
-    [["-i.bak", "w output", "file"], { copy: false }],
+    [["-i.bak", "w output", "file"], { atomicFileMutation: false }],
     [["w output"], { append: false }],
     [["s/match/new/w output"], { write: false }],
   ] as const) {

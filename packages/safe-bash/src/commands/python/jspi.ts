@@ -32,6 +32,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
   let admitted = false;
   let running: Promise<number> | undefined;
   let retirement: Promise<void> | undefined;
+  let schedulerCleanup: Promise<void> | undefined;
   let cleanup: Promise<void> | undefined;
   let runtime: any;
   let native: ReturnType<typeof createPythonNativeSyscalls> | undefined;
@@ -238,7 +239,8 @@ await _safe_quiesce_tasks()
         }
       } finally {
         active.value = 0;
-        cleanup = scheduler.close().finally(() => native?.close());
+        schedulerCleanup = scheduler.close();
+        cleanup = schedulerCleanup.finally(() => native?.close());
         try { await cleanup; }
         finally {
           if (methodDefinition) runtime?._module._free(methodDefinition);
@@ -265,7 +267,8 @@ await _safe_quiesce_tasks()
       retirement ??= (async () => {
         controller.abort();
         await running?.catch(() => {});
-        await cleanup;
+        await cleanup?.catch(() => {});
+        await schedulerCleanup;
       })();
       return retirement;
     },

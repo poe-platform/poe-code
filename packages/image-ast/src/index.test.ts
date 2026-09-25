@@ -2514,4 +2514,49 @@ describe("@poe-code/image-ast (sharp core)", () => {
       expect(Buffer.from(rotOut.data).equals(Buffer.from(affOut.data))).toBe(true);
     }
   });
+
+  it("matches sharp CalculateCrop rounding in composite() across all gravities on odd-delta dimensions and tile:true with left/top", async () => {
+    const base7x5 = Buffer.alloc(7 * 5 * 3, 0);
+    const ov2x2 = Buffer.from([200, 0, 0, 200, 0, 0, 200, 0, 0, 200, 0, 0]);
+
+    const expectedTopLeft: Record<string, [number, number]> = {
+      center: [3, 2],
+      north: [3, 0],
+      south: [3, 3],
+      east: [5, 2],
+      west: [0, 2],
+      northwest: [0, 0],
+      northeast: [5, 0],
+      southwest: [0, 3],
+      southeast: [5, 3]
+    };
+
+    for (const [gravity, [expX, expY]] of Object.entries(expectedTopLeft)) {
+      const res = await sharp(base7x5, { raw: { width: 7, height: 5, channels: 3 } })
+        .composite([{ input: ov2x2, raw: { width: 2, height: 2, channels: 3 }, gravity: gravity as any }])
+        .raw()
+        .toBuffer();
+      let found: [number, number] | null = null;
+      for (let y = 0; y < 5 && !found; y++) {
+        for (let x = 0; x < 7 && !found; x++) {
+          if (res[(y * 7 + x) * 4] === 200) found = [x, y];
+        }
+      }
+      expect(found).toEqual([expX, expY]);
+    }
+
+    const ovDistinct = Buffer.from([10, 0, 0, 20, 0, 0, 30, 0, 0, 40, 0, 0]);
+    const tiledOffset = await sharp(base7x5, { raw: { width: 7, height: 5, channels: 3 } })
+      .composite([{ input: ovDistinct, raw: { width: 2, height: 2, channels: 3 }, left: 3, top: 2, tile: true }])
+      .raw()
+      .toBuffer();
+    expect(tiledOffset[0]).toBe(40);
+    expect(tiledOffset[4]).toBe(30);
+
+    await expect(
+      sharp(base7x5, { raw: { width: 7, height: 5, channels: 3 } })
+        .composite([{ input: ovDistinct, raw: { width: 2, height: 2, channels: 3 }, left: -1, top: -1, tile: true }])
+        .toBuffer()
+    ).rejects.toThrow(/extract_area: bad extract area/);
+  });
 });

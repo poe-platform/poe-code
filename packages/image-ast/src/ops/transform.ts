@@ -504,20 +504,35 @@ export function compositeImage(
       baseH,
       overlay.width,
       overlay.height,
-      layer.gravity ?? "center"
+      layer.gravity ?? "center",
+      !Boolean(layer.tile)
     );
-    const startX =
-      layer.left !== undefined
-        ? Math.round(layer.left)
-        : layer.top !== undefined
-          ? 0
-          : grav.x;
-    const startY =
-      layer.top !== undefined
-        ? Math.round(layer.top)
-        : layer.left !== undefined
-          ? 0
-          : grav.y;
+    let startX: number;
+    let startY: number;
+    if (layer.tile && layer.left !== undefined && layer.top !== undefined) {
+      const reqLeft = Math.round(layer.left);
+      const reqTop = Math.round(layer.top);
+      if (reqLeft < 0 || reqTop < 0) {
+        throw new Error("extract_area: bad extract area");
+      }
+      const repW = (overlay.width < baseW ? Math.floor(baseW / overlay.width) + 1 : 1) * overlay.width;
+      const repH = (overlay.height < baseH ? Math.floor(baseH / overlay.height) + 1 : 1) * overlay.height;
+      startX = -Math.min(reqLeft, repW - baseW);
+      startY = -Math.min(reqTop, repH - baseH);
+    } else {
+      startX =
+        layer.left !== undefined
+          ? Math.round(layer.left)
+          : layer.top !== undefined
+            ? 0
+            : grav.x;
+      startY =
+        layer.top !== undefined
+          ? Math.round(layer.top)
+          : layer.left !== undefined
+            ? 0
+            : grav.y;
+    }
 
     // Fast scanline copy for opaque non-tiled "over"/"source" layers (e.g. multi-megapixel panorama/grid merges)
     if (!layer.tile && !overlay.hasAlpha && (blend === "over" || blend === "source")) {

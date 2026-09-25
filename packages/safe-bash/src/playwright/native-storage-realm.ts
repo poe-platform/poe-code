@@ -45,8 +45,8 @@ export async function collectStorageOrigin(input: { origin: string; indexedDB: b
   let size = 0;
   let nodes = 0;
   const limit = new Error('Native storage read limit');
-  const charge = (value: string) => {
-    if (value.length > input.maxBytes || (size += new TextEncoder().encode(value).length + 8) > input.maxBytes) throw limit;
+  const charge = (value: string, overhead = 2) => {
+    if (value.length > input.maxBytes || (size += new TextEncoder().encode(value).length + overhead) > input.maxBytes) throw limit;
   };
   const helpers = {
     request<Result>(request: NativeStorageRequest<Result>): Promise<Result> {
@@ -127,9 +127,11 @@ export async function collectStorageOrigin(input: { origin: string; indexedDB: b
               cursor.onsuccess = () => {
                 if (!cursor.result) { resolve(); return; }
                 try {
+                  const savedSize = size;
                   const record: typeof savedStore.records[number] = { valueEncoded: helpers.encode(cursor.result.value) };
                   if (store.keyPath === null) record.keyEncoded = helpers.encode(cursor.result.key);
-                  charge(JSON.stringify(record));
+                  size = savedSize;
+                  charge(JSON.stringify(record), 1);
                   savedStore.records.push(record);
                   cursor.result.continue();
                 } catch (error) { transaction.abort(); reject(error); }

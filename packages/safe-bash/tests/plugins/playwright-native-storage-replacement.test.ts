@@ -379,3 +379,113 @@ test('aggregate current readback across imported origins cannot spend the limit 
   await assert.rejects(replacePlaywrightStorageState(item.context, empty, { ...item.options, maxBytes: 400 }), /limit/);
   assert.equal(item.events.filter(event => event === 'cookies.clear').length, clears);
 });
+
+test('native IndexedDB collection charges serialized record bytes once for large strings and binary values', async () => {
+  const runRealmRecord = async (recordValue: unknown, maxBytes: number) => {
+    const item = fixture();
+    item.setCensus(empty);
+    let closedDatabases = 0;
+    let abortedTransactions = 0;
+    const send = item.lease.cdp.send;
+    item.lease.cdp.send = async (method, params) => {
+      if (method !== 'Runtime.evaluate') return send(method, params);
+      const value = await runInNewContext(String(params?.expression), {
+        location: { origin },
+        navigator: {},
+        TextEncoder,
+        URL,
+        Uint8Array,
+        Int8Array,
+        Uint8ClampedArray,
+        Int16Array,
+        Uint16Array,
+        Int32Array,
+        Uint32Array,
+        Float32Array,
+        Float64Array,
+        BigInt64Array,
+        BigUint64Array,
+        btoa: (input: string) => Buffer.from(input, 'binary').toString('base64'),
+        localStorage: { length: 0, key: () => null, getItem: () => null, clear() {}, setItem() {} },
+        indexedDB: {
+          databases: async () => [{ name: 'db', version: 1 }],
+          open() {
+            const request = {
+              result: {
+                name: 'db',
+                version: 1,
+                objectStoreNames: ['items'],
+                transaction() {
+                  return {
+                    abort() { abortedTransactions++; },
+                    objectStore() {
+                      return {
+                        name: 'items',
+                        autoIncrement: false,
+                        keyPath: 'id',
+                        indexNames: [],
+                        openCursor() {
+                          let emitted = false;
+                          const cursorRequest = {
+                            result: null as { key: unknown; value: unknown; continue(): void } | null,
+                            error: null,
+                            onsuccess: null as (() => void) | null,
+                            onerror: null as (() => void) | null,
+                          };
+                          queueMicrotask(() => {
+                            cursorRequest.result = {
+                              key: 'k1',
+                              value: recordValue,
+                              continue() {
+                                if (emitted) return;
+                                emitted = true;
+                                cursorRequest.result = null;
+                                queueMicrotask(() => cursorRequest.onsuccess?.());
+                              },
+                            };
+                            cursorRequest.onsuccess?.();
+                          });
+                          return cursorRequest;
+                        },
+                      };
+                    },
+                  };
+                },
+                close() { closedDatabases++; },
+              },
+              error: null,
+              onsuccess: null as (() => void) | null,
+              onerror: null as (() => void) | null,
+            };
+            queueMicrotask(() => request.onsuccess?.());
+            return request;
+          },
+        },
+      });
+      return { result: { value } };
+    };
+    const retire = await bindPlaywrightStorageContext(item.context, item.prepare, item.controller.signal, [origin]);
+    try {
+      const state = await readPlaywrightStorageState(item.context, { ...item.options, maxBytes, indexedDB: true });
+      return { state, closedDatabases, abortedTransactions };
+    } finally {
+      await retire();
+    }
+  };
+
+  const largeString = 's'.repeat(3000);
+  const stringResult = await runRealmRecord(largeString, 4096);
+  assert.equal(stringResult.closedDatabases, 1);
+  assert.equal(stringResult.abortedTransactions, 0);
+  assert.equal(stringResult.state.origins[0]?.indexedDB?.[0]?.stores[0]?.records[0]?.valueEncoded, largeString);
+  await assert.rejects(runRealmRecord(largeString, 2500), /limit/);
+
+  const binaryBytes = new Uint8Array(2100).fill(7);
+  const binaryResult = await runRealmRecord(binaryBytes, 4096);
+  assert.equal(binaryResult.closedDatabases, 1);
+  assert.equal(binaryResult.abortedTransactions, 0);
+  assert.deepEqual(binaryResult.state.origins[0]?.indexedDB?.[0]?.stores[0]?.records[0]?.valueEncoded, {
+    ta: { k: 'ui8', b: Buffer.from(binaryBytes).toString('base64') },
+  });
+  await assert.rejects(runRealmRecord(binaryBytes, 2500), /limit/);
+});

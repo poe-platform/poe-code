@@ -43,6 +43,21 @@ import {
 } from "./svg-pdf.js";
 
 const DEFAULT_PIXEL_LIMIT = 268402689; // 16383 * 16383 (matches sharp default)
+
+function checkLimitInputPixels(width: number, height: number, options?: SharpInputOptions): void {
+  const limit =
+    options?.limitInputPixels === false ||
+    options?.limitInputPixels === 0 ||
+    (options?.unlimited === true && options?.limitInputPixels === undefined)
+      ? Infinity
+      : typeof options?.limitInputPixels === "number"
+        ? options.limitInputPixels
+        : DEFAULT_PIXEL_LIMIT;
+  if (width * height > limit) {
+    throw new Error(`Input image exceeds pixel limit (${width}x${height} > ${limit})`);
+  }
+}
+
 const DECODE_CACHE = new WeakMap<Uint8Array, RgbaImage>();
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
@@ -203,6 +218,7 @@ export function readImageMetadata(
   }
   if (options?.create) {
     const { width, height, channels, pageHeight } = options.create;
+    checkLimitInputPixels(width, height, options);
     return {
       format: "raw",
       width,
@@ -218,6 +234,7 @@ export function readImageMetadata(
   }
   if (options?.raw && bytes) {
     const { width, height, channels, pageHeight, depth: rawDepth } = options.raw;
+    checkLimitInputPixels(width, height, options);
     const depth = rawDepth ?? "uchar";
     const is16Bit =
       depth === "ushort" ||
@@ -297,15 +314,7 @@ export function readImageMetadata(
       throw new Error(`Unsupported format: ${fmt}`);
   }
 
-  const limit =
-    options?.limitInputPixels === false
-      ? Infinity
-      : (options?.limitInputPixels ?? DEFAULT_PIXEL_LIMIT);
-  if (meta.width * meta.height > limit) {
-    throw new Error(
-      `Input image exceeds pixel limit (${meta.width}x${meta.height} > ${limit})`
-    );
-  }
+  checkLimitInputPixels(meta.width, meta.height, options);
   return meta;
 }
 
@@ -318,6 +327,7 @@ export function decodeImage(
   }
   if (options?.create) {
     const { width, height, channels, pageHeight, background, noise } = options.create;
+    checkLimitInputPixels(width, height, options);
     const bg = parseColor(background ?? { r: 0, g: 0, b: 0, alpha: 1 }, channels === 4 ? 255 : 255);
     const data = new Uint8Array(width * height * 4);
     if (noise && (noise.type === undefined || noise.type === "gaussian")) {
@@ -530,7 +540,10 @@ export function decodeImage(
     options?.create === undefined;
   if (canCache) {
     const cached = DECODE_CACHE.get(bytes);
-    if (cached) return cached;
+    if (cached) {
+      checkLimitInputPixels(cached.width, cached.height, options);
+      return cached;
+    }
   }
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;

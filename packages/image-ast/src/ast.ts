@@ -243,7 +243,11 @@ export interface SharpInputOptions {
   readonly pages?: number;
   readonly animated?: boolean;
   readonly autoOrient?: boolean;
-  readonly limitInputPixels?: number | false;
+  readonly limitInputPixels?: number | boolean;
+  readonly sequentialRead?: boolean;
+  readonly unlimited?: boolean;
+  readonly ignoreIcc?: boolean;
+  readonly failOnError?: boolean;
   readonly failOn?: "none" | "truncated" | "error" | "warning";
   readonly raw?: {
     readonly width: number;

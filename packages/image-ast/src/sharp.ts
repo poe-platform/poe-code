@@ -69,6 +69,110 @@ function inferTypedArrayDepth(input: unknown): "uchar" | "char" | "ushort" | "sh
   return "uchar";
 }
 
+function validateInputOptions(opts: SharpInputOptions | undefined): void {
+  if (!opts || typeof opts !== "object") return;
+  const anyOpts = opts as Record<string, unknown>;
+  if (anyOpts.failOnError !== undefined && typeof anyOpts.failOnError !== "boolean") {
+    throw new Error(`Expected boolean for failOnError but received ${anyOpts.failOnError} of type ${typeof anyOpts.failOnError}`);
+  }
+  if (opts.failOn !== undefined && !["none", "truncated", "error", "warning"].includes(opts.failOn)) {
+    throw new Error(`Expected one of: none, truncated, error, warning for failOn but received ${opts.failOn} of type ${typeof opts.failOn}`);
+  }
+  for (const boolKey of ["animated", "autoOrient", "sequentialRead", "unlimited", "ignoreIcc"] as const) {
+    if (anyOpts[boolKey] !== undefined && typeof anyOpts[boolKey] !== "boolean") {
+      throw new Error(`Expected boolean for ${boolKey} but received ${anyOpts[boolKey]} of type ${typeof anyOpts[boolKey]}`);
+    }
+  }
+  if (opts.density !== undefined && (typeof opts.density !== "number" || Number.isNaN(opts.density) || opts.density < 1 || opts.density > 100000)) {
+    throw new Error(`Expected number between 1 and 100000 for density but received ${opts.density} of type ${typeof opts.density}`);
+  }
+  if (
+    opts.limitInputPixels !== undefined &&
+    typeof opts.limitInputPixels !== "boolean" &&
+    (!Number.isInteger(opts.limitInputPixels) || opts.limitInputPixels < 0 || opts.limitInputPixels > Number.MAX_SAFE_INTEGER)
+  ) {
+    throw new Error(
+      `Expected positive integer for limitInputPixels but received ${opts.limitInputPixels} of type ${typeof opts.limitInputPixels}`
+    );
+  }
+  if (opts.page !== undefined && (!Number.isInteger(opts.page) || opts.page < 0 || opts.page > 100000)) {
+    throw new Error(`Expected integer between 0 and 100000 for page but received ${opts.page} of type ${typeof opts.page}`);
+  }
+  if (opts.pages !== undefined && (!Number.isInteger(opts.pages) || opts.pages < -1 || opts.pages > 100000)) {
+    throw new Error(`Expected integer between -1 and 100000 for pages but received ${opts.pages} of type ${typeof opts.pages}`);
+  }
+  if (opts.raw !== undefined) {
+    const raw = opts.raw;
+    if (
+      !raw ||
+      typeof raw !== "object" ||
+      !Number.isInteger(raw.width) ||
+      raw.width <= 0 ||
+      !Number.isInteger(raw.height) ||
+      raw.height <= 0 ||
+      !Number.isInteger(raw.channels) ||
+      raw.channels < 1 ||
+      raw.channels > 4
+    ) {
+      throw new Error("Expected width, height and channels for raw pixel input");
+    }
+    if (raw.premultiplied !== undefined && typeof raw.premultiplied !== "boolean") {
+      throw new Error(`Expected boolean for raw.premultiplied but received ${raw.premultiplied}`);
+    }
+    if (raw.pageHeight !== undefined) {
+      if (!Number.isInteger(raw.pageHeight) || raw.pageHeight <= 0 || raw.pageHeight > raw.height) {
+        throw new Error(`Expected positive integer for raw.pageHeight but received ${raw.pageHeight}`);
+      }
+      if (raw.height % raw.pageHeight !== 0) {
+        throw new Error(`Expected raw.height ${raw.height} to be a multiple of raw.pageHeight ${raw.pageHeight}`);
+      }
+    }
+  }
+  if (opts.create !== undefined) {
+    const create = opts.create;
+    if (
+      !create ||
+      typeof create !== "object" ||
+      !Number.isInteger(create.width) ||
+      create.width <= 0 ||
+      !Number.isInteger(create.height) ||
+      create.height <= 0 ||
+      !Number.isInteger(create.channels)
+    ) {
+      throw new Error("Expected valid width, height and channels to create a new input image");
+    }
+    if (create.pageHeight !== undefined) {
+      if (!Number.isInteger(create.pageHeight) || create.pageHeight <= 0 || create.pageHeight > create.height) {
+        throw new Error(`Expected positive integer for create.pageHeight but received ${create.pageHeight}`);
+      }
+      if (create.height % create.pageHeight !== 0) {
+        throw new Error(`Expected create.height ${create.height} to be a multiple of create.pageHeight ${create.pageHeight}`);
+      }
+    }
+    if (create.noise !== undefined) {
+      if (!create.noise || typeof create.noise !== "object") {
+        throw new Error("Expected noise to be an object");
+      }
+      if (create.noise.type !== "gaussian") {
+        throw new Error("Only gaussian noise is supported at the moment");
+      }
+      if (create.channels < 1 || create.channels > 4) {
+        throw new Error(
+          `Expected number between 1 and 4 for create.channels but received ${create.channels} of type ${typeof create.channels}`
+        );
+      }
+    } else if (create.background !== undefined) {
+      if (create.channels < 3 || create.channels > 4) {
+        throw new Error(
+          `Expected number between 3 and 4 for create.channels but received ${create.channels} of type ${typeof create.channels}`
+        );
+      }
+    } else {
+      throw new Error("Expected valid noise or background to create a new input image");
+    }
+  }
+}
+
 function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined): Uint8Array | undefined {
   if (!input) return undefined;
   if (Buffer.isBuffer(input)) {
@@ -179,26 +283,16 @@ export class SharpInstance extends Duplex {
         typeof input === "string" && !input.trimStart().startsWith("<") ? input : undefined;
       const inferredDepth = inferTypedArrayDepth(input);
       let effectiveOptions = options;
-      if (effectiveOptions?.raw) {
-        const { height, pageHeight } = effectiveOptions.raw;
-        if (pageHeight !== undefined) {
-          if (!Number.isInteger(pageHeight) || pageHeight <= 0 || pageHeight > height) {
-            throw new Error(`Expected positive integer for raw.pageHeight but received ${pageHeight}`);
+      if (effectiveOptions?.raw && inferredDepth && !effectiveOptions.raw.depth) {
+        effectiveOptions = {
+          ...effectiveOptions,
+          raw: {
+            ...effectiveOptions.raw,
+            depth: inferredDepth
           }
-          if (height % pageHeight !== 0) {
-            throw new Error(`Expected raw.height ${height} to be a multiple of raw.pageHeight ${pageHeight}`);
-          }
-        }
-        if (inferredDepth && !effectiveOptions.raw.depth) {
-          effectiveOptions = {
-            ...effectiveOptions,
-            raw: {
-              ...effectiveOptions.raw,
-              depth: inferredDepth
-            }
-          };
-        }
+        };
       }
+      validateInputOptions(effectiveOptions);
       this.inputBytes = toBytes(input as Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined);
       this.joinInputs = undefined;
       this.inputOptions = effectiveOptions;
@@ -206,6 +300,7 @@ export class SharpInstance extends Duplex {
         this.streamIn = true;
       }
     }
+    validateInputOptions(this.inputOptions);
     if (this.streamIn) {
       this.on("finish", () => {
         this.flattenStreamInput();

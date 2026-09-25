@@ -2443,4 +2443,45 @@ describe("@poe-code/image-ast (sharp core)", () => {
     emptyStream.end();
     await expect(emptyStream.toBuffer()).rejects.toThrow(/Input buffer contains unsupported image format/);
   });
+
+  it("validates constructor options (failOn, limitInputPixels, density, page, pages, booleans, create, raw) and enforces limitInputPixels", async () => {
+    const png10x10 = await sharp({
+      create: { width: 10, height: 10, channels: 3, background: "red" }
+    })
+      .png()
+      .toBuffer();
+
+    expect(() => sharp(png10x10, { failOn: "bogus" as any })).toThrow(/Expected one of: none, truncated, error, warning for failOn/);
+    expect(() => sharp(png10x10, { limitInputPixels: -1 })).toThrow(/Expected positive integer for limitInputPixels/);
+    expect(() => sharp(png10x10, { limitInputPixels: "big" as any })).toThrow(/Expected positive integer for limitInputPixels/);
+    expect(() => sharp(png10x10, { density: 0 })).toThrow(/Expected number between 1 and 100000 for density/);
+    expect(() => sharp(png10x10, { density: 100001 })).toThrow(/Expected number between 1 and 100000 for density/);
+    expect(() => sharp(png10x10, { page: -1 })).toThrow(/Expected integer between 0 and 100000 for page/);
+    expect(() => sharp(png10x10, { page: 1.5 })).toThrow(/Expected integer between 0 and 100000 for page/);
+    expect(() => sharp(png10x10, { pages: -2 })).toThrow(/Expected integer between -1 and 100000 for pages/);
+    expect(() => sharp(png10x10, { pages: 1.5 })).toThrow(/Expected integer between -1 and 100000 for pages/);
+    expect(() => sharp(png10x10, { animated: "yes" as any })).toThrow(/Expected boolean for animated/);
+    expect(() => sharp(png10x10, { autoOrient: "yes" as any })).toThrow(/Expected boolean for autoOrient/);
+    expect(() => sharp(png10x10, { sequentialRead: "yes" as any })).toThrow(/Expected boolean for sequentialRead/);
+    expect(() => sharp(png10x10, { unlimited: "yes" as any })).toThrow(/Expected boolean for unlimited/);
+    expect(() => sharp(png10x10, { ignoreIcc: "yes" as any })).toThrow(/Expected boolean for ignoreIcc/);
+    expect(() => sharp({ create: { width: 0, height: 4, channels: 3, background: "red" } })).toThrow(
+      /Expected valid width, height and channels to create a new input image/
+    );
+    expect(() => sharp({ create: { width: 4, height: 4, channels: 2 as any, background: "red" } })).toThrow(
+      /Expected number between 3 and 4 for create.channels/
+    );
+    expect(() => sharp({ create: { width: 4, height: 4, channels: 3 } as any })).toThrow(
+      /Expected valid noise or background to create a new input image/
+    );
+    expect(() => sharp(Buffer.alloc(20), { raw: { width: 2, height: 2, channels: 5 as any } })).toThrow(
+      /Expected width, height and channels for raw pixel input/
+    );
+    expect(() => sharp(Buffer.alloc(12), { raw: { width: 0, height: 2, channels: 3 } })).toThrow(
+      /Expected width, height and channels for raw pixel input/
+    );
+
+    await expect(sharp(png10x10, { limitInputPixels: 50 }).toBuffer()).rejects.toThrow(/Input image exceeds pixel limit/);
+    await expect(sharp(png10x10, { limitInputPixels: false }).toBuffer()).resolves.toBeInstanceOf(Buffer);
+  });
 });

@@ -1307,7 +1307,7 @@ export function blurImage(
   if (sigma < 0.2) return img;
   const twoSigmaSq = 2 * sigma * sigma;
   let rIdx = 0;
-  while (rIdx < 50 && Math.exp(-(rIdx * rIdx) / twoSigmaSq) >= minAmplitude) {
+  while (rIdx < 5000 && Math.exp(-(rIdx * rIdx) / twoSigmaSq) >= minAmplitude) {
     rIdx++;
   }
   const radius = Math.max(1, rIdx) - 1;
@@ -1324,8 +1324,23 @@ export function blurImage(
 
   const { width, height, data } = img;
   const out = new Uint8Array(data.length);
+  const usePremul = img.hasAlpha || img.channels === 4 || img.channels === 2;
+  const src = new Uint8Array(data.length);
+  if (usePremul) {
+    for (let i = 0; i < width * height; i++) {
+      const idx = i * 4;
+      const a = data[idx + 3]!;
+      const af = Math.fround(a / 255.0);
+      src[idx] = Math.trunc(Math.fround(data[idx]! * af));
+      src[idx + 1] = Math.trunc(Math.fround(data[idx + 1]! * af));
+      src[idx + 2] = Math.trunc(Math.fround(data[idx + 2]! * af));
+      src[idx + 3] = a;
+    }
+  } else {
+    src.set(data);
+  }
 
-  if (!img.hasAlpha && precision !== "float") {
+  if (precision !== "float") {
     let maxW = 0;
     for (let i = 0; i < size; i++) {
       if (kernel[i]! > maxW) maxW = kernel[i]!;
@@ -1339,24 +1354,27 @@ export function blurImage(
       mant[i] = Math.round((kernel[i]! / sum) * scale);
     }
     const temp = new Uint8Array(data.length);
+    const blurred = new Uint8Array(data.length);
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         let r = 0;
         let g = 0;
         let b = 0;
+        let a = 0;
         for (let k = -radius; k <= radius; k++) {
           const sx = Math.max(0, Math.min(width - 1, x + k));
           const sIdx = (y * width + sx) * 4;
           const m = mant[k + radius]!;
-          r += data[sIdx]! * m;
-          g += data[sIdx + 1]! * m;
-          b += data[sIdx + 2]! * m;
+          r += src[sIdx]! * m;
+          g += src[sIdx + 1]! * m;
+          b += src[sIdx + 2]! * m;
+          a += src[sIdx + 3]! * m;
         }
         const dIdx = (y * width + x) * 4;
         temp[dIdx] = Math.min(255, Math.max(0, (r + half) >> shift));
         temp[dIdx + 1] = Math.min(255, Math.max(0, (g + half) >> shift));
         temp[dIdx + 2] = Math.min(255, Math.max(0, (b + half) >> shift));
-        temp[dIdx + 3] = 255;
+        temp[dIdx + 3] = usePremul ? Math.min(255, Math.max(0, (a + half) >> shift)) : 255;
       }
     }
     for (let y = 0; y < height; y++) {
@@ -1364,6 +1382,7 @@ export function blurImage(
         let r = 0;
         let g = 0;
         let b = 0;
+        let a = 0;
         for (let k = -radius; k <= radius; k++) {
           const sy = Math.max(0, Math.min(height - 1, y + k));
           const sIdx = (sy * width + x) * 4;
@@ -1371,13 +1390,34 @@ export function blurImage(
           r += temp[sIdx]! * m;
           g += temp[sIdx + 1]! * m;
           b += temp[sIdx + 2]! * m;
+          a += temp[sIdx + 3]! * m;
         }
         const dIdx = (y * width + x) * 4;
-        out[dIdx] = Math.min(255, Math.max(0, (r + half) >> shift));
-        out[dIdx + 1] = Math.min(255, Math.max(0, (g + half) >> shift));
-        out[dIdx + 2] = Math.min(255, Math.max(0, (b + half) >> shift));
-        out[dIdx + 3] = 255;
+        blurred[dIdx] = Math.min(255, Math.max(0, (r + half) >> shift));
+        blurred[dIdx + 1] = Math.min(255, Math.max(0, (g + half) >> shift));
+        blurred[dIdx + 2] = Math.min(255, Math.max(0, (b + half) >> shift));
+        blurred[dIdx + 3] = usePremul ? Math.min(255, Math.max(0, (a + half) >> shift)) : 255;
       }
+    }
+    if (usePremul) {
+      for (let i = 0; i < width * height; i++) {
+        const idx = i * 4;
+        const a = blurred[idx + 3]!;
+        if (a === 0) {
+          out[idx] = 0;
+          out[idx + 1] = 0;
+          out[idx + 2] = 0;
+          out[idx + 3] = 0;
+        } else {
+          const factor = Math.fround(255.0 / a);
+          out[idx] = Math.min(255, Math.max(0, Math.trunc(Math.fround(factor * blurred[idx]!))));
+          out[idx + 1] = Math.min(255, Math.max(0, Math.trunc(Math.fround(factor * blurred[idx + 1]!))));
+          out[idx + 2] = Math.min(255, Math.max(0, Math.trunc(Math.fround(factor * blurred[idx + 2]!))));
+          out[idx + 3] = a;
+        }
+      }
+    } else {
+      out.set(blurred);
     }
     return { ...img, data: out };
   }
@@ -1395,17 +1435,16 @@ export function blurImage(
         const sx = Math.max(0, Math.min(width - 1, x + k));
         const sIdx = (y * width + sx) * 4;
         const w = kernel[k + radius]!;
-        const sa = data[sIdx + 3]! / 255;
-        r += data[sIdx]! * sa * w;
-        g += data[sIdx + 1]! * sa * w;
-        b += data[sIdx + 2]! * sa * w;
-        a += sa * w;
+        r += src[sIdx]! * w;
+        g += src[sIdx + 1]! * w;
+        b += src[sIdx + 2]! * w;
+        a += src[sIdx + 3]! * w;
       }
       const dIdx = (y * width + x) * 4;
-      temp[dIdx] = r;
-      temp[dIdx + 1] = g;
-      temp[dIdx + 2] = b;
-      temp[dIdx + 3] = a;
+      temp[dIdx] = Math.fround(r);
+      temp[dIdx + 1] = Math.fround(g);
+      temp[dIdx + 2] = Math.fround(b);
+      temp[dIdx + 3] = Math.fround(a);
     }
   }
 
@@ -1425,16 +1464,28 @@ export function blurImage(
         a += temp[sIdx + 3]! * w;
       }
       const dIdx = (y * width + x) * 4;
-      if (a > 1e-6) {
-        out[dIdx] = Math.max(0, Math.min(255, Math.round(r / a)));
-        out[dIdx + 1] = Math.max(0, Math.min(255, Math.round(g / a)));
-        out[dIdx + 2] = Math.max(0, Math.min(255, Math.round(b / a)));
-        out[dIdx + 3] = Math.max(0, Math.min(255, Math.round(a * 255)));
+      const fR = Math.fround(r);
+      const fG = Math.fround(g);
+      const fB = Math.fround(b);
+      const fA = Math.fround(a);
+      if (usePremul) {
+        if (fA === 0) {
+          out[dIdx] = 0;
+          out[dIdx + 1] = 0;
+          out[dIdx + 2] = 0;
+          out[dIdx + 3] = 0;
+        } else {
+          const factor = Math.fround(255.0 / fA);
+          out[dIdx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fR))));
+          out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fG))));
+          out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * fB))));
+          out[dIdx + 3] = Math.max(0, Math.min(255, Math.trunc(fA)));
+        }
       } else {
-        out[dIdx] = 0;
-        out[dIdx + 1] = 0;
-        out[dIdx + 2] = 0;
-        out[dIdx + 3] = 0;
+        out[dIdx] = Math.max(0, Math.min(255, Math.trunc(fR)));
+        out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(fG)));
+        out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(fB)));
+        out[dIdx + 3] = 255;
       }
     }
   }
@@ -2057,11 +2108,13 @@ export function affineImage(
       const sy = (-c * ox + a * oy) / det - idy;
       const dIdx = (y * dstW + x) * 4;
       if (sx <= -1 || sx >= img.width || sy <= -1 || sy >= img.height) {
-        if (spec.background.a > 0) {
-          out[dIdx] = spec.background.r;
-          out[dIdx + 1] = spec.background.g;
-          out[dIdx + 2] = spec.background.b;
-          out[dIdx + 3] = spec.background.a;
+        const ba = spec.background.a;
+        if (ba > 0) {
+          const factor = Math.fround(255.0 / ba);
+          out[dIdx] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * spec.background.r))));
+          out[dIdx + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * spec.background.g))));
+          out[dIdx + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * spec.background.b))));
+          out[dIdx + 3] = ba;
         }
       } else if (spec.interpolator === "nearest") {
         const p = samplePremul(Math.floor(sx), Math.floor(sy));

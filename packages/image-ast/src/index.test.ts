@@ -3030,4 +3030,36 @@ describe("@poe-code/image-ast (sharp core)", () => {
       158, 169, 176, 199
     ]);
   });
+  it("matches libvips premultiply/unpremultiply pipeline in blur(), rotate(), and affine() (#1243)", async () => {
+    const w = 16, h = 16;
+    const rgba = Buffer.alloc(w * h * 4);
+    for (let i = 0; i < w * h; i++) {
+      rgba[i * 4] = (i * 47 + 13) & 255;
+      rgba[i * 4 + 1] = (i * 83 + 29) & 255;
+      rgba[i * 4 + 2] = (i * 131 + 7) & 255;
+      rgba[i * 4 + 3] = ((i * 37 + 50) % 206) + 50;
+    }
+    const bInt = await sharp(rgba, { raw: { width: w, height: h, channels: 4 } }).blur(1.5).raw().toBuffer();
+    expect(Array.from(bInt.slice(0, 16))).toEqual([
+      94, 96, 65, 121,
+      98, 111, 89, 137,
+      120, 115, 91, 165,
+      148, 111, 95, 178
+    ]);
+    const bFlt = await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
+      .blur({ sigma: 2.5, precision: "float" })
+      .raw()
+      .toBuffer();
+    expect(Array.from(bFlt.slice(0, 16))).toEqual([
+      124, 104, 83, 141,
+      130, 109, 88, 147,
+      134, 110, 92, 152,
+      138, 110, 97, 155
+    ]);
+    const rot = await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
+      .rotate(45, { background: { r: 10, g: 20, b: 30, alpha: 0.5 } })
+      .raw()
+      .toBuffer();
+    expect(Array.from(rot.slice(0, 8))).toEqual([19, 39, 59, 128, 19, 39, 59, 128]);
+  });
 });

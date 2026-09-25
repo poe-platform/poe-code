@@ -253,6 +253,8 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
           lua.lua_setfield(state, -2, to_luastring(name));
         }
         lua.lua_pop(state, 1);
+        lua.lua_pushstring(state, to_luastring(context.to.split("+")[0]!.split("-")[0]!));
+        lua.lua_setglobal(state, to_luastring("FORMAT"));
         lua.lua_sethook(state, () => context.checkpoint(100), lua.LUA_MASKCOUNT, 100);
         const status = lauxlib.luaL_loadbufferx(state, source, source.length, to_luastring(request.path), to_luastring("t"));
         if (status !== lua.LUA_OK) fail("E_IO", lua.lua_tojsstring(state, -1) ?? "Invalid Lua script");

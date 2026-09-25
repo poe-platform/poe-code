@@ -192,7 +192,9 @@ string `text` and `tag = "Str"`, or nil to preserve the original. Other callback
 filter lists, Pandoc constructors, and citeproc are unsupported and fail explicitly.
 The VM has no file, process, module-loading, or printing APIs. Basic string
 operations are available; patterns, repetition, formatting, and bytecode loading
-are disabled. Scripts run in a fresh VM with conversion instruction checks;
+are disabled. `FORMAT` contains the target writer name, preserving aliases and
+removing extension suffixes, and is available while the script loads.
+Scripts run in a fresh VM with conversion instruction checks;
 script bytes and returned text share the conversion budgets. Use trusted scripts
 only: VM allocations are not isolated or bounded by the SDK retained-byte limit.
 

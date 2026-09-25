@@ -20,6 +20,13 @@ it("preserves a Str when its callback returns nil", async () => {
   expect(result).toMatchObject({text: "<p>Hello <em>world</em></p>\n"});
 });
 
+it.each(["html", "html5"])("exposes the target writer %s to loader Lua filters", async to => {
+  const result = await convert([{bytes: encoder.encode("Hello")}], {...options, to}, {
+    filters: createLuaFilterCapability(async () => encoder.encode('local writer = FORMAT; function Str(el) el.text = writer; return el end'))
+  });
+  expect(result).toMatchObject({text: `<p>${to}</p>\n`});
+});
+
 it.each([
   ['syntax', 'function Str(', "E_IO"],
   ['runtime', 'function Str(el) error("broken") end', "E_IO"],

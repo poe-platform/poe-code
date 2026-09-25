@@ -300,7 +300,7 @@ describe("virtual null device", () => {
   });
 
   it("forwards method assignments to the original receiver without replacing interception", async () => {
-    const stat: FileStat = { type: "file", size: 123, mode: 0o644, mtimeMs: 0 };
+    const stat: FileStat = { type: "file", size: 123, mode: 0o644, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 };
     const backing = { capabilities: {}, stat: vi.fn(async () => stat) } as unknown as FileSystem;
     const view = createDeviceFileSystem(backing);
     const previous = view.stat;
@@ -420,14 +420,14 @@ describe("virtual null device", () => {
     expect((await view.capabilitiesFor("/dev/null")).descriptorWriteStream).toBe(true);
     let returned = 0;
     const source = { [Symbol.asyncIterator]() { let chunks = 0; return {
-      async next() {
+      async next(): Promise<IteratorResult<Uint8Array>> {
         if (chunks++ === 2) return { done: true, value: undefined };
         await view.writeFile("/dev/null", bytes("other writer"));
         await view.appendFile("/dev/null", bytes("append"));
         expect(await view.readFile("/dev/null")).toEqual(new Uint8Array());
         return { done: false, value: bytes("stream chunk") };
       },
-      async return() { returned++; return { done: true, value: undefined }; },
+      async return(): Promise<IteratorResult<Uint8Array>> { returned++; return { done: true, value: undefined }; },
     }; } };
     await view.writeStream("/dev/null", source, { flag });
     expect(returned).toBe(1);

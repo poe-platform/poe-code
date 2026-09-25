@@ -44,7 +44,7 @@ test("creation masks remain advisory on S3 and preserve existing metadata modes"
   assert.equal((await scoped.stat("/existing")).mode & 0o777, 0o640);
   await scoped.writeStream!("/existing", { async *[Symbol.asyncIterator]() { yield new Uint8Array([2]); } });
   assert.equal((await scoped.stat("/existing")).mode & 0o777, 0o640);
-  await assert.rejects(scoped.chmod("/existing", 0o600), { code: "ENOTSUP" });
+  await assert.rejects(scoped.chmod!("/existing", 0o600), { code: "ENOTSUP" });
 });
 
 test("scoped view retains S3 and Memory authority in both directions and nested views", async () => {
@@ -141,7 +141,7 @@ for (const position of ["before", "after"] as const) {
           return: iterator.return!.bind(iterator),
         };
       } }),
-    } as FileSystem;
+    } as unknown as FileSystem;
     const scoped = scopeFileSystem(original, () => {}, controller.signal);
     await assert.rejects(async () => {
       for await (const chunk of scoped.readStream!("/f", { chunkSize: 1 })) {

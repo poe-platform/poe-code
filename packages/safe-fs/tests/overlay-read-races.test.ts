@@ -38,7 +38,7 @@ describe("overlay read admission", () => {
                 return Reflect.apply(value, target, args);
               };
               if (key === "readStream") return async function* (...args: unknown[]) {
-                yield* await invoke(...args);
+                yield* (await invoke(...args)) as AsyncIterable<Uint8Array>;
               };
               return invoke;
             },

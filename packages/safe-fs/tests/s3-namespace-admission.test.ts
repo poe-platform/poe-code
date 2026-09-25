@@ -15,7 +15,7 @@ function transport(chunks: string[]) {
         finally { closed = true; }
       })() };
     },
-  } as S3NamespaceOptions['client'];
+  } as unknown as S3NamespaceOptions['client'];
   return { client, reads: () => reads, closed: () => closed };
 }
 

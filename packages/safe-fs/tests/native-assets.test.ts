@@ -23,7 +23,7 @@ function fixture() {
     ...Object.fromEntries(headerNames.map(name => [`/headers/${name}`, `header ${name}`])),
   });
   const filesystem = createFsFromVolume(volume);
-  const files = filesystem.promises;
+  const files = filesystem.promises as unknown as typeof import("node:fs/promises");
   const binary = Uint8Array.from([255, 0, 128, 13, 10, 250]);
   const compile = vi.fn(async (_command: string, args: string[]) => {
     if (args.includes("--version")) return { stdout: "fixture compiler 1.0\n", stderr: "" };

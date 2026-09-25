@@ -1,9 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "../..",
     "baseUrl": ".",
     "noEmit": true,
+    "lib": ["ES2024"],
+    "allowJs": true,
+    "allowImportingTsExtensions": true,
     "types": ["node", "vitest/globals"],
     "paths": {
       "@poe-code/safe-fs": ["src/index.ts"],

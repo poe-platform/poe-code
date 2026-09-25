@@ -133,13 +133,13 @@ describe("quota descriptor acquisition review", () => {
 });
 
 describe("quota descriptor cancellation and failure review", () => {
-  it.each(["readdir", "lstat"])("canceled %s census releases the descriptor before opaque metadata finishes", async method => {
+  it.each(["readdir", "lstat"] as const)("canceled %s census releases the descriptor before opaque metadata finishes", async method => {
     const { source, retained, quota } = await fixture();
     const descriptor = await quota.open!("/file", { access: "readwrite" });
     const entered = deferred<void>();
     const release = deferred<void>();
     const original = source[method].bind(source);
-    const metadata = vi.spyOn(source, method).mockImplementationOnce(async (...args: Parameters<typeof original>) => {
+    const metadata = vi.spyOn(source, method as any).mockImplementationOnce(async (...args: any[]) => {
       const result = await Reflect.apply(original, source, args);
       entered.resolve();
       await release.promise;
@@ -162,7 +162,7 @@ describe("quota descriptor cancellation and failure review", () => {
       ]);
     } finally {
       release.resolve();
-      await metadata.mock.results[0].value;
+      await metadata.mock.results[0]?.value;
       await closing;
     }
     expect(drained).toBe(true);
@@ -219,7 +219,7 @@ describe("quota descriptor cancellation and failure review", () => {
     await quota.writeFile("/other", bytes("e"));
   });
 
-  it.each(["write", "truncate"])("a failed backend %s growth preserves bytes, identity, and cursor without reserving quota", async operation => {
+  it.each(["write", "truncate"] as const)("a failed backend %s growth preserves bytes, identity, and cursor without reserving quota", async operation => {
     const { source, retained, quota } = await fixture(4);
     const descriptor = await quota.open!("/file", { access: "readwrite" });
     try {
@@ -313,7 +313,7 @@ describe("quota descriptor retained identity review", () => {
       const stat = await lstat(path, options);
       if (path !== "/other") return stat;
       return {
-        ...stat, identityScope: pinned.identityScope, dev: pinned.dev, ino: pinned.ino,
+        ...stat, identityScope: pinned.identityScope!, dev: pinned.dev!, ino: pinned.ino!,
         [field]: field === "identityScope" ? Symbol.for("quota-review-distinct") : pinned[field]! + 1,
       };
     });
@@ -337,7 +337,7 @@ describe("quota descriptor position and empty write review", () => {
       const view = bytes("!de?").subarray(1, 3);
       expect(await descriptor.write(view, 3)).toBe(1);
       expect(writing).toHaveBeenCalledTimes(1);
-      expect(writing.mock.calls[0][0]).toBe(view);
+      expect(writing.mock.calls[0]?.[0]).toBe(view);
       expect(await descriptor.getPosition!()).toBe(0);
       expect(await source.readFile("/file")).toEqual(bytes("abcd"));
       await quota.writeFile("/other", bytes("x"));

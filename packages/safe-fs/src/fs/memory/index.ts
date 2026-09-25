@@ -1,7 +1,7 @@
 import { FsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import type {
-  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem,
+  AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
   ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
@@ -114,7 +114,8 @@ const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
 };
 
 export class MemoryFileSystem implements FileSystem {
-  readonly capabilities = ((filesystem: MemoryFileSystem) => {
+  capabilitiesFor?: NonNullable<FileSystem["capabilitiesFor"]>;
+  readonly capabilities: FileSystemCapabilities = ((filesystem: MemoryFileSystem) => {
     return Object.freeze({
       read: true, stat: true, readdir: true, realpath: true, access: true, open: true,
       write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,

@@ -63,7 +63,7 @@ for (const length of [12, undefined]) {
             : length === undefined ? {} : { "content-length": [String(length)] },
           complete: true,
         });
-        message[Symbol.asyncIterator] = async function* () {
+        (message as any)[Symbol.asyncIterator] = async function* () {
           if (isGet) {
             for (let index = 0; index < 3; index++) {
               reads++;

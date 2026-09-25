@@ -149,7 +149,7 @@ describe("Memory descriptor stream contents and ownership", () => {
     const filesystem = new MemoryFileSystem();
     async function* first() {
       yield bytes("A");
-      await filesystem.writeStream("/file", [bytes("ZZZ")]);
+      await filesystem.writeStream("/file", [bytes("ZZZ")] as unknown as AsyncIterable<Uint8Array>);
       yield bytes("B");
     }
     await filesystem.writeStream("/file", first());

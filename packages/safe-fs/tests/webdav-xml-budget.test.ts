@@ -21,7 +21,7 @@ it.each([
 it.each(["cancel", "timeout"])("honors %s while parsing XML", async mode => {
   const caller = new AbortController();
   const decode = TextDecoder.prototype.decode;
-  vi.spyOn(TextDecoder.prototype, "decode").mockImplementation(function (...args) {
+  vi.spyOn(TextDecoder.prototype, "decode").mockImplementation(function (this: TextDecoder, ...args) {
     const result = decode.apply(this, args);
     if (mode === "cancel") setTimeout(() => caller.abort("during parsing"), 0);
     else queueMicrotask(() => vi.advanceTimersByTime(10));

@@ -11,7 +11,7 @@ describe("lossless object wire values", () => {
   });
   it("decodes indexed wire octets without allowing an iterator to substitute a pathname", () => {
     const wire = [47, 255];
-    wire[Symbol.iterator] = function* () { yield 47; yield 97; };
+    wire[Symbol.iterator] = function* (): ArrayIterator<number> { yield 47; yield 97; };
     expect(decodeBytePath(wire).bytes()).toEqual(Uint8Array.of(47, 255));
   });
   it("rejects inherited octets instead of filling missing wire entries", () => {

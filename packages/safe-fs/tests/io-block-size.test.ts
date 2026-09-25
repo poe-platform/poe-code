@@ -54,12 +54,12 @@ describe.each(Object.entries(wrappers))("%s preferred I/O metadata", (name, wrap
   it.each([undefined, 1, 16384, Number.MAX_SAFE_INTEGER])("preserves known geometry or absence: %s", async preferredSize => {
     const backend = geometryFileSystem(preferredSize);
     await backend.writeFile("/file", new Uint8Array(3));
-    await backend.symlink("/file", "/link");
+    await backend.symlink!("/file", "/link");
     const fs = wrap(backend);
     for (const entry of ["file", "link"]) {
       const path = name === "mount" ? `/volume/${entry}` : `/${entry}`;
       for (const operation of ["stat", "lstat"] as const) {
-        const metadata = await fs[operation](path);
+        const metadata = await fs[operation]!(path);
         expect(metadata.ioBlockSize).toBe(preferredSize);
         expect(Object.hasOwn(metadata, "ioBlockSize")).toBe(preferredSize !== undefined);
         expect(metadata.allocatedBytes).toBeUndefined();

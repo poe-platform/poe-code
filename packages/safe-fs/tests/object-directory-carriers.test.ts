@@ -4,10 +4,10 @@ import { ObjectAuthority } from "../src/fs/object-authority.js";
 
 it("serializes the indexed directory entries and owned octets it admitted", async () => {
   const bytes = Uint8Array.of(255, 128);
-  const octetIterator = vi.fn(function* () { yield 47; });
+  const octetIterator = vi.fn(function* (): ArrayIterator<number> { yield 47; });
   bytes[Symbol.iterator] = octetIterator;
   const entries = [{ name: { bytes: () => bytes } as BytePath, type: "file" as const }];
-  const entryIterator = vi.fn(function* () {
+  const entryIterator = vi.fn(function* (): ArrayIterator<{ name: BytePath; type: "file" }> {
     yield entries[0]!;
     yield entries[0]!;
   });

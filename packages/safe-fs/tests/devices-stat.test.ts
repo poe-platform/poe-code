@@ -41,8 +41,8 @@ for (const historical of [false, true]) {
       expect(await view.stat(path)).toEqual(directory);
       expect(await view.lstat(path)).toEqual(directory);
     }
-    device.uid = 42;
-    directory.gid = 42;
+    (device as { uid?: number }).uid = 42;
+    (directory as { gid?: number }).gid = 42;
     expect(await view.stat("/dev/null")).toMatchObject({ uid: 0, gid: 0 });
     expect(await view.lstat("/dev")).toMatchObject({ uid: 0, gid: 0 });
     expect(await view.stat("/")).toEqual(root);
@@ -64,7 +64,7 @@ for (const access of ["read", "write", "readwrite"] as const) {
       await backing.writeFile("/dev/null", Uint8Array.of(1, 2, 3));
       const observed = await descriptor.stat();
       expect(observed).toEqual(expected);
-      observed.gid = 42;
+      (observed as { gid?: number }).gid = 42;
       expect(await descriptor.stat()).toEqual(expected);
       expect(await view.lstat("/dev/null")).toEqual(expected);
       const translator = new PythonStatTranslator();

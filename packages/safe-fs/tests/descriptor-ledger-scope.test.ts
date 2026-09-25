@@ -7,8 +7,7 @@ import { DeviceFileSystem } from "../src/fs/devices/index.js";
 it("reports absent backing canonical open as unavailable even without a global declaration", async () => {
   const backing = new MemoryFileSystem();
   await backing.writeFile("/file", Uint8Array.of(65));
-  const capabilities = { ...backing.capabilities };
-  delete capabilities.open;
+  const { open: _open, ...capabilities } = backing.capabilities;
   Object.defineProperty(backing, "capabilities", { value: capabilities });
   Object.defineProperty(backing, "open", { value: undefined });
   const fs = new DeviceFileSystem(backing);

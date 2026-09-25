@@ -76,7 +76,7 @@ beforeEach(() => {
   hooks.runtime.platform = "linux";
   hooks.runtime.arch = "x64";
   hooks.runtime.versions.napi = "10";
-  hooks.runtime.report.getReport.mockImplementation(function () {
+  hooks.runtime.report.getReport.mockImplementation(function (this: unknown) {
     expect(this).toBe(hooks.runtime.report);
     return { header: { glibcVersionRuntime: "2.36" }, get environmentVariables() { throw new Error("must not inspect environment"); } };
   });
@@ -132,7 +132,7 @@ describe("private native seek loader", () => {
   it("shares reentrant loading while preserving the public report receiver", async () => {
     const { loadBinding } = await import("../native/loader.mjs");
     let reentrant: ReturnType<typeof loadBinding> | undefined;
-    hooks.runtime.report.getReport.mockImplementation(function () {
+    hooks.runtime.report.getReport.mockImplementation(function (this: unknown) {
       expect(this).toBe(hooks.runtime.report);
       reentrant = loadBinding();
       return { header: { glibcVersionRuntime: "2.36" } };
@@ -200,7 +200,7 @@ describe("private native seek loader", () => {
   it("rejects invalid manifest UTF-8 rather than replacing bytes", async () => {
     vol.writeFileSync(manifestPath, Buffer.from([0xff]));
     const { loadBinding } = await import("../native/loader.mjs");
-    const error = await loadBinding().catch(error => error);
+    const error = await loadBinding().catch((error: any) => error);
     expect(error).toBeInstanceOf(Error);
     expect(error.code).not.toBe("ENOTSUP");
     expect(hooks.require).not.toHaveBeenCalled();
@@ -291,7 +291,7 @@ describe("private native seek loader", () => {
     vol.unlinkSync(filename);
     vol.mkdirSync(filename);
     const { loadBinding } = await import("../native/loader.mjs");
-    const outcome = await loadBinding().then(() => undefined, error => error);
+    const outcome = await loadBinding().then(() => undefined, (error: any) => error);
     expect(outcome).toBeInstanceOf(Error);
     expect(outcome.code).not.toBe("ENOTSUP");
     expect(hooks.require).not.toHaveBeenCalled();
@@ -300,7 +300,7 @@ describe("private native seek loader", () => {
   it.each(["", "{broken", "null", "[]", '{"version":2}'])("rejects malformed manifest %s", async text => {
     vol.writeFileSync(manifestPath, text);
     const { loadBinding } = await import("../native/loader.mjs");
-    const error = await loadBinding().catch(error => error);
+    const error = await loadBinding().catch((error: any) => error);
     expect(error).toBeInstanceOf(Error);
     expect(error.code).not.toBe("ENOTSUP");
     expect(hooks.require).not.toHaveBeenCalled();
@@ -312,7 +312,7 @@ describe("private native seek loader", () => {
     if (fault === "empty") vol.writeFileSync(binaryPath, "");
     if (fault === "oversize") vol.writeFileSync(binaryPath, Buffer.alloc(1048577));
     const { loadBinding } = await import("../native/loader.mjs");
-    const error = await loadBinding().catch(error => error);
+    const error = await loadBinding().catch((error: any) => error);
     expect(error).toBeInstanceOf(Error);
     expect(error.code).not.toBe("ENOTSUP");
     expect(hooks.require).not.toHaveBeenCalled();
@@ -365,7 +365,7 @@ describe("private native seek loader", () => {
   it.each([0, 1, NaN, Infinity])("refuses inconsistent reported manifest size %s", async size => {
     hooks.reportedSize = size;
     const { loadBinding } = await import("../native/loader.mjs");
-    const error = await loadBinding().catch(error => error);
+    const error = await loadBinding().catch((error: any) => error);
     expect(error).toBeInstanceOf(Error);
     expect(error.code).not.toBe("ENOTSUP");
     expect(hooks.require).not.toHaveBeenCalled();

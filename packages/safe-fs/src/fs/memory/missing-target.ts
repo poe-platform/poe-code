@@ -16,6 +16,24 @@ interface Component {
   readonly start: number;
 }
 
+function utf8ByteLength(value: string): number {
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && i + 1 < value.length && value.charCodeAt(i + 1) >= 0xdc00 && value.charCodeAt(i + 1) <= 0xdfff) {
+      bytes += 4;
+      i++;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
+function exceedsComponentByteLimit(value: string): boolean {
+  return value.length > 85 && (value.length > 255 || utf8ByteLength(value) > 255);
+}
+
 function components(path: string, signal?: AbortSignal): Component[] {
   const result: Component[] = [];
   let start = 0;
@@ -58,7 +76,7 @@ export function resolveMissingTarget(root: Node, path: string, signal?: AbortSig
       const name = component.name;
       if (name === ".") { first = false; continue; }
       if (name === "..") { position = position.parent ?? initial; first = false; continue; }
-      if (name.length > 85 && Buffer.byteLength(name) > 255) return fail("ENAMETOOLONG");
+      if (exceedsComponentByteLimit(name)) return fail("ENAMETOOLONG");
       const node = current.entries.get(name);
       if (!node) { found = false; break; }
       if (first) originLink = node.type === "symlink";

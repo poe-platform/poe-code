@@ -94,6 +94,24 @@ function validateLimit(value: number, name: string, minimum: number, maximum = N
   return value;
 }
 
+function utf8ByteLength(value: string): number {
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && i + 1 < value.length && value.charCodeAt(i + 1) >= 0xdc00 && value.charCodeAt(i + 1) <= 0xdfff) {
+      bytes += 4;
+      i++;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
+function exceedsComponentByteLimit(value: string): boolean {
+  return value.length > 85 && (value.length > 255 || utf8ByteLength(value) > 255);
+}
+
 function isWellFormed(value: string): boolean {
   return !/[\uD800-\uDFFF]/u.test(value);
 }
@@ -135,7 +153,7 @@ export class S3FileSystem implements FileSystem {
       throw new FsError("EINVAL", { message: "prefix must be a canonical relative object-key prefix" });
     }
     this.prefix = prefix === "" || prefix.endsWith("/") ? prefix : `${prefix}/`;
-    if (Buffer.byteLength(this.prefix) > 1024) throw new FsError("ENAMETOOLONG", { message: "S3 prefix exceeds 1024 UTF-8 bytes" });
+    if (utf8ByteLength(this.prefix) > 1024) throw new FsError("ENAMETOOLONG", { message: "S3 prefix exceeds 1024 UTF-8 bytes" });
     this.transport = options.transport;
     this.bucket = options.bucket;
     this.allowRename = options.allowNonAtomicRename ?? true;
@@ -195,7 +213,7 @@ export class S3FileSystem implements FileSystem {
       } else components.push(part);
     }
     const path = `/${components.join("/")}`;
-    if (Buffer.byteLength(this.key(path)) > 1024) fail("ENAMETOOLONG", "resolve", input);
+    if (utf8ByteLength(this.key(path)) > 1024) fail("ENAMETOOLONG", "resolve", input);
     return path;
   }
 
@@ -205,7 +223,7 @@ export class S3FileSystem implements FileSystem {
 
   private directoryKey(path: string): string {
     const key = path === "/" ? this.prefix : `${this.key(path)}/`;
-    if (Buffer.byteLength(key) > 1024) fail("ENAMETOOLONG", "resolve", path);
+    if (utf8ByteLength(key) > 1024) fail("ENAMETOOLONG", "resolve", path);
     return key;
   }
 
@@ -312,7 +330,7 @@ export class S3FileSystem implements FileSystem {
   private validateKey(key: string, path: string): void {
     if (!key.startsWith(this.prefix)) fail("EIO", "listObjectsV2", path, "key escapes the configured prefix");
     const relative = key.slice(this.prefix.length).replace(/\/$/, "");
-    if (!isWellFormed(key) || key.includes("\0") || Buffer.byteLength(key) > 1024
+    if (!isWellFormed(key) || key.includes("\0") || utf8ByteLength(key) > 1024
       || (relative !== "" && relative.split("/").some((part) => !part || part === "." || part === ".."))) {
       fail("ENOTSUP", "listObjectsV2", path, "object key cannot be represented as a canonical filesystem path");
     }
@@ -350,7 +368,7 @@ export class S3FileSystem implements FileSystem {
       return { stat: this.makeStat("directory", marker), ...(marker ? { metadata: marker } : {}) };
     }
     const file = await this.head(this.key(path), path, options);
-    if (Buffer.byteLength(this.key(path)) === 1024) {
+    if (utf8ByteLength(this.key(path)) === 1024) {
       return file ? { stat: this.makeStat("file", file), metadata: file } : undefined;
     }
     const directoryKey = this.directoryKey(path);
@@ -725,7 +743,7 @@ export class S3FileSystem implements FileSystem {
       if (!conditionalCopy && object.Size > (streamFallback ? this.maxStreamBytes : this.maxReadBytes)) {
         fail("EFBIG", "rename", source, "conditional PUT fallback exceeds its configured transfer or buffered read limit");
       }
-      if (Buffer.byteLength(this.key(destination) + object.Key!.slice(this.key(source).length)) > 1024) fail("ENAMETOOLONG", "rename", destination);
+      if (utf8ByteLength(this.key(destination) + object.Key!.slice(this.key(source).length)) > 1024) fail("ENAMETOOLONG", "rename", destination);
     }
     const copied: string[] = [];
     const deleted: string[] = [];

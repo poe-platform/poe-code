@@ -50,4 +50,34 @@ describe("crypto-primitives parity with node:crypto", () => {
       new Uint8Array(Buffer.concat([d128NoPad.update(expected128NoPad), d128NoPad.final()]))
     );
   });
+
+  it("rejects out-of-range PKCS#7 padding, mixed padding bytes, and truncated ciphertext like node:crypto", () => {
+    const key256 = new Uint8Array(32).map((_, i) => (i * 5 + 3) & 0xff);
+    const iv = new Uint8Array(16).map((_, i) => (i * 7 + 1) & 0xff);
+    const emptyEncrypted = aesCbcEncrypt(key256, iv, new Uint8Array(0), true);
+
+    // 1. Out-of-range final padding byte (0): flip IV byte 15 by XOR 16
+    const badIvZero = iv.slice();
+    badIvZero[15]! ^= 16;
+    expect(() => {
+      const d = createDecipheriv("aes-256-cbc", key256, badIvZero);
+      d.update(emptyEncrypted);
+      d.final();
+    }).toThrow();
+    expect(() => aesCbcDecrypt(key256, badIvZero, emptyEncrypted, true)).toThrow(/padding/i);
+
+    // 2. Mixed/disagreeing padding bytes: flip IV byte 14 by XOR 1 so final byte is still 16 but byte 14 is 17
+    const badIvMixed = iv.slice();
+    badIvMixed[14]! ^= 1;
+    expect(() => {
+      const d = createDecipheriv("aes-256-cbc", key256, badIvMixed);
+      d.update(emptyEncrypted);
+      d.final();
+    }).toThrow();
+    expect(() => aesCbcDecrypt(key256, badIvMixed, emptyEncrypted, true)).toThrow(/padding/i);
+
+    // 3. Truncated ciphertext and empty ciphertext with autoPad=true
+    expect(() => aesCbcDecrypt(key256, iv, emptyEncrypted.subarray(0, 15), true)).toThrow(/length/i);
+    expect(() => aesCbcDecrypt(key256, iv, new Uint8Array(0), true)).toThrow(/length/i);
+  });
 });

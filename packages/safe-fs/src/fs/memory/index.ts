@@ -360,13 +360,13 @@ export class MemoryFileSystem implements FileSystem {
         const slash = path.indexOf("/", start);
         if (slash === -1) {
           const name = path.slice(start);
-          if (name.length > 85 && Buffer.byteLength(name) > 255) this.fail("ENAMETOOLONG", syscall, path);
+          if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
           const node = current.entries.get(name);
           if (!node && !options.allowMissing) this.fail("ENOENT", syscall, path);
           return { node, parent: current, name, path };
         }
         const name = path.slice(start, slash);
-        if (name.length > 85 && Buffer.byteLength(name) > 255) this.fail("ENAMETOOLONG", syscall, path);
+        if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
         const next = current.entries.get(name);
         if (!next) this.fail("ENOENT", syscall, path);
         if (next.type !== "directory") this.fail("ENOTDIR", syscall, path);
@@ -391,7 +391,7 @@ export class MemoryFileSystem implements FileSystem {
         if (stack.length > 1) stack.pop();
         continue;
       }
-      if (component.length > 85 && Buffer.byteLength(component) > 255) this.fail("ENAMETOOLONG", syscall, path);
+      if (exceedsComponentByteLimit(component)) this.fail("ENAMETOOLONG", syscall, path);
       if (options.resizeCreate === true && pending.length === 1 && pending[0] === "") this.fail("EISDIR", syscall, path);
       let node = current.entries.get(component);
       if (!node && options.createDirectories !== undefined) {
@@ -1316,6 +1316,24 @@ const writeFileFastMethodNames = [
   "bytes", "allocate", "admitSize", "changed", "metadata", "fail",
 ] as const;
 
+export function utf8ByteLength(value: string): number {
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && i + 1 < value.length && value.charCodeAt(i + 1) >= 0xdc00 && value.charCodeAt(i + 1) <= 0xdfff) {
+      bytes += 4;
+      i++;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
+function exceedsComponentByteLimit(value: string): boolean {
+  return value.length > 85 && (value.length > 255 || utf8ByteLength(value) > 255);
+}
+
 export function isCleanAbsolutePath(path: string): boolean {
   const len = path.length;
   if (len <= 1 || len > 65536 || path.charCodeAt(0) !== 47 || path.charCodeAt(len - 1) === 47) return false;
@@ -1348,18 +1366,18 @@ export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string)
     const slash = path.indexOf("/", start);
     if (slash === -1) {
       const name = path.slice(start);
-      if (name.length > 85 && Buffer.byteLength(name) > 255) return undefined;
+      if (exceedsComponentByteLimit(name)) return undefined;
       return path;
     }
     const name = path.slice(start, slash);
-    if (name.length > 85 && Buffer.byteLength(name) > 255) return undefined;
+    if (exceedsComponentByteLimit(name)) return undefined;
     const next = current.entries.get(name);
     if (!next) {
       let remStart = slash + 1;
       while (true) {
         const nextSlash = path.indexOf("/", remStart);
         const seg = nextSlash === -1 ? path.slice(remStart) : path.slice(remStart, nextSlash);
-        if (seg.length > 85 && Buffer.byteLength(seg) > 255) return undefined;
+        if (exceedsComponentByteLimit(seg)) return undefined;
         if (nextSlash === -1) return path;
         remStart = nextSlash + 1;
       }

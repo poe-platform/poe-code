@@ -55,7 +55,7 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
       parts.pop();
       continue;
     }
-    if (component.length > 85 && Buffer.byteLength(component) > 255) throw new FsError("ENAMETOOLONG", { path });
+    if (exceedsComponentByteLimit(component)) throw new FsError("ENAMETOOLONG", { path });
     const candidate = `/${[...parts, component].join("/")}`;
     const selected = namespace === undefined ? undefined : candidate === deviceDirectory || candidate === nullPath ? "/" : namespace(candidate);
     if (boundary !== undefined && selected !== boundary) throw new FsError("EACCES", { path });
@@ -91,6 +91,24 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
     parts.push(component);
   }
   return `/${parts.join("/")}`;
+}
+
+function utf8ByteLength(value: string): number {
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && i + 1 < value.length && value.charCodeAt(i + 1) >= 0xdc00 && value.charCodeAt(i + 1) <= 0xdfff) {
+      bytes += 4;
+      i++;
+    } else bytes += 3;
+  }
+  return bytes;
+}
+
+function exceedsComponentByteLimit(value: string): boolean {
+  return value.length > 85 && (value.length > 255 || utf8ByteLength(value) > 255);
 }
 
 export async function resolveDevicePath(filesystem: FileSystem, path: string, options: FsOptions, followFinal = true, resizeCreate?: boolean): Promise<string> {

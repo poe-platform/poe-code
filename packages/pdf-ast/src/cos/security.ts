@@ -300,6 +300,7 @@ export function decryptPdfBuffer(
     if (data.length < 16 || data.length % 16 !== 0) return data;
     const iv = data.subarray(0, 16);
     const ciphertext = data.subarray(16);
+    if (ciphertext.length === 0) return new Uint8Array(0);
     return aesCbcDecrypt(objKey.subarray(0, 16), iv, ciphertext, true);
   }
   return rc4Transform(objKey, data);

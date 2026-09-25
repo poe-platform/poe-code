@@ -28,7 +28,7 @@ function bucketName(bucket: string): void {
 }
 
 function objectKey(key: string): void {
-  if (typeof key !== "string" || !key || Buffer.byteLength(key) > 1024) invalid("object keys must contain 1..1024 UTF-8 bytes");
+  if (typeof key !== "string" || !key || utf8ByteLength(key) > 1024) invalid("object keys must contain 1..1024 UTF-8 bytes");
   uriEncode(key);
 }
 
@@ -61,7 +61,7 @@ function metadataHeaders(metadata: Record<string, string> | undefined): Record<s
     const lower = name.toLowerCase();
     if (!/^[a-z0-9][a-z0-9_-]*$/.test(lower) || `x-amz-meta-${lower}` in headers) invalid("invalid or duplicate metadata key");
     const normalized = headerValue(value);
-    size += Buffer.byteLength(lower) + Buffer.byteLength(normalized);
+    size += utf8ByteLength(lower) + utf8ByteLength(normalized);
     if (size > 2048) invalid("metadata exceeds 2 KiB");
     headers[`x-amz-meta-${lower}`] = normalized;
   }
@@ -333,7 +333,7 @@ export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transp
       if (input.MaxKeys !== undefined && (!Number.isSafeInteger(input.MaxKeys) || input.MaxKeys < 0 || input.MaxKeys > 1000)) invalid("MaxKeys must be 0..1000");
       const query: [string, string][] = [["list-type", "2"], ["encoding-type", "url"]];
       for (const [name, value] of [["prefix", input.Prefix], ["delimiter", input.Delimiter], ["continuation-token", input.ContinuationToken]] as const) {
-        if (value !== undefined) { if (typeof value !== "string" || Buffer.byteLength(value) > 8192) invalid(`invalid ${name}`); query.push([name, value]); }
+        if (value !== undefined) { if (typeof value !== "string" || utf8ByteLength(value) > 8192) invalid(`invalid ${name}`); query.push([name, value]); }
       }
       if (input.MaxKeys !== undefined) query.push(["max-keys", String(input.MaxKeys)]);
       const response = await exchange("GET", input.Bucket, undefined, {}, query, empty, requestOptions);

@@ -540,6 +540,12 @@ export function aesCbcDecrypt(
   ciphertext: Uint8Array,
   autoPad = true
 ): Uint8Array {
+  if (iv.length !== 16) {
+    throw new RangeError(`Invalid IV length: ${iv.length}`);
+  }
+  if (ciphertext.length % 16 !== 0 || (autoPad && ciphertext.length === 0)) {
+    throw new Error("Invalid ciphertext length for AES-CBC decryption");
+  }
   const { roundKeys, rounds } = expandKey(key);
   const out = new Uint8Array(ciphertext.length);
   let prev = iv;
@@ -551,11 +557,15 @@ export function aesCbcDecrypt(
     }
     prev = block;
   }
-  if (!autoPad || out.length === 0) return out;
+  if (!autoPad) return out;
   const padVal = out[out.length - 1]!;
-  if (padVal < 1 || padVal > 16 || padVal > out.length) return out;
+  if (padVal < 1 || padVal > 16 || padVal > out.length) {
+    throw new Error("Invalid PKCS#7 padding");
+  }
   for (let i = out.length - padVal; i < out.length; i++) {
-    if (out[i] !== padVal) return out;
+    if (out[i] !== padVal) {
+      throw new Error("Invalid PKCS#7 padding");
+    }
   }
   return out.subarray(0, out.length - padVal);
 }

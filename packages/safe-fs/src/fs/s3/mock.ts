@@ -1,3 +1,16 @@
+function utf8ByteLength(value: string): number {
+  let bytes = 0;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 0x80) bytes += 1;
+    else if (code < 0x800) bytes += 2;
+    else if (code >= 0xd800 && code <= 0xdbff && i + 1 < value.length && value.charCodeAt(i + 1) >= 0xdc00 && value.charCodeAt(i + 1) <= 0xdfff) {
+      bytes += 4;
+      i++;
+    } else bytes += 3;
+  }
+  return bytes;
+}
 import { createHash } from "node:crypto";
 import { collectBytes } from "../../contracts/io.js";
 import { recordMockS3Head } from "./authority.js";
@@ -71,7 +84,7 @@ export class MockS3Client implements S3Transport {
     await this.authorize?.(request);
     if (options?.abortSignal?.aborted) throw new S3ServiceError("AbortError", 499);
     if (!this.buckets.has(input.Bucket)) throw new S3ServiceError("NoSuchBucket", 404);
-    if ("Key" in input && (input.Key.length === 0 || Buffer.byteLength(input.Key) > 1024)) {
+    if ("Key" in input && (input.Key.length === 0 || utf8ByteLength(input.Key) > 1024)) {
       throw new S3ServiceError("InvalidArgument", 400);
     }
   }
@@ -98,7 +111,7 @@ export class MockS3Client implements S3Transport {
   }
 
   private store(body: Uint8Array, metadata: Record<string, string> = {}): StoredObject {
-    const metadataBytes = Object.entries(metadata).reduce((total, [key, value]) => total + Buffer.byteLength(key) + Buffer.byteLength(value), 0);
+    const metadataBytes = Object.entries(metadata).reduce((total, [key, value]) => total + utf8ByteLength(key) + utf8ByteLength(value), 0);
     if (metadataBytes > 2048) throw new S3ServiceError("MetadataTooLarge", 400);
     return {
       body: new Uint8Array(body),

@@ -42,6 +42,7 @@ export interface SplitArguments {
   readonly additionalSuffix: string;
   readonly separator: number;
   readonly elideEmpty: boolean;
+  readonly verbose: boolean;
 }
 
 function number(text: string, label: string, units = false, zero = false): number {
@@ -78,6 +79,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   let additionalSuffix = "";
   let separator = 10;
   let elideEmpty = false;
+  let verbose = false;
   const operands: string[] = [];
   let ended = false;
   const apply = (option: string, value?: string): void => {
@@ -89,6 +91,8 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       }
     } else if (option === "a") suffixLength = number(value!, "suffix length", false, true);
     else if (option === "e") elideEmpty = true;
+    else if (option === "u") return;
+    else if (option === "verbose") verbose = true;
     else if (option === "t") {
       const bytes = Buffer.from(value === "\\0" ? "\0" : value!);
       if (bytes.length !== 1) throw new PublicDiagnostic("separator must be exactly one byte");
@@ -118,6 +122,7 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     lines: "l", bytes: "b", "line-bytes": "C", "suffix-length": "a",
     "numeric-suffixes": "d", "additional-suffix": "additional-suffix",
     "hex-suffixes": "x", separator: "t", "elide-empty-files": "e", number: "n",
+    unbuffered: "u", verbose: "verbose",
   };
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -128,8 +133,8 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       const name = argument.slice(2, equals < 0 ? undefined : equals);
       const option = long[name];
       if (!option) throw new PublicDiagnostic(`unrecognized option '${argument}'`);
-      if (option === "e" && equals >= 0) throw new PublicDiagnostic(`option '--${name}' doesn't allow an argument`);
-      const optional = option === "d" || option === "x" || option === "e";
+      if ((option === "e" || option === "u" || option === "verbose") && equals >= 0) throw new PublicDiagnostic(`option '--${name}' doesn't allow an argument`);
+      const optional = option === "d" || option === "x" || option === "e" || option === "u" || option === "verbose";
       const value = equals < 0 ? (optional ? undefined : args[++index]) : argument.slice(equals + 1);
       if (!optional && value === undefined) throw new PublicDiagnostic(`option '--${name}' requires an argument`);
       apply(option, value);
@@ -138,8 +143,8 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     } else {
       for (let offset = 1; offset < argument.length; offset++) {
         const option = argument[offset]!;
-        if (!"lbaCdxetn".includes(option)) throw new PublicDiagnostic(`invalid option -- '${option}'`);
-        if (option === "d" || option === "x" || option === "e") apply(option);
+        if (!"lbaCdxetnu".includes(option)) throw new PublicDiagnostic(`invalid option -- '${option}'`);
+        if (option === "d" || option === "x" || option === "e" || option === "u") apply(option);
         else {
           const value = argument.slice(offset + 1) || args[++index];
           if (value === undefined) throw new PublicDiagnostic(`option requires an argument -- '${option}'`);
@@ -172,6 +177,6 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     mode: mode ?? "lines", size, chunkMode, selectedChunk, input: operands[0] ?? "-", prefix: operands[1] ?? "x",
     alphabet,
     suffixLength, automatic,
-    numericStart: numericStart ?? "0", additionalSuffix, separator, elideEmpty,
+    numericStart: numericStart ?? "0", additionalSuffix, separator, elideEmpty, verbose,
   };
 }

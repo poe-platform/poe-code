@@ -83,3 +83,17 @@ test("mixed -d and -x suffix options format start values in the final radix with
   assert.match(overflowAfterDec.stderr, /too large for the suffix length/);
   assert.deepEqual(await files(overflowAfterDec.fs), {});
 });
+
+test("verbose and unbuffered options emit file creation diagnostics and accept flags", async () => {
+  const verbose = await run(["--verbose", "-u", "--unbuffered", "-l", "2"], "a\nb\nc\n");
+  assert.equal(verbose.exitCode, 0, verbose.stderr);
+  assert.equal(verbose.stdout, "creating file 'xaa'\ncreating file 'xab'\n");
+  assert.deepEqual(await files(verbose.fs), { xaa: hex("a\nb\n"), xab: hex("c\n") });
+
+  for (const flag of ["--verbose=yes", "--unbuffered=yes"]) {
+    const rejected = await run([flag], "a\n");
+    assert.equal(rejected.exitCode, 1);
+    assert.match(rejected.stderr, /doesn't allow an argument/);
+    assert.deepEqual(await files(rejected.fs), {});
+  }
+});

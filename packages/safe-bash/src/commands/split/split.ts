@@ -151,6 +151,11 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       if (files > 1) name = names.next();
       if (files === 1 && initialDirectoryError) throw initialDirectoryError;
       const destination = files === 1 && initial ? initial : await outputs.prepare(name);
+      if (args.verbose) {
+        const line = Buffer.from(`creating file '${name}'\n`);
+        budget.output(line.length);
+        await context.stdout.write(line);
+      }
       const source = (async function* (): ByteSource {
         if (!first.done) {
           budget.output(first.value.length);

@@ -15,6 +15,43 @@ function deferred<Value = void>() {
 
 const turn = () => new Promise<void>((resolve) => setImmediate(resolve));
 
+for (const externalInvocation of [false, true]) test(`frozen middleware contexts retain lazy properties and replacement arguments through cleanup: external ${externalInvocation}`, async context => {
+  const { shell, commands } = setup();
+  context.after(() => shell.dispose());
+  const metadata = Symbol("metadata");
+  const value = {};
+  let reads = 0, cleanups = 0;
+  const getMetadata = () => { reads++; return value; };
+  let original!: CommandContext;
+  shell.use((invocation, next) => {
+    if (invocation.command !== "frozen") return next();
+    original = invocation;
+    Object.defineProperty(invocation, "args", { value: ["replacement"], writable: false });
+    Object.defineProperty(invocation, metadata, { get: getMetadata });
+    invocation.registerCleanup!(() => { cleanups++; });
+    Object.freeze(invocation);
+    return next();
+  });
+  commands.register({ name: "frozen", execute(invocation) {
+    assert.equal(reads, 0);
+    assert.equal(Object.getOwnPropertyDescriptor(invocation, metadata)?.get, getMetadata);
+    assert.equal(Reflect.get(invocation, metadata), value);
+    assert.deepEqual(invocation.args, ["replacement"]);
+    assert.equal(invocation.externalInvocation === true, externalInvocation);
+    return { exitCode: 7 };
+  } });
+  commands.register({ name: "driver", execute(invocation) {
+    return invocation.invoke!("frozen", ["original"], { externalInvocation: true });
+  } });
+  const result = await shell.exec(externalInvocation ? "driver" : "frozen original");
+  assert.equal(result.exitCode, 7);
+  assert.equal(result.stderr, "");
+  assert.equal(reads, 1);
+  assert.equal(cleanups, 1);
+  assert.equal(Object.isFrozen(original), true);
+  assert.deepEqual(original.args, ["replacement"]);
+});
+
 test("cleanup is registered before acquisition and delays normal public settlement", { timeout: 2000 }, async () => {
   const { shell, commands } = setup();
   const started = deferred();

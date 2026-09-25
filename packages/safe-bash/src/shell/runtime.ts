@@ -5612,18 +5612,18 @@ export class Runtime {
       const commandName = Object.getOwnPropertyDescriptor(forwarded, "command")?.get === readName ? currentName : forwarded.command;
       const forwardedValues = hasMiddleware ? getCommandArguments(forwarded) : argumentValues;
       const admitted = forwardedValues === argumentValues ? argumentValues : this.admitArguments(forwardedValues.values, allocation);
-      const targetContext = !hasMiddleware
-        ? forwarded
-        : Object.defineProperties(
-          Object.create(Object.getPrototypeOf(forwarded)),
-          Object.getOwnPropertyDescriptors(forwarded),
-        );
-      const context = Object.assign(targetContext, {
+      const runtimeProperties = {
         args: admitted.args,
         argumentValues: admitted,
         [invocationScope]: scope,
         ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }),
-      }) as ShellCommandContext & {
+      };
+      const context = (hasMiddleware
+        ? Object.create(Object.getPrototypeOf(forwarded), {
+          ...Object.getOwnPropertyDescriptors(forwarded),
+          ...Object.getOwnPropertyDescriptors(runtimeProperties),
+        })
+        : Object.assign(forwarded, runtimeProperties)) as ShellCommandContext & {
         args: readonly string[];
         argumentValues: CommandArguments;
         [invocationScope]: InvocationScope;
@@ -5862,10 +5862,13 @@ export class Runtime {
           if (io[valueScope] !== undefined) Reflect.deleteProperty(forwarded, valueScope);
           if (admitted.values.every(value => typeof value === "string")) Reflect.deleteProperty(forwarded, "argumentValues");
         }
-        if (state.externalInvocation) {
-          Object.defineProperty(forwarded, "externalInvocation", { value: true, configurable: true });
-        }
-        const raw = definition.execute(forwarded);
+        const executionContext = state.externalInvocation
+          ? Object.create(Object.getPrototypeOf(forwarded), {
+            ...Object.getOwnPropertyDescriptors(forwarded),
+            externalInvocation: { value: true, configurable: true },
+          }) as ShellCommandContext
+          : forwarded;
+        const raw = definition.execute(executionContext);
         const observed = this.observeRuntimeReturn(raw, runtimeFrame);
         return await interruptible(observed, this.signal);
       } finally {

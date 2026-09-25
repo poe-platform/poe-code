@@ -217,3 +217,9 @@ test("find executes semicolon and plus forms with literal argv and detects symli
   assert.equal((await run("find", [".", "-type", "l"], { fs })).stdout, "./loop\n");
   assert.equal((await run("find", ["-L", "."], { fs })).exitCode, 1);
 });
+
+test("xargs default whitespace mode preserves non-UTF-8 bytes without crashing", async () => {
+  const res = await run("xargs", ["printf", "%s"], { stdin: Uint8Array.from([0xff, 0x20, 0xfe, 0x0a]), env: { LC_ALL: "C" } });
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.deepEqual(res.stdoutBytes, Buffer.from([0xff, 0xfe]));
+});

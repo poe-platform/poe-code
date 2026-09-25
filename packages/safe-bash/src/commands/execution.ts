@@ -24,21 +24,22 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
   };
 }
 
-async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false, lines = false): AsyncGenerator<string | null> {
-  const utf8 = new TextDecoder("utf-8", { fatal: true });
-  let current = "";
+async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false, lines = false): AsyncGenerator<Uint8Array | null> {
+  const current: number[] = [];
+  const pendingBlanks: number[] = [];
   let active = false;
   let escaped = false;
-  let quote = "";
+  let quote = 0;
   let lineActive = false;
   let trailingBlank = false;
-  let pendingBlanks = "";
-  const parse = function* (text: string): Generator<string | null> {
-    for (const character of text) {
-      const blank = character === " " || character === "\t";
-      if (character === "\n" && !quote && !escaped) {
-        pendingBlanks = "";
-        if (active) { yield current; current = ""; active = false; }
+  for await (const chunk of readBytes(source, signal)) {
+    signal.throwIfAborted();
+    for (const byte of chunk) {
+      if (byte === 0) throw new UsageError("NUL in non-NUL-delimited input is not supported");
+      const blank = byte === 32 || byte === 9;
+      if (byte === 10 && !quote && !escaped) {
+        pendingBlanks.length = 0;
+        if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
         if (lines && lineActive && !trailingBlank) { yield null; lineActive = false; }
         trailingBlank = false;
         continue;
@@ -46,30 +47,27 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
       if (!blank || quote || escaped) lineActive = true;
       trailingBlank = blank && !quote && !escaped;
       if (replacement && blank && !quote && !escaped) {
-        if (active) pendingBlanks += character;
+        if (active) pendingBlanks.push(byte);
         if (current.length + pendingBlanks.length > 131072) throw new UsageError("argument exceeds 128 KiB limit");
         continue;
       }
-      current += pendingBlanks;
-      pendingBlanks = "";
-      if (escaped) { current += character; active = true; escaped = false; }
+      if (pendingBlanks.length) { current.push(...pendingBlanks); pendingBlanks.length = 0; }
+      if (escaped) { current.push(byte); active = true; escaped = false; }
       else if (quote) {
-        if (character === "\n") throw new UsageError("unmatched quote in input");
-        if (character === quote) quote = "";
-        else current += character;
-      } else if (character === "\\") { escaped = true; active = true; }
-      else if (character === "'" || character === '"') { quote = character; active = true; }
-      else if (character === "\n" || !replacement && [" ", "\t", "\r", "\v", "\f"].includes(character)) {
-        if (active) { yield current; current = ""; active = false; }
+        if (byte === 10) throw new UsageError("unmatched quote in input");
+        if (byte === quote) quote = 0;
+        else current.push(byte);
+      } else if (byte === 92) { escaped = true; active = true; }
+      else if (byte === 39 || byte === 34) { quote = byte; active = true; }
+      else if (byte === 10 || !replacement && (byte === 32 || byte === 9 || byte === 13 || byte === 11 || byte === 12)) {
+        if (active) { yield Uint8Array.from(current); current.length = 0; active = false; }
       } else if (replacement && !active && blank) continue;
-      else { current += character; active = true; }
+      else { current.push(byte); active = true; }
       if (current.length > 131072) throw new UsageError("argument exceeds 128 KiB limit");
     }
-  };
-  for await (const chunk of readBytes(source, signal)) { signal.throwIfAborted(); yield* parse(utf8.decode(chunk, { stream: true })); }
-  yield* parse(utf8.decode());
+  }
   if (quote || escaped) throw new UsageError(quote ? "unmatched quote in input" : "trailing backslash in input");
-  if (active) yield current;
+  if (active) yield Uint8Array.from(current);
 }
 
 export function executionCommands(execute: CommandHandler, configuration: ExecutionCommandsOptions = {}): CommandDefinition[] {
@@ -277,6 +275,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         active.add(pending);
       };
       const eof = value(parsed, "E");
+      const eofBytes = eof !== undefined && eof !== "" ? encoder.encode(eof) : undefined;
       try {
         if (delimiter !== undefined && eof !== undefined && eof !== "") await writeDiagnostic(context.stderr, "xargs: warning: the -E option has no effect if -0 or -d is used.\n\n", context.signal);
         const incoming = delimiter === undefined
@@ -291,7 +290,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
             }
             continue;
           }
-          if (stop || delimiter === undefined && eof !== undefined && eof !== "" && argument === eof) break;
+          if (stop || delimiter === undefined && eofBytes !== undefined && Buffer.compare(argument, eofBytes) === 0) break;
           const size = (typeof argument === "string" ? Buffer.byteLength(argument) : argument.byteLength) + 1;
           if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
           if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {

@@ -531,7 +531,7 @@ provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/
 Execution quotas are unlimited by default. Set individual `limits` to opt in;
 supplying one does not enable other quotas. Available quotas are `maxParseUnits`,
 `maxInputBytes`, `maxOutputBytes`, `maxCommands`, `maxFileSystemOperations`,
-`maxPathComponents`, `maxRedirects`, `maxPipelineStages`, `maxLoopIterations`,
+`maxPathComponents`, `maxPathnameComponents`, `maxRedirects`, `maxPipelineStages`, `maxLoopIterations`,
 `maxSubstitutionDepth`, `maxSourceBytes`, `maxExpansionFields`, `maxExpansionBytes`,
 `maxWallClockMs`, and `maxCpuMs`. The CPU deadline measures elapsed time including
 waits at cooperative checkpoints. `pipeHighWaterMark` defaults to 64 KiB for
@@ -544,6 +544,8 @@ code and stderr; limit violations, cancellation, and host failures can reject `e
 The command budget counts compound commands and loop conditions as well as body
 commands. With both work budgets set to 10,000, `while true; do :; done` reaches
 `maxCommands` first. Work budgets bound execution counts, not elapsed latency.
+`maxPathComponents` counts PATH search directories consulted per lookup;
+`maxPathnameComponents` separately bounds components within each filesystem path.
 Await execution settlement and shell disposal before closing backing storage,
 including after a caller timeout; cancellation is cooperative.
 

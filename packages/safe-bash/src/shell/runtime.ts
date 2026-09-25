@@ -134,6 +134,7 @@ export const defaultLimits: ResolvedShellLimits = {
   maxCommands: Infinity,
   maxFileSystemOperations: Infinity,
   maxPathComponents: Infinity,
+  maxPathnameComponents: Infinity,
   maxRedirects: Infinity,
   maxPipelineStages: Infinity,
   maxLoopIterations: Infinity,
@@ -1862,7 +1863,7 @@ export class Runtime {
 
   get fs(): FileSystem {
     if (!this.#fs) {
-      this.#fs = scopeFileSystem(this.#rawFs, this.#chargeFs, this.signal, this.#cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathComponents });
+      this.#fs = scopeFileSystem(this.#rawFs, this.#chargeFs, this.signal, this.#cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
       runtimeFileSystems.set(this.#fs, this.sourceFs);
       runtimeBackingFileSystems.set(this.#fs, this.backingFs);
     }
@@ -1878,7 +1879,7 @@ export class Runtime {
       this.#chargeFs,
       sig,
       this.#cleanupChargeFs,
-      { maxPathComponents: this.budget.limits.maxPathComponents },
+      { maxPathComponents: this.budget.limits.maxPathnameComponents },
     );
     runtimeFileSystems.set(created, this.sourceFs);
     runtimeBackingFileSystems.set(created, this.backingFs);
@@ -1898,7 +1899,7 @@ export class Runtime {
       this.#chargeFs,
       this.commandSignal,
       this.#cleanupChargeFs,
-      { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathComponents },
+      { preserveDescriptorWriteReceipt: true, maxPathComponents: this.budget.limits.maxPathnameComponents },
     ));
   }
 

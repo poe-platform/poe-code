@@ -38,6 +38,7 @@ export const cloudflareWorkerLimits: Readonly<Required<ShellLimits>> = Object.fr
   maxCommands: 1_000,
   maxFileSystemOperations: 10_000,
   maxPathComponents: 64,
+  maxPathnameComponents: 64,
   maxRedirects: 64,
   maxPipelineStages: 64,
   maxLoopIterations: 1_000,

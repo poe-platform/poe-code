@@ -48,7 +48,10 @@ export interface ShellLimits {
   readonly maxOutputBytes?: number;
   readonly maxCommands?: number;
   readonly maxFileSystemOperations?: number;
+  /** Maximum PATH search directories consulted per lookup; direct paths do not consume this quota. */
   readonly maxPathComponents?: number;
+  /** Maximum nonempty components in each filesystem pathname, also bounded by the filesystem ceiling. */
+  readonly maxPathnameComponents?: number;
   /** Maximum redirects per executed command, including implicit |&; unlimited when omitted.
    * Zero permits only redirect-free commands. Not a global byte or filesystem-call budget. */
   readonly maxRedirects?: number;

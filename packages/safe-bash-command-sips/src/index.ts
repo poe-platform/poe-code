@@ -41,6 +41,12 @@ function formatToTypeIdentifier(fmt: ImageFormat): string {
       return "public.jpeg";
     case "webp":
       return "org.webmproject.webp";
+    case "heic":
+      return "public.heic";
+    case "heif":
+      return "public.heif";
+    case "avif":
+      return "public.avif";
     case "gif":
       return "com.compuserve.gif";
     case "ppm":
@@ -121,6 +127,9 @@ function normalizeTargetFormat(fmt: string): ImageFormat | undefined {
   if (lower === "png") return "png";
   if (lower === "jpeg" || lower === "jpg") return "jpeg";
   if (lower === "webp") return "webp";
+  if (lower === "heic" || lower === "public.heic") return "heic";
+  if (lower === "heif" || lower === "public.heif") return "heif";
+  if (lower === "avif" || lower === "public.avif") return "avif";
   if (lower === "gif") return "gif";
   if (lower === "ppm") return "ppm";
   if (lower === "pgm") return "pgm";

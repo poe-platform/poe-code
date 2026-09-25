@@ -3,6 +3,7 @@ export * from "./codecs/exif.js";
 export * from "./codecs/png.js";
 export * from "./codecs/jpeg.js";
 export * from "./codecs/webp.js";
+export * from "./codecs/heif.js";
 export * from "./codecs/gif.js";
 export * from "./codecs/netpbm.js";
 export * from "./codecs/svg-pdf.js";

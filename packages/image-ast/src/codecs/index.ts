@@ -9,6 +9,13 @@ import {
 import { decodePngImage, encodePngImage, isPngBytes, readPngMetadata } from "./png.js";
 import { decodeJpegImage, encodeJpegImage, isJpegBytes, readJpegMetadata } from "./jpeg.js";
 import { decodeWebpImage, encodeWebpImage, isWebpBytes, readWebpMetadata } from "./webp.js";
+import {
+  decodeHeifImage,
+  detectHeifFormat,
+  encodeHeifImage,
+  isHeifBytes,
+  readHeifMetadata
+} from "./heif.js";
 import { decodeGifImage, encodeGifImage, isGifBytes, readGifMetadata } from "./gif.js";
 import {
   decodeBmpImage,
@@ -40,6 +47,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isPngBytes(bytes)) return "png";
   if (isJpegBytes(bytes)) return "jpeg";
   if (isWebpBytes(bytes)) return "webp";
+  if (isHeifBytes(bytes)) return detectHeifFormat(bytes) ?? "heic";
   if (isGifBytes(bytes)) return "gif";
   if (isNetpbmBytes(bytes)) {
     const m = String.fromCharCode(bytes[0]!, bytes[1]!);
@@ -100,6 +108,11 @@ export function readImageMetadata(
       break;
     case "webp":
       meta = readWebpMetadata(bytes);
+      break;
+    case "heic":
+    case "heif":
+    case "avif":
+      meta = readHeifMetadata(bytes);
       break;
     case "gif":
       meta = readGifMetadata(bytes);
@@ -227,6 +240,10 @@ export function decodeImage(
       return decodeJpegImage(bytes);
     case "webp":
       return decodeWebpImage(bytes);
+    case "heic":
+    case "heif":
+    case "avif":
+      return decodeHeifImage(bytes);
     case "gif":
       return decodeGifImage(bytes, options);
     case "ppm":
@@ -285,6 +302,22 @@ export function encodeImage(
         ...(orientation !== undefined ? { orientation } : {})
       });
       return { data, format: "webp", channels: img.hasAlpha ? 4 : 3 };
+    }
+    case "heic":
+    case "heif":
+    case "avif": {
+      const orientation = options.orientation ?? img.orientation;
+      const data = encodeHeifImage(img, {
+        format: fmt,
+        ...(options.quality !== undefined ? { quality: options.quality } : {}),
+        ...(options.compression !== undefined ? { compression: options.compression } : {}),
+        ...(options.lossless !== undefined ? { lossless: options.lossless } : {}),
+        density: options.density ?? img.density,
+        ...(orientation !== undefined ? { orientation } : {})
+      });
+      const isBw = img.space === "b-w" || img.channels === 1 || img.channels === 2;
+      const outChannels = isBw ? (img.hasAlpha ? 2 : 1) : img.hasAlpha ? 4 : 3;
+      return { data, format: fmt, channels: outChannels };
     }
     case "gif": {
       const data = encodeGifImage(img);

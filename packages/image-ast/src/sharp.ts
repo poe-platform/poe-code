@@ -669,6 +669,47 @@ export class SharpInstance {
     return this;
   }
 
+  heif(options?: {
+    readonly quality?: number;
+    readonly compression?: "hevc" | "av1";
+    readonly lossless?: boolean;
+  }): this {
+    this.outputOptions = {
+      ...this.outputOptions,
+      format: "heif",
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.compression !== undefined ? { compression: options.compression } : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
+  heic(options?: {
+    readonly quality?: number;
+    readonly compression?: "hevc" | "av1";
+    readonly lossless?: boolean;
+  }): this {
+    this.outputOptions = {
+      ...this.outputOptions,
+      format: "heic",
+      compression: options?.compression ?? "hevc",
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
+  avif(options?: { readonly quality?: number; readonly lossless?: boolean }): this {
+    this.outputOptions = {
+      ...this.outputOptions,
+      format: "avif",
+      compression: "av1",
+      ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.lossless !== undefined ? { lossless: options.lossless } : {})
+    };
+    return this;
+  }
+
   gif(): this {
     this.outputOptions = { ...this.outputOptions, format: "gif" };
     return this;
@@ -706,13 +747,19 @@ export class SharpInstance {
 
   toFormat(
     format: ImageFormat | "jpg",
-    options?: { readonly quality?: number; readonly compressionLevel?: number; readonly lossless?: boolean }
+    options?: {
+      readonly quality?: number;
+      readonly compression?: "hevc" | "av1";
+      readonly compressionLevel?: number;
+      readonly lossless?: boolean;
+    }
   ): this {
     const norm: ImageFormat = format === "jpg" ? "jpeg" : format;
     this.outputOptions = {
       ...this.outputOptions,
       format: norm,
       ...(options?.quality !== undefined ? { quality: options.quality } : {}),
+      ...(options?.compression !== undefined ? { compression: options.compression } : {}),
       ...(options?.compressionLevel !== undefined
         ? { compressionLevel: options.compressionLevel }
         : {}),

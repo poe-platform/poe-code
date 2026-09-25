@@ -146,4 +146,38 @@ describe("safe-bash-command-sips (sips & identify)", () => {
     expect(subFrameRes.exitCode).toBe(0);
     expect(subFrameRes.stdout).toBe("40x20");
   });
+
+  it("supports iPhone HEIC, HEIF, and AVIF conversion and inspection in sips and identify", async () => {
+    const png = await makeSamplePng(320, 240);
+    const files = new Map<string, Uint8Array>([["IMG_0001.png", png]]);
+
+    const convHeic = await runSipsCli(
+      ["-s", "format", "heic", "IMG_0001.png", "--out", "IMG_0001.heic"],
+      files
+    );
+    expect(convHeic.exitCode).toBe(0);
+    expect(files.has("IMG_0001.heic")).toBe(true);
+
+    const sipsQuery = await runSipsCli(["-g", "all", "IMG_0001.heic"], files);
+    expect(sipsQuery.exitCode).toBe(0);
+    expect(sipsQuery.stdout).toContain("pixelWidth: 320");
+    expect(sipsQuery.stdout).toContain("pixelHeight: 240");
+    expect(sipsQuery.stdout).toContain("typeIdentifier: public.heic");
+    expect(sipsQuery.stdout).toContain("format: heic");
+
+    const idQuery = await runIdentifyCli(["IMG_0001.heic"], files);
+    expect(idQuery.exitCode).toBe(0);
+    expect(idQuery.stdout).toContain("IMG_0001.heic HEIC 320x240");
+
+    // Convert HEIC back to JPEG via sips
+    const convJpg = await runSipsCli(
+      ["-Z", "160", "-s", "format", "jpeg", "IMG_0001.heic", "--out", "IMG_0001.jpg"],
+      files
+    );
+    expect(convJpg.exitCode).toBe(0);
+    const jpgMeta = await sharp(files.get("IMG_0001.jpg")!).metadata();
+    expect(jpgMeta.format).toBe("jpeg");
+    expect(jpgMeta.width).toBe(160);
+    expect(jpgMeta.height).toBe(120);
+  });
 });

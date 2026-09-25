@@ -2,6 +2,9 @@ export type ImageFormat =
   | "png"
   | "jpeg"
   | "webp"
+  | "heic"
+  | "heif"
+  | "avif"
   | "gif"
   | "ppm"
   | "pgm"
@@ -54,6 +57,7 @@ export interface ImageMetadata {
   readonly depth: "uchar" | "ushort" | "bit";
   readonly density: number;
   readonly hasAlpha: boolean;
+  readonly compression?: "hevc" | "av1";
   readonly orientation?: number;
   readonly pages?: number;
   readonly pagePrimary?: number;
@@ -305,6 +309,7 @@ export type ImageAstNode =
 export interface OutputEncodeOptions {
   readonly format?: ImageFormat;
   readonly quality?: number;
+  readonly compression?: "hevc" | "av1";
   readonly compressionLevel?: number;
   readonly palette?: boolean;
   readonly lossless?: boolean;

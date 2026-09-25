@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PdfDocument, createStandardFontHandle } from "@poe-code/pdf-ast";
 import sharp, {
   decodeImage,
+  detectImageFormat,
   encodeJpegImage,
   readImageMetadata,
   encodePngImage,
@@ -420,5 +421,78 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer({ resolveWithObject: true });
     expect(aff.info.width).toBe(4);
     expect(aff.info.height).toBe(4);
+  });
+
+  it("encodes and decodes iPhone HEIC, HEIF, and AVIF formats with ISOBMFF metadata, orientation, density, and alpha", async () => {
+    // 1. Round-trip .heic() with RGBA alpha and metadata
+    const srcHeic = await sharp({
+      create: { width: 8, height: 6, channels: 4, background: { r: 12, g: 140, b: 250, alpha: 0.5 } }
+    })
+      .withMetadata({ density: 300, orientation: 6 })
+      .heic()
+      .toBuffer({ resolveWithObject: true });
+
+    expect(srcHeic.info.format).toBe("heic");
+    expect(srcHeic.info.width).toBe(8);
+    expect(srcHeic.info.height).toBe(6);
+    expect(srcHeic.info.channels).toBe(4);
+    expect(detectImageFormat(srcHeic.data)).toBe("heic");
+
+    const heicMeta = await sharp(srcHeic.data).metadata();
+    expect(heicMeta.format).toBe("heic");
+    expect(heicMeta.width).toBe(8);
+    expect(heicMeta.height).toBe(6);
+    expect(heicMeta.channels).toBe(4);
+    expect(heicMeta.hasAlpha).toBe(true);
+    expect(heicMeta.density).toBe(300);
+    expect(heicMeta.orientation).toBe(6);
+    expect(heicMeta.compression).toBe("hevc");
+
+    // Auto-orient HEIC with orientation 6 (90 CW) swaps width/height to 6x8
+    const orientedRaw = await sharp(srcHeic.data)
+      .rotate()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    expect(orientedRaw.info.width).toBe(6);
+    expect(orientedRaw.info.height).toBe(8);
+    expect(orientedRaw.data[0]).toBe(12);
+    expect(orientedRaw.data[1]).toBe(140);
+    expect(orientedRaw.data[2]).toBe(250);
+    expect(orientedRaw.data[3]).toBe(128);
+
+    // 2. Round-trip .heif() and .avif()
+    const srcHeif = await sharp({
+      create: { width: 5, height: 4, channels: 3, background: "#ff3366" }
+    })
+      .heif({ quality: 85, compression: "hevc" })
+      .toBuffer({ resolveWithObject: true });
+    expect(srcHeif.info.format).toBe("heif");
+    const heifMeta = await sharp(srcHeif.data).metadata();
+    expect(heifMeta.format).toBe("heif");
+    expect(heifMeta.width).toBe(5);
+    expect(heifMeta.height).toBe(4);
+    expect(heifMeta.hasAlpha).toBe(false);
+    expect(heifMeta.channels).toBe(3);
+
+    const srcAvif = await sharp({
+      create: { width: 7, height: 3, channels: 3, background: "#00cc88" }
+    })
+      .avif({ quality: 80 })
+      .toBuffer({ resolveWithObject: true });
+    expect(srcAvif.info.format).toBe("avif");
+    const avifMeta = await sharp(srcAvif.data).metadata();
+    expect(avifMeta.format).toBe("avif");
+    expect(avifMeta.compression).toBe("av1");
+    expect(avifMeta.width).toBe(7);
+    expect(avifMeta.height).toBe(3);
+
+    // 3. Verify toFormat("heic") / toFormat("avif")
+    const viaToFormat = await sharp({
+      create: { width: 4, height: 3, channels: 3, background: "#112233" }
+    })
+      .toFormat("heic", { quality: 90 })
+      .toBuffer({ resolveWithObject: true });
+    expect(viaToFormat.info.format).toBe("heic");
+    expect((await sharp(viaToFormat.data).metadata()).format).toBe("heic");
   });
 });

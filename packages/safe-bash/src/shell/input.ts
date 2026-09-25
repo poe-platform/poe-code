@@ -2,7 +2,7 @@ import { FsError, toByteSource } from "../contracts/index.js";
 import type { ByteSource, CommandInput, FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, InvocationCleanup } from "../contracts/index.js";
 import { hasRegisteredYieldCheckpoint } from "../contracts/yield.js";
 import { monotonicNow, yieldTurn } from "../contracts/yield.js";
-import { addAbortSignalWaiter, interruptible, removeAbortSignalWaiter, type AbortSignalWaiter } from "../fs/creation-mask.js";
+import { addAbortSignalWaiter, combineManagedSignals, interruptible, removeAbortSignalWaiter, type AbortSignalWaiter } from "../fs/creation-mask.js";
 import type { Budget } from "./runtime.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueAllocation, ValueReservation } from "../contracts/value.js";
@@ -131,9 +131,9 @@ export async function prepareFileInput(
 ): Promise<PreparedShellInput> {
   const { fs, signal: parent, registerCleanup: register, cleanupFailurePrioritySignal } = context;
   const registerCleanup = register.bind(context);
-  const signal = AbortSignal.any([parent, budget.signal]);
+  const signal = combineManagedSignals(parent, budget.signal);
   const readerController = new AbortController();
-  const readSignal = AbortSignal.any([signal, readerController.signal]);
+  const readSignal = combineManagedSignals(signal, readerController.signal);
   let descriptor: CommandFileDescriptor | undefined;
   let legacy: AsyncIterator<Uint8Array> | undefined;
   let legacySource: (ByteSource & InputProvenance) | undefined;
@@ -478,7 +478,7 @@ class InputDeadline {
     const now = clock.now();
     this._expiresAt = now + timeoutMs;
     if (!Number.isFinite(now) || !Number.isFinite(this._expiresAt)) throw new RangeError("Invalid input clock deadline");
-    this.signal = AbortSignal.any([parent, this._controller.signal]);
+    this.signal = combineManagedSignals(parent, this._controller.signal);
     parent.throwIfAborted();
     parent.addEventListener("abort", this.close, { once: true });
     try { this._schedule(); } catch (error) { this.close(); throw error; }
@@ -1085,7 +1085,7 @@ export class ShellInput implements ByteSource, CommandInput {
       this._lazyCursor = cursor;
       if (cursor.stat) this.stat = cursor.stat;
       if (cursor.seek) this.seek = (position, callerSignal) => {
-        const signal = AbortSignal.any([this.signal, callerSignal]);
+        const signal = combineManagedSignals(this.signal, callerSignal);
         return cursor.consume(signal, async () => {
           if (!Number.isSafeInteger(position) || position < 0) throw new RangeError("Input position must be a nonnegative safe integer");
           await cursor.seek!(position, signal);
@@ -1108,8 +1108,8 @@ export class ShellInput implements ByteSource, CommandInput {
       this._lifetime ??= new AbortController();
       if (this._viewClosed) this._lifetime.abort(shellInputViewClosedError);
       this._signal = this._cleanupSignal === this.budget.signal
-        ? AbortSignal.any([this.budget.signal, this._lifetime.signal])
-        : AbortSignal.any([this.budget.signal, this._cleanupSignal, this._lifetime.signal]);
+        ? combineManagedSignals(this.budget.signal, this._lifetime.signal)
+        : combineManagedSignals(this.budget.signal, this._cleanupSignal, this._lifetime.signal);
     }
     return this._signal;
   }
@@ -1159,7 +1159,7 @@ export class ShellInput implements ByteSource, CommandInput {
 
   /** Return one available fragment rather than waiting to fill a native read. */
   readAvailable(maxBytes: number, callerSignal: AbortSignal): Promise<IteratorResult<Uint8Array>> {
-    const signal = AbortSignal.any([this.signal, callerSignal]);
+    const signal = combineManagedSignals(this.signal, callerSignal);
     return this._cursor.consume(signal, async () => {
       if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new RangeError("Invalid input read size");
       this._cursor.admitBoundedRead();
@@ -1175,7 +1175,7 @@ export class ShellInput implements ByteSource, CommandInput {
   }
 
   read(maxBytes: number, callerSignal: AbortSignal): Promise<IteratorResult<Uint8Array>> {
-    const signal = AbortSignal.any([this.signal, callerSignal]);
+    const signal = combineManagedSignals(this.signal, callerSignal);
     return this._cursor.consume(signal, async () => {
       if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new RangeError("Input read size must be a nonnegative safe integer");
       this._cursor.admitBoundedRead();

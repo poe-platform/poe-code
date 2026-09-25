@@ -2889,4 +2889,31 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Math.abs(norm1_99[pIdx + 1]! - 233)).toBeLessThanOrEqual(1);
     expect(Math.abs(norm1_99[pIdx + 2]! - 224)).toBeLessThanOrEqual(1);
   });
+
+  it("matches libvips vips_gaussmat in blur() and validates precision and minAmplitude options (#1141)", async () => {
+    expect(() => sharp().blur("abc" as any)).toThrow(/Expected number between 0.3 and 1000 for sigma/);
+    expect(() => sharp().blur({} as any)).toThrow(/Expected number between 0.3 and 1000 for options.sigma/);
+    expect(() => sharp().blur({ sigma: 0.1 })).toThrow(/Expected number between 0.3 and 1000 for sigma/);
+    expect(() => sharp().blur({ sigma: 1.5, precision: "bad" as any })).toThrow(
+      /Expected one of: integer, float, approximate for precision/
+    );
+    expect(() => sharp().blur({ sigma: 1.5, minAmplitude: 0 })).toThrow(
+      /Expected number between 0.001 and 1 for minAmplitude/
+    );
+    expect(() => sharp().blur({ sigma: 1.5, minAmplitude: 2 })).toThrow(
+      /Expected number between 0.001 and 1 for minAmplitude/
+    );
+
+    // Impulse response at (7, 7) on 15x15 with sigma = 1.5 matches vips_gaussmat [4, 13, 20, 13, 4] / 54 -> row7 = [9, 18, 23, 18, 9]
+    const w = 15, h = 15;
+    const impulse = Buffer.alloc(w * h, 0);
+    impulse[7 * w + 7] = 255;
+    const out15 = await sharp(impulse, { raw: { width: w, height: h, channels: 1 } })
+      .toColorspace("b-w")
+      .blur(1.5)
+      .raw()
+      .toBuffer();
+    const row7 = Array.from(out15.slice(7 * w + 5, 7 * w + 10));
+    expect(row7).toEqual([9, 18, 23, 18, 9]);
+  });
 });

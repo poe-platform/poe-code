@@ -631,7 +631,7 @@ export class SharpInstance extends Duplex {
           img = thresholdImage(img, node.value, node.grayscale);
           break;
         case "blur":
-          img = blurImage(img, node.sigma);
+          img = blurImage(img, node.sigma, node.minAmplitude, node.precision);
           break;
         case "sharpen":
           img = sharpenImage(img, node.sigma, node.m1, node.m2, node.x1, node.y2, node.y3);
@@ -1368,29 +1368,74 @@ export class SharpInstance extends Duplex {
     return this;
   }
 
-  blur(sigma?: number | boolean | { readonly sigma?: number }): this {
-    if (sigma === false) {
+  blur(
+    options?:
+      | number
+      | boolean
+      | {
+          readonly sigma?: number;
+          readonly precision?: "integer" | "float" | "approximate";
+          readonly minAmplitude?: number;
+        }
+  ): this {
+    if (options === false) {
       const idx = this.nodes.findIndex(n => n.kind === "blur");
       if (idx !== -1) this.nodes.splice(idx, 1);
       return this;
     }
-    if (typeof sigma === "number" && (Number.isNaN(sigma) || sigma < 0.3 || sigma > 1000)) {
-      throw new Error(`Expected number between 0.3 and 1000 for sigma but received ${sigma}`);
+    let sigma: number | undefined;
+    let precision: "integer" | "float" | "approximate" | undefined;
+    let minAmplitude: number | undefined;
+    if (typeof options === "number") {
+      sigma = options;
+    } else if (options !== null && typeof options === "object" && !Array.isArray(options)) {
+      if (typeof options.sigma !== "number" || Number.isNaN(options.sigma)) {
+        throw new Error(
+          `Expected number between 0.3 and 1000 for options.sigma but received ${options.sigma} of type ${typeof options.sigma}`
+        );
+      }
+      sigma = options.sigma;
+      if ("precision" in options && options.precision !== undefined) {
+        if (
+          options.precision !== "integer" &&
+          options.precision !== "float" &&
+          options.precision !== "approximate"
+        ) {
+          throw new Error(
+            `Expected one of: integer, float, approximate for precision but received ${options.precision} of type ${typeof options.precision}`
+          );
+        }
+        precision = options.precision;
+      }
+      if ("minAmplitude" in options && options.minAmplitude !== undefined) {
+        if (
+          typeof options.minAmplitude !== "number" ||
+          Number.isNaN(options.minAmplitude) ||
+          options.minAmplitude < 0.001 ||
+          options.minAmplitude > 1
+        ) {
+          throw new Error(
+            `Expected number between 0.001 and 1 for minAmplitude but received ${options.minAmplitude} of type ${typeof options.minAmplitude}`
+          );
+        }
+        minAmplitude = options.minAmplitude;
+      }
     }
-    if (
-      sigma &&
-      typeof sigma === "object" &&
-      (typeof sigma.sigma !== "number" || Number.isNaN(sigma.sigma) || sigma.sigma < 0.3 || sigma.sigma > 1000)
-    ) {
-      throw new Error(`Expected number between 0.3 and 1000 for options.sigma but received ${sigma.sigma}`);
+    if (options === undefined || options === true) {
+      this.upsertNode({ kind: "blur", sigma: -1 });
+      return this;
     }
-    const s =
-      sigma === undefined || sigma === true
-        ? -1
-        : typeof sigma === "number"
-          ? sigma
-          : (sigma.sigma ?? -1);
-    this.upsertNode({ kind: "blur", sigma: s });
+    if (typeof sigma !== "number" || Number.isNaN(sigma) || sigma < 0.3 || sigma > 1000) {
+      throw new Error(
+        `Expected number between 0.3 and 1000 for sigma but received ${sigma} of type ${typeof sigma}`
+      );
+    }
+    this.upsertNode({
+      kind: "blur",
+      sigma,
+      ...(precision ? { precision } : {}),
+      ...(minAmplitude !== undefined ? { minAmplitude } : {})
+    });
     return this;
   }
 

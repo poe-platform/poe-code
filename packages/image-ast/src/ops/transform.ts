@@ -1289,7 +1289,12 @@ export function thresholdImage(
   return { ...img, data: out, ...(grayscale ? { space: "b-w" as const } : {}) };
 }
 
-export function blurImage(img: RgbaImage, sigma = 1.5): RgbaImage {
+export function blurImage(
+  img: RgbaImage,
+  sigma = 1.5,
+  minAmplitude = 0.2,
+  precision: "integer" | "float" | "approximate" = "integer"
+): RgbaImage {
   if (sigma < 0) {
     return convolveImage(img, {
       width: 3,
@@ -1299,22 +1304,86 @@ export function blurImage(img: RgbaImage, sigma = 1.5): RgbaImage {
       offset: 0
     });
   }
-  if (sigma <= 0.3) return img;
-  const radius = Math.max(1, Math.min(25, Math.ceil(sigma * 3)));
-  const size = radius * 2 + 1;
-  const kernel = new Float32Array(size);
-  let sum = 0;
+  if (sigma < 0.2) return img;
   const twoSigmaSq = 2 * sigma * sigma;
+  let rIdx = 0;
+  while (rIdx < 50 && Math.exp(-(rIdx * rIdx) / twoSigmaSq) >= minAmplitude) {
+    rIdx++;
+  }
+  const radius = Math.max(1, rIdx) - 1;
+  if (radius <= 0) return img;
+  const size = radius * 2 + 1;
+  const kernel = new Float64Array(size);
+  let sum = 0;
   for (let i = -radius; i <= radius; i++) {
-    const w = Math.exp(-(i * i) / twoSigmaSq);
+    const rawW = Math.exp(-(i * i) / twoSigmaSq);
+    const w = precision === "float" ? rawW : Math.round(20.0 * rawW);
     kernel[i + radius] = w;
     sum += w;
   }
-  for (let i = 0; i < size; i++) kernel[i]! /= sum;
 
   const { width, height, data } = img;
-  const temp = new Float32Array(data.length);
   const out = new Uint8Array(data.length);
+
+  if (!img.hasAlpha && precision !== "float") {
+    let maxW = 0;
+    for (let i = 0; i < size; i++) {
+      if (kernel[i]! > maxW) maxW = kernel[i]!;
+    }
+    const w27 = Math.ceil(Math.log2(maxW / sum) + 1.0);
+    const shift = 7 - w27;
+    const scale = 1 << shift;
+    const half = 1 << (shift - 1);
+    const mant = new Int32Array(size);
+    for (let i = 0; i < size; i++) {
+      mant[i] = Math.round((kernel[i]! / sum) * scale);
+    }
+    const temp = new Uint8Array(data.length);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        for (let k = -radius; k <= radius; k++) {
+          const sx = Math.max(0, Math.min(width - 1, x + k));
+          const sIdx = (y * width + sx) * 4;
+          const m = mant[k + radius]!;
+          r += data[sIdx]! * m;
+          g += data[sIdx + 1]! * m;
+          b += data[sIdx + 2]! * m;
+        }
+        const dIdx = (y * width + x) * 4;
+        temp[dIdx] = Math.min(255, Math.max(0, (r + half) >> shift));
+        temp[dIdx + 1] = Math.min(255, Math.max(0, (g + half) >> shift));
+        temp[dIdx + 2] = Math.min(255, Math.max(0, (b + half) >> shift));
+        temp[dIdx + 3] = 255;
+      }
+    }
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        for (let k = -radius; k <= radius; k++) {
+          const sy = Math.max(0, Math.min(height - 1, y + k));
+          const sIdx = (sy * width + x) * 4;
+          const m = mant[k + radius]!;
+          r += temp[sIdx]! * m;
+          g += temp[sIdx + 1]! * m;
+          b += temp[sIdx + 2]! * m;
+        }
+        const dIdx = (y * width + x) * 4;
+        out[dIdx] = Math.min(255, Math.max(0, (r + half) >> shift));
+        out[dIdx + 1] = Math.min(255, Math.max(0, (g + half) >> shift));
+        out[dIdx + 2] = Math.min(255, Math.max(0, (b + half) >> shift));
+        out[dIdx + 3] = 255;
+      }
+    }
+    return { ...img, data: out };
+  }
+
+  for (let i = 0; i < size; i++) kernel[i]! /= sum;
+  const temp = new Float32Array(data.length);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {

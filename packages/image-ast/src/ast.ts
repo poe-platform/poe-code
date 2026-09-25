@@ -349,7 +349,7 @@ export type ImageAstNode =
   | { readonly kind: "linear"; readonly a: readonly number[]; readonly b: readonly number[] }
   | { readonly kind: "normalize"; readonly lower: number; readonly upper: number }
   | { readonly kind: "threshold"; readonly value: number; readonly grayscale: boolean }
-  | { readonly kind: "blur"; readonly sigma: number }
+  | { readonly kind: "blur"; readonly sigma: number; readonly minAmplitude?: number; readonly precision?: "integer" | "float" | "approximate" }
   | {
       readonly kind: "sharpen";
       readonly sigma: number;

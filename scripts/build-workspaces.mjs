@@ -522,7 +522,11 @@ async function executeStages(plan, { environment, spawn, host, concurrency = 1, 
       }
       if (started.pid) {
         const exists = () => {
-          try { host.kill(-started.pid, 0); return true; } catch (error) { if (error?.code === "ESRCH") return false; throw error; }
+          try { host.kill(-started.pid, 0); return true; } catch (error) {
+            if (error?.code === "ESRCH") return false;
+            if (error?.code === "EPERM") process.stderr.write(`Workspace group inspection refused for ${stage.name}: parent PID ${process.pid}, child PID ${started.pid}, process group ${started.pid}\n`);
+            throw error;
+          }
         };
         try {
           for (const value of ["SIGTERM", "SIGKILL"]) {

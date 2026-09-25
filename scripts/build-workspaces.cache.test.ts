@@ -28,6 +28,22 @@ function fixture() {
 }
 
 describe("workspace build caching", () => {
+  it("reports owned process-group context without treating inspection refusal as success", async () => {
+    const state = fixture();
+    const refusal = Object.assign(new Error("inspection refused"), { code: "EPERM" });
+    state.host.kill.mockImplementation(() => { throw refusal; });
+    state.spawn.mockImplementation(() => {
+      const child = Object.assign(new EventEmitter(), { pid: 9000 });
+      queueMicrotask(() => child.emit("close", 0, null));
+      return child;
+    });
+    const diagnostics = vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    try {
+      await expect(buildWorkspaces(state.root, { ...state, cache: false, concurrency: 1 })).rejects.toBe(refusal);
+      expect(diagnostics).toHaveBeenCalledWith(expect.stringContaining(`beta: parent PID ${process.pid}, child PID 9000, process group 9000`));
+      expect(state.spawn).toHaveBeenCalledTimes(1);
+    } finally { diagnostics.mockRestore(); }
+  });
   it("exposes explicit uncached execution for both maintained routes", () => {
     expect(parseWorkspaceArguments(["--no-cache"])).toEqual({ mode: "build", cache: false });
     expect(parseWorkspaceArguments(["--test-unit", "--no-cache"]).cache).toBe(false);

@@ -6,6 +6,7 @@ import type { RegexWorker, RegexWorkerRequest } from "../../../src/commands/rege
 import { EreLedger } from "../../../src/commands/regex-execution/ere/limits.js";
 import { compileEre } from "../../../src/commands/regex-execution/ere/syntax.js";
 import { createEreSpanMatcher, matchEre, prepareUtf8EreSubject } from "../../../src/commands/regex-execution/ere/matcher.js";
+import { createManagedControlController, abortManagedController } from '../../../src/fs/creation-mask.js';
 import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 
 const grep = (patterns: string[], overrides: object = {}): Descriptor => ({
@@ -762,4 +763,18 @@ test("BRE translation preserves live cancellation and a subsequent worker sessio
   const recovered = executor.open(new AbortController().signal);
   try { assert.deepEqual(await recovered.run(grep(["a+b"], { extended: false }), [row("a+b", true)]), [[{ start: 0, end: 3 }]]); }
   finally { await recovered.close(); await executor.dispose(); }
+});
+
+
+test('regex sessions preserve managed shell cancellation', {timeout:1000}, async context => {
+  const executor = new RegexExecutor(createBoundedRegexProvider({maxWorkers:1}));
+  const controller = createManagedControlController();
+  const session = executor.open(controller.signal);
+  context.after(async () => { await session.close(); await executor.dispose(); });
+  const reason = new Error('managed shell cancellation');
+  const pending = session.run(grep(['(a+)+$']), [row('a'.repeat(64) + '!')]);
+  const rejected = assert.rejects(pending, error => error === reason);
+  abortManagedController(controller, reason);
+  try { await rejected; }
+  finally { await session.close(); await executor.dispose(); }
 });

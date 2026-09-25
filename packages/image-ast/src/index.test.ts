@@ -1742,4 +1742,22 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(aff2.info.width).toBe(2);
     expect(aff2.info.height).toBe(2);
   });
+
+  it("replaces toColorspace() node on repeated calls, supports bw alias, and exposes sharp.colourspace / pipelineColourspace() (#93)", async () => {
+    const buf = Buffer.from([200, 100, 50, 120, 240, 60]);
+    const raw = { raw: { width: 2, height: 1, channels: 3 as const } };
+
+    const bwThenSrgb = await sharp(buf, raw).toColorspace("b-w").toColorspace("srgb").raw().toBuffer({ resolveWithObject: true });
+    expect(bwThenSrgb.info.channels).toBe(3);
+    expect(Array.from(bwThenSrgb.data)).toEqual([200, 100, 50, 120, 240, 60]);
+
+    const bwAlias = await sharp(buf, raw).toColorspace("bw").raw().toBuffer({ resolveWithObject: true });
+    expect(bwAlias.info.channels).toBe(1);
+
+    expect(sharp.colourspace).toBeDefined();
+    expect(sharp.colourspace.bw).toBe("b-w");
+    expect(sharp.colorspace.srgb).toBe("srgb");
+    expect(typeof sharp(buf, raw).pipelineColourspace).toBe("function");
+    expect(typeof sharp(buf, raw).pipelineColorspace).toBe("function");
+  });
 });

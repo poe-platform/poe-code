@@ -734,12 +734,12 @@ export class SharpInstance {
   toColorspace(colorspace: string): this {
     const norm = colorspace.toLowerCase();
     const space: ColorSpace =
-      norm === "b-w" || norm === "grey16" || norm === "gray"
+      norm === "b-w" || norm === "bw" || norm === "grey16" || norm === "gray"
         ? "b-w"
         : norm === "cmyk"
           ? "cmyk"
           : "srgb";
-    this.nodes.push({ kind: "toColorspace", space });
+    this.upsertNode({ kind: "toColorspace", space });
     return this;
   }
 
@@ -1099,6 +1099,20 @@ Object.assign(sharp, {
   strategy: {
     entropy: 16,
     attention: 17
+  },
+  colourspace: {
+    multiband: "multiband",
+    "b-w": "b-w",
+    bw: "b-w",
+    cmyk: "cmyk",
+    srgb: "srgb"
+  },
+  colorspace: {
+    multiband: "multiband",
+    "b-w": "b-w",
+    bw: "b-w",
+    cmyk: "cmyk",
+    srgb: "srgb"
   },
   interpolators: {
     nearest: "nearest",

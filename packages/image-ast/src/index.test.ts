@@ -2959,4 +2959,25 @@ describe("@poe-code/image-ast (sharp core)", () => {
       .toBuffer();
     expect(down[15 * 3]).toBe(23);
   });
+
+  it("matches libvips fixed-point vips_resize pipeline for linear, cubic, mitchell, lanczos2, and lanczos3 (#1144)", async () => {
+    const w = 16, h = 12;
+    const rgba = Buffer.alloc(w * h * 4);
+    for (let i = 0; i < w * h; i++) {
+      rgba[i * 4] = (i * 73) & 255;
+      rgba[i * 4 + 1] = (i * 151) & 255;
+      rgba[i * 4 + 2] = (i * 211) & 255;
+      rgba[i * 4 + 3] = (i * 37) & 255;
+    }
+    const outLanczos3 = await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
+      .resize(9, 7, { fit: "fill", kernel: "lanczos3" })
+      .raw()
+      .toBuffer();
+    expect(Array.from(outLanczos3.slice(0, 16))).toEqual([
+      139, 75, 40, 44,
+      122, 96, 170, 127,
+      120, 162, 90, 163,
+      155, 192, 148, 110
+    ]);
+  });
 });

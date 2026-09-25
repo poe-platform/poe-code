@@ -331,6 +331,109 @@ function computeVipsNearestIndices2D(
   return { xs, ys };
 }
 
+function rintEven(x: number): number {
+  const r = Math.round(x);
+  if (Math.abs(x - r) === 0.5) return r % 2 === 0 ? r : r - 1;
+  return r;
+}
+
+function buildVipsReduceTable(
+  shrink: number,
+  kernel: ResizeKernel
+): { readonly nPoint: number; readonly table: Int32Array } {
+  const mult =
+    kernel === "linear" || kernel === "bilinear" ? 1.0 : kernel === "lanczos3" ? 3.0 : 2.0;
+  const nPoint = 2 * rintEven(mult * shrink) + 1;
+  const table = new Int32Array(65 * nPoint);
+  const wf = new Float64Array(nPoint);
+  for (let k = 0; k < 65; k++) {
+    const s = Math.fround(k * Math.fround(1.0 / 64.0));
+    const d15 = nPoint * 0.5 + s - 1.0;
+    let sum = 0.0;
+    for (let j = 0; j < nPoint; j++) {
+      const x = (j - d15) / shrink;
+      const v = kernelWeight(x, kernel);
+      wf[j] = v;
+      sum += v;
+    }
+    for (let j = 0; j < nPoint; j++) {
+      table[k * nPoint + j] = Math.trunc((wf[j]! / sum) * 4096.0);
+    }
+  }
+  return { nPoint, table };
+}
+
+const VIPS_BICUBIC_TABLE = (() => {
+  const t = new Int32Array(65 * 4);
+  for (let k = 0; k < 64; k++) {
+    const s = Math.fround(k * Math.fround(1.0 / 64.0));
+    const u = Math.fround(1.0 - s);
+    const t0 = Math.fround(Math.fround(-0.5 * s) * u);
+    const c0 = Math.fround(t0 * u);
+    const c3 = Math.fround(t0 * s);
+    const diff = Math.fround(c3 - c0);
+    const c1 = Math.fround(Math.fround(u - c0) + diff);
+    const c2 = Math.fround(Math.fround(s - c3) - diff);
+    t[k * 4] = Math.trunc(c0 * 4096.0);
+    t[k * 4 + 1] = Math.trunc(c1 * 4096.0);
+    t[k * 4 + 2] = Math.trunc(c2 * 4096.0);
+    t[k * 4 + 3] = Math.trunc(c3 * 4096.0);
+  }
+  t[64 * 4] = 0;
+  t[64 * 4 + 1] = 0;
+  t[64 * 4 + 2] = 4096;
+  t[64 * 4 + 3] = 0;
+  return t;
+})();
+
+function shrinkVBox(
+  src: Uint8Array,
+  w: number,
+  h: number,
+  vshrink: number
+): { readonly data: Uint8Array; readonly h: number } {
+  const outH = Math.ceil(h / vshrink);
+  const out = new Uint8Array(w * outH * 4);
+  const roundAdd = vshrink >> 1;
+  for (let y = 0; y < outH; y++) {
+    for (let x = 0; x < w; x++) {
+      for (let c = 0; c < 4; c++) {
+        let sum = 0;
+        for (let k = 0; k < vshrink; k++) {
+          const sy = Math.min(h - 1, y * vshrink + k);
+          sum += src[(sy * w + x) * 4 + c]!;
+        }
+        out[(y * w + x) * 4 + c] = Math.floor((sum + roundAdd) / vshrink);
+      }
+    }
+  }
+  return { data: out, h: outH };
+}
+
+function shrinkHBox(
+  src: Uint8Array,
+  w: number,
+  h: number,
+  hshrink: number
+): { readonly data: Uint8Array; readonly w: number } {
+  const outW = Math.ceil(w / hshrink);
+  const out = new Uint8Array(outW * h * 4);
+  const roundAdd = hshrink >> 1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < outW; x++) {
+      for (let c = 0; c < 4; c++) {
+        let sum = 0;
+        for (let k = 0; k < hshrink; k++) {
+          const sx = Math.min(w - 1, x * hshrink + k);
+          sum += src[(y * w + sx) * 4 + c]!;
+        }
+        out[(y * outW + x) * 4 + c] = Math.floor((sum + roundAdd) / hshrink);
+      }
+    }
+  }
+  return { data: out, w: outW };
+}
+
 export function resampleRawBitmap(
   src: Uint8Array,
   srcW: number,
@@ -342,6 +445,29 @@ export function resampleRawBitmap(
   if (srcW === dstW && srcH === dstH) {
     return new Uint8Array(src);
   }
+
+  let hasSemiTransparentAlpha = false;
+  for (let i = 3; i < src.length; i += 4) {
+    if (src[i]! < 255) {
+      hasSemiTransparentAlpha = true;
+      break;
+    }
+  }
+
+  let cur = src;
+  if (hasSemiTransparentAlpha) {
+    const pre = new Uint8Array(src.length);
+    for (let i = 0; i < src.length; i += 4) {
+      const a = src[i + 3]!;
+      const af = Math.fround(a / 255.0);
+      pre[i] = Math.max(0, Math.min(255, Math.trunc(Math.fround(src[i]! * af))));
+      pre[i + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(src[i + 1]! * af))));
+      pre[i + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(src[i + 2]! * af))));
+      pre[i + 3] = a;
+    }
+    cur = pre;
+  }
+
   if (kernel === "nearest") {
     const out = new Uint8Array(dstW * dstH * 4);
     const { xs, ys } = computeVipsNearestIndices2D(srcW, srcH, dstW, dstH);
@@ -351,128 +477,220 @@ export function resampleRawBitmap(
         const sx = xs[x]!;
         const sIdx = (sy * srcW + sx) * 4;
         const dIdx = (y * dstW + x) * 4;
-        out[dIdx] = src[sIdx]!;
-        out[dIdx + 1] = src[sIdx + 1]!;
-        out[dIdx + 2] = src[sIdx + 2]!;
-        out[dIdx + 3] = src[sIdx + 3]!;
+        out[dIdx] = cur[sIdx]!;
+        out[dIdx + 1] = cur[sIdx + 1]!;
+        out[dIdx + 2] = cur[sIdx + 2]!;
+        out[dIdx + 3] = cur[sIdx + 3]!;
       }
     }
-    return out;
-  }
+    cur = out;
+  } else {
+    let w = srcW;
+    let h = srcH;
+    const hscale = 1.0 / (srcW / dstW);
+    const vscale = 1.0 / (srcH / dstH);
+    const targetW = Math.trunc(fmaDouble(srcW, hscale, 0.5));
+    const targetH = Math.trunc(fmaDouble(srcH, vscale, 0.5));
 
-  const radius = kernelRadius(kernel);
-  // Pass 1: Horizontal resample (srcW x srcH -> dstW x srcH) in premultiplied float
-  const temp = new Float32Array(dstW * srcH * 4);
-  const scaleX = srcW / dstW;
-  const isUpscaleX = dstW > srcW;
-  const effKernelX: ResizeKernel =
-    isUpscaleX && (kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos3")
-      ? "cubic"
-      : kernel;
-  const radiusX = kernelRadius(effKernelX);
-  const filterScaleX = Math.max(1, scaleX);
-  const supportX = radiusX * filterScaleX;
-
-  for (let x = 0; x < dstW; x++) {
-    const center = isUpscaleX ? x * scaleX - 0.5 : (x + 0.5) * scaleX - 0.5;
-    const left = Math.floor(center - supportX);
-    const right = Math.ceil(center + supportX);
-    const count = right - left + 1;
-    const weights = new Float32Array(count);
-    let wSum = 0;
-    for (let i = 0; i < count; i++) {
-      const w = kernelWeight((left + i - center) / filterScaleX, effKernelX);
-      weights[i] = w;
-      wSum += w;
-    }
-    if (wSum !== 0) {
-      for (let i = 0; i < count; i++) weights[i]! /= wSum;
-    }
-    for (let y = 0; y < srcH; y++) {
-      let pr = 0;
-      let pg = 0;
-      let pb = 0;
-      let pa = 0;
-      const rowBase = y * srcW;
-      for (let i = 0; i < count; i++) {
-        const w = weights[i]!;
-        const sx = Math.max(0, Math.min(srcW - 1, left + i));
-        const sIdx = (rowBase + sx) * 4;
-        const a = src[sIdx + 3]! / 255;
-        pr += src[sIdx]! * a * w;
-        pg += src[sIdx + 1]! * a * w;
-        pb += src[sIdx + 2]! * a * w;
-        pa += src[sIdx + 3]! * w;
+    let remVscale = vscale;
+    if (vscale < 1.0) {
+      let vshrink = 1.0 / vscale;
+      let extraPixels = fmaDouble(targetH, vshrink, -h);
+      const intVshrink = Math.max(1, Math.floor((h / targetH) / 2.0));
+      if (intVshrink > 1) {
+        const res = shrinkVBox(cur, w, h, intVshrink);
+        cur = res.data;
+        h = res.h;
+        vshrink /= intVshrink;
+        extraPixels /= intVshrink;
       }
-      const tIdx = (y * dstW + x) * 4;
-      temp[tIdx] = pr;
-      temp[tIdx + 1] = pg;
-      temp[tIdx + 2] = pb;
-      temp[tIdx + 3] = pa;
-    }
-  }
-
-  // Pass 2: Vertical resample (dstW x srcH -> dstW x dstH)
-  const out = new Uint8Array(dstW * dstH * 4);
-  const scaleY = srcH / dstH;
-  const isUpscaleY = dstH > srcH;
-  const effKernelY: ResizeKernel =
-    isUpscaleY && (kernel === "mitchell" || kernel === "lanczos2" || kernel === "lanczos3")
-      ? "cubic"
-      : kernel;
-  const radiusY = kernelRadius(effKernelY);
-  const filterScaleY = Math.max(1, scaleY);
-  const supportY = radiusY * filterScaleY;
-
-  for (let y = 0; y < dstH; y++) {
-    const center = isUpscaleY ? y * scaleY - 0.5 : (y + 0.5) * scaleY - 0.5;
-    const top = Math.floor(center - supportY);
-    const bottom = Math.ceil(center + supportY);
-    const count = bottom - top + 1;
-    const weights = new Float32Array(count);
-    let wSum = 0;
-    for (let i = 0; i < count; i++) {
-      const w = kernelWeight((top + i - center) / filterScaleY, effKernelY);
-      weights[i] = w;
-      wSum += w;
-    }
-    if (wSum !== 0) {
-      for (let i = 0; i < count; i++) weights[i]! /= wSum;
-    }
-    for (let x = 0; x < dstW; x++) {
-      let pr = 0;
-      let pg = 0;
-      let pb = 0;
-      let pa = 0;
-      for (let i = 0; i < count; i++) {
-        const w = weights[i]!;
-        const sy = Math.max(0, Math.min(srcH - 1, top + i));
-        const tIdx = (sy * dstW + x) * 4;
-        pr += temp[tIdx]! * w;
-        pg += temp[tIdx + 1]! * w;
-        pb += temp[tIdx + 2]! * w;
-        pa += temp[tIdx + 3]! * w;
+      if (vshrink > 1.0) {
+        const { nPoint, table } = buildVipsReduceTable(vshrink, kernel);
+        const topPad = Math.ceil(nPoint * 0.5) - 1;
+        const voffset = (extraPixels + 1.0) * 0.5 - 1.0;
+        const out = new Uint8Array(w * targetH * 4);
+        let Y = fmaDouble(0.5, vshrink, -0.5) - voffset;
+        for (let y = 0; y < targetH; y++) {
+          const iy = Math.trunc(Y);
+          const ty = ((Math.trunc(Y * 128.0) & 127) + 1) >> 1;
+          const wRow = ty * nPoint;
+          for (let x = 0; x < w; x++) {
+            for (let c = 0; c < 4; c++) {
+              let sum = 0;
+              for (let j = 0; j < nPoint; j++) {
+                const sy = Math.max(0, Math.min(h - 1, iy + j - topPad));
+                sum += cur[(sy * w + x) * 4 + c]! * table[wRow + j]!;
+              }
+              out[(y * w + x) * 4 + c] = Math.max(0, Math.min(255, (sum + 2048) >> 12));
+            }
+          }
+          Y += vshrink;
+        }
+        cur = out;
+        h = targetH;
       }
-      const dIdx = (y * dstW + x) * 4;
-      const aByte = pa < 0 ? 0 : pa > 255 ? 255 : Math.round(pa);
-      if (aByte === 0) {
-        out[dIdx] = 0;
-        out[dIdx + 1] = 0;
-        out[dIdx + 2] = 0;
-        out[dIdx + 3] = 0;
+      remVscale = 1.0;
+    }
+
+    let remHscale = hscale;
+    if (hscale < 1.0) {
+      let hshrink = 1.0 / hscale;
+      let extraPixels = fmaDouble(targetW, hshrink, -w);
+      const intHshrink = Math.max(1, Math.floor((w / targetW) / 2.0));
+      if (intHshrink > 1) {
+        const res = shrinkHBox(cur, w, h, intHshrink);
+        cur = res.data;
+        w = res.w;
+        hshrink /= intHshrink;
+        extraPixels /= intHshrink;
+      }
+      if (hshrink > 1.0) {
+        const { nPoint, table } = buildVipsReduceTable(hshrink, kernel);
+        const leftPad = Math.ceil(nPoint * 0.5) - 1;
+        const hoffset = (extraPixels + 1.0) * 0.5 - 1.0;
+        const out = new Uint8Array(targetW * h * 4);
+        let X = fmaDouble(0.5, hshrink, -0.5) - hoffset;
+        for (let x = 0; x < targetW; x++) {
+          const ix = Math.trunc(X);
+          const tx = ((Math.trunc(X * 128.0) & 127) + 1) >> 1;
+          const wRow = tx * nPoint;
+          for (let y = 0; y < h; y++) {
+            for (let c = 0; c < 4; c++) {
+              let sum = 0;
+              for (let j = 0; j < nPoint; j++) {
+                const sx = Math.max(0, Math.min(w - 1, ix + j - leftPad));
+                sum += cur[(y * w + sx) * 4 + c]! * table[wRow + j]!;
+              }
+              out[(y * targetW + x) * 4 + c] = Math.max(0, Math.min(255, (sum + 2048) >> 12));
+            }
+          }
+          X += hshrink;
+        }
+        cur = out;
+        w = targetW;
+      }
+      remHscale = 1.0;
+    }
+
+    if (remHscale > 1.0 || remVscale > 1.0) {
+      const out = new Uint8Array(dstW * dstH * 4);
+      const invDet = 1.0 / (remHscale * remVscale);
+      const ia = remVscale * invDet;
+      const id = remHscale * invDet;
+      if (kernel === "linear" || kernel === "bilinear") {
+        for (let y = 0; y < dstH; y++) {
+          const d8 = y * id + 0.5;
+          const iy = Math.trunc(d8);
+          const sy = Math.trunc((d8 - iy) * 4096.0);
+          const y0 = Math.max(0, Math.min(h - 1, iy - 1));
+          const y1 = Math.max(0, Math.min(h - 1, iy));
+          let d9 = 0.5;
+          for (let x = 0; x < dstW; x++) {
+            const ix = Math.trunc(d9);
+            const sx = Math.trunc((d9 - ix) * 4096.0);
+            const x0 = Math.max(0, Math.min(w - 1, ix - 1));
+            const x1 = Math.max(0, Math.min(w - 1, ix));
+            const c3 = (sy * sx) >> 12;
+            const c1 = ((4096 - sy) * sx) >> 12;
+            const c2 = sy - c3;
+            const c0 = 4096 - sy - c1;
+            for (let c = 0; c < 4; c++) {
+              const p00 = cur[(y0 * w + x0) * 4 + c]!;
+              const p10 = cur[(y0 * w + x1) * 4 + c]!;
+              const p01 = cur[(y1 * w + x0) * 4 + c]!;
+              const p11 = cur[(y1 * w + x1) * 4 + c]!;
+              const val = (c0 * p00 + c1 * p10 + c2 * p01 + c3 * p11 + 2048) >> 12;
+              out[(y * dstW + x) * 4 + c] = Math.max(0, Math.min(255, val));
+            }
+            d9 += ia;
+          }
+        }
       } else {
-        const alphaNorm = aByte / 255;
-        const r = Math.round(pr / alphaNorm);
-        const g = Math.round(pg / alphaNorm);
-        const b = Math.round(pb / alphaNorm);
-        out[dIdx] = r < 0 ? 0 : r > 255 ? 255 : r;
-        out[dIdx + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
-        out[dIdx + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
-        out[dIdx + 3] = aByte;
+        for (let y = 0; y < dstH; y++) {
+          const d8 = y * id + 1.5;
+          const iy = Math.trunc(d8);
+          const ty = ((Math.trunc(d8 * 128.0) & 127) + 1) >> 1;
+          const wy0 = VIPS_BICUBIC_TABLE[ty * 4]!;
+          const wy1 = VIPS_BICUBIC_TABLE[ty * 4 + 1]!;
+          const wy2 = VIPS_BICUBIC_TABLE[ty * 4 + 2]!;
+          const wy3 = VIPS_BICUBIC_TABLE[ty * 4 + 3]!;
+          const y0 = Math.max(0, Math.min(h - 1, iy - 3));
+          const y1 = Math.max(0, Math.min(h - 1, iy - 2));
+          const y2 = Math.max(0, Math.min(h - 1, iy - 1));
+          const y3 = Math.max(0, Math.min(h - 1, iy));
+          let d9 = 1.5;
+          for (let x = 0; x < dstW; x++) {
+            const ix = Math.trunc(d9);
+            const tx = ((Math.trunc(d9 * 128.0) & 127) + 1) >> 1;
+            const wx0 = VIPS_BICUBIC_TABLE[tx * 4]!;
+            const wx1 = VIPS_BICUBIC_TABLE[tx * 4 + 1]!;
+            const wx2 = VIPS_BICUBIC_TABLE[tx * 4 + 2]!;
+            const wx3 = VIPS_BICUBIC_TABLE[tx * 4 + 3]!;
+            const x0 = Math.max(0, Math.min(w - 1, ix - 3));
+            const x1 = Math.max(0, Math.min(w - 1, ix - 2));
+            const x2 = Math.max(0, Math.min(w - 1, ix - 1));
+            const x3 = Math.max(0, Math.min(w - 1, ix));
+            for (let c = 0; c < 4; c++) {
+              const r0 =
+                (wx0 * cur[(y0 * w + x0) * 4 + c]! +
+                  wx1 * cur[(y0 * w + x1) * 4 + c]! +
+                  wx2 * cur[(y0 * w + x2) * 4 + c]! +
+                  wx3 * cur[(y0 * w + x3) * 4 + c]! +
+                  2048) >>
+                12;
+              const r1 =
+                (wx0 * cur[(y1 * w + x0) * 4 + c]! +
+                  wx1 * cur[(y1 * w + x1) * 4 + c]! +
+                  wx2 * cur[(y1 * w + x2) * 4 + c]! +
+                  wx3 * cur[(y1 * w + x3) * 4 + c]! +
+                  2048) >>
+                12;
+              const r2 =
+                (wx0 * cur[(y2 * w + x0) * 4 + c]! +
+                  wx1 * cur[(y2 * w + x1) * 4 + c]! +
+                  wx2 * cur[(y2 * w + x2) * 4 + c]! +
+                  wx3 * cur[(y2 * w + x3) * 4 + c]! +
+                  2048) >>
+                12;
+              const r3 =
+                (wx0 * cur[(y3 * w + x0) * 4 + c]! +
+                  wx1 * cur[(y3 * w + x1) * 4 + c]! +
+                  wx2 * cur[(y3 * w + x2) * 4 + c]! +
+                  wx3 * cur[(y3 * w + x3) * 4 + c]! +
+                  2048) >>
+                12;
+              const val = (wy0 * r0 + wy1 * r1 + wy2 * r2 + wy3 * r3 + 2048) >> 12;
+              out[(y * dstW + x) * 4 + c] = Math.max(0, Math.min(255, val));
+            }
+            d9 += ia;
+          }
+        }
       }
+      cur = out;
     }
   }
-  return out;
+
+  if (hasSemiTransparentAlpha) {
+    const unpre = new Uint8Array(cur.length);
+    for (let i = 0; i < cur.length; i += 4) {
+      const a = cur[i + 3]!;
+      if (a === 0) {
+        unpre[i] = 0;
+        unpre[i + 1] = 0;
+        unpre[i + 2] = 0;
+        unpre[i + 3] = 0;
+      } else {
+        const factor = Math.fround(255.0 / a);
+        unpre[i] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * cur[i]!))));
+        unpre[i + 1] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * cur[i + 1]!))));
+        unpre[i + 2] = Math.max(0, Math.min(255, Math.trunc(Math.fround(factor * cur[i + 2]!))));
+        unpre[i + 3] = a;
+      }
+    }
+    cur = unpre;
+  }
+
+  return cur;
 }
 
 export function resizeImage(

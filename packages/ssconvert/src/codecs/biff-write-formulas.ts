@@ -33,7 +33,6 @@ export class BiffFormulaWriter {
   private readonly relocations: { tokens: Uint8Array; offset: number; index: number; kind: "sheet" | "name" }[] = [];
   constructor(readonly book: Workbook, readonly revision: 7 | 8, readonly context: CapabilityContext) {}
   private externalBook(workbook: string): number {
-    if (this.revision < 8) throw new SsconvertError("unsupported-feature", "Excel BIFF7 external workbook formula is not implemented");
     let index = this.workbookIndices.get(workbook);
     if (index === undefined) {
       index = this.externalBooks.length;
@@ -109,10 +108,19 @@ export class BiffFormulaWriter {
       }
     }
     const indices = new Map(order.map((index, position) => [index, position + 1]));
+    let legacyCount = this.book.sheets.length + 2;
+    const legacyBases = this.externalBooks.map(book => {
+      const base = legacyCount; legacyCount += book.sheets.length + 1; return base;
+    });
+    if (this.revision === 7 && legacyCount > 32767)
+      throw new SsconvertError("unsupported-feature", "Excel BIFF7 external link index exceeds version limits");
     for (const relocation of this.relocations) {
       this.context.signal.throwIfAborted();
-      const index = relocation.kind === "sheet" ? relocation.index + Number(this.externNames.length > 0) :
-        indices.get(relocation.index)!;
+      let index = relocation.kind === "sheet" ? relocation.index + Number(this.externNames.length > 0) : indices.get(relocation.index)!;
+      if (relocation.kind === "sheet" && this.revision === 7) {
+        const link = this.externalSheets[relocation.index]!;
+        index = legacyBases[link.book!]! + (link.first === 0xfffe ? this.externalBooks[link.book!]!.sheets.length : link.first) + 1;
+      }
       const view = new DataView(relocation.tokens.buffer, relocation.tokens.byteOffset);
       if (relocation.kind === "name" && this.revision === 8) view.setUint32(relocation.offset, index, true);
       else {
@@ -188,6 +196,8 @@ export class BiffFormulaWriter {
             const book = this.externalBook(node.first.workbook);
             firstSheet = this.externalScope(book, node.first.sheet);
             lastSheet = node.last?.sheet === undefined ? firstSheet : this.externalScope(book, node.last.sheet);
+            if (this.revision === 7 && firstSheet !== lastSheet)
+              throw new SsconvertError("unsupported-feature", "Excel BIFF7 external range cannot span sheets");
             index = this.sheetLink(book, firstSheet, lastSheet);
           } else {
             firstSheet = this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.first.sheet!));
@@ -200,7 +210,9 @@ export class BiffFormulaWriter {
         if (qualified) {
           if (this.revision === 8) { relocations.push({ offset: bytes.length, index, kind: "sheet" }); push(words(index)); }
           else { const prefix = new Uint8Array(14), view = new DataView(prefix.buffer);
-            view.setInt16(0, -(firstSheet + 1), true); view.setUint16(10, firstSheet, true); view.setUint16(12, lastSheet, true); push(prefix); }
+            if (node.first.workbook) relocations.push({ offset: bytes.length, index, kind: "sheet" });
+            else { view.setInt16(0, -(firstSheet + 1), true); view.setUint16(10, firstSheet, true); view.setUint16(12, lastSheet, true); }
+            push(prefix); }
         }
         if (last) { push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2)); }
         else push(first);
@@ -210,9 +222,14 @@ export class BiffFormulaWriter {
           const scope = node.sheet === undefined ? undefined : this.externalScope(bookIndex, node.sheet);
           let index = book.names.findIndex(name => name.name === node.name && name.sheet === scope);
           if (index < 0) { index = book.names.length; book.names.push({ name: node.name, ...(scope === undefined ? {} : { sheet: scope }) }); }
-          const link = this.sheetLink(bookIndex, scope ?? 0xfffe, scope ?? 0xfffe);
-          const data = new Uint8Array(7), view = new DataView(data.buffer);
-          data[0] = 0x59; view.setUint32(3, index + 1, true);
+          const link = this.sheetLink(bookIndex, this.revision === 7 ? 0xfffe : scope ?? 0xfffe, this.revision === 7 ? 0xfffe : scope ?? 0xfffe);
+          const data = new Uint8Array(this.revision === 8 ? 7 : 25), view = new DataView(data.buffer);
+          data[0] = 0x59;
+          if (this.revision === 8) view.setUint32(3, index + 1, true);
+          else {
+            if (index >= 65535) throw new SsconvertError("unsupported-feature", "Excel BIFF external name index exceeds version limits");
+            view.setUint16(11, index + 1, true);
+          }
           relocations.push({ offset: bytes.length + 1, index: link, kind: "sheet" }); push(data);
           return;
         }

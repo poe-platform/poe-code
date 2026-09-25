@@ -72,6 +72,43 @@
         "scope": "BIFF5/7 EXTERNSHEET workbook/sheet paths, positive external reference indexes with unused sheet fields, and EXTERNNAME tables partitioned by document and worksheet. Scoped names refer only to earlier same-workbook sheet links. Import never resolves links or executes external name bodies.",
         "qualification": "32 independent-record regressions pass, including namespace isolation, token classes, malformed records, codepages, budgets and cancellation. Twelve compiled public SDK XML/XLSX/BIFF8 replays pass with explicit host resolution. Eight scoped Shell cases pass with empty diagnostics; screenshot inspected. Maintained package tests pass 412 files / 23675 tests plus two required posttest checks; selected build passes. Package lint/types and the 32-test final rerun pass after a test-helper annotation correction.",
         "remaining": "BIFF7 external export, detached sheets and independent application qualification remain open. Initial out-only BIFF7 probes incorrectly placed cell links in globals; these are superseded by the specification-based worksheet-local fixtures."
+      },
+      "legacyExportQualification": {
+        "scope": "BIFF7 external cell/range, global/scoped names, defined-name expressions and array formulas. Workbook-global and each worksheet link table declare sheet records before document name tables, with signed 1-based indexes resolved after discovery. Windows-1252 identity loss, ambiguous bracket paths, overlong links and external multi-sheet ranges are refused.",
+        "qualification": "Six compiled public SDK XLSX-to-BIFF7 profiles preserve identities and recalculate seven first-row values to 42 using six explicit host calls. Twelve compiled scoped Shell reexports/recalculations pass with empty diagnostics; no-host cases preserve local 42/41 controls and return #REF! for all six external formulas. Screenshot inspected. All 413 files / 23707 package tests and two required posttest checks pass; lint/types and selected build pass.",
+        "rawLengths": "Raw URL length bytes are decoded before text conversion, including Windows-1252 undefined/high-byte positions. Eight independent input fixtures cover lengths 128/129/141/144/157/159/160/240. Raw directory segments exclude the bracketed filename/sheet suffix, matching LibreOffice DecodeUrl.",
+        "outputs": [
+          {
+            "profile": 0,
+            "sha256": "7d2c2c048828c1e89adc9126aeeedc85ee8864d5d814b09de356d2c3dde83a07"
+          },
+          {
+            "profile": 1,
+            "sha256": "ea4cafc535d4aa52350dc59fa2c06ddaebeae5b295c59ff2972a98f6a498bf23"
+          },
+          {
+            "profile": 2,
+            "sha256": "51e2065532e80ce5c24b47b2ce3227bf4446ca8cec498fdddd63f3fc39639f6e"
+          },
+          {
+            "profile": 3,
+            "sha256": "885df698537db63bf54c6c9bf97d2fa0397434cd24c0914aa29412c23dcd3042"
+          },
+          {
+            "profile": 4,
+            "sha256": "5e0d3e7811d081c46b406ab0afcf057fe8162f405183073f0c8f719be7f76d0b"
+          },
+          {
+            "profile": 5,
+            "sha256": "0e29c497b9b8026750bed900972464e34cbc574b2c83a610b54a58f34fe92dee"
+          }
+        ],
+        "native": "All six Gnumeric 1.12.61 readbacks exit 0 but warn external references are unsupported and raise excel_externsheet_v7 assertions. Their first row is 42,43,127,#REF!,#REF!,43,43 instead of the host-resolved values; the second-row local control remains 41. Gnumeric misbinds unsupported cell references locally. These are failed external-reference interoperability checks, not native qualification.",
+        "remaining": "Independent application interoperability, external multi-sheet formats, detached sheets, wider token/version and metadata profiles remain open.",
+        "nativeSource": {
+          "source": "Gnumeric GNUMERIC_1_12_61 plugins/excel/ms-formula-read.c, excel_formula_parses_ref_sheets: positive legacy links still resolve the unused last-sheet field through the local table.",
+          "sha256": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5"
+        }
       }
     }
   },
@@ -89,7 +126,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF8 imports now retain external workbook, cell/range and global/sheet-scoped name identities through decoded SUPBOOK and EXTERNNAME tables. Import never resolves links; explicit externalReferences supplies recalculation values. Local placeholders and on-file external-name expressions cannot supply external values. Original records reproduce the prior losses in all token classes; 34 new regressions and eight compiled public SDK XML/XLSX replay cases pass. This extends Gnumeric behavior, which drops or locally rebinds these identities. Earlier name-index, relative-row, array and memory-area repairs remain. BIFF8 export now writes distinct external workbook/name tables without implicit host resolution, including definitions and array formulas. Original writer regressions, namespace discovery-order controls and compiled SDK/Shell replays pass. Native Gnumeric opens all four files and retains the local control, but warns that external references are unsupported and evaluates them to #REF!. BIFF7 external export, detached sheets, wider token/version semantics, metadata preservation and wider application/Shell qualification remain open. BIFF7 import now preserves external cell/range and name identities using document- and worksheet-specific link tables; 32 original-record regressions, 12 compiled SDK replays and eight scoped Shell cases pass. BIFF7 export remains open."
+      "currentFinding": "BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. External multi-sheet BIFF7 ranges, detached sheets, wider token/version semantics, metadata preservation and other application/optional profiles remain open."
     },
     {
       "id": "encrypted-biff",

@@ -11,7 +11,7 @@ const context: CapabilityContext = { signal: new AbortController().signal, own()
   environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 100000, outputBytes: 100000, cells: 100, sheets: 4, operations: 1000 } };
 
-for (const revision of [8] as const) for (const [formula, identity] of [
+for (const revision of [7, 8] as const) for (const [formula, identity] of [
   ["=Here!$A$1+1", { kind: "reference", first: { sheet: "Here" } }],
   ["=['book.xls']Other!$A$1+1", { kind: "reference", first: { workbook: "book.xls", sheet: "Other" } }],
   ["=SUM(['book.xls']Other!$A$1:$B$2)", { kind: "reference", first: { workbook: "book.xls", sheet: "Other" } }],
@@ -39,13 +39,13 @@ for (const revision of [8] as const) for (const [formula, identity] of [
   expect(diagnostics).not.toContain("BIFF EXTERNNAME_v0 retained without semantic interpretation");
 });
 
-it("keeps local, add-in and external namespaces separate regardless of discovery order", async () => {
+it.each([7, 8] as const)("keeps BIFF%i local, add-in and external namespaces separate regardless of discovery order", async revision => {
   const formulas = ["=Here!$A$1+GAMMA(5)", "=['book.xls']Other!$A$1+1", "=['second.xls']Other!Rate",
     "=['book.xls']Rate", "=['book.xls']Other!Rate", "=Here!Rate", "=IFERROR(['book.xls']Other!$A$1,0)"];
   for (const ordered of [formulas, [...formulas].reverse()]) {
     const book: Workbook = { sheets: [{ id: "Here", name: "Here", cells: ordered.map((formula, row) => ({ row, column: 0,
       value: { kind: "number", value: 42 }, formula })) }], names: [{ name: "Rate", sheet: "Here", expression: "=1" }] };
-    const imported = await readBiff(await writeBiffStream(book, 8, false, context), context);
+    const imported = await readBiff(await writeBiffStream(book, revision, false, context), context);
     for (const cell of imported.sheets[0]!.cells) {
       const position = { sheet: "Here", row: cell.row, column: cell.column };
       const before = parseExpression(ordered[cell.row]!, { workbook: book, position });

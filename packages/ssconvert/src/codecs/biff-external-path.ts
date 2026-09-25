@@ -1,9 +1,21 @@
 import { invalidBiff } from "./biff-binary.js";
 import { SsconvertError } from "../contracts.js";
+import { biffDecode } from "./biff-strings.js";
 
 /** BIFF5/7 EXTERNSHEET combines the workbook URL and an optional [file]sheet. */
-export function biffLegacyExternalPath(path: string): { workbook: string; sheet?: string } | undefined {
-  const decoded = biffExternalPath(path);
+export function biffLegacyExternalPath(bytes: Uint8Array, codepage: number, accountText: (text: string) => string): { workbook: string; sheet?: string } | undefined {
+  // A raw URL's length is a byte, not a character in the workbook codepage.
+  let path = "", start = 0;
+  if (bytes[0] === 1) for (let at = 1; at < bytes.length; at++) {
+    if (bytes[at] !== 5) continue;
+    const length = bytes[at + 1];
+    if (length === undefined || length > bytes.length - at - 2) invalidBiff("truncated external workbook URL");
+    const raw = biffDecode(bytes.subarray(at + 2, at + 2 + length), codepage);
+    path += biffDecode(bytes.subarray(start, at), codepage) + "\u0005" + String.fromCharCode(raw.length) + raw;
+    at += length + 1; start = at + 1;
+  }
+  path += biffDecode(bytes.subarray(start), codepage);
+  const decoded = biffExternalPath(accountText(path));
   if (decoded === undefined) return undefined;
   const first = decoded.indexOf("["), last = decoded.indexOf("]");
   if (first < 0) return last < 0 ? { workbook: decoded } : undefined;

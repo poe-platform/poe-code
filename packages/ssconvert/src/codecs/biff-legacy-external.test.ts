@@ -130,3 +130,10 @@ it("decodes Windows-1252 link identities without changing their spelling", async
   recalculateWorkbook(book, { ...context, externalReferences: { resolve(request) { requests.push(request); return undefined; } } }, true);
   expect(requests).toMatchObject([{ first: { workbook: "prix€.xls", sheet: "Café" } }]);
 });
+it.each([128, 129, 141, 144, 157, 159, 160, 240])("reads raw legacy URL length byte %i independently of the codepage", async length => {
+  const workbook = "a".repeat(length - 4) + ".xls";
+  const bytes = fixture([link("\x01\x05" + String.fromCharCode(length) + workbook), name("Rate")], [token("name", 1)]);
+  const imported = await readBiff(bytes, context), requests: unknown[] = [];
+  recalculateWorkbook(imported, { ...context, externalReferences: { resolve(request) { requests.push(request); return undefined; } } }, true);
+  expect(requests).toMatchObject([{ kind: "name", workbook, name: "Rate" }]);
+});

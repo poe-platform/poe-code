@@ -279,7 +279,8 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
       else if (kind === 4) links.push(null);
       else {
         const addin = kind === 0x3a && length === 1 && data.bytes.length === 2;
-        const identity = addin ? undefined : biffLegacyExternalPath(accountText(biffDecode(data.slice(1, length), codepage)));
+        const encoded = data.slice(1, length);
+        const identity = addin ? undefined : biffLegacyExternalPath(encoded, codepage, accountText);
         (sheet?.legacyExternalLinks ?? legacyExternalLinks).set(links.length, { ...identity, addin, names: [] });
         links.push(undefined);
         if (!addin) await retain(record, sheet?.unsupportedRecords ?? unsupported, identity === undefined);

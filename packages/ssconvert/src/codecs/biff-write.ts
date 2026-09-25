@@ -8,6 +8,7 @@ import { BiffStyles } from "./biff-write-styles.js";
 import { BiffMetadataWriter } from "./biff-write-metadata.js";
 import { singleByteTables } from "../encoding/tables.js";
 import { encodeBiffExternalPath } from "./biff-external-path.js";
+import { biffDecode } from "./biff-strings.js";
 
 export function biffString(text: string, revision: 7 | 8, context: CapabilityContext, width: 1 | 2 = 2): Uint8Array {
   const legacy = singleByteTables["windows-1252"]!;
@@ -135,7 +136,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     data[4] = sheet.visibility === "hidden" ? 1 : sheet.visibility === "very-hidden" ? 2 : 0; data.set(name, 6);
     bounds.push(output.record(0x85, data));
   }
-  if (revision === 7) legacyLinks(output, book, formulaWriter.externNames, context);
+  if (revision === 7) legacyLinks(output, formulaWriter, context);
   if (revision === 8) {
     output.record(0x8c, words(1, 1));
     const addins = formulaWriter.externNames.length > 0;
@@ -189,7 +190,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
     output.record(0xd, words(book.calculationMode === "manual" ? 0 : 1)); output.record(0xc, words(book.iteration?.maximum ?? 100));
     output.record(0xf, words(1)); output.record(0x11, words(book.iteration?.enabled ? 1 : 0));
     const tolerance = new Uint8Array(8); new DataView(tolerance.buffer).setFloat64(0, book.iteration?.tolerance ?? 0.001, true); output.record(0x10, tolerance);
-    if (revision === 7) legacyLinks(output, book, formulaWriter.externNames, context);
+    if (revision === 7) legacyLinks(output, formulaWriter, context);
     output.record(0x5f, words(1)); output.record(0x82, words(1));
     output.record(0x80, words(0, 0, 0, 0)); output.record(0x225, words(0, 255));
     output.record(0x81, words(0x4c1));
@@ -234,8 +235,9 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   return bytes;
 }
 
-function legacyLinks(output: BiffOutput, book: Workbook, names: readonly string[], context: CapabilityContext): void {
-  output.record(0x16, words(book.sheets.length + 2));
+function legacyLinks(output: BiffOutput, writer: BiffFormulaWriter, context: CapabilityContext): void {
+  const { book, externNames: names, externalBooks } = writer;
+  output.record(0x16, words(book.sheets.length + 2 + externalBooks.reduce((sum, external) => sum + external.sheets.length + 1, 0)));
   for (const sheet of book.sheets) {
     const name = biffString(sheet.name, 7, context, 1);
     output.record(0x17, new Uint8Array([name[0]!, 3, ...name.subarray(1)]));
@@ -243,6 +245,31 @@ function legacyLinks(output: BiffOutput, book: Workbook, names: readonly string[
   output.record(0x17, new Uint8Array([1, 0x3a]));
   for (const name of names) output.record(0x23, join(join(new Uint8Array(6), biffString(name, 7, context, 1)), new Uint8Array([2, 0, 28, 23])));
   output.record(0x17, new Uint8Array([1, 4]));
+  const identity = (text: string): Uint8Array => {
+    const bytes = biffString(text, 7, context, 1);
+    if (biffDecode(bytes.subarray(1), 1252) !== text)
+      throw new SsconvertError("unsupported-feature", "Excel BIFF7 external identity is not representable in Windows-1252");
+    return bytes;
+  };
+  const path = (workbook: string, sheet?: string): Uint8Array => {
+    if (!workbook || Array.from(workbook + (sheet ?? "")).some(c => c.charCodeAt(0) < 32 || "[]".includes(c)))
+      throw new SsconvertError("unsupported-feature", "Excel BIFF7 external path is not representable");
+    const split = Math.max(workbook.lastIndexOf("/"), workbook.lastIndexOf("\\")) + 1;
+    const directory = sheet === undefined ? workbook : workbook.slice(0, split);
+    const suffix = sheet === undefined ? "" : "[" + workbook.slice(split) + "]" + sheet;
+    const length = 1 + directory.length + suffix.length + (directory ? 2 : 0);
+    if (length > 255) throw new SsconvertError("unsupported-feature", "Excel BIFF7 external path is too long");
+    const raw = identity(directory), tail = identity(suffix);
+    return new Uint8Array([length, 1, ...(directory ? [5, raw[0]!, ...raw.subarray(1)] : []), ...tail.subarray(1)]);
+  };
+  let base = book.sheets.length + 2;
+  for (const external of externalBooks) {
+    for (const sheet of external.sheets) output.record(0x17, path(external.workbook, sheet));
+    output.record(0x17, path(external.workbook));
+    for (const name of external.names) output.record(0x23, join(join(words(0, name.sheet === undefined ? 0 : base + name.sheet + 1, 0),
+      identity(name.name)), new Uint8Array([2, 0, 28, 23])));
+    base += external.sheets.length + 1;
+  }
 }
 
 async function writeCell(output: BiffOutput, cell: Cell, xf: number, revision: 7 | 8, strings: ReadonlyMap<string, number>, context: CapabilityContext, formula?: CompiledBiffFormula): Promise<void> {

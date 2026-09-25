@@ -577,4 +577,13 @@ test("sort -V dotfiles, incompatible -d/-i flags, -c/-C check modes, cut NUL del
   assert.equal(cutNulOut.exitCode, 0, cutNulOut.stderr);
   assert.deepEqual(cutNulOut.stdoutBytes, Buffer.from([97, 0, 99, 10]));
 
+  const cutTouching = await run("cut", ["-b", "1,2", "--output-delimiter=:"], { commands, stdin: "abcd\n" });
+  assert.equal(cutTouching.exitCode, 0, cutTouching.stderr);
+  assert.equal(cutTouching.stdout, "a:b\n");
+
+  for (const sep of ["\\0", ""]) {
+    const sortNulSep = await run("sort", ["-t", sep, "-k2,2"], { commands, stdin: Uint8Array.from([120, 0, 98, 10, 121, 0, 97, 10]) });
+    assert.equal(sortNulSep.exitCode, 0, sortNulSep.stderr);
+    assert.deepEqual(sortNulSep.stdoutBytes, Buffer.from([121, 0, 97, 10, 120, 0, 98, 10]));
+  }
 });

@@ -723,7 +723,8 @@ export function textCommands(): CommandDefinition[] {
       }
       await assertInputRequirements(context, parsed.operands);
       if (!checking) await admitTextOutput(context, value(parsed, "o"));
-      const separatorText = value(parsed, "t");
+      const rawSeparator = value(parsed, "t");
+      const separatorText = rawSeparator === "" || rawSeparator === "\\0" ? "\0" : rawSeparator;
       if (separatorText !== undefined && encoder.encode(separatorText).length !== 1) throw new UsageError("field separator must be one byte");
       const separator = separatorText === undefined ? undefined : encoder.encode(separatorText)[0];
       const keys = (parsed.values.get("k") ?? []).map(sortKey);

@@ -132,8 +132,8 @@ class SlicedLine implements Line {
   readonly terminated: boolean;
   readonly number: number;
   readonly offset: number;
-  #content: Buffer | undefined;
-  #rawBytes: Buffer | undefined;
+  private _content: Buffer | undefined;
+  private _rawBytes: Buffer | undefined;
   constructor(
     private readonly chunk: Buffer,
     private readonly start: number,
@@ -154,12 +154,12 @@ class SlicedLine implements Line {
     this.offset = offset;
   }
   get content(): Buffer {
-    return this.#content ??= this.chunk.subarray(this.start, this.contentEnd);
+    return this._content ??= this.chunk.subarray(this.start, this.contentEnd);
   }
   get rawBytes(): Buffer {
-    if (this.#rawBytes) return this.#rawBytes;
+    if (this._rawBytes) return this._rawBytes;
     const content = this.chunk.subarray(this.start, this.rawEnd);
-    return this.#rawBytes = this.delimiterBuffer ? Buffer.concat([content, this.delimiterBuffer]) : content;
+    return this._rawBytes = this.delimiterBuffer ? Buffer.concat([content, this.delimiterBuffer]) : content;
   }
 }
 

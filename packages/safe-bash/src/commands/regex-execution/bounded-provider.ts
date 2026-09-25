@@ -10,7 +10,7 @@ import { validateUtf8 } from "./utf8.js";
 import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Match, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -55,6 +55,8 @@ const byteOffset = Object.getOwnPropertyDescriptor(typedArrayPrototype, "byteOff
 const byteBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, "buffer")!.get!;
 
 const emptyFloat64 = new Float64Array(0);
+const emptyFloat64Results: readonly Float64Array[] = [];
+const emptyMatchRow: Match[] = [];
 
 function fail(kind: "protocol" | "unsupported" | "limit", message: string): never {
   throw new PublicDiagnostic(`bounded regex ${kind}: ${message}`);
@@ -408,7 +410,7 @@ async function literalBytesAsync(pattern: string, selected: SelectionDescriptor,
   return bytes;
 }
 
-interface LiteralProgram { readonly bytes: Uint8Array; readonly fallback: Uint32Array; readonly insensitive: boolean }
+interface LiteralProgram { readonly bytes: Uint8Array; readonly fallback: Uint32Array; readonly insensitive: boolean; readonly singleMatchByStart?: (Match[] | undefined)[] }
 
 function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: AbortSignal, insensitive = false): LiteralProgram | Promise<LiteralProgram> {
   if (ledger.workAllowanceUntilCheckpoint(signal) >= bytes.length * 3 + 4) {
@@ -425,7 +427,7 @@ function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: AbortSigna
       else if (prefix > 0) prefix = fallback[prefix - 1]!;
       else index++;
     }
-    return { bytes, fallback, insensitive };
+    return { bytes, fallback, insensitive, singleMatchByStart: new Array(128) };
   }
   return compileLiteralAsync(bytes, ledger, signal, insensitive);
 }
@@ -613,9 +615,10 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
     return undefined;
   }
   // Check if total row work fits within workAllowanceUntilCheckpoint
+  const workPerByte = selected.kind === "grep" ? 2 : 3;
   let estimatedWork = lastLiteralCache.work + 3;
   for (let i = 0; i < rows.length; i++) {
-    estimatedWork += rows[i]!.bytes.length * 3 + 8;
+    estimatedWork += rows[i]!.bytes.length * workPerByte + 2;
   }
   if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
     return undefined;
@@ -626,7 +629,7 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   ledger.charge("allocationUnits", lastLiteralCache.allocationUnits, signal);
   const programs = lastLiteralCache.programs;
   ledger.charge("allocationUnits", 3, signal);
-  const results: Float64Array[] = new Array(rows.length);
+  const directMatches: Match[][] = new Array(rows.length);
   let matchCount = 0;
   const maxMatches = Math.min(input.limits.maxTotalMatches, Math.floor(input.limits.maxResultBytes / 16));
   for (let r = 0; r < rows.length; r++) {
@@ -640,22 +643,27 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
     }
     let start = -1;
     let end = -1;
+    let matchedProg: LiteralProgram | undefined;
     for (let p = 0; p < programs.length; p++) {
       const program = programs[p]!;
       const candidate = literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
       if (typeof candidate !== "number") return undefined;
       if (candidate < 0) continue;
-      if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; }
+      if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; matchedProg = program; }
       if (selected.kind === "grep") break;
     }
     signal.throwIfAborted();
     if (start >= 0) {
       if (matchCount >= maxMatches) fail("limit", "total match or result byte limit exceeded");
       matchCount++;
+      directMatches[r] = start < 128 && matchedProg?.singleMatchByStart
+        ? (matchedProg.singleMatchByStart[start] ??= [{ start, end }])
+        : [{ start, end }];
+    } else {
+      directMatches[r] = emptyMatchRow;
     }
-    results[r] = start < 0 ? emptyFloat64 : new Float64Array([start, end]);
   }
-  return { id: input.id, results };
+  return { id: input.id, results: emptyFloat64Results, directMatches };
 }
 
 function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undefined {

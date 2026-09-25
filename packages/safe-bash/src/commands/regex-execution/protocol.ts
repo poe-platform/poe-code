@@ -59,7 +59,7 @@ export const trustedWorkerRequests = new WeakSet<object>();
 export const trustedWorkerReplies = new WeakSet<object>();
 export const trustedInputRows = new WeakSet<readonly Row[]>();
 export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
-export type Reply = { readonly id: number; readonly results: readonly Float64Array[] } | { readonly id: number; readonly error: string };
+export type Reply = { readonly id: number; readonly results: readonly Float64Array[]; readonly directMatches?: Match[][] } | { readonly id: number; readonly error: string };
 
 export interface ExprMatchLimits {
   readonly maxPatternBytes: number;
@@ -285,6 +285,9 @@ export function validateReply(value: unknown, id: number, rows: readonly Row[], 
   if ("error" in reply) {
     if (typeof reply.error !== "string") throw new RegexExecutionError("PROTOCOL", "invalid error reply");
     throw new RegexExecutionError("MATCH", reply.error);
+  }
+  if (trustedWorkerReplies.has(reply) && "directMatches" in reply && reply.directMatches !== undefined && reply.directMatches.length === rows.length) {
+    return reply.directMatches;
   }
   if (!("results" in reply) || !Array.isArray(reply.results) || reply.results.length !== rows.length) throw new RegexExecutionError("PROTOCOL", "invalid reply rows");
   if (trustedWorkerReplies.has(reply)) {

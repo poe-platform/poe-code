@@ -890,6 +890,450 @@ function applyMagickFx(
   return { ...base, data: out };
 }
 
+function sampleBilinear(
+  img: RgbaImage,
+  sx: number,
+  sy: number,
+  bg: RgbaColor,
+  out: Uint8Array,
+  outOff: number
+): void {
+  if (sx < -0.5 || sy < -0.5 || sx > img.width - 0.5 || sy > img.height - 0.5) {
+    out[outOff] = bg.r;
+    out[outOff + 1] = bg.g;
+    out[outOff + 2] = bg.b;
+    out[outOff + 3] = bg.a;
+    return;
+  }
+  const x0 = Math.max(0, Math.min(img.width - 1, Math.floor(sx)));
+  const y0 = Math.max(0, Math.min(img.height - 1, Math.floor(sy)));
+  const x1 = Math.max(0, Math.min(img.width - 1, x0 + 1));
+  const y1 = Math.max(0, Math.min(img.height - 1, y0 + 1));
+  const fx = Math.max(0, Math.min(1, sx - x0));
+  const fy = Math.max(0, Math.min(1, sy - y0));
+
+  const i00 = (y0 * img.width + x0) * 4;
+  const i10 = (y0 * img.width + x1) * 4;
+  const i01 = (y1 * img.width + x0) * 4;
+  const i11 = (y1 * img.width + x1) * 4;
+
+  for (let c = 0; c < 4; c++) {
+    const v0 = img.data[i00 + c]! * (1 - fx) + img.data[i10 + c]! * fx;
+    const v1 = img.data[i01 + c]! * (1 - fx) + img.data[i11 + c]! * fx;
+    out[outOff + c] = clampByteVal(v0 * (1 - fy) + v1 * fy);
+  }
+}
+
+function applyMagickShear(img: RgbaImage, geomStr: string, bg: RgbaColor): RgbaImage {
+  const g = parseMagickGeometry(geomStr);
+  const degX = g.width ?? 0;
+  const degY = g.height ?? 0;
+  const tanX = Math.tan((degX * Math.PI) / 180);
+  const tanY = Math.tan((degY * Math.PI) / 180);
+  const outW = Math.max(1, Math.round(img.width + Math.abs(tanX) * img.height));
+  const outH = Math.max(1, Math.round(img.height + Math.abs(tanY) * img.width));
+  const out = new Uint8Array(outW * outH * 4);
+  const cxSrc = (img.width - 1) / 2;
+  const cySrc = (img.height - 1) / 2;
+  const cxDst = (outW - 1) / 2;
+  const cyDst = (outH - 1) / 2;
+  const det = 1 - tanX * tanY || 1;
+
+  for (let y = 0; y < outH; y++) {
+    for (let x = 0; x < outW; x++) {
+      const dx = x - cxDst;
+      const dy = y - cyDst;
+      const sx = cxSrc + (dx - tanX * dy) / det;
+      const sy = cySrc + (dy - tanY * dx) / det;
+      sampleBilinear(img, sx, sy, bg, out, (y * outW + x) * 4);
+    }
+  }
+  return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
+}
+
+function solveLinearSystem(A: number[][], b: number[]): number[] {
+  const n = b.length;
+  const M = A.map((row, idx) => [...row, b[idx]!]);
+  for (let col = 0; col < n; col++) {
+    let maxRow = col;
+    for (let row = col + 1; row < n; row++) {
+      if (Math.abs(M[row]![col]!) > Math.abs(M[maxRow]![col]!)) maxRow = row;
+    }
+    const tmp = M[col]!;
+    M[col] = M[maxRow]!;
+    M[maxRow] = tmp;
+    const pivot = M[col]![col]!;
+    if (Math.abs(pivot) < 1e-12) continue;
+    for (let j = col; j <= n; j++) M[col]![j]! /= pivot;
+    for (let row = 0; row < n; row++) {
+      if (row === col) continue;
+      const factor = M[row]![col]!;
+      for (let j = col; j <= n; j++) {
+        M[row]![j]! -= factor * M[col]![j]!;
+      }
+    }
+  }
+  return M.map((row) => row[n]!);
+}
+
+function applyMagickDistort(img: RgbaImage, methodRaw: string, argsRaw: string, bg: RgbaColor): RgbaImage {
+  const method = methodRaw.toLowerCase().replace(/[-_]/g, "");
+  const nums = argsRaw
+    .trim()
+    .split(/[\s,]+/)
+    .filter((s) => s.length > 0)
+    .map(Number);
+  const w = img.width;
+  const h = img.height;
+  const out = new Uint8Array(w * h * 4);
+
+  if (method === "srt" || method === "scalerotatetranslate") {
+    let cx = (w - 1) / 2;
+    let cy = (h - 1) / 2;
+    let scaleX = 1;
+    let scaleY = 1;
+    let angleDeg = 0;
+    let nx = cx;
+    let ny = cy;
+    if (nums.length === 1) {
+      angleDeg = nums[0]!;
+    } else if (nums.length === 2) {
+      scaleX = scaleY = nums[0] || 1;
+      angleDeg = nums[1]!;
+    } else if (nums.length === 3) {
+      cx = nx = nums[0]!;
+      cy = ny = nums[1]!;
+      angleDeg = nums[2]!;
+    } else if (nums.length === 4) {
+      cx = nx = nums[0]!;
+      cy = ny = nums[1]!;
+      scaleX = scaleY = nums[2] || 1;
+      angleDeg = nums[3]!;
+    } else if (nums.length === 5) {
+      cx = nx = nums[0]!;
+      cy = ny = nums[1]!;
+      scaleX = nums[2] || 1;
+      scaleY = nums[3] || 1;
+      angleDeg = nums[4]!;
+    } else if (nums.length === 6) {
+      cx = nums[0]!;
+      cy = nums[1]!;
+      scaleX = scaleY = nums[2] || 1;
+      angleDeg = nums[3]!;
+      nx = nums[4]!;
+      ny = nums[5]!;
+    } else if (nums.length >= 7) {
+      cx = nums[0]!;
+      cy = nums[1]!;
+      scaleX = nums[2] || 1;
+      scaleY = nums[3] || 1;
+      angleDeg = nums[4]!;
+      nx = nums[5]!;
+      ny = nums[6]!;
+    }
+    const rad = (angleDeg * Math.PI) / 180;
+    const cosA = Math.cos(rad);
+    const sinA = Math.sin(rad);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const dx = x - nx;
+        const dy = y - ny;
+        const sx = cx + (dx * cosA + dy * sinA) / scaleX;
+        const sy = cy + (-dx * sinA + dy * cosA) / scaleY;
+        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+      }
+    }
+    return { ...img, data: out, hasAlpha: true };
+  }
+
+  if ((method === "perspective" && nums.length >= 16) || (method === "perspectiveprojection" && nums.length >= 8)) {
+    let hCoeff: number[];
+    if (method === "perspectiveprojection") {
+      hCoeff = nums.slice(0, 8);
+    } else {
+      // Solve inverse homography mapping dst (dx, dy) -> src (sx, sy)
+      const A: number[][] = [];
+      const bVec: number[] = [];
+      for (let p = 0; p < 4; p++) {
+        const sx = nums[p * 4]!;
+        const sy = nums[p * 4 + 1]!;
+        const dx = nums[p * 4 + 2]!;
+        const dy = nums[p * 4 + 3]!;
+        A.push([dx, dy, 1, 0, 0, 0, -dx * sx, -dy * sx]);
+        bVec.push(sx);
+        A.push([0, 0, 0, dx, dy, 1, -dx * sy, -dy * sy]);
+        bVec.push(sy);
+      }
+      hCoeff = solveLinearSystem(A, bVec);
+    }
+    const [c0, c1, c2, c3, c4, c5, c6, c7] = hCoeff as [
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number,
+      number
+    ];
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const denom = c6 * x + c7 * y + 1 || 1e-9;
+        const sx = (c0 * x + c1 * y + c2) / denom;
+        const sy = (c3 * x + c4 * y + c5) / denom;
+        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+      }
+    }
+    return { ...img, data: out, hasAlpha: true };
+  }
+
+  if (method === "affine" && nums.length >= 12) {
+    const A: number[][] = [];
+    const bx: number[] = [];
+    const by: number[] = [];
+    for (let p = 0; p < 3; p++) {
+      const sx = nums[p * 4]!;
+      const sy = nums[p * 4 + 1]!;
+      const dx = nums[p * 4 + 2]!;
+      const dy = nums[p * 4 + 3]!;
+      A.push([dx, dy, 1]);
+      bx.push(sx);
+      by.push(sy);
+    }
+    const rx = solveLinearSystem(A, bx);
+    const ry = solveLinearSystem(A, by);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const sx = rx[0]! * x + rx[1]! * y + rx[2]!;
+        const sy = ry[0]! * x + ry[1]! * y + ry[2]!;
+        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+      }
+    }
+    return { ...img, data: out, hasAlpha: true };
+  }
+
+  if (method === "barrel" && nums.length >= 3) {
+    const A = nums[0] ?? 0;
+    const B = nums[1] ?? 0;
+    const C = nums[2] ?? 0;
+    const D = nums[3] ?? 1 - A - B - C;
+    const cx = nums[4] ?? (w - 1) / 2;
+    const cy = nums[5] ?? (h - 1) / 2;
+    const rNorm = Math.min(w, h) / 2;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const dx = (x - cx) / rNorm;
+        const dy = (y - cy) / rNorm;
+        const r = Math.hypot(dx, dy);
+        const factor = A * r * r * r + B * r * r + C * r + D;
+        const sx = cx + dx * factor * rNorm;
+        const sy = cy + dy * factor * rNorm;
+        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+      }
+    }
+    return { ...img, data: out, hasAlpha: true };
+  }
+
+  return img;
+}
+
+function applyMagickSwirl(img: RgbaImage, degrees: number, bg: RgbaColor): RgbaImage {
+  const w = img.width;
+  const h = img.height;
+  const out = new Uint8Array(w * h * 4);
+  const cx = (w - 1) / 2;
+  const cy = (h - 1) / 2;
+  const maxR = Math.max(cx, cy, 1);
+  const radTotal = (degrees * Math.PI) / 180;
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const r = Math.hypot(dx, dy);
+      if (r < maxR) {
+        const factor = 1 - r / maxR;
+        const angle = factor * factor * radTotal;
+        const cosA = Math.cos(angle);
+        const sinA = Math.sin(angle);
+        const sx = cx + dx * cosA - dy * sinA;
+        const sy = cy + dx * sinA + dy * cosA;
+        sampleBilinear(img, sx, sy, bg, out, (y * w + x) * 4);
+      } else {
+        sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
+      }
+    }
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickImplode(img: RgbaImage, amount: number, bg: RgbaColor): RgbaImage {
+  const w = img.width;
+  const h = img.height;
+  const out = new Uint8Array(w * h * 4);
+  const cx = (w - 1) / 2;
+  const cy = (h - 1) / 2;
+  const maxR = Math.min(cx, cy, 1);
+  const clamped = Math.max(-0.95, Math.min(0.95, amount));
+  const exp = 1 / (1 - clamped);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const r = Math.hypot(dx, dy);
+      if (r < maxR && r > 0) {
+        const newR = maxR * Math.pow(r / maxR, exp);
+        const scale = newR / r;
+        sampleBilinear(img, cx + dx * scale, cy + dy * scale, bg, out, (y * w + x) * 4);
+      } else {
+        sampleBilinear(img, x, y, bg, out, (y * w + x) * 4);
+      }
+    }
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickWave(img: RgbaImage, geomStr: string, bg: RgbaColor): RgbaImage {
+  const g = parseMagickGeometry(geomStr);
+  const amp = g.width ?? 5;
+  const waveLen = Math.max(1, g.height ?? 50);
+  const extraH = Math.round(Math.abs(amp) * 2);
+  const outW = img.width;
+  const outH = img.height + extraH;
+  const out = new Uint8Array(outW * outH * 4);
+  const yPad = Math.abs(amp);
+
+  for (let y = 0; y < outH; y++) {
+    for (let x = 0; x < outW; x++) {
+      const sy = y - yPad - amp * Math.sin((2 * Math.PI * x) / waveLen);
+      sampleBilinear(img, x, sy, bg, out, (y * outW + x) * 4);
+    }
+  }
+  return { ...img, width: outW, height: outH, data: out, hasAlpha: true };
+}
+
+function applyMagickShadow(img: RgbaImage, geomStr: string, shadowColor: RgbaColor): RgbaImage {
+  const g = parseMagickGeometry(geomStr);
+  const opacity = Math.max(0, Math.min(100, g.width ?? 80)) / 100;
+  const sigma = Math.max(0.5, g.height ?? 3);
+  const pad = Math.max(2, Math.ceil(sigma * 2) + Math.max(Math.abs(g.x), Math.abs(g.y)));
+  const outW = img.width + pad * 2;
+  const outH = img.height + pad * 2;
+  const data = new Uint8Array(outW * outH * 4);
+  const offX = pad + Math.round(g.x);
+  const offY = pad + Math.round(g.y);
+
+  for (let y = 0; y < img.height; y++) {
+    for (let x = 0; x < img.width; x++) {
+      const dx = x + offX;
+      const dy = y + offY;
+      if (dx < 0 || dy < 0 || dx >= outW || dy >= outH) continue;
+      const srcA = img.data[(y * img.width + x) * 4 + 3]!;
+      const dstIdx = (dy * outW + dx) * 4;
+      data[dstIdx] = shadowColor.r;
+      data[dstIdx + 1] = shadowColor.g;
+      data[dstIdx + 2] = shadowColor.b;
+      data[dstIdx + 3] = clampByteVal(srcA * opacity);
+    }
+  }
+  const shadowBase: RgbaImage = {
+    ...img,
+    width: outW,
+    height: outH,
+    data,
+    hasAlpha: true
+  };
+  return blurImage(shadowBase, sigma);
+}
+
+function applyMagickVignette(img: RgbaImage, _geomStr: string, bg: RgbaColor): RgbaImage {
+  const w = img.width;
+  const h = img.height;
+  const out = new Uint8Array(img.data);
+  const cx = (w - 1) / 2;
+  const cy = (h - 1) / 2;
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const nx = (x - cx) / Math.max(1, cx);
+      const ny = (y - cy) / Math.max(1, cy);
+      const d = Math.hypot(nx, ny);
+      const t = Math.max(0, Math.min(1, (d - 0.65) / 0.55));
+      const idx = (y * w + x) * 4;
+      out[idx] = clampByteVal(out[idx]! * (1 - t) + bg.r * t);
+      out[idx + 1] = clampByteVal(out[idx + 1]! * (1 - t) + bg.g * t);
+      out[idx + 2] = clampByteVal(out[idx + 2]! * (1 - t) + bg.b * t);
+    }
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickSepiaTone(img: RgbaImage, threshStr: string): RgbaImage {
+  const raw = parseFloat(threshStr);
+  const strength = Math.max(0, Math.min(1, (threshStr.endsWith("%") ? raw : raw / 255) / 100 || 0.8));
+  const out = new Uint8Array(img.data);
+  for (let i = 0; i < out.length; i += 4) {
+    const r = out[i]!;
+    const g = out[i + 1]!;
+    const b = out[i + 2]!;
+    const sr = Math.min(255, 0.393 * r + 0.769 * g + 0.189 * b);
+    const sg = Math.min(255, 0.349 * r + 0.686 * g + 0.168 * b);
+    const sb = Math.min(255, 0.272 * r + 0.534 * g + 0.131 * b);
+    out[i] = clampByteVal(r * (1 - strength) + sr * strength);
+    out[i + 1] = clampByteVal(g * (1 - strength) + sg * strength);
+    out[i + 2] = clampByteVal(b * (1 - strength) + sb * strength);
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickSolarize(img: RgbaImage, threshStr: string): RgbaImage {
+  const raw = parseFloat(threshStr);
+  const thresh = threshStr.endsWith("%") ? (raw / 100) * 255 : raw;
+  const out = new Uint8Array(img.data);
+  for (let i = 0; i < out.length; i += 4) {
+    if (out[i]! > thresh) out[i] = 255 - out[i]!;
+    if (out[i + 1]! > thresh) out[i + 1] = 255 - out[i + 1]!;
+    if (out[i + 2]! > thresh) out[i + 2] = 255 - out[i + 2]!;
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickPosterize(img: RgbaImage, levelsRaw: number): RgbaImage {
+  const levels = Math.max(2, Math.min(256, Math.round(levelsRaw)));
+  const step = 255 / (levels - 1);
+  const out = new Uint8Array(img.data);
+  for (let i = 0; i < out.length; i += 4) {
+    out[i] = clampByteVal(Math.round((out[i]! / 255) * (levels - 1)) * step);
+    out[i + 1] = clampByteVal(Math.round((out[i + 1]! / 255) * (levels - 1)) * step);
+    out[i + 2] = clampByteVal(Math.round((out[i + 2]! / 255) * (levels - 1)) * step);
+  }
+  return { ...img, data: out };
+}
+
+function applyMagickConvolve3x3(img: RgbaImage, kernel: readonly number[], bias = 0): RgbaImage {
+  const w = img.width;
+  const h = img.height;
+  const out = new Uint8Array(img.data);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      for (let c = 0; c < 3; c++) {
+        let sum = bias;
+        let kIdx = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          const sy = Math.max(0, Math.min(h - 1, y + ky));
+          for (let kx = -1; kx <= 1; kx++) {
+            const sx = Math.max(0, Math.min(w - 1, x + kx));
+            sum += img.data[(sy * w + sx) * 4 + c]! * kernel[kIdx++]!;
+          }
+        }
+        out[(y * w + x) * 4 + c] = clampByteVal(sum);
+      }
+    }
+  }
+  return { ...img, data: out };
+}
+
 function resolveGravityOffset(
   spaceW: number,
   spaceH: number,
@@ -1666,6 +2110,55 @@ function evaluatePipelineTokens(
       if (stack.length > 0) {
         stack = [applyMagickFx(stack, expr, state.channels)];
       }
+    } else if (t === "-shear") {
+      const geom = tokens[++i] ?? "0x0";
+      stack = stack.map((im) => applyMagickShear(im, geom, state.background));
+    } else if (t === "-distort" || t === "+distort") {
+      const method = tokens[++i] ?? "SRT";
+      const args = tokens[++i] ?? "0";
+      stack = stack.map((im) => applyMagickDistort(im, method, args, state.background));
+    } else if (t === "-swirl") {
+      const deg = Number(tokens[++i] ?? 0);
+      stack = stack.map((im) => applyMagickSwirl(im, deg, state.background));
+    } else if (t === "-implode") {
+      const amt = Number(tokens[++i] ?? 0);
+      stack = stack.map((im) => applyMagickImplode(im, amt, state.background));
+    } else if (t === "-wave") {
+      const geom = tokens[++i] ?? "5x50";
+      stack = stack.map((im) => applyMagickWave(im, geom, state.background));
+    } else if (t === "-shadow") {
+      const geom = tokens[++i] ?? "80x3+5+5";
+      stack = stack.map((im) => applyMagickShadow(im, geom, state.background));
+    } else if (t === "-vignette") {
+      const geom = tokens[++i] ?? "0x2";
+      stack = stack.map((im) => applyMagickVignette(im, geom, state.background));
+    } else if (t === "-sepia-tone") {
+      const thresh = tokens[++i] ?? "80%";
+      stack = stack.map((im) => applyMagickSepiaTone(im, thresh));
+    } else if (t === "-solarize") {
+      const thresh = tokens[++i] ?? "50%";
+      stack = stack.map((im) => applyMagickSolarize(im, thresh));
+    } else if (t === "-posterize" || t === "-colors") {
+      const lv = Number(tokens[++i] ?? 8);
+      stack = stack.map((im) => applyMagickPosterize(im, lv));
+    } else if (t === "-dither" || t === "+dither") {
+      if (t === "-dither") i++;
+    } else if (t === "-edge" || t === "-canny") {
+      i++;
+      stack = stack.map((im) => applyMagickConvolve3x3(im, [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0));
+    } else if (t === "-emboss") {
+      i++;
+      stack = stack.map((im) => applyMagickConvolve3x3(im, [-2, -1, 0, -1, 1, 1, 0, 1, 2], 128));
+    } else if (t === "-charcoal" || t === "-sketch") {
+      i++;
+      stack = stack.map((im) =>
+        grayscaleImage(
+          negateImage(
+            applyMagickConvolve3x3(blurImage(im, 1), [-1, -1, -1, -1, 8, -1, -1, -1, -1], 0),
+            { alpha: false }
+          )
+        )
+      );
     } else if (t === "+repage" || t === "-repage") {
       if (t === "-repage") i++;
     } else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
@@ -2019,7 +2512,23 @@ export async function runMogrifyCli(
     "+opaque",
     "-transparent",
     "+transparent",
-    "-fx"
+    "-fx",
+    "-shear",
+    "-swirl",
+    "-implode",
+    "-wave",
+    "-shadow",
+    "-vignette",
+    "-sepia-tone",
+    "-solarize",
+    "-posterize",
+    "-colors",
+    "-dither",
+    "-edge",
+    "-canny",
+    "-emboss",
+    "-charcoal",
+    "-sketch"
   ]);
 
   for (let i = 0; i < argv.length; i++) {
@@ -2035,7 +2544,13 @@ export async function runMogrifyCli(
       } else {
         opTokens.push("-annotate", a1);
       }
-    } else if (t === "-evaluate" || t === "-function" || t === "-morphology") {
+    } else if (
+      t === "-evaluate" ||
+      t === "-function" ||
+      t === "-morphology" ||
+      t === "-distort" ||
+      t === "+distort"
+    ) {
       opTokens.push(t, argv[++i] ?? "", argv[++i] ?? "");
     } else if (flagsWithOneArg.has(t)) {
       opTokens.push(t, argv[++i] ?? "");

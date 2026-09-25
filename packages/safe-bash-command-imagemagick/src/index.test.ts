@@ -412,4 +412,77 @@ describe("safe-bash-command-imagemagick", () => {
     expect(fxRaw[1]).toBeCloseTo(120, 1);
     expect(fxRaw[2]).toBeCloseTo(100, 1);
   });
+
+  it("supports geometric distortions (-distort SRT/Perspective, -shear, -swirl, -implode, -wave) and effects (-shadow, -vignette, -sepia-tone, -solarize, -posterize, -edge, -emboss, -charcoal)", async () => {
+    const src = await makeTestImage(40, 30, 200, 80, 40);
+    const files = new Map<string, Uint8Array>([["/src.png", src]]);
+
+    // 1. -shear 20x0 expands width
+    await runMagickCli(["/src.png", "-background", "#000000", "-shear", "20x0", "/sheared.png"], files);
+    const shearMeta = await sharp(files.get("/sheared.png")!).metadata();
+    expect(shearMeta.width).toBeGreaterThan(40);
+    expect(shearMeta.height).toBe(30);
+
+    // 2. -distort SRT "1.5 45" scales and rotates in-place
+    await runMagickCli(["/src.png", "-distort", "SRT", "1.5 45", "/srt.png"], files);
+    const srtMeta = await sharp(files.get("/srt.png")!).metadata();
+    expect(srtMeta.width).toBe(40);
+    expect(srtMeta.height).toBe(30);
+
+    // 3. -distort Perspective with 4 point pairs
+    await runMagickCli(
+      [
+        "/src.png",
+        "-distort",
+        "Perspective",
+        "0,0 2,2  39,0 37,4  39,29 38,28  0,29 1,27",
+        "/persp.png"
+      ],
+      files
+    );
+    const perspMeta = await sharp(files.get("/persp.png")!).metadata();
+    expect(perspMeta.width).toBe(40);
+    expect(perspMeta.height).toBe(30);
+
+    // 4. -swirl, -implode, -wave
+    await runMagickCli(
+      ["/src.png", "-swirl", "60", "-implode", "0.3", "-wave", "4x20", "/warped.png"],
+      files
+    );
+    const warpMeta = await sharp(files.get("/warped.png")!).metadata();
+    expect(warpMeta.width).toBe(40);
+    expect(warpMeta.height).toBe(38); // 30 + 2*4 amplitude
+
+    // 5. -shadow 80x2+4+4 expands canvas and creates soft drop shadow
+    await runMagickCli(["/src.png", "-background", "#000000", "-shadow", "80x2+4+4", "/shadow.png"], files);
+    const shadowMeta = await sharp(files.get("/shadow.png")!).metadata();
+    expect(shadowMeta.width).toBeGreaterThan(40);
+    expect(shadowMeta.height).toBeGreaterThan(30);
+
+    // 6. -sepia-tone, -solarize, -posterize, -vignette, -edge, -emboss, -charcoal
+    await runMagickCli(
+      [
+        "/src.png",
+        "-sepia-tone",
+        "80%",
+        "-solarize",
+        "50%",
+        "-posterize",
+        "4",
+        "-vignette",
+        "0x2",
+        "-edge",
+        "1",
+        "-emboss",
+        "1",
+        "-charcoal",
+        "1",
+        "/art.png"
+      ],
+      files
+    );
+    const artMeta = await sharp(files.get("/art.png")!).metadata();
+    expect(artMeta.width).toBe(40);
+    expect(artMeta.height).toBe(30);
+  });
 });

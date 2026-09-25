@@ -113,8 +113,8 @@ type FrozenClosureData = {
   readonly symbols: readonly symbol[];
   readonly closure: boolean;
   readonly propertiesGetter: PropertyDescriptor["get"];
-  readonly chargeIdentity?: object;
-  readonly propertiesRoot?: SandboxObject;
+  readonly chargeIdentity: object | undefined;
+  readonly propertiesRoot: SandboxObject | undefined;
 };
 const frozenClosureData = new WeakMap<object, FrozenClosureData>();
 const readFrozenClosureData = WeakMap.prototype.get.bind(frozenClosureData);
@@ -129,6 +129,18 @@ const captureClosureDescriptor = Object.getOwnPropertyDescriptor;
 const hasClosureDescriptorField = Object.hasOwn;
 const invokeClosureGetter = Reflect.apply;
 const closureGetterArguments = freezeValueShape([]);
+
+// Explicit own fields prevent host prototype properties from replacing private
+// accounting state. Reuse one layout through both deferred metadata updates.
+function createFrozenClosureData(
+  symbols: readonly symbol[],
+  closure: boolean,
+  propertiesGetter: PropertyDescriptor["get"],
+  chargeIdentity?: object,
+  propertiesRoot?: SandboxObject
+): FrozenClosureData {
+  return freezeValueShape({ symbols, closure, propertiesGetter, chargeIdentity, propertiesRoot });
+}
 
 // Only factory-owned, finalized carriers enter this registry. Their key sets
 // cannot change; descriptors, payloads and separate guest property tables stay live.
@@ -412,12 +424,12 @@ export function createSandboxClosure(input: {
   const properties = captureClosureDescriptor(closure, "properties");
   writeFrozenClosureData(
     closure,
-    freezeValueShape({
-      symbols: freezeValueShape(captureValueSymbols(closure)),
-      closure: captureClosureDescriptor(closure, sandboxClosureBrand) !== undefined,
-      propertiesGetter: properties !== undefined && hasClosureDescriptorField(properties, "get")
+    createFrozenClosureData(
+      freezeValueShape(captureValueSymbols(closure)),
+      captureClosureDescriptor(closure, sandboxClosureBrand) !== undefined,
+      properties !== undefined && hasClosureDescriptorField(properties, "get")
         ? properties.get : undefined
-    })
+    )
   );
   return closure;
 }
@@ -426,14 +438,18 @@ export function registerDeferredClosureProperties(closure: SandboxClosure, root:
   const data = readFrozenClosureData(closure);
   if (data?.closure !== true || data.propertiesRoot !== undefined)
     throw new TypeError("Deferred properties require a fresh SDK-created function.");
-  writeFrozenClosureData(closure, freezeValueShape({ ...data, propertiesRoot: root }));
+  writeFrozenClosureData(closure, createFrozenClosureData(
+    data.symbols, data.closure, data.propertiesGetter, data.chargeIdentity, root
+  ));
 }
 
 export function registerDeferredClosureChargeIdentity(closure: SandboxClosure, identity: object): void {
   const data = readFrozenClosureData(closure);
   if (data?.closure !== true || data.chargeIdentity !== undefined)
     throw new TypeError("Deferred initialization requires a fresh SDK-created function.");
-  writeFrozenClosureData(closure, freezeValueShape({ ...data, chargeIdentity: identity }));
+  writeFrozenClosureData(closure, createFrozenClosureData(
+    data.symbols, data.closure, data.propertiesGetter, identity, data.propertiesRoot
+  ));
 }
 
 export function registerClosureCaptureCollector(

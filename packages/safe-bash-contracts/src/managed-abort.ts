@@ -6,7 +6,7 @@ type Waiters = Waiter | Set<Waiter> | undefined;
 export function addManagedAbortWaiter(signal: AbortSignal, waiter: Waiter): void {
   const record = signal as unknown as Record<symbol, Waiters>;
   const current = record[managedWaitersSymbol];
-  if (!current) record[managedWaitersSymbol] = waiter;
+  if (!current) record[managedWaitersSymbol] = new Set([waiter]);
   else if (typeof current === "function") {
     if (current !== waiter) record[managedWaitersSymbol] = new Set([current, waiter]);
   } else current.add(waiter);

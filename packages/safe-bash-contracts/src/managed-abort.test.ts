@@ -10,6 +10,26 @@ function seed(signal: AbortSignal, waiter: (reason: unknown) => void, multiple =
   Reflect.set(signal, waitersSymbol, multiple ? new Set([waiter]) : waiter);
 }
 
+for (const reason of [false, null, 0, ""]) {
+  test(`the first pipe listener shares Set storage with shell waiters: ${String(reason)}`, async () => {
+    const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);
+    const pipe = createBytePipe({ signal: upstream.signal });
+    try {
+      const waiters: unknown = Reflect.get(upstream.signal, waitersSymbol);
+      assert.ok(waiters instanceof Set, "shell adapters append directly to the shared waiter Set");
+      const received: unknown[] = [];
+      waiters.add((value: unknown) => { received.push(value); });
+      const reading = pipe.endpoints!.read.readable[Symbol.asyncIterator]().next();
+      const rejected = assert.rejects(reading, error => Object.is(error, reason));
+      await upstream.abort(reason);
+      await rejected;
+      assert.deepEqual(received, [reason]);
+      assert.equal(Reflect.get(upstream.signal, waitersSymbol), waiters);
+      assert.equal(waiters.size, 0);
+    } finally { await pipe.abort(reason); await upstream.close(); }
+  });
+}
+
 for (const multiple of [false, true]) {
   test(`pipe cancellation preserves preexisting ${multiple ? "set" : "singleton"} waiters`, async () => {
     const upstream = createOutputOperation({ signal: new AbortController().signal }, discard);

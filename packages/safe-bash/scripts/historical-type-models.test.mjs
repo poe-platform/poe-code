@@ -543,3 +543,37 @@ test("historical build-first checking retains exact consumer roots and strict in
   assert.equal(specimen.fileSystem.readFileSync(join(root, consumerConfig), "utf8"), config);
   assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries, config: "tests/arbitrary.json" }), /exact maintained configuration/);
 });
+
+test("abnormal compiler termination records phase diagnostics before failing", () => {
+  const text = readRegularInput(packageRoot, "scripts/typecheck.mjs", 20000, fs, actualBoundaries).toString("utf8");
+  const source = ts.createSourceFile("typecheck.mjs", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const declaration = source.statements.filter(ts.isVariableStatement)
+    .flatMap(statement => [...statement.declarationList.declarations])
+    .find(variable => ts.isIdentifier(variable.name) && variable.name.text === "compile");
+  assert.ok(declaration?.initializer);
+  for (const label of ["source-and-tests", "negative-consumer", "resolution-consumer"]) {
+    const stdout = [], stderr = [], messages = [], phases = [];
+    const compile = new Script(`(${declaration.initializer.getText(source)})`).runInNewContext({
+      assert, root, compiler: "/tsc", historicalCompiler: "/historical-models",
+      report: { phases }, console: { log: message => messages.push(message) },
+      process: { execPath: "/node", env: {}, stdout: { write: value => stdout.push(value) }, stderr: { write: value => stderr.push(value) } },
+      spawnSync: () => ({
+        status: null,
+        signal: "SIGABRT",
+        error: Object.assign(new Error("spawnSync ETIMEDOUT"), { code: "ETIMEDOUT" }),
+        stdout: "partial stdout\n" + "x".repeat(70000),
+        stderr: "FATAL ERROR: MarkCompactCollector\n",
+      }),
+    });
+    assert.throws(() => compile(label, ["--noEmit"]), /Compiler phase .* aborted .*signal=SIGABRT/);
+    assert.equal(phases.length, 1);
+    assert.equal(phases[0].label, label);
+    assert.equal(phases[0].status, null);
+    assert.equal(phases[0].signal, "SIGABRT");
+    assert.equal(phases[0].error.code, "ETIMEDOUT");
+    assert.match(phases[0].stdout, /^partial stdout\n.*truncated/s);
+    assert.equal(phases[0].stderr, "FATAL ERROR: MarkCompactCollector\n");
+    assert.equal(stdout.length, 1);
+    assert.equal(stderr.length, 1);
+  }
+});

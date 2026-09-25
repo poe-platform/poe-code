@@ -32,6 +32,11 @@ async function optionalStat(context: CommandContext, path: string): Promise<File
   catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
 }
 
+async function optionalFollowedStat(context: CommandContext, path: string): Promise<FileStat | undefined> {
+  try { return await context.fs.stat(path, { signal: context.signal }); }
+  catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
+}
+
 function unchanged(before: FileStat, after: FileStat, content: boolean): boolean {
   const identity = compareCopyIdentity(before, after);
   const stableIdentity = compareCopyIdentity(before, before) === "same" ? identity === "same" : identity !== "distinct";
@@ -60,11 +65,36 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
   if (source === "/") throw new FsError("EBUSY", { path: source });
   if (sourceStat.type === "directory") {
     if (isPathWithin(source, target)) throw new FsError("EINVAL", { path: target, message: "cannot move a directory into itself" });
+    const checkSameDirectory = async (candidatePath: string, candidateStat: FileStat | undefined): Promise<void> => {
+      if (!candidateStat || candidateStat.type !== "directory") return;
+      if (compareCopyIdentity(sourceStat, candidateStat) === "same" || await compare(source, candidatePath, sourceStat, candidateStat) === "same") {
+        throw new FsError("EINVAL", { path: target, message: "cannot move a directory into itself" });
+      }
+    };
     let parent = dirname(target);
     while (true) {
       await budget.step();
       const parentStat = await optionalStat(context, parent);
-      if (compareCopyIdentity(sourceStat, parentStat) === "same") throw new FsError("EINVAL", { path: target, message: "cannot move a directory into itself" });
+      await checkSameDirectory(parent, parentStat);
+      const followedStat = parentStat?.type === "symlink" ? await optionalFollowedStat(context, parent) : parentStat;
+      if (followedStat) {
+        await checkSameDirectory(parent, followedStat);
+        const canonicalParent = await context.fs.realpath(parent, { signal: context.signal }).catch(error => {
+          context.signal.throwIfAborted();
+          return undefined;
+        });
+        if (canonicalParent !== undefined) {
+          if (isPathWithin(source, canonicalParent)) throw new FsError("EINVAL", { path: target, message: "cannot move a directory into itself" });
+          let canonicalCursor = canonicalParent;
+          while (true) {
+            await budget.step();
+            const cursorStat = await optionalFollowedStat(context, canonicalCursor);
+            await checkSameDirectory(canonicalCursor, cursorStat);
+            if (canonicalCursor === "/") break;
+            canonicalCursor = dirname(canonicalCursor);
+          }
+        }
+      }
       if (parent === "/") break;
       parent = dirname(parent);
     }

@@ -433,3 +433,30 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), existing ? ["source", "target"] : ["source"]);
   });
 }
+
+test("copyCheckedSource preserves primary read failure when close also rejects in finally", async () => {
+  const fs = await fixture({ source: "ordinary" });
+  const stat = await fs.lstat("/work/source");
+  const view = new Proxy(fs, {
+    get(target, property) {
+      if (property === "copyFile") return undefined;
+      if (property === "openReadFile") {
+        return async () => ({
+          async stat() { return stat; },
+          async read() {
+            throw new FsError("EIO", { path: "/work/source", message: "primary read failure" });
+          },
+          async close() {
+            throw new FsError("EBADF", { path: "/work/source", message: "secondary close failure" });
+          },
+        });
+      }
+      const value = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const result = await run("cp", ["source", "target"], { fs: view });
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /EIO.*primary read failure/u);
+  assert.doesNotMatch(result.stderr, /secondary close failure/u);
+});

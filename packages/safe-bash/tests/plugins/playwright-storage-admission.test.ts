@@ -54,3 +54,26 @@ test('array descriptor checks preserve rejection of accessors, holes and extra p
   assert.throws(() => parsePlaywrightStorageState({ cookies: new Array(1), origins: [] }), /array/);
   assert.throws(() => parsePlaywrightStorageState({ cookies: Object.assign([], { extra: true }), origins: [] }), /property/);
 });
+
+test("source admission enforces exact UTF-8 serializedBytes against maxBytes while allowing structural overhead", async () => {
+  const { parsePlaywrightStorageStateJson, parsePlaywrightStorageState } = await import("../../src/playwright/storage-state.js");
+  const state = {
+    cookies: [{
+      name: "sid",
+      value: "v".repeat(120),
+      domain: "example.com",
+      path: "/",
+      expires: -1,
+      httpOnly: false,
+      secure: false,
+      sameSite: "Lax" as const,
+    }],
+    origins: [],
+  };
+  const json = JSON.stringify(state);
+  const exactBytes = new TextEncoder().encode(json).byteLength;
+  assert.deepEqual(parsePlaywrightStorageStateJson(json, exactBytes), state);
+  assert.throws(() => parsePlaywrightStorageStateJson(json, exactBytes - 1), /byte limit exceeded/);
+  assert.deepEqual(parsePlaywrightStorageState(state, { maxBytes: exactBytes }), state);
+  assert.throws(() => parsePlaywrightStorageState(state, { maxBytes: exactBytes - 1 }), /byte limit exceeded/);
+});

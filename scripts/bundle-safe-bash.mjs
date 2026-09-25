@@ -159,3 +159,18 @@ export function resolveBrowserShellBuild(rootDir) {
     }],
   };
 }
+
+export async function buildBrowserShellOutputs(rootDir, { alias = {}, external = [], files } = {}) {
+  const esbuild = await import("esbuild");
+  const { publishBundleOutputs } = await import("./publish-bundle.mjs");
+  const options = resolveBrowserShellBuild(rootDir);
+  options.alias = { ...alias, ...options.alias };
+  options.external = [...new Set([...options.external, ...external])];
+  const result = await esbuild.build(options);
+  await publishBundleOutputs(
+    result,
+    { outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: rootDir },
+    files
+  );
+  return result;
+}

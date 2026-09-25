@@ -60,3 +60,20 @@ test("same-device mv still replaces an existing regular file", async () => {
   assert.equal(Buffer.from(await fs.readFile("/b")).toString(), "source");
   await assert.rejects(fs.stat("/a"), { code: "ENOENT" });
 });
+
+test("cross-device mv rejects moving a directory into itself via a symlink ancestor with EINVAL before copying", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/src/sub", { recursive: true });
+  await fs.writeFile("/src/sub/file.txt", Buffer.from("payload"));
+  await fs.symlink("/src/sub", "/link");
+  const originalRename = fs.rename.bind(fs);
+  fs.rename = async (from, to) => {
+    if (from === "/src") throw Object.assign(new Error("EXDEV: cross-device link not permitted"), { code: "EXDEV" });
+    return originalRename(from, to);
+  };
+  const result = await run("mv", ["/src", "/link/into-self"], { fs });
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /EINVAL/u);
+  await assert.rejects(fs.lstat("/src/sub/into-self"), { code: "ENOENT" });
+  assert.equal(Buffer.from(await fs.readFile("/src/sub/file.txt")).toString(), "payload");
+});

@@ -53,7 +53,7 @@ export function parseBrowserProfile(bytes: Uint8Array, limits: BrowserProfileLim
 	}
 	return {
 		...profileSettings(value),
-    state: parsePlaywrightStorageState(value.state, { maxBytes: limits.maxBytes }),
+    state: parsePlaywrightStorageState(value.state, { maxBytes: limits.maxBytes, ...(limits.maxTraversalBytes === undefined ? {} : { maxTraversalBytes: limits.maxTraversalBytes }) }),
 		tabs,
 		selected: value.selected,
     ...('runtimeState' in value ? { runtimeState: value.runtimeState } : {}),
@@ -90,10 +90,10 @@ function timing(value: unknown) {
 	return value;
 }
 
-export interface BrowserProfileLimits { readonly maxBytes: number; readonly maxTabs: number; }
+export interface BrowserProfileLimits { readonly maxBytes: number; readonly maxTabs: number; readonly maxTraversalBytes?: number; }
 
 function validateProfileLimits(limits: BrowserProfileLimits) {
- if (!limits || !Number.isSafeInteger(limits.maxBytes) || limits.maxBytes <= 0 || !Number.isSafeInteger(limits.maxTabs) || limits.maxTabs <= 0) throw new TypeError("Invalid browser profile limits");
+ if (!limits || !Number.isSafeInteger(limits.maxBytes) || limits.maxBytes <= 0 || !Number.isSafeInteger(limits.maxTabs) || limits.maxTabs <= 0 || (limits.maxTraversalBytes !== undefined && (!Number.isSafeInteger(limits.maxTraversalBytes) || limits.maxTraversalBytes <= 0))) throw new TypeError("Invalid browser profile limits");
 }
 
 export function encodeBrowserProfile(profile: BrowserProfile, limits: BrowserProfileLimits): Uint8Array {

@@ -20,15 +20,30 @@ const compiler = createRequire(import.meta.url).resolve("typescript/bin/tsc");
 const historicalCompiler = fileURLToPath(new URL("./historical-type-models.mjs", import.meta.url));
 const compile = (label, compilerArgs) => {
   const result = spawnSync(process.execPath, label === "build" ? compilerArgs : [["source-and-tests", "historical-build-first-consumer"].includes(label) ? historicalCompiler : compiler, ...compilerArgs], { cwd: root, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: 180000, maxBuffer: 32 * 1024 * 1024 });
-  assert.equal(result.error, undefined); assert.equal(result.signal, null);
-  const record = { label, status: result.status, stdout: result.stdout, stderr: result.stderr }; report.phases.push(record);
-  if (!label.startsWith("resolution-")) {
-    console.log(`typecheck: ${label}: exit ${result.status}`);
-    if (result.status === 0 && label === "source-and-tests") process.stdout.write(result.stdout);
-    if (result.status !== 0 && !label.startsWith("negative-")) {
-      process.stdout.write(compilerArgs.includes("--traceResolution") ? result.stdout.split("\n").filter(line => /error TS\d+:/u.test(line)).join("\n") + "\n" : result.stdout);
-      process.stderr.write(result.stderr);
+  const bound = value => {
+    const text = typeof value === "string" ? value : String(value ?? "");
+    return text.length > 65536 ? `${text.slice(0, 65536)}\n...[truncated ${text.length - 65536} chars]\n` : text;
+  };
+  const stdout = bound(result.stdout), stderr = bound(result.stderr);
+  const error = result.error ? { name: result.error.name, message: result.error.message, ...(result.error.code ? { code: result.error.code } : {}) } : null;
+  const abnormal = result.error !== undefined || result.signal !== null || typeof result.status !== "number";
+  const record = { label, status: result.status ?? null, signal: result.signal ?? null, error, stdout, stderr };
+  report.phases.push(record);
+  if (!label.startsWith("resolution-") || abnormal) {
+    const summary = result.signal ? `signal ${result.signal}` : result.error ? `error ${result.error.code ?? result.error.message}` : `exit ${result.status}`;
+    console.log(`typecheck: ${label}: ${summary}`);
+    if (!abnormal && result.status === 0 && label === "source-and-tests") process.stdout.write(stdout);
+    if (abnormal || (result.status !== 0 && !label.startsWith("negative-"))) {
+      if (stdout) process.stdout.write(compilerArgs.includes("--traceResolution") && !abnormal ? stdout.split("\n").filter(line => /error TS\d+:/u.test(line)).join("\n") + "\n" : stdout);
+      if (stderr) process.stderr.write(stderr);
     }
+  }
+  if (abnormal) {
+    throw new Error(`Compiler phase ${label} aborted (${[
+      result.signal ? `signal=${result.signal}` : null,
+      result.status !== null && result.status !== undefined ? `status=${result.status}` : null,
+      result.error ? `error=${result.error.code ?? result.error.message}` : null,
+    ].filter(Boolean).join(", ")})`);
   }
   return record;
 };

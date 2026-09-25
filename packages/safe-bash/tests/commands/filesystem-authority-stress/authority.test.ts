@@ -7,24 +7,29 @@ for (const name of ["cp", "mv"] as const) {
   for (const scoped of [false, "source", true] as const) for (const alias of [false, true]) {
     test(`${name}: scope=${scoped} ${alias ? "alias rejection" : "existing-target transfer admission"}`, async () => {
       const { base, fs, events } = await provider({ scoped, alias });
-      const observed = view(fs, { writeStream: async (target, source, controls) => {
+      const observed = view(fs, { publishStagedFile: async (...args) => {
+        await base.publishStagedFile(...args);
+        events.push("published");
+      }, writeStream: async (target, source, controls) => {
         events.push("stream:start");
         await base.writeStream!(target, source, controls);
         events.push("published");
       } });
-      const allowed = name === "cp" && scoped !== false && !alias;
+      const moved = name === "mv" && scoped === true && !alias;
+      const allowed = (name === "cp" && scoped !== false || moved) && !alias;
       const result = await command(name, ["/source", "/target"], observed);
       assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
       assert.equal(result.stdout, "");
       assert.equal(result.stderr, allowed ? "" : alias
         ? `${name}: EINVAL: source and destination are the same file '/source' -> '/target'\n`
-        : name === "mv" ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/source' -> '/target'\n"
+        : name === "mv" ? scoped === false ? "mv: ENOTSUP: move source lacks authoritative snapshot '/source'\n"
+          : "mv: EAGAIN: move destination changed during resolution capture '/target'\n"
         : "cp: ENOTSUP: copy reader is not bound to the inspected source identity '/source'\n");
       assert.equal(events.filter(event => event.startsWith("compare:")).length, scoped === true ? 0 : 1);
       assert.deepEqual(await bytes(base, "/target"), allowed || alias ? payload : previous);
-      assert.deepEqual(await bytes(base, "/source"), payload);
-      assert.deepEqual(effects(events), allowed ? ["stream:start", "published"] : []);
-      assert.deepEqual((await base.readdir("/")).map(entry => entry.name), ["source", "target"]);
+      assert.deepEqual(await bytes(base, "/source"), moved ? null : payload);
+      assert.deepEqual(effects(events), moved ? ["published", "remove:/source"] : allowed ? ["stream:start", "published"] : []);
+      assert.deepEqual((await base.readdir("/")).map(entry => entry.name), moved ? ["target"] : ["source", "target"]);
     });
   }
 

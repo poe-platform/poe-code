@@ -32,26 +32,19 @@ function peers(scopedSource = false) {
 }
 
 for (const name of ["cp", "mv"] as const) for (const shared of [false, true]) for (const existing of [false, true]) {
-  test(`${name}: cross-mount distinct entries ${name === "mv" && existing ? "refuse unbound overwrite" : "succeed"}, same backend=${shared}, overwrite=${existing}`, async () => {
+  test(`${name}: cross-mount distinct entries transfer safely, same backend=${shared}, overwrite=${existing}`, async () => {
     const left = createMemoryFileSystem(), right = shared ? left : createMemoryFileSystem();
     await left.writeFile("/source", payload);
     if (existing) await right.writeFile("/target", previous);
     const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/left": left, "/right": right } });
-    const before = { left: await left.readdir("/"), right: await right.readdir("/") };
     const result = await command(name, ["/left/source", "/right/target"], fs);
     assert.equal(result.stdout, "");
-    if (name === "mv" && existing) {
-      assert.equal(result.exitCode, 1);
-      assert.equal(result.stderr, "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n");
-      assert.deepEqual(await bytes(left, "/source"), payload);
-      assert.deepEqual(await bytes(right, "/target"), previous);
-      assert.deepEqual({ left: await left.readdir("/"), right: await right.readdir("/") }, before);
-      return;
-    }
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
     assert.deepEqual(await bytes(right, "/target"), payload);
     assert.deepEqual(await bytes(left, "/source"), name === "mv" ? null : payload);
+    assert.deepEqual((await left.readdir("/")).map(entry => entry.name), shared ? name === "mv" ? ["target"] : ["source", "target"] : name === "mv" ? [] : ["source"]);
+    assert.deepEqual((await right.readdir("/")).map(entry => entry.name), shared && name === "cp" ? ["source", "target"] : ["target"]);
   });
 }
 
@@ -71,7 +64,8 @@ for (const name of ["cp", "mv"] as const) for (const alias of [false, true]) for
     assert.equal(result.stderr, allowed ? "" : alias
       ? `${name}: EINVAL: source and destination are the same file '/left/source' -> '/right/target'\n`
       : name === "cp" ? "cp: ENOTSUP: copy reader is not bound to the inspected source identity '/left/source'\n"
-      : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n");
+      : scopedSource ? "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/right/target'\n"
+        : "mv: ENOTSUP: move source lacks authoritative snapshot '/left/source'\n");
     assert.deepEqual(queries, ["left", "right"], "transfer admission uses the first authoritative comparison");
     assert.deepEqual(await bytes(base, "/target"), allowed || alias ? payload : previous);
     assert.deepEqual(await bytes(base, "/source"), payload);

@@ -263,7 +263,7 @@ for (const [name, limits, messages] of [
 test('handle enumeration bursts wait for native capacity without closing the browser', context => {
   context.mock.timers.enable({ apis: ['setTimeout'] });
   const timers = context.mock.method(globalThis, 'setTimeout');
-  const state = fixture();
+  const state = fixture({ maxPendingCommands: 1024 });
   try {
     for (let id = 1; id <= 2001; id++) state.transport.send({ id, method: 'Runtime.getProperties', sessionId: 'public' });
     assert.equal(state.sent.length, 1024);

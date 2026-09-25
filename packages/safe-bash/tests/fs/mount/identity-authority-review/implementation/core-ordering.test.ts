@@ -66,7 +66,10 @@ for (const publication of ["success", "partial-failure", "unknown"] as const) {
     if (existing) await base.writeFile("/target", bytes("target sentinel"));
     await base.writeFile("/keep", bytes("keep sentinel"));
     const events: string[] = [];
+    const capabilities = { ...base.capabilities, atomicStagingAncestry: false };
     const filesystem = wrapped(base, {
+      capabilities,
+      capabilitiesFor: async () => capabilities,
       rename: async () => { events.push("EXDEV"); throw new FsError("EXDEV"); },
       copyFile: async () => { assert.fail("move must not fall back to pathname copying"); },
       writeStream: async (target, source, options) => {
@@ -80,10 +83,12 @@ for (const publication of ["success", "partial-failure", "unknown"] as const) {
         await base.writeStream(target, source, options);
         events.push("copy:complete");
       },
-      removeEntryConditional: async (path, options) => {
-        events.push(`remove:${path}`);
-        return base.removeEntryConditional(path, options);
-      },
+      removeEntryConditional: new Proxy(base.removeEntryConditional.bind(base), {
+        apply(remove, receiver, args) {
+          events.push(`remove:${args[0]}`);
+          return Reflect.apply(remove, receiver, args);
+        },
+      }),
       rm: async () => { assert.fail("move must remove the bound source conditionally"); },
     });
     const result = await run("mv", ["/source", "/target"], publication === "unknown" ? opaque(filesystem) : filesystem);
@@ -93,7 +98,7 @@ for (const publication of ["success", "partial-failure", "unknown"] as const) {
       assert.equal(result.stderr, publication === "unknown"
         ? existing ? "mv: ENOTSUP: existing move destination lacks authoritative distinctness '/source' -> '/target'\n"
           : "mv: ENOTSUP: copy reader is not bound to the inspected source identity '/source'\n"
-        : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/source' -> '/target'\n");
+        : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/target'\n");
       assert.deepEqual(events, ["EXDEV"]);
       assert.deepEqual(await base.readFile("/source"), bytes("source sentinel"));
       if (existing) assert.deepEqual(await base.readFile("/target"), bytes("target sentinel"));

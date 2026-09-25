@@ -17,15 +17,10 @@ for (const existing of [false, true]) test(`cross-mount move without backend ren
   const definition = filesystemCommands().find(command => command.name === "mv")!;
   assert.equal(evaluateCommandSupport(definition, fs.capabilities).status, "partial");
   const result = await run("mv", ["/source/work/source", "/target/work/target"], { fs });
-  assert.equal(result.exitCode, existing ? 1 : 0, result.stderr);
-  assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), existing ? "previous" : "payload");
-  if (existing) {
-    assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
-    assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
-  } else {
-    assert.equal(result.stderr, "");
-    await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
-  }
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), "payload");
+  assert.equal(result.stderr, "");
+  await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
 });
 
 test("cross-mount move admits source removal and destination publication before content effects", async () => {
@@ -46,7 +41,7 @@ test("cross-mount move admits source removal and destination publication before 
   }
 });
 
-test("cross-mount streaming transfers preserve overwrite refusal without native copy modes", async () => {
+test("cross-mount transfers use streaming or staging without native copy modes", async () => {
   for (const command of ["cp", "mv"]) for (const missing of [false, true]) {
     const source = await fixture({ source: "payload" });
     const target = await fixture(missing ? {} : { target: "previous" });
@@ -61,13 +56,11 @@ test("cross-mount streaming transfers preserve overwrite refusal without native 
     await fs.copyFile("/source/work/source", "/target/work/proof", { exclusive: true });
     assert.equal(new TextDecoder().decode(await target.readFile("/work/proof")), "payload");
     const result = await run(command, ["/source/work/source", "/target/work/target"], { fs });
-    const refused = command === "mv" && !missing;
-    assert.equal(result.exitCode, refused ? 1 : 0, `${command} missing=${missing}: ${result.stderr}`);
-    if (refused) assert.equal(result.stderr, "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/source/work/source' -> '/target/work/target'\n");
-    else assert.equal(result.stderr, "");
-    assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), refused ? "previous" : "payload");
+    assert.equal(result.exitCode, 0, `${command} missing=${missing}: ${result.stderr}`);
+    assert.equal(result.stderr, "");
+    assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), "payload");
     assert.equal(nativeCopies, 0);
-    if (command === "mv" && !refused) await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
+    if (command === "mv") await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
     else assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
     assert.deepEqual((await target.readdir("/work")).map(entry => entry.name), ["proof", "target"]);
   }

@@ -167,8 +167,9 @@ for (const kind of ["s3", "webdav"] as const) {
           context.after(() => shell.dispose());
           const result = await shell.exec(`${action} ${sourcePath} ${targetPath}`);
           assert.equal(result.exitCode, refused ? 1 : 0, result.stderr);
-          if (action === "mv") assert.equal(result.stderr,
-            `mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '${sourcePath}' -> '${targetPath}'\n`);
+          if (action === "mv") assert.equal(result.stderr, direction === "to-remote"
+            ? `mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '${targetPath}'\n`
+            : `mv: ENOTSUP: move source lacks authoritative snapshot '${sourcePath}'\n`);
           else if (refused) assert.equal(result.stderr, `cp: ENOTSUP: copy requires retained reads '${sourcePath}'\n`);
           else assert.equal(result.stderr, "");
         }

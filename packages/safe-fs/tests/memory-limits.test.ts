@@ -268,17 +268,25 @@ test("factory remains a validated generic filesystem factory without dropping op
 test("failed native growth refunds reservations without publishing a file or changing its parent", async () => {
   const clock = vi.spyOn(Date, "now").mockReturnValue(100);
   const filesystem = new memory.MemoryFileSystem({ maxRetainedBytes: 8, maxMetadataUnits: 3 });
-  const internal = filesystem as unknown as { allocate(length: number, syscall: string, path: string): unknown };
-  const allocate = internal.allocate.bind(filesystem);
-  const allocations = vi.spyOn(internal, "allocate")
-    .mockImplementationOnce(allocate)
-    .mockImplementationOnce(() => { throw new FsError("EFBIG"); });
+  const input = bytes(1);
+  const NativeUint8Array = globalThis.Uint8Array;
+  let failedAllocations = 0;
+  globalThis.Uint8Array = new Proxy(NativeUint8Array, {
+    construct(target, argumentsList, newTarget) {
+      if (typeof argumentsList[0] === "number" && argumentsList[0] > 0) {
+        failedAllocations++;
+        throw new RangeError("injected native allocation failure");
+      }
+      return Reflect.construct(target, argumentsList, newTarget);
+    },
+  });
   try {
     clock.mockReturnValue(200);
-    await assert.rejects(filesystem.appendFile("/f", bytes(1)), code("EFBIG"));
+    await assert.rejects(filesystem.appendFile("/f", input), code("EFBIG"));
+    assert.equal(failedAllocations, 1);
     assert.deepEqual(await filesystem.readdir("/"), []);
     assert.equal((await filesystem.stat("/")).mtimeMs, 100);
-  } finally { allocations.mockRestore(); clock.mockRestore(); }
+  } finally { globalThis.Uint8Array = NativeUint8Array; clock.mockRestore(); }
   await filesystem.writeFile("/f", bytes(6));
 });
 

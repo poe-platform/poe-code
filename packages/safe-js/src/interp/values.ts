@@ -90,7 +90,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype, trackedPropertyDataDescriptors, trackedPropertyStringData, trackedPropertySymbols, trackedArrayElementData } from "./object-model.js";
+import { hasPropertyBrand, getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype, trackedPropertyDataDescriptors, trackedPropertyStringData, trackedPropertySymbols, trackedArrayElementData } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
 import { dynamicSourceRecords, dynamicValueSources, type DynamicSource } from "../parse/function-source.js";
 import {
@@ -708,19 +708,19 @@ export function recompileSandboxRegex(regex: SandboxRegex, source: string, flags
 }
 
 export function isSandboxClosure(value: unknown): value is SandboxClosure {
-  return typeof value === "object" && value !== null && sandboxClosureBrand in value;
+  return typeof value === "object" && value !== null && hasPropertyBrand(value, sandboxClosureBrand);
 }
 
 export function isSandboxPromise(value: unknown): value is SandboxPromise {
-  return typeof value === "object" && value !== null && sandboxPromiseBrand in value;
+  return typeof value === "object" && value !== null && hasPropertyBrand(value, sandboxPromiseBrand);
 }
 
 export function isSandboxGenerator(value: unknown): value is SandboxGenerator {
-  return typeof value === "object" && value !== null && sandboxGeneratorBrand in value;
+  return typeof value === "object" && value !== null && hasPropertyBrand(value, sandboxGeneratorBrand);
 }
 
 export function isSandboxRegex(value: unknown): value is SandboxRegex {
-  return typeof value === "object" && value !== null && sandboxRegexBrand in value;
+  return typeof value === "object" && value !== null && hasPropertyBrand(value, sandboxRegexBrand);
 }
 
 export function deepCopyToSandbox(value: unknown, options: { compilation?: CompileScope } = {}): SandboxValue {

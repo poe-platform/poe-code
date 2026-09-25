@@ -1,6 +1,7 @@
 import { createTrackedProxy } from "../platform/types.js";
 import type { SandboxObject, SandboxValue } from "./values.js";
 import { internalSymbols } from "./internal-symbols.js";
+import { hasOwnPropertyBrand } from "./object-model.js";
 import type { Scope } from "./scope.js";
 import { runDataCopy, type DataCopyOperation } from "./data-copy.js";
 
@@ -81,7 +82,7 @@ export function createSandboxArguments(values: readonly SandboxValue[], unrestri
 }
 
 export function isSandboxArguments(value: unknown): value is SandboxArguments {
-  return typeof value === "object" && value !== null && Object.hasOwn(value, sandboxArgumentsBrand);
+  return typeof value === "object" && value !== null && hasOwnPropertyBrand(value, sandboxArgumentsBrand);
 }
 
 export function getSandboxArgumentEntries(value: SandboxObject): Array<[string, SandboxValue]> {

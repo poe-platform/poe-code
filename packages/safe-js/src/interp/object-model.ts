@@ -79,6 +79,7 @@ const nativePropertyDefineOne = Object.defineProperty;
 const nativePropertyNames = Object.getOwnPropertyNames;
 const nativePropertySymbols = Object.getOwnPropertySymbols;
 const nativePropertyHasOwn = Object.hasOwn;
+const nativePropertyApply = Reflect.apply;
 const nativePropertyDescriptor = Object.getOwnPropertyDescriptor;
 const nativePropertyDescriptors = Object.getOwnPropertyDescriptors;
 const nativePropertyPrototype = Object.getPrototypeOf;
@@ -131,6 +132,25 @@ export function registerGuestClosure(closure: SandboxClosure): void {
 
 export function isGuestClosure(value: unknown): value is SandboxClosure {
   return typeof value === "object" && value !== null && guestClosures.has(value);
+}
+
+// Owned property proxies have no has or descriptor traps. Query their private
+// backing directly, preserving fresh prototypes and any inherited proxy traps.
+// Return only presence; callers and native hooks must never receive the backing.
+export function hasPropertyBrand(value: object, brand: symbol): boolean {
+  const state = nativePropertyDataGet(value);
+  return brand in (state === undefined ? value : state.backing);
+}
+
+export function hasOwnPropertyBrand(value: object, brand: symbol): boolean {
+  const object = Object;
+  const hasOwn = object.hasOwn;
+  // Preserve the observable receiver and this binding of replaced native hooks.
+  // A getter supplying this method is read once before any presence query.
+  if (hasOwn !== nativePropertyHasOwn)
+    return nativePropertyApply(hasOwn, object, [value, brand]);
+  const state = nativePropertyDataGet(value);
+  return nativePropertyHasOwn(state === undefined ? value : state.backing, brand);
 }
 
 // Only SDK-owned, revision-tracked tables qualify. Restored tables and foreign

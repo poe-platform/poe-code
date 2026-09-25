@@ -437,7 +437,7 @@ inspect the resulting state before repeating the action.
               }
               if (count >= maxCount && remainingAfter === 0) return false;
             }
-            if (lineBuffered) await flushOut();
+            await flushOut();
             return true;
           };
           if (maxCount > 0) await forEachGrepLineBatch(source, parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity, () => batchSize, extractMatches, batch => {
@@ -482,6 +482,9 @@ inspect the resulting state before repeating the action.
               number--;
               nextOffset = byteOffset;
               return processBatchSlow(batch, undefined, index, results);
+            }
+            if (outUsed > 0) {
+              return flushOut().then(() => true);
             }
             return true;
           });

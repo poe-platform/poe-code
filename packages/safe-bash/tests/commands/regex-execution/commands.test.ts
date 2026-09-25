@@ -106,6 +106,23 @@ for (const tool of ["grep", "rg"] as const) {
       assert(rowCounts.includes(1));
     } finally { Worker.prototype.postMessage = original; }
   });
+  test(`${tool} -F batches available rows without reading a feedback-dependent chunk`, { timeout: 5000 }, async () => {
+    const definition = command(tool);
+    let reads = 0;
+    let closed = 0;
+    let writes = 0;
+    const source = (async function* () {
+      try {
+        reads++; yield Buffer.from("a\na\na\n");
+        assert(writes > 0, "source was read speculatively");
+        reads++; yield Buffer.from("a\n");
+      } finally { closed++; }
+    })();
+    const result = await run(definition, ["-F", "a", "-"], source, { stdout: { async write() { writes++; await delay(1); } } });
+    assert.equal(result.code, 0);
+    assert.equal(reads, 2);
+    assert.equal(closed, 1);
+  });
   test(`${tool} releases request capacity before paused sink`, { timeout: 5000 }, async () => {
     const definition = command(tool, { maxWorkers: 1, maxQueuedRequests: 0 });
     let resume!: () => void;

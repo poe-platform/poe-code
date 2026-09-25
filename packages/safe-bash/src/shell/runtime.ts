@@ -3512,6 +3512,7 @@ export class Runtime {
       if (
         !assignment ||
         assignment.append ||
+        assignment.name === "OPTIND" ||
         assignment.name.includes("[") ||
         rawState.readonlyVariables?.has(assignment.name) ||
         store.get(assignment.name)
@@ -3534,7 +3535,6 @@ export class Runtime {
       rawState.substitutionStatus = 0;
       publishVariable(tracked, assignment.name, fastAssigned);
       if (rawState.allexport) tracked.exported.add(assignment.name);
-      if (assignment.name === "OPTIND") this.syncGetopts(tracked);
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       elem0.text.shellValue = "0";
       const psTickets = owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -4108,6 +4108,7 @@ export class Runtime {
         if (
           assignment &&
           !assignment.append &&
+          assignment.name !== "OPTIND" &&
           !assignment.name.includes("[") &&
           !state.readonlyVariables?.has(assignment.name) &&
           !arrayStore(state)?.get(assignment.name)
@@ -4123,7 +4124,6 @@ export class Runtime {
             state.substitutionStatus = 0;
             publishVariable(state, assignment.name, fastAssigned);
             if (state.allexport) state.exported.add(assignment.name);
-            if (assignment.name === "OPTIND") this.syncGetopts(state);
             if (originalIO.assignmentDiagnosticContext) originalIO.assignmentDiagnosticContext.name = undefined;
             return 0;
           }
@@ -4414,6 +4414,7 @@ export class Runtime {
           const bodyIgnoreErrexit = Boolean(io.execution?.ignoreErrexit);
           const canFastAssignLoopVar =
             isShellIdentifier(command.name) &&
+            command.name !== "OPTIND" &&
             !command.name.includes("[") &&
             !state.readonlyVariables?.has(command.name) &&
             !state.variableAttributes?.size &&
@@ -4425,7 +4426,6 @@ export class Runtime {
             if (canFastAssignLoopVar && !state.readonlyVariables?.has(command.name) && !arrayStore(state)?.get(command.name)) {
               publishVariable(state, command.name, value);
               if (state.allexport) state.exported.add(command.name);
-              if (command.name === "OPTIND") this.syncGetopts(state);
             } else {
               await this.assignVariable(state, command.name, value, io);
             }

@@ -7,6 +7,33 @@ import { setup } from "./helpers.js";
 
 const parseLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxParseUnits";
 
+for (const source of [
+  'OPTIND="$expression"',
+  'getopts a option; OPTIND="$expression"',
+  'if :; then OPTIND="$expression"; fi',
+  'for OPTIND in "$expression"; do :; done',
+]) {
+  test(`OPTIND assignments preserve integer evaluation: ${source}`, async () => {
+    const { shell } = setup({ env: { expression: "1+1" } });
+    try {
+      const result = await shell.exec(`${source}; say "$OPTIND"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "2\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("unsetting OPTIND removes implicit integer evaluation", async () => {
+  const { shell } = setup({ env: { expression: "1+1" } });
+  try {
+    const result = await shell.exec('unset OPTIND; OPTIND="$expression"; say "$OPTIND"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "1+1\n");
+  } finally { await shell.dispose(); }
+});
+
 test("shell execution enforces parse admission before command effects", async () => {
   const { shell } = setup();
   let writes = 0;
@@ -26,6 +53,8 @@ for (const source of [
   'say "$(eval \'say $((expression))\')"',
   'pass <<END\n$((expression))\nEND\n',
   'getopts a option; OPTIND="$expression"',
+  'if :; then OPTIND="$expression"; fi',
+  'for OPTIND in "$expression"; do :; done',
   'set -- "$expression"; say "$(($1))"',
 ]) {
   test(`runtime reparses share admission: ${source}`, async () => {
@@ -112,6 +141,10 @@ test("runtime indexed-unset admission is not translated to a subscript diagnosti
   const { shell } = setup();
   try {
     await assert.rejects(shell.exec(source, { limits: { maxParseUnits: required } }), parseLimit);
-    assert.equal((await shell.exec(source, { limits: { maxParseUnits: required + 1 } })).exitCode, 0);
+    // The runtime parses the subscript as both a word and arithmetic. A
+    // source-only allowance plus one unit does not cover those reparses.
+    const admitted = await shell.exec(source, { limits: { maxParseUnits: 256 } });
+    assert.equal(admitted.exitCode, 0);
+    assert.equal(admitted.stderr, "");
   } finally { await shell.dispose(); }
 });

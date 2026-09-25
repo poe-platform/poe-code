@@ -241,4 +241,9 @@ test("sed handles bracket backslashes, leading ], repeated inner captures, and e
   assert.equal((await runVirtual("sed", { args: ["-E", "s/((a)|b)+/\\2/"], stdin: "ab\n" })).stdout.toString(), "\n");
   assert.equal((await runVirtual("sed", { args: ["-E", "s/((a)|b)+\\2/X/"], stdin: "aba\n" })).stdout.toString(), "aba\n");
   assert.equal((await runVirtual("sed", { args: ["sn\\nnXn"], stdin: "anb\n" })).stdout.toString(), "aXb\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[/]/_/g"], stdin: "a/b/c\n" })).stdout.toString(), "a_b_c\n");
+  assert.equal((await runVirtual("sed", { args: ["-n", "/[/]/p"], stdin: "a/b\ncd\n" })).stdout.toString(), "a/b\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[\\d]/_/g"], stdin: "a\\bd\n" })).stdout.toString(), "a_b_\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[d\\]/_/g"], stdin: "a\\bd\n" })).stdout.toString(), "a_b_\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[]\\(]/_/g"], stdin: "a\\b(c]d\n" })).stdout.toString(), "a_b_c_d\n");
 });

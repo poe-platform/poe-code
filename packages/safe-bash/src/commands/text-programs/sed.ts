@@ -44,6 +44,11 @@ async function parse(source: string, extended: boolean, separator: string, maxPr
       const character = source[offset++]!;
       if (character === delimiter && !bracket) return text;
       if (character === "\\") {
+        if (bracket && source[offset] !== delimiter && source[offset] !== "\n") {
+          text += "\\";
+          first = 0;
+          continue;
+        }
         const next = source[offset++];
         if (next === undefined) break;
         text += next === "\n"

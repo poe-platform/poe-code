@@ -1,3 +1,7 @@
+import shellToolsExample from '../../docs/examples/shell-tools.py';
+import singleCallExample from '../../docs/examples/llm-single.py';
+import streamingExample from '../../docs/examples/llm-stream.py';
+import { qualifyPythonLlm } from 'python-consumer-qualification';
 import { loadPyodide } from 'pinned-pyodide-loader';
 import createPyodideModule from 'pinned-pyodide-module';
 import lockFileContents from 'pinned-pyodide-lock';
@@ -195,7 +199,14 @@ with open('/work/cancel', 'rb') as source:
 `;
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
+    if (env?.QUALIFICATION_TOKEN) {
+      if (request.method !== 'POST' || request.headers.get('Authorization') !== 'Bearer ' + env.QUALIFICATION_TOKEN || Date.now() >= Number(env.QUALIFICATION_EXPIRES_AT)) return new Response('Unauthorized',{status:403});
+      if (new URL(request.url).pathname === '/cleanup') {
+        const listing = await env.SCRATCH.list({limit:1});
+        return Response.json({empty:listing.objects.length === 0 && !listing.truncated});
+      }
+    }
     const mode = new URL(request.url).pathname;
     if (mode === '/unhandled-errors') {
       await new Promise(resolve => setTimeout(resolve, 0));
@@ -245,16 +256,23 @@ export default {
       memory = runtime._module.HEAPU8.byteLength;
       if (mode === '/proxy') retainedProxy = runtime.globals;
       runtime._api.on_fatal = error => failures.push('fatal: ' + String(error));
+      if (mode !== '/consumer') {
       runtime.globals.set('_record_finalization_failure', message => failures.push(String(message)));
       runtime.globals.set('_record_late_callback', () => callbacks.push('late'));
       runtime.globals.set('_record_finalization_called', () => finalizations.push('atexit'));
       runtime.runPython('import builtins; builtins._record_finalization_failure = _record_finalization_failure; builtins._record_late_callback = _record_late_callback; builtins._record_finalization_called = _record_finalization_called');
+      }
       if (mode === '/startup-cancel') {
         runtime.runPython('import atexit; atexit.register(_record_finalization_called)');
         controller.abort(new Error('startup cancelled'));
       }
       return runtime;
     } });
+    if (mode === '/consumer') {
+      try {const qualification = await qualifyPythonLlm(createExecutor); return Response.json({...qualification,failures,callbacks});}
+      catch (error) {return Response.json({error:String(error),failures},{status:500});}
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/shell') {
       try { return Response.json({...await qualifyShells(backend, createExecutor), failures, finalizations}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
@@ -275,9 +293,16 @@ export default {
       };
       const requests = [];
       let llmRetired = 0;
+      let taskAborted = 0;
       const service = createLlmService({defaultModel:'short',providers:[{name:'qualified',models:[{id:'model',aliases:['short'],attachmentTypes:['text/plain']}],async *complete(request) {
         requests.push({model:request.model,prompt:request.prompt,options:request.options,attachment:request.attachments.map(value => new TextDecoder().decode(value.bytes))});
-        try { yield 'first'; yield 'second'; } finally { llmRetired++; }
+        try {
+          if (request.prompt === 'cancel-task') await new Promise(resolve => {
+            const timer = setTimeout(resolve, 1000);
+            request.signal.addEventListener('abort', () => {taskAborted++; clearTimeout(timer); resolve();}, {once:true});
+          });
+          yield 'first'; yield 'second';
+        } finally { llmRetired++; }
       }}]});
       const capabilities = context => {
         const shell = createPythonShellCapability(context);
@@ -334,6 +359,7 @@ except subprocess.CalledProcessError as error:
 else:
  raise AssertionError('missing nonzero-status error')
 async def main():
+ import asyncio
  async with LlmClient(model='short',options={'temperature':0.2,'store':False}) as llm:
   models = await llm.models()
   assert models[0].id == 'model'
@@ -347,6 +373,13 @@ async def main():
    async for event in stream:
     assert event.text == 'first'
     break
+  task = asyncio.create_task(llm.complete('cancel-task'))
+  await asyncio.sleep(0.01)
+  task.cancel()
+  try:
+   await task
+  except asyncio.CancelledError:
+   pass
  async with Client() as client:
   try:
    await client.run(['echo','overflow'],max_output_bytes=1)
@@ -363,7 +396,12 @@ print('shell-ok')
 `));
       try {
         const result = await shell.exec('python /work/shell.py');
-        if (requests.length !== 3 || llmRetired !== 3 || requests[0]?.options.temperature !== 0.2 || requests[0]?.options.store !== false || !requests[0]?.attachment[0]?.includes('TODO')) failures.push('LLM qualification or cleanup mismatch: ' + JSON.stringify({requests,llmRetired}));
+        if (taskAborted !== 1 || requests.length !== 4 || llmRetired !== 4 || requests[0]?.options.temperature !== 0.2 || requests[0]?.options.store !== false || !requests[0]?.attachment[0]?.includes('TODO')) failures.push('LLM qualification or cleanup mismatch: ' + JSON.stringify({requests,llmRetired,taskAborted}));
+        for (const [name,source,expected] of [['single',singleCallExample,'firstsecond\n'],['stream',streamingExample,'firstsecond'],['shell',shellToolsExample,'shell-example-ok\n']]) {
+          await backend.writeFile('/work/example-' + name + '.py',new TextEncoder().encode(source));
+          const example = await shell.exec('python /work/example-' + name + '.py');
+          if (example.exitCode !== 0 || example.stdout !== expected || example.stderr) failures.push('Shipped Python example failed: ' + name + ': ' + JSON.stringify(example));
+        }
         return Response.json({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr,failures,callbacks,ticks});
       } finally { await shell.dispose(); clearInterval(timer); await filesystem.close(); }
     }

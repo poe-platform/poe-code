@@ -1,0 +1,88 @@
+name: Qualify hosted Python LLM consumer
+on:
+  workflow_call:
+    inputs:
+      source_revision:
+        required: true
+        type: string
+      consumer_revision:
+        required: true
+        type: string
+    secrets:
+      CLOUDFLARE_ACCOUNT_ID:
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        required: true
+permissions:
+  contents: read
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    defaults:
+      run:
+        working-directory: poe-code
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: poe-platform/poe-code
+          ref: ${{ inputs.source_revision }}
+          path: poe-code
+          persist-credentials: false
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ inputs.consumer_revision }}
+          path: consumer
+          persist-credentials: false
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - name: Verify exact source identities
+        env:
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+          CONSUMER_REVISION: ${{ inputs.consumer_revision }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_REVISION"
+          test "$(git -C ../consumer rev-parse HEAD)" = "$CONSUMER_REVISION"
+      - run: npm clean-install
+      - name: Build and independently install candidate public packages
+        run: |
+          npm run build:workspaces -- --workspace=@poe-platform/safe-bash --workspace=@poe-code/safe-js
+          node scripts/package-safe.mjs --out-dir out/python-llm/packages --version 0.0.0-python-llm-qualification
+          mkdir -p out/python-llm/tarballs out/python-llm/public-consumer out/python-llm/tooling out/python-llm/runtime
+          for package in safe-bash safe-fs safe-js; do
+            npm pack "./out/python-llm/packages/$package" --pack-destination "$PWD/out/python-llm/tarballs"
+          done
+          npm install --prefix out/python-llm/public-consumer --ignore-scripts --no-audit --no-fund --legacy-peer-deps "$PWD"/out/python-llm/tarballs/*.tgz
+          npm install --prefix out/python-llm/tooling --ignore-scripts --no-audit --no-fund miniflare@5.20260917.0-alpha workerd@1.20260917.1 pyodide@314.0.6
+          cd ../consumer
+          bun install --filter ai-app --filter @lib/agent-tool-shell-host --filter agent-tool-service --ignore-scripts
+      - name: Qualify real Python with consumer transport and export authenticated modules
+        env:
+          TMPDIR: ${{ github.workspace }}/poe-code/out/python-llm/runtime
+          SAFE_BASH_CF_RUNTIME_ROOT: ${{ github.workspace }}/poe-code/out/python-llm/tooling
+          SAFE_BASH_PYTHON_RUNTIME_ROOT: ${{ github.workspace }}/poe-code/out/python-llm/tooling/node_modules/pyodide
+          SAFE_BASH_PYTHON_CONSUMER_ROOT: ${{ github.workspace }}/poe-code/out/python-llm/public-consumer
+          SAFE_BASH_PYTHON_HOSTED_CONSUMER: ${{ github.workspace }}/consumer/projects/agent-tool-service/qualification/python-llm.ts
+          SAFE_BASH_PYTHON_HOSTED_CONSUMER_REVISION: ${{ inputs.consumer_revision }}
+          SAFE_BASH_PYTHON_ASSET_DIR: ${{ github.workspace }}/poe-code/out/python-llm/exported
+        run: node --import tsx --test packages/safe-bash/tests/integration/python-jspi.test.mjs
+      - name: Qualify hosted consumer then retire owned Worker and scratch bucket
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+        run: node packages/safe-bash/tests/integration/python-llm-hosted-cli.mjs --artifacts out/python-llm/exported --receipt out/python-llm/hosted-receipt.json --source-revision "$SOURCE_REVISION" --run-id "$GITHUB_RUN_ID"
+      - uses: actions/upload-artifact@v7.0.1
+        if: ${{ always() }}
+        with:
+          name: python-llm-${{ inputs.source_revision }}-${{ github.run_id }}
+          path: |
+            poe-code/out/python-llm/hosted-receipt.json
+            poe-code/out/python-llm/exported/manifest.json
+          if-no-files-found: warn
+          retention-days: 7

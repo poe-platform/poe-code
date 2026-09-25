@@ -1880,4 +1880,62 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(Buffer.isBuffer(pngObj.data)).toBe(true);
     expect(pngObj.data.toString("hex").slice(0, 8)).toBe("89504e47");
   });
+  it("supports sharp([img1, img2], { join }) arrayjoin, sharp.align, create.pageHeight/noise, and constructor autoOrient (#100)", async () => {
+    expect((sharp as any).align).toEqual({
+      left: "low",
+      top: "low",
+      low: "low",
+      center: "centre",
+      centre: "centre",
+      right: "high",
+      bottom: "high",
+      high: "high"
+    });
+
+    const red = await sharp({ create: { width: 1, height: 1, channels: 3, background: { r: 255, g: 0, b: 0 } } }).png().toBuffer();
+    const green = await sharp({ create: { width: 3, height: 3, channels: 3, background: { r: 0, g: 255, b: 0 } } }).png().toBuffer();
+    const joined = await (sharp as any)([red, green], {
+      join: { across: 2, shim: 1, background: { r: 10, g: 20, b: 30 }, halign: "centre", valign: "centre" }
+    }).raw().toBuffer({ resolveWithObject: true });
+    expect(joined.info.width).toBe(7);
+    expect(joined.info.height).toBe(3);
+    // red is centered at (1, 1) inside left 3x3 cell; (0, 0) is background (10, 20, 30)
+    expect(Array.from(joined.data.subarray(0, 3))).toEqual([10, 20, 30]);
+    const centerIdx = (1 * 7 + 1) * 3;
+    expect(Array.from(joined.data.subarray(centerIdx, centerIdx + 3))).toEqual([255, 0, 0]);
+
+    // Animated join
+    const blue = await sharp({ create: { width: 2, height: 2, channels: 3, background: { r: 0, g: 0, b: 255 } } }).png().toBuffer();
+    const red2 = await sharp({ create: { width: 2, height: 2, channels: 3, background: { r: 255, g: 0, b: 0 } } }).png().toBuffer();
+    const animJoin = await (sharp as any)([red2, blue], { join: { animated: true } }).gif().toBuffer();
+    const animMeta = await sharp(animJoin, { animated: true }).metadata();
+    expect(animMeta.pages).toBe(2);
+    expect(animMeta.pageHeight).toBe(2);
+
+    // create.pageHeight + create.noise
+    const noisy = sharp({
+      create: {
+        width: 16,
+        height: 32,
+        pageHeight: 16,
+        channels: 3,
+        background: { r: 10, g: 20, b: 30 },
+        noise: { type: "gaussian", mean: 100, sigma: 20 }
+      } as any
+    });
+    const noisyMeta = await noisy.metadata();
+    expect(noisyMeta.pages).toBe(2);
+    expect(noisyMeta.pageHeight).toBe(16);
+    const noisyStats = await noisy.stats();
+    expect(noisyStats.channels[0]!.stdev).toBeGreaterThan(5);
+
+    // constructor autoOrient: true
+    const orientedJpeg = await sharp({ create: { width: 4, height: 2, channels: 3, background: { r: 200, g: 100, b: 50 } } })
+      .withMetadata({ orientation: 6 })
+      .jpeg()
+      .toBuffer();
+    const autoOriented = await sharp(orientedJpeg, { autoOrient: true } as any).raw().toBuffer({ resolveWithObject: true });
+    expect(autoOriented.info.width).toBe(2);
+    expect(autoOriented.info.height).toBe(4);
+  });
 });

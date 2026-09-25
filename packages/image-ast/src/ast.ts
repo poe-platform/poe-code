@@ -216,6 +216,7 @@ export interface SharpInputOptions {
   readonly page?: number;
   readonly pages?: number;
   readonly animated?: boolean;
+  readonly autoOrient?: boolean;
   readonly limitInputPixels?: number | false;
   readonly failOn?: "none" | "truncated" | "error" | "warning";
   readonly raw?: {
@@ -229,8 +230,22 @@ export interface SharpInputOptions {
   readonly create?: {
     readonly width: number;
     readonly height: number;
-    readonly channels: 3 | 4;
-    readonly background: ColorInput;
+    readonly channels: 1 | 2 | 3 | 4;
+    readonly pageHeight?: number;
+    readonly background?: ColorInput;
+    readonly noise?: {
+      readonly type?: "gaussian";
+      readonly mean?: number;
+      readonly sigma?: number;
+    };
+  };
+  readonly join?: {
+    readonly across?: number;
+    readonly shim?: number;
+    readonly background?: ColorInput;
+    readonly halign?: string;
+    readonly valign?: string;
+    readonly animated?: boolean;
   };
 }
 

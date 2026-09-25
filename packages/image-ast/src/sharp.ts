@@ -61,33 +61,126 @@ function toBytes(input: Uint8Array | ArrayBuffer | string | undefined): Uint8Arr
 
 export class SharpInstance {
   private readonly inputBytes: Uint8Array | undefined;
+  private readonly joinInputs: readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[] | undefined;
   private readonly inputOptions: SharpInputOptions | undefined;
   private readonly nodes: ImageAstNode[] = [];
   private outputOptions: OutputEncodeOptions = {};
 
   constructor(
-    input?: Uint8Array | ArrayBuffer | string | SharpInputOptions,
+    input?: Uint8Array | ArrayBuffer | string | SharpInputOptions | readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[],
     options?: SharpInputOptions
   ) {
-    if (
+    if (Array.isArray(input)) {
+      if (input.length < 2) {
+        throw new Error("Expected at least two images to join");
+      }
+      this.inputBytes = undefined;
+      this.joinInputs = input;
+      this.inputOptions = options;
+    } else if (
       input &&
       typeof input === "object" &&
       !(input instanceof Uint8Array) &&
       !(input instanceof ArrayBuffer)
     ) {
       this.inputBytes = undefined;
-      this.inputOptions = input;
+      this.joinInputs = undefined;
+      this.inputOptions = input as SharpInputOptions;
     } else {
       this.inputBytes = toBytes(input as Uint8Array | ArrayBuffer | string | undefined);
+      this.joinInputs = undefined;
       this.inputOptions = options;
+    }
+    if (this.inputOptions?.autoOrient) {
+      this.nodes.push({ kind: "autoOrient" });
     }
   }
 
   clone(): SharpInstance {
-    const copy = new SharpInstance(this.inputBytes, this.inputOptions);
+    const copy = new SharpInstance(this.joinInputs ?? this.inputBytes, this.inputOptions);
+    copy.nodes.length = 0;
     copy.nodes.push(...this.nodes);
     copy.outputOptions = { ...this.outputOptions };
     return copy;
+  }
+
+  private decodeInitialImage(): RgbaImage {
+    if (!this.joinInputs) {
+      return decodeImage(this.inputBytes, this.inputOptions);
+    }
+    const imgs = this.joinInputs.map(item => {
+      if (item && typeof item === "object" && !(item instanceof Uint8Array) && !(item instanceof ArrayBuffer)) {
+        return decodeImage(undefined, item as SharpInputOptions);
+      }
+      return decodeImage(toBytes(item as Uint8Array | ArrayBuffer | string | undefined), this.inputOptions);
+    });
+    const n = imgs.length;
+    const cellW = Math.max(...imgs.map(i => i.width));
+    const cellH = Math.max(...imgs.map(i => i.height));
+    const joinOpts = this.inputOptions?.join;
+    const animated = Boolean(joinOpts?.animated);
+    const across = animated ? 1 : Math.max(1, joinOpts?.across ?? 1);
+    const cols = Math.min(n, across);
+    const rows = Math.ceil(n / cols);
+    const shim = animated ? 0 : Math.max(0, joinOpts?.shim ?? 0);
+    const outW = cols * cellW + (cols - 1) * shim;
+    const outH = rows * cellH + (rows - 1) * shim;
+    const anyAlpha = imgs.some(i => i.hasAlpha);
+    const bg = parseColor(joinOpts?.background ?? { r: 0, g: 0, b: 0, alpha: 1 }, 255);
+    const hasAlpha = anyAlpha || bg.a < 255;
+    const channels = (hasAlpha ? 4 : Math.max(...imgs.map(i => i.channels))) as 1 | 2 | 3 | 4;
+    const out = new Uint8Array(outW * outH * 4);
+    for (let p = 0; p < outW * outH; p++) {
+      out[p * 4] = bg.r;
+      out[p * 4 + 1] = bg.g;
+      out[p * 4 + 2] = bg.b;
+      out[p * 4 + 3] = hasAlpha ? bg.a : 255;
+    }
+    const halign = joinOpts?.halign ?? "left";
+    const valign = joinOpts?.valign ?? "top";
+    for (let k = 0; k < n; k++) {
+      const im = imgs[k]!;
+      const col = k % cols;
+      const row = Math.floor(k / cols);
+      const cellX = col * (cellW + shim);
+      const cellY = row * (cellH + shim);
+      const dx =
+        halign === "centre" || halign === "center"
+          ? Math.floor((cellW - im.width) / 2)
+          : halign === "right" || halign === "high"
+            ? cellW - im.width
+            : 0;
+      const dy =
+        valign === "centre" || valign === "center"
+          ? Math.floor((cellH - im.height) / 2)
+          : valign === "bottom" || valign === "high"
+            ? cellH - im.height
+            : 0;
+      for (let y = 0; y < im.height; y++) {
+        const dstY = cellY + dy + y;
+        for (let x = 0; x < im.width; x++) {
+          const dstX = cellX + dx + x;
+          const sIdx = (y * im.width + x) * 4;
+          const dIdx = (dstY * outW + dstX) * 4;
+          out[dIdx] = im.data[sIdx]!;
+          out[dIdx + 1] = im.data[sIdx + 1]!;
+          out[dIdx + 2] = im.data[sIdx + 2]!;
+          out[dIdx + 3] = im.data[sIdx + 3]!;
+        }
+      }
+    }
+    return {
+      width: outW,
+      height: outH,
+      data: out,
+      format: "raw",
+      space: "srgb",
+      channels,
+      depth: "uchar",
+      density: this.inputOptions?.density ?? 72,
+      hasAlpha,
+      ...(animated ? { pages: n, pageHeight: cellH } : {})
+    };
   }
 
   getAst(): readonly ImageAstNode[] {
@@ -111,7 +204,7 @@ export class SharpInstance {
   }
 
   private evaluateImage(): RgbaImage {
-    let img = decodeImage(this.inputBytes, this.inputOptions);
+    let img = this.decodeInitialImage();
     const orderedNodes = [
       ...this.nodes.filter(n => n.kind !== "withMetadata"),
       ...this.nodes.filter(n => n.kind === "withMetadata")
@@ -241,7 +334,24 @@ export class SharpInstance {
       orient !== undefined && orient >= 5 && orient <= 8
         ? { width: h, height: w }
         : { width: w, height: h };
-    const rawMeta = readImageMetadata(this.inputBytes, this.inputOptions);
+    const rawMeta = this.joinInputs
+      ? (() => {
+          const joined = this.decodeInitialImage();
+          return {
+            format: joined.format,
+            width: joined.width,
+            height: joined.height,
+            space: joined.space,
+            channels: joined.channels,
+            depth: joined.depth,
+            density: joined.density,
+            hasAlpha: joined.hasAlpha,
+            ...(joined.pages !== undefined ? { pages: joined.pages } : {}),
+            ...(joined.pageHeight !== undefined ? { pageHeight: joined.pageHeight } : {}),
+            size: joined.data.byteLength
+          } as ImageMetadata;
+        })()
+      : readImageMetadata(this.inputBytes, this.inputOptions);
     if (this.nodes.length === 0) {
       return {
         ...rawMeta,
@@ -1092,13 +1202,23 @@ export class SharpInstance {
 }
 
 export function sharp(
-  input?: Uint8Array | ArrayBuffer | string | SharpInputOptions,
+  input?: Uint8Array | ArrayBuffer | string | SharpInputOptions | readonly (Uint8Array | ArrayBuffer | string | SharpInputOptions)[],
   options?: SharpInputOptions
 ): SharpInstance {
   return new SharpInstance(input, options);
 }
 
 Object.assign(sharp, {
+  align: {
+    left: "low",
+    top: "low",
+    low: "low",
+    center: "centre",
+    centre: "centre",
+    right: "high",
+    bottom: "high",
+    high: "high"
+  },
   gravity: {
     center: 0,
     centre: 0,

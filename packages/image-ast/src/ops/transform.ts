@@ -405,39 +405,49 @@ export function extendImage(
   };
 }
 
-function blendChannel(s: number, d: number, mode: BlendMode): number {
+function getBlendModeId(mode: BlendMode): number {
   switch (mode) {
-    case "multiply":
-      return s * d;
-    case "screen":
-      return s + d - s * d;
-    case "overlay":
-      return d < 0.5 ? 2 * s * d : 1 - 2 * (1 - s) * (1 - d);
-    case "darken":
-      return Math.min(s, d);
-    case "lighten":
-      return Math.max(s, d);
+    case "multiply": return 1;
+    case "screen": return 2;
+    case "overlay": return 3;
+    case "darken": return 4;
+    case "lighten": return 5;
     case "color-dodge":
-    case "colour-dodge":
-      return d === 0 ? 0 : s === 1 ? 1 : Math.min(1, d / (1 - s));
+    case "colour-dodge": return 6;
     case "color-burn":
-    case "colour-burn":
-      return d === 1 ? 1 : s === 0 ? 0 : 1 - Math.min(1, (1 - d) / s);
-    case "hard-light":
-      return s < 0.5 ? 2 * s * d : 1 - 2 * (1 - s) * (1 - d);
-    case "soft-light":
+    case "colour-burn": return 7;
+    case "hard-light": return 8;
+    case "soft-light": return 9;
+    case "difference": return 10;
+    case "exclusion": return 11;
+    case "add": return 12;
+    default: return 0;
+  }
+}
+
+function blendChannelById(s: number, d: number, modeId: number): number {
+  switch (modeId) {
+    case 1: return s * d;
+    case 2: return s + d - s * d;
+    case 3: return d < 0.5 ? 2 * s * d : 1 - 2 * (1 - s) * (1 - d);
+    case 4: return Math.min(s, d);
+    case 5: return Math.max(s, d);
+    case 6: return d === 0 ? 0 : s === 1 ? 1 : Math.min(1, d / (1 - s));
+    case 7: return d === 1 ? 1 : s === 0 ? 0 : 1 - Math.min(1, (1 - d) / s);
+    case 8: return s < 0.5 ? 2 * s * d : 1 - 2 * (1 - s) * (1 - d);
+    case 9:
       return s < 0.5
         ? d - (1 - 2 * s) * d * (1 - d)
         : d + (2 * s - 1) * (d <= 0.25 ? ((16 * d - 12) * d + 3) * d : Math.sqrt(d) - d);
-    case "difference":
-      return Math.abs(d - s);
-    case "exclusion":
-      return s + d - 2 * s * d;
-    case "add":
-      return Math.min(1, s + d);
-    default:
-      return s;
+    case 10: return Math.abs(d - s);
+    case 11: return s + d - 2 * s * d;
+    case 12: return Math.min(1, s + d);
+    default: return s;
   }
+}
+
+function blendChannel(s: number, d: number, mode: BlendMode): number {
+  return blendChannelById(s, d, getBlendModeId(mode));
 }
 
 export function compositeImage(
@@ -532,35 +542,101 @@ export function compositeImage(
       continue;
     }
 
-    const iterW = layer.tile ? baseW : overlay.width;
-    const iterH = layer.tile ? baseH : overlay.height;
+    const yStart = layer.tile ? 0 : Math.max(0, -startY);
+    const yEnd = layer.tile ? baseH : Math.min(overlay.height, baseH - startY);
+    const xStart = layer.tile ? 0 : Math.max(0, -startX);
+    const xEnd = layer.tile ? baseW : Math.min(overlay.width, baseW - startX);
+    const isOver = blend === "over";
+    const blendId = getBlendModeId(blend);
+    const isSeparable = blendId > 0;
+    const skipWhenSaZero =
+      blend !== "clear" &&
+      blend !== "source" &&
+      blend !== "in" &&
+      blend !== "out" &&
+      blend !== "dest-in" &&
+      blend !== "dest-atop";
+
+    const inv255 = 1 / 255;
+    const ovData = overlay.data;
+    const ovW = overlay.width;
+    const ovH = overlay.height;
 
     for (let ty = 0; ty < 1; ty++) {
       for (let tx = 0; tx < 1; tx++) {
-        for (let y = 0; y < iterH; y++) {
+        for (let y = yStart; y < yEnd; y++) {
           const dy = layer.tile ? y : startY + y;
-          if (dy < 0 || dy >= baseH) continue;
           const sy = layer.tile
-            ? (((dy - startY) % overlay.height) + overlay.height) % overlay.height
+            ? (((dy - startY) % ovH) + ovH) % ovH
             : y;
-          for (let x = 0; x < iterW; x++) {
+          const syRow = sy * ovW;
+          const dyRow = dy * baseW;
+          for (let x = xStart; x < xEnd; x++) {
             const dx = layer.tile ? x : startX + x;
-            if (dx < 0 || dx >= baseW) continue;
             const sx = layer.tile
-              ? (((dx - startX) % overlay.width) + overlay.width) % overlay.width
+              ? (((dx - startX) % ovW) + ovW) % ovW
               : x;
-            const sIdx = (sy * overlay.width + sx) * 4;
-            const dIdx = (dy * baseW + dx) * 4;
+            const sIdx = (syRow + sx) * 4;
+            const saByte = ovData[sIdx + 3]!;
+            if (saByte === 0 && skipWhenSaZero) continue;
+            const dIdx = (dyRow + dx) * 4;
+            if (isOver && saByte === 255) {
+              out[dIdx] = ovData[sIdx]!;
+              out[dIdx + 1] = ovData[sIdx + 1]!;
+              out[dIdx + 2] = ovData[sIdx + 2]!;
+              out[dIdx + 3] = 255;
+              continue;
+            }
+            const daByte = out[dIdx + 3]!;
+            if (isOver && daByte === 255) {
+              const invSa = 255 - saByte;
+              out[dIdx] = ((ovData[sIdx]! * saByte + out[dIdx]! * invSa + 128) * 257) >>> 16;
+              out[dIdx + 1] = ((ovData[sIdx + 1]! * saByte + out[dIdx + 1]! * invSa + 128) * 257) >>> 16;
+              out[dIdx + 2] = ((ovData[sIdx + 2]! * saByte + out[dIdx + 2]! * invSa + 128) * 257) >>> 16;
+              continue;
+            }
 
-            const sr = overlay.data[sIdx]! / 255;
-            const sg = overlay.data[sIdx + 1]! / 255;
-            const sb = overlay.data[sIdx + 2]! / 255;
-            const sa = overlay.data[sIdx + 3]! / 255;
+            const sr = ovData[sIdx]! * inv255;
+            const sg = ovData[sIdx + 1]! * inv255;
+            const sb = ovData[sIdx + 2]! * inv255;
+            const sa = saByte * inv255;
 
-            const dr = out[dIdx]! / 255;
-            const dg = out[dIdx + 1]! / 255;
-            const db = out[dIdx + 2]! / 255;
-            const da = out[dIdx + 3]! / 255;
+            const dr = out[dIdx]! * inv255;
+            const dg = out[dIdx + 1]! * inv255;
+            const db = out[dIdx + 2]! * inv255;
+            const da = daByte * inv255;
+
+            if (isSeparable) {
+              const outA = sa + da * (1 - sa);
+              if (outA <= 0) {
+                out[dIdx] = 0;
+                out[dIdx + 1] = 0;
+                out[dIdx + 2] = 0;
+                out[dIdx + 3] = 0;
+              } else {
+                const srP = sr * sa;
+                const sgP = sg * sa;
+                const sbP = sb * sa;
+                const drP = dr * da;
+                const dgP = dg * da;
+                const dbP = db * da;
+                const br = blendChannelById(srP, drP, blendId);
+                const bg = blendChannelById(sgP, dgP, blendId);
+                const bb = blendChannelById(sbP, dbP, blendId);
+                const invDa = 1 - da;
+                const invSa = 1 - sa;
+                const saDa = sa * da;
+                const invOutA255 = 255 / outA;
+                const rOut = ((invDa * srP + invSa * drP + saDa * br) * invOutA255 + 0.5) | 0;
+                const gOut = ((invDa * sgP + invSa * dgP + saDa * bg) * invOutA255 + 0.5) | 0;
+                const bOut = ((invDa * sbP + invSa * dbP + saDa * bb) * invOutA255 + 0.5) | 0;
+                out[dIdx] = rOut < 0 ? 0 : rOut > 255 ? 255 : rOut;
+                out[dIdx + 1] = gOut < 0 ? 0 : gOut > 255 ? 255 : gOut;
+                out[dIdx + 2] = bOut < 0 ? 0 : bOut > 255 ? 255 : bOut;
+                out[dIdx + 3] = daByte === 255 ? 255 : ((outA * 255 + 0.5) | 0);
+              }
+              continue;
+            }
 
             if (blend === "clear") {
               out[dIdx] = 0;

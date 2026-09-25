@@ -194,6 +194,22 @@ export function decodeImage(
   }
   if (options?.raw && bytes) {
     const { width, height, channels, premultiplied, pageHeight } = options.raw;
+    if (channels === 4 && !premultiplied && bytes.byteLength >= width * height * 4) {
+      return {
+        width,
+        height,
+        data: bytes.subarray(0, width * height * 4),
+        format: "raw",
+        space: "srgb",
+        channels: 4,
+        depth: "uchar",
+        density: options.density ?? 72,
+        hasAlpha: true,
+        ...(pageHeight !== undefined
+          ? { pageHeight, pages: Math.max(1, Math.floor(height / pageHeight)) }
+          : {})
+      };
+    }
     const data = new Uint8Array(width * height * 4);
     for (let i = 0; i < width * height; i++) {
       if (channels === 4) {

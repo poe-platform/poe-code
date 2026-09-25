@@ -734,12 +734,15 @@ test("test and [ evaluate parenthesized operator expressions and -N predicate", 
     ["(", "=", "=", "=", ")"],
     ["(", "=", ")", "-a", "true"],
     ["(", "!", ")", "-a", "true"],
+    ["(", "-f", ")", "-a", "true"],
     ["(", "-f", ")", "-a", "(", "-d", ")"],
     ["(", "-f", ")", "-o", "true"],
     ["(", "-n", ")", "-a", "(", "-z", ")"],
   ]) {
-    const res = await run("test", args);
-    assert.deepEqual([res.exitCode, res.stderr], [0, ""], args.join(" "));
+    for (const command of ["test", "["]) {
+      const res = await run(command, command === "[" ? [...args, "]"] : args);
+      assert.deepEqual([res.exitCode, res.stdout, res.stderr], [0, "", ""], `${command} ${args.join(" ")}`);
+    }
   }
 });
 

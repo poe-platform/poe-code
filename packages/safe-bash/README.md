@@ -165,8 +165,11 @@ Use `cat --help`, `base64 --help`, `cp --help`, `sort --help`, `grep --help`, `r
 `cp -u` / `--update` copies missing files and replaces files only when the source
 has a newer modification time. Recursive copies compare each file separately.
 File-content copies (`cp` and cross-device `mv`) require a retained reader with
-authoritative file identity and streaming writes. The reader identity is verified
-before bytes are read; backends without this guarantee refuse the transfer. Ordinary same-device `mv` still uses rename.
+authoritative file identity. Destinations require streaming writes, or exclusive
+creation for missing or explicitly removed files. Exclusive creation buffers the
+inspected source size within the host input and memory budgets. The reader identity
+is verified before bytes are read; backends without this guarantee refuse the
+transfer. Ordinary same-device `mv` still uses rename.
 `mv -i` / `--interactive` asks on stderr before replacing an existing destination
 and reads one response from stdin. A response beginning with `y` or `Y` allows
 the move; refusal or EOF keeps both paths and returns status 1. The last of

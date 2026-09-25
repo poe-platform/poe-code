@@ -110,6 +110,17 @@
           "sha256": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5"
         }
       }
+    },
+    "biffDetachedSheets": {
+      "scope": "BIFF7/8 missing local cell/range targets and partial sheet spans encode deleted-sheet markers (0xffff). BIFF7 uses the existing own-document link when the first sheet is missing. No replacement worksheet is invented. Names and array/shared formulas retain error behavior; deleted targets do not retain their former sheet spelling in BIFF.",
+      "source": "OpenOffice Excel File Format 1.42 sections 3.9.15-16; BIFF8 deleted-sheet EXTERNSHEET markers. Existing authenticated reference PDF SHA-256 af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e.",
+      "reproduction": "Both compiled SDK BIFF writers refused Missing!A1+1. Fourteen new regressions failed; two valid-sheet controls passed. Native Gnumeric could not parse the original unknown-sheet XML expression and stored it as text, so that input is not a native parity control.",
+      "qualification": "All 16 memory regressions pass. Six compiled SDK BIFF/XML/XLSX replays preserve #REF! semantics, IFERROR fallback 41 and local 42/41 controls. Both BIFF7/8 reexports recalculate in Gnumeric 1.12.61 with exactly matching values and empty stderr. All 414 files / 23723 package tests and two required posttest checks pass, as do lint/types and the selected build. Both compiled scoped Shell conversions/recalculations pass; metadata warnings are retained and the screenshot was inspected.",
+      "metadata": "The XLSX seed produces eight existing BIFF layout/print metadata warnings. Those diagnostics are retained in the SDK/Shell receipts and are not qualified as fixed.",
+      "outputs": {
+        "7": "1f54fa8d7470711bf8deb4b888e3429218121e63537552715da95094eeb3ea5b",
+        "8": "d92a2e532bb13c8ce17117902fc66aae85363c7915c7778cbc3b696e3f443ef0"
+      }
     }
   },
   "cases": [
@@ -126,7 +137,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. External multi-sheet BIFF7 ranges, detached sheets, wider token/version semantics, metadata preservation and other application/optional profiles remain open."
+      "currentFinding": "BIFF7/8 imports and exports preserve external cell/range and global/scoped name identities, including defined expressions and arrays, with separate local/add-in/external namespaces. Import/export never fetch links or execute stored external name definitions; recalculation requires the explicit host. Original-record, namespace-order, codepage, path-length, index-limit, cancellation and budget controls pass; earlier name-index, relative-row, array and memory-area repairs remain. Compiled SDK/Shell profiles pass. Gnumeric 1.12.61 warns on external records; BIFF7 readback also misbinds external cells locally, so application qualification has not passed. Missing local targets now encode deleted references and recalculate as #REF! through cells, spans, names and array/shared formulas; both native BIFF7/8 reexports match with empty stderr. BIFF7 external multi-sheet ranges, wider token/version semantics, metadata preservation and other application/optional profiles remain open."
     },
     {
       "id": "encrypted-biff",

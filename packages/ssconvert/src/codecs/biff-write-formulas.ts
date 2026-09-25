@@ -202,7 +202,8 @@ export class BiffFormulaWriter {
           } else {
             firstSheet = this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.first.sheet!));
             lastSheet = node.last?.sheet !== undefined ? this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.last!.sheet!)) : firstSheet;
-            if (firstSheet < 0 || lastSheet < 0) throw new SsconvertError("unsupported-feature", "Excel BIFF detached sheet formula is not implemented");
+            if (firstSheet < 0) firstSheet = 0xffff;
+            if (lastSheet < 0) lastSheet = 0xffff;
             index = this.sheetLink(undefined, firstSheet, lastSheet);
           }
         }
@@ -211,7 +212,10 @@ export class BiffFormulaWriter {
           if (this.revision === 8) { relocations.push({ offset: bytes.length, index, kind: "sheet" }); push(words(index)); }
           else { const prefix = new Uint8Array(14), view = new DataView(prefix.buffer);
             if (node.first.workbook) relocations.push({ offset: bytes.length, index, kind: "sheet" });
-            else { view.setInt16(0, -(firstSheet + 1), true); view.setUint16(10, firstSheet, true); view.setUint16(12, lastSheet, true); }
+            else {
+              const link = firstSheet === 0xffff ? this.book.sheets.length + 2 : firstSheet + 1;
+              view.setInt16(0, -link, true); view.setUint16(10, firstSheet, true); view.setUint16(12, lastSheet, true);
+            }
             push(prefix); }
         }
         if (last) { push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2)); }

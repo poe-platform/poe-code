@@ -761,6 +761,7 @@ export interface State {
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number };
   directoryStackCwdPublication?: symbol;
   dotglob?: boolean;
+  extglob?: boolean;
   globstar?: boolean;
   nullglob?: boolean;
   nocaseglob?: boolean;
@@ -2426,11 +2427,9 @@ export class Runtime {
     );
     runtimeFileSystems.set(created, this.sourceFs);
     registerRuntimeBackingFileSystem(created, this.backingFs);
-    if (sig === this.signal) {
-      this._contextFsMask = umask;
-      this._contextFsSignal = sig;
-      this._contextFs = created;
-    }
+    this._contextFsMask = umask;
+    this._contextFsSignal = sig;
+    this._contextFs = created;
     return created;
   }
 

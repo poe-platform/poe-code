@@ -8,8 +8,24 @@ import { Limits, pathFor } from "./shared.js";
 import { assertPathRequirements, searchRequirements } from "./requirements.js";
 import { defaultFileTypes } from "./file-types.js";
 
-export interface FileTarget { path: string; label: string; explicit: boolean; recursive: boolean; canonicalPath?: string | undefined }
+export interface FileTarget { path: string; label: string; explicit: boolean; recursive: boolean; canonicalPath?: string | undefined; memoryView?: Uint8Array | undefined }
 const EMPTY_IGNORE_RULES: IgnoreRule[] = [];
+
+let sortCheckPrevKey = "";
+let sortCheckSorted = true;
+let sortCheckHasSymlink = false;
+function sortCheckVisitor(v: { readonly type: string }, k: string): void {
+  if (v.type === "symlink") sortCheckHasSymlink = true;
+  if (sortCheckPrevKey > k) sortCheckSorted = false;
+  sortCheckPrevKey = k;
+}
+function checkMemDirEntries(map: ReadonlyMap<string, { readonly type: string }>, checkSymlink: boolean): boolean {
+  sortCheckPrevKey = "";
+  sortCheckSorted = true;
+  sortCheckHasSymlink = false;
+  map.forEach(sortCheckVisitor);
+  return sortCheckSorted && (!checkSymlink || !sortCheckHasSymlink);
+}
 const IGNORE_CANDIDATES_VCS_DOT: readonly [string, number][] = [[".gitignore", 1], [".ignore", 2], [".rgignore", 3]];
 const IGNORE_CANDIDATES_DOT_ONLY: readonly [string, number][] = [[".ignore", 2], [".rgignore", 3]];
 const IGNORE_CANDIDATES_VCS_ONLY: readonly [string, number][] = [[".gitignore", 1]];
@@ -190,65 +206,83 @@ export class Walker {
           assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
           this.uniformIgnoreAdmitted = true;
         }
-        let isSorted = true;
-        let hasFollowedSymlink = false;
-        let prevKey = "";
-        for (const [k, v] of memDirEntries) {
-          if (v.type === "symlink" && this.args.follow) { hasFollowedSymlink = true; break; }
-          if (prevKey > k) isSorted = false;
-          prevKey = k;
-        }
-        if (isSorted && !hasFollowedSymlink) {
+        if (checkMemDirEntries(memDirEntries, this.args.follow)) {
           ancestors.set(path, label || ".");
           const pathPrefix = path.endsWith("/") ? path : `${path}/`;
-          const labelPrefix = label ? (label.endsWith("/") ? label : `${label}/`) : "";
+          const labelPrefix = label === path ? pathPrefix : (label ? (label.endsWith("/") ? label : `${label}/`) : "");
+          const samePrefix = pathPrefix === labelPrefix;
           const allowHidden = this.args.hidden;
           let handedOff = false;
+          let handedOffResult: boolean | Promise<boolean> | undefined;
           let entryIdx = 0;
           try {
-            for (const [entryName, entryMeta] of memDirEntries) {
+            memDirEntries.forEach((entryMeta, entryName) => {
+              if (handedOffResult !== undefined) return;
               const entryType = entryMeta.type;
               const tickPending = this.limits.tick();
               if (tickPending) {
                 handedOff = true;
-                return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx, tickPending, true, onTarget);
+                handedOffResult = this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx, tickPending, true, onTarget);
+                return;
               }
               if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
               if (entryType !== "symlink" && (allowHidden || !entryName.startsWith("."))) {
                 const child = `${pathPrefix}${entryName}`;
-                const display = labelPrefix ? `${labelPrefix}${entryName}` : entryName;
+                const display = samePrefix ? child : (labelPrefix ? `${labelPrefix}${entryName}` : entryName);
                 try {
                   if (entryType === "directory") {
                     const sub = this.walkDirectory(child, display, depth + 1, ancestors, rules, repository, onTarget);
                     if (sub instanceof Promise) {
                       handedOff = true;
-                      return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, sub, false, onTarget);
+                      handedOffResult = this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, sub, false, onTarget);
+                      return;
                     }
-                    if (!sub) return false;
+                    if (!sub) {
+                      handedOffResult = false;
+                      return;
+                    }
                   } else if (entryType === "file") {
+                    const fileNode = entryMeta as { readonly type: "file"; readonly mode?: number; readonly data?: Uint8Array; atimeMs?: number };
                     const t = this.reusableTarget;
                     t.path = child;
                     t.label = display;
                     t.explicit = false;
                     t.recursive = true;
                     t.canonicalPath = child;
+                    if (
+                      fileNode.data !== undefined &&
+                      fileNode.mode !== undefined &&
+                      ((fileNode.mode >> 6) & 4) === 4 &&
+                      fileNode.data.byteLength <= this.limits.maxFileBytes
+                    ) {
+                      fileNode.atimeMs = Date.now();
+                      t.memoryView = fileNode.data;
+                    } else {
+                      t.memoryView = undefined;
+                    }
                     const res = onTarget(t);
+                    t.memoryView = undefined;
                     if (res instanceof Promise) {
                       handedOff = true;
-                      return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, res, false, onTarget);
+                      handedOffResult = this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, res, false, onTarget);
+                      return;
                     }
-                    if (!res) return false;
+                    if (!res) {
+                      handedOffResult = false;
+                      return;
+                    }
                   }
                 } catch (error) {
                   this.context.signal.throwIfAborted();
                   if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
                   handedOff = true;
-                  return this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, this.report(error).then(() => true), false, onTarget);
+                  handedOffResult = this.finishFastMemDirectoryAsync(path, pathPrefix, labelPrefix, depth, ancestors, rules, repository, allowHidden, memDirEntries, entryIdx + 1, this.report(error).then(() => true), false, onTarget);
+                  return;
                 }
               }
               entryIdx++;
-            }
-            return true;
+            });
+            return handedOffResult ?? true;
           } finally {
             if (!handedOff) ancestors.delete(path);
           }

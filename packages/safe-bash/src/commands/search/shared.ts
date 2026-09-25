@@ -142,6 +142,79 @@ export class Limits {
     }
     return this.output(value);
   }
+  outputFilenameSyncOrAsync(label: string, nullPath: boolean): Promise<void> | undefined {
+    const labelLen = label.length;
+    const totalLen = labelLen + 1;
+    if (totalLen <= OUT_BUFFER_SIZE) {
+      const buf = this.ensureOutBuf();
+      const pos = this.outPos;
+      if (pos + totalLen <= OUT_BUFFER_SIZE) {
+        let ascii = true;
+        for (let i = 0; i < labelLen; i++) {
+          const c = label.charCodeAt(i);
+          if (c >= 0x80) { ascii = false; break; }
+          buf[pos + i] = c;
+        }
+        if (ascii) {
+          if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+          buf[pos + labelLen] = nullPath ? 0 : 10;
+          this.outPos = pos + totalLen;
+          this.outputBytes += totalLen;
+          return undefined;
+        }
+      }
+    }
+    return this.output(label + (nullPath ? "\0" : "\n"));
+  }
+  outputCountSyncOrAsync(label: string, amount: number, filename: boolean, nullPath: boolean): Promise<void> | undefined {
+    if (amount >= 0 && amount < 1000000000) {
+      const labelLen = filename ? label.length : 0;
+      let digits = 1;
+      if (amount >= 10) {
+        if (amount < 100) digits = 2;
+        else if (amount < 1000) digits = 3;
+        else if (amount < 10000) digits = 4;
+        else if (amount < 100000) digits = 5;
+        else if (amount < 1000000) digits = 6;
+        else if (amount < 10000000) digits = 7;
+        else if (amount < 100000000) digits = 8;
+        else digits = 9;
+      }
+      const totalLen = (filename ? labelLen + 1 : 0) + digits + 1;
+      if (totalLen <= OUT_BUFFER_SIZE) {
+        const buf = this.ensureOutBuf();
+        const pos = this.outPos;
+        if (pos + totalLen <= OUT_BUFFER_SIZE) {
+          let ascii = true;
+          let dst = pos;
+          if (filename) {
+            for (let i = 0; i < labelLen; i++) {
+              const c = label.charCodeAt(i);
+              if (c >= 0x80) { ascii = false; break; }
+              buf[dst + i] = c;
+            }
+            dst += labelLen;
+            buf[dst++] = nullPath ? 0 : 58;
+          }
+          if (ascii) {
+            if (this.outputBytes + totalLen > this.maxOutputBytes) throw new SearchError("output byte limit exceeded");
+            let v = amount | 0;
+            let dEnd = dst + digits;
+            buf[dEnd] = 10;
+            for (let d = dEnd - 1; d >= dst; d--) {
+              const q = (v / 10) | 0;
+              buf[d] = 48 + (v - q * 10);
+              v = q;
+            }
+            this.outPos = pos + totalLen;
+            this.outputBytes += totalLen;
+            return undefined;
+          }
+        }
+      }
+    }
+    return this.output(`${filename ? label + (nullPath ? "\0" : ":") : ""}${amount}\n`);
+  }
   async output(value: string | Uint8Array): Promise<void> {
     if (typeof value === "string") {
       const len = value.length;

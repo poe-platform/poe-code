@@ -327,7 +327,7 @@ export async function compilePatternBoundaries(pattern: string, work: StringWork
             const consume = point === undefined ? -1 : previous;
             row[index] = skip < 0 ? consume : consume < 0 ? skip : shortest ? Math.min(skip, consume) : Math.max(skip, consume);
           } else {
-            const accepts = point !== undefined && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.expression.test(String.fromCodePoint(point))));
+            const accepts = point !== undefined && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.kind === "class" && token.expression.test(String.fromCodePoint(point))));
             row[index] = accepts ? diagonal : -1;
           }
           diagonal = previous;
@@ -358,7 +358,7 @@ function matchTokens(patternTokens: PatternToken[], value: string, work: StringW
     const token = patternTokens[tokenIndex];
     const point = value.codePointAt(position)!;
     if (token?.kind === "star") { star = tokenIndex++; retry = position; }
-    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.expression.test(String.fromCodePoint(point))))) {
+    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.kind === "class" && token.expression.test(String.fromCodePoint(point))))) {
       position += point > 0xffff ? 2 : 1;
       tokenIndex++;
     } else if (star !== -1) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }
@@ -387,7 +387,7 @@ async function matchTokensAsync(
     const token = patternTokens[tokenIndex];
     const point = value.codePointAt(position)!;
     if (token?.kind === "star") { star = tokenIndex++; retry = position; }
-    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.expression.test(String.fromCodePoint(point))))) {
+    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.kind === "class" && token.expression.test(String.fromCodePoint(point))))) {
       position += point > 0xffff ? 2 : 1;
       tokenIndex++;
     } else if (star !== -1) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }

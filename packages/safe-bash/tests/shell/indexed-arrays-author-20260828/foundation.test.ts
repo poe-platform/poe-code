@@ -342,10 +342,10 @@ for (const [prefix, maxCommands] of [["", 4], ["seed=; ", 5], ["seed=; ", 8], ["
   test(`foundation: scalar function argv does not spend automatic status capacity: ${prefix}/${maxCommands}`, async context => {
     const instance = shell();
     const observed: { fields: number; guestActive: boolean }[] = [];
-    const builtin = Runtime.prototype.builtin;
-    context.mock.method(Runtime.prototype, "builtin", function (this: Runtime, ...args: Parameters<Runtime["builtin"]>) {
-      if (args[0].command === ":" && args[1].functionDepth) observed.push({ fields: args[1].positional.length, guestActive: stateMonitor(args[1])!.session.ledger.active });
-      return builtin.apply(this, args);
+    const script = Runtime.prototype.script;
+    context.mock.method(Runtime.prototype, "script", function (this: Runtime, ...args: Parameters<Runtime["script"]>) {
+      if (args[1].functionDepth) observed.push({ fields: args[1].positional.length, guestActive: stateMonitor(args[1])!.session.ledger.active });
+      return script.apply(this, args);
     });
     try {
       // Each retained positional owns two UTF-16 bytes; automatic status adds none.

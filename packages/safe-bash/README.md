@@ -369,7 +369,10 @@ deployment or a managed Python native-filesystem integration. JSPI cancellation
 is cooperative; it neither preempts CPU-only loops nor establishes confinement.
 Both Python launchers bundle the async `poe_llm` workflow library without pip.
 Its [API and limits](docs/python-llm.md) include typed requests, customization and
-stream cleanup; JavaScript LLM capability and hosted qualification remain pending.
+stream cleanup through an invocation-owned shared JavaScript LLM service. The
+[Python shell API](docs/python-shell.md) provides literal argv, scripts and a
+qualified `subprocess.run`/`check_output` subset. Installed workerd qualification
+covers both APIs; hosted authorization/billing qualification is tracked separately.
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
 with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;

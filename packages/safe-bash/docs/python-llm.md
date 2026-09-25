@@ -5,12 +5,17 @@ package. It contains Python request construction and workflow code. Providers,
 model resolution, authorization, billing and file access belong to the injected
 JavaScript service.
 
-The API is implemented and tested with a deterministic Python bridge. Both
-existing launchers install the module without pip or a network download.
-**JavaScript capability installation and real-runtime LLM qualification are
-pending #1444 and the shared service in #1443.** Importing the module is available;
-constructing a default `Client()` without that capability raises `CapabilityError`.
-The examples below require that capability and are not yet production-qualified.
+Both existing launchers install the module without pip or a network download.
+The asynchronous JSPI launcher binds invocation-owned native functions to the
+shared JavaScript service. Configure `pythonCommands({ createCapabilities })`
+with `createPythonLlmCapability(context, service)`. Credentials and provider
+transport stay inside `createLlmService`; Python receives JSON records and bytes.
+A default `Client()` raises `CapabilityError` when the host has not enabled LLM
+access. The blocking Node filesystem launcher does not support host capabilities.
+
+Installed public-package tests running actual Pyodide in workerd qualify model
+discovery, complete responses, streaming, canonical attachments and early stream
+cleanup. Hosted consumer authorization/billing qualification is tracked separately.
 
 ```python
 from poe_llm import Client, Attachment
@@ -90,17 +95,19 @@ with its own cleanup scope and the same borrowed bridge.
 
 | Feature | Python API | JavaScript/host qualification |
 | --- | --- | --- |
-| Model discovery and selection | `models()`, `model=`; identities and aliases preserved | Pending #1443/#1444 |
-| Prompt, system, messages | `Request`, `Message`, `complete()` | Pending #1443/#1444 |
-| Provider options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null; types preserved | Provider validation remains in JavaScript; pending #1443 |
-| File attachments | `Attachment(path, mime_type)` | Canonical host filesystem access pending #1444 |
-| Complete text/binary/usage/metadata | `Response` | Pending shared-service adapter |
-| Incremental text/binary and final response | `Stream`, `Event` | Pending bridge/runtime qualification |
-| Templates and structured output | `template`, `parameters`, `schema`; `Response.json()` | Pending #1443 parity |
-| Conversation continuation | `Conversation`, messages and conversation identity | Host continuation semantics pending #1443 |
-| Embeddings | `embed()` returns `Embeddings` | Pending #1443 |
-| Logs, collections, plugins and configuration | Not yet exposed | Await applicable #1443 service operations; incomplete parity |
-| Cleanup, cancellation, per-call limits | Deterministic fake-bridge tests | Real Pyodide and hosted acceptance pending |
+| Model discovery and selection | `models()`, `model=`; identities and aliases preserved | Shared service and installed workerd qualified |
+| Prompt, system, messages | `Request`, `Message`, `complete()` | Shared message validation; OpenAI chat preserves prior turns |
+| Provider options | String, safe integer (±9,007,199,254,740,991), finite float, boolean, null | Types preserved to the shared provider; provider validates supported settings |
+| File attachments | `Attachment(path, mime_type)` | Canonical invocation filesystem; optional MIME inferred by the host |
+| Complete text/binary | `Response` | Shared provider chunks assembled into bounded records |
+| Usage and metadata | Typed response fields | Available when supplied by a configured bridge; basic shared chunk providers do not report these |
+| Incremental text/binary and final response | `Stream`, `Event` | Installed workerd qualified, including early close |
+| Structured output | `schema`; `Response.json()` | Shared schema validation; OpenAI chat JSON schema serialization qualified |
+| Templates | `template`, `parameters`; reusable `client.prompt()` functions | Python prompt functions work; named host templates require a configured service |
+| Conversations | `Conversation`, prior messages | Python-owned orchestration; named host continuation requires a configured service |
+| Embeddings | `embed()` returns `Embeddings` | Shared optional provider hook validates vectors; unsupported providers fail explicitly |
+| Logs, collections, plugins and configuration | No host persistence API | No corresponding current shared-service operations |
+| Cleanup, cancellation, per-call limits | Async context managers, timeouts and response-byte checks | Native invocation retirement and host completion/stream deadlines; hosted qualification pending |
 
 The client defaults to an 8 MiB response payload limit and no timeout. Set
 `max_response_bytes` and `timeout` (seconds) on the client or individual completion
@@ -109,7 +116,7 @@ client cleanup cancels and awaits that work too. Text is measured as UTF-8, bina
 bytes per numeric element. Stream limits count emitted payload bytes and separately
 check a final complete response. These are guest payload checks, not bounds on
 interpreter memory, host transport buffers or provider billing. Host admission,
-request/chunk limits and cancellation must be enforced by the invocation bridge.
+request/chunk limits and cancellation are enforced by the invocation bridge. The current host adapter caps combined completion payloads at 128 KiB and native request JSON at 16 KiB. Canonical attachment bytes are read in JavaScript and do not count against that JSON request size.
 
 Exceptions include `LlmError(code, message)`, `CapabilityError`, `LimitError`,
 native `asyncio.CancelledError` and `asyncio.TimeoutError`. Invalid Python option
@@ -118,8 +125,7 @@ the bridge; credentials, private files and service objects must not enter Python
 
 For deterministic testing, `Client(bridge=...)` accepts an object with async
 `call(operation, payload)` and `stream(payload)` returning an async iterator with
-`aclose()`. This is the Python-side protocol, not a claim that an equivalent
-JavaScript bridge has shipped. `models` returns model records; `complete` returns
+`aclose()`. This is also the operation contract used by the native JavaScript adapter. `models` returns model records; `complete` returns
 a response record; `embed` returns model, vectors and usage. Stream events use
 `type: text|bytes|response`. Binary data can be bytes or byte-value sequences.
 

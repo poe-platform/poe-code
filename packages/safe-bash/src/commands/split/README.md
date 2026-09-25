@@ -77,8 +77,7 @@ There is no native-process fallback for these flags.
 ## Bounded streaming
 
 `SplitCommandsOptions` has `replace?: boolean` and
-`limits?: Partial<SplitLimits>`. The buffer cap defaults to 8 MiB, including in
-Workers; other resource quotas are unlimited unless explicitly supplied. Each
+`limits?: Partial<SplitLimits>`. Resource quotas are unlimited unless explicitly supplied. Each
 supplied quota is independent and must be a positive safe integer:
 
 | Limit | Default | Meaning |

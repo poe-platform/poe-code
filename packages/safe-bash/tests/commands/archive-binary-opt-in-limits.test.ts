@@ -17,7 +17,7 @@ for (const [family, resolve] of [
     const omitted = resolve({});
     for (const [name, value] of Object.entries(omitted)) {
       if (name === "chunkSize" || name === "maxChunkBytes") continue;
-      assert.equal(value, family === "split" && name === "maxBufferBytes" ? 8 * 1024 * 1024 : Infinity, name);
+      assert.equal(value, Infinity, name);
       for (const maximum of [64, Number.MAX_SAFE_INTEGER]) {
         const limited = resolve({ limits: { [name]: maximum } });
         assert.equal(Reflect.get(limited, name), maximum);

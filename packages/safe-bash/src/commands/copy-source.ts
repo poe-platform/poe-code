@@ -51,6 +51,7 @@ export async function copyCheckedSource(context: CommandContext, source: string,
       await reader?.close();
     })();
   };
+  let failed = false;
   let primaryError: unknown;
   context.registerCleanup?.(close);
   try {
@@ -114,15 +115,15 @@ export async function copyCheckedSource(context: CommandContext, source: string,
     context.signal.throwIfAborted();
     if (!consumed) throw new FsError("EIO", { path: target, message: "copy writer did not consume source" });
   } catch (error) {
+    failed = true;
     primaryError = error;
-    throw error;
-  } finally {
-    acquired();
-    try {
-      await close();
-    } catch (closeError) {
-      if (primaryError === undefined) throw closeError;
-      closing = Promise.resolve();
-    }
   }
+  acquired();
+  try {
+    await close();
+  } catch (closeError) {
+    if (!failed) throw closeError;
+    closing = Promise.resolve();
+  }
+  if (failed) throw primaryError;
 }

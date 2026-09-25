@@ -7,6 +7,64 @@ import { agentCommands } from "../../src/plugins/index.js";
 import { copyCheckedSource } from "../../src/commands/copy-source.js";
 import { createMountFileSystem } from "../../src/fs/mount/index.js";
 
+for (const reason of [undefined, null, false, 0, "", new Error("retained read failed")]) {
+  test(`copy preserves primary ${String(reason)} when retained-source close also fails`, async () => {
+    const fs = await fixture({ source: "ordinary", target: "old" });
+    const { context } = await run("true", [], { fs });
+    const expected = await fs.stat("/work/source");
+    const closeError = new Error("retained close failed");
+    let closes = 0;
+    let cleanup!: () => Promise<void>;
+    const view = new Proxy(fs, { get(target, property) {
+      if (property === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+        const reader = await fs.openReadFile(...args);
+        return { ...reader, async read() { throw reason; }, async close() {
+          closes++;
+          await reader.close();
+          throw closeError;
+        } };
+      };
+      // Refuse before publication so the primary failure cannot change either file.
+      if (property === "writeStream") return async (_path: string, source: AsyncIterable<Uint8Array>) => {
+        for await (const chunk of source) assert.fail(`unexpected ${chunk.length} bytes after retained read failure`);
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    await assert.rejects(copyCheckedSource({ ...context, fs: view,
+      registerCleanup(close) { cleanup = async () => { await close(); }; },
+    }, "/work/source", "/work/target", expected, false), error => Object.is(error, reason));
+    await cleanup();
+    assert.equal(closes, 1);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/source")), "ordinary");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/target")), "old");
+  });
+}
+
+test("copy reports a retained-source close failure after successful publication", async () => {
+  const fs = await fixture({ source: "ordinary", target: "old" });
+  const { context } = await run("true", [], { fs });
+  const expected = await fs.stat("/work/source");
+  const reason = new Error("retained close failed");
+  let closes = 0;
+  let cleanup!: () => Promise<void>;
+  const view = new Proxy(fs, { get(target, property) {
+    if (property === "openReadFile") return async (...args: Parameters<typeof fs.openReadFile>) => {
+      const reader = await fs.openReadFile(...args);
+      return { ...reader, async close() { closes++; await reader.close(); throw reason; } };
+    };
+    const member = Reflect.get(target, property);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  await assert.rejects(copyCheckedSource({ ...context, fs: view,
+    registerCleanup(close) { cleanup = async () => { await close(); }; },
+  }, "/work/source", "/work/target", expected, false), error => error === reason);
+  await assert.rejects(cleanup(), error => error === reason);
+  assert.equal(closes, 1);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/source")), "ordinary");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/target")), "ordinary");
+});
+
 for (const streaming of [false, true]) for (const command of ["cp --remove-destination", "mv"]) {
   test(`${command} replaces a looping destination symlink, streaming=${streaming}`, async () => {
     const source = await fixture({ source: "payload" });
@@ -434,7 +492,7 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
   });
 }
 
-test("copyCheckedSource preserves primary read failure when close also rejects in finally", async () => {
+test("copyCheckedSource preserves primary read failure when close also rejects", async () => {
   const fs = await fixture({ source: "ordinary" });
   const stat = await fs.lstat("/work/source");
   const view = new Proxy(fs, {

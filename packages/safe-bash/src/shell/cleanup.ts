@@ -8,7 +8,6 @@ export class InvocationScope {
   #children: Set<InvocationScope> | undefined;
   #callbacks: Map<symbol, InvocationCleanup> | undefined;
   #finalizers: (() => void)[] | undefined;
-  #work: Set<Promise<void>> | undefined;
   #activeWork = 0;
   #workWaiters: (() => void)[] | undefined;
   #controller: AbortController | undefined;
@@ -69,13 +68,16 @@ export class InvocationScope {
   }
 
   run<Value>(operation: () => Promise<Value>): Promise<Value> {
-    this.assertOpen();
-    const pending = operation();
-    const work = this.#work ??= new Set();
-    const onSettled = (): void => { work.delete(settled); };
-    const settled = pending.then(onSettled, onSettled);
-    work.add(settled);
-    return pending;
+    this.enterWork();
+    try {
+      const pending = operation();
+      const onSettled = (): void => { this.leaveWork(); };
+      void pending.then(onSettled, onSettled);
+      return pending;
+    } catch (error) {
+      this.leaveWork();
+      throw error;
+    }
   }
 
   async cleanup(action: InvocationCleanup): Promise<void> {
@@ -84,9 +86,8 @@ export class InvocationScope {
   }
 
   async drainWork(): Promise<void> {
-    if (!this.#work?.size && this.#activeWork === 0 && !this.#children?.size) return;
+    if (this.#activeWork === 0 && !this.#children?.size) return;
     await Promise.all([
-      ...(this.#work ?? []),
       ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
       ...(this.#children ? [...this.#children].map(child => child.drainWork()) : []),
     ]);
@@ -104,7 +105,7 @@ export class InvocationScope {
   close(): Promise<void> {
     if (!this.#drain) {
       this.#seal();
-      if (!this.#callbacks?.size && !this.#children?.size && !this.#work?.size && this.#activeWork === 0) {
+      if (!this.#callbacks?.size && !this.#children?.size && this.#activeWork === 0) {
         if (this.#finalizers) {
           for (const finalize of this.#finalizers.splice(0)) {
             try { finalize(); }
@@ -122,7 +123,6 @@ export class InvocationScope {
           await Promise.all([
             ...callbacks.map((cleanup) => this.cleanup(cleanup)),
             ...(this.#children ? [...this.#children].map((child) => child.close()) : []),
-            ...(this.#work ?? []),
             ...(this.#activeWork > 0 ? [new Promise<void>(resolve => (this.#workWaiters ??= []).push(resolve))] : []),
           ]);
         } finally {

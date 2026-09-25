@@ -2145,4 +2145,32 @@ describe("@poe-code/image-ast (sharp core)", () => {
     expect(grey16Res.info.channels).toBe(1);
     expect(grey16Res.info.size).toBe(2);
   });
+
+  it("supports TypedArray raw inputs (Uint16Array, Float32Array, Int8Array) and validates raw.pageHeight divisibility", async () => {
+    const u16 = new Uint16Array([2560, 32768, 65535]);
+    const u16Meta = await sharp(u16, { raw: { width: 1, height: 1, channels: 3 } }).metadata();
+    expect(u16Meta.depth).toBe("ushort");
+    expect(u16Meta.space).toBe("rgb16");
+
+    const u16ToUchar = await sharp(u16, { raw: { width: 1, height: 1, channels: 3 } }).raw().toBuffer();
+    expect(Array.from(u16ToUchar)).toEqual([10, 128, 255]);
+
+    const u16ToRgb16Ushort = await sharp(u16, { raw: { width: 1, height: 1, channels: 3 } })
+      .toColorspace("rgb16" as any)
+      .raw({ depth: "ushort" } as any)
+      .toBuffer({ resolveWithObject: true });
+    expect(Array.from(new Uint16Array(new Uint8Array(u16ToRgb16Ushort.data).buffer))).toEqual([2560, 32768, 65535]);
+
+    const f32 = new Float32Array([2560, 32768, 65535]);
+    const f32Meta = await sharp(f32, { raw: { width: 1, height: 1, channels: 3 } }).metadata();
+    expect(f32Meta.depth).toBe("float");
+    expect(f32Meta.space).toBe("rgb16");
+    const f32ToUchar = await sharp(f32, { raw: { width: 1, height: 1, channels: 3 } }).raw().toBuffer();
+    expect(Array.from(f32ToUchar)).toEqual([10, 128, 255]);
+
+    const rawPages = Buffer.alloc(2 * 5 * 3, 200);
+    expect(() =>
+      sharp(rawPages, { raw: { width: 2, height: 5, channels: 3, pageHeight: 2 } })
+    ).toThrow(/Expected raw\.height 5 to be a multiple of raw\.pageHeight 2/);
+  });
 });

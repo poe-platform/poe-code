@@ -56,9 +56,22 @@ import {
   unflattenImage
 } from "./ops/transform.js";
 
-function toBytes(input: Uint8Array | ArrayBuffer | string | undefined): Uint8Array | undefined {
+function inferTypedArrayDepth(input: unknown): "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | undefined {
+  if (!input || !ArrayBuffer.isView(input)) return undefined;
+  if (input instanceof Int8Array) return "char";
+  if (input instanceof Uint16Array) return "ushort";
+  if (input instanceof Int16Array) return "short";
+  if (input instanceof Uint32Array) return "uint";
+  if (input instanceof Int32Array) return "int";
+  if (input instanceof Float32Array) return "float";
+  if (input instanceof Float64Array) return "double";
+  return "uchar";
+}
+
+function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined): Uint8Array | undefined {
   if (!input) return undefined;
   if (input instanceof Uint8Array) return input;
+  if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
   if (input instanceof ArrayBuffer) return new Uint8Array(input);
   if (typeof input === "string") {
     if (input.trimStart().startsWith("<")) {
@@ -130,7 +143,7 @@ export class SharpInstance {
     } else if (
       input &&
       typeof input === "object" &&
-      !(input instanceof Uint8Array) &&
+      !ArrayBuffer.isView(input) &&
       !(input instanceof ArrayBuffer)
     ) {
       this.inputBytes = undefined;
@@ -139,9 +152,31 @@ export class SharpInstance {
     } else {
       this.inputFilePath =
         typeof input === "string" && !input.trimStart().startsWith("<") ? input : undefined;
-      this.inputBytes = toBytes(input as Uint8Array | ArrayBuffer | string | undefined);
+      const inferredDepth = inferTypedArrayDepth(input);
+      let effectiveOptions = options;
+      if (effectiveOptions?.raw) {
+        const { height, pageHeight } = effectiveOptions.raw;
+        if (pageHeight !== undefined) {
+          if (!Number.isInteger(pageHeight) || pageHeight <= 0 || pageHeight > height) {
+            throw new Error(`Expected positive integer for raw.pageHeight but received ${pageHeight}`);
+          }
+          if (height % pageHeight !== 0) {
+            throw new Error(`Expected raw.height ${height} to be a multiple of raw.pageHeight ${pageHeight}`);
+          }
+        }
+        if (inferredDepth && !effectiveOptions.raw.depth) {
+          effectiveOptions = {
+            ...effectiveOptions,
+            raw: {
+              ...effectiveOptions.raw,
+              depth: inferredDepth
+            }
+          };
+        }
+      }
+      this.inputBytes = toBytes(input as Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined);
       this.joinInputs = undefined;
-      this.inputOptions = options;
+      this.inputOptions = effectiveOptions;
     }
     if (this.inputOptions?.autoOrient) {
       this.nodes.push({ kind: "autoOrient" });

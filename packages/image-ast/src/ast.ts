@@ -37,10 +37,11 @@ export interface RgbaImage {
   readonly width: number;
   readonly height: number;
   readonly data: Uint8Array;
+  readonly data16?: Uint16Array;
   readonly format: ImageFormat;
   readonly space: ColorSpace;
   readonly channels: 1 | 2 | 3 | 4;
-  readonly depth: "uchar" | "ushort" | "bit";
+  readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly density: number;
   readonly hasAlpha: boolean;
   readonly orientation?: number;
@@ -62,7 +63,7 @@ export interface ImageMetadata {
   readonly height: number;
   readonly space: ColorSpace;
   readonly channels: 1 | 2 | 3 | 4;
-  readonly depth: "uchar" | "ushort" | "bit";
+  readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly density: number;
   readonly hasAlpha: boolean;
   readonly compression?: "hevc" | "av1";
@@ -246,7 +247,7 @@ export interface SharpInputOptions {
     readonly channels: 1 | 2 | 3 | 4;
     readonly premultiplied?: boolean;
     readonly pageHeight?: number;
-    readonly depth?: "uchar" | "ushort" | "bit";
+    readonly depth?: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   };
   readonly create?: {
     readonly width: number;

@@ -195,7 +195,7 @@ test("arithmetic stays bounded and handles short circuit, updates and overflow",
   assert.equal((await shell.exec('args "$((1 / 0))"')).exitCode, 1);
 });
 
-for (const terms of [5000, 5001, 8000]) {
+for (const terms of [5000, 5001, 8000, 20000]) {
   test(`arithmetic evaluates without a fixed node ceiling or host recursion: ${terms} terms`, () => {
     const program = prepareArithmetic(Array(terms).fill("1").join("+"));
     assert.ok(program.tree);

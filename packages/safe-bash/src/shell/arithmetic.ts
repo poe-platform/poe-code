@@ -24,30 +24,22 @@ class ArithmeticFailure extends Error {
 
 const preparedArithmeticCache = new Map<string, { program: ArithmeticProgram; units: number }>();
 
-function treeHasSubscript(node: Arithmetic | undefined): boolean {
-  if (!node) return false;
-  switch (node.kind) {
-    case "literal": return false;
-    case "name": return node.subscript !== undefined;
-    case "unary": return treeHasSubscript(node.operand);
-    case "binary": return treeHasSubscript(node.left) || treeHasSubscript(node.right);
-    case "conditional": return treeHasSubscript(node.condition) || treeHasSubscript(node.yes) || treeHasSubscript(node.no);
+function treeFeatures(tree: Arithmetic): Pick<ArithmeticProgram, "hasSubscript" | "hasMutation"> {
+  const pending = [tree];
+  let hasSubscript = false;
+  let hasMutation = false;
+  while (pending.length) {
+    const node = pending.pop()!;
+    if (node.kind === "name") hasSubscript ||= node.subscript !== undefined;
+    else if (node.kind === "unary") {
+      hasMutation ||= node.operator === "++" || node.operator === "--";
+      pending.push(node.operand);
+    } else if (node.kind === "binary") {
+      hasMutation ||= precedence[node.operator] === 2;
+      pending.push(node.left, node.right);
+    } else if (node.kind === "conditional") pending.push(node.condition, node.yes, node.no);
   }
-}
-
-function treeHasMutation(node: Arithmetic | undefined): boolean {
-  if (!node) return false;
-  switch (node.kind) {
-    case "literal":
-    case "name":
-      return false;
-    case "unary":
-      return node.operator === "++" || node.operator === "--" || treeHasMutation(node.operand);
-    case "binary":
-      return node.operator === "=" || precedence[node.operator] === 2 || treeHasMutation(node.left) || treeHasMutation(node.right);
-    case "conditional":
-      return treeHasMutation(node.condition) || treeHasMutation(node.yes) || treeHasMutation(node.no);
-  }
+  return { hasSubscript, hasMutation };
 }
 
 function fastDecimalLiteral(text: string | undefined, budget: ParseBudget): bigint | undefined {
@@ -93,7 +85,7 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
   tracking.admit();
   try {
     const tree = parseArithmetic(source, 0, tracking);
-    const program: ArithmeticProgram = { source, tree, hasSubscript: treeHasSubscript(tree), hasMutation: treeHasMutation(tree) };
+    const program: ArithmeticProgram = { source, tree, ...treeFeatures(tree) };
     if (source.length <= 256) {
       if (preparedArithmeticCache.size >= 512) {
         const oldest = preparedArithmeticCache.keys().next().value;
@@ -343,93 +335,10 @@ function formatArithmeticError(program: ArithmeticProgram, error: unknown): neve
 }
 
 export function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
-  try {
-    if (program.error) throw program.error;
-    let visiting: Set<string> | undefined;
-    const evalNameValue = (node: Extract<Arithmetic, { kind: "name" }>): bigint => {
-      const reference = references.resolve(node.name, node.subscript) as string;
-      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
-      const text = references.read(reference) as string | undefined;
-      const fast = fastDecimalLiteral(text, budget);
-      if (fast !== undefined) return fast;
-      visiting ??= new Set();
-      visiting.add(reference);
-      try {
-        return evalNode(parseArithmetic(text ?? "0", 0, budget));
-      } finally {
-        visiting.delete(reference);
-      }
-    };
-    const evalName = (node: Extract<Arithmetic, { kind: "name" }>): { reference: string; value: bigint } => {
-      const reference = references.resolve(node.name, node.subscript) as string;
-      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
-      const text = references.read(reference) as string | undefined;
-      const fast = fastDecimalLiteral(text, budget);
-      if (fast !== undefined) return { reference, value: fast };
-      visiting ??= new Set();
-      visiting.add(reference);
-      try {
-        return { reference, value: evalNode(parseArithmetic(text ?? "0", 0, budget)) };
-      } finally {
-        visiting.delete(reference);
-      }
-    };
-    const evalNode = (node: Arithmetic): bigint => {
-      budget.admit(0);
-      switch (node.kind) {
-        case "literal":
-          return node.value;
-        case "name":
-          return evalNameValue(node);
-        case "conditional": {
-          const cond = evalNode(node.condition);
-          return evalNode(cond ? node.yes : node.no);
-        }
-        case "unary": {
-          if (node.operator === "+") return BigInt.asIntN(64, evalNode(node.operand));
-          if (node.operator === "-") return BigInt.asIntN(64, -evalNode(node.operand));
-          if (node.operator === "!") return BigInt(!evalNode(node.operand));
-          if (node.operator === "~") return BigInt.asIntN(64, ~evalNode(node.operand));
-          const { reference, value: operand } = evalName(node.operand as Extract<Arithmetic, { kind: "name" }>);
-          const updated = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
-          references.write(reference, String(updated));
-          return node.postfix ? BigInt.asIntN(64, operand) : updated;
-        }
-        case "binary": {
-          if (node.operator === "&&" || node.operator === "||") {
-            const left = evalNode(node.left);
-            if (node.operator === "&&" ? left === 0n : left !== 0n) return BigInt(left !== 0n);
-            return BigInt(evalNode(node.right) !== 0n);
-          }
-          if (node.operator === ",") {
-            evalNode(node.left);
-            return BigInt.asIntN(64, evalNode(node.right));
-          }
-          if (node.operator === "=") {
-            const right = evalNode(node.right);
-            const operand = node.left as Extract<Arithmetic, { kind: "name" }>;
-            const reference = references.resolve(operand.name, operand.subscript) as string;
-            const updated = BigInt.asIntN(64, right);
-            references.write(reference, String(updated));
-            return updated;
-          }
-          if (precedence[node.operator] === 2) {
-            const { reference, value: left } = evalName(node.left as Extract<Arithmetic, { kind: "name" }>);
-            const right = evalNode(node.right);
-            const updated = BigInt.asIntN(64, binaryArithmeticOp(node.operator.slice(0, -1), left, right, node.right.start ?? 0));
-            references.write(reference, String(updated));
-            return updated;
-          }
-          const left = evalNode(node.left);
-          const right = evalNode(node.right);
-          return BigInt.asIntN(64, binaryArithmeticOp(node.operator, left, right, node.right.start ?? 0));
-        }
-      }
-    };
-    return evalNode(program.tree!);
-  } catch (error) {
-    formatArithmeticError(program, error);
-  }
+  const evaluation = arithmeticEvaluation(program, references, budget);
+  let step = evaluation.next();
+  while (!step.done) step = evaluation.next(step.value as string | undefined);
+  return step.value;
 }
 
 export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>, budget = new ParseBudget()): bigint {

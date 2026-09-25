@@ -1084,6 +1084,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/python/provisioning.test.ts"));
   assert.ok(files.includes("tests/commands/python/provisioning-runtime.test.ts"));
   assert.ok(files.includes("tests/plugins/python-exports.test.ts"));
+  assert.ok(files.includes("tests/plugins/python-llm.test.ts"));
+  assert.ok(files.includes("tests/commands/python/jspi-timers.test.ts"));
   assert.ok(files.includes("tests/shell/plugin-shebang.test.ts"));
   assert.ok(files.includes("tests/commands/python/worker.test.ts"));
   assert.ok(files.includes("tests/commands/python/reply.test.ts"));

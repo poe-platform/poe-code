@@ -1,5 +1,6 @@
 import { mountPythonFileSystem } from '@poe-code/safe-fs/core';
 import { pythonExecution } from './execution.js';
+import { installPythonLlmModule } from './llm-module.js';
 import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonHardLinks, pythonTreeCleanup } from './runtime-scripts.js';
 import { parsePythonInvocation } from './invocation.js';
 import { installPythonPackages } from './provisioning-runtime.js';
@@ -261,6 +262,7 @@ export async function runPythonWorker(options: {
     runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
     postMessage({type:'ready'});
     category = 'runtime';
+    installPythonLlmModule(runtime);
     const exitCode = runtime.runPython(pythonExecution);
     // Finalize CPython while canonical storage and stream RPC remain live.
     // This runs atexit and releases buffered files retained by guest modules.

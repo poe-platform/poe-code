@@ -1,11 +1,12 @@
 import { createPythonNativeSyscalls } from '@poe-code/safe-fs/core';
 import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
 import { PythonFailure } from './diagnostics.js';
+import { installPythonLlmModule } from './llm-module.js';
 import { parsePythonInvocation } from './invocation.js';
 import { pythonExecution } from './execution.js';
 import { pythonJspiSignatures } from './jspi-trampoline.js';
 import { createPythonJspiScheduler, type PythonJspiCallback } from './jspi-scheduler.js';
-import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup } from './runtime-scripts.js';
+import { pythonJspiTimers, pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup } from './runtime-scripts.js';
 
 export interface PythonJspiRuntimeConfiguration {
   readonly jsglobals: Record<string, never>;
@@ -196,8 +197,10 @@ def _safe_native_stat_type(values, extras):
 _safe_stat_type = _safe_native_stat_type
 `);
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
+      installPythonLlmModule(runtime);
       runtime.globals.set('_safe_execution_code', pythonExecution);
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);
+      runtime.runPython(pythonJspiTimers);
       active.value = 1;
       start.onReady();
       exitCode = Number(await runtime.runPythonAsync(`

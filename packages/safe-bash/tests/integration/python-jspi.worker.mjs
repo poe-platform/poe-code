@@ -121,6 +121,18 @@ else:
  raise AssertionError('missing file did not fail')
 `;
 
+const llmImport = `
+assert 'poe_llm' not in sys.modules
+from poe_llm import Client, Request, CapabilityError
+assert Request(prompt='hello', options={'temperature': 0.25, 'cache': True}).payload()['options'] == {'temperature': 0.25, 'cache': True}
+try:
+ Client()
+except CapabilityError:
+ pass
+else:
+ raise AssertionError('Python obtained an ambient LLM capability')
+`;
+
 const finalization = `
 import atexit
 buffered = open('/work/buffered', 'wb')
@@ -249,7 +261,7 @@ export default {
     }
     const executor = createExecutor();
     try {
-      const exitCode = await executor.run({ invocation: { args: ['-c', program + (mode === '/finalization' ? finalization : mode === '/background' ? background : mode === '/tasks' ? tasks : mode === '/cancel' ? cancelled : '')], cwd: '/work', env: {} },
+      const exitCode = await executor.run({ invocation: { args: ['-c', program + (mode === '/native' ? llmImport : '') + (mode === '/finalization' ? finalization : mode === '/background' ? background : mode === '/tasks' ? tasks : mode === '/cancel' ? cancelled : '')], cwd: '/work', env: {} },
         signal: controller.signal, runtimeMount: '/.runtime', maxTransferBytes: 32, onReady() {},
         async dispatch(operation) {
           activeRequests++;

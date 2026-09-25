@@ -367,6 +367,9 @@ Node worker threads or a SAB request/reply bridge. This path is qualified with
 installed public-package artifacts in local workerd, not a verified Cloudflare
 deployment or a managed Python native-filesystem integration. JSPI cancellation
 is cooperative; it neither preempts CPU-only loops nor establishes confinement.
+Both Python launchers bundle the async `poe_llm` workflow library without pip.
+Its [API and limits](docs/python-llm.md) include typed requests, customization and
+stream cleanup; JavaScript LLM capability and hosted qualification remain pending.
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
 with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;

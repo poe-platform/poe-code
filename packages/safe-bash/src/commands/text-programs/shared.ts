@@ -63,12 +63,14 @@ export class Budget {
     if (this.signal.aborted) this.signal.throwIfAborted();
     const count = ++this.checkpoints;
     if ((count & 255) === 0 || monotonicNow() - this.lastYield >= 25) {
-      return yieldTurn(this.signal).then(() => {
-        this.lastYield = monotonicNow();
-        this.signal.throwIfAborted();
-      });
+      return this.yieldCheckpointAsync();
     }
     return undefined;
+  }
+  private async yieldCheckpointAsync(): Promise<void> {
+    await yieldTurn(this.signal);
+    this.lastYield = monotonicNow();
+    this.signal.throwIfAborted();
   }
 }
 

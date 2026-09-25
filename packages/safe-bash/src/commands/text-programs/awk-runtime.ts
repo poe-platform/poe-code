@@ -548,20 +548,22 @@ export class AwkRuntime {
     switch (expression.kind) {
       case "number": return numeric(expression.value);
       case "string": return string(expression.value);
-      case "regex": return expression.pattern.find(this.record, this.budget).then(m => numeric(m ? 1 : 0));
+      case "regex": return this.evaluateRegexMatch(expression.pattern);
       case "variable": return this.get(expression.name);
       case "field": {
+        if (expression.index.kind === "number") {
+          this.budget.step();
+          const index = Math.trunc(expression.index.value);
+          if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
+          return this.getField(index);
+        }
         const idxVal = this.scalarExpression(expression.index);
         if (!(idxVal instanceof Promise)) {
           const index = Math.trunc(number(idxVal));
           if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
           return this.getField(index);
         }
-        return idxVal.then(resolved => {
-          const index = Math.trunc(number(resolved));
-          if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
-          return this.getField(index);
-        });
+        return this.evaluateFieldAsync(idxVal);
       }
       case "array": {
         const array = this.array(expression.name);
@@ -574,20 +576,13 @@ export class AwkRuntime {
           }
           return existing!;
         }
-        return k.then(resolvedKey => {
-          let existing = array.entries.get(resolvedKey);
-          if (existing === undefined && !array.entries.has(resolvedKey)) {
-            this.arraySet(array, resolvedKey, unset);
-            existing = unset;
-          }
-          return existing!;
-        });
+        return this.evaluateArrayAsync(array, k);
       }
       case "getline": return this.getline(expression);
       case "tuple": throw new ProgramError("tuple is only valid as an array membership key");
       case "conditional": {
         const cond = this.scalarExpression(expression.condition);
-        return cond instanceof Promise ? cond.then(c => this.evaluate(truth(c) ? expression.yes : expression.no)) : this.evaluate(truth(cond) ? expression.yes : expression.no);
+        return cond instanceof Promise ? this.evaluateConditionalAsync(expression, cond) : this.evaluate(truth(cond) ? expression.yes : expression.no);
       }
       case "unary": {
         if (expression.operator === "++" || expression.operator === "--") {
@@ -612,17 +607,7 @@ export class AwkRuntime {
               this.arraySet(array, k, numeric(next));
               return numeric(expression.postfix ? previous : next);
             }
-            return k.then(resolvedKey => {
-              let current = array.entries.get(resolvedKey);
-              if (current === undefined && !array.entries.has(resolvedKey)) {
-                this.arraySet(array, resolvedKey, unset);
-                current = unset;
-              }
-              const previous = number(scalar(current!));
-              const next = previous + (expression.operator === "++" ? 1 : -1);
-              this.arraySet(array, resolvedKey, numeric(next));
-              return numeric(expression.postfix ? previous : next);
-            });
+            return this.evaluateUnaryArrayAsync(expression, array, k);
           }
           return this.evaluateUnarySlow(expression);
         }
@@ -630,7 +615,7 @@ export class AwkRuntime {
         if (!(operand instanceof Promise)) {
           return numeric(expression.operator === "!" ? truth(operand) ? 0 : 1 : expression.operator === "-" ? -number(operand) : number(operand));
         }
-        return operand.then(op => numeric(expression.operator === "!" ? truth(op) ? 0 : 1 : expression.operator === "-" ? -number(op) : number(op)));
+        return this.evaluateUnaryValueAsync(expression.operator, operand);
       }
       case "binary": {
         const operator = expression.operator;
@@ -644,11 +629,7 @@ export class AwkRuntime {
               this.set(name, value);
               return value;
             }
-            return rightVal.then(resolved => {
-              const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
-              this.set(name, value);
-              return value;
-            });
+            return this.evaluateAssignVarAsync(operator, name, previous, rightVal);
           } else if (expression.left.kind === "array") {
             const array = this.array(expression.left.name);
             const k = this.key(expression.left.indexes);
@@ -673,24 +654,9 @@ export class AwkRuntime {
                 this.arraySet(array, k, value);
                 return value;
               }
-              return rightVal.then(resolved => {
-                const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
-                this.arraySet(array, k, value);
-                return value;
-              });
+              return this.evaluateAssignArrayRightAsync(operator, array, k, previous, rightVal);
             }
-            return k.then(async resolvedKey => {
-              let current = operator === "=" ? unset : array.entries.get(resolvedKey);
-              if (operator !== "=" && current === undefined && !array.entries.has(resolvedKey)) {
-                this.arraySet(array, resolvedKey, unset);
-                current = unset;
-              }
-              const previous = scalar(current!);
-              const resolved = await this.scalarExpression(expression.right);
-              const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
-              this.arraySet(array, resolvedKey, value);
-              return value;
-            });
+            return this.evaluateAssignArrayKeyAsync(expression, operator, array, k);
           }
           return this.evaluateBinarySlow(expression);
         }
@@ -702,11 +668,89 @@ export class AwkRuntime {
         if (operator === "&&" && !truth(left)) return numeric(0);
         if (operator === "||" && truth(left)) return numeric(1);
         const right = this.scalarExpression(expression.right);
-        if (right instanceof Promise) return right.then(r => this.evaluateBinarySyncOperands(operator, left, r));
+        if (right instanceof Promise) return this.evaluateBinaryWithRightPromise(operator, left, right);
         return this.evaluateBinarySyncOperands(operator, left, right);
       }
       case "call": return this.call(expression.name, expression.args);
     }
+  }
+
+  private async evaluateRegexMatch(pattern: Pattern): Promise<Scalar> {
+    const m = await pattern.find(this.record, this.budget);
+    return numeric(m ? 1 : 0);
+  }
+
+  private async evaluateFieldAsync(idxPromise: Promise<Scalar>): Promise<Scalar> {
+    const resolved = await idxPromise;
+    const index = Math.trunc(number(resolved));
+    if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
+    return this.getField(index);
+  }
+
+  private async evaluateArrayAsync(array: AwkArray, keyPromise: Promise<string>): Promise<Scalar> {
+    const resolvedKey = await keyPromise;
+    let existing = array.entries.get(resolvedKey);
+    if (existing === undefined && !array.entries.has(resolvedKey)) {
+      this.arraySet(array, resolvedKey, unset);
+      existing = unset;
+    }
+    return existing!;
+  }
+
+  private async evaluateConditionalAsync(expression: Extract<Expression, { kind: "conditional" }>, condPromise: Promise<Scalar>): Promise<Value> {
+    const c = await condPromise;
+    return this.evaluate(truth(c) ? expression.yes : expression.no);
+  }
+
+  private async evaluateUnaryArrayAsync(expression: Extract<Expression, { kind: "unary" }>, array: AwkArray, keyPromise: Promise<string>): Promise<Scalar> {
+    const resolvedKey = await keyPromise;
+    let current = array.entries.get(resolvedKey);
+    if (current === undefined && !array.entries.has(resolvedKey)) {
+      this.arraySet(array, resolvedKey, unset);
+      current = unset;
+    }
+    const previous = number(scalar(current!));
+    const next = previous + (expression.operator === "++" ? 1 : -1);
+    this.arraySet(array, resolvedKey, numeric(next));
+    return numeric(expression.postfix ? previous : next);
+  }
+
+  private async evaluateUnaryValueAsync(operator: string, operandPromise: Promise<Scalar>): Promise<Scalar> {
+    const op = await operandPromise;
+    return numeric(operator === "!" ? truth(op) ? 0 : 1 : operator === "-" ? -number(op) : number(op));
+  }
+
+  private async evaluateAssignVarAsync(operator: string, name: string, previous: Scalar, rightPromise: Promise<Scalar>): Promise<Scalar> {
+    const resolved = await rightPromise;
+    const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
+    this.set(name, value);
+    return value;
+  }
+
+  private async evaluateAssignArrayRightAsync(operator: string, array: AwkArray, k: string, previous: Scalar, rightPromise: Promise<Scalar>): Promise<Scalar> {
+    const resolved = await rightPromise;
+    const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
+    this.arraySet(array, k, value);
+    return value;
+  }
+
+  private async evaluateAssignArrayKeyAsync(expression: Extract<Expression, { kind: "binary" }>, operator: string, array: AwkArray, keyPromise: Promise<string>): Promise<Scalar> {
+    const resolvedKey = await keyPromise;
+    let current = operator === "=" ? unset : array.entries.get(resolvedKey);
+    if (operator !== "=" && current === undefined && !array.entries.has(resolvedKey)) {
+      this.arraySet(array, resolvedKey, unset);
+      current = unset;
+    }
+    const previous = scalar(current!);
+    const resolved = await this.scalarExpression(expression.right);
+    const value = operator === "=" ? resolved : numeric(this.arithmetic(operator[0]!, number(previous), number(resolved)));
+    this.arraySet(array, resolvedKey, value);
+    return value;
+  }
+
+  private async evaluateBinaryWithRightPromise(operator: string, left: Scalar, rightPromise: Promise<Scalar>): Promise<Scalar> {
+    const r = await rightPromise;
+    return this.evaluateBinarySyncOperands(operator, left, r);
   }
 
   private evaluateBinarySyncOperands(operator: string, left: Scalar, right: Scalar): Scalar {
@@ -950,7 +994,7 @@ export class AwkRuntime {
         if (statement.kind === "expression") {
           this.budget.step();
           const val = this.evaluate(statement.expression);
-          return val instanceof Promise ? val.then(() => undefined) : undefined;
+          return val instanceof Promise ? this.ignorePromiseValue(val) : undefined;
         }
         if (statement.kind === "block") {
           this.budget.step();
@@ -969,14 +1013,29 @@ export class AwkRuntime {
             const branch = truth(cond) ? statement.yes : statement.no;
             return branch ? this.executeSync(branch) : undefined;
           }
-          return cond.then(resolved => {
-            const branch = truth(resolved) ? statement.yes : statement.no;
-            return branch ? this.executeSync(branch) : undefined;
-          });
+          return this.executeIfAsync(statement, cond);
         }
-      } else return p.then(() => this.execute(statement));
+      } else return this.executeAfterCheckpoint(p, statement);
     }
     return this.execute(statement);
+  }
+
+  private async ignorePromiseValue(promise: Promise<unknown>): Promise<void> {
+    await promise;
+  }
+
+  private async executeIfAsync(statement: Extract<Statement, { kind: "if" }>, condPromise: Promise<Scalar>): Promise<void> {
+    const resolved = await condPromise;
+    const branch = truth(resolved) ? statement.yes : statement.no;
+    if (branch) {
+      const res = this.executeSync(branch);
+      if (res instanceof Promise) await res;
+    }
+  }
+
+  private async executeAfterCheckpoint(checkpoint: Promise<void>, statement: Statement): Promise<void> {
+    await checkpoint;
+    await this.execute(statement);
   }
 
   private async executeBlockRemainder(body: readonly Statement[], startIndex: number, current: Promise<void>): Promise<void> {
@@ -1142,18 +1201,21 @@ export class AwkRuntime {
         return record;
       }
       if (record instanceof Promise) {
-        return record.then(resolved => {
-          if (resolved !== undefined) {
-            this.incrementCounter("NR");
-            this.incrementCounter("FNR");
-            return resolved;
-          }
-          return this.readMainRecordSlowAfterEof();
-        });
+        return this.readMainRecordAfterPromise(record);
       }
       return this.readMainRecordSlowAfterEof();
     }
     return this.readMainRecordSlow();
+  }
+
+  private async readMainRecordAfterPromise(recordPromise: Promise<string | undefined>): Promise<string | undefined> {
+    const resolved = await recordPromise;
+    if (resolved !== undefined) {
+      this.incrementCounter("NR");
+      this.incrementCounter("FNR");
+      return resolved;
+    }
+    return this.readMainRecordSlowAfterEof();
   }
 
   private async readMainRecordSlowAfterEof(): Promise<string | undefined> {

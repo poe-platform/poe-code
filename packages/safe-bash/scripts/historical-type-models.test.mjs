@@ -631,12 +631,38 @@ for (const [sourceDependencies, compilerTimeout] of [[false, 3600000], [true, 18
       assert.deepEqual(stdout, ordinaryFailure || (status === 0 && label === "source-and-tests") ? [classification] : [], `${label} status ${status} stdout`);
       assert.deepEqual(stderr, ordinaryFailure ? ["compiler stderr\n"] : [], `${label} status ${status} stderr`);
       assert.deepEqual(messages, label.startsWith("resolution-") ? [] : [`typecheck: ${label}: exit ${status}`]);
-      assert.equal(record, phases[0]);
+      assert.equal(record.label, phases[0].label);
+      assert.equal(record.status, phases[0].status);
       assert.equal(record.stdout, classification);
       assert.equal(launches[0][1][0], ["source-and-tests", "historical-build-first-consumer"].includes(label) ? "/historical-models" : "/tsc");
       assert.equal(launches[0][2].timeout, compilerTimeout);
       assert.equal(launches[0][1].includes("--source-dependencies"), sourceDependencies && ["source-and-tests", "historical-build-first-consumer"].includes(label));
     }
+  }
+});
+
+test("resolution validation receives the full trace and late diagnostics remain visible", () => {
+  const text = readRegularInput(packageRoot, "scripts/typecheck.mjs", 20000, fs, actualBoundaries).toString("utf8");
+  const source = ts.createSourceFile("typecheck.mjs", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const declaration = source.statements.filter(ts.isVariableStatement)
+    .flatMap(statement => [...statement.declarationList.declarations])
+    .find(variable => ts.isIdentifier(variable.name) && variable.name.text === "compile");
+  const diagnostic = "consumer.ts(1,1): error TS2307: Cannot find module 'missing'.\n";
+  const trace = "Resolving module 'dependency'.\n".repeat(3000) + "Module resolved outside the candidate.\n";
+  for (const status of [0, 2]) {
+    const stdout = [], phases = [];
+    const raw = trace + (status === 0 ? "" : diagnostic);
+    const compile = new Script(`(${declaration.initializer.getText(source)})`).runInNewContext({
+      root, compiler: "/tsc", historicalCompiler: "/historical-models",
+      report: { phases }, console: { log() {} },
+      process: { execPath: "/node", env: {}, stdout: { write: value => stdout.push(value) }, stderr: { write() {} } },
+      spawnSync: () => ({ status, signal: null, stdout: raw, stderr: "" }),
+    });
+    const result = compile("consumer-public", ["--noEmit", "--traceResolution"]);
+    assert.equal(result.stdout, raw, "resolution admission must inspect the whole trace");
+    assert.ok(phases[0].stdout.length < raw.length, "stored report remains bounded");
+    assert.match(phases[0].stdout, /truncated/);
+    assert.deepEqual(stdout, status === 0 ? [] : [diagnostic]);
   }
 });
 

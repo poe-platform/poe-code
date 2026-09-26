@@ -23,7 +23,8 @@ const compile = (label, compilerArgs) => {
     const text = typeof value === "string" ? value : String(value ?? "");
     return text.length > 65536 ? `${text.slice(0, 65536)}\n...[truncated ${text.length - 65536} chars]\n` : text;
   };
-  const stdout = bound(result.stdout), stderr = bound(result.stderr);
+  const rawStdout = String(result.stdout ?? "");
+  const stdout = bound(rawStdout), stderr = bound(result.stderr);
   const error = result.error ? { name: result.error.name, message: result.error.message, ...(result.error.code ? { code: result.error.code } : {}) } : null;
   const abnormal = result.error !== undefined || result.signal !== null || typeof result.status !== "number";
   const record = { label, status: result.status ?? null, signal: result.signal ?? null, error, stdout, stderr };
@@ -33,7 +34,7 @@ const compile = (label, compilerArgs) => {
     console.log(`typecheck: ${label}: ${summary}`);
     if (!abnormal && result.status === 0 && label === "source-and-tests") process.stdout.write(stdout);
     if (abnormal || (result.status !== 0 && !label.startsWith("negative-"))) {
-      if (stdout) process.stdout.write(compilerArgs.includes("--traceResolution") && !abnormal ? stdout.split("\n").filter(line => /error TS\d+:/u.test(line)).join("\n") + "\n" : stdout);
+      if (stdout) process.stdout.write(compilerArgs.includes("--traceResolution") && !abnormal ? bound(rawStdout.split("\n").filter(line => /error TS\d+:/u.test(line)).join("\n") + "\n") : stdout);
       if (stderr) process.stderr.write(stderr);
     }
   }
@@ -44,7 +45,7 @@ const compile = (label, compilerArgs) => {
       result.error ? `error=${result.error.code ?? result.error.message}` : null,
     ].filter(Boolean).join(", ")})`);
   }
-  return record;
+  return { ...record, stdout: rawStdout };
 };
 
 try {

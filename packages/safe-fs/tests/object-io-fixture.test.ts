@@ -3,6 +3,7 @@ import { createObjectFilePublicationConformanceCases } from "../src/testing/obje
 import { ObjectIoMetrics, measureObjectIoStore } from "../src/testing/object-io-metrics.js";
 import { PythonStatTranslator } from "../src/python/stat.js";
 import { toByteSource } from "../src/contracts/io.js";
+import type { ObjectFilePublicationStore } from "../src/fs/object-publication/index.js";
 import { createR2StagingFixture } from "./integration/object-staging-workerd.fixture.mjs";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -62,7 +63,8 @@ it("a rejected backend upload cannot strand a backpressured publication pump", {
 it("uses a fresh R2 key for every acknowledged page revision and truncation", async () => {
   const backend = fixture();
   const uploads = vi.spyOn(backend.bucket, "put");
-  const stage = await backend.store.createStaging('/pages', { chunkBytes: 4, maxFileBytes: 16 });
+  const store: ObjectFilePublicationStore = backend.store;
+  const stage = await store.createStaging!('/pages', { chunkBytes: 4, maxFileBytes: 16 });
   try {
     await stage.writePage(0, new Uint8Array([1, 2, 3, 4]));
     await stage.writePage(0, new Uint8Array([5, 6, 7, 8]));
@@ -77,7 +79,8 @@ it("uses a fresh R2 key for every acknowledged page revision and truncation", as
 
 it("keeps the acknowledged revision after a cancelled upload and drains orphaned revisions", async () => {
   const backend = fixture();
-  const stage = await backend.store.createStaging('/cancelled', { chunkBytes: 4, maxFileBytes: 16 });
+  const store: ObjectFilePublicationStore = backend.store;
+  const stage = await store.createStaging!('/cancelled', { chunkBytes: 4, maxFileBytes: 16 });
   const controller = new AbortController();
   const reason = new Error('cancelled after upload');
   try {

@@ -360,8 +360,15 @@ function resolution. Twelve original assertions failed before correction; all
 command XLSX export and SDK readback preserve six financial formulas and values
 across three profiles (18 observations, error below 1e-12), with empty stderr and
 4,157–4,171-byte outputs. Direct/named IRR range order also passes. The source
-audit separately identifies unsigned compact-number formula decoding, which
-still needs correction; ordinary compact cell records already sign-extend.
+audit also identified unsigned compact-number formula decoding; ordinary compact
+cell records already sign-extended. The formula decoder now uses the same signed
+16-bit value, matching LibreOffice's `FT_Snum` and `SnumToDouble` implementations.
+Twenty original assertions failed; all 230 Lotus checks pass, including eight
+scaling factors, signed limits and matching literal cell records in both WK3
+profiles. See `reference.lotusCompactSignedNumbers` for the source evidence.
+Package lint/types/build pass; compiled command XLSX export and SDK readback
+preserve -1, -5000 and -0.015625 in both profiles, with empty stderr and 4,086-byte
+outputs from 100-byte inputs. Fixtures remain in memory.
 See `reference.lotusFinancialSemantics`. No compatibility family is closed.
 
 Native format qualification uses the authenticated Gnumeric 1.12.61 source with GLib 2.90.0, goffice 0.10.62, GTK 3.24.52 and libgsf 1.14.59 on macOS arm64; it is distinct from the Linux numeric profile. Source-derived GSettings schemas correct a failed Homebrew library-discovery probe without modifying native source. A disposable public-API driver supplies test passwords through stdin, recalculates both sheets and saves Gnumeric XML. Three plaintext controls, 12 XOR exports (BIFF7/8 and DSF primary streams; 1/8/14/15-byte passwords) and four standard-RC4 exports (empty, ASCII, Unicode and 15 UTF-16 units) preserve all expected cells, including 10,800/16,200-character strings, formulas, booleans and errors. Both formulas recalculate to 42; 13 applicable wrong-password controls refuse with no output. Gnumeric refuses all 12 CryptoAPI profiles and the tested standard-RC4 lengths 16/27/28/31/32/255; its source's one-byte password-bit-length field explains the 15/16 boundary. These native limits do not narrow product support. The ledger binds executable/library/driver hashes and the 37-input aggregate (sorted basename, NUL, binary SHA-256 digest). Other native applications, platforms, ancillary streams and optional-language profiles remain open.

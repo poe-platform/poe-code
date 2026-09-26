@@ -894,6 +894,26 @@
       "publicReadback": "A 133-byte in-memory WK3 fixture autodetects through the compiled SDK and converts through the public --recalc command to 4087-byte XLSX. Readback preserves values 7/8/8 and both =(A1+1) formulas; exit 0, empty stderr.",
       "remaining": "Wider WK3 formatting, charset and companion records, relative sheets, range flag packing and independent application qualification remain open. No Lotus family closure."
     },
+    "lotusCompactSignedNumbers": {
+      "status": "implemented for 16-bit compact formula numbers in BOF 0x1000/0x1002",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/lotform.cxx",
+          "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794",
+          "lines": "649-663",
+          "finding": "FT_Snum reads sal_Int16 before calling SnumToDouble for the older modern-token workbook profiles."
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/lotus/tool.cxx",
+          "sha256": "ee7385baeaf6c04ff755143fa4753eedfa122c2943fb18751978dc0819c574df",
+          "lines": "104-126",
+          "finding": "SnumToDouble shifts the signed 16-bit mantissa, with eight scaling factors; unscaled values also use an arithmetic right shift."
+        }
+      ],
+      "validation": "Twenty original formula assertions failed before correction. All 230 tests in thirteen Lotus files pass, including all eight scaled factors, signed limits, zero and positive controls, and equality with literal compact cell records. Maintained package lint/types and selected build pass.",
+      "publicReadback": "Compiled public command --recalc XLSX export and SDK readback preserve formulas and values -1, -5000 and -0.015625 in both profiles. Each input is 100 bytes, output 4086 bytes; exit 0, empty stderr. Fixtures remain in memory.",
+      "remaining": "Lookup/INDEX conversions, relative-sheet/range flag semantics, Works and independent application qualification remain open. No Lotus family closure."
+    },
     "lotusFinancialSemantics": {
       "status": "implemented for direct/named RATE, TERM, CTERM and named PMT/PV/FV/IRR",
       "sources": [
@@ -912,7 +932,7 @@
       ],
       "validation": "Twelve original assertions failed before correction. All 206 tests in thirteen Lotus files pass; maintained package lint/types and selected build pass. Includes direct/named IRR range-order recalculation.",
       "publicReadback": "Compiled command --recalc XLSX and SDK readback retain PMT/PV/FV/RATE/TERM/CTERM formulas and results 10/100/100/1/10/1 (absolute error below 1e-12) for BOF 0x0404 direct, 0x1000 direct and 0x1002 named. Inputs 190/208/306 bytes, outputs 4171/4157/4157 bytes; exit 0, empty stderr. In-memory fixtures only.",
-      "remaining": "Lookup/INDEX, compact-number formula sign extension, Works semantics and independent application qualification remain open. No Lotus family closure."
+      "remaining": "Lookup/INDEX, Works semantics and independent application qualification remain open. Compact-number formula sign extension is tracked by lotusCompactSignedNumbers. No Lotus family closure."
     },
     "lotusPositionSemantics": {
       "status": "implemented for direct/named Lotus CHOOSE, MID, REPLACE, FIND and STRING; wider conversions open",
@@ -956,7 +976,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. Source-led function conversion now preserves YEAR, CHOOSE, MID, REPLACE, FIND and STRING semantics for direct/named Lotus tokens. All 186 tests in thirteen Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Lookup/INDEX and financial conversions remain open. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
+      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. Source-led conversion now preserves YEAR, CHOOSE, MID, REPLACE, FIND, STRING, RATE, TERM, CTERM and named financial operand semantics. Compact 16-bit formula constants now sign-extend like cell records. All 230 tests in thirteen Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Lookup/INDEX conversions remain open. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
     },
     {
       "id": "biff-external-and-token-formulas",

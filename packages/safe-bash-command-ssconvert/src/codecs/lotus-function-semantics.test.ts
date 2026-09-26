@@ -77,3 +77,21 @@ it.each([false, true])("imports Lotus IRR guess/range order (named %s)", async n
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value)
     .toEqual({ kind: "number", value: expect.closeTo(1, 12) });
 });
+
+for (const version of [0x1000, 0x1002]) {
+  it.each([
+    [0x8000, -16384], [0xfffe, -1], [0x7ffe, 16383], [0x0001, 0],
+    [0xfff1, -5000], [0xfff3, -500], [0xfff5, -0.05], [0xfff7, -0.005],
+    [0xfff9, -0.0005], [0xfffb, -0.00005], [0xfffd, -0.0625], [0xffff, -0.015625],
+  ])(`sign-extends compact Lotus formula numbers like cell records (version ${version}, raw %i)`, async (raw, expected) => {
+    // LibreOffice reads FT_Snum as sal_Int16 before SnumToDouble shifts its mantissa.
+    const initial = formulaFixture(version, [5, ...word(raw), 3]);
+    const literal = record(24, [...word(1), 0, 0, ...word(raw)]);
+    const book = await readLotus(Uint8Array.from([...initial.subarray(0, -4), ...literal, ...record(1)]), context);
+    expect(book.sheets[0]!.cells[0]!.formula).toBe(`=${expected}`);
+    const result = recalculateWorkbook(book, context, true);
+    expect(result.sheets[0]!.cells.map(cell => cell.value)).toEqual([
+      { kind: "number", value: expected }, { kind: "number", value: expected }
+    ]);
+  });
+}

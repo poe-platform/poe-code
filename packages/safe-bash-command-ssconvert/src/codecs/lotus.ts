@@ -173,7 +173,7 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
       const length = modern && version > 0x1002 ? 4 : 2;
       if (at + length > bytes.length) break;
       const n = b.u16(at), signed = n >= 32768 ? n - 65536 : n;
-      stack.push(String(modern ? length === 4 ? packedNumber(b.u32(at)) : smallNumber(n) : signed)); at += length;
+      stack.push(String(modern ? length === 4 ? packedNumber(b.u32(at)) : smallNumber(signed) : signed)); at += length;
     } else if (op === 6) {
       const start = at; while (at < bytes.length && bytes[at]) at++;
       stack.push('"' + (await lmbcs(bytes.subarray(start, at), group, context)).split('"').join('""') + '"'); at++;

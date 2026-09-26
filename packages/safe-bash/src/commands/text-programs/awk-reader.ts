@@ -27,7 +27,9 @@ export class Reader {
   private closing?: Promise<void>;
 
   constructor(source: ByteSource, private readonly budget: Budget, private readonly retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
-    this.iterator = readBytes(source, budget.context.signal)[Symbol.asyncIterator]();
+    this.iterator = typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
+      ? source[Symbol.asyncIterator]()
+      : readBytes(source, budget.context.signal)[Symbol.asyncIterator]();
   }
 
   get isEnded(): boolean {
@@ -280,7 +282,7 @@ export class Reader {
     const wasEnded = this.ended;
     this.closed = true;
     this.ended = true;
-    this.blocks = [];
+    this.blocks.length = 0;
     this.head = this.offset = this.buffered = 0;
     this.retention.release(this.ownedBytes);
     this.ownedBytes = 0;

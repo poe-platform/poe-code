@@ -286,6 +286,7 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
 }
 
 let sharedSedStdoutBuf: Buffer | undefined;
+let sharedSedStdoutOffset = 0;
 let sharedSedStdoutBufInUse = false;
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
@@ -405,7 +406,11 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   if (canReuseStdoutBuf && !sharedSedStdoutBufInUse) {
     sharedSedStdoutBufInUse = true;
     usingSharedStdoutBuf = true;
-    stdoutBuf = sharedSedStdoutBuf ??= Buffer.allocUnsafe(STDOUT_CAP);
+    if (!sharedSedStdoutBuf || (!stdoutSync && STDOUT_CAP - sharedSedStdoutOffset < 16384)) {
+      sharedSedStdoutBuf = Buffer.allocUnsafe(STDOUT_CAP);
+      sharedSedStdoutOffset = 0;
+    }
+    stdoutBuf = stdoutSync || sharedSedStdoutOffset === 0 ? sharedSedStdoutBuf : sharedSedStdoutBuf.subarray(sharedSedStdoutOffset);
   }
   let stdoutLen = 0;
   const sepCode = separator.charCodeAt(0) & 0xff;
@@ -434,14 +439,22 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   };
   const flushStdout = (): Promise<void> | undefined => {
     if (stdoutLen > 0 && stdoutBuf) {
-      const chunk = stdoutBuf.subarray(0, stdoutLen);
+      const flushedLen = stdoutLen;
+      const chunk = new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, flushedLen);
       stdoutLen = 0;
       context.signal.throwIfAborted();
       if (stdoutSync) {
         stdoutSync.writeSync(chunk);
         return undefined;
       }
-      if (!usingSharedStdoutBuf || stdoutBuf.length > STDOUT_CAP) stdoutBuf = undefined;
+      if (usingSharedStdoutBuf && stdoutBuf.buffer === sharedSedStdoutBuf?.buffer) {
+        sharedSedStdoutOffset += flushedLen;
+        stdoutBuf = STDOUT_CAP - sharedSedStdoutOffset >= 4096
+          ? sharedSedStdoutBuf.subarray(sharedSedStdoutOffset)
+          : undefined;
+      } else {
+        stdoutBuf = undefined;
+      }
       return writeBytes(context.stdout, chunk, context.signal);
     }
     return undefined;

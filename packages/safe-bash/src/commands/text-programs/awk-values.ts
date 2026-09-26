@@ -8,7 +8,7 @@ export class AwkArray { readonly entries = new Map<string, Scalar>(); }
 export type Value = Scalar | AwkArray;
 export const unset: Scalar = Object.freeze({ kind: "unset" });
 const SMALL_NUMERICS: readonly Scalar[] = Array.from({ length: 4098 }, (_, i) => Object.freeze({ kind: "number" as const, number: i - 1 }));
-const SMALL_NUMERIC_STRINGS: readonly Scalar[] = Array.from({ length: 1024 }, (_, i) => Object.freeze({ kind: "numeric" as const, text: String(i), number: i }));
+const SMALL_NUMERIC_STRINGS: readonly Scalar[] = Array.from({ length: 4096 }, (_, i) => Object.freeze({ kind: "numeric" as const, text: String(i), number: i }));
 const EMPTY_STRING_SCALAR: Scalar = Object.freeze({ kind: "string", text: "" });
 const INPUT_STRING_CACHE_KEYS = new Array<string>(64);
 const INPUT_STRING_CACHE_VALS = new Array<Scalar>(64);
@@ -35,7 +35,7 @@ export function inputValue(text: string): Scalar {
       num = num * 10 + (c - 48);
     }
     if (allDigits) {
-      if (num < 1024 && (len === 1 || first !== 48)) return SMALL_NUMERIC_STRINGS[num]!;
+      if (num < 4096 && (len === 1 || first !== 48)) return SMALL_NUMERIC_STRINGS[num]!;
       return { kind: "numeric", text, number: num };
     }
   }
@@ -71,7 +71,7 @@ export function inputValueFromSlice(record: string, start: number, end: number):
       num = num * 10 + (c - 48);
     }
     if (allDigits) {
-      if (num < 1024 && (len === 1 || first !== 48)) return SMALL_NUMERIC_STRINGS[num]!;
+      if (num < 4096 && (len === 1 || first !== 48)) return SMALL_NUMERIC_STRINGS[num]!;
       return { kind: "numeric", text: record.slice(start, end), number: num };
     }
   }

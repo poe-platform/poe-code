@@ -28,7 +28,7 @@ export class Parser {
   private async appendText(text: string, decode = true): Promise<void> {
     if (!text) return;
     this.budget.add("tokens"); this.budget.add("nodes");
-    this.stack.at(-1)!.children.push({ tag: "text", attributes: new Map(), children: [], text: (decode ? await entities(text, this.budget) : text).replaceAll("\0", "�") });
+    this.stack.at(-1)!.children.push({ tag: "text", attributes: new Map(), children: [], text: (decode ? await entities(text, this.budget) : text).replaceAll("\0", "\ufffd") });
   }
 
   private async flushText(final: boolean, decode = true): Promise<void> {
@@ -147,7 +147,30 @@ export class Parser {
   }
 
   async feed(text: string): Promise<void> {
-    for (const character of text) {
+    for (let offset = 0; offset < text.length;) {
+      if (this.mode === "text") {
+        const lt = text.indexOf("<", offset);
+        const end = lt >= 0 ? lt : text.length;
+        if (end > offset) {
+          const span = text.slice(offset, end);
+          let isAscii = true;
+          for (let i = 0; i < span.length; i++) {
+            if (span.charCodeAt(i) >= 0x80) { isAscii = false; break; }
+          }
+          if (isAscii && span.length <= this.budget.limits.maxTokenBytes - this.bufferBytes) {
+            this.budget.work(span.length);
+            this.budget.check(span.length, this.budget.limits.maxTokenBytes - this.bufferBytes, "token bytes");
+            this.bufferBytes += span.length;
+            this.buffer += span;
+            if (this.bufferBytes >= 4096) await this.flushText(false);
+            offset = end;
+            continue;
+          }
+        }
+      }
+      const cp = text.codePointAt(offset)!;
+      const character = cp > 0xffff ? String.fromCodePoint(cp) : text[offset]!;
+      offset += character.length;
       this.budget.work(character.length);
       if (this.mode === "raw") {
         await this.rawCharacter(character);
@@ -158,7 +181,7 @@ export class Parser {
       if (this.mode === "text" && character === "<") {
         await this.flushText(true); this.mode = "tag"; this.attributeMode = "name"; this.buffer = "<"; this.bufferBytes = 1; continue;
       }
-      const bytes = Buffer.byteLength(character);
+      const bytes = cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4;
       if (this.mode === "text" && bytes > this.budget.limits.maxTokenBytes - this.bufferBytes) await this.flushText(false);
       this.budget.check(bytes, this.budget.limits.maxTokenBytes - this.bufferBytes, "token bytes");
       this.bufferBytes += bytes;

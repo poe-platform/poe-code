@@ -1,6 +1,14 @@
-import { yieldTurn } from "../../contracts/yield.js";
+import { hasYieldCheckpoint, monotonicNow, runYieldCheckpoint, yieldTurn } from "../../contracts/yield.js";
 import { FsError, writeBytes, type CommandContext } from "../../contracts/index.js";
 import type { HtmlToMarkdownLimits } from "./options.js";
+
+function asciiOrUtf8ByteLength(text: string): number {
+  const len = text.length;
+  for (let i = 0; i < len; i++) {
+    if (text.charCodeAt(i) >= 0x80) return Buffer.byteLength(text);
+  }
+  return len;
+}
 
 export class Budget {
   input = 0;
@@ -10,10 +18,23 @@ export class Budget {
   cells = 0;
   private workUsed = 0;
   private sinceYield = 0;
-  constructor(readonly context: CommandContext, readonly limits: HtmlToMarkdownLimits) {}
+  private checkpoints = 0;
+  private lastYieldTime = monotonicNow();
+  private readonly hasExtYield: boolean;
+  private aborted: boolean;
+  private readonly pollSignal: boolean;
+  constructor(readonly context: CommandContext, readonly limits: HtmlToMarkdownLimits) {
+    const signal = context.signal;
+    this.hasExtYield = hasYieldCheckpoint(signal);
+    this.aborted = Boolean(signal.aborted);
+    this.pollSignal = typeof signal.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(signal, "aborted");
+    if (!this.aborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
+    }
+  }
 
   check(amount: number, remaining: number, name: string): void {
-    if (this.context.signal.aborted) this.context.signal.throwIfAborted();
+    if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > remaining) {
       throw new FsError("EFBIG", { message: `html-to-markdown ${name} limit exceeded` });
     }
@@ -26,13 +47,20 @@ export class Budget {
   }
 
   checkpoint(): void | Promise<void> {
-    if (this.context.signal.aborted) this.context.signal.throwIfAborted();
+    if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
     if (this.sinceYield >= 4096) {
       this.sinceYield = 0;
+      const count = ++this.checkpoints;
+      const now = monotonicNow();
+      if (!this.hasExtYield && count > 1 && (count & 15) !== 0 && now - this.lastYieldTime < 16) {
+        runYieldCheckpoint(this.context.signal);
+        return;
+      }
+      this.lastYieldTime = now;
       return yieldTurn(this.context.signal).then(() => {
-        if (this.context.signal.aborted) this.context.signal.throwIfAborted();
+        if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
       }, error => {
-        if (this.context.signal.aborted) this.context.signal.throwIfAborted();
+        if (this.aborted || (this.pollSignal && this.context.signal.aborted)) this.context.signal.throwIfAborted();
         throw error;
       });
     }
@@ -47,11 +75,12 @@ export class Budget {
 
   async emit(text: string): Promise<void> {
     this.check(text.length, this.limits.maxOutputBytes - this.output, "output");
-    const bytes = Buffer.byteLength(text);
+    const bytes = asciiOrUtf8ByteLength(text);
     this.check(bytes, this.limits.maxOutputBytes - this.output, "output");
     this.output += bytes;
+    const chunkChars = this.limits.maxOutputBytes === Infinity && this.limits.maxWorkUnits === Infinity ? 32768 : 4096;
     for (let offset = 0; offset < text.length;) {
-      let end = Math.min(text.length, offset + 4096);
+      let end = Math.min(text.length, offset + chunkChars);
       if (end < text.length && /[\uD800-\uDBFF]/u.test(text[end - 1]!)) end--;
       this.work(end - offset);
       await writeBytes(this.context.stdout, Buffer.from(text.slice(offset, end)), this.context.signal);
@@ -69,12 +98,14 @@ export class Builder {
   append(text: string): void {
     if (!text) return;
     this.budget.check(text.length, this.maximum - this.bytes, "rendered bytes");
-    const size = Buffer.byteLength(text);
+    const size = text.length === 1
+      ? (text.charCodeAt(0) < 0x80 ? 1 : text.charCodeAt(0) < 0x800 ? 2 : 3)
+      : asciiOrUtf8ByteLength(text);
     this.budget.check(size, this.maximum - this.bytes, "rendered bytes");
     this.budget.work(text.length);
     this.bytes += size;
     this.pieces.push(text);
-    this.tail = (this.tail + text.slice(-2)).slice(-2);
+    this.tail = text.length >= 2 ? text.slice(-2) : (this.tail + text).slice(-2);
   }
   get empty(): boolean { return this.bytes === 0; }
   get trailingSpace(): boolean { return this.tail.endsWith(" "); }

@@ -10,8 +10,25 @@ const named: Readonly<Record<string, string>> = Object.freeze({
 });
 
 export async function entities(text: string, budget: Budget): Promise<string> {
+  if (text.length < 4096 && !text.includes("&")) {
+    const result = new Builder(budget);
+    result.append(text);
+    return result.finish();
+  }
   const result = new Builder(budget);
   for (let offset = 0; offset < text.length;) {
+    if (text.length < 4096) {
+      const nextAmp = text.indexOf("&", offset);
+      if (nextAmp < 0) {
+        result.append(text.slice(offset));
+        break;
+      }
+      if (nextAmp > offset) {
+        result.append(text.slice(offset, nextAmp));
+        offset = nextAmp;
+        { const c = budget.checkpoint(); if (c) await c; }
+      }
+    }
     budget.work(1);
     const candidateSize = text[offset] === "&" ? Math.min(34, text.length - offset) : 0;
     budget.work(candidateSize);
@@ -23,7 +40,7 @@ export async function entities(text: string, budget: Budget): Promise<string> {
       else {
         const hexadecimal = name[1]?.toLowerCase() === "x";
         const value = Number.parseInt(name.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10);
-        result.append(value === 0 || value > 0x10ffff || value >= 0xd800 && value <= 0xdfff ? "�" : String.fromCodePoint(value));
+        result.append(value === 0 || value > 0x10ffff || value >= 0xd800 && value <= 0xdfff ? "\ufffd" : String.fromCodePoint(value));
       }
       offset += match[0].length;
     } else {
@@ -36,12 +53,19 @@ export async function entities(text: string, budget: Budget): Promise<string> {
 }
 
 export async function escapeText(text: string, budget: Budget, maximum?: number, edges: readonly [boolean, boolean] = [false, false], precedingDigit = false): Promise<string> {
+  if (text.length < 4096 && !edges[0] && !edges[1] && !/[\\`*_{}\[\]<>!|#+\-&~=.)\x00-\x1f\x7f-\x9f]/u.test(text)) {
+    budget.work(text.length);
+    const result = new Builder(budget, maximum);
+    result.append(text);
+    { const c = budget.checkpoint(); if (c) await c; }
+    return result.finish();
+  }
   const result = new Builder(budget, maximum);
   let offset = 0;
   for (const character of text) {
     budget.work(1);
     const scalar = character.codePointAt(0)!;
-    if (scalar < 32 && character !== "\n" && character !== "\t" && character !== "\r" || scalar >= 0x7f && scalar <= 0x9f) result.append("�");
+    if (scalar < 32 && character !== "\n" && character !== "\t" && character !== "\r" || scalar >= 0x7f && scalar <= 0x9f) result.append("\ufffd");
     else if ((edges[0] && offset === 0 || edges[1] && offset + character.length === text.length) && !htmlSpace(character)) result.append(`&#${scalar};`);
     else result.append("\\`*_{}[]<>!|#+-&~=".includes(character) || ".)".includes(character) && (offset === 0 ? precedingDigit : /[0-9]/u.test(text[offset - 1]!)) ? "\\" + character : character);
     offset += character.length;

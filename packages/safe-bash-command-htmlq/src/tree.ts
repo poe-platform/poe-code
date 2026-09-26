@@ -214,6 +214,28 @@ const headElements = new Set([
   "script",
   "template"
 ]);
+const tableAllowedElements = new Set([
+  "caption",
+  "colgroup",
+  "col",
+  "tbody",
+  "thead",
+  "tfoot",
+  "tr",
+  "td",
+  "th",
+  "style",
+  "script",
+  "template"
+]);
+const headingElements = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
+const htmlScopeBarriers = new Set(["applet", "caption", "html", "table", "td", "th", "marquee", "object", "template"]);
+const mathmlScopeBarriers = new Set(["mi", "mo", "mn", "ms", "mtext", "annotation-xml"]);
+const svgScopeBarriers = new Set(["foreignObject", "desc", "title"]);
+const specialHtmlElements = new Set(["applet", "button", "caption", "colgroup", "dd", "dt", "li", "object", "select", "table", "tbody", "td", "tfoot", "th", "thead", "tr"]);
+const captionBreakingElements = new Set(["caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr"]);
+const tableCloseElements = new Set(["table", "tbody", "thead", "tfoot", "tr", "td", "th"]);
+const endScopeExtraElements = new Set(["li", "dd", "dt", "button", "applet", "marquee", "object"]);
 const svgNames: Readonly<Record<string, string>> = {
   altglyph: "altGlyph",
   altglyphdef: "altGlyphDef",
@@ -386,13 +408,18 @@ export async function parseHtml(
   original += tail;
   budget.charge("retainedBytes", original.length * 2);
   let normalized = "";
-  for (let i = 0; i < original.length; i++) {
-    budget.charge("work", 1);
-    if (i === 0 && original[i] === "\uFEFF") continue;
-    if (original[i] === "\r") {
-      normalized += "\n";
-      if (original[i + 1] === "\n") i++;
-    } else normalized += original[i];
+  if (original.charCodeAt(0) !== 0xfeff && !original.includes("\r")) {
+    budget.charge("work", original.length);
+    normalized = original;
+  } else {
+    for (let i = 0; i < original.length; i++) {
+      budget.charge("work", 1);
+      if (i === 0 && original[i] === "\uFEFF") continue;
+      if (original[i] === "\r") {
+        normalized += "\n";
+        if (original[i + 1] === "\n") i++;
+      } else normalized += original[i];
+    }
   }
 
   const owner: Owner = { source: original, mutated: false };
@@ -460,11 +487,10 @@ export async function parseHtml(
       if (node.namespace === "html" && names.includes(node.name)) return i;
       if (
         (node.namespace === "html" &&
-          (["applet", "caption", "html", "table", "td", "th", "marquee", "object", "template"].includes(node.name) ||
+          (htmlScopeBarriers.has(node.name) ||
             extra.includes(node.name))) ||
-        (node.namespace === "mathml" &&
-          ["mi", "mo", "mn", "ms", "mtext", "annotation-xml"].includes(node.name)) ||
-        (node.namespace === "svg" && ["foreignObject", "desc", "title"].includes(node.name))
+        (node.namespace === "mathml" && mathmlScopeBarriers.has(node.name)) ||
+        (node.namespace === "svg" && svgScopeBarriers.has(node.name))
       )
         return -1;
     }
@@ -533,24 +559,7 @@ export async function parseHtml(
   const special = (node: HtmlNode): boolean =>
     node.namespace !== "html" ||
     blocks.has(node.name) ||
-    [
-      "applet",
-      "button",
-      "caption",
-      "colgroup",
-      "dd",
-      "dt",
-      "li",
-      "object",
-      "select",
-      "table",
-      "tbody",
-      "td",
-      "tfoot",
-      "th",
-      "thead",
-      "tr"
-    ].includes(node.name);
+    specialHtmlElements.has(node.name);
   const adopt = (name: string): void => {
     // HTML's adoption-agency loop is deliberately capped at eight iterations.
     for (let outer = 0; outer < 8; outer++) {
@@ -694,15 +703,15 @@ export async function parseHtml(
       )
         data = data.slice(1);
       if (current().namespace === "html" && !rawElements.has(current().name))
-        data = data.split("\0").join("");
+        data = data.includes("\0") ? data.replaceAll("\0", "") : data;
       text(data);
       continue;
     }
     let t = token as Extract<HtmlToken, { name: string }>;
     const name = t.name;
     if (current().namespace === "html" && current().name === "colgroup" &&
-      !["col", "template", "colgroup"].includes(name)) stack.pop();
-    if (t.kind === "start" && ["caption", "col", "colgroup", "tbody", "td", "tfoot", "th", "thead", "tr"].includes(name)) {
+      name !== "col" && name !== "template" && name !== "colgroup") stack.pop();
+    if (t.kind === "start" && captionBreakingElements.has(name)) {
       const caption = inScope(["caption"]);
       if (caption > 0) {
         stack.length = caption;
@@ -759,7 +768,7 @@ export async function parseHtml(
       t = { ...t, kind: "start" };
     if (t.kind === "end") {
       if (name === "body" || name === "html") continue;
-      if (["table", "tbody", "thead", "tfoot", "tr", "td", "th"].includes(name)) {
+      if (tableCloseElements.has(name)) {
         if (find(name) >= 0) {
           closeCell();
           if (name !== "td" && name !== "th") pop(name);
@@ -795,12 +804,12 @@ export async function parseHtml(
         append(target(), p);
         continue;
       }
-      if (headings.includes(name)) {
+      if (headingElements.has(name)) {
         const index = inScope(headings);
         if (index > 0) stack.length = index;
         continue;
       }
-      if (blocks.has(name) || ["li", "dd", "dt", "button", "applet", "marquee", "object"].includes(name)) {
+      if (blocks.has(name) || endScopeExtraElements.has(name)) {
         const index = inScope([name], name === "li" ? ["ol", "ul"] : name === "p" ? ["button"] : []);
         if (index > 0) stack.length = index;
       } else {
@@ -897,7 +906,7 @@ export async function parseHtml(
         const index = inScope(["li"], ["ol", "ul"]);
         if (index > 0) stack.length = index;
       }
-      if (headings.includes(name) && headings.includes(current().name)) stack.pop();
+      if (headingElements.has(name) && headingElements.has(current().name)) stack.pop();
       if (name === "button") {
         const index = inScope(["button"]);
         if (index > 0) stack.length = index;
@@ -967,22 +976,8 @@ export async function parseHtml(
           a.namespace = prefix as "xml" | "xmlns" | "xlink";
         else if (a.name === "xmlns") a.namespace = "xmlns";
       }
-    const tableAllowed = new Set([
-      "caption",
-      "colgroup",
-      "col",
-      "tbody",
-      "thead",
-      "tfoot",
-      "tr",
-      "td",
-      "th",
-      "style",
-      "script",
-      "template"
-    ]);
     const [parent, before] =
-      ns === "html" && !tableAllowed.has(name) ? location() : [target(), undefined];
+      ns === "html" && !tableAllowedElements.has(name) ? location() : [target(), undefined];
     append(parent, node, before);
     if (name === "form" && ns === "html" && find("template") < 0) form = node;
     if (["caption", "td", "th"].includes(name) && ns === "html") active.push(null);

@@ -244,7 +244,31 @@ export async function htmlq(
       };
       const rendered = projectHtmlq(admittedInput, args, options);
       if (args.output === "-") {
-        for await (const bytes of rendered) await writeBytes(stdout!.output, bytes, options.signal);
+        if (options.limits.outputBytes === Infinity && options.limits.retainedBytes === Infinity) {
+          const batch = new Uint8Array(16384);
+          let batchOffset = 0;
+          for await (const bytes of rendered) {
+            if (bytes.byteLength >= 8192) {
+              if (batchOffset > 0) {
+                await writeBytes(stdout!.output, batch.subarray(0, batchOffset), options.signal);
+                batchOffset = 0;
+              }
+              await writeBytes(stdout!.output, bytes, options.signal);
+              continue;
+            }
+            if (batchOffset + bytes.byteLength > 16384) {
+              await writeBytes(stdout!.output, batch.subarray(0, batchOffset), options.signal);
+              batchOffset = 0;
+            }
+            batch.set(bytes, batchOffset);
+            batchOffset += bytes.byteLength;
+          }
+          if (batchOffset > 0) {
+            await writeBytes(stdout!.output, batch.subarray(0, batchOffset), options.signal);
+          }
+        } else {
+          for await (const bytes of rendered) await writeBytes(stdout!.output, bytes, options.signal);
+        }
       } else {
         const path = args.output.startsWith("/") ? args.output : `${context.cwd}/${args.output}`;
         const caps =

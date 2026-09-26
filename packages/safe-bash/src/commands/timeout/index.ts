@@ -22,7 +22,7 @@ export type KillAfterPolicy = (
   command: string,
   args: readonly string[],
   options: NonNullable<Parameters<CommandInvoker>[2]>,
-  policy: Readonly<{ durationMilliseconds: number; killAfterMilliseconds: number; signalNumber: number; preserveStatus: boolean; foreground?: true }>,
+  policy: Readonly<{ durationMilliseconds: number; killAfterMilliseconds: number; signalNumber: number; preserveStatus: boolean; foreground?: true; verbose?: true }>,
 ) => Promise<{ readonly exitCode: number }>;
 
 export interface TimeoutCommandsOptions extends TimeoutCommandOptions {
@@ -46,6 +46,7 @@ const records = Object.freeze({
   invalidOption: encoder.encode("timeout: invalid option\n"),
   invalidSignal: encoder.encode("timeout: invalid signal\n"),
   invokeUnavailable: encoder.encode("timeout: command invocation is unavailable\n"),
+  escalationUnavailable: encoder.encode("timeout: hard escalation is unavailable on this host\n"),
   timerSetupFailed: encoder.encode("timeout: timer setup failed\n"),
   help: encoder.encode("Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n"),
   version: encoder.encode("timeout (virtual-bash cooperative profile)\n"),
@@ -201,13 +202,16 @@ function definition(configuration: Settings): CommandDefinition {
         stdout: context.stdout,
         stderr: context.stderr,
       };
-      if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && configuration.killAfterPolicy !== undefined && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
+      const killAfterPolicy = configuration.killAfterPolicy ?? context.capabilities?.timeoutKillAfterPolicy as KillAfterPolicy | undefined;
+      if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
         context.signal.throwIfAborted();
+        if (typeof killAfterPolicy !== "function") return status(context, records.escalationUnavailable, 125);
         let result: { readonly exitCode: number };
         try {
-          result = await configuration.killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
+          result = await killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
             durationMilliseconds: parsed.milliseconds, killAfterMilliseconds, signalNumber, preserveStatus,
             ...(foreground ? { foreground: true as const } : {}),
+            ...(verbose ? { verbose: true as const } : {}),
           }));
         } catch (error) {
           context.signal.throwIfAborted();

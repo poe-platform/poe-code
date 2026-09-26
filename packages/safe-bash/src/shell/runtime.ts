@@ -1,5 +1,7 @@
 import type { InternalErrorHandler } from "../contracts/command.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
+import { workerRuntimeContexts, shellDescriptorAdmissions } from "../worker/runtime-context.js";
+import { captureIgnoredTrapSignals } from "./trap.js";
 import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, runYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
@@ -1521,7 +1523,6 @@ function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
   return output;
 }
 
-const shellDescriptorAdmissions = new WeakSet<object>();
 const admissionGetterSymbol = Symbol("safe-bash.descriptorAdmissionGetter");
 const descriptorByteLength = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), "byteLength")!.get!;
 
@@ -1624,8 +1625,8 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
             return lease;
           },
         };
-        shellDescriptorAdmissions.add(handleManager);
       }
+      shellDescriptorAdmissions.set(handleManager, [...io.descriptors!.entries()].every(([fd, descriptor]) => (fd >= 0 && fd <= 2) || descriptor.closed === true));
       return handleManager;
     };
     (getAdmittedHandles as unknown as Record<symbol, boolean>)[admissionGetterSymbol] = true;
@@ -1716,6 +1717,11 @@ class FastShellCommandContext {
     if (io.processSignals !== undefined) this.processSignals = io.processSignals;
     if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
     if (io.scriptName !== undefined) this.scriptName = io.scriptName;
+    workerRuntimeContexts.set(this as unknown as CommandContext, {
+      budget: runtime.budget, umask: state.umask ?? 0o022,
+      ignoredSignals: captureIgnoredTrapSignals(state.extensions),
+      get fs() { return runtime.getContextFsForFast(0, combineManagedSignals(runtime.signal, scope.signal)); },
+    });
     if (directContext) {
       return;
     }
@@ -8960,6 +8966,14 @@ export class Runtime {
         return invocation;
       },
     };
+    // The lazy snapshot getter has its own receiver; retain the invocation runtime.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const workerRuntime = this;
+    workerRuntimeContexts.set(context, {
+      budget: this.budget, umask: state.umask ?? 0o022,
+      ignoredSignals: captureIgnoredTrapSignals(state.extensions),
+      get fs() { return workerRuntime.getContextFsForFast(0, getScopedSignal()); },
+    });
     if (typeof nameValue !== "string") Object.defineProperty(context, "command", {
       configurable: true, enumerable: true, get: readName,
       set(replacement: string) { currentName = replacement; },
@@ -9681,6 +9695,11 @@ export class Runtime {
       bindFileOutputBudget(context, sink => this.budget.sink(sink, runtime.signal), (chunk, write) => this.budget.writeCounted(chunk, write, runtime.signal));
       if (argumentValues.values.every(value => typeof value === "string")) Reflect.deleteProperty(context, "argumentValues");
       const child = await runtime.shebangState(context, state);
+      workerRuntimeContexts.set(context, {
+        budget: this.budget, umask: child.umask ?? 0o022,
+        ignoredSignals: captureIgnoredTrapSignals(child.extensions),
+        get fs() { return runtime.getContextFsForFast(0, runtime.signal); },
+      });
       const childIO = { ...io, ...context, [invocationScope]: scope };
       invocationOverride.current = prepare?.(runtime, context, child, childIO);
       const runtimeFrame: RuntimeOutcomeFrame = {};

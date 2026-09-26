@@ -1,4 +1,4 @@
-# Cooperative timeout command
+# Timeout command
 
 This internal leaf module defines a cooperative `timeout` wrapper around one
 literal `CommandContext.invoke` call. It exports `createTimeoutCommand`,
@@ -42,18 +42,36 @@ or arbitrary host-error provenance claim.
 `--kill-after=DURATION` accept the same duration grammar. Children completing
 before expiry retain their output and status. Zero kill-after disables escalation.
 Children settling after cooperative cancellation retain the timeout status,
-including children rejecting with the deadline cancellation reason. Default
-hosts cannot forcibly stop children that ignore cancellation; genuine hard
-escalation still requires an explicit host binding.
-An initial KILL selection retains the existing cooperative signal profile;
-it does not establish native hard preemption.
+including children rejecting with the deadline cancellation reason. The Node
+public `Shell` supplies a genuine terminable worker boundary for active kill-after.
+Default agent commands run against the caller's filesystem and streams through
+an owned bridge. Default TERM returns 124 (143 with `--preserve-status`); ignored
+or trapped TERM gets a grace interval before worker termination returns 137.
+KILL terminates the worker immediately. STOP-family defaults suspend its event
+loop until escalation. `--verbose` reports the actual virtual signals sent.
+This does not create native processes, process groups or terminal control.
+
+Portable/browser hosts require an explicit policy; otherwise active escalation
+returns 125 before invoking the child. Custom commands, middleware and extensions
+require explicit `workerModules` factories that reproduce their host configuration.
+Nested active escalation is unavailable inside the portable child runtime.
+Ordinary nested timeouts retain cooperative filesystem cancellation; they do not
+need to retire the outer worker to abort their own pathname calls or read streams.
+Opaque handle bindings and additional live shell descriptors are refused before
+launch; ordinary stdin/stdout/stderr streams are forwarded.
+The bridge exposes pathname operations and streaming reads, not retained
+descriptors or transactional publication capabilities. Finite shared interpreter
+quotas (commands, loops, source, parse, expansion, pipeline, substitution depth and CPU) are refused
+before launch rather than reset; filesystem, output and caller wall-clock limits
+remain enforced by the parent. Zero duration and zero kill-after use the ordinary
+invocation path.
 
 Hosts with actual escalation capability can supply `killAfterPolicy` to
 `createTimeoutCommand` or `timeoutCommands`. This trusted callback receives the
 original context, literal child command and arguments, forwarded stream options
 including the parent cancellation signal,
 and a policy containing `durationMilliseconds`, `killAfterMilliseconds`,
-`signalNumber` and `preserveStatus`. It owns deadline scheduling, truthful signal
+`signalNumber` and `preserveStatus`, plus optional `verbose: true`. It owns deadline scheduling, truthful signal
 delivery, hard escalation, status selection and child cleanup. It must honor
 `context.signal`, register cooperative cleanup before resource acquisition, and
 settle only after owned work is retired. Supplying the callback does not confer

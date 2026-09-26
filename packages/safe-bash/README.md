@@ -681,11 +681,16 @@ and credential protections remain in effect.
 - Plugins, filesystem adapters, and runtime providers are trusted host JavaScript,
   not sandboxed code. Real storage and network plugins grant real access; URL
   allowlisting alone does not pin DNS or prevent access to private addresses.
-- Cancellation is cooperative, including `timeout`; it cannot undo completed
-  effects or stop uncooperative host work. Limits do not bound total process memory.
+- Cancellation is cooperative; it cannot undo completed effects or stop opaque
+  host work. Node `Shell` runs active `timeout -k` / `--kill-after` children in a
+  terminable worker and returns 137 after hard escalation. Custom commands,
+  middleware and extensions require explicit `workerModules` factories. Portable
+  hosts require their own escalation policy. Nested worker escalation and finite
+  shared interpreter quotas are refused; see the [timeout profile](src/commands/timeout/README.md).
+  Limits do not bound total process memory.
   `timeout --preserve-status` retains the child's status; `--signal` (`-s`)
   accepts Linux signal names and numbers and sets the cancellation exit status.
   `trap` supports cleanup and inherited trap inspection by default. Host signal
   delivery requires the optional trap extension signal host. Signals from `timeout`
-  use cooperative cancellation without process signal delivery;
+  use cooperative cancellation unless a kill-after worker policy is active;
   signal `0` lets the child finish, and `KILL` reports status 137 on expiry.

@@ -19,17 +19,13 @@ test("kill-after accepts the reported file command through the default Shell", a
   } finally { await shell.dispose(); }
 });
 
-test("kill-after forms preserve immediate child results and literal arguments", async () => {
+test("kill-after forms require an escalation capability from custom hosts", async () => {
   for (const option of [["-k", "0.03"], ["-k0.03"], ["--kill-after", "0.03"], ["--kill-after=0.03"]]) {
     const capture = captureContext([...option, "2", "cat", "Changed input.txt"], {
-      invoke: async (command, args) => {
-        assert.equal(command, "cat");
-        assert.deepEqual(args, ["Changed input.txt"]);
-        return { exitCode: 9 };
-      },
+      invoke: async () => assert.fail("host without escalation invoked"),
     });
-    assert.equal((await createTimeoutCommand().execute(capture.context)).exitCode, 9);
-    assert.equal(capture.stderr(), "");
+    assert.equal((await createTimeoutCommand().execute(capture.context)).exitCode, 125);
+    assert.equal(capture.stderr(), "timeout: hard escalation is unavailable on this host\n");
   }
 });
 
@@ -58,9 +54,9 @@ test("kill-after validates duration before invocation", async () => {
   }
 });
 
-test("kill-after expiry preserves status after cooperative child rejection", async () => {
+test("cooperative expiry preserves status after child rejection", async () => {
   const scheduler = new ManualScheduler();
-  const capture = captureContext(["-k0.03", "1", "child"], {
+  const capture = captureContext(["1", "child"], {
     invoke: async (_command, _args, options) => {
       scheduler.fire(1000);
       throw options!.signal!.reason;

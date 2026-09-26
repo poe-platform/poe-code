@@ -3,11 +3,11 @@ import test from "node:test";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { captureContext, ManualScheduler } from "./timeout-author-20260828/fixtures.js";
 
-test("kill-after preserves timeout status when the child settles after the first signal", async () => {
+test("cooperative timeout preserves status when the child settles after the first signal", async () => {
   for (const preserveStatus of [false, true]) {
     const scheduler = new ManualScheduler();
     const capture = captureContext([
-      ...(preserveStatus ? ["--preserve-status"] : []), "-k0.03", "1", "child",
+      ...(preserveStatus ? ["--preserve-status"] : []), "1", "child",
     ], {
       invoke: async (_command, _args, options) => {
         scheduler.fire(1000);

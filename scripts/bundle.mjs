@@ -113,7 +113,7 @@ async function getProviderEntryPoints(root) {
   };
 }
 
-const mainEntryPoints = ["index", "cli-entry", "safe-bash", "safe-bash-media", "media", "remote-execution", "media-server", "remote-execution-server"]
+const mainEntryPoints = ["index", "cli-entry", "safe-bash", "safe-bash-worker-entry", "safe-bash-media", "media", "remote-execution", "media-server", "remote-execution-server"]
   .map(entry => path.join(rootDir, `src/${entry}.ts`));
 const mainBuild = await esbuild.build({
   entryPoints: mainEntryPoints,

@@ -259,9 +259,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     createExprCommandWithExecutor(executors.expr, exprLimits === undefined ? {} : { limits: exprLimits }),
     ...createWhichCommands(whichLimits === undefined ? {} : { limits: whichLimits }),
     ...createTimeoutCommands(timeoutOptions === undefined ? undefined : {
-      invoke: timeoutOptions.invoke,
-      scheduler: timeoutOptions.scheduler,
-      maxTimerMilliseconds: timeoutOptions.maxTimerMilliseconds,
+      ...timeoutOptions,
     }),
     ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
     ...createXmlCommands(xmlLimits === undefined ? {} : { limits: xmlLimits }),

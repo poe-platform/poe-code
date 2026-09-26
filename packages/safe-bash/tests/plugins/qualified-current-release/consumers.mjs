@@ -37,7 +37,7 @@ export const consumerGroups = [
 
 export const negativeGroups = [
   { name: "env-split-invalid-binding", path: "tests/shell-stress/env-split-validity/invalid-binding.mts", expected: "tests/plugins/qualified-current-release/negative-env-split.stdout", positive: "env-split-public-types", diagnostics: 1 },
-  { name: "time-env-public-negative", path: "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts", expected: "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/public-negative-types.stdout", positive: "time-env-public", diagnostics: 2 },
+  { name: "time-env-public-negative", path: "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts", expected: "tests/plugins/qualified-current-release/negative-time-env-public.stdout", positive: "time-env-public", diagnostics: 2 },
   { name: "time-env-leaf-negative", path: "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts", expected: "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/internal-leaf-negative-types.stdout", positive: "time-env-leaf", diagnostics: 5 },
 ];
 

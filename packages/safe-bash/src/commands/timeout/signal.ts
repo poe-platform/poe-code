@@ -1,6 +1,10 @@
 // Linux signal numbers give virtual commands stable statuses on every host.
 const signalNames = ["HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV", "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN", "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "SYS"];
 
+export function signalName(number: number): string {
+  return signalNames[number - 1] ?? String(number);
+}
+
 export function parseSignal(value: string): number | undefined {
   let name = value.toUpperCase();
   if (name.startsWith("SIG")) name = name.slice(3);
@@ -28,6 +32,3 @@ export function parseSignal(value: string): number | undefined {
   return undefined;
 }
 
-export function signalName(number: number): string | undefined {
-  return signalNames[number - 1];
-}

@@ -927,6 +927,9 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/bytes/checksums/portable.test.ts"));
   assert.ok(files.includes("tests/commands/portable-random.test.ts"));
   assert.ok(files.includes("tests/commands/timeout-portable.test.ts"));
+  assert.ok(files.includes("tests/commands/timeout-worker.test.ts"));
+  assert.ok(files.includes("tests/commands/timeout-worker-admission.test.ts"));
+  assert.ok(files.includes("tests/commands/timeout-worker-sdk.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-concat-work-budget.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-field-splitting.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/sed-program-budget.test.ts"));

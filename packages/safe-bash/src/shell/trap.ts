@@ -4,16 +4,27 @@ import { commandRuntimeIdentity } from "../contracts/command.js";
 
 export interface TrapSignalHost {
   subscribe(deliver: (signal: string | number) => boolean, scope: object): () => void | Promise<void>;
+  /** Publish current dispositions before the process continues executing. */
+  dispositions?(scope: object, actions: ReadonlyMap<number, "ignore" | "trap">): void | Promise<void>;
 }
 
 export interface TrapExtensionOptions {
   readonly signalNames?: Readonly<Record<string, number>>;
   readonly signalHost?: TrapSignalHost;
+  /** Ignored dispositions inherited when a host starts a distinct process. */
+  readonly inheritedIgnoredSignals?: readonly number[];
 }
 
 interface Action { readonly source: ShellValue; readonly active: boolean }
 
 const idlePortableTrapInstances = new WeakMap<ShellExtensionInstance, () => boolean>();
+const ignoredPortableTrapSignals = new WeakMap<ShellExtensionInstance, () => readonly number[]>();
+
+export function captureIgnoredTrapSignals(state: import("./extensions.js").ShellExtensionState | undefined): readonly number[] {
+  const ignored = new Set<number>();
+  for (const entry of state?.entries ?? []) for (const number of ignoredPortableTrapSignals.get(entry.instance)?.() ?? []) ignored.add(number);
+  return Object.freeze([...ignored]);
+}
 
 export function isIdlePortableTrapInstance(instance: ShellExtensionInstance): boolean {
   return idlePortableTrapInstances.get(instance)?.() ?? false;
@@ -54,9 +65,12 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
   };
 
   const emptyIgnored: ReadonlySet<number> = Object.freeze(new Set<number>());
+  const initialIgnored = new Set(configuration.inheritedIgnoredSignals ?? []);
+  for (const number of initialIgnored) if (!names.has(number) || number === 0 || number === 9 || number === 19) throw new TypeError("Invalid inherited ignored signal");
   function instance(actions?: Map<number, Action>, errorTrace = false, functionTrace = false, inheritedIgnored: ReadonlySet<number> = emptyIgnored, extendedDebug = false): ShellExtensionInstance {
     const options: ShellExtensionOption[] = [{ name: "errtrace", flag: "E", enabled: errorTrace }, { name: "functrace", flag: "T", enabled: functionTrace }];
     let running: Set<number> | undefined;
+    let signalScope: object | undefined;
     let pending: Set<number> | undefined;
     let functions: Map<number, Action>[] | undefined;
     let sources: (Action | undefined)[] | undefined;
@@ -72,7 +86,8 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
     const created: ShellExtensionInstance = {
       options,
       shoptOptions: [{ name: "extdebug", get enabled() { return extendedDebug; }, set enabled(value) { extendedDebug = value; for (const option of options) option.enabled = value; } }],
-      ...(configuration.signalHost ? { start(context: ShellExtensionContext) {
+      ...(configuration.signalHost ? { async start(context: ShellExtensionContext) {
+        signalScope = context.scope;
         let open = true;
         const subscription: { close?: () => void | Promise<void> } = {};
         context.registerCleanup(async () => { open = false; pending?.clear(); await subscription.close?.(); });
@@ -89,6 +104,9 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
           }
           return true;
         }, context.scope);
+        await configuration.signalHost!.dispositions?.(context.scope, new Map([...actions ?? []]
+          .filter(([number, action]) => number > 0 && number < pseudoBase && action.active)
+          .map(([number, action]) => [number, shellValueByteLength(action.source) ? "trap" : "ignore"] as const)));
       } } : {}),
       builtins: [{
         name: "trap", special: true,
@@ -132,6 +150,9 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
             else if (action === undefined || shellValueText(action) === "-") actions?.delete(number);
             else { actions ??= new Map<number, Action>(); actions.set(number, { source: action, active: true }); }
           }
+          if (!print) await configuration.signalHost?.dispositions?.(signalScope ?? context.scope, new Map([...actions ?? []]
+            .filter(([number, action]) => number > 0 && number < pseudoBase && action.active)
+            .map(([number, action]) => [number, shellValueByteLength(action.source) ? "trap" : "ignore"] as const)));
           return status;
         },
       }],
@@ -168,13 +189,19 @@ export function portableTrapExtension(configuration: TrapExtensionOptions = {}):
         if (name === "DEBUG" && extendedDebug && status) return status === 2 && (context.functionDepth > 0 || context.sourceDepth > 0) ? { action: "return", status } : { action: "skip" };
       },
     };
+    ignoredPortableTrapSignals.set(created, () => [...actions ?? []]
+      .filter(([number, action]) => number > 0 && number < pseudoBase && action.active && !shellValueByteLength(action.source))
+      .map(([number]) => number));
     if (!configuration.signalHost) {
       idlePortableTrapInstances.set(created, () => (actions?.size ?? 0) === 0 && (pending?.size ?? 0) === 0 && (functions?.length ?? 0) === 0 && (sources?.length ?? 0) === 0);
     }
     return created;
   }
 
-  return { name: "trap", runtimeIdentity: commandRuntimeIdentity, create: () => instance() };
+  return { name: "trap", runtimeIdentity: commandRuntimeIdentity, create: () => instance(
+    initialIgnored.size ? new Map([...initialIgnored].map(number => [number, { source: "", active: true }])) : undefined,
+    false, false, initialIgnored,
+  ) };
 }
 
 export const defaultPortableTrapExtension = portableTrapExtension();

@@ -12,7 +12,10 @@
       "default": "./dist/commands/archive/zip/aes-primitives.js"
     }
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/worker/entry.js",
+    "./src/worker/entry.ts"
+  ],
   "engines": {
     "node": ">=22"
   },
@@ -405,7 +408,7 @@
       "types": "./dist/execution.d.ts",
       "workerd": "./dist/execution.js",
       "browser": "./dist/execution.js",
-      "node": "./dist/execution.js",
+      "node": "./dist/execution.node.js",
       "default": "./dist/execution.js"
     },
     "./commands/fold": {
@@ -495,6 +498,10 @@
     "./commands/xz": {
       "types": "./dist/commands/xz/index.d.ts",
       "import": "./dist/commands/xz/index.js"
+    },
+    "./worker-entry": {
+      "types": "./dist/worker/entry.d.ts",
+      "import": "./dist/worker/entry.js"
     }
   },
   "files": [

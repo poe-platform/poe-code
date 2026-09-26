@@ -2729,12 +2729,12 @@ export class MemoryRedirectHandle {
     this.node = DUMMY_POOL_FILE_NODE;
     this.path = "";
     (fs as unknown as { releaseReference: (n: MemoryNode, p: string) => void }).releaseReference(node, path);
-    if (pooledRedirectHandle === undefined) {
-      pooledRedirectHandle = this;
+    if (redirectHandlePool.handle === undefined) {
+      redirectHandlePool.handle = this;
     }
   }
 }
-let pooledRedirectHandle: MemoryRedirectHandle | undefined;
+const redirectHandlePool: { handle: MemoryRedirectHandle | undefined } = { handle: undefined };
 
 export function tryOpenMemoryRedirectHandleSync(
   filesystem: FileSystem,
@@ -2856,9 +2856,9 @@ export function tryOpenMemoryRedirectHandleSync(
     }
     node = newNode;
   }
-  const handle = pooledRedirectHandle;
+  const handle = redirectHandlePool.handle;
   if (handle !== undefined) {
-    pooledRedirectHandle = undefined;
+    redirectHandlePool.handle = undefined;
     handle.reset(mem, path, node, append);
     return handle;
   }

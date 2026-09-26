@@ -1,3 +1,4 @@
+import { yieldTurn } from 'safe-bash-contracts/yield';
 import { Budget, UnrtfError, type RtfToken, type UnrtfOptions } from './contracts.js';
 const letter = (byte: number) => byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122;
 const digit = (byte: number) => byte >= 48 && byte <= 57;
@@ -38,7 +39,7 @@ export async function* tokenizeRtf(source: AsyncIterable<Uint8Array>, options: U
         } finally { if (abort) signal.removeEventListener('abort', abort); }
       }
       if (offset > 0 && offset % 4096 === 0) {
-        await new Promise<void>(resolve => setTimeout(resolve,0));
+        await yieldTurn();
         budget.check(offset);
       }
       budget.charge('work', 1, offset);

@@ -301,3 +301,15 @@ test('font metadata consumes no document output and preserves literal replacemen
     for await (const event of extractRtf(chunks('{\\rtf1{\\fonttbl{\\f0 A\\bin1 X;}}}'),options())) void event;
   }, (e:unknown) => e instanceof UnrtfError && e.code === 'E_PARSE');
 });
+
+test('large Node inputs yield without scheduling a timer per checkpoint', async (t) => {
+  const timer = t.mock.method(globalThis,'setTimeout', () => { throw new Error('unexpected timer yield'); });
+  try {
+    let count = 0;
+    for await (const event of tokenizeRtf(chunks('{\\rtf1 '+ 'x'.repeat(9000) +'}',9010),{signal:new AbortController().signal})) {
+      if (event.kind === 'byte') count++;
+    }
+    assert.equal(count,9000);
+    assert.equal(timer.mock.callCount(),0);
+  } finally { timer.mock.restore(); }
+});

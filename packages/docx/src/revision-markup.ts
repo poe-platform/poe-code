@@ -17,16 +17,21 @@ export interface RevisionInfo {
   readonly support: "supported" | "opaque";
 }
 
+const revisionTypes = new Map<string, RevisionInfo["type"]>();
+for (const [type, names] of [
+  ["insert", ["ins"]], ["delete", ["del"]],
+  ["move", ["moveFrom", "moveTo", "moveFromRangeStart", "moveFromRangeEnd", "moveToRangeStart", "moveToRangeEnd"]],
+  ["format", ["rPrChange", "pPrChange"]], ["section", ["sectPrChange"]],
+  ["table", ["tblPrChange", "tblGridChange", "trPrChange", "tcPrChange", "cellIns", "cellDel", "cellMerge"]]
+] as const) for (const name of names) revisionTypes.set(name, type);
+
 /** Support describes read interpretation, never permission to accept or reject a change. */
 export function revisionInfo(node: XmlElement): RevisionInfo | undefined {
   const name = node.localName;
   if (name === "clrChange" && (node.namespace === documentDialects.transitional.a || node.namespace === documentDialects.strict.a)) return undefined;
   const attr = (name: string) => node.attributes.find(a => a.localName === name && (a.namespace === node.namespace || a.namespace === documentDialects.transitional.w || a.namespace === documentDialects.strict.w))?.value ?? null;
   const word = node.namespace === documentDialects.transitional.w || node.namespace === documentDialects.strict.w;
-  const type: RevisionInfo["type"] = !word ? "unsupported" : name === "ins" ? "insert" : name === "del" ? "delete"
-    : ["moveFrom", "moveTo", "moveFromRangeStart", "moveFromRangeEnd", "moveToRangeStart", "moveToRangeEnd"].includes(name) ? "move"
-    : ["rPrChange", "pPrChange"].includes(name) ? "format" : name === "sectPrChange" ? "section"
-    : ["tblPrChange", "tblGridChange", "trPrChange", "tcPrChange", "cellIns", "cellDel", "cellMerge"].includes(name) ? "table" : "unsupported";
+  const type: RevisionInfo["type"] = word ? revisionTypes.get(name) ?? "unsupported" : "unsupported";
   if (type === "unsupported" && !name.endsWith("Change") && !name.startsWith("conflict") && !(name.startsWith("customXml") && (name.endsWith("RangeStart") || name.endsWith("RangeEnd"))) && !(attr("author") !== null && attr("id") !== null && name !== "comment")) return undefined;
   const snapshot = type === "format" ? node.children.filter(n => n.namespace === node.namespace && n.localName === name.slice(0, -6)) : [];
   const seen = new Set<string>();

@@ -2030,6 +2030,40 @@ export function textCommands(): CommandDefinition[] {
             ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
             : undefined;
           const canWriteSync = typeof syncSink?.writeSync === "function";
+          const flush = (): Promise<void> | undefined => {
+            if (outUsed === 0) return;
+            context.signal.throwIfAborted();
+            if (canWriteSync && syncSink!.writeSync!(outBuf.subarray(0, outUsed)) !== false) {
+              outUsed = 0;
+              context.signal.throwIfAborted();
+              return;
+            }
+            const bytes = outBuf.slice(0, outUsed);
+            outUsed = 0;
+            return output(context, bytes);
+          };
+          const writeFieldSlow = async (chunk: Uint8Array, start: number, end: number): Promise<void> => {
+            if (outUsed === outBuf.length) {
+              const pending = flush();
+              if (pending) await pending;
+            }
+            while (start < end) {
+              const length = Math.min(end - start, outBuf.length - outUsed);
+              outBuf.set(chunk.subarray(start, start + length), outUsed);
+              start += length;
+              outUsed += length;
+              if (outUsed === outBuf.length) {
+                const pending = flush();
+                if (pending) await pending;
+              }
+            }
+            outBuf[outUsed++] = 10;
+          };
+          const writeField = (chunk: Uint8Array, start: number, end: number): Promise<void> | undefined => {
+            if (outUsed + end - start + 1 > outBuf.length) return writeFieldSlow(chunk, start, end);
+            for (let index = start; index < end; index++) outBuf[outUsed++] = chunk[index]!;
+            outBuf[outUsed++] = 10;
+          };
           let leftover: Uint8Array | undefined;
           try {
             const srcIter = input(context, operand ?? "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
@@ -2072,22 +2106,8 @@ export function textCommands(): CommandDefinition[] {
                     fEnd = boundary < 0 ? offset : boundary;
                   }
                 }
-                const fLen = fEnd - fStart;
-                if (outUsed + fLen + 1 > 60000) {
-                  if (!canWriteSync || syncSink!.writeSync!(outBuf.subarray(0, outUsed)) === false) {
-                    await output(context, outBuf.slice(0, outUsed));
-                  }
-                  outUsed = 0;
-                }
-                if (fLen > 60000) {
-                  const slice = chunk.subarray(fStart, fEnd);
-                  if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
-                    await output(context, slice);
-                  }
-                } else if (fLen > 0) {
-                  for (let k = fStart; k < fEnd; k++) outBuf[outUsed++] = chunk[k]!;
-                }
-                outBuf[outUsed++] = 10;
+                const pending = writeField(chunk, fStart, fEnd);
+                if (pending) await pending;
                 start = offset + 1;
               }
               if (start < chunk.length) {
@@ -2117,28 +2137,11 @@ export function textCommands(): CommandDefinition[] {
                   fEnd = boundary < 0 ? offset : boundary;
                 }
               }
-              const fLen = fEnd - fStart;
-              if (outUsed + fLen + 1 > 60000) {
-                if (!canWriteSync || syncSink!.writeSync!(outBuf.subarray(0, outUsed)) === false) {
-                  await output(context, outBuf.slice(0, outUsed));
-                }
-                outUsed = 0;
-              }
-              if (fLen > 60000) {
-                const slice = leftover.subarray(fStart, fEnd);
-                if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
-                  await output(context, slice);
-                }
-              } else if (fLen > 0) {
-                for (let k = fStart; k < fEnd; k++) outBuf[outUsed++] = leftover[k]!;
-              }
-              outBuf[outUsed++] = 10;
+              const pending = writeField(leftover, fStart, fEnd);
+              if (pending) await pending;
             }
-            if (outUsed > 0) {
-              if (!canWriteSync || syncSink!.writeSync!(outBuf.subarray(0, outUsed)) === false) {
-                await output(context, outBuf.slice(0, outUsed));
-              }
-            }
+            const pending = flush();
+            if (pending) await pending;
             return { exitCode: 0 };
           } catch (error) {
             await diagnostic(context, error);

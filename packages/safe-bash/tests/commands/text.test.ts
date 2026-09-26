@@ -447,6 +447,84 @@ test("cut stops after an awaited output write receives queued false/null cancell
   }
 });
 
+test("cut single-field fast output bounds terminated and EOF records across sink paths", async testContext => {
+  for (const ending of ["\n", ""]) {
+    for (const sink of ["async", "sync", "sync-refused"] as const) {
+      await testContext.test(`${ending ? "terminated" : "EOF"}, ${sink}`, async () => {
+        const selected = "x".repeat(70 * 1024);
+        const probe = cutProbe(["-f", "1", "-d", ","], toByteSource(`kept,tail\n${selected},tail${ending}`), new AbortController().signal, await fixture());
+        let writing = false;
+        const capture = (bytes: Uint8Array) => {
+          assert.ok(bytes.length > 0 && bytes.length <= 64 * 1024, `write size: ${bytes.length}`);
+          probe.stdout.push(new Uint8Array(bytes));
+        };
+        probe.context.stdout.write = async bytes => {
+          assert.notEqual(sink, "sync", "accepted sync writes must not be repeated");
+          assert.equal(writing, false);
+          writing = true;
+          const owned = new Uint8Array(bytes);
+          await new Promise<void>(resolve => scheduleTurn(resolve));
+          assert.deepEqual(bytes, owned);
+          capture(bytes);
+          writing = false;
+        };
+        if (sink !== "async") Object.assign(probe.context.stdout, {
+          writeSync(bytes: Uint8Array) {
+            assert.equal(writing, false);
+            assert.ok(bytes.length > 0 && bytes.length <= 64 * 1024, `sync write size: ${bytes.length}`);
+            if (sink === "sync-refused") return false;
+            capture(bytes);
+            return true;
+          },
+        });
+        const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+        assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+        assert.equal(Buffer.concat(probe.stdout).toString(), `kept\n${selected}\n`);
+        assert.equal(writing, false);
+      });
+    }
+  }
+});
+
+test("cut single-field EOF output preserves false/null cancellation between bounded writes", async testContext => {
+  for (const reason of [false, null]) {
+    for (const sink of ["async", "sync"] as const) {
+      await testContext.test(`${sink}, reason ${reason}`, async () => {
+        const controller = new AbortController();
+        const probe = cutProbe(["-f", "1", "-d", ","], toByteSource("x".repeat(70 * 1024) + ",tail"), controller.signal, await fixture());
+        probe.context.stdout.write = async bytes => {
+          assert.equal(sink, "async");
+          probe.stdout.push(new Uint8Array(bytes));
+          scheduleTurn(() => controller.abort(reason));
+          await new Promise<void>(resolve => scheduleTurn(resolve));
+        };
+        if (sink === "sync") Object.assign(probe.context.stdout, {
+          writeSync(bytes: Uint8Array) {
+            probe.stdout.push(new Uint8Array(bytes));
+            controller.abort(reason);
+            return true;
+          },
+        });
+        await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "cut")!.execute(probe.context)), failure => failure === reason);
+        assert.equal(probe.stdout.length, 1);
+        assert.equal(probe.stdout[0]!.length, 64 * 1024);
+        assert.equal(probe.stderr.length, 0);
+      });
+    }
+  }
+});
+
+test("cut single-field output retains empty selections after an exactly full buffer", async () => {
+  for (const ending of ["\n", ""]) {
+    const selected = "x".repeat(64 * 1024 - 1);
+    const probe = cutProbe(["-f", "1", "-d", ","], toByteSource(`${selected},tail\n,tail${ending}`), new AbortController().signal, await fixture());
+    const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+    assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+    assert.equal(Buffer.concat(probe.stdout).toString(), `${selected}\n\n`);
+    assert.ok(probe.stdout.every(bytes => bytes.length > 0 && bytes.length <= 64 * 1024));
+  }
+});
+
 test("cut encodes large output delimiters in bounded writes without splitting surrogate pairs", async () => {
   const delimiter = "x".repeat(4095) + "😀" + "y".repeat(64 * 1024);
   for (const mode of ["b", "c", "f"]) {

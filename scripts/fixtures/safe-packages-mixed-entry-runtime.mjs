@@ -440,7 +440,7 @@ export async function verifyFactorCommands(entry = defaultEntry) {
     ["nul", "sh stdin.sh nul", "12\0junk 18\n", 0, "12: 2 2 3\n18: 2 3 3\n", ""],
     ["ceiling", "sh args.sh 4294967296 12", "", 1, "12: 2 2 3\n", "factor: '4294967296' exceeds supported maximum 4294967295\n"],
   ];
-  const shell = new entry.Shell({ fs: filesystem, cwd: "/factor-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands());
+  const shell = new entry.Shell({ fs: filesystem, cwd: "/factor-work", env: { LC_ALL: "C", TZ: "UTC" } }).use(entry.agentCommands({ factor: { limits: { maxValue: 4_294_967_295 } } }));
   try {
     if (entry.createFactorCommand().name !== "factor") throw new Error("Public factor factory is missing");
     if (entry.createFactorCommand !== createSubpathFactorCommand || entry.createFactorCommands !== createSubpathFactorCommands || entry.factorCommands !== subpathFactorCommands) throw new Error("Factor subpath factory identity differs");
@@ -457,9 +457,9 @@ export async function verifyFactorCommands(entry = defaultEntry) {
     const limited = await shell.exec("sh args.sh 100 101 12");
     if (limited.exitCode !== 1 || limited.stdout !== "100: 2 2 5 5\n12: 2 2 3\n" || limited.stderr !== "factor: '101' exceeds supported maximum 100\n") throw new Error(`Public factor configured cap failed: ${JSON.stringify(limited)}`);
     let invalidLimit;
-    try { entry.createFactorCommand({ limits: { maxValue: 4294967296 } }); }
+    try { entry.createFactorCommand({ limits: { maxValue: 0 } }); }
     catch (error) { invalidLimit = error; }
-    if (invalidLimit?.name !== "RangeError") throw new Error("Public factor allowed a limit above its supported maximum");
+    if (invalidLimit?.name !== "RangeError") throw new Error("Public factor accepted an invalid magnitude limit");
   } finally { await shell.dispose(); }
 }
 

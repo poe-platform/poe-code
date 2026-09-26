@@ -172,9 +172,9 @@ export class ByteOutput {
   private bytes: Uint8Array;
   private size = 0;
   constructor(readonly session: Session) { this.bytes = new Uint8Array(Math.min(16384, session.limits.maxChunkBytes)); }
-  async byte(value: number): Promise<void> {
+  byte(value: number): void | Promise<void> {
     this.bytes[this.size++] = value;
-    if (this.size === this.bytes.length) await this.flush();
+    if (this.size === this.bytes.length) return this.flush();
   }
   async flush(): Promise<void> {
     if (this.size) await this.session.output(this.bytes.subarray(0, this.size));

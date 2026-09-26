@@ -99,7 +99,8 @@ export function createStringsCommand(limits: StreamInspectionLimits): CommandDef
         };
         for await (const chunk of region.source) {
           for (const byte of chunk) {
-            await session.step();
+            const s = session.step();
+            if (s) await s;
             if (width === 1) await single(byte, offset);
             else {
               unit.push(byte);

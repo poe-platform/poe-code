@@ -62,18 +62,26 @@ export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefini
       let position = pendingStart;
       const convertSingle = initial || pendingCount > 1 || pendingTab;
       while (position < column) {
-        await session.step();
+        const s = session.step();
+        if (s) await s;
         const stop = nextTab(position);
         if (stop !== undefined && stop <= column && (stop - position > 1 || convertSingle)) {
-          await output.byte(9); position = stop;
-        } else { await output.byte(32); position++; }
+          const b = output.byte(9);
+          if (b) await b;
+          position = stop;
+        } else {
+          const b = output.byte(32);
+          if (b) await b;
+          position++;
+        }
       }
       pendingCount = 0; pendingTab = false;
     };
     await session.files(session.names(parsed.operands), async source => {
       for await (const chunk of source) {
         for (const byte of chunk) {
-          await session.step();
+          const s = session.step();
+          if (s) await s;
           if (active && (byte === 32 || byte === 9)) {
             const stop = nextTab(column);
             if (stop !== undefined) {
@@ -85,8 +93,9 @@ export function createUnexpandCommand(limits: StreamFormatLimits): CommandDefini
               continue;
             }
             await flushBlanks(); active = false;
-          } else await flushBlanks();
-          await output.byte(byte);
+          } else if (pendingCount) await flushBlanks();
+          const b = output.byte(byte);
+          if (b) await b;
           if (byte === 10) { column = 0; initial = true; active = true; }
           else if (active) {
             column = byte === 8 ? Math.max(0, column - 1) : column + 1;

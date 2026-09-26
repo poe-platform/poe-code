@@ -56,13 +56,21 @@ export function createExpandCommand(limits: StreamInspectionLimits): CommandDefi
     await session.files(session.names(parsed.operands), async source => {
       for await (const chunk of source) {
         for (const byte of chunk) {
-          await session.step();
+          const s = session.step();
+          if (s) await s;
           if (byte === 9 && (initial || !parsed.flags.has("i"))) {
             const stop = nextTab(column);
             session.check(stop - column, limits.maxOutputBytes, "output");
-            while (column < stop) { await session.step(); await output.byte(32); column++; }
+            while (column < stop) {
+              const s2 = session.step();
+              if (s2) await s2;
+              const b = output.byte(32);
+              if (b) await b;
+              column++;
+            }
           } else {
-            await output.byte(byte);
+            const b = output.byte(byte);
+            if (b) await b;
             if (byte === 10) { column = 0; initial = true; }
             else { column = byte === 8 ? Math.max(0, column - 1) : column + 1; if (byte !== 32 && byte !== 9) initial = false; }
           }

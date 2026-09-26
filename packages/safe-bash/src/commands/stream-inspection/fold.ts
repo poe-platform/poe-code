@@ -4,26 +4,6 @@ import { integer } from "../internal.js";
 import { numericOptions } from "./numeric-options.js";
 import { command, RecordBuffer, type Session, type StreamInspectionLimits } from "./shared.js";
 
-async function* units(source: ByteSource, session: Session, utf8: boolean): AsyncGenerator<{ unit: FoldUnit; bytes: readonly number[] }> {
-  const pending: number[] = [];
-  const drain = function* (eof: boolean) {
-    while (pending.length) {
-      const unit = utf8 ? decodeFoldUnit(pending, 0, pending.length, eof)
-        : { cp: pending[0]!, length: 1, valid: true };
-      if (!unit) return;
-      yield { unit, bytes: pending.splice(0, unit.length) };
-    }
-  };
-  for await (const chunk of source) {
-    for (const byte of chunk) {
-      await session.step();
-      pending.push(byte);
-      yield* drain(false);
-    }
-  }
-  yield* drain(true);
-}
-
 export function createFoldCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("fold", limits, async session => {
     let mode: "columns" | "bytes" | "characters" = "columns";
@@ -49,10 +29,10 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
     await session.files(session.names(parsed.operands), async source => {
       const record = new RecordBuffer(session);
       let column = 0, lastBlank = -1;
-      for await (const { unit, bytes } of units(source, session, utf8)) {
+      const processUnit = async (unit: FoldUnit, bytes: readonly number[], byteOffset = 0, byteLen = bytes.length): Promise<void> => {
         if (unit.cp === 10) {
           await session.output(record.view()); await session.output(Uint8Array.of(10));
-          record.clear(); column = 0; lastBlank = -1; continue;
+          record.clear(); column = 0; lastBlank = -1; return;
         }
         while (adjust(column, unit) > width && record.size) {
           const boundary = parsed.flags.has("s") && lastBlank >= 0 ? lastBlank + 1 : record.size;
@@ -63,16 +43,50 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
           for (let offset = 0; offset < retained.length;) {
             const glyph = utf8 ? decodeFoldUnit(retained, offset, retained.length - offset, true)!
               : { cp: retained[offset]!, length: 1, valid: true };
-            await session.step(glyph.length);
+            const s = session.step(glyph.length);
+            if (s) await s;
             column = adjust(column, glyph);
             offset += glyph.length;
             if (glyph.cp === 32 || glyph.cp === 9) lastBlank = offset - 1;
           }
         }
         column = adjust(column, unit);
-        for (const byte of bytes) record.push(byte);
+        for (let i = 0; i < byteLen; i++) record.push(bytes[byteOffset + i]!);
         if (unit.cp === 32 || unit.cp === 9) lastBlank = record.size - 1;
+      };
+      const pending: number[] = [];
+      const drain = async (eof: boolean): Promise<void> => {
+        while (pending.length) {
+          const unit = utf8 ? decodeFoldUnit(pending, 0, pending.length, eof)
+            : { cp: pending[0]!, length: 1, valid: true };
+          if (!unit) return;
+          const unitBytes = pending.splice(0, unit.length);
+          await processUnit(unit, unitBytes, 0, unitBytes.length);
+        }
+      };
+      for await (const chunk of source) {
+        for (let i = 0; i < chunk.length; i++) {
+          const byte = chunk[i]!;
+          const s = session.step();
+          if (s) await s;
+          if (!utf8 || (pending.length === 0 && byte < 128)) {
+            if (byte !== 10) {
+              const nextCol = mode === "bytes" ? column + 1 : byte === 8 ? Math.max(0, column - 1) : byte === 13 ? 0 : column + (byte === 9 ? 8 - column % 8 : 1);
+              if (nextCol <= width || !record.size) {
+                column = nextCol;
+                record.push(byte);
+                if (byte === 32 || byte === 9) lastBlank = record.size - 1;
+                continue;
+              }
+            }
+            await processUnit({ cp: byte, length: 1, valid: true }, chunk as unknown as readonly number[], i, 1);
+          } else {
+            pending.push(byte);
+            await drain(false);
+          }
+        }
       }
+      await drain(true);
       await session.output(record.view());
     });
   });

@@ -17,8 +17,13 @@ export function createTacCommand(limits: StreamInspectionLimits): CommandDefinit
     const reversed = Uint8Array.from(separator).reverse();
     const prefix = new Uint32Array(reversed.length);
     for (let index = 1, matched = 0; index < reversed.length; index++) {
-      await session.step();
-      while (matched && reversed[index] !== reversed[matched]) { matched = prefix[matched - 1]!; await session.step(); }
+      const s1 = session.step();
+      if (s1) await s1;
+      while (matched && reversed[index] !== reversed[matched]) {
+        matched = prefix[matched - 1]!;
+        const s2 = session.step();
+        if (s2) await s2;
+      }
       if (reversed[index] === reversed[matched]) matched++;
       prefix[index] = matched;
     }
@@ -39,7 +44,8 @@ export function createTacCommand(limits: StreamInspectionLimits): CommandDefinit
         } }, bytes.subarray(0, size));
         try {
           for (const match of matches) {
-            await session.step();
+            const s = session.step();
+            if (s) await s;
             if (!match) continue;
             const boundary = parsed.flags.has("b") ? match.start : match.end;
             session.check(end - boundary, limits.maxRecordBytes, "record");
@@ -55,8 +61,13 @@ export function createTacCommand(limits: StreamInspectionLimits): CommandDefinit
         return;
       }
       for (let index = size - 1; index >= 0; index--) {
-        await session.step();
-        while (matched && bytes[index] !== reversed[matched]) { matched = prefix[matched - 1]!; await session.step(); }
+        const s1 = session.step();
+        if (s1) await s1;
+        while (matched && bytes[index] !== reversed[matched]) {
+          matched = prefix[matched - 1]!;
+          const s2 = session.step();
+          if (s2) await s2;
+        }
         if (bytes[index] === reversed[matched]) matched++;
         if (matched !== reversed.length) continue;
         const boundary = parsed.flags.has("b") ? index : index + separator.length;

@@ -5,7 +5,8 @@ import { command, records, type Session, type StreamFormatLimits } from "./share
 
 async function validPrefix(bytes: Uint8Array, session: Session): Promise<number> {
   for (let offset = 0; offset < bytes.length;) {
-    await session.step();
+    const s = session.step();
+    if (s) await s;
     const first = bytes[offset]!;
     if (first < 128) { offset++; continue; }
     const width = first >= 194 && first <= 223 ? 2 : first >= 224 && first <= 239 ? 3 : first >= 240 && first <= 244 ? 4 : 0;
@@ -25,7 +26,8 @@ async function reversed(bytes: Uint8Array, utf8: boolean, session: Session): Pro
   const result = new Uint8Array(bytes.length);
   let destination = 0;
   for (let end = bytes.length; end > 0;) {
-    await session.step();
+    const s = session.step();
+    if (s) await s;
     let start = end - 1;
     if (utf8) while (start > 0 && (bytes[start]! & 192) === 128) start--;
     result.set(bytes.subarray(start, end), destination);

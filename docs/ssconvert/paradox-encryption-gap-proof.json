@@ -405,7 +405,6 @@
     }
   },
   "remaining": [
-    "byte-level block65535 oracle is captured but product runtime at that physical position not executed",
     "broader versions/types/key/content/profile holdouts",
     "encrypted companion MB/index streams and writers",
     "packed/browser/worker profile qualification",
@@ -415,5 +414,37 @@
     "localCommit": "d93fad371dec70670096bd208c1945b029d2bd4a",
     "remoteMain": "verified on origin/main",
     "publication": "Containing Release35775387387 audit passed,build active; successful publication not yet verified"
+  },
+  "highBlockQualification": {
+    "runtime": "v22.23.2",
+    "candidateSource": "packages/safe-bash-command-ssconvert/src/codecs/paradox-encryption.ts",
+    "block": 65535,
+    "bytes": 67107840,
+    "key": 19114957,
+    "wholeInputSha256": "71a58719284134ad7f52b9c621b1e46216c25c92a7c87194f2bff58d13c4a158",
+    "blockInputSha256": "2598ad14bc10d6c5d2d0eb407667fa4a36084073f62387a146d1e9defb066a87",
+    "outputSha256": "785b0751fc2c53dc14a4ce3d800e69ef9ce1009eb327ccf458afe09c242c26c9",
+    "allSixIndependentVectorsMatch": true,
+    "borrowedInputPreserved": true,
+    "ownedBytesCleared": true,
+    "method": "Allocate 65535 1024-byte physical blocks in memory; place all six retained pxlib ciphertext vectors at their actual one-based block positions, decrypt through the compiled codec with explicit finite limits, compare every complete oracle block, verify borrowed input and clear owned output. No large fixture written or committed.",
+    "candidateSourceSha256": "e59530c0c238e46bbe0375c8b90b2a278e5f1ebd37bd53566984a94056ba245c",
+    "implementationCommit": "73265db985"
+  },
+  "plaintextCleanup": {
+    "issue": 2463,
+    "implementationCommit": "73265db985",
+    "baseline": "Two failing memory regressions: no ownership cleanup registered and no plaintext clearing on in-flight abort.",
+    "behavior": "Register owned plaintext before allocation; clear on invocation disposal and immediately on failure; preserve caller input and abort identity even when cleanup runs during a decryption yield.",
+    "verification": "Five additional memory controls cover ownership disposal, direct abort, concurrent abort/disposal and public conversion success/cell-limit failure. Final 85-test Paradox/database cohort, package lint/types/consumer checks and selected build pass. Preceding maintained package unit run and both root postchecks pass.",
+    "publicReplay": {
+      "runtime": "Node.js 22.23.2",
+      "cases": 6,
+      "paths": [
+        "compiled poe-code/ssconvert SDK",
+        "compiled runCommand"
+      ],
+      "output": "All original pxlib fixtures retain exact CSV values and existing v4 codepage warnings; borrowed inputs unchanged."
+    }
   }
 }

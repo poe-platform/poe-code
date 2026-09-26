@@ -53,7 +53,7 @@
           "book.xls",
           "dir/book.xls",
           "https://example.test/a[b].xls",
-          "\u8868] book.xls"
+          "表] book.xls"
         ],
         "outputSha256": [
           "778b0666a30cff97240da6b0a04ecf3b9b7d9d3fdc47d7c8a4dc332f4d732d27",
@@ -656,7 +656,7 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1\u2013256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open."
+      "currentFinding": "On-file-key encrypted imports match native records. Explicit encryption=paradox export now uses a host-supplied 1–256-byte password, native NUL termination, bounded work and cancellation, without entropy or implicit password acquisition. Empty effective passwords are refused; plaintext stays default. All seven compiled SDK profiles and the Shell export reopen in native Gnumeric byte-exact with empty stderr. This is legacy obfuscation with a recoverable key and readable schema, not authenticated password security. Wider profiles, companions and final delivery qualification remain open. Owned decrypted buffers now clear on disposal and cancellation, including concurrent abort/cleanup. Physical block 65535 and the five neighboring retained pxlib vectors pass through the compiled decoder with explicit finite limits; no large fixture retained."
     },
     {
       "id": "perl-date",

@@ -140,4 +140,28 @@ test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64
   );
   assert.equal(tableRes.exitCode, 0, tableRes.stderr);
   assert.equal(tableRes.stdout.trim(), "500");
+
+  // seq + shuf + nl + rev + diff/patch + tsort + factor stress pipeline
+  const rngBytes = new Uint8Array(8192);
+  for (let i = 0; i < rngBytes.length; i++) rngBytes[i] = (i * 73 + 19) & 0xff;
+  await fs.writeFile("/repo/rng.bin", rngBytes);
+  const seqShufRes = await shell.exec(
+    "seq -w 1 1500 | shuf --random-source=/repo/rng.bin | nl -n rz -w 4 -s : | rev | rev | wc -l"
+  );
+  assert.equal(seqShufRes.exitCode, 0, seqShufRes.stderr);
+  assert.equal(seqShufRes.stdout.trim(), "1500");
+
+  const diffPatchRes = await shell.exec(
+    "diff -u /repo/left.txt /repo/right.txt > /repo/changes.patch; cp /repo/left.txt /repo/patched.txt && patch -s /repo/patched.txt /repo/changes.patch && cmp /repo/patched.txt /repo/right.txt"
+  );
+  assert.equal(diffPatchRes.exitCode, 0, diffPatchRes.stderr);
+
+  const dagEdges: string[] = [];
+  for (let i = 0; i < 300; i++) dagEdges.push(`node_${i} node_${i + 1}`);
+  await fs.writeFile("/repo/dag.txt", enc.encode(dagEdges.join("\n") + "\n"));
+  const tsortFactorRes = await shell.exec(
+    "tsort /repo/dag.txt | head -n 1 && seq 1000 1199 | factor | wc -l"
+  );
+  assert.equal(tsortFactorRes.exitCode, 0, tsortFactorRes.stderr);
+  assert.deepEqual(tsortFactorRes.stdout.trim().split(/\s+/), ["node_0", "200"]);
 });

@@ -245,6 +245,16 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
             if (operands.length > 2) operands[2] = `(${operands[2]}+1)`;
             subtract = 1;
             break;
+          case "VLOOKUP": case "HLOOKUP":
+            if (operands.length === 3) operands[2] = `(${operands[2]}+1)`;
+            break;
+          case "INDEX":
+            if (operands.length === 3) {
+              const [, column, row] = operands;
+              operands[1] = `(${row}+1)`;
+              operands[2] = `(${column}+1)`;
+            }
+            break;
           case "STRING": operands.push("TRUE()"); break;
           case "YEAR": subtract = 1900; break;
           case "PMT": case "PV": case "FV":

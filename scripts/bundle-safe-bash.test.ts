@@ -6,11 +6,10 @@ import { createFsFromVolume, Volume } from "memfs";
 import { build, type BuildResult } from "esbuild";
 import { beforeAll, expect, it } from "vitest";
 import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
-import { rewriteModuleSpecifiers } from "./package-safe.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-// Build and rewrite once per test-file run; consumer builds and VMs stay separate.
+// Build once per test-file run; consumer builds and VMs stay separate.
 let portableBuild: BuildResult;
 let filesystemBuild: BuildResult;
 let browserFixtureBuild: BuildResult;
@@ -51,6 +50,9 @@ async function bundlePublicConsumer(contents: string) {
     plugins: [{
       name: "public-built-shell-entries",
       setup(builder) {
+        builder.onResolve({ filter: /^poe-code\/safe-fs\/core$/, namespace: "built-shell" }, () => ({
+          path: "@poe-platform/safe-fs/core", external: true,
+        }));
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
@@ -377,11 +379,7 @@ beforeAll(async () => {
 beforeAll(async () => {
   for (const output of portableBuild.outputFiles!.filter(output => output.path.endsWith(".js"))) {
     artifacts.mkdirSync(path.dirname(output.path), { recursive: true });
-    const metadata = portableBuild.metafile!.outputs[path.relative(root, output.path).split(path.sep).join("/")]!;
-    const contents = metadata.imports.some(item => item.path === "poe-code/safe-fs/core")
-      ? rewriteModuleSpecifiers(output.path, output.text, specifier => specifier === "poe-code/safe-fs/core" ? "@poe-platform/safe-fs/core" : specifier)
-      : output.text;
-    artifacts.writeFileSync(output.path, contents);
+    artifacts.writeFileSync(output.path, output.contents);
   }
 });
 
@@ -432,7 +430,7 @@ beforeAll(async () => {
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
-        builder.onResolve({ filter: /^@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)$/ }, () => ({
+        builder.onResolve({ filter: /^(?:@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core)|poe-code\/safe-fs\/core)$/ }, () => ({
           path: path.join(root, "packages/safe-fs/src/core.ts"),
         }));
         builder.onResolve({ filter: /^@poe-platform\/safe-fs\/testing\/atomic$/ }, () => ({

@@ -1731,21 +1731,21 @@
   "capabilities": [
     {
       "capability": "PERL_ADDER",
-      "status": "implemented; oracle unresolved",
+      "status": "implemented; activated Linux controls qualified, broader qualification open",
       "implementation": "perlSampleFunctions; shared ff coercion/array evaluation",
-      "oracle": "unmeasured in matching activated optional profile"
+      "oracle": "Four arithmetic/coercion rows plus two frozen-date cohort controls match current compiled SDK/Shell in the activated Linux Perl profile. See gap-resolution.json#reference.perlActivatedLinux; broader qualification remains open."
     },
     {
       "capability": "PERL_DATE",
-      "status": "unresolved",
-      "implementation": "requires injected time/zone and source loader result conversion",
-      "oracle": "unmeasured in matching activated optional profile"
+      "status": "implemented; activated Linux frozen-clock controls qualified, broader qualification open",
+      "implementation": "perlSampleFunctions uses the explicit clock and selected timezone through shared date conversion; no ambient clock fallback.",
+      "oracle": "UTC and America/Los_Angeles controls at Unix time 1709166600 match native bytes through public SDK and Shell. See gap-resolution.json#reference.perlActivatedLinux; broader date/DST and lifecycle qualification remains open."
     },
     {
       "capability": "PERL_SED",
-      "status": "unresolved",
-      "implementation": "requires bounded compatible Perl pattern/substitution interpreter; JS RegExp is not a compatibility claim",
-      "oracle": "unmeasured in matching activated optional profile"
+      "status": "bounded implementation; activated Linux cohort qualified, broader qualification open",
+      "implementation": "Bounded compatible substitution interpreter with capture, lookbehind, class and raw-byte result support for the qualified grammar; wider grammar remains open.",
+      "oracle": "625 PERL_SED rows within the full 633-row activated Linux cohort match current compiled SDK/Shell byte-for-byte. Thirteen malformed UTF-8 output cases are excluded from this cohort. See gap-resolution.json#reference.perlActivatedLinux; preserve separate historical proofs and remaining scope."
     },
     {
       "capability": "PY_BITAND",
@@ -1788,7 +1788,7 @@
     {
       "capability": "ATL_LAST",
       "status": "unresolved",
-      "implementation": "requires injected FIFO protocol, dependency watch lifecycle, diagnostics and ordering",
+      "implementation": "Explicit invocation-owned datasource transport, partial-record parsing, dependency links, rebinding, recalculation and cleanup are implemented; wider lifecycle and native scheduling qualification remain open.",
       "oracle": "unmeasured in matching activated optional profile"
     },
     {

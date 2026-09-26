@@ -521,6 +521,66 @@
           "trackedArtifacts": 0
         }
       }
+    },
+    "perlActivatedLinux": {
+      "auditedAt": "2026-09-26",
+      "sourceRevisionAtExecution": "7bd87a8395bafeaf4237dff421a09335682119c7",
+      "nativeRun": "https://github.com/poe-platform/poe-code/actions/runs/35846837435",
+      "nativeProfile": "gnumeric-1.12.61-optional-perl-samples",
+      "nativeSourceRevision": "1153f1d43f9fc366bd22cc5696d1e6cac5afb3e0",
+      "nativeFixtureSha256": "06768ed4ba06d1b60fab2fa7d56f444a58e99c9194b93158341c7004740a734d",
+      "inputRecoveryRevision": "20a3934fd0617a77e53beab183e5d283028a98a5",
+      "inputSha256": "342e76b7ba7406b8ff4340998f1909bc9b54cbd14ed22238a0618b92a55d51e5",
+      "dateInputSha256": "61561994630cb410c551fc955c2e6f352598237439631dc5f9bda8e0648d2b1b",
+      "rows": 633,
+      "composition": {
+        "PERL_SED": 625,
+        "PERL_ADDER": 4,
+        "absentPythonAndDatasourceControls": 4
+      },
+      "frozenClockUnixSeconds": 1709166600,
+      "observations": [
+        {
+          "label": "language-probes",
+          "timezone": "UTC",
+          "bytes": 14680,
+          "sha256": "c9b9a3eaa66009533e367921c3b3dcabcc1f47af0ca727bf7e842886a778c9c0",
+          "nativeSdkShellByteEqual": true
+        },
+        {
+          "label": "frozen-date-0",
+          "timezone": "UTC",
+          "bytes": 16,
+          "sha256": "6f57684c4fe0d10119ab33375df7b52797b4ad5c985d42686ea95655dcd65913",
+          "nativeSdkShellByteEqual": true
+        },
+        {
+          "label": "frozen-date-1",
+          "timezone": "America/Los_Angeles",
+          "bytes": 16,
+          "sha256": "7df65195c131b01a567d99d7aa068a3155e7c1efface17473a8811e07d2aaa4d",
+          "nativeSdkShellByteEqual": true
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "212f882f4ab54a6656b10cc20e2dad6554f650e710b9a2d8ff095aeb7c23b354"
+        },
+        {
+          "path": "packages/safe-bash/dist/shell/runtime.js",
+          "sha256": "ab4be29bd7474e4fd47386cb5df566e26de42ba344e319e578820e62e98e1d46"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "fdbf0d665fcd6fe584e052c4cf0cc705af5a791f8fb4afd423b9d1a346b2ed32"
+        }
+      ],
+      "sourceScope": "The qualified ssconvert engine and Shell/ssconvert source paths were unchanged since the maintained build; intervening source changes affect the separate Playwright host. This evidence binds the listed compiled artifacts, not a fresh whole-repository gate.",
+      "execution": "Public poe-code/ssconvert SDK streams and @poe-platform/safe-bash Shell with its public ssconvert command; explicit perlSampleFunctions, codecs:[], frozen clock, C locale and UTC/Los_Angeles zones. Shell publishes actual CSV to memory VFS, preserves input and has empty stdout/stderr; SDK diagnostics are empty.",
+      "limits": "The 13 malformed UTF-8 output cases excluded from this input cohort are not qualified here. Wider grammar/diagnostics, time/DST boundaries, other environments, installed packages and containing publication remain open.",
+      "captureCorrection": "The first manual SDK helper omitted the required codecs array and failed before conversion; the corrected run explicitly supplies codecs:[] and needs no product change.",
+      "cleanup": "Native archive inspected in memory; inputs recovered only under out. Raw fixtures, receipts and output are purged after this reduction."
     }
   },
   "cases": [
@@ -557,12 +617,12 @@
     {
       "id": "perl-date",
       "status": "open",
-      "currentFinding": "Optional port, injected clock, timezone, arity, namespace and budget controls are implemented. Complete activated native-profile qualification remains open."
+      "currentFinding": "The injected-clock/timezone port is implemented. Current compiled SDK and Shell match activated Linux Perl date controls byte-for-byte at frozen time 1709166600 in UTC and America/Los_Angeles, with empty diagnostics and preserved Shell input. Wider date/DST boundaries, lifecycle, installed artifacts and publication remain open."
     },
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded substitution grammar, captures, lookbehind, classes and raw-byte results are implemented for qualified cases. Wider grammar, Unicode, diagnostics and native lifecycle/profile qualification remain open."
+      "currentFinding": "Bounded grammar, captures, lookbehind, classes and raw-byte results are implemented for qualified cases. Current compiled SDK/Shell match 625 PERL_SED rows within the complete 633-row activated Linux cohort byte-for-byte. The cohort excludes 13 malformed UTF-8 outputs; wider grammar, Unicode, diagnostics, lifecycle, installed artifacts and publication remain open."
     },
     {
       "id": "python-printf",

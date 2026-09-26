@@ -23,15 +23,13 @@ it("awaits PDF streaming sink writes and close before resolving", async () => {
   const bytes = new Uint8Array(output.reduce((sum, part) => sum + part.length, 0)); let at = 0; for (const part of output) {bytes.set(part, at); at += part.length;}
   expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
 });
-it("infers PDF output only with --yes and rejects external engines before acquisition", async () => {
+it("infers PDF output without --yes and rejects external engines before acquisition", async () => {
   const volume = Volume.fromJSON({"/owned.md": "Owned PDF text"});
   const read = vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer));
   const write = vi.fn(async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);});
   const errors: string[] = [];
   const execute = (args: string[]) => createPandocCommand().execute({args, signal: new AbortController().signal, cwd: "/", stdin: [], readFile: read, writeFile: write, stdout: {write: async () => {}}, stderr: {write: async bytes => {errors.push(new TextDecoder().decode(bytes));}}});
-  expect((await execute(["-f", "commonmark", "/owned.md", "-o", "/owned.pdf"])).exitCode).toBe(2); expect(read).not.toHaveBeenCalled();
-  errors.length = 0;
-  expect((await execute(["--yes", "-f", "commonmark", "/owned.md", "-o", "/owned.pdf"])).exitCode).toBe(0); expect(errors).toEqual([]);
+  expect((await execute(["/owned.md", "-o", "/owned.pdf"])).exitCode).toBe(0); expect(errors).toEqual([]);
   const sdk = await convert([{bytes: encode("Owned PDF text")}], {from: "commonmark", to: "pdf"}, {});
   if (sdk.kind !== "binary") throw new Error("PDF expected");
   const bytes = new Uint8Array(volume.readFileSync("/owned.pdf") as Buffer);

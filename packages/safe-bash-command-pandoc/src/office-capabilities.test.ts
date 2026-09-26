@@ -52,7 +52,7 @@ it("converts DOCX through the command with extension inference and explicit form
     writeFile: async (path, bytes) => {files.set(path, new Uint8Array(bytes));},
     stdout: {write: async bytes => {output.push(new Uint8Array(bytes));}},
     stderr: {write: async bytes => {errors.push(new TextDecoder().decode(bytes));}}});
-  expect(await execute(["--yes", "/report.md", "-o", "/report.docx"])).toEqual({exitCode: 0});
+  expect(await execute(["/report.md", "-o", "/report.docx"])).toEqual({exitCode: 0});
   expect(await execute(["-f", "docx", "-t", "plain", "/report.docx"])).toEqual({exitCode: 0});
   expect(new TextDecoder().decode(output[0])).toContain("Apple");
   expect(errors).toEqual([]);

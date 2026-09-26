@@ -19,6 +19,22 @@ it("thin command converts byte stdin using SDK format/options, with no ambient f
   expect(text(ctx.stdout)).toBe("| a | b |\n| --- | --- |\n| x | y |\n");
   expect(text(ctx.stderr)).toBe("");
 });
+it.each([[], ["-"], ["-o", "-"], ["--yes"]])("converts Markdown stdin to HTML with inferred defaults: %s", async (...args) => {
+  const ctx = context(args, "# Orchard\n");
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe('<h1 id="orchard">Orchard</h1>\n');
+  expect(text(ctx.stderr)).toBe("");
+});
+it("infers file input and HTML output without yes", async () => {
+  const volume = Volume.fromJSON({"/doc.md": "# Orchard\n"});
+  const ctx = {...context(["/doc.md", "-o", "/doc.html"]),
+    readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer),
+    writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}};
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(volume.readFileSync("/doc.html", "utf8")).toBe('<h1 id="orchard">Orchard</h1>\n');
+  expect(text(ctx.stdout)).toBe("");
+  expect(text(ctx.stderr)).toBe("");
+});
 it("requires explicit lossy conversion and prints deterministic paths separately from content", async () => {
   const table = {t: "Table", c: [["", [], []], [null, []], [[{t: "AlignDefault"}, {t: "ColWidthDefault"}], [{t: "AlignDefault"}, {t: "ColWidthDefault"}]],
     [["", [], []], [[["", [], []], [[["", [], []], {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: "H1"}]}]], [["", [], []], {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: "H2"}]}]]]]]],
@@ -34,13 +50,13 @@ it("requires explicit lossy conversion and prints deterministic paths separately
   expect(text(lossy.stderr)).toBe("W_TABLE_LOSS: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
 });
 it("rejects missing, duplicate, unknown and file arguments before acquiring stdin", async () => {
-  for(const args of [[], ["-f", "csv"], ["-f", "csv", "-t"], ["-f", "csv", "-t", "plain", "--lossy=false"], ["-f", "csv", "-t", "plain", "input.csv"], ["-f", "csv", "--from=json", "-t", "plain"]]) {
+  for(const args of [["-f", "csv", "-t"], ["-f", "csv", "-t", "plain", "--lossy=false"], ["-f", "csv", "-t", "plain", "input.csv"], ["-f", "csv", "--from=json", "-t", "plain"]]) {
     const ctx = context(args);
     const next = vi.fn(async () => ({done: true as const, value: undefined}));
     const stdin = {[Symbol.asyncIterator]: () => ({next})};
     expect(await createPandocCommand().execute({...ctx, stdin})).toEqual({exitCode: 2});
     expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
-    expect(text(ctx.stderr)).toContain(args.length === 0 || (args.length === 2 && args[0] === "-f") ? "E_FORMAT_REQUIRED:" : "E_OPTION:");
+    expect(text(ctx.stderr)).toContain("E_OPTION:");
   }
 });
 it("preserves inspection, honors cancellation and awaits diagnostic/content byte sinks", async () => {

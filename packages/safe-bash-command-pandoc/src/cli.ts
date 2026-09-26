@@ -184,19 +184,16 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       operands.push({source: "stdin", chunks: files.stdin!});
     } else operands.push(source(path));
   }
-  if (yes) {
-    const registry = createFormatRegistry();
-    if (!options.from) {
-      const hints = new Set(operands.filter(input => input.source !== "stdin" && input.source !== undefined).map(input => {
-        const path = input.source!;
-        return path.lastIndexOf(".") > path.lastIndexOf("/") ? registry.infer(path, "read") : undefined;
-      }).filter((hint): hint is string => hint !== undefined));
-      if (hints.size > 1) fail("Conflicting input suffixes; select -f explicitly");
-      options.from = hints.values().next().value ?? "commonmark";
-    }
-    if (!options.to) options.to = destination !== undefined && destination.lastIndexOf(".") > destination.lastIndexOf("/") ? registry.infer(destination, "write") : "html5";
+  const registry = createFormatRegistry();
+  if (!options.from) {
+    const hints = new Set(operands.filter(input => input.source !== "stdin" && input.source !== undefined).map(input => {
+      const path = input.source!;
+      return path.lastIndexOf(".") > path.lastIndexOf("/") ? registry.infer(path, "read") : undefined;
+    }).filter((hint): hint is string => hint !== undefined));
+    if (hints.size > 1) fail("Conflicting input suffixes; select -f explicitly");
+    options.from = hints.values().next().value ?? "commonmark";
   }
-  if (!options.from || !options.to) throw new PandocError("E_FORMAT_REQUIRED", "convert", "select both formats: pandoc -f commonmark -t html5 input.md -o output.html; use --yes to accept inference/defaults");
+  if (!options.to) options.to = destination !== undefined && destination.lastIndexOf(".") > destination.lastIndexOf("/") ? registry.infer(destination, "write") : "html5";
   if (destination !== undefined && options.extractMedia !== undefined) {
     const output = resourceDirectory(destination, files.cwd ?? "/");
     const media = resourceDirectory(options.extractMedia, files.cwd ?? "/");

@@ -144,17 +144,25 @@ export class ArrayLedger {
   }
 
   internal(commandLimit: number): ArrayLedger {
+    return ArrayLedger.createInternal(commandLimit, this.sequence);
+  }
+
+  static createInternal(commandLimit: number, sharedSequence?: { lastIssued: number }): ArrayLedger {
     if (commandLimit === Infinity) {
-      return new ArrayLedger(Infinity, Infinity, 0, this.sequence);
+      return new ArrayLedger(Infinity, Infinity, 0, sharedSequence);
     }
     if (commandLimit >= 0 && commandLimit <= 272759172 && Number.isSafeInteger(commandLimit)) {
       const units = commandLimit + 1;
-      return new ArrayLedger(32 * units, 64 * units, 0, this.sequence);
+      return new ArrayLedger(32 * units, 64 * units, 0, sharedSequence);
     }
     const requested = BigInt(commandLimit) + 1n;
     const maximum = BigInt(Number.MAX_SAFE_INTEGER) / 33024n;
     const units = requested < maximum ? requested : maximum;
-    return new ArrayLedger(Number(32n * units), Number(64n * units), 0, this.sequence);
+    return new ArrayLedger(Number(32n * units), Number(64n * units), 0, sharedSequence);
+  }
+
+  get sharedSequence(): { lastIssued: number } {
+    return this.sequence;
   }
 
   get active(): boolean { return this._active; }

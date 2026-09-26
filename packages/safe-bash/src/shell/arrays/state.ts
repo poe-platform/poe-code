@@ -9,6 +9,7 @@ import type { GetoptsInput } from "../getopts.js";
 interface Session {
   readonly values: ValueArena;
   readonly ledger: ArrayLedger;
+  readonly hasActiveLedger: boolean;
   readonly internal: ArrayLedger;
   readonly scope: InvocationScope;
   firstMonitor: StateMonitor | undefined;
@@ -16,10 +17,11 @@ interface Session {
   owner: ArrayOwner | undefined;
   ownerHeaderCharged: boolean;
   guestOwner: ArrayOwner | undefined;
+  forkForScope(scope: InvocationScope): Session;
 }
 
 const sessionSymbol = Symbol("safe-bash.arraySession");
-const monitorSymbol = Symbol("safe-bash.stateMonitor");
+export const monitorSymbol = Symbol("safe-bash.stateMonitor");
 const fallbackSessions = new WeakMap<object, Session>();
 const rawMonitors = new WeakMap<State, StateMonitor>();
 const syncResolved = Symbol.for("safe-bash.syncResolved");
@@ -37,7 +39,9 @@ type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: Over
 
 class ArraySessionImpl implements Session {
   declare readonly values: ValueArena;
-  declare readonly ledger: ArrayLedger;
+  declare private _ledger: ArrayLedger | undefined;
+  declare readonly maxExpansionBytes: number;
+  declare readonly maxExpansionFields: number;
   declare readonly internal: ArrayLedger;
   declare readonly scope: InvocationScope;
   declare firstMonitor: StateMonitor | undefined;
@@ -48,15 +52,33 @@ class ArraySessionImpl implements Session {
 
   constructor(
     values: ValueArena,
-    ledger: ArrayLedger,
+    maxExpansionBytes: number,
+    maxExpansionFields: number,
     internal: ArrayLedger,
     scope: InvocationScope,
+    ledger?: ArrayLedger,
   ) {
     this.values = values;
-    this.ledger = ledger;
+    this.maxExpansionBytes = maxExpansionBytes;
+    this.maxExpansionFields = maxExpansionFields;
+    if (ledger !== undefined) this._ledger = ledger;
     this.internal = internal;
     this.scope = scope;
     this.firstMonitor = undefined;
+  }
+
+  get ledger(): ArrayLedger {
+    return this._ledger ??= new ArrayLedger(this.maxExpansionBytes, this.maxExpansionFields, 0, this.internal.sharedSequence);
+  }
+
+  get hasActiveLedger(): boolean {
+    return this._ledger !== undefined && this._ledger.active;
+  }
+
+  forkForScope(scope: InvocationScope): Session {
+    const forked = new ArraySessionImpl(this.values, this.maxExpansionBytes, this.maxExpansionFields, this.internal, scope, this.ledger);
+    forked.monitors = new Set();
+    return forked;
   }
 
   closeSession(): void | Promise<void> {
@@ -76,6 +98,7 @@ class ArraySessionImpl implements Session {
   }
 }
 Object.assign(ArraySessionImpl.prototype, {
+  _ledger: undefined,
   monitors: undefined,
   owner: undefined,
   ownerHeaderCharged: false,
@@ -87,12 +110,12 @@ function createSession(
   scope: InvocationScope,
 ): Session {
   while (scope.parent) scope = scope.parent;
-  const ledger = new ArrayLedger(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields);
   const values = budget.values ?? new ValueArena(budget.limits.maxExpansionBytes, budget.limits.maxExpansionFields, () => scope.assertOpen());
   const session = new ArraySessionImpl(
     values,
-    ledger,
-    ledger.internal(budget.limits.maxCommands ?? 10_000),
+    budget.limits.maxExpansionBytes,
+    budget.limits.maxExpansionFields,
+    ArrayLedger.createInternal(budget.limits.maxCommands ?? 10_000),
     scope,
   );
   scope.setArraySession(session);
@@ -106,14 +129,18 @@ function createSession(
   return session;
 }
 
-export function trackState(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
+export function ensureStateMonitor(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): StateMonitor {
   const existing = stateMonitor(state);
-  if (existing) return existing.proxy;
+  if (existing) return existing;
   const session = (budget as { _arraySession?: Session })._arraySession
     ?? (budget as unknown as Record<symbol, Session | undefined>)[sessionSymbol]
     ?? fallbackSessions.get(budget)
     ?? createSession(budget, scope);
-  return new StateMonitor(state, session).proxy;
+  return new StateMonitor(state, session);
+}
+
+export function trackState(state: State, budget: { readonly values?: ValueArena; readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number; readonly maxCommands?: number } }, scope: InvocationScope): State {
+  return ensureStateMonitor(state, budget, scope).proxy;
 }
 
 export function stateMonitor(state: State): StateMonitor | undefined {
@@ -128,7 +155,7 @@ export function arrayStore(state: State): BindingStore | undefined {
 
 export function guestArrays(state: State): BindingStore | undefined {
   const monitor = stateMonitor(state), store = monitor?.store;
-  return store?.owner.ledger === monitor?.session.ledger ? store : undefined;
+  return store && store.owner.ledger !== monitor!.session.internal ? store : undefined;
 }
 
 export function requireArrays(state: State): BindingStore {
@@ -140,8 +167,8 @@ export function requireArrays(state: State): BindingStore {
 export class StateMonitor {
   declare readonly raw: State;
   declare readonly session: Session;
-  declare readonly proxy: State;
-  declare readonly values: ValueStore;
+  declare private _proxy: State | undefined;
+  declare private _values: ValueStore | undefined;
   declare private _positionals: ValueStore | undefined;
   declare store: BindingStore | undefined;
   declare lazyPipeStatus: readonly number[] | undefined;
@@ -167,7 +194,7 @@ export class StateMonitor {
   constructor(raw: State, session: Session, source?: StateMonitor) {
     this.raw = raw;
     this.session = session;
-    this.values = source ? source.values.clone() : session.values.createStore();
+    this._values = source && source._values ? source._values.clone() : undefined;
     this._variablesProxy = undefined;
     this._wrapperCount = 1;
     if (source?.lazyPipeStatus !== undefined) {
@@ -175,10 +202,11 @@ export class StateMonitor {
     }
     if (source && source._positionals) {
       try { this._positionals = source._positionals.clone(); }
-      catch (error) { this.values.close(); throw error; }
+      catch (error) { this._values?.close(); throw error; }
     }
-    this.proxy = new Proxy(raw, new StateProxyHandler(this, "state", false)) as State;
-    if (Object.isExtensible(raw)) {
+    if (monitorSymbol in raw) {
+      (raw as unknown as Record<symbol, StateMonitor | undefined>)[monitorSymbol] = this;
+    } else if (Object.isExtensible(raw)) {
       sharedMonitorDescriptor.value = this;
       Object.defineProperty(raw, monitorSymbol, sharedMonitorDescriptor);
       sharedMonitorDescriptor.value = undefined;
@@ -195,12 +223,20 @@ export class StateMonitor {
     }
   }
 
+  get proxy(): State {
+    return this._proxy ??= new Proxy(this.raw, new StateProxyHandler(this, "state", false)) as State;
+  }
+
+  get values(): ValueStore {
+    return this._values ??= this.session.values.createStore();
+  }
+
   get positionals(): ValueStore {
     return this._positionals ??= this.session.values.createStore();
   }
 
   closeValues(): void {
-    this.values.close();
+    this._values?.close();
     this._positionals?.close();
     if (this.lazyPipeStatus !== undefined) this.lazyPipeStatus = undefined;
     if (this._getoptsInput) this.invalidateGetoptsInput();
@@ -268,6 +304,20 @@ export class StateMonitor {
       this.session.ownerHeaderCharged = true;
     }
     return this.session.owner;
+  }
+
+  chargeInternal(
+    charge: import("./ledger.js").Charge,
+    out?: { generation: number; version: number; epoch: number },
+  ): Tickets {
+    this.session.scope.assertOpen();
+    if (this.session.owner) {
+      this.session.owner.assertOpen();
+    } else if (!this.session.ownerHeaderCharged) {
+      this.session.internal.chargeOwnerHeader();
+      this.session.ownerHeaderCharged = true;
+    }
+    return this.session.internal.charge(charge, out);
   }
 
   chargeLazyPipeStatus(
@@ -529,6 +579,8 @@ export class StateMonitor {
   }
 }
 Object.assign(StateMonitor.prototype, {
+  _proxy: undefined,
+  _values: undefined,
   _positionals: undefined,
   store: undefined,
   lazyPipeStatus: undefined,
@@ -758,14 +810,14 @@ export class Restoration {
 export function trySnapshotStateSync(state: State, clone: () => State, scope?: InvocationScope): State | undefined {
   const monitor = stateMonitor(state);
   if (!monitor) return clone();
-  if (scope || monitor.store || monitor.session.ledger.active) return undefined;
+  if (scope || monitor.store || monitor.session.hasActiveLedger) return undefined;
   return new StateMonitor(clone(), monitor.session, monitor).proxy;
 }
 
 export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>, scope?: InvocationScope): Promise<State> {
   const monitor = stateMonitor(state);
   if (!monitor) return clone();
-  const session: Session = scope ? { ...monitor.session, scope, owner: undefined, guestOwner: undefined, firstMonitor: undefined, monitors: new Set() } : monitor.session;
+  const session: Session = scope ? monitor.session.forkForScope(scope) : monitor.session;
   if (scope) scope.register(async () => {
     await scope.drainWork();
     for (const owned of session.monitors!) {
@@ -777,7 +829,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     session.monitors!.clear();
     await session.owner?.close();
   });
-  if (!monitor.store && !monitor.session.ledger.active) return new StateMonitor(clone(), session, monitor).proxy;
+  if (!monitor.store && !monitor.session.hasActiveLedger) return new StateMonitor(clone(), session, monitor).proxy;
   const store = monitor.store ?? monitor.activate();
   const internal = store.owner.ledger === monitor.session.internal;
   const epoch = monitor.epoch;

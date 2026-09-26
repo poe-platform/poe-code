@@ -72,7 +72,7 @@ import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
-import { arrayStore, guestArrays, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
+import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
 import { pipelineStatusTarget, publishPipelineStatus } from "./pipestatus.js";
 import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
@@ -1907,6 +1907,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.variableAttributes) cloned.variableAttributes = new Map(raw.variableAttributes);
   if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
   if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
+  (cloned as unknown as Record<symbol, unknown>)[monitorSymbol] = undefined;
   return cloned;
 }
 
@@ -4564,7 +4565,7 @@ export class Runtime {
 
   runUnit(script: Script, state: State, io: IO): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> {
     if (state.noexec) return SYNC_UNIT_ZERO;
-    state = trackState(state, this.budget, io[invocationScope]);
+    const monitor = ensureStateMonitor(state, this.budget, io[invocationScope]);
     if (this.tryStartExtensionsSync(state)) {
       if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
       try {
@@ -4587,7 +4588,7 @@ export class Runtime {
           );
           if (fastUnit !== undefined) return fastUnit;
         }
-        return this.runUnitFrom(script, state, io, syncResult.listIndex, syncResult.pipelineIndex, false);
+        return this.runUnitFrom(script, monitor.proxy, io, syncResult.listIndex, syncResult.pipelineIndex, false);
       } catch (error) {
         if (error instanceof Flow && error.kind === "discard") {
           this.signal.throwIfAborted();
@@ -4601,12 +4602,12 @@ export class Runtime {
         }
         if (error instanceof Flow && error.kind === "exit") {
           if (this.tryFinishShellSync(state)) return { exitCode: error.status, terminated: true };
-          return this.finishShell(state, io, error.status).then(exitCode => ({ exitCode, terminated: true }));
+          return this.finishShell(monitor.proxy, io, error.status).then(exitCode => ({ exitCode, terminated: true }));
         }
         throw error;
       }
     }
-    return this.runUnitFrom(script, state, io, 0, 0, true);
+    return this.runUnitFrom(script, monitor.proxy, io, 0, 0, true);
   }
 
   private async runUnitFrom(script: Script, state: State, io: IO, startListIndex: number, startPipelineIndex: number, needStartExtensions: boolean): Promise<{ exitCode: number; terminated: boolean }> {
@@ -4824,8 +4825,7 @@ export class Runtime {
     io: IO,
   ): Promise<{ exitCode: number; terminated: boolean }> {
     const scope = io[invocationScope];
-    const owner = monitor.internalOwner();
-    const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     let rawStatus = 0;
     scope.enterWork();
     this.budget.beginPathLookupSuspension();
@@ -4860,10 +4860,10 @@ export class Runtime {
     }
     if (!existing) {
       monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : rawStatus === 1 ? singleStatusOne : [rawStatus];
-      owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
     } else if (rawStatus < 10) {
       elem0!.text.shellValue = String(rawStatus);
-      store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+      store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
     } else {
       await publishPipelineStatus(state, [rawStatus], this.signal, scope);
     }
@@ -5015,10 +5015,9 @@ export class Runtime {
       }
       release();
     }
-    const owner = monitor.internalOwner();
-    const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     monitor.lazyPipeStatus = statuses;
-    owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
     const rawStatus = rawState.pipefail ? statuses.findLast(s => s !== 0) ?? 0 : statuses[n - 1]!;
     const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
     rawState.status = finalStatus;
@@ -5102,18 +5101,17 @@ export class Runtime {
       if (rawState.extensions && !rawState.extensions.eventDepth) {
         publishCommandSpelling(rawState, commandSpelling(command));
       }
-      const owner = monitor.internalOwner();
-      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
       const rawStatus = nonZero ? 0 : 1;
       const finalStatus = pipeline.negate ? Number(rawStatus === 0) : rawStatus;
       if (!existing) {
         monitor.lazyPipeStatus = finalStatus === 0 ? singleStatusZero : singleStatusOne;
-        owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+        monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
         elem0!.text.shellValue = finalStatus === 0 ? "0" : "1";
-        store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
       rawState.status = finalStatus;
       monitor.epoch = restEpoch;
@@ -5225,8 +5223,7 @@ export class Runtime {
         this.signal.throwIfAborted();
         return undefined;
       }
-      const owner = monitor.internalOwner();
-      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
       this.budget.fileSystemOperation();
       this.budget.bytes += byteLength;
@@ -5236,10 +5233,10 @@ export class Runtime {
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
         monitor.lazyPipeStatus = singleStatusZero;
-        owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+        monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
         elem0!.text.shellValue = "0";
-        store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
       const finalStatus = pipeline.negate ? 1 : 0;
       rawState.status = finalStatus;
@@ -5263,8 +5260,7 @@ export class Runtime {
         if (rawState.extensions && !rawState.extensions.eventDepth) {
           publishCommandSpelling(rawState, commandSpelling(command));
         }
-        const owner = monitor.internalOwner();
-        const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+        const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
         this.budget.tick();
         rawState.substitutionStatus = 0;
         delete rawState.variables._;
@@ -5272,10 +5268,10 @@ export class Runtime {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         if (!existing) {
           monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : singleStatusOne;
-          owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
           elem0!.text.shellValue = statusChar;
-          store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
         rawState.status = finalStatus;
         monitor.epoch = restEpoch;
@@ -5306,8 +5302,7 @@ export class Runtime {
         return undefined;
       }
       if (fastAssigned === undefined) return undefined;
-      const owner = monitor.internalOwner();
-      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
       rawState.substitutionStatus = 0;
       if (assignment.name !== "_") delete rawState.variables._;
@@ -5317,10 +5312,10 @@ export class Runtime {
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
         monitor.lazyPipeStatus = singleStatusZero;
-        owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+        monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
         elem0!.text.shellValue = "0";
-        store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+        store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
       const finalStatus = pipeline.negate ? 1 : 0;
       rawState.status = finalStatus;
@@ -5396,8 +5391,7 @@ export class Runtime {
             const encoded = encodeRedirectTextToScratch(formatted);
             const byteLength = encoded.byteLength;
             if (byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
-              const owner = monitor.internalOwner();
-              const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+              const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
               this.budget.tick();
               if (fastSyncSink) {
                 if (fastSyncSink.budget !== this.budget) {
@@ -5424,10 +5418,10 @@ export class Runtime {
               if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
               if (!existing) {
                 monitor.lazyPipeStatus = singleStatusZero;
-                owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+                monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
               } else {
                 elem0!.text.shellValue = "0";
-                store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+                store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
               }
               const finalStatus = pipeline.negate ? 1 : 0;
               rawState.status = finalStatus;
@@ -5473,8 +5467,7 @@ export class Runtime {
           const statusChar = fastPred === 0 ? "0" : "1";
           if (!canMutatePipeStatus && elem0!.text.shellValue !== statusChar) return undefined;
           if (fastPred !== 0 && !ignored && rawState.errexit) return undefined;
-          const owner = monitor.internalOwner();
-          const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+          const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
           this.budget.tick();
           rawState.substitutionStatus = 0;
           delete rawState.variables._;
@@ -5482,10 +5475,10 @@ export class Runtime {
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
             monitor.lazyPipeStatus = fastPred === 0 ? singleStatusZero : fastPred === 1 ? singleStatusOne : [fastPred];
-            owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           } else {
             elem0!.text.shellValue = statusChar;
-            store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
           }
           const finalStatus = pipeline.negate ? Number(fastPred === 0) : fastPred;
           rawState.status = finalStatus;
@@ -5577,8 +5570,7 @@ export class Runtime {
             if (rawState.extensions && !rawState.extensions.eventDepth) {
               publishCommandSpelling(rawState, commandSpelling(command));
             }
-            const owner = monitor.internalOwner();
-            const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
             rawState.substitutionStatus = 0;
             delete rawState.variables._;
@@ -5586,10 +5578,10 @@ export class Runtime {
             if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
             if (!existing) {
               monitor.lazyPipeStatus = singleStatusZero;
-              owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
             } else {
               elem0!.text.shellValue = "0";
-              store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
             }
             const finalStatus = pipeline.negate ? 1 : 0;
             rawState.status = finalStatus;
@@ -6051,8 +6043,7 @@ export class Runtime {
           }
         }
       }
-      const owner = monitor.internalOwner();
-      owner.charge(syncRestorationCharge, syncRestorationTickets);
+      monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
       this.budget.tick();
       rawState.loopDepth++;
       const prevRawWrite = this._syncArithRawWriteOnly;
@@ -6221,15 +6212,15 @@ export class Runtime {
           if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
           if (!existing) {
             monitor.lazyPipeStatus = singleStatusZero;
-            owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+            monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
           } else {
             elem0!.text.shellValue = "0";
-            store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
           }
         }
       }
       rawState.status = 0;
-      const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       monitor.epoch = restEpoch;
       if (store) store.epoch = restEpoch;
       return 0;
@@ -6261,8 +6252,7 @@ export class Runtime {
       braceReservation?.release();
       return undefined;
     }
-    const owner = monitor.internalOwner();
-    owner.charge(syncRestorationCharge, syncRestorationTickets);
+    monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
     this.budget.tick();
     rawState.loopDepth++;
     touched.add(command.name);
@@ -6392,15 +6382,15 @@ export class Runtime {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
         if (!existing) {
           monitor.lazyPipeStatus = singleStatusZero;
-          owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
           elem0!.text.shellValue = "0";
-          store!.changed(owner.charge(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+          store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
       }
     }
     rawState.status = 0;
-    const restEpoch = owner.charge(syncRestorationCharge, syncRestorationTickets).epoch;
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     monitor.epoch = restEpoch;
     if (store) store.epoch = restEpoch;
     return 0;
@@ -13610,6 +13600,7 @@ export class RootShellState implements State {
   }
 }
 Object.assign(RootShellState.prototype, {
+  [monitorSymbol]: undefined,
   umask: 0o022,
   extensions: undefined,
   cwd: "/",

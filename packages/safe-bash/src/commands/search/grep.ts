@@ -1,6 +1,9 @@
+import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import { assertCommandRequirements } from "../../contracts/command-requirements.js";
 import { FsError, toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
 import { hasYieldCheckpoint } from "../../contracts/yield.js";
-import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
+import { getRuntimeBackingFileSystem } from "../../fs/creation-mask.js";
+import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, pathOf, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import { inProcessRegexProviders, reusableBatchRows, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
@@ -243,40 +246,135 @@ async function tryFastGrepAscii(
     return isSyncResolved(pending) ? undefined : pending;
   };
   try {
+    if (fileArg !== undefined && fileArg !== "-") {
+      const path = pathOf(context, fileArg);
+      const backing = getRuntimeBackingFileSystem(context.fs);
+      if (
+        backing !== undefined &&
+        backing.capabilitiesFor === undefined &&
+        path !== "/dev" &&
+        !path.startsWith("/dev/") &&
+        context.fs.capabilities.streamingRead !== false &&
+        context.fs.capabilities.read !== false &&
+        Object.getPrototypeOf(backing)?.constructor?.name === "MemoryFileSystem" &&
+        !Object.prototype.hasOwnProperty.call(backing, "readStream") &&
+        !Object.prototype.hasOwnProperty.call(backing, "readFile")
+      ) {
+        assertCommandRequirements(context, grepRequirements, ["file"]);
+        const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
+        const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        if (raw !== undefined) {
+          const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
+          let lineStart = 0;
+          while (lineStart < raw.length) {
+            context.signal.throwIfAborted();
+            let lineEnd = raw.indexOf(10, lineStart);
+            if (lineEnd < 0) lineEnd = raw.length;
+            const lineLen = lineEnd - lineStart;
+            if (lineLen > lineLimit) {
+              throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+            }
+            const maxPos = lineEnd - litLen;
+            let matched = false;
+            if (anchoredStart) {
+              if (lineStart <= maxPos && raw[lineStart] === firstByte) {
+                let equal = true;
+                for (let offset = 1; equal && offset < litLen; offset++) {
+                  equal = raw[lineStart + offset] === pat.charCodeAt(literalStart + offset);
+                }
+                matched = equal;
+              }
+            } else {
+              let pos = lineStart;
+              while (pos <= maxPos) {
+                const index = raw.indexOf(firstByte, pos);
+                if (index < 0 || index > maxPos) break;
+                let equal = true;
+                for (let offset = 1; equal && offset < litLen; offset++) {
+                  equal = raw[index + offset] === pat.charCodeAt(literalStart + offset);
+                }
+                if (equal) {
+                  matched = true;
+                  break;
+                }
+                pos = index + 1;
+              }
+            }
+            if (matched) {
+              anySelected = true;
+              if (outUsed + lineLen + 1 > outBuffer.length) {
+                const pending = flush();
+                if (pending) await pending;
+              }
+              if (lineLen + 1 > outBuffer.length) {
+                await output(context, raw.subarray(lineStart, lineEnd));
+                await output(context, NEWLINE_BYTES);
+              } else {
+                for (let i = lineStart; i < lineEnd; i++) {
+                  outBuffer[outUsed++] = raw[i]!;
+                }
+                outBuffer[outUsed++] = 10;
+                if (outUsed >= 32768) {
+                  const pending = flush();
+                  if (pending) await pending;
+                }
+              }
+            }
+            lineStart = lineEnd + 1;
+          }
+          const pending = flush();
+          if (pending) await pending;
+          return { exitCode: anySelected ? 0 : 1 };
+        }
+      }
+    }
     const source = fileArg === undefined || fileArg === "-"
       ? input(context)
       : requiredFileInput(context, grepRequirements, "file", fileArg, limits.maxFileBytes ?? Infinity);
     await forEachGrepLineBatch(source, 10, limits.maxLineBytes ?? Infinity, () => 128, false, async (batch, endOfChunk) => {
-      // Pooled line descriptors may be reused by another invocation during a write.
-      const rows = batch.map(line => line.bytes);
-      for (const bytes of rows) {
+      for (let bIdx = 0; bIdx < batch.length; bIdx++) {
         context.signal.throwIfAborted();
-        const maxPos = bytes.length - litLen;
+        const line = batch[bIdx]!;
+        const chunk = line.chunk ?? line.bytes;
+        const lStart = line.chunk !== undefined ? line.start! : 0;
+        const lEnd = line.chunk !== undefined ? line.searchEnd! : chunk.length;
+        const lineLen = lEnd - lStart;
+        const maxPos = lEnd - litLen;
         let matched = false;
-        let pos = 0;
-        while (pos <= maxPos) {
-          const index = anchoredStart ? 0 : bytes.indexOf(firstByte, pos);
-          if (index < 0 || index > maxPos) break;
-          let equal = bytes[index] === firstByte;
-          for (let offset = 1; equal && offset < litLen; offset++) {
-            equal = bytes[index + offset] === pat.charCodeAt(literalStart + offset);
+        if (anchoredStart) {
+          if (lStart <= maxPos && chunk[lStart] === firstByte) {
+            let equal = true;
+            for (let offset = 1; equal && offset < litLen; offset++) {
+              equal = chunk[lStart + offset] === pat.charCodeAt(literalStart + offset);
+            }
+            matched = equal;
           }
-          if (equal) { matched = true; break; }
-          if (anchoredStart) break;
-          pos = index + 1;
+        } else {
+          let pos = lStart;
+          while (pos <= maxPos) {
+            const index = chunk.indexOf(firstByte, pos);
+            if (index < 0 || index > maxPos) break;
+            let equal = true;
+            for (let offset = 1; equal && offset < litLen; offset++) {
+              equal = chunk[index + offset] === pat.charCodeAt(literalStart + offset);
+            }
+            if (equal) { matched = true; break; }
+            pos = index + 1;
+          }
         }
         if (!matched) continue;
         anySelected = true;
-        if (outUsed + bytes.length + 1 > outBuffer.length) {
+        if (outUsed + lineLen + 1 > outBuffer.length) {
           const pending = flush();
           if (pending) await pending;
         }
-        if (bytes.length + 1 > outBuffer.length) {
-          await output(context, bytes);
+        if (lineLen + 1 > outBuffer.length) {
+          await output(context, chunk.subarray(lStart, lEnd));
           await output(context, NEWLINE_BYTES);
         } else {
-          outBuffer.set(bytes, outUsed);
-          outUsed += bytes.length;
+          for (let i = lStart; i < lEnd; i++) {
+            outBuffer[outUsed++] = chunk[i]!;
+          }
           outBuffer[outUsed++] = 10;
         }
       }

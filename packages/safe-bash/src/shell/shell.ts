@@ -1,3 +1,4 @@
+import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
 import { writeDiagnostic } from "../escaping.js";
 import { createDeviceFileSystem } from "@poe-code/safe-fs/core";
 import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";

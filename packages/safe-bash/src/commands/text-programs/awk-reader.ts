@@ -359,7 +359,6 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
-    this.singleChunk = undefined;
     if (this.isPooledMemory && pooledMemoryReader === undefined) {
       this.isPooledMemory = false;
       pooledMemoryReader = this;
@@ -390,7 +389,6 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
-    this.singleChunk = undefined;
     if (this.isPooledMemory && pooledMemoryReader === undefined) {
       this.isPooledMemory = false;
       pooledMemoryReader = this;

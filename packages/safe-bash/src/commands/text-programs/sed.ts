@@ -841,6 +841,37 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   }
 }
 
+function runSedPairBatchLoopSync(
+  batchText: string,
+  batchEnds: Int32Array,
+  endsLen: number,
+  expr0: Pattern,
+  r1: string,
+  g1: boolean,
+  o1: number,
+  expr1: Pattern,
+  r2: string,
+  g2: boolean,
+  o2: number,
+  budget: Budget,
+  stdoutBuf: Buffer,
+): number {
+  let stdoutLen = 0;
+  for (let idx = 0; idx < endsLen; idx++) {
+    const lStart = idx === 0 ? 0 : batchEnds[idx - 1]! + 1;
+    const lEnd = batchEnds[idx]!;
+    const nextPos = trySubstitutePairToBufferSync(
+      batchText, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf, stdoutLen, 10, lStart, lEnd,
+    );
+    if (typeof nextPos !== "number" || nextPos < 0) return -1;
+    budget.step(3);
+    if (((idx + 1) & 31) === 0 && budget.checkpointSync()) return -1;
+    stdoutLen = nextPos;
+    if (stdoutLen >= STDOUT_FLUSH) return -2;
+  }
+  return stdoutLen;
+}
+
 function tryExecutePairFastSync(
   program: readonly Instruction[],
   context: CommandContext,
@@ -916,6 +947,23 @@ function tryExecutePairFastSync(
   const o2 = inst1.occurrence ?? 1;
   const r2 = inst1.replacement!;
   try {
+    if (endsLen * 64 < STDOUT_FLUSH) {
+      const fastLen = runSedPairBatchLoopSync(
+        batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf,
+      );
+      if (fastLen >= 0) {
+        if (fastLen > 0) {
+          context.signal.throwIfAborted();
+          if (typeof stdoutSync.writeRangeSync === "function") {
+            stdoutSync.writeRangeSync(stdoutBuf, fastLen);
+          } else {
+            stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, fastLen));
+          }
+        }
+        return 0;
+      }
+      if (fastLen === -1) return undefined;
+    }
     for (let idx = 0; idx < endsLen; idx++) {
       const lStart = idx === 0 ? 0 : batchEnds[idx - 1]! + 1;
       const lEnd = batchEnds[idx]!;
@@ -968,10 +1016,14 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       const cacheKey = sourceText.length <= 8192 ? `0:\n:Infinity:${sourceText}` : "";
       const cached = cacheKey ? sedProgramCache.get(cacheKey) : undefined;
       if (cached && cached.outputFiles.length === 0 && cached.readFiles.length === 0) {
-        const budget = new Budget(context, options);
-        if (cached.steps > 0) budget.step(cached.steps);
-        const syncStatus = tryExecutePairFastSync(cached.program, context, context.args[1]!, quiet, budget, "\n");
-        if (syncStatus !== undefined) return syncStatus;
+        const budget = Budget.acquire(context, options);
+        try {
+          if (cached.steps > 0) budget.step(cached.steps);
+          const syncStatus = tryExecutePairFastSync(cached.program, context, context.args[1]!, quiet, budget, "\n");
+          if (syncStatus !== undefined) return syncStatus;
+        } finally {
+          Budget.release(budget);
+        }
       }
     }
     return (async () => {

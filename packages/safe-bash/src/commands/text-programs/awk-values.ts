@@ -14,12 +14,26 @@ export const SCALAR_ZERO: Scalar = SMALL_NUMERICS[1]!;
 export const SCALAR_ONE: Scalar = SMALL_NUMERICS[2]!;
 const INPUT_STRING_CACHE_KEYS = new Array<string>(64);
 const INPUT_STRING_CACHE_VALS = new Array<Scalar>(64);
+const STRING_SCALAR_CACHE_KEYS = new Array<string>(64);
+const STRING_SCALAR_CACHE_VALS = new Array<Scalar>(64);
 
 export const numeric = (n: number): Scalar =>
   (n | 0) === n && n >= -1 && n <= 4096 && (n !== 0 || !Object.is(n, -0))
     ? SMALL_NUMERICS[n + 1]!
     : { kind: "number", number: n };
-export const string = (text: string): Scalar => (text.length === 0 ? EMPTY_STRING_SCALAR : { kind: "string", text });
+export const string = (text: string): Scalar => {
+  const len = text.length;
+  if (len === 0) return EMPTY_STRING_SCALAR;
+  if (len <= 16) {
+    const slot = ((text.charCodeAt(0) * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
+    if (STRING_SCALAR_CACHE_KEYS[slot] === text) return STRING_SCALAR_CACHE_VALS[slot]!;
+    const val: Scalar = Object.freeze({ kind: "string", text });
+    STRING_SCALAR_CACHE_KEYS[slot] = text;
+    STRING_SCALAR_CACHE_VALS[slot] = val;
+    return val;
+  }
+  return { kind: "string", text };
+};
 
 export function inputValue(text: string): Scalar {
   const len = text.length;

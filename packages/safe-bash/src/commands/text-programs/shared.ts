@@ -7,8 +7,20 @@ import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
 import { inputRequirements } from "../portable-requirements.js";
 import { requiredFileInput } from "../search/requirements.js";
 
-export function byteString(text: string): string { return Buffer.from(text, "utf8").toString("latin1"); }
+export function byteString(text: string): string {
+  const len = text.length;
+  for (let i = 0; i < len; i++) {
+    if (text.charCodeAt(i) >= 0x80) return Buffer.from(text, "utf8").toString("latin1");
+  }
+  return text;
+}
 export function bytes(text: string): Uint8Array { return Buffer.from(text, "latin1"); }
+const sharedSmallWriteBuf = new Uint8Array(256);
+const RESOLVED_VOID_SYNC: Promise<void> = (() => {
+  const p = Promise.resolve();
+  (p as unknown as Record<symbol, boolean>)[Symbol.for("safe-bash.syncResolved")] = true;
+  return p;
+})();
 
 export function virtualPath(context: CommandContext, path: string): string {
   if (!path) throw new FsError("ENOENT", { path });
@@ -18,6 +30,18 @@ export function virtualPath(context: CommandContext, path: string): string {
 
 export function write(context: CommandContext, text: string): Promise<void> {
   context.signal.throwIfAborted();
+  const len = text.length;
+  if (len <= 256) {
+    const stdoutSink = context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
+    if (!stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function") {
+      for (let i = 0; i < len; i++) {
+        sharedSmallWriteBuf[i] = text.charCodeAt(i) & 0xff;
+      }
+      if (stdoutSink.writeRangeSync(sharedSmallWriteBuf, len) !== false) {
+        return RESOLVED_VOID_SYNC;
+      }
+    }
+  }
   return writeBytes(context.stdout, bytes(text), context.signal);
 }
 
@@ -134,8 +158,6 @@ export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | und
     };
     latin1BatchCache.set(chunk, cached);
     lastLatin1Batch = cached;
-  } else if (!fromWeakMap) {
-    latin1BatchCache.set(chunk, cached);
   }
   return cached;
 }

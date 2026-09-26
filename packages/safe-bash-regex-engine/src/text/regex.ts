@@ -282,6 +282,8 @@ export class Pattern {
   readonly groupCount: number;
   readonly groupNames = new Map<string, number>();
   private code: Instruction[] = [];
+  private compiledSteps = 0;
+  private budgetPrepared = false;
   private parsed: { root: Node; counts: Map<Node, number> } | undefined;
   private readonly anchored: boolean;
   private linear = false;
@@ -476,9 +478,85 @@ export class Pattern {
     const counts = instructionCounts(root);
     if (counts.get(root)! + 1 > maxPatternInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
     this.parsed = { root, counts };
+    if (counts.get(root)! <= 64) {
+      this.compileFromParsedSync();
+    }
+  }
+
+  private compileFromParsedSync(): void {
+    if (!this.parsed) return;
+    const { root, counts } = this.parsed;
+    this.compiledSteps = counts.get(root)! + 1;
+    const code: Instruction[] = [];
+    const ignoreCase = this.ignoreCase;
+    const emit = (instruction: Instruction): number => code.push(instruction) - 1;
+    const compile = (node: Node): void => {
+      if (counts.get(node) === 0) return;
+      if (node.type === "character") { emit({ kind: "character", ...(node.literal !== undefined ? { literal: node.literal } : {}), accepts: node.accepts }); return; }
+      if (node.type === "backreference") { emit({ kind: "backreference", index: node.index, ignoreCase }); return; }
+      if (node.type === "assertion") {
+        const index = emit({ kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind });
+        compile(node.node); emit({ kind: "match" });
+        (code[index] as Extract<Instruction, { kind: "assertion" }>).next = code.length;
+        return;
+      }
+      if (node.type === "begin" || node.type === "end") { emit({ kind: node.type }); return; }
+      if (node.type === "boundary") { emit({ kind: "boundary", boundary: node.boundary }); return; }
+      if (node.type === "sequence") { for (const child of node.nodes) compile(child); return; }
+      if (node.type === "group") {
+        const clear: number[] = [];
+        const collect = (current: Node): void => {
+          if (current.type === "group") { clear.push(current.index * 2, current.index * 2 + 1); collect(current.node); }
+          else if (current.type === "assertion" || current.type === "repeat") collect(current.node);
+          else if (current.type === "sequence" || current.type === "alternate") for (const child of current.nodes) collect(child);
+        };
+        collect(node.node);
+        emit({ kind: "save", slot: node.index * 2, ...(clear.length ? { clear } : {}) });
+        compile(node.node);
+        emit({ kind: "save", slot: node.index * 2 + 1 });
+        return;
+      }
+      if (node.type === "alternate") {
+        const jumps: number[] = [];
+        for (let index = 0; index < node.nodes.length; index++) {
+          if (index === node.nodes.length - 1) { compile(node.nodes[index]!); break; }
+          const split = emit({ kind: "split", first: code.length + 1, second: 0 });
+          compile(node.nodes[index]!);
+          jumps.push(emit({ kind: "jump", target: 0 }));
+          (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
+        }
+        for (const jump of jumps) (code[jump] as Extract<Instruction, { kind: "jump" }>).target = code.length;
+        return;
+      }
+      if (node.type !== "repeat") throw new ProgramError("invalid internal regular expression node");
+      if (counts.get(node.node)! > 0) for (let count = 0; count < node.minimum; count++) compile(node.node);
+      if (node.maximum === Infinity) {
+        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
+        compile(node.node); emit({ kind: "jump", target: split });
+        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
+        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
+      } else for (let count = node.minimum; count < node.maximum; count++) {
+        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
+        compile(node.node);
+        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
+        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
+      }
+    };
+    compile(root);
+    emit({ kind: "match" });
+    this.finalizeCompiledCode(code, root);
   }
 
   async prepare(budget: Pick<PatternBudget, "step" | "checkpoint" | "checkpointSync">): Promise<void> {
+    if (!this.parsed) {
+      if (!this.budgetPrepared && this.compiledSteps > 0) {
+        this.budgetPrepared = true;
+        budget.step(this.compiledSteps);
+        const p = budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint();
+        if (p) await p;
+      }
+      return;
+    }
     if (!this.parsed) return;
     const { root, counts } = this.parsed;
     budget.step(counts.get(root)! + 1);
@@ -554,6 +632,11 @@ export class Pattern {
     emit({ kind: "match" });
     await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     budget.step(0);
+    this.budgetPrepared = true;
+    this.finalizeCompiledCode(code, root);
+  }
+
+  private finalizeCompiledCode(code: Instruction[], root: Node): void {
     this.linear = code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
     if (this.linear && !this.ignoreCase && this.dialect !== "jq") {
       let validLiteral = true;

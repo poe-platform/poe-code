@@ -3265,6 +3265,7 @@ const sharedSyncPipeReader = new PooledSyncPipeReader();
 const sharedSyncPipeWriter = new PooledSyncPipeWriter();
 let pooledFastSingleContext: FastShellCommandContext | undefined;
 let pooledMemoryRedirectSink: MemoryRedirectSink | undefined;
+let syncPurePipelineWarmed = false;
 const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
   Object.freeze([]),
   singleStatusZero,
@@ -5688,12 +5689,43 @@ export class Runtime {
     const savedCommands = this.budget.commands;
     const savedBytes = this.budget.bytes;
     const savedFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
+    const stdoutCap = io.stdout as Capture;
+    const stderrCap = io.stderr as Capture;
+    if (!syncPurePipelineWarmed && this._isMemoryBackingFs) {
+      syncPurePipelineWarmed = true;
+      const savedEpoch = monitor.epoch;
+      const savedLazyPipeStatus = monitor.lazyPipeStatus;
+      const savedRawStatus = rawState.status;
+      syncPurePipelineSlotInUse = false;
+      try {
+        for (let w = 0; w < 22; w++) {
+          const wRes = this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
+          stdoutCap.resetEmpty();
+          stderrCap.resetEmpty();
+          this.budget.commands = savedCommands;
+          this.budget.bytes = savedBytes;
+          (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+          monitor.epoch = savedEpoch;
+          monitor.lazyPipeStatus = savedLazyPipeStatus;
+          rawState.status = savedRawStatus;
+          if (!wRes || wRes instanceof Promise) break;
+        }
+      } catch {
+        stdoutCap.resetEmpty();
+        stderrCap.resetEmpty();
+        this.budget.commands = savedCommands;
+        this.budget.bytes = savedBytes;
+        (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = savedFsOps;
+        monitor.epoch = savedEpoch;
+        monitor.lazyPipeStatus = savedLazyPipeStatus;
+        rawState.status = savedRawStatus;
+      }
+      syncPurePipelineSlotInUse = true;
+    }
     this.budget.enterPipelineStages(n);
     this.budget.commands += n;
     const scope = io[invocationScope];
     let statuses: number[] | undefined;
-    const stdoutCap = io.stdout as Capture;
-    const stderrCap = io.stderr as Capture;
     let context = pooledSyncPipeContext;
     try {
       let prevBuf = sharedSyncPipeBuf0;

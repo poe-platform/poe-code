@@ -14,25 +14,76 @@ const resolvedVoid = Promise.resolve();
 const RELEASED_READER_ITERATOR: AsyncIterator<Uint8Array> = {
   next() { return Promise.resolve({ done: true as const, value: undefined }); },
 };
+let pooledMemoryReader: Reader | undefined;
 
 export class Reader {
-  private readonly iterator: AsyncIterator<Uint8Array>;
+  private iterator: AsyncIterator<Uint8Array>;
   private blocks: (Buffer | undefined)[] = [];
-  private blockStrings: (string | undefined)[] = [];
-  private blockEnds: (Int32Array | undefined)[] = [];
+  readonly blockStrings: (string | undefined)[] = [];
+  readonly blockEnds: (Int32Array | undefined)[] = [];
+  blocksLen = 0;
   private blockEndIdx = 0;
   private head = 0;
-  private offset = 0;
-  private buffered = 0;
+  offset = 0;
+  buffered = 0;
   private ownedBytes = 0;
-  private ended = false;
+  ended = false;
   private closed = false;
-  private closing?: Promise<void>;
+  private closing?: Promise<void> | undefined;
+  private isPooledMemory = false;
 
-  constructor(source: ByteSource, private readonly budget: Budget, private readonly retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
-    this.iterator = typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
+  constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
+    this.iterator = source === undefined
+      ? RELEASED_READER_ITERATOR
+      : typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
       ? source[Symbol.asyncIterator]()
       : readBytes(source, budget.context.signal)[Symbol.asyncIterator]();
+  }
+
+  static fromMemoryView(chunk: Uint8Array, budget: Budget, retention: Pick<AwkRetention, "admit" | "replace" | "release">): Reader {
+    let reader = pooledMemoryReader;
+    if (reader !== undefined) {
+      pooledMemoryReader = undefined;
+      reader.budget = budget;
+      reader.retention = retention;
+      reader.iterator = RELEASED_READER_ITERATOR;
+      reader.blocksLen = 0;
+      reader.blockEndIdx = 0;
+      reader.head = 0;
+      reader.offset = 0;
+      reader.buffered = 0;
+      reader.ownedBytes = 0;
+      reader.ended = true;
+      reader.closed = false;
+      reader.closing = undefined;
+      reader.isPooledMemory = true;
+    } else {
+      reader = new Reader(undefined, budget, retention);
+      reader.ended = true;
+      reader.isPooledMemory = true;
+    }
+    budget.step();
+    const length = chunk.byteLength;
+    if (length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    if (length > 0) {
+      retention.admit(0, length);
+      try {
+        const batch = getCachedLatin1Batch(chunk);
+        const block = batch !== undefined
+          ? (chunk as unknown as Buffer)
+          : (Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk.buffer, chunk.byteOffset, length));
+        reader.blocks[0] = block;
+        reader.blockStrings[0] = batch?.text;
+        reader.blockEnds[0] = batch?.ends;
+        reader.blocksLen = 1;
+      } catch (error) {
+        retention.release(length);
+        throw error;
+      }
+      reader.buffered = length;
+      reader.ownedBytes = length;
+    }
+    return reader;
   }
 
   get isEnded(): boolean {
@@ -47,9 +98,10 @@ export class Reader {
     try {
       const block = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk.buffer, chunk.byteOffset, length);
       const batch = getCachedLatin1Batch(chunk);
-      this.blocks.push(block);
-      this.blockStrings.push(batch?.text);
-      this.blockEnds.push(batch?.ends);
+      const idx = this.blocksLen++;
+      this.blocks[idx] = block;
+      this.blockStrings[idx] = batch?.text;
+      this.blockEnds[idx] = batch?.ends;
     } catch (error) {
       this.retention.release(length);
       throw error;
@@ -63,8 +115,8 @@ export class Reader {
     if (typeof syncIter.tryNextSync !== "function") return false;
     while (!this.ended && !this.closed) {
       this.budget.step();
-      if (this.head < this.blocks.length) {
-        const lastIdx = this.blocks.length - 1;
+      if (this.head < this.blocksLen) {
+        const lastIdx = this.blocksLen - 1;
         this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
       }
       const next = syncIter.tryNextSync();
@@ -80,8 +132,8 @@ export class Reader {
 
   private async fill(): Promise<void> {
     this.budget.step();
-    if (this.head < this.blocks.length) {
-      const lastIdx = this.blocks.length - 1;
+    if (this.head < this.blocksLen) {
+      const lastIdx = this.blocksLen - 1;
       this.blocks[lastIdx] = Buffer.from(this.blocks[lastIdx]!);
     }
     const next = await this.iterator.next();
@@ -107,11 +159,19 @@ export class Reader {
       this.head++;
       this.offset = 0;
     }
-    if (this.head === this.blocks.length) { this.blocks.length = 0; this.blockStrings.length = 0; this.blockEnds.length = 0; this.blockEndIdx = 0; this.head = 0; }
-    else if (this.head >= 256 && this.head * 2 >= this.blocks.length) {
-      this.blocks = this.blocks.slice(this.head);
-      this.blockStrings = this.blockStrings.slice(this.head);
-      this.blockEnds = this.blockEnds.slice(this.head);
+    if (this.head === this.blocksLen) {
+      this.blocksLen = 0;
+      this.blockEndIdx = 0;
+      this.head = 0;
+    } else if (this.head >= 256 && this.head * 2 >= this.blocksLen) {
+      const rem = this.blocksLen - this.head;
+      this.blocks.copyWithin(0, this.head, this.blocksLen);
+      this.blockStrings.copyWithin(0, this.head, this.blocksLen);
+      this.blockEnds.copyWithin(0, this.head, this.blocksLen);
+      this.blocks.fill(undefined, rem, this.blocksLen);
+      this.blockStrings.fill(undefined, rem, this.blocksLen);
+      this.blockEnds.fill(undefined, rem, this.blocksLen);
+      this.blocksLen = rem;
       this.head = 0;
     }
   }
@@ -152,7 +212,7 @@ export class Reader {
 
   private scan(separator: string, state: Scan): { length: number; consumed: number } | undefined {
     let work = 4096;
-    while (state.block < this.blocks.length && work > 0) {
+    while (state.block < this.blocksLen && work > 0) {
       const block = this.blocks[state.block]!;
       while (state.offset < block.length && work-- > 0) {
         const byte = block[state.offset++]!;
@@ -174,7 +234,7 @@ export class Reader {
   readSync(separator: string): string | undefined | Promise<string | undefined> {
     if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
-    if (separator.length === 1 && !this.closed && this.head < this.blocks.length) {
+    if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
       const headBlock = this.blocks[this.head]!;
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
       if (idx >= 0 && idx - this.offset < 4096) {
@@ -191,10 +251,10 @@ export class Reader {
   readSliceSync(separator: string, out: { source: string; start: number; end: number }): boolean {
     if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
     if (separator.length === 1 && !this.closed) {
-      if (this.head >= this.blocks.length && !this.ended) {
+      if (this.head >= this.blocksLen && !this.ended) {
         this.tryFillSync();
       }
-      if (this.head < this.blocks.length) {
+      if (this.head < this.blocksLen) {
         const headBlock = this.blocks[this.head]!;
         const sepCode = separator.charCodeAt(0);
         const cachedEnds = sepCode === 10 ? this.blockEnds[this.head] : undefined;
@@ -221,9 +281,9 @@ export class Reader {
           this.consume(idx - this.offset + 1);
           return true;
         }
-        if (idx < 0 && this.head + 1 === this.blocks.length && !this.ended) {
+        if (idx < 0 && this.head + 1 === this.blocksLen && !this.ended) {
           this.tryFillSync();
-          if (this.head + 1 === this.blocks.length && this.ended && headBlock.length - this.offset < 4096) {
+          if (this.head + 1 === this.blocksLen && this.ended && headBlock.length - this.offset < 4096) {
             out.source = (this.blockStrings[this.head] ??= headBlock.toString("latin1"));
             out.start = this.offset;
             out.end = headBlock.length;
@@ -238,7 +298,7 @@ export class Reader {
   async read(separator: string): Promise<string | undefined> {
     this.budget.context.signal.throwIfAborted();
     if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
-    if (separator.length === 1 && !this.closed && this.head < this.blocks.length) {
+    if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
       const headBlock = this.blocks[this.head]!;
       const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
       if (idx >= 0 && idx - this.offset < 4096) {
@@ -266,7 +326,7 @@ export class Reader {
       if (this.closed) return undefined;
       const found = this.scan(separator, state);
       if (found) return this.finish(found.length, found.consumed);
-      if (state.block === this.blocks.length) {
+      if (state.block === this.blocksLen) {
         if (this.ended) {
           if (this.buffered === 0) return undefined;
           const length = separator !== "" ? this.buffered : state.paragraphEnd >= 0 ? state.paragraphEnd
@@ -285,14 +345,21 @@ export class Reader {
     const wasEnded = this.ended;
     this.closed = true;
     this.ended = true;
-    this.blocks.length = 0;
-    this.blockStrings.length = 0;
-    this.blockEnds.length = 0;
+    if (this.blocksLen > 0) {
+      this.blocks.fill(undefined, 0, this.blocksLen);
+      this.blockStrings.fill(undefined, 0, this.blocksLen);
+      this.blockEnds.fill(undefined, 0, this.blocksLen);
+      this.blocksLen = 0;
+    }
     this.head = this.offset = this.buffered = 0;
     this.retention.release(this.ownedBytes);
     this.ownedBytes = 0;
     const origIter = this.iterator;
-    (this as unknown as { iterator: AsyncIterator<Uint8Array> }).iterator = RELEASED_READER_ITERATOR;
+    this.iterator = RELEASED_READER_ITERATOR;
+    if (this.isPooledMemory && pooledMemoryReader === undefined) {
+      this.isPooledMemory = false;
+      pooledMemoryReader = this;
+    }
     readerAnchor.current = this;
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
@@ -307,14 +374,21 @@ export class Reader {
     const wasEnded = this.ended;
     this.closed = true;
     this.ended = true;
-    this.blocks.length = 0;
-    this.blockStrings.length = 0;
-    this.blockEnds.length = 0;
+    if (this.blocksLen > 0) {
+      this.blocks.fill(undefined, 0, this.blocksLen);
+      this.blockStrings.fill(undefined, 0, this.blocksLen);
+      this.blockEnds.fill(undefined, 0, this.blocksLen);
+      this.blocksLen = 0;
+    }
     this.head = this.offset = this.buffered = 0;
     this.retention.release(this.ownedBytes);
     this.ownedBytes = 0;
     const origIter = this.iterator;
-    (this as unknown as { iterator: AsyncIterator<Uint8Array> }).iterator = RELEASED_READER_ITERATOR;
+    this.iterator = RELEASED_READER_ITERATOR;
+    if (this.isPooledMemory && pooledMemoryReader === undefined) {
+      this.isPooledMemory = false;
+      pooledMemoryReader = this;
+    }
     readerAnchor.current = this;
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;

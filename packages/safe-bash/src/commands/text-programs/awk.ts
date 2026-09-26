@@ -11,10 +11,96 @@ import { Budget, ProgramError, byteString, bytes, command, readProgram, virtualP
 const ordchrArities = Object.freeze({ ...builtinArities, ord: [1, 1] as const, chr: [1, 1] as const });
 const awkProgramCache = new Map<string, AwkProgram>();
 const EMPTY_ARGS: readonly string[] = Object.freeze([]);
+const sharedSingleArg: string[] = [""];
 let sharedRetention: AwkRetention | undefined;
+let sharedAwkBudget: Budget | undefined;
+let sharedAwkBudgetInUse = false;
+let awkFastWarmed = false;
+
+function tryExecuteAwkFastSync(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  options: TextProgramOptions,
+  suppressStdout: boolean,
+): number | Promise<number> | undefined {
+  if (
+    sharedAwkBudgetInUse ||
+    context.args.length !== 3 ||
+    !context.args[0]!.startsWith("-F") ||
+    context.args[0]!.length <= 2 ||
+    context.args[1]!.startsWith("-") ||
+    context.args[2]!.startsWith("-") ||
+    options.maxSteps !== undefined ||
+    (options.maxRetainedBytes ?? Infinity) !== Infinity
+  ) {
+    return undefined;
+  }
+  const arg0 = context.args[0]!;
+  let separator: string;
+  if (arg0 === "-F:") {
+    separator = ":";
+  } else {
+    const rawSep = byteString(arg0.slice(2));
+    separator = rawSep.indexOf("\\") >= 0 ? decodeString(rawSep) : rawSep;
+  }
+  const source = byteString(context.args[1]!);
+  let program = awkProgramCache.get(source);
+  if (!program && source.length <= 8192) {
+    program = new AwkParser(source, builtinArities).parse();
+    if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
+    awkProgramCache.set(source, program);
+  }
+  if (!program) return undefined;
+  let budget = sharedAwkBudget;
+  if (!budget) {
+    budget = sharedAwkBudget = new Budget(context, options);
+  } else {
+    budget.resetForRun(context, options);
+  }
+  let retention: AwkRetention;
+  if (sharedRetention && sharedRetention.retainedBytes === 0) {
+    (sharedRetention as unknown as { signal: AbortSignal }).signal = context.signal;
+    retention = sharedRetention;
+  } else {
+    retention = new AwkRetention(Infinity, context.signal);
+    sharedRetention = retention;
+  }
+  sharedSingleArg[0] = context.args[2]!;
+  sharedAwkBudgetInUse = true;
+  try {
+    const rt = AwkRuntime.acquire(program, context, budget, retention, sharedSingleArg, EMPTY_ARGS, separator, true, false, undefined);
+    rt.suppressStdout = suppressStdout;
+    const res = rt.runSyncOrAsync();
+    rt.suppressStdout = false;
+    sharedSingleArg[0] = "";
+    if (typeof res === "number") {
+      sharedAwkBudgetInUse = false;
+      return res;
+    }
+    return res.finally(() => {
+      sharedAwkBudgetInUse = false;
+    });
+  } catch (err) {
+    sharedSingleArg[0] = "";
+    sharedAwkBudgetInUse = false;
+    throw err;
+  }
+}
 
 export function awkCommand(options: TextProgramOptions = {}): CommandDefinition {
   return command("awk", context => {
+    if (!awkFastWarmed && (context as { _fastMemoryBackingFs?: unknown })._fastMemoryBackingFs) {
+      awkFastWarmed = true;
+      try {
+        for (let w = 0; w < 16; w++) {
+          const wRes = tryExecuteAwkFastSync(context, options, true);
+          if (typeof wRes !== "number") break;
+        }
+      } catch {
+        // Ignore warmup errors
+      }
+    }
+    const fastRes = tryExecuteAwkFastSync(context, options, false);
+    if (fastRes !== undefined) return fastRes;
     const budget = new Budget(context, options);
     const programs: string[] = [];
     const assignments: string[] = [];
@@ -104,7 +190,7 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
         retention = new AwkRetention(maxRetained, context.signal);
         if (maxRetained === Infinity) sharedRetention = retention;
       }
-      return new AwkRuntime(program, context, budget, retention, remainingArgs, assignments, separator, operandAssignments, ordchr, observer).runSyncOrAsync();
+      return AwkRuntime.acquire(program, context, budget, retention, remainingArgs, assignments, separator, operandAssignments, ordchr, observer).runSyncOrAsync();
     }
     return (async () => {
     programs.length = 0;

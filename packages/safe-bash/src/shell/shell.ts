@@ -89,6 +89,7 @@ interface WarmedInvocation {
   runtime: Runtime;
 }
 const _execAnchor: unknown[] = new Array(13);
+let warmSyncExecJitWarmed = false;
 export let _lastExecAnchor: unknown = _execAnchor;
 interface CachedParsedUnit {
   readonly offset: number;
@@ -829,6 +830,13 @@ export class Shell implements PluginHost {
     }
     if (selection.outcome.kind === "throw") throw selection.outcome.reason;
     if (scope.hasFailures) throwCleanupFailures(scope.failures);
+    if (!warmSyncExecJitWarmed && source === "" && this.#warmedInvocation) {
+      warmSyncExecJitWarmed = true;
+      for (let w = 0; w < 16; w++) {
+        await this.exec(":", EMPTY_EXEC_OPTIONS);
+        await this.#execAsync("", EMPTY_EXEC_OPTIONS);
+      }
+    }
     return selection.outcome.value;
   }
 

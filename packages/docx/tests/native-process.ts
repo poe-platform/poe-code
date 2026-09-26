@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll } from "vitest";
 
 // Load the normal Node runtime once, while each request creates its own document,
 // filesystem and budget. A failed request must not leave a child doing work.
-export function useNativeProcess(args: string[]) {
+export function useNativeProcess(args: string[], source?: string) {
   let child: ChildProcessWithoutNullStreams;
   let replies: AsyncIterator<string>;
   let completed: Promise<{ code: number | null; signal: NodeJS.Signals | null }>;
@@ -19,6 +19,9 @@ export function useNativeProcess(args: string[]) {
     child.on("error", error => { stderr += String(error); });
     child.stdin.on("error", error => { stderr += String(error); });
     replies = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
+    if (source !== undefined) await new Promise<void>((resolve, reject) => {
+      child.stdin.write(JSON.stringify(source) + "\n", error => error ? reject(error) : resolve());
+    });
     const ready = await replies.next();
     assert.equal(ready.done, false, stderr);
     assert.deepEqual(JSON.parse(ready.value), { ready: true });

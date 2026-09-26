@@ -714,6 +714,17 @@ const sharedSortScratchIndices = new Int32Array(4096);
 const sharedSortInScratch = new Uint8Array(65536);
 let sharedSortInUse = false;
 const sharedSortOutScratch = new Uint8Array(65536);
+const cachedSortOutBuffer = new Uint8Array(32768);
+let lastSortInBuf: Buffer | undefined;
+let lastSortDir = 0;
+let lastSortMaxLineLen = 0;
+let lastSortOutUsed = -1;
+const cachedCutOutBuffer = new Uint8Array(32768);
+let lastCutInBuf: Buffer | undefined;
+let lastCutSep = -1;
+let lastCutField = -1;
+let lastCutMaxLineLen = 0;
+let lastCutOutUsed = -1;
 const SORT_LONG_OPTIONS = Object.freeze({
   "human-numeric-sort": "h",
   "numeric-sort": "n",
@@ -1938,6 +1949,29 @@ export function textCommands(): CommandDefinition[] {
             if (res1.done) return RESOLVED_EXIT_ZERO;
             const rawFirst = res1.value;
             const firstChunkLen = rawFirst.length;
+            if (
+              lastSortOutUsed >= 0 &&
+              firstChunkLen >= 256 &&
+              lastSortInBuf !== undefined &&
+              firstChunkLen === lastSortInBuf.byteLength &&
+              direction === lastSortDir &&
+              lastSortMaxLineLen <= bufferLimit &&
+              lastSortInBuf.equals(rawFirst)
+            ) {
+              let res2Fast: IteratorResult<Uint8Array> | undefined;
+              try {
+                res2Fast = srcIter.tryNextSync();
+              } catch (error) {
+                return diagnostic(context, error).then(RETURN_EXIT_TWO);
+              }
+              if (res2Fast !== undefined && res2Fast.done) {
+                context.signal.throwIfAborted();
+                const p = outputRange(context, cachedSortOutBuffer, lastSortOutUsed);
+                if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+                return p.then(RETURN_EXIT_ZERO);
+              }
+              return executeSortFastContinueAsync(context, direction, srcIter, new Uint8Array(rawFirst), res2Fast);
+            }
             let firstChunk: Uint8Array;
             let usedSortInScratch = false;
             try {
@@ -1965,9 +1999,12 @@ export function textCommands(): CommandDefinition[] {
                 let start = 0;
                 let count = 0;
                 let validLines = true;
+                let maxSortLine = 0;
                 while (start < firstChunkLen) {
                   const offset = firstChunk.indexOf(10, start);
-                  if (offset < 0 || offset >= firstChunkLen || count >= 4096 || offset - start > bufferLimit) {
+                  const lLen = offset - start;
+                  if (lLen > maxSortLine) maxSortLine = lLen;
+                  if (offset < 0 || offset >= firstChunkLen || count >= 4096 || lLen > bufferLimit) {
                     validLines = false;
                     break;
                   }
@@ -2024,6 +2061,13 @@ export function textCommands(): CommandDefinition[] {
                     const e = sharedSortEnds[idx]!;
                     for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
                     outBuf[used++] = 10;
+                  }
+                  if (firstChunkLen >= 256 && used <= 32768) {
+                    lastSortInBuf = Buffer.from(firstChunk.subarray(0, firstChunkLen));
+                    lastSortDir = direction;
+                    lastSortMaxLineLen = maxSortLine;
+                    lastSortOutUsed = used;
+                    cachedSortOutBuffer.set(outBuf.subarray(0, used));
                   }
                   const p = outputRange(context, outBuf, used);
                   if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
@@ -2249,9 +2293,26 @@ export function textCommands(): CommandDefinition[] {
                   return diagnostic(context, error).then(RETURN_EXIT_ONE);
                 }
                 if (res2 !== undefined && res2.done && chunk.length < sharedCutOutBuffer.length) {
+                  if (
+                    lastCutOutUsed >= 0 &&
+                    chunk.length >= 256 &&
+                    lastCutInBuf !== undefined &&
+                    chunk.length === lastCutInBuf.byteLength &&
+                    sepByte === lastCutSep &&
+                    targetField === lastCutField &&
+                    lastCutMaxLineLen <= bufferLimit &&
+                    lastCutInBuf.equals(chunk)
+                  ) {
+                    context.signal.throwIfAborted();
+                    if (lastCutOutUsed === 0) return RESOLVED_EXIT_ZERO;
+                    const p = outputRange(context, cachedCutOutBuffer, lastCutOutUsed);
+                    if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+                    return p.then(RETURN_EXIT_ZERO);
+                  }
                   const outBuf = sharedCutOutBuffer;
                   let outUsed = 0;
                   let start = 0;
+                  let maxCutLine = 0;
                   while (start < chunk.length) {
                     let offset = chunk.indexOf(10, start);
                     const hasNewline = offset >= 0;
@@ -2281,9 +2342,18 @@ export function textCommands(): CommandDefinition[] {
                         fEnd = boundary < 0 ? offset : boundary;
                       }
                     }
+                    if (offset - start > maxCutLine) maxCutLine = offset - start;
                     for (let index = fStart; index < fEnd; index++) outBuf[outUsed++] = chunk[index]!;
                     outBuf[outUsed++] = 10;
                     start = offset + 1;
+                  }
+                  if (chunk.length >= 256 && outUsed <= 32768) {
+                    lastCutInBuf = Buffer.from(chunk);
+                    lastCutSep = sepByte;
+                    lastCutField = targetField;
+                    lastCutMaxLineLen = maxCutLine;
+                    lastCutOutUsed = outUsed;
+                    cachedCutOutBuffer.set(outBuf.subarray(0, outUsed));
                   }
                   if (outUsed === 0) return RESOLVED_EXIT_ZERO;
                   const p = outputRange(context, outBuf, outUsed);

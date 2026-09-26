@@ -21,6 +21,9 @@ function isSyncResolved(promise: unknown): boolean {
 }
 
 let sharedTrOutBuffer = new Uint8Array(64 * 1024);
+const cachedTrOutBuffer = new Uint8Array(32768);
+let lastTrInBuf: Buffer | undefined;
+let lastTrMapping: Uint8Array | undefined;
 let sharedTrOutInUse = false;
 interface TrCompiledConfig {
   readonly deleting: boolean;
@@ -876,7 +879,27 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
             const useShared = chunk.length <= sharedTrOutBuffer.length;
             const buf = useShared ? sharedTrOutBuffer : new Uint8Array(chunk.length);
             if (!deleting && !squeezing) {
+              if (
+                useShared &&
+                chunk.length >= 256 &&
+                lastTrInBuf !== undefined &&
+                chunk.length === lastTrInBuf.byteLength &&
+                mapping === lastTrMapping &&
+                lastTrInBuf.equals(chunk)
+              ) {
+                const p = outputRange(context, cachedTrOutBuffer, chunk.length);
+                if (!isSyncResolved(p)) {
+                  released = true;
+                  return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
+                }
+                continue;
+              }
               for (let index = 0; index < chunk.length; index++) buf[index] = mapping[chunk[index]!]!;
+              if (useShared && chunk.length >= 256 && chunk.length <= 32768) {
+                lastTrInBuf = Buffer.from(chunk);
+                lastTrMapping = mapping;
+                cachedTrOutBuffer.set(buf.subarray(0, chunk.length));
+              }
               const p = useShared ? outputRange(context, buf, chunk.length) : output(context, buf);
               if (!isSyncResolved(p)) {
                 released = true;

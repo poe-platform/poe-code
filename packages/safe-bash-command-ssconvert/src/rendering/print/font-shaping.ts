@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+/// <reference lib="dom.iterable" />
 import type {Font, Glyph, GlyphRun} from "@pdf-lib/fontkit";
 import {SsconvertError, type CapabilityContext} from "../../contracts.js";
 import {harfbuzzBase64} from "./harfbuzz/data.js";

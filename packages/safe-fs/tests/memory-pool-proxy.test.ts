@@ -1,6 +1,21 @@
 import assert from "node:assert/strict";
-import { test } from "vitest";
-import { MemoryFileSystem, tryWriteMemoryFileSync } from "../src/fs/memory/index.js";
+import { test, vi } from "vitest";
+import { MemoryFileSystem, tryOpenMemoryRedirectHandleSync, tryWriteMemoryFileSync } from "../src/fs/memory/index.js";
+
+test("redirect writes grow storage and copy only the admitted prefix without Node Buffer", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/file", Uint8Array.of(1, 2));
+  const handle = tryOpenMemoryRedirectHandleSync(fs, "/file", true, 0o666);
+  assert.ok(handle);
+  let failure: unknown;
+  try {
+    vi.stubGlobal("Buffer", undefined);
+    handle.writeRangeSync(new Uint8Array(100).fill(7), 70);
+  } catch (error) { failure = error; }
+  finally { vi.unstubAllGlobals(); handle.close(); }
+  assert.equal(failure, undefined);
+  assert.deepEqual(await fs.readFile("/file"), Uint8Array.from({ length: 72 }, (_, index) => index < 2 ? index + 1 : 7));
+});
 
 test("reading another directory cannot revive a cached append after chmod", async () => {
   const memory = new MemoryFileSystem();

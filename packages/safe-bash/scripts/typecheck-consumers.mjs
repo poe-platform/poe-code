@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
+import semver from "semver";
 import ts from "typescript";
 import { packageSafeLibraries, rewriteModuleSpecifiers } from "../../../scripts/package-safe.mjs";
 import { consumerGroups, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
@@ -78,6 +79,65 @@ export function publicDeclarationEntries(binding) {
   return entries;
 }
 
+export function stageConsumerDependencies(root, temporary, packageRoots) {
+  const supplied = new Map(packageRoots.map(directory => {
+    const manifest = JSON.parse(readFileSync(join(directory, "package.json"), "utf8"));
+    return [manifest.name, manifest];
+  }));
+  const staged = new Map();
+  const stage = (name, range, origin, parent, ancestors) => {
+    const parts = name.split("/");
+    assert.ok((parts.length === 1 || parts.length === 2 && parts[0].startsWith("@"))
+      && parts.every(part => part && part !== "." && part !== "..") && !name.includes("\\"), "invalid declaration dependency name");
+    if (supplied.has(name)) {
+      assert.ok(semver.satisfies(supplied.get(name).version, range), `supplied dependency version does not satisfy ${name}@${range}`);
+      return;
+    }
+    let search = origin;
+    while (!existsSync(join(search, "node_modules", name, "package.json"))) {
+      const next = dirname(search);
+      assert.notEqual(next, search, `declared consumer dependency is not installed: ${name}`);
+      search = next;
+    }
+    const source = realpathSync(join(search, "node_modules", name));
+    const metadata = join(source, "package.json"), metadataStat = lstatSync(metadata);
+    assert.ok(metadataStat.isFile() && !metadataStat.isSymbolicLink() && metadataStat.size <= 1024 * 1024, "dependency metadata must be a bounded regular file");
+    const manifest = JSON.parse(readFileSync(metadata, "utf8"));
+    assert.equal(manifest.name, name, "installed declaration dependency identity changed");
+    assert.ok(semver.satisfies(manifest.version, range), `installed dependency version does not satisfy ${name}@${range}`);
+    if (ancestors.get(name) === source) return;
+    const directory = join(parent, "node_modules", name);
+    const previous = staged.get(directory);
+    if (previous) {
+      assert.equal(previous.source, source, `conflicting declaration dependency: ${name}`);
+      return;
+    }
+    const files = new Map();
+    const copyDeclarations = local => {
+      for (const entry of readdirSync(join(source, local))) {
+        if (entry === "node_modules") continue;
+        const path = join(local, entry), filename = join(source, path), stat = lstatSync(filename);
+        if (stat.isDirectory()) copyDeclarations(path);
+        else if (entry === "package.json" || /\.d\.(?:ts|mts|cts)$/u.test(entry)) {
+          assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 16 * 1024 * 1024, `dependency declaration must be a bounded regular file: ${filename}`);
+          const bytes = readFileSync(filename);
+          mkdirSync(dirname(join(directory, path)), { recursive: true });
+          writeFileSync(join(directory, path), bytes);
+          files.set(path, sha256(bytes));
+        }
+      }
+    };
+    copyDeclarations("");
+    staged.set(directory, { name, directory, source, files });
+    const nextAncestors = new Map(ancestors).set(name, source);
+    for (const [dependency, requested] of Object.entries(manifest.dependencies ?? {})) stage(dependency, requested, source, directory, nextAncestors);
+  };
+  for (const manifest of supplied.values()) {
+    for (const [name, range] of Object.entries(manifest.dependencies ?? {})) stage(name, range, root, temporary, new Map());
+  }
+  return [...staged.values()].map(({ name, directory, files }) => ({ name, directory, files }));
+}
+
 export async function stageStandaloneConsumerPackage(root, temporary) {
   const input = createBuiltPackageBinding(root);
   const source = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
@@ -89,17 +149,7 @@ export async function stageStandaloneConsumerPackage(root, temporary) {
   const candidateManifest = JSON.parse(readFileSync(join(candidate, "package.json"), "utf8"));
   const filesystemManifest = JSON.parse(readFileSync(join(filesystemRoot, "package.json"), "utf8"));
   assert.equal(candidateManifest.dependencies[filesystem.name], filesystemManifest.version, "standalone filesystem dependency must match its artifact");
-  // Match installed consumer resolution for declared external dependencies.
-  // Candidate and filesystem declarations retain their separately staged bindings.
-  const dependencies = new Set([...Object.keys(candidateManifest.dependencies ?? {}), ...Object.keys(filesystemManifest.dependencies ?? {})]);
-  for (const name of dependencies) {
-    if (name === binding.name || name === filesystem.name) continue;
-    const installed = realpathSync(resolve(root, "../../node_modules", name));
-    assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).name, name, "consumer dependency must match its declared package");
-    const destination = join(temporary, "node_modules", name);
-    mkdirSync(dirname(destination), { recursive: true });
-    symlinkSync(installed, destination, "dir");
-  }
+  binding.dependencies = stageConsumerDependencies(root, temporary, [candidate, filesystemRoot]);
   binding.publicAliases = ["virtual-bash"];
   binding.filesystem = { ...filesystem, directory: filesystemRoot, version: filesystemManifest.version,
     publicAliases: ["poe-code/safe-fs", "@poe-code/safe-fs"], publicEntries: new Map(), privateEntries: new Map() };
@@ -241,6 +291,10 @@ function assertCandidateResolutions(stdout, installed, binding, filesystemRoot) 
   const dependency = binding.filesystem ?? binding.peer;
   const peerRoot = dependency && (filesystemRoot ?? installedPeer(packageRoot, dependency));
   if (peerRoot) assert.equal(sha256(readFileSync(join(peerRoot, "package.json"))), dependency.metadataSha256, "peer metadata changed");
+  const externals = [...binding.dependencies ?? []].sort((left, right) => right.directory.length - left.directory.length);
+  for (const external of externals) {
+    assert.equal(sha256(readFileSync(join(external.directory, "package.json"))), external.files.get("package.json"), "dependency metadata changed");
+  }
   let importer, checked = 0;
   for (const line of stdout.split("\n")) {
     const start = /^======== Resolving module '.*' from '(.*)'\. ========$/u.exec(line);
@@ -255,6 +309,17 @@ function assertCandidateResolutions(stdout, installed, binding, filesystemRoot) 
     const privateImport = binding.privateAliases?.some(name => specifier === name || specifier.startsWith(`${name}/`));
     const localLeaf = (specifier.startsWith("node_modules/@poe-platform/safe-bash/") || specifier.includes("/node_modules/@poe-platform/safe-bash/"));
     const relativeDeclaration = /^\.\.?\//u.test(specifier) && importer && existsSync(importer) && within(dist, realpathSync(importer));
+    const external = externals.find(entry => within(entry.directory, physicalTarget));
+    const fromExternal = importer && externals.some(entry => within(entry.directory, importer));
+    const externalImport = importer && within(dist, importer) && externals.some(entry => specifier === entry.name || specifier.startsWith(entry.name + "/"));
+    const hostImport = publicImport || dependency && [dependency.name, ...dependency.publicAliases ?? []]
+      .some(name => specifier === name || specifier.startsWith(name + "/"));
+    if (external || (fromExternal || externalImport) && !hostImport) {
+      assert.ok(external, `foreign dependency declaration/source fallback: ${specifier} -> ${target}`);
+      const expected = external.files.get(relative(external.directory, physicalTarget));
+      assert.ok(expected, `dependency resolution is outside the authenticated declarations: ${specifier} -> ${target}`);
+      assert.equal(sha256(readFileSync(physicalTarget)), expected, `dependency declaration bytes changed: ${target}`);
+    }
     if (!publicImport && !privateImport && !localLeaf && !relativeDeclaration && !within(dist, physicalTarget)) continue;
     assert.ok(within(dist, physicalTarget), `foreign candidate declaration/source fallback: ${specifier} -> ${target}`);
     const local = relative(packageRoot, physicalTarget), expected = binding.declarations.get(local);

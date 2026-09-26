@@ -5,11 +5,19 @@ import { syncBuiltinESMExports } from "node:module";
 import { join } from "node:path";
 import test, { type TestContext } from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
+import ts from "typescript";
+
+interface DependencyBinding {
+  name: string;
+  directory: string;
+  files: Map<string, string>;
+}
 
 interface Binding {
   exports: Record<string, { types: string }>;
   declarations: Map<string, string>;
   publicAliases?: string[];
+  dependencies?: DependencyBinding[];
   peer?: {
     name: string;
     metadataSha256: string;
@@ -19,12 +27,13 @@ interface Binding {
     publicAliases?: string[];
   };
 }
-const { createBuiltPackageBinding, assertBuiltConsumerResolution, publicDeclarationEntries } = await import(
+const { createBuiltPackageBinding, assertBuiltConsumerResolution, publicDeclarationEntries, stageConsumerDependencies } = await import(
   new URL("../../scripts/typecheck-consumers.mjs", import.meta.url).href
 ) as {
   createBuiltPackageBinding(root: string, options: { includePeer: boolean }): Binding;
   assertBuiltConsumerResolution(trace: string, consumer: string, root: string, binding: Binding): void;
   publicDeclarationEntries(binding: { exports: Record<string, { types: string }>; declarations: Map<string, string> }): Map<string, string>;
+  stageConsumerDependencies(root: string, temporary: string, packageRoots: string[]): DependencyBinding[];
 };
 const hash = (bytes: string | Buffer): string => createHash("sha256").update(bytes).digest("hex");
 const resolution = (specifier: string, target: string, importer: string): string =>
@@ -201,3 +210,111 @@ for (const owner of ["candidate", "peer"] as const) {
     assert.throws(() => f.check(), new RegExp(`${owner} (package )?metadata changed`));
   });
 }
+
+function dependencyFixture(t: TestContext) {
+  const candidate = "/consumer/node_modules/@poe-platform/safe-bash";
+  const memory = createFsFromVolume(Volume.fromJSON({
+    [join(candidate, "package.json")]: JSON.stringify({ name: "@poe-platform/safe-bash", version: "1.0.0", type: "module",
+      exports: { ".": { types: "./dist/index.d.ts" } }, dependencies: { "pdf-lib": "1.17.1", "shape-types": "2.0.0" } }),
+    [join(candidate, "dist/index.d.ts")]: 'import type { PDFContext } from "pdf-lib"; export declare function serializePdf(context: PDFContext): number;',
+    "/checkout/node_modules/pdf-lib/package.json": JSON.stringify({ name: "pdf-lib", version: "1.17.1", type: "module",
+      types: "cjs/index.d.ts", dependencies: { "shape-types": "^1.0.0" } }),
+    "/checkout/node_modules/pdf-lib/cjs/index.d.ts": 'import type { Shape } from "shape-types"; export interface PDFContext { readonly shape: Shape; }',
+    "/checkout/node_modules/pdf-lib/cjs/index.js": 'throw new Error("runtime must not be read");',
+    "/checkout/node_modules/pdf-lib/node_modules/shape-types/package.json": JSON.stringify({ name: "shape-types", version: "1.2.0", type: "module", types: "index.d.ts" }),
+    "/checkout/node_modules/pdf-lib/node_modules/shape-types/index.d.ts": 'export interface Shape { readonly id: number; }',
+    "/checkout/node_modules/shape-types/package.json": JSON.stringify({ name: "shape-types", version: "2.0.0", type: "module", types: "index.d.ts" }),
+    "/checkout/node_modules/shape-types/index.d.ts": 'export interface Shape { readonly label: string; }',
+    "/consumer/check.mts": 'import { serializePdf } from "@poe-platform/safe-bash"; serializePdf({ shape: { id: 1 } });',
+    "/consumer/globals.d.ts": 'interface Array<T> { readonly length: number; [index: number]: T; } interface Boolean {} interface Function {} interface CallableFunction {} interface NewableFunction {} interface IArguments {} interface Number {} interface Object {} interface RegExp {} interface String {}',
+  }));
+  for (const name of ["existsSync", "lstatSync", "readFileSync", "readdirSync", "realpathSync", "mkdirSync", "writeFileSync"] as const) t.mock.method(fs, name, memory[name]);
+  syncBuiltinESMExports();
+  t.after(() => { t.mock.restoreAll(); syncBuiltinESMExports(); });
+  const diagnostics = () => {
+    const options: ts.CompilerOptions = { module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext,
+      strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, skipLibCheck: false, noLib: true, noEmit: true, types: [] };
+    const host: ts.CompilerHost = {
+      ...ts.createCompilerHost(options),
+      fileExists: path => memory.existsSync(path),
+      readFile: path => memory.existsSync(path) ? memory.readFileSync(path, "utf8") as string : undefined,
+      directoryExists: path => memory.existsSync(path) && memory.statSync(path).isDirectory(),
+      getSourceFile: (path, version) => memory.existsSync(path) ? ts.createSourceFile(path, memory.readFileSync(path, "utf8") as string, version, true) : undefined,
+      realpath: path => memory.realpathSync(path) as string,
+    };
+    return ts.getPreEmitDiagnostics(ts.createProgram(["/consumer/check.mts", "/consumer/globals.d.ts"], options, host));
+  };
+  return { candidate, memory, diagnostics, stage: () => stageConsumerDependencies("/checkout/packages/safe-bash", "/consumer", [candidate]) };
+}
+
+test("standalone consumers receive declared dependency types with their nested versions", t => {
+  const f = dependencyFixture(t);
+  assert.ok(f.diagnostics().some(diagnostic => diagnostic.code === 2307));
+  const dependencies = f.stage();
+  assert.deepEqual(f.diagnostics().map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")), []);
+  assert.equal(f.memory.existsSync("/consumer/node_modules/pdf-lib/cjs/index.js"), false);
+  assert.deepEqual(dependencies.map(binding => binding.name).sort(), ["pdf-lib", "shape-types", "shape-types"]);
+  f.memory.writeFileSync("/consumer/check.mts", 'import { serializePdf } from "@poe-platform/safe-bash"; serializePdf({ shape: { id: "wrong" } });');
+  assert.ok(f.diagnostics().some(diagnostic => diagnostic.code === 2322), "consumer strictness must still reject an incompatible argument");
+});
+
+test("staged dependency declarations and metadata remain authenticated", t => {
+  const f = dependencyFixture(t);
+  const binding = createBuiltPackageBinding(f.candidate, { includePeer: false });
+  binding.dependencies = f.stage();
+  const entry = "/consumer/node_modules/pdf-lib/cjs/index.d.ts";
+  const trace = resolution("@poe-platform/safe-bash", join(f.candidate, "dist/index.d.ts"), "/consumer/check.mts")
+    + resolution("pdf-lib", entry, join(f.candidate, "dist/index.d.ts"))
+    + resolution("shape-types", "/consumer/node_modules/pdf-lib/node_modules/shape-types/index.d.ts", entry);
+  assertBuiltConsumerResolution(trace, "/consumer", f.candidate, binding);
+  f.memory.writeFileSync(entry, "export interface PDFContext { readonly changed: true; }");
+  assert.throws(() => assertBuiltConsumerResolution(trace, "/consumer", f.candidate, binding), /dependency declaration bytes changed/);
+});
+
+test("a staged dependency cannot fall back to declarations outside its admitted package", t => {
+  const f = dependencyFixture(t);
+  const binding = createBuiltPackageBinding(f.candidate, { includePeer: false });
+  binding.dependencies = f.stage();
+  const trace = resolution("@poe-platform/safe-bash", join(f.candidate, "dist/index.d.ts"), "/consumer/check.mts")
+    + resolution("pdf-lib", "/checkout/node_modules/pdf-lib/cjs/index.d.ts", join(f.candidate, "dist/index.d.ts"));
+  assert.throws(() => assertBuiltConsumerResolution(trace, "/consumer", f.candidate, binding), /foreign dependency/);
+});
+
+test("dependency staging rejects an installed version outside the declared range", t => {
+  const f = dependencyFixture(t);
+  f.memory.writeFileSync("/checkout/node_modules/pdf-lib/package.json", JSON.stringify({ name: "pdf-lib", version: "2.0.0", types: "cjs/index.d.ts" }));
+  assert.throws(f.stage, /dependency version/);
+});
+
+test("staged dependency metadata cannot change after admission", t => {
+  const f = dependencyFixture(t);
+  const binding = createBuiltPackageBinding(f.candidate, { includePeer: false });
+  binding.dependencies = f.stage();
+  f.memory.writeFileSync("/consumer/node_modules/pdf-lib/package.json", JSON.stringify({ name: "pdf-lib", version: "1.17.1", types: "other.d.ts" }));
+  assert.throws(() => assertBuiltConsumerResolution(
+    resolution("@poe-platform/safe-bash", join(f.candidate, "dist/index.d.ts"), "/consumer/check.mts"),
+    "/consumer", f.candidate, binding,
+  ), /dependency metadata changed/);
+});
+
+test("dependency staging terminates manifest cycles using the existing ancestor installation", t => {
+  const f = dependencyFixture(t);
+  f.memory.writeFileSync("/checkout/node_modules/pdf-lib/node_modules/shape-types/package.json", JSON.stringify({
+    name: "shape-types", version: "1.2.0", type: "module", types: "index.d.ts", dependencies: { "pdf-lib": "1.17.1" },
+  }));
+  assert.equal(f.stage().length, 3);
+  assert.equal(f.memory.existsSync("/consumer/node_modules/pdf-lib/node_modules/shape-types/node_modules/pdf-lib"), false);
+  assert.deepEqual(f.diagnostics().map(diagnostic => diagnostic.code), []);
+});
+
+test("dependency imports of the canonical filesystem retain the peer's existing authentication", t => {
+  const f = fixture(t, false);
+  const directory = "/consumer/node_modules/renderer";
+  const metadata = JSON.stringify({ name: "renderer", version: "1.0.0" });
+  f.memory.mkdirSync(directory, { recursive: true });
+  f.memory.writeFileSync(join(directory, "package.json"), metadata);
+  f.memory.writeFileSync(join(directory, "index.d.ts"), "export {};");
+  f.binding.dependencies = [{ name: "renderer", directory, files: new Map([["package.json", hash(metadata)], ["index.d.ts", hash("export {};")]]) }];
+  f.check(f.publicTrace + resolution("poe-code/safe-fs", join(f.peer, "packages/safe-fs/dist/index.d.ts"), join(directory, "index.d.ts")));
+  assert.throws(() => f.check(f.publicTrace + resolution("poe-code/safe-fs", "/foreign/index.d.ts", join(directory, "index.d.ts"))), /foreign peer/);
+});

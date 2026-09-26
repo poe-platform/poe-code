@@ -204,7 +204,17 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
     "poe-code/safejs/core": engineCore,
     "@poe-code/safe-js": engineIndex,
   };
-  const compilerOptions = parsed.options.paths ? { ...parsed.options, paths: { ...parsed.options.paths,
+  const metadata = JSON.parse(readRegularInput(root, "package.json", 100000, fileSystem, boundaries).toString("utf8"));
+  const privateWorkspaces = Object.keys(metadata.poeCode?.integration?.privateWorkspaces ?? {});
+  const dependencyPaths = Object.fromEntries(Object.entries(parsed.options.paths ?? {}).map(([specifier, targets]) => [specifier,
+    targets.map(target => {
+      const workspace = privateWorkspaces.find(name => target.startsWith(`../${name}/src/`));
+      if (!workspace) return target;
+      const declaration = `../${workspace}/dist/${target.slice(`../${workspace}/src/`.length)}`;
+      return declaration.endsWith(".ts") ? `${declaration.slice(0, -3)}.d.ts` : declaration;
+    }),
+  ]));
+  const compilerOptions = parsed.options.paths ? { ...parsed.options, paths: { ...dependencyPaths,
     ...Object.fromEntries(Object.entries(engineAliases).filter(([specifier]) => Object.hasOwn(parsed.options.paths, specifier))),
   } } : parsed.options;
   const host = createHistoricalCompilerHost(compilerOptions, admission, baseHost);

@@ -528,6 +528,29 @@ test("ordinary triple-slash file references still use the unchanged compiler hos
   assert.deepEqual(result.program.getRootFileNames(), [join(root, "tests/check.ts")]);
 });
 
+test("private dependencies use built declarations without changing runtime aliases or strict caller diagnostics", () => {
+  const specimen = fixture();
+  addStandardLibrary(specimen.fileSystem);
+  specimen.fileSystem.mkdirSync("/safe-bash-command-example/src", { recursive: true });
+  specimen.fileSystem.mkdirSync("/safe-bash-command-example/dist", { recursive: true });
+  specimen.fileSystem.writeFileSync("/safe-bash-command-example/package.json", '{"type":"module"}');
+  specimen.fileSystem.writeFileSync("/safe-bash-command-example/src/index.ts", "export function run(value) { return value; }\n");
+  specimen.fileSystem.writeFileSync("/safe-bash-command-example/dist/index.d.ts", "export interface Options { value?: string; }\nexport declare function run(value: string): string;\n");
+  specimen.fileSystem.writeFileSync("/package/package.json", JSON.stringify({ type: "module", poeCode: { integration: { privateWorkspaces: { "safe-bash-command-example": {} } } } }));
+  const config = {
+    compilerOptions: { strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, module: "NodeNext", target: "ES2023", types: [], skipLibCheck: true,
+      paths: { "safe-bash-command-example": ["../safe-bash-command-example/src/index.ts"] } },
+    files: ["tests/check.ts"],
+  };
+  specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify(config));
+  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), 'import { run, type Options } from "safe-bash-command-example";\nexport const options: Options = { value: undefined };\nexport const indexed: string = [run("value")][0];\n');
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.ok(result.program.getSourceFile("/safe-bash-command-example/dist/index.d.ts"));
+  assert.equal(result.program.getSourceFile("/safe-bash-command-example/src/index.ts"), undefined);
+  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), [2375, 2322]);
+  assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
+});
+
 test("source checking consumes built engine declarations without changing runtime aliases or strict caller diagnostics", () => {
   const specimen = fixture();
   addStandardLibrary(specimen.fileSystem);

@@ -452,6 +452,12 @@ export class Shell implements PluginHost {
       this.#singleActiveScope = undefined;
       this.#singleActiveBudget = undefined;
       this.#singleActiveOwner = undefined;
+    } else if (this.#active) {
+      for (const entry of this.#active) {
+        if (entry.scope !== scope) continue;
+        this.#active.delete(entry);
+        break;
+      }
     }
     if (selection.outcome.kind === "throw") throw selection.outcome.reason;
     if (scope.hasFailures) throwCleanupFailures(scope.failures);

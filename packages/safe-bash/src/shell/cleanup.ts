@@ -64,7 +64,7 @@ export class InvocationScope {
 
   addChildOwner(owner: { _onScopeClose(): Promise<void> | undefined }): void {
     this.assertOpen();
-    if (!this._firstChildOwner && (!this._childOwners || this._childOwners.size === 0)) {
+    if (!this._firstChildOwner && !this._childOwners) {
       this._firstChildOwner = owner;
       return;
     }

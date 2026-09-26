@@ -86,6 +86,58 @@ test("completed local-signal invocation owners retire before their parent return
   } finally { await shell.dispose(); }
 });
 
+test("child owners admitted after a concurrent group retires still drain at close", async () => {
+  const scope = new InvocationScope();
+  const called: string[] = [];
+  const release = deferred();
+  const first = { _onScopeClose() { called.push("first"); return undefined; } };
+  const second = { _onScopeClose() { called.push("second"); return undefined; } };
+  scope.addChildOwner(first);
+  scope.addChildOwner(second);
+  scope.removeChildOwner(first);
+  scope.removeChildOwner(second);
+  scope.addChildOwner({ _onScopeClose() { called.push("current"); return release.promise; } });
+  let settled = false;
+  const closing = scope.close().then(() => { settled = true; });
+  try {
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.deepEqual(called, ["current"]);
+    assert.equal(settled, false);
+  } finally {
+    release.resolve();
+    await closing;
+  }
+  assert.equal(settled, true);
+  assert.deepEqual(scope.failures, []);
+});
+
+test("completed concurrent executions do not retain cleanup failures for disposal", async () => {
+  const { shell, commands } = setup();
+  const entered = deferred();
+  const release = deferred();
+  const failure = new Error("first execution cleanup failed");
+  commands.register({ name: "first", async execute(context) {
+    context.registerCleanup!(() => { throw failure; });
+    entered.resolve();
+    await release.promise;
+    return { exitCode: 0 };
+  } });
+  const first = shell.exec("first").catch(reason => reason as unknown);
+  try {
+    await entered.promise;
+    const second = await shell.exec("say second");
+    assert.equal(second.exitCode, 0, second.stderr);
+    assert.equal(second.stdout, "second\n");
+    release.resolve();
+    assert.equal(await first, failure);
+    await shell.dispose();
+  } finally {
+    release.resolve();
+    await first;
+    await shell.dispose().catch(() => undefined);
+  }
+});
+
 test("public command cleanup registration does not expose internal retirement", async () => {
   const { shell, commands } = setup();
   let calls = 0;

@@ -19,7 +19,7 @@ export function registerRunIntegrationCleanup(): void {
     vi.restoreAllMocks();
     await Promise.all(tempRoots.map((root) => rm(root, { recursive: true, force: true })));
     tempRoots.length = 0;
-  });
+  }, 30_000);
 }
 
 export async function createRunOutDir(): Promise<string> {

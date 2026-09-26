@@ -23,7 +23,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     } else {
       for (const format of options.formats) {
         budget.charge(16);
-        await budget.checkpointWork();
+        { const cp = budget.checkpointWork(); if (cp) await cp; }
         await lifecycle.write(formatBlock(block, used, address, format));
       }
       previous.set(block);
@@ -49,7 +49,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     if (opened) {
       while (count > 0) {
         let byte: number;
-        try { byte = await reader.get(); }
+        try { const b = reader.get(); byte = typeof b === "number" ? b : await b; }
         catch (error) {
           budget.signal.throwIfAborted();
           if (!(error instanceof FsError)) throw error;

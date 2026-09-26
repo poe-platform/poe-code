@@ -175,13 +175,22 @@ export class Reader {
       this.iterator = Reflect.apply(factory, source, []);
     });
   }
-  async get(): Promise<number> {
+  get(): number | Promise<number> {
     const { budget } = this.lifecycle;
     budget.charge();
-    await budget.checkpointWork();
+    const cp = budget.checkpointWork();
+    if (!cp && this.offset < this.chunk.length) {
+      return this.chunk[this.offset++]!;
+    }
+    return this.getSlow(cp);
+  }
+  private async getSlow(cp: void | Promise<void>): Promise<number> {
+    const { budget } = this.lifecycle;
+    if (cp) await cp;
     while (this.offset === this.chunk.length) {
       if (this.ended) return -1;
-      await budget.checkpointWork();
+      const cp2 = budget.checkpointWork();
+      if (cp2) await cp2;
       const next = await this.lifecycle.operation(() => {
         const iterator = this.iterator!;
         const advance = iterator.next;

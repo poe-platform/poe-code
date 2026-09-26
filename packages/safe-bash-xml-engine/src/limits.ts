@@ -57,21 +57,29 @@ export function resolveXmlQueryLimits(options: Partial<XmlQueryLimits> = {}): Xm
 export class XmlBudget {
   private steps = 0;
   private checkpoint = 0;
+  private aborted = false;
+  private readonly pollSignal: boolean;
   outputBytes = 0;
   inputBytes = 0;
   constructor(
     readonly limits: XmlQueryLimits,
     readonly signal: AbortSignal,
     private readonly checkpointTurn: XmlCheckpoint
-  ) {}
-  async tick(work = 1): Promise<void> {
-    this.signal.throwIfAborted();
+  ) {
+    this.aborted = Boolean(signal?.aborted);
+    this.pollSignal = Boolean(signal && (typeof signal.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(signal, "aborted")));
+    if (signal && !this.aborted && !this.pollSignal) {
+      signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
+    }
+  }
+  tick(work = 1): Promise<void> | void {
+    if (this.aborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
     this.steps += work;
     if (this.steps > this.limits.maxSteps) throw new XmlQueryLimitError("maxSteps");
     this.checkpoint += work;
-    if (this.checkpoint >= 1024) {
+    if (this.checkpoint >= 16384) {
       this.checkpoint = 0;
-      await this.checkpointTurn(this.signal);
+      return this.checkpointTurn(this.signal);
     }
   }
   results(size: number): void {

@@ -20,6 +20,7 @@ import { parseQuery, type Query } from "safe-bash-xml-engine/query";
 import { evaluate, serialize, stringValue } from "safe-bash-xml-engine/evaluate";
 import { serializeDocument, type DocumentMode } from "safe-bash-xml-engine/document";
 
+const sharedEncoder = new TextEncoder();
 export { defaultXmlQueryLimits } from "safe-bash-xml-engine/limits";
 export type { XmlCommandsOptions, XmlQueryLimits } from "safe-bash-xml-engine/limits";
 
@@ -128,7 +129,8 @@ async function execute(
     let parsed = parser.next();
     try {
       while (!parsed.done) {
-        await budget.tick(parsed.value);
+        const p = budget.tick(parsed.value);
+        if (p) await p;
         parsed = parser.next();
       }
     } finally {
@@ -143,9 +145,9 @@ async function execute(
           part.charCodeAt(end - 1) <= 0xdbff
         )
           end--;
-        await budget.tick(end - offset);
+        { const _p = budget.tick(end - offset); if (_p) await _p; }
         const slice = part.slice(offset, end);
-        const bytes = new TextEncoder().encode(slice);
+        const bytes = sharedEncoder.encode(slice);
         const size = bytes.byteLength;
         if (size > limits.maxOutputBytes - budget.outputBytes)
           throw new XmlQueryLimitError("maxOutputBytes");

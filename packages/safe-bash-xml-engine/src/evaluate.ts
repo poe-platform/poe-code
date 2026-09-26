@@ -31,7 +31,7 @@ async function indexTree(
     { parent: document, content: root }
   ];
   while (pending.length) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     const { parent, content } = pending.pop()!;
     if (content.kind === "element") {
       const node: ElementNode = { kind: "element", value: content, children: [], attributes: [] };
@@ -39,7 +39,7 @@ async function indexTree(
       parentOf.set(node, parent);
       order.push(node);
       for (const attribute of content.attributes) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         if (attribute.namespace === xmlns) continue;
         const selected: AttributeNode = { kind: "attribute", value: attribute };
         node.attributes.push(selected);
@@ -47,7 +47,7 @@ async function indexTree(
         order.push(selected);
       }
       for (let index = content.content.length - 1; index >= 0; index--) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         pending.push({ parent: node, content: content.content[index]! });
       }
     } else {
@@ -79,20 +79,20 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
       const parents = new Set<Node>();
       const pending = [...contexts];
       while (pending.length) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         const node = pending.pop()!;
         if (parents.has(node)) continue;
         parents.add(node);
         if (step.descendant && (node.kind === "document" || node.kind === "element")) {
           for (const child of node.children) {
-            await budget.tick();
+            { const _p = budget.tick(); if (_p) await _p; }
             pending.push(child);
           }
         }
       }
       const selected = new Set<Node>();
       for (const parent of parents) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         const candidates =
           step.kind === "self"
             ? [parent]
@@ -109,11 +109,11 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
                   : [];
         let matched: Node[] = [];
         for (const candidate of candidates) {
-          await budget.tick();
+          { const _p = budget.tick(); if (_p) await _p; }
           if (matches(candidate, step)) matched.push(candidate);
         }
         for (const predicate of step.predicates) {
-          await budget.tick();
+          { const _p = budget.tick(); if (_p) await _p; }
           if (predicate.kind === "position")
             matched = matched[predicate.value - 1] ? [matched[predicate.value - 1]!] : [];
           else if (predicate.kind === "last")
@@ -121,13 +121,13 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
           else {
             const filtered: Node[] = [];
             for (const candidate of matched) {
-              await budget.tick();
+              { const _p = budget.tick(); if (_p) await _p; }
               if (predicate.kind !== "attribute") {
                 const values: Node[] = [];
                 if (predicate.kind === "self") values.push(candidate);
                 else if (candidate.kind === "element" || candidate.kind === "document") {
                   for (const child of candidate.children) {
-                    await budget.tick();
+                    { const _p = budget.tick(); if (_p) await _p; }
                     if (
                       predicate.kind === "text"
                         ? child.kind === "text" || child.kind === "cdata"
@@ -139,10 +139,10 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
                   }
                 }
                 for (const value of values) {
-                  await budget.tick();
+                  { const _p = budget.tick(); if (_p) await _p; }
                   let text = "";
                   for await (const part of stringValue(value, budget)) {
-                    await budget.tick(part.length);
+                    { const _p = budget.tick(part.length); if (_p) await _p; }
                     text += part;
                   }
                   if (text === predicate.value) {
@@ -154,7 +154,7 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
               }
               if (candidate.kind !== "element") continue;
               for (const attribute of candidate.attributes) {
-                await budget.tick(attribute.value.value.length + 1);
+                { const _p = budget.tick(attribute.value.value.length + 1); if (_p) await _p; }
                 if (
                   attribute.value.namespace === "" &&
                   attribute.value.localName === predicate.name &&
@@ -169,7 +169,7 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
           }
         }
         for (const node of matched) {
-          await budget.tick();
+          { const _p = budget.tick(); if (_p) await _p; }
           if (!selected.has(node)) {
             budget.results(selected.size + 1);
             selected.add(node);
@@ -178,19 +178,19 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
       }
       contexts = [];
       for (const node of order) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         if (selected.has(node)) contexts.push(node);
       }
     }
     for (const node of contexts) {
-      await budget.tick();
+      { const _p = budget.tick(); if (_p) await _p; }
       budget.results(union.size + (union.has(node) ? 0 : 1));
       union.add(node);
     }
   }
   const result: Node[] = [];
   for (const node of order) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     if (union.has(node)) result.push(node);
   }
   return result;
@@ -207,11 +207,11 @@ export async function* stringValue(
   }
   const pending: Node[] = [node];
   while (pending.length) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     const current = pending.pop()!;
     if (current.kind === "element" || current.kind === "document") {
       for (let index = current.children.length - 1; index >= 0; index--) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         pending.push(current.children[index]!);
       }
     } else if (current.kind === "text" || current.kind === "cdata") yield current.value.text;
@@ -235,7 +235,7 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
   }
   const pending: (XmlContent | string)[] = [node.value];
   while (pending.length) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     const current = pending.pop()!;
     if (typeof current === "string") {
       yield current;
@@ -244,7 +244,7 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
     if (current.kind === "element") {
       yield `<${current.name}`;
       for (const attribute of current.attributes) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         yield ` ${attribute.name}="`;
         yield* escape(attribute.value, true, budget);
         yield '"';
@@ -254,7 +254,7 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
         yield ">";
         pending.push(`</${current.name}>`);
         for (let index = current.content.length - 1; index >= 0; index--) {
-          await budget.tick();
+          { const _p = budget.tick(); if (_p) await _p; }
           pending.push(current.content[index]!);
         }
       }
@@ -286,7 +286,7 @@ export async function* escape(
 ): AsyncGenerator<string> {
   let part = "";
   for (const character of value) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     part +=
       character === "&"
         ? "&amp;"

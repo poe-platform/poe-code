@@ -42,11 +42,11 @@ async function attributes(
 ): Promise<XmlAttribute[]> {
   const selected: XmlAttribute[] = [];
   for (const attribute of element.attributes) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     if (attribute.namespace !== xmlns) selected.push(attribute);
   }
   for (const [prefix, uri] of element.namespaces) {
-    await budget.tick(uri.length + prefix.length + 1);
+    { const _p = budget.tick(uri.length + prefix.length + 1); if (_p) await _p; }
     if (prefix === "xml") continue;
     if (uri === (inherited.get(prefix) ?? "")) continue;
     selected.push({
@@ -82,9 +82,9 @@ export async function* serializeDocument(
     const elements = [root];
     while (elements.length) {
       const element = elements.pop()!;
-      await budget.tick();
+      { const _p = budget.tick(); if (_p) await _p; }
       for (const [prefix, uri] of element.namespaces) {
-        await budget.tick(prefix.length + uri.length + 1);
+        { const _p = budget.tick(prefix.length + uri.length + 1); if (_p) await _p; }
         if (!uri) continue;
         const colon = uri.indexOf(":");
         let absolute =
@@ -100,7 +100,7 @@ export async function* serializeDocument(
         if (!absolute) throw new XmlQueryError("Failed to canonicalize: relative namespace URI", 6);
       }
       for (const child of element.children) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         elements.push(child);
       }
     }
@@ -115,7 +115,7 @@ export async function* serializeDocument(
   const pending: Frame[] = [];
   for (let index = (root.epilog?.length ?? 0) - 1; index >= 0; index--) {
     const content = root.epilog![index]!;
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     if (content.kind === "text") continue;
     if (!canonical) pending.push({ content: "\n", depth: 0, namespaces, preserveSpace: false });
     pending.push({ content, depth: 0, namespaces, preserveSpace: false });
@@ -125,13 +125,13 @@ export async function* serializeDocument(
   pending.push({ content: root, depth: 0, namespaces, preserveSpace: false });
   for (let index = (root.prolog?.length ?? 0) - 1; index >= 0; index--) {
     const content = root.prolog![index]!;
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     if (content.kind === "text") continue;
     pending.push({ content: "\n", depth: 0, namespaces, preserveSpace: false });
     pending.push({ content, depth: 0, namespaces, preserveSpace: false });
   }
   while (pending.length) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     const frame = pending.pop()!;
     const current = frame.content;
     if (typeof current === "string") {
@@ -141,7 +141,7 @@ export async function* serializeDocument(
     if (current.kind === "element") {
       let preserveSpace = frame.preserveSpace;
       for (const attribute of current.attributes) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         if (attribute.namespace === xml && attribute.localName === "space") {
           if (attribute.value === "preserve") preserveSpace = true;
           else if (attribute.value === "default") preserveSpace = false;
@@ -151,11 +151,11 @@ export async function* serializeDocument(
       let mixed = false;
       for (let index = 0; index < current.content.length; index++) {
         const child = current.content[index]!;
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         if (child.kind === "text") {
           let blank = true;
           for (const character of child.text) {
-            await budget.tick();
+            { const _p = budget.tick(); if (_p) await _p; }
             if (!" \t\n\r".includes(character)) blank = false;
           }
           // libxml's formatting parser removes blanks before markup and after
@@ -176,13 +176,13 @@ export async function* serializeDocument(
       if (!canonical) {
         for (const namespace of [true, false])
           for (const attribute of current.attributes) {
-            await budget.tick();
+            { const _p = budget.tick(); if (_p) await _p; }
             if ((attribute.namespace === xmlns) === namespace) ordered.push(attribute);
           }
       }
       yield `<${current.name}`;
       for (const attribute of ordered) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         yield ` ${attribute.name}="`;
         yield* escape(attribute.value, true, budget, escaping);
         yield '"';
@@ -200,7 +200,7 @@ export async function* serializeDocument(
         content: `${indent ? "\n" + "  ".repeat(frame.depth) : ""}</${current.name}>`
       });
       for (let index = content.length - 1; index >= 0; index--) {
-        await budget.tick();
+        { const _p = budget.tick(); if (_p) await _p; }
         pending.push({ ...childFrame, content: content[index]! });
         if (indent) pending.push({ ...childFrame, content: "\n" + "  ".repeat(childFrame.depth) });
       }

@@ -188,7 +188,7 @@ export async function parseQuery(source: string, budget: XmlBudget): Promise<Que
       }
       steps.push({ descendant, kind, name: selected, predicates });
       if ((kind === "attribute" || kind === "text") && source[at] === "/") fail();
-      await budget.tick();
+      { const _p = budget.tick(); if (_p) await _p; }
     } while (source[at] === "/");
     space();
     morePaths = source[at] === "|";

@@ -64,7 +64,7 @@ export async function readXmlInput(
   const parts: string[] = [];
   const decoder = new TextDecoder("utf-8", { fatal: true });
   for await (const chunk of readBytes(source, context.signal)) {
-    await budget.tick();
+    { const _p = budget.tick(); if (_p) await _p; }
     budget.inputBytes += chunk.byteLength;
     if (budget.inputBytes > budget.limits.maxInputBytes)
       throw new XmlQueryLimitError("maxInputBytes");

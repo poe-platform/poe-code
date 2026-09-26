@@ -254,6 +254,7 @@ function parseLiteralInBase(raw: string, ibase: number): DecimalValue {
 function formatDecimalInBase(val: DecimalValue, obase: number): string {
   const neg = val.coeff < 0n;
   const absCoeff = neg ? -val.coeff : val.coeff;
+  if (absCoeff === 0n) return "0";
   if (obase === 10) {
     if (val.scale <= 0) {
       return (neg && absCoeff !== 0n ? "-" : "") + absCoeff.toString(10);
@@ -289,6 +290,24 @@ function formatDecimalInBase(val: DecimalValue, obase: number): string {
     fracOut += obase <= 16 ? digits[d]! : ` ${d.toString(10).padStart(2, "0")}`;
   }
   return (neg && absCoeff !== 0n ? "-" : "") + (intOut === "0" ? "" : intOut) + "." + fracOut;
+}
+
+function besselJ(nInt: number, x: number): number {
+  const n = Math.trunc(nInt);
+  if (x === 0) return n === 0 ? 1 : 0;
+  const m = Math.abs(n);
+  const halfX = x / 2;
+  let term = 1;
+  for (let i = 1; i <= m; i++) term *= halfX / i;
+  let sum = term;
+  const minusQuarterX2 = -(halfX * halfX);
+  for (let k = 1; k <= 80; k++) {
+    term *= minusQuarterX2 / (k * (m + k));
+    sum += term;
+    if (Math.abs(term) < 1e-18 * Math.abs(sum)) break;
+  }
+  if (n < 0 && (m & 1) === 1) sum = -sum;
+  return sum;
 }
 
 function fromNumber(num: number, scale: number): DecimalValue {
@@ -948,6 +967,12 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
               return fromNumber(Math.log(x), scale);
             }
             if (expr.name === "e") return fromNumber(Math.exp(toNumber(arg0)), scale);
+            if (expr.name === "j") {
+              const nVal = Math.trunc(toNumber(arg0));
+              const xVal = toNumber(args[1] ?? ZERO);
+              if (xVal === 0) return nVal === 0 ? fromNumber(1, scale) : { coeff: 0n, scale };
+              return fromNumber(besselJ(nVal, xVal), scale);
+            }
           }
           const fn = funcs.get(expr.name);
           if (!fn) throw new Error(`Function ${expr.name} not defined.`);

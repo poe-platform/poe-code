@@ -23,6 +23,8 @@ test("differential oracle parity: safe-bash bc vs /usr/bin/bc", async (t) => {
     "a[0]=10; a[5]=25; a[0]+a[5]",
     "length(123456); scale(12.3450)",
     "sqrt(2025)",
+    "scale=10; 0; 0.0000; 1.25 - 1.25; 0 / 7; 0 * 3.1415",
+    "length(0); length(0.000); scale(0); scale(0.000)",
   ];
 
   for (const prog of programs) {
@@ -31,6 +33,11 @@ test("differential oracle parity: safe-bash bc vs /usr/bin/bc", async (t) => {
     assert.equal(sbRes.exitCode, 0, `bc failed on ${prog}: ${sbRes.stderr}`);
     assert.equal(sbRes.stdout, hostOut, `bc mismatch on ${prog}`);
   }
+  const mathlibProg = "scale=10; s(0); c(0); e(0); l(1); a(0); j(0,0); j(1,0); j(0,1); j(1,1); j(2,2.5); j(-1,1)";
+  const hostMathOut = execFileSync("/usr/bin/bc", ["-l"], { input: mathlibProg + "\n", encoding: "utf8" });
+  const sbMathRes = await shell.exec(`bc -l <<'EOF'\n${mathlibProg}\nEOF`);
+  assert.equal(sbMathRes.exitCode, 0, sbMathRes.stderr);
+  assert.equal(sbMathRes.stdout, hostMathOut);
 });
 
 test("differential oracle parity: safe-bash xxd & od vs host /usr/bin/xxd & /bin/bash", async (t) => {

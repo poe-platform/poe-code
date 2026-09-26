@@ -1269,6 +1269,7 @@ class BudgetedSyncSink implements ByteSink {
   writeSync(chunk: Uint8Array): boolean {
     this.signal.throwIfAborted();
     if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
+    if (this.target.budget === this.budget) return this.target.writeSync(chunk);
     const budget = this.budget;
     if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
     budget.bytes += chunk.byteLength;

@@ -79,7 +79,10 @@ export async function runConversionTransforms(book: Workbook, request: Conversio
     book = own(config.formulas ? await config.formulas.recalculate(book, context, { force: true }) : await recalculateWithDiagnostics(book, context, true));
   }
   // An injected evaluator receives the unconditional gnm_app_recalc stage too.
-  if (book.calculationMode !== "manual") book = own(config.formulas ? await config.formulas.recalculate(book, context, { force: false }) : await recalculateWithDiagnostics(book, context));
+  if (book.calculationMode !== "manual") {
+    const options = { force: false, queueVolatile: false };
+    book = own(config.formulas ? await config.formulas.recalculate(book, context, options) : await recalculateWithDiagnostics(book, context, options));
+  }
   checkpoint();
   let range = request.exportRange;
   if (request.exportRangeExpression !== undefined)

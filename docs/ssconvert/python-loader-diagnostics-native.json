@@ -1,0 +1,279 @@
+{
+  "artifactId": 10895558437,
+  "artifactSha256": "77d9372530ea6da896f8d8229b7291b8887dbe343dd3e20da4a4b81602fac907",
+  "identitySha256": "2e959a43b8c96e1bf49d2070f682ad5b316b63dd62d39617a403b5494a42da6c",
+  "sourceRevision": "9472fce806e08e3f7b00c77bc9310ccd6f832b95",
+  "profileId": "gnumeric-1.12.61-optional-python-samples",
+  "pythonDiagnosticFixtureSha256": "fd4bb03a00aaa413d31a3662698f07cbfef23dad5f7e2f1895cc76553fd0c8d4",
+  "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+  "workflowRun": 36211475728,
+  "source": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "files": {
+      "ssconvert.c": "0d600c72a05645e6940730bf6e733636ec25f814c20a218cb5e5255da5b198df",
+      "workbook-view.c": "2ef844625ca3a51d25a37f2d4062606071f25170b39b27cd34e721680d396a96",
+      "dependent.c": "aa0debdd852154119e021a5d14fd1df8ad1cbeb01be29606872224741696da22",
+      "workbook.c": "de53f7d4de50428f9e76e055bb5cad114db5526cf4bda382b28885f874554d03",
+      "xml-sax-read.c": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+      "application.c": "a89afbd964b1fb4bbebf888893cc64ccbe424e722d0a432225df7ba91e377cc3"
+    },
+    "finding": "workbook_view_new_from_input queues volatile formulas and invokes workbook_recalc after successful import, before conversion updates/options. workbook_recalc evaluates dirty dependents regardless of manual mode. Later ssconvert --recalc queues all dependents again; gnm_app_recalc is a separate automatic stage. gnm_app_recalc visits automatic workbooks and settles dirty dependents without queuing volatile formulas."
+  },
+  "cases": [
+    {
+      "id": "python-diagnostic-valid-load",
+      "formulas": [
+        "=PY_BITAND(15,7)"
+      ],
+      "inputSha256": "90ad3c324a2a37205f9754ea7c3abb7e5a7619216fdfb99ac16a033d64acb563",
+      "recalc": false,
+      "exitCode": 0,
+      "csv": "7\n",
+      "stderr": "",
+      "warnings": 0
+    },
+    {
+      "id": "python-diagnostic-valid-recalc",
+      "formulas": [
+        "=PY_BITAND(15,7)"
+      ],
+      "inputSha256": "90ad3c324a2a37205f9754ea7c3abb7e5a7619216fdfb99ac16a033d64acb563",
+      "recalc": true,
+      "exitCode": 0,
+      "csv": "7\n",
+      "stderr": "",
+      "warnings": 0
+    },
+    {
+      "id": "python-diagnostic-bitand-error-load",
+      "formulas": [
+        "=PY_BITAND(-1,3)"
+      ],
+      "inputSha256": "88d34d2dc2c2cbe50434cd1b34d1cdaf0cdefc1e5ce2f2bd15aa4148571af054",
+      "recalc": false,
+      "exitCode": 0,
+      "csv": "\n",
+      "stderr": "\n** (ssconvert:62783): WARNING **: 02:26:51.290: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 1
+    },
+    {
+      "id": "python-diagnostic-bitand-error-recalc",
+      "formulas": [
+        "=PY_BITAND(-1,3)"
+      ],
+      "inputSha256": "88d34d2dc2c2cbe50434cd1b34d1cdaf0cdefc1e5ce2f2bd15aa4148571af054",
+      "recalc": true,
+      "exitCode": 0,
+      "csv": "\n",
+      "stderr": "\n** (ssconvert:62785): WARNING **: 02:26:51.349: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62785): WARNING **: 02:26:51.349: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 2
+    },
+    {
+      "id": "python-diagnostic-printf-error-load",
+      "formulas": [
+        "=PY_PRINTF(\"%s\",NA())"
+      ],
+      "inputSha256": "9b5e296815e95143fd98739cd864df643ff12aebdec9fb5775bdd90a88fcb745",
+      "recalc": false,
+      "exitCode": 0,
+      "csv": "None\n",
+      "stderr": "\n** (ssconvert:62787): WARNING **: 02:26:51.408: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 1
+    },
+    {
+      "id": "python-diagnostic-printf-error-recalc",
+      "formulas": [
+        "=PY_PRINTF(\"%s\",NA())"
+      ],
+      "inputSha256": "9b5e296815e95143fd98739cd864df643ff12aebdec9fb5775bdd90a88fcb745",
+      "recalc": true,
+      "exitCode": 0,
+      "csv": "None\n",
+      "stderr": "\n** (ssconvert:62789): WARNING **: 02:26:51.466: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62789): WARNING **: 02:26:51.466: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 2
+    },
+    {
+      "id": "python-diagnostic-repeated-error-load",
+      "formulas": [
+        "=PY_BITAND(-1,3)",
+        "=PY_BITAND(-1,3)"
+      ],
+      "inputSha256": "164a3d2f9d2bed823b4330453cd1d4951d39b01dbcec40083decb3db74209d1b",
+      "recalc": false,
+      "exitCode": 0,
+      "csv": "\n",
+      "stderr": "\n** (ssconvert:62791): WARNING **: 02:26:51.526: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62791): WARNING **: 02:26:51.526: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 2
+    },
+    {
+      "id": "python-diagnostic-repeated-error-recalc",
+      "formulas": [
+        "=PY_BITAND(-1,3)",
+        "=PY_BITAND(-1,3)"
+      ],
+      "inputSha256": "164a3d2f9d2bed823b4330453cd1d4951d39b01dbcec40083decb3db74209d1b",
+      "recalc": true,
+      "exitCode": 0,
+      "csv": "\n",
+      "stderr": "\n** (ssconvert:62793): WARNING **: 02:26:51.585: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62793): WARNING **: 02:26:51.585: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62793): WARNING **: 02:26:51.585: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62793): WARNING **: 02:26:51.585: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 4
+    },
+    {
+      "id": "python-diagnostic-mixed-errors-load",
+      "formulas": [
+        "=PY_BITAND(-1,3)",
+        "=PY_PRINTF(\"%s\",NA())"
+      ],
+      "inputSha256": "fd8046dbd5683168c37318781f34c536e82ef954ed70cb96d075b7d42cae38ef",
+      "recalc": false,
+      "exitCode": 0,
+      "csv": "\nNone\n",
+      "stderr": "\n** (ssconvert:62795): WARNING **: 02:26:51.644: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62795): WARNING **: 02:26:51.644: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 2
+    },
+    {
+      "id": "python-diagnostic-mixed-errors-recalc",
+      "formulas": [
+        "=PY_BITAND(-1,3)",
+        "=PY_PRINTF(\"%s\",NA())"
+      ],
+      "inputSha256": "fd8046dbd5683168c37318781f34c536e82ef954ed70cb96d075b7d42cae38ef",
+      "recalc": true,
+      "exitCode": 0,
+      "csv": "\nNone\n",
+      "stderr": "\n** (ssconvert:62797): WARNING **: 02:26:51.703: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62797): WARNING **: 02:26:51.703: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62797): WARNING **: 02:26:51.703: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62797): WARNING **: 02:26:51.703: gnm_value_to_py_obj: unsupported value type\n",
+      "warnings": 4
+    }
+  ],
+  "status": "Native cause, load lifecycle repair and public SDK/Shell/browser checks qualified; remote delivery and publication tracked separately. No broad family is closed.",
+  "publicQualification": {
+    "sdkAndShell": [
+      {
+        "id": "python-diagnostic-valid-load",
+        "warnings": 0,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-valid-recalc",
+        "warnings": 0,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-bitand-error-load",
+        "warnings": 1,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-bitand-error-recalc",
+        "warnings": 2,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-printf-error-load",
+        "warnings": 1,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-printf-error-recalc",
+        "warnings": 2,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-repeated-error-load",
+        "warnings": 2,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-repeated-error-recalc",
+        "warnings": 4,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-mixed-errors-load",
+        "warnings": 2,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      },
+      {
+        "id": "python-diagnostic-mixed-errors-recalc",
+        "warnings": 4,
+        "sdk": true,
+        "shell": true,
+        "inputPreserved": true
+      }
+    ],
+    "screenshotSha256": "071d3cdb9ad4668e05deed246752342d2b0f106ac58bf0ec28da4997765f2b3a",
+    "screenshotInspected": true,
+    "diagnosticComparison": "CSV bytes and warning message occurrences match all ten native probes. Native GLib PID/time decoration remains environment-specific; portable diagnostics do not fabricate it. Shell inputs remain unchanged and engine resources are disposed.",
+    "browserWorker": {
+      "page": {
+        "context": "page",
+        "globals": {
+          "process": "undefined",
+          "require": "undefined",
+          "Buffer": "undefined"
+        },
+        "unicodeVersion": "15.1.0",
+        "rows": 637,
+        "scalarFields": 2548,
+        "bytes": 26687,
+        "csvSha256": "e98d5475b66d8e826baa67a015658441ec9e00a5d3f3bdac474d89f5d1ef847b",
+        "diagnostics": 0,
+        "inputPreserved": true,
+        "preAbortIdentity": true,
+        "refusedWrites": 0,
+        "outputLimit": true,
+        "workLimit": true,
+        "invalidProfilesRefused": 3,
+        "absentFunctions": 3
+      },
+      "worker": {
+        "context": "module-worker",
+        "globals": {
+          "process": "undefined",
+          "require": "undefined",
+          "Buffer": "undefined"
+        },
+        "unicodeVersion": "15.1.0",
+        "rows": 637,
+        "scalarFields": 2548,
+        "bytes": 26687,
+        "csvSha256": "e98d5475b66d8e826baa67a015658441ec9e00a5d3f3bdac474d89f5d1ef847b",
+        "diagnostics": 0,
+        "inputPreserved": true,
+        "preAbortIdentity": true,
+        "refusedWrites": 0,
+        "outputLimit": true,
+        "workLimit": true,
+        "invalidProfilesRefused": 3,
+        "absentFunctions": 3
+      },
+      "workerTerminated": true
+    },
+    "browserBundleSha256": "42276475079df4cf35b6b55c43244c05d5c62fb8066d177a85ca92470884ed2a"
+  },
+  "validation": {
+    "tddRed": "8 failed, 6 passed, 23987 filtered; before product changes",
+    "unit": "421 files / 24003 tests passed after lifecycle expectation corrections; required root posttest: two lint stress tests passed",
+    "lint": "Workspace production, test and public-consumer lint/types passed",
+    "build": "Maintained selected @poe-code/ssconvert dependency closure passed",
+    "lifecycleAssertions": "Updated source-order expectations to include initial load; preserved the explicit-stage cancellation test and documented the clipboard manual-mode contract."
+  }
+}

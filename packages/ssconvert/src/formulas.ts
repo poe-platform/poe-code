@@ -11,10 +11,17 @@ export interface ExternalReferencesCapability {
    * Result data is copied/admitted to the workbook ownership and calculation budgets. */
   resolve(request: ExternalFormulaRequest, signal: AbortSignal): FormulaResult | undefined;
 }
+export interface FormulaRecalculationOptions {
+  readonly force: boolean;
+  /** Initial workbook loading evaluates dirty formulas even in manual mode. */
+  readonly ignoreCalculationMode?: boolean;
+  /** False settles existing dirty formulas without scheduling clean volatile formulas. */
+  readonly queueVolatile?: boolean;
+}
 export interface FormulaCapability {
   /** Ordinary stages calculate dirty formulas; force marks/evaluates the whole workbook,
    * including manual mode, at ssconvert's post-transform --recalc stage. */
-  recalculate(book: Workbook, context: CapabilityContext, options?: { readonly force: boolean }): Promise<Workbook>;
+  recalculate(book: Workbook, context: CapabilityContext, options?: FormulaRecalculationOptions): Promise<Workbook>;
 }
 export interface GoalSeekRequest {
   readonly target: CellRange;

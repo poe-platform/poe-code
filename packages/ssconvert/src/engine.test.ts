@@ -162,7 +162,7 @@ describe("shared ssconvert engine contracts", () => {
       },
       { signal: new AbortController().signal }
     );
-    expect(order).toEqual(["goal", "solve", "analysis", "recalc", "recalc"]);
+    expect(order).toEqual(["recalc", "goal", "solve", "analysis", "recalc", "recalc"]);
   });
   it("requires every runtime budget even at an untyped SDK boundary", () => {
     const { config } = fixture();

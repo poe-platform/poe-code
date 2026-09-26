@@ -1,7 +1,7 @@
 import { openDatasourceSession } from "./datasource.js";
 import { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
 import { createRegistry } from "./codecs.js";
-import { prepareClipboardImport, serializeClipboard } from "./conversion/clipboard.js";
+import { serializeClipboard } from "./conversion/clipboard.js";
 import { runtimeEnvironment } from "./locale/runtime.js";
 import {
   SsconvertError,
@@ -34,6 +34,7 @@ import { runConversionTransforms } from "./conversion/transforms.js";
 import { resolveOutput, imageFormat, conversionUri } from "./conversion/output.js";
 import { splitOutput } from "./conversion/split.js";
 import { applyConversionUpdates } from "./conversion/updates.js";
+import { prepareWorkbookLoad } from "./conversion/load.js";
 import { validateImageOptions } from "./conversion/image-options.js";
 import { createFormattingCapability } from "./formatting.js";
 
@@ -658,8 +659,7 @@ export function createEngine(supplied: EngineConfig): Engine {
         if (!imported.book.sheets.length) throw new SsconvertError("io", `Loading ${resourceUri(request.input.kind === "resource" ? request.input.uri : request.input.filename ?? "(unspecified)", config.environment.cwd)} failed`);
         const sourceName = request.input.kind === "resource" ? request.input.uri : request.input.filename;
         const sourceUri = sourceName === undefined ? undefined : resourceUri(sourceName, config.environment.cwd);
-        const loaded = request.clipboard === undefined ? imported.book :
-          snapshotWorkbook(await prepareClipboardImport(imported.book, config, context), context.limits);
+        const loaded = await prepareWorkbookLoad(imported.book, config, context);
         check(context);
         const book = await applyConversionUpdates(loaded, request, config, context, () => check(context), sourceUri);
         if (request.clipboard !== undefined) {
@@ -694,6 +694,7 @@ export function createEngine(supplied: EngineConfig): Engine {
             { ...config.limits, cells: config.limits.cells - importedCells, sheets: config.limits.sheets - importedSheets });
           inputBytes += result.bytes;
           if (result.book.sheets.length) {
+            result.book = await prepareWorkbookLoad(result.book, config, context);
             importedSheets += result.book.sheets.length + (result.book.detachedSheets?.length ?? 0);
             for (const sheets of [result.book.sheets, result.book.detachedSheets ?? []])
               for (const sheet of sheets) importedCells += sheet.cells.length;

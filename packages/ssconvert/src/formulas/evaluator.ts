@@ -12,19 +12,20 @@ import { translateFormulaGroup } from "./workbook.js";
 import { binary, blank, difference, error, numeric, numericResult, product, sum } from "./values.js";
 import { snapshotRecords } from "../workbook/model.js";
 import { cellValueFormat } from "../workbook/value-format.js";
-import type { ExternalFormulaRequest } from "../formulas.js";
+import type { ExternalFormulaRequest, FormulaRecalculationOptions } from "../formulas.js";
 import type { Reference, Matrix, Value, FunctionHost } from "./functions/types.js";
 import { callFunction } from "./functions/registry.js";
 import { matchNumber } from "./functions/text.js";
 import { gnumericGrammar, sylkGrammar } from "./conventions.js";
 
 /** A calculation run owns its indexes, traversal state and caches. No host I/O. */
-export function recalculateWorkbook(input: Workbook, context: CapabilityContext, force = false, onDiagnostic?: (diagnostic: Diagnostic) => void,
+export function recalculateWorkbook(input: Workbook, context: CapabilityContext, options: boolean | FormulaRecalculationOptions = false, onDiagnostic?: (diagnostic: Diagnostic) => void,
   cellEvaluation?: { readonly changed: ParsePosition; readonly target: ParsePosition | null; readonly tick?: () => void }): Workbook {
   context.signal.throwIfAborted();
+  const force = typeof options === "boolean" ? options : options.force;
   if (context.runtimeFunctions !== undefined) context = { ...context, runtimeFunctions: snapshotRuntimeFunctions(context.runtimeFunctions) };
   input = snapshotWorkbook(input, context.limits);
-  if (!force && !cellEvaluation && input.calculationMode === "manual") return input;
+  if (!force && !cellEvaluation && input.calculationMode === "manual" && !(typeof options === "object" && options.ignoreCalculationMode)) return input;
   const maximumWork = context.limits.workbookWork ?? context.limits.cells * 32 + context.limits.inputBytes;
   let work = 0, depth = 0, iterationRoot: Cell | undefined;
   const tick = () => {
@@ -471,7 +472,8 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   const graph = buildDependencyGraph(book, expressions, (node, position) => localReferenceRange(book, node, position), parse, tick, (cell, range) => dependencyRanges.push([cell, range]));
   const pending = new Set<Cell>();
   const queue: Cell[] = [];
-  for (const cell of expressions.keys()) if (force || cell.formulaDirty || !cellEvaluation && graph.volatile.has(cell)) { pending.add(cell); queue.push(cell); }
+  const queueVolatile = typeof options === "boolean" || options.queueVolatile !== false;
+  for (const cell of expressions.keys()) if (force || cell.formulaDirty || !cellEvaluation && queueVolatile && graph.volatile.has(cell)) { pending.add(cell); queue.push(cell); }
   if (cellEvaluation) {
     const sheet = book.sheets.find(sheet => sheet.id === cellEvaluation.changed.sheet);
     const changed = sheet && indexes.get(sheet)?.get(`${cellEvaluation.changed.row}:${cellEvaluation.changed.column}`);

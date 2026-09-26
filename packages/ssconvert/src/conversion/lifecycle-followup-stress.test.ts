@@ -33,17 +33,17 @@ describe("independent lifecycle followup negative controls", () => {
     const { config, events, volume } = fixture();
     const result = await createEngine(config).convert({ ...graphRequest, exportOptions: [`resolution=${value}`] }, operation());
     expect(result).toMatchObject({ exitCode: 0, artifacts: [], usage: { inputBytes: 5, outputBytes: 0 } });
-    expect(events).toEqual(["read", "load", "recalc", "recalc", "render"]);
+    expect(events).toEqual(["read", "load", "recalc", "recalc", "recalc", "render"]);
     expect(volume.toJSON()).toEqual({ "/in.data": "small", "/keep.csv": "keep" });
   });
 
   it.each(["0b10", "0o10", "0B100000", "0O10000", "0", "0.999", "10001", "-2", "NaN", "Infinity", "1e999"])
-  ("rejects %s identically through SDK and CLI after both recalculations", async (value) => {
+  ("rejects %s identically through SDK and CLI after load and both conversion recalculations", async (value) => {
     const expected = `ssconvert: Invalid export option "resolution=${value}" for image export`;
     const sdk = fixture();
     await expect(createEngine(sdk.config).convert({ ...graphRequest, exportOptions: [`resolution=${value}`] }, operation()))
       .rejects.toMatchObject({ exitCode: 1, code: "invalid-request", message: expected });
-    expect(sdk.events).toEqual(["read", "load", "recalc", "recalc"]);
+    expect(sdk.events).toEqual(["read", "load", "recalc", "recalc", "recalc"]);
     const cli = fixture();
     const stderr: string[] = [];
     const stdout: Uint8Array[] = [];
@@ -63,12 +63,13 @@ describe("independent lifecycle followup negative controls", () => {
     const { config, events, volume } = fixture();
     const controller = new AbortController();
     const reason = Object.freeze({ stage: "recalc" });
-    const engine = createEngine({ ...config, formulas: { async recalculate(book) {
+    const engine = createEngine({ ...config, formulas: { async recalculate(book, _context, options) {
+      if (options?.ignoreCalculationMode) { events.push("load-recalc"); return book; }
       events.push("cancel-recalc"); controller.abort(reason); return book;
     } } });
     await expect(engine.convert({ ...graphRequest, exportOptions: ["resolution=0b10"] }, { signal: controller.signal }))
       .rejects.toBe(reason);
-    expect(events).toEqual(["read", "load", "cancel-recalc"]);
+    expect(events).toEqual(["read", "load", "load-recalc", "cancel-recalc"]);
     expect(volume.toJSON()).toEqual({ "/in.data": "small", "/keep.csv": "keep" });
   });
 

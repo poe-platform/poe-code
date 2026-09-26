@@ -47,7 +47,7 @@ describe("Gnumeric conversion lifecycle source order", () => {
     });
     expect(result).toEqual({ exitCode: 1 });
     expect(errors).toEqual([`ssconvert: Invalid export option "resolution=${value}" for image export\n`]);
-    expect(events).toEqual(["read", "load", "recalc", "recalc"]);
+    expect(events).toEqual(["read", "load", "recalc", "recalc", "recalc"]);
     expect(volume.toJSON()).toEqual({ "/in.csv": "1", "/out.csv": "keep" });
   });
   it("derives an absent output from the input URI for CLI and SDK", async () => {
@@ -143,7 +143,7 @@ describe("Gnumeric conversion lifecycle source order", () => {
       formulas: { async recalculate(book: import("./workbook.js").Workbook) { events.push("auto"); return book; } }
     };
     await createEngine(binding).convert({ ...request, updateExpressions: ["A1=2", "A1=3"] }, operation());
-    expect(events).toEqual(["read", "load", "set:s:2", "set:s:3", "auto", "options", "auto", "save", "publish"]);
+    expect(events).toEqual(["read", "load", "auto", "set:s:2", "set:s:3", "auto", "options", "auto", "save", "publish"]);
   });
   it("resizes sheets in reverse order after tool-test and before explicit and automatic recalc", async () => {
     const { config, events } = fixture();
@@ -168,7 +168,7 @@ describe("Gnumeric conversion lifecycle source order", () => {
       ...operation(), stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(new TextDecoder().decode(bytes)); } }
     })).exitCode).toBe(0);
     expect(errors).toEqual([]);
-    expect(events).toEqual(["read", "options", "tool", "resize:Second", "resize:First", "recalc", "recalc", "save", "publish"]);
+    expect(events).toEqual(["read", "recalc", "options", "tool", "resize:Second", "resize:First", "recalc", "recalc", "save", "publish"]);
   });
   it("selects the range sheet after recalculation without pruning workbook records", async () => {
     const { config, events } = fixture();
@@ -183,7 +183,7 @@ describe("Gnumeric conversion lifecycle source order", () => {
       }
     }], formulas: { async recalculate(book) { events.push("auto"); return book; } } });
     await engine.convert({ ...request, selection: { kind: "ids", ids: ["First"] }, exportRangeExpression: "Second!A1:B2" }, operation());
-    expect(events).toEqual(["read", "options", "auto", "save", "publish"]);
+    expect(events).toEqual(["read", "auto", "options", "auto", "save", "publish"]);
   });
   it("guesses the exporter from the canonical output URI before importer resolution", async () => {
     const { config, events } = fixture();
@@ -233,6 +233,6 @@ describe("Gnumeric conversion lifecycle source order", () => {
     await engine.merge({ destination: request.destination, inputs: [request.input, request.input],
       updateExpressions: ["bad"], goalSeek: [{ target: range, variable: range, value: 2 }],
       solve: true, analysis: { tool: "original", properties: [] }, recalc: true }, operation());
-    expect(events).toEqual(["options", "read", "load", "read", "load", "goal", "solve", "tool", "recalc", "recalc", "save", "publish"]);
+    expect(events).toEqual(["options", "read", "load", "recalc", "read", "load", "recalc", "goal", "solve", "tool", "recalc", "recalc", "save", "publish"]);
   });
 });

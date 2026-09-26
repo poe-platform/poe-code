@@ -135,11 +135,11 @@ describe("native ordered cell updates and calculation", () => {
       const engine = createEngine({ ...f.config, codecs: [{ ...f.config.codecs[0]!,
         async exportOptions() { stages.push("options"); return []; }
       }], resize: { async resizeSheet(book) { stages.push("resize"); return book; } },
-      formulas: { async recalculate(book, _context, options) { stages.push(options?.force ? "force" : "dirty"); return book; } } });
+      formulas: { async recalculate(book, _context, options) { stages.push(options?.ignoreCalculationMode ? "load" : options?.force ? "force" : "dirty"); return book; } } });
       await engine.convert({ input: { kind: "resource", uri: "/input.fixture" },
         destination: { kind: "resource", uri: "/output.fixture" }, exportType: "fixture",
         updateExpressions: ["A1=8"], resize: { rows: 128, columns: 128 }, recalc: true }, f.operation);
-      expect(stages).toEqual(mode === "automatic" ? ["dirty", "options", "resize", "resize", "force", "dirty"] : ["options", "resize", "resize", "force"]);
+      expect(stages).toEqual(mode === "automatic" ? ["load", "dirty", "options", "resize", "resize", "force", "dirty"] : ["load", "options", "resize", "resize", "force"]);
       await engine.dispose();
     }
   });

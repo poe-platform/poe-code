@@ -1,5 +1,4 @@
-import { SsconvertError, type CapabilityContext, type EngineConfig } from "../contracts.js";
-import { recalculateWithDiagnostics } from "../formulas/diagnostics.js";
+import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { Codec } from "../codecs.js";
 import type { CellRange, Sheet, Workbook } from "../workbook.js";
 import { writeClipboardGnumeric, clipboardStyleRecords } from "../codecs/gnumeric.js";
@@ -18,19 +17,6 @@ const tableTargets: Readonly<Record<string, string>> = {
   _CITRIX_Biff8: "Gnumeric_Excel:excel_biff8",
   'application/x-openoffice-biff-8;windows_formatname="Biff8"': "Gnumeric_Excel:excel_biff8"
 };
-
-/** Native workbook loading settles queued formulas before apply_updates. */
-export async function prepareClipboardImport(book: Workbook, config: Pick<EngineConfig, "formulas">,
-  context: CapabilityContext): Promise<Workbook> {
-  const dirty = book.sheets.some(sheet => sheet.cells.some(cell => { context.signal.throwIfAborted(); return cell.formulaDirty; }));
-  if (!dirty) return book;
-  const loading = { ...book, calculationMode: "automatic" as const };
-  const result = config.formulas ? await config.formulas.recalculate(loading, context, { force: false }) :
-    await recalculateWithDiagnostics(loading, context);
-  const { calculationMode, ...calculated } = result;
-  void calculationMode;
-  return { ...calculated, ...(book.calculationMode === undefined ? {} : { calculationMode: book.calculationMode }) };
-}
 
 /** Serializes the testing selection; never acquires a desktop clipboard. */
 export async function serializeClipboard(book: Workbook, target: string, range: CellRange,

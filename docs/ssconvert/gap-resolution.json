@@ -619,7 +619,12 @@
         ],
         "status": "Multiplicity mismatch: native has two warning occurrences, current public surfaces one. SDK diagnostic message matches; CLI omits native GLib process/time decoration. Track #2248; isolate loading versus forced recalculation before changing behavior."
       },
-      "remaining": "Diagnostic multiplicity #2248, full plugin lifecycle/environment behavior, custom Python object/reference services, packed/installed consumers and containing publication remain open. This is CSV result qualification, not complete profile parity; no broad family is closed."
+      "remaining": "Full plugin lifecycle/environment behavior, custom Python object/reference services, packed/installed consumers and containing publication remain open. The prior diagnostic mismatch is retained above as historical evidence; current load-stage qualification is recorded separately. No broad family is closed.",
+      "loadRecalculation": {
+        "evidence": "docs/ssconvert/python-loader-diagnostics-native.json",
+        "nativeRun": 36211475728,
+        "result": "Ten native probes establish per-cell warnings during load and again on forced recalculation. The shared load stage now matches native CSV and diagnostic occurrence counts through compiled SDK and Shell. It handles manual-mode dirty cells before updates and leaves raw readWorkbook unchanged; the final automatic stage does not queue clean volatile formulas. Browser/worker Unicode 15.1 output and guards remain qualified after the repair. Remote delivery is tracked separately."
+      }
     }
   },
   "cases": [

@@ -1,5 +1,5 @@
-import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd, createPythonSampleFunctions,
-  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type WorkingDirectoryFileSystem, type PythonUnicodeVersion } from "@poe-code/ssconvert";
+import { createEngine, readXlsx, createXlsxWriter, referenceText, exportOptionPairs, resolveVfsCwd, createPythonSampleFunctions, recalculateWorkbook,
+  type Workbook, type CapabilityContext, type ConversionRequest, type EngineConfig, type WorkingDirectoryFileSystem, type PythonUnicodeVersion, type FormulaCapability } from "@poe-code/ssconvert";
 import { readXlsx as rootReadXlsx, createPythonSampleFunctions as rootPythonFunctions } from "poe-code/ssconvert";
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -13,6 +13,8 @@ if (await resolveVfsCwd("/actual", "/alias", cwdFilesystem, context.signal) !== 
 const original: Workbook = { sheets: [{ id: "s", name: "Consumer", cells: [
   { row: 0, column: 0, value: { kind: "string", value: "Public consumer" } }
 ] }] };
+const formulas: FormulaCapability = { async recalculate(book, context, options) { return recalculateWorkbook(book, context, options); } };
+await formulas.recalculate(original, context, { force: false, ignoreCalculationMode: true, queueVolatile: true });
 const bytes = await createXlsxWriter("2008")(original, [], context);
 const book: Workbook = await readXlsx(bytes, context);
 if (book.sheets[0]?.cells[0]?.value.kind !== "string" || rootReadXlsx !== readXlsx)

@@ -349,6 +349,6 @@ describe("independent ssconvert ownership stress", () => {
         { signal: controller.signal }
       )
     ).rejects.toBe(reason);
-    expect(events).toEqual(["read", "cleanup"]);
+    expect(events).toEqual(["read", "recalc", "cleanup"]);
   });
 });

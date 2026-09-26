@@ -36,7 +36,7 @@ it.each(["UTF8_STRING", "text/plain;charset=utf-8", "STRING", "COMPOUND_TEXT"])(
   expect(f.volume.readFileSync("/output")).toHaveLength(0);
 });
 
-it("uses injected nonforce import calculation and restores manual mode before updates", async () => {
+it("uses explicit nonforce import calculation while preserving manual mode before updates", async () => {
   const calls: unknown[] = [];
   const imported: Workbook = { calculationMode: "manual", sheets: [{ id: "first", name: "First", cells: [{
     row: 0, column: 0, value: { kind: "number", value: 99 }, formula: "=1+1", formulaDirty: true
@@ -48,7 +48,7 @@ it("uses injected nonforce import calculation and restores manual mode before up
   } });
   await f.engine.convert({ input: { kind: "resource", uri: "/input" }, destination: { kind: "resource", uri: "/output" },
     clipboard: "application/x-gnumeric", exportRangeExpression: "A1", updateExpressions: ["A1=7"] }, { signal: new AbortController().signal });
-  expect(calls).toEqual([{ mode: "automatic", options: { force: false } }]);
+  expect(calls).toEqual([{ mode: "manual", options: { force: false, ignoreCalculationMode: true } }]);
   expect(f.volume.readFileSync("/output", "utf8").toString()).toContain('<gnm:Cell Row="0" Col="0" ValueType="40">7</gnm:Cell>');
   expect(imported.calculationMode).toBe("manual");
   expect(imported.sheets[0]?.cells[0]?.formulaDirty).toBe(true);

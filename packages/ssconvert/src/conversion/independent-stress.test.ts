@@ -107,7 +107,7 @@ describe("independent conversion lifecycle stress", () => {
       resizeExpression: "128x256tail", recalc: true, exportRangeExpression: "missing!A1" }, {
       ...operation(), async diagnostic(value) { events.push(value.message); }
     })).rejects.toMatchObject({ message: "Invalid range specified." });
-    expect(events).toEqual(["options", "goal", "solve", 'Ignoring tool test argument "invalid"', "tool",
+    expect(events).toEqual(["recalc", "options", "goal", "solve", 'Ignoring tool test argument "invalid"', "tool",
       "resize:Three", "resize:Two", "Resizing of sheet Two failed", "resize:One", "recalc", "recalc"]);
     expect(volume.readFileSync("/out.csv", "utf8")).toBe("keep");
     expect(volume.readdirSync("/")).toEqual(["in.csv", "out.csv"]);
@@ -195,7 +195,7 @@ describe("independent conversion lifecycle stress", () => {
     await expect(engine.convert({ input: { kind: "resource", uri: "/in.csv" },
       destination: { kind: "resource", uri: "/graph.png" }, graphs: true, exportOptions: ["resolution=0"] }, operation()))
       .rejects.toMatchObject({ message: 'ssconvert: Invalid export option "resolution=0" for image export' });
-    expect(stages).toEqual(["auto"]);
+    expect(stages).toEqual(["auto", "auto"]);
     expect(events).toEqual([]);
     expect(volume.readdirSync("/")).toEqual(["in.csv", "out.csv"]);
   });

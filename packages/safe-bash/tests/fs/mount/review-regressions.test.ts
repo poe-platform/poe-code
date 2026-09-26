@@ -14,30 +14,32 @@ function snapshot(filesystems: readonly FileSystem[]): unknown {
   return filesystems.map((filesystem) => {
     const root: unknown = Reflect.get(filesystem, "root");
     assert.ok(root && typeof root === "object");
-    const state = structuredClone({ root, nextInode: Reflect.get(filesystem, "nextInode") });
-    const pending = [{ source: root, node: state.root }];
-    while (pending.length) {
-      const { source, node } = pending.pop()!;
-      // structuredClone omits prototype fields; retain the live node kind.
+    const copied = new Map<object, object>();
+    const copyNode = (source: object): object => {
+      const existing = copied.get(source);
+      if (existing) return existing;
       const type: unknown = Reflect.get(source, "type");
-      Reflect.set(node, "type", type);
-      if (type !== "directory") continue;
+      const node = { ...source, type };
+      copied.set(source, node);
+      if (type !== "directory") return node;
       // Metadata reads may populate derived link-count caches. Compare every
       // other field, including revisions, timestamps, entries and file bytes.
       Reflect.deleteProperty(node, "cachedNlink");
       Reflect.deleteProperty(node, "cachedNlinkRev");
-      const entries: unknown = Reflect.get(node, "entries");
-      const sourceEntries: unknown = Reflect.get(source, "entries");
-      assert.ok(entries instanceof Map);
-      assert.ok(sourceEntries instanceof Map);
-      for (const [name, child] of entries) {
+      // Normalize the collection protocol before cloning; custom map prototypes
+      // do not survive structuredClone. Preserve every node field and alias.
+      const sourceEntries = Reflect.get(source, "entries") as Map<string, unknown>;
+      assert.equal(typeof sourceEntries?.[Symbol.iterator], "function");
+      const entries = new Map<string, object>();
+      Reflect.set(node, "entries", entries);
+      for (const [name, child] of sourceEntries) {
         assert.ok(child && typeof child === "object");
-        const sourceChild: unknown = sourceEntries.get(name);
-        assert.ok(sourceChild && typeof sourceChild === "object");
-        pending.push({ source: sourceChild, node: child });
+        entries.set(name, copyNode(child));
       }
-    }
-    return state;
+      assert.equal(entries.size, sourceEntries.size);
+      return node;
+    };
+    return structuredClone({ root: copyNode(root), nextInode: Reflect.get(filesystem, "nextInode") });
   });
 }
 

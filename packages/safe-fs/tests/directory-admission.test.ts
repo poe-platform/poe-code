@@ -35,11 +35,13 @@ describe("bounded directory admission", () => {
   it("Memory rejects before entry iteration, while omission retains sorted legacy output", async () => {
     const filesystem = new MemoryFileSystem();
     for (const name of ["c", "a", "b"]) await filesystem.writeFile(`/${name}`, new Uint8Array());
-    const iterate = Map.prototype[Symbol.iterator];
+    const entries = Reflect.get(Reflect.get(filesystem, "root"), "entries") as Map<string, unknown>;
+    expect([...entries.keys()].sort()).toEqual(["a", "b", "c"]);
+    const iterate = entries[Symbol.iterator];
     let visits = 0;
-    vi.spyOn(Map.prototype, Symbol.iterator).mockImplementation(function (this: Map<unknown, unknown>) {
-      if (this.has("a") && this.has("b") && this.has("c")) visits++;
-      return iterate.call(this);
+    vi.spyOn(entries, Symbol.iterator).mockImplementation(() => {
+      visits++;
+      return iterate.call(entries);
     });
     const options: DirectoryOptions = { maxEntries: 2 };
     await expect(filesystem.readdir("/", options)).rejects.toMatchObject({ code: "EFBIG", syscall: "readdir", path: "/" });

@@ -96,27 +96,37 @@ for (const path of paths) {
 }
 
 function countWork(fs: FileSystem) {
-  const maps = new Set<unknown>();
+  const maps = new Set<Map<string, unknown>>();
   const visit = (node: unknown): void => {
     if (typeof node !== "object" || node === null) return;
-    const entries: unknown = Object.getOwnPropertyDescriptor(node, "entries")?.value;
-    if (!(entries instanceof Map) || maps.has(entries)) return;
+    if (Reflect.get(node, "type") !== "directory") return;
+    const entries = Object.getOwnPropertyDescriptor(node, "entries")?.value as Map<string, unknown>;
+    assert.equal(typeof entries?.get, "function");
+    assert.equal(typeof entries.values, "function");
+    if (maps.has(entries)) return;
     maps.add(entries);
     for (const child of entries.values()) visit(child);
   };
   visit(Object.getOwnPropertyDescriptor(fs, "root")?.value);
   assert.ok(maps.size > 0);
   const descriptors = {
-    get: Object.getOwnPropertyDescriptor(Map.prototype, "get"),
     split: Object.getOwnPropertyDescriptor(String.prototype, "split"),
     charCodeAt: Object.getOwnPropertyDescriptor(String.prototype, "charCodeAt"),
   };
   const counts = { lookups: 0, scanned: 0 };
-  const get = Map.prototype.get, split = String.prototype.split, charCodeAt = String.prototype.charCodeAt;
-  Object.defineProperty(Map.prototype, "get", { ...descriptors.get, value: function (this: Map<unknown, unknown>, key: unknown) {
-    if (maps.has(this)) counts.lookups++;
-    return Reflect.apply(get, this, [key]);
-  } });
+  const restores = [...maps].map(entries => {
+    const descriptor = Object.getOwnPropertyDescriptor(entries, "get");
+    const get = entries.get;
+    Object.defineProperty(entries, "get", { configurable: true, value(key: string) {
+      counts.lookups++;
+      return Reflect.apply(get, entries, [key]);
+    } });
+    return () => {
+      if (descriptor) Object.defineProperty(entries, "get", descriptor);
+      else Reflect.deleteProperty(entries, "get");
+    };
+  });
+  const split = String.prototype.split, charCodeAt = String.prototype.charCodeAt;
   Object.defineProperty(String.prototype, "split", { ...descriptors.split, value: function (this: string, separator: unknown, limit?: number) {
     if (separator === "/") counts.scanned += this.length;
     return Reflect.apply(split, this, [separator, limit]);
@@ -126,9 +136,10 @@ function countWork(fs: FileSystem) {
     return Reflect.apply(charCodeAt, this, [offset]);
   } });
   return { counts, restore() {
+    for (const restore of restores) restore();
     for (const [name, descriptor] of Object.entries(descriptors)) {
       assert.ok(descriptor);
-      Object.defineProperty(name === "get" ? Map.prototype : String.prototype, name, descriptor);
+      Object.defineProperty(String.prototype, name, descriptor);
     }
   } };
 }

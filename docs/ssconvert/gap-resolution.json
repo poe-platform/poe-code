@@ -115,10 +115,27 @@
           {
             "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/xeformula.cxx",
             "sha256": "d7da8f81242a4ed1b01c0d5f6a7f3a76f25405be7dee0ac166f53cb6f1c94f0b"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/excform.cxx",
+            "sha256": "813d35f21f88d87e4a4cadbbd632c9c676d7a8744c07db09b56133efc23e6eb3"
           }
         ],
         "finding": "xelink.cxx:2313 XclExpLinkManagerImpl5::FindExtSheet for external files is explicitly unimplemented, as are StoreCell/StoreCellRange (2326/2331) and InsertExtName (2363). This differs from its implemented internal multi-sheet lookup at 2288. xeformula.cxx:2117 ProcessExternalRangeRef delegates external-sheet identity to that implementation. The token-writing branch alone is not evidence of working BIFF5/7 external-range export.",
-        "next": "Keep the product BIFF7 external multi-sheet range gap open. Establish representation against format documentation and an independently authored file; do not infer support from LibreOffice token serialization or remove the current refusal based on that code."
+        "next": "Do not remove the existing multi-sheet export refusal by writing BIFF8 semantics into legacy reserved bytes. Family remains open. A semantics-preserving lowering needs explicit external sheet ordering and a defined policy for each consuming formula; no such source evidence or implementation is claimed.",
+        "import": "excform.cxx:724-735 and 789-804 resolve a positive external-sheet index to one sheet and overwrite first/last with that same sheet. This is not external multi-sheet import support.",
+        "format": {
+          "url": "https://www.openoffice.org/sc/excelfileformat.pdf",
+          "sha256": "af25dee84bd186225a241cafc07ab9f2ea60149f4e2836d3f44a10107949ab4e",
+          "version": "1.42",
+          "sections": [
+            "3.9.15",
+            "3.9.16",
+            "4.10.2"
+          ],
+          "finding": "BIFF5 external tRef3d/tArea3d uses a positive one-based EXTERNSHEET index for a workbook URL plus one sheet. The following 12 bytes are unused. First/last physical-sheet fields apply to negative internal 3D links only. Page 101 visually inspected."
+        },
+        "independentReader": "SheetJS @e965/xlsx 0.20.3 xlsx.mjs:13265-13272 and 13392-13396 skip the 12 BIFF5 external token bytes; get_ixti_raw at 13882-13885 resolves the single legacy EXTERNSHEET entry. It cannot qualify a multi-sheet encoding in those unused fields."
       }
     },
     "biffDetachedSheets": {

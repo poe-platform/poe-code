@@ -80,6 +80,36 @@ export function instrumentRootState(source) {
         && initializer.arguments?.length === 4
         && ["cwd", "variables", "exported"].every((name, index) =>
           ts.isIdentifier(initializer.arguments[index]) && initializer.arguments[index].text === name);
+      const assignment = (statement, name) => {
+        if (!ts.isExpressionStatement(statement)) return undefined;
+        const expression = statement.expression;
+        return ts.isBinaryExpression(expression) && expression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+          && ts.isIdentifier(expression.left) && expression.left.text === name ? expression.right : undefined;
+      };
+      const isName = (node, name) => node && ts.isIdentifier(node) && node.text === name;
+      const isWarmProperty = (node, name) => node && ts.isPropertyAccessExpression(node)
+        && !node.questionDotToken && isName(node.expression, "warm") && node.name.text === name;
+      const branchedRoot = (statements, index) => {
+        const declaration = statements[index];
+        if (!ts.isVariableStatement(declaration)
+          || (declaration.declarationList.flags & ts.NodeFlags.BlockScoped) !== ts.NodeFlags.Let
+          || declaration.declarationList.declarations.length !== 1) return undefined;
+        const binding = declaration.declarationList.declarations[0];
+        if (!isName(binding.name, "currentState") || binding.initializer) return undefined;
+        const branch = statements[index + 1];
+        if (!branch || !ts.isIfStatement(branch) || !isName(branch.expression, "warm")
+          || !ts.isBlock(branch.thenStatement) || !branch.elseStatement || !ts.isBlock(branch.elseStatement)) return undefined;
+        const warm = branch.thenStatement.statements;
+        if (warm.length !== 2 || !isWarmProperty(assignment(warm[0], "currentState"), "currentState")
+          || !isWarmProperty(assignment(warm[1], "runtime"), "runtime")) return undefined;
+        const cold = branch.elseStatement.statements;
+        const constructors = cold.flatMap((statement, position) =>
+          isConstructedRoot(assignment(statement, "currentState")) ? [position] : []);
+        if (constructors.length !== 1) return undefined;
+        const constructed = constructors[0];
+        if (!cold[constructed + 1] || !isName(assignment(cold[constructed + 1], "state"), "currentState")) return undefined;
+        return { index, branch, constructed };
+      };
       const rootStateBinding = (statement) => {
         if (ts.isVariableStatement(statement)) {
           const declarations = statement.declarationList.declarations;
@@ -96,9 +126,38 @@ export function instrumentRootState(source) {
           && ts.isIdentifier(expression.left) && expression.left.text === "state" && hasCwd(expression.right)
           ? "state" : undefined;
       };
+      const branches = new Map();
+      const admissionMethods = new Set();
       const visitBody = (node) => {
         if (ts.isFunctionLike(node) || ts.isClassLike(node)) return node;
         if (ts.isBlock(node)) {
+          const split = branches.get(node);
+          if (split) {
+            adapted++;
+            const { index, branch, constructed } = split;
+            const { notify, observe } = observation("currentState");
+            const warm = branch.thenStatement;
+            const cold = branch.elseStatement;
+            const observedBranch = factory.updateIfStatement(branch, branch.expression,
+              factory.updateBlock(warm, [warm.statements[0], ...observe, ...warm.statements.slice(1)]),
+              factory.updateBlock(cold, [
+                ...cold.statements.slice(0, constructed + 1),
+                ...observation("currentState").observe,
+                ...cold.statements.slice(constructed + 1)
+              ]));
+            // Both root selections must share the finally after command execution.
+            return factory.updateBlock(node, [
+              ...node.statements.slice(0, index + 1),
+              factory.createTryStatement(factory.createBlock([
+                observedBranch, ...node.statements.slice(index + 2)
+              ], true), undefined, factory.createBlock([
+                factory.createIfStatement(factory.createBinaryExpression(
+                  factory.createIdentifier("currentState"), ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                  factory.createIdentifier("undefined")
+                ), notify)
+              ], true))
+            ]);
+          }
           const index = node.statements.findIndex(statement => rootStateBinding(statement) !== undefined);
           if (index >= 0) {
             adapted++;
@@ -131,13 +190,38 @@ export function instrumentRootState(source) {
             && !statement.declarationList.declarations[0].initializer);
           assignedRootBinding = bindings.length === 1;
           let candidates = 0;
+          let splitBindings = 0;
+          let assignedConstructors = 0;
           const countCandidates = (child) => {
             if (ts.isFunctionLike(child) || ts.isClassLike(child)) return;
             if (rootStateBinding(child) !== undefined) candidates++;
+            if (ts.isVariableDeclaration(child) && isName(child.name, "currentState")
+              && !isConstructedRoot(child.initializer)) splitBindings++;
+            if (ts.isExpressionStatement(child)) {
+              const value = assignment(child, "currentState");
+              if (value && ts.isNewExpression(value) && isName(value.expression, "RootShellState")) assignedConstructors++;
+            }
+            if (ts.isBlock(child)) {
+              child.statements.forEach((_, index) => {
+                const split = branchedRoot(child.statements, index);
+                if (split) { branches.set(child, split); candidates++; }
+              });
+            }
             ts.forEachChild(child, countCandidates);
           };
           countCandidates(node.body);
-          if (candidates !== 1) throw new Error("Pinned shell root-state structure changed; refusing browser adaptation");
+          if (candidates !== 1 || splitBindings !== branches.size || assignedConstructors !== branches.size)
+            throw new Error("Pinned shell root-state structure changed; refusing browser adaptation");
+          if (branches.size) {
+            const methods = node.parent.members.filter(member => ts.isMethodDeclaration(member)
+              && ts.isPrivateIdentifier(member.name) && member.name.text === "#isDefaultExecOptions");
+            const method = methods[0];
+            if (methods.length !== 1 || !isName(method.parameters[0]?.name, "options")
+              || method.body?.statements.length !== 1 || !ts.isReturnStatement(method.body.statements[0])
+              || !method.body.statements[0].expression)
+              throw new Error("Pinned shell root-state structure changed; refusing browser adaptation");
+            admissionMethods.add(method);
+          }
           return factory.updateMethodDeclaration(
             node,
             node.modifiers,
@@ -152,7 +236,25 @@ export function instrumentRootState(source) {
         }
         return ts.visitEachChild(node, visit, context);
       };
-      return (root) => ts.visitNode(root, visit);
+      const visitAdmission = (node) => {
+        if (admissionMethods.has(node)) {
+          const original = node.body.statements[0];
+          const absent = (name) => factory.createBinaryExpression(
+            factory.createPropertyAccessExpression(factory.createIdentifier("options"), name),
+            ts.SyntaxKind.EqualsEqualsEqualsToken, factory.createIdentifier("undefined")
+          );
+          // Observer options must reach #execute instead of the synchronous warm path.
+          const condition = factory.createBinaryExpression(
+            factory.createBinaryExpression(absent("onRootState"), ts.SyntaxKind.AmpersandAmpersandToken, absent("onCwd")),
+            ts.SyntaxKind.AmpersandAmpersandToken, original.expression
+          );
+          return factory.updateMethodDeclaration(node, node.modifiers, node.asteriskToken, node.name,
+            node.questionToken, node.typeParameters, node.parameters, node.type,
+            factory.updateBlock(node.body, [factory.updateReturnStatement(original, condition)]));
+        }
+        return ts.visitEachChild(node, visitAdmission, context);
+      };
+      return (root) => ts.visitNode(ts.visitNode(root, visit), visitAdmission);
     }
   ]);
   try {

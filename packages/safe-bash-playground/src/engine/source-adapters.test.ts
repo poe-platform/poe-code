@@ -158,4 +158,83 @@ describe("pinned browser source adapters", () => {
       'const nested = () => { let currentState = new RootShellState(cwd, variables, exported, extensions); };',
     ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${body} } }`)).toThrow("structure changed");
   });
+
+  const branchedRootSource = `
+    class RootShellState {
+      constructor(cwd, variables, exported, extensions) {
+        Object.assign(this, { cwd, variables, exported, extensions });
+      }
+    }
+    export class Shell {
+      allowsWarm(options) { return this.#isDefaultExecOptions(options); }
+      #isDefaultExecOptions(options) { return options.state === undefined; }
+      run(options, warmed) {
+        const warm = warmed ? { currentState: new RootShellState("/warm", {}, new Set(), { retained: true }), runtime: {} } : undefined;
+        return this.#execute(options, warm);
+      }
+      async #execute(options, warm) {
+        let state = warm?.currentState;
+        let runtime = warm?.runtime;
+        try {
+          let currentState;
+          if (warm) {
+            currentState = warm.currentState;
+            runtime = warm.runtime;
+          } else {
+            const cwd = "/", variables = {}, exported = new Set();
+            if (options.failBefore) throw new Error("before construction");
+            currentState = new RootShellState(cwd, variables, exported, { retained: true });
+            state = currentState;
+            currentState = new Proxy(currentState, {});
+            state = currentState;
+            currentState.cwd = "/restored";
+          }
+          currentState.cwd = "/next";
+          if (options.fail) throw new Error("execution failed");
+          return state;
+        } finally { options.cleaned = true; }
+      }
+    }`;
+
+  it.each([[false, false], [false, true], [true, false], [true, true]])(
+    "observes branched root state after execution: warmed=%s fail=%s", async (warmed, fail) => {
+      const code = instrumentRootState(branchedRootSource);
+      const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+      const roots: unknown[] = [], paths: string[] = [];
+      const options = { fail, cleaned: false, onRootState: (value: unknown) => roots.push(value), onCwd: (value: string) => paths.push(value) };
+      const shell = new Shell();
+      const result = shell.run(options, warmed);
+      if (fail) await expect(result).rejects.toThrow("execution failed");
+      else expect(await result).toMatchObject({ cwd: "/next", extensions: { retained: true } });
+      expect(options.cleaned).toBe(true);
+      expect(roots).toEqual([{ cwd: "/next" }]);
+      expect(Object.isFrozen(roots[0])).toBe(true);
+      expect(paths).toEqual(warmed ? ["/next"] : ["/restored", "/next"]);
+      expect(shell.allowsWarm({})).toBe(true);
+      expect(shell.allowsWarm({ state: {} })).toBe(false);
+      expect(shell.allowsWarm({ onRootState() {} })).toBe(false);
+      expect(shell.allowsWarm({ onCwd() {} })).toBe(false);
+    }
+  );
+
+  it("does not notify for a branched root that failed before construction", async () => {
+    const code = instrumentRootState(branchedRootSource);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    const roots: unknown[] = [];
+    const options = { failBefore: true, cleaned: false, onRootState: (value: unknown) => roots.push(value) };
+    await expect(new Shell().run(options, false)).rejects.toThrow("before construction");
+    expect(options.cleaned).toBe(true);
+    expect(roots).toEqual([]);
+  });
+
+  it("rejects changed warm branches, root bindings, and callback admission", () => {
+    for (const source of [
+      branchedRootSource.replace("let currentState;", "let currentState = other;"),
+      branchedRootSource.replace("currentState = warm.currentState;", "currentState = warm.other;"),
+      branchedRootSource.replace("currentState = new RootShellState(cwd, variables, exported,", "currentState = new RootShellState(cwd, exported, variables,"),
+      branchedRootSource.replace("currentState = new RootShellState(cwd, variables, exported,", "currentState = new OtherState(cwd, variables, exported,"),
+      branchedRootSource.replace("state = currentState;", "state = currentState; const state = { cwd };"),
+      branchedRootSource.replace("#isDefaultExecOptions(options) { return", "#otherExecOptions(options) { return"),
+    ]) expect(() => instrumentRootState(source)).toThrow("structure changed");
+  });
 });

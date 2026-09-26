@@ -394,6 +394,27 @@ describe("real safe-bash browser kernel", () => {
     }
   });
 
+  it("observes root cwd after a prior execution warmed the shell", async () => {
+    const { fs, shell } = await fixture();
+    await fs.mkdir("/home/sub");
+    const roots: unknown[] = [], paths: string[] = [];
+    try {
+      await shell.exec("true");
+      await Promise.resolve();
+      await Promise.resolve();
+      await shell.exec("");
+      const result = await shell.exec("cd sub", {
+        onRootState: (state) => roots.push(state),
+        onCwd: (cwd) => paths.push(cwd)
+      });
+      expect(result.exitCode).toBe(0);
+      expect(roots).toEqual([{ cwd: "/home/sub" }]);
+      expect(paths).toEqual(["/home/sub"]);
+    } finally {
+      await shell.dispose();
+    }
+  });
+
   it("reports the final root cwd exactly once when exit skips later commands", async () => {
     const { fs, shell } = await fixture();
     await fs.mkdir("/home/sub");

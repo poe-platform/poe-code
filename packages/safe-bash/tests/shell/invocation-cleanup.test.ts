@@ -152,7 +152,7 @@ for (const cleanupFails of [false, true]) {
       return { exitCode: 0 };
     } });
     try {
-      await assert.rejects(shell.exec("V=outer; V=inner cancel-prefix", { signal: controller.signal }), error => Object.is(error, 0));
+      await assert.rejects(shell.exec("tracked=(owned); V=outer; V=inner cancel-prefix", { signal: controller.signal }), error => Object.is(error, 0));
       assert.deepEqual(cleanups, [1, 2]);
       assert.deepEqual(observed, [{ value: "outer", rootClosed: false }]);
       assert.equal(rootClosed, true);

@@ -220,6 +220,46 @@ for (const action of ["accept", "cancel", "reject"] as const) {
   });
 }
 
+for (const reason of [false, 0]) {
+  test(`head cancellation ${reason} drains asynchronous borrowed-source cleanup`, { timeout: 2000 }, async context => {
+    const fs = await fixture({ input: "fixture" });
+    let entered!: () => void;
+    let cleaning!: () => void;
+    let release!: () => void;
+    const writing = new Promise<void>(resolve => { entered = resolve; });
+    const cleanupStarted = new Promise<void>(resolve => { cleaning = resolve; });
+    const cleanupReleased = new Promise<void>(resolve => { release = resolve; });
+    const events: string[] = [];
+    fs.readStream = async function* () {
+      try { yield Uint8Array.of(65, 66, 67); }
+      finally {
+        events.push("cleanup");
+        cleaning();
+        await cleanupReleased;
+        events.push("closed");
+      }
+    };
+    const shell = new Shell({ fs }).use(standardCommands());
+    context.after(async () => { release(); await shell.dispose(); });
+    const controller = new AbortController();
+    let settled = false;
+    const execution = shell.exec("head -c -2 /work/input", {
+      signal: controller.signal,
+      stdout: { write() { entered(); return new Promise<void>(() => {}); } },
+    });
+    const outcome = assert.rejects(execution, error => Object.is(error, reason)).finally(() => { settled = true; });
+    await writing;
+    controller.abort(reason);
+    await Promise.race([cleanupStarted, outcome.then(() => assert.fail("settled before cleanup"))]);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(settled, false);
+    assert.deepEqual(events, ["cleanup"]);
+    release();
+    await outcome;
+    assert.deepEqual(events, ["cleanup", "closed"]);
+  });
+}
+
 test("cat copies binary chunks, preserves missing final newlines and consumes stdin only once", async () => {
   const fs = await fixture({ before: "before\n", after: "after" });
   const result = await run("cat", ["before", "-", "after", "-"], { fs, stdin: chunks(new Uint8Array([0, 255, 10])) });

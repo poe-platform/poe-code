@@ -204,17 +204,50 @@ export function input(context: CommandContext, name = "-"): ByteSource {
       ) {
         return context.fs.readStream(resolvedPath, { signal: context.signal })[Symbol.asyncIterator]();
       }
-      let iterator: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
+      let iterator: (AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined }) | undefined;
+      let closing: Promise<void> | undefined;
+      let finished = false;
+      let readFailure: { reason: unknown } | undefined;
+      const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {
+        if (!finished) {
+          finished = true;
+          try { await iterator?.return?.(); }
+          catch (error) { if (!readFailure || !Object.is(error, readFailure.reason)) throw error; }
+        }
+      });
+      context.registerCleanup?.(close);
       try {
+        context.signal.throwIfAborted();
         iterator = context.fs.readStream(resolvedPath, { signal: context.signal })[Symbol.asyncIterator]();
         if (context.signal.aborted) {
-          void Promise.resolve().then(() => iterator.return?.()).catch(() => {});
+          void close().catch(() => {});
           context.signal.throwIfAborted();
         }
       } catch (error) {
         return fileInputSource(context, name, { [Symbol.asyncIterator]: () => ({ async next() { throw error; } }) });
       }
-      const source = { [Symbol.asyncIterator]: () => iterator };
+      const source = { [Symbol.asyncIterator]: () => ({
+        tryNextSync() {
+          if (finished || closing) return { done: true as const, value: undefined };
+          try {
+            const result = iterator!.tryNextSync?.();
+            if (result?.done) finished = true;
+            return result;
+          } catch (reason) { readFailure = { reason }; throw reason; }
+        },
+        async next() {
+          if (finished || closing) return { done: true as const, value: undefined };
+          try {
+            const result = await iterator!.next();
+            if (result.done) finished = true;
+            return result;
+          } catch (reason) { readFailure = { reason }; throw reason; }
+        },
+        async return() {
+          await close();
+          return { done: true as const, value: undefined };
+        },
+      }) };
       const reader = readBytes(source, context.signal) as AsyncGenerator<Uint8Array> & { tryNextSync(): IteratorResult<Uint8Array> | undefined };
       let fallback: AsyncGenerator<Uint8Array> | undefined;
       let emitted = false;

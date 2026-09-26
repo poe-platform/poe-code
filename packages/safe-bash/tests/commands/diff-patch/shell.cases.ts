@@ -6,6 +6,38 @@ import { createDiffPatchCommands, diffPatchCommands } from "../../../src/command
 import { Shell } from "../../../src/shell/index.js";
 import { contents, filesystem } from "./helpers.js";
 
+test("shell diff compares /dev/null as an empty input and produces applicable patches", async () => {
+  const fs = await filesystem({ source: "a\nb\n" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(diffPatchCommands());
+  try {
+    const added = await shell.exec("diff -u /dev/null source");
+    assert.equal(added.exitCode, 1, added.stderr);
+    assert.equal(added.stderr, "");
+    assert.equal(added.stdout, "--- /dev/null\n+++ source\n@@ -0,0 +1,2 @@\n+a\n+b\n");
+    const removed = await shell.exec("diff -u source /dev/null");
+    assert.equal(removed.exitCode, 1, removed.stderr);
+    assert.equal(removed.stderr, "");
+    assert.equal(removed.stdout, "--- source\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-a\n-b\n");
+    const applied = await shell.exec("patch", { stdin: removed.stdout });
+    assert.equal(applied.exitCode, 0, applied.stderr);
+    await assert.rejects(fs.stat("/work/source"), { code: "ENOENT" });
+    const restored = await shell.exec("patch", { stdin: added.stdout });
+    assert.equal(restored.exitCode, 0, restored.stderr);
+    assert.equal(await contents(fs, "source"), "a\nb\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const input of ["/dev/stdin", "/dev/fd/0"]) test(`shell diff reads ${input} until EOF`, async () => {
+  const fs = await filesystem({ source: "a\nb\n" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(diffPatchCommands());
+  try {
+    const result = await shell.exec(`diff -u ${input} source`, { stdin: "a\nb\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
 test("shell diff accepts identical NUL-containing files", async () => {
   const fs = await filesystem({ input: Buffer.from("a\0b"), copy: Buffer.from("a\0b") });
   const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(diffPatchCommands());

@@ -3,6 +3,57 @@ import { test } from "node:test";
 import type { FileSystem } from "../../../src/contracts/index.js";
 import { filesystem, run } from "./helpers.js";
 
+for (const type of ["character", "fifo"] as const) test(`diff reads a top-level ${type} input without relying on stat size`, async () => {
+  const fs = await filesystem({ stream: "a\nb\n", file: "a\nb\n" });
+  const view = new Proxy(fs, { get(target, key) {
+    if (key === "stat" || key === "lstat") return async (...args: Parameters<FileSystem["stat"]>) => {
+      const stat = await target[key](...args);
+      return args[0] === "/work/stream" ? { ...stat, type, size: 0 } : stat;
+    };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  for (const args of [["stream", "file"], ["file", "stream"]]) {
+    const result = await run("diff", ["-u", ...args], { fs: view });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+  }
+  const limited = await run("diff", ["-u", "stream", "file"], { fs: view, options: { maxInputBytes: 3 } });
+  assert.equal(limited.exitCode, 2);
+  assert.equal(limited.stdout, "");
+  assert.equal(limited.stderr, "diff: EFBIG: output exceeds maxBytes, collectBytes\n");
+});
+
+test("recursive diff reports character special files without reading them", async () => {
+  const fs = await filesystem({ "left/file": "", "right/file": "content\n" });
+  const view = new Proxy(fs, { get(target, key) {
+    if (key === "stat" || key === "lstat") return async (...args: Parameters<FileSystem["stat"]>) => {
+      const stat = await target[key](...args);
+      return args[0] === "/work/left/file" ? { ...stat, type: "character" as const } : stat;
+    };
+    if (key === "readStream") return () => { throw new Error("Must not read a nested device"); };
+    const value = Reflect.get(target, key, target);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await run("diff", ["-r", "left", "right"], { fs: view });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stdout, "File left/file is a character special file while file right/file is a regular file\n");
+  assert.equal(result.stderr, "");
+});
+
+test("diff no-dereference preserves symbolic-link comparison for stdin aliases", async () => {
+  const fs = await filesystem({ file: "same\n" });
+  await fs.mkdir("/dev/fd", { recursive: true });
+  for (const path of ["/dev/stdin", "/dev/fd/0"]) {
+    await fs.symlink("/work/file", path);
+    const result = await run("diff", ["--no-dereference", path, "file"], { fs, input: "same\n" });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, `File ${path} is a symbolic link while file file is a regular file\n`);
+    assert.equal(result.stderr, "");
+  }
+});
+
 for (const acquisition of [false, true]) test(`diff pins input across ancestor swap during ${acquisition ? "acquisition" : "pathname read"}`, async () => {
   const fs = await filesystem({ "left/sub/a": "same\n", "right/sub/a": "same\n", "private/a": "SECRET_ORIGIN_KEY\n" });
   const swap = async () => {

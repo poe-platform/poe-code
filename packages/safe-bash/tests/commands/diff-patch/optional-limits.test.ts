@@ -16,6 +16,9 @@ function context(): CommandContext {
 test("diff/patch omitted quotas are unlimited and explicit settings are independent", () => {
   const budget = new Budget(context(), { maxFiles: 1 });
   for (const [key, value] of Object.entries(budget.limits)) assert.equal(value, key === "maxFiles" ? 1 : Infinity, key);
+  for (const key of Object.keys(budget.limits)) {
+    assert.equal(new Budget(context(), { [key]: Infinity }).limits[key as keyof typeof budget.limits], Infinity);
+  }
   assert.throws(() => new Budget(context(), { maxInputBytes: 0 }));
   budget.file();
   assert.throws(() => budget.file(), /file\/entry limit exceeded/);

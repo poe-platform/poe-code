@@ -39,8 +39,11 @@ and the source entry point was exercised directly through `Shell.use`.
 
 ## Supported diff subset
 
-- Two file/directory operands, with `-` for stdin; two `-` operands share one
-  captured input. A file versus directory compares the file's basename inside
+- Two file/directory operands, with `-`, `/dev/stdin`, or `/dev/fd/0` for stdin;
+  repeated stdin operands share one captured input. Top-level readable character
+  and FIFO devices are stream inputs read to EOF; `/dev/null` produces applicable
+  creation/deletion patches with `-u`. Regular files retain identity-checked reads.
+  A file versus directory compares the file's basename inside
   the directory. `--from-file=FILE` and `--to-file=FILE` compare each operand
   against the selected file or directory, in operand order. `--` terminates options.
 - Normal output is the default (`--normal`); unified output is selected by
@@ -403,7 +406,7 @@ participates in cancellation checkpoints. Exclusion limits are checked before
 patterns are compiled; exceeding a limit returns exit 2 without partial stdout.
 
 Omitted limits are unlimited. Each explicit setting is independent and must be
-a positive safe integer. Diagnostic messages have a separate
+a positive safe integer or `Infinity`. Diagnostic messages have a separate
 fixed bound below 4096 bytes, even when an invalid argument is very large.
 Mixed patch formats share one invocation's file, hunk, line, and work budgets;
 normal/context conversion also shares a cumulative byte cap of

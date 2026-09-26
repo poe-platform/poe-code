@@ -52,7 +52,7 @@ export class Budget {
       maxExcludePatternBytes: options.maxExcludePatternBytes ?? Infinity,
     };
     for (const [name, value] of Object.entries(options).filter(([name]) => name !== "replace")) {
-      if (value !== undefined && (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1)) throw new ToolError(`${name} must be a positive safe integer`);
+      if (value !== undefined && value !== Infinity && (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1)) throw new ToolError(`${name} must be a positive safe integer or Infinity`);
     }
   }
   step(amount = 1): void {

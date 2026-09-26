@@ -156,14 +156,16 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const pair = pending.pop()!;
     let left = pair.left;
     let right = pair.right;
-    let leftStat = pair.leftEntry === false ? undefined : left === "-" ? { type: "file" as const } : await inspectOperand(left);
-    let rightStat = pair.rightEntry === false ? undefined : right === "-" ? { type: "file" as const } : await inspectOperand(right);
+    const isStdin = (path: string) => path === "-" || !options.noDereference
+      && (pathOf(context, path) === "/dev/stdin" || pathOf(context, path) === "/dev/fd/0");
+    let leftStat = pair.leftEntry === false ? undefined : isStdin(left) ? { type: "file" as const } : await inspectOperand(left);
+    let rightStat = pair.rightEntry === false ? undefined : isStdin(right) ? { type: "file" as const } : await inspectOperand(right);
     if (inspectionFailed) continue;
     if (options.format === "ifdef" && (leftStat?.type === "directory" || rightStat?.type === "directory")) {
       throw new ToolError("-D option not supported with directories");
     }
     if (!pair.nested && leftStat && rightStat && (leftStat.type === "directory") !== (rightStat.type === "directory")) {
-      if (left === "-" || right === "-") throw new ToolError("cannot compare stdin with a directory");
+      if (isStdin(left) || isStdin(right)) throw new ToolError("cannot compare stdin with a directory");
       if (leftStat.type === "directory") { left = childPath(left, basename(right)); leftStat = await inspectOperand(left); }
       else { right = childPath(right, basename(left)); rightStat = await inspectOperand(right); }
       if (inspectionFailed) continue;
@@ -186,9 +188,13 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       different = true;
       continue;
     }
-    if (leftStat && rightStat && leftStat.type !== rightStat.type) {
+    const streamType = (type: string) => type === "character" || type === "fifo";
+    const comparable = (type: string) => type === "file" || streamType(type);
+    if (leftStat && rightStat && leftStat.type !== rightStat.type
+      && (pair.nested || !comparable(leftStat.type) || !comparable(rightStat.type))) {
       const typeName = (stat: { type: string; size?: number }) => stat.type === "symlink" ? "symbolic link"
-        : stat.type === "file" ? stat.size === 0 ? "regular empty file" : "regular file" : stat.type;
+        : stat.type === "file" ? stat.size === 0 ? "regular empty file" : "regular file"
+        : stat.type === "character" ? "character special file" : stat.type;
       append(`File ${left} is a ${typeName(leftStat)} while file ${right} is a ${typeName(rightStat)}\n`);
       different = true;
       continue;
@@ -274,13 +280,14 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       }
       continue;
     }
-    const read = async (path: string, exists: boolean) => {
-      if (!exists) return "";
-      if (path === "-") return stdin ??= await budget.read("-", "latin1");
+    const read = async (path: string, stat: { type: string } | undefined) => {
+      if (!stat) return "";
+      if (isStdin(path)) return stdin ??= await budget.read("-", "latin1");
+      if (!pair.nested && streamType(stat.type)) return budget.read(pathOf(context, path), "latin1");
       return budget.readDiff(pathOf(context, path), "latin1");
     };
-    const oldBytes = await read(left, !!leftStat);
-    const newBytes = await read(right, !!rightStat);
+    const oldBytes = await read(left, leftStat);
+    const newBytes = await read(right, rightStat);
     const label = (name: string) => encoding === "latin1" ? Buffer.from(name).toString("latin1") : name;
     const reportSame = () => { if (options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
     // Detect binary data before decoding; invalid UTF-8 without NUL is byte text.

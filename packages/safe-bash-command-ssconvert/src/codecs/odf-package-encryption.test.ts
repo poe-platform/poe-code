@@ -63,7 +63,7 @@ it.each([
   ["unsupported KDF", declaration().replace('manifest:argon2id', 'manifest:argon2i'), "unsupported-feature"],
   ["foreign parameters", declaration().replace('xmlns:loext:1.0', 'xmlns:foreign:1.0'), "io"]
 ])("admits %s before requesting a password", async (_name, manifest, code) => {
-  const read = vi.fn(async () => packageVectors[0].password);
+  const read = vi.fn(async () => { throw new Error("Unexpected password acquisition before admission"); });
   await expect(readOdf(await fixture(manifest), { ...context,
     limits: { ...context.limits, workbookWork: 1000000, encryptionMemoryBytes: 65536 },
     password: { read } })).rejects.toMatchObject({ code });

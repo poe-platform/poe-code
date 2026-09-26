@@ -20,7 +20,7 @@ function isSyncResolved(promise: unknown): boolean {
   return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
 
-const sharedTrOutBuffer = new Uint8Array(64 * 1024);
+let sharedTrOutBuffer = new Uint8Array(64 * 1024);
 let sharedTrOutInUse = false;
 interface TrCompiledConfig {
   readonly deleting: boolean;
@@ -125,6 +125,11 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
       : undefined;
     const canWriteSync = typeof syncSink?.writeSync === "function";
     const canWriteRangeSync = typeof syncSink?.writeRangeSync === "function";
+    const rejectOutput = async (error: unknown): Promise<never> => {
+      if (typeof iter.syncReturn === "function") iter.syncReturn();
+      else await iter.return?.();
+      throw error;
+    };
     let done = false;
     try {
       while (true) {
@@ -148,7 +153,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
             if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
               const p = output(context, slice);
               if (!isSyncResolved(p)) {
-                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
+                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink, rejectOutput);
               }
             }
           }
@@ -164,7 +169,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
                   done = true;
                   return prefixFinishAfterPending(p, iter);
                 }
-                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
+                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink, rejectOutput);
               }
             }
           }
@@ -179,7 +184,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
         }
       }
     } catch (err) {
-      if (!done && typeof iter.syncReturn === "function") iter.syncReturn();
+      if (!done) return rejectOutput(err);
       throw err;
     }
   }
@@ -208,8 +213,9 @@ function prefixWaitThenContinue(
   delimiter: number,
   canWriteSync: boolean,
   syncSink: { writeSync?: (chunk: Uint8Array) => boolean } | undefined,
+  rejectOutput: (error: unknown) => Promise<never>,
 ): Promise<void> {
-  return p.then(() => prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink));
+  return p.then(() => prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink), rejectOutput);
 }
 function finishHeadTailPromise(context: CommandContext, p: Promise<void>): Promise<{ exitCode: number }> {
   return p.then(
@@ -228,8 +234,9 @@ function executeTrAfterPending(
   squeezingTable: Uint8Array,
   initialPrevious: number,
   alreadyOwnsShared: boolean,
+  rejectOutput: (error: unknown) => Promise<never>,
 ): Promise<{ exitCode: number }> {
-  return p.then(() => executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezingTable, initialPrevious, alreadyOwnsShared));
+  return p.then(() => executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezingTable, initialPrevious, alreadyOwnsShared), rejectOutput);
 }
 async function prefixContinueAsync(
   context: CommandContext,
@@ -830,6 +837,14 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
       if (canTrySync && !sharedTrOutInUse) {
         sharedTrOutInUse = true;
         let released = false;
+        const rejectOutput = async (error: unknown): Promise<never> => {
+          // Cancellation can settle output before the sink releases its borrow.
+          sharedTrOutBuffer = new Uint8Array(sharedTrOutBuffer.length);
+          sharedTrOutInUse = false;
+          if (typeof iter.syncReturn === "function") iter.syncReturn();
+          else await iter.return?.();
+          throw error;
+        };
         try {
           while (true) {
             const step = iter.tryNextSync!();
@@ -850,7 +865,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
               const p = useShared ? outputRange(context, buf, chunk.length) : output(context, buf);
               if (!isSyncResolved(p)) {
                 released = true;
-                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
+                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true, rejectOutput);
               }
               continue;
             }
@@ -867,13 +882,13 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
               const p = outputRange(context, buf, count);
               if (!isSyncResolved(p)) {
                 released = true;
-                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
+                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true, rejectOutput);
               }
             }
           }
         } catch (err) {
-          if (typeof iter.syncReturn === "function") iter.syncReturn();
-          throw err;
+          released = true;
+          return rejectOutput(err);
         } finally {
           if (!released) sharedTrOutInUse = false;
         }
@@ -929,6 +944,9 @@ async function executeTrAsync(
             if (!isSyncResolved(p)) await p;
           }
         }
+      } catch (error) {
+        if (ownsShared) sharedTrOutBuffer = new Uint8Array(sharedTrOutBuffer.length);
+        throw error;
       } finally {
         if (ownsShared) sharedTrOutInUse = false;
         if (!done) {

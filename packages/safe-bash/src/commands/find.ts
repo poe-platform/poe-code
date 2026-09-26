@@ -52,7 +52,7 @@ function getCachedFindPattern(pattern: string, caseInsensitive: boolean): ((text
   }
   return fn;
 }
-const sharedFindPrintBuf = new Uint8Array(8192);
+let sharedFindPrintBuf = new Uint8Array(8192);
 function writeUtf8(buf: Uint8Array, pos: number, s: string): number {
   const len = s.length;
   for (let i = 0; i < len; i++) {
@@ -215,9 +215,20 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
                       sharedFindPrintBufInUse = false;
                       return RESOLVED_EXIT_ZERO;
                     }
-                    return p.then(finishFindPrintBufAsync);
+                    return p.then(finishFindPrintBufAsync, error => {
+                      // A cancelled write may leave the sink borrowing the old buffer.
+                      sharedFindPrintBuf = new Uint8Array(sharedFindPrintBuf.length);
+                      sharedFindPrintBufInUse = false;
+                      throw error;
+                    });
                   }
                   sharedFindPrintBufInUse = false;
+                } catch (error) {
+                  if (sharedFindPrintBufInUse) {
+                    sharedFindPrintBuf = new Uint8Array(sharedFindPrintBuf.length);
+                    sharedFindPrintBufInUse = false;
+                  }
+                  throw error;
                 } finally {
                   findKeyScratch.fill("", keyBase, keyEnd);
                   findKeyScratchTop = keyBase;

@@ -2,7 +2,101 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { agentCommands, FsError, Shell, ShellLimitError, standardCommands, type ByteSource, type FileSystem, type WriteFileOptions } from "../../src/index.js";
 import { streamCommands } from "../../src/commands/streams.js";
+import { findCommands } from "../../src/commands/find.js";
+import { registerRuntimeBackingFileSystem } from "../../src/fs/creation-mask.js";
 import { chunks, fixture, run } from "./helpers.js";
+
+for (const [command, args] of [
+  ["tr", ["a", "b"]], ["tr", ["-s", "a", "b"]],
+  ["head", ["-n", "10"]], ["head", ["-n", "1"]], ["tail", ["-c", "+2"]],
+] as const) {
+  for (const syncClose of [true, false]) {
+    for (const failure of ["reject", "throw", "abort"] as const) {
+      test(`${command} ${args.join(" ")} closes input after ${failure} output (${syncClose ? "sync" : "async"} return)`, async () => {
+        let closed = 0;
+        let reads = 0;
+        const controller = new AbortController();
+        const signal = controller.signal;
+        const iter = {
+          tryNextSync() { reads++; return { done: false as const, value: Buffer.from("aaa\n") }; },
+          async next() { return this.tryNextSync(); },
+          async return() { closed++; return { done: true as const, value: undefined }; },
+          ...(syncClose ? { syncReturn() { closed++; } } : {}),
+        };
+        const stdin = { abortSignal: signal, [Symbol.asyncIterator]: () => iter };
+        const execution = streamCommands().find(entry => entry.name === command)!.execute({
+          command, args, cwd: "/work", env: {}, fs: await fixture(), signal,
+          stdin,
+          stdout: {
+            ...(failure === "throw" ? { writeSync(): boolean { throw new Error("EPIPE"); } } : {}),
+            write() {
+              if (failure === "abort") { controller.abort(new Error("cancelled")); return new Promise<void>(() => {}); }
+              return Promise.reject(new Error("EPIPE"));
+            },
+          },
+          stderr: { async write() {} },
+        });
+        if (failure === "abort") await assert.rejects(execution, error => error === signal.reason);
+        else assert.equal((await execution).exitCode, 1);
+        assert.equal(reads, 1);
+        assert.equal(closed, 1);
+      });
+    }
+  }
+}
+
+for (const command of ["find", "tr"] as const) {
+  for (const asyncInput of command === "tr" ? [false, true] : [false]) {
+    for (const failure of ["reject", "throw", "abort"] as const) {
+      test(`${command} releases and detaches shared output after ${failure} (${asyncInput ? "async" : "sync"} input)`, async () => {
+        const fs = await fixture({ alpha: "" });
+        if (command === "find") registerRuntimeBackingFileSystem(fs, fs);
+        const controller = new AbortController();
+        const definition = command === "find" ? findCommands(async () => ({ exitCode: 0 }))[0]!
+          : streamCommands().find(entry => entry.name === "tr")!;
+        const context = {
+          command, args: command === "find" ? ["/work", "-name", "*"] : ["a", "b"], cwd: "/work", env: {}, fs,
+          signal: controller.signal,
+          stdin: { [Symbol.asyncIterator]() {
+            let read = false;
+            const next = () => { if (read) return { done: true as const, value: undefined }; read = true; return { done: false as const, value: Buffer.from("aaa") }; };
+            return { ...(asyncInput ? {} : { tryNextSync: next }),
+              next: async () => next(), syncReturn() {} };
+          } },
+          stderr: { async write() {} },
+        };
+        let borrowed: Uint8Array | undefined;
+        const execution = definition.execute({ ...context, stdout: {
+          ...(failure === "throw" ? { writeSync(bytes: Uint8Array): boolean { borrowed = bytes; throw new Error("EPIPE"); } } : {}),
+          write(bytes) {
+            borrowed = bytes;
+            if (failure === "throw") throw new Error("EPIPE");
+            if (failure === "abort") { controller.abort(new Error("cancelled")); return new Promise<void>(() => {}); }
+            return Promise.reject(new Error("EPIPE"));
+          } } });
+        if (failure === "abort") await assert.rejects(execution, error => error === controller.signal.reason);
+        else assert.equal((await execution).exitCode, 1);
+        assert.ok(borrowed);
+        assert.equal(borrowed.buffer.byteLength, command === "find" ? 8192 : 65536, "failure must exercise a shared-buffer write");
+        const before = borrowed.slice();
+        let recovered: Uint8Array | undefined;
+        const stdout = {
+          writeSync(bytes: Uint8Array) { recovered = bytes; return true; },
+          async write(bytes: Uint8Array) { recovered = bytes; },
+        };
+        const second = await definition.execute({ ...context, signal: new AbortController().signal,
+          args: command === "find" ? ["/work", "-name", "alpha"] : ["a", "c"],
+          stdout,
+        });
+        assert.equal(second.exitCode, 0);
+        assert.ok(recovered);
+        assert.equal(recovered.buffer.byteLength, command === "find" ? 8192 : 65536, "subsequent invocation reuses the fast shared buffer");
+        assert.notEqual(recovered.buffer, borrowed.buffer);
+        assert.deepEqual(borrowed, before);
+      });
+    }
+  }
+}
 
 async function observeByteTail(command: "head" | "tail", count: number, sizes: number[], kind: "Buffer" | "Uint8Array", reuse: boolean) {
   const NativeUint8Array = Uint8Array;

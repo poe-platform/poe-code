@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
 import { createSyntheticMp4, mp4Ast, parseMp4 } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
@@ -118,13 +119,13 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", "/clip.mp4"],
       vfs
     );
-    expect(jsonRes.exitCode).toBe(0);
+    assert.equal(jsonRes.exitCode, 0);
     const parsed = JSON.parse(jsonRes.stdout);
-    expect(parsed.streams.length).toBe(2);
-    expect(parsed.streams[0].codec_name).toBe("h264");
-    expect(parsed.streams[0].width).toBe(128);
-    expect(parsed.streams[0].height).toBe(72);
-    expect(parsed.format.tags.title).toBe("Test Clip");
+    assert.equal(parsed.streams.length, 2);
+    assert.equal(parsed.streams[0].codec_name, "h264");
+    assert.equal(parsed.streams[0].width, 128);
+    assert.equal(parsed.streams[0].height, 72);
+    assert.equal(parsed.format.tags.title, "Test Clip");
 
     // Single value extraction (-of default=noprint_wrappers=1:nokey=1 -select_streams v:0 -show_entries stream=width)
     const widthRes = await runCmd(
@@ -142,8 +143,8 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ],
       vfs
     );
-    expect(widthRes.exitCode).toBe(0);
-    expect(widthRes.stdout.trim()).toBe("128");
+    assert.equal(widthRes.exitCode, 0);
+    assert.equal(widthRes.stdout.trim(), "128");
   });
 
   it("merges multiple MP4 videos via -f concat, concat: protocol, and -filter_complex concat", async () => {
@@ -163,9 +164,9 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-f", "concat", "-safe", "0", "-i", "/list.txt", "-c", "copy", "/merged_concat_demuxer.mp4"],
       vfs
     );
-    expect(r1.exitCode).toBe(0);
+    assert.equal(r1.exitCode, 0);
     const doc1 = parseMp4(vfs.store.get("/merged_concat_demuxer.mp4")!);
-    expect(doc1.tracks.find((t) => t.type === "video")?.samples.length).toBe(12);
+    assert.equal(doc1.tracks.find((t) => t.type === "video")?.samples.length, 12);
 
     // 2. concat:/clip1.mp4|/clip2.mp4
     const r2 = await runCmd(
@@ -173,9 +174,9 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-i", "concat:/clip1.mp4|/clip2.mp4", "-c", "copy", "/merged_protocol.mp4"],
       vfs
     );
-    expect(r2.exitCode).toBe(0);
+    assert.equal(r2.exitCode, 0);
     const doc2 = parseMp4(vfs.store.get("/merged_protocol.mp4")!);
-    expect(doc2.tracks.find((t) => t.type === "video")?.samples.length).toBe(12);
+    assert.equal(doc2.tracks.find((t) => t.type === "video")?.samples.length, 12);
 
     // 3. -filter_complex "[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1[v][a]"
     const r3 = await runCmd(
@@ -191,9 +192,9 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ],
       vfs
     );
-    expect(r3.exitCode).toBe(0);
+    assert.equal(r3.exitCode, 0);
     const doc3 = parseMp4(vfs.store.get("/merged_filter.mp4")!);
-    expect(doc3.tracks.find((t) => t.type === "video")?.samples.length).toBe(12);
+    assert.equal(doc3.tracks.find((t) => t.type === "video")?.samples.length, 12);
   });
 
   it("decides supported formats strictly from the registered AST plugins", async () => {
@@ -205,19 +206,19 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
 
     // MP4 -> MP4 succeeds
     const okRes = await runCmd(mp4OnlyFfmpeg, ["-i", "/clip.mp4", "-c", "copy", "/copy.mp4"], vfs);
-    expect(okRes.exitCode).toBe(0);
+    assert.equal(okRes.exitCode, 0);
 
     // MP4 -> MKV fails because mkvAst() is not registered
     const failRes = await runCmd(mp4OnlyFfmpeg, ["-i", "/clip.mp4", "-c", "copy", "/out.mkv"], vfs);
-    expect(failRes.exitCode).toBe(1);
-    expect(failRes.stderr).toContain("format AST not registered");
+    assert.equal(failRes.exitCode, 1);
+    assert.ok((failRes.stderr).includes("format AST not registered"));
 
     // With allMediaAsts(), MP4 -> MKV, TS, AVI, FLV, Y4M, WAV all succeed!
     const fullFfmpeg = createFfmpegCommand({ asts: allMediaAsts() });
     for (const ext of ["mkv", "webm", "ts", "avi", "flv", "y4m", "wav", "gif"]) {
       const res = await runCmd(fullFfmpeg, ["-i", "/clip.mp4", `/out.${ext}`], vfs);
-      expect(res.exitCode).toBe(0);
-      expect(vfs.store.get(`/out.${ext}`)?.byteLength).toBeGreaterThan(10);
+      assert.equal(res.exitCode, 0);
+      assert.ok((vfs.store.get(`/out.${ext}`)?.byteLength ?? 0) > 10);
     }
   });
 
@@ -239,12 +240,12 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ],
       vfs
     );
-    expect(genRes.exitCode).toBe(0);
+    assert.equal(genRes.exitCode, 0);
     const filteredDoc = parseMp4(vfs.store.get("/filtered.mp4")!);
     const vTrack = filteredDoc.tracks.find((t) => t.type === "video")!;
-    expect(vTrack.width).toBe(48);
-    expect(vTrack.height).toBe(32);
-    expect(vTrack.samples.length).toBe(5);
+    assert.equal(vTrack.width, 48);
+    assert.equal(vTrack.height, 32);
+    assert.equal(vTrack.samples.length, 5);
 
     // Extract frames to PNG sequence
     const seqRes = await runCmd(
@@ -252,9 +253,9 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-i", "/filtered.mp4", "/frame_%03d.png"],
       vfs
     );
-    expect(seqRes.exitCode).toBe(0);
-    expect(vfs.store.has("/frame_001.png")).toBe(true);
-    expect(vfs.store.has("/frame_005.png")).toBe(true);
+    assert.equal(seqRes.exitCode, 0);
+    assert.equal(vfs.store.has("/frame_001.png"), true);
+    assert.equal(vfs.store.has("/frame_005.png"), true);
 
     // Re-assemble PNG sequence back to MP4
     const assembleRes = await runCmd(
@@ -262,9 +263,9 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-framerate", "10", "-i", "/frame_%03d.png", "/reassembled.mp4"],
       vfs
     );
-    expect(assembleRes.exitCode).toBe(0);
+    assert.equal(assembleRes.exitCode, 0);
     const reassembledDoc = parseMp4(vfs.store.get("/reassembled.mp4")!);
-    expect(reassembledDoc.tracks[0]?.samples.length).toBe(5);
+    assert.equal(reassembledDoc.tracks[0]?.samples.length, 5);
   });
 
   it("enforces consumer-defined resource limits and opt-in/opt-out feature flags", async () => {
@@ -281,21 +282,21 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
 
     // Stream copy (`-c copy`) does NOT decode frames, so 10-frame clip succeeds even with maxFrames: 4!
     const copyRes = await runCmd(boundedFfmpeg, ["-i", "/clip.mp4", "-c", "copy", "/copied.mp4"], vfs);
-    expect(copyRes.exitCode).toBe(0);
-    expect(capturedStats?.decodedFrames).toBe(0);
+    assert.equal(copyRes.exitCode, 0);
+    assert.equal(capturedStats?.decodedFrames, 0);
 
     // Pixel filter (`-vf negate`) decodes frames and hits maxFrames: 4 limit
     const filterRes = await runCmd(boundedFfmpeg, ["-i", "/clip.mp4", "-vf", "negate", "/neg.mp4"], vfs);
-    expect(filterRes.exitCode).toBe(1);
-    expect(filterRes.stderr).toContain("maxFrames");
+    assert.equal(filterRes.exitCode, 1);
+    assert.ok((filterRes.stderr).includes("maxFrames"));
 
     // Opt-out of videoTranscode (`features: { videoTranscode: false }`)
     const remuxOnlyFfmpeg = createFfmpegCommand({
       features: { videoTranscode: false }
     });
     const optOutRes = await runCmd(remuxOnlyFfmpeg, ["-i", "/clip.mp4", "-vf", "scale=32:32", "/scaled.mp4"], vfs);
-    expect(optOutRes.exitCode).toBe(1);
-    expect(optOutRes.stderr).toContain("disabled by consumer feature configuration");
+    assert.equal(optOutRes.exitCode, 1);
+    assert.ok((optOutRes.stderr).includes("disabled by consumer feature configuration"));
   });
 
   it("supports vstack and stream-selective concat=n=2:v=1:a=0 in -filter_complex and .ffmpeg/.ffprobe properties", async () => {
@@ -309,26 +310,26 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-i", "/c1.mp4", "-i", "/c2.mp4", "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]", "-map", "[v]", "/video_only.mp4"],
       vfs
     );
-    expect(concatRes.exitCode).toBe(0);
+    assert.equal(concatRes.exitCode, 0);
     const probeRes = await runCmd(
       ffprobe,
       ["-v", "quiet", "-print_format", "json", "-show_streams", "/video_only.mp4"],
       vfs
     );
     const parsed = JSON.parse(probeRes.stdout);
-    expect(parsed.streams.length).toBe(1);
-    expect(parsed.streams[0].codec_type).toBe("video");
-    expect(parsed.streams[0].nb_frames).toBe("4");
+    assert.equal(parsed.streams.length, 1);
+    assert.equal(parsed.streams[0].codec_type, "video");
+    assert.equal(parsed.streams[0].nb_frames, "4");
 
     const vstackRes = await runCmd(
       ffmpeg,
       ["-i", "/c1.mp4", "-i", "/c2.mp4", "-filter_complex", "[0:v][1:v]vstack=inputs=2", "/vstacked.mp4"],
       vfs
     );
-    expect(vstackRes.exitCode).toBe(0);
+    assert.equal(vstackRes.exitCode, 0);
     const vstackDoc = parseMp4(vfs.store.get("/vstacked.mp4")!);
-    expect(vstackDoc.tracks[0]!.width).toBe(32);
-    expect(vstackDoc.tracks[0]!.height).toBe(32);
+    assert.equal(vstackDoc.tracks[0]!.width, 32);
+    assert.equal(vstackDoc.tracks[0]!.height, 32);
   });
 
   it("converts .srt/.vtt subtitles, muxes mov_text/S_TEXT, burns drawtext/subtitles, builds tile contact sheets, and resamples WAV (-ar 16000 -ac 1)", async () => {
@@ -339,15 +340,15 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
 
     // 1. .srt -> .vtt
     const r1 = await runCmd(ffmpeg, ["-i", "/s.srt", "/s.vtt"], vfs);
-    expect(r1.exitCode).toBe(0);
-    expect(new TextDecoder().decode(vfs.store.get("/s.vtt")!)).toContain("WEBVTT");
+    assert.equal(r1.exitCode, 0);
+    assert.ok((new TextDecoder().decode(vfs.store.get("/s.vtt")!)).includes("WEBVTT"));
 
     // 2. Mux video + srt -> subbed.mp4 & extract back to .srt
     const r2 = await runCmd(ffmpeg, ["-i", "/v.mp4", "-i", "/s.srt", "-c", "copy", "/subbed.mp4"], vfs);
-    expect(r2.exitCode).toBe(0);
+    assert.equal(r2.exitCode, 0);
     const r2b = await runCmd(ffmpeg, ["-i", "/subbed.mp4", "/out.srt"], vfs);
-    expect(r2b.exitCode).toBe(0);
-    expect(new TextDecoder().decode(vfs.store.get("/out.srt")!)).toContain("00:00:00,100 --> 00:00:00,700");
+    assert.equal(r2b.exitCode, 0);
+    assert.ok((new TextDecoder().decode(vfs.store.get("/out.srt")!)).includes("00:00:00,100 --> 00:00:00,700"));
 
     // 3. drawtext + subtitles + tile=2x2 contact sheet
     const r3 = await runCmd(
@@ -355,17 +356,17 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-i", "/v.mp4", "-vf", "drawtext=text='F%{n}':x=2:y=2:fontsize=8:box=1,subtitles=/s.srt,tile=2x2", "-frames:v", "1", "/sheet.png"],
       vfs
     );
-    expect(r3.exitCode).toBe(0);
+    assert.equal(r3.exitCode, 0);
     const sheetProbe = JSON.parse((await runCmd(ffprobe, ["-v", "quiet", "-print_format", "json", "-show_streams", "/sheet.png"], vfs)).stdout);
-    expect(sheetProbe.streams[0].width).toBe(64);
-    expect(sheetProbe.streams[0].height).toBe(48);
+    assert.equal(sheetProbe.streams[0].width, 64);
+    assert.equal(sheetProbe.streams[0].height, 48);
 
     // 4. Whisper audio resampling (-vn -ar 16000 -ac 1)
     const r4 = await runCmd(ffmpeg, ["-i", "/v.mp4", "-vn", "-ar", "16000", "-ac", "1", "/audio.wav"], vfs);
-    expect(r4.exitCode).toBe(0);
+    assert.equal(r4.exitCode, 0);
     const wavProbe = JSON.parse((await runCmd(ffprobe, ["-v", "quiet", "-print_format", "json", "-show_streams", "/audio.wav"], vfs)).stdout);
-    expect(wavProbe.streams[0].sample_rate).toBe("16000");
-    expect(wavProbe.streams[0].channels).toBe(1);
+    assert.equal(wavProbe.streams[0].sample_rate, "16000");
+    assert.equal(wavProbe.streams[0].channels, 1);
   });
 
   it("segments MP4 into HLS (.m3u8 + .ts) and rejoins back to MP4, probes chapters, and applies xfade/setpts/reverse/atempo", async () => {
@@ -380,22 +381,22 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-i", "/v.mp4", "-c", "copy", "-hls_time", "1", "-hls_segment_filename", "/seg_%03d.ts", "/index.m3u8"],
       vfs
     );
-    expect(hlsRes.exitCode).toBe(0);
-    expect(vfs.store.has("/seg_000.ts")).toBe(true);
-    expect(vfs.store.has("/seg_001.ts")).toBe(true);
+    assert.equal(hlsRes.exitCode, 0);
+    assert.equal(vfs.store.has("/seg_000.ts"), true);
+    assert.equal(vfs.store.has("/seg_001.ts"), true);
 
     const rejoinRes = await runCmd(ffmpeg, ["-i", "/index.m3u8", "-c", "copy", "/rejoined.mp4"], vfs);
-    expect(rejoinRes.exitCode).toBe(0);
+    assert.equal(rejoinRes.exitCode, 0);
     const rejoinDoc = parseMp4(vfs.store.get("/rejoined.mp4")!);
-    expect(rejoinDoc.tracks.find((t) => t.type === "video")!.samples.length).toBe(20);
+    assert.equal(rejoinDoc.tracks.find((t) => t.type === "video")!.samples.length, 20);
 
     // 2. Chapters muxing & ffprobe -show_chapters
     const chMux = await runCmd(ffmpeg, ["-i", "/v.mp4", "-i", "/m.ffmeta", "-c", "copy", "/ch.mp4"], vfs);
-    expect(chMux.exitCode).toBe(0);
+    assert.equal(chMux.exitCode, 0);
     const chProbe = JSON.parse((await runCmd(ffprobe, ["-v", "quiet", "-print_format", "json", "-show_chapters", "/ch.mp4"], vfs)).stdout);
-    expect(chProbe.chapters.length).toBe(2);
-    expect(chProbe.chapters[0].tags.title).toBe("Intro");
-    expect(chProbe.chapters[1].tags.title).toBe("Outro");
+    assert.equal(chProbe.chapters.length, 2);
+    assert.equal(chProbe.chapters[0].tags.title, "Intro");
+    assert.equal(chProbe.chapters[1].tags.title, "Outro");
 
     // 3. xfade + setpts + reverse + atempo
     const xfRes = await runCmd(
@@ -403,8 +404,8 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       ["-i", "/v.mp4", "-i", "/v.mp4", "-filter_complex", "[0:v][1:v]xfade=transition=fade:duration=0.4:offset=1.6", "-vf", "setpts=0.5*PTS,reverse", "-af", "atempo=2.0,areverse", "/xf.mp4"],
       vfs
     );
-    expect(xfRes.exitCode).toBe(0);
+    assert.equal(xfRes.exitCode, 0);
     const xfDoc = parseMp4(vfs.store.get("/xf.mp4")!);
-    expect(xfDoc.tracks.find((t) => t.type === "video")!.samples.length).toBe(36);
+    assert.equal(xfDoc.tracks.find((t) => t.type === "video")!.samples.length, 36);
   });
 });

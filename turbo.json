@@ -277,6 +277,24 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "@poe-code/image-ast#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "@poe-code/mp4-ast#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "safe-bash-command-ffmpeg#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

@@ -15,14 +15,14 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --outfile=dist/index.js --metafile=dist/metafile.json",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
-    "test": "cd ../.. && vitest run packages/mp4-ast",
-    "test:unit": "cd ../.. && vitest run packages/mp4-ast"
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
   },
   "dependencies": {},
   "devDependencies": {

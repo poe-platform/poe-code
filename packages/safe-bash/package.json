@@ -487,6 +487,10 @@
     "./commands/less": {
       "types": "./dist/commands/less/index.d.ts",
       "import": "./dist/commands/less/index.js"
+    },
+    "./commands/ffmpeg": {
+      "types": "./dist/commands/ffmpeg/index.d.ts",
+      "import": "./dist/commands/ffmpeg/index.js"
     }
   },
   "files": [
@@ -619,7 +623,8 @@
     "safe-bash-command-bc": "*",
     "safe-bash-command-sponge": "*",
     "safe-bash-command-fd": "*",
-    "safe-bash-command-less": "*"
+    "safe-bash-command-less": "*",
+    "safe-bash-command-ffmpeg": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -954,6 +959,17 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
           }
+        },
+        "safe-bash-command-ffmpeg": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/mp4-ast": "*",
+            "@poe-code/image-ast": "*",
+            "@poe-code/audio-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
         }
       }
     }

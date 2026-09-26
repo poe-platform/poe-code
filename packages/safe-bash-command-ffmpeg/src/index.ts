@@ -20,7 +20,7 @@ import {
   rotateImage,
   type ImageFormat,
   type RgbaImage
-} from "@poe-code/image-ast";
+} from "@poe-code/image-ast/portable";
 import {
   allMediaAsts,
   cloudflareWorkerLimits,

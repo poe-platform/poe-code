@@ -7,9 +7,16 @@
     "declaration": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "types": ["node"],
-    "lib": ["ES2022", "DOM"]
+    "types": [],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
   },
-  "include": ["src"],
-  "exclude": ["**/*.test.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/*.test.ts"
+  ]
 }

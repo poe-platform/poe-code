@@ -2,6 +2,10 @@
 
 Run shell scripts and command-line tools in your application against an explicit filesystem, without launching a host shell.
 
+Import `ffmpegCommands` from `@poe-platform/safe-bash/commands/ffmpeg` and register
+it with `shell.use(ffmpegCommands())` for in-memory media conversion and probing.
+Pass `cloudflareWorkerLimits()` explicitly to bound media work in Workers.
+
 ## Quickstart
 
 Install in a Node.js 22+ ESM application:

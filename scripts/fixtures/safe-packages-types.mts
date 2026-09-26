@@ -1,4 +1,5 @@
 import "./safe-packages-xmllint-types.mjs";
+import "./safe-packages-ffmpeg-types.mjs";
 import "./safe-packages-fmt-types.mjs";
 import "./safe-packages-unrtf-types.mjs";
 import "./safe-packages-htmlq-types.mjs";

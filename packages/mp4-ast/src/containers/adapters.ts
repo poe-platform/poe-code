@@ -1,4 +1,4 @@
-import { decodeImage, encodeImage, type ImageFormat } from "@poe-code/image-ast";
+import { decodeImage, encodeImage, type ImageFormat } from "@poe-code/image-ast/portable";
 import {
   BinaryReader,
   BinaryWriter,

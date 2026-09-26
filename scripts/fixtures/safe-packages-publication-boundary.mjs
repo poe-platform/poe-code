@@ -1,5 +1,6 @@
 import { verification as privateCommandVerification } from "./safe-packages-private-command.mjs";
 import { verification as yqVerification } from "./safe-packages-yq-browser.mjs";
+import { verifyFfmpeg } from "./safe-packages-ffmpeg.mjs";
 import { Shell, commandRuntimeIdentity } from "@poe-platform/safe-bash";
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 import { createWkhtmltopdfCommand, wkhtmltopdfCommands } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
@@ -7,6 +8,7 @@ import { createWkhtmltopdfCommand, wkhtmltopdfCommands } from "@poe-platform/saf
 async function verifyPublicationBoundary() {
   await privateCommandVerification;
   await yqVerification;
+  await verifyFfmpeg();
   if (createWkhtmltopdfCommand().runtimeIdentity !== commandRuntimeIdentity) {
     throw new Error("Packed renderer command has a foreign contract runtime");
   }

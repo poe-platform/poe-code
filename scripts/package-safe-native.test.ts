@@ -30,6 +30,7 @@ async function fixture() {
     "/repo/packages/safe-fs/dist/node-host.js": 'export { seek } from "./index.js";',
     "/repo/packages/safe-fs/dist/node-host.d.ts": 'export { seek } from "./index.js";',
     "/repo/packages/safe-fs/dist/node-unavailable.d.ts": "export {};",
+    "/repo/packages/safe-fs/dist/node/native-seek-unavailable.js": 'export async function loadBinding() { throw new Error("Native seek is unavailable in Workers"); }',
     "/repo/packages/safe-js/dist/index.js": 'export { core } from "poe-code/safe-fs/core";',
     "/repo/packages/safe-js/dist/index.d.ts": 'export { core } from "poe-code/safe-fs/core";',
     "/repo/packages/safe-bash/dist/index.js": 'export { core } from "poe-code/safe-fs/core";',
@@ -63,7 +64,9 @@ describe("native standalone assets", () => {
     await packageSafeLibraries(setup.options);
     const manifest = JSON.parse(await setup.files.readFile("/output/safe-fs/package.json", "utf8"));
     expect(manifest.imports["#safe-fs-native-seek"]).toEqual({ types: "./dist/safe-fs/native/fs-seek/loader.d.ts",
-      workerd: null, browser: null, default: "./dist/safe-fs/native/fs-seek/loader.mjs" });
+      workerd: "./dist/safe-fs/node/native-seek-unavailable.js", browser: null, default: "./dist/safe-fs/native/fs-seek/loader.mjs" });
+    expect(await setup.files.readFile("/output/safe-fs/dist/safe-fs/node/native-seek-unavailable.js", "utf8"))
+      .toBe(await setup.files.readFile("/repo/packages/safe-fs/dist/node/native-seek-unavailable.js", "utf8"));
     expect(manifest.dependencies).toEqual({});
     expect(await setup.files.readFile("/output/safe-fs/dist/safe-fs/native/fs-seek/linux-x64-glibc.node")).toEqual(Buffer.from(setup.binary));
     for (const name of ["safe-js", "safe-bash"]) {

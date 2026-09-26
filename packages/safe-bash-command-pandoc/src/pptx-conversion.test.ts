@@ -10,6 +10,15 @@ import { SaxesParser } from "saxes";
 import { Volume } from "memfs";
 import { Presentation, Inches, readNotes, createPresentation, addLayout, mutateAnimations, readLayouts, CategoryChartData, addOleObject, mutateTextParagraphs } from "pptx";
 
+vi.mock("../../office-package/src/runtime.js", async importOriginal => {
+  const runtime = await importOriginal<typeof import("../../office-package/src/runtime.js")>();
+  return {
+    ...runtime,
+    yieldEventLoop: async () => {},
+    defaultRuntime: { ...runtime.defaultRuntime, async yieldTurn(signal: AbortSignal) { signal.throwIfAborted(); } },
+  };
+});
+
 // Independent classic ZIP inspector: no engine packaging or XML APIs.
 function inspectZip(bytes: Uint8Array) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -152,8 +161,10 @@ it("treats deeper headings as content and rejects ambiguous automatic heading in
   expect(texts(await deck("# Spring\n\n## Buds\n\n# Summer"))).toEqual([["Spring", "Buds"], ["Summer"]]);
   await expect(deck("# One\n\n## Two", { "pptx-slide-level": { t: "MetaString", c: "auto" } })).rejects.toMatchObject({code: "E_OPTION"});
 });
+let nestedListDeck: Uint8Array;
+beforeAll(async () => { nestedListDeck = await deck("# Trees\n\n- Apple\n  - Red\n  - Green\n- Pear"); });
 it("preserves original nested list structure in the conversion round trip", async () => {
-  const doc = await readDocument({bytes: await deck("# Trees\n\n- Apple\n  - Red\n  - Green\n- Pear")}, {from: "pptx"}, context);
+  const doc = await readDocument({bytes: nestedListDeck}, {from: "pptx"}, context);
   expect(JSON.stringify(doc.blocks)).toContain('"t":"BulletList"');
   expect(JSON.stringify(doc.blocks)).toContain("Green");
   const div = doc.blocks[0]!;
@@ -204,8 +215,11 @@ it.each(["jpg", "png"])("retains original %s bytes and contains the image withou
   expect(JSON.stringify(doc.blocks)).toContain("Image");
 });
 it("resolves presentation relationship order independently for more than nine slides", async () => {
-  const bytes = await deck(Array.from({length: 12}, (_, i) => `# Season ${i + 1}`).join("\n\n"));
-  expect(texts(bytes)).toEqual(Array.from({length: 12}, (_, i) => [`Season ${i + 1}`]));
+  const labels = Array.from({length: 10}, (_, i) => `Season ${i + 1}`);
+  const bytes = await createPresentation({slides: labels.map(text => ({shapes: [{name: "Pandoc slide title", x: 0, y: 0, width: 914400, height: 914400, text}]}))}, ec);
+  expect(texts(bytes)).toEqual(labels.map(label => [label]));
+  const doc = await readDocument({bytes}, {from: "pptx"}, context);
+  expect(doc.blocks.map(block => labels.find(label => JSON.stringify(block).includes(JSON.stringify(label))))).toEqual(labels);
 });
 it("rejects an unsupported two-column reference layout instead of silently projecting it", async () => {
   const reference = (await addLayout(await createPresentation({}, ec), {scope: "layouts", master: "/ppt/slideMasters/slideMaster1.xml", name: "Orchard columns", type: "twoColTx"}, ec)).bytes;
@@ -266,9 +280,10 @@ it("rebuilds reader slide Divs without discarding title-only and empty slides", 
   const doc = await readDocument({bytes: original}, {from: "pptx"}, context);
   expect(texts(await write([...doc.blocks]))).toEqual(texts(original));
 });
+let mixedListDeck: Uint8Array;
+beforeAll(async () => { mixedListDeck = await deck("# Inventory\n\n3. Apple\n   - Red\n   - Green\n4. Pear\n\n   Second paragraph"); });
 it("retains mixed list nesting, numbering starts and continuation paragraphs", async () => {
-  const bytes = await deck("# Inventory\n\n3. Apple\n   - Red\n   - Green\n4. Pear\n\n   Second paragraph");
-  const doc = await readDocument({bytes}, {from: "pptx"}, context);
+  const doc = await readDocument({bytes: mixedListDeck}, {from: "pptx"}, context);
   const slide = doc.blocks[0]!;
   if (slide.t !== "Div") throw new Error("Expected slide");
   const list = slide.c[1].find(b => b.t === "OrderedList");

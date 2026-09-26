@@ -1,8 +1,16 @@
-import {expect, it, vi} from "vitest";
+import {afterAll, beforeAll, expect, it, vi} from "vitest";
 import {PDFDocument, PDFDict, PDFName, PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import {Volume} from "memfs";
 import {convert, writeDocument, createFormatRegistry, createPandocCommand} from "./index.js";
 import type {Document} from "./types.js";
+vi.mock("../../office-package/src/runtime.js", async importOriginal => {
+  const runtime = await importOriginal<typeof import("../../office-package/src/runtime.js")>();
+  return {
+    ...runtime,
+    yieldEventLoop: async () => {},
+    defaultRuntime: { ...runtime.defaultRuntime, async yieldTurn(signal: AbortSignal) { signal.throwIfAborted(); } },
+  };
+});
 const encode = (text: string) => new TextEncoder().encode(text);
 const document: Document = {blocks: [{t: "Header", c: [1, ["owned", [], []], [{t: "Str", c: "Owned heading"}]]}, {t: "Para", c: [{t: "Str", c: "Owned PDF text"}]}], metadata: {title: {t: "MetaString", c: "Café 東京"}, author: {t: "MetaList", c: [{t: "MetaString", c: "Zoë"}, {t: "MetaString", c: "René"}]}}, resources: []};
 it("projects supported metadata and heading outlines through the SDK", async () => {
@@ -48,14 +56,20 @@ const cases: Record<string, string> = {
 it("accounts for every available reader-to-PDF pair", () => {
   expect([...Object.keys(cases), "docx", "epub", "pdf", "pptx", "xlsx"].sort()).toEqual(createFormatRegistry().list("read"));
 });
+let pptxBytes: Uint8Array;
+afterAll(() => vi.restoreAllMocks());
+beforeAll(async () => {
+  const pptx = await writeDocument({...document, blocks: [document.blocks[1]!]}, {to: "pptx"}, {yield: async () => {}});
+  if (pptx.kind !== "binary") throw new Error("PPTX expected");
+  pptxBytes = pptx.bytes;
+});
 it.each([...Object.keys(cases), "epub", "pptx"])("converts representable %s content to mapped PDF text", async from => {
   let bytes: Uint8Array;
   if (from === "epub") {
     const epub = await writeDocument({...document, metadata: {title: {t: "MetaString", c: "Original EPUB"}}}, {to: "epub", yes: true}, {yield: async () => {}});
     if (epub.kind !== "binary") throw new Error("EPUB expected"); bytes = epub.bytes;
   } else if (from === "pptx") {
-    const pptx = await writeDocument({...document, blocks: [document.blocks[1]!]}, {to: "pptx"}, {yield: async () => {}});
-    if (pptx.kind !== "binary") throw new Error("PPTX expected"); bytes = pptx.bytes;
+    bytes = pptxBytes;
   } else bytes = encode(cases[from]!);
 
     const result = await convert([{bytes}], {from, to: "pdf"}, {yield: async () => {}});

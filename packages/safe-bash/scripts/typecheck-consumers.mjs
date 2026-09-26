@@ -80,6 +80,8 @@ export function publicDeclarationEntries(binding) {
 }
 
 export function stageConsumerDependencies(root, temporary, packageRoots) {
+  // Standalone packaging selects direct dependency ranges at repository scope.
+  const repository = resolve(root, "../..");
   const supplied = new Map(packageRoots.map(directory => {
     const manifest = JSON.parse(readFileSync(join(directory, "package.json"), "utf8"));
     return [manifest.name, manifest];
@@ -133,7 +135,7 @@ export function stageConsumerDependencies(root, temporary, packageRoots) {
     for (const [dependency, requested] of Object.entries(manifest.dependencies ?? {})) stage(dependency, requested, source, directory, nextAncestors);
   };
   for (const manifest of supplied.values()) {
-    for (const [name, range] of Object.entries(manifest.dependencies ?? {})) stage(name, range, root, temporary, new Map());
+    for (const [name, range] of Object.entries(manifest.dependencies ?? {})) stage(name, range, repository, temporary, new Map());
   }
   return [...staged.values()].map(({ name, directory, files }) => ({ name, directory, files }));
 }

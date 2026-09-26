@@ -258,6 +258,31 @@ test("standalone consumers receive declared dependency types with their nested v
   assert.ok(f.diagnostics().some(diagnostic => diagnostic.code === 2322), "consumer strictness must still reject an incompatible argument");
 });
 
+for (const [rootVersion, workspaceVersion, accepted] of [
+  ["25.9.4", "22.20.1", true],
+  ["22.20.1", "25.9.4", false],
+] as const) test(`artifact dependencies use the publishing root installation (${rootVersion}, nested ${workspaceVersion})`, t => {
+  const f = dependencyFixture(t);
+  const metadata = JSON.parse(f.memory.readFileSync(join(f.candidate, "package.json"), "utf8") as string);
+  metadata.dependencies["@types/node"] = "^25.2.2";
+  f.memory.writeFileSync(join(f.candidate, "package.json"), JSON.stringify(metadata));
+  f.memory.writeFileSync("/checkout/package.json", JSON.stringify({ name: "poe-code", devDependencies: { "@types/node": "^25.2.2" } }));
+  for (const [origin, version] of [["/checkout", rootVersion], ["/checkout/packages/safe-bash", workspaceVersion]] as const) {
+    const directory = join(origin, "node_modules/@types/node");
+    f.memory.mkdirSync(directory, { recursive: true });
+    f.memory.writeFileSync(join(directory, "package.json"), JSON.stringify({ name: "@types/node", version, types: "index.d.ts" }));
+    f.memory.writeFileSync(join(directory, "index.d.ts"), `export type SelectedVersion = "${version}";`);
+  }
+  if (!accepted) {
+    assert.throws(f.stage, /installed dependency version does not satisfy @types\/node@\^25\.2\.2/);
+    return;
+  }
+  const dependencies = f.stage();
+  const selected = dependencies.find(binding => binding.name === "@types/node")!;
+  assert.equal(f.memory.readFileSync(join(selected.directory, "index.d.ts"), "utf8"), 'export type SelectedVersion = "25.9.4";');
+  assert.equal(selected.files.get("index.d.ts"), hash('export type SelectedVersion = "25.9.4";'));
+});
+
 test("staged dependency declarations and metadata remain authenticated", t => {
   const f = dependencyFixture(t);
   const binding = createBuiltPackageBinding(f.candidate, { includePeer: false });

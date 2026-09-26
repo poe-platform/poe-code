@@ -1,0 +1,12 @@
+{
+  "issue": 2248,
+  "profileId": "gnumeric-1.12.61-optional-python-samples",
+  "scope": "Isolate native Python warning occurrences during initial load and forced recalculation; results remain unqualified until captured.",
+  "inputs": [
+    { "id": "valid", "formulas": ["=PY_BITAND(15,7)"] },
+    { "id": "bitand-error", "formulas": ["=PY_BITAND(-1,3)"] },
+    { "id": "printf-error", "formulas": ["=PY_PRINTF(\"%s\",NA())"] },
+    { "id": "repeated-error", "formulas": ["=PY_BITAND(-1,3)", "=PY_BITAND(-1,3)"] },
+    { "id": "mixed-errors", "formulas": ["=PY_BITAND(-1,3)", "=PY_PRINTF(\"%s\",NA())"] }
+  ]
+}

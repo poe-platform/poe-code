@@ -130,6 +130,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import hashlib, json, os, pathlib, shutil, subprocess, shlex, stat, threading, time, yaml
+          from xml.sax.saxutils import escape
           root = pathlib.Path('out/ssconvert-linux')
           profile_path = pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json')
           reference_path = pathlib.Path('docs/ssconvert/reference-profile.json')
@@ -273,6 +274,19 @@ jobs:
               assert hashlib.sha256(path.read_bytes()).hexdigest() == fixture['inputSha256']
               capture(fixture['label'], [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'])
               language_inputs.append(dict(label=fixture['label'], inputSha256=fixture['inputSha256'], caseCount=fixture['caseCount'], logicalFields=fixture['logicalFields']))
+          diagnostic_path = pathlib.Path('docs/ssconvert/python-loader-diagnostic-probes.json')
+          diagnostic_spec = json.loads(diagnostic_path.read_text())
+          diagnostic_inputs = []
+          if profile['id'] == diagnostic_spec['profileId']:
+              for item in diagnostic_spec['inputs']:
+                  cells = ''.join('<Cell Row="' + str(row) + '" Col="0">' + escape(formula) + '</Cell>' for row, formula in enumerate(item['formulas']))
+                  data = ('<Workbook xmlns="http://www.gnumeric.org/v10.dtd"><Sheets><Sheet><Name>S</Name><Cells>' + cells + '</Cells></Sheet></Sheets></Workbook>').encode('utf-8')
+                  path = root / ('python-diagnostic-' + item['id'] + '.gnumeric')
+                  path.write_bytes(data)
+                  for force in [False, True]:
+                      label = 'python-diagnostic-' + item['id'] + ('-recalc' if force else '-load')
+                      capture(label, [str(binary), *(['--recalc'] if force else []), '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'])
+                      diagnostic_inputs.append(dict(label=label, inputSha256=hashlib.sha256(data).hexdigest(), formulas=item['formulas'], forceRecalc=force))
           # Execute original custom Python probes only in a separate explicit child
           # activation; keep the preceding frozen sample/native closure untouched.
           python_reference_fixture_path = pathlib.Path('docs/ssconvert/linux-python-reference-native-probes.json')
@@ -411,6 +425,7 @@ jobs:
               serviceFixtureSha256=hashlib.sha256(service_path.read_bytes()).hexdigest(), serviceInputs=service_inputs,
               dependencyBuilds=json.loads((root / 'dependency-builds.json').read_text()),
               languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs,
+              pythonDiagnosticFixtureSha256=hashlib.sha256(diagnostic_path.read_bytes()).hexdigest(), pythonDiagnosticInputs=diagnostic_inputs,
               pythonReferenceFixtureSha256=hashlib.sha256(python_reference_fixture_path.read_bytes()).hexdigest(), pythonReferenceInputs=python_reference_inputs, pythonReferenceModuleFiles=python_reference_module_files, frozenDateControl=clock_control,
               referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),
               optionalProfileSha256=hashlib.sha256(profile_path.read_bytes()).hexdigest(),

@@ -102,6 +102,8 @@ export async function buildBrowserEngine(options = {}) {
     write: false,
     platform: "browser",
     target: "es2022",
+    // Compiled workspaces must not pick up development aliases to source contracts.
+    tsconfigRaw: { compilerOptions: {} },
     minify: options.minify ?? false,
     metafile: true,
     inject: [resolve(directory, "platform.ts")]

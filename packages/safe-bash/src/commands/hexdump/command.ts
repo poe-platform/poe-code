@@ -50,7 +50,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     for (let index = 0; same && index < used; index++) if (block[index] !== previous[index]) same = false;
     budget.charge(used);
     if (!options.verbose && same) {
-      let p: void | Promise<void>;
+      let p: void | Promise<void> = undefined;
       if (!squeezed) p = writeOut("*\n");
       squeezed = true;
       address += used;

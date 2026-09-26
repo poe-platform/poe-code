@@ -1981,6 +1981,11 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   const cloned: State = Object.assign(
     new RootShellState(raw.cwd, variables, exported, raw.extensions),
     raw,
+  );
+  // Root accessors must resolve against the clone while installing its collections.
+  (cloned as unknown as Record<symbol, unknown>)[monitorSymbol] = undefined;
+  Object.assign(
+    cloned,
     {
       variables,
       exported,
@@ -2003,7 +2008,6 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.variableAttributes) cloned.variableAttributes = new Map(raw.variableAttributes);
   if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
   if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
-  (cloned as unknown as Record<symbol, unknown>)[monitorSymbol] = undefined;
   return cloned;
 }
 

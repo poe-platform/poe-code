@@ -1,3 +1,4 @@
+import { createTrackedProxy } from "../platform/types.js";
 import type { Budget } from "./budget.js";
 import { arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage } from "./array-buffer.js";
 import { float16BackingViews, Float16Array } from "./float16-array.js";
@@ -27,7 +28,7 @@ export function createOwnedTypedArray(
   const view = Reflect.construct(Native, args) as NumericTypedArray;
   const keys = new Set<PropertyKey>();
   const methods = new WeakMap<object, (...args: unknown[]) => unknown>();
-  const owned = new Proxy(view, {
+  const owned = createTrackedProxy(view, {
     get(target, key, receiver) {
       // Preserve native SDK reads and iteration without publishing the target.
       const intrinsic = Object.getOwnPropertyDescriptor(

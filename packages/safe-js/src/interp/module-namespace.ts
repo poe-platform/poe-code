@@ -1,3 +1,4 @@
+import { createTrackedProxy } from "../platform/types.js";
 import { markDescriptorObject, setSandboxPrototype } from "./object-model.js";
 import type { SandboxObject, SandboxValue } from "./values.js";
 
@@ -10,7 +11,7 @@ export function isSandboxModuleNamespace(value: unknown): value is SandboxObject
 
 export function createModuleNamespace(bindings: Record<string, SandboxValue> | ((namespace: SandboxObject) => Record<string, SandboxValue>), read?: (key: string) => SandboxValue, retained?: () => Iterable<unknown>): SandboxObject {
   const target = Object.create(null) as SandboxObject;
-  const namespace = new Proxy(target, {
+  const namespace = createTrackedProxy(target, {
     ownKeys: owner => [...Object.getOwnPropertyNames(owner).sort(),...Object.getOwnPropertySymbols(owner)],
     set: () => false,
     get(owner, key) {

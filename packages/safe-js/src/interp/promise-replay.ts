@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "node:async_hooks";
+import { AsyncLocalStorage } from "#safe-js-platform";
 
 import { validateSnapshotData } from "../snapshot/validation.js";
 import { SandboxError, type Budget } from "./budget.js";

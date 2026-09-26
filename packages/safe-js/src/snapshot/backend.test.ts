@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { MAX_DATA_DEPTH, SnapshotBudgetError } from "../graph-depth.js";
 
 const gates = vi.hoisted(() => ({
@@ -15,10 +16,6 @@ const gates = vi.hoisted(() => ({
   lockedRenameFailures: 0,
   randomUUIDs: [] as string[],
   randomUUIDCounter: 0
-}));
-
-vi.mock("node:crypto", () => ({
-  randomUUID: () => gates.randomUUIDs.shift() ?? `fallback-uuid-${(gates.randomUUIDCounter += 1)}`
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -75,6 +72,7 @@ const { FileSnapshotBackend } = await import("./backend.js");
 
 describe("FileSnapshotBackend", () => {
   beforeEach(() => {
+    vi.spyOn(globalThis.crypto, "randomUUID").mockImplementation(() => (gates.randomUUIDs.shift() ?? `fallback-uuid-${(gates.randomUUIDCounter += 1)}`) as ReturnType<Crypto["randomUUID"]>);
     vol.reset();
     gates.holdFirstRename = false;
     gates.renameCalls = 0;
@@ -92,6 +90,17 @@ describe("FileSnapshotBackend", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("stores snapshots on an explicitly granted portable filesystem", async () => {
+    const adapter = new MemoryFileSystem();
+    await adapter.mkdir("/snapshots");
+    const backend = new FileSnapshotBackend("/snapshots/run.json", { adapter });
+    const snapshot = { version: 1, sourceHash: "portable", bindings: { value: "saved" } };
+    await backend.write(snapshot);
+    await expect(backend.read()).resolves.toEqual({ ...snapshot, version: 2 });
+    await backend.remove();
+    await expect(backend.read()).resolves.toBeUndefined();
   });
 
   it("preserves a snapshot value through a write/read round-trip", async () => {

@@ -1,4 +1,4 @@
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 
 const admittedSymbols = new WeakMap<Promise<unknown>, readonly symbol[]>();
 

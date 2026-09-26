@@ -1,9 +1,12 @@
-import { constants as nodeFsConstants, type Dirent, type PathLike, type Stats } from "node:fs";
-import * as nodeFsPromises from "node:fs/promises";
-import { dirname, isAbsolute, resolve, sep } from "node:path";
-import { inspect } from "node:util";
+import { fsConstants as nodeFsConstants, hostFs as nodeFsPromises, hostPlatform, inspect } from "#safe-js-platform";
+import type { FsBridgeDirent as Dirent, FsBridgeStats as Stats, FsBridgeEncoding } from "@poe-code/safe-fs/core";
+type PathLike = string | Uint8Array | URL;
+
+import { dirname, isAbsolute, resolve, sep } from "./paths.js";
+
 import { accessDeniedSystemError } from "#safe-js-platform";
-import { createNodeFsBridge } from "@poe-code/safe-fs/node/filesystem";
+import { createFsBridge } from "@poe-code/safe-fs/core";
+import { fsCodec } from "./fs-codec.js";
 import {
   type EntryComparison,
   type FileSystem,
@@ -12,7 +15,7 @@ import {
 } from "@poe-code/safe-fs/core";
 
 import type { Budget } from "../interp/budget.js";
-import { getOwnErrorCode } from "../error-codes.js";
+import { getOwnErrorCode, type SystemError } from "../error-codes.js";
 import { declareHostOperation, declareBudgetedHostOperation } from "../interp/host-bridge.js";
 import {
   type CanonicalPathFs,
@@ -297,7 +300,7 @@ export type SandboxDirent = {
   readonly parentPath: string;
 } & FileTypePredicates;
 
-type StringEncoding = NodeJS.BufferEncoding;
+type StringEncoding = FsBridgeEncoding;
 
 type EncodingOptions = StringEncoding | { encoding: StringEncoding };
 
@@ -312,7 +315,10 @@ type StatOptions = {
   bigint?: false;
 };
 
-export type FsModuleOptions =
+export type FsModuleOptions = {
+  hostReadMemoryLimit?: number;
+  readFileMaxBytes?: number;
+} & (
   | {
       root?: string;
       fs?: FsImplementation;
@@ -326,7 +332,7 @@ export type FsModuleOptions =
       cwd?: string;
       signal?: AbortSignal;
       fs?: never;
-    };
+    });
 
 export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
   readFile(path: PathLike, options: ReadFileOptions): Promise<string>;
@@ -351,11 +357,17 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
   };
 };
 
-const hostReadMemoryLimit = 16 * 1024 * 1024;
-let reservedHostReadMemory = 0;
+
 
 export function makeFsModule(options: FsModuleOptions = {}): FsModule {
   assertSupportedPlatform();
+  const hostReadMemoryLimit = options.hostReadMemoryLimit ?? Infinity;
+  const readFileMaxBytes = options.readFileMaxBytes ?? Infinity;
+  for (const limit of [hostReadMemoryLimit, readFileMaxBytes]) {
+    if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0))
+      throw new TypeError("Filesystem read limits must be non-negative safe integers or Infinity.");
+  }
+  let reservedHostReadMemory = 0;
 
   if (options.adapter !== undefined && options.fs !== undefined) {
     throw new TypeError("fs module accepts either adapter or fs, not both.");
@@ -375,13 +387,14 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
     throw new TypeError("fs module cwd must be an absolute virtual path without null bytes.");
   }
 
-  const implementation =
+  const implementation: FsImplementation =
     options.adapter === undefined
       ? (options.fs ?? nodeFsPromises)
-      : createNodeFsBridge(options.adapter, {
-          cwd: options.root === undefined ? options.cwd : undefined,
+      : (createFsBridge(options.adapter, {
+          codec: fsCodec,
+        cwd: options.root === undefined ? options.cwd : undefined,
           signal: options.signal
-        });
+        }) as unknown as FsImplementation);
   const fs =
     options.root === undefined
       ? implementation
@@ -390,30 +403,33 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
   let readFile = bindStringResult(fs, "readFile");
   if (options.adapter !== undefined) {
     // Ten bytes per input byte covers the backend result, bridge/codec copies,
-    // worst-case hex UTF-16 output and guest admission. Shared by all adapter modules,
-    // including simultaneous runs and direct host calls.
+    // worst-case hex UTF-16 output and guest admission. A configured host allowance
+    // covers simultaneous runs and direct host calls using this module.
     const boundedRead = async (args: readonly unknown[], budget?: Budget): Promise<string> => {
       FS_PATH_ARGUMENTS.readFile.forEach((argument, index) => assertSupportedPath("readFile", argument, args[index]));
       assertSupportedOptions("readFile", args);
       assertNoBufferResult("readFile", args[1]);
       const maxBytes = Math.max(0, Math.floor(Math.min(
         hostReadMemoryLimit / 40,
+        readFileMaxBytes,
         (budget?.limits.stringLength ?? Infinity) / 2,
         ((budget?.limits.dataSize ?? Infinity) - (budget?.currentDataSize ?? 0)) / 4
       )));
-      const reservation = maxBytes * 10;
-      const bridge = createNodeFsBridge(options.adapter!, {
+      const reservation = Number.isFinite(hostReadMemoryLimit) ? maxBytes * 10 : 0;
+      const bridge = createFsBridge(options.adapter!, {
+        codec: fsCodec,
         cwd: options.root === undefined ? options.cwd : undefined,
         signal: options.signal,
-        readFileMaxBytes: maxBytes,
+        readFileMaxBytes: Number.isFinite(maxBytes) ? maxBytes : undefined,
         reserveReadFile() {
           if (reservedHostReadMemory + reservation > hostReadMemoryLimit) throw new Error("Filesystem read host memory budget exceeded");
           reservedHostReadMemory += reservation;
           return () => { reservedHostReadMemory -= reservation; };
         }
       });
-      const boundedFs = options.root === undefined ? bridge
-        : makeRootedFs(bridge, options.root, options.adapter, options.cwd, options.signal);
+      const portable = bridge as unknown as FsImplementation;
+      const boundedFs = options.root === undefined ? portable
+        : makeRootedFs(portable, options.root, options.adapter, options.cwd, options.signal);
       return await invoke(boundedFs, "readFile", args) as string;
     };
     // Direct host calls must use the same reservation pool.
@@ -467,7 +483,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
 // recorded two do, and a platform whose truth nobody has recorded is reported by the
 // conformance suite rather than guessed at by a guard here.
 function assertSupportedPlatform(): void {
-  if (process.platform !== "win32") {
+  if (hostPlatform !== "win32") {
     return;
   }
 
@@ -846,7 +862,7 @@ function readUnsupportedPathForm(value: unknown): string | undefined {
 // Shaped exactly like node's own ERR_INVALID_ARG_VALUE for a NUL-bearing path,
 // down to inspecting the offending value the way node does.
 function createNullByteError(argument: string, value: string): TypeError {
-  const error: NodeJS.ErrnoException = new TypeError(
+  const error: SystemError = new TypeError(
     `The argument '${argument}' must be a string, Uint8Array, or URL without null bytes. Received ${inspect(value)}`
   );
 
@@ -856,7 +872,7 @@ function createNullByteError(argument: string, value: string): TypeError {
 
 // Shaped exactly like node's own ERR_INVALID_ARG_TYPE for a path it cannot read.
 function createInvalidPathTypeError(argument: string, value: unknown): TypeError {
-  const error: NodeJS.ErrnoException = new TypeError(
+  const error: SystemError = new TypeError(
     `The "${argument}" argument must be of type string or an instance of Buffer or URL. Received ${describeReceivedValue(value)}`
   );
 
@@ -912,10 +928,10 @@ function createAccessDeniedError(
   name: FsOperationName,
   path: string,
   dest?: string
-): NodeJS.ErrnoException {
+): SystemError {
   const syscall = FS_SYSCALLS[name];
   const target = dest === undefined ? `'${path}'` : `'${path}' -> '${dest}'`;
-  const error: NodeJS.ErrnoException & { dest?: string } = new Error(
+  const error: SystemError & { dest?: string } = new Error(
     `${ACCESS_DENIED_CODE}: ${ACCESS_DENIED_MESSAGE}, ${syscall} ${target}`
   );
 

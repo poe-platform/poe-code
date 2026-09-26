@@ -14,3 +14,5 @@ export function getOwnErrorCode(error: unknown): string | undefined {
 export function hasOwnErrorCode(error: unknown, code: string): error is NodeJS.ErrnoException {
   return getOwnErrorCode(error) === code;
 }
+
+export type SystemError = Error & { code?: string; errno?: number; syscall?: string; path?: string; dest?: string };

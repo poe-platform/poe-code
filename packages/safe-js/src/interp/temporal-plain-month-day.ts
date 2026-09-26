@@ -1,4 +1,4 @@
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import { Temporal as Backend } from "temporal-polyfill/full/implementation";
 import { hostTemporalPlainDateFields, temporalPlainDateNumericFields, type TemporalPlainDateFields } from "./temporal-plain-date.js";
 import type { SandboxObject } from "./values.js";

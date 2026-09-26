@@ -3,7 +3,13 @@
   "imports": {
     "#safe-js-platform": {
       "workerd": "./platform/workerd.js",
+      "browser": "./platform/workerd.js",
       "default": "./platform/node.js"
+    },
+    "#safe-js-atomic-wait": {
+      "workerd": "./platform/atomic-wait-workerd.js",
+      "browser": "./platform/atomic-wait-workerd.js",
+      "default": "./platform/atomic-wait-node.js"
     }
   }
 }

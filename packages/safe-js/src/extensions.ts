@@ -1,4 +1,4 @@
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import type { HostObjectDefinition, HostObject, GuestReference } from "./interp/host-capabilities.js";
 import type { ModuleRegistry } from "./modules/registry.js";
 import type { CallerInjectedBinding } from "./interp/host-bridge.js";

@@ -1,4 +1,4 @@
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import type { Budget } from "../budget.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { retainValues } from "../resources.js";

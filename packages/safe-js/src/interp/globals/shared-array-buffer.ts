@@ -1,3 +1,4 @@
+const sharedPrototype = globalThis.SharedArrayBuffer?.prototype ?? Object.create(null);
 import type { Budget } from "../budget.js";
 import { accessorAdapter } from "../accessors.js";
 import { getFunctionRealmPrototype } from "../function-realm.js";
@@ -10,7 +11,7 @@ import { sandboxNumber } from "../string-coercion.js";
 import { createSharedArrayBufferStorage, isSandboxSharedArrayBuffer, sharedArrayBufferPrototypes, sharedArrayBufferStorage } from "../shared-array-buffer.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxCallContext, type SandboxClosure, type SandboxValue } from "../values.js";
 
-const growStorage = Reflect.get(SharedArrayBuffer.prototype,"grow") as ((length:number)=>void) | undefined;
+const growStorage = Reflect.get(sharedPrototype,"grow") as ((length:number)=>void) | undefined;
 
 export function createSharedArrayBufferGlobal(budget:Budget): SandboxClosure {
   const prototype = createIntrinsicObject();

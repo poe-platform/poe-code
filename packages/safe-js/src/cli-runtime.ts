@@ -1,7 +1,10 @@
+import {createFsBridge, type FileSystem} from "@poe-code/safe-fs/core";
+import {fsCodec} from "./modules/fs-codec.js";
+import {createRootedSourceResolver} from "./modules/source-files.js";
 import {parseSourceModule} from "./parse/source-module.js";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import path, { dirname, extname } from "node:path";
-import { formatWithOptions } from "node:util";
+import { hostFs } from "#safe-js-platform";
+import path, { dirname, extname } from "./modules/paths.js";
+import { formatWithOptions } from "#safe-js-platform";
 
 import { hasOwnErrorCode } from "./error-codes.js";
 import { formatInterpreterError } from "./error/format.js";
@@ -47,6 +50,7 @@ export type WriteMarkdownFile = (
 ) => Promise<void>;
 
 export type RunCliOptions = {
+  adapter?: FileSystem;
   cwd?: string;
   env?: EnvModuleOptions;
   mcp?: McpModuleOptions;
@@ -108,6 +112,10 @@ export async function runCli(
   options: RunCliOptions,
   usage: string
 ): Promise<number> {
+  const io = options.adapter ? createFsBridge(options.adapter, {codec: fsCodec}) : hostFs;
+  const readFile = io.readFile.bind(io);
+  const writeFile = io.writeFile.bind(io);
+  const stat = io.stat.bind(io);
   const brokenPipe = createBrokenPipeState();
   const stdout = createSafeOutputStream(options.stdout ?? process.stdout, brokenPipe);
   const stderr = createSafeOutputStream(options.stderr ?? process.stderr, brokenPipe);
@@ -121,7 +129,8 @@ export async function runCli(
           const { migrateSnapshotFile } = await import("./migration-file.js");
           const result = await migrateSnapshotFile({
             ...parseMigrationArgs(argv.slice(1)),
-            cwd: options.cwd ?? readCurrentWorkingDirectory()
+            cwd: options.cwd ?? readCurrentWorkingDirectory(),
+            adapter: options.adapter
           });
           stdout.write(`${JSON.stringify(result, null, 2)}\n`);
           return 0;
@@ -151,6 +160,7 @@ export async function runCli(
         return await runScriptFile(filepath, parsed, {
           cwd,
           configuredFs,
+          adapter: options.adapter,
           env: options.env,
           mcp: options.mcp,
           modulesFor: options.modulesFor,
@@ -388,6 +398,7 @@ async function runScriptFile(
     stderr: CliStream;
     stdout: CliStream;
     writeFile: WriteMarkdownFile;
+    adapter?: FileSystem;
   }
 ): Promise<number> {
   const [{ run }, { restore }, { dump, dumpCurrent }, { createLintModulesFromRuntimeRegistry }, { makeFsModule }, { makeMcpModule }] = await Promise.all([
@@ -402,7 +413,7 @@ async function runScriptFile(
   };
   const runtime = await createRuntime(loaded.frontmatter, meta, {
     fs: parsed.fs
-      ? { root: path.resolve(options.cwd, parsed.fsRoot ?? dirname(filepath)) }
+      ? { root: path.resolve(options.cwd, parsed.fsRoot ?? dirname(filepath)), ...(options.adapter ? {adapter: options.adapter} : {}) }
       : undefined,
     modulesFor: options.modulesFor,
     stderr: options.stderr,
@@ -521,6 +532,9 @@ async function runScriptFile(
     }
   };
 
+  const sourceResolver = parsed.sourceRoot !== undefined && options.adapter !== undefined
+    ? await createRootedSourceResolver(path.resolve(options.cwd, parsed.sourceRoot), options.adapter)
+    : undefined;
   options.process.on("SIGINT", onSigint);
   try {
     runPromise = run(executableSource, {
@@ -530,8 +544,9 @@ async function runScriptFile(
           : new Budget({ dataSize: parsed.dataSize, maxSteps: parsed.maxSteps }),
       entryPointArgs: parsed.sourceType === "module" ? undefined : hasDefaultExport(executableSource, diagnosticFilename) ? [] : undefined,
       sourceType:parsed.sourceType,
-      sourceRoot:parsed.sourceRoot === undefined ? undefined : path.resolve(options.cwd,parsed.sourceRoot),
-      filename: diagnosticFilename,
+      sourceResolver,
+      sourceRoot:sourceResolver !== undefined || parsed.sourceRoot === undefined ? undefined : path.resolve(options.cwd,parsed.sourceRoot),
+      filename: sourceResolver === undefined ? diagnosticFilename : await sourceResolver.entryId(filepath),
       modules,
       signal: abortController.signal,
       sink: createConsoleSink(options.stdout, options.stderr),
@@ -737,6 +752,7 @@ async function writeCurrentSnapshot(
     cwd: string;
     stderr: CliStream;
     writeFile: WriteMarkdownFile;
+    adapter?: FileSystem;
   },
   capture: typeof import("./snapshot/dump.js").dumpCurrent
 ): Promise<void> {
@@ -755,10 +771,11 @@ async function writeSnapshot(
   options: {
     cwd: string;
     writeFile: WriteMarkdownFile;
+    adapter?: FileSystem;
   }
 ): Promise<void> {
   const resolvedPath = path.resolve(options.cwd, snapshotPath);
-  await mkdir(dirname(resolvedPath), { recursive: true });
+  await (options.adapter ? createFsBridge(options.adapter, {codec: fsCodec}) : hostFs).mkdir(dirname(resolvedPath), { recursive: true });
   await options.writeFile(resolvedPath, content, { encoding: "utf8" });
 }
 

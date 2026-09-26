@@ -1,8 +1,9 @@
+const sharedPrototype = globalThis.SharedArrayBuffer?.prototype ?? Object.create(null);
 import type { Budget } from "./budget.js";
 import { cloneSandboxValue, type SandboxValue } from "./values.js";
 import { sharedArrayBufferStorage } from "./shared-array-buffer.js";
 
-const grow=Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"grow")?.value;
+const grow=Object.getOwnPropertyDescriptor(sharedPrototype,"grow")?.value;
 
 export function restoreSharedHostValue(
   value: SandboxValue,

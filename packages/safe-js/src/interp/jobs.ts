@@ -1,5 +1,5 @@
-import { AsyncLocalStorage } from "node:async_hooks";
-import { setImmediate as yieldToHost } from "node:timers/promises";
+import { AsyncLocalStorage } from "#safe-js-platform";
+import { yieldToHost } from "#safe-js-platform";
 import { SandboxError, type Budget } from "./budget.js";
 
 export type ExecutionControl = {

@@ -697,7 +697,7 @@ export class Budget {
 }
 
 function normalizeDeadline(deadline: BudgetOptions["deadline"]): number | undefined {
-  if (deadline === undefined) {
+  if (deadline === undefined || deadline === Infinity) {
     return undefined;
   }
 
@@ -705,7 +705,7 @@ function normalizeDeadline(deadline: BudgetOptions["deadline"]): number | undefi
 }
 
 function normalizeLimit(name: keyof BudgetLimits, value: number | undefined): number | undefined {
-  if (value === undefined) {
+  if (value === undefined || value === Infinity) {
     return undefined;
   }
 
@@ -717,7 +717,7 @@ function normalizeLimit(name: keyof BudgetLimits, value: number | undefined): nu
 }
 
 function normalizeRegexLimit(name: string, value: number | undefined): number | undefined {
-  if (value === undefined) return undefined;
+  if (value === undefined || value === Infinity) return undefined;
   if (!Number.isSafeInteger(value) || value < 1)
     throw new RangeError(`${name} must be a positive safe integer.`);
   return value;

@@ -1,5 +1,7 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { pathToFileURL } from "node:url";
+import {createFsBridge, type FileSystem} from "@poe-code/safe-fs/core";
+import {fsCodec} from "./modules/fs-codec.js";
+import { hostFs } from "#safe-js-platform";
+import { pathToFileURL } from "./modules/paths.js";
 
 import { countLineBreaks, extractBlock, maskSource } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
@@ -30,6 +32,7 @@ export type WriteMarkdownFile = (
 ) => Promise<void>;
 
 export type RunExampleFileOptions = {
+  adapter?: FileSystem;
   fix?: boolean;
   readFile?: ReadMarkdownFile;
   stderr?: CliStream;
@@ -70,8 +73,9 @@ export async function runExampleFile(
   const brokenPipe = createBrokenPipeState();
   const stdout = createSafeOutputStream(options.stdout ?? process.stdout, brokenPipe);
   const stderr = createSafeOutputStream(options.stderr ?? process.stderr, brokenPipe);
-  const readMarkdownFile = options.readFile ?? readFile;
-  const writeMarkdownFile = options.writeFile ?? writeFile;
+  const io = options.adapter ? createFsBridge(options.adapter, {codec: fsCodec}) : hostFs;
+  const readMarkdownFile = options.readFile ?? io.readFile.bind(io);
+  const writeMarkdownFile = options.writeFile ?? io.writeFile.bind(io);
 
   return withBrokenPipeGuard(
     [options.stdout ?? process.stdout, options.stderr ?? process.stderr],
@@ -573,7 +577,7 @@ function readErrorMessage(error: unknown): string {
   return String(error);
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (typeof process !== "undefined" && process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main(process.argv.slice(2)).then((exitCode) => {
     process.exitCode = exitCode;
   });

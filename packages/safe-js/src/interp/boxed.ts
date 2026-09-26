@@ -1,4 +1,4 @@
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import type { SandboxObject } from "./values.js";
 
 export type BoxedPrimitive = string | number | bigint | boolean | symbol;

@@ -1,5 +1,5 @@
 import type { Budget } from "../budget.js";
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import { sandboxErrorTypes } from "../../error/shape.js";
 import { errorPrototypes } from "../error-prototypes.js";
 import { createIntrinsicObject, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";

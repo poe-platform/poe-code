@@ -1,3 +1,4 @@
+import { createTrackedProxy } from "../../platform/types.js";
 import { Budget } from "../budget.js";
 import { createSandboxBox } from "../boxed.js";
 import {
@@ -258,7 +259,7 @@ async function arrayLikeView(
   const length =
     Number.isNaN(number) || number <= 0 ? 0 : Math.min(Math.trunc(number), Number.MAX_SAFE_INTEGER);
   // The view is internal only: callbacks, results, and accounting keep the guest receiver.
-  const view = new Proxy(
+  const view = createTrackedProxy(
     Object.create(null) as SandboxObject & { [index: number]: SandboxValue; length: number },
     {
       get: (_target, key) => {

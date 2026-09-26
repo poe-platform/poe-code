@@ -1,6 +1,6 @@
-import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { basename, dirname, isAbsolute, relative, resolve, sep } from "./paths.js";
 
-import { getOwnErrorCode } from "../error-codes.js";
+import { getOwnErrorCode, type SystemError } from "../error-codes.js";
 
 // realpath answers ENOENT for a missing segment and ENOTDIR when a parent is a
 // file. Both mean the segment is not an existing directory, so both walk up.
@@ -107,8 +107,8 @@ async function readSymlinkTarget(readlink: Readlink, path: string): Promise<stri
 // Shaped like the ELOOP a filesystem raises for a cycle it walked itself, so a
 // caller that branches on the code reads the cap and the filesystem's own answer the
 // same way.
-function createLoopError(path: string): NodeJS.ErrnoException {
-  const error: NodeJS.ErrnoException = new Error(
+function createLoopError(path: string): SystemError {
+  const error: SystemError = new Error(
     `ELOOP: too many symbolic links encountered, realpath '${path}'`
   );
 

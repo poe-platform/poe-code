@@ -1,4 +1,5 @@
 import * as nodeUtil from "node:util";
+import * as nativeFsPromises from "node:fs/promises";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { MessageChannel, MessagePort, receiveMessageOnPort } from "node:worker_threads";
 import type { HostCallbackContext } from "../interp/host-callback-context.js";
@@ -57,3 +58,13 @@ function readSystemError(code: string): [number, string] {
 
   throw new Error(`node does not define the ${code} system error.`);
 }
+
+export { AsyncLocalStorage };
+export const types = nodeUtil.types;
+export { setImmediate as yieldToHost } from "node:timers/promises";
+export { inspect } from "node:util";
+export { formatWithOptions } from "node:util";
+export { constants as fsConstants } from "node:fs";
+export const hostFs = nativeFsPromises;
+export const hostCwd = process.cwd.bind(process);
+export const hostPlatform = process.platform;

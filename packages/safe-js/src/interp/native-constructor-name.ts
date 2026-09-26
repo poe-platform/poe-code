@@ -1,4 +1,4 @@
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 
 // Diagnostics must not acquire host authority by reading constructor/name getters.
 export function nativeConstructorName(value: object): string | undefined {

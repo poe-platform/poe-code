@@ -1,3 +1,4 @@
+import { createTrackedProxy } from "../platform/types.js";
 import type { SandboxObject, SandboxValue } from "./values.js";
 import { internalSymbols } from "./internal-symbols.js";
 import type { Scope } from "./scope.js";
@@ -26,7 +27,7 @@ export function createMappedSandboxArguments(
     if (!binding.found) throw new ReferenceError(`Missing mapped argument binding '${name}'.`);
     return binding.value as SandboxValue;
   };
-  const result = new Proxy(target, {
+  const result = createTrackedProxy(target, {
     get(object, key, receiver) {
       const name = typeof key === "string" ? parameters.get(key) : undefined;
       return name === undefined ? Reflect.get(object, key, receiver) : parameterValue(name);

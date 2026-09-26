@@ -1,6 +1,7 @@
-import { randomUUID } from "node:crypto";
-import { link, open, readFile, unlink } from "node:fs/promises";
-import path from "node:path";
+import { hostFs, hostCwd } from "#safe-js-platform";
+import {createFsBridge, type FileSystem} from "@poe-code/safe-fs/core";
+import {fsCodec} from "./modules/fs-codec.js";
+import path from "./modules/paths.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 
 import {
@@ -12,6 +13,7 @@ import type { SafeJSSnapshot } from "./restore.js";
 import { serializeSafeJSSnapshot } from "./snapshot/dump-format.js";
 
 export type SnapshotMigrationFileOptions = {
+  adapter?: FileSystem;
   snapshotPath: string;
   sourcePath: string;
   targetSourcePath?: string;
@@ -23,7 +25,10 @@ export type SnapshotMigrationFileOptions = {
 };
 
 export async function migrateSnapshotFile(options: SnapshotMigrationFileOptions) {
-  const cwd = options.cwd ?? process.cwd();
+  const adapter = options.adapter;
+  const io = adapter ? createFsBridge(adapter, {codec: fsCodec}) : hostFs;
+  const readFile = io.readFile.bind(io);
+  const cwd = options.cwd ?? hostCwd();
   const resolvePath = (value: string | undefined, label: string) => {
     if (typeof value !== "string" || value.trim().length === 0)
       throw new TypeError(`Migration requires ${label}.`);
@@ -76,20 +81,39 @@ export async function migrateSnapshotFile(options: SnapshotMigrationFileOptions)
   if (!options.dryRun) {
     const temporaryPath = path.join(
       path.dirname(outputPath!),
-      `.safejs-migration-${randomUUID()}.tmp`
+      `.safejs-migration-${globalThis.crypto.randomUUID()}.tmp`
     );
     let created = false;
     try {
-      const handle = await open(temporaryPath, "wx", 0o600);
-      created = true;
-      try {
-        await handle.writeFile(contents, "utf8");
-        await handle.sync();
-      } finally {
-        await handle.close();
+      if (adapter) {
+        if (!adapter.open || !adapter.link || !adapter.unlink)
+          throw new TypeError("Migration filesystem must support retained writes, hard links and unlink.");
+        const handle = await adapter.open(temporaryPath, {access: "write", creation: "exclusive", mode: 0o600});
+        created = true;
+        try {
+          const bytes = new TextEncoder().encode(contents);
+          let position = 0;
+          while (position < bytes.byteLength) {
+            const written = await handle.write(bytes.subarray(position), position);
+            if (!Number.isSafeInteger(written) || written <= 0 || written > bytes.byteLength - position)
+              throw new Error("Migration filesystem returned an invalid write count.");
+            position += written;
+          }
+          await handle.sync(false);
+        } finally {await handle.close();}
+      } else {
+        const handle = await hostFs.open(temporaryPath, "wx", 0o600);
+        created = true;
+        try {
+          await handle.writeFile(contents, "utf8");
+          await handle.sync();
+        } finally {
+          await handle.close();
+        }
       }
       try {
-        await link(temporaryPath, outputPath!);
+        if (adapter) await adapter.link!(temporaryPath, outputPath!);
+        else await hostFs.link(temporaryPath, outputPath!);
       } catch (error) {
         if (hasOwnErrorCode(error, "EEXIST"))
           throw Object.assign(
@@ -102,7 +126,10 @@ export async function migrateSnapshotFile(options: SnapshotMigrationFileOptions)
         throw error;
       }
     } finally {
-      if (created) await unlink(temporaryPath);
+      if (created) {
+        if (adapter) await adapter.unlink!(temporaryPath);
+        else await hostFs.unlink(temporaryPath);
+      }
     }
   }
   return { inspection, outputPath, dryRun: options.dryRun === true };

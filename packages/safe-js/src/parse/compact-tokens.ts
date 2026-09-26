@@ -1,3 +1,4 @@
+import { createTrackedProxy } from "../platform/types.js";
 import type { Position, Token, TokenType } from "./tokenizer.js";
 import type { CompactSourcePositions } from "./compact-spans.js";
 
@@ -52,7 +53,7 @@ export class CompactTokens {
 
   // Only indexing, iteration, length, push and at are used by the lexer/parser.
   // Historical tokens are materialized on demand in a bounded cache.
-  readonly indexed: Token[] = new Proxy([] as Token[], {
+  readonly indexed: Token[] = createTrackedProxy([] as Token[], {
     get: (target, key, receiver) => {
       if (key === "length") return this.values.length;
       if (key === "push") return this.push;

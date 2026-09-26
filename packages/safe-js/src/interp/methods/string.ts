@@ -1,5 +1,5 @@
 import type { Expression } from "../../parse.js";
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import { Budget } from "../budget.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { CompileScope } from "../regex/compile-guard.js";

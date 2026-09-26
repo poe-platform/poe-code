@@ -3,7 +3,7 @@ import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../
 import { validateBigIntData } from "./bigint.js";
 import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import type { Budget, CompileOwner } from "../interp/budget.js";
 import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "../parse/dynamic-source.js";
 import type { ParseResult } from "../parse/parser.js";

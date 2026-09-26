@@ -12,7 +12,13 @@
     },
     "#safe-js-platform": {
       "workerd": "./dist/platform/workerd.js",
+      "browser": "./dist/platform/workerd.js",
       "default": "./dist/platform/node.js"
+    },
+    "#safe-js-atomic-wait": {
+      "workerd": "./dist/platform/atomic-wait-workerd.js",
+      "browser": "./dist/platform/atomic-wait-workerd.js",
+      "default": "./dist/platform/atomic-wait-node.js"
     }
   },
   "main": "dist/index.js",
@@ -44,6 +50,10 @@
       "workerd": "./dist/workerd.js",
       "browser": null,
       "import": "./dist/workerd.js"
+    },
+    "./modules/fs": {
+      "types": "./dist/modules/fs.d.ts",
+      "import": "./dist/modules/fs.js"
     }
   },
   "dependencies": {

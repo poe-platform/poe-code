@@ -12,11 +12,13 @@ export type FsConfig = {
   readonly adapter: FileSystemConfig;
   readonly root?: string;
   readonly cwd?: string;
+  readonly readFileMaxBytes?: number;
+  readonly hostReadMemoryLimit?: number;
 };
 export type ResolveFsConfigOptions = { readonly registry?: FileSystemAdapterRegistry };
 
 function validateFsConfig(value: unknown): FsConfig {
-  const config = readConfigRecord(value, "fs config", ["adapter", "root", "cwd"]);
+  const config = readConfigRecord(value, "fs config", ["adapter", "root", "cwd", "readFileMaxBytes", "hostReadMemoryLimit"]);
   const paths: { root?: string; cwd?: string } = {};
   for (const key of ["root", "cwd"] as const) {
     const path = config[key];
@@ -26,9 +28,18 @@ function validateFsConfig(value: unknown): FsConfig {
     }
     paths[key] = path;
   }
+  const limits: Pick<FsConfig, "readFileMaxBytes" | "hostReadMemoryLimit"> = {};
+  for (const key of ["readFileMaxBytes", "hostReadMemoryLimit"] as const) {
+    const value = config[key];
+    if (value === undefined) continue;
+    if (value !== Infinity && (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0))
+      throw new TypeError(`${key} must be a non-negative safe integer or Infinity`);
+    Object.assign(limits, { [key]: value });
+  }
   return {
     adapter: validateFileSystemConfig(config.adapter),
-    ...paths
+    ...paths,
+    ...limits
   };
 }
 
@@ -39,7 +50,7 @@ export function parseFsConfig(json: string): FsConfig {
 export async function resolveFsConfig(
   config: FsConfig,
   options: ResolveFsConfigOptions = {}
-): Promise<Required<Pick<FsModuleOptions, "adapter">> & Pick<FsModuleOptions, "root" | "cwd">> {
+): Promise<Required<Pick<FsModuleOptions, "adapter">> & Omit<FsConfig, "adapter">> {
   const { adapter: adapterConfig, ...paths } = validateFsConfig(config);
   const resolution = readConfigRecord(options, "fs resolution option", ["registry"]);
   const registry = createNodeFileSystemAdapterRegistry(

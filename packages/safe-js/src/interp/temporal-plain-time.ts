@@ -1,5 +1,5 @@
 import type { SandboxObject } from "./values.js";
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import { Temporal as TemporalBackend } from "temporal-polyfill/full/implementation";
 
 const timeFieldLimits = { hour:24, minute:60, second:60, millisecond:1000, microsecond:1000, nanosecond:1000 } as const;

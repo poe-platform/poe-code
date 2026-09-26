@@ -1,5 +1,5 @@
 import {parseSourceModule, type ParsedSourceModule, type SourceExport, type SourceImport} from "../parse/source-module.js";
-import {AsyncLocalStorage} from "node:async_hooks";
+import {AsyncLocalStorage} from "#safe-js-platform";
 import type { Module } from "../parse/parser.js";
 import {interpret, type InterpretOptions} from "../interp/interpreter.js";
 import {Scope} from "../interp/scope.js";

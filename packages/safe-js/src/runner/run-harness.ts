@@ -1,5 +1,7 @@
-import { readFile, stat } from "node:fs/promises";
-import { extname } from "node:path";
+import {createFsBridge, type FileSystem} from "@poe-code/safe-fs/core";
+import {fsCodec} from "../modules/fs-codec.js";
+import { hostFs } from "#safe-js-platform";
+import { extname } from "../modules/paths.js";
 
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import { SPAWN_MODES, type SpawnMode } from "@poe-code/agent-spawn/types";
@@ -21,6 +23,7 @@ type HarnessMeta = {
 };
 
 export type RunHarnessOptions = {
+  adapter?: FileSystem;
   budget?: RunOptions["budget"];
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessMeta) => ModuleRegistry;
   otelSink?: OtelSink;
@@ -93,7 +96,7 @@ export async function runHarness(
   filepath: string,
   options: RunHarnessOptions
 ): Promise<RunHarnessResult> {
-  const rawSource = await readHarnessFile(filepath);
+  const rawSource = await readHarnessFile(filepath, options.adapter);
   const { executableSource, frontmatter, isRawScript } = loadExecutableSource(filepath, rawSource);
   assertFrontmatterAgentModes(frontmatter);
   const meta = createHarnessMeta(filepath, frontmatter);
@@ -127,8 +130,8 @@ export async function runHarnessPair(
 ): Promise<RunHarnessResult> {
   const pair = resolveHarnessPair(filepath);
   const [rawMarkdown, rawScript] = await Promise.all([
-    readHarnessFile(pair.markdownPath),
-    readHarnessFile(pair.scriptPath)
+    readHarnessFile(pair.markdownPath, options.adapter),
+    readHarnessFile(pair.scriptPath, options.adapter)
   ]);
   const { frontmatter, body } = splitFrontmatter(stripByteOrderMark(rawMarkdown));
   assertFrontmatterAgentModes(frontmatter);
@@ -170,14 +173,15 @@ export async function runHarnessPair(
   });
 }
 
-async function readHarnessFile(filepath: string): Promise<string> {
+async function readHarnessFile(filepath: string, adapter?: FileSystem): Promise<string> {
+  const io = adapter ? createFsBridge(adapter, {codec: fsCodec}) : hostFs;
   try {
-    const stats = await stat(filepath);
+    const stats = await io.stat(filepath);
     if (!stats.isFile()) {
       throw new Error(`Harness path must point to a file: ${filepath}`);
     }
 
-    return await readFile(filepath, "utf8");
+    return await io.readFile(filepath, "utf8");
   } catch (error) {
     if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
       throw new Error(`Harness file not found: ${filepath}`);

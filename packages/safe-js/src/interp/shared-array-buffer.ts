@@ -1,12 +1,13 @@
+const sharedPrototype = globalThis.SharedArrayBuffer?.prototype ?? Object.create(null);
 import { Budget } from "./budget.js";
 import type { SandboxObject } from "./values.js";
 import { cloneSharedBufferWrapper } from "#safe-js-platform";
 
 export const sharedArrayBufferPrototypes = new WeakMap<Budget,SandboxObject>();
 
-const readByteLength = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"byteLength")!.get!;
-const readMaxByteLength = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"maxByteLength")?.get;
-const readGrowable = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"growable")?.get;
+const readByteLength = Object.getOwnPropertyDescriptor(sharedPrototype,"byteLength")?.get;
+const readMaxByteLength = Object.getOwnPropertyDescriptor(sharedPrototype,"maxByteLength")?.get;
+const readGrowable = Object.getOwnPropertyDescriptor(sharedPrototype,"growable")?.get;
 // A block record deliberately does not retain any wrapper or its guest properties.
 // Different wrappers can refer to the same native shared memory.
 const sharedBlocks = new WeakMap<SharedArrayBuffer, object>();
@@ -21,6 +22,7 @@ export function createSharedArrayBufferStorage(length: number, maxByteLength: nu
     throw new RangeError("Invalid SharedArrayBuffer capacity.");
   if (maxByteLength !== undefined && readGrowable === undefined)
     throw new TypeError("Growable SharedArrayBuffer requires host runtime support.");
+  requireSharedByteLength();
   budget.allocateArrayLength(maxByteLength ?? length);
   budget.provisionDataUsage(length + 1)();
   const buffer = Reflect.construct(SharedArrayBuffer,[length,
@@ -34,7 +36,7 @@ export function sharedArrayBufferStorage(value: SharedArrayBuffer): {
 } {
   const block = sharedBlocks.get(value);
   if (block === undefined) throw new TypeError("Shared storage is not owned by the sandbox.");
-  const byteLength = Reflect.apply(readByteLength,value,[]) as number;
+  const byteLength = Reflect.apply(requireSharedByteLength(),value,[]) as number;
   const growable = readGrowable !== undefined && Reflect.apply(readGrowable,value,[]) as boolean;
   return {block,byteLength,growable,
     maxByteLength: readMaxByteLength === undefined ? byteLength : Reflect.apply(readMaxByteLength,value,[]) as number};
@@ -60,10 +62,15 @@ export function snapshotSharedArrayBufferStorage(value: SharedArrayBuffer, copie
 
 // Explicit transport admission, used only when a host grants shared storage to an agent.
 export function receiveSharedArrayBufferStorage(value: SharedArrayBuffer, budget: Budget): SharedArrayBuffer {
-  const byteLength = Reflect.apply(readByteLength, value, []) as number;
+  const byteLength = Reflect.apply(requireSharedByteLength(), value, []) as number;
   const maxByteLength = readMaxByteLength === undefined ? byteLength : Reflect.apply(readMaxByteLength, value, []) as number;
   budget.allocateArrayLength(maxByteLength);
   budget.provisionDataUsage(byteLength + 1)();
   sharedBlocks.set(value, {});
   return value;
+}
+
+function requireSharedByteLength(): (this: SharedArrayBuffer) => number {
+  if (readByteLength === undefined) throw new TypeError("SharedArrayBuffer requires host runtime support.");
+  return readByteLength;
 }

@@ -1,6 +1,7 @@
-import { randomUUID } from "node:crypto";
-import { mkdir, rename, rm, writeFile as nodeWriteFile } from "node:fs/promises";
-import { basename, dirname, join } from "node:path";
+import { hostFs } from "#safe-js-platform";
+import {createFsBridge, type FileSystem} from "@poe-code/safe-fs/core";
+import {fsCodec} from "../modules/fs-codec.js";
+import { basename, dirname, join } from "../modules/paths.js";
 
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { RunResult } from "../run.js";
@@ -23,6 +24,7 @@ type WriteDumpFile = (
 export function attachSignalDumpHandler(
   result: PromiseLike<RunResult>,
   options: {
+    adapter?: FileSystem;
     dumpPath?: string;
     dumpResult?: (result: PromiseLike<RunResult>) => Promise<string>;
     onError?: (error: unknown, signal: SignalName) => Promise<void> | void;
@@ -34,7 +36,8 @@ export function attachSignalDumpHandler(
 ): () => void {
   const signalProcess = options.process ?? process;
   const stderr = options.stderr ?? process.stderr;
-  const writeDumpFile = options.writeFile ?? nodeWriteFile;
+  const io = options.adapter ? createFsBridge(options.adapter, {codec: fsCodec}) : hostFs;
+  const writeDumpFile = options.writeFile ?? io.writeFile.bind(io);
 
   const onSigusr1 = () => {
     void writeDump("SIGUSR1");
@@ -57,16 +60,16 @@ export function attachSignalDumpHandler(
           : await options.dumpResult(result);
       if (options.dumpPath !== undefined) {
         const parentPath = dirname(options.dumpPath);
-        const tempPath = join(parentPath, `.${basename(options.dumpPath)}.${randomUUID()}.tmp`);
-        await mkdir(parentPath, { recursive: true });
+        const tempPath = join(parentPath, `.${basename(options.dumpPath)}.${globalThis.crypto.randomUUID()}.tmp`);
+        await io.mkdir(parentPath, { recursive: true });
         let tempCreated = false;
         try {
           await writeDumpFile(tempPath, snapshot, { encoding: "utf8", flag: "wx" });
           tempCreated = true;
-          await rename(tempPath, options.dumpPath);
+          await io.rename(tempPath, options.dumpPath);
         } catch (error) {
           if (tempCreated || !isAlreadyExistsError(error)) {
-            await rm(tempPath, { force: true }).catch(() => undefined);
+            await io.rm(tempPath, { force: true }).catch(() => undefined);
           }
           throw error;
         }

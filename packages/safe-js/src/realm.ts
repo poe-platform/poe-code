@@ -1,8 +1,8 @@
 import { denyGuestStringCompilation } from "./interp/string-compilation.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "./interp/array-buffer.js";
 import {hashParsedAst} from "./parse/hash.js";
-import { AsyncLocalStorage } from "node:async_hooks";
-import { types } from "node:util";
+import { AsyncLocalStorage } from "#safe-js-platform";
+import { types } from "#safe-js-platform";
 import { guestProxyStates } from "./interp/guest-proxy.js";
 import { callGuestProxy } from "./interp/guest-proxy-call.js";
 import { sandboxGetProperty } from "./interp/guest-proxy-get.js";
@@ -190,17 +190,17 @@ class RealmState {
     this.queue = queue;
     const limitInput = readDataRecord(options.limits ?? {}, "Realm limits");
     this.limits = {
-      extensions: 32,
-      hostObjects: 1024,
-      callbacks: 1024,
-      guestReferences: 1024,
-      cleanups: 1024,
-      nestedEvaluations: 16
+      extensions: Infinity,
+      hostObjects: Infinity,
+      callbacks: Infinity,
+      guestReferences: Infinity,
+      cleanups: Infinity,
+      nestedEvaluations: Infinity
     };
     for (const [name, value] of Object.entries(limitInput)) {
-      if (!Object.hasOwn(this.limits, name) || !Number.isSafeInteger(value) || Number(value) < 1)
-        throw new TypeError("Realm limits must be positive safe integers with supported names.");
-      this.limits[name as keyof RealmLimits] = Number(value);
+      if (!Object.hasOwn(this.limits, name) || (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || Number(value) < 1)))
+        throw new TypeError("Realm limits must be positive safe integers or Infinity with supported names.");
+      if (value !== undefined) this.limits[name as keyof RealmLimits] = Number(value);
     }
     if (
       options.extensions !== undefined &&
@@ -239,7 +239,7 @@ class RealmState {
         throw new TypeError("Console override requires a registered extension declaring console.");
       this.consoleExtension = extensionName;
     }
-    this.budget = options.budget ?? new Budget({ maxCallDepth: 1000 });
+    this.budget = options.budget ?? new Budget();
     this.lease = this.budget.acquireRealmOwner();
     this.compilation = new CompileScope(this.lease.owner);
     this.bridge = {

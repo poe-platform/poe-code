@@ -1,14 +1,17 @@
-import {open,realpath,stat} from "node:fs/promises";
-import {constants} from "node:fs";
-import path from "node:path";
+import {hostFs, fsConstants as constants} from "#safe-js-platform";
+import {resolvePath, type FileSystem, type FileStat} from "@poe-code/safe-fs/core";
+
+import path from "./paths.js";
 import type {SourceResolver} from "./source-graph.js";
 
-/** Explicit Node host grant. No package lookup, extension search, or URL loading. */
-export async function createRootedSourceResolver(root: string): Promise<SourceResolver & {
+/** Explicit filesystem grant. No package lookup, extension search, or URL loading. */
+export async function createRootedSourceResolver(root: string, adapter?: FileSystem): Promise<SourceResolver & {
   entryId(filename?: string): Promise<string>;
 }> {
-  const directory = await realpath(root);
-  const granted = path.resolve(root);
+  const realpath = adapter ? adapter.realpath.bind(adapter) : hostFs.realpath;
+  const stat = async (filename: string) => adapter ? sourceStat(await adapter.stat(filename)) : await hostFs.stat(filename);
+  const granted = adapter ? resolvePath("/", root) : path.resolve(root);
+  const directory = await realpath(granted);
   if (!(await stat(directory)).isDirectory()) throw new TypeError("Source module root must be a directory.");
   const contains = (filename: string) => {
     const relative = path.relative(directory,filename);
@@ -30,7 +33,9 @@ export async function createRootedSourceResolver(root: string): Promise<SourceRe
       const expected = await stat(id);
       signal?.throwIfAborted();
       if (!expected.isFile()) return undefined;
-      const handle = await open(id,constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      const handle = adapter
+        ? await openSourceFile(adapter, id, signal)
+        : await hostFs.open(id,constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
       try {
         signal?.throwIfAborted();
         const actual = await handle.stat();
@@ -38,7 +43,9 @@ export async function createRootedSourceResolver(root: string): Promise<SourceRe
         // Read the checked inode, never reopen its pathname. These checks deny
         // observed replacements; Node's path APIs do not provide atomic ancestor
         // confinement against an adversary repeatedly swapping directories.
-        if (!actual.isFile() || actual.dev !== expected.dev || actual.ino !== expected.ino) return undefined;
+        if (!actual.isFile() || ("identity" in actual && "identity" in expected
+          ? !sameSourceIdentity(actual.identity, expected.identity)
+          : actual.dev !== expected.dev || actual.ino !== expected.ino)) return undefined;
         const currentId = await realpath(id);
         signal?.throwIfAborted();
         if (currentId !== id) return undefined;
@@ -69,4 +76,40 @@ export async function createRootedSourceResolver(root: string): Promise<SourceRe
       throw error;
     }
   }});
+}
+
+function sourceStat(value: FileStat) {
+  return {identity: value, dev: value.dev, ino: value.ino,
+    isFile: () => value.type === "file", isDirectory: () => value.type === "directory"};
+}
+
+function sameSourceIdentity(actual: FileStat, expected: FileStat): boolean {
+  if (expected.identityScope !== undefined && expected.opaqueIdentity !== undefined) {
+    return actual.identityScope === expected.identityScope && actual.opaqueIdentity === expected.opaqueIdentity &&
+      (expected.opaqueVersion === undefined || actual.opaqueVersion === expected.opaqueVersion);
+  }
+  return expected.dev !== undefined && expected.ino !== undefined && actual.dev === expected.dev && actual.ino === expected.ino;
+}
+
+async function openSourceFile(adapter: FileSystem, id: string, signal?: AbortSignal) {
+  if (!adapter.openReadFile) throw new TypeError("Source filesystem must support retained reads.");
+  const handle = await adapter.openReadFile(id, signal ? {signal} : {});
+  return {
+    stat: async () => sourceStat(await handle.stat(signal ? {signal} : {})),
+    close: handle.close.bind(handle),
+    async readFile(_options: {encoding: "utf8"; signal?: AbortSignal}) {
+      const decoder = new TextDecoder("utf-8", {ignoreBOM: true});
+      const chunks: string[] = [];
+      let position = 0;
+      for (;;) {
+        signal?.throwIfAborted();
+        const chunk = await handle.read(position, 64 * 1024, signal ? {signal} : {});
+        if (chunk.byteLength === 0) break;
+        chunks.push(decoder.decode(chunk, {stream: true}));
+        position += chunk.byteLength;
+      }
+      chunks.push(decoder.decode());
+      return chunks.join("");
+    }
+  };
 }

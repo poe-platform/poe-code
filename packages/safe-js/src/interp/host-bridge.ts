@@ -3,7 +3,7 @@ import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { copyCollectionProperties, getCollectionProperties } from "./collection-properties.js";
 import { runResources } from "./resources.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
 import { readNativeRegExp } from "./native-regexp.js";
 import { importedPromises } from "./promise-state.js";

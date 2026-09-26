@@ -24,6 +24,23 @@ describe("SafeJS filesystem configuration SDK", () => {
     expect(Reflect.get(sdk, "resolveFsConfig")).toBe(resolveFsConfig);
   });
 
+  it("resolves configured filesystem read limits from CLI JSON", async () => {
+    const config = { ...memory, readFileMaxBytes: 128, hostReadMemoryLimit: 4096 };
+    expect(parseFsConfig(JSON.stringify(config))).toEqual(config);
+    expect(await resolveFsConfig(config)).toEqual({ adapter: filesystem, readFileMaxBytes: 128, hostReadMemoryLimit: 4096 });
+  });
+
+  it.each([-1, 1.5, null, "128"])("rejects invalid read limits %j before constructing storage", async limit => {
+    const config = { ...memory, readFileMaxBytes: limit };
+    expect(() => parseFsConfig(JSON.stringify(config))).toThrow(TypeError);
+    await expect(resolveFsConfig(config as never)).rejects.toThrow(TypeError);
+    expect(factories.memory).not.toHaveBeenCalled();
+  });
+
+  it("accepts explicit unlimited SDK filesystem configuration", async () => {
+    expect(await resolveFsConfig({ ...memory, readFileMaxBytes: Infinity, hostReadMemoryLimit: Infinity })).toEqual({ adapter: filesystem, readFileMaxBytes: Infinity, hostReadMemoryLimit: Infinity });
+  });
+
   it("parses JSON without constructing an adapter", () => {
     expect(parseFsConfig(JSON.stringify(memory))).toEqual(memory);
     expect(factories.memory).not.toHaveBeenCalled();

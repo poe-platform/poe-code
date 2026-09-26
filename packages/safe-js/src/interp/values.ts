@@ -1,3 +1,4 @@
+import { createTrackedProxy } from "../platform/types.js";
 import { withMeasurementSeen, type MeasurementSeen } from "./measurement-seen.js";
 import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
@@ -60,7 +61,7 @@ import { createRawJson, isRawJson } from "./raw-json.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
 import { hostObjectGuestRoot, getHostObjectSymbolKeys, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
-import { types as nodeTypes } from "node:util";
+import { types as nodeTypes } from "#safe-js-platform";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
 import { CompileScope, RegexCompileGuard, regexCompiledData } from "./regex/compile-guard.js";
 import {
@@ -666,7 +667,7 @@ export function createSandboxRegex(
     const descriptor = Object.getOwnPropertyDescriptor(regex, "lastIndex")!;
     Object.defineProperty(storage, "lastIndex", { value: descriptor.value, writable: descriptor.writable });
   };
-  const properties = new Proxy(storage, {
+  const properties = createTrackedProxy(storage, {
     get: (target, key, receiver) => key === "lastIndex" ? regex.lastIndex : Reflect.get(target, key, receiver),
     set: (target, key, value, receiver) => key === "lastIndex"
       ? Reflect.set(regex, key, value) : Reflect.set(target, key, value, receiver),

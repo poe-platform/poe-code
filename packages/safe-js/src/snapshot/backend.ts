@@ -1,6 +1,7 @@
-import { randomUUID } from "node:crypto";
-import { readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { hostFs } from "#safe-js-platform";
+import { createFsBridge, type FileSystem } from "@poe-code/safe-fs/core";
+import { fsCodec } from "../modules/fs-codec.js";
+import { dirname } from "../modules/paths.js";
 
 import { getOwnErrorCode, hasOwnErrorCode } from "../error-codes.js";
 import type { SafeJSSnapshot } from "../restore.js";
@@ -15,6 +16,7 @@ export interface SnapshotBackend {
 }
 
 export type FileSnapshotBackendOptions = {
+  adapter?: FileSystem;
   writeMaxAttempts?: number;
   writeRetryDelayMs?: number;
 };
@@ -24,7 +26,16 @@ const DEFAULT_WRITE_RETRY_DELAY_MS = 100;
 const LOCKED_FILE_ERROR_CODES = new Set(["EACCES", "EBUSY", "EPERM"]);
 const pendingOperations = new Map<string, Promise<void>>();
 
+type SnapshotIo = {
+  readFile(path: string, encoding: "utf8"): Promise<string>;
+  writeFile(path: string, contents: string, options: { encoding: "utf8"; flag: "wx" }): Promise<void>;
+  rename(from: string, to: string): Promise<void>;
+  stat(path: string): Promise<{ isDirectory(): boolean }>;
+  unlink(path: string): Promise<void>;
+};
+
 export class FileSnapshotBackend implements SnapshotBackend {
+  readonly #io: SnapshotIo;
   readonly #writeMaxAttempts: number;
   readonly #writeRetryDelayMs: number;
 
@@ -32,13 +43,14 @@ export class FileSnapshotBackend implements SnapshotBackend {
     readonly path: string,
     options: FileSnapshotBackendOptions = {}
   ) {
+    this.#io = options.adapter === undefined ? hostFs : createFsBridge(options.adapter, { codec: fsCodec });
     this.#writeMaxAttempts = options.writeMaxAttempts ?? DEFAULT_WRITE_MAX_ATTEMPTS;
     this.#writeRetryDelayMs = options.writeRetryDelayMs ?? DEFAULT_WRITE_RETRY_DELAY_MS;
   }
 
   async read(): Promise<Snapshot | undefined> {
     try {
-      return JSON.parse(await readFile(this.path, "utf8")) as Snapshot;
+      return JSON.parse(await this.#io.readFile(this.path, "utf8")) as Snapshot;
     } catch (error) {
       if (hasErrorCode(error, "ENOENT")) {
         return undefined;
@@ -54,7 +66,7 @@ export class FileSnapshotBackend implements SnapshotBackend {
 
   async write(snapshot: Snapshot): Promise<void> {
     await enqueueOperation(this.path, () =>
-      writeSnapshotAtomically(this.path, snapshot, {
+      writeSnapshotAtomically(this.#io, this.path, snapshot, {
         maxAttempts: this.#writeMaxAttempts,
         retryDelayMs: this.#writeRetryDelayMs
       })
@@ -64,7 +76,7 @@ export class FileSnapshotBackend implements SnapshotBackend {
   async remove(): Promise<void> {
     await enqueueOperation(this.path, async () => {
       try {
-        await unlink(this.path);
+        await this.#io.unlink(this.path);
       } catch (error) {
         if (!hasErrorCode(error, "ENOENT")) {
           throw error;
@@ -75,6 +87,7 @@ export class FileSnapshotBackend implements SnapshotBackend {
 }
 
 async function writeSnapshotAtomically(
+  io: SnapshotIo,
   snapshotPath: string,
   snapshot: Snapshot,
   options: {
@@ -85,12 +98,12 @@ async function writeSnapshotAtomically(
   const parentPath = dirname(snapshotPath);
   const contents = serializeSafeJSSnapshot(snapshot);
 
-  await assertParentDirectoryExists(snapshotPath, parentPath);
+  await assertParentDirectoryExists(io, snapshotPath, parentPath);
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt += 1) {
     try {
-      const temporaryPath = `${snapshotPath}.${randomUUID()}.tmp`;
-      await writeSnapshotOnce(temporaryPath, snapshotPath, contents);
+      const temporaryPath = `${snapshotPath}.${globalThis.crypto.randomUUID()}.tmp`;
+      await writeSnapshotOnce(io, temporaryPath, snapshotPath, contents);
       return;
     } catch (error) {
       if (hasErrorCode(error, "EEXIST")) {
@@ -125,11 +138,12 @@ async function writeSnapshotAtomically(
 }
 
 async function assertParentDirectoryExists(
+  io: SnapshotIo,
   snapshotPath: string,
   parentPath: string
 ): Promise<void> {
   try {
-    const parent = await stat(parentPath);
+    const parent = await io.stat(parentPath);
     if (!parent.isDirectory()) {
       throw new Error(
         `Cannot write snapshot at ${snapshotPath}: parent path ${parentPath} is not a directory`
@@ -150,6 +164,7 @@ async function assertParentDirectoryExists(
 }
 
 async function writeSnapshotOnce(
+  io: SnapshotIo,
   temporaryPath: string,
   snapshotPath: string,
   contents: string
@@ -158,19 +173,19 @@ async function writeSnapshotOnce(
   let renamed = false;
   try {
     try {
-      await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
+      await io.writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
       temporaryCreated = true;
     } catch (error) {
       if (!hasErrorCode(error, "EEXIST")) {
-        await removeTemporarySnapshot(temporaryPath).catch(() => undefined);
+        await removeTemporarySnapshot(io, temporaryPath).catch(() => undefined);
       }
       throw error;
     }
-    await rename(temporaryPath, snapshotPath);
+    await io.rename(temporaryPath, snapshotPath);
     renamed = true;
   } finally {
     if (temporaryCreated && !renamed) {
-      await removeTemporarySnapshot(temporaryPath).catch(() => undefined);
+      await removeTemporarySnapshot(io, temporaryPath).catch(() => undefined);
     }
   }
 }
@@ -189,9 +204,9 @@ async function enqueueOperation(path: string, operation: () => Promise<void>): P
   }
 }
 
-async function removeTemporarySnapshot(temporaryPath: string): Promise<void> {
+async function removeTemporarySnapshot(io: SnapshotIo, temporaryPath: string): Promise<void> {
   try {
-    await unlink(temporaryPath);
+    await io.unlink(temporaryPath);
   } catch (error) {
     if (!hasErrorCode(error, "ENOENT")) {
       throw error;

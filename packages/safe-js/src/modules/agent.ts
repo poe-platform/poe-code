@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "node:async_hooks";
+import { AsyncLocalStorage } from "#safe-js-platform";
 
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import {

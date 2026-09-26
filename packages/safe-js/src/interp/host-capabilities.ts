@@ -1,5 +1,5 @@
 import { readDataRecord, type HostOperation } from "../extensions.js";
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import { createIntrinsicObject } from "./object-model.js";
 import type { SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
 import type { SandboxIterator } from "./iteration.js";

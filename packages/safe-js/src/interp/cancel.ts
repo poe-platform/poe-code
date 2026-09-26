@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from "node:async_hooks";
+import { AsyncLocalStorage } from "#safe-js-platform";
 import { collectionIteratorState, isSandboxCollectionIterator } from "./collection-iterator.js";
 import { regexpIteratorState, isSandboxRegExpIterator } from "./regexp-iterator.js";
 import { getSandboxPrototype } from "./object-model.js";

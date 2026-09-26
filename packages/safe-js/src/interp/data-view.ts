@@ -1,4 +1,4 @@
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import type { Budget } from "./budget.js";
 import type { SandboxObject } from "./values.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage, isSandboxArrayBuffer } from "./array-buffer.js";

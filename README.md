@@ -266,7 +266,7 @@ Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an
 
 These features are available but subject to breaking changes.
 
-- **[SafeJS](packages/safe-js/README.md)** — A JavaScript interpreter with explicit host capabilities, execution budgets, and resumable checkpoints. 
+- **[SafeJS](packages/safe-js/README.md)** — A JavaScript interpreter with explicit host capabilities, portable filesystem adapters, configurable unlimited resource budgets, and resumable checkpoints.
 - **[Pipeline](packages/pipeline/)** — Run task plans with configurable steps, live task progress, queued follow-up messages, and plans you can add while the TUI is running.
 - **[Ralph](packages/ralph/)** — Agentic build loop that iterates on a markdown doc
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.

@@ -180,7 +180,6 @@ type WithRunSnapshot<TResult extends InterpreterResult> = TResult extends unknow
 export type RunResult = WithRunSnapshot<InterpreterResult>;
 export type RunPromise = Promise<RunResult> & ExecutionControl;
 
-const DEFAULT_MAX_CALL_DEPTH = 1_000;
 
 export function run(source: string, options: RunOptions = {}): RunPromise {
   const jobs = new SandboxJobQueue();
@@ -214,7 +213,7 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
   const detachExecutionFailure = promiseTracker.onFatalRejection((error) => jobs.interrupt(error));
   let completedSnapshot: RunSnapshot | undefined;
   const execute = async () => {
-    const budget = options.budget ?? new Budget({ maxCallDepth: DEFAULT_MAX_CALL_DEPTH });
+    const budget = options.budget ?? new Budget();
     const operation = budget.acquireCompileOwner(true);
     const compilation = new CompileScope(operation.owner);
     try {

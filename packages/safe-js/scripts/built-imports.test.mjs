@@ -6,12 +6,46 @@ import { build } from "esbuild";
 
 test("Workerd public entry bundles without native filesystem authority", async () => {
   const result = await build({
-    entryPoints: [new URL("../dist/workerd.js", import.meta.url).pathname],
+    entryPoints: ["workerd", "core", "modules/fs"].map(name => new URL(`../dist/${name}.js`, import.meta.url).pathname),
     bundle: true, platform: "neutral", format: "esm", conditions: ["workerd"],
-    external: ["node:*"], write: false, metafile: true
+    outdir: "/tmp/safe-js-portable", write: false, metafile: true
   });
   assert.ok(result.outputFiles.length > 0);
   assert.equal(Object.keys(result.metafile.inputs).some(name => name.includes("native-seek")), false);
+});
+
+test("portable SDK executes without Node globals or shared memory", async () => {
+  const directory = new URL("../dist/", import.meta.url).pathname;
+  const result = await build({
+    stdin: { contents: `import { run, makeFsModule } from "./workerd.js";
+      import { createRealm, createRootedSourceResolver } from "./core.js";
+      import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+      export { run, makeFsModule, createRealm, createRootedSourceResolver, MemoryFileSystem };`, resolveDir: directory },
+    bundle: true, platform: "neutral", format: "esm", conditions: ["workerd"], write: false
+  });
+  const url = "data:text/javascript;base64," + Buffer.from(result.outputFiles[0].text).toString("base64");
+  const script = `globalThis.process = undefined; globalThis.Buffer = undefined;
+    globalThis.SharedArrayBuffer = undefined;
+    const { run, createRealm, createRootedSourceResolver, makeFsModule, MemoryFileSystem } = await import(${JSON.stringify(url)});
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/value", new TextEncoder().encode("portable"));
+    const modules = { fs: makeFsModule({ adapter: fs, readFileMaxBytes: Infinity, hostReadMemoryLimit: Infinity }) };
+    const result = await run('import {readFile} from "fs"; return await readFile("/value", "utf8");', { modules });
+    if (result.returnValue !== "portable") throw new Error("Portable filesystem read failed");
+    await fs.mkdir("/source");
+    await fs.writeFile("/source/value.ajs", new TextEncoder().encode("export const value = 42;"));
+    const resolver = await createRootedSourceResolver("/source", fs);
+    const imported = await run('export {value} from "./value.ajs";', {
+      sourceType: "module", filename: await resolver.entryId(), sourceResolver: resolver
+    });
+    if (imported.returnValue.value !== 42) throw new Error("Portable source import failed");
+    const realm = createRealm();
+    try {
+      if ((await realm.evaluate("return await Promise.resolve(42);")).returnValue !== 42) throw new Error("Portable realm failed");
+    } finally { await realm.close(); }
+  `;
+  const execution = spawnSync(process.execPath, ["--input-type=module"], { input: script, encoding: "utf8", timeout: 30000, maxBuffer: 10 * 1024 * 1024 });
+  assert.equal(execution.status, 0, execution.stderr.slice(-4000) || String(execution.error));
 });
 
 const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));

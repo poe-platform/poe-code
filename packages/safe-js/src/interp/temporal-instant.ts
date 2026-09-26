@@ -1,5 +1,5 @@
 import type { SandboxObject } from "./values.js";
-import { types } from "node:util";
+import { types } from "#safe-js-platform";
 import { Temporal as TemporalBackend } from "temporal-polyfill/full/implementation";
 
 const nativeTemporal = Object.getOwnPropertyDescriptor(globalThis, "Temporal")?.value;

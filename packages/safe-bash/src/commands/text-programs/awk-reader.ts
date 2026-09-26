@@ -293,7 +293,6 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     (this as unknown as { iterator: AsyncIterator<Uint8Array> }).iterator = RELEASED_READER_ITERATOR;
-    readerAnchor.current = this;
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return resolvedVoid;
@@ -315,7 +314,6 @@ export class Reader {
     this.ownedBytes = 0;
     const origIter = this.iterator;
     (this as unknown as { iterator: AsyncIterator<Uint8Array> }).iterator = RELEASED_READER_ITERATOR;
-    readerAnchor.current = this;
     if (wasEnded || !origIter.return) {
       this.closing = resolvedVoid;
       return undefined;
@@ -324,5 +322,3 @@ export class Reader {
     return this.closing;
   }
 }
-
-const readerAnchor: { current?: Reader } = {};

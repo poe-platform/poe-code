@@ -3003,8 +3003,6 @@ const syncPipeStatusCharge = { generation: true, version: true, epoch: true, wor
 const syncPipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
 const predicateScratchWords: string[] = [];
 const fastSharedTextEncoder = new TextEncoder();
-let _lastFastContextAnchor: unknown;
-let _lastPipelineAnchor: unknown;
 let _sharedEmptyMemoryFs: FileSystem | undefined;
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 const assignmentCacheSymbol = Symbol("safe-bash.assignmentCache");
@@ -3155,7 +3153,6 @@ const SYNC_PIPE_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: 
 const sharedSyncPipeBuf0 = new Uint8Array(65536);
 const sharedSyncPipeBuf1 = new Uint8Array(65536);
 let syncPurePipelineSlotInUse = false;
-let pooledSyncPipeContext: FastShellCommandContext | undefined;
 
 class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
   private buf: Uint8Array = EMPTY_BYTES;
@@ -3263,7 +3260,6 @@ class PooledSyncPipeWriter implements ByteSink {
 
 const sharedSyncPipeReader = new PooledSyncPipeReader();
 const sharedSyncPipeWriter = new PooledSyncPipeWriter();
-let pooledFastSingleContext: FastShellCommandContext | undefined;
 let pooledMemoryRedirectSink: MemoryRedirectSink | undefined;
 const ZERO_PIPE_STATUSES: readonly (readonly number[])[] = [
   Object.freeze([]),
@@ -3365,12 +3361,6 @@ export class Runtime {
     if (reusableEntry && reusableEntry.inUseBy === this) {
       retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
       reusableEntry.inUseBy = undefined;
-    }
-    if (Array.isArray(_lastFastContextAnchor) && _lastFastContextAnchor[0]) {
-      (_lastFastContextAnchor[0] as { _contextFs?: FileSystem | undefined })._contextFs = undefined;
-    }
-    if (Array.isArray(_lastPipelineAnchor) && _lastPipelineAnchor[0]) {
-      (_lastPipelineAnchor[0] as { _contextFs?: FileSystem | undefined })._contextFs = undefined;
     }
     if (this._isMemoryBackingFs && this.backingFs) {
       const emptyFs = (_sharedEmptyMemoryFs ??= new (this.backingFs.constructor as new () => FileSystem)());
@@ -5286,29 +5276,8 @@ export class Runtime {
       rawState.lastArgument = lastArg;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       const scope = io[invocationScope];
-      let context: FastShellCommandContext;
-      if (pooledFastSingleContext) {
-        context = pooledFastSingleContext;
-        pooledFastSingleContext = undefined;
-        context.resetDirectStage(
-          this,
-          rawState,
-          io,
-          scope,
-          w0Plain,
-          args,
-          io.stdin,
-          io.stdinIsDefault === true,
-          redirectSink ?? io.stdout,
-          this.commandSignal,
-        );
-        if (!this._isMemoryBackingFs) {
-          (context as unknown as { _scopedSignal: AbortSignal | undefined })._scopedSignal = undefined;
-        }
-      } else {
-        context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
-        if (redirectSink) context.stdout = redirectSink;
-      }
+      const context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
+      if (redirectSink) context.stdout = redirectSink;
       if (redirectSink && io.descriptors) {
         const descriptors = new Map(io.descriptors);
         descriptors.set(1, { output: redirectSink });
@@ -5381,7 +5350,6 @@ export class Runtime {
         (context as unknown as { _contextFs: unknown })._contextFs = undefined;
         (context as unknown as { stdin: unknown }).stdin = undefined;
         (context as unknown as { stdout: unknown }).stdout = undefined;
-        pooledFastSingleContext = context;
         if (redirectSink) {
           redirectSink.budget = undefined!;
           redirectSink.handle = undefined!;
@@ -5555,7 +5523,6 @@ export class Runtime {
         context.stdout = stageStdout;
         context.signal = toNativeAbortSignal(stageSignal);
         (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
-        if (index === 0) _lastPipelineAnchor = [context, stageStdout, input, outgoing];
         if (asyncTasks === undefined) {
           scope.enterWork();
           this.budget.beginPathLookupSuspension();
@@ -5694,7 +5661,7 @@ export class Runtime {
     let statuses: number[] | undefined;
     const stdoutCap = io.stdout as Capture;
     const stderrCap = io.stderr as Capture;
-    let context = pooledSyncPipeContext;
+    let context: FastShellCommandContext | undefined;
     try {
       let prevBuf = sharedSyncPipeBuf0;
       let prevLen = 0;
@@ -5730,7 +5697,6 @@ export class Runtime {
         }
         if (!context) {
           context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
-          pooledSyncPipeContext = context;
         }
         context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
         scope.enterWork();

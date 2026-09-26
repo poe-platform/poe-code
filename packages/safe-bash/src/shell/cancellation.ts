@@ -179,7 +179,6 @@ interface PreparedState {
 }
 
 const emptyCloseResult: CancellationCloseResult = Object.freeze({ failures: Object.freeze([]) });
-const sharedCleanSelection: { outcome: CapturedCancellationOutcome<any> } = { outcome: undefined! };
 const nativeAbortedGetter = Object.getOwnPropertyDescriptor(AbortSignal.prototype, "aborted")?.get;
 
 class LinkStateImpl implements LinkState, CancellationBoundary {
@@ -1149,8 +1148,7 @@ export function selectRuntimeCancellationOutcome<Value>(
   const state = boundary[boundaryState];
   const lineage = state.kind === "link" ? state : state.lineage;
   if (captured.kind === "return" && !hasAnyVisibleOrigin(lineage)) {
-    sharedCleanSelection.outcome = captured;
-    return sharedCleanSelection;
+    return { outcome: captured };
   }
   const origins = visibleOrigins(lineage);
   const root = origins.find(origin => origin.role === "root-caller");

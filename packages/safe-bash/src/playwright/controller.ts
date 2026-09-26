@@ -48,6 +48,10 @@ export interface PlaywrightSessionRenewOptions {
   readonly name: string;
   readonly context: PlaywrightContext;
 }
+export interface PlaywrightSessionSelectOptions extends PlaywrightSessionRenewOptions {
+  readonly page: PlaywrightPage;
+  readonly signal?: AbortSignal;
+}
 export interface PlaywrightSessionRestoreOptions {
   readonly recovery?: 'saved-storage';
   readonly name: string;
@@ -210,7 +214,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     }
     return entries.filter(entry => !explicitlyClosed.has(entry.name) && (!suppressUnknownRestores || sessions.get(entry.name)?.state === 'open') && (entry.expiresAt === undefined || entry.expiresAt > Date.now()));
   };
-  const checkpoint = async (session: Session, signal: AbortSignal, activity = true) => {
+  const checkpoint = async (session: Session, signal: AbortSignal, activity = true, retireOnCancellation = true) => {
     if (activity && session.idleTimeoutMs) session.expiresAt = Date.now() + session.idleTimeoutMs;
     scheduleExpiry(session);
     if (!options.persistence || session.state !== 'open' || !session.lease || session.failure) return;
@@ -229,7 +233,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       }
       if (outcome !== undefined && outcome.status !== 'committed') throw new TypeError('Invalid checkpoint outcome');
     } catch (error) {
-      if (!(error instanceof PlaywrightStorageReadError) || signal.aborted) {
+      const cancelled = signal.aborted && Object.is(error, signal.reason);
+      if (signal.aborted && retireOnCancellation || !cancelled && !(error instanceof PlaywrightStorageReadError)) {
         try { await release(session); }
         catch (cleanup) { throw new AggregateError([error, cleanup], 'Playwright checkpoint and retirement failed'); }
       }
@@ -294,9 +299,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     check();
     await initializePage(session, page);
     check();
-    session.detachPage?.();
     await session.snapshot.invalidate();
     check();
+    session.detachPage?.();
     session.page = page;
     if (page.on && page.off) {
       const invalidate = () => { void session.snapshot.invalidate().catch(() => {}); };
@@ -406,6 +411,64 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (!session.idlePaused) scheduleExpiry(session);
     }
     return true;
+  };
+  const selectSessionPage = async (request: PlaywrightSessionSelectOptions): Promise<boolean> => {
+    const { name, context, page, signal: callerSignal } = request;
+    validatePlaywrightSessionName(name);
+    callerSignal?.throwIfAborted();
+    if (lifetime.signal.aborted) return false;
+    const session = sessions.get(name);
+    if (!session) return false;
+    const available = () => sessions.get(name) === session && session.state === 'open' && !session.releasing && !session.failure
+      && session.lease?.context === context
+      && (session.idlePaused || session.expiresAt === undefined || session.expiresAt > Date.now())
+      && context.pages().includes(page);
+    if (!available()) return false;
+    const signal = callerSignal ? AbortSignal.any([callerSignal, lifetime.signal]) : lifetime.signal;
+    const unavailable = new Error('Selected live Playwright session or page is no longer available');
+    const check = () => {
+      callerSignal?.throwIfAborted();
+      signal.throwIfAborted();
+      if (!available()) throw unavailable;
+    };
+    const operation = enqueue(name, async () => {
+      let paused = false;
+      let completed = false;
+      try {
+        check();
+        if (session.idleTimeoutMs) {
+          paused = true;
+          session.idlePaused = true;
+          clearTimeout(session.expiryTimer);
+        }
+        await selectPage(session, page, check);
+        check();
+        session.pages = [...context.pages()];
+        await checkpoint(session, signal, true, false);
+        check();
+        completed = true;
+        return true;
+      } catch (error) {
+        const cancelled = callerSignal?.aborted || signal.aborted;
+        const reason = callerSignal?.aborted ? callerSignal.reason : signal.aborted ? signal.reason : error;
+        if (error === unavailable && !cancelled) return false;
+        if (!cancelled && error instanceof PlaywrightStorageReadError) throw new PlaywrightCheckpointError(error);
+        if (!cancelled || session.failure || error instanceof SnapshotCleanupError) {
+          try { await release(session); }
+          catch (cleanup) { throw new AggregateError([reason, cleanup], 'Playwright selection and retirement failed'); }
+        }
+        throw reason;
+      } finally {
+        if (paused) {
+          delete session.idlePaused;
+          if (completed && session.state === 'open') session.expiresAt = Date.now() + session.idleTimeoutMs!;
+          scheduleExpiry(session);
+        }
+      }
+    });
+    work.add(operation);
+    try { return await operation; }
+    finally { work.delete(operation); }
   };
   const inspectRecovery = async (request: { readonly name: string; readonly signal?: AbortSignal }): Promise<PlaywrightRecoveryResult> => {
     validatePlaywrightSessionName(request.name);
@@ -1406,6 +1469,6 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     lifetime.abort(new Error('Playwright controller is disposed'));
     return disposal;
   };
-  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), renewSession, inspectSessions, inspectRecovery };
+  return { run, dispose, restoreSession: (request: PlaywrightSessionRestoreOptions) => restoreSession(request), renewSession, selectSessionPage, inspectSessions, inspectRecovery };
 }
 import { PlaywrightResourceLimitError, PlaywrightSnapshotLimitError, isPlaywrightResourceLimitError } from './resource-limit.js';

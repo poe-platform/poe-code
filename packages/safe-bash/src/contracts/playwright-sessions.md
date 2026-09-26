@@ -74,6 +74,22 @@ the retained session even past its previous deadline. Renewal preserves that pau
 without arming an expiry timer; command completion establishes the final deadline.
 Renewal is in-memory activity metadata, not a persistence acknowledgement.
 
+Both hosts also expose `selectSessionPage({ name, context, page, signal? })`,
+returning `Promise<boolean>`. It selects an existing public page by object identity
+through the command queue, invalidates previous snapshot refs, and checkpoints
+the selected page. The session must already be live when called and retain
+the same session, context, and page when selection runs; stale or unavailable
+identities return `false`. It never allocates, restores, or revives a session.
+Cancellation preserves its reason and leaves a healthy session open; it cannot
+undo a selection already applied. Ordinary initialization, snapshot cleanup, and
+persistence errors retain their retirement/checkpoint behavior, including an
+independent persistence failure racing cancellation. An applied selection counts
+as activity even if the target closes during checkpointing and selection returns
+`false`; a stale target rejected before publication does not renew idle expiry.
+Hosts must map
+authenticated client requests to these retained objects, not accept raw objects
+or provider identifiers from clients.
+
 Private CDP target/session capacity counts active identities. Only native target
 destruction or session detach confirmations release that identity's capacity.
 Bounded recent retirement tombstones suppress late messages; active private

@@ -13,7 +13,7 @@ export function data(bytes: Uint8Array): { text: string } | { bytes: string } {
 export class Printer {
   private lastFile: string | undefined;
   private lastLine = 0;
-  private headings = new Set<string>();
+  private headings: Set<string> | undefined;
   constructor(readonly args: Arguments, readonly limits: Limits) {}
   async event(type: string, value: unknown): Promise<void> {
     const ordered = (input: unknown): unknown => input && typeof input === "object" && !Array.isArray(input)
@@ -39,10 +39,13 @@ export class Printer {
       });
       return;
     }
-    if (this.args.heading && filename && !this.headings.has(label)) {
-      if (this.headings.size) await this.limits.output("\n");
-      await this.limits.output(label + (this.args.nullPath ? "\0" : "\n"));
-      this.headings.add(label);
+    if (this.args.heading && filename) {
+      const headings = (this.headings ??= new Set<string>());
+      if (!headings.has(label)) {
+        if (headings.size) await this.limits.output("\n");
+        await this.limits.output(label + (this.args.nullPath ? "\0" : "\n"));
+        headings.add(label);
+      }
     } else if ((this.args.before || this.args.after) && this.lastFile !== undefined && (this.lastFile !== label || line.number > this.lastLine + 1) && this.args.separator !== undefined) {
       await this.limits.output(this.args.separator + "\n");
     }

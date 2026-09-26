@@ -484,8 +484,21 @@ Unicode selection and extended regex syntax require a configured executor.
             if (args!.messages) await diagnostic(context, error);
           };
           const walker = new Walker(context, args, limits, report, session);
-          await walker.validate();
-          const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args, limits), args, session, options.regexExecutor === undefined);
+          if (walker.needsValidation()) await walker.validate();
+          let activePatterns: readonly string[];
+          if (args.mode === "files") {
+            activePatterns = [];
+          } else if (args.patternFiles.length === 0) {
+            let bytes = 0;
+            for (let i = 0; i < args.patterns.length; i++) {
+              bytes += Buffer.byteLength(args.patterns[i]!);
+              if (bytes > limits.maxPatternBytes) throw new SearchError("pattern byte limit exceeded");
+            }
+            activePatterns = args.patterns;
+          } else {
+            activePatterns = await patterns(context, args, limits);
+          }
+          const matcher = new Matcher(activePatterns, args, session, options.regexExecutor === undefined);
           if (args.mode !== "files" && matcher.literalAsciiBytes === undefined) {
             const initBatch = matcher.batchSync(EMPTY_RG_LINES);
             if (initBatch instanceof Promise) await initBatch;
@@ -496,7 +509,8 @@ Unicode selection and extended regex syntax require a configured executor.
           const multiPaths = selection.paths.length > 1;
           let fastReadState: 0 | 1 | -1 = 0;
           let fastReadBacking: ReturnType<typeof getRuntimeBackingFileSystem>;
-          const runTargetSlow = async (target: FileTarget, showFilename: boolean): Promise<boolean> => {
+          let runTargetSlow: ((target: FileTarget, showFilename: boolean) => Promise<boolean>) | undefined;
+          const getRunTargetSlow = () => (runTargetSlow ??= async (target: FileTarget, showFilename: boolean): Promise<boolean> => {
             const snapshotTarget: FileTarget = { path: target.path, label: target.label, explicit: target.explicit, recursive: target.recursive, ...(target.canonicalPath !== undefined ? { canonicalPath: target.canonicalPath } : {}) };
             try {
               const result = await searchFile(context, args!, limits!, matcher, printer, snapshotTarget, context.stdin, showFilename);
@@ -510,10 +524,8 @@ Unicode selection and extended regex syntax require a configured executor.
               if (args!.quiet && found && args!.mode !== "json") return false;
             } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }
             return true;
-          };
-          for (const p of selection.paths) {
-            if (p !== "-") await assertPathRequirements(context, searchRequirements, ["metadata"], [p]);
-            await walker.walkTargets([p], selection.implicit, target => {
+          });
+          await walker.walkTargets(selection.paths, selection.implicit, target => {
               if (args!.mode === "files") {
                 found = true;
                 if (!args!.quiet) {
@@ -542,7 +554,7 @@ Unicode selection and extended regex syntax require a configured executor.
                 }
                 if (syncOut instanceof Promise) {
                   return syncOut.then(f => {
-                    if (f === undefined) return runTargetSlow(target, showFilename);
+                    if (f === undefined) return getRunTargetSlow()(target, showFilename);
                     found ||= f;
                     return !(args!.quiet && found && args!.mode !== "json");
                   }, async error => {
@@ -555,10 +567,8 @@ Unicode selection and extended regex syntax require a configured executor.
                 if (error instanceof SearchError || error instanceof RegexExecutionError) throw error;
                 return report(error).then(() => true);
               }
-              return runTargetSlow(target, showFilename);
-            });
-            if (args.quiet && found && args.mode !== "json" || args.mode === "files" && args.quiet && found) break;
-          }
+              return getRunTargetSlow()(target, showFilename);
+          });
           if (args.mode === "json") await printer.event("summary", { elapsed_total: elapsed, stats: totals });
           await limits.flush();
           return { exitCode: args.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };

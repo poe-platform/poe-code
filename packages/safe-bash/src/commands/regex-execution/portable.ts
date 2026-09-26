@@ -37,6 +37,9 @@ export async function withRegexSession(
   context.signal.throwIfAborted();
   let session: RegexSession | undefined;
   let closing: Promise<void> | undefined;
+  let unregisterCleanup: (() => void) | undefined;
+  let cleanupRegistered = false;
+  const fastScope = (context as { registerScopeCleanup?: (cleanup: () => Promise<void>) => () => void }).registerScopeCleanup;
   const close = (): Promise<void> => {
     if (!closing) {
       if (!session || session.canCloseSync()) {
@@ -48,21 +51,28 @@ export async function withRegexSession(
     }
     return closing;
   };
-  let unregisterCleanup: (() => void) | undefined;
-  const fastScope = (context as { registerScopeCleanup?: (cleanup: () => Promise<void>) => () => void }).registerScopeCleanup;
-  try {
-    unregisterCleanup = fastScope
-      ? fastScope.call(context, close)
-      : (context.registerCleanup?.(close) as (() => void) | undefined);
+  const ensureCleanupRegistered = (): void => {
+    if (cleanupRegistered) return;
+    cleanupRegistered = true;
+    try {
+      unregisterCleanup = fastScope
+        ? fastScope.call(context, close)
+        : (context.registerCleanup?.(close) as (() => void) | undefined);
+    } catch (error) {
+      context.signal.throwIfAborted();
+      throw error;
+    }
+  };
+  if (!fastScope) {
+    ensureCleanupRegistered();
   }
-  catch (error) { context.signal.throwIfAborted(); throw error; }
   let result: CommandResult | undefined;
   let hasError = false;
   let caughtError: unknown;
   try {
     context.signal.throwIfAborted();
     if (closing) throw new RegexExecutionError("CLOSED", "invocation is closed");
-    session = executor.open(context.signal);
+    session = executor.open(context.signal, fastScope ? ensureCleanupRegistered : undefined);
     result = await execute(session);
   } catch (error) {
     hasError = true;
@@ -278,14 +288,14 @@ export class RegexExecutor {
     if (!provider || typeof provider.createWorker !== "function") throw new TypeError("a bounded regex provider is required");
     this.options = policy(options);
   }
-  open(signal: AbortSignal): RegexSession {
+  open(signal: AbortSignal, onUse?: () => void): RegexSession {
     signal.throwIfAborted();
     if (this.disposed) throw new RegexExecutionError("CLOSED", "executor is disposed");
     if (this.sessions === 0 && this.cachedReadySlot !== undefined) {
       idleProviderSlots.get(this.provider)?.delete(this.idleEvictor);
     }
     this.sessions++;
-    return new RegexSession(this, signal);
+    return new RegexSession(this, signal, onUse);
   }
   canCloseSync(): boolean {
     if (this.sessions > 1) return true;
@@ -551,15 +561,17 @@ export class RegexExecutor {
 export class RegexSession {
   declare readonly executor: RegexExecutor;
   declare readonly signal: AbortSignal;
+  declare private onUse: (() => void) | undefined;
   declare private closed: Promise<void> | undefined;
   declare private pending: Set<Promise<Match[][] | ExprMatchResult | BreSearchResult>> | undefined;
   declare private retirements: Set<Promise<void>> | undefined;
   declare private controller: AbortController | undefined;
   declare private requestSignal: AbortSignal;
-  constructor(executor: RegexExecutor, signal: AbortSignal) {
+  constructor(executor: RegexExecutor, signal: AbortSignal, onUse?: () => void) {
     this.executor = executor;
     this.signal = signal;
     this.requestSignal = signal;
+    if (onUse !== undefined) this.onUse = onUse;
   }
   _ensureAsyncState(): AbortSignal {
     if (!this.controller) {
@@ -585,6 +597,7 @@ export class RegexSession {
   runSync(descriptor: Descriptor, rows: readonly Row[]): Match[][] | Promise<Match[][]> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
+    if (this.onUse) { const fn = this.onUse; this.onUse = undefined; fn(); }
     const result = this.executor.requestSyncOrAsync(descriptor, rows, this);
     if (!(result instanceof Promise)) return result;
     return this.trackPending(result);
@@ -596,6 +609,7 @@ export class RegexSession {
   matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
+    if (this.onUse) { const fn = this.onUse; this.onUse = undefined; fn(); }
     const sig = this._ensureAsyncState();
     const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
     return this.trackPending(result);
@@ -603,6 +617,7 @@ export class RegexSession {
   searchBre(descriptor: BreSearchDescriptor, subject: Uint8Array): Promise<BreSearchResult> {
     this.signal.throwIfAborted();
     if (this.closed) throw new RegexExecutionError("CLOSED", "invocation is closed");
+    if (this.onUse) { const fn = this.onUse; this.onUse = undefined; fn(); }
     const sig = this._ensureAsyncState();
     const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], sig, this.retirements);
     return this.trackPending(result);

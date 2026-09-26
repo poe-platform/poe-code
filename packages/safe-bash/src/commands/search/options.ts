@@ -79,15 +79,105 @@ function fileSize(value: string): number {
   return amount;
 }
 
+const EMPTY_STRINGS: string[] = [];
+const EMPTY_GLOB_RULES: { source: string; insensitive: boolean }[] = [];
+const EMPTY_TYPE_RULES: { name: string; include: boolean }[] = [];
+
+class ParsedArguments implements Arguments {
+  declare help?: boolean;
+  declare version?: "short" | "long";
+  patterns: string[] = [];
+  declare patternFiles: string[];
+  paths: string[] = [];
+  declare explicitPatterns: boolean;
+  declare mode: "lines" | "files" | "with" | "without" | "count" | "matches" | "json";
+  declare case: "sensitive" | "insensitive" | "smart";
+  declare fixed: boolean;
+  declare invert: boolean;
+  declare word: boolean;
+  declare whole: boolean;
+  declare lineNumber: boolean;
+  declare column: boolean;
+  declare byteOffset: boolean;
+  declare filename?: boolean;
+  declare onlyMatching: boolean;
+  declare quiet: boolean;
+  declare hidden: boolean;
+  declare follow: boolean;
+  declare ignore: boolean;
+  declare ignoreVcs: boolean;
+  declare ignoreDot: boolean;
+  declare ignoreParent: boolean;
+  declare ignoreFiles: boolean;
+  declare ignorePaths: string[];
+  declare requireGit: boolean;
+  declare binary: "auto" | "binary" | "text";
+  declare nullPath: boolean;
+  declare nullData: boolean;
+  declare crlf: boolean;
+  declare includeZero: boolean;
+  declare messages: boolean;
+  declare heading: boolean;
+  declare before: number;
+  declare after: number;
+  declare separator: string | undefined;
+  declare maxCount: number;
+  declare maxDepth: number;
+  declare maxFileSize: number;
+  declare replacement?: string;
+  declare trim: boolean;
+  declare multiline?: boolean;
+  declare multilineDotall?: boolean;
+  declare globs: { source: string; insensitive: boolean }[];
+  declare types: { name: string; include: boolean }[];
+  static {
+    Object.assign(ParsedArguments.prototype, {
+      patternFiles: EMPTY_STRINGS,
+      explicitPatterns: false,
+      mode: "lines",
+      case: "sensitive",
+      fixed: false,
+      invert: false,
+      word: false,
+      whole: false,
+      lineNumber: false,
+      column: false,
+      byteOffset: false,
+      onlyMatching: false,
+      quiet: false,
+      hidden: false,
+      follow: false,
+      ignore: true,
+      ignoreVcs: true,
+      ignoreDot: true,
+      ignoreParent: true,
+      ignoreFiles: true,
+      ignorePaths: EMPTY_STRINGS,
+      requireGit: true,
+      binary: "auto",
+      nullPath: false,
+      nullData: false,
+      crlf: false,
+      includeZero: false,
+      messages: true,
+      heading: false,
+      before: 0,
+      after: 0,
+      separator: "--",
+      maxCount: Infinity,
+      maxDepth: Infinity,
+      maxFileSize: Infinity,
+      trim: false,
+      multiline: false,
+      multilineDotall: false,
+      globs: EMPTY_GLOB_RULES,
+      types: EMPTY_TYPE_RULES,
+    });
+  }
+}
+
 export function parse(args: readonly string[]): Arguments {
-  const result: Arguments = {
-    patterns: [], patternFiles: [], paths: [], explicitPatterns: false, mode: "lines", case: "sensitive",
-    fixed: false, invert: false, word: false, whole: false, lineNumber: false, column: false, byteOffset: false,
-    onlyMatching: false, quiet: false, hidden: false, follow: false, ignore: true, ignoreVcs: true,
-    ignoreDot: true, ignoreParent: true, ignoreFiles: true, ignorePaths: [], requireGit: true, binary: "auto", nullPath: false, nullData: false,
-    crlf: false, includeZero: false, messages: true, heading: false, before: 0, after: 0, separator: "--",
-    maxCount: Infinity, maxDepth: Infinity, maxFileSize: Infinity, trim: false, multiline: false, multilineDotall: false, globs: [], types: [],
-  };
+  const result: Arguments = new ParsedArguments();
   const operands: string[] = [];
   let unrestricted = 0;
   let explicitLineNumber = false;
@@ -98,15 +188,19 @@ export function parse(args: readonly string[]): Arguments {
     if (argument === "--") { ended = true; continue; }
     const long = argument.startsWith("--");
     const equals = argument.indexOf("=");
-    const flags = long ? [equals < 0 ? argument.slice(2) : argument.slice(2, equals)] : [...argument.slice(1)];
+    const singleShort = !long && argument.length === 2 ? argument.slice(1) : undefined;
+    const flags = singleShort !== undefined
+      ? undefined
+      : (long ? [equals < 0 ? argument.slice(2) : argument.slice(2, equals)] : [...argument.slice(1)]);
+    const flagsLen = singleShort !== undefined ? 1 : flags!.length;
     let inline = long && equals >= 0 ? argument.slice(equals + 1) : undefined;
-    for (let position = 0; position < flags.length; position++) {
-      const flag = flags[position]!;
+    for (let position = 0; position < flagsLen; position++) {
+      const flag = singleShort !== undefined ? singleShort : flags![position]!;
       let tookValue = false;
       const value = () => {
         tookValue = true;
         if (inline !== undefined) { const output = inline; inline = undefined; return output; }
-        if (!long && position + 1 < flags.length) { const output = flags.slice(position + 1).join(""); position = flags.length; return output; }
+        if (!long && position + 1 < flagsLen) { const output = flags!.slice(position + 1).join(""); position = flagsLen; return output; }
         const output = args[++index];
         if (output === undefined) throw new SearchError(`${long ? "--" : "-"}${flag} requires a value`);
         return output;
@@ -116,12 +210,13 @@ export function parse(args: readonly string[]): Arguments {
         case "V": result.version = "short"; break;
         case "version": result.version = "long"; break;
         case "e": case "regexp": result.explicitPatterns = true; result.patterns.push(value()); break;
-        case "f": case "file": result.explicitPatterns = true; result.patternFiles.push(value()); break;
-        case "g": case "glob": result.globs.push({ source: value(), insensitive: false }); break;
-        case "iglob": result.globs.push({ source: value(), insensitive: true }); break;
+        case "f": case "file": result.explicitPatterns = true; if (result.patternFiles === EMPTY_STRINGS) result.patternFiles = []; result.patternFiles.push(value()); break;
+        case "g": case "glob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: value(), insensitive: false }); break;
+        case "iglob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: value(), insensitive: true }); break;
         case "t": case "type": case "T": case "type-not": {
           const name = value();
           if (name !== "all" && !Object.hasOwn(defaultFileTypes, name)) throw new SearchError(`unrecognized file type: ${name}`);
+          if (result.types === EMPTY_TYPE_RULES) result.types = [];
           result.types.push({ name, include: flag === "t" || flag === "type" });
           break;
         }
@@ -156,7 +251,7 @@ export function parse(args: readonly string[]): Arguments {
         case "no-ignore-vcs": result.ignoreVcs = false; break;
         case "no-ignore-dot": result.ignoreDot = false; break;
         case "no-ignore-parent": result.ignoreParent = false; break;
-        case "ignore-file": result.ignorePaths.push(value()); break;
+        case "ignore-file": if (result.ignorePaths === EMPTY_STRINGS) result.ignorePaths = []; result.ignorePaths.push(value()); break;
         case "no-ignore-files": result.ignoreFiles = false; break;
         case "ignore-files": result.ignoreFiles = true; break;
         case "no-require-git": result.requireGit = false; break;

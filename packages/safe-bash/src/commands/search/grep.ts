@@ -3,7 +3,7 @@ import { hasYieldCheckpoint } from "../../contracts/yield.js";
 import { bufferLimit as internalBufferLimit, diagnostic, encoder, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
 import { RecordBuffer } from "../record-buffer.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
-import { reusableBatchRows, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
+import { inProcessRegexProviders, reusableBatchRows, trustedInputRows, type GrepDescriptor } from "../regex-execution/protocol.js";
 import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
 import { SearchError } from "./options.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
@@ -877,12 +877,14 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
   }
   const maxPatternCount = limits.maxPatterns ?? Infinity;
   const bufferLimit = limits.maxPatternBytes ?? Infinity;
+  const canFastAscii = inProcessRegexProviders.has(executor.provider);
   return [{
     name: "grep",
     filesystemRequirements: grepRequirements,
     execute: context => {
       const args = context.args;
       if (
+        canFastAscii &&
         (args.length === 1 || args.length === 2) &&
         !hasYieldCheckpoint(context.signal) &&
         maxPatternCount >= 1

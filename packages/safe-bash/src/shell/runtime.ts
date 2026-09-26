@@ -1992,7 +1992,7 @@ class FastShellCommandContext {
   get commandDiscovery(): NonNullable<CommandContext["commandDiscovery"]> {
     const self = this._self ?? this;
     return {
-      defaultPath: self._state.pathUnset ? undefined : defaultCommandPath,
+      defaultPath: self._state.variables.PATH ?? (self._state.pathUnset ? undefined : defaultCommandPath),
       isExecutable: path => self._runtime.virtualExecutable(path) !== undefined,
     };
   }
@@ -20177,7 +20177,7 @@ export class Runtime {
     const context: ShellCommandContext = {
       ...publicIO, ...{ xpgEcho: !!state.xpg_echo, shellStartedAt: state.shellStartedAt ??= Date.now() }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd,
       commandDiscovery: {
-        defaultPath: state.pathUnset ? undefined : defaultCommandPath,
+        defaultPath: state.variables.PATH ?? (state.pathUnset ? undefined : defaultCommandPath),
         isExecutable: path => this.virtualExecutable(path) !== undefined,
       },
       get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {

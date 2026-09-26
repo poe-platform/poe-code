@@ -48,3 +48,11 @@ test("middleware preserves the child shell's executable search state", async () 
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
 });
+
+test("which respects shell PATH assignments when PATH is not exported", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(whichCommands());
+  shell.commands.register({ name: "tool", execute: () => ({ exitCode: 0 }) });
+  assert.equal((await shell.exec("PATH=/usr/bin; which tool")).stdout, "/usr/bin/tool\n");
+  assert.equal((await shell.exec("PATH=/tools; which tool")).exitCode, 1);
+  assert.equal((await shell.exec("unset PATH; PATH=/usr/bin; which tool")).stdout, "/usr/bin/tool\n");
+});

@@ -22,7 +22,8 @@ still require their host to supply truthful capabilities and resource limits.
 `CommandContext.commandDiscovery` optionally describes virtual executables supplied
 by the host. `isExecutable(path)` answers whether an absolute virtual path names
 a registered command or shell interpreter. `defaultPath` supplies the search path
-when the invocation environment omits PATH; it is absent after an explicit unset.
+when the invocation environment omits PATH, including an unexported shell PATH
+binding; it is absent after an explicit unset.
 Shell hosts expose registered executables under `/bin` and `/usr/bin`. `which`
 checks this capability before probing the filesystem, with the same invocation
 limits. Direct command hosts may omit it and retain filesystem-only lookup.

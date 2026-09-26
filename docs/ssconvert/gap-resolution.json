@@ -622,6 +622,26 @@
       "proof": "biff-libreoffice-interop-proof.json",
       "sourceRevision": "bce0998afefdbc355585ca324285661a2170ba77",
       "finding": "Source explains 1..15-unit passwords, fixed 128-bit CryptoAPI and native XLSX ocStop-to-#REF! export. Six of 35 original files opened; 168 native cell observations and 24 SDK/Shell replay comparisons passed with documented XLSX error loss. Wrong-password probes exceed native length admission; UI/native reexport reopening and current-head qualification remain open."
+    },
+    "biffDocumentProperties": {
+      "revision": "bce0998afefdbc355585ca324285661a2170ba77",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sc/source/filter/excel/excimp8.cxx",
+          "sha256": "9b085ab3dc2041e5fb7990fedc64527d38a5867df202c1861c9791e1ed0b0459"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sfx2/source/doc/docinf.cxx",
+          "sha256": "732a22f646a3aea4bc60ebb6fdf5f2d0a1566cdc5d126607cfc4215645a9e192"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/LibreOffice/core/bce0998afefdbc355585ca324285661a2170ba77/sfx2/source/doc/oleprops.cxx",
+          "sha256": "62d45a8369420a6ddef598d9156bcd51be74b11fa7c3131c856251c3c4fb6c41"
+        }
+      ],
+      "productEvidence": "At 5124a5a714, biff.ts workbookBytes (82) selects only Workbook/Book from readCfb; readBiff does not populate Workbook.properties, and writeBiff emits only workbook streams. biff-encryption.ts:96 refuses CryptoAPI flags without bit 8 (ancillary properties encrypted). These are separate metadata preservation and encryption gaps.",
+      "nativeTrace": "excimp8.cxx:418 calls sfx2::LoadOlePropertySet on the root storage. docinf.cxx:49 reads SummaryInformation title/subject/author/comments/timestamps and DocumentSummaryInformation named custom properties. oleprops.cxx:1094 opens each property stream directly; this path does not supply the BIFF decrypter and is not an encrypted-property implementation recipe.",
+      "next": "Implement bounded OLE property-set import/export using Workbook.properties and explicit preservation/loss handling for unsupported types. First derive section offsets, GUIDs, codepages, typed values and dictionary rules from source plus the file-format contract; use a minimal independent fixture to reproduce value loss before code changes. Resolve encrypted property streams separately; retain the explicit refusal until their format and ownership are implemented."
     }
   },
   "cases": [

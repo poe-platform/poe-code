@@ -338,6 +338,13 @@ it("builds the portable shell without Node workers, adapters, or duplicate files
   expect(result.outputFiles!.some(output => output.path.endsWith("core.browser.js"))).toBe(true);
 });
 
+it("shares one source contract owner across the browser shell and private commands", () => {
+  const prefix = "packages/safe-bash-contracts/";
+  const contracts = Object.keys(portableBuild.metafile!.inputs).filter(input => input.startsWith(prefix));
+  expect(contracts).toContain(prefix + "src/command.ts");
+  expect([...new Set(contracts.map(input => input.slice(prefix.length).split("/")[0]))]).toEqual(["src"]);
+});
+
 it("bundles the complete portable preset with one owned-argument identity", async () => {
   const options = resolveBrowserShellBuild(root);
   expect(options.entryPoints).toEqual({

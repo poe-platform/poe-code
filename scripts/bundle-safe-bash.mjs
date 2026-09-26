@@ -132,6 +132,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
   const aliases = {
     ...alias,
     "node:stream/web": platform,
+    // All importers share command/value brands, regardless of local tsconfig paths.
     "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src"),
     "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
     // Pandoc prepares its portable third-party adapters in the workspace build.

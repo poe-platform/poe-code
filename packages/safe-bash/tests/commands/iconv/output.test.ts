@@ -7,6 +7,18 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 const input = new TextEncoder().encode("Changed café\n");
 const expected = Uint8Array.from(Buffer.from("004300680061006e006700650064002000630061006600e9000a", "hex"));
 
+test("iconv preserves retained sink chunks across repeated scratch-buffer flushes", async () => {
+  const text = Array.from({ length: 4000 }, (_, i) => `record-${i} café\n`).join("");
+  const chunks: Uint8Array[] = [];
+  const result = await run(["-f", "ISO-8859-1", "-t", "UTF-8"], Buffer.from(text, "latin1"), {}, {
+    stdout: { async write(chunk) { chunks.push(chunk); } },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderrHex, "");
+  assert.ok(chunks.length > 1);
+  assert.ok(Buffer.concat(chunks).equals(Buffer.from(text, "utf8")), "retained iconv output must match every converted byte");
+});
+
 for (const option of ["-o result", "-oresult", "--output=result", "--output result"]) {
   for (const operand of ["source", "", "-"]) test(`iconv ${option} converts ${operand || "stdin"} to a VFS file`, async () => {
     const fs = createMemoryFileSystem();

@@ -72,7 +72,7 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
   let used = 0, offset = 0, status = 0, batchCount = 0;
   let suppressed = false, targetSuppressed = false, started = false, firstTargetBatch = true;
   const flush = async (): Promise<void> => {
-    if (used) { await lifecycle.write(buffer.subarray(0, used)); used = 0; status = 0; }
+    if (used) { await lifecycle.write(buffer.slice(0, used)); used = 0; status = 0; }
   };
   const flushFullOutput = async (): Promise<void> => {
     await flush(); batchCount = 1; suppressed = false; targetSuppressed = false; firstTargetBatch = false;

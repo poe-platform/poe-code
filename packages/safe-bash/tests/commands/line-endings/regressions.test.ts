@@ -7,6 +7,21 @@ import { createDos2unixCommand, createUnix2dosCommand } from "../../../src/comma
 
 for (const create of [createDos2unixCommand, createUnix2dosCommand]) {
   const command = create();
+  test(`${command.name} preserves retained sink chunks across repeated scratch-buffer flushes`, async () => {
+    const lines = Array.from({ length: 5000 }, (_, i) => `record-${i}`);
+    const inputEnding = command.name === "dos2unix" ? "\r\n" : "\n";
+    const outputEnding = command.name === "dos2unix" ? "\n" : "\r\n";
+    const chunks: Uint8Array[] = [];
+    const result = await command.execute({
+      command: command.name, args: [], cwd: "/", env: { LC_ALL: "C.UTF-8" }, fs: new MemoryFileSystem(),
+      signal: new AbortController().signal, stdin: toByteSource(lines.join(inputEnding) + inputEnding),
+      stdout: { async write(chunk) { chunks.push(chunk); } },
+      stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } },
+    });
+    assert.equal(result.exitCode, 0);
+    assert.ok(chunks.length > 1);
+    assert.ok(Buffer.concat(chunks).equals(Buffer.from(lines.join(outputEnding) + outputEnding)), "retained line-ending output must match every converted byte");
+  });
   async function run(stdin: ByteSource, args: string[] = [], fs = new MemoryFileSystem(), events: string[] = []) {
     const result = await command.execute({ command: command.name, args, fs, cwd: "/", env: { LC_ALL: "C.UTF-8" }, signal: new AbortController().signal, stdin,
       stdout: { async write(bytes) { events.push(`out:${Buffer.from(bytes).toString()}`); } },

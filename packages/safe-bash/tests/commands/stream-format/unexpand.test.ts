@@ -1,6 +1,25 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { shell, type NativeCase } from "./helpers.js";
+import { createStreamFormatCommands } from "../../../src/commands/stream-format/index.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { toByteSource } from "../../../src/contracts/index.js";
+
+test("unexpand preserves retained sink chunks across repeated scratch-buffer flushes", async () => {
+  const lines = Array.from({ length: 5000 }, (_, i) => `record-${i}\n`);
+  const chunks: Uint8Array[] = [];
+  const command = createStreamFormatCommands().find(candidate => candidate.name === "unexpand")!;
+  const result = await command.execute({
+    command: "unexpand", args: [], cwd: "/", env: { LC_ALL: "C" }, fs: new MemoryFileSystem(),
+    signal: new AbortController().signal,
+    stdin: toByteSource(lines.map(line => `        ${line}`).join("")),
+    stdout: { async write(chunk) { chunks.push(chunk); } },
+    stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.ok(chunks.length > 1);
+  assert.ok(Buffer.concat(chunks).equals(Buffer.from(lines.map(line => `\t${line}`).join(""))), "retained unexpand output must match every converted byte");
+});
 
 test("unexpand rejects the undocumented -F option and supports clustered numeric, ordered -t/-N, and +0//0/+/N tab specs", async context => {
   const instance = shell();

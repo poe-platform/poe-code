@@ -210,6 +210,6 @@ export class Writer {
   }
   async flush(): Promise<void> {
     this.life.assertOpen();
-    if (this.used) { await this.publish(this.buffer.subarray(0, this.used)); this.used = 0; }
+    if (this.used) { await this.publish(this.buffer.slice(0, this.used)); this.used = 0; }
   }
 }

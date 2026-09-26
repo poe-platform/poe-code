@@ -3,7 +3,7 @@ import test from "node:test";
 import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
 import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
 import { createGrepCommands } from "../../../src/commands/search/grep.js";
-import { Shell, agentCommands } from "../../../src/index.js";
+import { Shell, agentCommands, cloudflareWorkerLimits, createMemoryFileSystem } from "../../../src/index.js";
 import { fixture, run } from "../helpers.js";
 
 for (const size of [65535, 65536, 65537]) {
@@ -30,6 +30,34 @@ for (const command of ["grep hello /work/input", "grep -i hello /work/input", "r
     } catch (error) {
       assert.equal((error as Error).name, "ShellLimitError");
     }
+  });
+}
+
+for (const profile of ["default", "cloudflare"] as const) {
+  test(`rg preserves explicit root and relative filenames with ${profile} limits`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from("2\n3\n"));
+    await fs.mkdir("/search");
+    await fs.writeFile("/search/input", Buffer.from("2\n3\n"));
+    const shell = new Shell({ fs, cwd: "/" }).use(agentCommands());
+    const options = profile === "cloudflare" ? { limits: cloudflareWorkerLimits } : {};
+    try {
+      for (const [command, expected] of [
+        ["rg -l 2 /", "/input\n/search/input\n"],
+        ["rg -c 2 /", "/input:1\n/search/input:1\n"],
+        ["rg --files /", "/input\n/search/input\n"],
+        ["rg -l 2 //", "//input\n//search/input\n"],
+        ["rg -l 2 .", "./input\n./search/input\n"],
+        ["rg -l 2 /search", "/search/input\n"],
+        ["rg -l 2 search", "search/input\n"],
+        ["cd /search; rg -l 2", "input\n"],
+      ] as const) {
+        const result = await shell.exec(command, options);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(expected), command);
+      }
+    } finally { await shell.dispose(); }
   });
 }
 

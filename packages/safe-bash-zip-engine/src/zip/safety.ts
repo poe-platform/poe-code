@@ -48,7 +48,10 @@ export class ZipScope {
   private work = 0;
   private stdinSource: ByteSource | undefined;
   constructor(private readonly original: CommandContext, readonly limits: ArchiveLimits) {
-    this.context = { ...original, signal: AbortSignal.any([original.signal, this.controller.signal]) };
+    this.context = Object.create(Object.getPrototypeOf(original), {
+      ...Object.getOwnPropertyDescriptors(original),
+      signal: { value: AbortSignal.any([original.signal, this.controller.signal]), enumerable: true },
+    }) as CommandContext;
     original.registerCleanup?.(this.close);
   }
   readonly close = (): Promise<void> => {

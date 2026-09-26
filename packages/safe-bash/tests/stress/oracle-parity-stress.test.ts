@@ -223,7 +223,7 @@ test("differential oracle parity: safe-bash fold and diff3 vs host /usr/bin/fold
   }
   await fs.writeFile("/employees.csv", enc.encode(csvRows.join("\n") + "\n"));
   const csvRes = await shell.exec(
-    "csvgrep -c department -r \"^dept_[246]$\" /employees.csv | csvcut -c name,salary,1 | wc -l"
+    "set -o pipefail; csvgrep -c department -r \"^dept_[246]$\" /employees.csv | csvcut -c name,salary,1 | wc -l"
   );
   assert.equal(csvRes.exitCode, 0, csvRes.stderr);
   assert.equal(csvRes.stderr, "");

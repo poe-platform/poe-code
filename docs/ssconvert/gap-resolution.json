@@ -708,6 +708,45 @@
         "validation": "Three provenance failures and four edit/deletion failures preceded implementation. Final 55-file BIFF cohort passes 1237 tests; maintained package lint, source/test/public-consumer types and selected four-workspace build pass. Compiled BIFF7/8/DSF exports (3584/3584/4608 bytes) preserve the edited title, cell value and opaque BLOB, independently inspected through SheetJS CFB plus direct OLE field decoding. Public CLI reconversion preserves those bytes; inspected screenshot shows the import-retention notice and no export-loss warning.",
         "independentReaderLimit": "SheetJS @e965/xlsx 0.20.3 xlsx.mjs:6367-6368 dereferences PIDSI[unknownId].n; :20459-20462 catches the error and returns no SummaryInformation metadata unless WTF is enabled. This was reproduced for all three profiles with unknown ID 200. Title and opaque bytes were verified through its CFB API and direct field decoding; its property API is not counted as a metadata pass. Source SHA256 1a0fb062ee9781b13f6687371b202aaefc53b6ce55b530c027e01f9c087b77db.",
         "legacyValidation": "Three failures reproduced dropped opaque data in legacy summary edits/deletions and untouched legacy custom streams. Five legacy cases now pass, including paired-stream edit recovery and a missing-earlier-stream ambiguity control. Final 55-file BIFF cohort passes 1242 tests; maintained lint/types and selected build pass. Independently decoded a compiled legacy export through SheetJS CFB and inspected the public CLI screenshot: edited title and opaque bytes survive without an export-loss warning."
+      },
+      "encryptedAncillarySource": {
+        "revision": "942d95d85b15d0dfdb3bc9ba1b4f273f277757c8",
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/apache/poi/942d95d85b15d0dfdb3bc9ba1b4f273f277757c8/poi/src/main/java/org/apache/poi/poifs/crypt/cryptoapi/CryptoAPIDecryptor.java",
+            "sha256": "920675fd9b269c20d3aa9aa15784c8f20241746dc57957875c5e9b5d8d583a1f"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/apache/poi/942d95d85b15d0dfdb3bc9ba1b4f273f277757c8/poi/src/main/java/org/apache/poi/poifs/crypt/cryptoapi/CryptoAPIEncryptor.java",
+            "sha256": "127e27132b541c4cc064df92bc70e0ef085e1b9c97443de00827017931915db2"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/apache/poi/942d95d85b15d0dfdb3bc9ba1b4f273f277757c8/poi/src/main/java/org/apache/poi/poifs/crypt/cryptoapi/CryptoAPIEncryptionHeader.java",
+            "sha256": "4852c057451aa7dbd0e10b54a804ebcfdfe321913d1abec684e536561116c0eb"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/apache/poi/942d95d85b15d0dfdb3bc9ba1b4f273f277757c8/poi/src/main/java/org/apache/poi/poifs/crypt/cryptoapi/CryptoAPIDocumentInputStream.java",
+            "sha256": "a0ba24c6d6b4f9b6da5605dc67deec627869c61e4f19ee5d6a9aa7ad33ee6995"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/apache/poi/942d95d85b15d0dfdb3bc9ba1b4f273f277757c8/poi/src/main/java/org/apache/poi/poifs/crypt/cryptoapi/CryptoAPIDocumentOutputStream.java",
+            "sha256": "ec77160568c1269e0363daaee52d908ca433934512d865be3033f0bf58467435"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/apache/poi/942d95d85b15d0dfdb3bc9ba1b4f273f277757c8/poi/src/main/java/org/apache/poi/POIDocument.java",
+            "sha256": "da039cdd2185d6a732caa225d8ea067f7a38a83896060a7efd54e246e527770e"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/apache/poi/942d95d85b15d0dfdb3bc9ba1b4f273f277757c8/poi/src/main/java/org/apache/poi/poifs/crypt/EncryptionInfo.java",
+            "sha256": "7470b57d2666495a2550b133520ef6f33af007d58f9f44d160b888f285ed7701"
+          }
+        ],
+        "flags": "EncryptionInfo.java:57-61 and :276-277: flagDocProps bit 0x08 must be zero for encrypted document properties. POIDocument.java:222-229 requires the encrypted container when that flag is clear; :500-501 names it encryption for spreadsheet documents.",
+        "layout": "CryptoAPIDecryptor.java:180-230 decrypts the first eight bytes with block 0 to get descriptor-array offset/size; it resets block 0 at the descriptor array, then reads count and entries. Each entry is offset:u32, size:u32, block:u16, nameLength:u8, flags:u8, reserved:u32, UTF16LE name and a trailing u16 terminator. CryptoAPIDocumentInputStream.java:47-49 resets the cipher at each declared block, independently of stream position. Payloads are not Workbook-style 1024-byte chunks.",
+        "writer": "CryptoAPIEncryptor.java:125-191 writes payloads under consecutive block IDs, then the descriptor array under block 0 and rewrites the header under block 0. POIDocument.java:288-310 places real properties in the encrypted container, removes plaintext SummaryInformation and writes an empty plaintext DocumentSummaryInformation placeholder.",
+        "keyDerivation": "CryptoAPIDecryptor.java:115-129 hashes the verified base secret plus a little-endian 32-bit block ID, truncates to keyBits/8, and pads a 40-bit key to 16 bytes. Reuse the existing BIFF CryptoAPI derivation with explicit key and plaintext-buffer ownership; do not ask for the password again.",
+        "productGap": "biff-encryption.ts:96 refuses flagDocProps=0 before password acquisition. readBiff calls decryptBiffRecords without the CFB stream collection, so the decryptor cannot currently locate or decrypt the encryption stream. Property decoding happens later from the original CFB map.",
+        "next": "Implement a bounded encrypted-property container codec and integrate it while the verified CryptoAPI key is alive. Validate descriptor size/count, names, flags, ranges, overlap and duplicate identities; preserve cancellation, zeroization and publication atomicity. Add explicit encrypted-property export profiles with CLI/SDK parity. Keep the refusal until both handling and tests exist. See docs/plans/ssconvert-biff-encrypted-properties.md."
       }
     }
   },

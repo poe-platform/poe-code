@@ -172,6 +172,32 @@ test("retirement removes one registration without invoking or deduplicating call
   } finally { await scope.close(); }
 });
 
+test("retirement cannot remove a later registration of the same callback", async () => {
+  const scope = new InvocationScope();
+  let calls = 0;
+  const cleanup = () => { calls++; };
+  const retire = scope.register(cleanup);
+  retire();
+  scope.register(cleanup);
+  retire();
+  try {
+    await scope.close();
+    assert.equal(calls, 1);
+  } finally { await scope.close(); }
+});
+
+test("direct and ordinary cleanup registrations preserve their order", async () => {
+  const scope = new InvocationScope();
+  const calls: string[] = [];
+  scope.registerDirect(() => { calls.push("first"); });
+  scope.register(() => { calls.push("second"); });
+  scope.registerDirect(() => { calls.push("third"); });
+  try {
+    await scope.close();
+    assert.deepEqual(calls, ["first", "second", "third"]);
+  } finally { await scope.close(); }
+});
+
 test("retirement cannot cancel snapshotted cleanup or bypass finalizers and tracked work", { timeout: 2000 }, async () => {
   const scope = new InvocationScope();
   const child = scope.child();

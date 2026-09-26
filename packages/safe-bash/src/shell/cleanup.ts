@@ -219,12 +219,6 @@ export class InvocationScope {
   register(cleanup: InvocationCleanup): () => void {
     this.assertOpen();
     if (typeof cleanup !== "function") throw new TypeError("Cleanup must be callable");
-    if (this._singleCallback === undefined && (this._callbacks === undefined || this._callbacks.size === 0)) {
-      this._singleCallback = cleanup;
-      return () => {
-        if (this._singleCallback === cleanup) this._singleCallback = undefined;
-      };
-    }
     const id = this._regCount++;
     const callbacks = this._callbacks ??= new Map();
     if (this._singleCallback !== undefined) {

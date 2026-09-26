@@ -591,9 +591,7 @@ function tryExecuteRgFastSync(
     runner.limits.resetForRun(DUMMY_CONTEXT, {});
     runner.walker.resetForRun(DUMMY_CONTEXT, runner.args, runner.limits, DUMMY_REPORT, DUMMY_SESSION);
     runner.args.reset();
-    runner.matcher.literalAsciiBytes = undefined;
-    runner.matcher.literalText = "";
-    runner.matcher.patterns = EMPTY_PATTERNS;
+    runner.matcher.resetForRun(EMPTY_PATTERNS, runner.args, DUMMY_SESSION, true, true);
     runner.context = DUMMY_CONTEXT;
     runner.fastReadBacking = undefined;
     runner.inUse = false;

@@ -1,6 +1,6 @@
 # `@poe-platform/safe-bash/commands/soffice`
 
-Headless LibreOffice (`soffice` / `libreoffice`) conversion command for `safe-bash` virtual shells and TypeScript, rendering `.docx`, `.xlsx`, `.pptx`, `.csv`, `.html`, `.md`, and `.txt` documents to styled multi-page PDFs (and converting spreadsheets/documents to `.csv`, `.txt`, `.html`, `.md`) via `@poe-code/pdf-ast`.
+Headless LibreOffice (`soffice` / `libreoffice`) conversion command for `safe-bash` virtual shells and TypeScript, rendering `.docx`, `.odt`, `.ods`, `.odp`, `.xlsx`, `.pptx`, `.csv`, `.html`, `.md`, and `.txt` documents to styled multi-page PDFs (and converting spreadsheets to `.xlsx`, `.csv`, `.txt`, `.html`, and documents to `.txt`, `.html`, `.md`) via `@poe-code/pdf-ast`.
 
 ## Features
 
@@ -11,6 +11,8 @@ Headless LibreOffice (`soffice` / `libreoffice`) conversion command for `safe-ba
 | Impress -> PDF | `soffice --headless --convert-to pdf:impress_pdf_Export deck.pptx` | Renders PPTX slides into landscape 16:9 widescreen PDFs. |
 | Calc -> CSV (StarCalc) | `soffice --headless --convert-to "csv:Text - txt - csv (StarCalc):59,34,76,1" book.xlsx` | Exports worksheets to CSV with configurable field separator, quote character, and BOM/encoding. |
 | PDF -> DOCX / XLSX / CSV / HTML / PNG / TXT | `soffice --headless --convert-to docx document.pdf` | Converts PDFs into DOCX, XLSX, CSV, HTML, PNG, or TXT and supports `soffice --cat` / `libreoffice` alias. |
+
+CSV input preserves quoted commas, escaped quotes, and embedded newlines. `-convert-to` and `-outdir` are accepted alongside their double-dash forms, including `=value`. Compatibility options `--infilter`, `--pidfile`, and `--language` consume their values but do not configure conversion. Malformed ZIP inputs return an error diagnostic.
 
 ## Quick Start
 

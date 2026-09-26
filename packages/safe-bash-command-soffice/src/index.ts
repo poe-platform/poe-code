@@ -100,23 +100,32 @@ export function readZipArchiveEntries(zipBytes: Uint8Array): Map<string, Uint8Ar
       break;
     }
   }
-  if (eocdPos < 0) return map;
+  if (eocdPos < 0) throw new Error("Invalid ZIP: missing end of central directory");
   const count = view.getUint16(eocdPos + 10, true);
   let cdPos = view.getUint32(eocdPos + 16, true);
 
-  for (let i = 0; i < count && cdPos + 46 <= zipBytes.length; i++) {
-    if (view.getUint32(cdPos, true) !== 0x02014b50) break;
+  for (let i = 0; i < count; i++) {
+    if (cdPos + 46 > zipBytes.length || view.getUint32(cdPos, true) !== 0x02014b50) {
+      throw new Error("Invalid ZIP: truncated central directory");
+    }
     const method = view.getUint16(cdPos + 10, true);
     const compSize = view.getUint32(cdPos + 20, true);
     const nameLen = view.getUint16(cdPos + 28, true);
     const extraLen = view.getUint16(cdPos + 30, true);
     const commentLen = view.getUint16(cdPos + 32, true);
     const localOffset = view.getUint32(cdPos + 42, true);
+    if (cdPos + 46 + nameLen + extraLen + commentLen > zipBytes.length ||
+        localOffset + 30 > zipBytes.length || view.getUint32(localOffset, true) !== 0x04034b50) {
+      throw new Error("Invalid ZIP: truncated or invalid entry header");
+    }
     const name = new TextDecoder().decode(zipBytes.subarray(cdPos + 46, cdPos + 46 + nameLen));
 
     const localNameLen = view.getUint16(localOffset + 26, true);
     const localExtraLen = view.getUint16(localOffset + 28, true);
     const dataStart = localOffset + 30 + localNameLen + localExtraLen;
+    if (dataStart + compSize > zipBytes.length) {
+      throw new Error("Invalid ZIP: truncated entry data");
+    }
     const rawData = zipBytes.subarray(dataStart, dataStart + compSize);
 
     if (method === 0) {
@@ -587,6 +596,43 @@ function buildXlsxFromRows(rows: readonly (readonly string[])[]): Uint8Array {
   });
 }
 
+function parseCsvRows(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]!;
+    if (char === '"') {
+      if (quoted && text[i + 1] === '"') {
+        field += '"';
+        i++;
+      } else if (quoted || field.length === 0) {
+        quoted = !quoted;
+      } else {
+        field += char;
+      }
+    } else if (!quoted && char === ",") {
+      row.push(field);
+      field = "";
+    } else if (!quoted && (char === "\r" || char === "\n")) {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+      if (char === "\r" && text[i + 1] === "\n") i++;
+    } else {
+      field += char;
+    }
+  }
+  if (quoted) throw new Error("Invalid CSV: unterminated quoted field");
+  if (text.length > 0 && (field.length > 0 || row.length > 0 || !["\r", "\n"].includes(text.at(-1)!))) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows;
+}
+
 export async function runSofficeCli(
   argv: readonly string[],
   files: Map<string, Uint8Array>,
@@ -597,246 +643,254 @@ export async function runSofficeCli(
   let outdir = cwd;
   const inputs: string[] = [];
 
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "--help" || arg === "-h") {
-      return {
-        exitCode: 0,
-        stdout: "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
-        stderr: ""
-      };
-    }
-    if (arg === "--version") {
-      return {
-        exitCode: 0,
-        stdout: "LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n",
-        stderr: ""
-      };
-    }
-    if (arg === "--cat" || arg === "-cat") {
-      catMode = true;
-      continue;
-    }
-    if (arg === "--convert-to") {
-      convertSpec = argv[++i];
-    } else if (arg.startsWith("--convert-to=")) {
-      convertSpec = arg.slice("--convert-to=".length);
-    } else if (arg === "--outdir") {
-      outdir = argv[++i] ?? cwd;
-    } else if (arg.startsWith("--outdir=")) {
-      outdir = arg.slice("--outdir=".length);
-    } else if (arg.startsWith("-")) {
-      continue;
-    } else {
-      inputs.push(arg);
-    }
-  }
-
-  if (catMode && !convertSpec && inputs.length > 0) {
-    const chunks: string[] = [];
-    for (const inputPath of inputs) {
-      const bytes = files.get(inputPath);
-      if (!bytes) {
-        return { exitCode: 1, stdout: "", stderr: `Error: source file could not be loaded: ${inputPath}\n` };
+  try {
+    for (let i = 0; i < argv.length; i++) {
+      const arg = argv[i]!;
+      if (arg === "--help" || arg === "-h") {
+        return {
+          exitCode: 0,
+          stdout: "LibreOffice 24.8 (@poe-code/pdf-ast)\nUsage: soffice --headless --convert-to <format> [--outdir <dir>] <files...>\n",
+          stderr: ""
+        };
       }
-      const lower = inputPath.toLowerCase();
-      if (lower.endsWith(".pdf")) {
-        chunks.push(PdfDocument.load(bytes).extractText());
-      } else if (lower.endsWith(".docx")) {
-        chunks.push(parseDocxBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
-      } else if (lower.endsWith(".odt")) {
-        chunks.push(parseOdtBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
-      } else if (lower.endsWith(".rtf")) {
-        chunks.push(parseRtfBlocks(bytes).map((b) => b.text ?? "").join("\n"));
+      if (arg === "--version") {
+        return {
+          exitCode: 0,
+          stdout: "LibreOffice 24.8.0.0 (@poe-code/pdf-ast)\n",
+          stderr: ""
+        };
+      }
+      if (arg === "--cat" || arg === "-cat") {
+        catMode = true;
+        continue;
+      }
+      const option = arg.startsWith("--") ? arg.slice(2) : arg.startsWith("-") ? arg.slice(1) : "";
+      const equals = option.indexOf("=");
+      const name = equals < 0 ? option : option.slice(0, equals);
+      if (["convert-to", "outdir", "infilter", "pidfile", "language"].includes(name)) {
+        const value = equals < 0 ? argv[++i] : option.slice(equals + 1);
+        if (!value || (equals < 0 && value.startsWith("-"))) {
+          return { exitCode: 1, stdout: "", stderr: `Error: ${arg} requires a value\n` };
+        }
+        if (name === "convert-to") convertSpec = value;
+        if (name === "outdir") outdir = value;
+      } else if (arg.startsWith("-")) {
+        continue;
       } else {
-        chunks.push(new TextDecoder().decode(bytes));
+        inputs.push(arg);
       }
     }
-    return { exitCode: 0, stdout: chunks.join("\n") + "\n", stderr: "" };
-  }
 
-  if (!convertSpec || inputs.length === 0) {
-    return {
-      exitCode: 1,
-      stdout: "",
-      stderr: "Error: --convert-to and at least one input file are required\n"
-    };
-  }
+    if (catMode && !convertSpec && inputs.length > 0) {
+      const chunks: string[] = [];
+      for (const inputPath of inputs) {
+        const bytes = files.get(inputPath);
+        if (!bytes) {
+          return { exitCode: 1, stdout: "", stderr: `Error: source file could not be loaded: ${inputPath}\n` };
+        }
+        const lower = inputPath.toLowerCase();
+        if (lower.endsWith(".pdf")) {
+          chunks.push(PdfDocument.load(bytes).extractText());
+        } else if (lower.endsWith(".docx")) {
+          chunks.push(parseDocxBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
+        } else if ([".odt", ".ods", ".odp"].some(ext => lower.endsWith(ext))) {
+          chunks.push(parseOdtBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
+        } else if (lower.endsWith(".rtf")) {
+          chunks.push(parseRtfBlocks(bytes).map((b) => b.text ?? "").join("\n"));
+        } else {
+          chunks.push(new TextDecoder().decode(bytes));
+        }
+      }
+      return { exitCode: 0, stdout: chunks.join("\n") + "\n", stderr: "" };
+    }
 
-  const firstColon = convertSpec.indexOf(":");
-  const secondColon = firstColon >= 0 ? convertSpec.indexOf(":", firstColon + 1) : -1;
-  const targetExtRaw = firstColon >= 0 ? convertSpec.slice(0, firstColon) : convertSpec;
-  const filterNameRaw =
-    firstColon >= 0
-      ? secondColon >= 0
-        ? convertSpec.slice(firstColon + 1, secondColon)
-        : convertSpec.slice(firstColon + 1)
-      : undefined;
-  const filterOpts = secondColon >= 0 ? convertSpec.slice(secondColon + 1) : undefined;
-  const targetExt = (targetExtRaw ?? "pdf").toLowerCase();
-  let stdout = "";
-
-  for (const inputPath of inputs) {
-    const inputBytes = files.get(inputPath);
-    if (!inputBytes) {
+    if (!convertSpec || inputs.length === 0) {
       return {
         exitCode: 1,
-        stdout,
-        stderr: `Error: source file could not be loaded: ${inputPath}\n`
+        stdout: "",
+        stderr: "Error: --convert-to and at least one input file are required\n"
       };
     }
 
-    const baseName = inputPath.split("/").pop() ?? "document";
-    const stem = baseName.replace(/\.[^.]+$/, "");
-    const lowerIn = baseName.toLowerCase();
-    const outPath = `${outdir === "/" ? "" : outdir.replace(/\/$/, "")}/${stem}.${targetExt}`;
+    const firstColon = convertSpec.indexOf(":");
+    const secondColon = firstColon >= 0 ? convertSpec.indexOf(":", firstColon + 1) : -1;
+    const targetExtRaw = firstColon >= 0 ? convertSpec.slice(0, firstColon) : convertSpec;
+    const filterNameRaw =
+      firstColon >= 0
+        ? secondColon >= 0
+          ? convertSpec.slice(firstColon + 1, secondColon)
+          : convertSpec.slice(firstColon + 1)
+        : undefined;
+    const filterOpts = secondColon >= 0 ? convertSpec.slice(secondColon + 1) : undefined;
+    const targetExt = (targetExtRaw ?? "pdf").toLowerCase();
+    let stdout = "";
 
-    const defaultFilter =
-      targetExt === "pdf"
-        ? lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")
-          ? "calc_pdf_Export"
-          : lowerIn.endsWith(".pptx")
-            ? "impress_pdf_Export"
-            : "writer_pdf_Export"
-        : targetExt === "csv"
-          ? "Text - txt - csv (StarCalc)"
-          : `${targetExt}_Export`;
-    const filterName = filterNameRaw || defaultFilter;
-
-    let outBytes: Uint8Array;
-
-    if (lowerIn.endsWith(".docx") || lowerIn.endsWith(".odt") || lowerIn.endsWith(".rtf")) {
-      const blocks = lowerIn.endsWith(".docx")
-        ? parseDocxBlocks(inputBytes)
-        : lowerIn.endsWith(".odt")
-          ? parseOdtBlocks(inputBytes)
-          : parseRtfBlocks(inputBytes);
-      if (targetExt === "pdf") {
-        outBytes = renderBlocksToPdf(blocks, stem);
-      } else if (targetExt === "html") {
-        outBytes = renderBlocksToHtml(blocks, stem);
-      } else if (targetExt === "docx") {
-        outBytes = buildDocxFromBlocks(blocks);
-      } else {
-        const textLines = blocks.map((b) =>
-          b.kind === "table" && b.rows
-            ? b.rows.map((r) => r.join("\t")).join("\n")
-            : (b.text ?? "")
-        );
-        outBytes = new TextEncoder().encode(textLines.join("\n\n") + "\n");
-      }
-    } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
-      const rows = lowerIn.endsWith(".xlsx")
-        ? parseXlsxRows(inputBytes)
-        : new TextDecoder()
-            .decode(inputBytes)
-            .trim()
-            .split(/\r?\n/)
-            .map((l) => l.split(","));
-      if (targetExt === "csv") {
-        outBytes = formatStarCalcCsv(rows, filterOpts);
-      } else {
-        outBytes = renderBlocksToPdf([{ kind: "table", rows }], stem);
-      }
-    } else if (lowerIn.endsWith(".pptx")) {
-      const slides = parsePptxSlides(inputBytes);
-      if (targetExt === "pdf") {
-        outBytes = renderSlidesToPdf(slides);
-      } else {
-        const txt = slides.map((s) => `${s.title}\n${s.bullets.join("\n")}`).join("\n\n");
-        outBytes = new TextEncoder().encode(txt + "\n");
-      }
-    } else if (lowerIn.endsWith(".pdf")) {
-      const doc = PdfDocument.load(inputBytes);
-      const extracted = doc.extractText();
-      const tables = doc.extractTables();
-      const sem = doc.toSemanticAst();
-      const pdfBlocks: DocBlock[] = sem.map((node) => {
-        if (node.kind === "heading") return { kind: "heading", text: node.text };
-        if (node.kind === "table") {
-          return {
-            kind: "table",
-            rows: [[...node.headers], ...node.rows.map((r) => [...r])]
-          };
-        }
-        if (node.kind === "list") return { kind: "paragraph", text: node.items.join("\n") };
-        return { kind: "paragraph", text: "text" in node ? node.text : "" };
-      });
-      if (pdfBlocks.length === 0 && extracted.trim()) {
-        pdfBlocks.push({ kind: "paragraph", text: extracted.trim() });
-      }
-      if (targetExt === "html") {
-        outBytes = renderBlocksToHtml(pdfBlocks, stem);
-      } else if (targetExt === "docx") {
-        outBytes = buildDocxFromBlocks(pdfBlocks);
-      } else if (targetExt === "xlsx") {
-        const rows = tables[0]
-          ? [[...tables[0].headers], ...tables[0].rows.map((r) => [...r])]
-          : extracted.trim().split(/\r?\n/).map((l) => l.split(/\s{2,}|\t/));
-        outBytes = buildXlsxFromRows(rows);
-      } else if (targetExt === "csv") {
-        const rows = tables[0]
-          ? [[...tables[0].headers], ...tables[0].rows.map((r) => [...r])]
-          : extracted.trim().split(/\r?\n/).map((l) => l.split(/\s{2,}|\t/));
-        outBytes = formatStarCalcCsv(rows, filterOpts);
-      } else if (targetExt === "png") {
-        outBytes = doc.getPage(0).renderToPng();
-      } else if (targetExt === "pdf") {
-        outBytes = doc.save();
-      } else {
-        outBytes = new TextEncoder().encode(extracted + "\n");
-      }
-    } else {
-      // Plain text / Markdown / HTML input -> PDF or TXT
-      const rawText = new TextDecoder().decode(inputBytes);
-      const lines = rawText.split(/\r?\n/).filter((l) => l.trim().length > 0);
-      const blocks: DocBlock[] = lines.map((l) =>
-        l.startsWith("# ")
-          ? { kind: "heading", text: l.slice(2).trim() }
-          : { kind: "paragraph", text: l }
-      );
-      outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
-    }
-
-    if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {
-      try {
-        const parsedFilter = JSON.parse(filterOpts) as Record<string, { value?: unknown } | unknown>;
-        const unwrap = (k: string) => {
-          const v = parsedFilter[k];
-          return v && typeof v === "object" && "value" in v ? (v as { value: unknown }).value : v;
+    for (const inputPath of inputs) {
+      const inputBytes = files.get(inputPath);
+      if (!inputBytes) {
+        return {
+          exitCode: 1,
+          stdout,
+          stderr: `Error: source file could not be loaded: ${inputPath}\n`
         };
-        let pdfDoc = PdfDocument.load(outBytes);
-        const pageRangeVal = unwrap("PageRange");
-        if (typeof pageRangeVal === "string" && pageRangeVal.trim().length > 0) {
-          const [startStr, endStr] = pageRangeVal.trim().split("-");
-          const startPage = Math.max(1, Number(startStr) || 1);
-          const endPage = Math.min(pdfDoc.pageCount, Number(endStr ?? startStr) || startPage);
-          const indices: number[] = [];
-          for (let p = startPage; p <= endPage; p++) indices.push(p - 1);
-          if (indices.length > 0 && indices.length < pdfDoc.pageCount) {
-            const filteredDoc = PdfDocument.create();
-            filteredDoc.copyPagesFrom(pdfDoc, indices);
-            pdfDoc = filteredDoc;
-          }
-        }
-        const verVal = unwrap("SelectPdfVersion");
-        if (typeof verVal === "number") {
-          if (verVal === 15) pdfDoc.setVersion("1.5");
-          else if (verVal === 16) pdfDoc.setVersion("1.6");
-          else if (verVal === 17) pdfDoc.setVersion("1.7");
-          else if (verVal === 20) pdfDoc.setVersion("2.0");
-        }
-        outBytes = pdfDoc.save();
-      } catch {
-        // Ignore invalid JSON FilterData per LibreOffice fallback profile
       }
+
+      const baseName = inputPath.split("/").pop() ?? "document";
+      const stem = baseName.replace(/\.[^.]+$/, "");
+      const lowerIn = baseName.toLowerCase();
+      const outPath = `${outdir === "/" ? "" : outdir.replace(/\/$/, "")}/${stem}.${targetExt}`;
+
+      const defaultFilter =
+        targetExt === "pdf"
+          ? [".xlsx", ".csv", ".ods"].some(ext => lowerIn.endsWith(ext))
+            ? "calc_pdf_Export"
+            : [".pptx", ".odp"].some(ext => lowerIn.endsWith(ext))
+              ? "impress_pdf_Export"
+              : "writer_pdf_Export"
+          : targetExt === "csv"
+            ? "Text - txt - csv (StarCalc)"
+            : `${targetExt}_Export`;
+      const filterName = filterNameRaw || defaultFilter;
+
+      let outBytes: Uint8Array;
+
+      if ([".docx", ".odt", ".ods", ".odp", ".rtf"].some(ext => lowerIn.endsWith(ext))) {
+        const blocks = lowerIn.endsWith(".docx")
+          ? parseDocxBlocks(inputBytes)
+          : [".odt", ".ods", ".odp"].some(ext => lowerIn.endsWith(ext))
+            ? parseOdtBlocks(inputBytes)
+            : parseRtfBlocks(inputBytes);
+        if (targetExt === "pdf") {
+          outBytes = renderBlocksToPdf(blocks, stem);
+        } else if (targetExt === "html") {
+          outBytes = renderBlocksToHtml(blocks, stem);
+        } else if (targetExt === "docx") {
+          outBytes = buildDocxFromBlocks(blocks);
+        } else {
+          const textLines = blocks.map((b) =>
+            b.kind === "table" && b.rows
+              ? b.rows.map((r) => r.join("\t")).join("\n")
+              : (b.text ?? "")
+          );
+          outBytes = new TextEncoder().encode(textLines.join("\n\n") + "\n");
+        }
+      } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
+        const rows = lowerIn.endsWith(".xlsx")
+          ? parseXlsxRows(inputBytes)
+          : parseCsvRows(new TextDecoder().decode(inputBytes));
+        if (targetExt === "csv") {
+          outBytes = formatStarCalcCsv(rows, filterOpts);
+        } else if (targetExt === "xlsx") {
+          outBytes = buildXlsxFromRows(rows);
+        } else if (targetExt === "html") {
+          outBytes = renderBlocksToHtml([{ kind: "table", rows }], stem);
+        } else if (targetExt === "pdf") {
+          outBytes = renderBlocksToPdf([{ kind: "table", rows }], stem);
+        } else {
+          outBytes = new TextEncoder().encode(rows.map(row => row.join("\t")).join("\n") + "\n");
+        }
+      } else if (lowerIn.endsWith(".pptx")) {
+        const slides = parsePptxSlides(inputBytes);
+        if (targetExt === "pdf") {
+          outBytes = renderSlidesToPdf(slides);
+        } else {
+          const txt = slides.map((s) => `${s.title}\n${s.bullets.join("\n")}`).join("\n\n");
+          outBytes = new TextEncoder().encode(txt + "\n");
+        }
+      } else if (lowerIn.endsWith(".pdf")) {
+        const doc = PdfDocument.load(inputBytes);
+        const extracted = doc.extractText();
+        const tables = doc.extractTables();
+        const sem = doc.toSemanticAst();
+        const pdfBlocks: DocBlock[] = sem.map((node) => {
+          if (node.kind === "heading") return { kind: "heading", text: node.text };
+          if (node.kind === "table") {
+            return {
+              kind: "table",
+              rows: [[...node.headers], ...node.rows.map((r) => [...r])]
+            };
+          }
+          if (node.kind === "list") return { kind: "paragraph", text: node.items.join("\n") };
+          return { kind: "paragraph", text: "text" in node ? node.text : "" };
+        });
+        if (pdfBlocks.length === 0 && extracted.trim()) {
+          pdfBlocks.push({ kind: "paragraph", text: extracted.trim() });
+        }
+        if (targetExt === "html") {
+          outBytes = renderBlocksToHtml(pdfBlocks, stem);
+        } else if (targetExt === "docx") {
+          outBytes = buildDocxFromBlocks(pdfBlocks);
+        } else if (targetExt === "xlsx") {
+          const rows = tables[0]
+            ? [[...tables[0].headers], ...tables[0].rows.map((r) => [...r])]
+            : extracted.trim().split(/\r?\n/).map((l) => l.split(/\s{2,}|\t/));
+          outBytes = buildXlsxFromRows(rows);
+        } else if (targetExt === "csv") {
+          const rows = tables[0]
+            ? [[...tables[0].headers], ...tables[0].rows.map((r) => [...r])]
+            : extracted.trim().split(/\r?\n/).map((l) => l.split(/\s{2,}|\t/));
+          outBytes = formatStarCalcCsv(rows, filterOpts);
+        } else if (targetExt === "png") {
+          outBytes = doc.getPage(0).renderToPng();
+        } else if (targetExt === "pdf") {
+          outBytes = doc.save();
+        } else {
+          outBytes = new TextEncoder().encode(extracted + "\n");
+        }
+      } else {
+        // Plain text / Markdown / HTML input -> PDF or TXT
+        const rawText = new TextDecoder().decode(inputBytes);
+        const lines = rawText.split(/\r?\n/).filter((l) => l.trim().length > 0);
+        const blocks: DocBlock[] = lines.map((l) =>
+          l.startsWith("# ")
+            ? { kind: "heading", text: l.slice(2).trim() }
+            : { kind: "paragraph", text: l }
+        );
+        outBytes = targetExt === "pdf" ? renderBlocksToPdf(blocks, stem) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
+      }
+
+      if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {
+        try {
+          const parsedFilter = JSON.parse(filterOpts) as Record<string, { value?: unknown } | unknown>;
+          const unwrap = (k: string) => {
+            const v = parsedFilter[k];
+            return v && typeof v === "object" && "value" in v ? (v as { value: unknown }).value : v;
+          };
+          let pdfDoc = PdfDocument.load(outBytes);
+          const pageRangeVal = unwrap("PageRange");
+          if (typeof pageRangeVal === "string" && pageRangeVal.trim().length > 0) {
+            const [startStr, endStr] = pageRangeVal.trim().split("-");
+            const startPage = Math.max(1, Number(startStr) || 1);
+            const endPage = Math.min(pdfDoc.pageCount, Number(endStr ?? startStr) || startPage);
+            const indices: number[] = [];
+            for (let p = startPage; p <= endPage; p++) indices.push(p - 1);
+            if (indices.length > 0 && indices.length < pdfDoc.pageCount) {
+              const filteredDoc = PdfDocument.create();
+              filteredDoc.copyPagesFrom(pdfDoc, indices);
+              pdfDoc = filteredDoc;
+            }
+          }
+          const verVal = unwrap("SelectPdfVersion");
+          if (typeof verVal === "number") {
+            if (verVal === 15) pdfDoc.setVersion("1.5");
+            else if (verVal === 16) pdfDoc.setVersion("1.6");
+            else if (verVal === 17) pdfDoc.setVersion("1.7");
+            else if (verVal === 20) pdfDoc.setVersion("2.0");
+          }
+          outBytes = pdfDoc.save();
+        } catch {
+          // Ignore invalid JSON FilterData per LibreOffice fallback profile
+        }
+      }
+
+      files.set(outPath, outBytes);
+      stdout += `convert ${inputPath} -> ${outPath} using filter : ${filterName}\n`;
     }
 
-    files.set(outPath, outBytes);
-    stdout += `convert ${inputPath} -> ${outPath} using filter : ${filterName}\n`;
+    return { exitCode: 0, stdout, stderr: "" };
+  } catch (error) {
+    return { exitCode: 1, stdout: "", stderr: `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n` };
   }
-
-  return { exitCode: 0, stdout, stderr: "" };
 }
 
 export async function soffice(context: CommandContext): Promise<{ exitCode: number }> {

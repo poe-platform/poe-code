@@ -859,3 +859,22 @@ test("historical source checks admit bounded expanded package metadata", () => {
   specimen.fileSystem.writeFileSync("/package/package.json", manifest + " ".repeat(300000));
   assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries }), /unadmitted type-input file or size: package.json/);
 });
+
+test("ordinary compiler resolution reuses filesystem probes across source directories", () => {
+  const specimen = fixture();
+  const counts = new Map();
+  const host = createHistoricalCompilerHost(options, { callers: new Map(), models: new Map() }, {
+    ...specimen.baseHost,
+    fileExists(filename) {
+      counts.set(filename, (counts.get(filename) ?? 0) + 1);
+      return specimen.baseHost.fileExists(filename);
+    },
+  });
+  for (const filename of ["tests/first.ts", "tests/nested/second.ts"]) {
+    const caller = join(root, filename);
+    const source = ts.createSourceFile(caller, 'import "/package/tests/normal.js";', ts.ScriptTarget.ES2023, true);
+    const result = host.resolveModuleNameLiterals([source.statements[0].moduleSpecifier], caller, undefined, options, source);
+    assert.equal(result[0].resolvedModule.resolvedFileName, join(root, "tests/normal.ts"));
+  }
+  assert.equal(counts.get(join(root, "tests/normal.ts")), 1);
+});

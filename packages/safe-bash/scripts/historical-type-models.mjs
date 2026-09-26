@@ -139,6 +139,15 @@ export function admitHistoricalTypeModels(root, fileSystem = fs, boundaries = lo
 
 export function createHistoricalCompilerHost(options, admission, baseHost = ts.createCompilerHost(options)) {
   const resolutionCaches = new WeakMap();
+  const resolutionHost = { ...baseHost };
+  for (const method of ["fileExists", "directoryExists"]) {
+    if (typeof baseHost[method] !== "function") continue;
+    const probes = new Map();
+    resolutionHost[method] = filename => {
+      if (!probes.has(filename)) probes.set(filename, baseHost[method](filename));
+      return probes.get(filename);
+    };
+  }
   const host = {
     ...baseHost,
     getSourceFile(fileName, languageVersion, onError, shouldCreateNewSourceFile) {
@@ -163,7 +172,7 @@ export function createHistoricalCompilerHost(options, admission, baseHost = ts.c
             resolutionCaches.set(compilerOptions, cache);
           }
         }
-        const resolution = ts.resolveModuleName(literal.text, containingFile, compilerOptions, host, cache, redirectedReference, ts.getModeForUsageLocation(containingSourceFile, literal, compilerOptions));
+        const resolution = ts.resolveModuleName(literal.text, containingFile, compilerOptions, caller ? baseHost : resolutionHost, cache, redirectedReference, ts.getModeForUsageLocation(containingSourceFile, literal, compilerOptions));
         if (caller?.memory && literal.text === caller.memory.specifier) {
           assert.equal(containingSourceFile.text, caller.text, `historical compiler caller changed: ${containingFile}`);
           assert.equal(resolution.resolvedModule?.resolvedFileName, caller.memory.resolvedPath, `historical memory import must retain its current resolution: ${containingFile}`);

@@ -13,6 +13,18 @@ test("yieldTurn shares a managed signal with an existing cancellation waiter", a
   assert.deepEqual(observed, [false]);
 });
 
+test("yieldTurn completes and cancels alongside an existing object waiter", async () => {
+  const controller = createManagedControlController();
+  const observed: unknown[] = [];
+  addAbortSignalWaiter(controller.signal, { onAbort(reason) { observed.push(reason); } });
+  await yieldTurn(controller.signal);
+  assert.deepEqual(observed, []);
+  const yielding = yieldTurn(controller.signal);
+  controller.abort(false);
+  await assert.rejects(yielding, reason => reason === false);
+  assert.deepEqual(observed, [false]);
+});
+
 test("yieldTurn gives timers an abortable macrotask checkpoint", async () => {
   const controller = new AbortController();
   setTimeout(() => controller.abort(new Error("stop")), 0);

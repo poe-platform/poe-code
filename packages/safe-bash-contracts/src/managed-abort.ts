@@ -10,7 +10,7 @@ export function addManagedAbortWaiter(signal: AbortSignal, waiter: Waiter): void
   if (!current) {
     record[managedWaitersSymbol] = waiter;
   }
-  else if (typeof current === "function" || "onAbort" in current) {
+  else if (!(current instanceof Set)) {
     if (current !== waiter) {
       const set = new Set<Waiter>();
       set.add(current);
@@ -23,21 +23,19 @@ export function addManagedAbortWaiter(signal: AbortSignal, waiter: Waiter): void
 export function removeManagedAbortWaiter(signal: AbortSignal, waiter: Waiter): void {
   const record = signal as unknown as Record<symbol, Waiters>;
   const current = record[managedWaitersSymbol];
-  if (typeof current === "function" || current && "onAbort" in current) {
+  if (!(current instanceof Set)) {
     if (current === waiter) record[managedWaitersSymbol] = undefined;
-  } else current?.delete(waiter);
+  } else current.delete(waiter);
 }
 
 export function notifyManagedAbortWaiters(signal: AbortSignal): void {
   const record = signal as unknown as Record<symbol, Waiters>;
   const current = record[managedWaitersSymbol];
   if (!current) return;
-  if (typeof current === "function") {
+  if (!(current instanceof Set)) {
     record[managedWaitersSymbol] = undefined;
-    current(signal.reason);
-  } else if ("onAbort" in current) {
-    record[managedWaitersSymbol] = undefined;
-    current.onAbort(signal.reason);
+    if (typeof current === "function") current(signal.reason);
+    else current.onAbort(signal.reason);
   } else {
     const pending = [...current];
     current.clear();

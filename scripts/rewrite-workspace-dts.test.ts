@@ -1,3 +1,4 @@
+import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { readFileSync } from "node:fs";
@@ -11,7 +12,6 @@ describe("profile-specific emitted workspace declarations", () => {
   it.each(["node", "browser"])("rejects an explicitly blocked %s declaration export", async profile => {
     const filename = "/repo/packages/consumer/dist/index.d.ts";
     const volume = Volume.fromJSON({ [filename]: 'export type Value = import("provider").Value;' });
-    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
     await expect(rewriteWorkspaceDts("/repo/packages/consumer/dist", [{ dir: "provider", pkg: {
       name: "provider", exports: { ".": { types: { [profile]: null, default: "./dist/index.d.ts" } } },
     } }], { rootDir: "/repo", profile, files: createFsFromVolume(volume).promises })).rejects.toThrow("Blocked workspace declaration export");
@@ -21,7 +21,6 @@ describe("profile-specific emitted workspace declarations", () => {
   it("resolves conditional declaration exports before rewriting a workspace edge", async () => {
     const filename = "/repo/packages/safe-bash/dist/opt-in/optional.d.ts";
     const volume = Volume.fromJSON({ [filename]: 'export type Value = import("@poe-platform/safe-bash/contracts").Value;' });
-    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
     await rewriteWorkspaceDts("/repo/packages/safe-bash/dist", [{ dir: "safe-bash", pkg: {
       name: "@poe-platform/safe-bash",
       exports: { "./contracts": { types: { browser: "./dist/contracts/index.d.ts", default: "./dist/contracts/node.d.ts" } } },
@@ -41,7 +40,6 @@ describe("profile-specific emitted workspace declarations", () => {
       readdir: directory => files.readdir(directory, { withFileTypes: true }),
       stat: filename => files.stat(filename),
     });
-    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
     await rewriteWorkspaceDts("/repo/packages/safe-bash/dist", [{ dir: "safe-bash", pkg: { name: "@poe-platform/safe-bash" } }], {
       rootDir: "/repo", files,
       includedFiles: new Set([...packed].map(filename => path.resolve("/repo", filename))),
@@ -63,7 +61,6 @@ describe("profile-specific emitted workspace declarations", () => {
       readdir: directory => files.readdir(directory, { withFileTypes: true }),
       stat: filename => files.stat(filename),
     });
-    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
     await rewriteWorkspaceDts("/repo/packages", [{ dir: "safe-bash", pkg: { name: "@poe-platform/safe-bash" } }], {
       rootDir: "/repo", files,
       includedFiles: new Set([...packed].map(filename => path.resolve("/repo", filename))),
@@ -78,7 +75,6 @@ describe("profile-specific emitted workspace declarations", () => {
       "/repo/packages/safe-bash/dist/opt-in/optional.d.ts": source,
       "/repo/packages/safe-bash/dist/included.d.ts": source
     });
-    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
     await rewriteWorkspaceDts("/repo/packages/safe-bash/dist", [{ dir: "safe-bash", pkg: { name: "@poe-platform/safe-bash" } }], {
       rootDir: "/repo", files: createFsFromVolume(volume).promises,
       excludedPaths: ["/repo/packages/safe-bash/dist/opt-in"]
@@ -100,7 +96,6 @@ describe("profile-specific emitted workspace declarations", () => {
           'export type Literal = "@poe-code/safe-fs";'
         ].join("\n")
       });
-      const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
       await rewriteWorkspaceDts(
         "/repo/packages/safe-js/dist",
         [{ dir: "safe-fs", pkg: { name: "@poe-code/safe-fs" } }],

@@ -74,6 +74,30 @@ describe("pinned browser source adapters", () => {
     }
   });
 
+  it("keeps browser cwd notifications separate from native session state", async () => {
+    const code = instrumentRootState(`export class Shell {
+      run(options) { return this.#execute(options); }
+      async #execute(options) {
+        const cwd = "/";
+        const state = { cwd, variables: { retained: "value" } };
+        state.cwd = "/next";
+        options.onState?.(Object.freeze({ ...state }));
+        return state;
+      }
+    }`);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    const roots: unknown[] = [];
+    const sessions: unknown[] = [];
+    const result = await new Shell().run({
+      onRootState: (value: unknown) => roots.push(value),
+      onState: (value: unknown) => sessions.push(value)
+    });
+    expect(roots).toEqual([{ cwd: "/next" }]);
+    expect(Object.isFrozen(roots[0])).toBe(true);
+    expect(sessions).toEqual([{ cwd: "/next", variables: { retained: "value" } }]);
+    expect(result).toEqual(sessions[0]);
+  });
+
   it("rejects assigned state binding and placement drift", () => {
     for (const body of [
       'state = { cwd };',

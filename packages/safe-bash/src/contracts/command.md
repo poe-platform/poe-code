@@ -36,6 +36,12 @@ not gain the optional commands. A subsequent normal clean build can remove the
 optional artifacts; rerun the explicit build when needed.
 # Execution identity
 
+Shell-supplied `CommandContext.signal` is a native `AbortSignal`, including in
+pipeline stages, middleware and nested invocations. It can be passed directly to
+Web Streams and other native Web APIs. Cancellation retains the original reason
+and cooperative yield checkpoints; materializing the public signal does not add
+a new cancellation authority or change cleanup ownership.
+
 `CommandContext.executionScope?: object` is an optional, opaque borrowed identity
 for one execution. Each `Shell.exec` owns a fresh frozen empty object on its
 runtime `Budget`. Commands dispatched within that execution receive the same

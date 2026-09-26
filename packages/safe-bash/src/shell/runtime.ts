@@ -1873,7 +1873,7 @@ class FastShellCommandContext {
     this._argumentValues = argumentValues;
     this._env = env;
     this.cwd = state.cwd;
-    this.signal = runtime.commandSignal;
+    this.signal = toNativeAbortSignal(runtime.commandSignal);
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -1932,7 +1932,7 @@ class FastShellCommandContext {
     this.command = name;
     this.args = args;
     this.cwd = state.cwd;
-    this.signal = signal;
+    this.signal = toNativeAbortSignal(signal);
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -2987,7 +2987,7 @@ export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: Fil
   void created.rm;
   reusableDefaultContextFsBySourceFs.set(sourceFs, { scoped: created, inUseBy: undefined });
 }
-import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, type ManagedControlController } from "../fs/creation-mask.js";
+import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerManagedAbortSignal, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, toNativeAbortSignal, type ManagedControlController } from "../fs/creation-mask.js";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
@@ -10077,7 +10077,7 @@ export class Runtime {
       set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; },
       get fs() { return getContextFs(); },
       set fs(replacement: FileSystem) { contextFs = replacement; },
-      signal: this.commandSignal,
+      signal: toNativeAbortSignal(this.commandSignal),
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
       get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); },
@@ -10811,7 +10811,7 @@ export class Runtime {
         env: Object.assign(Object.create(null) as Record<string, string>, incoming.env),
         stdin: input ?? incoming.stdin,
         stdout: this.budget.sink(incoming.stdout, runtime.signal), stderr: this.budget.sink(incoming.stderr, runtime.signal),
-        signal: this.commandSignal, registerCleanup: cleanup => { scope.register(cleanup); },
+        signal: toNativeAbortSignal(this.commandSignal), registerCleanup: cleanup => { scope.register(cleanup); },
         invoke: (name, args, options) => {
           const invocation = invocationOverride.current ? invocationOverride.current(name, args, options) : runtime.invoke(name, args, options, context, child, scope);
           void invocation.catch(() => undefined);

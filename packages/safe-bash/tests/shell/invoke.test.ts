@@ -10,6 +10,75 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { truncateCommands } from "../../src/commands/truncate/index.js";
 
+for (const middleware of [false, true]) {
+  for (const pipeline of [false, true]) {
+    test(`command signals work with native Web Streams: middleware=${middleware}, pipeline=${pipeline}`, async () => {
+      const { shell, commands } = setup();
+      const errors: unknown[] = [];
+      if (middleware) shell.use((context, next) => {
+        // Middleware and commands see the same public, spreadable signal.
+        new Request("https://example.invalid", { signal: { ...context }.signal });
+        return next();
+      });
+      commands.register({ name: "native-stream", async execute(context) {
+        try {
+          const signal = context.signal;
+          assert.equal({ ...context }.signal, signal);
+          AbortSignal.prototype.throwIfAborted.call(signal);
+          const reader = new Response("catalog").body!
+            .pipeThrough(new TextDecoderStream(), { signal }).getReader();
+          assert.deepEqual(await reader.read(), { value: "catalog", done: false });
+          assert.equal((await reader.read()).done, true);
+          await writeText(context.stdout, "ok", signal);
+          return { exitCode: 0 };
+        } catch (error) { errors.push(error); throw error; }
+      } });
+      commands.register({ name: "nested-native", execute: context => context.invoke!("native-stream", []) });
+      try {
+        for (const command of ["native-stream", "nested-native"]) {
+          const result = await shell.exec(pipeline ? `say input | ${command}` : command);
+          assert.deepEqual(errors, []);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stdout, "ok");
+        }
+      } finally { await shell.dispose(); }
+    });
+
+    test(`native command stream cancellation retains the caller reason: middleware=${middleware}, pipeline=${pipeline}`, { timeout: 2000 }, async () => {
+      const { shell, commands } = setup();
+      if (middleware) shell.use((_context, next) => next());
+      const controller = new AbortController();
+      const reason = new Error("cancel native stream");
+      let enter!: () => void;
+      const entered = new Promise<void>(resolve => { enter = resolve; });
+      let streamCancelled: unknown;
+      let publicSignal: AbortSignal | undefined;
+      let abortEvent: Event | undefined;
+      let streamOutcome: Promise<void> | undefined;
+      commands.register({ name: "native-wait", execute(context) {
+        publicSignal = context.signal;
+        publicSignal.addEventListener("abort", event => { abortEvent = event; }, { once: true });
+        const stream = new ReadableStream({ cancel(error) { streamCancelled = error; } });
+        streamOutcome = assert.rejects(stream.pipeTo(new WritableStream(), { signal: publicSignal }), error => error === reason);
+        enter();
+        return streamOutcome.then(() => ({ exitCode: 0 }));
+      } });
+      try {
+        const execution = shell.exec(pipeline ? "say input | native-wait" : "native-wait", { signal: controller.signal });
+        const outcome = assert.rejects(execution, error => error === reason);
+        await entered;
+        controller.abort(reason);
+        await outcome;
+        await streamOutcome;
+        assert.equal(streamCancelled, reason);
+        assert.equal(publicSignal?.reason, reason);
+        assert.equal(publicSignal?.aborted, true);
+        assert.equal(abortEvent?.target, publicSignal);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 test("plugin command contexts retain own enumerable capabilities through object spread", async () => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs });

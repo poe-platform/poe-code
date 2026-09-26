@@ -1,4 +1,5 @@
 import type { FileSystem } from "../contracts/index.js";
+import { inheritYieldCheckpoint } from "../contracts/yield.js";
 
 /** Creation mask carried through the shell's transparent filesystem views. */
 export const creationUmask = Symbol("creationUmask");
@@ -183,6 +184,14 @@ export function combineManagedSignals(primary: AbortSignal, secondary: AbortSign
 
 export function createManagedControlController(): ManagedControlController {
   return new ManagedControlSignalImpl();
+}
+
+/** Materialize native Web API identity only when a signal crosses a host boundary. */
+export function toNativeAbortSignal(signal: AbortSignal): AbortSignal {
+  if (!(signal instanceof ManagedControlSignalImpl)) return signal;
+  const native = signal._ensureNativeSignal();
+  inheritYieldCheckpoint(signal, native);
+  return native;
 }
 
 export function isManagedControlSignal(value: unknown): value is AbortSignal {

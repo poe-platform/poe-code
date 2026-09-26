@@ -1596,6 +1596,8 @@ async function withRepository(change, run, { localTypes = false } = {}) {
       delete manifest.devDependencies[name];
     }
     delete manifest.poeCode.integration.privateWorkspaces;
+    // The synthetic OP sources below remain an explicit build prerequisite.
+    manifest.devDependencies["safe-bash-command-op"] = "*";
     const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "@poe-platform/safe-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
     root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
     const marker = join(directory, "unexpected-lifecycle");

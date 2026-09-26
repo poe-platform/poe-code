@@ -650,7 +650,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   admit("package.json", 300000);
   admit("package-lock.json");
   admit(`${packagePrefix}/README.md`);
-  for (const name of ["pandoc", "pdf"]) if (tree.has(`packages/${name}/package.json`)) admit(`packages/${name}/package.json`, 64 * 1024);
+  for (const name of ["safe-bash-command-pandoc", "pdf"]) if (tree.has(`packages/${name}/package.json`)) admit(`packages/${name}/package.json`, 64 * 1024);
   if (tree.has(sharedPrefix + "/package.json")) {
     for (const path of sharedPaths) admit(path, 300000);
     for (const path of tree.keys()) if (path.startsWith(sharedPrefix + "/src/") && !path.endsWith(".test.ts")) {
@@ -764,15 +764,14 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       const dependencies = assertArchiveDependencyLock(manifest, lock);
       if (manifest.devDependencies?.["safe-bash-command-pandoc"] !== undefined) {
         assert.equal(manifest.devDependencies["safe-bash-command-pandoc"], "*");
-        for (const name of ["pandoc", "pdf"]) {
-          const path = `packages/${name}`;
+        for (const [name, path] of [["safe-bash-command-pandoc", "packages/safe-bash-command-pandoc"], ["@poe-code/pdf", "packages/pdf"]]) {
           assert.ok(bootstrap.has(`${path}/package.json`), `missing committed ${name} build prerequisite`);
           const metadata = JSON.parse(bootstrap.get(`${path}/package.json`));
-          assert.equal(metadata.name, `@poe-code/${name}`);
+          assert.equal(metadata.name, name);
           assert.equal(metadata.private, true);
           assert.equal(metadata.version, "0.0.1");
           assert.deepEqual(lock.packages[path]?.dependencies, metadata.dependencies, `${name} dependency workspace lock drift`);
-          assert.deepEqual(lock.packages[`node_modules/@poe-code/${name}`], { resolved: path, link: true }, `${name} workspace link drift`);
+          assert.deepEqual(lock.packages[`node_modules/${name}`], { resolved: path, link: true }, `${name} workspace link drift`);
         }
       }
       if (Object.hasOwn(dependencies, sharedName)) sharedSourceInputs({ files: bootstrap, lock });

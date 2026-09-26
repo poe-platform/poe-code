@@ -32,13 +32,13 @@ describe("declarative format registry", () => {
     for (const duplicate of [format, { ...format, name: "new", aliases: { read: ["commonmark"] } }])
       expect(() => createFormatRegistry([...coreFormats, duplicate])).toThrowError();
   });
-  it("derives deterministic lists and suffixes, without advertising absent Office directions", () => {
+  it("derives deterministic lists and suffixes, with built-in Office directions", () => {
     const read = vi.fn(async () => document);
     const registry = createFormatRegistry([...coreFormats].reverse(), {
       reader: { format: "docx", read }
     });
-    expect(registry.list("read")).toEqual(["commonmark", "csv", "docx", "epub", "gfm", "html", "json", "latex", "pptx", "rst", "rtf", "tsv"]);
-    expect(registry.list("write")).toEqual(["commonmark", "epub", "epub3", "gfm", "html", "html5", "json", "latex", "pdf", "plain", "pptx", "rst", "rtf"]);
+    expect(registry.list("read")).toEqual(["commonmark", "csv", "docx", "epub", "gfm", "html", "json", "latex", "pdf", "pptx", "rst", "rtf", "tsv", "xlsx"]);
+    expect(registry.list("write")).toEqual(["commonmark", "docx", "epub", "epub3", "gfm", "html", "html5", "json", "latex", "pdf", "plain", "pptx", "rst", "rtf"]);
     expect(registry.infer("file.md", "read")).toBe("commonmark");
     expect(registry.infer("file.html", "write")).toBe("html5");
     expect(() => registry.infer("file.txt", "read")).toThrowError();

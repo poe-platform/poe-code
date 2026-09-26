@@ -49,6 +49,8 @@
     "yaml": "2.9.0",
     "fengari": "^0.1.5",
     "@poe-code/pdf-ast": "*",
-    "citeproc": "2.4.63"
+    "citeproc": "2.4.63",
+    "docx": "*",
+    "safe-bash-command-ssconvert": "*"
   }
 }

@@ -48,7 +48,7 @@ const cases: Record<string, string> = {
   csv: "Owned,PDF\ntext,value\n", tsv: "Owned\tPDF\ntext\tvalue\n", latex: "Owned PDF text", rst: "Owned PDF text", rtf: "{\\rtf1\\ansi Owned PDF text}"
 };
 it("accounts for every available reader-to-PDF pair", () => {
-  expect([...Object.keys(cases), "epub", "pptx"].sort()).toEqual(createFormatRegistry().list("read"));
+  expect([...Object.keys(cases), "docx", "epub", "pdf", "pptx", "xlsx"].sort()).toEqual(createFormatRegistry().list("read"));
 });
 it.each([...Object.keys(cases), "epub", "pptx"])("converts representable %s content to mapped PDF text", async from => {
   let bytes: Uint8Array;

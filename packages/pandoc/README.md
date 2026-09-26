@@ -18,7 +18,10 @@ const result = await convert(
 The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
 capabilities before conversion: support is format-specific and does not imply full native Pandoc
-compatibility. Office engines load when their formats are selected.
+compatibility. Built-in DOCX conversion preserves headings and bold/italic paragraphs;
+its writer rejects unsupported blocks and inlines. XLSX input becomes one named
+table per sheet, using stored cell values and cached formula results without
+recalculation. PDF input uses semantic text, tables and image extraction.
 Plain output uses link labels, spaces for soft breaks, four-column decimal list
 prefixes, 72-character rules, and a final newline even for empty documents.
 Bullet lists use the compact spacing of Pandoc 3.11.

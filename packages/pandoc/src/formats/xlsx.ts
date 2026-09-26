@@ -1,5 +1,7 @@
 import type { FormatDescriptor } from "../formats.js";
+import { xlsxReader } from "../xlsx.js";
 export default {
+  reader: xlsxReader,
   name: "xlsx",
   read: true,
   write: false,

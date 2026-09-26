@@ -84,11 +84,11 @@ describe("original CSV and TSV document readers", () => {
     await expect(read("x", from, { limits: { tableColumns: 0 } })).rejects.toMatchObject({ code: "E_LIMIT" });
     await expect(read("", from, { limits: { tableRows: 0, tableColumns: 0, tableCells: 0 } })).resolves.toMatchObject({ blocks: [] });
   });
-  it("preserves independent tables across multiple inputs and keeps XLSX gated", async () => {
+  it("preserves independent tables across multiple inputs and rejects malformed XLSX", async () => {
     const result = await convert([{ bytes: encode("h\nx") }, { bytes: encode("j\ny") }], { from: "csv", to: "json" }, { yield: immediate });
     expect(result.kind).toBe("text");
     if (result.kind === "text") expect(JSON.parse(result.text).blocks).toHaveLength(2);
-    await expect(read("x", "xlsx")).rejects.toMatchObject({ code: "E_CAPABILITY" });
+    await expect(read("x", "xlsx")).rejects.toMatchObject({ code: "E_PARSE" });
   });
   it("counts decoded field units, including escaped quotes and supplementary Unicode", async () => {
     expect((await read('h\n""""', "csv", { limits: { tableFieldText: 1 } })).blocks).toEqual([table(row("h"), [row('"')])]);

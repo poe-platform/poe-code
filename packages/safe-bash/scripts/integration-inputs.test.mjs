@@ -29,6 +29,16 @@ test("command resource limit regressions remain in active test discovery", () =>
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/optional-resource-limits.test.ts"));
 });
 
+test("buffered output and cooperative scheduling regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const active = discoverTests(root, loadBoundaries(root));
+  for (const path of [
+    "tests/commands/output-buffering.test.ts",
+    "tests/commands/output-coalescing.test.ts",
+    "tests/commands/yield-budgets.test.ts",
+  ]) assert.ok(active.includes(path), path);
+});
+
 test("extracted XZ and codec tests remain owned by their private workspaces", () => {
   const root = fileURLToPath(new URL("../../../", import.meta.url));
   for (const [workspace, names] of [

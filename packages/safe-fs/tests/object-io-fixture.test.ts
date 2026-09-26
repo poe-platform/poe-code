@@ -8,6 +8,10 @@ import { createR2StagingFixture } from "./integration/object-staging-workerd.fix
 
 afterEach(() => vi.unstubAllGlobals());
 
+function requireStaging(store: ObjectFilePublicationStore): asserts store is ObjectFilePublicationStore & Required<Pick<ObjectFilePublicationStore, "createStaging">> {
+  if (typeof store.createStaging !== "function") throw new Error("R2 spill fixture must provide staging");
+}
+
 function fixture() {
   vi.stubGlobal("FixedLengthStream", class extends TransformStream { constructor(_size: number) { super(); } });
   const objects = new Map<string, Uint8Array>();
@@ -34,7 +38,9 @@ function fixture() {
     },
   };
   const backend = createR2StagingFixture(bucket, { chunkBytes: 4, delayed: false, spill: true });
-  return { ...backend, bucket, root: "/", async dispose() { await backend.dispose(); expect(objects.size).toBe(0); } };
+  const store: typeof backend.store & ObjectFilePublicationStore = backend.store;
+  requireStaging(store);
+  return { ...backend, store, bucket, root: "/", async dispose() { await backend.dispose(); expect(objects.size).toBe(0); } };
 }
 
 for (const entry of createObjectFilePublicationConformanceCases({ createFixture: fixture, requireStaging: true })) {

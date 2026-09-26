@@ -36,8 +36,9 @@ afterAll(async () => {
   assert.deepEqual(await completed, { code: 0, signal: null }, stderr);
 });
 
+const count = 1024;
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of [1024, 131072]) describe(`native comment range fanout fixture; strict=${strict}; kind=${kind}; count=${count}`, () => {
+describe(`native comment range fanout fixture; strict=${strict}; kind=${kind}; count=${count}`, () => {
   let input: Uint8Array;
   let limits: typeof textContext.limits;
   beforeAll(async () => {

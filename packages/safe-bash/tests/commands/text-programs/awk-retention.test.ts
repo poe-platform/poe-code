@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CommandRegistry, FsError, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
+import { CommandRegistry, FsError, toByteSource, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { createTextProgramCommands } from "../../../src/commands/text-programs/index.js";
@@ -394,4 +394,89 @@ test("awk terminal main close releases blocks before END without waiting ahead o
   } finally { releaseMain(); await work; }
   assert.deepEqual(observed, [["1\n", 31], ["b\n", 28]]);
   assert.equal(retention.retainedBytes, 0);
+});
+
+for (const [name, program, expected] of [
+  ["array", 'BEGIN { a[1]="second"; print a[1] }', "second\n"],
+  ["split", 'BEGIN { print split("x:y:z", a, ":"), a[2] }', "3 y\n"],
+  ["ENVIRON", 'BEGIN { print ENVIRON["X"] }', "second\n"],
+  ["OFMT", 'BEGIN { OFMT="%g"; print 1.25 }', "1.25\n"],
+  ["CONVFMT", 'BEGIN { CONVFMT="%g"; print 1.25 "" }', "1.25\n"],
+  ["FS/OFS", 'BEGIN { FS=":"; OFS="|"; print FS,OFMT,CONVFMT }', ":|%.6g|%.6g\n"],
+] as const) {
+  for (const independent of [false, true]) test(`repeated awk accounts for retained defaults before ${name}: independent shells=${independent}`, async context => {
+    const firstShell = new Shell({ fs: createMemoryFileSystem(), env: { X: independent ? "first" : "second" }, commands: new CommandRegistry(createTextProgramCommands()) });
+    const shell = independent ? new Shell({ fs: createMemoryFileSystem(), env: { X: "second" }, commands: new CommandRegistry(createTextProgramCommands()) }) : firstShell;
+    context.after(async () => { await firstShell.dispose(); if (independent) await shell.dispose(); });
+    for (let round = 0; round < 3; round++) {
+      const first = await firstShell.exec('awk \'BEGIN { FS=":"; OFS="|"; OFMT="%.1f"; CONVFMT="%.1f"; print "first" }\'');
+      assert.deepEqual([first.exitCode, first.stdout, first.stderr], [0, "first\n", ""]);
+      const second = await shell.exec(`awk '${program}'`);
+      assert.deepEqual([second.exitCode, second.stdout, second.stderr], [0, expected, ""]);
+    }
+  });
+}
+
+test("awk admits defaults into each independent retention", async () => {
+  for (const separator of [undefined, "", ":", ":::"]) {
+    const first = invocation('BEGIN { print "first" }');
+    const initial = new AwkRuntime(new AwkParser(first.context.args[0]!).parse(), first.context, new Budget(first.context, {}), new AwkRetention(Infinity), [], []);
+    const initialBytes = initial.retention.retainedBytes;
+    assert.equal(await initial.runSyncOrAsync(), 0);
+    const second = invocation('BEGIN { a[1]="second"; print a[1] }');
+    const retention = new AwkRetention(Infinity);
+    const reused = new AwkRuntime(new AwkParser(second.context.args[0]!).parse(), second.context, new Budget(second.context, {}), retention, [], [], separator);
+    assert.notEqual(reused, initial, "each invocation owns its runtime and retention");
+    assert.equal(retention.retainedBytes, initialBytes - 1 + (separator ?? " ").length);
+    assert.equal(await reused.runSyncOrAsync(), 0);
+    assert.deepEqual(second.output(), { stdout: "second\n", stderr: "" });
+    assert.equal(retention.retainedBytes, 0);
+  }
+});
+
+test("awk cleanup balances textual ARGC before an independent run", async () => {
+  const first = invocation('BEGIN { ARGC="tenant"; print "first" }');
+  const retention = new AwkRetention(Infinity);
+  const runtime = new AwkRuntime(new AwkParser(first.context.args[0]!).parse(), first.context, new Budget(first.context, {}), retention, [], []);
+  assert.equal(await runtime.runSyncOrAsync(), 0);
+  assert.equal(retention.retainedBytes, 0);
+  const second = invocation('BEGIN { a[1]="second"; print ARGC,a[1] }');
+  const fresh = new AwkRetention(Infinity);
+  const reused = new AwkRuntime(new AwkParser(second.context.args[0]!).parse(), second.context, new Budget(second.context, {}), fresh, [], []);
+  assert.notEqual(reused, runtime);
+  assert.equal(await reused.runSyncOrAsync(), 0);
+  assert.deepEqual(second.output(), { stdout: "1 second\n", stderr: "" });
+  assert.equal(fresh.retainedBytes, 0);
+});
+
+test("overlapping shells keep awk input and environment accounting independent", async context => {
+  const firstShell = new Shell({ fs: createMemoryFileSystem(), env: { X: "first" }, commands: new CommandRegistry(createTextProgramCommands()) });
+  const secondShell = new Shell({ fs: createMemoryFileSystem(), env: { X: "second" }, commands: new CommandRegistry(createTextProgramCommands()) });
+  context.after(async () => { await firstShell.dispose(); await secondShell.dispose(); });
+  let entered!: () => void, release!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const stdin: ByteSource = { async *[Symbol.asyncIterator]() {
+    entered();
+    await gate;
+    yield Buffer.from("alpha:10\n");
+  } };
+  const first = firstShell.exec('awk \'BEGIN { FS=":" } { print ENVIRON["X"],$1,$2 }\'', { stdin });
+  try {
+    await started;
+    const second = await secondShell.exec('awk \'BEGIN { a[1]="second"; print ENVIRON["X"],a[1] }\'');
+    assert.deepEqual([second.exitCode, second.stdout, second.stderr], [0, "second second\n", ""]);
+  } finally { release(); }
+  const result = await first;
+  assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "first alpha 10\n", ""]);
+});
+
+test("a record-reading awk run cannot corrupt another shell's aggregation", async context => {
+  const firstShell = new Shell({ fs: createMemoryFileSystem(), env: { X: "first" }, commands: new CommandRegistry(createTextProgramCommands()) });
+  const secondShell = new Shell({ fs: createMemoryFileSystem(), env: { X: "second" }, commands: new CommandRegistry(createTextProgramCommands()) });
+  context.after(async () => { await firstShell.dispose(); await secondShell.dispose(); });
+  const first = await firstShell.exec("awk '{print $1}'", { stdin: "1 2\n3 4\n" });
+  assert.deepEqual([first.exitCode, first.stdout, first.stderr], [0, "1\n3\n", ""]);
+  const second = await secondShell.exec('awk \'{ sum[$1]+=$2 } END { print ENVIRON["X"],sum["alice"],sum["bob"] }\'', { stdin: "alice 10\nbob 20\nalice 15\n" });
+  assert.deepEqual([second.exitCode, second.stdout, second.stderr], [0, "second 25 20\n", ""]);
 });

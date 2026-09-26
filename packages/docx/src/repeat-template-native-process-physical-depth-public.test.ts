@@ -1,12 +1,12 @@
 import { Volume } from "memfs";
-import { expect, it, onTestFinished } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import { nativeRepeatTemplate } from "../tests/native-repeat-template.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const api = await compiledPublicRuntime;
-const execute = nativeRepeatTemplate();
+const execute = await nativeRepeatTemplate();
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const codec of ["utf8", "utf16le", "utf16be"] as const)
 for (const depth of [32, 8192]) for (const placement of ["unrelated", "selected"] as const)
@@ -14,7 +14,7 @@ for (const operation of ["controls.repeat", "template.apply"] as const) {
   const label = `repeat/template physical depth ${placement}; strict=${strict}; kind=${kind}; codec=${codec}; depth=${depth}; operation=${operation}`;
   const limits = { ...textContext.limits, maxArchiveBytes: 2097152, maxEntryBytes: 1048576, maxTotalBytes: 4194304, maxRetainedBytes: 2147483648 };
   const documentLimits = { xmlDepth: 16384, retainedBytes: 2147483648, work: 2147483648 };
-  const fresh = (signal: AbortSignal) => ({ signal, limits, budget: new api.DocumentBudget(documentLimits, signal), encoding: { order: "input", compression: "store" } as const });
+  const fresh = (signal: AbortSignal) => ({ signal, limits, budget: new api.DocumentBudget(documentLimits, signal, async () => {}), encoding: { order: "input", compression: "store" } as const });
   const allowed = placement === "unrelated";
   const retained = '<f:opaque>' + '<f:owner>'.repeat(depth) + '<f:leaf/>' + '</f:owner>'.repeat(depth) + '</f:opaque>';
   const affected = '<w:futureProperty>' + '<w:futureChild>'.repeat(depth) + '<w:leaf/>' + '</w:futureChild>'.repeat(depth) + '</w:futureProperty>';
@@ -38,24 +38,44 @@ for (const operation of ["controls.repeat", "template.apply"] as const) {
   const checks = ["text", "controls"] as const, verified = new Set<string>();
 
   if (allowed) {
-    it(`${label}; baseline=request`, async () => {
-      const controller = new AbortController();
-      let cleaned = false;
+    describe(`${label}; baseline=request`, () => {
+      let controller: AbortController;
+      let prepared: Awaited<ReturnType<typeof fixture>> | undefined;
       const admitted: { candidate?: { output: Uint8Array; input: Uint8Array; receipt: { readonly drained: boolean } } } = {};
-      onTestFinished(({ task }) => {
-        if (task.result?.state === "pass" && cleaned && admitted.candidate?.receipt.drained) baseline = admitted.candidate;
+      beforeEach(async () => {
+        controller = new AbortController();
+        delete admitted.candidate;
+        const candidate = await fixture(controller.signal);
+        controller.signal.throwIfAborted();
+        prepared = candidate;
       });
-      onTestFinished(() => { controller.abort(); cleaned = true; });
-      const { parts, input, original } = await fixture(controller.signal);
-      controller.signal.throwIfAborted();
-      const observed = await execute({ input: Buffer.from(input).toString("base64"), route: "native-sdk", operation, limits, documentLimits, allowed });
-      expect(observed, observed.stack ?? observed.error).toMatchObject({ ok: true });
-      const output = new Uint8Array(Buffer.from(observed.output!, "base64"));
-      const after = readPackage(output, limits); expect([...after.keys()]).toEqual([...parts.keys()]);
-      for (const [name, bytes] of parts) if (name !== "word/document.xml") expect(Buffer.compare(Buffer.from(after.get(name)!), Buffer.from(bytes)), name).toBe(0);
-      const main = new TextDecoder(codec === "utf8" ? "utf-8" : codec === "utf16le" ? "utf-16le" : "utf-16be").decode(after.get("word/document.xml")); expect(main).toContain(retained); expect(main).toContain("<!--retained--><?audit exact?>");
-      assertInput(input, original, parts);
-      admitted.candidate = { output, input: input.slice(), receipt: observed.receipt };
+      it("executes the native baseline request", async () => {
+        let cleaned = false;
+        onTestFinished(({ task }) => {
+          if (task.result?.state === "pass" && cleaned && admitted.candidate?.receipt.drained) baseline = admitted.candidate;
+        });
+        onTestFinished(() => { controller.abort(); cleaned = true; });
+        const { input } = prepared!;
+        controller.signal.throwIfAborted();
+        const observed = await execute({ input: Buffer.from(input).toString("base64"), route: "native-sdk", operation, limits, documentLimits, allowed });
+        expect(observed, observed.stack ?? observed.error).toMatchObject({ ok: true });
+        const output = new Uint8Array(Buffer.from(observed.output!, "base64"));
+        admitted.candidate = { output, input: input.slice(), receipt: observed.receipt };
+      });
+      afterEach(() => {
+        try {
+          if (!prepared || !admitted.candidate) return;
+          const { parts, input, original } = prepared;
+          const output = admitted.candidate.output;
+          const after = readPackage(output, limits); expect([...after.keys()]).toEqual([...parts.keys()]);
+          for (const [name, bytes] of parts) if (name !== "word/document.xml") expect(Buffer.compare(Buffer.from(after.get(name)!), Buffer.from(bytes)), name).toBe(0);
+          const main = new TextDecoder(codec === "utf8" ? "utf-8" : codec === "utf16le" ? "utf-16le" : "utf-16be").decode(after.get("word/document.xml")); expect(main).toContain(retained); expect(main).toContain("<!--retained--><?audit exact?>");
+          assertInput(input, original, parts);
+        } finally {
+          controller?.abort();
+          prepared = undefined;
+        }
+      });
     });
 
     for (const check of checks) it(`${label}; baseline=${check}`, async () => {
@@ -75,18 +95,29 @@ for (const operation of ["controls.repeat", "template.apply"] as const) {
   }
 
   for (const route of ["native-sdk", "native-sdk-batch", "native-cli", "native-cli-batch"] as const)
-  it(`${label}; route=${route}`, async () => {
-    const controller = new AbortController();
-    onTestFinished(() => { controller.abort(); });
-    if (allowed && (!baseline || !checks.every(check => verified.has(check)))) throw new Error("Native baseline semantics and cleanup are incomplete");
-    const { parts, input, original } = await fixture(controller.signal);
-    controller.signal.throwIfAborted();
-    if (allowed) expect(Buffer.compare(Buffer.from(input), Buffer.from(baseline!.input))).toBe(0);
-    const observed = await execute({ input: Buffer.from(input).toString("base64"), route, operation, limits, documentLimits, allowed });
-    expect(observed, observed.stack ?? observed.error).toMatchObject({ ok: true });
-    const output = new Uint8Array(Buffer.from(observed.output!, "base64"));
-    if (allowed) expect(Buffer.compare(Buffer.from(output), Buffer.from(baseline!.output))).toBe(0);
-    else expect(output.byteLength).toBe(0);
-    assertInput(input, original, parts);
+  describe(`${label}; route=${route}`, () => {
+    let controller: AbortController;
+    let prepared: Awaited<ReturnType<typeof fixture>> | undefined;
+    let output: Uint8Array | undefined;
+    beforeEach(async () => {
+      controller = new AbortController();
+      if (allowed && (!baseline || !checks.every(check => verified.has(check)))) throw new Error("Native baseline semantics and cleanup are incomplete");
+      prepared = await fixture(controller.signal);
+      controller.signal.throwIfAborted();
+      if (allowed) expect(Buffer.compare(Buffer.from(prepared.input), Buffer.from(baseline!.input))).toBe(0);
+    });
+    it("executes the public repeat/template operation", async () => {
+      const observed = await execute({ input: Buffer.from(prepared!.input).toString("base64"), route, operation, limits, documentLimits, allowed });
+      expect(observed, observed.stack ?? observed.error).toMatchObject({ ok: true });
+      output = new Uint8Array(Buffer.from(observed.output!, "base64"));
+    });
+    afterEach(() => {
+      try {
+        if (!output || !prepared) return;
+        if (allowed) expect(Buffer.compare(Buffer.from(output), Buffer.from(baseline!.output))).toBe(0);
+        else expect(output.byteLength).toBe(0);
+        assertInput(prepared.input, prepared.original, prepared.parts);
+      } finally { controller?.abort(); prepared = undefined; output = undefined; }
+    });
   });
 }

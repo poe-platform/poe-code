@@ -343,15 +343,22 @@ for (const length of [0, 17, 4096, 8192]) {
       assert.equal(cleaned, true);
       assert.equal(delivered, length * 2);
       assert.equal(captures.size, 2);
+      for (const capture of captures) {
+        assert.equal(capture.chunks.length, 0);
+        assert.equal(capture.length, 0);
+      }
+      if (length === 0) assert.equal(decodings.length, 0, "empty results skip decoding");
       for (const [bytes, expected] of [[result.stdoutBytes, 65], [result.stderrBytes, 66]] as const) {
         const copiedBytes = set.mock.calls.reduce((total, call) => total + (call.this === bytes ? call.arguments[0].length : 0), 0);
         assert.equal(copiedBytes, length <= 4096 ? 0 : length, "terminal assembly copy bytes");
         assert.equal(bytes.byteLength, length);
         assert.equal(bytes.buffer.byteLength, length);
         assert.ok(bytes.every(byte => byte === expected));
-        const decoding = decodings.find(call => call.input === bytes);
-        assert.ok(decoding);
-        assert.deepEqual({ chunks: decoding.retainedChunks, bytes: decoding.retainedBytes }, { chunks: 0, bytes: 0 });
+        if (length > 0) {
+          const decoding = decodings.find(call => call.input === bytes);
+          assert.ok(decoding);
+          assert.deepEqual({ chunks: decoding.retainedChunks, bytes: decoding.retainedBytes }, { chunks: 0, bytes: 0 });
+        }
         bytes.fill(88);
       }
       assert.equal(result.stdout, "A".repeat(length));

@@ -3238,6 +3238,20 @@ function parseInputOperands(
     inlineGeom ? imgs.map((im) => applyInlineReadModifier(im, inlineGeom, state.kernel)) : imgs;
 
   const lower = baseToken.toLowerCase();
+  if (lower.startsWith("tile:")) {
+    const patterns = parseInputOperands(baseToken.slice(5), files, state, stdinBytes);
+    if (!patterns) return undefined;
+    return applyMod(patterns.map(pattern => {
+      const tiled = createSolidRgbaImage(state.sizeWidth, state.sizeHeight, state.background);
+      for (let y = 0; y < tiled.height; y++) {
+        for (let x = 0; x < tiled.width; x++) {
+          const source = ((y % pattern.height) * pattern.width + x % pattern.width) * 4;
+          tiled.data.set(pattern.data.subarray(source, source + 4), (y * tiled.width + x) * 4);
+        }
+      }
+      return tiled;
+    }));
+  }
   if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
     const colorStr = baseToken.slice(baseToken.indexOf(":") + 1) || "white";
     const c = parseColor(colorStr);
@@ -3390,7 +3404,7 @@ export async function runIdentifyCli(
       // Metadata-first reading
     } else if (a === "-format" || a === "--format") {
       customFormat = argv[++i] ?? "";
-    } else if (!a.startsWith("-")) {
+    } else if (a === "-" || !a.startsWith("-")) {
       targets.push(a);
     }
   }
@@ -3409,7 +3423,11 @@ export async function runIdentifyCli(
 
   for (const inPath of targets) {
     const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
-    const baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
+    let baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
+    const colon = baseInPath.indexOf(":");
+    if (colon > 0 && extToImageFormat(baseInPath.slice(0, colon))) {
+      baseInPath = baseInPath.slice(colon + 1);
+    }
     const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
     const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
     if (!bytes) {
@@ -4380,6 +4398,7 @@ export async function runMogrifyCli(
   let outFormatExt: string | undefined;
   let outDir: string | undefined;
   const opTokens: string[] = [];
+  const readSettings: string[] = [];
   const targets: string[] = [];
 
   const flagsWithOneArg = new Set([
@@ -4490,6 +4509,8 @@ export async function runMogrifyCli(
       t === "+distort"
     ) {
       opTokens.push(t, argv[++i] ?? "", argv[++i] ?? "");
+    } else if (["-density", "-background", "-fuzz", "-filter", "-size"].includes(t)) {
+      readSettings.push(t, argv[++i] ?? "");
     } else if (flagsWithOneArg.has(t)) {
       opTokens.push(t, argv[++i] ?? "");
     } else if (t.startsWith("-") || t.startsWith("+")) {
@@ -4513,10 +4534,10 @@ export async function runMogrifyCli(
     const stem = baseName.replace(/\.[^.]+$/, "");
     const origExt = baseName.includes(".") ? baseName.split(".").pop()! : "png";
     const targetExt = outFormatExt ?? origExt;
-    const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, target.lastIndexOf("/"));
+    const destDir = outDir ? outDir.replace(/\/+$/, "") : target.slice(0, Math.max(0, target.lastIndexOf("/")));
     const destPath = outFormatExt || outDir ? `${destDir ? destDir + "/" : ""}${stem}.${targetExt}` : target;
 
-    const res = await runConvertCli([target, ...opTokens, destPath], files);
+    const res = await runConvertCli([...readSettings, target, ...opTokens, destPath], files);
     if (res.exitCode !== 0) return res;
   }
 
@@ -4807,7 +4828,7 @@ export async function runCompareCli(
   }
 
   const exitCode =
-    dissimilarityThreshold !== undefined && rmseNorm > dissimilarityThreshold ? 1 : 0;
+    dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
 
   if (outSpec.toLowerCase() !== "null:") {
     const diffImg: RgbaImage = {
@@ -4836,7 +4857,7 @@ export async function runCompareCli(
 
   return {
     exitCode,
-    stdout: `${metricStr}\n`,
+    stdout: "",
     stderr: `${metricStr}\n`
   };
 }
@@ -5014,13 +5035,14 @@ async function executeVfsMagickTool(
       p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
 
     let needsStdin = false;
-    for (const token of argv) {
+    const hasOutputOperand = runner !== runIdentifyCli && !(runner === runMagickCli && argv[0] === "identify");
+    for (const [index, token] of argv.entries()) {
       if (token === "-" || token.endsWith(":-")) {
-        needsStdin = true;
+        if (!hasOutputOperand || index < argv.length - 1) needsStdin = true;
         continue;
       }
       if (token.startsWith("-") || token.startsWith("+") || token === "(" || token === ")") continue;
-      let candidate = token;
+      let candidate = token.toLowerCase().startsWith("tile:") ? token.slice(5) : token;
       const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(candidate);
       if (prefixMatch && extToImageFormat(prefixMatch[1]!)) {
         candidate = prefixMatch[2]!;

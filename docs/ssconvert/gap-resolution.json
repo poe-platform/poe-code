@@ -641,7 +641,12 @@
       ],
       "productEvidence": "At 5124a5a714, biff.ts workbookBytes (82) selects only Workbook/Book from readCfb; readBiff does not populate Workbook.properties, and writeBiff emits only workbook streams. biff-encryption.ts:96 refuses CryptoAPI flags without bit 8 (ancillary properties encrypted). These are separate metadata preservation and encryption gaps.",
       "nativeTrace": "excimp8.cxx:418 calls sfx2::LoadOlePropertySet on the root storage. docinf.cxx:49 reads SummaryInformation title/subject/author/comments/timestamps and DocumentSummaryInformation named custom properties. oleprops.cxx:1094 opens each property stream directly; this path does not supply the BIFF decrypter and is not an encrypted-property implementation recipe.",
-      "next": "Implement bounded OLE property-set import/export using Workbook.properties and explicit preservation/loss handling for unsupported types. First derive section offsets, GUIDs, codepages, typed values and dictionary rules from source plus the file-format contract; use a minimal independent fixture to reproduce value loss before code changes. Resolve encrypted property streams separately; retain the explicit refusal until their format and ownership are implemented."
+      "next": "Implement bounded OLE property-set import/export using Workbook.properties and explicit preservation/loss handling for unsupported types. First derive section offsets, GUIDs, codepages, typed values and dictionary rules from source plus the file-format contract; use a minimal independent fixture to reproduce value loss before code changes. Resolve encrypted property streams separately; retain the explicit refusal until their format and ownership are implemented.",
+      "containerPrerequisite": {
+        "change": "CFB output now admits more than two root-owned streams, chains every directory sector and writes a balanced red-black directory tree. Optional node/work and output-byte admission remains explicit; original one/two-stream layouts remain stable.",
+        "evidence": "Seven failing memory cases reproduced the cap. Final 53-file BIFF cohort passes 1174 tests, including independent directory order, cycle, color/black-height and exact stream-value checks for 3/4/7/8/15/16 streams. Maintained package lint/types/public consumers and selected four-workspace build pass.",
+        "remaining": "This is the container prerequisite only. OLE property-set import/export and encrypted-property handling are still unimplemented; the broader format/encryption families remain open."
+      }
     }
   },
   "cases": [

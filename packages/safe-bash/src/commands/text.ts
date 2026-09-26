@@ -711,8 +711,8 @@ const sharedSortStarts = new Int32Array(4096);
 const sharedSortEnds = new Int32Array(4096);
 const sharedSortIndices = new Int32Array(4096);
 const sharedSortScratchIndices = new Int32Array(4096);
-const sharedSortKeyNums = new Int32Array(4096);
 const sharedSortInScratch = new Uint8Array(65536);
+let sharedSortInUse = false;
 const sharedSortOutScratch = new Uint8Array(65536);
 const SORT_LONG_OPTIONS = Object.freeze({
   "human-numeric-sort": "h",
@@ -1090,6 +1090,12 @@ async function executeSortGeneral(
           (numericKey.endCharacter === undefined || numericKey.endCharacter === 0)
         ));
       if (canFastIndexSort) {
+        // This path yields during comparisons, so its indexes must be invocation-owned.
+        const sortStarts = new Int32Array(4096);
+        const sortEnds = new Int32Array(4096);
+        const sortIndices = new Int32Array(4096);
+        const sortScratchIndices = new Int32Array(4096);
+        const sortKeyNums = new Int32Array(4096);
         let firstChunk: Uint8Array | undefined;
         const pendingInput = new RecordBuffer(bufferLimit);
         try {
@@ -1118,16 +1124,16 @@ async function executeSortGeneral(
               validLines = false;
               break;
             }
-            sharedSortStarts[count] = start;
-            sharedSortEnds[count] = offset;
-            sharedSortIndices[count] = count;
+            sortStarts[count] = start;
+            sortEnds[count] = offset;
+            sortIndices[count] = count;
             if (!simple && numericKey) {
               const kNum = parseFastCanonicalNumericKey(firstChunk, start, offset, numericKey, separator);
               if (kNum < 0) {
                 validLines = false;
                 break;
               }
-              sharedSortKeyNums[count] = kNum;
+              sortKeyNums[count] = kNum;
             }
             count++;
             start = offset + 1;
@@ -1135,11 +1141,11 @@ async function executeSortGeneral(
           if (validLines) {
             for (let i = 0; i < count; i++) {
               context.signal.throwIfAborted();
-              recordBudget.admit(sharedSortEnds[i]! - sharedSortStarts[i]!);
+              recordBudget.admit(sortEnds[i]! - sortStarts[i]!);
             }
             const revScale = numericKeyFlags?.has("r") ? -1 : 1;
-            let src = sharedSortIndices;
-            let dst = sharedSortScratchIndices;
+            let src = sortIndices;
+            let dst = sortScratchIndices;
             for (let width = 1; width < count; width *= 2) {
               for (let begin = 0; begin < count; begin += width * 2) {
                 const middle = Math.min(begin + width, count);
@@ -1158,12 +1164,12 @@ async function executeSortGeneral(
                     const b = src[right]!;
                     let order = 0;
                     if (simple) {
-                      order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
+                      order = compareChunkSliceBytes(firstChunk, sortStarts[a]!, sortEnds[a]!, sortStarts[b]!, sortEnds[b]!) * direction;
                     } else {
-                      const diff = sharedSortKeyNums[a]! - sharedSortKeyNums[b]!;
+                      const diff = sortKeyNums[a]! - sortKeyNums[b]!;
                       order = diff === 0 ? 0 : (diff < 0 ? -revScale : revScale);
                       if (order === 0 && !skipTieFallback) {
-                        order = compareChunkSliceBytes(firstChunk, sharedSortStarts[a]!, sharedSortEnds[a]!, sharedSortStarts[b]!, sharedSortEnds[b]!) * direction;
+                        order = compareChunkSliceBytes(firstChunk, sortStarts[a]!, sortEnds[a]!, sortStarts[b]!, sortEnds[b]!) * direction;
                       }
                     }
                     if (order <= 0) {
@@ -1178,12 +1184,12 @@ async function executeSortGeneral(
               src = dst;
               dst = tmp;
             }
-            const outBuf = sharedSortOutScratch.subarray(0, firstChunk.length);
+            const outBuf = new Uint8Array(firstChunk.length);
             let used = 0;
             for (let i = 0; i < count; i++) {
               const idx = src[i]!;
-              const s = sharedSortStarts[idx]!;
-              const e = sharedSortEnds[idx]!;
+              const s = sortStarts[idx]!;
+              const e = sortEnds[idx]!;
               for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
               outBuf[used++] = delimiter;
             }
@@ -1934,95 +1940,102 @@ export function textCommands(): CommandDefinition[] {
             const firstChunkLen = rawFirst.length;
             let firstChunk: Uint8Array;
             let usedSortInScratch = false;
-            if (firstChunkLen <= 65536) {
-              sharedSortInScratch.set(rawFirst, 0);
-              firstChunk = sharedSortInScratch;
-              usedSortInScratch = true;
-            } else {
-              firstChunk = new Uint8Array(rawFirst);
-            }
-            let res2: IteratorResult<Uint8Array> | undefined;
             try {
-              res2 = srcIter.tryNextSync();
-            } catch (error) {
-              return diagnostic(context, error).then(RETURN_EXIT_TWO);
-            }
-            if (
-              res2 !== undefined &&
-              res2.done &&
-              firstChunkLen > 0 &&
-              firstChunkLen <= 65536 &&
-              firstChunk[firstChunkLen - 1] === 10
-            ) {
-              let start = 0;
-              let count = 0;
-              let validLines = true;
-              while (start < firstChunkLen) {
-                const offset = firstChunk.indexOf(10, start);
-                if (offset < 0 || offset >= firstChunkLen || count >= 4096 || offset - start > bufferLimit) {
-                  validLines = false;
-                  break;
-                }
-                sharedSortStarts[count] = start;
-                sharedSortEnds[count] = offset;
-                sharedSortIndices[count] = count;
-                count++;
-                start = offset + 1;
+              if (firstChunkLen <= 65536 && !sharedSortInUse) {
+                sharedSortInUse = true;
+                usedSortInScratch = true;
+                sharedSortInScratch.set(rawFirst, 0);
+                firstChunk = sharedSortInScratch;
+              } else {
+                firstChunk = new Uint8Array(rawFirst);
               }
-              if (validLines) {
-                context.signal.throwIfAborted();
-                let src = sharedSortIndices;
-                let dst = sharedSortScratchIndices;
-                for (let width = 1; width < count; width *= 2) {
-                  context.signal.throwIfAborted();
-                  for (let begin = 0; begin < count; begin += width * 2) {
-                    const middle = Math.min(begin + width, count);
-                    const end = Math.min(begin + width * 2, count);
-                    let left = begin;
-                    let right = middle;
-                    for (let index = begin; index < end; index++) {
-                      if (left < middle) {
-                        if (right === end) {
-                          dst[index] = src[left++]!;
-                          continue;
-                        }
-                        const a = src[left]!;
-                        const b = src[right]!;
-                        if (
-                          compareChunkSliceBytes(
-                            firstChunk,
-                            sharedSortStarts[a]!,
-                            sharedSortEnds[a]!,
-                            sharedSortStarts[b]!,
-                            sharedSortEnds[b]!,
-                          ) * direction <= 0
-                        ) {
-                          dst[index] = src[left++]!;
-                          continue;
-                        }
-                      }
-                      dst[index] = src[right++]!;
-                    }
+              let res2: IteratorResult<Uint8Array> | undefined;
+              try {
+                res2 = srcIter.tryNextSync();
+              } catch (error) {
+                return diagnostic(context, error).then(RETURN_EXIT_TWO);
+              }
+              if (
+                res2 !== undefined &&
+                res2.done &&
+                firstChunkLen > 0 &&
+                firstChunkLen <= 65536 &&
+                firstChunk[firstChunkLen - 1] === 10
+              ) {
+                let start = 0;
+                let count = 0;
+                let validLines = true;
+                while (start < firstChunkLen) {
+                  const offset = firstChunk.indexOf(10, start);
+                  if (offset < 0 || offset >= firstChunkLen || count >= 4096 || offset - start > bufferLimit) {
+                    validLines = false;
+                    break;
                   }
-                  const tmp = src;
-                  src = dst;
-                  dst = tmp;
+                  sharedSortStarts[count] = start;
+                  sharedSortEnds[count] = offset;
+                  sharedSortIndices[count] = count;
+                  count++;
+                  start = offset + 1;
                 }
-                const outBuf = sharedSortOutScratch;
-                let used = 0;
-                for (let i = 0; i < count; i++) {
-                  const idx = src[i]!;
-                  const s = sharedSortStarts[idx]!;
-                  const e = sharedSortEnds[idx]!;
-                  for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
-                  outBuf[used++] = 10;
+                if (validLines) {
+                  context.signal.throwIfAborted();
+                  let src = sharedSortIndices;
+                  let dst = sharedSortScratchIndices;
+                  for (let width = 1; width < count; width *= 2) {
+                    context.signal.throwIfAborted();
+                    for (let begin = 0; begin < count; begin += width * 2) {
+                      const middle = Math.min(begin + width, count);
+                      const end = Math.min(begin + width * 2, count);
+                      let left = begin;
+                      let right = middle;
+                      for (let index = begin; index < end; index++) {
+                        if (left < middle) {
+                          if (right === end) {
+                            dst[index] = src[left++]!;
+                            continue;
+                          }
+                          const a = src[left]!;
+                          const b = src[right]!;
+                          if (
+                            compareChunkSliceBytes(
+                              firstChunk,
+                              sharedSortStarts[a]!,
+                              sharedSortEnds[a]!,
+                              sharedSortStarts[b]!,
+                              sharedSortEnds[b]!,
+                            ) * direction <= 0
+                          ) {
+                            dst[index] = src[left++]!;
+                            continue;
+                          }
+                        }
+                        dst[index] = src[right++]!;
+                      }
+                    }
+                    const tmp = src;
+                    src = dst;
+                    dst = tmp;
+                  }
+                  const outBuf = sharedSortOutScratch;
+                  let used = 0;
+                  for (let i = 0; i < count; i++) {
+                    const idx = src[i]!;
+                    const s = sharedSortStarts[idx]!;
+                    const e = sharedSortEnds[idx]!;
+                    for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
+                    outBuf[used++] = 10;
+                  }
+                  const p = outputRange(context, outBuf, used);
+                  if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+                  return p.then(RETURN_EXIT_ZERO);
                 }
-                const p = outputRange(context, outBuf, used);
-                if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-                return p.then(RETURN_EXIT_ZERO);
               }
+              // The fallback can suspend; retain only this invocation's admitted bytes.
+              if (usedSortInScratch) firstChunk = firstChunk.slice(0, firstChunkLen);
+              return executeSortFastContinueAsync(context, direction, srcIter, firstChunk, res2);
+            } finally {
+              if (usedSortInScratch) sharedSortInUse = false;
             }
-            return executeSortFastContinueAsync(context, direction, srcIter, firstChunk, res2);
           }
         }
         return executeSortFastContinueAsync(context, direction, srcIter, undefined, undefined);
@@ -2387,7 +2400,7 @@ async function executeSortFastContinueAsync(
               src = dst;
               dst = tmp;
             }
-            const outBuf = sharedSortOutScratch.subarray(0, firstChunk.length);
+            const outBuf = new Uint8Array(firstChunk.length);
             let used = 0;
             for (let i = 0; i < count; i++) {
               const idx = src[i]!;

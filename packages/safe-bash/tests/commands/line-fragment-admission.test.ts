@@ -5,7 +5,116 @@ import { RecordBuffer } from "../../src/commands/record-buffer.js";
 import { SortRecordBudget } from "../../src/commands/sort-admission.js";
 import { textCommands } from "../../src/commands/text.js";
 import { FsError, type ByteSource } from "../../src/contracts/index.js";
-import { run } from "./helpers.js";
+import { fixture, run } from "./helpers.js";
+
+function synchronousFragments(fragments: readonly string[], beforePull?: (index: number) => void): ByteSource {
+  let index = 0;
+  const iterator = {
+    tryNextSync(): IteratorResult<Uint8Array> {
+      beforePull?.(index);
+      if (index === fragments.length) return { done: true, value: undefined };
+      return { done: false, value: Buffer.from(fragments[index++]!) };
+    },
+    async next(): Promise<IteratorResult<Uint8Array>> { return this.tryNextSync(); },
+  };
+  return { [Symbol.asyncIterator]: () => iterator };
+}
+
+for (const args of [[], ["-r"]]) {
+  for (const fragments of [["x"], ["b\n", "a"], ["", "x"]]) {
+    test(`sort ${args.join(" ")} bounds synchronous fallback to admitted fragment bytes: ${JSON.stringify(fragments)}`, async () => {
+      const expected = fragments.length === 2 && fragments[0] === "b\n" ? (args.length ? "b\na\n" : "a\nb\n") : "x\n";
+      const result = await run("sort", args, { stdin: synchronousFragments(fragments), commands: textCommands() });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdoutBytes.length, expected.length);
+      assert.equal(result.stdout, expected);
+    });
+  }
+}
+
+test("sort fallback does not expose bytes retained from a preceding invocation", async () => {
+  const commands = textCommands();
+  const prior = await run("sort", [], { stdin: synchronousFragments(["private-marker\n"]), commands });
+  assert.equal(prior.stdout, "private-marker\n");
+  const result = await run("sort", [], { stdin: synchronousFragments(["x"]), commands });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdoutBytes.length, 2);
+  assert.equal(result.stdout, "x\n");
+});
+
+test("sort owns its first fragment across a reentrant next-input pull", async () => {
+  const fs = await fixture();
+  const commands = textCommands();
+  let nested: ReturnType<typeof run> | undefined;
+  const stdin = synchronousFragments(["b\na\n"], index => {
+    if (index === 1 && !nested) nested = run("sort", [], { fs, stdin: synchronousFragments(["z\ny\n"]), commands });
+  });
+  const outer = await run("sort", [], { fs, stdin, commands });
+  const inner = await nested;
+  assert.ok(inner);
+  assert.equal(inner.exitCode, 0, inner.stderr);
+  assert.equal(inner.stdout, "y\nz\n");
+  assert.equal(outer.exitCode, 0, outer.stderr);
+  assert.equal(outer.stdoutBytes.length, 4);
+  assert.equal(outer.stdout, "a\nb\n");
+});
+
+test("sort retains indexed record boundaries across a cooperative host turn", async () => {
+  const fs = await fixture();
+  const commands = textCommands();
+  const records = Array.from({ length: 4096 }, (_, index) => String(index).padStart(4, "0"));
+  const expected = records.join("\n") + "\n";
+  const input = records.reverse().join("\n") + "\n";
+  let outerFinished = false;
+  const outer = run("sort", ["-s"], { fs, stdin: synchronousFragments([input]), commands }).then(result => {
+    outerFinished = true;
+    return result;
+  });
+  let observedPending = false;
+  const inner = new Promise<Awaited<ReturnType<typeof run>>>((resolve, reject) => {
+    setImmediate(() => {
+      observedPending = !outerFinished;
+      void run("sort", [], { fs, stdin: synchronousFragments(["z\naaa\nm\n"]), commands }).then(resolve, reject);
+    });
+  });
+  const [first, second] = await Promise.all([outer, inner]);
+  assert.equal(observedPending, true);
+  assert.equal(second.exitCode, 0, second.stderr);
+  assert.equal(second.stdout, "aaa\nm\nz\n");
+  assert.equal(first.exitCode, 0, first.stderr);
+  assert.equal(first.stdoutBytes.length, expected.length);
+  const actualRecords = first.stdout.split("\n");
+  assert.equal(actualRecords.length, 4097);
+  for (let index = 0; index < 4096; index++) {
+    assert.equal(actualRecords[index], String(index).padStart(4, "0"), `record ${index}`);
+  }
+  assert.equal(actualRecords[4096], "");
+});
+
+test("sort retains asynchronous output bytes while another invocation completes", async () => {
+  const commands = textCommands();
+  const base = await run("sort", [], { stdin: "", commands });
+  const sort = commands.find(command => command.name === "sort")!;
+  const observed: Uint8Array[] = [];
+  let writes = 0;
+  const result = await sort.execute({
+    ...base.context,
+    stdin: (async function* () { yield Buffer.from("b\na\n"); })(),
+    stdout: {
+      async write(chunk) {
+        writes++;
+        assert.equal(chunk.length, 4);
+        const nested = await run("sort", [], { fs: base.fs, stdin: synchronousFragments(["z\ny\n"]), commands });
+        assert.equal(nested.exitCode, 0, nested.stderr);
+        assert.equal(nested.stdout, "y\nz\n");
+        observed.push(Buffer.from(chunk));
+      },
+    },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(writes, 1);
+  assert.equal(Buffer.concat(observed).toString(), "a\nb\n");
+});
 
 async function withAllocations(action: (allocations: number[]) => Promise<void>): Promise<void> {
   const original = Uint8Array;

@@ -79,6 +79,22 @@ const defaultDateNow = Date.now;
 function toVoidPromise(p: Promise<unknown>): Promise<void> { return p.then( noopVoid ); }
 function noopVoid(): void {}
 
+const SUBDIR_CACHE_PARENTS = new Array<string>(16);
+const SUBDIR_CACHE_NAMES = new Array<string>(16);
+const SUBDIR_CACHE_PATHS = new Array<string>(16);
+function joinCachedSubdirPath(parent: string, name: string): string {
+  const len = name.length;
+  const h = ((parent.length * 31 + name.charCodeAt(0) * 17 + name.charCodeAt(len - 1)) & 15);
+  if (SUBDIR_CACHE_PARENTS[h] === parent && SUBDIR_CACHE_NAMES[h] === name) {
+    return SUBDIR_CACHE_PATHS[h]!;
+  }
+  const joined = `${parent}/${name}`;
+  SUBDIR_CACHE_PARENTS[h] = parent;
+  SUBDIR_CACHE_NAMES[h] = name;
+  SUBDIR_CACHE_PATHS[h] = joined;
+  return joined;
+}
+
 function isFastEntriesMapSorted(map: { readonly size?: number; readonly _next?: number; readonly _keys?: (string | undefined)[] }): boolean {
   const len = map._next;
   const keys = map._keys;
@@ -755,7 +771,7 @@ export class Walker {
         if (!this.args.hidden && entryName.startsWith(".")) continue;
         const entryType = entryObj.type;
         if (entryType === "directory") {
-          const child = `${cleanPath}/${entryName}`;
+          const child = joinCachedSubdirPath(cleanPath, entryName);
           const display = samePrefix ? child : (cleanLabel ? `${cleanLabel}/${entryName}` : entryName);
           const childEntries = entryObj.entries !== undefined && entryObj.mode !== undefined && ((entryObj.mode >> 6) & 4) === 4 ? entryObj.entries : undefined;
           const sub = this.tryWalkDirectorySync(backing, child, display, depth + 1, rules, repository, onTarget, true, childEntries);

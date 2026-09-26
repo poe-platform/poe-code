@@ -1921,7 +1921,7 @@ class FastShellCommandContext {
     this._argumentValues = argumentValues;
     this._env = env;
     this.cwd = state.cwd;
-    this.signal = toNativeAbortSignal(runtime.commandSignal);
+    this.signal = runtime._isMemoryBackingFs ? runtime.commandSignal : toNativeAbortSignal(runtime.commandSignal);
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -1980,7 +1980,7 @@ class FastShellCommandContext {
     this.command = name;
     this.args = args;
     this.cwd = state.cwd;
-    this.signal = toNativeAbortSignal(signal);
+    this.signal = runtime._isMemoryBackingFs ? signal : toNativeAbortSignal(signal);
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -2152,6 +2152,7 @@ class FastShellCommandContext {
 
   get fs(): FileSystem {
     const self = this._self ?? this;
+    self.signal = toNativeAbortSignal(self.signal);
     if (!self._contextFs && self._runtime._isMemoryBackingFs) {
       return self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
     }
@@ -6051,7 +6052,7 @@ export class Runtime {
         context.stdin = input;
         if (incoming) context.stdinIsDefault = false;
         context.stdout = stageStdout;
-        context.signal = toNativeAbortSignal(stageSignal);
+        context.signal = this._isMemoryBackingFs ? stageSignal : toNativeAbortSignal(stageSignal);
         (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
         if (asyncTasks === undefined) {
           scope.enterWork();
@@ -6703,6 +6704,7 @@ export class Runtime {
             publishCommandSpelling(rawState, commandSpelling(command));
           }
           let formatted: string | undefined;
+          let preEncoded: Uint8Array | undefined;
           let lastArg = w0Plain;
           try {
             if (w0Plain === "echo" && command.words.length === 1) {
@@ -6710,7 +6712,8 @@ export class Runtime {
             } else if (w0Plain === "echo" && command.words.length === 2) {
               const arg0 = this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
               if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
-                formatted = `${arg0}\n`;
+                preEncoded = encodeRedirectTextWithNewlineToScratch(arg0);
+                if (!preEncoded) formatted = `${arg0}\n`;
                 lastArg = arg0;
               }
             } else {
@@ -6739,8 +6742,8 @@ export class Runtime {
             fastSubScratchArgs.length = 0;
             return undefined;
           }
-          if (formatted !== undefined) {
-            const encoded = encodeRedirectTextToScratch(formatted);
+          if (preEncoded !== undefined || formatted !== undefined) {
+            const encoded = preEncoded ?? encodeRedirectTextToScratch(formatted!);
             const byteLength = encoded.byteLength;
             if (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
               const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
@@ -7287,6 +7290,93 @@ export class Runtime {
     return words;
   }
 
+  private tryFastCachedForLoop(
+    command: Extract<Command, { kind: "for" }>,
+    forPlan: {
+      intSteps: (IntLoopStep | undefined)[];
+      regNames: string[];
+      touchedIntNamesList: string[];
+      fastLoopWords: readonly string[];
+      bodyStepCount: number;
+      lastCmd: Extract<Command, { kind: "simple" }> | undefined;
+    },
+    rawState: State,
+    monitor: NonNullable<ReturnType<typeof stateMonitor>>,
+    store: ReturnType<typeof arrayStore>,
+    existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>,
+    elem0: { text: { shellValue: ShellValue } } | undefined,
+    io: IO,
+  ): number | undefined {
+    if (
+      rawState.braceexpand === false ||
+      this.budget.hasCpuLimit ||
+      io[valueScope] !== undefined ||
+      this.budget.maxExpansionFieldsSmi < 1 ||
+      this.budget.maxExpansionBytesSmi < 32
+    ) {
+      return undefined;
+    }
+    const fastLoopWords = forPlan.fastLoopWords;
+    const wordCount = fastLoopWords.length;
+    if (
+      wordCount > this.budget.maxExpansionFieldsSmi ||
+      wordCount * 16 > this.budget.maxExpansionBytesSmi ||
+      this.budget.commands + wordCount * 4 >= this.budget.maxCommandsSmi ||
+      this.budget.iterations + wordCount >= this.budget.maxLoopIterationsSmi
+    ) {
+      return undefined;
+    }
+    const regNames = forPlan.regNames;
+    for (let r = 0; r < regNames.length; r++) {
+      const refName = regNames[r]!;
+      if (store?.get(refName)) return undefined;
+      if (r > 0) {
+        const parsed = fastSafeInt(rawState.variables[refName], this.budget.parsing);
+        if (parsed === undefined) return undefined;
+        sharedLoopIntRegs[r] = parsed | 0;
+      }
+    }
+    monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
+    this.budget.tick();
+    const { ok } = runIntForLoop(fastLoopWords, forPlan.bodyStepCount, forPlan.intSteps, this.budget.parsing);
+    if (!ok) return undefined;
+    this.budget.iterations += wordCount;
+    this.budget.commands += wordCount * forPlan.bodyStepCount;
+    for (let r = 0; r < regNames.length; r++) {
+      rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
+    }
+    const touchedList = forPlan.touchedIntNamesList;
+    for (let t = 0; t < touchedList.length; t++) {
+      const varName = touchedList[t]!;
+      const finalVal = rawState.variables[varName];
+      if (finalVal !== undefined) {
+        monitor.publishStringVariable(varName, finalVal);
+        if (rawState.allexport) monitor.proxy.exported.add(varName);
+      }
+    }
+    if (forPlan.lastCmd) {
+      if (rawState.extensions && !rawState.extensions.eventDepth) {
+        publishCommandSpelling(rawState, commandSpelling(forPlan.lastCmd));
+      }
+      rawState.substitutionStatus = 0;
+      if (rawState.variables._ !== undefined) delete rawState.variables._;
+      rawState.lastArgument = "";
+      if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+      if (!existing) {
+        monitor.lazyPipeStatus = singleStatusZero;
+        monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+      } else {
+        elem0!.text.shellValue = "0";
+        store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+      }
+    }
+    rawState.status = 0;
+    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+    monitor.epoch = restEpoch;
+    if (store) store.epoch = restEpoch;
+    return 0;
+  }
+
   private trySyncLoop(
     command: Extract<Command, { kind: "arithmetic-for" | "for" }>,
     pipeline: Pipeline,
@@ -7307,9 +7397,26 @@ export class Runtime {
       rawState.nounset ||
       rawState.readonlyVariables?.size ||
       rawState.extensions?.checkpoints.length ||
-      hasYieldCheckpoint(this.signal) ||
-      !this.canSyncLoopBody(command.body, rawState)
+      hasYieldCheckpoint(this.signal)
     ) {
+      return undefined;
+    }
+    if (command.kind === "for") {
+      const cachedPlan = (command as { _cachedForPlan?: {
+        fastReady?: boolean;
+        intSteps: (IntLoopStep | undefined)[];
+        regNames: string[];
+        touchedIntNamesList: string[];
+        fastLoopWords: readonly string[];
+        bodyStepCount: number;
+        lastCmd: Extract<Command, { kind: "simple" }> | undefined;
+      } })._cachedForPlan;
+      if (cachedPlan?.fastReady) {
+        const fastRes = this.tryFastCachedForLoop(command, cachedPlan, rawState, monitor, store, existing, elem0, io);
+        if (fastRes !== undefined) return fastRes;
+      }
+    }
+    if (!this.canSyncLoopBody(command.body, rawState)) {
       return undefined;
     }
     const { steps: bodyAssignments, redirectCount } = this.buildSyncLoopBody(command, io);
@@ -7735,6 +7842,11 @@ export class Runtime {
       hasSubIntStep: boolean;
       arithNamesList: string[];
       touchedIntNamesList: string[];
+      fastReady?: boolean;
+      regNames?: string[];
+      fastLoopWords?: readonly string[];
+      bodyStepCount?: number;
+      lastCmd?: Extract<Command, { kind: "simple" }> | undefined;
     };
     let forPlan = (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan;
     if (!forPlan) {
@@ -7755,12 +7867,44 @@ export class Runtime {
         intSteps[b] = intStep;
         touchedSet.add(intStep.name);
       }
+      const arithNamesList = [...arithNames];
+      const touchedIntNamesList = [...touchedSet];
+      const regNames: string[] = [command.name];
+      let regOk = command.name !== "LINENO" && command.name !== "_" && command.name !== "FUNCNAME";
+      for (let a = 0; a < arithNamesList.length; a++) {
+        const refName = arithNamesList[a]!;
+        if (refName === command.name) continue;
+        if (refName === "LINENO" || refName === "_" || refName === "FUNCNAME" || regNames.length >= 32) { regOk = false; break; }
+        regNames.push(refName);
+      }
+      if (regOk && allIntStepsReady) {
+        for (let b = 0; b < bodyAssignments.length; b++) {
+          const st = intSteps[b]!;
+          let tIdx = regNames.indexOf(st.name);
+          if (tIdx === -1) {
+            if (st.name === "LINENO" || st.name === "_" || st.name === "FUNCNAME" || regNames.length >= 32) { regOk = false; break; }
+            tIdx = regNames.length;
+            regNames.push(st.name);
+          }
+          st.targetReg = tIdx;
+          const vNames = st.compiled.varNames;
+          for (let v = 0; v < vNames.length; v++) {
+            st.varRegMap[v] = regNames.indexOf(vNames[v]!);
+          }
+        }
+      }
+      const fastReady = regOk && allIntStepsReady && !hasSubIntStep && redirectCount === 0 && !activeValScope && fastLoopWords.length <= 1500 && fastLoopWords.length * bodyAssignments.length <= 1600;
       forPlan = {
         intSteps,
         allIntStepsReady,
         hasSubIntStep,
-        arithNamesList: [...arithNames],
-        touchedIntNamesList: [...touchedSet],
+        arithNamesList,
+        touchedIntNamesList,
+        fastReady,
+        regNames,
+        fastLoopWords,
+        bodyStepCount: bodyAssignments.length,
+        lastCmd: bodyAssignments[bodyAssignments.length - 1]?.cmd,
       };
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
     }

@@ -134,6 +134,37 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
     }
   }
 
+  getSubstr(s: string, start: number, end: number): MemoryNode | undefined {
+    if (this.size === 0) return undefined;
+    const len = end - start;
+    let h = 5381;
+    for (let i = start; i < end; i++) {
+      h = (((h & 0x1fffff) * 33) ^ s.charCodeAt(i)) & 0x3fffffff;
+    }
+    let slot = h & this._mask;
+    const mask = this._mask;
+    const table = this._table;
+    const keys = this._keys;
+    while (true) {
+      const idx = table[slot]!;
+      if (idx === -1) return undefined;
+      if (idx >= 0) {
+        const k = keys[idx]!;
+        if (k.length === len) {
+          let match = true;
+          for (let i = 0; i < len; i++) {
+            if (k.charCodeAt(i) !== s.charCodeAt(start + i)) {
+              match = false;
+              break;
+            }
+          }
+          if (match) return this._vals[idx];
+        }
+      }
+      slot = (slot + 1) & mask;
+    }
+  }
+
   has(k: string): boolean {
     return this.get(k) !== undefined;
   }
@@ -3103,11 +3134,11 @@ export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path
     if (((current.mode >> 6) & 1) !== 1) return undefined;
     const slash = path.indexOf("/", start);
     if (slash === -1) {
-      const next = current.entries.get(slicePathSegment(path, start, path.length));
+      const next = (current.entries as FastDirectoryEntriesMap).getSubstr(path, start, path.length);
       if (!next || next.type !== "directory" || ((next.mode >> 6) & 4) !== 4) return undefined;
       return next.entries;
     }
-    const next = current.entries.get(slicePathSegment(path, start, slash));
+    const next = (current.entries as FastDirectoryEntriesMap).getSubstr(path, start, slash);
     if (!next || next.type !== "directory") return undefined;
     current = next;
     start = slash + 1;

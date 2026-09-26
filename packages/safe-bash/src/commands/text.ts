@@ -712,6 +712,7 @@ const sharedSortEnds = new Int32Array(4096);
 const sharedSortIndices = new Int32Array(4096);
 const sharedSortScratchIndices = new Int32Array(4096);
 const sharedSortKeyNums = new Int32Array(4096);
+const sharedSortInScratch = new Uint8Array(65536);
 const sharedSortOutScratch = new Uint8Array(65536);
 const SORT_LONG_OPTIONS = Object.freeze({
   "human-numeric-sort": "h",
@@ -1929,7 +1930,17 @@ export function textCommands(): CommandDefinition[] {
           }
           if (res1 !== undefined) {
             if (res1.done) return RESOLVED_EXIT_ZERO;
-            const firstChunk = new Uint8Array(res1.value);
+            const rawFirst = res1.value;
+            const firstChunkLen = rawFirst.length;
+            let firstChunk: Uint8Array;
+            let usedSortInScratch = false;
+            if (firstChunkLen <= 65536) {
+              sharedSortInScratch.set(rawFirst, 0);
+              firstChunk = sharedSortInScratch;
+              usedSortInScratch = true;
+            } else {
+              firstChunk = new Uint8Array(rawFirst);
+            }
             let res2: IteratorResult<Uint8Array> | undefined;
             try {
               res2 = srcIter.tryNextSync();
@@ -1939,16 +1950,16 @@ export function textCommands(): CommandDefinition[] {
             if (
               res2 !== undefined &&
               res2.done &&
-              firstChunk.length > 0 &&
-              firstChunk.length <= 65536 &&
-              firstChunk[firstChunk.length - 1] === 10
+              firstChunkLen > 0 &&
+              firstChunkLen <= 65536 &&
+              firstChunk[firstChunkLen - 1] === 10
             ) {
               let start = 0;
               let count = 0;
               let validLines = true;
-              while (start < firstChunk.length) {
+              while (start < firstChunkLen) {
                 const offset = firstChunk.indexOf(10, start);
-                if (offset < 0 || count >= 4096 || offset - start > bufferLimit) {
+                if (offset < 0 || offset >= firstChunkLen || count >= 4096 || offset - start > bufferLimit) {
                   validLines = false;
                   break;
                 }

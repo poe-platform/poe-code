@@ -30,6 +30,7 @@ export type ValueArenaHost = {
 export class ValueArena {
   declare readonly maximumBytes: number;
   declare readonly maximumSlots: number;
+  declare readonly hasInfiniteBytes: boolean;
   declare readonly checkpoint: (() => void) | ValueArenaHost;
   declare readonly fail: (limit: "maxExpansionBytes" | "maxExpansionFields") => never;
   declare private _objects: WeakMap<object, AllocationRecord> | undefined;
@@ -44,6 +45,7 @@ export class ValueArena {
   constructor(maximumBytes: number, maximumSlots: number, checkpoint: (() => void) | ValueArenaHost, fail: (limit: "maxExpansionBytes" | "maxExpansionFields") => never = DEFAULT_VALUE_ARENA_FAIL) {
     this.maximumBytes = maximumBytes;
     this.maximumSlots = maximumSlots;
+    this.hasInfiniteBytes = maximumBytes === Infinity;
     this.checkpoint = checkpoint;
     this.fail = fail;
     this._objects = undefined;
@@ -368,6 +370,7 @@ export class ValueStore {
   }
 
   prewarm(): void {
+    if (this.arena.hasInfiniteBytes) return;
     if (!this._strings) {
       const m = new Map<string, string>();
       for (let i = 0; i < 6; i++) m.set(String(i), "");
@@ -380,6 +383,18 @@ export class ValueStore {
   get(name: string, text: string): ShellValue { return this._values?.get(name)?.value ?? this._strings?.get(name) ?? text; }
 
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
+    if (this.arena.hasInfiniteBytes) {
+      this.arena.assertOpen();
+      rawVariables[name] = value;
+      if (this._values) {
+        const held = this._values.get(name);
+        if (held) {
+          held.release();
+          this._values.delete(name);
+        }
+      }
+      return;
+    }
     const newBytes = value.length * 2;
     const held = this._values?.get(name);
     const oldStr = this._strings?.get(name);

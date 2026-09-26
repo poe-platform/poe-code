@@ -342,11 +342,19 @@ function smallBigInt(n: number): bigint {
   return n >= 0 && n <= 4096 ? SMALL_BIGINTS[n]! : BigInt(n);
 }
 
+const LARGE_INT_KEYS = new Int32Array(16).fill(-1);
+const LARGE_INT_STRS = new Array<string>(16).fill("");
+
 export function intToStr(n: number): string {
   if (n >= 0 && n <= 65536) {
     return SMALL_INT_STRINGS[n] ??= String(n);
   }
-  return String(n);
+  const slot = ((n | 0) ^ ((n | 0) >>> 4)) & 15;
+  if (LARGE_INT_KEYS[slot] === n) return LARGE_INT_STRS[slot]!;
+  const s = String(n);
+  LARGE_INT_KEYS[slot] = n;
+  LARGE_INT_STRS[slot] = s;
+  return s;
 }
 
 export function fastSafeInt(text: string | undefined, budget: ParseBudget): number | undefined {

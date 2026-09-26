@@ -14,6 +14,7 @@ import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../internal.js";
 
 const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
 const EMPTY_PATTERNS: readonly string[] = Object.freeze([]);
+const EMPTY_SEARCH_OPTIONS: SearchOptions = Object.freeze({});
 const DEFAULT_CWD_PATHS: readonly string[] = Object.freeze(["."]);
 const DEFAULT_STDIN_PATHS: readonly string[] = Object.freeze(["-"]);
 const defaultLimitsTick = Limits.prototype.tick;
@@ -22,6 +23,15 @@ const BATCH_SIZE_1: () => number = () => 1;
 const BATCH_SIZE_128: () => number = () => 128;
 const RETURN_TRUE = () => true;
 const RETURN_FALSE = () => false;
+const RETURN_EXIT_ZERO_CMD = () => ({ exitCode: 0 });
+const RETURN_EXIT_ONE_CMD = () => ({ exitCode: 1 });
+function finishPendingRgFlush(
+  flushRes: Promise<void>,
+  found: boolean,
+  release: () => void,
+): Promise<import("../../contracts/index.js").CommandResult> {
+  return flushRes.then(found ? RETURN_EXIT_ZERO_CMD : RETURN_EXIT_ONE_CMD).finally(release);
+}
 function resolveToBoolean(promise: Promise<unknown>, found: boolean): Promise<boolean> {
   return promise.then(found ? RETURN_TRUE : RETURN_FALSE);
 }
@@ -477,13 +487,12 @@ class PooledRgFastRunner {
     this.limits.outPos = 0;
     this.limits.flushSyncOrAsync();
     this.limits.speculative = false;
-    this.limits.resetForRun(DUMMY_CONTEXT, {});
-    this.args.reset();
-    this.args.patterns.length = 0;
-    this.args.paths.length = 0;
-    this.walker.resetForRun(DUMMY_CONTEXT, this.args, this.limits, DUMMY_REPORT, DUMMY_SESSION);
-    this.printer.resetForRun(this.args, this.limits);
-    this.matcher.resetForRun(EMPTY_PATTERNS, this.args, DUMMY_SESSION, true, true);
+    this.limits.context = DUMMY_CONTEXT;
+    (this.limits as unknown as { _signal: unknown; stopped: unknown })._signal = undefined;
+    (this.limits as unknown as { _signal: unknown; stopped: unknown }).stopped = undefined;
+    for (let i = 0; i < this.args.patterns.length; i++) this.args.patterns[i] = "";
+    for (let i = 0; i < this.args.paths.length; i++) this.args.paths[i] = "";
+    (this.walker as unknown as { context: unknown }).context = DUMMY_CONTEXT;
     this.context = DUMMY_CONTEXT;
     this.fastReadBacking = undefined;
     this.inUse = false;
@@ -609,11 +618,10 @@ function tryExecuteRgFastSync(
       return undefined;
     }
     committing = true;
-    const result = runner.found ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
     const flushRes = limits.flushSyncOrAsync();
-    if (flushRes === undefined) return result;
+    if (flushRes === undefined) return runner.found ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
     pendingFlush = true;
-    return flushRes.then(() => result).finally(runner.release);
+    return finishPendingRgFlush(flushRes, runner.found, runner.release);
   } catch (error) {
     if (!committing) return undefined;
     throw error;
@@ -622,15 +630,12 @@ function tryExecuteRgFastSync(
   }
 }
 
-export function createRgCommand(executor: RegexExecutor, options: SearchOptions = {}): CommandDefinition {
-  return {
-    name: "rg",
-    filesystemRequirements: searchRequirements,
-    description: "Search virtual files or stdin with recursive filtering and structured results",
-    execute(context) {
-      const fastSync = tryExecuteRgFastSync(context, executor, options);
-      if (fastSync !== undefined) return fastSync;
-      return withRegexSession(context, executor, session => {
+function executeRgSlow(
+  context: Parameters<CommandDefinition["execute"]>[0],
+  executor: RegexExecutor,
+  options: SearchOptions,
+): ReturnType<CommandDefinition["execute"]> {
+  return withRegexSession(context, executor, session => {
         let args: Arguments | undefined;
         let limits: Limits | undefined;
         let failed = false;
@@ -963,7 +968,18 @@ Unicode selection and extended regex syntax require a configured executor.
           return { exitCode: 2 };
         }
         })();
-      });
+  });
+}
+
+export function createRgCommand(executor: RegexExecutor, options: SearchOptions = {}): CommandDefinition {
+  return {
+    name: "rg",
+    filesystemRequirements: searchRequirements,
+    description: "Search virtual files or stdin with recursive filtering and structured results",
+    execute(context) {
+      const fastSync = tryExecuteRgFastSync(context, executor, options);
+      if (fastSync !== undefined) return fastSync;
+      return executeRgSlow(context, executor, options);
     },
   };
 }

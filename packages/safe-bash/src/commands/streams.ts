@@ -129,11 +129,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
       : undefined;
     const canWriteSync = typeof syncSink?.writeSync === "function";
     const canWriteRangeSync = typeof syncSink?.writeRangeSync === "function";
-    const rejectOutput = async (error: unknown): Promise<never> => {
-      if (typeof iter.syncReturn === "function") iter.syncReturn();
-      else await iter.return?.();
-      throw error;
-    };
+
     let done = false;
     try {
       while (true) {
@@ -157,7 +153,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
             if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
               const p = output(context, slice);
               if (!isSyncResolved(p)) {
-                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink, rejectOutput);
+                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
               }
             }
           }
@@ -173,7 +169,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
                   done = true;
                   return prefixFinishAfterPending(p, iter);
                 }
-                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink, rejectOutput);
+                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
               }
             }
           }
@@ -188,7 +184,7 @@ function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: n
         }
       }
     } catch (err) {
-      if (!done) return rejectOutput(err);
+      if (!done) return rejectPrefixOutput(iter, err);
       throw err;
     }
   }
@@ -207,6 +203,14 @@ function prefixFinishAfterPending(
     else return iter.return?.();
   });
 }
+async function rejectPrefixOutput(
+  iter: AsyncIterator<Uint8Array> & { syncReturn?: () => void },
+  error: unknown,
+): Promise<never> {
+  if (typeof iter.syncReturn === "function") iter.syncReturn();
+  else await iter.return?.();
+  throw error;
+}
 function prefixWaitThenContinue(
   p: Promise<void>,
   context: CommandContext,
@@ -217,15 +221,27 @@ function prefixWaitThenContinue(
   delimiter: number,
   canWriteSync: boolean,
   syncSink: { writeSync?: (chunk: Uint8Array) => boolean } | undefined,
-  rejectOutput: (error: unknown) => Promise<never>,
 ): Promise<void> {
-  return p.then(() => prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink), rejectOutput);
+  return p.then(
+    () => prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink),
+    err => rejectPrefixOutput(iter, err),
+  );
 }
 function finishHeadTailPromise(context: CommandContext, p: Promise<void>): Promise<{ exitCode: number }> {
   return p.then(
     RETURN_EXIT_ZERO,
     async error => { await diagnostic(context, error); return { exitCode: 1 }; },
   );
+}
+async function rejectTrOutput(
+  iter: AsyncIterator<Uint8Array> & { syncReturn?: () => void },
+  error: unknown,
+): Promise<never> {
+  sharedTrOutBuffer = new Uint8Array(sharedTrOutBuffer.length);
+  sharedTrOutInUse = false;
+  if (typeof iter.syncReturn === "function") iter.syncReturn();
+  else await iter.return?.();
+  throw error;
 }
 function executeTrAfterPending(
   p: Promise<void>,
@@ -238,9 +254,11 @@ function executeTrAfterPending(
   squeezingTable: Uint8Array,
   initialPrevious: number,
   alreadyOwnsShared: boolean,
-  rejectOutput: (error: unknown) => Promise<never>,
 ): Promise<{ exitCode: number }> {
-  return p.then(() => executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezingTable, initialPrevious, alreadyOwnsShared), rejectOutput);
+  return p.then(
+    () => executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezingTable, initialPrevious, alreadyOwnsShared),
+    err => rejectTrOutput(iter, err),
+  );
 }
 async function prefixContinueAsync(
   context: CommandContext,
@@ -841,14 +859,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
       if (canTrySync && !sharedTrOutInUse) {
         sharedTrOutInUse = true;
         let released = false;
-        const rejectOutput = async (error: unknown): Promise<never> => {
-          // Cancellation can settle output before the sink releases its borrow.
-          sharedTrOutBuffer = new Uint8Array(sharedTrOutBuffer.length);
-          sharedTrOutInUse = false;
-          if (typeof iter.syncReturn === "function") iter.syncReturn();
-          else await iter.return?.();
-          throw error;
-        };
+
         try {
           while (true) {
             const step = iter.tryNextSync!();
@@ -869,7 +880,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
               const p = useShared ? outputRange(context, buf, chunk.length) : output(context, buf);
               if (!isSyncResolved(p)) {
                 released = true;
-                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true, rejectOutput);
+                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
               }
               continue;
             }
@@ -886,13 +897,13 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
               const p = outputRange(context, buf, count);
               if (!isSyncResolved(p)) {
                 released = true;
-                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true, rejectOutput);
+                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
               }
             }
           }
         } catch (err) {
           released = true;
-          return rejectOutput(err);
+          return rejectTrOutput(iter, err);
         } finally {
           if (!released) sharedTrOutInUse = false;
         }

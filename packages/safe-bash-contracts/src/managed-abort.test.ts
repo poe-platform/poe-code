@@ -64,12 +64,13 @@ for (const reason of [false, null, 0, ""]) {
     const pipe = createBytePipe({ signal: upstream.signal });
     try {
       const reading = pipe.endpoints!.read.readable[Symbol.asyncIterator]().next();
-      assert.equal(typeof Reflect.get(upstream.signal, waitersSymbol), "function", "first pipe waiter uses singleton storage");
+      assert.equal(Reflect.get(upstream.signal, waitersSymbol), pipe, "first pipe waiter retains the pipe as a singleton object");
       const received: unknown[] = [];
       addManagedAbortWaiter(upstream.signal, value => { received.push(value); });
       const waiters: unknown = Reflect.get(upstream.signal, waitersSymbol);
       assert.ok(waiters instanceof Set, "a second listener shares the waiter Set");
       assert.equal(waiters.size, 2);
+      assert.equal(waiters.has(pipe), true, "promotion preserves the original pipe waiter");
       const rejected = assert.rejects(reading, error => Object.is(error, reason));
       await upstream.abort(reason);
       await rejected;

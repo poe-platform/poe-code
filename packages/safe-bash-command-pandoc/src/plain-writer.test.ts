@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { convert, writeDocument } from "./engine.js";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 import type { Attr, Block, Inline } from "./ast-types.js";
 import type { Document, WriteOptions } from "./types.js";
 const a: Attr = ["", [], []];
@@ -23,7 +23,7 @@ it.each([
   const bytes = new TextEncoder().encode(input);
   expect(await convert([{bytes}], {from: "commonmark", to: "plain", wrap: "none"}, {})).toMatchObject({text: expected, diagnostics: []});
   const stdout = vi.fn(async (_bytes: Uint8Array) => {}), stderr = vi.fn(async (_bytes: Uint8Array) => {});
-  expect(await createPandocCommand().execute({args: ["-f", "commonmark", "-t", "plain", "--wrap=none"], stdin: [bytes], stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal})).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute({args: ["-f", "commonmark", "-t", "plain", "--wrap=none"], stdin: [bytes], stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal})).toEqual({exitCode: 0});
   expect(stdout.mock.calls.map(([chunk]) => new TextDecoder().decode(chunk)).join("")).toBe(expected);
   expect(stderr).not.toHaveBeenCalled();
 });
@@ -54,14 +54,14 @@ it("shares CLI/SDK bytes, wrap rejection and limits for identical JSON AST/optio
   const input = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: document.blocks}));
   for(const limits of [undefined, {outputBytes: 3}, {work: 1}, {retainedBytes: 1}, {nodes: 1}, {depth: 1}]) {
     const stdout = vi.fn(async (_bytes: Uint8Array) => {}), stderr = vi.fn(async (_bytes: Uint8Array) => {});
-    const result = await createPandocCommand({...(limits ? {limits} : {})}).execute({args: ["-f", "json", "-t", "plain", "--wrap=none"], stdin: (async function* () {yield input;})(), stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal});
+    const result = await createStandalonePandocCommand({...(limits ? {limits} : {})}).execute({args: ["-f", "json", "-t", "plain", "--wrap=none"], stdin: (async function* () {yield input;})(), stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal});
     if(limits) {expect(result.exitCode).toBe(7); expect(stdout).not.toHaveBeenCalled(); await expect(writeDocument(document, {to: "plain", wrap: "none"}, {limits})).rejects.toMatchObject({code: "E_LIMIT"});}
     else {const sdk = await plain(document, {wrap: "none"}); expect(sdk.kind === "text" && new TextEncoder().encode(sdk.text)).toEqual(stdout.mock.calls[0]![0]); expect(result.exitCode).toBe(0);}
   }
   for(const wrap of ["auto", "preserve"] as const) {
     const sdk = await plain(document, {wrap});
     const write = vi.fn(async (_bytes: Uint8Array) => {});
-    expect(await createPandocCommand().execute({args: ["-f", "json", "-t", "plain", `--wrap=${wrap}`], stdin: (async function* () {yield input;})(), stdout: {write}, stderr: {write: vi.fn(async () => {})}, signal: new AbortController().signal})).toEqual({exitCode: 0});
+    expect(await createStandalonePandocCommand().execute({args: ["-f", "json", "-t", "plain", `--wrap=${wrap}`], stdin: (async function* () {yield input;})(), stdout: {write}, stderr: {write: vi.fn(async () => {})}, signal: new AbortController().signal})).toEqual({exitCode: 0});
     expect(sdk.kind === "text" && new TextEncoder().encode(sdk.text)).toEqual(write.mock.calls[0]![0]);
   }
 });
@@ -82,7 +82,7 @@ it("preserves raw block source, bounds diagnostics, and accepts a bounded column
   const bytes = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: document.blocks}));
   for(const diagnostics of [0, 1]) {
     const stdout = vi.fn(async (_bytes: Uint8Array) => {}), stderr = vi.fn(async (_bytes: Uint8Array) => {});
-    const cli = await createPandocCommand({limits: {diagnostics}}).execute({args: ["-f", "json", "-t", "plain", "--raw-content=retain"], stdin: (async function* () {yield bytes;})(), stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal});
+    const cli = await createStandalonePandocCommand({limits: {diagnostics}}).execute({args: ["-f", "json", "-t", "plain", "--raw-content=retain"], stdin: (async function* () {yield bytes;})(), stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal});
     if(diagnostics === 0) {expect(cli.exitCode).toBe(7); expect(stdout).not.toHaveBeenCalled(); expect(new TextDecoder().decode(stderr.mock.calls[0]![0])).toContain("E_LIMIT:");}
     else {
       const sdk = await writeDocument(document, {to: "plain", rawContent: "retain"}, {limits: {diagnostics}});

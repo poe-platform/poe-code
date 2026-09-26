@@ -2,10 +2,6 @@ import path from "node:path";
 
 const commandExportRecipes = {
   "./commands/op": { source: "./src/commands/op/index.ts", target: "es2022" },
-  "./commands/pandoc": {
-    source: "./src/commands/pandoc/index.ts", target: "node22",
-    bundleDependenciesFrom: ["pandoc", "pdf"], require: true,
-  },
 };
 
 export function resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external, recipes = commandExportRecipes }) {

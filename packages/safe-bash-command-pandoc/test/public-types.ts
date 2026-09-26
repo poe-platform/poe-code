@@ -1,5 +1,4 @@
-import {convert, createJsonFilterCapability, createLuaFilterCapability, resolveConversionArgs, type LuaScriptLoader, type JsonFilterRuntime, type ConversionOptions} from "safe-bash-command-pandoc";
-import {pandocCommands, type PandocCommandsOptions} from "@poe-platform/safe-bash/commands/pandoc";
+import {convert, createJsonFilterCapability, createLuaFilterCapability, resolveConversionArgs, pandocCommands, type LuaScriptLoader, type JsonFilterRuntime, type ConversionOptions, type PandocCommandsOptions} from "safe-bash-command-pandoc";
 const options: ConversionOptions = {from: "commonmark", to: "plain"};
 const plugin: PandocCommandsOptions = {replace: true, limits: {inputBytes: 100}};
 void convert([{bytes: new Uint8Array()}], options, {}); void pandocCommands(plugin);

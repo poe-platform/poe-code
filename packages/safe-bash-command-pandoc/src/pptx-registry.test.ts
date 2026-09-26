@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { createFormatRegistry, convert } from "./index.js";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 // Load the lazy capability during setup, before timing the registry/adapter contract.
 import "./pptx.js";
 
@@ -12,7 +12,7 @@ it("exposes verified PPTX conversion through the registry and byte command adapt
   const options = {from: "commonmark", to: "pptx", metadata: {"pptx-slide-level": {t: "MetaString" as const, c: "2"}}};
   const sdk = await convert([{bytes: input}], options, {});
   const chunks: Uint8Array[] = [], warnings: Uint8Array[] = [];
-  const result = await createPandocCommand().execute({
+  const result = await createStandalonePandocCommand().execute({
     args: ["-f", "commonmark", "-t", "pptx", "--metadata", "pptx-slide-level=2"],
     stdin: [input], signal: new AbortController().signal,
     stdout: {write: async bytes => {chunks.push(new Uint8Array(bytes));}},

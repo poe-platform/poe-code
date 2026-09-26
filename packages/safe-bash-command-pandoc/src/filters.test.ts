@@ -1,7 +1,7 @@
 import {expect, it, vi} from "vitest";
 import {parseConversionArgs} from "./cli.js";
 import {convert} from "./engine.js";
-import {createPandocCommand} from "./safe-bash.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 import type {Document, FilterCapability, FilterRequest} from "./types.js";
 
 it.each(["--filter=identity.py", "-Fidentity.py", "--lua-filter=uppercase.lua", "-Luppercase.lua", "--citeproc", "-C"])("admits filter syntax: %s", arg => {
@@ -49,7 +49,7 @@ it.each([{}, {apply: true}, {apply: async (document: Document) => document, supp
 it("runs injected processing through the shell adapter before writing", async () => {
   const apply = vi.fn(async (document: Document, request: FilterRequest): Promise<Document> => ({...document, blocks: [{t: "Para", c: [{t: "Str", c: request.kind === "lua" ? "HELLO" : "Hello"}]}]}));
   let stdout = "";
-  const result = await createPandocCommand({filters: {apply}}).execute({
+  const result = await createStandalonePandocCommand({filters: {apply}}).execute({
     args: ["-fcommonmark", "-thtml", "-F", "identity.py", "-Luppercase.lua", "-C"],
     signal: new AbortController().signal, stdin: [new TextEncoder().encode("Hello")],
     stdout: {write: async bytes => {stdout += new TextDecoder().decode(bytes);}}, stderr: {write: async () => {}}

@@ -397,6 +397,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-pandoc#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

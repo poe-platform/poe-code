@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { writeDocument } from "./engine.js";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 import type { Attr, Block, Inline, Row } from "./ast-types.js";
 import type { Document, ConversionContext } from "./types.js";
 
@@ -97,7 +97,7 @@ it("publishes the same converter through the thin command using memfs", async ()
   const ctx = {args: ["-f=commonmark", "-t=rtf", "-o=/output.rtf"], stdin: [new TextEncoder().encode("**bold**")],
     stdout: {write: vi.fn(async () => {})}, stderr: {write: vi.fn(async () => {})},
     writeFile: vi.fn(async (path: string, bytes: Uint8Array) => {fs.writeFileSync(path, bytes);}), signal: new AbortController().signal};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(fs.readFileSync("/output.rtf", "utf8")).toContain("{\\b bold}");
 });
 

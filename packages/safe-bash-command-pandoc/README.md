@@ -1,12 +1,11 @@
 # safe-bash-command-pandoc
 
-Private document-conversion workspace. Within this repository, import
-`safe-bash-command-pandoc`; explicit shell registration is exposed by
-`@poe-platform/safe-bash/commands/pandoc`. These entries are not included in the
-published `poe-code` package.
+Convert documents in a virtual filesystem with Safe Bash, or pass bytes directly
+to its document-conversion SDK. The implementation workspace stays private and
+is bundled with Safe Bash.
 
 ```ts
-import { convert } from "safe-bash-command-pandoc";
+import { convert } from "@poe-platform/safe-bash/commands/pandoc";
 
 const result = await convert(
   [{ bytes: new TextEncoder().encode("# Hello\n") }],
@@ -15,13 +14,18 @@ const result = await convert(
 );
 ```
 
+The command exports `createPandocCommand`, `createPandocCommands`, and
+`pandocCommands`, with `PandocCommandsOptions` and `PandocLimits`. Use
+`shell.use(pandocCommands())` to register it. `createStandalonePandocCommand`
+accepts explicit read/write callbacks for conversion without a Shell.
+
 The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
 capabilities before conversion: support is format-specific and does not imply full native Pandoc
 compatibility. Built-in DOCX conversion preserves headings and bold/italic paragraphs;
 its writer rejects unsupported blocks and inlines. XLSX input becomes one named
-table per sheet, using stored cell values and cached formula results without
-recalculation. PDF input uses semantic text, tables and image extraction.
+table per sheet, retaining cached values and calculating missing formula results.
+PDF input uses semantic text, tables and image extraction.
 Plain output uses link labels, spaces for soft breaks, four-column decimal list
 prefixes, 72-character rules, and a final newline even for empty documents.
 Bullet lists use the compact spacing of Pandoc 3.11.
@@ -29,6 +33,9 @@ The shell command infers omitted input and output formats from file extensions.
 Stdin and extensionless inputs default to `commonmark`; stdout and extensionless
 outputs default to `html5`. Explicit `-f`/`-t` override inference; `--yes` is
 not required.
+`markdown` is an alias for the supported GFM reader and writer, including tables
+and strikeout. XLSX input uses the first row as table headers, preserves literal
+cell whitespace, and calculates formulas whose results are missing.
 Shell arguments accept `--read`/`-r` and `--write`/`-w` as format aliases,
 attached short values such as `-fcommonmark -thtml -ooutput.html`, and bare
 `-M draft` or `--metadata=draft` as boolean true. `-v` reports the same
@@ -89,7 +96,9 @@ output directory). No media is downloaded implicitly. PDF options are `pdf`
 (`pageSize`: `a4` or `letter`; `orientation`: `portrait` or `landscape`; `margin`,
 `font`, `fontSize`, `lineHeight`), `pdfPage` (`width`, `height`, `margin`, in points),
 and `pdfFonts` (ordered supplied font inputs). The packaged named font is `mono`;
-other named families are unsupported. EPUB options are `epub.title`,
+other named families are unsupported. PDF preserves bold, italic, underline,
+strikeout, horizontal rules, and left/center/right table alignment. Bold and
+italic use synthetic styling of the supplied font. EPUB options are `epub.title`,
 `epub.language`, `epub.identifier`, and `epub.chapterLevel` (1–6).
 
 `ConversionContext` accepts `resourceFiles`, `resourceCwd`, `resources`, `reader`,
@@ -207,7 +216,7 @@ only: VM allocations are not isolated or bounded by the SDK retained-byte limit.
 
 `limits` configures optional resource budgets. EPUB and PPTX archive paths and
 text metadata use `text`; binary archive metadata uses `binaryBytes`. Every exported `defaultLimits` value
-is `Infinity` (disabled), and explicit `Infinity` is accepted: `inputBytes`,
+is `Infinity` (disabled); finite limits accept nonnegative safe integers, and explicit `Infinity` is accepted: `inputBytes`,
 `resourceBytes`, `outputBytes`, `nodes`, `depth`, `work`, `retainedBytes`, `text`,
 `attributes`, `tableCells`, `tableFieldText`, `tableRows`, `tableColumns`,
 `resources`, `diagnostics`, `references`, `entities`, `entityBytes`,
@@ -220,14 +229,3 @@ and `layoutWork`. See [the exported types](src/types.ts) for adapter contracts.
 The runtime exposes no environment variables. The RST development conformance
 runner accepts `PANDOC_DOCUTILS_PYTHON` to select its Python executable (default:
 `python3`).
-
-## Development
-
-Run `npm run build --workspace=safe-bash-command-pandoc`,
-`npm run typecheck --workspace=safe-bash-command-pandoc`, or
-`npm run test:unit --workspace=safe-bash-command-pandoc` from the repository root.
-
-The workspace entrypoint exports `pandocCommands()` for plugin registration,
-`createPandocCommands()` for the command collection, and
-`createPandocCommand()` for a single command. Each accepts an optional
-`PandocCommandsOptions` object; existing factory names remain available.

@@ -9,7 +9,7 @@ import {defaultLimits} from "./execution.js";
 import type {ConversionContext, FilterCapability} from "./types.js";
 import {dirname} from "@poe-code/safe-fs/core";
 import {createOutputOperation, getCommandArguments, readBytes, FsError, type CommandDefinition, type CommandContext, type OutputOperation, type FileStat, type VirtualShellPlugin} from "safe-bash-contracts";
-import {writeFileOutput} from "safe-bash-contracts/filesystem-output";
+import {writeFileOutput} from "safe-bash-contracts/filesystem-output-budget";
 import {compareObservedEntries, compareCopyIdentity} from "safe-bash-contracts/filesystem-identity";
 import {pathOf} from "safe-bash-contracts/path";
 

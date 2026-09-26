@@ -1,6 +1,6 @@
 import {expect, it, vi} from "vitest";
 import {convert} from "./engine.js";
-import {createPandocCommand} from "./safe-bash.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 import {createCiteprocFilterCapability} from "./citeproc-filters.js";
 import {createExecutionContext} from "./execution.js";
 import type {Document} from "./types.js";
@@ -100,7 +100,7 @@ it("fails before publication for an unavailable cited reference", async () => {
 
 it.each(["-C", "--citeproc"])("executes citation-bearing JSON through %s", async flag => {
   let stdout = "";
-  const result = await createPandocCommand({filters: createCiteprocFilterCapability({style, locale, references})}).execute({
+  const result = await createStandalonePandocCommand({filters: createCiteprocFilterCapability({style, locale, references})}).execute({
     args: ["-f", "json", "-t", "html", flag], stdin: [input()], signal: new AbortController().signal,
     stdout: {write: async bytes => {stdout += new TextDecoder().decode(bytes);}}, stderr: {write: async () => {}}
   });

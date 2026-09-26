@@ -25,12 +25,13 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle-lua.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && npm run typecheck:public",
-    "lint": "eslint src conformance stress && npm run typecheck",
+    "lint": "eslint src conformance stress scripts && npm run typecheck",
     "test": "cd ../.. && vitest run packages/safe-bash-command-pandoc",
     "test:unit": "cd ../.. && vitest run packages/safe-bash-command-pandoc",
     "test:stress": "cd ../.. && vitest run --config packages/safe-bash-command-pandoc/stress/vitest.config.mjs",

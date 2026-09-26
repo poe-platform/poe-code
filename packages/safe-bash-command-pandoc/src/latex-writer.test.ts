@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { writeDocument } from "./engine.js";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 import type { Attr, Block, Cell, Inline, Row } from "./ast-types.js";
 import type { WriteOptions } from "./types.js";
 
@@ -98,7 +98,7 @@ it("publishes LaTeX via the thin adapter using only memfs and SDK options", asyn
   const writeFile = vi.fn(async (path: string, bytes: Uint8Array) => {fs.writeFileSync(path, bytes);});
   const ctx = {args: ["-f=commonmark", "-t=latex", "-s", "-Mlang=en", "-o=/out.tex"], stdin: [new TextEncoder().encode("# Owned\n\n**bold**")],
     stdout: {write: vi.fn(async () => {})}, stderr: {write: vi.fn(async () => {})}, writeFile, signal: new AbortController().signal};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(fs.readFileSync("/out.tex", "utf8")).toContain("\\textbf{bold}");
   expect(writeFile).toHaveBeenCalledOnce();
 });

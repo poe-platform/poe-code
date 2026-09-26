@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from "vitest";
 import {Volume} from "memfs";
 import {convert, writeDocument} from "./engine.js";
-import {createPandocCommand} from "./safe-bash.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 import {resolveConversionArgs} from "./defaults.js";
 
 const encode = (text: string) => new TextEncoder().encode(text);
@@ -15,7 +15,7 @@ async function command(args: string[], extra: Record<string, string> = {}, limit
     "before.html": "<p>Before</p>\n", "after.html": "<p>After</p>\n", "out": "Keep", ...extra
   }, "/");
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
-  const result = await createPandocCommand({limits}).execute({
+  const result = await createStandalonePandocCommand({limits}).execute({
     args, signal, stdin: [], cwd: "/",
     readFile: async path => new Uint8Array(volume.readFileSync(`/${path}`) as Buffer),
     writeFile: async (path, bytes) => {volume.writeFileSync(`/${path}`, bytes);},

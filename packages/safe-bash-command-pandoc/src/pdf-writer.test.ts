@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
-import { convert, writeDocument, createFormatRegistry, createPandocCommand } from "./index.js";
+import { convert, writeDocument, createFormatRegistry, createStandalonePandocCommand } from "./index.js";
 import type { Document } from "./index.js";
 import { Volume } from "memfs";
 import {suppliedDefaultFont} from "@poe-code/pdf";
@@ -25,7 +25,7 @@ it("uses shared PDF budgets and reports unsupported AST rather than projection",
 it("publishes PDF through the thin safe-bash adapter into memfs", async () => {
   const volume = Volume.fromJSON({"/input.md": "Hello PDF"});
   const stdout: Uint8Array[] = []; const stderr: Uint8Array[] = [];
-  const result = await createPandocCommand().execute({args: ["-f", "commonmark", "-t", "pdf", "/input.md", "-o", "/output.pdf"], signal: new AbortController().signal, cwd: "/", stdin: [], stdout: {write: async b => {stdout.push(b);}}, stderr: {write: async b => {stderr.push(b);}}, readFile: async path => new Uint8Array(volume.readFileSync(path) as Buffer), writeFile: async (path, bytes) => {volume.writeFileSync(path, bytes);}});
+  const result = await createStandalonePandocCommand().execute({args: ["-f", "commonmark", "-t", "pdf", "/input.md", "-o", "/output.pdf"], signal: new AbortController().signal, cwd: "/", stdin: [], stdout: {write: async b => {stdout.push(b);}}, stderr: {write: async b => {stderr.push(b);}}, readFile: async path => new Uint8Array(volume.readFileSync(path) as Buffer), writeFile: async (path, bytes) => {volume.writeFileSync(path, bytes);}});
   expect(result.exitCode).toBe(0); expect(stderr).toHaveLength(0); expect(stdout).toHaveLength(0);
   expect((await PDFDocument.load(new Uint8Array(volume.readFileSync("/output.pdf") as Buffer))).getPageCount()).toBe(1);
 });
@@ -66,7 +66,7 @@ it("exposes supplied font fallback resources and point page options in SDK and C
   if (sdk.kind === "binary") expect((await PDFDocument.load(sdk.bytes)).getPages()[0]!.getSize()).toEqual({width: 220, height: 300});
   const volume = Volume.fromJSON({"/in.md": "Hello PDF"}); volume.writeFileSync("/owned.ttf", font.bytes);
   const errors: string[] = [];
-  const result = await createPandocCommand().execute({args: ["-f", "commonmark", "-t", "pdf", "--pdf-page", "220,300,20", "--pdf-font", "/owned.ttf", "/in.md", "-o", "/out.pdf"], signal: new AbortController().signal, cwd: "/", stdin: [], stdout: {write: async () => {}}, stderr: {write: async b => {errors.push(new TextDecoder().decode(b));}}, readFile: async path => new Uint8Array(volume.readFileSync(path) as Buffer), writeFile: async (path, b) => {volume.writeFileSync(path, b);}});
+  const result = await createStandalonePandocCommand().execute({args: ["-f", "commonmark", "-t", "pdf", "--pdf-page", "220,300,20", "--pdf-font", "/owned.ttf", "/in.md", "-o", "/out.pdf"], signal: new AbortController().signal, cwd: "/", stdin: [], stdout: {write: async () => {}}, stderr: {write: async b => {errors.push(new TextDecoder().decode(b));}}, readFile: async path => new Uint8Array(volume.readFileSync(path) as Buffer), writeFile: async (path, b) => {volume.writeFileSync(path, b);}});
   expect(errors).toEqual([]); expect(result.exitCode).toBe(0);
   expect((await PDFDocument.load(new Uint8Array(volume.readFileSync("/out.pdf") as Buffer))).getPages()[0]!.getSize()).toEqual({width: 220, height: 300});
 });

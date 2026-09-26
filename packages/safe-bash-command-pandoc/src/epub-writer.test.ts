@@ -6,7 +6,7 @@ import { SaxesParser } from "saxes";
 import { writeDocument, convert } from "./engine.js";
 import type { Block, Attr } from "./ast-types.js";
 import type { Document } from "./types.js";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 
 const attr: Attr = ["", [], []];
 const heading = (text: string, id = ""): Block => ({t: "Header", c: [1, [id, [], []], [{t: "Str", c: text}]]});
@@ -210,13 +210,13 @@ it("derives the publication identifier from content and media without ambient ti
 });
 it("publishes binary EPUB via the adapter into memfs without ambient resource reads", async () => {
   const vol = Volume.fromJSON({"/book.md": "# Original\n\nOriginal body."});
-  const result = await createPandocCommand().execute({args: ["--yes", "-f", "commonmark", "-t", "epub3", "book.md", "-o", "book.epub"], cwd: "/", stdin: [], readFile: async path => new Uint8Array(vol.readFileSync("/" + path) as Buffer), writeFile: async (path, bytes) => {vol.writeFileSync("/" + path, bytes);}, stdout: {write: async () => {throw new Error("unexpected stdout");}}, stderr: {write: async () => {throw new Error("unexpected diagnostic");}}, signal: new AbortController().signal});
+  const result = await createStandalonePandocCommand().execute({args: ["--yes", "-f", "commonmark", "-t", "epub3", "book.md", "-o", "book.epub"], cwd: "/", stdin: [], readFile: async path => new Uint8Array(vol.readFileSync("/" + path) as Buffer), writeFile: async (path, bytes) => {vol.writeFileSync("/" + path, bytes);}, stdout: {write: async () => {throw new Error("unexpected stdout");}}, stderr: {write: async () => {throw new Error("unexpected diagnostic");}}, signal: new AbortController().signal});
   expect(result).toEqual({exitCode: 0});
   closure(unzip(new Uint8Array(vol.readFileSync("/book.epub") as Buffer)));
 });
 it("uses the thin safe-bash adapter for binary EPUB3 stdout", async () => {
   const chunks: Uint8Array[] = [];
-  expect(await createPandocCommand().execute({args: ["--yes", "-f", "commonmark", "-t", "epub3"], stdin: [new TextEncoder().encode("# Original")], stdout: {write: async b => {chunks.push(new Uint8Array(b));}}, stderr: {write: async () => {}}, signal: new AbortController().signal})).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute({args: ["--yes", "-f", "commonmark", "-t", "epub3"], stdin: [new TextEncoder().encode("# Original")], stdout: {write: async b => {chunks.push(new Uint8Array(b));}}, stderr: {write: async () => {}}, signal: new AbortController().signal})).toEqual({exitCode: 0});
   expect(chunks.length).toBeGreaterThan(0);
   closure(unzip(Buffer.concat(chunks)));
   expect((await convert([{bytes: new TextEncoder().encode("# Original")}], {from: "commonmark", to: "epub3", yes: true}, {})).kind).toBe("binary");

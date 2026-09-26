@@ -686,7 +686,7 @@ it("retains admitted private declarations even when public signatures erase the 
   expect(shipped.exports).not.toHaveProperty("./safe-bash-fixture-engine");
 });
 
-it.each(["wkhtmltopdf", "xz"])("packs %s and contract modules into one canonical relative graph", async command => {
+it.each(["wkhtmltopdf", "xz", "pandoc"])("packs %s and contract modules into one canonical relative graph", async command => {
   const commandName = `safe-bash-command-${command}`;
   const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${commandName}/package.json`, import.meta.url), "utf8"));
   expect(commandManifest.private).toBe(true);
@@ -1690,19 +1690,22 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
   volume.writeFileSync("/repo/package.json", JSON.stringify({ license: "MIT", exports: {} }));
   const browserTargets = Object.keys(volume.toJSON()).filter(filename => filename.endsWith(".browser.js"));
   for (const filename of browserTargets) volume.unlinkSync(filename);
-  for (const name of ["safe-bash-command-op", "pandoc", "office-package"]) {
-    const profile = name === "safe-bash-command-op" ? bashManifest.poeCode.integration.privateWorkspaces[name] : undefined;
+  const manifest = structuredClone(bashManifest);
+  for (const name of ["safe-bash-command-op", "safe-bash-command-pandoc", "office-package"]) {
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
     volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
-      name: profile ? name : `@poe-code/${name}`, private: true,
-      ...(profile ? { type: "module", version: profile.version, dependencies: profile.dependencies, devDependencies: profile.devDependencies } : {}),
+      name: name === "office-package" ? "@poe-code/office-package" : name, private: true, type: "module", version: "0.0.1",
       exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
     }));
     volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export {};\n");
+    if (name !== "office-package") manifest.poeCode.integration.privateWorkspaces[name] = {
+      version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true,
+    };
   }
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   volume.writeFileSync("/repo/packages/office-package/dist/index.js", "export const codec = 1;\n");
   for (const name of ["op", "pandoc"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.js`,
-    `export * from "${name === "op" ? "safe-bash-command-op" : "safe-bash-command-pandoc"}";`);
+    `export * from "safe-bash-command-${name}";`);
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { codec } from "@poe-code/office-package";');
   const bundle = vi.fn(async (settings: { outfile?: string; outdir?: string; entryPoints: Record<string, string> | string[] }) => {
     const targets = settings.outfile ? [settings.outfile] : Object.keys(settings.entryPoints).map(name => `${settings.outdir}/${name}.js`);
@@ -1714,13 +1717,19 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
       .toBe('export const prepared = true;\n');
     expect(volume.existsSync(filename)).toBe(false);
   }
-  for (const name of ["op", "pandoc"]) expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/${name}/index.js`, "utf8"))
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/op/index.js", "utf8"))
     .toBe('export const prepared = true;\n');
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/pandoc/index.js", "utf8"))
+    .toBe('export * from "../../../safe-bash-command-pandoc/index.js";');
+  for (const name of ["op", "pandoc"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash-command-${name}/index.js`, "utf8"))
+      .toBe('export const prepared = true;\n');
+  }
   expect(volume.readFileSync("/output/safe-bash/dist/office-package/index.js", "utf8")).toBe("export const codec = 1;\n");
   expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8"))
     .toBe('export { codec } from "../office-package/index.js";');
-  const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
-  expect(manifest.dependencies).toEqual({});
+  const packedManifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(packedManifest.dependencies).toEqual({});
   expect(volume.existsSync("/repo/dist")).toBe(false);
 });
 

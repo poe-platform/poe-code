@@ -1,6 +1,6 @@
 import {expect, it} from "vitest";
 import {Volume} from "memfs";
-import {createPandocCommand} from "./safe-bash.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 
 const encode = (value: string) => new TextEncoder().encode(value);
 
@@ -12,7 +12,7 @@ it.each([
 ])("preserves typed $name status and existing memfs output", async ({input, extra, code, status, limits, to}) => {
   const volume = Volume.fromJSON({"/result": "keep"});
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
-  const result = await createPandocCommand({...(limits === undefined ? {} : {limits})}).execute({
+  const result = await createStandalonePandocCommand({...(limits === undefined ? {} : {limits})}).execute({
     args: ["-f", "commonmark", "-t", to ?? "plain", ...extra, "-o", "/result"],
     stdin: [input], signal: new AbortController().signal,
     writeFile: async (path, bytes) => {volume.writeFileSync(path, bytes);},

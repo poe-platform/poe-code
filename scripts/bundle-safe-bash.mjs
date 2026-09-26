@@ -102,19 +102,6 @@ export async function publishRootOptionalPackage(rootDir, files = fileSystem) {
   await copy(source, output);
 }
 
-export function resolvePandocBuild(rootDir) {
-  const portable = resolveBrowserShellBuild(rootDir);
-  return {
-    ...portable,
-    entryPoints: {
-      sdk: path.join(rootDir, "packages/safe-bash-command-pandoc/src/index.ts"),
-      command: path.join(rootDir, "packages/safe-bash/src/commands/pandoc/index.ts")
-    },
-    outdir: path.join(rootDir, "packages/safe-bash-command-pandoc/dist/public"),
-    external: ["poe-code/safe-fs/core"]
-  };
-}
-
 export function resolveBrowserOpBuild(rootDir) {
   const options = resolveBrowserShellBuild(rootDir);
   return {
@@ -148,6 +135,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [] } 
     "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src"),
     "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
     "@poe-code/safe-fs": "poe-code/safe-fs",
+    "@poe-code/safe-fs/xml": path.join(rootDir, "packages/safe-fs/dist/xml.js"),
     "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/xml": "poe-code/safe-fs/core",

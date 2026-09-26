@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
-import { readDocument, createPandocCommand, createFormatRegistry } from "./index.js";
+import { readDocument, createStandalonePandocCommand, createFormatRegistry } from "./index.js";
 import type { ConversionContext } from "./types.js";
 import type { Inline } from "./ast-types.js";
 
@@ -186,10 +186,10 @@ describe("original byte-oriented RTF document reader", () => {
     const ctx = {args: ["-f", "rtf", "-t", "html", "/in.rtf", "-o", "/out.html"], stdin: [], signal: new AbortController().signal, stdout, stderr,
       readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Uint8Array),
       writeFile: async (path: string, data: Uint8Array) => {volume.writeFileSync(path, data);}};
-    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
     expect(volume.readFileSync("/out.html", "utf8")).toBe("<p><strong>hello</strong></p>\n");
     volume.writeFileSync("/in.rtf", String.raw`{\rtf1\unknown text}`);
-    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 3});
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 3});
     expect(new TextDecoder().decode(stderr.write.mock.calls[0]?.[0])).toContain("E_CAPABILITY:");
   });
 });

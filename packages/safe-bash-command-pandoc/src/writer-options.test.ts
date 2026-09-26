@@ -1,6 +1,6 @@
 import {expect, it, vi} from "vitest";
 import {convert} from "./engine.js";
-import {createPandocCommand} from "./safe-bash.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 import type {ConversionOptions} from "./types.js";
 
 async function run(input: string, to: string, args: string[], options: object) {
@@ -8,7 +8,7 @@ async function run(input: string, to: string, args: string[], options: object) {
   const stderr = vi.fn(async (_bytes: Uint8Array) => {});
   const bytes = new TextEncoder().encode(input);
   const from = input.startsWith("<") ? "html" : "commonmark";
-  expect(await createPandocCommand().execute({args: ["-f", from, "-t", to, ...args], stdin: [bytes], stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal})).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute({args: ["-f", from, "-t", to, ...args], stdin: [bytes], stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal})).toEqual({exitCode: 0});
   const sdk = await convert([{bytes}], {from, to, ...options} as ConversionOptions, {});
   const text = stdout.mock.calls.map(([chunk]) => new TextDecoder().decode(chunk)).join("");
   expect(sdk).toMatchObject({kind: "text", text});
@@ -35,7 +35,7 @@ it("shifts headings, emits ASCII entities and selects line endings", async () =>
 it("rejects malformed options before acquiring input and bounds expanded output", async () => {
   for (const arg of ["--columns=0", "--columns=NaN", "--shift-heading-level-by=7", "--eol=bad", "--standalone=bad", "--wrap=bad"]) {
     const next = vi.fn(async () => ({done: true as const, value: undefined}));
-    expect(await createPandocCommand().execute({args: ["-f", "commonmark", "-t", "plain", arg], stdin: {[Symbol.asyncIterator]: () => ({next})}, stdout: {write: vi.fn()}, stderr: {write: vi.fn()}, signal: new AbortController().signal})).toEqual({exitCode: 2});
+    expect(await createStandalonePandocCommand().execute({args: ["-f", "commonmark", "-t", "plain", arg], stdin: {[Symbol.asyncIterator]: () => ({next})}, stdout: {write: vi.fn()}, stderr: {write: vi.fn()}, signal: new AbortController().signal})).toEqual({exitCode: 2});
     expect(next).not.toHaveBeenCalled();
   }
   await expect(convert([{bytes: new TextEncoder().encode("é")}], {from: "commonmark", to: "html", ascii: true} as ConversionOptions, {limits: {outputBytes: 10}})).rejects.toMatchObject({code: "E_LIMIT"});

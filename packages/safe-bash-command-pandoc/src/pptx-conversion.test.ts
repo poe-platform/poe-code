@@ -79,12 +79,6 @@ it("rejects table formatting and section semantics that cannot be preserved", as
     await expect(write([heading, variant])).rejects.toMatchObject({code: "E_CAPABILITY"});
   }
 });
-beforeAll(() => {
-  const timer = globalThis.setTimeout;
-  vi.spyOn(globalThis, "setTimeout").mockImplementation(((cb: () => void, ms?: number) =>
-    ms === 0 ? setImmediate(cb) : timer(cb, ms)) as typeof setTimeout);
-});
-afterAll(() => vi.restoreAllMocks());
 const context = { reader: pptxReader, writer: pptxWriter, yield: async () => {} };
 async function deck(text: string, metadata = {}) {
   const result = await convert([{ bytes: encode(text) }], { from: "commonmark", to: "pptx", metadata }, context);

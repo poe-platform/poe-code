@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { convert, readDocument } from "./engine.js";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 import type { ConversionContext } from "./types.js";
 const bytes = (s: string) => new TextEncoder().encode(s);
 const read = (s: string, context: ConversionContext = {}) => readDocument({bytes: bytes(s), source: "/book/main.rst", base: "/book"}, {from: "rst"}, context);
@@ -230,10 +230,10 @@ it("converts RST in the thin byte adapter with memfs include and no partial outp
     lstat: async (p: string) => ({type: volume.lstatSync(p).isDirectory() ? "directory" : "file"}),
     mkdir: async (p: string) => {volume.mkdirSync(p, {recursive: true});}, writeFile: async (p: string, b: Uint8Array) => {volume.writeFileSync(p, b);}};
   const ctx = {args: ["-f", "rst", "-t", "html"], stdin: [bytes(".. include:: part.rst")], cwd: "/book", fs, stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(new TextDecoder().decode(stdout.mock.calls[0]?.[0])).toBe("<p><strong>Included</strong></p>\n");
   stdout.mockClear();
-  expect(await createPandocCommand().execute({...ctx, args: [...ctx.args, "-o", "failed.html"], stdin: [bytes(".. include:: missing.rst")]})).toEqual({exitCode: 9});
+  expect(await createStandalonePandocCommand().execute({...ctx, args: [...ctx.args, "-o", "failed.html"], stdin: [bytes(".. include:: missing.rst")]})).toEqual({exitCode: 9});
   expect(volume.existsSync("/book/failed.html")).toBe(false);
   expect(stdout).not.toHaveBeenCalled();
 });

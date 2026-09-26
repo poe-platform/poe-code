@@ -1,8 +1,9 @@
 import {afterAll, beforeAll, expect, it, vi} from "vitest";
 import {PDFDocument, PDFDict, PDFName, PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import {Volume} from "memfs";
-import {convert, writeDocument, createFormatRegistry, createPandocCommand} from "./index.js";
+import {convert, writeDocument, createFormatRegistry, createStandalonePandocCommand} from "./index.js";
 import type {Document} from "./types.js";
+import "pptx";
 vi.mock("../../office-package/src/runtime.js", async importOriginal => {
   const runtime = await importOriginal<typeof import("../../office-package/src/runtime.js")>();
   return {
@@ -36,7 +37,7 @@ it("infers PDF output without --yes and rejects external engines before acquisit
   const read = vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer));
   const write = vi.fn(async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);});
   const errors: string[] = [];
-  const execute = (args: string[]) => createPandocCommand().execute({args, signal: new AbortController().signal, cwd: "/", stdin: [], readFile: read, writeFile: write, stdout: {write: async () => {}}, stderr: {write: async bytes => {errors.push(new TextDecoder().decode(bytes));}}});
+  const execute = (args: string[]) => createStandalonePandocCommand().execute({args, signal: new AbortController().signal, cwd: "/", stdin: [], readFile: read, writeFile: write, stdout: {write: async () => {}}, stderr: {write: async bytes => {errors.push(new TextDecoder().decode(bytes));}}});
   expect((await execute(["/owned.md", "-o", "/owned.pdf"])).exitCode).toBe(0); expect(errors).toEqual([]);
   const sdk = await convert([{bytes: encode("Owned PDF text")}], {from: "commonmark", to: "pdf"}, {});
   if (sdk.kind !== "binary") throw new Error("PDF expected");
@@ -49,7 +50,7 @@ it("infers PDF output without --yes and rejects external engines before acquisit
   }
 });
 const cases: Record<string, string> = {
-  commonmark: "Owned PDF text", gfm: "Owned PDF text", html: "<p>Owned PDF text</p>",
+  commonmark: "Owned PDF text", gfm: "Owned PDF text", markdown: "Owned PDF text", html: "<p>Owned PDF text</p>",
   json: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "Owned PDF text"}]}]}),
   csv: "Owned,PDF\ntext,value\n", tsv: "Owned\tPDF\ntext\tvalue\n", latex: "Owned PDF text", rst: "Owned PDF text", rtf: "{\\rtf1\\ansi Owned PDF text}"
 };

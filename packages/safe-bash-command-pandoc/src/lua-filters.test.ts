@@ -1,5 +1,5 @@
 import {expect, it, vi} from "vitest";
-import {convert, createLuaFilterCapability, createPandocCommand} from "./index.js";
+import {convert, createLuaFilterCapability, createStandalonePandocCommand} from "./index.js";
 
 const encoder = new TextEncoder();
 const options = {from: "commonmark", to: "html", filters: [{kind: "lua" as const, path: "uppercase.lua"}]};
@@ -56,7 +56,7 @@ it("checks cancellation after script acquisition", async () => {
 
 it.each([{flags: ["-L", "uppercase.lua"]}, {flags: ["--lua-filter=uppercase.lua"]}])("runs the Lua flag $flags through the byte command adapter", async ({flags}) => {
   let text = "";
-  const command = createPandocCommand({filters: createLuaFilterCapability(async () => encoder.encode('function Str(el) el.text = string.upper(el.text); return el end'))});
+  const command = createStandalonePandocCommand({filters: createLuaFilterCapability(async () => encoder.encode('function Str(el) el.text = string.upper(el.text); return el end'))});
   const result = await command.execute({
     args: ["-f", "commonmark", "-t", "html", ...flags],
     stdin: [encoder.encode("Hello")],

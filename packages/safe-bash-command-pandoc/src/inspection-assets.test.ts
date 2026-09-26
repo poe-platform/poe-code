@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { inspectCommand, createPandocCommand } from "./index.js";
+import { inspectCommand, createStandalonePandocCommand } from "./index.js";
 
 it.each([
   [["--list-highlight-languages"], "javascript\n"],
@@ -33,7 +33,7 @@ it("shell inspection never opens input, filesystem or output destinations", asyn
   const stderr = { write: vi.fn(async (_bytes: Uint8Array) => {}) };
   const stdin = { async *[Symbol.asyncIterator]() { throw new Error("unexpected stdin"); yield new Uint8Array(); } };
   for (const args of [["-D", "html"], ["--print-default-data-file=abbreviations"], ["--print-highlight-style=pygments"], ["--list-highlight-languages"], ["--completion=bash"], ["--help"], ["--version"]]) {
-    expect(await createPandocCommand().execute({ args, signal: new AbortController().signal, stdout, stderr, stdin, readFile, writeFile })).toEqual({ exitCode: 0 });
+    expect(await createStandalonePandocCommand().execute({ args, signal: new AbortController().signal, stdout, stderr, stdin, readFile, writeFile })).toEqual({ exitCode: 0 });
   }
   expect(readFile).not.toHaveBeenCalled();
   expect(writeFile).not.toHaveBeenCalled();

@@ -431,17 +431,15 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           }
         }
       }
-      if (manifest.devDependencies?.["safe-bash-command-pandoc"] !== undefined) {
-        assert.equal(manifest.private, true, "Pandoc SDK build dependency is internal only");
-        assert.equal(manifest.devDependencies["safe-bash-command-pandoc"], "*", "Pandoc SDK build dependency must be the local workspace");
+      if (manifest.devDependencies?.["@poe-code/pdf"] !== undefined) {
+        assert.equal(manifest.private, true, "PDF SDK build dependency is internal only");
+        assert.equal(manifest.devDependencies["@poe-code/pdf"], "*", "PDF SDK build dependency must be the local workspace");
         const exports = { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } };
         const packageExports = {
-          "safe-bash-command-pandoc": { ...exports, "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" }, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } },
           pdf: exports,
           "pdf-ast": exports,
         };
         const packages = {
-          "safe-bash-command-pandoc": { "@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "jpeg-js": "^0.4.4", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*", docx: "*", "safe-bash-command-ssconvert": "*", "safe-bash-markdown-engine": "*" },
           pdf: { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1" },
           "pdf-ast": { pako: "3.0.1" },
         };
@@ -451,15 +449,14 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           const metadataPath = join(dependencyRoot, "package.json");
           peerMetadata.add(metadataPath);
           const dependency = JSON.parse(read(metadataPath, 64 * 1024));
-          const packageName = name.startsWith("safe-bash-command-") ? name : "@poe-code/" + name;
-          assert.equal(dependency.name, packageName, "Pandoc SDK dependency identity");
-          assert.equal(dependency.version, "0.0.1", "Pandoc SDK dependency version");
-          assert.equal(dependency.private, true, "Pandoc SDK implementation must remain private");
-          assert.deepEqual(dependency.dependencies, dependencies, "Pandoc SDK dependency closure");
-          assert.deepEqual(dependency.exports, packageExports[name], "Pandoc SDK declaration exports");
+          assert.equal(dependency.name, "@poe-code/" + name, "PDF SDK dependency identity");
+          assert.equal(dependency.version, "0.0.1", "PDF SDK dependency version");
+          assert.equal(dependency.private, true, "PDF SDK implementation must remain private");
+          assert.deepEqual(dependency.dependencies, dependencies, "PDF SDK dependency closure");
+          assert.deepEqual(dependency.exports, packageExports[name], "PDF SDK declaration exports");
           toolRoots.push(join(dependencyRoot, "dist"));
           for (const [subpath, entry] of Object.entries(packageExports[name])) {
-            peerPaths[packageName + (subpath === "." ? "" : subpath.slice(1))] = [resolve(dependencyRoot, entry.types)];
+            peerPaths["@poe-code/" + name + (subpath === "." ? "" : subpath.slice(1))] = [resolve(dependencyRoot, entry.types)];
           }
         }
       }

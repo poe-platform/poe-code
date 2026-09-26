@@ -3,7 +3,7 @@ import "docx";
 import {expect, it} from "vitest";
 import "docx";
 import {createXlsxWriter, type CapabilityContext} from "safe-bash-command-ssconvert";
-import {convert, createFormatRegistry, createPandocCommand, readDocument} from "./index.js";
+import {convert, createFormatRegistry, createStandalonePandocCommand, readDocument} from "./index.js";
 const encode = (text: string) => new TextEncoder().encode(text);
 const context = {yield: async () => {}};
 it("makes declared Office and PDF directions available without injection", () => {
@@ -47,7 +47,7 @@ it("converts DOCX through the command with extension inference and explicit form
   const files = new Map<string, Uint8Array>([["/report.md", encode("# Orchard\n\nApple")]]);
   const errors: string[] = [];
   const output: Uint8Array[] = [];
-  const execute = (args: string[]) => createPandocCommand().execute({args, cwd: "/", stdin: [],
+  const execute = (args: string[]) => createStandalonePandocCommand().execute({args, cwd: "/", stdin: [],
     signal: new AbortController().signal,
     readFile: async path => {const bytes = files.get(path); if (!bytes) throw new Error("Missing file"); return bytes;},
     writeFile: async (path, bytes) => {files.set(path, new Uint8Array(bytes));},

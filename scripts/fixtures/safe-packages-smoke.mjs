@@ -1,3 +1,4 @@
+import "./safe-packages-pandoc.mjs";
 import "./safe-packages-xmllint.mjs";
 import { verifyFfmpeg } from "./safe-packages-ffmpeg.mjs";
 await verifyFfmpeg();

@@ -4,7 +4,7 @@ import {convert} from "./engine.js";
 import {createExecutionContext} from "./execution.js";
 import type {Document} from "./types.js";
 import type {Inline} from "./ast-types.js";
-import {createPandocCommand} from "./safe-bash.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 import {createLuaFilterCapability} from "./lua-filters.js";
 
 const encoder = new TextEncoder();
@@ -43,7 +43,7 @@ it("does not expose ambient filesystem or process libraries", async () => {
 it.each([{flags: ["-L", "/uppercase.lua"]}, {flags: ["--lua-filter=/uppercase.lua"]}])("executes local Lua through command flags $flags", async ({flags}) => {
   let stdout = "";
   let stderr = "";
-  const result = await createPandocCommand({filters: setup("function Str(el) el.text = string.upper(el.text); return el end")}).execute({
+  const result = await createStandalonePandocCommand({filters: setup("function Str(el) el.text = string.upper(el.text); return el end")}).execute({
     args: ["-f", "commonmark", "-t", "html", ...flags],
     stdin: [encoder.encode("Hello")], signal: new AbortController().signal,
     stdout: {write: async bytes => {stdout += new TextDecoder().decode(bytes);}},

@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 import { convert } from "./engine.js";
 import { Volume } from "memfs";
 import type { ResourceFileSystem } from "./types.js";
@@ -15,7 +15,7 @@ function text(sink: ReturnType<typeof context>["stdout"]): string {
 }
 it("thin command converts byte stdin using SDK format/options, with no ambient filesystem", async () => {
   const ctx = context(["-f", "csv", "--to=gfm"]);
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe("| a | b |\n| --- | --- |\n| x | y |\n");
   expect(text(ctx.stderr)).toBe("");
 });
@@ -41,11 +41,11 @@ it("requires explicit lossy conversion and prints deterministic paths separately
     [[["", [], []], 0, [], [[["", [], []], [[["", [], []], {t: "AlignDefault"}, 1, 2, [{t: "Plain", c: [{t: "Str", c: "span"}]}]]]]]]], [["", [], []], []]]};
   const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [table]});
   const strict = context(["--from=json", "-t", "gfm"], input);
-  expect(await createPandocCommand().execute(strict)).toEqual({exitCode: 3});
+  expect(await createStandalonePandocCommand().execute(strict)).toEqual({exitCode: 3});
   expect(text(strict.stdout)).toBe("");
   expect(text(strict.stderr)).toBe("E_CAPABILITY: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
   const lossy = context(["--from", "json", "--to", "gfm", "--lossy"], input);
-  expect(await createPandocCommand().execute(lossy)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(lossy)).toEqual({exitCode: 0});
   expect(text(lossy.stdout)).toBe("| H1 | H2 |\n| --- | --- |\n| span |  |\n");
   expect(text(lossy.stderr)).toBe("W_TABLE_LOSS: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
 });
@@ -54,25 +54,25 @@ it("rejects missing, duplicate, unknown and file arguments before acquiring stdi
     const ctx = context(args);
     const next = vi.fn(async () => ({done: true as const, value: undefined}));
     const stdin = {[Symbol.asyncIterator]: () => ({next})};
-    expect(await createPandocCommand().execute({...ctx, stdin})).toEqual({exitCode: 2});
+    expect(await createStandalonePandocCommand().execute({...ctx, stdin})).toEqual({exitCode: 2});
     expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
     expect(text(ctx.stderr)).toContain("E_OPTION:");
   }
 });
 it("preserves inspection, honors cancellation and awaits diagnostic/content byte sinks", async () => {
   const ctx = context(["--list-output-formats"]);
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe("commonmark\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\nmarkdown\npdf\nplain\npptx\nrst\nrtf\n");
   const controller = new AbortController(); controller.abort();
-  await expect(createPandocCommand().execute({...context(["-f", "csv", "-t", "gfm"]), signal: controller.signal})).rejects.toThrow();
+  await expect(createStandalonePandocCommand().execute({...context(["-f", "csv", "-t", "gfm"]), signal: controller.signal})).rejects.toThrow();
   const failing = context(["-f", "csv", "-t", "gfm"]);
   failing.stdout.write.mockRejectedValue(new Error("original sink failure"));
-  await expect(createPandocCommand().execute(failing)).rejects.toThrow("original sink failure");
+  await expect(createStandalonePandocCommand().execute(failing)).rejects.toThrow("original sink failure");
 });
 it("matches SDK standalone metadata options through the byte-only CLI", async () => {
   const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {title: {t: "MetaString", c: "old"}}, blocks: [{t: "Para", c: [{t: "Str", c: "你好"}]}]});
   const ctx = context(["-f", "json", "-t", "html", "--standalone", "--metadata", 'title=<New & "字"', "-M", "lang=ar", "--metadata=dir=rtl"], input);
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   const result = await convert([{bytes: encode(input)}], {from: "json", to: "html5", standalone: true,
     metadata: {title: {t: "MetaString", c: '<New & "字"'}, lang: {t: "MetaString", c: "ar"}, dir: {t: "MetaString", c: "rtl"}}} as import("./types.js").ConversionOptions, {});
   expect(result).toMatchObject({text: text(ctx.stdout)});
@@ -83,7 +83,7 @@ it("matches SDK standalone metadata options through the byte-only CLI", async ()
 it("accepts -s, metadata colon syntax, and explicit CLI raw-content policy", async () => {
   const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "RawBlock", c: ["html", "<script>x</script>"]}]});
   const ctx = context(["-f=json", "-t=html", "-s", "-Mtitle:raw", "--raw-content=escape"], input);
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toContain("<title>raw</title>");
   expect(text(ctx.stdout)).toContain("&lt;script&gt;x&lt;/script&gt;");
 });
@@ -91,17 +91,17 @@ it("rejects unconfigured local files and malformed metadata/options before readi
   for(const extra of [["--template=x"], ["--template", "x"], ["--variable", "=x"], ["--variable-json=x:not-json"], ["--css=x"], ["--include-in-header=x"], ["--metadata"], ["-M", "=x"], ["--standalone", "-s"], ["--raw-content=wrong"]]) {
     const ctx = context(["-f", "json", "-t", "html", ...extra]);
     const next = vi.fn(async () => ({done: true as const, value: undefined}));
-    expect(await createPandocCommand().execute({...ctx, stdin: {[Symbol.asyncIterator]: () => ({next})}})).toEqual({exitCode: 2});
+    expect(await createStandalonePandocCommand().execute({...ctx, stdin: {[Symbol.asyncIterator]: () => ({next})}})).toEqual({exitCode: 2});
     expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe(""); expect(text(ctx.stderr)).toContain("E_OPTION:");
   }
 });
 it("shares Markdown wrap none validation with the SDK", async () => {
   const ctx = context(["-f", "commonmark", "-t", "commonmark", "--wrap=none"], "hi\nthere\n");
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe("hi\nthere\n");
   for(const wrap of ["auto", "preserve"]) {
     const rejected = context(["-f", "commonmark", "-t", "gfm", `--wrap=${wrap}`], "hi");
-    expect(await createPandocCommand().execute(rejected)).toEqual({exitCode: 2}); expect(text(rejected.stdout)).toBe("");
+    expect(await createStandalonePandocCommand().execute(rejected)).toEqual({exitCode: 2}); expect(text(rejected.stdout)).toBe("");
   }
 });
 it.each(["html", "html5", "json"])("accepts wrap none for %s file conversion with matching SDK bytes", async to => {
@@ -112,13 +112,13 @@ it.each(["html", "html5", "json"])("accepts wrap none for %s file conversion wit
     : "<p>Hello world.</p>\n";
   const ctx = {...context(["-f", "commonmark", "-t", to, "--wrap=none", "/input.md"]),
     readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer)};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe(expected);
   expect(text(ctx.stderr)).toBe("");
   expect(await convert([{bytes: encode(input)}], {from: "commonmark", to, wrap: "none"}, {})).toMatchObject({kind: "text", text: expected});
   for (const wrap of ["auto", "preserve", "invalid"]) {
     const rejected = context(["-f", "commonmark", "-t", to, `--wrap=${wrap}`], input);
-    expect(await createPandocCommand().execute(rejected)).toEqual({exitCode: 2});
+    expect(await createStandalonePandocCommand().execute(rejected)).toEqual({exitCode: 2});
     expect(text(rejected.stdout)).toBe("");
     await expect(convert([{bytes: encode(input)}], {from: "commonmark", to, wrap} as import("./types.js").ConversionOptions, {})).rejects.toMatchObject({code: "E_OPTION"});
   }
@@ -127,7 +127,7 @@ it("reads explicit JSON metadata files in order, with repeated metadata overridi
   const fs = Volume.fromJSON({"/one.json": '{"config":{"a":true,"list":[1]},"title":"file"}', "/two.json": '{"config":{"b":false,"list":[],"a":null}}', "/input.md": "hello"});
   const readFile = vi.fn(async (path: string) => new Uint8Array(fs.readFileSync(path) as Buffer));
   const ctx = {...context(["-f=commonmark", "-t=json", "--metadata-file=/one.json", "--metadata-file", "/two.json", "-Mtitle=first", "--metadata=title=last", "/input.md"]), readFile};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(JSON.parse(text(ctx.stdout)).meta).toEqual({config: {t: "MetaMap", c: {b: {t: "MetaBool", c: false}, list: {t: "MetaList", c: []}}}, title: {t: "MetaString", c: "last"}});
   expect(readFile.mock.calls.map(call => call[0])).toEqual(["/input.md", "/one.json", "/two.json"]);
 });
@@ -136,7 +136,7 @@ it("rejects YAML, unavailable processing and unknown flags before any acquisitio
     const ctx = context(["-f=commonmark", "-t=plain", "/input.md", option]);
     const readFile = vi.fn(async () => encode(""));
     const processing = ["--filter=x", "--lua-filter=x", "--citeproc"].includes(option);
-    expect(await createPandocCommand().execute({...ctx, readFile})).toEqual({exitCode: processing ? 3 : 2});
+    expect(await createStandalonePandocCommand().execute({...ctx, readFile})).toEqual({exitCode: processing ? 3 : 2});
     expect(text(ctx.stderr)).toContain(processing ? "E_CAPABILITY" : "E_OPTION");
     expect(readFile).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
   }
@@ -146,21 +146,21 @@ it("publishes files through memfs only after warning preflight and keeps destina
   const writeFile = vi.fn(async (path: string, bytes: Uint8Array) => {fs.writeFileSync(path, bytes);});
   const args = ["-f=commonmark", "-t=plain", "-o", "/output.txt", "--fail-if-warnings"];
   const ctx = {...context(args, "hello"), writeFile};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(fs.readFileSync("/output.txt", "utf8")).toBe("hello\n");
   expect(text(ctx.stdout)).toBe("");
   writeFile.mockClear();
-  expect(await createPandocCommand({writer: {format: "plain", write: async (_doc, adapter) => {adapter.report({code: "W_RAW_CONTENT", operation: "convert", message: "loss"}); return {kind: "text", text: "changed"};}}}).execute({...context(args), writeFile})).toEqual({exitCode: 2});
+  expect(await createStandalonePandocCommand({writer: {format: "plain", write: async (_doc, adapter) => {adapter.report({code: "W_RAW_CONTENT", operation: "convert", message: "loss"}); return {kind: "text", text: "changed"};}}}).execute({...context(args), writeFile})).toEqual({exitCode: 2});
   expect(writeFile).not.toHaveBeenCalled();
   expect(fs.readFileSync("/output.txt", "utf8")).toBe("hello\n");
   writeFile.mockRejectedValue(new Error("destination denied"));
   const denied = {...context(args, "hello"), writeFile};
-  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 9});
+  expect(await createStandalonePandocCommand().execute(denied)).toEqual({exitCode: 9});
   expect(text(denied.stderr)).toContain("E_IO:");
 });
 it("joins file and explicit stdin operands in their supplied order", async () => {
   const ctx = {...context(["-f=commonmark", "-t=plain", "a.md", "-", "b.md"], "middle"), readFile: vi.fn(async (path: string) => encode(path === "a.md" ? "first" : "last"))};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe("first\n\nmiddle\n\nlast\n");
 });
 it("supplies only its configured VFS for CLI resource search and extraction", async () => {
@@ -173,11 +173,11 @@ it("supplies only its configured VFS for CLI resource search and extraction", as
     writeFile: async (path, bytes) => {volume.writeFileSync(path, bytes);}
   };
   const ctx = {...context(["-f=commonmark", "-t=html", "--resource-path=/none:/assets", "--extract-media=media", "doc.md"]), fs, cwd: "/work"};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(volume.readFileSync("/work/media/p.png", "utf8")).toBe("image");
   expect(text(ctx.stdout)).toContain('src="/work/media/p.png"');
   const denied = context(["-f=commonmark", "-t=html", "--extract-media=media"], "![x](p.png)");
-  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 3});
+  expect(await createStandalonePandocCommand().execute(denied)).toEqual({exitCode: 3});
   expect(text(denied.stderr)).toContain("E_CAPABILITY:");
 });
 it("accepts iterable stdin and a configured VFS with bounded reads but no readStream", async () => {
@@ -190,7 +190,7 @@ it("accepts iterable stdin and a configured VFS with bounded reads but no readSt
     writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}
   };
   const ctx = {...context(["-f=commonmark", "-t=html", "--extract-media=media"]), stdin: [encode("![x](p.png)")], fs, cwd: "/work"};
-  expect(await createPandocCommand({limits: {resourceBytes: 5}}).execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand({limits: {resourceBytes: 5}}).execute(ctx)).toEqual({exitCode: 0});
   expect(readFile).toHaveBeenCalledWith("/work/p.png", expect.objectContaining({maxBytes: 5}));
 });
 it("preflights CLI media/output conflicts and malformed flags before VFS acquisition", async () => {
@@ -198,16 +198,16 @@ it("preflights CLI media/output conflicts and malformed flags before VFS acquisi
     const readFile = vi.fn(async () => encode("![x](p.png)"));
     const writeFile = vi.fn(async () => {});
     const ctx = {...context(["-f=commonmark", "-t=html", "doc.md", ...extra]), readFile, writeFile};
-    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 2});
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 2});
     expect(readFile).not.toHaveBeenCalled(); expect(writeFile).not.toHaveBeenCalled();
   }
 });
 it("does not accept resource providers through untyped command configuration", async () => {
   const resolve = vi.fn(async () => encode("forbidden"));
   const lstat = vi.fn(async () => ({type: "file"}));
-  const injected = {resources: {resolve}, resourceFiles: {lstat}} as unknown as Parameters<typeof createPandocCommand>[0];
+  const injected = {resources: {resolve}, resourceFiles: {lstat}} as unknown as Parameters<typeof createStandalonePandocCommand>[0];
   const ctx = context(["-f=commonmark", "-t=html", "--extract-media=/media"], "![x](p.png)");
-  expect(await createPandocCommand(injected).execute(ctx)).toEqual({exitCode: 3});
+  expect(await createStandalonePandocCommand(injected).execute(ctx)).toEqual({exitCode: 3});
   expect(lstat).not.toHaveBeenCalled(); expect(resolve).not.toHaveBeenCalled();
 });
 it("injects LaTeX include resources from memfs for file and stdin conversion", async () => {
@@ -220,11 +220,11 @@ it("injects LaTeX include resources from memfs for file and stdin conversion", a
   };
   for (const operand of [["main.tex"], []]) {
     const ctx = {...context(["-f", "latex", "-t", "plain", ...operand], "\\input{chapter}"), fs, cwd: "/book"};
-    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
     expect(text(ctx.stdout)).toBe("Original\n");
   }
   const missing = {...context(["-f", "latex", "-t", "plain", "-o", "result.txt"], "\\input{missing}"), fs, cwd: "/book"};
-  expect(await createPandocCommand().execute(missing)).toEqual({exitCode: 9});
+  expect(await createStandalonePandocCommand().execute(missing)).toEqual({exitCode: 9});
   expect(text(missing.stdout)).toBe("");
   expect(volume.existsSync("/book/result.txt")).toBe(false);
 });

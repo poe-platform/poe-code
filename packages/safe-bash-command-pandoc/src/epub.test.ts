@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { expect, it, vi } from "vitest";
 import { createZipCodec, type ZipLimits } from "@poe-code/office-package/zip";
 import { readDocument, convert } from "./engine.js";
-import { createPandocCommand } from "./safe-bash.js";
+import { createStandalonePandocCommand } from "./safe-bash.js";
 import { Volume } from "memfs";
 import type { ResourceFileSystem } from "./types.js";
 import { createCompressionCodec } from "@poe-code/office-package/compression";
@@ -95,7 +95,7 @@ it("uses the existing thin safe-bash adapter for binary EPUB input", async () =>
   const bytes = await archive();
   const output: Uint8Array[] = [];
   const ctx = {args: ["-f", "epub", "-t", "plain"], stdin: [bytes], stdout: {write: async (b: Uint8Array) => {output.push(b);}}, stderr: {write: async () => {}}, signal: new AbortController().signal};
-  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(new TextDecoder().decode(Buffer.concat(output))).toContain("First");
 });
 it("keeps unreferenced manifest images and independent hashes when extracting the EPUB MediaBag to memfs", async () => {

@@ -455,7 +455,9 @@
     "packages/safe-bash-command-sqlite3/dist",
     "packages/safe-bash-command-git/dist",
     "packages/safe-bash-command-dos2unix/dist",
-    "packages/safe-bash-line-ending-engine/dist"
+    "packages/safe-bash-line-ending-engine/dist",
+    "packages/safe-bash-command-pandoc/dist",
+    "packages/safe-bash-command-pandoc/LICENSE"
   ],
   "engines": {
     "node": ">=18.18"
@@ -610,7 +612,7 @@
     "@poe-platform/safe-bash": "*",
     "vite": "6.4.3",
     "vitest": "4.1.11",
-    "safe-bash-command-pandoc": "0.0.1",
+    "safe-bash-command-pandoc": "*",
     "@poe-code/pdf": "0.0.1",
     "@poe-code/pdf-ast": "0.0.1",
     "@poe-code/safe-playwright": "*",

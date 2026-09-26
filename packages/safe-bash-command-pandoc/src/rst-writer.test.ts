@@ -55,10 +55,10 @@ it("rejects inline literals whose boundary backticks swallow the delimiter", asy
 });
 it("shares conversion and atomic publication through the thin adapter using memfs", async () => {
   const {Volume} = await import("memfs");
-  const {createPandocCommand} = await import("./safe-bash.js");
+  const {createStandalonePandocCommand} = await import("./safe-bash.js");
   const fs = Volume.fromJSON({"/output.rst": "original"});
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
-  const run = (input: string) => createPandocCommand().execute({args: ["-f=commonmark", "-t=rst", "-o", "/output.rst"], stdin: [new TextEncoder().encode(input)], stdout: {write: async b => {stdout.push(b);}}, stderr: {write: async b => {stderr.push(b);}}, writeFile: async (path, bytes) => {fs.writeFileSync(path, bytes);}, signal: new AbortController().signal});
+  const run = (input: string) => createStandalonePandocCommand().execute({args: ["-f=commonmark", "-t=rst", "-o", "/output.rst"], stdin: [new TextEncoder().encode(input)], stdout: {write: async b => {stdout.push(b);}}, stderr: {write: async b => {stderr.push(b);}}, writeFile: async (path, bytes) => {fs.writeFileSync(path, bytes);}, signal: new AbortController().signal});
   expect(await run("# Heading\n\n**strong**")).toEqual({exitCode: 0});
   expect(fs.readFileSync("/output.rst", "utf8")).toContain("Heading\n=======");
   const original = fs.readFileSync("/output.rst", "utf8");

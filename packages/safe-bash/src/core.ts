@@ -129,3 +129,4 @@ export { xzCommands, createXzCommands, createXzCommand, type XzCommandsOptions }
 export { ssconvertCommands, createSsconvertCommands, createSsconvertCommand, type SsconvertCommandsOptions } from "./commands/ssconvert/index.js";
 export * from "./commands/op/index.js";
 export * from "./commands/mdq/index.js";
+export {createPandocCommand, createPandocCommands, pandocCommands, type PandocCommandsOptions, type PandocLimits} from "./commands/pandoc/index.js";

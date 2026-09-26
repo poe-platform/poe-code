@@ -1,13 +1,13 @@
 import {expect, it, vi} from "vitest";
 import {Volume} from "memfs";
-import {createPandocCommand} from "./safe-bash.js";
+import {createStandalonePandocCommand} from "./safe-bash.js";
 import {convert} from "./engine.js";
 const encode = (s: string) => new TextEncoder().encode(s);
 async function run(args: string[], fixtures: Record<string, string> = {}) {
   const fs = Volume.fromJSON(fixtures);
   let stdout = "", stderr = "";
   const readFile = vi.fn(async (path: string) => new Uint8Array(fs.readFileSync(path) as Buffer));
-  const result = await createPandocCommand().execute({args, readFile, stdin: [encode("Hello\n")], signal: new AbortController().signal,
+  const result = await createStandalonePandocCommand().execute({args, readFile, stdin: [encode("Hello\n")], signal: new AbortController().signal,
     stdout: {write: async b => {stdout += new TextDecoder().decode(b);}}, stderr: {write: async b => {stderr += new TextDecoder().decode(b);}}});
   return {...result, stdout, stderr, readFile};
 }

@@ -366,12 +366,13 @@ function tickSharedWallClockBudgets(): void {
   sharedWallClockTimerDeadline = 0;
   const now = defaultDateNow();
   let minDeadline = Infinity;
-  if (singleWallClockBudget !== undefined) {
+  while (singleWallClockBudget !== undefined) {
     const d = singleWallClockBudget._checkSharedWallClock(now);
     if (d <= 0) {
       singleWallClockBudget = extraWallClockBudgets.pop();
-    } else if (d < minDeadline) {
+    } else {
       minDeadline = d;
+      break;
     }
   }
   for (let i = extraWallClockBudgets.length - 1; i >= 0; i--) {

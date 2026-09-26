@@ -204,6 +204,21 @@ test("wall-clock limits abort commands that are awaiting host work", async () =>
     error => error instanceof ShellLimitError && error.limit === "maxWallClockMs");
 });
 
+test("wall-clock limits keep later concurrent budgets armed", async context => {
+  const first = new Budget(resolveLimits({ maxWallClockMs: 100 }));
+  const second = new Budget(resolveLimits({ maxWallClockMs: 200 }));
+  context.after(() => {
+    first.close(); first.values.close();
+    second.close(); second.values.close();
+  });
+  await new Promise<void>(resolve => setTimeout(resolve, 350));
+  for (const budget of [first, second]) {
+    assert.equal(budget.signal.aborted, true);
+    assert.ok(budget.signal.reason instanceof ShellLimitError);
+    assert.equal(budget.signal.reason.limit, "maxWallClockMs");
+  }
+});
+
 test("CPU limits are checked at cooperative yield points", async () => {
   const { shell, commands } = setup();
   commands.register({ name: "busy", async execute({ signal }) {

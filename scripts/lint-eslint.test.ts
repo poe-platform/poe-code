@@ -1308,23 +1308,44 @@ describe("registered metadata-only capability boundaries", () => {
 
 
 describe("single-operation loader admission", () => {
-  function inventoryModel(count = 8, depth = 3) {
+  function inventoryModel(count = 8, depth = 3, observation: "all" | "opens" = "all") {
     const capture = "tests/owned/" + Array.from({ length: depth }, (_, index) => "level-" + index).join("/");
     const ownerPath = "tests/owned/owner.json";
     const payload = "export const fixture = true;";
     const paths = Array.from({ length: count }, (_, index) => capture + "/group-" + Math.floor(index / 8) + "/file-" + index + ".mjs");
     const owner = JSON.stringify({ captured: paths });
     const inventory = { version: 1, records: [{ id: "owned-copy", role: "immutable-harness-capture", owners: [{ path: ownerPath, bytes: Buffer.byteLength(owner), sha256: digest(owner) }], proof: { owner: ownerPath, selector: "captured", pathBase: capture, relation: "owned synthetic captured inputs" }, members: paths.map(path => ({ path, bytes: Buffer.byteLength(payload), sha256: digest(payload) })), codeDirectory: capture }] };
-    const state = model({ [ownerPath]: owner, ...Object.fromEntries(paths.map(path => [path, payload])) });
+    const state = model({ [ownerPath]: owner, ...Object.fromEntries(paths.map(path => [path, payload])) }, observation);
     return { ...state, inventory, paths, capture, payload };
   }
   it("authenticates the actual integrated512 census within the unchanged cap", () => {
-    const state = inventoryModel(512, 24);
-    const result = verifyLintInventory(root, state.inventory, boundaries, state.guard.fileSystem);
+    const state = inventoryModel(512, 24, "opens");
+    // This census never mutates its tree; memoize only the memfs backend lookups.
+    const statistics = new Map([[root, state.fileSystem.lstatSync(root)]]);
+    const listings = new Map([[root, state.fileSystem.readdirSync(root, { encoding: "buffer" })]]);
+    const guard = createLintInputGuard({ root, boundaries, fileSystem: { ...state.fileSystem,
+      lstatSync(absolute: string) {
+        let stat = statistics.get(absolute);
+        if (stat === undefined) {
+          stat = state.fileSystem.lstatSync(absolute);
+          statistics.set(absolute, stat);
+        }
+        return stat;
+      },
+      readdirSync(absolute: string) {
+        let listing = listings.get(absolute);
+        if (listing === undefined) {
+          listing = state.fileSystem.readdirSync(absolute, { encoding: "buffer" });
+          listings.set(absolute, listing);
+        }
+        return listing.slice();
+      }
+    } });
+    const result = verifyLintInventory(root, state.inventory, boundaries, guard.fileSystem);
     expect(result.files).toEqual(state.paths);
-    expect(state.guard.snapshot()).toMatchObject({ opens: 513, closes: 513, failed: false });
-    expect(state.guard.snapshot().metadataOperations).toBeLessThan(250000);
-    console.log(JSON.stringify({ control: "integrated512", counters: state.guard.snapshot() }));
+    expect(guard.snapshot()).toMatchObject({ opens: 513, closes: 513, failed: false });
+    expect(guard.snapshot().metadataOperations).toBeLessThan(250000);
+    console.log(JSON.stringify({ control: "integrated512", counters: guard.snapshot() }));
   }, 15000);
   it.each(["guarded", "ordinary"])("keeps inventory/read results on the %s path", route => {
     const state = inventoryModel();

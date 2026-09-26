@@ -38,7 +38,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
     nul = false;
   };
   for (;;) {
-    const value = await reader.get();
+    const r = reader.get(); const value = typeof r === "number" ? r : await r;
     if (value < 0 || value === 32 || value === 9 || value === 10) {
       if (length) admitToken();
       if (value < 0) break;
@@ -77,7 +77,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
           useLeft = ordered[left]!.name < ordered[right]!.name;
         }
         scratch[offset] = left < middle && useLeft ? ordered[left++]! : ordered[right++]!;
-        await budget.checkpointWork();
+        { const cp = budget.checkpointWork(); if (cp) await cp; }
       }
     }
     [ordered, scratch] = [scratch, ordered];
@@ -92,7 +92,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
         tail = node;
         node.link = undefined;
       }
-      await budget.checkpointWork();
+      { const cp = budget.checkpointWork(); if (cp) await cp; }
     }
     while (head) {
       const node: Node = head;
@@ -107,7 +107,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
           tail = edge.target;
           tail.link = undefined;
         }
-        await budget.checkpointWork();
+        { const cp = budget.checkpointWork(); if (cp) await cp; }
       }
       head = node.link;
       node.link = undefined;
@@ -120,13 +120,13 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
       let found = false;
       for (const node of ordered) {
         budget.charge();
-        await budget.checkpointWork();
+        { const cp = budget.checkpointWork(); if (cp) await cp; }
         if (!node.count) continue;
         if (!loop) { loop = node; continue; }
         let previous: Edge | undefined;
         for (let edge = node.top; edge; edge = edge.next) {
           budget.charge();
-          await budget.checkpointWork();
+          { const cp = budget.checkpointWork(); if (cp) await cp; }
           if (edge.target === loop) {
             if (node.link) {
               while (loop) {
@@ -146,7 +146,7 @@ export async function sort(reader: Reader, lifecycle: Lifecycle): Promise<number
                 const next: Node | undefined = loop.link;
                 loop.link = undefined;
                 loop = next;
-                await budget.checkpointWork();
+                { const cp = budget.checkpointWork(); if (cp) await cp; }
               }
               found = true;
             } else { node.link = loop; loop = node; }

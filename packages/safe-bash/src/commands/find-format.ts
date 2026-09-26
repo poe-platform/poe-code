@@ -34,15 +34,14 @@ export class FindFormatBudget {
     if (this.arguments > 65536) throw new UsageError("printf format byte limit exceeded (65536)");
   }
 
-  async step(count = 1): Promise<void> {
+  step(count = 1): void | Promise<void> {
     this.context.signal.throwIfAborted();
     this.steps += count;
     if (this.steps > 32 * 1024 * 1024) this.fail("work");
     this.untilYield -= count;
-    if (this.untilYield <= 0) {
-      this.untilYield = 4096;
-      await yieldTurn(this.context.signal);
-    }
+    if (this.untilYield > 0) return;
+    this.untilYield = 4096;
+    return yieldTurn(this.context.signal);
   }
 
   async write(bytes: Uint8Array): Promise<void> {
@@ -50,7 +49,7 @@ export class FindFormatBudget {
     this.bytes += bytes.length;
     for (let offset = 0; offset < bytes.length; offset += 4096) {
       const chunk = bytes.subarray(offset, offset + 4096);
-      await this.step(chunk.length);
+      { const s = this.step(chunk.length); if (s) await s; }
       await output(this.context, chunk);
     }
   }
@@ -82,9 +81,9 @@ async function field(entry: FindFormatEntry, code: string, budget: FindFormatBud
   if (code === "d") return String(entry.depth);
   if (code === "y") return ({ file: "f", directory: "d", symlink: "l", character: "c" })[entry.stat.type];
   let end = entry.display.length;
-  while (end > 1 && entry.display[end - 1] === "/") { await budget.step(); end--; }
+  while (end > 1 && entry.display[end - 1] === "/") { { const s = budget.step(); if (s) await s; } end--; }
   let slash = end - 1;
-  while (slash >= 0 && entry.display[slash] !== "/") { await budget.step(); slash--; }
+  while (slash >= 0 && entry.display[slash] !== "/") { { const s = budget.step(); if (s) await s; } slash--; }
   const start = code === "f" ? slash + 1 : 0;
   const finish = code === "f" ? end : slash === 0 ? 1 : slash;
   if (code === "f" && end === 1 && entry.display[0] === "/") return "/";
@@ -105,7 +104,7 @@ export async function compileFindFormat(value: ShellValue, budget: FindFormatBud
   let index = 0;
   const flush = () => { if (index > literal) parts.push({ start: literal, end: index }); };
   while (index < source.length) {
-    await budget.step();
+    { const s = budget.step(); if (s) await s; }
     const byte = source[index]!;
     if (byte !== 37 && byte !== 92) { index++; continue; }
     flush();
@@ -122,7 +121,7 @@ export async function compileFindFormat(value: ShellValue, budget: FindFormatBud
         let value = 0;
         const end = Math.min(source.length, index + 3);
         while (index < end && source[index]! >= 48 && source[index]! <= 55) {
-          await budget.step();
+          { const s = budget.step(); if (s) await s; }
           value = value * 8 + source[index++]! - 48;
         }
         parts.push({ byte: value & 255 });
@@ -133,7 +132,7 @@ export async function compileFindFormat(value: ShellValue, budget: FindFormatBud
   if (literal < source.length && index > literal) parts.push({ start: literal, end: index });
   return async entry => {
     for (const part of parts) {
-      await budget.step();
+      { const s = budget.step(); if (s) await s; }
       if ("directive" in part) await budget.text(await field(entry, part.directive, budget));
       else if ("byte" in part) { budget.admitOutput(1); await budget.write(Uint8Array.of(part.byte)); }
       else await budget.write(source.subarray(part.start, part.end));

@@ -64,10 +64,16 @@ export class TokenReader {
       }
     });
   }
-  private async get(): Promise<number> {
+  private get(): number | Promise<number> {
     const { budget } = this.lifecycle;
     budget.charge();
-    await budget.checkpointWork();
+    const cp = budget.checkpointWork();
+    if (!cp && this.offset < this.chunk.length) return this.chunk[this.offset++]!;
+    return this.getSlow(cp);
+  }
+  private async getSlow(cp: void | Promise<void>): Promise<number> {
+    const { budget } = this.lifecycle;
+    if (cp) await cp;
     while (this.offset === this.chunk.length) {
       if (this.ended) return -1;
       let next: IteratorResult<Uint8Array>;
@@ -108,7 +114,7 @@ export class TokenReader {
     let length = 0, kept = 0;
     let nul = false;
     for (;;) {
-      const value = await this.get();
+      const r = this.get(); const value = typeof r === "number" ? r : await r;
       if (value < 0 || value === 32 || value === 9 || value === 10) {
         if (length) { budget.charge(kept); budget.retain(kept * 4); return raw(this.token.subarray(0, kept)); }
         if (value < 0) return undefined;

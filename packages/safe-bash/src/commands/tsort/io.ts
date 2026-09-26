@@ -128,10 +128,16 @@ export class Reader {
       throw error;
     }
   }
-  async get(): Promise<number> {
+  get(): number | Promise<number> {
     const { budget } = this.lifecycle;
     budget.charge();
-    await budget.checkpointWork();
+    const cp = budget.checkpointWork();
+    if (!cp && this.offset < this.chunk.length) return this.chunk[this.offset++]!;
+    return this.getSlow(cp);
+  }
+  private async getSlow(cp: void | Promise<void>): Promise<number> {
+    const { budget } = this.lifecycle;
+    if (cp) await cp;
     while (this.offset === this.chunk.length) {
       if (this.ended) return -1;
       let next: IteratorResult<Uint8Array>;

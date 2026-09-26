@@ -84,9 +84,11 @@ export class Budget {
     this.check(this.work + amount, this.limits.maxWork, "work");
     this.work += amount;
   }
-  async checkpointWork(): Promise<void> {
+  checkpointWork(): void | Promise<void> {
     this.signal.throwIfAborted();
-    if (this.work - this.checkpoint >= 1024) { this.checkpoint = this.work; await yieldTurn(this.signal); }
+    if (this.work - this.checkpoint < 1024) return;
+    this.checkpoint = this.work;
+    return yieldTurn(this.signal);
   }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");

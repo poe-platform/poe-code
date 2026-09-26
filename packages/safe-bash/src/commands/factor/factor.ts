@@ -2,7 +2,7 @@ import { Budget } from "./internal.js";
 
 export async function parseNumber(input: string, budget: Budget): Promise<bigint | "invalid" | "large"> {
   let start = 0;
-  while (input[start] === " ") { budget.charge(); start++; await budget.checkpointWork(); }
+  while (input[start] === " ") { budget.charge(); start++; { const cp = budget.checkpointWork(); if (cp) await cp; } }
   if (input[start] === "+") start++;
   if (start === input.length) return "invalid";
   const maximum = budget.limits.maxValue === Infinity ? undefined : BigInt(budget.limits.maxValue);
@@ -15,7 +15,7 @@ export async function parseNumber(input: string, budget: Budget): Promise<bigint
       result = result * 10n + BigInt(digit);
       if (maximum !== undefined && result > maximum) large = true;
     }
-    await budget.checkpointWork();
+    { const cp = budget.checkpointWork(); if (cp) await cp; }
   }
   return large ? "large" : result;
 }
@@ -35,14 +35,14 @@ async function prime64(value: bigint, budget: Budget): Promise<boolean> {
       if (exponent % 2n) result = result * base % value;
       base = base * base % value;
       exponent /= 2n;
-      await budget.checkpointWork();
+      { const cp = budget.checkpointWork(); if (cp) await cp; }
     }
     if (result === 1n || result === value - 1n) continue;
     let passed = false;
     for (let power = 1; power < powers; power++) {
       budget.charge();
       result = result * result % value;
-      await budget.checkpointWork();
+      { const cp = budget.checkpointWork(); if (cp) await cp; }
       if (result === value - 1n) { passed = true; break; }
     }
     if (!passed) return false;
@@ -61,7 +61,7 @@ export async function factorRecord(value: bigint, budget: Budget, exponents: boo
       checkPrime = false;
       for (;;) {
         budget.charge();
-        await budget.checkpointWork();
+        { const cp = budget.checkpointWork(); if (cp) await cp; }
         if (remaining % divisor !== 0n) break;
         budget.charge(2);
         budget.retain(16); retained += 16;

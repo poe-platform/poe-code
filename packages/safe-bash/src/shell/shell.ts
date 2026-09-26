@@ -511,7 +511,7 @@ export class Shell implements PluginHost {
       }
       if (!firstCached && !this.#initialLocale) {
         const warm = this.#warmedInvocation;
-        if (Buffer.byteLength(source) <= warm.budget.limits.maxSourceBytes) {
+        if (sharedUtf8Encoder.encode(source).byteLength <= warm.budget.limits.maxSourceBytes) {
           const savedParse = warm.budget.parsing.snapshot();
           try {
             const parseState: ParseUnitState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
@@ -544,7 +544,7 @@ export class Shell implements PluginHost {
     const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
     try {
       if (typeof source !== "string") throw new TypeError("Shell source must be a string");
-      const sourceByteLen = Buffer.byteLength(source);
+      const sourceByteLen = sharedUtf8Encoder.encode(source).byteLength;
       if (sourceByteLen > budget.maxSourceBytesSmi && sourceByteLen > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
       budget.source(sourceByteLen);
       budget.signal.throwIfAborted();
@@ -850,8 +850,9 @@ export class Shell implements PluginHost {
     warm?: WarmedInvocation,
   ): Promise<ShellResult> {
     if (typeof source !== "string") throw new TypeError("Shell source must be a string");
-    if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
-    budget.source(Buffer.byteLength(source));
+    const sourceByteLength = sharedUtf8Encoder.encode(source).byteLength;
+    if (sourceByteLength > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
+    budget.source(sourceByteLength);
     budget.signal.throwIfAborted();
     if (!warm) scope.setActiveBudget(budget);
     const captureSignal = !this.#hasCustomCommands && this.#middleware.length === 0 ? cancellation.deliverySignal : budget.signal;

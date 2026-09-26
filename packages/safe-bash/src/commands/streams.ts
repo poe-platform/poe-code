@@ -1,4 +1,3 @@
-const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
 import { createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.js";
 import { outputFailure } from "../contracts/io.js";
@@ -676,40 +675,13 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
   return [
     define("cat", executeCatGeneral),
     headTail("head"), headTail("tail", maxTailFollowHandles),
-    define("wc", context => {
-      if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
-        const countLines = context.args[0] === "-l";
-        const stdinFast = context.stdin as {
-          tryCountLinesOrBytesSync?: (countLines: boolean) => number;
-          tryReadAllSync?: () => Uint8Array | undefined;
-        };
-        if (typeof stdinFast.tryCountLinesOrBytesSync === "function" && !context.signal.aborted) {
-          const count = stdinFast.tryCountLinesOrBytesSync(countLines);
-          const text = count >= 0 && count <= 128 ? SMALL_WC_COUNT_LINES[count]! : `${count}\n`;
-          const p = output(context, text);
-          if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-          return p.then(() => RESOLVED_EXIT_ZERO);
-        }
-        const syncBytes = stdinFast.tryReadAllSync?.();
-        if (syncBytes !== undefined && !context.signal.aborted) {
-          let count = 0;
-          if (countLines) {
-            for (let pos = syncBytes.indexOf(10); pos !== -1; pos = syncBytes.indexOf(10, pos + 1)) count++;
-          } else {
-            count = syncBytes.length;
-          }
-          const text = count >= 0 && count <= 128 ? SMALL_WC_COUNT_LINES[count]! : `${count}\n`;
-          const p = output(context, text);
-          if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-          return p.then(() => RESOLVED_EXIT_ZERO);
-        }
-      }
-      return (async () => {
+    define("wc", async context => {
       if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
         const countLines = context.args[0] === "-l";
         const req = assertInputRequirements(context, ["-"]);
         if (req) await req;
         let count = 0;
+        let inputBytes = 0;
         try {
           const iter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
             tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
@@ -729,6 +701,8 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
                 chunk = asyncRes.value;
               }
               context.signal.throwIfAborted();
+              inputBytes += chunk.byteLength;
+              context.inputBudget?.check(inputBytes);
               if (countLines) {
                 for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) count++;
               } else {
@@ -820,6 +794,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
             const chunk = step.value;
             context.signal.throwIfAborted();
             counts.c! += chunk.length;
+            context.inputBudget?.check(counts.c!);
             if (!needsText) {
               if (needsLines) {
                 for (let pos = chunk.indexOf(10); pos !== -1; pos = chunk.indexOf(10, pos + 1)) counts.l!++;
@@ -854,7 +829,6 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
       if (totalMode === "only") await print(totals);
       else if (totalMode === "always" || (totalMode === "auto" && names.length > 1)) await print(totals, "total");
       return { exitCode };
-      })();
     }),
     define("tee", async context => {
       const args: string[] = [];

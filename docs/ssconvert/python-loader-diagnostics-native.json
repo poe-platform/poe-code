@@ -275,5 +275,13 @@
     "lint": "Workspace production, test and public-consumer lint/types passed",
     "build": "Maintained selected @poe-code/ssconvert dependency closure passed",
     "lifecycleAssertions": "Updated source-order expectations to include initial load; preserved the explicit-stage cancellation test and documented the clipboard manual-mode contract."
+  },
+  "originalCohortRequalification": {
+    "candidate": "1aafe4f3b77c948a087d36359c6264393da37db1",
+    "rows": 946,
+    "csvBytes": 37015,
+    "csvSha256": "36760e4949bbaef1628a2db6f7b6f1c990e48db8ab67f0e8bb3d8e4acea98e68",
+    "inputSha256": "65a4fd64e329856387cf7cc558dad37b0b05a4921d0e8ed54eb9b6c89b09b507",
+    "result": "Compiled SDK and Shell still match every retained native CSV byte and now both emit two loader warnings, matching native occurrences. Both exit zero; Shell stdout is empty and input bytes remain unchanged. Engines and Shell are disposed. Original inputs were recovered in memory from the authenticated historical revision; no raw workbook was retained."
   }
 }

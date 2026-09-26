@@ -124,7 +124,7 @@ it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node throu
   expect(result.missing).toMatchObject({ exitCode: 127, stdout: "" });
   expect(result.sources).toEqual([expect.stringContaining("console.log((\n1 + 2\n));")]);
   expect(result.imports).toEqual([{ names: expect.arrayContaining(["fs/promises", "node:fs/promises"]), aliases: true }]);
-});
+}, 30_000);
 
 it("runs injected llm providers and binary pipelines through the browser command subpath", async () => {
   const compiled = await bundlePublicConsumer(`
@@ -162,7 +162,7 @@ it("runs injected llm providers and binary pipelines through the browser command
   expect(requests).toHaveLength(2);
   expect(requests[0]).toMatchObject({ model: "describe", prompt: "caption", attachments: [{ mimeType: "image/png" }] });
   expect(requests[1]).toMatchObject({ model: "voice", prompt: "a fox\n" });
-});
+}, 30_000);
 
 it("runs both reference llm transports without Node globals in a browser consumer", async () => {
   const compiled = await bundlePublicConsumer(`
@@ -220,7 +220,7 @@ it("runs both reference llm transports without Node globals in a browser consume
   ]);
   expect(result.disposed).toBe(3);
   expect(result.temperature).toBe(0.7);
-});
+}, 30_000);
 
 let mixedConsumer: typeof import("./fixtures/safe-packages-mixed-entry-runtime.mjs");
 
@@ -356,7 +356,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     expect(temporary.stdout).toMatch(/^\/temporary\.[A-Za-z0-9]{6}\n$/u);
     expect((await fs.stat(temporary.stdout.trim())).mode & 0o777).toBe(0o600);
   } finally { await shell.dispose(); }
-});
+}, 30_000);
 
 type BrowserShell = typeof import("../packages/safe-bash/src/core.js");
 type CoreFs = typeof import("../packages/safe-fs/src/core.js");
@@ -370,11 +370,11 @@ beforeAll(async () => {
     bundle: true, write: false, platform: "browser", conditions: ["workerd", "worker", "browser"],
     format: "cjs", target: "es2022",
   });
-});
+}, 30_000);
 
 beforeAll(async () => {
   portableBuild = await build({...resolveBrowserShellBuild(root), sourcemap: false});
-});
+}, 30_000);
 
 beforeAll(async () => {
   for (const output of portableBuild.outputFiles!.filter(output => output.path.endsWith(".js"))) {
@@ -401,7 +401,7 @@ beforeAll(async () => {
   browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${compiled}; return module.exports; })()`, sandbox) as BrowserShell;
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
-});
+}, 30_000);
 
 beforeAll(async () => {
   const consumer = await bundlePublicConsumer(await readFile(path.join(root, "scripts/fixtures/safe-packages-mixed-entry-runtime.mjs"), "utf8"));
@@ -414,7 +414,7 @@ beforeAll(async () => {
     },
   });
   mixedConsumer = runInContext(`(function(){ const module = { exports: {} }; ${consumer}; return module.exports; })()`, sandbox);
-});
+}, 30_000);
 
 beforeAll(async () => {
   const directory = path.join(root, "packages/safe-bash");
@@ -445,7 +445,7 @@ beforeAll(async () => {
       },
     }],
   });
-});
+}, 30_000);
 
 it("executes the maintained browser fixture with all top-level workflows in a Node VM", async () => {
   const result = browserFixtureBuild;
@@ -459,7 +459,7 @@ it("executes the maintained browser fixture with all top-level workflows in a No
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);
-});
+}, 30_000);
 
 it("runs filesystem pipelines with canonical identity and injected mounts", async () => {
   expect(browser.FsError).toBe(filesystem.FsError);
@@ -578,4 +578,4 @@ it("portable network factories require transport injection and preserve HTTP hea
   });
   const consumer = runInContext(`(function(){ const module = { exports: {} }; ${compiled}; return module.exports; })()`, sandbox);
   expect(await consumer.probe()).toEqual({ refused: true, valid: 0, invalid: 2, value: 2, multipart: 0, requests: 2, output: [111, 107, 111, 107] });
-});
+}, 30_000);

@@ -91,24 +91,24 @@ test("built data accounting retains optimized code across garbage collections", 
       : index % 3 === 1 ? createIntrinsicArray([child, "text"]) : { child, name: "record" });
     const expected = measureSandboxData(roots);
     for (let pass = 0; pass < 8; pass++) {
-      // Each measurement visits 1,200 mixed roots, enough to warm the visitor.
-      // Retain all collection boundaries without repeating the same graph 100 times.
-      for (let index = 0; index < 10; index++)
+      // Warm the visitor before collection; later passes check retained code.
+      for (let index = 0; index < (pass < 2 ? 100 : 10); index++)
         if (measureSandboxData(roots) !== expected) throw new Error("Accounting changed");
       if (pass === 1) console.log("MEASUREMENT_WARMED");
       globalThis.gc();
       await new Promise(resolve => setImmediate(resolve));
     }
   `;
-  const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 10000 });
+  const result = spawnSync(process.execPath, ["--expose-gc", "--trace-opt", "--no-concurrent-recompilation", "--input-type=module", "-e", source], { encoding: "utf8", timeout: 10000 });
   assert.equal(result.status, 0, result.stderr || String(result.error));
   const sections = result.stdout.split("MEASUREMENT_WARMED");
   assert.equal(sections.length, 2, "Missing warmup boundary");
   const optimizations = output => output.split("\n").filter(line =>
-    line.includes("completed optimizing") && line.includes("<JSFunction visit ")).length;
+    (line.includes("completed optimizing") || line.includes("completed compiling")) &&
+    line.includes("<JSFunction visit ")).length;
   assert.ok(optimizations(sections[0]) > 0, "Visitor did not optimize during warmup");
-  // One final warmup compilation may finish asynchronously. Recompiling after
-  // every collection makes the large live browser graph repeatedly pay for JIT.
+  // Compile synchronously so the warmup boundary cannot race the optimizer.
+  // Recompiling after every collection makes the live graph repeatedly pay for JIT.
   assert.ok(optimizations(sections[1]) <= 1, `Visitor reoptimized ${optimizations(sections[1])} times after warmup`);
 });
 

@@ -585,6 +585,40 @@
       "limits": "The 13 malformed UTF-8 output cases excluded from this input cohort are not qualified here. Wider grammar/diagnostics, time/DST boundaries, other environments, installed packages and containing publication remain open.",
       "captureCorrection": "The first manual SDK helper omitted the required codecs array and failed before conversion; the corrected run explicitly supplies codecs:[] and needs no product change.",
       "cleanup": "Native archive inspected in memory; inputs recovered only under out. Raw fixtures, receipts and output are purged after this reduction."
+    },
+    "pythonActivatedLinux": {
+      "candidate": "317bf245b897ef25e285f1fbab5f4e909934d987",
+      "profile": "gnumeric-1.12.61-optional-python-samples",
+      "workflowRun": 35869837124,
+      "artifactId": 10755265947,
+      "identitySha256": "b1aabef0adc3ba4640d9d2c466663bf4f26fee91c4cbd824f86b5137bfa16fa8",
+      "inputSource": "20a3934fd0617a77e53beab183e5d283028a98a5:docs/ssconvert/linux-language-native-probes.json",
+      "inputSha256": "65a4fd64e329856387cf7cc558dad37b0b05a4921d0e8ed54eb9b6c89b09b507",
+      "scope": {
+        "rows": 946,
+        "PY_PRINTF": 784,
+        "PY_CAPWORDS": 153,
+        "PY_BITAND": 5,
+        "absentNamespaceControls": 4
+      },
+      "configuration": "Explicit codecs: [], createPythonSampleFunctions({ unicodeVersion: \"15.1.0\" }), C locale, UTC, empty environment. Limits: 1000000 input/output bytes, 10000 cells/operations, four sheets and 50000000 workbookWork.",
+      "command": "ssconvert --recalc -T Gnumeric_stf:stf_csv /input.gnumeric /output.csv",
+      "result": "SDK and actual Shell CSV exactly match all retained activated Linux output bytes. Both exit zero; Shell stdout is empty and input bytes are unchanged.",
+      "csvBytes": 37015,
+      "csvSha256": "36760e4949bbaef1628a2db6f7b6f1c990e48db8ab67f0e8bb3d8e4acea98e68",
+      "diagnostics": {
+        "native": "\n** (ssconvert:62740): WARNING **: 13:54:51.241: gnm_value_to_py_obj: unsupported value type\n\n** (ssconvert:62740): WARNING **: 13:54:51.244: gnm_value_to_py_obj: unsupported value type\n",
+        "shell": "gnm_value_to_py_obj: unsupported value type\n",
+        "sdk": [
+          {
+            "code": "python-loader",
+            "severity": "warning",
+            "message": "gnm_value_to_py_obj: unsupported value type"
+          }
+        ],
+        "status": "Multiplicity mismatch: native has two warning occurrences, current public surfaces one. SDK diagnostic message matches; CLI omits native GLib process/time decoration. Track #2248; isolate loading versus forced recalculation before changing behavior."
+      },
+      "remaining": "Diagnostic multiplicity #2248, full plugin lifecycle/environment behavior, custom Python object/reference services, packed/installed consumers and containing publication remain open. This is CSV result qualification, not complete profile parity; no broad family is closed."
     }
   },
   "cases": [

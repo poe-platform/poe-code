@@ -1,4 +1,5 @@
 import { beforeAll, expect, it } from "vitest";
+import type { BuildResult } from "esbuild";
 import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
 import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
 import { chartContext, chartFixture, chartSpace, series } from "../packages/docx/tests/fixtures/charts.js";
@@ -7,9 +8,10 @@ import { MemoryFileSystem } from "../packages/safe-fs/src/fs/memory/index.js";
 
 let runtime: typeof import("../packages/docx/src/index.js");
 
+let result: BuildResult;
 beforeAll(async () => {
   const { build } = await import("esbuild");
-  const result = await build({
+  result = await build({
     entryPoints: [new URL("../packages/docx/src/index.ts", import.meta.url).pathname],
     bundle: true,
     platform: "browser",

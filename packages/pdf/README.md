@@ -18,11 +18,14 @@ and `metadata` (`title`, `author`, `subject`, `keywords`). The default page is
 is 1.2.
 
 Paragraphs contain `kind: "paragraph"` and `runs` (`text`, optional `font`, `size`,
-`link`). Paragraph options are `outline`, `spaceAfter`, `keepWithNext`, `indent`,
+`link`, `bold`, `italic`, `strikeout`, `underline`). Bold and italic use synthetic
+weight and oblique styling of the supplied font. Paragraph options are `outline`, `spaceAfter`, `keepWithNext`, `indent`, `align` (`left`, `center`, `right`),
 `widows`, `orphans`, and `longWord` (`wrap` or `error`). Images contain
 `kind: "image"`, `bytes`, `media` (`png` or `jpeg`), `width`, `height`, and optional
 `fit` (`contain` or `natural`). Tables contain `kind: "table"`, `rows`, `widths`,
-and optional `headerRows` and `rowSplit` (`error` or `lines`). All blocks accept
+and optional `headerRows` and `rowSplit` (`error` or `lines`). Cell paragraphs
+retain their alignment when wrapping or continuing onto another page.
+Horizontal rules contain `kind: "rule"` and optional `indent`. All blocks accept
 `breakBefore` and `keepTogether`.
 
 `PdfContext` accepts `signal`, `yield`, `charge`, `onPlacement`, and `limits`.

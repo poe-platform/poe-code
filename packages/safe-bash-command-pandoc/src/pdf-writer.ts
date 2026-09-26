@@ -11,22 +11,25 @@ export const pdfWriter: WriterCapability = {
     const fail = (message: string): never => { throw new PandocError("E_CAPABILITY", ctx.operation ?? "write", message, "pdf"); };
     if (document.direction === "rtl" || document.direction === "auto") fail("PDF profile requires explicit LTR text");
     const notes: {number: number; blocks: readonly Block[]}[] = [];
-    const runs = async (nodes: readonly Inline[], size = ctx.pdf?.fontSize ?? 12, link?: string): Promise<TextRun[]> => {
+    const runs = async (nodes: readonly Inline[], size = ctx.pdf?.fontSize ?? 12, link?: string, style: Pick<TextRun, "bold" | "italic" | "strikeout" | "underline"> = {}): Promise<TextRun[]> => {
       const result: TextRun[] = [];
       for (const node of nodes) {
         await ctx.cooperate(); ctx.charge("references", 1);
         if (node.t === "Str" || node.t === "Space" || node.t === "SoftBreak" || node.t === "LineBreak" || node.t === "Code") {
           const text = node.t === "Str" ? node.c : node.t === "Code" ? node.c[1] : node.t === "LineBreak" ? "\n" : " ";
-          ctx.charge("retainedBytes", text.length * 2 + 64); result.push({text, size, ...(link === undefined ? {} : {link})});
-        } else if (node.t === "Link") result.push(...await runs(node.c[1], size, node.c[2][0]));
-        else if (node.t === "Span") result.push(...await runs(node.c[1], size, link));
+          ctx.charge("retainedBytes", text.length * 2 + 64); result.push({text, size, ...style, ...(link === undefined ? {} : {link})});
+        } else if (node.t === "Link") result.push(...await runs(node.c[1], size, node.c[2][0], style));
+        else if (node.t === "Span") result.push(...await runs(node.c[1], size, link, style));
         else if (node.t === "Math") {
           if (!ctx.lossy) fail("PDF math requires explicit lossy source projection");
           ctx.report({code: "W_TABLE_LOSS", operation: ctx.operation ?? "write", format: "pdf", message: "Rendered readable math source; no mathematical typesetting"});
           const text = `[math source: ${node.c[1]}]`; ctx.charge("retainedBytes", text.length * 2 + 64); result.push({text, size});
         } else if (node.t === "Note") {
           ctx.charge("retainedBytes", 64); const number = notes.length + 1; notes.push({number, blocks: node.c}); result.push({text: `[${number}]`, size});
-        } else if (node.t === "Emph" || node.t === "Strong" || node.t === "Underline" || node.t === "Strikeout" || node.t === "SmallCaps") fail(`PDF ${node.t} needs an explicit styled font resource`);
+        } else if (node.t === "Emph" || node.t === "Strong" || node.t === "Underline" || node.t === "Strikeout") {
+          const key = ({Emph: "italic", Strong: "bold", Underline: "underline", Strikeout: "strikeout"} as const)[node.t];
+          result.push(...await runs(node.c, size, link, {...style, [key]: true}));
+        }
         else fail(`PDF inline ${node.t} is outside the supported profile`);
       }
       return result;
@@ -83,23 +86,25 @@ export const pdfWriter: WriterCapability = {
           else if (node.c[1][0]?.length) blocks.push({kind: "paragraph", runs: await runs(node.c[1][0]), indent});
         }
         else if (node.t === "LineBlock") for (const line of node.c) blocks.push({kind: "paragraph", runs: await runs(line), spaceAfter: 0, indent});
+        else if (node.t === "HorizontalRule") blocks.push({kind: "rule", indent});
         else if (node.t === "Table") {
           if (node.c[1][1].length) await visit(node.c[1][1], indent);
           else if (node.c[1][0]?.length) blocks.push({kind: "paragraph", runs: await runs(node.c[1][0]), indent, keepWithNext: true});
           if (indent) fail("PDF nested tables require an explicit full-width block");
           const specs = node.c[2]; if (!specs.length) fail("Empty PDF table");
-          if (specs.some(spec => !["AlignDefault", "AlignLeft"].includes(spec[0]))) fail("PDF profile supports left-aligned tables only");
           const widths = specs.map(spec => spec[1].t === "ColWidth" ? spec[1].c : 1 / specs.length);
           const total = widths.reduce((a, b) => a + b, 0);
           const rows: Paragraph[][] = [];
           const astRows = [...node.c[3][1], ...node.c[4].flatMap(body => [...body[2], ...body[3]]), ...node.c[5][1]];
           for (const row of astRows) {
             const cells: Paragraph[] = [];
-            for (const cell of row[1]) {
-              if (cell[2] !== 1 || cell[3] !== 1 || !["AlignDefault", "AlignLeft"].includes(cell[1])) fail("PDF profile requires unspanned left-aligned cells");
+            for (const [column, cell] of row[1].entries()) {
+              if (cell[2] !== 1 || cell[3] !== 1) fail("PDF profile requires unspanned cells");
               const content: TextRun[] = [];
               for (const block of cell[4]) { if (block.t === "Para" || block.t === "Plain") { if (content.length) content.push({text: "\n"}); content.push(...await runs(block.c)); } else fail("PDF cells require paragraphs"); }
-              cells.push({kind: "paragraph", runs: content});
+              const alignment = cell[1] === "AlignDefault" ? specs[column]![0] : cell[1];
+              const align = ({AlignDefault: "left", AlignLeft: "left", AlignCenter: "center", AlignRight: "right"} as const)[alignment];
+              cells.push({kind: "paragraph", runs: content, align});
             }
             rows.push(cells);
           }

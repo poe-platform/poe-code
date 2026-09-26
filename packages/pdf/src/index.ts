@@ -1,5 +1,6 @@
 import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
+import { setTextRenderingMode, TextRenderingMode, setLineWidth, setStrokingRgbColor } from "pdf-lib";
 import {admitTrueTypeFont} from "./font-admission.js";
 import {decodePng} from "./png.js";
 import {imageBox} from "./image-box.js";
@@ -17,7 +18,7 @@ export function pdfCapabilities() {
 export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: Infinity, fonts: Infinity, glyphs: Infinity, pages: Infinity, objects: Infinity, images: Infinity, imageBytes: Infinity, decodedImageBytes: Infinity, layoutWork: Infinity, outputBytes: Infinity});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
 function positive(value: number): boolean { return Number.isFinite(value) && value > 0; }
-interface Glyph { text: string; code: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string }
+interface Glyph { text: string; code: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string; bold: boolean; italic: boolean; strikeout: boolean; underline: boolean }
 interface Line { glyphs: Glyph[]; height: number; ascent: number; descent: number }
 function emptyLine(): Line {return {glyphs: [], height: 14.4, ascent: 0, descent: 0};}
 export async function renderPdf(document: LayoutDocument, context: PdfContext = {}): Promise<Uint8Array> {
@@ -96,11 +97,12 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     const parsed = parsedFonts.get(font)!;
     const ascent = parsed.ascent / parsed.unitsPerEm * size; const descent = -parsed.descent / parsed.unitsPerEm * size;
     if (!positive(ascent) || !Number.isFinite(descent) || descent < 0) unsupported("Invalid vertical font metrics");
-    return {text, code: encoded, font, size, width, ascent, descent, ...(run.link === undefined ? {} : {link: run.link})};
+    return {text, code: encoded, font, size, width, ascent, descent, bold: run.bold ?? false, italic: run.italic ?? false, strikeout: run.strikeout ?? false, underline: run.underline ?? false, ...(run.link === undefined ? {} : {link: run.link})};
   };
   const lines = async (block: Paragraph, width: number): Promise<Line[]> => {
     charge("layoutWork", 1);
     if (!positive(width)) unsupported("Nonadvancing text box");
+    if (block.align !== undefined && !["left", "center", "right"].includes(block.align)) unsupported("Invalid text alignment");
     const result: Line[] = []; let line = emptyLine(); let used = 0;
     let word: Glyph[] = []; let wordWidth = 0;
     const flush = () => {
@@ -129,18 +131,25 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   const newPage = () => { charge("pages", 1); charge("objects", 3); page = pdf.addPage([box.width, box.height]); fontKeys = new Map(); top = box.margin; };
   const usableHeight = box.height - 2 * box.margin;
   const room = (height: number) => { if (height > usableHeight) unsupported("Indivisible layout exceeds page"); if (top + height > box.height - box.margin) newPage(); };
-  const draw = (line: Line, x: number, baselineTop: number) => {
-    context.onPlacement?.({kind: "text", page: usage.pages, x, y: baselineTop, width: line.glyphs.reduce((sum, g) => sum + g.width, 0), height: line.height, text: line.glyphs.map(g => g.text).join("")});
+  const draw = (line: Line, x: number, baselineTop: number, width: number, align: Paragraph["align"] = "left") => {
+    const lineWidth = line.glyphs.reduce((sum, g) => sum + g.width, 0);
+    x += align === "right" ? width - lineWidth : align === "center" ? (width - lineWidth) / 2 : 0;
+    context.onPlacement?.({kind: "text", page: usage.pages, x, y: baselineTop, width: lineWidth, height: line.height, text: line.glyphs.map(g => g.text).join("")});
     for (let i = 0; i < line.glyphs.length;) {
       const g = line.glyphs[i]!; let codes = ""; let width = 0;
       do {
         charge("layoutWork", 1); const current = line.glyphs[i++]!; codes += current.code; width += current.width;
-      } while (i < line.glyphs.length && line.glyphs[i]!.font === g.font && line.glyphs[i]!.size === g.size && line.glyphs[i]!.link === g.link);
+      } while (i < line.glyphs.length && line.glyphs[i]!.font === g.font && line.glyphs[i]!.size === g.size && line.glyphs[i]!.link === g.link && line.glyphs[i]!.bold === g.bold && line.glyphs[i]!.italic === g.italic && line.glyphs[i]!.strikeout === g.strikeout && line.glyphs[i]!.underline === g.underline);
       charge("objects", 1);
       let fontKey = fontKeys.get(g.font);
       if (!fontKey) {fontKey = page.node.newFontDictionary("Font", g.font.ref); fontKeys.set(g.font, fontKey);}
       // Use admitted scalar codes directly: no cross-scalar ligatures or shaping.
-      page.pushOperators(pushGraphicsState(), setFillingRgbColor(0, 0, 0), beginText(), setFontAndSize(fontKey, g.size), setTextMatrix(1, 0, 0, 1, x, box.height - baselineTop - line.ascent), showText(PDFHexString.of(codes)), endText(), popGraphicsState());
+      const baseline = box.height - baselineTop - line.ascent;
+      page.pushOperators(pushGraphicsState(), setFillingRgbColor(0, 0, 0), setStrokingRgbColor(0, 0, 0), setLineWidth(g.size / 40), beginText(), setFontAndSize(fontKey, g.size), setTextRenderingMode(g.bold ? TextRenderingMode.FillAndOutline : TextRenderingMode.Fill), setTextMatrix(1, 0, g.italic ? 0.2 : 0, 1, x, baseline), showText(PDFHexString.of(codes)), endText(), popGraphicsState());
+      for (const offset of [...g.strikeout ? [g.size * 0.3] : [], ...g.underline ? [-g.size * 0.15] : []]) {
+        charge("objects", 1); charge("layoutWork", 1);
+        page.drawLine({start: {x, y: baseline + offset}, end: {x: x + width, y: baseline + offset}, thickness: g.size / 20, color: rgb(0, 0, 0)});
+      }
       if (g.link) { charge("objects", 1); const ref = pdf.context.register(pdf.context.obj({Type: "Annot", Subtype: "Link", Rect: [x, box.height - baselineTop - line.height, x + width, box.height - baselineTop], Border: [0, 0, 0], A: {Type: "Action", S: "URI", URI: textString(g.link)}})); page.node.addAnnot(ref); }
       x += width;
     }
@@ -163,6 +172,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
           const nextLines = await lines(next, box.width - 2 * box.margin - (next.indent ?? 0));
           nextHeight = (next.keepTogether ? nextLines : nextLines.slice(0, next.orphans ?? 2)).reduce((s, l) => s + l.height, 0);
         } else if (next.kind === "image") nextHeight = imageBox(next, box, unsupported, () => charge("layoutWork", 1)).height;
+        else if (next.kind === "rule") nextHeight = 16;
         else {
           for (const row of next.rows.slice(0, (next.headerRows ?? 0) + 1)) {
             let rowHeight = 0;
@@ -190,19 +200,19 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
           charge("objects", outlines.length ? 1 : 2);
           outlines.push({title: textString(block.outline), page: page!, y: box.height - top});
         }
-        for (let i = 0; i < count; i++) {const line = prepared[cursor++]!; draw(line, box.margin + indent, top); top += line.height;}
+        for (let i = 0; i < count; i++) {const line = prepared[cursor++]!; draw(line, box.margin + indent, top, box.width - 2 * box.margin - indent, block.align); top += line.height;}
         if (cursor < prepared.length) newPage();
         await cooperate();
       }
       const after = block.spaceAfter ?? 8; if (!Number.isFinite(after) || after < 0) unsupported("Invalid paragraph spacing"); top += after;
     } else if (block.kind === "table") {
       if (!block.widths.length || !block.widths.every(positive) || Math.abs(block.widths.reduce((a, b) => a + b, 0) - 1) > 0.000001) unsupported("Invalid table widths");
-      const preparedRows: {cells: Line[][]; height: number}[] = [];
+      const preparedRows: {cells: Line[][]; height: number; alignments: Paragraph["align"][]}[] = [];
       for (const row of block.rows) {
         if (row.length !== block.widths.length) unsupported("Nonrectangular table");
         const cells: Line[][] = [];
         for (let i = 0; i < row.length; i++) cells.push(await lines(row[i]!, (box.width - 2 * box.margin) * block.widths[i]! - 8));
-        const height = Math.max(8, ...cells.map(cell => cell.reduce((sum, line) => sum + line.height, 8))); preparedRows.push({cells, height});
+        const height = Math.max(8, ...cells.map(cell => cell.reduce((sum, line) => sum + line.height, 8))); preparedRows.push({cells, height, alignments: row.map(cell => cell.align)});
       }
       if (block.keepTogether) room(preparedRows.reduce((sum, row) => sum + row.height, 0));
       const headerCount = block.headerRows ?? 0;
@@ -210,27 +220,27 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       const headers = preparedRows.slice(0, headerCount);
       const headerHeight = headers.reduce((s, r) => s + r.height, 0);
       if (headerHeight >= usableHeight) unsupported("Table headers leave no body space");
-      const drawRow = (cells: Line[][], height: number) => {
+      const drawRow = (cells: Line[][], height: number, alignments: readonly Paragraph["align"][]) => {
         let x = box.margin;
         for (let i = 0; i < cells.length; i++) {
           const width = (box.width - 2 * box.margin) * block.widths[i]!; charge("objects", 1);
           context.onPlacement?.({kind: "cell", page: usage.pages, x, y: top, width, height});
           page!.drawRectangle({x, y: box.height - top - height, width, height, borderWidth: 0.5, color: rgb(1, 1, 1), borderColor: rgb(0, 0, 0)});
-          let offset = top + 4; for (const line of cells[i]!) { draw(line, x + 4, offset); offset += line.height; } x += width;
+          let offset = top + 4; for (const line of cells[i]!) { draw(line, x + 4, offset, width - 8, alignments[i]); offset += line.height; } x += width;
         }
         top += height;
       };
-      const continuation = () => {newPage(); for (const h of headers) drawRow(h.cells, h.height);};
+      const continuation = () => {newPage(); for (const h of headers) drawRow(h.cells, h.height, h.alignments);};
       // Start headers with at least one body line, avoiding a header-only page.
       if (preparedRows.length > headerCount) room(headerHeight + Math.max(...preparedRows[headerCount]!.cells.map(cell => (cell[0]?.height ?? 0) + 8)));
       else room(headerHeight);
       for (let r = 0; r < preparedRows.length; r++) {
         const row = preparedRows[r]!;
-        if (r < headerCount) {drawRow(row.cells, row.height); continue;}
+        if (r < headerCount) {drawRow(row.cells, row.height, row.alignments); continue;}
         if (block.rowSplit !== "lines") {
           if (row.height + headerHeight > usableHeight) unsupported("Table row exceeds page with headers");
           if (top + row.height > box.height - box.margin) continuation();
-          drawRow(row.cells, row.height);
+          drawRow(row.cells, row.height, row.alignments);
         } else {
           const cursors = row.cells.map(() => 0);
           while (row.cells.some((cell, i) => cursors[i]! < cell.length)) {
@@ -246,13 +256,22 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
               if (minimum + 8 + headerHeight > usableHeight) unsupported("Table line exceeds page with headers");
               continuation(); continue;
             }
-            drawRow(fragments, Math.max(...fragments.map(cell => cell.reduce((s, l) => s + l.height, 8))));
+            drawRow(fragments, Math.max(...fragments.map(cell => cell.reduce((s, l) => s + l.height, 8))), row.alignments);
             if (row.cells.some((cell, i) => cursors[i]! < cell.length)) continuation();
             await cooperate();
           }
         }
       }
       top += 8;
+    } else if (block.kind === "rule") {
+      const indent = block.indent ?? 0;
+      const width = box.width - 2 * box.margin - indent;
+      if (!Number.isFinite(indent) || indent < 0 || !positive(width)) unsupported("Invalid rule indent");
+      room(16); charge("objects", 1);
+      const x = box.margin + indent, y = top + 8;
+      page!.drawLine({start: {x, y: box.height - y}, end: {x: x + width, y: box.height - y}, thickness: 0.5, color: rgb(0, 0, 0)});
+      context.onPlacement?.({kind: "rule", page: usage.pages, x, y, width, height: 0.5});
+      top += 16;
     } else if (block.kind === "image") {
       charge("images", 1); charge("imageBytes", block.bytes.length); charge("objects", 3);
       const bytes = block.bytes;

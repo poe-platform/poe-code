@@ -5,6 +5,12 @@ import type { Document } from "./index.js";
 import { Volume } from "memfs";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 const document: Document = {blocks: [{t: "Para", c: [{t: "Str", c: "Hello PDF"}]}], resources: [], metadata: {}};
+it.each(["**bold**", "*italic*", "~~strikeout~~", "before\n\n---\n\nafter", "| Left | Center | Right |\n| :--- | :---: | ---: |\n| a | b | c |"])("renders basic Markdown PDF content: %s", async source => {
+  const result = await convert([{bytes: new TextEncoder().encode(source)}], {from: "gfm", to: "pdf"}, {yield: async () => {}});
+  expect(result.kind).toBe("binary");
+  expect(result.diagnostics).toEqual([]);
+  if (result.kind === "binary") expect((await PDFDocument.load(result.bytes)).getPageCount()).toBe(1);
+});
 it("delivers built-in PDF bytes without an injected writer", async () => {
   expect(createFormatRegistry().resolve("pdf", "write").writer).toBeDefined();
   const result = await convert([{bytes: new TextEncoder().encode("# Title\n\nHello [link](https://example.com).") }], {from: "commonmark", to: "pdf"}, {});

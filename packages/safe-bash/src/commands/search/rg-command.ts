@@ -502,6 +502,7 @@ class PooledRgFastRunner {
 }
 
 let pooledRgFastRunner: PooledRgFastRunner | undefined;
+let rgFastSyncWarmed = false;
 
 function tryExecuteRgFastSync(
   context: CommandContext,
@@ -577,6 +578,24 @@ function tryExecuteRgFastSync(
     runner.fastReadBacking = fastMem;
     runner.found = false;
     runner.abortedToSlow = false;
+    if (!rgFastSyncWarmed) {
+      rgFastSyncWarmed = true;
+      for (let w = 0; w < 12; w++) {
+        const wRes = runner.walker.walkTargetsSyncOrAsync(selPaths, selImplicit, runner.boundOnTarget, true);
+        limits.resetForRun(context, options);
+        totals.searches = 0;
+        totals.searches_with_match = 0;
+        totals.bytes_searched = 0;
+        totals.bytes_printed = 0;
+        totals.matched_lines = 0;
+        totals.matches = 0;
+        runner.found = false;
+        if (runner.abortedToSlow || wRes !== undefined) {
+          runner.abortedToSlow = false;
+          break;
+        }
+      }
+    }
     const walkRes = runner.walker.walkTargetsSyncOrAsync(selPaths, selImplicit, runner.boundOnTarget, true);
     if (runner.abortedToSlow || walkRes !== undefined) {
       limits.outPos = 0;

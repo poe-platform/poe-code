@@ -4,7 +4,7 @@ import { PublicDiagnostic } from "../diagnostics.js";
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
 import { getRuntimeBackingFileSystem, isSyncResolved } from "../fs/creation-mask.js";
-import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, RESOLVED_EXIT_ZERO, UsageError } from "./internal.js";
+import { codeOf, define, diagnostic, integer, output, outputRange, pathOf, replaceArgument, RESOLVED_EXIT_ZERO, UsageError } from "./internal.js";
 import { escapeText } from "../escaping.js";
 import { createDirectoryReader } from "./directory-admission.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
@@ -63,6 +63,10 @@ function writeUtf8(buf: Uint8Array, pos: number, s: string): number {
   return len;
 }
 let sharedFindPrintBufInUse = false;
+function finishFindPrintBufAsync() {
+  sharedFindPrintBufInUse = false;
+  return RESOLVED_EXIT_ZERO;
+}
 const findKeyScratch: string[] = new Array(256).fill("");
 let findKeyScratchTop = 0;
 let findKeySorted = true;
@@ -206,15 +210,12 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
                       sharedFindPrintBufInUse = false;
                       return RESOLVED_EXIT_ZERO;
                     }
-                    const p = output(context, sharedFindPrintBuf.subarray(0, printPos));
+                    const p = outputRange(context, sharedFindPrintBuf, printPos);
                     if (isSyncResolved(p)) {
                       sharedFindPrintBufInUse = false;
                       return RESOLVED_EXIT_ZERO;
                     }
-                    return p.then(() => {
-                      sharedFindPrintBufInUse = false;
-                      return RESOLVED_EXIT_ZERO;
-                    });
+                    return p.then(finishFindPrintBufAsync);
                   }
                   sharedFindPrintBufInUse = false;
                 } finally {
@@ -230,7 +231,9 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         }
       }
     }
-    return (async () => {
+    return executeFindSlow(context);
+  })];
+  async function executeFindSlow(context: Parameters<Parameters<typeof define>[1]>[0]) {
     const startedAt = Date.now();
     const rawArgumentValues = context.argumentValues ? getCommandArguments(context) : undefined;
     const args = rawArgumentValues ? [...rawArgumentValues.args] : [...context.args];
@@ -723,6 +726,5 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     } finally {
       if (useSharedPrintBuf) sharedFindPrintBufInUse = false;
     }
-    })();
-  })];
+  }
 }

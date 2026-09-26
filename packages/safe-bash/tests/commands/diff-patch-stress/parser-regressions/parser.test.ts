@@ -4,7 +4,13 @@ import { cases, contextChange, marker } from "./fixtures.js";
 import { product, productIssues } from "./helpers.js";
 
 for (const fixture of cases) {
-  test(fixture.id, { timeout: 5000 }, async () => {
+  test(fixture.id, { timeout: 5000 }, async t => {
+    if (fixture.cancel === "parse") {
+      // Admit elapsed-time checkpoints even after the parser has warmed up.
+      // The fixture still schedules its real abort only after draining input.
+      let now = 0;
+      t.mock.method(performance, "now", () => { now += 8; return now; });
+    }
     const result = await product(fixture);
     assert.deepEqual(productIssues(fixture, result), [], JSON.stringify({ id: fixture.id, before: fixture.before, patch: fixture.patch, options: fixture.options }));
   });

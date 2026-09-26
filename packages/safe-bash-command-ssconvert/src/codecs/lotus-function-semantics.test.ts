@@ -26,6 +26,34 @@ function fixture(version: number, named: boolean): Uint8Array {
     ...(named ? [0x7a, 1, ...word(name.length), ...name] : [62]), 3]);
 }
 
+it.each([
+  { mantissa: 1n << 63n, exponent: 0x3c01, expected: 2 ** -1022 },
+  { mantissa: ((1n << 52n) - 1n) << 12n, exponent: 0x3c00, expected: 2 ** -1022 - Number.MIN_VALUE },
+  { mantissa: 1n << 63n, exponent: 0x3bcd, expected: Number.MIN_VALUE },
+  { mantissa: 1n << 63n, exponent: 0xbbcd, expected: -Number.MIN_VALUE },
+  { mantissa: 1n << 63n, exponent: 0x3bcc, expected: 0 },
+  { mantissa: (1n << 63n) + 1n, exponent: 0x3bcc, expected: Number.MIN_VALUE },
+  { mantissa: (((1n << 52n) - 2n) << 12n) + 2049n, exponent: 0x3c00, expected: 2 ** -1022 - Number.MIN_VALUE },
+  { mantissa: (1n << 63n) + 1024n, exponent: 0x3fff, expected: 1 },
+  { mantissa: (1n << 63n) + 1025n, exponent: 0x3fff, expected: 1 + Number.EPSILON },
+])("rounds Lotus extended numbers once at binary64 boundaries %#", async ({ mantissa, exponent, expected }) => {
+  // libwps readDouble10 normalizes before ldexp. Keep all original significand
+  // bits until binary64 rounding, especially just above a subnormal midpoint.
+  const raw = [...Array.from({ length: 8 }, (_, i) => Number(mantissa >> BigInt(i * 8) & 255n)), ...word(exponent)];
+  const bytes = Uint8Array.from([
+    ...record(0, [...word(0x1002), 4, 0, ...Array<number>(22).fill(0)]),
+    ...record(23, [0, 0, 0, 0, ...raw]),
+    ...record(25, [0, 0, 0, 1, ...raw, 0, ...raw, 3]),
+    ...record(1)
+  ]);
+  const book = await readLotus(bytes, context);
+  for (const cell of book.sheets[0]!.cells) {
+    expect(cell.value).toEqual({ kind: "number", value: expected });
+  }
+  const calculated = recalculateWorkbook(book, context, true);
+  expect(calculated.sheets[0]!.cells[1]!.value).toEqual({ kind: "number", value: expected });
+});
+
 for (const version of [0x1002, 0x1003, 0x1004, 0x1005]) {
   it.each([0x19, 0x28])(`decodes numeric tokens by Lotus formula record (version ${version}, record %i)`, async id => {
     // LibreOffice OP_Formula123/FT_Const10Float and libwps readCell/readFormula:

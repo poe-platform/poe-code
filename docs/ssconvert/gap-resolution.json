@@ -915,6 +915,18 @@
       "publicReadback": "Compiled command --recalc XLSX export and SDK readback preserve all 23 numeric results within 1e-12 and translated function formulas without LOTUS_ placeholders. Input 1229 bytes, output 4588 bytes; exit 0, empty stderr. Fixture remains in memory.",
       "remaining": "Wider argument/domain semantics, additional vendor add-ins, Works and independent application qualification remain open. Name-table coverage does not establish full native compatibility."
     },
+    "lotusExtendedRounding": {
+      "status": "implemented single-rounding binary80-to-binary64 scaling for numeric records and formulas",
+      "source": {
+        "url": "https://sources.debian.org/data/main/libw/libwps/0.4.14-2/src/lib/libwps_internal.cpp",
+        "sha256": "2226cae13c46dcffea826e2a564e7e3c110bf9468ddfd1e7daba17337ef730c1",
+        "lines": "224-270",
+        "finding": "readDouble10 normalizes the significand before ldexp. The previous product decoder formed a power below binary64's minimum before multiplying the significand, losing even the smallest normal value."
+      },
+      "validation": "Six of nine original boundary cases failed. The decoder now retains all 64 significand bits until nearest-even rounding at binary64 precision/subnormal quantum. All 279 Lotus tests, maintained package lint/types and selected build pass.",
+      "independentReadback": "CPython 3.14.7 Fraction-to-float conversion supplies exact binary64 bit expectations for nine binary80 inputs: normal/subnormal boundary, smallest positive/negative subnormal, halfway/above-halfway underflow and normal/subnormal rounding ties. Compiled command --recalc XLSX export and SDK readback match all 18 literal/formula observations bit-for-bit, with empty stderr. Input 466 bytes, output 4237 bytes; fixtures stay in memory.",
+      "remaining": "Other extended encodings and independent application qualification remain open. libwps motivates scaling; its double-based intermediate arithmetic is not claimed as proof of single-rounding behavior. No family is closed."
+    },
     "lotusFormulaNumericLayouts": {
       "status": "implemented record-specific floating and compact numeric token widths",
       "sources": [
@@ -1023,7 +1035,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. Source-led conversion now preserves YEAR, CHOOSE, MID, REPLACE, FIND, STRING, RATE, TERM, CTERM and named financial operand semantics. Compact 16-bit formula constants now sign-extend like cell records. Three-argument lookup/INDEX conversions are also implemented. The 23 missing source-recognized named aliases are implemented, covering all 47 names in LibreOffice's explicit add-in table. All 262 tests in thirteen Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Other arities, domains and vendor add-ins remain open. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
+      "currentFinding": "WK1/WK3 names, coordinates, function names and namespace lifecycle repairs are implemented. Named tokens resolve workbook names and bounded external-variable fallbacks; recalculation requires the explicit external-reference host. Source-led repairs now decode per-token modern reference flags, signed legacy offsets for BOF 0x0404/0x0406, and original WK3 BOF 0x1000 detection/formula dispatch. Source-led conversion now preserves YEAR, CHOOSE, MID, REPLACE, FIND, STRING, RATE, TERM, CTERM and named financial operand semantics. Compact 16-bit formula constants now sign-extend like cell records. Three-argument lookup/INDEX conversions are also implemented. The 23 missing source-recognized named aliases are implemented, covering all 47 names in LibreOffice's explicit add-in table. Numeric widths now follow formula record layout; extended constants retain small values with single binary64 rounding. All 279 tests in thirteen Lotus files pass, plus package lint/types/build and compiled SDK/command XLSX readback for the repaired profiles. Other arities, domains and vendor add-ins remain open. Earlier full-package and 24-profile XML/XLSX evidence remains scoped to its recorded candidate. BOF 0x0405 and Works offset semantics, modern range flag packing, dynamic/relative-sheet identity, wider formatting/charset profiles and independent application readback remain open. Native Gnumeric named-token limitations are not product completion evidence; containing publication is still pending."
     },
     {
       "id": "biff-external-and-token-formulas",

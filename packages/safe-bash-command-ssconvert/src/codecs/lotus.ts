@@ -72,8 +72,22 @@ function treal(b: Binary, at: number): CellValue {
     if (code === 0xc0 || code === 0xd0) return { kind: "error", value: code === 0xc0 ? "#VALUE!" : "#N/A" };
     if (code === 0xe0) return { kind: "string", value: "" };
   }
-  const exponent = b.u16(at + 8), mantissa = Number(BigInt(b.u32(at + 4)) * 0x100000000n + BigInt(b.u32(at)));
-  return { kind: "number", value: (exponent & 32768 ? -1 : 1) * mantissa * 2 ** ((exponent & 32767) - 16383 - 63) };
+  const exponent = b.u16(at + 8);
+  let mantissa = BigInt(b.u32(at + 4)) * 0x100000000n + BigInt(b.u32(at));
+  let scale = (exponent & 32767) - 16383 - 63;
+  // Round once to binary64 precision or its minimum subnormal quantum. Scaling
+  // the unnormalized significand first can underflow even for normal results.
+  const shift = Math.max(0, mantissa.toString(2).length - 53, -1074 - scale);
+  if (shift > 64) mantissa = 0n;
+  else if (shift > 0) {
+    const bits = BigInt(shift), halfway = 1n << (bits - 1n);
+    const remainder = mantissa & ((halfway << 1n) - 1n);
+    mantissa >>= bits;
+    if (remainder > halfway || remainder === halfway && (mantissa & 1n) !== 0n) mantissa++;
+    scale += shift;
+  }
+  const value = mantissa === 0n ? 0 : Number(mantissa) * 2 ** scale;
+  return { kind: "number", value: (exponent & 32768 ? -1 : 1) * value };
 }
 async function lotusFormat(fmt: number, context: CapabilityContext): Promise<string> {
   const kind = fmt >> 4 & 7, precision = fmt & 15, decimals = precision ? "." + "0".repeat(precision) : "";

@@ -163,10 +163,10 @@ export class DocumentBudget {
   }
 
   async #yieldReservedWork(): Promise<void> {
-    while (this.#cooperation.work >= 4096) {
-      this.#cooperation.work -= 4096;
-      await this.#turn(this.signal);
-      this.check("work", 0);
-    }
+    // Reservations account for work already completed. Extra empty turns cannot
+    // divide it retroactively; retain the remainder for the next bounded step.
+    this.#cooperation.work %= 4096;
+    await this.#turn(this.signal);
+    this.check("work", 0);
   }
 }

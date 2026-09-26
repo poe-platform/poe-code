@@ -5582,18 +5582,28 @@ export class Runtime {
         state,
         io,
       );
-      if (canWarmFastSingle && !(syncRes instanceof Promise)) {
-        warmedFastSingleCommands.add(externalDef.name);
+      warmedFastSingleCommands.add(externalDef.name);
+      if (canWarmFastSingle && !(syncRes instanceof Promise) && performance.now() - this.budget.startMs < 1) {
         const stdoutCap = !redirectSink ? (io.stdout as Capture) : undefined;
+        const savedStdout = stdoutCap ? stdoutCap.toBytes().slice() : undefined;
         const afterCmds = this.budget.commands;
         const afterBytes = this.budget.bytes;
         const afterFsOps = (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations;
         for (let w = 0; w < 15; w++) {
+          if (performance.now() - this.budget.startMs > 4) break;
           if (stdoutCap) stdoutCap.resetEmpty();
           this.budget.commands = afterCmds - 1;
           this.budget.bytes = 0;
           (this.budget as unknown as { _fileSystemOperations: number })._fileSystemOperations = 0;
-          this.tryFastSinglePipelineUnit(pipeline, state, io, ignored);
+          const wRes = this.tryFastSinglePipelineUnit(pipeline, state, io, ignored);
+          if (wRes instanceof Promise) {
+            wRes.catch(() => {});
+            break;
+          }
+        }
+        if (stdoutCap && savedStdout) {
+          stdoutCap.resetEmpty();
+          stdoutCap.writeRangeSync(savedStdout, savedStdout.length);
         }
         this.budget.commands = afterCmds;
         this.budget.bytes = afterBytes;
@@ -5850,7 +5860,7 @@ export class Runtime {
     const stderrCap = io.stderr as Capture;
     const firstStageName = (pipeline.commands[0]! as Extract<Command, { kind: "simple" }>).words[0]!.plain!;
     const needsWarm = firstStageName === "find" ? !syncPureFindPipelineWarmed : !syncPurePipelineWarmed;
-    if (needsWarm && this._isMemoryBackingFs) {
+    if (needsWarm && this._isMemoryBackingFs && performance.now() - this.budget.startMs < 1) {
       if (firstStageName === "find") syncPureFindPipelineWarmed = true;
       else syncPurePipelineWarmed = true;
       const savedEpoch = monitor.epoch;
@@ -5859,6 +5869,7 @@ export class Runtime {
       syncPurePipelineSlotInUse = false;
       try {
         for (let w = 0; w < 22; w++) {
+          if (performance.now() - this.budget.startMs > 4) break;
           const wRes = this.tryExecuteSyncPurePipelineUnit(pipeline, state, rawState, monitor, io, ignored);
           stdoutCap.resetEmpty();
           stderrCap.resetEmpty();
@@ -5868,7 +5879,11 @@ export class Runtime {
           monitor.epoch = savedEpoch;
           monitor.lazyPipeStatus = savedLazyPipeStatus;
           rawState.status = savedRawStatus;
-          if (!wRes || wRes instanceof Promise) break;
+          if (!wRes) break;
+          if (wRes instanceof Promise) {
+            wRes.catch(() => {});
+            break;
+          }
         }
       } catch {
         stdoutCap.resetEmpty();
@@ -6890,16 +6905,18 @@ export class Runtime {
                   valid = false;
                   break;
                 }
-                if (!syncMkdirRmWarmed && isMkdir) {
+                if (!syncMkdirRmWarmed && isMkdir && performance.now() - this.budget.startMs < 1) {
                   syncMkdirRmWarmed = true;
                   for (let w = 0; w < 12; w++) {
+                    if (performance.now() - this.budget.startMs > 4) break;
                     tryRmRfMemorySync(this.backingFs, targetPath, this.commandSignal);
                     tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal);
                   }
-                } else if (!syncRmPipelineWarmed && isRmRf && pathCount === 1) {
+                } else if (!syncRmPipelineWarmed && isRmRf && pathCount === 1 && performance.now() - this.budget.startMs < 1) {
                   syncRmPipelineWarmed = true;
                   const savedCmds = this.budget.commands;
                   for (let w = 0; w < 10; w++) {
+                    if (performance.now() - this.budget.startMs > 4) break;
                     tryMkdirMemorySync(this.backingFs, targetPath, true, mode, this.commandSignal);
                     this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
                     this.budget.commands = savedCmds;
@@ -7747,7 +7764,7 @@ export class Runtime {
       };
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
     }
-    if (!syncForLoopWarmed && redirectCount === 0 && forPlan.allIntStepsReady) {
+    if (!syncForLoopWarmed && redirectCount === 0 && forPlan.allIntStepsReady && performance.now() - this.budget.startMs < 1) {
       syncForLoopWarmed = true;
       const savedVars: Record<string, string | undefined> = {};
       for (const k of forPlan.touchedIntNamesList) savedVars[k] = rawState.variables[k];
@@ -7760,6 +7777,7 @@ export class Runtime {
       this._syncArithTouched = prevTouched;
       try {
         for (let w = 0; w < 12; w++) {
+          if (performance.now() - this.budget.startMs > 4) break;
           this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
           for (const [k, v] of Object.entries(savedVars)) {
             if (v === undefined) delete rawState.variables[k];

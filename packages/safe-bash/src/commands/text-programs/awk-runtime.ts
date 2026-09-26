@@ -1635,8 +1635,8 @@ export class AwkRuntime {
       }
       const ofmt = this.varText("OFMT");
       if (this.stdoutBuffer.length === 0 && !this.suppressStdout) {
-        const stdoutSink = this.context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
-        if (!stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function" && ofs.length <= 8 && ors.length <= 8) {
+        const stdoutSink = this.context.stdout as { isPipeStage?: boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean } | undefined;
+        if (stdoutSink && !stdoutSink.isPipeStage && typeof stdoutSink.writeRangeSync === "function" && ofs.length <= 8 && ors.length <= 8) {
           let pos = 0;
           let fastPrintOk = true;
           for (let i = 0; i < args.length; i++) {
@@ -2042,36 +2042,59 @@ export class AwkRuntime {
             const bodyLen = body.length;
             const fsChar = this.fsText;
             let recStart = 0;
-            let fastOk = true;
-            for (let lineIdx = 0; lineIdx < endsLen; lineIdx++) {
-              const recEnd = ends[lineIdx]!;
-              const recLen = recEnd - recStart;
-              if (recLen >= 64) { fastOk = false; break; }
-              this.budget.step(2 + recLen);
-              this.recordSource = source;
-              this.recordStart = recStart;
-              this.recordEnd = recEnd;
-              this.fieldCount = -1;
-              this.deferredFieldSeparator = fsChar;
-              this.fieldsMaterialized = false;
-              this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
-              this.recordValue = undefined;
-              const matched = pat === undefined || pat.findSyncFastInto(source, this.budget, recStart, FAST_AWK_MATCH_OFFSETS, recEnd, recStart);
-              if (matched) {
-                this.budget.step(1 + bodyLen);
-                for (let s = 0; s < bodyLen; s++) {
-                  if (!this.tryFastExpressionStatement(body[s]!.expression)) {
+            let completedLines = 0;
+            let fastOk = bodyLen === 1;
+            let checkpointPromise: Promise<void> | undefined;
+            if (fastOk) {
+              for (let lineIdx = 0; lineIdx < endsLen; lineIdx++) {
+                const recEnd = ends[lineIdx]!;
+                const recLen = recEnd - recStart;
+                if (recLen >= 64) { fastOk = false; break; }
+                this.budget.step(2 + recLen);
+                this.recordSource = source;
+                this.recordStart = recStart;
+                this.recordEnd = recEnd;
+                this.fieldCount = -1;
+                this.deferredFieldSeparator = fsChar;
+                this.fieldsMaterialized = false;
+                this.fieldGeneration = (this.fieldGeneration + 1) | 0 || 1;
+                this.recordValue = undefined;
+                const matched = pat === undefined || pat.findSyncFastInto(source, this.budget, recStart, FAST_AWK_MATCH_OFFSETS, recEnd, recStart);
+                if (matched) {
+                  this.budget.step(1 + bodyLen);
+                  if (!this.tryFastExpressionStatement(body[0]!.expression)) {
                     fastOk = false;
                     break;
                   }
                 }
-                if (!fastOk) break;
+                recStart = recEnd + 1;
+                completedLines = lineIdx + 1;
+                if ((completedLines & 63) === 0) {
+                  const cp = this.budget.checkpointSync();
+                  if (cp) {
+                    checkpointPromise = cp;
+                    fastOk = false;
+                    break;
+                  }
+                }
               }
-              if (((lineIdx + 1) & 63) === 0 && this.budget.checkpointSync()) {
-                fastOk = false;
-                break;
+            }
+            if (!fastOk && completedLines > 0) {
+              this.nrNum = completedLines;
+              this.nrDirty = true;
+              this.fnrNum = completedLines;
+              this.fnrDirty = true;
+              this.nfDirty = true;
+              if (this.fastRawView !== undefined) {
+                this.mainReader = Reader.fromMemoryView(this.fastRawView.subarray(recStart), this.budget, this.retention);
+                this.fastBatch = undefined;
+                this.fastRawView = undefined;
+              } else if (this.mainReader) {
+                this.mainReader.offset = recStart;
               }
-              recStart = recEnd + 1;
+              if (checkpointPromise) {
+                return checkpointPromise.then(() => this.continueProgramSlowAsync(ranges));
+              }
             }
             if (fastOk) {
               this.nrNum = endsLen;
@@ -2457,7 +2480,7 @@ export class AwkRuntime {
     while (this.argument < argc) {
       this.budget.step();
       if (this.argument > maxArgs) throw new ProgramError("argument count limit exceeded");
-      if (this.budget.checkpointSync()) return false;
+      { const cp = this.budget.checkpointSync(); if (cp) { cp.catch(() => {}); return false; } }
       const argIdx = this.argument++;
       const argKey = argIdx < SMALL_ARG_KEYS.length ? SMALL_ARG_KEYS[argIdx]! : String(argIdx);
       const next = this.asText((this.pooledArgv ?? this.array("ARGV")).entries.get(argKey) ?? unset);

@@ -287,3 +287,24 @@ test("jq propagates a sink failure without replaying already published output", 
     assert.equal(writes, 1);
   } finally { await shell.dispose(); }
 });
+
+test("cold awk 10000-line workload transitions across checkpointSync without duplicate records or unhandled rejections", async () => {
+  const unhandled: unknown[] = [];
+  const onUnhandled = (reason: unknown) => { unhandled.push(reason); };
+  process.on("unhandledRejection", onUnhandled);
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(textProgramCommands());
+  try {
+    const lines = Array.from({ length: 10000 }, (_, i) => `item_${i}\t${(i % 97) * 13}\t${i % 23}\tstatus_${i % 5}`).join("\n") + "\n";
+    await fs.writeFile("/lines.txt", new TextEncoder().encode(lines));
+    const result = await shell.exec('awk -F"\t" "{sum += \\$3} END {print sum, NR}" /lines.txt');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "109955 10000\n");
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.deepEqual(unhandled, []);
+  } finally {
+    process.off("unhandledRejection", onUnhandled);
+    await shell.dispose();
+  }
+});

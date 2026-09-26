@@ -715,7 +715,8 @@ export class Walker {
           t.dirLabel = cleanLabel;
           t.entryName = entryName;
           t._path = undefined;
-          t._label = undefined;
+          // Keep the explicit root separator when the path prefix would otherwise be empty.
+          t._label = label === "/" ? `/${entryName}` : undefined;
           t._canonicalPath = undefined;
           t._hasCanonical = true;
           t.explicit = false;

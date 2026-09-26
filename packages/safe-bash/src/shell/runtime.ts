@@ -2022,6 +2022,15 @@ Object.assign(FastShellCommandContext.prototype, {
 const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
   "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc", "uniq",
 ]);
+function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
+  if (FAST_DIRECT_CONTEXT_COMMANDS.has(name)) return true;
+  if (name !== "find") return false;
+  for (let i = 1; i < words.length; i++) {
+    const p = words[i]!.plain;
+    if (p === "-exec" || p === "-ok") return false;
+  }
+  return true;
+}
 
 const fastShellCommandAccessors = ["env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map(
   key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const,
@@ -3040,6 +3049,12 @@ class PooledSyncPipeReader implements ByteSource, AsyncIterator<Uint8Array> {
 
   [Symbol.asyncIterator](): this {
     return this;
+  }
+
+  tryReadAllSync(): Uint8Array {
+    this.abortSignal?.throwIfAborted();
+    this.yielded = true;
+    return this.buf;
   }
 
   tryNextSync(): IteratorResult<Uint8Array> {
@@ -5005,7 +5020,7 @@ export class Runtime {
       const w0Plain = command.words[0]!.plain;
       if (
         !w0Plain ||
-        !FAST_DIRECT_CONTEXT_COMMANDS.has(w0Plain) ||
+        !isFastDirectCommand(w0Plain, command.words) ||
         implementedBuiltins.has(w0Plain) ||
         hasShellFunction(rawState, w0Plain) ||
         rawState.extensions?.builtins.has(w0Plain)
@@ -5455,7 +5470,7 @@ export class Runtime {
     for (let i = 0; i < n; i++) {
       const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
       const name = cmd.words[0]!.plain!;
-      if (name !== "grep" && name !== "cut" && name !== "tr" && name !== "sort" && name !== "head") {
+      if (name !== "grep" && name !== "cut" && name !== "tr" && name !== "sort" && name !== "head" && name !== "find" && name !== "wc") {
         return undefined;
       }
       if (!this.getExternalCommand(name)) return undefined;
@@ -8121,7 +8136,7 @@ export class Runtime {
     const firstName = command.words[0]!.plain;
     if (
       firstName === undefined ||
-      !FAST_DIRECT_CONTEXT_COMMANDS.has(firstName) ||
+      !isFastDirectCommand(firstName, command.words) ||
       hasShellFunction(rawState, firstName) ||
       rawState.extensions?.builtins.has(firstName)
     ) {

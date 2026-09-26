@@ -801,7 +801,23 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       } finally { await operation?.close(); }
     }),
     headTail("head"), headTail("tail", maxTailFollowHandles),
-    define("wc", async context => {
+    define("wc", context => {
+      if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
+        const countLines = context.args[0] === "-l";
+        const syncBytes = (context.stdin as { tryReadAllSync?: () => Uint8Array | undefined }).tryReadAllSync?.();
+        if (syncBytes !== undefined && !context.signal.aborted) {
+          let count = 0;
+          if (countLines) {
+            for (let pos = syncBytes.indexOf(10); pos !== -1; pos = syncBytes.indexOf(10, pos + 1)) count++;
+          } else {
+            count = syncBytes.length;
+          }
+          const p = output(context, `${count}\n`);
+          if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
+          return p.then(() => RESOLVED_EXIT_ZERO);
+        }
+      }
+      return (async () => {
       if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c")) {
         const countLines = context.args[0] === "-l";
         const req = assertInputRequirements(context, ["-"]);
@@ -951,6 +967,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       if (totalMode === "only") await print(totals);
       else if (totalMode === "always" || (totalMode === "auto" && names.length > 1)) await print(totals, "total");
       return { exitCode };
+      })();
     }),
     define("tee", async context => {
       const args: string[] = [];

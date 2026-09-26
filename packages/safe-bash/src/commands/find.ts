@@ -4,7 +4,7 @@ import { PublicDiagnostic } from "../diagnostics.js";
 import { basename, FsError, getCommandArguments, type CommandDefinition, type CommandHandler, type FileStat } from "../contracts/index.js";
 import { compilePattern } from "../shell/pattern.js";
 import { getRuntimeBackingFileSystem, isSyncResolved } from "../fs/creation-mask.js";
-import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, UsageError } from "./internal.js";
+import { codeOf, define, diagnostic, integer, output, pathOf, replaceArgument, RESOLVED_EXIT_ZERO, UsageError } from "./internal.js";
 import { escapeText } from "../escaping.js";
 import { createDirectoryReader } from "./directory-admission.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
@@ -17,15 +17,180 @@ const SYNTHETIC_FILE_STAT: FileStat = Object.freeze({ type: "file", size: 0, mod
 const SYNTHETIC_DIR_STAT: FileStat = Object.freeze({ type: "directory", size: 0, mode: 0o755, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
 const SYNTHETIC_SYMLINK_STAT: FileStat = Object.freeze({ type: "symlink", size: 0, mode: 0o777, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
 const SYNTHETIC_CHAR_STAT: FileStat = Object.freeze({ type: "character", size: 0, mode: 0o666, mtimeMs: 0, atimeMs: 0, ctimeMs: 0 });
+const cachedFindPatterns = new Map<string, (text: string) => boolean>();
+function getCachedFindPattern(pattern: string, caseInsensitive: boolean): ((text: string) => boolean) | undefined {
+  for (let i = 0; i < pattern.length; i++) {
+    const c = pattern.charCodeAt(i);
+    if (c === 91 || c === 92 || c === 93) return undefined;
+  }
+  const key = caseInsensitive ? `i:${pattern}` : `s:${pattern}`;
+  let fn = cachedFindPatterns.get(key);
+  if (!fn) {
+    if (cachedFindPatterns.size >= 64) cachedFindPatterns.clear();
+    const star = pattern.indexOf("*");
+    if (!caseInsensitive && pattern.indexOf("?") === -1 && star !== -1 && pattern.indexOf("*", star + 1) === -1) {
+      const prefix = pattern.slice(0, star);
+      const suffix = pattern.slice(star + 1);
+      const minLen = prefix.length + suffix.length;
+      fn = (text: string) => text.length >= minLen && text.startsWith(prefix) && text.endsWith(suffix);
+    } else {
+      let rxSrc = "^";
+      for (let i = 0; i < pattern.length; i++) {
+        const ch = pattern[i]!;
+        if (ch === "*") rxSrc += ".*";
+        else if (ch === "?") rxSrc += ".";
+        else if (".+^${}()|[]\\".includes(ch)) rxSrc += "\\" + ch;
+        else rxSrc += ch;
+      }
+      rxSrc += "$";
+      const rx = new RegExp(rxSrc, caseInsensitive ? "si" : "s");
+      fn = (text: string) => rx.test(text);
+    }
+    cachedFindPatterns.set(key, fn);
+  }
+  return fn;
+}
 const sharedFindPrintBuf = Buffer.allocUnsafe(8192);
 let sharedFindPrintBufInUse = false;
+const findKeyScratch: string[] = new Array(256).fill("");
+let findKeyScratchTop = 0;
+let findKeySorted = true;
+let findKeyAllFiles = true;
+let findKeyPrev = "";
+const SHELLSORT_GAPS = [701, 301, 132, 57, 23, 10, 4, 1];
+function collectFindKey(v: { readonly type?: string }, k: string): void {
+  if (v.type !== "file") findKeyAllFiles = false;
+  if (findKeyPrev > k) findKeySorted = false;
+  findKeyPrev = k;
+  if (findKeyScratchTop === findKeyScratch.length) findKeyScratch.push(k);
+  else findKeyScratch[findKeyScratchTop] = k;
+  findKeyScratchTop++;
+}
+function sortFindKeyRange(start: number, end: number): void {
+  const len = end - start;
+  for (let g = 0; g < SHELLSORT_GAPS.length; g++) {
+    const gap = SHELLSORT_GAPS[g]!;
+    if (gap >= len) continue;
+    for (let i = start + gap; i < end; i++) {
+      const key = findKeyScratch[i]!;
+      let j = i;
+      while (j >= start + gap && findKeyScratch[j - gap]! > key) {
+        findKeyScratch[j] = findKeyScratch[j - gap]!;
+        j -= gap;
+      }
+      findKeyScratch[j] = key;
+    }
+  }
+}
+function stageAndSortFindKeys(map: ReadonlyMap<string, unknown>, baseOffset: number): number {
+  findKeyScratchTop = baseOffset;
+  findKeySorted = true;
+  findKeyAllFiles = true;
+  findKeyPrev = "";
+  map.forEach(collectFindKey as (v: unknown, k: string) => void);
+  if (!findKeySorted) {
+    sortFindKeyRange(baseOffset, findKeyScratchTop);
+  }
+  return findKeyScratchTop;
+}
 function syntheticStatFor(type: FileStat["type"]): FileStat {
   return type === "file" ? SYNTHETIC_FILE_STAT : type === "directory" ? SYNTHETIC_DIR_STAT : type === "symlink" ? SYNTHETIC_SYMLINK_STAT : SYNTHETIC_CHAR_STAT;
 }
 
 export function findCommands(execute: CommandHandler, maxDirectoryEntries?: number): CommandDefinition[] {
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
-  return [define("find", async context => {
+  return [define("find", context => {
+    if (
+      !context.argumentValues &&
+      context.args.length === 3 &&
+      (context.args[1] === "-name" || context.args[1] === "-iname") &&
+      !sharedFindPrintBufInUse &&
+      !context.signal.aborted
+    ) {
+      const rootDisplay = context.args[0]!;
+      if (rootDisplay && !rootDisplay.startsWith("-") && rootDisplay !== "!" && rootDisplay !== "(") {
+        const fastBacking = (context as { _fastMemoryBackingFs?: ReturnType<typeof getRuntimeBackingFileSystem> })._fastMemoryBackingFs;
+        const backing = fastBacking ?? getRuntimeBackingFileSystem(context.fs);
+        if (
+          backing !== undefined &&
+          backing.capabilitiesFor === undefined &&
+          backing.capabilities.readOnly !== true &&
+          backing.capabilities.readdir !== false &&
+          backing.capabilities.realpath !== false
+        ) {
+          const path = pathOf(context, rootDisplay);
+          if (path !== "/dev" && !path.startsWith("/dev/")) {
+            const match = getCachedFindPattern(context.args[2]!, context.args[1] === "-iname");
+            const memDirEntries = match !== undefined ? tryGetMemoryDirectoryEntryNamesSync(backing, path) : undefined;
+            if (match !== undefined && memDirEntries !== undefined && memDirEntries.size <= (maxDirectoryEntries ?? 10000)) {
+              const keyBase = findKeyScratchTop;
+              const keyEnd = stageAndSortFindKeys(memDirEntries, keyBase);
+              if (findKeyAllFiles) {
+                try {
+                  assertCommandRequirements(context, filesystemCommandRequirements.ls, ["directory"], backing.capabilities);
+                  if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
+                  let parent = rootDisplay;
+                  while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
+                  const escapedParent = escapeText(parent === "/" ? "" : parent, "display");
+                  const rootName = basename(rootDisplay) || "/";
+                  sharedFindPrintBufInUse = true;
+                  let printPos = 0;
+                  let overflow = false;
+                  if (match(rootName)) {
+                    const escRoot = escapeText(rootDisplay, "display");
+                    if (escRoot.length * 3 + 1 <= sharedFindPrintBuf.length) {
+                      printPos += sharedFindPrintBuf.write(escRoot, printPos, "utf8");
+                      sharedFindPrintBuf[printPos++] = 10;
+                    } else {
+                      overflow = true;
+                    }
+                  }
+                  if (!overflow) {
+                    for (let i = keyBase; i < keyEnd; i++) {
+                      const childName = findKeyScratch[i]!;
+                      if (match(childName)) {
+                        const escChild = escapeText(childName, "display");
+                        if (printPos + (escapedParent.length + escChild.length) * 3 + 2 > sharedFindPrintBuf.length) {
+                          overflow = true;
+                          break;
+                        }
+                        printPos += sharedFindPrintBuf.write(escapedParent, printPos, "utf8");
+                        sharedFindPrintBuf[printPos++] = 47;
+                        printPos += sharedFindPrintBuf.write(escChild, printPos, "utf8");
+                        sharedFindPrintBuf[printPos++] = 10;
+                      }
+                    }
+                  }
+                  if (!overflow) {
+                    if (printPos === 0) {
+                      sharedFindPrintBufInUse = false;
+                      return RESOLVED_EXIT_ZERO;
+                    }
+                    const p = output(context, sharedFindPrintBuf.subarray(0, printPos));
+                    if (isSyncResolved(p)) {
+                      sharedFindPrintBufInUse = false;
+                      return RESOLVED_EXIT_ZERO;
+                    }
+                    return p.then(() => {
+                      sharedFindPrintBufInUse = false;
+                      return RESOLVED_EXIT_ZERO;
+                    });
+                  }
+                  sharedFindPrintBufInUse = false;
+                } finally {
+                  findKeyScratch.fill("", keyBase, keyEnd);
+                  findKeyScratchTop = keyBase;
+                }
+              } else {
+                findKeyScratch.fill("", keyBase, keyEnd);
+                findKeyScratchTop = keyBase;
+              }
+            }
+          }
+        }
+      }
+    }
+    return (async () => {
     const startedAt = Date.now();
     const rawArgumentValues = context.argumentValues ? getCommandArguments(context) : undefined;
     const args = rawArgumentValues ? [...rawArgumentValues.args] : [...context.args];
@@ -419,47 +584,45 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           const escapedParent = canSkipChildStat && !needsDisplay ? escapeText(parent, "display") : "";
           const childDepth = depth + 1;
           if (memDirEntries !== undefined && memDirEntries.size <= maxEntriesLimit) {
-            let isSorted = true;
-            let prevKey = "";
-            for (const k of memDirEntries.keys()) {
-              if (prevKey > k) { isSorted = false; break; }
-              prevKey = k;
-            }
-            const sortedKeys = isSorted ? undefined : Array.from(memDirEntries.keys()).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-            const totalChildren = memDirEntries.size;
-            const keyIter = isSorted ? memDirEntries.keys() : undefined;
-            for (let i = 0; i < totalChildren; i++) {
-              if (quitRequested) return;
-              const childName = keyIter ? keyIter.next().value! : sortedKeys![i]!;
-              const childType = memDirEntries.get(childName)!.type;
-              if (childType === "file" && childDepth <= 1024) {
-                if (childDepth >= minDepth) {
-                  scratchChildEntry.name = childName;
-                  scratchChildEntry.depth = childDepth;
-                  scratchChildEntry.root = root;
-                  scratchChildEntry.prune = false;
-                  if (needsDisplay) {
-                    const childDisplay = `${parent}/${childName}`;
-                    scratchChildEntry.display = childDisplay;
-                    scratchChildEntry.path = pathOf(context, childDisplay);
-                    scratchChildEntry.relative = relative ? `${relative}/${childName}` : childName;
-                  }
-                  const res = evaluate(scratchChildEntry);
-                  const ok = typeof res === "boolean" ? res : await res;
-                  if (ok) {
-                    if (needsDisplay) await appendPrintLine(escapeText(scratchChildEntry.display, "display"));
-                    else {
-                      const pending = appendPrintChild(escapedParent, escapeText(childName, "display"));
-                      if (pending) await pending;
+            const keyBase = findKeyScratchTop;
+            const keyEnd = stageAndSortFindKeys(memDirEntries, keyBase);
+            try {
+              for (let i = keyBase; i < keyEnd; i++) {
+                if (quitRequested) return;
+                const childName = findKeyScratch[i]!;
+                const childType = memDirEntries.get(childName)!.type;
+                if (childType === "file" && childDepth <= 1024) {
+                  if (childDepth >= minDepth) {
+                    scratchChildEntry.name = childName;
+                    scratchChildEntry.depth = childDepth;
+                    scratchChildEntry.root = root;
+                    scratchChildEntry.prune = false;
+                    if (needsDisplay) {
+                      const childDisplay = `${parent}/${childName}`;
+                      scratchChildEntry.display = childDisplay;
+                      scratchChildEntry.path = pathOf(context, childDisplay);
+                      scratchChildEntry.relative = relative ? `${relative}/${childName}` : childName;
+                    }
+                    const res = evaluate(scratchChildEntry);
+                    const ok = typeof res === "boolean" ? res : await res;
+                    if (ok) {
+                      if (needsDisplay) await appendPrintLine(escapeText(scratchChildEntry.display, "display"));
+                      else {
+                        const pending = appendPrintChild(escapedParent, escapeText(childName, "display"));
+                        if (pending) await pending;
+                      }
                     }
                   }
+                  continue;
                 }
-                continue;
+                next ??= new Set(ancestors).add(physical);
+                const childDisplay = `${parent}/${childName}`;
+                const childRel = relative ? `${relative}/${childName}` : childName;
+                await visit(childDisplay, childDepth, next, root, childRel, childName, childType);
               }
-              next ??= new Set(ancestors).add(physical);
-              const childDisplay = `${parent}/${childName}`;
-              const childRel = relative ? `${relative}/${childName}` : childName;
-              await visit(childDisplay, childDepth, next, root, childRel, childName, childType);
+            } finally {
+              findKeyScratch.fill("", keyBase, keyEnd);
+              findKeyScratchTop = keyBase;
             }
           } else {
           const children = await readDirectory(context, path, true);
@@ -522,5 +685,6 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     } finally {
       if (useSharedPrintBuf) sharedFindPrintBufInUse = false;
     }
+    })();
   })];
 }

@@ -61,12 +61,15 @@ class MemoryFileNode implements FileNode {
   declare allocation: MemoryAllocation;
 
   constructor(mode: number, ino: number, now: number, byteLength: number, allocation: MemoryAllocation, view?: Uint8Array) {
+    this.revision = 0;
     this.mode = mode;
     this.ino = ino;
+    this.nlink = 1;
     this.atimeMs = now;
     this.mtimeMs = now;
     this.ctimeMs = now;
     this.birthtimeMs = now;
+    this.references = 0;
     this.byteLength = byteLength;
     this.allocation = allocation;
     this.view = view;
@@ -94,6 +97,190 @@ let smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
 let smallAllocOffset = 0;
 const DUMMY_POOL_LEDGER = new MemoryLedger(normalizeMemoryFileSystemLimits({}));
 const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL_LEDGER);
+const DUMMY_POOL_FILE_NODE = new MemoryFileNode(0, 0, null as unknown as number, 0, DUMMY_POOL_ALLOCATION, DUMMY_POOL_ALLOCATION.data);
+DUMMY_POOL_FILE_NODE.atimeMs = DUMMY_POOL_FILE_NODE.mtimeMs = DUMMY_POOL_FILE_NODE.ctimeMs = DUMMY_POOL_FILE_NODE.birthtimeMs = 1700000000000;
+let fastWriteCachedNow: number = Date.now();
+let fastWriteNowTick = 0;
+
+class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
+  private _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);
+  private _mask = 127;
+  private _keys: string[] = new Array<string>(64).fill("");
+  private _vals: MemoryNode[] = new Array<MemoryNode>(64).fill(DUMMY_POOL_FILE_NODE);
+  private _next = 0;
+  size = 0;
+  readonly [Symbol.toStringTag] = "Map";
+
+  private _hash(k: string): number {
+    let h = 2166136261;
+    for (let i = 0; i < k.length; i++) {
+      h = Math.imul(h ^ k.charCodeAt(i), 16777619);
+    }
+    return h & this._mask;
+  }
+
+  get(k: string): MemoryNode | undefined {
+    if (this.size === 0) return undefined;
+    let slot = this._hash(k);
+    const mask = this._mask;
+    const table = this._table;
+    const keys = this._keys;
+    while (true) {
+      const idx = table[slot]!;
+      if (idx === -1) return undefined;
+      if (idx >= 0 && keys[idx] === k) return this._vals[idx];
+      slot = (slot + 1) & mask;
+    }
+  }
+
+  has(k: string): boolean {
+    return this.get(k) !== undefined;
+  }
+
+  private _rebuild(newCap: number): void {
+    const newTableLen = newCap * 2;
+    const newMask = newTableLen - 1;
+    const newTable = newCap <= 16384 ? new Int16Array(newTableLen).fill(-1) : new Int32Array(newTableLen).fill(-1);
+    const oldKeys = this._keys;
+    const oldVals = this._vals;
+    const oldNext = this._next;
+    const newKeys = newCap === oldKeys.length ? oldKeys : new Array<string>(newCap).fill("");
+    const newVals = newCap === oldVals.length ? oldVals : new Array<MemoryNode>(newCap).fill(DUMMY_POOL_FILE_NODE);
+    let writeIdx = 0;
+    for (let i = 0; i < oldNext; i++) {
+      const v = oldVals[i]!;
+      if (v === DUMMY_POOL_FILE_NODE) continue;
+      const k = oldKeys[i]!;
+      newKeys[writeIdx] = k;
+      newVals[writeIdx] = v;
+      let h = 2166136261;
+      for (let c = 0; c < k.length; c++) {
+        h = Math.imul(h ^ k.charCodeAt(c), 16777619);
+      }
+      let slot = h & newMask;
+      while (newTable[slot]! !== -1) {
+        slot = (slot + 1) & newMask;
+      }
+      newTable[slot] = writeIdx++;
+    }
+    if (newKeys === oldKeys) {
+      for (let i = writeIdx; i < oldNext; i++) {
+        newKeys[i] = "";
+        newVals[i] = DUMMY_POOL_FILE_NODE;
+      }
+    }
+    this._table = newTable;
+    this._mask = newMask;
+    this._keys = newKeys;
+    this._vals = newVals;
+    this._next = writeIdx;
+  }
+
+  set(k: string, v: MemoryNode): this {
+    if (this._next >= this._keys.length) {
+      this._rebuild(this.size * 2 <= this._keys.length ? this._keys.length : this._keys.length * 2);
+    }
+    let slot = this._hash(k);
+    const mask = this._mask;
+    const table = this._table;
+    const keys = this._keys;
+    let firstDeleted = -1;
+    while (true) {
+      const idx = table[slot]!;
+      if (idx === -1) {
+        const targetSlot = firstDeleted !== -1 ? firstDeleted : slot;
+        const entryIdx = this._next++;
+        table[targetSlot] = entryIdx;
+        keys[entryIdx] = k;
+        this._vals[entryIdx] = v;
+        this.size++;
+        return this;
+      }
+      if (idx === -2) {
+        if (firstDeleted === -1) firstDeleted = slot;
+      } else if (keys[idx] === k) {
+        this._vals[idx] = v;
+        return this;
+      }
+      slot = (slot + 1) & mask;
+    }
+  }
+
+  delete(k: string): boolean {
+    if (this.size === 0) return false;
+    let slot = this._hash(k);
+    const mask = this._mask;
+    const table = this._table;
+    const keys = this._keys;
+    while (true) {
+      const idx = table[slot]!;
+      if (idx === -1) return false;
+      if (idx >= 0 && keys[idx] === k) {
+        if (this.size === 1) {
+          this.clear();
+          return true;
+        }
+        table[slot] = -2;
+        keys[idx] = "";
+        this._vals[idx] = DUMMY_POOL_FILE_NODE;
+        if (idx === this._next - 1) this._next--;
+        this.size--;
+        return true;
+      }
+      slot = (slot + 1) & mask;
+    }
+  }
+
+  clear(): void {
+    if (this._next > 0) {
+      this._table.fill(-1);
+      for (let i = 0; i < this._next; i++) {
+        this._keys[i] = "";
+        this._vals[i] = DUMMY_POOL_FILE_NODE;
+      }
+      this._next = 0;
+      this.size = 0;
+    }
+  }
+
+  forEach(callbackfn: (value: MemoryNode, key: string, map: Map<string, MemoryNode>) => void, thisArg?: unknown): void {
+    const next = this._next;
+    const keys = this._keys;
+    const vals = this._vals;
+    for (let i = 0; i < next; i++) {
+      const v = vals[i]!;
+      if (v !== DUMMY_POOL_FILE_NODE) {
+        if (thisArg !== undefined) callbackfn.call(thisArg, v, keys[i]!, this);
+        else callbackfn(v, keys[i]!, this);
+      }
+    }
+  }
+
+  *keys(): MapIterator<string> {
+    for (let i = 0; i < this._next; i++) {
+      if (this._vals[i] !== DUMMY_POOL_FILE_NODE) yield this._keys[i]!;
+    }
+  }
+
+  *values(): MapIterator<MemoryNode> {
+    for (let i = 0; i < this._next; i++) {
+      const v = this._vals[i]!;
+      if (v !== DUMMY_POOL_FILE_NODE) yield v;
+    }
+  }
+
+  *entries(): MapIterator<[string, MemoryNode]> {
+    for (let i = 0; i < this._next; i++) {
+      const v = this._vals[i]!;
+      if (v !== DUMMY_POOL_FILE_NODE) yield [this._keys[i]!, v];
+    }
+  }
+
+  [Symbol.iterator](): MapIterator<[string, MemoryNode]> {
+    return this.entries();
+  }
+}
+
 const sharedAllocationPool: MemoryAllocation[] = [];
 const sharedFileNodePool: MemoryFileNode[] = [];
 const sharedDirectoryNodePool: MemoryDirectoryNode[] = [];
@@ -120,10 +307,10 @@ function replenishSharedMemoryPools(): void {
     sharedAllocationPool.push(alloc);
   }
   while (sharedFileNodePool.length < 112) {
-    sharedFileNodePool.push(new MemoryFileNode(0, 0, 0, 0, DUMMY_POOL_ALLOCATION, undefined));
+    sharedFileNodePool.push(new MemoryFileNode(0, 0, fastWriteCachedNow, 0, DUMMY_POOL_ALLOCATION, undefined));
   }
   while (sharedDirectoryNodePool.length < 16) {
-    sharedDirectoryNodePool.push(new MemoryDirectoryNode(0, 0, 0));
+    sharedDirectoryNodePool.push(new MemoryDirectoryNode(0, 0, fastWriteCachedNow));
   }
 }
 
@@ -150,13 +337,18 @@ class MemoryDirectoryNode implements DirectoryNode {
   declare cachedNlinkRev?: number;
 
   constructor(mode: number, ino: number, now: number) {
+    this.revision = 0;
     this.mode = mode;
     this.ino = ino;
+    this.nlink = 1;
+    this.references = 0;
     this.atimeMs = now;
     this.mtimeMs = now;
     this.ctimeMs = now;
     this.birthtimeMs = now;
-    this.entries = new Map();
+    this.entries = new FastDirectoryEntriesMap();
+    this.cachedNlink = 2;
+    this.cachedNlinkRev = 0;
   }
 }
 Object.assign(MemoryDirectoryNode.prototype, {
@@ -167,6 +359,8 @@ Object.assign(MemoryDirectoryNode.prototype, {
   cachedNlink: 2,
   cachedNlinkRev: 0,
 });
+const DUMMY_POOL_DIR_NODE = new MemoryDirectoryNode(0, 0, null as unknown as number);
+DUMMY_POOL_DIR_NODE.atimeMs = DUMMY_POOL_DIR_NODE.mtimeMs = DUMMY_POOL_DIR_NODE.ctimeMs = DUMMY_POOL_DIR_NODE.birthtimeMs = 1700000000000;
 
 interface SymlinkNode extends Metadata {
   type: "symlink";
@@ -1449,16 +1643,16 @@ export class MemoryFileSystem implements FileSystem {
           allocation.data.set(data);
           this.ledger.reserve(nameBytes, 2, syscall, name);
           try {
-            const now = Date.now();
+            const now = ((++fastWriteNowTick & 15) === 0) ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow;
             const fileMode = typeModes.file | mode;
             const view = capacity === length ? allocation.data : undefined;
             let node = sharedFileNodePool.pop() ?? cache.files.pop();
             if (node) {
               node.mode = fileMode;
               node.ino = this.nextInode++;
-              node.nlink = 1;
-              node.references = 0;
-              node.revision = 0;
+              if (node.nlink !== 1) node.nlink = 1;
+              if (node.references !== 0) node.references = 0;
+              if (node.revision !== 0) node.revision = 0;
               node.atimeMs = now;
               node.mtimeMs = now;
               node.ctimeMs = now;

@@ -84,6 +84,7 @@ export class MemoryAllocation {
   declare private ledger: MemoryLedger;
 
   constructor(data: Uint8Array, ledger: MemoryLedger) {
+    this.references = 1;
     this.data = data;
     this.ledger = ledger;
   }

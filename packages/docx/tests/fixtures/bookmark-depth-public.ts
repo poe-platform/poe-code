@@ -12,7 +12,8 @@ const { strict, depth, action, route } = JSON.parse(request) as {
 const memory = Volume.fromJSON({ "/input": "", "/out": "", "/err": "" });
 const limits = { ...textContext.limits, maxArchiveBytes: 2 ** 21, maxEntryBytes: 2 ** 20, maxTotalBytes: 2 ** 22, maxRetainedBytes: 2 ** 31 };
 const documentLimits = { xmlDepth: depth + 16, retainedBytes: 2 ** 31, work: 2 ** 31 };
-const context = () => ({ ...textContext, limits, budget: new api.DocumentBudget(documentLimits) });
+// Depth and retained bytes use the scheduling port; the CLI engine keeps real turns.
+const context = () => ({ ...textContext, limits, budget: new api.DocumentBudget(documentLimits, new AbortController().signal, async () => {}) });
 const base = await textFixture('<w:p><w:bookmarkStart w:id="11" w:name="Coast"/><w:r><w:rPr><w:b/></w:rPr><w:t>Target é 海</w:t></w:r><w:bookmarkEnd w:id="11"/></w:p><w:sectPr/>', {}, strict);
 const archive = await api.readArchive(base, context());
 const main = archive.members.find(m => m.name === "word/document.xml")!;

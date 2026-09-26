@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
-import { monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
+import { hasYieldCheckpoint, monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
 import type { CommandContext } from "safe-bash-contracts";
 
 const validatedTextProgramOptions = new WeakSet<TextProgramOptions>();
@@ -43,7 +43,8 @@ export class Budget {
   private unlimited: boolean;
   private signal: AbortSignal;
   private checkpoints = 0;
-  private lastYield = monotonicNow();
+  private hasExtYield = false;
+  private lastYield = monotonicNow() | 0;
   static acquire(context: CommandContext, options: TextProgramOptions): Budget {
     if (!pooledBudgetA) {
       pooledBudgetA = new Budget(DUMMY_COMMAND_CONTEXT, options);
@@ -99,7 +100,8 @@ export class Budget {
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
     this.checkpoints = 0;
-    this.lastYield = monotonicNow();
+    this.hasExtYield = hasYieldCheckpoint(context.signal);
+    this.lastYield = this.hasExtYield ? (monotonicNow() | 0) : -1;
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
   }
   step(count = 1): void {
@@ -131,14 +133,21 @@ export class Budget {
     if ((count & 255) === 0) {
       return this.yieldCheckpointAsync();
     }
-    if (monotonicNow() - this.lastYield >= 25) {
-      return this.yieldCheckpointAsync();
+    if (this.hasExtYield || (count & 63) === 0) {
+      const now = monotonicNow() | 0;
+      if (this.lastYield < 0) {
+        this.lastYield = now;
+        return undefined;
+      }
+      if (now - this.lastYield >= 25) {
+        return this.yieldCheckpointAsync();
+      }
     }
     return undefined;
   }
   private async yieldCheckpointAsync(): Promise<void> {
     await yieldTurn(this.signal);
-    this.lastYield = monotonicNow();
+    this.lastYield = monotonicNow() | 0;
     this.signal.throwIfAborted();
   }
 }

@@ -624,6 +624,7 @@ class MemoryReadStream implements ByteSource, AsyncIterableIterator<Uint8Array> 
 }
 
 export class MemoryFileSystem implements FileSystem {
+  _weakSelf?: WeakRef<MemoryFileSystem>;
   capabilitiesFor?: NonNullable<FileSystem["capabilitiesFor"]>;
   readonly capabilities: FileSystemCapabilities = ((filesystem: MemoryFileSystem) => {
     return Object.freeze({
@@ -1445,8 +1446,10 @@ export class MemoryFileSystem implements FileSystem {
       if (position > curLen) storage.fill(0, curLen, position);
       if (dataLen === data.byteLength) {
         storage.set(data, position);
+      } else if (typeof (data as Buffer).copy === "function") {
+        (data as Buffer).copy(storage, position, 0, dataLen);
       } else {
-        storage.set(data.subarray(0, dataLen), position);
+        for (let i = 0; i < dataLen; i++) storage[position + i] = data[i]!;
       }
     } catch (error) {
       if (allocation !== node.allocation) allocation.release();
@@ -2736,6 +2739,18 @@ export class MemoryRedirectHandle {
 }
 const redirectHandlePool: { handle: MemoryRedirectHandle | undefined } = { handle: undefined };
 
+interface RedirectNodePoolSlot {
+  ownerFsRef: WeakRef<MemoryFileSystem> | undefined;
+  readonly node: MemoryFileNode;
+  readonly alloc: MemoryAllocation;
+}
+const redirectNodePool: RedirectNodePoolSlot[] = Array.from({ length: 4 }, () => {
+  const alloc = new MemoryAllocation(new Uint8Array(65536), DUMMY_POOL_LEDGER);
+  const node = new MemoryFileNode(0o100644, 1, 0, 0, alloc, EMPTY_ALLOC_BYTES);
+  return { ownerFsRef: undefined, node, alloc };
+});
+
+
 export function tryOpenMemoryRedirectHandleSync(
   filesystem: FileSystem,
   path: string,
@@ -2823,28 +2838,53 @@ export function tryOpenMemoryRedirectHandleSync(
     const now = Date.now === defaultDateNow ? ((++fastWriteNowTick & 63) === 0 ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow) : Date.now();
     const fileMode = typeModes.file | validMode;
     let newNode: MemoryFileNode | undefined;
-    if (sharedFileNodePoolLen > 0) {
-      newNode = sharedFileNodePool[--sharedFileNodePoolLen]!;
-      sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
-    } else {
-      newNode = cache.files.pop();
+    if (ledger.hasInfiniteRetained && ledger.hasInfiniteFileBytes && ledger.limits.maxBytes === undefined) {
+      for (let s = 0; s < 4; s++) {
+        const slot = redirectNodePool[s]!;
+        if (slot.ownerFsRef === undefined || slot.ownerFsRef.deref() === undefined) {
+          slot.ownerFsRef = mem._weakSelf;
+          slot.alloc.reuse(ledger);
+          newNode = slot.node;
+          newNode.mode = fileMode;
+          newNode.ino = memInternal.nextInode++;
+          newNode.nlink = 1;
+          newNode.references = 1;
+          newNode.revision = 0;
+          newNode.atimeMs = now;
+          newNode.mtimeMs = now;
+          newNode.ctimeMs = now;
+          newNode.birthtimeMs = now;
+          newNode.byteLength = 0;
+          newNode.view = EMPTY_ALLOC_BYTES;
+          newNode.allocation = slot.alloc;
+          break;
+        }
+      }
     }
-    if (newNode) {
-      newNode.mode = fileMode;
-      newNode.ino = memInternal.nextInode++;
-      newNode.nlink = 1;
-      newNode.references = 1;
-      newNode.revision = 0;
-      newNode.atimeMs = now;
-      newNode.mtimeMs = now;
-      newNode.ctimeMs = now;
-      newNode.birthtimeMs = now;
-      newNode.byteLength = 0;
-      newNode.view = EMPTY_ALLOC_BYTES;
-      newNode.allocation = DUMMY_POOL_ALLOCATION;
-    } else {
-      newNode = new MemoryFileNode(fileMode, memInternal.nextInode++, now, 0, DUMMY_POOL_ALLOCATION, EMPTY_ALLOC_BYTES);
-      newNode.references = 1;
+    if (!newNode) {
+      if (sharedFileNodePoolLen > 0) {
+        newNode = sharedFileNodePool[--sharedFileNodePoolLen]!;
+        sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
+      } else {
+        newNode = cache.files.pop();
+      }
+      if (newNode) {
+        newNode.mode = fileMode;
+        newNode.ino = memInternal.nextInode++;
+        newNode.nlink = 1;
+        newNode.references = 1;
+        newNode.revision = 0;
+        newNode.atimeMs = now;
+        newNode.mtimeMs = now;
+        newNode.ctimeMs = now;
+        newNode.birthtimeMs = now;
+        newNode.byteLength = 0;
+        newNode.view = EMPTY_ALLOC_BYTES;
+        newNode.allocation = DUMMY_POOL_ALLOCATION;
+      } else {
+        newNode = new MemoryFileNode(fileMode, memInternal.nextInode++, now, 0, DUMMY_POOL_ALLOCATION, EMPTY_ALLOC_BYTES);
+        newNode.references = 1;
+      }
     }
     const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
     parent.entries.set(name, newNode);

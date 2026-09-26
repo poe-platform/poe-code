@@ -25,12 +25,48 @@ export function validatePath(path: string, maxComponents = MAX_PATH_COMPONENTS):
   }
 }
 
-export function resolvePath(cwd: string, ...paths: string[]): string {
+function isFastCleanAbsPath(path: string): boolean {
+  const len = path.length;
+  if (len === 0 || path.charCodeAt(0) !== 47) return false;
+  if (len === 1) return true;
+  if (path.charCodeAt(len - 1) === 47) return false;
+  let segStart = 1;
+  for (let i = 1; i < len; i++) {
+    const c = path.charCodeAt(i);
+    if (c === 0) return false;
+    if (c === 47) {
+      const segLen = i - segStart;
+      if (segLen === 0) return false;
+      if (segLen === 1 && path.charCodeAt(segStart) === 46) return false;
+      if (segLen === 2 && path.charCodeAt(segStart) === 46 && path.charCodeAt(segStart + 1) === 46) return false;
+      segStart = i + 1;
+    }
+  }
+  const lastLen = len - segStart;
+  if (lastLen === 1 && path.charCodeAt(segStart) === 46) return false;
+  if (lastLen === 2 && path.charCodeAt(segStart) === 46 && path.charCodeAt(segStart + 1) === 46) return false;
+  return true;
+}
+
+export function resolvePath(cwd: string, ...paths: string[]): string;
+export function resolvePath(cwd: string, path0?: string): string {
   validatePath(cwd);
   if (!cwd.startsWith("/")) throw new FsError("EINVAL", { syscall: "resolve", path: cwd, message: "cwd must be absolute" });
-  for (const path of paths) validatePath(path);
+  const argLen = arguments.length;
+  if (argLen === 1) {
+    if (isFastCleanAbsPath(cwd)) return cwd;
+  } else if (argLen === 2 && typeof path0 === "string") {
+    validatePath(path0);
+    if (isFastCleanAbsPath(path0)) return path0;
+    if (isFastCleanAbsPath(cwd) && path0.length > 0 && path0.charCodeAt(0) !== 47 && !path0.includes("/")) {
+      if (path0 === ".") return cwd;
+      if (path0 !== "..") return cwd === "/" ? `/${path0}` : `${cwd}/${path0}`;
+    }
+  }
   const components: string[] = [];
-  for (const path of [cwd, ...paths]) {
+  for (let a = 0; a < argLen; a++) {
+    const path = arguments[a] as string;
+    if (a > 0) validatePath(path);
     if (path.startsWith("/")) components.length = 0;
     for (const component of path.split("/")) {
       if (component === "" || component === ".") continue;

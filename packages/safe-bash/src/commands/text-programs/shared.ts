@@ -233,6 +233,21 @@ export async function* lineRecordBatches(context: CommandContext, files: readonl
   }
 }
 
+function handleCommandError(name: string, context: CommandContext, error: unknown): Promise<{ exitCode: number }> {
+  return (async () => {
+    context.signal.throwIfAborted();
+    await writeDiagnostic(context.stderr, `${name}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
+    return { exitCode: error instanceof ProgramError ? 2 : 1 };
+  })();
+}
+
+function finishCommandAsync(name: string, context: CommandContext, res: Promise<number>): Promise<{ exitCode: number }> {
+  return res.then(
+    exitCode => ({ exitCode }),
+    error => handleCommandError(name, context, error),
+  );
+}
+
 export function command(name: string, run: (context: CommandContext) => number | Promise<number>): CommandDefinition {
   return {
     name,
@@ -243,20 +258,9 @@ export function command(name: string, run: (context: CommandContext) => number |
         if (typeof res === "number") {
           return res === 0 ? RESOLVED_EXIT_ZERO : res === 1 ? RESOLVED_EXIT_ONE : Promise.resolve({ exitCode: res });
         }
-        return res.then(
-          exitCode => ({ exitCode }),
-          async error => {
-            context.signal.throwIfAborted();
-            await writeDiagnostic(context.stderr, `${name}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
-            return { exitCode: error instanceof ProgramError ? 2 : 1 };
-          },
-        );
+        return finishCommandAsync(name, context, res);
       } catch (error) {
-        return (async () => {
-          context.signal.throwIfAborted();
-          await writeDiagnostic(context.stderr, `${name}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`, context.signal);
-          return { exitCode: error instanceof ProgramError ? 2 : 1 };
-        })();
+        return handleCommandError(name, context, error);
       }
     },
   };

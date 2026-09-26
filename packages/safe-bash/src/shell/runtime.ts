@@ -1,4 +1,7 @@
 const sharedCaptureDecoder = new TextDecoder();
+const cachedCaptureAsciiBytes = new Uint8Array(4096);
+let cachedCaptureAsciiLen = 0;
+let cachedCaptureAsciiStr = "";
 import type { InternalErrorHandler } from "../contracts/command.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { workerRuntimeContexts, shellDescriptorAdmissions } from "../worker/runtime-context.js";
@@ -967,7 +970,23 @@ export class Capture implements ByteSink {
         for (let i = 0; i < len; i++) s += String.fromCharCode(buf[i]!);
         return s;
       }
-      return typeof globalThis.Buffer === "function" ? (globalThis.Buffer.prototype as unknown as { utf8Slice(s: number, e: number): string }).utf8Slice.call(buf, 0, len) : sharedCaptureDecoder.decode(buf.subarray(0, len));
+      if (len === cachedCaptureAsciiLen) {
+        let same = true;
+        for (let i = 0; i < len; i++) {
+          if (buf[i] !== cachedCaptureAsciiBytes[i]) {
+            same = false;
+            break;
+          }
+        }
+        if (same) return cachedCaptureAsciiStr;
+      }
+      const decoded = typeof globalThis.Buffer === "function" ? (globalThis.Buffer.prototype as unknown as { utf8Slice(s: number, e: number): string }).utf8Slice.call(buf, 0, len) : sharedCaptureDecoder.decode(buf.subarray(0, len));
+      if (len <= 4096) {
+        for (let i = 0; i < len; i++) cachedCaptureAsciiBytes[i] = buf[i]!;
+        cachedCaptureAsciiLen = len;
+        cachedCaptureAsciiStr = decoded;
+      }
+      return decoded;
     }
     return this.takeBytes();
   }
@@ -3399,6 +3418,11 @@ let pooledSyncPipeContext: FastShellCommandContext | undefined;
 let pooledMemoryRedirectSink: MemoryRedirectSink | undefined;
 export function clearRuntimePools(): void {
   sharedSyncPipeReader.clearViews();
+  if (cachedCaptureAsciiLen > 0) {
+    cachedCaptureAsciiBytes.fill(0, 0, cachedCaptureAsciiLen);
+    cachedCaptureAsciiLen = 0;
+    cachedCaptureAsciiStr = "";
+  }
   pooledFastSingleContext = undefined;
   pooledSyncPipeContext = undefined;
   pooledMemoryRedirectSink = undefined;

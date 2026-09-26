@@ -39,6 +39,7 @@ interface CachedSedProgram {
   readonly readFiles: readonly string[];
 }
 const sedProgramCache = new Map<string, CachedSedProgram>();
+const sedFastRawCache = new Map<string, CachedSedProgram>();
 const EMPTY_STRINGS: readonly string[] = Object.freeze([]);
 const EMPTY_SET: Set<string> = new Set();
 
@@ -977,8 +978,8 @@ function tryExecutePairFastSync(
 }
 
 export function sedCommand(options: TextProgramOptions = {}): CommandDefinition {
+  const maxProgramInstructions = options.maxProgramInstructions === undefined ? Infinity : options.maxProgramInstructions;
   const definition = command("sed", context => {
-    const maxProgramInstructions = options.maxProgramInstructions === undefined ? Infinity : options.maxProgramInstructions;
     if (
       maxProgramInstructions === Infinity &&
       context.args.length === 2 &&
@@ -988,11 +989,9 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       context.args[1] !== "-"
     ) {
       const rawProg = context.args[0]!;
-      const sourceText = byteString(rawProg);
-      const quiet = sourceText.startsWith("#n");
-      const cacheKey = sourceText.length <= 8192 ? `0:\n:Infinity:${sourceText}` : "";
-      const cached = cacheKey ? sedProgramCache.get(cacheKey) : undefined;
+      const cached = sedFastRawCache.get(rawProg);
       if (cached && cached.outputFiles.length === 0 && cached.readFiles.length === 0) {
+        const quiet = rawProg.charCodeAt(0) === 35 && rawProg.charCodeAt(1) === 110;
         const budget = Budget.acquire(context, options);
         try {
           if (cached.steps > 0) budget.step(cached.steps);
@@ -1003,7 +1002,16 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
         }
       }
     }
-    return (async () => {
+    return executeSedGeneral(context, options, maxProgramInstructions);
+  });
+  return { ...definition, filesystemRequirements: sedRequirements };
+}
+
+async function executeSedGeneral(
+  context: CommandContext,
+  options: TextProgramOptions,
+  maxProgramInstructions: number,
+): Promise<number> {
     if ((maxProgramInstructions !== Infinity && !Number.isSafeInteger(maxProgramInstructions)) || maxProgramInstructions < 1) throw new ProgramError("maxProgramInstructions must be a positive safe integer");
     const budget = new Budget(context, options);
     const sources: string[] = [];
@@ -1096,6 +1104,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (canCache) {
         if (sedProgramCache.size >= 64) sedProgramCache.delete(sedProgramCache.keys().next().value!);
         sedProgramCache.set(cacheKey, cached);
+        if (!extended && separator === "\n" && maxProgramInstructions === Infinity && sources.length === 1) sedFastRawCache.set(sources[0]!, cached);
       }
     }
     const { program, outputFiles, readFiles } = cached;
@@ -1139,7 +1148,4 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       return 0;
     }
     return (await execute(program, context, files, quiet, budget, separator, outputState, lineLength)).status;
-    })();
-  });
-  return { ...definition, filesystemRequirements: sedRequirements };
 }

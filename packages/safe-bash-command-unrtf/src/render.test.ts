@@ -20,7 +20,7 @@ test('HTML paragraphs, line breaks and tables have explicit boundaries', async (
 });
 test('plain resets styles locally; objects and field instructions stay inert', async () => {
   const html = await render('{\\rtf1\\b B{\\plain N}B{\\object EVIL}{\\field{\\*\\fldinst HYPERLINK "https://evil"}{\\fldrslt <label>}}}', 'html');
-  assert.equal(html, '<!DOCTYPE html><html><body><p><strong>B</strong>N<strong>B</strong><strong>&lt;</strong><strong>l</strong><strong>a</strong><strong>b</strong><strong>e</strong><strong>l</strong><strong>&gt;</strong></p></body></html>');
+  assert.equal(html, '<!DOCTYPE html><html><body><p><strong>B</strong>N<strong>B&lt;label&gt;</strong></p></body></html>');
 });
 test('expanded HTML output is bounded and incomplete tables fail explicitly', async () => {
   await assert.rejects(() => render('{\\rtf1 &}', 'html', {outputBytes:30}), (e:unknown) => e instanceof UnrtfError && e.resource === 'outputBytes');
@@ -43,7 +43,7 @@ test('font/color/size selection is scoped and declaration text never leaks', asy
 });
 test('default font is resolved after its table and plain restores it locally', async () => {
   const html = await render('{\\rtf1\\deff0{\\fonttbl{\\f0 Arial;}{\\f1 Courier;}}A{\\f1 B\\plain C}D}', 'html');
-  assert.equal(html, '<!DOCTYPE html><html><body><p><span style="font-family:&#39;Arial&#39;">A</span><span style="font-family:&#39;Courier&#39;">B</span><span style="font-family:&#39;Arial&#39;">C</span><span style="font-family:&#39;Arial&#39;">D</span></p></body></html>');
+  assert.equal(html, '<!DOCTYPE html><html><body><p><span style="font-family:&#39;Arial&#39;">A</span><span style="font-family:&#39;Courier&#39;">B</span><span style="font-family:&#39;Arial&#39;">CD</span></p></body></html>');
 });
 test('repeated empty paragraphs remain explicit', async () => {
   assert.equal(await render('{\\rtf1\\par\\par X}', 'html'), '<!DOCTYPE html><html><body><p></p><p></p><p>X</p></body></html>');
@@ -126,4 +126,29 @@ test('spaces collapse within text but reset at table and group boundaries', asyn
   assert.equal(await render('{\\rtf1\\trowd A \\cell  B\\cell\\row}', 'text'), 'A \t B\t\n');
   assert.equal(await render('{\\rtf1 A \\trowd  B \\row  C}', 'text'), 'A  B \n C');
   assert.equal(await render('{\\rtf1 A { B } C  D}', 'text'), 'A  B  C D');
+});
+
+test('HTML coalesces styled runs across chunks, escapes and unchanged groups', async () => {
+  assert.equal(await render('{\\rtf1\\ansi{\\fonttbl\\f0 Arial;}\\f0\\pard Hello {\\b bo{ld}} world!\\par}', 'html'), '<!DOCTYPE html><html><body><p><span style="font-family:&#39;Arial&#39;">Hello </span><strong><span style="font-family:&#39;Arial&#39;">bold</span></strong><span style="font-family:&#39;Arial&#39;"> world!</span></p></body></html>');
+  assert.equal(await render('{\\rtf1\\b ab{cd}\\b ef<&>\\line gh\\par ij}', 'html'), '<!DOCTYPE html><html><body><p><strong>abcdef&lt;&amp;&gt;</strong><br><strong>gh</strong></p><p><strong>ij</strong></p></body></html>');
+});
+test('LaTeX personality preserves a single bold character run', async () => {
+  async function* source() { for (const byte of new TextEncoder().encode('{\\rtf1 {\\b bold}}')) yield Uint8Array.of(byte); }
+  let result = '';
+  for await (const bytes of renderRtf(source(), {format:'latex',profile:'gnu-0.21.10',quiet:true,signal:new AbortController().signal})) result += new TextDecoder().decode(bytes);
+  assert.ok(result.includes('bold'));
+  assert.equal(result.split('{\\bf ').length - 1, 1);
+});
+
+test('large styled runs charge pending storage and release it on failure', async () => {
+  const options = {format:'html' as const,limits:{retainedBytes:2048},signal:new AbortController().signal};
+  const budget = new Budget(options);
+  async function* source() { for (const byte of new TextEncoder().encode('{\\rtf1\\b '+'x'.repeat(2000)+'}')) yield Uint8Array.of(byte); }
+  await assert.rejects(async () => { for await (const bytes of renderRtf(source(),options,budget)) void bytes; }, (e:unknown) => e instanceof UnrtfError && e.resource === 'retainedBytes');
+  budget.charge('retainedBytes',2048,0);
+});
+
+test('long styled text fits a content-sized output budget with one wrapper', async () => {
+  const text = 'x'.repeat(5000);
+  assert.equal(await render('{\\rtf1\\b '+text+'}', 'html', {outputBytes:5100}), '<!DOCTYPE html><html><body><p><strong>'+text+'</strong></p></body></html>');
 });

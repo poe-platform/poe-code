@@ -15,7 +15,7 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
   let defaultFont:number | undefined;
   const stack:Style[] = [], fonts = new Map<number,string>(), colors = new Map<number,string | undefined>();
   const emit = (text:string, offset:number):Uint8Array => {
-    // All fragments are bounded by one decoded event plus fixed markup.
+    // Buffered runs and their encoded markup are charged before allocation.
     budget.charge('work',text.length,offset);
     let length = 0;
     for (const char of text) { const code = char.codePointAt(0)!; length += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4; }
@@ -29,7 +29,7 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     if (table) { if (!row) throw new UnrtfError('E_PARSE','Text outside table row',0); if (!cell) { cell = true; return '<td>'; } return ''; }
     if (!paragraph) { paragraph = true; return '<p>'; } return '';
   };
-  const styled = (text:string):string => {
+  const styled = (text:string, style:Style):string => {
     let start = '', end = '';
     for (const [enabled,tag] of [[style.bold,'strong'],[style.italic,'em'],[style.underline,'u'],[style.strike,'s']] as const)
       if (enabled) { start += `<${tag}>`; end = `</${tag}>` + end; }
@@ -51,6 +51,15 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     if (css.length) { start += '<span style="' + css.join(';') + '">'; end = '</span>' + end; }
     return start + text + end;
   };
+  let run = '', runStyle:Style = {...normal}, runOffset = 0;
+  const flush = ():Uint8Array | undefined => {
+    if (!run) return undefined;
+    try { return emit(beginText() + styled(run,runStyle),runOffset); }
+    finally { budget.release('retainedBytes',run.length * 2); run = ''; }
+  };
+  const sameStyle = ():boolean => runStyle.bold === style.bold && runStyle.italic === style.italic &&
+    runStyle.underline === style.underline && runStyle.strike === style.strike &&
+    runStyle.font === (style.font ?? defaultFont) && runStyle.size === style.size && runStyle.color === style.color;
   let preamble:Uint8Array | undefined;
   try {
     // Admit markup before input acquisition, but do not publish a document
@@ -74,17 +83,30 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
         colors.set(event.index,event.rgb);
       } else if (event.kind === 'text') {
         if (!html) { yield emit(event.text,event.offset); continue; }
-        let fragment = '';
-        if (table && !row) { fragment = '</tbody></table>'; table = false; }
+        if (table && !row) {
+          const bytes = flush(); if (bytes) yield bytes;
+          yield emit('</tbody></table>',event.offset); table = false;
+        }
         for (const char of event.text) {
           if (char === '\n') {
-            if (table || event.boundary === 'line') fragment += beginText() + '<br>';
-            else fragment += paragraph ? endParagraph() : '<p></p>';
-          } else fragment += beginText() + styled(char === '&' ? '&amp;' : char === '<' ? '&lt;' : char === '>' ? '&gt;' : char === '\t' ? '&#9;' : char);
+            const bytes = flush(); if (bytes) yield bytes;
+            yield emit(table || event.boundary === 'line' ? beginText() + '<br>' : paragraph ? endParagraph() : '<p></p>',event.offset);
+          } else {
+            if (run && !sameStyle()) { const bytes = flush(); if (bytes) yield bytes; }
+            if (!run) {
+              runStyle = {...style};
+              const font = style.font ?? defaultFont;
+              if (font !== undefined) runStyle.font = font;
+              runOffset = event.offset;
+            }
+            const escaped = char === '&' ? '&amp;' : char === '<' ? '&lt;' : char === '>' ? '&gt;' : char === '\t' ? '&#9;' : char;
+            budget.charge('retainedBytes',escaped.length * 2,event.offset);
+            run += escaped;
+          }
         }
-        if (fragment) yield emit(fragment,event.offset);
       } else if (event.kind === 'control') {
         const {name,parameter,offset} = event;
+        if (html && (name === 'trowd' || name === 'cell' || name === 'row')) { const bytes = flush(); if (bytes) yield bytes; }
         if (name === 'plain') style = {...normal};
         else if (name === 'f' || name === 'deff') {
           if (parameter !== undefined) {
@@ -119,9 +141,11 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
         }
       }
     }
+    const bytes = flush(); if (bytes) yield bytes;
     if (row) throw new UnrtfError('E_PARSE','Unterminated table row',0);
     if (html) yield emit(endParagraph() + (table ? '</tbody></table>' : '') + '</body></html>',0);
   } finally {
+    budget.release('retainedBytes',run.length * 2); run = '';
     if (preamble) budget.release('retainedBytes',preamble.length);
     budget.release('retainedBytes',stack.length * 32);
     stack.length = 0; fonts.clear(); colors.clear();

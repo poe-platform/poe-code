@@ -180,7 +180,7 @@ export function createHistoricalCompilerHost(options, admission, baseHost = ts.c
 
 const buildFirstConfig = "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json";
 
-export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys, baseHost, boundaries = loadBoundaries(root, fileSystem), config = "tsconfig.json", incrementalFile } = {}) {
+export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys, baseHost, boundaries = loadBoundaries(root, fileSystem), config = "tsconfig.json", incrementalFile, sourceDependencies = false } = {}) {
   root = resolve(root);
   assert.ok(["tsconfig.json", buildFirstConfig].includes(config), "historical checker requires an exact maintained configuration");
   const admission = admitHistoricalTypeModels(root, fileSystem, boundaries);
@@ -205,7 +205,7 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
     "@poe-code/safe-js": engineIndex,
   };
   const metadata = JSON.parse(readRegularInput(root, "package.json", 100000, fileSystem, boundaries).toString("utf8"));
-  const privateWorkspaces = Object.keys(metadata.poeCode?.integration?.privateWorkspaces ?? {});
+  const privateWorkspaces = sourceDependencies ? [] : Object.keys(metadata.poeCode?.integration?.privateWorkspaces ?? {});
   const dependencyPaths = Object.fromEntries(Object.entries(parsed.options.paths ?? {}).map(([specifier, targets]) => [specifier,
     targets.map(target => {
       const workspace = privateWorkspaces.find(name => target.startsWith(`../${name}/src/`));
@@ -268,13 +268,14 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const args = process.argv.slice(2);
+    const sourceDependencies = process.argv[2] === "--source-dependencies";
+    const args = process.argv.slice(sourceDependencies ? 3 : 2);
     assert.ok(JSON.stringify(args) === JSON.stringify(["--noEmit"]) ||
       JSON.stringify(args) === JSON.stringify(["--noEmit", "-p", buildFirstConfig]), "historical checker accepts only maintained source or build-first configurations");
     const root = fileURLToPath(new URL("../", import.meta.url));
     const config = args[2] ?? "tsconfig.json";
-    const cacheVersion = createHash("sha256").update(ts.version).update(fs.readFileSync(fileURLToPath(import.meta.url))).update(config).digest("hex");
-    const result = checkHistoricalSources(root, { config, incrementalFile: join(root, "../../.turbo/types", `safe-bash-${cacheVersion}.tsbuildinfo`) });
+    const cacheVersion = createHash("sha256").update(ts.version).update(fs.readFileSync(fileURLToPath(import.meta.url))).update(config).update(JSON.stringify(sourceDependencies)).digest("hex");
+    const result = checkHistoricalSources(root, { config, sourceDependencies, incrementalFile: join(root, "../../.turbo/types", `safe-bash-${cacheVersion}.tsbuildinfo`) });
     process.stdout.write(ts.formatDiagnostics(result.diagnostics, {
       getCanonicalFileName: path => path,
       getCurrentDirectory: () => root,

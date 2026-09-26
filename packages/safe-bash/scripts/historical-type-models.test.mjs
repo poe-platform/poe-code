@@ -528,13 +528,13 @@ test("ordinary triple-slash file references still use the unchanged compiler hos
   assert.deepEqual(result.program.getRootFileNames(), [join(root, "tests/check.ts")]);
 });
 
-test("private dependencies use built declarations without changing runtime aliases or strict caller diagnostics", () => {
+for (const sourceDependencies of [false, true]) test(`private dependencies check ${sourceDependencies ? "source" : "built declarations"} without changing runtime aliases or strict caller diagnostics`, () => {
   const specimen = fixture();
   addStandardLibrary(specimen.fileSystem);
   specimen.fileSystem.mkdirSync("/safe-bash-command-example/src", { recursive: true });
   specimen.fileSystem.mkdirSync("/safe-bash-command-example/dist", { recursive: true });
   specimen.fileSystem.writeFileSync("/safe-bash-command-example/package.json", '{"type":"module"}');
-  specimen.fileSystem.writeFileSync("/safe-bash-command-example/src/index.ts", "export function run(value) { return value; }\n");
+  specimen.fileSystem.writeFileSync("/safe-bash-command-example/src/index.ts", "export interface Options { value?: string; }\nexport function run(value): string { return value; }\n");
   specimen.fileSystem.writeFileSync("/safe-bash-command-example/dist/index.d.ts", "export interface Options { value?: string; }\nexport declare function run(value: string): string;\n");
   specimen.fileSystem.writeFileSync("/package/package.json", JSON.stringify({ type: "module", poeCode: { integration: { privateWorkspaces: { "safe-bash-command-example": {} } } } }));
   const config = {
@@ -544,10 +544,10 @@ test("private dependencies use built declarations without changing runtime alias
   };
   specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify(config));
   specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), 'import { run, type Options } from "safe-bash-command-example";\nexport const options: Options = { value: undefined };\nexport const indexed: string = [run("value")][0];\n');
-  const result = checkHistoricalSources(root, { ...specimen, boundaries });
-  assert.ok(result.program.getSourceFile("/safe-bash-command-example/dist/index.d.ts"));
-  assert.equal(result.program.getSourceFile("/safe-bash-command-example/src/index.ts"), undefined);
-  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), [2375, 2322]);
+  const result = checkHistoricalSources(root, { ...specimen, boundaries, sourceDependencies });
+  assert.equal(Boolean(result.program.getSourceFile("/safe-bash-command-example/dist/index.d.ts")), !sourceDependencies);
+  assert.equal(Boolean(result.program.getSourceFile("/safe-bash-command-example/src/index.ts")), sourceDependencies);
+  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), sourceDependencies ? [2375, 2322, 7006] : [2375, 2322]);
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
 });
 
@@ -606,7 +606,7 @@ for (const graph of ["workspace-package", "root-rewritten"]) test(`source filesy
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
 });
 
-test("maintained reporting exposes only successful source-phase stdout and preserves failure routing", () => {
+for (const [sourceDependencies, compilerTimeout] of [[false, 3600000], [true, 180000]]) test(`maintained reporting preserves failure routing and compiler policy with source dependencies ${sourceDependencies}`, () => {
   const text = readRegularInput(packageRoot, "scripts/typecheck.mjs", 20000, fs, actualBoundaries).toString("utf8");
   const source = ts.createSourceFile("typecheck.mjs", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   const declaration = source.statements.filter(ts.isVariableStatement)
@@ -618,7 +618,7 @@ test("maintained reporting exposes only successful source-phase stdout and prese
     for (const label of ["source-and-tests", "historical-build-first-consumer", "negative-consumer", "resolution-consumer"]) {
       const stdout = [], stderr = [], messages = [], phases = [], launches = [];
       const compile = new Script(`(${declaration.initializer.getText(source)})`).runInNewContext({
-        assert, root, compiler: "/tsc", historicalCompiler: "/historical-models",
+        assert, root, compiler: "/tsc", historicalCompiler: "/historical-models", sourceDependencies, compilerTimeout,
         report: { phases }, console: { log: message => messages.push(message) },
         process: { execPath: "/node", env: {}, stdout: { write: value => stdout.push(value) }, stderr: { write: value => stderr.push(value) } },
         spawnSync: (...args) => {
@@ -634,6 +634,8 @@ test("maintained reporting exposes only successful source-phase stdout and prese
       assert.equal(record, phases[0]);
       assert.equal(record.stdout, classification);
       assert.equal(launches[0][1][0], ["source-and-tests", "historical-build-first-consumer"].includes(label) ? "/historical-models" : "/tsc");
+      assert.equal(launches[0][2].timeout, compilerTimeout);
+      assert.equal(launches[0][1].includes("--source-dependencies"), sourceDependencies && ["source-and-tests", "historical-build-first-consumer"].includes(label));
     }
   }
 });
@@ -671,7 +673,7 @@ test("abnormal compiler termination records phase diagnostics before failing", (
   for (const label of ["source-and-tests", "negative-consumer", "resolution-consumer"]) {
     const stdout = [], stderr = [], messages = [], phases = [];
     const compile = new Script(`(${declaration.initializer.getText(source)})`).runInNewContext({
-      assert, root, compiler: "/tsc", historicalCompiler: "/historical-models",
+      assert, root, compiler: "/tsc", historicalCompiler: "/historical-models", compilerTimeout: 180000, sourceDependencies: true,
       report: { phases }, console: { log: message => messages.push(message) },
       process: { execPath: "/node", env: {}, stdout: { write: value => stdout.push(value) }, stderr: { write: value => stderr.push(value) } },
       spawnSync: () => ({

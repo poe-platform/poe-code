@@ -12,6 +12,33 @@ import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.m
 
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
 
+export function parseTypecheckArguments(args) {
+  const maximumCompilerTimeout = 3600000;
+  const options = { build: false, consumersOnly: false, sourceDependencies: false, compilerTimeout: maximumCompilerTimeout, reportPath: undefined };
+  const seen = new Set();
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index];
+    assert.ok(!seen.has(argument), `Duplicate typecheck option: ${argument}`);
+    seen.add(argument);
+    if (argument === "--build") options.build = true;
+    else if (argument === "--consumers") options.consumersOnly = true;
+    else if (argument === "--source-dependencies") options.sourceDependencies = true;
+    else {
+      assert.ok(["--report", "--compiler-timeout"].includes(argument), `Unknown typecheck option: ${argument}`);
+      const value = args[++index];
+      assert.ok(value && !value.startsWith("--"), `Missing value for ${argument}`);
+      if (argument === "--report") options.reportPath = resolve(value);
+      else {
+        const timeout = Number(value);
+        assert.ok(Number.isSafeInteger(timeout) && String(timeout) === value && timeout > 0 && timeout <= maximumCompilerTimeout,
+          `Compiler timeout must be an integer from 1 to ${maximumCompilerTimeout} milliseconds`);
+        options.compilerTimeout = timeout;
+      }
+    }
+  }
+  return options;
+}
+
 export function mergeStandaloneInventory(inventory, sealedEntries) {
   const existing = new Map(inventory.entries.map(entry => [entry.path, entry]));
   assert.equal(existing.size, inventory.entries.length, "duplicate standalone inventory entry");

@@ -2,24 +2,23 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
-import { buildForTypecheck, verifyTypecheckInputs, requireBuiltPackage } from "./typecheck-inputs.mjs";
+import { buildForTypecheck, verifyTypecheckInputs, requireBuiltPackage, parseTypecheckArguments } from "./typecheck-inputs.mjs";
 import { checkCurrentConsumerTypes, checkSourceConsumerTypes, createBuiltPackageBinding, stageStandaloneConsumerPackage } from "./typecheck-consumers.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const args = process.argv.slice(2), build = args.includes("--build"), consumersOnly = args.includes("--consumers");
-const reportIndex = args.indexOf("--report"), reportPath = reportIndex < 0 ? undefined : resolve(args[reportIndex + 1] ?? "");
-const options = args.filter((_, index) => index !== reportIndex && (reportIndex < 0 || index !== reportIndex + 1));
-assert.ok(options.every(option => ["--build", "--consumers"].includes(option)) && new Set(options).size === options.length);
-if (reportPath) { assert.ok(args[reportIndex + 1]); assert.equal(existsSync(reportPath), false, "typecheck report output must not exist"); mkdirSync(reportPath, { recursive: true }); }
-const report = { startedAt: new Date().toISOString(), node: process.version, buildRequested: build, consumersOnly, builds: 0, phases: [], runtimeExecutions: 0 };
+const { build, consumersOnly, sourceDependencies, compilerTimeout, reportPath } = parseTypecheckArguments(process.argv.slice(2));
+if (reportPath) { assert.equal(existsSync(reportPath), false, "typecheck report output must not exist"); mkdirSync(reportPath, { recursive: true }); }
+const report = { startedAt: new Date().toISOString(), node: process.version, buildRequested: build, consumersOnly, sourceDependencies, compilerTimeoutMs: compilerTimeout, builds: 0, phases: [], runtimeExecutions: 0 };
 const temporary = mkdtempSync(join(realpathSync(tmpdir()), "safe-bash-typecheck-"));
 const compiler = createRequire(import.meta.url).resolve("typescript/bin/tsc");
 const historicalCompiler = fileURLToPath(new URL("./historical-type-models.mjs", import.meta.url));
 const compile = (label, compilerArgs) => {
-  const result = spawnSync(process.execPath, label === "build" ? compilerArgs : [["source-and-tests", "historical-build-first-consumer"].includes(label) ? historicalCompiler : compiler, ...compilerArgs], { cwd: root, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: 3600000, maxBuffer: 32 * 1024 * 1024 });
+  const historical = ["source-and-tests", "historical-build-first-consumer"].includes(label);
+  const args = label === "build" ? compilerArgs : [historical ? historicalCompiler : compiler, ...(historical && sourceDependencies ? ["--source-dependencies"] : []), ...compilerArgs];
+  const result = spawnSync(process.execPath, args, { cwd: root, env: { ...process.env, TSX_DISABLE_CACHE: "1" }, encoding: "utf8", timeout: compilerTimeout, maxBuffer: 32 * 1024 * 1024 });
   const bound = value => {
     const text = typeof value === "string" ? value : String(value ?? "");
     return text.length > 65536 ? `${text.slice(0, 65536)}\n...[truncated ${text.length - 65536} chars]\n` : text;

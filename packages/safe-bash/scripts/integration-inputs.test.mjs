@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { once } from "node:events";
 import * as fs from "node:fs";
 import { readFileSync } from "node:fs";
-import { posix, relative } from "node:path";
+import { posix, relative, resolve } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import test from "node:test";
@@ -15,6 +15,7 @@ import { discoverTests, integrationExclusions, lintExclusions, lintInventoryPath
 import { parseTestExecution, runTests } from "./test.mjs";
 import { planTestPhases, planTestShards, validateShardArguments } from "./test-shards.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readIntegrationTypeInputs, readRegularInput } from "./typecheck-integration-inputs.mjs";
+import * as typecheckInputs from "./typecheck-inputs.mjs";
 
 const owner = "fixture producer";
 
@@ -36,6 +37,24 @@ test("compound fast-path replay regressions remain in active discovery", () => {
 test("portable network platform regression remains in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/network/platform-portable.test.ts"));
+});
+
+test("typecheck arguments preserve defaults and allow stronger source verification", () => {
+  assert.deepEqual(typecheckInputs.parseTypecheckArguments([]), {
+    build: false, consumersOnly: false, sourceDependencies: false, compilerTimeout: 3600000, reportPath: undefined,
+  });
+  assert.deepEqual(typecheckInputs.parseTypecheckArguments(["--build", "--source-dependencies", "--compiler-timeout", "180000", "--report", "out/source-check"]), {
+    build: true, consumersOnly: false, sourceDependencies: true, compilerTimeout: 180000, reportPath: resolve("out/source-check"),
+  });
+  assert.equal(typecheckInputs.parseTypecheckArguments(["--consumers"]).consumersOnly, true);
+});
+
+test("typecheck arguments reject missing values, duplicate flags and invalid deadlines", () => {
+  for (const args of [
+    ["--unknown"], ["--build", "--build"], ["--source-dependencies", "--source-dependencies"],
+    ["--report"], ["--report", "--build"], ["--compiler-timeout"],
+    ...["0", "-1", "NaN", "Infinity", "1.5", "1e3", "3600001"].map(value => ["--compiler-timeout", value]),
+  ]) assert.throws(() => typecheckInputs.parseTypecheckArguments(args), { name: "AssertionError" }, JSON.stringify(args));
 });
 
 test("multi-tenant search and text regressions remain in active discovery", () => {

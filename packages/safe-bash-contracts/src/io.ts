@@ -331,6 +331,7 @@ class BytePipeImpl implements BytePipe {
       throw new RangeError("highWaterMark must be a positive safe integer");
     }
     this.highWaterMark = highWaterMark;
+    this.readiness = this.readiness.bind(this);
     const signal = options.signal;
     if (signal !== undefined) {
       this.signal = signal;

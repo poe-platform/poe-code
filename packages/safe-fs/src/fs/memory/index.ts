@@ -92,6 +92,11 @@ const EMPTY_ALLOC_BYTES = new Uint8Array(0);
 const SMALL_ALLOC_SLAB_SIZE = 8192;
 let smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
 let smallAllocOffset = 0;
+const DUMMY_POOL_LEDGER = new MemoryLedger(normalizeMemoryFileSystemLimits({}));
+const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL_LEDGER);
+const sharedAllocationPool: MemoryAllocation[] = [];
+const sharedFileNodePool: MemoryFileNode[] = [];
+const sharedDirectoryNodePool: MemoryDirectoryNode[] = [];
 
 interface DirectoryNode extends Metadata {
   type: "directory";
@@ -570,7 +575,7 @@ export class MemoryFileSystem implements FileSystem {
     const now = Date.now();
     const fullMode = typeModes.directory | mode;
     const ino = this.nextInode++;
-    const pooled = memoryCaches.get(this.ledger)?.directories.pop();
+    const pooled = sharedDirectoryNodePool.pop() ?? memoryCaches.get(this.ledger)?.directories.pop();
     if (pooled) {
       pooled.mode = fullMode;
       pooled.ino = ino;
@@ -633,11 +638,19 @@ export class MemoryFileSystem implements FileSystem {
       this.totalBytes -= node.byteLength;
       const alloc = node.allocation;
       node.view = undefined;
+      node.allocation = DUMMY_POOL_ALLOCATION;
       alloc.release();
-      if (alloc.isReleased64() && cache.allocations.length < 128) {
-        cache.allocations.push(alloc);
+      if (alloc.isReleased64()) {
+        alloc.detachLedger(DUMMY_POOL_LEDGER);
+        if (sharedAllocationPool.length < 128) {
+          sharedAllocationPool.push(alloc);
+        } else if (cache.allocations.length < 128) {
+          cache.allocations.push(alloc);
+        }
       }
-      if (cache.files.length < 128) {
+      if (sharedFileNodePool.length < 128) {
+        sharedFileNodePool.push(node);
+      } else if (cache.files.length < 128) {
         cache.files.push(node);
       }
     } else if (node.type === "symlink") {
@@ -647,8 +660,12 @@ export class MemoryFileSystem implements FileSystem {
         cache.lastFastDirPrefix = "";
         cache.lastFastDirNode = undefined;
       }
-      if (node.entries.size === 0 && cache.directories.length < 32) {
-        cache.directories.push(node);
+      if (node.entries.size === 0) {
+        if (sharedDirectoryNodePool.length < 32) {
+          sharedDirectoryNodePool.push(node);
+        } else if (cache.directories.length < 32) {
+          cache.directories.push(node);
+        }
       }
     }
   }
@@ -987,11 +1004,12 @@ export class MemoryFileSystem implements FileSystem {
     if (length === 0) {
       return new MemoryAllocation(EMPTY_ALLOC_BYTES, this.ledger);
     }
-    const allocations = memoryCaches.get(this.ledger)!.allocations;
-    if (length === 64 && allocations.length > 0) {
-      const pooled = allocations.pop()!;
-      pooled.reuse();
-      return pooled;
+    if (length === 64) {
+      const pooled = sharedAllocationPool.pop() ?? memoryCaches.get(this.ledger)!.allocations.pop();
+      if (pooled) {
+        pooled.reuse(this.ledger);
+        return pooled;
+      }
     }
     try {
       // A shared slab's backing buffer exceeds the admitted slice capacity.
@@ -1100,7 +1118,7 @@ export class MemoryFileSystem implements FileSystem {
           const now = Date.now();
           const fileMode = typeModes.file | target.mode;
           const view = capacity === length ? allocation.data : undefined;
-          const pooled = memoryCaches.get(this.ledger)!.files.pop();
+          const pooled = sharedFileNodePool.pop() ?? memoryCaches.get(this.ledger)!.files.pop();
           if (pooled) {
             pooled.mode = fileMode;
             pooled.ino = this.nextInode++;
@@ -1255,7 +1273,7 @@ export class MemoryFileSystem implements FileSystem {
       return;
     }
     if (!current) {
-      const capacity = length;
+      const capacity = length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity ? 64 : length;
       const allocation = this.allocate(capacity, syscall, path);
       try {
         allocation.data.set(data);
@@ -1263,8 +1281,8 @@ export class MemoryFileSystem implements FileSystem {
         try {
           const now = Date.now();
           const fileMode = typeModes.file | mode;
-          const view = allocation.data;
-          let node = cache.files.pop();
+          const view = capacity === length ? allocation.data : undefined;
+          let node = sharedFileNodePool.pop() ?? cache.files.pop();
           if (node) {
             node.mode = fileMode;
             node.ino = this.nextInode++;
@@ -1390,7 +1408,7 @@ export class MemoryFileSystem implements FileSystem {
         return;
       }
       if (!current) {
-        const capacity = length;
+        const capacity = length > 0 && length < 64 && this.ledger.hasInfiniteRetained && this.ledger.limits.maxFileBytes === Infinity ? 64 : length;
         const allocation = this.allocate(capacity, syscall, name);
         try {
           allocation.data.set(data);
@@ -1398,8 +1416,8 @@ export class MemoryFileSystem implements FileSystem {
           try {
             const now = Date.now();
             const fileMode = typeModes.file | mode;
-            const view = allocation.data;
-            let node = cache.files.pop();
+            const view = capacity === length ? allocation.data : undefined;
+            let node = sharedFileNodePool.pop() ?? cache.files.pop();
             if (node) {
               node.mode = fileMode;
               node.ino = this.nextInode++;

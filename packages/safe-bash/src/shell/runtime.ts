@@ -1662,7 +1662,7 @@ class FastShellCommandContext {
   declare stdin: ByteSource;
   declare stdinIsDefault?: boolean | undefined;
   declare stdout: ByteSink;
-  declare stderr: ByteSink;
+  declare private _stderr: ByteSink | undefined;
   declare descriptors: ReadonlyMap<number, Descriptor> | undefined;
   declare command: string;
   declare args: readonly string[];
@@ -1715,7 +1715,7 @@ class FastShellCommandContext {
     this.stdin = io.stdin;
     this.stdinIsDefault = io.stdinIsDefault;
     this.stdout = io.stdout;
-    this.stderr = io.stderr;
+    if (!signalIsScoped) this._stderr = io.stderr;
     if (io.descriptors !== undefined) this.descriptors = io.descriptors;
     this.command = name;
     this.args = args;
@@ -1729,14 +1729,14 @@ class FastShellCommandContext {
     if (io.processSignals !== undefined) this.processSignals = io.processSignals;
     if (io.diagnosticLine !== undefined) this.diagnosticLine = io.diagnosticLine;
     if (io.scriptName !== undefined) this.scriptName = io.scriptName;
+    if (directContext) {
+      return;
+    }
     workerRuntimeContexts.set(this as unknown as CommandContext, {
       budget: runtime.budget, umask: state.umask ?? 0o022,
       ignoredSignals: captureIgnoredTrapSignals(state.extensions),
       get fs() { return runtime.getContextFsForFast(0, combineManagedSignals(runtime.signal, scope.signal)); },
     });
-    if (directContext) {
-      return;
-    }
     for (const [key, descriptor] of fastShellCommandAccessors) {
       Object.defineProperty(this, key, {
         ...descriptor,
@@ -1817,6 +1817,14 @@ class FastShellCommandContext {
     return (this._self ?? this)._runtime.budget.executionScope;
   }
 
+  get stderr(): ByteSink {
+    return this._stderr ??= (this._scopedSignal ? signalSink(this._io.stderr, this._scopedSignal) : this._io.stderr);
+  }
+
+  set stderr(value: ByteSink) {
+    this._stderr = value;
+  }
+
   get fs(): FileSystem {
     const self = this._self ?? this;
     if (!self._contextFs && self._runtime._isMemoryBackingFs) {
@@ -1865,6 +1873,7 @@ class FastShellCommandContext {
 }
 Object.assign(FastShellCommandContext.prototype, {
   _self: undefined,
+  _stderr: undefined,
   stdinIsDefault: undefined,
   descriptors: undefined,
   onInternalError: undefined,
@@ -4970,17 +4979,17 @@ export class Runtime {
         const stageSignal = controllers[index]!.signal;
         const input = incoming
           ? new ShellInput(reading?.readable ?? incoming.readable, this.budget, stageSignal, { provenance: "stream", poll: pollIncomingPipe, incoming } as unknown as ConstructorParameters<typeof ShellInput>[3], true)
-          : new ShellInput(io.stdin, this.budget, stageSignal, undefined, true);
+          : (io.stdinIsDefault && io.stdin instanceof ShellInput
+            ? io.stdin
+            : new ShellInput(io.stdin, this.budget, stageSignal, undefined, true));
         const writable = writing?.writable ?? outgoing?.writable;
         const stageStdout = outgoing
           ? new BudgetedPipeStageSink(this.budget, writable!, stageSignal, undefined, index, controllers[index]!)
           : signalSink(io.stdout, stageSignal);
-        const stageStderr = signalSink(io.stderr, stageSignal);
         const context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, sharedEnv, true);
         context.stdin = input;
         if (incoming) context.stdinIsDefault = false;
         context.stdout = stageStdout;
-        context.stderr = stageStderr;
         context.signal = stageSignal;
         (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
         if (index === 0) _lastPipelineAnchor = [context, stageStdout, input, outgoing];
@@ -5002,7 +5011,7 @@ export class Runtime {
               if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
               const line = io.diagnosticCommandLines?.get(cmd) ?? (cmd.line ?? 1) + (io.diagnosticOffset ?? 0);
               try {
-                await writeDiagnostic(stageStderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error, this.budget.onInternalError)}\n`);
+                await writeDiagnostic(context.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error, this.budget.onInternalError)}\n`);
               } catch (failure) {
                 this.signal.throwIfAborted();
                 publicDiagnosticMessage(failure, this.budget.onInternalError);
@@ -5012,9 +5021,11 @@ export class Runtime {
           } finally {
             this.budget.endPathLookupSuspension();
             scope.leaveWork();
-            const closedInput = input.close();
-            if (!isSyncResolved(closedInput)) {
-              await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
+            if (input !== io.stdin) {
+              const closedInput = input.close();
+              if (!isSyncResolved(closedInput)) {
+                await closedInput.catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
+              }
             }
             if (reading) {
               const closedRead = reading.close();
@@ -6772,6 +6783,12 @@ export class Runtime {
           ? undefined
           : this.trySyncPipeline(pipeline, state, io, Boolean(ignored));
         if (syncStatus !== undefined) continue;
+        const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
+        if (fastUnit !== undefined) {
+          const fastRes = await fastUnit;
+          if (fastRes.terminated) return fastRes.exitCode;
+          continue;
+        }
         const completion = stateMonitor(state)?.restoration();
         try {
           const status = await this.pipeline(pipeline, state, ignored ? { ...io, execution: { ignoreErrexit: true } } : io);

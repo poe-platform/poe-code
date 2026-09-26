@@ -81,7 +81,7 @@ export class MemoryLedger {
 export class MemoryAllocation {
   declare private references: number;
   declare readonly data: Uint8Array;
-  declare private readonly ledger: MemoryLedger;
+  declare private ledger: MemoryLedger;
 
   constructor(data: Uint8Array, ledger: MemoryLedger) {
     this.data = data;
@@ -101,8 +101,13 @@ export class MemoryAllocation {
     return this.references === 0 && this.data.byteLength === 64;
   }
 
-  reuse(): void {
+  detachLedger(dummyLedger: MemoryLedger): void {
+    this.ledger = dummyLedger;
+  }
+
+  reuse(ledger?: MemoryLedger): void {
     this.references = 1;
+    if (ledger !== undefined) this.ledger = ledger;
     this.data.fill(0);
   }
 }

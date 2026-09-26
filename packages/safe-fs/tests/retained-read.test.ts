@@ -303,12 +303,17 @@ describe("Real retained-reader admission and lifecycle", () => {
     expect(hooks.closes).toBe(1);
   });
 
-  it("preserves valid zero identity and leaves invalid identity unknown", async () => {
+  it("preserves zero device identity and leaves placeholder or invalid inodes unknown", async () => {
     const filesystem = await fixture("Real");
     const handle = await open(filesystem);
     try {
+      hooks.mapStat = value => Object.assign(value, { dev: 0, ino: 1 });
+      expect(await handle.stat()).toMatchObject({ dev: 0, ino: 1, identityScope: Symbol.for("virtual-bash.fs.native") });
       hooks.mapStat = value => Object.assign(value, { dev: 0, ino: 0 });
-      expect(await handle.stat()).toMatchObject({ dev: 0, ino: 0, identityScope: Symbol.for("virtual-bash.fs.native") });
+      const placeholder = await handle.stat();
+      expect(placeholder).toMatchObject({ dev: 0, ino: 0 });
+      expect(placeholder.identityScope).toBeUndefined();
+      expect(placeholder.opaqueVersion).toBeUndefined();
       hooks.mapStat = value => Object.assign(value, { ino: Number.MAX_SAFE_INTEGER + 1 });
       expect((await handle.stat()).identityScope).toBeUndefined();
     } finally { await handle.close(); }

@@ -104,3 +104,49 @@ for (const yields of [false, true]) test(`regex supports a cooperatively yieldin
   aborted = true;
   await assert.rejects(pattern.find("baa", budget), error => error === stopped);
 });
+
+for (const dialect of ["sed", "awk", "jq"] as const) {
+  for (const [source, input, expected] of [
+    ["\\bword\\b", "sword word!", "word"],
+    ["\\<word\\>", "sword word!", "word"],
+    ["\\Bord\\B", "words", "ord"],
+    ["\\yword\\y", "sword word!", "word"],
+    ["\\Yord\\Y", "words", "ord"],
+  ] as const) test(`${dialect} boundaries agree between small and deferred programs: ${source}`, async () => {
+    const budget = { step() {}, checkpoint() {}, maxBufferBytes: 65536 };
+    for (const expression of [source, `(?:x{70})?${source}`]) {
+      const pattern = new Pattern(expression, true, false, dialect);
+      assert.equal((await pattern.find(input, budget))?.groups[0], expected);
+    }
+  });
+}
+
+test("small literal construction retains synchronous matching", () => {
+  const pattern = new Pattern("needle");
+  const result = pattern.tryFindSync("a needle", { step() {}, checkpoint() {}, checkpointSync() { return undefined; }, maxBufferBytes: 65536 });
+  assert.ok(!(result instanceof Promise));
+  assert.deepEqual(result, { start: 2, end: 8, groups: ["needle"] });
+});
+
+test("failed small-program admission remains chargeable on retry", async () => {
+  const pattern = new Pattern("needle");
+  const reason = new Error("admission cancelled");
+  await assert.rejects(pattern.prepare({ step() { throw reason; }, checkpoint() {} }), error => error === reason);
+  let charged = 0;
+  await pattern.prepare({ step(amount = 1) { charged += amount; }, checkpoint() {} });
+  assert.ok(charged > 0);
+});
+
+test("cancelled deferred compilation can retry without publishing a partial program", async () => {
+  const pattern = new Pattern("(ab|c){40}", true, false, "jq");
+  const reason = new Error("compilation cancelled");
+  let checkpoints = 0;
+  await assert.rejects(pattern.prepare({ step() {}, checkpoint() {
+    if (++checkpoints === 3) throw reason;
+  } }), error => error === reason);
+  let charged = 0;
+  const budget = { step(amount = 1) { charged += amount; }, checkpoint() {}, maxBufferBytes: 65536 };
+  await pattern.prepare(budget);
+  assert.ok(charged > 64);
+  assert.equal((await pattern.find("ab".repeat(40), budget))?.groups[0], "ab".repeat(40));
+});

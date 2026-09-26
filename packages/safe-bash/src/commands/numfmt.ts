@@ -784,7 +784,7 @@ class Converter {
     rendered += settings.suffix.slice(0, 127 - rendered.length);
     if (settings.developer) await this.output.emit(`formatting output:\n  value: ${fixed(value, 6)}\n  humanized: ${quote(rendered, settings.unicode)}\n`, true);
     if (settings.padding > BigInt(rendered.length)) {
-      if (settings.padding > BigInt(this.output.remaining - settings.prefix.length - settings.postfix.length)) throw new PublicDiagnostic("numfmt output limit exceeded");
+      if (settings.padding > this.output.remaining - settings.prefix.length - settings.postfix.length) throw new PublicDiagnostic("numfmt output limit exceeded");
     }
     return rendered;
   }

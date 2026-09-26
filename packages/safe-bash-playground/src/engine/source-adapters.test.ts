@@ -108,7 +108,7 @@ describe("pinned browser source adapters", () => {
     ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${body} } }`)).toThrow("structure changed");
   });
 
-  it.each([false, true])("observes constructed root state through restoration and cleanup: %s", async (fail) => {
+  it.each([[false, false], [false, true], [true, false], [true, true]])("observes constructed root state through restoration and cleanup: assigned=%s fail=%s", async (assigned, fail) => {
     const code = instrumentRootState(`
       class RootShellState {
         constructor(cwd, variables, exported, extensions) {
@@ -121,7 +121,7 @@ describe("pinned browser source adapters", () => {
           let state;
           try {
             const cwd = "/", variables = { retained: "value" }, exported = new Set();
-            let currentState = new RootShellState(cwd, variables, exported, { definitions: ["read"] });
+            ${assigned ? "let currentState; currentState =" : "let currentState ="} new RootShellState(cwd, variables, exported, { definitions: ["read"] });
             state = currentState;
             currentState = new Proxy(currentState, {});
             state = currentState;
@@ -149,6 +149,10 @@ describe("pinned browser source adapters", () => {
 
   it("rejects changed or ambiguous root constructors", () => {
     for (const body of [
+      'currentState = new RootShellState(cwd, variables, exported, extensions);',
+      'let currentState = other; currentState = new RootShellState(cwd, variables, exported, extensions);',
+      'let currentState; currentState = new RootShellState(other, variables, exported, extensions);',
+      'let currentState; currentState = new RootShellState(cwd, variables, exported, extensions); currentState = new RootShellState(cwd, variables, exported, extensions);',
       'let currentState = new OtherState(cwd, variables, exported, extensions);',
       'let currentState = new RootShellState(other, variables, exported, extensions);',
       'let currentState = new RootShellState(cwd, exported, variables, extensions);',

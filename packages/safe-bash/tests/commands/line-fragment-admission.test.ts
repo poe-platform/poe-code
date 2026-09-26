@@ -6,7 +6,7 @@ import { lines } from "../../src/commands/internal.js";
 import { RecordBuffer } from "../../src/commands/record-buffer.js";
 import { SortRecordBudget } from "../../src/commands/sort-admission.js";
 import { textCommands } from "../../src/commands/text.js";
-import { FsError, type ByteSource } from "../../src/contracts/index.js";
+import { FsError, toByteSource, type ByteSource } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { fixture, run } from "./helpers.js";
 
@@ -207,6 +207,43 @@ function reusedBytes(): ByteSource {
     } finally { window.fill(0); }
   })();
 }
+
+for (const args of [[], ["-r"], ["-n"], ["-k1,1n"]]) {
+  test(`sort ${args.join(" ")} owns producer bytes before advancing or closing input`, async () => {
+    for (const fragmented of [false, true]) {
+      const window = Buffer.from(fragmented ? "20\n" : "20\n10\n");
+      const stdin = (async function* () {
+        try {
+          yield window;
+          if (fragmented) {
+            window.set(Buffer.from("10\n"));
+            yield window;
+          }
+        } finally { window.fill(0); }
+      })();
+      const result = await run("sort", args, { stdin });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, args.includes("-r") ? "20\n10\n" : "10\n20\n");
+      assert.ok(window.every(byte => byte === 0));
+    }
+  });
+}
+
+test("sort output retained by a sink survives later optimized invocations", async () => {
+  const fs = await fixture();
+  const definition = textCommands().find(command => command.name === "sort")!;
+  const retained: Uint8Array[] = [];
+  for (const text of ["b\na\n", "z\ny\n"]) {
+    const result = await definition.execute({
+      command: "sort", args: [], stdin: toByteSource(text), fs, cwd: "/work", env: {},
+      signal: new AbortController().signal,
+      stdout: { async write(bytes) { retained.push(bytes); } },
+      stderr: { async write(bytes) { assert.fail(new TextDecoder().decode(bytes)); } },
+    });
+    assert.equal(result.exitCode, 0);
+  }
+  assert.deepEqual(retained.map(bytes => new TextDecoder().decode(bytes)), ["a\nb\n", "y\nz\n"]);
+});
 
 test("lines retains eight one-byte fragments in one owned segment", async () => {
   await withAllocations(async allocations => {

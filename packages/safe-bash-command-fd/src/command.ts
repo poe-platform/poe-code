@@ -23,6 +23,8 @@ export interface FdMatcher {
   glob(source: string, subject: string, directory: boolean, ancestors: boolean): Promise<boolean>;
 }
 export type FdMatchingScope = (context: CommandContext, run: (matcher: FdMatcher) => Promise<CommandResult>) => Promise<CommandResult>;
+const sharedEncoder = new TextEncoder();
+const sharedFatalDecoder = new TextDecoder("utf-8", { fatal: true });
 const requirements = [
   {id:'metadata',description:'Inspect search entries',capabilities:['stat']},
   {id:'directory',description:'Traverse directories and detect symlink loops',capabilities:['readdir','realpath']},
@@ -77,8 +79,24 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
     if (capabilities) assertCommandRequirements(context,requirements,modes,capabilities);
   };
   const matches: string[]=[]; let visited=0, found=0, failed=false, executionFailed=false;
-  const emit=async (text: string) => writeBytes(context.stdout,new TextEncoder().encode(text),signal);
-  const report=async (error: unknown) => { signal.throwIfAborted(); failed=true; await writeBytes(context.stderr,new TextEncoder().encode(`fd: ${error instanceof Error ? error.message : 'filesystem error'}\n`),signal); };
+  let emitPending = "";
+  const flushEmit = async () => {
+    if (emitPending.length > 0) {
+      const chunk = emitPending;
+      emitPending = "";
+      await writeBytes(context.stdout, sharedEncoder.encode(chunk), signal);
+    }
+  };
+  const emit = async (text: string) => {
+    emitPending += text;
+    if (emitPending.length >= 16384) await flushEmit();
+  };
+  const report = async (error: unknown) => {
+    signal.throwIfAborted();
+    await flushEmit();
+    failed = true;
+    await writeBytes(context.stderr, sharedEncoder.encode(`fd: ${error instanceof Error ? error.message : 'filesystem error'}\n`), signal);
+  };
   const invoke=async (paths: string[]) => {
     const command: string[]=[]; let placeholder=false;
     for (const token of a.exec) {
@@ -97,7 +115,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       const path=posixPath.join(dir,name);
       try {
         await admit(path,['ignore']);
-        const text=new TextDecoder('utf-8',{fatal:true}).decode(await fs.readFile(path,{signal,...(Number.isFinite(maxIgnoreFileBytes) ? {maxBytes:maxIgnoreFileBytes} : {})}));
+        const text=sharedFatalDecoder.decode(await fs.readFile(path,{signal,...(Number.isFinite(maxIgnoreFileBytes) ? {maxBytes:maxIgnoreFileBytes} : {})}));
         for (const rule of await matcher.ignores(text)) rules.push({base:dir,priority,...rule});
       } catch(error) { signal.throwIfAborted(); if (!(error instanceof FsError && error.code==='ENOENT')) throw error; }
     }
@@ -146,12 +164,13 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
         const directory=stat.type==='directory';
         if (!await accepted(path,entry.name,directory,local,searchRoot)) continue;
         if (await selected(path,entry.name,stat,depth+1)) {
-          found++; const out=a.absolute ? path : !a.stripCwdPrefix && prefixCwd && (a.exec.length || a.print0 || a.details) && !display.startsWith('/') && rootPrefixNeeded(display) ? './'+display : display;
+          found++; const rawOut=a.absolute ? path : !a.stripCwdPrefix && prefixCwd && (a.exec.length || a.print0 || a.details) && !display.startsWith('/') && rootPrefixNeeded(display) ? './'+display : display;
+          const out=a.pathSeparator!==undefined ? rawOut.replaceAll('/',a.pathSeparator) : rawOut;
           if (!a.quiet) {
             if (a.exec.length) { if (a.batch) matches.push(out); else await invoke([out]); }
             else if (a.format!==undefined) await emit(formatFdPath(a.format,out)+(a.print0 ? '\0' : '\n'));
             else if (a.details) matches.push(out);
-            else await emit(out+(directory ? '/' : '')+(a.print0 ? '\0' : '\n'));
+            else await emit(out+(directory ? (a.pathSeparator ?? '/') : '')+(a.print0 ? '\0' : '\n'));
           }
           if (a.quiet || found>=a.maxResults) return true;
         }
@@ -178,6 +197,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       if (await walk(path,root==='.' ? '' : root,0,inherited,new Set(),root==='.',path)) break;
     } catch(error) { await report(error); }
   }
+  await flushEmit();
   if (a.batch && matches.length) await invoke(matches);
   if (a.details && matches.length) {
     if (!context.invoke) throw new Error('detailed listings require command invocation');

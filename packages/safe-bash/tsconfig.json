@@ -72,8 +72,243 @@
       ],
       "@poe-code/safe-fs/node/filesystem": [
         "../safe-fs/src/node/filesystem.ts"
+      ],
+      "safe-bash-contracts": [
+        "../safe-bash-contracts/src/index.ts"
+      ],
+      "safe-bash-contracts/*": [
+        "../safe-bash-contracts/src/*"
+      ],
+      "safe-bash-regex-engine": [
+        "../safe-bash-regex-engine/src/index.ts"
+      ],
+      "safe-bash-regex-engine/*": [
+        "../safe-bash-regex-engine/src/*"
+      ],
+      "safe-bash-command-bc": [
+        "../safe-bash-command-bc/src/index.ts"
+      ],
+      "safe-bash-command-csvcut": [
+        "../safe-bash-command-csvcut/src/index.ts"
+      ],
+      "safe-bash-command-csvgrep": [
+        "../safe-bash-command-csvgrep/src/index.ts"
+      ],
+      "safe-bash-command-csvkit": [
+        "../safe-bash-command-csvkit/src/index.ts"
+      ],
+      "safe-bash-command-diff3": [
+        "../safe-bash-command-diff3/src/index.ts"
+      ],
+      "safe-bash-command-exiftool": [
+        "../safe-bash-command-exiftool/src/index.ts"
+      ],
+      "safe-bash-command-fd": [
+        "../safe-bash-command-fd/src/index.ts"
+      ],
+      "safe-bash-command-ffmpeg": [
+        "../safe-bash-command-ffmpeg/src/index.ts"
+      ],
+      "safe-bash-command-fmt": [
+        "../safe-bash-command-fmt/src/index.ts"
+      ],
+      "safe-bash-command-fold": [
+        "../safe-bash-command-fold/src/index.ts"
+      ],
+      "safe-bash-command-htmlq": [
+        "../safe-bash-command-htmlq/src/index.ts"
+      ],
+      "safe-bash-command-imagemagick": [
+        "../safe-bash-command-imagemagick/src/index.ts"
+      ],
+      "safe-bash-command-less": [
+        "../safe-bash-command-less/src/index.ts"
+      ],
+      "safe-bash-command-mmdc": [
+        "../safe-bash-command-mmdc/src/index.ts"
+      ],
+      "safe-bash-command-op": [
+        "../safe-bash-command-op/src/index.ts"
+      ],
+      "safe-bash-command-pandoc": [
+        "../safe-bash-command-pandoc/src/index.ts"
+      ],
+      "safe-bash-command-pdfimages": [
+        "../safe-bash-command-pdfimages/src/index.ts"
+      ],
+      "safe-bash-command-pdfinfo": [
+        "../safe-bash-command-pdfinfo/src/index.ts"
+      ],
+      "safe-bash-command-pdftk": [
+        "../safe-bash-command-pdftk/src/index.ts"
+      ],
+      "safe-bash-command-pdftoppm": [
+        "../safe-bash-command-pdftoppm/src/index.ts"
+      ],
+      "safe-bash-command-pdftotext": [
+        "../safe-bash-command-pdftotext/src/index.ts"
+      ],
+      "safe-bash-command-qpdf": [
+        "../safe-bash-command-qpdf/src/index.ts"
+      ],
+      "safe-bash-command-sips": [
+        "../safe-bash-command-sips/src/index.ts"
+      ],
+      "safe-bash-command-soffice": [
+        "../safe-bash-command-soffice/src/index.ts"
+      ],
+      "safe-bash-command-sponge": [
+        "../safe-bash-command-sponge/src/index.ts"
+      ],
+      "safe-bash-command-ssconvert": [
+        "../safe-bash-command-ssconvert/src/index.ts"
+      ],
+      "safe-bash-command-unrtf": [
+        "../safe-bash-command-unrtf/src/index.ts"
+      ],
+      "safe-bash-command-wkhtmltopdf": [
+        "../safe-bash-command-wkhtmltopdf/src/index.ts"
+      ],
+      "safe-bash-command-xmllint": [
+        "../safe-bash-command-xmllint/src/index.ts"
+      ],
+      "safe-bash-command-xz": [
+        "../safe-bash-command-xz/src/index.ts"
+      ],
+      "safe-bash-command-yq": [
+        "../safe-bash-command-yq/src/index.ts"
+      ],
+      "safe-bash-compression-engine": [
+        "../safe-bash-compression-engine/src/index.ts"
+      ],
+      "safe-bash-csv-engine": [
+        "../safe-bash-csv-engine/src/index.ts"
+      ],
+      "safe-bash-mcp": [
+        "../safe-bash-mcp/src/index.ts"
+      ],
+      "safe-bash-query-engine": [
+        "../safe-bash-query-engine/src/index.ts"
+      ],
+      "safe-bash-xml-engine": [
+        "../safe-bash-xml-engine/src/index.ts"
+      ],
+      "safe-bash-compression-engine/*": [
+        "../safe-bash-compression-engine/src/*"
+      ],
+      "safe-bash-command-bc/*": [
+        "../safe-bash-command-bc/src/*"
+      ],
+      "safe-bash-command-csvcut/*": [
+        "../safe-bash-command-csvcut/src/*"
+      ],
+      "safe-bash-command-csvgrep/*": [
+        "../safe-bash-command-csvgrep/src/*"
+      ],
+      "safe-bash-command-csvkit/*": [
+        "../safe-bash-command-csvkit/src/*"
+      ],
+      "safe-bash-command-diff3/*": [
+        "../safe-bash-command-diff3/src/*"
+      ],
+      "safe-bash-command-exiftool/*": [
+        "../safe-bash-command-exiftool/src/*"
+      ],
+      "safe-bash-command-fd/*": [
+        "../safe-bash-command-fd/src/*"
+      ],
+      "safe-bash-command-ffmpeg/*": [
+        "../safe-bash-command-ffmpeg/src/*"
+      ],
+      "safe-bash-command-fmt/*": [
+        "../safe-bash-command-fmt/src/*"
+      ],
+      "safe-bash-command-fold/*": [
+        "../safe-bash-command-fold/src/*"
+      ],
+      "safe-bash-command-htmlq/*": [
+        "../safe-bash-command-htmlq/src/*"
+      ],
+      "safe-bash-command-imagemagick/*": [
+        "../safe-bash-command-imagemagick/src/*"
+      ],
+      "safe-bash-command-less/*": [
+        "../safe-bash-command-less/src/*"
+      ],
+      "safe-bash-command-mmdc/*": [
+        "../safe-bash-command-mmdc/src/*"
+      ],
+      "safe-bash-command-op/*": [
+        "../safe-bash-command-op/src/*"
+      ],
+      "safe-bash-command-pandoc/*": [
+        "../safe-bash-command-pandoc/src/*"
+      ],
+      "safe-bash-command-pdfimages/*": [
+        "../safe-bash-command-pdfimages/src/*"
+      ],
+      "safe-bash-command-pdfinfo/*": [
+        "../safe-bash-command-pdfinfo/src/*"
+      ],
+      "safe-bash-command-pdftk/*": [
+        "../safe-bash-command-pdftk/src/*"
+      ],
+      "safe-bash-command-pdftoppm/*": [
+        "../safe-bash-command-pdftoppm/src/*"
+      ],
+      "safe-bash-command-pdftotext/*": [
+        "../safe-bash-command-pdftotext/src/*"
+      ],
+      "safe-bash-command-qpdf/*": [
+        "../safe-bash-command-qpdf/src/*"
+      ],
+      "safe-bash-command-sips/*": [
+        "../safe-bash-command-sips/src/*"
+      ],
+      "safe-bash-command-soffice/*": [
+        "../safe-bash-command-soffice/src/*"
+      ],
+      "safe-bash-command-sponge/*": [
+        "../safe-bash-command-sponge/src/*"
+      ],
+      "safe-bash-command-ssconvert/*": [
+        "../safe-bash-command-ssconvert/src/*"
+      ],
+      "safe-bash-command-unrtf/*": [
+        "../safe-bash-command-unrtf/src/*"
+      ],
+      "safe-bash-command-wkhtmltopdf/*": [
+        "../safe-bash-command-wkhtmltopdf/src/*"
+      ],
+      "safe-bash-command-xmllint/*": [
+        "../safe-bash-command-xmllint/src/*"
+      ],
+      "safe-bash-command-xz/*": [
+        "../safe-bash-command-xz/src/*"
+      ],
+      "safe-bash-command-yq/*": [
+        "../safe-bash-command-yq/src/*"
+      ],
+      "safe-bash-csv-engine/*": [
+        "../safe-bash-csv-engine/src/*"
+      ],
+      "safe-bash-mcp/*": [
+        "../safe-bash-mcp/src/*"
+      ],
+      "safe-bash-playground": [
+        "../safe-bash-playground/src/index.ts"
+      ],
+      "safe-bash-playground/*": [
+        "../safe-bash-playground/src/*"
+      ],
+      "safe-bash-query-engine/*": [
+        "../safe-bash-query-engine/src/*"
+      ],
+      "safe-bash-xml-engine/*": [
+        "../safe-bash-xml-engine/src/*"
       ]
-    }
+    },
+    "baseUrl": "."
   },
   "include": [
     "src/**/*.ts",

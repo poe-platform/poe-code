@@ -8,6 +8,8 @@ import { globFragments, parseIgnorePatterns } from 'safe-bash-regex-engine/glob'
 import type { CommandContext } from 'safe-bash-contracts';
 import type { FdCommandOptions, FdMatcher } from './command.js';
 
+const sharedEncoder = new TextEncoder();
+
 export function createFdMatcher(context: CommandContext, options: FdCommandOptions): FdMatcher {
   const budget = new Budget(context, {maxSteps: options.maxRegexSteps ?? Infinity, maxBufferBytes: options.maxRegexBufferBytes ?? Infinity});
   const ledger = new EreLedger({maxExpansionBytes: Infinity, maxExpansionFields: Infinity}, {
@@ -26,7 +28,7 @@ export function createFdMatcher(context: CommandContext, options: FdCommandOptio
     for (let end = path.length; end >= 0;) {
       await ledger.checkpoint(signal);
       if (end !== path.length || !source.endsWith('/') || directory) {
-        const subject = await prepareUtf8EreSubject(new TextEncoder().encode(path.slice(0, end)), ledger, signal);
+        const subject = await prepareUtf8EreSubject(sharedEncoder.encode(path.slice(0, end)), ledger, signal);
         if (await subject(program)(0)) return true;
       }
       if (!ancestors || end === 0) break;
@@ -42,9 +44,13 @@ export function createFdMatcher(context: CommandContext, options: FdCommandOptio
         return glob(insensitive ? pattern.toLowerCase() : pattern, insensitive ? subject.toLowerCase() : subject, false, false, false);
       }
       if (mode === 'fixed') return (insensitive ? subject.toLowerCase() : subject).includes(insensitive ? source.toLowerCase() : source);
-      const key = `${insensitive}:${source}`;
+      let effectiveSource = source;
+      let effectiveInsensitive = insensitive;
+      if (effectiveSource.startsWith('(?i)')) { effectiveSource = effectiveSource.slice(4); effectiveInsensitive = true; }
+      else if (effectiveSource.startsWith('(?-i)')) { effectiveSource = effectiveSource.slice(5); effectiveInsensitive = false; }
+      const key = `${effectiveInsensitive}:${effectiveSource}`;
       let pattern = patterns.get(key);
-      if (!pattern) { pattern = new Pattern(source, true, insensitive, 'jq'); patterns.set(key, pattern); }
+      if (!pattern) { pattern = new Pattern(effectiveSource, true, effectiveInsensitive, 'jq'); patterns.set(key, pattern); }
       return await pattern.find(subject, budget) !== undefined;
     },
     async ignores(contents) {

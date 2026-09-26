@@ -22,3 +22,11 @@ test('zero depth and disjoint depth ranges are valid empty searches',()=>{
   assert.equal(parseFdArguments(['-d0']).maxDepth,0);
   assert.equal(parseFdArguments(['--min-depth=2','-d1']).maxDepth,1);
 });
+
+test("fd parses --path-separator, -C/--base-directory, and --strip-cwd-prefix", () => {
+  const a = parseFdArguments(["-C", "sub/dir", "--path-separator", "::", "--strip-cwd-prefix", "README"]);
+  assert.equal(a.baseDirectory, "sub/dir");
+  assert.equal(a.pathSeparator, "::");
+  assert.equal(a.stripCwdPrefix, true);
+  assert.deepEqual(a.patterns, ["README"]);
+});

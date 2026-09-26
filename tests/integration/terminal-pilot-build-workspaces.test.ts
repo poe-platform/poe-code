@@ -1,10 +1,12 @@
 import { readFileSync, statSync } from "node:fs";
-import fs from "node:fs/promises";
+import { createFsFromVolume, Volume } from "memfs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { compileFunction } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { resolveBundleGraph } from "../../scripts/bundle-graph.mjs";
+
+const fs = createFsFromVolume(Volume.fromJSON({ [tmpdir()]: null })).promises;
 
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 
@@ -86,6 +88,15 @@ async function withWorkspace(
       optionalDependencies: { "optional-only": "1" }
     }), { flag: "wx" });
     const manifests = {
+      ...(scanner.rootBundle ? {
+        "safe-bash-contracts": {
+          name: "safe-bash-contracts",
+          exports: {
+            ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+            "./output": { types: "./dist/output.d.ts", import: "./dist/output.js" }
+          }
+        }
+      } : {}),
       [scanner.packageName]: {
         name: scanner.packageName,
         dependencies: { "@poe-code/safe-js": "*", commander: "1" }
@@ -144,15 +155,20 @@ function expectCanonical(
   expect(result.names.sort()).toEqual([
     "@poe-code/safe-fs",
     "@poe-code/safe-js",
+    ...(scanner.rootBundle ? ["safe-bash-contracts"] : []),
     scanner.packageName
-  ]);
+  ].sort());
   const main = scanner.rootBundle ? "src/index.ts" : "src";
   expect(result.aliases).toEqual({
     "@poe-code/safe-fs": path.join(root, "packages/safe-fs", main),
     "@poe-code/safe-fs/errors": path.join(root, "packages/safe-fs/src/errors.ts"),
     "@poe-code/safe-js": path.join(root, "packages/safe-js", main),
     "@poe-code/safe-js/commands": path.join(root, "packages/safe-js/src/commands/index.ts"),
-    [scanner.packageName]: path.join(root, "packages", scanner.packageName, main)
+    [scanner.packageName]: path.join(root, "packages", scanner.packageName, main),
+    ...(scanner.rootBundle ? {
+      "safe-bash-contracts": path.join(root, "packages/safe-bash-contracts", main),
+      "safe-bash-contracts/output": path.join(root, "packages/safe-bash-contracts/src/output.ts")
+    } : {})
   });
   expect(result.external.sort()).toEqual(scanner.rootBundle
     ? ["commander", "node:*", "optional-only", "yaml"]

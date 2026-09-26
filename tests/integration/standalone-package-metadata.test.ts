@@ -190,7 +190,7 @@ describe("standalone package publish metadata", () => {
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {
     expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([
       ".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./ssconvert",
-      "./safe-bash", "./safe-bash/commands/media", "./media", "./media/server",
+      "./safe-bash", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/commands/media", "./media", "./media/server",
       "./safe-bash/image-ast", "./safe-bash/pdf-ast", "./safe-bash/sharp",
       "./remote-execution", "./remote-execution/server", "./remote-execution/providers/*",
       "./safe-fs", "./safe-fs/core", "./safe-fs/node", "./safe-fs/node/filesystem",
@@ -200,7 +200,7 @@ describe("standalone package publish metadata", () => {
     const rootPackage = readPackageJson("package.json");
     expect(rootPackage.exports?.["./ssconvert"]).toEqual({
       types: "./packages/safe-bash-command-ssconvert/dist/index.d.ts",
-      import: "./packages/safe-bash-command-ssconvert/dist/index.js"
+      import: "./dist/ssconvert/index.js"
     });
     expect(rootPackage.files).toContain("packages/safe-bash-command-ssconvert/dist");
   });

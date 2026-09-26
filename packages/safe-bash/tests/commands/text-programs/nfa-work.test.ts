@@ -187,8 +187,9 @@ test("NFA failed admissions and falsey cancellations do not poison a reusable pa
   await assert.rejects(pattern.find("a", makeBudget(4)), { message: "execution step limit exceeded" });
   for (const reason of [undefined, null, false, 0, "", Object.freeze({ cancelled: true })]) {
     const controller = new AbortController();
+    const cancelledBudget = makeBudget(2048, 8192, controller.signal);
     controller.abort(reason);
-    await assert.rejects(pattern.find("a", makeBudget(2048, 8192, controller.signal)), error => error === controller.signal.reason);
+    await assert.rejects(pattern.find("a", cancelledBudget), error => error === controller.signal.reason);
     assert.deepEqual(await pattern.find("a", makeBudget()), { start: 0, end: 1, groups: ["a", "a"] });
   }
 });

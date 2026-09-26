@@ -159,12 +159,16 @@ for (const format of ["%" + "0".repeat(8192) + "q", "%" + "0".repeat(8192) + ".q
   });
 }
 
-test("awk format length has a finite admission boundary even without a runtime budget", () => {
-  const format = "%%".repeat(32768);
-  validateFormat(format);
-  assert.equal(formatted(format, [], text), "%".repeat(32768));
-  assert.throws(() => validateFormat(format + "x"), { message: "format length limit exceeded" });
-  assert.throws(() => formatted(format + "x", [], text), { message: "format length limit exceeded" });
+test("awk long formats honor explicit work and output budgets", () => {
+  for (const suffix of ["", "x"]) {
+    const format = "%%".repeat(32768) + suffix;
+    const expected = "%".repeat(32768) + suffix;
+    validateFormat(format);
+    assert.equal(formatted(format, [], text), expected);
+    assert.throws(() => formatted(format, [], text, budget(format.length - 1, Infinity)), { message: "execution step limit exceeded" });
+    assert.throws(() => formatted(format, [], text, budget(Infinity, expected.length - 1)), { message: "text buffer limit exceeded" });
+    assert.equal(formatted(format, [], text, budget(format.length + expected.length, expected.length)), expected);
+  }
 });
 
 test("awk scanner retains empty precision, repeated flags and width semantics", () => {

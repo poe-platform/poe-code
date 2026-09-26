@@ -51,21 +51,21 @@ test("diff admits matching directory names once", async () => {
   assert.deepEqual(caps, [2, 2]);
 });
 
-test("cross-device move admits its remaining traversal budget", async () => {
+test("cross-device move leaves directory admission unlimited by default", async () => {
   const fs = await fixture({ "sub/a": "x" });
   const { context } = await run("true", [], { fs });
   const read = fs.readdir.bind(fs);
   const budget = new MoveBudget(context.signal);
   const caps: (number | undefined)[] = [];
   fs.readdir = async (path, options) => {
-    assert.equal(options?.maxEntries, budget.remaining);
+    assert.equal(options?.maxEntries, undefined);
     caps.push(options?.maxEntries);
     return read(path, options);
   };
   assert.equal(await moveAcrossDevices(context, "/work/sub", "/work/dest", false, budget), true);
-  // Two lexical ancestors, three canonical ancestors, and the directory visit.
-  assert.deepEqual(caps, [99994]);
-  assert.equal(budget.remaining, 99993, "the child visit consumes the next traversal step");
+  assert.deepEqual(caps, [undefined]);
+  assert.equal(Buffer.from(await fs.readFile("/work/dest/a")).toString(), "x");
+  await assert.rejects(fs.lstat("/work/sub"), { code: "ENOENT" });
 });
 
 for (const route of routes.filter(route => route.name !== "diff")) {

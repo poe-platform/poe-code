@@ -54,25 +54,22 @@ for (const assignment of [false, true]) test(`Worker printf${assignment ? " -v" 
   assert.equal(writes, 0);
 });
 
-test("printf bounds directive work and diagnostic size without limiting literal format length", async () => {
-  const maximum = 16 * 1024;
+test("printf accepts long directives and literals while bounding malformed diagnostics", async () => {
+  const formerMaximum = 16 * 1024;
   for (const raw of [false, true]) {
-    const admitted = "%" + "0".repeat(maximum - 2) + "s";
-    const rejected = "%" + "0".repeat(maximum - 1) + "s";
     const execute = (format: string) => runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format, "x"]);
-    const valid = await execute(admitted);
-    assert.equal(valid.exitCode, 0);
-    assert.equal(valid.stdout.toString(), "x");
-    const oversized = await execute(rejected);
-    assert.equal(oversized.exitCode, 1);
-    assert.equal(oversized.stdout.length, 0);
-    assert.match(oversized.stderr.toString(), /format directive.*limit/);
+    for (const length of [formerMaximum, formerMaximum + 1]) {
+      const valid = await execute("%" + "0".repeat(length - 2) + "s");
+      assert.equal(valid.exitCode, 0);
+      assert.equal(valid.stdout.toString(), "x");
+      assert.equal(valid.stderr.length, 0);
+    }
     const invalid = await execute("%" + "0".repeat(8192) + "!");
     assert.equal(invalid.exitCode, 1);
     assert.equal(invalid.stdout.length, 0);
     assert.match(invalid.stderr.toString(), /invalid format/);
     assert.ok(invalid.stderr.length < 256);
-    const literal = "x".repeat(maximum + 1);
+    const literal = "x".repeat(formerMaximum + 1);
     const long = await execute(literal + "%s");
     assert.equal(long.exitCode, 0);
     assert.equal(long.stdout.toString(), literal + "x");

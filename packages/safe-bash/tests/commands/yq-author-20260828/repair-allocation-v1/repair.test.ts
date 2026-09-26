@@ -109,13 +109,13 @@ test("omitted public caps remain unlimited rather than proof thresholds", async 
 test("WRK-06 CRLF documents above the former raw byte ceiling honor independent work admission", async () => {
   const overByCr = `#${"x".repeat(8_388_608 - 2)}\r\n`;
   assert.equal(Buffer.byteLength(overByCr), 8_388_609);
-  const bounded = await run(overByCr);
+  const bounded = await run(overByCr, { maxSteps: 8_388_608 });
   assert.equal(bounded.status, 5);
   assert.match(bounded.stderr, /LIMIT_MAX_STEPS/);
   const result = await run(overByCr, { maxSteps: 32 * 1024 * 1024 });
   assert.equal(result.status, 0);
   assert.equal(result.stderr, "");
-
+  assert.deepEqual(await run(overByCr), { status: 0, stderr: "" });
 });
 
 test("WRK-07 real parser accepts decoded scalars above the former byte ceiling", async () => {

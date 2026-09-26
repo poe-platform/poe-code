@@ -54,10 +54,19 @@ for (const command of ["test", "["]) {
   });
 
   test(`${command} rejects missing length operands and invalid integers`, async () => {
-    for (const operands of [["2", "-eq", "-l"], ["-l", "abc", "-eq"], ["-l", "abc", "-eq", "invalid"], ["-l", "abc", "-eq", "3", "extra"], [...Array<string>(257).fill("!"), "value"]]) {
+    for (const operands of [["2", "-eq", "-l"], ["-l", "abc", "-eq"], ["-l", "abc", "-eq", "invalid"], ["-l", "abc", "-eq", "3", "extra"]]) {
       const result = await run(command, [...operands, ...suffix]);
       assert.equal(result.exitCode, 2, JSON.stringify(operands));
       assert.notEqual(result.stderr, "");
+    }
+  });
+
+  test(`${command} evaluates negations beyond the former depth boundary`, async () => {
+    for (const count of [256, 257]) {
+      const result = await run(command, [...Array<string>(count).fill("!"), "value", ...suffix]);
+      assert.equal(result.exitCode, count % 2);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
     }
   });
 

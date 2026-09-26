@@ -140,7 +140,7 @@ test("byte batching admits exact capacity and honors argument count", async () =
 test("raw replacement preflights size before allocating amplified buffers", async context => {
   const bytes = new Uint8Array(8193).fill(128);
   bytes[8192] = 0;
-  const initial = createCommandArguments(["-0", "-I{}", "capture", "{}".repeat(8192)]);
+  const initial = createCommandArguments(["-0", "-s", "131072", "-I{}", "capture", "{}".repeat(8192)]);
   const command = executionCommands(() => { assert.fail("over-budget replacement must not invoke"); }).find(definition => definition.name === "xargs")!;
   const errors: Uint8Array[] = [];
   const incoming: CommandContext = { command: "xargs", args: initial.args, argumentValues: initial, fs: new MemoryFileSystem(), cwd: "/", env: {}, signal: new AbortController().signal,

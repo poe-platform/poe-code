@@ -961,7 +961,12 @@ async function keyBytes(line: Uint8Array, key: SortKey, separator: number | unde
 async function emitRecords(context: CommandContext, records: ByteSource, destination?: string): Promise<void> {
   if (destination === undefined) {
     const buffered = createBufferedOutput(context.stdout, context.signal);
-    try { for await (const bytes of records) await buffered.write(bytes); }
+    try {
+      for await (const bytes of records) {
+        await buffered.write(bytes);
+        await buffered.flush();
+      }
+    }
     finally { if (!context.signal.aborted) await buffered.flush(); }
     return;
   }
@@ -2182,6 +2187,10 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
           if (identityKey) previousKey = previous;
         }
         pending.append(chunk, start);
+        if (outUsed > 0) {
+          yield outBuf.slice(0, outUsed);
+          outUsed = 0;
+        }
       }
       if (pending.size) {
         processLine(pending.finish(undefined));

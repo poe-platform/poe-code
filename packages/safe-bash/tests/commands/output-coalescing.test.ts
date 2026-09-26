@@ -64,3 +64,21 @@ test("head with a negative count flushes accepted output before pulling another 
   assert.equal(reads, 2);
   assert.equal(Buffer.concat(chunks).toString(), "a\nb\n");
 });
+
+
+test("uniq flushes accepted groups before pulling another chunk", async () => {
+  const definition = commands.find(command => command.name === "uniq")!;
+  const chunks: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "uniq", args: ["--group=prepend"], cwd: "/", env: {}, fs: createMemoryFileSystem(),
+    signal: new AbortController().signal,
+    stdin: (async function* () {
+      yield Buffer.from("a\na\n");
+      assert.equal(Buffer.concat(chunks).toString(), "\na\na\n", "output must precede the next source pull");
+      yield Buffer.from("b\n");
+    })(),
+    stdout: { async write(bytes) { chunks.push(bytes.slice()); } }, stderr: { async write() {} },
+  };
+  assert.equal((await definition.execute(context)).exitCode, 0);
+  assert.equal(Buffer.concat(chunks).toString(), "\na\na\n\nb\n");
+});

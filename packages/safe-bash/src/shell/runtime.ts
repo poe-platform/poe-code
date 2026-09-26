@@ -2341,41 +2341,6 @@ let cachedRedirectNamePrefix = "";
 let cachedRedirectNameSuffix = "";
 let cachedRedirectNameTable: (string | undefined)[] = new Array(256);
 
-class DynamicFsSignal {
-  current: AbortSignal;
-  constructor(initial: AbortSignal) {
-    this.current = initial;
-  }
-  get aborted(): boolean {
-    return this.current.aborted;
-  }
-  get reason(): unknown {
-    return this.current.reason;
-  }
-  throwIfAborted(): void {
-    this.current.throwIfAborted();
-  }
-  addEventListener(type: string, listener: Parameters<AbortSignal["addEventListener"]>[1], options?: Parameters<AbortSignal["addEventListener"]>[2]): void {
-    this.current.addEventListener(type, listener, options);
-  }
-  removeEventListener(type: string, listener: Parameters<AbortSignal["removeEventListener"]>[1], options?: Parameters<AbortSignal["removeEventListener"]>[2]): void {
-    this.current.removeEventListener(type, listener, options);
-  }
-}
-Object.setPrototypeOf(DynamicFsSignal.prototype, AbortSignal.prototype);
-
-interface SharedMemoryFsEntry {
-  budget: Budget;
-  readonly signal: DynamicFsSignal;
-  readonly charge: () => void;
-  readonly cleanupCharge: () => void;
-  readonly maxPathComponents: number;
-  rawScopedFs: FileSystem | undefined;
-  readonly contextByMask: Map<number, FileSystem>;
-  readonly redirectByMask: Map<number, FileSystem>;
-}
-const sharedMemoryFsCache = new WeakMap<FileSystem, SharedMemoryFsEntry>();
-
 export class Runtime {
   declare readonly commands: CommandRegistry;
   declare readonly middleware: readonly Middleware[];
@@ -2459,16 +2424,6 @@ export class Runtime {
   }
 
   get fs(): FileSystem {
-    if (this._isMemoryBackingFs && this._rawFs === this.sourceFs) {
-      const entry = this.getSharedMemoryFsEntry(this.signal);
-      if (!entry.rawScopedFs) {
-        const created = scopeFileSystem(this._rawFs, entry.charge, entry.signal as unknown as AbortSignal, entry.cleanupCharge, { maxPathComponents: entry.maxPathComponents });
-        runtimeFileSystems.set(created, this.sourceFs);
-        registerRuntimeBackingFileSystem(created, this.backingFs);
-        entry.rawScopedFs = created;
-      }
-      return entry.rawScopedFs;
-    }
     if (!this._fs) {
       this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
       runtimeFileSystems.set(this._fs, this.sourceFs);
@@ -2477,47 +2432,7 @@ export class Runtime {
     return this._fs;
   }
 
-  private getSharedMemoryFsEntry(sig: AbortSignal): SharedMemoryFsEntry {
-    const entry = sharedMemoryFsCache.get(this.sourceFs);
-    const maxPathComponents = this.budget.limits.maxPathnameComponents;
-    if (!entry || entry.maxPathComponents !== maxPathComponents) {
-      const signal = new DynamicFsSignal(sig);
-      const created: SharedMemoryFsEntry = {
-        budget: this.budget,
-        signal,
-        charge: () => created.budget.fileSystemOperation(),
-        cleanupCharge: () => created.budget.fileSystemCleanupOperation(),
-        maxPathComponents,
-        rawScopedFs: undefined,
-        contextByMask: new Map(),
-        redirectByMask: new Map(),
-      };
-      sharedMemoryFsCache.set(this.sourceFs, created);
-      return created;
-    }
-    entry.budget = this.budget;
-    entry.signal.current = sig;
-    return entry;
-  }
-
   private getContextFsFor(umask: number, sig: AbortSignal): FileSystem {
-    if (this._isMemoryBackingFs) {
-      const entry = this.getSharedMemoryFsEntry(sig);
-      let cached = entry.contextByMask.get(umask);
-      if (!cached) {
-        cached = scopeFileSystem(
-          creationFileSystem(this.sourceFs, umask),
-          entry.charge,
-          entry.signal as unknown as AbortSignal,
-          entry.cleanupCharge,
-          { maxPathComponents: entry.maxPathComponents },
-        );
-        runtimeFileSystems.set(cached, this.sourceFs);
-        registerRuntimeBackingFileSystem(cached, this.backingFs);
-        entry.contextByMask.set(umask, cached);
-      }
-      return cached;
-    }
     if (this._contextFs && this._contextFsMask === umask && this._contextFsSignal === sig) {
       return this._contextFs;
     }
@@ -2537,21 +2452,6 @@ export class Runtime {
   }
 
   private getRedirectFs(umask: number): FileSystem {
-    if (this._isMemoryBackingFs) {
-      const entry = this.getSharedMemoryFsEntry(this.commandSignal);
-      let cached = entry.redirectByMask.get(umask);
-      if (!cached) {
-        cached = scopeFileSystem(
-          creationFileSystem(this.sourceFs, umask),
-          entry.charge,
-          entry.signal as unknown as AbortSignal,
-          entry.cleanupCharge,
-          { preserveDescriptorWriteReceipt: true, maxPathComponents: entry.maxPathComponents },
-        );
-        entry.redirectByMask.set(umask, cached);
-      }
-      return cached;
-    }
     if (this._redirectFs && this._redirectFsMask === umask) return this._redirectFs;
     this._redirectFsMask = umask;
     return (this._redirectFs = scopeFileSystem(
